@@ -1,0 +1,7 @@
+name = "git-repository-hagvisir"
+compatibility_date = "2026-06-29"
+
+# Static-assets-only Worker: serve everything in dist/ (karp-app.js, karp-data.txt, _headers).
+# No server code (no `main`) — this just hosts the built frontend on the CDN.
+[assets]
+directory = "./dist"
