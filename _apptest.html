@@ -1,0 +1,33 @@
+<!doctype html><html lang="is"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KARP app.js test</title>
+<style>html,body{margin:0;background:#070b16}</style>
+<script>
+// --- Mock innskráður notandi (admin) svo login-gate opnist ---
+window.KARP_USER={loggedIn:true,isAdmin:true,name:"Prufa",displayName:"Prufa",loginUrl:"/login/",registerUrl:"/skra-sig/",nonce:"x",favs:[],follows:[],fields:{sveitarfelag:"Kópavogsbær"}};
+// --- Mock WP REST endapunkta; allt annað fer í gegn (karp-data.txt, o.fl.) ---
+(function(){
+  var real=window.fetch.bind(window);
+  function J(o){return Promise.resolve(new Response(JSON.stringify(o),{status:200,headers:{'Content-Type':'application/json'}}));}
+  var now=Math.floor(Date.now()/1000);
+  function timeline(){var a=[];for(var i=29;i>=0;i--){var d=new Date(Date.now()-i*86400000);a.push({d:d.toISOString().slice(0,10),n:Math.max(0,Math.round(2+2*Math.sin(i/3)+(i%5===0?3:0))),idx:Math.round(-30+40*Math.sin(i/5)),scored:5});}return a;}
+  window.fetch=function(url,opt){
+    var u=String(url);
+    if(u.indexOf('/wp-json/karp/v1/newsstatus')>-1){return J({ready:true,count:13247,sources:8,oldest:now-160*86400,newest:now-1800,last:{t:now-1800,added:14},next:now+1800,feeds:9});}
+    if(u.indexOf('/wp-json/karp/v1/agenda')>-1){var tp=null;try{tp=(opt&&opt.body)?JSON.parse(opt.body).topics:null;}catch(e){}var names=(tp||[]).slice(0,16).map(function(e){return e.n;});var wk=[];for(var wi=20;wi>=0;wi--){wk.push(new Date(Date.now()-wi*7*86400000).toISOString().slice(0,10));}var tps=names.map(function(nm,k){var weeks=wk.map(function(_,j){return Math.max(0,Math.round(9-k+5*Math.sin((j+k)/3)));});return {n:nm,total:weeks.reduce(function(a,b){return a+b;},0),recent:8+((k*7)%18),prior:8+((k*13)%18),weeks:weeks};});tps.sort(function(a,b){return b.total-a.total;});return J({ready:true,weekKeys:wk,topics:tps,days:180});}
+    if(u.indexOf('/wp-json/karp/v1/me')>-1){if(opt&&opt.method==='POST'){return J({ok:true});}return J({ok:true,fields:{sveitarfelag:"Kópavogsbær",kjordaemi:"Suðvesturkjördæmi",ahugasvid:["Sveitarstjórnir","Markaðir"]}});}
+    if(u.indexOf('/wp-json/karp/v1/yearreview')>-1){var mm=["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"];var months=mm.map(function(k,i){return {m:k,n:7800+Math.round(1800*Math.sin(i/2)),scored:7600+Math.round(1700*Math.sin(i/2)),idx:-18+Math.round(22*Math.sin(i/1.7))};});return J({ready:true,year:2026,total:51493,scored:51001,months:months,bySource:[{s:"Vísir",n:28924},{s:"RÚV",n:7699},{s:"mbl.is",n:6800}],best:{m:"2026-03",idx:9},worst:{m:"2026-01",idx:-30}});}
+    if(u.indexOf('/wp-json/karp/v1/firma')>-1){
+      var _items=[];for(var _k=0;_k<11;_k++)_items.push({title:"Frétt nr. "+(_k+1),source:["mbl.is","Vísir","RÚV","DV"][_k%4],link:"https://mbl.is/x"+_k,date:now-3600*(_k+1)});
+      return J({ready:true,total:58,items:_items,timeline:timeline(),words:[{w:"icelandair",n:58},{w:"flug",n:24}],stats:{perDay:1.9,avgWords:7.4,sources:[{s:"mbl.is",n:28},{s:"Vísir",n:14}]},sentiment:{idx:-28,n:50,pos:12,neu:20,neg:18,scored:50,total:58,bySource:[{s:"mbl.is",n:28,idx:-40,pos:5,neu:9,neg:14},{s:"Vísir",n:14,idx:-7,pos:4,neu:7,neg:3},{s:"RÚV",n:7,idx:14,pos:3,neu:3,neg:1}]}});
+    }
+    if(u.indexOf('/wp-json/karp/v1/frettir')>-1){return J({items:[{title:"Verðbólga mælist 4,1% í júní",source:"RÚV",link:"https://ruv.is/x",date:now-7200}]});}
+    return real(url,opt);
+  };
+})();
+</script>
+</head><body>
+<!-- Akkúrat eins og WordPress-síðan myndi gera: einn fastur mount + ein script-lína -->
+<div id="karp-app"></div>
+<script src="/dist/karp-app.js?v=test"></script>
+</body></html>

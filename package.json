@@ -1,0 +1,15 @@
+{
+  "name": "karp-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build_app.js",
+    "build:embed": "node build_embed.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
+    "pdf2json": "^4.0.3",
+    "terser": "^5.48.0",
+    "xlsx": "^0.18.5"
+  }
+}

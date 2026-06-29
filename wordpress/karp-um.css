@@ -1,0 +1,175 @@
+/* ============================================================================
+   Karp — Ultimate Member í Karp-útliti (dökkt leikja-þema)
+   ----------------------------------------------------------------------------
+   UPPSETNING (WPCode):  Add Snippet → Add Your Custom Code → "CSS Snippet" →
+     límdu ALLT þetta (engin <?php, engin <style>) → Active · Auto Insert ·
+     Run Everywhere · Save.
+   (Eða: Útlit → Sérsniðið CSS / Additional CSS — sama virkar.)
+
+   Hefur AÐEINS áhrif á UM-síður (body.um-page): Innskráning, Nýskráning,
+   Aðgangur (Account), Prófíll, Endurstilla lykilorð. Aðrar síður ósnertar.
+   Litir teknir beint úr mælaborðinu (dökkt þema): bg #070b16, ink #eaf1fb,
+   teal #19d3c5, hálfgegnsæ hvít spjöld + rammar.
+   ============================================================================ */
+
+/* ---- Síðan sjálf: dökkur Karp-bakgrunnur með teal-glóð ---------------------- */
+body.um-page{
+  background:#070b16;
+  background-image:
+    radial-gradient(120% 80% at 10% -8%, rgba(25,211,197,.10), transparent 55%),
+    radial-gradient(120% 85% at 100% 0%, rgba(27,111,179,.18), transparent 55%),
+    linear-gradient(180deg,#0a1122,#070b16 62%);
+  background-attachment:fixed;
+  color:#eaf1fb;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;
+}
+/* miðja innihaldið lóðrétt + lárétt */
+body.um-page .wp-site-blocks{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}
+body.um-page .entry-content{width:100%;max-width:none!important;box-sizing:border-box;display:flex;justify-content:center;padding:44px 18px}
+
+/* ---- Formrammi / kort -------------------------------------------------------- */
+body.um-page .um{width:100%;max-width:440px;margin:0 auto!important;float:none!important}
+body.um-page .um-form{
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+  padding:30px 30px 26px;
+  box-shadow:0 26px 64px -22px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.05);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  position:relative;overflow:hidden
+}
+/* teal-rönd efst á kortinu */
+body.um-page .um-form::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#1b6fb3,#19d3c5,#1b6fb3)
+}
+
+/* ---- Karp-merki fyrir ofan innskráningar-/nýskráningarform ------------------- */
+body.um-page-loggedout .um::before{
+  content:"";display:block;width:62px;height:62px;margin:0 auto 20px;border-radius:17px;
+  background:#0c1426 url('https://karp.is/wp-content/uploads/2025/07/cropped-KARP2-192x192.png') center/64% no-repeat;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 28px -8px rgba(25,211,197,.45)
+}
+
+/* ---- Reitir (input/textarea/select) ---------------------------------------- */
+body.um-page .um .um-field{margin-bottom:16px}
+body.um-page .um .um-field-label label{
+  color:#aab6cc!important;font-size:12.5px!important;font-weight:600!important;
+  letter-spacing:.015em;margin-bottom:7px!important;display:block
+}
+body.um-page .um input[type=text],
+body.um-page .um input[type=email],
+body.um-page .um input[type=password],
+body.um-page .um input[type=tel],
+body.um-page .um input[type=number],
+body.um-page .um input[type=search],
+body.um-page .um input[type=url],
+body.um-page .um input[type=date],
+body.um-page .um textarea,
+body.um-page .um select,
+body.um-page .um .um-form-field{
+  background:rgba(255,255,255,.05)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:11px!important;
+  color:#eaf1fb!important;
+  font-size:14.5px!important;
+  padding:12px 14px!important;
+  height:auto!important;line-height:1.3!important;
+  box-shadow:none!important;
+  -webkit-appearance:none;appearance:none;
+  transition:border-color .15s,box-shadow .15s,background .15s
+}
+body.um-page .um textarea{min-height:96px}
+body.um-page .um .um-form-field::placeholder{color:#5d6b82!important;opacity:1}
+body.um-page .um .um-form-field:focus,
+body.um-page .um select:focus,
+body.um-page .um textarea:focus{
+  border-color:#19d3c5!important;
+  background:rgba(255,255,255,.07)!important;
+  box-shadow:0 0 0 3px rgba(25,211,197,.18)!important;
+  outline:none!important
+}
+/* dökkir valmöguleikar í fellilistum + native popup dökkur (color-scheme) */
+body.um-page .um select option{background-color:#0c1426;color:#eaf1fb}
+body.um-page .um select,body.um-page select{color-scheme:dark}
+
+/* ---- Hnappar ---------------------------------------------------------------- */
+body.um-page .um .um-button,
+body.um-page .um input[type=submit].um-button{
+  background:linear-gradient(135deg,#1b6fb3,#1597b8)!important;
+  color:#fff!important;border:1px solid transparent!important;border-radius:11px!important;
+  font-weight:700!important;font-size:14.5px!important;letter-spacing:.01em;
+  padding:12px 18px!important;height:auto!important;line-height:1.25!important;
+  width:100%;display:block;text-align:center;text-decoration:none!important;box-sizing:border-box;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  box-shadow:0 9px 24px -9px rgba(21,151,184,.65)!important;
+  transition:filter .15s,transform .12s
+}
+body.um-page .um .um-button:hover{filter:brightness(1.12);transform:translateY(-1px)}
+body.um-page .um .um-button:active{transform:translateY(0)}
+/* "alt"-hnappur (t.d. Nýskrá við hlið Innskrá) — hlutlausari */
+body.um-page .um .um-button.um-alt{
+  background:rgba(255,255,255,.06)!important;color:#cdd6e6!important;
+  border:1px solid rgba(255,255,255,.14)!important;box-shadow:none!important
+}
+body.um-page .um .um-button.um-alt:hover{background:rgba(255,255,255,.1)!important;filter:none}
+
+/* tveggja-dálka hnapparöð (Innskrá | Nýskrá) — sjálfstætt, háð ekki UM-grunn-CSS */
+body.um-page .um .um-half{width:calc(50% - 5px);box-sizing:border-box}
+body.um-page .um .um-left.um-half{float:left}
+body.um-page .um .um-right.um-half{float:right}
+body.um-page .um .um-clear{clear:both}
+
+/* ---- Tenglar + smáatriði ---------------------------------------------------- */
+body.um-page .um a,
+body.um-page .um .um-link-alt{color:#19d3c5!important;text-decoration:none;font-weight:600}
+body.um-page .um a:hover{filter:brightness(1.15);text-decoration:underline}
+body.um-page .um .um-col-alt{margin-top:6px}
+body.um-page .um .um-col-alt-b{text-align:center;margin-top:16px}
+
+/* gátreitur ("Muna mig") */
+body.um-page .um .um-field-checkbox-option{color:#aab6cc;font-size:13px}
+body.um-page .um .um-field-checkbox-state i{color:#19d3c5}
+
+/* ---- Aðgangs-síða (Account: hliðar-flipar + meginsvæði) --------------------- */
+body.um-page-account .um,
+body.um-page-profile .um,
+body.um-page-user .um{max-width:840px}
+body.um-page .um-account-side{
+  background:rgba(255,255,255,.03)!important;
+  border:1px solid rgba(255,255,255,.09)!important;border-radius:16px!important
+}
+body.um-page .um-account-side li a{color:#cdd6e6!important;border-color:rgba(255,255,255,.06)!important}
+body.um-page .um-account-side li.current a,
+body.um-page .um-account-side li a:hover{color:#19d3c5!important;background:rgba(25,211,197,.06)!important}
+body.um-page .um-account-side li.current a i,
+body.um-page .um-account-side li a i{color:#19d3c5!important}
+
+/* ---- Prófíl-síða (cover, mynd, nafn) ---------------------------------------- */
+body.um-page .um-profile .um-cover{border-radius:18px;overflow:hidden}
+body.um-page .um-profile .um-profile-photo img{border:3px solid rgba(255,255,255,.14)!important}
+body.um-page .um-profile .um-name,
+body.um-page .um-profile .um-name a{color:#eaf1fb!important}
+body.um-page .um-profile .um-meta,
+body.um-page .um-profile .um-meta a{color:#aab6cc!important}
+body.um-page .um-profile-body .um-field-label{color:#8fa0ba!important}
+
+/* ---- Skilaboð / validation -------------------------------------------------- */
+body.um-page .um .um-field-error{
+  background:rgba(255,107,107,.10)!important;border:1px solid rgba(255,107,107,.4)!important;
+  color:#ffb3b3!important;border-radius:0 0 10px 10px!important;font-size:12.5px
+}
+body.um-page .um-notice.err,
+body.um-page .um .um-notice.err{
+  background:rgba(255,107,107,.10)!important;border:1px solid rgba(255,107,107,.4)!important;
+  color:#ffb3b3!important;border-radius:11px!important
+}
+body.um-page .um-notice.success{
+  background:rgba(25,211,197,.10)!important;border:1px solid rgba(25,211,197,.35)!important;
+  color:#aef3ea!important;border-radius:11px!important
+}
+
+/* ---- Smávægilegt: fela honeypot snyrtilega (UM gerir það nú þegar) ---------- */
+body.um-page .um .um_request_name{display:none!important}
