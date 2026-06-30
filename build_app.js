@@ -15,7 +15,7 @@ const path = require('path');
 const { minify } = require('terser');
 const ROOT = __dirname;
 const p = (...a) => path.join(ROOT, ...a);
-const DATA_FILE_URL = process.env.KARP_DATA_URL || '/wp-content/uploads/2026/06/karp-data.txt';
+const DATA_FILE_URL = process.env.KARP_DATA_URL || 'https://git-repository-hagvisir.aronheidars.workers.dev/karp-data.txt';
 
 (async () => {
   const src = fs.readFileSync(p('dashboard.html'), 'utf8');
