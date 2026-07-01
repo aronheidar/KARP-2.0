@@ -1,0 +1,8 @@
+# Cloudflare Workers (static assets) fyrir Astro-appið í web/.
+# Notað af karp2-verkefninu ÞEGAR root directory = web (eða build/deploy keyrt í web/).
+# ÓHÁÐ rót-wrangler.toml (git-repository-hagvisir = karp-app.js) → engin árekstur.
+name = "karp2"
+compatibility_date = "2026-06-29"
+
+[assets]
+directory = "./dist"
