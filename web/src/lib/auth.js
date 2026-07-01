@@ -8,7 +8,9 @@
 // (2) define('COOKIE_DOMAIN','.karp.is') í wp-config, (3) app.karp.is undirlén.
 // Þar til þetta er komið → /me skilar 404/engri lotu → allt sýnir „útskráð" (brotnar ekki).
 
-export const KARP_API = 'https://www.karp.is/wp-json/karp/v1';
+// ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
+// Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
+export const KARP_API = 'https://karp.is/wp-json/karp/v1';
 
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -78,7 +80,7 @@ function injectChipCss() {
 export function renderChip(el, u) {
   injectChipCss();
   u = u || window.KARP_USER || { loggedIn: false };
-  const site = 'https://www.karp.is';
+  const site = 'https://karp.is';
   if (u.loggedIn) {
     const av = u.avatar ? `<img class="kc-av" src="${esc(u.avatar)}" alt="" width="26" height="26">`
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;
