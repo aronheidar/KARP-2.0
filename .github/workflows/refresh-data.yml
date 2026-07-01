@@ -1,0 +1,57 @@
+# Á4 — sjálfvirkur gagnaferskleiki (#1b felld inn í #2).
+# ---------------------------------------------------------------------------
+# Keyrir CI-öruggu gagnaskriftina build_polls.js reglulega (aðeins fetch á
+# Wikipedia — engir lyklar, engin staðbundin skjöl, engar npm-deps).
+#   • Breytist polls.json → commit + push → Cloudflare endurbyggir BÆÐI verkefnin
+#     (karp21 = Astro SSG-síður, git-repository-hagvisir = karp-app.js) → fersk
+#     sætaspá (althingi) OG fersk karp-data (mælaborð).
+#   • Engin breyting → (valfrjálst) deploy hook þvingar endurbyggingu svo
+#     efnahagur sæki ferska verðbólgu frá Hagstofu á byggingartíma.
+#     Án hook ferskast efnahagur hvort eð er við næstu polls-ýtingu (~vikulega).
+#
+# ⚠ Handvirkt áfram (ekki CI-öruggt): sveitarfélaga-gögn (atvinnuleysi/fasteignir
+#   = xlsx/xlsm), afbrot, orka o.fl. → sveitarfelog-síðan ferskast við handvirka
+#   gogn/-uppfærslu + push. Sjá „Gagnapípan" í wiki.
+name: refresh-data
+
+on:
+  schedule:
+    - cron: '0 6 * * *'      # daglega kl. 06:00 UTC
+  workflow_dispatch: {}       # + handvirkt í Actions-flipanum
+
+permissions:
+  contents: write             # svo botninn geti committað fersk gögn
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fersk kannanagögn (polls.json)
+        run: node skriptur/build_polls.js
+
+      - name: Committa ef breyting — annars þvinga endurbyggingu
+        env:
+          CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
+        run: |
+          if ! git diff --quiet -- gogn/; then
+            git config user.name  "karp-bot"
+            git config user.email "karp-bot@users.noreply.github.com"
+            git add gogn/
+            git commit -m "data: sjálfvirk uppfærsla kannana ($(date -u +%F))"
+            git push
+            echo "✔ Gögn breyttust → ýtt. Cloudflare endurbyggir bæði verkefnin."
+          elif [ -n "$CF_DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$CF_DEPLOY_HOOK" >/dev/null \
+              && echo "✔ Engin gagnabreyting → deploy hook þvingaði endurbyggingu (fersk Hagstofa)."
+          else
+            echo "• Engin breyting og enginn CF_DEPLOY_HOOK — sleppi. efnahagur ferskast við næstu gagna-ýtingu."
+          fi
