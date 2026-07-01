@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
+import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
 
 let rows = [];
 let err = null;
@@ -35,6 +36,18 @@ const vals = rows.map((r) => r.v);
 const latest = rows.length ? rows[rows.length - 1] : null;
 const latestPct = latest ? fmtNum(latest.v, 1) : '—'; // ← @lib/format
 const updated = '2026-07-01';
+
+// --- Lykiltölur (#2 ríkari efnahagur): gengi (frankfurter/ECB á byggingartíma) + atvinnuleysi + stýrivextir ---
+let fx = null;
+try {
+  const fr = await fetch('https://api.frankfurter.app/latest?from=EUR&to=ISK,USD,GBP');
+  const fj = await fr.json();
+  const eurIsk = fj.rates.ISK; // ISK per EUR
+  fx = { date: fj.date, eur: eurIsk, usd: eurIsk / fj.rates.USD, gbp: eurIsk / fj.rates.GBP };
+} catch (e) { /* fx null → strikin sýna – */ }
+const unemp = ATVINNULEYSI.latest;         // % skráð atvinnuleysi (Vinnumálastofnun)
+// Seðlabanki birtir stýrivexti EKKI um opið CORS-API → hardkóðað með dagsetningu, uppfæra eftir hverja vaxtaákvörðun.
+const POLICY = { rate: 7.75, from: '20.5.2026', next: '19.8.2026' };
 
 // Næsti mánuður (fyrir spá-eyjuna) + stöðugur topic-lykill.
 let nextLabel = '', spaTopic = 'vnv_ars_next';
@@ -78,6 +91,20 @@ const jsonLd = {
       Seðlabanka Íslands. Heimild: Hagstofa Íslands.
     </p>
 
+    <h2>Lykiltölur</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">📉 Verðbólga</div><div class="k-v">{latestPct}%</div><div class="k-s">ársverðbólga</div></div>
+      <div class="kpi"><div class="k-l">🏦 Stýrivextir</div><div class="k-v">{fmtNum(POLICY.rate, 2)}%</div><div class="k-s">frá {POLICY.from}</div></div>
+      <div class="kpi"><div class="k-l">👷 Atvinnuleysi</div><div class="k-v">{fmtNum(unemp, 1)}%</div><div class="k-s">skráð</div></div>
+      <div class="kpi"><div class="k-l">€ EUR/ISK</div><div class="k-v">{fx ? fmtNum(fx.eur, 1) : '–'}</div><div class="k-s">kr. per €</div></div>
+      <div class="kpi"><div class="k-l">$ USD/ISK</div><div class="k-v">{fx ? fmtNum(fx.usd, 1) : '–'}</div><div class="k-s">kr. per $</div></div>
+      <div class="kpi"><div class="k-l">£ GBP/ISK</div><div class="k-v">{fx ? fmtNum(fx.gbp, 1) : '–'}</div><div class="k-s">kr. per £</div></div>
+    </div>
+    <p class="src">
+      Gengi: frankfurter.app (ECB){fx ? `, ${fx.date}` : ''} · Stýrivextir: Seðlabanki Íslands (næsta ákvörðun {POLICY.next}) · Atvinnuleysi: Vinnumálastofnun ({ATVINNULEYSI.updated}).
+    </p>
+
+    <h2>Verðbólga — þróun</h2>
     <div id="chart" role="img" aria-label={`Línurit: ársverðbólga síðustu ${rows.length} mánuði, nú ${latestPct}%`}></div>
 
     <h2>Mánaðarleg gildi</h2>
@@ -108,6 +135,12 @@ const jsonLd = {
     .big { font-size: 52px; font-weight: 800; color: #f6b13b; line-height: 1; margin: 6px 0 2px; }
     .big span { font-size: 15px; font-weight: 500; color: #9fb0c8; margin-left: 6px; }
     p { color: #cdd6e6; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin: 4px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 11px 13px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 22px; font-weight: 800; color: #f6b13b; line-height: 1.15; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     #chart { width: 100%; height: 360px; margin: 20px 0 8px; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }

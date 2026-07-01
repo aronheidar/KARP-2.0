@@ -8,6 +8,8 @@ const NAV = [
   { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
   { href: '/sveitarfelog/', label: 'Sveitarfélög', emoji: '🏘️' },
   { href: '/althingi/', label: 'Alþingi', emoji: '🏛️' },
+  { href: '/thingmal/', label: 'Þingmál', emoji: '📜' },
+  { href: '/kannanir/', label: 'Kannanir', emoji: '📊' },
 ];
 const path = Astro.url.pathname;
 const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
@@ -49,6 +51,12 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       .content { min-width:0; }
       .pg { max-width:860px; margin:0 auto; padding:34px 28px 64px; }
 
+      /* View Transitions: aðeins efnið hreyfist — skelin (nav+fréttir) er föst. */
+      ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+      .content > main { animation: pageIn .22s ease both; }
+      @keyframes pageIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) { .content > main { animation: none; } }
+
       /* FRÉTTIR (hægra) */
       .news { border-left:1px solid var(--line); padding:20px 16px; position:sticky; top:0; height:100vh; overflow-y:auto; }
       .news-h { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); font-weight:700; margin-bottom:10px; }
@@ -75,7 +83,7 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
   </head>
   <body>
     <div class="shell">
-      <aside class="nav">
+      <aside class="nav" transition:persist>
         <a class="brand" href="/">KARP</a>
         <nav>
           {NAV.map((n) => <a class={`nav-a${active(n.href) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>)}
@@ -86,7 +94,7 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
 
       <div class="content"><slot /></div>
 
-      <aside class="news">
+      <aside class="news" transition:persist>
         <div class="news-h">📰 Fréttir</div>
         <div id="news-list">Hleð…</div>
       </aside>
@@ -115,10 +123,21 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
           .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á app.karp.is).</div>'; });
       }
 
+      // Fasta nav-ið (transition:persist) heldur virku stöðunni frá FYRSTU síðu → uppfæra með JS.
+      function updateActiveNav() {
+        const p = location.pathname;
+        document.querySelectorAll('.nav-a').forEach((a) => {
+          const href = a.getAttribute('href');
+          a.classList.toggle('on', href === '/' ? p === '/' : p.startsWith(href));
+        });
+      }
+
       function mountShell() {
+        // Chip + fréttir eru í föstu skelinni → festa aðeins einu sinni (dataset lifir persist).
         const chipEl = document.getElementById('chip');
-        if (chipEl) mountChip(chipEl);
+        if (chipEl && !chipEl.dataset.mounted) { chipEl.dataset.mounted = '1'; mountChip(chipEl); }
         loadUser().then((u) => { const m = document.getElementById('nav-mitt'); if (m && u && u.loggedIn) m.hidden = false; });
+        updateActiveNav();
         paintNews();
       }
 

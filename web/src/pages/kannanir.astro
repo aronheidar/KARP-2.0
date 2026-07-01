@@ -1,0 +1,171 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Kannanir: fylgi flokka yfir tíma úr polls.json.
+// Byggingartíma: raðar könnunum í tímaröð (kosningar 2024 fyrst), býr til
+// línu per flokk (litað úr parties.mjs) + töflu (nú vs síðasta vs kosningar).
+// Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { partyName, partyColor } from '@lib/parties.mjs';
+import { fmtNum, MON } from '@lib/format.mjs';
+import POLLS from '@gogn/polls.json';
+
+const parties = POLLS.parties;
+const polls = POLLS.polls;
+const el2024 = POLLS.election2024;
+
+// Tímalína: kosningar 2024 fyrst, svo kannanir.
+const points = [{ date: el2024.date, pollster: 'Kosningar 2024', v: el2024.v, isElection: true }, ...polls];
+const shortDate = (d) => { const [y, m] = d.split('-'); return `${MON[+m - 1]} '${y.slice(2)}`; };
+const chartDates = points.map((p) => shortDate(p.date));
+
+// Lína per flokk (null þar sem flokk vantar í könnun → echarts brúar).
+const chartSeries = parties.map((code) => ({
+  name: partyName(code),
+  color: partyColor(code),
+  data: points.map((p) => (p.v[code] != null ? p.v[code] : null)),
+}));
+
+const latest = polls[polls.length - 1];
+const prev = polls[polls.length - 2] || {};
+const prevV = prev.v || {};
+
+const rows = parties
+  .map((code) => ({
+    code, name: partyName(code), color: partyColor(code),
+    now: latest.v[code] ?? null,
+    prev: prevV[code] ?? null,
+    el: el2024.v[code] ?? null,
+  }))
+  .sort((a, b) => (b.now || 0) - (a.now || 0));
+
+const top = rows[0];
+const updated = '2026-07-01';
+const chg = (a, b) => (a == null || b == null ? null : Math.round((a - b) * 10) / 10);
+const chgTxt = (d) => (d == null ? '–' : d > 0 ? '+' + fmtNum(d, 1) : d < 0 ? fmtNum(d, 1) : '±0');
+
+const desc = `Fylgi íslenskra stjórnmálaflokka í skoðanakönnunum frá Alþingiskosningum 2024 til ${latest.date}. Nýjasta könnun (${latest.pollster}): ${top.name} stærst með ${fmtNum(top.now, 1)}%. Byggt á ${polls.length} könnunum.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Fylgi stjórnmálaflokka á Íslandi — kannanir',
+  description: 'Þróun fylgis íslenskra stjórnmálaflokka í skoðanakönnunum frá Alþingiskosningum 2024, með samanburði við kosningaúrslit.',
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: updated,
+  spatialCoverage: 'Ísland',
+  temporalCoverage: `${el2024.date}/${latest.date}`,
+  variableMeasured: 'Fylgi flokka (%)',
+};
+---
+
+<Layout
+  title={`Kannanir — fylgi flokka | Karp`}
+  description={desc}
+  canonical="https://app.karp.is/kannanir/"
+  jsonLd={jsonLd}
+  ogTitle="Kannanir — fylgi flokka á Íslandi"
+>
+  <main>
+    <p class="kicker">Hagvísir Íslands · Kannanir</p>
+    <h1>Fylgi flokka í könnunum</h1>
+    <p>
+      Þróun fylgis frá Alþingiskosningum 2024 til <strong>{latest.date}</strong> — {polls.length} kannanir.
+      Nýjust: <strong>{latest.pollster}</strong>, þar sem <strong style={`color:${top.color}`}>{top.name}</strong> er
+      stærst með {fmtNum(top.now, 1)}%. Heimild: {POLLS.source}{POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>Wikipedia</a>)</> : null}.
+    </p>
+
+    <h2>Þróun yfir tíma</h2>
+    <div id="chart"></div>
+
+    <h2>Nýjasta staðan</h2>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th class="l">Flokkur</th><th>Nú</th><th>Frá síðustu</th><th>Kosningar '24</th><th>Frá kosningum</th></tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td class="l"><span class="dot" style={`background:${r.color}`}></span><span class="party">{r.name}</span></td>
+              <td class="num"><strong>{r.now == null ? '–' : fmtNum(r.now, 1) + '%'}</strong></td>
+              <td class={`num ${chg(r.now, r.prev) > 0 ? 'up' : chg(r.now, r.prev) < 0 ? 'dn' : 'fl'}`}>{chgTxt(chg(r.now, r.prev))}</td>
+              <td class="num">{r.el == null ? '–' : fmtNum(r.el, 1) + '%'}</td>
+              <td class={`num ${chg(r.now, r.el) > 0 ? 'up' : chg(r.now, r.el) < 0 ? 'dn' : 'fl'}`}>{chgTxt(chg(r.now, r.el))}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">
+      ⓘ Kannanir eru óvissar (skekkjumörk, mismunandi aðferðir könnuða). „Frá kosningum" ber saman við raunúrslit
+      Alþingiskosninga 30. nóvember 2024. Sjá <a href="/althingi/">sætaspá Alþingis</a> fyrir þýðingu fylgis í þingsæti.
+    </p>
+
+    <p class="foot">
+      Forþjónað (SSG) {updated}. Fylgistölur teknar saman af Wikipedia (frjáls heimild), flokkslitir + heiti úr sameiginlega
+      <code> src/lib/parties</code>. #2.
+    </p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    p a { color: #9fb0c8; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    #chart { width: 100%; height: 420px; margin: 8px 0; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .note a { color: #f6b13b; }
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+    th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    td.l, th.l { text-align: left; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+    .party { font-weight: 600; }
+    .num { font-variant-numeric: tabular-nums; }
+    .up { color: #46e08a; } .dn { color: #ff6d7a; } .fl { color: #7e8ca6; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+
+  <!-- Eyja: fjöllínurit fylgis (ECharts). Keyrir á astro:page-load (VT). #2 -->
+  <script define:vars={{ chartDates, chartSeries }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        legend: { data: chartSeries.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0, type: 'scroll' },
+        grid: { left: 40, right: 18, top: 40, bottom: 28 },
+        xAxis: {
+          type: 'category', data: chartDates, boundaryGap: false,
+          axisLabel: { color: '#7e8ca6', fontSize: 10, interval: 'auto' },
+          axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } },
+        },
+        yAxis: {
+          type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' },
+          splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } },
+        },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v + '%') },
+        series: chartSeries.map((s) => ({
+          name: s.name, type: 'line', data: s.data, smooth: true, connectNulls: true,
+          symbol: 'circle', symbolSize: 4, lineStyle: { width: 2, color: s.color }, itemStyle: { color: s.color },
+        })),
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    document.addEventListener('astro:page-load', initChart);
+  </script>
+</Layout>

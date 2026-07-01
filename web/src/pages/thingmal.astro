@@ -1,0 +1,186 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Þingmál: nýjustu efnismál (frumvörp + tillögur) úr
+// frumvorp.json með Alþingis-úrslitum + samantekt + „kjóstu þína skoðun"-eyju
+// (karpGet/karpPost /vote gegnum auth.js; lazy-hydrað með IntersectionObserver).
+// Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { partyName } from '@lib/parties.mjs';
+import FRUMVORP from '@gogn/frumvorp.json';
+
+const pName = (k) => (k === 'U' ? 'Óháðir' : partyName(k) || k);
+
+const LIMIT = 40;
+const bills = FRUMVORP
+  .filter((b) => b.hs === 'Frv.' || b.hs === 'Till.')
+  .sort((a, b) => (b.d || '').localeCompare(a.d || '') || b.nr - a.nr)
+  .slice(0, LIMIT)
+  .map((b) => {
+    const P = b.P || {};
+    const dissent = Object.keys(P).filter((k) => (P[k][1] || 0) > 0).map(pName);
+    return {
+      key: 'mal_' + b.nr,
+      titill: b.titill,
+      type: b.hs === 'Frv.' ? 'Frumvarp' : 'Tillaga',
+      isFrv: b.hs === 'Frv.',
+      d: b.d,
+      ja: b.ja || 0, nei: b.nei || 0, fj: b.fj || 0,
+      stada: b.stada || '',
+      sam: b.sam || '',
+      passed: (b.stada || '').startsWith('Samþykkt'),
+      dissent,
+    };
+  });
+
+const updated = '2026-07-01';
+const nPassed = bills.filter((b) => b.passed).length;
+const desc = `Nýjustu ${bills.length} þingmál á Alþingi — frumvörp og þingsályktunartillögur með atkvæðagreiðslu, niðurstöðu og samantekt. Kjóstu þína eigin skoðun á hverju máli.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Þingmál á Alþingi',
+  description: 'Nýjustu frumvörp og þingsályktunartillögur á Alþingi með atkvæðagreiðslu og niðurstöðu.',
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: updated,
+  spatialCoverage: 'Ísland',
+};
+---
+
+<Layout
+  title="Þingmál — nýjustu frumvörp & tillögur | Karp"
+  description={desc}
+  canonical="https://app.karp.is/thingmal/"
+  jsonLd={jsonLd}
+  ogTitle="Þingmál á Alþingi"
+>
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <h1>Þingmál</h1>
+    <p>
+      {bills.length} nýjustu efnismál á Alþingi — frumvörp og þingsályktunartillögur með niðurstöðu
+      atkvæðagreiðslu. {nPassed} þeirra voru samþykkt. <strong>Kjóstu þína eigin skoðun</strong> á hverju máli
+      og sjáðu hvernig aðrir lesendur Karp greiða atkvæði.
+    </p>
+    <p class="note">
+      ⓘ „Alþingi" sýnir raunatkvæði þingmanna (með–á móti · fjarvist). „Þín skoðun" er óformleg könnun meðal
+      innskráðra lesenda Karp — ekki þingatkvæði. Gögn frá althingi.is.
+    </p>
+
+    <div class="bills">
+      {bills.map((b) => (
+        <article class="bill">
+          <div class="b-top">
+            <span class={`badge ${b.isFrv ? 'frv' : 'till'}`}>{b.type}</span>
+            <span class="b-date">{b.d}</span>
+          </div>
+          <h2 class="b-title">{b.titill}</h2>
+          {b.sam && <p class="b-sam">{b.sam}</p>}
+          <div class="b-result">
+            {b.stada && <span class={`r-tag ${b.passed ? 'r-yes' : 'r-neu'}`}>{b.stada}</span>}
+            <span class="r-count">Alþingi: {b.ja}–{b.nei}{b.fj ? ` · ${b.fj} fjarv.` : ''}</span>
+            {b.dissent.length > 0 && <span class="r-dissent">Á móti: {b.dissent.join(', ')}</span>}
+          </div>
+          <div class="vote" data-bill={b.key}><div class="v-load">…</div></div>
+        </article>
+      ))}
+    </div>
+
+    <p class="foot">
+      Forþjónað (SSG) {updated}. Þingmál + atkvæðagreiðslur frá Alþingi (althingi.is); notendakannanir vistaðar
+      um <code>/vote</code> gegnum sameiginlega <code>src/lib/auth</code>. #2.
+    </p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 22px; }
+    .bills { display: flex; flex-direction: column; gap: 14px; }
+    .bill { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
+    .b-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 2px 8px; border-radius: 6px; }
+    .badge.frv { background: rgba(246,177,59,.16); color: #f6b13b; }
+    .badge.till { background: rgba(124,92,247,.16); color: #b9a6ff; }
+    .b-date { font-size: 12px; color: #7e8ca6; }
+    .b-title { font-size: 17px; font-weight: 700; margin: 0 0 6px; line-height: 1.25; color: #eaf1fb; }
+    .b-sam { font-size: 14px; color: #9fb0c8; margin: 0 0 10px; }
+    .b-result { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; margin-bottom: 12px; }
+    .r-tag { font-weight: 700; padding: 2px 9px; border-radius: 6px; }
+    .r-yes { background: rgba(70,224,138,.15); color: #46e08a; }
+    .r-neu { background: rgba(255,255,255,.07); color: #9fb0c8; }
+    .r-count { color: #9fb0c8; font-variant-numeric: tabular-nums; }
+    .r-dissent { color: #ff8e98; }
+  </style>
+  <style is:global>
+    /* Kjósa-eyjan er búin til á keyrslutíma → global. */
+    .vote { border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+    .v-load { color: #7e8ca6; font-size: 13px; }
+    .v-q { font-size: 13px; font-weight: 600; color: #cdd6e6; margin-bottom: 8px; }
+    .v-btns { display: flex; gap: 8px; margin-bottom: 8px; }
+    .v-b { flex: 1; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 8px; padding: 8px 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .v-b:hover { border-color: rgba(255,255,255,.35); }
+    .v-b.v-ja.on { background: rgba(70,224,138,.18); border-color: #46e08a; color: #46e08a; }
+    .v-b.v-nei.on { background: rgba(255,109,122,.16); border-color: #ff6d7a; color: #ff6d7a; }
+    .v-b:disabled { opacity: .6; cursor: default; }
+    .v-gate { font-size: 13px; color: #9fb0c8; margin-bottom: 8px; }
+    .v-gate a { color: #f6b13b; }
+    .v-bar { height: 8px; border-radius: 5px; background: rgba(255,109,122,.35); overflow: hidden; }
+    .v-bar-ja { height: 100%; background: #46e08a; }
+    .v-tally { font-size: 12px; color: #7e8ca6; margin-top: 5px; font-variant-numeric: tabular-nums; }
+  </style>
+
+  <!-- Eyja: kjósa um þingmál (auth.js /vote), lazy-hydrað með IntersectionObserver. #2 -->
+  <script>
+    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+
+    function render(el, bill, d) {
+      const u = window.KARP_USER || { loggedIn: false };
+      const ja = d.ja || 0, nei = d.nei || 0, total = ja + nei, mine = d.mine || '';
+      const pct = total ? Math.round((ja / total) * 100) : 0;
+      let h = '<div class="v-q">Hvernig myndir þú kjósa?</div>';
+      if (u.loggedIn) {
+        h += `<div class="v-btns"><button class="v-b v-ja${mine === 'ja' ? ' on' : ''}" data-c="ja">✓ Með</button><button class="v-b v-nei${mine === 'nei' ? ' on' : ''}" data-c="nei">✗ Á móti</button></div>`;
+      } else {
+        h += `<div class="v-gate">🔒 <a href="${u.loginUrl || 'https://karp.is/login/'}">Skráðu þig inn</a> til að kjósa</div>`;
+      }
+      if (total) {
+        h += `<div class="v-bar"><div class="v-bar-ja" style="width:${pct}%"></div></div><div class="v-tally">${ja} með · ${nei} á móti · ${pct}% með</div>`;
+      } else {
+        h += '<div class="v-tally">Engin atkvæði lesenda enn — vertu fyrst(ur).</div>';
+      }
+      el.innerHTML = h;
+      el.querySelectorAll('.v-b').forEach((btn) => {
+        btn.onclick = async () => {
+          el.querySelectorAll('.v-b').forEach((b) => (b.disabled = true));
+          const res = (await karpPost('/vote', { bill, choice: btn.dataset.c })) || {};
+          render(el, bill, res);
+        };
+      });
+    }
+
+    async function hydrate(el) {
+      const bill = el.dataset.bill;
+      const d = (await karpGet('/vote?bill=' + encodeURIComponent(bill))) || {};
+      render(el, bill, d);
+    }
+
+    function initVotes() {
+      const boxes = document.querySelectorAll('.vote[data-bill]');
+      if (!boxes.length) return;
+      loadUser().then(() => {
+        const io = new IntersectionObserver((entries, obs) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) { obs.unobserve(e.target); hydrate(e.target); }
+          });
+        }, { rootMargin: '250px' });
+        boxes.forEach((b) => io.observe(b));
+      });
+    }
+
+    document.addEventListener('astro:page-load', initVotes);
+  </script>
+</Layout>
