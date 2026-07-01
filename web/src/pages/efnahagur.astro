@@ -1,0 +1,169 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2). Keyrir á BYGGINGARTÍMA: sækir verðbólgu af Hagstofu
+// og bakar inn í forþjónað HTML. NÚ IMPORTAR ÚR SAMEIGINLEGA src/lib
+// gegnum @lib — sannar að Á1-vinnan skili sér í neyslu.
+// ─────────────────────────────────────────────────────────────
+import { monthLabel, fmtNum } from '@lib/format.mjs';
+
+let rows = [];
+let err = null;
+try {
+  const body = JSON.stringify({
+    query: [
+      { code: 'Mánuður', selection: { filter: 'top', values: ['24'] } },
+      { code: 'Vísitala', selection: { filter: 'item', values: ['CPI'] } },
+      { code: 'Liður', selection: { filter: 'item', values: ['change_A'] } },
+    ],
+    response: { format: 'json' },
+  });
+  const res = await fetch(
+    'https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px',
+    { method: 'POST', body }
+  );
+  const j = await res.json();
+  rows = j.data
+    .map((d) => ({ t: d.key[0], v: parseFloat(String(d.values[0]).replace(',', '.')) }))
+    .filter((r) => !isNaN(r.v));
+} catch (e) {
+  err = e.message;
+}
+
+const labels = rows.map((r) => monthLabel(r.t));   // ← @lib/format
+const vals = rows.map((r) => r.v);
+const latest = rows.length ? rows[rows.length - 1] : null;
+const latestPct = latest ? fmtNum(latest.v, 1) : '—'; // ← @lib/format
+const updated = '2026-07-01';
+
+const desc = `Ársverðbólga á Íslandi mælist ${latestPct}%${
+  latest ? ' í ' + monthLabel(latest.t) : ''
+}. Þróun vísitölu neysluverðs síðustu ${rows.length} mánuði — sótt beint frá Hagstofu Íslands.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Ársverðbólga á Íslandi',
+  description: 'Mánaðarleg ársverðbólga (12-mánaða breyting vísitölu neysluverðs) á Íslandi.',
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: updated,
+  spatialCoverage: 'Ísland',
+  measurementTechnique: '12-mánaða breyting vísitölu neysluverðs (Hagstofa Íslands, VIS01000)',
+  variableMeasured: 'Ársverðbólga (%)',
+};
+---
+
+<!doctype html>
+<html lang="is">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{`Verðbólga á Íslandi — ${latestPct}% | Karp`}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href="https://www.karp.is/efnahagur/verdbolga" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`Verðbólga á Íslandi — ${latestPct}%`} />
+    <meta property="og:description" content="Ársverðbólga og þróun vísitölu neysluverðs — Hagvísir Íslands." />
+    <meta property="og:locale" content="is_IS" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #070b16; color: #eaf1fb; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
+      main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
+      .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+      h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+      .big { font-size: 52px; font-weight: 800; color: #f6b13b; line-height: 1; margin: 6px 0 2px; }
+      .big span { font-size: 15px; font-weight: 500; color: #9fb0c8; margin-left: 6px; }
+      p { color: #cdd6e6; }
+      #chart { width: 100%; height: 360px; margin: 20px 0 8px; }
+      h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
+      th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+      td:last-child, th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+      .err { color: #ff8e98; }
+      .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+      <h1>Verðbólga á Íslandi</h1>
+      <div class="big">{latestPct}%{latest && <span>ársverðbólga · {monthLabel(latest.t)}</span>}</div>
+      <p>
+        Ársverðbólga — 12-mánaða breyting vísitölu neysluverðs — mælist nú <strong>{latestPct}%</strong>{
+          latest ? `, í ${monthLabel(latest.t)}` : ''
+        }. Grafið sýnir þróunina síðustu {rows.length} mánuði; strikalínan markar 2,5% verðbólgumarkmið
+        Seðlabanka Íslands. Heimild: Hagstofa Íslands.
+      </p>
+
+      <div id="chart" role="img" aria-label={`Línurit: ársverðbólga síðustu ${rows.length} mánuði, nú ${latestPct}%`}></div>
+
+      <h2>Mánaðarleg gildi</h2>
+      <table>
+        <thead><tr><th>Mánuður</th><th>Ársverðbólga</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr><td>{monthLabel(r.t)}</td><td>{fmtNum(r.v, 1)}%</td></tr>
+          ))}
+        </tbody>
+      </table>
+
+      {err && <p class="err">Villa við gagnasókn á byggingartíma: {err}</p>}
+
+      <p class="foot">
+        Forþjónað (SSG) {updated}. Gögnin sótt af Hagstofu Íslands <strong>á byggingartíma</strong> og bökuð
+        inn í HTML-ið. Mánaðaheiti + tölur eru sniðin með <strong>sameiginlega <code>src/lib</code></strong>
+        (<code>@lib/format.mjs</code>) — #2 sameining.
+      </p>
+    </main>
+
+    <!-- Eyja: ECharts hydrast í vafra með bökuðu gögnunum -->
+    <script define:vars={{ labels, vals }}>
+      const boot = () => {
+        const el = document.getElementById('chart');
+        if (!el || !window.echarts) return;
+        const chart = window.echarts.init(el);
+        chart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 46, right: 16, top: 18, bottom: 28 },
+          xAxis: {
+            type: 'category',
+            data: labels,
+            axisLabel: { color: '#7e8ca6', fontSize: 11 },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } },
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: '#7e8ca6', formatter: '{value}%' },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } },
+          },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => v + '%' },
+          series: [{
+            type: 'line',
+            data: vals,
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 6,
+            lineStyle: { width: 3, color: '#f6b13b' },
+            itemStyle: { color: '#f6b13b' },
+            areaStyle: { opacity: 0.14, color: '#f6b13b' },
+            markLine: {
+              silent: true,
+              symbol: 'none',
+              data: [{ yAxis: 2.5 }],
+              lineStyle: { type: 'dashed', color: 'rgba(255,255,255,.3)' },
+              label: { formatter: 'markmið 2,5%', color: '#9fb0c8', fontSize: 11 },
+            },
+          }],
+        });
+        window.addEventListener('resize', () => chart.resize());
+      };
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
+      s.onload = boot;
+      document.head.appendChild(s);
+    </script>
+  </body>
+</html>

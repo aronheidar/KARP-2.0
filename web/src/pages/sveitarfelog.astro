@@ -1,0 +1,195 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2 Á3) — Sveitarfélaga-vísitala. Keyrir á BYGGINGARTÍMA:
+// les gögn úr @gogn, keyrir ALLAN muni-klasann úr @lib (muniIndex +
+// muniStats + geo) og bakar raðaða töflu + graf inn í forþjónað HTML.
+// Sannar að þyngri lib-modúlarnir skila sér í neyslu.
+// ─────────────────────────────────────────────────────────────
+import { computeMuniIndex } from '@lib/muniIndex.mjs';
+import { makeMuniStats } from '@lib/muniStats.mjs';
+import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
+import { fmtNum, groupThousands, esc } from '@lib/format.mjs';
+
+import SVFIN from '@gogn/sveitarfelog_fin.json';
+import SVMETA from '@gogn/sveitarfelog_meta.json';
+import SVPOP from '@gogn/sveitarfelog_pop.json';
+import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
+import GLAEPIR from '@gogn/glaepir.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+import SVCOORDS from '@gogn/sveitarfelog_coords.json';
+import REGIONGEO from '@gogn/landshlutar.json';
+
+// --- Keyra muni-klasann (öll gögn injectuð) ---
+const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI });
+const regionOf = makeRegionOf({ SVCOORDS, REGIONGEO });
+const stats = makeMuniStats({ ATVINNULEYSI, GLAEPIR, FASTEIGNIR });
+const lifsQ = makeLifsQ({ SVMETA, regionOf, svUnemp: stats.svUnemp, svCrime: stats.svCrime });
+
+const r0 = (v) => (v == null ? null : Math.round(v));
+const rows = Object.keys(idxMap)
+  .filter((n) => idxMap[n].idx != null)
+  .map((n) => {
+    const reg = regionOf(n);
+    return {
+      name: n,
+      region: reg,
+      pop: SVPOP[n] || null,
+      idx: r0(idxMap[n].idx),
+      fjar: r0(idxMap[n].fjar),
+      vox: r0(idxMap[n].vox),
+      atv: r0(idxMap[n].atv),
+      lifs: lifsQ(n),
+      unemp: stats.svUnemp(n, reg),
+    };
+  })
+  .sort((a, b) => b.idx - a.idx);
+
+// idx → litur (sama hsl-formúla og vísitölu-reiturinn í mælaborðinu: hue = idx*1.2)
+const hue = (v) => Math.round((v == null ? 0 : v) * 1.2);
+const idxColor = (v) => `hsl(${hue(v)}, 62%, 47%)`;
+
+const chartNames = rows.map((r) => r.name);
+const chartIdx = rows.map((r) => r.idx);
+const chartCols = rows.map((r) => idxColor(r.idx));
+
+const updated = '2026-07-01';
+const top = rows[0];
+const desc = `Vélræn vísitala fyrir ${rows.length} íslensk sveitarfélög (>1.000 íbúar) — fjárhagur, vöxtur og atvinna vegin saman úr opinberum gögnum. Efst: ${top ? top.name : ''}.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Sveitarfélaga-vísitala Íslands',
+  description: 'Samsett vísitala (fjárhagur · vöxtur · atvinna) fyrir íslensk sveitarfélög með >1.000 íbúa, kvörðuð innbyrðis úr opinberum gögnum.',
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: updated,
+  spatialCoverage: 'Ísland',
+  measurementTechnique: 'Lágmarks-hámarks kvörðun þriggja þátta (afkoma+skuldir, fólksfjölgun+ungt fólk, atvinnuleysi), meðaltal',
+  variableMeasured: 'Sveitarfélaga-vísitala (0–100)',
+};
+---
+
+<!doctype html>
+<html lang="is">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{`Sveitarfélaga-vísitala — ${rows.length} sveitarfélög | Karp`}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href="https://www.karp.is/sveitarfelog" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sveitarfélaga-vísitala Íslands" />
+    <meta property="og:description" content={desc} />
+    <meta property="og:locale" content="is_IS" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #070b16; color: #eaf1fb; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
+      main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+      .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+      h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+      p { color: #cdd6e6; }
+      .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+      #chart { width: 100%; margin: 22px 0 8px; }
+      h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+      .tw { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+      th, td { text-align: right; padding: 7px 9px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+      th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+      td.l, th.l { text-align: left; }
+      td.rank { color: #7e8ca6; font-variant-numeric: tabular-nums; }
+      td.num { font-variant-numeric: tabular-nums; }
+      .muni { font-weight: 600; }
+      .reg { display: block; font-size: 11px; color: #7e8ca6; font-weight: 400; }
+      .vis { display: inline-block; min-width: 30px; padding: 2px 8px; border-radius: 6px; color: #06121a; font-weight: 800; }
+      .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Hagvísir Íslands · Sveitarfélög</p>
+      <h1>Sveitarfélaga-vísitala</h1>
+      <p>
+        Samsett vísitala fyrir <strong>{rows.length} sveitarfélög</strong> með fleiri en 1.000 íbúa, kvörðuð innbyrðis
+        á kvarðanum 0–100. Efst stendur <strong>{top?.name}</strong> ({top?.idx}). Heimildir: Hagstofa Íslands,
+        Samband íslenskra sveitarfélaga, Ríkislögreglustjóri, HMS.
+      </p>
+      <p class="note">
+        ⓘ Vísitalan er <strong>vélræn samsetning</strong> þriggja jafnvæginna þátta — 🏦 fjárhagur (afkoma + skuldir á íbúa),
+        📈 vöxtur (fólksfjölgun + ungt fólk) og 👷 atvinna (skráð atvinnuleysi, öfugt) — meðaltal þeirra. Hlutlæg
+        samantekt opinberra talna, <strong>ekki gæðamat</strong>.
+      </p>
+
+      <div id="chart"></div>
+
+      <h2>Full röðun</h2>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th class="l">#</th><th class="l">Sveitarfélag</th>
+              <th>Vísitala</th><th>🏦 Fjárhagur</th><th>📈 Vöxtur</th><th>👷 Atvinna</th>
+              <th>🌿 Lífsgæði</th><th>Atvinnuleysi</th><th>Íbúar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr>
+                <td class="rank">{i + 1}</td>
+                <td class="l"><span class="muni">{r.name}</span><span class="reg">{r.region || '—'}</span></td>
+                <td><span class="vis" style={`background:${idxColor(r.idx)}`}>{r.idx}</span></td>
+                <td class="num">{r.fjar ?? '–'}</td>
+                <td class="num">{r.vox ?? '–'}</td>
+                <td class="num">{r.atv ?? '–'}</td>
+                <td class="num">{r.lifs ?? '–'}</td>
+                <td class="num">{r.unemp == null ? '–' : fmtNum(r.unemp, 1) + '%'}</td>
+                <td class="num">{r.pop == null ? '–' : groupThousands(r.pop)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="foot">
+        Forþjónað (SSG) {updated}. Röðunin reiknuð á <strong>byggingartíma</strong> úr sameiginlega
+        <code> src/lib</code> (<code>muniIndex</code> + <code>muniStats</code> + <code>geo</code>) og bökuð inn í HTML-ið —
+        leitarvélar sjá allar tölurnar án JavaScript. #2 Á3.
+      </p>
+    </main>
+
+    <!-- Eyja: raðað lárétt súlurit (ECharts hydrast í vafra) -->
+    <script define:vars={{ chartNames, chartIdx, chartCols }}>
+      const boot = () => {
+        const el = document.getElementById('chart');
+        if (!el || !window.echarts) return;
+        el.style.height = (chartNames.length * 17 + 46) + 'px';
+        const chart = window.echarts.init(el);
+        const data = chartIdx.map((v, i) => ({ value: v, itemStyle: { color: chartCols[i] } }));
+        chart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 128, right: 30, top: 8, bottom: 24 },
+          xAxis: { type: 'value', max: 100, axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          yAxis: {
+            type: 'category',
+            inverse: true,
+            data: chartNames,
+            axisLabel: { color: '#cdd6e6', fontSize: 11 },
+            axisLine: { show: false }, axisTick: { show: false },
+          },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => 'vísitala ' + v },
+          series: [{
+            type: 'bar', data, barWidth: 11,
+            label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11 },
+          }],
+        });
+        window.addEventListener('resize', () => chart.resize());
+      };
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
+      s.onload = boot;
+      document.head.appendChild(s);
+    </script>
+  </body>
+</html>

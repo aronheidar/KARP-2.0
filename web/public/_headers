@@ -1,0 +1,12 @@
+# Cloudflare Pages hausar fyrir app.karp.is (Astro static)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Hashuð eign (Astro) — langt cache, óbreytanleg
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML — stutt cache svo endurbygging (fersk gögn) berist fljótt
+/*.html
+  Cache-Control: public, max-age=600, must-revalidate
