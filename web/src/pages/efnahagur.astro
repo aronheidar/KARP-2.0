@@ -5,6 +5,7 @@
 // gegnum @lib — sannar að Á1-vinnan skili sér í neyslu.
 // ─────────────────────────────────────────────────────────────
 import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
+import Topbar from '../components/Topbar.astro';
 
 let rows = [];
 let err = null;
@@ -109,6 +110,7 @@ const jsonLd = {
     </style>
   </head>
   <body>
+    <Topbar maxw={760} />
     <main>
       <p class="kicker">Hagvísir Íslands · Efnahagur</p>
       <h1>Verðbólga á Íslandi</h1>

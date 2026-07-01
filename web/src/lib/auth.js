@@ -16,15 +16,21 @@ const esc = (s) => String(s == null ? '' : s)
 function setUser(u) { window.KARP_USER = u; return u; }
 
 // Sækir KARP_USER. Fellur mjúkt á { loggedIn:false } ef bakendi/lota vantar.
-export async function loadUser() {
-  try {
-    const r = await fetch(KARP_API + '/me', { credentials: 'include' });
-    if (!r.ok) return setUser({ loggedIn: false, _status: r.status });
-    const u = await r.json();
-    return setUser(u && typeof u.loggedIn === 'boolean' ? u : { loggedIn: false });
-  } catch (e) {
-    return setUser({ loggedIn: false, _error: String(e) });
-  }
+// Memóað (_userPromise): margar eyjur á sömu síðu deila EINU /me-kalli.
+let _userPromise = null;
+export function loadUser() {
+  if (_userPromise) return _userPromise;
+  _userPromise = (async () => {
+    try {
+      const r = await fetch(KARP_API + '/me', { credentials: 'include' });
+      if (!r.ok) return setUser({ loggedIn: false, _status: r.status });
+      const u = await r.json();
+      return setUser(u && typeof u.loggedIn === 'boolean' ? u : { loggedIn: false });
+    } catch (e) {
+      return setUser({ loggedIn: false, _error: String(e) });
+    }
+  })();
+  return _userPromise;
 }
 
 function authHeaders(extra) {

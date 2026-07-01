@@ -8,7 +8,8 @@
 import { computeMuniIndex } from '@lib/muniIndex.mjs';
 import { makeMuniStats } from '@lib/muniStats.mjs';
 import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
-import { fmtNum, groupThousands, esc } from '@lib/format.mjs';
+import { fmtNum, groupThousands, esc, slugify } from '@lib/format.mjs';
+import Topbar from '../components/Topbar.astro';
 
 import SVFIN from '@gogn/sveitarfelog_fin.json';
 import SVMETA from '@gogn/sveitarfelog_meta.json';
@@ -53,6 +54,8 @@ const chartIdx = rows.map((r) => r.idx);
 const chartCols = rows.map((r) => idxColor(r.idx));
 
 const updated = '2026-07-01';
+// Öll sveitarfélög (líka <1.000 íbúa) fyrir innri tengla → engar munaðarlausar síður.
+const allMunis = Object.keys(SVCOORDS).sort((a, b) => a.localeCompare(b, 'is'));
 const top = rows[0];
 const desc = `Vélræn vísitala fyrir ${rows.length} íslensk sveitarfélög (>1.000 íbúar) — fjárhagur, vöxtur og atvinna vegin saman úr opinberum gögnum. Efst: ${top ? top.name : ''}.`;
 
@@ -101,13 +104,18 @@ const jsonLd = {
       td.l, th.l { text-align: left; }
       td.rank { color: #7e8ca6; font-variant-numeric: tabular-nums; }
       td.num { font-variant-numeric: tabular-nums; }
-      .muni { font-weight: 600; }
+      .muni { font-weight: 600; color: #eaf1fb; text-decoration: none; }
+      .muni:hover { color: #f6b13b; text-decoration: underline; }
       .reg { display: block; font-size: 11px; color: #7e8ca6; font-weight: 400; }
+      .all-munis { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0 8px; }
+      .all-munis a { color: #9fb0c8; text-decoration: none; font-size: 13px; }
+      .all-munis a:hover { color: #f6b13b; text-decoration: underline; }
       .vis { display: inline-block; min-width: 30px; padding: 2px 8px; border-radius: 6px; color: #06121a; font-weight: 800; }
       .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     </style>
   </head>
   <body>
+    <Topbar maxw={860} />
     <main>
       <p class="kicker">Hagvísir Íslands · Sveitarfélög</p>
       <h1>Sveitarfélaga-vísitala</h1>
@@ -138,7 +146,7 @@ const jsonLd = {
             {rows.map((r, i) => (
               <tr>
                 <td class="rank">{i + 1}</td>
-                <td class="l"><span class="muni">{r.name}</span><span class="reg">{r.region || '—'}</span></td>
+                <td class="l"><a class="muni" href={`/sveitarfelog/${slugify(r.name)}/`}>{r.name}</a><span class="reg">{r.region || '—'}</span></td>
                 <td><span class="vis" style={`background:${idxColor(r.idx)}`}>{r.idx}</span></td>
                 <td class="num">{r.fjar ?? '–'}</td>
                 <td class="num">{r.vox ?? '–'}</td>
@@ -150,6 +158,11 @@ const jsonLd = {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <h2>Öll sveitarfélög</h2>
+      <div class="all-munis">
+        {allMunis.map((n) => <a href={`/sveitarfelog/${slugify(n)}/`}>{n}</a>)}
       </div>
 
       <p class="foot">

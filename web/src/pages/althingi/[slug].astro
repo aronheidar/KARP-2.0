@@ -1,0 +1,115 @@
+---
+// ─────────────────────────────────────────────────────────────
+// PROGRAMMATIC SEO (#2 Á6) — síða per þingmann. getStaticPaths býr til
+// eina SSG-síðu fyrir HVERN þingmann (63) úr althingi.json. Litur úr @lib/parties.
+// ─────────────────────────────────────────────────────────────
+import THINGMENN from '@gogn/althingi.json';
+import { colorByName } from '@lib/parties.mjs';
+import { slugify, groupThousands } from '@lib/format.mjs';
+import Topbar from '../../components/Topbar.astro';
+
+export function getStaticPaths() {
+  return THINGMENN.map((m) => ({ params: { slug: slugify(m.nafn) }, props: { m } }));
+}
+
+const { m } = Astro.props;
+const color = colorByName(m.flokkur);
+const yearFrom = m.fyrstInn ? String(m.fyrstInn).slice(0, 4) : null;
+const committees = Array.isArray(m.nefndalisti) ? m.nefndalisti : (m.nefndalisti ? [m.nefndalisti] : []);
+const updated = '2026-07-01';
+
+const tiles = [
+  { e: '🎂', l: 'Aldur', v: m.aldur != null ? m.aldur + ' ára' : '–' },
+  { e: '🏛️', l: 'Á þingi frá', v: yearFrom || '–', s: m.fjoldiThinga != null ? m.fjoldiThinga + ' þing' : '' },
+  { e: '🤝', l: 'Hollusta', v: m.hollusta != null ? m.hollusta + '%' : '–', s: 'við flokk' },
+  { e: '🗣️', l: 'Ræður', v: m.raedur != null ? groupThousands(m.raedur) : '–', s: m.raedumin != null ? groupThousands(m.raedumin) + ' mín' : '' },
+  { e: '📋', l: 'Nefndir', v: m.nefndir != null ? String(m.nefndir) : '–' },
+  { e: '✅', l: 'Greidd atkv.', v: m.greidd != null ? groupThousands(m.greidd) : '–' },
+  { e: '🚫', l: 'Fjarvistir', v: m.fjarvist != null ? String(m.fjarvist) : '–' },
+  { e: '🪑', l: 'Sæti', v: m.saeti != null ? String(m.saeti) : '–' },
+];
+
+const roleTxt = m.adalmadur ? 'Alþingismaður' : 'Varaþingmaður';
+const desc = `${m.nafn} — ${roleTxt} ${m.flokks || m.flokkur} í ${m.kjordaemi}. ${m.aldur ? m.aldur + ' ára, ' : ''}${m.fjoldiThinga ? m.fjoldiThinga + ' þing setið, ' : ''}hollusta við flokk ${m.hollusta != null ? m.hollusta + '%' : '—'}.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Person', name: m.nafn,
+  jobTitle: roleTxt, ...(m.mynd ? { image: m.mynd } : {}),
+  memberOf: { '@type': 'Organization', name: m.flokkur },
+  description: desc,
+};
+---
+
+<!doctype html>
+<html lang="is">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{`${m.nafn} — ${m.flokkur} | Karp`}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={`https://www.karp.is/althingi/${slugify(m.nafn)}`} />
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content={`${m.nafn} — þingmaður`} />
+    <meta property="og:description" content={desc} />
+    {m.mynd && <meta property="og:image" content={m.mynd} />}
+    <meta property="og:locale" content="is_IS" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #070b16; color: #eaf1fb; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
+      main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
+      .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
+      .back:hover { color: #f6b13b; }
+      .hero { display: flex; gap: 20px; align-items: center; margin: 16px 0 6px; }
+      .hero img { width: 96px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid var(--pc); flex: none; background: #0e1626; }
+      h1 { font-size: 30px; line-height: 1.1; margin: 0 0 6px; }
+      .party { display: inline-block; font-size: 13px; font-weight: 700; color: #06121a; background: var(--pc); border-radius: 6px; padding: 2px 9px; }
+      .meta { color: #9fb0c8; font-size: 14px; margin-top: 6px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0 8px; }
+      .tile { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+      .t-top { font-size: 12px; color: #9fb0c8; }
+      .t-v { font-size: 24px; font-weight: 800; margin-top: 2px; }
+      .t-s { font-size: 12px; color: #7e8ca6; }
+      h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+      .nefndir { display: flex; flex-wrap: wrap; gap: 8px; }
+      .nefndir span { font-size: 13px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; }
+      .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    </style>
+  </head>
+  <body>
+    <Topbar maxw={780} />
+    <main style={`--pc:${color}`}>
+      <a class="back" href="/althingi/">← Sætaspá Alþingis</a>
+      <div class="hero">
+        {m.mynd && <img src={m.mynd} alt={m.nafn} loading="lazy" onerror="this.style.display='none'" />}
+        <div>
+          <h1>{m.nafn}</h1>
+          <div><span class="party">{m.flokkur}</span></div>
+          <div class="meta">{roleTxt} · {m.kjordaemi}</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        {tiles.map((t) => (
+          <div class="tile">
+            <div class="t-top">{t.e} {t.l}</div>
+            <div class="t-v">{t.v}</div>
+            {t.s && <div class="t-s">{t.s}</div>}
+          </div>
+        ))}
+      </div>
+
+      {committees.length > 0 && (
+        <>
+          <h2>Nefndir</h2>
+          <div class="nefndir">{committees.map((n) => <span>{n}</span>)}</div>
+        </>
+      )}
+
+      <p class="foot">
+        Forþjónað (SSG) {updated}. Gögn frá Alþingi (althingi.is) — flokkslitur úr sameiginlega
+        <code> src/lib/parties</code>. #2 Á6 · ein af 63 þingmanna-síðum.
+      </p>
+    </main>
+  </body>
+</html>

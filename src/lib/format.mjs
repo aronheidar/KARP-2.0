@@ -28,3 +28,12 @@ export const monthLabel = (t) => {
   const m = /^(\d{4})M(\d{2})$/.exec(String(t));
   return m ? `${MON[+m[2] - 1]} ${m[1]}` : String(t);
 };
+
+// Íslenskt heiti → URL-öruggt slug: "Múlaþing" → "mulathing", "Sveitarfélagið Ölfus" → "sveitarfelagid-olfus".
+const SLUG_MAP = { á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u', ý: 'y', þ: 'th', æ: 'ae', ö: 'o', ð: 'd' };
+export const slugify = (s) =>
+  String(s == null ? '' : s)
+    .toLowerCase()
+    .replace(/[áéíóúýþæöð]/g, (c) => SLUG_MAP[c] || c)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');

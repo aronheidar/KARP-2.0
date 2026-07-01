@@ -1,0 +1,19 @@
+---
+// Topbar.astro — sameiginlegur haus + innskráningar-chip (auth.js sækir GET /me). #2 Á5/B.
+// maxw = til að stilla við breidd <main> á hverri síðu.
+const { maxw = 820 } = Astro.props;
+---
+<header class="topbar" style={`max-width:${maxw}px`}>
+  <a class="tb-brand" href="/">Karp</a>
+  <div id="chip" class="chip"></div>
+</header>
+<style>
+  .topbar { margin: 0 auto; padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+  .tb-brand { color: #f6b13b; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; font-size: 13px; text-decoration: none; }
+  .chip { display: flex; align-items: center; gap: 8px; font-size: 14px; min-height: 28px; }
+</style>
+<script>
+  import { mountChip } from '../lib/auth.js';
+  const el = document.getElementById('chip');
+  if (el) mountChip(el);
+</script>

@@ -1,6 +1,6 @@
 // Hrein eining fyrir src/lib — engar deps. Keyra:  node "src/lib/_test.mjs"
 import { PARTIES, partyName, partyColor, colorByName, codeByName } from './parties.mjs';
-import { esc, fmt, groupThousands, fmtNum, monthLabel, MON } from './format.mjs';
+import { esc, fmt, groupThousands, fmtNum, monthLabel, slugify, MON } from './format.mjs';
 import { projectSeats } from './seats.mjs';
 import { computeMuniIndex } from './muniIndex.mjs';
 import { makeMuniStats, svStab } from './muniStats.mjs';
@@ -27,6 +27,9 @@ eq('groupThousands', groupThousands(1234567), '1.234.567');
 eq('fmtNum', fmtNum(1234.5, 1), '1.234,5');
 eq('monthLabel', monthLabel('2026M06'), 'jún 2026');
 eq('MON lengd', MON.length, 12);
+eq('slugify Múlaþing', slugify('Múlaþing'), 'mulathing');
+eq('slugify Reykjavíkurborg', slugify('Reykjavíkurborg'), 'reykjavikurborg');
+eq('slugify Ölfus-bil', slugify('Sveitarfélagið Ölfus'), 'sveitarfelagid-olfus');
 
 // seats — D'Hondt úthlutar nákvæmlega TOT sætum
 const polls = { parties: ['S','C','F','D','M','B'], polls: [{ v: { S:25, C:12, F:9, D:24, M:11, B:12 } }] };
