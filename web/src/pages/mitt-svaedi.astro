@@ -1,0 +1,97 @@
+---
+// ─────────────────────────────────────────────────────────────
+// „Mitt svæði" — INNSKRÁÐ síða (#2 Á5). Sýnir þingmennina sem notandinn
+// fylgist með (úr KARP_USER.follows, lyklar "mp:<id>"). Bökuð uppfletting
+// id→nafn/flokkur/litur/slug/mynd; eyjan resolvar follows á keyrslutíma.
+// Nú í app-skelinni (Layout, noindex-prop). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import THINGMENN from '@gogn/althingi.json';
+import { colorByName } from '@lib/parties.mjs';
+import { slugify } from '@lib/format.mjs';
+
+const MP = {};
+THINGMENN.forEach((m) => {
+  MP['mp:' + m.id] = { n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), s: slugify(m.nafn), img: m.mynd || '' };
+});
+const updated = '2026-07-01';
+---
+
+<Layout title="Mitt svæði | Karp" noindex={true}>
+  <main>
+    <p class="kicker">Karp</p>
+    <h1>Mitt svæði</h1>
+    <div id="mine">Hleð…</div>
+    <p class="foot">Forþjónað (SSG) {updated} · persónulegt yfirlit, sótt live gegnum <code>src/lib/auth</code>. #2 Á5.</p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 34px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 30px; margin: 0 0 14px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    /* Innihald búið til á keyrslutíma → global. */
+    #mine .gate, #mine .empty { font-size: 15px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 14px 16px; border-radius: 0 8px 8px 0; }
+    #mine .gate a, #mine .empty a { color: #f6b13b; }
+    #mine .hi { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    #mine h2 { font-size: 14px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 22px 0 10px; }
+    #mine .flist { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    #mine .fcard { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-left: 3px solid var(--pc); border-radius: 10px; padding: 8px 10px; }
+    #mine .fc-link { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #eaf1fb; flex: 1; min-width: 0; }
+    #mine .fc-link img, #mine .fc-ini { width: 40px; height: 48px; border-radius: 8px; object-fit: cover; flex: none; background: #0e1626; }
+    #mine .fc-ini { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--pc); font-size: 18px; }
+    #mine .fc-txt { display: flex; flex-direction: column; min-width: 0; }
+    #mine .fc-n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #mine .fc-f { font-size: 12px; color: #9fb0c8; }
+    #mine .fc-x { background: none; border: 0; color: #7e8ca6; font-size: 15px; cursor: pointer; padding: 4px 6px; flex: none; }
+    #mine .fc-x:hover { color: #ff6d7a; }
+  </style>
+
+  <!-- Bökuð þingmanna-uppfletting sem JSON (ekki keyrð) → module-skriftin les hana. -->
+  <script type="application/json" id="mp-data" set:html={JSON.stringify(MP)}></script>
+
+  <!-- Eyja: sýnir follows notandans (auth.js). Keyrir á astro:page-load (VT). #2 Á5 -->
+  <script>
+    import { loadUser, karpPost } from '../lib/auth.js';
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function initMine() {
+      const el = document.getElementById('mine');
+      if (!el) return;
+      const dataEl = document.getElementById('mp-data');
+      const MP = dataEl ? JSON.parse(dataEl.textContent || '{}') : {};
+      function render() {
+        const u = window.KARP_USER || { loggedIn: false };
+        if (!u.loggedIn) {
+          el.innerHTML = `<div class="gate">🔒 <a href="${u.loginUrl || 'https://karp.is/login/'}">Skráðu þig inn</a> til að sjá þitt svæði.</div>`;
+          return;
+        }
+        const mps = (u.follows || []).filter((k) => k.indexOf('mp:') === 0 && MP[k]);
+        let h = `<div class="hi">Hæ, ${esc((u.name || '').split(' ')[0])} 👋</div>`;
+        h += `<h2>Þingmenn sem þú fylgist með (${mps.length})</h2>`;
+        if (!mps.length) {
+          h += `<div class="empty">Þú fylgist ekki með neinum þingmanni enn. Farðu á <a href="/althingi/">Alþingi</a> og ýttu „+ Fylgja" á þingmanni.</div>`;
+        } else {
+          h += '<div class="flist">' + mps.map((k) => {
+            const m = MP[k];
+            const pic = m.img ? `<img src="${esc(m.img)}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<span class="fc-ini">${esc(m.n.charAt(0))}</span>`;
+            return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/">${pic}<span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a><button class="fc-x" data-key="${esc(k)}" title="Hætta að fylgja">✕</button></div>`;
+          }).join('') + '</div>';
+        }
+        el.innerHTML = h;
+        el.querySelectorAll('.fc-x').forEach((b) => {
+          b.onclick = async () => {
+            b.disabled = true; b.textContent = '…';
+            const next = (window.KARP_USER.follows || []).filter((x) => x !== b.dataset.key);
+            const res = await karpPost('/follows', { follows: next });
+            window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+            render();
+          };
+        });
+      }
+      loadUser().then(render);
+    }
+    document.addEventListener('astro:page-load', initMine);
+  </script>
+</Layout>

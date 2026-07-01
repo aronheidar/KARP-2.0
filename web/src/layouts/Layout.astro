@@ -1,0 +1,128 @@
+---
+// Layout.astro — app-skel (nav vinstra · efni í miðju · fréttir hægra), eins og gamla karp.is.
+// #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
+import { ClientRouter } from 'astro:transitions';
+const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
+const NAV = [
+  { href: '/', label: 'Yfirlit', emoji: '🏠' },
+  { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
+  { href: '/sveitarfelog/', label: 'Sveitarfélög', emoji: '🏘️' },
+  { href: '/althingi/', label: 'Alþingi', emoji: '🏛️' },
+];
+const path = Astro.url.pathname;
+const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<!doctype html>
+<html lang="is">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content="is_IS" />
+    {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <ClientRouter />
+    <style is:global>
+      :root { color-scheme: dark; --bg:#070b16; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
+      * { box-sizing: border-box; }
+      body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,sans-serif; }
+      .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
+
+      /* NAV (vinstra) */
+      .nav { border-right:1px solid var(--line); padding:20px 14px; display:flex; flex-direction:column; gap:3px; position:sticky; top:0; height:100vh; }
+      .brand { font-weight:800; letter-spacing:.2em; color:var(--gold); text-decoration:none; font-size:16px; padding:2px 10px 18px; }
+      .nav-a { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:9px; text-decoration:none; color:var(--muted); font-weight:600; font-size:14px; }
+      .nav-a:hover { background:var(--panel); color:var(--ink); }
+      .nav-a.on { background:rgba(246,177,59,.12); color:var(--gold); }
+      #nav-mitt[hidden] { display:none; } /* annars yfirskrifar .nav-a{display:flex} hidden-attribútið */
+      .nav-e { font-size:16px; width:20px; text-align:center; }
+      .nav-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
+
+      /* EFNI (miðja) */
+      .content { min-width:0; }
+      .pg { max-width:860px; margin:0 auto; padding:34px 28px 64px; }
+
+      /* FRÉTTIR (hægra) */
+      .news { border-left:1px solid var(--line); padding:20px 16px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+      .news-h { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); font-weight:700; margin-bottom:10px; }
+      .news-item { display:block; padding:9px 0; border-bottom:1px solid var(--line); text-decoration:none; }
+      .news-item:hover .news-t { color:var(--gold); }
+      .news-t { display:block; font-size:13px; color:var(--ink); line-height:1.35; }
+      .news-s { display:block; font-size:11px; color:var(--faint); margin-top:3px; }
+      .news-empty { font-size:13px; color:var(--faint); }
+
+      /* CHIP (auth) — stílar sprautast úr auth.js */
+      .chip { display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap; }
+
+      @media (max-width:1000px){ .shell{grid-template-columns:180px minmax(0,1fr);} .news{display:none;} }
+      @media (max-width:640px){
+        .shell{grid-template-columns:1fr;}
+        .nav{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px;gap:6px;}
+        .nav nav{display:flex;flex-wrap:wrap;gap:4px;}
+        .nav-a{padding:7px 10px;font-size:13px;}
+        .brand{padding:2px 8px;}
+        .nav-foot{margin:0 0 0 auto;padding:0;border:0;order:-1;}
+        .pg{padding:22px 18px 48px;}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="nav">
+        <a class="brand" href="/">KARP</a>
+        <nav>
+          {NAV.map((n) => <a class={`nav-a${active(n.href) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>)}
+          <a class="nav-a" id="nav-mitt" href="/mitt-svaedi/" hidden><span class="nav-e">⭐</span>Mitt svæði</a>
+        </nav>
+        <div class="nav-foot"><div id="chip" class="chip"></div></div>
+      </aside>
+
+      <div class="content"><slot /></div>
+
+      <aside class="news">
+        <div class="news-h">📰 Fréttir</div>
+        <div id="news-list">Hleð…</div>
+      </aside>
+    </div>
+
+    <script>
+      // Keyrir á astro:page-load → bæði við fyrstu hleðslu OG eftir hverja View-Transition
+      // navígasjón (því module-skriftir keyra annars aðeins einu sinni). Fréttir cache-ast í
+      // module-breytu → engin endur-sókn milli síðna, aðeins endur-teikning.
+      import { mountChip, loadUser } from '../lib/auth.js';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      let newsCache = null;
+
+      const renderNews = (arr) =>
+        arr.length
+          ? arr.slice(0, 14).map((it) => `<a class="news-item" href="${esc(it.link)}" target="_blank" rel="noopener"><span class="news-t">${esc(it.title)}</span><span class="news-s">${esc(it.source || '')}</span></a>`).join('')
+          : '<div class="news-empty">Engar fréttir.</div>';
+
+      function paintNews() {
+        const nl = document.getElementById('news-list');
+        if (!nl) return;
+        if (newsCache) { nl.innerHTML = renderNews(newsCache); return; }
+        fetch('https://karp.is/wp-json/karp/v1/frettir')
+          .then((r) => (r.ok ? r.json() : []))
+          .then((items) => { newsCache = Array.isArray(items) ? items : []; nl.innerHTML = renderNews(newsCache); })
+          .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á app.karp.is).</div>'; });
+      }
+
+      function mountShell() {
+        const chipEl = document.getElementById('chip');
+        if (chipEl) mountChip(chipEl);
+        loadUser().then((u) => { const m = document.getElementById('nav-mitt'); if (m && u && u.loggedIn) m.hidden = false; });
+        paintNews();
+      }
+
+      document.addEventListener('astro:page-load', mountShell);
+    </script>
+  </body>
+</html>

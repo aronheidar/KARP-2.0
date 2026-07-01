@@ -85,7 +85,7 @@ export function renderChip(el, u) {
     const av = u.avatar ? `<img class="kc-av" src="${esc(u.avatar)}" alt="" width="26" height="26">`
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;
     el.innerHTML =
-      `<a class="kc-prof" href="${esc(u.profileUrl || site)}">${av}<span class="kc-name">${esc(u.name || '')}</span></a>`
+      `<a class="kc-prof" href="/mitt-svaedi/">${av}<span class="kc-name">${esc(u.name || '')}</span></a>`
       + `<a class="kc-out" href="${esc(u.logoutUrl || site)}" title="Skrá út" aria-label="Skrá út">⏻</a>`;
   } else {
     el.innerHTML =

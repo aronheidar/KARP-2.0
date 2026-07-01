@@ -2,12 +2,12 @@
 // ─────────────────────────────────────────────────────────────
 // SSG-síða (#2 Á3) — Sætaspá Alþingis. Byggingartíma: D'Hondt-spá
 // (seats.mjs) úr könnunum + núverandi þingmenn, litað með parties.mjs.
-// Klárar lib-þekjuna (seats + parties í neyslu).
+// Nú í app-skelinni (Layout: nav + fréttir). #2.
 // ─────────────────────────────────────────────────────────────
 import { projectSeats } from '@lib/seats.mjs';
 import { partyName, partyColor } from '@lib/parties.mjs';
 import { fmtNum, slugify } from '@lib/format.mjs';
-import Topbar from '../components/Topbar.astro';
+import Layout from '../layouts/Layout.astro';
 
 import POLLS from '@gogn/polls.json';
 import THINGMENN from '@gogn/althingi.json';
@@ -61,159 +61,150 @@ const jsonLd = {
 const chg = (d) => (d > 0 ? '+' + d : d < 0 ? String(d) : '±0');
 ---
 
-<!doctype html>
-<html lang="is">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{`Sætaspá Alþingis — ${govNames.split(',')[0]} stærst | Karp`}</title>
-    <meta name="description" content={desc} />
-    <link rel="canonical" href="https://app.karp.is/althingi/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Sætaspá Alþingis" />
-    <meta property="og:description" content={desc} />
-    <meta property="og:locale" content="is_IS" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: #070b16; color: #eaf1fb; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
-      main { max-width: 820px; margin: 0 auto; padding: 44px 20px 64px; }
-      .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-      h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
-      p { color: #cdd6e6; }
-      .tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 6px; }
-      .tile { flex: 1; min-width: 150px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-      .tile .t-l { font-size: 12px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .04em; }
-      .tile .t-v { font-size: 30px; font-weight: 800; line-height: 1.1; margin-top: 2px; }
-      .tile .t-s { font-size: 12px; color: #7e8ca6; }
-      .maj-y { color: #46e08a; } .maj-n { color: #ff6d7a; }
-      .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
-      #chart { width: 100%; margin: 20px 0 8px; }
-      h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
-      table { width: 100%; border-collapse: collapse; font-size: 14px; }
-      th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
-      th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-      td.l, th.l { text-align: left; }
-      .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
-      .party { font-weight: 600; } .gov-tag { font-size: 10px; color: #06121a; background: #46e08a; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
-      .num { font-variant-numeric: tabular-nums; }
-      .up { color: #46e08a; } .dn { color: #ff6d7a; } .fl { color: #7e8ca6; }
-      .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-      .foot a { color: #9fb0c8; }
-      .mp-group { margin: 4px 0 14px; }
-      .mp-party { font-weight: 700; font-size: 14px; color: var(--pc); margin-bottom: 4px; }
-      .mp-party span { color: #7e8ca6; font-weight: 400; }
-      .mp-list { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-      .mp-list a { color: #cdd6e6; text-decoration: none; font-size: 13px; }
-      .mp-list a:hover { color: #f6b13b; text-decoration: underline; }
-    </style>
-  </head>
-  <body>
-    <Topbar maxw={820} />
-    <main>
-      <p class="kicker">Hagvísir Íslands · Alþingi</p>
-      <h1>Sætaspá Alþingis</h1>
-      <p>
-        Ef kosið væri nú — vélræn spá reiknuð með D'Hondt-reglu úr meðaltali síðustu <strong>{r.used} kannana</strong>
-        (nýjust {lastPoll?.pollster}, {lastPoll?.date}). Ríkisstjórnarflokkarnir <strong>{govNames}</strong>
-        fá {r.govS} af 63 sætum.
-      </p>
+<Layout
+  title={`Sætaspá Alþingis — ${govNames.split(',')[0]} stærst | Karp`}
+  description={desc}
+  canonical="https://app.karp.is/althingi/"
+  jsonLd={jsonLd}
+  ogTitle="Sætaspá Alþingis"
+>
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <h1>Sætaspá Alþingis</h1>
+    <p>
+      Ef kosið væri nú — vélræn spá reiknuð með D'Hondt-reglu úr meðaltali síðustu <strong>{r.used} kannana</strong>
+      (nýjust {lastPoll?.pollster}, {lastPoll?.date}). Ríkisstjórnarflokkarnir <strong>{govNames}</strong>
+      fá {r.govS} af 63 sætum.
+    </p>
 
-      <div class="tiles">
-        <div class="tile">
-          <div class="t-l">Ríkisstjórn</div>
-          <div class={`t-v ${r.maj ? 'maj-y' : 'maj-n'}`}>{r.govS}</div>
-          <div class="t-s">{r.maj ? '✓ meirihluti' : '✗ fallinn meirihluti'} · þarf 32</div>
-        </div>
-        <div class="tile">
-          <div class="t-l">Stjórnarandstaða</div>
-          <div class="t-v">{r.oppS}</div>
-          <div class="t-s">af 63 sætum</div>
-        </div>
-        <div class="tile">
-          <div class="t-l">Stærsti flokkur</div>
-          <div class="t-v" style={`color:${seatRows[0]?.color}`}>{seatRows[0]?.proj}</div>
-          <div class="t-s">{seatRows[0]?.name}</div>
+    <div class="tiles">
+      <div class="tile">
+        <div class="t-l">Ríkisstjórn</div>
+        <div class={`t-v ${r.maj ? 'maj-y' : 'maj-n'}`}>{r.govS}</div>
+        <div class="t-s">{r.maj ? '✓ meirihluti' : '✗ fallinn meirihluti'} · þarf 32</div>
+      </div>
+      <div class="tile">
+        <div class="t-l">Stjórnarandstaða</div>
+        <div class="t-v">{r.oppS}</div>
+        <div class="t-s">af 63 sætum</div>
+      </div>
+      <div class="tile">
+        <div class="t-l">Stærsti flokkur</div>
+        <div class="t-v" style={`color:${seatRows[0]?.color}`}>{seatRows[0]?.proj}</div>
+        <div class="t-s">{seatRows[0]?.name}</div>
+      </div>
+    </div>
+
+    <p class="note">
+      ⓘ <strong>Vélræn spá</strong>, ekki opinber. D'Hondt-sætaúthlutun úr 3-kannana meðaltali með 5% þröskuldi;
+      „Nú" = núverandi þingmenn. Kannanir eru óvissar og spáin breytist með þeim — þetta er ekki niðurstaða kosninga.
+    </p>
+
+    <h2>Nú vs. spá — eftir flokkum</h2>
+    <div id="chart"></div>
+
+    <table>
+      <thead>
+        <tr><th class="l">Flokkur</th><th>Nú</th><th>Spá</th><th>Breyting</th><th>Síðasta könnun</th></tr>
+      </thead>
+      <tbody>
+        {prows.map((p) => (
+          <tr>
+            <td class="l">
+              <span class="dot" style={`background:${p.color}`}></span>
+              <span class="party">{p.name}</span>{p.gov && <span class="gov-tag">ríkisstj.</span>}
+            </td>
+            <td class="num">{p.cur}</td>
+            <td class="num">{p.proj}</td>
+            <td class={`num ${p.proj - p.cur > 0 ? 'up' : p.proj - p.cur < 0 ? 'dn' : 'fl'}`}>{chg(p.proj - p.cur)}</td>
+            <td class="num">{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <h2>Þingmenn ({THINGMENN.length})</h2>
+    {mpGroups.map((g) => (
+      <div class="mp-group">
+        <div class="mp-party" style={`--pc:${g.color}`}>{g.party} <span>· {g.mps.length}</span></div>
+        <div class="mp-list">
+          {g.mps.map((mp) => <a href={`/althingi/${slugify(mp.nafn)}/`}>{mp.nafn}</a>)}
         </div>
       </div>
+    ))}
 
-      <p class="note">
-        ⓘ <strong>Vélræn spá</strong>, ekki opinber. D'Hondt-sætaúthlutun úr 3-kannana meðaltali með 5% þröskuldi;
-        „Nú" = núverandi þingmenn. Kannanir eru óvissar og spáin breytist með þeim — þetta er ekki niðurstaða kosninga.
-      </p>
+    <p class="foot">
+      Forþjónað (SSG) {updated}. Spáin reiknuð á <strong>byggingartíma</strong> úr sameiginlega <code>src/lib</code>
+      (<code>seats</code> D'Hondt + <code>parties</code>). Kannanagögn: {POLLS.source}
+      {POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>heimild</a>)</> : null}. #2 Á3.
+    </p>
+  </main>
 
-      <h2>Nú vs. spá — eftir flokkum</h2>
-      <div id="chart"></div>
+  <style>
+    main { max-width: 820px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    .tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 6px; }
+    .tile { flex: 1; min-width: 150px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+    .tile .t-l { font-size: 12px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .04em; }
+    .tile .t-v { font-size: 30px; font-weight: 800; line-height: 1.1; margin-top: 2px; }
+    .tile .t-s { font-size: 12px; color: #7e8ca6; }
+    .maj-y { color: #46e08a; } .maj-n { color: #ff6d7a; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    #chart { width: 100%; margin: 20px 0 8px; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    td.l, th.l { text-align: left; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+    .party { font-weight: 600; } .gov-tag { font-size: 10px; color: #06121a; background: #46e08a; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+    .num { font-variant-numeric: tabular-nums; }
+    .up { color: #46e08a; } .dn { color: #ff6d7a; } .fl { color: #7e8ca6; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+    .mp-group { margin: 4px 0 14px; }
+    .mp-party { font-weight: 700; font-size: 14px; color: var(--pc); margin-bottom: 4px; }
+    .mp-party span { color: #7e8ca6; font-weight: 400; }
+    .mp-list { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+    .mp-list a { color: #cdd6e6; text-decoration: none; font-size: 13px; }
+    .mp-list a:hover { color: #f6b13b; text-decoration: underline; }
+  </style>
 
-      <table>
-        <thead>
-          <tr><th class="l">Flokkur</th><th>Nú</th><th>Spá</th><th>Breyting</th><th>Síðasta könnun</th></tr>
-        </thead>
-        <tbody>
-          {prows.map((p) => (
-            <tr>
-              <td class="l">
-                <span class="dot" style={`background:${p.color}`}></span>
-                <span class="party">{p.name}</span>{p.gov && <span class="gov-tag">ríkisstj.</span>}
-              </td>
-              <td class="num">{p.cur}</td>
-              <td class="num">{p.proj}</td>
-              <td class={`num ${p.proj - p.cur > 0 ? 'up' : p.proj - p.cur < 0 ? 'dn' : 'fl'}`}>{chg(p.proj - p.cur)}</td>
-              <td class="num">{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <h2>Þingmenn ({THINGMENN.length})</h2>
-      {mpGroups.map((g) => (
-        <div class="mp-group">
-          <div class="mp-party" style={`--pc:${g.color}`}>{g.party} <span>· {g.mps.length}</span></div>
-          <div class="mp-list">
-            {g.mps.map((mp) => <a href={`/althingi/${slugify(mp.nafn)}/`}>{mp.nafn}</a>)}
-          </div>
-        </div>
-      ))}
-
-      <p class="foot">
-        Forþjónað (SSG) {updated}. Spáin reiknuð á <strong>byggingartíma</strong> úr sameiginlega <code>src/lib</code>
-        (<code>seats</code> D'Hondt + <code>parties</code>). Kannanagögn: {POLLS.source}
-        {POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>heimild</a>)</> : null}. #2 Á3.
-      </p>
-    </main>
-
-    <!-- Eyja: grúppað lárétt súlurit (Nú vs Spá) -->
-    <script define:vars={{ chartNames, chartCur, chartProj }}>
-      const boot = () => {
-        const el = document.getElementById('chart');
-        if (!el || !window.echarts) return;
-        el.style.height = (chartNames.length * 46 + 60) + 'px';
-        const chart = window.echarts.init(el);
-        chart.setOption({
-          backgroundColor: 'transparent',
-          legend: { data: ['Nú', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
-          grid: { left: 110, right: 34, top: 34, bottom: 20 },
-          xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
-          yAxis: {
-            type: 'category', inverse: true, data: chartNames,
-            axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false },
-          },
-          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-          series: [
-            { name: 'Nú', type: 'bar', data: chartCur, barGap: 0, itemStyle: { color: '#42506a' },
-              label: { show: true, position: 'right', color: '#7e8ca6', fontSize: 10 } },
-            { name: 'Spá', type: 'bar', data: chartProj,
-              label: { show: true, position: 'right', color: '#eaf1fb', fontSize: 11, fontWeight: 'bold' } },
-          ],
-        });
-        window.addEventListener('resize', () => chart.resize());
-      };
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
-      s.onload = boot;
-      document.head.appendChild(s);
-    </script>
-  </body>
-</html>
+  <!-- Eyja: grúppað lárétt súlurit (Nú vs Spá) -->
+  <script define:vars={{ chartNames, chartCur, chartProj }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      el.style.height = (chartNames.length * 46 + 60) + 'px';
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        legend: { data: ['Nú', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        grid: { left: 110, right: 34, top: 34, bottom: 20 },
+        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        yAxis: {
+          type: 'category', inverse: true, data: chartNames,
+          axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false },
+        },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        series: [
+          { name: 'Nú', type: 'bar', data: chartCur, barGap: 0, itemStyle: { color: '#42506a' },
+            label: { show: true, position: 'right', color: '#7e8ca6', fontSize: 10 } },
+          { name: 'Spá', type: 'bar', data: chartProj,
+            label: { show: true, position: 'right', color: '#eaf1fb', fontSize: 11, fontWeight: 'bold' } },
+        ],
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    document.addEventListener('astro:page-load', initChart);
+  </script>
+</Layout>

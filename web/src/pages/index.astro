@@ -1,5 +1,6 @@
 ---
-// Forsíða (hub) fyrir app.karp.is — tengir á SSG-síðurnar. #2 Á3/Á6.
+import Layout from '../layouts/Layout.astro';
+// Forsíða (hub) fyrir app.karp.is — nú í app-skel (nav vinstra + fréttir hægra). #2 Á3/Á6.
 const pages = [
   { href: '/efnahagur/', emoji: '📉', title: 'Verðbólga', desc: 'Ársverðbólga og þróun vísitölu neysluverðs — lifandi frá Hagstofu Íslands.' },
   { href: '/sveitarfelog/', emoji: '🏘️', title: 'Sveitarfélaga-vísitala', desc: 'Samsett vísitala 36 sveitarfélaga: fjárhagur, vöxtur og atvinna vegin saman.' },
@@ -8,72 +9,44 @@ const pages = [
 const updated = '2026-07-01';
 ---
 
-<!doctype html>
-<html lang="is">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hagvísir Íslands — Karp</title>
-    <meta name="description" content="Lifandi hagvísar, sveitarfélaga-vísitala og sætaspá Alþingis — borgaralegt mælaborð fyrir Ísland, byggt á opinberum gögnum." />
-    <link rel="canonical" href="https://app.karp.is/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Hagvísir Íslands — Karp" />
-    <meta property="og:description" content="Lifandi hagvísar, sveitarfélaga-vísitala og sætaspá Alþingis." />
-    <meta property="og:locale" content="is_IS" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: #070b16; color: #eaf1fb; font: 16px/1.6 system-ui, -apple-system, sans-serif; }
-      main { max-width: 820px; margin: 0 auto; padding: 26px 20px 64px; }
-      .topbar { max-width: 820px; margin: 0 auto; padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
-      .tb-brand { color: #f6b13b; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; font-size: 13px; text-decoration: none; }
-      .chip { display: flex; align-items: center; gap: 8px; font-size: 14px; min-height: 28px; } /* kc-* stílar sprautast úr auth.js */
-      .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #f6b13b; font-weight: 700; margin: 0 0 6px; }
-      h1 { font-size: 40px; line-height: 1.1; margin: 0 0 10px; }
-      .lead { color: #cdd6e6; font-size: 18px; max-width: 620px; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin: 34px 0 8px; }
-      .card { display: block; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
-      .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }
-      .c-emoji { font-size: 30px; }
-      .c-title { font-size: 19px; font-weight: 700; margin: 10px 0 4px; }
-      .c-desc { font-size: 14px; color: #9fb0c8; }
-      .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: 12px; }
-      .foot { font-size: 12px; color: #6f7b8d; margin-top: 34px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-      .foot a { color: #9fb0c8; }
-    </style>
-  </head>
-  <body>
-    <header class="topbar">
-      <a class="tb-brand" href="/">Karp</a>
-      <div id="chip" class="chip"></div>
-    </header>
-    <main>
-      <p class="kicker">Karp</p>
-      <h1>Hagvísir Íslands</h1>
-      <p class="lead">Borgaralegt mælaborð — opinber gögn, forþjónuð fyrir hraða og sýnileika.</p>
+<Layout
+  title="Hagvísir Íslands — Karp"
+  description="Lifandi hagvísar, sveitarfélaga-vísitala og sætaspá Alþingis — borgaralegt mælaborð fyrir Ísland, byggt á opinberum gögnum."
+  canonical="https://app.karp.is/"
+>
+  <main class="pg">
+    <p class="kicker">Karp</p>
+    <h1>Hagvísir Íslands</h1>
+    <p class="lead">Borgaralegt mælaborð — opinber gögn, forþjónuð fyrir hraða og sýnileika.</p>
 
-      <div class="grid">
-        {pages.map((p) => (
-          <a class="card" href={p.href}>
-            <div class="c-emoji">{p.emoji}</div>
-            <div class="c-title">{p.title}</div>
-            <div class="c-desc">{p.desc}</div>
-            <div class="c-go">Skoða →</div>
-          </a>
-        ))}
-      </div>
+    <div class="grid">
+      {pages.map((p) => (
+        <a class="card" href={p.href}>
+          <div class="c-emoji">{p.emoji}</div>
+          <div class="c-title">{p.title}</div>
+          <div class="c-desc">{p.desc}</div>
+          <div class="c-go">Skoða →</div>
+        </a>
+      ))}
+    </div>
 
-      <p class="foot">
-        Forþjónað (SSG) {updated} · gögn sótt á byggingartíma · fullt mælaborð á <a href="https://www.karp.is">karp.is</a>
-      </p>
-    </main>
+    <p class="foot">
+      Forþjónað (SSG) {updated} · gögn sótt á byggingartíma · fullt mælaborð á <a href="https://www.karp.is">karp.is</a>
+    </p>
+  </main>
 
-    <!-- Eyja: innskráningar-chip (auth.js sækir GET /me kross-undirléns). #2 Á5 -->
-    <script>
-      import { mountChip } from '../lib/auth.js';
-      const el = document.getElementById('chip');
-      if (el) mountChip(el);
-    </script>
-  </body>
-</html>
+  <style>
+    .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #f6b13b; font-weight: 700; margin: 0 0 6px; }
+    h1 { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
+    .lead { color: #cdd6e6; font-size: 18px; max-width: 620px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin: 32px 0 8px; }
+    .card { display: block; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
+    .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }
+    .c-emoji { font-size: 30px; }
+    .c-title { font-size: 19px; font-weight: 700; margin: 10px 0 4px; }
+    .c-desc { font-size: 14px; color: #9fb0c8; }
+    .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: 12px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 34px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+</Layout>
