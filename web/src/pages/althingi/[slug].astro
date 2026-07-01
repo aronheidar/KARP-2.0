@@ -46,7 +46,7 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{`${m.nafn} — ${m.flokkur} | Karp`}</title>
     <meta name="description" content={desc} />
-    <link rel="canonical" href={`https://www.karp.is/althingi/${slugify(m.nafn)}`} />
+    <link rel="canonical" href={`https://app.karp.is/althingi/${slugify(m.nafn)}/`} />
     <meta property="og:type" content="profile" />
     <meta property="og:title" content={`${m.nafn} — þingmaður`} />
     <meta property="og:description" content={desc} />
@@ -75,6 +75,15 @@ const jsonLd = {
       .nefndir span { font-size: 13px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; }
       .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     </style>
+    <style is:global>
+      /* Fylgja-hnappur er búinn til á keyrslutíma → global. Erfir --pc frá <main>. */
+      .follow-wrap { margin-top: 10px; min-height: 34px; }
+      .fbtn { background: var(--pc); color: #06121a; border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
+      .fbtn.on { background: transparent; color: var(--pc); }
+      .fbtn:disabled { opacity: .6; cursor: default; }
+      .follow-gate { font-size: 13px; color: #9fb0c8; text-decoration: none; }
+      .follow-gate:hover { color: #f6b13b; }
+    </style>
   </head>
   <body>
     <Topbar maxw={780} />
@@ -86,6 +95,7 @@ const jsonLd = {
           <h1>{m.nafn}</h1>
           <div><span class="party">{m.flokkur}</span></div>
           <div class="meta">{roleTxt} · {m.kjordaemi}</div>
+          <div id="follow" class="follow-wrap" data-key={`mp:${m.id}`}></div>
         </div>
       </div>
 
@@ -111,5 +121,31 @@ const jsonLd = {
         <code> src/lib/parties</code>. #2 Á6 · ein af 63 þingmanna-síðum.
       </p>
     </main>
+
+    <!-- Eyja: Fylgja þingmann (auðkennd umferð gegnum auth.js → /follows). #2 Á5 -->
+    <script>
+      import { loadUser, karpPost } from '../../lib/auth.js';
+      const el = document.getElementById('follow');
+      const KEY = el.dataset.key;
+      function render() {
+        const u = window.KARP_USER || { loggedIn: false };
+        if (!u.loggedIn) {
+          el.innerHTML = `<a class="follow-gate" href="${u.loginUrl || 'https://karp.is/login/'}">🔒 Skráðu þig inn til að fylgja</a>`;
+          return;
+        }
+        const following = (u.follows || []).includes(KEY);
+        el.innerHTML = `<button class="fbtn${following ? ' on' : ''}">${following ? '✓ Fylgist með' : '+ Fylgja'}</button>`;
+        el.querySelector('button').onclick = async () => {
+          const cur = window.KARP_USER.follows || [];
+          const next = cur.includes(KEY) ? cur.filter((k) => k !== KEY) : cur.concat([KEY]);
+          const b = el.querySelector('button');
+          b.disabled = true; b.textContent = '…';
+          const res = await karpPost('/follows', { follows: next });
+          window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+          render();
+        };
+      }
+      loadUser().then(render);
+    </script>
   </body>
 </html>
