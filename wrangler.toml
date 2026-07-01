@@ -1,4 +1,4 @@
-name = "git-repository-hagvisir"
+name = "karp2"
 compatibility_date = "2026-06-29"
 
 # Static-assets-only Worker: serve everything in dist/ (karp-app.js, karp-data.txt, _headers).
