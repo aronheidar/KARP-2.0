@@ -95,7 +95,7 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
         b.onclick = () => {
           pr.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
           const p = presets[+b.dataset.i];
-          Object.keys(p.v || {}).forEach((k) => { st[k] = p.v[k]; const inp = box.querySelector(`input[data-k="${k}"]`); if (inp) inp.value = p.v[k]; });
+          Object.keys(p.set || p.v || {}).forEach((k) => { const pv = (p.set || p.v)[k]; st[k] = pv; const inp = box.querySelector(`input[data-k="${k}"]`); if (inp) inp.value = pv; });
           paint();
         };
       });

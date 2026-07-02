@@ -353,7 +353,7 @@ const MODEGROUPS = [
       function flowData() {
         if (mode !== 'stadgr' && mode !== 'jofnun') return [];
         const toState = mode === 'stadgr';
-        const col = toState ? '#f6b13b' : '#19d3c5';
+        const col = toState ? '#19d3c5' : '#f6b13b'; // LOTA 15: jöfnun gull, staðgreiðsla teal
         const vals = MUNIS.map((u) => u.v[mode]).filter((v) => v != null && v > 0);
         const mx = Math.max(...vals, 1);
         return MUNIS.filter((u) => u.v[mode] != null && u.v[mode] > 0 && u.n !== 'Reykjavíkurborg').map((u) => ({
@@ -381,6 +381,20 @@ const MODEGROUPS = [
         effect: { show: mode === 'stadgr' || mode === 'jofnun', period: 5, symbol: 'arrow', symbolSize: 5.5, trailLength: 0.12 },
         tooltip: { formatter: (p) => `<b>${p.data.nafn}</b><br>${MODES[mode] ? MODES[mode].l : ''}: <b>${p.data.vTxt}</b>` },
         data: flowData() });
+      // Íkonar við Reykjavík í flæðihömum (LOTA 15, eins og gamla): vísa á undirsíðurnar
+      const poiSeries = () => {
+        const on = mode === 'stadgr' || mode === 'jofnun';
+        const poi = !on ? [] : [{
+          value: [RVK[0] + 1.1, RVK[1] + 0.55],
+          href: mode === 'stadgr' ? '/rikisfjarmal/' : '/jofnunarsjodur/',
+          nafn: mode === 'stadgr' ? 'Ríkissjóður — sjá Ríkisfjármál' : 'Jöfnunarsjóður — sjá síðuna',
+          emoji: mode === 'stadgr' ? '🏛️' : '⚖️',
+        }];
+        return { id: 'poi-' + mode, name: 'poi', type: 'scatter', coordinateSystem: 'geo', zlevel: 4, symbolSize: 1, silent: false,
+          label: { show: true, fontSize: 22, formatter: (d) => d.data.emoji, color: '#fff' },
+          tooltip: { formatter: (p) => '<b>' + p.data.nafn + '</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>' },
+          data: poi };
+      };
       let flowPie = null;
       function paintFlow() {
         const wrap = $('flow-wrap');
@@ -422,12 +436,13 @@ const MODEGROUPS = [
         // roam:false — EKKERT músarhjóls-zoom/drag (eins og gamla): þysjun AÐEINS með smelli á landshluta + ↩-takka.
         geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: true, color: 'rgba(159,176,200,.4)', fontSize: 9.5 }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
-        series: [munisSeries(), flowsSeries(), topSeries()],
+        series: [munisSeries(), flowsSeries(), topSeries(), poiSeries()],
       });
       scaleTxt();
       paintInfo();
 
       chart.on('click', (p) => {
+        if (p.data && p.data.href) { window.location.href = p.data.href; return; }
         if (p.seriesType === 'scatter' && p.data && p.data.slug) { window.location.href = '/sveitarfelog/' + p.data.slug + '/'; return; }
         if (p.componentType === 'geo' && RZ && RZ[p.name]) { chart.setOption({ geo: { center: RZ[p.name].c, zoom: RZ[p.name].z } }); $('map-reset').hidden = false; }
       });
@@ -437,7 +452,7 @@ const MODEGROUPS = [
         b.onclick = () => {
           document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b));
           mode = b.dataset.m;
-          chart.setOption({ series: [munisSeries(), flowsSeries(), topSeries()] }, { replaceMerge: ['series'] });
+          chart.setOption({ series: [munisSeries(), flowsSeries(), topSeries(), poiSeries()] }, { replaceMerge: ['series'] });
           scaleTxt();
           paintInfo();
           paintFlow();

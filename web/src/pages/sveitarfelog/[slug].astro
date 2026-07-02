@@ -190,7 +190,7 @@ const jsonLd = {
       </table>
       {JOF && (
         <div class="jof">
-          <div class="jof-h">⚖️ Jöfnunarsjóður {JOF.ar}</div>
+          <div class="jof-h">⚖️ Jöfnunarsjóður {JOF.ar} <a class="jof-lnk" href="/jofnunarsjodur/">sjóðurinn á landsvísu →</a></div>
           <div class="jof-v">{groupThousands(JOF.total)} <span>m.kr</span></div>
           {JOF.perCap != null && <div class="jof-s">{groupThousands(JOF.perCap)} þús á íbúa</div>}
           {JOF.cats.map((c) => <div class="jof-row"><span>{c.label}</span><b>{groupThousands(c.v)} m</b></div>)}
@@ -272,7 +272,9 @@ const jsonLd = {
     .fin-t td:last-child { text-align: right; font-weight: 700; color: #eaf1fb; font-variant-numeric: tabular-nums; }
     .fin-t .dim { color: #7e8ca6; font-weight: 400; font-size: 11px; }
     .jof { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 12px 14px; }
-    .jof-h { font-size: 12px; font-weight: 700; color: #f6b13b; }
+    .jof-h { font-size: 12px; font-weight: 700; color: #f6b13b; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .jof-lnk { color: #9fb0c8; font-weight: 400; text-decoration: none; }
+    .jof-lnk:hover { color: #f6b13b; }
     .jof-v { font-size: 24px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .jof-v span { font-size: 12px; color: #9fb0c8; font-weight: 500; }
     .jof-s { font-size: 12px; color: #9fb0c8; margin-bottom: 8px; }

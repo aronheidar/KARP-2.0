@@ -47,9 +47,9 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
     function paintPolls(root, polls, u) {
       if (!polls.length) { root.innerHTML = '<div class="empty">Engin virk könnun í augnablikinu — kíktu aftur fljótlega.</div>'; return; }
       root.innerHTML = polls.map((p, pi) => {
-        const opts = p.options || p.valkostir || [];
-        const votes = p.votes || p.atkvaedi || [];
-        const mine = p.mine != null ? p.mine : null;
+        const opts = p.opts || p.options || p.valkostir || [];
+        const votes = p.votes || p.results || p.atkvaedi || [];
+        const mine = p.mine != null ? p.mine : (p.choice != null ? p.choice : (p.voted ? -1 : null));
         const total = votes.reduce((s, v) => s + (v || 0), 0);
         let body;
         if (mine != null || p.closed) {
