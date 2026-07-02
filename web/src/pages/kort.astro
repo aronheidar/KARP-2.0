@@ -20,6 +20,8 @@ import GLAEPIR from '@gogn/glaepir.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import SVCOORDS from '@gogn/sveitarfelog_coords.json';
 import REGIONGEO from '@gogn/landshlutar.json';
+import SVREV from '@gogn/sveitarfelog_rev.json';
+import JOFNUN from '@gogn/jofnun.json';
 
 const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI });
 const regionOf = makeRegionOf({ SVCOORDS, REGIONGEO });
@@ -55,6 +57,9 @@ const MUNIS = Object.keys(SVCOORDS).map((name) => {
       skhlutf: fin.skuldir && fin.tekjur ? r0((fin.skuldir / fin.tekjur) * 100) : null,
       afkoma: fin.afkoma_ibui ?? null,
       kjor: meta.kjordaemi || null,
+      // Ríkisflæði: staðgreiðsla til ríkisins (nýjasta ár, ma.kr) + jöfnunarframlög á íbúa (þús.kr)
+      stadgr: (() => { const s = SVREV[name]; const v = Array.isArray(s) ? s[s.length - 1] : null; return v != null ? Math.round((v / 1000) * 10) / 10 : null; })(),
+      jofnun: (() => { const j = (JOFNUN.m || {})[name]; return j && j.t && pop ? Math.round(j.t / pop / 1000) : null; })(),
     },
   };
 });
@@ -87,6 +92,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
 const MODEGROUPS = [
   ['Samfélag', [['visitala', 'Vísitala'], ['lifs', 'Lífsgæði'], ['ibuar', 'Íbúafjöldi'], ['breyting', 'Fólksfjölgun'], ['aldur', '67 ára+'], ['atv', 'Atvinnuleysi'], ['afbrot', 'Afbrot'], ['hus', 'Húsnæðisverð']]],
   ['Fjármál sveitarf.', [['utsvar', 'Útsvar'], ['tekjur', 'Tekjur/íbúi'], ['fasteign', 'Fasteignask./íbúi'], ['skuldir', 'Skuldir/íbúi'], ['skhlutf', 'Skuldahlutfall'], ['afkoma', 'Afkoma/íbúi']]],
+  ['Ríkisflæði', [['stadgr', 'Staðgreiðsla'], ['jofnun', 'Jöfnunarsjóður']]],
   ['Stjórnsýsla', [['kjor', 'Kjördæmi']]],
 ];
 ---
@@ -159,6 +165,8 @@ const MODEGROUPS = [
       skuldir: { l: 'Skuldir/íbúa', u: ' þús', dir: -1, d: 0, th: true },
       skhlutf: { l: 'Skuldahlutfall', u: '%', dir: -1, d: 0 },
       afkoma: { l: 'Afkoma/íbúa', u: ' þús', dir: 1, d: 0, th: true },
+      stadgr: { l: 'Staðgreiðsla → ríkið', u: ' ma.kr', dir: 0, d: 1 },
+      jofnun: { l: 'Jöfnunarframlög/íbúa', u: ' þús', dir: 0, d: 0, th: true },
       kjor: { l: 'Kjördæmi', cat: true },
     };
     const KJORCOL = [['Reykjav', '#e8436f'], ['Suðvest', '#3a8dff'], ['Norðaust', '#f6b13b'], ['Norðvest', '#7c5cf7'], ['Suður', '#46e08a']];
@@ -215,7 +223,8 @@ const MODEGROUPS = [
 
       chart.setOption({
         backgroundColor: 'transparent',
-        geo: { map: 'landshlutar', roam: true, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
+        // roam:false — EKKERT músarhjóls-zoom/drag (eins og gamla): þysjun AÐEINS með smelli á landshluta + ↩-takka.
+        geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
         series: [{ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 }],
       });

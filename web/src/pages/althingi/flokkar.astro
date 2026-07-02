@@ -9,6 +9,8 @@ import { partyName, partyColor } from '@lib/parties.mjs';
 import { fmtNum, slugify } from '@lib/format.mjs';
 import POLLS from '@gogn/polls.json';
 import THINGMENN from '@gogn/althingi.json';
+import CABINET from '@gogn/cabinet.json';
+import PSTANCE from '../../data/pstance.json';
 
 const r = projectSeats(POLLS, THINGMENN);
 const lastPoll = POLLS.polls[POLLS.polls.length - 1];
@@ -16,11 +18,26 @@ const pv = (lastPoll && lastPoll.v) || {};
 const byPartyName = {};
 THINGMENN.forEach((m) => { (byPartyName[m.flokkur] = byPartyName[m.flokkur] || []).push(m); });
 
+// Fylgi-sparkline per flokk (síðustu 14 kannanir) sem bökuð SVG-punktalína.
+const sparkOf = (code) => {
+  const vals = POLLS.polls.slice(-14).map((p) => (p.v || {})[code]).filter((v) => v != null);
+  if (vals.length < 3) return null;
+  const mn = Math.min(...vals), mx = Math.max(...vals), sp = mx - mn || 1;
+  return vals.map((v, i) => `${((i / (vals.length - 1)) * 96).toFixed(1)},${(26 - ((v - mn) / sp) * 24).toFixed(1)}`).join(' ');
+};
+
 const codes = [...new Set([...(POLLS.parties || []), ...Object.keys(r.cur)])];
 const cards = codes.map((c) => {
   const name = partyName(c);
   const mps = (byPartyName[name] || []).slice().sort((a, b) => a.nafn.localeCompare(b.nafn, 'is'));
-  return { code: c, name, color: partyColor(c), cur: r.cur[c] || 0, proj: r.proj[c] || 0, poll: pv[c] ?? null, gov: !!r.GOVK[c], mps };
+  const st = PSTANCE[name] || null; // [merkimiði, lýsing, vinstri-hægri 0–100, ríkisstj-flag]
+  const coh = mps.filter((m) => m.hollusta != null);
+  const samheldni = coh.length ? Math.round((coh.reduce((a, m) => a + m.hollusta, 0) / coh.length) * 10) / 10 : null;
+  const ages = mps.filter((m) => m.aldur != null);
+  const medalaldur = ages.length ? Math.round(ages.reduce((a, m) => a + m.aldur, 0) / ages.length) : null;
+  const ministers = CABINET.filter((m) => m.flokur === name || m.flok === c).map((m) => ({ n: m.nafn, e: (m.emb || [])[0] || '' }));
+  return { code: c, name, color: partyColor(c), cur: r.cur[c] || 0, proj: r.proj[c] || 0, poll: pv[c] ?? null, gov: !!r.GOVK[c], mps,
+    tag: st ? st[0] : null, desc: st ? st[1] : null, lr: st ? st[2] : null, samheldni, medalaldur, ministers, spark: sparkOf(c) };
 }).sort((a, b) => b.cur - a.cur || b.proj - a.proj || (b.poll || 0) - (a.poll || 0));
 
 const updated = '2026-07-02';
@@ -41,14 +58,30 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
             <span class="pc-row"><b>{p.cur}</b> sæti nú · spá <b>{p.proj}</b> · fylgi <b>{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</b></span>
             <span class="pc-bar"><i style={`width:${(p.cur / 63) * 100}%`}></i><i class="pj" style={`width:${(p.proj / 63) * 100}%`}></i></span>
           </summary>
-          {p.mps.length > 0 && (
-            <div class="pc-mps">
-              {p.mps.map((m) => <a href={`/althingi/${slugify(m.nafn)}/`}>{m.nafn}</a>)}
+          <div class="pc-body">
+            {p.tag && <div class="pc-tag">{p.tag}</div>}
+            {p.desc && <p class="pc-desc">{p.desc}</p>}
+            {p.lr != null && (
+              <div class="pc-lr"><span>Vinstri</span><div class="pc-lrbar"><i style={`left:${p.lr}%`}></i></div><span>Hægri</span></div>
+            )}
+            <div class="pc-stats">
+              {p.samheldni != null && <span>🤝 Samheldni <b>{String(p.samheldni).replace('.', ',')}%</b></span>}
+              {p.medalaldur != null && <span>🎂 Meðalaldur <b>{p.medalaldur} ára</b></span>}
+              {p.spark && <span class="pc-spark">📈 Fylgi <svg viewBox="0 0 96 28" preserveAspectRatio="none"><polyline points={p.spark} fill="none" stroke={p.color} stroke-width="2" vector-effect="non-scaling-stroke" /></svg></span>}
             </div>
-          )}
+            {p.ministers.length > 0 && (
+              <div class="pc-min">Ráðherrar: {p.ministers.map((m) => `${m.n} (${m.e})`).join(' · ')}</div>
+            )}
+            {p.mps.length > 0 && (
+              <div class="pc-mps">
+                {p.mps.map((m) => <a href={`/althingi/${slugify(m.nafn)}/`}>{m.nafn}</a>)}
+              </div>
+            )}
+          </div>
         </details>
       ))}
     </div>
+    <p class="srcnote">Stefna og vinstri–hægri staðsetning eru ritstjórnarlegt mat; samheldni = meðalhollusta í atkvæðagreiðslum (Alþingi).</p>
 
     <p class="foot">Forþjónað (SSG) {updated}. Sætaspá: D'Hondt úr 3-kannana meðaltali (5% þröskuldur). Efri stika = sæti nú, neðri = spá. #2.</p>
   </main>
@@ -69,7 +102,18 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
     .pc-bar { display: block; margin-top: 8px; }
     .pc-bar i { display: block; height: 5px; border-radius: 3px; background: var(--pc); margin-bottom: 3px; }
     .pc-bar i.pj { opacity: .45; }
-    .pc-mps { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0 16px 12px; }
+    .pc-body { padding: 0 16px 12px; }
+    .pc-tag { font-size: 12px; font-weight: 700; color: var(--pc); }
+    .pc-desc { font-size: 13px; color: #cdd6e6; line-height: 1.5; margin: 4px 0 8px; }
+    .pc-lr { display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: #7e8ca6; margin-bottom: 8px; }
+    .pc-lrbar { flex: 1; position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, rgba(232,67,111,.5), rgba(255,255,255,.12), rgba(58,141,255,.5)); }
+    .pc-lrbar i { position: absolute; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--pc); border: 2px solid #0b1220; transform: translateX(-50%); }
+    .pc-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: #9fb0c8; align-items: center; margin-bottom: 8px; }
+    .pc-stats b { color: #eaf1fb; }
+    .pc-spark svg { width: 78px; height: 22px; vertical-align: middle; margin-left: 4px; }
+    .pc-min { font-size: 12px; color: #ffd479; margin-bottom: 8px; }
+    .srcnote { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
+    .pc-mps { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; }
     .pc-mps a { color: #cdd6e6; text-decoration: none; font-size: 13px; }
     .pc-mps a:hover { color: var(--pc); text-decoration: underline; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }

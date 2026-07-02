@@ -18,6 +18,12 @@ import GLAEPIR from '@gogn/glaepir.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import SVCOORDS from '@gogn/sveitarfelog_coords.json';
 import REGIONGEO from '@gogn/landshlutar.json';
+import SVREV from '@gogn/sveitarfelog_rev.json';
+import SVMAL from '@gogn/sveitarfelog_mal.json';
+import JOFNUN from '@gogn/jofnun.json';
+import SVSTJORN from '@gogn/sveitarstjorn_deep.json';
+import RVKSTJORN from '@gogn/sveitarstjorn_rvk.json';
+import { colorByName } from '@lib/parties.mjs';
 
 export function getStaticPaths() {
   const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI });
@@ -77,6 +83,32 @@ const RADAR = [
 ];
 const hasRadar = RADAR.filter((a) => a.v != null).length >= 4;
 
+// ── ÍTARLEGI FJÁRHAGSKAFLINN (LOTA 9) ──
+const MALLBL = ['Félagsþjónusta', 'Heilbrigðismál', 'Fræðslumál', 'Menningarmál', 'Íþrótta- og æskulýðsmál', 'Brunamál og almannav.', 'Hreinlætismál', 'Skipulags- og byggingarm.', 'Umferð og samgöngur', 'Umhverfismál', 'Atvinnumál', 'Sameiginlegur kostnaður'];
+const revYears = SVREV._ar || [];
+const revRaw = SVREV[p.name] || null;
+const REV = revRaw ? { years: revYears.slice(0, revRaw.length), vals: revRaw.map((v) => Math.round((v / 1000) * 10) / 10) } : null; // m.kr → ma.kr
+const malRaw = SVMAL[p.name] || null;
+const MAL = malRaw ? MALLBL.map((l, i) => ({ label: l, v: Math.round((malRaw[i] || 0) / 1000) })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v) : null; // þús → m.kr
+const jof = (JOFNUN.m || {})[p.name] || null;
+const JOF = jof && jof.t ? {
+  total: Math.round(jof.t / 1e6), perCap: jof.ibuar ? Math.round(jof.t / jof.ibuar / 1000) : null,
+  cats: (jof.c || []).map((v, i) => ({ label: (JOFNUN.catLabels || [])[i] || '', v: Math.round(v / 1e6) })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 6),
+  ar: JOFNUN.ar,
+} : null;
+// Sveitarstjórn: Reykjavík á sér-skrá (borgarstjórn), hinar í deep-skránni.
+const stjRaw = p.name === 'Reykjavíkurborg'
+  ? { bsj: RVKSTJORN.borgarstjori, stjorn: (RVKSTJORN.borgarstjorn || []).filter((m) => !m.vara) }
+  : SVSTJORN[p.name] || null;
+const STJ = stjRaw ? { bsj: stjRaw.bsj || null, members: (stjRaw.stjorn || []).map((m) => ({ n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), hl: m.hlutverk || '' })) } : null;
+// Fjármála-tafla (heild, þús.kr → ma.kr/m.kr)
+const finRows = [
+  ['Tekjur alls', p.fin.tekjur, 'ma'], ['Gjöld alls', p.fin.gjold, 'ma'],
+  ['Eignir', p.fin.eignir, 'ma'], ['Skuldir', p.fin.skuldir, 'ma'],
+].filter((r) => r[1] != null).map(([l, v, u]) => ({ l, txt: fmtNum(v / 1e6, 1) + ' ma.kr' }));
+if (p.fin.nidur != null) finRows.push({ l: 'Niðurstaða ársins', txt: fmtNum(p.fin.nidur / 1e3, 0) + ' m.kr' });
+const skuldahlutf = p.fin.skuldir && p.fin.tekjur ? Math.round((p.fin.skuldir / p.fin.tekjur) * 100) : null;
+
 const desc = `Hagvísar fyrir ${p.name}: ${p.idx != null ? `vísitala ${p.idx} (${p.rank}. af ${p.rankTotal}), ` : ''}${p.pop ? groupThousands(p.pop) + ' íbúar, ' : ''}landshluti ${p.region || '—'}. Fjárhagur, atvinnuleysi, húsnæðisverð og lífsgæði úr opinberum gögnum.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Place', name: p.name,
@@ -117,6 +149,51 @@ const jsonLd = {
       </>
     )}
 
+    <h2>Fjármálin í heild</h2>
+    <div class="fin-grid">
+      <table class="fin-t">
+        <tbody>
+          {finRows.map((r) => <tr><td>{r.l}</td><td>{r.txt}</td></tr>)}
+          {skuldahlutf != null && <tr><td>Skuldahlutfall (skuldir/tekjur)</td><td>{skuldahlutf}%</td></tr>}
+          {p.fin.utsvar != null && <tr><td>Útsvar</td><td>{fmtNum(p.fin.utsvar, 2)}% <span class="dim">(hám. 14,97)</span></td></tr>}
+        </tbody>
+      </table>
+      {JOF && (
+        <div class="jof">
+          <div class="jof-h">⚖️ Jöfnunarsjóður {JOF.ar}</div>
+          <div class="jof-v">{groupThousands(JOF.total)} <span>m.kr</span></div>
+          {JOF.perCap != null && <div class="jof-s">{groupThousands(JOF.perCap)} þús á íbúa</div>}
+          {JOF.cats.map((c) => <div class="jof-row"><span>{c.label}</span><b>{groupThousands(c.v)} m</b></div>)}
+        </div>
+      )}
+    </div>
+
+    {REV && (
+      <>
+        <h2>Staðgreiðsla íbúa til ríkisins</h2>
+        <div id="sv-rev"></div>
+        <p class="srcnote">Ma.kr á ári ({REV.years[0]}–{REV.years[REV.years.length - 1]}) — sýnir umsvif og vöxt tekjustofnsins. Heimild: Skatturinn.</p>
+      </>
+    )}
+
+    {MAL && MAL.length > 0 && (
+      <>
+        <h2>Útgjöld eftir málaflokkum</h2>
+        <div id="sv-mal"></div>
+        <p class="srcnote">M.kr á ári — hvert reksturinn fer (fræðslumál jafnan stærst). Heimild: ársreikningur.</p>
+      </>
+    )}
+
+    {STJ && STJ.members.length > 0 && (
+      <>
+        <h2>Sveitarstjórn</h2>
+        {STJ.bsj && <p class="stj-bsj">Bæjar-/sveitarstjóri: <strong>{STJ.bsj}</strong></p>}
+        <div class="stj">
+          {STJ.members.map((m) => <span class="stj-m" style={`--pc:${m.c}`}>{m.n}{m.hl ? ` · ${m.hl}` : ''}<i>{m.f}</i></span>)}
+        </div>
+      </>
+    )}
+
     {p.idx == null && (
       <p class="note">ⓘ Samsett vísitala er aðeins reiknuð fyrir sveitarfélög með fleiri en 1.000 íbúa. Aðrar tölur að ofan gilda þó.</p>
     )}
@@ -144,21 +221,42 @@ const jsonLd = {
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 4px; }
     #sv-radar { width: 100%; height: 330px; }
+    .fin-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-top: 8px; }
+    @media (max-width: 680px) { .fin-grid { grid-template-columns: 1fr; } }
+    .fin-t { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .fin-t td { padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,.07); color: #cdd6e6; }
+    .fin-t td:last-child { text-align: right; font-weight: 700; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .fin-t .dim { color: #7e8ca6; font-weight: 400; font-size: 11px; }
+    .jof { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 12px 14px; }
+    .jof-h { font-size: 12px; font-weight: 700; color: #f6b13b; }
+    .jof-v { font-size: 24px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .jof-v span { font-size: 12px; color: #9fb0c8; font-weight: 500; }
+    .jof-s { font-size: 12px; color: #9fb0c8; margin-bottom: 8px; }
+    .jof-row { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: #cdd6e6; padding: 3px 0; border-top: 1px solid rgba(246,177,59,.15); }
+    .jof-row b { font-variant-numeric: tabular-nums; }
+    #sv-rev { width: 100%; height: 240px; }
+    #sv-mal { width: 100%; }
+    .srcnote { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .stj-bsj { font-size: 13.5px; }
+    .stj { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stj-m { font-size: 12px; color: #eaf1fb; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-left: 3px solid var(--pc); border-radius: 8px; padding: 5px 10px; }
+    .stj-m i { color: #7e8ca6; font-style: normal; margin-left: 6px; font-size: 11px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
-  <!-- Eyja: 6-ása radar (absólút skor). Keyrir á astro:page-load (VT). #2 -->
-  <script define:vars={{ RADAR, hasRadar, muniName: p.name }}>
+  <!-- Eyja: radar + staðgreiðslu-lína + málaflokka-súlur. astro:page-load (VT). #2 -->
+  <script define:vars={{ RADAR, hasRadar, muniName: p.name, REV, MAL }}>
     function initRadar() {
       const el = document.getElementById('sv-radar');
-      if (!el || !hasRadar) return;
+      const anyEl = el || document.getElementById('sv-rev') || document.getElementById('sv-mal');
+      if (!anyEl) return;
       if (!window.echarts) {
         let s = document.getElementById('echarts-cdn');
         if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
         s.addEventListener('load', initRadar, { once: true });
         return;
       }
-      if (window.echarts.getInstanceByDom(el)) return;
+      if (el && hasRadar && !window.echarts.getInstanceByDom(el)) {
       const c = window.echarts.init(el);
       c.setOption({
         backgroundColor: 'transparent',
@@ -174,6 +272,33 @@ const jsonLd = {
         series: [{ type: 'radar', data: [{ name: muniName, value: RADAR.map((a) => (a.v == null ? 0 : a.v)), lineStyle: { color: '#f6b13b', width: 2.5 }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: 0.22 } }] }],
       });
       window.addEventListener('resize', () => c.resize());
+      }
+      // Staðgreiðslu-þróun + málaflokkar (sama echarts-hleðsla)
+      const cr = document.getElementById('sv-rev');
+      if (cr && REV && !window.echarts.getInstanceByDom(cr)) {
+        const c2 = window.echarts.init(cr);
+        c2.setOption({
+          backgroundColor: 'transparent', grid: { left: 44, right: 12, top: 12, bottom: 22 },
+          xAxis: { type: 'category', data: REV.years, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(v).replace('.', ',') + ' ma.kr') },
+          series: [{ type: 'line', data: REV.vals, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#19d3c5' }, areaStyle: { opacity: 0.12, color: '#19d3c5' } }],
+        });
+        window.addEventListener('resize', () => c2.resize());
+      }
+      const cm = document.getElementById('sv-mal');
+      if (cm && MAL && MAL.length && !window.echarts.getInstanceByDom(cm)) {
+        cm.style.height = (MAL.length * 26 + 24) + 'px';
+        const c3 = window.echarts.init(cm);
+        c3.setOption({
+          backgroundColor: 'transparent', grid: { left: 168, right: 54, top: 4, bottom: 20 },
+          xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          yAxis: { type: 'category', inverse: true, data: MAL.map((d) => d.label), axisLabel: { color: '#cdd6e6', fontSize: 10.5, width: 158, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' m.kr' },
+          series: [{ type: 'bar', barWidth: 13, data: MAL.map((d) => d.v), itemStyle: { color: '#7c5cf7' }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 9.5, formatter: (p) => String(Math.round(p.value)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') } }],
+        });
+        window.addEventListener('resize', () => c3.resize());
+      }
     }
     document.addEventListener('astro:page-load', initRadar);
   </script>

@@ -1,0 +1,81 @@
+---
+// Hagspár (#2 LOTA 9) — almennings-spárnar úr gamla: spáðu um lykilhagtölur
+// ársloka og sjáðu meðalspá lesenda (GET/POST /spa per topic gegnum auth.js).
+import Layout from '../layouts/Layout.astro';
+const TOPICS = [
+  { t: 'verdb_arslok26', e: '📈', l: 'Verðbólga í árslok 2026', u: '%', min: 0, max: 20, step: 0.1, hint: 'Ársverðbólga (VNV) í desember 2026' },
+  { t: 'styriv_arslok26', e: '🏦', l: 'Stýrivextir í árslok 2026', u: '%', min: 0, max: 14, step: 0.25, hint: 'Meginvextir Seðlabankans eftir síðustu ákvörðun ársins' },
+  { t: 'hagv_2026', e: '🚀', l: 'Hagvöxtur ársins 2026', u: '%', min: -5, max: 8, step: 0.1, hint: 'Magnbreyting VLF milli ára' },
+];
+const updated = '2026-07-02';
+const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og hagvöxt í árslok og sjáðu hvað almenningur heldur að meðaltali.';
+---
+
+<Layout title="Hagspár — spáðu um hagtölurnar | Karp" description={desc} canonical="https://app.karp.is/hagspar/" ogTitle="Hagspár Karp">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Hagspár 🔭</h1>
+    <p>Hvað heldur <strong>þú</strong>? Spáðu um lykilhagtölur ársloka — og sjáðu meðalspá lesenda Karp. Spáin þín er nafnlaus í samtölunni.</p>
+    <div id="sp-list">{TOPICS.map((t) => <div class="spa-card" data-topic={t.t} data-l={t.l} data-e={t.e} data-u={t.u} data-min={t.min} data-max={t.max} data-step={t.step} data-hint={t.hint}>Hleð…</div>)}</div>
+    <p class="note">ⓘ Óformlegar spár lesenda — ekki opinberar spár. Berðu saman við <a href="/verdlag/">verðbólguna núna</a> og <a href="/hagvoxtur/">hagvöxtinn</a>.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Spár vistast um <code>/spa</code>-endapunktinn (innskráning þarf til að senda). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    .spa-card { margin: 14px 0 0; padding: 16px 18px; background: rgba(124,92,247,.08); border: 1px solid rgba(124,92,247,.28); border-radius: 12px; }
+    .spa-h { font-weight: 700; font-size: 15px; color: #eaf1fb; }
+    .spa-sub { font-size: 12.5px; color: #9fb0c8; margin-top: 2px; }
+    .spa-avg { font-size: 14px; color: #cdd6e6; margin-top: 10px; }
+    .spa-avg b { color: #b9a6ff; }
+    .spa-avg span { color: #7e8ca6; font-size: 12px; }
+    .spa-form { display: flex; gap: 8px; margin-top: 10px; }
+    .spa-form input { width: 120px; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 8px; padding: 7px 10px; font-size: 14px; }
+    .spa-form button { background: #7c5cf7; color: #fff; border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .spa-form button:disabled { opacity: .6; }
+    .spa-mine { font-size: 13px; color: #b9a6ff; margin-top: 8px; }
+    .spa-gate { font-size: 13.5px; color: #9fb0c8; margin-top: 10px; }
+    .spa-gate a { color: #f6b13b; }
+  </style>
+
+  <!-- Eyja: spá-kort per topic (GET/POST /spa). #2 -->
+  <script>
+    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    const fp = (v) => (v == null ? '–' : String(v).replace('.', ',') + '%');
+    async function renderCard(el) {
+      const u = window.KARP_USER || { loggedIn: false };
+      const T = el.dataset;
+      const d = (await karpGet('/spa?topic=' + encodeURIComponent(T.topic))) || {};
+      let h = `<div class="spa-h">${T.e} ${T.l}</div><div class="spa-sub">${T.hint}.</div>`;
+      h += `<div class="spa-avg">Meðalspá lesenda: <b>${fp(d.avg)}</b> <span>· ${d.count || 0} spár</span></div>`;
+      if (u.loggedIn) {
+        h += `<div class="spa-form"><input type="number" step="${T.step}" min="${T.min}" max="${T.max}" placeholder="t.d. 4,0" value="${d.mine != null ? d.mine : ''}"><button>${d.mine != null ? 'Uppfæra' : 'Senda'} spá</button></div>`;
+        if (d.mine != null) h += `<div class="spa-mine">Þín spá: <b>${fp(d.mine)}</b></div>`;
+      } else {
+        h += `<div class="spa-gate">🔒 <a href="${u.loginUrl || 'https://karp.is/login/'}">Skráðu þig inn</a> til að senda spá.</div>`;
+      }
+      el.innerHTML = h;
+      const btn = el.querySelector('button');
+      if (btn) btn.onclick = async () => {
+        const v = parseFloat(String(el.querySelector('input').value).replace(',', '.'));
+        if (!isFinite(v)) return;
+        btn.disabled = true; btn.textContent = '…';
+        await karpPost('/spa', { topic: T.topic, value: v });
+        renderCard(el);
+      };
+    }
+    function initHagspar() {
+      const cards = document.querySelectorAll('.spa-card[data-topic]');
+      if (!cards.length || cards[0].dataset.done) return;
+      cards[0].dataset.done = '1';
+      loadUser().then(() => cards.forEach(renderCard));
+    }
+    document.addEventListener('astro:page-load', initHagspar);
+  </script>
+</Layout>

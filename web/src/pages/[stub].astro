@@ -7,9 +7,7 @@
 import Layout from '../layouts/Layout.astro';
 
 export function getStaticPaths() {
-  const STUBS = {
-    hagspar: { t: 'Hagspár', e: '🔭', d: 'Spár greiningaraðila — Seðlabankans, Hagstofunnar, AGS og bankanna — um verðbólgu, vexti og hagvöxt, og hvernig þær hafa ræst.' },
-  };
+  const STUBS = {};
   return Object.keys(STUBS).map((stub) => ({ params: { stub }, props: STUBS[stub] }));
 }
 const { t, e, d } = Astro.props;
