@@ -126,6 +126,14 @@ const MODEGROUPS = [
       <div id="map-scale" class="scale"></div>
     </div>
 
+    <!-- Topp/botn undir kortinu (LOTA 14): graf + tafla í stað yfirlagnar-texta -->
+    <div id="mode-wrap" hidden>
+      <div class="ppair">
+        <div><h2 id="mode-title"></h2><div id="mode-chart"></div></div>
+        <div><h2>Hæst og lægst</h2><div class="tw"><table id="mode-tbl"><thead><tr><th class="l">#</th><th class="l">Sveitarfélag</th><th id="mode-vh">Gildi</th></tr></thead><tbody></tbody></table></div></div>
+      </div>
+    </div>
+
     <!-- Ríkisflæðis-kökuritið (LOTA 12): birtist í stadgr/jofnun-ham -->
     <div id="flow-wrap" hidden>
       <h2 id="flow-title"></h2>
@@ -173,6 +181,15 @@ const MODEGROUPS = [
     .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
     #flow-wrap h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
     #flow-pie { width: 100%; height: 380px; }
+    .ppair { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; align-items: start; margin-top: 8px; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    #mode-chart { width: 100%; height: 320px; }
+    .tw { overflow-x: auto; }
+    #mode-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    #mode-tbl th, #mode-tbl td { text-align: right; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
+    #mode-tbl th { color: #7e8ca6; font-size: 10.5px; text-transform: uppercase; }
+    #mode-tbl td.l, #mode-tbl th.l { text-align: left; }
+    #mode-tbl tr.sep td { border-bottom: 2px solid rgba(255,255,255,.14); padding: 2px; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
@@ -275,6 +292,40 @@ const MODEGROUPS = [
         jofnun: 'Framlög Jöfnunarsjóðs á íbúa (þús. kr á ári). Örvarnar sýna flæðið frá ríkinu og kökuritið framlagsflokkana.',
         kjor: 'Kjördæmin sex — litur sýnir hvaða kjördæmi hvert sveitarfélag tilheyrir.',
       };
+      let modeChart = null;
+      function paintBelow() {
+        const wrap = $('mode-wrap');
+        const M = MODES[mode];
+        const flows = mode === 'stadgr' || mode === 'jofnun';
+        if (!wrap) return;
+        if (M.cat || flows) { wrap.hidden = true; return; }
+        const vals = MUNIS.filter((u) => u.v[mode] != null).sort((a, b) => b.v[mode] - a.v[mode]);
+        if (vals.length < 6) { wrap.hidden = true; return; }
+        wrap.hidden = false;
+        const tt = $('mode-title');
+        if (tt) tt.textContent = 'Topp 10 — ' + M.l;
+        const vh = $('mode-vh');
+        if (vh) vh.textContent = M.l;
+        const tb = document.querySelector('#mode-tbl tbody');
+        if (tb) {
+          const row = (u, i) => `<tr><td class="l">${i}</td><td class="l">${u.n}</td><td>${fmtV(mode, u.v[mode])}</td></tr>`;
+          tb.innerHTML = vals.slice(0, 5).map((u, i) => row(u, i + 1)).join('')
+            + '<tr class="sep"><td colspan="3"></td></tr>'
+            + vals.slice(-5).map((u, i) => row(u, vals.length - 4 + i)).join('');
+        }
+        const el2 = $('mode-chart');
+        if (el2 && window.echarts) {
+          if (!modeChart || modeChart.getDom() !== el2) { try { if (modeChart) modeChart.dispose(); } catch (e) {} modeChart = window.echarts.init(el2); }
+          const top = vals.slice(0, 10).reverse();
+          modeChart.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 44, top: 6, bottom: 6, containLabel: true },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => fmtV(mode, v) },
+            xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', data: top.map((u) => u.n), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{ type: 'bar', barMaxWidth: 15, data: top.map((u) => u.v[mode]), itemStyle: { color: '#f6b13b', borderRadius: [0, 5, 5, 0] }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => fmtV(mode, p.value) } }],
+          }, true);
+        }
+      }
       function paintInfo() {
         const el = $('map-info');
         if (!el) return;
@@ -291,7 +342,8 @@ const MODEGROUPS = [
               + '</div>';
           }
         }
-        el.innerHTML = `<div class="mi-t">${M.l}</div><div class="mi-d">${MDESC[mode] || ''}</div>${x}<div class="mi-hint">💡 Smelltu á landshluta til að þysja · á punkt fyrir síðu sveitarfélagsins</div>`;
+        el.innerHTML = `<div class="mi-t">${M.l}</div><div class="mi-d">${MDESC[mode] || ''}</div><div class="mi-hint">💡 Smelltu á landshluta til að þysja · á punkt fyrir síðu</div>`;
+        paintBelow();
       }
       const geoRegions = (REG.features || []).map((f) => { const nm = f.properties.name, base = REGCOL[nm] || 'rgba(255,255,255,.05)'; return { name: nm, itemStyle: { areaColor: base }, emphasis: { itemStyle: { areaColor: base.replace(/[\d.]+\)\s*$/, '0.42)') } } }; });
 

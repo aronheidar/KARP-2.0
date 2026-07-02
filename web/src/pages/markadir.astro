@@ -81,16 +81,28 @@ const jsonLd = {
       ))}
     </div>
 
-    <h2>Skráð félög <span class="hint">— smelltu á félag fyrir kertarit og kennitölur</span></h2>
-    <div class="stocks">
-      {stk.map((s) => (
-        <div class="st" data-sym={s.sym} role="button" tabindex="0">
-          <div class="st-top"><span class="st-sym">{s.sym}</span><span class={`st-ch ${s.up ? 'up' : 'dn'}`}>{chg(s.chgPct)}</span></div>
-          <div class="st-name">{s.name}</div>
-          {s.pts && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={s.pts} fill="none" stroke={s.up ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
-          <div class="st-price">{fmtNum(s.price, s.price < 100 ? 2 : 1)} <span>{s.cur || 'ISK'}</span></div>
-        </div>
-      ))}
+    <h2>Skráð félög ({stk.length}) <span class="hint">— smelltu á dálkhaus til að raða, á félag fyrir kertarit og kennitölur</span></h2>
+    <div class="tw">
+      <table id="stk-table">
+        <thead>
+          <tr>
+            <th class="l srt" data-k="sym">Félag</th>
+            <th class="srt" data-k="price">Verð</th>
+            <th class="srt on" data-k="chg">Breyting</th>
+            <th class="spark-h">30 dagar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stk.map((s) => (
+            <tr class="strow" data-sym={s.sym} data-price={s.price} data-chg={s.chgPct ?? 0} role="button" tabindex="0">
+              <td class="l"><b class="st-sym">{s.sym}</b><span class="st-name">{s.name}</span></td>
+              <td class="num">{fmtNum(s.price, s.price < 100 ? 2 : 1)} <span class="cur">{s.cur || 'ISK'}</span></td>
+              <td class={`num ${s.up ? 'up' : 'dn'}`}>{chg(s.chgPct)}</td>
+              <td class="spark-c">{s.pts && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={s.pts} fill="none" stroke={s.up ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
 
     <!-- Modal: kertarit + kennitölur + umfjöllun & viðhorf (fyllt á keyrslutíma) -->
@@ -148,7 +160,7 @@ const jsonLd = {
   </main>
 
   <style>
-    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: #cdd6e6; }
@@ -160,16 +172,22 @@ const jsonLd = {
     .idx-v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .idx-ch { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .hint { font-size: 12px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; }
-    .stocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-    .st { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 13px; cursor: pointer; transition: border-color .12s, transform .12s; }
-    .st:hover { border-color: #f6b13b; transform: translateY(-1px); }
-    .st-top { display: flex; justify-content: space-between; align-items: baseline; }
-    .st-sym { font-weight: 800; font-size: 14px; }
-    .st-ch { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .st-name { font-size: 11px; color: #7e8ca6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 6px; }
-    .st-spark { width: 100%; height: 30px; display: block; }
-    .st-price { font-size: 15px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
-    .st-price span { font-size: 11px; color: #7e8ca6; font-weight: 400; }
+    /* Hlutabréfa-TAFLAN (LOTA 14, eins og gamla mkStockTable) */
+    .tw { overflow-x: auto; }
+    #stk-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    #stk-table th, #stk-table td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
+    #stk-table th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    #stk-table th.srt { cursor: pointer; user-select: none; }
+    #stk-table th.srt:hover, #stk-table th.srt.on { color: #f6b13b; }
+    #stk-table td.l, #stk-table th.l { text-align: left; }
+    .strow { cursor: pointer; }
+    .strow:hover td { background: rgba(255,255,255,.03); }
+    .st-sym { font-weight: 800; font-size: 13.5px; margin-right: 8px; }
+    .st-name { font-size: 11.5px; color: #7e8ca6; }
+    .num { font-variant-numeric: tabular-nums; }
+    .cur { font-size: 10.5px; color: #7e8ca6; }
+    .spark-c, .spark-h { width: 110px; }
+    .st-spark { width: 96px; height: 26px; display: block; margin-left: auto; }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
@@ -320,10 +338,28 @@ const jsonLd = {
     function initStkModal() {
       const m = $id('stk-modal');
       if (!m) return;
-      document.querySelectorAll('.st[data-sym]').forEach((c) => {
+      document.querySelectorAll('.strow[data-sym]').forEach((c) => {
         c.onclick = () => stkOpen(c.dataset.sym);
         c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stkOpen(c.dataset.sym); } };
       });
+      // Röðun á töflunni (LOTA 14): smella á dálkhaus, aftur = öfug röð
+      const tbl = document.getElementById('stk-table');
+      if (tbl && !tbl.dataset.srt) {
+        tbl.dataset.srt = '1';
+        tbl.querySelectorAll('th.srt').forEach((h) => {
+          h.addEventListener('click', () => {
+            const k = h.dataset.k;
+            tbl.querySelectorAll('th.srt').forEach((x) => x.classList.toggle('on', x === h));
+            const dir = h.dataset.d === '1' ? -1 : 1;
+            h.dataset.d = String(dir);
+            const tb = tbl.querySelector('tbody');
+            [...tb.querySelectorAll('tr')].sort((a, b) => {
+              if (k === 'sym') return dir * a.dataset.sym.localeCompare(b.dataset.sym);
+              return dir * ((+b.dataset[k]) - (+a.dataset[k]));
+            }).forEach((tr) => tb.appendChild(tr));
+          });
+        });
+      }
       m.querySelector('.stk-x').onclick = stkClose;
       m.querySelector('.stk-back').onclick = stkClose;
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') stkClose(); });

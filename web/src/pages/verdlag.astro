@@ -158,11 +158,17 @@ const RADAR = {
 const pr = NUMBEO.prices || {};
 const items = NUMBEO.items || [];
 const seenCat = {};
+const CITYKEYS = Object.keys(pr).filter((c) => c !== 'Reykjavik');
 const PRICETABLE = items
-  .map((it, i) => ({ is: it.is || it.name, cat: it.cat, rvk: (pr.Reykjavik || [])[i], cph: (pr.Copenhagen || [])[i] }))
+  .map((it, i) => {
+    const vals = {};
+    CITYKEYS.forEach((c) => { const v = (pr[c] || [])[i]; if (v != null) vals[c] = Math.round(v); });
+    return { is: it.is || it.name, cat: it.cat, rvk: (pr.Reykjavik || [])[i], cph: (pr.Copenhagen || [])[i], vals };
+  })
   .filter((r) => r.rvk != null && r.cph != null)
   .filter((r) => { seenCat[r.cat] = (seenCat[r.cat] || 0) + 1; return seenCat[r.cat] <= 3; })
   .slice(0, 15);
+const CITYOPTS = CITYKEYS.map((c) => ({ key: c, label: (lab[c] || {}).label || c.replace('-', ' ') }));
 const kr = (v) => (v == null ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr');
 const desc = `Ársverðbólga á Íslandi mælist ${latestPct}%${
   latest ? ' í ' + monthLabel(latest.t) : ''
@@ -280,19 +286,19 @@ const jsonLd = {
     <div id="chart-radar"></div>
     <p class="srcnote">Ytri brún = hærri vísitala (dýrara — nema kaupmáttur, þar er ytra betra).</p>
 
-    <h2>Verð á algengum vörum — Reykjavík vs Kaupmannahöfn</h2>
+    <h2>Verð á algengum vörum — Reykjavík vs <select id="pt-city">{CITYOPTS.map((c) => <option value={c.key} selected={c.key === 'Copenhagen'}>{c.label}</option>)}</select></h2>
     <div class="tw">
       <table>
-        <thead><tr><th class="l">Vara/þjónusta</th><th>Reykjavík</th><th>Kaupmannahöfn</th><th>Munur</th></tr></thead>
+        <thead><tr><th class="l">Vara/þjónusta</th><th>Reykjavík</th><th id="pt-cityh">Kaupmannahöfn</th><th>Munur</th></tr></thead>
         <tbody>
           {PRICETABLE.map((r) => {
             const d = r.cph ? Math.round(((r.rvk - r.cph) / r.cph) * 100) : null;
             return (
-              <tr>
+              <tr class="pt-row" data-rvk={r.rvk} data-vals={JSON.stringify(r.vals)}>
                 <td class="l">{r.is}</td>
                 <td class="num">{kr(r.rvk)}</td>
-                <td class="num">{kr(r.cph)}</td>
-                <td class={`num ${d > 0 ? 'dn' : 'up'}`}>{d == null ? '–' : (d > 0 ? '+' : '') + d + '%'}</td>
+                <td class="num pt-city">{kr(r.cph)}</td>
+                <td class={`num pt-diff ${d > 0 ? 'dn' : 'up'}`}>{d == null ? '–' : (d > 0 ? '+' : '') + d + '%'}</td>
               </tr>
             );
           })}
@@ -355,6 +361,8 @@ const jsonLd = {
     td:last-child, th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
     .err { color: #ff8e98; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    #pt-city { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #f6b13b; border-radius: 8px; padding: 3px 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    #pt-city option { background: #0b1220; }
   </style>
   <style is:global>
     /* Spá-eyjan er búin til á keyrslutíma → global (ekki Astro-scoped). */
@@ -553,6 +561,31 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
+    // Borgaval í vörutöflunni (LOTA 14)
+    function initPtCity() {
+      const sel = document.getElementById('pt-city');
+      if (!sel || sel.dataset.done) return;
+      sel.dataset.done = '1';
+      const kr2 = (v) => (v == null ? '–' : String(Math.round(v)).split('').reverse().join('').replace(/(d{3})(?=d)/g, '$1.').split('').reverse().join('') + ' kr');
+      sel.addEventListener('change', () => {
+        const c = sel.value;
+        const h = document.getElementById('pt-cityh');
+        if (h) h.textContent = sel.options[sel.selectedIndex].textContent;
+        document.querySelectorAll('.pt-row').forEach((tr) => {
+          let vals = {};
+          try { vals = JSON.parse(tr.dataset.vals || '{}'); } catch (e) {}
+          const v = vals[c], rvk = +tr.dataset.rvk;
+          const cc = tr.querySelector('.pt-city'), dc = tr.querySelector('.pt-diff');
+          if (cc) cc.textContent = kr2(v);
+          if (dc) {
+            const d = v ? Math.round(((rvk - v) / v) * 100) : null;
+            dc.textContent = d == null ? '–' : (d > 0 ? '+' : '') + d + '%';
+            dc.className = 'num pt-diff ' + (d > 0 ? 'dn' : 'up');
+          }
+        });
+      });
+    }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initCharts(); });
+      document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initPtCity(); });
   </script>
 </Layout>

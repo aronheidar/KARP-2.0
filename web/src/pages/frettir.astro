@@ -15,6 +15,16 @@ const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
 const MINS = CABINET.map((c) => ({ n: c.nafn, a: [c.nafn], sub: (c.emb || [])[0] || 'ráðherra' }));
 const INST = STOFNANIR.map((x) => ({ n: x.n, a: x.a && x.a.length ? x.a : [x.n] }));
 
+// Tengdir aðilar per málefni (LOTA 14): birtast sem flýtihnappar yfir fréttalistanum
+const relOf = (names) => names.map((n) => INST.find((x) => x.n === n)).filter(Boolean).map((x) => ({ n: x.n, al: x.a.join(',') }));
+const RELB = {
+  efnahagur: relOf(['Seðlabankinn', 'Skatturinn', 'HMS', 'Samkeppniseftirlitið']),
+  stjornmal: relOf(['Ríkisstjórnin', 'Alþingi', 'Hæstiréttur']),
+  sveitarfelog: relOf(['Vegagerðin', 'HMS']),
+  althjoda: relOf(['Landhelgisgæslan']),
+  samfelag: relOf(['Landspítalinn', 'RÚV', 'Vinnumálastofnun', 'Þjóðkirkjan']),
+};
+
 const SENT = SENTIMENT.companies || {};
 const RV = RAUNVIRDI.companies || {};
 const COS = FYRIRTAEKI.map((c) => {
@@ -34,38 +44,35 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
   <main data-pg="frettir">
     <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
     <h1>Vöktun</h1>
-    <div class="tabs"><button class="tab on" data-t="mal">📰 Eftir málefni</button><button class="tab" data-t="fyr">🏢 Eftir fyrirtæki</button></div>
+    <p>Nýjustu fyrirsagnir íslenskra miðla eftir málefnum — og premium-greining á hvaða aðila sem er. Leitin er alltaf opin.</p>
 
-    <section id="p-mal">
-      <p>Nýjustu fyrirsagnir íslenskra miðla — uppfærast stöðugt. Aðeins fyrirsagnir og hlekkir; efnið er hjá miðlunum.</p>
-      <div class="chips" id="efni-chips">
-        <button class="chip on" data-e="">Allt</button>
-        <button class="chip" data-e="efnahagur">💹 Efnahagur &amp; viðskipti</button>
-        <button class="chip" data-e="stjornmal">🏛️ Stjórnmál</button>
-        <button class="chip" data-e="sveitarfelog">🏘️ Sveitarfélög</button>
-        <button class="chip" data-e="althjoda">🌍 Alþjóða &amp; NATO</button>
-        <button class="chip" data-e="samfelag">👥 Samfélag</button>
-      </div>
+    <div class="fy-search">
+      <input id="fy-q" type="text" placeholder="🔍 Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" />
+      <button id="fy-go" type="button">Greina</button>
+    </div>
+
+    <!-- SAMEINAÐUR flipi (LOTA 14): málefni OG aðila-hópar í einni röð -->
+    <div class="chips" id="u-chips">
+      <button class="chip on" data-e="">🗞️ Allt</button>
+      <button class="chip" data-e="efnahagur">💹 Efnahagur</button>
+      <button class="chip" data-e="stjornmal">🏛️ Stjórnmál &amp; Alþingi</button>
+      <button class="chip" data-e="sveitarfelog">🏘️ Sveitarfélög</button>
+      <button class="chip" data-e="althjoda">🌍 Alþjóða</button>
+      <button class="chip" data-e="samfelag">👥 Samfélag</button>
+      <span class="chip-sep"></span>
+      <button class="chip" data-g="fyr">🏢 Fyrirtæki</button>
+      <button class="chip" data-g="stofnanir">🏦 Stofnanir</button>
+      <button class="chip" data-g="flokkar">🚩 Flokkar</button>
+      <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
+    </div>
+
+    <div id="live-wrap">
+      <div id="rel" class="rel" hidden></div>
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
-      <p class="more-link">📊 Viltu dýpri greiningu? <a href="/greining/">Fjölmiðlavogin &amp; ársgreiningin</a> — tónn og hlutdeild miðla eftir málefnum.</p>
-    </section>
+      <p class="more-link">📊 Dýpri greining: <a href="/greining/">Fjölmiðlavogin &amp; ársgreiningin</a> — tónn og hlutdeild miðla yfir tíma.</p>
+    </div>
 
-    <section id="p-fyr" hidden>
-      <p>Smelltu á aðila fyrir lifandi umfjöllun{Object.keys(SENT).length ? ', vélrænt viðhorfsmat' : ''}, tímalínu og kennitölur — eða <strong>leitaðu að hverjum sem er</strong>.</p>
-
-      <div class="fy-search">
-        <input id="fy-q" type="text" placeholder="🔍 Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" />
-        <button id="fy-go" type="button">Greina</button>
-      </div>
-
-      <div class="chips" id="ent-chips">
-        <button class="chip on" data-g="fyr">🏢 Fyrirtæki</button>
-        <button class="chip" data-g="stofnanir">🏛️ Stofnanir</button>
-        <button class="chip" data-g="flokkar">🚩 Stjórnmálaflokkar</button>
-        <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
-      </div>
-
-      <div class="cos" id="g-stofnanir" hidden>
+    <div class="cos" id="g-stofnanir" hidden>
         {INST.map((x) => <button class="co co-ent" data-name={x.n} data-al={x.a.join(',')}><span class="co-n">{x.n}</span></button>)}
       </div>
       <div class="cos" id="g-flokkar" hidden>
@@ -74,7 +81,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <div class="cos" id="g-radherrar" hidden>
         {MINS.map((m) => <button class="co co-ent" data-name={m.n}><span class="co-n">{m.n}</span><span class="co-s">{m.sub}</span></button>)}
       </div>
-      <div class="cos" id="g-fyr">
+      <div class="cos" id="g-fyr" hidden>
         {COS.map((c, i) => (
           <button class="co" data-i={i}>
             <span class="co-n">{c.n}</span>
@@ -83,20 +90,22 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ))}
       </div>
       <div id="co-detail" hidden></div>
-    </section>
 
     <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á app.karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. #2.</p>
   </main>
 
   <script type="application/json" id="d-cos" set:html={JSON.stringify(COS)}></script>
+  <script type="application/json" id="d-rel" set:html={JSON.stringify(RELB)}></script>
 
   <style>
-    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 12px; } p { color: #cdd6e6; }
-    .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 16px; }
-    .tab { background: none; border: 0; color: #9fb0c8; font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-    .tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
+    .chip-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.14); margin: 0 4px; }
+    .rel { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px; }
+    .rel-l { font-size: 11.5px; color: #7e8ca6; }
+    .rel-b { background: rgba(25,211,197,.08); border: 1px solid rgba(25,211,197,.35); color: #19d3c5; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .rel-b:hover { background: rgba(25,211,197,.18); }
     .cos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 10px; }
     .co { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; color: #eaf1fb; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
     .co:hover { border-color: #f6b13b; }
@@ -115,6 +124,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .more-link a { color: #f6b13b; }
   </style>
   <style is:global>
+    /* 2 dálkar á fréttalistanum (LOTA 14) — minna skrun */
+    .live { column-count: 2; column-gap: 26px; }
+    @media (max-width: 760px) { .live { column-count: 1; } }
+    .live .it { break-inside: avoid; }
     .live .it, #co-detail .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     .live .it .t, #co-detail .it .t { display: block; font-size: 14px; color: #eaf1fb; line-height: 1.35; }
     .live .it:hover .t, #co-detail .it:hover .t { color: #f6b13b; }
@@ -205,21 +218,27 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         fetch(API + '/frettir' + (efni ? '?efni=' + encodeURIComponent(efni) : ''))
           .then((r) => (r.ok ? r.json() : [])).then((d) => paint(list, d, 'Engar fyrirsagnir í þessum flokki í augnablikinu.')).catch(() => paint(list, [], OFFLINE));
       };
-      document.querySelectorAll('#efni-chips .chip').forEach((ch) => {
+      // SAMEINAÐA chips-röðin (LOTA 14): málefni → fréttir + tengdir aðilar; hópur → aðilagrind
+      const RELB = JSON.parse(document.getElementById('d-rel').textContent || '{}');
+      const relEl = document.getElementById('rel');
+      const wrap = document.getElementById('live-wrap');
+      const GRIDS = ['fyr', 'stofnanir', 'flokkar', 'radherrar'];
+      const showGrids = (g) => GRIDS.forEach((k) => { const el = document.getElementById('g-' + k); if (el) el.hidden = k !== g; });
+      const paintRel = (e) => {
+        const rel = RELB[e] || [];
+        if (!relEl) return;
+        relEl.hidden = !rel.length;
+        relEl.innerHTML = rel.length ? '<span class="rel-l">Greina aðila:</span>' + rel.map((x) => `<button class="rel-b" data-name="${esc9(x.n)}" data-al="${esc9(x.al)}">${esc9(x.n)}</button>`).join('') : '';
+        relEl.querySelectorAll('.rel-b').forEach((b) => { b.onclick = () => openCo({ n: b.dataset.name, a: b.dataset.al.split(',') }); });
+      };
+      document.querySelectorAll('#u-chips .chip').forEach((ch) => {
         ch.onclick = () => {
-          document.querySelectorAll('#efni-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
-          loadMal(ch.dataset.e);
+          document.querySelectorAll('#u-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
+          if (ch.dataset.g) { if (wrap) wrap.hidden = true; showGrids(ch.dataset.g); }
+          else { if (wrap) wrap.hidden = false; showGrids(null); paintRel(ch.dataset.e); loadMal(ch.dataset.e); }
         };
       });
       loadMal('');
-      // Flipar
-      document.querySelectorAll('.tab').forEach((t) => {
-        t.onclick = () => {
-          document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === t));
-          document.getElementById('p-mal').hidden = t.dataset.t !== 'mal';
-          document.getElementById('p-fyr').hidden = t.dataset.t !== 'fyr';
-        };
-      });
       // Fyrirtæki: /firma → viðhorf + tímalína + orðaský + skjalasafn (LOTA 12)
       const COS = JSON.parse(document.getElementById('d-cos').textContent);
       const det = document.getElementById('co-detail');
