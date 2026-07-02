@@ -6,6 +6,23 @@ const PROXIES = {
     url: 'https://opensky-network.org/api/states/all?lamin=62.5&lomin=-26&lamax=67.5&lomax=-12',
     ttl: 300,
   },
+  // 📋 Útboðsvefur (WP REST): nýjustu útboð — 30 mín cache
+  '/api/utbod': {
+    url: 'https://utbodsvefur.is/wp-json/wp/v2/posts?per_page=20&_fields=id,date,title,link',
+    ttl: 1800,
+  },
+  // 🌍 Google News: Ísland í erlendum miðlum (RSS) — 15 mín cache
+  '/api/erlent': {
+    url: 'https://news.google.com/rss/search?q=Iceland&hl=en-US&gl=US&ceid=US:en',
+    ttl: 900,
+    type: 'text/xml; charset=utf-8',
+  },
+  // 📄 TED: EES-útboð á Íslandi — POST í uppruna, GET út — 60 mín cache
+  '/api/ted': {
+    url: 'https://api.ted.europa.eu/v3/notices/search',
+    ttl: 3600,
+    post: JSON.stringify({ query: 'place-of-performance IN (ISL) SORT BY publication-date DESC', fields: ['publication-number', 'notice-title', 'publication-date'], limit: 20 }),
+  },
   // 🏛️ Alþingi: lifandi málalisti þingsins (XML) — 10 mín cache
   '/api/thingmal': {
     url: 'https://www.althingi.is/altext/xml/thingmalalisti/?lthing=157',
@@ -24,7 +41,11 @@ export default {
       let res = await cache.match(cacheKey);
       if (!res) {
         try {
-          const up = await fetch(proxy.url, { headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' } });
+          const up = await fetch(proxy.url, {
+            method: proxy.post ? 'POST' : 'GET',
+            headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)', ...(proxy.post ? { 'Content-Type': 'application/json' } : {}) },
+            body: proxy.post || undefined,
+          });
           const body = await up.text();
           res = new Response(up.ok ? body : JSON.stringify({ error: up.status }), {
             status: 200,

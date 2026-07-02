@@ -1,0 +1,156 @@
+---
+// ─────────────────────────────────────────────────────────────
+// AUÐLINDIR ÍSLANDS (LOTA 16, liður 6) — hver nýtir auðlindirnar og hvað
+// borgar hver? Veiðigjald + umhverfisgjöld (fjárlög), raforkuframleiðsla
+// (Orkustofnun), ferðamenn (Hagstofa) og losun á mann (OWID) hlið við hlið.
+// Bara tölurnar með heimildum — engin afstaða. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+import SKATTAR from '@gogn/skattar.json';
+import ORKA from '@gogn/orka.json';
+
+// Auðlinda- og umhverfisgjöld úr fjárlögum
+const flat = SKATTAR.hopar.flatMap((h) => h.skattar);
+const gjald = (re) => { const x = flat.find(([n]) => re.test(n)); return x ? x[1] : null; };
+const veidigjald = gjald(/^Veiðigjald/i);
+const kolefnisgjald = gjald(/^Kolefnisgjald/i);
+const kmGjald = gjald(/^Kílómetragjald/i);
+const adrirUmhverfis = gjald(/^Aðrir umhverfisskattar/i);
+const GJALDBARS = [
+  { n: 'Kílómetragjald', v: kmGjald, c: '#3a8dff' },
+  { n: 'Veiðigjald', v: veidigjald, c: '#19d3c5' },
+  { n: 'Kolefnisgjald', v: kolefnisgjald, c: '#46e08a' },
+  { n: 'Aðrir umhverfisskattar', v: adrirUmhverfis, c: '#7c5cf7' },
+].filter((x) => x.v != null).sort((a, b) => b.v - a.v);
+
+// Raforka: nýjasta ár + uppruni (orka.json rows)
+const orkaRows = ORKA.rows || [];
+const lastO = orkaRows[orkaRows.length - 1] || null;
+const orkaGWh = lastO && lastO.total != null ? Math.round(lastO.total) : null;
+
+// Ferðamenn: brottfarir erlendra um KEF sl. 12 mán (PxWeb, þolir bilun)
+let ferda12 = null;
+try {
+  const body = JSON.stringify({ query: [{ code: 'Ríkisfang', selection: { filter: 'item', values: ['2'] } }], response: { format: 'json' } });
+  const r = await fetch('https://px.hagstofa.is/pxis/api/v1/is/Atvinnuvegir/ferdathjonusta/ferdaidnadurhagvisar/SAM02001.px', { method: 'POST', body });
+  const j = await r.json();
+  const rows = (j.data || []).map((d) => ({ t: d.key[0], v: parseFloat(String(d.values[0]).replace(',', '.')) })).filter((x) => !isNaN(x.v)).sort((a, b) => a.t.localeCompare(b.t));
+  if (rows.length >= 12) ferda12 = Math.round(rows.slice(-12).reduce((a, x) => a + x.v, 0));
+} catch (e) { ferda12 = null; }
+
+// Losun á mann: OWID (þróun + nýjasta) — sama mynstur og /samanburdur
+let CO2 = null;
+try {
+  const t = await (await fetch('https://ourworldindata.org/grapher/co-emissions-per-capita.csv')).text();
+  const lines = t.split('\n');
+  const rows = lines.slice(1).map((l) => l.split(',')).filter((p) => p[1] === 'ISL').map((p) => ({ y: +p[2], v: parseFloat(p[3]) })).filter((x) => x.y >= 1970 && !isNaN(x.v));
+  if (rows.length > 10) CO2 = { years: rows.map((x) => x.y), vals: rows.map((x) => Math.round(x.v * 10) / 10), last: rows[rows.length - 1] };
+} catch (e) { CO2 = null; }
+
+const updated = '2026-07-02';
+const desc = `Auðlindir Íslands í tölum — veiðigjald ${veidigjald ? fmtNum(veidigjald, 1) + ' ma.kr' : ''}, raforkuframleiðsla${orkaGWh ? ' ' + groupThousands(orkaGWh) + ' GWh' : ''}, ferðamenn og losun á mann. Hver nýtir auðlindirnar og hvað borgar hver — bara tölurnar, með heimildum.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Auðlindir Íslands í tölum', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
+---
+
+<Layout title="Auðlindir Íslands — hver nýtir og hvað borgar hver? | Karp" description={desc} canonical="https://app.karp.is/audlindir/" jsonLd={jsonLd} ogTitle="Auðlindir Íslands í tölum">
+  <main data-pg="audlindir">
+    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
+    <h1>Auðlindir Íslands 🌊⚡🏔️</h1>
+    <p>Fiskurinn, orkan, náttúran — og gjöldin sem renna til samfélagsins fyrir nýtinguna. Hér eru tölurnar hlið við hlið, með heimildum. Karp tekur ekki afstöðu; það gera lesendur.</p>
+
+    <div class="kpis">
+      {veidigjald != null && <div class="kpi"><div class="k-l">🎣 Veiðigjald <i class="tip" tabindex="0" data-tip={`Gjald útgerða fyrir aðgang að fiskveiðiauðlindinni, skv. tekjuáætlun fjárlaga ${SKATTAR.ar}. Heimild: fjárlög.`}>ⓘ</i></div><div class="k-v">{fmtNum(veidigjald, 1)}</div><div class="k-s">ma.kr · fjárlög {SKATTAR.ar}</div></div>}
+      {orkaGWh != null && <div class="kpi"><div class="k-l">⚡ Raforkuframleiðsla <i class="tip" tabindex="0" data-tip="Heildarraforkuframleiðsla nýjasta árs í gagnasafni Orkustofnunar (GWh). Nær öll úr vatnsafli og jarðvarma; um 80% fara til stórnotenda.">ⓘ</i></div><div class="k-v">{groupThousands(orkaGWh)}</div><div class="k-s">GWh{lastO && lastO.y ? ` · ${lastO.y}` : ''} · sjá <a href="/orka/">Raforku</a></div></div>}
+      {ferda12 != null && <div class="kpi"><div class="k-l">✈️ Erlendir ferðamenn <i class="tip" tabindex="0" data-tip="Brottfarir erlendra farþega um Keflavíkurflugvöll síðustu 12 mánuði. Heimild: Hagstofa (SAM02001).">ⓘ</i></div><div class="k-v">{groupThousands(ferda12)}</div><div class="k-s">sl. 12 mánuði</div></div>}
+      {CO2 && <div class="kpi"><div class="k-l">🏭 Losun á mann <i class="tip" tabindex="0" data-tip="CO₂-losun á íbúa (tonn/ári), innanlandslosun án landnotkunar. Heimild: Our World in Data (Global Carbon Budget).">ⓘ</i></div><div class="k-v">{String(CO2.last.v).replace('.', ',')}</div><div class="k-s">t CO₂ · {CO2.last.y}</div></div>}
+    </div>
+
+    <div class="ppair">
+      {GJALDBARS.length > 1 && (
+        <div>
+          <h2>Auðlinda- og umhverfisgjöld í fjárlögum {SKATTAR.ar} <i class="tip" tabindex="0" data-tip="Gjöld tengd nýtingu auðlinda og umhverfi eins og þau birtast í tekjuáætlun fjárlaga (ma.kr). Kílómetragjald kom í stað eldsneytisgjalda með orkuskiptunum.">ⓘ</i></h2>
+          <div id="ch-gjold"></div>
+        </div>
+      )}
+      {CO2 && (
+        <div>
+          <h2>Losun á mann frá 1970 <i class="tip" tabindex="0" data-tip="Þróun CO₂-losunar á íbúa. Toppurinn um 2008 fylgir stóriðjuuppbyggingunni; ferðaþjónustan og flotinn vega þungt í dag.">ⓘ</i></h2>
+          <div id="ch-co2"></div>
+        </div>
+      )}
+    </div>
+
+    <h2>Samhengið</h2>
+    <div class="facts">
+      <div class="fact"><b>🎣 Fiskurinn</b><span>Aflinn er rúmlega milljón tonn á ári og veiðigjaldið skilar {veidigjald ? fmtNum(veidigjald, 1) : '—'} ma.kr — um {veidigjald ? fmtNum((veidigjald / SKATTAR.heildartekjur) * 100, 1) : '—'}% af heildartekjum ríkissjóðs. Sjá <a href="/atvinnuvegir/sjavarutvegur/">Sjávarútveg</a>.</span></div>
+      <div class="fact"><b>⚡ Orkan</b><span>Raforkan er nær öll endurnýjanleg en um fjórir fimmtu hlutar fara til stórnotenda (álver, gagnaver). Arður orkufyrirtækjanna rennur til eigenda — ríkis og sveitarfélaga. Sjá <a href="/orka/">Raforku</a> og <a href="/atvinnuvegir/storidja/">Stóriðju</a>.</span></div>
+      <div class="fact"><b>🏔️ Náttúran</b><span>Ferðaþjónustan nýtir náttúruna án beins auðlindagjalds — gisting og neysla skila þó virðisaukaskatti. Álagið mælist í <a href="/atvinnuvegir/ferdathjonusta/">ferðamannafjöldanum</a> og innviðunum.</span></div>
+      <div class="fact"><b>🌍 Samanburðurinn</b><span>Ísland er meðal efstu þjóða heims í orkunotkun á mann — sjá <a href="/samanburdur/">Ísland í samanburði</a> fyrir heimsröðunina.</span></div>
+    </div>
+
+    <p class="note">ⓘ Umræðan um auðlindagjöld er pólitísk; þessi síða birtir aðeins opinberu tölurnar hlið við hlið. Gjöldin eru <strong>tekjuáætlun fjárlaga</strong>, ekki rauninnheimta; arðgreiðslur orkufyrirtækja eru ekki í fjárlagatölunum.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: fjárlög {SKATTAR.ar} (gjöld), Orkustofnun (raforka), Hagstofa (ferðamenn), Our World in Data (losun). #2 LOTA 16.</p>
+  </main>
+
+  <style>
+    main { max-width: 940px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; } .k-s a { color: #9fb0c8; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    #ch-gjold, #ch-co2 { width: 100%; height: 280px; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 700px) { .facts { grid-template-columns: 1fr; } }
+    .fact { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 12px 14px; }
+    .fact b { display: block; color: #f6b13b; font-size: 13.5px; margin-bottom: 3px; }
+    .fact span { font-size: 12.5px; color: #b9c6da; line-height: 1.55; }
+    .fact a { color: #f6b13b; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: gjalda-súlur + losunarferill. #2 LOTA 16 -->
+  <script define:vars={{ GJALDBARS, CO2 }}>
+    function initAudl() {
+      const g = document.getElementById('ch-gjold');
+      const c = document.getElementById('ch-co2');
+      if (!g && !c) return;
+      const go = () => {
+        if (g && GJALDBARS && GJALDBARS.length && !window.echarts.getInstanceByDom(g)) {
+          const ch = window.echarts.init(g);
+          ch.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 44, top: 8, bottom: 8, containLabel: true },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => String(v).replace('.', ',') + ' ma.kr' },
+            xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', data: GJALDBARS.map((x) => x.n).reverse(), axisLabel: { color: '#cdd6e6', fontSize: 11.5 }, axisLine: { show: false }, axisTick: { show: false } },
+            series: [{ type: 'bar', barMaxWidth: 22, data: GJALDBARS.map((x) => ({ value: x.v, itemStyle: { color: x.c, borderRadius: [0, 5, 5, 0] } })).reverse(), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11, formatter: (p) => String(p.value).replace('.', ',') } }],
+          });
+          window.addEventListener('resize', () => ch.resize());
+        }
+        if (c && CO2 && !window.echarts.getInstanceByDom(c)) {
+          const ch2 = window.echarts.init(c);
+          ch2.setOption({
+            backgroundColor: 'transparent', grid: { left: 36, right: 14, top: 12, bottom: 22 },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => String(v).replace('.', ',') + ' t CO₂' },
+            xAxis: { type: 'category', data: CO2.years, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            series: [{ type: 'line', data: CO2.vals, smooth: true, symbol: 'none', lineStyle: { color: '#46e08a', width: 2.6 }, itemStyle: { color: '#46e08a' }, areaStyle: { color: '#46e08a', opacity: 0.1 } }],
+          });
+          window.addEventListener('resize', () => ch2.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="audlindir"]')) initAudl(); });
+  </script>
+</Layout>

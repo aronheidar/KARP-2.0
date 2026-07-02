@@ -59,6 +59,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <button class="chip" data-e="sveitarfelog">🏘️ Sveitarfélög</button>
       <button class="chip" data-e="althjoda">🌍 Alþjóða</button>
       <button class="chip" data-e="samfelag">👥 Samfélag</button>
+      <button class="chip" data-e="__erlent">🌍 Erlendir miðlar</button>
       <span class="chip-sep"></span>
       <button class="chip" data-g="fyr">🏢 Fyrirtæki</button>
       <button class="chip" data-g="stofnanir">🏦 Stofnanir</button>
@@ -215,6 +216,24 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       // Málefnis-flísar: /frettir?efni=X (LOTA 12)
       const loadMal = (efni) => {
         list.innerHTML = 'Sæki fyrirsagnir…';
+        if (efni === '__erlent') {
+          // 🌍 Ísland í erlendum miðlum (Google News RSS um worker-proxy)
+          fetch('/api/erlent')
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+              if (!xml || xml[0] === '{') { paint(list, [], 'Erlendi straumurinn birtist þegar veitan er komin í loftið.'); return; }
+              const doc = new DOMParser().parseFromString(xml, 'text/xml');
+              const items = [...doc.querySelectorAll('item')].map((it) => ({
+                title: (it.querySelector('title') || {}).textContent || '',
+                link: (it.querySelector('link') || {}).textContent || '',
+                source: (it.querySelector('source') || {}).textContent || '',
+                date: ((it.querySelector('pubDate') || {}).textContent || '').slice(0, 16),
+              }));
+              paint(list, items, 'Engar erlendar fréttir í augnablikinu.');
+            })
+            .catch(() => paint(list, [], OFFLINE));
+          return;
+        }
         fetch(API + '/frettir' + (efni ? '?efni=' + encodeURIComponent(efni) : ''))
           .then((r) => (r.ok ? r.json() : [])).then((d) => paint(list, d, 'Engar fyrirsagnir í þessum flokki í augnablikinu.')).catch(() => paint(list, [], OFFLINE));
       };

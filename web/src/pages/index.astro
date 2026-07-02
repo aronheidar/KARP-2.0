@@ -27,6 +27,36 @@ const pages = [
   { href: '/samtok/', emoji: '🤝', title: 'Alþjóðasamstarf', desc: 'Samtökin og samningarnir sem Ísland á aðild að — frá SÞ til Parísarsamnings.' },
   { href: '/reiknivelar/', emoji: '🧮', title: 'Reiknivélar', desc: 'Laun, húsnæðislán, lífeyrir og verðmat — reiknað í vafra.' },
 ];
+// 🗞️ VIKAN Í GÖGNUNUM (LOTA 16, liður 2) — regludrifin gagnaskrif: setningar
+// samdar VÉLRÆNT úr nýjustu tölum safnsins (engin gervigreind, hrein regluvirkni).
+import POLLS from '@gogn/polls.json';
+import FRUMVORP from '@gogn/frumvorp.json';
+import LEIGA from '@gogn/leiga.json';
+import ATVL from '@gogn/atvinnuleysi.json';
+import MARKADIR from '@gogn/markadir.json';
+import { partyName } from '@lib/parties.mjs';
+
+const VIKAN = [];
+try {
+  const p = POLLS.polls || [];
+  if (p.length >= 2) {
+    const a = p[p.length - 1], b = p[p.length - 2];
+    const top = Object.keys(a.v || {}).sort((x, y) => (a.v[y] || 0) - (a.v[x] || 0))[0];
+    const d = top && b.v && b.v[top] != null ? Math.round(((a.v[top] || 0) - b.v[top]) * 10) / 10 : null;
+    if (top) VIKAN.push(`📊 Í nýjustu könnun (${a.pollster}, ${a.date}) mælist ${partyName(top)} stærstur með ${String(a.v[top]).replace('.', ',')}%${d != null && d !== 0 ? ` — ${d > 0 ? 'hækkar' : 'lækkar'} um ${String(Math.abs(d)).replace('.', ',')} prósentustig milli kannana` : ''}.`);
+  }
+  const done = FRUMVORP.filter((b) => /^Samþykkt/.test(b.stada || '')).sort((x, y) => (y.d || '').localeCompare(x.d || ''))[0];
+  if (done) VIKAN.push(`🏛️ Nýjast samþykkt á Alþingi: ${done.titill.charAt(0).toUpperCase() + done.titill.slice(1)} (${done.ja}–${done.nei}).`);
+  if (ATVL.latest != null) VIKAN.push(`👷 Skráð atvinnuleysi stendur í ${String(ATVL.latest).replace('.', ',')}%.`);
+  const lq = (LEIGA.quarters || []).filter((x) => x.n >= 100);
+  if (lq.length >= 5) {
+    const now = lq[lq.length - 1], ago = lq[lq.length - 5];
+    VIKAN.push(`🔑 Leiguverð (miðgildi) var ${String(now.medM2).replace('.', ',')} kr/m² í ${now.q} — ${Math.round(((now.medM2 / ago.medM2) - 1) * 100)}% hærra en ári fyrr.`);
+  }
+  const ix = (MARKADIR.indices || [])[0];
+  if (ix && ix.chgPct != null) VIKAN.push(`📈 ${ix.name.split('—')[0].trim()} ${ix.chgPct >= 0 ? 'hækkaði' : 'lækkaði'} um ${String(Math.abs(ix.chgPct)).replace('.', ',')}% síðasta viðskiptadag.`);
+} catch (e) {}
+
 const updated = '2026-07-01';
 ---
 
@@ -39,6 +69,13 @@ const updated = '2026-07-01';
     <p class="kicker">Karp</p>
     <h1>Hagvísir Íslands</h1>
     <p class="lead">Borgaralegt mælaborð — opinber gögn, forþjónuð fyrir hraða og sýnileika.</p>
+
+    {VIKAN.length > 0 && (
+      <section class="vikan">
+        <div class="v-h">🗞️ Staðan í gögnunum <i class="tip" tabindex="0" data-tip="Setningarnar eru samdar VÉLRÆNT úr nýjustu tölum gagnasafnsins við hverja byggingu — regludrifin gagnaskrif, engin gervigreind og engin ritstjórn.">ⓘ</i></div>
+        <ul>{VIKAN.map((v) => <li>{v}</li>)}</ul>
+      </section>
+    )}
 
     <div class="grid">
       {pages.map((p) => (
@@ -57,6 +94,10 @@ const updated = '2026-07-01';
   </main>
 
   <style>
+    .vikan { background: rgba(246,177,59,.05); border: 1px solid rgba(246,177,59,.22); border-radius: 13px; padding: 14px 18px; margin: 16px 0 6px; }
+    .v-h { font-size: 13px; font-weight: 800; color: #f6b13b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .vikan ul { margin: 0; padding-left: 4px; list-style: none; }
+    .vikan li { font-size: 14px; color: #dfe7f4; line-height: 1.6; padding: 3px 0; }
     .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #f6b13b; font-weight: 700; margin: 0 0 6px; }
     h1 { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
     .lead { color: #cdd6e6; font-size: 18px; max-width: 620px; }

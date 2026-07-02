@@ -1,0 +1,122 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🔔 VAKTIR (LOTA 16, liður 1) — vöktunarmiðstöð Karp: mínar vaktir (innskráð),
+// LIFANDI útboðsvakt (utbodsvefur.is WP-REST + TED EES-útboð um worker-proxy)
+// og heiðarlegur listi yfir lindir í smíðum. Grunnur að „Vakt Pro". #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-02';
+const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og opinberum útboðum á einum stað. Lifandi útboðsvakt af Útboðsvef og TED (EES-útboð á Íslandi).';
+---
+
+<Layout title="🔔 Vaktir — vöktunarmiðstöð | Karp" description={desc} canonical="https://app.karp.is/vaktir/" ogTitle="Vaktir Karp">
+  <main data-pg="vaktir">
+    <p class="kicker">Karp · Vöktun</p>
+    <h1>🔔 Vaktir</h1>
+    <p>Vöktunarmiðstöð Karp — það sem þú vilt frétta FYRST. Hagvísavaktir, fjölmiðlavöktun og lifandi útboðsvakt á einum stað.</p>
+
+    <h2>Mínar vaktir <i class="tip" tabindex="0" data-tip="Hagvísavaktir senda tölvupóst þegar vísir nær viðmiði (t.d. verðbólga yfir 5%). Stofnaðar og sýndar hér innskráð(ur).">ⓘ</i></h2>
+    <div id="vaktir-mine"><span class="dim">Skráðu þig inn til að sjá og stofna vaktir.</span></div>
+
+    <h2>📋 Útboðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu opinber útboð: Útboðsvefurinn (innlend útboð, WP-veita) og TED (EES-útboð með framkvæmdastað á Íslandi, opið API ESB). Uppfærist á 30–60 mín fresti.">ⓘ</i></h2>
+    <div class="ppair">
+      <div>
+        <h3>🇮🇸 Útboðsvefurinn</h3>
+        <div id="utbod-list" class="feed">Sæki útboð…</div>
+      </div>
+      <div>
+        <h3>🇪🇺 TED — EES-útboð á Íslandi</h3>
+        <div id="ted-list" class="feed">Sæki EES-útboð…</div>
+      </div>
+    </div>
+
+    <h2>📰 Fjölmiðlavöktunin</h2>
+    <p class="xref">Fyrirtæki, stofnanir, flokkar og einstaklingar — viðhorf, tímalínur og frjáls leit er á <a href="/frettir/">Vöktun (Umfjöllun)</a>. Erlend umfjöllun um Ísland er nýi 🌍-flipinn þar.</p>
+
+    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til og opinberar en þurfa tæknivinnu: samráðsgátt og dómstólavefir eru JavaScript-síður án opinna veitna og fyrirtækjaskrá án opins skráningarstraums.">ⓘ</i></h2>
+    <ul class="soon">
+      <li>⚖️ <b>Dómavakt</b> — nýir dómar Hæstaréttar, Landsréttar og héraðsdómstóla eftir efnisorðum</li>
+      <li>💬 <b>Samráðsvakt</b> — mál sem snerta þína atvinnugrein fara í samráðsgátt stjórnvalda</li>
+      <li>🏢 <b>Fyrirtækjavakt</b> — nýskráningar og stjórnarbreytingar í fyrirtækjaskrá</li>
+      <li>💸 <b>Greiðsluvakt</b> — greiðslur ríkisins til birgja (opnir reikningar)</li>
+    </ul>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Útboðsgögn: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu — hvort tveggja um skyndiminnis-proxy Karp. #2 LOTA 16.</p>
+  </main>
+
+  <style>
+    main { max-width: 940px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    h3 { font-size: 13px; color: #cdd6e6; margin: 0 0 6px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    .feed { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 11px; padding: 8px 12px; min-height: 80px; font-size: 13px; color: #9fb0c8; }
+    .xref { font-size: 13.5px; } .xref a { color: #f6b13b; }
+    .soon { margin: 0; padding-left: 4px; list-style: none; }
+    .soon li { font-size: 13.5px; color: #b9c6da; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .soon b { color: #eaf1fb; }
+    .dim { color: #7e8ca6; font-size: 13px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    #utbod-list .fi, #ted-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
+    .fi:hover .t { color: #f6b13b; }
+    .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    #vaktir-mine .vk { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #cdd6e6; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    #vaktir-mine .vk-note { font-size: 12px; color: #7e8ca6; margin-top: 8px; }
+    #vaktir-mine .vk-note a { color: #9fb0c8; }
+  </style>
+
+  <!-- Eyja: mínar vaktir (auth) + lifandi útboð (worker-proxy). #2 LOTA 16 -->
+  <script>
+    import { loadUser, karpGet } from '../lib/auth.js';
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
+    const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+    function initVaktir() {
+      const mine = document.getElementById('vaktir-mine');
+      if (!mine || mine.dataset.done) return;
+      mine.dataset.done = '1';
+      // Mínar hagvísavaktir
+      loadUser().then(async (u) => {
+        if (!u || !u.loggedIn) return;
+        const vd = await karpGet('/vaktir');
+        const arr = Array.isArray(vd) ? vd : (vd && vd.vaktir) || [];
+        mine.innerHTML = (arr.length
+          ? arr.map((v) => `<div class="vk"><span><b>${esc(v.metric || v.m || '')}</b> ${esc(v.area || '')} ${esc(v.dir === 'under' || v.dir === 'undir' ? 'fer undir' : 'fer yfir')} <b>${esc(v.threshold ?? v.vidmid ?? '')}</b></span></div>`).join('')
+          : '<div class="vk">Engin vakt skráð enn.</div>')
+          + '<div class="vk-note">Vaktir eru stofnaðar á <a href="/mitt-svaedi/">Mínu svæði</a> (Stillingar → Vaktir).</div>';
+      }).catch(() => {});
+      // Útboðsvefurinn (WP REST um proxy)
+      fetch('/api/utbod')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((posts) => {
+          const el = document.getElementById('utbod-list');
+          if (!el) return;
+          if (!Array.isArray(posts) || !posts.length) { el.textContent = 'Útboðin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          el.innerHTML = posts.slice(0, 10).map((p) => `<a class="fi" href="${safe(p.link)}" target="_blank" rel="noopener"><span class="t">${esc((p.title || {}).rendered || '')}</span><span class="s">${dIS(p.date)}</span></a>`).join('');
+        })
+        .catch(() => {});
+      // TED (EES-útboð)
+      fetch('/api/ted')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const el = document.getElementById('ted-list');
+          if (!el) return;
+          const ns = (d && d.notices) || [];
+          if (!ns.length) { el.textContent = 'EES-útboðin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          el.innerHTML = ns.slice(0, 10).map((x) => {
+            const t = x['notice-title'];
+            const title = typeof t === 'object' ? (t.isl || t.eng || Object.values(t)[0] || '') : (t || '');
+            const nr = x['publication-number'] || '';
+            return `<a class="fi" href="https://ted.europa.eu/en/notice/-/detail/${esc(nr)}" target="_blank" rel="noopener"><span class="t">${esc(title)}</span><span class="s">TED ${esc(nr)} · ${dIS(x['publication-date'])}</span></a>`;
+          }).join('');
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="vaktir"]')) initVaktir(); });
+  </script>
+</Layout>

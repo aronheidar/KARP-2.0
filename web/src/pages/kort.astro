@@ -57,6 +57,8 @@ const MUNIS = Object.keys(SVCOORDS).map((name) => {
       skhlutf: fin.skuldir && fin.tekjur ? r0((fin.skuldir / fin.tekjur) * 100) : null,
       afkoma: fin.afkoma_ibui ?? null,
       kjor: meta.kjordaemi || null,
+      // Velsæld (LOTA 16): lífsgæði (2/3) + samsetta vísitalan (1/3) — báðir 0–100 kvarðar
+      velsaeld: (() => { const l = lifsQ(name); const ix2 = idxMap[name]; const iv = ix2 && ix2.idx != null ? ix2.idx : null; if (l == null && iv == null) return null; if (l == null) return r0(iv); if (iv == null) return r0(l); return r0((l * 2 + iv) / 3); })(),
       // Ríkisflæði: staðgreiðsla til ríkisins (nýjasta ár, ma.kr) + jöfnunarframlög á íbúa (þús.kr)
       stadgr: (() => { const s = SVREV[name]; const v = Array.isArray(s) ? s[s.length - 1] : null; return v != null ? Math.round((v / 1000) * 10) / 10 : null; })(),
       jofnun: (() => { const j = (JOFNUN.m || {})[name]; return j && j.t && pop ? Math.round(j.t / pop / 1000) : null; })(),
@@ -97,7 +99,7 @@ const desc = 'Gagnvirkt Íslandskort — öll 61 sveitarfélög lituð eftir ví
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Íslandskort — hagvísar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 
 const MODEGROUPS = [
-  ['Samfélag', [['visitala', 'Vísitala'], ['lifs', 'Lífsgæði'], ['ibuar', 'Íbúafjöldi'], ['breyting', 'Fólksfjölgun'], ['aldur', '67 ára+'], ['atv', 'Atvinnuleysi'], ['afbrot', 'Afbrot'], ['hus', 'Húsnæðisverð']]],
+  ['Samfélag', [['visitala', 'Vísitala'], ['velsaeld', 'Velsæld'], ['lifs', 'Lífsgæði'], ['ibuar', 'Íbúafjöldi'], ['breyting', 'Fólksfjölgun'], ['aldur', '67 ára+'], ['atv', 'Atvinnuleysi'], ['afbrot', 'Afbrot'], ['hus', 'Húsnæðisverð']]],
   ['Fjármál sveitarf.', [['utsvar', 'Útsvar'], ['tekjur', 'Tekjur/íbúi'], ['fasteign', 'Fasteignask./íbúi'], ['skuldir', 'Skuldir/íbúi'], ['skhlutf', 'Skuldahlutfall'], ['afkoma', 'Afkoma/íbúi']]],
   ['Ríkisflæði', [['stadgr', 'Staðgreiðsla'], ['jofnun', 'Jöfnunarsjóður']]],
   ['Stjórnsýsla', [['kjor', 'Kjördæmi']]],
@@ -201,6 +203,7 @@ const MODEGROUPS = [
     const MODES = {
       visitala: { l: 'Vísitala', u: '', dir: 1, d: 0 },
       lifs: { l: 'Lífsgæði', u: '', dir: 1, d: 0 },
+      velsaeld: { l: 'Velsæld', u: '', dir: 1, d: 0 },
       ibuar: { l: 'Íbúar', u: '', dir: 0, d: 0, th: true },
       breyting: { l: 'Fólksfjölgun', u: '%', dir: 1, d: 1 },
       aldur: { l: '67 ára+', u: '%', dir: 0, d: 1 },
@@ -275,6 +278,7 @@ const MODEGROUPS = [
       // Skýringar-yfirlögnin á kortinu (LOTA 13): hvað sýnir hamurinn + hæst/lægst
       const MDESC = {
         visitala: 'Samsett vísitala Karp (0–100): fjárhagur, vöxtur og atvinna vegin saman. Reiknuð fyrir sveitarfélög með 1.000+ íbúa.',
+        velsaeld: 'Velsældarvísitala Karp (0–100): lífsgæði vega tvo þriðju og samsetta vísitalan (fjárhagur+vöxtur+atvinna) einn þriðja. Tilraunamæling — hlutlæg samsetning, ekki hamingjumæling.',
         lifs: 'Lífsgæðavísir (0–100): aldurssamsetning, atvinna og öryggi svæðisins vegin saman.',
         ibuar: 'Íbúafjöldi — punktastærðin fylgir líka íbúafjölda í öllum hömum.',
         breyting: 'Fólksfjölgun á ári (%) — hvar landið er að vaxa og hvar það fækkar.',
