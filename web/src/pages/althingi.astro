@@ -89,11 +89,16 @@ CABINET.forEach((c) => {
 
 // ── Mál í gangi (eins og gamla billsInProgress): virk mál, ekki þingsköp ──
 const PROC = /lengd þingfundar|^afbrigði|frestun á fundum|^dagskrá|þingfrest|störf þingsins|fundarstjórn/i;
+const mapBill = (b) => ({ nr: b.nr, t: capFirst(b.titill), teg: b.teg || (b.hs === 'Till.' ? 'þingsályktun' : 'lagafrumvarp'), stada: (b.stada || '').replace(/\.$/, ''), d: b.d });
+const notProc = (b) => !PROC.test(b.titill || '') && !PROC.test(b.hs || '');
+const byDate = (a, b) => (b.d || '').localeCompare(a.d || '');
 const BILLS_GO = FRUMVORP
-  .filter((b) => /bíður|nefnd|umræð/i.test(b.stada || '') && !/samþykkt|fell|fyrirspurn/i.test(b.stada || '') && !PROC.test(b.titill || '') && !PROC.test(b.hs || ''))
-  .sort((a, b) => (b.d || '').localeCompare(a.d || ''))
-  .slice(0, 16)
-  .map((b) => ({ nr: b.nr, t: capFirst(b.titill), teg: b.teg || (b.hs === 'Till.' ? 'þingsályktun' : 'lagafrumvarp'), stada: (b.stada || '').replace(/\.$/, ''), d: b.d }));
+  .filter((b) => /bíður|nefnd|umræð/i.test(b.stada || '') && !/samþykkt|fell|fyrirspurn/i.test(b.stada || '') && notProc(b))
+  .sort(byDate).slice(0, 16).map(mapBill);
+// Utan þingtíma eru fá mál í gangi — fylla stikuna með nýafgreiddum málum.
+const BILLS_DONE = BILLS_GO.length >= 14 ? [] : FRUMVORP
+  .filter((b) => /samþykkt|fell/i.test(b.stada || '') && notProc(b))
+  .sort(byDate).slice(0, 14 - BILLS_GO.length).map(mapBill);
 const billUrl = (nr) => `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=${nr}`;
 const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
@@ -182,6 +187,18 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
               <span class="sb-meta"><i class="sb-tag">{b.teg}</i> {b.stada} · {dIS(b.d)}</span>
             </a>
           ))}
+          {BILLS_GO.length === 0 && <p class="sb-none">Engin mál í virkri meðferð — þingið er milli funda.</p>}
+          {BILLS_DONE.length > 0 && (
+            <>
+              <div class="sb-h sb-h2">✓ Nýafgreidd mál</div>
+              {BILLS_DONE.map((b) => (
+                <a class="sb-item" href={billUrl(b.nr)} target="_blank" rel="noopener">
+                  <span class="sb-t">{b.t}</span>
+                  <span class="sb-meta"><i class={`sb-tag ${/fell/i.test(b.stada) ? 'sb-no' : 'sb-ok'}`}>{/fell/i.test(b.stada) ? 'Fellt' : 'Samþykkt'}</i> {b.teg} · {dIS(b.d)}</span>
+                </a>
+              ))}
+            </>
+          )}
         </div>
         <a class="sb-all" href="/thingmal/">Öll þingmál &amp; atkvæði →</a>
       </aside>
@@ -274,6 +291,9 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
     .sb-t { display: block; font-size: 12.5px; font-weight: 600; color: #dfe7f4; line-height: 1.3; }
     .sb-meta { display: block; font-size: 10.5px; color: #7e8ca6; margin-top: 2px; }
     .sb-tag { font-style: normal; color: #19d3c5; }
+    .sb-tag.sb-ok { color: #46e08a; } .sb-tag.sb-no { color: #ff6d7a; }
+    .sb-h2 { margin-top: 12px; color: #46e08a; }
+    .sb-none { font-size: 12px; color: #7e8ca6; padding: 4px 8px; }
     .sb-all { display: block; text-align: right; font-size: 12px; color: #f6b13b; text-decoration: none; padding: 8px 6px 2px; }
     .sb-all:hover { text-decoration: underline; }
     @media (max-width: 900px) { .seat-wrap { grid-template-columns: 1fr; } .sb-list { max-height: 300px; } }

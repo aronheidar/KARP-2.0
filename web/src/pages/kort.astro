@@ -254,12 +254,18 @@ const MODEGROUPS = [
           lineStyle: { width: 0.5 + Math.sqrt(u.v[mode] / mx) * 3.6, color: col, opacity: 0.42, curveness: 0.28 },
         }));
       }
+      // Seríu-verksmiðjur: replaceMerge þarf FULLA seríulistann (tóm data[] tæmir ekki í merge-ham!)
+      const munisSeries = () => ({ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 });
+      // id breytist með ham → replaceMerge EYÐIR gömlu og býr til nýja (merge hunsar tóm data[])
+      const flowsSeries = () => ({ id: 'flows-' + mode, name: 'flows', type: 'lines', coordinateSystem: 'geo', zlevel: 1, silent: false,
+        effect: { show: mode === 'stadgr' || mode === 'jofnun', period: 5, symbol: 'arrow', symbolSize: 5.5, trailLength: 0.12 },
+        tooltip: { formatter: (p) => `<b>${p.data.nafn}</b><br>${MODES[mode] ? MODES[mode].l : ''}: <b>${p.data.vTxt}</b>` },
+        data: flowData() });
       let flowPie = null;
       function paintFlow() {
         const wrap = $('flow-wrap');
         const on = mode === 'stadgr' || mode === 'jofnun';
         if (wrap) wrap.hidden = !on;
-        chart.setOption({ series: [{ name: 'flows', data: flowData() }] });
         if (!on) return;
         const title = $('flow-title'), src = $('flow-src'), pieEl = $('flow-pie');
         let data, sub;
@@ -296,13 +302,7 @@ const MODEGROUPS = [
         // roam:false — EKKERT músarhjóls-zoom/drag (eins og gamla): þysjun AÐEINS með smelli á landshluta + ↩-takka.
         geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
-        series: [
-          { name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 },
-          { name: 'flows', type: 'lines', coordinateSystem: 'geo', zlevel: 1, silent: false,
-            effect: { show: true, period: 5, symbol: 'arrow', symbolSize: 5.5, trailLength: 0.12 },
-            tooltip: { formatter: (p) => `<b>${p.data.nafn}</b><br>${MODES[mode] ? MODES[mode].l : ''}: <b>${p.data.vTxt}</b>` },
-            data: [] },
-        ],
+        series: [munisSeries(), flowsSeries()],
       });
       scaleTxt();
 
@@ -316,7 +316,7 @@ const MODEGROUPS = [
         b.onclick = () => {
           document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b));
           mode = b.dataset.m;
-          chart.setOption({ series: [{ name: 'munis', data: pointData() }] });
+          chart.setOption({ series: [munisSeries(), flowsSeries()] }, { replaceMerge: ['series'] });
           scaleTxt();
           paintFlow();
         };

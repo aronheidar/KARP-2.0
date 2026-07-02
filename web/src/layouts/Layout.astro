@@ -240,12 +240,24 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         if (activeGrp && !activeGrp.open) activeGrp.open = true;
       }
 
+      // Sjálfslækning grafa (LOTA 12): ECharts sem init-ast á 0-breidd element (VT-tímasetning,
+      // falinn flipi, þröngt view) verður ósýnilegt að eilífu — resize() lagar. Keyrt eftir hverja síðu.
+      function fixZeroCharts() {
+        if (!window.echarts) return;
+        document.querySelectorAll('[_echarts_instance_]').forEach((el) => {
+          const c = window.echarts.getInstanceByDom(el);
+          if (c && el.clientWidth > 0 && c.getWidth() === 0) c.resize();
+        });
+      }
+
       function mountShell() {
         // Chip + fréttir eru í föstu skelinni → festa aðeins einu sinni (dataset lifir persist).
         const chipEl = document.getElementById('chip');
         if (chipEl && !chipEl.dataset.mounted) { chipEl.dataset.mounted = '1'; mountChip(chipEl); }
         updateActiveNav();
         paintNews();
+        setTimeout(fixZeroCharts, 400);
+        setTimeout(fixZeroCharts, 1500);
       }
 
       document.addEventListener('astro:page-load', mountShell);
