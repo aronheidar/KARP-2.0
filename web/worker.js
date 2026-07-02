@@ -29,11 +29,67 @@ const PROXIES = {
     ttl: 600,
     type: 'text/xml; charset=utf-8',
   },
+  // 💬 Samráðsgátt: nýjustu mál í samráði — opin GraphQL-gátt island.is — 30 mín cache
+  '/api/samrad': {
+    url: 'https://island.is/api/graphql',
+    ttl: 1800,
+    post: JSON.stringify({ query: 'query { consultationPortalGetCases(input: {pageSize: 15, pageNumber: 0}) { total cases { id caseNumber name statusName typeName institutionName adviceCount created processEnds } } }' }),
+  },
 };
+
+// ⚖️ Dómavakt: Hæstiréttur + Landsréttur bera nýjustu dóma í __NEXT_DATA__ á
+// /domar/-síðunum (sama Next.js-vél). Sótt samhliða, aðeins visibleVerdicts
+// skilað (örfá KB í stað ~850 KB á síðu). 45 mín cache.
+const DOMAR = [
+  { key: 'hr', url: 'https://www.haestirettur.is/domar/' },
+  { key: 'lr', url: 'https://www.landsrettur.is/domar-og-urskurdir/' },
+];
+function extractVerdicts(html) {
+  const i = html.indexOf('__NEXT_DATA__');
+  if (i < 0) return [];
+  const m = html.slice(i).match(/>({[\s\S]*?})<\/script>/);
+  if (!m) return [];
+  let j;
+  try { j = JSON.parse(m[1]); } catch (e) { return []; }
+  const find = (o, d) => {
+    if (!o || typeof o !== 'object' || d > 12) return null;
+    if (Array.isArray(o.visibleVerdicts)) return o.visibleVerdicts;
+    for (const k of Object.keys(o)) { const r = find(o[k], d + 1); if (r) return r; }
+    return null;
+  };
+  return (find(j.props, 0) || []).map((v) => ({
+    id: v.id, nr: v.caseNumber, titill: v.title, dags: v.verdictDate,
+    efnisord: (v.keywords || []).slice(0, 4),
+    um: String(v.presentings || '').slice(0, 220),
+  }));
+}
+async function domarHandler(ctx) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/domar');
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const out = { updated: new Date().toISOString() };
+  let anyOk = false;
+  await Promise.all(DOMAR.map(async (c) => {
+    try {
+      const up = await fetch(c.url, { headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' } });
+      const list = up.ok ? extractVerdicts(await up.text()) : [];
+      out[c.key] = list;
+      if (list.length) anyOk = true;
+    } catch (e) { out[c.key] = []; }
+  }));
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=2700' },
+  });
+  if (anyOk) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/domar') return domarHandler(ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

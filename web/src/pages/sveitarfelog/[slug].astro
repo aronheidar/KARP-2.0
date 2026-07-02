@@ -23,6 +23,7 @@ import SVMAL from '@gogn/sveitarfelog_mal.json';
 import JOFNUN from '@gogn/jofnun.json';
 import SVSTJORN from '@gogn/sveitarstjorn_deep.json';
 import RVKSTJORN from '@gogn/sveitarstjorn_rvk.json';
+import SVSTJORAR from '@gogn/sveitarstjorar.json';
 import { colorByName } from '@lib/parties.mjs';
 
 export function getStaticPaths() {
@@ -102,11 +103,22 @@ const JOF = jof && jof.t ? {
   cats: (jof.c || []).map((v, i) => ({ label: (JOFNUN.catLabels || [])[i] || '', v: Math.round(v / 1e6) })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 6),
   ar: JOFNUN.ar,
 } : null;
-// Sveitarstjórn: Reykjavík á sér-skrá (borgarstjórn), hinar í deep-skránni.
+// Sveitarstjórn: Reykjavík á sér-skrá (borgarstjórn), hinar í deep-skránni —
+// og samband.is fyllir í eyðurnar (LOTA 17): stjóri + réttur titill + fulltrúar öll 61.
 const stjRaw = p.name === 'Reykjavíkurborg'
   ? { bsj: RVKSTJORN.borgarstjori, stjorn: (RVKSTJORN.borgarstjorn || []).filter((m) => !m.vara) }
   : SVSTJORN[p.name] || null;
-const STJ = stjRaw ? { bsj: stjRaw.bsj || null, members: (stjRaw.stjorn || []).map((m) => ({ n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), hl: m.hlutverk || '' })) } : null;
+const samb = (SVSTJORAR.byName || {})[p.name] || null;
+const LTR = { D: 'Sjálfstæðisflokkurinn', B: 'Framsóknarflokkurinn', S: 'Samfylkingin', M: 'Miðflokkurinn', C: 'Viðreisn', V: 'Vinstri græn', P: 'Píratar', J: 'Sósíalistaflokkurinn', F: 'Flokkur fólksins' };
+const sambMembers = samb ? (samb.fulltruar || []).map((m) => ({ n: m.n, f: LTR[m.f] || (m.f ? `${m.f}-listi` : ''), c: colorByName(LTR[m.f] || ''), hl: '' })) : [];
+const deepMembers = stjRaw ? (stjRaw.stjorn || []).map((m) => ({ n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), hl: m.hlutverk || '' })) : [];
+const STJ = (stjRaw || samb) ? {
+  bsj: (stjRaw && stjRaw.bsj) || (samb && samb.stjori) || null,
+  titill: (samb && samb.stjoriTitill) || null,
+  vefur: (samb && samb.vefur) || null,
+  fraSamband: !(stjRaw && (stjRaw.stjorn || []).length),
+  members: deepMembers.length ? deepMembers : sambMembers,
+} : null;
 // Fjármála-tafla (heild, þús.kr → ma.kr/m.kr)
 const finRows = [
   ['Tekjur alls', p.fin.tekjur, 'ma'], ['Gjöld alls', p.fin.gjold, 'ma'],
@@ -151,7 +163,7 @@ const jsonLd = {
         <p class="sub">
           {p.region || 'sveitarfélag'}{p.pop ? ` · ${groupThousands(p.pop)} íbúar` : ''}
         </p>
-        {STJ && STJ.bsj && <div class="hero-bsj">👤 {p.name === 'Reykjavíkurborg' ? 'Borgarstjóri' : 'Bæjar-/sveitarstjóri'}: <strong>{STJ.bsj}</strong></div>}
+        {STJ && STJ.bsj && <div class="hero-bsj">👤 {STJ.titill || (p.name === 'Reykjavíkurborg' ? 'Borgarstjóri' : 'Bæjar-/sveitarstjóri')}: <strong>{STJ.bsj}</strong>{STJ.vefur && <a class="hero-vef" href={STJ.vefur} target="_blank" rel="noopener">vefur ↗</a>}</div>}
       </div>
       {p.idx != null && (
         <div class="hero-idx">
@@ -216,8 +228,8 @@ const jsonLd = {
 
     {STJ && STJ.members.length > 0 && (
       <>
-        <h2>Sveitarstjórn</h2>
-        {STJ.bsj && <p class="stj-bsj">Bæjar-/sveitarstjóri: <strong>{STJ.bsj}</strong></p>}
+        <h2>Sveitarstjórn <i class="tip" tabindex="0" data-tip={STJ.fraSamband ? 'Kjörnir fulltrúar og stjóri skv. sveitarfélagavef Sambands íslenskra sveitarfélaga (samband.is). Flokksstafir þýddir í flokksheiti; staðbundnir listar merktir sem X-listi.' : 'Skipan skv. vef sveitarfélagsins; stjóri og titill skv. samband.is þar sem við á.'}>ⓘ</i></h2>
+        {STJ.bsj && <p class="stj-bsj">{STJ.titill || 'Bæjar-/sveitarstjóri'}: <strong>{STJ.bsj}</strong></p>}
         <div class="stj">
           {STJ.members.map((m) => <span class="stj-m" style={`--pc:${m.c}`}>{m.n}{m.hl ? ` · ${m.hl}` : ''}<i>{m.f}</i></span>)}
         </div>
@@ -250,6 +262,8 @@ const jsonLd = {
     .sub { color: #9fb0c8; font-size: 14.5px; margin: 0; }
     .hero-bsj { font-size: 13.5px; color: #cdd6e6; margin-top: 8px; }
     .hero-bsj strong { color: #f6b13b; }
+    .hero-vef { margin-left: 10px; font-size: 12px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
+    .hero-vef:hover { color: #f6b13b; }
     .hero-idx { text-align: center; flex: none; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 10px 18px; }
     .hi-v { font-size: 34px; font-weight: 800; color: var(--hc); line-height: 1; }
     .hi-l { font-size: 10.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .05em; }

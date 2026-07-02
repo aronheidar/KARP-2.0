@@ -30,18 +30,32 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       </div>
     </div>
 
+    <h2>⚖️ Dómavaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu dómar beint af vefjum dómstólanna (opinber birting í síðukóða þeirra, engin ágiskun). Uppfærist á ~45 mín fresti um skyndiminnis-proxy Karp.">ⓘ</i></h2>
+    <div class="ppair">
+      <div>
+        <h3>Hæstiréttur</h3>
+        <div id="domar-hr" class="feed">Sæki dóma…</div>
+      </div>
+      <div>
+        <h3>Landsréttur</h3>
+        <div id="domar-lr" class="feed">Sæki dóma…</div>
+      </div>
+    </div>
+
+    <h2>💬 Samráðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu mál í samráðsgátt stjórnvalda um opna gagnagátt island.is — málsnúmer, staða, ráðuneyti og umsagnarfrestur. Smelltu til að lesa málið og senda umsögn.">ⓘ</i></h2>
+    <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
+
     <h2>📰 Fjölmiðlavöktunin</h2>
     <p class="xref">Fyrirtæki, stofnanir, flokkar og einstaklingar — viðhorf, tímalínur og frjáls leit er á <a href="/frettir/">Vöktun (Umfjöllun)</a>. Erlend umfjöllun um Ísland er nýi 🌍-flipinn þar.</p>
 
-    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til og opinberar en þurfa tæknivinnu: samráðsgátt og dómstólavefir eru JavaScript-síður án opinna veitna og fyrirtækjaskrá án opins skráningarstraums.">ⓘ</i></h2>
+    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til en án opins gagnastraums: fyrirtækjaskrá birtir ekki skráningarstraum opið og opnir reikningar ríkisins eru bak við lokað síðukall. Héraðsdómar birta ekki dómalistann sinn í opnu formi enn.">ⓘ</i></h2>
     <ul class="soon">
-      <li>⚖️ <b>Dómavakt</b> — nýir dómar Hæstaréttar, Landsréttar og héraðsdómstóla eftir efnisorðum</li>
-      <li>💬 <b>Samráðsvakt</b> — mál sem snerta þína atvinnugrein fara í samráðsgátt stjórnvalda</li>
       <li>🏢 <b>Fyrirtækjavakt</b> — nýskráningar og stjórnarbreytingar í fyrirtækjaskrá</li>
       <li>💸 <b>Greiðsluvakt</b> — greiðslur ríkisins til birgja (opnir reikningar)</li>
+      <li>⚖️ <b>Héraðsdómar</b> — dómavaktin nær í dag til Hæstaréttar og Landsréttar</li>
     </ul>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Útboðsgögn: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu — hvort tveggja um skyndiminnis-proxy Karp. #2 LOTA 16.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Lifandi lindir: utbodsvefur.is (Ríkiskaup), api.ted.europa.eu, haestirettur.is, landsrettur.is og samráðsgátt (island.is) — allt um skyndiminnis-proxy Karp. #2 LOTA 16–17.</p>
   </main>
 
   <style>
@@ -61,7 +75,9 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
-    #utbod-list .fi, #ted-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    #utbod-list .fi, #ted-list .fi, #domar-hr .fi, #domar-lr .fi, #samrad-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    #samrad-list .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
+    #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
     .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
     .fi:hover .t { color: #f6b13b; }
     .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
@@ -98,6 +114,35 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           if (!el) return;
           if (!Array.isArray(posts) || !posts.length) { el.textContent = 'Útboðin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
           el.innerHTML = posts.slice(0, 10).map((p) => `<a class="fi" href="${safe(p.link)}" target="_blank" rel="noopener"><span class="t">${esc((p.title || {}).rendered || '')}</span><span class="s">${dIS(p.date)}</span></a>`).join('');
+        })
+        .catch(() => {});
+      // ⚖️ Dómavaktin (HR + LR um /api/domar)
+      fetch('/api/domar')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const SITES = { hr: 'https://www.haestirettur.is/domar/', lr: 'https://www.landsrettur.is/domar-og-urskurdir/' };
+          for (const key of ['hr', 'lr']) {
+            const el = document.getElementById('domar-' + key);
+            if (!el) continue;
+            const list = d && Array.isArray(d[key]) ? d[key] : [];
+            if (!list.length) { el.textContent = 'Dómarnir birtast þegar veitan svarar (proxy í dreifingu).'; continue; }
+            el.innerHTML = list.slice(0, 8).map((v) => `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span><span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`).join('');
+          }
+        })
+        .catch(() => {});
+      // 💬 Samráðsvaktin (island.is GraphQL um /api/samrad)
+      fetch('/api/samrad')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const el = document.getElementById('samrad-list');
+          if (!el) return;
+          const cs = (((d || {}).data || {}).consultationPortalGetCases || {}).cases || [];
+          if (!cs.length) { el.textContent = 'Samráðsmálin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          el.innerHTML = cs.slice(0, 12).map((c) => {
+            const open = /umsagnar/i.test(c.statusName || '');
+            const frest = open && c.processEnds ? ` · frestur til ${dIS(c.processEnds)}` : '';
+            return `<a class="fi" href="https://island.is/samradsgatt/mal/${esc(c.id)}" target="_blank" rel="noopener"><span class="t">${esc(c.name)}</span><span class="s"><span class="pill ${open ? 'op' : ''}">${esc(c.statusName || '')}</span> ${esc(c.institutionName || '')} · mál ${esc(c.caseNumber)}${frest}${c.adviceCount ? ` · ${c.adviceCount} umsagnir` : ''}</span></a>`;
+          }).join('');
         })
         .catch(() => {});
       // TED (EES-útboð)
