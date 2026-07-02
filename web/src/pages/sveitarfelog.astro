@@ -53,6 +53,11 @@ const chartNames = rows.map((r) => r.name);
 const chartIdx = rows.map((r) => r.idx);
 const chartCols = rows.map((r) => idxColor(r.idx));
 
+// Verðlaunapallur + landshluta-síun (LOTA 13f)
+const top3 = rows.slice(0, 3);
+const REGIONS = [...new Set(rows.map((r) => r.region).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'is'));
+const MEDALS = ['🥇', '🥈', '🥉'];
+
 const updated = '2026-07-01';
 // Öll sveitarfélög (líka <1.000 íbúa) fyrir innri tengla → engar munaðarlausar síður.
 const allMunis = Object.keys(SVCOORDS).sort((a, b) => a.localeCompare(b, 'is'));
@@ -93,9 +98,28 @@ const jsonLd = {
       samantekt opinberra talna, <strong>ekki gæðamat</strong>.
     </p>
 
+    <!-- Verðlaunapallurinn (LOTA 13f) -->
+    <div class="podium">
+      {top3.map((r, i) => (
+        <a class={`pod pod-${i}`} href={`/sveitarfelog/${slugify(r.name)}/`}>
+          <span class="pod-m">{MEDALS[i]}</span>
+          <span class="pod-n">{r.name}</span>
+          <span class="pod-v" style={`color:${idxColor(r.idx)}`}>{r.idx}</span>
+          <span class="pod-r">{r.region}{r.pop ? ` · ${groupThousands(r.pop)} íbúar` : ''}</span>
+        </a>
+      ))}
+    </div>
+
     <div id="chart"></div>
 
     <h2>Full röðun</h2>
+    <div class="fbar">
+      <input id="sv-filter" type="text" placeholder="🔍 Sía eftir nafni…" autocomplete="off" />
+      <div class="chips" id="reg-chips">
+        <button class="chip on" data-r="">Allt landið</button>
+        {REGIONS.map((rg) => <button class="chip" data-r={rg}>{rg}</button>)}
+      </div>
+    </div>
     <div class="tw">
       <table>
         <thead>
@@ -107,13 +131,13 @@ const jsonLd = {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr>
+            <tr data-region={r.region || ''} data-name={r.name.toLowerCase()}>
               <td class="rank">{i + 1}</td>
               <td class="l"><a class="muni" href={`/sveitarfelog/${slugify(r.name)}/`}>{r.name}</a><span class="reg">{r.region || '—'}</span></td>
               <td><span class="vis" style={`background:${idxColor(r.idx)}`}>{r.idx}</span></td>
-              <td class="num">{r.fjar ?? '–'}</td>
-              <td class="num">{r.vox ?? '–'}</td>
-              <td class="num">{r.atv ?? '–'}</td>
+              <td class="num fac"><i style={`width:${r.fjar ?? 0}%;background:${idxColor(r.fjar)}`}></i><span>{r.fjar ?? '–'}</span></td>
+              <td class="num fac"><i style={`width:${r.vox ?? 0}%;background:${idxColor(r.vox)}`}></i><span>{r.vox ?? '–'}</span></td>
+              <td class="num fac"><i style={`width:${r.atv ?? 0}%;background:${idxColor(r.atv)}`}></i><span>{r.atv ?? '–'}</span></td>
               <td class="num">{r.lifs ?? '–'}</td>
               <td class="num">{r.unemp == null ? '–' : fmtNum(r.unemp, 1) + '%'}</td>
               <td class="num">{r.pop == null ? '–' : groupThousands(r.pop)}</td>
@@ -121,6 +145,7 @@ const jsonLd = {
           ))}
         </tbody>
       </table>
+      <p class="fempty" id="f-empty" hidden>Ekkert sveitarfélag passar við síuna.</p>
     </div>
 
     <h2>Öll sveitarfélög</h2>
@@ -158,6 +183,27 @@ const jsonLd = {
     .all-munis a:hover { color: #f6b13b; text-decoration: underline; }
     .vis { display: inline-block; min-width: 30px; padding: 2px 8px; border-radius: 6px; color: #06121a; font-weight: 800; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    /* Verðlaunapallur + síun (LOTA 13f) */
+    .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 8px; }
+    @media (max-width: 640px) { .podium { grid-template-columns: 1fr; } }
+    .pod { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 14px 12px; text-decoration: none; transition: border-color .12s, transform .12s; }
+    .pod:hover { border-color: #f6b13b; transform: translateY(-2px); }
+    .pod-0 { border-color: rgba(246,177,59,.55); background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(255,255,255,.03)); }
+    .pod-m { font-size: 26px; }
+    .pod-n { font-weight: 800; font-size: 14.5px; color: #eaf1fb; }
+    .pod-v { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .pod-r { font-size: 11px; color: #7e8ca6; }
+    .fbar { margin: 4px 0 10px; }
+    #sv-filter { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #eaf1fb; border-radius: 10px; padding: 9px 13px; font-size: 13.5px; outline: none; margin-bottom: 8px; }
+    #sv-filter:focus { border-color: #f6b13b; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .chip:hover { color: #f6b13b; border-color: #f6b13b; }
+    .chip.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
+    td.fac { position: relative; min-width: 58px; }
+    td.fac i { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); height: 62%; max-width: calc(100% - 8px); opacity: .18; border-radius: 4px; }
+    td.fac span { position: relative; }
+    .fempty { font-size: 13px; color: #9fb0c8; padding: 10px 4px; }
   </style>
 
   <!-- Eyja: raðað lárétt súlurit (ECharts hydrast í vafra) -->
@@ -194,6 +240,33 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="sveitarfelog"]')) initChart(); });
+    // Síun: landshluta-flísar + nafnaleit (LOTA 13f) — felur raðir, röðunar-# helst
+    function initFilter() {
+      const inp = document.getElementById('sv-filter');
+      if (!inp || inp.dataset.done) return;
+      inp.dataset.done = '1';
+      const rows = [...document.querySelectorAll('tbody tr[data-name]')];
+      const empty = document.getElementById('f-empty');
+      let reg = '';
+      const apply = () => {
+        const q = (inp.value || '').trim().toLowerCase();
+        let shown = 0;
+        rows.forEach((tr) => {
+          const ok = (!reg || tr.dataset.region === reg) && (!q || tr.dataset.name.includes(q));
+          tr.hidden = !ok;
+          if (ok) shown++;
+        });
+        if (empty) empty.hidden = shown > 0;
+      };
+      inp.addEventListener('input', apply);
+      document.querySelectorAll('#reg-chips .chip').forEach((ch) => {
+        ch.addEventListener('click', () => {
+          document.querySelectorAll('#reg-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
+          reg = ch.dataset.r || '';
+          apply();
+        });
+      });
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="sveitarfelog"]')) { initChart(); initFilter(); } });
   </script>
 </Layout>
