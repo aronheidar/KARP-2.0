@@ -76,25 +76,26 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
       {IMM && <div class="kpi"><div class="k-l">🌍 Innflytjendur</div><div class="k-v">{fmtNum(IMM.now, 1)}%</div><div class="k-s">af mannfjölda</div></div>}
     </div>
 
-    {POP && (
-      <>
-        <h2>Íbúafjöldi — 16 ár</h2>
-        <div id="chart-pop"></div>
-      </>
-    )}
+    <div class="ppair">
+      {POP && (
+        <div>
+          <h2>Íbúafjöldi — 16 ár</h2>
+          <div id="chart-pop"></div>
+        </div>
+      )}
+      {IMM && (
+        <div>
+          <h2>Hlutfall innflytjenda</h2>
+          <div id="chart-imm"></div>
+        </div>
+      )}
+    </div>
 
     {COMP && (
       <>
         <h2>Hvað knýr fjölgunina?</h2>
         <div id="chart-comp"></div>
         <p class="src">Stöflaðar súlur: aðfluttir umfram brottflutta (blátt) + fæddir umfram dána (grænt). Lína = heildarfjölgun ársins.</p>
-      </>
-    )}
-
-    {IMM && (
-      <>
-        <h2>Hlutfall innflytjenda</h2>
-        <div id="chart-imm"></div>
       </>
     )}
 
@@ -113,6 +114,9 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
     .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-pop { width: 100%; height: 290px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+
     #chart-comp { width: 100%; height: 310px; }
     #chart-imm { width: 100%; height: 250px; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }

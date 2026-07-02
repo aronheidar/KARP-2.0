@@ -42,8 +42,10 @@ const desc = `Landbúnaður — kjötframleiðsla${kjotL ? ' ' + groupThousands(
     <div class="kpis">
       {kjotL && <div class="kpi"><div class="k-l">🥩 Kjötframleiðsla</div><div class="k-v">{groupThousands(kjotL.v)}</div><div class="k-s">tonn · {kjotL.y}</div></div>}
     </div>
-    {C1 && <><h2>Kjötframleiðsla eftir tegundum</h2><div id="c1"></div></>}
-    {C2 && <><h2>Bústofninn — nautgripir og sauðfé</h2><div id="c2"></div></>}
+    <div class="ppair">
+      {C1 && <div><h2>Kjötframleiðsla eftir tegundum</h2><div id="c1"></div></div>}
+      {C2 && <div><h2>Bústofninn — nautgripir og sauðfé</h2><div id="c2"></div></div>}
+    </div>
     <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (LAN10201 kjöt, LAN10102 búfé). #2.</p>
   </main>
 
@@ -58,6 +60,9 @@ const desc = `Landbúnaður — kjötframleiðsla${kjotL ? ' ' + groupThousands(
     .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #c1, #c2 { width: 100%; height: 300px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 

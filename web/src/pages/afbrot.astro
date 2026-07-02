@@ -53,11 +53,16 @@ const jsonLd = {
     <h2>Landsþróun 2001–{year}</h2>
     <div id="chart-trend"></div>
 
-    <h2>Eftir landshlutum ({year})</h2>
-    <div id="chart-region"></div>
-
-    <h2>Eftir brotaflokkum ({year})</h2>
-    <div id="chart-cat"></div>
+    <div class="ppair">
+      <div>
+        <h2>Eftir landshlutum ({year})</h2>
+        <div id="chart-region"></div>
+      </div>
+      <div>
+        <h2>Eftir brotaflokkum ({year})</h2>
+        <div id="chart-cat"></div>
+      </div>
+    </div>
 
     <h2>Þróun eftir landshlutum</h2>
     <div id="chart-reglines"></div>
@@ -80,6 +85,9 @@ const jsonLd = {
     .k-v.good { color: #46e08a; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-trend { width: 100%; height: 300px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+
     #chart-region, #chart-cat { width: 100%; }
     #chart-reglines { width: 100%; height: 340px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }

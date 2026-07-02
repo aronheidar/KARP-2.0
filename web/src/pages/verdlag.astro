@@ -265,11 +265,16 @@ const jsonLd = {
       ))}
     </div>
 
-    <h2>Framfærslukostnaður — borgir</h2>
-    <div id="chart-col"></div>
-
-    <h2>Kaupmáttur — borgir</h2>
-    <div id="chart-pp"></div>
+    <div class="ppair">
+      <div>
+        <h2>Framfærslukostnaður — borgir</h2>
+        <div id="chart-col"></div>
+      </div>
+      <div>
+        <h2>Kaupmáttur — borgir</h2>
+        <div id="chart-pp"></div>
+      </div>
+    </div>
 
     <h2>Borgaradar — Reykjavík í samanburði</h2>
     <div id="chart-radar"></div>
@@ -318,6 +323,9 @@ const jsonLd = {
     .k-s { font-size: 11px; color: #7e8ca6; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     #chart-col, #chart-pp { width: 100%; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+
     #chart-radar { width: 100%; height: 360px; }
     .srcnote { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .tw { overflow-x: auto; }

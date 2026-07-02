@@ -78,7 +78,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     // Öryggi: aðeins http(s)-hlekkir úr RSS-veitunum (javascript:/data: blokkað).
     const safe9 = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
     const paint = (el, items, emptyMsg) => {
-      const arr = Array.isArray(items) ? items : [];
+      // /frettir skilar {efni, cached, items:[...]} — normalísera í fylki.
+      const arr = Array.isArray(items) ? items : (items && items.items) || [];
       el.innerHTML = arr.length
         ? arr.slice(0, 30).map((it) => `<a class="it" href="${esc9(safe9(it.link))}" target="_blank" rel="noopener"><span class="t">${esc9(it.title)}</span><span class="s">${esc9(it.source || '')}${it.date ? ' · ' + esc9(it.date) : ''}</span></a>`).join('')
         : `<div class="live-empty">${emptyMsg}</div>`;

@@ -87,17 +87,22 @@ const jsonLd = {
       </>
     )}
 
-    {citMonths.length > 0 && (
-      <>
-        <h2>Eftir ríkisfangi — þróun</h2>
-        <div id="chart-cit"></div>
-      </>
-    )}
-
+    <div class="ppair">
+      {citMonths.length > 0 && (
+        <div>
+          <h2>Eftir ríkisfangi — þróun</h2>
+          <div id="chart-cit"></div>
+        </div>
+      )}
+      {INDBARS.length > 0 && (
+        <div>
+          <h2>Atvinnulausir eftir atvinnugreinum</h2>
+          <div id="chart-ind"></div>
+        </div>
+      )}
+    </div>
     {INDBARS.length > 0 && (
       <>
-        <h2>Atvinnulausir eftir atvinnugreinum</h2>
-        <div id="chart-ind"></div>
         <p class="srcnote">Fjöldi á atvinnuleysisskrá eftir atvinnugrein (VMST, nýjasti mánuður).</p>
       </>
     )}

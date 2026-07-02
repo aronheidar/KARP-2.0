@@ -214,7 +214,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         if (newsCache) { nl.innerHTML = renderNews(newsCache); return; }
         fetch('https://karp.is/wp-json/karp/v1/frettir')
           .then((r) => (r.ok ? r.json() : []))
-          .then((items) => { newsCache = Array.isArray(items) ? items : []; nl.innerHTML = renderNews(newsCache); })
+          // Endapunkturinn skilar {efni, cached, items:[...]} — EKKI beinu fylki.
+          .then((d) => { newsCache = Array.isArray(d) ? d : (d && d.items) || []; nl.innerHTML = renderNews(newsCache); })
           .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á app.karp.is).</div>'; });
       }
 
