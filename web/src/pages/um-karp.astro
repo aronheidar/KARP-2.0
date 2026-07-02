@@ -1,0 +1,70 @@
+---
+// ─────────────────────────────────────────────────────────────
+// UM KARP (LOTA 16) — hvað er Karp, hvernig verða gögnin til, hver stendur
+// á bak við. ATH: [SETTU INN]-hlutarnir bíða texta frá Aroni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-02';
+const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar, greinir og birtir opinber gögn um íslenskt samfélag, efnahag og stjórnmál á mannamáli.';
+---
+
+<Layout title="Um Karp | Karp" description={desc} canonical="https://app.karp.is/um-karp/" ogTitle="Um Karp">
+  <main data-pg="um-karp">
+    <p class="kicker">Karp · Hagvísir Íslands</p>
+    <h1>Um Karp</h1>
+    <p class="lead">Karp er sjálfstætt mælaborð sem safnar, tengir og birtir opinber gögn um íslenskt samfélag — efnahag, Alþingi, sveitarfélög, markaði og fjölmiðlaumfjöllun — á einum stað og á mannamáli.</p>
+
+    <h2>Hvað gerir Karp?</h2>
+    <div class="cards">
+      <div class="card"><b>📊 Safnar</b><span>Gögn frá Hagstofu, Alþingi, Seðlabanka, HMS, VMST, Ríkislögreglustjóra, Umhverfisstofnun, kauphöllinni og fleirum — sótt beint úr opinberum veitum og uppfærð reglulega.</span></div>
+      <div class="card"><b>🔗 Tengir</b><span>Það sem gerir Karp öðruvísi: gögnin eru tengd saman — atkvæði þingmanna við fjölmiðlaumfjöllun, fasteignaverð við laun, jöfnunarsjóður við sveitarfélög.</span></div>
+      <div class="card"><b>🤖 Greinir</b><span>Gervigreind metur tón fjölmiðlaumfjöllunar, dregur saman þingmál á mannamáli og reiknar vísitölur — alltaf merkt sem vélrænt mat, aldrei falið sem staðreynd.</span></div>
+      <div class="card"><b>🔔 Vaktar</b><span>Vöktun fylgist með umfjöllun um fyrirtæki, stofnanir og einstaklinga í rauntíma — og vaktir láta vita þegar hagvísir nær viðmiði.</span></div>
+    </div>
+
+    <h2>Vinnureglurnar</h2>
+    <ul class="rules">
+      <li><b>Heimildir alltaf sýnilegar.</b> Hver tala vísar í uppruna sinn — smelltu á ⓘ-merkin til að sjá hvaðan gögnin koma og hvernig þau eru reiknuð.</li>
+      <li><b>Ekkert fundið upp.</b> Ef gögn vantar er það sagt berum orðum. Vélræn möt (viðhorf, vísitölur, spár) eru alltaf merkt sem slík.</li>
+      <li><b>Hlutleysi.</b> Karp tekur ekki afstöðu — ritstjórnarleg möt (t.d. vinstri–hægri staðsetning flokka) eru merkt sem möt og rökstudd.</li>
+      <li><b>Fréttir eru hjá miðlunum.</b> Vöktunin birtir aðeins fyrirsagnir og hlekki — efnið sjálft er alltaf lesið hjá miðlinum sem skrifaði það.</li>
+    </ul>
+
+    <h2>Hver stendur á bak við Karp?</h2>
+    <div class="author">
+      <div class="au-body">
+        <p><strong>[SETTU INN: nafn og stutt kynning — hver þú ert, bakgrunnur, af hverju þú smíðaðir Karp.]</strong></p>
+        <p class="dim">[SETTU INN: t.d. menntun/starfsreynsla, áhugamál á mótum gagna og samfélags, og hvernig má hafa samband.]</p>
+        <p class="contact">📧 <a href="mailto:[SETTU INN netfang]">[SETTU INN netfang]</a></p>
+      </div>
+    </div>
+
+    <h2>Tæknin</h2>
+    <p class="tech">Karp er byggt sem forþjónaður vefur (Astro) á Cloudflare — hver síða er tilbúin fyrirfram svo hún opnast hratt og sést af leitarvélum. Gögnin eru sótt á byggingartíma úr opinberum veitum og lifandi gögn (fréttir, markaðir, loftgæði, flug) streyma beint í vafrann. Kóðinn fylgir einni reglu öðrum fremur: <em>ef talan er reiknuð, samsett eða metin — þá stendur það við hana.</em></p>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Karp · Hagvísir Íslands — <a href="/">app.karp.is</a> · <a href="https://karp.is">karp.is</a>. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 34px; margin: 0 0 10px; }
+    .lead { font-size: 17px; color: #dfe7f4; line-height: 1.6; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+    .card b { display: block; color: #f6b13b; font-size: 14.5px; margin-bottom: 4px; }
+    .card span { font-size: 13px; color: #b9c6da; line-height: 1.55; }
+    .rules { margin: 0; padding-left: 20px; }
+    .rules li { font-size: 14px; color: #cdd6e6; line-height: 1.6; margin-bottom: 8px; }
+    .rules b { color: #eaf1fb; }
+    .author { background: rgba(246,177,59,.05); border: 1px solid rgba(246,177,59,.25); border-radius: 13px; padding: 16px 18px; }
+    .dim { color: #9fb0c8; font-size: 13.5px; }
+    .contact a { color: #f6b13b; }
+    .tech { font-size: 14px; line-height: 1.65; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+</Layout>
