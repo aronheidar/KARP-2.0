@@ -31,6 +31,7 @@ const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Stóriðja &amp; orka 🏗️</h1>
     <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar ~80% raforkunnar. Sjá <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Stóriðjutölur: útflutningsverðmæti úr utanríkisverslunartölum Hagstofunnar og orkutölur Orkustofnunar.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="kpis">
       {alL && alL.al != null && <div class="kpi"><div class="k-l">🥫 Ál — útflutningur</div><div class="k-v">{String(alL.al).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
       {alL && alL.kis != null && <div class="kpi"><div class="k-l">⛏️ Kísiljárn</div><div class="k-v">{String(alL.kis).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}

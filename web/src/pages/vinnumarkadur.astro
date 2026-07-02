@@ -57,6 +57,7 @@ const jsonLd = {
     <h1>Vinnumarkaður</h1>
     <div class="big">{fmtNum(latest, 1)}%<span>skráð atvinnuleysi · {updLabel}</span></div>
     <p>Skráð atvinnuleysi hjá Vinnumálastofnun. Hæst á {hi?.name} ({fmtNum(hi?.v, 1)}%), lægst á {lo?.name} ({fmtNum(lo?.v, 1)}%).</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Vinnumarkaðstölur: launavísitala og vinnumarkaðsrannsókn Hagstofunnar; kaupmátt reiknar Karp sem launavísitölu deilt með verðvísitölu.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">👨 Karlar</div><div class="k-v">{fmtNum(sex.karlar, 1)}%</div></div>

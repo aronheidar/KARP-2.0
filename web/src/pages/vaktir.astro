@@ -45,17 +45,19 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     <h2>💬 Samráðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu mál í samráðsgátt stjórnvalda um opna gagnagátt island.is — málsnúmer, staða, ráðuneyti og umsagnarfrestur. Smelltu til að lesa málið og senda umsögn.">ⓘ</i></h2>
     <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
 
+    <h2>💸 Greiðsluvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu bókfærðu greiðslur ríkisins til birgja af opnirreikningar.is (Fjársýslan). Gögnin birtast með nokkurra vikna töf; neikvæð fjárhæð er bakfærsla/inneign. Síðustu ~45 dagar gagnatímabilsins.">ⓘ</i></h2>
+    <div id="greidslur-list" class="feed">Sæki greiðslur ríkisins…</div>
+
     <h2>📰 Fjölmiðlavöktunin</h2>
     <p class="xref">Fyrirtæki, stofnanir, flokkar og einstaklingar — viðhorf, tímalínur og frjáls leit er á <a href="/frettir/">Vöktun (Umfjöllun)</a>. Erlend umfjöllun um Ísland er nýi 🌍-flipinn þar.</p>
 
-    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til en án opins gagnastraums: fyrirtækjaskrá birtir ekki skráningarstraum opið og opnir reikningar ríkisins eru bak við lokað síðukall. Héraðsdómar birta ekki dómalistann sinn í opnu formi enn.">ⓘ</i></h2>
+    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til en án opins gagnastraums: fyrirtækjaskrá birtir ekki skráningarstraum opið og héraðsdómar birta ekki dómalistann sinn í opnu formi enn.">ⓘ</i></h2>
     <ul class="soon">
       <li>🏢 <b>Fyrirtækjavakt</b> — nýskráningar og stjórnarbreytingar í fyrirtækjaskrá</li>
-      <li>💸 <b>Greiðsluvakt</b> — greiðslur ríkisins til birgja (opnir reikningar)</li>
       <li>⚖️ <b>Héraðsdómar</b> — dómavaktin nær í dag til Hæstaréttar og Landsréttar</li>
     </ul>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Lifandi lindir: utbodsvefur.is (Ríkiskaup), api.ted.europa.eu, haestirettur.is, landsrettur.is og samráðsgátt (island.is) — allt um skyndiminnis-proxy Karp. #2 LOTA 16–17.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Lifandi lindir: utbodsvefur.is (Ríkiskaup), api.ted.europa.eu, haestirettur.is, landsrettur.is, samráðsgátt (island.is) og opnirreikningar.is (Fjársýslan) — allt um skyndiminnis-proxy Karp. #2 LOTA 16–17.</p>
   </main>
 
   <style>
@@ -75,7 +77,9 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
-    #utbod-list .fi, #ted-list .fi, #domar-hr .fi, #domar-lr .fi, #samrad-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    #utbod-list .fi, #ted-list .fi, #domar-hr .fi, #domar-lr .fi, #samrad-list .fi, #greidslur-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    #greidslur-list .pos { color: #42d086; } #greidslur-list .neg { color: #e0655f; }
+    #greidslur-list b { color: #f6b13b; font-weight: 600; }
     #samrad-list .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
     #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
     .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
@@ -143,6 +147,18 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
             const frest = open && c.processEnds ? ` · frestur til ${dIS(c.processEnds)}` : '';
             return `<a class="fi" href="https://island.is/samradsgatt/mal/${esc(c.id)}" target="_blank" rel="noopener"><span class="t">${esc(c.name)}</span><span class="s"><span class="pill ${open ? 'op' : ''}">${esc(c.statusName || '')}</span> ${esc(c.institutionName || '')} · mál ${esc(c.caseNumber)}${frest}${c.adviceCount ? ` · ${c.adviceCount} umsagnir` : ''}</span></a>`;
           }).join('');
+        })
+        .catch(() => {});
+      // 💸 Greiðsluvaktin (opnirreikningar.is um /api/greidslur)
+      fetch('/api/greidslur')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const el = document.getElementById('greidslur-list');
+          if (!el) return;
+          const rows = (d && Array.isArray(d.rows)) ? d.rows : [];
+          if (!rows.length) { el.textContent = 'Greiðslurnar birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          const kr = (v) => (v == null ? '' : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr');
+          el.innerHTML = rows.slice(0, 12).map((g) => `<a class="fi" href="https://opnirreikningar.is/" target="_blank" rel="noopener" title="${esc(g.lysing || '')}"><span class="t">${esc(g.stofnun)} → <b>${esc(g.birgir)}</b> · <span class="${(g.upph || 0) < 0 ? 'neg' : 'pos'}">${kr(g.upph)}</span></span><span class="s">${dIS(g.dags)}${g.lysing ? ' · ' + esc(g.lysing.slice(0, 60)) : ''}</span></a>`).join('');
         })
         .catch(() => {});
       // TED (EES-útboð)

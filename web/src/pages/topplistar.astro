@@ -67,6 +67,7 @@ const MODEBTNS = [
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Topplistar</h1>
     <p>Hvaða sveitarfélag stendur best — og verst? Veldu mælikvarða; smelltu á sveitarfélag fyrir nánari síðu. Sami útreikningur og <a href="/kort/">Íslandskortið</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Topplistarnir raða opinberum tölum (Hagstofa, ársreikningar, HMS) — röðunin er lýsandi, ekki gæðamat.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="modes">
       {MODEBTNS.map(([key, label], i) => <button class={`mb${i === 0 ? ' on' : ''}`} data-m={key}>{label}</button>)}

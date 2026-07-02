@@ -16,6 +16,7 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Hagspár 🔭</h1>
     <p>Hvað heldur <strong>þú</strong>? Spáðu um lykilhagtölur ársloka — og sjáðu meðalspá lesenda Karp. Spáin þín er nafnlaus í samtölunni.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Spátölur: DataMapper-veita Alþjóðagjaldeyrissjóðsins (IMF) og birtar spár greiningaraðila. Spárnar eru mat útgefenda, ekki Karp.">ⓘ</i> Um gögnin á síðunni</p>
     <div id="sp-list">{TOPICS.map((t) => <div class="spa-card" data-topic={t.t} data-l={t.l} data-e={t.e} data-u={t.u} data-min={t.min} data-max={t.max} data-step={t.step} data-hint={t.hint}>Hleð…</div>)}</div>
     <p class="note">ⓘ Óformlegar spár lesenda — ekki opinberar spár. Berðu saman við <a href="/verdlag/">verðbólguna núna</a> og <a href="/hagvoxtur/">hagvöxtinn</a>.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Spár vistast um <code>/spa</code>-endapunktinn (innskráning þarf til að senda). #2.</p>

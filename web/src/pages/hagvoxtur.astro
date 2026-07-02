@@ -88,6 +88,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Hagvöxtur</h1>
     <p>Verg landsframleiðsla (VLF) — magnbreyting frá fyrra ári, samsetning eftirspurnar og staða Íslands meðal Norðurlanda. Heimildir: Hagstofa Íslands, Alþjóðabankinn.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Hagvaxtartölur: þjóðhagsreikningar Hagstofunnar (PxWeb), raunbreytingar á föstu verðlagi.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
       {GDP && <div class="kpi"><div class="k-l">📈 Hagvöxtur</div><div class={`k-v ${GDP.latest >= 0 ? 'up' : 'dn'}`}>{GDP.latest > 0 ? '+' : ''}{fmtNum(GDP.latest, 1)}%</div><div class="k-s">{GDP.latestQ} · frá fyrra ári</div></div>}

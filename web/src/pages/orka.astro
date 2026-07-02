@@ -38,6 +38,7 @@ const jsonLd = {
     <p class="kicker">Hagvísir Íslands · Orka</p>
     <h1>Raforka á Íslandi</h1>
     <p>Raforkuframleiðsla árið {latest.y} var <strong>{groupThousands(Math.round(latest.total))} GWh</strong> — {fmtNum(renew, 2)}% endurnýjanleg. Heimild: Orkustofnun.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Orkutölur: raforkuframleiðsla og -notkun frá Orkustofnun (opin gagnasöfn) og kerfisgögn Landsnets.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">⚡ Heildarframleiðsla</div><div class="k-v">{groupThousands(Math.round(latest.total))}</div><div class="k-s">GWh · {latest.y}</div></div>

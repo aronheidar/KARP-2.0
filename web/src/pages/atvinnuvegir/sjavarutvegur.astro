@@ -33,6 +33,7 @@ const desc = `Sjávarútvegur Íslands — heildarafli${latest ? ' ' + groupThou
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Sjávarútvegur 🐟</h1>
     <p>Undirstöðuatvinnuvegurinn — heildarafli og fiskeldið sem vex hratt. Útflutningsverðmæti sjávarafurða: sjá <a href="/vidskipti/">Utanríkisverslun</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Sjávarútvegstölur: afla- og verðmætatölur Hagstofunnar; fiskeldi úr framleiðslutölum hennar.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="kpis">
       {latest && <div class="kpi"><div class="k-l">🎣 Heildarafli</div><div class="k-v">{groupThousands(latest.v)}</div><div class="k-s">þús. tonn · {latest.y}</div></div>}
       {eldiL && <div class="kpi"><div class="k-l">🐠 Fiskeldi</div><div class="k-v">{groupThousands(eldiL.v)}</div><div class="k-s">tonn · {eldiL.y}</div></div>}

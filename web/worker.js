@@ -63,6 +63,58 @@ function extractVerdicts(html) {
     um: String(v.presentings || '').slice(0, 220),
   }));
 }
+// 💸 Greiðsluvakt: opnirreikningar.is (Fjársýslan) — DataTables-bakendinn svarar
+// GET /data_pagination_search sé FULLT DataTables-sett sent OG tímabil (DD.MM.YYYY;
+// tómt tímabil → 500). Glugginn reiknast af /rest/max_time_period. 3 klst cache.
+function dtQuery(fra, til) {
+  const cols = ['org_name', 'check_date', 'vendor_name', 'invoice_amount', 'check_amount', '5'];
+  const P = new URLSearchParams();
+  P.set('draw', '1');
+  cols.forEach((c, i) => {
+    P.set(`columns[${i}][data]`, c);
+    P.set(`columns[${i}][name]`, '');
+    P.set(`columns[${i}][searchable]`, 'true');
+    P.set(`columns[${i}][orderable]`, i < 5 ? 'true' : 'false');
+    P.set(`columns[${i}][search][value]`, '');
+    P.set(`columns[${i}][search][regex]`, 'false');
+  });
+  P.set('order[0][column]', '1'); P.set('order[0][dir]', 'desc');
+  P.set('start', '0'); P.set('length', '20');
+  P.set('search[value]', ''); P.set('search[regex]', 'false');
+  P.set('vendor_id', ''); P.set('type_id', ''); P.set('org_id', '');
+  P.set('timabil_fra', fra); P.set('timabil_til', til);
+  return P.toString();
+}
+const ddmmyyyy = (d) => `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${d.getUTCFullYear()}`;
+async function greidslurHandler(ctx) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/greidslur');
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  try {
+    const H = { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)', 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' };
+    let maxD = new Date();
+    try {
+      const mt = (await (await fetch('https://opnirreikningar.is/rest/max_time_period', { headers: H })).text()).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(mt)) maxD = new Date(mt + 'T12:00:00Z');
+    } catch (e) {}
+    const fraD = new Date(maxD.getTime() - 45 * 86400000);
+    const up = await fetch('https://opnirreikningar.is/data_pagination_search?' + dtQuery(ddmmyyyy(fraD), ddmmyyyy(maxD)), { headers: H });
+    const j = up.ok ? await up.json() : null;
+    const rows = ((j && j.data) || []).map((r) => ({
+      stofnun: r.org_name, birgir: r.vendor_name, dags: r.check_date,
+      upph: r.invoice_amount, lysing: String(r.invoice_description || '').slice(0, 90),
+    }));
+    res = new Response(JSON.stringify({ til: maxD.toISOString().slice(0, 10), rows }), {
+      status: 200,
+      headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=10800' },
+    });
+    if (rows.length) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+    return res;
+  } catch (e) {
+    return new Response(JSON.stringify({ error: 'upstream' }), { status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
+  }
+}
 async function domarHandler(ctx) {
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/domar');
@@ -90,6 +142,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
+    if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

@@ -42,6 +42,7 @@ const jsonLd = {
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Afbrot og öryggi</h1>
     <p>Hegningarlagabrot á 10.000 íbúa árið {year}: <strong>{fmtNum(nat.hegn, 1)}</strong>{change != null ? <> — {change > 0 ? 'hækkun' : 'lækkun'} um {fmtNum(Math.abs(change), 0)}% frá 2001</> : ''}. Heimild: Ríkislögreglustjóri.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Afbrotatölur: afbrotatölfræði ríkislögreglustjóra eftir brotaflokkum og umdæmum. Tíðni á 1.000 íbúa er reiknuð af Karp með mannfjöldatölum Hagstofunnar.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">🚓 Hegningarlagabrot</div><div class="k-v">{fmtNum(nat.hegn, 1)}</div><div class="k-s">á 10þ · {year}</div></div>

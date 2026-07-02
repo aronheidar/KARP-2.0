@@ -39,6 +39,7 @@ const desc = `Landbúnaður — kjötframleiðsla${kjotL ? ' ' + groupThousands(
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Landbúnaður 🌾</h1>
     <p>Kjötframleiðslan eftir tegundum — alifuglinn hefur tekið fram úr kindakjötinu — og þróun bústofnsins.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Landbúnaðartölur: framleiðslu- og búfjártölur Hagstofunnar.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="kpis">
       {kjotL && <div class="kpi"><div class="k-l">🥩 Kjötframleiðsla</div><div class="k-v">{groupThousands(kjotL.v)}</div><div class="k-s">tonn · {kjotL.y}</div></div>}
     </div>

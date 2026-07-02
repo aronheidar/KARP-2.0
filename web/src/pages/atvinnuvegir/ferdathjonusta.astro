@@ -34,6 +34,7 @@ const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Ferðaþjónusta 🧳</h1>
     <p>Stærsta gjaldeyrislind þjóðarinnar — erlendir farþegar um Keflavík og gistinætur um allt land. Sjá einnig <a href="/umferd/">Umferð</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ferðaþjónustutölur: hagvísar ferðaþjónustu frá Hagstofu Íslands og farþegatölur um Keflavíkurflugvöll.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="kpis">
       {kefL && <div class="kpi"><div class="k-l">✈️ Erlendir farþegar</div><div class="k-v">{groupThousands(kefL.v)}</div><div class="k-s">{kefL.t} · um KEF</div></div>}
       {gistL && <div class="kpi"><div class="k-l">🛏️ Gistinætur</div><div class="k-v">{String(gistL.v).replace('.', ',')}</div><div class="k-s">millj. · {gistL.y}</div></div>}
