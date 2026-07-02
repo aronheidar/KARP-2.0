@@ -154,7 +154,7 @@ const MODEGROUPS = [
     .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #9fb0c8; border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .mb:hover { color: #eaf1fb; border-color: rgba(255,255,255,.25); }
     .mb.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
-    .map-wrap { position: relative; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; }
+    .map-wrap { position: relative; background: radial-gradient(ellipse 65% 55% at 52% 46%, rgba(58,141,255,.09), rgba(25,211,197,.03) 55%, transparent 75%), rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; }
     #map { width: 100%; height: 560px; }
     #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: rgba(9,14,26,.9); border: 1px solid rgba(255,255,255,.2); color: #eaf1fb; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .scale { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: #9fb0c8; background: rgba(9,14,26,.75); border-radius: 7px; padding: 5px 10px; }
@@ -163,7 +163,11 @@ const MODEGROUPS = [
     .minfo .mi-t { font-size: 13px; font-weight: 800; color: #f6b13b; }
     .minfo .mi-d { font-size: 11px; color: #b9c6da; line-height: 1.45; margin-top: 3px; }
     .minfo .mi-x { font-size: 11px; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.09); }
-    .minfo .mi-x b { font-variant-numeric: tabular-nums; }
+    .minfo .mi-x b { font-variant-numeric: tabular-nums; margin-left: auto; }
+    .minfo .mi-row { display: flex; gap: 5px; align-items: baseline; padding: 1px 0; }
+    .minfo .mi-n { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #cdd6e6; }
+    .minfo .mi-sep { height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; }
+    .minfo .mi-hint { font-size: 10px; color: #7e8ca6; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.09); }
     .minfo .mi-hi { color: #46e08a; } .minfo .mi-lo { color: #ff6d7a; }
     @media (max-width: 640px) { .minfo { position: static; max-width: none; margin: 8px; pointer-events: auto; } }
     .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
@@ -234,7 +238,12 @@ const MODEGROUPS = [
             else if (M.dir === 0) { const t = (v - mn) / span; col = `hsl(212,72%,${28 + t * 42}%)`; }
             else { let t = (v - mn) / span; if (M.dir < 0) t = 1 - t; col = `hsl(${Math.round(t * 120)},62%,47%)`; }
           }
-          return { name: u.n, value: [u.lng, u.lat, v == null ? '' : v], slug: u.s, reg: u.reg, vTxt: fmtV(mode, v), itemStyle: { color: col, borderColor: 'rgba(4,8,16,.55)', borderWidth: 1 }, symbolSize: 6 + Math.cbrt(u.pop || 300) * 0.32 };
+          return {
+            name: u.n, value: [u.lng, u.lat, v == null ? '' : v], slug: u.s, reg: u.reg, vTxt: fmtV(mode, v),
+            itemStyle: { color: col, borderColor: 'rgba(4,8,16,.55)', borderWidth: 1 }, symbolSize: 6 + Math.cbrt(u.pop || 300) * 0.32,
+            // Nafnamerki á stærstu staðina — kortið les eins og kort (LOTA 13e)
+            label: (u.pop || 0) > 9000 ? { show: true, position: 'right', distance: 3, fontSize: 9, fontWeight: 600, color: 'rgba(205,214,230,.78)', textBorderColor: 'rgba(4,8,16,.9)', textBorderWidth: 2, formatter: u.n.replace(/bær$|borg$|kaupstaður$/, '') } : undefined,
+          };
         });
       }
       function scaleTxt() {
@@ -273,12 +282,16 @@ const MODEGROUPS = [
         let x = '';
         if (!M.cat) {
           const vals = MUNIS.filter((u) => u.v[mode] != null).sort((a, b) => b.v[mode] - a.v[mode]);
-          if (vals.length > 2) {
-            const hi = vals[0], lo = vals[vals.length - 1];
-            x = `<div class="mi-x"><span class="mi-hi">▲ Hæst:</span> ${hi.n} <b>${fmtV(mode, hi.v[mode])}</b><br><span class="mi-lo">▼ Lægst:</span> ${lo.n} <b>${fmtV(mode, lo.v[mode])}</b></div>`;
+          if (vals.length > 5) {
+            const row = (u, i, cls, pre) => `<div class="mi-row"><span class="${cls}">${pre}${i}.</span> <span class="mi-n">${u.n}</span> <b>${fmtV(mode, u.v[mode])}</b></div>`;
+            x = '<div class="mi-x">'
+              + vals.slice(0, 3).map((u, i) => row(u, i + 1, 'mi-hi', '▲')).join('')
+              + '<div class="mi-sep"></div>'
+              + vals.slice(-3).reverse().map((u, i) => row(u, vals.length - i, 'mi-lo', '▼')).join('')
+              + '</div>';
           }
         }
-        el.innerHTML = `<div class="mi-t">${M.l}</div><div class="mi-d">${MDESC[mode] || ''}</div>${x}`;
+        el.innerHTML = `<div class="mi-t">${M.l}</div><div class="mi-d">${MDESC[mode] || ''}</div>${x}<div class="mi-hint">💡 Smelltu á landshluta til að þysja · á punkt fyrir síðu sveitarfélagsins</div>`;
       }
       const geoRegions = (REG.features || []).map((f) => { const nm = f.properties.name, base = REGCOL[nm] || 'rgba(255,255,255,.05)'; return { name: nm, itemStyle: { areaColor: base }, emphasis: { itemStyle: { areaColor: base.replace(/[\d.]+\)\s*$/, '0.42)') } } }; });
 
@@ -298,7 +311,19 @@ const MODEGROUPS = [
         }));
       }
       // Seríu-verksmiðjur: replaceMerge þarf FULLA seríulistann (tóm data[] tæmir ekki í merge-ham!)
-      const munisSeries = () => ({ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 });
+      const muniTip = { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` };
+      const munisSeries = () => ({ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, labelLayout: { hideOverlap: true }, tooltip: muniTip, zlevel: 2 });
+      // Topp-5 í völdum ham fá ripple-hring (effectScatter) — id per ham svo replaceMerge skipti rétt út
+      const topSeries = () => {
+        const M = MODES[mode];
+        let top = [];
+        if (!M.cat) {
+          const pd = pointData().filter((d) => d.value[2] !== '' && d.value[2] != null);
+          pd.sort((a, b) => (M.dir < 0 ? a.value[2] - b.value[2] : b.value[2] - a.value[2]));
+          top = pd.slice(0, 5);
+        }
+        return { id: 'top-' + mode, name: 'top', type: 'effectScatter', coordinateSystem: 'geo', zlevel: 3, rippleEffect: { brushType: 'stroke', scale: 3, period: 4.5 }, labelLayout: { hideOverlap: true }, tooltip: muniTip, data: top };
+      };
       // id breytist með ham → replaceMerge EYÐIR gömlu og býr til nýja (merge hunsar tóm data[])
       const flowsSeries = () => ({ id: 'flows-' + mode, name: 'flows', type: 'lines', coordinateSystem: 'geo', zlevel: 1, silent: false,
         effect: { show: mode === 'stadgr' || mode === 'jofnun', period: 5, symbol: 'arrow', symbolSize: 5.5, trailLength: 0.12 },
@@ -343,9 +368,9 @@ const MODEGROUPS = [
       chart.setOption({
         backgroundColor: 'transparent',
         // roam:false — EKKERT músarhjóls-zoom/drag (eins og gamla): þysjun AÐEINS með smelli á landshluta + ↩-takka.
-        geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
+        geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: true, color: 'rgba(159,176,200,.4)', fontSize: 9.5 }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
-        series: [munisSeries(), flowsSeries()],
+        series: [munisSeries(), flowsSeries(), topSeries()],
       });
       scaleTxt();
       paintInfo();
@@ -360,7 +385,7 @@ const MODEGROUPS = [
         b.onclick = () => {
           document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b));
           mode = b.dataset.m;
-          chart.setOption({ series: [munisSeries(), flowsSeries()] }, { replaceMerge: ['series'] });
+          chart.setOption({ series: [munisSeries(), flowsSeries(), topSeries()] }, { replaceMerge: ['series'] });
           scaleTxt();
           paintInfo();
           paintFlow();
