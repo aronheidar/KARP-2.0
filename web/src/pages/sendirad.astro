@@ -6,12 +6,18 @@ const abroad = SENDIRAD.abroad || [];
 const iceland = SENDIRAD.iceland || [];
 const updated = '2026-07-02';
 const desc = `Sendiráðanet Íslands — ${abroad.length} sendiráð erlendis og ${iceland.length} erlend sendiráð á Íslandi, með sendiherrum og umdæmum.`;
+// Heimskorts-gögn (LOTA 15b): lönd með íslensku sendiráði → gull á kortinu
+const MAPDATA = abroad.filter((s) => s.geo).map((s) => ({ name: s.geo, value: 1, is: s.is, city: s.city, type: s.type, sh: s.sendiherra || '' }));
 ---
 <Layout title="Sendiráð Íslands | Karp" description={desc} canonical="https://app.karp.is/sendirad/" ogTitle="Sendiráð Íslands">
-  <main>
+  <main data-pg="sendirad">
     <p class="kicker">Hagvísir Íslands · Alþjóðasamstarf</p>
     <h1>Sendiráð</h1>
     <p>Ísland rekur {abroad.length} sendiráð erlendis; {iceland.length} ríki halda úti sendiráði í Reykjavík.</p>
+
+    <h2>Sendiráðanetið á heimskortinu <i class="tip" tabindex="0" data-tip="Gull lönd hýsa íslenskt sendiráð eða aðra fastaskrifstofu. Haltu músinni yfir landi fyrir borg og sendiherra. Heimild: utanríkisráðuneytið.">ⓘ</i></h2>
+    <div id="emb-map"></div>
+
     <h2>Sendiráð Íslands erlendis ({abroad.length})</h2>
     <div class="tw"><table>
       <thead><tr><th class="l">Land</th><th class="l">Borg</th><th class="l">Tegund</th><th class="l">Sendiherra</th></tr></thead>
@@ -34,5 +40,44 @@ const desc = `Sendiráðanet Íslands — ${abroad.length} sendiráð erlendis o
     th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
     th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    #emb-map { width: 100%; height: 420px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; }
   </style>
+
+  <!-- Eyja: heimskort sendiráðanetsins (world-GeoJSON eins og /vidskipti). LOTA 15b -->
+  <script define:vars={{ MAPDATA }}>
+    const WORLD_URL = 'https://cdn.jsdelivr.net/gh/apache/echarts-website@asf-site/examples/data/asset/geo/world.json';
+    function initEmb() {
+      const el = document.getElementById('emb-map');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initEmb, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const draw = () => {
+        if (window.echarts.getInstanceByDom(el)) return;
+        const c = window.echarts.init(el);
+        const byName = {};
+        MAPDATA.forEach((d) => { byName[d.name] = d; });
+        c.setOption({
+          backgroundColor: 'transparent',
+          tooltip: { backgroundColor: 'rgba(9,14,26,.95)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 },
+            formatter: (p) => { const d = byName[p.name]; return d ? `<b>${d.is}</b><br>${d.type} · ${d.city}${d.sh ? `<br>Sendiherra: ${d.sh}` : ''}` : p.name; } },
+          series: [{
+            type: 'map', map: 'world', roam: true, zoom: 1.15, scaleLimit: { min: 1, max: 6 },
+            itemStyle: { areaColor: 'rgba(255,255,255,.06)', borderColor: 'rgba(255,255,255,.14)', borderWidth: 0.4 },
+            emphasis: { label: { show: false }, itemStyle: { areaColor: 'rgba(246,177,59,.65)' } },
+            select: { disabled: true },
+            data: MAPDATA.map((d) => ({ name: d.name, value: d.value, itemStyle: { areaColor: '#f6b13b' } })),
+          }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts.getMap && window.echarts.getMap('world')) { draw(); return; }
+      fetch(WORLD_URL).then((r) => r.json()).then((geo) => { try { window.echarts.registerMap('world', geo); } catch (e) {} draw(); }).catch(() => {});
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="sendirad"]')) initEmb(); });
+  </script>
 </Layout>

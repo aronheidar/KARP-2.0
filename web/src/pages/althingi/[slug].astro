@@ -28,6 +28,8 @@ const tiles = [
   { e: '✅', l: 'Greidd atkv.', v: m.greidd != null ? groupThousands(m.greidd) : '–' },
   { e: '🚫', l: 'Fjarvistir', v: m.fjarvist != null ? String(m.fjarvist) : '–' },
   { e: '🪑', l: 'Sæti', v: m.saeti != null ? String(m.saeti) : '–' },
+  { e: '💰', l: 'Laun', v: m.laun != null ? groupThousands(m.laun) + ' kr' : '–', s: 'á mánuði skv. launatöflu' },
+  { e: '🧾', l: 'Kostnaður', v: m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–', s: 'starfskostn./mán' },
 ];
 
 const roleTxt = m.adalmadur ? 'Alþingismaður' : 'Varaþingmaður';
@@ -78,6 +80,9 @@ const jsonLd = {
       </>
     )}
 
+    <h2>📰 Fjölmiðlaumfjöllun <i class="tip" tabindex="0" data-tip="Lifandi leit í fréttasafni Karp eftir fullu nafni þingmannsins — viðhorf metið vélrænt. Getur vanmetið þá sem oft eru nefndir með fornafni.">ⓘ</i></h2>
+    <div id="mp-umf">Sæki umfjöllun…</div>
+
     <p class="foot">
       Forþjónað (SSG) {updated}. Gögn frá Alþingi (althingi.is) — flokkslitur úr sameiginlega
       <code> src/lib/parties</code>. #2 Á6 · ein af 63 þingmanna-síðum.
@@ -85,6 +90,13 @@ const jsonLd = {
   </main>
 
   <style>
+    .umf-head { font-size: 13px; color: #9fb0c8; margin-bottom: 6px; }
+    .umf-head b { color: #eaf1fb; }
+    .umf-it { display: block; font-size: 13.5px; color: #dfe7f4; text-decoration: none; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.07); line-height: 1.35; }
+    .umf-it:hover { color: #f6b13b; }
+    .umf-it span { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .umf-more { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #f6b13b; text-decoration: none; }
+    .umf-none { font-size: 13px; color: #9fb0c8; }
     main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
     .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
     .back:hover { color: #f6b13b; }
@@ -141,5 +153,27 @@ const jsonLd = {
       loadUser().then(render);
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi-slug"]')) initFollow(); });
+  </script>
+  <!-- Eyja: lifandi umfjöllun um þingmanninn (/firma). LOTA 15b -->
+  <script define:vars={{ MPNAME: m.nafn, MPSLUG: slugify(m.nafn) }}>
+    function initMpUmf() {
+      const el = document.getElementById('mp-umf');
+      if (!el || el.dataset.done) return;
+      el.dataset.done = '1';
+      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
+      fetch('https://www.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((f) => {
+          if (!f || !f.ready || !f.total) { el.innerHTML = '<p class="umf-none">Lítil umfjöllun fannst síðustu 6 mánuði (leitað eftir fullu nafni).</p>'; return; }
+          const se = f.sentiment || {};
+          const tone = se.scored ? (se.idx > 15 ? ['jákvæð', '#46e08a'] : se.idx < -15 ? ['neikvæð', '#ff6d7a'] : ['hlutlaus', '#9fb0c8']) : null;
+          el.innerHTML = '<div class="umf-head"><b>' + f.total + '</b> fréttir sl. 6 mán' + (tone ? ' · tónn <b style="color:' + tone[1] + '">' + (se.idx > 0 ? '+' : '') + se.idx + '</b> (' + tone[0] + ')' : '') + '</div>'
+            + (f.items || []).slice(0, 6).map((x) => '<a class="umf-it" href="' + safe(x.link) + '" target="_blank" rel="noopener">' + esc(x.title) + '<span>' + esc(x.source || '') + '</span></a>').join('')
+            + '<a class="umf-more" href="/frettir/">Greina nánar í Umfjöllun →</a>';
+        })
+        .catch(() => { el.innerHTML = '<p class="umf-none">Umfjöllunin birtist á app.karp.is.</p>'; });
+    }
+    document.addEventListener('astro:page-load', () => { const mn = document.querySelector('main[data-pg="althingi-slug"]'); if (mn && location.pathname.includes(MPSLUG)) initMpUmf(); });
   </script>
 </Layout>

@@ -124,7 +124,7 @@ const jsonLd = {
         <h2>💱 Gengi krónunnar <span class="hint" id="fx-note">— {LIVEMK ? 'lifandi' : 'töfð'} gögn</span></h2>
         <div id="fx-grid" class="mini-grid">
           {FX.map((c) => (
-            <div class="mini" data-sym={c.sym}>
+            <div class="mini" data-sym={c.sym} data-name={c.name} data-cur={c.cur || 'USD'} data-hist={JSON.stringify(c.hist || [])} role="button" tabindex="0">
               <div class="mini-top"><span class="mini-n">{c.name}</span><span class={`mini-ch ${(c.chgPct || 0) >= 0 ? 'up' : 'dn'}`}>{chg(c.chgPct)}</span></div>
               {sparkPts(c.hist) && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={sparkPts(c.hist)} fill="none" stroke={(c.chgPct || 0) >= 0 ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
               <div class="mini-p">{fmtNum(c.price, 2)} <span>kr</span></div>
@@ -137,7 +137,7 @@ const jsonLd = {
         <h2>₿ Rafmyntir &amp; eðalmálmar <span class="hint">— verð í USD</span></h2>
         <div id="cr-grid" class="mini-grid">
           {CRYPTO.map((c) => (
-            <div class="mini" data-sym={c.sym}>
+            <div class="mini" data-sym={c.sym} data-name={c.name} data-cur={c.cur || 'USD'} data-hist={JSON.stringify(c.hist || [])} role="button" tabindex="0">
               <div class="mini-top"><span class="mini-n">{c.name}</span><span class={`mini-ch ${(c.chgPct || 0) >= 0 ? 'up' : 'dn'}`}>{chg(c.chgPct)}</span></div>
               {sparkPts(c.hist) && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={sparkPts(c.hist)} fill="none" stroke={(c.chgPct || 0) >= 0 ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
               <div class="mini-p">{fmtNum(c.price, c.price > 1000 ? 0 : 2)} <span>$</span></div>
@@ -192,7 +192,8 @@ const jsonLd = {
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
     .mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .mini { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 11px; }
+    .mini { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 11px; cursor: pointer; transition: border-color .12s; }
+    .mini:hover { border-color: #f6b13b; }
     .mini-top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
     .mini-n { font-size: 11px; color: #9fb0c8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mini-ch { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -258,6 +259,7 @@ const jsonLd = {
         rv.mcap != null && { l: 'Markaðsvirði', v: ths(rv.mcap / 1e9) + ' ma' },
         rv.pe != null && { l: 'V/H', v: f1(rv.pe, 1) },
         rv.pb != null && { l: 'V/I', v: f1(rv.pb, 2) },
+        rv.bvps != null && { l: '📖 Bókfært/hlut', v: f1(rv.bvps, 1) },
         rv.roe != null && { l: 'ROE', v: f1(rv.roe, 1) + '%' },
         lo60 != null && { l: '60d lægst/hæst', v: f1(lo60, 1) + ' / ' + f1(hi60, 1) },
       ].filter(Boolean);
@@ -321,7 +323,7 @@ const jsonLd = {
           dataZoom: [{ type: 'inside', xAxisIndex: [0, 1] }, { type: 'slider', xAxisIndex: [0, 1], bottom: 0, height: 16, borderColor: 'rgba(255,255,255,.1)', textStyle: { color: '#7e8ca6' } }],
           series: [
             { name: 'Verð', type: 'candlestick', data: d.ohlc, itemStyle: { color: '#46e08a', color0: '#ff6d7a', borderColor: '#46e08a', borderColor0: '#ff6d7a' },
-              markLine: rv.bvps != null ? { silent: true, symbol: 'none', data: [{ yAxis: rv.bvps }], lineStyle: { type: 'dashed', color: '#ffd479' }, label: { formatter: 'bókfært virði/hlut', color: '#ffd479', fontSize: 10 } } : undefined },
+              markLine: rv.bvps != null ? { silent: true, symbol: 'none', data: [{ yAxis: rv.bvps }], lineStyle: { type: 'dashed', color: '#ffd479', width: 2 }, label: { formatter: 'bókfært virði/hlut', color: '#ffd479', fontSize: 11, fontWeight: 700 } } : undefined },
             { name: 'MA5', type: 'line', data: ma(5), smooth: true, symbol: 'none', lineStyle: { width: 1.4, color: '#3a8dff' } },
             { name: 'MA20', type: 'line', data: ma(20), smooth: true, symbol: 'none', lineStyle: { width: 1.4, color: '#7c5cf7' } },
             { name: 'Velta', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: d.vol.map((v, i) => ({ value: v, itemStyle: { color: d.ohlc[i] && d.ohlc[i][3] >= d.ohlc[i][0] ? 'rgba(70,224,138,.55)' : 'rgba(255,109,122,.55)' } })), tooltip: { valueFormatter: (v) => ths(v) } },
@@ -364,6 +366,54 @@ const jsonLd = {
       m.querySelector('.stk-back').onclick = stkClose;
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') stkClose(); });
     }
+    // Smellur á gjaldmiðil/rafmynt/málm → gluggi með línugrafi (LOTA 15b)
+    function miniOpen(el2) {
+      const m = $id('stk-modal');
+      if (!m) return;
+      let hist = [];
+      try { hist = JSON.parse(el2.dataset.hist || '[]'); } catch (e) {}
+      const name = el2.dataset.name || el2.dataset.sym;
+      const isUsd = el2.dataset.cur === 'USD';
+      const cur = isUsd ? 'USD' : 'kr';
+      const priceTxt = (el2.querySelector('.mini-p') || {}).textContent || '';
+      const chTxt = (el2.querySelector('.mini-ch') || {}).textContent || '';
+      $id('stk-sym').textContent = name;
+      $id('stk-name').textContent = el2.dataset.sym;
+      $id('stk-yh').href = 'https://finance.yahoo.com/quote/' + encodeURIComponent(el2.dataset.sym);
+      $id('stk-tiles').innerHTML = '<div class="stk-t"><div class="l">Verð</div><div class="v">' + priceTxt + '</div></div>'
+        + '<div class="stk-t"><div class="l">Dagsbreyting</div><div class="v ' + (chTxt.indexOf('-') === 0 ? 'dn' : 'up') + '">' + chTxt + '</div></div>'
+        + (hist.length > 1 ? '<div class="stk-t"><div class="l">22d lægst/hæst</div><div class="v">' + Math.min.apply(null, hist).toFixed(1).replace('.', ',') + ' / ' + Math.max.apply(null, hist).toFixed(1).replace('.', ',') + '</div></div>' : '');
+      const se = $id('stk-sent');
+      if (se) se.innerHTML = '';
+      m.hidden = false;
+      const boot2 = () => {
+        const el3 = $id('stk-chart');
+        if (stkChart) stkChart.dispose();
+        stkChart = window.echarts.init(el3);
+        stkChart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 56, right: 16, top: 18, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : Number(v).toFixed(2).replace('.', ',') + ' ' + cur) },
+          xAxis: { type: 'category', data: hist.map((_, i) => (i - hist.length + 1) + ' d'), axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: { type: 'value', scale: true, axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          series: [{ type: 'line', data: hist, smooth: true, symbol: 'none', lineStyle: { color: '#f6b13b', width: 2.6 }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: 0.1 } }],
+        });
+      };
+      if (window.echarts) boot2();
+      else {
+        let sc = document.getElementById('echarts-cdn');
+        if (!sc) { sc = document.createElement('script'); sc.id = 'echarts-cdn'; sc.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(sc); }
+        sc.addEventListener('load', boot2, { once: true });
+      }
+    }
+    function initMiniClicks() {
+      document.querySelectorAll('.mini[data-sym]').forEach((el2) => {
+        if (el2.dataset.wired) return;
+        el2.dataset.wired = '1';
+        el2.addEventListener('click', () => miniOpen(el2));
+        el2.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); miniOpen(el2); } });
+      });
+    }
     // Lifandi endurhleðsla á gengi/rafmyntum/málmum (bökuð gildi uppfærð í vafra)
     function initLiveMk() {
       const grid = document.getElementById('fx-grid');
@@ -388,7 +438,7 @@ const jsonLd = {
         })
         .catch(() => {});
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) { initStkModal(); initLiveMk(); } });
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) { initStkModal(); initLiveMk(); initMiniClicks(); } });
   </script>
 
   <!-- Eyja: ávöxtunarferill (ECharts), astro:page-load. #2 -->

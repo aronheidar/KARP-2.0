@@ -105,6 +105,15 @@ const BILLS_DONE = BILLS_GO.length >= 22 ? [] : FRUMVORP
 const billUrl = (b) => (b.int ? `/thingmal/?nr=${b.nr}` : `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=${b.nr}`);
 const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
+// Stefnuprófs-spurningar (sama smíði og Mitt svæði) → ÞÚ-punktur á pólitíska kortið (LOTA 15b)
+const SPQ = FRUMVORP
+  .filter((b) => (b.hs === 'Frv.' || b.hs === 'Till.') && (b.ja || 0) > 0 && (b.nei || 0) > 5 && b.sam)
+  .sort((a, b) => (b.d || '').localeCompare(a.d || '')).slice(0, 12)
+  .map((b) => { const P2 = b.P || {}; const st = {}; Object.keys(P2).forEach((k) => { const [ja, nei] = P2[k]; if (k === 'U' || ja + nei === 0 || ja === nei) return; st[k] = ja > nei ? 1 : -1; }); return { id: 'q' + b.nr, stance: st }; })
+  .filter((q) => Object.keys(q.stance).length >= 4);
+const SPKEY = {};
+[...new Set(SPQ.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { SPKEY[k] = partyName(k); });
+
 // ── Pólitíska kortið: mx/my forreiknað úr öllum nafnakalls-atkvæðagreiðslum ──
 const POLD = THINGMENN.filter((m) => m.mx != null).map((m) => ({ v: [m.mx, m.my], id: m.id, n: m.nafn, f: m.flokkur, ho: m.hollusta ?? null, up: m.uppreisn ?? 0, ne: m.nefndir ?? null }));
 const PCOL = {};
@@ -457,7 +466,7 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
   </script>
 
   <!-- Eyja: pólitíska kortið (mx/my forreiknað úr nafnaköllum) + ráðherra-smellir. #2 LOTA 12 -->
-  <script define:vars={{ POLD, PCOL }}>
+  <script define:vars={{ POLD, PCOL, SPQ, SPKEY }}>
     function initPolMap() {
       const el = document.getElementById('polmap');
       if (!el) return;
@@ -482,6 +491,33 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
         data: byP[p].map((m) => ({ value: m.v, id: m.id, n: m.n, f: m.f, ho: m.ho, up: m.up, ne: m.ne })),
       }));
       series[0].markLine = { silent: true, symbol: 'none', lineStyle: { color: 'rgba(255,255,255,.1)', type: 'dashed' }, data: [{ xAxis: 0 }, { yAxis: 0 }] };
+      // ÞÚ á kortinu (LOTA 15b): stefnuprófs-svör → samsvörun við flokka → vegin staða flokkamiðja
+      try {
+        const ans = JSON.parse(localStorage.getItem('karp-stefnuprof') || '{}');
+        if (Object.keys(ans).length >= 4 && SPQ && SPQ.length) {
+          const score = {}, max = {};
+          SPQ.forEach((q) => { const a = ans[q.id]; if (!a) return; Object.keys(q.stance).forEach((k) => { max[k] = (max[k] || 0) + 1; if (q.stance[k] === a) score[k] = (score[k] || 0) + 1; }); });
+          const cent = {};
+          POLD.forEach((m) => { (cent[m.f] = cent[m.f] || []).push(m.v); });
+          let sx = 0, sy = 0, sw = 0;
+          Object.keys(max).forEach((k) => {
+            const name = SPKEY[k], pts = cent[name];
+            if (!pts || !max[k]) return;
+            const cx = pts.reduce((a2, p) => a2 + p[0], 0) / pts.length;
+            const cy = pts.reduce((a2, p) => a2 + p[1], 0) / pts.length;
+            const w = Math.pow((score[k] || 0) / max[k], 2);
+            sx += cx * w; sy += cy * w; sw += w;
+          });
+          if (sw > 0) {
+            series.push({ name: 'ÞÚ', type: 'effectScatter', symbol: 'pin', symbolSize: 34, zlevel: 5,
+              rippleEffect: { brushType: 'stroke', scale: 2.6 },
+              itemStyle: { color: '#ffd479', borderColor: '#06101c', borderWidth: 1.5 },
+              label: { show: true, position: 'inside', formatter: 'ÞÚ', fontSize: 9, fontWeight: 800, color: '#06101c' },
+              tooltip: { formatter: 'Áætluð staða ÞÍN út frá stefnuprófinu — vegið meðaltal flokkamiðja eftir samsvörun svara þinna. Nálgun, ekki nafnakallsmæling.' },
+              data: [{ value: [sx / sw, sy / sw] }] });
+          }
+        }
+      } catch (e) {}
       const chart = window.echarts.init(el);
       chart.setOption({
         backgroundColor: 'transparent',

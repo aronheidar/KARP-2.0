@@ -28,7 +28,7 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
 
     <div class="grid">
       {mps.map((m) => (
-        <a class="mp" href={`/althingi/${slugify(m.nafn)}/`} data-mpid={m.id} style={`--pc:${colorByName(m.flokkur)}`}>
+        <a class="mp" href={`/althingi/${slugify(m.nafn)}/`} data-mpid={m.id} style={`--pc:${colorByName(m.flokkur)}`} data-tip={`${m.kjordaemi || ""} · ${m.aldur ? m.aldur + " ára" : ""}${m.hollusta != null ? ` · hollusta ${m.hollusta}%` : ""}${m.raedur ? ` · ${m.raedur} ræður` : ""}${m.nefndir ? ` · ${m.nefndir} nefndir` : ""}${m.laun ? ` · laun ${Math.round(m.laun / 1000)} þús` : ""}`}>
           {m.mynd ? <img src={m.mynd} alt={m.nafn} loading="lazy" onerror="this.style.display='none'" /> : <span class="ini">{m.nafn.charAt(0)}</span>}
           <span class="n">{m.nafn}</span>
           <span class="f">{m.flokkur}</span>

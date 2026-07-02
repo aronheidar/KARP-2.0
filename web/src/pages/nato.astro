@@ -36,6 +36,14 @@ const jsonLd = {
 
     <p class="note">ⓘ <strong>Ísland er eina aðildarríki NATO sem heldur ekki úti eigin her</strong> og kemur því ekki fram í varnarútgjaldatölum bandalagsins. Framlag Íslands felst m.a. í rekstri öryggissvæðisins á Keflavíkurflugvelli, Landhelgisgæslunni og gistiríkjastuðningi.</p>
 
+    <h2>Ísland í NATO — sérstaðan <i class="tip" tabindex="0" data-tip="Samantekt Karp úr opinberum heimildum (NATO, utanríkisráðuneytið). Ísland er eina aðildarríkið án eigin hers.">ⓘ</i></h2>
+    <div class="facts">
+      <div class="fact"><b>Stofnaðili 1949</b><span>Eitt 12 stofnríkja Atlantshafsbandalagsins — aðild samþykkt á Alþingi 30. mars 1949.</span></div>
+      <div class="fact"><b>Herlaust ríki</b><span>Eina NATO-ríkið án eigin herafla — framlagið er borgaraleg sérfræðiþekking, aðstaða og gistiríkjastuðningur.</span></div>
+      <div class="fact"><b>Keflavíkurstöðin</b><span>Öryggissvæðið á Keflavíkurflugvelli hýsir loftrýmisgæslu bandalagsríkja á norðurslóðum.</span></div>
+      <div class="fact"><b>Loftrýmisgæsla</b><span>Bandalagsríki skiptast á að sinna loftrýmisgæslu við Ísland nokkrum sinnum á ári.</span></div>
+    </div>
+
     <h2>Varnarútgjöld NATO-ríkja {natoYear} (% af VLF)</h2>
     <div id="chart-nato"></div>
 
@@ -49,6 +57,11 @@ const jsonLd = {
     p { color: #cdd6e6; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 6px; }
+    @media (max-width: 700px) { .facts { grid-template-columns: 1fr; } }
+    .fact { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 12px 14px; }
+    .fact b { display: block; color: #f6b13b; font-size: 13.5px; margin-bottom: 3px; }
+    .fact span { font-size: 12.5px; color: #b9c6da; line-height: 1.5; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
     .k-l { font-size: 12px; color: #9fb0c8; }

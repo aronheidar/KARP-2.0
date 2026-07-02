@@ -6,6 +6,12 @@ const PROXIES = {
     url: 'https://opensky-network.org/api/states/all?lamin=62.5&lomin=-26&lamax=67.5&lomax=-12',
     ttl: 300,
   },
+  // 🏛️ Alþingi: lifandi málalisti þingsins (XML) — 10 mín cache
+  '/api/thingmal': {
+    url: 'https://www.althingi.is/altext/xml/thingmalalisti/?lthing=157',
+    ttl: 600,
+    type: 'text/xml; charset=utf-8',
+  },
 };
 
 export default {
@@ -23,7 +29,7 @@ export default {
           res = new Response(up.ok ? body : JSON.stringify({ error: up.status }), {
             status: 200,
             headers: {
-              'content-type': 'application/json; charset=utf-8',
+              'content-type': proxy.type || 'application/json; charset=utf-8',
               'access-control-allow-origin': '*',
               'cache-control': `public, max-age=${proxy.ttl}`,
             },

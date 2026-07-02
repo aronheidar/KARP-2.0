@@ -75,6 +75,11 @@ const jsonLd = {
       innskráðra lesenda Karp — ekki þingatkvæði. Gögn frá althingi.is.
     </p>
 
+    <div id="live-mal" hidden>
+      <h2 class="lm-h">🔴 Lifandi frá Alþingi <span class="lm-sub">nýjustu mál þingsins 157 — beint úr XML-veitu Alþingis (10 mín cache)</span></h2>
+      <div id="lm-list" class="lm-grid"></div>
+    </div>
+
     <div class="bills">
       {bills.map((b) => (
         <article class="bill">
@@ -113,6 +118,14 @@ const jsonLd = {
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: #cdd6e6; }
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 22px; }
+    .lm-h { font-size: 15px; color: #ff6d7a; text-transform: uppercase; letter-spacing: .05em; margin: 4px 0 8px; }
+    .lm-sub { font-size: 11px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px; }
+    .lm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    @media (max-width: 860px) { .lm-grid { grid-template-columns: 1fr; } }
+    .lm-it { display: block; background: rgba(255,109,122,.05); border: 1px solid rgba(255,109,122,.2); border-radius: 10px; padding: 9px 12px; text-decoration: none; }
+    .lm-it:hover { border-color: rgba(255,109,122,.5); }
+    .lm-t { display: block; font-size: 13px; font-weight: 600; color: #eaf1fb; line-height: 1.3; }
+    .lm-m { display: block; font-size: 11px; color: #9fb0c8; margin-top: 3px; }
     .bills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 860px) { .bills { grid-template-columns: 1fr; } }
     .bill { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
@@ -258,6 +271,31 @@ const jsonLd = {
         try { history.replaceState(null, '', location.pathname); } catch (e) {}
       }
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="thingmal"]')) initBillModal(); });
+    // 🔴 LIVE-mál af Alþingi um worker-proxy (LOTA 15b). Felur sig ef proxy vantar.
+    function initLiveMal() {
+      const wrap = document.getElementById('live-mal');
+      if (!wrap || wrap.dataset.done) return;
+      wrap.dataset.done = '1';
+      const esc2 = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      fetch('/api/thingmal')
+        .then((r) => (r.ok ? r.text() : null))
+        .then((xml) => {
+          if (!xml || xml[0] === '{') return; // proxy ekki til / villusvar
+          const doc = new DOMParser().parseFromString(xml, 'text/xml');
+          const items = [...doc.querySelectorAll('mál')].map((m) => ({
+            nr: +(m.getAttribute('málsnúmer') || 0),
+            heiti: (m.querySelector('málsheiti') || {}).textContent || '',
+            teg: (m.querySelector('málstegund heiti, málstegund') || {}).textContent || '',
+            html: (m.querySelector('html') || {}).textContent || '',
+          })).filter((x) => x.nr && x.heiti);
+          if (!items.length) return;
+          items.sort((a, b) => b.nr - a.nr);
+          document.getElementById('lm-list').innerHTML = items.slice(0, 10).map((x) =>
+            '<a class="lm-it" href="' + (x.html && /^https?:/.test(x.html) ? esc2(x.html) : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + x.nr) + '" target="_blank" rel="noopener"><span class="lm-t">' + esc2(x.heiti) + '</span><span class="lm-m">Mál nr. ' + x.nr + (x.teg ? ' · ' + esc2(x.teg.trim()) : '') + '</span></a>').join('');
+          wrap.hidden = false;
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="thingmal"]')) { initBillModal(); initLiveMal(); } });
   </script>
 </Layout>
