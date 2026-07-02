@@ -1,0 +1,146 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Menntun: menntunarstaða 25–64 ára (ISCED-stig) yfir tíma
+// + samanburður kynja. Byggingartíma-PxWeb (SKO00002 — ATH Kyn er TEXTA-kóði
+// og Menntun-kóðar innihalda bil/kommur). Í app-skelinni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum } from '@lib/format.mjs';
+
+const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const ISCED = { 'ISCED 1, 2': ['Grunnmenntun', '#ff8a3d'], 'ISCED 3, 4': ['Framhaldsskólastig', '#3a8dff'], 'ISCED 5, 6, 7, 8': ['Háskólastig', '#46e08a'] };
+const LVLS = Object.keys(ISCED);
+
+let EDU = null; // þróun (bæði kyn)
+let EDUSEX = null; // nýjasta ár eftir kyni
+try {
+  const [aj, sj] = await Promise.all([
+    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['Alls']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
+    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['1', '2']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
+  ]);
+  const byLvl = {};
+  aj.data.forEach((d) => {
+    const t = d.key.find((k) => /^\d{4}$/.test(k));
+    const l = d.key.find((k) => ISCED[k]);
+    const v = num(d.values[0]);
+    if (t && l && v != null) (byLvl[l] = byLvl[l] || {})[t] = v;
+  });
+  const years = [...new Set(Object.values(byLvl).flatMap((m) => Object.keys(m)))].sort();
+  if (years.length) {
+    EDU = { years, series: LVLS.map((l) => ({ name: ISCED[l][0], color: ISCED[l][1], data: years.map((y) => byLvl[l]?.[y] ?? null) })) };
+    const lastY = years[years.length - 1];
+    EDU.uni = byLvl['ISCED 5, 6, 7, 8']?.[lastY] ?? null;
+    EDU.lastY = lastY;
+  }
+  const sx = { 1: {}, 2: {} };
+  sj.data.forEach((d) => {
+    const t = d.key.find((k) => /^\d{4}$/.test(k));
+    const kyn = d.key.includes('1') && !d.key.includes('2') ? '1' : d.key.includes('2') ? '2' : null;
+    const l = d.key.find((k) => ISCED[k]);
+    const v = num(d.values[0]);
+    if (t && kyn && l && v != null) ((sx[kyn][t] = sx[kyn][t] || {})[l] = v);
+  });
+  const yrs = Object.keys(sx[1]).filter((y) => sx[2][y]).sort();
+  const y = yrs[yrs.length - 1];
+  if (y) EDUSEX = { year: y, labels: LVLS.map((l) => ISCED[l][0]), karlar: LVLS.map((l) => sx[1][y][l] ?? null), konur: LVLS.map((l) => sx[2][y][l] ?? null) };
+} catch (e) { EDU = null; EDUSEX = null; }
+
+const uniKonur = EDUSEX ? EDUSEX.konur[2] : null;
+const uniKarlar = EDUSEX ? EDUSEX.karlar[2] : null;
+const updated = '2026-07-02';
+const desc = `Menntunarstaða á Íslandi (25–64 ára)${EDU && EDU.uni != null ? ' — ' + fmtNum(EDU.uni, 0) + '% með háskólamenntun' : ''}${uniKonur != null && uniKarlar != null ? `, konur ${fmtNum(uniKonur, 0)}% vs karlar ${fmtNum(uniKarlar, 0)}%` : ''}. Þróun eftir ISCED-stigum.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Menntunarstaða á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Menntunarstaða 25–64 ára (%)' };
+---
+
+<Layout title="Menntun — menntunarstaða þjóðar | Karp" description={desc} canonical="https://app.karp.is/menntun/" jsonLd={jsonLd} ogTitle="Menntun á Íslandi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Samfélag</p>
+    <h1>Menntun</h1>
+    <p>Menntunarstaða fólks á vinnualdri (25–64 ára) eftir ISCED-stigum — hlutfallsleg skipting og munur kynjanna. Heimild: Hagstofa Íslands.</p>
+
+    <div class="kpis">
+      {EDU && EDU.uni != null && <div class="kpi"><div class="k-l">🎓 Háskólamenntun</div><div class="k-v">{fmtNum(EDU.uni, 0)}%</div><div class="k-s">25–64 ára · {EDU.lastY}</div></div>}
+      {uniKonur != null && <div class="kpi"><div class="k-l">👩 Konur m/háskólapróf</div><div class="k-v">{fmtNum(uniKonur, 0)}%</div><div class="k-s">{EDUSEX.year}</div></div>}
+      {uniKarlar != null && <div class="kpi"><div class="k-l">👨 Karlar m/háskólapróf</div><div class="k-v">{fmtNum(uniKarlar, 0)}%</div><div class="k-s">{EDUSEX.year}</div></div>}
+    </div>
+
+    {EDU && (
+      <>
+        <h2>Þróun menntunarstöðu</h2>
+        <div id="chart-edu"></div>
+      </>
+    )}
+
+    {EDUSEX && (
+      <>
+        <h2>Eftir kyni ({EDUSEX.year})</h2>
+        <div id="chart-edusex"></div>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (SKO00002, menntunarstaða 25–64 ára). ISCED 1–2 = grunnmenntun · 3–4 = framhaldsskólastig · 5–8 = háskólastig. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 820px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-edu { width: 100%; height: 320px; }
+    #chart-edusex { width: 100%; height: 250px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: stöfluð svæði + kynja-súlur. astro:page-load. #2 -->
+  <script define:vars={{ EDU, EDUSEX }}>
+    function initCharts() {
+      if (!document.getElementById('chart-edu') && !document.getElementById('chart-edusex')) return;
+      const go = () => {
+        const ce = document.getElementById('chart-edu');
+        if (ce && EDU && !window.echarts.getInstanceByDom(ce)) {
+          const c = window.echarts.init(ce);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: EDU.series.map((s) => s.name), textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 40, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: EDU.years, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', max: 100, axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: EDU.series.map((s) => ({ name: s.name, type: 'line', stack: 'edu', data: s.data, smooth: true, symbol: 'none', lineStyle: { width: 0 }, areaStyle: { color: s.color, opacity: 0.8 }, itemStyle: { color: s.color } })),
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cs = document.getElementById('chart-edusex');
+        if (cs && EDUSEX && !window.echarts.getInstanceByDom(cs)) {
+          const c = window.echarts.init(cs);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Konur', 'Karlar'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 130, right: 44, top: 30, bottom: 22 },
+            xAxis: { type: 'value', max: 100, axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', inverse: true, data: EDUSEX.labels, axisLabel: { color: '#cdd6e6', fontSize: 11.5 }, axisLine: { show: false }, axisTick: { show: false } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: [
+              { name: 'Konur', type: 'bar', data: EDUSEX.konur, barWidth: 11, itemStyle: { color: '#c95cf7' }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => Math.round(p.value) + '%' } },
+              { name: 'Karlar', type: 'bar', data: EDUSEX.karlar, barWidth: 11, itemStyle: { color: '#3a8dff' }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => Math.round(p.value) + '%' } },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

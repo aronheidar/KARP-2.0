@@ -1,0 +1,194 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Hagvöxtur: VLF ársfjórðungslega (magnbreyting) + einkaneysla,
+// VLF-Sankey (útgjaldaaðferð) og Norðurlanda-samanburður (World Bank).
+// Allt sótt á BYGGINGARTÍMA (þolir bilun per hluta). Í app-skelinni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+
+// px með EINNI endurtekt — samhliða byggingarsóknir á Hagstofu geta klikkað tímabundið.
+const px = async (path, query) => {
+  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
+};
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const qLbl = (t) => t.replace(/(\d{4})Q?([1-4])$/, '$1 F$2').replace(/(\d{4})-?Q([1-4])/, '$1 F$2');
+
+// VLF + einkaneysla, magnbreyting frá fyrra ári (%), ársfjórðungslega.
+let GDP = null;
+try {
+  const [vj, cj] = await Promise.all([
+    px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['2']), sel('Skipting', 'item', ['14']), sel('Ársfjórðungur', 'top', ['16'])]),
+    px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['2']), sel('Skipting', 'item', ['0']), sel('Ársfjórðungur', 'top', ['16'])]),
+  ]);
+  const grab = (j) => { const m = {}; j.data.forEach((d) => { const t = d.key.find((k) => /\d{4}/.test(k) && /[QF]?[1-4]$/.test(k)) || d.key[d.key.length - 1]; const v = num(d.values[0]); if (t && v != null) m[t] = v; }); return m; };
+  const g = grab(vj), c = grab(cj);
+  const ts = Object.keys(g).sort();
+  if (ts.length) GDP = { labels: ts.map(qLbl), vlf: ts.map((t) => g[t]), neysla: ts.map((t) => c[t] ?? null), latest: g[ts[ts.length - 1]], latestQ: qLbl(ts[ts.length - 1]) };
+} catch (e) { GDP = null; }
+
+// VLF-Sankey: útgjaldaaðferðin, summa síðustu 4 ársfjórðunga (verðlag hvers árs, m.kr → ma.kr).
+// Þjóðhagsjafnan VLF = C+G+I+X−M → C/G/I/X → Heildareftirspurn → M + VLF.
+let VSAN = null;
+try {
+  const j = await px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['0']), sel('Skipting', 'item', ['0', '1', '2', '8', '11', '14']), sel('Ársfjórðungur', 'top', ['4'])]);
+  const LBL = { 0: 'Einkaneysla', 1: 'Samneysla', 2: 'Fjárfesting', 8: 'Útflutningur', 11: 'Innflutningur', 14: 'VLF' };
+  const sums = {};
+  // ATH: key = [Mælikvarði, Skipting, Ársfjórðungur] og Mælikvarði er "0" hér —
+  // find() myndi alltaf grípa hann → nota key[1] (Skipting) beint.
+  j.data.forEach((d) => { const s = d.key[1]; const v = num(d.values[0]); if (LBL[s] != null && v != null) sums[s] = (sums[s] || 0) + v; });
+  if (sums[14]) {
+    const ma = (v) => Math.round(Math.abs(v) / 1000);
+    VSAN = {
+      vlf: ma(sums[14]),
+      nodes: [
+        { name: 'Einkaneysla', itemStyle: { color: '#46e08a' } }, { name: 'Samneysla', itemStyle: { color: '#3a8dff' } },
+        { name: 'Fjárfesting', itemStyle: { color: '#c95cf7' } }, { name: 'Útflutningur', itemStyle: { color: '#1fb6c9' } },
+        { name: 'Heildareftirspurn', itemStyle: { color: '#f6b13b' } },
+        { name: 'Innflutningur', itemStyle: { color: '#ff6d7a' } }, { name: 'VLF', itemStyle: { color: '#ffd479' } },
+      ],
+      links: [
+        { source: 'Einkaneysla', target: 'Heildareftirspurn', value: ma(sums[0]) },
+        { source: 'Samneysla', target: 'Heildareftirspurn', value: ma(sums[1]) },
+        { source: 'Fjárfesting', target: 'Heildareftirspurn', value: ma(sums[2]) },
+        { source: 'Útflutningur', target: 'Heildareftirspurn', value: ma(sums[8]) },
+        { source: 'Heildareftirspurn', target: 'Innflutningur', value: ma(sums[11]) },
+        { source: 'Heildareftirspurn', target: 'VLF', value: ma(sums[14]) },
+      ],
+    };
+  }
+} catch (e) { VSAN = null; }
+
+// Norðurlönd: VLF á mann (USD) — World Bank. ATH: mrnev-breytan er BILUÐ hjá WB
+// (skilar XML-villu) og landakóðar þurfa LÁGSTAFI → nota MRV=2 + fyrsta non-null gildi.
+let WB = null;
+try {
+  const j = await (await fetch('https://api.worldbank.org/v2/country/isl;dnk;nor;swe;fin/indicator/NY.GDP.PCAP.CD?format=json&MRV=2')).json();
+  const NAME = { Iceland: 'Ísland', Denmark: 'Danmörk', Norway: 'Noregur', Sweden: 'Svíþjóð', Finland: 'Finnland' };
+  const byC = {};
+  (j[1] || []).forEach((r) => {
+    if (r.value == null) return;
+    const key = r.countryiso3code;
+    if (!byC[key] || +r.date > +byC[key].yr) byC[key] = { label: NAME[r.country.value] || r.country.value, v: Math.round(r.value), yr: r.date, isl: key === 'ISL' };
+  });
+  const rows = Object.values(byC).sort((a, b) => b.v - a.v);
+  if (rows.length) WB = rows;
+} catch (e) { WB = null; }
+
+const islWb = WB ? WB.find((r) => r.isl) : null;
+const updated = '2026-07-02';
+const desc = `Hagvöxtur á Íslandi — VLF ${GDP ? (GDP.latest > 0 ? 'jókst um ' : 'dróst saman um ') + fmtNum(Math.abs(GDP.latest), 1) + '% (' + GDP.latestQ + ')' : ''}, samsetning landsframleiðslunnar og Norðurlanda-samanburður.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Hagvöxtur á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'VLF (magnbreyting %)' };
+---
+
+<Layout title="Hagvöxtur — VLF & þjóðhagsreikningar | Karp" description={desc} canonical="https://app.karp.is/hagvoxtur/" jsonLd={jsonLd} ogTitle="Hagvöxtur á Íslandi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Hagvöxtur</h1>
+    <p>Verg landsframleiðsla (VLF) — magnbreyting frá fyrra ári, samsetning eftirspurnar og staða Íslands meðal Norðurlanda. Heimildir: Hagstofa Íslands, Alþjóðabankinn.</p>
+
+    <div class="kpis">
+      {GDP && <div class="kpi"><div class="k-l">📈 Hagvöxtur</div><div class={`k-v ${GDP.latest >= 0 ? 'up' : 'dn'}`}>{GDP.latest > 0 ? '+' : ''}{fmtNum(GDP.latest, 1)}%</div><div class="k-s">{GDP.latestQ} · frá fyrra ári</div></div>}
+      {VSAN && <div class="kpi"><div class="k-l">💰 VLF (12 mán)</div><div class="k-v">{groupThousands(VSAN.vlf)}</div><div class="k-s">ma.kr · verðlag hvers árs</div></div>}
+      {islWb && <div class="kpi"><div class="k-l">👤 VLF á mann</div><div class="k-v">{groupThousands(islWb.v)}</div><div class="k-s">USD · {islWb.yr} (WB)</div></div>}
+    </div>
+
+    {GDP && (
+      <>
+        <h2>VLF og einkaneysla — magnbreyting frá fyrra ári</h2>
+        <div id="chart-gdp"></div>
+      </>
+    )}
+
+    {VSAN && (
+      <>
+        <h2>Samsetning landsframleiðslunnar (síðustu 4 ársfjórðungar)</h2>
+        <div id="chart-vsan"></div>
+        <p class="src">Þjóðhagsjafnan: einkaneysla + samneysla + fjárfesting + útflutningur = innflutningur + VLF. Tölur í ma.kr.</p>
+      </>
+    )}
+
+    {WB && (
+      <>
+        <h2>Norðurlöndin — VLF á mann (USD)</h2>
+        <div id="chart-wb"></div>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. VLF: Hagstofa (THJ01601, magnbreyting + verðlag hvers árs). Norðurlönd: World Bank (NY.GDP.PCAP.CD). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-v.up { color: #46e08a; } .k-v.dn { color: #ff6d7a; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-gdp { width: 100%; height: 310px; }
+    #chart-vsan { width: 100%; height: 380px; }
+    #chart-wb { width: 100%; height: 240px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: VLF-súlur+lína, Sankey, WB-súlur. astro:page-load. #2 -->
+  <script define:vars={{ GDP, VSAN, WB }}>
+    function initCharts() {
+      if (!document.getElementById('chart-gdp') && !document.getElementById('chart-vsan') && !document.getElementById('chart-wb')) return;
+      const go = () => {
+        const cg = document.getElementById('chart-gdp');
+        if (cg && GDP && !window.echarts.getInstanceByDom(cg)) {
+          const c = window.echarts.init(cg);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['VLF', 'Einkaneysla'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 40, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: GDP.labels, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: [
+              { name: 'VLF', type: 'bar', data: GDP.vlf.map((v) => ({ value: v, itemStyle: { color: v >= 0 ? 'rgba(70,224,138,.75)' : 'rgba(255,109,122,.75)' } })), barWidth: 14 },
+              { name: 'Einkaneysla', type: 'line', data: GDP.neysla, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' } },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cv = document.getElementById('chart-vsan');
+        if (cv && VSAN && !window.echarts.getInstanceByDom(cv)) {
+          const c = window.echarts.init(cv);
+          c.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, valueFormatter: (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ma.kr' },
+            series: [{ type: 'sankey', left: 8, right: 120, top: 8, bottom: 8, nodeGap: 10, nodeWidth: 14, emphasis: { focus: 'adjacency' }, data: VSAN.nodes, links: VSAN.links, label: { color: '#cdd6e6', fontSize: 11.5 }, lineStyle: { color: 'gradient', opacity: 0.32, curveness: 0.5 } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cw = document.getElementById('chart-wb');
+        if (cw && WB && !window.echarts.getInstanceByDom(cw)) {
+          const c = window.echarts.init(cw);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 80, right: 66, top: 8, bottom: 22 },
+            xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: (v) => v / 1000 + 'þ' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', inverse: true, data: WB.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' USD' },
+            series: [{ type: 'bar', barWidth: 16, data: WB.map((r) => ({ value: r.v, itemStyle: { color: r.isl ? '#f6b13b' : '#42506a' } })), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => String(Math.round(p.value / 1000)) + ' þús USD' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

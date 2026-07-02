@@ -1,0 +1,216 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Utanríkisverslun: útflutningur/innflutningur (treemaps),
+// vöruskiptajöfnuður eftir SITC-deildum og mánaðarleg þróun. Byggingartíma-
+// PxWeb (þolir bilun per hluta). ATH einingakvarði er metinn sjálfvirkt
+// (þús.kr vs m.kr) út frá stærðargráðu summunnar. Í app-skelinni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands, monthLabel } from '@lib/format.mjs';
+
+const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const BASE = 'Efnahagur/utanrikisverslun/1_voruvidskipti/01_voruskipti/';
+const toMa = (v, total) => (total > 5e7 ? v / 1e6 : v / 1e3); // þús.kr → ma.kr EÐA m.kr → ma.kr
+const curYear = 2026;
+
+// Útflutningur eftir MECE-flokkum (treemap).
+const EXPLBL = { 1: ['Sjávarafurðir', '#3a8dff'], 11: ['Landbúnaðarafurðir', '#5aa84a'], 13: ['Kísiljárn', '#8892a6'], 15: ['Ál', '#cdd6e6'], 16: ['Aðrar iðnaðarvörur', '#c95cf7'], 17: ['Aðrar vörur', '#7e8ca6'] };
+let EXP = null;
+try {
+  const j = await px(BASE + 'UTA06105.px', [sel('Eining', 'item', ['1']), sel('Flokkur', 'item', Object.keys(EXPLBL)), sel('Ár', 'top', ['2'])]);
+  const by = {};
+  // ATH: key = [Eining, Flokkur, Ár] og Eining er "1" = sami kóði og Flokkur 1
+  // → find() gleypir Eininguna → nota STÖÐUR: key[1]=Flokkur, key[2]=Ár.
+  j.data.forEach((d) => {
+    const f = d.key[1], y = d.key[2];
+    const v = num(d.values[0]);
+    if (y && EXPLBL[f] && v != null) (by[y] = by[y] || {})[f] = v;
+  });
+  const years = Object.keys(by).sort();
+  const useY = years.filter((y) => +y < curYear).pop() || years.pop();
+  if (useY) {
+    const total = Object.values(by[useY]).reduce((a, b) => a + b, 0);
+    EXP = { year: useY, total: Math.round(toMa(total, total)), items: Object.keys(by[useY]).map((f) => ({ name: EXPLBL[f][0], value: Math.round(toMa(by[useY][f], total)), itemStyle: { color: EXPLBL[f][1] } })).sort((a, b) => b.value - a.value) };
+  }
+} catch (e) { EXP = null; }
+
+// Innflutningur eftir SITC-deildum (1. stafur kóða) — treemap.
+const SITC = { 0: 'Matvæli', 1: 'Drykkir & tóbak', 2: 'Hráefni', 3: 'Eldsneyti', 4: 'Olíur & feiti', 5: 'Efnavörur', 6: 'Unnar vörur', 7: 'Vélar & flutningatæki', 8: 'Ýmsar iðnaðarvörur', 9: 'Annað' };
+const SITCCOL = ['#5aa84a', '#c95cf7', '#8892a6', '#ff6d7a', '#ffd479', '#1fb6c9', '#3a8dff', '#f6b13b', '#e8436f', '#7e8ca6'];
+async function sitcAgg(table, eining) {
+  const j = await px(BASE + table, [sel('Eining', 'item', [eining]), sel('Vöruflokkur', 'all', ['*']), sel('Ár', 'top', ['2'])]);
+  const by = {};
+  // ATH víddaröð ÞESSARA taflna er [Vöruflokkur, Ár, Eining] — ÖFUG við UTA06105!
+  // → code = key[0] (SITC3-kóði), y = key[1]. Uppsafnað eftir fyrsta staf (deild).
+  j.data.forEach((d) => {
+    const code = d.key[0], y = d.key[1];
+    const v = num(d.values[0]);
+    if (!y || !code || v == null || !/^\d/.test(code)) return;
+    const div = code[0];
+    ((by[y] = by[y] || {})[div] = (by[y][div] || 0) + v);
+  });
+  const years = Object.keys(by).sort();
+  const useY = years.filter((y) => +y < curYear).pop() || years.pop();
+  if (!useY) return null;
+  const total = Object.values(by[useY]).reduce((a, b) => a + b, 0);
+  return { year: useY, total, byDiv: by[useY] };
+}
+let IMP = null, BAL = null;
+try {
+  const [im, ex] = await Promise.all([sitcAgg('UTA06202.px', 'M CIF'), sitcAgg('UTA06108.px', 'X FOB')]);
+  if (im) {
+    IMP = { year: im.year, total: Math.round(toMa(im.total, im.total)), items: Object.keys(im.byDiv).map((d, i) => ({ name: SITC[d] || d, value: Math.round(toMa(im.byDiv[d], im.total)), itemStyle: { color: SITCCOL[+d] || '#8892a6' } })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value) };
+  }
+  if (im && ex && im.year === ex.year) {
+    BAL = { year: im.year, rows: Object.keys(SITC).map((d) => ({ label: SITC[d], v: Math.round(toMa(ex.byDiv[d] || 0, ex.total) - toMa(im.byDiv[d] || 0, im.total)) })).filter((r) => r.v !== 0).sort((a, b) => b.v - a.v) };
+  }
+} catch (e) { IMP = null; BAL = null; }
+
+// Mánaðarleg þróun: útflutningur / innflutningur / jöfnuður (36 mán).
+let TREND = null;
+try {
+  const j = await px(BASE + 'UTA06002.px', [sel('Mánuður', 'top', ['36']), sel('Flæði', 'item', ['0', '1', '3'])]);
+  const by = { 0: {}, 1: {}, 3: {} };
+  j.data.forEach((d) => {
+    const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k));
+    const f = d.key.find((k) => k === '0' || k === '1' || k === '3');
+    const v = num(d.values[0]);
+    if (t && f && v != null) by[f][t] = v;
+  });
+  const ts = Object.keys(by[0]).sort();
+  if (ts.length) {
+    const tot = ts.reduce((s, t) => s + Math.abs(by[0][t] || 0), 0);
+    const sc = (v) => (v == null ? null : Math.round(toMa(v, tot) * 10) / 10);
+    TREND = { labels: ts.map(monthLabel), ut: ts.map((t) => sc(by[0][t])), inn: ts.map((t) => sc(by[1][t])), jofn: ts.map((t) => sc(by[3][t])) };
+  }
+} catch (e) { TREND = null; }
+
+const lastJofn = TREND ? TREND.jofn[TREND.jofn.length - 1] : null;
+const updated = '2026-07-02';
+const desc = `Utanríkisverslun Íslands — útflutningur ${EXP ? groupThousands(EXP.total) + ' ma.kr (' + EXP.year + ')' : ''}, innflutningur ${IMP ? groupThousands(IMP.total) + ' ma.kr' : ''}, vöruskiptajöfnuður eftir vöruflokkum og mánaðarleg þróun.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Utanríkisverslun Íslands', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Vöruviðskipti (ma.kr)' };
+---
+
+<Layout title="Utanríkisverslun — út- og innflutningur | Karp" description={desc} canonical="https://app.karp.is/vidskipti/" jsonLd={jsonLd} ogTitle="Utanríkisverslun Íslands">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Utanríkisverslun</h1>
+    <p>Hvað flytur Ísland út og inn — sjávarafurðir og ál á móti vélum og eldsneyti. Heimild: Hagstofa Íslands (vöruviðskipti).</p>
+
+    <div class="kpis">
+      {EXP && <div class="kpi"><div class="k-l">📦 Útflutningur</div><div class="k-v">{groupThousands(EXP.total)}</div><div class="k-s">ma.kr · {EXP.year}</div></div>}
+      {IMP && <div class="kpi"><div class="k-l">🚢 Innflutningur</div><div class="k-v">{groupThousands(IMP.total)}</div><div class="k-s">ma.kr · {IMP.year}</div></div>}
+      {lastJofn != null && <div class="kpi"><div class="k-l">⚖️ Jöfnuður (mán)</div><div class={`k-v ${lastJofn >= 0 ? 'up' : 'dn'}`}>{lastJofn > 0 ? '+' : ''}{fmtNum(lastJofn, 0)}</div><div class="k-s">ma.kr · nýjasti mánuður</div></div>}
+    </div>
+
+    {EXP && (
+      <>
+        <h2>Útflutningur eftir flokkum ({EXP.year})</h2>
+        <div id="chart-exp"></div>
+      </>
+    )}
+
+    {IMP && (
+      <>
+        <h2>Innflutningur eftir SITC-deildum ({IMP.year})</h2>
+        <div id="chart-imp"></div>
+      </>
+    )}
+
+    {BAL && (
+      <>
+        <h2>Vöruskiptajöfnuður eftir vöruflokkum ({BAL.year})</h2>
+        <div id="chart-bal"></div>
+        <p class="src">Grænt = afgangur (útflutningur &gt; innflutningur), rautt = halli. Ma.kr.</p>
+      </>
+    )}
+
+    {TREND && (
+      <>
+        <h2>Mánaðarleg þróun (3 ár)</h2>
+        <div id="chart-trend"></div>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (UTA06105/UTA06202/UTA06108/UTA06002). Tölur í ma.kr. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-v.up { color: #46e08a; } .k-v.dn { color: #ff6d7a; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-exp, #chart-imp { width: 100%; height: 300px; }
+    #chart-bal { width: 100%; }
+    #chart-trend { width: 100%; height: 300px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: 2 treemaps + jöfnuðar-súlur + þróunarlínur. astro:page-load. #2 -->
+  <script define:vars={{ EXP, IMP, BAL, TREND }}>
+    function initCharts() {
+      if (!document.getElementById('chart-exp') && !document.getElementById('chart-imp') && !document.getElementById('chart-trend')) return;
+      const tree = (el, items) => {
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent',
+          tooltip: { valueFormatter: (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ma.kr' },
+          series: [{ type: 'treemap', data: items, left: 0, right: 0, top: 0, bottom: 0, roam: false, nodeClick: false, breadcrumb: { show: false }, label: { show: true, formatter: (p) => p.name + '\n' + String(p.value).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ma', fontSize: 12, fontWeight: 600, color: '#06121a' }, itemStyle: { borderColor: '#0b1220', borderWidth: 2, gapWidth: 2 } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      const go = () => {
+        const ce = document.getElementById('chart-exp');
+        if (ce && EXP && !window.echarts.getInstanceByDom(ce)) tree(ce, EXP.items);
+        const ci = document.getElementById('chart-imp');
+        if (ci && IMP && !window.echarts.getInstanceByDom(ci)) tree(ci, IMP.items);
+        const cb = document.getElementById('chart-bal');
+        if (cb && BAL && !window.echarts.getInstanceByDom(cb)) {
+          cb.style.height = (BAL.rows.length * 28 + 26) + 'px';
+          const c = window.echarts.init(cb);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 150, right: 56, top: 6, bottom: 20 },
+            xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', inverse: true, data: BAL.rows.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { show: false }, axisTick: { show: false } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v > 0 ? '+' : '') + String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ma.kr' },
+            series: [{ type: 'bar', barWidth: 14, data: BAL.rows.map((r) => ({ value: r.v, itemStyle: { color: r.v >= 0 ? '#46e08a' : '#ff6d7a' } })), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => (p.value > 0 ? '+' : '') + p.value } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const ct = document.getElementById('chart-trend');
+        if (ct && TREND && !window.echarts.getInstanceByDom(ct)) {
+          const c = window.echarts.init(ct);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Útflutningur', 'Innflutningur', 'Jöfnuður'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 44, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: TREND.labels, axisLabel: { color: '#7e8ca6', fontSize: 10, interval: 5 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : (v > 0 ? '+' : '') + v.toFixed(0) + ' ma.kr') },
+            series: [
+              { name: 'Útflutningur', type: 'line', data: TREND.ut, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#46e08a' }, itemStyle: { color: '#46e08a' } },
+              { name: 'Innflutningur', type: 'line', data: TREND.inn, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#ff8a3d' }, itemStyle: { color: '#ff8a3d' } },
+              { name: 'Jöfnuður', type: 'bar', data: TREND.jofn.map((v) => ({ value: v, itemStyle: { color: v >= 0 ? 'rgba(70,224,138,.6)' : 'rgba(255,109,122,.6)' } })), barWidth: 8 },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>
