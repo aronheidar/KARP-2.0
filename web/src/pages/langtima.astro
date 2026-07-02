@@ -1,0 +1,73 @@
+---
+// Langtímastefna ríkisfjármála (LOTA 13j) — Ríkisstjórnar-undirsíða úr fjárlagagögnum. Í app-skelinni. #2.
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+import D from '@gogn/langtima.json';
+const CH = { ar: D.ar, skuldir: D.skuldir, afkoma: D.afkoma, markmid: D.markmid };
+const last = D.skuldir[D.skuldir.length - 1];
+const desc = `Langtímastefna ríkisfjármála: skuldahlutfall úr ${fmtNum(D.skuldir[0], 1)}% í ${fmtNum(last, 1)}% af VLF á tímabilinu ${D.ar[0]}–${D.ar[D.ar.length - 1]}, markmið ${D.markmid}%.`;
+const updated = '2026-07-02';
+---
+
+<Layout title="Langtímastefna ríkisfjármála | Karp" description={desc} canonical="https://app.karp.is/langtima/" ogTitle="Langtímastefna ríkisfjármála">
+  <main data-pg="langtima">
+    <p class="kicker">Hagvísir Íslands · Ríkisstjórn</p>
+    <h1>Langtímastefna</h1>
+    <p>Hvert stefna ríkisfjármálin? Skuldahlutfall og afkoma hins opinbera samkvæmt fjármálastefnu og langtímahorfum ráðuneytisins.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏦 Skuldir nú <i class="tip" tabindex="0" data-tip="Skuldir ríkissjóðs skv. skuldareglu laga um opinber fjármál, % af vergri landsframleiðslu. Fyrsta ár ferilsins að neðan.">ⓘ</i></div><div class="k-v">{fmtNum(D.skuldir[0], 1)}%</div><div class="k-s">af VLF · {D.ar[0]}</div></div>
+      <div class="kpi"><div class="k-l">🎯 Skuldamarkmið <i class="tip" tabindex="0" data-tip="Skuldareglan í lögum um opinber fjármál: skuldir eiga að vera undir þessu hlutfalli af VLF til lengri tíma.">ⓘ</i></div><div class="k-v">{D.markmid}%</div><div class="k-s">af VLF · lögbundið viðmið</div></div>
+      <div class="kpi"><div class="k-l">📅 Spátímabil <i class="tip" tabindex="0" data-tip="Ferillinn er STEFNA OG SPÁ stjórnvalda — ekki mæld gögn. Byggt á fjármálastefnu og langtímahorfum fjármála- og efnahagsráðuneytisins.">ⓘ</i></div><div class="k-v">{D.ar[0]}–{D.ar[D.ar.length - 1]}</div><div class="k-s">stefna + spá</div></div>
+    </div>
+    <h2>Skuldahlutfall og afkoma <i class="tip" tabindex="0" data-tip="Gull lína = skuldir (% af VLF, vinstri ás). Blá súla = afkoma ársins (% af VLF, hægri ás; neikvætt = halli). Brotalína = skuldamarkmiðið.">ⓘ</i></h2>
+    <div id="chart" style="height: 360px;"></div>
+    <p class="note">ⓘ Þetta er <strong>stefna stjórnvalda, ekki spá Karp</strong> — ferlarnir koma óbreyttir úr {D.heimild}. {D.skilabod}</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: {D.heimild}. #2 LOTA 13j.</p>
+  </main>
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart { width: 100%; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <script define:vars={{ CH }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el || !CH) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent',
+        legend: { data: ['Skuldir (% VLF)', 'Afkoma (% VLF)'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        grid: { left: 44, right: 44, top: 32, bottom: 24 },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + '%') },
+        xAxis: { type: 'category', data: CH.ar, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        yAxis: [
+          { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          { type: 'value', axisLabel: { color: '#3a8dff', formatter: '{value}%' }, splitLine: { show: false } },
+        ],
+        series: [
+          { name: 'Afkoma (% VLF)', type: 'bar', yAxisIndex: 1, data: CH.afkoma, barMaxWidth: 16, itemStyle: { color: 'rgba(58,141,255,.55)', borderRadius: [3, 3, 0, 0] } },
+          { name: 'Skuldir (% VLF)', type: 'line', data: CH.skuldir, smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { color: '#f6b13b', width: 3 }, itemStyle: { color: '#f6b13b' },
+            markLine: { silent: true, symbol: 'none', lineStyle: { type: 'dashed', color: '#46e08a' }, label: { formatter: 'markmið ' + CH.markmid + '%', color: '#46e08a', fontSize: 10 }, data: [{ yAxis: CH.markmid }] } },
+        ],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="langtima"]')) initChart(); });
+  </script>
+</Layout>

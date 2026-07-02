@@ -1,0 +1,64 @@
+---
+// Skattar ríkisins (LOTA 13j) — Ríkisstjórnar-undirsíða úr fjárlagagögnum. Í app-skelinni. #2.
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+import D from '@gogn/skattar.json';
+const ROWS = D.hopar.flatMap((h) => h.skattar.map(([n, v]) => ({ n, v, h: h.heiti }))).sort((a, b) => b.v - a.v).slice(0, 14).reverse();
+const CH = { names: ROWS.map((r) => r.n), vals: ROWS.map((r) => r.v) };
+const desc = `Skatttekjur ríkissjóðs ${D.ar}: ${fmtNum(D.heild, 0)} ma.kr í sköttum af ${fmtNum(D.heildartekjur, 0)} ma.kr heildartekjum — stærstu skattstofnarnir sundurliðaðir úr fjárlögum.`;
+const updated = '2026-07-02';
+---
+
+<Layout title="Skattar ríkisins | Karp" description={desc} canonical="https://app.karp.is/skattar/" ogTitle="Skattar ríkisins">
+  <main data-pg="skattar">
+    <p class="kicker">Hagvísir Íslands · Ríkisstjórn</p>
+    <h1>Skattar</h1>
+    <p>Hvaðan koma tekjur ríkissjóðs? Skatttekjur og tryggingagjöld ársins {D.ar} eftir skattstofnum, beint úr fjárlögum.</p>
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">💰 Skatttekjur alls <i class="tip" tabindex="0" data-tip="Allir skattar ríkissjóðs skv. tekjuáætlun fjárlaga — án tryggingagjalda og annarra tekna (arðgreiðslna, vaxtatekna o.fl.).">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heild))}</div><div class="k-s">ma.kr · fjárlög {D.ar}</div></div>
+      <div class="kpi"><div class="k-l">🛡️ Tryggingagjöld <i class="tip" tabindex="0" data-tip="Almennt tryggingagjald og atvinnutryggingagjald sem launagreiðendur greiða ofan á laun — fjármagnar m.a. atvinnuleysistryggingar og fæðingarorlof.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.tryggingagjold))}</div><div class="k-s">ma.kr</div></div>
+      <div class="kpi"><div class="k-l">📊 Heildartekjur <i class="tip" tabindex="0" data-tip="Allar tekjur ríkissjóðs: skattar + tryggingagjöld + aðrar tekjur. Samsett tala úr tekjuáætlun fjárlaga.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heildartekjur))}</div><div class="k-s">ma.kr</div></div>
+    </div>
+    <h2>Stærstu skattstofnarnir <i class="tip" tabindex="0" data-tip="14 stærstu skattstofnar ríkisins, raðaðir eftir áætlun fjárlaga í ma.kr. Tekjuskattur einstaklinga og VSK bera uppi ríkissjóð.">ⓘ</i></h2>
+    <div id="chart" style="height: 420px;"></div>
+    <p class="note">ⓘ Tölurnar eru <strong>tekjuáætlun fjárlaga {D.ar}</strong> (ma.kr) — ekki rauninnheimta ársins. Sundurliðun eftir skattstofnum eins og hún birtist í fjárlagafrumvarpi.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: {D.heimild}. #2 LOTA 13j.</p>
+  </main>
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart { width: 100%; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <script define:vars={{ CH }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el || !CH) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent', grid: { left: 8, right: 44, top: 8, bottom: 8, containLabel: true },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => String(v).replace('.', ',') + ' ma.kr' },
+        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        yAxis: { type: 'category', data: CH.names, axisLabel: { color: '#cdd6e6', fontSize: 11.5 }, axisLine: { show: false }, axisTick: { show: false } },
+        series: [{ type: 'bar', data: CH.vals, barMaxWidth: 18, itemStyle: { color: '#f6b13b', borderRadius: [0, 5, 5, 0] }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10.5, formatter: (p) => String(p.value).replace('.', ',') } }],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="skattar"]')) initChart(); });
+  </script>
+</Layout>

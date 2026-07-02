@@ -163,6 +163,13 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         .pg{padding:22px 18px 48px;}
       }
     </style>
+    <style is:global>
+      /* ⓘ-tooltip (LOTA 13j): data-tip á hvaða element sem er — útskýrir tölu/uppruna */
+      .tip { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,.1); color: #9fb0c8; font-size: 10px; font-style: normal; cursor: help; margin-left: 5px; vertical-align: middle; position: relative; }
+      [data-tip] { position: relative; }
+      [data-tip]:hover::after, [data-tip]:focus::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); z-index: 90; width: max-content; max-width: 260px; background: rgba(9,14,26,.97); border: 1px solid rgba(255,255,255,.16); border-radius: 9px; padding: 8px 11px; font-size: 11.5px; font-weight: 400; line-height: 1.45; color: #dfe7f4; text-align: left; white-space: normal; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; }
+      [data-tip]:hover::before, [data-tip]:focus::before { content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,.16); z-index: 90; }
+    </style>
   </head>
   <body>
     <div class="shell">
