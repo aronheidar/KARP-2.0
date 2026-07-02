@@ -1,0 +1,88 @@
+---
+// Ferðaþjónusta: erlendir farþegar um KEF (SAM02001) + gistinætur (SAM01601) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+import Layout from '../../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+const px = async (path, query) => {
+  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
+};
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const curYear = 2026;
+
+import { monthLabel } from '@lib/format.mjs';
+let C1 = null, C2 = null, kefL = null, gistL = null;
+try {
+  const j = await px('Atvinnuvegir/ferdathjonusta/ferdaidnadurhagvisar/SAM02001.px', [sel('Ríkisfang', 'item', ['2']), sel('Mánuður', 'top', ['180'])]);
+  const m = {};
+  j.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k)); const v = num(d.values[0]); if (t && v != null) m[t] = v; });
+  const ts = Object.keys(m).sort();
+  if (ts.length) { C1 = { x: ts.map(monthLabel), u: 'farþegar', series: [{ name: 'Erlendir farþegar', color: '#f6b13b', data: ts.map((t) => m[t]) }], area: true }; const l = ts[ts.length - 1]; kefL = { t: monthLabel(l), v: m[l] }; }
+} catch (e) {}
+try {
+  const j = await px('Atvinnuvegir/ferdathjonusta/Gisting/3_allartegundirgististada/SAM01601.px', [sel('Þjóðerni', 'item', ['Foreigners', 'IS']), sel('Ár', 'all', ['*']), sel('Landshluti', 'item', ['IS']), sel('Eining', 'item', ['0']), sel('Mánuður', 'item', ['0'])]);
+  const erl = {}, isl = {};
+  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const t = d.key.includes('Foreigners') ? erl : isl; const v = num(d.values[0]); if (y && v != null && +y < curYear) t[y] = Math.round(v / 1e5) / 10; });
+  const ys = Object.keys(erl).sort();
+  if (ys.length) { C2 = { x: ys, u: 'millj. gistinætur', series: [{ name: 'Erlendir gestir', color: '#c95cf7', data: ys.map((y) => erl[y] ?? null) }, { name: 'Íslendingar', color: '#3a8dff', data: ys.map((y) => isl[y] ?? null) }], stack: true }; gistL = { y: ys[ys.length - 1], v: Math.round(((erl[ys[ys.length - 1]] || 0) + (isl[ys[ys.length - 1]] || 0)) * 10) / 10 }; }
+} catch (e) {}
+const updated = '2026-07-02';
+const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir farþegar um Keflavík í ' + kefL.t : 'farþegar og gistinætur'}${gistL ? ' og ' + String(gistL.v).replace('.', ',') + ' millj. gistinætur á ári' : ''}. Lifandi frá Hagstofu.`;
+---
+<Layout title="Ferðaþjónusta | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/ferdathjonusta/" ogTitle="Ferðaþjónusta">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
+    <h1>Ferðaþjónusta 🧳</h1>
+    <p>Stærsta gjaldeyrislind þjóðarinnar — erlendir farþegar um Keflavík og gistinætur um allt land. Sjá einnig <a href="/umferd/">Umferð</a>.</p>
+    <div class="kpis">
+      {kefL && <div class="kpi"><div class="k-l">✈️ Erlendir farþegar</div><div class="k-v">{groupThousands(kefL.v)}</div><div class="k-s">{kefL.t} · um KEF</div></div>}
+      {gistL && <div class="kpi"><div class="k-l">🛏️ Gistinætur</div><div class="k-v">{String(gistL.v).replace('.', ',')}</div><div class="k-s">millj. · {gistL.y}</div></div>}
+    </div>
+    {C1 && <><h2>Erlendir farþegar um Keflavík (15 ár)</h2><div id="c1"></div></>}
+    {C2 && <><h2>Gistinætur — erlendir og innlendir</h2><div id="c2"></div></>}
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (SAM02001 farþegar, SAM01601 gistinætur). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #c1, #c2 { width: 100%; height: 300px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <script define:vars={{ C1, C2 }}>
+    function initAtv() {
+      const e1 = document.getElementById('c1');
+      if (!e1 && !document.getElementById('c2')) return;
+      const go = () => {
+        [['c1', C1], ['c2', C2]].forEach(([id, C]) => {
+          const el = document.getElementById(id);
+          if (!el || !C || window.echarts.getInstanceByDom(el)) return;
+          const c = window.echarts.init(el);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: C.series.length > 1 ? { data: C.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 } : undefined,
+            grid: { left: 52, right: 14, top: C.series.length > 1 ? 30 : 12, bottom: 24 },
+            xAxis: { type: 'category', data: C.x, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + ' ' + C.u) },
+            series: C.series.map((s) => ({ name: s.name, type: C.type || 'line', stack: C.stack ? 'st' : undefined, data: s.data, smooth: true, symbol: 'none', lineStyle: { width: C.stack ? 0 : 2.5, color: s.color }, itemStyle: { color: s.color }, areaStyle: C.area || C.stack ? { color: s.color, opacity: C.stack ? 0.75 : 0.12 } : undefined })),
+          });
+          window.addEventListener('resize', () => c.resize());
+        });
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initAtv);
+  </script>
+</Layout>

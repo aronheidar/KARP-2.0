@@ -1,0 +1,84 @@
+---
+// Stóriðja: útflutningsverðmæti áls (UTA06105 fl.15) + kísiljárns (fl.13) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+import Layout from '../../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+const px = async (path, query) => {
+  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
+};
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const curYear = 2026;
+
+let C1 = null, C2 = null, alL = null;
+try {
+  const j = await px('Efnahagur/utanrikisverslun/1_voruvidskipti/01_voruskipti/UTA06105.px', [sel('Eining', 'item', ['1']), sel('Flokkur', 'item', ['15', '13']), sel('Ár', 'all', ['*'])]);
+  const al = {}, kis = {};
+  // key = [Eining, Flokkur, Ár] — stöðubundnir lyklar (kóðaskörun!)
+  j.data.forEach((d) => { const f = d.key[1], y = d.key[2]; const v = num(d.values[0]); if (!y || v == null || +y < 1995 || +y >= curYear) return; (f === '15' ? al : kis)[y] = Math.round(v / 1e5) / 10; });
+  const ys = [...new Set([...Object.keys(al), ...Object.keys(kis)])].sort();
+  if (ys.length) {
+    C1 = { x: ys, u: 'ma.kr', series: [{ name: 'Ál', color: '#cdd6e6', data: ys.map((y) => al[y] ?? null) }, { name: 'Kísiljárn', color: '#8892a6', data: ys.map((y) => kis[y] ?? null) }] };
+    const l = ys[ys.length - 1];
+    alL = { y: l, al: al[l], kis: kis[l] };
+  }
+} catch (e) {}
+const updated = '2026-07-02';
+const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null ? ' ' + String(alL.al).replace('.', ',') + ' ma.kr (' + alL.y + ')' : ''} og kísiljárns, knúið af endurnýjanlegri raforku. Lifandi frá Hagstofu.`;
+---
+<Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/storidja/" ogTitle="Stóriðja & orka">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
+    <h1>Stóriðja &amp; orka 🏗️</h1>
+    <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar ~80% raforkunnar. Sjá <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
+    <div class="kpis">
+      {alL && alL.al != null && <div class="kpi"><div class="k-l">🥫 Ál — útflutningur</div><div class="k-v">{String(alL.al).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
+      {alL && alL.kis != null && <div class="kpi"><div class="k-l">⛏️ Kísiljárn</div><div class="k-v">{String(alL.kis).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
+    </div>
+    {C1 && <><h2>Útflutningsverðmæti frá 1995</h2><div id="c1"></div></>}
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (UTA06105, verðmæti þús.kr → ma.kr). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #c1, #c2 { width: 100%; height: 300px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <script define:vars={{ C1, C2 }}>
+    function initAtv() {
+      const e1 = document.getElementById('c1');
+      if (!e1 && !document.getElementById('c2')) return;
+      const go = () => {
+        [['c1', C1]].forEach(([id, C]) => {
+          const el = document.getElementById(id);
+          if (!el || !C || window.echarts.getInstanceByDom(el)) return;
+          const c = window.echarts.init(el);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: C.series.length > 1 ? { data: C.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 } : undefined,
+            grid: { left: 52, right: 14, top: C.series.length > 1 ? 30 : 12, bottom: 24 },
+            xAxis: { type: 'category', data: C.x, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + ' ' + C.u) },
+            series: C.series.map((s) => ({ name: s.name, type: C.type || 'line', stack: C.stack ? 'st' : undefined, data: s.data, smooth: true, symbol: 'none', lineStyle: { width: C.stack ? 0 : 2.5, color: s.color }, itemStyle: { color: s.color }, areaStyle: C.area || C.stack ? { color: s.color, opacity: C.stack ? 0.75 : 0.12 } : undefined })),
+          });
+          window.addEventListener('resize', () => c.resize());
+        });
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initAtv);
+  </script>
+</Layout>

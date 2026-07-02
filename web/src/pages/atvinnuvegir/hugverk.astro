@@ -1,0 +1,83 @@
+---
+// Hugverk & tækni: R&Þ-útgjöld % af VLF eftir framkvæmdaaðila (FYR05101) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+import Layout from '../../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+const px = async (path, query) => {
+  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
+};
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const curYear = 2026;
+
+const ADILAR = { 1: ['Fyrirtæki', '#19d3c5'], 2: ['Háskólar', '#3a8dff'], 3: ['Opinberar stofnanir', '#c95cf7'] };
+let C1 = null, C2 = null, rdL = null;
+try {
+  const j = await px('Atvinnuvegir/visinditaekni/rannsoknthroun/FYR05101.px', [sel('Eining', 'item', Object.keys(ADILAR)), sel('Niðurstöður', 'item', ['2']), sel('Ár', 'all', ['*'])]);
+  const by = {};
+  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const a = d.key.find((k) => ADILAR[k] && k.length === 1); const v = num(d.values[0]); if (y && a && v != null) ((by[a] = by[a] || {})[y] = v); });
+  const ys = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
+  if (ys.length) {
+    C1 = { x: ys, u: '% af VLF', series: Object.keys(ADILAR).filter((k) => by[k]).map((k) => ({ name: ADILAR[k][0], color: ADILAR[k][1], data: ys.map((y) => by[k][y] ?? null) })), stack: true };
+    const l = ys[ys.length - 1];
+    rdL = { y: l, v: Math.round(Object.keys(by).reduce((s, k) => s + (by[k][l] || 0), 0) * 100) / 100 };
+  }
+} catch (e) {}
+const updated = '2026-07-02';
+const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, tölvuleikir og stoðtæki. Undirstaðan er rannsóknir og þróun${rdL ? ' — Ísland ver ' + String(rdL.v).replace('.', ',') + '% af VLF í R&Þ (' + rdL.y + ')' : ''}.`;
+---
+<Layout title="Hugverk & tækni | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/hugverk/" ogTitle="Hugverk & tækni">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
+    <h1>Hugverk &amp; tækni 💡</h1>
+    <p>„Fjórða stoðin" — útflutningstekjur hugverkaiðnaðar (lyf, hugbúnaður, tölvuleikir, stoðtæki; t.d. Alvotech, CCP, Össur) eru meðal stærstu gjaldeyrislinda Íslands en teljast til þjónustuútflutnings. Hér er sýnd undirstaðan: <strong>rannsóknir og þróun</strong>.</p>
+    <div class="kpis">
+      {rdL && <div class="kpi"><div class="k-l">🔬 R&Þ-útgjöld</div><div class="k-v">{String(rdL.v).replace('.', ',')}%</div><div class="k-s">af VLF · {rdL.y}</div></div>}
+    </div>
+    {C1 && <><h2>R&Þ-útgjöld eftir framkvæmdaaðila (% af VLF)</h2><div id="c1"></div></>}
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (FYR05101). Fyrirtækin bera megnið af R&Þ — einkenni hugverkadrifins hagkerfis. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #c1, #c2 { width: 100%; height: 300px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <script define:vars={{ C1, C2 }}>
+    function initAtv() {
+      const e1 = document.getElementById('c1');
+      if (!e1 && !document.getElementById('c2')) return;
+      const go = () => {
+        [['c1', C1]].forEach(([id, C]) => {
+          const el = document.getElementById(id);
+          if (!el || !C || window.echarts.getInstanceByDom(el)) return;
+          const c = window.echarts.init(el);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: C.series.length > 1 ? { data: C.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 } : undefined,
+            grid: { left: 52, right: 14, top: C.series.length > 1 ? 30 : 12, bottom: 24 },
+            xAxis: { type: 'category', data: C.x, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + ' ' + C.u) },
+            series: C.series.map((s) => ({ name: s.name, type: C.type || 'line', stack: C.stack ? 'st' : undefined, data: s.data, smooth: true, symbol: 'none', lineStyle: { width: C.stack ? 0 : 2.5, color: s.color }, itemStyle: { color: s.color }, areaStyle: C.area || C.stack ? { color: s.color, opacity: C.stack ? 0.75 : 0.12 } : undefined })),
+          });
+          window.addEventListener('resize', () => c.resize());
+        });
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initAtv);
+  </script>
+</Layout>
