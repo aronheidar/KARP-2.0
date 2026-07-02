@@ -226,7 +226,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               const items = [...doc.querySelectorAll('item')].map((it) => ({
                 title: (it.querySelector('title') || {}).textContent || '',
                 link: (it.querySelector('link') || {}).textContent || '',
-                source: (it.querySelector('source') || {}).textContent || '',
+                source: (it.querySelector('source') || {}).textContent || (((it.querySelector('link') || {}).textContent || '').match(/https?://(?:www.)?([^/]+)/) || [])[1] || '',
                 date: ((it.querySelector('pubDate') || {}).textContent || '').slice(0, 16),
               }));
               paint(list, items, 'Engar erlendar fréttir í augnablikinu.');

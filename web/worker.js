@@ -13,7 +13,7 @@ const PROXIES = {
   },
   // 🌍 Google News: Ísland í erlendum miðlum (RSS) — 15 mín cache
   '/api/erlent': {
-    url: 'https://news.google.com/rss/search?q=Iceland&hl=en-US&gl=US&ceid=US:en',
+    url: 'https://www.bing.com/news/search?q=Iceland&format=rss',
     ttl: 900,
     type: 'text/xml; charset=utf-8',
   },
