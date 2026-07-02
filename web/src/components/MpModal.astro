@@ -1,0 +1,78 @@
+---
+// MpModal — þingmanna-gluggi eins og í gamla mælaborðinu. SEO-öruggt: fullu
+// síðurnar (/althingi/[slug]) eru áfram til; glugginn er framvinduaukning.
+// Notkun: baka <script type="application/json" id="d-mps"> (id→gögn) á síðunni,
+// setja data-mpid="<id>" á smellanleg element og <MpModal /> neðst.
+---
+<div id="mp-modal" hidden>
+  <div class="mpm-back"></div>
+  <div class="mpm-box">
+    <button class="mpm-x" aria-label="Loka">×</button>
+    <div id="mpm-body"></div>
+  </div>
+</div>
+
+<style is:global>
+  #mp-modal { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
+  #mp-modal[hidden] { display: none; }
+  .mpm-back { position: absolute; inset: 0; background: rgba(3,6,12,.72); backdrop-filter: blur(2px); }
+  .mpm-box { position: relative; width: min(560px, calc(100vw - 28px)); max-height: calc(100vh - 40px); overflow: auto; background: #0b1220; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 20px 22px; box-shadow: 0 18px 60px rgba(0,0,0,.55); }
+  .mpm-x { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: #7e8ca6; font-size: 24px; cursor: pointer; line-height: 1; z-index: 2; }
+  .mpm-x:hover { color: #eaf1fb; }
+  .mpm-hero { display: flex; gap: 16px; align-items: center; }
+  .mpm-hero img { width: 76px; height: 96px; object-fit: cover; border-radius: 10px; border: 2px solid var(--pc, #f6b13b); background: #0e1626; flex: none; }
+  .mpm-n { font-size: 20px; font-weight: 800; }
+  .mpm-p { display: inline-block; font-size: 12px; font-weight: 700; color: #06121a; background: var(--pc, #f6b13b); border-radius: 6px; padding: 2px 8px; margin-top: 3px; }
+  .mpm-k { font-size: 12.5px; color: #9fb0c8; margin-top: 4px; }
+  .mpm-r { font-size: 12px; color: #ffd479; margin-top: 2px; }
+  .mpm-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(94px, 1fr)); gap: 8px; margin-top: 14px; }
+  .mpm-t { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 8px 10px; }
+  .mpm-t .l { font-size: 10px; color: #8fa0b8; }
+  .mpm-t .v { font-size: 15px; font-weight: 800; color: #eaf1fb; margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .mpm-link { display: inline-block; margin-top: 14px; font-size: 13px; color: #f6b13b; text-decoration: none; font-weight: 600; }
+  .mpm-link:hover { text-decoration: underline; }
+</style>
+
+<script>
+  function mpmClose() { const m = document.getElementById('mp-modal'); if (m) m.hidden = true; }
+  function mpmOpen(id) {
+    const dataEl = document.getElementById('d-mps');
+    const m = document.getElementById('mp-modal');
+    if (!dataEl || !m) return;
+    let MPS = {};
+    try { MPS = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+    const d = MPS[id];
+    if (!d) return;
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const th = (v) => (v == null ? '–' : String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
+    const tiles = [
+      d.aldur != null && { l: 'Aldur', v: d.aldur + ' ára' },
+      d.thing != null && { l: 'Þing setin', v: d.thing },
+      d.hollusta != null && { l: 'Hollusta', v: d.hollusta + '%' },
+      d.raedur != null && { l: 'Ræður', v: th(d.raedur) },
+      d.nefndir != null && { l: 'Nefndir', v: d.nefndir },
+      d.greidd != null && { l: 'Greidd atkv.', v: th(d.greidd) },
+    ].filter(Boolean);
+    document.getElementById('mpm-body').innerHTML =
+      `<div class="mpm-hero" style="--pc:${esc(d.c || '#f6b13b')}">` +
+      (d.img ? `<img src="${esc(d.img)}" alt="" onerror="this.style.display='none'">` : '') +
+      `<div><div class="mpm-n">${esc(d.n)}</div><span class="mpm-p">${esc(d.f || '')}</span>` +
+      `<div class="mpm-k">${esc(d.kj || '')}</div>${d.role ? `<div class="mpm-r">${esc(d.role)}</div>` : ''}</div></div>` +
+      `<div class="mpm-tiles">${tiles.map((t) => `<div class="mpm-t"><div class="l">${t.l}</div><div class="v">${t.v}</div></div>`).join('')}</div>` +
+      (d.s ? `<a class="mpm-link" href="/althingi/${esc(d.s)}/">Opna síðu þingmannsins →</a>` : '');
+    m.hidden = false;
+  }
+  function initMpModal() {
+    const m = document.getElementById('mp-modal');
+    if (!m) return;
+    m.querySelector('.mpm-x').onclick = mpmClose;
+    m.querySelector('.mpm-back').onclick = mpmClose;
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') mpmClose(); });
+    document.querySelectorAll('[data-mpid]').forEach((el) => {
+      el.style.cursor = 'pointer';
+      el.onclick = (e) => { e.preventDefault(); mpmOpen(el.dataset.mpid); };
+    });
+    window.karpMpOpen = mpmOpen; // fyrir aðrar eyjur (t.d. þingsalinn)
+  }
+  document.addEventListener('astro:page-load', initMpModal);
+</script>

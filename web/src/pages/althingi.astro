@@ -9,11 +9,10 @@ import { partyName, partyColor, colorByName } from '@lib/parties.mjs';
 import { fmtNum, slugify } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 
+import MpModal from '../components/MpModal.astro';
 import POLLS from '@gogn/polls.json';
 import THINGMENN from '@gogn/althingi.json';
 import SEATS from '@gogn/seats.json';
-import NEFNDIR from '@gogn/nefndir.json';
-import DAGATAL from '@gogn/dagatal.json';
 
 const r = projectSeats(POLLS, THINGMENN);
 const lastPoll = POLLS.polls[POLLS.polls.length - 1];
@@ -67,17 +66,13 @@ const chg = (d) => (d > 0 ? '+' + d : d < 0 ? String(d) : '±0');
 const mpSlug = {};
 THINGMENN.forEach((mp) => { mpSlug[mp.id] = slugify(mp.nafn); });
 const ini = (n) => { const w = String(n).split(/\s+/).filter(Boolean); return ((w[0] || ' ')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
-const SEATDATA = SEATS.map((s) => ({ x: s.x, y: s.y, n: s.nafn, f: s.flokkur, r: s.role || '', c: colorByName(s.flokkur), s: mpSlug[s.id] || '', i: ini(s.nafn) }));
+const SEATDATA = SEATS.map((s) => ({ id: s.id, x: s.x, y: s.y, n: s.nafn, f: s.flokkur, r: s.role || '', c: colorByName(s.flokkur), s: mpSlug[s.id] || '', i: ini(s.nafn) }));
 
-// Fastanefndir: kort með formanni + fjölda (nefndir.json). Þingdagatal: heatmap-gögn.
-const capFirst = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-const NEFNDCARDS = (Array.isArray(NEFNDIR) ? NEFNDIR : []).map((n) => {
-  const chair = (n.members || []).find((m) => /^formaður/.test(m.stada || ''));
-  return { heiti: capFirst(n.heiti), count: (n.members || []).length, chair: chair ? chair.nafn : null, chairP: chair ? chair.flokkur : null, chairC: chair ? colorByName(chair.flokkur) : null, chairSlug: chair && mpSlug[chair.id] ? mpSlug[chair.id] : null };
-}).sort((a, b) => b.count - a.count);
-
-const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL.plenary, meetings: DAGATAL.meetings,
-  data: Object.entries(DAGATAL.dates || {}).map(([d, x]) => [d, (x.t || 0) + (x.n || 0), x.t || 0, x.n || 0]) };
+// MpModal-gögn: smellt á sæti → gluggi (fullu síðurnar haldast fyrir SEO).
+const MPS = {};
+THINGMENN.forEach((m) => {
+  MPS[m.id] = { n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), kj: m.kjordaemi, img: m.mynd || '', s: mpSlug[m.id] || '', aldur: m.aldur ?? null, thing: m.fjoldiThinga ?? null, hollusta: m.hollusta ?? null, raedur: m.raedur ?? null, nefndir: m.nefndir ?? null, greidd: m.greidd ?? null };
+});
 ---
 
 <Layout
@@ -146,37 +141,9 @@ const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL
       </tbody>
     </table>
 
-    <h2>Þingmenn ({THINGMENN.length})</h2>
-    {mpGroups.map((g) => (
-      <div class="mp-group">
-        <div class="mp-party" style={`--pc:${g.color}`}>{g.party} <span>· {g.mps.length}</span></div>
-        <div class="mp-list">
-          {g.mps.map((mp) => <a href={`/althingi/${slugify(mp.nafn)}/`}>{mp.nafn}</a>)}
-        </div>
-      </div>
-    ))}
-
-    <h2>Fastanefndir ({NEFNDCARDS.length})</h2>
-    <div class="nf-grid">
-      {NEFNDCARDS.map((n) => (
-        <div class="nf">
-          <div class="nf-h">{n.heiti}</div>
-          <div class="nf-s">👥 {n.count} fulltrúar</div>
-          {n.chair && (
-            <div class="nf-f">Formaður: {n.chairSlug ? <a href={`/althingi/${n.chairSlug}/`} style={`color:${n.chairC}`}>{n.chair}</a> : <b style={`color:${n.chairC}`}>{n.chair}</b>}</div>
-          )}
-        </div>
-      ))}
-    </div>
-
-    <h2>Þingdagatal {CAL.range ? `(${CAL.range[0].slice(0, 4)}–${CAL.range[1].slice(0, 4)})` : ''}</h2>
-    <div class="cal-kpis">
-      <span>📅 <b>{CAL.days}</b> starfsdagar</span>
-      <span>🏛️ <b>{CAL.plenary}</b> þingfundir</span>
-      <span>📋 <b>{CAL.meetings}</b> nefndafundir</span>
-    </div>
-    <div id="calchart"></div>
-    <p class="src">Hver reitur er dagur — dekkri gull = meiri virkni (þingfundur + nefndafundir).</p>
+    <p class="mini-links">
+      Sjá einnig: <a href="/althingi/thingmenn/">Þingmenn (myndir)</a> · <a href="/althingi/flokkar/">Flokkar</a> · <a href="/althingi/nefndir/">Nefndir &amp; dagatal</a> · <a href="/thingmal/">Frumvörp &amp; atkvæði</a>
+    </p>
 
     <p class="foot">
       Forþjónað (SSG) {updated}. Spáin reiknuð á <strong>byggingartíma</strong> úr sameiginlega <code>src/lib</code>
@@ -200,15 +167,9 @@ const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL
     #chart { width: 100%; margin: 20px 0 8px; }
     #seatchart { width: 100%; height: 540px; margin: 4px 0; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
-    .nf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
-    .nf { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 12px 14px; }
-    .nf-h { font-weight: 700; font-size: 14px; }
-    .nf-s { font-size: 12px; color: #9fb0c8; margin-top: 3px; }
-    .nf-f { font-size: 12px; color: #7e8ca6; margin-top: 5px; }
-    .nf-f a, .nf-f b { text-decoration: none; font-weight: 600; }
-    .cal-kpis { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13.5px; color: #9fb0c8; margin: 4px 0 8px; }
-    .cal-kpis b { color: #f6b13b; }
-    #calchart { width: 100%; height: 210px; }
+    .mini-links { font-size: 13px; color: #9fb0c8; margin-top: 22px; }
+    .mini-links a { color: #f6b13b; text-decoration: none; }
+    .mini-links a:hover { text-decoration: underline; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
@@ -279,7 +240,7 @@ const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL
       const byParty = {};
       SEATDATA.forEach((s) => {
         (byParty[s.f] = byParty[s.f] || []).push({
-          value: [s.x, s.y], nafn: s.n, fl: s.f, role: s.r, slug: s.s, ini: s.i,
+          value: [s.x, s.y], id: s.id, nafn: s.n, fl: s.f, role: s.r, slug: s.s, ini: s.i,
           itemStyle: s.r ? { borderColor: '#ffd479', borderWidth: 2.5 } : { borderColor: 'rgba(4,8,16,.5)', borderWidth: 1 },
         });
       });
@@ -302,43 +263,18 @@ const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL
           data: byParty[p],
         })),
       });
-      chart.on('click', (p) => { if (p.data && p.data.slug) window.location.href = '/althingi/' + p.data.slug + '/'; });
+      // Smellur á sæti opnar GLUGGA (MpModal); fullu síðurnar haldast fyrir SEO.
+      chart.on('click', (p) => {
+        if (!p.data) return;
+        if (window.karpMpOpen && p.data.id) window.karpMpOpen(p.data.id);
+        else if (p.data.slug) window.location.href = '/althingi/' + p.data.slug + '/';
+      });
       window.addEventListener('resize', () => chart.resize());
     }
     document.addEventListener('astro:page-load', initSeats);
   </script>
 
-  <!-- Eyja: þingdagatal (calendar heatmap). astro:page-load. #2 -->
-  <script define:vars={{ CAL }}>
-    function initCal() {
-      const el = document.getElementById('calchart');
-      if (!el || !CAL.range) return;
-      if (!window.echarts) {
-        let s = document.getElementById('echarts-cdn');
-        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
-        s.addEventListener('load', initCal, { once: true });
-        return;
-      }
-      if (window.echarts.getInstanceByDom(el)) return;
-      const c = window.echarts.init(el);
-      const maxV = Math.max(1, ...CAL.data.map((d) => d[1]));
-      c.setOption({
-        backgroundColor: 'transparent',
-        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 },
-          formatter: (p) => `<b>${p.data[0]}</b><br>${p.data[2] ? '🏛️ Þingfundur<br>' : ''}📋 ${p.data[3]} nefndafundir` },
-        visualMap: { min: 0, max: maxV, show: false, inRange: { color: ['rgba(255,255,255,.05)', 'rgba(246,177,59,.35)', '#f6b13b'] } },
-        calendar: {
-          range: CAL.range, left: 34, right: 8, top: 24, bottom: 8, cellSize: ['auto', 13],
-          dayLabel: { color: '#7e8ca6', fontSize: 9, firstDay: 1, nameMap: ['S', 'M', 'Þ', 'M', 'F', 'F', 'L'] },
-          monthLabel: { color: '#9fb0c8', fontSize: 10 },
-          yearLabel: { show: false },
-          itemStyle: { color: 'rgba(255,255,255,.03)', borderColor: 'rgba(7,11,22,.9)', borderWidth: 2 },
-          splitLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } },
-        },
-        series: [{ type: 'heatmap', coordinateSystem: 'calendar', data: CAL.data }],
-      });
-      window.addEventListener('resize', () => c.resize());
-    }
-    document.addEventListener('astro:page-load', initCal);
-  </script>
+  <!-- Þingmanna-glugginn (smellt á sæti). #2 LOTA 7 -->
+  <script type="application/json" id="d-mps" set:html={JSON.stringify(MPS)}></script>
+  <MpModal />
 </Layout>

@@ -1,0 +1,56 @@
+---
+// ─────────────────────────────────────────────────────────────
+// Þingmenn — myndagrind eins og gamla mps-flipinn. Smellur opnar GLUGGA
+// (MpModal) með lykilupplýsingum + hlekk á fullu SEO-síðuna. #2 LOTA 7.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../../layouts/Layout.astro';
+import MpModal from '../../components/MpModal.astro';
+import THINGMENN from '@gogn/althingi.json';
+import { colorByName } from '@lib/parties.mjs';
+import { slugify } from '@lib/format.mjs';
+
+const mps = THINGMENN.slice().sort((a, b) => a.nafn.localeCompare(b.nafn, 'is'));
+const MPS = {};
+THINGMENN.forEach((m) => {
+  MPS[m.id] = { n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), kj: m.kjordaemi, img: m.mynd || '', s: slugify(m.nafn), aldur: m.aldur ?? null, thing: m.fjoldiThinga ?? null, hollusta: m.hollusta ?? null, raedur: m.raedur ?? null, nefndir: m.nefndir ?? null, greidd: m.greidd ?? null };
+});
+const updated = '2026-07-02';
+const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjördæmi — smelltu á þingmann fyrir lykiltölur og nánari síðu.`;
+---
+
+<Layout title="Þingmenn Alþingis | Karp" description={desc} canonical="https://app.karp.is/althingi/thingmenn/" ogTitle="Þingmenn Alþingis">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <h1>Þingmenn ({mps.length})</h1>
+    <p>Smelltu á þingmann fyrir lykilupplýsingar í glugga — eða opnaðu fulla síðu hans þaðan.</p>
+
+    <div class="grid">
+      {mps.map((m) => (
+        <a class="mp" href={`/althingi/${slugify(m.nafn)}/`} data-mpid={m.id} style={`--pc:${colorByName(m.flokkur)}`}>
+          {m.mynd ? <img src={m.mynd} alt={m.nafn} loading="lazy" onerror="this.style.display='none'" /> : <span class="ini">{m.nafn.charAt(0)}</span>}
+          <span class="n">{m.nafn}</span>
+          <span class="f">{m.flokkur}</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Gögn frá Alþingi. Hver þingmaður á líka <strong>fulla síðu</strong> (SEO) — glugginn er flýtileið. #2.</p>
+  </main>
+
+  <script type="application/json" id="d-mps" set:html={JSON.stringify(MPS)}></script>
+  <MpModal />
+
+  <style>
+    main { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin-top: 16px; }
+    .mp { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-top: 3px solid var(--pc); border-radius: 11px; padding: 10px 8px; text-decoration: none; transition: border-color .12s, transform .12s; }
+    .mp:hover { border-color: var(--pc); transform: translateY(-2px); }
+    .mp img, .ini { width: 74px; height: 92px; object-fit: cover; border-radius: 8px; background: #0e1626; }
+    .ini { display: inline-flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--pc); }
+    .n { font-size: 12px; font-weight: 600; color: #eaf1fb; line-height: 1.25; }
+    .f { font-size: 10.5px; color: #7e8ca6; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+</Layout>

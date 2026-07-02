@@ -1,0 +1,30 @@
+---
+// Atvinnuvegir — yfirlits-stubbur (LOTA 8 byggir raun-síðuna). #2 LOTA 7.
+import Layout from '../../layouts/Layout.astro';
+const subs = [
+  ['/atvinnuvegir/sjavarutvegur/', '🐟', 'Sjávarútvegur'],
+  ['/atvinnuvegir/ferdathjonusta/', '🧳', 'Ferðaþjónusta'],
+  ['/atvinnuvegir/landbunadur/', '🌾', 'Landbúnaður'],
+  ['/atvinnuvegir/storidja/', '🏗️', 'Stóriðja & orka'],
+  ['/orka/', '⚡', 'Raforka'],
+  ['/atvinnuvegir/hugverk/', '💡', 'Hugverk & tækni'],
+];
+---
+<Layout title="Atvinnuvegir | Karp" description="Sjávarútvegur, ferðaþjónusta, landbúnaður, stóriðja og hugverkaiðnaður — lykiltölur atvinnuveganna." noindex={true}>
+  <main>
+    <div class="e">🏭</div>
+    <h1>Atvinnuvegir</h1>
+    <p>Lykiltölur atvinnuveganna — undirsíðurnar eru í smíðum (koma í næstu uppfærslu); <a href="/orka/">Raforka</a> er tilbúin.</p>
+    <div class="grid">
+      {subs.map(([href, e, t]) => <a class="c" href={href}><span>{e}</span>{t}</a>)}
+    </div>
+  </main>
+  <style>
+    main { max-width: 620px; margin: 0 auto; padding: 60px 20px 64px; text-align: center; }
+    .e { font-size: 52px; } h1 { font-size: 30px; margin: 10px 0; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 20px; }
+    .c { display: flex; align-items: center; gap: 8px; justify-content: center; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 14px; color: #eaf1fb; text-decoration: none; font-weight: 600; font-size: 14px; }
+    .c:hover { border-color: #f6b13b; }
+    .c span { font-size: 20px; }
+  </style>
+</Layout>

@@ -1,0 +1,77 @@
+---
+// ─────────────────────────────────────────────────────────────
+// Flokkar — flokkaspjöld eins og gamli flokka-flipinn: sæti nú/spá, nýjasta
+// fylgi, þingmannafjöldi + þingmenn flokksins. #2 LOTA 7.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../../layouts/Layout.astro';
+import { projectSeats } from '@lib/seats.mjs';
+import { partyName, partyColor } from '@lib/parties.mjs';
+import { fmtNum, slugify } from '@lib/format.mjs';
+import POLLS from '@gogn/polls.json';
+import THINGMENN from '@gogn/althingi.json';
+
+const r = projectSeats(POLLS, THINGMENN);
+const lastPoll = POLLS.polls[POLLS.polls.length - 1];
+const pv = (lastPoll && lastPoll.v) || {};
+const byPartyName = {};
+THINGMENN.forEach((m) => { (byPartyName[m.flokkur] = byPartyName[m.flokkur] || []).push(m); });
+
+const codes = [...new Set([...(POLLS.parties || []), ...Object.keys(r.cur)])];
+const cards = codes.map((c) => {
+  const name = partyName(c);
+  const mps = (byPartyName[name] || []).slice().sort((a, b) => a.nafn.localeCompare(b.nafn, 'is'));
+  return { code: c, name, color: partyColor(c), cur: r.cur[c] || 0, proj: r.proj[c] || 0, poll: pv[c] ?? null, gov: !!r.GOVK[c], mps };
+}).sort((a, b) => b.cur - a.cur || b.proj - a.proj || (b.poll || 0) - (a.poll || 0));
+
+const updated = '2026-07-02';
+const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, nýjasta fylgi (${lastPoll?.pollster}) og allir þingmenn hvers flokks.`;
+---
+
+<Layout title="Flokkar á Alþingi | Karp" description={desc} canonical="https://app.karp.is/althingi/flokkar/" ogTitle="Flokkar á Alþingi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <h1>Flokkar</h1>
+    <p>Staða flokkanna — þingsæti nú, <a href="/althingi/">sætaspá</a> og nýjasta fylgi ({lastPoll?.pollster}, {lastPoll?.date}).</p>
+
+    <div class="grid">
+      {cards.map((p) => (
+        <details class="pc" style={`--pc:${p.color}`}>
+          <summary>
+            <span class="pc-n">{p.name}{p.gov && <span class="gov">ríkisstj.</span>}</span>
+            <span class="pc-row"><b>{p.cur}</b> sæti nú · spá <b>{p.proj}</b> · fylgi <b>{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</b></span>
+            <span class="pc-bar"><i style={`width:${(p.cur / 63) * 100}%`}></i><i class="pj" style={`width:${(p.proj / 63) * 100}%`}></i></span>
+          </summary>
+          {p.mps.length > 0 && (
+            <div class="pc-mps">
+              {p.mps.map((m) => <a href={`/althingi/${slugify(m.nafn)}/`}>{m.nafn}</a>)}
+            </div>
+          )}
+        </details>
+      ))}
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Sætaspá: D'Hondt úr 3-kannana meðaltali (5% þröskuldur). Efri stika = sæti nú, neðri = spá. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .grid { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .pc { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-left: 4px solid var(--pc); border-radius: 11px; }
+    .pc[open] { border-color: var(--pc); }
+    .pc summary { list-style: none; cursor: pointer; padding: 12px 16px; }
+    .pc summary::-webkit-details-marker { display: none; }
+    .pc-n { font-weight: 800; font-size: 16px; color: var(--pc); }
+    .gov { font-size: 10px; color: #06121a; background: #46e08a; border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+    .pc-row { display: block; font-size: 13px; color: #9fb0c8; margin-top: 3px; }
+    .pc-row b { color: #eaf1fb; }
+    .pc-bar { display: block; margin-top: 8px; }
+    .pc-bar i { display: block; height: 5px; border-radius: 3px; background: var(--pc); margin-bottom: 3px; }
+    .pc-bar i.pj { opacity: .45; }
+    .pc-mps { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0 16px 12px; }
+    .pc-mps a { color: #cdd6e6; text-decoration: none; font-size: 13px; }
+    .pc-mps a:hover { color: var(--pc); text-decoration: underline; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+</Layout>

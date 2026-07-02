@@ -226,12 +226,15 @@ const jsonLd = {
     function initTabs() {
       const tabs = document.querySelectorAll('.tab');
       if (!tabs.length) return;
-      tabs.forEach((t) => {
-        t.onclick = () => {
-          tabs.forEach((x) => x.classList.toggle('on', x === t));
-          document.querySelectorAll('.panel').forEach((p) => { p.hidden = p.id !== 'p-' + t.dataset.t; });
-        };
-      });
+      const show = (t) => {
+        tabs.forEach((x) => x.classList.toggle('on', x === t));
+        document.querySelectorAll('.panel').forEach((p) => { p.hidden = p.id !== 'p-' + t.dataset.t; });
+      };
+      tabs.forEach((t) => { t.onclick = () => show(t); });
+      // ?t=hus/lif/vm opnar réttan flipa (nav-hlekkirnir „Húsnæðislán" o.s.frv.)
+      const want = new URLSearchParams(location.search).get('t');
+      const wanted = want && [...tabs].find((t) => t.dataset.t === want);
+      if (wanted) show(wanted);
     }
 
     // ── Laun ──

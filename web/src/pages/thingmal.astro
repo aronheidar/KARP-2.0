@@ -30,8 +30,13 @@ const bills = FRUMVORP
       sam: b.sam || '',
       passed: (b.stada || '').startsWith('Samþykkt'),
       dissent,
+      parties: Object.keys(P).map((k) => ({ n: pName(k), ja: P[k][0] || 0, nei: P[k][1] || 0 })).sort((a, b2) => b2.ja + b2.nei - (a.ja + a.nei)),
     };
   });
+
+// Gluggagögn (frumvarpa-modal): key → full lýsing + flokka-atkvæði.
+const BILLS = {};
+bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties }; });
 
 const updated = '2026-07-01';
 const nPassed = bills.filter((b) => b.passed).length;
@@ -75,7 +80,7 @@ const jsonLd = {
             <span class={`badge ${b.isFrv ? 'frv' : 'till'}`}>{b.type}</span>
             <span class="b-date">{b.d}</span>
           </div>
-          <h2 class="b-title">{b.titill}</h2>
+          <h2 class="b-title" data-bkey={b.key} role="button" tabindex="0" title="Smelltu fyrir nánari upplýsingar">{b.titill}</h2>
           {b.sam && <p class="b-sam">{b.sam}</p>}
           <div class="b-result">
             {b.stada && <span class={`r-tag ${b.passed ? 'r-yes' : 'r-neu'}`}>{b.stada}</span>}
@@ -91,6 +96,13 @@ const jsonLd = {
       Forþjónað (SSG) {updated}. Þingmál + atkvæðagreiðslur frá Alþingi (althingi.is); notendakannanir vistaðar
       um <code>/vote</code> gegnum sameiginlega <code>src/lib/auth</code>. #2.
     </p>
+
+    <!-- Frumvarpa-glugginn (smellt á titil) — eins og gamla mælaborðið. #2 LOTA 7 -->
+    <div id="bill-modal" hidden>
+      <div class="bm-back"></div>
+      <div class="bm-box"><button class="bm-x" aria-label="Loka">×</button><div id="bm-body"></div></div>
+    </div>
+    <script type="application/json" id="d-bills" set:html={JSON.stringify(BILLS)}></script>
   </main>
 
   <style>
@@ -106,7 +118,8 @@ const jsonLd = {
     .badge.frv { background: rgba(246,177,59,.16); color: #f6b13b; }
     .badge.till { background: rgba(124,92,247,.16); color: #b9a6ff; }
     .b-date { font-size: 12px; color: #7e8ca6; }
-    .b-title { font-size: 17px; font-weight: 700; margin: 0 0 6px; line-height: 1.25; color: #eaf1fb; }
+    .b-title { font-size: 17px; font-weight: 700; margin: 0 0 6px; line-height: 1.25; color: #eaf1fb; cursor: pointer; }
+    .b-title:hover { color: #f6b13b; }
     .b-sam { font-size: 14px; color: #9fb0c8; margin: 0 0 10px; }
     .b-result { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 13px; margin-bottom: 12px; }
     .r-tag { font-weight: 700; padding: 2px 9px; border-radius: 6px; }
@@ -131,6 +144,23 @@ const jsonLd = {
     .v-bar { height: 8px; border-radius: 5px; background: rgba(255,109,122,.35); overflow: hidden; }
     .v-bar-ja { height: 100%; background: #46e08a; }
     .v-tally { font-size: 12px; color: #7e8ca6; margin-top: 5px; font-variant-numeric: tabular-nums; }
+    /* Frumvarpa-glugginn (fyllt á keyrslutíma). */
+    #bill-modal { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; }
+    #bill-modal[hidden] { display: none; }
+    .bm-back { position: absolute; inset: 0; background: rgba(3,6,12,.72); backdrop-filter: blur(2px); }
+    .bm-box { position: relative; width: min(600px, calc(100vw - 28px)); max-height: calc(100vh - 40px); overflow: auto; background: #0b1220; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 20px 22px; box-shadow: 0 18px 60px rgba(0,0,0,.55); }
+    .bm-x { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: #7e8ca6; font-size: 24px; cursor: pointer; z-index: 2; }
+    .bm-x:hover { color: #eaf1fb; }
+    .bm-type { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #f6b13b; }
+    .bm-t { font-size: 18px; font-weight: 800; color: #eaf1fb; margin: 4px 0 8px; line-height: 1.3; padding-right: 20px; }
+    .bm-sam { font-size: 13.5px; color: #cdd6e6; line-height: 1.55; margin-bottom: 12px; }
+    .bm-res { font-size: 13px; margin-bottom: 12px; }
+    .bm-res .yes { color: #46e08a; font-weight: 700; } .bm-res .neu { color: #9fb0c8; font-weight: 700; }
+    .bm-ph { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; margin: 10px 0 6px; }
+    .bm-p { display: grid; grid-template-columns: 1fr 70px 70px; gap: 4px 10px; font-size: 12.5px; color: #cdd6e6; }
+    .bm-p .h { color: #7e8ca6; font-size: 10.5px; text-transform: uppercase; }
+    .bm-p .ja { color: #46e08a; text-align: right; font-variant-numeric: tabular-nums; }
+    .bm-p .nei { color: #ff6d7a; text-align: right; font-variant-numeric: tabular-nums; }
   </style>
 
   <!-- Eyja: kjósa um þingmál (auth.js /vote), lazy-hydrað með IntersectionObserver. #2 -->
@@ -182,5 +212,43 @@ const jsonLd = {
     }
 
     document.addEventListener('astro:page-load', initVotes);
+  </script>
+
+  <!-- Eyja: frumvarpa-glugginn. #2 LOTA 7 -->
+  <script>
+    function bmClose() { const m = document.getElementById('bill-modal'); if (m) m.hidden = true; }
+    function bmOpen(key) {
+      const dataEl = document.getElementById('d-bills');
+      const m = document.getElementById('bill-modal');
+      if (!dataEl || !m) return;
+      let B = {};
+      try { B = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
+      const d = B[key];
+      if (!d) return;
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      let h = `<div class="bm-type">${esc(d.type)} · ${esc(d.d || '')}</div><div class="bm-t">${esc(d.t)}</div>`;
+      if (d.sam) h += `<div class="bm-sam">${esc(d.sam)}</div>`;
+      h += `<div class="bm-res"><span class="${d.passed ? 'yes' : 'neu'}">${esc(d.stada || 'Niðurstaða liggur ekki fyrir')}</span> · Alþingi: ${d.ja}–${d.nei}${d.fj ? ` · ${d.fj} fjarvistir` : ''}</div>`;
+      if (d.parties && d.parties.length) {
+        h += '<div class="bm-ph">Atkvæði eftir flokkum</div><div class="bm-p"><span class="h">Flokkur</span><span class="h ja">Með</span><span class="h nei">Á móti</span>';
+        h += d.parties.map((p) => `<span>${esc(p.n)}</span><span class="ja">${p.ja}</span><span class="nei">${p.nei}</span>`).join('');
+        h += '</div>';
+      }
+      document.getElementById('bm-body').innerHTML = h;
+      m.hidden = false;
+    }
+    function initBillModal() {
+      const m = document.getElementById('bill-modal');
+      if (!m) return;
+      m.querySelector('.bm-x').onclick = bmClose;
+      m.querySelector('.bm-back').onclick = bmClose;
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') bmClose(); });
+      document.querySelectorAll('[data-bkey]').forEach((el) => {
+        const go = () => bmOpen(el.dataset.bkey);
+        el.onclick = go;
+        el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+      });
+    }
+    document.addEventListener('astro:page-load', initBillModal);
   </script>
 </Layout>

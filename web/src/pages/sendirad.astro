@@ -1,0 +1,38 @@
+---
+// SSG-síða (#2) — Sendiráð: sendiráðanet Íslands erlendis + erlend sendiráð á Íslandi.
+import Layout from '../layouts/Layout.astro';
+import SENDIRAD from '@gogn/sendirad.json';
+const abroad = SENDIRAD.abroad || [];
+const iceland = SENDIRAD.iceland || [];
+const updated = '2026-07-02';
+const desc = `Sendiráðanet Íslands — ${abroad.length} sendiráð erlendis og ${iceland.length} erlend sendiráð á Íslandi, með sendiherrum og umdæmum.`;
+---
+<Layout title="Sendiráð Íslands | Karp" description={desc} canonical="https://app.karp.is/sendirad/" ogTitle="Sendiráð Íslands">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþjóðasamstarf</p>
+    <h1>Sendiráð</h1>
+    <p>Ísland rekur {abroad.length} sendiráð erlendis; {iceland.length} ríki halda úti sendiráði í Reykjavík.</p>
+    <h2>Sendiráð Íslands erlendis ({abroad.length})</h2>
+    <div class="tw"><table>
+      <thead><tr><th class="l">Land</th><th class="l">Borg</th><th class="l">Tegund</th><th class="l">Sendiherra</th></tr></thead>
+      <tbody>{abroad.map((s) => <tr><td class="l">{s.is}</td><td class="l">{s.city}</td><td class="l">{s.type}</td><td class="l">{s.sendiherra || '—'}</td></tr>)}</tbody>
+    </table></div>
+    <h2>Erlend sendiráð á Íslandi ({iceland.length})</h2>
+    <div class="tw"><table>
+      <thead><tr><th class="l">Land</th><th class="l">Sendiherra</th></tr></thead>
+      <tbody>{iceland.map((s) => <tr><td class="l">{s.is || s.land || s.nafn}</td><td class="l">{s.sendiherra || '—'}</td></tr>)}</tbody>
+    </table></div>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: utanríkisráðuneytið. #2.</p>
+  </main>
+  <style>
+    main { max-width: 820px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
+    th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+</Layout>

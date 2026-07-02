@@ -3,45 +3,87 @@
 // #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
 import { ClientRouter } from 'astro:transitions';
 const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
+// NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
+// Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
-  { items: [{ href: '/', label: 'Yfirlit', emoji: '🏠' }, { href: '/kort/', label: 'Íslandskort', emoji: '🗺️' }] },
-  { title: 'Efnahagur', items: [
-    { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
-    { href: '/hagvoxtur/', label: 'Hagvöxtur', emoji: '🚀' },
-    { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
-    { href: '/verdlag/', label: 'Verðlag', emoji: '🛒' },
-    { href: '/rikisfjarmal/', label: 'Ríkisfjármál', emoji: '🏦' },
-    { href: '/vidskipti/', label: 'Utanríkisverslun', emoji: '🚢' },
+  { href: '/mitt-svaedi/', label: 'Mitt svæði', emoji: '⭐' },
+  { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
+  { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
+  { label: 'Umfjöllun', emoji: '📰', items: [
+    { href: '/frettir/', label: 'Vöktun' },
+    { href: '/greining/', label: 'Greining' },
   ] },
-  { title: 'Samfélag', items: [
-    { href: '/sveitarfelog/', label: 'Sveitarfélög', emoji: '🏘️' },
-    { href: '/mannfjoldi/', label: 'Mannfjöldi', emoji: '👥' },
-    { href: '/menntun/', label: 'Menntun', emoji: '🎓' },
-    { href: '/fasteignir/', label: 'Fasteignaverð', emoji: '🏠' },
-    { href: '/orka/', label: 'Orka', emoji: '⚡' },
-    { href: '/rafbilar/', label: 'Rafbílar', emoji: '🔌' },
-    { href: '/umferd/', label: 'Umferð', emoji: '✈️' },
-    { href: '/atvinnuleysi/', label: 'Atvinnuleysi', emoji: '👷' },
-    { href: '/afbrot/', label: 'Afbrot', emoji: '🚓' },
-    { href: '/topplistar/', label: 'Topplistar', emoji: '🏆' },
-    { href: '/jofnunarsjodur/', label: 'Jöfnunarsjóður', emoji: '⚖️' },
+  { label: 'Alþingi', emoji: '🏛️', items: [
+    { href: '/althingi/', label: 'Þingsalur', exact: true },
+    { href: '/ivilnanir/', label: 'Ívilnanir & styrkir' },
+    { href: '/thingmal/', label: 'Frumvörp & atkvæði' },
+    { href: '/althingi/nefndir/', label: 'Nefndir' },
+    { href: '/althingi/flokkar/', label: 'Flokkar' },
+    { href: '/althingi/thingmenn/', label: 'Þingmenn' },
+    { sub: 'Alþjóðasamstarf' },
+    { href: '/samtok/', label: 'Samtök & samningar' },
+    { href: '/nato/', label: 'NATO' },
+    { href: '/ees/', label: 'EES / EFTA' },
+    { href: '/sendirad/', label: 'Sendiráð' },
   ] },
-  { title: 'Stjórnmál', items: [
-    { href: '/althingi/', label: 'Alþingi', emoji: '🏛️' },
-    { href: '/thingmal/', label: 'Þingmál', emoji: '📜' },
-    { href: '/kannanir/', label: 'Kannanir', emoji: '📊' },
+  { label: 'Ríkisstjórn', emoji: '🏦', items: [
+    { href: '/rikisfjarmal/', label: 'Ríkisfjármál' },
+    { href: '/skattar/', label: 'Skattar' },
+    { href: '/utgjold/', label: 'Útgjöld' },
+    { href: '/langtima/', label: 'Langtímastefna' },
+    { href: '/vidskipti/', label: 'Utanríkisverslun' },
   ] },
-  { title: 'Útlönd', items: [
-    { href: '/utanrikis/', label: 'Utanríkis', emoji: '🌍' },
-    { href: '/ees/', label: 'EES / EFTA', emoji: '💶' },
-    { href: '/samtok/', label: 'Alþjóðasamstarf', emoji: '🤝' },
+  { label: 'Sveitarstjórnir', emoji: '🏘️', items: [
+    { href: '/sveitarfelog/', label: 'Yfirlit', exact: true },
+    { href: '/topplistar/', label: 'Topplistar' },
+    { href: '/sveitarfelog/reykjavikurborg/', label: 'Sveitarfélag' },
+    { href: '/jofnunarsjodur/', label: 'Jöfnunarsjóður' },
   ] },
-  { title: 'Verkfæri', items: [
-    { href: '/reiknivelar/', label: 'Reiknivélar', emoji: '🧮' },
+  { label: 'Kannanir', emoji: '📊', items: [
+    { href: '/stefnuprof/', label: 'Stefnupróf' },
+    { href: '/kannanir/', label: 'Fylgi flokka' },
+    { href: '/karp-kannanir/', label: 'Karp-kannanir' },
+  ] },
+  { label: 'Efnahagur', emoji: '📉', items: [
+    { href: '/verdlag/', label: 'Verðlag' },
+    { href: '/hagvoxtur/', label: 'Hagvöxtur' },
+    { href: '/vinnumarkadur/', label: 'Vinnumarkaður' },
+    { href: '/hagspar/', label: 'Hagspár' },
+    { href: '/hermir/', label: 'Hagkerfis-hermir' },
+    { href: '/furduhagfraedi/', label: 'Furðuhagfræði' },
+  ] },
+  { label: 'Reiknivélar', emoji: '🧮', items: [
+    { href: '/reiknivelar/', label: 'Launareiknivél', exact: true },
+    { href: '/reiknivelar/?t=hus', label: 'Húsnæðislán' },
+    { href: '/reiknivelar/?t=vm', label: 'Verðmat fasteignar' },
+    { href: '/reiknivelar/?t=lif', label: 'Lífeyrir' },
+  ] },
+  { label: 'Atvinnuvegir', emoji: '🏭', items: [
+    { href: '/atvinnuvegir/', label: 'Yfirlit', exact: true },
+    { href: '/atvinnuvegir/sjavarutvegur/', label: 'Sjávarútvegur' },
+    { href: '/atvinnuvegir/ferdathjonusta/', label: 'Ferðaþjónusta' },
+    { href: '/atvinnuvegir/landbunadur/', label: 'Landbúnaður' },
+    { href: '/atvinnuvegir/storidja/', label: 'Stóriðja & orka' },
+    { href: '/orka/', label: 'Raforka' },
+    { href: '/atvinnuvegir/hugverk/', label: 'Hugverk & tækni' },
+  ] },
+  { label: 'Samfélag', emoji: '👥', items: [
+    { href: '/fasteignir/', label: 'Fasteignaverð' },
+    { href: '/mannfjoldi/', label: 'Mannfjöldi' },
+    { href: '/menntun/', label: 'Menntun' },
+    { href: '/afbrot/', label: 'Afbrot og öryggi' },
+    { href: '/rafbilar/', label: 'Rafbílar & floti' },
+    { href: '/umferd/', label: 'Umferð' },
   ] },
 ];
 const path = Astro.url.pathname;
-const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
+const active = (it) => {
+  if (!it.href) return false;
+  const clean = it.href.split('?')[0];
+  if (it.exact || clean === '/') return path === clean;
+  return path.startsWith(clean);
+};
+const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
 ---
 <!doctype html>
 <html lang="is">
@@ -67,14 +109,23 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
 
       /* NAV (vinstra) */
-      .nav { border-right:1px solid var(--line); padding:20px 14px; display:flex; flex-direction:column; gap:3px; position:sticky; top:0; height:100vh; }
+      .nav { border-right:1px solid var(--line); padding:20px 14px; display:flex; flex-direction:column; gap:3px; position:sticky; top:0; height:100vh; overflow-y:auto; scrollbar-width:thin; }
       .brand { font-weight:800; letter-spacing:.2em; color:var(--gold); text-decoration:none; font-size:16px; padding:2px 10px 18px; }
       .nav-a { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:9px; text-decoration:none; color:var(--muted); font-weight:600; font-size:14px; }
       .nav-a:hover { background:var(--panel); color:var(--ink); }
       .nav-a.on { background:rgba(246,177,59,.12); color:var(--gold); }
-      #nav-mitt[hidden] { display:none; } /* annars yfirskrifar .nav-a{display:flex} hidden-attribútið */
       .nav-e { font-size:16px; width:20px; text-align:center; }
-      .nav-grp { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#5a6678; font-weight:700; padding:13px 12px 3px; }
+      /* Accordion-hópar (eins og gamla): summary = hópahaus, ▸ snýst þegar opið */
+      .ng { margin:0; }
+      .ng-s { list-style:none; cursor:pointer; user-select:none; position:relative; }
+      .ng-s::-webkit-details-marker { display:none; }
+      .ng-c { margin-left:auto; font-size:10px; color:#5a6678; transition:transform .15s; }
+      .ng[open] > .ng-s .ng-c { transform:rotate(90deg); }
+      .ng-i { padding:1px 0 5px; }
+      .nav-b { display:block; padding:6px 12px 6px 43px; border-radius:8px; text-decoration:none; color:#8fa0b8; color:#8b9cb5; font-size:13px; }
+      .nav-b:hover { background:var(--panel); color:var(--ink); }
+      .nav-b.on { background:rgba(246,177,59,.12); color:var(--gold); font-weight:600; }
+      .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#5a6678; font-weight:700; padding:10px 12px 3px 43px; }
       .nav-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
       .nav-legal { display:block; margin-top:8px; font-size:10.5px; color:#5a6678; text-decoration:none; }
       .nav-legal:hover { color:#9fb0c8; }
@@ -104,9 +155,7 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       @media (max-width:1000px){ .shell{grid-template-columns:180px minmax(0,1fr);} .news{display:none;} }
       @media (max-width:640px){
         .shell{grid-template-columns:1fr;}
-        .nav{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px;gap:6px;}
-        .nav nav{display:flex;flex-wrap:wrap;gap:4px;}
-        .nav-grp{display:none;}
+        .nav{position:static;height:auto;flex-direction:column;border-right:0;border-bottom:1px solid var(--line);padding:12px;gap:2px;}
         .nav-a{padding:7px 10px;font-size:13px;}
         .brand{padding:2px 8px;}
         .nav-foot{margin:0 0 0 auto;padding:0;border:0;order:-1;}
@@ -119,13 +168,19 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       <aside class="nav" transition:persist>
         <a class="brand" href="/">KARP</a>
         <nav>
-          {NAV.map((grp) => (
-            <>
-              {grp.title && <div class="nav-grp">{grp.title}</div>}
-              {grp.items.map((n) => <a class={`nav-a${active(n.href) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>)}
-            </>
+          {NAV.map((n) => n.items ? (
+            <details class="ng" open={groupOpen(n)}>
+              <summary class="nav-a ng-s"><span class="nav-e">{n.emoji}</span>{n.label}<span class="ng-c">▸</span></summary>
+              <div class="ng-i">
+                {n.items.map((it) => it.sub
+                  ? <div class="ng-sub">{it.sub}</div>
+                  : <a class={`nav-b${active(it) ? ' on' : ''}`} href={it.href}>{it.label}</a>
+                )}
+              </div>
+            </details>
+          ) : (
+            <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>
           ))}
-          <a class="nav-a" id="nav-mitt" href="/mitt-svaedi/" hidden><span class="nav-e">⭐</span>Mitt svæði</a>
         </nav>
         <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
       </aside>
@@ -162,19 +217,30 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       }
 
       // Fasta nav-ið (transition:persist) heldur virku stöðunni frá FYRSTU síðu → uppfæra með JS.
+      // Stakir hlekkir = .nav-a[href]; undirhlekkir = .nav-b; virki hópurinn opnast sjálfkrafa.
       function updateActiveNav() {
         const p = location.pathname;
-        document.querySelectorAll('.nav-a').forEach((a) => {
-          const href = a.getAttribute('href');
-          a.classList.toggle('on', href === '/' ? p === '/' : p.startsWith(href));
+        const isOn = (a, exactRoots) => {
+          const href = (a.getAttribute('href') || '').split('?')[0];
+          if (!href) return false;
+          if (href === '/' || exactRoots.includes(href)) return p === href;
+          return p.startsWith(href);
+        };
+        const EXACT = ['/althingi/', '/sveitarfelog/', '/atvinnuvegir/', '/reiknivelar/'];
+        document.querySelectorAll('a.nav-a').forEach((a) => a.classList.toggle('on', isOn(a, EXACT)));
+        let activeGrp = null;
+        document.querySelectorAll('a.nav-b').forEach((a) => {
+          const on = isOn(a, EXACT);
+          a.classList.toggle('on', on);
+          if (on) activeGrp = a.closest('details.ng');
         });
+        if (activeGrp && !activeGrp.open) activeGrp.open = true;
       }
 
       function mountShell() {
         // Chip + fréttir eru í föstu skelinni → festa aðeins einu sinni (dataset lifir persist).
         const chipEl = document.getElementById('chip');
         if (chipEl && !chipEl.dataset.mounted) { chipEl.dataset.mounted = '1'; mountChip(chipEl); }
-        loadUser().then((u) => { const m = document.getElementById('nav-mitt'); if (m && u && u.loggedIn) m.hidden = false; });
         updateActiveNav();
         paintNews();
       }

@@ -1,0 +1,110 @@
+---
+// ─────────────────────────────────────────────────────────────
+// Nefndir Alþingis + þingdagatal (flutt af aðal-Alþingissíðunni — LOTA 7
+// útlits-parity: eigin undirsíða eins og gamli nefnda-flipinn). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../../layouts/Layout.astro';
+import NEFNDIR from '@gogn/nefndir.json';
+import DAGATAL from '@gogn/dagatal.json';
+import THINGMENN from '@gogn/althingi.json';
+import { colorByName } from '@lib/parties.mjs';
+import { slugify } from '@lib/format.mjs';
+
+const mpSlug = {};
+THINGMENN.forEach((mp) => { mpSlug[mp.id] = slugify(mp.nafn); });
+const capFirst = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const NEFNDCARDS = (Array.isArray(NEFNDIR) ? NEFNDIR : []).map((n) => {
+  const chair = (n.members || []).find((m) => /^formaður/.test(m.stada || ''));
+  return { heiti: capFirst(n.heiti), count: (n.members || []).length, chair: chair ? chair.nafn : null, chairC: chair ? colorByName(chair.flokkur) : null, chairSlug: chair && mpSlug[chair.id] ? mpSlug[chair.id] : null, members: (n.members || []).map((m) => ({ n: m.nafn, f: m.flokkur, st: m.stada })) };
+}).sort((a, b) => b.count - a.count);
+
+const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL.plenary, meetings: DAGATAL.meetings,
+  data: Object.entries(DAGATAL.dates || {}).map(([d, x]) => [d, (x.t || 0) + (x.n || 0), x.t || 0, x.n || 0]) };
+const updated = '2026-07-02';
+const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og fulltrúum, auk þingdagatals — ${CAL.plenary} þingfundir og ${CAL.meetings} nefndafundir á starfsárinu.`;
+---
+
+<Layout title="Nefndir Alþingis & þingdagatal | Karp" description={desc} canonical="https://app.karp.is/althingi/nefndir/" ogTitle="Nefndir Alþingis">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <h1>Nefndir</h1>
+    <p>Fastanefndir fjalla um þingmál hvert á sínu sviði áður en þau koma til atkvæða í þingsal. Smelltu á nefnd fyrir fulltrúalistann.</p>
+
+    <div class="nf-grid">
+      {NEFNDCARDS.map((n) => (
+        <details class="nf">
+          <summary>
+            <span class="nf-h">{n.heiti}</span>
+            <span class="nf-s">👥 {n.count} fulltrúar</span>
+            {n.chair && <span class="nf-f">Formaður: {n.chairSlug ? <a href={`/althingi/${n.chairSlug}/`} style={`color:${n.chairC}`}>{n.chair}</a> : <b style={`color:${n.chairC}`}>{n.chair}</b>}</span>}
+          </summary>
+          <div class="nf-m">
+            {n.members.map((m) => <div class="nf-row"><span>{m.n} <i>· {m.f}</i></span><span class="nf-st">{m.st}</span></div>)}
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <h2>Þingdagatal {CAL.range ? `(${CAL.range[0].slice(0, 4)}–${CAL.range[1].slice(0, 4)})` : ''}</h2>
+    <div class="cal-kpis">
+      <span>📅 <b>{CAL.days}</b> starfsdagar</span>
+      <span>🏛️ <b>{CAL.plenary}</b> þingfundir</span>
+      <span>📋 <b>{CAL.meetings}</b> nefndafundir</span>
+    </div>
+    <div id="calchart"></div>
+    <p class="src">Hver reitur er dagur — dekkri gull = meiri virkni (þingfundur + nefndafundir).</p>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Alþingi (nefndir + fundargerðir). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .nf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 14px; }
+    .nf { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; }
+    .nf[open] { border-color: rgba(246,177,59,.5); }
+    .nf summary { list-style: none; cursor: pointer; padding: 12px 14px; }
+    .nf summary::-webkit-details-marker { display: none; }
+    .nf-h { display: block; font-weight: 700; font-size: 14px; }
+    .nf-s { display: block; font-size: 12px; color: #9fb0c8; margin-top: 3px; }
+    .nf-f { display: block; font-size: 12px; color: #7e8ca6; margin-top: 4px; }
+    .nf-f a, .nf-f b { text-decoration: none; font-weight: 600; }
+    .nf-m { padding: 0 14px 12px; }
+    .nf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #cdd6e6; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.05); }
+    .nf-row i { color: #7e8ca6; font-style: normal; font-size: 11px; }
+    .nf-st { color: #7e8ca6; white-space: nowrap; }
+    .cal-kpis { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13.5px; color: #9fb0c8; margin: 4px 0 8px; }
+    .cal-kpis b { color: #f6b13b; }
+    #calchart { width: 100%; height: 210px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: þingdagatal (calendar heatmap). #2 -->
+  <script define:vars={{ CAL }}>
+    function initCal() {
+      const el = document.getElementById('calchart');
+      if (!el || !CAL.range) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initCal, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      const maxV = Math.max(1, ...CAL.data.map((d) => d[1]));
+      c.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, formatter: (p) => `<b>${p.data[0]}</b><br>${p.data[2] ? '🏛️ Þingfundur<br>' : ''}📋 ${p.data[3]} nefndafundir` },
+        visualMap: { min: 0, max: maxV, show: false, inRange: { color: ['rgba(255,255,255,.05)', 'rgba(246,177,59,.35)', '#f6b13b'] } },
+        calendar: { range: CAL.range, left: 34, right: 8, top: 24, bottom: 8, cellSize: ['auto', 13], dayLabel: { color: '#7e8ca6', fontSize: 9, firstDay: 1, nameMap: ['S', 'M', 'Þ', 'M', 'F', 'F', 'L'] }, monthLabel: { color: '#9fb0c8', fontSize: 10 }, yearLabel: { show: false }, itemStyle: { color: 'rgba(255,255,255,.03)', borderColor: 'rgba(7,11,22,.9)', borderWidth: 2 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        series: [{ type: 'heatmap', coordinateSystem: 'calendar', data: CAL.data }],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', initCal);
+  </script>
+</Layout>

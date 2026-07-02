@@ -129,19 +129,20 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
       {lastJofn != null && <div class="kpi"><div class="k-l">⚖️ Jöfnuður (mán)</div><div class={`k-v ${lastJofn >= 0 ? 'up' : 'dn'}`}>{lastJofn > 0 ? '+' : ''}{fmtNum(lastJofn, 0)}</div><div class="k-s">ma.kr · nýjasti mánuður</div></div>}
     </div>
 
-    {EXP && (
-      <>
-        <h2>Útflutningur eftir flokkum ({EXP.year})</h2>
-        <div id="chart-exp"></div>
-      </>
-    )}
-
-    {IMP && (
-      <>
-        <h2>Innflutningur eftir SITC-deildum ({IMP.year})</h2>
-        <div id="chart-imp"></div>
-      </>
-    )}
+    <div class="ppair">
+      {EXP && (
+        <div>
+          <h2>Útflutningur eftir flokkum ({EXP.year})</h2>
+          <div id="chart-exp"></div>
+        </div>
+      )}
+      {IMP && (
+        <div>
+          <h2>Innflutningur eftir SITC-deildum ({IMP.year})</h2>
+          <div id="chart-imp"></div>
+        </div>
+      )}
+    </div>
 
     {BAL && (
       <>
@@ -191,7 +192,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
     #chart-exp, #chart-imp { width: 100%; height: 300px; }
     #chart-bal { width: 100%; }
     #chart-trend { width: 100%; height: 300px; }
-    .mapgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mapgrid, .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { .ppair { grid-template-columns: 1fr; } }
     .map-h { font-size: 12.5px; color: #9fb0c8; font-weight: 700; margin: 4px 0 2px; }
     .wmap { width: 100%; height: 250px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 10px; }
     @media (max-width: 720px) { .mapgrid { grid-template-columns: 1fr; } }

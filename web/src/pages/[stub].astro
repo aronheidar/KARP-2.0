@@ -1,0 +1,39 @@
+---
+// ─────────────────────────────────────────────────────────────
+// Stubbar fyrir síður úr gamla nav-inu sem koma í NÆSTA fasa (LOTA 8):
+// Umfjöllun (WP-endapunktar), Karp-kannanir (WP), leikirnir. Nav-parity heldur
+// á meðan — engar 404. noindex þar til efnið kemur. #2 LOTA 7.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  const STUBS = {
+    frettir: { t: 'Vöktun — fjölmiðlaumfjöllun', e: '📰', d: 'Lifandi fréttavöktun og fyrirtækjaumfjöllun flyst hingað úr gamla mælaborðinu — tengist frétta-safni Karp (WordPress).' },
+    greining: { t: 'Greining', e: '🔎', d: 'Árs-yfirlit fréttaársins, dagskrárgreining, fjölmiðlavog og fleiri greiningar á umfjöllun flytjast hingað.' },
+    'karp-kannanir': { t: 'Karp-kannanir', e: '🗳️', d: 'Eigin kannanir Karp — svaraðu og sjáðu niðurstöður annarra (kjóstu-til-að-sjá). Tengist innskráningarkerfinu.' },
+    stefnuprof: { t: 'Stefnupróf', e: '🧭', d: 'Svaraðu spurningum um raunveruleg þingmál og sjáðu hvaða flokki þú ert mest sammála — borið saman við skráð atkvæði á Alþingi.' },
+    hagspar: { t: 'Hagspár', e: '🔭', d: 'Spár greiningaraðila um verðbólgu, vexti og hagvöxt — og hvernig þær hafa ræst.' },
+    hermir: { t: 'Hagkerfis-hermir', e: '🎛️', d: 'Fiktaðu í stýrivöxtum, sköttum og útgjöldum og sjáðu hvernig hagkerfið bregst við — einfaldað þjóðhagslíkan.' },
+    furduhagfraedi: { t: 'Furðuhagfræði', e: '🤪', d: 'Skemmtilegar og furðulegar fylgnir úr íslenskum hagtölum — með fyrirvara um að fylgni er ekki orsök!' },
+  };
+  return Object.keys(STUBS).map((stub) => ({ params: { stub }, props: STUBS[stub] }));
+}
+const { t, e, d } = Astro.props;
+---
+
+<Layout title={`${t} | Karp`} description={d} noindex={true}>
+  <main>
+    <div class="e">{e}</div>
+    <h1>{t}</h1>
+    <p>{d}</p>
+    <p class="soon">🚧 Þessi hluti er <strong>í smíðum</strong> í nýja appinu — kemur í næstu uppfærslu. Á meðan er hann aðgengilegur í <a href="https://www.karp.is">gamla mælaborðinu á karp.is</a>.</p>
+  </main>
+  <style>
+    main { max-width: 620px; margin: 0 auto; padding: 70px 20px 64px; text-align: center; }
+    .e { font-size: 52px; }
+    h1 { font-size: 30px; margin: 10px 0; }
+    p { color: #cdd6e6; }
+    .soon { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; margin-top: 22px; }
+    .soon a { color: #f6b13b; }
+  </style>
+</Layout>
