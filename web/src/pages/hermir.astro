@@ -9,16 +9,16 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
 ---
 
 <Layout title="Hagkerfis-hermir | Karp" description={desc} canonical="https://app.karp.is/hermir/" ogTitle="Hagkerfis-hermir">
-  <main>
+  <main data-pg="hermir">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Hagkerfis-hermir 🎛️</h1>
     <p>Stilltu lykilbreytur hagkerfisins og sjáðu hvernig helstu hagvísar gætu brugðist við. <strong>Einfaldað kennslulíkan til að sýna sambönd — ekki opinber spá.</strong></p>
 
     <div id="presets" class="presets"></div>
-    <div class="wrap">
-      <div id="sliders" class="sliders"></div>
-      <div id="out" class="out"></div>
-    </div>
+    <div id="out" class="out"></div>
+    <div class="drv-h">Breyturnar þínar</div>
+    <div id="sliders" class="sliders"></div>
+    <div class="actions"><button id="hm-reset" type="button">↺ Núllstilla á núverandi stöðu</button></div>
 
     <p class="note">ⓘ Líkanið notar fastar næmnistölur (t.d. −0,25 pp hagvöxtur per +1 pp stýrivexti) — raunveruleikinn er flóknari, tafinn og háður væntingum. Til fróðleiks og tilrauna.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Sama líkan og gamla mælaborðið. #2.</p>
@@ -29,24 +29,29 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
-    .wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; margin-top: 10px; }
-    @media (max-width: 720px) { .wrap { grid-template-columns: 1fr; } }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
-    .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+    .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 12px; }
     .presets button { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .presets button:hover { color: #f6b13b; border-color: #f6b13b; }
-    .sliders { display: flex; flex-direction: column; gap: 12px; }
+    .presets button:hover, .presets button.on { color: #f6b13b; border-color: #f6b13b; }
+    .drv-h { font-size: 13px; font-weight: 800; color: #9fb0c8; text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 10px; }
+    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+    @media (max-width: 720px) { .sliders { grid-template-columns: 1fr; } }
     .sl { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 14px; }
     .sl-t { display: flex; justify-content: space-between; font-size: 13px; color: #cdd6e6; font-weight: 600; }
     .sl-t b { color: #f6b13b; font-variant-numeric: tabular-nums; }
     .sl input[type=range] { width: 100%; accent-color: #f6b13b; }
-    .out { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
+    .out { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-content: start; }
+    @media (max-width: 720px) { .out { grid-template-columns: 1fr 1fr; } }
     .ot { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-    .ot .l { font-size: 12px; color: #9fb0c8; }
+    .ot .l { font-size: 12px; color: #9fb0c8; white-space: nowrap; }
     .ot .v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .ot .d { font-size: 11px; color: #7e8ca6; }
+    .ot .delta { font-size: 11px; font-weight: 700; margin-left: 6px; }
+    .actions { margin-top: 14px; }
+    #hm-reset { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+    #hm-reset:hover { color: #f6b13b; border-color: #f6b13b; }
   </style>
 
   <script define:vars={{ HERMIR }}>
@@ -67,14 +72,18 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
       HERMIR.drivers.forEach((x) => { st[x.k] = x.n; });
       const f1 = (v) => Number(v).toFixed(1).replace('.', ',');
       const paint = () => {
-        const r = compute(st);
+        const r = compute(st), b0 = HERMIR.baseline;
         const OUT = [
-          ['📈 Verðbólga', r.verdb, '%', (v) => (v > 6 ? '#ff6d7a' : v > 3.5 ? '#f6b13b' : '#46e08a')],
-          ['🚀 Hagvöxtur', r.hagv, '%', (v) => (v < 0 ? '#ff6d7a' : v < 1.5 ? '#f6b13b' : '#46e08a')],
-          ['👷 Atvinnuleysi', r.atv, '%', (v) => (v > 6 ? '#ff6d7a' : v > 4 ? '#f6b13b' : '#46e08a')],
-          ['🏠 Húsnæðisverð', r.hus, '% á ári', (v) => (v > 12 || v < -5 ? '#ff6d7a' : '#eaf1fb')],
+          ['📈 Verðbólga', r.verdb, b0.verdb, '%', (v) => (v > 6 ? '#ff6d7a' : v > 3.5 ? '#f6b13b' : '#46e08a')],
+          ['🚀 Hagvöxtur', r.hagv, b0.hagv, '%', (v) => (v < 0 ? '#ff6d7a' : v < 1.5 ? '#f6b13b' : '#46e08a')],
+          ['👷 Atvinnuleysi', r.atv, b0.atv, '%', (v) => (v > 6 ? '#ff6d7a' : v > 4 ? '#f6b13b' : '#46e08a')],
+          ['🏠 Húsnæðisverð', r.hus, b0.hus, '% á ári', (v) => (v > 12 || v < -5 ? '#ff6d7a' : '#eaf1fb')],
         ];
-        document.getElementById('out').innerHTML = OUT.map(([l, v, u, col]) => `<div class="ot"><div class="l">${l}</div><div class="v" style="color:${col(v)}">${v > 0 && l.includes('Hús') ? '+' : ''}${f1(v)}${u.startsWith('%') ? '%' : ''}</div><div class="d">${u.slice(1) || 'ársbreyting'}</div></div>`).join('');
+        document.getElementById('out').innerHTML = OUT.map(([l, v, base, u, col]) => {
+          const d = Math.round((v - base) * 10) / 10;
+          const delta = d ? `<span class="delta" style="color:${d > 0 ? '#f6b13b' : '#19d3c5'}">${d > 0 ? '▲' : '▼'} ${f1(Math.abs(d))} pp</span>` : '';
+          return `<div class="ot"><div class="l">${l}</div><div class="v" style="color:${col(v)}">${v > 0 && l.includes('Hús') ? '+' : ''}${f1(v)}${u.startsWith('%') ? '%' : ''}${delta}</div><div class="d">${u.slice(1) || 'ársbreyting'} · grunnur ${f1(base)}%</div></div>`;
+        }).join('');
         HERMIR.drivers.forEach((x) => { const b = document.getElementById('v-' + x.k); if (b) b.textContent = f1(st[x.k]) + (x.u || ''); });
       };
       box.innerHTML = HERMIR.drivers.map((x) => `<div class="sl"><div class="sl-t"><span>${x.e} ${x.l}</span><b id="v-${x.k}"></b></div><input type="range" data-k="${x.k}" min="${x.min}" max="${x.max}" step="${x.step}" value="${x.n}"></div>`).join('');
@@ -84,13 +93,20 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
       pr.innerHTML = presets.map((p, i) => `<button data-i="${i}">${p.e || ''} ${p.l}</button>`).join('');
       pr.querySelectorAll('button').forEach((b) => {
         b.onclick = () => {
+          pr.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
           const p = presets[+b.dataset.i];
           Object.keys(p.v || {}).forEach((k) => { st[k] = p.v[k]; const inp = box.querySelector(`input[data-k="${k}"]`); if (inp) inp.value = p.v[k]; });
           paint();
         };
       });
+      const rst = document.getElementById('hm-reset');
+      if (rst) rst.onclick = () => {
+        pr.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
+        HERMIR.drivers.forEach((x) => { st[x.k] = x.n; const inp = box.querySelector(`input[data-k="${x.k}"]`); if (inp) inp.value = x.n; });
+        paint();
+      };
       paint();
     }
-    document.addEventListener('astro:page-load', initHermir);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="hermir"]')) initHermir(); });
   </script>
 </Layout>

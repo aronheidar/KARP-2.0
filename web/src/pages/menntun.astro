@@ -55,7 +55,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
 ---
 
 <Layout title="Menntun — menntunarstaða þjóðar | Karp" description={desc} canonical="https://app.karp.is/menntun/" jsonLd={jsonLd} ogTitle="Menntun á Íslandi">
-  <main>
+  <main data-pg="menntun">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Menntun</h1>
     <p>Menntunarstaða fólks á vinnualdri (25–64 ára) eftir ISCED-stigum — hlutfallsleg skipting og munur kynjanna. Heimild: Hagstofa Íslands.</p>
@@ -145,6 +145,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="menntun"]')) initCharts(); });
   </script>
 </Layout>

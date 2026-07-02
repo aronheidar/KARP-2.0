@@ -12,7 +12,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline:
 ---
 
 <Layout title="EES / EFTA — Ísland og innri markaðurinn | Karp" description={desc} canonical="https://app.karp.is/ees/" jsonLd={jsonLd} ogTitle="EES / EFTA">
-  <main>
+  <main data-pg="ees">
     <p class="kicker">Hagvísir Íslands · Útlönd</p>
     <h1>EES / EFTA</h1>
     <p>Í gegnum EES-samninginn (1994) er Ísland hluti af <strong>innri markaði ESB</strong> — fjórfrelsið (vörur, þjónusta, fjármagn, fólk) gildir hér — án þess að vera aðildarríki sambandsins.</p>
@@ -77,6 +77,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline:
         })
         .catch(fail);
     }
-    document.addEventListener('astro:page-load', initEes);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="ees"]')) initEes(); });
   </script>
 </Layout>

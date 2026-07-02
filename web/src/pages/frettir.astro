@@ -15,13 +15,21 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 ---
 
 <Layout title="Vöktun — fjölmiðlaumfjöllun | Karp" description={desc} canonical="https://app.karp.is/frettir/" ogTitle="Fjölmiðlavöktun Karp">
-  <main>
+  <main data-pg="frettir">
     <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
     <h1>Vöktun</h1>
     <div class="tabs"><button class="tab on" data-t="mal">📰 Eftir málefni</button><button class="tab" data-t="fyr">🏢 Eftir fyrirtæki</button></div>
 
     <section id="p-mal">
       <p>Nýjustu fyrirsagnir íslenskra miðla — uppfærast stöðugt. Aðeins fyrirsagnir og hlekkir; efnið er hjá miðlunum.</p>
+      <div class="chips" id="efni-chips">
+        <button class="chip on" data-e="">Allt</button>
+        <button class="chip" data-e="efnahagur">💹 Efnahagur &amp; viðskipti</button>
+        <button class="chip" data-e="stjornmal">🏛️ Stjórnmál</button>
+        <button class="chip" data-e="sveitarfelog">🏘️ Sveitarfélög</button>
+        <button class="chip" data-e="althjoda">🌍 Alþjóða &amp; NATO</button>
+        <button class="chip" data-e="samfelag">👥 Samfélag</button>
+      </div>
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
     </section>
 
@@ -70,6 +78,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     #co-detail .d-t { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 7px 11px; font-size: 12px; color: #9fb0c8; }
     #co-detail .d-t b { color: #eaf1fb; font-size: 14px; }
     #co-detail .d-t b.up { color: #46e08a; } #co-detail .d-t b.dn { color: #ff6d7a; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .chip:hover { color: #f6b13b; border-color: #f6b13b; }
+    .chip.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
+    #co-detail .d-sbar { display: flex; height: 9px; border-radius: 5px; overflow: hidden; margin: 2px 0 10px; }
+    #co-detail .d-sbar i { display: block; height: 100%; }
+    #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
+    #co-detail #d-tl { width: 100%; height: 170px; }
+    #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
+    #co-detail .d-w { color: #cdd6e6; }
+    #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
   </style>
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
@@ -85,11 +104,30 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         : `<div class="live-empty">${emptyMsg}</div>`;
     };
     const OFFLINE = 'Fyrirsagnir birtast á app.karp.is (CORS-varinn endapunktur).';
+    const API = 'https://www.karp.is/wp-json/karp/v1';
+    function withEcharts(fn) {
+      if (window.echarts) { fn(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', fn, { once: true });
+    }
     function initFrettir() {
       const list = document.getElementById('live-list');
       if (!list || list.dataset.done) return;
       list.dataset.done = '1';
-      fetch('https://karp.is/wp-json/karp/v1/frettir').then((r) => (r.ok ? r.json() : [])).then((d) => paint(list, d, 'Engar fyrirsagnir í augnablikinu.')).catch(() => paint(list, [], OFFLINE));
+      // Málefnis-flísar: /frettir?efni=X (LOTA 12)
+      const loadMal = (efni) => {
+        list.innerHTML = 'Sæki fyrirsagnir…';
+        fetch(API + '/frettir' + (efni ? '?efni=' + encodeURIComponent(efni) : ''))
+          .then((r) => (r.ok ? r.json() : [])).then((d) => paint(list, d, 'Engar fyrirsagnir í þessum flokki í augnablikinu.')).catch(() => paint(list, [], OFFLINE));
+      };
+      document.querySelectorAll('#efni-chips .chip').forEach((ch) => {
+        ch.onclick = () => {
+          document.querySelectorAll('#efni-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
+          loadMal(ch.dataset.e);
+        };
+      });
+      loadMal('');
       // Flipar
       document.querySelectorAll('.tab').forEach((t) => {
         t.onclick = () => {
@@ -98,7 +136,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           document.getElementById('p-fyr').hidden = t.dataset.t !== 'fyr';
         };
       });
-      // Fyrirtæki
+      // Fyrirtæki: /firma → viðhorf + tímalína + orðaský + skjalasafn (LOTA 12)
       const COS = JSON.parse(document.getElementById('d-cos').textContent);
       const det = document.getElementById('co-detail');
       const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -107,16 +145,54 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           const c = COS[+b.dataset.i];
           det.hidden = false;
           const tiles = [];
-          if (c.sent) tiles.push(`<span class="d-t">Viðhorf: <b class="${c.sent.idx > 15 ? 'up' : c.sent.idx < -15 ? 'dn' : ''}">${c.sent.idx > 0 ? '+' : ''}${c.sent.idx}</b> · ${c.sent.n} fyrirsagnir</span>`);
           if (c.rv) { if (c.rv.mcap) tiles.push(`<span class="d-t">Markaðsvirði: <b>${th(c.rv.mcap / 1e9)} ma</b></span>`); if (c.rv.pe != null) tiles.push(`<span class="d-t">V/H: <b>${String(c.rv.pe).replace('.', ',')}</b></span>`); if (c.rv.pb != null) tiles.push(`<span class="d-t">V/I: <b>${String(c.rv.pb).replace('.', ',')}</b></span>`); }
-          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-tiles">${tiles.join('')}</div><div class="d-list">Sæki umfjöllun…</div>`;
+          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-tiles" id="d-tiles">${tiles.join('')}</div><div class="d-more"></div><div class="d-list">Sæki umfjöllun…</div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          const dl = det.querySelector('.d-list');
-          fetch('https://karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(c.a.join(',')))
-            .then((r) => (r.ok ? r.json() : [])).then((d) => paint(dl, d, 'Engin nýleg umfjöllun fannst.')).catch(() => paint(dl, [], OFFLINE));
+          const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more'), dt = det.querySelector('#d-tiles');
+          fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((f) => {
+              if (!f || !f.ready) { paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
+              const se = f.sentiment || {};
+              const extra = [];
+              if (se.scored) {
+                const tone = se.idx > 15 ? ['jákvæð', 'up'] : se.idx < -15 ? ['neikvæð', 'dn'] : ['hlutlaus', ''];
+                extra.push(`<span class="d-t">Viðhorf: <b class="${tone[1]}">${se.idx > 0 ? '+' : ''}${se.idx}</b> · ${tone[0]} (${se.scored} fyrirsagnir)</span>`);
+              }
+              extra.push(`<span class="d-t">Umfjöllun: <b>${f.total}</b> fréttir sl. 6 mán</span>`);
+              if (f.stats && f.stats.perDay != null) extra.push(`<span class="d-t">Tíðni: <b>${String(f.stats.perDay).replace('.', ',')}</b> á dag</span>`);
+              if (f.stats && f.stats.sources && f.stats.sources[0]) extra.push(`<span class="d-t">Mest í: <b>${esc9(f.stats.sources[0].s)}</b> (${f.stats.sources[0].n})</span>`);
+              dt.innerHTML = extra.join('') + dt.innerHTML;
+              let mh = '';
+              if (se.pos || se.neu || se.neg) {
+                const tot = (se.pos + se.neu + se.neg) || 1;
+                mh += `<div class="d-sbar" title="jákvætt / hlutlaust / neikvætt"><i style="width:${(se.pos / tot) * 100}%;background:#46e08a"></i><i style="width:${(se.neu / tot) * 100}%;background:#5a6678"></i><i style="width:${(se.neg / tot) * 100}%;background:#ff6d7a"></i></div>`;
+              }
+              if (f.timeline && f.timeline.length > 2) mh += '<div class="d-sec">Umfjöllun yfir tíma (vikur)</div><div id="d-tl"></div>';
+              if (f.words && f.words.length) {
+                const ws = f.words.slice(0, 26), mx = ws[0].n || 1;
+                mh += '<div class="d-sec">Orðaský fyrirsagnanna</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 15)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div>';
+              }
+              mh += '<div class="d-sec">Nýjasta umfjöllunin</div>';
+              dm.innerHTML = mh;
+              paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
+              if (f.timeline && f.timeline.length > 2) withEcharts(() => {
+                const el = document.getElementById('d-tl');
+                if (!el || window.echarts.getInstanceByDom(el)) return;
+                const ch = window.echarts.init(el);
+                ch.setOption({
+                  backgroundColor: 'transparent', grid: { left: 30, right: 8, top: 8, bottom: 20 },
+                  tooltip: { trigger: 'axis', formatter: (ps) => { const p = ps[0]; const t = f.timeline[p.dataIndex]; return `vika ${p.name}<br><b>${t.n}</b> fréttir${t.scored ? ` · tónn ${t.idx > 0 ? '+' : ''}${t.idx}` : ''}`; } },
+                  xAxis: { type: 'category', data: f.timeline.map((t) => t.d.slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+                  yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+                  series: [{ type: 'bar', data: f.timeline.map((t) => ({ value: t.n, itemStyle: { color: t.scored ? (t.idx > 15 ? '#46e08a' : t.idx < -15 ? '#ff6d7a' : '#5a6678') : '#42506a', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 18 }],
+                });
+              });
+            })
+            .catch(() => paint(dl, [], OFFLINE));
         };
       });
     }
-    document.addEventListener('astro:page-load', initFrettir);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) initFrettir(); });
   </script>
 </Layout>

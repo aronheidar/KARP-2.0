@@ -30,7 +30,7 @@ const updated = '2026-07-02';
 const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir farþegar um Keflavík í ' + kefL.t : 'farþegar og gistinætur'}${gistL ? ' og ' + String(gistL.v).replace('.', ',') + ' millj. gistinætur á ári' : ''}. Lifandi frá Hagstofu.`;
 ---
 <Layout title="Ferðaþjónusta | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/ferdathjonusta/" ogTitle="Ferðaþjónusta">
-  <main>
+  <main data-pg="atvinnuvegir-ferdathjonusta">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Ferðaþjónusta 🧳</h1>
     <p>Stærsta gjaldeyrislind þjóðarinnar — erlendir farþegar um Keflavík og gistinætur um allt land. Sjá einnig <a href="/umferd/">Umferð</a>.</p>
@@ -88,6 +88,6 @@ const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initAtv);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="atvinnuvegir-ferdathjonusta"]')) initAtv(); });
   </script>
 </Layout>

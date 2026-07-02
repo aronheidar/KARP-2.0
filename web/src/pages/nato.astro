@@ -25,7 +25,7 @@ const jsonLd = {
 ---
 
 <Layout title="Utanríkis & varnir | Karp" description={desc} canonical="https://app.karp.is/nato/" jsonLd={jsonLd} ogTitle="Utanríkismál Íslands">
-  <main>
+  <main data-pg="nato">
     <p class="kicker">Hagvísir Íslands · Útlönd</p>
     <h1>NATO</h1>
     <p>Varnarútgjöld NATO-ríkja og sendiráðanet Íslands. {overTarget} af {rikin.length} ríkjum náðu 2%-markmiðinu {natoYear}.</p>
@@ -92,6 +92,6 @@ const jsonLd = {
       function fmt(v) { return (Math.round(v * 100) / 100).toString().replace('.', ',') + '%'; }
       window.addEventListener('resize', () => c.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="nato"]')) initChart(); });
   </script>
 </Layout>

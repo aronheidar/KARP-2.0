@@ -8,6 +8,18 @@ import Layout from '../layouts/Layout.astro';
 import { fmtNum } from '@lib/format.mjs';
 import MARKADIR from '@gogn/markadir.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
+import SENTIMENT from '@gogn/sentiment.json';
+import FYRIRTAEKI from '../data/fyrirtaeki.json';
+
+// Gengi + rafmyntir + málmar: live-endpoint sótt á BYGGINGARTÍMA (bakað upphafsgildi),
+// eyjan endurhleður svo í vafra (CORS er opið fyrir app.karp.is). Þolir bilun.
+let LIVEMK = null;
+try {
+  const r = await fetch('https://www.karp.is/wp-json/karp/v1/markadir');
+  if (r.ok) LIVEMK = await r.json();
+} catch (e) { LIVEMK = null; }
+const FX = (LIVEMK && LIVEMK.fx) || [];
+const CRYPTO = [...((LIVEMK && LIVEMK.crypto) || []), ...((LIVEMK && LIVEMK.metals) || [])];
 
 const indices = MARKADIR.indices || [];
 const stocks = (MARKADIR.stocks || []).slice().sort((a, b) => (b.chgPct || 0) - (a.chgPct || 0));
@@ -25,15 +37,23 @@ const stk = stocks.map((s) => ({ ...s, pts: sparkPts(s.hist), up: (s.chgPct || 0
 
 const chartYears = [...new Set([...bondNom, ...bondIdx].map((b) => b.yr))].sort((a, b) => a - b);
 
-// Modal-gögn: OHLC (60 d) + velta + kennitölur (raunvirdi.json) per félag — bakað.
+// Modal-gögn: OHLC (60 d) + velta + kennitölur (raunvirdi.json) + VIÐHORF (sentiment.json,
+// varpað sym→fyrirtæki um fyrirtaeki.json t-sviðið) per félag — bakað.
 const RV = RAUNVIRDI.companies || {};
+const SENTC = SENTIMENT.companies || {};
+const symToCo = {};
+FYRIRTAEKI.forEach((f) => { if (f.t) symToCo[f.t] = f.n; });
 const STOCKDATA = {};
 stocks.forEach((s) => {
   const rv = RV[s.sym] || null;
+  const co = symToCo[s.sym] || s.name;
+  const se = SENTC[co] || null;
   STOCKDATA[s.sym] = {
     name: s.name, cur: s.cur || 'ISK', price: s.price, chgPct: s.chgPct,
     dates: s.dates || [], ohlc: s.ohlc || [], vol: s.vol || [],
     rv: rv ? { mcap: rv.mcap, pe: rv.pe, pb: rv.pb, bvps: rv.bvps, roe: rv.roe } : null,
+    co,
+    sent: se ? { idx: se.idx, n: se.n, pos: se.pos, neu: se.neu, neg: se.neg, recent: (se.recent || []).slice(0, 4).map((x) => ({ t: x.t, l: x.l, s: x.s })) } : null,
   };
 });
 const chg = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 2) + '%');
@@ -45,7 +65,7 @@ const jsonLd = {
 ---
 
 <Layout title="Markaðir — hlutabréf & ríkisbréf | Karp" description={desc} canonical="https://app.karp.is/markadir/" jsonLd={jsonLd} ogTitle="Markaðir á Íslandi">
-  <main>
+  <main data-pg="markadir">
     <p class="kicker">Hagvísir Íslands · Markaðir</p>
     <h1>Markaðir</h1>
     <p>Íslenskur hlutabréfamarkaður — úrvalsvísitala, {stocks.length} skráð félög og ávöxtunarferill ríkisbréfa.</p>
@@ -73,7 +93,7 @@ const jsonLd = {
       ))}
     </div>
 
-    <!-- Modal: kertarit + kennitölur (fyllt á keyrslutíma) -->
+    <!-- Modal: kertarit + kennitölur + umfjöllun & viðhorf (fyllt á keyrslutíma) -->
     <div id="stk-modal" hidden>
       <div class="stk-back"></div>
       <div class="stk-box">
@@ -81,10 +101,40 @@ const jsonLd = {
         <div class="stk-head"><span id="stk-sym"></span><span id="stk-name"></span></div>
         <div id="stk-tiles" class="stk-tiles"></div>
         <div id="stk-chart"></div>
+        <div id="stk-sent"></div>
         <a id="stk-yh" class="stk-yh" target="_blank" rel="noopener">Skoða á Yahoo Finance ↗</a>
       </div>
     </div>
     <script type="application/json" id="d-stocks" set:html={JSON.stringify(STOCKDATA)}></script>
+
+    <div class="ppair">
+      <div>
+        <h2>💱 Gengi krónunnar <span class="hint" id="fx-note">— {LIVEMK ? 'lifandi' : 'töfð'} gögn</span></h2>
+        <div id="fx-grid" class="mini-grid">
+          {FX.map((c) => (
+            <div class="mini" data-sym={c.sym}>
+              <div class="mini-top"><span class="mini-n">{c.name}</span><span class={`mini-ch ${(c.chgPct || 0) >= 0 ? 'up' : 'dn'}`}>{chg(c.chgPct)}</span></div>
+              {sparkPts(c.hist) && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={sparkPts(c.hist)} fill="none" stroke={(c.chgPct || 0) >= 0 ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
+              <div class="mini-p">{fmtNum(c.price, 2)} <span>kr</span></div>
+            </div>
+          ))}
+          {FX.length === 0 && <p class="src">Náði ekki í gengisgögn við byggingu — birtast við næstu uppfærslu.</p>}
+        </div>
+      </div>
+      <div>
+        <h2>₿ Rafmyntir &amp; eðalmálmar <span class="hint">— verð í USD</span></h2>
+        <div id="cr-grid" class="mini-grid">
+          {CRYPTO.map((c) => (
+            <div class="mini" data-sym={c.sym}>
+              <div class="mini-top"><span class="mini-n">{c.name}</span><span class={`mini-ch ${(c.chgPct || 0) >= 0 ? 'up' : 'dn'}`}>{chg(c.chgPct)}</span></div>
+              {sparkPts(c.hist) && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={sparkPts(c.hist)} fill="none" stroke={(c.chgPct || 0) >= 0 ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
+              <div class="mini-p">{fmtNum(c.price, c.price > 1000 ? 0 : 2)} <span>$</span></div>
+            </div>
+          ))}
+          {CRYPTO.length === 0 && <p class="src">Náði ekki í rafmyntagögn við byggingu.</p>}
+        </div>
+      </div>
+    </div>
 
     {chartYears.length > 0 && (
       <>
@@ -121,6 +171,15 @@ const jsonLd = {
     .st-price { font-size: 15px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
     .st-price span { font-size: 11px; color: #7e8ca6; font-weight: 400; }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    .mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .mini { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 11px; }
+    .mini-top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+    .mini-n { font-size: 11px; color: #9fb0c8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-ch { font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .mini-p { font-size: 15px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .mini-p span { font-size: 10.5px; color: #7e8ca6; font-weight: 400; }
     #chart { width: 100%; height: 340px; margin: 4px 0; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
@@ -144,6 +203,17 @@ const jsonLd = {
     #stk-chart { width: 100%; height: 380px; }
     .stk-yh { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #9fb0c8; }
     .stk-yh:hover { color: #f6b13b; }
+    .stk-sec { font-size: 13px; font-weight: 800; color: #f6b13b; text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 6px; }
+    .stk-sec2 { font-size: 11px; font-weight: 700; color: #19d3c5; text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 4px; }
+    .stk-tone { text-transform: none; letter-spacing: 0; font-size: 12px; }
+    .stk-tn { text-transform: none; letter-spacing: 0; font-size: 11.5px; color: #7e8ca6; font-weight: 400; }
+    .stk-sbar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 4px 0 8px; }
+    .stk-sbar i { display: block; height: 100%; }
+    .stk-news { display: block; font-size: 12.5px; color: #cdd6e6; text-decoration: none; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); line-height: 1.35; }
+    .stk-news:hover { color: #f6b13b; }
+    .stk-ns { margin-right: 6px; font-size: 10.5px; }
+    .stk-nd { margin-left: 8px; font-size: 10.5px; color: #7e8ca6; }
+    .stk-livewrap { margin-top: 4px; }
   </style>
 
   <!-- Eyja: stock-modal (kertarit + MA + velta + kennitölur). #2 -->
@@ -174,6 +244,39 @@ const jsonLd = {
         lo60 != null && { l: '60d lægst/hæst', v: f1(lo60, 1) + ' / ' + f1(hi60, 1) },
       ].filter(Boolean);
       $id('stk-tiles').innerHTML = tiles.map((t) => `<div class="stk-t"><div class="l">${t.l}</div><div class="v ${t.c || ''}">${t.v}</div></div>`).join('');
+      // ── Umfjöllun & viðhorf (LOTA 12): bakað sentiment + lifandi fyrirsagnir ──
+      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const safeHref = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
+      const sEl = $id('stk-sent');
+      if (sEl) {
+        const se = d.sent;
+        let sh = '<div class="stk-sec">📰 Umfjöllun &amp; viðhorf';
+        if (se && se.n) {
+          const tone = se.idx > 15 ? ['jákvæð', '#46e08a'] : se.idx < -15 ? ['neikvæð', '#ff6d7a'] : ['hlutlaus', '#9fb0c8'];
+          sh += ` <span class="stk-tone" style="color:${tone[1]}">tónn ${se.idx > 0 ? '+' : ''}${se.idx} (${tone[0]})</span> <span class="stk-tn">· ${se.n} fréttir greindar</span>`;
+        }
+        sh += '</div>';
+        if (se && (se.pos || se.neu || se.neg)) {
+          const tot = (se.pos + se.neu + se.neg) || 1;
+          sh += `<div class="stk-sbar"><i style="width:${(se.pos / tot) * 100}%;background:#46e08a"></i><i style="width:${(se.neu / tot) * 100}%;background:#5a6678"></i><i style="width:${(se.neg / tot) * 100}%;background:#ff6d7a"></i></div>`;
+        }
+        if (se && se.recent && se.recent.length) {
+          sh += se.recent.map((x) => `<a class="stk-news" href="${safeHref(x.l)}" target="_blank" rel="noopener"><span class="stk-ns">${x.s > 0 ? '🟢' : x.s < 0 ? '🔴' : '⚪'}</span>${esc(x.t)}</a>`).join('');
+        }
+        sh += '<div id="stk-live" class="stk-livewrap"><span class="stk-tn">Sæki nýjustu umfjöllun…</span></div>';
+        sEl.innerHTML = sh;
+        // Lifandi fyrirsagnir um félagið (frettir-endpoint, {items}-lögun!)
+        fetch('https://www.karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
+          .then((r) => (r.ok ? r.json() : null))
+          .then((res) => {
+            const lv = $id('stk-live');
+            if (!lv) return;
+            const items = Array.isArray(res) ? res : (res && res.items) || [];
+            if (!items.length) { lv.innerHTML = '<span class="stk-tn">Engin nýleg umfjöllun fannst (leitað eftir nafni félagsins).</span>'; return; }
+            lv.innerHTML = '<div class="stk-sec2">Nýjast úr fjölmiðlum</div>' + items.slice(0, 5).map((x) => `<a class="stk-news" href="${safeHref(x.l || x.link)}" target="_blank" rel="noopener"><span class="stk-ns">🗞️</span>${esc(x.t || x.titill || '')}<span class="stk-nd">${esc(x.src || x.m || '')}</span></a>`).join('');
+          })
+          .catch(() => { const lv = $id('stk-live'); if (lv) lv.innerHTML = ''; });
+      }
       m.hidden = false;
       const boot = () => {
         const el = $id('stk-chart');
@@ -225,7 +328,31 @@ const jsonLd = {
       m.querySelector('.stk-back').onclick = stkClose;
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') stkClose(); });
     }
-    document.addEventListener('astro:page-load', initStkModal);
+    // Lifandi endurhleðsla á gengi/rafmyntum/málmum (bökuð gildi uppfærð í vafra)
+    function initLiveMk() {
+      const grid = document.getElementById('fx-grid');
+      if (!grid || grid.dataset.live) return;
+      grid.dataset.live = '1';
+      fetch('https://www.karp.is/wp-json/karp/v1/markadir')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((mk) => {
+          if (!mk) return;
+          const f1 = (v, dg) => (v == null ? '–' : Number(v).toFixed(dg).replace('.', ','));
+          const all = [...(mk.fx || []), ...(mk.crypto || []), ...(mk.metals || [])];
+          all.forEach((c) => {
+            const el = document.querySelector(`.mini[data-sym="${c.sym.replace(/"/g, '')}"]`);
+            if (!el) return;
+            const p = el.querySelector('.mini-p'), ch = el.querySelector('.mini-ch');
+            const usd = /USD$|=F$/.test(c.sym) && c.cur === 'USD';
+            if (p) p.innerHTML = f1(c.price, c.price > 1000 ? 0 : 2) + ' <span>' + (usd ? '$' : 'kr') + '</span>';
+            if (ch) { ch.textContent = (c.chgPct > 0 ? '+' : '') + f1(c.chgPct, 2) + '%'; ch.className = 'mini-ch ' + (c.chgPct >= 0 ? 'up' : 'dn'); }
+          });
+          const note = document.getElementById('fx-note');
+          if (note) note.textContent = '— 🟢 lifandi gögn';
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) { initStkModal(); initLiveMk(); } });
   </script>
 
   <!-- Eyja: ávöxtunarferill (ECharts), astro:page-load. #2 -->
@@ -256,6 +383,6 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) initChart(); });
   </script>
 </Layout>

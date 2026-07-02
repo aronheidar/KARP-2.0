@@ -8,7 +8,7 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
 ---
 
 <Layout title="Karp-kannanir | Karp" description={desc} canonical="https://app.karp.is/karp-kannanir/" ogTitle="Karp-kannanir">
-  <main>
+  <main data-pg="karp-kannanir">
     <p class="kicker">Hagvísir Íslands · Kannanir</p>
     <h1>Karp-kannanir 🗳️</h1>
     <p>Púls lesenda Karp — kjóstu og sjáðu niðurstöðurnar um leið. Sjá einnig <a href="/kannanir/">fylgi flokkanna</a> í opinberum könnunum.</p>
@@ -84,6 +84,6 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
         paintPolls(root, (d && d.polls) || [], u);
       });
     }
-    document.addEventListener('astro:page-load', initKn);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="karp-kannanir"]')) initKn(); });
   </script>
 </Layout>

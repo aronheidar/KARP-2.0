@@ -50,7 +50,7 @@ const jsonLd = {
 ---
 
 <Layout title={`Ríkisfjármál ${ar} — tekjur & útgjöld | Karp`} description={desc} canonical="https://app.karp.is/rikisfjarmal/" jsonLd={jsonLd} ogTitle={`Ríkisfjármál ${ar}`}>
-  <main>
+  <main data-pg="rikisfjarmal">
     <p class="kicker">Hagvísir Íslands · Ríkisfjármál</p>
     <h1>Ríkisfjármál {ar}</h1>
     <p>Fjárlög {ar} — heildartekjur og útgjöld A1-hluta ríkissjóðs. Stærsti útgjaldaflokkur: <strong>{topUtg?.label}</strong> ({ma(topUtg?.v)} ma.kr). Heimild: Frumvarp til fjárlaga.</p>
@@ -170,6 +170,6 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="rikisfjarmal"]')) initCharts(); });
   </script>
 </Layout>

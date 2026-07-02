@@ -84,7 +84,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
 ---
 
 <Layout title="Hagvöxtur — VLF & þjóðhagsreikningar | Karp" description={desc} canonical="https://app.karp.is/hagvoxtur/" jsonLd={jsonLd} ogTitle="Hagvöxtur á Íslandi">
-  <main>
+  <main data-pg="hagvoxtur">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Hagvöxtur</h1>
     <p>Verg landsframleiðsla (VLF) — magnbreyting frá fyrra ári, samsetning eftirspurnar og staða Íslands meðal Norðurlanda. Heimildir: Hagstofa Íslands, Alþjóðabankinn.</p>
@@ -189,6 +189,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="hagvoxtur"]')) initCharts(); });
   </script>
 </Layout>

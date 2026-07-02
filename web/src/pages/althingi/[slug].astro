@@ -49,7 +49,7 @@ const jsonLd = {
   ogType="profile"
   ogImage={m.mynd || ''}
 >
-  <main style={`--pc:${color}`}>
+  <main data-pg="althingi-slug" style={`--pc:${color}`}>
     <a class="back" href="/althingi/">← Sætaspá Alþingis</a>
     <div class="hero">
       {m.mynd && <img src={m.mynd} alt={m.nafn} loading="lazy" onerror="this.style.display='none'" />}
@@ -140,6 +140,6 @@ const jsonLd = {
       }
       loadUser().then(render);
     }
-    document.addEventListener('astro:page-load', initFollow);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi-slug"]')) initFollow(); });
   </script>
 </Layout>

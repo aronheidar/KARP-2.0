@@ -34,7 +34,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
 ---
 
 <Layout title="Umferð — flug & vegir | Karp" description={desc} canonical="https://app.karp.is/umferd/" jsonLd={jsonLd} ogTitle="Umferð á Íslandi">
-  <main>
+  <main data-pg="umferd">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Umferð</h1>
     <p>Farþegar um Keflavíkurflugvöll (allir farþegar, mánaðarlega) og lifandi vegaumferð af teljurum Vegagerðarinnar. Heimildir: Hagstofa, Vegagerðin.</p>
@@ -111,7 +111,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       });
       window.addEventListener('resize', () => c.resize());
     }
-    document.addEventListener('astro:page-load', initKef);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="umferd"]')) initKef(); });
   </script>
 
   <!-- Eyja: lifandi vegaumferð (proxy). Felst ef ekki tiltækt. #2 -->
@@ -137,6 +137,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
         })
         .catch(() => {});
     }
-    document.addEventListener('astro:page-load', initVeg);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="umferd"]')) initVeg(); });
   </script>
 </Layout>

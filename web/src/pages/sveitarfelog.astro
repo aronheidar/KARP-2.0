@@ -79,7 +79,7 @@ const jsonLd = {
   jsonLd={jsonLd}
   ogTitle="Sveitarfélaga-vísitala Íslands"
 >
-  <main>
+  <main data-pg="sveitarfelog">
     <p class="kicker">Hagvísir Íslands · Sveitarfélög</p>
     <h1>Sveitarfélaga-vísitala</h1>
     <p>
@@ -194,6 +194,6 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="sveitarfelog"]')) initChart(); });
   </script>
 </Layout>

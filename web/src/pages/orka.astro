@@ -34,7 +34,7 @@ const jsonLd = {
 ---
 
 <Layout title="Orka — raforkuframleiðsla | Karp" description={desc} canonical="https://app.karp.is/orka/" jsonLd={jsonLd} ogTitle="Raforka á Íslandi">
-  <main>
+  <main data-pg="orka">
     <p class="kicker">Hagvísir Íslands · Orka</p>
     <h1>Raforka á Íslandi</h1>
     <p>Raforkuframleiðsla árið {latest.y} var <strong>{groupThousands(Math.round(latest.total))} GWh</strong> — {fmtNum(renew, 2)}% endurnýjanleg. Heimild: Orkustofnun.</p>
@@ -130,7 +130,7 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="orka"]')) initCharts(); });
   </script>
 
   <!-- Eyja: lifandi framleiðsla (Landsnet gegnum karp-orka.php proxy). Felst ef ekki tiltækt (CORS/localhost). #2 -->
@@ -157,6 +157,6 @@ const jsonLd = {
         })
         .catch(() => {});
     }
-    document.addEventListener('astro:page-load', initLive);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="orka"]')) initLive(); });
   </script>
 </Layout>

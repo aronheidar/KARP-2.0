@@ -188,7 +188,7 @@ const jsonLd = {
   jsonLd={jsonLd}
   ogTitle={`Verðbólga á Íslandi — ${latestPct}%`}
 >
-  <main>
+  <main data-pg="verdlag">
     <p class="kicker">Hagvísir Íslands · Verðlag</p>
     <h1>Verðlag</h1>
     <div class="big">{latestPct}%{latest && <span>ársverðbólga · {monthLabel(latest.t)}</span>}</div>
@@ -420,7 +420,7 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initChart(); });
   </script>
 
   <!-- Eyja: uppruni verðbólgu + neyslukarfa + gengi (þrjú gröf). #2 -->
@@ -476,7 +476,7 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initExtra);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initExtra(); });
   </script>
 
   <!-- Eyja: spá-leikur (auðkennd umferð gegnum auth.js: karpGet/karpPost). #2 Á5 -->
@@ -512,7 +512,7 @@ const jsonLd = {
       }
       loadUser().then(render);
     }
-    document.addEventListener('astro:page-load', initSpa);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initSpa(); });
   </script>
   <!-- Eyja: tvö súlurit + Borgaradar, astro:page-load. #2 -->
   <script define:vars={{ colBars, ppBars, RADAR }}>
@@ -553,6 +553,6 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="verdlag"]')) initCharts(); });
   </script>
 </Layout>

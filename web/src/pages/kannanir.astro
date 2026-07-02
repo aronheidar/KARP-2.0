@@ -66,7 +66,7 @@ const jsonLd = {
   jsonLd={jsonLd}
   ogTitle="Kannanir — fylgi flokka á Íslandi"
 >
-  <main>
+  <main data-pg="kannanir">
     <p class="kicker">Hagvísir Íslands · Kannanir</p>
     <h1>Fylgi flokka í könnunum</h1>
     <p>
@@ -166,6 +166,6 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="kannanir"]')) initChart(); });
   </script>
 </Layout>

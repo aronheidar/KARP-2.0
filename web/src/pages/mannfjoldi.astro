@@ -65,7 +65,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
 ---
 
 <Layout title="Mannfjöldi — íbúar & fólksfjölgun | Karp" description={desc} canonical="https://app.karp.is/mannfjoldi/" jsonLd={jsonLd} ogTitle="Mannfjöldi á Íslandi">
-  <main>
+  <main data-pg="mannfjoldi">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Mannfjöldi</h1>
     <p>Íbúafjöldi, hvað knýr fólksfjölgunina — aðfluttir umfram brottflutta eða fæddir umfram dána — og hlutfall innflytjenda. Heimild: Hagstofa Íslands.</p>
@@ -176,6 +176,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="mannfjoldi"]')) initCharts(); });
   </script>
 </Layout>

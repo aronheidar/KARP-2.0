@@ -85,6 +85,13 @@ Object.keys(REGBOX).forEach((n) => {
   REGZOOM[n] = { c: [(b[0] + b[1]) / 2, (b[2] + b[3]) / 2], z: Math.max(1.6, Math.min(4.5, z)) };
 });
 
+// Kökurit Ríkisflæðis (LOTA 12): jöfnunar-flokkarnir (heild) bakaðir.
+const JOFNCATS = (JOFNUN.catLabels || [])
+  .map((l, i) => ({ l, v: Math.round(((JOFNUN.cats || [])[i] || 0) / 1e6) }))
+  .filter((x) => x.v > 0)
+  .sort((a, b) => b.v - a.v);
+const JOFNYEAR = JOFNUN.ar || '';
+
 const updated = '2026-07-01';
 const desc = 'Gagnvirkt Íslandskort — öll 61 sveitarfélög lituð eftir vísitölu, lífsgæðum, atvinnuleysi, húsnæðisverði, fjármálum og fleiru. Smelltu á sveitarfélag fyrir nánari síðu.';
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Íslandskort — hagvísar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
@@ -98,7 +105,7 @@ const MODEGROUPS = [
 ---
 
 <Layout title="Íslandskortið — hagvísar sveitarfélaga | Karp" description={desc} canonical="https://app.karp.is/kort/" jsonLd={jsonLd} ogTitle="Íslandskortið">
-  <main>
+  <main data-pg="kort">
     <p class="kicker">Hagvísir Íslands · Kort</p>
     <h1>Íslandskortið</h1>
     <p>Veldu hvaða upplýsingar lita kortið — smelltu á <strong>sveitarfélag</strong> fyrir nánari síðu, eða á <strong>landshluta</strong> til að þysja inn.</p>
@@ -118,6 +125,13 @@ const MODEGROUPS = [
       <div id="map-scale" class="scale"></div>
     </div>
 
+    <!-- Ríkisflæðis-kökuritið (LOTA 12): birtist í stadgr/jofnun-ham -->
+    <div id="flow-wrap" hidden>
+      <h2 id="flow-title"></h2>
+      <div id="flow-pie"></div>
+      <p class="src" id="flow-src"></p>
+    </div>
+
     <p class="note">ⓘ Punktastærð fylgir íbúafjölda. Afbrot eru eftir landshluta (lögregluumdæmi) — öll sveitarfélög innan landshluta fá sama gildi. Reiknað á byggingartíma úr opinberum gögnum (Hagstofa, Samband ísl. sveitarfélaga, VMST, Ríkislögreglustjóri, HMS).</p>
     <p class="foot">Forþjónað (SSG) {updated}. Landshlutamörk + hnit bökuð; sama reiknilíkan og <a href="/sveitarfelog/">Sveitarfélaga-vísitalan</a>. #2.</p>
   </main>
@@ -126,6 +140,7 @@ const MODEGROUPS = [
   <script type="application/json" id="d-reg" set:html={JSON.stringify(REGIONGEO)}></script>
   <script type="application/json" id="d-munis" set:html={JSON.stringify(MUNIS)}></script>
   <script type="application/json" id="d-zoom" set:html={JSON.stringify(REGZOOM)}></script>
+  <script type="application/json" id="d-jofncats" set:html={JSON.stringify({ ar: JOFNYEAR, cats: JOFNCATS })}></script>
 
   <style>
     main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
@@ -143,6 +158,9 @@ const MODEGROUPS = [
     #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: rgba(9,14,26,.9); border: 1px solid rgba(255,255,255,.2); color: #eaf1fb; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .scale { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: #9fb0c8; background: rgba(9,14,26,.75); border-radius: 7px; padding: 5px 10px; }
     .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    #flow-wrap h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+    #flow-pie { width: 100%; height: 380px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
     @media (max-width: 640px) { #map { height: 420px; } .mg-l { width: 100%; } }
@@ -221,12 +239,70 @@ const MODEGROUPS = [
       }
       const geoRegions = (REG.features || []).map((f) => { const nm = f.properties.name, base = REGCOL[nm] || 'rgba(255,255,255,.05)'; return { name: nm, itemStyle: { areaColor: base }, emphasis: { itemStyle: { areaColor: base.replace(/[\d.]+\)\s*$/, '0.42)') } } }; });
 
+      // ── Ríkisflæði (LOTA 12): örvar milli sveitarfélaga og Reykjavíkur + kökurit ──
+      const RVKU = MUNIS.find((u) => u.n === 'Reykjavíkurborg');
+      const RVK = RVKU ? [RVKU.lng, RVKU.lat] : [-21.9, 64.13];
+      function flowData() {
+        if (mode !== 'stadgr' && mode !== 'jofnun') return [];
+        const toState = mode === 'stadgr';
+        const col = toState ? '#f6b13b' : '#19d3c5';
+        const vals = MUNIS.map((u) => u.v[mode]).filter((v) => v != null && v > 0);
+        const mx = Math.max(...vals, 1);
+        return MUNIS.filter((u) => u.v[mode] != null && u.v[mode] > 0 && u.n !== 'Reykjavíkurborg').map((u) => ({
+          coords: toState ? [[u.lng, u.lat], RVK] : [RVK, [u.lng, u.lat]],
+          nafn: u.n, vTxt: fmtV(mode, u.v[mode]),
+          lineStyle: { width: 0.5 + Math.sqrt(u.v[mode] / mx) * 3.6, color: col, opacity: 0.42, curveness: 0.28 },
+        }));
+      }
+      let flowPie = null;
+      function paintFlow() {
+        const wrap = $('flow-wrap');
+        const on = mode === 'stadgr' || mode === 'jofnun';
+        if (wrap) wrap.hidden = !on;
+        chart.setOption({ series: [{ name: 'flows', data: flowData() }] });
+        if (!on) return;
+        const title = $('flow-title'), src = $('flow-src'), pieEl = $('flow-pie');
+        let data, sub;
+        if (mode === 'stadgr') {
+          const rows = MUNIS.filter((u) => u.v.stadgr != null && u.v.stadgr > 0).sort((a, b) => b.v.stadgr - a.v.stadgr);
+          const top = rows.slice(0, 8), rest = rows.slice(8).reduce((a, u) => a + u.v.stadgr, 0);
+          data = top.map((u) => ({ name: u.n, value: u.v.stadgr })).concat(rest > 0 ? [{ name: 'Önnur sveitarfélög', value: Math.round(rest * 10) / 10, itemStyle: { color: '#42506a' } }] : []);
+          if (title) title.textContent = '💰 Hvaðan kemur staðgreiðslan? — skipting eftir sveitarfélögum';
+          sub = 'Staðgreiðsla í ríkissjóð eftir sveitarfélagi (ma.kr, nýjasta ár). Örvarnar á kortinu sýna flæðið til ríkisins.';
+        } else {
+          const JC = J('d-jofncats') || { cats: [] };
+          data = JC.cats.slice(0, 9).map((c) => ({ name: c.l, value: c.v }));
+          if (title) title.textContent = '⚖️ Hvert fer Jöfnunarsjóðurinn? — skipting eftir framlagsflokkum';
+          sub = `Framlög Jöfnunarsjóðs sveitarfélaga ${JC.ar || ''} (m.kr). Örvarnar á kortinu sýna flæðið frá ríkinu út í sveitarfélögin.`;
+        }
+        if (src) src.textContent = sub;
+        if (pieEl) {
+          if (!flowPie || flowPie.getDom() !== pieEl) { try { if (flowPie) flowPie.dispose(); } catch (e) {} flowPie = window.echarts.init(pieEl); }
+          flowPie.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, valueFormatter: (v) => th(v) + (mode === 'stadgr' ? ' ma.kr' : ' m.kr') },
+            series: [{
+              type: 'pie', radius: ['42%', '72%'], center: ['50%', '52%'],
+              label: { color: '#cdd6e6', fontSize: 11, formatter: '{b}\n{d}%' }, labelLine: { lineStyle: { color: 'rgba(255,255,255,.2)' } },
+              itemStyle: { borderColor: '#0b1220', borderWidth: 2 },
+              data,
+            }],
+          }, true);
+        }
+      }
+
       chart.setOption({
         backgroundColor: 'transparent',
         // roam:false — EKKERT músarhjóls-zoom/drag (eins og gamla): þysjun AÐEINS með smelli á landshluta + ↩-takka.
         geo: { map: 'landshlutar', roam: false, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
-        series: [{ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 }],
+        series: [
+          { name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 },
+          { name: 'flows', type: 'lines', coordinateSystem: 'geo', zlevel: 1, silent: false,
+            effect: { show: true, period: 5, symbol: 'arrow', symbolSize: 5.5, trailLength: 0.12 },
+            tooltip: { formatter: (p) => `<b>${p.data.nafn}</b><br>${MODES[mode] ? MODES[mode].l : ''}: <b>${p.data.vTxt}</b>` },
+            data: [] },
+        ],
       });
       scaleTxt();
 
@@ -242,10 +318,11 @@ const MODEGROUPS = [
           mode = b.dataset.m;
           chart.setOption({ series: [{ name: 'munis', data: pointData() }] });
           scaleTxt();
+          paintFlow();
         };
       });
       window.addEventListener('resize', () => chart.resize());
     }
-    document.addEventListener('astro:page-load', initMap);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="kort"]')) initMap(); });
   </script>
 </Layout>

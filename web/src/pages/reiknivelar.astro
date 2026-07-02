@@ -43,7 +43,7 @@ const jsonLd = {
   jsonLd={jsonLd}
   ogTitle="Reiknivélar 2026"
 >
-  <main>
+  <main data-pg="reiknivelar">
     <p class="kicker">Hagvísir Íslands · Reiknivélar</p>
     <h1>Reiknivélar</h1>
 
@@ -203,6 +203,8 @@ const jsonLd = {
     .out .o-bar i { display: block; height: 100%; }
     .out .o-leg { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 11px; color: #9fb0c8; margin-bottom: 12px; }
     .out .o-leg b { color: #eaf1fb; font-weight: 600; }
+    .out .o-chart { width: 100%; height: 235px; }
+    .out .o-chart-tall { height: 265px; }
     .out .o-leg .sw { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
     .out table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .out td { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
@@ -237,6 +239,38 @@ const jsonLd = {
       if (wanted) show(wanted);
     }
 
+    // ── ECharts-hjálpari fyrir reiknivéla-gröfin (LOTA 12): endurnýtir instance, foðrar leka ──
+    window.__rvCharts = window.__rvCharts || {};
+    function rvChart(id, opt) {
+      const node = document.getElementById(id);
+      if (!node) return;
+      const go = () => {
+        const old = window.__rvCharts[id];
+        if (old && old.getDom() !== node) { try { old.dispose(); } catch (e) {} }
+        let inst = window.echarts.getInstanceByDom(node);
+        if (!inst) inst = window.echarts.init(node);
+        window.__rvCharts[id] = inst;
+        inst.setOption(opt, true);
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    function rvDonut(id, segs, centerTxt) {
+      rvChart(id, {
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item', valueFormatter: (v) => kr(v) + ' kr.' },
+        graphic: centerTxt ? [{ type: 'text', left: 'center', top: 'center', style: { text: centerTxt, fill: '#eaf1fb', font: '700 13px Inter, sans-serif', textAlign: 'center' } }] : [],
+        series: [{
+          type: 'pie', radius: ['56%', '80%'], center: ['50%', '50%'], avoidLabelOverlap: true,
+          label: { color: '#9fb0c8', fontSize: 10.5, formatter: '{b}\n{d}%' }, labelLine: { lineStyle: { color: 'rgba(255,255,255,.2)' } },
+          itemStyle: { borderColor: '#0b1220', borderWidth: 2 },
+          data: segs.map((s) => ({ name: s.l, value: Math.round(s.v), itemStyle: { color: s.c } })),
+        }],
+      });
+    }
+
     // ── Laun ──
     function computeLaun(gross, utsvar, sereignPct, felagPct) {
       const lifeyrir = gross * 0.04, sereign = gross * (sereignPct / 100);
@@ -258,7 +292,9 @@ const jsonLd = {
       h += '<div class="o-leg">' + seg.map((s) => `<span><span class="sw" style="background:${s.c}"></span>${s.l}: <b>${kr(s.v)}</b></span>`).join('') + '</div>';
       h += `<table><tr><td>Brúttólaun</td><td>${kr(r.gross)} kr.</td></tr><tr><td>− Lífeyrissparnaður (4%)</td><td class="neg">−${kr(r.lifeyrir)} kr.</td></tr>${r.sereign > 0 ? `<tr><td>− Séreignarsparnaður</td><td class="neg">−${kr(r.sereign)} kr.</td></tr>` : ''}<tr><td>− Staðgreiðsla</td><td class="neg">−${kr(r.stadgr)} kr.</td></tr><tr><td>− Stéttarfélagsgjald</td><td class="neg">−${kr(r.felag)} kr.</td></tr><tr class="sum"><td>= Útborgað</td><td>${kr(r.net)} kr.</td></tr></table>`;
       h += `<div class="o-mini"><div class="o-mc"><div class="m-l">Skatthlutfall</div><div class="m-v">${pctS(r.effRate)}%</div></div><div class="o-mc"><div class="m-l">Skattstofn</div><div class="m-v">${kr(r.stofn)}</div></div><div class="o-mc"><div class="m-l">Kostn. vinnuveitanda</div><div class="m-v">${kr(r.empCost)}</div></div></div>`;
+      h += '<div class="o-l" style="margin-top:14px">Hvert fara launin?</div><div id="ch-laun" class="o-chart"></div>';
       el.innerHTML = h;
+      rvDonut('ch-laun', seg, `Útborgað\n${pctS((r.net / g) * 100)}%`);
     }
     function initLaun() {
       const gEl = document.getElementById('gross'); if (!gEl) return;
@@ -273,12 +309,14 @@ const jsonLd = {
       const r = rate / 12 / 100;
       const o = { firstPay: 0, total: 0, milestones: [], grows: form === 'vt' };
       const yearsPts = [1, 5, 10, 15, 20, 25, 30, 40];
+      o.balY = []; o.payY = []; // árlegir punktar fyrir ferilinn (LOTA 12)
       if (form === 'ov') {
         let bal = loan, ann = payType === 'ann' ? loan * r / (1 - Math.pow(1 + r, -n)) : 0;
         for (let t = 1; t <= n; t++) {
           const interest = bal * r, princ = payType === 'ann' ? ann - interest : loan / n, pay = princ + interest;
           bal = Math.max(0, bal - princ); o.total += pay;
           if (t === 1) o.firstPay = pay;
+          if (t % 12 === 0) { o.balY.push(Math.round(bal)); o.payY.push(Math.round(pay)); }
           if (yearsPts.includes(t / 12)) o.milestones.push({ y: t / 12, pay, bal });
         }
       } else {
@@ -288,6 +326,7 @@ const jsonLd = {
           realBal = Math.max(0, realBal - realPrinc); const pay = realPay * idx;
           o.total += pay;
           if (t === 1) o.firstPay = pay;
+          if (t % 12 === 0) { o.balY.push(Math.round(realBal * idx)); o.payY.push(Math.round(pay)); }
           if (yearsPts.includes(t / 12)) o.milestones.push({ y: t / 12, pay, bal: realBal * idx });
         }
       }
@@ -306,7 +345,25 @@ const jsonLd = {
         h += '</table></div>';
       }
       if (form === 'vt') h += '<div class="o-note">Verðtryggt: nafngreiðslan hækkar með verðbólgu (raunbyrði er föst). Eftirstöðvar sýndar í nafnvirði.</div>';
+      h += '<div class="o-l" style="margin-top:14px">Ferill lánsins</div><div id="ch-hus" class="o-chart o-chart-tall"></div>';
       el.innerHTML = h;
+      if (s.balY && s.balY.length) {
+        rvChart('ch-hus', {
+          backgroundColor: 'transparent',
+          legend: { data: ['Eftirstöðvar', 'Mánaðargreiðsla'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 52, right: 58, top: 30, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => kr(v) + ' kr.' },
+          xAxis: { type: 'category', data: s.balY.map((_, i) => i + 1), axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => v + '. ár' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: [
+            { type: 'value', name: 'eftirst.', nameTextStyle: { color: '#3a8dff', fontSize: 10 }, axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => Math.round(v / 1e6) + ' m' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            { type: 'value', name: 'greiðsla', nameTextStyle: { color: '#f6b13b', fontSize: 10 }, axisLabel: { color: '#f6b13b', fontSize: 10, formatter: (v) => Math.round(v / 1000) + ' þ' }, splitLine: { show: false } },
+          ],
+          series: [
+            { name: 'Eftirstöðvar', type: 'line', data: s.balY, smooth: true, symbol: 'none', lineStyle: { color: '#3a8dff', width: 2.5 }, areaStyle: { color: '#3a8dff', opacity: 0.12 }, itemStyle: { color: '#3a8dff' } },
+            { name: 'Mánaðargreiðsla', type: 'line', yAxisIndex: 1, data: s.payY, smooth: true, symbol: 'none', lineStyle: { color: '#f6b13b', width: 2.5 }, itemStyle: { color: '#f6b13b' } },
+          ],
+        });
+      }
     }
     function initHus() {
       const pEl = document.getElementById('hprice'); if (!pEl) return;
@@ -352,7 +409,9 @@ const jsonLd = {
       h += '<div class="o-leg">' + seg.map((s) => `<span><span class="sw" style="background:${s.c}"></span>${s.l}: <b>${kr(s.v)}</b></span>`).join('') + '</div>';
       h += `<table><tr><td>Samtrygging (lífeyrissjóður)</td><td>${kr(r.samtrygging)} kr.</td></tr><tr><td>Tryggingastofnun (TR)</td><td>${kr(r.tr)} kr.</td></tr><tr><td>Séreignarsparnaður</td><td>${kr(r.sereign)} kr.</td></tr><tr class="sum"><td>= Alls á mánuði</td><td>${kr(r.total)} kr.</td></tr></table>`;
       h += `<div class="o-mini"><div class="o-mc"><div class="m-l">Hlutfall af launum</div><div class="m-v">${pctS(r.replacement)}%</div></div><div class="o-mc"><div class="m-l">Séreignarpottur v/starfsloka</div><div class="m-v">${mkr(r.fv)} m.kr</div></div></div>`;
+      h += '<div class="o-l" style="margin-top:14px">Stoðirnar þrjár</div><div id="ch-lif" class="o-chart"></div>';
       el.innerHTML = h;
+      rvDonut('ch-lif', seg, `${pctS(r.replacement)}%\naf launum`);
     }
     function initLif() {
       const aEl = document.getElementById('lage'); if (!aEl) return;
@@ -373,7 +432,23 @@ const jsonLd = {
       let h = `<div class="o-l">Áætlað virði</div><div class="o-net">${fm(val)} m.kr</div><div class="o-yr">líklegt bil ${fm(lo)}–${fm(hi)} m.kr</div>`;
       h += `<table><tr><td>Verð á m²</td><td>${kr(src.m2)} þ.kr</td></tr><tr><td>Stærð</td><td>${size} m²</td></tr><tr><td>Grunnur</td><td>${usingType ? type : 'allar tegundir'} · ${src.n} kaup</td></tr><tr class="sum"><td>= Áætlað virði</td><td>${fm(val)} m.kr</td></tr></table>`;
       if (!usingType) h += '<div class="o-note">Ekki næg gögn fyrir þessa tegund í sveitarfélaginu — sýni öll kaup.</div>';
+      const types = Object.keys(d.types || {}).filter((k) => d.types[k] && d.types[k].n);
+      if (types.length > 1) h += '<div class="o-l" style="margin-top:14px">Sama eign eftir tegund húsnæðis</div><div id="ch-vm" class="o-chart"></div>';
       el.innerHTML = h;
+      if (types.length > 1) {
+        rvChart('ch-vm', {
+          backgroundColor: 'transparent',
+          grid: { left: 46, right: 14, top: 26, bottom: 26 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => fm(v) + ' m.kr' },
+          xAxis: { type: 'category', data: types, axisLabel: { color: '#7e8ca6', fontSize: 10.5 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => v + ' m' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          series: [{
+            type: 'bar', barMaxWidth: 46,
+            data: types.map((k) => ({ value: Math.round((d.types[k].m2 * size / 1000) * 10) / 10, itemStyle: { color: k === type && usingType ? '#f6b13b' : '#42506a', borderRadius: [4, 4, 0, 0] } })),
+            label: { show: true, position: 'top', color: '#9fb0c8', fontSize: 10, formatter: (p) => fm(p.value) },
+          }],
+        });
+      }
     }
     function initVerdmat() {
       const mEl = document.getElementById('vmuni'); if (!mEl) return;
@@ -385,6 +460,6 @@ const jsonLd = {
     }
 
     function initAll() { initTabs(); initLaun(); initHus(); initLif(); initVerdmat(); }
-    document.addEventListener('astro:page-load', initAll);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="reiknivelar"]')) initAll(); });
   </script>
 </Layout>

@@ -28,7 +28,7 @@ const jsonLd = {
 ---
 
 <Layout title="Fasteignaverð — verð á fermetra | Karp" description={desc} canonical="https://app.karp.is/fasteignir/" jsonLd={jsonLd} ogTitle="Fasteignaverð á Íslandi">
-  <main>
+  <main data-pg="fasteignir">
     <p class="kicker">Hagvísir Íslands · Fasteignaverð</p>
     <h1>Fasteignaverð</h1>
     <p>Miðgildi kaupverðs á fermetra úr þinglýstum kaupum (HMS kaupskrá). Vilt þú <a href="/reiknivelar/">verðmeta íbúð</a>? Notaðu verðmats-reiknivélina.</p>
@@ -91,6 +91,6 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => c.resize());
     }
-    document.addEventListener('astro:page-load', initChart);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fasteignir"]')) initChart(); });
   </script>
 </Layout>

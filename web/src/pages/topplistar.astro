@@ -63,7 +63,7 @@ const MODEBTNS = [
 ---
 
 <Layout title="Topplistar sveitarfélaga | Karp" description={desc} canonical="https://app.karp.is/topplistar/" jsonLd={jsonLd} ogTitle="Topplistar sveitarfélaga">
-  <main>
+  <main data-pg="topplistar">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Topplistar</h1>
     <p>Hvaða sveitarfélag stendur best — og verst? Veldu mælikvarða; smelltu á sveitarfélag fyrir nánari síðu. Sami útreikningur og <a href="/kort/">Íslandskortið</a>.</p>
@@ -144,6 +144,6 @@ const MODEBTNS = [
       document.getElementById('dir-btn').onclick = () => { flip = !flip; render(); };
       render();
     }
-    document.addEventListener('astro:page-load', initToplist);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="topplistar"]')) initToplist(); });
   </script>
 </Layout>

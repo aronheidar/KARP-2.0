@@ -29,7 +29,7 @@ const updated = '2026-07-02';
 const desc = `Sjávarútvegur Íslands — heildarafli${latest ? ' ' + groupThousands(latest.v) + ' þús. tonn (' + latest.y + ')' : ''} og vöxtur fiskeldis${eldiL ? ' í ' + groupThousands(eldiL.v) + ' tonn' : ''}. Lifandi frá Hagstofu.`;
 ---
 <Layout title="Sjávarútvegur | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/sjavarutvegur/" ogTitle="Sjávarútvegur">
-  <main>
+  <main data-pg="atvinnuvegir-sjavarutvegur">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Sjávarútvegur 🐟</h1>
     <p>Undirstöðuatvinnuvegurinn — heildarafli og fiskeldið sem vex hratt. Útflutningsverðmæti sjávarafurða: sjá <a href="/vidskipti/">Utanríkisverslun</a>.</p>
@@ -87,6 +87,6 @@ const desc = `Sjávarútvegur Íslands — heildarafli${latest ? ' ' + groupThou
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initAtv);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="atvinnuvegir-sjavarutvegur"]')) initAtv(); });
   </script>
 </Layout>

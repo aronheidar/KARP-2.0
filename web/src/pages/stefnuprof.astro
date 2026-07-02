@@ -30,7 +30,7 @@ const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þ
 ---
 
 <Layout title="Stefnupróf — hvaða flokki ertu sammála? | Karp" description={desc} canonical="https://app.karp.is/stefnuprof/" ogTitle="Stefnupróf Karp">
-  <main>
+  <main data-pg="stefnuprof">
     <p class="kicker">Hagvísir Íslands · Kannanir</p>
     <h1>Stefnupróf 🧭</h1>
     <p>Hvernig hefðir <strong>þú</strong> kosið? {QUESTIONS.length} raunveruleg þingmál — svörin þín eru borin saman við atkvæði flokkanna á Alþingi. Svörin vistast aðeins í vafranum þínum.</p>
@@ -117,6 +117,6 @@ const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þ
       }
       intro();
     }
-    document.addEventListener('astro:page-load', initSp);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="stefnuprof"]')) initSp(); });
   </script>
 </Layout>

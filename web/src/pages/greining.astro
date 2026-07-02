@@ -7,7 +7,7 @@ const desc = 'Greining Karp á fréttaárinu — stærstu umfjöllunarefnin, vir
 ---
 
 <Layout title="Greining — fréttaárið | Karp" description={desc} canonical="https://app.karp.is/greining/" ogTitle="Greining Karp">
-  <main>
+  <main data-pg="greining">
     <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
     <h1>Greining 🔎</h1>
     <p>Hvað einkenndi fréttaárið? Stærstu umfjöllunarefnin og virkni miðlanna — reiknað úr fréttasafni Karp.</p>
@@ -67,6 +67,6 @@ const desc = 'Greining Karp á fréttaárinu — stærstu umfjöllunarefnin, vir
         })
         .catch(() => { root.innerHTML = '<div class="empty">Greiningin birtist á app.karp.is þegar greiningarþjónustan (yearreview-endapunkturinn) er í loftinu. Á meðan: <a href="/frettir/" style="color:#f6b13b">Vöktun</a>.</div>'; });
     }
-    document.addEventListener('astro:page-load', initGr);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="greining"]')) initGr(); });
   </script>
 </Layout>

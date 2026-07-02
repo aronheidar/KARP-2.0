@@ -60,7 +60,7 @@ const jsonLd = {
   jsonLd={jsonLd}
   ogTitle="Þingmál á Alþingi"
 >
-  <main>
+  <main data-pg="thingmal">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <h1>Þingmál</h1>
     <p>
@@ -211,7 +211,7 @@ const jsonLd = {
       });
     }
 
-    document.addEventListener('astro:page-load', initVotes);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="thingmal"]')) initVotes(); });
   </script>
 
   <!-- Eyja: frumvarpa-glugginn. #2 LOTA 7 -->
@@ -249,6 +249,6 @@ const jsonLd = {
         el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
       });
     }
-    document.addEventListener('astro:page-load', initBillModal);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="thingmal"]')) initBillModal(); });
   </script>
 </Layout>

@@ -12,9 +12,18 @@ import POLLS from '@gogn/polls.json';
 import FRUMVORP from '@gogn/frumvorp.json';
 import SVPOP from '@gogn/sveitarfelog_pop.json';
 import SVCOORDS from '@gogn/sveitarfelog_coords.json';
+import SVFIN from '@gogn/sveitarfelog_fin.json';
+import SVMETA from '@gogn/sveitarfelog_meta.json';
+import GLAEPIR from '@gogn/glaepir.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+import REGIONGEO from '@gogn/landshlutar.json';
+import JOFNUN from '@gogn/jofnun.json';
 import { projectSeats } from '@lib/seats.mjs';
 import { colorByName, partyName, partyColor } from '@lib/parties.mjs';
 import { slugify } from '@lib/format.mjs';
+import { computeMuniIndex } from '@lib/muniIndex.mjs';
+import { makeMuniStats, svStab } from '@lib/muniStats.mjs';
+import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
 
 // Þingmenn (fylgja-widget)
 const MP = {};
@@ -32,8 +41,28 @@ const r = projectSeats(POLLS, THINGMENN);
 const topParty = Object.keys(r.proj).sort((a, b) => r.proj[b] - r.proj[a])[0];
 const SEATSW = { gov: r.govS, opp: r.oppS, maj: r.maj, top: topParty ? { n: partyName(topParty), c: partyColor(topParty), s: r.proj[topParty] } : null };
 
-// Sveitarfélaga-val
-const MUNIS = Object.keys(SVCOORDS).sort((a, b) => a.localeCompare(b, 'is')).map((n) => ({ n, s: slugify(n), pop: SVPOP[n] || null }));
+// Sveitarfélaga-val + FULLT SPJALD (LOTA 12): sama líkan og /sveitarfelog/[slug]
+const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI: ATV });
+const regionOf = makeRegionOf({ SVCOORDS, REGIONGEO });
+const muniStats = makeMuniStats({ ATVINNULEYSI: ATV, GLAEPIR, FASTEIGNIR });
+const lifsQ = makeLifsQ({ SVMETA, regionOf, svUnemp: muniStats.svUnemp, svCrime: muniStats.svCrime });
+const ranked = Object.keys(idxMap).filter((n) => idxMap[n].idx != null).sort((a, b) => idxMap[b].idx - idxMap[a].idx);
+const r0 = (v) => (v == null ? null : Math.round(v));
+const MUNIS = Object.keys(SVCOORDS).sort((a, b) => a.localeCompare(b, 'is')).map((n) => {
+  const reg = regionOf(n), fin = SVFIN[n] || {}, ix = idxMap[n] || null;
+  const crime = muniStats.svCrime(reg);
+  const oryggi = crime && crime.hegn != null ? Math.max(0, Math.min(100, Math.round(100 - crime.hegn / 4.5))) : null;
+  const house = muniStats.svHouse(n, reg);
+  const jof = (JOFNUN.m || {})[n] || null;
+  return {
+    n, s: slugify(n), pop: SVPOP[n] || null,
+    idx: ix ? r0(ix.idx) : null, rank: ranked.indexOf(n) + 1, rt: ranked.length,
+    R: [ix ? r0(ix.fjar) : null, ix ? r0(ix.vox) : null, ix ? r0(ix.atv) : null, lifsQ(n), oryggi, svStab(fin)],
+    u: fin.utsvar ?? null, sk: fin.skuldir_ibui ?? null, af: fin.afkoma_ibui ?? null,
+    unemp: muniStats.svUnemp(n, reg), house: house ? house.v : null,
+    jof: jof && jof.t && jof.ibuar ? Math.round(jof.t / jof.ibuar / 1000) : null,
+  };
+});
 
 // Flokkamatið: sömu spurningar og stefnuprófið (afstaða = meirihluti flokks)
 const pName = (k) => (k === 'U' ? 'Óháðir' : partyName(k) || k);
@@ -49,7 +78,7 @@ const updated = '2026-07-02';
 ---
 
 <Layout title="Mitt svæði | Karp" noindex={true}>
-  <main>
+  <main data-pg="mitt-svaedi">
     <p class="kicker">Karp</p>
     <h1>Mitt svæði</h1>
     <div class="tabs"><button class="tab on" data-t="dash">📊 Mælaborð</button><button class="tab" data-t="still">⚙️ Stillingar</button></div>
@@ -150,10 +179,19 @@ const updated = '2026-07-02';
     #gate-note .gate a { color: #f6b13b; }
     #w-sveit .sv-empty { font-size: 13px; color: #7e8ca6; }
     #w-sveit .sv-empty button { background: none; border: 0; color: #f6b13b; cursor: pointer; font-size: 13px; padding: 0; }
-    #w-sveit .sv-card { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; }
+    #w-sveit .sv-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 10px; }
     #w-sveit .sv-n { font-size: 17px; font-weight: 800; color: #f6b13b; }
     #w-sveit .sv-i { font-size: 13px; color: #9fb0c8; }
-    #w-sveit a.sv-go { font-size: 12.5px; color: #f6b13b; text-decoration: none; }
+    #w-sveit .sv-badge { font-size: 11.5px; color: #eaf1fb; background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.35); border-radius: 999px; padding: 2px 10px; }
+    #w-sveit a.sv-go { font-size: 12.5px; color: #f6b13b; text-decoration: none; margin-left: auto; }
+    #w-sveit .sv-body { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 10px; align-items: center; }
+    @media (max-width: 700px) { #w-sveit .sv-body { grid-template-columns: 1fr; } }
+    #w-sveit .sv-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 7px; }
+    #w-sveit .svt { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 9px; padding: 7px 9px; }
+    #w-sveit .svt-l { font-size: 10.5px; color: #8fa0ba; white-space: nowrap; overflow: hidden; }
+    #w-sveit .svt-v { font-size: 16.5px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; margin-top: 1px; }
+    #w-sveit .svt-s { font-size: 10px; color: #7e8ca6; }
+    #w-sveit #sv-radar { width: 100%; height: 195px; }
     #mine .gate, #mine .empty { font-size: 14px; color: #9fb0c8; }
     #mine .empty a, #mine .gate a { color: #f6b13b; }
     #mine .flist { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
@@ -200,14 +238,60 @@ const updated = '2026-07-02';
         };
       });
 
-      // Mitt sveitarfélag (localStorage karp-sveit)
+      // Mitt sveitarfélag (localStorage karp-sveit) — FULLT SPJALD: lykiltölur + radar (LOTA 12)
+      const gt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const f1 = (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ','));
       const paintSveit = () => {
         const el = $g('w-sveit');
         const sv = localStorage.getItem('karp-sveit') || '';
         const MUNIS = J('d-munis') || [];
         const m = MUNIS.find((x) => x.n === sv);
         if (!m) { el.innerHTML = '<div class="sv-empty">Ekkert valið — <button id="go-still">veldu sveitarfélagið þitt í ⚙️ Stillingum</button>.</div>'; const b = el.querySelector('#go-still'); if (b) b.onclick = () => document.querySelector('.tab[data-t="still"]').click(); return; }
-        el.innerHTML = `<div class="sv-card"><span class="sv-n">${esc(m.n)}</span>${m.pop ? `<span class="sv-i">${String(m.pop).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} íbúar</span>` : ''}<a class="sv-go" href="/sveitarfelog/${esc(m.s)}/">Opna sveitarspjaldið →</a></div>`;
+        const tile = (e, l, v, s) => `<div class="svt"><div class="svt-l">${e} ${l}</div><div class="svt-v">${v}</div><div class="svt-s">${s}</div></div>`;
+        el.innerHTML = `
+          <div class="sv-head">
+            <span class="sv-n">${esc(m.n)}</span>
+            ${m.pop ? `<span class="sv-i">${gt(m.pop)} íbúar</span>` : ''}
+            ${m.idx != null ? `<span class="sv-badge">🏆 ${m.rank}. af ${m.rt}</span>` : ''}
+            <a class="sv-go" href="/sveitarfelog/${esc(m.s)}/">Opna sveitarspjaldið →</a>
+          </div>
+          <div class="sv-body">
+            <div class="sv-tiles">
+              ${m.idx != null ? tile('🏆', 'Vísitala', String(m.idx), 'af 100') : ''}
+              ${tile('👷', 'Atvinnuleysi', m.unemp != null ? f1(m.unemp) + '%' : '–', 'skráð')}
+              ${tile('🏠', 'Húsnæði', m.house != null ? gt(m.house) + ' þ' : '–', 'kr/m²')}
+              ${tile('💰', 'Útsvar', m.u != null ? f1(m.u) + '%' : '–', 'hám. 14,74%')}
+              ${tile('💳', 'Skuldir/íbúa', m.sk != null ? gt(m.sk) + ' þ' : '–', 'þ.kr.')}
+              ${tile('📊', 'Afkoma/íbúa', m.af != null ? (m.af >= 0 ? '+' : '') + gt(m.af) + ' þ' : '–', 'rekstur')}
+              ${m.jof != null ? tile('⚖️', 'Jöfnunarsjóður', gt(m.jof) + ' þ', 'kr/íbúa á ári') : ''}
+            </div>
+            <div id="sv-radar"></div>
+          </div>`;
+        // Mini-Stellaris-radar (sömu 6 ásar og sveitarspjaldið)
+        const hasR = (m.R || []).filter((v) => v != null).length >= 4;
+        const rEl = $g('sv-radar');
+        if (!hasR || !rEl) { if (rEl) rEl.remove(); return; }
+        const draw = () => {
+          if (window.echarts.getInstanceByDom(rEl)) return;
+          const c = window.echarts.init(rEl);
+          c.setOption({
+            backgroundColor: 'transparent',
+            radar: {
+              indicator: ['Fjárhagur', 'Vöxtur', 'Atvinna', 'Lífsgæði', 'Öryggi', 'Stöðugl.'].map((l) => ({ name: l, max: 100 })),
+              radius: '62%', center: ['50%', '54%'],
+              axisName: { color: '#9fb0c8', fontSize: 10 },
+              splitArea: { areaStyle: { color: ['rgba(255,255,255,.02)', 'rgba(255,255,255,.045)'] } },
+              splitLine: { lineStyle: { color: 'rgba(255,255,255,.09)' } },
+              axisLine: { lineStyle: { color: 'rgba(255,255,255,.09)' } },
+            },
+            tooltip: { show: false },
+            series: [{ type: 'radar', silent: true, data: [{ value: m.R.map((v) => v ?? 0), lineStyle: { color: '#f6b13b', width: 2 }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: 0.2 }, symbolSize: 3 }] }],
+          });
+        };
+        if (window.echarts) { draw(); return; }
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', draw, { once: true });
       };
       paintSveit();
       const sel = $g('sv-sel');
@@ -273,6 +357,6 @@ const updated = '2026-07-02';
         }
       });
     }
-    document.addEventListener('astro:page-load', initMitt);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="mitt-svaedi"]')) initMitt(); });
   </script>
 </Layout>

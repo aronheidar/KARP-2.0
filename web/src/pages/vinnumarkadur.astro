@@ -52,7 +52,7 @@ const jsonLd = {
 ---
 
 <Layout  title={`Vinnumarkaður — atvinnuleysi ${fmtNum(latest, 1)}% | Karp`} description={desc} canonical="https://app.karp.is/vinnumarkadur/" jsonLd={jsonLd} ogTitle="Atvinnuleysi á Íslandi">
-  <main>
+  <main data-pg="vinnumarkadur">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Vinnumarkaður</h1>
     <div class="big">{fmtNum(latest, 1)}%<span>skráð atvinnuleysi · {updLabel}</span></div>
@@ -219,6 +219,6 @@ const jsonLd = {
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="vinnumarkadur"]')) initCharts(); });
   </script>
 </Layout>

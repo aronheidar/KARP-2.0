@@ -27,7 +27,7 @@ const updated = '2026-07-02';
 const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null ? ' ' + String(alL.al).replace('.', ',') + ' ma.kr (' + alL.y + ')' : ''} og kísiljárns, knúið af endurnýjanlegri raforku. Lifandi frá Hagstofu.`;
 ---
 <Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://app.karp.is/atvinnuvegir/storidja/" ogTitle="Stóriðja & orka">
-  <main>
+  <main data-pg="atvinnuvegir-storidja">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Stóriðja &amp; orka 🏗️</h1>
     <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar ~80% raforkunnar. Sjá <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
@@ -79,6 +79,6 @@ const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initAtv);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="atvinnuvegir-storidja"]')) initAtv(); });
   </script>
 </Layout>

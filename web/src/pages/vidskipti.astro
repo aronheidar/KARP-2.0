@@ -118,7 +118,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
 ---
 
 <Layout title="Utanríkisverslun — út- og innflutningur | Karp" description={desc} canonical="https://app.karp.is/vidskipti/" jsonLd={jsonLd} ogTitle="Utanríkisverslun Íslands">
-  <main>
+  <main data-pg="vidskipti">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Utanríkisverslun</h1>
     <p>Hvað flytur Ísland út og inn — sjávarafurðir og ál á móti vélum og eldsneyti. Heimild: Hagstofa Íslands (vöruviðskipti).</p>
@@ -256,7 +256,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="vidskipti"]')) initCharts(); });
   </script>
 
   <!-- Eyja: heimskortin 4 (world-GeoJSON sótt í vafra + registerMap). #2 -->
@@ -329,6 +329,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ut
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', boot, { once: true });
     }
-    document.addEventListener('astro:page-load', initMaps);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="vidskipti"]')) initMaps(); });
   </script>
 </Layout>

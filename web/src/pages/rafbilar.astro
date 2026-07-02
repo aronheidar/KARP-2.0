@@ -43,7 +43,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
 ---
 
 <Layout title="Rafbílar & bílafloti | Karp" description={desc} canonical="https://app.karp.is/rafbilar/" jsonLd={jsonLd} ogTitle="Rafbílar á Íslandi">
-  <main>
+  <main data-pg="rafbilar">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Rafbílar &amp; bílafloti</h1>
     <p>Heildarfloti fólksbíla í árslok eftir orkugjafa — bensín og dísil á móti rafmagni, tengiltvinn og tvinn. Heimild: Hagstofa Íslands (skráð ökutæki).</p>
@@ -132,6 +132,6 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
       if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
       s.addEventListener('load', go, { once: true });
     }
-    document.addEventListener('astro:page-load', initCharts);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="rafbilar"]')) initCharts(); });
   </script>
 </Layout>

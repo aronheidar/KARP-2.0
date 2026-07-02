@@ -12,7 +12,7 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
 ---
 
 <Layout title="Hagspár — spáðu um hagtölurnar | Karp" description={desc} canonical="https://app.karp.is/hagspar/" ogTitle="Hagspár Karp">
-  <main>
+  <main data-pg="hagspar">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Hagspár 🔭</h1>
     <p>Hvað heldur <strong>þú</strong>? Spáðu um lykilhagtölur ársloka — og sjáðu meðalspá lesenda Karp. Spáin þín er nafnlaus í samtölunni.</p>
@@ -76,6 +76,6 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
       cards[0].dataset.done = '1';
       loadUser().then(() => cards.forEach(renderCard));
     }
-    document.addEventListener('astro:page-load', initHagspar);
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="hagspar"]')) initHagspar(); });
   </script>
 </Layout>

@@ -29,18 +29,26 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
 ---
 
 <Layout title="Furðuhagfræði — hvað kaupir tímakaupið? | Karp" description={desc} canonical="https://app.karp.is/furduhagfraedi/" ogTitle="Furðuhagfræði">
-  <main>
+  <main data-pg="furduhagfraedi">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Furðuhagfræði 🤪</h1>
     <p>Gleymdu vísitölum — mælum kaupmáttinn í <strong>bjórum og kaffibollum</strong>. Meðalnettólaun í Reykjavík eru {wage ? groupThousands(wage) : '—'} kr/mán ≈ <strong>{hourly ? groupThousands(Math.round(hourly)) : '—'} kr á klukkustund</strong>.</p>
 
+    <div class="sal">
+      <label for="mysal">💰 Eða settu inn <strong>þín útborguðu laun</strong> og sjáðu hvað tímakaupið þitt kaupir:</label>
+      <div class="sal-row">
+        <div class="sal-in"><input id="mysal" type="number" min="0" step="10000" placeholder={wage ? String(wage) : '450000'} inputmode="numeric" /><span>kr/mán</span></div>
+        <span class="sal-note" id="sal-note"></span>
+      </div>
+    </div>
+
     <div class="grid">
       {rows.map((r) => (
-        <div class="c">
+        <div class="c" data-price={r.price}>
           <div class="c-e">{r.e}</div>
           <div class="c-l">{r.l}</div>
-          <div class="c-v">{fmtNum(r.perHour, 1)} <span>á klst vinnu</span></div>
-          <div class="c-m">⏱️ {r.mins} mín að vinna fyrir einum{r.minsCph != null ? ` · KBH: ${r.minsCph} mín` : ''}</div>
+          <div class="c-v"><span class="c-v-num">{fmtNum(r.perHour, 1)}</span> <span>á klst vinnu</span></div>
+          <div class="c-m">⏱️ <span class="c-m-mins">{r.mins}</span> mín að vinna fyrir einum{r.minsCph != null ? ` · KBH: ${r.minsCph} mín` : ''}</div>
           <div class="c-p">{groupThousands(Math.round(r.price))} kr stk</div>
         </div>
       ))}
@@ -64,5 +72,40 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
     .c-p { font-size: 11px; color: #7e8ca6; margin-top: 2px; }
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .sal { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.25); border-radius: 12px; padding: 12px 16px; margin: 14px 0 4px; }
+    .sal label { font-size: 13px; color: #cdd6e6; display: block; margin-bottom: 8px; }
+    .sal-row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+    .sal-in { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 9px; padding: 6px 12px; }
+    .sal-in input { width: 130px; background: none; border: 0; color: #eaf1fb; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; outline: none; }
+    .sal-in span { font-size: 12px; color: #7e8ca6; }
+    .sal-note { font-size: 12.5px; color: #f6b13b; font-weight: 600; }
   </style>
+
+  <!-- Eyja: „launin þín" — endurreiknar spjöldin í vafra (LOTA 12) -->
+  <script define:vars={{ WAGE: wage, HPM: FURDU.hpm || 160 }}>
+    function initFurdu() {
+      const inp = document.getElementById('mysal');
+      if (!inp || inp.dataset.done) return;
+      inp.dataset.done = '1';
+      const gt = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const note = document.getElementById('sal-note');
+      const cards = [...document.querySelectorAll('.c[data-price]')];
+      const paint = () => {
+        const sal = +inp.value > 0 ? +inp.value : WAGE;
+        if (!sal) return;
+        const hourly = sal / HPM;
+        if (note) note.textContent = +inp.value > 0 ? `Tímakaupið þitt: ${gt(hourly)} kr/klst` : `Meðaltal: ${gt(WAGE / HPM)} kr/klst`;
+        cards.forEach((c) => {
+          const p = +c.dataset.price;
+          if (!p) return;
+          const v = c.querySelector('.c-v-num'), m = c.querySelector('.c-m-mins');
+          if (v) v.textContent = String(Math.round((hourly / p) * 10) / 10).replace('.', ',');
+          if (m) m.textContent = Math.round((p / hourly) * 60);
+        });
+      };
+      inp.addEventListener('input', paint);
+      paint();
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="furduhagfraedi"]')) initFurdu(); });
+  </script>
 </Layout>
