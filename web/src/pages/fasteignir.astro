@@ -6,6 +6,17 @@
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import FASTEIGNIR from '@gogn/fasteignir.json';
+import LEIGARAW from '@gogn/leiga.json';
+
+// Leigumarkaðurinn (LOTA 13i): fjórðungar með 100+ samningum + muni-tafla
+const lq = (LEIGARAW.quarters || []).filter((x) => x.n >= 100);
+const LEIGA = lq.length > 8 ? {
+  quarters: lq, first: lq[0], last: lq[lq.length - 1],
+  q0: lq[0].q, q1: lq[lq.length - 1].q,
+  rise: Math.round(((lq[lq.length - 1].medM2 / lq[0].medM2) - 1) * 100),
+  total: LEIGARAW.total, muniYear: LEIGARAW.muniYear,
+  munis: Object.entries(LEIGARAW.byMuni).map(([n, v]) => ({ n, ...v })).sort((a, b) => b.medM2 - a.medM2),
+} : null;
 
 const months = FASTEIGNIR.months || [];
 const latest = months[months.length - 1] || {};
@@ -43,7 +54,37 @@ const jsonLd = {
     <div id="chart"></div>
 
     <p class="note">ⓘ Miðgildi (robust gegn útlögum) verð/m² úr þinglýstum kaupum íbúðarhúsnæðis. Höfuðborgarsvæði = 7 sveitarfélög; landsbyggð = önnur. Per-sveitarfélag verðmat er í <a href="/reiknivelar/">Reiknivélum</a>.</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: HMS kaupskrá (þinglýst kaup). #2.</p>
+
+    {LEIGA && (
+      <>
+        <h2>Leigumarkaðurinn — þróun leiguverðs {LEIGA.q0} til {LEIGA.q1}</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="k-l">🔑 Miðgildi leiguverðs</div><div class="k-v">{groupThousands(LEIGA.last.medM2)}</div><div class="k-s">kr/m² á mán · {LEIGA.last.q}</div></div>
+          <div class="kpi"><div class="k-l">📈 Hækkun frá {LEIGA.first.q.slice(0, 4)}</div><div class="k-v">{LEIGA.rise}%</div><div class="k-s">miðgildi kr/m²</div></div>
+          <div class="kpi"><div class="k-l">🧾 Samningar alls</div><div class="k-v">{groupThousands(LEIGA.total)}</div><div class="k-s">þinglýstir 2011–2024</div></div>
+        </div>
+        <div id="chart-leiga"></div>
+        <h2>Leiguverð eftir sveitarfélögum ({LEIGA.muniYear})</h2>
+        <div class="tw">
+          <table>
+            <thead><tr><th class="l">Sveitarfélag</th><th>Miðgildi kr/m²</th><th>Miðgildi leigu</th><th>Samningar</th></tr></thead>
+            <tbody>
+              {LEIGA.munis.map((m) => (
+                <tr>
+                  <td class="l">{m.n}</td>
+                  <td class="num">{groupThousands(m.medM2)}</td>
+                  <td class="num">{groupThousands(m.medRent)} kr</td>
+                  <td class="num">{groupThousands(m.n12)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="note">ⓘ Leiguskrá HMS byggir á <strong>þinglýstum</strong> leigusamningum — þinglýsingarskyldan féll niður með nýju húsaleigulögunum og skráin nær því fram í ársbyrjun 2024. Sveitarfélagatölur miða við {LEIGA.muniYear} (síðasta heila árið). Nýja rafræna leiguskráin verður tengd þegar opin gögn hennar birtast.</p>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: HMS kaupskrá (þinglýst kaup) + Leiguskrá HMS. #2.</p>
   </main>
 
   <style>
@@ -61,11 +102,18 @@ const jsonLd = {
     .k-s { font-size: 11px; color: #7e8ca6; }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
     #chart { width: 100%; height: 340px; }
+    #chart-leiga { width: 100%; height: 300px; }
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    td.l, th.l { text-align: left; }
+    .num { font-variant-numeric: tabular-nums; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: verð/m² þróun (2 línur), astro:page-load. #2 -->
-  <script define:vars={{ chartMonths, hbSeries, landSeries }}>
+  <script define:vars={{ chartMonths, hbSeries, landSeries, LEIGAQ: LEIGA ? LEIGA.quarters : null }}>
     function initChart() {
       const el = document.getElementById('chart');
       if (!el) return;
@@ -91,6 +139,34 @@ const jsonLd = {
       });
       window.addEventListener('resize', () => c.resize());
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fasteignir"]')) initChart(); });
+    function initLeiga() {
+      const el = document.getElementById('chart-leiga');
+      if (!el || !LEIGAQ) return;
+      if (!window.echarts) {
+        let sc = document.getElementById('echarts-cdn');
+        if (!sc) { sc = document.createElement('script'); sc.id = 'echarts-cdn'; sc.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(sc); }
+        sc.addEventListener('load', initLeiga, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent',
+        grid: { left: 52, right: 46, top: 30, bottom: 26 },
+        legend: { data: ['Miðgildi kr/m²', 'Fjöldi samninga'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: LEIGAQ.map((x) => x.q), axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => (v.endsWith('F1') ? v.slice(0, 4) : '') }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        yAxis: [
+          { type: 'value', scale: true, axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          { type: 'value', axisLabel: { color: '7e8ca6', show: false }, splitLine: { show: false } },
+        ],
+        series: [
+          { name: 'Fjöldi samninga', type: 'bar', yAxisIndex: 1, data: LEIGAQ.map((x) => x.n), itemStyle: { color: 'rgba(58,141,255,.25)' }, barMaxWidth: 10 },
+          { name: 'Miðgildi kr/m²', type: 'line', data: LEIGAQ.map((x) => x.medM2), smooth: true, symbol: 'none', lineStyle: { color: '#19d3c5', width: 3 }, itemStyle: { color: '#19d3c5' } },
+        ],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fasteignir"]')) { initChart(); initLeiga(); } });
   </script>
 </Layout>
