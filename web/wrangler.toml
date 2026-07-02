@@ -1,9 +1,11 @@
-# Cloudflare Workers (static assets) fyrir Astro-appið í web/ (karp21, root = web).
-# ATH: main-worker (worker.js, /api/flug proxy) var BAKKAÐUR ÚT 2026-07-02 —
-# CF-buildið féll með honum (líklega árekstur við deploy-skipun verkefnisins).
-# worker.js liggur dormant í repo; virkja síðar gegnum CF-dashboard stillingar.
+# Cloudflare Workers fyrir Astro-appið í web/ (karp21, root = web).
+# Main-workerinn (worker.js) þjónar assets ÁFRAM (ASSETS-binding) og svarar
+# /api/* með proxy-um fyrir lifandi gögn. STAÐFEST Í PRODUCTION 2026-07-02:
+# /api/flug svarar um workerinn — fyrra „deploy-atvik" var bara hæg CF-röð.
 name = "karp21"
+main = "worker.js"
 compatibility_date = "2026-06-29"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"

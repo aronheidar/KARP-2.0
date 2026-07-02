@@ -28,7 +28,7 @@ export default {
               'cache-control': `public, max-age=${proxy.ttl}`,
             },
           });
-          ctx.waitUntil(cache.put(cacheKey, res.clone()));
+          if (up.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));
         } catch (e) {
           res = new Response(JSON.stringify({ error: 'upstream' }), { status: 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' } });
         }
