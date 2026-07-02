@@ -1,0 +1,131 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Markaðir: vísitölur + íslensk hlutabréf (SVG-sparklines
+// bakaðar á byggingartíma) + ávöxtunarferill ríkisbréfa (ECharts) úr markadir.json.
+// Gögnin eru TÖFÐ/lokagildi (ekki rauntími). Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum } from '@lib/format.mjs';
+import MARKADIR from '@gogn/markadir.json';
+
+const indices = MARKADIR.indices || [];
+const stocks = (MARKADIR.stocks || []).slice().sort((a, b) => (b.chgPct || 0) - (a.chgPct || 0));
+const bondNom = ((MARKADIR.bonds && MARKADIR.bonds.nominal) || []).slice().sort((a, b) => a.yr - b.yr);
+const bondIdx = ((MARKADIR.bonds && MARKADIR.bonds.indexed) || []).slice().sort((a, b) => a.yr - b.yr);
+const updated = MARKADIR.updated || '2026-07-01';
+
+// Bökuð SVG-sparkline: hist[] → punktastrengur (0..100 × 0..30).
+const sparkPts = (hist, w = 96, h = 30) => {
+  if (!Array.isArray(hist) || hist.length < 2) return '';
+  const min = Math.min(...hist), max = Math.max(...hist), range = max - min || 1;
+  return hist.map((v, i) => `${((i / (hist.length - 1)) * w).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`).join(' ');
+};
+const stk = stocks.map((s) => ({ ...s, pts: sparkPts(s.hist), up: (s.chgPct || 0) >= 0 }));
+
+const chartYears = [...new Set([...bondNom, ...bondIdx].map((b) => b.yr))].sort((a, b) => a - b);
+const chg = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 2) + '%');
+const desc = `Íslenskur hlutabréfamarkaður — Úrvalsvísitala, ${stocks.length} skráð félög og ávöxtunarferill ríkisbréfa. Töfð lokagildi frá Kauphöll Íslands, uppfært ${updated}.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Íslenskur hlutabréfamarkaður',
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland',
+};
+---
+
+<Layout title="Markaðir — hlutabréf & ríkisbréf | Karp" description={desc} canonical="https://app.karp.is/markadir/" jsonLd={jsonLd} ogTitle="Markaðir á Íslandi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Markaðir</p>
+    <h1>Markaðir</h1>
+    <p>Íslenskur hlutabréfamarkaður — úrvalsvísitala, {stocks.length} skráð félög og ávöxtunarferill ríkisbréfa.</p>
+    <p class="note">ⓘ Gögnin eru <strong>töfð lokagildi</strong> (EOD), ekki rauntími — rauntímagögn kauphallar eru leyfisbundin. Ekki fjárfestingarráðgjöf.</p>
+
+    <div class="idx">
+      {indices.map((i) => (
+        <div class="idx-c">
+          <div class="idx-n">{i.name}</div>
+          <div class="idx-v">{fmtNum(i.price, 2)}</div>
+          <div class={`idx-ch ${(i.chgPct || 0) >= 0 ? 'up' : 'dn'}`}>{chg(i.chgPct)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Skráð félög</h2>
+    <div class="stocks">
+      {stk.map((s) => (
+        <div class="st">
+          <div class="st-top"><span class="st-sym">{s.sym}</span><span class={`st-ch ${s.up ? 'up' : 'dn'}`}>{chg(s.chgPct)}</span></div>
+          <div class="st-name">{s.name}</div>
+          {s.pts && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={s.pts} fill="none" stroke={s.up ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
+          <div class="st-price">{fmtNum(s.price, s.price < 100 ? 2 : 1)} <span>{s.cur || 'ISK'}</span></div>
+        </div>
+      ))}
+    </div>
+
+    {chartYears.length > 0 && (
+      <>
+        <h2>Ávöxtunarferill ríkisbréfa</h2>
+        <div id="chart"></div>
+        <p class="src">RIKB = óverðtryggð (nafnávöxtun) · RIKS = verðtryggð (raunávöxtun). Heimild: Lánamál ríkisins.</p>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Töfð lokagildi (Kauphöll/Lánamál). Sparklines bakaðar á byggingartíma. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+    .idx { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 4px; }
+    .idx-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 16px; min-width: 180px; }
+    .idx-n { font-size: 12px; color: #9fb0c8; }
+    .idx-v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .idx-ch { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .stocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .st { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 13px; }
+    .st-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .st-sym { font-weight: 800; font-size: 14px; }
+    .st-ch { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .st-name { font-size: 11px; color: #7e8ca6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 6px; }
+    .st-spark { width: 100%; height: 30px; display: block; }
+    .st-price { font-size: 15px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
+    .st-price span { font-size: 11px; color: #7e8ca6; font-weight: 400; }
+    .up { color: #46e08a; } .dn { color: #ff6d7a; }
+    #chart { width: 100%; height: 340px; margin: 4px 0; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: ávöxtunarferill (ECharts), astro:page-load. #2 -->
+  <script define:vars={{ chartYears, bondNom, bondIdx }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const mk = (arr) => chartYears.map((y) => { const b = arr.find((x) => x.yr === y); return b ? b.yield : null; });
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        legend: { data: ['Óverðtryggð (RIKB)', 'Verðtryggð (RIKS)'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        grid: { left: 40, right: 18, top: 34, bottom: 26 },
+        xAxis: { type: 'category', data: chartYears, axisLabel: { color: '#7e8ca6' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v + '%') },
+        series: [
+          { name: 'Óverðtryggð (RIKB)', type: 'line', data: mk(bondNom), smooth: true, connectNulls: true, lineStyle: { width: 3, color: '#f6b13b' }, itemStyle: { color: '#f6b13b' } },
+          { name: 'Verðtryggð (RIKS)', type: 'line', data: mk(bondIdx), smooth: true, connectNulls: true, lineStyle: { width: 3, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' } },
+        ],
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    document.addEventListener('astro:page-load', initChart);
+  </script>
+</Layout>

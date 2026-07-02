@@ -1,0 +1,96 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Fasteignaverð: miðgildi verð/m² höfuðborgarsvæði vs
+// landsbyggð yfir tíma (fasteignir.json months, HMS kaupskrá). Í Layout. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+
+const months = FASTEIGNIR.months || [];
+const latest = months[months.length - 1] || {};
+const prev12 = months[months.length - 13] || {};
+const hb = latest.hbsv || {}, land = latest.land || {};
+const yoyHb = prev12.hbsv && prev12.hbsv.m2 ? ((hb.m2 - prev12.hbsv.m2) / prev12.hbsv.m2) * 100 : null;
+const yoyLand = prev12.land && prev12.land.m2 ? ((land.m2 - prev12.land.m2) / prev12.land.m2) * 100 : null;
+
+const chartMonths = months.map((m) => m.m);
+const hbSeries = months.map((m) => (m.hbsv ? m.hbsv.m2 : null));
+const landSeries = months.map((m) => (m.land ? m.land.m2 : null));
+
+const updated = '2026-07-01';
+const yoyTxt = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 1) + '%');
+const desc = `Fasteignaverð á Íslandi — miðgildi ${groupThousands(hb.m2)} þús.kr/m² á höfuðborgarsvæðinu (${yoyTxt(yoyHb)} á ári) og ${groupThousands(land.m2)} þús.kr/m² á landsbyggðinni. Þróun úr þinglýstum kaupum.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Fasteignaverð á Íslandi',
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Verð á fermetra (þús.kr)',
+};
+---
+
+<Layout title="Fasteignaverð — verð á fermetra | Karp" description={desc} canonical="https://app.karp.is/fasteignir/" jsonLd={jsonLd} ogTitle="Fasteignaverð á Íslandi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Fasteignaverð</p>
+    <h1>Fasteignaverð</h1>
+    <p>Miðgildi kaupverðs á fermetra úr þinglýstum kaupum (HMS kaupskrá). Vilt þú <a href="/reiknivelar/">verðmeta íbúð</a>? Notaðu verðmats-reiknivélina.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏙️ Höfuðborgarsvæði</div><div class="k-v">{groupThousands(hb.m2)}</div><div class="k-s">þús/m² · <span class={yoyHb >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyHb)}</span> á ári</div></div>
+      <div class="kpi"><div class="k-l">🌄 Landsbyggð</div><div class="k-v">{groupThousands(land.m2)}</div><div class="k-s">þús/m² · <span class={yoyLand >= 0 ? 'up' : 'dn'}>{yoyTxt(yoyLand)}</span> á ári</div></div>
+      <div class="kpi"><div class="k-l">🧾 Meðalverð (höfuðb.)</div><div class="k-v">{fmtNum(hb.vp, 1)}</div><div class="k-s">m.kr · {groupThousands(hb.n)} kaup/mán</div></div>
+    </div>
+
+    <h2>Verð á fermetra — þróun</h2>
+    <div id="chart"></div>
+
+    <p class="note">ⓘ Miðgildi (robust gegn útlögum) verð/m² úr þinglýstum kaupum íbúðarhúsnæðis. Höfuðborgarsvæði = 7 sveitarfélög; landsbyggð = önnur. Per-sveitarfélag verðmat er í <a href="/reiknivelar/">Reiknivélum</a>.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: HMS kaupskrá (þinglýst kaup). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .note a { color: #f6b13b; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    .up { color: #46e08a; } .dn { color: #ff6d7a; }
+    #chart { width: 100%; height: 340px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: verð/m² þróun (2 línur), astro:page-load. #2 -->
+  <script define:vars={{ chartMonths, hbSeries, landSeries }}>
+    function initChart() {
+      const el = document.getElementById('chart');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent',
+        legend: { data: ['Höfuðborgarsvæði', 'Landsbyggð'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        grid: { left: 50, right: 16, top: 34, bottom: 26 },
+        xAxis: { type: 'category', data: chartMonths, axisLabel: { color: '#7e8ca6', interval: 35 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : Math.round(v) + ' þús/m²') },
+        series: [
+          { name: 'Höfuðborgarsvæði', type: 'line', data: hbSeries, smooth: true, symbol: 'none', connectNulls: true, lineStyle: { width: 3, color: '#f6b13b' } },
+          { name: 'Landsbyggð', type: 'line', data: landSeries, smooth: true, symbol: 'none', connectNulls: true, lineStyle: { width: 3, color: '#3a8dff' } },
+        ],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', initChart);
+  </script>
+</Layout>

@@ -1,0 +1,111 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Utanríkis & varnir: varnarútgjöld NATO-ríkja (% VLF,
+// Ísland herlaust) + sendiráðanet Íslands (natoexp.json + sendirad.json).
+// Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum } from '@lib/format.mjs';
+import NATO from '@gogn/natoexp.json';
+import SENDIRAD from '@gogn/sendirad.json';
+
+const natoYear = NATO.ar || 2025;
+const target = NATO.markmid || 2;
+const rikin = (NATO.rikin || []).map(([label, v]) => ({ label, v })).sort((a, b) => b.v - a.v);
+const overTarget = rikin.filter((r) => r.v >= target).length;
+
+const abroad = SENDIRAD.abroad || [];
+const iceland = SENDIRAD.iceland || [];
+const updated = '2026-07-01';
+const desc = `Utanríkismál Íslands — varnarútgjöld NATO-ríkja ${natoYear} (Ísland er eina herlausa aðildarríkið), ${abroad.length} sendiráð Íslands erlendis og ${iceland.length} erlend sendiráð á Íslandi.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Utanríkismál Íslands',
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland',
+};
+---
+
+<Layout title="Utanríkis & varnir | Karp" description={desc} canonical="https://app.karp.is/utanrikis/" jsonLd={jsonLd} ogTitle="Utanríkismál Íslands">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Útlönd</p>
+    <h1>Utanríkis &amp; varnir</h1>
+    <p>Varnarútgjöld NATO-ríkja og sendiráðanet Íslands. {overTarget} af {rikin.length} ríkjum náðu 2%-markmiðinu {natoYear}.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🛡️ 2%-markmið NATO</div><div class="k-v">{overTarget}/{rikin.length}</div><div class="k-s">ríki yfir markmiði {natoYear}</div></div>
+      <div class="kpi"><div class="k-l">🏛️ Sendiráð Íslands</div><div class="k-v">{abroad.length}</div><div class="k-s">erlendis</div></div>
+      <div class="kpi"><div class="k-l">🌍 Erlend sendiráð</div><div class="k-v">{iceland.length}</div><div class="k-s">á Íslandi</div></div>
+    </div>
+
+    <p class="note">ⓘ <strong>Ísland er eina aðildarríki NATO sem heldur ekki úti eigin her</strong> og kemur því ekki fram í varnarútgjaldatölum bandalagsins. Framlag Íslands felst m.a. í rekstri öryggissvæðisins á Keflavíkurflugvelli, Landhelgisgæslunni og gistiríkjastuðningi.</p>
+
+    <h2>Varnarútgjöld NATO-ríkja {natoYear} (% af VLF)</h2>
+    <div id="chart-nato"></div>
+
+    <h2>Sendiráð Íslands erlendis ({abroad.length})</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th class="l">Land</th><th class="l">Borg</th><th class="l">Tegund</th><th class="l">Sendiherra</th></tr></thead>
+        <tbody>
+          {abroad.map((s) => (
+            <tr><td class="l">{s.is}</td><td class="l">{s.city}</td><td class="l">{s.type}</td><td class="l">{s.sendiherra || '—'}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: NATO (Defence Expenditure), utanríkisráðuneytið (sendiráð). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-nato { width: 100%; }
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+    th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    td.l { color: #cdd6e6; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: NATO-súlurit (target markLine), astro:page-load. #2 -->
+  <script define:vars={{ rikin, target }}>
+    function initChart() {
+      const el = document.getElementById('chart-nato');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initChart, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      el.style.height = (rikin.length * 21 + 30) + 'px';
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent', grid: { left: 120, right: 40, top: 6, bottom: 24 },
+        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        yAxis: { type: 'category', inverse: true, data: rikin.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 10 }, axisLine: { show: false }, axisTick: { show: false } },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => fmt(v) },
+        series: [{
+          type: 'bar', barWidth: 11,
+          data: rikin.map((r) => ({ value: r.v, itemStyle: { color: r.v >= target ? '#46e08a' : '#42506a' } })),
+          label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 9, formatter: (p) => fmt(p.value) },
+          markLine: { silent: true, symbol: 'none', data: [{ xAxis: target }], lineStyle: { type: 'dashed', color: '#f6b13b' }, label: { formatter: 'markmið ' + target + '%', color: '#f6b13b', fontSize: 10 } },
+        }],
+      });
+      function fmt(v) { return (Math.round(v * 100) / 100).toString().replace('.', ',') + '%'; }
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', initChart);
+  </script>
+</Layout>

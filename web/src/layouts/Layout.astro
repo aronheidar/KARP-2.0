@@ -4,12 +4,31 @@
 import { ClientRouter } from 'astro:transitions';
 const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
 const NAV = [
-  { href: '/', label: 'Yfirlit', emoji: '🏠' },
-  { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
-  { href: '/sveitarfelog/', label: 'Sveitarfélög', emoji: '🏘️' },
-  { href: '/althingi/', label: 'Alþingi', emoji: '🏛️' },
-  { href: '/thingmal/', label: 'Þingmál', emoji: '📜' },
-  { href: '/kannanir/', label: 'Kannanir', emoji: '📊' },
+  { items: [{ href: '/', label: 'Yfirlit', emoji: '🏠' }] },
+  { title: 'Efnahagur', items: [
+    { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
+    { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
+    { href: '/verdlag/', label: 'Verðlag', emoji: '🛒' },
+    { href: '/rikisfjarmal/', label: 'Ríkisfjármál', emoji: '🏦' },
+  ] },
+  { title: 'Samfélag', items: [
+    { href: '/sveitarfelog/', label: 'Sveitarfélög', emoji: '🏘️' },
+    { href: '/fasteignir/', label: 'Fasteignaverð', emoji: '🏠' },
+    { href: '/orka/', label: 'Orka', emoji: '⚡' },
+    { href: '/atvinnuleysi/', label: 'Atvinnuleysi', emoji: '👷' },
+    { href: '/afbrot/', label: 'Afbrot', emoji: '🚓' },
+  ] },
+  { title: 'Stjórnmál', items: [
+    { href: '/althingi/', label: 'Alþingi', emoji: '🏛️' },
+    { href: '/thingmal/', label: 'Þingmál', emoji: '📜' },
+    { href: '/kannanir/', label: 'Kannanir', emoji: '📊' },
+  ] },
+  { title: 'Útlönd', items: [
+    { href: '/utanrikis/', label: 'Utanríkis', emoji: '🌍' },
+  ] },
+  { title: 'Verkfæri', items: [
+    { href: '/reiknivelar/', label: 'Reiknivélar', emoji: '🧮' },
+  ] },
 ];
 const path = Astro.url.pathname;
 const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
@@ -45,6 +64,7 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       .nav-a.on { background:rgba(246,177,59,.12); color:var(--gold); }
       #nav-mitt[hidden] { display:none; } /* annars yfirskrifar .nav-a{display:flex} hidden-attribútið */
       .nav-e { font-size:16px; width:20px; text-align:center; }
+      .nav-grp { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#5a6678; font-weight:700; padding:13px 12px 3px; }
       .nav-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
 
       /* EFNI (miðja) */
@@ -74,6 +94,7 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
         .shell{grid-template-columns:1fr;}
         .nav{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);padding:12px;gap:6px;}
         .nav nav{display:flex;flex-wrap:wrap;gap:4px;}
+        .nav-grp{display:none;}
         .nav-a{padding:7px 10px;font-size:13px;}
         .brand{padding:2px 8px;}
         .nav-foot{margin:0 0 0 auto;padding:0;border:0;order:-1;}
@@ -86,7 +107,12 @@ const active = (href) => (href === '/' ? path === '/' : path.startsWith(href));
       <aside class="nav" transition:persist>
         <a class="brand" href="/">KARP</a>
         <nav>
-          {NAV.map((n) => <a class={`nav-a${active(n.href) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>)}
+          {NAV.map((grp) => (
+            <>
+              {grp.title && <div class="nav-grp">{grp.title}</div>}
+              {grp.items.map((n) => <a class={`nav-a${active(n.href) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>)}
+            </>
+          ))}
           <a class="nav-a" id="nav-mitt" href="/mitt-svaedi/" hidden><span class="nav-e">⭐</span>Mitt svæði</a>
         </nav>
         <div class="nav-foot"><div id="chip" class="chip"></div></div>

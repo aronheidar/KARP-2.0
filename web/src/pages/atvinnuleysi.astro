@@ -1,0 +1,110 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Atvinnuleysi: skráð atvinnuleysi (VMST) — mánaðarþróun +
+// eftir landshlutum + kyn + ríkisfang (atvinnuleysi.json). Í Layout. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, monthLabel } from '@lib/format.mjs';
+import ATV from '@gogn/atvinnuleysi.json';
+
+const latest = ATV.latest;
+const monthly = ATV.monthly || [];
+const recent = monthly.slice(-72);
+const chartMonths = recent.map((m) => monthLabel(m.t));
+const trendVals = recent.map((m) => m.v);
+const regionBars = (ATV.byRegion || []).slice().sort((a, b) => b.v - a.v);
+const sex = ATV.bySex || {};
+const cit = ATV.byCitizenship || {};
+const updated = ATV.updated || '2026M05';
+const updLabel = monthLabel(updated);
+
+const hi = regionBars[0], lo = regionBars[regionBars.length - 1];
+const desc = `Skráð atvinnuleysi á Íslandi mælist ${fmtNum(latest, 1)}% (${updLabel}). Þróun, landshlutar, kyn og ríkisfang — gögn frá Vinnumálastofnun.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Skráð atvinnuleysi á Íslandi',
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Skráð atvinnuleysi (%)',
+};
+---
+
+<Layout title={`Atvinnuleysi — ${fmtNum(latest, 1)}% | Karp`} description={desc} canonical="https://app.karp.is/atvinnuleysi/" jsonLd={jsonLd} ogTitle="Atvinnuleysi á Íslandi">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Samfélag</p>
+    <h1>Atvinnuleysi</h1>
+    <div class="big">{fmtNum(latest, 1)}%<span>skráð atvinnuleysi · {updLabel}</span></div>
+    <p>Skráð atvinnuleysi hjá Vinnumálastofnun. Hæst á {hi?.name} ({fmtNum(hi?.v, 1)}%), lægst á {lo?.name} ({fmtNum(lo?.v, 1)}%).</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">👨 Karlar</div><div class="k-v">{fmtNum(sex.karlar, 1)}%</div></div>
+      <div class="kpi"><div class="k-l">👩 Konur</div><div class="k-v">{fmtNum(sex.konur, 1)}%</div></div>
+      <div class="kpi"><div class="k-l">🇮🇸 Íslenskt ríkisfang</div><div class="k-v">{fmtNum(cit.islenskt, 1)}%</div></div>
+      <div class="kpi"><div class="k-l">🌍 Erlent ríkisfang</div><div class="k-v hl">{fmtNum(cit.erlent, 1)}%</div></div>
+    </div>
+
+    <h2>Mánaðarþróun (6 ár)</h2>
+    <div id="chart-trend"></div>
+
+    <h2>Eftir landshlutum</h2>
+    <div id="chart-region"></div>
+
+    <p class="note">ⓘ Skráð atvinnuleysi (hlutfall á atvinnuleysisskrá VMST) — ekki það sama og atvinnuleysi skv. vinnumarkaðsrannsókn Hagstofu. Erlent ríkisfang mælist umtalsvert hærra en íslenskt.</p>
+    <p class="foot">Forþjónað (SSG). Heimild: Vinnumálastofnun ({updLabel}). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 6px; }
+    .big { font-size: 48px; font-weight: 800; color: #f6b13b; line-height: 1; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+    .big span { font-size: 14px; font-weight: 500; color: #9fb0c8; margin-left: 8px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 20px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 11px 13px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 22px; font-weight: 800; color: #eaf1fb; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-v.hl { color: #ff8e98; }
+    #chart-trend { width: 100%; height: 300px; }
+    #chart-region { width: 100%; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: mánaðarþróun + landshlutar, astro:page-load. #2 -->
+  <script define:vars={{ chartMonths, trendVals, regionBars }}>
+    function initCharts() {
+      const ct = document.getElementById('chart-trend');
+      if (!ct) return;
+      const go = () => {
+        if (!window.echarts.getInstanceByDom(ct)) {
+          const c = window.echarts.init(ct);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 40, right: 16, top: 12, bottom: 26 },
+            xAxis: { type: 'category', data: chartMonths, axisLabel: { color: '#7e8ca6', interval: 11 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v + '%') },
+            series: [{ type: 'line', data: trendVals, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#f6b13b' }, areaStyle: { opacity: 0.12, color: '#f6b13b' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cr = document.getElementById('chart-region');
+        if (cr && !window.echarts.getInstanceByDom(cr)) {
+          cr.style.height = (regionBars.length * 28 + 26) + 'px';
+          const c = window.echarts.init(cr);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 120, right: 44, top: 6, bottom: 20 },
+            xAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'category', inverse: true, data: regionBars.map((d) => d.name), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { show: false }, axisTick: { show: false } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => v + '%' },
+            series: [{ type: 'bar', barWidth: 14, data: regionBars.map((d) => d.v), itemStyle: { color: '#3a8dff' }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => p.value.toFixed(1).replace('.', ',') + '%' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

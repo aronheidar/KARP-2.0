@@ -1,0 +1,97 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Ríkisfjármál: tekjur vs útgjöld ríkissjóðs (fjárlög 2026),
+// útgjöld eftir málefnasviðum + tekjur eftir flokkum. Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum } from '@lib/format.mjs';
+import UTGJOLD from '@gogn/utgjold.json';
+import SKATTAR from '@gogn/skattar.json';
+
+const ar = UTGJOLD.ar || 2026;
+const heildUtgjold = UTGJOLD.heild || 0;
+const heildTekjur = SKATTAR.heildartekjur || UTGJOLD.tekjur || 0;
+const afkoma = heildTekjur - heildUtgjold;
+
+const sumPairs = (arr) => (arr || []).reduce((s, x) => s + (x[1] || 0), 0);
+const utgGroups = (UTGJOLD.hopar || []).map((g) => ({ label: g.heiti, v: sumPairs(g.svid) })).sort((a, b) => b.v - a.v);
+const tekGroups = (SKATTAR.hopar || []).map((g) => ({ label: g.heiti, v: sumPairs(g.skattar) })).sort((a, b) => b.v - a.v);
+
+const topUtg = utgGroups[0];
+const ma = (v) => fmtNum(v, 1);
+const desc = `Ríkisfjármál Íslands ${ar} — heildartekjur ${ma(heildTekjur)} ma.kr, útgjöld ${ma(heildUtgjold)} ma.kr (${afkoma < 0 ? 'halli' : 'afgangur'} ${ma(Math.abs(afkoma))} ma.kr). Útgjöld eftir málefnasviðum og tekjur eftir flokkum.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: `Ríkisfjármál Íslands ${ar}`,
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: `${ar}-01-01`, spatialCoverage: 'Ísland',
+};
+---
+
+<Layout title={`Ríkisfjármál ${ar} — tekjur & útgjöld | Karp`} description={desc} canonical="https://app.karp.is/rikisfjarmal/" jsonLd={jsonLd} ogTitle={`Ríkisfjármál ${ar}`}>
+  <main>
+    <p class="kicker">Hagvísir Íslands · Ríkisfjármál</p>
+    <h1>Ríkisfjármál {ar}</h1>
+    <p>Fjárlög {ar} — heildartekjur og útgjöld A1-hluta ríkissjóðs. Stærsti útgjaldaflokkur: <strong>{topUtg?.label}</strong> ({ma(topUtg?.v)} ma.kr). Heimild: Frumvarp til fjárlaga.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">💰 Heildartekjur</div><div class="k-v">{ma(heildTekjur)}</div><div class="k-s">ma.kr</div></div>
+      <div class="kpi"><div class="k-l">🏦 Heildarútgjöld</div><div class="k-v">{ma(heildUtgjold)}</div><div class="k-s">ma.kr</div></div>
+      <div class="kpi"><div class="k-l">{afkoma < 0 ? '📉 Halli' : '📈 Afgangur'}</div><div class={`k-v ${afkoma < 0 ? 'neg' : ''}`}>{afkoma < 0 ? '−' : '+'}{ma(Math.abs(afkoma))}</div><div class="k-s">ma.kr</div></div>
+    </div>
+
+    <h2>Útgjöld eftir málefnasviðum</h2>
+    <div id="chart-utg"></div>
+
+    <h2>Tekjur eftir flokkum</h2>
+    <div id="chart-tek"></div>
+
+    <p class="note">ⓘ Tölur í milljörðum króna (ma.kr), A1-hluti ríkissjóðs skv. frumvarpi til fjárlaga {ar}. Málefnasvið = útgjöld sameinuð eftir yfirflokki.</p>
+    <p class="foot">Forþjónað (SSG). Heimild: {UTGJOLD.heimild || 'Fjárlög'}. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-v.neg { color: #ff8e98; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-utg, #chart-tek { width: 100%; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: útgjöld + tekjur súlurit, astro:page-load. #2 -->
+  <script define:vars={{ utgGroups, tekGroups }}>
+    function bar(el, data, color) {
+      el.style.height = (data.length * 28 + 26) + 'px';
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { left: 150, right: 52, top: 6, bottom: 20 },
+        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        yAxis: { type: 'category', inverse: true, data: data.map((d) => d.label), axisLabel: { color: '#cdd6e6', fontSize: 11, width: 140, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + ' ma.kr') },
+        series: [{ type: 'bar', barWidth: 15, data: data.map((d) => d.v), itemStyle: { color }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => p.value.toFixed(0) } }],
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    function initCharts() {
+      const u = document.getElementById('chart-utg'), t = document.getElementById('chart-tek');
+      if (!u) return;
+      const go = () => {
+        if (!window.echarts.getInstanceByDom(u)) bar(u, utgGroups, '#ff6d7a');
+        if (t && !window.echarts.getInstanceByDom(t)) bar(t, tekGroups, '#46e08a');
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

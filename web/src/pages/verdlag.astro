@@ -1,0 +1,102 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Verðlag: framfærslukostnaður Reykjavíkur + samanburður
+// við borgir (numbeo.json) + kaupmáttur. Í app-skelinni (Layout). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum } from '@lib/format.mjs';
+import NUMBEO from '@gogn/numbeo.json';
+
+const idx = NUMBEO.indices || {};
+const lab = NUMBEO.labels || {};
+const order = NUMBEO.order || Object.keys(idx);
+const rvk = idx.Reykjavik || {};
+const updated = NUMBEO.updated || '2026-07-01';
+
+const cities = order.filter((c) => idx[c]).map((c) => ({ key: c, label: (lab[c] || {}).label || c, home: !!(lab[c] || {}).home, ...idx[c] }));
+const colBars = cities.slice().sort((a, b) => (a.col || 0) - (b.col || 0)).map((c) => ({ label: c.label, v: c.col, home: c.home }));
+const ppBars = cities.slice().sort((a, b) => (b.pp || 0) - (a.pp || 0)).map((c) => ({ label: c.label, v: c.pp, home: c.home }));
+
+const tiles = [
+  { e: '🧾', l: 'Framfærsla', v: rvk.col, s: 'vísitala (hærra=dýrara)' },
+  { e: '🏠', l: 'Leiga', v: rvk.rent, s: 'vísitala' },
+  { e: '🛒', l: 'Matvara', v: rvk.groceries, s: 'vísitala' },
+  { e: '🍽️', l: 'Veitingar', v: rvk.restaurant, s: 'vísitala' },
+  { e: '💪', l: 'Kaupmáttur', v: rvk.pp, s: 'hærra = betri' },
+];
+const ppRank = ppBars.findIndex((c) => c.home) + 1;
+const desc = `Framfærslukostnaður í Reykjavík borinn saman við ${cities.length} borgir — matvara, leiga, veitingar og kaupmáttur. Gögn frá Numbeo, uppfært ${updated}.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Framfærslukostnaður á Íslandi',
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Reykjavík',
+};
+---
+
+<Layout title="Verðlag — framfærslukostnaður | Karp" description={desc} canonical="https://app.karp.is/verdlag/" jsonLd={jsonLd} ogTitle="Verðlag í Reykjavík">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Verðlag</p>
+    <h1>Verðlag í Reykjavík</h1>
+    <p>Framfærslukostnaður borinn saman við {cities.length} borgir. Reykjavík er í <strong>{ppRank}. sæti</strong> af {cities.length} í kaupmætti. Heimild: Numbeo.</p>
+
+    <div class="kpis">
+      {tiles.map((t) => (
+        <div class="kpi"><div class="k-l">{t.e} {t.l}</div><div class="k-v">{t.v != null ? fmtNum(t.v, 1) : '–'}</div><div class="k-s">{t.s}</div></div>
+      ))}
+    </div>
+
+    <h2>Framfærslukostnaður — borgir</h2>
+    <div id="chart-col"></div>
+
+    <h2>Kaupmáttur — borgir</h2>
+    <div id="chart-pp"></div>
+
+    <p class="note">ⓘ Vísitölur eru hlutfallslegar (Numbeo, samfélagslega söfnuð verð). Framfærsla: hærra = dýrara. Kaupmáttur: hærra = meira fæst fyrir meðallaun eftir verðlag.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Gögn: Numbeo (crowd-sourced). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 11px 13px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 22px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-col, #chart-pp { width: 100%; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: tvö súlurit (framfærsla + kaupmáttur), astro:page-load. #2 -->
+  <script define:vars={{ colBars, ppBars }}>
+    function bar(el, data, suffix) {
+      el.style.height = (data.length * 26 + 30) + 'px';
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { left: 110, right: 40, top: 6, bottom: 20 },
+        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        yAxis: { type: 'category', inverse: true, data: data.map((d) => d.label), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { show: false }, axisTick: { show: false } },
+        tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v + suffix) },
+        series: [{ type: 'bar', barWidth: 13, data: data.map((d) => ({ value: d.v, itemStyle: { color: d.home ? '#f6b13b' : '#42506a' } })), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10 } }],
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    function initCharts() {
+      const c1 = document.getElementById('chart-col'), c2 = document.getElementById('chart-pp');
+      if (!c1) return;
+      const go = () => {
+        if (!window.echarts.getInstanceByDom(c1)) bar(c1, colBars, '');
+        if (c2 && !window.echarts.getInstanceByDom(c2)) bar(c2, ppBars, '');
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

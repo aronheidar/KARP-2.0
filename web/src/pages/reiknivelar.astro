@@ -1,0 +1,387 @@
+---
+// ─────────────────────────────────────────────────────────────
+// Reiknivélar (#2) — flipar: Laun (nettólaun 2026) + Húsnæðislán (greiðsluáætlun).
+// Opnar, gagnvirkar, reiknaðar í vafra (engin sókn). Í app-skelinni (Layout). #2.
+// 2026-fastar úr minni „karp-reiknivelar" (Skatturinn / markaðsvextir mið-2026).
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import SVFIN from '@gogn/sveitarfelog_fin.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+
+const LAUN2026 = { pa: 72492, t1: 498122, t2: 1398450, r1: 16.55, r2: 23.05, r3: 31.35, avgUtsvar: 14.94 };
+const HUS2026 = { ovbr: 9.5, ovfast: 8.5, vtfast: 4.65, infl: 5.2, ltvGen: 80, ltvFirst: 90 };
+const LIF2026 = { rights: 1.8, discount: 2.5, trBase: 365592, trHome: 92384, frit: 43658, redRate: 45, employerMatch: 2, payoutTo: 87 };
+
+const munis = Object.keys(SVFIN)
+  .filter((n) => SVFIN[n] && SVFIN[n].utsvar != null)
+  .map((n) => ({ n, u: SVFIN[n].utsvar }))
+  .sort((a, b) => a.n.localeCompare(b.n, 'is'));
+const utsvarOpts = [{ n: 'Meðaltal sveitarfélaga', u: LAUN2026.avgUtsvar }, ...munis];
+
+// Verðmat: byMuni miðgildi verð/m² + p25/p75 per tegund (fasteignir.json, ≥8 kaup).
+const FMAT = {};
+Object.keys(FASTEIGNIR.byMuni || {}).forEach((n) => {
+  const b = FASTEIGNIR.byMuni[n];
+  FMAT[n] = { all: { m2: b.m2, p25: b.p25, p75: b.p75, n: b.n }, types: b.types || {} };
+});
+const fmatMunis = Object.keys(FMAT).sort((a, b) => a.localeCompare(b, 'is'));
+
+const updated = '2026-07-01';
+const desc = 'Reiknivélar 2026 — launareiknivél (nettólaun úr brúttó með réttu útsvari) og húsnæðislánareiknivél (mánaðargreiðsla, óverðtryggt/verðtryggt). Reiknað í vafra, engin gögn send.';
+
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'WebApplication',
+  name: 'Reiknivélar 2026 — laun & húsnæðislán', applicationCategory: 'FinanceApplication', operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'ISK' }, description: desc,
+};
+---
+
+<Layout
+  title="Reiknivélar 2026 — laun & húsnæðislán | Karp"
+  description={desc}
+  canonical="https://app.karp.is/reiknivelar/"
+  jsonLd={jsonLd}
+  ogTitle="Reiknivélar 2026"
+>
+  <main>
+    <p class="kicker">Hagvísir Íslands · Reiknivélar</p>
+    <h1>Reiknivélar</h1>
+
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-t="laun">🧮 Laun</button>
+      <button class="tab" data-t="hus">🏠 Húsnæðislán</button>
+      <button class="tab" data-t="lif">👴 Lífeyrir</button>
+      <button class="tab" data-t="vm">🏡 Verðmat</button>
+    </div>
+
+    <!-- ── LAUN ── -->
+    <section id="p-laun" class="panel">
+      <p>Reiknaðu <strong>útborguð laun</strong> úr brúttólaunum með skattþrepum 2026 og <strong>réttu útsvari</strong> þíns sveitarfélags.</p>
+      <div class="calc">
+        <div class="form">
+          <label>Brúttólaun á mánuði
+            <div class="inp"><input id="gross" type="number" min="0" step="10000" value="800000" inputmode="numeric" /><span>kr.</span></div>
+          </label>
+          <label>Sveitarfélag (útsvar)
+            <select id="muni">
+              {utsvarOpts.map((o) => <option value={o.u}>{o.n} — {o.u.toFixed(2).replace('.', ',')}%</option>)}
+            </select>
+          </label>
+          <label>Séreignarsparnaður
+            <div class="inp"><input id="sereign" type="number" min="0" max="4" step="0.5" value="0" inputmode="decimal" /><span>%</span></div>
+          </label>
+          <label>Stéttarfélagsgjald
+            <div class="inp"><input id="felag" type="number" min="0" max="5" step="0.1" value="0.7" inputmode="decimal" /><span>%</span></div>
+          </label>
+        </div>
+        <div id="out-laun" class="out"></div>
+      </div>
+      <p class="note">ⓘ Áætlun m.v. skattþrep 2026 (persónuafsláttur 72.492 kr; mörk 498.122 / 1.398.450 kr; 16,55 / 23,05 / 31,35% + útsvar). Full nýting persónuafsláttar, 4% skyldulífeyrir. Ekki fjármálaráðgjöf.</p>
+    </section>
+
+    <!-- ── HÚSNÆÐISLÁN ── -->
+    <section id="p-hus" class="panel" hidden>
+      <p>Reiknaðu <strong>mánaðarlega greiðslu</strong> og heildarkostnað húsnæðisláns — óverðtryggt eða verðtryggt.</p>
+      <div class="calc">
+        <div class="form">
+          <label>Kaupverð
+            <div class="inp"><input id="hprice" type="number" min="0" step="500000" value="60000000" inputmode="numeric" /><span>kr.</span></div>
+          </label>
+          <label>Eigið fé
+            <div class="inp"><input id="hequity" type="number" min="0" step="500000" value="12000000" inputmode="numeric" /><span>kr.</span></div>
+          </label>
+          <label>Lánsform
+            <div class="seg" id="hform">
+              <button data-v="ov" class="on">Óverðtryggt</button><button data-v="vt">Verðtryggt</button>
+            </div>
+          </label>
+          <label>Greiðsluform
+            <div class="seg" id="hpay">
+              <button data-v="ann" class="on">Jafnar greiðslur</button><button data-v="jafn">Jafnar afborganir</button>
+            </div>
+          </label>
+          <label>Vextir
+            <div class="inp"><input id="hrate" type="number" min="0" max="20" step="0.05" value="9.5" inputmode="decimal" /><span>%</span></div>
+          </label>
+          <label>Lánstími
+            <div class="inp"><input id="hyears" type="number" min="1" max="40" step="1" value="30" inputmode="numeric" /><span>ár</span></div>
+          </label>
+          <label id="hinfl-w" hidden>Verðbólga (verðtryggt)
+            <div class="inp"><input id="hinfl" type="number" min="0" max="15" step="0.1" value="5.2" inputmode="decimal" /><span>%</span></div>
+          </label>
+        </div>
+        <div id="out-hus" class="out"></div>
+      </div>
+      <p class="note">ⓘ Áætlun m.v. dæmigerða markaðsvexti mið-2026 (óverðtr. breytilegt ~9,5%, fast ~8,5%; verðtr. fast ~4,65%). Verðtryggt: greiðslur hækka með verðbólgu, raunbyrði er fast. LTV-þak 80% (90% fyrstu kaup). Ekki greiðslumat.</p>
+    </section>
+
+    <!-- ── LÍFEYRIR ── -->
+    <section id="p-lif" class="panel" hidden>
+      <p>Áætlaðu <strong>mánaðarlegan lífeyri</strong> við starfslok — samtrygging, greiðslur frá TR og séreignarsparnaður.</p>
+      <div class="calc">
+        <div class="form">
+          <label>Núverandi aldur
+            <div class="inp"><input id="lage" type="number" min="18" max="80" step="1" value="40" inputmode="numeric" /><span>ára</span></div>
+          </label>
+          <label>Eftirlaunaaldur
+            <div class="inp"><input id="lret" type="number" min="60" max="80" step="1" value="67" inputmode="numeric" /><span>ára</span></div>
+          </label>
+          <label>Mánaðarlaun núna
+            <div class="inp"><input id="lsal" type="number" min="0" step="10000" value="800000" inputmode="numeric" /><span>kr.</span></div>
+          </label>
+          <label>Starfsár alls (við starfslok)
+            <div class="inp"><input id="lyears" type="number" min="0" max="55" step="1" value="40" inputmode="numeric" /><span>ár</span></div>
+          </label>
+          <label>Séreignarsparnaður
+            <div class="inp"><input id="lsereign" type="number" min="0" max="4" step="0.5" value="4" inputmode="decimal" /><span>%</span></div>
+          </label>
+          <label>Heimilishagir
+            <div class="seg" id="lsingle">
+              <button data-v="0" class="on">Í sambúð</button><button data-v="1">Einhleyp(ur)</button>
+            </div>
+          </label>
+        </div>
+        <div id="out-lif" class="out"></div>
+      </div>
+      <p class="note">ⓘ Áætlun m.v. 2026-viðmið: samtryggingarréttindi 1,8%/ár, TR grunnur 365.592 kr (+ heimilisuppbót 92.384 kr einhleyp), skerðing 45% af samtryggingu yfir 43.658 kr (séreign telst ekki), séreign 2,5% raunávöxtun greidd út til 87 ára. Einföldun — raunréttindi ráðast af þínum sjóði og reglum TR.</p>
+    </section>
+
+    <!-- ── VERÐMAT ── -->
+    <section id="p-vm" class="panel" hidden>
+      <p>Áætlaðu <strong>markaðsvirði</strong> íbúðar út frá miðgildi kaupverðs á fermetra í sveitarfélaginu (þinglýst kaup síðustu 12 mánuði).</p>
+      <div class="calc">
+        <div class="form">
+          <label>Sveitarfélag
+            <select id="vmuni">{fmatMunis.map((n) => <option value={n}>{n}</option>)}</select>
+          </label>
+          <label>Tegund
+            <div class="seg" id="vmtype">
+              <button data-v="Fjölbýli" class="on">Fjölbýli</button><button data-v="Sérbýli">Sérbýli</button><button data-v="Einbýli">Einbýli</button>
+            </div>
+          </label>
+          <label>Stærð
+            <div class="inp"><input id="vmsize" type="number" min="10" max="1000" step="1" value="95" inputmode="numeric" /><span>m²</span></div>
+          </label>
+        </div>
+        <div id="out-vm" class="out"></div>
+      </div>
+      <p class="note">ⓘ Miðgildi verð/m² úr þinglýstum kaupum (HMS kaupskrá) síðustu 12 mánuði; bil = p25–p75. Aðeins sveitarfélög með ≥8 kaup. Ekki formlegt verðmat — raunverð ræðst af eign, ástandi og staðsetningu.</p>
+    </section>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Útsvar úr opinberum ársreikningum; skattfastar Skatturinn.is; vextir vaxtatöflur banka + Seðlabanki. Reiknað í vafra. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 14px; }
+    p { color: #cdd6e6; }
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 18px; }
+    .tab { background: none; border: 0; color: #9fb0c8; font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab:hover { color: #eaf1fb; }
+    .tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
+    .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 14px 0 6px; align-items: start; }
+    .form { display: flex; flex-direction: column; gap: 13px; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: #9fb0c8; font-weight: 600; }
+    .inp { display: flex; align-items: center; background: #0e1626; border: 1px solid rgba(255,255,255,.15); border-radius: 9px; overflow: hidden; }
+    .inp input { flex: 1; background: none; border: 0; color: #eaf1fb; padding: 10px 12px; font-size: 16px; font-variant-numeric: tabular-nums; width: 100%; }
+    .inp span { padding: 0 12px; color: #7e8ca6; font-size: 14px; }
+    select { background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 10px 12px; font-size: 15px; }
+    .seg { display: flex; gap: 6px; }
+    .seg button { flex: 1; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #9fb0c8; border-radius: 8px; padding: 9px 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .seg button.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
+    .note { font-size: 12px; color: #7e8ca6; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 20px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 24px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    @media (max-width: 620px) { .calc { grid-template-columns: 1fr; } }
+  </style>
+  <style is:global>
+    #out-laun, #out-hus { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 18px 20px; }
+    .out .o-l { font-size: 13px; color: #9fb0c8; }
+    .out .o-net { font-size: 38px; font-weight: 800; color: #46e08a; line-height: 1.05; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
+    .out .o-yr { font-size: 12px; color: #7e8ca6; margin-bottom: 12px; }
+    .out .o-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 12px 0 4px; }
+    .out .o-bar i { display: block; height: 100%; }
+    .out .o-leg { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 11px; color: #9fb0c8; margin-bottom: 12px; }
+    .out .o-leg b { color: #eaf1fb; font-weight: 600; }
+    .out .o-leg .sw { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+    .out table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .out td { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .out td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .out tr.sum td { font-weight: 700; color: #eaf1fb; border-bottom: 0; padding-top: 9px; }
+    .out .o-mini { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .out .o-mc { flex: 1; min-width: 90px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
+    .out .o-mc .m-l { font-size: 11px; color: #9fb0c8; }
+    .out .o-mc .m-v { font-size: 16px; font-weight: 800; color: #eaf1fb; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .out .neg { color: #ff8e98; }
+    .out .o-note { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
+  </style>
+
+  <!-- Reiknivél-eyja: reiknar í vafra. Keyrir á astro:page-load (VT). #2 -->
+  <script define:vars={{ LAUN2026, HUS2026, LIF2026, FMAT }}>
+    const kr = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const pctS = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
+    const mkr = (n) => (Math.round(n / 1e5) / 10).toString().replace('.', ',');
+
+    // ── Flipar ──
+    function initTabs() {
+      const tabs = document.querySelectorAll('.tab');
+      if (!tabs.length) return;
+      tabs.forEach((t) => {
+        t.onclick = () => {
+          tabs.forEach((x) => x.classList.toggle('on', x === t));
+          document.querySelectorAll('.panel').forEach((p) => { p.hidden = p.id !== 'p-' + t.dataset.t; });
+        };
+      });
+    }
+
+    // ── Laun ──
+    function computeLaun(gross, utsvar, sereignPct, felagPct) {
+      const lifeyrir = gross * 0.04, sereign = gross * (sereignPct / 100);
+      const stofn = Math.max(0, gross - lifeyrir - sereign);
+      const c1 = (LAUN2026.r1 + utsvar) / 100, c2 = (LAUN2026.r2 + utsvar) / 100, c3 = (LAUN2026.r3 + utsvar) / 100;
+      const grossTax = Math.min(stofn, LAUN2026.t1) * c1 + Math.max(0, Math.min(stofn, LAUN2026.t2) - LAUN2026.t1) * c2 + Math.max(0, stofn - LAUN2026.t2) * c3;
+      const stadgr = Math.max(0, grossTax - LAUN2026.pa), felag = gross * (felagPct / 100);
+      const net = gross - lifeyrir - sereign - stadgr - felag;
+      const empPension = gross * 0.115, sereignMatch = sereignPct > 0 ? gross * 0.02 : 0;
+      const empCost = gross + empPension + sereignMatch + gross * 0.001 + (gross + empPension + sereignMatch) * 0.0635;
+      return { gross, lifeyrir, sereign, stofn, stadgr, felag, net, empCost, effRate: gross ? (stadgr / gross) * 100 : 0 };
+    }
+    function renderLaun(r) {
+      const el = document.getElementById('out-laun'); if (!el) return;
+      const g = r.gross || 1;
+      const seg = [{ l: 'Útborgað', v: r.net, c: '#46e08a' }, { l: 'Staðgreiðsla', v: r.stadgr, c: '#ff6d7a' }, { l: 'Lífeyrir', v: r.lifeyrir, c: '#3a8dff' }, { l: 'Séreign', v: r.sereign, c: '#7c5cf7' }, { l: 'Félagsgjald', v: r.felag, c: '#8892a6' }].filter((s) => s.v > 0);
+      let h = `<div class="o-l">Útborgað á mánuði</div><div class="o-net">${kr(r.net)} kr.</div><div class="o-yr">≈ ${kr(r.net * 12)} kr. á ári</div>`;
+      h += '<div class="o-bar">' + seg.map((s) => `<i style="width:${(s.v / g) * 100}%;background:${s.c}"></i>`).join('') + '</div>';
+      h += '<div class="o-leg">' + seg.map((s) => `<span><span class="sw" style="background:${s.c}"></span>${s.l}: <b>${kr(s.v)}</b></span>`).join('') + '</div>';
+      h += `<table><tr><td>Brúttólaun</td><td>${kr(r.gross)} kr.</td></tr><tr><td>− Lífeyrissparnaður (4%)</td><td class="neg">−${kr(r.lifeyrir)} kr.</td></tr>${r.sereign > 0 ? `<tr><td>− Séreignarsparnaður</td><td class="neg">−${kr(r.sereign)} kr.</td></tr>` : ''}<tr><td>− Staðgreiðsla</td><td class="neg">−${kr(r.stadgr)} kr.</td></tr><tr><td>− Stéttarfélagsgjald</td><td class="neg">−${kr(r.felag)} kr.</td></tr><tr class="sum"><td>= Útborgað</td><td>${kr(r.net)} kr.</td></tr></table>`;
+      h += `<div class="o-mini"><div class="o-mc"><div class="m-l">Skatthlutfall</div><div class="m-v">${pctS(r.effRate)}%</div></div><div class="o-mc"><div class="m-l">Skattstofn</div><div class="m-v">${kr(r.stofn)}</div></div><div class="o-mc"><div class="m-l">Kostn. vinnuveitanda</div><div class="m-v">${kr(r.empCost)}</div></div></div>`;
+      el.innerHTML = h;
+    }
+    function initLaun() {
+      const gEl = document.getElementById('gross'); if (!gEl) return;
+      const mEl = document.getElementById('muni'), sEl = document.getElementById('sereign'), fEl = document.getElementById('felag');
+      const run = () => renderLaun(computeLaun(+gEl.value || 0, +mEl.value || 0, +sEl.value || 0, +fEl.value || 0));
+      [gEl, mEl, sEl, fEl].forEach((x) => { x.oninput = run; x.onchange = run; });
+      run();
+    }
+
+    // ── Húsnæðislán ──
+    function schedule(loan, form, payType, rate, n, infl) {
+      const r = rate / 12 / 100;
+      const o = { firstPay: 0, total: 0, milestones: [], grows: form === 'vt' };
+      const yearsPts = [1, 5, 10, 15, 20, 25, 30, 40];
+      if (form === 'ov') {
+        let bal = loan, ann = payType === 'ann' ? loan * r / (1 - Math.pow(1 + r, -n)) : 0;
+        for (let t = 1; t <= n; t++) {
+          const interest = bal * r, princ = payType === 'ann' ? ann - interest : loan / n, pay = princ + interest;
+          bal = Math.max(0, bal - princ); o.total += pay;
+          if (t === 1) o.firstPay = pay;
+          if (yearsPts.includes(t / 12)) o.milestones.push({ y: t / 12, pay, bal });
+        }
+      } else {
+        let realBal = loan, realAnn = payType === 'ann' ? loan * r / (1 - Math.pow(1 + r, -n)) : 0;
+        for (let t = 1; t <= n; t++) {
+          const idx = Math.pow(1 + infl / 100, t / 12), realInt = realBal * r, realPrinc = payType === 'ann' ? realAnn - realInt : loan / n, realPay = realPrinc + realInt;
+          realBal = Math.max(0, realBal - realPrinc); const pay = realPay * idx;
+          o.total += pay;
+          if (t === 1) o.firstPay = pay;
+          if (yearsPts.includes(t / 12)) o.milestones.push({ y: t / 12, pay, bal: realBal * idx });
+        }
+      }
+      return o;
+    }
+    function renderHus(price, equity, form, payType, rate, years, infl) {
+      const el = document.getElementById('out-hus'); if (!el) return;
+      const loan = Math.max(0, price - equity), ltv = price ? (loan / price) * 100 : 0, n = Math.round(years * 12);
+      const s = schedule(loan, form, payType, rate, n, infl);
+      const above = s.total - loan;
+      let h = `<div class="o-l">Fyrsta mánaðargreiðsla</div><div class="o-net">${kr(s.firstPay)} kr.</div><div class="o-yr">lán ${mkr(loan)} m.kr · LTV ${pctS(ltv)}%${ltv > 90 ? ' ⚠ yfir þaki' : ''}</div>`;
+      h += `<table><tr><td>Lánsupphæð</td><td>${kr(loan)} kr.</td></tr><tr><td>Heildargreiðsla (${years} ár)</td><td>${kr(s.total)} kr.</td></tr><tr><td>Umfram höfuðstól (vextir${form === 'vt' ? ' + verðbætur' : ''})</td><td class="neg">${kr(above)} kr.</td></tr></table>`;
+      if (s.milestones.length) {
+        h += '<div class="o-mini" style="flex-direction:column;gap:0"><table><tr><td style="color:#7e8ca6;font-size:11px">Ár</td><td style="color:#7e8ca6;font-size:11px;text-align:right">Greiðsla</td><td style="color:#7e8ca6;font-size:11px;text-align:right">Eftirstöðvar</td></tr>';
+        h += s.milestones.map((m) => `<tr><td>${m.y}. ár</td><td style="text-align:right">${kr(m.pay)}</td><td style="text-align:right">${kr(m.bal)}</td></tr>`).join('');
+        h += '</table></div>';
+      }
+      if (form === 'vt') h += '<div class="o-note">Verðtryggt: nafngreiðslan hækkar með verðbólgu (raunbyrði er föst). Eftirstöðvar sýndar í nafnvirði.</div>';
+      el.innerHTML = h;
+    }
+    function initHus() {
+      const pEl = document.getElementById('hprice'); if (!pEl) return;
+      const eEl = document.getElementById('hequity'), rEl = document.getElementById('hrate'), yEl = document.getElementById('hyears'), iEl = document.getElementById('hinfl');
+      const formSeg = document.getElementById('hform'), paySeg = document.getElementById('hpay'), inflW = document.getElementById('hinfl-w');
+      const getSeg = (seg) => (seg.querySelector('.on') || {}).dataset?.v;
+      const run = () => {
+        const form = getSeg(formSeg);
+        if (inflW) inflW.hidden = form !== 'vt';
+        renderHus(+pEl.value || 0, +eEl.value || 0, form, getSeg(paySeg), +rEl.value || 0, +yEl.value || 1, +iEl.value || 0);
+      };
+      [pEl, eEl, rEl, yEl, iEl].forEach((x) => { x.oninput = run; x.onchange = run; });
+      [formSeg, paySeg].forEach((seg) => seg.querySelectorAll('button').forEach((b) => {
+        b.onclick = () => {
+          seg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+          // vaxta-preset þegar lánsform breytist
+          if (seg === formSeg) rEl.value = b.dataset.v === 'vt' ? HUS2026.vtfast : HUS2026.ovbr;
+          run();
+        };
+      }));
+      run();
+    }
+
+    // ── Lífeyrir ──
+    function computeLif(age, ret, sal, years, sereignPct, single) {
+      const samtrygging = Math.max(0, (LIF2026.rights / 100) * years * sal * (1 + 0.06 * (ret - 67)));
+      const skerd = Math.max(0, samtrygging - LIF2026.frit) * (LIF2026.redRate / 100);
+      const tr = Math.max(0, LIF2026.trBase - skerd) + (single ? Math.max(0, LIF2026.trHome - skerd) : 0);
+      const rate = (sereignPct + (sereignPct > 0 ? LIF2026.employerMatch : 0)) / 100;
+      const rr = LIF2026.discount / 100 / 12, accM = Math.max(0, ret - age) * 12, contrib = sal * rate;
+      const fv = rr > 0 ? contrib * ((Math.pow(1 + rr, accM) - 1) / rr) : contrib * accM;
+      const payM = Math.max(12, (LIF2026.payoutTo - ret) * 12);
+      const sereign = fv > 0 ? fv * rr / (1 - Math.pow(1 + rr, -payM)) : 0;
+      const total = samtrygging + tr + sereign;
+      return { samtrygging, tr, sereign, total, replacement: sal ? (total / sal) * 100 : 0, fv };
+    }
+    function renderLif(r) {
+      const el = document.getElementById('out-lif'); if (!el) return;
+      const t = r.total || 1;
+      const seg = [{ l: 'Samtrygging', v: r.samtrygging, c: '#46e08a' }, { l: 'TR', v: r.tr, c: '#3a8dff' }, { l: 'Séreign', v: r.sereign, c: '#7c5cf7' }].filter((s) => s.v > 0);
+      let h = `<div class="o-l">Áætlaður lífeyrir á mánuði</div><div class="o-net">${kr(r.total)} kr.</div><div class="o-yr">${pctS(r.replacement)}% af núverandi launum</div>`;
+      h += '<div class="o-bar">' + seg.map((s) => `<i style="width:${(s.v / t) * 100}%;background:${s.c}"></i>`).join('') + '</div>';
+      h += '<div class="o-leg">' + seg.map((s) => `<span><span class="sw" style="background:${s.c}"></span>${s.l}: <b>${kr(s.v)}</b></span>`).join('') + '</div>';
+      h += `<table><tr><td>Samtrygging (lífeyrissjóður)</td><td>${kr(r.samtrygging)} kr.</td></tr><tr><td>Tryggingastofnun (TR)</td><td>${kr(r.tr)} kr.</td></tr><tr><td>Séreignarsparnaður</td><td>${kr(r.sereign)} kr.</td></tr><tr class="sum"><td>= Alls á mánuði</td><td>${kr(r.total)} kr.</td></tr></table>`;
+      h += `<div class="o-mini"><div class="o-mc"><div class="m-l">Hlutfall af launum</div><div class="m-v">${pctS(r.replacement)}%</div></div><div class="o-mc"><div class="m-l">Séreignarpottur v/starfsloka</div><div class="m-v">${mkr(r.fv)} m.kr</div></div></div>`;
+      el.innerHTML = h;
+    }
+    function initLif() {
+      const aEl = document.getElementById('lage'); if (!aEl) return;
+      const rEl = document.getElementById('lret'), sEl = document.getElementById('lsal'), yEl = document.getElementById('lyears'), seEl = document.getElementById('lsereign'), singleSeg = document.getElementById('lsingle');
+      const run = () => renderLif(computeLif(+aEl.value || 0, +rEl.value || 67, +sEl.value || 0, +yEl.value || 0, +seEl.value || 0, (singleSeg.querySelector('.on') || {}).dataset?.v === '1'));
+      [aEl, rEl, sEl, yEl, seEl].forEach((x) => { x.oninput = run; x.onchange = run; });
+      singleSeg.querySelectorAll('button').forEach((b) => { b.onclick = () => { singleSeg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); run(); }; });
+      run();
+    }
+
+    // ── Verðmat ──
+    function renderVm(muni, type, size) {
+      const el = document.getElementById('out-vm'); if (!el) return;
+      const d = FMAT[muni]; if (!d) { el.innerHTML = '<div class="o-note">Engin gögn.</div>'; return; }
+      const t = d.types && d.types[type], usingType = !!(t && t.n), src = usingType ? t : d.all;
+      const fm = (v) => (Math.round(v * 10) / 10).toString().replace('.', ',');
+      const val = src.m2 * size / 1000, lo = src.p25 * size / 1000, hi = src.p75 * size / 1000;
+      let h = `<div class="o-l">Áætlað virði</div><div class="o-net">${fm(val)} m.kr</div><div class="o-yr">líklegt bil ${fm(lo)}–${fm(hi)} m.kr</div>`;
+      h += `<table><tr><td>Verð á m²</td><td>${kr(src.m2)} þ.kr</td></tr><tr><td>Stærð</td><td>${size} m²</td></tr><tr><td>Grunnur</td><td>${usingType ? type : 'allar tegundir'} · ${src.n} kaup</td></tr><tr class="sum"><td>= Áætlað virði</td><td>${fm(val)} m.kr</td></tr></table>`;
+      if (!usingType) h += '<div class="o-note">Ekki næg gögn fyrir þessa tegund í sveitarfélaginu — sýni öll kaup.</div>';
+      el.innerHTML = h;
+    }
+    function initVerdmat() {
+      const mEl = document.getElementById('vmuni'); if (!mEl) return;
+      const sizeEl = document.getElementById('vmsize'), typeSeg = document.getElementById('vmtype');
+      const run = () => renderVm(mEl.value, (typeSeg.querySelector('.on') || {}).dataset?.v || 'Fjölbýli', +sizeEl.value || 0);
+      [mEl, sizeEl].forEach((x) => { x.oninput = run; x.onchange = run; });
+      typeSeg.querySelectorAll('button').forEach((b) => { b.onclick = () => { typeSeg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); run(); }; });
+      run();
+    }
+
+    function initAll() { initTabs(); initLaun(); initHus(); initLif(); initVerdmat(); }
+    document.addEventListener('astro:page-load', initAll);
+  </script>
+</Layout>
