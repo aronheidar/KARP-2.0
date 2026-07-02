@@ -1,0 +1,122 @@
+---
+// Stefnupróf (#2 LOTA 8) — svaraðu raunverulegum þingmálum og sjáðu hvaða
+// flokki þú ert mest sammála (borið við MEIRIHLUTA-afstöðu hvers flokks í
+// atkvæðagreiðslunni). Spurningar bakaðar úr frumvorp.json; svör í localStorage.
+import Layout from '../layouts/Layout.astro';
+import { partyName, partyColor } from '@lib/parties.mjs';
+import FRUMVORP from '@gogn/frumvorp.json';
+
+// Umdeild efnismál: bæði já og nei greidd, samantekt til, flokka-afstaða skýr.
+const QUESTIONS = FRUMVORP
+  .filter((b) => (b.hs === 'Frv.' || b.hs === 'Till.') && (b.ja || 0) > 0 && (b.nei || 0) > 5 && b.sam)
+  .sort((a, b) => (b.d || '').localeCompare(a.d || ''))
+  .slice(0, 12)
+  .map((b) => {
+    const P = b.P || {};
+    const stance = {};
+    Object.keys(P).forEach((k) => {
+      const [ja, nei] = P[k];
+      if (k === 'U' || ja + nei === 0 || ja === nei) return; // óháðir/jafnt → sleppt
+      stance[k] = ja > nei ? 1 : -1;
+    });
+    return { id: 'q' + b.nr, t: b.titill, sam: b.sam, d: b.d, stance };
+  })
+  .filter((q) => Object.keys(q.stance).length >= 4);
+
+const PARTIES = {};
+[...new Set(QUESTIONS.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { PARTIES[k] = { n: partyName(k), c: partyColor(k) }; });
+const updated = '2026-07-02';
+const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þingmálum (já/nei) og sjáðu hvaða flokki þú ert mest sammála, borið saman við atkvæði flokkanna á Alþingi.`;
+---
+
+<Layout title="Stefnupróf — hvaða flokki ertu sammála? | Karp" description={desc} canonical="https://app.karp.is/stefnuprof/" ogTitle="Stefnupróf Karp">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Kannanir</p>
+    <h1>Stefnupróf 🧭</h1>
+    <p>Hvernig hefðir <strong>þú</strong> kosið? {QUESTIONS.length} raunveruleg þingmál — svörin þín eru borin saman við atkvæði flokkanna á Alþingi. Svörin vistast aðeins í vafranum þínum.</p>
+
+    <div id="sp"></div>
+
+    <p class="note">ⓘ Samanburðurinn notar <strong>meirihluta-afstöðu</strong> hvers flokks í atkvæðagreiðslunni. Óformlegt og ekki vísindalegt — til fróðleiks, ekki ráðlegging um hvernig eigi að kjósa.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Þingmál + atkvæði frá Alþingi (althingi.is). #2.</p>
+  </main>
+
+  <script type="application/json" id="d-sp" set:html={JSON.stringify({ q: QUESTIONS, p: PARTIES })}></script>
+
+  <style>
+    main { max-width: 720px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    #sp .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 18px 20px; margin-top: 14px; }
+    #sp .prog { font-size: 12px; color: #7e8ca6; margin-bottom: 6px; }
+    #sp .qt { font-size: 17px; font-weight: 700; color: #eaf1fb; line-height: 1.3; }
+    #sp .qs { font-size: 13.5px; color: #9fb0c8; margin: 8px 0 14px; line-height: 1.55; }
+    #sp .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    #sp .b { flex: 1; min-width: 100px; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 11px 12px; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+    #sp .b.ja:hover { border-color: #46e08a; color: #46e08a; }
+    #sp .b.nei:hover { border-color: #ff6d7a; color: #ff6d7a; }
+    #sp .b.skip { flex: 0 1 auto; font-size: 12.5px; color: #7e8ca6; font-weight: 500; }
+    #sp .start, #sp .reset { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 12px 22px; font-weight: 800; font-size: 15px; cursor: pointer; }
+    #sp .reset { background: rgba(255,255,255,.08); color: #9fb0c8; font-weight: 600; font-size: 13px; margin-top: 14px; }
+    #sp .res-row { display: grid; grid-template-columns: 130px 1fr 56px; gap: 10px; align-items: center; margin-top: 8px; }
+    #sp .res-n { font-size: 13.5px; font-weight: 700; color: var(--pc); }
+    #sp .res-bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.07); overflow: hidden; }
+    #sp .res-bar i { display: block; height: 100%; background: var(--pc); border-radius: 6px; }
+    #sp .res-v { text-align: right; font-size: 13px; font-weight: 700; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    #sp .res-top { font-size: 15px; color: #cdd6e6; margin-bottom: 10px; }
+    #sp .res-top b { color: #f6b13b; }
+  </style>
+
+  <!-- Eyja: prófið (client-side, localStorage). #2 -->
+  <script>
+    function initSp() {
+      const root = document.getElementById('sp');
+      if (!root || root.dataset.done) return;
+      root.dataset.done = '1';
+      const D = JSON.parse(document.getElementById('d-sp').textContent);
+      const KEY = 'karp-stefnuprof';
+      let ans = {};
+      try { ans = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+      let i = 0;
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {} };
+
+      function intro() {
+        const done = Object.keys(ans).length;
+        root.innerHTML = `<div class="card" style="text-align:center"><div style="font-size:44px">🧭</div><p class="qs">${D.q.length} spurningar · ~3 mínútur. Ekkert sent neitt — svörin geymast bara í vafranum þínum.</p><button class="start">${done ? 'Sjá niðurstöðu ↦' : 'Hefja stefnupróf →'}</button>${done ? '<br><button class="reset">Byrja upp á nýtt</button>' : ''}</div>`;
+        root.querySelector('.start').onclick = () => (done ? result() : (i = 0, question()));
+        const r = root.querySelector('.reset');
+        if (r) r.onclick = () => { ans = {}; save(); intro(); };
+      }
+      function question() {
+        if (i >= D.q.length) return result();
+        const q = D.q[i];
+        root.innerHTML = `<div class="card"><div class="prog">Spurning ${i + 1} af ${D.q.length} · ${esc(q.d || '')}</div><div class="qt">${esc(q.t)}</div><div class="qs">${esc(q.sam)}</div><div class="btns"><button class="b ja">✓ Með</button><button class="b nei">✗ Á móti</button><button class="b skip">Sleppa →</button></div></div>`;
+        root.querySelector('.ja').onclick = () => { ans[q.id] = 1; save(); i++; question(); };
+        root.querySelector('.nei').onclick = () => { ans[q.id] = -1; save(); i++; question(); };
+        root.querySelector('.skip').onclick = () => { delete ans[q.id]; save(); i++; question(); };
+      }
+      function result() {
+        const score = {}, max = {};
+        D.q.forEach((q) => {
+          const a = ans[q.id];
+          if (!a) return;
+          Object.keys(q.stance).forEach((k) => { max[k] = (max[k] || 0) + 1; if (q.stance[k] === a) score[k] = (score[k] || 0) + 1; });
+        });
+        const rows = Object.keys(max).map((k) => ({ k, n: D.p[k].n, c: D.p[k].c, pct: Math.round(((score[k] || 0) / max[k]) * 100) })).sort((a, b) => b.pct - a.pct);
+        const answered = Object.keys(ans).length;
+        if (!answered) { intro(); return; }
+        root.innerHTML = `<div class="card"><div class="res-top">Þú svaraðir <b>${answered}</b> málum — mest sammála <b>${esc(rows[0].n)}</b> (${rows[0].pct}%)</div>` +
+          rows.map((r) => `<div class="res-row" style="--pc:${r.c}"><span class="res-n">${esc(r.n)}</span><span class="res-bar"><i style="width:${r.pct}%"></i></span><span class="res-v">${r.pct}%</span></div>`).join('') +
+          `<button class="reset">↺ Taka prófið aftur</button></div>`;
+        root.querySelector('.reset').onclick = () => { ans = {}; save(); i = 0; question(); };
+      }
+      intro();
+    }
+    document.addEventListener('astro:page-load', initSp);
+  </script>
+</Layout>

@@ -1,0 +1,89 @@
+---
+// Karp-kannanir (#2 LOTA 8) — eigin kannanir Karp: kjóstu-til-að-sjá
+// (GET /polls + POST /pollvote gegnum auth.js). Virkar á app.karp.is (CORS);
+// graceful gátt annars staðar. Eins og gamli kannanir-flipinn.
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-02';
+const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum lesenda og sjáðu niðurstöðurnar um leið og þú hefur kosið.';
+---
+
+<Layout title="Karp-kannanir | Karp" description={desc} canonical="https://app.karp.is/karp-kannanir/" ogTitle="Karp-kannanir">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Kannanir</p>
+    <h1>Karp-kannanir 🗳️</h1>
+    <p>Púls lesenda Karp — kjóstu og sjáðu niðurstöðurnar um leið. Sjá einnig <a href="/kannanir/">fylgi flokkanna</a> í opinberum könnunum.</p>
+    <div id="kn">Sæki kannanir…</div>
+    <p class="foot">Forþjónað (SSG) {updated}. Kannanirnar eru óformlegar mælingar meðal innskráðra lesenda — ekki vísindalegt úrtak. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    #kn .empty { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
+    #kn .poll { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 16px 18px; margin-top: 12px; }
+    #kn .q { font-size: 16px; font-weight: 700; color: #eaf1fb; margin-bottom: 10px; }
+    #kn .opt { display: block; width: 100%; text-align: left; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 10px 12px; font-size: 14px; cursor: pointer; margin-top: 6px; }
+    #kn .opt:hover { border-color: #f6b13b; }
+    #kn .res { margin-top: 6px; }
+    #kn .res-row { display: grid; grid-template-columns: 1fr 46px; gap: 8px; align-items: center; margin-top: 7px; font-size: 13px; color: #cdd6e6; }
+    #kn .res-bar { height: 20px; border-radius: 6px; background: rgba(255,255,255,.06); overflow: hidden; position: relative; }
+    #kn .res-bar i { display: block; height: 100%; background: rgba(246,177,59,.5); }
+    #kn .res-bar.mine i { background: #f6b13b; }
+    #kn .res-bar span { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 9px; font-size: 12px; color: #eaf1fb; }
+    #kn .res-v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #kn .meta { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; }
+    #kn .gate { font-size: 13px; color: #9fb0c8; margin-top: 8px; }
+    #kn .gate a { color: #f6b13b; }
+  </style>
+
+  <!-- Eyja: kannanir (GET /polls, POST /pollvote). #2 -->
+  <script>
+    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function paintPolls(root, polls, u) {
+      if (!polls.length) { root.innerHTML = '<div class="empty">Engin virk könnun í augnablikinu — kíktu aftur fljótlega.</div>'; return; }
+      root.innerHTML = polls.map((p, pi) => {
+        const opts = p.options || p.valkostir || [];
+        const votes = p.votes || p.atkvaedi || [];
+        const mine = p.mine != null ? p.mine : null;
+        const total = votes.reduce((s, v) => s + (v || 0), 0);
+        let body;
+        if (mine != null || p.closed) {
+          body = '<div class="res">' + opts.map((o, i) => {
+            const v = votes[i] || 0, pct = total ? Math.round((v / total) * 100) : 0;
+            return `<div class="res-row"><div class="res-bar${mine === i ? ' mine' : ''}"><i style="width:${pct}%"></i><span>${esc(o)}</span></div><span class="res-v">${pct}%</span></div>`;
+          }).join('') + `</div><div class="meta">${total} atkvæði${mine != null ? ' · þú kaust' : ''}</div>`;
+        } else if (u && u.loggedIn) {
+          body = opts.map((o, i) => `<button class="opt" data-p="${pi}" data-o="${i}">${esc(o)}</button>`).join('') + '<div class="meta">Niðurstöður birtast þegar þú hefur kosið.</div>';
+        } else {
+          body = `<div class="gate">🔒 <a href="${(u && u.loginUrl) || 'https://karp.is/login/'}">Skráðu þig inn</a> til að kjósa og sjá niðurstöður.</div>`;
+        }
+        return `<div class="poll"><div class="q">${esc(p.q || p.spurning || '')}</div>${body}</div>`;
+      }).join('');
+      root.querySelectorAll('.opt').forEach((b) => {
+        b.onclick = async () => {
+          b.disabled = true;
+          const p = polls[+b.dataset.p];
+          const res = await karpPost('/pollvote', { id: p.id, option: +b.dataset.o });
+          if (res && res.polls) paintPolls(root, res.polls, window.KARP_USER);
+          else { p.mine = +b.dataset.o; (p.votes = p.votes || [])[+b.dataset.o] = ((p.votes || [])[+b.dataset.o] || 0) + 1; paintPolls(root, polls, window.KARP_USER); }
+        };
+      });
+    }
+    function initKn() {
+      const root = document.getElementById('kn');
+      if (!root || root.dataset.done) return;
+      root.dataset.done = '1';
+      loadUser().then(async (u) => {
+        const d = await karpGet('/polls');
+        if (!d) { root.innerHTML = '<div class="empty">Kannanirnar birtast á app.karp.is (þurfa tengingu við karp.is).</div>'; return; }
+        paintPolls(root, (d && d.polls) || [], u);
+      });
+    }
+    document.addEventListener('astro:page-load', initKn);
+  </script>
+</Layout>

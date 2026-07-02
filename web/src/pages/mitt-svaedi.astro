@@ -22,6 +22,10 @@ const updated = '2026-07-01';
     <p class="kicker">Karp</p>
     <h1>Mitt svæði</h1>
     <div id="mine">Hleð…</div>
+    <div id="vaktir-sec" hidden>
+      <h2 class="v-h">🔔 Vaktir</h2>
+      <div id="vaktir"></div>
+    </div>
     <p class="foot">Forþjónað (SSG) {updated} · persónulegt yfirlit, sótt live gegnum <code>src/lib/auth</code>. #2 Á5.</p>
   </main>
 
@@ -47,6 +51,13 @@ const updated = '2026-07-01';
     #mine .fc-f { font-size: 12px; color: #9fb0c8; }
     #mine .fc-x { background: none; border: 0; color: #7e8ca6; font-size: 15px; cursor: pointer; padding: 4px 6px; flex: none; }
     #mine .fc-x:hover { color: #ff6d7a; }
+    .v-h { font-size: 14px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 10px; }
+    #vaktir .vk { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; margin-top: 6px; font-size: 13px; color: #cdd6e6; }
+    #vaktir .vk b { color: #eaf1fb; }
+    #vaktir .vk-x { background: none; border: 0; color: #7e8ca6; font-size: 15px; cursor: pointer; }
+    #vaktir .vk-x:hover { color: #ff6d7a; }
+    #vaktir .vk-note { font-size: 12px; color: #7e8ca6; margin-top: 8px; }
+    #vaktir .vk-note a { color: #9fb0c8; }
   </style>
 
   <!-- Bökuð þingmanna-uppfletting sem JSON (ekki keyrð) → module-skriftin les hana. -->
@@ -93,5 +104,35 @@ const updated = '2026-07-01';
       loadUser().then(render);
     }
     document.addEventListener('astro:page-load', initMine);
+  </script>
+
+  <!-- Eyja: Vaktir (þröskuldsvaktir — GET/POST /vaktir + /vaktirdelete). #2 LOTA 8 -->
+  <script>
+    import { loadUser as lu2, karpGet as kg2, karpPost as kp2 } from '../lib/auth.js';
+    function initVaktir() {
+      const sec = document.getElementById('vaktir-sec');
+      if (!sec || sec.dataset.done) return;
+      sec.dataset.done = '1';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      lu2().then(async (u) => {
+        if (!u || !u.loggedIn) return;
+        const d = await kg2('/vaktir');
+        if (!d) return; // endapunktur ekki tiltækur → fela hlutann
+        sec.hidden = false;
+        const box = document.getElementById('vaktir');
+        const paint = (list) => {
+          const arr = Array.isArray(list) ? list : (list && list.vaktir) || [];
+          box.innerHTML = (arr.length
+            ? arr.map((v, i) => `<div class="vk"><span><b>${esc(v.metric || v.m || '')}</b> ${esc(v.area || v.svaedi || '')} ${esc(v.dir === 'under' || v.dir === 'undir' ? 'fer undir' : 'fer yfir')} <b>${esc(v.threshold ?? v.vidmid ?? '')}</b></span><button class="vk-x" data-i="${v.id ?? i}" title="Eyða vakt">✕</button></div>`).join('')
+            : '<div class="vk">Engin vakt skráð enn.</div>')
+            + '<div class="vk-note">Vaktir senda tölvupóst þegar hagvísir nær viðmiðinu þínu — stofnaðar og stýrt í <a href="https://karp.is">gamla mælaborðinu</a> (Stillingar → Vaktir) að sinni.</div>';
+          box.querySelectorAll('.vk-x').forEach((b) => {
+            b.onclick = async () => { b.disabled = true; const res = await kp2('/vaktirdelete', { id: b.dataset.i }); paint(res && (res.vaktir || res) || []); };
+          });
+        };
+        paint(d);
+      });
+    }
+    document.addEventListener('astro:page-load', initVaktir);
   </script>
 </Layout>

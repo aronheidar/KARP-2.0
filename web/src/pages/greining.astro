@@ -1,0 +1,72 @@
+---
+// Greining (#2 LOTA 8) — fréttaárs-greiningar úr frétta-safni Karp
+// (/wp-json/karp/v1/yearreview). Lifandi á app.karp.is; graceful annars.
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-02';
+const desc = 'Greining Karp á fréttaárinu — stærstu umfjöllunarefnin, virkni miðlanna og dagskrárþróun úr fréttasafni Karp.';
+---
+
+<Layout title="Greining — fréttaárið | Karp" description={desc} canonical="https://app.karp.is/greining/" ogTitle="Greining Karp">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
+    <h1>Greining 🔎</h1>
+    <p>Hvað einkenndi fréttaárið? Stærstu umfjöllunarefnin og virkni miðlanna — reiknað úr fréttasafni Karp.</p>
+    <div id="gr">Sæki greiningu…</div>
+    <p class="foot">Forþjónað (SSG) {updated}. Greiningin byggir á fyrirsögnum í fréttasafni Karp (safnast klukkutímalega). Sjá einnig <a href="/frettir/">Vöktun</a>. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    #gr .empty { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
+    #gr .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+    #gr .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 11px 13px; }
+    #gr .k-l { font-size: 11px; color: #9fb0c8; }
+    #gr .k-v { font-size: 22px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    #gr h2 { font-size: 14px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 20px 0 8px; }
+    #gr .words { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+    #gr .words span { color: #cdd6e6; }
+    #gr .bar-row { display: grid; grid-template-columns: 110px 1fr 46px; gap: 10px; align-items: center; margin-top: 6px; font-size: 13px; color: #cdd6e6; }
+    #gr .bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.07); overflow: hidden; }
+    #gr .bar i { display: block; height: 100%; background: #3a8dff; border-radius: 6px; }
+    #gr .bar-v { text-align: right; font-variant-numeric: tabular-nums; color: #9fb0c8; }
+  </style>
+
+  <!-- Eyja: yearreview-greining. Sveigjanleg gagnvart reitum svarsins. #2 -->
+  <script>
+    function initGr() {
+      const root = document.getElementById('gr');
+      if (!root || root.dataset.done) return;
+      root.dataset.done = '1';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      fetch('https://karp.is/wp-json/karp/v1/yearreview')
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => {
+          let h = '';
+          const kpis = [];
+          if (d.total != null) kpis.push(['Fyrirsagnir alls', th(d.total)]);
+          if (d.perDay != null) kpis.push(['Á dag', String(d.perDay).replace('.', ',')]);
+          if (d.sources && d.sources.length) kpis.push(['Miðlar', d.sources.length]);
+          if (kpis.length) h += '<div class="kpis">' + kpis.map(([l, v]) => `<div class="kpi"><div class="k-l">${l}</div><div class="k-v">${v}</div></div>`).join('') + '</div>';
+          const words = d.words || d.topwords || [];
+          if (words.length) {
+            const mx = Math.max(...words.map((w) => w.n || 1));
+            h += '<h2>Stærstu orðin í fyrirsögnum</h2><div class="words">' + words.slice(0, 40).map((w) => `<span style="font-size:${Math.round(12 + ((w.n || 1) / mx) * 16)}px;opacity:${0.55 + ((w.n || 1) / mx) * 0.45}">${esc(w.w)}</span>`).join('') + '</div>';
+          }
+          const src = d.sources || [];
+          if (src.length) {
+            const mx = Math.max(...src.map((s) => s.n || 1));
+            h += '<h2>Virkni miðlanna</h2>' + src.slice(0, 10).map((s) => `<div class="bar-row"><span>${esc(s.source || s.s || '')}</span><span class="bar"><i style="width:${Math.round(((s.n || 0) / mx) * 100)}%"></i></span><span class="bar-v">${th(s.n || 0)}</span></div>`).join('');
+          }
+          root.innerHTML = h || '<div class="empty">Greiningin er ekki tilbúin enn — safnið er að safna fyrirsögnum.</div>';
+        })
+        .catch(() => { root.innerHTML = '<div class="empty">Greiningin birtist á app.karp.is þegar greiningarþjónustan (yearreview-endapunkturinn) er í loftinu. Á meðan: <a href="/frettir/" style="color:#f6b13b">Vöktun</a>.</div>'; });
+    }
+    document.addEventListener('astro:page-load', initGr);
+  </script>
+</Layout>
