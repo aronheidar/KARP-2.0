@@ -1,0 +1,107 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Jöfnunarsjóður sveitarfélaga: heildarframlög, skipting eftir
+// framlagsflokkum og framlög per sveitarfélag (á íbúa). Gögn: jofnun.json
+// (bakað úr Heildaryfirliti sjóðsins). Í app-skelinni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { fmtNum, groupThousands, slugify } from '@lib/format.mjs';
+import JOFNUN from '@gogn/jofnun.json';
+
+const ar = JOFNUN.ar, ar2 = JOFNUN.ar2;
+const totalMa = Math.round((JOFNUN.total || 0) / 1e8) / 10;
+const total2Ma = JOFNUN.total2 ? Math.round(JOFNUN.total2 / 1e8) / 10 : null;
+
+// Flokkar (ma.kr).
+const catBars = (JOFNUN.catLabels || []).map((l, i) => ({ label: l, v: Math.round(((JOFNUN.cats || [])[i] || 0) / 1e8) / 10 })).filter((c) => c.v > 0).sort((a, b) => b.v - a.v);
+
+// Per sveitarfélag: framlög alls + á íbúa (þús.kr).
+const M = JOFNUN.m || {};
+const munis = Object.keys(M).map((n) => ({
+  n, s: slugify(n), t: M[n].t || 0, ibuar: M[n].ibuar || null,
+  perCap: M[n].ibuar ? Math.round((M[n].t || 0) / M[n].ibuar / 1000) : null,
+})).filter((x) => x.t > 0);
+const topTotal = munis.slice().sort((a, b) => b.t - a.t).slice(0, 15);
+const topPerCap = munis.filter((x) => x.perCap != null).sort((a, b) => b.perCap - a.perCap).slice(0, 15);
+
+const updated = '2026-07-02';
+const desc = `Jöfnunarsjóður sveitarfélaga greiddi ${fmtNum(totalMa, 1)} ma.kr til sveitarfélaga árið ${ar}${total2Ma ? ` (áætlun ${ar2}: ${fmtNum(total2Ma, 1)} ma.kr)` : ''} — skipting eftir framlagsflokkum og sveitarfélögum.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Jöfnunarsjóður sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Framlög Jöfnunarsjóðs (kr)' };
+---
+
+<Layout title={`Jöfnunarsjóður sveitarfélaga ${ar} | Karp`} description={desc} canonical="https://app.karp.is/jofnunarsjodur/" jsonLd={jsonLd} ogTitle="Jöfnunarsjóður sveitarfélaga">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Samfélag</p>
+    <h1>Jöfnunarsjóður sveitarfélaga</h1>
+    <p>Sjóðurinn jafnar aðstöðumun sveitarfélaga — tekju- og útgjaldajöfnun, grunnskólaframlög og fleira. Hér sést hvert peningarnir fara.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">💰 Heildarframlög {ar}</div><div class="k-v">{fmtNum(totalMa, 1)}</div><div class="k-s">ma.kr</div></div>
+      {total2Ma && <div class="kpi"><div class="k-l">📅 Áætlun {ar2}</div><div class="k-v">{fmtNum(total2Ma, 1)}</div><div class="k-s">ma.kr{JOFNUN.reform2026 ? ' · nýtt regluverk' : ''}</div></div>}
+      <div class="kpi"><div class="k-l">🏘️ Sveitarfélög</div><div class="k-v">{munis.length}</div><div class="k-s">fá framlög</div></div>
+    </div>
+
+    <h2>Eftir framlagsflokkum ({ar})</h2>
+    <div id="chart-cats"></div>
+
+    <h2>Hæstu framlög — alls ({ar})</h2>
+    <div id="chart-top"></div>
+
+    <h2>Hæstu framlög — á íbúa ({ar})</h2>
+    <div id="chart-percap"></div>
+    <p class="src">Framlög á íbúa sýna jöfnunarhlutverkið: fámenn landsbyggðarsveitarfélög fá margfalt meira á íbúa en höfuðborgarsvæðið.</p>
+
+    {JOFNUN.reform2026 && <p class="note">ⓘ Árið {ar2} tekur nýtt regluverk Jöfnunarsjóðs gildi — framlagsflokkar breytast og samanburður milli ára verður ekki beinn.</p>}
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Jöfnunarsjóður sveitarfélaga (heildaryfirlit úthlutana). #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    #chart-cats, #chart-top, #chart-percap { width: 100%; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- Eyja: 3 súlurit. astro:page-load. #2 -->
+  <script define:vars={{ catBars, topTotal, topPerCap }}>
+    function initCharts() {
+      const c1 = document.getElementById('chart-cats');
+      if (!c1) return;
+      const th = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const bar = (el, data, color, fmt) => {
+        el.style.height = (data.length * 27 + 26) + 'px';
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 190, right: 62, top: 6, bottom: 20 },
+          xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          yAxis: { type: 'category', inverse: true, data: data.map((d) => d.label), axisLabel: { color: '#cdd6e6', fontSize: 11, width: 180, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+          tooltip: { trigger: 'axis', valueFormatter: fmt },
+          series: [{ type: 'bar', barWidth: 14, data: data.map((d) => d.v), itemStyle: { color }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => fmt(p.value) } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      const go = () => {
+        if (!window.echarts.getInstanceByDom(c1)) bar(c1, catBars, '#f6b13b', (v) => v.toFixed(1).replace('.', ',') + ' ma');
+        const c2 = document.getElementById('chart-top');
+        if (c2 && !window.echarts.getInstanceByDom(c2)) bar(c2, topTotal.map((m) => ({ label: m.n, v: Math.round(m.t / 1e6) })), '#3a8dff', (v) => th(v) + ' m.kr');
+        const c3 = document.getElementById('chart-percap');
+        if (c3 && !window.echarts.getInstanceByDom(c3)) bar(c3, topPerCap.map((m) => ({ label: m.n, v: m.perCap })), '#46e08a', (v) => th(v) + ' þús/íbúa');
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initCharts);
+  </script>
+</Layout>

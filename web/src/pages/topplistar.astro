@@ -1,0 +1,149 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Topplistar: raðanir sveitarfélaga eftir 14 mælikvörðum
+// (sama reiknivél og Íslandskortið/vísitalan — allt bakað á byggingartíma).
+// Mælikvarða-takkar skipta um lista án endurhleðslu. Í app-skelinni. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { computeMuniIndex } from '@lib/muniIndex.mjs';
+import { makeMuniStats } from '@lib/muniStats.mjs';
+import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
+import { slugify } from '@lib/format.mjs';
+
+import SVFIN from '@gogn/sveitarfelog_fin.json';
+import SVMETA from '@gogn/sveitarfelog_meta.json';
+import SVPOP from '@gogn/sveitarfelog_pop.json';
+import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
+import GLAEPIR from '@gogn/glaepir.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+import SVCOORDS from '@gogn/sveitarfelog_coords.json';
+import REGIONGEO from '@gogn/landshlutar.json';
+
+const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI });
+const regionOf = makeRegionOf({ SVCOORDS, REGIONGEO });
+const stats = makeMuniStats({ ATVINNULEYSI, GLAEPIR, FASTEIGNIR });
+const lifsQ = makeLifsQ({ SVMETA, regionOf, svUnemp: stats.svUnemp, svCrime: stats.svCrime });
+const r0 = (v) => (v == null ? null : Math.round(v));
+const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
+
+const MUNIS = Object.keys(SVCOORDS).map((name) => {
+  const reg = regionOf(name);
+  const fin = SVFIN[name] || {}, meta = SVMETA[name] || {};
+  const pop = SVPOP[name] || null;
+  const house = stats.svHouse(name, reg);
+  const ix = idxMap[name];
+  return {
+    n: name, s: slugify(name), reg, pop,
+    v: {
+      visitala: ix && ix.idx != null ? r0(ix.idx) : null,
+      lifs: lifsQ(name),
+      ibuar: pop,
+      breyting: meta.breyting_pct ?? null,
+      aldur: meta.pct67 ?? null,
+      atv: r1(stats.svUnemp(name, reg)),
+      hus: house && house.muni ? r0(house.v) : null, // aðeins per-muni gögn í röðun
+      utsvar: fin.utsvar ?? null,
+      tekjur: fin.tekjur && pop ? r0(fin.tekjur / pop) : null,
+      skuldir: fin.skuldir_ibui ?? null,
+      skhlutf: fin.skuldir && fin.tekjur ? r0((fin.skuldir / fin.tekjur) * 100) : null,
+      afkoma: fin.afkoma_ibui ?? null,
+    },
+  };
+});
+
+const updated = '2026-07-02';
+const desc = 'Topplistar sveitarfélaga — raðanir eftir vísitölu, lífsgæðum, atvinnuleysi, húsnæðisverði, útsvari, skuldum og fleiru. Öll 61 sveitarfélög, reiknað úr opinberum gögnum.';
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Topplistar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
+
+const MODEBTNS = [
+  ['visitala', 'Vísitala'], ['lifs', 'Lífsgæði'], ['ibuar', 'Íbúafjöldi'], ['breyting', 'Fólksfjölgun'],
+  ['aldur', '67 ára+'], ['atv', 'Atvinnuleysi'], ['hus', 'Húsnæðisverð'], ['utsvar', 'Útsvar'],
+  ['tekjur', 'Tekjur/íbúa'], ['skuldir', 'Skuldir/íbúa'], ['skhlutf', 'Skuldahlutfall'], ['afkoma', 'Afkoma/íbúa'],
+];
+---
+
+<Layout title="Topplistar sveitarfélaga | Karp" description={desc} canonical="https://app.karp.is/topplistar/" jsonLd={jsonLd} ogTitle="Topplistar sveitarfélaga">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Samfélag</p>
+    <h1>Topplistar</h1>
+    <p>Hvaða sveitarfélag stendur best — og verst? Veldu mælikvarða; smelltu á sveitarfélag fyrir nánari síðu. Sami útreikningur og <a href="/kort/">Íslandskortið</a>.</p>
+
+    <div class="modes">
+      {MODEBTNS.map(([key, label], i) => <button class={`mb${i === 0 ? ' on' : ''}`} data-m={key}>{label}</button>)}
+    </div>
+
+    <div class="dirw"><button id="dir-btn">⇅ Snúa röðun</button><span id="list-info" class="info"></span></div>
+    <div id="toplist" class="list"></div>
+
+    <p class="note">ⓘ Húsnæðisverð birtist aðeins fyrir sveitarfélög með ≥8 þinglýst kaup (per-muni gögn). Afbrot fást aðeins eftir landshlutum og eru því ekki raðanleg hér.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Sömu opinberu gögn og vísitalan (Hagstofa, Samband ísl. sveitarfélaga, VMST, HMS). #2.</p>
+  </main>
+
+  <script type="application/json" id="d-munis" set:html={JSON.stringify(MUNIS)}></script>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .modes { display: flex; flex-wrap: wrap; gap: 5px; margin: 16px 0 10px; }
+    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #9fb0c8; border-radius: 7px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .mb:hover { color: #eaf1fb; }
+    .mb.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
+    .dirw { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
+    #dir-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 7px; padding: 5px 11px; font-size: 12px; cursor: pointer; }
+    #dir-btn:hover { color: #eaf1fb; }
+    .info { font-size: 12px; color: #7e8ca6; }
+    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+  <style is:global>
+    /* Listi byggður á keyrslutíma → global. */
+    #toplist .row { display: grid; grid-template-columns: 34px 1fr 130px 86px; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 8px; text-decoration: none; }
+    #toplist .row:hover { background: rgba(255,255,255,.05); }
+    #toplist .rk { color: #7e8ca6; font-size: 12px; font-variant-numeric: tabular-nums; }
+    #toplist .nm { color: #eaf1fb; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #toplist .nm span { display: block; font-size: 10.5px; color: #7e8ca6; font-weight: 400; }
+    #toplist .bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,.07); overflow: hidden; }
+    #toplist .bar i { display: block; height: 100%; border-radius: 5px; }
+    #toplist .vl { text-align: right; color: #cdd6e6; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #toplist .top3 .rk { color: #f6b13b; font-weight: 800; }
+  </style>
+
+  <!-- Eyja: topplista-renderari. astro:page-load. #2 -->
+  <script>
+    const TMODES = {
+      visitala: { u: '', dir: 1, d: 0 }, lifs: { u: '', dir: 1, d: 0 }, ibuar: { u: '', dir: 1, d: 0, th: true },
+      breyting: { u: '%', dir: 1, d: 1 }, aldur: { u: '%', dir: 1, d: 1 }, atv: { u: '%', dir: -1, d: 1 },
+      hus: { u: ' þús/m²', dir: 1, d: 0, th: true }, utsvar: { u: '%', dir: -1, d: 2 },
+      tekjur: { u: ' þús', dir: 1, d: 0, th: true }, skuldir: { u: ' þús', dir: -1, d: 0, th: true },
+      skhlutf: { u: '%', dir: -1, d: 0 }, afkoma: { u: ' þús', dir: 1, d: 0, th: true },
+    };
+    function initToplist() {
+      const el = document.getElementById('toplist');
+      if (!el) return;
+      const MUNIS = JSON.parse(document.getElementById('d-munis').textContent);
+      let mode = 'visitala', flip = false;
+      const th = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const fmtV = (m, v) => { const M = TMODES[m]; if (v == null) return '—'; const s = M.th ? th(v) : v.toFixed(M.d).replace('.', ','); return s + (M.u || ''); };
+      function render() {
+        const M = TMODES[mode];
+        const rows = MUNIS.filter((u) => u.v[mode] != null).sort((a, b) => (b.v[mode] - a.v[mode]) * (M.dir < 0 ? -1 : 1) * (flip ? -1 : 1));
+        const best = rows.length ? Math.abs(rows[0].v[mode]) : 1;
+        const maxAbs = Math.max(...rows.map((u) => Math.abs(u.v[mode]))) || 1;
+        document.getElementById('list-info').textContent = rows.length + ' sveitarfélög' + (M.dir < 0 && !flip ? ' · lægst = best' : '');
+        el.innerHTML = rows.map((u, i) => {
+          const v = u.v[mode];
+          const w = Math.max(3, (Math.abs(v) / maxAbs) * 100);
+          const good = M.dir < 0 ? i < rows.length / 2 : i < rows.length / 2;
+          const col = i < 3 && !flip ? '#f6b13b' : v < 0 ? '#ff6d7a' : '#3a8dff';
+          return `<a class="row${i < 3 ? ' top3' : ''}" href="/sveitarfelog/${u.s}/"><span class="rk">${i + 1}.</span><span class="nm">${u.n}<span>${u.reg || ''}</span></span><span class="bar"><i style="width:${w}%;background:${col}"></i></span><span class="vl">${fmtV(mode, v)}</span></a>`;
+        }).join('');
+      }
+      document.querySelectorAll('.mb').forEach((b) => { b.onclick = () => { document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b)); mode = b.dataset.m; flip = false; render(); }; });
+      document.getElementById('dir-btn').onclick = () => { flip = !flip; render(); };
+      render();
+    }
+    document.addEventListener('astro:page-load', initToplist);
+  </script>
+</Layout>

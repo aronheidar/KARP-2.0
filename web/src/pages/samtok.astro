@@ -1,0 +1,69 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — Alþjóðasamstarf: samtök og samningar sem Ísland á aðild að
+// (18 færslur, portað úr gamla mælaborðinu). Statísk — fullkomlega bökuð. #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import SAMTOK from '../data/samtok.json';
+
+const orgs = SAMTOK.filter((o) => o.group === 'samtok');
+const deals = SAMTOK.filter((o) => o.group === 'samningur');
+const updated = '2026-07-02';
+const desc = `Alþjóðasamstarf Íslands — ${orgs.length} alþjóðasamtök (SÞ, NATO, EFTA, Norðurlandaráð…) og ${deals.length} lykilsamningar (EES, Schengen, Parísarsamningurinn…) með inngönguári og skýringum.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Alþjóðasamstarf Íslands', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
+---
+
+<Layout title="Alþjóðasamstarf — samtök & samningar | Karp" description={desc} canonical="https://app.karp.is/samtok/" jsonLd={jsonLd} ogTitle="Alþjóðasamstarf Íslands">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Útlönd</p>
+    <h1>Alþjóðasamstarf</h1>
+    <p>Samtökin og samningarnir sem móta stöðu Íslands í heiminum — frá SÞ og NATO til EES og Parísarsamningsins. Smelltu á spjald fyrir nánari lýsingu.</p>
+
+    <h2>Alþjóðasamtök ({orgs.length})</h2>
+    <div class="grid">
+      {orgs.map((o) => (
+        <details class="card">
+          <summary><span class="c-e">{o.emoji}</span><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
+          <div class="c-b" set:html={o.body} />
+          {o.link && <a class="c-l" href={o.link} target="_blank" rel="noopener">Vefur ↗</a>}
+        </details>
+      ))}
+    </div>
+
+    <h2>Lykilsamningar ({deals.length})</h2>
+    <div class="grid">
+      {deals.map((o) => (
+        <details class="card">
+          <summary><span class="c-e">{o.emoji}</span><span class="c-n">{o.name}</span><span class="c-y">{o.year}</span><div class="c-s">{o.short}</div></summary>
+          <div class="c-b" set:html={o.body} />
+          {o.link && <a class="c-l" href={o.link} target="_blank" rel="noopener">Vefur ↗</a>}
+        </details>
+      ))}
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Ártal = innganga/undirritun Íslands. Sjá einnig <a href="/utanrikis/">NATO & sendiráð</a> og <a href="/ees/">EES</a>. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+    .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 0; }
+    .card summary { list-style: none; cursor: pointer; padding: 13px 15px; position: relative; }
+    .card summary::-webkit-details-marker { display: none; }
+    .card[open] { border-color: rgba(246,177,59,.5); }
+    .c-e { font-size: 20px; margin-right: 8px; }
+    .c-n { font-weight: 700; font-size: 14.5px; color: #eaf1fb; }
+    .c-y { position: absolute; top: 13px; right: 14px; font-size: 11px; color: #f6b13b; font-weight: 700; }
+    .c-s { font-size: 12px; color: #9fb0c8; margin-top: 4px; }
+    .c-b { font-size: 13px; color: #cdd6e6; padding: 0 15px 12px; line-height: 1.55; }
+    .c-b :global(b) { color: #eaf1fb; }
+    .c-l { display: inline-block; margin: 0 15px 13px; font-size: 12px; color: #9fb0c8; }
+    .c-l:hover { color: #f6b13b; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+</Layout>

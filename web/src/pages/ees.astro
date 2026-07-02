@@ -1,0 +1,81 @@
+---
+// ─────────────────────────────────────────────────────────────
+// SSG-síða (#2) — EES / EFTA: útskýring á EES-samstarfinu + LIFANDI
+// tilskipanalisti (WP-endapunktur /wp-json/karp/v1/ees, EUR-Lex proxy) með
+// graceful fallback ef þjónustan er ekki uppi (eins og gamla mælaborðið). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+
+const updated = '2026-07-02';
+const desc = 'EES-samningurinn og EFTA — hvernig ESB-tilskipanir verða að íslenskum lögum, tveggja stoða kerfið og lifandi listi nýjustu tilskipana úr EUR-Lex.';
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline: 'EES / EFTA — Ísland og innri markaðurinn', description: desc, author: { '@type': 'Organization', name: 'Karp' }, dateModified: updated };
+---
+
+<Layout title="EES / EFTA — Ísland og innri markaðurinn | Karp" description={desc} canonical="https://app.karp.is/ees/" jsonLd={jsonLd} ogTitle="EES / EFTA">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Útlönd</p>
+    <h1>EES / EFTA</h1>
+    <p>Í gegnum EES-samninginn (1994) er Ísland hluti af <strong>innri markaði ESB</strong> — fjórfrelsið (vörur, þjónusta, fjármagn, fólk) gildir hér — án þess að vera aðildarríki sambandsins.</p>
+
+    <div class="cards">
+      <div class="c"><div class="c-e">🏛️</div><div class="c-t">Tveggja stoða kerfið</div><div class="c-b">ESB-stoðin (framkvæmdastjórn, dómstóll ESB) og EFTA-stoðin (ESA eftirlitsstofnun, EFTA-dómstóllinn) framfylgja sömu reglum sitt hvorum megin.</div></div>
+      <div class="c"><div class="c-e">📜</div><div class="c-t">Upptaka gerða</div><div class="c-b">ESB-gerðir sem varða innri markaðinn eru teknar upp í EES-samninginn með ákvörðun sameiginlegu EES-nefndarinnar og síðan innleiddar í íslenskan rétt — oft með lagasetningu á Alþingi.</div></div>
+      <div class="c"><div class="c-e">⚖️</div><div class="c-t">Undanþágur</div><div class="c-b">Sjávarútvegs- og landbúnaðarstefna ESB standa UTAN samningsins — þess vegna heldur Ísland fullum yfirráðum yfir fiskveiðiauðlindinni.</div></div>
+      <div class="c"><div class="c-e">🛂</div><div class="c-t">Schengen</div><div class="c-b">Samhliða EES er Ísland í Schengen-samstarfinu (2001) — engin vegabréfaskoðun á innri landamærum Evrópu.</div></div>
+    </div>
+
+    <h2>Nýjustu ESB-tilskipanir <span class="live-tag">LIFANDI</span></h2>
+    <div id="ees-track" class="track"><div class="ees-load">Sæki tilskipanir úr EUR-Lex…</div></div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Tilskipanalistinn er sóttur lifandi úr EUR-Lex (gegnum karp.is) og sýnir nýjustu samþykktu tilskipanir ESB — þær eiga margar eftir að rata inn í EES-samninginn og íslensk lög. Sjá einnig <a href="/samtok/">Alþjóðasamstarf</a>. #2.</p>
+  </main>
+
+  <style>
+    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
+    p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    .live-tag { font-size: 9px; background: rgba(70,224,138,.15); color: #46e08a; border: 1px solid rgba(70,224,138,.4); border-radius: 5px; padding: 2px 6px; vertical-align: middle; letter-spacing: .08em; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+    .c-e { font-size: 22px; }
+    .c-t { font-weight: 700; font-size: 14.5px; margin: 6px 0 4px; }
+    .c-b { font-size: 13px; color: #9fb0c8; line-height: 1.5; }
+    .track { min-height: 60px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+  <style is:global>
+    /* Tilskipanalisti fyllist á keyrslutíma → global. */
+    .ees-load { font-size: 13px; color: #7e8ca6; padding: 12px 0; }
+    .ees-load a { color: #f6b13b; }
+    .ees-item { display: block; padding: 10px 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); border-radius: 10px; margin-bottom: 8px; text-decoration: none; }
+    .ees-item:hover { border-color: rgba(246,177,59,.5); }
+    .ees-num { font-size: 11px; color: #f6b13b; font-weight: 700; }
+    .ees-t { display: block; font-size: 13.5px; color: #eaf1fb; line-height: 1.45; margin-top: 2px; }
+    .ees-d { font-size: 11px; color: #7e8ca6; margin-top: 3px; }
+  </style>
+
+  <!-- Eyja: lifandi tilskipanalisti (WP proxy á EUR-Lex). Fallback ef niðri. #2 -->
+  <script>
+    function initEes() {
+      const box = document.getElementById('ees-track');
+      if (!box || box.dataset.done) return;
+      box.dataset.done = '1';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const eesNum = (celex) => { const m = /^3(\d{4})L(\d{4})$/.exec(celex || ''); return m ? 'ESB ' + m[1] + '/' + (+m[2]) : (celex || ''); };
+      const clean = (t) => String(t || '').replace(/\s*\(Text with EEA relevance\.?\)\s*$/i, '').replace(/\s*\(Texti sem varðar EES\)\s*$/i, '');
+      const fail = () => { box.innerHTML = '<div class="ees-load">Tilskipanalistinn er ekki tiltækur í augnablikinu.<br><span style="font-size:11.5px">Skoðaðu <a href="https://www.efta.int/eea-lex" target="_blank" rel="noopener">EEA-Lex hjá EFTA ↗</a> á meðan.</span></div>'; };
+      fetch('https://karp.is/wp-json/karp/v1/ees')
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => {
+          const items = (d && d.items) || [];
+          if (!items.length) return fail();
+          box.innerHTML = items.slice(0, 20).map((it) => `<a class="ees-item" href="${esc(it.url || '#')}" target="_blank" rel="noopener"><span class="ees-num">${esc(eesNum(it.celex))}</span><span class="ees-t">${esc(clean(it.title))}</span><span class="ees-d">${esc(it.date || '')}</span></a>`).join('');
+        })
+        .catch(fail);
+    }
+    document.addEventListener('astro:page-load', initEes);
+  </script>
+</Layout>
