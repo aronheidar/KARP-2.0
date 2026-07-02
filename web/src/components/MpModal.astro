@@ -43,7 +43,7 @@
     try { MPS = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
     const d = MPS[id];
     if (!d) return;
-    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const th = (v) => (v == null ? '–' : String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
     const tiles = [
       d.aldur != null && { l: 'Aldur', v: d.aldur + ' ára' },

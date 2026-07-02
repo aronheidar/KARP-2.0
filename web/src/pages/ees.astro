@@ -63,7 +63,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline:
       const box = document.getElementById('ees-track');
       if (!box || box.dataset.done) return;
       box.dataset.done = '1';
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const eesNum = (celex) => { const m = /^3(\d{4})L(\d{4})$/.exec(celex || ''); return m ? 'ESB ' + m[1] + '/' + (+m[2]) : (celex || ''); };
       const clean = (t) => String(t || '').replace(/\s*\(Text with EEA relevance\.?\)\s*$/i, '').replace(/\s*\(Texti sem varðar EES\)\s*$/i, '');
       const fail = () => { box.innerHTML = '<div class="ees-load">Tilskipanalistinn er ekki tiltækur í augnablikinu.<br><span style="font-size:11.5px">Skoðaðu <a href="https://www.efta.int/eea-lex" target="_blank" rel="noopener">EEA-Lex hjá EFTA ↗</a> á meðan.</span></div>'; };
@@ -72,7 +72,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline:
         .then((d) => {
           const items = (d && d.items) || [];
           if (!items.length) return fail();
-          box.innerHTML = items.slice(0, 20).map((it) => `<a class="ees-item" href="${esc(it.url || '#')}" target="_blank" rel="noopener"><span class="ees-num">${esc(eesNum(it.celex))}</span><span class="ees-t">${esc(clean(it.title))}</span><span class="ees-d">${esc(it.date || '')}</span></a>`).join('');
+          const safeU = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#'); // javascript:/data: blokkað
+          box.innerHTML = items.slice(0, 20).map((it) => `<a class="ees-item" href="${esc(safeU(it.url))}" target="_blank" rel="noopener"><span class="ees-num">${esc(eesNum(it.celex))}</span><span class="ees-t">${esc(clean(it.title))}</span><span class="ees-d">${esc(it.date || '')}</span></a>`).join('');
         })
         .catch(fail);
     }

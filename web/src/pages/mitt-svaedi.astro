@@ -186,7 +186,7 @@ const updated = '2026-07-02';
     import { loadUser, karpGet, karpPost } from '../lib/auth.js';
     const $g = (id) => document.getElementById(id);
     const J = (id) => { try { return JSON.parse($g(id).textContent); } catch (e) { return null; } };
-    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
     function initMitt() {
       if (!$g('p-dash') || $g('p-dash').dataset.done) return;

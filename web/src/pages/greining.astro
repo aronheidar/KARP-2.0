@@ -42,7 +42,7 @@ const desc = 'Greining Karp á fréttaárinu — stærstu umfjöllunarefnin, vir
       const root = document.getElementById('gr');
       if (!root || root.dataset.done) return;
       root.dataset.done = '1';
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       fetch('https://karp.is/wp-json/karp/v1/yearreview')
         .then((r) => (r.ok ? r.json() : Promise.reject()))

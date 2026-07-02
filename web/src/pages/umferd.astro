@@ -123,13 +123,15 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          // Öryggi: vegaheiti úr lifandi veitu HTML-varin fyrir innsetningu.
+          const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
           const tiles = [];
           if (d.total_today != null) tiles.push({ l: '🚗 Bílar í dag', v: th(d.total_today), s: 'samanlagt á teljurum' });
           if (d.counters != null) tiles.push({ l: '📡 Teljarar', v: th(d.counters), s: 'virkir' });
           if (!tiles.length) return;
           document.getElementById('veg-live-row').innerHTML = tiles.map((t) => `<div class="kpi"><div class="k-l">${t.l}</div><div class="k-v">${t.v}</div><div class="k-s">${t.s}</div></div>`).join('');
           const roads = Array.isArray(d.fjolfornustu) ? d.fjolfornustu.slice(0, 6) : [];
-          document.getElementById('veg-roads').innerHTML = roads.map((r) => `<div class="rd"><b>${(r.nafn || r.NAFN || '').toString().slice(0, 60)}</b><span>${th(r.umf || r.v || r.UMF_I_DAG || 0)} bílar í dag</span></div>`).join('');
+          document.getElementById('veg-roads').innerHTML = roads.map((r) => `<div class="rd"><b>${esc(String(r.nafn || r.NAFN || '').slice(0, 60))}</b><span>${th(r.umf || r.v || r.UMF_I_DAG || 0)} bílar í dag</span></div>`).join('');
           box.hidden = false;
           box.dataset.done = '1';
         })

@@ -74,11 +74,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
-    const esc9 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const esc9 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    // Öryggi: aðeins http(s)-hlekkir úr RSS-veitunum (javascript:/data: blokkað).
+    const safe9 = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
     const paint = (el, items, emptyMsg) => {
       const arr = Array.isArray(items) ? items : [];
       el.innerHTML = arr.length
-        ? arr.slice(0, 30).map((it) => `<a class="it" href="${esc9(it.link)}" target="_blank" rel="noopener"><span class="t">${esc9(it.title)}</span><span class="s">${esc9(it.source || '')}${it.date ? ' · ' + esc9(it.date) : ''}</span></a>`).join('')
+        ? arr.slice(0, 30).map((it) => `<a class="it" href="${esc9(safe9(it.link))}" target="_blank" rel="noopener"><span class="t">${esc9(it.title)}</span><span class="s">${esc9(it.source || '')}${it.date ? ' · ' + esc9(it.date) : ''}</span></a>`).join('')
         : `<div class="live-empty">${emptyMsg}</div>`;
     };
     const OFFLINE = 'Fyrirsagnir birtast á app.karp.is (CORS-varinn endapunktur).';

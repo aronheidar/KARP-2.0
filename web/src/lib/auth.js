@@ -13,7 +13,7 @@
 export const KARP_API = 'https://karp.is/wp-json/karp/v1';
 
 const esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 function setUser(u) { window.KARP_USER = u; return u; }
 

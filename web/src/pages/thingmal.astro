@@ -225,7 +225,7 @@ const jsonLd = {
       try { B = JSON.parse(dataEl.textContent || '{}'); } catch (e) { return; }
       const d = B[key];
       if (!d) return;
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       let h = `<div class="bm-type">${esc(d.type)} · ${esc(d.d || '')}</div><div class="bm-t">${esc(d.t)}</div>`;
       if (d.sam) h += `<div class="bm-sam">${esc(d.sam)}</div>`;
       h += `<div class="bm-res"><span class="${d.passed ? 'yes' : 'neu'}">${esc(d.stada || 'Niðurstaða liggur ekki fyrir')}</span> · Alþingi: ${d.ja}–${d.nei}${d.fj ? ` · ${d.fj} fjarvistir` : ''}</div>`;

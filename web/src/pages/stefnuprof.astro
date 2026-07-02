@@ -82,7 +82,7 @@ const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þ
       let ans = {};
       try { ans = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
       let i = 0;
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {} };
 
       function intro() {

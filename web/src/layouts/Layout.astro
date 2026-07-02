@@ -198,12 +198,14 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       // navígasjón (því module-skriftir keyra annars aðeins einu sinni). Fréttir cache-ast í
       // module-breytu → engin endur-sókn milli síðna, aðeins endur-teikning.
       import { mountChip, loadUser } from '../lib/auth.js';
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      // Öryggi: aðeins http(s)-slóðir úr ytri veitum (javascript:/data: URI blokkað).
+      const safeHref = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
       let newsCache = null;
 
       const renderNews = (arr) =>
         arr.length
-          ? arr.slice(0, 14).map((it) => `<a class="news-item" href="${esc(it.link)}" target="_blank" rel="noopener"><span class="news-t">${esc(it.title)}</span><span class="news-s">${esc(it.source || '')}</span></a>`).join('')
+          ? arr.slice(0, 14).map((it) => `<a class="news-item" href="${esc(safeHref(it.link))}" target="_blank" rel="noopener"><span class="news-t">${esc(it.title)}</span><span class="news-s">${esc(it.source || '')}</span></a>`).join('')
           : '<div class="news-empty">Engar fréttir.</div>';
 
       function paintNews() {
