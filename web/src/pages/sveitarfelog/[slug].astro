@@ -69,18 +69,18 @@ const fp = (v, d = 1) => (v == null ? '–' : fmtNum(v, d));
 const updated = '2026-07-01';
 
 const tiles = [];
-if (p.idx != null) tiles.push({ e: '🏆', l: 'Vísitala', v: String(p.idx), s: `${p.rank}. af ${p.rankTotal}`, hero: true, col: idxColor(p.idx) });
-tiles.push({ e: '🌿', l: 'Lífsgæði', v: p.lifs != null ? String(p.lifs) : '–', s: '0–100' });
-tiles.push({ e: '📈', l: 'Fólksfjölgun', v: p.meta.breyting_pct != null ? (p.meta.breyting_pct > 0 ? '+' : '') + fp(p.meta.breyting_pct) + '%' : '–', s: 'á ári' });
-tiles.push({ e: '👷', l: 'Atvinnuleysi', v: p.unemp != null ? fp(p.unemp) + '%' : '–', s: 'skráð' });
-tiles.push({ e: '🏠', l: 'Húsnæðisverð', v: p.house != null ? groupThousands(p.house) + ' þ' : '–', s: p.houseMuni ? 'kr/m²' : 'kr/m² · landshl.' });
-tiles.push({ e: '🚓', l: 'Afbrot', v: p.crime ? groupThousands(p.crime.hegn) : '–', s: 'á 10þ · landshl.' });
-tiles.push({ e: '🏛️', l: 'Stöðugleiki', v: p.stab != null ? p.stab + '%' : '–', s: 'fjárhagur' });
-tiles.push({ e: '💰', l: 'Útsvar', v: p.fin.utsvar != null ? fp(p.fin.utsvar) + '%' : '–', s: 'hám. 14,74%' });
-tiles.push({ e: '💳', l: 'Skuldir/íbúa', v: p.fin.skuldir_ibui != null ? groupThousands(p.fin.skuldir_ibui) + ' þ' : '–', s: 'þ.kr.' });
-tiles.push({ e: '📊', l: 'Afkoma/íbúa', v: p.fin.afkoma_ibui != null ? (p.fin.afkoma_ibui >= 0 ? '+' : '') + groupThousands(p.fin.afkoma_ibui) + ' þ' : '–', s: 'rekstur' });
-tiles.push({ e: '🧒', l: 'Ungt fólk', v: p.meta.ung != null ? fp(p.meta.ung) + '%' : '–', s: 'hlutfall' });
-tiles.push({ e: '👵', l: '67 ára+', v: p.meta.pct67 != null ? fp(p.meta.pct67) + '%' : '–', s: 'hlutfall' });
+if (p.idx != null) tiles.push({ e: '🏆', l: 'Vísitala', v: String(p.idx), s: `${p.rank}. af ${p.rankTotal}`, hero: true, col: idxColor(p.idx), t: 'Samsett vísitala Karp: fjárhagur, vöxtur og atvinna vegin jafnt (0–100). Reiknuð úr ársreikningum, mannfjölda- og atvinnuleysistölum — hlutlæg samantekt, ekki gæðamat.' });
+tiles.push({ e: '🌿', l: 'Lífsgæði', v: p.lifs != null ? String(p.lifs) : '–', s: '0–100', t: 'Lífsgæðaskor Karp (0–100): samsett úr atvinnustigi, öryggi (afbrotatíðni landshluta) og lýðfræði. Vélræn nálgun.' });
+tiles.push({ e: '📈', l: 'Fólksfjölgun', v: p.meta.breyting_pct != null ? (p.meta.breyting_pct > 0 ? '+' : '') + fp(p.meta.breyting_pct) + '%' : '–', s: 'á ári', t: 'Árleg fólksfjölgun skv. mannfjöldatölum Hagstofunnar.' });
+tiles.push({ e: '👷', l: 'Atvinnuleysi', v: p.unemp != null ? fp(p.unemp) + '%' : '–', s: 'skráð', t: 'Skráð atvinnuleysi (VMST). Tölur smærri sveitarfélaga eru kvarðaðar af umdæmistölum — nálgun.' });
+tiles.push({ e: '🏠', l: 'Húsnæðisverð', v: p.house != null ? groupThousands(p.house) + ' þ' : '–', s: p.houseMuni ? 'kr/m²' : 'kr/m² · landshl.', t: p.houseMuni ? 'Miðgildi fermetraverðs úr þinglýstum kaupsamningum (kaupskrá HMS), síðasta 12 mán tímabil með nægum fjölda samninga.' : 'Of fáir kaupsamningar í sveitarfélaginu — sýnt er miðgildi landshlutans (kaupskrá HMS).' });
+tiles.push({ e: '🚓', l: 'Afbrot', v: p.crime ? groupThousands(p.crime.hegn) : '–', s: 'á 10þ · landshl.', t: 'Hegningarlagabrot á 10.000 íbúa í landshlutanum (afbrotatölfræði ríkislögreglustjóra) — til er ekki sundurliðun á einstök sveitarfélög.' });
+tiles.push({ e: '🏛️', l: 'Stöðugleiki', v: p.stab != null ? p.stab + '%' : '–', s: 'fjárhagur', t: 'Fjárhagslegur stöðugleiki Karp (0–100): samsett úr skuldahlutfalli, afkomu og veltufé skv. ársreikningi.' });
+tiles.push({ e: '💰', l: 'Útsvar', v: p.fin.utsvar != null ? fp(p.fin.utsvar) + '%' : '–', s: 'hám. 14,74%', t: 'Útsvarsprósenta sveitarfélagsins af launum íbúa. Lögbundið hámark er 14,74%.' });
+tiles.push({ e: '💳', l: 'Skuldir/íbúa', v: p.fin.skuldir_ibui != null ? groupThousands(p.fin.skuldir_ibui) + ' þ' : '–', s: 'þ.kr.', t: 'Heildarskuldir og skuldbindingar samstæðu (A+B hluti) deilt á íbúa, þúsundir króna. Heimild: ársreikningur.' });
+tiles.push({ e: '📊', l: 'Afkoma/íbúa', v: p.fin.afkoma_ibui != null ? (p.fin.afkoma_ibui >= 0 ? '+' : '') + groupThousands(p.fin.afkoma_ibui) + ' þ' : '–', s: 'rekstur', t: 'Rekstrarniðurstaða ársins deilt á íbúa (þ.kr.) — jákvæð tala er afgangur. Heimild: ársreikningur.' });
+tiles.push({ e: '🧒', l: 'Ungt fólk', v: p.meta.ung != null ? fp(p.meta.ung) + '%' : '–', s: 'hlutfall', t: 'Hlutfall íbúa undir 18 ára (Hagstofa).' });
+tiles.push({ e: '👵', l: '67 ára+', v: p.meta.pct67 != null ? fp(p.meta.pct67) + '%' : '–', s: 'hlutfall', t: 'Hlutfall íbúa 67 ára og eldri (Hagstofa).' });
 
 // Stellaris-radar: 6 ásar, ABSÓLÚT 0–100 skor (ekki min-max). Öryggi = 100 − brot/4,5.
 const oryggi = p.crime && p.crime.hegn != null ? Math.max(0, Math.min(100, Math.round(100 - p.crime.hegn / 4.5))) : null;
@@ -177,7 +177,7 @@ const jsonLd = {
     <div class="grid">
       {tiles.map((t) => (
         <div class={`tile${t.hero ? ' hero' : ''}`}>
-          <div class="t-top">{t.e} {t.l}</div>
+          <div class="t-top">{t.e} {t.l}{t.t && <i class="tip" tabindex="0" data-tip={t.t}>ⓘ</i>}</div>
           <div class="t-v" style={t.col ? `color:${t.col}` : ''}>{t.v}</div>
           <div class="t-s">{t.s}</div>
         </div>
