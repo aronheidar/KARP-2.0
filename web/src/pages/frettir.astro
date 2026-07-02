@@ -6,6 +6,12 @@ import Layout from '../layouts/Layout.astro';
 import FYRIRTAEKI from '../data/fyrirtaeki.json';
 import SENTIMENT from '@gogn/sentiment.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
+import PSTANCE from '../data/pstance.json';
+import CABINET from '@gogn/cabinet.json';
+
+// Fleiri aðila-hópar (LOTA 13b): stjórnmálaflokkar + ráðherrar — sama /firma-greining.
+const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
+const MINS = CABINET.map((c) => ({ n: c.nafn, a: [c.nafn], sub: (c.emb || [])[0] || 'ráðherra' }));
 
 const SENT = SENTIMENT.companies || {};
 const RV = RAUNVIRDI.companies || {};
@@ -42,8 +48,26 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     </section>
 
     <section id="p-fyr" hidden>
-      <p>Smelltu á félag fyrir lifandi umfjöllun{Object.keys(SENT).length ? ', vélrænt viðhorfsmat' : ''} og kennitölur.</p>
-      <div class="cos">
+      <p>Smelltu á aðila fyrir lifandi umfjöllun{Object.keys(SENT).length ? ', vélrænt viðhorfsmat' : ''}, tímalínu og kennitölur — eða <strong>leitaðu að hverjum sem er</strong>.</p>
+
+      <div class="fy-search">
+        <input id="fy-q" type="text" placeholder="🔍 Leitaðu að hvaða fyrirtæki, stofnun eða einstaklingi sem er…" autocomplete="off" />
+        <button id="fy-go" type="button">Greina</button>
+      </div>
+
+      <div class="chips" id="ent-chips">
+        <button class="chip on" data-g="fyr">🏢 Fyrirtæki</button>
+        <button class="chip" data-g="flokkar">🚩 Stjórnmálaflokkar</button>
+        <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
+      </div>
+
+      <div class="cos" id="g-flokkar" hidden>
+        {PARTIES.map((p) => <button class="co co-ent" data-name={p.n}><span class="co-n">{p.n}</span></button>)}
+      </div>
+      <div class="cos" id="g-radherrar" hidden>
+        {MINS.map((m) => <button class="co co-ent" data-name={m.n}><span class="co-n">{m.n}</span><span class="co-s">{m.sub}</span></button>)}
+      </div>
+      <div class="cos" id="g-fyr">
         {COS.map((c, i) => (
           <button class="co" data-i={i}>
             <span class="co-n">{c.n}</span>
@@ -70,6 +94,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .co { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; color: #eaf1fb; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
     .co:hover { border-color: #f6b13b; }
     .co-s { font-size: 11px; font-weight: 800; color: #9fb0c8; }
+    .co-ent .co-s { font-weight: 400; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fy-search { display: flex; gap: 8px; margin: 10px 0 12px; }
+    .fy-search input { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #eaf1fb; border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; }
+    .fy-search input:focus { border-color: #f6b13b; }
+    .fy-search button { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+    .fy-search button:hover { filter: brightness(1.1); }
     .co-s.up { color: #46e08a; } .co-s.dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
@@ -247,9 +277,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         if (sIdx != null) { if (sIdx <= -25 && level !== 'ok' && level !== 'lo') parts.push('og heildartónn neikvæður (' + sIdx + ') — fylgstu með'); else parts.push('heildartónn ' + (sIdx > 0 ? '+' : '') + sIdx); }
         return `<div class="fy-health fy-h-${level}"><span class="fy-hb">${icon} ${label}</span><span class="fy-ht">${parts.join(' · ')}.</span></div>`;
       };
-      document.querySelectorAll('.co[data-i]').forEach((b) => {
-        b.onclick = () => {
-          const c = COS[+b.dataset.i];
+      function openCo(c) {
           det.hidden = false;
           det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -286,8 +314,20 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               });
             })
             .catch(() => paint(dl, [], OFFLINE));
+      }
+      document.querySelectorAll('.co[data-i]').forEach((b) => { b.onclick = () => openCo(COS[+b.dataset.i]); });
+      // Flokkar/ráðherrar + FRJÁLS LEIT (LOTA 13b) — sama premium-greining fyrir hvaða aðila sem er
+      document.querySelectorAll('.co-ent[data-name]').forEach((b) => { b.onclick = () => openCo({ n: b.dataset.name, a: [b.dataset.name] }); });
+      document.querySelectorAll('#ent-chips .chip').forEach((ch) => {
+        ch.onclick = () => {
+          document.querySelectorAll('#ent-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
+          ['fyr', 'flokkar', 'radherrar'].forEach((g) => { const el = document.getElementById('g-' + g); if (el) el.hidden = g !== ch.dataset.g; });
         };
       });
+      const q = document.getElementById('fy-q'), go = document.getElementById('fy-go');
+      const doSearch = () => { const v = (q.value || '').trim(); if (v.length > 2) openCo({ n: v, a: [v] }); };
+      if (go) go.onclick = doSearch;
+      if (q) q.onkeydown = (e) => { if (e.key === 'Enter') doSearch(); };
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) initFrettir(); });
   </script>
