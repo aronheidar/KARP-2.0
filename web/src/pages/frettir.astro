@@ -100,6 +100,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .fy-search input:focus { border-color: #f6b13b; }
     .fy-search button { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fy-search button:hover { filter: brightness(1.1); }
+    .co-fl { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #cdd6e6; border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .co-fl.on { background: rgba(70,224,138,.14); border-color: rgba(70,224,138,.5); color: #46e08a; }
     .co-s.up { color: #46e08a; } .co-s.dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
@@ -165,6 +167,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
+    import { loadUser, karpPost } from '../lib/auth.js';
     const esc9 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     // Öryggi: aðeins http(s)-hlekkir úr RSS-veitunum (javascript:/data: blokkað).
     const safe9 = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
@@ -279,7 +282,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       };
       function openCo(c) {
           det.hidden = false;
-          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
+          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more');
           fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
@@ -314,6 +317,24 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               });
             })
             .catch(() => paint(dl, [], OFFLINE));
+          // + Fylgja (co:-lykill í follows, sami og gamla) — LOTA 13c
+          loadUser().then((u) => {
+            const fb = document.getElementById('co-follow');
+            if (!fb || !u || !u.loggedIn) return;
+            const key = 'co:' + c.n;
+            const paintF = () => { const on = (window.KARP_USER.follows || []).includes(key); fb.textContent = on ? '✓ Fylgist með' : '+ Fylgja'; fb.classList.toggle('on', on); };
+            fb.hidden = false;
+            paintF();
+            fb.onclick = async () => {
+              fb.disabled = true;
+              const cur = window.KARP_USER.follows || [];
+              const next = cur.includes(key) ? cur.filter((x) => x !== key) : [...cur, key];
+              const res = await karpPost('/follows', { follows: next });
+              window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+              fb.disabled = false;
+              paintF();
+            };
+          }).catch(() => {});
       }
       document.querySelectorAll('.co[data-i]').forEach((b) => { b.onclick = () => openCo(COS[+b.dataset.i]); });
       // Flokkar/ráðherrar + FRJÁLS LEIT (LOTA 13b) — sama premium-greining fyrir hvaða aðila sem er

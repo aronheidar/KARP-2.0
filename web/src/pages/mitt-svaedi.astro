@@ -373,12 +373,13 @@ const updated = '2026-07-02';
         const paintMine = () => {
           const el = $g('mine');
           const mps = (window.KARP_USER.follows || []).filter((k) => k.indexOf('mp:') === 0 && MP[k]);
-          if (!mps.length) { el.innerHTML = '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> og ýttu „+ Fylgja".</div>'; return; }
+          const cos = (window.KARP_USER.follows || []).filter((k) => k.indexOf('co:') === 0);
+          if (!mps.length && !cos.length) { el.innerHTML = '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> eða <a href="/frettir/">Umfjöllun</a> og ýttu „+ Fylgja".</div>'; return; }
           el.innerHTML = '<div class="flist">' + mps.map((k) => {
             const m = MP[k];
             const pic = m.img ? `<img src="${esc(m.img)}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<span class="fc-ini">${esc(m.n.charAt(0))}</span>`;
             return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/">${pic}<span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
-          }).join('') + '</div>';
+          }).join('') + cos.map((k) => { const n = k.slice(3); return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="/frettir/"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(n)}</span><span class="fc-f">umfjöllun vöktuð</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`; }).join('') + '</div>';
           el.querySelectorAll('.fc-x').forEach((b) => {
             b.onclick = async () => { b.disabled = true; const next = (window.KARP_USER.follows || []).filter((x) => x !== b.dataset.key); const res = await karpPost('/follows', { follows: next }); window.KARP_USER.follows = (res && res.follows) ? res.follows : next; paintMine(); };
           });
