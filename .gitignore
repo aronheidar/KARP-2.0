@@ -16,3 +16,4 @@ logo_backup/
 .DS_Store
 Thumbs.db
 .env
+grep.exe.stackdump
