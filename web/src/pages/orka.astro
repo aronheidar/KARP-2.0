@@ -45,6 +45,12 @@ const jsonLd = {
       <div class="kpi"><div class="k-l">👤 Á íbúa</div><div class="k-v">{fmtNum(perCapita, 0)}</div><div class="k-s">MWh (heimsmet)</div></div>
     </div>
 
+    <div id="orka-live" hidden>
+      <h2>⚡ Framleiðsla núna</h2>
+      <div class="live-row" id="orka-live-row"></div>
+      <p class="srcnote" id="orka-live-ts"></p>
+    </div>
+
     <h2>Heildarframleiðsla 1969–{latest.y}</h2>
     <div id="chart-total"></div>
 
@@ -68,6 +74,8 @@ const jsonLd = {
     .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-total, #chart-src { width: 100%; height: 320px; }
+    .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+    .srcnote { font-size: 12px; color: #7e8ca6; margin: 6px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
@@ -115,5 +123,32 @@ const jsonLd = {
       s.addEventListener('load', go, { once: true });
     }
     document.addEventListener('astro:page-load', initCharts);
+  </script>
+
+  <!-- Eyja: lifandi framleiðsla (Landsnet gegnum karp-orka.php proxy). Felst ef ekki tiltækt (CORS/localhost). #2 -->
+  <script>
+    function initLive() {
+      const box = document.getElementById('orka-live');
+      if (!box || box.dataset.done) return;
+      fetch('https://karp.is/wp-json/karp/v1/orka')
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => {
+          const mw = (v) => (v == null ? null : Math.round(v));
+          const parts = [
+            { l: '💧 Vatnsafl', v: mw(d.hydro) },
+            { l: '🌋 Jarðvarmi', v: mw(d.geothermal) },
+            { l: '🛢️ Eldsneyti', v: mw(d.oil) },
+          ].filter((p) => p.v != null);
+          if (!parts.length) return;
+          const total = parts.reduce((s, p) => s + p.v, 0);
+          const row = document.getElementById('orka-live-row');
+          row.innerHTML = [{ l: '⚡ Alls', v: total }, ...parts].map((p) => `<div class="kpi"><div class="k-l">${p.l}</div><div class="k-v">${String(p.v).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div><div class="k-s">MW núna</div></div>`).join('');
+          document.getElementById('orka-live-ts').textContent = 'Rauntímagögn frá Landsnet' + (d.timestamp ? ' · ' + d.timestamp : '') + ' — birtast aðeins á app.karp.is.';
+          box.hidden = false;
+          box.dataset.done = '1';
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('astro:page-load', initLive);
   </script>
 </Layout>

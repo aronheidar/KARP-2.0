@@ -23,6 +23,12 @@ const CATLABELS = { audgun: 'Auðgunarbrot', ofbeldi: 'Ofbeldisbrot', eignsp: 'E
 const catBars = Object.keys(CATLABELS).filter((k) => nat.cats && nat.cats[k] != null).map((k) => ({ label: CATLABELS[k], v: nat.cats[k] })).sort((a, b) => b.v - a.v);
 
 const hi = regionBars[0], lo = regionBars[regionBars.length - 1];
+
+// Landshluta-þróun: lína per landshluta (sömu ár og landsserían).
+const REGPAL = { 'Höfuðborgarsvæðið': '#3a8dff', 'Suðurnes': '#ff8a3d', 'Vesturland': '#46e08a', 'Vestfirðir': '#7c5cf7', 'Norðurland vestra': '#1fb6c9', 'Norðurland eystra': '#f6b13b', 'Austurland': '#e8436f', 'Suðurland': '#5aa84a' };
+const REGLINES = Object.keys(byReg)
+  .filter((n) => Array.isArray(byReg[n].series) && byReg[n].series.length)
+  .map((n) => ({ name: n, color: REGPAL[n] || '#8892a6', data: trendYears.map((y) => { const p = byReg[n].series.find((s) => s.y === y); return p ? p.v : null; }) }));
 const updated = '2026-07-01';
 const desc = `Afbrot á Íslandi — ${fmtNum(nat.hegn, 1)} hegningarlagabrot á 10.000 íbúa árið ${year}${change != null ? ` (${change > 0 ? '+' : ''}${fmtNum(change, 0)}% frá 2001)` : ''}. Þróun, landshlutar og brotaflokkar úr gögnum Ríkislögreglustjóra.`;
 const jsonLd = {
@@ -53,6 +59,9 @@ const jsonLd = {
     <h2>Eftir brotaflokkum ({year})</h2>
     <div id="chart-cat"></div>
 
+    <h2>Þróun eftir landshlutum</h2>
+    <div id="chart-reglines"></div>
+
     <p class="note">ⓘ Fjöldi brota á 10.000 íbúa. Umferðarlagabrot eru undanskilin flokkasúluritinu (annað eðli og margfalt hærri tíðni). Afbrot fást aðeins eftir lögregluumdæmi (≈landshluta), ekki sveitarfélagi.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Heimild: Ríkislögreglustjóri (afbrotatölfræði). #2.</p>
   </main>
@@ -72,11 +81,12 @@ const jsonLd = {
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-trend { width: 100%; height: 300px; }
     #chart-region, #chart-cat { width: 100%; }
+    #chart-reglines { width: 100%; height: 340px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: 3 gröf (þróun/landshlutar/flokkar), astro:page-load. #2 -->
-  <script define:vars={{ trendYears, trendVals, regionBars, catBars }}>
+  <script define:vars={{ trendYears, trendVals, regionBars, catBars, REGLINES }}>
     function initCharts() {
       const ct = document.getElementById('chart-trend');
       if (!ct) return;
@@ -103,6 +113,20 @@ const jsonLd = {
         if (cr && !window.echarts.getInstanceByDom(cr)) { cr.style.height = (regionBars.length * 28 + 26) + 'px'; const c = window.echarts.init(cr); c.setOption(barOpt(regionBars, '#ff6d7a')); window.addEventListener('resize', () => c.resize()); }
         const cc = document.getElementById('chart-cat');
         if (cc && !window.echarts.getInstanceByDom(cc)) { cc.style.height = (catBars.length * 30 + 26) + 'px'; const c = window.echarts.init(cc); c.setOption(barOpt(catBars, '#7c5cf7')); window.addEventListener('resize', () => c.resize()); }
+        const cl = document.getElementById('chart-reglines');
+        if (cl && REGLINES.length && !window.echarts.getInstanceByDom(cl)) {
+          const c = window.echarts.init(cl);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { type: 'scroll', textStyle: { color: '#9fb0c8', fontSize: 10.5 }, top: 0 },
+            grid: { left: 44, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: trendYears, axisLabel: { color: '#7e8ca6' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : Math.round(v) + ' /10þ') },
+            series: REGLINES.map((r) => ({ name: r.name, type: 'line', data: r.data, smooth: true, symbol: 'none', lineStyle: { width: 2, color: r.color }, itemStyle: { color: r.color } })),
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
       };
       if (window.echarts) { go(); return; }
       let s = document.getElementById('echarts-cdn');

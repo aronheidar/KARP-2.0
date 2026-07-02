@@ -7,6 +7,7 @@ import Layout from '../layouts/Layout.astro';
 import { fmtNum } from '@lib/format.mjs';
 import UTGJOLD from '@gogn/utgjold.json';
 import SKATTAR from '@gogn/skattar.json';
+import LANGTIMA from '@gogn/langtima.json';
 
 const ar = UTGJOLD.ar || 2026;
 const heildUtgjold = UTGJOLD.heild || 0;
@@ -19,6 +20,28 @@ const tekGroups = (SKATTAR.hopar || []).map((g) => ({ label: g.heiti, v: sumPair
 
 const topUtg = utgGroups[0];
 const ma = (v) => fmtNum(v, 1);
+
+// Sankey: tekjuflokkar (+aðrar tekjur, +halli) → Ríkissjóður → útgjaldahópar.
+const adrarTekjur = Math.max(0, (SKATTAR.heildartekjur || 0) - (SKATTAR.heild || 0));
+const halli = Math.max(0, heildUtgjold - heildTekjur);
+const TEKCOL = ['#46e08a', '#2fbf8f', '#1fb6c9', '#3a8dff', '#7c5cf7'];
+const UTGCOL = ['#ff6d7a', '#ff8a3d', '#f6b13b', '#e8436f', '#c95cf7', '#5aa84a', '#3a8dff', '#1fb6c9', '#8892a6', '#7e8ca6', '#cdd6e6', '#46e08a', '#ffd479', '#b9a6ff'];
+const skNodes = [
+  ...tekGroups.map((g, i) => ({ name: g.label, itemStyle: { color: TEKCOL[i % TEKCOL.length] } })),
+  ...(adrarTekjur > 0 ? [{ name: 'Aðrar tekjur', itemStyle: { color: '#19d3c5' } }] : []),
+  ...(halli > 0 ? [{ name: 'Halli (lánsfé)', itemStyle: { color: '#ff4d5e' } }] : []),
+  { name: 'Ríkissjóður', itemStyle: { color: '#f6b13b' } },
+  ...utgGroups.map((g, i) => ({ name: g.label, itemStyle: { color: UTGCOL[i % UTGCOL.length] } })),
+];
+const skLinks = [
+  ...tekGroups.map((g) => ({ source: g.label, target: 'Ríkissjóður', value: Math.round(g.v * 10) / 10 })),
+  ...(adrarTekjur > 0 ? [{ source: 'Aðrar tekjur', target: 'Ríkissjóður', value: Math.round(adrarTekjur * 10) / 10 }] : []),
+  ...(halli > 0 ? [{ source: 'Halli (lánsfé)', target: 'Ríkissjóður', value: Math.round(halli * 10) / 10 }] : []),
+  ...utgGroups.map((g) => ({ source: 'Ríkissjóður', target: g.label, value: Math.round(g.v * 10) / 10 })),
+];
+
+// Langtímastefna: skuldir + afkoma % VLF 2024–2038 (fjármálastefna/langtímahorfur).
+const LT = { ar: LANGTIMA.ar || [], skuldir: LANGTIMA.skuldir || [], afkoma: LANGTIMA.afkoma || [], heimild: LANGTIMA.heimild || '' };
 const desc = `Ríkisfjármál Íslands ${ar} — heildartekjur ${ma(heildTekjur)} ma.kr, útgjöld ${ma(heildUtgjold)} ma.kr (${afkoma < 0 ? 'halli' : 'afgangur'} ${ma(Math.abs(afkoma))} ma.kr). Útgjöld eftir málefnasviðum og tekjur eftir flokkum.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Dataset', name: `Ríkisfjármál Íslands ${ar}`,
@@ -38,11 +61,18 @@ const jsonLd = {
       <div class="kpi"><div class="k-l">{afkoma < 0 ? '📉 Halli' : '📈 Afgangur'}</div><div class={`k-v ${afkoma < 0 ? 'neg' : ''}`}>{afkoma < 0 ? '−' : '+'}{ma(Math.abs(afkoma))}</div><div class="k-s">ma.kr</div></div>
     </div>
 
+    <h2>Skattflæðið — hvert fara peningarnir?</h2>
+    <div id="chart-sankey"></div>
+
     <h2>Útgjöld eftir málefnasviðum</h2>
     <div id="chart-utg"></div>
 
     <h2>Tekjur eftir flokkum</h2>
     <div id="chart-tek"></div>
+
+    <h2>Langtímastefna — skuldir og afkoma til {LT.ar[LT.ar.length - 1]}</h2>
+    <div id="chart-lt"></div>
+    <p class="src">Súlur = afkoma hins opinbera (% af VLF, hægri ás) · lína = skuldir (% af VLF). Heimild: {LT.heimild}.</p>
 
     <p class="note">ⓘ Tölur í milljörðum króna (ma.kr), A1-hluti ríkissjóðs skv. frumvarpi til fjárlaga {ar}. Málefnasvið = útgjöld sameinuð eftir yfirflokki.</p>
     <p class="foot">Forþjónað (SSG). Heimild: {UTGJOLD.heimild || 'Fjárlög'}. #2.</p>
@@ -62,11 +92,14 @@ const jsonLd = {
     .k-v.neg { color: #ff8e98; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-utg, #chart-tek { width: 100%; }
+    #chart-sankey { width: 100%; height: 480px; }
+    #chart-lt { width: 100%; height: 300px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
-  <!-- Eyja: útgjöld + tekjur súlurit, astro:page-load. #2 -->
-  <script define:vars={{ utgGroups, tekGroups }}>
+  <!-- Eyja: sankey + útgjöld + tekjur + langtíma, astro:page-load. #2 -->
+  <script define:vars={{ utgGroups, tekGroups, skNodes, skLinks, LT }}>
     function bar(el, data, color) {
       el.style.height = (data.length * 28 + 26) + 'px';
       const chart = window.echarts.init(el);
@@ -84,6 +117,43 @@ const jsonLd = {
       const u = document.getElementById('chart-utg'), t = document.getElementById('chart-tek');
       if (!u) return;
       const go = () => {
+        const sk = document.getElementById('chart-sankey');
+        if (sk && !window.echarts.getInstanceByDom(sk)) {
+          const c = window.echarts.init(sk);
+          c.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'item', backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 }, valueFormatter: (v) => v.toFixed(1).replace('.', ',') + ' ma.kr' },
+            series: [{
+              type: 'sankey', left: 8, right: 170, top: 8, bottom: 8, nodeGap: 7, nodeWidth: 14,
+              emphasis: { focus: 'adjacency' },
+              data: skNodes, links: skLinks,
+              label: { color: '#cdd6e6', fontSize: 11, formatter: (p) => p.name },
+              lineStyle: { color: 'gradient', opacity: 0.32, curveness: 0.5 },
+              itemStyle: { borderWidth: 0 },
+            }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const lt = document.getElementById('chart-lt');
+        if (lt && !window.echarts.getInstanceByDom(lt) && LT.ar.length) {
+          const c = window.echarts.init(lt);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Skuldir (% VLF)', 'Afkoma (% VLF)'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 42, right: 46, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: LT.ar, axisLabel: { color: '#7e8ca6' }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: [
+              { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+              { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { show: false } },
+            ],
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: [
+              { name: 'Skuldir (% VLF)', type: 'line', data: LT.skuldir, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#f6b13b' }, itemStyle: { color: '#f6b13b' } },
+              { name: 'Afkoma (% VLF)', type: 'bar', yAxisIndex: 1, data: LT.afkoma.map((v) => ({ value: v, itemStyle: { color: v >= 0 ? 'rgba(70,224,138,.7)' : 'rgba(255,109,122,.7)' } })), barWidth: 10 },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
         if (!window.echarts.getInstanceByDom(u)) bar(u, utgGroups, '#ff6d7a');
         if (t && !window.echarts.getInstanceByDom(t)) bar(t, tekGroups, '#46e08a');
       };

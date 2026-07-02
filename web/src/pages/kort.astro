@@ -1,0 +1,242 @@
+---
+// ─────────────────────────────────────────────────────────────
+// ÍSLANDSKORTIÐ (#2) — gagnvirkt kort eins og Yfirlit gamla mælaborðsins:
+// landshluta-fjölhyrningar (landshlutar.json, BAKAÐ inline) + sveitarfélög sem
+// punktar (SVCOORDS) litaðir eftir völdum kortaham (14 hamir). Smelltu á
+// sveitarfélag → síðan þess; á landshluta → þysjun. Öll gildi reiknuð á
+// BYGGINGARTÍMA úr sameiginlega @lib (muniIndex/muniStats/geo). #2.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import { computeMuniIndex } from '@lib/muniIndex.mjs';
+import { makeMuniStats } from '@lib/muniStats.mjs';
+import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
+import { slugify } from '@lib/format.mjs';
+
+import SVFIN from '@gogn/sveitarfelog_fin.json';
+import SVMETA from '@gogn/sveitarfelog_meta.json';
+import SVPOP from '@gogn/sveitarfelog_pop.json';
+import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
+import GLAEPIR from '@gogn/glaepir.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+import SVCOORDS from '@gogn/sveitarfelog_coords.json';
+import REGIONGEO from '@gogn/landshlutar.json';
+
+const idxMap = computeMuniIndex({ SVFIN, SVMETA, SVPOP, ATVINNULEYSI });
+const regionOf = makeRegionOf({ SVCOORDS, REGIONGEO });
+const stats = makeMuniStats({ ATVINNULEYSI, GLAEPIR, FASTEIGNIR });
+const lifsQ = makeLifsQ({ SVMETA, regionOf, svUnemp: stats.svUnemp, svCrime: stats.svCrime });
+const r0 = (v) => (v == null ? null : Math.round(v));
+const r1 = (v) => (v == null ? null : Math.round(v * 10) / 10);
+
+// Punktar: öll 61 sveitarfélög með ÖLL kortahams-gildi bökuð.
+const MUNIS = Object.keys(SVCOORDS).map((name) => {
+  const [lat, lng] = SVCOORDS[name]; // ATH: coords eru [lat,lng] — ECharts vill [lng,lat]
+  const reg = regionOf(name);
+  const fin = SVFIN[name] || {}, meta = SVMETA[name] || {};
+  const pop = SVPOP[name] || null;
+  const house = stats.svHouse(name, reg);
+  const crime = stats.svCrime(reg);
+  const ix = idxMap[name];
+  return {
+    n: name, s: slugify(name), lng, lat, reg, pop,
+    v: {
+      visitala: ix && ix.idx != null ? r0(ix.idx) : null,
+      ibuar: pop,
+      breyting: meta.breyting_pct ?? null,
+      aldur: meta.pct67 ?? null,
+      lifs: lifsQ(name),
+      atv: r1(stats.svUnemp(name, reg)),
+      afbrot: crime ? r0(crime.hegn) : null,
+      hus: house ? r0(house.v) : null,
+      utsvar: fin.utsvar ?? null,
+      tekjur: fin.tekjur && pop ? r0(fin.tekjur / pop) : null,
+      fasteign: fin.fasteign_ibui && pop ? r0(fin.fasteign_ibui / pop) : null,
+      skuldir: fin.skuldir_ibui ?? null,
+      skhlutf: fin.skuldir && fin.tekjur ? r0((fin.skuldir / fin.tekjur) * 100) : null,
+      afkoma: fin.afkoma_ibui ?? null,
+      kjor: meta.kjordaemi || null,
+    },
+  };
+});
+
+// Landshluta-rammar (fyrir þysjun) + heildar-miðja.
+function bboxOf(geom) {
+  let mnx = 999, mxx = -999, mny = 999, mxy = -999;
+  const walk = (c) => { if (typeof c[0] === 'number') { mnx = Math.min(mnx, c[0]); mxx = Math.max(mxx, c[0]); mny = Math.min(mny, c[1]); mxy = Math.max(mxy, c[1]); } else c.forEach(walk); };
+  walk(geom.coordinates);
+  return [mnx, mxx, mny, mxy];
+}
+let FX = [999, -999, 999, -999];
+const REGBOX = {};
+(REGIONGEO.features || []).forEach((f) => {
+  const b = bboxOf(f.geometry);
+  FX = [Math.min(FX[0], b[0]), Math.max(FX[1], b[1]), Math.min(FX[2], b[2]), Math.max(FX[3], b[3])];
+  REGBOX[f.properties.name] = b;
+});
+const REGZOOM = {};
+Object.keys(REGBOX).forEach((n) => {
+  const b = REGBOX[n];
+  const z = 0.85 * Math.min((FX[1] - FX[0]) / Math.max(0.5, b[1] - b[0]), (FX[3] - FX[2]) / Math.max(0.2, b[3] - b[2]));
+  REGZOOM[n] = { c: [(b[0] + b[1]) / 2, (b[2] + b[3]) / 2], z: Math.max(1.6, Math.min(4.5, z)) };
+});
+
+const updated = '2026-07-01';
+const desc = 'Gagnvirkt Íslandskort — öll 61 sveitarfélög lituð eftir vísitölu, lífsgæðum, atvinnuleysi, húsnæðisverði, fjármálum og fleiru. Smelltu á sveitarfélag fyrir nánari síðu.';
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Íslandskort — hagvísar sveitarfélaga', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
+
+const MODEGROUPS = [
+  ['Samfélag', [['visitala', 'Vísitala'], ['lifs', 'Lífsgæði'], ['ibuar', 'Íbúafjöldi'], ['breyting', 'Fólksfjölgun'], ['aldur', '67 ára+'], ['atv', 'Atvinnuleysi'], ['afbrot', 'Afbrot'], ['hus', 'Húsnæðisverð']]],
+  ['Fjármál sveitarf.', [['utsvar', 'Útsvar'], ['tekjur', 'Tekjur/íbúi'], ['fasteign', 'Fasteignask./íbúi'], ['skuldir', 'Skuldir/íbúi'], ['skhlutf', 'Skuldahlutfall'], ['afkoma', 'Afkoma/íbúi']]],
+  ['Stjórnsýsla', [['kjor', 'Kjördæmi']]],
+];
+---
+
+<Layout title="Íslandskortið — hagvísar sveitarfélaga | Karp" description={desc} canonical="https://app.karp.is/kort/" jsonLd={jsonLd} ogTitle="Íslandskortið">
+  <main>
+    <p class="kicker">Hagvísir Íslands · Kort</p>
+    <h1>Íslandskortið</h1>
+    <p>Veldu hvaða upplýsingar lita kortið — smelltu á <strong>sveitarfélag</strong> fyrir nánari síðu, eða á <strong>landshluta</strong> til að þysja inn.</p>
+
+    <div class="modes">
+      {MODEGROUPS.map(([grp, modes]) => (
+        <div class="mg">
+          <span class="mg-l">{grp}</span>
+          {modes.map(([key, label]) => <button class={`mb${key === 'visitala' ? ' on' : ''}`} data-m={key}>{label}</button>)}
+        </div>
+      ))}
+    </div>
+
+    <div class="map-wrap">
+      <button id="map-reset" hidden>↩ Allt landið</button>
+      <div id="map"></div>
+      <div id="map-scale" class="scale"></div>
+    </div>
+
+    <p class="note">ⓘ Punktastærð fylgir íbúafjölda. Afbrot eru eftir landshluta (lögregluumdæmi) — öll sveitarfélög innan landshluta fá sama gildi. Reiknað á byggingartíma úr opinberum gögnum (Hagstofa, Samband ísl. sveitarfélaga, VMST, Ríkislögreglustjóri, HMS).</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Landshlutamörk + hnit bökuð; sama reiknilíkan og <a href="/sveitarfelog/">Sveitarfélaga-vísitalan</a>. #2.</p>
+  </main>
+
+  <!-- Bökuð gögn (ekki keyrð): landshlutar + punktar + þysjunarrammar -->
+  <script type="application/json" id="d-reg" set:html={JSON.stringify(REGIONGEO)}></script>
+  <script type="application/json" id="d-munis" set:html={JSON.stringify(MUNIS)}></script>
+  <script type="application/json" id="d-zoom" set:html={JSON.stringify(REGZOOM)}></script>
+
+  <style>
+    main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; line-height: 1.15; margin: 0 0 8px; }
+    p { color: #cdd6e6; }
+    .modes { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 10px; }
+    .mg { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    .mg-l { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #5a6678; font-weight: 700; width: 108px; flex: none; }
+    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #9fb0c8; border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .mb:hover { color: #eaf1fb; border-color: rgba(255,255,255,.25); }
+    .mb.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
+    .map-wrap { position: relative; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; }
+    #map { width: 100%; height: 560px; }
+    #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: rgba(9,14,26,.9); border: 1px solid rgba(255,255,255,.2); color: #eaf1fb; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .scale { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: #9fb0c8; background: rgba(9,14,26,.75); border-radius: 7px; padding: 5px 10px; }
+    .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+    @media (max-width: 640px) { #map { height: 420px; } .mg-l { width: 100%; } }
+  </style>
+
+  <!-- Eyja: kortið (ECharts geo + scatter). Keyrir á astro:page-load (VT). #2 -->
+  <script>
+    const MODES = {
+      visitala: { l: 'Vísitala', u: '', dir: 1, d: 0 },
+      lifs: { l: 'Lífsgæði', u: '', dir: 1, d: 0 },
+      ibuar: { l: 'Íbúar', u: '', dir: 0, d: 0, th: true },
+      breyting: { l: 'Fólksfjölgun', u: '%', dir: 1, d: 1 },
+      aldur: { l: '67 ára+', u: '%', dir: 0, d: 1 },
+      atv: { l: 'Atvinnuleysi', u: '%', dir: -1, d: 1 },
+      afbrot: { l: 'Afbrot', u: ' /10þ', dir: -1, d: 0 },
+      hus: { l: 'Húsnæðisverð', u: ' þús/m²', dir: 0, d: 0, th: true },
+      utsvar: { l: 'Útsvar', u: '%', dir: -1, d: 2 },
+      tekjur: { l: 'Tekjur/íbúa', u: ' þús', dir: 0, d: 0, th: true },
+      fasteign: { l: 'Fasteignask./íbúa', u: ' þús', dir: 0, d: 0, th: true },
+      skuldir: { l: 'Skuldir/íbúa', u: ' þús', dir: -1, d: 0, th: true },
+      skhlutf: { l: 'Skuldahlutfall', u: '%', dir: -1, d: 0 },
+      afkoma: { l: 'Afkoma/íbúa', u: ' þús', dir: 1, d: 0, th: true },
+      kjor: { l: 'Kjördæmi', cat: true },
+    };
+    const KJORCOL = [['Reykjav', '#e8436f'], ['Suðvest', '#3a8dff'], ['Norðaust', '#f6b13b'], ['Norðvest', '#7c5cf7'], ['Suður', '#46e08a']];
+    const REGCOL = { 'Höfuðborgarsvæðið': 'rgba(58,141,255,.20)', 'Suðurnes': 'rgba(255,138,61,.18)', 'Vesturland': 'rgba(70,192,106,.16)', 'Vestfirðir': 'rgba(124,92,247,.18)', 'Norðurland vestra': 'rgba(31,182,201,.16)', 'Norðurland eystra': 'rgba(245,197,66,.15)', 'Austurland': 'rgba(232,67,111,.16)', 'Suðurland': 'rgba(90,168,74,.16)' };
+    const $ = (id) => document.getElementById(id);
+    const J = (id) => { try { return JSON.parse($(id).textContent); } catch (e) { return null; } };
+    const th = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    function initMap() {
+      const el = $('map');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initMap, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const REG = J('d-reg'), MUNIS = J('d-munis'), RZ = J('d-zoom');
+      if (!REG || !MUNIS) return;
+      try { window.echarts.registerMap('landshlutar', REG); } catch (e) {}
+      const chart = window.echarts.init(el);
+      let mode = 'visitala';
+
+      const fmtV = (m, v) => { const M = MODES[m]; if (v == null) return '—'; if (M.cat) return v; const s = M.th ? th(v) : v.toFixed(M.d).replace('.', ','); return s + (M.u || ''); };
+      const kjorColor = (v) => { for (const [k, c] of KJORCOL) if (v && v.indexOf(k) >= 0) return c; return '#8892a6'; };
+
+      function pointData() {
+        const M = MODES[mode];
+        let mn = Infinity, mx = -Infinity;
+        if (!M.cat) MUNIS.forEach((u) => { const v = u.v[mode]; if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); } });
+        const span = mx - mn || 1;
+        return MUNIS.map((u) => {
+          const v = u.v[mode];
+          let col = '#4a5568';
+          if (v != null) {
+            if (M.cat) col = kjorColor(v);
+            else if (M.dir === 0) { const t = (v - mn) / span; col = `hsl(212,72%,${28 + t * 42}%)`; }
+            else { let t = (v - mn) / span; if (M.dir < 0) t = 1 - t; col = `hsl(${Math.round(t * 120)},62%,47%)`; }
+          }
+          return { name: u.n, value: [u.lng, u.lat, v == null ? '' : v], slug: u.s, reg: u.reg, vTxt: fmtV(mode, v), itemStyle: { color: col, borderColor: 'rgba(4,8,16,.55)', borderWidth: 1 }, symbolSize: 6 + Math.cbrt(u.pop || 300) * 0.32 };
+        });
+      }
+      function scaleTxt() {
+        const M = MODES[mode];
+        if (M.cat) { $('map-scale').innerHTML = KJORCOL.map(([k, c]) => `<span style="color:${c}">●</span> ${k}.`).join(' '); return; }
+        let mn = Infinity, mx = -Infinity;
+        MUNIS.forEach((u) => { const v = u.v[mode]; if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); } });
+        const lo = M.dir < 0 ? 'grænt' : M.dir > 0 ? 'rautt' : 'dökkblátt';
+        const hi = M.dir < 0 ? 'rautt' : M.dir > 0 ? 'grænt' : 'ljósblátt';
+        $('map-scale').innerHTML = `<b>${M.l}</b>: ${fmtV(mode, mn)} (${lo}) → ${fmtV(mode, mx)} (${hi})`;
+      }
+      const geoRegions = (REG.features || []).map((f) => { const nm = f.properties.name, base = REGCOL[nm] || 'rgba(255,255,255,.05)'; return { name: nm, itemStyle: { areaColor: base }, emphasis: { itemStyle: { areaColor: base.replace(/[\d.]+\)\s*$/, '0.42)') } } }; });
+
+      chart.setOption({
+        backgroundColor: 'transparent',
+        geo: { map: 'landshlutar', roam: true, zoom: 1.12, itemStyle: { borderColor: 'rgba(255,255,255,.25)', borderWidth: 0.8 }, label: { show: false }, emphasis: { label: { show: true, color: '#eaf1fb', fontSize: 11 } }, regions: geoRegions, select: { disabled: true } },
+        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
+        series: [{ name: 'munis', type: 'scatter', coordinateSystem: 'geo', data: pointData(), emphasis: { scale: 1.4 }, tooltip: { formatter: (p) => `<b>${p.name}</b><br>${p.data.reg || ''}<br>${MODES[mode].l}: <b>${p.data.vTxt}</b><br><span style="color:#19d3c5">Smelltu fyrir síðu →</span>` }, zlevel: 2 }],
+      });
+      scaleTxt();
+
+      chart.on('click', (p) => {
+        if (p.seriesType === 'scatter' && p.data && p.data.slug) { window.location.href = '/sveitarfelog/' + p.data.slug + '/'; return; }
+        if (p.componentType === 'geo' && RZ && RZ[p.name]) { chart.setOption({ geo: { center: RZ[p.name].c, zoom: RZ[p.name].z } }); $('map-reset').hidden = false; }
+      });
+      $('map-reset').onclick = () => { chart.setOption({ geo: { center: null, zoom: 1.12 } }); $('map-reset').hidden = true; };
+
+      document.querySelectorAll('.mb').forEach((b) => {
+        b.onclick = () => {
+          document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b));
+          mode = b.dataset.m;
+          chart.setOption({ series: [{ name: 'munis', data: pointData() }] });
+          scaleTxt();
+        };
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    document.addEventListener('astro:page-load', initMap);
+  </script>
+</Layout>

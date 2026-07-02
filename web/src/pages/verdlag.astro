@@ -25,6 +25,27 @@ const tiles = [
   { e: '💪', l: 'Kaupmáttur', v: rvk.pp, s: 'hærra = betri' },
 ];
 const ppRank = ppBars.findIndex((c) => c.home) + 1;
+
+// Borgaradar: 5 ásar, Reykjavík vs 3 samanburðarborgir (vísitölur).
+const RADCITIES = ['Reykjavik', 'Copenhagen', 'Oslo', 'New-York'].filter((c) => idx[c]);
+const RADAXES = [['col', 'Framfærsla'], ['rent', 'Leiga'], ['groceries', 'Matvara'], ['restaurant', 'Veitingar'], ['pp', 'Kaupmáttur']];
+const RADMAX = RADAXES.map(([k]) => Math.max(...RADCITIES.map((c) => idx[c][k] || 0)) * 1.15);
+const RADCOL = { Reykjavik: '#f6b13b', Copenhagen: '#3a8dff', Oslo: '#46e08a', 'New-York': '#c95cf7' };
+const RADAR = {
+  ind: RADAXES.map(([k, l], i) => ({ name: l, max: Math.round(RADMAX[i]) })),
+  series: RADCITIES.map((c) => ({ name: (lab[c] || {}).label || c, color: RADCOL[c] || '#8892a6', value: RADAXES.map(([k]) => idx[c][k] ?? 0) })),
+};
+
+// Vöruverð: Reykjavík vs Kaupmannahöfn (öll verð í ISK — bakað þannig).
+const pr = NUMBEO.prices || {};
+const items = NUMBEO.items || [];
+const seenCat = {};
+const PRICETABLE = items
+  .map((it, i) => ({ is: it.is || it.name, cat: it.cat, rvk: (pr.Reykjavik || [])[i], cph: (pr.Copenhagen || [])[i] }))
+  .filter((r) => r.rvk != null && r.cph != null)
+  .filter((r) => { seenCat[r.cat] = (seenCat[r.cat] || 0) + 1; return seenCat[r.cat] <= 3; })
+  .slice(0, 15);
+const kr = (v) => (v == null ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr');
 const desc = `Framfærslukostnaður í Reykjavík borinn saman við ${cities.length} borgir — matvara, leiga, veitingar og kaupmáttur. Gögn frá Numbeo, uppfært ${updated}.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Dataset', name: 'Framfærslukostnaður á Íslandi',
@@ -50,6 +71,30 @@ const jsonLd = {
     <h2>Kaupmáttur — borgir</h2>
     <div id="chart-pp"></div>
 
+    <h2>Borgaradar — Reykjavík í samanburði</h2>
+    <div id="chart-radar"></div>
+    <p class="srcnote">Ytri brún = hærri vísitala (dýrara — nema kaupmáttur, þar er ytra betra).</p>
+
+    <h2>Verð á algengum vörum — Reykjavík vs Kaupmannahöfn</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th class="l">Vara/þjónusta</th><th>Reykjavík</th><th>Kaupmannahöfn</th><th>Munur</th></tr></thead>
+        <tbody>
+          {PRICETABLE.map((r) => {
+            const d = r.cph ? Math.round(((r.rvk - r.cph) / r.cph) * 100) : null;
+            return (
+              <tr>
+                <td class="l">{r.is}</td>
+                <td class="num">{kr(r.rvk)}</td>
+                <td class="num">{kr(r.cph)}</td>
+                <td class={`num ${d > 0 ? 'dn' : 'up'}`}>{d == null ? '–' : (d > 0 ? '+' : '') + d + '%'}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
     <p class="note">ⓘ Vísitölur eru hlutfallslegar (Numbeo, samfélagslega söfnuð verð). Framfærsla: hærra = dýrara. Kaupmáttur: hærra = meira fæst fyrir meðallaun eftir verðlag.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Gögn: Numbeo (crowd-sourced). #2.</p>
   </main>
@@ -67,11 +112,20 @@ const jsonLd = {
     .k-v { font-size: 22px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #chart-col, #chart-pp { width: 100%; }
+    #chart-radar { width: 100%; height: 360px; }
+    .srcnote { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .tw { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 520px; }
+    th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    td.l, th.l { text-align: left; white-space: normal; }
+    .num { font-variant-numeric: tabular-nums; }
+    .up { color: #46e08a; } .dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
-  <!-- Eyja: tvö súlurit (framfærsla + kaupmáttur), astro:page-load. #2 -->
-  <script define:vars={{ colBars, ppBars }}>
+  <!-- Eyja: tvö súlurit + Borgaradar, astro:page-load. #2 -->
+  <script define:vars={{ colBars, ppBars, RADAR }}>
     function bar(el, data, suffix) {
       el.style.height = (data.length * 26 + 30) + 'px';
       const chart = window.echarts.init(el);
@@ -91,6 +145,18 @@ const jsonLd = {
       const go = () => {
         if (!window.echarts.getInstanceByDom(c1)) bar(c1, colBars, '');
         if (c2 && !window.echarts.getInstanceByDom(c2)) bar(c2, ppBars, '');
+        const cr = document.getElementById('chart-radar');
+        if (cr && RADAR && RADAR.series.length && !window.echarts.getInstanceByDom(cr)) {
+          const c = window.echarts.init(cr);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: RADAR.series.map((s) => s.name), textStyle: { color: '#9fb0c8' }, top: 0 },
+            tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 } },
+            radar: { indicator: RADAR.ind, center: ['50%', '56%'], radius: '66%', axisName: { color: '#9fb0c8', fontSize: 11 }, splitArea: { areaStyle: { color: ['rgba(255,255,255,.02)', 'rgba(255,255,255,.045)'] } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.12)' } } },
+            series: [{ type: 'radar', data: RADAR.series.map((s) => ({ name: s.name, value: s.value, lineStyle: { color: s.color, width: 2 }, itemStyle: { color: s.color }, areaStyle: { color: s.color, opacity: s.name === 'Reykjavík' ? 0.22 : 0.06 } })) }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
       };
       if (window.echarts) { go(); return; }
       let s = document.getElementById('echarts-cdn');

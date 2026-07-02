@@ -4,7 +4,7 @@
 import { ClientRouter } from 'astro:transitions';
 const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
 const NAV = [
-  { items: [{ href: '/', label: 'Yfirlit', emoji: '🏠' }] },
+  { items: [{ href: '/', label: 'Yfirlit', emoji: '🏠' }, { href: '/kort/', label: 'Íslandskort', emoji: '🗺️' }] },
   { title: 'Efnahagur', items: [
     { href: '/efnahagur/', label: 'Efnahagur', emoji: '📉' },
     { href: '/markadir/', label: 'Markaðir', emoji: '📈' },

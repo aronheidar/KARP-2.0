@@ -69,6 +69,14 @@ tiles.push({ e: '📊', l: 'Afkoma/íbúa', v: p.fin.afkoma_ibui != null ? (p.fi
 tiles.push({ e: '🧒', l: 'Ungt fólk', v: p.meta.ung != null ? fp(p.meta.ung) + '%' : '–', s: 'hlutfall' });
 tiles.push({ e: '👵', l: '67 ára+', v: p.meta.pct67 != null ? fp(p.meta.pct67) + '%' : '–', s: 'hlutfall' });
 
+// Stellaris-radar: 6 ásar, ABSÓLÚT 0–100 skor (ekki min-max). Öryggi = 100 − brot/4,5.
+const oryggi = p.crime && p.crime.hegn != null ? Math.max(0, Math.min(100, Math.round(100 - p.crime.hegn / 4.5))) : null;
+const RADAR = [
+  { l: 'Fjárhagur', v: p.fjar }, { l: 'Vöxtur', v: p.vox }, { l: 'Atvinna', v: p.atv },
+  { l: 'Lífsgæði', v: p.lifs }, { l: 'Öryggi', v: oryggi }, { l: 'Stöðugleiki', v: p.stab },
+];
+const hasRadar = RADAR.filter((a) => a.v != null).length >= 4;
+
 const desc = `Hagvísar fyrir ${p.name}: ${p.idx != null ? `vísitala ${p.idx} (${p.rank}. af ${p.rankTotal}), ` : ''}${p.pop ? groupThousands(p.pop) + ' íbúar, ' : ''}landshluti ${p.region || '—'}. Fjárhagur, atvinnuleysi, húsnæðisverð og lífsgæði úr opinberum gögnum.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Place', name: p.name,
@@ -102,6 +110,13 @@ const jsonLd = {
       ))}
     </div>
 
+    {hasRadar && (
+      <>
+        <h2>Staða sveitarfélagsins — 6 ásar</h2>
+        <div id="sv-radar"></div>
+      </>
+    )}
+
     {p.idx == null && (
       <p class="note">ⓘ Samsett vísitala er aðeins reiknuð fyrir sveitarfélög með fleiri en 1.000 íbúa. Aðrar tölur að ofan gilda þó.</p>
     )}
@@ -127,6 +142,39 @@ const jsonLd = {
     .tile.hero .t-v { font-size: 40px; }
     .t-s { font-size: 12px; color: #7e8ca6; margin-top: 2px; }
     .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 4px; }
+    #sv-radar { width: 100%; height: 330px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
+
+  <!-- Eyja: 6-ása radar (absólút skor). Keyrir á astro:page-load (VT). #2 -->
+  <script define:vars={{ RADAR, hasRadar, muniName: p.name }}>
+    function initRadar() {
+      const el = document.getElementById('sv-radar');
+      if (!el || !hasRadar) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initRadar, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 } },
+        radar: {
+          indicator: RADAR.map((a) => ({ name: a.l, max: 100 })),
+          center: ['50%', '54%'], radius: '68%',
+          axisName: { color: '#9fb0c8', fontSize: 11.5 },
+          splitArea: { areaStyle: { color: ['rgba(255,255,255,.02)', 'rgba(255,255,255,.045)'] } },
+          splitLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } },
+          axisLine: { lineStyle: { color: 'rgba(255,255,255,.12)' } },
+        },
+        series: [{ type: 'radar', data: [{ name: muniName, value: RADAR.map((a) => (a.v == null ? 0 : a.v)), lineStyle: { color: '#f6b13b', width: 2.5 }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: 0.22 } }] }],
+      });
+      window.addEventListener('resize', () => c.resize());
+    }
+    document.addEventListener('astro:page-load', initRadar);
+  </script>
 </Layout>

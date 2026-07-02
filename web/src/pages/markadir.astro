@@ -7,6 +7,7 @@
 import Layout from '../layouts/Layout.astro';
 import { fmtNum } from '@lib/format.mjs';
 import MARKADIR from '@gogn/markadir.json';
+import RAUNVIRDI from '@gogn/raunvirdi.json';
 
 const indices = MARKADIR.indices || [];
 const stocks = (MARKADIR.stocks || []).slice().sort((a, b) => (b.chgPct || 0) - (a.chgPct || 0));
@@ -23,6 +24,18 @@ const sparkPts = (hist, w = 96, h = 30) => {
 const stk = stocks.map((s) => ({ ...s, pts: sparkPts(s.hist), up: (s.chgPct || 0) >= 0 }));
 
 const chartYears = [...new Set([...bondNom, ...bondIdx].map((b) => b.yr))].sort((a, b) => a - b);
+
+// Modal-gögn: OHLC (60 d) + velta + kennitölur (raunvirdi.json) per félag — bakað.
+const RV = RAUNVIRDI.companies || {};
+const STOCKDATA = {};
+stocks.forEach((s) => {
+  const rv = RV[s.sym] || null;
+  STOCKDATA[s.sym] = {
+    name: s.name, cur: s.cur || 'ISK', price: s.price, chgPct: s.chgPct,
+    dates: s.dates || [], ohlc: s.ohlc || [], vol: s.vol || [],
+    rv: rv ? { mcap: rv.mcap, pe: rv.pe, pb: rv.pb, bvps: rv.bvps, roe: rv.roe } : null,
+  };
+});
 const chg = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 2) + '%');
 const desc = `Íslenskur hlutabréfamarkaður — Úrvalsvísitala, ${stocks.length} skráð félög og ávöxtunarferill ríkisbréfa. Töfð lokagildi frá Kauphöll Íslands, uppfært ${updated}.`;
 const jsonLd = {
@@ -48,10 +61,10 @@ const jsonLd = {
       ))}
     </div>
 
-    <h2>Skráð félög</h2>
+    <h2>Skráð félög <span class="hint">— smelltu á félag fyrir kertarit og kennitölur</span></h2>
     <div class="stocks">
       {stk.map((s) => (
-        <div class="st">
+        <div class="st" data-sym={s.sym} role="button" tabindex="0">
           <div class="st-top"><span class="st-sym">{s.sym}</span><span class={`st-ch ${s.up ? 'up' : 'dn'}`}>{chg(s.chgPct)}</span></div>
           <div class="st-name">{s.name}</div>
           {s.pts && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={s.pts} fill="none" stroke={s.up ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}
@@ -59,6 +72,19 @@ const jsonLd = {
         </div>
       ))}
     </div>
+
+    <!-- Modal: kertarit + kennitölur (fyllt á keyrslutíma) -->
+    <div id="stk-modal" hidden>
+      <div class="stk-back"></div>
+      <div class="stk-box">
+        <button class="stk-x" aria-label="Loka">×</button>
+        <div class="stk-head"><span id="stk-sym"></span><span id="stk-name"></span></div>
+        <div id="stk-tiles" class="stk-tiles"></div>
+        <div id="stk-chart"></div>
+        <a id="stk-yh" class="stk-yh" target="_blank" rel="noopener">Skoða á Yahoo Finance ↗</a>
+      </div>
+    </div>
+    <script type="application/json" id="d-stocks" set:html={JSON.stringify(STOCKDATA)}></script>
 
     {chartYears.length > 0 && (
       <>
@@ -83,8 +109,10 @@ const jsonLd = {
     .idx-n { font-size: 12px; color: #9fb0c8; }
     .idx-v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .idx-ch { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .hint { font-size: 12px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; }
     .stocks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-    .st { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 13px; }
+    .st { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 13px; cursor: pointer; transition: border-color .12s, transform .12s; }
+    .st:hover { border-color: #f6b13b; transform: translateY(-1px); }
     .st-top { display: flex; justify-content: space-between; align-items: baseline; }
     .st-sym { font-weight: 800; font-size: 14px; }
     .st-ch { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -97,6 +125,108 @@ const jsonLd = {
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
+  <style is:global>
+    /* Modal er fyllt á keyrslutíma → global. */
+    #stk-modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; }
+    #stk-modal[hidden] { display: none; }
+    .stk-back { position: absolute; inset: 0; background: rgba(3,6,12,.72); backdrop-filter: blur(2px); }
+    .stk-box { position: relative; width: min(780px, calc(100vw - 28px)); max-height: calc(100vh - 40px); overflow: auto; background: #0b1220; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 18px 20px; box-shadow: 0 18px 60px rgba(0,0,0,.55); }
+    .stk-x { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: #7e8ca6; font-size: 24px; cursor: pointer; line-height: 1; }
+    .stk-x:hover { color: #eaf1fb; }
+    .stk-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    #stk-sym { font-size: 22px; font-weight: 800; color: #f6b13b; }
+    #stk-name { font-size: 14px; color: #9fb0c8; }
+    .stk-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .stk-t { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 8px 10px; }
+    .stk-t .l { font-size: 10px; color: #8fa0b8; text-transform: uppercase; letter-spacing: .04em; }
+    .stk-t .v { font-size: 15px; font-weight: 800; color: #eaf1fb; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .stk-t .v.up { color: #46e08a; } .stk-t .v.dn { color: #ff6d7a; }
+    #stk-chart { width: 100%; height: 380px; }
+    .stk-yh { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #9fb0c8; }
+    .stk-yh:hover { color: #f6b13b; }
+  </style>
+
+  <!-- Eyja: stock-modal (kertarit + MA + velta + kennitölur). #2 -->
+  <script>
+    const $id = (x) => document.getElementById(x);
+    let stkChart = null;
+    function stkClose() { const m = $id('stk-modal'); if (!m) return; m.hidden = true; if (stkChart) { stkChart.dispose(); stkChart = null; } }
+    function stkOpen(sym) {
+      const dataEl = $id('d-stocks'); if (!dataEl) return;
+      const ALL = JSON.parse(dataEl.textContent || '{}');
+      const d = ALL[sym]; if (!d) return;
+      const m = $id('stk-modal');
+      $id('stk-sym').textContent = sym;
+      $id('stk-name').textContent = d.name || '';
+      $id('stk-yh').href = 'https://finance.yahoo.com/quote/' + sym + '.IC';
+      const f1 = (v, dg = 1) => (v == null ? '–' : Number(v).toFixed(dg).replace('.', ','));
+      const ths = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const lows = d.ohlc.map((o) => o[2]), highs = d.ohlc.map((o) => o[1]);
+      const lo60 = lows.length ? Math.min(...lows) : null, hi60 = highs.length ? Math.max(...highs) : null;
+      const rv = d.rv || {};
+      const tiles = [
+        { l: 'Verð', v: f1(d.price, d.price < 100 ? 2 : 1) + ' ' + (d.cur || 'ISK') },
+        { l: 'Dagsbreyting', v: (d.chgPct > 0 ? '+' : '') + f1(d.chgPct, 2) + '%', c: d.chgPct >= 0 ? 'up' : 'dn' },
+        rv.mcap != null && { l: 'Markaðsvirði', v: ths(rv.mcap / 1e9) + ' ma' },
+        rv.pe != null && { l: 'V/H', v: f1(rv.pe, 1) },
+        rv.pb != null && { l: 'V/I', v: f1(rv.pb, 2) },
+        rv.roe != null && { l: 'ROE', v: f1(rv.roe, 1) + '%' },
+        lo60 != null && { l: '60d lægst/hæst', v: f1(lo60, 1) + ' / ' + f1(hi60, 1) },
+      ].filter(Boolean);
+      $id('stk-tiles').innerHTML = tiles.map((t) => `<div class="stk-t"><div class="l">${t.l}</div><div class="v ${t.c || ''}">${t.v}</div></div>`).join('');
+      m.hidden = false;
+      const boot = () => {
+        const el = $id('stk-chart');
+        if (stkChart) stkChart.dispose();
+        stkChart = window.echarts.init(el);
+        const closes = d.ohlc.map((o) => o[3]);
+        const ma = (n) => closes.map((_, i) => (i < n - 1 ? null : Math.round((closes.slice(i - n + 1, i + 1).reduce((a, b) => a + b, 0) / n) * 100) / 100));
+        let ymin = Math.min(...lows), ymax = Math.max(...highs);
+        if (rv.bvps != null) { ymin = Math.min(ymin, rv.bvps); ymax = Math.max(ymax, rv.bvps); }
+        const pad = (ymax - ymin) * 0.06 || 1;
+        stkChart.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['Verð', 'MA5', 'MA20'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12 } },
+          grid: [{ left: 52, right: 14, top: 28, height: '58%' }, { left: 52, right: 14, top: '76%', height: '14%' }],
+          xAxis: [
+            { type: 'category', data: d.dates, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            { type: 'category', gridIndex: 1, data: d.dates, show: false },
+          ],
+          yAxis: [
+            { type: 'value', min: Math.floor(ymin - pad), max: Math.ceil(ymax + pad), axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            { type: 'value', gridIndex: 1, show: false },
+          ],
+          dataZoom: [{ type: 'inside', xAxisIndex: [0, 1] }, { type: 'slider', xAxisIndex: [0, 1], bottom: 0, height: 16, borderColor: 'rgba(255,255,255,.1)', textStyle: { color: '#7e8ca6' } }],
+          series: [
+            { name: 'Verð', type: 'candlestick', data: d.ohlc, itemStyle: { color: '#46e08a', color0: '#ff6d7a', borderColor: '#46e08a', borderColor0: '#ff6d7a' },
+              markLine: rv.bvps != null ? { silent: true, symbol: 'none', data: [{ yAxis: rv.bvps }], lineStyle: { type: 'dashed', color: '#ffd479' }, label: { formatter: 'bókfært virði/hlut', color: '#ffd479', fontSize: 10 } } : undefined },
+            { name: 'MA5', type: 'line', data: ma(5), smooth: true, symbol: 'none', lineStyle: { width: 1.4, color: '#3a8dff' } },
+            { name: 'MA20', type: 'line', data: ma(20), smooth: true, symbol: 'none', lineStyle: { width: 1.4, color: '#7c5cf7' } },
+            { name: 'Velta', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: d.vol.map((v, i) => ({ value: v, itemStyle: { color: d.ohlc[i] && d.ohlc[i][3] >= d.ohlc[i][0] ? 'rgba(70,224,138,.55)' : 'rgba(255,109,122,.55)' } })), tooltip: { valueFormatter: (v) => ths(v) } },
+          ],
+        });
+      };
+      if (window.echarts) boot();
+      else {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', boot, { once: true });
+      }
+    }
+    function initStkModal() {
+      const m = $id('stk-modal');
+      if (!m) return;
+      document.querySelectorAll('.st[data-sym]').forEach((c) => {
+        c.onclick = () => stkOpen(c.dataset.sym);
+        c.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stkOpen(c.dataset.sym); } };
+      });
+      m.querySelector('.stk-x').onclick = stkClose;
+      m.querySelector('.stk-back').onclick = stkClose;
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') stkClose(); });
+    }
+    document.addEventListener('astro:page-load', initStkModal);
+  </script>
 
   <!-- Eyja: ávöxtunarferill (ECharts), astro:page-load. #2 -->
   <script define:vars={{ chartYears, bondNom, bondIdx }}>

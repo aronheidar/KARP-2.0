@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
+import ATV from '@gogn/atvinnuleysi.json';
 import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
 
 let rows = [];
@@ -56,6 +57,79 @@ if (latest) {
   if (mm) { let y = +mm[1], mo = +mm[2] + 1; if (mo > 12) { mo = 1; y++; } nextLabel = `${MON_LONG[mo - 1]} ${y}`; spaTopic = `vnv_ars_${y}_${mo}`; }
 }
 
+// ── Fleiri hagvísar (allt sótt á byggingartíma, hver hluti þolir bilun) ──
+const px = async (url, query) => (await fetch(url, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+
+// Stýrivextir: engin opin API-heimild → handfært eftir hverja vaxtaákvörðun SÍ.
+const STYRIVEXTIR = { v: 7.75, fra: '20. maí 2026', naest: '19. ágúst 2026' };
+
+// Gengi (frankfurter/ECB): nýjasta EUR/USD/GBP + 1 árs EUR/ISK ferill.
+let FX = null;
+try {
+  const [lat, rng] = await Promise.all([
+    fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=ISK,USD,GBP').then((r) => r.json()),
+    fetch('https://api.frankfurter.dev/v1/2025-07-01..?base=EUR&symbols=ISK').then((r) => r.json()),
+  ]);
+  const dates = Object.keys(rng.rates || {}).sort();
+  FX = {
+    eur: Math.round(lat.rates.ISK * 10) / 10,
+    usd: Math.round((lat.rates.ISK / lat.rates.USD) * 10) / 10,
+    gbp: Math.round((lat.rates.ISK / lat.rates.GBP) * 10) / 10,
+    date: lat.date, dates, vals: dates.map((d) => Math.round(rng.rates[d].ISK * 100) / 100),
+  };
+  if (!FX.dates.length) FX = null;
+} catch (e) { FX = null; }
+
+// Uppruni verðbólgunnar (VIS01101): framlag = vægi × 12-mán verðbreyting flokks.
+const INFLCAT = { '2a': ['Innlendar vörur', '#46e08a'], '2ai': ['Innfluttar vörur', '#3a8dff'], '2bii': ['Blandaðar vörur', '#1fb6c9'], '5a': ['Ferðaþjónusta', '#c95cf7'], '5b': ['Húsnæði', '#f6b13b'], '5c': ['Opinber þjónusta', '#ff8a3d'], '5d': ['Önnur þjónusta', '#8892a6'] };
+let INFLSRC = null;
+try {
+  const CATS = Object.keys(INFLCAT);
+  const j = await px('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/3_greiningarvisitolur/VIS01101.px', [
+    sel('Mánuður', 'top', ['27']), sel('Liður', 'item', ['index', 'breakdown']), sel('Útgjaldaflokkur', 'item', CATS),
+  ]);
+  const idx = {}, wgt = {};
+  j.data.forEach((d) => {
+    const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k));
+    const cat = d.key.find((k) => CATS.includes(k));
+    const lidur = d.key.find((k) => k === 'index' || k === 'breakdown');
+    const v = parseFloat(String(d.values[0]).replace(',', '.'));
+    if (!t || !cat || !lidur || isNaN(v)) return;
+    const M = lidur === 'index' ? idx : wgt;
+    (M[cat] = M[cat] || {})[t] = v;
+  });
+  const months = [...new Set(j.data.map((d) => d.key.find((k) => /^\d{4}M\d{2}$/.test(k))))].filter(Boolean).sort();
+  const prev12 = (t) => { const m = /^(\d{4})M(\d{2})$/.exec(t); return m ? `${+m[1] - 1}M${m[2]}` : null; };
+  const useM = months.filter((t) => months.includes(prev12(t))).slice(-13);
+  const series = CATS.map((c) => ({
+    name: INFLCAT[c][0], color: INFLCAT[c][1],
+    data: useM.map((t) => {
+      const a = idx[c] && idx[c][t], b = idx[c] && idx[c][prev12(t)], w = wgt[c] && wgt[c][t];
+      return a != null && b != null && w != null ? Math.round((w / 100) * ((a / b - 1) * 100) * 100) / 100 : null;
+    }),
+  }));
+  if (useM.length) INFLSRC = { months: useM.map(monthLabel), series };
+} catch (e) { INFLSRC = null; }
+
+// Neyslukarfan (VIS01300): vægi COICOP-yfirflokka í vísitölunni.
+const CPLBL = { CP01: 'Matur & drykkir', CP02: 'Áfengi & tóbak', CP03: 'Föt & skór', CP04: 'Húsnæði & orka', CP05: 'Húsbúnaður', CP06: 'Heilsa', CP07: 'Ferðir & flutningar', CP08: 'Póstur & sími', CP09: 'Tómstundir & menning', CP10: 'Menntun', CP11: 'Hótel & veitingar', CP12: 'Annað' };
+let BASKET = null;
+try {
+  const j = await px('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/2_undirvisitolur/VIS01300.px', [
+    sel('Mánuður', 'top', ['1']), sel('Liður', 'item', ['breakdown']), sel('Undirvísitala', 'item', Object.keys(CPLBL)),
+  ]);
+  const items = [];
+  j.data.forEach((d) => {
+    const cp = d.key.find((k) => CPLBL[k]);
+    const v = parseFloat(String(d.values[0]).replace(',', '.'));
+    if (cp && !isNaN(v)) items.push({ name: CPLBL[cp], value: Math.round(v * 10) / 10 });
+  });
+  if (items.length >= 8) BASKET = items.sort((a, b) => b.value - a.value);
+} catch (e) { BASKET = null; }
+
+const atvLatest = ATV.latest;
+
 const desc = `Ársverðbólga á Íslandi mælist ${latestPct}%${
   latest ? ' í ' + monthLabel(latest.t) : ''
 }. Þróun vísitölu neysluverðs síðustu ${rows.length} mánuði — sótt beint frá Hagstofu Íslands.`;
@@ -105,6 +179,14 @@ const jsonLd = {
     </p>
 
     <h2>Verðbólga — þróun</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏦 Stýrivextir</div><div class="k-v">{fmtNum(STYRIVEXTIR.v, 2)}%</div><div class="k-s">frá {STYRIVEXTIR.fra}</div></div>
+      {FX && <div class="kpi"><div class="k-l">💶 Evra</div><div class="k-v">{fmtNum(FX.eur, 1)}</div><div class="k-s">kr · {FX.date}</div></div>}
+      {FX && <div class="kpi"><div class="k-l">💵 Dalur</div><div class="k-v">{fmtNum(FX.usd, 1)}</div><div class="k-s">kr</div></div>}
+      {FX && <div class="kpi"><div class="k-l">💷 Pund</div><div class="k-v">{fmtNum(FX.gbp, 1)}</div><div class="k-s">kr</div></div>}
+      <div class="kpi"><div class="k-l">👷 Atvinnuleysi</div><div class="k-v">{fmtNum(atvLatest, 1)}%</div><div class="k-s">skráð · <a href="/atvinnuleysi/">nánar</a></div></div>
+    </div>
+
     <div id="chart" role="img" aria-label={`Línurit: ársverðbólga síðustu ${rows.length} mánuði, nú ${latestPct}%`}></div>
 
     <h2>Mánaðarleg gildi</h2>
@@ -118,6 +200,30 @@ const jsonLd = {
     </table>
 
     <div id="spa" class="spa-card" data-topic={spaTopic} data-next={nextLabel} data-now={latestPct}></div>
+
+    {INFLSRC && (
+      <>
+        <h2>Hvaðan kemur verðbólgan?</h2>
+        <div id="chart-src"></div>
+        <p class="src">Framlag útgjaldaflokka til ársverðbólgu (vægi × 12-mánaða verðbreyting flokks) — húsnæði og þjónusta á móti inn-/útfluttum vörum. Heimild: Hagstofa (VIS01101).</p>
+      </>
+    )}
+
+    {BASKET && (
+      <>
+        <h2>Neyslukarfan — hvað vegur þyngst?</h2>
+        <div id="chart-basket"></div>
+        <p class="src">Vægi útgjaldaflokka í vísitölu neysluverðs (%). Heimild: Hagstofa (VIS01300).</p>
+      </>
+    )}
+
+    {FX && (
+      <>
+        <h2>Gengi krónunnar — evran síðasta árið</h2>
+        <div id="chart-fx"></div>
+        <p class="src">Krónur á evru (ECB-viðmiðunargengi). Nýjast: {fmtNum(FX.eur, 1)} kr ({FX.date}). Næsta vaxtaákvörðun SÍ: {STYRIVEXTIR.naest}.</p>
+      </>
+    )}
 
     {err && <p class="err">Villa við gagnasókn á byggingartíma: {err}</p>}
 
@@ -142,6 +248,16 @@ const jsonLd = {
     .k-s { font-size: 11px; color: #7e8ca6; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     #chart { width: 100%; height: 360px; margin: 20px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin: 18px 0 4px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
+    .k-l { font-size: 11px; color: #9fb0c8; }
+    .k-v { font-size: 21px; font-weight: 800; color: #eaf1fb; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 10.5px; color: #7e8ca6; }
+    .k-s a { color: #9fb0c8; }
+    #chart-src { width: 100%; height: 330px; }
+    #chart-basket { width: 100%; height: 340px; }
+    #chart-fx { width: 100%; height: 270px; }
+    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
@@ -215,6 +331,62 @@ const jsonLd = {
       window.addEventListener('resize', () => chart.resize());
     }
     document.addEventListener('astro:page-load', initChart);
+  </script>
+
+  <!-- Eyja: uppruni verðbólgu + neyslukarfa + gengi (þrjú gröf). #2 -->
+  <script define:vars={{ INFLSRC, BASKET, FX }}>
+    function initExtra() {
+      if (!document.getElementById('chart-src') && !document.getElementById('chart-basket') && !document.getElementById('chart-fx')) return;
+      const go = () => {
+        const cs = document.getElementById('chart-src');
+        if (cs && INFLSRC && !window.echarts.getInstanceByDom(cs)) {
+          const c = window.echarts.init(cs);
+          const totals = INFLSRC.months.map((_, i) => Math.round(INFLSRC.series.reduce((s, x) => s + (x.data[i] || 0), 0) * 10) / 10);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { textStyle: { color: '#9fb0c8', fontSize: 10.5 }, top: 0, type: 'scroll' },
+            grid: { left: 40, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: INFLSRC.months, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}pp' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(2).replace('.', ',') + ' pp') },
+            series: [
+              ...INFLSRC.series.map((s) => ({ name: s.name, type: 'bar', stack: 'infl', data: s.data, itemStyle: { color: s.color }, barWidth: 13 })),
+              { name: 'Alls', type: 'line', data: totals, smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { width: 2, color: '#eaf1fb', type: 'dashed' }, itemStyle: { color: '#eaf1fb' } },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cb = document.getElementById('chart-basket');
+        if (cb && BASKET && !window.echarts.getInstanceByDom(cb)) {
+          const c = window.echarts.init(cb);
+          const PAL = ['#f6b13b', '#3a8dff', '#46e08a', '#c95cf7', '#ff8a3d', '#1fb6c9', '#e8436f', '#5aa84a', '#8892a6', '#ffd479', '#7c5cf7', '#ff6d7a'];
+          c.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { valueFormatter: (v) => v + '%' },
+            series: [{ type: 'treemap', data: BASKET.map((b, i) => ({ ...b, itemStyle: { color: PAL[i % PAL.length] } })), left: 0, right: 0, top: 0, bottom: 0, roam: false, nodeClick: false, breadcrumb: { show: false }, label: { show: true, formatter: (p) => p.name + '\n' + String(p.value).replace('.', ',') + '%', fontSize: 12, fontWeight: 600, color: '#06121a' }, itemStyle: { borderColor: '#0b1220', borderWidth: 2, gapWidth: 2 } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cf = document.getElementById('chart-fx');
+        if (cf && FX && !window.echarts.getInstanceByDom(cf)) {
+          const c = window.echarts.init(cf);
+          c.setOption({
+            backgroundColor: 'transparent',
+            grid: { left: 44, right: 14, top: 14, bottom: 24 },
+            xAxis: { type: 'category', data: FX.dates, axisLabel: { color: '#7e8ca6', fontSize: 10, interval: Math.floor(FX.dates.length / 6) }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', scale: true, axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => v.toFixed(1).replace('.', ',') + ' kr' },
+            series: [{ type: 'line', data: FX.vals, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#f6b13b' }, areaStyle: { opacity: 0.12, color: '#f6b13b' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) { go(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', go, { once: true });
+    }
+    document.addEventListener('astro:page-load', initExtra);
   </script>
 
   <!-- Eyja: spá-leikur (auðkennd umferð gegnum auth.js: karpGet/karpPost). #2 Á5 -->
