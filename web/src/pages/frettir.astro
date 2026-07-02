@@ -8,10 +8,12 @@ import SENTIMENT from '@gogn/sentiment.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
 import PSTANCE from '../data/pstance.json';
 import CABINET from '@gogn/cabinet.json';
+import STOFNANIR from '../data/stofnanir_umf.json';
 
 // Fleiri aðila-hópar (LOTA 13b): stjórnmálaflokkar + ráðherrar — sama /firma-greining.
 const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
 const MINS = CABINET.map((c) => ({ n: c.nafn, a: [c.nafn], sub: (c.emb || [])[0] || 'ráðherra' }));
+const INST = STOFNANIR.map((x) => ({ n: x.n, a: x.a && x.a.length ? x.a : [x.n] }));
 
 const SENT = SENTIMENT.companies || {};
 const RV = RAUNVIRDI.companies || {};
@@ -45,6 +47,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         <button class="chip" data-e="samfelag">👥 Samfélag</button>
       </div>
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
+      <p class="more-link">📊 Viltu dýpri greiningu? <a href="/greining/">Fjölmiðlavogin &amp; ársgreiningin</a> — tónn og hlutdeild miðla eftir málefnum.</p>
     </section>
 
     <section id="p-fyr" hidden>
@@ -57,10 +60,14 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
       <div class="chips" id="ent-chips">
         <button class="chip on" data-g="fyr">🏢 Fyrirtæki</button>
+        <button class="chip" data-g="stofnanir">🏛️ Stofnanir</button>
         <button class="chip" data-g="flokkar">🚩 Stjórnmálaflokkar</button>
         <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
       </div>
 
+      <div class="cos" id="g-stofnanir" hidden>
+        {INST.map((x) => <button class="co co-ent" data-name={x.n} data-al={x.a.join(',')}><span class="co-n">{x.n}</span></button>)}
+      </div>
       <div class="cos" id="g-flokkar" hidden>
         {PARTIES.map((p) => <button class="co co-ent" data-name={p.n}><span class="co-n">{p.n}</span></button>)}
       </div>
@@ -104,6 +111,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .co-fl.on { background: rgba(70,224,138,.14); border-color: rgba(70,224,138,.5); color: #46e08a; }
     .co-s.up { color: #46e08a; } .co-s.dn { color: #ff6d7a; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .more-link { font-size: 12.5px; color: #9fb0c8; margin-top: 14px; }
+    .more-link a { color: #f6b13b; }
   </style>
   <style is:global>
     .live .it, #co-detail .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
@@ -338,11 +347,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       }
       document.querySelectorAll('.co[data-i]').forEach((b) => { b.onclick = () => openCo(COS[+b.dataset.i]); });
       // Flokkar/ráðherrar + FRJÁLS LEIT (LOTA 13b) — sama premium-greining fyrir hvaða aðila sem er
-      document.querySelectorAll('.co-ent[data-name]').forEach((b) => { b.onclick = () => openCo({ n: b.dataset.name, a: [b.dataset.name] }); });
+      document.querySelectorAll('.co-ent[data-name]').forEach((b) => { b.onclick = () => openCo({ n: b.dataset.name, a: b.dataset.al ? b.dataset.al.split(',') : [b.dataset.name] }); });
       document.querySelectorAll('#ent-chips .chip').forEach((ch) => {
         ch.onclick = () => {
           document.querySelectorAll('#ent-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
-          ['fyr', 'flokkar', 'radherrar'].forEach((g) => { const el = document.getElementById('g-' + g); if (el) el.hidden = g !== ch.dataset.g; });
+          ['fyr', 'stofnanir', 'flokkar', 'radherrar'].forEach((g) => { const el = document.getElementById('g-' + g); if (el) el.hidden = g !== ch.dataset.g; });
         };
       });
       const q = document.getElementById('fy-q'), go = document.getElementById('fy-go');
