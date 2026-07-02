@@ -37,8 +37,17 @@ const cards = codes.map((c) => {
   const ages = mps.filter((m) => m.aldur != null);
   const medalaldur = ages.length ? Math.round(ages.reduce((a, m) => a + m.aldur, 0) / ages.length) : null;
   const ministers = CABINET.filter((m) => m.flokur === name || m.flok === c).map((m) => ({ n: m.nafn, e: (m.emb || [])[0] || '' }));
+  // Full tölfræði eins og gamli flokka-glugginn (LOTA 13d)
+  const launA = mps.filter((m) => m.laun);
+  const medallaun = launA.length ? Math.round(launA.reduce((a, m) => a + m.laun, 0) / launA.length) : null;
+  const abA = mps.filter((m) => m.skrop != null);
+  const fjarvera = abA.length ? Math.round((abA.reduce((a, m) => a + m.skrop, 0) / abA.length) * 10) / 10 : null;
+  const talk = mps.reduce((a, m) => a + (m.raedumin || 0), 0);
+  let chairs = 0;
+  mps.forEach((m) => (m.nefndalisti || []).forEach((x) => { if (/^formaður/.test(x[1] || '')) chairs++; }));
   return { code: c, name, color: partyColor(c), cur: r.cur[c] || 0, proj: r.proj[c] || 0, poll: pv[c] ?? null, gov: !!r.GOVK[c], mps,
-    tag: st ? st[0] : null, desc: st ? st[1] : null, lr: st ? st[2] : null, samheldni, medalaldur, ministers, spark: sparkOf(c) };
+    tag: st ? st[0] : null, desc: st ? st[1] : null, lr: st ? st[2] : null, samheldni, medalaldur, ministers, spark: sparkOf(c),
+    medallaun, fjarvera, talk, chairs, hlutf: Math.round(((r.cur[c] || 0) / 63) * 100) };
 }).sort((a, b) => b.cur - a.cur || b.proj - a.proj || (b.poll || 0) - (a.poll || 0));
 
 const updated = '2026-07-02';
@@ -66,11 +75,17 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
             {p.lr != null && (
               <div class="pc-lr"><span>Vinstri</span><div class="pc-lrbar"><i style={`left:${p.lr}%`}></i></div><span>Hægri</span></div>
             )}
-            <div class="pc-stats">
-              {p.samheldni != null && <span>🤝 Samheldni <b>{String(p.samheldni).replace('.', ',')}%</b></span>}
-              {p.medalaldur != null && <span>🎂 Meðalaldur <b>{p.medalaldur} ára</b></span>}
-              {p.spark && <span class="pc-spark">📈 Fylgi <svg viewBox="0 0 96 28" preserveAspectRatio="none"><polyline points={p.spark} fill="none" stroke={p.color} stroke-width="2" vector-effect="non-scaling-stroke" /></svg></span>}
+            <div class="pc-tiles">
+              <span class="pt"><b>{p.hlutf}%</b><i>hlutfall þings</i></span>
+              {p.samheldni != null && <span class="pt"><b>{String(p.samheldni).replace('.', ',')}%</b><i>samheldni</i></span>}
+              {p.fjarvera != null && <span class="pt"><b>{String(p.fjarvera).replace('.', ',')}%</b><i>meðalfjarvera</i></span>}
+              {p.talk > 0 && <span class="pt"><b>{p.talk >= 60 ? Math.round(p.talk / 60) + ' klst' : p.talk + ' mín'}</b><i>ræðutími alls</i></span>}
+              {p.chairs > 0 && <span class="pt"><b>{p.chairs}</b><i>nefndaformennska</i></span>}
+              {p.medallaun != null && <span class="pt"><b>{String(p.medallaun).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</b><i>meðallaun kr/mán</i></span>}
+              {p.medalaldur != null && <span class="pt"><b>{p.medalaldur} ára</b><i>meðalaldur</i></span>}
+              {p.ministers.length > 0 && <span class="pt"><b>{p.ministers.length}</b><i>ráðherrar</i></span>}
             </div>
+            {p.spark && <div class="pc-stats"><span class="pc-spark">📈 Fylgisþróun (14 síðustu kannanir) <svg viewBox="0 0 96 28" preserveAspectRatio="none"><polyline points={p.spark} fill="none" stroke={p.color} stroke-width="2" vector-effect="non-scaling-stroke" /></svg></span></div>}
             {p.ministers.length > 0 && (
               <div class="pc-min">Ráðherrar: {p.ministers.map((m) => `${m.n} (${m.e})`).join(' · ')}</div>
             )}
@@ -112,6 +127,10 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
     .pc-lrbar i { position: absolute; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--pc); border: 2px solid #0b1220; transform: translateX(-50%); }
     .pc-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: #9fb0c8; align-items: center; margin-bottom: 8px; }
     .pc-stats b { color: #eaf1fb; }
+    .pc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 7px; margin: 4px 0 10px; }
+    .pt { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 7px 10px; }
+    .pt b { display: block; font-size: 15px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .pt i { display: block; font-style: normal; font-size: 10px; color: #8fa0ba; margin-top: 1px; }
     .pc-spark svg { width: 78px; height: 22px; vertical-align: middle; margin-left: 4px; }
     .pc-min { font-size: 12px; color: #ffd479; margin-bottom: 8px; }
     .srcnote { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
