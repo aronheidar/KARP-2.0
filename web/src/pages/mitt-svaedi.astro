@@ -103,6 +103,11 @@ const updated = '2026-07-02';
       </div>
 
       <div class="w">
+        <div class="w-h">🔔 Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/vaktir/">Allar vaktir →</a></div>
+        <div id="w-vaktir" class="wv-grid">Sæki vaktir…</div>
+      </div>
+
+      <div class="w">
         <div class="w-h">🔖 Að fylgja</div>
         <div id="mine">Hleð…</div>
       </div>
@@ -180,6 +185,15 @@ const updated = '2026-07-02';
   </style>
   <style is:global>
     /* Runtime-innihald widgeta → global. */
+    .w-more { margin-left: auto; font-size: 12px; color: #f6b13b; text-decoration: none; }
+    .wv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; font-size: 13px; color: #9fb0c8; }
+    .wv { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 8px 11px; }
+    .wv-h { font-size: 11px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .wv-i { display: block; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.05); text-decoration: none; }
+    .wv-i:last-child { border-bottom: 0; }
+    .wv-t { display: block; font-size: 12.5px; color: #eaf1fb; line-height: 1.3; }
+    .wv-i:hover .wv-t { color: #f6b13b; }
+    .wv-s { display: block; font-size: 10.5px; color: #7e8ca6; margin-top: 1px; }
     #gate-note .gate { font-size: 14px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; margin-bottom: 12px; }
     #gate-note .gate a { color: #f6b13b; }
     #w-sveit .sv-empty { font-size: 13px; color: #7e8ca6; }
@@ -341,6 +355,31 @@ const updated = '2026-07-02';
             }).join('') + '</div><div class="lf-note">PM10-svifryk, nýjasta klukkustundarmæling. Viðmið: &lt;20 gott · 20–50 í lagi · &gt;50 slæmt. Heimild: api.ust.is.</div>';
           })
           .catch(() => { el.innerHTML = '<span class="dim">Náði ekki í loftgæðagögn.</span>'; });
+      })();
+
+      // 🔔 Vaktirnar — nýjast úr fjórum lifandi veitum (LOTA 18 #11b)
+      (() => {
+        const el = $g('w-vaktir');
+        if (!el) return;
+        const dIS2 = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.` : ''; };
+        const box = (t, rows, href) => `<div class="wv"><div class="wv-h">${t}</div>${rows.map((r) => `<a class="wv-i" href="${href}" ${href.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}><span class="wv-t">${r[0]}</span><span class="wv-s">${r[1]}</span></a>`).join('') || '<span class="dim">—</span>'}</div>`;
+        Promise.allSettled([
+          fetch('/api/domar').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/samrad').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/utbod').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/greidslur').then((r) => (r.ok ? r.json() : null)),
+        ]).then(([dm, sm, ub, gr]) => {
+          const out = [];
+          const d = dm.value;
+          if (d && (d.hr || []).length) out.push(box('⚖️ Nýjustu dómar', d.hr.slice(0, 2).map((v) => [esc('Mál ' + v.nr + ' · Hæstiréttur'), dIS2(v.dags) + esc((v.efnisord || [])[0] || '')]), '/vaktir/'));
+          const cs = ((((sm.value || {}).data || {}).consultationPortalGetCases || {}).cases || []);
+          if (cs.length) out.push(box('💬 Í samráði', cs.slice(0, 2).map((c) => [esc(String(c.name).slice(0, 54)), esc(c.institutionName || '') + ' · ' + esc(c.statusName || '')]), '/vaktir/'));
+          const ps = ub.value;
+          if (Array.isArray(ps) && ps.length) out.push(box('📋 Ný útboð', ps.slice(0, 2).map((p) => [esc(((p.title || {}).rendered || '').slice(0, 54)), dIS2(p.date)]), '/vaktir/'));
+          const g = gr.value;
+          if (g && (g.rows || []).length) out.push(box('💸 Greiðslur ríkisins', g.rows.slice(0, 2).map((r) => [esc(r.stofnun + ' → ' + r.birgir).slice(0, 60), dIS2(r.dags) + Math.round(r.upph / 1000).toLocaleString('de-DE') + ' þ.kr']), '/vaktir/'));
+          el.innerHTML = out.length ? out.join('') : '<span class="dim">Vaktirnar svara ekki í augnablikinu — kíktu á <a href="/vaktir/">Vaktir</a>.</span>';
+        });
       })();
 
       // Flokkamatið (úr stefnuprófs-svörum í localStorage)

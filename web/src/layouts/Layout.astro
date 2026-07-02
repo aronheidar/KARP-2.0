@@ -29,6 +29,7 @@ const NAV = [
   ] },
   { label: 'Ríkisstjórn', emoji: '🏦', items: [
     { href: '/rikisfjarmal/', label: 'Ríkisfjármál' },
+    { href: '/birgjar/', label: 'Birgjar ríkisins' },
     { href: '/skattar/', label: 'Skattar' },
     { href: '/utgjold/', label: 'Útgjöld' },
     { href: '/langtima/', label: 'Langtímastefna' },
@@ -198,7 +199,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
             <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>
           ))}
         </nav>
-        <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
+        <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/spyrdu/">🤖 Spyrðu Karp</a><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
       </aside>
 
       <div class="content"><slot /></div>

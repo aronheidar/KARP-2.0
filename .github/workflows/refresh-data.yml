@@ -34,19 +34,59 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Deps (xlsx o.fl. fyrir gagnaskriftur)
+        run: npm ci
 
-      - name: Fersk kannanagögn (polls.json)
-        run: node skriptur/build_polls.js
+      # LOTA 18 #6: allar CI-öruggu skripturnar (aðeins net-fetch + committed deps).
+      # || true → ein biluð veita fellir ekki restina; committað er því sem tókst.
+      - name: Alþingi (mál, atkvæði, nefndir, dagatal, ræður, laun)
+        run: |
+          node skriptur/build_althingi.js   || true
+          node skriptur/build_frumvorp.js   || true
+          node skriptur/build_votes.js      || true
+          node skriptur/build_votemap.js    || true
+          node skriptur/build_committees.js || true
+          node skriptur/build_dagatal.js    || true
+          node skriptur/build_cabinet.js    || true
+          node skriptur/build_laun.js       || true
+          node skriptur/build_raedur.js     || true
+      - name: Kannanir + markaðir + samfélag
+        run: |
+          node skriptur/build_polls.js          || true
+          node skriptur/build_markadir.js       || true
+          node skriptur/build_raunvirdi.js      || true
+          node skriptur/build_sveitarstjorar.js || true
+          node skriptur/build_sendirad.js       || true
+      - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo)
+        run: |
+          node skriptur/build_fasteignir.js   || true
+          node skriptur/build_leiga.js        || true
+          node skriptur/build_atvinnuleysi.js || true
+          node skriptur/build_glaepir.js      || true
+          node skriptur/build_orka.js         || true
+          node skriptur/build_numbeo.js       || true
+      - name: AI-samantektir (aðeins sé lykill settur sem secret)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            node skriptur/build_summaries.js || true
+            node skriptur/build_malrof_ai.js || true
+          else
+            echo "• Enginn ANTHROPIC_API_KEY-secret — AI-skriftum sleppt."
+          fi
+      - name: Samhengispakki Spyrðu Karp (úr ferskum gögnum)
+        run: node skriptur/build_spyrdu_context.js || true
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:
           CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
         run: |
-          if ! git diff --quiet -- gogn/; then
+          if ! git diff --quiet -- gogn/ web/public/gogn/; then
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
-            git add gogn/
-            git commit -m "data: sjálfvirk uppfærsla kannana ($(date -u +%F))"
+            git add gogn/ web/public/gogn/
+            git commit -m "data: sjálfvirk gagnauppfærsla ($(date -u +%F))"
             git push
             echo "✔ Gögn breyttust → ýtt. Cloudflare endurbyggir bæði verkefnin."
           elif [ -n "$CF_DEPLOY_HOOK" ]; then

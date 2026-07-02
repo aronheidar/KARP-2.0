@@ -63,6 +63,49 @@ function extractVerdicts(html) {
     um: String(v.presentings || '').slice(0, 220),
   }));
 }
+// 🤖 Spyrðu Karp: grundað spjall — svarar EINGÖNGU úr samhengispakka síðunnar
+// (web/public/gogn/spyrdu_context.json, bakaður úr gogn/ við hverja byggingu).
+// Lykill er CF-secret (ANTHROPIC_API_KEY) — sé hann ósettur svarar veitan
+// {error:'unconfigured'} og framendinn birtir „í gangsetningu". 20 svör/dag/IP.
+let SPYRDU_CTX = null;
+const sjson = (obj, status) => new Response(JSON.stringify(obj), {
+  status: status || 200,
+  headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://app.karp.is' },
+});
+async function spyrduHandler(request, env, ctx) {
+  if (request.method !== 'POST') return sjson({ error: 'post' });
+  if (!env.ANTHROPIC_API_KEY) return sjson({ error: 'unconfigured' });
+  let q = '';
+  try { q = String(((await request.json()) || {}).q || '').trim(); } catch (e) { return sjson({ error: 'body' }); }
+  if (q.length < 3 || q.length > 300) return sjson({ error: 'lengd' });
+  // Dagskvóti á IP (cache-byggt, per-gagnaver — gróft en heiðarlegt öryggisnet)
+  const cache = caches.default;
+  const day = new Date().toISOString().slice(0, 10);
+  const ip = request.headers.get('cf-connecting-ip') || 'x';
+  const ipKey = new Request('https://cache.karp.internal/spyrdu-ip/' + day + '/' + encodeURIComponent(ip));
+  const prev = await cache.match(ipKey);
+  const n = prev ? parseInt(await prev.text(), 10) || 0 : 0;
+  if (n >= 20) return sjson({ error: 'kvoti' });
+  ctx.waitUntil(cache.put(ipKey, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
+  if (!SPYRDU_CTX) {
+    try { SPYRDU_CTX = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/spyrdu_context.json'))).json(); } catch (e) { SPYRDU_CTX = { text: '', pages: '', updated: '' }; }
+  }
+  const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum app.karp.is. Svaraðu á íslensku, stutt og skýrt (að hámarki ~120 orð). Notaðu EINGÖNGU staðreyndirnar hér að neðan og vísaðu á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í staðreyndunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 600, system: sys, messages: [{ role: 'user', content: q }] }),
+    });
+    if (!res.ok) return sjson({ error: 'ai', status: res.status });
+    const j = await res.json();
+    const text = (j.content || []).map((b) => b.text || '').join('').trim();
+    return sjson({ svar: text });
+  } catch (e) {
+    return sjson({ error: 'ai' });
+  }
+}
+
 // 💸 Greiðsluvakt: opnirreikningar.is (Fjársýslan) — DataTables-bakendinn svarar
 // GET /data_pagination_search sé FULLT DataTables-sett sent OG tímabil (DD.MM.YYYY;
 // tómt tímabil → 500). Glugginn reiknast af /rest/max_time_period. 3 klst cache.
@@ -143,6 +186,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
+    if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

@@ -1,0 +1,127 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 💸 BIRGJAR RÍKISINS (LOTA 18, #8) — hverjir fá greitt?
+// SSG úr gogn/birgjar.json (build_birgjar.js: 12 mánuðir af opnirreikningar.is,
+// ~2,6 m færslur samandregnar í topplista birgja/kaupenda/tegunda + mánaðaröð).
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import BIRGJAR from '@gogn/birgjar.json';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+
+const ma = (v) => fmtNum(v / 1e9, v >= 1e10 ? 0 : 1); // kr → ma.kr
+const mkr = (v) => groupThousands(Math.round(v / 1e6)); // kr → m.kr
+const G = BIRGJAR;
+const topV = G.vendors.slice(0, 30);
+const topO = G.orgs.slice(0, 20);
+const updated = G.updated;
+const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðustu 12 mánuði (${ma(G.grandTotal)} ma.kr, ${groupThousands(G.rows)} greiðslufærslur) — samandregið úr opnum reikningum Fjársýslunnar.`;
+---
+
+<Layout title="💸 Birgjar ríkisins — hverjir fá greitt? | Karp" description={desc} canonical="https://app.karp.is/birgjar/" ogTitle="Birgjar ríkisins">
+  <main data-pg="birgjar">
+    <p class="kicker">Karp · Ríkisfjármál</p>
+    <h1>💸 Birgjar ríkisins</h1>
+    <p>Hverjir fá greitt frá ríkinu — og hve mikið? Allar bókfærðar greiðslur ríkisins til birgja síðustu 12 mánuði, samandregnar úr opnum reikningum Fjársýslunnar.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Samandregið af Karp úr opnirreikningar.is (Fjársýsla ríkisins): allar birtar greiðslufærslur tímabilsins, néttaðar (bakfærslur dragast frá). Nær til stofnana í opnu bókhaldi ríkisins — ekki t.d. launa eða tilfærslna til einstaklinga.">ⓘ</i> Um gögnin á síðunni</p>
+
+    <div class="grid">
+      <div class="tile hero"><div class="t-top">💰 Greitt alls</div><div class="t-v">{ma(G.grandTotal)} ma.kr</div><div class="t-s">{G.fra} til {G.til}</div></div>
+      <div class="tile"><div class="t-top">🧾 Færslur</div><div class="t-v">{fmtNum(G.rows / 1e6, 1)} m</div><div class="t-s">greiðslulínur</div></div>
+      <div class="tile"><div class="t-top">🏢 Stærsti birgir</div><div class="t-v s">{topV[0].n}</div><div class="t-s">{mkr(topV[0].t)} m.kr</div></div>
+      <div class="tile"><div class="t-top">🏛️ Stærsti kaupandi</div><div class="t-v s">{topO[0].n}</div><div class="t-s">{mkr(topO[0].t)} m.kr</div></div>
+    </div>
+
+    <h2>Greiðslur eftir mánuðum <i class="tip" tabindex="0" data-tip="Samtala bókfærðra greiðslna hvers mánaðar (ma.kr). Desember sker sig gjarnan úr vegna árslokauppgjöra.">ⓘ</i></h2>
+    <div id="bg-months"></div>
+
+    <div class="pair">
+      <section>
+        <h2>Topp 30 birgjar <i class="tip" tabindex="0" data-tip="Röðun eftir heildarfjárhæð greiðslna tímabilsins. „Stærsti kaupandi“ er sú ríkisstofnun sem greiddi viðkomandi mest.">ⓘ</i></h2>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Birgir</th><th class="r">m.kr</th><th>Stærsti kaupandi</th></tr></thead>
+          <tbody>
+            {topV.map((v, i) => (
+              <tr>
+                <td class="dim">{i + 1}</td>
+                <td class="n">{v.n}</td>
+                <td class="r">{mkr(v.t)}</td>
+                <td class="o">{v.o || '–'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+      <section>
+        <h2>Stærstu kaupendurnir <i class="tip" tabindex="0" data-tip="Ríkisstofnanir og -aðilar eftir samanlögðum greiðslum til birgja á tímabilinu.">ⓘ</i></h2>
+        <div class="olist">
+          {topO.map((o, i) => (
+            <div class="orow">
+              <span class="dim">{i + 1}.</span>
+              <span class="on">{o.n}</span>
+              <span class="ov">{mkr(o.t)} m.kr</span>
+            </div>
+          ))}
+        </div>
+        <h2>Eftir tegund</h2>
+        <div class="types">
+          {G.types.map((t) => <span class="ty">{t.n} <b>{ma(t.t)} ma</b></span>)}
+        </div>
+      </section>
+    </div>
+
+    <p class="note">ⓘ Fjárhæðir eru néttaðar (inneignir/bakfærslur dragast frá) og sýna bókfærðar greiðslur eins og Fjársýslan birtir þær — röðunin er lýsandi, ekki mat á réttmæti útgjalda. Sjá einnig <a href="/rikisfjarmal/">Ríkisfjármál</a> og <a href="/vaktir/">Greiðsluvaktina</a> (nýjustu greiðslur, lifandi).</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimild: opnirreikningar.is (Fjársýsla ríkisins) um build_birgjar.js — endurnýjast vikulega. #8 LOTA 18.</p>
+  </main>
+
+  <style>
+    main { max-width: 1040px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; }
+    .tile { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
+    .tile.hero { border-color: rgba(246,177,59,.4); }
+    .t-top { font-size: 11.5px; color: #7e8ca6; } .t-v { font-size: 24px; font-weight: 700; color: #eaf1fb; margin: 3px 0 1px; }
+    .t-v.s { font-size: 15px; line-height: 1.25; } .t-s { font-size: 11.5px; color: #7e8ca6; }
+    #bg-months { height: 220px; }
+    .pair { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; align-items: start; }
+    @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tbl th { text-align: left; font-size: 11px; color: #7e8ca6; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.12); }
+    .tbl td { padding: 6.5px 8px; border-bottom: 1px solid rgba(255,255,255,.06); color: #cdd6e6; }
+    .tbl .n { color: #eaf1fb; font-weight: 600; } .tbl .r { text-align: right; font-variant-numeric: tabular-nums; color: #f6b13b; }
+    .tbl .o { font-size: 12px; color: #9fb0c8; } .dim { color: #5d6b82; }
+    .olist { display: flex; flex-direction: column; }
+    .orow { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 13px; }
+    .on { color: #eaf1fb; flex: 1; } .ov { color: #f6b13b; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .types { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ty { font-size: 12px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 4px 10px; }
+    .ty b { color: #f6b13b; }
+    .note { font-size: 12.5px; color: #8fa0b8; margin-top: 22px; } .note a { color: #f6b13b; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+  </style>
+
+  <script is:inline define:vars={{ MONTHS: G.months }}>
+    function initBirgjar() {
+      if (!document.querySelector('main[data-pg="birgjar"]')) return;
+      const el = document.getElementById('bg-months');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initBirgjar, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const c = window.echarts.init(el);
+      c.setOption({
+        grid: { left: 48, right: 10, top: 14, bottom: 24 },
+        xAxis: { type: 'category', data: MONTHS.map((m) => m.m), axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.15)' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => (v / 1e9) + ' ma' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        tooltip: { trigger: 'axis', formatter: (ps) => ps[0].name + ': <b>' + Math.round(ps[0].value / 1e8) / 10 + ' ma.kr</b>' },
+        series: [{ type: 'bar', data: MONTHS.map((m) => m.total), itemStyle: { color: '#f6b13b', borderRadius: [3, 3, 0, 0] } }],
+      });
+    }
+    document.addEventListener('astro:page-load', initBirgjar);
+  </script>
+</Layout>

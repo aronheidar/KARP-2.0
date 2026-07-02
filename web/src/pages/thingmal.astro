@@ -113,6 +113,16 @@ const jsonLd = {
     <script type="application/json" id="d-bills" set:html={JSON.stringify(BILLS)}></script>
   </main>
 
+  <style is:global>
+    /* LIVE-málin verða til í runtime (innerHTML) → verða að vera global,
+       annars tree-shake-ar Astro reglurnar úr scoped-blokkinni. */
+    .lm-it { display: block; background: rgba(255,109,122,.05); border: 1px solid rgba(255,109,122,.2); border-radius: 10px; padding: 9px 12px; text-decoration: none; }
+    .lm-it:hover { border-color: rgba(255,109,122,.5); }
+    .lm-t { display: block; font-size: 13px; font-weight: 600; color: #eaf1fb; line-height: 1.3; }
+    .lm-m { display: block; font-size: 11px; color: #9fb0c8; margin-top: 3px; }
+    .lm-v { margin-left: 8px; background: rgba(66,208,134,.12); border: 1px solid rgba(66,208,134,.35); color: #42d086; border-radius: 8px; padding: 1px 8px; font-size: 10.5px; cursor: pointer; }
+    .lm-v:hover { background: rgba(66,208,134,.22); }
+  </style>
   <style>
     main { max-width: 1020px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
@@ -123,10 +133,6 @@ const jsonLd = {
     .lm-sub { font-size: 11px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px; }
     .lm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
     @media (max-width: 860px) { .lm-grid { grid-template-columns: 1fr; } }
-    .lm-it { display: block; background: rgba(255,109,122,.05); border: 1px solid rgba(255,109,122,.2); border-radius: 10px; padding: 9px 12px; text-decoration: none; }
-    .lm-it:hover { border-color: rgba(255,109,122,.5); }
-    .lm-t { display: block; font-size: 13px; font-weight: 600; color: #eaf1fb; line-height: 1.3; }
-    .lm-m { display: block; font-size: 11px; color: #9fb0c8; margin-top: 3px; }
     .bills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 860px) { .bills { grid-template-columns: 1fr; } }
     .bill { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
@@ -291,8 +297,18 @@ const jsonLd = {
           })).filter((x) => x.nr && x.heiti);
           if (!items.length) return;
           items.sort((a, b) => b.nr - a.nr);
-          document.getElementById('lm-list').innerHTML = items.slice(0, 10).map((x) =>
-            '<a class="lm-it" href="' + (x.html && /^https?:/.test(x.html) ? esc2(x.html) : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + x.nr) + '" target="_blank" rel="noopener"><span class="lm-t">' + esc2(x.heiti) + '</span><span class="lm-m">Mál nr. ' + x.nr + (x.teg ? ' · ' + esc2(x.teg.trim()) : '') + '</span></a>').join('');
+          // LOTA 18 #9: sé LIVE-málið líka í bökuðu skránni (atkvæði til) → „Atkvæði ↓"-flaga
+          // sem skrunar á spjald málsins hér á síðunni í stað þess að opna althingi.is.
+          document.getElementById('lm-list').innerHTML = items.slice(0, 10).map((x) => {
+            const local = document.querySelector('[data-bkey="mal_' + x.nr + '"]');
+            const votes = local ? '<button class="lm-v" data-nr="' + x.nr + '">🗳️ Atkvæði ↓</button>' : '';
+            return '<a class="lm-it" href="' + (x.html && /^https?:/.test(x.html) ? esc2(x.html) : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + x.nr) + '" target="_blank" rel="noopener"><span class="lm-t">' + esc2(x.heiti) + '</span><span class="lm-m">Mál nr. ' + x.nr + (x.teg ? ' · ' + esc2(x.teg.trim()) : '') + votes + '</span></a>';
+          }).join('');
+          document.querySelectorAll('.lm-v').forEach((b) => b.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const t = document.querySelector('[data-bkey="mal_' + b.dataset.nr + '"]');
+            if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.click(); }
+          }));
           wrap.hidden = false;
         })
         .catch(() => {});

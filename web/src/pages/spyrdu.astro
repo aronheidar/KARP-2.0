@@ -1,0 +1,99 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🤖 SPYRÐU KARP (LOTA 18, #10) — grundað gervigreindarspjall.
+// Framendinn POST-ar á /api/spyrdu (worker); svörin eru GRUNDUÐ EINGÖNGU
+// í samhengispakka vefjarins (spyrdu_context.json) — engin ágiskun á tölur.
+// Veitan svarar {error:'unconfigured'} þar til CF-secret er sett.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-02';
+const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurningum um íslenska hagkerfið, stjórnmálin og gögnin á Karp, grundað eingöngu í tölum vefjarins.';
+---
+
+<Layout title="🤖 Spyrðu Karp | Karp" description={desc} canonical="https://app.karp.is/spyrdu/" ogTitle="Spyrðu Karp">
+  <main data-pg="spyrdu">
+    <p class="kicker">Karp · Aðstoðarmaður</p>
+    <h1>🤖 Spyrðu Karp</h1>
+    <p>Spurðu um hagkerfið, þingið eða sveitarfélögin — aðstoðarmaðurinn svarar <b>eingöngu út frá gögnum Karp</b> og bendir þér á réttu síðuna.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Svörin koma frá gervigreind (Claude) sem fær aðeins samandregnar lykiltölur vefjarins sem heimild og á ekki að giska á annað. Gervigreind getur samt misskilið — sannreyndu mikilvægar tölur á síðunum sjálfum. Hámark 20 spurningar á dag á hvern notanda.">ⓘ</i> Um aðstoðarmanninn</p>
+
+    <div class="ask">
+      <input id="sp-q" type="text" maxlength="300" placeholder="T.d. „Hverjir eru stýrivextirnir núna?“" autocomplete="off" />
+      <button id="sp-go">Spyrja</button>
+    </div>
+    <div class="chips">
+      <button class="ch" data-q="Hverjir eru stýrivextirnir núna?">Stýrivextirnir?</button>
+      <button class="ch" data-q="Hvert er fylgi flokkanna í nýjustu könnun?">Fylgi flokkanna?</button>
+      <button class="ch" data-q="Hvaða fyrirtæki fær mest greitt frá ríkinu?">Stærsti birgir ríkisins?</button>
+      <button class="ch" data-q="Hver er borgarstjóri Reykjavíkur?">Borgarstjórinn?</button>
+      <button class="ch" data-q="Hvað kostar fermetrinn í leigu?">Leiguverð?</button>
+    </div>
+    <div id="sp-svar" hidden></div>
+
+    <p class="note">ⓘ Aðstoðarmaðurinn er upplýsingatól, ekki ráðgjafi. Svör byggja á lykiltölum sem bakaðar eru inn í vefinn við hverja byggingu — dagsetning heimildar fylgir hverju svari. Hann svarar ekki spurningum sem gögnin ná ekki yfir.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Svarvél: Claude (Anthropic) um veitu Karp, grunduð í spyrdu_context.json. #10 LOTA 18.</p>
+  </main>
+
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .ask { display: flex; gap: 8px; margin-top: 18px; }
+    #sp-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 11px; padding: 12px 14px; color: #eaf1fb; font-size: 14.5px; }
+    #sp-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    #sp-go { background: #f6b13b; color: #131a29; border: 0; border-radius: 11px; padding: 0 22px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    #sp-go:disabled { opacity: .55; cursor: wait; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .ch { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+    .ch:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
+    #sp-svar { margin-top: 18px; background: rgba(124,92,255,.07); border: 1px solid rgba(124,92,255,.3); border-radius: 13px; padding: 15px 17px; font-size: 14px; line-height: 1.6; color: #dfe7f4; white-space: pre-wrap; }
+    #sp-svar a { color: #f6b13b; }
+    #sp-svar.err { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); color: #9fb0c8; }
+    .note { font-size: 12.5px; color: #8fa0b8; margin-top: 24px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+  </style>
+
+  <script>
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function initSpyrdu() {
+      const q = document.getElementById('sp-q');
+      const go = document.getElementById('sp-go');
+      const out = document.getElementById('sp-svar');
+      if (!q || !go || !out || go.dataset.done) return;
+      go.dataset.done = '1';
+      const MSG = {
+        unconfigured: 'Aðstoðarmaðurinn er í gangsetningu — svarlykillinn hefur ekki verið virkjaður enn. Kíktu aftur fljótlega.',
+        kvoti: 'Dagskvótinn þinn er búinn (20 spurningar) — reyndu aftur á morgun.',
+        lengd: 'Spurningin þarf að vera 3–300 stafir.',
+        ai: 'Svarvélin svaraði ekki — reyndu aftur eftir smástund.',
+      };
+      const ask = async () => {
+        const text = (q.value || '').trim();
+        if (text.length < 3) return;
+        go.disabled = true;
+        out.hidden = false;
+        out.classList.remove('err');
+        out.textContent = 'Hugsa…';
+        try {
+          const r = await fetch('/api/spyrdu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: text.slice(0, 300) }) });
+          const d = await r.json();
+          if (d && d.svar) {
+            // Gera /sida/ vísanir smellanlegar
+            out.innerHTML = esc(d.svar).replace(/(^|[\s(])(\/[a-z0-9-]+\/)/g, '$1<a href="$2">$2</a>');
+          } else {
+            out.classList.add('err');
+            out.textContent = MSG[(d || {}).error] || MSG.ai;
+          }
+        } catch (e) {
+          out.classList.add('err');
+          out.textContent = MSG.ai;
+        }
+        go.disabled = false;
+      };
+      go.addEventListener('click', ask);
+      q.addEventListener('keydown', (e) => { if (e.key === 'Enter') ask(); });
+      document.querySelectorAll('.ch').forEach((c) => c.addEventListener('click', () => { q.value = c.dataset.q || ''; ask(); }));
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="spyrdu"]')) initSpyrdu(); });
+  </script>
+</Layout>

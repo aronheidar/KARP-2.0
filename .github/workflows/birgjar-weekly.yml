@@ -1,0 +1,42 @@
+# LOTA 18 #8 — vikuleg birgjagreining ríkisins.
+# build_birgjar.js sækir 12 mánuði af XLSX-um frá opnirreikningar.is (~2,6 m
+# færslur, nokkrar mínútur) — of þungt fyrir daglega keyrslu, mánudagar duga
+# (gögn Fjársýslunnar uppfærast mánaðarlega hvort eð er).
+name: birgjar-weekly
+
+on:
+  schedule:
+    - cron: '30 4 * * 1'       # mánudaga kl. 04:30 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: birgjar-weekly
+  cancel-in-progress: false
+
+jobs:
+  birgjar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deps (xlsx)
+        run: npm ci
+      - name: Birgjagreining (12 mánuðir af opnirreikningar.is)
+        run: node skriptur/build_birgjar.js
+      - name: Committa ef breyting
+        run: |
+          if ! git diff --quiet -- gogn/birgjar.json; then
+            git config user.name  "karp-bot"
+            git config user.email "karp-bot@users.noreply.github.com"
+            git add gogn/birgjar.json
+            git commit -m "data: vikuleg birgjagreining ($(date -u +%F))"
+            git push
+          else
+            echo "• Engin breyting á birgjagögnum."
+          fi
