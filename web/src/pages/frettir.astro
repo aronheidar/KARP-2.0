@@ -9,7 +9,15 @@ import RAUNVIRDI from '@gogn/raunvirdi.json';
 
 const SENT = SENTIMENT.companies || {};
 const RV = RAUNVIRDI.companies || {};
-const COS = FYRIRTAEKI.map((c) => ({ n: c.n, a: c.a && c.a.length ? c.a : [c.n], t: c.t || null, sent: SENT[c.n] ? { idx: SENT[c.n].idx, n: SENT[c.n].n } : null, rv: c.t && RV[c.t] ? { pe: RV[c.t].pe, pb: RV[c.t].pb, mcap: RV[c.t].mcap } : null }));
+const COS = FYRIRTAEKI.map((c) => {
+  const rv = c.t && RV[c.t] ? RV[c.t] : null;
+  return {
+    n: c.n, a: c.a && c.a.length ? c.a : [c.n], t: c.t || null,
+    sent: SENT[c.n] ? { idx: SENT[c.n].idx, n: SENT[c.n].n } : null,
+    rv: rv ? { pe: rv.pe, pb: rv.pb, mcap: rv.mcap } : null,
+    rvFull: rv ? { mcap: rv.mcap, pe: rv.pe, pb: rv.pb, roe: rv.roe, ni: rv.ni, ccy: rv.ccy } : null,
+  };
+});
 const updated = '2026-07-02';
 const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og umfjöllun um 35 íslensk fyrirtæki með vélrænu viðhorfsmati og verðkennitölum.';
 ---
@@ -82,13 +90,47 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     .chip:hover { color: #f6b13b; border-color: #f6b13b; }
     .chip.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
-    #co-detail .d-sbar { display: flex; height: 9px; border-radius: 5px; overflow: hidden; margin: 2px 0 10px; }
-    #co-detail .d-sbar i { display: block; height: 100%; }
     #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
-    #co-detail #d-tl { width: 100%; height: 170px; }
+    #co-detail #d-tl { width: 100%; height: 190px; }
     #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
     #co-detail .d-w { color: #cdd6e6; }
     #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
+    /* Premium-spjöldin (LOTA 13, eins og gamla) */
+    .se-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
+    .se-card .se-l { font-size: 13px; font-weight: 800; color: #eaf1fb; }
+    .se-sub { font-size: 11px; color: #7e8ca6; font-weight: 400; margin-left: 6px; }
+    .se-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .se-idx { font-size: 30px; font-weight: 800; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
+    .se-idx small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; }
+    .se-pos { color: #46e08a; } .se-neg { color: #ff6d7a; } .se-neu { color: #9fb0c8; }
+    .se-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0 6px; }
+    .se-bar i { display: block; height: 100%; }
+    .se-bneg { background: #ff6d7a; } .se-bneu { background: #5a6678; } .se-bpos { background: #46e08a; }
+    .se-leg { display: flex; gap: 14px; font-size: 11.5px; flex-wrap: wrap; }
+    .se-note { font-size: 11px; color: #7e8ca6; margin-top: 8px; line-height: 1.45; }
+    .rv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: 10px; }
+    .rv-tile { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 9px 11px; }
+    .rv-tile.good { border-color: rgba(70,224,138,.4); } .rv-tile.warn { border-color: rgba(246,177,59,.4); } .rv-tile.bad { border-color: rgba(255,109,122,.4); }
+    .rv-v { font-size: 17px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .rv-tile.good .rv-v { color: #46e08a; } .rv-tile.warn .rv-v { color: #f6b13b; } .rv-tile.bad .rv-v { color: #ff6d7a; }
+    .rv-l { font-size: 10.5px; color: #8fa0ba; margin-top: 2px; }
+    .rv-l span { color: #7e8ca6; font-size: 10px; }
+    .fy-srcrows, .fy-dist { margin-top: 10px; }
+    .fy-srcrow { display: grid; grid-template-columns: 110px 1fr 44px 52px; gap: 8px; align-items: center; padding: 3px 0; }
+    .fy-srcn { font-size: 11.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fy-srcbar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
+    .fy-srcbar i { display: block; height: 100%; border-radius: 5px; }
+    .st-pos { background: #46e08a; color: #46e08a; } .st-neg { background: #ff6d7a; color: #ff6d7a; } .st-neu { background: #8892a6; color: #9fb0c8; }
+    .fy-srcidx { font-size: 11.5px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
+    .fy-srcc { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
+    .fy-d0 { background: #3a8dff; } .fy-d1 { background: #19d3c5; } .fy-d2 { background: #7c5cf7; } .fy-d3 { background: #f6b13b; }
+    .fy-health { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; border-radius: 10px; padding: 9px 13px; margin: 10px 0; font-size: 12.5px; }
+    .fy-hb { font-weight: 800; white-space: nowrap; }
+    .fy-ht { color: #cdd6e6; }
+    .fy-h-hi { background: rgba(255,109,122,.1); border: 1px solid rgba(255,109,122,.35); }
+    .fy-h-mid { background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.35); }
+    .fy-h-lo { background: rgba(58,141,255,.08); border: 1px solid rgba(58,141,255,.3); }
+    .fy-h-ok { background: rgba(70,224,138,.07); border: 1px solid rgba(70,224,138,.25); }
   </style>
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
@@ -140,40 +182,94 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const COS = JSON.parse(document.getElementById('d-cos').textContent);
       const det = document.getElementById('co-detail');
       const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      // ── PREMIUM fyrirtækjaspjaldið (LOTA 13, eins og gamla + betra) ──
+      const f1 = (v) => (v == null ? '—' : String(Math.round(v * 10) / 10).replace('.', ','));
+      const rvCard = (rv, ccy) => {
+        if (!rv || rv.mcap == null) return '';
+        const ma = (v) => (v != null ? th(v / 1e9) + ' ma.kr' : '—');
+        const peCls = rv.pe == null ? '' : rv.pe < 10 ? 'good' : rv.pe > 22 ? 'bad' : 'warn';
+        const pbCls = rv.pb == null ? '' : rv.pb < 1 ? 'good' : rv.pb > 2.5 ? 'bad' : 'warn';
+        const pbSub = rv.pb == null ? '' : rv.pb < 1 ? 'undir bókfærðu virði' : 'yfir bókfærðu virði';
+        const tile = (l, v, sub, cls) => `<div class="rv-tile ${cls || ''}"><div class="rv-v">${v}</div><div class="rv-l">${l}${sub ? `<br><span>${esc9(sub)}</span>` : ''}</div></div>`;
+        return `<div class="se-card"><div class="se-l">📊 Verðkennitölur — markaðsvirði og afkoma</div><div class="rv-grid">`
+          + tile('Markaðsvirði', ma(rv.mcap), ccy && ccy !== 'ISK' ? 'uppgjör í ' + ccy : '')
+          + tile('V/H', rv.pe != null ? f1(rv.pe) : '—', 'verð ÷ hagnaður', peCls)
+          + tile('V/I', rv.pb != null ? f1(rv.pb) : '—', pbSub, pbCls)
+          + tile('Arðsemi eigin fjár', rv.roe != null ? f1(rv.roe) + '%' : '—', 'ROE')
+          + (rv.ni != null ? tile('Hagnaður', ma(rv.ni), 'síðasta uppgjörsár') : '')
+          + `</div><div class="se-note"><b>V/I</b> = markaðsvirði ÷ bókfært eigið fé; <b>V/H</b> = verð ÷ hagnaður. Lágt V/I getur þýtt að markaðurinn meti félagið undir bókfærðu virði. Ekki fjárfestingarráðgjöf. Heimild: Yahoo Finance + uppgjör félaga.</div></div>`;
+      };
+      const sentCard = (s) => {
+        if (!s || !s.scored) return '';
+        const cls = s.idx > 15 ? 'pos' : s.idx < -15 ? 'neg' : 'neu';
+        const label = s.idx > 15 ? 'Jákvætt' : s.idx < -15 ? 'Neikvætt' : 'Hlutlaust';
+        const tot = (s.pos + s.neu + s.neg) || 1;
+        return `<div class="se-card"><div class="se-head"><div class="se-l">🤖 Viðhorf umfjöllunar <span class="se-sub">${s.scored} fyrirsagnir · gervigreind metur tón</span></div>`
+          + `<div class="se-idx se-${cls}">${s.idx > 0 ? '+' : ''}${s.idx}<small>${label}</small></div></div>`
+          + `<div class="se-bar"><i class="se-bneg" style="width:${((s.neg / tot) * 100).toFixed(1)}%"></i><i class="se-bneu" style="width:${((s.neu / tot) * 100).toFixed(1)}%"></i><i class="se-bpos" style="width:${((s.pos / tot) * 100).toFixed(1)}%"></i></div>`
+          + `<div class="se-leg"><span class="se-neg">▼ ${s.neg} neikvæðar</span><span class="se-neu">● ${s.neu} hlutlausar</span><span class="se-pos">▲ ${s.pos} jákvæðar</span></div>`
+          + `<div class="se-note">Vísitala −100…+100 — hver fyrirsögn er metin vélrænt (jákvætt/hlutlaust/neikvætt). Til vöktunar — ekki staðfest greining.</div></div>`;
+      };
+      const srcToneCard = (bs) => {
+        if (!bs || bs.length < 2) return '';
+        const cl = (idx) => (idx > 12 ? 'pos' : idx < -12 ? 'neg' : 'neu');
+        const mx = Math.max(...bs.map((x) => x.n), 1);
+        return `<div class="se-card"><div class="se-l">📰 Tónn eftir fréttamiðli <span class="se-sub">hvernig hver miðill fjallar um félagið</span></div><div class="fy-srcrows">`
+          + bs.map((x) => `<div class="fy-srcrow"><span class="fy-srcn">${esc9(x.s)}</span><span class="fy-srcbar"><i class="st-${cl(x.idx)}" style="width:${Math.max(6, (x.n / mx) * 100).toFixed(0)}%"></i></span><span class="fy-srcidx st-${cl(x.idx)}">${x.idx > 0 ? '+' : ''}${x.idx}</span><span class="fy-srcc">${x.n}</span></div>`).join('')
+          + `</div><div class="se-note">Vísitala −100…+100 per miðli. Vélrænt mat á tóni — ekki ritstjórnardómur um hlutdrægni.</div></div>`;
+      };
+      const distCard = (sources, total) => {
+        if (!sources || sources.length < 2) return '';
+        const tot = total || sources.reduce((a, x) => a + x.n, 0) || 1;
+        return `<div class="se-card"><div class="se-l">🗞️ Dreifing milli fréttamiðla <span class="se-sub">hver fjallar mest um félagið</span></div><div class="fy-dist">`
+          + sources.slice(0, 8).map((x, i) => `<div class="fy-srcrow"><span class="fy-srcn">${esc9(x.s)}</span><span class="fy-srcbar"><i class="fy-d${i % 4}" style="width:${Math.max(4, (x.n / (sources[0].n || 1)) * 100).toFixed(0)}%"></i></span><span class="fy-srcc">${x.n} · ${Math.round((x.n / tot) * 100)}%</span></div>`).join('')
+          + `</div></div>`;
+      };
+      const healthBanner = (f) => {
+        const tl = (f.timeline || []).filter((p) => p && p.d);
+        if (tl.length < 6 || (f.total || 0) < 12) return '';
+        const vols = tl.map((p) => p.n || 0), nWk = vols.length, recN = nWk >= 14 ? 2 : 1;
+        const hist = vols.slice(0, nWk - recN), rec = vols.slice(nWk - recN);
+        const mean = hist.reduce((a, b) => a + b, 0) / hist.length;
+        const sd = Math.sqrt(hist.reduce((a, b) => a + (b - mean) * (b - mean), 0) / hist.length) || 1;
+        const recAvg = rec.reduce((a, b) => a + b, 0) / rec.length;
+        const z = (recAvg - mean) / sd, ratio = mean > 0.3 ? recAvg / mean : recAvg > 1 ? 3 : 1;
+        const sIdx = f.sentiment && f.sentiment.scored ? f.sentiment.idx : null;
+        let level, icon, label;
+        if (recAvg >= 2.5 && (z >= 2.5 || ratio >= 3)) { level = 'hi'; icon = '🔴'; label = 'Mikið frávik'; }
+        else if (recAvg >= 1.8 && (z >= 1.4 || ratio >= 1.8)) { level = 'mid'; icon = '🟠'; label = 'Aukin umfjöllun'; }
+        else if (recAvg < mean * 0.5 && mean > 1) { level = 'lo'; icon = '🔵'; label = 'Hljóðlátt'; }
+        else { level = 'ok'; icon = '🟢'; label = 'Eðlilegt'; }
+        const parts = [];
+        if (level === 'hi' || level === 'mid') parts.push('Umfjöllun nýlega ' + f1(ratio) + '× yfir meðallagi síðustu mánaða');
+        else if (level === 'lo') parts.push('Umfjöllun undir venju');
+        else parts.push('Umfjöllun í takt við venju');
+        if (sIdx != null) { if (sIdx <= -25 && level !== 'ok' && level !== 'lo') parts.push('og heildartónn neikvæður (' + sIdx + ') — fylgstu með'); else parts.push('heildartónn ' + (sIdx > 0 ? '+' : '') + sIdx); }
+        return `<div class="fy-health fy-h-${level}"><span class="fy-hb">${icon} ${label}</span><span class="fy-ht">${parts.join(' · ')}.</span></div>`;
+      };
       document.querySelectorAll('.co[data-i]').forEach((b) => {
         b.onclick = () => {
           const c = COS[+b.dataset.i];
           det.hidden = false;
-          const tiles = [];
-          if (c.rv) { if (c.rv.mcap) tiles.push(`<span class="d-t">Markaðsvirði: <b>${th(c.rv.mcap / 1e9)} ma</b></span>`); if (c.rv.pe != null) tiles.push(`<span class="d-t">V/H: <b>${String(c.rv.pe).replace('.', ',')}</b></span>`); if (c.rv.pb != null) tiles.push(`<span class="d-t">V/I: <b>${String(c.rv.pb).replace('.', ',')}</b></span>`); }
-          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-tiles" id="d-tiles">${tiles.join('')}</div><div class="d-more"></div><div class="d-list">Sæki umfjöllun…</div>`;
+          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more'), dt = det.querySelector('#d-tiles');
+          const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more');
           fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
             .then((r) => (r.ok ? r.json() : null))
             .then((f) => {
-              if (!f || !f.ready) { paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
+              if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
               const se = f.sentiment || {};
-              const extra = [];
-              if (se.scored) {
-                const tone = se.idx > 15 ? ['jákvæð', 'up'] : se.idx < -15 ? ['neikvæð', 'dn'] : ['hlutlaus', ''];
-                extra.push(`<span class="d-t">Viðhorf: <b class="${tone[1]}">${se.idx > 0 ? '+' : ''}${se.idx}</b> · ${tone[0]} (${se.scored} fyrirsagnir)</span>`);
-              }
-              extra.push(`<span class="d-t">Umfjöllun: <b>${f.total}</b> fréttir sl. 6 mán</span>`);
-              if (f.stats && f.stats.perDay != null) extra.push(`<span class="d-t">Tíðni: <b>${String(f.stats.perDay).replace('.', ',')}</b> á dag</span>`);
-              if (f.stats && f.stats.sources && f.stats.sources[0]) extra.push(`<span class="d-t">Mest í: <b>${esc9(f.stats.sources[0].s)}</b> (${f.stats.sources[0].n})</span>`);
-              dt.innerHTML = extra.join('') + dt.innerHTML;
-              let mh = '';
-              if (se.pos || se.neu || se.neg) {
-                const tot = (se.pos + se.neu + se.neg) || 1;
-                mh += `<div class="d-sbar" title="jákvætt / hlutlaust / neikvætt"><i style="width:${(se.pos / tot) * 100}%;background:#46e08a"></i><i style="width:${(se.neu / tot) * 100}%;background:#5a6678"></i><i style="width:${(se.neg / tot) * 100}%;background:#ff6d7a"></i></div>`;
-              }
-              if (f.timeline && f.timeline.length > 2) mh += '<div class="d-sec">Umfjöllun yfir tíma (vikur)</div><div id="d-tl"></div>';
+              let mh = healthBanner(f);
+              mh += rvCard(c.rvFull || c.rv, c.rvFull && c.rvFull.ccy);
+              mh += sentCard(se);
+              if (f.timeline && f.timeline.length > 2) mh += '<div class="se-card"><div class="se-l">📈 Umfjöllun &amp; tónn yfir tíma <span class="se-sub">vikur · litur = tónn</span></div><div id="d-tl"></div></div>';
+              mh += srcToneCard(se.bySource);
               if (f.words && f.words.length) {
-                const ws = f.words.slice(0, 26), mx = ws[0].n || 1;
-                mh += '<div class="d-sec">Orðaský fyrirsagnanna</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 15)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div>';
+                const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
+                mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
-              mh += '<div class="d-sec">Nýjasta umfjöllunin</div>';
+              mh += distCard(f.stats && f.stats.sources, f.total);
+              mh += `<div class="d-sec">Nýjasta umfjöllunin · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}</div>`;
               dm.innerHTML = mh;
               paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
               if (f.timeline && f.timeline.length > 2) withEcharts(() => {

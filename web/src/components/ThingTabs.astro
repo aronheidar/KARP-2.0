@@ -1,0 +1,26 @@
+---
+// Nav-hnappar Alþingis-hlutans (LOTA 13) — eins og fv-tabs á gamla mælaborðinu.
+// active: 'salur' | 'mal' | 'thingmenn' | 'flokkar' | 'nefndir' | 'ivilnanir'
+const { active = '' } = Astro.props;
+const TABS = [
+  ['salur', '🏛️ Þingsalurinn', '/althingi/'],
+  ['mal', '📜 Þingmál & atkvæði', '/thingmal/'],
+  ['thingmenn', '👥 Þingmenn', '/althingi/thingmenn/'],
+  ['flokkar', '🚩 Flokkar', '/althingi/flokkar/'],
+  ['nefndir', '📋 Nefndir & dagatal', '/althingi/nefndir/'],
+  ['ivilnanir', '🎁 Ívilnanir', '/ivilnanir/'],
+];
+---
+
+<nav class="thing-tabs" aria-label="Alþingi — undirsíður">
+  {TABS.map(([key, label, href]) => (
+    <a class={`tt${key === active ? ' on' : ''}`} href={href}>{label}</a>
+  ))}
+</nav>
+
+<style>
+  .thing-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 6px; }
+  .tt { font-size: 12.5px; font-weight: 700; color: #9fb0c8; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 9px; padding: 7px 13px; text-decoration: none; white-space: nowrap; }
+  .tt:hover { color: #f6b13b; border-color: #f6b13b; }
+  .tt.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
+</style>

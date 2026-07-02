@@ -6,6 +6,7 @@
 // Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import ThingTabs from '../components/ThingTabs.astro';
 import { partyName } from '@lib/parties.mjs';
 import FRUMVORP from '@gogn/frumvorp.json';
 
@@ -62,6 +63,7 @@ const jsonLd = {
 >
   <main data-pg="thingmal">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="mal" />
     <h1>Þingmál</h1>
     <p>
       {bills.length} nýjustu efnismál á Alþingi — frumvörp og þingsályktunartillögur með niðurstöðu
@@ -248,6 +250,12 @@ const jsonLd = {
         el.onclick = go;
         el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
       });
+      // Djúptengill af þingsals-síðunni (LOTA 13): /thingmal/?nr=X → atkvæða-glugginn opnast
+      const nr = new URLSearchParams(location.search).get('nr');
+      if (nr && /^\d+$/.test(nr)) {
+        bmOpen('mal_' + nr);
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      }
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="thingmal"]')) initBillModal(); });
   </script>

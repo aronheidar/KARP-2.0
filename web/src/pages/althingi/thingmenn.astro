@@ -4,6 +4,7 @@
 // (MpModal) með lykilupplýsingum + hlekk á fullu SEO-síðuna. #2 LOTA 7.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../../layouts/Layout.astro';
+import ThingTabs from '../../components/ThingTabs.astro';
 import MpModal from '../../components/MpModal.astro';
 import THINGMENN from '@gogn/althingi.json';
 import { colorByName } from '@lib/parties.mjs';
@@ -21,6 +22,7 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
 <Layout title="Þingmenn Alþingis | Karp" description={desc} canonical="https://app.karp.is/althingi/thingmenn/" ogTitle="Þingmenn Alþingis">
   <main>
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="thingmenn" />
     <h1>Þingmenn ({mps.length})</h1>
     <p>Smelltu á þingmann fyrir lykilupplýsingar í glugga — eða opnaðu fulla síðu hans þaðan.</p>
 

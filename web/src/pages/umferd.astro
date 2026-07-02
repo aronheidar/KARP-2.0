@@ -53,6 +53,13 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       <p class="srcnote">Lifandi gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á app.karp.is.</p>
     </div>
 
+    <div id="flug-live" hidden>
+      <h2>✈️ Flug yfir Íslandi — núna</h2>
+      <div class="kpis" id="flug-row"></div>
+      <div id="flug-list" class="roads"></div>
+      <p class="srcnote">Lifandi ratsjárgögn (ADS-B) frá OpenSky Network, uppfært á ~5 mín fresti. Sýnir loftför innan svæðisins 62,5–67,5°N.</p>
+    </div>
+
     {KEF && (
       <>
         <h2>Farþegar um Keflavíkurflugvöll — 20 ár</h2>
@@ -138,5 +145,34 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
         .catch(() => {});
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="umferd"]')) initVeg(); });
+  </script>
+
+  <!-- Eyja: ✈️ lifandi flug yfir Íslandi (OpenSky um /api/flug Worker-proxy). LOTA 13 -->
+  <script>
+    function initFlug() {
+      const wrap = document.getElementById('flug-live');
+      if (!wrap || wrap.dataset.done) return;
+      wrap.dataset.done = '1';
+      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      fetch('/api/flug')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const states = (d && d.states) || [];
+          if (!states.length) return; // proxy ekki virkur enn eða ekkert flug — fela hljóðlega
+          const planes = states.map((s) => ({ cs: (s[1] || '').trim(), land: s[2] || '', alt: s[13] ?? s[7], spd: s[9], onGround: s[8] }))
+            .filter((p) => p.cs && !p.onGround)
+            .sort((a, b) => (b.alt || 0) - (a.alt || 0));
+          const icel = planes.filter((p) => /^ICE|^FXI|^NLC/.test(p.cs)).length;
+          wrap.hidden = false;
+          document.getElementById('flug-row').innerHTML =
+            `<div class="kpi"><div class="k-l">✈️ Á lofti yfir svæðinu</div><div class="k-v">${planes.length}</div><div class="k-s">loftför núna</div></div>`
+            + `<div class="kpi"><div class="k-l">🇮🇸 Íslensk flugfélög</div><div class="k-v">${icel}</div><div class="k-s">ICE/FXI/NLC kallmerki</div></div>`;
+          document.getElementById('flug-list').innerHTML = planes.slice(0, 10).map((p) =>
+            `<div class="road"><span class="r-n">${esc(p.cs)}</span><span class="r-v">${p.alt ? Math.round(p.alt) + ' m' : '—'}${p.spd ? ' · ' + Math.round(p.spd * 3.6) + ' km/klst' : ''}</span><span class="r-s">${esc(p.land)}</span></div>`
+          ).join('');
+        })
+        .catch(() => {});
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="umferd"]')) initFlug(); });
   </script>
 </Layout>

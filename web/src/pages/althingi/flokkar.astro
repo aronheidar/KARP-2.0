@@ -4,6 +4,7 @@
 // fylgi, þingmannafjöldi + þingmenn flokksins. #2 LOTA 7.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../../layouts/Layout.astro';
+import ThingTabs from '../../components/ThingTabs.astro';
 import { projectSeats } from '@lib/seats.mjs';
 import { partyName, partyColor } from '@lib/parties.mjs';
 import { fmtNum, slugify } from '@lib/format.mjs';
@@ -47,6 +48,7 @@ const desc = `Stjórnmálaflokkarnir á Alþingi — sæti nú og í sætaspá, 
 <Layout title="Flokkar á Alþingi | Karp" description={desc} canonical="https://app.karp.is/althingi/flokkar/" ogTitle="Flokkar á Alþingi">
   <main>
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="flokkar" />
     <h1>Flokkar</h1>
     <p>Staða flokkanna — þingsæti nú, <a href="/althingi/">sætaspá</a> og nýjasta fylgi ({lastPoll?.pollster}, {lastPoll?.date}).</p>
 

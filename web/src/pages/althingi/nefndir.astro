@@ -4,6 +4,7 @@
 // útlits-parity: eigin undirsíða eins og gamli nefnda-flipinn). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../../layouts/Layout.astro';
+import ThingTabs from '../../components/ThingTabs.astro';
 import NEFNDIR from '@gogn/nefndir.json';
 import DAGATAL from '@gogn/dagatal.json';
 import THINGMENN from '@gogn/althingi.json';
@@ -27,6 +28,7 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
 <Layout title="Nefndir Alþingis & þingdagatal | Karp" description={desc} canonical="https://app.karp.is/althingi/nefndir/" ogTitle="Nefndir Alþingis">
   <main data-pg="althingi-nefndir">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="nefndir" />
     <h1>Nefndir</h1>
     <p>Fastanefndir fjalla um þingmál hvert á sínu sviði áður en þau koma til atkvæða í þingsal. Smelltu á nefnd fyrir fulltrúalistann.</p>
 

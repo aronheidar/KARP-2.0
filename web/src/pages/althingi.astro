@@ -8,6 +8,7 @@ import { projectSeats } from '@lib/seats.mjs';
 import { partyName, partyColor, colorByName } from '@lib/parties.mjs';
 import { fmtNum, slugify } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
+import ThingTabs from '../components/ThingTabs.astro';
 
 import MpModal from '../components/MpModal.astro';
 import POLLS from '@gogn/polls.json';
@@ -89,17 +90,19 @@ CABINET.forEach((c) => {
 
 // ── Mál í gangi (eins og gamla billsInProgress): virk mál, ekki þingsköp ──
 const PROC = /lengd þingfundar|^afbrigði|frestun á fundum|^dagskrá|þingfrest|störf þingsins|fundarstjórn/i;
-const mapBill = (b) => ({ nr: b.nr, t: capFirst(b.titill), teg: b.teg || (b.hs === 'Till.' ? 'þingsályktun' : 'lagafrumvarp'), stada: (b.stada || '').replace(/\.$/, ''), d: b.d });
+const mapBill = (b) => ({ nr: b.nr, t: capFirst(b.titill), teg: b.teg || (b.hs === 'Till.' ? 'þingsályktun' : 'lagafrumvarp'), stada: (b.stada || '').replace(/\.$/, ''), d: b.d, int: b.hs === 'Frv.' || b.hs === 'Till.' });
 const notProc = (b) => !PROC.test(b.titill || '') && !PROC.test(b.hs || '');
 const byDate = (a, b) => (b.d || '').localeCompare(a.d || '');
 const BILLS_GO = FRUMVORP
   .filter((b) => /bíður|nefnd|umræð/i.test(b.stada || '') && !/samþykkt|fell|fyrirspurn/i.test(b.stada || '') && notProc(b))
-  .sort(byDate).slice(0, 16).map(mapBill);
+  .sort(byDate).slice(0, 24).map(mapBill);
 // Utan þingtíma eru fá mál í gangi — fylla stikuna með nýafgreiddum málum.
-const BILLS_DONE = BILLS_GO.length >= 14 ? [] : FRUMVORP
+const BILLS_DONE = BILLS_GO.length >= 22 ? [] : FRUMVORP
   .filter((b) => /samþykkt|fell/i.test(b.stada || '') && notProc(b))
-  .sort(byDate).slice(0, 14 - BILLS_GO.length).map(mapBill);
-const billUrl = (nr) => `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=${nr}`;
+  .sort(byDate).slice(0, 22 - BILLS_GO.length).map(mapBill);
+// Innri tengill opnar atkvæða-gluggann á /thingmal/ (LOTA 13 — „sjá hvernig var kosið");
+// mál utan þingmála-listans (önnur skjalategund) fá ferilinn á althingi.is.
+const billUrl = (b) => (b.int ? `/thingmal/?nr=${b.nr}` : `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=${b.nr}`);
 const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
 // ── Pólitíska kortið: mx/my forreiknað úr öllum nafnakalls-atkvæðagreiðslum ──
@@ -117,6 +120,7 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
 >
   <main data-pg="althingi">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="salur" />
     <h1>Sætaspá Alþingis</h1>
     <p>
       Ef kosið væri nú — vélræn spá reiknuð með D'Hondt-reglu úr meðaltali síðustu <strong>{r.used} kannana</strong>
@@ -182,7 +186,7 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
         <div class="sb-h">⚡ Mál í gangi</div>
         <div class="sb-list">
           {BILLS_GO.map((b) => (
-            <a class="sb-item" href={billUrl(b.nr)} target="_blank" rel="noopener">
+            <a class="sb-item" href={billUrl(b)} target={b.int ? undefined : "_blank"} rel={b.int ? undefined : "noopener"}>
               <span class="sb-t">{b.t}</span>
               <span class="sb-meta"><i class="sb-tag">{b.teg}</i> {b.stada} · {dIS(b.d)}</span>
             </a>
@@ -192,7 +196,7 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
             <>
               <div class="sb-h sb-h2">✓ Nýafgreidd mál</div>
               {BILLS_DONE.map((b) => (
-                <a class="sb-item" href={billUrl(b.nr)} target="_blank" rel="noopener">
+                <a class="sb-item" href={billUrl(b)} target={b.int ? undefined : "_blank"} rel={b.int ? undefined : "noopener"}>
                   <span class="sb-t">{b.t}</span>
                   <span class="sb-meta"><i class={`sb-tag ${/fell/i.test(b.stada) ? 'sb-no' : 'sb-ok'}`}>{/fell/i.test(b.stada) ? 'Fellt' : 'Samþykkt'}</i> {b.teg} · {dIS(b.d)}</span>
                 </a>

@@ -1,8 +1,10 @@
-# Cloudflare Workers (static assets) fyrir Astro-appið í web/.
-# Notað af karp2-verkefninu ÞEGAR root directory = web (eða build/deploy keyrt í web/).
-# ÓHÁÐ rót-wrangler.toml (git-repository-hagvisir = karp-app.js) → engin árekstur.
+# Cloudflare Workers fyrir Astro-appið í web/ (karp21, root directory = web).
+# LOTA 13: main-worker bættur við — þjónar assets ÁFRAM (ASSETS-binding) en
+# svarar /api/* með proxy-um fyrir lifandi gögn (sjá worker.js).
 name = "karp21"
+main = "worker.js"
 compatibility_date = "2026-06-29"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"

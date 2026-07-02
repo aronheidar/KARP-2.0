@@ -4,6 +4,7 @@
 // (ivilnanir.json), flokkaðar og með stöðu. Eins og gamli Alþingis-flipinn.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import ThingTabs from '../components/ThingTabs.astro';
 import IVILNANIR from '@gogn/ivilnanir.json';
 
 const FLOKKAR = { atvinnulif: ['🏭', 'Atvinnulíf'], nyskopun: ['🔬', 'Nýsköpun & rannsóknir'], orkuskipti: ['⚡', 'Orkuskipti & umhverfi'], husnaedi: ['🏠', 'Húsnæði'], heimili: ['👨‍👩‍👧', 'Heimili & einstaklingar'], menning: ['🎭', 'Menning & listir'], byggd: ['🌄', 'Byggðamál'], annad: ['📦', 'Annað'] };
@@ -22,6 +23,7 @@ const desc = `Ívilnanir og styrkir ríkisins — ${total} leiðir (${active} vi
 <Layout title="Ívilnanir & styrkir | Karp" description={desc} canonical="https://app.karp.is/ivilnanir/" ogTitle="Ívilnanir & styrkir">
   <main>
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
+    <ThingTabs active="ivilnanir" />
     <h1>Ívilnanir &amp; styrkir</h1>
     <p>Stuðningskerfi ríkisins á einum stað — <strong>{total} leiðir</strong>, þar af {active} virkar. Smelltu á færslu fyrir lýsingu.</p>
 
