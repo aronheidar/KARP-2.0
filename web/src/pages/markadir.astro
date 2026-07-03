@@ -12,10 +12,10 @@ import SENTIMENT from '@gogn/sentiment.json';
 import FYRIRTAEKI from '../data/fyrirtaeki.json';
 
 // Gengi + rafmyntir + málmar: live-endpoint sótt á BYGGINGARTÍMA (bakað upphafsgildi),
-// eyjan endurhleður svo í vafra (CORS er opið fyrir app.karp.is). Þolir bilun.
+// eyjan endurhleður svo í vafra (CORS er opið fyrir karp.is). Þolir bilun.
 let LIVEMK = null;
 try {
-  const r = await fetch('https://www.karp.is/wp-json/karp/v1/markadir');
+  const r = await fetch('https://wp.karp.is/wp-json/karp/v1/markadir');
   if (r.ok) LIVEMK = await r.json();
 } catch (e) { LIVEMK = null; }
 const FX = (LIVEMK && LIVEMK.fx) || [];
@@ -64,7 +64,7 @@ const jsonLd = {
 };
 ---
 
-<Layout title="Markaðir — hlutabréf & ríkisbréf | Karp" description={desc} canonical="https://app.karp.is/markadir/" jsonLd={jsonLd} ogTitle="Markaðir á Íslandi">
+<Layout title="Markaðir — hlutabréf & ríkisbréf | Karp" description={desc} canonical="https://karp.is/markadir/" jsonLd={jsonLd} ogTitle="Markaðir á Íslandi">
   <main data-pg="markadir">
     <p class="kicker">Hagvísir Íslands · Markaðir</p>
     <h1>Markaðir</h1>
@@ -287,7 +287,7 @@ const jsonLd = {
         sh += '<div id="stk-live" class="stk-livewrap"><span class="stk-tn">Sæki nýjustu umfjöllun…</span></div>';
         sEl.innerHTML = sh;
         // Lifandi fyrirsagnir um félagið (frettir-endpoint, {items}-lögun!)
-        fetch('https://www.karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
+        fetch('https://wp.karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
           .then((r) => (r.ok ? r.json() : null))
           .then((res) => {
             const lv = $id('stk-live');
@@ -422,7 +422,7 @@ const jsonLd = {
       const grid = document.getElementById('fx-grid');
       if (!grid || grid.dataset.live) return;
       grid.dataset.live = '1';
-      fetch('https://www.karp.is/wp-json/karp/v1/markadir')
+      fetch('https://wp.karp.is/wp-json/karp/v1/markadir')
         .then((r) => (r.ok ? r.json() : null))
         .then((mk) => {
           if (!mk) return;

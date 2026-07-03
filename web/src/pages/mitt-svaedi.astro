@@ -144,7 +144,7 @@ const updated = '2026-07-02';
         <div id="acc" class="acc"></div>
         <div class="acc-links">
           <a href="https://karp.is/notandi/" target="_blank" rel="noopener">Breyta prófíl á karp.is ↗</a>
-          <a href="https://karp.is/login/?action=lostpassword" target="_blank" rel="noopener">Breyta lykilorði ↗</a>
+          <a href="https://wp.karp.is/login/?action=lostpassword" target="_blank" rel="noopener">Breyta lykilorði ↗</a>
         </div>
       </div>
     </section>
@@ -403,7 +403,7 @@ const updated = '2026-07-02';
         const gate = $g('gate-note');
         if (!u || !u.loggedIn) {
           gate.innerHTML = '';
-          $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${(u && u.loginUrl) || 'https://karp.is/login/'}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
+          $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${(u && u.loginUrl) || 'https://wp.karp.is/login/'}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
           const MPL = J('d-mp') || {};
           let lf = [];
           try { lf = JSON.parse(localStorage.getItem('karp-follows-local') || '[]'); } catch (e) {}
@@ -446,7 +446,7 @@ const updated = '2026-07-02';
           };
           paintV(arr);
         } else {
-          vb.innerHTML = '<span class="dim">Vaktir birtast á app.karp.is.</span>';
+          vb.innerHTML = '<span class="dim">Vaktir birtast á karp.is.</span>';
         }
       });
     }

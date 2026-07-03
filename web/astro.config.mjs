@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 // #2 sameining: Astro-appið (web/) býr í repo-inu og importar úr sameiginlega
 // src/lib gegnum @lib-alias. Gamla build_app.js → dist/karp-app.js stendur ÓSNERT.
 export default defineConfig({
-  site: 'https://app.karp.is',       // fyrir sitemap + canonical (breyta ef annað lén)
+  site: 'https://karp.is',       // fyrir sitemap + canonical (breyta ef annað lén)
   output: 'static',
   build: { format: 'directory' },
   integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) })], // Mitt svæði = noindex

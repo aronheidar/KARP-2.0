@@ -43,7 +43,7 @@ const svg = `<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http:/
   <text x="84" y="340" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="600" fill="#eaf1fb">Hagvísir Íslands</text>
   <text x="84" y="404" font-family="Segoe UI, Arial, sans-serif" font-size="25" fill="#9fb0c8">Efnahagur · Alþingi · sveitarfélög · markaðir</text>
   <text x="84" y="442" font-family="Segoe UI, Arial, sans-serif" font-size="25" fill="#9fb0c8">— opinber gögn á mannamáli, uppfærð daglega</text>
-  <text x="84" y="560" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#7e8ca6">app.karp.is</text>
+  <text x="84" y="560" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#7e8ca6">karp.is</text>
 </svg>`;
 
 sharp(Buffer.from(svg)).png().toFile(path.join(__dirname, '..', 'web', 'public', 'og-karp.png'))

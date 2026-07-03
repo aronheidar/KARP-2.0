@@ -11,7 +11,7 @@ const desc = 'EES-samningurinn og EFTA — hvernig ESB-tilskipanir verða að í
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline: 'EES / EFTA — Ísland og innri markaðurinn', description: desc, author: { '@type': 'Organization', name: 'Karp' }, dateModified: updated };
 ---
 
-<Layout title="EES / EFTA — Ísland og innri markaðurinn | Karp" description={desc} canonical="https://app.karp.is/ees/" jsonLd={jsonLd} ogTitle="EES / EFTA">
+<Layout title="EES / EFTA — Ísland og innri markaðurinn | Karp" description={desc} canonical="https://karp.is/ees/" jsonLd={jsonLd} ogTitle="EES / EFTA">
   <main data-pg="ees">
     <p class="kicker">Hagvísir Íslands · Útlönd</p>
     <h1>EES / EFTA</h1>
@@ -68,7 +68,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline:
       const eesNum = (celex) => { const m = /^3(\d{4})L(\d{4})$/.exec(celex || ''); return m ? 'ESB ' + m[1] + '/' + (+m[2]) : (celex || ''); };
       const clean = (t) => String(t || '').replace(/\s*\(Text with EEA relevance\.?\)\s*$/i, '').replace(/\s*\(Texti sem varðar EES\)\s*$/i, '');
       const fail = () => { box.innerHTML = '<div class="ees-load">Tilskipanalistinn er ekki tiltækur í augnablikinu.<br><span style="font-size:11.5px">Skoðaðu <a href="https://www.efta.int/eea-lex" target="_blank" rel="noopener">EEA-Lex hjá EFTA ↗</a> á meðan.</span></div>'; };
-      fetch('https://karp.is/wp-json/karp/v1/ees')
+      fetch('https://wp.karp.is/wp-json/karp/v1/ees')
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const items = (d && d.items) || [];

@@ -190,7 +190,7 @@ const jsonLd = {
 <Layout
   title={`Verðbólga á Íslandi — ${latestPct}% | Karp`}
   description={desc}
-  canonical="https://app.karp.is/verdlag/"
+  canonical="https://karp.is/verdlag/"
   jsonLd={jsonLd}
   ogTitle={`Verðbólga á Íslandi — ${latestPct}%`}
 >
@@ -510,7 +510,7 @@ const jsonLd = {
       const myV = mine != null ? mine : (!u.loggedIn ? lsp()[TOPIC] : null);
       h += `<div class="spa-form"><input id="spa-in" type="number" step="0.1" min="0" max="20" placeholder="t.d. 5,0" value="${myV != null ? myV : ''}"><button id="spa-go">${myV != null ? 'Uppfæra' : 'Senda'} spá</button></div>`;
       if (myV != null) h += `<div class="spa-mine">Þín spá: <b>${fp(myV)}</b></div>`;
-      if (!u.loggedIn) h += `<div class="spa-note">Spáin vistast á þessu tæki — <a href="${u.loginUrl || 'https://www.karp.is/innskraning/'}">innskráð(ur)</a> telst hún með í meðalspánni.</div>`;
+      if (!u.loggedIn) h += `<div class="spa-note">Spáin vistast á þessu tæki — <a href="${u.loginUrl || 'https://wp.karp.is/innskraning/'}">innskráð(ur)</a> telst hún með í meðalspánni.</div>`;
       el.innerHTML = h;
       const go = document.getElementById('spa-go');
       if (go) go.onclick = async () => {

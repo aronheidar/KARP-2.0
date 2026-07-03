@@ -99,7 +99,7 @@ const jsonLd = {
 <Layout
   title="Þingmál — nýjustu frumvörp & tillögur | Karp"
   description={desc}
-  canonical="https://app.karp.is/thingmal/"
+  canonical="https://karp.is/thingmal/"
   jsonLd={jsonLd}
   ogTitle="Þingmál á Alþingi"
 >
@@ -267,7 +267,7 @@ const jsonLd = {
       const pct = total ? Math.round((ja / total) * 100) : 0;
       let h = '<div class="v-q">Hvernig myndir þú kjósa?</div>';
       h += `<div class="v-btns"><button class="v-b v-ja${mine === 'ja' ? ' on' : ''}" data-c="ja">✓ Með</button><button class="v-b v-nei${mine === 'nei' ? ' on' : ''}" data-c="nei">✗ Á móti</button></div>`;
-      if (!u.loggedIn) h += `<div class="v-note">Atkvæðið þitt vistast á þessu tæki. <a href="${u.loginUrl || 'https://karp.is/login/'}">Innskráð(ur)</a> telst það með í tölum lesenda.</div>`;
+      if (!u.loggedIn) h += `<div class="v-note">Atkvæðið þitt vistast á þessu tæki. <a href="${u.loginUrl || 'https://wp.karp.is/login/'}">Innskráð(ur)</a> telst það með í tölum lesenda.</div>`;
       if (total) {
         h += `<div class="v-bar"><div class="v-bar-ja" style="width:${pct}%"></div></div><div class="v-tally">${ja} með · ${nei} á móti · ${pct}% með</div>`;
       } else {

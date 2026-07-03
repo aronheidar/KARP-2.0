@@ -9,7 +9,7 @@ const desc = `Sendiráðanet Íslands — ${abroad.length} sendiráð erlendis o
 // Heimskorts-gögn (LOTA 15b): lönd með íslensku sendiráði → gull á kortinu
 const MAPDATA = abroad.filter((s) => s.geo).map((s) => ({ name: s.geo, value: 1, is: s.is, city: s.city, type: s.type, sh: s.sendiherra || '' }));
 ---
-<Layout title="Sendiráð Íslands | Karp" description={desc} canonical="https://app.karp.is/sendirad/" ogTitle="Sendiráð Íslands">
+<Layout title="Sendiráð Íslands | Karp" description={desc} canonical="https://karp.is/sendirad/" ogTitle="Sendiráð Íslands">
   <main data-pg="sendirad">
     <p class="kicker">Hagvísir Íslands · Alþjóðasamstarf</p>
     <h1>Sendiráð</h1>

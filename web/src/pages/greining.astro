@@ -2,14 +2,14 @@
 // ─────────────────────────────────────────────────────────────
 // GREINING (LOTA 14 endursmíði) — ársgreining fréttasafnsins (/yearreview:
 // 52þ+ fréttir, mánaðar-tónn, miðlar) + FJÖLMIÐLAVOGIN (/firma: tónn per
-// miðil um valið málefni). Lifandi á app.karp.is; graceful annars. #2.
+// miðil um valið málefni). Lifandi á karp.is; graceful annars. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 const updated = '2026-07-02';
 const desc = 'Greining fjölmiðlaumfjöllunar — yfir 50 þúsund fyrirsagnir greindar: tónn eftir mánuðum, hlutdeild miðlanna og Fjölmiðlavogin sem sýnir hvernig hver miðill fjallar um valin málefni.';
 ---
 
-<Layout title="Fjölmiðlagreining | Karp" description={desc} canonical="https://app.karp.is/greining/" ogTitle="Fjölmiðlagreining Karp">
+<Layout title="Fjölmiðlagreining | Karp" description={desc} canonical="https://karp.is/greining/" ogTitle="Fjölmiðlagreining Karp">
   <main data-pg="greining">
     <p class="kicker">Karp Pro · Umfjöllun</p>
     <h1>Fjölmiðlagreining 🔎</h1>
@@ -79,7 +79,7 @@ const desc = 'Greining fjölmiðlaumfjöllunar — yfir 50 þúsund fyrirsagnir 
   <script>
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    const API = 'https://www.karp.is/wp-json/karp/v1';
+    const API = 'https://wp.karp.is/wp-json/karp/v1';
     function withEcharts(fn) {
       if (window.echarts) { fn(); return; }
       let s = document.getElementById('echarts-cdn');
@@ -145,7 +145,7 @@ const desc = 'Greining fjölmiðlaumfjöllunar — yfir 50 þúsund fyrirsagnir 
             }
           });
         })
-        .catch(() => { root.innerHTML = '<div class="empty">Greiningin birtist á app.karp.is (CORS-varinn endapunktur).</div>'; });
+        .catch(() => { root.innerHTML = '<div class="empty">Greiningin birtist á karp.is (CORS-varinn endapunktur).</div>'; });
       // ── Fjölmiðlavogin: valið málefni → tónn per miðil úr fréttasafninu ──
       const vog = document.getElementById('vog');
       const runVog = (q, label) => {
@@ -160,7 +160,7 @@ const desc = 'Greining fjölmiðlaumfjöllunar — yfir 50 þúsund fyrirsagnir 
             vog.innerHTML = bs.map((x) => `<div class="fy-srcrow"><span class="fy-srcn">${esc(x.s)}</span><span class="fy-srcbar"><i class="st-${cl(x.idx)}" style="width:${Math.max(6, (x.n / mx) * 100).toFixed(0)}%"></i></span><span class="fy-srcidx st-${cl(x.idx)}">${x.idx > 0 ? '+' : ''}${x.idx}</span><span class="fy-srcc">${x.n}</span></div>`).join('')
               + `<div class="vog-note">${th(f.total)} fréttir um efnið sl. 12 mánuði · tónn −100…+100 per miðil · breidd stiku = fjöldi frétta miðilsins.</div>`;
           })
-          .catch(() => { vog.innerHTML = '<div class="empty">Vogin birtist á app.karp.is.</div>'; });
+          .catch(() => { vog.innerHTML = '<div class="empty">Vogin birtist á karp.is.</div>'; });
       };
       document.querySelectorAll('#vog-chips .chip').forEach((ch) => {
         ch.onclick = () => {

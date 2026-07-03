@@ -40,7 +40,7 @@ const updated = '2026-07-02';
 const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og umfjöllun um 35 íslensk fyrirtæki með vélrænu viðhorfsmati og verðkennitölum.';
 ---
 
-<Layout title="Vöktun — fjölmiðlaumfjöllun | Karp" description={desc} canonical="https://app.karp.is/frettir/" ogTitle="Fjölmiðlavöktun Karp">
+<Layout title="Vöktun — fjölmiðlaumfjöllun | Karp" description={desc} canonical="https://karp.is/frettir/" ogTitle="Fjölmiðlavöktun Karp">
   <main data-pg="frettir">
     <p class="kicker">Hagvísir Íslands · Umfjöllun</p>
     <h1>Vöktun</h1>
@@ -93,7 +93,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       </div>
       <div id="co-detail" hidden></div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á app.karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. #2.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. #2.</p>
   </main>
 
   <script type="application/json" id="d-cos" set:html={JSON.stringify(COS)}></script>
@@ -220,8 +220,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ? arr.slice(0, 30).map((it) => `<a class="it" href="${esc9(safe9(it.link))}" target="_blank" rel="noopener"><span class="t">${esc9(it.title)}</span><span class="s">${esc9(it.source || '')}${it.date ? ' · ' + esc9(it.date) : ''}</span></a>`).join('')
         : `<div class="live-empty">${emptyMsg}</div>`;
     };
-    const OFFLINE = 'Fyrirsagnir birtast á app.karp.is (CORS-varinn endapunktur).';
-    const API = 'https://www.karp.is/wp-json/karp/v1';
+    const OFFLINE = 'Fyrirsagnir birtast á karp.is (CORS-varinn endapunktur).';
+    const API = 'https://wp.karp.is/wp-json/karp/v1';
     function withEcharts(fn) {
       if (window.echarts) { fn(); return; }
       let s = document.getElementById('echarts-cdn');
@@ -359,7 +359,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           // ⭐ Umfjöllunar-spjaldið er Karp Pro (LOTA 20) — kynning í stað greiningar óinnskráð
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
-            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${(uNow && uNow.loginUrl) || 'https://karp.is/login/'}">Innskráning</a></div></div>`;
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${(uNow && uNow.loginUrl) || 'https://wp.karp.is/login/'}">Innskráning</a></div></div>`;
             dl.innerHTML = '';
             return;
           }

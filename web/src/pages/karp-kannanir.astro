@@ -1,13 +1,13 @@
 ---
 // Karp-kannanir (#2 LOTA 8) — eigin kannanir Karp: kjóstu-til-að-sjá
-// (GET /polls + POST /pollvote gegnum auth.js). Virkar á app.karp.is (CORS);
+// (GET /polls + POST /pollvote gegnum auth.js). Virkar á karp.is (CORS);
 // graceful gátt annars staðar. Eins og gamli kannanir-flipinn.
 import Layout from '../layouts/Layout.astro';
 const updated = '2026-07-02';
 const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum lesenda og sjáðu niðurstöðurnar um leið og þú hefur kosið.';
 ---
 
-<Layout title="Karp-kannanir | Karp" description={desc} canonical="https://app.karp.is/karp-kannanir/" ogTitle="Karp-kannanir">
+<Layout title="Karp-kannanir | Karp" description={desc} canonical="https://karp.is/karp-kannanir/" ogTitle="Karp-kannanir">
   <main data-pg="karp-kannanir">
     <p class="kicker">Hagvísir Íslands · Kannanir</p>
     <h1>Karp-kannanir 🗳️</h1>
@@ -64,7 +64,7 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
           // LOTA 19: mýkri skýring í stað læsingar-veggjar — kjóstu-fyrst reglan
           // þarf auðkenni (eitt atkvæði á mann) og ver gegn hjarðáhrifum.
           body = opts.map((o) => `<button class="opt" disabled title="Innskráning þarf — eitt atkvæði á mann">${esc(o)}</button>`).join('')
-            + `<div class="meta">Karp-kannanir nota „kjóstu fyrst"-regluna: niðurstöður birtast eftir atkvæði svo þær liti ekki svarið, og <a href="${(u && u.loginUrl) || 'https://karp.is/login/'}">innskráning</a> tryggir eitt atkvæði á mann.</div>`;
+            + `<div class="meta">Karp-kannanir nota „kjóstu fyrst"-regluna: niðurstöður birtast eftir atkvæði svo þær liti ekki svarið, og <a href="${(u && u.loginUrl) || 'https://wp.karp.is/login/'}">innskráning</a> tryggir eitt atkvæði á mann.</div>`;
         }
         return `<div class="poll"><div class="q">${esc(p.q || p.spurning || '')}</div>${body}</div>`;
       }).join('');
@@ -84,7 +84,7 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
       root.dataset.done = '1';
       loadUser().then(async (u) => {
         const d = await karpGet('/polls');
-        if (!d) { root.innerHTML = '<div class="empty">Kannanirnar birtast á app.karp.is (þurfa tengingu við karp.is).</div>'; return; }
+        if (!d) { root.innerHTML = '<div class="empty">Kannanirnar birtast á karp.is (þurfa tengingu við karp.is).</div>'; return; }
         paintPolls(root, (d && d.polls) || [], u);
       });
     }

@@ -1,16 +1,16 @@
-// auth.js — client-side auth fyrir Astro-appið (app.karp.is). #2 Á5.
+// auth.js — client-side auth fyrir Astro-appið (karp.is). #2 Á5.
 // ---------------------------------------------------------------------------
 // Leysir af wp_head-sprautun mælaborðsins: sækir innskráningarstöðu frá WordPress
 // GET /me (kross-undirléns með credentials), setur window.KARP_USER (SAMA lögun og
 // á karp.is), og býður karpGet/karpPost með X-WP-Nonce.
 //
 // FORSENDA (þín infra, sjá Deploy-runbook): (1) deploya karp-user.php (GET /me + CORS),
-// (2) define('COOKIE_DOMAIN','.karp.is') í wp-config, (3) app.karp.is undirlén.
+// (2) define('COOKIE_DOMAIN','.karp.is') í wp-config, (3) karp.is undirlén.
 // Þar til þetta er komið → /me skilar 404/engri lotu → allt sýnir „útskráð" (brotnar ekki).
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
-export const KARP_API = 'https://karp.is/wp-json/karp/v1';
+export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
 
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -82,7 +82,7 @@ function injectChipCss() {
 export function renderChip(el, u) {
   injectChipCss();
   u = u || window.KARP_USER || { loggedIn: false };
-  const site = 'https://karp.is';
+  const site = 'https://wp.karp.is'; // innskráningarsíðurnar búa á WP (Leið A)
   if (u.loggedIn) {
     const av = u.avatar ? `<img class="kc-av" src="${esc(u.avatar)}" alt="" width="26" height="26">`
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;

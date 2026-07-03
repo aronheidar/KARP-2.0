@@ -1,5 +1,5 @@
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
-// fyrir lifandi gögn sem hafa ekki CORS fyrir app.karp.is. Skyndiminni í caches.default.
+// fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
   // ✈️ OpenSky: lifandi flug yfir Íslandi (bbox). 5-mín cache heldur okkur innan kvóta.
   '/api/flug': {
@@ -70,7 +70,7 @@ function extractVerdicts(html) {
 let SPYRDU_CTX = null;
 const sjson = (obj, status) => new Response(JSON.stringify(obj), {
   status: status || 200,
-  headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://app.karp.is' },
+  headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://karp.is' },
 });
 async function spyrduHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
@@ -95,7 +95,7 @@ async function spyrduHandler(request, env, ctx) {
   if (!SPYRDU_CTX) {
     try { SPYRDU_CTX = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/spyrdu_context.json'))).json(); } catch (e) { SPYRDU_CTX = { text: '', pages: '', updated: '' }; }
   }
-  const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum app.karp.is. Svaraðu á íslensku, stutt og skýrt (að hámarki ~120 orð). Notaðu EINGÖNGU staðreyndirnar hér að neðan og vísaðu á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í staðreyndunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
+  const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, stutt og skýrt (að hámarki ~120 orð). Notaðu EINGÖNGU staðreyndirnar hér að neðan og vísaðu á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í staðreyndunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -209,6 +209,13 @@ async function villaHandler(request, ctx) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // LEIÐ A (lénaflutningur): app.karp.is og www.karp.is 301-a á karp.is —
+    // SEO-flutningurinn sjálfur. Gamla WP-mælaborðið fær möppun á forsíðuna.
+    if (url.hostname === 'app.karp.is' || url.hostname === 'www.karp.is') {
+      url.hostname = 'karp.is';
+      return Response.redirect(url.toString(), 301);
+    }
+    if (/^\/hagvisir\/?$/.test(url.pathname)) return Response.redirect('https://karp.is/', 301);
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

@@ -33,7 +33,7 @@ const desc = `Umferð á Íslandi — ${KEF ? groupThousands(KEF.now) + ' farþe
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Umferð á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Farþegar um Keflavíkurflugvöll' };
 ---
 
-<Layout title="Umferð — flug & vegir | Karp" description={desc} canonical="https://app.karp.is/umferd/" jsonLd={jsonLd} ogTitle="Umferð á Íslandi">
+<Layout title="Umferð — flug & vegir | Karp" description={desc} canonical="https://karp.is/umferd/" jsonLd={jsonLd} ogTitle="Umferð á Íslandi">
   <main data-pg="umferd">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Umferð</h1>
@@ -51,7 +51,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       <h2>🚗 Vegaumferð núna</h2>
       <div class="kpis" id="veg-live-row"></div>
       <div id="veg-roads" class="roads"></div>
-      <p class="srcnote">Lifandi gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á app.karp.is.</p>
+      <p class="srcnote">Lifandi gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á karp.is.</p>
     </div>
 
     <div id="flug-live" hidden>
@@ -127,7 +127,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
     function initVeg() {
       const box = document.getElementById('veg-live');
       if (!box || box.dataset.done) return;
-      fetch('https://karp.is/wp-json/karp/v1/umferd')
+      fetch('https://wp.karp.is/wp-json/karp/v1/umferd')
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');

@@ -33,7 +33,7 @@ const jsonLd = {
 };
 ---
 
-<Layout title="Orka — raforkuframleiðsla | Karp" description={desc} canonical="https://app.karp.is/orka/" jsonLd={jsonLd} ogTitle="Raforka á Íslandi">
+<Layout title="Orka — raforkuframleiðsla | Karp" description={desc} canonical="https://karp.is/orka/" jsonLd={jsonLd} ogTitle="Raforka á Íslandi">
   <main data-pg="orka">
     <p class="kicker">Hagvísir Íslands · Orka</p>
     <h1>Raforka á Íslandi</h1>
@@ -139,7 +139,7 @@ const jsonLd = {
     function initLive() {
       const box = document.getElementById('orka-live');
       if (!box || box.dataset.done) return;
-      fetch('https://karp.is/wp-json/karp/v1/orka')
+      fetch('https://wp.karp.is/wp-json/karp/v1/orka')
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const mw = (v) => (v == null ? null : Math.round(v));
@@ -152,7 +152,7 @@ const jsonLd = {
           const total = parts.reduce((s, p) => s + p.v, 0);
           const row = document.getElementById('orka-live-row');
           row.innerHTML = [{ l: '⚡ Alls', v: total }, ...parts].map((p) => `<div class="kpi"><div class="k-l">${p.l}</div><div class="k-v">${String(p.v).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div><div class="k-s">MW núna</div></div>`).join('');
-          document.getElementById('orka-live-ts').textContent = 'Rauntímagögn frá Landsnet' + (d.timestamp ? ' · ' + d.timestamp : '') + ' — birtast aðeins á app.karp.is.';
+          document.getElementById('orka-live-ts').textContent = 'Rauntímagögn frá Landsnet' + (d.timestamp ? ' · ' + d.timestamp : '') + ' — birtast aðeins á karp.is.';
           box.hidden = false;
           box.dataset.done = '1';
         })

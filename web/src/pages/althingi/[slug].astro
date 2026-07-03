@@ -59,7 +59,7 @@ const jsonLd = {
 <Layout
   title={`${m.nafn} — ${m.flokkur} | Karp`}
   description={desc}
-  canonical={`https://app.karp.is/althingi/${slugify(m.nafn)}/`}
+  canonical={`https://karp.is/althingi/${slugify(m.nafn)}/`}
   jsonLd={jsonLd}
   ogTitle={`${m.nafn} — þingmaður`}
   ogType="profile"
@@ -229,7 +229,7 @@ const jsonLd = {
       el.dataset.done = '1';
       const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
-      fetch('https://www.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
+      fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
         .then((r) => (r.ok ? r.json() : null))
         .then((f) => {
           if (!f || !f.ready || !f.total) { el.innerHTML = '<p class="umf-none">Lítil umfjöllun fannst síðustu 6 mánuði (leitað eftir fullu nafni).</p>'; return; }
@@ -239,7 +239,7 @@ const jsonLd = {
             + (f.items || []).slice(0, 6).map((x) => '<a class="umf-it" href="' + safe(x.link) + '" target="_blank" rel="noopener">' + esc(x.title) + '<span>' + esc(x.source || '') + '</span></a>').join('')
             + '<a class="umf-more" href="/frettir/">Greina nánar í Umfjöllun →</a>';
         })
-        .catch(() => { el.innerHTML = '<p class="umf-none">Umfjöllunin birtist á app.karp.is.</p>'; });
+        .catch(() => { el.innerHTML = '<p class="umf-none">Umfjöllunin birtist á karp.is.</p>'; });
     }
     document.addEventListener('astro:page-load', () => { const mn = document.querySelector('main[data-pg="althingi-slug"]'); if (mn && location.pathname.includes(MPSLUG)) initMpUmf(); });
   </script>

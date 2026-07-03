@@ -107,7 +107,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     <meta property="og:locale" content="is_IS" />
     {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
     {description && <meta property="og:description" content={description} />}
-    <meta property="og:image" content={ogImage || 'https://app.karp.is/og-karp.png'} />
+    <meta property="og:image" content={ogImage || 'https://karp.is/og-karp.png'} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Karp — Hagvísir Íslands" />
@@ -115,8 +115,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
       '@graph': [
-        { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://app.karp.is/', inLanguage: 'is', description: 'Opinber gögn um íslenskt efnahagslíf, Alþingi, sveitarfélög og markaði — á mannamáli.' },
-        { '@type': 'Organization', name: 'Karp', url: 'https://app.karp.is/', logo: 'https://app.karp.is/og-karp.png', email: 'aron@sgdal.is', parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.' } },
+        { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://karp.is/', inLanguage: 'is', description: 'Opinber gögn um íslenskt efnahagslíf, Alþingi, sveitarfélög og markaði — á mannamáli.' },
+        { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/', logo: 'https://karp.is/og-karp.png', email: 'aron@sgdal.is', parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.' } },
       ],
     })} />
     <ClientRouter />
@@ -308,11 +308,11 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
             .catch(() => { nl.innerHTML = '<div class="news-empty">Erlendi straumurinn svarar ekki í augnablikinu.</div>'; });
           return;
         }
-        fetch('https://karp.is/wp-json/karp/v1/frettir' + (newsEfni ? '?efni=' + encodeURIComponent(newsEfni) : ''))
+        fetch('https://wp.karp.is/wp-json/karp/v1/frettir' + (newsEfni ? '?efni=' + encodeURIComponent(newsEfni) : ''))
           .then((r) => (r.ok ? r.json() : []))
           // Endapunkturinn skilar {efni, cached, items:[...]} — EKKI beinu fylki.
           .then((d) => { newsCache[newsEfni] = Array.isArray(d) ? d : (d && d.items) || []; nl.innerHTML = renderNews(newsCache[newsEfni]); })
-          .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á app.karp.is).</div>'; });
+          .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á karp.is).</div>'; });
       }
 
       // LOTA 21: stikan fylgir samhenginu — síður og Vöktunar-val stýra flokknum

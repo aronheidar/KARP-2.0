@@ -2,12 +2,12 @@
 /**
  * KARP VAKT PRO (LOTA 18, #7) — leitarorða-áskriftir + daglegur tölvupóstur.
  * Límist inn sem WPCode-snippet (PHP, Run Everywhere) á karp.is — sama munstur
- * og karp-user.php. Framendinn á app.karp.is talar við /wp-json/karp/v1/leitvakt.
+ * og karp-user.php. Framendinn á karp.is talar við /wp-json/karp/v1/leitvakt.
  *
  * Veitir:
  *   GET  /karp/v1/leitvakt       → { ord: [...] } (innskráður notandi)
  *   POST /karp/v1/leitvakt       → vistar { ord: [...] } (hám. 12 orð, 40 stafir)
- *   WP-cron 'karp_vaktpro_daily' → sækir lifandi veitur app.karp.is, matchar orð
+ *   WP-cron 'karp_vaktpro_daily' → sækir lifandi veitur karp.is, matchar orð
  *                                  hvers áskrifanda og sendir samantekt í tölvupósti.
  * Öryggi: aðeins eigin orð notanda; engin gögn þriðja aðila; wp_mail á skráð netfang.
  */
@@ -51,18 +51,18 @@ add_action('karp_vaktpro_daily', function () {
   $feeds = [];
   $get = function ($url) { $r = wp_remote_get($url, ['timeout' => 25]); return is_wp_error($r) ? null : json_decode(wp_remote_retrieve_body($r), true); };
 
-  $d = $get('https://app.karp.is/api/domar');
+  $d = $get('https://karp.is/api/domar');
   foreach ((array) ($d['hr'] ?? []) as $v) $feeds[] = ['t' => 'Dómur (Hæstiréttur ' . ($v['nr'] ?? '') . '): ' . ($v['titill'] ?? '') . ' — ' . implode(', ', (array) ($v['efnisord'] ?? [])), 'u' => 'https://www.haestirettur.is/domar/'];
   foreach ((array) ($d['lr'] ?? []) as $v) $feeds[] = ['t' => 'Dómur (Landsréttur ' . ($v['nr'] ?? '') . '): ' . ($v['titill'] ?? ''), 'u' => 'https://www.landsrettur.is/domar-og-urskurdir/'];
 
-  $s = $get('https://app.karp.is/api/samrad');
+  $s = $get('https://karp.is/api/samrad');
   foreach ((array) ($s['data']['consultationPortalGetCases']['cases'] ?? []) as $c) $feeds[] = ['t' => 'Samráð (' . ($c['statusName'] ?? '') . '): ' . ($c['name'] ?? '') . ' — ' . ($c['institutionName'] ?? ''), 'u' => 'https://island.is/samradsgatt/mal/' . ($c['id'] ?? '')];
 
-  $u = $get('https://app.karp.is/api/utbod');
+  $u = $get('https://karp.is/api/utbod');
   foreach ((array) $u as $p) { if (is_array($p)) $feeds[] = ['t' => 'Útboð: ' . ($p['title']['rendered'] ?? ''), 'u' => $p['link'] ?? 'https://utbodsvefur.is']; }
 
-  $g = $get('https://app.karp.is/api/greidslur');
-  foreach ((array) ($g['rows'] ?? []) as $r) $feeds[] = ['t' => 'Greiðsla: ' . ($r['stofnun'] ?? '') . ' → ' . ($r['birgir'] ?? '') . ' (' . number_format((float) ($r['upph'] ?? 0), 0, ',', '.') . ' kr): ' . ($r['lysing'] ?? ''), 'u' => 'https://app.karp.is/vaktir/'];
+  $g = $get('https://karp.is/api/greidslur');
+  foreach ((array) ($g['rows'] ?? []) as $r) $feeds[] = ['t' => 'Greiðsla: ' . ($r['stofnun'] ?? '') . ' → ' . ($r['birgir'] ?? '') . ' (' . number_format((float) ($r['upph'] ?? 0), 0, ',', '.') . ' kr): ' . ($r['lysing'] ?? ''), 'u' => 'https://karp.is/vaktir/'];
 
   if (!$feeds) return;
 
@@ -84,7 +84,7 @@ add_action('karp_vaktpro_daily', function () {
       $body .= "\n■ „" . $w . "“ (" . count($rows) . "):\n";
       foreach (array_slice($rows, 0, 6) as $f) $body .= "  • " . $f['t'] . "\n    " . $f['u'] . "\n";
     }
-    $body .= "\nÖll vöktunin: https://app.karp.is/vaktir/\nÞú breytir leitarorðunum þínum þar. — Karp";
+    $body .= "\nÖll vöktunin: https://karp.is/vaktir/\nÞú breytir leitarorðunum þínum þar. — Karp";
     wp_mail($usr->user_email, 'Karp-vaktin: ' . count($hits) . ' leitarorð með treff í dag', $body);
   }
 });
