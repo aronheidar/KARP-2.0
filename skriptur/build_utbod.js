@@ -100,6 +100,27 @@ async function faxafloahafnir() {
   } catch (e) { console.log('  Faxaflóahafnir villa:', String(e).slice(0, 60)); return []; }
 }
 
+// ── 5) Reykjavíkurborg — OPINN útboðslisti (Drupal, reykjavik.is) ──
+// ATH: EKKI reCAPTCHA-læsta In-Tend gáttin (utbod.reykjavik.is) heldur opna
+// auglýsingasíðan reykjavik.is/utbodsauglysingar — hrein útboð með /utbod/<id>- hlekkjum.
+async function reykjavik() {
+  try {
+    const html = await (await fetch('https://reykjavik.is/utbodsauglysingar', { headers: UA })).text();
+    const seen = new Set();
+    const out = [];
+    for (const m of html.matchAll(/href="(\/utbod\/(\d+)-[^"#]+)"[^>]*>([\s\S]{5,160}?)<\/a>/g)) {
+      const id = m[2];
+      if (seen.has(id)) continue;
+      seen.add(id);
+      let t = clean(m[3]);
+      // Titill byrjar á útboðsnúmerinu (t.d. „16328 Vogabyggð…") — höldum því sem tilvísun.
+      if (t.length < 6) continue;
+      out.push({ t, buyer: 'Reykjavíkurborg', d: null, deadline: null, u: 'https://reykjavik.is' + m[1], src: 'rvk', cat: classify(t) });
+    }
+    return out;
+  } catch (e) { console.log('  Reykjavík villa:', String(e).slice(0, 60)); return []; }
+}
+
 // ── 4) Landsvirkjun (__NEXT_DATA__ accordion) ──────────────────
 async function landsvirkjun() {
   try {
@@ -123,9 +144,9 @@ async function landsvirkjun() {
 }
 
 async function main() {
-  const [rk, td, fx, lv] = await Promise.all([ríkiskaup(), ted(), faxafloahafnir(), landsvirkjun()]);
-  console.log('  Útboðsvefur:', rk.length, '· TED:', td.length, '· Faxaflóahafnir:', fx.length, '· Landsvirkjun:', lv.length);
-  let all = [...rk, ...td, ...fx, ...lv];
+  const [rk, td, fx, lv, rvk] = await Promise.all([ríkiskaup(), ted(), faxafloahafnir(), landsvirkjun(), reykjavik()]);
+  console.log('  Útboðsvefur:', rk.length, '· TED:', td.length, '· Faxaflóahafnir:', fx.length, '· Landsvirkjun:', lv.length, '· Reykjavík:', rvk.length);
+  let all = [...rk, ...td, ...fx, ...lv, ...rvk];
   // Tvítök burt (sami titill+veita)
   const seen = new Set();
   all = all.filter((x) => { const k = x.src + '|' + x.t.toLowerCase().slice(0, 60); return seen.has(k) ? false : (seen.add(k), true); });
@@ -138,7 +159,7 @@ async function main() {
     updated: new Date().toISOString(),
     n: all.length,
     cats: CATS, byCat, bySrc,
-    sources: { rk: 'Útboðsvefur Ríkiskaupa', ted: 'TED (EES)', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' },
+    sources: { rk: 'Útboðsvefur Ríkiskaupa', ted: 'TED (EES)', rvk: 'Reykjavíkurborg', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' },
     tenders: all,
   };
   const payload = JSON.stringify(out);

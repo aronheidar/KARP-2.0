@@ -64,7 +64,7 @@ add_action('karp_vaktpro_daily', function () {
   $ut = $get('https://karp.is/gogn/utbod.json');
   foreach ((array) ($ut['tenders'] ?? []) as $p) {
     if (!is_array($p)) continue;
-    $srcName = ['rk' => 'Útboðsvefur', 'ted' => 'TED', 'fax' => 'Faxaflóahafnir', 'lv' => 'Landsvirkjun'][$p['src'] ?? ''] ?? 'Útboð';
+    $srcName = ['rk' => 'Útboðsvefur', 'ted' => 'TED', 'rvk' => 'Reykjavíkurborg', 'fax' => 'Faxaflóahafnir', 'lv' => 'Landsvirkjun'][$p['src'] ?? ''] ?? 'Útboð';
     $feeds[] = ['t' => 'Útboð (' . $srcName . '): ' . ($p['t'] ?? '') . (($p['buyer'] ?? '') ? ' — ' . $p['buyer'] : ''), 'u' => $p['u'] ?? 'https://karp.is/utbod/'];
   }
 
