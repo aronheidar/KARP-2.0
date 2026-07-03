@@ -27,6 +27,9 @@ jobs:
       - name: Astro-bygging
         run: npx astro build
         working-directory: web
+      - name: Worker-þurrbygging (veiðir syntax-villur fyrir deploy)
+        run: npx wrangler deploy --dry-run
+        working-directory: web
       - name: Innri hlekkjatékk
         run: node skriptur/check_links.js
       - name: Lykilefnis-merki

@@ -88,8 +88,8 @@ async function spyrduHandler(request, env, ctx) {
   const day = new Date().toISOString().slice(0, 10);
   const ip = request.headers.get('cf-connecting-ip') || 'x';
   const ipKey = new Request('https://cache.karp.internal/spyrdu-ip/' + day + '/' + encodeURIComponent(ip));
-  const prev = await cache.match(ipKey);
-  const n = prev ? parseInt(await prev.text(), 10) || 0 : 0;
+  const qhit = await cache.match(ipKey);
+  const n = qhit ? parseInt(await qhit.text(), 10) || 0 : 0;
   if (n >= 20) return sjson({ error: 'kvoti' });
   ctx.waitUntil(cache.put(ipKey, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
   if (!SPYRDU_CTX) {
