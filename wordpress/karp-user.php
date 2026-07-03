@@ -19,13 +19,19 @@
  *   loggedIn, loginUrl, registerUrl  — alltaf
  *   name, avatar, profileUrl, logoutUrl — aðeins þegar innskráð(ur)
  */
-add_action('wp_head', function () {
-    if (is_admin()) {
-        return;
-    }
-
+/**
+ * Byggir KARP_USER-hleðsluna (innskráningarstaða + prófílreitir + nonce + follows).
+ * --------------------------------------------------------------------------
+ * Notað á TVEIMUR stöðum:
+ *   1) wp_head-sprautun hér að neðan → window.KARP_USER (núverandi embed á karp.is).
+ *   2) GET /wp-json/karp/v1/me (neðar) → sami farmur fyrir DECOUPLED framenda (Astro
+ *      á karp.is), þar sem wp_head keyrir ekki því annar en WP rendar skelina.
+ * Ein uppspretta sannleikans → embed og Astro haldast í takti.
+ */
+function karp_user_payload() {
     // Innskráning / nýskráning — nota Ultimate Member-síður ef þær eru til, annars WP-sjálfgefið.
-    $login    = wp_login_url(home_url('/'));
+    // LEIÐ A: eftir innskráningu á wp.karp.is skilar fólk sér aftur á APPIÐ (karp.is).
+    $login    = wp_login_url('https://karp.is/');
     $register = wp_registration_url();
     if (function_exists('um_get_core_page')) {
         $l = um_get_core_page('login');
@@ -71,7 +77,8 @@ add_action('wp_head', function () {
         $data['avatar']     = get_avatar_url($u->ID, array('size' => 64)); // Ultimate Member skiptir hér inn prófílmyndinni
         // wp_logout_url() skilar &#038; (HTML-flúr) — afflúrum svo slóðin fari hrein í JSON
         // (annars tvíflúrast hún í framenda → _wpnonce afbakast → WordPress sýnir „viltu skrá þig út?" síðu).
-        $data['logoutUrl']  = html_entity_decode(wp_logout_url(home_url('/')), ENT_QUOTES);
+        // LEIÐ A: útskráning skilar fólki á appið (karp.is), ekki WP-forsíðuna.
+        $data['logoutUrl']  = html_entity_decode(wp_logout_url('https://karp.is/'), ENT_QUOTES);
         $data['profileUrl'] = $profile;
 
         // --- Karp-prófílreitir ("sérsvæðið") -------------------------------
@@ -96,8 +103,15 @@ add_action('wp_head', function () {
         $data['isAdmin'] = current_user_can('manage_options');
     }
 
+    return $data;
+}
+
+add_action('wp_head', function () {
+    if (is_admin()) {
+        return;
+    }
     // JSON_HEX_TAG kemur í veg fyrir að "</script>" í gögnum brjóti út úr taginu.
-    echo '<script>window.KARP_USER=' . wp_json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>' . "\n";
+    echo '<script>window.KARP_USER=' . wp_json_encode(karp_user_payload(), JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>' . "\n";
 }, 7);
 
 /**
@@ -108,11 +122,56 @@ add_action('wp_head', function () {
  */
 add_action('rest_api_init', function () {
     register_rest_route('karp/v1', '/me', array(
-        'methods'             => 'POST',
-        'permission_callback' => function () { return is_user_logged_in(); },
-        'callback'            => 'karp_me_save',
+        // GET: skilar KARP_USER-farminum fyrir DECOUPLED framenda (Astro á karp.is) —
+        //   kemur í stað wp_head-sprautunar, sem keyrir aðeins þegar WP rendar skelina.
+        //   Opið (__return_true): {loggedIn:false} fyrir gest, full gögn + nonce þegar kakan auðkennir.
+        array('methods' => 'GET',  'permission_callback' => '__return_true',                            'callback' => 'karp_me_get'),
+        array('methods' => 'POST', 'permission_callback' => function () { return is_user_logged_in(); }, 'callback' => 'karp_me_save'),
     ));
 });
+function karp_me_get() {
+    // WordPress REST API kallar wp_set_current_user(0) á kökuauðkennd köll ÁN X-WP-Nonce
+    // (rest_cookie_check_errors) → is_user_logged_in() yrði FALSKT. Þar sem /me er LES-aðgerð
+    // sem SKILAR nonce-inu (til að rjúfa hænu-og-egg), endur-staðfestum við lotu-kökuna beint.
+    // ÖRUGGT: CORS hleypir AÐEINS karp.is/app.karp.is/www að lesa svarið → nonce lekur ekki annað.
+    if ( ! is_user_logged_in() ) {
+        $uid = wp_validate_auth_cookie( '', 'logged_in' );
+        if ( $uid ) {
+            wp_set_current_user( $uid );
+        }
+    }
+    nocache_headers(); // notanda-sértæk gögn (nonce) — ALDREI í skyndiminni
+    return karp_user_payload();
+}
+
+/**
+ * CORS-herðing fyrir DECOUPLED framenda (Astro á karp.is).
+ * --------------------------------------------------------------------------
+ * WordPress-core endurvarpar SÉRHVERJU origin með Allow-Credentials:true. Um leið og
+ * GET /me afhjúpar nonce yrði það CSRF-flötur (illgjarnt origin gæti lesið nonce).
+ * Því: fjarlægjum core-hegðunina og hvítlistum AÐEINS Karp-lénin.
+ * LEIÐ A: karp.is er aðalvefurinn (Astro á Cloudflare), app.karp.is 301-ar þangað
+ * og www.karp.is sömuleiðis — öll þrjú í hvítlistanum til öryggis í millibilsástandi.
+ */
+add_action('rest_api_init', function () {
+    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
+    add_filter('rest_pre_serve_request', function ($value) {
+        $origin  = get_http_origin();
+        $allowed = array(
+            'https://karp.is',       // Astro-framendinn — AÐALVEFURINN (Leið A)
+            'https://app.karp.is',   // gamla undirlénið — 301-ar á karp.is en leyft í millibilsástandi
+            'https://www.karp.is',   // www — 301-ar á karp.is
+        );
+        if ($origin && in_array($origin, $allowed, true)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin', false);
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Allow-Methods: OPTIONS, GET, POST');
+            header('Access-Control-Allow-Headers: Authorization, X-WP-Nonce, Content-Type');
+        }
+        return $value;
+    });
+}, 15);
 function karp_me_save($req) {
     $uid = get_current_user_id();
     if (!$uid) {
@@ -809,7 +868,7 @@ function karp_vaktir_email($u, $hits, $metrics) {
             . '<td style="padding:13px 16px;border-bottom:1px solid #1d2733;text-align:right;color:#2ee6c8;font-weight:800;font-size:20px;white-space:nowrap">'
             . karp_vaktir_num($h['cur'], $m['dec']) . esc_html($m['unit']) . '</td></tr>';
     }
-    $url = home_url('/#profile');
+    $url = 'https://karp.is/mitt-svaedi/'; // LEIÐ A: appið er aðalvefurinn
     $n = count($hits);
     $h1 = $n === 1 ? 'Vakt náði marki' : ($n . ' vaktir náðu marki');
     $html = '<div style="background:#0a0e14;padding:28px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">'
