@@ -79,6 +79,8 @@ jobs:
           else
             echo "• Enginn ANTHROPIC_API_KEY-secret — AI-skriftum sleppt."
           fi
+      - name: Útboðsniðurstöður (TED awards + LV opnanir; á undan fréttavél)
+        run: node skriptur/build_urslit.js || true
       - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif ef lykill)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

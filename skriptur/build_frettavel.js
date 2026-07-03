@@ -386,6 +386,37 @@ function detect(state) {
     }
   }
 
+  // ── 🏆 Útboðsniðurstöður: hver vann (TED awards, LOTA 30) ────
+  // Silent-init: fyrsta keyrsla merkir allt séð — annars 259 fréttir dag 1.
+  const ur = J('utbod_urslit.json');
+  if (ur && Array.isArray(ur.awards)) {
+    if (state.urslitInit) {
+      const nyjar = ur.awards.filter((a) => !state.urslitInit.includes(a.nr));
+      nyjar.sort((a, b) => (b.cur === 'ISK' ? b.value || 0 : 0) - (a.cur === 'ISK' ? a.value || 0 : 0));
+      for (const a of nyjar.slice(0, 3)) {
+        const w1 = a.winners[0];
+        const fleiri = a.winners.length > 1;
+        const upph = a.cur === 'ISK' && a.value ? kr(a.value) + ' kr.' : null;
+        const titill = a.t.replace(/^Iceland – /, '');
+        ev.push({ id: `urslit-${a.nr}`, type: 'urslit', facts: { titill, kaupandi: a.buyer, sigurvegarar: a.winners, verdmaeti: upph ? a.value : null, dags: a.d, tedNr: a.nr }, url: '/utbod/',
+          title: fleiri ? `${w1} og ${a.winners.length - 1} til viðbótar valin í „${titill.slice(0, 45)}“` : `${w1} vann útboð${upph ? ' upp á ' + upph : ''}: ${titill.slice(0, 50)}`,
+          text: `${fleiri ? a.winners.slice(0, 4).join(', ') + (a.winners.length > 4 ? ' o.fl.' : '') + ' voru valin' : w1 + ' var valið'} í útboðinu „${titill}“ hjá ${a.buyer}${upph ? `. Samningsverðmæti: ${upph}` : ''} samkvæmt samningstilkynningu í TED (${a.d}).` });
+      }
+    }
+    state.urslitInit = ur.awards.map((a) => a.nr).slice(0, 400);
+  }
+  // Tilboðsopnanir (Landsvirkjun) — lægstbjóðandi er frétt fyrir verktaka
+  if (ur && Array.isArray(ur.opnanir)) {
+    if (state.opnanirInit) {
+      for (const o of ur.opnanir.filter((x) => !state.opnanirInit.includes(slug(x.t))).slice(0, 2)) {
+        ev.push({ id: `opnun-lv-${slug(o.t)}`, type: 'urslit', facts: { titill: o.t, dags: o.d, tilbod: o.bids.length, laegst: o.laegst.n, upphaed: o.laegst.isk }, url: '/utbod/',
+          title: `Tilboð opnuð hjá Landsvirkjun: lægst bauð ${o.laegst.n}`,
+          text: `${o.bids.length} tilboð bárust í útboð Landsvirkjunar „${o.t}“${o.d ? ' (opnuð ' + o.d + ')' : ''}. Lægsta boð átti ${o.laegst.n}: ${kr(o.laegst.isk)} kr. án VSK. Lægsta boð er ekki sjálfkrafa það sem verður valið.` });
+      }
+    }
+    state.opnanirInit = ur.opnanir.map((x) => slug(x.t)).slice(0, 100);
+  }
+
   return ev;
 }
 
