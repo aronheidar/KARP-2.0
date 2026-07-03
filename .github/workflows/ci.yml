@@ -1,0 +1,38 @@
+# LOTA 23 — CI á hverja ýtingu: byggingin verður að standast OG allir innri
+# hlekkir að eiga skotmark, ÁÐUR en Cloudflare eyðir byggingarkvóta í hana.
+# (Lærdómur 2b72374: brotið build fór út af því exit-staðan var aldrei tékkuð.)
+name: ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Deps (vefur)
+        run: npm ci
+        working-directory: web
+      - name: Astro-bygging
+        run: npx astro build
+        working-directory: web
+      - name: Innri hlekkjatékk
+        run: node skriptur/check_links.js
+      - name: Lykilefnis-merki
+        run: |
+          set -e
+          grep -q "Hagvísir Íslands" web/dist/index.html
+          grep -q "og-karp.png" web/dist/index.html
+          grep -q "bt-cats" web/dist/thingmal/index.html
+          echo "✓ Efnismerki til staðar."

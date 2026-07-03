@@ -9,6 +9,30 @@ const path = require('path');
 const G = (f) => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'gogn', f), 'utf8')); } catch (e) { return null; } };
 const kr = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
+async function liveFacts() {
+  const out = [];
+  // Verðbólgan beint frá Hagstofu (PxWeb — ATH: EKKERT Content-Type, simple request)
+  try {
+    const r = await fetch('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px', {
+      method: 'POST',
+      body: JSON.stringify({ query: [{ code: 'Vísitala', selection: { filter: 'item', values: ['CPI'] } }, { code: 'Liður', selection: { filter: 'item', values: ['change_A'] } }], response: { format: 'json' } }),
+    });
+    const j = await r.json();
+    const rows = (j.data || []).filter((x) => x.values[0] !== '.');
+    const last = rows[rows.length - 1];
+    if (last) out.push(`VERÐBÓLGA: ${String(last.values[0]).replace('.', ',')}% á ársgrundvelli (${last.key[0]}, vísitala neysluverðs Hagstofunnar).`);
+  } catch (e) { console.log('  (verðbólgu-fetch brást — sleppt)'); }
+  // Gengi (ECB viðmið um frankfurter.dev)
+  try {
+    const j = await (await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=ISK')).json();
+    const eur = j.rates && j.rates.ISK;
+    const j2 = await (await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=ISK')).json();
+    const usd = j2.rates && j2.rates.ISK;
+    if (eur) out.push(`GENGI (${j.date}): evran ${String(Math.round(eur * 10) / 10).replace('.', ',')} kr${usd ? `, dollarinn ${String(Math.round(usd * 10) / 10).replace('.', ',')} kr` : ''} (ECB-viðmiðunargengi).`);
+  } catch (e) { console.log('  (gengis-fetch brást — sleppt)'); }
+  return out;
+}
+
 const L = [];
 L.push('STÝRIVEXTIR: 7,75% frá 20. maí 2026 (Seðlabanki Íslands); næsta vaxtaákvörðun 19. ágúst 2026.');
 
@@ -94,12 +118,15 @@ const PAGES = [
   ['/samanburdur/', 'alþjóðlegur samanburður'], ['/utanrikis/', 'utanríkisverslun og alþjóðamál'],
 ];
 
-const out = {
-  updated: new Date().toISOString().slice(0, 10),
-  text: L.join('\n'),
-  pages: PAGES.map(([u, d]) => u + ' — ' + d).join('\n'),
-};
-const dest = path.join(__dirname, '..', 'web', 'public', 'gogn');
-fs.mkdirSync(dest, { recursive: true });
-fs.writeFileSync(path.join(dest, 'spyrdu_context.json'), JSON.stringify(out));
-console.log('Skrifað: web/public/gogn/spyrdu_context.json ·', out.text.length, 'stafir ·', L.length, 'staðreyndalínur');
+liveFacts().then((live) => {
+  const all = [...live, ...L];
+  const out = {
+    updated: new Date().toISOString().slice(0, 10),
+    text: all.join('\n'),
+    pages: PAGES.map(([u, d]) => u + ' — ' + d).join('\n'),
+  };
+  const dest = path.join(__dirname, '..', 'web', 'public', 'gogn');
+  fs.mkdirSync(dest, { recursive: true });
+  fs.writeFileSync(path.join(dest, 'spyrdu_context.json'), JSON.stringify(out));
+  console.log('Skrifað: web/public/gogn/spyrdu_context.json ·', out.text.length, 'stafir ·', all.length, 'staðreyndalínur');
+});

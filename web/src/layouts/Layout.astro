@@ -107,8 +107,18 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     <meta property="og:locale" content="is_IS" />
     {(ogTitle || title) && <meta property="og:title" content={ogTitle || title} />}
     {description && <meta property="og:description" content={description} />}
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={ogImage || 'https://app.karp.is/og-karp.png'} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Karp — Hagvísir Íslands" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://app.karp.is/', inLanguage: 'is', description: 'Opinber gögn um íslenskt efnahagslíf, Alþingi, sveitarfélög og markaði — á mannamáli.' },
+        { '@type': 'Organization', name: 'Karp', url: 'https://app.karp.is/', logo: 'https://app.karp.is/og-karp.png', email: 'aron@sgdal.is', parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.' } },
+      ],
+    })} />
     <ClientRouter />
     <style is:global>
       :root { color-scheme: dark; --bg:#070b16; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
@@ -187,6 +197,9 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       /* hidden-attributið á ALLTAF að fela — display-reglur á klösum mega ekki
          yfirskrifa það (t.d. .cos{display:grid} á Vöktun braut sýnileikastýringu). */
       [hidden] { display: none !important; }
+      /* LOTA 23 (mobile-úttekt): breiðar töflur skruna innan síns ramma á síma
+         í stað þess að sprengja síðuna (fannst á /althingi/ og /verdlag/). */
+      @media (max-width: 760px) { main table { display: block; overflow-x: auto; } }
       /* 🐟 Brand-fiskurinn + fljótandi Spyrðu-Karp hnappurinn (LOTA 19) */
       .brand { display: inline-flex; align-items: center; gap: 8px; }
       .brand .karpfish { flex: none; }
@@ -377,6 +390,18 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       }
 
       document.addEventListener('astro:page-load', mountShell);
+
+      // 🩺 Villu-beacon (LOTA 23): sendir client-villur á /api/villa (worker → CF-logs).
+      // Hver einstök villuskilaboð aðeins einu sinni per heimsókn; sendBeacon truflar ekkert.
+      const villaSent = new Set();
+      const beacon = (m) => {
+        const key = String(m).slice(0, 120);
+        if (villaSent.has(key) || villaSent.size > 8) return;
+        villaSent.add(key);
+        try { navigator.sendBeacon('/api/villa', JSON.stringify({ m: String(m).slice(0, 300), u: location.pathname })); } catch (e) {}
+      };
+      window.addEventListener('error', (e) => beacon(e.message || 'error'));
+      window.addEventListener('unhandledrejection', (e) => beacon((e.reason && (e.reason.message || e.reason)) || 'rejection'));
     </script>
   </body>
 </html>

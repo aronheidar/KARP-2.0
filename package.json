@@ -11,5 +11,8 @@
     "pdf2json": "^4.0.3",
     "terser": "^5.48.0",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.3"
   }
 }

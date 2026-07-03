@@ -36,12 +36,13 @@ const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðu
 
     <div class="pair">
       <section>
-        <h2>Topp 30 birgjar <i class="tip" tabindex="0" data-tip="Röðun eftir heildarfjárhæð greiðslna tímabilsins. „Stærsti kaupandi“ er sú ríkisstofnun sem greiddi viðkomandi mest.">ⓘ</i></h2>
+        <h2>Topp 30 birgjar <i class="tip" tabindex="0" data-tip="Röðun eftir heildarfjárhæð greiðslna tímabilsins. „Stærsti kaupandi“ er sú ríkisstofnun sem greiddi viðkomandi mest. Smelltu á birgi til að sjá mánaðaþróun og hverjir keyptu; leitin nær yfir 200 stærstu.">ⓘ</i></h2>
+        <input id="bg-q" type="search" placeholder="Leita í 200 stærstu birgjunum…" autocomplete="off" />
         <table class="tbl">
           <thead><tr><th>#</th><th>Birgir</th><th class="r">m.kr</th><th>Stærsti kaupandi</th></tr></thead>
-          <tbody>
+          <tbody id="bg-vrows">
             {topV.map((v, i) => (
-              <tr>
+              <tr class="vrow" data-v={v.n} role="button" tabindex="0" title="Smelltu fyrir mánaðaþróun og kaupendur">
                 <td class="dim">{i + 1}</td>
                 <td class="n">{v.n}</td>
                 <td class="r">{mkr(v.t)}</td>
@@ -52,10 +53,10 @@ const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðu
         </table>
       </section>
       <section>
-        <h2>Stærstu kaupendurnir <i class="tip" tabindex="0" data-tip="Ríkisstofnanir og -aðilar eftir samanlögðum greiðslum til birgja á tímabilinu.">ⓘ</i></h2>
+        <h2>Stærstu kaupendurnir <i class="tip" tabindex="0" data-tip="Ríkisstofnanir og -aðilar eftir samanlögðum greiðslum til birgja á tímabilinu. Smelltu á stofnun til að sjá hverjum hún greiðir mest.">ⓘ</i></h2>
         <div class="olist">
           {topO.map((o, i) => (
-            <div class="orow">
+            <div class="orow" data-o={o.n} role="button" tabindex="0" title="Smelltu til að sjá topp-birgja stofnunarinnar">
               <span class="dim">{i + 1}.</span>
               <span class="on">{o.n}</span>
               <span class="ov">{mkr(o.t)} m.kr</span>
@@ -98,9 +99,92 @@ const desc = `Hverjir fá greitt frá ríkinu? Topplisti birgja ríkisins síðu
     .ty { font-size: 12px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 4px 10px; }
     .ty b { color: #f6b13b; }
     .note { font-size: 12.5px; color: #8fa0b8; margin-top: 22px; } .note a { color: #f6b13b; }
+    #bg-q { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; margin-bottom: 8px; }
+    #bg-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .vrow { cursor: pointer; } .vrow:hover .n { color: #f6b13b; }
+    .orow[data-o] { cursor: pointer; } .orow[data-o]:hover .on { color: #f6b13b; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
   </style>
 
+  <style is:global>
+    /* drilldown-innihald (runtime-DOM → verður að vera global) */
+    .drill { background: rgba(246,177,59,.05); border: 1px solid rgba(246,177,59,.25); border-radius: 10px; padding: 10px 13px; margin: 4px 0 8px; }
+    .dr-bars { display: flex; align-items: flex-end; gap: 3px; height: 48px; }
+    .dr-bar { flex: 1; background: #f6b13b; border-radius: 2px 2px 0 0; min-width: 6px; }
+    .dr-cap { font-size: 10.5px; color: #7e8ca6; margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+    .dr-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #cdd6e6; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .dr-row b { color: #f6b13b; font-weight: 600; white-space: nowrap; }
+    .drill-tr td { padding: 0 8px 6px !important; border-bottom: 0 !important; }
+  </style>
+  <!-- LOTA 23: drilldown-eyjan — leit yfir 200 birgja, smellur = mánaðaþróun + kaupendur -->
+  <script>
+    const escB = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const mkrB = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    let BG = null;
+    const bgData = () => BG ? Promise.resolve(BG) : fetch('/gogn/birgjar.json').then((r) => (r.ok ? r.json() : null)).then((d) => (BG = d));
+    function drillHtml(name, d, months) {
+      const bars = d.m && d.m.some((x) => x > 0)
+        ? `<div class="dr-bars">${d.m.map((v, i) => { const mx = Math.max(...d.m, 1); return `<div class="dr-bar" title="${months[i] ? escB(months[i].m) : ''}: ${mkrB(v)} m.kr" style="height:${Math.max(3, Math.round((v / mx) * 44))}px"></div>`; }).join('')}</div><div class="dr-cap">12 mánaða þróun (m.kr á mánuði)</div>`
+        : '';
+      const orgs = (d.orgs || []).map(([o, t]) => `<div class="dr-row"><span>${escB(o)}</span><b>${mkrB(t)} m.kr</b></div>`).join('');
+      return `${bars}${orgs ? '<div class="dr-cap" style="margin-top:8px">Stærstu kaupendurnir</div>' + orgs : ''}`;
+    }
+    function initBirgjarDrill() {
+      const tb = document.getElementById('bg-vrows');
+      if (!tb || tb.dataset.done) return;
+      tb.dataset.done = '1';
+      const closeDrills = () => document.querySelectorAll('.drill-tr, .drill-div').forEach((x) => x.remove());
+      const onRow = (tr) => {
+        const name = tr.dataset.v;
+        const open = tr.nextElementSibling && tr.nextElementSibling.classList.contains('drill-tr');
+        closeDrills();
+        if (open) return;
+        bgData().then((d) => {
+          if (!d || !d.vendorDetail || !d.vendorDetail[name]) return;
+          const row = document.createElement('tr');
+          row.className = 'drill-tr';
+          row.innerHTML = `<td colspan="4"><div class="drill">${drillHtml(name, d.vendorDetail[name], d.months)}</div></td>`;
+          tr.after(row);
+        });
+      };
+      const bindRows = () => document.querySelectorAll('#bg-vrows .vrow').forEach((tr) => {
+        tr.onclick = () => onRow(tr);
+        tr.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRow(tr); } };
+      });
+      bindRows();
+      // stofnana-drilldown
+      document.querySelectorAll('.orow[data-o]').forEach((el) => {
+        const onOrg = () => {
+          const name = el.dataset.o;
+          const open = el.nextElementSibling && el.nextElementSibling.classList.contains('drill-div');
+          closeDrills();
+          if (open) return;
+          bgData().then((d) => {
+            if (!d || !d.orgDetail || !d.orgDetail[name]) return;
+            const div = document.createElement('div');
+            div.className = 'drill-div';
+            div.innerHTML = `<div class="drill"><div class="dr-cap">Stærstu birgjar — ${escB(name)}</div>${(d.orgDetail[name].vendors || []).map(([v, t]) => `<div class="dr-row"><span>${escB(v)}</span><b>${mkrB(t)} m.kr</b></div>`).join('')}</div>`;
+            el.after(div);
+          });
+        };
+        el.onclick = onOrg;
+        el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOrg(); } };
+      });
+      // leit yfir 200 stærstu
+      const q = document.getElementById('bg-q');
+      if (q) q.addEventListener('input', () => {
+        const s = q.value.trim().toLowerCase();
+        bgData().then((d) => {
+          if (!d) return;
+          closeDrills();
+          const rows = (s ? d.vendors.filter((v) => v.n.toLowerCase().includes(s)) : d.vendors).slice(0, 30);
+          tb.innerHTML = rows.map((v, i) => `<tr class="vrow" data-v="${escB(v.n)}" role="button" tabindex="0"><td class="dim">${s ? '' : i + 1}</td><td class="n">${escB(v.n)}</td><td class="r">${mkrB(v.t)}</td><td class="o">${escB(v.o || '–')}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#7e8ca6">Enginn birgir passar.</td></tr>';
+          bindRows();
+        });
+      });
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="birgjar"]')) initBirgjarDrill(); });
+  </script>
   <script is:inline define:vars={{ MONTHS: G.months }}>
     function initBirgjar() {
       if (!document.querySelector('main[data-pg="birgjar"]')) return;

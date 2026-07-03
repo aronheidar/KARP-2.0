@@ -48,7 +48,13 @@ async function main() {
     } catch (e) { console.log('  villa mál', b.nr, String(e).slice(0, 60)); }
     if (fetched && fetched % 25 === 0) console.log('  …', fetched, 'sótt');
   }
-  fs.writeFileSync(OUT, JSON.stringify({ updated: new Date().toISOString().slice(0, 10), thing: 157, mal }));
-  console.log('Skrifað: gogn/atkvaedi.json ·', Object.keys(mal).length, 'mál með nafnakalli (', fetched, 'ný )');
+  const payload = JSON.stringify({ updated: new Date().toISOString().slice(0, 10), thing: 157, mal });
+  fs.writeFileSync(OUT, payload);
+  // LOTA 23: líka sem static asset — þingmálasíðan sækir nafnakallið LATÍNT
+  // (fetch við fyrsta glugga) í stað 272KB inline í HTML-inu.
+  const pub = path.join(__dirname, '..', 'web', 'public', 'gogn');
+  fs.mkdirSync(pub, { recursive: true });
+  fs.writeFileSync(path.join(pub, 'atkvaedi.json'), payload);
+  console.log('Skrifað: gogn/atkvaedi.json + web/public/gogn/atkvaedi.json ·', Object.keys(mal).length, 'mál með nafnakalli (', fetched, 'ný )');
 }
 main().catch((e) => { console.error(e); process.exit(1); });

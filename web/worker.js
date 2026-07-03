@@ -75,8 +75,13 @@ const sjson = (obj, status) => new Response(JSON.stringify(obj), {
 async function spyrduHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   if (!env.ANTHROPIC_API_KEY) return sjson({ error: 'unconfigured' });
-  let q = '';
-  try { q = String(((await request.json()) || {}).q || '').trim(); } catch (e) { return sjson({ error: 'body' }); }
+  let q = '', prev = null;
+  try {
+    const body = (await request.json()) || {};
+    q = String(body.q || '').trim();
+    // LOTA 23: EIN framhaldsspurning — síðasta spurning+svar fylgja með sem samhengi
+    if (body.prev && body.prev.q && body.prev.a) prev = { q: String(body.prev.q).slice(0, 300), a: String(body.prev.a).slice(0, 1200) };
+  } catch (e) { return sjson({ error: 'body' }); }
   if (q.length < 3 || q.length > 300) return sjson({ error: 'lengd' });
   // Dagskvóti á IP (cache-byggt, per-gagnaver — gróft en heiðarlegt öryggisnet)
   const cache = caches.default;
@@ -95,7 +100,7 @@ async function spyrduHandler(request, env, ctx) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 600, system: sys, messages: [{ role: 'user', content: q }] }),
+      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 600, system: sys, messages: prev ? [{ role: 'user', content: prev.q }, { role: 'assistant', content: prev.a }, { role: 'user', content: q }] : [{ role: 'user', content: q }] }),
     });
     if (!res.ok) return sjson({ error: 'ai', status: res.status });
     const j = await res.json();
@@ -181,9 +186,30 @@ async function domarHandler(ctx) {
   return res;
 }
 
+// 🩺 Villu-beacon (LOTA 23): framendinn sendir client-villur hingað; þær fara í
+// console.error → sjást í Cloudflare Live Logs / wrangler tail. Engin geymsla,
+// engin persónugögn — bara skilaboð, slóð og user-agent-stytting. 5/mín/IP.
+async function villaHandler(request, ctx) {
+  if (request.method !== 'POST') return sjson({ ok: false });
+  try {
+    const cache = caches.default;
+    const ip = request.headers.get('cf-connecting-ip') || 'x';
+    const min = new Date().toISOString().slice(0, 16);
+    const k = new Request('https://cache.karp.internal/villa/' + encodeURIComponent(ip) + '/' + min);
+    const prev = await cache.match(k);
+    const n = prev ? parseInt(await prev.text(), 10) || 0 : 0;
+    if (n >= 5) return sjson({ ok: false });
+    ctx.waitUntil(cache.put(k, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=60' } })));
+    const b = (await request.json()) || {};
+    console.error('[karp-villa]', JSON.stringify({ m: String(b.m || '').slice(0, 300), u: String(b.u || '').slice(0, 120), ua: (request.headers.get('user-agent') || '').slice(0, 80) }));
+    return sjson({ ok: true });
+  } catch (e) { return sjson({ ok: false }); }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);

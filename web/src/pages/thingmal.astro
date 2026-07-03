@@ -9,7 +9,6 @@ import Layout from '../layouts/Layout.astro';
 import ThingTabs from '../components/ThingTabs.astro';
 import { partyName } from '@lib/parties.mjs';
 import FRUMVORP from '@gogn/frumvorp.json';
-import ATKV from '@gogn/atkvaedi.json';
 
 const pName = (k) => (k === 'U' ? 'Óháðir' : partyName(k) || k);
 
@@ -39,9 +38,8 @@ const bills = FRUMVORP
 // Gluggagögn (frumvarpa-modal): key → full lýsing + flokka-atkvæði.
 const BILLS = {};
 bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties }; });
-// Nafnakallið (LOTA 19): key → { ja/nei/hja/fjar: [nöfn] } úr gogn/atkvaedi.json.
-const ATKVMAP = {};
-bills.forEach((b) => { const rc = (ATKV.mal || {})[b.key.slice(4)]; if (rc) ATKVMAP[b.key] = rc; });
+// Nafnakallið (LOTA 19→23): sótt LATÍNT af /gogn/atkvaedi.json við fyrsta glugga
+// (var 272KB inline — óþarfa þungi á hverri síðuhleðslu).
 
 // Áhrifasvið (LOTA 22, portað úr gamla kerfinu): heuristic-flokkun á titli+tegund.
 // Ritstjórnarleg lykilorðaflokkun — mál getur átt fleiri en eitt svið, fyrsta treff gildir.
@@ -160,10 +158,9 @@ const jsonLd = {
     <!-- Frumvarpa-glugginn (smellt á titil) — eins og gamla mælaborðið. #2 LOTA 7 -->
     <div id="bill-modal" hidden>
       <div class="bm-back"></div>
-      <div class="bm-box"><button class="bm-x" aria-label="Loka">×</button><div id="bm-body"></div></div>
+      <div class="bm-box" role="dialog" aria-modal="true" aria-label="Upplýsingar um þingmál"><button class="bm-x" aria-label="Loka glugganum">×</button><div id="bm-body"></div></div>
     </div>
     <script type="application/json" id="d-bills" set:html={JSON.stringify(BILLS)}></script>
-    <script type="application/json" id="d-atkv" set:html={JSON.stringify(ATKVMAP)}></script>
   </main>
 
   <style is:global>
@@ -317,7 +314,19 @@ const jsonLd = {
 
   <!-- Eyja: frumvarpa-glugginn. #2 LOTA 7 -->
   <script>
-    function bmClose() { const m = document.getElementById('bill-modal'); if (m) m.hidden = true; }
+    // LOTA 23 (a11y): fókus fer INN í gluggann við opnun, helst þar (Tab hringar)
+    // og skilar sér á upprunastað við lokun.
+    let bmPrevFocus = null;
+    function bmFocusIn() {
+      bmPrevFocus = document.activeElement;
+      const x = document.querySelector('#bill-modal .bm-x');
+      if (x) x.focus();
+    }
+    function bmClose() {
+      const m = document.getElementById('bill-modal');
+      if (m) m.hidden = true;
+      if (bmPrevFocus && bmPrevFocus.focus) { try { bmPrevFocus.focus(); } catch (e) {} bmPrevFocus = null; }
+    }
     function bmOpen(key) {
       const dataEl = document.getElementById('d-bills');
       const m = document.getElementById('bill-modal');
@@ -335,19 +344,33 @@ const jsonLd = {
         h += d.parties.map((p) => `<span>${esc(p.n)}</span><span class="ja">${p.ja}</span><span class="nei">${p.nei}</span>`).join('');
         h += '</div>';
       }
-      // LOTA 19: nafnakallið — hvernig kusu einstakir þingmenn (loka-atkvæðagreiðslan)
-      let A = null;
-      try { A = JSON.parse((document.getElementById('d-atkv') || {}).textContent || '{}')[key]; } catch (e) {}
-      if (A && (A.ja.length || A.nei.length)) {
+      // LOTA 23: nafnakallið sótt LATÍNT (var 272KB inline) — skel fyrst, listar bætast við
+      h += '<div id="bm-rollcall"></div>';
+      document.getElementById('bm-body').innerHTML = h;
+      m.hidden = false;
+      bmFocusIn();
+      appendRollCall(key, esc);
+    }
+    // Nafnakalls-skyndiminnið: eitt fetch per heimsókn, síðan úr module-breytu
+    let ATKV_CACHE = null;
+    function appendRollCall(key, esc) {
+      const paint = (mal) => {
+        const slot = document.getElementById('bm-rollcall');
+        if (!slot) return; // glugginn lokaður á meðan
+        const A = (mal || {})[key.slice(4)];
+        if (!A || !(A.ja.length || A.nei.length)) return;
         const grp = (label, cls, arr) => (arr && arr.length ? `<details class="bm-g ${cls}"><summary>${label} · ${arr.length}</summary><div class="bm-names">${arr.map(esc).join(' · ')}</div></details>` : '');
-        h += '<div class="bm-ph">Hvernig kusu þingmenn? <span class="bm-sub">loka-atkvæðagreiðslan · smelltu til að fletta upp</span></div>'
+        slot.innerHTML = '<div class="bm-ph">Hvernig kusu þingmenn? <span class="bm-sub">loka-atkvæðagreiðslan · smelltu til að fletta upp</span></div>'
           + grp('✓ Já sögðu', 'g-ja', A.ja)
           + grp('✗ Nei sögðu', 'g-nei', A.nei)
           + grp('— Greiddu ekki atkvæði', 'g-hja', A.hja)
           + grp('Fjarverandi', 'g-fjar', A.fjar);
-      }
-      document.getElementById('bm-body').innerHTML = h;
-      m.hidden = false;
+      };
+      if (ATKV_CACHE) { paint(ATKV_CACHE); return; }
+      fetch('/gogn/atkvaedi.json')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => { ATKV_CACHE = (d && d.mal) || {}; paint(ATKV_CACHE); })
+        .catch(() => {});
     }
     function initBillModal() {
       const m = document.getElementById('bill-modal');
@@ -357,6 +380,15 @@ const jsonLd = {
       m.querySelector('.bm-x').onclick = bmClose;
       m.querySelector('.bm-back').onclick = bmClose;
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') bmClose(); });
+      // Fókus-gildra: Tab hringar innan gluggans á meðan hann er opinn (a11y)
+      m.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab' || m.hidden) return;
+        const f = [...m.querySelectorAll('button, a[href], summary, input, [tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
       document.querySelectorAll('[data-bkey]').forEach((el) => {
         const go = () => bmOpen(el.dataset.bkey);
         el.onclick = go;
@@ -390,8 +422,9 @@ const jsonLd = {
           + `<a class="bm-ferill" href="${esc(ferill)}" target="_blank" rel="noopener">📜 Skjöl, umræður og staða á althingi.is ↗</a>`;
         m.hidden = false;
       };
-      if (d.heiti) { paint(d); return; }
+      if (d.heiti) { paint(d); bmFocusIn(); return; }
       paint(d); // strax skel, svo auðgun úr lifandi listanum
+      bmFocusIn();
       fetch('/api/thingmal').then((r) => (r.ok ? r.text() : null)).then((xml) => {
         if (!xml || xml[0] === '{') return;
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
