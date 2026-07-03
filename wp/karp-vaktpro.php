@@ -58,8 +58,15 @@ add_action('karp_vaktpro_daily', function () {
   $s = $get('https://karp.is/api/samrad');
   foreach ((array) ($s['data']['consultationPortalGetCases']['cases'] ?? []) as $c) $feeds[] = ['t' => 'Samráð (' . ($c['statusName'] ?? '') . '): ' . ($c['name'] ?? '') . ' — ' . ($c['institutionName'] ?? ''), 'u' => 'https://island.is/samradsgatt/mal/' . ($c['id'] ?? '')];
 
-  $u = $get('https://karp.is/api/utbod');
-  foreach ((array) $u as $p) { if (is_array($p)) $feeds[] = ['t' => 'Útboð: ' . ($p['title']['rendered'] ?? ''), 'u' => $p['link'] ?? 'https://utbodsvefur.is']; }
+  // Útboð: fulla dagsafnið (Útboðsvefur+TED+Faxaflóahafnir+Landsvirkjun, LOTA 25)
+  // — normaliserað í gogn/utbod.json (build_utbod.js). Nær yfir allar gáttir sem
+  // Karp scrape-ar, ekki bara Útboðsvefinn.
+  $ut = $get('https://karp.is/gogn/utbod.json');
+  foreach ((array) ($ut['tenders'] ?? []) as $p) {
+    if (!is_array($p)) continue;
+    $srcName = ['rk' => 'Útboðsvefur', 'ted' => 'TED', 'fax' => 'Faxaflóahafnir', 'lv' => 'Landsvirkjun'][$p['src'] ?? ''] ?? 'Útboð';
+    $feeds[] = ['t' => 'Útboð (' . $srcName . '): ' . ($p['t'] ?? '') . (($p['buyer'] ?? '') ? ' — ' . $p['buyer'] : ''), 'u' => $p['u'] ?? 'https://karp.is/utbod/'];
+  }
 
   $g = $get('https://karp.is/api/greidslur');
   foreach ((array) ($g['rows'] ?? []) as $r) $feeds[] = ['t' => 'Greiðsla: ' . ($r['stofnun'] ?? '') . ' → ' . ($r['birgir'] ?? '') . ' (' . number_format((float) ($r['upph'] ?? 0), 0, ',', '.') . ' kr): ' . ($r['lysing'] ?? ''), 'u' => 'https://karp.is/vaktir/'];

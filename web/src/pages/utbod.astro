@@ -1,155 +1,191 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// 📋 ÚTBOÐSVAKTIN (LOTA 21) — sér undirflokkur fyrir verktaka & birgja.
-// Lifandi veitur: Útboðsvefurinn (Ríkiskaup, WP-REST um /api/utbod) og
-// TED (EES-útboð á Íslandi, /api/ted). Leit, veitusíur og leitarorða-
-// upplýsing (karp-leitvakt) client-side. Reykjavík (In-Tend) er með
-// reCAPTCHA-varið gagnakall → beinn hlekkur þar til opnari leið finnst.
+// 📋 ÚTBOÐSGÁTT KARP (LOTA 25) — allsherjar útboðssíða fyrir verktaka.
+// Grunngögn: gogn/utbod.json (build_utbod.js scrape-ar allar gáttir daglega:
+// Útboðsvefur+TED+Faxaflóahafnir+Landsvirkjun, normaliserað & flokkað). Ofan á
+// það sækir eyjan lifandi /api/utbod fyrir sama-dags ferskleika. Leit, flokka-
+// og veitusíur, röðun eftir fresti, „lokar brátt"/„nýtt", leitarorða-highlight.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-const updated = '2026-07-03';
-const desc = 'Útboðsvaktin — öll opinber útboð á einum stað: Útboðsvefur Ríkiskaupa og EES-útboð af TED, með leit, síum og leitarorðavakt fyrir verktaka og birgja.';
+import UTBOD from '@gogn/utbod.json';
+const updated = (UTBOD.updated || '').slice(0, 10);
+const nSrc = Object.keys(UTBOD.sources || {}).length;
+const desc = `Útboðsgátt Karp — ${UTBOD.n} opinber útboð frá öllum helstu gáttum á einum stað: Útboðsvefur Ríkiskaupa, TED (EES), Faxaflóahafnir og Landsvirkjun. Leit, flokkar, frestir og tölvupósts-vakt fyrir verktaka.`;
+// Flokkalisti raðaður eftir fjölda (build skilar cats-heitum + byCat-talningu)
+const catList = Object.entries(UTBOD.byCat || {}).sort((a, b) => b[1] - a[1])
+  .map(([k, n]) => ({ k, n, label: (UTBOD.cats[k] || [k])[0], e: (UTBOD.cats[k] || ['', '📦'])[1] }));
+const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪🇺'], fax: ['Faxaflóahafnir', '⚓'], lv: ['Landsvirkjun', '⚡'] };
 ---
 
-<Layout title="📋 Útboðsvaktin | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsvaktin">
+<Layout title="📋 Útboðsgátt — öll útboð á einum stað | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsgátt Karp">
   <main data-pg="utbod">
     <p class="kicker">Karp Pro · Útboð</p>
-    <h1>📋 Útboðsvaktin</h1>
-    <p>Opinber útboð á einum stað — fyrir verktaka, birgja og alla sem bjóða í verk. Leitaðu, síaðu eftir veitu og láttu <a href="/vaktir/">leitarorðavaktina</a> upplýsa treffin þín.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi veitur: Útboðsvefurinn (Ríkiskaup, opinber WP-veita) og TED — opinbert útboðasafn ESB, síað á framkvæmdastað Ísland. Hvort tveggja um skyndiminnis-proxy Karp (30–60 mín). Leitin og síurnar vinna í vafranum þínum.">ⓘ</i> Um gögnin á síðunni</p>
+    <h1>📋 Útboðsgátt</h1>
+    <p>Öll opinber útboð frá öllum helstu gáttum — á einum stað, fyrir verktaka og birgja. Leitaðu, síaðu eftir flokki og láttu <a href="/vaktir/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögnin eru sótt daglega af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Faxaflóahafnir og Landsvirkjun (vef-scrape). Flokkun er vélræn eftir lykilorðum í heiti. Reykjavík (In-Tend) er bot-varið → beinn hlekkur neðst. Leit og síur vinna í vafranum þínum.">ⓘ</i> Um gögnin á síðunni</p>
+
+    <div class="ut-stats">
+      <div class="us-c"><b id="us-n">{UTBOD.n}</b><span>útboð í safni</span></div>
+      <div class="us-c"><b>{nSrc}</b><span>lifandi gáttir</span></div>
+      <div class="us-c"><b id="us-soon">—</b><span>loka innan 14 daga</span></div>
+      <div class="us-c"><b id="us-new">—</b><span>ný í dag</span></div>
+    </div>
 
     <div class="ut-bar">
-      <input id="ut-q" type="search" placeholder="Leita í útboðum… (t.d. „malbik“, „hugbúnaður“, „ræsting“)" autocomplete="off" />
-      <div class="ut-srcs">
-        <label class="ut-src"><input type="checkbox" data-src="rk" checked /> 🇮🇸 Útboðsvefurinn</label>
-        <label class="ut-src"><input type="checkbox" data-src="ted" checked /> 🇪🇺 TED (EES)</label>
-      </div>
+      <input id="ut-q" type="search" placeholder="Leita í útboðum… (t.d. „malbik“, „raflagnir“, „ræsting“)" autocomplete="off" />
+      <select id="ut-sort" aria-label="Röðun">
+        <option value="new">Nýjast fyrst</option>
+        <option value="deadline">Frestur styst í</option>
+      </select>
     </div>
+
+    <div class="ut-cats" id="ut-cats">
+      <button class="uc on" data-c="">Allir flokkar · {UTBOD.n}</button>
+      {catList.map((c) => <button class="uc" data-c={c.k}>{c.e} {c.label} · {c.n}</button>)}
+    </div>
+
+    <div class="ut-srcs" id="ut-srcs">
+      <span class="us-l">Gáttir:</span>
+      {Object.keys(SRCMETA).map((s) => (UTBOD.bySrc && UTBOD.bySrc[s] ? <label class="ut-src"><input type="checkbox" data-src={s} checked /> {SRCMETA[s][1]} {SRCMETA[s][0]} ({UTBOD.bySrc[s]})</label> : null))}
+    </div>
+
     <div id="ut-count" class="ut-count"></div>
-    <div id="ut-list" class="ut-list">Sæki útboð…</div>
+    <div id="ut-list" class="ut-list">Raða útboðum…</div>
 
-    <h2>Útboðsgáttir á Íslandi <i class="tip" tabindex="0" data-tip="Miðlæga safnið (Útboðsvefur Ríkiskaupa) nær yfir flest ríkisútboð og margar stofnanir. Stórar stofnanir og sveitarfélög reka þó eigin gáttir sem birta ekki opinn gagnastraum — þær eru hér sem beinir hlekkir svo verktakar finni allt á einum stað.">ⓘ</i></h2>
-    <p class="ut-dir-intro">Sumar stofnanir reka eigin útboðskerfi utan Útboðsvefsins. Karp getur ekki sótt gögnin sjálfkrafa af þeim öllum (bot-varnir eða lokuð kerfi) — en hér er heildstæð skrá svo þú missir ekki af neinu:</p>
+    <div class="ut-pro">⭐ <b>Fáðu ný útboð beint í tölvupóstinn:</b> skráðu leitarorð sem lýsa þinni verktöku (t.d. „jarðvinna", „raflagnir", „hugbúnaður") í <a href="/vaktir/">leitarorðavaktina</a> — innskráðir fá daglegan póst um leið og nýtt útboð nefnir orðin. Ókeypis hluti af <a href="/karp-pro/">Karp Pro</a>.</div>
+
+    <h2>Aðrar útboðsgáttir <i class="tip" tabindex="0" data-tip="Þessar gáttir reka eigin kerfi sem Karp nær ekki að sækja sjálfvirkt (bot-varnir eða lokuð kerfi) — en mörg þeirra auglýsa líka á Útboðsvefnum sem er hér að ofan. Beinir hlekkir svo þú missir ekki af neinu.">ⓘ</i></h2>
     <div class="ut-more">
-      <a class="um-card" href="https://utbod.reykjavik.is/aspx/Tenders/Current" target="_blank" rel="noopener">
-        <b>🏙️ Reykjavíkurborg</b>
-        <span>utbod.reykjavik.is (In-Tend). Bot-varið (reCAPTCHA) svo útboðin birtast ekki hér — hlekkurinn opnar listann beint.</span>
-      </a>
-      <a class="um-card" href="https://www.vegagerdin.is/framkvaemdir-og-vidhald/utbod/" target="_blank" rel="noopener">
-        <b>🛣️ Vegagerðin</b>
-        <span>Vega-, brúa- og jarðvinnuútboð. Stærstu verklegu framkvæmdir landsins — oft líka auglýst á Útboðsvefnum.</span>
-      </a>
-      <a class="um-card" href="https://www.landsvirkjun.is/utbod" target="_blank" rel="noopener">
-        <b>⚡ Landsvirkjun</b>
-        <span>Virkjana-, orku- og innviðaframkvæmdir orkufyrirtækis ríkisins.</span>
-      </a>
-      <a class="um-card" href="https://www.faxafloahafnir.is/utbod/" target="_blank" rel="noopener">
-        <b>⚓ Faxaflóahafnir</b>
-        <span>Hafnarframkvæmdir og -þjónusta á höfuðborgarsvæðinu.</span>
-      </a>
-      <a class="um-card" href="https://www.or.is/um-or/utbod/" target="_blank" rel="noopener">
-        <b>💧 Orkuveita Reykjavíkur</b>
-        <span>Veitu-, orku- og fráveituframkvæmdir OR-samstæðunnar (Veitur, ON, Ljósleiðarinn).</span>
-      </a>
-      <a class="um-card" href="https://www.kopavogur.is/is/stjornkerfi/utbod" target="_blank" rel="noopener">
-        <b>🏘️ Kópavogsbær</b>
-        <span>Útboð næststærsta sveitarfélags landsins.</span>
-      </a>
-      <a class="um-card" href="https://www.hafnarfjordur.is/utbod" target="_blank" rel="noopener">
-        <b>🏘️ Hafnarfjörður</b>
-        <span>Útboð Hafnarfjarðarkaupstaðar.</span>
-      </a>
-      <a class="um-card" href="https://www.rikiskaup.is/" target="_blank" rel="noopener">
-        <b>🏛️ Ríkiskaup</b>
-        <span>Rammasamningar, örútboð og verklagsreglur — Útboðsvefurinn hér að ofan birtir auglýst útboð þeirra.</span>
-      </a>
-      <a class="um-card" href="https://ted.europa.eu/en/search/result?place-of-performance=ISL" target="_blank" rel="noopener">
-        <b>🇪🇺 TED — öll skjöl</b>
-        <span>Fullt viðmót ESB-útboðasafnsins fyrir Ísland: forauglýsingar, niðurstöður og samningar, ekki bara virk útboð.</span>
-      </a>
+      <a class="um-card" href="https://utbod.reykjavik.is/aspx/Tenders/Current" target="_blank" rel="noopener"><b>🏙️ Reykjavíkurborg</b><span>utbod.reykjavik.is (In-Tend). Bot-varið (reCAPTCHA) svo útboðin birtast ekki hér — hlekkurinn opnar listann beint.</span></a>
+      <a class="um-card" href="https://www.vegagerdin.is/verkefnin/" target="_blank" rel="noopener"><b>🛣️ Vegagerðin</b><span>Vega-, brúa- og jarðvinnuframkvæmdir — oftast líka auglýstar á Útboðsvefnum hér að ofan.</span></a>
+      <a class="um-card" href="https://www.or.is/um-or/utbod/" target="_blank" rel="noopener"><b>💧 Orkuveitan (OR)</b><span>Veitu-, orku- og fráveituframkvæmdir OR-samstæðunnar (Veitur, ON, Ljósleiðarinn).</span></a>
+      <a class="um-card" href="https://www.kopavogur.is/" target="_blank" rel="noopener"><b>🏘️ Kópavogsbær</b><span>Útboð næststærsta sveitarfélags landsins.</span></a>
+      <a class="um-card" href="https://www.hafnarfjordur.is/stjornsysla/stjornkerfi/utbod/" target="_blank" rel="noopener"><b>🏘️ Hafnarfjörður</b><span>Útboð Hafnarfjarðarkaupstaðar.</span></a>
+      <a class="um-card" href="https://ted.europa.eu/en/search/result?place-of-performance=ISL" target="_blank" rel="noopener"><b>🇪🇺 TED — öll skjöl</b><span>Fullt viðmót ESB-safnsins: forauglýsingar, niðurstöður og samningar, ekki bara virk útboð.</span></a>
     </div>
 
-    <div class="ut-pro">⭐ <b>Fáðu útboðin í tölvupósti:</b> skráðu leitarorð (t.d. „jarðvinna", „hugbúnaður") í <a href="/vaktir/">leitarorðavaktina</a> — innskráðir fá daglegan póst þegar ný útboð nefna orðin. Hluti af <a href="/karp-pro/">Karp Pro</a> (ókeypis).</div>
-
-    <p class="foot">Forþjónað (SSG) {updated}. Lifandi safn: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu um veitur Karp. Aðrar gáttir eru beinir hlekkir (bot-varðar eða án opins gagnastraums). Ábendingar um fleiri útboðsvefi: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #4 LOTA 21+24.</p>
+    <p class="foot">Forþjónað (SSG). Útboðasafn uppfært daglega {updated}. Grunngögn: utbodsvefur.is (Ríkiskaup), api.ted.europa.eu, faxafloahafnir.is, landsvirkjun.is — sótt af build_utbod.js. Ábendingar um fleiri gáttir: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #1 LOTA 25.</p>
   </main>
 
   <style>
-    main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
-    .ut-bar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
-    #ut-q { flex: 1; min-width: 240px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 11px; padding: 10px 14px; color: #eaf1fb; font-size: 14px; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    .ut-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 4px; }
+    @media (max-width: 640px) { .ut-stats { grid-template-columns: 1fr 1fr; } }
+    .us-c { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; text-align: center; }
+    .us-c b { display: block; font-size: 24px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .us-c span { font-size: 11px; color: #7e8ca6; }
+    .ut-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+    #ut-q { flex: 1; min-width: 220px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 11px; padding: 10px 14px; color: #eaf1fb; font-size: 14px; }
     #ut-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    .ut-srcs { display: flex; gap: 12px; }
-    .ut-src { font-size: 13px; color: #cdd6e6; display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
-    .ut-count { font-size: 12px; color: #7e8ca6; margin: 10px 0 6px; }
-    .ut-pro { margin-top: 24px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 12px 16px; font-size: 13.5px; color: #cdd6e6; }
+    #ut-sort { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 11px; padding: 10px 12px; color: #cdd6e6; font-size: 13px; }
+    .ut-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .uc { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 4px 11px; font-size: 11.5px; cursor: pointer; }
+    .uc.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
+    .ut-srcs { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 10px; }
+    .us-l { font-size: 11px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; }
+    .ut-src { font-size: 12.5px; color: #cdd6e6; display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+    .ut-count { font-size: 12px; color: #7e8ca6; margin: 12px 0 6px; }
+    .ut-pro { margin-top: 22px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 12px 16px; font-size: 13.5px; color: #cdd6e6; }
     .ut-pro a { color: #f6b13b; }
     .ut-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
     .um-card { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 13px 15px; text-decoration: none; }
     .um-card:hover { border-color: rgba(246,177,59,.45); }
     .um-card b { display: block; color: #eaf1fb; font-size: 14px; margin-bottom: 4px; }
     .um-card span { font-size: 12px; color: #9fb0c8; line-height: 1.5; }
-    .ut-dir-intro { font-size: 13px; color: #9fb0c8; margin: 2px 0 12px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
   </style>
   <style is:global>
-    /* runtime-DOM listi → global */
-    .ut-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; color: #9fb0c8; }
+    /* runtime-DOM útboðslisti → global */
+    .ut-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
     @media (max-width: 820px) { .ut-list { grid-template-columns: 1fr; } }
-    .ut-it { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; text-decoration: none; }
+    .ut-it { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; text-decoration: none; }
     .ut-it:hover { border-color: rgba(246,177,59,.45); }
     .ut-it.hit { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.05); }
+    .ut-it .cat { font-size: 15px; margin-right: 4px; }
     .ut-t { display: block; font-size: 13.5px; color: #eaf1fb; line-height: 1.35; }
-    .ut-s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 4px; }
+    .ut-m { display: block; font-size: 11px; color: #7e8ca6; margin-top: 5px; }
+    .ut-m .by { color: #9fb0c8; }
     .ut-badge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 1px 7px; margin-right: 6px; vertical-align: 1px; }
     .ut-badge.rk { background: rgba(66,208,134,.14); color: #42d086; }
     .ut-badge.ted { background: rgba(58,160,255,.14); color: #3aa0ff; }
+    .ut-badge.fax { background: rgba(124,92,255,.14); color: #9d86ff; }
+    .ut-badge.lv { background: rgba(246,177,59,.14); color: #f6b13b; }
     .ut-new { color: #f6b13b; font-weight: 700; }
+    .ut-soon { color: #ff8a3d; font-weight: 700; }
+    .ut-past { color: #e0655f; }
   </style>
 
   <script>
+    import UTBOD_DATA from '@gogn/utbod.json';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+    const daysTo = (d) => { if (!d) return null; const t = Date.parse(d + 'T23:59:59'); if (isNaN(t)) return null; return Math.ceil((t - Date.now()) / 86400000); };
+
     function initUtbod() {
       const list = document.getElementById('ut-list');
       if (!list || list.dataset.done) return;
       list.dataset.done = '1';
-      let ITEMS = [];
-      const lvWords = () => { try { return JSON.parse(localStorage.getItem('karp-leitvakt') || '[]').map((w) => String(w).toLowerCase()); } catch (e) { return []; } };
-      const today = new Date().toISOString().slice(0, 10);
-      const paint = () => {
-        const q = (document.getElementById('ut-q').value || '').toLowerCase().trim();
-        const on = {};
-        document.querySelectorAll('.ut-src input').forEach((c) => { on[c.dataset.src] = c.checked; });
-        const words = lvWords();
-        const rows = ITEMS.filter((x) => on[x.src] && (!q || x.t.toLowerCase().includes(q)));
-        document.getElementById('ut-count').textContent = rows.length + ' útboð' + (q ? ` · leit: „${q}“` : '') + (words.length ? ` · leitarorðin þín upplýst (${words.length})` : '');
-        list.innerHTML = rows.length ? rows.map((x) => {
-          const hit = words.some((w) => w && x.t.toLowerCase().includes(w));
-          const isNew = (x.d || '').slice(0, 10) === today;
-          return `<a class="ut-it${hit ? ' hit' : ''}" href="${safe(x.u)}" target="_blank" rel="noopener"><span class="ut-t"><span class="ut-badge ${x.src}">${x.src === 'rk' ? 'Útboðsvefur' : 'TED'}</span>${esc(x.t)}</span><span class="ut-s">${isNew ? '<span class="ut-new">NÝTT Í DAG · </span>' : ''}${dIS(x.d)}${x.nr ? ' · ' + esc(x.nr) : ''}</span></a>`;
-        }).join('') : '<div style="grid-column:1/-1;color:#7e8ca6">Ekkert útboð passar við leitina.</div>';
+      const CATS = UTBOD_DATA.cats || {};
+      let ITEMS = (UTBOD_DATA.tenders || []).slice();
+      let cat = '', sort = 'new';
+      const lvWords = () => { try { return JSON.parse(localStorage.getItem('karp-leitvakt') || '[]').map((w) => String(w).toLowerCase()).filter(Boolean); } catch (e) { return []; } };
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      // Lifandi ferskleiki: /api/utbod (Útboðsvefur) ofan á bakaða safnið — merkja NÝTT
+      fetch('/api/utbod').then((r) => (r.ok ? r.json() : null)).then((posts) => {
+        if (!Array.isArray(posts)) return;
+        const have = new Set(ITEMS.filter((x) => x.src === 'rk').map((x) => x.t.toLowerCase().slice(0, 50)));
+        const fresh = posts.map((p) => ({ src: 'rk', buyer: 'Ríkiskaup / Útboðsvefur', t: ((p.title || {}).rendered || '').replace(/&#(\d+);/g, (m, c) => String.fromCharCode(+c)).replace(/&amp;/g, '&'), u: p.link, d: (p.date || '').slice(0, 10), deadline: null, cat: 'annad' }))
+          .filter((x) => x.t && !have.has(x.t.toLowerCase().slice(0, 50)));
+        if (fresh.length) { ITEMS = fresh.concat(ITEMS); paint(); }
+      }).catch(() => {});
+
+      const stat = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      const refreshStats = () => {
+        stat('us-soon', ITEMS.filter((x) => { const dt = daysTo(x.deadline); return dt != null && dt >= 0 && dt <= 14; }).length || '0');
+        stat('us-new', ITEMS.filter((x) => (x.d || '') === todayStr).length || '0');
+        stat('us-n', ITEMS.length);
       };
-      Promise.allSettled([
-        fetch('/api/utbod').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/ted').then((r) => (r.ok ? r.json() : null)),
-      ]).then(([rk, ted]) => {
-        const a = [];
-        if (Array.isArray(rk.value)) rk.value.forEach((p) => a.push({ src: 'rk', t: ((p.title || {}).rendered || '').replace(/&#\d+;/g, (m) => String.fromCharCode(+m.slice(2, -1))), u: p.link, d: p.date }));
-        const ns = ((ted.value || {}).notices) || [];
-        ns.forEach((x) => { const tt = x['notice-title']; a.push({ src: 'ted', t: typeof tt === 'object' ? (tt.isl || tt.eng || Object.values(tt)[0] || '') : (tt || ''), u: 'https://ted.europa.eu/en/notice/-/detail/' + (x['publication-number'] || ''), d: x['publication-date'], nr: 'TED ' + (x['publication-number'] || '') }); });
-        a.sort((x, y) => String(y.d || '').localeCompare(String(x.d || '')));
-        ITEMS = a.filter((x) => x.t);
-        if (!ITEMS.length) { list.textContent = 'Útboðin birtast þegar veiturnar svara (proxy í dreifingu).'; return; }
-        paint();
-      });
+
+      function paint() {
+        refreshStats();
+        const q = (document.getElementById('ut-q').value || '').toLowerCase().trim();
+        const on = {}; document.querySelectorAll('#ut-srcs input').forEach((c) => { on[c.dataset.src] = c.checked; });
+        const words = lvWords();
+        let rows = ITEMS.filter((x) => on[x.src] !== false && (!cat || x.cat === cat) && (!q || (x.t + ' ' + (x.buyer || '')).toLowerCase().includes(q)));
+        if (sort === 'deadline') {
+          rows = rows.slice().sort((a, b) => { const da = daysTo(a.deadline), db = daysTo(b.deadline); if (da == null && db == null) return 0; if (da == null) return 1; if (db == null) return -1; return da - db; });
+        }
+        document.getElementById('ut-count').textContent = rows.length + ' útboð' + (cat ? ` · ${(CATS[cat] || [cat])[0]}` : '') + (q ? ` · leit: „${q}“` : '') + (words.length ? ` · ${words.length} leitarorð þín upplýst` : '');
+        list.innerHTML = rows.length ? rows.map((x) => {
+          const hit = words.some((w) => (x.t + ' ' + (x.buyer || '')).toLowerCase().includes(w));
+          const isNew = (x.d || '') === todayStr;
+          const dt = daysTo(x.deadline);
+          let dl = '';
+          if (x.deadline) {
+            if (dt != null && dt < 0) dl = `<span class="ut-past">frestur liðinn (${dIS(x.deadline)})</span>`;
+            else if (dt != null && dt <= 14) dl = `<span class="ut-soon">⏳ lokar eftir ${dt} d (${dIS(x.deadline)})</span>`;
+            else dl = `frestur ${dIS(x.deadline)}`;
+          }
+          const cm = CATS[x.cat] || ['', '📦'];
+          const parts = [isNew ? '<span class="ut-new">NÝTT Í DAG</span>' : '', dl, x.buyer ? `<span class="by">${esc(x.buyer)}</span>` : '', x.d && !dl ? 'birt ' + dIS(x.d) : ''].filter(Boolean);
+          return `<a class="ut-it${hit ? ' hit' : ''}" href="${safe(x.u)}" target="_blank" rel="noopener"><span class="ut-t"><span class="ut-badge ${x.src}">${esc((({rk:'Útboðsvefur',ted:'TED',fax:'Faxafl.',lv:'Landsv.'})[x.src]) || x.src)}</span><span class="cat" title="${esc(cm[0])}">${cm[1]}</span>${esc(x.t)}</span><span class="ut-m">${parts.join(' · ')}</span></a>`;
+        }).join('') : '<div style="grid-column:1/-1;color:#7e8ca6">Ekkert útboð passar við leitina — prófaðu annan flokk eða leitarorð.</div>';
+      }
+
       document.getElementById('ut-q').addEventListener('input', paint);
-      document.querySelectorAll('.ut-src input').forEach((c) => c.addEventListener('change', paint));
+      document.getElementById('ut-sort').addEventListener('change', (e) => { sort = e.target.value; paint(); });
+      document.querySelectorAll('#ut-srcs input').forEach((c) => c.addEventListener('change', paint));
+      document.querySelectorAll('#ut-cats .uc').forEach((b) => b.addEventListener('click', () => {
+        document.querySelectorAll('#ut-cats .uc').forEach((x) => x.classList.toggle('on', x === b));
+        cat = b.dataset.c || ''; paint();
+      }));
+      paint();
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="utbod"]')) initUtbod(); });
   </script>

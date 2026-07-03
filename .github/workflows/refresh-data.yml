@@ -60,6 +60,7 @@ jobs:
           node skriptur/build_raunvirdi.js      || true
           node skriptur/build_sveitarstjorar.js || true
           node skriptur/build_sendirad.js       || true
+          node skriptur/build_utbod.js          || true
       - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo)
         run: |
           node skriptur/build_fasteignir.js   || true
