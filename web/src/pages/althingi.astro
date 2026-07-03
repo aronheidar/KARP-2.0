@@ -100,9 +100,9 @@ const BILLS_GO = FRUMVORP
 const BILLS_DONE = BILLS_GO.length >= 22 ? [] : FRUMVORP
   .filter((b) => /samþykkt|fell/i.test(b.stada || '') && notProc(b))
   .sort(byDate).slice(0, 22 - BILLS_GO.length).map(mapBill);
-// Innri tengill opnar atkvæða-gluggann á /thingmal/ (LOTA 13 — „sjá hvernig var kosið");
-// mál utan þingmála-listans (önnur skjalategund) fá ferilinn á althingi.is.
-const billUrl = (b) => (b.int ? `/thingmal/?nr=${b.nr}` : `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=${b.nr}`);
+// LOTA 22: ÖLL mál opna upplýsingaglugga á /thingmal/ (?nr=) — glugginn sýnir
+// atkvæði sé málið bakað, annars grunnupplýsingar + ferilshlekk á althingi.is.
+const billUrl = (b) => `/thingmal/?nr=${b.nr}`;
 const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
 // Stefnuprófs-spurningar (sama smíði og Mitt svæði) → ÞÚ-punktur á pólitíska kortið (LOTA 15b)

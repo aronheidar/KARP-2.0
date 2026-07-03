@@ -61,13 +61,15 @@ export async function karpPost(path, body) {
 // Chip-stílar sprautaðir héðan (ekki úr .astro <style>) því chip-HTML er búið til á
 // keyrslutíma → Astro-scoped CSS næði ekki til þess. Þannig virkar chip á HVAÐA síðu sem er.
 const CHIP_CSS = '.chip a{text-decoration:none}'
+  // LOTA 22: chip-inn helst innan rammans — avatar klemmdur, nafnið á EINNI línu m. ellipsis
+  + '.chip{flex-wrap:nowrap!important;min-width:0}'
   + '.kc-in{color:#06121a;background:#f6b13b;padding:5px 12px;border-radius:8px;font-weight:700}'
   + '.kc-reg{color:#cdd6e6;padding:5px 8px}'
-  + '.kc-prof{display:flex;align-items:center;gap:7px;color:#eaf1fb}'
-  + '.kc-av{border-radius:50%;object-fit:cover}'
-  + '.kc-ini{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:#1f6feb;color:#fff;font-weight:700;font-size:13px}'
-  + '.kc-name{font-weight:600}'
-  + '.kc-out{color:#7e8ca6;font-size:16px;padding:0 4px;text-decoration:none}';
+  + '.kc-prof{display:flex;align-items:center;gap:7px;color:#eaf1fb;min-width:0;flex:1}'
+  + '.kc-av{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none}'
+  + '.kc-ini{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:#1f6feb;color:#fff;font-weight:700;font-size:13px;flex:none}'
+  + '.kc-name{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}'
+  + '.kc-out{color:#7e8ca6;font-size:16px;padding:0 4px;text-decoration:none;flex:none}';
 function injectChipCss() {
   if (typeof document === 'undefined' || document.getElementById('karp-chip-css')) return;
   const s = document.createElement('style');

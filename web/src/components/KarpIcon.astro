@@ -1,0 +1,39 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🐟 KARP-ÍKONIN (LOTA 22) — nav-íkon í sama stíl og gyllti karpinn:
+//   torfa = þrír fiskar á sundi (Samfélag)
+//   pro   = karpinn með stjörnu (Karp Pro)
+//   bua   = fiskabúrið (Mitt svæði)
+// Allir fiskar horfa til HÆGRI eins og aðalmerkið.
+// ─────────────────────────────────────────────────────────────
+const { type = 'pro', size = 18 } = Astro.props;
+---
+{type === 'torfa' && (
+  <svg class="karpicon" width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g fill="#f6b13b">
+      <path d="M2 7.2 L5.2 5 Q4 7.2 5.2 9.4 Z" fill="#c98a26"/><ellipse cx="9.4" cy="7.2" rx="4.6" ry="2.9"/><circle cx="11.6" cy="6.4" r=".75" fill="#0b1220"/>
+      <path d="M9 16.8 L12.2 14.6 Q11 16.8 12.2 19 Z" fill="#c98a26"/><ellipse cx="16.4" cy="16.8" rx="4.6" ry="2.9"/><circle cx="18.6" cy="16" r=".75" fill="#0b1220"/>
+      <g opacity=".62"><path d="M13.5 3.6 L15.6 2.2 Q14.9 3.6 15.6 5 Z" fill="#c98a26"/><ellipse cx="18.4" cy="3.6" rx="3" ry="1.9"/><circle cx="19.9" cy="3.1" r=".55" fill="#0b1220"/></g>
+    </g>
+  </svg>
+)}
+{type === 'pro' && (
+  <svg class="karpicon" width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M18.2 1.2 l1.05 2.13 2.35.34-1.7 1.66.4 2.34-2.1-1.1-2.1 1.1.4-2.34-1.7-1.66 2.35-.34 Z" fill="#f6b13b"/>
+    <path d="M2 14.5 L6.4 11.4 Q4.8 14.5 6.4 17.6 Z" fill="#c98a26"/>
+    <path d="M10.5 10.6 Q13 8.2 15.5 10.4 L13.6 12 Q12 11 11.3 11.7 Z" fill="#c98a26"/>
+    <ellipse cx="12.5" cy="14.5" rx="6.4" ry="4" fill="#f6b13b"/>
+    <circle cx="15.6" cy="13.3" r="1.05" fill="#0b1220"/>
+    <path d="M18.2 16.1 q-.9.75-1.9.55" fill="none" stroke="#0b1220" stroke-width=".8" stroke-linecap="round"/>
+  </svg>
+)}
+{type === 'bua' && (
+  <svg class="karpicon" width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M5.2 4.5 h13.6 q-1.3 2.2-1.3 3.4 a8 8 0 1 1 -11 0 q0-1.2-1.3-3.4 Z" fill="none" stroke="#8fa0b8" stroke-width="1.5"/>
+    <path d="M4.9 10.4 q3.5 1.5 7.1 0 t7.1 0" fill="none" stroke="#7fd0ff" stroke-width="1.1" opacity=".8"/>
+    <path d="M7.4 15.3 L10.3 13.2 Q9.2 15.3 10.3 17.4 Z" fill="#c98a26"/>
+    <ellipse cx="13.6" cy="15.3" rx="3.8" ry="2.4" fill="#f6b13b"/>
+    <circle cx="15.5" cy="14.6" r=".7" fill="#0b1220"/>
+    <circle cx="16.9" cy="11.6" r=".7" fill="none" stroke="#7fd0ff" stroke-width=".7" opacity=".8"/>
+  </svg>
+)}

@@ -3,14 +3,15 @@
 // #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
 import { ClientRouter } from 'astro:transitions';
 import KarpFish from '../components/KarpFish.astro';
+import KarpIcon from '../components/KarpIcon.astro';
 const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
-  { href: '/mitt-svaedi/', label: 'Mitt svæði', emoji: '⭐' },
+  { href: '/mitt-svaedi/', label: 'Mitt svæði', emoji: '⭐', icon: 'bua' },
   { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
   { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
-  { label: 'Karp Pro', emoji: '⭐', items: [
+  { label: 'Karp Pro', emoji: '⭐', icon: 'pro', items: [
     { href: '/frettir/', label: 'Vöktun & umfjöllun' },
     { href: '/greining/', label: 'Fjölmiðlagreining' },
     { href: '/utbod/', label: 'Útboðsvaktin' },
@@ -75,7 +76,7 @@ const NAV = [
     { href: '/atvinnuvegir/hugverk/', label: 'Hugverk & tækni' },
     { href: '/audlindir/', label: 'Auðlindir' },
   ] },
-  { label: 'Samfélag', emoji: '👥', items: [
+  { label: 'Samfélag', emoji: '👥', icon: 'torfa', items: [
     { href: '/mannfjoldi/', label: 'Mannfjöldi' },
     { href: '/menntun/', label: 'Menntun' },
     { href: '/afbrot/', label: 'Afbrot og öryggi' },
@@ -121,7 +122,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .nav-a { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:9px; text-decoration:none; color:var(--muted); font-weight:600; font-size:14px; }
       .nav-a:hover { background:var(--panel); color:var(--ink); }
       .nav-a.on { background:rgba(246,177,59,.12); color:var(--gold); }
-      .nav-e { font-size:16px; width:20px; text-align:center; }
+      .nav-e { font-size:16px; width:20px; text-align:center; display:inline-flex; align-items:center; justify-content:center; }
+      .nav-e .karpicon { display:block; }
       /* Accordion-hópar (eins og gamla): summary = hópahaus, ▸ snýst þegar opið */
       .ng { margin:0; }
       .ng-s { list-style:none; cursor:pointer; user-select:none; position:relative; }
@@ -213,7 +215,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <nav>
           {NAV.map((n) => n.items ? (
             <details class="ng" open={groupOpen(n)}>
-              <summary class="nav-a ng-s"><span class="nav-e">{n.emoji}</span>{n.label}<span class="ng-c">▸</span></summary>
+              <summary class="nav-a ng-s"><span class="nav-e">{n.icon ? <KarpIcon type={n.icon} /> : n.emoji}</span>{n.label}<span class="ng-c">▸</span></summary>
               <div class="ng-i">
                 {n.items.map((it) => it.sub
                   ? <div class="ng-sub">{it.sub}</div>
@@ -222,10 +224,10 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
               </div>
             </details>
           ) : (
-            <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.emoji}</span>{n.label}</a>
+            <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.icon ? <KarpIcon type={n.icon} /> : n.emoji}</span>{n.label}</a>
           ))}
         </nav>
-        <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/spyrdu/">🤖 Spyrðu Karp</a><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
+        <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
       </aside>
 
       <div class="content"><slot /></div>

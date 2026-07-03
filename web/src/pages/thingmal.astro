@@ -43,6 +43,46 @@ bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: 
 const ATKVMAP = {};
 bills.forEach((b) => { const rc = (ATKV.mal || {})[b.key.slice(4)]; if (rc) ATKVMAP[b.key] = rc; });
 
+// Áhrifasvið (LOTA 22, portað úr gamla kerfinu): heuristic-flokkun á titli+tegund.
+// Ritstjórnarleg lykilorðaflokkun — mál getur átt fleiri en eitt svið, fyrsta treff gildir.
+const AREAS = {
+  skattar: ['Skattar & gjöld', '💰'], husnaedi: ['Húsnæði', '🏠'], heilbr: ['Heilbrigði', '🏥'],
+  mennt: ['Menntun', '🎓'], umhverfi: ['Umhverfi & orka', '🌱'], samg: ['Samgöngur & innviðir', '🛣️'],
+  sjavar: ['Sjávarútvegur', '🐟'], landb: ['Landbúnaður', '🚜'], velferd: ['Velferð & tryggingar', '🤝'],
+  doms: ['Dómsmál & réttarfar', '⚖️'], utl: ['Útlendingamál', '🌍'], vinna: ['Vinnumarkaður', '👷'],
+  rikisfj: ['Ríkisfjármál', '🏛️'], born: ['Börn & fjölskyldur', '🧒'], atv: ['Atvinnulíf & nýsköpun', '🏭'],
+  utanr: ['Utanríkismál', '🌐'], menning: ['Menning & fjölmiðlar', '🎭'], stj: ['Stjórnsýsla', '📋'],
+};
+const AREAKW = [
+  ['skattar', /skatt|virðisauk|stimpilgj|tollal|tolla|bifreiðagj|fjársýsl|tryggingagj|vörugj/],
+  ['husnaedi', /húsnæð|íbúð|leigj|leigu|byggingarl|skipulagsm|fasteign|mannvirk|jarðakaup/],
+  ['heilbr', /heilbrigð|sjúkra|lyfja|lækni|heilsugæsl|geðheil|sjúkling|sóttvarn|talmein|lýðheils|endurhæf/],
+  ['mennt', /skóla|skóli|mennt|námslán|háskól|leikskól|framhaldsskól|nemend|kennar/],
+  ['umhverfi', /umhverfi|loftslag|orku|orka|náttúr|mengun|úrgang|friðlýs|jarðhit|virkjun|raforku|vatnalög/],
+  ['samg', /samgöng|vegal|umferð|innvið|hafnir|hafna|flugvöll|almenningssamg|skipalög|siglinga|fjarskipt|póstþj/],
+  ['sjavar', /fisk|sjávarútveg|veiðig|veiðar|kvóta|hafrann|fiskeldi|makríl|hvalveið/],
+  ['landb', /landbúnað|bænd|búvör|sauðfj|matvæl|jarðræk|bújarð|dýravelferð|dýrasjúk/],
+  ['velferd', /almannatrygg|lífeyri|örorku|ellilíf|félagsleg|félagsþjón|öryrkj|eftirlaun|bótum|bætur|fatlað|fötlun|jafnrétt|kynja|jöfn staða|jafn rétt|aðstoð/],
+  ['doms', /dómstól|refsi|sakamál|lögregl|hegningarl|réttarfar|fang|nálgunarbann|sýslumað|fullnustu|gjaldþrot|lögmenn/],
+  ['utl', /útlending|hælis|innflytj|alþjóðlega vernd|ríkisborgar|brottfarar|brottvís|vegabréf|áritan|schengen/],
+  ['vinna', /vinnumarkað|kjarasamn|stéttarfélag|launa|verkföll|atvinnuleysistr|vinnuvernd|orlof|vinnuviku/],
+  ['rikisfj', /fjárlög|fjáraukalög|ríkisreikning|lánasýsl|ríkisábyrgð|fjármálastefn|fjármálaáætl|tekjuöfl|seðlabank/],
+  ['born', /barna|börn|barni/],
+  ['atv', /atvinnuveg|iðnað|nýsköpun|ferðaþjón|samkeppni|fyrirtækj|verslun|hugverk|fjárfesting|markaðss|neytenda|veitingast|gistist|hópfjármögn|þjónustuveit|faggild|staðla/],
+  ['utanr', /utanríkis|evrópusamband|ees-samning|schengen|varnarmál|varnar- og öryggis|landhelgi|landgrunn|vestnorræn|þróunarsamvinn|fríverslun/],
+  ['menning', /menning|fjölmiðl|þjóðfáni|ríkisskjaldarmerk|íþrótt|listir|þjóðkirkj|kirkjugarð|trúfélag/],
+  ['stj', /stjórnarskrá|sveitarstjórn|kosning|þingsköp|persónuvernd|stjórnsýsl|upplýsingal|þingfund|afbrigði|dagskrá|frestun|þjóðkjör|embættism/],
+];
+bills.forEach((b) => {
+  const s = ((b.titill || '') + ' ' + (b.teg || '')).toLowerCase();
+  const hit = AREAKW.find(([, rx]) => rx.test(s));
+  b.cat = hit ? hit[0] : 'annad';
+});
+const CATCOUNTS = {};
+bills.forEach((b) => { CATCOUNTS[b.cat] = (CATCOUNTS[b.cat] || 0) + 1; });
+const CATCHIPS = Object.entries(AREAS).filter(([k]) => CATCOUNTS[k]).map(([k, [label, e]]) => ({ k, label, e, n: CATCOUNTS[k] }));
+if (CATCOUNTS.annad) CATCHIPS.push({ k: 'annad', label: 'Annað', e: '📄', n: CATCOUNTS.annad });
+
 const updated = '2026-07-01';
 const nPassed = bills.filter((b) => b.passed).length;
 const desc = `Nýjustu ${bills.length} þingmál á Alþingi — frumvörp og þingsályktunartillögur með atkvæðagreiðslu, niðurstöðu og samantekt. Kjóstu þína eigin skoðun á hverju máli.`;
@@ -85,9 +125,17 @@ const jsonLd = {
       <div id="lm-list" class="lm-grid"></div>
     </div>
 
+    <div class="bt-bar">
+      <input id="bt-q" type="search" placeholder="Leita í þingmálum… (t.d. „veiðigjald“, „húsnæði“)" autocomplete="off" />
+    </div>
+    <div class="bt-cats" id="bt-cats">
+      <button class="btc on" data-c="">Öll svið · {bills.length}</button>
+      {CATCHIPS.map((c) => <button class="btc" data-c={c.k}>{c.e} {c.label} · {c.n}</button>)}
+    </div>
+
     <div class="bills">
       {bills.map((b) => (
-        <article class="bill">
+        <article class="bill" data-cat={b.cat} data-q={(b.titill + ' ' + (b.sam || '')).toLowerCase()}>
           <div class="b-top">
             <span class={`badge ${b.isFrv ? 'frv' : 'till'}`}>{b.type}</span>
             <span class="b-date">{b.d}</span>
@@ -138,6 +186,13 @@ const jsonLd = {
     .lm-sub { font-size: 11px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px; }
     .lm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
     @media (max-width: 860px) { .lm-grid { grid-template-columns: 1fr; } }
+    .bt-bar { margin: 14px 0 8px; }
+    #bt-q { width: min(420px, 100%); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 13px; color: #eaf1fb; font-size: 13.5px; }
+    #bt-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .bt-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .btc { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 4px 11px; font-size: 11.5px; cursor: pointer; }
+    .btc.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
+    .bill[data-hide] { display: none; }
     .bills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 860px) { .bills { grid-template-columns: 1fr; } }
     .bill { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
@@ -191,6 +246,8 @@ const jsonLd = {
     .bm-g[open] summary { border-bottom: 1px solid rgba(255,255,255,.07); }
     .bm-g.g-ja summary { color: #42d086; } .bm-g.g-nei summary { color: #e0655f; }
     .bm-g .bm-names { padding: 8px 11px; font-size: 12px; line-height: 1.7; color: #9fb0c8; }
+    .bm-ferill { display: inline-block; background: rgba(246,177,59,.12); border: 1px solid rgba(246,177,59,.4); color: #f6b13b; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .bm-ferill:hover { background: rgba(246,177,59,.2); }
     .bm-res { font-size: 13px; margin-bottom: 12px; }
     .bm-res .yes { color: #46e08a; font-weight: 700; } .bm-res .neu { color: #9fb0c8; font-weight: 700; }
     .bm-ph { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; margin: 10px 0 6px; }
@@ -305,12 +362,64 @@ const jsonLd = {
         el.onclick = go;
         el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
       });
-      // Djúptengill af þingsals-síðunni (LOTA 13): /thingmal/?nr=X → atkvæða-glugginn opnast
+      // Djúptengill af þingsals-síðunni (LOTA 13): /thingmal/?nr=X → atkvæða-glugginn opnast.
+      // LOTA 22: sé málið EKKI í bökuðu skránni (t.d. glænýtt) → grunnglugginn samt.
       const nr = new URLSearchParams(location.search).get('nr');
       if (nr && /^\d+$/.test(nr)) {
-        bmOpen('mal_' + nr);
+        let B2 = {};
+        try { B2 = JSON.parse((document.getElementById('d-bills') || {}).textContent || '{}'); } catch (e) {}
+        if (B2['mal_' + nr]) bmOpen('mal_' + nr); else bmOpenBasic({ nr: +nr });
         try { history.replaceState(null, '', location.pathname); } catch (e) {}
       }
+      initBillFilter();
+    }
+    // LOTA 22: grunnupplýsinga-gluggi fyrir mál án bakaðra atkvæða (LIVE/ný mál).
+    // Sækir heiti/tegund úr lifandi XML-listanum sé það ekki meðsent.
+    function bmOpenBasic(d) {
+      const m = document.getElementById('bill-modal');
+      if (!m) return;
+      if (m.parentElement !== document.body) document.body.appendChild(m);
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const ferill = d.html && /^https?:/.test(d.html) ? d.html : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + d.nr;
+      const paint = (x) => {
+        document.getElementById('bm-body').innerHTML =
+          `<div class="bm-type">🔴 Í meðferð þingsins${x.teg ? ' · ' + esc(x.teg) : ''} · mál nr. ${esc(x.nr)}</div>`
+          + `<div class="bm-t">${esc(x.heiti || 'Þingmál nr. ' + x.nr)}</div>`
+          + `<div class="bm-sam">Málið er í vinnslu á Alþingi — atkvæðagreiðsla og samantekt birtast hér um leið og þær liggja fyrir (gögnin bakast daglega).</div>`
+          + `<div class="bm-ph">Ferill málsins</div>`
+          + `<a class="bm-ferill" href="${esc(ferill)}" target="_blank" rel="noopener">📜 Skjöl, umræður og staða á althingi.is ↗</a>`;
+        m.hidden = false;
+      };
+      if (d.heiti) { paint(d); return; }
+      paint(d); // strax skel, svo auðgun úr lifandi listanum
+      fetch('/api/thingmal').then((r) => (r.ok ? r.text() : null)).then((xml) => {
+        if (!xml || xml[0] === '{') return;
+        const doc = new DOMParser().parseFromString(xml, 'text/xml');
+        const el = [...doc.querySelectorAll('mál')].find((x) => +(x.getAttribute('málsnúmer') || 0) === +d.nr);
+        if (el) paint({ nr: d.nr, heiti: (el.querySelector('málsheiti') || {}).textContent || '', teg: (el.querySelector('málstegund heiti, málstegund') || {}).textContent || '', html: (el.querySelector('html') || {}).textContent || '' });
+      }).catch(() => {});
+    }
+    window.bmOpenBasic = bmOpenBasic;
+    // LOTA 22: leit + áhrifasviðs-síur á bökuðu málin
+    function initBillFilter() {
+      const q = document.getElementById('bt-q');
+      const row = document.getElementById('bt-cats');
+      if (!q || !row || q.dataset.done) return;
+      q.dataset.done = '1';
+      let cat = '';
+      const apply = () => {
+        const s = q.value.trim().toLowerCase();
+        document.querySelectorAll('.bill').forEach((el) => {
+          const ok = (!cat || el.dataset.cat === cat) && (!s || (el.dataset.q || '').includes(s));
+          if (ok) el.removeAttribute('data-hide'); else el.setAttribute('data-hide', '');
+        });
+      };
+      q.addEventListener('input', apply);
+      row.querySelectorAll('.btc').forEach((b) => b.addEventListener('click', () => {
+        row.querySelectorAll('.btc').forEach((x) => x.classList.toggle('on', x === b));
+        cat = b.dataset.c || '';
+        apply();
+      }));
     }
     // 🔴 LIVE-mál af Alþingi um worker-proxy (LOTA 15b). Felur sig ef proxy vantar.
     function initLiveMal() {
@@ -333,11 +442,17 @@ const jsonLd = {
           items.sort((a, b) => b.nr - a.nr);
           // LOTA 18 #9: sé LIVE-málið líka í bökuðu skránni (atkvæði til) → „Atkvæði ↓"-flaga
           // sem skrunar á spjald málsins hér á síðunni í stað þess að opna althingi.is.
-          document.getElementById('lm-list').innerHTML = items.slice(0, 10).map((x) => {
+          // LOTA 22: smellur opnar upplýsingaglugga HÉR (ferillinn er hlekkur inni í honum)
+          document.getElementById('lm-list').innerHTML = items.slice(0, 10).map((x, i) => {
             const local = document.querySelector('[data-bkey="mal_' + x.nr + '"]');
             const votes = local ? '<button class="lm-v" data-nr="' + x.nr + '">🗳️ Atkvæði ↓</button>' : '';
-            return '<a class="lm-it" href="' + (x.html && /^https?:/.test(x.html) ? esc2(x.html) : 'https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=157&mnr=' + x.nr) + '" target="_blank" rel="noopener"><span class="lm-t">' + esc2(x.heiti) + '</span><span class="lm-m">Mál nr. ' + x.nr + (x.teg ? ' · ' + esc2(x.teg.trim()) : '') + votes + '</span></a>';
+            return '<a class="lm-it" href="#" data-i="' + i + '"><span class="lm-t">' + esc2(x.heiti) + '</span><span class="lm-m">Mál nr. ' + x.nr + (x.teg ? ' · ' + esc2(x.teg.trim()) : '') + votes + '</span></a>';
           }).join('');
+          document.querySelectorAll('#lm-list .lm-it').forEach((a) => a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const x = items[+a.dataset.i];
+            if (x && window.bmOpenBasic) window.bmOpenBasic(x);
+          }));
           document.querySelectorAll('.lm-v').forEach((b) => b.addEventListener('click', (e) => {
             e.preventDefault(); e.stopPropagation();
             const t = document.querySelector('[data-bkey="mal_' + b.dataset.nr + '"]');
