@@ -77,7 +77,6 @@ const NAV = [
     { href: '/audlindir/', label: 'Auðlindir' },
   ] },
   { label: 'Samfélag', emoji: '👥', icon: 'torfa', items: [
-    { href: '/frettavel/', label: 'Fréttavélin' },
     { href: '/mannfjoldi/', label: 'Mannfjöldi' },
     { href: '/menntun/', label: 'Menntun' },
     { href: '/afbrot/', label: 'Afbrot og öryggi' },
@@ -255,6 +254,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <div class="news-h">📰 Fréttir</div>
         <div class="news-cats" id="news-cats">
           <button class="nc on" data-e="">Allt</button>
+          <button class="nc" data-e="__karp" title="Karp-fréttir — skrifaðar sjálfvirkt úr gögnunum">🐟</button>
           <button class="nc" data-e="efnahagur">💹</button>
           <button class="nc" data-e="stjornmal">🏛️</button>
           <button class="nc" data-e="sveitarfelog">🏘️</button>
@@ -279,9 +279,11 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       let newsEfni = '';
       try { newsEfni = localStorage.getItem('karp-rail-efni') || ''; } catch (e) {}
 
+      // Innri slóðir (Karp-fréttir) opnast í sama glugga; ytri veitur í nýjum.
+      const railHref = (u) => (/^\/[a-z0-9\-_/#?=.%]*$/i.test(String(u || '')) ? String(u) : safeHref(u));
       const renderNews = (arr) =>
         arr.length
-          ? arr.slice(0, 14).map((it) => `<a class="news-item" href="${esc(safeHref(it.link))}" target="_blank" rel="noopener"><span class="news-t">${esc(it.title)}</span><span class="news-s">${esc(it.source || '')}</span></a>`).join('')
+          ? arr.slice(0, 14).map((it) => { const h = railHref(it.link); const ext = /^https?:/i.test(h); return `<a class="news-item" href="${esc(h)}"${ext ? ' target="_blank" rel="noopener"' : ''}><span class="news-t">${esc(it.title)}</span><span class="news-s">${esc(it.source || '')}</span></a>`; }).join('')
           : '<div class="news-empty">Engar fréttir í flokknum í augnablikinu.</div>';
 
       function paintNews() {
@@ -289,6 +291,20 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         if (!nl) return;
         document.querySelectorAll('#news-cats .nc').forEach((b) => b.classList.toggle('on', (b.dataset.e || '') === newsEfni));
         if (newsCache[newsEfni]) { nl.innerHTML = renderNews(newsCache[newsEfni]); return; }
+        if (newsEfni === '__karp') {
+          // 🐟 Karp-fréttir — skrifaðar sjálfvirkt úr gögnunum (LOTA 29)
+          fetch('/gogn/frettavel.json')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              const dIS = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+              const items = ((d && d.items) || []).slice(0, 13).map((it) => ({ title: it.title, link: '/frettavel/#' + it.id, source: '🐟 Karp · ' + dIS(it.date) }));
+              items.push({ title: '🗞️ Allar Karp-fréttirnar — og hvernig þær verða til', link: '/frettavel/', source: 'Fréttavél Karp' });
+              newsCache[newsEfni] = items;
+              nl.innerHTML = renderNews(items);
+            })
+            .catch(() => { nl.innerHTML = '<div class="news-empty">Karp-fréttirnar svara ekki í augnablikinu.</div>'; });
+          return;
+        }
         if (newsEfni === '__erlent') {
           // 🌍 Ísland í erlendum miðlum — RSS um worker-proxy (LOTA 21)
           fetch('/api/erlent')
@@ -327,6 +343,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         paintNews();
       };
       const PATH_EFNI = [
+        [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
         [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi)/, 'efnahagur'],

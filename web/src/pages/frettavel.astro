@@ -13,8 +13,15 @@ const items = FV.items || [];
 const updated = (FV.updated || '').slice(0, 10);
 const TYPES = {
   rebel: ['🗳️', 'Atkvæði gegn flokki'], taep: ['⚖️', 'Tæp atkvæðagreiðsla'],
-  fylgi: ['📊', 'Fylgismet'], fast: ['🏠', 'Fasteignamet'],
+  fylgi: ['📊', 'Kannanir'], fast: ['🏠', 'Fasteignamet'],
   spike: ['💸', 'Greiðslufrávik'], utbod: ['📋', 'Útboðsbylgja'],
+  stjorn: ['🏛️', 'Stjórnarfylgi'], fjarvist: ['🪑', 'Fjarvistir'],
+  raedur: ['🎤', 'Ræðustóllinn'], mark: ['📈', 'Kauphöllin'],
+  sent: ['🗣️', 'Umfjöllun'], glaepir: ['🚓', 'Afbrot'],
+  atv: ['👷', 'Vinnumarkaður'], radherra: ['🏛️', 'Ný skipan'],
+  baejarstjori: ['🏘️', 'Sveitarstjórn'], sendiherra: ['🌍', 'Utanríkis'],
+  ivilnun: ['📜', 'Ívilnun'], stjorntap: ['⚡', 'Stjórnartap'],
+  einn: ['🗳️', 'Einn gegn öllum'],
 };
 const dIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
 // Hópa eftir degi (nýjast efst — items koma þegar raðaðar nýjast fyrst)
