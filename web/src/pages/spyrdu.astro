@@ -13,7 +13,7 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
 
 <Layout title="🤖 Spyrðu Karp | Karp" description={desc} canonical="https://app.karp.is/spyrdu/" ogTitle="Spyrðu Karp">
   <main data-pg="spyrdu">
-    <div class="sp-hero"><KarpFish size={120} /></div>
+    <div class="sp-hero"><KarpFish size={150} /></div>
     <p class="kicker">Karp · Aðstoðarmaður</p>
     <h1>Spyrðu Karp</h1>
     <p>Spurðu karpann um hagkerfið, þingið eða sveitarfélögin — hann svarar <b>eingöngu út frá gögnum Karp</b> og bendir þér á réttu síðuna.</p>
@@ -61,8 +61,8 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
 
   <style is:global>
     /* hero-karpinn syndir (keyframes kf-* koma úr Layout-global) */
-    .sp-hero .karpfish { transform: scaleX(-1); animation: kf-swim 4.2s ease-in-out infinite; }
-    .sp-hero .kf-eye { animation: kf-blink 5s infinite; transform-origin: 24px 45px; transform-box: view-box; }
+    .sp-hero .karpfish { animation: kf-swim 4.2s ease-in-out infinite; }
+    .sp-hero .kf-eye { animation: kf-blink 5s infinite; transform-origin: 76px 45px; transform-box: view-box; }
     .sp-hero .kf-bubble { animation: kf-float 3.4s ease-in infinite; }
     .sp-hero .kf-bubble.b2 { animation-delay: 1.2s; } .sp-hero .kf-bubble.b3 { animation-delay: 2.3s; }
     @media (prefers-reduced-motion: reduce) { .sp-hero .karpfish, .sp-hero .kf-eye, .sp-hero .kf-bubble { animation: none; } }

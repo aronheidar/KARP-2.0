@@ -13,7 +13,7 @@ const desc = 'Karp Pro — vöktun fjölmiðlaumfjöllunar, vaktir í tölvupós
 <Layout title="⭐ Karp Pro | Karp" description={desc} canonical="https://app.karp.is/karp-pro/" ogTitle="Karp Pro">
   <main data-pg="karp-pro">
     <div class="pro-hero">
-      <KarpFish size={96} />
+      <KarpFish size={110} />
       <div>
         <p class="kicker">Karp · Fyrir innskráða</p>
         <h1>⭐ Karp Pro</h1>
@@ -79,9 +79,17 @@ const desc = 'Karp Pro — vöktun fjölmiðlaumfjöllunar, vaktir í tölvupós
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
   </style>
+  <script>
+    // Innskráðir eiga ekkert erindi á kynningarsíðuna — beint í Vöktun (LOTA 21)
+    import { loadUser } from '../lib/auth.js';
+    document.addEventListener('astro:page-load', () => {
+      if (!document.querySelector('main[data-pg="karp-pro"]')) return;
+      loadUser().then((u) => { if (u && u.loggedIn) location.replace('/frettir/'); }).catch(() => {});
+    });
+  </script>
   <style is:global>
-    main[data-pg="karp-pro"] .pro-hero .karpfish { transform: scaleX(-1); animation: kf-swim 4.2s ease-in-out infinite; flex: none; }
-    main[data-pg="karp-pro"] .kf-eye { animation: kf-blink 5s infinite; transform-origin: 24px 45px; transform-box: view-box; }
+    main[data-pg="karp-pro"] .pro-hero .karpfish { animation: kf-swim 4.2s ease-in-out infinite; flex: none; }
+    main[data-pg="karp-pro"] .kf-eye { animation: kf-blink 5s infinite; transform-origin: 76px 45px; transform-box: view-box; }
     @media (prefers-reduced-motion: reduce) { main[data-pg="karp-pro"] .karpfish, main[data-pg="karp-pro"] .kf-eye { animation: none; } }
   </style>
 </Layout>

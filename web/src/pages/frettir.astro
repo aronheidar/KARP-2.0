@@ -68,10 +68,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <button class="chip" data-g="radherrar">🧑‍⚖️ Ráðherrar</button>
     </div>
 
+    <div id="rel" class="rel" hidden></div>
+    <p class="rail-hint">🗞️ Fyrirsagnirnar birtast í <b>fréttastikunni hægra megin</b> og fylgja valinu hér að ofan — og reyndar síðunni sem þú ert á hverju sinni. <span class="more-link" style="display:inline">Dýpri greining: <a href="/greining/">Fjölmiðlagreiningin</a>.</span></p>
     <div id="live-wrap">
-      <div id="rel" class="rel" hidden></div>
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
-      <p class="more-link">📊 Dýpri greining: <a href="/greining/">Fjölmiðlavogin &amp; ársgreiningin</a> — tónn og hlutdeild miðla yfir tíma.</p>
     </div>
 
     <div class="cos" id="g-stofnanir" hidden>
@@ -129,6 +129,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     /* 2 dálkar á fréttalistanum (LOTA 14) — minna skrun */
     .live { column-count: 2; column-gap: 26px; }
     @media (max-width: 760px) { .live { column-count: 1; } }
+    /* LOTA 21: fyrirsagnalistinn fer af síðunni á breiðum skjá (stikan sér um hann)
+       — helst sem fallback á mjóum skjá þar sem stikan er falin (<1000px). */
+    .rail-hint { font-size: 13px; color: #9fb0c8; margin: 10px 0 4px; }
+    @media (min-width: 1000.1px) { #live-wrap { display: none; } }
+    @media (max-width: 1000px) { .rail-hint { display: none; } }
     .live .it { break-inside: avoid; }
     .live .it, #co-detail .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     .live .it .t, #co-detail .it .t { display: block; font-size: 14px; color: #eaf1fb; line-height: 1.35; }
@@ -268,7 +273,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ch.onclick = () => {
           document.querySelectorAll('#u-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
           if (ch.dataset.g) { if (wrap) wrap.hidden = true; showGrids(ch.dataset.g); }
-          else { if (wrap) wrap.hidden = false; showGrids(null); paintRel(ch.dataset.e); loadMal(ch.dataset.e); }
+          else {
+            if (wrap) wrap.hidden = false;
+            showGrids(null); paintRel(ch.dataset.e); loadMal(ch.dataset.e);
+            // LOTA 21: valið stýrir líka fréttastikunni hægra megin (eins og gamla kerfið)
+            if (window.karpSetRailEfni) window.karpSetRailEfni(ch.dataset.e, true);
+          }
         };
       });
       loadMal('');

@@ -1,0 +1,130 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 📋 ÚTBOÐSVAKTIN (LOTA 21) — sér undirflokkur fyrir verktaka & birgja.
+// Lifandi veitur: Útboðsvefurinn (Ríkiskaup, WP-REST um /api/utbod) og
+// TED (EES-útboð á Íslandi, /api/ted). Leit, veitusíur og leitarorða-
+// upplýsing (karp-leitvakt) client-side. Reykjavík (In-Tend) er með
+// reCAPTCHA-varið gagnakall → beinn hlekkur þar til opnari leið finnst.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const updated = '2026-07-03';
+const desc = 'Útboðsvaktin — öll opinber útboð á einum stað: Útboðsvefur Ríkiskaupa og EES-útboð af TED, með leit, síum og leitarorðavakt fyrir verktaka og birgja.';
+---
+
+<Layout title="📋 Útboðsvaktin | Karp" description={desc} canonical="https://app.karp.is/utbod/" ogTitle="Útboðsvaktin">
+  <main data-pg="utbod">
+    <p class="kicker">Karp Pro · Útboð</p>
+    <h1>📋 Útboðsvaktin</h1>
+    <p>Opinber útboð á einum stað — fyrir verktaka, birgja og alla sem bjóða í verk. Leitaðu, síaðu eftir veitu og láttu <a href="/vaktir/">leitarorðavaktina</a> upplýsa treffin þín.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi veitur: Útboðsvefurinn (Ríkiskaup, opinber WP-veita) og TED — opinbert útboðasafn ESB, síað á framkvæmdastað Ísland. Hvort tveggja um skyndiminnis-proxy Karp (30–60 mín). Leitin og síurnar vinna í vafranum þínum.">ⓘ</i> Um gögnin á síðunni</p>
+
+    <div class="ut-bar">
+      <input id="ut-q" type="search" placeholder="Leita í útboðum… (t.d. „malbik“, „hugbúnaður“, „ræsting“)" autocomplete="off" />
+      <div class="ut-srcs">
+        <label class="ut-src"><input type="checkbox" data-src="rk" checked /> 🇮🇸 Útboðsvefurinn</label>
+        <label class="ut-src"><input type="checkbox" data-src="ted" checked /> 🇪🇺 TED (EES)</label>
+      </div>
+    </div>
+    <div id="ut-count" class="ut-count"></div>
+    <div id="ut-list" class="ut-list">Sæki útboð…</div>
+
+    <h2>Fleiri útboðsvefir</h2>
+    <div class="ut-more">
+      <a class="um-card" href="https://utbod.reykjavik.is/aspx/Tenders/Current" target="_blank" rel="noopener">
+        <b>🏙️ Reykjavíkurborg</b>
+        <span>utbod.reykjavik.is — In-Tend kerfi borgarinnar. Gagnastraumurinn er varinn (reCAPTCHA) svo útboðin birtast ekki hér enn — hlekkurinn opnar listann beint.</span>
+      </a>
+      <a class="um-card" href="https://www.rikiskaup.is/" target="_blank" rel="noopener">
+        <b>🏛️ Ríkiskaup</b>
+        <span>Rammasamningar, örútboð og verklagsreglur — Útboðsvefurinn hér að ofan birtir auglýst útboð þeirra.</span>
+      </a>
+      <a class="um-card" href="https://ted.europa.eu/en/search/result?place-of-performance=ISL" target="_blank" rel="noopener">
+        <b>🇪🇺 TED — öll skjöl</b>
+        <span>Fullt viðmót ESB-útboðasafnsins fyrir Ísland: forauglýsingar, niðurstöður og samningar, ekki bara virk útboð.</span>
+      </a>
+    </div>
+
+    <div class="ut-pro">⭐ <b>Fáðu útboðin í tölvupósti:</b> skráðu leitarorð (t.d. „jarðvinna", „hugbúnaður") í <a href="/vaktir/">leitarorðavaktina</a> — innskráðir fá daglegan póst þegar ný útboð nefna orðin. Hluti af <a href="/karp-pro/">Karp Pro</a> (ókeypis).</div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu um veitur Karp. Ábendingar um fleiri útboðsvefi: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #4 LOTA 21.</p>
+  </main>
+
+  <style>
+    main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .ut-bar { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+    #ut-q { flex: 1; min-width: 240px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 11px; padding: 10px 14px; color: #eaf1fb; font-size: 14px; }
+    #ut-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .ut-srcs { display: flex; gap: 12px; }
+    .ut-src { font-size: 13px; color: #cdd6e6; display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+    .ut-count { font-size: 12px; color: #7e8ca6; margin: 10px 0 6px; }
+    .ut-pro { margin-top: 24px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 12px 16px; font-size: 13.5px; color: #cdd6e6; }
+    .ut-pro a { color: #f6b13b; }
+    .ut-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+    .um-card { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 13px 15px; text-decoration: none; }
+    .um-card:hover { border-color: rgba(246,177,59,.45); }
+    .um-card b { display: block; color: #eaf1fb; font-size: 14px; margin-bottom: 4px; }
+    .um-card span { font-size: 12px; color: #9fb0c8; line-height: 1.5; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+  <style is:global>
+    /* runtime-DOM listi → global */
+    .ut-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; color: #9fb0c8; }
+    @media (max-width: 820px) { .ut-list { grid-template-columns: 1fr; } }
+    .ut-it { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; text-decoration: none; }
+    .ut-it:hover { border-color: rgba(246,177,59,.45); }
+    .ut-it.hit { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.05); }
+    .ut-t { display: block; font-size: 13.5px; color: #eaf1fb; line-height: 1.35; }
+    .ut-s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 4px; }
+    .ut-badge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 1px 7px; margin-right: 6px; vertical-align: 1px; }
+    .ut-badge.rk { background: rgba(66,208,134,.14); color: #42d086; }
+    .ut-badge.ted { background: rgba(58,160,255,.14); color: #3aa0ff; }
+    .ut-new { color: #f6b13b; font-weight: 700; }
+  </style>
+
+  <script>
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
+    const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+    function initUtbod() {
+      const list = document.getElementById('ut-list');
+      if (!list || list.dataset.done) return;
+      list.dataset.done = '1';
+      let ITEMS = [];
+      const lvWords = () => { try { return JSON.parse(localStorage.getItem('karp-leitvakt') || '[]').map((w) => String(w).toLowerCase()); } catch (e) { return []; } };
+      const today = new Date().toISOString().slice(0, 10);
+      const paint = () => {
+        const q = (document.getElementById('ut-q').value || '').toLowerCase().trim();
+        const on = {};
+        document.querySelectorAll('.ut-src input').forEach((c) => { on[c.dataset.src] = c.checked; });
+        const words = lvWords();
+        const rows = ITEMS.filter((x) => on[x.src] && (!q || x.t.toLowerCase().includes(q)));
+        document.getElementById('ut-count').textContent = rows.length + ' útboð' + (q ? ` · leit: „${q}“` : '') + (words.length ? ` · leitarorðin þín upplýst (${words.length})` : '');
+        list.innerHTML = rows.length ? rows.map((x) => {
+          const hit = words.some((w) => w && x.t.toLowerCase().includes(w));
+          const isNew = (x.d || '').slice(0, 10) === today;
+          return `<a class="ut-it${hit ? ' hit' : ''}" href="${safe(x.u)}" target="_blank" rel="noopener"><span class="ut-t"><span class="ut-badge ${x.src}">${x.src === 'rk' ? 'Útboðsvefur' : 'TED'}</span>${esc(x.t)}</span><span class="ut-s">${isNew ? '<span class="ut-new">NÝTT Í DAG · </span>' : ''}${dIS(x.d)}${x.nr ? ' · ' + esc(x.nr) : ''}</span></a>`;
+        }).join('') : '<div style="grid-column:1/-1;color:#7e8ca6">Ekkert útboð passar við leitina.</div>';
+      };
+      Promise.allSettled([
+        fetch('/api/utbod').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/ted').then((r) => (r.ok ? r.json() : null)),
+      ]).then(([rk, ted]) => {
+        const a = [];
+        if (Array.isArray(rk.value)) rk.value.forEach((p) => a.push({ src: 'rk', t: ((p.title || {}).rendered || '').replace(/&#\d+;/g, (m) => String.fromCharCode(+m.slice(2, -1))), u: p.link, d: p.date }));
+        const ns = ((ted.value || {}).notices) || [];
+        ns.forEach((x) => { const tt = x['notice-title']; a.push({ src: 'ted', t: typeof tt === 'object' ? (tt.isl || tt.eng || Object.values(tt)[0] || '') : (tt || ''), u: 'https://ted.europa.eu/en/notice/-/detail/' + (x['publication-number'] || ''), d: x['publication-date'], nr: 'TED ' + (x['publication-number'] || '') }); });
+        a.sort((x, y) => String(y.d || '').localeCompare(String(x.d || '')));
+        ITEMS = a.filter((x) => x.t);
+        if (!ITEMS.length) { list.textContent = 'Útboðin birtast þegar veiturnar svara (proxy í dreifingu).'; return; }
+        paint();
+      });
+      document.getElementById('ut-q').addEventListener('input', paint);
+      document.querySelectorAll('.ut-src input').forEach((c) => c.addEventListener('change', paint));
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="utbod"]')) initUtbod(); });
+  </script>
+</Layout>

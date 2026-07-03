@@ -12,7 +12,8 @@ const NAV = [
   { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
   { label: 'Karp Pro', emoji: '⭐', items: [
     { href: '/frettir/', label: 'Vöktun & umfjöllun' },
-    { href: '/greining/', label: 'Greining' },
+    { href: '/greining/', label: 'Fjölmiðlagreining' },
+    { href: '/utbod/', label: 'Útboðsvaktin' },
     { href: '/vaktir/', label: 'Vaktir' },
     { href: '/spyrdu/', label: 'Spyrðu Karp' },
     { href: '/karp-pro/', label: 'Um Karp Pro' },
@@ -188,18 +189,18 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .brand { display: inline-flex; align-items: center; gap: 8px; }
       .brand .karpfish { flex: none; }
       #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; text-decoration: none; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
-      #karp-fab .karpfish { transform: scaleX(-1); animation: kf-swim 3.6s ease-in-out infinite; }
-      #karp-fab .kf-eye { animation: kf-blink 4.8s infinite; transform-origin: 24px 45px; transform-box: view-box; }
+      #karp-fab .karpfish { animation: kf-swim 3.6s ease-in-out infinite; }
+      #karp-fab .kf-eye { animation: kf-blink 4.8s infinite; transform-origin: 76px 45px; transform-box: view-box; }
       #karp-fab .kf-bubble { animation: kf-float 3.2s ease-in infinite; }
       #karp-fab .kf-bubble.b2 { animation-delay: 1.1s; } #karp-fab .kf-bubble.b3 { animation-delay: 2.2s; }
       .kfab-bub { background: #f6b13b; color: #131a29; font-size: 12.5px; font-weight: 800; padding: 7px 12px; border-radius: 999px 999px 4px 999px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
       #karp-fab:hover .kfab-bub, #karp-fab:focus-visible .kfab-bub { opacity: 1; transform: translateY(0); }
       #karp-fab:hover .karpfish { animation-duration: 1.4s; }
       body:has(main[data-pg="spyrdu"]) #karp-fab { display: none; }
-      @keyframes kf-swim { 0%,100% { transform: scaleX(-1) translateY(0) rotate(0deg); } 30% { transform: scaleX(-1) translateY(-5px) rotate(-4deg); } 65% { transform: scaleX(-1) translateY(2px) rotate(3deg); } }
+      @keyframes kf-swim { 0%,100% { transform: translateY(0) rotate(0deg); } 30% { transform: translateY(-5px) rotate(4deg); } 65% { transform: translateY(2px) rotate(-3deg); } }
       @keyframes kf-blink { 0%, 91%, 100% { transform: scaleY(1); } 94%, 96% { transform: scaleY(.08); } }
       @keyframes kf-float { 0% { opacity: 0; transform: translateY(4px); } 25% { opacity: .8; } 100% { opacity: 0; transform: translateY(-14px); } }
-      @media (max-width: 760px) { #karp-fab { right: 10px; bottom: 12px; } #karp-fab .karpfish { width: 44px; height: 44px; } }
+      @media (max-width: 760px) { #karp-fab { right: 10px; bottom: 12px; } #karp-fab .karpfish { width: 52px; height: 52px; } }
       @media (prefers-reduced-motion: reduce) { #karp-fab .karpfish, #karp-fab .kf-eye, #karp-fab .kf-bubble { animation: none; } }
       .datainfo .tip::after, .datainfo .tip::before { bottom: auto; top: calc(100% + 7px); }
       .datainfo .tip:hover::before, .datainfo .tip:focus::before { top: calc(100% + 2px); border-top-color: transparent; border-bottom-color: rgba(255,255,255,.16); }
@@ -208,7 +209,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
   <body>
     <div class="shell">
       <aside class="nav" transition:persist>
-        <a class="brand" href="/"><KarpFish size={30} /><span>KARP</span></a>
+        <a class="brand" href="/"><KarpFish size={34} /><span>KARP</span></a>
         <nav>
           {NAV.map((n) => n.items ? (
             <details class="ng" open={groupOpen(n)}>
@@ -231,7 +232,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
 
       <a href="/spyrdu/" id="karp-fab" aria-label="Spyrðu Karp — gervigreindaraðstoðarmaður Karp" transition:persist>
         <span class="kfab-bub">Spyrðu Karp!</span>
-        <KarpFish size={56} />
+        <KarpFish size={68} />
       </a>
 
       <aside class="news" transition:persist>
@@ -243,6 +244,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
           <button class="nc" data-e="sveitarfelog">🏘️</button>
           <button class="nc" data-e="althjoda">🌍</button>
           <button class="nc" data-e="samfelag">👥</button>
+          <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">🗺️</button>
         </div>
         <div id="news-list">Hleð…</div>
       </aside>
@@ -271,6 +273,26 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         if (!nl) return;
         document.querySelectorAll('#news-cats .nc').forEach((b) => b.classList.toggle('on', (b.dataset.e || '') === newsEfni));
         if (newsCache[newsEfni]) { nl.innerHTML = renderNews(newsCache[newsEfni]); return; }
+        if (newsEfni === '__erlent') {
+          // 🌍 Ísland í erlendum miðlum — RSS um worker-proxy (LOTA 21)
+          fetch('/api/erlent')
+            .then((r) => (r.ok ? r.text() : ''))
+            .then((xml) => {
+              let items = [];
+              if (xml && xml[0] !== '{') {
+                const doc = new DOMParser().parseFromString(xml, 'text/xml');
+                items = [...doc.querySelectorAll('item')].slice(0, 14).map((it) => ({
+                  title: (it.querySelector('title') || {}).textContent || '',
+                  link: (it.querySelector('link') || {}).textContent || '',
+                  source: (it.querySelector('source') || {}).textContent || (((it.querySelector('link') || {}).textContent || '').split('//')[1] || '').split('/')[0].replace('www.', ''),
+                })).filter((x) => x.title);
+              }
+              newsCache[newsEfni] = items;
+              nl.innerHTML = renderNews(items);
+            })
+            .catch(() => { nl.innerHTML = '<div class="news-empty">Erlendi straumurinn svarar ekki í augnablikinu.</div>'; });
+          return;
+        }
         fetch('https://karp.is/wp-json/karp/v1/frettir' + (newsEfni ? '?efni=' + encodeURIComponent(newsEfni) : ''))
           .then((r) => (r.ok ? r.json() : []))
           // Endapunkturinn skilar {efni, cached, items:[...]} — EKKI beinu fylki.
@@ -278,18 +300,34 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
           .catch(() => { nl.innerHTML = '<div class="news-empty">Fréttir ekki tiltækar hér (birtast á app.karp.is).</div>'; });
       }
 
+      // LOTA 21: stikan fylgir samhenginu — síður og Vöktunar-val stýra flokknum
+      // (eins og gamla kerfið). Pillusmellur = handval sem heldur þar til næsta síða
+      // með skýrt samhengi opnast. window.karpSetRailEfni er kallað úr Vöktun.
+      window.karpSetRailEfni = (e, persist) => {
+        newsEfni = e || '';
+        if (persist) { try { localStorage.setItem('karp-rail-efni', newsEfni); } catch (er) {} }
+        const nl = document.getElementById('news-list');
+        if (nl && !newsCache[newsEfni]) nl.innerHTML = 'Hleð…';
+        paintNews();
+      };
+      const PATH_EFNI = [
+        [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
+        [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
+        [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi)/, 'efnahagur'],
+        [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
+        [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
+      ];
+      function railFollowPath() {
+        const hit = PATH_EFNI.find(([rx]) => rx.test(location.pathname));
+        if (hit && newsEfni !== hit[1]) window.karpSetRailEfni(hit[1], false);
+      }
+
       function mountNewsCats() {
         const row = document.getElementById('news-cats');
         if (!row || row.dataset.mounted) return;
         row.dataset.mounted = '1';
         row.querySelectorAll('.nc').forEach((b) => {
-          b.addEventListener('click', () => {
-            newsEfni = b.dataset.e || '';
-            try { localStorage.setItem('karp-rail-efni', newsEfni); } catch (e) {}
-            const nl = document.getElementById('news-list');
-            if (nl && !newsCache[newsEfni]) nl.innerHTML = 'Hleð…';
-            paintNews();
-          });
+          b.addEventListener('click', () => window.karpSetRailEfni(b.dataset.e || '', true));
         });
       }
 
@@ -330,6 +368,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         if (chipEl && !chipEl.dataset.mounted) { chipEl.dataset.mounted = '1'; mountChip(chipEl); }
         updateActiveNav();
         mountNewsCats();
+        railFollowPath();
         paintNews();
         setTimeout(fixZeroCharts, 400);
         setTimeout(fixZeroCharts, 1500);
