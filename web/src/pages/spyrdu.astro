@@ -71,7 +71,7 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
     @media (prefers-reduced-motion: reduce) { .sp-hero .karpfish, .sp-hero .kf-eye, .sp-hero .kf-bubble { animation: none; } }
   </style>
   <script>
-    import { loadUser } from '../lib/auth.js';
+    import { loadUser, loginHref } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     function initSpyrdu() {
       const q = document.getElementById('sp-q');
@@ -86,7 +86,7 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
         if (gate) {
           gate.hidden = false;
           const li = document.getElementById('sp-login');
-          if (li && u && u.loginUrl) li.href = u.loginUrl;
+          if (li) li.href = loginHref();
         }
         document.querySelector('.ask').style.display = 'none';
         document.querySelector('.chips').style.display = 'none';

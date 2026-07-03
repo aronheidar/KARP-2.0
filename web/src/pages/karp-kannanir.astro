@@ -43,7 +43,7 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
 
   <!-- Eyja: kannanir (GET /polls, POST /pollvote). #2 -->
   <script>
-    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     function paintPolls(root, polls, u) {
       if (!polls.length) { root.innerHTML = '<div class="empty">Engin virk könnun í augnablikinu — kíktu aftur fljótlega.</div>'; return; }
@@ -64,7 +64,7 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
           // LOTA 19: mýkri skýring í stað læsingar-veggjar — kjóstu-fyrst reglan
           // þarf auðkenni (eitt atkvæði á mann) og ver gegn hjarðáhrifum.
           body = opts.map((o) => `<button class="opt" disabled title="Innskráning þarf — eitt atkvæði á mann">${esc(o)}</button>`).join('')
-            + `<div class="meta">Karp-kannanir nota „kjóstu fyrst"-regluna: niðurstöður birtast eftir atkvæði svo þær liti ekki svarið, og <a href="${(u && u.loginUrl) || 'https://wp.karp.is/login/'}">innskráning</a> tryggir eitt atkvæði á mann.</div>`;
+            + `<div class="meta">Karp-kannanir nota „kjóstu fyrst"-regluna: niðurstöður birtast eftir atkvæði svo þær liti ekki svarið, og <a href="${loginHref()}">innskráning</a> tryggir eitt atkvæði á mann.</div>`;
         }
         return `<div class="poll"><div class="q">${esc(p.q || p.spurning || '')}</div>${body}</div>`;
       }).join('');

@@ -49,7 +49,7 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
 
   <!-- Eyja: spá-kort per topic (GET/POST /spa). #2 -->
   <script>
-    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const fp = (v) => (v == null ? '–' : String(v).replace('.', ',') + '%');
     async function renderCard(el) {
       const u = window.KARP_USER || { loggedIn: false };
@@ -62,7 +62,7 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
       const mine = d.mine != null ? d.mine : (!u.loggedIn ? lsp()[T.topic] : null);
       h += `<div class="spa-form"><input type="number" step="${T.step}" min="${T.min}" max="${T.max}" placeholder="t.d. 4,0" value="${mine != null ? mine : ''}"><button>${mine != null ? 'Uppfæra' : 'Senda'} spá</button></div>`;
       if (mine != null) h += `<div class="spa-mine">Þín spá: <b>${fp(mine)}</b></div>`;
-      if (!u.loggedIn) h += `<div class="spa-note">Spáin vistast á þessu tæki — <a href="${u.loginUrl || 'https://wp.karp.is/login/'}">innskráð(ur)</a> telst hún með í meðalspánni.</div>`;
+      if (!u.loggedIn) h += `<div class="spa-note">Spáin vistast á þessu tæki — <a href="${loginHref()}">innskráð(ur)</a> telst hún með í meðalspánni.</div>`;
       el.innerHTML = h;
       const btn = el.querySelector('button');
       if (btn) btn.onclick = async () => {

@@ -78,6 +78,15 @@ function injectChipCss() {
   document.head.appendChild(s);
 }
 
+// Innskráningarslóð sem SKILAR notandanum á síðuna sem hann var á: UM-login
+// endurspeglar ?redirect_to= í formið og karp-user.php leyfir karp.is-hýsla
+// (allowed_redirect_hosts) svo wp_safe_redirect strípar ekki cross-host slóðina.
+export function loginHref(returnTo) {
+  const base = ((typeof window !== 'undefined' && window.KARP_USER && window.KARP_USER.loginUrl) || 'https://wp.karp.is/login/');
+  const to = returnTo || (typeof location !== 'undefined' ? location.href : 'https://karp.is/');
+  return base + (base.indexOf('?') > -1 ? '&' : '?') + 'redirect_to=' + encodeURIComponent(to);
+}
+
 // Innskráningar-chip fyrir appbarinn (útskráð: Skrá inn/Nýskrá — innskráð: nafn + útskrá).
 export function renderChip(el, u) {
   injectChipCss();
@@ -91,8 +100,8 @@ export function renderChip(el, u) {
       + `<a class="kc-out" href="${esc(u.logoutUrl || site)}" title="Skrá út" aria-label="Skrá út">⏻</a>`;
   } else {
     el.innerHTML =
-      `<a class="kc-in" href="${esc(u.loginUrl || site + '/innskraning/')}">Skrá inn</a>`
-      + `<a class="kc-reg" href="${esc(u.registerUrl || site + '/nyskra/')}">Nýskrá</a>`;
+      `<a class="kc-in" href="${esc(loginHref())}">Skrá inn</a>`
+      + `<a class="kc-reg" href="${esc(u.registerUrl || site + '/nyskraning/')}">Nýskrá</a>`;
   }
 }
 

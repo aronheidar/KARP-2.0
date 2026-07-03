@@ -267,7 +267,7 @@ const updated = '2026-07-02';
 
   <!-- Eyja: flipar + widgets (fylgja/sveitarfélag/flokkamat/vaktir/aðgangur). #2 -->
   <script>
-    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const $g = (id) => document.getElementById(id);
     const J = (id) => { try { return JSON.parse($g(id).textContent); } catch (e) { return null; } };
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -422,7 +422,7 @@ const updated = '2026-07-02';
         const gate = $g('gate-note');
         if (!u || !u.loggedIn) {
           gate.innerHTML = '';
-          $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${(u && u.loginUrl) || 'https://wp.karp.is/login/'}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
+          $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${loginHref()}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
           const MPL = J('d-mp') || {};
           let lf = [];
           try { lf = JSON.parse(localStorage.getItem('karp-follows-local') || '[]'); } catch (e) {}

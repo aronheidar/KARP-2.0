@@ -209,7 +209,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
-    import { loadUser, karpPost } from '../lib/auth.js';
+    import { loadUser, karpPost, loginHref } from '../lib/auth.js';
     const esc9 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     // Öryggi: aðeins http(s)-hlekkir úr RSS-veitunum (javascript:/data: blokkað).
     const safe9 = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
@@ -359,7 +359,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           // ⭐ Umfjöllunar-spjaldið er Karp Pro (LOTA 20) — kynning í stað greiningar óinnskráð
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
-            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${(uNow && uNow.loginUrl) || 'https://wp.karp.is/login/'}">Innskráning</a></div></div>`;
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div>`;
             dl.innerHTML = '';
             return;
           }

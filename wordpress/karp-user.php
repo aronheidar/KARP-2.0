@@ -106,6 +106,21 @@ function karp_user_payload() {
     return $data;
 }
 
+/**
+ * LOTA 27 — leyfa örugga endursendingu YFIR Á APPIÐ (cross-host).
+ * wp_safe_redirect() (login, logout, UM-redirects) strípar annars karp.is af
+ * redirect_to og skilur notandann eftir á wp.karp.is — appið sendir nú alltaf
+ * redirect_to með og þessi sía leyfir hýslana.
+ */
+add_filter('allowed_redirect_hosts', function ($hosts) {
+    foreach (array('karp.is', 'www.karp.is', 'app.karp.is') as $h) {
+        if (!in_array($h, (array) $hosts, true)) {
+            $hosts[] = $h;
+        }
+    }
+    return $hosts;
+});
+
 add_action('wp_head', function () {
     if (is_admin()) {
         return;
