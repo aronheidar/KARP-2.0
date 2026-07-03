@@ -79,6 +79,10 @@ jobs:
           else
             echo "• Enginn ANTHROPIC_API_KEY-secret — AI-skriftum sleppt."
           fi
+      - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif ef lykill)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node skriptur/build_frettavel.js || true
       - name: Samhengispakki Spyrðu Karp (úr ferskum gögnum)
         run: node skriptur/build_spyrdu_context.js || true
 

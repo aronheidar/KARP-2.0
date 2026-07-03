@@ -1,0 +1,83 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🗞️ FRÉTTAVÉL KARP (LOTA 28) — sjálfvirk gagnablaðamennska.
+// build_frettavel.js finnur atburði vélrænt í opinberu gögnunum (atkvæði gegn
+// flokki, tæpar atkvæðagreiðslur, fylgismet, fasteignamet, greiðslufrávik,
+// útboðsbylgjur) og skrifar örfrétt um hvern — AI-grundað sé lykill í cron,
+// annars sniðmát úr sömu tölum. Hver frétt ber ai-flagg og hlekk á frumgögnin.
+// Forþjónað (SSG) — engin runtime-DOM, engir scoped-CSS fyrirvarar.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import FV from '@gogn/frettavel.json';
+const items = FV.items || [];
+const updated = (FV.updated || '').slice(0, 10);
+const TYPES = {
+  rebel: ['🗳️', 'Atkvæði gegn flokki'], taep: ['⚖️', 'Tæp atkvæðagreiðsla'],
+  fylgi: ['📊', 'Fylgismet'], fast: ['🏠', 'Fasteignamet'],
+  spike: ['💸', 'Greiðslufrávik'], utbod: ['📋', 'Útboðsbylgja'],
+};
+const dIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
+// Hópa eftir degi (nýjast efst — items koma þegar raðaðar nýjast fyrst)
+const byDate = [];
+for (const it of items) { const last = byDate[byDate.length - 1]; if (last && last.d === it.date) last.list.push(it); else byDate.push({ d: it.date, list: [it] }); }
+const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberum gögnum: atkvæði þingmanna gegn eigin flokki, fylgismet, fasteignamet, greiðslufrávik ríkisins og útboðsbylgjur. Hver frétt tengir á frumgögnin.`;
+---
+
+<Layout title="🗞️ Fréttavélin | Karp" description={desc} canonical="https://karp.is/frettavel/" ogTitle="Fréttavél Karp">
+  <main data-pg="frettavel">
+    <p class="kicker">Karp · Fréttavélin</p>
+    <h1>🗞️ Fréttavélin</h1>
+    <p>Fréttir sem gögnin skrifa sjálf: vél Karp vaktar opinberu gögnin — atkvæðagreiðslur Alþingis, kannanir, kaupskrá HMS, opna reikninga ríkisins og útboðsgáttirnar — og birtir frétt þegar eitthvað fréttnæmt gerist í tölunum. <a href="/frettavel.xml">RSS-veita ↗</a></p>
+    <div class="disclosure">🤖 <b>Gagnsæi:</b> Atburðirnir eru fundnir vélrænt eftir föstum reglum (t.d. „þingmaður kýs gegn ≥75% eigin þingflokks") og textinn er skrifaður af gervigreind <i>eingöngu</i> úr reiknuðu staðreyndunum — eða af sniðmáti úr sömu tölum. Engin mannleg ritstjórn. Hver frétt tengir á frumgögnin á Karp svo þú getir sannreynt allt sjálf(ur).</div>
+
+    {byDate.length === 0 && <p class="empty">Engar fréttir enn — vélin keyrir daglega og birtir um leið og gögnin hreyfast fréttnæmt.</p>}
+    {byDate.map((g) => (
+      <section>
+        <h2>{dIS(g.d)}</h2>
+        <div class="fv-list">
+          {g.list.map((it) => { const tm = TYPES[it.type] || ['📰', 'Frétt']; return (
+            <article class="fv-card" id={it.id}>
+              <div class="fv-top"><span class={`fv-badge ${it.type}`}>{tm[0]} {tm[1]}</span></div>
+              <h3>{it.title}</h3>
+              <p class="fv-text">{it.text}</p>
+              <div class="fv-foot">
+                <a class="fv-src" href={it.url}>Skoða frumgögnin →</a>
+                <span class="fv-ai">{it.ai ? '🤖 vélskrifað (gervigreind)' : '⚙️ sniðmátstexti úr gögnum'}</span>
+              </div>
+            </article>
+          ); })}
+        </div>
+      </section>
+    ))}
+
+    <p class="foot">Forþjónað (SSG). Vélin keyrir daglega kl. 06 UTC (build_frettavel.js) — atburðareglur og heimildir í hverri frétt. Uppfært {updated}. Ábendingar: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. LOTA 28.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .disclosure { background: rgba(58,160,255,.06); border: 1px solid rgba(58,160,255,.28); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #9fb0c8; line-height: 1.55; margin: 14px 0 6px; }
+    .disclosure b { color: #cdd6e6; }
+    h2 { font-size: 13px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; }
+    .fv-list { display: flex; flex-direction: column; gap: 12px; }
+    .fv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 18px; scroll-margin-top: 80px; }
+    .fv-card h3 { font-size: 16.5px; color: #eaf1fb; margin: 8px 0 6px; line-height: 1.35; }
+    .fv-text { font-size: 13.5px; line-height: 1.6; margin: 0; }
+    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: rgba(255,255,255,.06); color: #9fb0c8; border: 1px solid rgba(255,255,255,.12); }
+    .fv-badge.rebel { background: rgba(224,101,95,.12); color: #e0655f; border-color: rgba(224,101,95,.35); }
+    .fv-badge.taep { background: rgba(255,138,61,.12); color: #ff8a3d; border-color: rgba(255,138,61,.35); }
+    .fv-badge.fylgi { background: rgba(58,160,255,.12); color: #3aa0ff; border-color: rgba(58,160,255,.35); }
+    .fv-badge.fast { background: rgba(66,208,134,.12); color: #42d086; border-color: rgba(66,208,134,.35); }
+    .fv-badge.spike { background: rgba(246,177,59,.12); color: #f6b13b; border-color: rgba(246,177,59,.35); }
+    .fv-badge.utbod { background: rgba(124,92,255,.12); color: #9d86ff; border-color: rgba(124,92,255,.35); }
+    .fv-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
+    .fv-src { font-size: 12.5px; color: #f6b13b; text-decoration: none; font-weight: 600; }
+    .fv-src:hover { text-decoration: underline; }
+    .fv-ai { font-size: 11px; color: #6f7b8d; }
+    .empty { color: #7e8ca6; margin-top: 20px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+</Layout>
