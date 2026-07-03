@@ -1,0 +1,87 @@
+---
+// ─────────────────────────────────────────────────────────────
+// ⭐ KARP PRO (LOTA 20) — kynningarsíðan á innskráðu þjónustunum.
+// Óinnskráðir sem rekast á Pro-læsingar lenda hér: hvað fæst, af hverju
+// innskráning þarf, og CTA. Heiðarlegt: skráning er ÓKEYPIS í dag.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import KarpFish from '../components/KarpFish.astro';
+const updated = '2026-07-03';
+const desc = 'Karp Pro — vöktun fjölmiðlaumfjöllunar, vaktir í tölvupósti og gervigreindaraðstoðarmaðurinn Spyrðu Karp. Ókeypis skráning.';
+---
+
+<Layout title="⭐ Karp Pro | Karp" description={desc} canonical="https://app.karp.is/karp-pro/" ogTitle="Karp Pro">
+  <main data-pg="karp-pro">
+    <div class="pro-hero">
+      <KarpFish size={96} />
+      <div>
+        <p class="kicker">Karp · Fyrir innskráða</p>
+        <h1>⭐ Karp Pro</h1>
+        <p class="lead">Opni hluti Karp — hagtölurnar, kortin, þingið, reiknivélarnar — er og verður ókeypis fyrir öll. <b>Karp Pro</b> eru verkfærin sem vinna fyrir þig: vöktun, tilkynningar og aðstoðarmaðurinn.</p>
+      </div>
+    </div>
+
+    <div class="feats">
+      <a class="feat" href="/frettir/">
+        <div class="ft-e">🔍</div>
+        <div class="ft-t">Vöktun &amp; umfjöllun</div>
+        <p>Flettu upp hvaða fyrirtæki, stofnun, flokki eða ráðherra sem er: heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur skráðra félaga, orðaský og dreifing milli miðla — og fylgstu með þínum aðilum.</p>
+      </a>
+      <a class="feat" href="/vaktir/">
+        <div class="ft-e">🔔</div>
+        <div class="ft-t">Vaktir í tölvupósti</div>
+        <p>Leitarorðavaktin les dóma, samráðsmál, útboð og greiðslur ríkisins á hverjum degi og sendir þér póst þegar orðin þín birtast. Hagvísavaktir láta vita þegar verðbólga, vextir eða atvinnuleysi ná viðmiðinu þínu.</p>
+      </a>
+      <a class="feat" href="/spyrdu/">
+        <div class="ft-e">🐟</div>
+        <div class="ft-t">Spyrðu Karp</div>
+        <p>Gervigreindaraðstoðarmaður sem svarar spurningum um hagkerfið, þingið og sveitarfélögin — grundaður eingöngu í gögnum Karp og vísar þér á réttu síðuna. Engar ágiskanir.</p>
+      </a>
+      <a class="feat" href="/mitt-svaedi/">
+        <div class="ft-e">☁️</div>
+        <div class="ft-t">Samstilling &amp; þátttaka</div>
+        <p>Fylgni, spár, atkvæði á þingmálum og stillingar fylgja þér milli tækja — og atkvæðin þín teljast með í samfélagstölunum: lesendaspám, þingmála-afstöðu og Karp-könnunum.</p>
+      </a>
+    </div>
+
+    <div class="cta">
+      <div class="cta-t">Skráning er <b>ókeypis</b> og tekur mínútu.</div>
+      <div class="cta-btns">
+        <a class="btn-main" href="https://karp.is/nyskraning/">Stofna aðgang</a>
+        <a class="btn-sec" href="https://karp.is/login/">Innskráning</a>
+      </div>
+      <p class="cta-note">Aðgangurinn gildir bæði á karp.is og app.karp.is. Engin kortaupplýsingar — Karp Pro er frítt á meðan vefurinn er í uppbyggingu.</p>
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Spurningar? <a href="/um-karp/">Um Karp</a> · <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #3 LOTA 20.</p>
+  </main>
+
+  <style>
+    main { max-width: 880px; margin: 0 auto; padding: 40px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 34px; margin: 0 0 10px; }
+    .lead { font-size: 15.5px; color: #cdd6e6; line-height: 1.6; }
+    .pro-hero { display: flex; gap: 22px; align-items: center; margin-bottom: 26px; }
+    @media (max-width: 700px) { .pro-hero { flex-direction: column; text-align: center; } }
+    .feats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .feats { grid-template-columns: 1fr; } }
+    .feat { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 16px 18px; text-decoration: none; transition: border-color .2s, transform .2s; }
+    .feat:hover { border-color: rgba(246,177,59,.5); transform: translateY(-2px); }
+    .ft-e { font-size: 26px; } .ft-t { font-size: 16px; font-weight: 800; color: #f6b13b; margin: 6px 0 6px; }
+    .feat p { font-size: 13px; color: #b9c6da; line-height: 1.55; margin: 0; }
+    .cta { margin-top: 26px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 22px; text-align: center; }
+    .cta-t { font-size: 17px; color: #eaf1fb; margin-bottom: 14px; }
+    .cta-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .btn-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 11px 26px; border-radius: 11px; text-decoration: none; font-size: 15px; }
+    .btn-main:hover { filter: brightness(1.08); }
+    .btn-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; font-weight: 600; padding: 11px 22px; border-radius: 11px; text-decoration: none; font-size: 15px; }
+    .cta-note { font-size: 12px; color: #8fa0b8; margin: 12px 0 0; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: #9fb0c8; }
+  </style>
+  <style is:global>
+    main[data-pg="karp-pro"] .pro-hero .karpfish { transform: scaleX(-1); animation: kf-swim 4.2s ease-in-out infinite; flex: none; }
+    main[data-pg="karp-pro"] .kf-eye { animation: kf-blink 5s infinite; transform-origin: 24px 45px; transform-box: view-box; }
+    @media (prefers-reduced-motion: reduce) { main[data-pg="karp-pro"] .karpfish, main[data-pg="karp-pro"] .kf-eye { animation: none; } }
+  </style>
+</Layout>

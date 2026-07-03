@@ -10,10 +10,12 @@ const NAV = [
   { href: '/mitt-svaedi/', label: 'Mitt svæði', emoji: '⭐' },
   { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
   { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
-  { href: '/vaktir/', label: 'Vaktir', emoji: '🔔' },
-  { label: 'Umfjöllun', emoji: '📰', items: [
-    { href: '/frettir/', label: 'Vöktun' },
+  { label: 'Karp Pro', emoji: '⭐', items: [
+    { href: '/frettir/', label: 'Vöktun & umfjöllun' },
     { href: '/greining/', label: 'Greining' },
+    { href: '/vaktir/', label: 'Vaktir' },
+    { href: '/spyrdu/', label: 'Spyrðu Karp' },
+    { href: '/karp-pro/', label: 'Um Karp Pro' },
   ] },
   { label: 'Alþingi', emoji: '🏛️', items: [
     { href: '/althingi/', label: 'Þingsalur', exact: true },
@@ -140,8 +142,10 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
 
       /* View Transitions: aðeins efnið hreyfist — skelin (nav+fréttir) er föst. */
       ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+      /* ATH: aðeins opacity — transform á main gerir position:fixed afkomendur
+         (modalar!) fasta við main í stað gluggans (fill-mode heldur gildinu). */
       .content > main { animation: pageIn .22s ease both; }
-      @keyframes pageIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+      @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
       @media (prefers-reduced-motion: reduce) { .content > main { animation: none; } }
 
       /* FRÉTTIR (hægra) */
@@ -177,6 +181,9 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       [data-tip]:hover::after, [data-tip]:focus::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); z-index: 90; width: max-content; max-width: 260px; background: rgba(9,14,26,.97); border: 1px solid rgba(255,255,255,.16); border-radius: 9px; padding: 8px 11px; font-size: 11.5px; font-weight: 400; line-height: 1.45; color: #dfe7f4; text-align: left; white-space: normal; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; }
       [data-tip]:hover::before, [data-tip]:focus::before { content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,.16); z-index: 90; }
       main p.datainfo, p.datainfo { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+      /* hidden-attributið á ALLTAF að fela — display-reglur á klösum mega ekki
+         yfirskrifa það (t.d. .cos{display:grid} á Vöktun braut sýnileikastýringu). */
+      [hidden] { display: none !important; }
       /* 🐟 Brand-fiskurinn + fljótandi Spyrðu-Karp hnappurinn (LOTA 19) */
       .brand { display: inline-flex; align-items: center; gap: 8px; }
       .brand .karpfish { flex: none; }

@@ -153,6 +153,19 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
     /* Premium-spjöldin (LOTA 13, eins og gamla) */
     .se-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
+    /* LOTA 20: spjaldið í tvo dálka á breiðum skjá — minna skrun */
+    @media (min-width: 900px) {
+      .d-more { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+      .d-more .se-card { margin: 0; }
+      .d-more .fy-health, .d-more .se-card:has(#d-tl), .d-more .d-sec, .d-more .pro-tease { grid-column: 1 / -1; }
+    }
+    /* ⭐ Pro-kynningin í spjaldinu (runtime-DOM) */
+    .pro-tease { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; }
+    .pt-t { font-size: 15px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; }
+    .pro-tease p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; }
+    .pt-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pt-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 8px 18px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    .pt-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 8px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
     .se-card .se-l { font-size: 13px; font-weight: 800; color: #eaf1fb; }
     .se-sub { font-size: 11px; color: #7e8ca6; font-weight: 400; margin-left: 6px; }
     .se-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -333,6 +346,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more');
+          // ⭐ Umfjöllunar-spjaldið er Karp Pro (LOTA 20) — kynning í stað greiningar óinnskráð
+          loadUser().then((uNow) => {
+          if (!uNow || !uNow.loggedIn) {
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${(uNow && uNow.loginUrl) || 'https://karp.is/login/'}">Innskráning</a></div></div>`;
+            dl.innerHTML = '';
+            return;
+          }
           fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
             .then((r) => (r.ok ? r.json() : null))
             .then((f) => {
@@ -365,6 +385,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               });
             })
             .catch(() => paint(dl, [], OFFLINE));
+          });
           // + Fylgja (co:-lykill í follows, sami og gamla) — LOTA 13c
           loadUser().then((u) => {
             const fb = document.getElementById('co-follow');

@@ -295,6 +295,8 @@ const jsonLd = {
     function initBillModal() {
       const m = document.getElementById('bill-modal');
       if (!m) return;
+      // Portal á body: transform/filter á forföður má aldrei brjóta fixed-staðsetningu
+      if (m.parentElement !== document.body) document.body.appendChild(m);
       m.querySelector('.bm-x').onclick = bmClose;
       m.querySelector('.bm-back').onclick = bmClose;
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') bmClose(); });
