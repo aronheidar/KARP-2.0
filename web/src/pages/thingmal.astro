@@ -9,6 +9,7 @@ import Layout from '../layouts/Layout.astro';
 import ThingTabs from '../components/ThingTabs.astro';
 import { partyName } from '@lib/parties.mjs';
 import FRUMVORP from '@gogn/frumvorp.json';
+import ATKV from '@gogn/atkvaedi.json';
 
 const pName = (k) => (k === 'U' ? 'Óháðir' : partyName(k) || k);
 
@@ -38,6 +39,9 @@ const bills = FRUMVORP
 // Gluggagögn (frumvarpa-modal): key → full lýsing + flokka-atkvæði.
 const BILLS = {};
 bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties }; });
+// Nafnakallið (LOTA 19): key → { ja/nei/hja/fjar: [nöfn] } úr gogn/atkvaedi.json.
+const ATKVMAP = {};
+bills.forEach((b) => { const rc = (ATKV.mal || {})[b.key.slice(4)]; if (rc) ATKVMAP[b.key] = rc; });
 
 const updated = '2026-07-01';
 const nPassed = bills.filter((b) => b.passed).length;
@@ -111,6 +115,7 @@ const jsonLd = {
       <div class="bm-box"><button class="bm-x" aria-label="Loka">×</button><div id="bm-body"></div></div>
     </div>
     <script type="application/json" id="d-bills" set:html={JSON.stringify(BILLS)}></script>
+    <script type="application/json" id="d-atkv" set:html={JSON.stringify(ATKVMAP)}></script>
   </main>
 
   <style is:global>
@@ -163,6 +168,8 @@ const jsonLd = {
     .v-b.v-nei.on { background: rgba(255,109,122,.16); border-color: #ff6d7a; color: #ff6d7a; }
     .v-b:disabled { opacity: .6; cursor: default; }
     .v-gate { font-size: 13px; color: #9fb0c8; margin-bottom: 8px; }
+    .v-note { font-size: 11px; color: #7e8ca6; margin: 2px 0 8px; }
+    .v-note a { color: #9fb0c8; }
     .v-gate a { color: #f6b13b; }
     .v-bar { height: 8px; border-radius: 5px; background: rgba(255,109,122,.35); overflow: hidden; }
     .v-bar-ja { height: 100%; background: #46e08a; }
@@ -177,6 +184,13 @@ const jsonLd = {
     .bm-type { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #f6b13b; }
     .bm-t { font-size: 18px; font-weight: 800; color: #eaf1fb; margin: 4px 0 8px; line-height: 1.3; padding-right: 20px; }
     .bm-sam { font-size: 13.5px; color: #cdd6e6; line-height: 1.55; margin-bottom: 12px; }
+    .bm-sub { font-size: 10.5px; color: #7e8ca6; text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+    .bm-g { margin: 5px 0; border: 1px solid rgba(255,255,255,.09); border-radius: 9px; background: rgba(255,255,255,.02); }
+    .bm-g summary { cursor: pointer; padding: 7px 11px; font-size: 12.5px; font-weight: 600; color: #cdd6e6; list-style: none; }
+    .bm-g summary::-webkit-details-marker { display: none; }
+    .bm-g[open] summary { border-bottom: 1px solid rgba(255,255,255,.07); }
+    .bm-g.g-ja summary { color: #42d086; } .bm-g.g-nei summary { color: #e0655f; }
+    .bm-g .bm-names { padding: 8px 11px; font-size: 12px; line-height: 1.7; color: #9fb0c8; }
     .bm-res { font-size: 13px; margin-bottom: 12px; }
     .bm-res .yes { color: #46e08a; font-weight: 700; } .bm-res .neu { color: #9fb0c8; font-weight: 700; }
     .bm-ph { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; margin: 10px 0 6px; }
@@ -192,25 +206,32 @@ const jsonLd = {
 
     function render(el, bill, d) {
       const u = window.KARP_USER || { loggedIn: false };
-      const ja = d.ja || 0, nei = d.nei || 0, total = ja + nei, mine = d.mine || '';
+      // LOTA 19: engin læsing — óinnskráð atkvæði vistast í vafranum (telst ekki í heildartölum)
+      const localVotes = () => { try { return JSON.parse(localStorage.getItem('karp-min-atkv') || '{}'); } catch (e) { return {}; } };
+      const ja = d.ja || 0, nei = d.nei || 0, total = ja + nei;
+      const mine = d.mine || (!u.loggedIn ? localVotes()[bill] || '' : '');
       const pct = total ? Math.round((ja / total) * 100) : 0;
       let h = '<div class="v-q">Hvernig myndir þú kjósa?</div>';
-      if (u.loggedIn) {
-        h += `<div class="v-btns"><button class="v-b v-ja${mine === 'ja' ? ' on' : ''}" data-c="ja">✓ Með</button><button class="v-b v-nei${mine === 'nei' ? ' on' : ''}" data-c="nei">✗ Á móti</button></div>`;
-      } else {
-        h += `<div class="v-gate">🔒 <a href="${u.loginUrl || 'https://karp.is/login/'}">Skráðu þig inn</a> til að kjósa</div>`;
-      }
+      h += `<div class="v-btns"><button class="v-b v-ja${mine === 'ja' ? ' on' : ''}" data-c="ja">✓ Með</button><button class="v-b v-nei${mine === 'nei' ? ' on' : ''}" data-c="nei">✗ Á móti</button></div>`;
+      if (!u.loggedIn) h += `<div class="v-note">Atkvæðið þitt vistast á þessu tæki. <a href="${u.loginUrl || 'https://karp.is/login/'}">Innskráð(ur)</a> telst það með í tölum lesenda.</div>`;
       if (total) {
         h += `<div class="v-bar"><div class="v-bar-ja" style="width:${pct}%"></div></div><div class="v-tally">${ja} með · ${nei} á móti · ${pct}% með</div>`;
       } else {
-        h += '<div class="v-tally">Engin atkvæði lesenda enn — vertu fyrst(ur).</div>';
+        h += '<div class="v-tally">Engin skráð atkvæði lesenda enn — vertu fyrst(ur).</div>';
       }
       el.innerHTML = h;
       el.querySelectorAll('.v-b').forEach((btn) => {
         btn.onclick = async () => {
-          el.querySelectorAll('.v-b').forEach((b) => (b.disabled = true));
-          const res = (await karpPost('/vote', { bill, choice: btn.dataset.c })) || {};
-          render(el, bill, res);
+          if (u.loggedIn) {
+            el.querySelectorAll('.v-b').forEach((b) => (b.disabled = true));
+            const res = (await karpPost('/vote', { bill, choice: btn.dataset.c })) || {};
+            render(el, bill, res);
+          } else {
+            const lv = localVotes();
+            lv[bill] = btn.dataset.c;
+            try { localStorage.setItem('karp-min-atkv', JSON.stringify(lv)); } catch (e) {}
+            render(el, bill, d);
+          }
         };
       });
     }
@@ -256,6 +277,17 @@ const jsonLd = {
         h += '<div class="bm-ph">Atkvæði eftir flokkum</div><div class="bm-p"><span class="h">Flokkur</span><span class="h ja">Með</span><span class="h nei">Á móti</span>';
         h += d.parties.map((p) => `<span>${esc(p.n)}</span><span class="ja">${p.ja}</span><span class="nei">${p.nei}</span>`).join('');
         h += '</div>';
+      }
+      // LOTA 19: nafnakallið — hvernig kusu einstakir þingmenn (loka-atkvæðagreiðslan)
+      let A = null;
+      try { A = JSON.parse((document.getElementById('d-atkv') || {}).textContent || '{}')[key]; } catch (e) {}
+      if (A && (A.ja.length || A.nei.length)) {
+        const grp = (label, cls, arr) => (arr && arr.length ? `<details class="bm-g ${cls}"><summary>${label} · ${arr.length}</summary><div class="bm-names">${arr.map(esc).join(' · ')}</div></details>` : '');
+        h += '<div class="bm-ph">Hvernig kusu þingmenn? <span class="bm-sub">loka-atkvæðagreiðslan · smelltu til að fletta upp</span></div>'
+          + grp('✓ Já sögðu', 'g-ja', A.ja)
+          + grp('✗ Nei sögðu', 'g-nei', A.nei)
+          + grp('— Greiddu ekki atkvæði', 'g-hja', A.hja)
+          + grp('Fjarverandi', 'g-fjar', A.fjar);
       }
       document.getElementById('bm-body').innerHTML = h;
       m.hidden = false;

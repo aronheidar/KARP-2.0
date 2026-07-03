@@ -397,13 +397,21 @@ const updated = '2026-07-02';
         mEl.innerHTML = rows.map((r) => `<div class="m-row" style="--pc:${r.c}"><span class="m-n">${esc(r.n)}</span><span class="m-bar"><i style="width:${r.pct}%"></i></span><span class="m-v">${r.pct}%</span></div>`).join('') + `<div class="m-empty" style="margin-top:8px"><a href="/stefnuprof/">Endurtaka prófið →</a></div>`;
       }
 
-      // Innskráð efni
+      // Innskráð efni — LOTA 19: enginn veggur; óinnskráð sést allt og fylgi les
+      // líka localStorage-listann (karp-follows-local af þingmanna-/frétta-síðum).
       loadUser().then(async (u) => {
         const gate = $g('gate-note');
         if (!u || !u.loggedIn) {
-          gate.innerHTML = `<div class="gate">🔒 <a href="${(u && u.loginUrl) || 'https://karp.is/login/'}">Skráðu þig inn</a> til að fylgjast með þingmönnum, sjá vaktirnar þínar og vista stillingar milli tækja.</div>`;
-          $g('mine').innerHTML = '<span class="dim">Innskráning þarf fyrir „að fylgja".</span>';
-          $g('acc').textContent = 'Ekki innskráð(ur).';
+          gate.innerHTML = '';
+          $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${(u && u.loginUrl) || 'https://karp.is/login/'}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
+          const MPL = J('d-mp') || {};
+          let lf = [];
+          try { lf = JSON.parse(localStorage.getItem('karp-follows-local') || '[]'); } catch (e) {}
+          const mps = lf.filter((k) => k.indexOf('mp:') === 0 && MPL[k]);
+          $g('mine').innerHTML = mps.length
+            ? '<div class="flist">' + mps.map((k) => { const m = MPL[k]; return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/"><span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a></div>`; }).join('') + '</div><div class="dim" style="margin-top:6px">Vistað á þessu tæki.</div>'
+            : '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> og ýttu „+ Fylgja" (vistast á tækinu án innskráningar).</div>';
+          $g('vaktir').innerHTML = '<span class="dim">🔎 <a href="/vaktir/">Leitarorðavaktin</a> virkar án innskráningar — hagvísavaktir í tölvupósti þurfa innskráningu.</span>';
           return;
         }
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;

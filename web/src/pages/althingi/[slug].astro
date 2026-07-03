@@ -185,6 +185,7 @@ const jsonLd = {
     .fbtn.on { background: transparent; color: var(--pc); }
     .fbtn:disabled { opacity: .6; cursor: default; }
     .follow-gate { font-size: 13px; color: #9fb0c8; text-decoration: none; }
+    .f-note { font-size: 11px; color: #7e8ca6; margin-left: 8px; }
     .follow-gate:hover { color: #f6b13b; }
   </style>
 
@@ -195,21 +196,24 @@ const jsonLd = {
       const el = document.getElementById('follow');
       if (!el) return;
       const KEY = el.dataset.key;
+      // LOTA 19: engin læsing — óinnskráð fylgi vistast í vafranum (karp-follows-local)
+      const lfl = () => { try { return JSON.parse(localStorage.getItem('karp-follows-local') || '[]'); } catch (e) { return []; } };
       function render() {
       const u = window.KARP_USER || { loggedIn: false };
-      if (!u.loggedIn) {
-        el.innerHTML = `<a class="follow-gate" href="${u.loginUrl || 'https://karp.is/login/'}">🔒 Skráðu þig inn til að fylgja</a>`;
-        return;
-      }
-      const following = (u.follows || []).includes(KEY);
-      el.innerHTML = `<button class="fbtn${following ? ' on' : ''}">${following ? '✓ Fylgist með' : '+ Fylgja'}</button>`;
+      const follows = u.loggedIn ? (u.follows || []) : lfl();
+      const following = follows.includes(KEY);
+      el.innerHTML = `<button class="fbtn${following ? ' on' : ''}">${following ? '✓ Fylgist með' : '+ Fylgja'}</button>${!u.loggedIn ? '<span class="f-note">vistast á þessu tæki</span>' : ''}`;
       el.querySelector('button').onclick = async () => {
-        const cur = window.KARP_USER.follows || [];
+        const cur = u.loggedIn ? (window.KARP_USER.follows || []) : lfl();
         const next = cur.includes(KEY) ? cur.filter((k) => k !== KEY) : cur.concat([KEY]);
         const b = el.querySelector('button');
         b.disabled = true; b.textContent = '…';
-        const res = await karpPost('/follows', { follows: next });
-        window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+        if (u.loggedIn) {
+          const res = await karpPost('/follows', { follows: next });
+          window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+        } else {
+          try { localStorage.setItem('karp-follows-local', JSON.stringify(next)); } catch (e) {}
+        }
         render();
       };
       }

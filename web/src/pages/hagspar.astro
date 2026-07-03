@@ -42,6 +42,8 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
     .spa-form button:disabled { opacity: .6; }
     .spa-mine { font-size: 13px; color: #b9a6ff; margin-top: 8px; }
     .spa-gate { font-size: 13.5px; color: #9fb0c8; margin-top: 10px; }
+    .spa-note { font-size: 11px; color: #7e8ca6; margin-top: 6px; }
+    .spa-note a { color: #9fb0c8; }
     .spa-gate a { color: #f6b13b; }
   </style>
 
@@ -55,19 +57,24 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
       const d = (await karpGet('/spa?topic=' + encodeURIComponent(T.topic))) || {};
       let h = `<div class="spa-h">${T.e} ${T.l}</div><div class="spa-sub">${T.hint}.</div>`;
       h += `<div class="spa-avg">Meðalspá lesenda: <b>${fp(d.avg)}</b> <span>· ${d.count || 0} spár</span></div>`;
-      if (u.loggedIn) {
-        h += `<div class="spa-form"><input type="number" step="${T.step}" min="${T.min}" max="${T.max}" placeholder="t.d. 4,0" value="${d.mine != null ? d.mine : ''}"><button>${d.mine != null ? 'Uppfæra' : 'Senda'} spá</button></div>`;
-        if (d.mine != null) h += `<div class="spa-mine">Þín spá: <b>${fp(d.mine)}</b></div>`;
-      } else {
-        h += `<div class="spa-gate">🔒 <a href="${u.loginUrl || 'https://karp.is/login/'}">Skráðu þig inn</a> til að senda spá.</div>`;
-      }
+      // LOTA 19: engin læsing — óinnskráð spá vistast í vafranum (telst ekki í meðaltali)
+      const lsp = () => { try { return JSON.parse(localStorage.getItem('karp-min-spa') || '{}'); } catch (e) { return {}; } };
+      const mine = d.mine != null ? d.mine : (!u.loggedIn ? lsp()[T.topic] : null);
+      h += `<div class="spa-form"><input type="number" step="${T.step}" min="${T.min}" max="${T.max}" placeholder="t.d. 4,0" value="${mine != null ? mine : ''}"><button>${mine != null ? 'Uppfæra' : 'Senda'} spá</button></div>`;
+      if (mine != null) h += `<div class="spa-mine">Þín spá: <b>${fp(mine)}</b></div>`;
+      if (!u.loggedIn) h += `<div class="spa-note">Spáin vistast á þessu tæki — <a href="${u.loginUrl || 'https://karp.is/login/'}">innskráð(ur)</a> telst hún með í meðalspánni.</div>`;
       el.innerHTML = h;
       const btn = el.querySelector('button');
       if (btn) btn.onclick = async () => {
         const v = parseFloat(String(el.querySelector('input').value).replace(',', '.'));
         if (!isFinite(v)) return;
         btn.disabled = true; btn.textContent = '…';
-        await karpPost('/spa', { topic: T.topic, value: v });
+        if (u.loggedIn) {
+          await karpPost('/spa', { topic: T.topic, value: v });
+        } else {
+          const s = lsp(); s[T.topic] = v;
+          try { localStorage.setItem('karp-min-spa', JSON.stringify(s)); } catch (e) {}
+        }
         renderCard(el);
       };
     }

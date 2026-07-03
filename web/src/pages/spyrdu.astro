@@ -6,17 +6,20 @@
 // Veitan svarar {error:'unconfigured'} þar til CF-secret er sett.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-const updated = '2026-07-02';
+import KarpFish from '../components/KarpFish.astro';
+const updated = '2026-07-03';
 const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurningum um íslenska hagkerfið, stjórnmálin og gögnin á Karp, grundað eingöngu í tölum vefjarins.';
 ---
 
 <Layout title="🤖 Spyrðu Karp | Karp" description={desc} canonical="https://app.karp.is/spyrdu/" ogTitle="Spyrðu Karp">
   <main data-pg="spyrdu">
+    <div class="sp-hero"><KarpFish size={120} /></div>
     <p class="kicker">Karp · Aðstoðarmaður</p>
-    <h1>🤖 Spyrðu Karp</h1>
-    <p>Spurðu um hagkerfið, þingið eða sveitarfélögin — aðstoðarmaðurinn svarar <b>eingöngu út frá gögnum Karp</b> og bendir þér á réttu síðuna.</p>
+    <h1>Spyrðu Karp</h1>
+    <p>Spurðu karpann um hagkerfið, þingið eða sveitarfélögin — hann svarar <b>eingöngu út frá gögnum Karp</b> og bendir þér á réttu síðuna.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Svörin koma frá gervigreind (Claude) sem fær aðeins samandregnar lykiltölur vefjarins sem heimild og á ekki að giska á annað. Gervigreind getur samt misskilið — sannreyndu mikilvægar tölur á síðunum sjálfum. Hámark 20 spurningar á dag á hvern notanda.">ⓘ</i> Um aðstoðarmanninn</p>
 
+    <div id="sp-gate" hidden>🔒 Spyrðu Karp er fyrir innskráða notendur — innskráning er ókeypis og tekur mínútu. <a href="https://karp.is/login/" id="sp-login">Skráðu þig inn</a> og karpinn svarar.</div>
     <div class="ask">
       <input id="sp-q" type="text" maxlength="300" placeholder="T.d. „Hverjir eru stýrivextirnir núna?“" autocomplete="off" />
       <button id="sp-go">Spyrja</button>
@@ -35,7 +38,10 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
   </main>
 
   <style>
-    main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+    .sp-hero { text-align: center; margin-bottom: 4px; }
+    #sp-gate { margin-top: 18px; background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 14px 17px; font-size: 14px; color: #dfe7f4; }
+    #sp-gate a { color: #f6b13b; font-weight: 700; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
     .ask { display: flex; gap: 8px; margin-top: 18px; }
@@ -53,7 +59,16 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
   </style>
 
+  <style is:global>
+    /* hero-karpinn syndir (keyframes kf-* koma úr Layout-global) */
+    .sp-hero .karpfish { transform: scaleX(-1); animation: kf-swim 4.2s ease-in-out infinite; }
+    .sp-hero .kf-eye { animation: kf-blink 5s infinite; transform-origin: 24px 45px; transform-box: view-box; }
+    .sp-hero .kf-bubble { animation: kf-float 3.4s ease-in infinite; }
+    .sp-hero .kf-bubble.b2 { animation-delay: 1.2s; } .sp-hero .kf-bubble.b3 { animation-delay: 2.3s; }
+    @media (prefers-reduced-motion: reduce) { .sp-hero .karpfish, .sp-hero .kf-eye, .sp-hero .kf-bubble { animation: none; } }
+  </style>
   <script>
+    import { loadUser } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     function initSpyrdu() {
       const q = document.getElementById('sp-q');
@@ -61,6 +76,18 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
       const out = document.getElementById('sp-svar');
       if (!q || !go || !out || go.dataset.done) return;
       go.dataset.done = '1';
+      // LOTA 19: spjallið er fyrir innskráða (kostnaðarvörn) — gátt annars
+      loadUser().then((u) => {
+        if (u && u.loggedIn) return;
+        const gate = document.getElementById('sp-gate');
+        if (gate) {
+          gate.hidden = false;
+          const li = document.getElementById('sp-login');
+          if (li && u && u.loginUrl) li.href = u.loginUrl;
+        }
+        document.querySelector('.ask').style.display = 'none';
+        document.querySelector('.chips').style.display = 'none';
+      }).catch(() => {});
       const MSG = {
         unconfigured: 'Aðstoðarmaðurinn er í gangsetningu — svarlykillinn hefur ekki verið virkjaður enn. Kíktu aftur fljótlega.',
         kvoti: 'Dagskvótinn þinn er búinn (20 spurningar) — reyndu aftur á morgun.',

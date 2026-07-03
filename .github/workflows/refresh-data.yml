@@ -47,6 +47,7 @@ jobs:
           node skriptur/build_frumvorp.js   || true
           node skriptur/build_votes.js      || true
           node skriptur/build_votemap.js    || true
+          node skriptur/build_atkvaedi.js   || true
           node skriptur/build_committees.js || true
           node skriptur/build_dagatal.js    || true
           node skriptur/build_cabinet.js    || true
