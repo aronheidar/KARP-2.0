@@ -21,8 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Deps (xlsx)
@@ -31,12 +33,13 @@ jobs:
         run: node skriptur/build_birgjar.js
       - name: Committa ef breyting
         run: |
-          if ! git diff --quiet -- gogn/birgjar.json; then
+          if [ -n "$(git status --porcelain -- gogn/birgjar.json)" ]; then
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
             git add gogn/birgjar.json
             git commit -m "data: vikuleg birgjagreining ($(date -u +%F))"
-            git push
+            git pull --rebase origin main || true
+            git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
           else
             echo "• Engin breyting á birgjagögnum."
           fi

@@ -30,8 +30,10 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Deps (xlsx o.fl. fyrir gagnaskriftur)
@@ -82,16 +84,27 @@ jobs:
         env:
           CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
         run: |
-          if ! git diff --quiet -- gogn/ web/public/gogn/; then
+          # status --porcelain sér líka NÝJAR skrár (git diff gerir það ekki)
+          CHANGES=$(git status --porcelain -- gogn/ web/public/gogn/ | head -40)
+          if [ -n "$CHANGES" ]; then
+            echo "── Breytt/nýtt:"; echo "$CHANGES"
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
-            git add gogn/ web/public/gogn/
-            git commit -m "data: sjálfvirk gagnauppfærsla ($(date -u +%F))"
-            git push
+            git add -A gogn/ web/public/gogn/       || { echo "✗ git add brást"; exit 1; }
+            git commit -m "data: sjálfvirk gagnauppfærsla ($(date -u +%F))" || { echo "✗ git commit brást"; exit 1; }
+            # race-vörn: eitthvað gæti hafa lent á main á meðan skripturnar keyrðu
+            git pull --rebase origin main            || echo "⚠ rebase brást — reyni push samt"
+            if ! git push origin HEAD:main; then
+              echo "⚠ push hafnað — sæki aftur og reyni einu sinni enn…"
+              git pull --rebase origin main
+              git push origin HEAD:main || { echo "✗ push brást endanlega — athugaðu branch protection á main (leyfa github-actions að ýta) og Settings→Actions→Workflow permissions (Read and write)."; exit 1; }
+            fi
             echo "✔ Gögn breyttust → ýtt. Cloudflare endurbyggir bæði verkefnin."
           elif [ -n "$CF_DEPLOY_HOOK" ]; then
+            # dauður/rangur hook á ekki að fella keyrsluna
             curl -fsS -X POST "$CF_DEPLOY_HOOK" >/dev/null \
-              && echo "✔ Engin gagnabreyting → deploy hook þvingaði endurbyggingu (fersk Hagstofa)."
+              && echo "✔ Engin gagnabreyting → deploy hook þvingaði endurbyggingu (fersk Hagstofa)." \
+              || echo "⚠ Deploy hook svaraði ekki (hunsa) — uppfærðu/eyddu CF_DEPLOY_HOOK-secretinu."
           else
             echo "• Engin breyting og enginn CF_DEPLOY_HOOK — sleppi. efnahagur ferskast við næstu gagna-ýtingu."
           fi
