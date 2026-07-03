@@ -28,11 +28,36 @@ const desc = 'Útboðsvaktin — öll opinber útboð á einum stað: Útboðsve
     <div id="ut-count" class="ut-count"></div>
     <div id="ut-list" class="ut-list">Sæki útboð…</div>
 
-    <h2>Fleiri útboðsvefir</h2>
+    <h2>Útboðsgáttir á Íslandi <i class="tip" tabindex="0" data-tip="Miðlæga safnið (Útboðsvefur Ríkiskaupa) nær yfir flest ríkisútboð og margar stofnanir. Stórar stofnanir og sveitarfélög reka þó eigin gáttir sem birta ekki opinn gagnastraum — þær eru hér sem beinir hlekkir svo verktakar finni allt á einum stað.">ⓘ</i></h2>
+    <p class="ut-dir-intro">Sumar stofnanir reka eigin útboðskerfi utan Útboðsvefsins. Karp getur ekki sótt gögnin sjálfkrafa af þeim öllum (bot-varnir eða lokuð kerfi) — en hér er heildstæð skrá svo þú missir ekki af neinu:</p>
     <div class="ut-more">
       <a class="um-card" href="https://utbod.reykjavik.is/aspx/Tenders/Current" target="_blank" rel="noopener">
         <b>🏙️ Reykjavíkurborg</b>
-        <span>utbod.reykjavik.is — In-Tend kerfi borgarinnar. Gagnastraumurinn er varinn (reCAPTCHA) svo útboðin birtast ekki hér enn — hlekkurinn opnar listann beint.</span>
+        <span>utbod.reykjavik.is (In-Tend). Bot-varið (reCAPTCHA) svo útboðin birtast ekki hér — hlekkurinn opnar listann beint.</span>
+      </a>
+      <a class="um-card" href="https://www.vegagerdin.is/framkvaemdir-og-vidhald/utbod/" target="_blank" rel="noopener">
+        <b>🛣️ Vegagerðin</b>
+        <span>Vega-, brúa- og jarðvinnuútboð. Stærstu verklegu framkvæmdir landsins — oft líka auglýst á Útboðsvefnum.</span>
+      </a>
+      <a class="um-card" href="https://www.landsvirkjun.is/utbod" target="_blank" rel="noopener">
+        <b>⚡ Landsvirkjun</b>
+        <span>Virkjana-, orku- og innviðaframkvæmdir orkufyrirtækis ríkisins.</span>
+      </a>
+      <a class="um-card" href="https://www.faxafloahafnir.is/utbod/" target="_blank" rel="noopener">
+        <b>⚓ Faxaflóahafnir</b>
+        <span>Hafnarframkvæmdir og -þjónusta á höfuðborgarsvæðinu.</span>
+      </a>
+      <a class="um-card" href="https://www.or.is/um-or/utbod/" target="_blank" rel="noopener">
+        <b>💧 Orkuveita Reykjavíkur</b>
+        <span>Veitu-, orku- og fráveituframkvæmdir OR-samstæðunnar (Veitur, ON, Ljósleiðarinn).</span>
+      </a>
+      <a class="um-card" href="https://www.kopavogur.is/is/stjornkerfi/utbod" target="_blank" rel="noopener">
+        <b>🏘️ Kópavogsbær</b>
+        <span>Útboð næststærsta sveitarfélags landsins.</span>
+      </a>
+      <a class="um-card" href="https://www.hafnarfjordur.is/utbod" target="_blank" rel="noopener">
+        <b>🏘️ Hafnarfjörður</b>
+        <span>Útboð Hafnarfjarðarkaupstaðar.</span>
       </a>
       <a class="um-card" href="https://www.rikiskaup.is/" target="_blank" rel="noopener">
         <b>🏛️ Ríkiskaup</b>
@@ -46,7 +71,7 @@ const desc = 'Útboðsvaktin — öll opinber útboð á einum stað: Útboðsve
 
     <div class="ut-pro">⭐ <b>Fáðu útboðin í tölvupósti:</b> skráðu leitarorð (t.d. „jarðvinna", „hugbúnaður") í <a href="/vaktir/">leitarorðavaktina</a> — innskráðir fá daglegan póst þegar ný útboð nefna orðin. Hluti af <a href="/karp-pro/">Karp Pro</a> (ókeypis).</div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu um veitur Karp. Ábendingar um fleiri útboðsvefi: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #4 LOTA 21.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Lifandi safn: utbodsvefur.is (Ríkiskaup) + api.ted.europa.eu um veitur Karp. Aðrar gáttir eru beinir hlekkir (bot-varðar eða án opins gagnastraums). Ábendingar um fleiri útboðsvefi: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. #4 LOTA 21+24.</p>
   </main>
 
   <style>
@@ -67,6 +92,7 @@ const desc = 'Útboðsvaktin — öll opinber útboð á einum stað: Útboðsve
     .um-card:hover { border-color: rgba(246,177,59,.45); }
     .um-card b { display: block; color: #eaf1fb; font-size: 14px; margin-bottom: 4px; }
     .um-card span { font-size: 12px; color: #9fb0c8; line-height: 1.5; }
+    .ut-dir-intro { font-size: 13px; color: #9fb0c8; margin: 2px 0 12px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
   </style>

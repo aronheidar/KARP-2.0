@@ -87,6 +87,12 @@ const updated = '2026-07-02';
     <section id="p-dash">
       <div id="gate-note"></div>
 
+      <!-- Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). Falið sjálfgefið. -->
+      <div class="w" id="w-traffic-box" hidden>
+        <div class="w-h">📊 Umferð á Karp <span class="w-sub">Burst · aðeins stjórnandi</span></div>
+        <div id="w-traffic">Sæki tölfræði…</div>
+      </div>
+
       <div class="w">
         <div class="w-h">📈 Hagvísar dagsins</div>
         <div class="kpis">{KPIS.map((k) => <a class="kpi" href={k.href}><span class="k-l">{k.l}</span><span class="k-v">{k.v}</span></a>)}</div>
@@ -143,7 +149,7 @@ const updated = '2026-07-02';
         <div class="w-h">👤 Aðgangurinn</div>
         <div id="acc" class="acc"></div>
         <div class="acc-links">
-          <a href="https://karp.is/notandi/" target="_blank" rel="noopener">Breyta prófíl á karp.is ↗</a>
+          <a href="https://wp.karp.is/notandi/" target="_blank" rel="noopener">Breyta prófíl ↗</a>
           <a href="https://wp.karp.is/login/?action=lostpassword" target="_blank" rel="noopener">Breyta lykilorði ↗</a>
         </div>
       </div>
@@ -212,6 +218,19 @@ const updated = '2026-07-02';
     #w-sveit .svt-s { font-size: 10px; color: #7e8ca6; }
     #w-sveit #sv-radar { width: 100%; height: 195px; }
     .w-sub { font-size: 11px; color: #7e8ca6; font-weight: 400; margin-left: 8px; text-transform: none; letter-spacing: 0; }
+    /* 📊 Umferðartölfræði (admin, runtime-DOM) */
+    #w-traffic-box { border-color: rgba(246,177,59,.3); }
+    .tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 9px; }
+    .tr-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 9px 11px; }
+    .tr-l { font-size: 11px; color: #8fa0ba; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tr-v { font-size: 22px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; margin-top: 1px; }
+    .tr-s { font-size: 10.5px; color: #7e8ca6; }
+    .tr-top-h { font-size: 11px; color: #8fa0ba; text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 5px; }
+    .tr-top { display: flex; flex-direction: column; }
+    .tr-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .tr-row a { color: #cdd6e6; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tr-row a:hover { color: #f6b13b; } .tr-row b { color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .tr-note { font-size: 10.5px; color: #6f7b8d; margin-top: 10px; line-height: 1.4; }
     .loft { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
     .lf { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 9px; padding: 8px 10px; }
     .lf-n { font-size: 10.5px; color: #8fa0ba; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -415,6 +434,32 @@ const updated = '2026-07-02';
           return;
         }
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;
+        // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). LOTA 24.
+        if (u.isAdmin) {
+          const box = $g('w-traffic-box'), tel = $g('w-traffic');
+          if (box) box.hidden = false;
+          karpGet('/burst').then((d) => {
+            if (!tel) return;
+            if (!d || d.available === false) { tel.innerHTML = '<span class="dim">Burst Statistics er ekki uppsett á wp.karp.is — tölfræðin birtist þegar viðbótin er virk.</span>'; return; }
+            const gt = (v) => String(v == null ? 0 : v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            const cell = (e, l, v, s) => `<div class="tr-c"><div class="tr-l">${e} ${l}</div><div class="tr-v">${gt(v)}</div><div class="tr-s">${s}</div></div>`;
+            let h = '<div class="tr-grid">'
+              + cell('👁️', 'Flettingar í dag', (d.today || {}).pageviews, 'síðuskoðanir')
+              + cell('🧑', 'Gestir í dag', (d.today || {}).visitors, 'einstakir')
+              + cell('👁️', 'Flettingar (7d)', (d.week || {}).pageviews, 'vikan')
+              + cell('🧑', 'Gestir (7d)', (d.week || {}).visitors, 'vikan')
+              + '</div>';
+            const top = (d.top || []).filter((x) => x && x.url);
+            if (top.length) {
+              const short = (u2) => { try { return new URL(u2).pathname || '/'; } catch (e) { return String(u2).replace(/^https?:\/\/[^/]+/, '') || '/'; } };
+              h += '<div class="tr-top-h">Vinsælustu síður (7 dagar)</div><div class="tr-top">'
+                + top.slice(0, 6).map((x) => `<div class="tr-row"><a href="${esc(short(x.url))}">${esc(short(x.url))}</a><b>${gt(x.pv)}</b></div>`).join('')
+                + '</div>';
+            }
+            h += '<div class="tr-note">Heimild: Burst Statistics á wp.karp.is (nafnlaus, cookie-laus vefmæling). Aðeins sýnilegt stjórnanda.</div>';
+            tel.innerHTML = h;
+          }).catch(() => { if (tel) tel.innerHTML = '<span class="dim">Náði ekki í umferðartölfræði.</span>'; });
+        }
         // Að fylgja
         const MP = J('d-mp') || {};
         const paintMine = () => {
