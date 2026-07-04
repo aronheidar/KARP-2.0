@@ -127,18 +127,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <datalist id="sov-list">{SOVENTS.map((e) => <option value={e.n} />)}</datalist>
       <div id="sov-out"></div>
 
-      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Við val á fyrirtæki að ofan lýsist hnúturinn þess upp.">ⓘ</i></h3>
-      <div class="chips" id="tn-cats">
-        <button class="chip on" data-c="stofnanir">Stofnanir &amp; málefni</button>
-        <button class="chip" data-c="fyrirtaeki">Fyrirtæki</button>
-        <button class="chip" data-c="flokkar">Flokkarnir</button>
-        <button class="chip" data-c="radherrar">Ráðherrar</button>
-        <button class="chip" data-c="thingmenn">Þingmenn</button>
-      </div>
+      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Netið FYLGIR VALINU efst á síðunni: Fyrirtæki-flipinn sýnir fyrirtækjanetið, Flokkar flokkanetið o.s.frv. — og valinn aðili lýsist upp.">ⓘ</i> <span class="fg-follow">fylgir valinu efst</span></h3>
       <div id="tn-graph"></div>
       <div id="tn-note" class="tn-note"></div>
       <div id="tn-pairs"></div>
     </section>
+
+    <!-- 📰 Nýjasta umfjöllunin — NEÐST, fyrir neðan greininguna (ósk notanda) -->
+    <div id="btm-news" hidden>
+      <div class="d-sec" id="btm-sec">Nýjasta umfjöllunin</div>
+      <div class="d-list" id="btm-list"></div>
+    </div>
 
     <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. Greiningarnar keyra lifandi á fréttasafninu (/yearreview + /firma + /firmagraph). #2 + LOTA 34.</p>
   </main>
@@ -206,12 +205,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
     /* Premium-spjöldin (LOTA 13, eins og gamla) */
     .se-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
-    /* LOTA 20: spjaldið í tvo dálka á breiðum skjá — minna skrun */
+    /* LOTA 20: spjaldið í tvo dálka á breiðum skjá — LOTA 35: ÞRJÁ á mjög breiðum */
     @media (min-width: 900px) {
       .d-more { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
       .d-more .se-card { margin: 0; }
-      .d-more .fy-health, .d-more .se-card:has(#d-tl), .d-more .d-sec, .d-more .pro-tease { grid-column: 1 / -1; }
+      .d-more .fy-health, .d-more .se-card:has(#d-tl), .d-more .pro-tease { grid-column: 1 / -1; }
     }
+    @media (min-width: 1150px) {
+      .d-more { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .fg-follow { font-size: 11px; font-weight: 400; color: #7e8ca6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 2px 9px; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+    #btm-news { margin-top: 26px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 6px; }
     /* ⭐ Pro-kynningin í spjaldinu (runtime-DOM) */
     .pro-tease { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; }
     .pt-t { font-size: 15px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; }
@@ -396,6 +400,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       document.querySelectorAll('#u-chips .chip').forEach((ch) => {
         ch.onclick = () => {
           document.querySelectorAll('#u-chips .chip').forEach((x) => x.classList.toggle('on', x === ch));
+          // 🕸️ EITT val: tengslanetið fylgir efsta valinu (LOTA 35 — tn-pillurnar burt)
+          try {
+            const TNMAP = { fyr: 'fyrirtaeki', stofnanir: 'stofnanir', flokkar: 'flokkar', radherrar: 'radherrar' };
+            if (ch.dataset.g) tnLoad(TNMAP[ch.dataset.g] || 'stofnanir');
+            else tnLoad(ch.dataset.e === 'stjornmal' ? 'flokkar' : 'stofnanir');
+          } catch (e) {}
           if (ch.dataset.g) { if (wrap) wrap.hidden = true; showGrids(ch.dataset.g); }
           else {
             if (wrap) wrap.hidden = false;
@@ -500,9 +510,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       }
       function openCo(c) {
           det.hidden = false;
-          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
+          det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div>`;
           det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          const dl = det.querySelector('.d-list'), dm = det.querySelector('.d-more');
+          // 📰 fréttalistinn býr NEÐST á síðunni (undir greiningunni) — LOTA 35
+          const btm = document.getElementById('btm-news');
+          const dl = document.getElementById('btm-list'), dm = det.querySelector('.d-more');
+          if (btm) btm.hidden = true;
           // ⭐ Umfjöllunar-spjaldið er Karp Pro (LOTA 20) — kynning í stað greiningar óinnskráð
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
@@ -513,7 +526,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
             .then((r) => (r.ok ? r.json() : null))
             .then((f) => {
-              if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
+              if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); if (btm) btm.hidden = false; paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
               const se = f.sentiment || {};
               let mh = healthBanner(f);
               mh += rvCard(c.rvFull || c.rv, c.rvFull && c.rvFull.ccy);
@@ -526,8 +539,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               }
               mh += distCard(f.stats && f.stats.sources, f.total);
               mh += '<div id="d-yt"></div>';
-              mh += `<div class="d-sec">Nýjasta umfjöllunin · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}</div>`;
               dm.innerHTML = mh;
+              const bsec = document.getElementById('btm-sec');
+              if (bsec) bsec.textContent = `Nýjasta umfjöllunin um ${c.n} · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}`;
+              if (btm) btm.hidden = false;
               loadYtCard(c.n);
               try { fgSetSel(c, f); } catch (e) {} // 📊 greiningin fylgir valinu (LOTA 34B)
               paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
@@ -544,7 +559,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
                 });
               });
             })
-            .catch(() => paint(dl, [], OFFLINE));
+            .catch(() => { if (btm) btm.hidden = false; paint(dl, [], OFFLINE); });
           });
           // + Fylgja (co:-lykill í follows, sami og gamla) — LOTA 13c
           loadUser().then((u) => {
@@ -857,7 +872,6 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       document.querySelectorAll('#fg-vogchips .chip').forEach((ch) => {
         ch.onclick = () => { document.querySelectorAll('#fg-vogchips .chip').forEach((x) => x.classList.toggle('on', x === ch)); runFgVog(ch.dataset.q, ch.textContent); };
       });
-      document.querySelectorAll('#tn-cats .chip').forEach((b) => b.addEventListener('click', () => tnLoad(b.dataset.c)));
       const sgo = document.getElementById('sov-go');
       if (sgo) sgo.onclick = sovRun;
       ['sov-a', 'sov-b'].forEach((id) => { const el = document.getElementById(id); if (el) el.onkeydown = (e) => { if (e.key === 'Enter') sovRun(); }; });
