@@ -411,12 +411,13 @@ async function gleitHandler(request, env, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 80);
   if (q.length < 2) return sjson({ error: 'q' });
   const cx = env.GOOGLE_CSE_CX || CSE_CX;
-  if (!env.YOUTUBE_API_KEY || !cx) return sjson({ error: 'unconfigured' });
+  const gkey = env.GOOGLE_CSE_KEY || env.YOUTUBE_API_KEY; // sérlykill gengur fyrir (LOTA 54b)
+  if (!gkey || !cx) return sjson({ error: 'unconfigured' });
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/gleit?q=' + encodeURIComponent(q.toLowerCase()));
   let res = await cache.match(cacheKey);
   if (res) return res;
-  const up = await fetch('https://www.googleapis.com/customsearch/v1?key=' + env.YOUTUBE_API_KEY + '&cx=' + encodeURIComponent(cx) + '&q=' + encodeURIComponent(q) + '&gl=is&hl=is&num=10');
+  const up = await fetch('https://www.googleapis.com/customsearch/v1?key=' + gkey + '&cx=' + encodeURIComponent(cx) + '&q=' + encodeURIComponent(q) + '&gl=is&hl=is&num=10');
   const H = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
   if (!up.ok) {
     // 429/403 = kvóti búinn eða API ekki virkjað — stutt skyndiminni svo við lemjum ekki á honum
