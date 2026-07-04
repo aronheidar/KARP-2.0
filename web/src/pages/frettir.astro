@@ -963,9 +963,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const kt = [rv.mcap != null && ['Markaðsvirði', Math.round(rv.mcap / 1e9) + ' ma.kr'], rv.pe != null && ['V/H', String(rv.pe).replace('.', ',')], rv.pb != null && ['V/I', String(rv.pb).replace('.', ',')], rv.roe != null && ['ROE', String(rv.roe).replace('.', ',') + '%']].filter(Boolean);
       const tonar = Object.entries(se.bySource || {}).map(([m, v]) => ({ m, n: v.n || 0, idx: v.idx })).filter((x) => x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 10);
       const words = (f.words || []).slice(0, 16);
-      // ríkisgreiðslur (sama vörpun og kortið)
+      // ríkisgreiðslur — lesnar úr kortinu í DOM (býr í annarri lokun)
       let rikHtml = '';
-      if (RIKID && typeof RIKID.then !== 'function') {} // (RIKID er promise — lesum úr DOM í staðinn)
       const rikEl = document.getElementById('d-rik');
       if (rikEl && rikEl.textContent.trim()) {
         const totTxt = (rikEl.querySelector('.rik-tot') || {}).textContent || '';
