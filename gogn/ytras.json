@@ -1,0 +1,330 @@
+{
+ "updated": "2026-07-04T10:30:59.314Z",
+ "n": 38,
+ "byCat": {
+  "midlar": 18,
+  "stofnanir": 1,
+  "fyrirtaeki": 11,
+  "thingmenn": 8
+ },
+ "chans": [
+  {
+   "id": "UCNpgIsrS5j94RDTfPB3wevg",
+   "n": "Samstöðin",
+   "cat": "midlar",
+   "q": "Samstöðin",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCGgyr3-DI5pr5Cnnv2A8shg",
+   "n": "RÚV",
+   "cat": "midlar",
+   "q": "RÚV",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCOz6GbXqeZ6wJsUT8HXdZAQ",
+   "n": "Stjórnarráðið",
+   "cat": "stofnanir",
+   "q": "Stjórnarráðið",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCiPZhGeTpFL9wvvVR9uFQgA",
+   "n": "Eimskip",
+   "cat": "fyrirtaeki",
+   "q": "Eimskip",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCJKK3LJ0Fs6UcWs6QMRWs8g",
+   "n": "Eimskip (aðalrás)",
+   "cat": "fyrirtaeki",
+   "q": "Eimskip (aðalrás)",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UC0auMGlERL_q9IfaYPysb1Q",
+   "n": "Icelandair",
+   "cat": "fyrirtaeki",
+   "q": "Icelandair",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCHGNsNarIoZP3QuBzuqtHqg",
+   "n": "Play",
+   "cat": "fyrirtaeki",
+   "q": "Play",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UC9VZ9wDIJJ4LSXlK7Vgnjsw",
+   "n": "Landsvirkjun",
+   "cat": "fyrirtaeki",
+   "q": "Landsvirkjun",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UC9-sEuaG0dXpbcr0wScvMvg",
+   "n": "Síminn",
+   "cat": "fyrirtaeki",
+   "q": "Síminn",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCRijU8XCs80USak_fB7KziA",
+   "n": "Nova",
+   "cat": "fyrirtaeki",
+   "q": "Nova",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UC3R4Nvk_EL7BODeuoYv0Q9w",
+   "n": "Arion banki",
+   "cat": "fyrirtaeki",
+   "q": "Arion banki",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCvKAwqQCubhM-Hwayvcd2bA",
+   "n": "Íslandsbanki",
+   "cat": "fyrirtaeki",
+   "q": "Íslandsbanki",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UCtTyhVmndlpjloldBtguR6Q",
+   "n": "Ölgerðin",
+   "cat": "fyrirtaeki",
+   "q": "Ölgerðin",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UClVW7BGbRvC5-0kowu8quhw",
+   "n": "Össur",
+   "cat": "fyrirtaeki",
+   "q": "Össur",
+   "newest": "",
+   "vids": null,
+   "seed": true
+  },
+  {
+   "id": "UC6Q6YsF8IbwsxKwgVMy1cxA",
+   "n": "Áramótaskaup RÚV",
+   "q": "RÚV",
+   "cat": "midlar",
+   "newest": "2026-01-01",
+   "vids": 15
+  },
+  {
+   "id": "UCjwIUlrgM0XpMYGBAubbEUg",
+   "n": "RÚV Íþróttir",
+   "q": "RÚV",
+   "cat": "midlar",
+   "newest": "2026-07-03",
+   "vids": 15
+  },
+  {
+   "id": "UCDae8lfIFbueLLLmZVNm96w",
+   "n": "Heimildin",
+   "q": "Heimildin",
+   "cat": "midlar",
+   "newest": "2026-05-01",
+   "vids": 15
+  },
+  {
+   "id": "UC1OWbSL9KQvExPR8XIZwG-A",
+   "n": "Viðskiptablaðið",
+   "q": "Viðskiptablaðið",
+   "cat": "midlar",
+   "newest": "2026-02-08",
+   "vids": 4
+  },
+  {
+   "id": "UCLskUp_NF8-QERMYRDGp_VA",
+   "n": "Viðskiptablaðið Ritstjórn",
+   "q": "Viðskiptablaðið",
+   "cat": "midlar",
+   "newest": "2013-11-06",
+   "vids": 3
+  },
+  {
+   "id": "UCVR94saY6YnNgaQtvLBcS0w",
+   "n": "DV Plays",
+   "q": "DV Ísland",
+   "cat": "midlar",
+   "newest": "2026-07-03",
+   "vids": 15
+  },
+  {
+   "id": "UClZNc2VR2tPu_0ZgqH6e9aQ",
+   "n": "DV",
+   "q": "DV Ísland",
+   "cat": "midlar",
+   "newest": "2021-11-04",
+   "vids": 15
+  },
+  {
+   "id": "UC8clR9FpMIXuQ-le1ZaDrrQ",
+   "n": "DV Aerials",
+   "q": "DV Ísland",
+   "cat": "midlar",
+   "newest": "2026-06-19",
+   "vids": 3
+  },
+  {
+   "id": "UCkuS-5rTvwPg0LTvXn2cd8g",
+   "n": "Mannlíf",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2022-06-07",
+   "vids": 15
+  },
+  {
+   "id": "UCnMTy_Mb2cjJ_mNrSoPIp2Q",
+   "n": "Mannlíf",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2021-11-18",
+   "vids": 15
+  },
+  {
+   "id": "UCu6T6RgRz6jxiHJlxanwwJA",
+   "n": "Mannlíf tímarit",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2018-11-29",
+   "vids": 15
+  },
+  {
+   "id": "UCCigVZza6dnZfE3nOIZuTIQ",
+   "n": "Hringbraut",
+   "q": "Hringbraut",
+   "cat": "midlar",
+   "newest": "2023-03-20",
+   "vids": 15
+  },
+  {
+   "id": "UCe5dzlT9wEabzfPqBfN3Cgg",
+   "n": "Hringbraut miðlun",
+   "q": "Hringbraut",
+   "cat": "midlar",
+   "newest": "2019-02-15",
+   "vids": 4
+  },
+  {
+   "id": "UCA-XGqVmrjQN5T24XGYjXyg",
+   "n": "Útvarp Saga",
+   "q": "Útvarp Saga",
+   "cat": "midlar",
+   "newest": "2016-07-11",
+   "vids": 15
+  },
+  {
+   "id": "UClOgfJg84SaZhj3XAZwcQKw",
+   "n": "N4",
+   "q": "N4 sjónvarp",
+   "cat": "midlar",
+   "newest": "2023-02-03",
+   "vids": 15
+  },
+  {
+   "id": "UCWJPg5KCkgBpAfIE0ojjDxQ",
+   "n": "Kjarninn",
+   "q": "Kjarninn",
+   "cat": "midlar",
+   "newest": "2022-06-18",
+   "vids": 15
+  },
+  {
+   "id": "UCa5poP4CJHjc80a4uwBxj_A",
+   "n": "Ása Berglind Hjálmarsdóttir",
+   "q": "Ása Berglind Hjálmarsdóttir",
+   "cat": "thingmenn",
+   "newest": "2020-07-07",
+   "vids": 15
+  },
+  {
+   "id": "UCFaBhzozsu_H4oBQ9CK63cQ",
+   "n": "Guðlaugur Þór Þórðarson",
+   "q": "Guðlaugur Þór Þórðarson",
+   "cat": "thingmenn",
+   "newest": "2025-08-28",
+   "vids": 2
+  },
+  {
+   "id": "UC_pFELbG9ubYaSa88MF7-zg",
+   "n": "Guðmundur Ari Sigurjónsson",
+   "q": "Guðmundur Ari Sigurjónsson",
+   "cat": "thingmenn",
+   "newest": "2025-11-12",
+   "vids": 5
+  },
+  {
+   "id": "UCJ19xgl9Qu-T60LBhdtYHWg",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2026-06-20",
+   "vids": 15
+  },
+  {
+   "id": "UC8e0vjR9Pz5UB-mvKEwbvYQ",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2016-11-02",
+   "vids": 3
+  },
+  {
+   "id": "UCZMfBrppPlU1QL5kFIbueTQ",
+   "n": "Ingvar Þóroddsson",
+   "q": "Ingvar Þóroddsson",
+   "cat": "thingmenn",
+   "newest": "2011-07-27",
+   "vids": 2
+  },
+  {
+   "id": "UCu-DwL5IUbGf59aiCSFxnzA",
+   "n": "Jón Gnarr",
+   "q": "Jón Gnarr",
+   "cat": "thingmenn",
+   "newest": "2024-05-24",
+   "vids": 15
+  },
+  {
+   "id": "UCVQ2L7AsCwz_YhhXZ6U7yJQ",
+   "n": "Jón Gunnarsson",
+   "q": "Jón Gunnarsson",
+   "cat": "thingmenn",
+   "newest": "2014-06-05",
+   "vids": 15
+  }
+ ]
+}
