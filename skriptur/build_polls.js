@@ -90,6 +90,10 @@ function parseDate(s, fallbackYear) {
     election2024: election
   };
   fs.writeFileSync(DIR + 'polls.json', JSON.stringify(out));
+  // public-afrit (LOTA 51): Spyrðu-Karp-RAG sækir kannanirnar á keyrslutíma
+  const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
+  fs.mkdirSync(PUB, { recursive: true });
+  fs.writeFileSync(path.join(PUB, 'polls.json'), JSON.stringify(out));
   console.log('WROTE polls.json | kannanir:', polls.length, '| election baseline:', !!election, '| bytes:', fs.statSync(DIR + 'polls.json').size);
   console.log('pollsters:', JSON.stringify([...new Set(polls.map(p => p.pollster))]));
   console.log('date range:', polls.length ? polls[0].date + ' → ' + polls[polls.length - 1].date : '—');

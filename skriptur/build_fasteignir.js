@@ -101,6 +101,9 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     byMuni: byMuni, byRegionType: byRegionType, byMuniWindow: months[Math.max(0, months.length - 12)].m + '–' + lastM
   };
   fs.writeFileSync(DIR + 'fasteignir.json', JSON.stringify(out));
+  // public-afrit (LOTA 51): verðmatið á /vaktir/ og Spyrðu-Karp-RAG sækja skrána á keyrslutíma
+  fs.mkdirSync(path.join(__dirname, '..', 'web', 'public', 'gogn'), { recursive: true });
+  fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'gogn', 'fasteignir.json'), JSON.stringify(out));
   console.log('skrár alls:', total, '| nothæf íbúðakaup:', kept, '| mánuðir:', months.length, '| bytes:', fs.statSync(DIR + 'fasteignir.json').size);
   console.log('nýjasti mánuður:', JSON.stringify(months[months.length - 1]));
 
