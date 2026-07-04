@@ -261,6 +261,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
           <button class="nc" data-e="althjoda">🌍</button>
           <button class="nc" data-e="samfelag">👥</button>
           <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">🗺️</button>
+          <button class="nc" data-e="__youtube" title="Ísland á YouTube — fréttarásir og stjórnmál">▶️</button>
+          <button class="nc" data-e="__reddit" title="Reddit — r/Iceland og r/Reykjavik">👽</button>
         </div>
         <div id="news-list">Hleð…</div>
       </aside>
@@ -303,6 +305,28 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
               nl.innerHTML = renderNews(items);
             })
             .catch(() => { nl.innerHTML = '<div class="news-empty">Karp-fréttirnar svara ekki í augnablikinu.</div>'; });
+          return;
+        }
+        if (newsEfni === '__youtube' || newsEfni === '__reddit') {
+          // ▶️/👽 Samfélagsmiðla-veitur um workerinn (LOTA 32)
+          const ep = newsEfni === '__youtube' ? '/api/youtube' : '/api/reddit';
+          fetch(ep)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (newsEfni === '__reddit' && d && d.configured === false) {
+                newsCache[newsEfni] = [];
+                nl.innerHTML = '<div class="news-empty">Reddit-veitan bíður uppsetningar (fríir API-lyklar á leiðinni).</div>';
+                return;
+              }
+              const dIS = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+              const items = ((d && d.items) || []).slice(0, 14).map((it) => ({
+                title: it.t, link: it.u,
+                source: it.ch + (it.ups != null ? ' · ⬆ ' + it.ups : '') + (it.d ? ' · ' + dIS(it.d) : ''),
+              }));
+              newsCache[newsEfni] = items;
+              nl.innerHTML = renderNews(items);
+            })
+            .catch(() => { nl.innerHTML = '<div class="news-empty">Veitan svarar ekki í augnablikinu.</div>'; });
           return;
         }
         if (newsEfni === '__erlent') {

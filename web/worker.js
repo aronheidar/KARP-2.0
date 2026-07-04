@@ -206,6 +206,88 @@ async function villaHandler(request, ctx) {
   } catch (e) { return sjson({ ok: false }); }
 }
 
+// ▶️ YouTube-veitan (LOTA 32): RSS-safnari fyrir íslenskar rásir — frítt, engir
+// lyklar, ekkert kvóta-API. Rásalistinn er hér (bætt við þegar ID finnast;
+// mbl/Vísir fela rásir sínar á bak við handle-404). 30 mín cache.
+const YT_CHANNELS = [
+  { id: 'UCNpgIsrS5j94RDTfPB3wevg', n: 'Samstöðin' },
+  { id: 'UCOz6GbXqeZ6wJsUT8HXdZAQ', n: 'Stjórnarráðið' },
+  { id: 'UCGgyr3-DI5pr5Cnnv2A8shg', n: 'RÚV' },
+];
+async function youtubeHandler(ctx) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/youtube');
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const items = [];
+  await Promise.all(YT_CHANNELS.map(async (c) => {
+    try {
+      const up = await fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + c.id, { headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' } });
+      if (!up.ok) return;
+      const xml = await up.text();
+      for (const entry of xml.split('<entry>').slice(1)) {
+        const t = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
+        const u = (entry.match(/<link rel="alternate" href="([^"]+)"/) || [])[1];
+        const d = (entry.match(/<published>([^<]+)<\/published>/) || [])[1];
+        if (t && u) items.push({ t, u, ch: c.n, d: String(d || '').slice(0, 10) });
+      }
+    } catch (e) {}
+  }));
+  items.sort((a, b) => String(b.d).localeCompare(String(a.d)));
+  res = new Response(JSON.stringify({ updated: new Date().toISOString(), items: items.slice(0, 30) }), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=1800' },
+  });
+  if (items.length) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
+// 👽 Reddit-veitan (LOTA 32): r/Iceland+r/Reykjavik um FRÍA OAuth-leið
+// (client_credentials) því Reddit blokkar gagnavers-IP án auth. Lyklar eru
+// CF-secrets (REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET — frí „script“-app á
+// reddit.com/prefs/apps); ósettir → {configured:false} og framendinn útskýrir.
+async function redditHandler(env, ctx) {
+  if (!env.REDDIT_CLIENT_ID || !env.REDDIT_CLIENT_SECRET) {
+    return new Response(JSON.stringify({ configured: false, items: [] }), {
+      status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=600' },
+    });
+  }
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/reddit');
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const UA = 'web:is.karp.dashboard:1.0 (by /u/karpis)';
+  try {
+    // aðgangslykill (55 mín cache — gildir 60)
+    const tokKey = new Request('https://cache.karp.internal/reddit-token');
+    let tok = await cache.match(tokKey);
+    let bearer = tok ? await tok.text() : '';
+    if (!bearer) {
+      const tr = await fetch('https://www.reddit.com/api/v1/access_token', {
+        method: 'POST',
+        headers: { Authorization: 'Basic ' + btoa(env.REDDIT_CLIENT_ID + ':' + env.REDDIT_CLIENT_SECRET), 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
+        body: 'grant_type=client_credentials',
+      });
+      if (!tr.ok) return sjson({ configured: true, error: 'token', items: [] });
+      bearer = ((await tr.json()) || {}).access_token || '';
+      if (!bearer) return sjson({ configured: true, error: 'token', items: [] });
+      ctx.waitUntil(cache.put(tokKey, new Response(bearer, { headers: { 'cache-control': 'public, max-age=3300' } })));
+    }
+    const up = await fetch('https://oauth.reddit.com/r/Iceland+Reykjavik/new?limit=25', { headers: { Authorization: 'Bearer ' + bearer, 'User-Agent': UA } });
+    if (!up.ok) return sjson({ configured: true, error: up.status, items: [] });
+    const j = await up.json();
+    const items = (((j || {}).data || {}).children || []).map((c) => c.data).filter(Boolean).map((p) => ({
+      t: p.title, u: 'https://www.reddit.com' + p.permalink, ch: 'r/' + p.subreddit,
+      d: new Date((p.created_utc || 0) * 1000).toISOString().slice(0, 10), ups: p.ups || 0,
+    }));
+    res = new Response(JSON.stringify({ configured: true, updated: new Date().toISOString(), items }), {
+      status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=900' },
+    });
+    if (items.length) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+    return res;
+  } catch (e) { return sjson({ configured: true, error: 'fetch', items: [] }); }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -220,6 +302,8 @@ export default {
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
+    if (url.pathname === '/api/youtube') return youtubeHandler(ctx);
+    if (url.pathname === '/api/reddit') return redditHandler(env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;
