@@ -544,6 +544,21 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           })
           .catch(() => { el.innerHTML = ''; });
       }
+      // 🌐 Google-vefleit (LOTA 46): efstu vefniðurstöður um /api/gleit (Custom Search,
+      // 6 klst skyndiminni í worker). Birtist fyrir HVAÐA leit sem er — líka frjálsa leit.
+      function loadGoogleCard(name) {
+        const el = document.getElementById('d-gl');
+        if (!el) return;
+        fetch('/api/gleit?q=' + encodeURIComponent(name))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((g) => {
+            if (!g || g.error || !(g.items || []).length) { el.innerHTML = ''; return; }
+            const safeL = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
+            const rows = g.items.slice(0, 6).map((x) => `<a class="yt-row" href="${esc9(safeL(x.l))}" target="_blank" rel="noopener"><span class="yt-t">${esc9(x.t)}</span><span class="yt-m">${esc9(x.src)}${x.sn ? ' · ' + esc9(String(x.sn).slice(0, 120)) : ''}</span></a>`).join('');
+            el.innerHTML = `<div class="se-card"><div class="se-l">🌐 Af öllum vefnum <span class="se-sub">Google-leit: „${esc9(g.q)}“</span></div><div class="yt-list">${rows}</div><div class="se-note">Efstu vefniðurstöður Google (Custom Search) — ekki bara fréttir: skýrslur, opinber skjöl, umræða. 6 klst skyndiminni.</div></div>`;
+          })
+          .catch(() => { el.innerHTML = ''; });
+      }
       window.__loadYtCard = loadYtCard; // prófunar-hlið (loadYtCard býr í ÞESSARI lokun — module-level vísun braut module-ið)
       function openCo(c) {
           det.hidden = false;
@@ -576,12 +591,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
                 const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
                 mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
-              mh += '<div id="d-yt"></div>';
+              mh += '<div id="d-yt"></div><div id="d-gl"></div>';
               dm.innerHTML = mh;
               const bsec = document.getElementById('btm-sec');
               if (bsec) bsec.textContent = `Nýjasta umfjöllunin um ${c.n} · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}`;
               if (btm) btm.hidden = false;
               loadYtCard(c.n);
+              loadGoogleCard(c.n);
               try { fgSetSel(c, f); } catch (e) {} // 📊 greiningin fylgir valinu (LOTA 34B)
               paintBtm(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
             })

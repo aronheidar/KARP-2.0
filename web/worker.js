@@ -294,6 +294,35 @@ async function ytstatsHandler(request, env, ctx) {
   return res;
 }
 
+// 🌐 Google-vefleit (LOTA 46) — Custom Search JSON API um proxy m/6 klst skyndiminni per
+// leitarorð (frí kvótinn er 100 leitir/dag → skyndiminnið teygir hann margfalt).
+// Lykill = env.YOUTUBE_API_KEY (sami Google Cloud lykill — Custom Search API þarf að vera
+// virkjað á projectinu). cx = auðkenni Programmable Search Engine (opinbert, má standa í kóða).
+const CSE_CX = ''; // ← sett þegar leitarvélin er stofnuð á programmablesearchengine.google.com
+async function gleitHandler(request, env, ctx) {
+  const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 80);
+  if (q.length < 2) return sjson({ error: 'q' });
+  const cx = env.GOOGLE_CSE_CX || CSE_CX;
+  if (!env.YOUTUBE_API_KEY || !cx) return sjson({ error: 'unconfigured' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/gleit?q=' + encodeURIComponent(q.toLowerCase()));
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const up = await fetch('https://www.googleapis.com/customsearch/v1?key=' + env.YOUTUBE_API_KEY + '&cx=' + encodeURIComponent(cx) + '&q=' + encodeURIComponent(q) + '&gl=is&hl=is&num=10');
+  const H = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
+  if (!up.ok) {
+    // 429/403 = kvóti búinn eða API ekki virkjað — stutt skyndiminni svo við lemjum ekki á honum
+    res = new Response(JSON.stringify({ error: up.status === 429 || up.status === 403 ? 'quota' : 'upstream', status: up.status }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=600' } });
+    ctx.waitUntil(cache.put(cacheKey, res.clone()));
+    return res;
+  }
+  const j = await up.json();
+  const items = (j.items || []).map((x) => ({ t: x.title, l: x.link, src: x.displayLink, sn: (x.snippet || '').replace(/\s+/g, ' ') }));
+  res = new Response(JSON.stringify({ q, total: (j.searchInformation && j.searchInformation.totalResults) || null, items }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=21600' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -309,6 +338,7 @@ export default {
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
+    if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;
