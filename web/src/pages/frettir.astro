@@ -106,6 +106,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         <div><h3 class="fg-sh" id="fg-src-h">Hlutdeild miðlanna</h3><div id="fg-src"></div></div>
       </div>
 
+      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Netið FYLGIR VALINU efst á síðunni: Fyrirtæki-flipinn sýnir fyrirtækjanetið, Flokkar flokkanetið o.s.frv. — og valinn aðili lýsist upp.">ⓘ</i> <span class="fg-follow">fylgir valinu efst</span></h3>
+      <div id="tn-graph"></div>
+      <div id="tn-note" class="tn-note"></div>
+      <div id="tn-pairs"></div>
+
       <h3 class="fg-sh">📊 Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
       <div class="chips" id="fg-vogchips">
         <button class="chip" data-q="verðbólga,verðbólgu">Verðbólga</button>
@@ -127,10 +132,6 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <datalist id="sov-list">{SOVENTS.map((e) => <option value={e.n} />)}</datalist>
       <div id="sov-out"></div>
 
-      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Netið FYLGIR VALINU efst á síðunni: Fyrirtæki-flipinn sýnir fyrirtækjanetið, Flokkar flokkanetið o.s.frv. — og valinn aðili lýsist upp.">ⓘ</i> <span class="fg-follow">fylgir valinu efst</span></h3>
-      <div id="tn-graph"></div>
-      <div id="tn-note" class="tn-note"></div>
-      <div id="tn-pairs"></div>
     </section>
 
     <!-- 📰 Nýjasta umfjöllunin — NEÐST, fyrir neðan greininguna (ósk notanda) -->
@@ -182,10 +183,16 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     @media (min-width: 1000.1px) { #live-wrap { display: none; } }
     @media (max-width: 1000px) { .rail-hint { display: none; } }
     .live .it { break-inside: avoid; }
-    .live .it, #co-detail .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
-    .live .it .t, #co-detail .it .t { display: block; font-size: 14px; color: #eaf1fb; line-height: 1.35; }
-    .live .it:hover .t, #co-detail .it:hover .t { color: #f6b13b; }
-    .live .it .s, #co-detail .it .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .live .it, #co-detail .it, #btm-news .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    .live .it .t, #co-detail .it .t, #btm-news .it .t { display: block; font-size: 14px; color: #eaf1fb; line-height: 1.35; }
+    .live .it:hover .t, #co-detail .it:hover .t, #btm-news .it:hover .t { color: #f6b13b; }
+    .live .it .s, #co-detail .it .s, #btm-news .it .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    /* LOTA 36: felligluggi fyrir eldri fyrirsagnir */
+    .btm-more { margin-top: 4px; }
+    .btm-more summary { cursor: pointer; list-style: none; display: inline-block; font-size: 12.5px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 6px 16px; margin: 10px 0 4px; user-select: none; }
+    .btm-more summary::-webkit-details-marker { display: none; }
+    .btm-more summary:hover { background: rgba(246,177,59,.18); }
+    .btm-more[open] summary { color: #9fb0c8; background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.15); }
     .live-empty { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
     #co-detail { margin-top: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
     #co-detail .d-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -349,6 +356,15 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         : `<div class="live-empty">${emptyMsg}</div>`;
     };
     const OFFLINE = 'Fyrirsagnir birtast á karp.is (CORS-varinn endapunktur).';
+    // 📰 Neðsti listinn (LOTA 36): 3 nýjustu sýnilegar, restin í felliglugga — eins og gamla.
+    const paintBtm = (el, items, emptyMsg) => {
+      const arr = Array.isArray(items) ? items : (items && items.items) || [];
+      const row = (it) => `<a class="it" href="${esc9(safe9(it.link))}" target="_blank" rel="noopener"><span class="t">${esc9(it.title)}</span><span class="s">${esc9(it.source || '')}${it.date ? ' · ' + esc9(it.date) : ''}</span></a>`;
+      if (!arr.length) { el.innerHTML = `<div class="live-empty">${emptyMsg}</div>`; return; }
+      const first = arr.slice(0, 3).map(row).join('');
+      const rest = arr.slice(3, 30);
+      el.innerHTML = first + (rest.length ? `<details class="btm-more"><summary>Sýna fleiri fyrirsagnir (${rest.length})</summary>${rest.map(row).join('')}</details>` : '');
+    };
     const API = 'https://wp.karp.is/wp-json/karp/v1';
     function withEcharts(fn) {
       if (window.echarts) { fn(); return; }
@@ -526,18 +542,18 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           fetch(API + '/firma?q=' + encodeURIComponent(c.a.join(',')) + '&days=180')
             .then((r) => (r.ok ? r.json() : null))
             .then((f) => {
-              if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); if (btm) btm.hidden = false; paint(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
+              if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); if (btm) btm.hidden = false; paintBtm(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
               const se = f.sentiment || {};
               let mh = healthBanner(f);
               mh += rvCard(c.rvFull || c.rv, c.rvFull && c.rvFull.ccy);
               mh += sentCard(se);
-              if (f.timeline && f.timeline.length > 2) mh += '<div class="se-card"><div class="se-l">📈 Umfjöllun &amp; tónn yfir tíma <span class="se-sub">vikur · litur = tónn</span></div><div id="d-tl"></div></div>';
+              // LOTA 36: tímalínu- og miðladreifingar-kortin FÓRU — sömu gögn búa í
+              // Fjölmiðlagreiningunni fyrir neðan (fg-months vikur + fg-src kökurit).
               mh += srcToneCard(se.bySource);
               if (f.words && f.words.length) {
                 const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
                 mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
-              mh += distCard(f.stats && f.stats.sources, f.total);
               mh += '<div id="d-yt"></div>';
               dm.innerHTML = mh;
               const bsec = document.getElementById('btm-sec');
@@ -545,21 +561,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               if (btm) btm.hidden = false;
               loadYtCard(c.n);
               try { fgSetSel(c, f); } catch (e) {} // 📊 greiningin fylgir valinu (LOTA 34B)
-              paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
-              if (f.timeline && f.timeline.length > 2) withEcharts(() => {
-                const el = document.getElementById('d-tl');
-                if (!el || window.echarts.getInstanceByDom(el)) return;
-                const ch = window.echarts.init(el);
-                ch.setOption({
-                  backgroundColor: 'transparent', grid: { left: 30, right: 8, top: 8, bottom: 20 },
-                  tooltip: { trigger: 'axis', formatter: (ps) => { const p = ps[0]; const t = f.timeline[p.dataIndex]; return `vika ${p.name}<br><b>${t.n}</b> fréttir${t.scored ? ` · tónn ${t.idx > 0 ? '+' : ''}${t.idx}` : ''}`; } },
-                  xAxis: { type: 'category', data: f.timeline.map((t) => t.d.slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
-                  yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
-                  series: [{ type: 'bar', data: f.timeline.map((t) => ({ value: t.n, itemStyle: { color: t.scored ? (t.idx > 15 ? '#46e08a' : t.idx < -15 ? '#ff6d7a' : '#5a6678') : '#42506a', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 18 }],
-                });
-              });
+              paintBtm(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
             })
-            .catch(() => { if (btm) btm.hidden = false; paint(dl, [], OFFLINE); });
+            .catch(() => { if (btm) btm.hidden = false; paintBtm(dl, [], OFFLINE); });
           });
           // + Fylgja (co:-lykill í follows, sami og gamla) — LOTA 13c
           loadUser().then((u) => {
