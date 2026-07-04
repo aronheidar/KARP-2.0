@@ -748,7 +748,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       f.total = kept.length;
       f.stats = Object.assign({}, f.stats, { sources: Object.entries(bySrc).map(([s, n]) => ({ s, n })).sort((a, b) => b.n - a.n), perDay: Math.round((kept.length / 180) * 10) / 10 });
       f.timeline = Object.keys(byWeek).sort().map((d) => ({ d, n: byWeek[d].n, idx: byWeek[d].n ? Math.round((byWeek[d].s / byWeek[d].n) * 100) : 0, scored: byWeek[d].n }));
-      f.sentiment = Object.assign({}, f.sentiment, { idx, n: kept.length, pos, neu, neg, scored, bySource: Object.fromEntries(Object.entries(srcTone).map(([s, v]) => [s, { n: v.n, idx: v.n ? Math.round((v.s / v.n) * 100) : 0 }])) });
+      f.sentiment = Object.assign({}, f.sentiment, { idx, n: kept.length, pos, neu, neg, scored, bySource: Object.entries(srcTone).map(([s, v]) => ({ s, n: v.n, idx: v.n ? Math.round((v.s / v.n) * 100) : 0 })).sort((a, b) => b.n - a.n) });
       f.words = Object.entries(wc).map(([w, n]) => ({ w, n })).sort((a, b) => b.n - a.n).slice(0, 28);
       f.refined = true;
       return f;
@@ -996,6 +996,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     let FG_SEL = null;
     function fgReport() {
       if (!FG_SEL) return;
+      withEcharts(() => fgReportBuild()); // LOTA 60: tryggja að ECharts sé hlaðið → gröfin teiknist alltaf
+    }
+    function fgReportBuild() {
+      if (!FG_SEL) return;
       const { c, f } = FG_SEL;
       let rep = document.getElementById('fg-report');
       if (!rep) { rep = document.createElement('div'); rep.id = 'fg-report'; document.body.appendChild(rep); }
@@ -1041,7 +1045,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const brot = tot ? `<div class="rep-sbar"><i style="width:${(se.pos / tot) * 100}%;background:#2f9e5f"></i><i style="width:${(se.neu / tot) * 100}%;background:#9aa3b2"></i><i style="width:${(se.neg / tot) * 100}%;background:#d05555"></i></div><div class="rep-cap">${se.pos || 0} jákvæðar · ${se.neu || 0} hlutlausar · ${se.neg || 0} neikvæðar (greindar fyrirsagnir)</div>` : '';
       const rv = c.rvFull || c.rv || {};
       const kt = [rv.mcap != null && ['Markaðsvirði', Math.round(rv.mcap / 1e9) + ' ma.kr'], rv.pe != null && ['V/H', String(rv.pe).replace('.', ',')], rv.pb != null && ['V/I', String(rv.pb).replace('.', ',')], rv.roe != null && ['ROE', String(rv.roe).replace('.', ',') + '%']].filter(Boolean);
-      const tonar = Object.entries(se.bySource || {}).map(([m, v]) => ({ m, n: v.n || 0, idx: v.idx })).filter((x) => x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 10);
+      const tonar = (Array.isArray(se.bySource) ? se.bySource : []).map((x) => ({ m: x.s, n: x.n || 0, idx: x.idx })).filter((x) => x.m && x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 10);
       const words = (f.words || []).slice(0, 16);
       // ríkisgreiðslur — lesnar úr kortinu í DOM (býr í annarri lokun)
       let rikHtml = '';
