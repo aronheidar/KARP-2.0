@@ -18,30 +18,19 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     <h2>Mínar vaktir <i class="tip" tabindex="0" data-tip="Hagvísavaktir senda tölvupóst þegar vísir nær viðmiði (t.d. verðbólga yfir 5%). Stofnaðar og sýndar hér innskráð(ur).">ⓘ</i></h2>
     <div id="vaktir-mine"><span class="dim">Tölvupósts-vaktir eru hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis aðgangur) — leitarorðavaktin hér að neðan virkar án innskráningar.</span></div>
 
-    <h2>🔎 Leitarorðavaktin <i class="tip" tabindex="0" data-tip="Skráðu leitarorð (t.d. fyrirtækið þitt, atvinnugrein eða málefni) — allt sem birtist í vöktunum hér að neðan og nefnir orðið er þá upplýst með gylltum ramma og talið. Orðin vistast í vafranum þínum; tölvupósts-tilkynningar fyrir innskráða eru næsta skref.">ⓘ</i></h2>
+    <h2>🔎 Leitarorðavaktin <i class="tip" tabindex="0" data-tip="Skráðu leitarorð (t.d. fyrirtækið þitt, atvinnugrein eða málefni). Allt í vöktunum hér að neðan — dómar, samráð, greiðslur ríkisins og útboð — sem nefnir orðið fær gylltan ramma og teljara á flísinni. Innskráðir fá að auki daglegan tölvupóst með treffum dagsins. Orðin vistast í vafranum og fylgja þér innskráðum.">ⓘ</i></h2>
+    <p class="lv-intro">Eitt orð — öll vöktunin. Skráðu t.d. fyrirtækið þitt, götuna, atvinnugreinina eða málefni: allt hér að neðan sem nefnir orðið lýsist upp <span class="lv-demo">svona</span>, og innskráðir fá daglegan póst með treffum.</p>
     <div class="lv-row">
       <input id="lv-q" type="text" maxlength="40" placeholder="T.d. „vegagerð“, „fiskeldi“, „gervigreind“…" autocomplete="off" />
-      <button id="lv-add">Vakta orð</button>
+      <button id="lv-add">🔔 Vakta orð</button>
     </div>
     <div id="lv-chips"></div>
 
-    <h2>🏠 Fasteignavaktin <i class="tip" tabindex="0" data-tip="Sjáðu hvað seldist í götunni þinni — öll þinglýst kaup á íbúðarhúsnæði síðustu 6 mánuði (HMS kaupskrá, uppfærð daglega). Skráðu götu eða póstnúmer á vakt: innskráðir fá tölvupóst þegar ný sala þinglýsist; vaktin vistast líka í vafranum.">ⓘ</i></h2>
-    <div class="lv-row fv-row">
-      <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
-      <input id="fv-q" type="text" maxlength="40" placeholder="Götuheiti eða póstnúmer — t.d. „Melabraut“ eða „170“" autocomplete="off" />
-      <button id="fv-add">Vakta</button>
-    </div>
-    <div id="fv-chips"></div>
-    <div id="fv-res" class="feed" hidden></div>
-
-    <h2>🏷️ Verðmat úr kaupskránni <span class="hint">— Karp Pro (ókeypis aðgangur)</span> <i class="tip" tabindex="0" data-tip="Nálgun byggð á þinglýstum kaupum: fyrst gatan þín, svo póstnúmerið, svo sveitarfélagið (12 mán miðgildi). Þetta er tölfræðileg nálgun úr opinberri kaupskrá HMS — ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
-    <div class="lv-row fvm-row">
-      <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang — t.d. „Melabraut 3, 170“" autocomplete="off" />
-      <input id="fvm-fm" type="number" min="15" max="1200" placeholder="m²" />
-      <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
-      <button id="fvm-go">Meta</button>
-    </div>
-    <div id="fvm-out" hidden></div>
+    <h2>🏠 Fasteignavaktin — komin á sína eigin síðu</h2>
+    <a class="fv-crosslink" href="/fasteignavakt/">
+      <b>🏠 Fasteignavaktin →</b>
+      <span>Hvað seldist í götunni þinni og á hvaða verði · tölvupóstur við nýja sölu · verðmat úr kaupskránni (Pro) · nauðungarsölur sýslumanna — allt á einum stað með fléttilista heimilisfanga.</span>
+    </a>
 
     <h2>⚖️ Dómavaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu dómar beint af vefjum dómstólanna (opinber birting í síðukóða þeirra, engin ágiskun). Uppfærist á ~45 mín fresti um skyndiminnis-proxy Karp.">ⓘ</i></h2>
     <div class="ppair">
@@ -115,6 +104,13 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
+    /* Krossvísun á fasteignavaktar-síðuna (LOTA 52) + leitvakt-kynning */
+    .fv-crosslink { display: block; background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 13px 16px; text-decoration: none; }
+    .fv-crosslink b { color: #f6b13b; font-size: 14.5px; }
+    .fv-crosslink span { display: block; color: #b9c6da; font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
+    .fv-crosslink:hover { border-color: #f6b13b; }
+    .lv-intro { font-size: 13px; color: #9fb0c8; margin: 2px 0 8px; }
+    .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.08); padding: 1px 6px; border-radius: 4px; color: #eaf1fb; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
     /* 🏷️ Verðmatið (LOTA 47) */

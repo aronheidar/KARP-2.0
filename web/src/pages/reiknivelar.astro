@@ -51,7 +51,7 @@ const jsonLd = {
       <button class="tab on" data-t="laun">🧮 Laun</button>
       <button class="tab" data-t="hus">🏠 Húsnæðislán</button>
       <button class="tab" data-t="lif">👴 Lífeyrir</button>
-      <button class="tab" data-t="vm">🏡 Verðmat</button>
+      <a class="tab" href="/fasteignavakt/">🏡 Verðmat →</a>
     </div>
 
     <!-- ── LAUN ── -->
@@ -147,27 +147,7 @@ const jsonLd = {
       <p class="note">ⓘ Áætlun m.v. 2026-viðmið: samtryggingarréttindi 1,8%/ár, TR grunnur 365.592 kr (+ heimilisuppbót 92.384 kr einhleyp), skerðing 45% af samtryggingu yfir 43.658 kr (séreign telst ekki), séreign 2,5% raunávöxtun greidd út til 87 ára. Einföldun — raunréttindi ráðast af þínum sjóði og reglum TR.</p>
     </section>
 
-    <!-- ── VERÐMAT ── -->
-    <section id="p-vm" class="panel" hidden>
-      <p>Áætlaðu <strong>markaðsvirði</strong> íbúðar út frá miðgildi kaupverðs á fermetra í sveitarfélaginu (þinglýst kaup síðustu 12 mánuði).</p>
-      <div class="calc">
-        <div class="form">
-          <label>Sveitarfélag
-            <select id="vmuni">{fmatMunis.map((n) => <option value={n}>{n}</option>)}</select>
-          </label>
-          <label>Tegund
-            <div class="seg" id="vmtype">
-              <button data-v="Fjölbýli" class="on">Fjölbýli</button><button data-v="Sérbýli">Sérbýli</button><button data-v="Einbýli">Einbýli</button>
-            </div>
-          </label>
-          <label>Stærð
-            <div class="inp"><input id="vmsize" type="number" min="10" max="1000" step="1" value="95" inputmode="numeric" /><span>m²</span></div>
-          </label>
-        </div>
-        <div id="out-vm" class="out"></div>
-      </div>
-      <p class="note">ⓘ Miðgildi verð/m² úr þinglýstum kaupum (HMS kaupskrá) síðustu 12 mánuði; bil = p25–p75. Aðeins sveitarfélög með ≥8 kaup. Ekki formlegt verðmat — raunverð ræðst af eign, ástandi og staðsetningu.</p>
-    </section>
+    <!-- Verðmatið flutti á /fasteignavakt/ (LOTA 52) — flipinn að ofan er hlekkur þangað. -->
 
     <p class="foot">Forþjónað (SSG) {updated}. Útsvar úr opinberum ársreikningum; skattfastar Skatturinn.is; vextir vaxtatöflur banka + Seðlabanki. Reiknað í vafra. #2.</p>
   </main>

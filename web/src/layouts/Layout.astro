@@ -53,6 +53,7 @@ const NAV = [
   { label: 'Efnahagur', emoji: '📉', items: [
     { href: '/verdlag/', label: 'Verðlag' },
     { href: '/fasteignir/', label: 'Fasteignaverð' },
+    { href: '/fasteignavakt/', label: '🏠 Fasteignavaktin' },
     { href: '/samanburdur/', label: 'Ísland í samanburði' },
     { href: '/hagvoxtur/', label: 'Hagvöxtur' },
     { href: '/vinnumarkadur/', label: 'Vinnumarkaður' },
@@ -339,7 +340,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
-        [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi)/, 'efnahagur'],
+        [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|fasteignavakt|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi)/, 'efnahagur'],
         [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
         [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
       ];

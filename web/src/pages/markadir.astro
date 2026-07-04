@@ -384,6 +384,16 @@ const jsonLd = {
         }
         sh += '<div id="stk-live" class="stk-livewrap"><span class="stk-tn">Sæki nýjustu umfjöllun…</span></div>';
         sEl.innerHTML = sh;
+        // 📢 Kauphallartilkynningar félagsins (LOTA 52) — opinber Nasdaq-veita um worker-proxy
+        fetch('/api/tilkynningar?co=' + encodeURIComponent(d.co || d.name))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((g) => {
+            if (!g || !(g.items || []).length || !sEl.isConnected) return;
+            const dIS = (x) => { const m2 = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m2 ? `${+m2[3]}.${+m2[2]}.${m2[1]}` : ''; };
+            sEl.insertAdjacentHTML('afterbegin', '<div class="stk-sec">📢 Kauphallartilkynningar</div>'
+              + g.items.slice(0, 4).map((x) => `<a class="stk-news" href="${safeHref(x.u)}" target="_blank" rel="noopener"><span class="stk-ns">📢</span>${esc(x.t)}<span class="stk-nd">${dIS(x.d)}</span></a>`).join(''));
+          })
+          .catch(() => {});
         // Lifandi fyrirsagnir um félagið (frettir-endpoint, {items}-lögun!)
         fetch('https://wp.karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
           .then((r) => (r.ok ? r.json() : null))
