@@ -198,6 +198,16 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .fy-srcidx { font-size: 11.5px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
     .fy-srcc { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
     .fy-d0 { background: #3a8dff; } .fy-d1 { background: #19d3c5; } .fy-d2 { background: #7c5cf7; } .fy-d3 { background: #f6b13b; }
+    /* 📺 YouTube-markaðskort (runtime-DOM) */
+    .yt-trend { font-size: 12.5px; font-weight: 700; border-radius: 8px; padding: 6px 11px; margin: 4px 0 8px; display: inline-block; }
+    .yt-trend.up { background: rgba(70,224,138,.1); color: #46e08a; border: 1px solid rgba(70,224,138,.3); }
+    .yt-trend.dn { background: rgba(255,109,122,.1); color: #ff6d7a; border: 1px solid rgba(255,109,122,.3); }
+    .yt-list { display: flex; flex-direction: column; }
+    .yt-row { display: block; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; }
+    .yt-row:last-child { border-bottom: 0; }
+    .yt-row:hover .yt-t { color: #f6b13b; }
+    .yt-t { display: block; font-size: 12.5px; color: #cdd6e6; line-height: 1.35; }
+    .yt-m { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
     .fy-health { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; border-radius: 10px; padding: 9px 13px; margin: 10px 0; font-size: 12.5px; }
     .fy-hb { font-weight: 800; white-space: nowrap; }
     .fy-ht { color: #cdd6e6; }
@@ -351,6 +361,29 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         if (sIdx != null) { if (sIdx <= -25 && level !== 'ok' && level !== 'lo') parts.push('og heildartónn neikvæður (' + sIdx + ') — fylgstu með'); else parts.push('heildartónn ' + (sIdx > 0 ? '+' : '') + sIdx); }
         return `<div class="fy-health fy-h-${level}"><span class="fy-hb">${icon} ${label}</span><span class="fy-ht">${parts.join(' · ')}.</span></div>`;
       };
+      // 📺 YouTube-markaðsgreining fyrirtækis (LOTA 33): subs + áhorf/likes per
+      // myndband — keyless (RSS + rásarsíða) um /api/ytstats; ummæli með API-lykli.
+      function loadYtCard(name) {
+        const el = document.getElementById('d-yt');
+        if (!el) return;
+        fetch('/api/ytstats?co=' + encodeURIComponent(name))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((y) => {
+            if (!y || !y.channel || ((y.videos || []).length === 0 && y.channel.subs == null)) { el.innerHTML = ''; return; }
+            const vids = y.videos || [];
+            const fmt = (n) => (n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + ' m' : n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',') + ' þ' : String(n));
+            const dIS9 = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+            let trend = '';
+            if (vids.length >= 6) {
+              const a = vids.slice(0, 3).reduce((s, v) => s + (v.likes || 0), 0) / 3;
+              const b = vids.slice(3, 6).reduce((s, v) => s + (v.likes || 0), 0) / 3;
+              if (b > 0) { const pct = Math.round(((a - b) / b) * 100); trend = `<div class="yt-trend ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '▲' : '▼'} Likes ${pct >= 0 ? '+' : ''}${pct}% — 3 nýjustu myndbönd borin saman við 3 þar á undan</div>`; }
+            }
+            const rows = vids.slice(0, 6).map((v) => `<a class="yt-row" href="${esc9(v.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(v.t)}</span><span class="yt-m">${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}${v.comments != null ? ' · 💬 ' + fmt(v.comments) : ''}</span></a>`).join('');
+            el.innerHTML = `<div class="se-card"><div class="se-l">📺 YouTube-rásin <span class="se-sub">${y.channel.subsRaw ? esc9(y.channel.subsRaw) + ' áskrifendur' : ''}</span></div>${trend}${rows ? `<div class="yt-list">${rows}</div>` : ''}<div class="se-note">Markaðsvirkni á YouTube: áhorf og likes á nýjustu myndbönd rásarinnar (opinber YouTube-veita, 6 klst skyndiminni).${y.api ? ' Ummælafjöldi um opinbert API.' : ''}</div></div>`;
+          })
+          .catch(() => { el.innerHTML = ''; });
+      }
       function openCo(c) {
           det.hidden = false;
           det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div><div class="d-list"></div>`;
@@ -378,8 +411,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
                 mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
               mh += distCard(f.stats && f.stats.sources, f.total);
+              mh += '<div id="d-yt"></div>';
               mh += `<div class="d-sec">Nýjasta umfjöllunin · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}</div>`;
               dm.innerHTML = mh;
+              loadYtCard(c.n);
               paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
               if (f.timeline && f.timeline.length > 2) withEcharts(() => {
                 const el = document.getElementById('d-tl');
