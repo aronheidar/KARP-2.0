@@ -80,6 +80,13 @@ async function augGet(env, file) {
   try { AUG_CACHE[file] = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/' + file))).json(); } catch (e) { AUG_CACHE[file] = null; }
   return AUG_CACHE[file];
 }
+// Fuzzy nafna-samsvörun sem þolir íslenskar beygingar — ber saman FORSKEYTI orða (6 stafir)
+// svo „Guðlaugi Þór Þórðarsyni" (þáguf.) passi við „Guðlaugur Þór Þórðarson" (nefnif.).
+function nmScore(ql, nafn) {
+  const stems = String(nafn || '').toLowerCase().split(/\s+/).filter((w) => w.length >= 5).map((w) => w.slice(0, Math.min(w.length, 6)));
+  return stems.filter((st) => ql.includes(st)).length;
+}
+function nmBest(ql, arr, key) { let best = null, bs = 0; for (const x of arr || []) { const s = nmScore(ql, key ? x[key] : x); if (s > bs) { bs = s; best = x; } } return bs > 0 ? best : null; }
 const AUG = [
   { rx: /sjóð|stefni/i, file: 'sjodir.json', pg: '/markadir/', fn: (j) => {
     const f = (j.funds || []).slice().sort((a, b) => (b.chg1y || -99) - (a.chg1y || -99));
@@ -129,11 +136,104 @@ const AUG = [
     const line = (k) => Object.entries(k.v || {}).sort((a, b) => b[1] - a[1]).map(([f, v]) => (nm[f] && nm[f].n ? nm[f].n : f) + ' ' + v + '%').join(', ');
     return 'NÝJASTA KÖNNUN (' + p[0].pollster + ' ' + p[0].date + '): ' + line(p[0]) + (p[1] ? '. Þar á undan (' + p[1].pollster + ' ' + p[1].date + '): ' + line(p[1]) : '') + '.';
   } },
+  // ── LOTA 61: sveitarstjórar/bæjarstjórar ──
+  { rx: /(bæjar|sveitar|borgar)stjór|oddvit|hver stjórnar|hver ræður.*(bæ|sveitarfélag)/i, file: 'sveitarstjorar.json', pg: '/sveitarfelog/', fn: (j, q) => {
+    const bn = j.byName || {}, ql = q.toLowerCase();
+    for (const [name, v] of Object.entries(bn)) {
+      const root = name.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur|byggð|bæjar)$/i, '');
+      if (ql.includes(name.toLowerCase()) || (root.length >= 4 && ql.includes(root))) {
+        return 'SVEITARSTJÓRI ' + name + ': ' + (v.stjoriTitill || 'Sveitarstjóri') + ' er ' + v.stjori + (v.radhus ? ' (ráðhús ' + v.radhus + ')' : '') + (v.vefur ? ', ' + v.vefur : '') + '.';
+      }
+    }
+    const big = ['Reykjavíkurborg', 'Kópavogsbær', 'Hafnarfjörður', 'Reykjanesbær', 'Akureyrarbær', 'Garðabær'].map((n) => bn[n]).filter(Boolean);
+    return 'SVEITARSTJÓRAR (dæmi, Karp á öll ' + Object.keys(bn).length + '): ' + big.map((v) => v.nafn + ': ' + v.stjori).join('; ') + '. Nefndu tiltekið sveitarfélag.';
+  } },
+  // ── ráðherrar / ríkisstjórn ──
+  { rx: /ráðherra|ríkisstjórn|forsætis|ráðuneyt|hverjir stjórna landinu|í stjórn landsins/i, file: 'cabinet.json', pg: '/rikisstjorn/', fn: (j, q) => {
+    const arr = Array.isArray(j) ? j : [], ql = q.toLowerCase();
+    const byName = nmBest(ql, arr, 'nafn');
+    if (byName) return 'RÁÐHERRA ' + byName.nafn + ' (' + (byName.flokur || byName.flok || '') + '): ' + (byName.emb || []).join(', ') + (byName.sidan ? ', frá ' + byName.sidan : '') + '.';
+    const portf = ['forsætis', 'fjármála', 'heilbrigðis', 'utanríkis', 'dóms', 'mennta', 'barnamál', 'háskóla', 'umhverfis', 'orku', 'loftslags', 'innviða', 'atvinnuvega', 'matvæla', 'félags', 'húsnæðis', 'menningar'];
+    const p = portf.find((x) => ql.includes(x));
+    if (p) { const m = arr.find((mm) => (mm.emb || []).some((e) => e.toLowerCase().includes(p))); if (m) return (m.emb.join('/')) + ' er ' + m.nafn + ' (' + (m.flokur || m.flok) + ')' + (m.sidan ? ', frá ' + m.sidan : '') + '.'; }
+    return 'RÍKISSTJÓRNIN (' + arr.length + ' ráðherrar): ' + arr.map((m) => (m.emb || []).join('/') + ' — ' + m.nafn + ' (' + (m.flokur || m.flok) + ')').join('; ') + '.';
+  } },
+  // ── þingmenn ──
+  { rx: /þingm(a|e)nn|þingmað|alþingismað|á þingi|kjördæm/i, file: 'althingi.json', pg: '/althingi/thingmenn/', fn: (j, q) => {
+    const arr = Array.isArray(j) ? j : [], ql = q.toLowerCase();
+    const hit = nmBest(ql, arr, 'nafn');
+    if (hit) return 'ÞINGMAÐUR ' + hit.nafn + ': ' + hit.flokkur + ', ' + hit.kjordaemi + (hit.aldur ? ', ' + hit.aldur + ' ára' : '') + (hit.adalmadur === false ? ' (varamaður)' : '') + (hit.fjoldiThinga ? ', hefur setið ' + hit.fjoldiThinga + ' þing' : '') + '.';
+    const kj = arr.map((m) => m.kjordaemi).filter((v, i, a) => a.indexOf(v) === i).find((k) => { const kl = k.toLowerCase(); return kl.split(/\s+/).some((w) => w.length >= 5 && ql.includes(w.replace('kjördæmi', '').slice(0, 6))); });
+    if (kj) { const inK = arr.filter((m) => m.kjordaemi === kj); return 'ÞINGMENN Í ' + kj + ' (' + inK.length + '): ' + inK.slice(0, 12).map((m) => m.nafn + ' (' + m.flokkur + ')').join(', ') + '.'; }
+    return 'ALÞINGI: 63 þingmenn í 6 kjördæmum. Nefndu þingmann eða kjördæmi. Sjá /althingi/thingmenn/.';
+  } },
+  // ── frumvörp / þingmál (m/AI-samantektum) ──
+  { rx: /frumvarp|frumvörp|þingmál|lagafrumvarp|lagabreyting|greidd.*atkvæði|hvernig kaus/i, file: 'frumvorp.json', pg: '/thingmal/', fn: (j, q) => {
+    const arr = Array.isArray(j) ? j : (j.rows || []), ql = q.toLowerCase();
+    const words = ql.replace(/[^a-záðéíóúýþæö ]/g, ' ').split(/\s+/).filter((w) => w.length >= 5);
+    const hit = arr.find((b) => words.some((w) => (b.titill || '').toLowerCase().includes(w)));
+    if (hit) return 'ÞINGMÁL „' + hit.titill + '" (' + hit.teg + (hit.d ? ', ' + hit.d : '') + ')' + (hit.ja != null ? ' — atkvæði: ' + hit.ja + ' já, ' + hit.nei + ' nei, ' + hit.fj + ' sátu hjá' : '') + (hit.sam ? '. ' + hit.sam : '') + '.';
+    return 'ÞINGMÁL: Karp fylgist með ' + arr.length + ' málum þessa löggjafarþings með AI-samantektum og atkvæðagreiðslum. Nefndu efni málsins. Sjá /thingmal/.';
+  } },
+  // ── atvinnuleysi ──
+  { rx: /atvinnuleys|atvinnulaus|án vinnu|vinnumarkað/i, file: 'atvinnuleysi.json', pg: '/vinnumarkadur/', fn: (j, q) => {
+    const ql = q.toLowerCase();
+    let out = 'ATVINNULEYSI: ' + j.latest + '% skráð (' + (j.updated || '') + ')' + (j.totalRegistered ? ', ' + j.totalRegistered + ' á skrá' : '') + '.';
+    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ': ' + (v.rate != null ? v.rate + '%' : v) + (v.n ? ' (' + v.n + ' skráðir)' : '') + '.'; break; } }
+    return out;
+  } },
+  // ── orka / raforka ──
+  { rx: /rafork|orkuframleið|virkjun|vatnsafl|jarðvarm|vindork|græn.*orka|orkuskipt/i, file: 'orka.json', pg: '/orka/', fn: (j) => {
+    const r = (j.rows || []).slice(-1)[0]; if (!r) return '';
+    const ren = ((r.hydro + r.geo + (r.wind || 0)) / r.total * 100).toFixed(1);
+    return 'RAFORKUFRAMLEIÐSLA (' + r.y + '): ' + Math.round(r.total) + ' GWh alls — vatnsafl ' + Math.round(r.hydro) + ', jarðvarmi ' + Math.round(r.geo) + ', vindur ' + (r.wind || 0) + ', eldsneyti ' + (r.fuel || 0) + '. Endurnýjanlegt ' + ren + '%.';
+  } },
+  // ── afbrot ──
+  { rx: /afbrot|glæp|ofbeld|innbrot|refsi|brotaflokk|auðgunarbrot|fíkniefnabrot/i, file: 'glaepir.json', pg: '/afbrot/', fn: (j) => {
+    const c = (j.national || {}).cats || {};
+    return 'AFBROT (' + j.year + ', tilkynnt brot per 10.000 íbúa): hegningarlagabrot ' + j.national.hegn + ' — ofbeldi ' + c.ofbeldi + ', auðgunarbrot ' + c.audgun + ', fíkniefni ' + c.fikni + ', kynferðisbrot ' + c.kynf + ', umferðarlög ' + c.umferd + '. Heimild: Ríkislögreglustjóri.';
+  } },
+  // ── leiga ──
+  { rx: /leigu|\bleiga\b|leigumarkað|leiguverð|leigjend/i, file: 'leiga.json', pg: '/fasteignir/', fn: (j, q) => {
+    const l = j.latest || {}, ql = q.toLowerCase();
+    let out = 'LEIGUVERÐ (' + (l.q || '') + ', miðgildi): ' + l.medM2 + ' kr/m² (' + l.n + ' þinglýstir samningar).';
+    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ': ' + v.medM2 + ' kr/m²' + (v.medRent ? ', miðgildi leigu ' + v.medRent.toLocaleString('is') + ' kr' : '') + '.'; break; } }
+    return out;
+  } },
+  // ── markaðir / hlutabréf ──
+  { rx: /hlutabréf|úrvalsvísital|omxi|kauphöll|hlutafé|verð á bréf|gengi.*félag/i, file: 'markadir.json', pg: '/markadir/', fn: (j, q) => {
+    const ql = q.toLowerCase();
+    const idx = (j.indices || []).map((i) => i.name.split(' —')[0] + ' ' + i.price + ' (' + (i.chgPct > 0 ? '+' : '') + i.chgPct + '%)').join(', ');
+    const stk = (j.stocks || []).find((s) => ql.includes((s.sym || '').toLowerCase())) || nmBest(ql, j.stocks || [], 'name');
+    if (stk) return 'HLUTABRÉF ' + stk.name + ' (' + stk.sym + '): ' + stk.price + ' ' + (stk.cur || 'ISK') + ' (' + (stk.chgPct > 0 ? '+' : '') + stk.chgPct + '%). Vísitölur: ' + idx + '.';
+    const mv = (j.stocks || []).slice().sort((a, b) => (b.chgPct || 0) - (a.chgPct || 0));
+    return 'ÍSLENSKUR MARKAÐUR (' + (j.updated || '') + '): ' + idx + (mv[0] ? '. Mest upp: ' + mv[0].name + ' ' + (mv[0].chgPct > 0 ? '+' : '') + mv[0].chgPct + '%; mest niður: ' + mv[mv.length - 1].name + ' ' + mv[mv.length - 1].chgPct + '%' : '') + '.';
+  } },
+  // ── ívilnanir / styrkir ──
+  { rx: /ívilnun|ívilnan|\bstyrk|endurgreiðsl|skattaafslát|opinber.*stuðning/i, file: 'ivilnanir.json', pg: '/ivilnanir/', fn: (j, q) => {
+    const arr = Array.isArray(j) ? j : [], ql = q.toLowerCase();
+    const hit = arr.find((x) => (x.nafn || '').toLowerCase().split(/\s+/).some((w) => w.length >= 5 && ql.includes(w)));
+    if (hit) return 'ÍVILNUN „' + hit.nafn + '" (' + hit.flokkur + ', ' + hit.stada + (hit.fra ? ', frá ' + hit.fra : '') + '): ' + (hit.lysing || '').slice(0, 200) + '.';
+    return 'ÍVILNANIR: Karp fylgist með ' + arr.length + ' opinberum ívilnunum og styrkjum (kvikmyndir, nýsköpun, grænar fjárfestingar, o.fl.). Sjá /ivilnanir/.';
+  } },
+  // ── útboð ──
+  { rx: /útboð|bjóða í verk|opinber verkefni|tender/i, file: 'utbod.json', pg: '/utbod/', fn: (j) => {
+    const t = j.tenders || j.rows || []; if (!t.length) return '';
+    return 'OPINBER ÚTBOÐ: ' + (j.n || t.length) + ' virk í safni Karp. Nýjust: ' + t.slice(0, 3).map((x) => '„' + (x.t || '').slice(0, 50) + '"' + (x.buyer ? ' (' + x.buyer + ')' : '')).join('; ') + '. Leit, flokkar og vaktir á /utbod/.';
+  } },
+  // ── birgjar / greiðslur ríkisins ──
+  { rx: /birgj|greiðsl.*rík|ríkið greið|hver fær.*greitt|opinber.*reikning|stærsti birgir/i, file: 'birgjar.json', pg: '/birgjar/', fn: (j, q) => {
+    const v = j.vendors || [], ql = q.toLowerCase();
+    const mk = (n) => (n >= 1e9 ? (n / 1e9).toFixed(1) + ' ma.kr' : Math.round(n / 1e6) + ' m.kr');
+    const hit = nmBest(ql, v, 'n');
+    if (hit) return 'GREIÐSLUR RÍKISINS til ' + hit.n + ': ' + mk(hit.t) + ' (' + (j.fra || '') + '–' + (j.til || '') + ')' + (hit.o ? ', stærsti kaupandi ' + hit.o : '') + '.';
+    return 'STÆRSTU BIRGJAR RÍKISINS (' + (j.fra || '') + '–' + (j.til || '') + '): ' + v.slice(0, 5).map((x) => x.n + ' ' + mk(x.t)).join('; ') + '. Alls: ' + mk(j.grandTotal || 0) + '. Sjá /birgjar/.';
+  } },
 ];
 async function augment(env, q) {
   const parts = [];
   for (const a of AUG) {
-    if (parts.length >= 2) break;
+    if (parts.length >= 3) break;
     if (!a.rx.test(q)) continue;
     const j = await augGet(env, a.file);
     if (!j) continue;

@@ -99,6 +99,8 @@ jobs:
         run: node skriptur/build_frettavel.js || true
       - name: Samhengispakki Spyrðu Karp (úr ferskum gögnum)
         run: node skriptur/build_spyrdu_context.js || true
+      - name: RAG-afrit í public (sveitarstjórar, ráðherrar, þingmenn, atvinnuleysi…)
+        run: node skriptur/build_ragcopy.js || true
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:

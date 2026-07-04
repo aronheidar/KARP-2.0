@@ -1,0 +1,13 @@
+{"ar":2026,"heimild":"Frumvarp til fjárlaga 2026 — Tekjur A1-hluta ríkissjóðs (Töfluviðauki, Tafla 4)","skatttekjur":1236.6,"tryggingagjold":159.9,"heild":1396.5,"heildartekjur":1591.2,"hopar":[
+{"heiti":"Skattar á tekjur, hagnað og eignir","skattar":[["Tekjuskattur einstaklinga",304.2],["Tekjuskattur lögaðila",152.0],["Fjármagnstekjuskattur",85.4],["Erfðafjárskattur",11.9],["Sérstakur fjársýsluskattur",7.9],["Fjársýsluskattur",4.4],["Aðrir launa- og eignarskattar",11.9]]},
+{"heiti":"Tryggingagjöld","skattar":[["Tryggingagjöld (launaskattur til almannatrygginga)",159.9]]},
+{"heiti":"Skattar á vöru og þjónustu","skattar":[["Virðisaukaskattur",465.6],["Kílómetragjald",37.1],["Áfengisgjald",26.7],["Vörugjöld af ökutækjum",17.7],["Sértækir þjónustuskattar",17.0],["Kolefnisgjald",14.5],["Bifreiðagjald",14.0],["Aðrir umhverfisskattar",11.6],["Tóbaksgjald",9.2],["Stimpilgjöld",7.8],["Aðrir neyslu- og leyfisskattar",7.4],["Önnur vörugjöld",3.7]]},
+{"heiti":"Tollar og aðrir skattar","skattar":[["Bankaskattur",7.4],["Tollar og aðflutningsgjöld",7.2],["Útvarpsgjald",6.8],["Gjald í framkvæmdasjóð aldraðra",3.7],["Ýmsir aðrir skattar",1.5]]},
+{"heiti":"Auðlindagjöld","ath":"Ekki talin með skatttekjum í fjárlögum (flokkast sem eignatekjur).","skattar":[["Veiðigjald",23.6]]}
+],"tengsl":[
+{"flokkur":"Umferð og samgöngur","skattur":68.8,"sl":"Kílómetragjald, bifreiðagjald og vörugjöld ökutækja","utgjold":76.2,"ul":"Samgöngu- og fjarskiptamál"},
+{"flokkur":"Almannatryggingar","skattur":159.9,"sl":"Tryggingagjöld","utgjold":389.0,"ul":"Örorka, aldraðir, atvinnuleysi og fjölskyldur"},
+{"flokkur":"Umhverfismál","skattur":26.1,"sl":"Kolefnisgjald og aðrir umhverfisskattar","utgjold":40.5,"ul":"Umhverfismál"},
+{"flokkur":"Fjölmiðlun (RÚV)","skattur":6.8,"sl":"Útvarpsgjald","utgjold":7.5,"ul":"Fjölmiðlun"},
+{"flokkur":"Sjávarútvegur","skattur":23.6,"sl":"Veiðigjald","utgjold":8.9,"ul":"Sjávarútvegur og fiskeldi"}
+]}
