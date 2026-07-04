@@ -454,7 +454,7 @@ async function gleitHandler(request, env, ctx) {
   return res;
 }
 
-// 🏢 Fyrirtækjaskrá (LOTA 57) — ókeypis uppfletting í fyrirtækjaskrá RSK
+// 🏢 Fyrirtækjaskrá (LOTA 57b) — ókeypis uppfletting í fyrirtækjaskrá RSK
 // (skatturinn.is/fyrirtaekjaskra/leit, Eplica CMS — engin JS-krafa, enginn lykill).
 // Eitt treff 302-ar beint á /leit/kennitala/NNNNNNNNNN; mörg treff skila töflu
 // (kt-hlekkur + nafn + heimilisfang í sömu <tr>, class="inactive" = afskráð).
