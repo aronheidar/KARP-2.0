@@ -54,9 +54,14 @@ jobs:
           node skriptur/build_laun.js       || true
           node skriptur/build_raedur.js     || true
       - name: Kannanir + markaðir + samfélag
+        env:
+          ARION_OPENDATA_API_KEY: ${{ secrets.ARION_OPENDATA_API_KEY }}
+          ARION_OPENDATA_CLIENT_ID: ${{ secrets.ARION_OPENDATA_CLIENT_ID }}
+          ARION_OPENDATA_CLIENT_SECRET: ${{ secrets.ARION_OPENDATA_CLIENT_SECRET }}
         run: |
           node skriptur/build_polls.js          || true
           node skriptur/build_markadir.js       || true
+          node skriptur/build_arion.js          || true
           node skriptur/build_raunvirdi.js      || true
           node skriptur/build_sveitarstjorar.js || true
           node skriptur/build_sendirad.js       || true
