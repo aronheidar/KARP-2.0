@@ -13,9 +13,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 
 <Layout title="🏢 Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
   <main data-pg="fyrirtaeki">
-    <p class="kicker">Karp · Atvinnulíf</p>
+    <p class="kicker">Karp Pro · Atvinnulíf</p>
     <h1>🏢 Fyrirtækjaskrá</h1>
-    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins, ókeypis. Kortið tengir svo áfram í það sem Karp veit: umfjöllun fjölmiðla, greiðslur frá ríkinu og opinber útboð.</p>
+    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. Hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis aðgangur). Kortið tengir svo áfram í það sem Karp veit: umfjöllun fjölmiðla, greiðslur frá ríkinu og opinber útboð.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <form id="fs-form" autocomplete="off">
@@ -74,9 +74,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-link .s { color: #8fa0b8; font-size: 11.5px; margin-top: 2px; }
     .fs-link.on { border-color: rgba(246,177,59,.45); background: rgba(246,177,59,.06); }
     .fs-link.on .s { color: #f6b13b; }
+    /* Pro-gátt (LOTA 63) */
+    .fs-tease { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; font-size: 14px; color: #dfe7f4; line-height: 1.55; }
+    .fs-tease b { color: #f6b13b; }
+    .fs-tease-btns { display: flex; gap: 8px; margin-top: 12px; }
+    .fs-tease-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
+    .fs-tease-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
   </style>
 
   <script>
+    import { loadUser, loginHref } from '../lib/auth.js';
+    let FS_USER = null;
+    const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
     const mkrF = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -167,10 +176,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           })
           .catch(() => skila('<div class="fs-empty">Villa við uppflettingu — reyndu aftur.</div>'));
       }
-      form.addEventListener('submit', (e) => { e.preventDefault(); leita(inp.value); });
-      // deep-link: /fyrirtaeki/?q=…
-      const q0 = new URLSearchParams(location.search).get('q');
-      if (q0) { inp.value = q0; leita(q0); }
+      // Karp Pro-gátt (LOTA 63): leit + prófílkort læst innskráðum (ókeypis aðgangur)
+      form.addEventListener('submit', (e) => { e.preventDefault(); if (!FS_USER || !FS_USER.loggedIn) { skila(fsTease()); return; } leita(inp.value); });
+      loadUser().then((u) => {
+        FS_USER = u;
+        if (!u || !u.loggedIn) { form.style.display = 'none'; skila(fsTease()); return; }
+        const q0 = new URLSearchParams(location.search).get('q');
+        if (q0) { inp.value = q0; leita(q0); }
+      }).catch(() => {});
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fyrirtaeki"]')) initFs(); });
   </script>
