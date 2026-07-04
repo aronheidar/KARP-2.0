@@ -294,6 +294,34 @@ async function ytstatsHandler(request, env, ctx) {
   return res;
 }
 
+// 📢 Kauphallartilkynningar (LOTA 48) — opinbera OMX-fréttaveitan (api.news.eu.nasdaq.com)
+// per félag, 30 mín skyndiminni. Sama veita og nasdaqomxnordic.com notar sjálf.
+async function tilkynningarHandler(request, env, ctx) {
+  const co = (new URL(request.url).searchParams.get('co') || '').trim().slice(0, 60);
+  if (co.length < 2) return sjson({ error: 'co' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/tilkynningar?co=' + encodeURIComponent(co.toLowerCase()));
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const u = 'https://api.news.eu.nasdaq.com/news/query.action?type=json&showAttachments=false&showCnsSpecific=false&countResults=false'
+    + '&freeText=' + encodeURIComponent(co) + '&globalGroup=exchangeNotice&globalName=NordicMainMarkets&displayLanguage=is'
+    + '&timeZone=CET&dateMask=yyyy-MM-dd+HH%3Amm%3Ass&limit=10&start=0&dir=DESC';
+  let items = [];
+  try {
+    const up = await fetch(u, { headers: { 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' } });
+    if (up.ok) {
+      const j = await up.json();
+      items = (((j || {}).results || {}).item || []).map((x) => ({
+        t: x.headline, co: x.company, d: (x.published || '').slice(0, 16), lang: x.language,
+        u: x.messageUrl || ('https://view.news.eu.nasdaq.com/view?id=b' + x.disclosureId + '&lang=' + (x.language || 'is')),
+      }));
+    }
+  } catch (e) {}
+  res = new Response(JSON.stringify({ co, items }), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=1800' } });
+  if (items.length) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 // 🌐 Google-vefleit (LOTA 46) — Custom Search JSON API um proxy m/6 klst skyndiminni per
 // leitarorð (frí kvótinn er 100 leitir/dag → skyndiminnið teygir hann margfalt).
 // Lykill = env.YOUTUBE_API_KEY (sami Google Cloud lykill — Custom Search API þarf að vera
@@ -339,6 +367,7 @@ export default {
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
+    if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

@@ -544,6 +544,20 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           })
           .catch(() => { el.innerHTML = ''; });
       }
+      // 📢 Kauphallartilkynningar (LOTA 48): opinber OMX-veita um /api/tilkynningar
+      function loadTilkCard(name) {
+        const el = document.getElementById('d-tilk');
+        if (!el) return;
+        fetch('/api/tilkynningar?co=' + encodeURIComponent(name))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((g) => {
+            if (!g || !(g.items || []).length) { el.innerHTML = ''; return; }
+            const dIS9 = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+            const rows = g.items.slice(0, 5).map((x) => `<a class="yt-row" href="${esc9(x.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(x.t)}</span><span class="yt-m">${dIS9(x.d)} · ${esc9(x.co || '')}${x.lang && x.lang !== 'is' ? ' · ' + esc9(x.lang) : ''}</span></a>`).join('');
+            el.innerHTML = `<div class="se-card"><div class="se-l">📢 Kauphallartilkynningar <span class="se-sub">opinber veita Nasdaq Iceland</span></div><div class="yt-list">${rows}</div><div class="se-note">Nýjustu tilkynningar útgefanda í Kauphöllinni — 30 mín skyndiminni.</div></div>`;
+          })
+          .catch(() => { el.innerHTML = ''; });
+      }
       // 🌐 Google-vefleit (LOTA 46): efstu vefniðurstöður um /api/gleit (Custom Search,
       // 6 klst skyndiminni í worker). Birtist fyrir HVAÐA leit sem er — líka frjálsa leit.
       function loadGoogleCard(name) {
@@ -591,11 +605,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
                 const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
                 mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
-              mh += '<div id="d-yt"></div><div id="d-gl"></div>';
+              mh += '<div id="d-tilk"></div><div id="d-yt"></div><div id="d-gl"></div>';
               dm.innerHTML = mh;
               const bsec = document.getElementById('btm-sec');
               if (bsec) bsec.textContent = `Nýjasta umfjöllunin um ${c.n} · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}`;
               if (btm) btm.hidden = false;
+              loadTilkCard(c.n);
               loadYtCard(c.n);
               loadGoogleCard(c.n);
               try { fgSetSel(c, f); } catch (e) {} // 📊 greiningin fylgir valinu (LOTA 34B)

@@ -113,6 +113,8 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     #fv-add { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     #fv-res { margin-top: 10px; max-height: 420px; overflow-y: auto; }
     .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
+    .fv-upph { color: #e0655f; }
+    .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
     /* 🏷️ Verðmatið (LOTA 47) */
@@ -227,6 +229,10 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       const fvMatch = (r, sv, q) => (!sv || r.sv === sv) && (!q || (/^\d{3}$/.test(q) ? r.pn === q : fvNorm(r.a).startsWith(q)));
       const fvKr = (v) => (v / 1000).toFixed(1).replace('.', ',') + ' m.kr';
       const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b></span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}</span></div>`;
+      // 🔨 Nauðungarsölur (LOTA 48): opinberar uppboðsauglýsingar sýslumanna í sömu leit
+      let UPP = null;
+      const uppFetch = () => UPP || (UPP = fetch('/gogn/uppbod.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}${x.st ? ' · ' + esc(x.st) : ''}</span></div>`;
       const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
       async function fvSearch() {
         const res = document.getElementById('fv-res');
@@ -235,11 +241,15 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
         if (!sv && q.length < 2) { res.hidden = true; return; }
         res.hidden = false;
         res.textContent = 'Sæki kaupskrá…';
-        const d = await fvFetch();
+        const [d, up] = await Promise.all([fvFetch(), uppFetch()]);
         if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
         const rows = d.rows.filter((r) => fvMatch(r, sv, q));
-        if (!rows.length) { res.innerHTML = '<div class="fi"><span class="t">Engin þinglýst sala fannst síðustu 6 mánuði.</span><span class="s">Þinglýsing berst með nokkurra vikna töf — settu götuna á vakt og fáðu póst þegar eitthvað kemur.</span></div>'; return; }
-        res.innerHTML = `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${q ? ' · „' + esc(q) + '“' : ''}</div>`
+        // uppboð: götuprefix (uppboðsskráin ber heimilisfang+bæ en ekki póstnr/sveitarfélagslykil)
+        const uppRows = (q && !/^\d{3}$/.test(q) && up && up.rows) ? up.rows.filter((x) => fvNorm(x.a).startsWith(q)) : [];
+        const uppHtml = uppRows.length ? `<div class="fv-head fv-upph">⚠ ${uppRows.length} nauðungarsölu-auglýsing${uppRows.length === 1 ? '' : 'ar'} passa við leitina</div>` + uppRows.slice(0, 6).map(uppRow).join('') : '';
+        if (!rows.length && !uppRows.length) { res.innerHTML = '<div class="fi"><span class="t">Engin þinglýst sala fannst síðustu 6 mánuði.</span><span class="s">Þinglýsing berst með nokkurra vikna töf — settu götuna á vakt og fáðu póst þegar eitthvað kemur.</span></div>'; return; }
+        res.innerHTML = uppHtml
+          + (rows.length ? `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${q ? ' · „' + esc(q) + '“' : ''}</div>` : '')
           + rows.slice(0, 25).map(fvRow).join('')
           + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '');
       }
