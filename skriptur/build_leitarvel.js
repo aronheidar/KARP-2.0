@@ -15,7 +15,10 @@ const path = require('path');
 const crypto = require('crypto');
 const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
 const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
-const SITE = process.env.KARP_SC_SITE || 'sc-domain:karp.is';
+// Property-tegundin skiptir máli: Domain-property = sc-domain:karp.is, URL-prefix = https://karp.is/.
+// Skriptan prófar þessar í röð (fyrsta sem service-accountið hefur aðgang að vinnur); KARP_SC_SITE yfirskrifar.
+const SITES = process.env.KARP_SC_SITE ? [process.env.KARP_SC_SITE] : ['sc-domain:karp.is', 'https://karp.is/', 'https://www.karp.is/'];
+let SITE = SITES[0];
 
 function loadKey() {
   if (process.env.GOOGLE_SC_KEY_JSON) { try { return JSON.parse(process.env.GOOGLE_SC_KEY_JSON); } catch (e) { return null; } }
@@ -37,11 +40,20 @@ async function accessToken(key) {
   return (await r.json()).access_token;
 }
 
-async function scQuery(tok, body) {
-  const u = 'https://searchconsole.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(SITE) + '/searchAnalytics/query';
+async function scQuery(tok, body, site) {
+  const u = 'https://searchconsole.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site || SITE) + '/searchAnalytics/query';
   const r = await fetch(u, { method: 'POST', headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error('SC HTTP ' + r.status + ': ' + (await r.text()).slice(0, 200));
   return ((await r.json()).rows) || [];
+}
+
+// Finna fyrsta property sem service-accountið hefur aðgang að (403/404 = rangt/óheimilt → næsta)
+async function pickSite(tok, range) {
+  for (const s of SITES) {
+    try { await scQuery(tok, { ...range, dimensions: ['date'], rowLimit: 1 }, s); console.log('property fannst:', s); return s; }
+    catch (e) { console.log('  …', s, 'svarar ekki (' + e.message.slice(0, 40) + ')'); }
+  }
+  throw new Error('ekkert property aðgengilegt — er service-account-netfangið komið inn undir Users í Search Console?');
 }
 
 (async () => {
@@ -54,10 +66,11 @@ async function scQuery(tok, body) {
   const end = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);   // SC-gögn berast með ~2 daga töf
   const start = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
   const range = { startDate: start, endDate: end };
+  SITE = await pickSite(tok, range);
   const [queries, pages, daily] = await Promise.all([
-    scQuery(tok, { ...range, dimensions: ['query'], rowLimit: 50 }),
-    scQuery(tok, { ...range, dimensions: ['page'], rowLimit: 30 }),
-    scQuery(tok, { ...range, dimensions: ['date'], rowLimit: 30 }),
+    scQuery(tok, { ...range, dimensions: ['query'], rowLimit: 50 }, SITE),
+    scQuery(tok, { ...range, dimensions: ['page'], rowLimit: 30 }, SITE),
+    scQuery(tok, { ...range, dimensions: ['date'], rowLimit: 30 }, SITE),
   ]);
   const rnd = (v, d) => Math.round(v * Math.pow(10, d)) / Math.pow(10, d);
   const mk = (r, kName) => ({ [kName]: r.keys[0], clicks: r.clicks, impr: r.impressions, ctr: rnd(r.ctr * 100, 1), pos: rnd(r.position, 1) });
