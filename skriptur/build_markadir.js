@@ -1,7 +1,10 @@
 // Markaðir: stocks + indices from Yahoo Finance (.IC), government bond yields from lanamal.is.
 // Build-time snapshot (Yahoo is ~15-min delayed / EOD; not real-time) → markadir.json (baked).
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+const path = require('path');
+// __dirname-afstæð slóð: virkar bæði local og í CI (harðkóðaða OneDrive-slóðin
+// braust hljóðlaust á ubuntu → markadir.json uppfærðist ALDREI í næturkeyrslunni)
+const DIR = path.join(__dirname, '..', 'gogn') + path.sep;
 async function yf(sym) {
   try {
     const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=1y', { headers: { 'User-Agent': 'Mozilla/5.0' } });
