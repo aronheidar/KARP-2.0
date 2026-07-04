@@ -241,6 +241,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .se-bneg { background: #ff6d7a; } .se-bneu { background: #5a6678; } .se-bpos { background: #46e08a; }
     .se-leg { display: flex; gap: 14px; font-size: 11.5px; flex-wrap: wrap; }
     .se-note { font-size: 11px; color: #7e8ca6; margin-top: 8px; line-height: 1.45; }
+    /* 💸 Greiðslur frá ríkinu (LOTA 53) */
+    .rik-tot { font-size: 21px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
+    .rik-tr { font-size: 11.5px; font-weight: 700; }
+    .rik-tr.up { color: #46e08a; } .rik-tr.dn { color: #ff6d7a; }
+    .rik-bars { display: flex; align-items: flex-end; gap: 3px; height: 44px; margin: 4px 0 2px; }
+    .rik-bar { flex: 1; max-width: 26px; background: rgba(246,177,59,.65); border-radius: 3px 3px 0 0; min-height: 3px; }
+    .rik-orgs { font-size: 11.5px; color: #9fb0c8; margin-top: 6px; line-height: 1.5; }
     .rv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: 10px; }
     .rv-tile { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 9px 11px; }
     .rv-tile.good { border-color: rgba(70,224,138,.4); } .rv-tile.warn { border-color: rgba(246,177,59,.4); } .rv-tile.bad { border-color: rgba(255,109,122,.4); }
@@ -544,6 +551,30 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           })
           .catch(() => { el.innerHTML = ''; });
       }
+      // 💸 Greiðslur frá ríkinu (LOTA 53): opnirreikningar-samantektin (birgjar.json,
+      // topp-200) sýnd beint á fyrirtækjakortinu — 12 mán súlur + stærstu kaupendur.
+      let RIKID = null;
+      const rikFetch = () => RIKID || (RIKID = fetch('/gogn/birgjar.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      function loadRikisCard(name) {
+        const el = document.getElementById('d-rik');
+        if (!el) return;
+        rikFetch().then((b) => {
+          if (!b || !b.vendorDetail) { el.innerHTML = ''; return; }
+          const norm = (s) => String(s || '').toLowerCase().replace(/\s+(hf|ehf|ohf|slf|sf)\.?$/i, '').trim();
+          const qn = norm(name);
+          if (qn.length < 3) { el.innerHTML = ''; return; }
+          const hit = (b.vendors || []).filter((v) => { const vn = norm(v.n); return vn === qn || vn.startsWith(qn) || qn.startsWith(vn); }).sort((a, c) => c.t - a.t)[0];
+          const d = hit && b.vendorDetail[hit.n];
+          if (!d) { el.innerHTML = ''; return; }
+          const mkrB = (v) => (v >= 1e9 ? (v / 1e9).toFixed(1).replace('.', ',') + ' ma.kr' : Math.round(v / 1e6) + ' m.kr');
+          const mx = Math.max(...d.m, 1);
+          const bars = `<div class="rik-bars">${d.m.map((v, i) => `<div class="rik-bar" title="${b.months && b.months[i] ? esc9(b.months[i].m) : ''}: ${mkrB(v)}" style="height:${Math.max(3, Math.round((v / mx) * 40))}px"></div>`).join('')}</div>`;
+          const seinni = d.m.slice(6).reduce((a, x) => a + x, 0), fyrri = d.m.slice(0, 6).reduce((a, x) => a + x, 0);
+          const trend = fyrri > 0 ? Math.round(((seinni - fyrri) / fyrri) * 100) : null;
+          const orgs = (d.orgs || []).slice(0, 3).map(([o, v]) => `${esc9(o)} (${mkrB(v)})`).join(' · ');
+          el.innerHTML = `<div class="se-card"><div class="se-l">💸 Greiðslur frá ríkinu <span class="se-sub">${esc9(hit.n)} · sl. 12 mán</span></div><div class="rik-tot">${mkrB(hit.t)}${trend != null ? ` <span class="rik-tr ${trend >= 0 ? 'up' : 'dn'}">${trend >= 0 ? '▲' : '▼'} ${trend >= 0 ? '+' : ''}${trend}% seinni 6 mán vs fyrri</span>` : ''}</div>${bars}${orgs ? `<div class="rik-orgs">Stærstu kaupendur: ${orgs}</div>` : ''}<div class="se-note">Bókfærðar greiðslur ríkisins af opnirreikningar.is (Fjársýslan) — <a href="/birgjar/" style="color:#f6b13b">öll birgjagreiningin →</a></div></div>`;
+        }).catch(() => { el.innerHTML = ''; });
+      }
       // 📢 Kauphallartilkynningar (LOTA 48): opinber OMX-veita um /api/tilkynningar
       function loadTilkCard(name) {
         const el = document.getElementById('d-tilk');
@@ -586,8 +617,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
             // Kauphallartilkynningar eru opinber gögn → sýndar líka óinnskráðum (LOTA 52)
-            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-tilk"></div>`;
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-rik"></div><div id="d-tilk"></div>`;
             dl.innerHTML = '';
+            loadRikisCard(c.n);
             loadTilkCard(c.n);
             return;
           }
@@ -607,11 +639,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
                 const ws = f.words.slice(0, 28), mx = ws[0].n || 1;
                 mh += '<div class="se-card"><div class="se-l">💬 Algengustu orð í umfjöllun</div><div class="d-cloud">' + ws.map((w) => `<span class="d-w" style="font-size:${Math.round(11 + (w.n / mx) * 16)}px;opacity:${0.55 + (w.n / mx) * 0.45}">${esc9(w.w)}</span>`).join('') + '</div></div>';
               }
-              mh += '<div id="d-tilk"></div><div id="d-yt"></div><div id="d-gl"></div>';
+              mh += '<div id="d-rik"></div><div id="d-tilk"></div><div id="d-yt"></div><div id="d-gl"></div>';
               dm.innerHTML = mh;
               const bsec = document.getElementById('btm-sec');
               if (bsec) bsec.textContent = `Nýjasta umfjöllunin um ${c.n} · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}`;
               if (btm) btm.hidden = false;
+              loadRikisCard(c.n);
               loadTilkCard(c.n);
               loadYtCard(c.n);
               loadGoogleCard(c.n);

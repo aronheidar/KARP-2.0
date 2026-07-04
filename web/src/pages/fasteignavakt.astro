@@ -107,6 +107,20 @@ const jsonLd = {
     .pt2-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
     #upp-list .upp-pill { display: inline-block; padding: 1px 8px; border-radius: 8px; font-size: 10.5px; background: rgba(224,101,95,.14); color: #e0655f; margin-right: 6px; }
     #upp-list .upp-pill.fram { background: rgba(66,208,134,.14); color: #42d086; }
+    /* 🖨️ Verðmatsskýrslan (LOTA 53): prentið einangrar skýrslukortið á hvítum grunni */
+    .fvm-rephead b { display: block; font-size: 15px; letter-spacing: .04em; }
+    .fvm-rephead span { display: block; font-size: 11px; margin: 2px 0 10px; }
+    @media print {
+      body.fvm-printing * { visibility: hidden; }
+      body.fvm-printing #fvm-report, body.fvm-printing #fvm-report * { visibility: visible; }
+      body.fvm-printing #fvm-report { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; border: 1px solid #ccc; color: #111; }
+      body.fvm-printing #fvm-report .fvm-rephead { display: block !important; visibility: visible; color: #111; }
+      body.fvm-printing #fvm-report .fvm-rephead[hidden] { display: block !important; }
+      body.fvm-printing #fvm-report .fvm-big { color: #b07500; }
+      body.fvm-printing #fvm-report .fvm-range, body.fvm-printing #fvm-report .fi .t { color: #111 !important; }
+      body.fvm-printing #fvm-report .fvm-meta, body.fvm-printing #fvm-report .fvm-note, body.fvm-printing #fvm-report .fi .s, body.fvm-printing #fvm-report .fv-head, body.fvm-printing #fvm-report .fv-sv { color: #444 !important; }
+      body.fvm-printing #fvm-report .fv-v { color: #b07500 !important; }
+    }
   </style>
 
   <script>
@@ -287,7 +301,10 @@ const jsonLd = {
         }
         if (!est) { fvmOut.innerHTML = '<div class="fvm-note">Of fá nýleg kaup til að meta — prófaðu án póstnúmers eða athugaðu stafsetningu götunnar.</div>'; return; }
         const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
-        fvmOut.innerHTML = `<div class="fvm-card"><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)}</div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div><div class="fvm-note">Tölfræðileg nálgun úr kaupskrá HMS — ekki fasteignamat. Ástand, hæð, útsýni og bílastæði geta hliðrað verði verulega.</div></div>` + (comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + comps.map(fvRow).join('') : '');
+        // Skýrslu-útgáfan (LOTA 53): prentvæn — @media print einangrar #fvm-report
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)}</div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div><div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + comps.map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr kaupskrá HMS — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni og bílastæði geta hliðrað verði verulega.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
+        const pb = document.getElementById('fvm-print');
+        if (pb) pb.addEventListener('click', () => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => document.body.classList.remove('fvm-printing'), 500); });
       }
       const fvmBtn = document.getElementById('fvm-go');
       if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
