@@ -72,15 +72,83 @@ const sjson = (obj, status) => new Response(JSON.stringify(obj), {
   status: status || 200,
   headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://karp.is' },
 });
+// ── Mini-RAG (LOTA 51): efnisorð spurningar → viðeigandi gogn-JSON úr ASSETS ──
+// (sama gagnaver, ekkert net — kostar ekkert). Hám. 2 blokkir per spurningu.
+const AUG_CACHE = {};
+async function augGet(env, file) {
+  if (AUG_CACHE[file] !== undefined) return AUG_CACHE[file];
+  try { AUG_CACHE[file] = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/' + file))).json(); } catch (e) { AUG_CACHE[file] = null; }
+  return AUG_CACHE[file];
+}
+const AUG = [
+  { rx: /sjóð|stefni/i, file: 'sjodir.json', pg: '/markadir/', fn: (j) => {
+    const f = (j.funds || []).slice().sort((a, b) => (b.chg1y || -99) - (a.chg1y || -99));
+    if (!f.length) return '';
+    return 'SJÓÐIR STEFNIS (' + f.length + ' sjóðir, gengi ' + (f[0].date || '') + '): bestu sl. 12 mán: '
+      + f.slice(0, 5).map((x) => x.name + ' ' + (x.chg1y > 0 ? '+' : '') + x.chg1y + '%').join('; ')
+      + '. Lökustu: ' + f.slice(-2).map((x) => x.name + ' ' + (x.chg1y > 0 ? '+' : '') + x.chg1y + '%').join('; ') + '.';
+  } },
+  { rx: /kortagengi|kortaálag|gengi|evr(a|u|an)|dollar|pund|gjaldmiðl/i, file: 'gjaldmidlar.json', pg: '/markadir/', fn: (j) => {
+    const s = j.sources || {}, bank = ((s.Bank || {}).rates || []), cb = ((s.CentralBank || {}).rates || []), kort = ((s.Credit || {}).rates || []);
+    const pick = (arr, c) => arr.find((r) => r.c === c) || {};
+    const line = (c) => { const b = pick(bank, c), m = pick(cb, c), k = pick(kort, c); const alag = k.sell && m.buy ? ' (kortaálag +' + ((k.sell / m.buy - 1) * 100).toFixed(1) + '%)' : ''; return c + ': kaup ' + b.buy + ' / sala ' + b.sell + ', SÍ-viðmið ' + m.buy + ', kort ' + (k.sell || '–') + alag; };
+    return 'GENGISTÖFLUR ARION (' + ((s.Bank || {}).date || '') + ', kr per einingu): ' + ['USD', 'EUR', 'GBP', 'DKK'].map(line).join(' · ');
+  } },
+  { rx: /fasteign|íbúðaverð|fermetr|húsnæðisverð|kaupverð/i, file: 'fasteignir.json', pg: '/fasteignir/', fn: (j, q) => {
+    const m = (j.months || [])[j.months.length - 1];
+    let out = m ? 'FASTEIGNAVERÐ (' + m.m + ', miðgildi): höfuðborgarsvæði ' + m.hbsv.vp + ' m.kr (' + m.hbsv.m2 + ' þ.kr/m², ' + m.hbsv.n + ' kaup); landsbyggð ' + m.land.vp + ' m.kr (' + m.land.m2 + ' þ.kr/m²).' : '';
+    const ql = q.toLowerCase();
+    for (const sv of Object.keys(j.byMuni || {})) {
+      const root = sv.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, '');
+      if ([root, root.slice(0, -1), root.slice(0, -2)].some((r) => r && r.length >= 4 && ql.includes(r))) {
+        const b = j.byMuni[sv];
+        out += ' Í ' + sv + ' (12 mán): miðgildi ' + b.m2 + ' þ.kr/m² (fjórðungabil ' + b.p25 + '–' + b.p75 + ', ' + b.n + ' kaup)' + (b.types ? Object.entries(b.types).map(([t, v]) => '; ' + t + ' ' + v.m2 + ' þ/m²').join('') : '') + '.';
+        break;
+      }
+    }
+    return out;
+  } },
+  { rx: /uppboð|nauðungar/i, file: 'uppbod.json', pg: '/vaktir/', fn: (j) => {
+    const r = (j.rows || []);
+    if (!r.length) return '';
+    const naestu = r.filter((x) => x.d >= new Date().toISOString().slice(0, 10)).slice(0, 3);
+    return 'NAUÐUNGARSÖLUR (opinberar auglýsingar sýslumanna, ' + r.length + ' skráðar): ' + (naestu.length ? 'næstu: ' + naestu.map((x) => x.a + ' (' + x.teg + ' ' + x.d + ')').join('; ') : 'engin framundan á skrá') + '.';
+  } },
+  { rx: /dóm(ur|a|ar|s|i)|hæstarétt|hæstirétt|landsrétt/i, file: 'domar_ai.json', pg: '/vaktir/', fn: (j) => {
+    const e = Object.entries(j.byNr || {}).sort((a, b) => String(b[1].d).localeCompare(String(a[1].d))).slice(0, 3);
+    if (!e.length) return '';
+    return 'NÝJUSTU DÓMAR (á mannamáli): ' + e.map(([k, v]) => (k.startsWith('hr') ? 'Hæstiréttur' : 'Landsréttur') + ' ' + k.split(':')[1] + ' (' + v.svid + '): ' + v.einfalt).join(' · ');
+  } },
+  { rx: /könnun|fylgi|skoðanakönnun/i, file: 'polls.json', pg: '/kannanir/', fn: (j) => {
+    const p = (j.polls || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    if (!p.length) return '';
+    const nm = j.parties || {};
+    const line = (k) => Object.entries(k.v || {}).sort((a, b) => b[1] - a[1]).map(([f, v]) => (nm[f] && nm[f].n ? nm[f].n : f) + ' ' + v + '%').join(', ');
+    return 'NÝJASTA KÖNNUN (' + p[0].pollster + ' ' + p[0].date + '): ' + line(p[0]) + (p[1] ? '. Þar á undan (' + p[1].pollster + ' ' + p[1].date + '): ' + line(p[1]) : '') + '.';
+  } },
+];
+async function augment(env, q) {
+  const parts = [];
+  for (const a of AUG) {
+    if (parts.length >= 2) break;
+    if (!a.rx.test(q)) continue;
+    const j = await augGet(env, a.file);
+    if (!j) continue;
+    try { const t = a.fn(j, q); if (t) parts.push(t.slice(0, 900) + ' (sjá ' + a.pg + ')'); } catch (e) {}
+  }
+  return parts;
+}
+
 async function spyrduHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   if (!env.ANTHROPIC_API_KEY) return sjson({ error: 'unconfigured' });
-  let q = '', prev = null;
+  let q = '', hist = [];
   try {
     const body = (await request.json()) || {};
     q = String(body.q || '').trim();
-    // LOTA 23: EIN framhaldsspurning — síðasta spurning+svar fylgja með sem samhengi
-    if (body.prev && body.prev.q && body.prev.a) prev = { q: String(body.prev.q).slice(0, 300), a: String(body.prev.a).slice(0, 1200) };
+    // LOTA 51: allt að ÞRJÁR umferðir af samtalssögu ({q,a}-pör); prev = eldra lagið
+    const raw = Array.isArray(body.hist) ? body.hist : (body.prev && body.prev.q && body.prev.a ? [body.prev] : []);
+    hist = raw.filter((x) => x && x.q && x.a).slice(-3).map((x) => ({ q: String(x.q).slice(0, 300), a: String(x.a).slice(0, 1200) }));
   } catch (e) { return sjson({ error: 'body' }); }
   if (q.length < 3 || q.length > 300) return sjson({ error: 'lengd' });
   // Dagskvóti á IP (cache-byggt, per-gagnaver — gróft en heiðarlegt öryggisnet)
@@ -95,12 +163,18 @@ async function spyrduHandler(request, env, ctx) {
   if (!SPYRDU_CTX) {
     try { SPYRDU_CTX = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/spyrdu_context.json'))).json(); } catch (e) { SPYRDU_CTX = { text: '', pages: '', updated: '' }; }
   }
-  const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, stutt og skýrt (að hámarki ~120 orð). Notaðu EINGÖNGU staðreyndirnar hér að neðan og vísaðu á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í staðreyndunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
+  const aug = await augment(env, q);
+  const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, skýrt og hnitmiðað (að hámarki ~170 orð); notaðu stutta upptalningu þegar bornar eru saman tölur. Notaðu EINGÖNGU staðreyndirnar og lifandi tölurnar hér að neðan og vísaðu alltaf á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í gögnunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text
+    + (aug.length ? '\n\nLIFANDI TÖLUR SEM EIGA VIÐ SPURNINGUNA:\n' + aug.join('\n') : '')
+    + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
   try {
+    const msgs = [];
+    hist.forEach((h) => { msgs.push({ role: 'user', content: h.q }); msgs.push({ role: 'assistant', content: h.a }); });
+    msgs.push({ role: 'user', content: q });
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 600, system: sys, messages: prev ? [{ role: 'user', content: prev.q }, { role: 'assistant', content: prev.a }, { role: 'user', content: q }] : [{ role: 'user', content: q }] }),
+      body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 700, system: sys, messages: msgs }),
     });
     if (!res.ok) return sjson({ error: 'ai', status: res.status });
     const j = await res.json();

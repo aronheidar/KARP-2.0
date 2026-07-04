@@ -30,12 +30,14 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
       <button class="ch" data-q="Hvaða fyrirtæki fær mest greitt frá ríkinu?">Stærsti birgir ríkisins?</button>
       <button class="ch" data-q="Hver er borgarstjóri Reykjavíkur?">Borgarstjórinn?</button>
       <button class="ch" data-q="Hvað kostar fermetrinn í leigu?">Leiguverð?</button>
+      <button class="ch" data-q="Hvernig hafa sjóðir Stefnis ávaxtast síðasta árið?">Sjóðir Stefnis?</button>
+      <button class="ch" data-q="Hvað kostar fermetrinn í Kópavogi?">Fermetrinn í Kópavogi?</button>
     </div>
     <div id="sp-svar" hidden></div>
     <button id="sp-reset" hidden>🔄 Nýtt samtal</button>
 
     <p class="note">ⓘ Aðstoðarmaðurinn er upplýsingatól, ekki ráðgjafi. Svör byggja á lykiltölum sem bakaðar eru inn í vefinn við hverja byggingu — dagsetning heimildar fylgir hverju svari. Hann svarar ekki spurningum sem gögnin ná ekki yfir.</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Svarvél: Claude (Anthropic) um veitu Karp, grunduð í spyrdu_context.json. #10 LOTA 18.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Svarvél: Claude (Anthropic) um veitu Karp — grunduð í lykiltölupakka OG lifandi gögnum vefjarins (gengistöflur, sjóðir, fasteignaverð, uppboð, dómar, kannanir) eftir efni spurningar. #10 LOTA 18+51.</p>
   </main>
 
   <style>
@@ -94,8 +96,8 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
         lengd: 'Spurningin þarf að vera 3–300 stafir.',
         ai: 'Svarvélin svaraði ekki — reyndu aftur eftir smástund.',
       };
-      // LOTA 23: EIN framhaldsspurning — síðasta spurning+svar fylgja næstu spurningu
-      let PREV = null;
+      // LOTA 51: samtalssaga — allt að ÞRJÁR síðustu umferðir fylgja hverri spurningu
+      let HIST = [];
       const resetBtn = document.getElementById('sp-reset');
       const ask = async () => {
         const text = (q.value || '').trim();
@@ -105,14 +107,15 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
         out.classList.remove('err');
         out.textContent = 'Hugsa…';
         try {
-          const r = await fetch('/api/spyrdu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: text.slice(0, 300), prev: PREV || undefined }) });
+          const r = await fetch('/api/spyrdu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: text.slice(0, 300), hist: HIST.length ? HIST : undefined }) });
           const d = await r.json();
           if (d && d.svar) {
             out.innerHTML = esc(d.svar).replace(/(^|[\s(])(\/[a-z0-9-]+\/)/g, '$1<a href="$2">$2</a>');
-            PREV = { q: text.slice(0, 300), a: d.svar.slice(0, 1200) };
+            HIST.push({ q: text.slice(0, 300), a: d.svar.slice(0, 1200) });
+            HIST = HIST.slice(-3);
             if (resetBtn) resetBtn.hidden = false;
             q.value = '';
-            q.placeholder = 'Framhaldsspurning… (karpinn man síðasta svar)';
+            q.placeholder = 'Framhaldsspurning… (karpinn man samtalið)';
           } else {
             out.classList.add('err');
             out.textContent = MSG[(d || {}).error] || MSG.ai;
@@ -124,7 +127,7 @@ const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurning
         go.disabled = false;
       };
       if (resetBtn) resetBtn.addEventListener('click', () => {
-        PREV = null; resetBtn.hidden = true; out.hidden = true;
+        HIST = []; resetBtn.hidden = true; out.hidden = true;
         q.value = ''; q.placeholder = 'T.d. „Hverjir eru stýrivextirnir núna?“'; q.focus();
       });
       go.addEventListener('click', ask);
