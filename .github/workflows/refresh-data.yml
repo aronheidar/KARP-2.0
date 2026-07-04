@@ -58,6 +58,7 @@ jobs:
           ARION_OPENDATA_API_KEY: ${{ secrets.ARION_OPENDATA_API_KEY }}
           ARION_OPENDATA_CLIENT_ID: ${{ secrets.ARION_OPENDATA_CLIENT_ID }}
           ARION_OPENDATA_CLIENT_SECRET: ${{ secrets.ARION_OPENDATA_CLIENT_SECRET }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           node skriptur/build_polls.js          || true
           node skriptur/build_markadir.js       || true

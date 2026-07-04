@@ -26,11 +26,36 @@ const parseSubs = (s) => {
   if (!m) return null;
   return Math.round(parseFloat(m[1].replace(',', '.')) * (/m/i.test(m[2] || '') ? 1e6 : m[2] ? 1e3 : 1));
 };
+// LOTA 40: YOUTUBE_API_KEY (umhverfi/.env) → nákvæmir áskrifendur úr channels.list í EINU kalli
+function loadYtKey() {
+  if (process.env.YOUTUBE_API_KEY) return process.env.YOUTUBE_API_KEY.trim();
+  try {
+    const m = fs.readFileSync(path.join(__dirname, '..', '.env'), 'utf8').match(/^YOUTUBE_API_KEY=(.+)$/m);
+    return m && !/SETTU/.test(m[1]) ? m[1].trim() : null;
+  } catch (e) { return null; }
+}
+async function fetchApiSubs() {
+  const key = loadYtKey();
+  if (!key) return null;
+  const ids = [...new Set(Object.values(YTCO).flatMap((v) => (Array.isArray(v) ? v : [v])))];
+  try {
+    const u = new URL('https://www.googleapis.com/youtube/v3/channels');
+    u.searchParams.set('part', 'statistics'); u.searchParams.set('id', ids.join(',')); u.searchParams.set('maxResults', '50'); u.searchParams.set('key', key);
+    const r = await fetch(u);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const m = {};
+    for (const it of j.items || []) if (it.statistics && it.statistics.subscriberCount != null) m[it.id] = +it.statistics.subscriberCount;
+    return m;
+  } catch (e) { return null; }
+}
 async function main() {
   const G = path.join(__dirname, '..', 'gogn', 'ytsaga.json');
   let saga = {};
   try { saga = JSON.parse(fs.readFileSync(G, 'utf8')); } catch (e) {}
   const d = new Date().toISOString().slice(0, 10);
+  const apiSubs = await fetchApiSubs(); // null = enginn lykill → skrap-fallback
+  if (apiSubs) console.log('ytsaga: nákvæmir áskrifendur úr YouTube Data API (' + Object.keys(apiSubs).length + ' rásir)');
   let ok = 0;
   for (const [co, mapped] of Object.entries(YTCO)) {
     try {
@@ -39,10 +64,10 @@ async function main() {
       const allLikes = [];
       for (const id of ids) {
         const [page, rss] = await Promise.all([
-          fetch('https://www.youtube.com/channel/' + id + '/about', { headers: UA }).then((r) => (r.ok ? r.text() : '')),
+          apiSubs ? Promise.resolve('') : fetch('https://www.youtube.com/channel/' + id + '/about', { headers: UA }).then((r) => (r.ok ? r.text() : '')),
           fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + id, { headers: UA }).then((r) => (r.ok ? r.text() : '')),
         ]);
-        const s = parseSubs((page.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || page.match(/([\d.,]+[KM]?) subscribers/) || [])[1]);
+        const s = apiSubs ? (apiSubs[id] != null ? apiSubs[id] : null) : parseSubs((page.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || page.match(/([\d.,]+[KM]?) subscribers/) || [])[1]);
         if (s != null) subs = (subs || 0) + s;
         for (const m of rss.matchAll(/<media:starRating count="(\d+)"[^>]*>[\s\S]{0,40}/g)) allLikes.push(+m[1]);
       }
