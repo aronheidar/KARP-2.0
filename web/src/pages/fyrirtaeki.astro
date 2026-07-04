@@ -1,0 +1,177 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🏢 FYRIRTÆKJASKRÁ (LOTA 57) — ókeypis uppfletting félaga
+// Lifandi leit í fyrirtækjaskrá Skattsins um /api/fyrirtaeki (worker-proxy,
+// 24 klst skyndiminni). Prófílkortið tengir áfram í Karp-gögnin: Umfjöllun
+// (Vöktun), Greiðslur frá ríkinu (samsvörun í gogn/birgjar.json) og Útboð.
+// Allt UI-ið er runtime-DOM → stílar í is:global (Astro-gildran: scoped CSS
+// tree-shakast ef klasinn er bara í innerHTML).
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: nafn, kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga, ásamt umfjöllun fjölmiðla, greiðslum frá ríkinu og útboðum.';
+---
+
+<Layout title="🏢 Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
+  <main data-pg="fyrirtaeki">
+    <p class="kicker">Karp · Atvinnulíf</p>
+    <h1>🏢 Fyrirtækjaskrá</h1>
+    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins, ókeypis. Kortið tengir svo áfram í það sem Karp veit: umfjöllun fjölmiðla, greiðslur frá ríkinu og opinber útboð.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
+
+    <form id="fs-form" autocomplete="off">
+      <input id="fs-q" type="search" placeholder="Nafn félags eða kennitala…" autocomplete="off" aria-label="Leit í fyrirtækjaskrá" />
+      <button id="fs-btn" type="submit">Fletta upp</button>
+    </form>
+    <div id="fs-out" aria-live="polite"></div>
+
+    <p class="note">ⓘ Uppflettingin notar opinberu fyrirtækjaskrána og er ókeypis — sambærileg grunnuppfletting kostar áskrift annars staðar. Fyrir stærstu birgja ríkisins er stokkið beint í <a href="/birgjar/">Birgja ríkisins</a>, umfjöllun fjölmiðla er í <a href="/frettir/">Vöktun</a> og opinber innkaup í <a href="/utbod/">Útboðum</a>.</p>
+    <p class="foot">Lifandi uppfletting: fyrirtækjaskrá Skattsins (skatturinn.is) um /api/fyrirtaeki — 24 klst skyndiminni. LOTA 57.</p>
+  </main>
+
+  <style>
+    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    #fs-form { display: flex; gap: 8px; margin: 18px 0 14px; }
+    #fs-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 11px 14px; color: #eaf1fb; font-size: 15px; }
+    #fs-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    #fs-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    #fs-btn:hover { filter: brightness(1.08); }
+    .note { font-size: 12.5px; color: #8fa0b8; margin-top: 22px; } .note a { color: #f6b13b; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+  </style>
+
+  <style is:global>
+    /* fyrirtækjaskrá — runtime-DOM (innerHTML) → verður að vera global */
+    .fs-empty { color: #7e8ca6; font-size: 13.5px; padding: 14px 2px; }
+    .fs-hits { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
+    .fs-hit { display: flex; gap: 12px; align-items: baseline; padding: 9px 13px; border-bottom: 1px solid rgba(255,255,255,.06); cursor: pointer; font-size: 13.5px; }
+    .fs-hit:last-child { border-bottom: 0; }
+    .fs-hit:hover, .fs-hit:focus-visible { background: rgba(246,177,59,.07); outline: none; }
+    .fs-hit .kt { font-variant-numeric: tabular-nums; color: #7e8ca6; font-size: 12px; white-space: nowrap; }
+    .fs-hit .n { color: #eaf1fb; font-weight: 600; flex: 1; }
+    .fs-hit .h { color: #9fb0c8; font-size: 12px; text-align: right; }
+    .fs-hit.af .n { color: #8fa0b8; font-weight: 400; }
+    .fs-badge { font-size: 10.5px; color: #e78284; border: 1px solid rgba(231,130,132,.4); border-radius: 6px; padding: 1px 6px; white-space: nowrap; vertical-align: 2px; }
+    .fs-more { color: #7e8ca6; font-size: 12px; padding: 8px 2px; }
+    .fs-card { border: 1px solid rgba(246,177,59,.35); border-radius: 14px; padding: 18px 20px; background: rgba(255,255,255,.02); }
+    .fs-card h2 { font-size: 21px; margin: 0; color: #eaf1fb; display: inline; }
+    .fs-card .kt { color: #7e8ca6; font-size: 13px; margin-left: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .fs-back { background: none; border: 0; color: #f6b13b; font-size: 12.5px; cursor: pointer; padding: 0; margin: 0 0 10px; }
+    .fs-back:hover { text-decoration: underline; }
+    .fs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 18px; margin: 14px 0 4px; }
+    .fs-f { font-size: 13px; }
+    .fs-f .l { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; display: block; }
+    .fs-f .v { color: #cdd6e6; }
+    .fs-sub { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    .fs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fs-chip { font-size: 12px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 3px 9px; }
+    .fs-chip b { color: #f6b13b; font-weight: 600; }
+    .fs-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 16px; }
+    .fs-link { display: block; text-decoration: none; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; padding: 10px 13px; background: rgba(255,255,255,.03); }
+    .fs-link:hover { border-color: rgba(246,177,59,.5); }
+    .fs-link .t { color: #eaf1fb; font-size: 13.5px; font-weight: 600; }
+    .fs-link .s { color: #8fa0b8; font-size: 11.5px; margin-top: 2px; }
+    .fs-link.on { border-color: rgba(246,177,59,.45); background: rgba(246,177,59,.06); }
+    .fs-link.on .s { color: #f6b13b; }
+  </style>
+
+  <script>
+    const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
+    const mkrF = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    // birgjar.json ber 200 stærstu birgja ríkisins — nöfn þar eru STYTT (~30 stafir)
+    // svo samsvörunin er normaliseruð forskeytis-samsvörun, ekki jafngildi.
+    let FS_BIRGJAR = null;
+    const fsBirgjar = () => FS_BIRGJAR ? Promise.resolve(FS_BIRGJAR) : fetch('/gogn/birgjar.json').then((r) => (r.ok ? r.json() : null)).then((d) => (FS_BIRGJAR = d)).catch(() => null);
+    const fsNorm = (s) => String(s || '').toLowerCase().replace(/\(félag afskráð\)/g, '').replace(/[.,]/g, '').replace(/\s+(ehf|hf|slhf|ohf|sf|slf|svf|bs)$/i, '').replace(/\s+/g, ' ').trim();
+    function fsFinnaBirgja(vendors, nafn) {
+      const b = fsNorm(nafn);
+      if (!b) return null;
+      for (const v of vendors || []) {
+        const a = fsNorm(v.n);
+        if (!a) continue;
+        if (a === b || (a.length >= 10 && b.startsWith(a)) || (b.length >= 10 && a.startsWith(b))) return v;
+      }
+      return null;
+    }
+    function fsKort(felag, rsk) {
+      const f = felag;
+      const rod = (l, v) => (v ? `<div class="fs-f"><span class="l">${l}</span><span class="v">${escF(v)}</span></div>` : '');
+      const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
+      const isat = (f.isat || []).map((x) => `<span class="fs-chip">${escF(x)}</span>`).join('');
+      const vsk = (f.vsk || []).map((v) => `<span class="fs-chip"><b>${escF(v.nr)}</b> skráð ${escF(v.skrad || '–')}${v.afskrad ? ' · afskráð ' + escF(v.afskrad) : ''}</span>`).join('');
+      const ars = (f.arsreikningar || []).slice(0, 5).map((a) => `<span class="fs-chip"><b>${escF(a.ar)}</b>${a.skil ? ' skilað ' + escF(a.skil) : ''}</span>`).join('');
+      return `<button class="fs-back" type="button">← Ný leit</button>
+        <div class="fs-card">
+          <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
+          <div class="fs-grid">
+            ${rod('Skráð', f.skrad)}${rod('Rekstrarform', f.form)}${rod('Lögheimili', f.logheimili)}
+            ${rod('Póstfang', f.postfang !== f.logheimili ? f.postfang : '')}${rod('Sveitarfélag', f.svf)}
+            ${rod('Forráðamaður', (f.radamenn || []).join(' · '))}${rod('Eldri heiti', (f.heiti || []).join(' · '))}
+          </div>
+          ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
+          ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
+          ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
+          <div class="fs-links">
+            <a class="fs-link" href="/frettir/"><span class="t">📰 Umfjöllun á Vöktun</span><div class="s">fréttir, tónn og tímalínur fjölmiðla</div></a>
+            <a class="fs-link" id="fs-birgir" href="/birgjar/"><span class="t">💸 Greiðslur frá ríkinu</span><div class="s">athuga birgjaskrána…</div></a>
+            <a class="fs-link" href="/utbod/"><span class="t">📋 Útboð</span><div class="s">opinber innkaup og EES-útboð</div></a>
+            ${rsk ? `<a class="fs-link" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : ''}
+          </div>
+        </div>`;
+    }
+    function initFs() {
+      const form = document.getElementById('fs-form');
+      const inp = document.getElementById('fs-q');
+      const out = document.getElementById('fs-out');
+      if (!form || form.dataset.done) return;
+      form.dataset.done = '1';
+      const skila = (html) => { out.innerHTML = html; };
+      function leita(q, fraSmell) {
+        q = String(q || '').trim();
+        if (q.length < 2) { skila('<div class="fs-empty">Sláðu inn a.m.k. 2 stafi — nafn félags eða kennitölu.</div>'); return; }
+        if (fraSmell) inp.value = q;
+        try { history.replaceState(null, '', '/fyrirtaeki/?q=' + encodeURIComponent(q)); } catch (e) {}
+        skila('<div class="fs-empty">Fletti upp í fyrirtækjaskrá…</div>');
+        fetch('/api/fyrirtaeki?q=' + encodeURIComponent(q))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (!d || d.error) { skila('<div class="fs-empty">Ekki náðist í fyrirtækjaskrána í augnablikinu — reyndu aftur eftir andartak.</div>'); return; }
+            if (d.felag) {
+              skila(fsKort(d.felag, d.rsk));
+              out.querySelector('.fs-back').onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} };
+              // 💸 er félagið meðal 200 stærstu birgja ríkisins?
+              fsBirgjar().then((b) => {
+                const el = document.getElementById('fs-birgir');
+                if (!el) return;
+                const v = b && fsFinnaBirgja(b.vendors, d.felag.nafn);
+                el.querySelector('.s').textContent = v
+                  ? mkrF(v.t) + ' m.kr frá ríkinu sl. 12 mán' + (v.o ? ' — mest frá ' + v.o : '')
+                  : 'ekki meðal 200 stærstu birgja ríkisins';
+                if (v) el.classList.add('on');
+              });
+              return;
+            }
+            if (d.hits && d.hits.length) {
+              skila('<div class="fs-hits">' + d.hits.map((h) => `<div class="fs-hit${h.afskrad ? ' af' : ''}" role="button" tabindex="0" data-kt="${escF(h.kt)}"><span class="kt">${escF(ktFmt(h.kt))}</span><span class="n">${escF(h.nafn)}${h.afskrad ? ' <span class="fs-badge">afskráð</span>' : ''}</span><span class="h">${escF(h.heimili || '')}</span></div>`).join('') + '</div>'
+                + (d.alls ? `<div class="fs-more">Sýni fyrstu ${d.hits.length} af ${d.alls} — þrengdu leitina til að finna félagið beint.</div>` : ''));
+              out.querySelectorAll('.fs-hit').forEach((el) => {
+                const opna = () => leita(el.dataset.kt, true);
+                el.onclick = opna;
+                el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opna(); } };
+              });
+              return;
+            }
+            skila(`<div class="fs-empty">Leit að „${escF(q)}“ skilaði engri niðurstöðu úr fyrirtækjaskrá.</div>`);
+          })
+          .catch(() => skila('<div class="fs-empty">Villa við uppflettingu — reyndu aftur.</div>'));
+      }
+      form.addEventListener('submit', (e) => { e.preventDefault(); leita(inp.value); });
+      // deep-link: /fyrirtaeki/?q=…
+      const q0 = new URLSearchParams(location.search).get('q');
+      if (q0) { inp.value = q0; leita(q0); }
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fyrirtaeki"]')) initFs(); });
+  </script>
+</Layout>

@@ -454,6 +454,112 @@ async function gleitHandler(request, env, ctx) {
   return res;
 }
 
+// 🏢 Fyrirtækjaskrá (LOTA 57) — ókeypis uppfletting í fyrirtækjaskrá RSK
+// (skatturinn.is/fyrirtaekjaskra/leit, Eplica CMS — engin JS-krafa, enginn lykill).
+// Eitt treff 302-ar beint á /leit/kennitala/NNNNNNNNNN; mörg treff skila töflu
+// (kt-hlekkur + nafn + heimilisfang í sömu <tr>, class="inactive" = afskráð).
+// Á detail-síðunni kemur leitarFORMIÐ neðar í DOM en gögnin — þáttað er frá
+// 'class="company box"' (h1 "Nafn (kt)", gagnatafla, ÍSAT, VSK, ársreikningar).
+// 24 klst skyndiminni per q.
+const RSK_ROT = 'https://www.skatturinn.is';
+const rskText = (s) => String(s == null ? '' : s)
+  .replace(/<!--[\s\S]*?-->/g, ' ').replace(/<br\s*\/?>/gi, ', ').replace(/<[^>]+>/g, ' ')
+  .replace(/&amp;/g, '&').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').replace(/\s,/g, ',').trim();
+function rskListi(html) {
+  const hits = [];
+  for (const row of html.split(/<tr\b/i).slice(1)) {
+    const m = row.match(/href="[^"]*\/leit\/kennitala\/(\d{10})"/i);
+    if (!m) continue;
+    const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((c) => c[1]);
+    const nafn = rskText((cells[1] || '').replace(/<em>[\s\S]*?<\/em>/gi, ''));
+    if (!nafn) continue;
+    const afskrad = /^[^>]*inactive/.test(row) || /afskráð/i.test(cells[1] || '');
+    hits.push({ kt: m[1], nafn, heimili: rskText(cells[2]) || null, ...(afskrad ? { afskrad: true } : {}) });
+    if (hits.length >= 40) break;
+  }
+  return hits;
+}
+function rskFelag(html) {
+  const i = html.indexOf('class="company box"');
+  if (i < 0) return null;
+  const seg = html.slice(i, i + 20000);
+  const h1 = seg.match(/<h1>\s*([\s\S]*?)\s*\((\d{10})\)\s*<\/h1>/);
+  if (!h1) return null;
+  const f = { nafn: rskText(h1[1]), kt: h1[2] };
+  if (/Félag afskráð/i.test(seg.slice(0, 3000))) f.afskrad = true;
+  f.skrad = (seg.match(/Stofnað\/Skráð:\s*([\d.]+)/) || [])[1] || null;
+  const t = seg.match(/<th>Póstfang<\/th>[\s\S]*?<tbody>\s*<tr>([\s\S]*?)<\/tr>/i);
+  if (t) {
+    const c = [...t[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => rskText(x[1]));
+    f.postfang = c[0] || null; f.logheimili = c[1] || null; f.svf = c[2] || null; f.form = c[3] || null;
+  }
+  const ul = (heading) => {
+    const m = seg.match(new RegExp('<h3>' + heading + '[^<]*</h3>\\s*<ul>([\\s\\S]*?)</ul>', 'i'));
+    return m ? [...m[1].matchAll(/<li>([\s\S]*?)<\/li>/gi)].map((x) => rskText(x[1])).filter(Boolean) : [];
+  };
+  f.radamenn = ul('Forráðamaður');
+  f.isat = ul('ÍSAT');
+  const cn = seg.match(/<ul class="companynames">([\s\S]*?)<\/ul>/i);
+  const heiti = cn ? [...cn[1].matchAll(/<li>([\s\S]*?)<\/li>/gi)].map((x) => rskText(x[1])).filter(Boolean) : [];
+  if (heiti.length) f.heiti = heiti;
+  f.vsk = [];
+  const vm = seg.match(/<h3>Virðisaukaskattsnúmer<\/h3>\s*<table[\s\S]*?<tbody>([\s\S]*?)<\/table>/i);
+  if (vm) for (const r of vm[1].split(/<tr\b/i).slice(1)) {
+    const c = [...r.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => rskText(x[1]));
+    if (c[1] && /^\d+$/.test(c[1])) f.vsk.push({ nr: c[1], skrad: c[2] || null, afskrad: c[3] || null, isat: c[4] || null });
+    if (f.vsk.length >= 12) break;
+  }
+  const am = seg.match(/<th>Rek\. ár<\/th>[\s\S]*?<tbody>([\s\S]*?)<\/table>/i);
+  if (am) {
+    f.arsreikningar = [];
+    for (const r of am[1].split(/<tr\b/i).slice(1)) {
+      const c = [...r.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => rskText(x[1]));
+      if (c[0] && /^\d{4}/.test(c[0])) f.arsreikningar.push({ ar: c[0], skil: c[2] || null, teg: c[4] || null });
+      if (f.arsreikningar.length >= 8) break;
+    }
+  }
+  return f;
+}
+async function fyrirtaekiHandler(request, ctx) {
+  const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
+  if (q.length < 2) return sjson({ error: 'q' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/fyrirtaeki?q=' + encodeURIComponent(q.toLowerCase()));
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const H = { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' };
+  const kt = q.replace(/[\s.-]/g, '');
+  let out = null;
+  try {
+    let detailUrl = /^\d{10}$/.test(kt) ? RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt : null;
+    if (!detailUrl) {
+      const up = await fetch(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(q), { headers: H, redirect: 'manual' });
+      if (up.status >= 300 && up.status < 400) {
+        // EITT treff → redirect beint á detail-síðuna
+        const m = (up.headers.get('location') || '').match(/\/leit\/kennitala\/(\d{10})/);
+        if (m) detailUrl = RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + m[1];
+      } else if (up.ok) {
+        const html = await up.text();
+        const hits = rskListi(html);
+        // heildarfjöldi raða á síðunni (RSK sýnir allt að ~100) — hits þakið við 40
+        const alls = (html.match(/\/leit\/kennitala\/\d{10}/g) || []).length;
+        out = { q, hits, ...(alls > hits.length ? { alls } : {}) };
+      }
+    }
+    if (detailUrl) {
+      const up = await fetch(detailUrl, { headers: H });
+      if (up.ok) out = { q, felag: rskFelag(await up.text()), rsk: detailUrl };
+    }
+  } catch (e) {}
+  if (!out) return sjson({ error: 'upstream' });
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+  });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -471,6 +577,7 @@ export default {
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
+    if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

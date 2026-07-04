@@ -57,6 +57,7 @@ const NAV = [
     { href: '/samanburdur/', label: 'Ísland í samanburði' },
     { href: '/hagvoxtur/', label: 'Hagvöxtur' },
     { href: '/vinnumarkadur/', label: 'Vinnumarkaður' },
+    { href: '/fyrirtaeki/', label: 'Fyrirtækjaskrá' },
     { href: '/hagspar/', label: 'Hagspár' },
     { href: '/hermir/', label: 'Hagkerfis-hermir' },
     { href: '/furduhagfraedi/', label: 'Furðuhagfræði' },
@@ -340,7 +341,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
-        [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|fasteignavakt|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi)/, 'efnahagur'],
+        [/^\/(verdlag|vinnumarkadur|markadir|fasteignir|fasteignavakt|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
         [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
         [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
       ];
