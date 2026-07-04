@@ -46,7 +46,8 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       </div>
     </div>
 
-    <h2>💬 Samráðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu mál í samráðsgátt stjórnvalda um opna gagnagátt island.is — málsnúmer, staða, ráðuneyti og umsagnarfrestur. Smelltu til að lesa málið og senda umsögn.">ⓘ</i></h2>
+    <h2>💬 Samráðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu mál í samráðsgátt stjórnvalda um opna gagnagátt island.is — málsnúmer, staða, ráðuneyti og umsagnarfrestur, flokkuð eftir atvinnugrein. Smelltu til að lesa málið og senda umsögn.">ⓘ</i></h2>
+    <div id="samrad-pills"></div>
     <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
 
     <h2>💸 Greiðsluvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu bókfærðu greiðslur ríkisins til birgja af opnirreikningar.is (Fjársýslan). Gögnin birtast með nokkurra vikna töf; neikvæð fjárhæð er bakfærsla/inneign. Síðustu ~45 dagar gagnatímabilsins.">ⓘ</i></h2>
@@ -106,8 +107,15 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
     .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
-    #samrad-list .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
+    #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
     #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
+    #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
+    /* Atvinnugreina-pillur samráðsvaktar + AI-lína dómavaktar (LOTA 44) */
+    #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+    #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #9fb0c8; border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
+    #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
+    #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
+    .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
     .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
     .fi:hover .t { color: #f6b13b; }
     .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
@@ -274,33 +282,66 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           : '<div class="vk">Engin vakt skráð enn.</div>')
           + '<div class="vk-note">Vaktir eru stofnaðar á <a href="/mitt-svaedi/">Mínu svæði</a> (Stillingar → Vaktir).</div>';
       }).catch(() => {});
-      // ⚖️ Dómavaktin (HR + LR um /api/domar)
-      fetch('/api/domar')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => {
-          const SITES = { hr: 'https://www.haestirettur.is/domar/', lr: 'https://www.landsrettur.is/domar-og-urskurdir/' };
-          for (const key of ['hr', 'lr']) {
-            const el = document.getElementById('domar-' + key);
-            if (!el) continue;
-            const list = d && Array.isArray(d[key]) ? d[key] : [];
-            if (!list.length) { el.textContent = 'Dómarnir birtast þegar veitan svarar (proxy í dreifingu).'; continue; }
-            el.innerHTML = list.slice(0, 8).map((v) => `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span><span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`).join('');
-          }
-        })
-        .catch(() => {});
-      // 💬 Samráðsvaktin (island.is GraphQL um /api/samrad)
+      // ⚖️ Dómavaktin (HR + LR um /api/domar) + AI-endursögn reifunar (LOTA 44, domar_ai.json)
+      Promise.all([
+        fetch('/api/domar').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+        fetch('/gogn/domar_ai.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      ]).then(([d, ai]) => {
+        const AI = (ai && ai.byNr) || {};
+        const SITES = { hr: 'https://www.haestirettur.is/domar/', lr: 'https://www.landsrettur.is/domar-og-urskurdir/' };
+        for (const key of ['hr', 'lr']) {
+          const el = document.getElementById('domar-' + key);
+          if (!el) continue;
+          const list = d && Array.isArray(d[key]) ? d[key] : [];
+          if (!list.length) { el.textContent = 'Dómarnir birtast þegar veitan svarar (proxy í dreifingu).'; continue; }
+          el.innerHTML = list.slice(0, 8).map((v) => {
+            const a = AI[key + ':' + v.nr];
+            const skyring = a && a.einfalt ? a.einfalt : (v.um ? String(v.um).trim().slice(0, 150) + (String(v.um).trim().length > 150 ? '…' : '') : '');
+            return `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span>${skyring ? `<span class="s dom-ai">${a && a.einfalt ? '💡 ' : ''}${esc(skyring)}${a && a.svid ? ` <span class="pill">${esc(a.svid)}</span>` : ''}</span>` : ''}<span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`;
+          }).join('');
+        }
+      }).catch(() => {});
+      // 💬 Samráðsvaktin (island.is GraphQL um /api/samrad) + atvinnugreina-flokkun (LOTA 44)
+      const SAMRAD_GREINAR = [
+        ['Sjávarútvegur', /sjávar|fisk|veiði|kvót|eldi|hafi\b/i],
+        ['Landbúnaður & matvæli', /landbún|bænd|búfé|matvæl|jarðrækt/i],
+        ['Orka', /orku|raforku|virkj|jarðvarm|vindork|eldsneyt/i],
+        ['Byggingar & húsnæði', /skipulag|bygging|mannvirki|húsnæð|lóð/i],
+        ['Fjármál & skattar', /fjármál|skatt|gjald(?!frjáls)|banka|trygging|lífeyri|fjárlög/i],
+        ['Heilbrigði', /heilbrigð|heilsu|lyf|sjúkra|lækn/i],
+        ['Menntun', /mennt|skóla|háskól|leikskól|nám/i],
+        ['Samgöngur', /samgöng|veg(?:a|i|ur)|flug|höfn|umferð|ökutæk/i],
+        ['Umhverfi & loftslag', /umhverfi|loftslag|náttúr|mengun|úrgang|friðlýs/i],
+        ['Ferðaþjónusta', /ferðaþjónust|ferðamann/i],
+        ['Fjarskipti & tækni', /fjarskipt|netörygg|stafræn|gervigreind|upplýsingatækn/i],
+        ['Vinnumarkaður', /vinnumark|kjaramál|starfsm|atvinnuleys|réttind.*starf/i],
+      ];
+      const samradGrein = (c) => { const hay = (c.name || '') + ' ' + (c.typeName || '') + ' ' + (c.institutionName || ''); const g = SAMRAD_GREINAR.find(([, rx]) => rx.test(hay)); return g ? g[0] : null; };
       fetch('/api/samrad')
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           const el = document.getElementById('samrad-list');
           if (!el) return;
-          const cs = (((d || {}).data || {}).consultationPortalGetCases || {}).cases || [];
+          const cs = ((((d || {}).data || {}).consultationPortalGetCases || {}).cases || []).map((c) => ({ ...c, grein: samradGrein(c) }));
           if (!cs.length) { el.textContent = 'Samráðsmálin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
-          el.innerHTML = cs.slice(0, 12).map((c) => {
-            const open = /umsagnar/i.test(c.statusName || '');
-            const frest = open && c.processEnds ? ` · frestur til ${dIS(c.processEnds)}` : '';
-            return `<a class="fi" href="https://island.is/samradsgatt/mal/${esc(c.id)}" target="_blank" rel="noopener"><span class="t">${esc(c.name)}</span><span class="s"><span class="pill ${open ? 'op' : ''}">${esc(c.statusName || '')}</span> ${esc(c.institutionName || '')} · mál ${esc(c.caseNumber)}${frest}${c.adviceCount ? ` · ${c.adviceCount} umsagnir` : ''}</span></a>`;
-          }).join('');
+          const render = (filter) => {
+            const list = filter ? cs.filter((c) => c.grein === filter) : cs;
+            el.innerHTML = (list.length ? list : cs).slice(0, 12).map((c) => {
+              const open = /umsagnar/i.test(c.statusName || '');
+              const frest = open && c.processEnds ? ` · frestur til ${dIS(c.processEnds)}` : '';
+              return `<a class="fi" href="https://island.is/samradsgatt/mal/${esc(c.id)}" target="_blank" rel="noopener"><span class="t">${esc(c.name)}</span><span class="s"><span class="pill ${open ? 'op' : ''}">${esc(c.statusName || '')}</span>${c.grein ? ` <span class="pill gr">${esc(c.grein)}</span>` : ''} ${esc(c.institutionName || '')} · mál ${esc(c.caseNumber)}${frest}${c.adviceCount ? ` · ${c.adviceCount} umsagnir` : ''}</span></a>`;
+            }).join('');
+          };
+          const pillsEl = document.getElementById('samrad-pills');
+          const greinar = [...new Set(cs.map((c) => c.grein).filter(Boolean))];
+          if (pillsEl && greinar.length) {
+            pillsEl.innerHTML = `<button class="spill on" data-g="">Allt (${cs.length})</button>` + greinar.map((g) => `<button class="spill" data-g="${esc(g)}">${esc(g)} (${cs.filter((c) => c.grein === g).length})</button>`).join('');
+            pillsEl.querySelectorAll('.spill').forEach((b) => b.addEventListener('click', () => {
+              pillsEl.querySelectorAll('.spill').forEach((x) => x.classList.toggle('on', x === b));
+              render(b.dataset.g || null);
+            }));
+          }
+          render(null);
         })
         .catch(() => {});
       // 💸 Greiðsluvaktin (opnirreikningar.is um /api/greidslur)

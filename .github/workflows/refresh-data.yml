@@ -84,6 +84,7 @@ jobs:
           if [ -n "$ANTHROPIC_API_KEY" ]; then
             node skriptur/build_summaries.js || true
             node skriptur/build_malrof_ai.js || true
+            node skriptur/build_domar_ai.js  || true
           else
             echo "• Enginn ANTHROPIC_API_KEY-secret — AI-skriftum sleppt."
           fi
