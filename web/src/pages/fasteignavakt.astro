@@ -91,6 +91,9 @@ const jsonLd = {
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
+    .fv-mat { font-size: 10.5px; color: #9fb0c8; background: rgba(255,255,255,.06); border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+    .fvm-signal { font-size: 13px; color: #eaf1fb; background: rgba(58,141,255,.1); border: 1px solid rgba(58,141,255,.3); border-radius: 9px; padding: 8px 12px; margin-top: 8px; }
+    .fvm-anchor { font-size: 12.5px; color: #cdd6e6; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 6px; line-height: 1.5; }
     main[data-pg="fastvakt"] .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     main[data-pg="fastvakt"] .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
     main[data-pg="fastvakt"] .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
@@ -146,7 +149,9 @@ const jsonLd = {
       const fvNorm = (s) => String(s || '').toLowerCase().trim();
       const fvMatch = (r, sv, q) => (!sv || r.sv === sv) && (!q || (/^\d{3}$/.test(q) ? r.pn === q : fvNorm(r.a).startsWith(q)));
       const fvKr = (v) => (v / 1000).toFixed(1).replace('.', ',') + ' m.kr';
-      const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b></span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}</span></div>`;
+      // LOTA 62: fasteignamat + brunabótamat + hlutfall kaupverðs/mats sýnt á hverri röð
+      const matPct = (r) => (r.mat && r.v ? (r.v >= r.mat ? '+' : '') + Math.round((r.v / r.mat - 1) * 100) + '% v. mat' : '');
+      const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b>${r.mat ? ` <span class="fv-mat">${matPct(r)}</span>` : ''}</span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}${r.ar ? ' · byggt ' + r.ar : ''}${r.mat ? ' · fasteignamat ' + fvKr(r.mat) : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}</span></div>`;
       const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}</span></div>`;
       const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
       const dl = document.getElementById('fv-addr-list');
@@ -325,8 +330,18 @@ const jsonLd = {
             svCtx = `<div class="fv-head" style="margin-top:10px">Samhengið í ${esc(sv2)} (12 mánuðir)</div><table class="fvm-tbl"><tr><th></th><th>Miðgildi</th><th>Fjórðungabil</th><th>Kaup</th><th>Þín stærð (${fm} m²)</th></tr>${line('Allar tegundir', bm2)}${Object.entries(bm2.types || {}).map(([t2, o]) => line(t2, o)).join('')}</table>`;
           }
         } catch (e) {}
+        // LOTA 62: fasteignamats-akkeri + markaðsmerki (kaupverð vs gildandi fasteignamat)
+        let matHtml = '';
+        try {
+          const streetRows = d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn) && r.mat > 0);
+          const ratios = streetRows.map((r) => r.v / r.mat).filter((x) => x > 0.2 && x < 5);
+          if (ratios.length >= 3) { const pc = Math.round((med(ratios) - 1) * 100); matHtml += `<div class="fvm-signal">🏷️ Eignir í ${esc(street)} seljast að jafnaði <b>${pc >= 0 ? '+' : ''}${pc}%</b> ${pc >= 0 ? 'yfir' : 'undir'} gildandi fasteignamati (${ratios.length} þinglýst kaup).</div>`; }
+          const num = raw.replace(/\b\d{3}\b/g, '').match(/\d+\s*[a-zæöðáéíóúý]?/i);
+          const self = num ? d.rows.find((r) => fvNorm(r.a) === fvNorm(street + ' ' + num[0].trim()) && (!pn || r.pn === pn) && r.mat > 0) : null;
+          if (self) matHtml += `<div class="fvm-anchor">📋 Skráð fasteignamat <b>${esc(self.a)}</b>: <b>${mkr(self.mat)}</b>${self.matN ? ' (fyrirhugað ' + mkr(self.matN) + ')' : ''}${self.bruna ? ' · brunabótamat ' + mkr(self.bruna) : ''}${self.ar ? ' · byggt ' + self.ar : ''} — seldist á ${mkr(self.v)}${self.d ? ' (' + dIS(self.d) + ')' : ''}.</div>`;
+        } catch (e) {}
         // Skýrslu-útgáfan (LOTA 53/54): prentvæn — @media print einangrar #fvm-report
-        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)} <span class="fv-sv">(fjórðungabil kaupverðs á m²)</span></div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div>${svCtx}<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr opinberri kaupskrá HMS (þinglýst kaup) — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega út fyrir bilið.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)} <span class="fv-sv">(fjórðungabil kaupverðs á m²)</span></div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div>${matHtml}${svCtx}<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr opinberri kaupskrá HMS (þinglýst kaup) — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega út fyrir bilið.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
         const pb = document.getElementById('fvm-print');
         if (pb) pb.addEventListener('click', () => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => document.body.classList.remove('fvm-printing'), 500); });
       }

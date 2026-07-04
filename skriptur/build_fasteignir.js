@@ -27,7 +27,10 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
   const H = lines[0].split(';').map(s => s.trim());
   const iSv = H.indexOf('SVEITARFELAG'), iDt = H.indexOf('THINGLYSTDAGS'), iKv = H.indexOf('KAUPVERD'),
     iFlm = H.indexOf('EINFLM'), iTeg = H.indexOf('TEGUND'), iOn = H.indexOf('ONOTHAEFUR_SAMNINGUR'),
-    iId = H.indexOf('FAERSLUNUMER'), iHf = H.indexOf('HEIMILISFANG'), iPn = H.indexOf('POSTNR');
+    iId = H.indexOf('FAERSLUNUMER'), iHf = H.indexOf('HEIMILISFANG'), iPn = H.indexOf('POSTNR'),
+    // LOTA 62: fasteignamat + brunabótamat eru ÞEGAR í kaupskránni (þús.kr) — nýtum þau
+    iMat = H.indexOf('FASTEIGNAMAT_GILDANDI'), iMatN = H.indexOf('FYRIRHUGAD_FASTEIGNAMAT'),
+    iBruna = H.indexOf('BRUNABOTAMAT_GILDANDI'), iAr = H.indexOf('BYGGAR'), iHerb = H.indexOf('FJHERB');
 
   const G = {}; // month -> {hbsv:{p:[],m:[]}, land:{p:[],m:[]}}
   const MUNI = {}; // sveitarfélag -> [{d:'YYYY-MM', v:verð/m²}]  (fyrir per-sveitarfélags verð)
@@ -51,9 +54,11 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     // Fasteignavaktin: full dagsetning + heimilisfang fyrir nýjustu viðskipti
     const dFull = (c[iDt] || '').slice(0, 10);
     if (dFull >= NYJAST_FRA) {
+      const mat = +c[iMat] || null, matN = +c[iMatN] || null, bruna = +c[iBruna] || null, ar = +c[iAr] || null, herb = +c[iHerb] || null;
       nyjast.push({
         id: (c[iId] || '').trim(), d: dFull, a: (c[iHf] || '').trim(), pn: (c[iPn] || '').trim(),
         sv: svn, v: kv, fm: Math.round(flm * 10) / 10, t: (c[iTeg] || '').trim(),
+        mat, matN, bruna, ar, herb,   // fasteignamat (gildandi/fyrirhugað), brunabótamat, byggingarár, herbergi — allt þús.kr / ár
       });
     }
   }
