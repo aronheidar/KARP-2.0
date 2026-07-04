@@ -410,25 +410,44 @@ const CSE_CX = '9070a65a9e3194023'; // „Karp vefleit" — íslensk lén, Regio
 async function gleitHandler(request, env, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 80);
   if (q.length < 2) return sjson({ error: 'q' });
-  const cx = env.GOOGLE_CSE_CX || CSE_CX;
-  const gkey = env.GOOGLE_CSE_KEY || env.YOUTUBE_API_KEY; // sérlykill gengur fyrir (LOTA 54b)
-  if (!gkey || !cx) return sjson({ error: 'unconfigured' });
+  const H = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/gleit?q=' + encodeURIComponent(q.toLowerCase()));
   let res = await cache.match(cacheKey);
   if (res) return res;
-  const up = await fetch('https://www.googleapis.com/customsearch/v1?key=' + gkey + '&cx=' + encodeURIComponent(cx) + '&q=' + encodeURIComponent(q) + '&gl=is&hl=is&num=10');
-  const H = { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' };
-  if (!up.ok) {
-    // 429/403 = kvóti búinn eða API ekki virkjað — stutt skyndiminni svo við lemjum ekki á honum
-    res = new Response(JSON.stringify({ error: up.status === 429 || up.status === 403 ? 'quota' : 'upstream', status: up.status }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=600' } });
-    ctx.waitUntil(cache.put(cacheKey, res.clone()));
-    return res;
+  let items = null, total = null;
+  // LOTA 56: Brave Search API gengur fyrir (Google lokaði Custom Search JSON fyrir ný verkefni 2026).
+  // Frítt: 2.000 leitir/mán — 6 klst skyndiminnið teygir það margfalt. env.BRAVE_SEARCH_KEY.
+  if (env.BRAVE_SEARCH_KEY) {
+    try {
+      const up = await fetch('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(q) + '&country=is&search_lang=is&count=10', { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_SEARCH_KEY } });
+      if (up.ok) {
+        const j = await up.json();
+        items = (((j.web || {}).results) || []).map((x) => ({ t: x.title, l: x.url, src: (x.meta_url && x.meta_url.hostname) || (x.url || '').replace(/^https?:\/\//, '').split('/')[0], sn: String(x.description || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ') }));
+      } else if (up.status === 429) {
+        res = new Response(JSON.stringify({ error: 'quota', status: 429 }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=600' } });
+        ctx.waitUntil(cache.put(cacheKey, res.clone()));
+        return res;
+      }
+    } catch (e) {}
   }
-  const j = await up.json();
-  const items = (j.items || []).map((x) => ({ t: x.title, l: x.link, src: x.displayLink, sn: (x.snippet || '').replace(/\s+/g, ' ') }));
-  res = new Response(JSON.stringify({ q, total: (j.searchInformation && j.searchInformation.totalResults) || null, items }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=21600' } });
-  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  // Google CSE til vara (virkar sé projectið með aðgang)
+  if (!items) {
+    const cx = env.GOOGLE_CSE_CX || CSE_CX;
+    const gkey = env.GOOGLE_CSE_KEY || env.YOUTUBE_API_KEY;
+    if (!gkey || !cx) return sjson({ error: 'unconfigured' });
+    const up = await fetch('https://www.googleapis.com/customsearch/v1?key=' + gkey + '&cx=' + encodeURIComponent(cx) + '&q=' + encodeURIComponent(q) + '&gl=is&hl=is&num=10');
+    if (!up.ok) {
+      res = new Response(JSON.stringify({ error: up.status === 429 || up.status === 403 ? 'quota' : 'upstream', status: up.status }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=600' } });
+      ctx.waitUntil(cache.put(cacheKey, res.clone()));
+      return res;
+    }
+    const j = await up.json();
+    items = (j.items || []).map((x) => ({ t: x.title, l: x.link, src: x.displayLink, sn: (x.snippet || '').replace(/\s+/g, ' ') }));
+    total = (j.searchInformation && j.searchInformation.totalResults) || null;
+  }
+  res = new Response(JSON.stringify({ q, total, items }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=21600' } });
+  if (items && items.length) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
 
