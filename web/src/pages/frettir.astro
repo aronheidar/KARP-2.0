@@ -216,7 +216,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     @media (min-width: 900px) {
       .d-more { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
       .d-more .se-card { margin: 0; }
-      .d-more .fy-health, .d-more .se-card:has(#d-tl), .d-more .pro-tease { grid-column: 1 / -1; }
+      .d-more .fy-health, .d-more .se-vidhorf, .d-more .pro-tease { grid-column: 1 / -1; }
     }
     @media (min-width: 1150px) {
       .d-more { grid-template-columns: 1fr 1fr 1fr; }
@@ -325,6 +325,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .yt-trend { font-size: 12.5px; font-weight: 700; border-radius: 8px; padding: 6px 11px; margin: 4px 0 8px; display: inline-block; }
     .yt-trend.up { background: rgba(70,224,138,.1); color: #46e08a; border: 1px solid rgba(70,224,138,.3); }
     .yt-trend.dn { background: rgba(255,109,122,.1); color: #ff6d7a; border: 1px solid rgba(255,109,122,.3); }
+    #yt-chart { width: 100%; height: 220px; margin: 4px 0 6px; }
     .yt-list { display: flex; flex-direction: column; }
     .yt-row { display: block; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; }
     .yt-row:last-child { border-bottom: 0; }
@@ -458,7 +459,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         const cls = s.idx > 15 ? 'pos' : s.idx < -15 ? 'neg' : 'neu';
         const label = s.idx > 15 ? 'Jákvætt' : s.idx < -15 ? 'Neikvætt' : 'Hlutlaust';
         const tot = (s.pos + s.neu + s.neg) || 1;
-        return `<div class="se-card"><div class="se-head"><div class="se-l">🤖 Viðhorf umfjöllunar <span class="se-sub">${s.scored} fyrirsagnir · gervigreind metur tón</span></div>`
+        return `<div class="se-card se-vidhorf"><div class="se-head"><div class="se-l">🤖 Viðhorf umfjöllunar <span class="se-sub">${s.scored} fyrirsagnir · gervigreind metur tón</span></div>`
           + `<div class="se-idx se-${cls}">${s.idx > 0 ? '+' : ''}${s.idx}<small>${label}</small></div></div>`
           + `<div class="se-bar"><i class="se-bneg" style="width:${((s.neg / tot) * 100).toFixed(1)}%"></i><i class="se-bneu" style="width:${((s.neu / tot) * 100).toFixed(1)}%"></i><i class="se-bpos" style="width:${((s.pos / tot) * 100).toFixed(1)}%"></i></div>`
           + `<div class="se-leg"><span class="se-neg">▼ ${s.neg} neikvæðar</span><span class="se-neu">● ${s.neu} hlutlausar</span><span class="se-pos">▲ ${s.pos} jákvæðar</span></div>`
@@ -513,17 +514,37 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
             const vids = y.videos || [];
             const fmt = (n) => (n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + ' m' : n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',') + ' þ' : String(n));
             const dIS9 = (x) => { const m = String(x || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+            // LOTA 37: ÁHORF eru aðalmælikvarðinn (like eru fá á íslenskum rásum)
+            const dated = vids.filter((v) => v.d).sort((a, b) => String(a.d).localeCompare(String(b.d)));
             let trend = '';
-            if (vids.length >= 6) {
-              const a = vids.slice(0, 3).reduce((s, v) => s + (v.likes || 0), 0) / 3;
-              const b = vids.slice(3, 6).reduce((s, v) => s + (v.likes || 0), 0) / 3;
-              if (b > 0) { const pct = Math.round(((a - b) / b) * 100); trend = `<div class="yt-trend ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '▲' : '▼'} Likes ${pct >= 0 ? '+' : ''}${pct}% — 3 nýjustu myndbönd borin saman við 3 þar á undan</div>`; }
+            if (dated.length >= 6) {
+              const nyjustu = dated.slice(-3), fyrri = dated.slice(-6, -3);
+              const a = nyjustu.reduce((s, v) => s + (v.views || 0), 0) / 3;
+              const b = fyrri.reduce((s, v) => s + (v.views || 0), 0) / 3;
+              if (b > 0) { const pct = Math.round(((a - b) / b) * 100); trend = `<div class="yt-trend ${pct >= 0 ? 'up' : 'dn'}">${pct >= 0 ? '▲' : '▼'} Áhorf ${pct >= 0 ? '+' : ''}${pct}% — 3 nýjustu myndbönd (⌀ ${fmt(Math.round(a))}) borin saman við 3 þar á undan (⌀ ${fmt(Math.round(b))})</div>`; }
             }
-            const rows = vids.slice(0, 6).map((v) => `<a class="yt-row" href="${esc9(v.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(v.t)}</span><span class="yt-m">${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}${v.comments != null ? ' · 💬 ' + fmt(v.comments) : ''}</span></a>`).join('');
-            el.innerHTML = `<div class="se-card"><div class="se-l">📺 YouTube-rásin <span class="se-sub">${y.channel.subsRaw ? esc9(y.channel.subsRaw) + ' áskrifendur' : ''}</span></div>${trend}${rows ? `<div class="yt-list">${rows}</div>` : ''}<div class="se-note">Markaðsvirkni á YouTube: áhorf og likes á nýjustu myndbönd rásarinnar (opinber YouTube-veita, 6 klst skyndiminni).${y.api ? ' Ummælafjöldi um opinbert API.' : ''}</div></div>`;
+            const nyjast = vids.filter((v) => v.d).sort((a, b) => String(b.d).localeCompare(String(a.d))).slice(0, 3);
+            const rows = nyjast.map((v) => `<a class="yt-row" href="${esc9(v.u)}" target="_blank" rel="noopener"><span class="yt-t">${esc9(v.t)}</span><span class="yt-m">${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}${v.comments != null ? ' · 💬 ' + fmt(v.comments) : ''}</span></a>`).join('');
+            el.innerHTML = `<div class="se-card"><div class="se-l">📺 YouTube-rásin <span class="se-sub">${y.channel.subsRaw ? esc9(y.channel.subsRaw) + ' áskrifendur' : ''}</span></div>${trend}${dated.length >= 4 ? '<div id="yt-chart"></div>' : ''}${rows ? `<div class="yt-list">${rows}</div>` : ''}<div class="se-note">Áhorf per myndband yfir tíma (súlur) og like til hliðsjónar (lína) — opinber YouTube-veita rásarinnar, 6 klst skyndiminni.${y.api ? ' Ummælafjöldi um opinbert API.' : ''}</div></div>`;
+            if (dated.length >= 4) fgChart('yt-chart', {
+              backgroundColor: 'transparent',
+              legend: { data: ['Áhorf', 'Like'], textStyle: { color: '#9fb0c8', fontSize: 10 }, top: 0 },
+              grid: { left: 44, right: 36, top: 26, bottom: 22 },
+              tooltip: { trigger: 'axis', confine: true, formatter: (ps) => { const i = ps[0].dataIndex; const v = dated[i]; return `<b>${esc9(String(v.t).slice(0, 55))}</b><br>${dIS9(v.d)} · 👁 ${fmt(v.views || 0)} áhorf · 👍 ${fmt(v.likes || 0)}`; } },
+              xAxis: { type: 'category', data: dated.map((v) => String(v.d).slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+              yAxis: [
+                { type: 'value', name: 'áhorf', nameTextStyle: { color: '#7e8ca6', fontSize: 9 }, axisLabel: { color: '#7e8ca6', fontSize: 9, formatter: (v) => (v >= 1000 ? v / 1000 + 'þ' : v) }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+                { type: 'value', name: 'like', nameTextStyle: { color: '#7e8ca6', fontSize: 9 }, axisLabel: { color: '#7e8ca6', fontSize: 9 }, splitLine: { show: false } },
+              ],
+              series: [
+                { name: 'Áhorf', type: 'bar', data: dated.map((v) => v.views || 0), barMaxWidth: 20, itemStyle: { color: 'rgba(246,177,59,.75)', borderRadius: [4, 4, 0, 0] } },
+                { name: 'Like', type: 'line', yAxisIndex: 1, smooth: true, symbol: 'circle', symbolSize: 5, data: dated.map((v) => v.likes || 0), lineStyle: { color: '#3aa0ff', width: 2.5 }, itemStyle: { color: '#3aa0ff' } },
+              ],
+            });
           })
           .catch(() => { el.innerHTML = ''; });
       }
+      window.__loadYtCard = loadYtCard; // prófunar-hlið (loadYtCard býr í ÞESSARI lokun — module-level vísun braut module-ið)
       function openCo(c) {
           det.hidden = false;
           det.innerHTML = `<div class="d-h"><span class="d-n">${esc9(c.n)}</span><button class="co-fl" id="co-follow" hidden></button>${c.t ? `<a href="/markadir/" style="font-size:12px;color:#9fb0c8">${esc9(c.t)} á Mörkuðum →</a>` : ''}</div><div class="d-more"><span class="se-sub">Sæki og greini umfjöllun…</span></div>`;
@@ -544,9 +565,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
             .then((f) => {
               if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); if (btm) btm.hidden = false; paintBtm(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
               const se = f.sentiment || {};
-              let mh = healthBanner(f);
+              // LOTA 37: Viðhorfið EFST og spannar alla dálkana (ósk notanda)
+              let mh = sentCard(se);
+              mh += healthBanner(f);
               mh += rvCard(c.rvFull || c.rv, c.rvFull && c.rvFull.ccy);
-              mh += sentCard(se);
               // LOTA 36: tímalínu- og miðladreifingar-kortin FÓRU — sömu gögn búa í
               // Fjölmiðlagreiningunni fyrir neðan (fg-months vikur + fg-src kökurit).
               mh += srcToneCard(se.bySource);
