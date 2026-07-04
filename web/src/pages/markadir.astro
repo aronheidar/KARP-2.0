@@ -10,6 +10,8 @@ import MARKADIR from '@gogn/markadir.json';
 import RAUNVIRDI from '@gogn/raunvirdi.json';
 import SENTIMENT from '@gogn/sentiment.json';
 import FYRIRTAEKI from '../data/fyrirtaeki.json';
+import GJALDMIDLAR from '@gogn/gjaldmidlar.json';
+import SJODIR from '@gogn/sjodir.json';
 
 // Gengi + rafmyntir + málmar: live-endpoint sótt á BYGGINGARTÍMA (bakað upphafsgildi),
 // eyjan endurhleður svo í vafra (CORS er opið fyrir karp.is). Þolir bilun.
@@ -34,6 +36,25 @@ const sparkPts = (hist, w = 96, h = 30) => {
   return hist.map((v, i) => `${((i / (hist.length - 1)) * w).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`).join(' ');
 };
 const stk = stocks.map((s) => ({ ...s, pts: sparkPts(s.hist), up: (s.chgPct || 0) >= 0 }));
+
+// ── Gengistöflur Arion (LOTA 39): Seðlabanki = viðmið, banki kaup/sala, kortagengi + kortaálag ──
+const GJ = GJALDMIDLAR.sources || {};
+const gjMap = (t) => { const m = {}; ((GJ[t] && GJ[t].rates) || []).forEach((r) => { m[r.c] = r; }); return m; };
+const cbM = gjMap('CentralBank'), bkM = gjMap('Bank'), krM = gjMap('Credit');
+const gjRows = ((GJ.CentralBank && GJ.CentralBank.rates) || []).map((r) => {
+  const b = bkM[r.c], k = krM[r.c];
+  return {
+    c: r.c, mid: r.buy,
+    bBuy: b ? b.buy : null, bSell: b ? b.sell : null, kSell: k ? k.sell : null,
+    alag: k && r.buy ? (k.sell / r.buy - 1) * 100 : null,
+  };
+}).filter((r) => r.bSell != null || r.kSell != null);
+const gjDate = (GJ.Bank && GJ.Bank.date) || (GJ.CentralBank && GJ.CentralBank.date) || null;
+const gjKortAlls = ((GJ.Credit && GJ.Credit.rates) || []).length;
+
+// ── Stefnir-sjóðir (LOTA 39): verð + ávöxtun + 13 mán sparkline; smellur = línurit ──
+const funds = (SJODIR.funds || []).map((f) => ({ ...f, pts: sparkPts(f.hist), up: (f.chg1y != null ? f.chg1y : f.chg1d || 0) >= 0 }));
+const sjoDate = funds.length ? funds.map((f) => f.date).sort().pop() : null;
 
 const chartYears = [...new Set([...bondNom, ...bondIdx].map((b) => b.yr))].sort((a, b) => a - b);
 
@@ -149,6 +170,72 @@ const jsonLd = {
       </div>
     </div>
 
+    {gjRows.length > 0 && (
+      <>
+        <h2>🏦 Gengistöflur — hvað kostar gjaldeyririnn þig? <span class="hint">— opinbert gengi, bankagengi og kortagengi borið saman</span></h2>
+        <div class="tw">
+          <table class="ktable" id="gj-table">
+            <thead>
+              <tr>
+                <th class="l">Gjaldmiðill</th>
+                <th><i class="tip" tabindex="0" data-tip="Opinbert viðmiðunargengi Seðlabanka Íslands — miðgengi.">Seðlabanki ⓘ</i></th>
+                <th>Kaup (banki)</th>
+                <th>Sala (banki)</th>
+                <th><i class="tip" tabindex="0" data-tip="Gengið sem kreditkortafærslur erlendis eru gerðar upp á.">Kort erlendis ⓘ</i></th>
+                <th><i class="tip" tabindex="0" data-tip="Hvað kortagengið er hátt umfram opinbert viðmiðunargengi Seðlabankans — raunkostnaðurinn við að strauja erlendis.">Kortaálag ⓘ</i></th>
+              </tr>
+            </thead>
+            <tbody>
+              {gjRows.map((r) => (
+                <tr>
+                  <td class="l"><b>{r.c}</b></td>
+                  <td class="num">{r.mid != null ? fmtNum(r.mid, 2) : '–'}</td>
+                  <td class="num">{r.bBuy != null ? fmtNum(r.bBuy, 2) : '–'}</td>
+                  <td class="num">{r.bSell != null ? fmtNum(r.bSell, 2) : '–'}</td>
+                  <td class="num">{r.kSell != null ? fmtNum(r.kSell, 2) : '–'}</td>
+                  <td class={`num ${r.alag != null && r.alag > 2.5 ? 'dn' : ''}`}>{r.alag != null ? '+' + fmtNum(r.alag, 1) + '%' : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="src">Heimild: Arion banki — opin gögn ({gjDate}). Kortagengistaflan nær yfir {gjKortAlls} gjaldmiðla; hér birtast þeir sem Seðlabankinn skráir viðmiðunargengi fyrir. Kortaálag = kortagengi umfram viðmiðunargengi SÍ.</p>
+      </>
+    )}
+
+    {funds.length > 0 && (
+      <>
+        <h2>📈 Sjóðir Stefnis ({funds.length}) <span class="hint">— smelltu á dálkhaus til að raða, á sjóð fyrir 13 mánaða feril</span></h2>
+        <div class="tw">
+          <table class="ktable" id="sjo-table">
+            <thead>
+              <tr>
+                <th class="l srt on" data-k="name">Sjóður</th>
+                <th class="srt" data-k="price">Gengi</th>
+                <th class="srt" data-k="chg1d">1 dagur</th>
+                <th class="srt" data-k="ytd">Frá áramótum</th>
+                <th class="srt" data-k="chg1y">1 ár</th>
+                <th class="spark-h">13 mán</th>
+              </tr>
+            </thead>
+            <tbody>
+              {funds.map((f) => (
+                <tr class="sjorow" data-name={f.name} data-price={f.price} data-chg1d={f.chg1d ?? -999} data-ytd={f.chgYtd ?? -999} data-chg1y={f.chg1y ?? -999} data-hist={JSON.stringify(f.hist || [])} data-cur={f.cur} data-date={f.date} role="button" tabindex="0">
+                  <td class="l"><span class="sjo-name">{f.name}</span></td>
+                  <td class="num">{fmtNum(f.price, 2)} <span class="cur">{f.cur}</span></td>
+                  <td class={`num ${(f.chg1d || 0) >= 0 ? 'up' : 'dn'}`}>{chg(f.chg1d)}</td>
+                  <td class={`num ${(f.chgYtd || 0) >= 0 ? 'up' : 'dn'}`}>{chg(f.chgYtd)}</td>
+                  <td class={`num ${(f.chg1y || 0) >= 0 ? 'up' : 'dn'}`}>{chg(f.chg1y)}</td>
+                  <td class="spark-c">{f.pts && <svg class="st-spark" viewBox="0 0 96 30" preserveAspectRatio="none"><polyline points={f.pts} fill="none" stroke={f.up ? '#46e08a' : '#ff6d7a'} stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="src">Heimild: Arion banki / Stefnir — opin gögn ({sjoDate}). Gengi sjóða uppfærist daglega; ávöxtun er ekki árstöfluð og fortíðarávöxtun spáir ekki fyrir um framtíðina. Ekki fjárfestingarráðgjöf.</p>
+      </>
+    )}
+
     {chartYears.length > 0 && (
       <>
         <h2>Ávöxtunarferill ríkisbréfa</h2>
@@ -190,6 +277,16 @@ const jsonLd = {
     .spark-c, .spark-h { width: 110px; }
     .st-spark { width: 96px; height: 26px; display: block; margin-left: auto; }
     .up { color: #46e08a; } .dn { color: #ff6d7a; }
+    /* Arion-töflurnar (LOTA 39): gengistöflur + Stefnir-sjóðir — sama útlit og hlutabréfataflan */
+    .ktable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .ktable th, .ktable td { text-align: right; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
+    .ktable th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .ktable th.srt { cursor: pointer; user-select: none; }
+    .ktable th.srt:hover, .ktable th.srt.on { color: #f6b13b; }
+    .ktable td.l, .ktable th.l { text-align: left; }
+    .sjorow { cursor: pointer; }
+    .sjorow:hover td { background: rgba(255,255,255,.03); }
+    .sjo-name { font-size: 13px; font-weight: 600; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
     .mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -249,6 +346,7 @@ const jsonLd = {
       $id('stk-sym').textContent = sym;
       $id('stk-name').textContent = d.name || '';
       $id('stk-yh').href = 'https://finance.yahoo.com/quote/' + sym + '.IC';
+      $id('stk-yh').textContent = 'Skoða á Yahoo Finance ↗';
       const f1 = (v, dg = 1) => (v == null ? '–' : Number(v).toFixed(dg).replace('.', ','));
       const ths = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       const lows = d.ohlc.map((o) => o[2]), highs = d.ohlc.map((o) => o[1]);
@@ -383,6 +481,7 @@ const jsonLd = {
       $id('stk-sym').textContent = name;
       $id('stk-name').textContent = el2.dataset.sym;
       $id('stk-yh').href = 'https://finance.yahoo.com/quote/' + encodeURIComponent(el2.dataset.sym);
+      $id('stk-yh').textContent = 'Skoða á Yahoo Finance ↗';
       $id('stk-tiles').innerHTML = '<div class="stk-t"><div class="l">Verð</div><div class="v">' + priceTxt + '</div></div>'
         + '<div class="stk-t"><div class="l">Dagsbreyting</div><div class="v ' + (chTxt.indexOf('-') === 0 ? 'dn' : 'up') + '">' + chTxt + '</div></div>'
         + (hist.length > 1 ? '<div class="stk-t"><div class="l">22d lægst/hæst</div><div class="v">' + Math.min.apply(null, hist).toFixed(1).replace('.', ',') + ' / ' + Math.max.apply(null, hist).toFixed(1).replace('.', ',') + '</div></div>' : '');
@@ -441,7 +540,76 @@ const jsonLd = {
         })
         .catch(() => {});
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) { initStkModal(); initLiveMk(); initMiniClicks(); } });
+    // ── Stefnir-sjóðir (LOTA 39): smellur á röð → 13 mán línurit í sama modali ──
+    function sjoOpen(row) {
+      const m = $id('stk-modal');
+      if (!m) return;
+      let hist = [];
+      try { hist = JSON.parse(row.dataset.hist || '[]'); } catch (e) {}
+      const f1 = (v, dg = 2) => (v == null || isNaN(v) ? '–' : Number(v).toFixed(dg).replace('.', ','));
+      const pc = (v) => (v == null || v <= -999 ? null : v);
+      const chgT = (v) => (v == null ? '–' : (v > 0 ? '+' : '') + f1(v, 2) + '%');
+      const c1d = pc(+row.dataset.chg1d), ytd = pc(+row.dataset.ytd), c1y = pc(+row.dataset.chg1y);
+      $id('stk-sym').textContent = row.dataset.name;
+      $id('stk-name').textContent = 'Stefnir · gengi ' + (row.dataset.date || '');
+      $id('stk-yh').href = 'https://www.stefnir.is/sjodir/';
+      $id('stk-yh').textContent = 'Skoða hjá Stefni ↗';
+      $id('stk-tiles').innerHTML = [
+        { l: 'Gengi', v: f1(+row.dataset.price) + ' ' + (row.dataset.cur || 'ISK') },
+        { l: '1 dagur', v: chgT(c1d), c: c1d != null ? (c1d >= 0 ? 'up' : 'dn') : '' },
+        { l: 'Frá áramótum', v: chgT(ytd), c: ytd != null ? (ytd >= 0 ? 'up' : 'dn') : '' },
+        { l: '1 ár', v: chgT(c1y), c: c1y != null ? (c1y >= 0 ? 'up' : 'dn') : '' },
+        hist.length > 1 && { l: '13 mán lægst/hæst', v: f1(Math.min.apply(null, hist)) + ' / ' + f1(Math.max.apply(null, hist)) },
+      ].filter(Boolean).map((t) => `<div class="stk-t"><div class="l">${t.l}</div><div class="v ${t.c || ''}">${t.v}</div></div>`).join('');
+      const se = $id('stk-sent');
+      if (se) se.innerHTML = '';
+      m.hidden = false;
+      const boot3 = () => {
+        const el = $id('stk-chart');
+        if (stkChart) stkChart.dispose();
+        stkChart = window.echarts.init(el);
+        stkChart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 56, right: 16, top: 18, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : Number(v).toFixed(2).replace('.', ',')) },
+          xAxis: { type: 'category', data: hist.map((_, i) => Math.round((i - hist.length + 1)) + ' v'), axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: { type: 'value', scale: true, axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+          series: [{ type: 'line', data: hist, smooth: true, symbol: 'none', lineStyle: { color: '#f6b13b', width: 2.6 }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: 0.1 } }],
+        });
+      };
+      if (window.echarts) boot3();
+      else {
+        let sc = document.getElementById('echarts-cdn');
+        if (!sc) { sc = document.createElement('script'); sc.id = 'echarts-cdn'; sc.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(sc); }
+        sc.addEventListener('load', boot3, { once: true });
+      }
+    }
+    function initSjodir() {
+      document.querySelectorAll('.sjorow[data-name]').forEach((r) => {
+        if (r.dataset.wired) return;
+        r.dataset.wired = '1';
+        r.addEventListener('click', () => sjoOpen(r));
+        r.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sjoOpen(r); } });
+      });
+      const tbl = document.getElementById('sjo-table');
+      if (tbl && !tbl.dataset.srt) {
+        tbl.dataset.srt = '1';
+        tbl.querySelectorAll('th.srt').forEach((h) => {
+          h.addEventListener('click', () => {
+            const k = h.dataset.k;
+            tbl.querySelectorAll('th.srt').forEach((x) => x.classList.toggle('on', x === h));
+            const dir = h.dataset.d === '1' ? -1 : 1;
+            h.dataset.d = String(dir);
+            const tb = tbl.querySelector('tbody');
+            [...tb.querySelectorAll('tr')].sort((a, b) => {
+              if (k === 'name') return dir * a.dataset.name.localeCompare(b.dataset.name, 'is');
+              return dir * ((+b.dataset[k]) - (+a.dataset[k]));
+            }).forEach((tr) => tb.appendChild(tr));
+          });
+        });
+      }
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="markadir"]')) { initStkModal(); initLiveMk(); initMiniClicks(); initSjodir(); } });
   </script>
 
   <!-- Eyja: ávöxtunarferill (ECharts), astro:page-load. #2 -->
