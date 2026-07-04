@@ -211,7 +211,9 @@ async function villaHandler(request, ctx) {
 // ber áskrifendafjölda. Valfrjáls YOUTUBE_API_KEY (CF-secret) bætir við
 // nákvæmum tölum + fjölda ummæla (videos.list). 6 klst cache per fyrirtæki.
 const YTCO = {
-  'Eimskip': 'UCiPZhGeTpFL9wvvVR9uFQgA',
+  // Eimskip á TVÆR rásir: virka (nýtt efni 2026, fáir subs) + gömlu aðalrásina
+  // (21,9þ subs, þögul síðan 2022) — samanlagt gefur rétta markaðsmynd.
+  'Eimskip': ['UCiPZhGeTpFL9wvvVR9uFQgA', 'UCJKK3LJ0Fs6UcWs6QMRWs8g'],
   'Icelandair': 'UC0auMGlERL_q9IfaYPysb1Q',
   'Play': 'UCHGNsNarIoZP3QuBzuqtHqg',
   'Landsvirkjun': 'UC9VZ9wDIJJ4LSXlK7Vgnjsw',
@@ -230,36 +232,45 @@ function parseSubs(s) {
 }
 async function ytstatsHandler(request, env, ctx) {
   const co = new URL(request.url).searchParams.get('co') || '';
-  const chId = YTCO[co];
-  if (!chId) return sjson({ channel: null });
+  const mapped = YTCO[co];
+  if (!mapped) return sjson({ channel: null });
+  const ids = Array.isArray(mapped) ? mapped : [mapped];
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/ytstats/' + encodeURIComponent(co));
   let res = await cache.match(cacheKey);
   if (res) return res;
   const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; karp.is dashboard; aronheidars@gmail.com)' };
-  const out = { channel: { id: chId, subs: null, subsRaw: '' }, videos: [], api: false };
+  const out = { channel: { id: ids[0], subs: null, subsRaw: '', chans: ids.length }, videos: [], api: false };
   try {
-    const [rssR, pageR] = await Promise.all([
-      fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + chId, { headers: UA }),
-      fetch('https://www.youtube.com/channel/' + chId + '/about', { headers: { ...UA, 'Accept-Language': 'en' } }),
-    ]);
-    if (rssR.ok) {
-      const xml = await rssR.text();
-      for (const entry of xml.split('<entry>').slice(1)) {
-        const t = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
-        const u = (entry.match(/<link rel="alternate" href="([^"]+)"/) || [])[1];
-        const d = ((entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '').slice(0, 10);
-        const views = +((entry.match(/<media:statistics views="(\d+)"/) || [])[1] || 0);
-        const likes = +((entry.match(/<media:starRating count="(\d+)"/) || [])[1] || 0);
-        const vid = (entry.match(/<yt:videoId>([^<]+)/) || [])[1] || '';
-        if (t && u) out.videos.push({ id: vid, t, u, d, views, likes });
+    let subsSum = 0, subsAny = false;
+    await Promise.all(ids.map(async (chId) => {
+      const [rssR, pageR] = await Promise.all([
+        fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + chId, { headers: UA }),
+        fetch('https://www.youtube.com/channel/' + chId + '/about', { headers: { ...UA, 'Accept-Language': 'en' } }),
+      ]);
+      if (rssR.ok) {
+        const xml = await rssR.text();
+        for (const entry of xml.split('<entry>').slice(1)) {
+          const t = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
+          const u = (entry.match(/<link rel="alternate" href="([^"]+)"/) || [])[1];
+          const d = ((entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '').slice(0, 10);
+          const views = +((entry.match(/<media:statistics views="(\d+)"/) || [])[1] || 0);
+          const likes = +((entry.match(/<media:starRating count="(\d+)"/) || [])[1] || 0);
+          const vid = (entry.match(/<yt:videoId>([^<]+)/) || [])[1] || '';
+          if (t && u) out.videos.push({ id: vid, t, u, d, views, likes });
+        }
       }
-    }
-    if (pageR.ok) {
-      const html = await pageR.text();
-      const raw = (html.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || html.match(/([\d.,]+[KM]?) subscribers/) || [])[1] || '';
-      out.channel.subsRaw = raw.replace(/ subscribers?/i, '');
-      out.channel.subs = parseSubs(out.channel.subsRaw);
+      if (pageR.ok) {
+        const html = await pageR.text();
+        const raw = (html.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || html.match(/([\d.,]+[KM]?) subscribers/) || [])[1] || '';
+        const n = parseSubs(raw.replace(/ subscribers?/i, ''));
+        if (n != null) { subsSum += n; subsAny = true; }
+      }
+    }));
+    out.videos.sort((a, b) => String(b.d).localeCompare(String(a.d)));
+    if (subsAny) {
+      out.channel.subs = subsSum;
+      out.channel.subsRaw = (subsSum >= 1e6 ? (Math.round(subsSum / 1e5) / 10).toString().replace('.', ',') + ' m' : subsSum >= 1000 ? (Math.round(subsSum / 100) / 10).toString().replace('.', ',') + ' þús.' : String(subsSum)) + (ids.length > 1 ? ' (samanlagt á ' + ids.length + ' rásum)' : '');
     }
     // Valfrjáls nákvæmni: opinbert Data API (frír lykill) → ummæli + nákvæm like
     if (env.YOUTUBE_API_KEY && out.videos.length) {

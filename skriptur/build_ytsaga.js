@@ -9,7 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; karp.is dashboard; aronheidars@gmail.com)', 'Accept-Language': 'en' };
 const YTCO = {
-  'Eimskip': 'UCiPZhGeTpFL9wvvVR9uFQgA',
+  // Eimskip: virk rás + gamla aðalrásin (21,9þ subs, þögul frá 2022) — samanlagt.
+  'Eimskip': ['UCiPZhGeTpFL9wvvVR9uFQgA', 'UCJKK3LJ0Fs6UcWs6QMRWs8g'],
   'Icelandair': 'UC0auMGlERL_q9IfaYPysb1Q',
   'Play': 'UCHGNsNarIoZP3QuBzuqtHqg',
   'Landsvirkjun': 'UC9VZ9wDIJJ4LSXlK7Vgnjsw',
@@ -31,14 +32,21 @@ async function main() {
   try { saga = JSON.parse(fs.readFileSync(G, 'utf8')); } catch (e) {}
   const d = new Date().toISOString().slice(0, 10);
   let ok = 0;
-  for (const [co, id] of Object.entries(YTCO)) {
+  for (const [co, mapped] of Object.entries(YTCO)) {
     try {
-      const [page, rss] = await Promise.all([
-        fetch('https://www.youtube.com/channel/' + id + '/about', { headers: UA }).then((r) => (r.ok ? r.text() : '')),
-        fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + id, { headers: UA }).then((r) => (r.ok ? r.text() : '')),
-      ]);
-      const subs = parseSubs((page.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || page.match(/([\d.,]+[KM]?) subscribers/) || [])[1]);
-      const likes = [...rss.matchAll(/<media:starRating count="(\d+)"/g)].slice(0, 3).map((m) => +m[1]);
+      const ids = Array.isArray(mapped) ? mapped : [mapped];
+      let subs = null;
+      const allLikes = [];
+      for (const id of ids) {
+        const [page, rss] = await Promise.all([
+          fetch('https://www.youtube.com/channel/' + id + '/about', { headers: UA }).then((r) => (r.ok ? r.text() : '')),
+          fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + id, { headers: UA }).then((r) => (r.ok ? r.text() : '')),
+        ]);
+        const s = parseSubs((page.match(/"subscriberCountText":\{"simpleText":"([^"]+)"/) || page.match(/([\d.,]+[KM]?) subscribers/) || [])[1]);
+        if (s != null) subs = (subs || 0) + s;
+        for (const m of rss.matchAll(/<media:starRating count="(\d+)"[^>]*>[\s\S]{0,40}/g)) allLikes.push(+m[1]);
+      }
+      const likes = allLikes.slice(0, 3);
       const likes3 = likes.length ? Math.round(likes.reduce((a, b) => a + b, 0) / likes.length) : null;
       if (subs == null && likes3 == null) continue;
       saga[co] = (saga[co] || []).filter((p) => p.d !== d);
