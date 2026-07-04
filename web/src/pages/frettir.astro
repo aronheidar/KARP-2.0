@@ -952,8 +952,41 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const { c, f } = FG_SEL;
       let rep = document.getElementById('fg-report');
       if (!rep) { rep = document.createElement('div'); rep.id = 'fg-report'; document.body.appendChild(rep); }
-      const img = (id) => { const el = document.getElementById(id); const ch = el && window.echarts && window.echarts.getInstanceByDom(el); return ch ? '<img src="' + ch.getDataURL({ pixelRatio: 2, backgroundColor: '#0e1420' }) + '">' : ''; };
       const se = f.sentiment || {}, st = f.stats || {};
+      // LOTA 58: gröfin teiknuð FERSK inn í skýrsluna úr gögnunum — prent-væn (dökkt á hvítu, 2×).
+      // Ekki treyst á lifandi kortin (auð svæði ef þau voru ekki fullteiknuð / dökk á hvítri síðu).
+      const repImg = (opt, w, h) => {
+        if (!window.echarts) return '';
+        const dv = document.createElement('div');
+        dv.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + w + 'px;height:' + h + 'px';
+        document.body.appendChild(dv);
+        const ch = window.echarts.init(dv, null, { renderer: 'canvas' });
+        ch.setOption(Object.assign({ animation: false, backgroundColor: '#ffffff' }, opt));
+        const url = ch.getDataURL({ pixelRatio: 2, backgroundColor: '#ffffff' });
+        ch.dispose(); dv.remove();
+        return '<img src="' + url + '">';
+      };
+      const AX = '#555', GRIDC = '#e6e6e6';
+      const monthsImg = () => {
+        const tl = f.timeline || [];
+        if (tl.length < 2) return '';
+        return repImg({
+          grid: { left: 42, right: 14, top: 14, bottom: 28 },
+          xAxis: { type: 'category', data: tl.map((t) => t.d.slice(5)), axisLabel: { color: AX, fontSize: 11 }, axisLine: { lineStyle: { color: '#bbb' } } },
+          yAxis: { type: 'value', axisLabel: { color: AX, fontSize: 11 }, splitLine: { lineStyle: { color: GRIDC } } },
+          series: [{ type: 'bar', data: tl.map((t) => ({ value: t.n, itemStyle: { color: t.scored ? (t.idx > 15 ? '#2f9e5f' : t.idx < -15 ? '#d05555' : '#8a93a8') : '#3a6ea5', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 22 }],
+        }, 660, 240);
+      };
+      const srcImg = () => {
+        const src = st.sources || [];
+        if (!src.length) return '';
+        return repImg({
+          color: ['#3a6ea5', '#e0863a', '#2f9e5f', '#c1533b', '#7a5cc0', '#c7a02f', '#4aa3a0', '#b0567f'],
+          series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '52%'], label: { color: '#222', fontSize: 12, formatter: '{b}\n{d}%' }, labelLine: { lineStyle: { color: '#bbb' } }, itemStyle: { borderColor: '#fff', borderWidth: 2 }, data: src.slice(0, 8).map((x) => ({ name: x.s, value: x.n })) }],
+        }, 660, 300);
+      };
+      // YouTube-grafið býr í fyrirtækjakortinu (önnur gögn) → prent-væn skjámynd ef til staðar
+      const imgLive = (id) => { const el = document.getElementById(id); const ch = el && window.echarts && window.echarts.getInstanceByDom(el); return ch ? '<img src="' + ch.getDataURL({ pixelRatio: 2, backgroundColor: '#ffffff' }) + '">' : ''; };
       const dnow = new Date().toISOString().slice(0, 10);
       // LOTA 54: FULL skýrsla — allt af kortinu: tónn+brot, heilsa, kennitölur,
       // viðhorf per miðil, orðin, ríkisgreiðslur, tilkynningar, YouTube, 20 fyrirsagnir.
@@ -982,11 +1015,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ${brot}
         ${tonar.length ? `<h4>Viðhorf eftir miðlum</h4><table class="rep-tbl"><tr><th>Miðill</th><th>Fréttir</th><th>Tónn</th></tr>${tonar.map((x) => `<tr><td>${esc9(x.m)}</td><td>${x.n}</td><td>${x.idx != null ? (x.idx > 0 ? '+' : '') + x.idx : '—'}</td></tr>`).join('')}</table>` : ''}
         ${words.length ? `<h4>Algengustu orð í umfjöllun</h4><div class="rep-txt">${words.map((w) => esc9(w.w) + ' (' + w.n + ')').join(' · ')}</div>` : ''}
-        <h4>Umfjöllun eftir vikum</h4>${img('fg-months')}
-        <h4>Dreifing miðla</h4>${img('fg-src')}
+        ${monthsImg() ? '<h4>Umfjöllun eftir vikum</h4>' + monthsImg() : ''}
+        ${srcImg() ? '<h4>Dreifing miðla</h4>' + srcImg() : ''}
         ${rikHtml}
         ${tilkRows ? `<h4>Nýjustu kauphallartilkynningar</h4><ol>${tilkRows}</ol>` : ''}
-        ${ytSub || ytTrend ? `<h4>YouTube-rás félagsins</h4><div class="rep-txt">${esc9(ytSub)}${ytTrend ? '<br>' + esc9(ytTrend) : ''}</div>${img('yt-chart')}` : ''}
+        ${ytSub || ytTrend ? `<h4>YouTube-rás félagsins</h4><div class="rep-txt">${esc9(ytSub)}${ytTrend ? '<br>' + esc9(ytTrend) : ''}</div>${imgLive('yt-chart')}` : ''}
         <h4>Nýjustu fyrirsagnir (20)</h4><ol>${(f.items || []).slice(0, 20).map((it) => '<li>' + esc9(it.title || it.t || '') + ' <span>(' + esc9(it.source || it.s || '') + (it.d ? ' · ' + esc9(String(it.d).slice(0, 10)) : '') + ')</span></li>').join('')}</ol>
         <div class="rep-f">Unnið sjálfvirkt úr gögnum Karp: fréttasafn íslenskra miðla, opnirreikningar.is (Fjársýslan), Nasdaq Iceland, YouTube og ársreikningar félagsins þar sem við á · tónn er vélrænt mat á fyrirsögnum, ekki ritstjórnardómur · karp.is · ${dnow}</div>`;
       window.print();
