@@ -12,7 +12,7 @@ const desc = 'Karp Pro — vöktun fjölmiðlaumfjöllunar, vaktir í tölvupós
 
 <Layout title="⭐ Karp Pro | Karp" description={desc} canonical="https://karp.is/karp-pro/" ogTitle="Karp Pro">
   <main data-pg="karp-pro">
-    <div class="pro-hero">
+    <div class="pro-hero kf-anim">
       <KarpFish size={110} />
       <div>
         <p class="kicker">Karp · Fyrir innskráða</p>
@@ -88,8 +88,7 @@ const desc = 'Karp Pro — vöktun fjölmiðlaumfjöllunar, vaktir í tölvupós
     });
   </script>
   <style is:global>
-    main[data-pg="karp-pro"] .pro-hero .karpfish { animation: kf-swim 4.2s ease-in-out infinite; flex: none; }
-    main[data-pg="karp-pro"] .kf-eye { animation: kf-blink 5s infinite; transform-origin: 76px 45px; transform-box: view-box; }
-    @media (prefers-reduced-motion: reduce) { main[data-pg="karp-pro"] .karpfish, main[data-pg="karp-pro"] .kf-eye { animation: none; } }
+    /* fulla lífið kemur úr .kf-anim (KarpFish.astro, LOTA 50) */
+    main[data-pg="karp-pro"] .pro-hero .karpfish { animation-duration: 4.2s; flex: none; }
   </style>
 </Layout>
