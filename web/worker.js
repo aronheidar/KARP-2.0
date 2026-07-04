@@ -420,7 +420,9 @@ async function gleitHandler(request, env, ctx) {
   // Frítt: 2.000 leitir/mán — 6 klst skyndiminnið teygir það margfalt. env.BRAVE_SEARCH_KEY.
   if (env.BRAVE_SEARCH_KEY) {
     try {
-      const up = await fetch('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(q) + '&country=is&search_lang=is&count=10', { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_SEARCH_KEY } });
+      // ATH: search_lang/country styðja EKKI 'is' hjá Brave (422) — fyrirspurnin sjálf
+      // er á íslensku svo niðurstöðurnar verða það líka.
+      const up = await fetch('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(q) + '&count=10', { headers: { 'Accept': 'application/json', 'X-Subscription-Token': env.BRAVE_SEARCH_KEY } });
       if (up.ok) {
         const j = await up.json();
         items = (((j.web || {}).results) || []).map((x) => ({ t: x.title, l: x.url, src: (x.meta_url && x.meta_url.hostname) || (x.url || '').replace(/^https?:\/\//, '').split('/')[0], sn: String(x.description || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ') }));
