@@ -153,13 +153,6 @@ const jsonLd = {
     .mr-bar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
     .mr-bar i { display: block; height: 100%; background: var(--pc, #f6b13b); border-radius: 5px; }
     .mr-v { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
-    .umf-head { font-size: 13px; color: #9fb0c8; margin-bottom: 6px; }
-    .umf-head b { color: #eaf1fb; }
-    .umf-it { display: block; font-size: 13.5px; color: #dfe7f4; text-decoration: none; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.07); line-height: 1.35; }
-    .umf-it:hover { color: #f6b13b; }
-    .umf-it span { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
-    .umf-more { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #f6b13b; text-decoration: none; }
-    .umf-none { font-size: 13px; color: #9fb0c8; }
     main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
     .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
     .back:hover { color: #f6b13b; }
@@ -179,6 +172,15 @@ const jsonLd = {
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
+    /* Umfjöllunarlistinn er fylltur á KEYRSLUTÍMA (innerHTML) → verður að vera global,
+       annars scope-ast stílarnir burt og textinn rennur saman í einn belg (LOTA 49). */
+    .umf-head { font-size: 13px; color: #9fb0c8; margin-bottom: 6px; }
+    .umf-head b { color: #eaf1fb; }
+    .umf-it { display: block; font-size: 13.5px; color: #dfe7f4; text-decoration: none; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.07); line-height: 1.35; }
+    .umf-it:hover { color: #f6b13b; }
+    .umf-it span { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .umf-more { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #f6b13b; text-decoration: none; }
+    .umf-none { font-size: 13px; color: #9fb0c8; }
     /* Fylgja-hnappur er búinn til á keyrslutíma → global. Erfir --pc frá <main>. */
     .follow-wrap { margin-top: 10px; min-height: 34px; }
     .fbtn { background: var(--pc); color: #06121a; border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }

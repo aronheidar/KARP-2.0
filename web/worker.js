@@ -315,6 +315,9 @@ async function tilkynningarHandler(request, env, ctx) {
         t: x.headline, co: x.company, d: (x.published || '').slice(0, 16), lang: x.language,
         u: x.messageUrl || ('https://view.news.eu.nasdaq.com/view?id=b' + x.disclosureId + '&lang=' + (x.language || 'is')),
       }));
+      // freeText matchar líka meginmál → þrengja á útgefandann sjálfan sé það hægt
+      const eigin = items.filter((x) => (x.co || '').toLowerCase().includes(co.toLowerCase()));
+      if (eigin.length) items = eigin;
     }
   } catch (e) {}
   res = new Response(JSON.stringify({ co, items }), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=1800' } });
