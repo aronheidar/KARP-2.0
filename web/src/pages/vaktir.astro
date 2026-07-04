@@ -34,6 +34,15 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     <div id="fv-chips"></div>
     <div id="fv-res" class="feed" hidden></div>
 
+    <h2>🏷️ Verðmat úr kaupskránni <span class="hint">— Karp Pro (ókeypis aðgangur)</span> <i class="tip" tabindex="0" data-tip="Nálgun byggð á þinglýstum kaupum: fyrst gatan þín, svo póstnúmerið, svo sveitarfélagið (12 mán miðgildi). Þetta er tölfræðileg nálgun úr opinberri kaupskrá HMS — ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
+    <div class="lv-row fvm-row">
+      <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang — t.d. „Melabraut 3, 170“" autocomplete="off" />
+      <input id="fvm-fm" type="number" min="15" max="1200" placeholder="m²" />
+      <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
+      <button id="fvm-go">Meta</button>
+    </div>
+    <div id="fvm-out" hidden></div>
+
     <h2>⚖️ Dómavaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu dómar beint af vefjum dómstólanna (opinber birting í síðukóða þeirra, engin ágiskun). Uppfærist á ~45 mín fresti um skyndiminnis-proxy Karp.">ⓘ</i></h2>
     <div class="ppair">
       <div>
@@ -106,6 +115,24 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
+    /* 🏷️ Verðmatið (LOTA 47) */
+    .fvm-row input[type="number"] { max-width: 90px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; }
+    .fvm-row input[type="number"]:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .fvm-row select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; }
+    .fvm-row select option { background: #0e1420; }
+    .fvm-row input[type="text"] { flex: 1; max-width: 300px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
+    .fvm-row input[type="text"]:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .fvm-row button { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+    #fvm-out { margin-top: 10px; font-size: 13px; color: #9fb0c8; }
+    .fvm-card { background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 14px 16px; }
+    .fvm-big { font-size: 30px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .fvm-range { font-size: 14px; color: #eaf1fb; margin-top: 2px; }
+    .fvm-meta { font-size: 12px; color: #9fb0c8; margin-top: 6px; }
+    .fvm-note { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; line-height: 1.45; }
+    .pro-tease2 { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
+    .pt2-btns { display: flex; gap: 8px; margin-top: 10px; }
+    .pt2-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
+    .pt2-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
     .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
     #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
     #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
@@ -262,6 +289,57 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       if (fvMuniEl) { fvMuniEl.addEventListener('focus', fvMunis); fvMuniEl.addEventListener('change', fvSearch); }
       if (fvBtn) fvBtn.addEventListener('click', fvAdd);
       fvRender();
+      // 🏷️ Verðmat úr kaupskránni (LOTA 47, Karp Pro): gata → póstnr → sveitarfélag
+      const fvmOut = document.getElementById('fvm-out');
+      let FST = null; // fasteignir.json (12 mán byMuni-tölfræði) — sótt letilega
+      const fstFetch = () => FST || (FST = fetch('/gogn/fasteignir.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+      const pct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
+      const mkr = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(v) + ' þ.kr');
+      async function fvmGo() {
+        const raw = (document.getElementById('fvm-addr').value || '').trim();
+        const fm = +(document.getElementById('fvm-fm').value || 0);
+        const teg = document.getElementById('fvm-teg').value;
+        if (raw.length < 3 || !(fm >= 15)) { fvmOut.hidden = false; fvmOut.innerHTML = '<div class="fvm-note">Sláðu inn heimilisfang og stærð í m².</div>'; return; }
+        fvmOut.hidden = false;
+        // Pro-læsing: niðurstaðan er fyrir innskráða (ókeypis aðgangur)
+        const u = await loadUser().catch(() => null);
+        if (!u || !u.loggedIn) {
+          fvmOut.innerHTML = '<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="/login/">Innskráning</a></div></div>';
+          return;
+        }
+        fvmOut.textContent = 'Reikna úr kaupskránni…';
+        const pnM = raw.match(/\b(\d{3})\b/);
+        const pn = pnM ? pnM[1] : '';
+        const street = fvNorm(raw.replace(/\b\d{3}\b/, '').replace(/[,.]/g, ' ')).replace(/\s+\d+[a-z]?\s*$/i, '').trim();
+        const d = await fvFetch();
+        if (!d || !d.rows) { fvmOut.textContent = 'Náði ekki í kaupskrána — reyndu aftur.'; return; }
+        const ppm = (r) => (r.fm > 15 ? r.v / r.fm : null); // þús.kr/m²
+        const lag = [];
+        if (street.length >= 3) lag.push({ n: 'götunni (' + street + ') sl. 6 mán', rows: d.rows.filter((r) => r.t === teg && fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)), min: 3 });
+        if (pn) lag.push({ n: 'póstnúmeri ' + pn + ' sl. 6 mán', rows: d.rows.filter((r) => r.t === teg && r.pn === pn), min: 6 });
+        let est = null, comps = [];
+        for (const L of lag) {
+          const vals = L.rows.map(ppm).filter(Boolean);
+          if (vals.length >= L.min) { est = { heiti: L.n, n: vals.length, m: med(vals), lo: pct(vals, 0.25), hi: pct(vals, 0.75) }; comps = L.rows.slice(0, 6); break; }
+        }
+        if (!est) {
+          // sveitarfélags-lagið: 12 mán tölfræði úr fasteignir.json (byMuni), vörpuð um póstnr eða götutreff
+          const svGuess = (pn ? d.rows.find((r) => r.pn === pn) : d.rows.find((r) => fvNorm(r.a).startsWith(street)));
+          const sv = svGuess && svGuess.sv;
+          const f = await fstFetch();
+          const bm = sv && f && f.byMuni && f.byMuni[sv];
+          const t = bm && ((bm.types && bm.types[teg]) || bm);
+          if (t && t.m2) est = { heiti: sv + ' (12 mán miðgildi' + (bm.types && bm.types[teg] ? ', ' + teg : ', allar tegundir') + ')', n: t.n, m: t.m2, lo: t.p25, hi: t.p75 };
+        }
+        if (!est) { fvmOut.innerHTML = '<div class="fvm-note">Of fá nýleg kaup til að meta — prófaðu án póstnúmers eða athugaðu stafsetningu götunnar.</div>'; return; }
+        const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
+        fvmOut.innerHTML = `<div class="fvm-card"><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)}</div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div><div class="fvm-note">Tölfræðileg nálgun úr kaupskrá HMS — ekki fasteignamat. Ástand, hæð, útsýni og bílastæði geta hliðrað verði verulega.</div></div>` + (comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + comps.map(fvRow).join('') : '');
+      }
+      const fvmBtn = document.getElementById('fvm-go');
+      if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
+      const fvmAddr = document.getElementById('fvm-addr');
+      if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
       // WP-samstilling eins og leitvakt: sameina vaktir innskráðs notanda
       karpGet('/fastvakt').then((d) => {
         const remote = (d && d.vaktir) || [];
