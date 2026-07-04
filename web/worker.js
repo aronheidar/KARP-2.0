@@ -424,8 +424,9 @@ async function gleitHandler(request, env, ctx) {
       if (up.ok) {
         const j = await up.json();
         items = (((j.web || {}).results) || []).map((x) => ({ t: x.title, l: x.url, src: (x.meta_url && x.meta_url.hostname) || (x.url || '').replace(/^https?:\/\//, '').split('/')[0], sn: String(x.description || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ') }));
-      } else if (up.status === 429) {
-        res = new Response(JSON.stringify({ error: 'quota', status: 429 }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=600' } });
+      } else {
+        // segja SATT um Brave-villuna (401=rangur lykill, 429=kvóti, 422=beiðni) í stað þess að þegja
+        res = new Response(JSON.stringify({ error: 'brave', status: up.status, detail: (await up.text()).slice(0, 160) }), { status: 200, headers: { ...H, 'cache-control': 'public, max-age=120' } });
         ctx.waitUntil(cache.put(cacheKey, res.clone()));
         return res;
       }
