@@ -232,3 +232,141 @@ function karp_utbodvakt_email($usr, $new, $catNames, $srcNames) {
   wp_mail($usr->user_email, 'Karp útboðsvakt: ' . $n . ' ný útboð fyrir þig', $html);
   remove_filter('wp_mail_content_type', $ctype);
 }
+
+/**
+ * ─────────────────────────────────────────────────────────────
+ * 🏠 FASTEIGNAVAKTIN (LOTA 43) — „láttu vita þegar selst í götunni minni".
+ * Vaktar þinglýst kaup á íbúðarhúsnæði (HMS kaupskrá um karp.is/gogn/
+ * kaupskra_nyjast.json, uppfærð daglega í CI) eftir götuheiti/póstnúmeri
+ * og/eða sveitarfélagi. Sendir AÐEINS NÝJAR sölur (seen-vörn eins og útboðsvaktin).
+ *
+ *   GET  /karp/v1/fastvakt                     → { on, vaktir:[{sv,q}] }
+ *   POST /karp/v1/fastvakt { on, vaktir }      → vistar (hám. 6 vaktir)
+ *   cron 'karp_fastvakt_daily'                 → matchar kaupskrá, sendir nýjar sölur
+ * Gögn: user meta karp_fastvakt = { on, vaktir:[{sv,q}], seen:{ id:ts } }
+ * ─────────────────────────────────────────────────────────────
+ */
+add_action('rest_api_init', function () {
+  register_rest_route('karp/v1', '/fastvakt', [
+    [
+      'methods' => 'GET',
+      'permission_callback' => function () { return is_user_logged_in(); },
+      'callback' => function () {
+        $v = get_user_meta(get_current_user_id(), 'karp_fastvakt', true);
+        if (!is_array($v)) $v = [];
+        $vaktir = [];
+        foreach ((array) ($v['vaktir'] ?? []) as $w) { if (is_array($w)) $vaktir[] = ['sv' => (string) ($w['sv'] ?? ''), 'q' => (string) ($w['q'] ?? '')]; }
+        return ['on' => !empty($v['on']), 'vaktir' => $vaktir];
+      },
+    ],
+    [
+      'methods' => 'POST',
+      'permission_callback' => function () { return is_user_logged_in(); },
+      'callback' => function (WP_REST_Request $req) {
+        $uid = get_current_user_id();
+        $p = $req->get_json_params();
+        $vaktir = [];
+        foreach ((array) ($p['vaktir'] ?? []) as $w) {
+          if (!is_array($w)) continue;
+          $sv = sanitize_text_field(mb_substr((string) ($w['sv'] ?? ''), 0, 40));
+          $q  = sanitize_text_field(mb_substr((string) ($w['q'] ?? ''), 0, 40));
+          if ($q === '' && $sv === '') continue;
+          foreach ($vaktir as $ex) { if ($ex['sv'] === $sv && $ex['q'] === $q) continue 2; }
+          $vaktir[] = ['sv' => $sv, 'q' => $q];
+          if (count($vaktir) >= 6) break;
+        }
+        $prev = get_user_meta($uid, 'karp_fastvakt', true);
+        $seen = (is_array($prev) && isset($prev['seen']) && is_array($prev['seen'])) ? $prev['seen'] : [];
+        $v = ['on' => !empty($p['on']), 'vaktir' => $vaktir, 'seen' => $seen];
+        update_user_meta($uid, 'karp_fastvakt', $v);
+        return ['ok' => true, 'on' => $v['on'], 'vaktir' => $vaktir];
+      },
+    ],
+  ]);
+});
+
+if (!wp_next_scheduled('karp_fastvakt_daily')) {
+  wp_schedule_event(strtotime('tomorrow 07:45'), 'daily', 'karp_fastvakt_daily');
+}
+add_action('karp_fastvakt_daily', function () {
+  $r = wp_remote_get('https://karp.is/gogn/kaupskra_nyjast.json', ['timeout' => 25]);
+  if (is_wp_error($r)) return;
+  $data = json_decode(wp_remote_retrieve_body($r), true);
+  $rows = (is_array($data) && isset($data['rows'])) ? $data['rows'] : [];
+  if (!$rows) return;
+  $curKeys = [];
+  foreach ($rows as $x) { if (!empty($x['id'])) $curKeys[$x['id']] = true; }
+  // sama match-regla og framendinn: sv jafnt (sé valið) OG q = 3 tölustafir → póstnr, annars götuprefix
+  $match = function ($x, $sv, $q) {
+    if ($sv !== '' && (string) ($x['sv'] ?? '') !== $sv) return false;
+    if ($q === '') return true;
+    if (preg_match('/^\d{3}$/', $q)) return (string) ($x['pn'] ?? '') === $q;
+    return mb_strpos(mb_strtolower((string) ($x['a'] ?? '')), mb_strtolower($q)) === 0;
+  };
+  $users = get_users(['meta_key' => 'karp_fastvakt', 'fields' => ['ID', 'user_email', 'display_name']]);
+  foreach ($users as $usr) {
+    $v = get_user_meta($usr->ID, 'karp_fastvakt', true);
+    if (!is_array($v) || empty($v['on'])) continue;
+    $vaktir = (isset($v['vaktir']) && is_array($v['vaktir'])) ? $v['vaktir'] : [];
+    if (!$vaktir) continue;
+    $seen = (isset($v['seen']) && is_array($v['seen'])) ? $v['seen'] : [];
+    // Matcha allar vaktir; hver sala talin einu sinni (fyrsta vakt sem grípur hana)
+    $matches = [];
+    $perVakt = [];
+    foreach ($rows as $x) {
+      $id = (string) ($x['id'] ?? '');
+      if ($id === '' || isset($matches[$id])) continue;
+      foreach ($vaktir as $w) {
+        if ($match($x, (string) ($w['sv'] ?? ''), (string) ($w['q'] ?? ''))) {
+          $matches[$id] = $x;
+          $lbl = trim((string) ($w['q'] ?? '')) !== '' ? $w['q'] : $w['sv'];
+          $perVakt[$lbl][] = $x;
+          break;
+        }
+      }
+    }
+    // Aðeins NÝJAR sölur (ekki áður sendar)
+    $newN = 0;
+    $perVaktNew = [];
+    foreach ($perVakt as $lbl => $list) {
+      foreach ($list as $x) { if (!isset($seen[$x['id']])) { $perVaktNew[$lbl][] = $x; $newN++; } }
+    }
+    // seen: halda aðeins id-um sem enn eru í 180 daga glugganum + bæta öllum matches við
+    $newSeen = [];
+    foreach ($seen as $id => $ts) { if (isset($curKeys[$id])) $newSeen[$id] = $ts; }
+    foreach ($matches as $id => $x) { $newSeen[$id] = isset($seen[$id]) ? $seen[$id] : time(); }
+    $v['seen'] = $newSeen;
+    update_user_meta($usr->ID, 'karp_fastvakt', $v);
+    if (!$newN || !$usr->user_email) continue;
+    karp_fastvakt_email($usr, $perVaktNew, $newN);
+  }
+});
+function karp_fastvakt_email($usr, $perVakt, $n) {
+  $dIS = function ($d) { $m = []; if (preg_match('/(\d{4})-(\d{2})-(\d{2})/', (string) $d, $m)) return ((int) $m[3]) . '.' . ((int) $m[2]) . '.' . $m[1]; return ''; };
+  $mkr = function ($v) { return number_format(((float) $v) / 1000, 1, ',', '.') . ' m.kr'; };
+  $rows = '';
+  foreach ($perVakt as $lbl => $list) {
+    $rows .= '<tr><td style="padding:16px 16px 4px;color:#f6b13b;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em">🏠 ' . esc_html($lbl) . '</td></tr>';
+    foreach (array_slice($list, 0, 20) as $x) {
+      $fm = (float) ($x['fm'] ?? 0);
+      $sub = trim($dIS($x['d'] ?? '') . ' · ' . str_replace('.', ',', (string) $fm) . ' m²' . ($fm > 0 ? ' · ' . round(((float) $x['v']) / $fm) . ' þ/m²' : '') . ' · ' . (string) ($x['t'] ?? '') . ' · ' . (string) ($x['pn'] ?? '') . ' ' . (string) ($x['sv'] ?? ''));
+      $rows .= '<tr><td style="padding:9px 16px;border-bottom:1px solid #1d2733">'
+        . '<span style="color:#eaf1fb;font-size:15px;font-weight:600">' . esc_html((string) ($x['a'] ?? '')) . '</span>'
+        . ' <span style="color:#f6b13b;font-size:15px;font-weight:800">— ' . esc_html($mkr($x['v'] ?? 0)) . '</span>'
+        . '<br><span style="color:#8a93a8;font-size:12px">' . esc_html($sub) . '</span></td></tr>';
+    }
+  }
+  $html = '<div style="background:#0a0e14;padding:28px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">'
+    . '<div style="max-width:560px;margin:0 auto;background:#0e1420;border:1px solid #1d2733;border-radius:16px;overflow:hidden">'
+    . '<div style="padding:22px 24px 6px"><div style="color:#f6b13b;font-weight:800;font-size:13px;letter-spacing:1px">🏠 KARP FASTEIGNAVAKT</div>'
+    . '<div style="color:#eaf1fb;font-size:21px;font-weight:800;margin-top:6px">' . $n . ' ' . ($n === 1 ? 'ný þinglýst sala' : 'nýjar þinglýstar sölur') . ' á vaktinni þinni</div>'
+    . '<div style="color:#8a93a8;font-size:14px;margin-top:4px">Þinglýst kaup á íbúðarhúsnæði úr kaupskrá HMS — berast með nokkurra daga/vikna töf.</div></div>'
+    . '<table style="width:100%;border-collapse:collapse;margin-top:12px">' . $rows . '</table>'
+    . '<div style="padding:18px 24px 24px"><a href="https://karp.is/vaktir/" style="display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Skoða vaktina á Karp →</a>'
+    . '<div style="color:#5c6678;font-size:12px;margin-top:18px;line-height:1.5">Þú færð þennan póst því þú ert með fasteignavakt á karp.is. Breyttu vöktunum þínum — eða slökktu — á <a href="https://karp.is/vaktir/" style="color:#8a93a8">karp.is/vaktir</a>.</div></div>'
+    . '</div></div>';
+  $ctype = function () { return 'text/html; charset=UTF-8'; };
+  add_filter('wp_mail_content_type', $ctype);
+  wp_mail($usr->user_email, 'Karp fasteignavakt: ' . $n . ' ' . ($n === 1 ? 'ný sala' : 'nýjar sölur') . ' í götunni þinni', $html);
+  remove_filter('wp_mail_content_type', $ctype);
+}

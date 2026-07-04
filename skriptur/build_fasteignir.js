@@ -26,10 +26,14 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
   const lines = txt.split(/\r?\n/);
   const H = lines[0].split(';').map(s => s.trim());
   const iSv = H.indexOf('SVEITARFELAG'), iDt = H.indexOf('THINGLYSTDAGS'), iKv = H.indexOf('KAUPVERD'),
-    iFlm = H.indexOf('EINFLM'), iTeg = H.indexOf('TEGUND'), iOn = H.indexOf('ONOTHAEFUR_SAMNINGUR');
+    iFlm = H.indexOf('EINFLM'), iTeg = H.indexOf('TEGUND'), iOn = H.indexOf('ONOTHAEFUR_SAMNINGUR'),
+    iId = H.indexOf('FAERSLUNUMER'), iHf = H.indexOf('HEIMILISFANG'), iPn = H.indexOf('POSTNR');
 
   const G = {}; // month -> {hbsv:{p:[],m:[]}, land:{p:[],m:[]}}
   const MUNI = {}; // sveitarfélag -> [{d:'YYYY-MM', v:verð/m²}]  (fyrir per-sveitarfélags verð)
+  // Fasteignavaktin (LOTA 43): einstök viðskipti síðustu 180 daga m/heimilisfangi
+  const NYJAST_FRA = new Date(Date.now() - 180 * 864e5).toISOString().slice(0, 10);
+  const nyjast = [];
   let total = 0, kept = 0;
   for (let i = 1; i < lines.length; i++) {
     const c = lines[i].split(';'); if (c.length < H.length) continue; total++;
@@ -44,6 +48,14 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     g[reg].p.push(kv / 1000); g[reg].m.push(ppm2);                     // verð → m.kr, verð/m² → þús.kr
     const svn = (c[iSv] || '').trim(); if (svn) (MUNI[svn] = MUNI[svn] || []).push({ d: dt, v: ppm2, t: (c[iTeg] || '').trim(), r: reg });
     kept++;
+    // Fasteignavaktin: full dagsetning + heimilisfang fyrir nýjustu viðskipti
+    const dFull = (c[iDt] || '').slice(0, 10);
+    if (dFull >= NYJAST_FRA) {
+      nyjast.push({
+        id: (c[iId] || '').trim(), d: dFull, a: (c[iHf] || '').trim(), pn: (c[iPn] || '').trim(),
+        sv: svn, v: kv, fm: Math.round(flm * 10) / 10, t: (c[iTeg] || '').trim(),
+      });
+    }
   }
 
   const months = Object.keys(G).sort().map(dt => {
@@ -91,4 +103,19 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
   fs.writeFileSync(DIR + 'fasteignir.json', JSON.stringify(out));
   console.log('skrár alls:', total, '| nothæf íbúðakaup:', kept, '| mánuðir:', months.length, '| bytes:', fs.statSync(DIR + 'fasteignir.json').size);
   console.log('nýjasti mánuður:', JSON.stringify(months[months.length - 1]));
+
+  // ── Fasteignavaktin (LOTA 43): kaupskra_nyjast.json — einstök viðskipti m/heimilisfangi ──
+  nyjast.sort((a, b) => b.d.localeCompare(a.d) || a.a.localeCompare(b.a, 'is'));
+  const outN = {
+    updated: new Date().toISOString(), from: NYJAST_FRA, n: nyjast.length,
+    source: 'HMS — kaupskrá (þinglýst kaup, íbúðarhúsnæði, nothæfir samningar)',
+    note: 'v = kaupverð í þús.kr. Þinglýsing berst með nokkurra daga/vikna töf.',
+    rows: nyjast,
+  };
+  const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
+  fs.mkdirSync(PUB, { recursive: true });
+  const sN = JSON.stringify(outN);
+  fs.writeFileSync(DIR + 'kaupskra_nyjast.json', sN);
+  fs.writeFileSync(path.join(PUB, 'kaupskra_nyjast.json'), sN);
+  console.log('kaupskra_nyjast.json:', nyjast.length, 'viðskipti frá', NYJAST_FRA, '|', (sN.length / 1024).toFixed(0), 'KB');
 })().catch(e => { console.error('ERR', e); process.exit(1); });

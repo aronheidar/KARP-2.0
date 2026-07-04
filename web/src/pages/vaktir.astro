@@ -25,6 +25,15 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     </div>
     <div id="lv-chips"></div>
 
+    <h2>🏠 Fasteignavaktin <i class="tip" tabindex="0" data-tip="Sjáðu hvað seldist í götunni þinni — öll þinglýst kaup á íbúðarhúsnæði síðustu 6 mánuði (HMS kaupskrá, uppfærð daglega). Skráðu götu eða póstnúmer á vakt: innskráðir fá tölvupóst þegar ný sala þinglýsist; vaktin vistast líka í vafranum.">ⓘ</i></h2>
+    <div class="lv-row fv-row">
+      <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
+      <input id="fv-q" type="text" maxlength="40" placeholder="Götuheiti eða póstnúmer — t.d. „Melabraut“ eða „170“" autocomplete="off" />
+      <button id="fv-add">Vakta</button>
+    </div>
+    <div id="fv-chips"></div>
+    <div id="fv-res" class="feed" hidden></div>
+
     <h2>⚖️ Dómavaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu dómar beint af vefjum dómstólanna (opinber birting í síðukóða þeirra, engin ágiskun). Uppfærist á ~45 mín fresti um skyndiminnis-proxy Karp.">ⓘ</i></h2>
     <div class="ppair">
       <div>
@@ -80,11 +89,22 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     #lv-q { flex: 1; max-width: 340px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
     #lv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
     #lv-add { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    #lv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
-    #lv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; }
-    #lv-chips .lvc b { color: #f6b13b; font-weight: 700; }
-    #lv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; }
-    #lv-chips .lvc button:hover { color: #e0655f; }
+    #lv-chips, #fv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    #lv-chips .lvc, #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; }
+    #lv-chips .lvc b, #fv-chips .lvc b { color: #f6b13b; font-weight: 700; }
+    #lv-chips .lvc button, #fv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; }
+    #lv-chips .lvc button:hover, #fv-chips .lvc button:hover { color: #e0655f; }
+    /* 🏠 Fasteignavaktin (LOTA 43) */
+    #fv-muni { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; max-width: 210px; }
+    #fv-muni:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    #fv-muni option { background: #0e1420; color: #eaf1fb; }
+    #fv-q { flex: 1; max-width: 340px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
+    #fv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    #fv-add { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    #fv-res { margin-top: 10px; max-height: 420px; overflow-y: auto; }
+    .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
+    .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
+    .fv-v { color: #f6b13b; }
     .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
     #samrad-list .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
     #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
@@ -160,6 +180,88 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           const merged = [...new Set([...lvLoad(), ...remote])].slice(0, 12);
           localStorage.setItem(lvKey, JSON.stringify(merged));
           lvRender();
+        }
+      }).catch(() => {});
+      // 🏠 Fasteignavaktin (LOTA 43): kaupskrá-leit + götuvaktir (localStorage + WP /fastvakt)
+      const fvKey = 'karp-fastvakt';
+      let FV = null;
+      const fvFetch = () => FV || (FV = fetch('/gogn/kaupskra_nyjast.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const fvLoad = () => { try { return JSON.parse(localStorage.getItem(fvKey) || '[]').filter((v) => v && typeof v.q === 'string'); } catch (e) { return []; } };
+      const fvSave = (a) => { localStorage.setItem(fvKey, JSON.stringify(a.slice(0, 6))); try { karpPost('/fastvakt', { on: true, vaktir: a.slice(0, 6) }).catch(() => {}); } catch (e) {} };
+      const fvNorm = (s) => String(s || '').toLowerCase().trim();
+      const fvMatch = (r, sv, q) => (!sv || r.sv === sv) && (!q || (/^\d{3}$/.test(q) ? r.pn === q : fvNorm(r.a).startsWith(q)));
+      const fvKr = (v) => (v / 1000).toFixed(1).replace('.', ',') + ' m.kr';
+      const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b></span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}</span></div>`;
+      const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
+      async function fvSearch() {
+        const res = document.getElementById('fv-res');
+        if (!res) return;
+        const sv = fvMuniEl.value, q = fvNorm(fvQ.value);
+        if (!sv && q.length < 2) { res.hidden = true; return; }
+        res.hidden = false;
+        res.textContent = 'Sæki kaupskrá…';
+        const d = await fvFetch();
+        if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
+        const rows = d.rows.filter((r) => fvMatch(r, sv, q));
+        if (!rows.length) { res.innerHTML = '<div class="fi"><span class="t">Engin þinglýst sala fannst síðustu 6 mánuði.</span><span class="s">Þinglýsing berst með nokkurra vikna töf — settu götuna á vakt og fáðu póst þegar eitthvað kemur.</span></div>'; return; }
+        res.innerHTML = `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${q ? ' · „' + esc(q) + '“' : ''}</div>`
+          + rows.slice(0, 25).map(fvRow).join('')
+          + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '');
+      }
+      async function fvRender() {
+        const el = document.getElementById('fv-chips');
+        if (!el) return;
+        const vaktir = fvLoad();
+        el.innerHTML = vaktir.map((v, i) => `<span class="lvc" data-i="${i}">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button title="Fjarlægja" aria-label="Fjarlægja vakt">✕</button></span>`).join('');
+        el.querySelectorAll('.lvc button').forEach((b) => b.addEventListener('click', () => {
+          const i = +b.closest('.lvc').dataset.i;
+          const a = fvLoad(); a.splice(i, 1); fvSave(a); fvRender();
+        }));
+        if (vaktir.length) {
+          const d = await fvFetch();
+          if (d && d.rows) el.querySelectorAll('.lvc').forEach((c) => {
+            const v = vaktir[+c.dataset.i];
+            if (!v) return;
+            const n = d.rows.filter((r) => fvMatch(r, v.sv, fvNorm(v.q))).length;
+            const b = c.querySelector('b');
+            if (b && n) b.textContent = n;
+          });
+        }
+      }
+      let fvMuniDone = false;
+      async function fvMunis() {
+        if (fvMuniDone) return;
+        fvMuniDone = true;
+        const d = await fvFetch();
+        if (!d || !d.rows || !fvMuniEl) return;
+        [...new Set(d.rows.map((r) => r.sv))].sort((a, b) => a.localeCompare(b, 'is')).forEach((sv) => {
+          const o = document.createElement('option'); o.value = sv; o.textContent = sv; fvMuniEl.appendChild(o);
+        });
+      }
+      function fvAdd() {
+        const q = (fvQ.value || '').trim().slice(0, 40), sv = fvMuniEl.value;
+        if (q.length < 2 && !sv) return;
+        const a = fvLoad();
+        if (!a.some((v) => v.q === q && v.sv === sv) && a.length < 6) { a.push({ q, sv }); fvSave(a); }
+        fvRender();
+      }
+      let fvT = null;
+      if (fvQ) {
+        fvQ.addEventListener('focus', fvMunis);
+        fvQ.addEventListener('input', () => { clearTimeout(fvT); fvT = setTimeout(fvSearch, 220); });
+        fvQ.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvAdd(); } });
+      }
+      if (fvMuniEl) { fvMuniEl.addEventListener('focus', fvMunis); fvMuniEl.addEventListener('change', fvSearch); }
+      if (fvBtn) fvBtn.addEventListener('click', fvAdd);
+      fvRender();
+      // WP-samstilling eins og leitvakt: sameina vaktir innskráðs notanda
+      karpGet('/fastvakt').then((d) => {
+        const remote = (d && d.vaktir) || [];
+        if (Array.isArray(remote) && remote.length) {
+          const merged = [...fvLoad()];
+          remote.forEach((rv) => { if (rv && (rv.q || rv.sv) && !merged.some((v) => v.q === rv.q && v.sv === rv.sv)) merged.push({ q: String(rv.q || ''), sv: String(rv.sv || '') }); });
+          localStorage.setItem(fvKey, JSON.stringify(merged.slice(0, 6)));
+          fvRender();
         }
       }).catch(() => {});
       // Mínar hagvísavaktir
