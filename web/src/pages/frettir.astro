@@ -601,7 +601,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       function loadGoogleCard(name) {
         const el = document.getElementById('d-gl');
         if (!el) return;
-        fetch('/api/gleit?q=' + encodeURIComponent(name))
+        // LOTA 59: tvíræð nöfn (Nova/Play/Eik/Reitir…) fá auðkennandi samhengi í vefleitina
+        const gq = (DISAMBIG[name] && DISAMBIG[name].web) || name;
+        fetch('/api/gleit?q=' + encodeURIComponent(gq))
           .then((r) => (r.ok ? r.json() : null))
           .then((g) => {
             if (!g || g.error || !(g.items || []).length) { el.innerHTML = ''; return; }
@@ -634,6 +636,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
             .then((r) => (r.ok ? r.json() : null))
             .then((f) => {
               if (!f || !f.ready) { dm.innerHTML = rvCard(c.rv && { ...c.rv }, null); if (btm) btm.hidden = false; paintBtm(dl, [], 'Engin nýleg umfjöllun fannst.'); return; }
+              f = refineFirma(c.n, f); // LOTA 59: hreinsa tvíræð nöfn (Skel/Eik/Sýn/Össur…)
               const se = f.sentiment || {};
               // LOTA 37: Viðhorfið EFST og spannar alla dálkana (ósk notanda)
               let mh = sentCard(se);
@@ -706,6 +709,50 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       'Brim': 3, 'Síldarvinnslan': 3, 'Hampiðjan': 3, 'JBT Marel': 3, 'Össur': 3, 'Alvotech': 3, 'Amaroq': 3, 'Norðurál': 3, 'Rio Tinto (ISAL)': 3,
       'Icelandair': 4, 'Play': 4, 'Eimskip': 4, 'Isavia': 4,
       'Landsvirkjun': 5, 'Orkuveita Reykjavíkur': 5, 'Landsnet': 5, 'Reitir': 6, 'Eik': 6 };
+    // ── LOTA 59: afmörkun tvíræðra fyrirtækjanafna (algeng orð / mannsnöfn) ──
+    // /firma leitar í MEGINMÁLI greina → grípur of vítt fyrir nöfn eins og Skel/Eik/Sýn/
+    // Össur/Síminn. Við síum á FYRIRSÖGN (req verður að passa, not má ekki) og endurreiknum
+    // fjölda/tón/miðla/tímalínu úr hreina settinu svo allt sé samræmt. `web` = betri Google-leit.
+    const DISAMBIG = {
+      'Síminn': { req: /síman|síminn/i, not: /í símann|síminn hringd|nýja síma|gaml\w* síma/i, web: 'Síminn hf fjarskipti Ísland' },
+      'Sýn': { req: /(^|[^a-záðéíóúýþæö])sýn([^a-záðéíóúýþæö]|$)|stöð ?2|vodafone/i, not: /sýning|sýnd|sýna |sýnir|sýnt|sýnile|framtíðarsýn|heimssýn|leiksýn|yfirsýn|aðsýn/i, web: 'Sýn hf Vodafone Stöð 2 Ísland' },
+      'Skel': { req: /(^|[^a-záðéíóúýþæö])skel([^a-záðéíóúýþæö]|$)|skeljung|olís|orkan|heimkaup/i, not: /skelfisk|skeldýr|rækj|strandveið|kræklin|\bhumar|hörpuskel|deildin|deildar|olís[\s-]?deild|handbolt|körfubolt|fótbolt|meistaradeild/i, web: 'Skel fjárfestingafélag Skeljungur Ísland' },
+      'Eik': { req: /(^|[^a-záðéíóúýþæö])eik(in|ur|ar|)([^a-záðéíóúýþæö]|$)|fasteignafélag/i, not: /eikartré|eik í skóg|eikiviður|undir eik/i, web: 'Eik fasteignafélag Ísland' },
+      'Össur': { req: /össur[\s\S]*(stoðtæk|kauphöll|nasdaq|\bhf\b|uppgjör|hagnað|forstjór|framleið|útflutn|hlutabréf|\barð)|(stoðtæk|kauphöll|nasdaq|uppgjör|hagnað|forstjór|framleið|hlutabréf)[\s\S]*össur/i, not: /skarphéðin/i, web: 'Össur stoðtæki hf Ísland' },
+      'Nova': { req: /nova/i, not: /nova scotia|bossa nova|supernova|casanova|villanova/i, web: 'Nova fjarskipti farsími Ísland' },
+      'Play': { req: /(^|[^a-z])play([^a-z]|$)|fly play/i, not: /google play|playstation|play station|cosplay|foreplay|display|screenplay|player|play-?off/i, web: 'Play flugfélag Ísland fly play' },
+      'Reitir': { req: /reitir|reita fasteign|fasteignafélag/i, not: /reiti í töflu|krossgát|bókstaf|reitir á kort|skipulagsreit|auð\w* reit/i, web: 'Reitir fasteignafélag Ísland' },
+    };
+    const SENT_POS = /(hagnað|\bmet\b|metsöl|vöxt|vex\b|aukning|aukn|sterk|\bbes[t]|bætt|bætir|jákvæð|gróð|uppgang|sigr|verðlaun|samning|opnar|ávöxt|\barð|hækk|vinnur|vann\b|fjölg|kaupir|fjárfest)/i;
+    const SENT_NEG = /(\btap\b|gjaldþrot|sekt|\bbrot\b|\bdóm|uppsagn|uppsögn|fækk|lækk|kvört|gagnrýn|\bdeil|verkfall|mengun|\bslys|rannsókn|\bkær|hneyksl|samdrátt|\bhalli|riftun|svik|\bþrot|\btjón|mistök|missir|\bfell|áfall|vandræð)/i;
+    function refineFirma(name, f) {
+      const rule = DISAMBIG[name];
+      if (!rule || !f || !Array.isArray(f.items)) return f;
+      const kept = f.items.filter((it) => { const t = (it.title || it.t || '').toLowerCase(); return rule.req.test(t) && !(rule.not && rule.not.test(t)); });
+      const monday = (d) => { const dt = new Date(d); if (isNaN(dt)) return null; const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); };
+      const bySrc = {}, byWeek = {}, srcTone = {}, wc = {};
+      let pos = 0, neg = 0, neu = 0;
+      const STOP = /^(og|að|er|um|til|sem|með|fyrir|hjá|eftir|the|of|for|new|and|síðan|verið|ekki|þeir|hann|hún|þau)$/i;
+      kept.forEach((it) => {
+        const src = it.source || it.s || '—'; bySrc[src] = (bySrc[src] || 0) + 1;
+        const t = (it.title || it.t || '').toLowerCase();
+        const p = SENT_POS.test(t), n = SENT_NEG.test(t), sc = p && !n ? 1 : n && !p ? -1 : 0;
+        if (sc > 0) pos++; else if (sc < 0) neg++; else neu++;
+        const w = monday(it.date || it.d);
+        if (w) { (byWeek[w] = byWeek[w] || { n: 0, s: 0 }); byWeek[w].n++; byWeek[w].s += sc; }
+        (srcTone[src] = srcTone[src] || { n: 0, s: 0 }); srcTone[src].n++; srcTone[src].s += sc;
+        t.replace(/[^a-záðéíóúýþæö0-9 ]/g, ' ').split(/\s+/).forEach((x) => { if (x.length >= 4 && !STOP.test(x)) wc[x] = (wc[x] || 0) + 1; });
+      });
+      const scored = pos + neg, idx = scored ? Math.round(((pos - neg) / scored) * 100) : 0;
+      f.items = kept;
+      f.total = kept.length;
+      f.stats = Object.assign({}, f.stats, { sources: Object.entries(bySrc).map(([s, n]) => ({ s, n })).sort((a, b) => b.n - a.n), perDay: Math.round((kept.length / 180) * 10) / 10 });
+      f.timeline = Object.keys(byWeek).sort().map((d) => ({ d, n: byWeek[d].n, idx: byWeek[d].n ? Math.round((byWeek[d].s / byWeek[d].n) * 100) : 0, scored: byWeek[d].n }));
+      f.sentiment = Object.assign({}, f.sentiment, { idx, n: kept.length, pos, neu, neg, scored, bySource: Object.fromEntries(Object.entries(srcTone).map(([s, v]) => [s, { n: v.n, idx: v.n ? Math.round((v.s / v.n) * 100) : 0 }])) });
+      f.words = Object.entries(wc).map(([w, n]) => ({ w, n })).sort((a, b) => b.n - a.n).slice(0, 28);
+      f.refined = true;
+      return f;
+    }
     const PARTYCOLORS = { 'Samfylkingin': '#e30613', 'Sjálfstæðisflokkur': '#0093d0', 'Framsóknarflokkur': '#00945e', 'Viðreisn': '#ff7900', 'Miðflokkurinn': '#0a2240', 'Flokkur fólksins': '#f6c800', 'Vinstrihreyfingin – grænt framboð': '#6aa51c', 'Píratar': '#6e2a8c', 'Sósíalistaflokkurinn': '#b30000', 'utan þingflokka': '#8595b0', 'Annað': '#8595b0' };
     const PARTYALIAS = {
       'Samfylkingin': ['Samfylkingin', 'Samfylkingar', 'Samfylkingu', 'Samfylkingunni'],
