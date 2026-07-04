@@ -24,9 +24,12 @@ const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
   const j = await r.json();
   const raw = (j.data && j.data.getSyslumennAuctions) || [];
   if (!raw.length) throw new Error('engin uppboð í svari — athuga query');
+  // auctionDate kemur á US-sniði „M/D/YYYY," (með kommu!) → varpa í ISO
+  const pad = (n) => String(n).padStart(2, '0');
+  const isoD = (s) => { const m = String(s || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? m[3] + '-' + pad(m[1]) + '-' + pad(m[2]) : String(s || '').slice(0, 10).match(/^\d{4}-\d{2}-\d{2}$/) ? String(s).slice(0, 10) : ''; };
   const rows = raw.map((x) => ({
     e: x.office || '', st: x.location || '', teg: x.auctionType || '', flokkur: x.lotType || '',
-    a: (x.lotName || '').trim(), id: x.lotId || '', d: (x.auctionDate || '').slice(0, 10), kl: x.auctionTime || '',
+    a: (x.lotName || '').trim(), id: x.lotId || '', d: isoD(x.auctionDate), kl: x.auctionTime || '',
   })).filter((x) => x.a).sort((a, b) => a.d.localeCompare(b.d));
   const fast = rows.filter((x) => /fasteign/i.test(x.flokkur)).length;
   const out = {

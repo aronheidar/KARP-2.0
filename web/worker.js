@@ -111,8 +111,11 @@ const AUG = [
   { rx: /uppboð|nauðungar/i, file: 'uppbod.json', pg: '/vaktir/', fn: (j) => {
     const r = (j.rows || []);
     if (!r.length) return '';
-    const naestu = r.filter((x) => x.d >= new Date().toISOString().slice(0, 10)).slice(0, 3);
-    return 'NAUÐUNGARSÖLUR (opinberar auglýsingar sýslumanna, ' + r.length + ' skráðar): ' + (naestu.length ? 'næstu: ' + naestu.map((x) => x.a + ' (' + x.teg + ' ' + x.d + ')').join('; ') : 'engin framundan á skrá') + '.';
+    const today = new Date().toISOString().slice(0, 10);
+    const naestu = r.filter((x) => x.d >= today && !/lokið/i.test(x.teg || '')).slice(0, 3);
+    const lokid = r.filter((x) => /lokið/i.test(x.teg || '')).length;
+    return 'NAUÐUNGARSÖLUR (opinberar auglýsingar sýslumanna, ' + r.length + ' á skrá, þar af ' + lokid + ' merktar „Sölu lokið“): '
+      + (naestu.length ? 'framundan: ' + naestu.map((x) => x.a + ' (' + x.teg + ' ' + x.d + ')').join('; ') : 'engin auglýst framundan í augnablikinu — nýjar auglýsingar birtast þegar sýslumenn setja þær fram') + '.';
   } },
   { rx: /dóm(ur|a|ar|s|i)|hæstarétt|hæstirétt|landsrétt/i, file: 'domar_ai.json', pg: '/vaktir/', fn: (j) => {
     const e = Object.entries(j.byNr || {}).sort((a, b) => String(b[1].d).localeCompare(String(a[1].d))).slice(0, 3);
