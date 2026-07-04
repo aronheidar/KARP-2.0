@@ -298,7 +298,7 @@ async function ytstatsHandler(request, env, ctx) {
 // leitarorð (frí kvótinn er 100 leitir/dag → skyndiminnið teygir hann margfalt).
 // Lykill = env.YOUTUBE_API_KEY (sami Google Cloud lykill — Custom Search API þarf að vera
 // virkjað á projectinu). cx = auðkenni Programmable Search Engine (opinbert, má standa í kóða).
-const CSE_CX = ''; // ← sett þegar leitarvélin er stofnuð á programmablesearchengine.google.com
+const CSE_CX = '9070a65a9e3194023'; // „Karp vefleit" — íslensk lén, Region: Iceland (programmablesearchengine.google.com)
 async function gleitHandler(request, env, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 80);
   if (q.length < 2) return sjson({ error: 'q' });
