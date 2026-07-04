@@ -32,7 +32,13 @@ const SEEDS = [
   { id: 'UClVW7BGbRvC5-0kowu8quhw', n: 'Össur', cat: 'fyrirtaeki' },
 ];
 // Rásir sem leit finnur en eiga EKKI heima í safninu (röng samnöfn o.þ.h.)
-const BLACKLIST = new Set(['UCuBsZ4oJma0hhLYIcgulGBg' /* @hagar einstaklingur */]);
+// Skilyrði safnsins (Aron 4.7.2026): AÐEINS íslensk vöktun og umfjöllun.
+const BLACKLIST = new Set([
+  'UCuBsZ4oJma0hhLYIcgulGBg', // @hagar einstaklingur ≠ Hagar hf
+  'UCVR94saY6YnNgaQtvLBcS0w', // DV Plays — enskt gaming-efni, falskt samnafn við DV
+  'UC8clR9FpMIXuQ-le1ZaDrrQ', // DV Aerials — drónamyndefni, ekki umfjöllun
+  'UCjwIUlrgM0XpMYGBAubbEUg', // RÚV Íþróttir — íþróttaklippur menga áhorfs-samanburð
+]);
 
 // ── Leitarfyrirspurnir per flokkur ────────────────────────────
 function queries() {

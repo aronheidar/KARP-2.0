@@ -170,6 +170,12 @@ async function main() {
   const ras = JSON.parse(fs.readFileSync(G('ytras.json'), 'utf8'));
   let safn = {};
   try { safn = JSON.parse(fs.readFileSync(G('ytsafn.json'), 'utf8')).videos || {}; } catch (e) {}
+  // Rásaskráin er sannleiksuppsprettan: myndbönd rása sem hafa verið fjarlægðar
+  // (svartlistaðar í build_ytras.js) hverfa úr safninu — annars menga þau greininguna.
+  const inRas = new Set(ras.chans.map((c) => c.id));
+  let pruned = 0;
+  for (const [id, v] of Object.entries(safn)) if (!inRas.has(v.ch)) { delete safn[id]; pruned++; }
+  if (pruned) console.log('hreinsað úr safni:', pruned, 'myndbönd frá rásum utan skrár');
   let chanMeta = {};
   if (API_KEY) {
     console.log('YouTube Data API v3 — nákvæm uppskera á', ras.chans.length, 'rásum (baksaga að ' + BACKFILL_FROM + ')…');
