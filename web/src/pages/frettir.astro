@@ -36,7 +36,9 @@ const COS = FYRIRTAEKI.map((c) => {
     rvFull: rv ? { mcap: rv.mcap, pe: rv.pe, pb: rv.pb, roe: rv.roe, ni: rv.ni, ccy: rv.ccy } : null,
   };
 });
-const updated = '2026-07-02';
+// SoV-samanburðurinn (LOTA 34C): allir aðilar sem hægt er að bera saman
+const SOVENTS = [...COS.map((c) => ({ n: c.n, a: c.a })), ...INST, ...PARTIES, ...MINS.map((m) => ({ n: m.n, a: m.a }))];
+const updated = '2026-07-04';
 const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og umfjöllun um 35 íslensk fyrirtæki með vélrænu viðhorfsmati og verðkennitölum.';
 ---
 
@@ -69,7 +71,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     </div>
 
     <div id="rel" class="rel" hidden></div>
-    <p class="rail-hint">🗞️ Fyrirsagnirnar birtast í <b>fréttastikunni hægra megin</b> og fylgja valinu hér að ofan — og reyndar síðunni sem þú ert á hverju sinni. <span class="more-link" style="display:inline">Dýpri greining: <a href="/greining/">Fjölmiðlagreiningin</a>.</span></p>
+    <p class="rail-hint">🗞️ Fyrirsagnirnar birtast í <b>fréttastikunni hægra megin</b> og fylgja valinu hér að ofan — og reyndar síðunni sem þú ert á hverju sinni. <span class="more-link" style="display:inline">Dýpri greining: <a href="#greining">Fjölmiðlagreiningin neðar á síðunni</a>.</span></p>
     <div id="live-wrap">
       <div id="live-list" class="live">Sæki fyrirsagnir…</div>
     </div>
@@ -93,10 +95,56 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       </div>
       <div id="co-detail" hidden></div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. #2.</p>
+    <!-- ── 📊 FJÖLMIÐLAGREININGIN (LOTA 34B — sameinuð hingað úr /greining/) ──
+         Sjálfgefið: heildarsafnið. Við val á aðila að ofan AÐLAGAST allt:
+         KPI, gröfin, Fjölmiðlavogin og tengslanetið. -->
+    <section id="greining">
+      <h2 class="fg-h">📊 Fjölmiðlagreining <i class="tip" tabindex="0" data-tip="Fréttasafn Karp greint: umfang, tónn og dreifing. Sjálfgefið sést heildarsafnið (50þ+ fyrirsagnir) — veldu aðila að ofan og öll gröfin, vogin og tengslanetið laga sig að valinu. Tónn er vélrænt mat, ekki ritstjórnardómur.">ⓘ</i> <span id="fg-selname"></span></h2>
+      <div id="fg-kpis">Sæki greiningu…</div>
+      <div class="fg-pair">
+        <div><h3 class="fg-sh" id="fg-months-h">Umfjöllun &amp; tónn eftir mánuðum</h3><div id="fg-months"></div></div>
+        <div><h3 class="fg-sh" id="fg-src-h">Hlutdeild miðlanna</h3><div id="fg-src"></div></div>
+      </div>
+
+      <h3 class="fg-sh">📊 Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
+      <div class="chips" id="fg-vogchips">
+        <button class="chip" data-q="verðbólga,verðbólgu">Verðbólga</button>
+        <button class="chip" data-q="vextir,vaxta,stýrivextir,stýrivaxta">Vextir</button>
+        <button class="chip" data-q="Ríkisstjórnin,Ríkisstjórnarinnar,Ríkisstjórn">Ríkisstjórnin</button>
+        <button class="chip" data-q="húsnæði,húsnæðis,fasteigna,leigumarkað">Húsnæðismál</button>
+        <button class="chip" data-q="útlendinga,hælisleitend,innflytjend">Útlendingamál</button>
+        <button class="chip" data-q="kjarasamning,verkfall,kjaradeil">Kjaramál</button>
+      </div>
+      <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
+
+      <h3 class="fg-sh">⚖️ Samanburður aðila — hlutdeild umfjöllunar <i class="tip" tabindex="0" data-tip="Share of voice: veldu tvo aðila og sjáðu hvor á meira af umfjölluninni (sl. 12 mánuði), tón hvors um sig og þróunina viku fyrir viku á sama grafi. Klassísk PR-greining.">ⓘ</i></h3>
+      <div class="sov-row">
+        <input id="sov-a" list="sov-list" placeholder="Aðili A — t.d. Icelandair" autocomplete="off" />
+        <span class="sov-vs">vs</span>
+        <input id="sov-b" list="sov-list" placeholder="Aðili B — t.d. Play" autocomplete="off" />
+        <button id="sov-go" type="button">Bera saman</button>
+      </div>
+      <datalist id="sov-list">{SOVENTS.map((e) => <option value={e.n} />)}</datalist>
+      <div id="sov-out"></div>
+
+      <h3 class="fg-sh">🕸️ Tengslanet umfjöllunar <i class="tip" tabindex="0" data-tip="Hverjir koma saman fyrir í fréttum? Hnútur = aðili (stærð = fjöldi frétta sl. 180 daga), brún = sameiginlegar fyrirsagnir. Við val á fyrirtæki að ofan lýsist hnúturinn þess upp.">ⓘ</i></h3>
+      <div class="chips" id="tn-cats">
+        <button class="chip on" data-c="stofnanir">Stofnanir &amp; málefni</button>
+        <button class="chip" data-c="fyrirtaeki">Fyrirtæki</button>
+        <button class="chip" data-c="flokkar">Flokkarnir</button>
+        <button class="chip" data-c="radherrar">Ráðherrar</button>
+        <button class="chip" data-c="thingmenn">Þingmenn</button>
+      </div>
+      <div id="tn-graph"></div>
+      <div id="tn-note" class="tn-note"></div>
+      <div id="tn-pairs"></div>
+    </section>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. Greiningarnar keyra lifandi á fréttasafninu (/yearreview + /firma + /firmagraph). #2 + LOTA 34.</p>
   </main>
 
   <script type="application/json" id="d-cos" set:html={JSON.stringify(COS)}></script>
+  <script type="application/json" id="d-sovents" set:html={JSON.stringify(SOVENTS)}></script>
   <script type="application/json" id="d-rel" set:html={JSON.stringify(RELB)}></script>
 
   <style>
@@ -198,6 +246,70 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .fy-srcidx { font-size: 11.5px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
     .fy-srcc { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
     .fy-d0 { background: #3a8dff; } .fy-d1 { background: #19d3c5; } .fy-d2 { background: #7c5cf7; } .fy-d3 { background: #f6b13b; }
+    /* 📊 Fjölmiðlagreiningin (LOTA 34B — runtime-DOM) */
+    #greining { margin-top: 34px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 18px; }
+    .fg-h { font-size: 17px; color: #eaf1fb; margin: 0 0 10px; }
+    #fg-selname { font-size: 12px; color: #f6b13b; font-weight: 600; margin-left: 8px; }
+    #fg-selname button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 12px; }
+    .fg-sh { font-size: 13px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 22px 0 8px; }
+    #fg-kpis .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0 8px; }
+    #fg-kpis .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    #fg-kpis .k-l { font-size: 12px; color: #9fb0c8; }
+    #fg-kpis .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    #fg-kpis .k-s { font-size: 11px; color: #7e8ca6; }
+    .fg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .fg-pair { grid-template-columns: 1fr; } }
+    #fg-months, #fg-src { width: 100%; height: 270px; }
+    #fg-vog .fy-srcrow { display: grid; grid-template-columns: 130px 1fr 44px 52px; gap: 8px; align-items: center; padding: 3px 0; }
+    #fg-vog .fy-srcn { font-size: 12px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #fg-vog .fy-srcbar { height: 10px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
+    #fg-vog .fy-srcbar i { display: block; height: 100%; border-radius: 5px; }
+    #fg-vog .st-pos { background: #46e08a; color: #46e08a; } #fg-vog .st-neg { background: #ff6d7a; color: #ff6d7a; } #fg-vog .st-neu { background: #8892a6; color: #9fb0c8; }
+    #fg-vog .fy-srcidx { font-size: 12px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
+    #fg-vog .fy-srcc { font-size: 11px; color: #7e8ca6; text-align: right; }
+    #fg-vog .vog-note { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; }
+    #fg-vog .empty, #fg-kpis .empty { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    /* 🕸️ Tengslanetið */
+    #tn-graph { width: 100%; height: 470px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; }
+    .tn-note { font-size: 12px; color: #7e8ca6; text-align: center; margin: 8px 0 4px; min-height: 16px; }
+    .tn-note a { color: #f6b13b; }
+    #tn-pairs { margin-top: 10px; }
+    .tn-pairs-h { font-size: 12px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    .tn-pair { display: grid; grid-template-columns: 1fr 90px; gap: 10px; align-items: center; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .tn-pair-n { font-size: 12.5px; color: #cdd6e6; }
+    .tn-pair-n b { color: #eaf1fb; font-weight: 600; }
+    .tn-pair-v { font-size: 12px; color: #f6b13b; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    /* ⚖️ SoV-samanburður */
+    .sov-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
+    .sov-row input { flex: 1; min-width: 170px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: #eaf1fb; font-size: 13px; }
+    .sov-row input:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .sov-vs { font-size: 12px; color: #7e8ca6; font-weight: 700; }
+    #sov-go { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .sov-bar { display: flex; border-radius: 10px; overflow: hidden; height: 34px; margin: 10px 0 8px; font-size: 12px; font-weight: 700; }
+    .sov-bar .sov-a { background: rgba(246,177,59,.8); color: #06121a; display: flex; align-items: center; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .sov-bar .sov-b { background: rgba(58,160,255,.75); color: #06121a; display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .sov-kpis { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: #9fb0c8; margin-bottom: 6px; }
+    .sov-kpis b { color: #eaf1fb; }
+    #sov-tl { width: 100%; height: 220px; }
+    #sov-out .empty { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    /* 🖨️ PDF-skýrslan (prent-DOM) */
+    #fg-selname .fg-btn { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 8px; padding: 3px 10px; font-size: 11.5px; cursor: pointer; margin-left: 6px; }
+    #fg-report { display: none; }
+    @media print {
+      body > :not(#fg-report) { display: none !important; }
+      #fg-report { display: block !important; background: #fff; color: #111; font-size: 12px; line-height: 1.5; padding: 10px 6px; }
+      #fg-report .rep-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 3px solid #f6b13b; padding-bottom: 8px; margin-bottom: 14px; }
+      #fg-report .rep-logo { font-weight: 800; letter-spacing: 2px; font-size: 15px; }
+      #fg-report .rep-t { font-size: 17px; font-weight: 800; }
+      #fg-report .rep-d { font-size: 11px; color: #555; }
+      #fg-report .rep-kpis { display: flex; gap: 20px; flex-wrap: wrap; margin: 10px 0 14px; font-size: 12px; }
+      #fg-report .rep-kpis b { font-size: 19px; display: block; }
+      #fg-report h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #333; margin: 16px 0 6px; }
+      #fg-report img { max-width: 100%; border: 1px solid #ddd; border-radius: 6px; }
+      #fg-report ol { margin: 4px 0 0 18px; padding: 0; }
+      #fg-report li { margin: 3px 0; } #fg-report li span { color: #777; font-size: 11px; }
+      #fg-report .rep-f { margin-top: 16px; border-top: 1px solid #ccc; padding-top: 8px; font-size: 10px; color: #666; }
+    }
     /* 📺 YouTube-markaðskort (runtime-DOM) */
     .yt-trend { font-size: 12.5px; font-weight: 700; border-radius: 8px; padding: 6px 11px; margin: 4px 0 8px; display: inline-block; }
     .yt-trend.up { background: rgba(70,224,138,.1); color: #46e08a; border: 1px solid rgba(70,224,138,.3); }
@@ -220,6 +332,8 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
     import { loadUser, karpPost, loginHref } from '../lib/auth.js';
+    import ALTH from '@gogn/althingi.json';
+    import CAB from '@gogn/cabinet.json';
     const esc9 = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     // Öryggi: aðeins http(s)-hlekkir úr RSS-veitunum (javascript:/data: blokkað).
     const safe9 = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
@@ -415,6 +529,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
               mh += `<div class="d-sec">Nýjasta umfjöllunin · ${f.total} fréttir sl. 6 mán${f.stats && f.stats.perDay != null ? ' · ' + String(f.stats.perDay).replace('.', ',') + ' á dag' : ''}</div>`;
               dm.innerHTML = mh;
               loadYtCard(c.n);
+              try { fgSetSel(c, f); } catch (e) {} // 📊 greiningin fylgir valinu (LOTA 34B)
               paint(dl, f.items || [], 'Engin nýleg umfjöllun fannst.');
               if (f.timeline && f.timeline.length > 2) withEcharts(() => {
                 const el = document.getElementById('d-tl');
@@ -464,6 +579,292 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       if (go) go.onclick = doSearch;
       if (q) q.onkeydown = (e) => { if (e.key === 'Enter') doSearch(); };
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) initFrettir(); });
+    // ═══ 📊 FJÖLMIÐLAGREININGIN (LOTA 34B — flutt úr /greining/, aðlagast valinu) ═══
+    const thF = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const GRAFCATS = [
+      { name: 'Bankar & fjármál', color: '#4d8df6' }, { name: 'Fjarskipti & tækni', color: '#9a7cf7' },
+      { name: 'Verslun & neysla', color: '#f6b13b' }, { name: 'Sjávar, lyf & iðnaður', color: '#19d3c5' },
+      { name: 'Flug, ferðir & flutningar', color: '#ff5d6c' }, { name: 'Orka & veitur', color: '#46e08a' },
+      { name: 'Fasteignir', color: '#e8a0c0' }, { name: 'Annað', color: '#8595b0' }];
+    const GRAFSECT = { 'Arion banki': 0, 'Íslandsbanki': 0, 'Kvika banki': 0, 'Sjóvá': 0, 'Skagi (VÍS)': 0, 'Indó': 0,
+      'Síminn': 1, 'Sýn': 1, 'Nova': 1, 'CCP Games': 1,
+      'Hagar': 2, 'Festi': 2, 'Skel': 2, 'Ölgerðin': 2, 'Samkaup': 2, 'Costco': 2, 'IKEA': 2,
+      'Brim': 3, 'Síldarvinnslan': 3, 'Hampiðjan': 3, 'JBT Marel': 3, 'Össur': 3, 'Alvotech': 3, 'Amaroq': 3, 'Norðurál': 3, 'Rio Tinto (ISAL)': 3,
+      'Icelandair': 4, 'Play': 4, 'Eimskip': 4, 'Isavia': 4,
+      'Landsvirkjun': 5, 'Orkuveita Reykjavíkur': 5, 'Landsnet': 5, 'Reitir': 6, 'Eik': 6 };
+    const PARTYCOLORS = { 'Samfylkingin': '#e30613', 'Sjálfstæðisflokkur': '#0093d0', 'Framsóknarflokkur': '#00945e', 'Viðreisn': '#ff7900', 'Miðflokkurinn': '#0a2240', 'Flokkur fólksins': '#f6c800', 'Vinstrihreyfingin – grænt framboð': '#6aa51c', 'Píratar': '#6e2a8c', 'Sósíalistaflokkurinn': '#b30000', 'utan þingflokka': '#8595b0', 'Annað': '#8595b0' };
+    const PARTYALIAS = {
+      'Samfylkingin': ['Samfylkingin', 'Samfylkingar', 'Samfylkingu', 'Samfylkingunni'],
+      'Sjálfstæðisflokkur': ['Sjálfstæðisflokkurinn', 'Sjálfstæðisflokksins', 'Sjálfstæðisflokknum', 'Sjálfstæðisflokkinn', 'Sjálfstæðisflokkur'],
+      'Viðreisn': ['Viðreisn', 'Viðreisnar'],
+      'Miðflokkurinn': ['Miðflokkurinn', 'Miðflokksins', 'Miðflokknum', 'Miðflokkinn', 'Miðflokkur'],
+      'Framsóknarflokkur': ['Framsóknarflokkurinn', 'Framsóknarflokksins', 'Framsóknarflokknum', 'Framsóknarflokkur', 'Framsókn'],
+      'Flokkur fólksins': ['Flokkur fólksins', 'Flokks fólksins', 'Flokki fólksins'],
+      'Píratar': ['Píratar', 'Pírata', 'Pírötum', 'Píratahreyfingin'],
+      'Sósíalistaflokkurinn': ['Sósíalistaflokkurinn', 'Sósíalistaflokksins', 'Sósíalistar', 'Sósíalistaflokkur'] };
+    const TN_INST = [
+      { n: 'Ríkisstjórnin', a: ['Ríkisstjórnin', 'Ríkisstjórnarinnar', 'Ríkisstjórn', 'Ríkisstjórnina', 'Ríkisstjórnar'] },
+      { n: 'Alþingi', a: ['Alþingi', 'Alþingis', 'Alþingið'] },
+      { n: 'Seðlabankinn', a: ['Seðlabankinn', 'Seðlabankans', 'Seðlabanka', 'Seðlabanki Íslands'] },
+      { n: 'Landspítalinn', a: ['Landspítalinn', 'Landspítalans', 'Landspítala', 'Landspítali'] },
+      { n: 'Hæstiréttur', a: ['Hæstiréttur', 'Hæstaréttar', 'Hæstarétti'] },
+      { n: 'Skatturinn', a: ['Skatturinn', 'Skattsins', 'Skattinum', 'Ríkisskattstjóri'] },
+      { n: 'Samkeppniseftirlitið', a: ['Samkeppniseftirlitið', 'Samkeppniseftirlitsins'] },
+      { n: 'Vegagerðin', a: ['Vegagerðin', 'Vegagerðar', 'Vegagerðina'] },
+      { n: 'Landhelgisgæslan', a: ['Landhelgisgæslan', 'Landhelgisgæslunnar', 'Landhelgisgæslu'] },
+      { n: 'Lögreglan', a: ['Ríkislögreglustjóri', 'Ríkislögreglustjóra', 'Lögreglan', 'Lögreglu'] }];
+    const TN_MAL = [
+      { n: 'Verðbólga', a: ['Verðbólga', 'Verðbólgu', 'Verðbólgan', 'Verðbólgunni'] },
+      { n: 'Vextir', a: ['Vextir', 'Vaxta', 'Stýrivextir', 'Stýrivaxta', 'Vaxtahækkun', 'Vaxtalækkun'] },
+      { n: 'Húsnæðismál', a: ['Húsnæði', 'Húsnæðismál', 'Húsnæðismarkaður', 'Íbúðaverð'] },
+      { n: 'Kjarasamningar', a: ['Kjarasamning', 'Kjarasamninga', 'Kjarasamningar', 'Kjaradeila'] },
+      { n: 'Innflytjendamál', a: ['Innflytjendur', 'Innflytjenda', 'Hælisleitendur', 'Hælisleitenda', 'Útlendingamál', 'Flóttafólk'] },
+      { n: 'Samgöngur', a: ['Samgöngur', 'Samgöngumál', 'Borgarlína', 'Borgarlínu', 'Samgöngusáttmáli'] },
+      { n: 'Evrópusambandið', a: ['Evrópusambandið', 'Evrópusambandsins', 'ESB'] },
+      { n: 'Ferðaþjónusta', a: ['Ferðaþjónusta', 'Ferðaþjónustu', 'Ferðamenn', 'Ferðamanna'] },
+      { n: 'Sjávarútvegur', a: ['Sjávarútvegur', 'Sjávarútvegs', 'Veiðigjöld', 'Veiðigjalda', 'Kvóti', 'Kvóta'] },
+      { n: 'Ríkisfjármál', a: ['Ríkisfjármál', 'Fjárlög', 'Fjárlaga', 'Fjárlagafrumvarp', 'Ríkissjóður'] }];
+    const TN_SETS = {
+      stofnanir: () => TN_INST.concat(TN_MAL).map((x) => ({ n: x.n, a: x.a })),
+      fyrirtaeki: () => Object.keys(GRAFSECT).map((n) => ({ n, a: [n] })),
+      flokkar: () => Object.keys(PARTYALIAS).map((n) => ({ n, a: PARTYALIAS[n] })),
+      radherrar: () => (CAB || []).map((c) => ({ n: c.nafn, a: [c.nafn] })),
+      thingmenn: () => (ALTH || []).filter((m) => m.adalmadur).map((m) => ({ n: m.nafn, a: [m.nafn] })),
+    };
+    const TN_LBL = { stofnanir: 'stofnana & málefna', fyrirtaeki: 'fyrirtækja', flokkar: 'flokkanna', radherrar: 'ráðherra', thingmenn: 'þingmanna' };
+    const tnInstSet = new Set(TN_INST.map((x) => x.n));
+    function tnColorOf(cat) {
+      if (cat === 'fyrirtaeki') return (nm) => { let i = GRAFSECT[nm]; if (i == null) i = 7; return { cat: GRAFCATS[i].name, color: GRAFCATS[i].color }; };
+      if (cat === 'flokkar') return (nm) => ({ cat: nm, color: PARTYCOLORS[nm] || '#8595b0' });
+      if (cat === 'radherrar' || cat === 'thingmenn') return (nm) => {
+        const p = (cat === 'radherrar' ? (CAB.find((c) => c.nafn === nm) || {}).flokur : (ALTH.find((m) => m.nafn === nm) || {}).flokkur) || 'Annað';
+        return { cat: p, color: PARTYCOLORS[p] || '#8595b0' };
+      };
+      return (nm) => (tnInstSet.has(nm) ? { cat: 'Stofnanir', color: '#19d3c5' } : { cat: 'Málefni', color: '#f6b13b' });
+    }
+    let TN_TOKEN = 0, TN_CHART = null, TN_CAT = 'stofnanir';
+    function tnLoad(cat, focusName) {
+      TN_CAT = cat;
+      const el = document.getElementById('tn-graph'), note = document.getElementById('tn-note'), pairs = document.getElementById('tn-pairs');
+      if (!el) return;
+      document.querySelectorAll('#tn-cats .chip').forEach((x) => x.classList.toggle('on', x.dataset.c === cat));
+      const ents = TN_SETS[cat]().slice(0, 120);
+      if (note) note.textContent = 'Reikna tengslanet…';
+      if (pairs) pairs.innerHTML = '';
+      const token = ++TN_TOKEN;
+      fetch(API + '/firmagraph', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entities: ents, days: 180 }) })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d) => {
+          if (token !== TN_TOKEN) return;
+          if (!d || !d.ready || !d.nodes || d.nodes.length < 2) { if (note) note.textContent = 'Of lítil sameiginleg umfjöllun í hópnum til að teikna net.'; return; }
+          if (note) note.textContent = d.nodes.length + ' ' + (TN_LBL[cat] || 'aðilar') + ' · ' + ((d.links && d.links.length) || 0) + ' tengingar · sl. 180 dagar (brún = sameiginlegar fyrirsagnir)';
+          withEcharts(() => { if (token === TN_TOKEN) { tnRender(d, tnColorOf(cat)); tnPairs(d); if (focusName) tnFocus(focusName); } });
+        })
+        .catch(() => { if (token === TN_TOKEN && note) note.textContent = 'Tengslanetið birtist á karp.is (CORS-varinn endapunktur).'; });
+    }
+    function tnFocus(name) {
+      if (!TN_CHART) return;
+      try {
+        TN_CHART.dispatchAction({ type: 'highlight', seriesIndex: 0, name });
+        const note = document.getElementById('tn-note');
+        if (note) note.innerHTML = '🎯 <b>' + esc9(name) + '</b> upplýst í netinu — músin yfir hnútinn einangrar tengslin.';
+      } catch (e) {}
+    }
+    function tnRender(d, colorOf) {
+      const nodes = d.nodes || [], links = d.links || [];
+      const catIdx = {}, cats = [];
+      const ci = (nm) => { const c = colorOf(nm); if (catIdx[c.cat] == null) { catIdx[c.cat] = cats.length; cats.push({ name: c.cat, itemStyle: { color: c.color } }); } return catIdx[c.cat]; };
+      const maxVal = Math.max(...nodes.map((n) => n.val), 1);
+      const maxLink = Math.max(...links.map((l) => l.value), 1);
+      const labelMin = Math.max(3, maxVal * 0.10);
+      const gn = nodes.map((n) => ({ name: n.name, value: n.val, category: ci(n.name), symbolSize: 9 + Math.sqrt(n.val / maxVal) * 40, label: { show: n.val >= labelMin } }));
+      const gl = links.map((l) => ({ source: l.source, target: l.target, value: l.value, lineStyle: { width: Math.max(1, (l.value / maxLink) * 7) } }));
+      const single = cats.length <= 1;
+      const el = document.getElementById('tn-graph');
+      if (!TN_CHART || TN_CHART.isDisposed()) TN_CHART = window.echarts.init(el);
+      TN_CHART.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item', confine: true, backgroundColor: 'rgba(10,16,28,.95)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#e8eefc', fontSize: 12 },
+          formatter: (p) => { if (p.dataType === 'edge') return esc9(p.data.source) + ' ↔ ' + esc9(p.data.target) + '<br>' + p.data.value + ' sameiginlegar fréttir'; const c = colorOf(p.name); return '<b>' + esc9(p.name) + '</b><br>' + p.value + ' fréttir' + (single ? '' : ' · ' + esc9(c.cat)); } },
+        legend: single ? [] : [{ data: cats.map((c) => c.name), top: 0, type: 'scroll', textStyle: { color: '#9fb0c8', fontSize: 10 }, inactiveColor: '#4c5870' }],
+        series: [{ type: 'graph', layout: 'force', roam: true, draggable: true, nodeScaleRatio: 0.5, data: gn, links: gl, categories: cats,
+          force: { repulsion: [60, 180], edgeLength: [40, 150], gravity: 0.09, friction: 0.2 },
+          label: { position: 'right', color: '#cdd6e6', fontSize: 10, formatter: '{b}' },
+          lineStyle: { color: 'source', opacity: 0.45, curveness: 0.12 },
+          emphasis: { focus: 'adjacency', label: { show: true }, lineStyle: { width: 5, opacity: 0.9 } },
+          scaleLimit: { min: 0.4, max: 3.2 } }],
+      }, true);
+      TN_CHART.off('click');
+      TN_CHART.on('click', (p) => {
+        const note = document.getElementById('tn-note');
+        if (!note) return;
+        if (p.dataType === 'edge') note.innerHTML = '<b>' + esc9(p.data.source) + ' ↔ ' + esc9(p.data.target) + '</b> · ' + p.data.value + ' sameiginlegar fréttir sl. 180 daga';
+        else note.innerHTML = '<b>' + esc9(p.name) + '</b> · ' + p.value + ' fréttir sl. 180 daga';
+      });
+      window.addEventListener('resize', () => TN_CHART && TN_CHART.resize());
+      requestAnimationFrame(() => TN_CHART && TN_CHART.resize());
+    }
+    function tnPairs(d) {
+      const el = document.getElementById('tn-pairs');
+      if (!el) return;
+      const top = (d.links || []).slice().sort((a, b) => b.value - a.value).slice(0, 12);
+      el.innerHTML = top.length ? '<div class="tn-pairs-h">Sterkustu tengslin</div>' + top.map((l) => `<div class="tn-pair"><span class="tn-pair-n"><b>${esc9(l.source)}</b> ↔ <b>${esc9(l.target)}</b></span><span class="tn-pair-v">${l.value} fréttir</span></div>`).join('') : '';
+    }
+    // ── KPI + gröf: heild (yearreview) eða valinn aðili (/firma-svarið) ──
+    let FG_GLOBAL = null;
+    const mISF = (m) => ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'][+String(m).slice(5, 7) - 1] || m;
+    function fgChart(id, opt) { withEcharts(() => { const el = document.getElementById(id); if (!el) return; const c = window.echarts.getInstanceByDom(el) || window.echarts.init(el); c.setOption(opt, true); window.addEventListener('resize', () => c.resize()); }); }
+    function fgGlobal() {
+      const kp = document.getElementById('fg-kpis');
+      document.getElementById('fg-selname').innerHTML = '';
+      document.getElementById('fg-months-h').textContent = 'Umfjöllun & tónn eftir mánuðum';
+      document.getElementById('fg-src-h').textContent = 'Hlutdeild miðlanna';
+      const paint = (d) => {
+        const tone = (i) => (i > 15 ? ['jákvæður', '#46e08a'] : i < -15 ? ['neikvæður', '#ff6d7a'] : ['hlutlaus', '#9fb0c8']);
+        const totN = d.months.reduce((a, m) => a + m.n, 0) || 1;
+        const avgIdx = Math.round(d.months.reduce((a, m) => a + (m.idx || 0) * m.n, 0) / totN);
+        kp.innerHTML = `<div class="kpis">
+          <div class="kpi"><div class="k-l">🗞️ Fréttir í safni ${d.year}</div><div class="k-v">${thF(d.total)}</div><div class="k-s">${thF(d.scored)} tón-greindar</div></div>
+          <div class="kpi"><div class="k-l">🤖 Meðaltónn ársins</div><div class="k-v" style="color:${tone(avgIdx)[1]}">${avgIdx > 0 ? '+' : ''}${avgIdx}</div><div class="k-s">${tone(avgIdx)[0]} · −100…+100</div></div>
+          ${d.best ? `<div class="kpi"><div class="k-l">☀️ Jákvæðasti mánuður</div><div class="k-v" style="color:#46e08a">${mISF(d.best.m)}</div><div class="k-s">tónn +${d.best.idx}</div></div>` : ''}
+          ${d.worst ? `<div class="kpi"><div class="k-l">🌧️ Neikvæðasti mánuður</div><div class="k-v" style="color:#ff6d7a">${mISF(d.worst.m)}</div><div class="k-s">tónn ${d.worst.idx}</div></div>` : ''}
+        </div>`;
+        fgChart('fg-months', {
+          backgroundColor: 'transparent', legend: { data: ['Fréttir', 'Tónn'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 44, right: 40, top: 30, bottom: 22 }, tooltip: { trigger: 'axis' },
+          xAxis: { type: 'category', data: d.months.map((x) => mISF(x.m)), axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+          yAxis: [{ type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => (v >= 1000 ? v / 1000 + 'þ' : v) }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } }, { type: 'value', min: -50, max: 50, axisLabel: { color: '#9fb0c8', fontSize: 10 }, splitLine: { show: false } }],
+          series: [{ name: 'Fréttir', type: 'bar', data: d.months.map((x) => x.n), barMaxWidth: 26, itemStyle: { color: 'rgba(58,141,255,.45)', borderRadius: [4, 4, 0, 0] } }, { name: 'Tónn', type: 'line', yAxisIndex: 1, data: d.months.map((x) => x.idx), smooth: true, symbol: 'circle', symbolSize: 5, lineStyle: { color: '#f6b13b', width: 3 }, itemStyle: { color: '#f6b13b' } }],
+        });
+        if (d.bySource && d.bySource.length) fgChart('fg-src', {
+          backgroundColor: 'transparent', tooltip: { trigger: 'item', valueFormatter: (v) => thF(v) + ' fréttir' },
+          series: [{ type: 'pie', radius: ['42%', '72%'], center: ['50%', '52%'], label: { color: '#cdd6e6', fontSize: 11, formatter: '{b}\n{d}%' }, labelLine: { lineStyle: { color: 'rgba(255,255,255,.2)' } }, itemStyle: { borderColor: '#0b1220', borderWidth: 2 }, data: d.bySource.slice(0, 8).map((x) => ({ name: x.s, value: x.n })) }],
+        });
+      };
+      if (FG_GLOBAL) { paint(FG_GLOBAL); return; }
+      fetch(API + '/yearreview').then((r) => (r.ok ? r.json() : null)).then((d) => {
+        if (!d || !d.ready) { kp.innerHTML = '<div class="empty">Heildargreiningin er ekki tilbúin í augnablikinu.</div>'; return; }
+        FG_GLOBAL = d; paint(d);
+      }).catch(() => { kp.innerHTML = '<div class="empty">Greiningin birtist á karp.is (CORS-varinn endapunktur).</div>'; });
+    }
+    function fgSetSel(c, f) {
+      const kp = document.getElementById('fg-kpis');
+      if (!kp) return;
+      FG_SEL = { c, f };
+      document.getElementById('fg-selname').innerHTML = '— valið: <b>' + esc9(c.n) + '</b> <button type="button" class="fg-btn" id="fg-pdf" title="Prentvæn skýrsla (vista sem PDF í prentglugganum)">🖨️ PDF-skýrsla</button> <button type="button" id="fg-clear" title="Aftur í heildina">✕ heildin</button>';
+      document.getElementById('fg-clear').onclick = () => { FG_SEL = null; fgGlobal(); };
+      document.getElementById('fg-pdf').onclick = fgReport;
+      document.getElementById('fg-months-h').textContent = 'Umfjöllun um ' + c.n + ' (vikur)';
+      document.getElementById('fg-src-h').textContent = 'Miðlar sem fjalla um ' + c.n;
+      const se = f.sentiment || {}, st = f.stats || {};
+      kp.innerHTML = `<div class="kpis">
+        <div class="kpi"><div class="k-l">🗞️ Fréttir sl. 6 mán</div><div class="k-v">${thF(f.total)}</div><div class="k-s">${st.perDay != null ? String(st.perDay).replace('.', ',') + ' á dag' : ''}</div></div>
+        <div class="kpi"><div class="k-l">🤖 Tónn umfjöllunar</div><div class="k-v" style="color:${se.idx > 15 ? '#46e08a' : se.idx < -15 ? '#ff6d7a' : '#9fb0c8'}">${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</div><div class="k-s">${se.scored || 0} tón-greindar</div></div>
+        <div class="kpi"><div class="k-l">📰 Miðlar</div><div class="k-v">${(st.sources || []).length}</div><div class="k-s">fjalla um aðilann</div></div>
+      </div>`;
+      const tl = f.timeline || [];
+      if (tl.length > 2) fgChart('fg-months', {
+        backgroundColor: 'transparent', grid: { left: 34, right: 10, top: 12, bottom: 22 },
+        tooltip: { trigger: 'axis', formatter: (ps) => { const p = ps[0]; const t = tl[p.dataIndex]; return `vika ${p.name}<br><b>${t.n}</b> fréttir${t.scored ? ` · tónn ${t.idx > 0 ? '+' : ''}${t.idx}` : ''}`; } },
+        xAxis: { type: 'category', data: tl.map((t) => t.d.slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+        series: [{ type: 'bar', data: tl.map((t) => ({ value: t.n, itemStyle: { color: t.scored ? (t.idx > 15 ? '#46e08a' : t.idx < -15 ? '#ff6d7a' : '#5a6678') : '#42506a', borderRadius: [3, 3, 0, 0] } })), barMaxWidth: 18 }],
+      });
+      if (st.sources && st.sources.length) fgChart('fg-src', {
+        backgroundColor: 'transparent', tooltip: { trigger: 'item', valueFormatter: (v) => v + ' fréttir' },
+        series: [{ type: 'pie', radius: ['42%', '72%'], center: ['50%', '52%'], label: { color: '#cdd6e6', fontSize: 11, formatter: '{b}\n{d}%' }, labelLine: { lineStyle: { color: 'rgba(255,255,255,.2)' } }, itemStyle: { borderColor: '#0b1220', borderWidth: 2 }, data: st.sources.slice(0, 8).map((x) => ({ name: x.s, value: x.n })) }],
+      });
+      runFgVog(c.a.join(','), c.n);
+      if (GRAFSECT[c.n] != null) { if (TN_CAT !== 'fyrirtaeki') tnLoad('fyrirtaeki', c.n); else tnFocus(c.n); }
+      else tnFocus(c.n);
+    }
+    // ── Fjölmiðlavogin ──
+    function runFgVog(q, label) {
+      const vog = document.getElementById('fg-vog');
+      if (!vog) return;
+      vog.innerHTML = 'Veg miðlana fyrir „' + esc9(label) + '“…';
+      fetch(API + '/firma?q=' + encodeURIComponent(q) + '&days=365')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((f) => {
+          const bs = f && f.sentiment && f.sentiment.bySource;
+          if (!f || !f.ready || !bs || bs.length < 2) { vog.innerHTML = '<div class="empty">Of lítil umfjöllun um „' + esc9(label) + '“ til að vega miðlana.</div>'; return; }
+          const cl = (i) => (i > 12 ? 'pos' : i < -12 ? 'neg' : 'neu');
+          const mx = Math.max(...bs.map((x) => x.n), 1);
+          vog.innerHTML = bs.map((x) => `<div class="fy-srcrow"><span class="fy-srcn">${esc9(x.s)}</span><span class="fy-srcbar"><i class="st-${cl(x.idx)}" style="width:${Math.max(6, (x.n / mx) * 100).toFixed(0)}%"></i></span><span class="fy-srcidx st-${cl(x.idx)}">${x.idx > 0 ? '+' : ''}${x.idx}</span><span class="fy-srcc">${x.n}</span></div>`).join('')
+            + `<div class="vog-note">${thF(f.total)} fréttir um efnið sl. 12 mánuði · tónn −100…+100 per miðil · breidd = fjöldi frétta miðilsins.</div>`;
+        })
+        .catch(() => { vog.innerHTML = '<div class="empty">Vogin birtist á karp.is.</div>'; });
+    }
+    // ── ⚖️ SoV-samanburður tveggja aðila (LOTA 34C) ──
+    const SOVENTS9 = (() => { try { return JSON.parse(document.getElementById('d-sovents').textContent); } catch (e) { return []; } })();
+    const sovAlias = (name) => { const e = SOVENTS9.find((x) => x.n.toLowerCase() === name.toLowerCase()); return e ? e.a : [name]; };
+    function sovRun() {
+      const a = (document.getElementById('sov-a').value || '').trim();
+      const b = (document.getElementById('sov-b').value || '').trim();
+      const out = document.getElementById('sov-out');
+      if (a.length < 2 || b.length < 2) { out.innerHTML = '<div class="empty">Veldu tvo aðila til að bera saman — hvaða nafn sem er gengur.</div>'; return; }
+      out.innerHTML = 'Ber saman „' + esc9(a) + '“ og „' + esc9(b) + '“…';
+      Promise.all([a, b].map((n) => fetch(API + '/firma?q=' + encodeURIComponent(sovAlias(n).join(',')) + '&days=365').then((r) => (r.ok ? r.json() : null)).catch(() => null)))
+        .then(([fa, fb]) => {
+          if (!fa || !fa.ready || !fb || !fb.ready) { out.innerHTML = '<div class="empty">Samanburðurinn birtist á karp.is (CORS-varinn endapunktur).</div>'; return; }
+          const tot = (fa.total || 0) + (fb.total || 0);
+          if (!tot) { out.innerHTML = '<div class="empty">Engin umfjöllun fannst um hvorugan aðilann.</div>'; return; }
+          const pa = Math.round((fa.total || 0) / tot * 100);
+          const tone = (f) => (f.sentiment && f.sentiment.scored ? (f.sentiment.idx > 0 ? '+' : '') + f.sentiment.idx : '—');
+          out.innerHTML =
+            `<div class="sov-bar"><span class="sov-a" style="width:${Math.max(6, pa)}%">${esc9(a)} · ${pa}%</span><span class="sov-b" style="width:${Math.max(6, 100 - pa)}%">${esc9(b)} · ${100 - pa}%</span></div>`
+            + `<div class="sov-kpis"><span><b>${esc9(a)}</b>: ${thF(fa.total)} fréttir · tónn ${tone(fa)}</span><span><b>${esc9(b)}</b>: ${thF(fb.total)} fréttir · tónn ${tone(fb)}</span></div>`
+            + '<div id="sov-tl"></div><div class="vog-note">Hlutdeild umfjöllunar (share of voice) sl. 12 mánuði úr fréttasafni Karp · línurnar sýna fréttir á viku.</div>';
+          const map = {};
+          (fa.timeline || []).forEach((t) => { (map[t.d] = map[t.d] || {}).a = t.n; });
+          (fb.timeline || []).forEach((t) => { (map[t.d] = map[t.d] || {}).b = t.n; });
+          const weeks = Object.keys(map).sort();
+          if (weeks.length > 2) fgChart('sov-tl', {
+            backgroundColor: 'transparent', legend: { data: [a, b], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+            grid: { left: 34, right: 10, top: 28, bottom: 22 }, tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: weeks.map((w) => w.slice(5)), axisLabel: { color: '#7e8ca6', fontSize: 9 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            series: [
+              { name: a, type: 'line', smooth: true, symbol: 'none', data: weeks.map((w) => map[w].a || 0), lineStyle: { color: '#f6b13b', width: 3 }, itemStyle: { color: '#f6b13b' } },
+              { name: b, type: 'line', smooth: true, symbol: 'none', data: weeks.map((w) => map[w].b || 0), lineStyle: { color: '#3aa0ff', width: 3 }, itemStyle: { color: '#3aa0ff' } },
+            ],
+          });
+        });
+    }
+    // ── 🖨️ PDF-skýrslan (prentvæn útgáfa af greiningunni fyrir valinn aðila) ──
+    let FG_SEL = null;
+    function fgReport() {
+      if (!FG_SEL) return;
+      const { c, f } = FG_SEL;
+      let rep = document.getElementById('fg-report');
+      if (!rep) { rep = document.createElement('div'); rep.id = 'fg-report'; document.body.appendChild(rep); }
+      const img = (id) => { const el = document.getElementById(id); const ch = el && window.echarts && window.echarts.getInstanceByDom(el); return ch ? '<img src="' + ch.getDataURL({ pixelRatio: 2, backgroundColor: '#0e1420' }) + '">' : ''; };
+      const se = f.sentiment || {}, st = f.stats || {};
+      const dnow = new Date().toISOString().slice(0, 10);
+      rep.innerHTML = `
+        <div class="rep-h"><span class="rep-logo">🐟 KARP</span><span class="rep-t">Fjölmiðlaskýrsla — ${esc9(c.n)}</span><span class="rep-d">${dnow} · sl. 6 mánuðir</span></div>
+        <div class="rep-kpis"><div><b>${thF(f.total)}</b>fréttir</div><div><b>${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</b>tónn (−100…+100)</div><div><b>${(st.sources || []).length}</b>miðlar</div><div><b>${st.perDay != null ? String(st.perDay).replace('.', ',') : '—'}</b>á dag</div></div>
+        <h4>Umfjöllun eftir vikum</h4>${img('fg-months')}
+        <h4>Dreifing miðla</h4>${img('fg-src')}
+        <h4>Nýjustu fyrirsagnir</h4><ol>${(f.items || []).slice(0, 12).map((it) => '<li>' + esc9(it.title || it.t || '') + ' <span>(' + esc9(it.source || it.s || '') + ')</span></li>').join('')}</ol>
+        <div class="rep-f">Unnið sjálfvirkt úr fréttasafni Karp · karp.is · tónn er vélrænt mat á fyrirsögnum, ekki ritstjórnardómur · ${dnow}</div>`;
+      window.print();
+    }
+    function initFjolmidlagreining() {
+      const sec = document.getElementById('greining');
+      if (!sec || sec.dataset.done) return;
+      sec.dataset.done = '1';
+      document.querySelectorAll('#fg-vogchips .chip').forEach((ch) => {
+        ch.onclick = () => { document.querySelectorAll('#fg-vogchips .chip').forEach((x) => x.classList.toggle('on', x === ch)); runFgVog(ch.dataset.q, ch.textContent); };
+      });
+      document.querySelectorAll('#tn-cats .chip').forEach((b) => b.addEventListener('click', () => tnLoad(b.dataset.c)));
+      const sgo = document.getElementById('sov-go');
+      if (sgo) sgo.onclick = sovRun;
+      ['sov-a', 'sov-b'].forEach((id) => { const el = document.getElementById(id); if (el) el.onkeydown = (e) => { if (e.key === 'Enter') sovRun(); }; });
+      fgGlobal();
+      tnLoad('stofnanir');
+    }
+    window.__fgSetSel = fgSetSel;
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) { initFrettir(); initFjolmidlagreining(); } });
   </script>
 </Layout>

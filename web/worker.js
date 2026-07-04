@@ -236,7 +236,7 @@ async function ytstatsHandler(request, env, ctx) {
   if (!mapped) return sjson({ channel: null });
   const ids = Array.isArray(mapped) ? mapped : [mapped];
   const cache = caches.default;
-  const cacheKey = new Request('https://cache.karp.internal/ytstats/' + encodeURIComponent(co));
+  const cacheKey = new Request('https://cache.karp.internal/ytstats/v2/' + encodeURIComponent(co));
   let res = await cache.match(cacheKey);
   if (res) return res;
   const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; karp.is dashboard; aronheidars@gmail.com)' };

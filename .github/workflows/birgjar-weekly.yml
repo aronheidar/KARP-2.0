@@ -31,13 +31,15 @@ jobs:
         run: npm ci
       - name: Birgjagreining (12 mánuðir af opnirreikningar.is)
         run: node skriptur/build_birgjar.js
+      - name: YouTube-rásauppgötvun (vikuleg full leit)
+        run: node skriptur/build_ytras.js || true
       - name: Committa ef breyting
         run: |
-          if [ -n "$(git status --porcelain -- gogn/birgjar.json)" ]; then
+          if [ -n "$(git status --porcelain -- gogn/birgjar.json gogn/ytras.json)" ]; then
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
-            git add gogn/birgjar.json
-            git commit -m "data: vikuleg birgjagreining ($(date -u +%F))"
+            git add gogn/birgjar.json gogn/ytras.json
+            git commit -m "data: vikuleg birgja- og YouTube-rásagreining ($(date -u +%F))"
             git pull --rebase origin main || true
             git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
           else
