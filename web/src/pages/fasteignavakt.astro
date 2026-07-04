@@ -24,7 +24,7 @@ const jsonLd = {
     <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">📈 Verðþróun markaðarins er á Fasteignir →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">ⓘ</i> Um gögnin á síðunni</p>
 
-    <h2>🔎 Leitaðu og vaktaðu <span class="hint">— gata, heimilisfang eða póstnúmer; fléttilistinn sækir heimilisföng úr kaupskránni</span></h2>
+    <h2>🔎 Leitaðu og vaktaðu <span class="hint">— Karp Pro (ókeypis aðgangur) · gata, heimilisfang eða póstnúmer; fléttilistinn sækir heimilisföng úr kaupskránni</span></h2>
     <div class="row">
       <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
       <input id="fv-q" type="text" maxlength="60" placeholder="T.d. „Melabraut“, „Melabraut 3“ eða „170“" autocomplete="off" list="fv-addr-list" />
@@ -110,6 +110,11 @@ const jsonLd = {
     /* 🖨️ Verðmatsskýrslan (LOTA 53): prentið einangrar skýrslukortið á hvítum grunni */
     .fvm-rephead b { display: block; font-size: 15px; letter-spacing: .04em; }
     .fvm-rephead span { display: block; font-size: 11px; margin: 2px 0 10px; }
+    .fvm-tbl { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 4px; color: #cdd6e6; }
+    .fvm-tbl th { text-align: left; font-size: 10px; text-transform: uppercase; color: #7e8ca6; border-bottom: 1px solid rgba(255,255,255,.15); padding: 3px 8px 3px 0; }
+    .fvm-tbl td { border-bottom: 1px solid rgba(255,255,255,.07); padding: 3px 8px 3px 0; font-variant-numeric: tabular-nums; }
+    body.fvm-printing #fvm-report .fvm-tbl, body.fvm-printing #fvm-report .fvm-tbl td { color: #222 !important; border-color: #ddd !important; }
+    body.fvm-printing #fvm-report .fvm-tbl th { color: #444 !important; border-bottom: 2px solid #b07500 !important; }
     @media print {
       body.fvm-printing * { visibility: hidden; }
       body.fvm-printing #fvm-report, body.fvm-printing #fvm-report * { visibility: visible; }
@@ -184,12 +189,18 @@ const jsonLd = {
         return true;
       }
 
+      // LOTA 54: fasteignavaktin er Karp Pro (ókeypis aðgangur) — leit+vaktir læstar,
+      // uppboðin (opinberar auglýsingar) sjást öllum sem forsmekkur.
+      let USER = null;
+      const proTease = '<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="/login/">Innskráning</a></div></div>';
       async function fvSearch() {
         const res = document.getElementById('fv-res');
         if (!res) return;
         const sv = fvMuniEl.value, q = fvNorm(fvQ.value);
         if (!sv && q.length < 2) { res.hidden = true; return; }
         res.hidden = false;
+        if (USER === null) USER = await loadUser().catch(() => null);
+        if (!USER || !USER.loggedIn) { res.innerHTML = proTease; return; }
         res.textContent = 'Sæki kaupskrá…';
         const [d, up] = await Promise.all([fvFetch(), uppFetch()]);
         if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
@@ -235,6 +246,7 @@ const jsonLd = {
         });
       }
       function fvAdd() {
+        if (!USER || !USER.loggedIn) { const res = document.getElementById('fv-res'); if (res) { res.hidden = false; res.innerHTML = proTease; } return; }
         const q = (fvQ.value || '').trim().replace(/,\s*\d{3}$/, '').slice(0, 40), sv = fvMuniEl.value;
         if (q.length < 2 && !sv) return;
         const a = fvLoad();
@@ -301,8 +313,20 @@ const jsonLd = {
         }
         if (!est) { fvmOut.innerHTML = '<div class="fvm-note">Of fá nýleg kaup til að meta — prófaðu án póstnúmers eða athugaðu stafsetningu götunnar.</div>'; return; }
         const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
-        // Skýrslu-útgáfan (LOTA 53): prentvæn — @media print einangrar #fvm-report
-        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)}</div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div><div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + comps.map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr kaupskrá HMS — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni og bílastæði geta hliðrað verði verulega.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
+        // Sveitarfélags-samhengi í skýrsluna (LOTA 54): 12 mán tölfræði + per tegund
+        let svCtx = '';
+        try {
+          const svGuess2 = (pn ? d.rows.find((r) => r.pn === pn) : d.rows.find((r) => fvNorm(r.a).startsWith(street)));
+          const sv2 = svGuess2 && svGuess2.sv;
+          const f2 = await fstFetch();
+          const bm2 = sv2 && f2 && f2.byMuni && f2.byMuni[sv2];
+          if (bm2) {
+            const line = (nafn, o) => o && o.m2 ? `<tr><td>${esc(nafn)}</td><td>${o.m2} þ.kr/m²</td><td>${o.p25}–${o.p75}</td><td>${o.n}</td><td>${mkr(o.m2 * fm)}</td></tr>` : '';
+            svCtx = `<div class="fv-head" style="margin-top:10px">Samhengið í ${esc(sv2)} (12 mánuðir)</div><table class="fvm-tbl"><tr><th></th><th>Miðgildi</th><th>Fjórðungabil</th><th>Kaup</th><th>Þín stærð (${fm} m²)</th></tr>${line('Allar tegundir', bm2)}${Object.entries(bm2.types || {}).map(([t2, o]) => line(t2, o)).join('')}</table>`;
+          }
+        } catch (e) {}
+        // Skýrslu-útgáfan (LOTA 53/54): prentvæn — @media print einangrar #fvm-report
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)} <span class="fv-sv">(fjórðungabil kaupverðs á m²)</span></div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div>${svCtx}<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr opinberri kaupskrá HMS (þinglýst kaup) — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega út fyrir bilið.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
         const pb = document.getElementById('fvm-print');
         if (pb) pb.addEventListener('click', () => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => document.body.classList.remove('fvm-printing'), 500); });
       }

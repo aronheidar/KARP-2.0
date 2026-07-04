@@ -327,6 +327,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       #fg-report ol { margin: 4px 0 0 18px; padding: 0; }
       #fg-report li { margin: 3px 0; } #fg-report li span { color: #777; font-size: 11px; }
       #fg-report .rep-f { margin-top: 16px; border-top: 1px solid #ccc; padding-top: 8px; font-size: 10px; color: #666; }
+      #fg-report .rep-sbar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 2px 0 3px; border: 1px solid #ddd; }
+      #fg-report .rep-sbar i { display: block; height: 100%; }
+      #fg-report .rep-cap { font-size: 10.5px; color: #555; margin-bottom: 8px; }
+      #fg-report .rep-tbl { border-collapse: collapse; width: 100%; max-width: 460px; font-size: 11px; }
+      #fg-report .rep-tbl th { text-align: left; border-bottom: 2px solid #f6b13b; padding: 3px 8px 3px 0; font-size: 10px; text-transform: uppercase; color: #444; }
+      #fg-report .rep-tbl td { border-bottom: 1px solid #e5e5e5; padding: 3px 8px 3px 0; }
+      #fg-report .rep-txt { font-size: 11.5px; color: #222; line-height: 1.55; }
     }
     /* 📺 YouTube-markaðskort (runtime-DOM) */
     .yt-trend { font-size: 12.5px; font-weight: 700; border-radius: 8px; padding: 6px 11px; margin: 4px 0 8px; display: inline-block; }
@@ -948,13 +955,41 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const img = (id) => { const el = document.getElementById(id); const ch = el && window.echarts && window.echarts.getInstanceByDom(el); return ch ? '<img src="' + ch.getDataURL({ pixelRatio: 2, backgroundColor: '#0e1420' }) + '">' : ''; };
       const se = f.sentiment || {}, st = f.stats || {};
       const dnow = new Date().toISOString().slice(0, 10);
+      // LOTA 54: FULL skýrsla — allt af kortinu: tónn+brot, heilsa, kennitölur,
+      // viðhorf per miðil, orðin, ríkisgreiðslur, tilkynningar, YouTube, 20 fyrirsagnir.
+      const tot = (se.pos || 0) + (se.neu || 0) + (se.neg || 0);
+      const brot = tot ? `<div class="rep-sbar"><i style="width:${(se.pos / tot) * 100}%;background:#2f9e5f"></i><i style="width:${(se.neu / tot) * 100}%;background:#9aa3b2"></i><i style="width:${(se.neg / tot) * 100}%;background:#d05555"></i></div><div class="rep-cap">${se.pos || 0} jákvæðar · ${se.neu || 0} hlutlausar · ${se.neg || 0} neikvæðar (greindar fyrirsagnir)</div>` : '';
+      const rv = c.rvFull || c.rv || {};
+      const kt = [rv.mcap != null && ['Markaðsvirði', Math.round(rv.mcap / 1e9) + ' ma.kr'], rv.pe != null && ['V/H', String(rv.pe).replace('.', ',')], rv.pb != null && ['V/I', String(rv.pb).replace('.', ',')], rv.roe != null && ['ROE', String(rv.roe).replace('.', ',') + '%']].filter(Boolean);
+      const tonar = Object.entries(se.bySource || {}).map(([m, v]) => ({ m, n: v.n || 0, idx: v.idx })).filter((x) => x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 10);
+      const words = (f.words || []).slice(0, 16);
+      // ríkisgreiðslur (sama vörpun og kortið)
+      let rikHtml = '';
+      if (RIKID && typeof RIKID.then !== 'function') {} // (RIKID er promise — lesum úr DOM í staðinn)
+      const rikEl = document.getElementById('d-rik');
+      if (rikEl && rikEl.textContent.trim()) {
+        const totTxt = (rikEl.querySelector('.rik-tot') || {}).textContent || '';
+        const orgsTxt = (rikEl.querySelector('.rik-orgs') || {}).textContent || '';
+        rikHtml = `<h4>Greiðslur frá ríkinu (opnirreikningar.is, sl. 12 mán)</h4><div class="rep-txt"><b>${esc9(totTxt.trim())}</b>${orgsTxt ? '<br>' + esc9(orgsTxt.trim()) : ''}</div>`;
+      }
+      const tilkEl = document.getElementById('d-tilk');
+      const tilkRows = tilkEl ? [...tilkEl.querySelectorAll('.yt-row')].slice(0, 5).map((a) => '<li>' + esc9((a.querySelector('.yt-t') || {}).textContent || '') + ' <span>(' + esc9(((a.querySelector('.yt-m') || {}).textContent || '').split('·')[0].trim()) + ')</span></li>').join('') : '';
+      const ytEl = document.getElementById('d-yt');
+      const ytSub = ytEl ? ((ytEl.querySelector('.se-sub') || {}).textContent || '').trim() : '';
+      const ytTrend = ytEl ? ((ytEl.querySelector('.yt-trend') || {}).textContent || '').trim() : '';
       rep.innerHTML = `
-        <div class="rep-h"><span class="rep-logo">🐟 KARP</span><span class="rep-t">Fjölmiðlaskýrsla — ${esc9(c.n)}</span><span class="rep-d">${dnow} · sl. 6 mánuðir</span></div>
-        <div class="rep-kpis"><div><b>${thF(f.total)}</b>fréttir</div><div><b>${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</b>tónn (−100…+100)</div><div><b>${(st.sources || []).length}</b>miðlar</div><div><b>${st.perDay != null ? String(st.perDay).replace('.', ',') : '—'}</b>á dag</div></div>
+        <div class="rep-h"><span class="rep-logo">🐟 KARP</span><span class="rep-t">Fjölmiðla- og fyrirtækjaskýrsla — ${esc9(c.n)}</span><span class="rep-d">${dnow} · sl. 6 mánuðir</span></div>
+        <div class="rep-kpis"><div><b>${thF(f.total)}</b>fréttir</div><div><b>${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</b>tónn (−100…+100)</div><div><b>${(st.sources || []).length}</b>miðlar</div><div><b>${st.perDay != null ? String(st.perDay).replace('.', ',') : '—'}</b>fréttir á dag</div>${kt.map(([l, v]) => `<div><b>${v}</b>${l}</div>`).join('')}</div>
+        ${brot}
+        ${tonar.length ? `<h4>Viðhorf eftir miðlum</h4><table class="rep-tbl"><tr><th>Miðill</th><th>Fréttir</th><th>Tónn</th></tr>${tonar.map((x) => `<tr><td>${esc9(x.m)}</td><td>${x.n}</td><td>${x.idx != null ? (x.idx > 0 ? '+' : '') + x.idx : '—'}</td></tr>`).join('')}</table>` : ''}
+        ${words.length ? `<h4>Algengustu orð í umfjöllun</h4><div class="rep-txt">${words.map((w) => esc9(w.w) + ' (' + w.n + ')').join(' · ')}</div>` : ''}
         <h4>Umfjöllun eftir vikum</h4>${img('fg-months')}
         <h4>Dreifing miðla</h4>${img('fg-src')}
-        <h4>Nýjustu fyrirsagnir</h4><ol>${(f.items || []).slice(0, 12).map((it) => '<li>' + esc9(it.title || it.t || '') + ' <span>(' + esc9(it.source || it.s || '') + ')</span></li>').join('')}</ol>
-        <div class="rep-f">Unnið sjálfvirkt úr fréttasafni Karp · karp.is · tónn er vélrænt mat á fyrirsögnum, ekki ritstjórnardómur · ${dnow}</div>`;
+        ${rikHtml}
+        ${tilkRows ? `<h4>Nýjustu kauphallartilkynningar</h4><ol>${tilkRows}</ol>` : ''}
+        ${ytSub || ytTrend ? `<h4>YouTube-rás félagsins</h4><div class="rep-txt">${esc9(ytSub)}${ytTrend ? '<br>' + esc9(ytTrend) : ''}</div>${img('yt-chart')}` : ''}
+        <h4>Nýjustu fyrirsagnir (20)</h4><ol>${(f.items || []).slice(0, 20).map((it) => '<li>' + esc9(it.title || it.t || '') + ' <span>(' + esc9(it.source || it.s || '') + (it.d ? ' · ' + esc9(String(it.d).slice(0, 10)) : '') + ')</span></li>').join('')}</ol>
+        <div class="rep-f">Unnið sjálfvirkt úr gögnum Karp: fréttasafn íslenskra miðla, opnirreikningar.is (Fjársýslan), Nasdaq Iceland, YouTube og ársreikningar félagsins þar sem við á · tónn er vélrænt mat á fyrirsögnum, ekki ritstjórnardómur · karp.is · ${dnow}</div>`;
       window.print();
     }
     function initFjolmidlagreining() {
