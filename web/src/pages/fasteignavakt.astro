@@ -789,10 +789,17 @@ const jsonLd = {
       if (fvmVaktaBtn) fvmVaktaBtn.addEventListener('click', fvmVakta);
       // 🛒 kaupa/prenta skýrslu (0 kr. kynningarverð) — bundið einu sinni, takkinn er fast element
       const fvmBuyBtn = document.getElementById('fvm-buy');
-      if (fvmBuyBtn) fvmBuyBtn.addEventListener('click', () => {
+      if (fvmBuyBtn) fvmBuyBtn.addEventListener('click', async () => {
         if (document.getElementById('fvm-out').hidden) return;
-        const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '✓ Keypt · útbý…';
-        setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 300);
+        const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
+        const doPrint = () => { fvmBuyBtn.textContent = '✓ Keypt · útbý…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
+        // LOTA 82: reyna Teya-greiðslugátt fyrst; ókeypis/óuppsett → prentleið
+        try {
+          const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fasteign', ref: (document.getElementById('fvm-addr').value || '').trim() }) });
+          const d = await r.json().catch(() => null);
+          if (d && d.ok && d.url) { location.href = d.url; return; }
+        } catch (e) {}
+        doPrint();
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)

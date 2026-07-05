@@ -701,6 +701,56 @@ async function vanskilHandler(request, ctx) {
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
+// ── TEYA GREIÐSLUR (LOTA 82) — Hosted Checkout fyrir „kaupa skýrslu" ──
+// PCI-öruggt: worker býr til checkout-session, notandi fer á session_url hjá Teya sem
+// vinnur kortið (við snertum ALDREI kortagögn). ÓVIRKT þar til TEYA_* secrets eru sett í
+// Cloudflare (wrangler secret): TEYA_CLIENT_ID, TEYA_CLIENT_SECRET, TEYA_STORE_ID.
+// Verð stillt með env PRICE_FASTEIGN / PRICE_FYRIRTAEKI (ISK, 0 = ókeypis → framendi prentar).
+// TEYA_ENV=dev → sandbox (api.teya.xyz); annars prod (api.teya.com).
+let TEYA_TOKEN = null, TEYA_TOKEN_EXP = 0;
+async function teyaToken(env) {
+  if (TEYA_TOKEN && Date.now() < TEYA_TOKEN_EXP) return TEYA_TOKEN;
+  const body = new URLSearchParams({ grant_type: 'client_credentials', client_id: env.TEYA_CLIENT_ID, client_secret: env.TEYA_CLIENT_SECRET, scope: 'checkout/sessions/create' });
+  const r = await fetch('https://id.teya.com/oauth/v2/oauth-token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body });
+  if (!r.ok) throw new Error('teya token ' + r.status);
+  const j = await r.json();
+  TEYA_TOKEN = j.access_token; TEYA_TOKEN_EXP = Date.now() + ((+j.expires_in || 3600) - 120) * 1000;
+  return TEYA_TOKEN;
+}
+async function payCheckoutHandler(request, env, ctx) {
+  if (request.method !== 'POST') return sjson({ error: 'post' });
+  // óuppsett (engin Teya-secrets) EÐA verð 0 → framendi notar ókeypis prentleiðina
+  if (!env.TEYA_CLIENT_ID || !env.TEYA_CLIENT_SECRET || !env.TEYA_STORE_ID) return sjson({ error: 'unconfigured' });
+  let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
+  const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
+  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 0);
+  if (price <= 0) return sjson({ error: 'free' });
+  const base = env.TEYA_ENV === 'dev' ? 'https://api.teya.xyz' : 'https://api.teya.com';
+  const ref = String(b.ref || '').replace(/[^\w .,\-áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ]/g, '').slice(0, 40);
+  const back = 'https://karp.is/' + (kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteignavakt') + '/';
+  try {
+    const token = await teyaToken(env);
+    const r = await fetch(base + '/v2/checkout/sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + token, 'Idempotency-Key': crypto.randomUUID() },
+      body: JSON.stringify({
+        amount: { currency: 'ISK', value: price },   // ISK: 1 króna = 1 undireining → value = krónur
+        type: 'SALE',
+        store_id: env.TEYA_STORE_ID,
+        language: 'is-IS',
+        merchant_reference: (kind + ':' + ref).slice(0, 60),
+        line_items: [{ description: (kind === 'fyrirtaeki' ? 'Fyrirtækjaskýrsla' : 'Verðmatsskýrsla') + (ref ? ' — ' + ref : ''), quantity: 1, unit_price: price }],
+        success_url: back + '?greitt=1',
+        failure_url: back + '?greitt=0',
+        cancel_url: back,
+      }),
+    });
+    if (!r.ok) return sjson({ error: 'teya', status: r.status });
+    const j = await r.json();
+    return sjson({ ok: true, url: j.session_url, session_id: j.session_id });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
 async function fyrirtaekiHandler(request, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
@@ -760,6 +810,7 @@ export default {
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
+    if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

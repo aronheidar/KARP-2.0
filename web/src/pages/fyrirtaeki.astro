@@ -313,12 +313,16 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               }
               // 🛒 kaupa skýrslu (0 kr. kynningarverð) → prentvæn PDF
               const bb = document.getElementById('fs-buy');
-              if (bb) bb.addEventListener('click', () => {
-                bb.disabled = true; const t0 = bb.textContent; bb.textContent = '✓ Keypt — 0 kr. · útbý skýrsluna…';
-                setTimeout(() => {
-                  document.body.classList.add('fs-printing'); window.print();
-                  setTimeout(() => { document.body.classList.remove('fs-printing'); bb.textContent = t0; bb.disabled = false; }, 600);
-                }, 350);
+              if (bb) bb.addEventListener('click', async () => {
+                bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
+                const doPrint = () => { bb.textContent = '✓ Keypt · útbý…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); bb.textContent = t0; bb.disabled = false; }, 600); }, 200); };
+                // LOTA 82: reyna Teya-greiðslugátt fyrst; ókeypis/óuppsett → prentleið
+                try {
+                  const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + (d.felag.kt || '') }) });
+                  const pd = await r.json().catch(() => null);
+                  if (pd && pd.ok && pd.url) { location.href = pd.url; return; }
+                } catch (e) {}
+                doPrint();
               });
               return;
             }
