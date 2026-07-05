@@ -3,7 +3,6 @@
 // #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
 import { ClientRouter } from 'astro:transitions';
 import KarpFish from '../components/KarpFish.astro';
-import KarpIcon from '../components/KarpIcon.astro';
 const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
@@ -133,8 +132,6 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .nav-a { display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:9px; text-decoration:none; color:var(--muted); font-weight:600; font-size:14px; }
       .nav-a:hover { background:var(--panel); color:var(--ink); }
       .nav-a.on { background:rgba(246,177,59,.12); color:var(--gold); }
-      .nav-e { font-size:16px; width:20px; text-align:center; display:inline-flex; align-items:center; justify-content:center; }
-      .nav-e .karpicon { display:block; }
       /* Accordion-hópar (eins og gamla): summary = hópahaus, ▸ snýst þegar opið */
       .ng { margin:0; }
       .ng-s { list-style:none; cursor:pointer; user-select:none; position:relative; }
@@ -142,7 +139,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .ng-c { margin-left:auto; font-size:10px; color:#5a6678; transition:transform .15s; }
       .ng[open] > .ng-s .ng-c { transform:rotate(90deg); }
       .ng-i { padding:1px 0 5px; }
-      .nav-b { display:block; padding:6px 12px 6px 43px; border-radius:8px; text-decoration:none; color:#8fa0b8; color:#8b9cb5; font-size:13px; }
+      .nav-b { display:block; padding:6px 12px 6px 26px; border-radius:8px; text-decoration:none; color:#8fa0b8; color:#8b9cb5; font-size:13px; }
       .nav-b:hover { background:var(--panel); color:var(--ink); }
       .nav-b.on { background:rgba(246,177,59,.12); color:var(--gold); font-weight:600; }
       .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#5a6678; font-weight:700; padding:10px 12px 3px 43px; }
@@ -201,10 +198,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       /* LOTA 23 (mobile-úttekt): breiðar töflur skruna innan síns ramma á síma
          í stað þess að sprengja síðuna (fannst á /althingi/ og /verdlag/). */
       @media (max-width: 760px) { main table { display: block; overflow-x: auto; } }
-      /* 🐟 Brand-fiskurinn + fljótandi Spyrðu-Karp hnappurinn (LOTA 19; animation-safnið
+      /* 🐟 Fljótandi Spyrðu-Karp hnappurinn (LOTA 19; animation-safnið
          flutti HEIM í KarpFish.astro í LOTU 50 — hér aðeins staðsetning + hover-hraði) */
-      .brand { display: inline-flex; align-items: center; gap: 8px; }
-      .brand .karpfish { flex: none; }
       #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; text-decoration: none; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
       .kfab-bub { background: #f6b13b; color: #131a29; font-size: 12.5px; font-weight: 800; padding: 7px 12px; border-radius: 999px 999px 4px 999px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
       #karp-fab:hover .kfab-bub, #karp-fab:focus-visible .kfab-bub { opacity: 1; transform: translateY(0); }
@@ -219,11 +214,11 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
   <body>
     <div class="shell">
       <aside class="nav" transition:persist>
-        <a class="brand kf-anim-hover" href="/"><KarpFish size={34} /><span>KARP</span></a>
+        <a class="brand" href="/"><span>KARP</span></a>
         <nav>
           {NAV.map((n) => n.items ? (
             <details class="ng" open={groupOpen(n)}>
-              <summary class="nav-a ng-s"><span class="nav-e">{n.icon ? <KarpIcon type={n.icon} /> : n.emoji}</span>{n.label}<span class="ng-c">▸</span></summary>
+              <summary class="nav-a ng-s">{n.label}<span class="ng-c">▸</span></summary>
               <div class="ng-i">
                 {n.items.map((it) => it.sub
                   ? <div class="ng-sub">{it.sub}</div>
@@ -232,7 +227,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
               </div>
             </details>
           ) : (
-            <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}><span class="nav-e">{n.icon ? <KarpIcon type={n.icon} /> : n.emoji}</span>{n.label}</a>
+            <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}>{n.label}</a>
           ))}
         </nav>
         <div class="nav-foot"><div id="chip" class="chip"></div><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
