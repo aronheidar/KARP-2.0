@@ -33,13 +33,15 @@ jobs:
         run: node skriptur/build_birgjar.js
       - name: YouTube-rásauppgötvun (vikuleg full leit)
         run: node skriptur/build_ytras.js || true
+      - name: GPS-hnit heimilisfanga (staðfangaskrá, uppfærð sunnudagskvöld)
+        run: node skriptur/build_hnit.js || true
       - name: Committa ef breyting
         run: |
-          if [ -n "$(git status --porcelain -- gogn/birgjar.json gogn/ytras.json)" ]; then
+          if [ -n "$(git status --porcelain -- gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/)" ]; then
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
-            git add gogn/birgjar.json gogn/ytras.json
-            git commit -m "data: vikuleg birgja- og YouTube-rásagreining ($(date -u +%F))"
+            git add gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/
+            git commit -m "data: vikuleg birgja-, YouTube- og hnitagreining ($(date -u +%F))"
             git pull --rebase origin main || true
             git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
           else

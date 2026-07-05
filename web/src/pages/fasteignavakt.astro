@@ -151,6 +151,29 @@ const jsonLd = {
     body.fvm-printing #fvm-report .ec-v, body.fvm-printing #fvm-report .ec-tab.on { color: #111 !important; }
     body.fvm-printing #fvm-report .comp-tbl, body.fvm-printing #fvm-report .comp-tbl td { color: #222 !important; border-color: #ddd !important; }
     body.fvm-printing #fvm-report .comp-tbl th { color: #444 !important; border-bottom: 2px solid #b07500 !important; }
+    /* LOTA 68: kort, verðstika, kaupa-takki */
+    .fvm-map { height: 220px; border-radius: 10px; margin-top: 12px; z-index: 0; border: 1px solid rgba(255,255,255,.1); }
+    .vbar { margin: 6px 0 2px; }
+    .vb-row { position: relative; height: 34px; }
+    .vb-lbl { position: absolute; transform: translateX(-50%); text-align: center; font-size: 10.5px; color: #9fb0c8; white-space: nowrap; line-height: 1.25; }
+    .vb-top .vb-lbl { bottom: 3px; } .vb-bot .vb-lbl { top: 5px; }
+    .vb-lbl b { display: block; color: #eaf1fb; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .vb-lbl.vb-est b { color: #f6b13b; font-size: 12.5px; }
+    .vb-lbl.vb-mat b { color: #6aa5ff; } .vb-lbl.vb-bru b { color: #19d3c5; }
+    .vb-track { position: relative; height: 14px; background: rgba(255,255,255,.06); border-radius: 7px; }
+    .vb-band { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(246,177,59,.22), rgba(246,177,59,.5)); border-radius: 7px; }
+    .vb-tick { position: absolute; top: -4px; bottom: -4px; width: 2px; transform: translateX(-50%); background: rgba(255,255,255,.4); }
+    .vb-tick.vb-mat { background: #6aa5ff; } .vb-tick.vb-bru { background: #19d3c5; }
+    .vb-tick.vb-est { display: none; }
+    .vb-dot { position: absolute; top: 50%; width: 15px; height: 15px; transform: translate(-50%, -50%) rotate(45deg); background: #f6b13b; border: 2px solid #131a29; border-radius: 3px; }
+    .buy-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .buy-note { font-size: 11px; color: #7e8ca6; }
+    body.fvm-printing #fvm-report .vb-track { background: #eee !important; }
+    body.fvm-printing #fvm-report .vb-lbl { color: #444 !important; }
+    body.fvm-printing #fvm-report .vb-lbl b { color: #111 !important; }
+    body.fvm-printing #fvm-report .vb-lbl.vb-est b { color: #b07500 !important; }
+    body.fvm-printing #fvm-report .vb-dot { border-color: #fff !important; }
+    body.fvm-printing .leaflet-control-container { display: none !important; }
     .pro-tease2 { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
     .pt2-btns { display: flex; gap: 8px; margin-top: 10px; }
     .pt2-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
@@ -209,6 +232,17 @@ const jsonLd = {
         if (window.echarts) return cb();
         let s = document.getElementById('echarts-cdn');
         if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', () => cb(), { once: true });
+      };
+      // LOTA 68: GPS-hnit per heimilisfang (staðfangaskrá) → kort, fjarlægð á sambærilegar, hverfi
+      const HNIT = {};
+      const hnitPn = (pn) => HNIT[pn] || (HNIT[pn] = fetch('/gogn/hnit/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const distKm = (a, b) => { const rad = Math.PI / 180, R = 6371; const s = Math.sin((b[0] - a[0]) * rad / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin((b[1] - a[1]) * rad / 2) ** 2; return R * 2 * Math.asin(Math.sqrt(s)); };
+      const withLeaflet = (cb) => {
+        if (window.L) return cb();
+        if (!document.getElementById('leaflet-css')) { const l = document.createElement('link'); l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l); }
+        let s = document.getElementById('leaflet-js');
+        if (!s) { s = document.createElement('script'); s.id = 'leaflet-js'; s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; document.head.appendChild(s); }
         s.addEventListener('load', () => cb(), { once: true });
       };
       // LOTA 65: finna póstnúmer út frá pn í fyrirspurn, völdu sveitarfélagi, EÐA götunafni (götuvísir)
@@ -439,10 +473,10 @@ const jsonLd = {
         return sales.filter((s) => s.ppm >= OUTLO && s.ppm <= OUTHI && s.fm >= subj.fm * 0.6 && s.fm <= subj.fm * 1.4 && (!sameTeg || s.teg === subj.teg))
           .sort((a, b) => b.d.localeCompare(a.d));
       }
-      const compTblHtml = (rows) => `<table class="comp-tbl"><thead><tr>`
-        + [['a', 'Heimilisfang', 'l'], ['ar', 'Byggt'], ['teg', 'Tegund', 'l'], ['herb', 'Herb.'], ['fm', 'Stærð'], ['d', 'Seld'], ['kv', 'Kaupverð'], ['ppm', 'Verð/m²']]
+      const compTblHtml = (rows, withKm) => `<table class="comp-tbl"><thead><tr>`
+        + [['a', 'Heimilisfang', 'l']].concat(withKm ? [['km', 'Fjarl.']] : []).concat([['ar', 'Byggt'], ['teg', 'Tegund', 'l'], ['herb', 'Herb.'], ['fm', 'Stærð'], ['d', 'Seld'], ['kv', 'Kaupverð'], ['ppm', 'Verð/m²']])
           .map(([k, lab, l]) => `<th data-k="${k}" class="${l || ''}">${lab} <span class="sar">⇅</span></th>`).join('') + `</tr></thead><tbody>`
-        + rows.map((r) => `<tr><td class="l">${esc(r.a)}</td><td>${r.ar || '–'}</td><td class="l">${esc(r.teg)}</td><td>${r.herb || '–'}</td><td>${String(r.fm).replace('.', ',')} m²</td><td>${dIS(r.d)}</td><td>${(r.kv / 1000).toFixed(1).replace('.', ',')} m.kr</td><td>${thouIS(r.ppm)} kr</td></tr>`).join('')
+        + rows.map((r) => `<tr><td class="l">${esc(r.a)}</td>${withKm ? `<td>${r.km != null ? String(r.km).replace('.', ',') + ' km' : '–'}</td>` : ''}<td>${r.ar || '–'}</td><td class="l">${esc(r.teg)}</td><td>${r.herb || '–'}</td><td>${String(r.fm).replace('.', ',')} m²</td><td>${dIS(r.d)}</td><td>${(r.kv / 1000).toFixed(1).replace('.', ',')} m.kr</td><td>${thouIS(r.ppm)} kr</td></tr>`).join('')
         + `</tbody></table>`;
 
       // ── Verðmatið (Karp Pro) ──
@@ -510,13 +544,37 @@ const jsonLd = {
           const reg = pn ? await fskPn(pn) : await fskRows('', raw);
           self = (reg || []).find((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn));
         }
+        // GPS-hnit + hverfi úr staðfangaskrá (LOTA 68) — kort + fjarlægð á sambærilegar
+        const hn = pn ? await hnitPn(pn) : null;
+        const subjC = (hn && selfAddr && hn[selfAddr]) || null;      // [lat, lng, hverfi?]
+        const hverfi = (subjC && subjC[2]) || '';
         // eignaspjald EIGN / GÖGN (tveir flipar)
         let cardHtml = '';
         if (self) {
           const eign = [['Fasteignanúmer', self.fnr ? 'F' + self.fnr : '–'], ['Tegund', self.teg || teg], ['Stærð', self.fm ? String(self.fm).replace('.', ',') + ' m²' : fm + ' m²'], ['Byggingarár', self.ar || '–'], ['Herbergi', self.herb || '–']];
+          if (hverfi) eign.push(['Hverfi', hverfi]);
           const gogn = [['Fasteignamat', self.mat ? mkr(self.mat) : '–'], ['Fyrirhugað mat', self.matN ? mkr(self.matN) : '–'], ['Brunabótamat', self.bruna ? mkr(self.bruna) : '–'], ['Lóð', self.lod ? self.lod + ' m²' : '–'], ['Byggingastig', self.full ? 'Fullgert' : '–']];
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
           cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div></div>`;
+        }
+        // ── Sjónræn verðstika: neðri-/efrimörk + áætlað verð (neðri röð), fasteignamat + brunabótamat (efri röð) ──
+        let barHtml = '';
+        {
+          const pts = [{ v: lo, l: 'Neðrimörk', c: 'lo', r: 'b' }, { v: verd, l: 'Áætlað verð', c: 'est', r: 'b' }, { v: hi, l: 'Efrimörk', c: 'hi', r: 'b' }];
+          if (self && self.mat) pts.push({ v: self.mat, l: 'Fasteignamat', c: 'mat', r: 't' });
+          if (self && self.bruna) pts.push({ v: self.bruna, l: 'Brunabótamat', c: 'bru', r: 't' });
+          const vals = pts.map((p) => p.v);
+          const mn = Math.min(...vals), mx = Math.max(...vals);
+          const pad = (mx - mn) * 0.09 || mx * 0.05;
+          const a0 = mn - pad, a1 = mx + pad;
+          const P = (v) => Math.max(0, Math.min(100, ((v - a0) / (a1 - a0)) * 100));
+          const tick = (p) => `<div class="vb-tick vb-${p.c}" style="left:${P(p.v).toFixed(1)}%"></div>`;
+          const lbl = (p) => `<div class="vb-lbl vb-${p.c}" style="left:${P(p.v).toFixed(1)}%"><b>${mkr(p.v)}</b><span>${p.l}</span></div>`;
+          const top = pts.filter((p) => p.r === 't'), bot = pts.filter((p) => p.r === 'b');
+          barHtml = `<div class="fv-head" style="margin-top:14px">Verðbil og opinber möt</div><div class="vbar">`
+            + (top.length ? `<div class="vb-row vb-top">${top.map(lbl).join('')}</div>` : '')
+            + `<div class="vb-track"><div class="vb-band" style="left:${P(lo).toFixed(1)}%;width:${(P(hi) - P(lo)).toFixed(1)}%"></div>${pts.map(tick).join('')}<div class="vb-dot" style="left:${P(verd).toFixed(1)}%"></div></div>`
+            + `<div class="vb-row vb-bot">${bot.map(lbl).join('')}</div></div>`;
         }
 
         // markaðsmerki: hafa eignir selst yfir/undir fasteignamati? gata → póstnúmer → sveitarfélag
@@ -539,7 +597,7 @@ const jsonLd = {
           const rows = compRows(sales, subj, true).slice(0, 40);
           bodyHtml = `<div class="fv-head" style="margin-top:14px">Verð á fermetra í póstnúmeri ${esc(pn)} — matslína, öryggisbil og raunsölur</div><div id="fvm-graf" class="fvm-graf"></div>`
             + `<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (${esc(pn)})</div>`
-            + `<div class="comp-ctl"><label class="comp-cb"><input type="checkbox" id="comp-same" checked> Aðeins sama tegund (${esc(teg)})</label><span class="comp-n" id="comp-n"></span></div>`
+            + `<div class="comp-ctl"><span><label class="comp-cb"><input type="checkbox" id="comp-same" checked> Aðeins sama tegund (${esc(teg)})</label>${subjC ? ' <label class="comp-cb"><input type="checkbox" id="comp-near"> Innan 1 km</label>' : ''}</span><span class="comp-n" id="comp-n"></span></div>`
             + `<div class="comp-wrap" id="comp-wrap">${compTblHtml(rows)}</div>`;
         } else {
           let svCtx = '';
@@ -551,35 +609,60 @@ const jsonLd = {
           bodyHtml = svCtx + `<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div>`;
         }
 
-        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS</span></div>`
-          + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}</div></div>${cardHtml}</div>`
-          + matHtml + bodyHtml
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
+          + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
+          + (subjC ? `<div id="fvm-map" class="fvm-map"></div>` : '')
+          + barHtml + matHtml + bodyHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`
-          + `<button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;
+          + `<div class="buy-row"><button id="fvm-buy" class="cta">🛒 Kaupa skýrslu — 0 kr.</button><span class="buy-note">Kynningarverð · skýrslan opnast sem PDF til að vista eða prenta</span></div>`;
 
         // eignaspjald flipar
         fvmOut.querySelectorAll('.ec-tab').forEach((b) => b.addEventListener('click', () => {
           fvmOut.querySelectorAll('.ec-tab').forEach((x) => x.classList.toggle('on', x === b));
           fvmOut.querySelectorAll('.ec-panel').forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.tab; });
         }));
-        // sölugraf + raðanleg tafla
+        // kort (Leaflet + OSM) — eins og Creditinfo, með gull-hring á eigninni
+        if (subjC) {
+          withLeaflet(() => {
+            const mEl = document.getElementById('fvm-map');
+            if (!mEl || !window.L || mEl.dataset.done) return;
+            mEl.dataset.done = '1';
+            const m = window.L.map(mEl, { scrollWheelZoom: false }).setView([subjC[0], subjC[1]], 15);
+            window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
+            window.L.circleMarker([subjC[0], subjC[1]], { radius: 9, color: '#f6b13b', weight: 3, fillColor: '#f6b13b', fillOpacity: 0.35 }).addTo(m).bindTooltip(esc(self ? self.a : raw), { direction: 'top' });
+            setTimeout(() => m.invalidateSize(), 120);
+          });
+        }
+        // sölugraf + raðanleg tafla (m/fjarlægð frá eigninni þegar hnit finnast)
         if (hasGraf) {
           renderSoluGraf('fvm-graf', sales, subj);
-          let sortK = 'd', sortDir = -1, sameTeg = true;
+          const withKm = !!(subjC && hn);
+          const kmOf = (a) => { const c = hn && hn[fvNorm(a)]; return (c && subjC) ? Math.round(distKm(subjC, c) * 10) / 10 : null; };
+          let sortK = 'd', sortDir = -1, sameTeg = true, nearOnly = false;
           const nEl = document.getElementById('comp-n'), wrap = document.getElementById('comp-wrap');
           const redraw = () => {
             let rows = compRows(sales, subj, sameTeg);
-            rows.sort((a, b) => { const va = a[sortK], vb = b[sortK]; const c = (typeof va === 'string') ? String(va).localeCompare(String(vb), 'is') : (va - vb); return c * sortDir; });
+            if (withKm) { rows.forEach((r) => { r.km = kmOf(r.a); }); if (nearOnly) rows = rows.filter((r) => r.km != null && r.km <= 1); }
+            rows.sort((a, b) => { const nv = (v) => (v == null ? Infinity : v); const va = a[sortK], vb = b[sortK]; const c = (typeof va === 'string' || typeof vb === 'string') ? String(va).localeCompare(String(vb), 'is') : (nv(va) - nv(vb)); return c * sortDir; });
             if (nEl) nEl.textContent = rows.length + ' sölur';
-            wrap.innerHTML = compTblHtml(rows.slice(0, 60));
+            wrap.innerHTML = compTblHtml(rows.slice(0, 60), withKm);
             wrap.querySelectorAll('th[data-k]').forEach((th) => th.addEventListener('click', () => { const k = th.dataset.k; if (k === sortK) sortDir = -sortDir; else { sortK = k; sortDir = (k === 'a' || k === 'teg') ? 1 : -1; } redraw(); }));
           };
           redraw();
           const cb = document.getElementById('comp-same');
           if (cb) cb.addEventListener('change', () => { sameTeg = cb.checked; redraw(); });
+          const cbn = document.getElementById('comp-near');
+          if (cbn) cbn.addEventListener('change', () => { nearOnly = cbn.checked; redraw(); });
         }
-        const pb = document.getElementById('fvm-print');
-        if (pb) pb.addEventListener('click', () => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => document.body.classList.remove('fvm-printing'), 500); });
+        // 🛒 kaupa skýrslu (0 kr. kynningarverð) → PDF/prent
+        const bb = document.getElementById('fvm-buy');
+        if (bb) bb.addEventListener('click', () => {
+          bb.disabled = true; const t0 = bb.textContent; bb.textContent = '✓ Keypt — 0 kr. · útbý skýrsluna…';
+          setTimeout(() => {
+            document.body.classList.add('fvm-printing'); window.print();
+            setTimeout(() => { document.body.classList.remove('fvm-printing'); bb.textContent = t0; bb.disabled = false; }, 600);
+          }, 350);
+        });
       }
       const fvmBtn = document.getElementById('fvm-go');
       if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
