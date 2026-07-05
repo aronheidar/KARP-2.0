@@ -214,6 +214,17 @@ const jsonLd = {
       body.fvm-printing #fvm-report .fvm-signal b { color: #123 !important; }
       body.fvm-printing #fvm-report .fvm-anchor { background: #fdf8ec !important; border-left: 3px solid #b07500 !important; color: #222 !important; }
       body.fvm-printing #fvm-report .fvm-anchor b { color: #111 !important; }
+      /* verðstikan reiðir sig á bakgrunnsliti (track/band/tick/dot) — vafrar sleppa þeim
+         sjálfgefið í prenti → þvinga litaprentun + gefa merkjunum dökka prent-liti (LOTA 76) */
+      body.fvm-printing #fvm-report .vbar, body.fvm-printing #fvm-report .vbar * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body.fvm-printing #fvm-report .vb-track { background: #e6e9ee !important; border: 1px solid #cfd5de; }
+      body.fvm-printing #fvm-report .vb-band { background: #f6d18f !important; }
+      body.fvm-printing #fvm-report .vb-tick { background: #6b7688 !important; }
+      body.fvm-printing #fvm-report .vb-tick.vb-mat { background: #3a6ea5 !important; }
+      body.fvm-printing #fvm-report .vb-tick.vb-bru { background: #0f9b8e !important; }
+      body.fvm-printing #fvm-report .vb-dot { background: #b07500 !important; border-color: #fff !important; }
+      body.fvm-printing #fvm-report .vb-lbl.vb-mat b { color: #2c568a !important; }
+      body.fvm-printing #fvm-report .vb-lbl.vb-bru b { color: #0d7d72 !important; }
     }
   </style>
 
