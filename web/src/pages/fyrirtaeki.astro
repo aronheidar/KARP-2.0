@@ -87,6 +87,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
     .fs-vakta:disabled { opacity: .6; cursor: default; }
     .fs-vanskil { margin-top: 12px; font-size: 12.5px; }
+    .fs-kvoti { margin-top: 8px; }
+    .fs-kv-ti { font-size: 13px; color: #cdd6e6; background: rgba(58,141,255,.08); border: 1px solid rgba(58,141,255,.28); border-radius: 9px; padding: 8px 12px; }
+    .fs-kv-ti b { color: #eaf1fb; } .fs-kv-ti b.pos { color: #42d086; } .fs-kv-ti b.neg { color: #e78284; }
+    .fs-kv-src { font-size: 10.5px; color: #6b7688; margin-top: 5px; font-style: italic; }
+    body.fs-printing #fs-report .fs-kv-ti { background: #eef4ff !important; border-color: #b9cdf0 !important; color: #123 !important; }
+    body.fs-printing #fs-report .fs-kv-ti b { color: #111 !important; } body.fs-printing #fs-report .fs-kv-src { color: #555 !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -193,6 +199,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
+          <div id="fs-kvoti" class="fs-kvoti" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
@@ -287,6 +294,21 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   ? '<span class="fs-van bad">⚠ Í vanskilum með ársreikning: ' + v.ar.map((x) => escF(String(x.ar)) + ' (' + escF(x.vanskil) + ')').join(' · ') + '</span> <span class="fs-vansub">opinber listi ársreikningaskrár Skattsins</span>'
                   : '<span class="fs-van ok">✓ Engin vanskil á ársreikningaskilum</span> <span class="fs-vansub">rekstrarár ' + v.skodud.join(' og ') + ' · ársreikningaskrá Skattsins</span>';
               }).catch(() => {});
+              // 🐟 Aflaheimildir (LOTA 84) — AÐEINS fiskveiðifélög (ÍSAT 03) → kvótastaða úr Gagnavef Fiskistofu
+              if ((d.felag.isat || []).some((x) => /(^|\s)03[.\s]/.test(String(x)) || /^03/.test(String(x)))) {
+                const tonn = (kg) => (Math.round((+kg / 1000) * 10) / 10).toLocaleString('is') + ' t';
+                fetch('/api/kvoti?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((q) => {
+                  const el = document.getElementById('fs-kvoti');
+                  if (!el || !q || !q.holdur) return;
+                  el.hidden = false;
+                  const ti = q.torskigildi;
+                  const chips = (q.tegundir || []).slice(0, 12).map((t) => `<span class="fs-chip"><b>${escF(t.t)}</b> ${tonn(t.aflamark)}${t.stada < 0 ? ' <span style="color:#e78284">· umframafli</span>' : ''}</span>`).join('');
+                  el.innerHTML = `<div class="fs-sub">🐟 Aflaheimildir — fiskveiðiár ${escF((q.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2'))}</div>`
+                    + (ti ? `<div class="fs-kv-ti">Þorskígildi: <b>${tonn(ti.aflamark)}</b> aflamark · <b>${tonn(ti.afli)}</b> veitt · <b class="${ti.stada < 0 ? 'neg' : 'pos'}">${tonn(ti.stada)}</b> eftir</div>` : '')
+                    + (chips ? `<div class="fs-chips" style="margin-top:6px">${chips}</div>` : '')
+                    + `<div class="fs-kv-src">Heimild: Gagnavefur Fiskistofu (aflahlutdeild/aflamark) · ${q.nTeg || (q.tegundir || []).length} tegundir</div>`;
+                }).catch(() => {});
+              }
               // 🔔 Firmavakt (LOTA 73): breytinga- og vanskilavakt á félagið í tölvupósti
               const vb = document.getElementById('fs-vakta');
               if (vb) {

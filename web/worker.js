@@ -701,6 +701,45 @@ async function vanskilHandler(request, ctx) {
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
+// ── AFLAHEIMILDIR / KVÓTI (LOTA 84) — Gagnavefur Fiskistofu opinn GraphQL (Azure) ──
+// SamtalaFyrirtaekis(kt) → kvótastaða útgerðar per fisktegund + þorskígildi. Tengt /fyrirtaeki/ um kt.
+// ⚠ Bakendinn IP-hraðatakmarkar (~5-6 hröð köll → 405 um stund) → 24h cache per kt, 405→tómt (ekki cache-a),
+// og framendi kallar AÐEINS á fiskveiðifélög (ÍSAT 03) → nær engin köll á venjuleg félög. Einstök vara.
+const FISK_API = 'https://gagnavefur-api-btg7credbqbbbaav.northeurope-01.azurewebsites.net/graphql';
+function fiskveidiTimabil() {
+  const d = new Date(), y = d.getUTCFullYear(), m = d.getUTCMonth();   // fiskveiðiár hefst 1. sept
+  const s = m >= 8 ? y : y - 1;
+  return String(s % 100).padStart(2, '0') + String((s + 1) % 100).padStart(2, '0');
+}
+async function kvotiHandler(request, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ error: 'kt' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/kvoti?kt=' + kt);
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const timabil = fiskveidiTimabil();
+  let out = { kt, holdur: false, timabil };
+  try {
+    const r = await fetch(FISK_API, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: 'query($input: SamtalaFyrirtaekisInput!){ samtalaFyrirtaekis(input:$input){ companyName rows { species aflamark afli stada } } }', variables: { input: { kennitala: kt, kerfi: 'BAEDI', svaedi: 'INNAN', timabil } } }),
+    });
+    if (r.status === 405) return sjson(out);          // hraðatakmörkun → tómt, endurreynt síðar (ekki cache-að)
+    const j = await r.json().catch(() => null);
+    const d = j && j.data && j.data.samtalaFyrirtaekis;
+    if (d && Array.isArray(d.rows) && d.rows.length) {
+      const rows = d.rows.filter((x) => (+x.aflamark || 0) !== 0 || (+x.afli || 0) !== 0);
+      const ti = rows.find((x) => /Þorskígildi/i.test(x.species || ''));
+      const teg = rows.filter((x) => !/Þorskígildi/i.test(x.species || '')).map((x) => ({ t: x.species, aflamark: +x.aflamark || 0, afli: +x.afli || 0, stada: +x.stada || 0 })).sort((a, b) => b.aflamark - a.aflamark);
+      if (teg.length || ti) out = { kt, holdur: true, timabil, nafn: d.companyName || null, torskigildi: ti ? { aflamark: +ti.aflamark || 0, afli: +ti.afli || 0, stada: +ti.stada || 0 } : null, tegundir: teg.slice(0, 20), nTeg: teg.length };
+    }
+  } catch (e) { return sjson(out); }
+  res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 // ── TEYA GREIÐSLUR (LOTA 82) — Hosted Checkout fyrir „kaupa skýrslu" ──
 // PCI-öruggt: worker býr til checkout-session, notandi fer á session_url hjá Teya sem
 // vinnur kortið (við snertum ALDREI kortagögn). ÓVIRKT þar til TEYA_* secrets eru sett í
@@ -810,6 +849,7 @@ export default {
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
+    if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
