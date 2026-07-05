@@ -16,6 +16,7 @@ import SVPOP from '@gogn/sveitarfelog_pop.json';
 import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
 import GLAEPIR from '@gogn/glaepir.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
+import LEIGA from '@gogn/leiga.json';
 import SVCOORDS from '@gogn/sveitarfelog_coords.json';
 import REGIONGEO from '@gogn/landshlutar.json';
 import SVREV from '@gogn/sveitarfelog_rev.json';
@@ -127,7 +128,14 @@ const finRows = [
 if (p.fin.nidur != null) finRows.push({ l: 'Niðurstaða ársins', txt: fmtNum(p.fin.nidur / 1e3, 0) + ' m.kr' });
 const skuldahlutf = p.fin.skuldir && p.fin.tekjur ? Math.round((p.fin.skuldir / p.fin.tekjur) * 100) : null;
 
-const desc = `Hagvísar fyrir ${p.name}: ${p.idx != null ? `vísitala ${p.idx} (${p.rank}. af ${p.rankTotal}), ` : ''}${p.pop ? groupThousands(p.pop) + ' íbúar, ' : ''}landshluti ${p.region || '—'}. Fjárhagur, atvinnuleysi, húsnæðisverð og lífsgæði úr opinberum gögnum.`;
+// LOTA 83 (SEO): fasteignaverðs-kafli per sveitarfélag — miðar á „fasteignaverð [sveitarfélag]"-leitir
+const FST = (FASTEIGNIR.byMuni || {})[p.name] || null;
+const LEI = (LEIGA.byMuni || {})[p.name] || null;
+const leiguAvoxtun = FST && LEI && FST.m2 && LEI.medM2 ? Math.round(((LEI.medM2 * 12) / (FST.m2 * 1000)) * 1000) / 10 : null;
+
+const desc = FST
+  ? `Fasteignaverð: miðgildi ${groupThousands(FST.m2)} þús.kr/m² (${groupThousands(FST.n)} þinglýst kaup sl. 12 mán)${LEI ? `, leiga ${groupThousands(LEI.medM2)} kr/m² á mánuði` : ''}${leiguAvoxtun ? `, brúttó leiguávöxtun ${String(leiguAvoxtun).replace('.', ',')}%` : ''}. Hagvísar fyrir ${p.name}: ${p.idx != null ? `vísitala ${p.idx} (${p.rank}. af ${p.rankTotal}), ` : ''}${p.pop ? groupThousands(p.pop) + ' íbúar, ' : ''}atvinnuleysi og fjárhagur úr opinberum gögnum.`
+  : `Hagvísar fyrir ${p.name}: ${p.idx != null ? `vísitala ${p.idx} (${p.rank}. af ${p.rankTotal}), ` : ''}${p.pop ? groupThousands(p.pop) + ' íbúar, ' : ''}landshluti ${p.region || '—'}. Fjárhagur, atvinnuleysi, húsnæðisverð og lífsgæði úr opinberum gögnum.`;
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Place', name: p.name,
   ...(p.region ? { containedInPlace: { '@type': 'AdministrativeArea', name: p.region } } : {}),
@@ -136,7 +144,7 @@ const jsonLd = {
 ---
 
 <Layout
-  title={`${p.name} — hagvísar & vísitala | Karp`}
+  title={FST ? `${p.name} — fasteignaverð & hagvísar | Karp` : `${p.name} — hagvísar & vísitala | Karp`}
   description={desc}
   canonical={`https://karp.is/sveitarfelog/${slugify(p.name)}/`}
   jsonLd={jsonLd}
@@ -183,6 +191,26 @@ const jsonLd = {
         </div>
       ))}
     </div>
+
+    {FST && (
+      <>
+        <h2 id="fasteignaverd">🏠 Fasteignaverð — {groupThousands(FST.n)} þinglýst kaup sl. 12 mánuði</h2>
+        <div class="fvv-grid">
+          <div class="fvv-c"><div class="fvv-v">{groupThousands(FST.m2)}</div><div class="fvv-l">þús.kr/m² · miðgildi</div><div class="fvv-s">fjórðungabil {groupThousands(FST.p25)}–{groupThousands(FST.p75)}</div></div>
+          {LEI && LEI.medM2 && <div class="fvv-c"><div class="fvv-v">{groupThousands(LEI.medM2)}</div><div class="fvv-l">kr/m² · leiga á mánuði</div><div class="fvv-s">dæmigerð leiga {groupThousands(LEI.medRent)} kr ({LEIGA.muniYear})</div></div>}
+          {leiguAvoxtun && <div class="fvv-c"><div class="fvv-v gull">{String(leiguAvoxtun).replace('.', ',')}%</div><div class="fvv-l">brúttó leiguávöxtun</div><div class="fvv-s">ársleiga ÷ kaupverð á m²</div></div>}
+        </div>
+        {FST.types && Object.keys(FST.types).length > 0 && (
+          <div class="fvv-chips">
+            {Object.entries(FST.types).map(([t, o]) => (
+              <span class="fvv-chip"><b>{t}</b> {groupThousands(o.m2)} þús/m² · {groupThousands(o.n)} kaup</span>
+            ))}
+          </div>
+        )}
+        <p class="fvv-cta">📄 <a href="/fasteignavakt/">Verðmeta eign — ókeypis skýrsla með sölugrafi, korti og sambærilegum sölum →</a> · <a href="/fasteignir/">Verðþróun alls landsins →</a></p>
+        <p class="fvv-note">ⓘ Miðgildi úr þinglýstum kaupum íbúðarhúsnæðis (kaupskrá HMS, 12 mánuðir){LEI ? ' · leiga úr leiguskrá HMS' : ''} · brúttó ávöxtun er fyrir rekstrarkostnað.</p>
+      </>
+    )}
 
     {hasRadar && (
       <>
@@ -302,6 +330,18 @@ const jsonLd = {
     .stj-m { font-size: 12px; color: #eaf1fb; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-left: 3px solid var(--pc); border-radius: 8px; padding: 5px 10px; }
     .stj-m i { color: #7e8ca6; font-style: normal; margin-left: 6px; font-size: 11px; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    /* 🏠 Fasteignaverðs-kaflinn (LOTA 83, SEO) */
+    .fvv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 8px; }
+    .fvv-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 11px; padding: 12px 14px; }
+    .fvv-v { font-size: 25px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .fvv-v.gull { color: #f6b13b; }
+    .fvv-l { font-size: 11.5px; color: #9fb0c8; margin-top: 2px; }
+    .fvv-s { font-size: 11px; color: #7e8ca6; margin-top: 3px; }
+    .fvv-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .fvv-chip { font-size: 12px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 3px 9px; }
+    .fvv-chip b { color: #f6b13b; font-weight: 600; }
+    .fvv-cta { font-size: 13px; margin: 10px 0 0; } .fvv-cta a { color: #f6b13b; }
+    .fvv-note { font-size: 11.5px; color: #7e8ca6; margin: 6px 0 0; }
   </style>
 
   <!-- Eyja: radar + staðgreiðslu-lína + málaflokka-súlur. astro:page-load (VT). #2 -->
