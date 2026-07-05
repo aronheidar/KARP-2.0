@@ -24,7 +24,7 @@ const jsonLd = {
     <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">📈 Verðþróun markaðarins er á Fasteignir →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">ⓘ</i> Um gögnin á síðunni</p>
 
-    <h2>🔎 Leitaðu og vaktaðu <span class="hint">— Karp Pro (ókeypis aðgangur) · gata, heimilisfang eða póstnúmer; fléttilistinn sækir heimilisföng úr kaupskránni</span></h2>
+    <h2>🔎 Leitaðu og vaktaðu <span class="hint">— Karp Pro (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri (eða veldu sveitarfélag) → leitað í ALLRI fasteignaskránni með fasteignamati og brunabótamati, ekki bara nýlegum sölum</span></h2>
     <div class="row">
       <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
       <input id="fv-q" type="text" maxlength="60" placeholder="T.d. „Melabraut“, „Melabraut 3“ eða „170“" autocomplete="off" list="fv-addr-list" />
@@ -89,6 +89,7 @@ const jsonLd = {
     .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
+    .fv-fsk { border-left: 3px solid #5a6678; padding-left: 8px; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
     .fv-mat { font-size: 10.5px; color: #9fb0c8; background: rgba(255,255,255,.06); border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
@@ -144,6 +145,17 @@ const jsonLd = {
       const fvFetch = () => FV || (FV = fetch('/gogn/kaupskra_nyjast.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const fstFetch = () => FST || (FST = fetch('/gogn/fasteignir.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const uppFetch = () => UPP || (UPP = fetch('/gogn/uppbod.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      // LOTA 64: full fasteignaskrá (nánast allar seldar eignir frá 2006 m/gildandi mati), per póstnúmer
+      let FSK_IDX = null; const FSK = {};
+      const fskIdx = () => FSK_IDX || (FSK_IDX = fetch('/gogn/fasteignaskra/index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const fskPn = (pn) => FSK[pn] || (FSK[pn] = fetch('/gogn/fasteignaskra/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      async function fskRows(sv, raw) {
+        const idx = await fskIdx(); if (!idx) return [];
+        const pnInQ = (String(raw || '').match(/\b(\d{3})\b/) || [])[1];
+        const pns = pnInQ && idx.byPn[pnInQ] ? [pnInQ] : (sv && idx.bySv[sv] ? idx.bySv[sv] : []);
+        if (!pns.length || pns.length > 8) return [];   // of mörg póstnúmer (t.d. Rvk án pn) → krefjast póstnúmers
+        return (await Promise.all(pns.map(fskPn))).filter(Boolean).flat();
+      }
       const fvLoad = () => { try { return JSON.parse(localStorage.getItem(fvKey) || '[]').filter((v) => v && typeof v.q === 'string'); } catch (e) { return []; } };
       const fvSave = (a) => { localStorage.setItem(fvKey, JSON.stringify(a.slice(0, 6))); try { karpPost('/fastvakt', { on: true, vaktir: a.slice(0, 6) }).catch(() => {}); } catch (e) {} };
       const fvNorm = (s) => String(s || '').toLowerCase().trim();
@@ -153,44 +165,46 @@ const jsonLd = {
       const matPct = (r) => (r.mat && r.v ? (r.v >= r.mat ? '+' : '') + Math.round((r.v / r.mat - 1) * 100) + '% v. mat' : '');
       const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b>${r.mat ? ` <span class="fv-mat">${matPct(r)}</span>` : ''}</span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}${r.ar ? ' · byggt ' + r.ar : ''}${r.mat ? ' · fasteignamat ' + fvKr(r.mat) : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}</span></div>`;
       const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}</span></div>`;
+      // Röð fyrir eign úr fasteignaskrá (ekki nýleg sala) — fasteignamat + brunabótamat
+      const fskRow = (r) => `<div class="fi fv-fsk"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — fasteignamat <b class="fv-v">${r.mat ? fvKr(r.mat) : '–'}</b></span><span class="s">${r.fm ? String(r.fm).replace('.', ',') + ' m² · ' : ''}${esc(r.teg)}${r.ar ? ' · byggt ' + r.ar : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}${r.ld ? ' · seldist síðast ' + esc(r.ld) + (r.lv ? ' á ' + fvKr(r.lv) : '') : ''}</span></div>`;
       const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
       const dl = document.getElementById('fv-addr-list');
 
       // ── Fléttilistinn (LOTA 52): heimilisföng úr kaupskránni; val fyllir verðmatið ──
       async function fvSuggest(val) {
         if (!dl) return;
-        const q = fvNorm(val);
-        if (q.length < 2 || /^\d{3}$/.test(q)) { dl.innerHTML = ''; return; }
-        const d = await fvFetch();
-        if (!d || !d.rows) return;
+        const raw = String(val || '');
+        const q = fvNorm(raw.replace(/,?\s*\d{3}\s*$/, '')); // strípa póstnúmer fyrir götu-samsvörun
+        if (q.length < 2) { dl.innerHTML = ''; return; }
         const sv = fvMuniEl.value;
-        const seen = new Set();
-        const opts = [];
-        for (const r of d.rows) {
-          if (sv && r.sv !== sv) continue;
-          if (!fvNorm(r.a).startsWith(q)) continue;
-          const key = r.a + '|' + r.pn;
-          if (seen.has(key)) continue;
+        const [d, reg] = await Promise.all([fvFetch(), fskRows(sv, raw)]);
+        const seen = new Set(), opts = [];
+        const add = (r) => {
+          const t = r.t || r.teg; const key = fvNorm(r.a) + '|' + r.pn;
+          if (seen.has(key) || (sv && r.sv !== sv) || !fvNorm(r.a).startsWith(q)) return;
           seen.add(key);
-          opts.push(`<option value="${esc(r.a)}, ${esc(r.pn)}">${esc(r.sv)} · ${String(r.fm).replace('.', ',')} m² ${esc(r.t)}</option>`);
-          if (opts.length >= 12) break;
-        }
-        dl.innerHTML = opts.join('');
+          opts.push(`<option value="${esc(r.a)}, ${esc(r.pn)}">${esc(r.sv)}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${t ? ' ' + esc(t) : ''}</option>`);
+        };
+        (d && d.rows || []).forEach(add);              // nýlegar sölur fyrst
+        reg.forEach((r) => { if (opts.length < 16) add(r); }); // svo öll fasteignaskráin
+        dl.innerHTML = opts.slice(0, 16).join('');
       }
-      // valið heimilisfang → sjálfvirk stærð + tegund inn í verðmatið
+      // valið heimilisfang → sjálfvirk stærð + tegund inn í verðmatið (kaupskrá fyrst, svo fasteignaskrá)
       async function fvAutofill(val) {
         const m = String(val || '').match(/^(.+?),\s*(\d{3})$/);
         if (!m) return false;
-        const d = await fvFetch();
-        if (!d || !d.rows) return false;
-        const hit = d.rows.find((r) => r.a === m[1].trim() && r.pn === m[2]);
+        const addr = m[1].trim(), pn = m[2];
+        const [d, reg] = await Promise.all([fvFetch(), fskRows('', val)]);
+        const hit = (d && d.rows || []).find((r) => r.a === addr && r.pn === pn)
+          || (reg || []).find((r) => r.a === addr && r.pn === pn);
         if (!hit) return false;
+        const teg = hit.t || hit.teg;
         const aEl = document.getElementById('fvm-addr'), fmEl = document.getElementById('fvm-fm'), tegEl = document.getElementById('fvm-teg');
         if (aEl) aEl.value = hit.a + ', ' + hit.pn;
-        if (fmEl) fmEl.value = Math.round(hit.fm);
-        if (tegEl) tegEl.value = hit.t;
+        if (fmEl && hit.fm) fmEl.value = Math.round(hit.fm);
+        if (tegEl && teg) tegEl.value = teg;
         const note = document.getElementById('fvm-fill');
-        if (note) { note.hidden = false; note.textContent = '✓ Stærð (' + String(hit.fm).replace('.', ',') + ' m²) og tegund (' + hit.t + ') sóttar sjálfkrafa úr kaupskránni — smelltu á Meta.'; }
+        if (note) { note.hidden = false; note.textContent = '✓ ' + (hit.fm ? 'Stærð (' + String(hit.fm).replace('.', ',') + ' m²) og t' : 'T') + 'egund (' + (teg || '') + ') sóttar sjálfkrafa' + (hit.mat ? ' · fasteignamat ' + fvKr(hit.mat) : '') + ' — smelltu á Meta.'; }
         return true;
       }
 
@@ -209,15 +223,20 @@ const jsonLd = {
         res.textContent = 'Sæki kaupskrá…';
         const [d, up] = await Promise.all([fvFetch(), uppFetch()]);
         if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
-        const qq = q.replace(/,\s*\d{3}$/, ''); // „Melabraut 3, 170“ → gata+númer
-        const rows = d.rows.filter((r) => fvMatch(r, sv, fvNorm(qq)));
-        const uppRows = (qq && !/^\d{3}$/.test(qq) && up && up.rows) ? up.rows.filter((x) => fvNorm(x.a).startsWith(fvNorm(qq))) : [];
+        const rawq = fvNorm(fvQ.value);
+        const qq = rawq.replace(/,?\s*\d{3}\s*$/, ''); // „Melabraut 3, 170“ → gata+númer
+        const rows = d.rows.filter((r) => fvMatch(r, sv, qq));
+        const uppRows = (qq && !/^\d{3}$/.test(qq) && up && up.rows) ? up.rows.filter((x) => fvNorm(x.a).startsWith(qq)) : [];
         const uppHtml = uppRows.length ? `<div class="fv-head fv-upph">⚠ ${uppRows.length} nauðungarsölu-auglýsing${uppRows.length === 1 ? '' : 'ar'} passa við leitina</div>` + uppRows.slice(0, 6).map(uppRow).join('') : '';
-        if (!rows.length && !uppRows.length) { res.innerHTML = '<div class="fi"><span class="t">Engin þinglýst sala fannst síðustu 6 mánuði.</span><span class="s">Þinglýsing berst með nokkurra vikna töf — settu götuna á vakt og fáðu póst þegar eitthvað kemur.</span></div>'; return; }
+        // LOTA 64: fasteignaskrá — eignir sem hafa EKKI selst nýlega (birtir fasteignamat/brunabótamat)
+        const reg = await fskRows(sv, fvQ.value);
+        const recentKeys = new Set(rows.map((r) => fvNorm(r.a) + '|' + r.pn));
+        const regRows = reg.filter((r) => (!sv || r.sv === sv) && (qq ? fvNorm(r.a).startsWith(qq) : true) && !recentKeys.has(fvNorm(r.a) + '|' + r.pn));
+        const regHtml = regRows.length ? `<div class="fv-head" style="margin-top:10px">📋 Úr fasteignaskrá — ${regRows.length} eign${regRows.length === 1 ? '' : 'ir'} með gildandi mati (engin nýleg sala)</div>` + regRows.slice(0, 20).map(fskRow).join('') + (regRows.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${regRows.length - 20} til viðbótar.</div>` : '') : '';
+        if (!rows.length && !uppRows.length && !regRows.length) { res.innerHTML = '<div class="fi"><span class="t">Ekkert fannst.</span><span class="s">Sláðu inn heimilisfang með póstnúmeri (t.d. „Brunnstígur 2, 230“) eða veldu sveitarfélag — þá leitum við í allri fasteignaskránni, ekki bara nýlegum sölum.</span></div>'; return; }
         res.innerHTML = uppHtml
-          + (rows.length ? `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${qq ? ' · „' + esc(qq) + '“' : ''}</div>` : '')
-          + rows.slice(0, 25).map(fvRow).join('')
-          + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '');
+          + (rows.length ? `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${qq ? ' · „' + esc(qq) + '“' : ''}</div>` + rows.slice(0, 25).map(fvRow).join('') + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '') : '')
+          + regHtml;
       }
       async function fvRender() {
         const el = document.getElementById('fv-chips');
@@ -337,8 +356,11 @@ const jsonLd = {
           const ratios = streetRows.map((r) => r.v / r.mat).filter((x) => x > 0.2 && x < 5);
           if (ratios.length >= 3) { const pc = Math.round((med(ratios) - 1) * 100); matHtml += `<div class="fvm-signal">🏷️ Eignir í ${esc(street)} seljast að jafnaði <b>${pc >= 0 ? '+' : ''}${pc}%</b> ${pc >= 0 ? 'yfir' : 'undir'} gildandi fasteignamati (${ratios.length} þinglýst kaup).</div>`; }
           const num = raw.replace(/\b\d{3}\b/g, '').match(/\d+\s*[a-zæöðáéíóúý]?/i);
-          const self = num ? d.rows.find((r) => fvNorm(r.a) === fvNorm(street + ' ' + num[0].trim()) && (!pn || r.pn === pn) && r.mat > 0) : null;
-          if (self) matHtml += `<div class="fvm-anchor">📋 Skráð fasteignamat <b>${esc(self.a)}</b>: <b>${mkr(self.mat)}</b>${self.matN ? ' (fyrirhugað ' + mkr(self.matN) + ')' : ''}${self.bruna ? ' · brunabótamat ' + mkr(self.bruna) : ''}${self.ar ? ' · byggt ' + self.ar : ''} — seldist á ${mkr(self.v)}${self.d ? ' (' + dIS(self.d) + ')' : ''}.</div>`;
+          const selfAddr = num ? fvNorm(street + ' ' + num[0].trim()) : null;
+          // akkeri: leita fyrst í nýlegum sölum, svo í ALLRI fasteignaskránni (LOTA 64)
+          let self = selfAddr ? d.rows.find((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn) && r.mat > 0) : null;
+          if (!self && selfAddr) { const reg = await fskRows(sv2 || '', raw); self = (reg || []).find((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn) && r.mat > 0); }
+          if (self) { const soldTxt = self.v ? ' — seldist á ' + mkr(self.v) + (self.d ? ' (' + dIS(self.d) + ')' : '') : (self.lv ? ' — seldist síðast á ' + mkr(self.lv) + (self.ld ? ' (' + self.ld + ')' : '') : ''); matHtml += `<div class="fvm-anchor">📋 Skráð fasteignamat <b>${esc(self.a)}</b>: <b>${mkr(self.mat)}</b>${self.matN ? ' (fyrirhugað ' + mkr(self.matN) + ')' : ''}${self.bruna ? ' · brunabótamat ' + mkr(self.bruna) : ''}${self.ar ? ' · byggt ' + self.ar : ''}${soldTxt}.</div>`; }
         } catch (e) {}
         // Skýrslu-útgáfan (LOTA 53/54): prentvæn — @media print einangrar #fvm-report
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS</span></div><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)} <span class="fv-sv">(fjórðungabil kaupverðs á m²)</span></div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div>${matHtml}${svCtx}<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div><div class="fvm-note">Tölfræðileg nálgun úr opinberri kaupskrá HMS (þinglýst kaup) — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega út fyrir bilið.</div></div><button id="fvm-print" class="cta" style="margin-top:10px">🖨️ Vista sem skýrslu (PDF/prenta)</button>`;

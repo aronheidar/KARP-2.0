@@ -75,6 +75,7 @@ jobs:
       - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo)
         run: |
           node skriptur/build_fasteignir.js   || true
+          node skriptur/build_fasteignaskra.js || true
           node skriptur/build_leiga.js        || true
           node skriptur/build_atvinnuleysi.js || true
           node skriptur/build_glaepir.js      || true
