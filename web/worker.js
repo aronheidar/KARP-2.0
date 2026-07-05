@@ -242,6 +242,36 @@ async function augment(env, q) {
   return parts;
 }
 
+// LOTA 80: draga fyrirtækjanafn/kt úr spurningu — orða-sía (\b virkar ekki á íslenska stafi í JS)
+const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar']);
+function firmaNafn(q) {
+  const kt = (String(q).match(/\b(\d{6}-?\d{4})\b/) || [])[1];
+  if (kt) return kt.replace('-', '');
+  return String(q).toLowerCase().replace(/[?.!,]/g, ' ').split(/\s+/).filter((w) => w && !FIRMA_STOP.has(w)).join(' ').trim();
+}
+// lifandi fyrirtækja-uppfletting fyrir Spyrðu Karp (eigendur, vanskil, grunnur — sömu veitur og /fyrirtaeki)
+async function firmaLookup(q, ctx) {
+  const nafn = firmaNafn(q);
+  if (nafn.length < 2) return null;
+  const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), ctx); return r.json().catch(() => null); };
+  let d = await call(nafn);
+  let f = d && d.felag;
+  if (!f && d && d.hits && d.hits.length) { const d2 = await call(d.hits[0].kt); f = d2 && d2.felag; }
+  if (!f) return null;
+  const bits = ['FYRIRTÆKI ' + f.nafn + ' (kt. ' + f.kt + ')' + (f.afskrad ? ' — AFSKRÁÐ' : '') + (f.form ? ', ' + f.form : '') + (f.logheimili ? ', ' + f.logheimili : '') + '.'];
+  if (f.eigendur && f.eigendur.length) bits.push('Raunverulegir eigendur: ' + f.eigendur.map((e) => e.nafn + (e.hlutur ? ' (' + e.hlutur + ')' : '') + (e.tegund ? ' – ' + e.tegund : '')).join('; ') + '.');
+  else if (f.eigendurTomt) bits.push('Enginn einstaklingur skráður með raunverulegt eignarhald >25% (dæmigert fyrir skráð félög/dreift eignarhald).');
+  if ((f.radamenn || []).length) bits.push('Forráðamaður: ' + f.radamenn.join(', ') + '.');
+  if (f.isat && f.isat.length) bits.push('Atvinnugrein (ÍSAT): ' + f.isat.slice(0, 2).join('; ') + '.');
+  try {
+    const vr = await vanskilHandler(new Request('https://k.internal/api/vanskil?kt=' + f.kt), ctx);
+    const vd = await vr.json().catch(() => null);
+    if (vd && Array.isArray(vd.ar) && vd.ar.length) bits.push('⚠ Í vanskilum með ársreikningaskil: ' + vd.ar.map((x) => x.ar + ' (' + x.vanskil + ')').join(', ') + '.');
+    else if (vd && Array.isArray(vd.ar)) bits.push('Engin vanskil á ársreikningaskilum (rekstrarár ' + (vd.skodud || []).join('/') + ').');
+  } catch (e) {}
+  return bits.join(' ').slice(0, 850) + ' (sjá /fyrirtaeki/)';
+}
+
 async function spyrduHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   if (!env.ANTHROPIC_API_KEY) return sjson({ error: 'unconfigured' });
@@ -267,6 +297,10 @@ async function spyrduHandler(request, env, ctx) {
     try { SPYRDU_CTX = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/spyrdu_context.json'))).json(); } catch (e) { SPYRDU_CTX = { text: '', pages: '', updated: '' }; }
   }
   const aug = await augment(env, q);
+  // LOTA 80: lifandi fyrirtækja-uppfletting (eigendur/vanskil/grunnur) þegar spurt er um félag
+  if (aug.length < 3 && /\b(eigend|eigandi|hver á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé)/i.test(q)) {
+    try { const t = await firmaLookup(q, ctx); if (t) aug.push(t); } catch (e) {}
+  }
   const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, skýrt og hnitmiðað (að hámarki ~170 orð); notaðu stutta upptalningu þegar bornar eru saman tölur. Notaðu EINGÖNGU staðreyndirnar og lifandi tölurnar hér að neðan og vísaðu alltaf á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í gögnunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text
     + (aug.length ? '\n\nLIFANDI TÖLUR SEM EIGA VIÐ SPURNINGUNA:\n' + aug.join('\n') : '')
     + '\n\nSÍÐUR VEFJARINS:\n' + SPYRDU_CTX.pages;
