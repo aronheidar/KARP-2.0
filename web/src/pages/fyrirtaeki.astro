@@ -294,9 +294,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   ? '<span class="fs-van bad">⚠ Í vanskilum með ársreikning: ' + v.ar.map((x) => escF(String(x.ar)) + ' (' + escF(x.vanskil) + ')').join(' · ') + '</span> <span class="fs-vansub">opinber listi ársreikningaskrár Skattsins</span>'
                   : '<span class="fs-van ok">✓ Engin vanskil á ársreikningaskilum</span> <span class="fs-vansub">rekstrarár ' + v.skodud.join(' og ') + ' · ársreikningaskrá Skattsins</span>';
               }).catch(() => {});
-              // 🐟 Aflaheimildir (LOTA 84) — AÐEINS fiskveiðifélög (ÍSAT 03) → kvótastaða úr Gagnavef Fiskistofu
-              if ((d.felag.isat || []).some((x) => /(^|\s)03[.\s]/.test(String(x)) || /^03/.test(String(x)))) {
-                const tonn = (kg) => (Math.round((+kg / 1000) * 10) / 10).toLocaleString('is') + ' t';
+              // 🐟 Aflaheimildir (LOTA 84) — AÐEINS sjávarútvegs-geirinn (ÍSAT 03 fiskveiðar/fiskeldi,
+              // 10.2 fiskvinnsla — t.d. Brim=10.20.1, 46.38 fiskheildsala) → kvótastaða úr Gagnavef Fiskistofu
+              if ((d.felag.isat || []).some((x) => /^(03|10\.2|46\.38)/.test(String(x).trim()))) {
+                const tonn = (kg) => { const [i, dd] = (Math.round((+kg / 1000) * 10) / 10).toFixed(1).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + dd + ' t'; };
                 fetch('/api/kvoti?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((q) => {
                   const el = document.getElementById('fs-kvoti');
                   if (!el || !q || !q.holdur) return;
