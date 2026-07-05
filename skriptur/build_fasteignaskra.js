@@ -26,11 +26,16 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     dt: H.indexOf('THINGLYSTDAGS'), kv: H.indexOf('KAUPVERD'), teg: H.indexOf('TEGUND'), on: H.indexOf('ONOTHAEFUR_SAMNINGUR'),
     mat: H.indexOf('FASTEIGNAMAT_GILDANDI'), matN: H.indexOf('FYRIRHUGAD_FASTEIGNAMAT'), bruna: H.indexOf('BRUNABOTAMAT_GILDANDI'),
     ar: H.indexOf('BYGGAR'), flm: H.indexOf('EINFLM'), fastnum: H.indexOf('FASTNUM'),
-    herb: H.indexOf('FJHERB'), lod: H.indexOf('LOD_FLM'),
+    herb: H.indexOf('FJHERB'), lod: H.indexOf('LOD_FLM'), fb: H.indexOf('FULLBUID'),
   };
   // lykill per eign = FASTNUM (stöðugt) — annars heimilisfang+pn. Halda NÝJUSTU sölu.
   const props = new Map();
   let total = 0;
+  const num = (v) => { const n = +v; return n > 0 ? n : null; };
+  const flmOf = (v) => Math.round((parseFloat((v || '').replace(',', '.')) || 0) * 10) / 10 || null;
+  // SÖLUSAGA (LOTA 67): ALLAR gildar sölur sl. ~5,5 ár per póstnúmer → sölugraf + sambærilegar
+  const SOLU_FRA = new Date(Date.now() - 2010 * 864e5).toISOString().slice(0, 10);
+  const salesByPn = {};
   for (let k = 1; k < lines.length; k++) {
     const c = lines[k].split(';'); if (c.length < H.length) continue;
     if ((c[i.on] || '').trim() !== '0') continue;
@@ -38,16 +43,25 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     const a = (c[i.hf] || '').trim(), pn = (c[i.pn] || '').trim();
     if (!a || !/^\d{3}$/.test(pn)) continue;
     const d = (c[i.dt] || '').slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+    const teg = (c[i.teg] || '').trim();
+    const kvN = num(c[i.kv]), fmN = flmOf(c[i.flm]);
+    // sölusaga: hver þinglýst sala (eign getur selst oft) innan glugga með gilt verð+stærð
+    if (d >= SOLU_FRA && kvN && fmN && fmN > 15) {
+      (salesByPn[pn] = salesByPn[pn] || []).push({
+        a, d, kv: kvN, fm: fmN, teg, herb: num(c[i.herb]), ar: num(c[i.ar]),
+        ppm: Math.round((kvN * 1000) / fmN),               // verð á m² í kr
+      });
+    }
     const key = (c[i.fastnum] || '').trim() || (a.toLowerCase() + '|' + pn);
     const prev = props.get(key);
     if (prev && prev.d >= d) continue;                 // höldum nýjustu sölu
-    const num = (v) => { const n = +v; return n > 0 ? n : null; };
     props.set(key, {
-      a, pn, sv: (c[i.sv] || '').trim(), teg: (c[i.teg] || '').trim(),
+      a, pn, sv: (c[i.sv] || '').trim(), teg,
+      fnr: (c[i.fastnum] || '').trim() || null, full: (c[i.fb] || '').trim() === '1' ? 1 : 0,
       mat: num(c[i.mat]), matN: num(c[i.matN]), bruna: num(c[i.bruna]),
-      ar: num(c[i.ar]), fm: Math.round((parseFloat((c[i.flm] || '').replace(',', '.')) || 0) * 10) / 10 || null,
-      herb: num(c[i.herb]), lod: Math.round(parseFloat((c[i.lod] || '').replace(',', '.')) || 0) || null,
-      ld: d.slice(0, 7), lv: num(c[i.kv]),               // síðasta sala: mánuður + verð (þús.kr)
+      ar: num(c[i.ar]), fm: fmN, herb: num(c[i.herb]),
+      lod: Math.round(parseFloat((c[i.lod] || '').replace(',', '.')) || 0) || null,
+      ld: d.slice(0, 7), lv: kvN,                          // síðasta sala: mánuður + verð (þús.kr)
     });
     total++;
   }
@@ -81,4 +95,19 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
   fs.writeFileSync(path.join(OUT, 'gotur.json'), gs);
   console.log('gotur.json:', Object.keys(gArr).length, 'einkvæm götunöfn |', (gs.length / 1024).toFixed(0), 'KB');
   console.log('fasteignaskra:', props.size, 'eignir í', Object.keys(byPn).length, 'póstnúmerum |', (bytes / 1024 / 1024).toFixed(1), 'MB alls | stærsta pn:', Object.entries(index).sort((a, b) => b[1] - a[1])[0].join('='));
+
+  // ── SÖLUSAGA per póstnúmer (LOTA 67): sölugraf + sambærilegar eignir ──
+  const SOL = path.join(OUT, '..', 'solusaga');
+  fs.rmSync(SOL, { recursive: true, force: true });
+  fs.mkdirSync(SOL, { recursive: true });
+  let solBytes = 0, solN = 0;
+  const solIdx = {};
+  for (const pn of Object.keys(salesByPn)) {
+    const arr = salesByPn[pn].sort((a, b) => b.d.localeCompare(a.d));   // nýjast fyrst
+    const s = JSON.stringify(arr);
+    fs.writeFileSync(path.join(SOL, pn + '.json'), s);
+    solBytes += s.length; solN += arr.length; solIdx[pn] = arr.length;
+  }
+  fs.writeFileSync(path.join(SOL, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), fra: SOLU_FRA, n: solN, byPn: solIdx }));
+  console.log('solusaga:', solN, 'sölur (frá ' + SOLU_FRA + ') í', Object.keys(salesByPn).length, 'póstnúmerum |', (solBytes / 1024 / 1024).toFixed(1), 'MB');
 })().catch((e) => { console.error('ERR', e); process.exit(1); });
