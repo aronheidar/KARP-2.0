@@ -98,6 +98,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ph { border: 1.5px dashed rgba(255,255,255,.22); border-radius: 11px; padding: 11px 13px; background: rgba(255,255,255,.02); }
     .fs-ph b { display: block; color: #9fb0c8; font-size: 13px; margin-bottom: 4px; }
     .fs-ph span { color: #7e8ca6; font-size: 11.5px; line-height: 1.5; }
+    .fs-ph a { color: #f6b13b; }
+    .fs-ph.filled { border-style: solid; border-color: rgba(66,208,134,.32); background: rgba(66,208,134,.05); }
+    .fs-ph.filled b { color: #eaf1fb; }
+    .fs-eig { font-size: 12.5px; color: #cdd6e6; padding: 5px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .fs-eig:first-of-type { border-top: none; }
+    .fs-eig > b { display: inline; color: #eaf1fb; font-size: 13px; }
+    .fs-eig-h { color: #f6b13b; font-weight: 700; }
+    .fs-eig-s { display: block; color: #7e8ca6; font-size: 11px; margin-top: 1px; }
+    .fs-ph-src { display: block; color: #6b7688; font-size: 10.5px; margin-top: 8px; font-style: italic; }
+    body.fs-printing #fs-report .fs-ph.filled { border-color: #9ad9b5 !important; background: #f2fbf6 !important; }
+    body.fs-printing #fs-report .fs-eig, body.fs-printing #fs-report .fs-eig > b { color: #222 !important; }
+    body.fs-printing #fs-report .fs-eig-s, body.fs-printing #fs-report .fs-ph-src { color: #555 !important; }
     .fs-note2 { font-size: 11.5px; color: #7e8ca6; margin-top: 14px; line-height: 1.5; border-top: 1px solid rgba(255,255,255,.07); padding-top: 10px; }
     .fs-buyrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
     .fs-buy { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
@@ -163,6 +175,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const isat = (f.isat || []).map((x) => `<span class="fs-chip">${escF(x)}</span>`).join('');
       const vsk = (f.vsk || []).map((v) => `<span class="fs-chip"><b>${escF(v.nr)}</b> skráð ${escF(v.skrad || '–')}${v.afskrad ? ' · afskráð ' + escF(v.afskrad) : ''}</span>`).join('');
       const ars = (f.arsreikningar || []).slice(0, 5).map((a) => `<span class="fs-chip"><b>${escF(a.ar)}</b>${a.skil ? ' skilað ' + escF(a.skil) : ''}</span>`).join('');
+      // LOTA 74: raunverulegir eigendur eru OPNIR á RSK-detail-síðunni — fyllum eigenda-hólfið
+      const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
       return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}">🔔 Vakta félagið</button></div>
@@ -187,13 +201,17 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             <a class="fs-link" id="fs-tilk" href="/frettir/"><span class="t">📣 Kauphallartilkynningar</span><div class="s">athuga Nasdaq-veituna…</div></a>
             ${rsk ? `<a class="fs-link" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : ''}
           </div>
-          <div class="fs-sub">Fjárhagur, eigendur og stjórn — grindin er tilbúin</div>
+          <div class="fs-sub">Eigendur, fjárhagur og stjórn</div>
           <div class="fs-ph-grid">
-            <div class="fs-ph"><b>📊 Ársreikningar í tölum</b><span>Tekjur, afkoma, eigið fé og lykilkennitölur síðustu ára — hólfið fyllist sjálfkrafa þegar aðgangur Karp að ársreikningaskrá Skattsins opnast (API-umsókn í ferli).</span></div>
-            <div class="fs-ph"><b>👥 Eigendur & raunverulegir eigendur</b><span>Hluthafalisti og skráðir raunverulegir eigendur — sama API-aðgangs beðið.</span></div>
-            <div class="fs-ph"><b>🪑 Stjórn, framkvæmdastjóri & prókúra</b><span>Stjórnarmenn, framkvæmdastjórn og prókúruhafar — sama API-aðgangs beðið. Forráðamaður úr fyrirtækjaskrá birtist hér að ofan strax.</span></div>
+            ${eig
+              ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b>${eig}<span class="fs-ph-src">Skráðir raunverulegir eigendur (>25% eða yfirráð) — fyrirtækjaskrá Skattsins</span></div>`
+              : (f.eigendurTomt
+                ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b><span>Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir skráð félög og dreift eignarhald.</span></div>`
+                : `<div class="fs-ph"><b>👥 Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
+            <div class="fs-ph"><b>📊 Ársreikningar í tölum</b><span>Tekjur, afkoma og eigið fé — Skatturinn birtir ársreikningana á rafrænu formi án endurgjalds${rsk ? `; <a href="${escF(rsk)}" target="_blank" rel="noopener">sæktu þá hjá Skattinum</a>` : ''}. Sjálfvirkur lykiltölu-lestur bíður API-aðgangs.</span></div>
+            <div class="fs-ph"><b>🪑 Stjórn & prókúra</b><span>${(f.radamenn || []).length ? 'Forráðamaður: <b style="color:#cdd6e6">' + escF((f.radamenn || []).join(' · ')) + '</b>. ' : ''}Fullur stjórnarlisti og prókúruhafar bíða API-aðgangs að hlutafélagaskrá.</span></div>
           </div>
-          <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
+          <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>
         <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button">🛒 Kaupa skýrslu — 0 kr.</button><span class="fs-buynote">Kynningarverð · opnast sem PDF til að vista eða prenta</span></div>`;

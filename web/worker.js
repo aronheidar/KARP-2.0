@@ -618,6 +618,25 @@ function rskFelag(html) {
       if (f.arsreikningar.length >= 8) break;
     }
   }
+  // Raunverulegir eigendur (LOTA 74) — birt OPINN á detail-síðunni (var talið API-bundið!).
+  // Hvert nafn í <h4>, svo tafla: fæðingarár/mán · búseta · ríkisfang · eignarhlutur · tegund.
+  const iE = html.indexOf('Raunverulegir eigendur');
+  if (iE >= 0) {
+    let eseg = html.slice(iE, iE + 9000);
+    const end = eseg.search(/Leit í fyrirtækjaskrá|<h3/i);
+    if (end > 40) eseg = eseg.slice(0, end);
+    const eig = [];
+    for (const p of eseg.split(/<h4>/i).slice(1)) {
+      const nafn = rskText((p.match(/^([\s\S]*?)<\/h4>/) || [])[1] || '');
+      if (!nafn) continue;
+      const tb = p.match(/<tbody>([\s\S]*?)<\/tbody>/i);
+      const c = tb ? [...tb[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => rskText(x[1])) : [];
+      eig.push({ nafn, faeding: c[0] || null, buseta: (c[1] || '').replace(/\.$/, '') || null, rikisfang: c[2] || null, hlutur: c[3] && c[3] !== '-' ? c[3] : null, tegund: c[4] || null });
+      if (eig.length >= 20) break;
+    }
+    if (eig.length) f.eigendur = eig;
+    else f.eigendurTomt = true;   // svæðið til en enginn skráður (>25%) → aðgreint frá "ekki flett upp"
+  }
   return f;
 }
 // ⚠ VANSKIL Á ÁRSREIKNINGASKILUM (LOTA 73) — opinber listi ársreikningaskrár RSK
