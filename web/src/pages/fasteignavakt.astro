@@ -209,7 +209,7 @@ const jsonLd = {
   </style>
 
   <script>
-    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -321,7 +321,7 @@ const jsonLd = {
       // LOTA 54: fasteignavaktin er Karp Pro (ókeypis aðgangur) — leit+vaktir læstar,
       // uppboðin (opinberar auglýsingar) sjást öllum sem forsmekkur.
       let USER = null;
-      const proTease = '<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="/login/">Innskráning</a></div></div>';
+      const proTease = () => `<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
       async function fvSearch() {
         const res = document.getElementById('fv-res');
         if (!res) return;
@@ -329,7 +329,7 @@ const jsonLd = {
         if (!sv && q.length < 2) { res.hidden = true; return; }
         res.hidden = false;
         if (USER === null) USER = await loadUser().catch(() => null);
-        if (!USER || !USER.loggedIn) { res.innerHTML = proTease; return; }
+        if (!USER || !USER.loggedIn) { res.innerHTML = proTease(); return; }
         res.textContent = 'Sæki kaupskrá…';
         const [d, up] = await Promise.all([fvFetch(), uppFetch()]);
         if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
@@ -380,7 +380,7 @@ const jsonLd = {
         });
       }
       function fvAdd() {
-        if (!USER || !USER.loggedIn) { const res = document.getElementById('fv-res'); if (res) { res.hidden = false; res.innerHTML = proTease; } return; }
+        if (!USER || !USER.loggedIn) { const res = document.getElementById('fv-res'); if (res) { res.hidden = false; res.innerHTML = proTease(); } return; }
         const q = (fvQ.value || '').trim().replace(/,\s*\d{3}$/, '').slice(0, 40), sv = fvMuniEl.value;
         if (q.length < 2 && !sv) return;
         const a = fvLoad();
@@ -498,7 +498,7 @@ const jsonLd = {
         fvmOut.hidden = false;
         const u = await loadUser().catch(() => null);
         if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = '<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="/login/">Innskráning</a></div></div>';
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         fvmOut.textContent = 'Reikna úr kaupskránni…';

@@ -164,7 +164,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
 
   <!-- Eyja: mínar vaktir (auth) + lifandi útboð (worker-proxy). #2 LOTA 16 -->
   <script>
-    import { loadUser, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
@@ -241,7 +241,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           } catch (e) {
             dgOn.checked = false;
             dgNote.hidden = false;
-            dgNote.innerHTML = 'Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis) — <a href="/login/" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.';
+            dgNote.innerHTML = `Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis) — <a href="${loginHref()}" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.`;
           }
         });
       }
@@ -341,7 +341,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
         // Pro-læsing: niðurstaðan er fyrir innskráða (ókeypis aðgangur)
         const u = await loadUser().catch(() => null);
         if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = '<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="/login/">Innskráning</a></div></div>';
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         fvmOut.textContent = 'Reikna úr kaupskránni…';

@@ -1,236 +1,262 @@
 <!--
   ============================================================================
-  KARP — Ultimate Member póstsniðmát (dökkt + teal, íslenska)
+  KARP — Ultimate Member póstsniðmát v2 (LOTA 72, 5.7.2026)
   ============================================================================
-  Notkun: Ultimate Member -> Settings -> Email -> opnaðu hvern póst, kveiktu á
-  honum (Enable), settu efnislínuna (Subject) og límdu HTML-blokkina í body.
+  Endurgerð í GULL-brandinu (samræmt vaktpóstum + vikuyfirlitinu) í stað gamla
+  teal-mælaborðs-útlitsins; hlekkir uppfærðir á nýja karp.is (Astro) — gamli
+  /#profile hash-hlekkurinn er dauður.
 
-  UM-merki (placeholders) sem notuð eru: {display_name}, {site_name}, {site_url},
-  {admin_email}, {password_reset_link}. UM sýnir tiltæk merki hægra megin í
-  póst-ritlinum — ef {password_reset_link} birtist ekki rétt, athugaðu listann þar.
+  NOTKUN (wp.karp.is/wp-admin):
+    Ultimate Member → Settings → Email
+    → efst: kveikja á "Use HTML for E-mails" (annars birtist hrátt HTML!)
+    → opnaðu hvern póst: Enable ✓ · límdu Subject-línuna · límdu HTML-blokkina í body
+
+  UM-merki (placeholders): {display_name}, {site_name}, {site_url}, {admin_email},
+  {password_reset_link}, {account_activation_link} — UM sýnir tiltæk merki í
+  ritlinum hægra megin; ef merki birtist ekki þar er það ekki stutt í þeim pósti.
+
+  PÓSTARNIR (7):
+    1) Account Activation   — staðfesta netfang (ef "Require Email Activation" er á)
+    2) Account Welcome      — velkomin/n, vörulistinn + CTA á Mitt svæði
+    3) Password Reset       — endurstilla lykilorð
+    4) Password Changed     — lykilorð uppfært (öryggistilkynning)
+    5) Account Deactivated  — aðgangur gerður óvirkur
+    6) Account Deleted      — aðgangi eytt
+    7) Profile Updated      — prófíll uppfærður
   ============================================================================
 -->
 
 
 <!-- =====================================================================
-     1) ACCOUNT WELCOME EMAIL  (uppfært: takki -> https://karp.is/#profile)
+     1) ACCOUNT ACTIVATION EMAIL
+     Subject: Staðfestu netfangið þitt á Karp ✉️
+     ===================================================================== -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">✉️</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Eitt skref eftir, {display_name}</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Smelltu á takkann til að staðfesta netfangið þitt og virkja aðganginn þinn að Karp.</p>
+      </td></tr>
+      <tr><td align="center" style="padding:26px 36px 8px;">
+        <a href="{account_activation_link}" style="display:inline-block;background:#f6b13b;color:#131a29;font-size:16px;font-weight:800;text-decoration:none;padding:14px 38px;border-radius:10px;">Staðfesta netfangið &rarr;</a>
+      </td></tr>
+      <tr><td style="padding:16px 36px 8px;text-align:center;">
+        <p style="margin:0;font-size:12.5px;line-height:1.6;color:#8a93a8;">Ef takkinn virkar ekki, afritaðu hlekkinn í vafrann:<br><a href="{account_activation_link}" style="color:#f6b13b;text-decoration:none;word-break:break-all;">{account_activation_link}</a></p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="font-size:13px;color:#7e8ca6;">Stofnaðir þú ekki aðganginn? Þá máttu hunsa þennan póst.</div>
+        <div style="margin-top:12px;"><a href="https://karp.is/" style="color:#f6b13b;text-decoration:none;font-size:13px;font-weight:700;">karp.is</a></div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Þú fékkst þennan póst því aðgangur var stofnaður með þessu netfangi á <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- =====================================================================
+     2) ACCOUNT WELCOME EMAIL
      Subject: Velkomin/n í Karp 🎉 — aðgangurinn þinn er virkur
      ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">🎉</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Velkomin/n í Karp!</h1>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, aðgangurinn þinn er virkur. Þú ert komin/n með þitt eigið svæði á lifandi mælaborði um íslenskt efnahagslíf, stjórnmál og samfélag.</p>
-        </td></tr>
-        <tr><td align="center" style="padding:28px 36px 10px;">
-          <a href="https://karp.is/#profile" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:15px 40px;border-radius:11px;">Opna Karp &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:22px 36px 6px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7e8ca6;padding-bottom:6px;">Það sem bíður þín</div>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="padding:11px 0;font-size:14.5px;color:#cdd6e6;line-height:1.55;"><span style="color:#19d3c5;font-weight:700;">🗳️ Stefnupróf</span> — svaraðu þingmálum og sjáðu hvaða flokki þú ert sammála.</td></tr>
-            <tr><td style="padding:11px 0;font-size:14.5px;color:#cdd6e6;line-height:1.55;border-top:1px solid #18202c;"><span style="color:#19d3c5;font-weight:700;">📊 Mitt svæði</span> — kjóstu um þingmál, fylgstu með þingmönnum og vistaðu uppáhalds-gröfin.</td></tr>
-            <tr><td style="padding:11px 0;font-size:14.5px;color:#cdd6e6;line-height:1.55;border-top:1px solid #18202c;"><span style="color:#19d3c5;font-weight:700;">🔮 Spár &amp; kannanir</span> — taktu þátt í púlsinum og spáðu fyrir um hagtölurnar.</td></tr>
-          </table>
-        </td></tr>
-        <tr><td style="padding:18px 36px 4px;">
-          <p style="margin:0;font-size:13px;line-height:1.6;color:#9aa7bd;">Spurningar eða eitthvað sem klikkar? Sendu okkur línu á <a href="mailto:{admin_email}" style="color:#19d3c5;text-decoration:none;">{admin_email}</a>.</p>
-        </td></tr>
-        <tr><td style="padding:24px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:14px;color:#cdd6e6;font-weight:600;">Sjáumst á Karp 👋</div>
-          <div style="font-size:13px;color:#7e8ca6;margin-top:3px;">— Karp-teymið</div>
-          <div style="margin-top:16px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Þú fékkst þennan póst því aðgangur var stofnaður á <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
-      </table>
-    </td>
-  </tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">🎉</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Velkomin/n í Karp, {display_name}!</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Aðgangurinn þinn er virkur — og með honum opnast Karp Pro: vaktir, verðmat, fyrirtækjaskráin og vikuyfirlitið. Allt ókeypis.</p>
+      </td></tr>
+      <tr><td align="center" style="padding:24px 36px 8px;">
+        <a href="https://karp.is/mitt-svaedi/" style="display:inline-block;background:#f6b13b;color:#131a29;font-size:16px;font-weight:800;text-decoration:none;padding:14px 38px;border-radius:10px;">Opna Mitt svæði &rarr;</a>
+      </td></tr>
+      <tr><td style="padding:20px 36px 4px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#7e8ca6;padding-bottom:4px;">Það sem opnaðist núna</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="padding:10px 0;font-size:14px;color:#cdd6e6;line-height:1.55;"><a href="https://karp.is/vaktir/" style="color:#f6b13b;font-weight:700;text-decoration:none;">🔔 Vaktir</a> — leitarorð, gatan þín og útboð; tölvupóstur um leið og eitthvað gerist — og <b style="color:#eaf1fb;">📬 vikuyfirlitið</b> á mánudagsmorgnum.</td></tr>
+          <tr><td style="padding:10px 0;font-size:14px;color:#cdd6e6;line-height:1.55;border-top:1px solid #1d2733;"><a href="https://karp.is/fasteignavakt/" style="color:#f6b13b;font-weight:700;text-decoration:none;">🏠 Verðmat fasteigna</a> — skýrsla úr kaupskrá HMS með sölugrafi, korti og sambærilegum sölum.</td></tr>
+          <tr><td style="padding:10px 0;font-size:14px;color:#cdd6e6;line-height:1.55;border-top:1px solid #1d2733;"><a href="https://karp.is/fyrirtaeki/" style="color:#f6b13b;font-weight:700;text-decoration:none;">🏢 Fyrirtækjaskráin</a> — flettu upp félagi og sjáðu umfjöllun, ríkisviðskipti og útboð á einum stað.</td></tr>
+          <tr><td style="padding:10px 0;font-size:14px;color:#cdd6e6;line-height:1.55;border-top:1px solid #1d2733;"><a href="https://karp.is/spyrdu/" style="color:#f6b13b;font-weight:700;text-decoration:none;">🐟 Spyrðu Karp</a> — spurðu gervigreindina um þingið, hagtölurnar og sveitarfélögin.</td></tr>
+          <tr><td style="padding:10px 0;font-size:14px;color:#cdd6e6;line-height:1.55;border-top:1px solid #1d2733;"><a href="https://karp.is/stefnuprof/" style="color:#f6b13b;font-weight:700;text-decoration:none;">🗳️ Stefnuprófið</a> — svaraðu alvöru þingmálum og sjáðu hvaða flokki þú ert sammála.</td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:14px 36px 4px;">
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#9aa7bd;">Spurningar eða eitthvað sem klikkar? Sendu línu á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</p>
+      </td></tr>
+      <tr><td style="padding:22px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="font-size:14px;color:#cdd6e6;font-weight:600;">Sjáumst á Karp 👋</div>
+        <div style="font-size:13px;color:#7e8ca6;margin-top:3px;">— Karp-teymið</div>
+        <div style="margin-top:14px;"><a href="https://karp.is/" style="color:#f6b13b;text-decoration:none;font-size:13px;font-weight:700;">karp.is</a></div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Þú fékkst þennan póst því aðgangur var stofnaður á <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
 </table>
 
 
 <!-- =====================================================================
-     2) ACCOUNT DEACTIVATED EMAIL
+     3) PASSWORD RESET EMAIL
+     Subject: Endurstilltu lykilorðið þitt á Karp 🔑
+     ===================================================================== -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">🔑</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Endurstilla lykilorð</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name} — beiðni barst um að endurstilla lykilorðið þitt á Karp. Smelltu á takkann til að velja nýtt.</p>
+      </td></tr>
+      <tr><td align="center" style="padding:26px 36px 8px;">
+        <a href="{password_reset_link}" style="display:inline-block;background:#f6b13b;color:#131a29;font-size:16px;font-weight:800;text-decoration:none;padding:14px 38px;border-radius:10px;">Velja nýtt lykilorð &rarr;</a>
+      </td></tr>
+      <tr><td style="padding:16px 36px 8px;text-align:center;">
+        <p style="margin:0;font-size:12.5px;line-height:1.6;color:#8a93a8;">Ef takkinn virkar ekki, afritaðu hlekkinn í vafrann:<br><a href="{password_reset_link}" style="color:#f6b13b;text-decoration:none;word-break:break-all;">{password_reset_link}</a></p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="font-size:13px;color:#7e8ca6;line-height:1.6;">Baðst þú ekki um þetta? Þá máttu hunsa póstinn — lykilorðið þitt er óbreytt þar til hlekkurinn er notaður.</div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Sent frá <a href="{site_url}" style="color:#5a6679;">{site_name}</a> að beiðni um endurstillingu lykilorðs.</td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- =====================================================================
+     4) PASSWORD CHANGED EMAIL
+     Subject: Lykilorðið þitt á Karp var uppfært ✅
+     ===================================================================== -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">✅</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Lykilorðið var uppfært</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name} — þetta er staðfesting á að lykilorðinu þínu á Karp var breytt rétt í þessu.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 10px;text-align:center;">
+        <p style="margin:0;font-size:13.5px;line-height:1.65;color:#9aa7bd;">Varst þetta ekki þú? Endurstilltu lykilorðið strax á <a href="https://wp.karp.is/login/" style="color:#f6b13b;text-decoration:none;font-weight:700;">innskráningarsíðunni</a> („Gleymt lykilorð") og láttu okkur vita á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="margin-top:2px;"><a href="https://karp.is/" style="color:#f6b13b;text-decoration:none;font-size:13px;font-weight:700;">karp.is</a></div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Öryggistilkynning frá <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- =====================================================================
+     5) ACCOUNT DEACTIVATED EMAIL
      Subject: Aðgangurinn þinn á Karp er óvirkur
      ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">🔒</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Aðgangurinn þinn er óvirkur</h1>
-          <p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, aðgangurinn þinn á Karp hefur verið gerður óvirkur, svo þú getur ekki skráð þig inn í augnablikinu.</p>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Ef þú telur að þetta sé mistök — eða vilt fá hann virkjaðan aftur — hafðu samband við okkur og við aðstoðum þig.</p>
-        </td></tr>
-        <tr><td align="center" style="padding:26px 36px 14px;">
-          <a href="mailto:{admin_email}" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:15px 40px;border-radius:11px;">Hafa samband &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:6px 36px 4px;">
-          <p style="margin:0;font-size:13px;line-height:1.6;color:#9aa7bd;">Þú nærð líka í okkur beint á <a href="mailto:{admin_email}" style="color:#19d3c5;text-decoration:none;">{admin_email}</a>.</p>
-        </td></tr>
-        <tr><td style="padding:24px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:13px;color:#7e8ca6;">— Karp-teymið</div>
-          <div style="margin-top:14px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Þú fékkst þennan póst því staða aðgangs þíns á {site_name} breyttist.</td></tr>
-      </table>
-    </td>
-  </tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">😴</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Aðgangurinn er óvirkur</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name} — aðgangurinn þinn á Karp hefur verið gerður óvirkur. Á meðan sendum við þér hvorki vaktpósta né vikuyfirlit.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 10px;text-align:center;">
+        <p style="margin:0;font-size:13.5px;line-height:1.65;color:#9aa7bd;">Telur þú þetta mistök, eða viltu virkja aðganginn aftur? Sendu línu á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="margin-top:2px;"><a href="https://karp.is/" style="color:#f6b13b;text-decoration:none;font-size:13px;font-weight:700;">karp.is</a></div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Tilkynning frá <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
 </table>
 
 
 <!-- =====================================================================
-     3) ACCOUNT DELETED EMAIL
+     6) ACCOUNT DELETED EMAIL
      Subject: Aðgangi þínum á Karp hefur verið eytt
      ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">👋</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Aðgangnum þínum hefur verið eytt</h1>
-          <p style="margin:0 0 12px;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, aðgangi þínum á Karp hefur verið eytt og þeim persónuupplýsingum sem honum fylgdu eytt í samræmi við persónuverndarstefnu okkar.</p>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Takk fyrir að hafa verið með. Þú ert alltaf velkomin/n aftur — þú getur stofnað nýjan aðgang hvenær sem er.</p>
-        </td></tr>
-        <tr><td align="center" style="padding:26px 36px 16px;">
-          <a href="{site_url}" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:15px 40px;border-radius:11px;">Stofna nýjan aðgang &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:24px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:13px;color:#7e8ca6;">— Karp-teymið</div>
-          <div style="margin-top:14px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Þú fékkst þennan póst sem staðfestingu á að aðgangi var eytt á {site_name}.</td></tr>
-      </table>
-    </td>
-  </tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">👋</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Aðganginum var eytt</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name} — aðganginum þínum og prófílgögnum á Karp hefur verið eytt. Vaktir og póstsendingar til þín stöðvast um leið.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 10px;text-align:center;">
+        <p style="margin:0;font-size:13.5px;line-height:1.65;color:#9aa7bd;">Þú ert alltaf velkomin/n aftur — nýskráning tekur mínútu á <a href="https://wp.karp.is/nyskraning/" style="color:#f6b13b;text-decoration:none;font-weight:700;">karp.is</a>. Ef þetta voru mistök, láttu vita á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</p>
+      </td></tr>
+      <tr><td style="padding:20px 36px 28px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="font-size:13px;color:#7e8ca6;">Takk fyrir samfylgdina — Karp-teymið</div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Lokatilkynning frá <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
 </table>
 
 
 <!-- =====================================================================
-     4) PASSWORD RESET EMAIL
-     Subject: Endurstilltu lykilorðið þitt á Karp
+     7) PROFILE UPDATED EMAIL
+     Subject: Prófíllinn þinn á Karp var uppfærður ✏️
      ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">🔑</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Endurstilltu lykilorðið</h1>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, við fengum beiðni um að endurstilla lykilorðið á Karp-aðgangnum þínum. Smelltu á hnappinn hér að neðan til að velja nýtt lykilorð.</p>
-        </td></tr>
-        <tr><td align="center" style="padding:26px 36px 14px;">
-          <a href="{password_reset_link}" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:15px 40px;border-radius:11px;">Endurstilla lykilorð &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:6px 36px 4px;">
-          <div style="background:#0b1320;border:1px solid #18202c;border-left:3px solid #19d3c5;border-radius:8px;padding:13px 15px;font-size:13px;line-height:1.6;color:#9aa7bd;">🔒 Baðstu ekki um þetta? Þá geturðu óhætt hunsað þennan póst — lykilorðið þitt helst óbreytt og enginn kemst inn án hlekksins hér að ofan.</div>
-        </td></tr>
-        <tr><td style="padding:20px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:13px;color:#7e8ca6;">— Karp-teymið</div>
-          <div style="margin-top:14px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Af öryggisástæðum rennur hlekkurinn út eftir skamma stund. Sendur frá {site_name}.</td></tr>
-      </table>
-    </td>
-  </tr>
-</table>
-
-
-<!-- =====================================================================
-     5) PASSWORD CHANGED EMAIL
-     Subject: Lykilorðið þitt á Karp var uppfært
-     ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">🔐</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Lykilorðið þitt var uppfært</h1>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, lykilorðinu á Karp-aðgangnum þínum var nýlega breytt. Ef það varst þú, þá er allt eins og það á að vera og þú þarft ekkert að gera.</p>
-        </td></tr>
-        <tr><td style="padding:20px 36px 4px;">
-          <div style="background:#1c160a;border:1px solid #3a2e12;border-left:3px solid #f6b13b;border-radius:8px;padding:13px 15px;font-size:13.5px;line-height:1.6;color:#e8c98a;">⚠️ Var þetta <b>ekki</b> þú? Hafðu strax samband við okkur á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a> svo við getum verndað aðganginn þinn.</div>
-        </td></tr>
-        <tr><td align="center" style="padding:20px 36px 12px;">
-          <a href="https://karp.is/#profile" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:14px 36px;border-radius:11px;">Opna Karp &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:14px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:13px;color:#7e8ca6;">— Karp-teymið</div>
-          <div style="margin-top:14px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Þú fékkst þennan póst af öryggisástæðum þegar lykilorði var breytt á {site_name}.</td></tr>
-      </table>
-    </td>
-  </tr>
-</table>
-
-
-<!-- =====================================================================
-     6) ACCOUNT UPDATED EMAIL
-     Subject: Prófíllinn þinn á Karp var uppfærður
-     ===================================================================== -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#070b16" style="background:#070b16;margin:0;padding:0;width:100%;">
-  <tr>
-    <td align="center" style="padding:30px 14px;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1626" style="max-width:560px;width:100%;background:#0e1626;border:1px solid #1c3b39;border-radius:16px;">
-        <tr><td style="padding:30px 30px 22px;text-align:center;border-bottom:1px solid #18202c;">
-          <div style="font-size:30px;font-weight:800;letter-spacing:3px;color:#19d3c5;">KARP</div>
-          <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:6px;">Hagvísir Íslands</div>
-        </td></tr>
-        <tr><td style="padding:34px 36px 6px;text-align:center;">
-          <div style="font-size:42px;line-height:1;margin-bottom:14px;">✏️</div>
-          <h1 style="margin:0 0 12px;font-size:25px;font-weight:800;color:#eaf1fb;">Prófíllinn þinn var uppfærður</h1>
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name}, upplýsingum á Karp-aðgangnum þínum var nýlega breytt. Ef það varst þú, þá þarftu ekkert að gera.</p>
-        </td></tr>
-        <tr><td style="padding:20px 36px 4px;">
-          <div style="background:#0b1320;border:1px solid #18202c;border-left:3px solid #f6b13b;border-radius:8px;padding:13px 15px;font-size:13px;line-height:1.6;color:#9aa7bd;">Kannast þú ekki við þessa breytingu? Hafðu samband við okkur á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</div>
-        </td></tr>
-        <tr><td align="center" style="padding:20px 36px 12px;">
-          <a href="https://karp.is/#profile" style="display:inline-block;background:#19d3c5;color:#04201d;font-size:16px;font-weight:800;text-decoration:none;padding:14px 36px;border-radius:11px;">Skoða prófílinn &rarr;</a>
-        </td></tr>
-        <tr><td style="padding:14px 36px 30px;text-align:center;border-top:1px solid #18202c;">
-          <div style="font-size:13px;color:#7e8ca6;">— Karp-teymið</div>
-          <div style="margin-top:14px;"><a href="{site_url}" style="color:#19d3c5;text-decoration:none;font-size:13px;font-weight:700;">{site_name}</a></div>
-        </td></tr>
-      </table>
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
-        <tr><td style="padding:16px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">Þú fékkst þennan póst því upplýsingum á aðgangi þínum á {site_name} var breytt.</td></tr>
-      </table>
-    </td>
-  </tr>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0e14" style="background:#0a0e14;margin:0;padding:0;width:100%;">
+  <tr><td align="center" style="padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0e1420" style="max-width:560px;width:100%;background:#0e1420;border:1px solid #1d2733;border-radius:16px;">
+      <tr><td style="padding:26px 30px 18px;text-align:center;border-bottom:1px solid #1d2733;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:3px;color:#f6b13b;">KARP</div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7e8ca6;margin-top:5px;">Hagvísir Íslands</div>
+      </td></tr>
+      <tr><td style="padding:32px 36px 6px;text-align:center;">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px;">✏️</div>
+        <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#eaf1fb;">Prófíllinn var uppfærður</h1>
+        <p style="margin:0;font-size:15px;line-height:1.65;color:#cdd6e6;">Hæ {display_name} — breytingarnar á prófílnum þínum á Karp voru vistaðar.</p>
+      </td></tr>
+      <tr><td align="center" style="padding:22px 36px 10px;">
+        <a href="https://karp.is/mitt-svaedi/" style="display:inline-block;background:#f6b13b;color:#131a29;font-size:15px;font-weight:800;text-decoration:none;padding:13px 34px;border-radius:10px;">Skoða Mitt svæði &rarr;</a>
+      </td></tr>
+      <tr><td style="padding:16px 36px 10px;text-align:center;">
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#9aa7bd;">Gerðir þú ekki þessa breytingu? Láttu vita á <a href="mailto:{admin_email}" style="color:#f6b13b;text-decoration:none;">{admin_email}</a>.</p>
+      </td></tr>
+      <tr><td style="padding:18px 36px 26px;text-align:center;border-top:1px solid #1d2733;">
+        <div style="margin-top:2px;"><a href="https://karp.is/" style="color:#f6b13b;text-decoration:none;font-size:13px;font-weight:700;">karp.is</a></div>
+      </td></tr>
+    </table>
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:14px 12px;text-align:center;font-size:11px;color:#5a6679;line-height:1.5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">Tilkynning frá <a href="{site_url}" style="color:#5a6679;">{site_name}</a>.</td></tr>
+    </table>
+  </td></tr>
 </table>
