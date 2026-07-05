@@ -483,6 +483,7 @@ const jsonLd = {
             tooltip: {
               trigger: 'item',
               formatter: (p) => {
+                if (p.componentType === 'markPoint') { const c = (p.data && p.data.coord) || []; return `<b>Þín eign</b>${c[1] ? '<br>Áætlað verðmat: <b>' + thouIS(c[1]) + ' kr/m²</b>' : ''}`; }
                 if (p.seriesType === 'scatter') { const d = p.data; return `<b>${esc(d[3])}</b><br>${dIS(d[5])} · ${d[2]} m² · ${(d[4] / 1000).toFixed(1).replace('.', ',')} m.kr<br>${thouIS(d[1])} kr/m²`; }
                 if (p.seriesName === 'Áætlað markaðsverð') { const dt = new Date(p.data[0]); return `${dt.getMonth() + 1}/${dt.getFullYear()}<br>Áætlað: <b>${thouIS(p.data[1])} kr/m²</b>`; }
                 return '';
