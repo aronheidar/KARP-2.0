@@ -80,6 +80,17 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-tease-btns { display: flex; gap: 8px; margin-top: 12px; }
     .fs-tease-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
     .fs-tease-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
+    /* Vanskilamerki + firmavakt (LOTA 73) */
+    .fs-topbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
+    .fs-vakta:hover { background: rgba(246,177,59,.1); }
+    .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
+    .fs-vakta:disabled { opacity: .6; cursor: default; }
+    .fs-vanskil { margin-top: 12px; font-size: 12.5px; }
+    .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
+    .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
+    .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
+    .fs-vansub { color: #7e8ca6; font-size: 11.5px; }
     /* Fyrirtækjaskýrslan (LOTA 69): grind-hólf + kaupa-röð + prentútgáfa */
     .fs-rephead b { display: block; font-size: 15px; letter-spacing: .04em; }
     .fs-rephead span { display: block; font-size: 11px; margin: 2px 0 10px; line-height: 1.5; }
@@ -113,11 +124,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       body.fs-printing #fs-report .fs-ph b { color: #444 !important; }
       body.fs-printing #fs-report .fs-ph span, body.fs-printing #fs-report .fs-note2 { color: #555 !important; }
       body.fs-printing #fs-report .fs-badge { color: #b3261e !important; border-color: #b3261e !important; }
+      body.fs-printing #fs-report .fs-van.bad { color: #b3261e !important; border-color: #b3261e !important; background: #fdf0ef !important; }
+      body.fs-printing #fs-report .fs-van.ok { color: #0a7a43 !important; border-color: #0a7a43 !important; background: #effaf3 !important; }
+      body.fs-printing #fs-report .fs-vansub { color: #555 !important; }
     }
   </style>
 
   <script>
-    import { loadUser, loginHref } from '../lib/auth.js';
+    import { loadUser, loginHref, karpGet, karpPost } from '../lib/auth.js';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -151,7 +165,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const ars = (f.arsreikningar || []).slice(0, 5).map((a) => `<span class="fs-chip"><b>${escF(a.ar)}</b>${a.skil ? ' skilað ' + escF(a.skil) : ''}</span>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<button class="fs-back" type="button">← Ný leit</button>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}">🔔 Vakta félagið</button></div>
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -164,6 +178,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
+          <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
@@ -245,6 +260,39 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   : 'engar kauphallartilkynningar (félag ekki skráð á markað)';
                 if (items.length) el.classList.add('on');
               }).catch(() => {});
+              // ⚠ Vanskilastaða ársreikningaskila (LOTA 73) — opinber listi ársreikningaskrár RSK
+              fetch('/api/vanskil?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((v) => {
+                const el = document.getElementById('fs-vanskil');
+                if (!el || !v || !Array.isArray(v.ar)) return;
+                el.hidden = false;
+                el.innerHTML = v.ar.length
+                  ? '<span class="fs-van bad">⚠ Í vanskilum með ársreikning: ' + v.ar.map((x) => escF(String(x.ar)) + ' (' + escF(x.vanskil) + ')').join(' · ') + '</span> <span class="fs-vansub">opinber listi ársreikningaskrár Skattsins</span>'
+                  : '<span class="fs-van ok">✓ Engin vanskil á ársreikningaskilum</span> <span class="fs-vansub">rekstrarár ' + v.skodud.join(' og ') + ' · ársreikningaskrá Skattsins</span>';
+              }).catch(() => {});
+              // 🔔 Firmavakt (LOTA 73): breytinga- og vanskilavakt á félagið í tölvupósti
+              const vb = document.getElementById('fs-vakta');
+              if (vb) {
+                const vkt = vb.dataset.kt, vnafn = vb.dataset.nafn;
+                const paint = (on) => { vb.classList.toggle('on', on); vb.textContent = on ? '✓ Á vaktinni · 🔕 hætta' : '🔔 Vakta félagið'; };
+                karpGet('/firmavakt').then((v) => { if (v && Array.isArray(v.felog)) paint(v.felog.some((x) => x.kt === vkt)); }).catch(() => {});
+                vb.addEventListener('click', async () => {
+                  vb.disabled = true;
+                  try {
+                    const cur = await karpGet('/firmavakt');
+                    if (!cur || !Array.isArray(cur.felog)) throw new Error('auth');
+                    const has = cur.felog.some((x) => x.kt === vkt);
+                    const felog = has ? cur.felog.filter((x) => x.kt !== vkt) : cur.felog.concat([{ kt: vkt, nafn: vnafn }]);
+                    const r = await karpPost('/firmavakt', { on: true, felog });
+                    if (!r || r.ok !== true) throw new Error('save');
+                    paint(!has);
+                  } catch (e) {
+                    const t0 = vb.textContent;
+                    vb.textContent = '🔒 Innskráning þarf (Karp Pro)';
+                    setTimeout(() => { vb.textContent = t0; }, 2600);
+                  }
+                  vb.disabled = false;
+                });
+              }
               // 🛒 kaupa skýrslu (0 kr. kynningarverð) → prentvæn PDF
               const bb = document.getElementById('fs-buy');
               if (bb) bb.addEventListener('click', () => {

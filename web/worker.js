@@ -620,6 +620,34 @@ function rskFelag(html) {
   }
   return f;
 }
+// ⚠ VANSKIL Á ÁRSREIKNINGASKILUM (LOTA 73) — opinber listi ársreikningaskrár RSK
+// (felog-i-vanskilum, ársbundinn m/kt-leit). /api/vanskil?kt=XXXXXXXXXX →
+// { kt, ar: [{ar, nafn, vanskil}], skodud: [...] } — tómt ar = í skilum. 24 klst cache.
+// ATH: leit ÁN árs gildir aðeins nýjasta árið → skoðum tvö nýjustu rekstrarárin.
+async function vanskilHandler(request, ctx) {
+  const kt = ((new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, ''));
+  if (kt.length !== 10) return sjson({ error: 'kt' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/vanskil?kt=' + kt);
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const H = { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' };
+  const nu = new Date().getUTCFullYear();
+  const hits = [], skodud = [];
+  try {
+    for (const ar of [nu - 2, nu - 1]) {
+      skodud.push(ar);
+      const up = await fetch(RSK_ROT + '/fyrirtaekjaskra/arsreikningaskra/felog-i-vanskilum/ar/' + ar + '?kennitala=' + kt, { headers: H });
+      if (!up.ok) continue;
+      const html = await up.text();
+      const m = html.match(new RegExp('leit/kennitala/' + kt + '"[^>]*>' + kt + '</a></td>\\s*<td>([^<]*)</td>\\s*<td>([^<]*)</td>'));
+      if (m) hits.push({ ar, nafn: m[1].trim(), vanskil: m[2].trim() });
+    }
+  } catch (e) { return sjson({ error: 'upstream' }); }
+  res = new Response(JSON.stringify({ kt, ar: hits, skodud }), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
 async function fyrirtaekiHandler(request, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
@@ -678,6 +706,7 @@ export default {
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
+    if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;
