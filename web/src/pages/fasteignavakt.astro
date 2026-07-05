@@ -24,6 +24,8 @@ const jsonLd = {
     <p>Öll þinglýst kaup á íbúðarhúsnæði — leitaðu að götunni þinni, settu hana á vakt og fáðu tölvupóst þegar ný sala þinglýsist. <a class="xlink" href="/fasteignir/">📈 Verðþróun markaðarins er á Fasteignir →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Kaupskrá HMS: öll þinglýst kaup á íbúðarhúsnæði (nothæfir samningar), uppfærð daglega. Þinglýsing berst með nokkurra daga/vikna töf. Uppboðsauglýsingar eru opinberar auglýsingar sýslumanna af island.is.">ⓘ</i> Um gögnin á síðunni</p>
 
+    <div id="fv-market" class="fv-market" hidden></div>
+
     <h2>🔎 Leitaðu og vaktaðu <span class="hint">— Karp Pro (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri (eða veldu sveitarfélag) → leitað í ALLRI fasteignaskránni með fasteignamati og brunabótamati, ekki bara nýlegum sölum</span></h2>
     <div class="row">
       <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
@@ -90,6 +92,20 @@ const jsonLd = {
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-fsk { border-left: 3px solid #5a6678; padding-left: 8px; }
+    /* Markaðsvísir efst (LOTA 66) */
+    .fv-market { margin: 14px 0 6px; }
+    .fvm-dir { display: flex; align-items: center; gap: 14px; border-radius: 12px; padding: 13px 16px; border: 1px solid; }
+    .fvm-dir.fvm-up { background: rgba(70,224,138,.08); border-color: rgba(70,224,138,.3); }
+    .fvm-dir.fvm-dn { background: rgba(255,109,122,.08); border-color: rgba(255,109,122,.32); }
+    .fvm-dir.fvm-cool { background: rgba(246,177,59,.08); border-color: rgba(246,177,59,.32); }
+    .fvm-dir.fvm-flat { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
+    .fvm-arrow { font-size: 28px; }
+    .fvm-dir-t { font-size: 16px; color: #eaf1fb; } .fvm-dir-t b { color: #f6b13b; }
+    .fvm-dir-s { font-size: 12.5px; color: #9fb0c8; margin-top: 2px; }
+    .fvm-mat { font-size: 13.5px; color: #cdd6e6; margin-top: 8px; background: rgba(255,255,255,.03); border-radius: 10px; padding: 10px 14px; line-height: 1.6; }
+    .fvm-mat b.up { color: #46e08a; } .fvm-mat b.dn { color: #ff6d7a; }
+    .fvm-mrow { font-size: 12.5px; color: #9fb0c8; margin-top: 4px; }
+    .fvm-ml { font-weight: 700; } .fvm-ml.up { color: #46e08a; } .fvm-ml.dn { color: #ff6d7a; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
     .fv-mat { font-size: 10.5px; color: #9fb0c8; background: rgba(255,255,255,.06); border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
@@ -398,6 +414,30 @@ const jsonLd = {
       if (fvmAddr) fvmAddr.addEventListener('input', () => { clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
       if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
 
+      // ── Markaðsvísir efst (LOTA 66): stefna markaðar + yfir/undir fasteignamati (land + sveitarfélög) ──
+      fstFetch().then((f) => {
+        const el = document.getElementById('fv-market');
+        if (!el || !f || !f.direction) return;
+        const dr = f.direction, ms = f.matStats || {};
+        const arrow = { up: '📈', down: '📉', cooling: '🌡️', flat: '➡️' }[dr.verdict] || '➡️';
+        const word = { up: 'á uppleið', down: 'á niðurleið', cooling: 'að kólna', flat: 'stöðugur' }[dr.verdict] || '';
+        const cls = { up: 'up', down: 'dn', cooling: 'cool', flat: 'flat' }[dr.verdict] || 'flat';
+        const sgn = (v) => (v > 0 ? '+' : '') + String(v).replace('.', ',') + '%';
+        const thou = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const pst = (v) => String(v).replace('.', ',');
+        const nat = ms.national || {};
+        const overWord = (p) => (p > 0 ? 'yfir' : 'undir');
+        // topp/botn sveitarfélög eftir yfir/undir-mati
+        const munis = Object.entries(ms.byMuni || {}).filter(([, v]) => v.n >= 10).sort((a, b) => b[1].pct - a[1].pct);
+        const top = munis.slice(0, 3).map(([n, v]) => esc(n) + ' ' + sgn(v.pct)).join(' · ');
+        const bot = munis.slice(-3).reverse().map(([n, v]) => esc(n) + ' ' + sgn(v.pct)).join(' · ');
+        el.hidden = false;
+        el.innerHTML = `<div class="fvm-dir fvm-${cls}"><span class="fvm-arrow">${arrow}</span><div><div class="fvm-dir-t">Húsnæðismarkaðurinn er <b>${word}</b></div><div class="fvm-dir-s">Verð ${sgn(dr.chg3)} síðustu 3 mánuði · ${sgn(dr.chg12)} síðasta árið (vegið miðgildi verðs/m², ${esc(dr.updated)})</div></div></div>`
+          + `<div class="fvm-mat">🏷️ Á landsvísu seljast eignir að jafnaði <b class="${nat.pct >= 0 ? 'up' : 'dn'}">${sgn(nat.pct)}</b> ${overWord(nat.pct)} gildandi fasteignamati síðustu 12 mánuði <span class="fv-sv">(${nat.n ? thou(nat.n) : 0} kaup${ms.trend != null ? '; bilið hefur ' + (ms.trend > 0 ? 'aukist' : 'minnkað') + ' um ' + pst(Math.abs(ms.trend)) + ' prósentustig' : ''})</span>.`
+          + (top ? `<div class="fvm-mrow"><span class="fvm-ml up">Mest yfir mati:</span> ${top}</div>` : '')
+          + (bot ? `<div class="fvm-mrow"><span class="fvm-ml dn">Mest undir mati:</span> ${bot}</div>` : '')
+          + `</div>`;
+      }).catch(() => {});
       // ── Uppboðslistinn: ALLTAF sýnilegur — framundan fyrst ──
       uppFetch().then((up) => {
         const el = document.getElementById('upp-list');

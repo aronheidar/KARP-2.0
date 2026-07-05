@@ -37,6 +37,10 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
   // Fasteignavaktin (LOTA 43): einstök viðskipti síðustu 180 daga m/heimilisfangi
   const NYJAST_FRA = new Date(Date.now() - 180 * 864e5).toISOString().slice(0, 10);
   const nyjast = [];
+  // Markaðsvísar (LOTA 66): kaupverð/fasteignamat hlutfall síðustu 12 mán (landsvísa/landshluti/sveitarfélag) + 6-mán skipting fyrir þróun
+  const RAT_FRA = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+  const RAT_MID = new Date(Date.now() - 182 * 864e5).toISOString().slice(0, 10);
+  const RAT = { nat: [], hbsv: [], land: [], muni: {}, recent: [], prior: [] };
   let total = 0, kept = 0;
   for (let i = 1; i < lines.length; i++) {
     const c = lines[i].split(';'); if (c.length < H.length) continue; total++;
@@ -53,6 +57,11 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     kept++;
     // Fasteignavaktin: full dagsetning + heimilisfang fyrir nýjustu viðskipti
     const dFull = (c[iDt] || '').slice(0, 10);
+    // markaðsvísir: hlutfall kaupverðs/gildandi fasteignamats (síðustu 12 mán)
+    if (dFull >= RAT_FRA) {
+      const matG = +c[iMat] || 0;
+      if (matG > 0) { const ratio = kv / matG; if (ratio > 0.2 && ratio < 5) { RAT.nat.push(ratio); RAT[reg].push(ratio); if (svn) (RAT.muni[svn] = RAT.muni[svn] || []).push(ratio); (dFull >= RAT_MID ? RAT.recent : RAT.prior).push(ratio); } }
+    }
     if (dFull >= NYJAST_FRA) {
       const mat = +c[iMat] || null, matN = +c[iMatN] || null, bruna = +c[iBruna] || null, ar = +c[iAr] || null, herb = +c[iHerb] || null;
       nyjast.push({
@@ -98,12 +107,34 @@ function summ(a) { return a.length ? { m2: Math.round(median(a.slice())), p25: p
     TYPES.forEach(tp => { const s = summ(recs.filter(x => x.t === tp).map(x => x.v)); if (s) byRegionType[rg][tp] = s; });
   });
 
+  // ── Markaðsvísar (LOTA 66): yfir/undir fasteignamati + verðþróun (upp/niður) ──
+  const pctAbove = (arr) => (arr.length ? Math.round((median(arr.slice()) - 1) * 1000) / 10 : null); // % yfir(+)/undir(−) mati
+  const matStats = {
+    updated: lastM, window: '12 mán',
+    national: { pct: pctAbove(RAT.nat), n: RAT.nat.length },
+    hbsv: { pct: pctAbove(RAT.hbsv), n: RAT.hbsv.length },
+    land: { pct: pctAbove(RAT.land), n: RAT.land.length },
+    // þróun hlutfallsins: nýrri 6 mán vs eldri 6 mán (prósentustig) → er markaðurinn að hitna?
+    trend: (RAT.recent.length >= 20 && RAT.prior.length >= 20) ? Math.round((median(RAT.recent.slice()) - median(RAT.prior.slice())) * 1000) / 10 : null,
+    byMuni: {},
+  };
+  Object.keys(RAT.muni).forEach(sv => { if (RAT.muni[sv].length >= 8) matStats.byMuni[sv] = { pct: pctAbove(RAT.muni[sv]), n: RAT.muni[sv].length }; });
+  // verðþróun: 3 og 12 mán breyting á vegnu miðgildi verðs/m² (hbsv+land vegið eftir fjölda kaupa)
+  const wM2 = (m) => { const tot = m.hbsv.n + m.land.n || 1; return (m.hbsv.m2 * m.hbsv.n + m.land.m2 * m.land.n) / tot; };
+  const mLast = months[months.length - 1], m3 = months[months.length - 4], m12 = months[months.length - 13];
+  const chgP = (from, to) => (from && to ? Math.round((wM2(to) / wM2(from) - 1) * 1000) / 10 : null);
+  const chg3 = chgP(m3, mLast), chg12 = chgP(m12, mLast);
+  let verdict = 'flat';
+  if (chg3 != null) { if (chg3 >= 1) verdict = 'up'; else if (chg3 <= -1) verdict = (chg12 != null && chg12 > 1) ? 'cooling' : 'down'; }
+  const direction = { chg3, chg12, verdict, updated: lastM };
+
   const out = {
     source: 'Húsnæðis- og mannvirkjastofnun (HMS) — kaupskrá',
     sourceUrl: 'https://www.hms.is',
     note: 'Miðgildi þinglýstra kaupsamninga um íbúðarhúsnæði (fjölbýli/sérbýli/einbýli), nothæfir samningar. Verð á m² í þús.kr, heildarverð í m.kr.',
     months: months,
-    byMuni: byMuni, byRegionType: byRegionType, byMuniWindow: months[Math.max(0, months.length - 12)].m + '–' + lastM
+    byMuni: byMuni, byRegionType: byRegionType, byMuniWindow: months[Math.max(0, months.length - 12)].m + '–' + lastM,
+    matStats, direction
   };
   fs.writeFileSync(DIR + 'fasteignir.json', JSON.stringify(out));
   // public-afrit (LOTA 51): verðmatið á /vaktir/ og Spyrðu-Karp-RAG sækja skrána á keyrslutíma
