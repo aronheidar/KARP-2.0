@@ -169,6 +169,15 @@ const jsonLd = {
     .vb-tick.vb-mat { background: #6aa5ff; } .vb-tick.vb-bru { background: #19d3c5; }
     .vb-tick.vb-est { display: none; }
     .vb-dot { position: absolute; top: 50%; width: 15px; height: 15px; transform: translate(-50%, -50%) rotate(45deg); background: #f6b13b; border: 2px solid #131a29; border-radius: 3px; }
+    /* Leiga og ávöxtun (LOTA 75) */
+    .lei-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+    .lei-c { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 10px 12px; text-align: center; }
+    .lei-v { font-size: 19px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .lei-v.gold { color: #f6b13b; }
+    .lei-l { font-size: 11px; color: #9fb0c8; margin-top: 2px; }
+    body.fvm-printing #fvm-report .lei-c { border-color: #ddd !important; background: #fafbfc !important; }
+    body.fvm-printing #fvm-report .lei-v { color: #111 !important; } body.fvm-printing #fvm-report .lei-v.gold { color: #b07500 !important; }
+    body.fvm-printing #fvm-report .lei-l { color: #555 !important; }
     .buy-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
     .buy-note { font-size: 11px; color: #7e8ca6; }
     body.fvm-printing #fvm-report .vb-track { background: #eee !important; }
@@ -222,6 +231,8 @@ const jsonLd = {
       const fvFetch = () => FV || (FV = fetch('/gogn/kaupskra_nyjast.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const fstFetch = () => FST || (FST = fetch('/gogn/fasteignir.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const uppFetch = () => UPP || (UPP = fetch('/gogn/uppbod.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      let LEI = null;
+      const leiFetch = () => LEI || (LEI = fetch('/gogn/leiga.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));  // LOTA 75: leiguverðmat
       // LOTA 64: full fasteignaskrá (nánast allar seldar eignir frá 2006 m/gildandi mati), per póstnúmer
       let FSK_IDX = null, FSK_GOTUR = null; const FSK = {};
       const fskIdx = () => FSK_IDX || (FSK_IDX = fetch('/gogn/fasteignaskra/index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
@@ -599,6 +610,26 @@ const jsonLd = {
             + `<div class="vb-row vb-bot"${botAlt ? ' style="height:56px"' : ''}>${bot.map(lbl).join('')}</div></div>`;
         }
 
+        // ── Leiga og ávöxtun (LOTA 75) — áætluð leiga + brúttó leiguávöxtun úr leiguskrá HMS ──
+        // Einstakt: hvorki Keldan né Creditinfo birta leiguverðmat. Miðgildisleiga/m² í
+        // sveitarfélaginu × stærð → mánaðarleiga; ×12 ÷ kaupvirði → brúttó ávöxtun.
+        let leigaHtml = '';
+        try {
+          const lg = await leiFetch();
+          const lm = lg && lg.byMuni && lg.byMuni[svN];
+          if (lm && lm.medM2 && fm > 0) {
+            const leigaMan = Math.round(lm.medM2 * fm);
+            const arleg = leigaMan * 12, kaupKr = verd * 1000;
+            const avoxt = Math.round((arleg / kaupKr) * 1000) / 10;
+            const pr = Math.round((kaupKr / arleg) * 10) / 10;
+            leigaHtml = `<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — áætlað</div>`
+              + `<div class="lei-grid"><div class="lei-c"><div class="lei-v">${thouIS(leigaMan)} kr</div><div class="lei-l">áætluð leiga á mánuði</div></div>`
+              + `<div class="lei-c"><div class="lei-v gold">${String(avoxt).replace('.', ',')}%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div>`
+              + `<div class="lei-c"><div class="lei-v">${String(pr).replace('.', ',')} ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div></div>`
+              + `<div class="fvm-note" style="margin-top:6px">Áætluð leiga = miðgildisleiga á m² í ${esc(svN)} (${esc(String(lg.muniYear))}, leiguskrá HMS) × ${fm} m². Brúttó ávöxtun er FYRIR rekstrarkostnað, fasteignagjöld, viðhald og afskriftir. Leiguskráin nær fram á ${esc(String(lg.muniYear))} (þinglýsingarskyldan féll niður) svo leigan er söguleg viðmiðun.</div>`;
+          }
+        } catch (e) {}
+
         // markaðsmerki: hafa eignir selst yfir/undir fasteignamati? gata → póstnúmer → sveitarfélag
         let matHtml = '';
         try {
@@ -634,7 +665,7 @@ const jsonLd = {
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div id="fvm-map" class="fvm-map"></div>` : '')
-          + barHtml + matHtml + bodyHtml
+          + barHtml + leigaHtml + matHtml + bodyHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`
           + `<div class="buy-row"><button id="fvm-buy" class="cta">🛒 Kaupa skýrslu — 0 kr.</button><span class="buy-note">Kynningarverð · skýrslan opnast sem PDF til að vista eða prenta</span></div>`;
 
