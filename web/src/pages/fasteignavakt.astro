@@ -26,22 +26,16 @@ const jsonLd = {
 
     <div id="fv-market" class="fv-market" hidden></div>
 
-    <h2>🔎 Leitaðu og vaktaðu <span class="hint">— Karp Pro (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri (eða veldu sveitarfélag) → leitað í ALLRI fasteignaskránni með fasteignamati og brunabótamati, ekki bara nýlegum sölum</span></h2>
-    <div class="row">
-      <select id="fv-muni" aria-label="Sveitarfélag"><option value="">Öll sveitarfélög</option></select>
-      <input id="fv-q" type="text" maxlength="60" placeholder="T.d. „Melabraut“, „Melabraut 3“ eða „170“" autocomplete="off" list="fv-addr-list" />
-      <datalist id="fv-addr-list"></datalist>
-      <button id="fv-add" class="cta">🔔 Vakta</button>
-    </div>
+    <h2>🔎 Leit, verðmat &amp; vöktun <span class="hint">— Karp Pro (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri → verðmat, sölugraf, sambærilegar sölur, fasteignamat/brunabótamat og götuvakt í einni skýrslu.</span> <i class="tip" tabindex="0" data-tip="Veldu heimilisfang úr fléttilistanum og stærð + tegund fyllast sjálfkrafa úr skránni. Smelltu á Meta fyrir skýrslu — þá birtast Vakta- og Kaupa-skýrslu-takkarnir. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
     <div id="fv-chips"></div>
-    <div id="fv-res" class="feed" hidden></div>
-
-    <h2>🏷️ Verðmat úr kaupskránni <span class="hint">— Karp Pro (ókeypis aðgangur)</span> <i class="tip" tabindex="0" data-tip="Nálgun byggð á þinglýstum kaupum: fyrst gatan, svo póstnúmerið, svo sveitarfélagið (12 mán miðgildi). Veldu heimilisfang úr fléttilistanum að ofan og stærð + tegund fyllast sjálfkrafa úr sölunni. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
-    <div class="row">
-      <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang — eða veldu úr fléttilistanum" autocomplete="off" list="fv-addr-list" />
+    <div class="row fvm-row">
+      <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang MEÐ póstnúmeri — t.d. „Brunnstígur 2, 230“" autocomplete="off" list="fv-addr-list" />
+      <datalist id="fv-addr-list"></datalist>
       <input id="fvm-fm" type="number" min="15" max="1200" placeholder="m²" />
       <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
       <button id="fvm-go" class="cta">Meta</button>
+      <button id="fvm-vakta" class="cta cta-alt" type="button" hidden>🔔 Vakta</button>
+      <button id="fvm-buy" class="cta cta-alt" type="button" hidden>🛒 Kaupa skýrslu — 0 kr.</button>
     </div>
     <div id="fvm-fill" class="fillnote" hidden></div>
     <div id="fvm-out" hidden></div>
@@ -51,9 +45,9 @@ const jsonLd = {
 
     <h2>Svona virkar vaktin</h2>
     <ol class="how">
-      <li><b>Leitaðu</b> að götunni þinni og smelltu á <b>🔔 Vakta</b> — vaktin vistast í vafranum þínum (hám. 6).</li>
-      <li><b>Skráðu þig inn</b> (ókeypis <a href="/karp-pro/">Karp Pro</a>) og vaktin fylgir þér milli tækja — og <b>tölvupóstur</b> berst þegar ný sala þinglýsist á vaktinni, með verði og fermetraverði.</li>
-      <li><b>Uppboð í götunni</b> birtast sjálfkrafa efst í leitinni með 🔨-merki.</li>
+      <li><b>Flettu upp</b> heimilisfangi (með póstnúmeri) og smelltu á <b>Meta</b> — þú færð verðmat, sölugraf, kort og sambærilegar sölur í einni skýrslu.</li>
+      <li><b>🔔 Vakta</b> og <b>🛒 Kaupa skýrslu</b> birtast við Meta þegar skýrslan er komin — vaktin vistast (hám. 6) og vöktuðu heimilisföngin raðast efst sem flýti-hnappar sem opna skýrsluna beint.</li>
+      <li><b>Skráðu þig inn</b> (ókeypis <a href="/karp-pro/">Karp Pro</a>) og vaktin fylgir þér milli tækja — <b>tölvupóstur</b> berst þegar ný sala þinglýsist í götunni, með verði og fermetraverði.</li>
     </ol>
 
     <p class="foot">Forþjónað (SSG) {updated}. Kaupskrá HMS (þinglýst kaup, 180 daga gluggi + 12 mán tölfræði) og uppboðsauglýsingar sýslumanna (island.is) — uppfært daglega. #2 LOTA 52.</p>
@@ -82,8 +76,16 @@ const jsonLd = {
     main[data-pg="fastvakt"] .row input:focus, main[data-pg="fastvakt"] .row select:focus { outline: none; border-color: rgba(246,177,59,.55); }
     main[data-pg="fastvakt"] .cta { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
     main[data-pg="fastvakt"] .cta:hover { background: rgba(246,177,59,.22); }
+    main[data-pg="fastvakt"] #fvm-go { background: #f6b13b; color: #131a29; }
+    main[data-pg="fastvakt"] #fvm-go:hover { filter: brightness(1.08); }
+    main[data-pg="fastvakt"] .cta-alt { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.2); color: #cdd6e6; }
+    main[data-pg="fastvakt"] .cta-alt:hover { background: rgba(255,255,255,.1); }
+    main[data-pg="fastvakt"] #fvm-vakta.on { background: rgba(66,208,134,.14); border-color: rgba(66,208,134,.5); color: #42d086; }
+    main[data-pg="fastvakt"] #fvm-buy { background: rgba(246,177,59,.1); border-color: rgba(246,177,59,.4); color: #f6b13b; }
     #fv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
-    #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; }
+    #fv-chips .fvc-lbl { flex-basis: 100%; font-size: 11.5px; color: #9fb0c8; margin: 2px 0 -2px; }
+    #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; cursor: pointer; }
+    #fv-chips .lvc:hover, #fv-chips .lvc:focus-visible { border-color: rgba(246,177,59,.5); background: rgba(246,177,59,.08); outline: none; }
     #fv-chips .lvc b { color: #f6b13b; font-weight: 700; }
     #fv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; }
     #fv-chips .lvc button:hover { color: #e0655f; }
@@ -305,7 +307,7 @@ const jsonLd = {
         const raw = String(val || '');
         const q = fvNorm(raw.replace(/,?\s*\d{3}\s*$/, '')); // strípa póstnúmer fyrir götu-samsvörun
         if (q.length < 2) { dl.innerHTML = ''; return; }
-        const sv = fvMuniEl.value;
+        const sv = fvMuniEl ? fvMuniEl.value : '';
         const [d, reg] = await Promise.all([fvFetch(), fskRows(sv, raw)]);
         const seen = new Set(), opts = [];
         const add = (r) => {
@@ -374,11 +376,20 @@ const jsonLd = {
         const el = document.getElementById('fv-chips');
         if (!el) return;
         const vaktir = fvLoad();
-        el.innerHTML = vaktir.map((v, i) => `<span class="lvc" data-i="${i}">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button title="Fjarlægja" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
-          || '<span class="fv-sv">Engin vakt enn — leitaðu að götu og smelltu á 🔔 Vakta.</span>';
-        el.querySelectorAll('.lvc button').forEach((b) => b.addEventListener('click', () => {
+        el.innerHTML = vaktir.length
+          ? '<div class="fvc-lbl">🔔 Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
+          : '<span class="fv-sv">Engin vakt enn — flettu upp eign, smelltu á Meta og svo 🔔 Vakta.</span>';
+        // smellur á vakt → opnar verðmatsskýrslu beint (flýtir á Meta fyrir þá eign)
+        const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+        el.querySelectorAll('.lvc').forEach((c) => {
+          const i = +c.dataset.i;
+          c.addEventListener('click', (e) => { if (!e.target.closest('.lvc-x')) openVakt(i); });
+          c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVakt(i); } });
+        });
+        el.querySelectorAll('.lvc-x').forEach((b) => b.addEventListener('click', (e) => {
+          e.stopPropagation();
           const i = +b.closest('.lvc').dataset.i;
-          const a = fvLoad(); a.splice(i, 1); fvSave(a); fvRender();
+          const a = fvLoad(); a.splice(i, 1); fvSave(a); fvRender(); paintVaktaBtn();
         }));
         if (vaktir.length) {
           const d = await fvFetch();
@@ -678,8 +689,7 @@ const jsonLd = {
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div id="fvm-map" class="fvm-map"></div>` : '')
           + barHtml + leigaHtml + matHtml + bodyHtml
-          + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`
-          + `<div class="buy-row"><button id="fvm-buy" class="cta">🛒 Kaupa skýrslu — 0 kr.</button><span class="buy-note">Kynningarverð · skýrslan opnast sem PDF til að vista eða prenta</span></div>`;
+          + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`;
 
         // eignaspjald flipar
         fvmOut.querySelectorAll('.ec-tab').forEach((b) => b.addEventListener('click', () => {
@@ -719,20 +729,57 @@ const jsonLd = {
           const cbn = document.getElementById('comp-near');
           if (cbn) cbn.addEventListener('change', () => { nearOnly = cbn.checked; redraw(); });
         }
-        // 🛒 kaupa skýrslu (0 kr. kynningarverð) → PDF/prent
-        const bb = document.getElementById('fvm-buy');
-        if (bb) bb.addEventListener('click', () => {
-          bb.disabled = true; const t0 = bb.textContent; bb.textContent = '✓ Keypt — 0 kr. · útbý skýrsluna…';
-          setTimeout(() => {
-            document.body.classList.add('fvm-printing'); window.print();
-            setTimeout(() => { document.body.classList.remove('fvm-printing'); bb.textContent = t0; bb.disabled = false; }, 600);
-          }, 350);
-        });
+        // skýrsla tilbúin → Vakta- og Kaupa-skýrslu-takkarnir birtast við Meta (LOTA 78)
+        const vb = document.getElementById('fvm-vakta'), bb = document.getElementById('fvm-buy');
+        if (vb) vb.hidden = false;
+        if (bb) bb.hidden = false;
+        paintVaktaBtn();
+      }
+      // ── Sameinuð leit (LOTA 78): heimilisfangs-vöktun + kaupa/prenta við Meta ──
+      // Þátta „Gata N, PNN Muni" → { q: götuheiti+númer (fyrir startsWith-match), pn }
+      function parseVaktaAddr(raw) {
+        raw = String(raw || '').trim();
+        const pnM = raw.match(/,\s*(\d{3})\b/) || raw.match(/\b(\d{3})\s+\p{L}/u) || raw.match(/\b(\d{3})\b/);
+        const pn = pnM ? pnM[1] : '';
+        let q = raw;
+        const mC = raw.match(/,\s*\d{3}\b/), mW = raw.match(/\b\d{3}\s+\p{L}/u);
+        if (mC) q = raw.slice(0, mC.index); else if (mW) q = raw.slice(0, mW.index);
+        q = q.replace(/,/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+        return { q, pn };
+      }
+      function paintVaktaBtn() {
+        const vb = document.getElementById('fvm-vakta'); if (!vb) return;
+        const { q, pn } = parseVaktaAddr(document.getElementById('fvm-addr').value);
+        const on = q.length >= 2 && fvLoad().some((v) => v.q === q && (v.pn || '') === pn);
+        vb.classList.toggle('on', on);
+        vb.textContent = on ? '✓ Á vakt · 🔕' : '🔔 Vakta';
+      }
+      function fvmVakta() {
+        if (!USER || !USER.loggedIn) { const vb = document.getElementById('fvm-vakta'); if (vb) { const t0 = vb.textContent; vb.textContent = '🔒 Innskráning (Karp Pro)'; setTimeout(() => { vb.textContent = t0; }, 2400); } return; }
+        const { q, pn } = parseVaktaAddr(document.getElementById('fvm-addr').value);
+        if (q.length < 2) return;
+        const a = fvLoad();
+        const idx = a.findIndex((v) => v.q === q && (v.pn || '') === pn);
+        if (idx >= 0) a.splice(idx, 1);                    // toggle af vakt
+        else if (a.length < 6) a.push({ q, sv: '', pn });
+        else { const vb = document.getElementById('fvm-vakta'); if (vb) { vb.textContent = 'Hámark 6 vaktir'; setTimeout(paintVaktaBtn, 1800); } return; }
+        fvSave(a); fvRender(); paintVaktaBtn();
       }
       const fvmBtn = document.getElementById('fvm-go');
       if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
+      const fvmVaktaBtn = document.getElementById('fvm-vakta');
+      if (fvmVaktaBtn) fvmVaktaBtn.addEventListener('click', fvmVakta);
+      // 🛒 kaupa/prenta skýrslu (0 kr. kynningarverð) — bundið einu sinni, takkinn er fast element
+      const fvmBuyBtn = document.getElementById('fvm-buy');
+      if (fvmBuyBtn) fvmBuyBtn.addEventListener('click', () => {
+        if (document.getElementById('fvm-out').hidden) return;
+        const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '✓ Keypt · útbý…';
+        setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 300);
+      });
       const fvmAddr = document.getElementById('fvm-addr');
-      if (fvmAddr) fvmAddr.addEventListener('input', () => { clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
+      // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
+      const hideActionBtns = () => { ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; }); };
+      if (fvmAddr) fvmAddr.addEventListener('input', () => { hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
       if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
 
       // ── Markaðsvísir efst (LOTA 66): stefna markaðar + yfir/undir fasteignamati (land + sveitarfélög) ──
