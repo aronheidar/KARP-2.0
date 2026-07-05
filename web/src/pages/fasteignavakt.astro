@@ -138,6 +138,13 @@ const jsonLd = {
     .ec-k { color: #9fb0c8; } .ec-v { color: #eaf1fb; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
     .ec-note { font-size: 10.5px; color: #7e8ca6; padding: 6px 12px 8px; border-top: 1px solid rgba(255,255,255,.06); max-width: 240px; line-height: 1.4; }
     body.fvm-printing #fvm-report .ec-note { color: #444 !important; border-color: #ddd !important; }
+    /* val á eignarhluta (LOTA 79) */
+    .ec-pick { padding: 8px 12px 4px; border-top: 1px solid rgba(255,255,255,.08); }
+    .ec-pick-l { font-size: 10.5px; color: #9fb0c8; margin-bottom: 5px; line-height: 1.4; }
+    .ec-unit { display: block; width: 100%; text-align: left; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #cdd6e6; border-radius: 8px; padding: 6px 9px; font-size: 11.5px; cursor: pointer; margin-bottom: 4px; }
+    .ec-unit:hover { border-color: rgba(246,177,59,.4); background: rgba(246,177,59,.06); }
+    .ec-unit.on { border-color: rgba(246,177,59,.55); background: rgba(246,177,59,.12); color: #f6b13b; font-weight: 600; }
+    body.fvm-printing #fvm-report .ec-pick { display: none !important; }
     .fvm-graf { width: 100%; height: 300px; margin-top: 4px; }
     .comp-ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 4px; }
     .comp-cb { font-size: 12px; color: #cdd6e6; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -521,6 +528,7 @@ const jsonLd = {
 
       // ── Verðmatið (Karp Pro) ──
       const fvmOut = document.getElementById('fvm-out');
+      let FVM_PICK = null;   // LOTA 79: handvalinn eignarhluti (fasteignanúmer) þegar fleiri á heimilisfangi
       const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
       const pct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
       const mkr = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(v) + ' þ.kr');
@@ -584,18 +592,20 @@ const jsonLd = {
 
         // ── Nákvæm eign úr fasteignaskrá → eignaspjald (fasteignanúmer, mat, brunabótamat, byggingastig …) ──
         const selfAddr = houseNum ? fvNorm(street + ' ' + houseNum) : null;
-        let self = null, selfN = 0;
+        let self = null, selfUnits = [];
         if (selfAddr) {
           const reg = pn ? await fskPn(pn) : await fskRows('', raw);
-          // fleiri eignarhlutar á sama heimilisfangi: lifandi eignir (m/gildandi mati) ganga fyrir,
-          // annars sá sem liggur næst m² notandans — EKKI bara fyrsta röðin (L68c: Klapparstígur 5)
-          const matches = (reg || []).filter((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn));
-          selfN = matches.length;
-          if (matches.length) {
-            const score = (r) => (r.mat > 0 ? 0 : 1000) + Math.abs((r.fm || 0) - fm);
-            self = matches.slice().sort((a, b) => score(a) - score(b))[0];
+          // fleiri eignarhlutar á sama heimilisfangi (t.d. sameinaðir hlutar) — sýnum ÞÁ ALLA og
+          // leyfum notanda að velja (LOTA 79). FVM_PICK = handvalinn; annars lifandi eign m/mati
+          // sem passar best í m². Röðum: lifandi (mat>0) fyrst, svo eftir stærð.
+          selfUnits = (reg || []).filter((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn))
+            .sort((a, b) => ((b.mat > 0) - (a.mat > 0)) || ((b.fm || 0) - (a.fm || 0)));
+          if (selfUnits.length) {
+            if (FVM_PICK) self = selfUnits.find((r) => (r.fnr || '') === FVM_PICK);
+            if (!self) { const score = (r) => (r.mat > 0 ? 0 : 1000) + Math.abs((r.fm || 0) - fm); self = selfUnits.slice().sort((a, b) => score(a) - score(b))[0]; }
           }
         }
+        const selfN = selfUnits.length;
         // GPS-hnit + hverfi úr staðfangaskrá (LOTA 68) — kort + fjarlægð á sambærilegar
         const hn = pn ? await hnitPn(pn) : null;
         const subjC = (hn && selfAddr && hn[selfAddr]) || null;      // [lat, lng, hverfi?]
@@ -607,8 +617,8 @@ const jsonLd = {
           if (hverfi) eign.push(['Hverfi', hverfi]);
           const gogn = [['Fasteignamat', self.mat ? mkr(self.mat) : '–'], ['Fyrirhugað mat', self.matN ? mkr(self.matN) : '–'], ['Brunabótamat', self.bruna ? mkr(self.bruna) : '–'], ['Lóð', self.lod ? self.lod + ' m²' : '–'], ['Byggingastig', self.full ? 'Fullgert' : '–']];
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
-          const unitNote = selfN > 1 ? `<div class="ec-note">ⓘ ${selfN} skráðir eignarhlutar á heimilisfanginu — sýni þann sem á gildandi mat og passar best (${self.fm ? String(self.fm).replace('.', ',') + ' m²' : ''}).</div>` : '';
-          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div>${unitNote}</div>`;
+          const unitPick = selfN > 1 ? `<div class="ec-pick"><div class="ec-pick-l">ⓘ ${selfN} eignarhlutar á heimilisfanginu — veldu þann sem á við:</div>${selfUnits.map((r) => `<button type="button" class="ec-unit${(r.fnr || '') === (self.fnr || '') ? ' on' : ''}" data-fnr="${esc(r.fnr || '')}" data-fm="${r.fm || ''}" data-teg="${esc(r.teg || '')}">${esc(r.teg || 'Eign')}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.mat ? ' · fasteignamat ' + mkr(r.mat) : ' · ekkert gildandi mat'}</button>`).join('')}</div>` : '';
+          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div>${unitPick}</div>`;
         }
         // ── Sjónræn verðstika: neðri-/efrimörk + áætlað verð (neðri röð), fasteignamat + brunabótamat (efri röð) ──
         let barHtml = '';
@@ -696,6 +706,14 @@ const jsonLd = {
           fvmOut.querySelectorAll('.ec-tab').forEach((x) => x.classList.toggle('on', x === b));
           fvmOut.querySelectorAll('.ec-panel').forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.tab; });
         }));
+        // val á eignarhluta (LOTA 79) → uppfæra stærð/tegund + endurreikna skýrsluna fyrir þá eign
+        fvmOut.querySelectorAll('.ec-unit').forEach((b) => b.addEventListener('click', () => {
+          FVM_PICK = b.dataset.fnr || null;
+          const fmEl = document.getElementById('fvm-fm'), tgEl = document.getElementById('fvm-teg');
+          if (b.dataset.fm && fmEl) fmEl.value = Math.round(+b.dataset.fm);
+          if (b.dataset.teg && tgEl) tgEl.value = b.dataset.teg;
+          fvmGo();
+        }));
         // kort (Leaflet + OSM) — eins og Creditinfo, með gull-hring á eigninni
         if (subjC) {
           withLeaflet(() => {
@@ -779,7 +797,7 @@ const jsonLd = {
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
       const hideActionBtns = () => { ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; }); };
-      if (fvmAddr) fvmAddr.addEventListener('input', () => { hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
+      if (fvmAddr) fvmAddr.addEventListener('input', () => { FVM_PICK = null; hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
       if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
 
       // ── Markaðsvísir efst (LOTA 66): stefna markaðar + yfir/undir fasteignamati (land + sveitarfélög) ──
