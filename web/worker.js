@@ -631,7 +631,7 @@ function rskFelag(html) {
       if (!nafn) continue;
       const tb = p.match(/<tbody>([\s\S]*?)<\/tbody>/i);
       const c = tb ? [...tb[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((x) => rskText(x[1])) : [];
-      eig.push({ nafn, faeding: c[0] || null, buseta: (c[1] || '').replace(/\.$/, '') || null, rikisfang: c[2] || null, hlutur: c[3] && c[3] !== '-' ? c[3] : null, tegund: c[4] || null });
+      eig.push({ nafn, faeding: c[0] || null, buseta: (c[1] || '').replace(/\.$/, '') || null, rikisfang: c[2] || null, hlutur: c[3] && c[3] !== '-' ? c[3] : null, tegund: (c[4] || '').replace(/[,\s]+$/, '') || null });
       if (eig.length >= 20) break;
     }
     if (eig.length) f.eigendur = eig;
