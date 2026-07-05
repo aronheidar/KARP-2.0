@@ -26,6 +26,7 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     dt: H.indexOf('THINGLYSTDAGS'), kv: H.indexOf('KAUPVERD'), teg: H.indexOf('TEGUND'), on: H.indexOf('ONOTHAEFUR_SAMNINGUR'),
     mat: H.indexOf('FASTEIGNAMAT_GILDANDI'), matN: H.indexOf('FYRIRHUGAD_FASTEIGNAMAT'), bruna: H.indexOf('BRUNABOTAMAT_GILDANDI'),
     ar: H.indexOf('BYGGAR'), flm: H.indexOf('EINFLM'), fastnum: H.indexOf('FASTNUM'),
+    herb: H.indexOf('FJHERB'), lod: H.indexOf('LOD_FLM'),
   };
   // lykill per eign = FASTNUM (stöðugt) — annars heimilisfang+pn. Halda NÝJUSTU sölu.
   const props = new Map();
@@ -45,6 +46,7 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
       a, pn, sv: (c[i.sv] || '').trim(), teg: (c[i.teg] || '').trim(),
       mat: num(c[i.mat]), matN: num(c[i.matN]), bruna: num(c[i.bruna]),
       ar: num(c[i.ar]), fm: Math.round((parseFloat((c[i.flm] || '').replace(',', '.')) || 0) * 10) / 10 || null,
+      herb: num(c[i.herb]), lod: Math.round(parseFloat((c[i.lod] || '').replace(',', '.')) || 0) || null,
       ld: d.slice(0, 7), lv: num(c[i.kv]),               // síðasta sala: mánuður + verð (þús.kr)
     });
     total++;
@@ -66,5 +68,17 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
   }
   const bySvArr = {}; Object.keys(bySv).forEach((sv) => (bySvArr[sv] = [...bySv[sv]].sort()));
   fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), n: props.size, note: 'Fasteignaskrá úr kaupskrá HMS — nýjasta þinglýsta sala per eign + gildandi fasteignamat/brunabótamat. Nær yfir eignir sem hafa selst frá 2006.', byPn: index, bySv: bySvArr }));
+  // GÖTU-VÍSIR (LOTA 65): götunafn → póstnúmer, svo fléttilistinn finni rétta skrá strax
+  // og notandi þurfi EKKI að skrifa póstnúmerið fyrst. { "brunnstígur": ["230"], … }
+  const gotur = {};
+  for (const p of props.values()) {
+    const g = p.a.replace(/\s+\d+[a-zæöðáéíóúý]?$/i, '').toLowerCase().trim();
+    if (g.length < 2) continue;
+    (gotur[g] = gotur[g] || new Set()).add(p.pn);
+  }
+  const gArr = {}; Object.keys(gotur).forEach((g) => (gArr[g] = [...gotur[g]].sort()));
+  const gs = JSON.stringify(gArr);
+  fs.writeFileSync(path.join(OUT, 'gotur.json'), gs);
+  console.log('gotur.json:', Object.keys(gArr).length, 'einkvæm götunöfn |', (gs.length / 1024).toFixed(0), 'KB');
   console.log('fasteignaskra:', props.size, 'eignir í', Object.keys(byPn).length, 'póstnúmerum |', (bytes / 1024 / 1024).toFixed(1), 'MB alls | stærsta pn:', Object.entries(index).sort((a, b) => b[1] - a[1])[0].join('='));
 })().catch((e) => { console.error('ERR', e); process.exit(1); });
