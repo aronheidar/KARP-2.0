@@ -243,7 +243,7 @@ async function augment(env, q) {
 }
 
 // LOTA 80: draga fyrirtækjanafn/kt úr spurningu — orða-sía (\b virkar ekki á íslenska stafi í JS)
-const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar']);
+const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'sé', 'séu', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'vanskilaskrá', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'skuld', 'skuldir', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar', 'ársreikning', 'ársreikninga', 'ársreikningi', 'ársreikningum', 'ársreikninginn', 'ársreikningana', 'ársreikningaskil', 'skil', 'skilað', 'hvort', 'núna', 'nú', 'borgar', 'greiðir', 'atvinnugrein', 'heimilisfang', 'stofnað', 'stofnaður', 'hvenær']);
 function firmaNafn(q) {
   const kt = (String(q).match(/\b(\d{6}-?\d{4})\b/) || [])[1];
   if (kt) return kt.replace('-', '');
