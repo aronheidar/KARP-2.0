@@ -26,6 +26,13 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     </div>
     <div id="lv-chips"></div>
 
+    <h2>📬 Vikuyfirlitið <i class="tip" tabindex="0" data-tip="Einn póstur á mánudagsmorgnum með vikunni þinni: treff leitarorðanna í fjölmiðlum, umfjöllun um fyrirtæki og þingmenn sem þú fylgist með, þinglýstar sölur á fasteignavöktunum, ný útboð af útboðsvaktinni og hagtölur vikunnar. Aðeins fyrir innskráða (Karp Pro, ókeypis).">ⓘ</i></h2>
+    <label class="dg-row">
+      <input type="checkbox" id="dg-on" />
+      <span><b>Fá vikuyfirlit í tölvupósti á mánudagsmorgnum</b> — vikan þín á einum stað: leitarorðin, þau sem þú fylgist með, fasteigna- og útboðsvaktirnar og hagtölur vikunnar.</span>
+    </label>
+    <div class="dg-note" id="dg-note" hidden></div>
+
     <h2>🏠 Fasteignavaktin — komin á sína eigin síðu</h2>
     <a class="fv-crosslink" href="/fasteignavakt/">
       <b>🏠 Fasteignavaktin →</b>
@@ -110,6 +117,12 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     .fv-crosslink span { display: block; color: #b9c6da; font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
     .fv-crosslink:hover { border-color: #f6b13b; }
     .lv-intro { font-size: 13px; color: #9fb0c8; margin: 2px 0 8px; }
+    /* 📬 vikuyfirlitið (LOTA 70) */
+    .dg-row { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
+    .dg-row:hover { border-color: rgba(246,177,59,.4); }
+    .dg-row input { margin-top: 3px; accent-color: #f6b13b; }
+    .dg-row b { color: #eaf1fb; }
+    .dg-note { font-size: 12px; color: #42d086; margin-top: 6px; }
     .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.08); padding: 1px 6px; border-radius: 4px; color: #eaf1fb; }
     .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
     .fv-v { color: #f6b13b; }
@@ -215,6 +228,23 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           lvRender();
         }
       }).catch(() => {});
+      // 📬 Vikuyfirlitið (LOTA 70): kveikja/slökkva á vikupóstinum (WP /digest, user meta)
+      const dgOn = document.getElementById('dg-on'), dgNote = document.getElementById('dg-note');
+      if (dgOn) {
+        karpGet('/digest').then((d) => { if (d && typeof d.on === 'boolean') dgOn.checked = d.on; }).catch(() => {});
+        dgOn.addEventListener('change', async () => {
+          try {
+            const r = await karpPost('/digest', { on: dgOn.checked });
+            if (!r || r.ok !== true) throw new Error('no');
+            dgNote.hidden = false;
+            dgNote.textContent = r.on ? '✓ Vikuyfirlitið er virkt — fyrsti pósturinn berst næsta mánudagsmorgun.' : 'Vikuyfirlitið er óvirkt.';
+          } catch (e) {
+            dgOn.checked = false;
+            dgNote.hidden = false;
+            dgNote.innerHTML = 'Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis) — <a href="/login/" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.';
+          }
+        });
+      }
       // 🏠 Fasteignavaktin (LOTA 43): kaupskrá-leit + götuvaktir (localStorage + WP /fastvakt)
       const fvKey = 'karp-fastvakt';
       let FV = null;
