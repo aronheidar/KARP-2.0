@@ -18,6 +18,7 @@
  *   ⭐ Fylgst með       — co:/mp: follows → umfjöllun vikunnar um hvern aðila
  *   🏠 Fasteignavaktin — þinglýstar sölur vikunnar á götuvöktum notandans
  *   📋 Útboðsvaktin    — útboð sem vaktin fann í vikunni (seen-tímastimplar)
+ *   🏢 Firmavaktin     — staða vöktuðu félaga (vanskil/afskráning úr karp_firmavakt_snap)
  *
  * ⚠ AFHENDING: wp_mail þarf virka SMTP-uppsetningu (sjá noreply@karp.is verkefnið).
  */
@@ -229,6 +230,28 @@ function karp_digest_build($u, $sh) {
       $rows .= $H('📋', 'Útboðsvaktin — ' . $n . ' ' . ($n === 1 ? 'nýtt útboð' : 'ný útboð') . ' í vikunni') . $sec;
       $personal = true;
     }
+  }
+
+  /* 🏢 Firmavaktin — staða vöktuðu félaga (úr karp_firmavakt_snap; uppfært daglega, engin auka RSK-köll) */
+  $fmv = get_user_meta($u->ID, 'karp_firmavakt', true);
+  if (is_array($fmv) && !empty($fmv['on']) && !empty($fmv['felog'])) {
+    $snap = get_option('karp_firmavakt_snap');
+    $sec = '';
+    $nfl = 0;
+    foreach ((array) $fmv['felog'] as $co) {
+      if (!is_array($co) || empty($co['kt'])) continue;
+      $kt = (string) $co['kt'];
+      $f = (is_array($snap) && isset($snap[$kt]['f']) && is_array($snap[$kt]['f'])) ? $snap[$kt]['f'] : null;
+      $nafn = $f && !empty($f['Heiti']) ? $f['Heiti'] : (!empty($co['nafn']) ? $co['nafn'] : $kt);
+      $van = $f ? (string) ($f['Vanskil ársreikningaskila'] ?? '') : '';
+      $flag = 'í skilum';
+      if ($f && ($f['Skráningarstaða'] ?? '') === 'AFSKRÁÐ') $flag = '⚠ félag afskráð';
+      elseif ($van !== '' && $van !== 'engin') $flag = '⚠ vanskil ársreikningaskila: ' . $van;
+      elseif (!$f) $flag = 'kt. ' . $kt;
+      $nfl++;
+      if ($nfl <= 12) $sec .= $li($nafn, $flag, 'https://karp.is/fyrirtaeki/?q=' . rawurlencode($kt));
+    }
+    if ($sec) { $rows .= $H('🏢', 'Félög á vaktinni þinni — staða'); $rows .= $sec; $personal = true; }
   }
 
   /* Vantar allt persónulegt? Hvetjum til að setja upp vaktir. */
