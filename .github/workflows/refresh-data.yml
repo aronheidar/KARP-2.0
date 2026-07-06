@@ -36,8 +36,13 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - name: Deps (xlsx o.fl. fyrir gagnaskriftur)
-        run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Deps (npm-pakkar + pypdf fyrir PDF-þáttun)
+        run: |
+          npm ci
+          python -m pip install --quiet pypdf
 
       # LOTA 18 #6: allar CI-öruggu skripturnar (aðeins net-fetch + committed deps).
       # || true → ein biluð veita fellir ekki restina; committað er því sem tókst.
@@ -91,7 +96,8 @@ jobs:
           node skriptur/build_eftirlit_hnit.js || true  # hnitar eftirlit f. Leaflet-kort (Staðfangaskrá frítt + Google fallback)
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
           node skriptur/build_styrkir.js      || true   # Opinberar styrkveitingar (6 sjóðir → nafn→úthlutun; /api/styrkir + #fs-styrkir)
-      - name: AI-samantektir (aðeins sé lykill settur sem secret)
+      - name: Lögbirtingablaðið (opin PDF-tölublöð → lögform. tilkynningar lögaðila á kt)
+        run: python skriptur/build_logbirting.py || true   # pypdf; incremental (seen-set í gogn/); persónuvernd: aðeins lögaðilar (gjaldþrot/innköllun/skiptalok/félagsslit)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |

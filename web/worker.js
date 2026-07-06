@@ -1205,6 +1205,40 @@ async function styrkirHandler(request, env, ctx) {
   if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // cache-a aðeins þegar gagnaskrá hlóðst (ekki tímabundna bilun)
   return res;
 }
+// ── LOTA 95: Lögbirtingablaðið — opinberar LÖGFORMLEGAR tilkynningar FÉLAGA eftir kt ──
+// Les forbyggða logbirting.json úr ASSETS (augGet; build_logbirting.py → build_ragcopy) og sneiðir
+// eftir kt. ⚠ Per-auglýsing/kt-leit HJÁ BLAÐINU er áskriftarlæst (401) → forbygging = eina opna leiðin.
+// AÐEINS lögaðilar (gjaldþrot/innköllun/skiptalok/félagsslit); einstaklingar/sakamál/nauðungarsölur
+// síuð út í build-skriptu (persónuvernd, lög nr. 90/2018). Sjá memory/iceland-logbirtingabladid-api.md.
+async function logbirtingHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false, count: 0, tilkynningar: [] });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/logbirting?kt=' + kt);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  const data = await augGet(env, 'logbirting.json');
+  const labels = (data && data.typeLabels) || {}, sev = (data && data.severity) || {};
+  const ent = data && (data.byKt || {})[kt];
+  const notices = ent ? ent.notices : [];
+  const out = {
+    kt, nafn: (ent && ent.name) || null, holdur: notices.length > 0,
+    heimild: 'Lögbirtingablaðið', heimildUrl: 'https://logbirtingablad.is', count: notices.length,
+    // ⚠ Endurbirting háð skilyrðum skv. lögum nr. 90/2018 → flísin vísar ávallt á opinbera tölublaðið.
+    tilkynningar: notices.map((n) => ({
+      tegund: n.type, tegundHeiti: labels[n.type] || n.type, alvarleiki: sev[n.type] != null ? sev[n.type] : 0,
+      dagsetning: n.date || null, domstoll: n.court || null,
+      dagsThinghald: n.when || null, frestur: n.deadline || null,
+      tolublad: n.issue != null ? n.issue : null, ar: n.year != null ? n.year : null, hlekkur: n.url || null,
+    })),
+  };
+  const res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=21600' },
+  });
+  if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // cache-a aðeins þegar gögn hlóðust
+  return res;
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -1231,6 +1265,7 @@ export default {
     if (url.pathname === '/api/styrkir') return styrkirHandler(request, env, ctx);
     if (url.pathname === '/api/okutaeki') return okutaekiHandler(request, ctx);
     if (url.pathname === '/api/skip') return skipHandler(request, ctx);
+    if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {

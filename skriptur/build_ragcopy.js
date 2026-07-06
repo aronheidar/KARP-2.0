@@ -16,6 +16,7 @@ const FILES = [
   'markadir.json', 'ivilnanir.json', 'skattar.json', 'utgjold.json', 'nefndir.json',
   'sendirad.json', 'numbeo.json', 'sedlabanki.json',
   'styrkir.json',   // LOTA 92: opinberar styrkveitingar (nafn→úthlutun; /api/styrkir + #fs-styrkir)
+  'logbirting.json',// LOTA 95: Lögbirtingablaðið (kt→lögform. tilkynningar; /api/logbirting + #fs-logbirting)
 ];
 
 fs.mkdirSync(PUB, { recursive: true });

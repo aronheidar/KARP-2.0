@@ -134,6 +134,24 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fs-st-s { color: #445 !important; }
     body.fs-printing #fs-report .fs-st-a { color: #137333 !important; }
     body.fs-printing #fs-report .fs-st-chip { color: #7a5900 !important; border-color: #d9c089 !important; background: #fbf3df !important; }
+    /* Lögbirtingablaðið (LOTA 95): lögform. tilkynningar, litað eftir alvarleika (þrot=rautt) */
+    .fs-logbirting { margin-top: 10px; }
+    .fs-lb-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .fs-lb-row:first-of-type { border-top: 0; }
+    .fs-lb-b { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .fs-lb-b.s2 { background: rgba(248,81,73,.18); color: #f7776f; border: 1px solid rgba(248,81,73,.42); }
+    .fs-lb-b.s1 { background: rgba(240,136,62,.16); color: #f0a35e; border: 1px solid rgba(240,136,62,.38); }
+    .fs-lb-b.s0 { background: rgba(126,140,166,.16); color: #9fb0c8; border: 1px solid rgba(126,140,166,.32); }
+    .fs-lb-t { flex: 1 1 auto; font-size: 12.5px; color: #cdd6e6; min-width: 0; line-height: 1.4; }
+    .fs-lb-t b { color: #eaf1fb; }
+    .fs-lb-l { color: #9fb0c8; font-size: 11.5px; }
+    .fs-lb-d { flex: 0 0 auto; font-size: 11px; color: #7e8ca6; white-space: nowrap; text-align: right; line-height: 1.4; }
+    .fs-lb-d a { color: #f6b13b; }
+    @media (max-width: 560px) { .fs-lb-d { display: none; } }
+    body.fs-printing #fs-report .fs-lb-t, body.fs-printing #fs-report .fs-lb-t b { color: #123 !important; }
+    body.fs-printing #fs-report .fs-lb-l { color: #445 !important; }
+    body.fs-printing #fs-report .fs-lb-b.s2 { color: #b3261e !important; border-color: #b3261e !important; background: #fdf0ef !important; }
+    body.fs-printing #fs-report .fs-lb-b.s1 { color: #8a5000 !important; border-color: #d9a05a !important; background: #fdf5ec !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -240,6 +258,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
+          <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
@@ -337,6 +356,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 el.innerHTML = v.ar.length
                   ? '<span class="fs-van bad">⚠ Í vanskilum með ársreikning: ' + v.ar.map((x) => escF(String(x.ar)) + ' (' + escF(x.vanskil) + ')').join(' · ') + '</span> <span class="fs-vansub">opinber listi ársreikningaskrár Skattsins</span>'
                   : '<span class="fs-van ok">✓ Engin vanskil á ársreikningaskilum</span> <span class="fs-vansub">rekstrarár ' + v.skodud.join(' og ') + ' · ársreikningaskrá Skattsins</span>';
+              }).catch(() => {});
+              // ⚖️ Lögbirtingablaðið (LOTA 95) — opinberar lögform. tilkynningar félagsins (gjaldþrot/
+              // innköllun/skiptalok/félagsslit). Öll félög (lögaðilar). Persónuvernd/síun í build_logbirting.py.
+              fetch('/api/logbirting?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
+                const el = document.getElementById('fs-logbirting');
+                if (!el || !l || !l.holdur) return;
+                el.hidden = false;
+                const sc = (n) => n >= 2 ? 's2' : n >= 1 ? 's1' : 's0';
+                const rows = (l.tilkynningar || []).slice(0, 8).map((n) => {
+                  const meta = [n.domstoll, n.dagsThinghald && ('þinghald ' + n.dagsThinghald), n.frestur && ('kröfulýsingarfrestur ' + n.frestur)].filter(Boolean).map(escF).join(' · ');
+                  return `<div class="fs-lb-row"><span class="fs-lb-b ${sc(n.alvarleiki)}" title="Alvarleiki ${n.alvarleiki}/2">⚖</span>`
+                    + `<span class="fs-lb-t"><b>${escF(n.tegundHeiti)}</b>${meta ? '<br><span class="fs-lb-l">' + meta + '</span>' : ''}</span>`
+                    + `<span class="fs-lb-d">${escF(n.dagsetning || '')}${n.hlekkur ? '<br><a href="' + escF(n.hlekkur) + '" target="_blank" rel="noopener">tölublað' + (n.tolublad ? ' ' + escF(n.tolublad) : '') + ' ↗</a>' : ''}</span></div>`;
+                }).join('');
+                el.innerHTML = `<div class="fs-sub">⚖️ Lögbirtingablaðið — opinberar tilkynningar${l.count > 8 ? ' · nýjustu 8 af ' + l.count : ''}</div>${rows}`
+                  + `<div class="fs-kv-src">Opinber lögbirting (lög nr. 15/2005): gjaldþrotaskipti, innkallanir, skiptalok og félagsslit lögaðila · <a href="https://www.logbirtingablad.is" target="_blank" rel="noopener">logbirtingablad.is</a></div>`;
               }).catch(() => {});
               // 🐟 Aflaheimildir (LOTA 84) — AÐEINS sjávarútvegs-geirinn (ÍSAT 03 fiskveiðar/fiskeldi,
               // 10.2 fiskvinnsla — t.d. Brim=10.20.1, 46.38 fiskheildsala) → kvótastaða úr Gagnavef Fiskistofu
