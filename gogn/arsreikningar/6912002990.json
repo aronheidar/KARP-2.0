@@ -1,0 +1,67 @@
+{
+ "kt": "6912002990",
+ "nafn": "Sandholt ehf.",
+ "sott": "2026-07-06",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7389,
+    "ebit_hlutfall": 0.1164,
+    "hagnadarhlutfall": 0.0857,
+    "ROE": 0.6253,
+    "ROA": 0.242,
+    "eiginfjarhlutfall": 0.387,
+    "veltufjarhlutfall": 0.5226,
+    "skuldahlutfall_DE": 1.5839,
+    "eignavelta": 2.8244
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7414,
+    "ebit_hlutfall": 0.1337,
+    "hagnadarhlutfall": 0.1044,
+    "ROE": 0.4602,
+    "ROA": 0.3249,
+    "eiginfjarhlutfall": 0.7061,
+    "veltufjarhlutfall": 0.988,
+    "skuldahlutfall_DE": 0.4163,
+    "eignavelta": 3.111
+   },
+   "rekstur": {
+    "sala": 666571940,
+    "adrar_tekjur": 8883510,
+    "kostnadarverd": 172395778,
+    "laun": 314668826,
+    "annar_rekstur": 90977476,
+    "afskriftir": 8324632,
+    "ebit": 89088738,
+    "fjarmunatekjur": 3380265,
+    "fjarmagnsgjold": -4339241,
+    "hagn_f_skatt": 88129762,
+    "tekjuskattur": -18511639,
+    "hagnadur": 69618123
+   },
+   "efnahagur": {
+    "fastafjarmunir": 152038774,
+    "birgdir": 2250650,
+    "vidskiptakrofur": 21310348,
+    "handbaert": 38662800,
+    "eignir": 214262572,
+    "hlutafe": 500000,
+    "langtimaskuldir": 0,
+    "skuldir": 62980562,
+    "efe_skuldir": 214262572,
+    "eigid_fe": 151282010,
+    "skammtimaskuldir": 62980562
+   }
+  }
+ }
+}
