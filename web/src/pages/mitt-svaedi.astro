@@ -188,13 +188,21 @@ const updated = '2026-07-02';
   <script type="application/json" id="d-spq" set:html={JSON.stringify({ q: SPQ, p: SPP })}></script>
 
   <style>
-    main { max-width: 780px; margin: 0 auto; padding: 34px 20px 64px; }
+    main { max-width: 960px; margin: 0 auto; padding: 34px 20px 64px; container-type: inline-size; }
+    /* Verk 8: mælaborð + stillingar í tvídálka til að minnka lóðrétt skrun.
+       Container-query → nákvæmlega 2 dálkar þegar pláss ≥700px (les RAUNbreidd efnis,
+       ekki gluggans → réttur á öllum fréttarásar-brotpunktum); 1 dálkur á síma/þröngu.
+       dense-flæði pakkar spjöldum þétt; breiðu spjöldin (sveitarf./vaktir/bannerar) spanna báða. */
+    #p-dash, #p-still { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; grid-auto-flow: row dense; }
+    @container (min-width: 700px) { #p-dash, #p-still { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    #gate-note, #w-traffic-box, .w[data-w="sveit"], .w[data-w="vaktir"] { grid-column: 1 / -1; }
+    #gate-note:empty { display: none; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 30px; margin: 0 0 12px; }
     .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 16px; }
     .tab { background: none; border: 0; color: #9fb0c8; font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
     .tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
-    .w { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
+    .w { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 14px 16px; }
     .w-h { font-size: 13px; font-weight: 700; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
     .w-p { font-size: 13px; color: #9fb0c8; margin: 0 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
