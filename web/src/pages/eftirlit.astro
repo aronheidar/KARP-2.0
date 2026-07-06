@@ -1,0 +1,192 @@
+---
+// Eftirlitsvaktin (LOTA 89) — opinber matvæla-/heilbrigðiseftirlitseinkunn RVK-staða úr HER.
+// SSR: KPIs + dreifingargraf + alvarlegustu (0–1). Client: leitanleg skrá (sækir /gogn/eftirlit.json).
+// Prófílflís (LOTA 88) = lifandi per-kt; ÞESSI síða = heildarskráin (build_eftirlit.js, 1×/dag).
+import Layout from '../layouts/Layout.astro';
+import EF from '@gogn/eftirlit.json';
+
+const stadir = EF.stadir || [];
+const dist = EF.dist || [0, 0, 0, 0, 0, 0];
+const count = EF.count || stadir.length;
+const avg = EF.avg;
+const worst = stadir.filter((s) => s.rating <= 1).sort((a, b) => (a.rating - b.rating) || (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
+const nStopped = dist[0] + dist[1];
+const updated = (EF.updated || '').slice(0, 10);
+const RLAB = EF.labels || {};
+const cIS = (v) => (v == null ? '–' : String(v).replace('.', ','));
+
+const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseinkunn ${count} veitinga- og matvælastaða í Reykjavík (kvarði 0–5, 0 verst). ${nStopped} staðir með stöðvaða eða takmarkaða starfsemi. Lifandi frá Heilbrigðiseftirliti Reykjavíkur.`;
+---
+<Layout title="Eftirlitsvaktin — matvæla- og heilbrigðiseftirlit veitingastaða | Karp" description={desc} canonical="https://karp.is/eftirlit/" ogTitle="Eftirlitsvaktin — hreinlæti veitingastaða">
+  <main data-pg="eftirlit">
+    <p class="kicker">Hagvísir Íslands · Eftirlit</p>
+    <h1>Eftirlitsvaktin 🍽️</h1>
+    <p class="lead">Opinber niðurstaða matvæla- og heilbrigðiseftirlits fyrir <strong>{count}</strong> veitinga-, kaffihúsa- og matvælastaði í Reykjavík — einkunn <strong>0–5</strong> (0 verst) úr nýjasta eftirliti. Enginn annar birtir þetta á einum stað: Matvælastofnun gefur engar per-stað einkunnir og fjölmiðlar halda ekki skrá. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Heilbrigðiseftirlit Reykjavíkur (her.reykjavik.is). Kvarði 0–5: 5 kröfur uppfylltar · 4 fáein frávik · 3 frávik/ábendingar · 2 aðkallandi frávik · 1 starfsemi takmörkuð/stöðvuð að hluta · 0 starfsemi stöðvuð. ⚠ Aðeins Reykjavík — önnur heilbrigðiseftirlitssvæði birta ekki per-stað einkunnir.">ⓘ</i> Um kvarðann og gögnin · ⚠ aðeins Reykjavík</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏢 Metnir staðir</div><div class="k-v">{count}</div><div class="k-s">m/ birta einkunn</div></div>
+      <div class="kpi"><div class="k-l">📊 Meðaleinkunn</div><div class="k-v">{cIS(avg)}</div><div class="k-s">af 5 (hærra betra)</div></div>
+      <div class="kpi"><div class="k-l">⛔ Stöðvuð / takmörkuð</div><div class="k-v" style="color:#f85149">{nStopped}</div><div class="k-s">einkunn 0–1</div></div>
+      <div class="kpi"><div class="k-l">⭐ Til fyrirmyndar</div><div class="k-v" style="color:#3fb950">{dist[5]}</div><div class="k-s">einkunn 5</div></div>
+    </div>
+
+    <h2>Dreifing einkunna</h2>
+    <p class="sub">Fjöldi staða eftir einkunn. Flestir eru í 3 („frávik / ábendingar"); {nStopped} staðir í 0–1.</p>
+    <div class="cwrap"><div id="c-dist" class="ch"></div></div>
+
+    {worst.length > 0 && <>
+      <h2>⚠ Alvarlegustu frávikin</h2>
+      <p class="sub">Staðir með stöðvaða eða að hluta takmarkaða/stöðvaða starfsemi (einkunn 0–1) í nýjasta eftirliti.</p>
+      <div class="ef-grid">
+        {worst.map((s) => (
+          <div class="ef-card">
+            <span class={'ef-b r' + s.rating} title={'Einkunn ' + s.rating + '/5'}>{s.rating}</span>
+            <div class="ef-t">
+              <a class="ef-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name)}>{s.name}</a>
+              <div class="ef-meta">{[s.street, s.postnr, s.city].filter(Boolean).join(' · ')}</div>
+              <div class="ef-lab">{s.ratingLabel}</div>
+            </div>
+            <div class="ef-r">
+              <div class="ef-d">{s.lastInspection || ''}</div>
+              {s.reportUrl && <a class="ef-rep" href={s.reportUrl} target="_blank" rel="noopener">skýrsla ↗</a>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>}
+
+    <h2>Leitaðu í skránni</h2>
+    <p class="sub">Sláðu inn nafn eða götu, eða síaðu eftir einkunn. Smelltu á nafn til að sjá fyrirtækjaprófíl, eða „skýrsla" fyrir fulla eftirlitsskýrslu HER.</p>
+    <div class="ef-controls">
+      <input id="ef-q" type="search" placeholder="🔎 Leita að stað eða götu…" autocomplete="off" />
+      <div class="ef-filt" id="ef-filt">
+        <button class="ef-fb active" data-r="all">Allar</button>
+        <button class="ef-fb" data-r="5">5</button>
+        <button class="ef-fb" data-r="4">4</button>
+        <button class="ef-fb" data-r="3">3</button>
+        <button class="ef-fb" data-r="2">2</button>
+        <button class="ef-fb" data-r="1">1</button>
+        <button class="ef-fb" data-r="0">0</button>
+      </div>
+    </div>
+    <div id="ef-count" class="ef-cnt"></div>
+    <div id="ef-list" class="ef-grid"><div class="ef-load">Hleð skránni…</div></div>
+    <button id="ef-more" class="ef-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Heilbrigðiseftirlit Reykjavíkur</b> (her.reykjavik.is), uppfært {updated}. Einkunn 0–5 úr nýjasta eftirliti hvers staðar; full skýrsla (Hollustuhættir / Matvæli / Mengunarvarnir) á HER. ⚠ Aðeins Reykjavík — Matvælastofnun og önnur heilbrigðiseftirlitssvæði birta ekki per-stað einkunnir.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 300px; }
+
+    .ef-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
+    .ef-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    .ef-b { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #10151f; }
+    .ef-b.r5 { background: #3fb950; } .ef-b.r4 { background: #6fd39b; } .ef-b.r3 { background: #f6b13b; } .ef-b.r2 { background: #f0883e; } .ef-b.r1 { background: #f85149; color: #fff; } .ef-b.r0 { background: #d1242f; color: #fff; }
+    .ef-t { flex: 1 1 auto; min-width: 0; }
+    .ef-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; }
+    .ef-n:hover { color: #f6b13b; }
+    .ef-meta { font-size: 11.5px; color: #7e8ca6; margin-top: 1px; }
+    .ef-lab { font-size: 11.5px; color: #9fb0c8; margin-top: 3px; }
+    .ef-r { flex: 0 0 auto; text-align: right; }
+    .ef-d { font-size: 11px; color: #7e8ca6; white-space: nowrap; }
+    .ef-rep { font-size: 11px; color: #f6b13b; text-decoration: none; }
+    .ef-rep:hover { text-decoration: underline; }
+
+    .ef-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #ef-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #ef-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .ef-filt { display: flex; gap: 5px; }
+    .ef-fb { font: inherit; font-size: 13px; min-width: 34px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; font-weight: 700; }
+    .ef-fb:hover { color: #eaf1fb; border-color: rgba(246,177,59,.5); }
+    .ef-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .ef-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .ef-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .ef-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .ef-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+  </style>
+
+  <script define:vars={{ dist, RLAB }}>
+    function initEft() {
+      if (!document.querySelector('main[data-pg="eftirlit"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const RCOL = ['#d1242f', '#f85149', '#f0883e', '#f6b13b', '#6fd39b', '#3fb950'];
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      // Dreifingargraf (ECharts) — súlur 0..5, litað
+      const drawDist = () => {
+        const el = document.getElementById('c-dist');
+        if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return;
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 44, right: 16, top: 14, bottom: 40 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => 'Einkunn ' + p[0].name + '<br/><b>' + p[0].value + '</b> staðir<br/>' + (RLAB[p[0].name] || '') },
+          xAxis: { type: 'category', data: [0, 1, 2, 3, 4, 5], name: 'einkunn', nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: AX, fontSize: 11 }, axisLabel: { color: AX, fontSize: 13, fontWeight: 700 }, axisLine: { lineStyle: { color: LINE } } },
+          yAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+          series: [{ type: 'bar', data: dist.map((v, i) => ({ value: v, itemStyle: { color: RCOL[i], borderRadius: [4, 4, 0, 0] } })), barMaxWidth: 60, label: { show: true, position: 'top', color: '#9fb0c8', fontSize: 12, fontWeight: 700 } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts) drawDist();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawDist, { once: true }); }
+
+      // Leitanleg skrá — sækir /gogn/eftirlit.json (heildarskrá), síar client-side
+      const listEl = document.getElementById('ef-list'), cntEl = document.getElementById('ef-count'), moreEl = document.getElementById('ef-more'), qEl = document.getElementById('ef-q');
+      let DATA = null, filtered = [], shown = 0, curR = 'all', PAGE = 60;
+      const card = (s) => '<div class="ef-card"><span class="ef-b r' + s.rating + '" title="Einkunn ' + s.rating + '/5">' + s.rating + '</span>'
+        + '<div class="ef-t"><a class="ef-n" href="/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name) + '">' + esc(s.name) + '</a>'
+        + '<div class="ef-meta">' + esc([s.street, s.postnr, s.city].filter(Boolean).join(' · ')) + '</div>'
+        + '<div class="ef-lab">' + esc(s.ratingLabel || '') + '</div></div>'
+        + '<div class="ef-r"><div class="ef-d">' + esc(s.lastInspection || '') + '</div>'
+        + (s.reportUrl ? '<a class="ef-rep" href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : '') + '</div></div>';
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        filtered = DATA.filter((s) => (curR === 'all' || s.rating === +curR)
+          && (!q || (s.name || '').toLowerCase().includes(q) || (s.street || '').toLowerCase().includes(q)));
+        shown = 0;
+        cntEl.textContent = filtered.length + ' staðir' + (q || curR !== 'all' ? ' (síað)' : '');
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="ef-load">Engir staðir fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const load = () => fetch('/gogn/eftirlit.json').then((r) => r.json()).then((j) => {
+        DATA = (j.stadir || []).slice().sort((a, b) => (a.rating - b.rating) || (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
+        apply();
+      }).catch(() => { listEl.innerHTML = '<div class="ef-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      document.getElementById('ef-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.ef-fb'); if (!b) return;
+        document.querySelectorAll('.ef-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curR = b.dataset.r; if (DATA) apply();
+      });
+      moreEl.addEventListener('click', more);
+      load();
+    }
+    document.addEventListener('astro:page-load', initEft);
+  </script>
+</Layout>
