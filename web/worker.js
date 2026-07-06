@@ -1022,10 +1022,12 @@ async function payCheckoutHandler(request, env, ctx) {
   const currency = 'ISK';
   const orderid = teyaOrderId();
   const origin = 'https://karp.is';
-  const q = '?o=' + encodeURIComponent(orderid) + '&k=' + encodeURIComponent(key) + '&t=' + kind + '&u=' + uid;
+  // amount+currency fest í skila-slóðina (hluti af checkhash → traust, ekki hægt að falsa) svo callback
+  // geti sannreynt orderhash=HMAC(orderid|amount|currency) — SecurePay skilar EKKI amount/currency í POST.
+  const q = '?o=' + encodeURIComponent(orderid) + '&k=' + encodeURIComponent(key) + '&t=' + kind + '&u=' + uid + '&a=' + encodeURIComponent(amount) + '&cur=' + currency;
   const returnurlsuccess = origin + '/api/pay/return' + q;
   const returnurlsuccessserver = origin + '/api/pay/callback' + q;
-  const returnurlcancel = origin + '/api/pay/return' + q + '&c=1';
+  const returnurlcancel = origin + '/api/pay/return' + q + '&x=1';
   const merchantid = env.TEYA_MERCHANT_ID;
   // checkhash — bætin verða að stemma NÁKVÆMLEGA við reitina sem sendir eru (sömu strengir)
   const msg = [merchantid, returnurlsuccess, returnurlsuccessserver, orderid, amount, currency].join('|');
@@ -1044,7 +1046,7 @@ async function payCheckoutHandler(request, env, ctx) {
 async function payReturnHandler(request, env, ctx) {
   const u = new URL(request.url);
   const o = u.searchParams.get('o') || '', k = u.searchParams.get('k') || '', t = u.searchParams.get('t') || '';
-  let ok = u.searchParams.get('c') !== '1';
+  let ok = u.searchParams.get('x') !== '1';
   if (request.method === 'POST') { try { const fd = await request.formData(); if (String(fd.get('status') || '') !== 'Ok') ok = false; } catch (e) {} }
   const dest = '/kaup/?s=' + (ok ? 'ok' : 'cancel') + '&o=' + encodeURIComponent(o) + '&k=' + encodeURIComponent(k) + '&t=' + encodeURIComponent(t);
   return new Response(null, { status: 302, headers: { location: dest } });
@@ -1055,8 +1057,10 @@ async function payCallbackHandler(request, env, ctx) {
   if (!teyaConfigured(env)) return new Response('unconfigured', { status: 200 });
   const u = new URL(request.url);
   const orderid = u.searchParams.get('o') || '';
-  let amount = '', currency = 'ISK', orderhash = '', status = '';
-  try { const fd = await request.formData(); amount = String(fd.get('amount') || ''); currency = String(fd.get('currency') || 'ISK'); orderhash = String(fd.get('orderhash') || ''); status = String(fd.get('status') || ''); } catch (e) {}
+  const amount = u.searchParams.get('a') || '';        // úr skila-slóð — SecurePay skilar EKKI amount/currency í POST
+  const currency = u.searchParams.get('cur') || 'ISK';
+  let orderhash = '', status = '';
+  try { const fd = await request.formData(); orderhash = String(fd.get('orderhash') || ''); status = String(fd.get('status') || ''); } catch (e) {}
   if (status !== 'Ok') return new Response('ignored', { status: 200 });
   const expect = await teyaHmacHex(env.TEYA_SECRET_KEY, [orderid, amount, currency].join('|'));
   if (!orderhash || orderhash.toLowerCase() !== expect) return new Response('badhash', { status: 400 });
