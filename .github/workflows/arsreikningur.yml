@@ -51,8 +51,15 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add web/public/gogn/arsreikningar/ 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "Engin ný ársreikningsgögn."
-          else
-            git commit -m "Ársreikningur scrapaður (on-demand, GH Action)"
-            git push
+            echo "Engin ný ársreikningsgögn."; exit 0
           fi
+          git commit -m "Ársreikningur scrapaður (on-demand, GH Action)"
+          # ⚠ main getur hafa færst á meðan scrape stóð yfir (~2 mín) → naïft push hafnar (non-fast-forward)
+          #    og scrapaði JSON-inn tapast. Rebasa á nýjasta main + endurreyna (JSON = ný skrá → engir árekstrar).
+          for i in 1 2 3 4 5; do
+            if git push; then echo "Push tókst (tilraun $i)"; exit 0; fi
+            echo "Push hafnað (tilraun $i) — sæki + rebasa á origin/main..."
+            git fetch origin main && git rebase origin/main || git rebase --abort 2>/dev/null || true
+            sleep $((i * 3))
+          done
+          echo "❌ Push mistókst eftir 5 tilraunir"; exit 1

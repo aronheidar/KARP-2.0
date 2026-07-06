@@ -37,9 +37,9 @@ REKSTUR_MAP = [
     ('ebit',            r'(rekstrarhagna.ur|fyrir fj.rmunatekjur|fyrir afskriftir og fj)'),
     ('fjarmagnsgjold',  r'(fj.rmagnsgj.ld|vaxtagj.ld)'),
     ('fjarmunatekjur',  r'(fj.reignatekjur|vaxtatekjur)'),
-    ('hagn_f_skatt',    r'hagna.ur (fyrir (tekju)?skatt|f.r skatt)'),
+    ('hagn_f_skatt',    r'(hagna.ur|tap) (fyrir (tekju)?skatt|f.r skatt)'),
     ('tekjuskattur',    r'^tekjuskattur'),
-    ('hagnadur',        r'hagna.ur .rsins'),
+    ('hagnadur',        r'^(hagna.ur|tap).{0,10}.rsins'),   # líka "Tap ársins" / "Hagnaður (tap) ársins" (tapfélög)
 ]
 EFNAHAGUR_MAP = [
     ('fastafjarmunir',  r'fastafj.rmunir samtals'),
@@ -92,12 +92,29 @@ def take_years(nums):
 
 def detect_scale(text):
     lo = text.lower()
-    # "Fjárhæðir eru í þúsundum evra/króna" -> margfaldari + mynt (brenglað: .sundum)
-    scale = 1000 if re.search(r'(.sundum|thousands)', lo) else 1
-    if re.search(r'evr[au]|eur', lo): cur = 'EUR'
-    elif re.search(r'\busd|banda', lo): cur = 'USD'
-    elif re.search(r'gbp|sterling', lo): cur = 'GBP'
-    else: cur = 'ISK'
+    scale, cur = 1, None
+    # Framsetningar-yfirlýsing ("Ársreikningur er birtur í [þúsundum|milljónum] [íslenskra króna|evra]").
+    # AKKERUM á framsetningar-sögn + kvarða-orð Í SÖMU LÍNU. Tvær ástæður:
+    #   (1) "milljónum" (1e6) þarf að greinast, ekki bara "þúsundum" (1e3);
+    #   (2) prósa sem nefnir evrur annars staðar (t.d. "færa bókhald í evrur frá 2026") má EKKI
+    #       yfirtaka raunverulega uppgjörsmynt ("íslenskra króna").
+    # Broddstafir brenglast í RSK-PDF → ASCII-kjarnar lifa af: 'millj','sund','kr','evr','slensk'.
+    for m in re.finditer(r'(?:birt\w*|fj.rh..ir\s+eru|ger.\w*\s+upp|sett\w*\s+fram|amounts?|presented|expressed|stated)[^\n]{0,75}', lo):
+        seg = m.group(0)
+        if 'millj' in seg or 'million' in seg: scale = 1000000
+        elif 'sund' in seg or 'thousand' in seg: scale = 1000
+        else: continue   # engin kvarða-yfirlýsing í þessum glugga
+        if 'evr' in seg or 'eur' in seg: cur = 'EUR'
+        elif 'usd' in seg or 'bandar' in seg or 'dollar' in seg: cur = 'USD'
+        elif 'gbp' in seg or 'sterling' in seg or 'pund' in seg: cur = 'GBP'
+        elif 'kr' in seg or 'slensk' in seg or 'isl' in seg: cur = 'ISK'
+        break            # fyrsta gild yfirlýsing ræður
+    if scale == 1 and re.search(r'(.sundum|thousands)', lo): scale = 1000   # varaleið (gömul hegðun)
+    if cur is None:      # engin mynt í yfirlýsingu → varaleið
+        if re.search(r'.sundum\s+evr|millj.num\s+evr|thousands?\s+of\s+eur', lo): cur = 'EUR'
+        elif re.search(r'\busd|bandar', lo): cur = 'USD'
+        elif re.search(r'gbp|sterling', lo): cur = 'GBP'
+        else: cur = 'ISK'
     return scale, cur
 
 def parse(path):
@@ -171,6 +188,10 @@ def kpis(res, idx=0):
     if stskuld: put('veltufjarhlutfall', velta, stskuld)
     put('skuldahlutfall_DE', skuldir, efe)
     put('eignavelta', sala, eignir)
+    # Heilbrigðis-vörn gegn dálka-skekkju (t.d. rangur söludálkur eins árs): definitional þök.
+    # Framlegð ≤ 100% (sala−kostn ≤ sala); eiginfjárhlutfall ≤ 100% (e.fé ≤ eignir). Gildi utan → þáttunarvilla → sleppa.
+    if 'framlegd' in out and not (-2.0 <= out['framlegd'] <= 1.0): del out['framlegd']
+    if 'eiginfjarhlutfall' in out and not (-1.5 <= out['eiginfjarhlutfall'] <= 1.0): del out['eiginfjarhlutfall']
     return out
 
 if __name__ == '__main__':

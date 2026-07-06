@@ -1,0 +1,74 @@
+{
+ "kt": "6104061060",
+ "nafn": "Samherji fiskeldi ehf.",
+ "sott": "2026-07-06",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "ebit_hlutfall": 0.0569,
+    "eiginfjarhlutfall": 0.6966,
+    "veltufjarhlutfall": 0.1393,
+    "skuldahlutfall_DE": 0.4357,
+    "eignavelta": 0.571
+   }
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "ebit_hlutfall": 0.2061,
+    "hagnadarhlutfall": -0.1095,
+    "ROE": -0.0072,
+    "ROA": -0.0058,
+    "eiginfjarhlutfall": 0.7972,
+    "veltufjarhlutfall": 0.3319,
+    "skuldahlutfall_DE": 0.2543,
+    "eignavelta": 0.0526
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "framlegd": -0.0255,
+    "ebit_hlutfall": -0.1593,
+    "hagnadarhlutfall": -0.1353,
+    "ROE": -0.0706,
+    "ROA": -0.0423,
+    "eiginfjarhlutfall": 0.5987,
+    "veltufjarhlutfall": 0.1724,
+    "skuldahlutfall_DE": 0.6702,
+    "eignavelta": 0.3124
+   },
+   "rekstur": {
+    "sala": 4589,
+    "adrar_tekjur": 105,
+    "kostnadarverd": -4706,
+    "annar_rekstur": -275,
+    "afskriftir": -338,
+    "ebit": -731,
+    "fjarmagnsgjold": -228,
+    "hagn_f_skatt": -776,
+    "tekjuskattur": 155,
+    "hagnadur": -621
+   },
+   "efnahagur": {
+    "birgdir": 115,
+    "vidskiptakrofur": 246,
+    "handbaert": 655,
+    "eignir": 14689,
+    "hlutafe": 9300,
+    "eigid_fe": 8795,
+    "skuldir": 5894,
+    "efe_skuldir": 14689,
+    "skammtimaskuldir": 5894
+   }
+  }
+ }
+}
