@@ -1,0 +1,164 @@
+---
+// Skipaleit — skipaskrárnúmer EÐA nafn → tegund/smíðaár/stærð/heimahöfn/umdæmi/staða + EIGENDUR.
+// Lifandi um worker /api/skip (island.is shipRegistryShipSearch, óauðkennt — spegill ökutækjaleitar).
+// Lögaðila-eigendur tengjast á /fyrirtaeki/?q=<kt>; einstaklingar birtir með hófsemi (nafn, engin kt/tengill).
+// ⚠ vél/afl, kallmerki og skoðun eru X-Road-/innskráningarlæst — sýnum opna grunntíerinn.
+import Layout from '../layouts/Layout.astro';
+const desc = 'Skipaleit — flettu upp íslensku skipi eftir skipaskrárnúmeri eða nafni: tegund, smíðaár, brúttótonn, lengd, heimahöfn, umdæmi, staða og skráðir eigendur. Ókeypis, beint frá Samgöngustofu um island.is.';
+---
+<Layout title="Skipaleit — flettu upp skipi | Karp" description={desc} canonical="https://karp.is/skip/" ogTitle="Skipaleit">
+  <main data-pg="skip">
+    <p class="kicker">Hagvísir Íslands · Uppfletting</p>
+    <h1>Skipaleit 🚢</h1>
+    <p class="lead">Flettu upp íslensku skipi eftir <strong>skipaskrárnúmeri eða nafni</strong> og sjáðu skráðar upplýsingar úr skipaskrá Samgöngustofu — tegund, smíðaár og -stöð, brúttótonn, lengd, heimahöfn, umdæmi, stöðu og skráða eigendur. Ókeypis, beint um island.is.</p>
+
+    <form id="sk-form" class="sk-form" autocomplete="off">
+      <input id="skq" type="text" inputmode="latin" maxlength="64" placeholder="Skipaskrárnúmer eða nafn · t.d. 2881 eða Venus" aria-label="Skipaskrárnúmer eða nafn" />
+      <button type="submit" id="sk-go">Fletta upp</button>
+    </form>
+    <div id="sk-result" class="sk-result" aria-live="polite"></div>
+
+    <p class="sk-lock">🔒 <strong>Vél/afl, kallmerki, haffærisskírteini og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki X-Road-gátt Samgöngustofu og innskráningar (t.d. „mín skip" á <a href="https://island.is/skipaskra" target="_blank" rel="noopener">island.is</a>).</p>
+    <p class="foot">Heimild: Samgöngustofa um opna skipaleit island.is (<code>shipRegistryShipSearch</code>). Skipaskrárnúmer er sami lykill og hjá Fiskistofu (aflamark). Opinber skipaskrá; einstaklingseigendur einkabáta birtir með hófsemi. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).</p>
+  </main>
+
+  <style>
+    main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+
+    .sk-form { display: flex; gap: 8px; margin: 20px 0 4px; }
+    #skq { flex: 1 1 auto; font: inherit; font-size: 18px; font-weight: 600; padding: 12px 14px; border-radius: 11px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: #eaf1fb; }
+    #skq:focus { outline: none; border-color: rgba(246,177,59,.6); }
+    #skq::placeholder { color: #6f7b8d; font-weight: 400; }
+    #sk-go { font: inherit; font-size: 15px; font-weight: 700; padding: 0 22px; border-radius: 11px; border: 0; background: #f6b13b; color: #10151f; cursor: pointer; }
+    #sk-go:disabled { opacity: .55; cursor: default; }
+
+    .sk-result { margin-top: 14px; }
+    .sk-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 18px 20px; }
+    .sk-card + .sk-card { margin-top: 12px; }
+    .sk-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+    .sk-h h2 { font-size: 21px; margin: 0; color: #eaf1fb; }
+    .sk-reg { font-size: 13px; font-weight: 800; letter-spacing: .06em; background: #12203a; color: #cfe0ff; border: 1px solid #2b4272; border-radius: 6px; padding: 3px 9px; }
+    .sk-sub { font-size: 13px; color: #9fb0c8; margin: 0 0 14px; }
+    .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 16px; }
+    .sk-f .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; }
+    .sk-f .v { font-size: 15px; color: #eaf1fb; font-weight: 600; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .sk-own { margin-top: 16px; }
+    .sk-own .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; margin-bottom: 6px; }
+    .sk-own ul { list-style: none; margin: 0; padding: 0; }
+    .sk-own li { font-size: 15px; color: #eaf1fb; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .sk-own li:first-child { border-top: 0; }
+    .sk-own a { font-weight: 600; }
+    .sk-pct { font-size: 12.5px; color: #9fb0c8; font-variant-numeric: tabular-nums; }
+    .sk-fisk { display: inline-block; margin-top: 12px; font-size: 13px; }
+
+    .sk-list-h { font-size: 13px; color: #9fb0c8; margin: 0 0 10px; }
+    .sk-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; width: 100%; text-align: left; cursor: pointer; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; color: inherit; font: inherit; }
+    .sk-row:hover { border-color: rgba(246,177,59,.5); background: rgba(255,255,255,.05); }
+    .sk-row-nm { font-size: 16px; font-weight: 700; color: #eaf1fb; }
+    .sk-row-reg { font-size: 12px; font-weight: 800; letter-spacing: .06em; background: #12203a; color: #cfe0ff; border: 1px solid #2b4272; border-radius: 5px; padding: 2px 7px; }
+    .sk-row-meta { font-size: 12.5px; color: #9fb0c8; margin-left: auto; }
+    .sk-back { display: inline-block; margin-bottom: 10px; font-size: 13px; color: #f6b13b; cursor: pointer; background: none; border: 0; padding: 0; font: inherit; }
+
+    .sk-msg { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 16px 18px; color: #cdd6e6; font-size: 14px; }
+    .sk-lock { font-size: 12.5px; color: #9fb0c8; margin-top: 16px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.18); border-radius: 10px; padding: 10px 13px; }
+    .sk-lock strong { color: #eaf1fb; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; line-height: 1.6; } .foot code { color: #9fb0c8; }
+  </style>
+
+  <script>
+    function initSkip() {
+      const form = document.getElementById('sk-form');
+      if (!form || form.dataset.on) return;
+      form.dataset.on = '1';
+      const inp = document.getElementById('skq'), btn = document.getElementById('sk-go'), out = document.getElementById('sk-result');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const num = (n, d) => (n == null || n === '' ? null : Number(n).toLocaleString('de-DE', { maximumFractionDigits: d == null ? 0 : d }));
+      const f = (l, v) => '<div class="sk-f"><div class="l">' + l + '</div><div class="v">' + (v == null || v === '' ? '—' : esc(v)) + '</div></div>';
+      let state = [];
+
+      const ownersHtml = (eig) => {
+        if (!eig || !eig.length) return '';
+        const rows = eig.map((o) => {
+          const nm = esc(o.nafn || '—');
+          const pct = (o.hlutur != null && o.hlutur !== '') ? ' <span class="sk-pct">' + esc(num(o.hlutur, 0)) + '%</span>' : '';
+          // Lögaðili → tengill á fyrirtækjaskýrslu. Einstaklingur → nafn eitt (engin kt/tengill; persónuvernd einkabáta).
+          if (o.erFyrirtaeki && o.kt) return '<li><a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + nm + '</a>' + pct + '</li>';
+          return '<li>' + nm + pct + '</li>';
+        }).join('');
+        return '<div class="sk-own"><div class="l">Skráðir eigendur</div><ul>' + rows + '</ul></div>';
+      };
+
+      const cardHtml = (s) => {
+        const bygg = [s.smidaar, s.smidastod].filter(Boolean).join(' · ');
+        return '<div class="sk-card">'
+          + '<div class="sk-h"><h2>' + esc(s.nafn || 'Skip') + '</h2>'
+          + (s.skipaskrarnumer != null ? '<span class="sk-reg">Skipaskrá ' + esc(s.skipaskrarnumer) + '</span>' : '') + '</div>'
+          + '<p class="sk-sub">' + esc([s.tegund, s.heimahofn].filter(Boolean).join(' · ') || '—') + '</p>'
+          + '<div class="sk-grid">'
+          + f('Staða', s.stada)
+          + f('Umdæmi', s.umdaemi)
+          + f('Brúttótonn', num(s.bruttotonn, 2))
+          + f('Skráningarlengd', s.lengd != null ? num(s.lengd, 2) + ' m' : null)
+          + f('Smíðaár', s.smidaar)
+          + f('Smíðastöð', s.smidastod)
+          + (s.opinnBatur != null ? f('Bátsgerð', s.opinnBatur ? 'Opinn bátur' : 'Þilfarsskip') : '')
+          + '</div>'
+          + ownersHtml(s.eigendur)
+          + (s.skipaskrarnumer != null ? '<a class="sk-fisk" href="/atvinnuvegir/sjavarutvegur/">Aflamark & aflahlutdeild → sjávarútvegur</a>' : '')
+          + '</div>';
+      };
+
+      const showShip = (s, fromList) => {
+        out.innerHTML = (fromList ? '<button class="sk-back" type="button">← Til baka í niðurstöður</button>' : '') + cardHtml(s);
+        if (s.skipaskrarnumer != null) { try { history.replaceState(null, '', '/skip/?q=' + encodeURIComponent(s.skipaskrarnumer)); } catch (e) {} }
+      };
+
+      const showList = (ships, alls) => {
+        state = ships;
+        const rows = ships.map((s, i) =>
+          '<button class="sk-row" type="button" data-idx="' + i + '">'
+          + '<span class="sk-row-nm">' + esc(s.nafn || '—') + '</span>'
+          + (s.skipaskrarnumer != null ? '<span class="sk-row-reg">#' + esc(s.skipaskrarnumer) + '</span>' : '')
+          + '<span class="sk-row-meta">' + esc([s.tegund, s.heimahofn].filter(Boolean).join(' · ')) + '</span>'
+          + '</button>').join('');
+        out.innerHTML = '<p class="sk-list-h">' + ships.length + ' skip fundust' + (alls && alls > ships.length ? ' (sýni ' + ships.length + ' af ' + alls + ')' : '') + ' — smelltu til að sjá nánar:</p>' + rows;
+      };
+
+      const render = (d) => {
+        if (d.error === 'q') { out.innerHTML = '<div class="sk-msg">Sláðu inn skipaskrárnúmer eða nafn (a.m.k. 2 stafi).</div>'; return; }
+        if (d.error === 'kvoti') { out.innerHTML = '<div class="sk-msg">⏳ Of margar flettingar í bili — reyndu aftur síðar.</div>'; return; }
+        const ships = d.ships || [];
+        if (!ships.length) { out.innerHTML = '<div class="sk-msg">🔍 Ekkert skip fannst fyrir <b>' + esc(d.qs || '') + '</b>. Athugaðu stafsetningu — leita má eftir númeri eða (hluta úr) nafni.</div>'; return; }
+        if (ships.length === 1) { showShip(ships[0], false); return; }
+        showList(ships, d.alls);
+      };
+
+      out.addEventListener('click', (e) => {
+        const row = e.target.closest('.sk-row');
+        if (row && state[+row.dataset.idx]) { showShip(state[+row.dataset.idx], true); return; }
+        if (e.target.closest('.sk-back')) { showList(state); try { history.replaceState(null, '', '/skip/'); } catch (x) {} }
+      });
+
+      const go = async () => {
+        const q = (inp.value || '').trim();
+        if (q.length < 2) { inp.focus(); return; }
+        btn.disabled = true; out.innerHTML = '<div class="sk-msg">Leita…</div>';
+        try {
+          const d = await fetch('/api/skip?q=' + encodeURIComponent(q)).then((r) => r.json());
+          render(d);
+          if (!(d.ships && d.ships.length === 1)) { try { history.replaceState(null, '', '/skip/?q=' + encodeURIComponent(q)); } catch (e) {} }
+        } catch (e) { out.innerHTML = '<div class="sk-msg">Villa við uppflettingu — reyndu aftur.</div>'; }
+        btn.disabled = false;
+      };
+      form.addEventListener('submit', (e) => { e.preventDefault(); go(); });
+      const q0 = new URLSearchParams(location.search).get('q');
+      if (q0) { inp.value = q0; go(); }
+      inp.focus();
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="skip"]')) initSkip(); });
+  </script>
+</Layout>

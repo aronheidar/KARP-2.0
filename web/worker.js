@@ -1044,6 +1044,70 @@ async function fyrirtaekiHandler(request, ctx) {
   return res;
 }
 
+// ── Skipaleit (island.is/api/graphql shipRegistryShipSearch — opið, óauðkennt) ──
+// skipaskrárnúmer EÐA nafn → tegund/smíðaár/stærð/heimahöfn/umdæmi/staða + EIGENDUR m/kt.
+// regno == Fiskistofu-skipnr (→ aflamark). ⚠ vél/afl + kallmerki eru X-Road-læst (ekki í opna módelinu).
+// Sjá memory/iceland-skipaskra-api.md. Per-IP dagskvóti + 24h cache (öryggisnet), eins og ökutæki.
+// ⚠ EKKI operationName í body — fyrirspurnin er nafnlaus (annars 400, sama gildra og publicVehicleSearch).
+const SKIP_Q = 'query($input: ShipRegistryShipSearchInput!){ shipRegistryShipSearch(input:$input){ ships{ shipName shipType regno region portOfRegistry regStatus grossTonnage length manufactionYear manufacturer opid owners{ name nationalId sharePercentage } } } }';
+// Íslensk kennitala lögaðila: fyrstu 2 stafir = stofndagur + 40 (41–71); einstaklingar 01–31.
+const skipErFyrirtaeki = (kt) => /^\d{10}$/.test(kt || '') && +String(kt).slice(0, 2) >= 41 && +String(kt).slice(0, 2) <= 71;
+function skipMap(s) {
+  return {
+    skipaskrarnumer: s.regno ?? null,        // == Fiskistofu-skipnr → join við aflamark
+    nafn: s.shipName || null,
+    tegund: s.shipType || null,              // "FISKISKIP" eða stigskipt "FISKISKIP -> SKUTTOGARI"
+    umdaemi: s.region || null,
+    heimahofn: s.portOfRegistry || null,
+    stada: s.regStatus || null,              // t.d. "Á aðalskipaskrá"
+    bruttotonn: s.grossTonnage ?? null,
+    lengd: s.length ?? null,                 // skráningarlengd (m)
+    smidaar: s.manufactionYear ? (Number(s.manufactionYear) || s.manufactionYear) : null,
+    smidastod: s.manufacturer || null,
+    opinnBatur: s.opid === 'Já' ? true : s.opid === 'Nei' ? false : null,
+    eigendur: (s.owners || []).map((o) => ({
+      nafn: o.name || null,
+      kt: o.nationalId || null,
+      hlutur: o.sharePercentage,             // eignaprósenta (getur verið 0 — gagnasérviska)
+      erFyrirtaeki: skipErFyrirtaeki(o.nationalId), // false = einstaklingur (persónuvernd á einkabátum)
+    })),
+  };
+}
+async function skipHandler(request, ctx) {
+  const u = new URL(request.url);
+  const qs = (u.searchParams.get('numer') || u.searchParams.get('q') || u.searchParams.get('nafn') || '').trim().slice(0, 64);
+  if (qs.length < 2) return sjson({ error: 'q', ships: [] });
+  const cache = caches.default;
+  const day = new Date().toISOString().slice(0, 10);
+  const ip = request.headers.get('cf-connecting-ip') || 'x';
+  const ipKey = new Request('https://cache.karp.internal/skip-ip/' + day + '/' + encodeURIComponent(ip));
+  const qhit = await cache.match(ipKey);
+  const usedN = qhit ? parseInt(await qhit.text(), 10) || 0 : 0;
+  if (usedN >= 60) return sjson({ error: 'kvoti', ships: [] });
+  const cacheKey = new Request('https://cache.karp.internal/api/skip?qs=' + encodeURIComponent(qs.toLowerCase()));
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  ctx.waitUntil(cache.put(ipKey, new Response(String(usedN + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
+  let out = { qs, count: 0, ships: [] };
+  try {
+    const r = await fetch('https://island.is/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' },
+      body: JSON.stringify({ query: SKIP_Q, variables: { input: { qs } } }),  // ⚠ EKKI operationName (nafnlaus → 400)
+    });
+    const j = await r.json().catch(() => null);
+    const d = j && j.data && j.data.shipRegistryShipSearch;
+    const all = ((d && d.ships) || []).map(skipMap);
+    out = { qs, count: all.length, ships: all.slice(0, 50), ...(all.length > 50 ? { alls: all.length } : {}) };
+  } catch (e) { return sjson(out); }
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+  });
+  if (out.count) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // aðeins svar með niðurstöðum cache-að
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1067,6 +1131,7 @@ export default {
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
     if (url.pathname === '/api/okutaeki') return okutaekiHandler(request, ctx);
+    if (url.pathname === '/api/skip') return skipHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {

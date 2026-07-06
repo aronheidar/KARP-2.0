@@ -18,6 +18,7 @@ const NAV = [
     { href: '/eftirlit/', label: 'Eftirlitsvaktin' },
     { href: '/fyrirtaeki/', label: 'Fyrirtækjaskrá' },
     { href: '/okutaeki/', label: 'Ökutækjaleit' },
+    { href: '/skip/', label: 'Skipaleit' },
     { href: '/spyrdu/', label: 'Spyrðu Karp' },
     { href: '/karp-pro/', label: 'Um Karp Pro' },
   ] },
@@ -339,7 +340,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
-        [/^\/(verdlag|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|eftirlit|okutaeki|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
+        [/^\/(verdlag|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|eftirlit|okutaeki|skip|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
         [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
         [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
       ];
