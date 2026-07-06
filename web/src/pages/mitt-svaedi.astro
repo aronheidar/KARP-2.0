@@ -121,6 +121,11 @@ const updated = '2026-07-02';
         <div id="mine">Hleð…</div>
       </div>
 
+      <div class="w" data-w="skyrslur">
+        <div class="w-h">🛒 Keyptar skýrslur</div>
+        <div id="w-skyrslur"><span class="dim">Hleð…</span></div>
+      </div>
+
       <div class="w" data-w="seats">
         <div class="w-h">🏛️ Þingsæti-spá</div>
         <div class="seats">
@@ -234,6 +239,11 @@ const updated = '2026-07-02';
     main[data-pg="mitt-svaedi"] .vy-out, main[data-pg="mitt-svaedi"] .vy-empty { font-size: 13px; color: #9fb0c8; line-height: 1.5; }
     main[data-pg="mitt-svaedi"] .vy-empty { margin-top: 8px; }
     main[data-pg="mitt-svaedi"] .vy-out a, main[data-pg="mitt-svaedi"] .vy-empty a { color: #f6b13b; }
+    main[data-pg="mitt-svaedi"] .sk-list { display: grid; gap: 7px; }
+    main[data-pg="mitt-svaedi"] .sk-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; text-decoration: none; }
+    main[data-pg="mitt-svaedi"] .sk-row:hover { border-color: #f6b13b; }
+    main[data-pg="mitt-svaedi"] .sk-t { font-size: 13px; color: #eaf1fb; font-weight: 600; }
+    main[data-pg="mitt-svaedi"] .sk-o { font-size: 12px; color: #f6b13b; white-space: nowrap; }
   </style>
   <style is:global>
     /* Runtime-innihald widgeta → global. */
@@ -331,7 +341,7 @@ const updated = '2026-07-02';
       });
 
       // 📊 Mælaborðs-rofar (localStorage) — kveikja/slökkva á spjöldum mælaborðsins
-      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
+      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['skyrslur', '🛒 Keyptar skýrslur'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
       const dhKey = 'karp-dash-hidden';
       const dhLoad = () => { try { return JSON.parse(localStorage.getItem(dhKey) || '[]'); } catch (e) { return []; } };
       const applyDash = () => { const hid = dhLoad(); DASH_W.forEach(([id]) => { const w = document.querySelector('.w[data-w="' + id + '"]'); if (w) w.hidden = hid.indexOf(id) !== -1; }); };
@@ -344,6 +354,20 @@ const updated = '2026-07-02';
           inp.onchange = () => { let h = dhLoad(); const id = inp.dataset.wid; h = inp.checked ? h.filter((x) => x !== id) : [...new Set([...h, id])]; localStorage.setItem(dhKey, JSON.stringify(h)); applyDash(); };
         });
       }
+
+      // 🛒 Keyptar skýrslur (les /reports) — á mælaborði; vistast + aðgengilegar alltaf
+      (function () {
+        const el = $g('w-skyrslur'); if (!el) return;
+        loadUser().then((u) => {
+          if (!u || !u.loggedIn) { el.innerHTML = '<span class="dim">Skráðu þig inn til að sjá keyptar skýrslur — þær vistast hér og eru aðgengilegar alltaf.</span>'; return; }
+          karpGet('/reports').then((d) => {
+            const arr = (d && d.reports) || [];
+            if (!arr.length) { el.innerHTML = '<span class="dim">Engar keyptar skýrslur enn. Kauptu fasteignamat eða fyrirtækjaskýrslu (990 kr) — þær vistast hér.</span>'; return; }
+            const link = (r) => { const k = String(r.key || ''); if (k.indexOf('fyrirtaeki:') === 0) return '/fyrirtaeki/?q=' + encodeURIComponent(k.slice(11)); if (k.indexOf('fasteign:') === 0) return '/fasteignavakt/?q=' + encodeURIComponent(k.slice(9)); return '#'; };
+            el.innerHTML = '<div class="sk-list">' + arr.map((r) => `<a class="sk-row" href="${link(r)}"><span class="sk-t">${esc(r.title || r.key || 'Skýrsla')}</span><span class="sk-o">Opna →</span></a>`).join('') + '</div>';
+          }).catch(() => { el.innerHTML = '<span class="dim">Náði ekki í keyptar skýrslur.</span>'; });
+        });
+      })();
 
       // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum
       async function paintVaktYfirlit(loggedIn) {

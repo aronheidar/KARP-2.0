@@ -180,6 +180,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-buy { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fs-buy:hover { filter: brightness(1.08); } .fs-buy:disabled { opacity: .7; cursor: default; }
     .fs-buynote { font-size: 11px; color: #7e8ca6; }
+    .fs-sample { font-size: 12.5px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
+    .fs-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     @media print {
       body.fs-printing * { visibility: hidden; }
       body.fs-printing #fs-report, body.fs-printing #fs-report * { visibility: visible; }
@@ -208,7 +210,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   </style>
 
   <script>
-    import { loadUser, loginHref, karpGet, karpPost } from '../lib/auth.js';
+    import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport } from '../lib/auth.js';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -284,7 +286,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>
-        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button">🛒 Kaupa skýrslu — 0 kr.</button><span class="fs-buynote">Kynningarverð · opnast sem PDF til að vista eða prenta</span></div>`;
+        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">🛒 Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?q=490522-0500">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
     }
     function initFs() {
       const form = document.getElementById('fs-form');
@@ -460,19 +462,24 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   vb.disabled = false;
                 });
               }
-              // 🛒 kaupa skýrslu (0 kr. kynningarverð) → prentvæn PDF
+              // 🛒 kaupa skýrslu (990 kr) — eigandi/admin → PDF strax; annars Teya-gátt (eða prentun fyrir launch)
               const bb = document.getElementById('fs-buy');
-              if (bb) bb.addEventListener('click', async () => {
-                bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
-                const doPrint = () => { bb.textContent = '✓ Keypt · útbý…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); bb.textContent = t0; bb.disabled = false; }, 600); }, 200); };
-                // LOTA 82: reyna Teya-greiðslugátt fyrst; ókeypis/óuppsett → prentleið
-                try {
-                  const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + (d.felag.kt || '') }) });
-                  const pd = await r.json().catch(() => null);
-                  if (pd && pd.ok && pd.url) { location.href = pd.url; return; }
-                } catch (e) {}
-                doPrint();
-              });
+              if (bb) {
+                const kt = bb.dataset.kt || '', rkey = 'fyrirtaeki:' + kt;
+                const doPrint = () => { bb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); paintBuy(); bb.disabled = false; }, 600); }, 200); };
+                const paintBuy = () => { const owned = isAdmin() || hasReport(rkey); bb.dataset.owned = owned ? '1' : ''; bb.textContent = owned ? '🖨️ Sækja skýrslu (PDF)' : '🛒 Kaupa skýrslu — 990 kr'; };
+                loadUser().then(paintBuy).catch(paintBuy);
+                bb.addEventListener('click', async () => {
+                  if (bb.dataset.owned) { bb.disabled = true; doPrint(); return; }
+                  bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
+                  try {
+                    const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey }) });
+                    const pd = await r.json().catch(() => null);
+                    if (pd && pd.ok && pd.url) { location.href = pd.url; return; }
+                  } catch (e) {}
+                  bb.textContent = t0; doPrint(); // óuppsett/ókeypis (fyrir launch) → prentleið
+                });
+              }
               return;
             }
             if (d.hits && d.hits.length) {

@@ -993,7 +993,7 @@ async function payCheckoutHandler(request, env, ctx) {
   if (!env.TEYA_CLIENT_ID || !env.TEYA_CLIENT_SECRET || !env.TEYA_STORE_ID) return sjson({ error: 'unconfigured' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
   const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
-  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 0);
+  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 990); // sjálfgefið 990 kr
   if (price <= 0) return sjson({ error: 'free' });
   const base = env.TEYA_ENV === 'dev' ? 'https://api.teya.xyz' : 'https://api.teya.com';
   const ref = String(b.ref || '').replace(/[^\w .,\-áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ]/g, '').slice(0, 40);
