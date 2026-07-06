@@ -123,6 +123,24 @@ export function locked() { return _u().paywall === true && !isPlus(); }
 // Hefur notandinn keypt (eða admin) þessa skýrslu? key = t.d. 'fasteign:<pn>' eða 'fyrirtaeki:<kt>'.
 export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
 
+// Hefja greiðslu (Teya SecurePay, LOTA 97). Worker undirritar pöntun og skilar { action, fields };
+// við byggjum falið form og POST-um → kaupandi fer á hýstu greiðslusíðu Teya. Skilar 'redirected'
+// ef sent var af stað, annars villukóða ('unconfigured'|'free'|'error') svo kallandi geti fallið á prentleið.
+export async function karpCheckout(body) {
+  try {
+    const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body || {}) });
+    const d = await r.json().catch(() => null);
+    if (d && d.ok && d.action && d.fields) {
+      const f = document.createElement('form');
+      f.method = 'POST'; f.action = d.action; f.style.display = 'none';
+      for (const k in d.fields) { const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = d.fields[k]; f.appendChild(i); }
+      document.body.appendChild(f); f.submit();
+      return 'redirected';
+    }
+    return (d && d.error) ? d.error : 'error';
+  } catch (e) { return 'error'; }
+}
+
 const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(246,177,59,.06);border:1px solid rgba(246,177,59,.35);border-radius:16px;padding:24px 26px;text-align:center}'
   + '.pg-badge{display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:12px;letter-spacing:.05em;padding:4px 12px;border-radius:999px}'
   + '.pg-h{font-size:21px;color:#eaf1fb;margin:12px 0 6px}.pg-b{color:#cdd6e6;font-size:14px;line-height:1.55;margin:0 0 16px}'
@@ -149,4 +167,4 @@ export function plusGate(el, opts) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, plusGate };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate };

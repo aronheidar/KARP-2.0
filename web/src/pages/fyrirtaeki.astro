@@ -210,7 +210,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   </style>
 
   <script>
-    import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport } from '../lib/auth.js';
+    import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout } from '../lib/auth.js';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -472,11 +472,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 bb.addEventListener('click', async () => {
                   if (bb.dataset.owned) { bb.disabled = true; doPrint(); return; }
                   bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
-                  try {
-                    const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey }) });
-                    const pd = await r.json().catch(() => null);
-                    if (pd && pd.ok && pd.url) { location.href = pd.url; return; }
-                  } catch (e) {}
+                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey });
+                  if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
                   bb.textContent = t0; doPrint(); // óuppsett/ókeypis (fyrir launch) → prentleið
                 });
               }

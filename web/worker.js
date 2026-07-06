@@ -971,54 +971,81 @@ async function kvotiHandler(request, ctx) {
   return res;
 }
 
-// ── TEYA GREIÐSLUR (LOTA 82) — Hosted Checkout fyrir „kaupa skýrslu" ──
-// PCI-öruggt: worker býr til checkout-session, notandi fer á session_url hjá Teya sem
-// vinnur kortið (við snertum ALDREI kortagögn). ÓVIRKT þar til TEYA_* secrets eru sett í
-// Cloudflare (wrangler secret): TEYA_CLIENT_ID, TEYA_CLIENT_SECRET, TEYA_STORE_ID.
-// Verð stillt með env PRICE_FASTEIGN / PRICE_FYRIRTAEKI (ISK, 0 = ókeypis → framendi prentar).
-// TEYA_ENV=dev → sandbox (api.teya.xyz); annars prod (api.teya.com).
-let TEYA_TOKEN = null, TEYA_TOKEN_EXP = 0;
-async function teyaToken(env) {
-  if (TEYA_TOKEN && Date.now() < TEYA_TOKEN_EXP) return TEYA_TOKEN;
-  const body = new URLSearchParams({ grant_type: 'client_credentials', client_id: env.TEYA_CLIENT_ID, client_secret: env.TEYA_CLIENT_SECRET, scope: 'checkout/sessions/create' });
-  const r = await fetch('https://id.teya.com/oauth/v2/oauth-token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body });
-  if (!r.ok) throw new Error('teya token ' + r.status);
-  const j = await r.json();
-  TEYA_TOKEN = j.access_token; TEYA_TOKEN_EXP = Date.now() + ((+j.expires_in || 3600) - 120) * 1000;
-  return TEYA_TOKEN;
+// ── TEYA/BORGUN SECUREPAY (RPG hýst greiðslusíða, LOTA 97) — „kaupa skýrslu" ──
+// PCI-öruggt: worker undirritar pöntun (checkhash) og skilar form-reitum; framendi POST-ar á
+// hýstu greiðslusíðu Teya sem vinnur kortið — við snertum ALDREI kortagögn.
+// ÓVIRKT þar til secrets eru sett (wrangler secret put): TEYA_MERCHANT_ID, TEYA_GATEWAY_ID,
+// TEYA_SECRET_KEY. Verð: PRICE_FYRIRTAEKI / PRICE_FASTEIGN (ISK heiltala, sjálfgefið 990).
+// TEYA_ENV=dev → test.borgun.is (prófun); annars securepay.borgun.is (raun).
+// checkhash = HMAC_SHA256(SecretKey, MerchantId|ReturnUrlSuccess|ReturnUrlSuccessServer|OrderId|Amount|Currency) → hex
+// orderhash (staðfesting) = HMAC_SHA256(SecretKey, OrderId|Amount|Currency) → hex
+async function teyaHmacHex(secret, msg) {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', k, enc.encode(msg));
+  return [...new Uint8Array(sig)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
+function teyaOrderId() {
+  // ≤12 alstafa, engir extended stafir (krafa SecurePay)
+  const t = Date.now().toString(36);
+  const r = Math.floor(Math.random() * 1679616).toString(36).padStart(4, '0');
+  return (t + r).slice(-12).toUpperCase().replace(/[^0-9A-Z]/g, '0');
+}
+function teyaConfigured(env) { return !!(env.TEYA_MERCHANT_ID && env.TEYA_GATEWAY_ID && env.TEYA_SECRET_KEY); }
 async function payCheckoutHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
-  // óuppsett (engin Teya-secrets) EÐA verð 0 → framendi notar ókeypis prentleiðina
-  if (!env.TEYA_CLIENT_ID || !env.TEYA_CLIENT_SECRET || !env.TEYA_STORE_ID) return sjson({ error: 'unconfigured' });
+  // óuppsett (engin secrets) → framendi notar ókeypis prentleiðina fyrir launch
+  if (!teyaConfigured(env)) return sjson({ error: 'unconfigured' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
   const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
-  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 990); // sjálfgefið 990 kr
-  if (price <= 0) return sjson({ error: 'free' });
-  const base = env.TEYA_ENV === 'dev' ? 'https://api.teya.xyz' : 'https://api.teya.com';
-  const ref = String(b.ref || '').replace(/[^\w .,\-áéíóúýþæöðÁÉÍÓÚÝÞÆÖÐ]/g, '').slice(0, 40);
-  const back = 'https://karp.is/' + (kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteignavakt') + '/';
-  try {
-    const token = await teyaToken(env);
-    const r = await fetch(base + '/v2/checkout/sessions', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + token, 'Idempotency-Key': crypto.randomUUID() },
-      body: JSON.stringify({
-        amount: { currency: 'ISK', value: price },   // ISK: 1 króna = 1 undireining → value = krónur
-        type: 'SALE',
-        store_id: env.TEYA_STORE_ID,
-        language: 'is-IS',
-        merchant_reference: (kind + ':' + ref).slice(0, 60),
-        line_items: [{ description: (kind === 'fyrirtaeki' ? 'Fyrirtækjaskýrsla' : 'Verðmatsskýrsla') + (ref ? ' — ' + ref : ''), quantity: 1, unit_price: price }],
-        success_url: back + '?greitt=1',
-        failure_url: back + '?greitt=0',
-        cancel_url: back,
-      }),
-    });
-    if (!r.ok) return sjson({ error: 'teya', status: r.status });
-    const j = await r.json();
-    return sjson({ ok: true, url: j.session_url, session_id: j.session_id });
-  } catch (e) { return sjson({ error: 'upstream' }); }
+  const ref = String(b.ref || '').slice(0, 80);
+  const key = String(b.key || (kind + ':' + ref)).slice(0, 80);
+  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 990);
+  if (!(price > 0)) return sjson({ error: 'free' });
+  const amount = String(price);   // ISK heiltala
+  const currency = 'ISK';
+  const orderid = teyaOrderId();
+  const origin = 'https://karp.is';
+  const q = '?o=' + encodeURIComponent(orderid) + '&k=' + encodeURIComponent(key) + '&t=' + kind;
+  const returnurlsuccess = origin + '/api/pay/return' + q;
+  const returnurlsuccessserver = origin + '/api/pay/callback' + q;
+  const returnurlcancel = origin + '/api/pay/return' + q + '&c=1';
+  const merchantid = env.TEYA_MERCHANT_ID;
+  // checkhash — bætin verða að stemma NÁKVÆMLEGA við reitina sem sendir eru (sömu strengir)
+  const msg = [merchantid, returnurlsuccess, returnurlsuccessserver, orderid, amount, currency].join('|');
+  const checkhash = await teyaHmacHex(env.TEYA_SECRET_KEY, msg);
+  const action = (env.TEYA_ENV === 'dev' ? 'https://test.borgun.is' : 'https://securepay.borgun.is') + '/SecurePay/default.aspx';
+  return sjson({
+    ok: true, action,
+    fields: {
+      merchantid, paymentgatewayid: env.TEYA_GATEWAY_ID, orderid, amount, currency, language: 'IS',
+      checkhash, returnurlsuccess, returnurlsuccessserver, returnurlcancel, reference: key.slice(0, 60),
+    },
+  });
+}
+
+// Kaupandi lendir hér (POST frá SecurePay eftir greiðslu/afbókun) → 302 á /kaup/ (GET, Astro-síða)
+async function payReturnHandler(request, env, ctx) {
+  const u = new URL(request.url);
+  const o = u.searchParams.get('o') || '', k = u.searchParams.get('k') || '', t = u.searchParams.get('t') || '';
+  let ok = u.searchParams.get('c') !== '1';
+  if (request.method === 'POST') { try { const fd = await request.formData(); if (String(fd.get('status') || '') !== 'Ok') ok = false; } catch (e) {} }
+  const dest = '/kaup/?s=' + (ok ? 'ok' : 'cancel') + '&o=' + encodeURIComponent(o) + '&k=' + encodeURIComponent(k) + '&t=' + encodeURIComponent(t);
+  return new Response(null, { status: 302, headers: { location: dest } });
+}
+
+// Server-til-server staðfesting (POST frá SecurePay) → sannreyna orderhash. FASI 2: skrá entitlement í WP.
+async function payCallbackHandler(request, env, ctx) {
+  if (!teyaConfigured(env)) return new Response('unconfigured', { status: 200 });
+  const u = new URL(request.url);
+  const orderid = u.searchParams.get('o') || '';
+  let amount = '', currency = 'ISK', orderhash = '', status = '';
+  try { const fd = await request.formData(); amount = String(fd.get('amount') || ''); currency = String(fd.get('currency') || 'ISK'); orderhash = String(fd.get('orderhash') || ''); status = String(fd.get('status') || ''); } catch (e) {}
+  if (status !== 'Ok') return new Response('ignored', { status: 200 });
+  const expect = await teyaHmacHex(env.TEYA_SECRET_KEY, [orderid, amount, currency].join('|'));
+  if (!orderhash || orderhash.toLowerCase() !== expect) return new Response('badhash', { status: 400 });
+  // ✓ Greiðsla staðfest. FASI 2: POST á wp.karp.is /reports/grant {userid,key,orderid} m/ KARP_GRANT_SECRET → vistast á Mitt svæði.
+  return new Response('ok', { status: 200 });
 }
 
 async function fyrirtaekiHandler(request, ctx) {
@@ -1267,6 +1294,8 @@ export default {
     if (url.pathname === '/api/skip') return skipHandler(request, ctx);
     if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
+    if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
+    if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

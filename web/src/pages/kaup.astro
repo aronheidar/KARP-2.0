@@ -1,0 +1,76 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🧾 KAUP — lendingarsíða eftir greiðslu (LOTA 97). Worker /api/pay/return
+// 302-ar hingað með ?s=ok|cancel&o=<pöntun>&k=<lykill>&t=<tegund> eftir að
+// kaupandi klárar (eða hættir við) á hýstu greiðslusíðu Teya SecurePay.
+// Skelin er staðföst (classar í sniðmáti → engin CSS tré-hristing); smáatriði
+// (pöntunarnúmer, hlekkur til baka) fyllast client-side úr query-strengnum.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
+---
+
+<Layout title="Kaup — Karp" description={desc} canonical="https://karp.is/kaup/" ogTitle="Kaup">
+  <main data-pg="kaup">
+    <div class="kaup-card">
+      <div class="kaup-ico" id="kaup-ico">⏳</div>
+      <h1 class="kaup-h" id="kaup-h">Vinn úr greiðslu…</h1>
+      <p class="kaup-b" id="kaup-b"></p>
+      <div class="kaup-btns" id="kaup-btns"></div>
+      <p class="kaup-note" id="kaup-note"></p>
+    </div>
+  </main>
+
+  <style is:global>
+    main[data-pg="kaup"] { max-width: 560px; margin: 0 auto; }
+    main[data-pg="kaup"] .kaup-card { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 18px; padding: 34px 28px; text-align: center; margin: 40px auto; }
+    main[data-pg="kaup"] .kaup-ico { font-size: 46px; line-height: 1; }
+    main[data-pg="kaup"] .kaup-h { font-size: 24px; color: #eaf1fb; margin: 14px 0 8px; }
+    main[data-pg="kaup"] .kaup-b { color: #cdd6e6; font-size: 15px; line-height: 1.55; margin: 0 0 20px; }
+    main[data-pg="kaup"] .kaup-oid { color: #8fa0b8; font-size: 13px; white-space: nowrap; }
+    main[data-pg="kaup"] .kaup-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    main[data-pg="kaup"] .kaup-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 14px; text-decoration: none; padding: 12px 22px; border-radius: 12px; }
+    main[data-pg="kaup"] .kaup-main:hover { filter: brightness(1.08); }
+    main[data-pg="kaup"] .kaup-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 14px; text-decoration: none; padding: 12px 22px; border-radius: 12px; }
+    main[data-pg="kaup"] .kaup-sec:hover { border-color: rgba(246,177,59,.5); color: #f6b13b; }
+    main[data-pg="kaup"] .kaup-note { color: #8fa0b8; font-size: 12.5px; margin-top: 16px; }
+  </style>
+
+  <script>
+    import { loadUser } from '../lib/auth.js';
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    function boot() {
+      const main = document.querySelector('main[data-pg="kaup"]');
+      if (!main) return;
+      const p = new URLSearchParams(location.search);
+      const s = p.get('s') || '', o = p.get('o') || '', k = p.get('k') || '', t = p.get('t') || '';
+      const kind = t === 'fyrirtaeki' || /^fyrirtaeki:/.test(k) ? 'fyrirtaeki' : 'fasteign';
+      const rest = k.indexOf(':') > -1 ? k.slice(k.indexOf(':') + 1) : '';
+      const backHref = kind === 'fyrirtaeki' ? ('/fyrirtaeki/' + (rest ? '?q=' + encodeURIComponent(rest) : '')) : '/fasteignavakt/';
+      const $ = (id) => document.getElementById(id);
+      if (s === 'ok') {
+        $('kaup-ico').textContent = '✅';
+        $('kaup-h').textContent = 'Greiðsla tókst!';
+        $('kaup-b').innerHTML = 'Takk fyrir kaupin — skýrslan þín er tilbúin' + (o ? ' <span class="kaup-oid">(pöntun ' + esc(o) + ')</span>' : '') + '.';
+        $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">🖨️ Sækja skýrslu (PDF)</a><a class="kaup-sec" href="/mitt-svaedi/">Mitt svæði</a>';
+        $('kaup-note').textContent = 'Skýrslan vistast á Mitt svæði og er þér alltaf aðgengileg.';
+      } else if (s === 'cancel') {
+        $('kaup-ico').textContent = '↩️';
+        $('kaup-h').textContent = 'Hætt við greiðslu';
+        $('kaup-b').textContent = 'Engin greiðsla fór fram. Þú getur reynt aftur hvenær sem er.';
+        $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">Reyna aftur</a><a class="kaup-sec" href="/">Forsíða</a>';
+        $('kaup-note').textContent = '';
+      } else {
+        $('kaup-ico').textContent = 'ℹ️';
+        $('kaup-h').textContent = 'Kaupstaðfesting';
+        $('kaup-b').textContent = 'Þessi síða staðfestir greiðslur fyrir Karp-skýrslur.';
+        $('kaup-btns').innerHTML = '<a class="kaup-main" href="/">Forsíða</a>';
+        $('kaup-note').textContent = '';
+      }
+      // uppfæra notanda/áskrift (Fasi 2 skráir kaupið → hasReport verður satt við endurhleðslu)
+      loadUser().catch(() => {});
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>
