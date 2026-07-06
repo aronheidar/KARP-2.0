@@ -265,7 +265,7 @@ function firmaNafn(q) {
   return String(q).toLowerCase().replace(/[?.!,]/g, ' ').split(/\s+/).filter((w) => w && !FIRMA_STOP.has(w)).join(' ').trim();
 }
 // lifandi fyrirtækja-uppfletting fyrir Spyrðu Karp (eigendur, vanskil, grunnur — sömu veitur og /fyrirtaeki)
-async function firmaLookup(q, ctx) {
+async function firmaLookup(q, ctx, env) {
   const nafn = firmaNafn(q);
   if (nafn.length < 2) return null;
   const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), ctx); return r.json().catch(() => null); };
@@ -284,7 +284,24 @@ async function firmaLookup(q, ctx) {
     if (vd && Array.isArray(vd.ar) && vd.ar.length) bits.push('⚠ Í vanskilum með ársreikningaskil: ' + vd.ar.map((x) => x.ar + ' (' + x.vanskil + ')').join(', ') + '.');
     else if (vd && Array.isArray(vd.ar)) bits.push('Engin vanskil á ársreikningaskilum (rekstrarár ' + (vd.skodud || []).join('/') + ').');
   } catch (e) {}
-  return bits.join(' ').slice(0, 850) + ' (sjá /fyrirtaeki/)';
+  // Opinberir styrkir (úthlutanir sjóða) — aðeins þegar spurt er um styrki/sjóði (forðast óþarfa
+  // lestur á stórri skrá). ENGIN heimild birtir kt → matchStyrkir tengir á opinbera RSK-nafninu.
+  try {
+    if (env && /styrk|ívilnun|sjóð|úthlut/i.test(q)) {
+      const sd = await augGet(env, 'styrkir.json');
+      const mm = sd ? matchStyrkir(f.nafn, sd) : { idx: [] };
+      if (mm.idx.length) {
+        const rs = mm.idx.map((i) => sd.styrkir[i]).filter(Boolean);
+        const tot = rs.reduce((a, r) => a + (r.upphaed || 0), 0);
+        const bySj = {}; rs.forEach((r) => { bySj[r.sjodur] = (bySj[r.sjodur] || 0) + 1; });
+        const topp = rs.slice().sort((a, b) => (b.ar - a.ar) || (b.upphaed - a.upphaed)).slice(0, 4)
+          .map((r) => r.sjodur + ' ' + r.ar + ' ' + styrkKr(r.upphaed) + (r.verkefni ? ' („' + String(r.verkefni).slice(0, 40) + '“)' : ''));
+        bits.push('Opinberir styrkir' + (mm.naemi === 'nafn' ? ' (nafnatenging)' : '') + ': ' + rs.length + ' úthlutanir, samtals ~' + styrkKr(tot)
+          + ' úr ' + Object.keys(bySj).length + ' sjóðum (' + Object.entries(bySj).map(([s, c]) => s + ' ' + c).join(', ') + '). Dæmi: ' + topp.join('; ') + '.');
+      }
+    }
+  } catch (e) {}
+  return bits.join(' ').slice(0, 1000) + ' (sjá /fyrirtaeki/)';
 }
 
 async function spyrduHandler(request, env, ctx) {
@@ -314,7 +331,7 @@ async function spyrduHandler(request, env, ctx) {
   const aug = await augment(env, q);
   // LOTA 80: lifandi fyrirtækja-uppfletting (eigendur/vanskil/grunnur) þegar spurt er um félag
   if (aug.length < 3 && /\b(eigend|eigandi|hver á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé)/i.test(q)) {
-    try { const t = await firmaLookup(q, ctx); if (t) aug.push(t); } catch (e) {}
+    try { const t = await firmaLookup(q, ctx, env); if (t) aug.push(t); } catch (e) {}
   }
   const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, skýrt og hnitmiðað (að hámarki ~170 orð); notaðu stutta upptalningu þegar bornar eru saman tölur. Notaðu EINGÖNGU staðreyndirnar og lifandi tölurnar hér að neðan og vísaðu alltaf á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í gögnunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text
     + (aug.length ? '\n\nLIFANDI TÖLUR SEM EIGA VIÐ SPURNINGUNA:\n' + aug.join('\n') : '')
@@ -1108,6 +1125,87 @@ async function skipHandler(request, ctx) {
   return res;
 }
 
+// ── LOTA 94: Opinberir styrkir (úthlutanir opinberra sjóða) → „Styrkir sem félagið fékk" ──
+// ENGIN uppspretta birtir kt → tenging á NAFNI. styrkNorm speglar normNafn í build_styrkir.js.
+// Gögn: gogn/styrkir.json → web/public/gogn (ASSETS, augGet). Sjá memory/iceland-styrkir-api.md.
+function styrkNorm(n) {
+  return String(n == null ? '' : n).toLowerCase()
+    .replace(/\(félag afskráð\)/gi, '')
+    .replace(/\b(ehf|ohf|hf|slf|sf|ses|hses|bs|svf)\.?/g, '')
+    .replace(/[.,;:()"'/\-–]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+const styrkKr = (v) => v >= 1e6
+  ? (Math.round(v / 1e5) / 10).toFixed(1).replace('.', ',') + ' m.kr'
+  : String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr';
+// Samsvörun: 1) NÁKVÆMT (eins normaliserað nafn — leysir langflest, virkar þvert á sjóði);
+//   2) ÁÆTLAÐ: fyrirtækjanafnið er heil-tóka-hlutmengi lengra styrkþega-nafns MEÐ sterku
+//   sérkennis-ankeri (sameiginlegur tóki ≥6 stafir, eða ≥2 sameiginlegir ≥5) → forðast falskar
+//   jákvæðar á algengum orðum. ⚠ tóka-JAFNGILDI krafist (ekki forskeyti) svo „íslensk" og
+//   „íslenskar" gefa EKKI samsvörun. Skilar {idx, naemi:'nákvæmt'|'nafn'|null}.
+function matchStyrkir(rawNafn, data) {
+  const byNafn = (data && data.byNafn) || {};
+  const qn = styrkNorm(rawNafn);
+  if (qn.length < 2) return { idx: [], naemi: null };
+  if (byNafn[qn]) return { idx: byNafn[qn].slice(), naemi: 'nákvæmt' };
+  const qt = qn.split(' ').filter(Boolean);
+  const seen = new Set(), out = [];
+  for (const k in byNafn) {
+    if (k === qn) continue;
+    const kt2 = k.split(' ').filter(Boolean);
+    const [s, l] = qt.length <= kt2.length ? [qt, kt2] : [kt2, qt];
+    const L = new Set(l);
+    if (!s.every((t) => L.has(t))) continue;
+    if (s.length === 1 && s[0] !== l[0]) continue;   // eins-tóka: aðeins ef nafnið er HAUS lengra nafns („Samherji"→„Samherji Ísland"), ekki mið-/enda-orð
+    const shared = s.filter((t) => t.length >= 5);
+    if (!(shared.some((t) => t.length >= 6) || (s.length >= 2 && shared.length >= 1))) continue;
+    for (const i of byNafn[k]) if (!seen.has(i)) { seen.add(i); out.push(i); }
+  }
+  return { idx: out, naemi: out.length ? 'nafn' : null };
+}
+async function styrkirHandler(request, env, ctx) {
+  const u = new URL(request.url);
+  let nafn = (u.searchParams.get('nafn') || '').trim().slice(0, 80);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  // aðeins kt gefið → leysa opinbert nafn úr RSK-leit (EITT félag á view-tíma; ALDREI fjöldakall).
+  if (!nafn && kt.length === 10) {
+    try {
+      const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), ctx);
+      const d = await r.json().catch(() => null);
+      if (d && d.felag && d.felag.nafn) nafn = d.felag.nafn;
+    } catch (e) {}
+  }
+  const tomt = { nafn: nafn || '', holdur: false, n: 0, total: 0, sjodir: [], styrkir: [] };
+  if (!nafn) return sjson(tomt);
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/styrkir?n=' + encodeURIComponent(styrkNorm(nafn)));
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  const data = await augGet(env, 'styrkir.json');
+  let out = tomt;
+  if (data) {
+    const m = matchStyrkir(nafn, data);
+    if (m.idx.length) {
+      const rs = m.idx.map((i) => data.styrkir[i]).filter(Boolean)
+        .sort((a, b) => (b.ar - a.ar) || (b.upphaed - a.upphaed));
+      const total = rs.reduce((a, r) => a + (r.upphaed || 0), 0);
+      const sjMap = {};
+      for (const r of rs) { const s = sjMap[r.sjodur] || (sjMap[r.sjodur] = { sjodur: r.sjodur, count: 0, total: 0 }); s.count++; s.total += r.upphaed || 0; }
+      out = {
+        nafn, holdur: true, naemi: m.naemi, n: rs.length, total,
+        sjodir: Object.values(sjMap).sort((a, b) => b.total - a.total),
+        styrkir: rs.slice(0, 30).map((r) => ({ sjodur: r.sjodur, flokkur: r.flokkur || null, upphaed: r.upphaed, ar: r.ar, verkefni: r.verkefni || null, vilyrdi: !!r.vilyrdi, heimild: r.heimild })),
+      };
+    }
+  }
+  const res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+  });
+  if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // cache-a aðeins þegar gagnaskrá hlóðst (ekki tímabundna bilun)
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1130,6 +1228,7 @@ export default {
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
+    if (url.pathname === '/api/styrkir') return styrkirHandler(request, env, ctx);
     if (url.pathname === '/api/okutaeki') return okutaekiHandler(request, ctx);
     if (url.pathname === '/api/skip') return skipHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);

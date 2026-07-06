@@ -119,6 +119,21 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     @media (max-width: 560px) { .fs-ef-d { display: none; } }
     body.fs-printing #fs-report .fs-ef-t, body.fs-printing #fs-report .fs-ef-t b { color: #123 !important; }
     body.fs-printing #fs-report .fs-ef-l { color: #445 !important; }
+    .fs-styrkir { margin-top: 10px; }
+    .fs-st-sum { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+    .fs-st-chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(246,177,59,.12); color: #f6b13b; border: 1px solid rgba(246,177,59,.28); white-space: nowrap; }
+    .fs-st-row { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .fs-st-row:first-of-type { border-top: 0; }
+    .fs-st-y { flex: 0 0 40px; font-size: 12px; font-weight: 700; color: #f6b13b; }
+    .fs-st-t { flex: 1 1 auto; font-size: 12.5px; color: #cdd6e6; min-width: 0; line-height: 1.4; }
+    .fs-st-t b { color: #eaf1fb; }
+    .fs-st-s { color: #9fb0c8; font-size: 11.5px; }
+    .fs-st-a { flex: 0 0 auto; font-size: 12.5px; font-weight: 700; color: #42d086; white-space: nowrap; text-align: right; }
+    .fs-st-vil { font-size: 10px; color: #f0883e; border: 1px solid rgba(240,136,62,.4); border-radius: 999px; padding: 0 5px; margin-left: 6px; vertical-align: middle; }
+    body.fs-printing #fs-report .fs-st-t, body.fs-printing #fs-report .fs-st-t b { color: #123 !important; }
+    body.fs-printing #fs-report .fs-st-s { color: #445 !important; }
+    body.fs-printing #fs-report .fs-st-a { color: #137333 !important; }
+    body.fs-printing #fs-report .fs-st-chip { color: #7a5900 !important; border-color: #d9c089 !important; background: #fbf3df !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -228,6 +243,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
+          <div id="fs-styrkir" class="fs-styrkir" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
@@ -367,6 +383,24 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     + `<div class="fs-kv-src">Opinber matvæla-/heilbrigðiseftirlitseinkunn (0–5, 0 verst) · aðeins Reykjavík · <a href="https://reykjavik.is/heilbrigdiseftirlit/nidurstodur-heilbrigdiseftirlits" target="_blank" rel="noopener">um kvarðann</a></div>`;
                 }).catch(() => {});
               }
+              // 🏅 Opinberir styrkir (opinberar úthlutanir sjóða) — nafn→úthlutun (engin kt í heimildum);
+              // sterk nafna-samsvörun í worker (nákvæmt eða áætlað). Öll félög (kvikmyndir/matvæli/orka/nýsköpun/menning).
+              fetch('/api/styrkir?nafn=' + encodeURIComponent(d.felag.nafn || '') + '&kt=' + encodeURIComponent(d.felag.kt || ''))
+                .then((r) => (r.ok ? r.json() : null)).then((st) => {
+                  const el = document.getElementById('fs-styrkir');
+                  if (!el || !st || !st.holdur || !(st.styrkir || []).length) return;
+                  el.hidden = false;
+                  const kr = (v) => v >= 1e6 ? (Math.round(v / 1e5) / 10).toFixed(1).replace('.', ',') + ' m.kr' : String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr';
+                  const chips = (st.sjodir || []).map((s) => `<span class="fs-st-chip">${escF(s.sjodur)} · ${s.count}</span>`).join('');
+                  const rows = (st.styrkir || []).slice(0, 8).map((g) =>
+                    `<div class="fs-st-row"><span class="fs-st-y">${escF(String(g.ar))}</span>`
+                    + `<span class="fs-st-t"><b>${escF(g.sjodur)}</b>${g.vilyrdi ? '<span class="fs-st-vil" title="Vilyrði — samþykkt en óútgreitt">vilyrði</span>' : ''}${g.verkefni ? '<br><span class="fs-st-s">' + escF(g.verkefni) + '</span>' : ''}</span>`
+                    + `<span class="fs-st-a">${kr(g.upphaed)}</span></div>`).join('');
+                  el.innerHTML = `<div class="fs-sub">🏅 Opinberir styrkir — ${st.n} úthlutanir, samtals ${kr(st.total)}</div>`
+                    + `<div class="fs-st-sum">${chips}</div>${rows}`
+                    + `<div class="fs-kv-src">Opinberar úthlutanir sjóða (Kvikmynda-, Matvæla-, Orku-, Tækniþróunar- og uppbyggingarsjóða)`
+                    + `${st.naemi === 'nafn' ? ' · tengt á nafni (áætluð samsvörun)' : ''}${st.n > 8 ? ' · sýni 8 af ' + st.n : ''}</div>`;
+                }).catch(() => {});
               // 🔔 Firmavakt (LOTA 73): breytinga- og vanskilavakt á félagið í tölvupósti
               const vb = document.getElementById('fs-vakta');
               if (vb) {

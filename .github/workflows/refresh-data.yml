@@ -90,6 +90,7 @@ jobs:
           node skriptur/build_stadfong.js     || true   # Staðfangaskrá RVK (opin CSV → götu→hnit vísir, á undan hnitara)
           node skriptur/build_eftirlit_hnit.js || true  # hnitar eftirlit f. Leaflet-kort (Staðfangaskrá frítt + Google fallback)
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
+          node skriptur/build_styrkir.js      || true   # Opinberar styrkveitingar (6 sjóðir → nafn→úthlutun; /api/styrkir + #fs-styrkir)
       - name: AI-samantektir (aðeins sé lykill settur sem secret)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
