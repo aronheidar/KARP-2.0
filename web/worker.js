@@ -901,7 +901,7 @@ async function okutaekiHandler(request, ctx) {
     const r = await fetch('https://island.is/api/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' },
-      body: JSON.stringify({ operationName: 'PublicVehicleSearch', query: OKUTAEKI_Q, variables: { input: { search: num } } }),
+      body: JSON.stringify({ query: OKUTAEKI_Q, variables: { input: { search: num } } }),  // ⚠ EKKI operationName (fyrirspurn nafnlaus → 400)
     });
     const j = await r.json().catch(() => null);
     const v = j && j.data && j.data.publicVehicleSearch;
