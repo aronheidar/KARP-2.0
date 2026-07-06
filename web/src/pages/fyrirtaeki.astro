@@ -180,6 +180,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-buy { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fs-buy:hover { filter: brightness(1.08); } .fs-buy:disabled { opacity: .7; cursor: default; }
     .fs-buynote { font-size: 11px; color: #7e8ca6; }
+    .fs-gate { max-width: 480px; margin: 18px auto; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 26px 24px; text-align: center; }
+    .fs-gate h2.fsg-nafn { font-size: 20px; color: #eaf1fb; margin: 0 0 2px; display: inline; }
+    .fs-gate .kt { color: #8fa0b8; font-size: 13px; }
+    .fsg-lockrow { margin: 16px 0 8px; color: #f6b13b; font-weight: 800; font-size: 14px; }
+    .fsg-lock { font-size: 20px; }
+    .fsg-b { color: #cdd6e6; font-size: 13.5px; line-height: 1.55; margin: 0 0 18px; }
+    .fsg-btns { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    .fsg-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 13.5px; border: 0; border-radius: 11px; padding: 11px 18px; cursor: pointer; }
+    .fsg-main:hover { filter: brightness(1.08); }
+    .fsg-main:disabled { opacity: .7; cursor: default; }
+    .fsg-sample { font-size: 13px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
+    .fsg-sample:hover { color: #f6b13b; border-color: #f6b13b; }
+    .fsg-note { color: #8fa0b8; font-size: 11.5px; margin-top: 16px; }
     .fs-sample { font-size: 12.5px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
     .fs-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     @media print {
@@ -288,6 +301,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         </div>
         <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">🛒 Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?q=490522-0500">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
     }
+    // Kaupa-gátt: full skýrsla læst — sýnir auðkenni (nafn+kt) + hvað fæst + kaupa/sýnishorn.
+    function fsGate(f) {
+      const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button></div>
+        <div class="fs-gate">
+          <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
+          <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
+          <p class="fsg-b">Skýrslan opnast við kaup: rekstrarform, ÍSAT-atvinnugreinar, VSK-númer, ársreikningaskil, raunverulegir eigendur og Karp-samtengingin — umfjöllun fjölmiðla, ríkisviðskipti, útboð, kauphallartilkynningar, vörumerki, opinberir styrkir, eftirlit og Lögbirtingablaðið.</p>
+          <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa skýrslu — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?q=490522-0500">👁️ Sjá sýnishorn</a></div>
+          <p class="fsg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf · byggð á opinberum gögnum</p>
+        </div>`;
+    }
     function initFs() {
       const form = document.getElementById('fs-form');
       const inp = document.getElementById('fs-q');
@@ -303,11 +328,26 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         skila('<div class="fs-empty">Fletti upp í fyrirtækjaskrá…</div>');
         fetch('/api/fyrirtaeki?q=' + encodeURIComponent(q))
           .then((r) => (r.ok ? r.json() : null))
-          .then((d) => {
+          .then(async (d) => {
             if (!d || d.error) { skila('<div class="fs-empty">Ekki náðist í fyrirtækjaskrána í augnablikinu — reyndu aftur eftir andartak.</div>'); return; }
             if (d.felag) {
-              skila(fsKort(d.felag, d.rsk));
-              out.querySelector('.fs-back').onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} };
+              const f = d.felag;
+              await loadUser().catch(() => null);   // eignarhald þarf KARP_USER
+              const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} }; };
+              // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin/sýnishorn (490522-0500) → fullt.
+              if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt) || f.kt === '490522-0500')) {
+                skila(fsGate(f)); backWire();
+                const gb = document.getElementById('fsg-buy');
+                if (gb) gb.addEventListener('click', async () => {
+                  gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
+                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt });
+                  if (res === 'redirected') return;
+                  gb.textContent = 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2500);
+                });
+                return;
+              }
+              skila(fsKort(f, d.rsk));
+              backWire();
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
               fsBirgjar().then((b) => {
                 const el = document.getElementById('fs-birgir');
