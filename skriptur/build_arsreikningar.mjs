@@ -46,7 +46,7 @@ import { spawnSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const OUTDIR = path.join(ROOT, 'gogn', 'arsreikningar');
+const OUTDIR = path.join(ROOT, 'web', 'public', 'gogn', 'arsreikningar'); // þjónað af /gogn/arsreikningar/<kt>.json
 const PARSER = path.join(__dirname, 'parse_arsreikningur.py');
 const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const UA = 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)';

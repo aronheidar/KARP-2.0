@@ -1083,6 +1083,27 @@ async function payCallbackHandler(request, env, ctx) {
   return new Response('ok', { status: 200 });
 }
 
+// ── On-demand ársreikninga-scraping (LOTA 99R) — dispatchar GitHub Action ──
+// /fyrirtaeki/ kallar hér þegar keypt/skoðuð skýrsla hefur engan scrapaðan ársreikning. Worker sendir
+// repository_dispatch { kt } → .github/workflows/arsreikningur.yml scrapar RSK-PDF → web/public/gogn/
+// arsreikningar/<kt>.json (puppeteer+pdfplumber, keyrir EKKI í worker). ÓVIRKT þar til GITHUB_DISPATCH_TOKEN
+// secret er sett (PAT m/ repo/contents+actions). Aðeins innskráðir (kaupendur) → dregur úr misnotkun.
+async function arsreikningurRequestHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ error: 'kt' });
+  if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  try {
+    const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'arsreikningur', client_payload: { kt } }),
+    });
+    return r.status === 204 ? sjson({ ok: true, kt }) : sjson({ error: 'dispatch', status: r.status });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
 async function fyrirtaekiHandler(request, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
@@ -1331,6 +1352,7 @@ export default {
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
+    if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;

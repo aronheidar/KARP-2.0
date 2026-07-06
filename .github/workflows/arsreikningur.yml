@@ -1,0 +1,58 @@
+name: Ársreikningur (on-demand scraping)
+
+# On-demand: worker (karp21) sendir repository_dispatch { kt } þegar keypt fyrirtækjaskýrsla
+# hefur engan scrapaðan ársreikning. Keyrir puppeteer + pdfplumber (getur ekki keyrt í Cloudflare-worker)
+# → web/public/gogn/arsreikningar/<kt>.json → commitar. KPI birtast við næstu skoðun (~mínútur).
+# Handvirkt: Actions → þessi workflow → Run workflow → sláðu inn kt.
+
+on:
+  repository_dispatch:
+    types: [arsreikningur]
+  workflow_dispatch:
+    inputs:
+      kt:
+        description: 'Kennitala lögaðila (10 tölur)'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: arsreikningur
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Uppsetning (puppeteer-core + pdfplumber)
+        run: |
+          npm install puppeteer-core --no-save
+          python -m pip install --quiet pdfplumber
+      - name: Sækja + þátta ársreikning
+        env:
+          CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest
+          PYTHON: python
+        run: |
+          KT="$(echo "${{ github.event.client_payload.kt || github.event.inputs.kt }}" | tr -cd '0-9')"
+          if [ "${#KT}" -ne 10 ]; then echo "Ógild kennitala: '$KT' — hætti."; exit 0; fi
+          echo "Scrapa ársreikning fyrir $KT"
+          node skriptur/build_arsreikningar.mjs "$KT" --ar 2
+      - name: Commit JSON (ef ný gögn)
+        run: |
+          git config user.name "karp-arsreikningar[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/public/gogn/arsreikningar/ 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Engin ný ársreikningsgögn."
+          else
+            git commit -m "Ársreikningur scrapaður (on-demand, GH Action)"
+            git push
+          fi
