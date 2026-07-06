@@ -799,7 +799,8 @@ const jsonLd = {
         // skýrsla tilbúin → Vakta- og Kaupa-skýrslu-takkarnir birtast við Meta (LOTA 78)
         const vb = document.getElementById('fvm-vakta'), bb = document.getElementById('fvm-buy');
         if (vb) vb.hidden = false;
-        if (bb) bb.hidden = false;
+        // hingað kemst aðeins eigandi/admin/sýnishorn (gátt skilar fyrir aðra) → takkinn prentar
+        if (bb) { bb.hidden = false; bb.dataset.demo = ''; bb.textContent = '🖨️ Sækja skýrslu (PDF)'; }
         paintVaktaBtn();
       }
       // ── Sameinuð leit (LOTA 78): heimilisfangs-vöktun + kaupa/prenta við Meta ──
@@ -874,6 +875,11 @@ const jsonLd = {
               out.insertBefore(n, out.firstChild);
             }
           }).catch(() => {});
+        } else if (_sp.get('q')) {
+          // ?q=<heimilisfang> → opna mat (t.d. keypt skýrsla af Mitt svæði); eigandi (hasReport) → gátt sniðgengin
+          const qAddr = (_sp.get('q') || '').trim();
+          const aq = document.getElementById('fvm-addr');
+          if (aq && qAddr.length >= 3) { aq.value = qAddr; fvAutofill(qAddr).then(() => fvmGo()).catch(() => {}); }
         }
       } catch (e) {}
 
