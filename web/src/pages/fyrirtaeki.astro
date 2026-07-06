@@ -353,7 +353,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // Kaupa-gátt: full skýrsla læst — sýnir auðkenni (nafn+kt) + hvað fæst + kaupa/sýnishorn.
     // ── Fjárhags-KPI mælaborð (LOTA 99) — reiknað úr ársreikningi (f.fjarhagur = fylki ára, nýjast fyrst; tölur í m.kr) ──
     const fsThou = (n) => String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    const fsMkr = (v) => (v == null ? '–' : (v < 0 ? '−' : '') + fsThou(v) + ' m.kr');
+    const fsMkr = (v, c) => (v == null ? '–' : (v < 0 ? '−' : '') + fsThou(v) + ' ' + (c || 'm.kr'));
     const fsPct1 = (v) => (v == null ? '–' : (v < 0 ? '−' : '') + (Math.abs(v) * 100).toFixed(1).replace('.', ',') + '%');
     const fsRat = (v) => (v == null ? '–' : v.toFixed(2).replace('.', ','));
     function fsKpiCalc(y, p) {
@@ -375,19 +375,25 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // Raun-KPI (LOTA 99R): sækir scrapaðan ársreikning (RSK-PDF → JSON) og kortleggur á fjarhagur-snið (m.kr).
     function fsMapArs(j) {
       if (!j || !j.ar) return null;
-      const M = 1e6, rows = [];
-      Object.keys(j.ar).sort().reverse().forEach((yr) => {
-        const a = j.ar[yr], r = a.rekstur, e = a.efnahagur;
-        if (!r || !e) return;   // aðeins ár með fullum rekstrar-/efnahagstölum
-        rows.push({ ar: yr,
-          tekjur: ((r.sala || 0) + (r.adrar_tekjur || 0)) / M, kostnadarverd: (r.kostnadarverd || 0) / M,
-          rekstrargjold: ((r.laun || 0) + (r.annar_rekstur || 0)) / M, afskriftir: (r.afskriftir || 0) / M,
-          fjarmagn: Math.abs(r.fjarmagnsgjold || 0) / M, hagnadur: (r.hagnadur || 0) / M,
-          eignir: (e.eignir || 0) / M, veltufjarmunir: ((e.eignir || 0) - (e.fastafjarmunir || 0)) / M,
-          birgdir: (e.birgdir || 0) / M, vidskiptakrofur: (e.vidskiptakrofur || 0) / M, handbaert: (e.handbaert || 0) / M,
-          eigidfe: (e.eigid_fe || 0) / M, skuldir: (e.skuldir || 0) / M, skammtimaskuldir: (e.skammtimaskuldir || 0) / M });
+      const years = Object.keys(j.ar).sort().reverse();   // nýjast fyrst
+      if (!years.length) return null;
+      const rows = years.map((yr) => {
+        const a = j.ar[yr], kv = (a.kvardi || 1) / 1e6, r = a.rekstur, e = a.efnahagur;   // kv → milljónir myntar
+        const row = { ar: yr, _cur: (!a.mynt || a.mynt === 'ISK') ? 'm.kr' : ('m. ' + a.mynt) };
+        // FORREIKNUÐ KPI úr þáttaranum (myntóháð hlutföll, réttar þrátt fyrir formerki/IFRS) — sitt hvor lyklanöfn
+        if (a.kpi) row._kpi = { framlegd: a.kpi.framlegd, rekstrarhlutf: a.kpi.ebit_hlutfall, hagnhlutf: a.kpi.hagnadarhlutfall,
+          roe: a.kpi.ROE, roa: a.kpi.ROA, eiginfjarhlutf: a.kpi.eiginfjarhlutfall, veltufjar: a.kpi.veltufjarhlutfall,
+          de: a.kpi.skuldahlutfall_DE, eignavelta: a.kpi.eignavelta, vaxtathekja: null, lausafjar: null, tekjuvoxtur: null, hagnvoxtur: null, _ebitda: null };
+        if (r) { row.tekjur = ((r.sala || 0) + (r.adrar_tekjur || 0)) * kv; row.hagnadur = (r.hagnadur || 0) * kv;
+          row.kostnadarverd = Math.abs(r.kostnadarverd || 0) * kv; row.rekstrargjold = Math.abs((r.annar_rekstur || 0) + (r.laun || 0)) * kv;
+          row.afskriftir = Math.abs(r.afskriftir || 0) * kv; row.fjarmagn = Math.abs(r.fjarmagnsgjold || 0) * kv; }
+        if (e) { row.eignir = (e.eignir || 0) * kv; row.eigidfe = (e.eigid_fe || 0) * kv; row.skuldir = (e.skuldir || 0) * kv;
+          row.veltufjarmunir = ((e.birgdir || 0) + (e.vidskiptakrofur || 0) + (e.handbaert || 0)) * kv;
+          row.birgdir = (e.birgdir || 0) * kv; row.vidskiptakrofur = (e.vidskiptakrofur || 0) * kv; row.handbaert = (e.handbaert || 0) * kv;
+          row.skammtimaskuldir = (e.skammtimaskuldir || 0) * kv; }
+        return row;
       });
-      return rows.length ? rows : null;
+      return rows;
     }
     async function fsFjarhagur(kt, owned) {
       const id = String(kt).replace(/\D/g, '');
@@ -405,8 +411,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsKpiHtml(rows) {
       if (!rows || !rows.length) return fsKpiSoon();
-      const kAll = rows.map((r, i) => fsKpiCalc(r, rows[i + 1]));
-      const k = kAll[0], y = rows[0];
+      const kAll = rows.map((r, i) => r._kpi || fsKpiCalc(r, rows[i + 1]));   // forreiknuð KPI (scrapað) EÐA reiknuð (demo)
+      const k = kAll[0], y = rows[0], cur = y._cur || 'm.kr';
       const st = (g, o) => (v) => (v == null ? '' : v >= g ? 'g' : v >= o ? 'o' : 'b');
       const stInv = (g, o) => (v) => (v == null ? '' : v <= g ? 'g' : v <= o ? 'o' : 'b');
       const spark = (key) => {
@@ -422,10 +428,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
       return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')</div>'
         + '<div class="kpi-top">' + fsRing(fsHealthScore(k)) + '<div class="kpi-sum">'
-        + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
-        + '<div class="kpi-s"><span>EBITDA</span><b>' + fsMkr(k._ebitda) + '</b></div>'
-        + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur) + '</b>' + yoY('hagnvoxtur') + '</div>'
-        + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe) + '</b></div>'
+        + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
+        + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
+        + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe, cur) + '</b></div>'
+        + '<div class="kpi-s"><span>Eignir</span><b>' + fsMkr(y.eignir, cur) + '</b></div>'
         + '</div></div><div class="kpi-grid">'
         + '<div class="kpi-cat">Arðsemi</div>'
         + card('Framlegð', 'framlegd', fsPct1, st(0.35, 0.2), 'Framlegð / tekjur')
@@ -440,7 +446,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + card('Skuldir / eigið fé', 'de', fsRat, stInv(1, 2), 'Heildarskuldir / eigið fé (lægra = betra)')
         + card('Vaxtaþekja', 'vaxtathekja', fsRat, st(3, 1.5), 'EBIT / fjármagnsgjöld')
         + card('Eignavelta', 'eignavelta', fsRat, st(1, 0.5), 'Tekjur / heildareignir')
-        + '</div>' + fsTrendChart(rows) + fsStatements(rows)
+        + '</div>' + fsTrendChart(rows, cur) + fsStatements(rows, cur)
         + '<div class="fs-note2">Lykiltölur og einkunn reiknuð úr ársreikningi félagsins. Litur/einkunn sýnir grófa stöðu m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
     }
     // Sýnifyrirtæki (?syni=1) — EKKI raunverulegt; sýnir allt sem skýrsla getur innihaldið.
@@ -489,8 +495,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<text x="32" y="45" text-anchor="middle" font-size="10" fill="#9fb0c8">' + (hs.score == null ? '' : hs.score) + '</text></svg>'
         + '<div class="kpi-health-l">Fjárhagsheilsa<span>' + (hs.score == null ? '' : hs.score >= 65 ? 'Sterk staða' : hs.score >= 50 ? 'Í meðallagi' : 'Veik staða') + '</span></div></div>';
     }
-    function fsTrendChart(rows) {
-      const yrs = rows.slice().reverse(), mx = Math.max.apply(null, yrs.map((r) => r.tekjur)) || 1;
+    function fsTrendChart(rows, cur) {
+      const yrs = rows.slice().reverse().filter((r) => r.tekjur != null);
+      if (!yrs.length) return '';
+      const mx = Math.max.apply(null, yrs.map((r) => r.tekjur)) || 1;
       const bw = 46, gap = 30, h = 118, x0 = 6;
       let bars = '';
       yrs.forEach((r, i) => {
@@ -501,17 +509,20 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           + '<text x="' + (x + bw / 2) + '" y="' + (h + 14) + '" text-anchor="middle" font-size="11" fill="#9fb0c8">' + r.ar + '</text>';
       });
       const w = x0 * 2 + yrs.length * (bw + gap) - gap;
-      return '<div class="fs-sub">📈 Tekjur og hagnaður (m.kr)</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
+      return '<div class="fs-sub">📈 Tekjur og hagnaður (' + (cur || 'm.kr') + ')</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
     }
-    function fsStatements(rows) {
-      const hd = '<tr><th></th>' + rows.map((r) => '<th>' + r.ar + '</th>').join('') + '</tr>';
-      const row = (l, get, b) => '<tr' + (b ? ' class="fst-b"' : '') + '><td>' + l + '</td>' + rows.map((r) => '<td>' + fsThou(get(r)) + '</td>').join('') + '</tr>';
-      const rek = '<table class="fst"><caption>Rekstrarreikningur (m.kr)</caption>' + hd
+    function fsStatements(rows, cur) {
+      const cols = rows.filter((r) => r.tekjur != null || r.eignir != null);   // aðeins ár með hráum tölum
+      if (!cols.length) return '';
+      const c = cur || 'm.kr';
+      const hd = '<tr><th></th>' + cols.map((r) => '<th>' + r.ar + '</th>').join('') + '</tr>';
+      const row = (l, get, b) => '<tr' + (b ? ' class="fst-b"' : '') + '><td>' + l + '</td>' + cols.map((r) => '<td>' + fsThou(get(r)) + '</td>').join('') + '</tr>';
+      const rek = '<table class="fst"><caption>Rekstrarreikningur (' + c + ')</caption>' + hd
         + row('Tekjur', (r) => r.tekjur, true) + row('Kostnaðarverð', (r) => -r.kostnadarverd)
         + row('Framlegð', (r) => r.tekjur - r.kostnadarverd, true) + row('Rekstrargjöld', (r) => -r.rekstrargjold)
         + row('EBITDA', (r) => r.tekjur - r.kostnadarverd - r.rekstrargjold, true) + row('Afskriftir', (r) => -r.afskriftir)
         + row('Fjármagnsgjöld', (r) => -r.fjarmagn) + row('Hagnaður ársins', (r) => r.hagnadur, true) + '</table>';
-      const efn = '<table class="fst"><caption>Efnahagsreikningur (m.kr)</caption>' + hd
+      const efn = '<table class="fst"><caption>Efnahagsreikningur (' + c + ')</caption>' + hd
         + row('Fastafjármunir', (r) => r.eignir - r.veltufjarmunir) + row('Veltufjármunir', (r) => r.veltufjarmunir)
         + row('· þar af birgðir', (r) => r.birgdir) + row('Eignir alls', (r) => r.eignir, true)
         + row('Eigið fé', (r) => r.eigidfe, true) + row('Langtímaskuldir', (r) => r.skuldir - r.skammtimaskuldir)
