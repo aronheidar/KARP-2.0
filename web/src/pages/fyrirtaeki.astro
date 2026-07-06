@@ -193,6 +193,32 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fsg-sample { font-size: 13px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
     .fsg-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     .fsg-note { color: #8fa0b8; font-size: 11.5px; margin-top: 16px; }
+    /* 📊 KPI-mælaborð (runtime-innerHTML → global) */
+    .kpi-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin: 8px 0 4px; }
+    .kpi-s { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; }
+    .kpi-s span { color: #8fa0b8; font-size: 11px; display: block; }
+    .kpi-s b { color: #eaf1fb; font-size: 15.5px; font-weight: 800; display: block; margin-top: 2px; }
+    .kpi-yoy { font-size: 11px; font-weight: 700; margin-left: 4px; }
+    .kpi-yoy.up { color: #42d086; } .kpi-yoy.dn { color: #ef6a6a; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; margin-top: 8px; }
+    .kpi-cat { grid-column: 1 / -1; color: #f6b13b; font-weight: 800; font-size: 12px; letter-spacing: .03em; margin-top: 6px; }
+    .kpi-c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-left: 3px solid #6b7688; border-radius: 10px; padding: 9px 12px; }
+    .kpi-c.g { border-left-color: #42d086; } .kpi-c.o { border-left-color: #e8b84b; } .kpi-c.b { border-left-color: #ef6a6a; }
+    .kpi-l { color: #9fb0c8; font-size: 11.5px; line-height: 1.3; }
+    .kpi-v { color: #eaf1fb; font-size: 18px; font-weight: 800; margin-top: 3px; }
+    .kpi-spark { display: flex; align-items: flex-end; gap: 2px; height: 22px; margin-top: 6px; }
+    .kpi-spark i { width: 6px; background: rgba(246,177,59,.5); border-radius: 1px; }
+    .kpi-c.g .kpi-spark i { background: rgba(66,208,134,.55); } .kpi-c.b .kpi-spark i { background: rgba(239,106,106,.5); }
+    .kpi-soon { background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.15); border-radius: 12px; padding: 16px; }
+    .kpi-soon b { color: #eaf1fb; font-size: 14px; display: block; }
+    .kpi-soon span { color: #9fb0c8; font-size: 12.5px; display: block; margin-top: 5px; line-height: 1.5; }
+    .kpi-soon a { color: #f6b13b; text-decoration: none; }
+    .fs-demonote { margin: 0 0 14px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.08); color: #f6d9a6; font-size: 13px; line-height: 1.45; }
+    body.fs-printing #fs-report .kpi-s, body.fs-printing #fs-report .kpi-c { background: #f6f8fb !important; border-color: #dbe3ee !important; }
+    body.fs-printing #fs-report .kpi-s b, body.fs-printing #fs-report .kpi-v { color: #111 !important; }
+    body.fs-printing #fs-report .kpi-s span, body.fs-printing #fs-report .kpi-l { color: #555 !important; }
+    body.fs-printing #fs-report .kpi-cat { color: #b07500 !important; }
+    body.fs-printing #fs-report .fs-demonote { display: none !important; }
     .fs-sample { font-size: 12.5px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
     .fs-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     @media print {
@@ -272,6 +298,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
+          ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : fsKpiSoon()}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
@@ -299,9 +326,95 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>
-        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">🛒 Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?q=490522-0500">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
+        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">🛒 Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?syni=1">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
     }
     // Kaupa-gátt: full skýrsla læst — sýnir auðkenni (nafn+kt) + hvað fæst + kaupa/sýnishorn.
+    // ── Fjárhags-KPI mælaborð (LOTA 99) — reiknað úr ársreikningi (f.fjarhagur = fylki ára, nýjast fyrst; tölur í m.kr) ──
+    const fsThou = (n) => String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const fsMkr = (v) => (v == null ? '–' : (v < 0 ? '−' : '') + fsThou(v) + ' m.kr');
+    const fsPct1 = (v) => (v == null ? '–' : (v < 0 ? '−' : '') + (Math.abs(v) * 100).toFixed(1).replace('.', ',') + '%');
+    const fsRat = (v) => (v == null ? '–' : v.toFixed(2).replace('.', ','));
+    function fsKpiCalc(y, p) {
+      p = p || {};
+      const framlegd = y.tekjur - (y.kostnadarverd || 0);
+      const ebitda = framlegd - (y.rekstrargjold || 0);
+      const ebit = ebitda - (y.afskriftir || 0);
+      const d = (a, b) => (b ? a / b : null);
+      return {
+        framlegd: d(framlegd, y.tekjur), rekstrarhlutf: d(ebit, y.tekjur), hagnhlutf: d(y.hagnadur, y.tekjur),
+        roe: d(y.hagnadur, y.eigidfe), roa: d(y.hagnadur, y.eignir),
+        veltufjar: d(y.veltufjarmunir, y.skammtimaskuldir), lausafjar: d(y.veltufjarmunir - (y.birgdir || 0), y.skammtimaskuldir),
+        eiginfjarhlutf: d(y.eigidfe, y.eignir), de: d(y.skuldir, y.eigidfe), vaxtathekja: d(ebit, Math.abs(y.fjarmagn || 0)),
+        eignavelta: d(y.tekjur, y.eignir),
+        tekjuvoxtur: p.tekjur ? y.tekjur / p.tekjur - 1 : null, hagnvoxtur: p.hagnadur ? y.hagnadur / p.hagnadur - 1 : null,
+        _ebitda: ebitda, _ebit: ebit,
+      };
+    }
+    function fsKpiSoon() {
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
+    }
+    function fsKpiHtml(rows) {
+      if (!rows || !rows.length) return fsKpiSoon();
+      const kAll = rows.map((r, i) => fsKpiCalc(r, rows[i + 1]));
+      const k = kAll[0], y = rows[0];
+      const st = (g, o) => (v) => (v == null ? '' : v >= g ? 'g' : v >= o ? 'o' : 'b');
+      const stInv = (g, o) => (v) => (v == null ? '' : v <= g ? 'g' : v <= o ? 'o' : 'b');
+      const spark = (key) => {
+        const vals = kAll.map((x) => x[key]).reverse().filter((v) => v != null);
+        if (vals.length < 2) return '';
+        const mn = Math.min(...vals, 0), mx = Math.max(...vals), rng = mx - mn || 1;
+        return '<span class="kpi-spark">' + vals.map((v) => '<i style="height:' + Math.max(3, Math.round((v - mn) / rng * 20)) + 'px"></i>').join('') + '</span>';
+      };
+      const card = (l, key, fmt, stat, tip) => {
+        const v = k[key], s = v == null ? '' : stat(v);
+        return '<div class="kpi-c ' + s + '"><div class="kpi-l">' + l + (tip ? ' <i class="tip" tabindex="0" data-tip="' + tip + '">ⓘ</i>' : '') + '</div><div class="kpi-v">' + fmt(v) + '</div>' + spark(key) + '</div>';
+      };
+      const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')</div>'
+        + '<div class="kpi-sum">'
+        + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
+        + '<div class="kpi-s"><span>EBITDA</span><b>' + fsMkr(k._ebitda) + '</b></div>'
+        + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur) + '</b>' + yoY('hagnvoxtur') + '</div>'
+        + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe) + '</b></div>'
+        + '</div><div class="kpi-grid">'
+        + '<div class="kpi-cat">Arðsemi</div>'
+        + card('Framlegð', 'framlegd', fsPct1, st(0.35, 0.2), 'Framlegð / tekjur')
+        + card('Rekstrarhlutfall', 'rekstrarhlutf', fsPct1, st(0.1, 0.03), 'Rekstrarhagnaður (EBIT) / tekjur')
+        + card('Hagnaðarhlutfall', 'hagnhlutf', fsPct1, st(0.1, 0.03), 'Hagnaður / tekjur')
+        + card('Arðsemi eigin fjár', 'roe', fsPct1, st(0.15, 0.05), 'Hagnaður / eigið fé (ROE)')
+        + card('Arðsemi eigna', 'roa', fsPct1, st(0.08, 0.03), 'Hagnaður / eignir (ROA)')
+        + '<div class="kpi-cat">Lausafé &amp; skuldsetning</div>'
+        + card('Veltufjárhlutfall', 'veltufjar', fsRat, st(1.5, 1), 'Veltufjármunir / skammtímaskuldir')
+        + card('Lausafjárhlutfall', 'lausafjar', fsRat, st(1, 0.7), '(Veltufjármunir − birgðir) / skammtímaskuldir')
+        + card('Eiginfjárhlutfall', 'eiginfjarhlutf', fsPct1, st(0.4, 0.2), 'Eigið fé / heildareignir')
+        + card('Skuldir / eigið fé', 'de', fsRat, stInv(1, 2), 'Heildarskuldir / eigið fé (lægra = betra)')
+        + card('Vaxtaþekja', 'vaxtathekja', fsRat, st(3, 1.5), 'EBIT / fjármagnsgjöld')
+        + card('Eignavelta', 'eignavelta', fsRat, st(1, 0.5), 'Tekjur / heildareignir')
+        + '</div>'
+        + '<div class="fs-note2">Lykiltölur reiknaðar úr ársreikningi félagsins. Litur sýnir grófa stöðu (grænt/gult/rautt) m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
+    }
+    // Sýnifyrirtæki (?syni=1) — EKKI raunverulegt; sýnir allt sem skýrsla getur innihaldið.
+    function demoFyrirtaeki() {
+      const acc = (ar, tekjur, kostn, rekstr, afskr, fjarm, hagn, eignir, veltu, birgd, vidkr, handb, eigfe, skuldir, skammt) =>
+        ({ ar, tekjur, kostnadarverd: kostn, rekstrargjold: rekstr, afskriftir: afskr, fjarmagn: fjarm, hagnadur: hagn, eignir, veltufjarmunir: veltu, birgdir: birgd, vidskiptakrofur: vidkr, handbaert: handb, eigidfe: eigfe, skuldir, skammtimaskuldir: skammt });
+      return {
+        kt: '5510150550', nafn: 'Norðurhaf Sjávarfang hf.', form: 'Hlutafélag', afskrad: false, demo: true,
+        skrad: '14.3.2009', logheimili: 'Hafnargata 12, 220 Hafnarfjörður', postfang: 'Hafnargata 12, 220 Hafnarfjörður', svf: 'Hafnarfjörður',
+        radamenn: ['Sigrún Þórsdóttir (framkvæmdastjóri)'], heiti: [],
+        isat: ['03.11.0 Fiskveiðar í sjó', '10.20.0 Vinnsla og niðursuða á fiski', '46.38.0 Heildverslun með fisk'],
+        vsk: [{ nr: '112233', skrad: '2009', afskrad: '' }],
+        arsreikningar: [{ ar: '2025', skil: '30.5.2026' }, { ar: '2024', skil: '28.5.2025' }, { ar: '2023', skil: '2.6.2024' }],
+        eigendur: [
+          { nafn: 'Sigrún Þórsdóttir', hlutur: '54%', faeding: '1971', buseta: 'Hafnarfjörður', tegund: 'Raunverulegur eigandi' },
+          { nafn: 'Fjárfestingafélagið Bára ehf.', hlutur: '31%', tegund: 'Eignarhald í gegnum félag' },
+        ],
+        fjarhagur: [
+          acc('2025', 4850, 3200, 980, 240, 95, 268, 6200, 1850, 620, 540, 310, 2790, 3410, 1150),
+          acc('2024', 4310, 2900, 890, 220, 90, 210, 5750, 1680, 580, 500, 260, 2560, 3190, 1080),
+          acc('2023', 3920, 2680, 820, 200, 88, 175, 5400, 1520, 540, 470, 230, 2380, 3020, 1010),
+        ],
+      };
+    }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
       return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button></div>
@@ -309,7 +422,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
           <p class="fsg-b">Skýrslan opnast við kaup: rekstrarform, ÍSAT-atvinnugreinar, VSK-númer, ársreikningaskil, raunverulegir eigendur og Karp-samtengingin — umfjöllun fjölmiðla, ríkisviðskipti, útboð, kauphallartilkynningar, vörumerki, opinberir styrkir, eftirlit og Lögbirtingablaðið.</p>
-          <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa skýrslu — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?q=490522-0500">👁️ Sjá sýnishorn</a></div>
+          <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa skýrslu — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?syni=1">👁️ Sjá sýnishorn</a></div>
           <p class="fsg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf · byggð á opinberum gögnum</p>
         </div>`;
     }
@@ -334,8 +447,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               const f = d.felag;
               await loadUser().catch(() => null);   // eignarhald þarf KARP_USER
               const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} }; };
-              // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin/sýnishorn (490522-0500) → fullt.
-              if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt) || String(f.kt).replace(/\D/g, '') === '4905220500')) {
+              // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin → fullt. Sýnishorn = ?syni=1 (demo).
+              if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt))) {
                 skila(fsGate(f)); backWire();
                 const gb = document.getElementById('fsg-buy');
                 if (gb) gb.addEventListener('click', async () => {
@@ -535,6 +648,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       }
       // Karp+-gátt (LOTA 63): leit + prófílkort læst innskráðum (ókeypis aðgangur)
       form.addEventListener('submit', (e) => { e.preventDefault(); if (!FS_USER || !FS_USER.loggedIn) { skila(fsTease()); return; } leita(inp.value); });
+      // ?syni=1 → sýnifyrirtæki (Norðurhaf) — opið öllum, engin innskráning, ekkert keypt
+      if (new URLSearchParams(location.search).get('syni') === '1') {
+        form.style.display = 'none';
+        skila(fsKort(demoFyrirtaeki()));
+        const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { location.href = '/fyrirtaeki/'; };
+        const br = out.querySelector('.fs-buyrow'); if (br) br.style.display = 'none';
+        const rep = document.getElementById('fs-report');
+        if (rep && !document.getElementById('fs-demo-note')) { const n = document.createElement('div'); n.id = 'fs-demo-note'; n.className = 'fs-demonote'; n.innerHTML = '👁️ <b>Sýnishorn</b> — Norðurhaf Sjávarfang hf. er EKKI raunverulegt félag. Sýnir allt sem fullbúin fyrirtækjaskýrsla getur innihaldið: fjárhagsmælaborð, kvóta, vörumerki, styrki og eftirlit.'; rep.insertBefore(n, rep.firstChild); }
+        const setE = (id, html) => { const el = document.getElementById(id); if (el) { el.hidden = false; el.innerHTML = html; } };
+        setE('fs-kvoti', '<div class="fs-sub">🐟 Aflamark (Fiskistofa)</div><div class="fs-chips"><span class="fs-chip"><b>Þorskur</b> 1.840 tonn</span><span class="fs-chip"><b>Ýsa</b> 720 tonn</span><span class="fs-chip"><b>Ufsi</b> 680 tonn</span><span class="fs-chip"><b>Samtals</b> 3.240 þorskígildistonn · 2025/26</span></div>');
+        setE('fs-vorumerki', '<div class="fs-sub">™️ Skráð vörumerki (Hugverkastofa)</div><div class="fs-chips"><span class="fs-chip">Norðurhaf</span><span class="fs-chip">Bláa hafið</span><span class="fs-chip">SeaFresh</span><span class="fs-chip">Fjörukrydd</span></div>');
+        setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
+        setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
+        setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
+        return;
+      }
       loadUser().then((u) => {
         FS_USER = u;
         if (!u || !u.loggedIn) { form.style.display = 'none'; skila(fsTease()); return; }
