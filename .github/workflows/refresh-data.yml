@@ -72,7 +72,7 @@ jobs:
           node skriptur/build_uppbod.js         || true
           node skriptur/build_ytsaga.js         || true
           node skriptur/build_ytsafn.js         || true
-      - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo)
+      - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo, Fiskistofa)
         run: |
           node skriptur/build_fasteignir.js   || true
           node skriptur/build_fasteignaskra.js || true
@@ -81,6 +81,7 @@ jobs:
           node skriptur/build_glaepir.js      || true
           node skriptur/build_orka.js         || true
           node skriptur/build_numbeo.js       || true
+          node skriptur/build_sjavarutvegur.js || true   # Fiskistofa: raðköll m/töf (þjöppun/afli per tegund)
       - name: AI-samantektir (aðeins sé lykill settur sem secret)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
