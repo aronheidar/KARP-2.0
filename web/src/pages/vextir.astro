@@ -1,0 +1,255 @@
+---
+// Vextir, gengi & verðbólga (Seðlabanka-auðgun): rík SSG-síða úr gogn/sedlabanki.json
+// (opinn XML-tímaraðaþjónn SÍ, bakað 1×/dag). Meginvaxtasaga vs verðbólga, ríkis-vaxtaferill
+// + verðbólguálag, gengisvísitala, gengi, REIBOR, dráttarvextir, peningamagn. Opin síða.
+import Layout from '../layouts/Layout.astro';
+import SB from '@gogn/sedlabanki.json';
+
+const ds = SB.datasets || {}, H = SB.headline || {};
+const ser = (k, id) => ((ds[k] && ds[k].series || []).find((s) => s.id === id) || { points: [] }).points;
+const lastV = (k, id) => { const p = ser(k, id); return p.length ? p[p.length - 1][1] : null; };
+const c = (v, dp) => (v == null ? '–' : (dp != null ? Number(v).toFixed(dp) : String(v)).replace('.', ','));
+const isoIs = (iso) => { const [y, m, d] = (iso || '').split('-'); return d ? +d + '.' + +m + '.' + y : iso; };
+
+// Lykiltölur
+const meginv = H.meginvextir ? H.meginvextir.value : lastV('vextir_si', 17923);
+const verdb = H.verdbolga ? H.verdbolga.value : lastV('verdbolga', 2);
+const raun = meginv != null && verdb != null ? Math.round((meginv - verdb) * 10) / 10 : null;
+const gvis = H.gengisvisitala ? Math.round(H.gengisvisitala.value * 10) / 10 : Math.round(lastV('gengisvisit', 4118) * 10) / 10;
+const dratt = lastV('drattarvextir', 22);
+
+// 1) Meginvextir (12 ára) vs verðbólga — [iso,val]
+const POLICY = ser('vextir_si', 17923);
+const INFL = ser('verdbolga', 2);
+
+// 2) Ríkis-vaxtaferill: óvtr/vtr yfir 3/5/10 ár + verðbólguálag (breakeven)
+const MAT = [3, 5, 10];
+const ovtr = [lastV('parvextir', 30101), lastV('parvextir', 30102), lastV('parvextir', 30103)];
+const vtr = [lastV('parvextir', 30104), lastV('parvextir', 30105), lastV('parvextir', 30106)];
+const be = ovtr.map((o, i) => (o != null && vtr[i] != null ? Math.round((o - vtr[i]) * 100) / 100 : null));
+const be10 = be[2];
+
+// 3) Gengisvísitala (2018→)
+const GVIS = ser('gengisvisit', 4118);
+// 4) EUR/USD á móti ISK (5 ára)
+const FX_EUR = ser('gengi', 4064), FX_USD = ser('gengi', 4055);
+// Gengistafla — allar myntir, nýjasta gildi
+const FXTBL = (ds.gengi && ds.gengi.series || []).filter((s) => s.code && s.points.length)
+  .map((s) => ({ code: s.code, name: s.name, v: s.points[s.points.length - 1][1] }))
+  .sort((a, b) => b.v - a.v);
+const fxDate = FX_EUR.length ? FX_EUR[FX_EUR.length - 1][0] : (H.evra && H.evra.date);
+
+// 5) REIBOR-ferill (millibankavextir, útlán)
+const RB_IDS = [[12, 'O/N'], [13, '1 mán'], [14, '2 mán'], [15, '3 mán'], [16, '6 mán']];
+const REIBOR = { ten: RB_IDS.map((x) => x[1]), val: RB_IDS.map((x) => lastV('reibor', x[0])) };
+// 6) Dráttarvextir (saga)
+const DRATT = ser('drattarvextir', 22);
+// 7) Peningamagn M1/M3 (ma.kr)
+const M1 = ser('peningamagn', 81).map((p) => [p[0], Math.round(p[1] / 1000)]);
+const M3 = ser('peningamagn', 82).map((p) => [p[0], Math.round(p[1] / 1000)]);
+
+const updated = (SB.updated || '').slice(0, 10);
+const desc = `Vextir, gengi og verðbólga á Íslandi — lifandi frá Seðlabanka: meginvextir (stýrivextir) ${c(meginv)}%, verðbólga ${c(verdb)}%, gengisvísitala ${c(gvis)}, ríkis-vaxtaferill og verðbólguálag markaðar ~${c(be10)}%.`;
+---
+<Layout title="Vextir, gengi & verðbólga — Seðlabanki | Karp" description={desc} canonical="https://karp.is/vextir/" ogTitle="Vextir & gengi á Íslandi">
+  <main data-pg="vextir">
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Vextir, gengi & verðbólga 🏦</h1>
+    <p class="lead">Lifandi peningamál Íslands beint frá <strong>Seðlabanka</strong>: stýrivextir og saga þeirra á móti verðbólgu, ríkis-vaxtaferillinn sem sýnir <strong>verðbólguálag markaðarins</strong>, gengi krónunnar, millibankavextir og peningamagn. Verðbólgan sjálf og neyslukarfan: sjá <a href="/verdlag/">Verðlag</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Meginvextir = stýrivextir SÍ (vextir á 7 daga bundnum innlánum). Raunstýrivextir = meginvextir − verðbólga. Verðbólguálag = óverðtryggðir − verðtryggðir ríkisvextir (mat markaðarins á meðalverðbólgu næstu ára). Gengisvísitala: hærri tala = veikari króna.">ⓘ</i> Um hugtökin</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏦 Meginvextir</div><div class="k-v">{c(meginv)}%</div><div class="k-s">stýrivextir{H.meginvextir ? ' · frá ' + isoIs(H.meginvextir.date) : ''}</div></div>
+      <div class="kpi"><div class="k-l">📈 Verðbólga</div><div class="k-v">{c(verdb)}%</div><div class="k-s">12 mán{H.verdbolga ? ' · ' + isoIs(H.verdbolga.date) : ''}</div></div>
+      <div class="kpi"><div class="k-l">⚖️ Raunstýrivextir</div><div class="k-v">{c(raun)}%</div><div class="k-s">meginvextir − verðbólga</div></div>
+      <div class="kpi"><div class="k-l">💱 Gengisvísitala</div><div class="k-v">{c(gvis)}</div><div class="k-s">hærri = veikari króna</div></div>
+    </div>
+
+    <h2>Meginvextir og verðbólga · 2014→</h2>
+    <p class="sub">Stýrivextir Seðlabankans (gullið) á móti 12-mánaða verðbólgu (rautt). Bilið á milli = <strong>raunstýrivextir</strong> (nú ~{c(raun)}%).</p>
+    <div class="cwrap"><div id="c-mv" class="ch"></div></div>
+
+    <h2>Ríkis-vaxtaferill og verðbólguálag 🎯</h2>
+    <p class="sub">Par-vextir ríkisbréfa eftir lánstíma: óverðtryggt (nafnvextir) á móti verðtryggðu (raunvextir). Munurinn = <strong>verðbólguálag</strong> — mat markaðarins á meðalverðbólgu tímabilsins. 10 ára álag nú ~{c(be10)}%.</p>
+    <div class="cwrap"><div id="c-yc" class="ch"></div></div>
+
+    <div class="ppair">
+      <div>
+        <h2>Gengisvísitala · 2018→</h2>
+        <p class="sub">Viðskiptavegið gengi krónunnar. Hærri tala = veikari króna.</p>
+        <div class="cwrap"><div id="c-gv" class="ch sm"></div></div>
+      </div>
+      <div>
+        <h2>Evra & dalur (ISK)</h2>
+        <p class="sub">Opinbert viðmiðunargengi SÍ, króna per einingu.</p>
+        <div class="cwrap"><div id="c-fx" class="ch sm"></div></div>
+      </div>
+    </div>
+
+    <h2>Gengi krónunnar · {isoIs(fxDate)}</h2>
+    <p class="sub">Opinbert viðmiðunargengi Seðlabankans — íslenskar krónur fyrir eina einingu hvers gjaldmiðils.</p>
+    <div class="fxgrid">
+      {FXTBL.map((r) => (
+        <div class="fxcard">
+          <div class="fx-c">{r.code}</div>
+          <div class="fx-v">{c(Math.round(r.v * 100) / 100)}</div>
+          <div class="fx-n">{r.name}</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="ppair">
+      <div>
+        <h2>REIBOR millibankavextir</h2>
+        <p class="sub">Vextir sem bankar bjóða hver öðrum (útlán), eftir binditíma.</p>
+        <div class="cwrap"><div id="c-rb" class="ch sm"></div></div>
+      </div>
+      <div>
+        <h2>Dráttarvextir</h2>
+        <p class="sub">Vextir á vanskil (ákvarðaðir af SÍ). Nú {c(dratt)}%.</p>
+        <div class="cwrap"><div id="c-dr" class="ch sm"></div></div>
+      </div>
+    </div>
+
+    {M3.length > 1 && <>
+      <h2>Peningamagn M1 & M3</h2>
+      <p class="sub">M1 = seðlar, mynt og veltiinnlán. M3 = víðtækasta mæling (öll innlán). Í milljörðum króna.</p>
+      <div class="cwrap"><div id="c-mm" class="ch sm"></div></div>
+    </>}
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Seðlabanki Íslands</b> — Gagnatorg (opinn XML-tímaraðaþjónn), uppfært {updated}. Vextir og gengi dagleg (grisjuð í ~viku-upplausn), verðbólga og peningamagn mánaðarleg. Verðbólga, neyslukarfa og framfærsla: <a href="/verdlag/">Verðlag</a>.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; letter-spacing: .01em; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; } .sub strong { color: #cdd6e6; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; margin-top: 1px; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 360px; } .ch.sm { height: 280px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+
+    .fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+    .fxcard { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; text-align: center; }
+    .fx-c { font-size: 12px; font-weight: 700; color: #9fb0c8; letter-spacing: .04em; }
+    .fx-v { font-size: 20px; font-weight: 800; color: #eaf0fb; font-variant-numeric: tabular-nums; margin: 2px 0; }
+    .fx-n { font-size: 10.5px; color: #6f7b8d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+  </style>
+
+  <script define:vars={{ POLICY, INFL, MAT, ovtr, vtr, be, GVIS, FX_EUR, FX_USD, REIBOR, DRATT, M1, M3 }}>
+    function initVextir() {
+      if (!document.querySelector('main[data-pg="vextir"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const nf = (v) => (v == null ? '–' : (Math.round(v * 100) / 100).toString().replace('.', ','));
+      const insts = [];
+      const mk = (id) => { const el = document.getElementById(id); if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return null; const c = window.echarts.init(el); insts.push(c); return c; };
+      const timeX = { type: 'time', axisLabel: { color: AX, fontSize: 10 }, axisLine: { lineStyle: { color: LINE } } };
+      const valY = (suffix) => ({ type: 'value', axisLabel: { color: AX, formatter: (v) => nf(v) + (suffix || '') }, splitLine: { lineStyle: { color: GRID } }, scale: true });
+
+      const render = () => {
+        // 1) Meginvextir vs verðbólga
+        { const c = mk('c-mv'); if (c) c.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['Meginvextir', 'Verðbólga (12 mán)'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 44, right: 16, top: 30, bottom: 26 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) + '%' },
+          xAxis: timeX, yAxis: valY('%'),
+          series: [
+            { name: 'Meginvextir', type: 'line', data: POLICY, step: 'end', symbol: 'none', lineStyle: { width: 2.5, color: '#f6b13b' }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: .10 } },
+            { name: 'Verðbólga (12 mán)', type: 'line', data: INFL, smooth: true, symbol: 'none', lineStyle: { width: 2, color: '#f85149' }, itemStyle: { color: '#f85149' } },
+          ],
+        }); }
+
+        // 2) Ríkis-vaxtaferill + verðbólguálag
+        { const c = mk('c-yc'); if (c) c.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['Óverðtryggt', 'Verðtryggt', 'Verðbólguálag'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 44, right: 16, top: 30, bottom: 30 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) + '%' },
+          xAxis: { type: 'category', data: MAT.map((m) => m + ' ára'), axisLabel: { color: AX }, axisLine: { lineStyle: { color: LINE } } },
+          yAxis: valY('%'),
+          series: [
+            { name: 'Óverðtryggt', type: 'line', data: ovtr, symbol: 'circle', symbolSize: 7, lineStyle: { width: 2.5, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' }, label: { show: true, position: 'top', formatter: (o) => nf(o.value) + '%', color: '#9fb0c8', fontSize: 10 } },
+            { name: 'Verðtryggt', type: 'line', data: vtr, symbol: 'circle', symbolSize: 7, lineStyle: { width: 2.5, color: '#19d3c5' }, itemStyle: { color: '#19d3c5' }, label: { show: true, position: 'bottom', formatter: (o) => nf(o.value) + '%', color: '#9fb0c8', fontSize: 10 } },
+            { name: 'Verðbólguálag', type: 'line', data: be, symbol: 'none', lineStyle: { width: 1.5, color: '#f6b13b', type: 'dashed' }, itemStyle: { color: '#f6b13b' } },
+          ],
+        }); }
+
+        // 3) Gengisvísitala
+        { const c = mk('c-gv'); if (c) c.setOption({
+          backgroundColor: 'transparent', grid: { left: 42, right: 14, top: 12, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) },
+          xAxis: timeX, yAxis: valY(''),
+          series: [{ type: 'line', data: GVIS, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#c95cf7' }, itemStyle: { color: '#c95cf7' }, areaStyle: { color: '#c95cf7', opacity: .12 } }],
+        }); }
+
+        // 4) EUR/USD ISK
+        { const c = mk('c-fx'); if (c) c.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['EUR', 'USD'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 42, right: 14, top: 28, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) + ' kr' },
+          xAxis: timeX, yAxis: valY(''),
+          series: [
+            { name: 'EUR', type: 'line', data: FX_EUR, smooth: true, symbol: 'none', lineStyle: { width: 2, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' } },
+            { name: 'USD', type: 'line', data: FX_USD, smooth: true, symbol: 'none', lineStyle: { width: 2, color: '#46e08a' }, itemStyle: { color: '#46e08a' } },
+          ],
+        }); }
+
+        // 5) REIBOR
+        { const c = mk('c-rb'); if (c) c.setOption({
+          backgroundColor: 'transparent', grid: { left: 40, right: 20, top: 12, bottom: 26 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => nf(v) + '%' },
+          xAxis: { type: 'category', data: REIBOR.ten, axisLabel: { color: AX, fontSize: 10 }, axisLine: { lineStyle: { color: LINE } } },
+          yAxis: valY('%'),
+          series: [{ type: 'bar', data: REIBOR.val, itemStyle: { color: '#19d3c5', borderRadius: [3, 3, 0, 0] }, barMaxWidth: 34, label: { show: true, position: 'top', formatter: (o) => nf(o.value) + '%', color: '#9fb0c8', fontSize: 10 } }],
+        }); }
+
+        // 6) Dráttarvextir
+        { const c = mk('c-dr'); if (c) c.setOption({
+          backgroundColor: 'transparent', grid: { left: 40, right: 14, top: 12, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) + '%' },
+          xAxis: timeX, yAxis: valY('%'),
+          series: [{ type: 'line', data: DRATT, step: 'end', symbol: 'none', lineStyle: { width: 2.5, color: '#f85149' }, itemStyle: { color: '#f85149' }, areaStyle: { color: '#f85149', opacity: .12 } }],
+        }); }
+
+        // 7) Peningamagn M1/M3
+        { const c = mk('c-mm'); if (c) c.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['M1', 'M3'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
+          grid: { left: 52, right: 14, top: 28, bottom: 24 },
+          tooltip: { trigger: 'axis', valueFormatter: (v) => nf(v) + ' ma.kr' },
+          xAxis: timeX, yAxis: valY(''),
+          series: [
+            { name: 'M3', type: 'line', data: M3, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#f6b13b' }, itemStyle: { color: '#f6b13b' }, areaStyle: { color: '#f6b13b', opacity: .10 } },
+            { name: 'M1', type: 'line', data: M1, smooth: true, symbol: 'none', lineStyle: { width: 2, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' } },
+          ],
+        }); }
+
+        window.addEventListener('resize', () => insts.forEach((x) => x.resize()));
+      };
+
+      if (window.echarts) { render(); return; }
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', render, { once: true });
+    }
+    document.addEventListener('astro:page-load', initVextir);
+  </script>
+</Layout>

@@ -101,6 +101,21 @@ const AUG = [
     const line = (c) => { const b = pick(bank, c), m = pick(cb, c), k = pick(kort, c); const alag = k.sell && m.buy ? ' (kortaálag +' + ((k.sell / m.buy - 1) * 100).toFixed(1) + '%)' : ''; return c + ': kaup ' + b.buy + ' / sala ' + b.sell + ', SÍ-viðmið ' + m.buy + ', kort ' + (k.sell || '–') + alag; };
     return 'GENGISTÖFLUR ARION (' + ((s.Bank || {}).date || '') + ', kr per einingu): ' + ['USD', 'EUR', 'GBP', 'DKK'].map(line).join(' · ');
   } },
+  { rx: /stýrivext|meginvext|dráttarvext|vaxtaferil|verðbólg|gengisvísit|reibor|peningamag|raunvext|vaxtaákv|seðlabank|\bvext|vaxta|krón(an|unnar|una)/i, file: 'sedlabanki.json', pg: '/vextir/', fn: (j) => {
+    const h = j.headline || {}, d = j.datasets || {}, parts = [];
+    if (h.meginvextir) parts.push('Meginvextir (stýrivextir) ' + h.meginvextir.value + '% frá ' + h.meginvextir.date);
+    if (h.verdbolga) parts.push('12-mán verðbólga ' + h.verdbolga.value + '% (' + h.verdbolga.date + ')');
+    if (h.meginvextir && h.verdbolga) parts.push('raunstýrivextir ~' + (h.meginvextir.value - h.verdbolga.value).toFixed(1) + '%');
+    if (h.gengisvisitala) parts.push('gengisvísitala ' + Math.round(h.gengisvisitala.value * 10) / 10 + ' (hærri=veikari króna)');
+    if (h.evra) parts.push('EUR ' + h.evra.value + ' kr');
+    if (h.dollari) parts.push('USD ' + h.dollari.value + ' kr');
+    const dv = ((d.drattarvextir || {}).series || [])[0], dvp = dv && dv.points.length ? dv.points[dv.points.length - 1][1] : null;
+    if (dvp) parts.push('dráttarvextir ' + dvp + '%');
+    const pv = (d.parvextir || {}).series || [], lastId = (id) => { const s = pv.find((x) => x.id === id); return s && s.points.length ? s.points[s.points.length - 1][1] : null; };
+    const o10 = lastId(30103), v10 = lastId(30106);
+    if (o10 != null && v10 != null) parts.push('10-ára ríkisvextir óvtr ' + o10 + '% / vtr ' + v10 + '% → verðbólguálag markaðar ~' + (o10 - v10).toFixed(1) + '%');
+    return 'SEÐLABANKI ÍSLANDS (' + (h.meginvextir ? h.meginvextir.date : (j.updated || '').slice(0, 10)) + '): ' + parts.join('; ') + '.';
+  } },
   { rx: /fasteign|íbúðaverð|fermetr|húsnæðisverð|kaupverð/i, file: 'fasteignir.json', pg: '/fasteignir/', fn: (j, q) => {
     const m = (j.months || [])[j.months.length - 1];
     let out = m ? 'FASTEIGNAVERÐ (' + m.m + ', miðgildi): höfuðborgarsvæði ' + m.hbsv.vp + ' m.kr (' + m.hbsv.m2 + ' þ.kr/m², ' + m.hbsv.n + ' kaup); landsbyggð ' + m.land.vp + ' m.kr (' + m.land.m2 + ' þ.kr/m²).' : '';

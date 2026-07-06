@@ -14,7 +14,7 @@ const FILES = [
   'sveitarstjorar.json', 'cabinet.json', 'althingi.json', 'althingi_meta.json',
   'frumvorp.json', 'atvinnuleysi.json', 'orka.json', 'glaepir.json', 'leiga.json',
   'markadir.json', 'ivilnanir.json', 'skattar.json', 'utgjold.json', 'nefndir.json',
-  'sendirad.json', 'numbeo.json',
+  'sendirad.json', 'numbeo.json', 'sedlabanki.json',
 ];
 
 fs.mkdirSync(PUB, { recursive: true });

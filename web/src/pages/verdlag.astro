@@ -8,6 +8,7 @@ import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import ATV from '@gogn/atvinnuleysi.json';
 import NUMBEO from '@gogn/numbeo.json';
+import SB from '@gogn/sedlabanki.json';
 
 import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
 
@@ -49,8 +50,17 @@ try {
   fx = { date: fj.date, eur: eurIsk, usd: eurIsk / fj.rates.USD, gbp: eurIsk / fj.rates.GBP };
 } catch (e) { /* fx null → strikin sýna – */ }
 const unemp = ATVINNULEYSI.latest;         // % skráð atvinnuleysi (Vinnumálastofnun)
-// Seðlabanki birtir stýrivexti EKKI um opið CORS-API → hardkóðað með dagsetningu, uppfæra eftir hverja vaxtaákvörðun.
-const POLICY = { rate: 7.75, from: '20.5.2026', next: '19.8.2026' };
+// Stýrivextir: LIFANDI frá Seðlabanka (gogn/sedlabanki.json, opinn XML-tímaraðaþjónn). „Frá"-dagur
+// reiknaður úr röðinni (fyrsti punktur á núverandi vaxtastigi; ~viku-nákvæmni v. grisjunar).
+const _MON = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+const _mvSer = ((SB.datasets || {}).vextir_si || {}).series || [];
+const _mv = (SB.headline || {}).meginvextir || { value: 7.75, date: '2026-07-03' };
+let _since = _mv.date;
+{ const s = _mvSer.find((x) => x.id === 17923); if (s && s.points.length) { const p = s.points, cur = p[p.length - 1][1]; _since = p[p.length - 1][0]; for (let i = p.length - 2; i >= 0; i--) { if (p[i][1] === cur) _since = p[i][0]; else break; } } }
+const [_sy, _sm, _sd] = _since.split('-');
+const _fraNum = `${+_sd}.${+_sm}.${_sy}`, _fraTxt = `${+_sd}. ${_MON[+_sm - 1]} ${_sy}`;
+const NAEST = '19. ágúst 2026'; // næsta vaxtaákvörðun — birt dagatal SÍ (ekki í tímaröð; uppfæra eftir þörfum)
+const POLICY = { rate: _mv.value, from: _fraNum, next: '19.8.2026' };
 
 // Næsti mánuður (fyrir spá-eyjuna) + stöðugur topic-lykill.
 let nextLabel = '', spaTopic = 'vnv_ars_next';
@@ -63,8 +73,8 @@ if (latest) {
 const px = async (url, query) => (await fetch(url, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
 const sel = (code, filter, values) => ({ code, selection: { filter, values } });
 
-// Stýrivextir: engin opin API-heimild → handfært eftir hverja vaxtaákvörðun SÍ.
-const STYRIVEXTIR = { v: 7.75, fra: '20. maí 2026', naest: '19. ágúst 2026' };
+// Stýrivextir: LIFANDI (sama uppspretta og POLICY að ofan — Seðlabanki headline).
+const STYRIVEXTIR = { v: _mv.value, fra: _fraTxt, naest: NAEST };
 
 // Gengi (frankfurter/ECB): nýjasta EUR/USD/GBP + 1 árs EUR/ISK ferill.
 let FX = null;

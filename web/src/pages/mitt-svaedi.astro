@@ -18,6 +18,7 @@ import GLAEPIR from '@gogn/glaepir.json';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import REGIONGEO from '@gogn/landshlutar.json';
 import JOFNUN from '@gogn/jofnun.json';
+import SB from '@gogn/sedlabanki.json';
 import { projectSeats } from '@lib/seats.mjs';
 import { colorByName, partyName, partyColor } from '@lib/parties.mjs';
 import { slugify } from '@lib/format.mjs';
@@ -29,11 +30,13 @@ import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
 const MP = {};
 THINGMENN.forEach((m) => { MP['mp:' + m.id] = { n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), s: slugify(m.nafn), img: m.mynd || '' }; });
 
-// Hagvísa-strípa (bakað)
+// Hagvísa-strípa (bakað) — stýrivextir & verðbólga LIFANDI úr Seðlabanka-headline
+const _sbv = (o) => (o && o.value != null ? String(o.value).replace('.', ',') + '%' : '–');
+const _sbh = SB.headline || {};
 const KPIS = [
   { l: '👷 Atvinnuleysi', v: (ATV.latest ?? 0).toFixed(1).replace('.', ',') + '%', href: '/vinnumarkadur/' },
-  { l: '🏦 Stýrivextir', v: '7,75%', href: '/verdlag/' },
-  { l: '📉 Verðbólga', v: 'sjá Verðlag', href: '/verdlag/' },
+  { l: '🏦 Stýrivextir', v: _sbv(_sbh.meginvextir), href: '/vextir/' },
+  { l: '📉 Verðbólga', v: _sbv(_sbh.verdbolga), href: '/verdlag/' },
 ];
 
 // Þingsæti-spá mini
