@@ -342,7 +342,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt });
                   if (res === 'redirected') return;
-                  gb.textContent = 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2500);
+                  gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
                 });
                 return;
               }
@@ -514,7 +514,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey });
                   if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-                  bb.textContent = 'Ekki tókst — reyndu aftur'; bb.disabled = false; setTimeout(paintBuy, 2500); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
+                  bb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; bb.disabled = false; setTimeout(paintBuy, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
                 });
               }
               return;

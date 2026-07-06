@@ -180,6 +180,18 @@ const jsonLd = {
     body.fvm-printing #fvm-report .comp-tbl th { color: #444 !important; border-bottom: 2px solid #b07500 !important; }
     /* LOTA 68: kort, verðstika, kaupa-takki */
     .fvm-map { height: 220px; border-radius: 10px; margin-top: 12px; z-index: 0; border: 1px solid rgba(255,255,255,.1); }
+    /* Kritískt Leaflet-CSS inline → flísar staðsettar rétt strax, jafnvel þótt CDN leaflet.css sé ekki hlaðið (kemur í veg fyrir dreifðar flísar um allan skjá — kapphlaup JS vs CSS) */
+    .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; }
+    .leaflet-container { overflow: hidden; -webkit-tap-highlight-color: transparent; }
+    .leaflet-container img { max-width: none !important; }
+    .leaflet-tile { filter: inherit; visibility: hidden; }
+    .leaflet-tile-loaded { visibility: inherit; }
+    .leaflet-pane { z-index: 400; }
+    .leaflet-tile-pane { z-index: 200; }
+    .leaflet-overlay-pane { z-index: 400; }
+    .leaflet-marker-pane { z-index: 600; }
+    .leaflet-tooltip-pane { z-index: 650; }
+    .leaflet-control { position: relative; z-index: 800; }
     .vbar { margin: 6px 0 2px; }
     .vb-row { position: relative; height: 34px; }
     .vb-lbl { position: absolute; transform: translateX(-50%); text-align: center; font-size: 10.5px; color: #9fb0c8; white-space: nowrap; line-height: 1.25; }
@@ -576,7 +588,7 @@ const jsonLd = {
             gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
             const res = await karpCheckout({ kind: 'fasteign', ref: raw, key: matKey });
             if (res === 'redirected') return;
-            gb.textContent = 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2500);
+            gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
           });
           return;
         }
@@ -835,7 +847,7 @@ const jsonLd = {
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey)) { doPrint(); return; }
         const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey });
         if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-        fvmBuyBtn.textContent = 'Ekki tókst — reyndu aftur'; fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2500); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
+        fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
