@@ -96,32 +96,32 @@ const updated = '2026-07-02';
         <div id="w-traffic">Sæki tölfræði…</div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="hagvisar">
         <div class="w-h">📈 Hagvísar dagsins</div>
         <div class="kpis">{KPIS.map((k) => <a class="kpi" href={k.href}><span class="k-l">{k.l}</span><span class="k-v">{k.v}</span></a>)}</div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="sveit">
         <div class="w-h">🗺️ Mitt sveitarfélag</div>
         <div id="w-sveit"></div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="loft">
         <div class="w-h">🌬️ Loftgæði — lifandi <span class="w-sub">svifryk PM10 · Umhverfisstofnun</span></div>
         <div id="w-loft">Sæki mælingar…</div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="vaktir">
         <div class="w-h">🔔 Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/vaktir/">Allar vaktir →</a></div>
         <div id="w-vaktir" class="wv-grid">Sæki vaktir…</div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="fylgja">
         <div class="w-h">🔖 Að fylgja</div>
         <div id="mine">Hleð…</div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="seats">
         <div class="w-h">🏛️ Þingsæti-spá</div>
         <div class="seats">
           <span class={SEATSW.maj ? 'up' : 'dn'}><b>{SEATSW.gov}</b> ríkisstjórn</span>
@@ -131,7 +131,7 @@ const updated = '2026-07-02';
         </div>
       </div>
 
-      <div class="w">
+      <div class="w" data-w="match">
         <div class="w-h">🎯 Flokkamatið mitt</div>
         <div id="w-match"></div>
       </div>
@@ -140,14 +140,31 @@ const updated = '2026-07-02';
     <!-- ── STILLINGAR ── -->
     <section id="p-still" hidden>
       <div class="w">
+        <div class="w-h">📊 Mælaborðið — hvað birtist</div>
+        <p class="w-p">Kveiktu og slökktu á spjöldum mælaborðsins. Valið vistast í vafranum þínum.</p>
+        <div id="dash-toggles" class="tgl-list"></div>
+      </div>
+
+      <div class="w">
         <div class="w-h">🗺️ Sveitarfélagið mitt</div>
         <p class="w-p">Veldu sveitarfélagið þitt — spjaldið birtist á mælaborðinu og valið vistast í vafranum.</p>
         <select id="sv-sel"><option value="">— Velja sveitarfélag —</option>{MUNIS.map((m) => <option value={m.n}>{m.n}</option>)}</select>
       </div>
+
       <div class="w">
-        <div class="w-h">🔔 Vaktir</div>
-        <div id="vaktir"><span class="dim">Skráðu þig inn til að sjá vaktirnar þínar.</span></div>
+        <div class="w-h">📋 Vaktirnar mínar <a class="w-more" href="/vaktir/">Stjórna vöktum →</a></div>
+        <p class="w-p">Yfirlit yfir allt sem þú vaktar. Virkar vaktir senda þér tölvupóst þegar eitthvað nýtt gerist.</p>
+        <div id="vakt-yfirlit"><span class="dim">Sæki vaktirnar þínar…</span></div>
       </div>
+
+      <div class="w">
+        <div class="w-h">📬 Tölvupóstarnir mínir</div>
+        <p class="w-p">Stýrðu hvaða tölvupóst þú færð frá Karp.</p>
+        <label class="tgl"><input type="checkbox" id="dg-on" /><span class="tgl-sw"></span><span class="tgl-t"><b>📅 Vikuyfirlit</b><span class="tgl-d">Persónulegt yfirlit á mánudagsmorgnum — vaktir vikunnar, félög og þingmenn sem þú fylgist með, ný vörumerki, fasteignasölur og útboð.</span></span></label>
+        <p id="dg-note" class="w-note" hidden></p>
+        <div id="mail-more" class="mail-more"></div>
+      </div>
+
       <div class="w">
         <div class="w-h">👤 Aðgangurinn</div>
         <div id="acc" class="acc"></div>
@@ -191,6 +208,32 @@ const updated = '2026-07-02';
     .acc-links a:hover { color: #f6b13b; }
     .dim { font-size: 13px; color: #7e8ca6; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 20px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+  </style>
+
+  <!-- is:global: klasar sem birtast (líka) í runtime-innerHTML → annars tréhristast (Astro-gildra) -->
+  <style is:global>
+    main[data-pg="mitt-svaedi"] .tgl-list { display: grid; gap: 10px; }
+    main[data-pg="mitt-svaedi"] .tgl { display: flex; align-items: center; gap: 11px; cursor: pointer; }
+    main[data-pg="mitt-svaedi"] .tgl > input { position: absolute; opacity: 0; width: 0; height: 0; }
+    main[data-pg="mitt-svaedi"] .tgl-sw { flex: 0 0 38px; width: 38px; height: 22px; border-radius: 999px; background: rgba(255,255,255,.16); position: relative; transition: .18s; }
+    main[data-pg="mitt-svaedi"] .tgl-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #eaf1fb; transition: .18s; }
+    main[data-pg="mitt-svaedi"] .tgl > input:checked + .tgl-sw { background: #f6b13b; }
+    main[data-pg="mitt-svaedi"] .tgl > input:checked + .tgl-sw::after { transform: translateX(16px); }
+    main[data-pg="mitt-svaedi"] .tgl > input:disabled + .tgl-sw { opacity: .45; }
+    main[data-pg="mitt-svaedi"] .tgl-t { display: flex; flex-direction: column; gap: 1px; }
+    main[data-pg="mitt-svaedi"] .tgl-t b { font-size: 14px; color: #eaf1fb; font-weight: 600; }
+    main[data-pg="mitt-svaedi"] .tgl-d { font-size: 12px; color: #9fb0c8; line-height: 1.4; }
+    main[data-pg="mitt-svaedi"] .w-note { font-size: 12.5px; color: #46e08a; margin: 9px 0 0; }
+    main[data-pg="mitt-svaedi"] .mail-more { margin-top: 10px; }
+    main[data-pg="mitt-svaedi"] .mail-note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 9px; padding: 9px 12px; line-height: 1.45; }
+    main[data-pg="mitt-svaedi"] .vy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    main[data-pg="mitt-svaedi"] .vy-row { display: flex; align-items: baseline; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; text-decoration: none; }
+    main[data-pg="mitt-svaedi"] .vy-row:hover { border-color: #f6b13b; }
+    main[data-pg="mitt-svaedi"] .vy-n { font-size: 20px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    main[data-pg="mitt-svaedi"] .vy-l { font-size: 12.5px; color: #cdd6e6; }
+    main[data-pg="mitt-svaedi"] .vy-out, main[data-pg="mitt-svaedi"] .vy-empty { font-size: 13px; color: #9fb0c8; line-height: 1.5; }
+    main[data-pg="mitt-svaedi"] .vy-empty { margin-top: 8px; }
+    main[data-pg="mitt-svaedi"] .vy-out a, main[data-pg="mitt-svaedi"] .vy-empty a { color: #f6b13b; }
   </style>
   <style is:global>
     /* Runtime-innihald widgeta → global. */
@@ -286,6 +329,45 @@ const updated = '2026-07-02';
           $g('p-still').hidden = t.dataset.t !== 'still';
         };
       });
+
+      // 📊 Mælaborðs-rofar (localStorage) — kveikja/slökkva á spjöldum mælaborðsins
+      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
+      const dhKey = 'karp-dash-hidden';
+      const dhLoad = () => { try { return JSON.parse(localStorage.getItem(dhKey) || '[]'); } catch (e) { return []; } };
+      const applyDash = () => { const hid = dhLoad(); DASH_W.forEach(([id]) => { const w = document.querySelector('.w[data-w="' + id + '"]'); if (w) w.hidden = hid.indexOf(id) !== -1; }); };
+      applyDash();
+      const tglBox = $g('dash-toggles');
+      if (tglBox) {
+        const hid0 = dhLoad();
+        tglBox.innerHTML = DASH_W.map(([id, t]) => `<label class="tgl"><input type="checkbox" data-wid="${id}"${hid0.indexOf(id) === -1 ? ' checked' : ''} /><span class="tgl-sw"></span><span class="tgl-t"><b>${esc(t)}</b></span></label>`).join('');
+        tglBox.querySelectorAll('input[data-wid]').forEach((inp) => {
+          inp.onchange = () => { let h = dhLoad(); const id = inp.dataset.wid; h = inp.checked ? h.filter((x) => x !== id) : [...new Set([...h, id])]; localStorage.setItem(dhKey, JSON.stringify(h)); applyDash(); };
+        });
+      }
+
+      // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum
+      async function paintVaktYfirlit(loggedIn) {
+        const el = $g('vakt-yfirlit'); if (!el) return;
+        if (!loggedIn) { el.innerHTML = '<div class="vy-out">🔎 <a href="/vaktir/">Leitarorðavaktin</a> og fasteignavaktin virka án innskráningar (vistast í vafra). <a href="' + loginHref() + '">Skráðu þig inn</a> til að fá vaktir í tölvupóst og sjá þær á öllum tækjum.</div>'; return; }
+        const [lv, fv, fm, hv] = await Promise.all([karpGet('/leitvakt').catch(() => null), karpGet('/fastvakt').catch(() => null), karpGet('/firmavakt').catch(() => null), karpGet('/vaktir').catch(() => null)]);
+        const nOrd = ((lv && lv.ord) || []).length, nFast = ((fv && fv.vaktir) || []).length, nFelog = ((fm && fm.felog) || []).length;
+        const nHag = (Array.isArray(hv) ? hv : ((hv && hv.vaktir) || [])).length;
+        const nFylgt = ((window.KARP_USER && window.KARP_USER.follows) || []).length;
+        const row = (e, n, l, href) => `<a class="vy-row" href="${href}"><span class="vy-n">${n}</span><span class="vy-l">${e} ${l}</span></a>`;
+        el.innerHTML = '<div class="vy-grid">' + row('🔎', nOrd, 'leitarorð', '/vaktir/') + row('🏠', nFast, 'götuvaktir', '/vaktir/') + row('🏢', nFelog, 'félög vöktuð', '/fyrirtaeki/') + row('📈', nHag, 'hagvísa-vaktir', '/vaktir/') + row('🔖', nFylgt, 'fylgt', '/mitt-svaedi/') + '</div>' + ((nOrd + nFast + nFelog + nHag + nFylgt) ? '' : '<div class="vy-empty">Engar vaktir enn — settu upp vaktir á <a href="/vaktir/">Vaktir</a> eða fylgstu með félagi/þingmanni.</div>');
+      }
+      // 📬 Vikupóstur (og tölvupóst-yfirlit)
+      function wireDigest(loggedIn) {
+        const dg = $g('dg-on'), note = $g('dg-note'), more = $g('mail-more');
+        if (more) more.innerHTML = loggedIn ? '<div class="mail-note">📨 Þú færð líka tölvupóst þegar leitarorð, fasteign eða félag á vaktinni þinni fær nýja niðurstöðu.</div>' : '';
+        if (!dg) return;
+        if (!loggedIn) { dg.disabled = true; if (note) { note.hidden = false; note.innerHTML = 'Vikuyfirlitið þarf innskráningu — <a href="' + loginHref() + '">skráðu þig inn</a> (ókeypis).'; } return; }
+        karpGet('/digest').then((d) => { if (d && typeof d.on === 'boolean') dg.checked = d.on; }).catch(() => {});
+        dg.onchange = async () => {
+          try { const r = await karpPost('/digest', { on: dg.checked }); if (!r || r.ok !== true) throw new Error('no'); note.hidden = false; note.textContent = r.on ? '✓ Vikuyfirlitið er virkt — fyrsti pósturinn berst næsta mánudagsmorgun.' : 'Vikuyfirlitið er óvirkt.'; }
+          catch (e) { dg.checked = false; note.hidden = false; note.textContent = 'Náði ekki að vista — reyndu aftur.'; }
+        };
+      }
 
       // Mitt sveitarfélag (localStorage karp-sveit) — FULLT SPJALD: lykiltölur + radar (LOTA 12)
       const gt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -433,7 +515,7 @@ const updated = '2026-07-02';
           $g('mine').innerHTML = mps.length
             ? '<div class="flist">' + mps.map((k) => { const m = MPL[k]; return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/"><span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a></div>`; }).join('') + '</div><div class="dim" style="margin-top:6px">Vistað á þessu tæki.</div>'
             : '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> og ýttu „+ Fylgja" (vistast á tækinu án innskráningar).</div>';
-          $g('vaktir').innerHTML = '<span class="dim">🔎 <a href="/vaktir/">Leitarorðavaktin</a> virkar án innskráningar — hagvísavaktir í tölvupósti þurfa innskráningu.</span>';
+          paintVaktYfirlit(false); wireDigest(false);
           return;
         }
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;
@@ -480,22 +562,8 @@ const updated = '2026-07-02';
           });
         };
         paintMine();
-        // Vaktir
-        const vd = await karpGet('/vaktir');
-        const vb = $g('vaktir');
-        if (vd) {
-          const arr = Array.isArray(vd) ? vd : (vd && vd.vaktir) || [];
-          const paintV = (list) => {
-            vb.innerHTML = (list.length
-              ? list.map((v, i) => `<div class="vk"><span><b>${esc(v.metric || v.m || '')}</b> ${esc(v.area || v.svaedi || '')} ${esc(v.dir === 'under' || v.dir === 'undir' ? 'fer undir' : 'fer yfir')} <b>${esc(v.threshold ?? v.vidmid ?? '')}</b></span><button class="vk-x" data-i="${v.id ?? i}">✕</button></div>`).join('')
-              : '<div class="vk">Engin vakt skráð.</div>')
-              + '<div class="vk-note">Vaktir senda tölvupóst þegar hagvísir nær viðmiði — stofnaðar á <a href="https://karp.is">karp.is</a> (Stillingar → Vaktir) að sinni.</div>';
-            vb.querySelectorAll('.vk-x').forEach((b) => { b.onclick = async () => { b.disabled = true; const res = await karpPost('/vaktirdelete', { id: b.dataset.i }); paintV(Array.isArray(res) ? res : (res && res.vaktir) || []); }; });
-          };
-          paintV(arr);
-        } else {
-          vb.innerHTML = '<span class="dim">Vaktir birtast á karp.is.</span>';
-        }
+        // 📋 Vakta-samantekt (öll kerfi) + 📬 vikupóstur í Stillingum
+        paintVaktYfirlit(true); wireDigest(true);
       });
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="mitt-svaedi"]')) initMitt(); });
