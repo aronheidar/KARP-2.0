@@ -335,7 +335,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               await loadUser().catch(() => null);   // eignarhald þarf KARP_USER
               const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} }; };
               // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin/sýnishorn (490522-0500) → fullt.
-              if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt) || f.kt === '490522-0500')) {
+              if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt) || String(f.kt).replace(/\D/g, '') === '4905220500')) {
                 skila(fsGate(f)); backWire();
                 const gb = document.getElementById('fsg-buy');
                 if (gb) gb.addEventListener('click', async () => {
