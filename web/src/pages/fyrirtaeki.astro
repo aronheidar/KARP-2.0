@@ -106,6 +106,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-vm-s.mid { background: rgba(126,140,166,.18); color: #9fb0c8; }
     body.fs-printing #fs-report .fs-vm { border-color: #d9c089 !important; color: #123 !important; }
     body.fs-printing #fs-report .fs-vm-n { color: #111 !important; }
+    .fs-eftirlit { margin-top: 10px; }
+    .fs-ef-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .fs-ef-row:first-of-type { border-top: 0; }
+    .fs-ef-b { flex: 0 0 28px; width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #10151f; }
+    .fs-ef-b.r5 { background: #3fb950; } .fs-ef-b.r4 { background: #6fd39b; } .fs-ef-b.r3 { background: #f6b13b; } .fs-ef-b.r2 { background: #f0883e; } .fs-ef-b.r1 { background: #f85149; color: #fff; } .fs-ef-b.r0 { background: #d1242f; color: #fff; }
+    .fs-ef-t { flex: 1 1 auto; font-size: 12.5px; color: #cdd6e6; min-width: 0; line-height: 1.4; }
+    .fs-ef-t b { color: #eaf1fb; }
+    .fs-ef-l { color: #9fb0c8; font-size: 11.5px; }
+    .fs-ef-d { flex: 0 0 auto; font-size: 11px; color: #7e8ca6; white-space: nowrap; text-align: right; line-height: 1.4; }
+    .fs-ef-d a { color: #f6b13b; }
+    @media (max-width: 560px) { .fs-ef-d { display: none; } }
+    body.fs-printing #fs-report .fs-ef-t, body.fs-printing #fs-report .fs-ef-t b { color: #123 !important; }
+    body.fs-printing #fs-report .fs-ef-l { color: #445 !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -214,6 +227,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
+          <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
@@ -338,6 +352,21 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   el.innerHTML = `<div class="fs-sub">Ⓡ Vörumerki — Hugverkastofan (${v.n})</div><div class="fs-vms">${chips}</div>`
                     + `<div class="fs-kv-src">Heimild: vörumerkjaskrá Hugverkastofunnar${v.n > 14 ? ' · sýni 14 af ' + v.n : ''} · <a href="https://www.hugverk.is/leit/vorumerki" target="_blank" rel="noopener">öll á hugverk.is</a></div>`;
                 }).catch(() => {});
+              // 🍽️ Eftirlitsstaða (Heilbrigðiseftirlit Reykjavíkur) — matvæla-/veitinga-/matvörugeiri (ÍSAT-hlið), AÐEINS RVK
+              if ((d.felag.isat || []).some((x) => /^(10|11|56|47\.2|47\.11|46\.3)/.test(String(x).trim()))) {
+                fetch('/api/eftirlit?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((e) => {
+                  const el = document.getElementById('fs-eftirlit');
+                  if (!el || !e || !e.holdur) return;
+                  el.hidden = false;
+                  const rc = (n) => n >= 5 ? 'r5' : n >= 4 ? 'r4' : n >= 3 ? 'r3' : n >= 2 ? 'r2' : n >= 1 ? 'r1' : 'r0';
+                  const rows = (e.stadir || []).slice(0, 6).map((s) =>
+                    `<div class="fs-ef-row"><span class="fs-ef-b ${rc(s.rating)}" title="Einkunn ${s.rating}/5">${s.rating}</span>`
+                    + `<span class="fs-ef-t"><b>${escF(s.name)}</b>${s.street ? ' · ' + escF(s.street) : ''}<br><span class="fs-ef-l">${escF(s.ratingLabel || '')}</span></span>`
+                    + `<span class="fs-ef-d">${escF(s.lastInspection || '')}${s.reportUrl ? '<br><a href="' + escF(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : ''}</span></div>`).join('');
+                  el.innerHTML = `<div class="fs-sub">🍽️ Eftirlitsstaða — Heilbrigðiseftirlit Reykjavíkur</div>${rows}`
+                    + `<div class="fs-kv-src">Opinber matvæla-/heilbrigðiseftirlitseinkunn (0–5, 0 verst) · aðeins Reykjavík · <a href="https://reykjavik.is/heilbrigdiseftirlit/nidurstodur-heilbrigdiseftirlits" target="_blank" rel="noopener">um kvarðann</a></div>`;
+                }).catch(() => {});
+              }
               // 🔔 Firmavakt (LOTA 73): breytinga- og vanskilavakt á félagið í tölvupósti
               const vb = document.getElementById('fs-vakta');
               if (vb) {

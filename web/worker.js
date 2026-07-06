@@ -810,6 +810,74 @@ async function vorumerkiHandler(request, ctx) {
   if (out && out.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // cache-a AÐEINS staðfest svar (7 dagar)
   return res;
 }
+// ── Eftirlitsstaða (Heilbrigðiseftirlit Reykjavíkur, her.reykjavik.is — opinn uppflettivefur) ──
+// kt → opinber matvæla-/heilbrigðiseftirlits-einkunn 0–5 (0 verst). ⚠ AÐEINS Reykjavík.
+// parseHER-þáttari sannreyndur á live-gögnum (5/5 SEED-kt). Sjá memory/iceland-her-eftirlit-api.md.
+const HER_BASE = 'https://her.reykjavik.is';
+const HER_LABEL = { 5: 'Kröfur uppfylltar / fáeinar ábendingar', 4: 'Fáein frávik / ábendingar', 3: 'Frávik / ábendingar', 2: 'Aðkallandi frávik / ábendingar', 1: 'Starfsemi takmörkuð / stöðvuð að hluta', 0: 'Starfsemi stöðvuð' };
+const HER_MON = { 'janúar': 1, 'febrúar': 2, 'mars': 3, 'apríl': 4, 'maí': 5, 'júní': 6, 'júlí': 7, 'ágúst': 8, 'september': 9, 'október': 10, 'nóvember': 11, 'desember': 12 };
+function herToISO(is) { const m = (is || '').match(/(\d{1,2})\.\s*([a-záðéíóúýþæö]+)\s*(\d{4})/i); if (!m || !HER_MON[m[2].toLowerCase()]) return null; return `${m[3]}-${String(HER_MON[m[2].toLowerCase()]).padStart(2, '0')}-${String(+m[1]).padStart(2, '0')}`; }
+function parseHER(html, wantKt) {
+  const out = [];
+  const parts = html.split('card-title">').slice(1);
+  for (const raw of parts) {
+    const seg = raw.split('card-title">')[0];
+    const name = ((seg.match(/^([^<]+)</) || [])[1] || '').trim();
+    const km = seg.match(/\((\d{6})-(\d{4})\)/);
+    const kt = km ? km[1] + km[2] : null;
+    if (!kt) continue;
+    let street = null, postnr = null, city = null;
+    const sub = seg.match(/card-subtitle[^>]*>([\s\S]*?)<\/h6>/);
+    if (sub) {
+      const s = sub[1].replace(/<br\s*\/?>/gi, '|').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+      const m = s.match(/^(.*?)\|?\s*(\d{3})\s+(.+)$/);
+      if (m) { street = m[1].replace(/\|/g, ' ').replace(/,\s*$/, '').trim(); postnr = m[2]; city = m[3].trim(); }
+      else street = s.replace(/\|/g, ' ').trim();
+    }
+    const rs = seg.match(/text-right">\s*<span>(\d)<\/span>/) || seg.match(/<span>(\d)<\/span>\s*<i class="fas/);
+    const rating = rs ? +rs[1] : null;
+    const dt = ((seg.match(/Síðasta eftirlit:<\/strong>\s*([^<]+?)\s*<\/?/) || seg.match(/Síðasta eftirlit:\s*([^<]+?)</) || [])[1] || '').trim() || null;
+    const uuid = (seg.match(/\/embed\/([0-9a-f-]{36})\//) || [])[1] || null;
+    out.push({ name, kt, street, postnr, city, rating, ratingLabel: rating != null ? HER_LABEL[rating] : null, lastInspection: dt, lastInspectionISO: herToISO(dt), uuid, reportUrl: uuid ? `${HER_BASE}/embed/${uuid}/` : null });
+  }
+  return wantKt ? out.filter((x) => x.kt === wantKt) : out;
+}
+async function fetchEftirlit(kt) {
+  kt = String(kt || '').replace(/\D/g, '');
+  const out = { kt, holdur: false, ok: false, nafn: null, stadir: [], n: 0 };
+  if (kt.length !== 10) return out;
+  let html;
+  try {
+    const r = await fetch(`${HER_BASE}/?o=name&q=${kt}`, { headers: { 'user-agent': 'KarpBot/1.0 (+https://karp.is)', 'accept-language': 'is', referer: 'https://reykjavik.is/' } });
+    if (r.status !== 200) return out;                                  // þrenging/villa → ok:false (ekki cache-a)
+    html = await r.text();
+  } catch (e) { return out; }
+  out.ok = true;
+  const rated = parseHER(html, kt).filter((s) => s.rating != null).sort((a, b) => (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
+  out.stadir = rated;
+  out.n = rated.length;
+  out.holdur = rated.length > 0;
+  if (rated.length) out.nafn = rated[0].name;
+  return out;
+}
+async function eftirlitHandler(request, ctx) {
+  const u = new URL(request.url);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false, stadir: [], n: 0 });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/eftirlit?kt=' + kt);
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  let out;
+  try { out = await fetchEftirlit(kt); }
+  catch (e) { return sjson({ kt, holdur: false, stadir: [], n: 0 }); }
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+  });
+  if (out && out.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // 24 klst, aðeins staðfest svar
+  return res;
+}
 async function kvotiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
@@ -950,6 +1018,7 @@ export default {
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
+    if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
