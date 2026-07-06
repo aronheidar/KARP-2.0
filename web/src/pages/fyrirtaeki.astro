@@ -372,6 +372,26 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         _ebitda: ebitda, _ebit: ebit,
       };
     }
+    // Raun-KPI (LOTA 99R): sækir scrapaðan ársreikning (RSK-PDF → JSON) og kortleggur á fjarhagur-snið (m.kr).
+    function fsMapArs(j) {
+      if (!j || !j.ar) return null;
+      const M = 1e6, rows = [];
+      Object.keys(j.ar).sort().reverse().forEach((yr) => {
+        const a = j.ar[yr], r = a.rekstur, e = a.efnahagur;
+        if (!r || !e) return;   // aðeins ár með fullum rekstrar-/efnahagstölum
+        rows.push({ ar: yr,
+          tekjur: ((r.sala || 0) + (r.adrar_tekjur || 0)) / M, kostnadarverd: (r.kostnadarverd || 0) / M,
+          rekstrargjold: ((r.laun || 0) + (r.annar_rekstur || 0)) / M, afskriftir: (r.afskriftir || 0) / M,
+          fjarmagn: Math.abs(r.fjarmagnsgjold || 0) / M, hagnadur: (r.hagnadur || 0) / M,
+          eignir: (e.eignir || 0) / M, veltufjarmunir: ((e.eignir || 0) - (e.fastafjarmunir || 0)) / M,
+          birgdir: (e.birgdir || 0) / M, vidskiptakrofur: (e.vidskiptakrofur || 0) / M, handbaert: (e.handbaert || 0) / M,
+          eigidfe: (e.eigid_fe || 0) / M, skuldir: (e.skuldir || 0) / M, skammtimaskuldir: (e.skammtimaskuldir || 0) / M });
+      });
+      return rows.length ? rows : null;
+    }
+    async function fsFjarhagur(kt) {
+      try { const r = await fetch('/gogn/arsreikningar/' + String(kt).replace(/\D/g, '') + '.json'); if (!r.ok) return null; return fsMapArs(await r.json()); } catch (e) { return null; }
+    }
     function fsKpiSoon() {
       return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
@@ -534,6 +554,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 });
                 return;
               }
+              f.fjarhagur = await fsFjarhagur(f.kt);   // raun-KPI úr scrapuðum ársreikningi (ef til); annars "kemur"-hólf
               skila(fsKort(f, d.rsk));
               backWire();
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
