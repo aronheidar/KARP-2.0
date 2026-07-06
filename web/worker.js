@@ -974,8 +974,10 @@ async function kvotiHandler(request, ctx) {
 // ── TEYA/BORGUN SECUREPAY (RPG hýst greiðslusíða, LOTA 97) — „kaupa skýrslu" ──
 // PCI-öruggt: worker undirritar pöntun (checkhash) og skilar form-reitum; framendi POST-ar á
 // hýstu greiðslusíðu Teya sem vinnur kortið — við snertum ALDREI kortagögn.
-// ÓVIRKT þar til secrets eru sett (wrangler secret put): TEYA_MERCHANT_ID, TEYA_GATEWAY_ID,
-// TEYA_SECRET_KEY. Verð: PRICE_FYRIRTAEKI / PRICE_FASTEIGN (ISK heiltala, sjálfgefið 990).
+// ÓVIRKT þar til secrets eru sett: TEYA_MERCHANT_ID, TEYA_GATEWAY_ID, TEYA_SECRET_KEY.
+// ⚠ ÖRYGGISROFI: greiðslur eru AÐEINS virkar ef TEYA_LIVE='1' (eins og karp_paywall) — annars
+// falla þær á ókeypis prentleiðina. Kveiktu á TEYA_LIVE þegar Fasi 2 (entitlement) er tilbúinn.
+// Verð: PRICE_FYRIRTAEKI / PRICE_FASTEIGN (ISK heiltala, sjálfgefið 990).
 // TEYA_ENV=dev → test.borgun.is (prófun); annars securepay.borgun.is (raun).
 // checkhash = HMAC_SHA256(SecretKey, MerchantId|ReturnUrlSuccess|ReturnUrlSuccessServer|OrderId|Amount|Currency) → hex
 // orderhash (staðfesting) = HMAC_SHA256(SecretKey, OrderId|Amount|Currency) → hex
@@ -994,8 +996,8 @@ function teyaOrderId() {
 function teyaConfigured(env) { return !!(env.TEYA_MERCHANT_ID && env.TEYA_GATEWAY_ID && env.TEYA_SECRET_KEY); }
 async function payCheckoutHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
-  // óuppsett (engin secrets) → framendi notar ókeypis prentleiðina fyrir launch
-  if (!teyaConfigured(env)) return sjson({ error: 'unconfigured' });
+  // óuppsett (engin secrets) EÐA öryggisrofi óvirkur → framendi notar ókeypis prentleiðina
+  if (!teyaConfigured(env) || env.TEYA_LIVE !== '1') return sjson({ error: 'unconfigured' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
   const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
   const ref = String(b.ref || '').slice(0, 80);
