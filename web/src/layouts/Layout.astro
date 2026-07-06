@@ -204,12 +204,35 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       @media (max-width: 760px) { main table { display: block; overflow-x: auto; } }
       /* 🐟 Fljótandi Spyrðu-Karp hnappurinn (LOTA 19; animation-safnið
          flutti HEIM í KarpFish.astro í LOTU 50 — hér aðeins staðsetning + hover-hraði) */
-      #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; text-decoration: none; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
+      #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
+      /* 💬 Spyrðu-Karp spjallglugginn (LOTA 94) — ofan fisksins í hægra horni, á öllum síðum */
+      .kc { position: fixed; right: 18px; bottom: 96px; z-index: 61; width: 350px; max-width: calc(100vw - 24px); max-height: min(72vh, 560px); display: flex; flex-direction: column; background: linear-gradient(#141f37, #0e1626); border: 1px solid rgba(124,92,255,.35); border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.55); overflow: hidden; }
+      .kc[hidden] { display: none; }
+      .kc-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+      .kc-t { font-weight: 800; font-size: 14px; color: #eaf1fb; }
+      .kc-x { background: none; border: 0; color: #9fb0c8; font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+      .kc-x:hover { color: #f6b13b; }
+      .kc-body { flex: 1 1 auto; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 90px; }
+      .kc-msg { font-size: 13.5px; line-height: 1.55; border-radius: 12px; padding: 9px 12px; max-width: 88%; white-space: pre-wrap; word-wrap: break-word; }
+      .kc-msg.u { align-self: flex-end; background: #f6b13b; color: #131a29; font-weight: 600; }
+      .kc-msg.a { align-self: flex-start; background: rgba(124,92,255,.12); border: 1px solid rgba(124,92,255,.28); color: #dfe7f4; }
+      .kc-msg.a a { color: #f6b13b; }
+      .kc-msg.err { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; align-self: flex-start; }
+      .kc-hint { font-size: 12.5px; color: #9fb0c8; line-height: 1.5; padding: 2px; }
+      .kc-hint a { color: #f6b13b; font-weight: 700; }
+      .kc-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+      .kc-ch { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 11px; font-size: 11.5px; cursor: pointer; }
+      .kc-ch:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
+      .kc-ask { display: flex; gap: 7px; padding: 10px 12px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+      #kc-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: #eaf1fb; font-size: 13.5px; }
+      #kc-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+      #kc-go { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 0 14px; font-weight: 800; font-size: 14px; cursor: pointer; }
+      #kc-go:disabled { opacity: .55; cursor: wait; }
+      @media (max-width: 760px) { .kc { right: 10px; bottom: 78px; width: calc(100vw - 20px); } }
       .kfab-bub { background: #f6b13b; color: #131a29; font-size: 12.5px; font-weight: 800; padding: 7px 12px; border-radius: 999px 999px 4px 999px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
       #karp-fab:hover .kfab-bub, #karp-fab:focus-visible .kfab-bub { opacity: 1; transform: translateY(0); }
       #karp-fab:hover .karpfish { animation-duration: 1.6s; }
       #karp-fab:hover .kf-tail { animation-duration: .8s; }
-      body:has(main[data-pg="spyrdu"]) #karp-fab { display: none; }
       @media (max-width: 760px) { #karp-fab { right: 10px; bottom: 12px; } #karp-fab .karpfish { width: 52px; height: 52px; } }
       .datainfo .tip::after, .datainfo .tip::before { bottom: auto; top: calc(100% + 7px); }
       .datainfo .tip:hover::before, .datainfo .tip:focus::before { top: calc(100% + 2px); border-top-color: transparent; border-bottom-color: rgba(255,255,255,.16); }
@@ -239,10 +262,24 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
 
       <div class="content"><slot /></div>
 
-      <a href="/spyrdu/" id="karp-fab" class="kf-anim" aria-label="Spyrðu Karp — gervigreindaraðstoðarmaður Karp" transition:persist>
+      <section id="karp-chat" class="kc" hidden transition:persist>
+        <div class="kc-head"><span class="kc-t">🐟 Spyrðu Karp</span><button type="button" class="kc-x" id="kc-x" aria-label="Loka spjalli">✕</button></div>
+        <div class="kc-body" id="kc-body"></div>
+        <div class="kc-chips" id="kc-chips">
+          <button class="kc-ch" data-q="Hverjir eru stýrivextirnir núna?">Stýrivextirnir?</button>
+          <button class="kc-ch" data-q="Hvert er fylgi flokkanna í nýjustu könnun?">Fylgi flokkanna?</button>
+          <button class="kc-ch" data-q="Hvaða fyrirtæki fær mest greitt frá ríkinu?">Stærsti birgir ríkisins?</button>
+          <button class="kc-ch" data-q="Hvað kostar fermetrinn í leigu?">Leiguverð?</button>
+        </div>
+        <form class="kc-ask" id="kc-ask" autocomplete="off">
+          <input id="kc-q" type="text" maxlength="300" placeholder="Spurðu karpann…" aria-label="Spurning" />
+          <button type="submit" id="kc-go" aria-label="Senda">➤</button>
+        </form>
+      </section>
+      <button type="button" id="karp-fab" class="kf-anim" aria-label="Spyrðu Karp — opna spjall" aria-expanded="false" transition:persist>
         <span class="kfab-bub">Spyrðu Karp!</span>
         <KarpFish size={68} />
-      </a>
+      </button>
 
       <aside class="news" transition:persist>
         <div class="news-h">📰 Fréttir</div>
@@ -264,7 +301,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       // Keyrir á astro:page-load → bæði við fyrstu hleðslu OG eftir hverja View-Transition
       // navígasjón (því module-skriftir keyra annars aðeins einu sinni). Fréttir cache-ast í
       // module-breytu → engin endur-sókn milli síðna, aðeins endur-teikning.
-      import { mountChip, loadUser } from '../lib/auth.js';
+      import { mountChip, loadUser, loginHref } from '../lib/auth.js';
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       // Öryggi: aðeins http(s)-slóðir úr ytri veitum (javascript:/data: URI blokkað).
       const safeHref = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#');
@@ -402,6 +439,45 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       }
 
       document.addEventListener('astro:page-load', mountShell);
+
+      // 💬 Spyrðu-Karp spjallglugginn (LOTA 94) — fljótandi, á öllum síðum; fab+chat eru persist → init EINU SINNI.
+      function mountChat() {
+        const fab = document.getElementById('karp-fab'), chat = document.getElementById('karp-chat');
+        if (!fab || !chat || fab.dataset.chat) return;
+        fab.dataset.chat = '1';
+        const body = document.getElementById('kc-body'), q = document.getElementById('kc-q'), go = document.getElementById('kc-go'), form = document.getElementById('kc-ask'), chips = document.getElementById('kc-chips');
+        const MSG = { unconfigured: 'Aðstoðarmaðurinn er í gangsetningu — kíktu aftur fljótlega.', kvoti: 'Dagskvótinn þinn er búinn (20 spurningar) — reyndu aftur á morgun.', lengd: 'Spurningin þarf að vera 3–300 stafir.', ai: 'Svarvélin svaraði ekki — reyndu aftur eftir smástund.' };
+        let HIST = [], gated = null, greeted = false;
+        const add = (cls, html) => { const d = document.createElement('div'); d.className = 'kc-msg ' + cls; d.innerHTML = html; body.appendChild(d); body.scrollTop = body.scrollHeight; return d; };
+        const linkify = (s) => esc(s).replace(/(^|[\s(])(\/[a-z0-9-]+\/)/g, '$1<a href="$2">$2</a>');
+        const showGate = () => { form.style.display = 'none'; chips.style.display = 'none'; if (!body.querySelector('.kc-hint')) { const h = document.createElement('div'); h.className = 'kc-hint'; h.innerHTML = '⭐ Spyrðu Karp er hluti af <a href="/karp-pro/">Karp+</a> — ókeypis aðgangur sem tekur mínútu. <a href="' + loginHref() + '">Skráðu þig inn</a> og karpinn svarar.'; body.appendChild(h); } };
+        const openChat = () => {
+          chat.hidden = false; fab.setAttribute('aria-expanded', 'true');
+          if (!greeted) { greeted = true; add('a', 'Hæ! 🐟 Ég er Karpinn. Spurðu mig um hagkerfið, þingið, sveitarfélögin eða gögnin á Karp — ég svara út frá tölum vefjarins.'); }
+          if (gated === null) loadUser().then((u) => { gated = !(u && u.loggedIn); if (gated) showGate(); }).catch(() => {});
+          else if (gated) showGate();
+          if (gated === false) setTimeout(() => q && q.focus(), 60);
+        };
+        const closeChat = () => { chat.hidden = true; fab.setAttribute('aria-expanded', 'false'); };
+        const ask = async (text) => {
+          text = (text || '').trim(); if (text.length < 3 || go.disabled) return;
+          if (chips) chips.style.display = 'none';
+          add('u', esc(text)); q.value = ''; go.disabled = true;
+          const t = add('a', 'Hugsa…');
+          try {
+            const r = await fetch('/api/spyrdu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: text.slice(0, 300), hist: HIST.length ? HIST : undefined }) });
+            const d = await r.json();
+            if (d && d.svar) { t.innerHTML = linkify(d.svar); HIST.push({ q: text.slice(0, 300), a: d.svar.slice(0, 1200) }); HIST = HIST.slice(-3); }
+            else { t.className = 'kc-msg err'; t.textContent = MSG[(d || {}).error] || MSG.ai; }
+          } catch (e) { t.className = 'kc-msg err'; t.textContent = MSG.ai; }
+          go.disabled = false; q.focus();
+        };
+        fab.addEventListener('click', () => chat.hidden ? openChat() : closeChat());
+        document.getElementById('kc-x').addEventListener('click', closeChat);
+        form.addEventListener('submit', (e) => { e.preventDefault(); ask(q.value); });
+        chips.querySelectorAll('.kc-ch').forEach((c) => c.addEventListener('click', () => ask(c.dataset.q)));
+      }
+      document.addEventListener('astro:page-load', mountChat);
 
       // 🩺 Villu-beacon (LOTA 23): sendir client-villur á /api/villa (worker → CF-logs).
       // Hver einstök villuskilaboð aðeins einu sinni per heimsókn; sendBeacon truflar ekkert.
