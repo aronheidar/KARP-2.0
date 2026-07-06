@@ -106,6 +106,7 @@ function karp_user_payload() {
         // Keyptar skýrslur (karp_reports = fylki {key,title,ts}) → KARP_USER.reports = LYKLAR (fyrir hasReport-athugun).
         $rep = (array) ( get_user_meta($u->ID, 'karp_reports', true) ?: array() );
         $data['reports'] = array_values( array_map( function ($r) { return is_array($r) ? (string) ( $r['key'] ?? '' ) : (string) $r; }, $rep ) );
+        $data['id'] = (int) $u->ID;   // fyrir server-hlið entitlement-skráningu (greiðslu-callback → /reports/grant)
     }
     // Greiðsluveggir VIRKIR? Global rofi (option karp_paywall='1') — Aron kveikir þegar billing er tilbúið.
     // SLÖKKT sjálfgefið svo Vöktun/Útboð haldist opin þar til launch. Á við líka útskráða (gátt fyrir alla).
@@ -185,7 +186,41 @@ add_action('rest_api_init', function () {
             return array('reports' => array_values( (array) ( $r ?: array() ) ));
         },
     ));
+    // POST /reports/grant — SERVER-TIL-SERVER: Cloudflare-worker (greiðslu-callback) skráir keypta
+    // skýrslu á notanda EFTIR staðfesta Teya-greiðslu (worker sannreynir orderhash áður). Varið með
+    // sameiginlegu leyndarmáli KARP_GRANT_SECRET (define í wp-config.php EÐA option karp_grant_secret)
+    // — EKKI notenda-kaka. Sama leyndarmál er sett í Cloudflare (worker env KARP_GRANT_SECRET).
+    register_rest_route('karp/v1', '/reports/grant', array(
+        'methods' => 'POST',
+        'permission_callback' => '__return_true',
+        'callback' => 'karp_reports_grant',
+    ));
 });
+function karp_reports_grant($req) {
+    $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
+    $p = (array) $req->get_json_params();
+    $given = isset($p['secret']) ? (string) $p['secret'] : '';
+    if ($secret === '' || ! hash_equals($secret, $given)) {
+        return new WP_REST_Response(array('ok' => false, 'error' => 'auth'), 403);
+    }
+    $uid     = isset($p['userid'])  ? (int) $p['userid'] : 0;
+    $key     = isset($p['key'])     ? sanitize_text_field($p['key']) : '';
+    $orderid = isset($p['orderid']) ? sanitize_text_field($p['orderid']) : '';
+    if ($uid <= 0 || $key === '') {
+        return array('ok' => false, 'error' => 'args');
+    }
+    $rep = (array) ( get_user_meta($uid, 'karp_reports', true) ?: array() );
+    foreach ($rep as $r) {                                   // dedupe á lykli — idempotent (callback getur endurtekið sig)
+        if (is_array($r) && ( $r['key'] ?? '' ) === $key) { return array('ok' => true, 'dup' => true); }
+    }
+    $parts = explode(':', $key, 2);                          // titill leiddur af lykli fyrir Mitt svæði
+    $kind  = $parts[0];
+    $ref   = isset($parts[1]) ? $parts[1] : '';
+    $title = ( $kind === 'fasteign' ? 'Verðmatsskýrsla' : 'Fyrirtækjaskýrsla' ) . ( $ref !== '' ? ' — ' . $ref : '' );
+    $rep[] = array('key' => $key, 'title' => $title, 'ts' => time(), 'order' => $orderid);
+    update_user_meta($uid, 'karp_reports', $rep);
+    return array('ok' => true);
+}
 function karp_me_get() {
     // WordPress REST API kallar wp_set_current_user(0) á kökuauðkennd köll ÁN X-WP-Nonce
     // (rest_cookie_check_errors) → is_user_logged_in() yrði FALSKT. Þar sem /me er LES-aðgerð

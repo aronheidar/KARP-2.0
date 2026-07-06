@@ -994,10 +994,24 @@ function teyaOrderId() {
   return (t + r).slice(-12).toUpperCase().replace(/[^0-9A-Z]/g, '0');
 }
 function teyaConfigured(env) { return !!(env.TEYA_MERCHANT_ID && env.TEYA_GATEWAY_ID && env.TEYA_SECRET_KEY); }
+// Auðkennir kaupanda: framsendir innskráningar-kökuna á WP /me → WP userid (0 ef óinnskráð/villa).
+// Kakan lifir á .karp.is (COOKIE_DOMAIN) svo hún berst til worker-sins með credentials:'include'.
+async function karpUserId(request) {
+  try {
+    const cookie = request.headers.get('Cookie') || '';
+    if (!cookie) return 0;
+    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/me', { headers: { Cookie: cookie } });
+    if (!r.ok) return 0;
+    const j = await r.json().catch(() => null);
+    return (j && j.loggedIn && +j.id > 0) ? +j.id : 0;
+  } catch (e) { return 0; }
+}
 async function payCheckoutHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   // óuppsett (engin secrets) EÐA öryggisrofi óvirkur → framendi notar ókeypis prentleiðina
   if (!teyaConfigured(env) || env.TEYA_LIVE !== '1') return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);   // þarf innskráningu svo kaupið vistist á Mitt svæði
+  if (!uid) return sjson({ error: 'login' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
   const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
   const ref = String(b.ref || '').slice(0, 80);
@@ -1008,7 +1022,7 @@ async function payCheckoutHandler(request, env, ctx) {
   const currency = 'ISK';
   const orderid = teyaOrderId();
   const origin = 'https://karp.is';
-  const q = '?o=' + encodeURIComponent(orderid) + '&k=' + encodeURIComponent(key) + '&t=' + kind;
+  const q = '?o=' + encodeURIComponent(orderid) + '&k=' + encodeURIComponent(key) + '&t=' + kind + '&u=' + uid;
   const returnurlsuccess = origin + '/api/pay/return' + q;
   const returnurlsuccessserver = origin + '/api/pay/callback' + q;
   const returnurlcancel = origin + '/api/pay/return' + q + '&c=1';
@@ -1046,7 +1060,15 @@ async function payCallbackHandler(request, env, ctx) {
   if (status !== 'Ok') return new Response('ignored', { status: 200 });
   const expect = await teyaHmacHex(env.TEYA_SECRET_KEY, [orderid, amount, currency].join('|'));
   if (!orderhash || orderhash.toLowerCase() !== expect) return new Response('badhash', { status: 400 });
-  // ✓ Greiðsla staðfest. FASI 2: POST á wp.karp.is /reports/grant {userid,key,orderid} m/ KARP_GRANT_SECRET → vistast á Mitt svæði.
+  // ✓ Greiðsla staðfest → skrá entitlement í WP (server-til-server m/ sameiginlegu leyndarmáli).
+  const uid = u.searchParams.get('u') || '';
+  const key = u.searchParams.get('k') || '';
+  if (uid && key && env.KARP_GRANT_SECRET) {
+    ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ userid: +uid, key, orderid, secret: env.KARP_GRANT_SECRET }),
+    }).catch(() => {}));
+  }
   return new Response('ok', { status: 200 });
 }
 

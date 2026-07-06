@@ -69,7 +69,8 @@ const CHIP_CSS = '.chip a{text-decoration:none}'
   + '.kc-av{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none}'
   + '.kc-ini{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:#1f6feb;color:#fff;font-weight:700;font-size:13px;flex:none}'
   + '.kc-name{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}'
-  + '.kc-out{color:#7e8ca6;font-size:16px;padding:0 4px;text-decoration:none;flex:none}';
+  + '.kc-out{color:#7e8ca6;padding:0 4px;text-decoration:none;flex:none;display:inline-flex;align-items:center}'
+  + '.kc-out:hover{color:#f6b13b}';
 function injectChipCss() {
   if (typeof document === 'undefined' || document.getElementById('karp-chip-css')) return;
   const s = document.createElement('style');
@@ -97,7 +98,7 @@ export function renderChip(el, u) {
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;
     el.innerHTML =
       `<a class="kc-prof" href="/mitt-svaedi/">${av}<span class="kc-name">${esc(u.name || '')}</span></a>`
-      + `<a class="kc-out" href="${esc(u.logoutUrl || site)}" title="Skrá út" aria-label="Skrá út">⏻</a>`;
+      + `<a class="kc-out" href="${esc(u.logoutUrl || site)}" title="Skrá út" aria-label="Skrá út"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>`;
   } else {
     el.innerHTML =
       `<a class="kc-in" href="${esc(loginHref())}">Skrá inn</a>`
@@ -137,6 +138,7 @@ export async function karpCheckout(body) {
       document.body.appendChild(f); f.submit();
       return 'redirected';
     }
+    if (d && d.error === 'login') { location.href = loginHref(); return 'redirected'; }   // kaup krefjast innskráningar (vistast á Mitt svæði)
     return (d && d.error) ? d.error : 'error';
   } catch (e) { return 'error'; }
 }
