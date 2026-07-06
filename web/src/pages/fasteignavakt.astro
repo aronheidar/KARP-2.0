@@ -1,7 +1,7 @@
 ---
 // ─────────────────────────────────────────────────────────────
 // 🏠 FASTEIGNAVAKTIN (LOTA 52) — sér undirsíða: leit í kaupskránni, götuvaktir
-// m/tölvupósti, verðmat úr kaupskránni (Karp Pro) og nauðungarsölur sýslumanna.
+// m/tölvupósti, verðmat úr kaupskránni (Karp+) og nauðungarsölur sýslumanna.
 // Flutt af /vaktir/ og gert notendavænna: EITT heimilisfangs-svæði með fléttilista
 // (datalist) úr kaupskránni — valið heimilisfang fyllir m² og tegund sjálfkrafa
 // inn í verðmatið. Gögn: kaupskra_nyjast.json (180d), fasteignir.json (12 mán
@@ -26,7 +26,7 @@ const jsonLd = {
 
     <div id="fv-market" class="fv-market" hidden></div>
 
-    <h2>🔎 Leit, verðmat &amp; vöktun <span class="hint">— Karp Pro (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri → verðmat, sölugraf, sambærilegar sölur, fasteignamat/brunabótamat og götuvakt í einni skýrslu.</span> <i class="tip" tabindex="0" data-tip="Veldu heimilisfang úr fléttilistanum og stærð + tegund fyllast sjálfkrafa úr skránni. Smelltu á Meta fyrir skýrslu — þá birtast Vakta- og Kaupa-skýrslu-takkarnir. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
+    <h2>🔎 Leit, verðmat &amp; vöktun <span class="hint">— Karp+ (ókeypis aðgangur) · sláðu inn heimilisfang MEÐ póstnúmeri → verðmat, sölugraf, sambærilegar sölur, fasteignamat/brunabótamat og götuvakt í einni skýrslu.</span> <i class="tip" tabindex="0" data-tip="Veldu heimilisfang úr fléttilistanum og stærð + tegund fyllast sjálfkrafa úr skránni. Smelltu á Meta fyrir skýrslu — þá birtast Vakta- og Kaupa-skýrslu-takkarnir. Ekki fasteignamat og ekki verðmat löggilts fasteignasala.">ⓘ</i></h2>
     <div id="fv-chips"></div>
     <div class="row fvm-row">
       <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang MEÐ póstnúmeri — t.d. „Brunnstígur 2, 230“" autocomplete="off" list="fv-addr-list" />
@@ -47,7 +47,7 @@ const jsonLd = {
     <ol class="how">
       <li><b>Flettu upp</b> heimilisfangi (með póstnúmeri) og smelltu á <b>Meta</b> — þú færð verðmat, sölugraf, kort og sambærilegar sölur í einni skýrslu.</li>
       <li><b>🔔 Vakta</b> og <b>🛒 Kaupa skýrslu</b> birtast við Meta þegar skýrslan er komin — vaktin vistast (hám. 6) og vöktuðu heimilisföngin raðast efst sem flýti-hnappar sem opna skýrsluna beint.</li>
-      <li><b>Skráðu þig inn</b> (ókeypis <a href="/karp-pro/">Karp Pro</a>) og vaktin fylgir þér milli tækja — <b>tölvupóstur</b> berst þegar ný sala þinglýsist í götunni, með verði og fermetraverði.</li>
+      <li><b>Skráðu þig inn</b> (ókeypis <a href="/karp-pro/">Karp+</a>) og vaktin fylgir þér milli tækja — <b>tölvupóstur</b> berst þegar ný sala þinglýsist í götunni, með verði og fermetraverði.</li>
     </ol>
 
     <p class="foot">Forþjónað (SSG) {updated}. Kaupskrá HMS (þinglýst kaup, 180 daga gluggi + 12 mán tölfræði) og uppboðsauglýsingar sýslumanna (island.is) — uppfært daglega. #2 LOTA 52.</p>
@@ -349,10 +349,10 @@ const jsonLd = {
         return true;
       }
 
-      // LOTA 54: fasteignavaktin er Karp Pro (ókeypis aðgangur) — leit+vaktir læstar,
+      // LOTA 54: fasteignavaktin er Karp+ (ókeypis aðgangur) — leit+vaktir læstar,
       // uppboðin (opinberar auglýsingar) sjást öllum sem forsmekkur.
       let USER = null;
-      const proTease = () => `<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+      const proTease = () => `<div class="pro-tease2"><b>⭐ Fasteignavaktin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Leit í kaupskránni, götuvaktir með tölvupósti og verðmatið opnast við innskráningu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
       async function fvSearch() {
         const res = document.getElementById('fv-res');
         if (!res) return;
@@ -526,7 +526,7 @@ const jsonLd = {
         + rows.map((r) => `<tr><td class="l">${esc(r.a)}</td>${withKm ? `<td>${r.km != null ? String(r.km).replace('.', ',') + ' km' : '–'}</td>` : ''}<td>${r.ar || '–'}</td><td class="l">${esc(r.teg)}</td><td>${r.herb || '–'}</td><td>${String(r.fm).replace('.', ',')} m²</td><td>${dIS(r.d)}</td><td>${(r.kv / 1000).toFixed(1).replace('.', ',')} m.kr</td><td>${thouIS(r.ppm)} kr</td></tr>`).join('')
         + `</tbody></table>`;
 
-      // ── Verðmatið (Karp Pro) ──
+      // ── Verðmatið (Karp+) ──
       const fvmOut = document.getElementById('fvm-out');
       let FVM_PICK = null;   // LOTA 79: handvalinn eignarhluti (fasteignanúmer) þegar fleiri á heimilisfangi
       const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
@@ -540,7 +540,7 @@ const jsonLd = {
         fvmOut.hidden = false;
         const u = await loadUser().catch(() => null);
         if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         fvmOut.textContent = 'Reikna úr kaupskránni…';
@@ -773,7 +773,7 @@ const jsonLd = {
         vb.textContent = on ? '✓ Á vakt · 🔕' : '🔔 Vakta';
       }
       function fvmVakta() {
-        if (!USER || !USER.loggedIn) { const vb = document.getElementById('fvm-vakta'); if (vb) { const t0 = vb.textContent; vb.textContent = '🔒 Innskráning (Karp Pro)'; setTimeout(() => { vb.textContent = t0; }, 2400); } return; }
+        if (!USER || !USER.loggedIn) { const vb = document.getElementById('fvm-vakta'); if (vb) { const t0 = vb.textContent; vb.textContent = '🔒 Innskráning (Karp+)'; setTimeout(() => { vb.textContent = t0; }, 2400); } return; }
         const { q, pn } = parseVaktaAddr(document.getElementById('fvm-addr').value);
         if (q.length < 2) return;
         const a = fvLoad();

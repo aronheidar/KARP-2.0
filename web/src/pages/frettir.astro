@@ -622,11 +622,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
           const btm = document.getElementById('btm-news');
           const dl = document.getElementById('btm-list'), dm = det.querySelector('.d-more');
           if (btm) btm.hidden = true;
-          // ⭐ Umfjöllunar-spjaldið er Karp Pro (LOTA 20) — kynning í stað greiningar óinnskráð
+          // ⭐ Umfjöllunar-spjaldið er Karp+ (LOTA 20) — kynning í stað greiningar óinnskráð
           loadUser().then((uNow) => {
           if (!uNow || !uNow.loggedIn) {
             // Kauphallartilkynningar eru opinber gögn → sýndar líka óinnskráðum (LOTA 52)
-            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp Pro</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-rik"></div><div id="d-tilk"></div>`;
+            dm.innerHTML = `<div class="pro-tease"><div class="pt-t">⭐ Umfjöllunargreiningin er hluti af Karp+</div><p>Heilsumerki umfjöllunar, tónn yfir tíma, verðkennitölur, orðaský og miðladreifing fyrir <b>${esc9(c.n)}</b> — með ókeypis aðgangi.</p><div class="pt-btns"><a class="pt-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt-sec" href="${loginHref()}">Innskráning</a></div></div><div id="d-rik"></div><div id="d-tilk"></div>`;
             dl.innerHTML = '';
             loadRikisCard(c.n);
             loadTilkCard(c.n);

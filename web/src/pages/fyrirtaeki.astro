@@ -13,9 +13,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 
 <Layout title="🏢 Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
   <main data-pg="fyrirtaeki">
-    <p class="kicker">Karp Pro · Atvinnulíf</p>
+    <p class="kicker">Karp+ · Atvinnulíf</p>
     <h1>🏢 Fyrirtækjaskrá</h1>
-    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. Hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis aðgangur). Kortið tengir svo áfram í það sem Karp veit: umfjöllun fjölmiðla, greiðslur frá ríkinu og opinber útboð.</p>
+    <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. Hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a> (ókeypis aðgangur). Kortið tengir svo áfram í það sem Karp veit: umfjöllun fjölmiðla, greiðslur frá ríkinu og opinber útboð.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <form id="fs-form" autocomplete="off">
@@ -210,7 +210,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   <script>
     import { loadUser, loginHref, karpGet, karpPost } from '../lib/auth.js';
     let FS_USER = null;
-    const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp Pro</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+    const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
     const mkrF = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -454,7 +454,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     paint(!has);
                   } catch (e) {
                     const t0 = vb.textContent;
-                    vb.textContent = '🔒 Innskráning þarf (Karp Pro)';
+                    vb.textContent = '🔒 Innskráning þarf (Karp+)';
                     setTimeout(() => { vb.textContent = t0; }, 2600);
                   }
                   vb.disabled = false;
@@ -489,7 +489,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           })
           .catch(() => skila('<div class="fs-empty">Villa við uppflettingu — reyndu aftur.</div>'));
       }
-      // Karp Pro-gátt (LOTA 63): leit + prófílkort læst innskráðum (ókeypis aðgangur)
+      // Karp+-gátt (LOTA 63): leit + prófílkort læst innskráðum (ókeypis aðgangur)
       form.addEventListener('submit', (e) => { e.preventDefault(); if (!FS_USER || !FS_USER.loggedIn) { skila(fsTease()); return; } leita(inp.value); });
       loadUser().then((u) => {
         FS_USER = u;

@@ -7,21 +7,21 @@ const { title, description = '', canonical = '', jsonLd = null, noindex = false,
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
-  { href: '/mitt-svaedi/', label: 'Mitt svæði', emoji: '⭐', icon: 'bua' },
-  { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
-  { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
-  { label: 'Karp Pro', emoji: '⭐', icon: 'pro', items: [
+  { label: 'Karp+', emoji: '⭐', icon: 'pro', items: [
+    { href: '/mitt-svaedi/', label: 'Mitt svæði' },
     { href: '/frettir/', label: 'Vöktun & umfjöllun' },
     { href: '/utbod/', label: 'Útboðsvaktin' },
-    { href: '/vaktir/', label: 'Vaktir' },
+    { href: '/vaktir/', label: 'Leitarorðavaktin' },
     { href: '/fasteignavakt/', label: 'Fasteignavaktin' },
     { href: '/eftirlit/', label: 'Eftirlitsvaktin' },
     { href: '/fyrirtaeki/', label: 'Fyrirtækjaskrá' },
     { href: '/okutaeki/', label: 'Ökutækjaleit' },
     { href: '/skip/', label: 'Skipaleit' },
     { href: '/spyrdu/', label: 'Spyrðu Karp' },
-    { href: '/karp-pro/', label: 'Um Karp Pro' },
+    { href: '/karp-pro/', label: 'Um Karp+' },
   ] },
+  { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
+  { href: '/markadir/', label: 'Markaðir', emoji: '📈' },
   { label: 'Alþingi', emoji: '🏛️', items: [
     { href: '/althingi/', label: 'Þingsalur', exact: true },
     { href: '/ivilnanir/', label: 'Ívilnanir & styrkir' },

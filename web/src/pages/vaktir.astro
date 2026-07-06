@@ -16,7 +16,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     <p>Vöktunarmiðstöð Karp — það sem þú vilt frétta FYRST. Hagvísavaktir, fjölmiðlavöktun, dóma-, samráðs- og greiðsluvakt á einum stað. <a class="sec-link" href="/utbod/" style="margin-left:0">📋 Útboð eru komin á sér síðu →</a></p>
 
     <h2>Mínar vaktir <i class="tip" tabindex="0" data-tip="Hagvísavaktir senda tölvupóst þegar vísir nær viðmiði (t.d. verðbólga yfir 5%). Stofnaðar og sýndar hér innskráð(ur).">ⓘ</i></h2>
-    <div id="vaktir-mine"><span class="dim">Tölvupósts-vaktir eru hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis aðgangur) — leitarorðavaktin hér að neðan virkar án innskráningar.</span></div>
+    <div id="vaktir-mine"><span class="dim">Tölvupósts-vaktir eru hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a> (ókeypis aðgangur) — leitarorðavaktin hér að neðan virkar án innskráningar.</span></div>
 
     <h2>🔎 Leitarorðavaktin <i class="tip" tabindex="0" data-tip="Skráðu leitarorð (t.d. fyrirtækið þitt, atvinnugrein eða málefni). Allt í vöktunum hér að neðan — dómar, samráð, greiðslur ríkisins og útboð — sem nefnir orðið fær gylltan ramma og teljara á flísinni. Innskráðir fá að auki daglegan tölvupóst með treffum dagsins. Orðin vistast í vafranum og fylgja þér innskráðum.">ⓘ</i></h2>
     <p class="lv-intro">Eitt orð — öll vöktunin. Skráðu t.d. fyrirtækið þitt, götuna, atvinnugreinina eða málefni: allt hér að neðan sem nefnir orðið lýsist upp <span class="lv-demo">svona</span>, og innskráðir fá daglegan póst með treffum.</p>
@@ -26,7 +26,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
     </div>
     <div id="lv-chips"></div>
 
-    <h2>📬 Vikuyfirlitið <i class="tip" tabindex="0" data-tip="Einn póstur á mánudagsmorgnum með vikunni þinni: treff leitarorðanna í fjölmiðlum, umfjöllun um fyrirtæki og þingmenn sem þú fylgist með, þinglýstar sölur á fasteignavöktunum, ný útboð af útboðsvaktinni og hagtölur vikunnar. Aðeins fyrir innskráða (Karp Pro, ókeypis).">ⓘ</i></h2>
+    <h2>📬 Vikuyfirlitið <i class="tip" tabindex="0" data-tip="Einn póstur á mánudagsmorgnum með vikunni þinni: treff leitarorðanna í fjölmiðlum, umfjöllun um fyrirtæki og þingmenn sem þú fylgist með, þinglýstar sölur á fasteignavöktunum, ný útboð af útboðsvaktinni og hagtölur vikunnar. Aðeins fyrir innskráða (Karp+, ókeypis).">ⓘ</i></h2>
     <label class="dg-row">
       <input type="checkbox" id="dg-on" />
       <span><b>Fá vikuyfirlit í tölvupósti á mánudagsmorgnum</b> — vikan þín á einum stað: leitarorðin, þau sem þú fylgist með, fasteigna- og útboðsvaktirnar og hagtölur vikunnar.</span>
@@ -241,7 +241,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           } catch (e) {
             dgOn.checked = false;
             dgNote.hidden = false;
-            dgNote.innerHTML = `Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp Pro</a> (ókeypis) — <a href="${loginHref()}" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.`;
+            dgNote.innerHTML = `Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a> (ókeypis) — <a href="${loginHref()}" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.`;
           }
         });
       }
@@ -325,7 +325,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       if (fvMuniEl) { fvMuniEl.addEventListener('focus', fvMunis); fvMuniEl.addEventListener('change', fvSearch); }
       if (fvBtn) fvBtn.addEventListener('click', fvAdd);
       fvRender();
-      // 🏷️ Verðmat úr kaupskránni (LOTA 47, Karp Pro): gata → póstnr → sveitarfélag
+      // 🏷️ Verðmat úr kaupskránni (LOTA 47, Karp+): gata → póstnr → sveitarfélag
       const fvmOut = document.getElementById('fvm-out');
       let FST = null; // fasteignir.json (12 mán byMuni-tölfræði) — sótt letilega
       const fstFetch = () => FST || (FST = fetch('/gogn/fasteignir.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
@@ -341,7 +341,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
         // Pro-læsing: niðurstaðan er fyrir innskráða (ókeypis aðgangur)
         const u = await loadUser().catch(() => null);
         if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp Pro</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp Pro?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         fvmOut.textContent = 'Reikna úr kaupskránni…';
