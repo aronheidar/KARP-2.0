@@ -196,6 +196,13 @@ def kpis(res, idx=0):
 
 if __name__ == '__main__':
     res = parse(sys.argv[1])
+    # Varaleið fyrir árs-greiningu: RSK-taflan veit ártal skýrslunnar (sent sem argv[2]).
+    # Sum PDF hafa óvenjulegt árs-haus (t.d. dagsetningar "31.12.2024" eða ár í merkingu, ekki dálki)
+    # → sjálfvirk greining skilar [null,null] þótt TÖLURNAR þáttist. Þá notum við þekkta árið.
+    if res['ar'][0] is None:
+        known = next((int(a) for a in sys.argv[2:] if re.match(r'^20\d\d$', a)), None)
+        if known is not None:
+            res['ar'] = [known, known - 1]
     res['kpi'] = {}
     for idx, ar in enumerate(res['ar']):
         if ar is not None:

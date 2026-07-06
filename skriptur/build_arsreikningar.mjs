@@ -66,9 +66,14 @@ const rskText = (s) => String(s || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g
 
 // ---- 1) Ársreikninga-tafla félags (kt) --------------------------------------
 async function fetchItemids(kt) {
-  const html = await (await fetch(`${RSK}/fyrirtaekjaskra/leit/kennitala/${kt}`, { headers: { 'User-Agent': UA } })).text();
+  const res = await fetch(`${RSK}/fyrirtaekjaskra/leit/kennitala/${kt}`, { headers: { 'User-Agent': UA } });
+  // ⚠ ÖRYGGISVÖRN: throttla/villa (t.d. gagnavers-IP GH-Action) má EKKI túlkast sem „engin gögn" →
+  //    annars skrifar buildForKt falskt engin:true-merki OFAN Á góð gögn. Kasta → per-kt catch → ekkert merki.
+  if (!res.ok) throw new Error(`RSK svaraði HTTP ${res.status} (líkleg throttla) — sleppi til að forðast falskt "engin gögn"`);
+  const html = await res.text();
   const h1 = html.match(/<h1>\s*([\s\S]*?)\s*\((\d{10})\)/);
-  const nafn = h1 ? rskText(h1[1]) : null;
+  if (!h1) throw new Error('RSK-síða án fyrirtækjahauss (throttla/villa?) — sleppi til að forðast falskt "engin gögn"');
+  const nafn = rskText(h1[1]);
   const ti = html.search(/class="annualTable"/);
   const rows = [];
   if (ti >= 0) {
@@ -124,9 +129,11 @@ async function downloadPdf(kid) {
 }
 
 // ---- 4) parse via python ----------------------------------------------------
-function parsePdf(pdfPath) {
+function parsePdf(pdfPath, knownYr) {
   const py = process.env.PYTHON || 'python';
-  const r = spawnSync(py, [PARSER, pdfPath], { encoding: 'utf-8', maxBuffer: 1 << 26 });
+  const args = [PARSER, pdfPath];
+  if (knownYr) args.push(String(knownYr));   // RSK-þekkt ár → varaleið ef árs-haus þáttast ekki
+  const r = spawnSync(py, args, { encoding: 'utf-8', maxBuffer: 1 << 26 });
   if (r.status !== 0) throw new Error('parse_arsreikningur.py: ' + (r.stderr || r.error));
   return JSON.parse(r.stdout);
 }
@@ -156,7 +163,7 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     const kid = await addToCart(kt, r.nr, r.typeid);
     const pdf = await downloadPdf(kid);
     fs.writeFileSync(tmp, pdf);
-    const parsed = parsePdf(tmp);
+    const parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
     // parsed.ar = [líðandi, fyrra]; skráum bæði ár úr þessu PDF (KPI þegar reiknað per ár)
     parsed.ar.forEach((y, i) => {
       if (y == null) return;
