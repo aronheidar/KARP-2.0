@@ -474,7 +474,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey });
                   if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-                  bb.textContent = t0; doPrint(); // óuppsett/ókeypis (fyrir launch) → prentleið
+                  bb.textContent = 'Ekki tókst — reyndu aftur'; bb.disabled = false; setTimeout(paintBuy, 2500); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
                 });
               }
               return;

@@ -804,7 +804,7 @@ const jsonLd = {
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey)) { doPrint(); return; }
         const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey });
         if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-        doPrint(); // óuppsett/ókeypis (fyrir launch) → prentleið
+        fvmBuyBtn.textContent = 'Ekki tókst — reyndu aftur'; fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2500); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
