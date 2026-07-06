@@ -878,6 +878,53 @@ async function eftirlitHandler(request, ctx) {
   if (out && out.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // 24 klst, aðeins staðfest svar
   return res;
 }
+// ── Ökutækjaleit (island.is/api/graphql publicVehicleSearch, @BypassAuth — opið) ──
+// bílnúmer → tegund/árgerð/litur/staða/næsta skoðun/þyngd/CO₂/VIN. ⚠ eigandi/veðbönd læst.
+// Sjá memory/iceland-okutaeki-api.md. Per-IP dagskvóti + 24h cache (öryggisnet gegn fjöldaflettingu).
+const OKUTAEKI_Q = 'query($input: GetPublicVehicleSearchInput!){ publicVehicleSearch(input:$input){ permno regno vin make vehicleCommercialName color newRegDate firstRegDate vehicleStatus nextVehicleMainInspection co2 weightedCo2 co2WLTP mass massLaden typeNumber } }';
+async function okutaekiHandler(request, ctx) {
+  const num = (new URL(request.url).searchParams.get('numer') || '').toUpperCase().replace(/[^A-Z0-9ÁÐÉÍÓÚÝÞÆÖ]/g, '').slice(0, 6);
+  if (num.length < 2) return sjson({ error: 'numer' });
+  const cache = caches.default;
+  const day = new Date().toISOString().slice(0, 10);
+  const ip = request.headers.get('cf-connecting-ip') || 'x';
+  const ipKey = new Request('https://cache.karp.internal/okutaeki-ip/' + day + '/' + encodeURIComponent(ip));
+  const qhit = await cache.match(ipKey);
+  const usedN = qhit ? parseInt(await qhit.text(), 10) || 0 : 0;
+  if (usedN >= 50) return sjson({ error: 'kvoti' });
+  const cacheKey = new Request('https://cache.karp.internal/api/okutaeki?n=' + encodeURIComponent(num));
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  ctx.waitUntil(cache.put(ipKey, new Response(String(usedN + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
+  let out = { numer: num, fannst: false };
+  try {
+    const r = await fetch('https://island.is/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'karp.is dashboard (aronheidars@gmail.com)' },
+      body: JSON.stringify({ operationName: 'PublicVehicleSearch', query: OKUTAEKI_Q, variables: { input: { search: num } } }),
+    });
+    const j = await r.json().catch(() => null);
+    const v = j && j.data && j.data.publicVehicleSearch;
+    if (v && (v.make || v.vin)) {
+      const iso = (d) => (d ? String(d).slice(0, 10) : null);
+      out = {
+        numer: num, fannst: true, tegund: v.make || null, undirheiti: v.vehicleCommercialName || null,
+        argerd: ((v.firstRegDate || v.newRegDate || '') + '').slice(0, 4) || null,
+        litur: v.color || null, stada: v.vehicleStatus || null,
+        fyrstSkrad: iso(v.firstRegDate), nyskrad: iso(v.newRegDate), naestaSkodun: iso(v.nextVehicleMainInspection),
+        co2: v.co2 != null ? v.co2 : (v.co2WLTP != null ? v.co2WLTP : null),
+        thyngd: v.mass != null ? v.mass : null, heildarthyngd: v.massLaden != null ? v.massLaden : null,
+        vin: v.vin || null, fastanumer: v.permno || null,
+      };
+    }
+  } catch (e) { return sjson(out); }
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
+  });
+  if (out.fannst) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
 async function kvotiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
@@ -1019,6 +1066,7 @@ export default {
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
+    if (url.pathname === '/api/okutaeki') return okutaekiHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
