@@ -1,0 +1,80 @@
+{
+ "kt": "6102973079",
+ "nafn": "Samherji hf.",
+ "sott": "2026-07-06",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2157,
+    "ebit_hlutfall": 0.1423,
+    "hagnadarhlutfall": 0.2661,
+    "ROE": 0.1927,
+    "ROA": 0.1428,
+    "eiginfjarhlutfall": 0.7412,
+    "veltufjarhlutfall": 0.6717,
+    "skuldahlutfall_DE": 0.3491,
+    "eignavelta": 0.5368
+   }
+  },
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2069,
+    "ebit_hlutfall": 0.13,
+    "hagnadarhlutfall": 0.1399,
+    "ROE": 0.1103,
+    "ROA": 0.0805,
+    "eiginfjarhlutfall": 0.7293,
+    "veltufjarhlutfall": 0.656,
+    "skuldahlutfall_DE": 0.3711,
+    "eignavelta": 0.5751
+   }
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.1695,
+    "ebit_hlutfall": 0.0957,
+    "hagnadarhlutfall": 0.103,
+    "ROE": 0.0788,
+    "ROA": 0.0569,
+    "eiginfjarhlutfall": 0.7215,
+    "veltufjarhlutfall": 0.7977,
+    "skuldahlutfall_DE": 0.386,
+    "eignavelta": 0.5522
+   },
+   "rekstur": {
+    "sala": 442964,
+    "kostnadarverd": -367891,
+    "adrar_tekjur": 1960,
+    "annar_rekstur": -15614,
+    "afskriftir": -21123,
+    "ebit": 42403,
+    "fjarmunatekjur": 4194,
+    "fjarmagnsgjold": -6500,
+    "hagn_f_skatt": 56048,
+    "tekjuskattur": -10252,
+    "hagnadur": 45630
+   },
+   "efnahagur": {
+    "birgdir": 37454,
+    "vidskiptakrofur": 63930,
+    "handbaert": 76824,
+    "eignir": 802169,
+    "hlutafe": 2594,
+    "eigid_fe": 578754,
+    "skuldir": 223415,
+    "efe_skuldir": 802169,
+    "skammtimaskuldir": 223415
+   }
+  }
+ }
+}
