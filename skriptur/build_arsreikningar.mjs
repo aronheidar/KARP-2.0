@@ -134,7 +134,13 @@ function parsePdf(pdfPath) {
 // ---- heild: kt -> gogn/arsreikningar/<kt>.json ------------------------------
 async function buildForKt(kt, { arFjoldi = 1 } = {}) {
   const info = await fetchItemids(kt);
-  if (!info.rows.length) { console.log(`  ${kt} ${info.nafn || ''}: engir ársreikningar skráðir`); return null; }
+  if (!info.rows.length) {
+    // Félag án ársreiknings (nýskráð, undanþegið skilaskyldu eða óskilað). Skrifum MERKI-JSON svo að
+    // GH-Action framleiði alltaf skrá → framendinn hættir að poll-a og sýnir loka-ástand (ekki eilífan spinner).
+    console.log(`  ${kt} ${info.nafn || ''}: engir ársreikningar skráðir — skrifa merki-JSON (engin:true)`);
+    fs.writeFileSync(path.join(OUTDIR, `${kt}.json`), JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Engir ársreikningar skráðir í ársreikningaskrá RSK (t.d. nýskráð, undanþegið eða óskilað félag).' }, null, 1));
+    return null;
+  }
   // veljum nýjustu N skil (helst Samstæðu[2] ef til, annars Ársreikning[1]) — hvert PDF gefur 2 ár
   const nyjust = [];
   const seenAr = new Set();

@@ -331,7 +331,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
-          ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : fsKpiSoon())}
+          ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
@@ -409,7 +409,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     async function fsFjarhagur(kt, owned) {
       const id = String(kt).replace(/\D/g, '');
       let missing = false;
-      try { const r = await fetch('/gogn/arsreikningar/' + id + '.json'); if (r.ok) return fsMapArs(await r.json()); missing = true; } catch (e) { return null; }
+      try {
+        const r = await fetch('/gogn/arsreikningar/' + id + '.json');
+        if (r.ok) {
+          const j = await r.json();
+          if (j && j.engin) {   // félag án ársreiknings (nýskráð/undanþegið/óskilað) → loka-ástand, EKKI eilífur spinner
+            if (owned && j.sott && (Date.now() - new Date(j.sott).getTime()) > 45 * 864e5) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // ~45 daga gamalt merki → reyna aftur í bakgrunni (gæti hafa skilað síðan)
+            return { engin: true };
+          }
+          return fsMapArs(j);
+        }
+        missing = true;
+      } catch (e) { return null; }
       // 404 = ekki scrapað enn → biðja worker um on-demand scraping (aðeins fyrir eiganda; kaupandi er innskráður)
       if (missing && owned) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} return { pending: true }; }
       return null;
@@ -444,6 +455,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsKpiSoon() {
       return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
+    }
+    // Loka-ástand: félagið á engan skráðan ársreikning (nýskráð, undanþegið eða óskilað). Sýnt í stað eilífs spinner.
+    function fsKpiEngin() {
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Engir ársreikningar skráðir hjá félaginu</b><span>Ársreikningaskrá RSK geymir engan ársreikning fyrir þetta félag — það getur verið nýskráð, undanþegið skilaskyldu eða hefur ekki enn skilað. Um leið og ársreikningur berst reiknast lykiltölurnar sjálfkrafa. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
     function fsKpiHtml(rows) {
       if (!rows || !rows.length) return fsKpiSoon();
@@ -612,6 +627,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               const fj = await fsFjarhagur(f.kt, true);   // raun-KPI úr scrapuðum ársreikningi; 404 → dispatch scraping + "reiknast"
               f.fjarhagur = Array.isArray(fj) ? fj : null;
               f.fjarhagurPending = !!(fj && fj.pending);
+              f.fjarhagurEngin = !!(fj && fj.engin);   // félag án skráðs ársreiknings → loka-spjald í stað spinner
               skila(fsKort(f, d.rsk));
               backWire();
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
