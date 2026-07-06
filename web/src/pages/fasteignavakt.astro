@@ -403,7 +403,7 @@ const jsonLd = {
           ? '<div class="fvc-lbl">🔔 Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
           : '<span class="fv-sv">Engin vakt enn — flettu upp eign, smelltu á Meta og svo 🔔 Vakta.</span>';
         // smellur á vakt → opnar verðmatsskýrslu beint (flýtir á Meta fyrir þá eign)
-        const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+        const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; FVM_DEMO = false; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
         el.querySelectorAll('.lvc').forEach((c) => {
           const i = +c.dataset.i;
           c.addEventListener('click', (e) => { if (!e.target.closest('.lvc-x')) openVakt(i); });
@@ -840,7 +840,7 @@ const jsonLd = {
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
       const hideActionBtns = () => { ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; }); };
-      if (fvmAddr) fvmAddr.addEventListener('input', () => { FVM_PICK = null; hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
+      if (fvmAddr) fvmAddr.addEventListener('input', () => { FVM_PICK = null; FVM_DEMO = false; hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
       if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
 
       // ── Sýnishorn (?syni=1): lifandi verðmat af Brunnstíg 2, 230 — opið öllum, engin innskráning ──
