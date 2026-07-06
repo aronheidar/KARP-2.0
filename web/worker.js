@@ -1033,11 +1033,16 @@ async function payCheckoutHandler(request, env, ctx) {
   const msg = [merchantid, returnurlsuccess, returnurlsuccessserver, orderid, amount, currency].join('|');
   const checkhash = await teyaHmacHex(env.TEYA_SECRET_KEY, msg);
   const action = (env.TEYA_ENV === 'dev' ? 'https://test.borgun.is' : 'https://securepay.borgun.is') + '/SecurePay/default.aspx';
+  const desc = kind === 'fyrirtaeki' ? 'Karp fyrirtaekjaskyrsla' : 'Karp verdmatsskyrsla';
+  // Reitir speglaðir eftir virkri WooCommerce-Teya viðbót: SecurePay krefst lína-liða + pagetype/skipreceiptpage.
+  // checkhash nær AÐEINS yfir merchantid|url|url|orderid|amount|currency → lína-liðir/pagetype breyta honum ekki.
   return sjson({
     ok: true, action,
     fields: {
       merchantid, paymentgatewayid: env.TEYA_GATEWAY_ID, orderid, amount, currency, language: 'IS',
-      checkhash, returnurlsuccess, returnurlsuccessserver, returnurlcancel, reference: key.slice(0, 60),
+      checkhash, returnurlsuccess, returnurlsuccessserver, returnurlcancel, returnurlerror: returnurlcancel,
+      reference: orderid, pagetype: '0', skipreceiptpage: '0',
+      itemdescription_0: desc, itemcount_0: '1', itemunitamount_0: amount, itemamount_0: amount,
     },
   });
 }
