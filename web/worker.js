@@ -1051,8 +1051,9 @@ async function payCheckoutHandler(request, env, ctx) {
 async function payReturnHandler(request, env, ctx) {
   const u = new URL(request.url);
   const o = u.searchParams.get('o') || '', k = u.searchParams.get('k') || '', t = u.searchParams.get('t') || '';
-  let ok = u.searchParams.get('x') !== '1';
-  if (request.method === 'POST') { try { const fd = await request.formData(); if (String(fd.get('status') || '') !== 'Ok') ok = false; } catch (e) {} }
+  // Árangur vs afbókun ræðst af SLÓÐINNI (x=1 = cancel/error), EKKI af POST-status: „Til baka í verslun"
+  // (Confirmation-skref) sendir ekki alltaf status='Ok' → lenti ranglega á cancel-síðunni.
+  const ok = u.searchParams.get('x') !== '1';
   const dest = '/kaup/?s=' + (ok ? 'ok' : 'cancel') + '&o=' + encodeURIComponent(o) + '&k=' + encodeURIComponent(k) + '&t=' + encodeURIComponent(t);
   return new Response(null, { status: 302, headers: { location: dest } });
 }
@@ -1064,9 +1065,10 @@ async function payCallbackHandler(request, env, ctx) {
   const orderid = u.searchParams.get('o') || '';
   const amount = u.searchParams.get('a') || '';        // úr skila-slóð — SecurePay skilar EKKI amount/currency í POST
   const currency = u.searchParams.get('cur') || 'ISK';
-  let orderhash = '', status = '';
-  try { const fd = await request.formData(); orderhash = String(fd.get('orderhash') || ''); status = String(fd.get('status') || ''); } catch (e) {}
-  if (status !== 'Ok') return new Response('ignored', { status: 200 });
+  let orderhash = '';
+  try { const fd = await request.formData(); orderhash = String(fd.get('orderhash') || ''); } catch (e) {}
+  // Gilt orderhash = staðfest greiðsla (Teya kallar successserver AÐEINS við árangur) → treystum því,
+  // ekki status-reit (casing/step ótraust; gæti hafa blokkað grant áður). orderhash = svindl-vörnin.
   const expect = await teyaHmacHex(env.TEYA_SECRET_KEY, [orderid, amount, currency].join('|'));
   if (!orderhash || orderhash.toLowerCase() !== expect) return new Response('badhash', { status: 400 });
   // ✓ Greiðsla staðfest → skrá entitlement í WP (server-til-server m/ sameiginlegu leyndarmáli).
