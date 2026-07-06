@@ -213,6 +213,28 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-soon b { color: #eaf1fb; font-size: 14px; display: block; }
     .kpi-soon span { color: #9fb0c8; font-size: 12.5px; display: block; margin-top: 5px; line-height: 1.5; }
     .kpi-soon a { color: #f6b13b; text-decoration: none; }
+    .kpi-top { display: flex; align-items: center; gap: 14px; margin: 8px 0 4px; flex-wrap: wrap; }
+    .kpi-health { display: flex; align-items: center; gap: 10px; }
+    .kpi-health-l { color: #eaf1fb; font-size: 13px; font-weight: 700; line-height: 1.2; }
+    .kpi-health-l span { display: block; color: #9fb0c8; font-size: 11.5px; font-weight: 400; margin-top: 2px; }
+    .kpi-top .kpi-sum { flex: 1; min-width: 230px; margin: 0; }
+    .kpi-chart { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px 6px; margin-top: 6px; }
+    .kpi-chart-leg { display: flex; gap: 14px; font-size: 11px; margin-top: 2px; }
+    .kpi-chart-leg .lg-t { color: #f6b13b; } .kpi-chart-leg .lg-h { color: #42d086; }
+    .kpi-chart-leg span::before { content: '▮ '; }
+    .kpi-fst { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; margin-top: 6px; }
+    .fst { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .fst caption { text-align: left; color: #f6b13b; font-weight: 800; font-size: 12px; padding-bottom: 6px; }
+    .fst th { color: #8fa0b8; font-size: 11px; text-align: right; padding: 3px 8px; border-bottom: 1px solid rgba(255,255,255,.12); }
+    .fst th:first-child { text-align: left; }
+    .fst td { color: #cdd6e6; text-align: right; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .fst td:first-child { text-align: left; color: #9fb0c8; }
+    .fst tr.fst-b td, .fst tr.fst-b td:first-child { color: #eaf1fb; font-weight: 700; }
+    body.fs-printing #fs-report .kpi-chart { background: #f6f8fb !important; border-color: #dbe3ee !important; }
+    body.fs-printing #fs-report .kpi-health-l { color: #111 !important; }
+    body.fs-printing #fs-report .fst td { color: #222 !important; }
+    body.fs-printing #fs-report .fst td:first-child, body.fs-printing #fs-report .fst th { color: #555 !important; }
+    body.fs-printing #fs-report .fst tr.fst-b td { color: #111 !important; }
     .fs-demonote { margin: 0 0 14px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.08); color: #f6d9a6; font-size: 13px; line-height: 1.45; }
     body.fs-printing #fs-report .kpi-s, body.fs-printing #fs-report .kpi-c { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     body.fs-printing #fs-report .kpi-s b, body.fs-printing #fs-report .kpi-v { color: #111 !important; }
@@ -371,12 +393,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       };
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
       return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')</div>'
-        + '<div class="kpi-sum">'
+        + '<div class="kpi-top">' + fsRing(fsHealthScore(k)) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>EBITDA</span><b>' + fsMkr(k._ebitda) + '</b></div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur) + '</b>' + yoY('hagnvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe) + '</b></div>'
-        + '</div><div class="kpi-grid">'
+        + '</div></div><div class="kpi-grid">'
         + '<div class="kpi-cat">Arðsemi</div>'
         + card('Framlegð', 'framlegd', fsPct1, st(0.35, 0.2), 'Framlegð / tekjur')
         + card('Rekstrarhlutfall', 'rekstrarhlutf', fsPct1, st(0.1, 0.03), 'Rekstrarhagnaður (EBIT) / tekjur')
@@ -390,8 +412,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + card('Skuldir / eigið fé', 'de', fsRat, stInv(1, 2), 'Heildarskuldir / eigið fé (lægra = betra)')
         + card('Vaxtaþekja', 'vaxtathekja', fsRat, st(3, 1.5), 'EBIT / fjármagnsgjöld')
         + card('Eignavelta', 'eignavelta', fsRat, st(1, 0.5), 'Tekjur / heildareignir')
-        + '</div>'
-        + '<div class="fs-note2">Lykiltölur reiknaðar úr ársreikningi félagsins. Litur sýnir grófa stöðu (grænt/gult/rautt) m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
+        + '</div>' + fsTrendChart(rows) + fsStatements(rows)
+        + '<div class="fs-note2">Lykiltölur og einkunn reiknuð úr ársreikningi félagsins. Litur/einkunn sýnir grófa stöðu m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
     }
     // Sýnifyrirtæki (?syni=1) — EKKI raunverulegt; sýnir allt sem skýrsla getur innihaldið.
     function demoFyrirtaeki() {
@@ -414,6 +436,59 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           acc('2023', 3920, 2680, 820, 200, 88, 175, 5400, 1520, 540, 470, 230, 2380, 3020, 1010),
         ],
       };
+    }
+    // Fjárhagsheilsa: vegin einkunn (0-100 + A-E) úr 4 stoðum (arðsemi/skuldsetning/lausafé/vöxtur)
+    function fsHealthScore(k) {
+      const nz = (v, lo, hi) => (v == null ? null : Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)));
+      const avg = (arr) => { const f = arr.filter((x) => x != null); return f.length ? f.reduce((a, b) => a + b, 0) / f.length : null; };
+      const ard = avg([nz(k.hagnhlutf, -0.02, 0.12), nz(k.roe, 0, 0.2)]);
+      const skuld = avg([nz(k.eiginfjarhlutf, 0.1, 0.55), nz(3 - Math.min(k.de == null ? 3 : k.de, 4), 0, 2.5)]);
+      const laus = nz(k.veltufjar, 0.7, 1.8);
+      const voxt = nz(k.tekjuvoxtur, -0.05, 0.15);
+      let t = 0, w = 0;
+      [[ard, 0.3], [skuld, 0.3], [laus, 0.2], [voxt, 0.2]].forEach((p) => { if (p[0] != null) { t += p[0] * p[1]; w += p[1]; } });
+      const score = w ? Math.round(t / w) : null;
+      const grade = score == null ? '–' : score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'E';
+      const color = score == null ? '#6b7688' : score >= 65 ? '#42d086' : score >= 50 ? '#e8b84b' : '#ef6a6a';
+      return { score, grade, color };
+    }
+    function fsRing(hs) {
+      const c = 163.4, off = hs.score == null ? c : c * (1 - hs.score / 100);
+      return '<div class="kpi-health"><svg viewBox="0 0 64 64" width="76" height="76" aria-hidden="true">'
+        + '<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>'
+        + '<circle cx="32" cy="32" r="26" fill="none" stroke="' + hs.color + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 32 32)"/>'
+        + '<text x="32" y="31" text-anchor="middle" font-size="19" font-weight="800" fill="' + hs.color + '">' + hs.grade + '</text>'
+        + '<text x="32" y="45" text-anchor="middle" font-size="10" fill="#9fb0c8">' + (hs.score == null ? '' : hs.score) + '</text></svg>'
+        + '<div class="kpi-health-l">Fjárhagsheilsa<span>' + (hs.score == null ? '' : hs.score >= 65 ? 'Sterk staða' : hs.score >= 50 ? 'Í meðallagi' : 'Veik staða') + '</span></div></div>';
+    }
+    function fsTrendChart(rows) {
+      const yrs = rows.slice().reverse(), mx = Math.max.apply(null, yrs.map((r) => r.tekjur)) || 1;
+      const bw = 46, gap = 30, h = 118, x0 = 6;
+      let bars = '';
+      yrs.forEach((r, i) => {
+        const x = x0 + i * (bw + gap), th = Math.round(r.tekjur / mx * (h - 22)), ph = Math.max(2, Math.round((r.hagnadur || 0) / mx * (h - 22))), yTop = h - th;
+        bars += '<rect x="' + x + '" y="' + yTop + '" width="' + bw + '" height="' + th + '" rx="4" fill="rgba(246,177,59,.2)" stroke="rgba(246,177,59,.5)"/>'
+          + '<rect x="' + x + '" y="' + (h - ph) + '" width="' + bw + '" height="' + ph + '" rx="3" fill="rgba(66,208,134,.6)"/>'
+          + '<text x="' + (x + bw / 2) + '" y="' + (yTop - 5) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#eaf1fb">' + fsThou(r.tekjur) + '</text>'
+          + '<text x="' + (x + bw / 2) + '" y="' + (h + 14) + '" text-anchor="middle" font-size="11" fill="#9fb0c8">' + r.ar + '</text>';
+      });
+      const w = x0 * 2 + yrs.length * (bw + gap) - gap;
+      return '<div class="fs-sub">📈 Tekjur og hagnaður (m.kr)</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
+    }
+    function fsStatements(rows) {
+      const hd = '<tr><th></th>' + rows.map((r) => '<th>' + r.ar + '</th>').join('') + '</tr>';
+      const row = (l, get, b) => '<tr' + (b ? ' class="fst-b"' : '') + '><td>' + l + '</td>' + rows.map((r) => '<td>' + fsThou(get(r)) + '</td>').join('') + '</tr>';
+      const rek = '<table class="fst"><caption>Rekstrarreikningur (m.kr)</caption>' + hd
+        + row('Tekjur', (r) => r.tekjur, true) + row('Kostnaðarverð', (r) => -r.kostnadarverd)
+        + row('Framlegð', (r) => r.tekjur - r.kostnadarverd, true) + row('Rekstrargjöld', (r) => -r.rekstrargjold)
+        + row('EBITDA', (r) => r.tekjur - r.kostnadarverd - r.rekstrargjold, true) + row('Afskriftir', (r) => -r.afskriftir)
+        + row('Fjármagnsgjöld', (r) => -r.fjarmagn) + row('Hagnaður ársins', (r) => r.hagnadur, true) + '</table>';
+      const efn = '<table class="fst"><caption>Efnahagsreikningur (m.kr)</caption>' + hd
+        + row('Fastafjármunir', (r) => r.eignir - r.veltufjarmunir) + row('Veltufjármunir', (r) => r.veltufjarmunir)
+        + row('· þar af birgðir', (r) => r.birgdir) + row('Eignir alls', (r) => r.eignir, true)
+        + row('Eigið fé', (r) => r.eigidfe, true) + row('Langtímaskuldir', (r) => r.skuldir - r.skammtimaskuldir)
+        + row('Skammtímaskuldir', (r) => r.skammtimaskuldir) + row('Skuldir alls', (r) => r.skuldir, true) + '</table>';
+      return '<div class="fs-sub">📋 Ársreikningur í tölum</div><div class="kpi-fst">' + rek + efn + '</div>';
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
@@ -662,6 +737,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
         setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
+        const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
+        setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
+        setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');
+        setL('fs-utb', '3 útboð unnin · 145 m.kr samtals (TED/LV-vakt)');
+        setL('fs-tilk', 'Skráð á Nasdaq First North · 4 tilkynningar 2026');
         return;
       }
       loadUser().then((u) => {
