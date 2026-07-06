@@ -35,9 +35,10 @@ const jsonLd = {
       <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
       <button id="fvm-go" class="cta">Meta</button>
       <button id="fvm-vakta" class="cta cta-alt" type="button" hidden>🔔 Vakta</button>
-      <button id="fvm-buy" class="cta cta-alt" type="button" hidden>🛒 Kaupa skýrslu — 0 kr.</button>
+      <button id="fvm-buy" class="cta cta-alt" type="button" hidden>🛒 Kaupa matsskýrslu — 990 kr</button>
     </div>
     <div id="fvm-fill" class="fillnote" hidden></div>
+    <div class="fvm-samplerow"><a class="fv-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn af fullbúnu verðmati (PDF)</a></div>
     <div id="fvm-out" hidden></div>
 
     <h2>🔨 Nauðungarsölur — opinberar auglýsingar sýslumanna <i class="tip" tabindex="0" data-tip="Uppboðsauglýsingar eru opinberar skv. lögum um nauðungarsölu. Staða segir hvar málið er statt: byrjun/framhald uppboðs er framundan, „Sölu lokið“ er afgreitt.">ⓘ</i></h2>
@@ -82,6 +83,10 @@ const jsonLd = {
     main[data-pg="fastvakt"] .cta-alt:hover { background: rgba(255,255,255,.1); }
     main[data-pg="fastvakt"] #fvm-vakta.on { background: rgba(66,208,134,.14); border-color: rgba(66,208,134,.5); color: #42d086; }
     main[data-pg="fastvakt"] #fvm-buy { background: rgba(246,177,59,.1); border-color: rgba(246,177,59,.4); color: #f6b13b; }
+    main[data-pg="fastvakt"] .fvm-samplerow { margin: 2px 0 4px; }
+    main[data-pg="fastvakt"] .fv-sample { font-size: 12.5px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); white-space: nowrap; }
+    main[data-pg="fastvakt"] .fv-sample:hover { color: #f6b13b; border-color: #f6b13b; }
+    main[data-pg="fastvakt"] .fvm-demonote { margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.07); color: #f6d9a6; font-size: 13.5px; line-height: 1.45; }
     #fv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
     #fv-chips .fvc-lbl { flex-basis: 100%; font-size: 11.5px; color: #9fb0c8; margin: 2px 0 -2px; }
     #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; cursor: pointer; }
@@ -238,7 +243,7 @@ const jsonLd = {
   </style>
 
   <script>
-    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -529,6 +534,7 @@ const jsonLd = {
       // ── Verðmatið (Karp+) ──
       const fvmOut = document.getElementById('fvm-out');
       let FVM_PICK = null;   // LOTA 79: handvalinn eignarhluti (fasteignanúmer) þegar fleiri á heimilisfangi
+      let FVM_DEMO = false;  // sýnishorns-hamur (?syni=1): opnar mat af Brunnstíg 2 án innskráningar
       const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
       const pct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
       const mkr = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(v) + ' þ.kr');
@@ -539,8 +545,8 @@ const jsonLd = {
         if (raw.length < 3 || !(fm >= 15)) { fvmOut.hidden = false; fvmOut.innerHTML = '<div class="fvm-note">Sláðu inn heimilisfang og stærð í m² — eða veldu heimilisfang úr fléttilistanum að ofan.</div>'; return; }
         fvmOut.hidden = false;
         const u = await loadUser().catch(() => null);
-        if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+        if ((!u || !u.loggedIn) && !FVM_DEMO) {
+          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu. <a class="fv-sample" href="/fasteignavakt/?syni=1">Sjá sýnishorn af verðmati →</a><div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
           return;
         }
         fvmOut.textContent = 'Reikna úr kaupskránni…';
@@ -787,25 +793,49 @@ const jsonLd = {
       if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
       const fvmVaktaBtn = document.getElementById('fvm-vakta');
       if (fvmVaktaBtn) fvmVaktaBtn.addEventListener('click', fvmVakta);
-      // 🛒 kaupa/prenta skýrslu (0 kr. kynningarverð) — bundið einu sinni, takkinn er fast element
+      // 🛒 kaupa matsskýrslu (990 kr) — eigandi/admin → PDF strax; annars Teya-gátt (eða prentun fyrir launch)
       const fvmBuyBtn = document.getElementById('fvm-buy');
       if (fvmBuyBtn) fvmBuyBtn.addEventListener('click', async () => {
         if (document.getElementById('fvm-out').hidden) return;
+        const addr = (document.getElementById('fvm-addr').value || '').trim();
+        const rkey = 'fasteign:' + addr;
         const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
-        const doPrint = () => { fvmBuyBtn.textContent = '✓ Keypt · útbý…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
-        // LOTA 82: reyna Teya-greiðslugátt fyrst; ókeypis/óuppsett → prentleið
+        const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
+        if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey)) { doPrint(); return; }
         try {
-          const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fasteign', ref: (document.getElementById('fvm-addr').value || '').trim() }) });
-          const d = await r.json().catch(() => null);
-          if (d && d.ok && d.url) { location.href = d.url; return; }
+          const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ kind: 'fasteign', ref: addr, key: rkey }) });
+          const pd = await r.json().catch(() => null);
+          if (pd && pd.ok && pd.url) { location.href = pd.url; return; }
         } catch (e) {}
-        doPrint();
+        doPrint(); // óuppsett/ókeypis (fyrir launch) → prentleið
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)
       const hideActionBtns = () => { ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; }); };
       if (fvmAddr) fvmAddr.addEventListener('input', () => { FVM_PICK = null; hideActionBtns(); clearTimeout(fvT); fvT = setTimeout(async () => { await fvSuggest(fvmAddr.value); await fvAutofill(fvmAddr.value); }, 200); });
       if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
+
+      // ── Sýnishorn (?syni=1): lifandi verðmat af Brunnstíg 2, 230 — opið öllum, engin innskráning ──
+      try {
+        const _sp = new URLSearchParams(location.search);
+        if (_sp.get('syni') === '1' || _sp.get('demo') === 'fasteign') {
+          FVM_DEMO = true;
+          const a = document.getElementById('fvm-addr'), fmE = document.getElementById('fvm-fm'), tE = document.getElementById('fvm-teg');
+          if (a) a.value = 'Brunnstígur 2, 230';
+          if (fmE && !fmE.value) fmE.value = '90';
+          if (tE) tE.value = 'Fjölbýli';
+          fvAutofill('Brunnstígur 2, 230').then(() => fvmGo()).then(() => {
+            const bb = document.getElementById('fvm-buy');
+            if (bb) { bb.hidden = false; bb.dataset.demo = '1'; bb.textContent = '🖨️ Sækja PDF-sýnishorn'; }
+            const out = document.getElementById('fvm-out');
+            if (out && !out.hidden && !document.getElementById('fvm-demo-note')) {
+              const n = document.createElement('div'); n.id = 'fvm-demo-note'; n.className = 'fvm-demonote';
+              n.innerHTML = '👁️ <b>Sýnishorn af verðmati</b> — svona lítur fullbúin matsskýrsla út. Sláðu inn þitt eigið heimilisfang að ofan, eða smelltu á <b>Sækja PDF-sýnishorn</b> til að sjá prentútgáfuna.';
+              out.insertBefore(n, out.firstChild);
+            }
+          }).catch(() => {});
+        }
+      } catch (e) {}
 
       // ── Markaðsvísir efst (LOTA 66): stefna markaðar + yfir/undir fasteignamati (land + sveitarfélög) ──
       fstFetch().then((f) => {
