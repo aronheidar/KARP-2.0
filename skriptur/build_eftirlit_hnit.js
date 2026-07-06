@@ -1,31 +1,48 @@
-// build_eftirlit_hnit.js (LOTA 91) — hnitar heimilisföng Eftirlitsvaktarinnar fyrir Leaflet-kort.
-// Notar HNITUNAR-API (Google Geocoding EÐA Mapbox) með lykli úr umhverfisbreytu (secret í CI).
-// VARANLEGT cache (gogn/eftirlit_hnit.json) → aðeins NÝ heimilisföng hnituð hverju sinni.
-// MERGE-ar lat/lng inn í eftirlit.json (+ public). INERT ef enginn lykill (sleppir hljóðlaust).
+// build_eftirlit_hnit.js (LOTA 92) — hnitar heimilisföng Eftirlitsvaktarinnar fyrir Leaflet-kort.
+// FORGANGUR: opna Staðfangaskráin (gogn/stadfong_rvk.json úr build_stadfong.js — FRÍTT, engin köll).
+// FALLBACK: Google Geocoding / Mapbox (lykill úr env) fyrir það fáa sem Staðfangaskráin nær ekki.
+// MERGE-ar lat/lng í eftirlit.json (+ public). Varanlegt cache gogn/eftirlit_hnit.json f. API-treff.
 //
-// LYKLAR (settu ANNAN í .env / GitHub secret / Cloudflare):
-//   GOOGLE_GEOCODE_KEY  (eða GEOCODE_KEY)  — Google Geocoding API (nákvæmast f. íslensk heimilisföng)
-//   MAPBOX_TOKEN                            — Mapbox Geocoding (fríþak 100k/mán)
-// KEYRSLA (á EFTIR build_eftirlit.js):  node skriptur/build_eftirlit_hnit.js
+// LYKLAR (valfrjálst — Staðfangaskráin nær megninu ein):
+//   GOOGLE_GEOCODE_KEY (eða GEOCODE_KEY) — Google Geocoding · MAPBOX_TOKEN — Mapbox
+// KEYRSLA (á EFTIR build_eftirlit.js + build_stadfong.js): node skriptur/build_eftirlit_hnit.js
 const fs = require('fs');
 const path = require('path');
 const G = path.join(__dirname, '..', 'gogn');
 const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn');
 const IN = path.join(G, 'eftirlit.json');
 const CACHE = path.join(G, 'eftirlit_hnit.json');
+const SF_FILE = path.join(G, 'stadfong_rvk.json');
 const GKEY = process.env.GOOGLE_GEOCODE_KEY || process.env.GEOCODE_KEY || '';
 const MKEY = process.env.MAPBOX_TOKEN || '';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+const norm = (s) => String(s || '').toLowerCase().normalize('NFC').replace(/\s+/g, ' ').trim();
 const rnd = (n) => Math.round(n * 1e6) / 1e6;
 
-async function geocode(q) {
+// ── Staðfangaskrá-uppfletting (frítt) ──
+const SF = fs.existsSync(SF_FILE) ? (JSON.parse(fs.readFileSync(SF_FILE, 'utf8')).idx || {}) : null;
+function parseAddr(street) {
+  let s = String(street || '').replace(/,\s*\d{3}\s*$/, '').trim();   // strjúka aftasta póstnr
+  if (s.includes(',')) s = s.split(',').pop().trim();                 // götu á eftir nafn-forskeyti
+  const m = s.match(/^(.+?)\s+(\d+)\s*([a-záðéíóúýþæö])?/i);
+  if (!m) return null;
+  return { street: m[1].trim(), hm: m[2] + (m[3] ? m[3].toUpperCase() : '') };
+}
+function fromSF(street, postnr) {
+  if (!SF) return null;
+  const p = parseAddr(street); if (!p) return null;
+  const s = norm(p.street), hm = norm(p.hm);
+  return SF[s + '|' + hm + '|' + (postnr || '')] || SF[s + '|' + hm] || null;
+}
+
+// ── API-fallback ──
+async function apiGeocode(q) {
   if (GKEY) {
     const r = await fetch('https://maps.googleapis.com/maps/api/geocode/json?region=is&language=is&address=' + encodeURIComponent(q) + '&key=' + GKEY);
     const j = await r.json().catch(() => null);
     if (j && j.status === 'OK' && j.results && j.results[0]) { const l = j.results[0].geometry.location; return [rnd(l.lat), rnd(l.lng)]; }
     if (j && (j.status === 'OVER_QUERY_LIMIT' || j.status === 'RESOURCE_EXHAUSTED')) throw new Error('limit');
-    return null;                                              // ZERO_RESULTS o.fl. → ekkert (cache-a sem null)
+    return null;
   }
   if (MKEY) {
     const r = await fetch('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(q) + '.json?country=is&limit=1&language=is&access_token=' + MKEY);
@@ -38,30 +55,38 @@ async function geocode(q) {
 }
 
 (async () => {
-  if (!GKEY && !MKEY) { console.log('build_eftirlit_hnit: enginn hnitunar-lykill (GOOGLE_GEOCODE_KEY/MAPBOX_TOKEN) — sleppi (kort óvirkt þar til lykill er settur).'); return; }
   if (!fs.existsSync(IN)) { console.log('vantar eftirlit.json — keyrðu build_eftirlit.js fyrst'); return; }
+  if (!SF && !GKEY && !MKEY) { console.log('build_eftirlit_hnit: hvorki Staðfangaskrá (build_stadfong.js) né API-lykill — sleppi.'); return; }
   const data = JSON.parse(fs.readFileSync(IN, 'utf8'));
   const cache = fs.existsSync(CACHE) ? JSON.parse(fs.readFileSync(CACHE, 'utf8')) : {};
 
+  // Einstök heimilisföng
   const addrs = new Map();
-  for (const s of data.stadir || []) {
-    if (!s.street) continue;
-    const key = norm(s.street + '|' + (s.postnr || ''));
-    if (!addrs.has(key)) addrs.set(key, s.street.replace(/,.*$/, '') + (s.postnr ? ', ' + s.postnr : '') + ' ' + (s.city || 'Reykjavík') + ', Ísland');
-  }
-  const todo = [...addrs].filter(([k]) => !(k in cache));
-  console.log('hnita ' + todo.length + ' ný heimilisföng (af ' + addrs.size + ') · lykill: ' + (GKEY ? 'Google' : 'Mapbox'));
+  for (const s of data.stadir || []) { if (!s.street) continue; const key = norm(s.street + '|' + (s.postnr || '')); if (!addrs.has(key)) addrs.set(key, s); }
 
-  let ok = 0, i = 0;
-  for (const [key, q] of todo) {
-    i++;
-    try { const c = await geocode(q); cache[key] = c; if (c) ok++; }
-    catch (e) { console.log('  … þak, bíð 12s'); fs.writeFileSync(CACHE, JSON.stringify(cache)); await sleep(12000); i--; continue; }
-    if (i % 50 === 0 || i === todo.length) { fs.writeFileSync(CACHE, JSON.stringify(cache)); console.log('  [' + i + '/' + todo.length + '] ' + ok + ' hnituð'); }
-    await sleep(120);
+  let sfHit = 0, apiHit = 0, miss = 0, apiTodo = [];
+  for (const [key, s] of addrs) {
+    if (key in cache) continue;                             // þegar leyst (API-treff)
+    const c = fromSF(s.street, s.postnr);
+    if (c) { cache[key] = c; sfHit++; }                     // Staðfangaskrá (frítt)
+    else apiTodo.push([key, s]);                            // reyna API síðar
   }
+  console.log('Staðfangaskrá: ' + sfHit + ' hnituð beint · ' + apiTodo.length + ' eftir í API' + (GKEY ? ' (Google)' : MKEY ? ' (Mapbox)' : ' (enginn lykill → sleppt)'));
+
+  if (GKEY || MKEY) {
+    let i = 0;
+    for (const [key, s] of apiTodo) {
+      i++;
+      const q = s.street.replace(/,.*$/, '') + (s.postnr ? ', ' + s.postnr : '') + ' ' + (s.city || 'Reykjavík') + ', Ísland';
+      try { const c = await apiGeocode(q); cache[key] = c; if (c) apiHit++; else miss++; }
+      catch (e) { console.log('  … API-þak, bíð 12s'); fs.writeFileSync(CACHE, JSON.stringify(cache)); await sleep(12000); i--; continue; }
+      if (i % 25 === 0 || i === apiTodo.length) fs.writeFileSync(CACHE, JSON.stringify(cache));
+      await sleep(120);
+    }
+  } else { for (const [key] of apiTodo) if (!(key in cache)) miss++; }
   fs.writeFileSync(CACHE, JSON.stringify(cache));
 
+  // MERGE hnit inn í eftirlit.json (+ public)
   let n = 0;
   for (const s of data.stadir || []) {
     const c = s.street ? cache[norm(s.street + '|' + (s.postnr || ''))] : null;
@@ -70,7 +95,5 @@ async function geocode(q) {
   data.withHnit = n;
   const str = JSON.stringify(data);
   [G, PUB].forEach((d) => { fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, 'eftirlit.json'), str); });
-  fs.writeFileSync(path.join(PUB, 'eftirlit_hnit.json'), JSON.stringify(cache));
-  const found = Object.values(cache).filter(Boolean).length;
-  console.log('eftirlit_hnit.json — ' + Object.keys(cache).length + ' heimilisföng (' + found + ' m/hnit) | eftirlit.json: ' + n + '/' + (data.stadir || []).length + ' staðir á korti');
+  console.log('eftirlit.json — ' + n + '/' + (data.stadir || []).length + ' staðir á korti (Staðfangaskrá ' + sfHit + ' + API ' + apiHit + ', ' + miss + ' fundust ekki)');
 })().catch((e) => { console.error('ERR', e); process.exit(1); });
