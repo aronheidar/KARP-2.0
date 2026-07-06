@@ -1,0 +1,79 @@
+{
+ "kt": "5411850389",
+ "nafn": "Brim hf.",
+ "sott": "2026-07-06",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2329,
+    "ebit_hlutfall": 0.182,
+    "hagnadarhlutfall": 0.144,
+    "ROE": 0.1331,
+    "ROA": 0.0663,
+    "eiginfjarhlutfall": 0.4979,
+    "veltufjarhlutfall": 0.3049,
+    "skuldahlutfall_DE": 1.0085,
+    "eignavelta": 0.4604
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2292,
+    "ebit_hlutfall": 0.001,
+    "hagnadarhlutfall": 0.1565,
+    "ROE": 0.0822,
+    "ROA": 0.0456,
+    "eiginfjarhlutfall": 0.5544,
+    "veltufjarhlutfall": 0.2135,
+    "skuldahlutfall_DE": 0.8036,
+    "eignavelta": 0.291
+   }
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2934,
+    "ebit_hlutfall": 0.001,
+    "hagnadarhlutfall": 0.2125,
+    "ROE": 0.1154,
+    "ROA": 0.0681,
+    "eiginfjarhlutfall": 0.5902,
+    "veltufjarhlutfall": 0.2928,
+    "skuldahlutfall_DE": 0.6943,
+    "eignavelta": 0.3204
+   },
+   "rekstur": {
+    "ebit": 286,
+    "sala": 285632,
+    "kostnadarverd": -201821,
+    "adrar_tekjur": 713,
+    "annar_rekstur": -11403,
+    "fjarmunatekjur": 2321,
+    "fjarmagnsgjold": -12613,
+    "hagn_f_skatt": 72345,
+    "tekjuskattur": -11643,
+    "hagnadur": 60702
+   },
+   "efnahagur": {
+    "birgdir": 40837,
+    "vidskiptakrofur": 17641,
+    "handbaert": 48497,
+    "eignir": 891474,
+    "hlutafe": 20083,
+    "eigid_fe": 526171,
+    "efe_skuldir": 891474,
+    "skuldir": 365303,
+    "skammtimaskuldir": 365303
+   }
+  }
+ }
+}
