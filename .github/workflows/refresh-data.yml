@@ -73,6 +73,9 @@ jobs:
           node skriptur/build_ytsaga.js         || true
           node skriptur/build_ytsafn.js         || true
       - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo, Fiskistofa)
+        env:
+          GOOGLE_GEOCODE_KEY: ${{ secrets.GOOGLE_GEOCODE_KEY }}
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
         run: |
           node skriptur/build_fasteignir.js   || true
           node skriptur/build_fasteignaskra.js || true
@@ -84,6 +87,7 @@ jobs:
           node skriptur/build_sjavarutvegur.js || true   # Fiskistofa: raðköll m/töf (þjöppun/afli per tegund)
           node skriptur/build_sedlabanki.js   || true   # Seðlabanki XML: vextir/gengi/verðbólga/peningamál
           node skriptur/build_eftirlit.js     || true   # HER: matvæla-/heilbrigðiseftirlit RVK (crawl póstnr+leitarorð)
+          node skriptur/build_eftirlit_hnit.js || true  # hnitar eftirlit f. Leaflet-kort (INERT án GOOGLE_GEOCODE_KEY/MAPBOX_TOKEN)
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
       - name: AI-samantektir (aðeins sé lykill settur sem secret)
         env:

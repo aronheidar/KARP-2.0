@@ -35,6 +35,12 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
     <p class="sub">Fjöldi staða eftir einkunn. Flestir eru í 3 („frávik / ábendingar"); {nStopped} staðir í 0–1.</p>
     <div class="cwrap"><div id="c-dist" class="ch"></div></div>
 
+    <div id="ef-mapwrap" hidden>
+      <h2>Kort — hreinlæti eftir stað</h2>
+      <p class="sub">Litur eftir einkunn (grænt best, rautt verst). Smelltu á punkt fyrir stað og skýrslu. <span id="ef-mapn"></span></p>
+      <div id="ef-map"></div>
+    </div>
+
     {worst.length > 0 && <>
       <h2>⚠ Alvarlegustu frávikin</h2>
       <p class="sub">Staðir með stöðvaða eða að hluta takmarkaða/stöðvaða starfsemi (einkunn 0–1) í nýjasta eftirliti.</p>
@@ -95,6 +101,9 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
     .k-s { font-size: 11px; color: #7e8ca6; }
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
     .ch { width: 100%; height: 300px; }
+    #ef-map { width: 100%; height: 440px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); overflow: hidden; z-index: 0; }
+    #ef-map :global(.leaflet-popup-content) { font-size: 13px; }
+    #ef-mapn { color: #7e8ca6; font-size: 12px; }
 
     .ef-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
     .ef-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
@@ -174,9 +183,40 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
         shown += next.length;
         moreEl.hidden = shown >= filtered.length;
       };
+      // Kort (Leaflet) — birtist aðeins ef einhverjir staðir eru hnitaðir (build_eftirlit_hnit.js m/ API-lykli)
+      const withLeaflet = (cb) => {
+        if (window.L) return cb();
+        if (!document.getElementById('leaflet-css')) { const l = document.createElement('link'); l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l); }
+        let s = document.getElementById('leaflet-js');
+        if (!s) { s = document.createElement('script'); s.id = 'leaflet-js'; s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; document.head.appendChild(s); }
+        s.addEventListener('load', () => cb(), { once: true });
+      };
+      const drawMap = (rows) => {
+        const pts = rows.filter((s) => typeof s.lat === 'number' && typeof s.lng === 'number');
+        if (!pts.length) return;                              // ekkert hnitað enn → kort falið
+        const wrap = document.getElementById('ef-mapwrap'); if (!wrap) return;
+        wrap.hidden = false;
+        document.getElementById('ef-mapn').textContent = '· ' + pts.length + ' af ' + rows.length + ' staðsett';
+        withLeaflet(() => {
+          const el = document.getElementById('ef-map'); if (!el || el.dataset.done) return;
+          el.dataset.done = '1';
+          const map = window.L.map(el, { scrollWheelZoom: false }).setView([64.13, -21.90], 12);
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+          const bounds = [];
+          pts.forEach((s) => {
+            window.L.circleMarker([s.lat, s.lng], { radius: 7, fillColor: RCOL[s.rating], color: '#0a0e14', weight: 1, fillOpacity: 0.92 })
+              .bindPopup('<b>' + esc(s.name) + '</b><br>Einkunn ' + s.rating + '/5 · ' + esc(s.ratingLabel || '') + (s.reportUrl ? '<br><a href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : ''))
+              .addTo(map);
+            bounds.push([s.lat, s.lng]);
+          });
+          if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+          setTimeout(() => map.invalidateSize(), 150);
+        });
+      };
       const load = () => fetch('/gogn/eftirlit.json').then((r) => r.json()).then((j) => {
         DATA = (j.stadir || []).slice().sort((a, b) => (a.rating - b.rating) || (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
         apply();
+        drawMap(DATA);
       }).catch(() => { listEl.innerHTML = '<div class="ef-load">Ekki tókst að hlaða skránni.</div>'; });
       let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
       document.getElementById('ef-filt').addEventListener('click', (e) => {
