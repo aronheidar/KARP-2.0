@@ -24,7 +24,33 @@ try {
   }
 } catch (e) {}
 const updated = '2026-07-02';
-const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, tölvuleikir og stoðtæki. Undirstaðan er rannsóknir og þróun${rdL ? ' — Ísland ver ' + String(rdL.v).replace('.', ',') + '% af VLF í R&Þ (' + rdL.y + ')' : ''}.`;
+
+// 🆕 Nýskráð vörumerki (Hugverkastofan, api.hugverk.is — opið leitar-API) — vakt-feed, byggingartíma.
+// registrationDateFrom = sl. 45 dagar → nýskráð vörumerki, nýjust fyrst. Sjá memory/iceland-hugverkastofa-api.md
+const dIS = (iso) => { const [y, m, d] = String(iso || '').split('-'); return d ? +d + '.' + +m + '.' + y : ''; };
+let VM = null, vmTotal = 0, vmFra = '';
+try {
+  const df = new Date(); df.setDate(df.getDate() - 45);
+  vmFra = df.toISOString().slice(0, 10);
+  const r = await fetch('https://api.hugverk.is/umbraco/api/search/searchtrademarks', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ textfield: '', owner: [], agent: [], type: [], status: [], category: [], registrationDateFrom: vmFra, page: 1 }),
+  });
+  if (r.ok) {
+    const j = await r.json();
+    vmTotal = j.totalCount || 0;
+    VM = (j.results || []).map((it) => it.document || {}).filter((x) => x.identifier).slice(0, 30).map((x) => ({
+      id: x.identifier, titill: x.titleUnchanged || x.title || '', tegund: x.type || '',
+      eigandi: (x.owner || []).map((o) => o.ownerName).filter(Boolean).join(', '),
+      kt: String(((x.owner || [])[0] || {}).ownerSsn || '').replace(/\D/g, ''),
+      flokkar: (x.category || []).slice(0, 6), skrad: dIS((x.registrationDate || '').slice(0, 10)),
+      mynd: x.imagePath || '', url: 'https://www.hugverk.is/leit/trademark/' + x.identifier,
+    }));
+    if (!VM.length) VM = null;
+  }
+} catch (e) { VM = null; }
+
+const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, tölvuleikir og stoðtæki. Undirstaðan er rannsóknir og þróun${rdL ? ' — Ísland ver ' + String(rdL.v).replace('.', ',') + '% af VLF í R&Þ (' + rdL.y + ')' : ''}.${VM ? ' ' + vmTotal + ' ný vörumerki skráð sl. 45 daga.' : ''}`;
 ---
 <Layout title="Hugverk & tækni | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/hugverk/" ogTitle="Hugverk & tækni">
   <main data-pg="atvinnuvegir-hugverk">
@@ -34,9 +60,34 @@ const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, 
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Hugverkaiðnaður: útflutnings- og veltutölur Hagstofunnar; flokkun fylgir atvinnugreinaflokkun hennar.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="kpis">
       {rdL && <div class="kpi"><div class="k-l">🔬 R&Þ-útgjöld</div><div class="k-v">{String(rdL.v).replace('.', ',')}%</div><div class="k-s">af VLF · {rdL.y}</div></div>}
+      {VM && <div class="kpi"><div class="k-l">🆕 Ný vörumerki</div><div class="k-v">{groupThousands(vmTotal)}</div><div class="k-s">skráð sl. 45 daga</div></div>}
     </div>
     {C1 && <><h2>R&Þ-útgjöld eftir framkvæmdaaðila (% af VLF)</h2><div id="c1"></div></>}
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (FYR05101). Fyrirtækin bera megnið af R&Þ — einkenni hugverkadrifins hagkerfis. #2.</p>
+
+    {VM && <>
+      <h2>🆕 Nýskráð vörumerki</h2>
+      <p class="vm-sub">Nýjustu vörumerki skráð hjá Hugverkastofunni — hugverk í mótun. Smelltu á eiganda fyrir fyrirtækjaprófíl eða merki fyrir skráninguna á hugverk.is.</p>
+      <div class="vm-feed">
+        {VM.map((m) => (
+          <div class="vm-row">
+            {m.mynd
+              ? <img class="vm-i" src={m.mynd} alt="" loading="lazy" />
+              : <span class={'vm-i vm-ph'}>{m.tegund === 'myndmerki' ? '🖼️' : 'Ⓡ'}</span>}
+            <div class="vm-main">
+              <a class="vm-t" href={m.url} target="_blank" rel="noopener">{m.titill || m.id}</a>
+              {m.kt
+                ? <a class="vm-o" href={'/fyrirtaeki/?q=' + m.kt}>{m.eigandi}</a>
+                : <span class="vm-o">{m.eigandi}</span>}
+              {m.flokkar.length > 0 && <span class="vm-cat">Nice {m.flokkar.join(', ')}</span>}
+            </div>
+            <div class="vm-meta"><span class="vm-type">{m.tegund}</span><span class="vm-date">{m.skrad}</span></div>
+          </div>
+        ))}
+      </div>
+      <p class="vm-foot">Sýni {VM.length} af {groupThousands(vmTotal)} · <a href="https://www.hugverk.is/leit/vorumerki" target="_blank" rel="noopener">öll á hugverk.is ↗</a></p>
+    </>}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: Hagstofa (FYR05101, R&Þ) og Hugverkastofan (nýskráð vörumerki, lifandi). Fyrirtækin bera megnið af R&Þ — einkenni hugverkadrifins hagkerfis. #2.</p>
   </main>
 
   <style>
@@ -50,6 +101,22 @@ const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, 
     .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
     #c1, #c2 { width: 100%; height: 300px; }
+    .vm-sub { font-size: 13px; color: #9fb0c8; margin: 4px 0 12px; line-height: 1.5; }
+    .vm-feed { display: grid; gap: 7px; }
+    .vm-row { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 8px 12px; }
+    .vm-i { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 7px; object-fit: contain; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+    .vm-ph { background: rgba(246,177,59,.14); color: #f6b13b; }
+    .vm-main { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+    .vm-t { font-size: 14px; font-weight: 700; color: #eaf1fb; text-decoration: none; }
+    .vm-t:hover { color: #f6b13b; }
+    .vm-o { font-size: 12.5px; color: #9fb0c8; text-decoration: none; }
+    .vm-o:hover { color: #f6b13b; }
+    .vm-cat { font-size: 10.5px; color: #6f7b8d; }
+    .vm-meta { flex: 0 0 auto; text-align: right; }
+    .vm-type { display: block; font-size: 11px; color: #7e8ca6; }
+    .vm-date { display: block; font-size: 11px; color: #9fb0c8; font-variant-numeric: tabular-nums; }
+    .vm-foot { font-size: 11.5px; color: #6f7b8d; margin: 8px 2px 0; } .vm-foot a { color: #f6b13b; }
+    @media (max-width: 560px) { .vm-cat { display: none; } }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
