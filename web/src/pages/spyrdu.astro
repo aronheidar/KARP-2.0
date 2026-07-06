@@ -1,34 +1,18 @@
 ---
-// Spyrðu Karp — nú GLOBAL spjall-widget (Layout.astro, fljótandi í hægra horni á öllum síðum).
-// Þessi slóð er létt lendingar-síða fyrir nav-hlekkinn/gamla tengla: opnar spjallið sjálfkrafa.
-import Layout from '../layouts/Layout.astro';
-const desc = 'Spyrðu Karp — gervigreindaraðstoðarmaður sem svarar spurningum um íslenska hagkerfið, þingið og gögnin á Karp. Opnast sem spjall niðri í hægra horninu á öllum síðum.';
+// /spyrdu/ — ÚRELT. Spyrðu Karp er nú fljótandi spjall-widget á ÖLLUM síðum
+// (fiskurinn í hægra horninu). Beinum á forsíðu svo gamlir tenglar/bókamerki brotni ekki.
 ---
-<Layout title="🤖 Spyrðu Karp | Karp" description={desc} canonical="https://karp.is/spyrdu/" ogTitle="Spyrðu Karp">
-  <main data-pg="spyrdu-info">
-    <p class="kicker">Karp · Aðstoðarmaður</p>
-    <h1>Spyrðu Karp 🐟</h1>
-    <p>Karpinn er nú <b>spjall-hnappur</b> sem fylgir þér um allan vefinn — smelltu á fiskinn niðri í hægra horninu hvar sem er, eða hér:</p>
-    <button id="sp-open" class="sp-open" type="button">💬 Opna spjallið</button>
-    <p class="note">Spurðu um hagkerfið, þingið, sveitarfélögin eða gögnin á Karp — hann svarar eingöngu út frá tölum vefjarins og bendir þér á réttu síðuna.</p>
-  </main>
-
-  <style>
-    main { max-width: 640px; margin: 0 auto; padding: 52px 20px 64px; text-align: center; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 4px 0 12px; }
-    p { color: #cdd6e6; line-height: 1.6; } p b { color: #eaf1fb; }
-    .sp-open { margin: 22px 0 6px; background: #f6b13b; color: #131a29; border: 0; border-radius: 12px; padding: 13px 26px; font-size: 16px; font-weight: 800; cursor: pointer; }
-    .sp-open:hover { filter: brightness(1.06); }
-    .note { font-size: 13px; color: #9fb0c8; margin-top: 10px; }
-  </style>
-
-  <script>
-    document.addEventListener('astro:page-load', () => {
-      if (!document.querySelector('main[data-pg="spyrdu-info"]')) return;
-      const open = () => { const fab = document.getElementById('karp-fab'), chat = document.getElementById('karp-chat'); if (fab && chat && chat.hidden) fab.click(); };
-      const b = document.getElementById('sp-open'); if (b) b.onclick = open;
-      setTimeout(open, 450); // opna spjallið sjálfkrafa
-    });
-  </script>
-</Layout>
+<!doctype html>
+<html lang="is">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/" />
+    <link rel="canonical" href="https://karp.is/" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Spyrðu Karp — áfram á Karp</title>
+  </head>
+  <body>
+    <script>location.replace('/');</script>
+    <p>Spyrðu Karp opnast núna sem spjall neðst í hægra horninu á öllum síðum. <a href="/">Áfram á karp.is →</a></p>
+  </body>
+</html>
