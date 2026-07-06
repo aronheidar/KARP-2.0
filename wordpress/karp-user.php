@@ -29,20 +29,12 @@
  * Ein uppspretta sannleikans → embed og Astro haldast í takti.
  */
 function karp_user_payload() {
-    // Innskráning / nýskráning — nota Ultimate Member-síður ef þær eru til, annars WP-sjálfgefið.
-    // LEIÐ A: eftir innskráningu á wp.karp.is skilar fólk sér aftur á APPIÐ (karp.is).
-    $login    = wp_login_url('https://karp.is/');
-    $register = wp_registration_url();
-    if (function_exists('um_get_core_page')) {
-        $l = um_get_core_page('login');
-        $r = um_get_core_page('register');
-        if (!empty($l)) {
-            $login = $l;
-        }
-        if (!empty($r)) {
-            $register = $r;
-        }
-    }
+    // Innskráning / nýskráning — NATIVE Karp-síður á karp.is (Astro) sem POST-a beint á
+    // wp-login.php (top-level form → engin CORS; kakan er sett á .karp.is svo hún gildir á
+    // karp.is eftir á). Þetta leysir af óstíluðu Ultimate Member-síðurnar (wp.karp.is/login
+    // | /nyskraning). Villu-/árangurs-vísun + skilmála-samþykki: sjá karp-auth-pages.php.
+    $login    = 'https://karp.is/innskra/';
+    $register = 'https://karp.is/nyskraning/';
 
     $data = array(
         'loggedIn'    => false,

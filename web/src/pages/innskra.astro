@@ -1,0 +1,91 @@
+---
+// /innskra/ — native Karp innskráningarsíða. Formið POST-ar beint (top-level) á
+// wp-login.php á wp.karp.is → engin CORS. WordPress setur innskráningarkökuna á
+// .karp.is (COOKIE_DOMAIN) svo hún gildir strax á karp.is. ENGINN `testcookie`-reitur
+// (þá sleppir WP „Cookies are blocked"-villunni sem er gátuð á isset($_POST['testcookie'])).
+// Villur skila sér aftur hingað gegnum karp-auth-pages.php (wp_login_failed → ?villa=).
+import Layout from '../layouts/Layout.astro';
+import AuthShell from '../components/AuthShell.astro';
+const desc = 'Skráðu þig inn á Karp — aðgangur að Karp+ vöktun, stefnuprófi, uppáhaldsgröfum og persónulegu yfirliti.';
+const WP_LOGIN = 'https://wp.karp.is/wp-login.php';
+---
+<Layout title="Skrá inn — Karp" description={desc} canonical="https://karp.is/innskra/" ogTitle="Skrá inn á Karp" noindex={true}>
+  <AuthShell pg="innskra" heading="Skrá inn" sub="Aðgangur að Karp+ og þínu persónulega svæði.">
+    <p class="ka-msg err" id="ka-err" hidden></p>
+
+    <div id="ka-form-wrap">
+      <form method="POST" action={WP_LOGIN} id="ka-form" autocomplete="on">
+        <input type="hidden" name="karp_auth" value="1" />
+        <input type="hidden" name="redirect_to" id="ka-redirect" value="https://karp.is/mitt-svaedi/" />
+        <div class="ka-field">
+          <label for="ka-log">Notandanafn eða netfang</label>
+          <input type="text" name="log" id="ka-log" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="ka-field">
+          <label for="ka-pwd">Lykilorð</label>
+          <input type="password" name="pwd" id="ka-pwd" required autocomplete="current-password" />
+        </div>
+        <div class="ka-row">
+          <label class="ka-check"><input type="checkbox" name="rememberme" value="forever" checked /> Muna eftir mér</label>
+          <a class="ka-link" href="/endurstilla/">Gleymt lykilorð?</a>
+        </div>
+        <button type="submit" class="ka-btn">Skrá inn</button>
+      </form>
+    </div>
+
+    <div id="ka-already" class="ka-in" hidden>
+      <p id="ka-already-txt"></p>
+      <a class="ka-btn" href="/mitt-svaedi/">Fara á Mitt svæði</a>
+    </div>
+
+    <Fragment slot="alt">Ekki með aðgang? <a href="/nyskraning/">Nýskráðu þig</a></Fragment>
+  </AuthShell>
+
+  <script>
+    import { loadUser } from '../lib/auth.js';
+    // Sama villuboð fyrir „notandi fannst ekki" og „rangt lykilorð" (kemur í veg fyrir
+    // notenda-upptalningu). Kóðarnir koma úr WP_Error frá wp_login_failed.
+    const MSG = {
+      invalid_username: 'Rangt notandanafn/netfang eða lykilorð.',
+      invalid_email: 'Rangt notandanafn/netfang eða lykilorð.',
+      incorrect_password: 'Rangt notandanafn/netfang eða lykilorð.',
+      invalidcombo: 'Rangt notandanafn/netfang eða lykilorð.',
+      empty_username: 'Sláðu inn notandanafn eða netfang.',
+      empty_password: 'Sláðu inn lykilorð.',
+      _: 'Innskráning tókst ekki — reyndu aftur.',
+    };
+    // Aðeins karp.is-slóðir samþykktar sem redirect_to (varnir gegn opnu-endurvísun;
+    // WP hvítlistar líka server-hlið gegnum allowed_redirect_hosts).
+    function safeRedirect(raw) {
+      if (!raw) return 'https://karp.is/mitt-svaedi/';
+      try { const u = new URL(raw, 'https://karp.is'); if (/(^|\.)karp\.is$/i.test(u.hostname)) return u.href; } catch (e) {}
+      return 'https://karp.is/mitt-svaedi/';
+    }
+    function boot() {
+      const main = document.querySelector('main[data-pg="innskra"]');
+      if (!main) return;
+      const p = new URLSearchParams(location.search);
+      const rt = document.getElementById('ka-redirect');
+      if (rt) rt.value = safeRedirect(p.get('redirect_to'));
+      const log = p.get('log');
+      if (log) { const el = document.getElementById('ka-log'); if (el && !el.value) el.value = log; }
+      const err = p.get('villa');
+      if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+      // Þegar innskráð(ur)? → sýna „Fara á Mitt svæði" í stað formsins.
+      loadUser().then((u) => {
+        if (u && u.loggedIn) {
+          const fw = document.getElementById('ka-form-wrap');
+          const al = document.getElementById('ka-already');
+          const tx = document.getElementById('ka-already-txt');
+          const eb = document.getElementById('ka-err');
+          if (fw) fw.hidden = true;
+          if (eb) eb.hidden = true;
+          if (tx) tx.textContent = 'Þú ert þegar innskráð' + (u.name ? '(ur) sem ' + u.name : '(ur)') + '.';
+          if (al) al.hidden = false;
+        }
+      }).catch(() => {});
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>

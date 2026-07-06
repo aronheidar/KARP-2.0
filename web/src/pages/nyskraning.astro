@@ -1,0 +1,90 @@
+---
+// /nyskraning/ — native Karp nýskráningarsíða. Formið POST-ar (top-level) á
+// wp-login.php?action=register með notandanafni + netfangi. WordPress býr til aðganginn
+// og sendir „stilltu lykilorð"-tölvupóst (= innbyggð netfangs-staðfesting). Skilmála-
+// gátreitur er skylda (bæði client-hlið `required` OG server-hlið í karp-auth-pages.php,
+// sem líka skráir samþykkið í user meta `karp_terms_accepted`).
+// Árangur → ?skrad=1 (redirect_to); villur → ?villa=<kóði> (registration_errors-hook).
+import Layout from '../layouts/Layout.astro';
+import AuthShell from '../components/AuthShell.astro';
+const desc = 'Nýskráðu þig á Karp — ókeypis aðgangur að Karp+ vöktun, stefnuprófi og persónulegu yfirliti. Tekur mínútu.';
+const WP_REGISTER = 'https://wp.karp.is/wp-login.php?action=register';
+---
+<Layout title="Nýskráning — Karp" description={desc} canonical="https://karp.is/nyskraning/" ogTitle="Nýskrá á Karp" noindex={true}>
+  <AuthShell pg="nyskraning" heading="Nýskráning" sub="Ókeypis aðgangur að Karp — tekur mínútu.">
+    <p class="ka-msg err" id="ka-err" hidden></p>
+    <p class="ka-msg ok" id="ka-ok" hidden></p>
+
+    <div id="ka-form-wrap">
+      <form method="POST" action={WP_REGISTER} id="ka-form" autocomplete="on">
+        <input type="hidden" name="karp_auth" value="1" />
+        <input type="hidden" name="redirect_to" value="https://karp.is/nyskraning/?skrad=1" />
+        <div class="ka-field">
+          <label for="ka-login">Notandanafn</label>
+          <input type="text" name="user_login" id="ka-login" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="ka-field">
+          <label for="ka-email">Netfang</label>
+          <input type="email" name="user_email" id="ka-email" required autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" />
+        </div>
+        <label class="ka-terms">
+          <input type="checkbox" name="karp_terms" value="1" id="ka-terms" required />
+          <span>Ég samþykki <a href="/skilmalar/" target="_blank" rel="noopener">skilmála og persónuverndarstefnu</a> Karp.</span>
+        </label>
+        <button type="submit" class="ka-btn">Nýskrá</button>
+        <p class="ka-note">Eftir skráningu sendum við þér tölvupóst til að staðfesta netfangið og velja lykilorð.</p>
+      </form>
+    </div>
+
+    <div id="ka-already" class="ka-in" hidden>
+      <p id="ka-already-txt"></p>
+      <a class="ka-btn" href="/mitt-svaedi/">Fara á Mitt svæði</a>
+    </div>
+
+    <Fragment slot="alt">Ertu þegar með aðgang? <a href="/innskra/">Skráðu þig inn</a></Fragment>
+  </AuthShell>
+
+  <script>
+    import { loadUser } from '../lib/auth.js';
+    const MSG = {
+      username_exists: 'Notandanafnið er þegar í notkun — veldu annað.',
+      email_exists: 'Netfangið er þegar skráð. Prófaðu að skrá þig inn.',
+      invalid_username: 'Ógilt notandanafn (nota má bókstafi, tölur og _ . - @).',
+      empty_username: 'Sláðu inn notandanafn.',
+      username_too_short: 'Notandanafnið er of stutt.',
+      invalid_email: 'Netfangið lítur ekki rétt út.',
+      empty_email: 'Sláðu inn netfang.',
+      karp_terms: 'Þú þarft að samþykkja skilmálana til að halda áfram.',
+      _: 'Nýskráning tókst ekki — reyndu aftur.',
+    };
+    function boot() {
+      const main = document.querySelector('main[data-pg="nyskraning"]');
+      if (!main) return;
+      const p = new URLSearchParams(location.search);
+      const skrad = p.get('skrad');
+      if (skrad) {
+        const ok = document.getElementById('ka-ok');
+        const fw = document.getElementById('ka-form-wrap');
+        if (ok) { ok.textContent = '📧 Frábært! Við sendum þér tölvupóst til að staðfesta netfangið og velja lykilorð. Athugaðu pósthólfið — og ruslpóstinn ef hann skilar sér ekki strax.'; ok.hidden = false; }
+        if (fw) fw.hidden = true;
+      }
+      const err = p.get('villa');
+      if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+      const login = p.get('log'); if (login) { const el = document.getElementById('ka-login'); if (el && !el.value) el.value = login; }
+      const email = p.get('email'); if (email) { const el = document.getElementById('ka-email'); if (el && !el.value) el.value = email; }
+      // Þegar innskráð(ur) (og ekki nýbúin(n) að skrá sig) → benda á Mitt svæði.
+      loadUser().then((u) => {
+        if (u && u.loggedIn && !skrad) {
+          const fw = document.getElementById('ka-form-wrap');
+          const al = document.getElementById('ka-already');
+          const tx = document.getElementById('ka-already-txt');
+          if (fw) fw.hidden = true;
+          if (tx) tx.textContent = 'Þú ert þegar innskráð' + (u.name ? '(ur) sem ' + u.name : '(ur)') + '.';
+          if (al) al.hidden = false;
+        }
+      }).catch(() => {});
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>

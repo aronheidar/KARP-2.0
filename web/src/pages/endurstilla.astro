@@ -1,0 +1,55 @@
+---
+// /endurstilla/ — native Karp „gleymt lykilorð"-síða. Formið POST-ar (top-level) á
+// wp-login.php?action=lostpassword með netfangi/notandanafni. WordPress sendir
+// endurstillingar-tölvupóst. Árangur → ?sent=1 (redirect_to); villur (tómt/óþekkt
+// netfang) → ?villa=<kóði> gegnum lostpassword_errors-hook í karp-auth-pages.php.
+// (Sjálft nýja-lykilorðs-skrefið gerist á WP-hlekknum úr póstinum — wp-login.php?action=rp.)
+import Layout from '../layouts/Layout.astro';
+import AuthShell from '../components/AuthShell.astro';
+const desc = 'Gleymdirðu lykilorðinu? Sláðu inn netfangið þitt og við sendum þér hlekk til að velja nýtt lykilorð.';
+const WP_LOST = 'https://wp.karp.is/wp-login.php?action=lostpassword';
+---
+<Layout title="Endurstilla lykilorð — Karp" description={desc} canonical="https://karp.is/endurstilla/" ogTitle="Endurstilla lykilorð" noindex={true}>
+  <AuthShell pg="endurstilla" heading="Gleymt lykilorð?" sub="Sláðu inn netfangið þitt og við sendum þér hlekk til að velja nýtt lykilorð.">
+    <p class="ka-msg err" id="ka-err" hidden></p>
+    <p class="ka-msg ok" id="ka-ok" hidden></p>
+
+    <div id="ka-form-wrap">
+      <form method="POST" action={WP_LOST} id="ka-form" autocomplete="on">
+        <input type="hidden" name="karp_auth" value="1" />
+        <input type="hidden" name="redirect_to" value="https://karp.is/endurstilla/?sent=1" />
+        <div class="ka-field">
+          <label for="ka-user">Netfang eða notandanafn</label>
+          <input type="text" name="user_login" id="ka-user" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+        </div>
+        <button type="submit" class="ka-btn">Senda endurstillingarhlekk</button>
+      </form>
+    </div>
+
+    <Fragment slot="alt">Manstu lykilorðið? <a href="/innskra/">Skráðu þig inn</a></Fragment>
+  </AuthShell>
+
+  <script>
+    const MSG = {
+      empty_username: 'Sláðu inn netfang eða notandanafn.',
+      invalid_email: 'Enginn aðgangur fannst með þessu netfangi.',
+      invalidcombo: 'Enginn aðgangur fannst með þessum upplýsingum.',
+      _: 'Ekki tókst að senda — reyndu aftur.',
+    };
+    function boot() {
+      const main = document.querySelector('main[data-pg="endurstilla"]');
+      if (!main) return;
+      const p = new URLSearchParams(location.search);
+      if (p.get('sent')) {
+        const ok = document.getElementById('ka-ok');
+        const fw = document.getElementById('ka-form-wrap');
+        if (ok) { ok.textContent = '📧 Ef aðgangur er skráður á þetta netfang sendum við hlekk til að endurstilla lykilorðið. Athugaðu pósthólfið — og ruslpóstinn.'; ok.hidden = false; }
+        if (fw) fw.hidden = true;
+      }
+      const err = p.get('villa');
+      if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>
