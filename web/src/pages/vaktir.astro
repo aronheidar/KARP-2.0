@@ -1,179 +1,149 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// 🔔 VAKTIR (LOTA 16, liður 1) — vöktunarmiðstöð Karp: mínar vaktir (innskráð),
-// LIFANDI útboðsvakt (utbodsvefur.is WP-REST + TED EES-útboð um worker-proxy)
-// og heiðarlegur listi yfir lindir í smíðum. Grunnur að „Vakt Pro". #2.
+// 🔔 VAKTIR / Leitarorðavaktin (LOTA 16 → einföldun Verk 4) — vöktunarmiðstöð Karp.
+// EITT „Bæta við vakt"-form efst (leitarorð → lýsir upp treff í öllum veitunum
+// + daglegur póstur innskráðum), svo lifandi veiturnar sem orðin leita í
+// (dómar/samráð/greiðslur), svo persónulegar tölvupósts-vaktir, svo krosslindir.
+// Leitvakt-, digest-, mínar-vaktir- og veitu-endapunktar ÓBREYTTIR.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-const updated = '2026-07-02';
-const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og opinberum útboðum á einum stað. Lifandi útboðsvakt af Útboðsvef og TED (EES-útboð á Íslandi).';
+const updated = '2026-07-06';
+const desc = 'Leitarorðavaktin á Karp — skráðu leitarorð og láttu Karp lýsa upp allt sem nefnir það: dóma, samráðsmál og greiðslur ríkisins. Innskráðir fá daglegan póst með treffum.';
 ---
 
-<Layout title="🔔 Vaktir — vöktunarmiðstöð | Karp" description={desc} canonical="https://karp.is/vaktir/" ogTitle="Vaktir Karp">
+<Layout title="🔔 Leitarorðavaktin — vöktunarmiðstöð | Karp" description={desc} canonical="https://karp.is/vaktir/" ogTitle="Vaktir Karp">
   <main data-pg="vaktir">
     <p class="kicker">Karp · Vöktun</p>
-    <h1>🔔 Vaktir</h1>
-    <p>Vöktunarmiðstöð Karp — það sem þú vilt frétta FYRST. Hagvísavaktir, fjölmiðlavöktun, dóma-, samráðs- og greiðsluvakt á einum stað. <a class="sec-link" href="/utbod/" style="margin-left:0">📋 Útboð eru komin á sér síðu →</a></p>
+    <h1>🔔 Leitarorðavaktin</h1>
+    <p class="sub">Skráðu leitarorð — fyrirtækið þitt, götuna, atvinnugreinina eða málefni — og Karp lýsir upp allt hér að neðan sem nefnir það: dóma, samráðsmál og greiðslur ríkisins.</p>
 
-    <h2>Mínar vaktir <i class="tip" tabindex="0" data-tip="Hagvísavaktir senda tölvupóst þegar vísir nær viðmiði (t.d. verðbólga yfir 5%). Stofnaðar og sýndar hér innskráð(ur).">ⓘ</i></h2>
-    <div id="vaktir-mine"><span class="dim">Tölvupósts-vaktir eru hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a> (ókeypis aðgangur) — leitarorðavaktin hér að neðan virkar án innskráningar.</span></div>
+    <!-- 1 ── Bæta við vakt (aðalatriði, efst) ── -->
+    <section class="lv-box">
+      <div class="lv-row">
+        <input id="lv-q" type="text" maxlength="40" placeholder="Leitarorð — t.d. „vegagerð“, „fiskeldi“, „gervigreind“…" autocomplete="off" aria-label="Leitarorð" />
+        <button id="lv-add">🔔 Bæta við vakt</button>
+      </div>
+      <p class="lv-hint">Treff lýsast upp <span class="lv-demo">svona</span> · innskráðir fá daglegan póst · orðin vistast í vafranum og fylgja þér innskráðum.</p>
+      <div class="lv-active-h">Virkar vaktir</div>
+      <div id="lv-chips"><span class="dim">Engin vakt enn — skráðu leitarorð að ofan.</span></div>
+    </section>
 
-    <h2>🔎 Leitarorðavaktin <i class="tip" tabindex="0" data-tip="Skráðu leitarorð (t.d. fyrirtækið þitt, atvinnugrein eða málefni). Allt í vöktunum hér að neðan — dómar, samráð, greiðslur ríkisins og útboð — sem nefnir orðið fær gylltan ramma og teljara á flísinni. Innskráðir fá að auki daglegan tölvupóst með treffum dagsins. Orðin vistast í vafranum og fylgja þér innskráðum.">ⓘ</i></h2>
-    <p class="lv-intro">Eitt orð — öll vöktunin. Skráðu t.d. fyrirtækið þitt, götuna, atvinnugreinina eða málefni: allt hér að neðan sem nefnir orðið lýsist upp <span class="lv-demo">svona</span>, og innskráðir fá daglegan póst með treffum.</p>
-    <div class="lv-row">
-      <input id="lv-q" type="text" maxlength="40" placeholder="T.d. „vegagerð“, „fiskeldi“, „gervigreind“…" autocomplete="off" />
-      <button id="lv-add">🔔 Vakta orð</button>
-    </div>
-    <div id="lv-chips"></div>
-
-    <h2>📬 Vikuyfirlitið <i class="tip" tabindex="0" data-tip="Einn póstur á mánudagsmorgnum með vikunni þinni: treff leitarorðanna í fjölmiðlum, umfjöllun um fyrirtæki og þingmenn sem þú fylgist með, þinglýstar sölur á fasteignavöktunum, ný útboð af útboðsvaktinni og hagtölur vikunnar. Aðeins fyrir innskráða (Karp+, ókeypis).">ⓘ</i></h2>
-    <label class="dg-row">
-      <input type="checkbox" id="dg-on" />
-      <span><b>Fá vikuyfirlit í tölvupósti á mánudagsmorgnum</b> — vikan þín á einum stað: leitarorðin, þau sem þú fylgist með, fasteigna- og útboðsvaktirnar og hagtölur vikunnar.</span>
-    </label>
-    <div class="dg-note" id="dg-note" hidden></div>
-
-    <h2>🏠 Fasteignavaktin — komin á sína eigin síðu</h2>
-    <a class="fv-crosslink" href="/fasteignavakt/">
-      <b>🏠 Fasteignavaktin →</b>
-      <span>Hvað seldist í götunni þinni og á hvaða verði · tölvupóstur við nýja sölu · verðmat úr kaupskránni (Pro) · nauðungarsölur sýslumanna — allt á einum stað með fléttilista heimilisfanga.</span>
-    </a>
-
-    <h2>⚖️ Dómavaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu dómar beint af vefjum dómstólanna (opinber birting í síðukóða þeirra, engin ágiskun). Uppfærist á ~45 mín fresti um skyndiminnis-proxy Karp.">ⓘ</i></h2>
+    <!-- 2 ── Lifandi veiturnar sem orðin leita í ── -->
+    <h2>⚖️ Dómavaktin <span class="live">lifandi</span></h2>
     <div class="ppair">
-      <div>
-        <h3>Hæstiréttur</h3>
-        <div id="domar-hr" class="feed">Sæki dóma…</div>
-      </div>
-      <div>
-        <h3>Landsréttur</h3>
-        <div id="domar-lr" class="feed">Sæki dóma…</div>
-      </div>
+      <div><h3>Hæstiréttur</h3><div id="domar-hr" class="feed">Sæki dóma…</div></div>
+      <div><h3>Landsréttur</h3><div id="domar-lr" class="feed">Sæki dóma…</div></div>
     </div>
 
-    <h2>💬 Samráðsvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu mál í samráðsgátt stjórnvalda um opna gagnagátt island.is — málsnúmer, staða, ráðuneyti og umsagnarfrestur, flokkuð eftir atvinnugrein. Smelltu til að lesa málið og senda umsögn.">ⓘ</i></h2>
+    <h2>💬 Samráðsvaktin <span class="live">lifandi</span></h2>
     <div id="samrad-pills"></div>
     <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
 
-    <h2>💸 Greiðsluvaktin — lifandi <i class="tip" tabindex="0" data-tip="Nýjustu bókfærðu greiðslur ríkisins til birgja af opnirreikningar.is (Fjársýslan). Gögnin birtast með nokkurra vikna töf; neikvæð fjárhæð er bakfærsla/inneign. Síðustu ~45 dagar gagnatímabilsins.">ⓘ</i></h2>
+    <h2>💸 Greiðsluvaktin <span class="live">lifandi</span></h2>
     <div id="greidslur-list" class="feed">Sæki greiðslur ríkisins…</div>
 
-    <h2>📰 Fjölmiðlavöktunin</h2>
-    <p class="xref">Fyrirtæki, stofnanir, flokkar og einstaklingar — viðhorf, tímalínur og frjáls leit er á <a href="/frettir/">Vöktun (Umfjöllun)</a>. Erlend umfjöllun um Ísland er nýi 🌍-flipinn þar.</p>
+    <!-- 3 ── Í tölvupósti (innskráð) ── -->
+    <h2>📬 Vikuyfirlit í tölvupósti</h2>
+    <label class="dg-row">
+      <input type="checkbox" id="dg-on" />
+      <span><b>Fá vikuyfirlit á mánudagsmorgnum</b> — leitarorðin, fyrirtæki/þingmenn sem þú fylgist með, fasteigna- og útboðsvaktir og hagtölur vikunnar. Ókeypis, fyrir innskráða.</span>
+    </label>
+    <div class="dg-note" id="dg-note" hidden></div>
 
-    <h2>Í smíðum — næstu lindir <i class="tip" tabindex="0" data-tip="Lindirnar eru til en án opins gagnastraums: fyrirtækjaskrá birtir ekki skráningarstraum opið og héraðsdómar birta ekki dómalistann sinn í opnu formi enn.">ⓘ</i></h2>
-    <ul class="soon">
-      <li>🏢 <b>Fyrirtækjavakt</b> — nýskráningar og stjórnarbreytingar í fyrirtækjaskrá</li>
-      <li>⚖️ <b>Héraðsdómar</b> — dómavaktin nær í dag til Hæstaréttar og Landsréttar</li>
-    </ul>
+    <h2>📊 Mínar hagvísavaktir</h2>
+    <div id="vaktir-mine"><span class="dim">Hagvísavaktir (t.d. „verðbólga yfir 5%“) eru stofnaðar á <a href="/mitt-svaedi/">Mínu svæði</a> og birtast hér þegar þú ert innskráð(ur).</span></div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Lifandi lindir: utbodsvefur.is (Ríkiskaup), api.ted.europa.eu, haestirettur.is, landsrettur.is, samráðsgátt (island.is) og opnirreikningar.is (Fjársýslan) — allt um skyndiminnis-proxy Karp. #2 LOTA 16–17.</p>
+    <!-- 4 ── Fleiri vaktir ── -->
+    <h2>Fleiri vaktir</h2>
+    <div class="more-grid">
+      <a class="more-card" href="/fasteignavakt/"><b>🏠 Fasteignavaktin</b><span>Hvað seldist í götunni þinni og á hvaða verði, verðmat úr kaupskrá og nauðungarsölur.</span></a>
+      <a class="more-card" href="/utbod/"><b>📋 Útboðsvaktin</b><span>Ný opinber útboð af Útboðsvef og TED (EES-útboð á Íslandi) — vaktaðu þína verktöku.</span></a>
+      <a class="more-card" href="/frettir/"><b>📰 Fjölmiðlavöktun</b><span>Umfjöllun um fyrirtæki, flokka og fólk — viðhorf, tímalínur og frjáls leit.</span></a>
+    </div>
+
+    <p class="foot">Forþjónað (SSG) {updated}. Lifandi lindir um skyndiminnis-proxy Karp: haestirettur.is, landsrettur.is, samráðsgátt island.is og opnirreikningar.is (Fjársýslan). Dómavaktin nær til Hæstaréttar og Landsréttar. #2 LOTA 16–17.</p>
   </main>
 
   <style>
     main { max-width: 940px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .sub { font-size: 15px; line-height: 1.6; margin: 0 0 6px; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; display: flex; align-items: center; gap: 9px; }
     h3 { font-size: 13px; color: #cdd6e6; margin: 0 0 6px; }
+    .live { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #42d086; background: rgba(66,208,134,.13); border: 1px solid rgba(66,208,134,.3); border-radius: 999px; padding: 1px 8px; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
     .feed { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 11px; padding: 8px 12px; min-height: 80px; font-size: 13px; color: #9fb0c8; }
-    .xref { font-size: 13.5px; } .xref a { color: #f6b13b; }
-    .sec-link { font-size: 12px; color: #f6b13b; text-decoration: none; text-transform: none; letter-spacing: 0; margin-left: 10px; font-weight: 600; }
-    .soon { margin: 0; padding-left: 4px; list-style: none; }
-    .soon li { font-size: 13.5px; color: #b9c6da; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
-    .soon b { color: #eaf1fb; }
     .dim { color: #7e8ca6; font-size: 13px; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
+    /* Feed-línur (dómar/samráð/greiðslur) — treff lýsast upp af leitarorðavaktinni */
     #domar-hr .fi, #domar-lr .fi, #samrad-list .fi, #greidslur-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     #greidslur-list .pos { color: #42d086; } #greidslur-list .neg { color: #e0655f; }
     #greidslur-list b { color: #f6b13b; font-weight: 600; }
+    .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
+    .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
+    .fi:hover .t { color: #f6b13b; }
+    .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
+    #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
+    #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
+    #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
+    #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+    #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #9fb0c8; border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
+    #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
+    #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
+
+    /* 🔎 Leitarorðavaktin — áberandi kassi efst */
+    .lv-box { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.32); border-radius: 14px; padding: 16px 18px; margin: 14px 0 6px; }
     .lv-row { display: flex; gap: 8px; }
-    #lv-q { flex: 1; max-width: 340px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
-    #lv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    #lv-add { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    #lv-chips, #fv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
-    #lv-chips .lvc, #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; }
-    #lv-chips .lvc b, #fv-chips .lvc b { color: #f6b13b; font-weight: 700; }
-    #lv-chips .lvc button, #fv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; }
-    #lv-chips .lvc button:hover, #fv-chips .lvc button:hover { color: #e0655f; }
-    /* 🏠 Fasteignavaktin (LOTA 43) */
-    #fv-muni { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; max-width: 210px; }
-    #fv-muni:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    #fv-muni option { background: #0e1420; color: #eaf1fb; }
-    #fv-q { flex: 1; max-width: 340px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
-    #fv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    #fv-add { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    #fv-res { margin-top: 10px; max-height: 420px; overflow-y: auto; }
-    .fv-head { font-size: 11.5px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .04em; padding: 4px 2px 6px; }
-    .fv-upph { color: #e0655f; }
-    .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
-    /* Krossvísun á fasteignavaktar-síðuna (LOTA 52) + leitvakt-kynning */
-    .fv-crosslink { display: block; background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 13px 16px; text-decoration: none; }
-    .fv-crosslink b { color: #f6b13b; font-size: 14.5px; }
-    .fv-crosslink span { display: block; color: #b9c6da; font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
-    .fv-crosslink:hover { border-color: #f6b13b; }
-    .lv-intro { font-size: 13px; color: #9fb0c8; margin: 2px 0 8px; }
-    /* 📬 vikuyfirlitið (LOTA 70) */
+    #lv-q { flex: 1; min-width: 0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 11px 14px; color: #eaf1fb; font-size: 14.5px; }
+    #lv-q:focus { outline: none; border-color: rgba(246,177,59,.6); }
+    #lv-q::placeholder { color: #7e8ca6; }
+    #lv-add { flex: none; background: #f6b13b; border: 0; color: #10151f; border-radius: 10px; padding: 0 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    #lv-add:hover { filter: brightness(1.05); }
+    .lv-hint { font-size: 12.5px; color: #9fb0c8; margin: 9px 0 0; line-height: 1.5; }
+    .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.14); padding: 1px 6px; border-radius: 4px; color: #eaf1fb; }
+    .lv-active-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; font-weight: 700; margin: 14px 0 7px; }
+    #lv-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    #lv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 12.5px; }
+    #lv-chips .lvc b { color: #f6b13b; font-weight: 700; }
+    #lv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; line-height: 1; }
+    #lv-chips .lvc button:hover { color: #e0655f; }
+
+    /* 📬 Vikuyfirlit */
     .dg-row { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
     .dg-row:hover { border-color: rgba(246,177,59,.4); }
     .dg-row input { margin-top: 3px; accent-color: #f6b13b; }
     .dg-row b { color: #eaf1fb; }
     .dg-note { font-size: 12px; color: #42d086; margin-top: 6px; }
-    .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.08); padding: 1px 6px; border-radius: 4px; color: #eaf1fb; }
-    .fv-sv { color: #7e8ca6; font-size: 11.5px; font-weight: 400; }
-    .fv-v { color: #f6b13b; }
-    /* 🏷️ Verðmatið (LOTA 47) */
-    .fvm-row input[type="number"] { max-width: 90px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; }
-    .fvm-row input[type="number"]:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    .fvm-row select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; }
-    .fvm-row select option { background: #0e1420; }
-    .fvm-row input[type="text"] { flex: 1; max-width: 300px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px; color: #eaf1fb; font-size: 13px; }
-    .fvm-row input[type="text"]:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    .fvm-row button { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 10px; padding: 0 16px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-    #fvm-out { margin-top: 10px; font-size: 13px; color: #9fb0c8; }
-    .fvm-card { background: rgba(246,177,59,.07); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 14px 16px; }
-    .fvm-big { font-size: 30px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
-    .fvm-range { font-size: 14px; color: #eaf1fb; margin-top: 2px; }
-    .fvm-meta { font-size: 12px; color: #9fb0c8; margin-top: 6px; }
-    .fvm-note { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; line-height: 1.45; }
-    .pro-tease2 { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
-    .pt2-btns { display: flex; gap: 8px; margin-top: 10px; }
-    .pt2-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
-    .pt2-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 12.5px; text-decoration: none; padding: 8px 14px; border-radius: 9px; }
-    .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
-    #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
-    #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
-    #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
-    /* Atvinnugreina-pillur samráðsvaktar + AI-lína dómavaktar (LOTA 44) */
-    #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-    #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #9fb0c8; border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
-    #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
-    #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
-    .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
-    .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
-    .fi:hover .t { color: #f6b13b; }
-    .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+
+    /* 📊 Mínar hagvísavaktir */
     #vaktir-mine .vk { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #cdd6e6; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
     #vaktir-mine .vk-note { font-size: 12px; color: #7e8ca6; margin-top: 8px; }
     #vaktir-mine .vk-note a { color: #9fb0c8; }
+
+    /* Fleiri vaktir — krosslindir */
+    .more-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+    .more-card { display: block; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 15px; text-decoration: none; }
+    .more-card:hover { border-color: rgba(246,177,59,.45); }
+    .more-card b { color: #f6b13b; font-size: 14px; }
+    .more-card span { display: block; color: #b9c6da; font-size: 12.5px; margin-top: 4px; line-height: 1.45; }
   </style>
 
-  <!-- Eyja: mínar vaktir (auth) + lifandi útboð (worker-proxy). #2 LOTA 16 -->
+  <!-- Eyja: leitarorðavakt (localStorage + WP /leitvakt), vikupóstur, mínar vaktir + lifandi veitur. -->
   <script>
     import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     function initVaktir() {
       const mine = document.getElementById('vaktir-mine');
       if (!mine || mine.dataset.done) return;
       mine.dataset.done = '1';
-      // 🔎 Leitarorðavaktin (LOTA 18 #7 v1): orð í localStorage, upplýsir treff í
-      // öllum veitunum; samstillist við WP (/leitvakt) svari sá endapunktur.
+      // 🔎 Leitarorðavaktin: orð í localStorage, upplýsir treff í öllum veitunum;
+      // samstillist við WP (/leitvakt) svari sá endapunktur.
       const lvKey = 'karp-leitvakt';
       const lvLoad = () => { try { return JSON.parse(localStorage.getItem(lvKey) || '[]').filter((x) => typeof x === 'string'); } catch (e) { return []; } };
       const lvSave = (a) => { localStorage.setItem(lvKey, JSON.stringify(a.slice(0, 12))); try { karpPost('/leitvakt', { ord: a.slice(0, 12) }).catch(() => {}); } catch (e) {} };
@@ -195,7 +165,10 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
       const lvRender = () => {
         const el = document.getElementById('lv-chips');
         if (!el) return;
-        el.innerHTML = lvLoad().map((w) => `<span class="lvc" data-w="${esc(w)}">${esc(w)} <b></b><button title="Fjarlægja" aria-label="Fjarlægja ${esc(w)}">✕</button></span>`).join('');
+        const words = lvLoad();
+        el.innerHTML = words.length
+          ? words.map((w) => `<span class="lvc" data-w="${esc(w)}">${esc(w)} <b></b><button title="Fjarlægja" aria-label="Fjarlægja ${esc(w)}">✕</button></span>`).join('')
+          : '<span class="dim">Engin vakt enn — skráðu leitarorð að ofan.</span>';
         el.querySelectorAll('.lvc button').forEach((b) => b.addEventListener('click', () => {
           const w = b.closest('.lvc').dataset.w;
           lvSave(lvLoad().filter((x) => x !== w));
@@ -228,7 +201,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           lvRender();
         }
       }).catch(() => {});
-      // 📬 Vikuyfirlitið (LOTA 70): kveikja/slökkva á vikupóstinum (WP /digest, user meta)
+      // 📬 Vikuyfirlitið: kveikja/slökkva á vikupóstinum (WP /digest, user meta)
       const dgOn = document.getElementById('dg-on'), dgNote = document.getElementById('dg-note');
       if (dgOn) {
         karpGet('/digest').then((d) => { if (d && typeof d.on === 'boolean') dgOn.checked = d.on; }).catch(() => {});
@@ -241,152 +214,11 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           } catch (e) {
             dgOn.checked = false;
             dgNote.hidden = false;
-            dgNote.innerHTML = `Vikuyfirlitið er hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a> (ókeypis) — <a href="${loginHref()}" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.`;
+            dgNote.innerHTML = `Vikuyfirlitið krefst innskráningar (ókeypis) — <a href="${loginHref()}" style="color:#f6b13b">skráðu þig inn</a> til að virkja það.`;
           }
         });
       }
-      // 🏠 Fasteignavaktin (LOTA 43): kaupskrá-leit + götuvaktir (localStorage + WP /fastvakt)
-      const fvKey = 'karp-fastvakt';
-      let FV = null;
-      const fvFetch = () => FV || (FV = fetch('/gogn/kaupskra_nyjast.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
-      const fvLoad = () => { try { return JSON.parse(localStorage.getItem(fvKey) || '[]').filter((v) => v && typeof v.q === 'string'); } catch (e) { return []; } };
-      const fvSave = (a) => { localStorage.setItem(fvKey, JSON.stringify(a.slice(0, 6))); try { karpPost('/fastvakt', { on: true, vaktir: a.slice(0, 6) }).catch(() => {}); } catch (e) {} };
-      const fvNorm = (s) => String(s || '').toLowerCase().trim();
-      const fvMatch = (r, sv, q) => (!sv || r.sv === sv) && (!q || (/^\d{3}$/.test(q) ? r.pn === q : fvNorm(r.a).startsWith(q)));
-      const fvKr = (v) => (v / 1000).toFixed(1).replace('.', ',') + ' m.kr';
-      const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b></span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}</span></div>`;
-      // 🔨 Nauðungarsölur (LOTA 48): opinberar uppboðsauglýsingar sýslumanna í sömu leit
-      let UPP = null;
-      const uppFetch = () => UPP || (UPP = fetch('/gogn/uppbod.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
-      const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}${x.st ? ' · ' + esc(x.st) : ''}</span></div>`;
-      const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
-      async function fvSearch() {
-        const res = document.getElementById('fv-res');
-        if (!res) return;
-        const sv = fvMuniEl.value, q = fvNorm(fvQ.value);
-        if (!sv && q.length < 2) { res.hidden = true; return; }
-        res.hidden = false;
-        res.textContent = 'Sæki kaupskrá…';
-        const [d, up] = await Promise.all([fvFetch(), uppFetch()]);
-        if (!d || !d.rows) { res.textContent = 'Náði ekki í kaupskrána — reyndu aftur síðar.'; return; }
-        const rows = d.rows.filter((r) => fvMatch(r, sv, q));
-        // uppboð: götuprefix (uppboðsskráin ber heimilisfang+bæ en ekki póstnr/sveitarfélagslykil)
-        const uppRows = (q && !/^\d{3}$/.test(q) && up && up.rows) ? up.rows.filter((x) => fvNorm(x.a).startsWith(q)) : [];
-        const uppHtml = uppRows.length ? `<div class="fv-head fv-upph">⚠ ${uppRows.length} nauðungarsölu-auglýsing${uppRows.length === 1 ? '' : 'ar'} passa við leitina</div>` + uppRows.slice(0, 6).map(uppRow).join('') : '';
-        if (!rows.length && !uppRows.length) { res.innerHTML = '<div class="fi"><span class="t">Engin þinglýst sala fannst síðustu 6 mánuði.</span><span class="s">Þinglýsing berst með nokkurra vikna töf — settu götuna á vakt og fáðu póst þegar eitthvað kemur.</span></div>'; return; }
-        res.innerHTML = uppHtml
-          + (rows.length ? `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${q ? ' · „' + esc(q) + '“' : ''}</div>` : '')
-          + rows.slice(0, 25).map(fvRow).join('')
-          + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '');
-      }
-      async function fvRender() {
-        const el = document.getElementById('fv-chips');
-        if (!el) return;
-        const vaktir = fvLoad();
-        el.innerHTML = vaktir.map((v, i) => `<span class="lvc" data-i="${i}">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button title="Fjarlægja" aria-label="Fjarlægja vakt">✕</button></span>`).join('');
-        el.querySelectorAll('.lvc button').forEach((b) => b.addEventListener('click', () => {
-          const i = +b.closest('.lvc').dataset.i;
-          const a = fvLoad(); a.splice(i, 1); fvSave(a); fvRender();
-        }));
-        if (vaktir.length) {
-          const d = await fvFetch();
-          if (d && d.rows) el.querySelectorAll('.lvc').forEach((c) => {
-            const v = vaktir[+c.dataset.i];
-            if (!v) return;
-            const n = d.rows.filter((r) => fvMatch(r, v.sv, fvNorm(v.q))).length;
-            const b = c.querySelector('b');
-            if (b && n) b.textContent = n;
-          });
-        }
-      }
-      let fvMuniDone = false;
-      async function fvMunis() {
-        if (fvMuniDone) return;
-        fvMuniDone = true;
-        const d = await fvFetch();
-        if (!d || !d.rows || !fvMuniEl) return;
-        [...new Set(d.rows.map((r) => r.sv))].sort((a, b) => a.localeCompare(b, 'is')).forEach((sv) => {
-          const o = document.createElement('option'); o.value = sv; o.textContent = sv; fvMuniEl.appendChild(o);
-        });
-      }
-      function fvAdd() {
-        const q = (fvQ.value || '').trim().slice(0, 40), sv = fvMuniEl.value;
-        if (q.length < 2 && !sv) return;
-        const a = fvLoad();
-        if (!a.some((v) => v.q === q && v.sv === sv) && a.length < 6) { a.push({ q, sv }); fvSave(a); }
-        fvRender();
-      }
-      let fvT = null;
-      if (fvQ) {
-        fvQ.addEventListener('focus', fvMunis);
-        fvQ.addEventListener('input', () => { clearTimeout(fvT); fvT = setTimeout(fvSearch, 220); });
-        fvQ.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvAdd(); } });
-      }
-      if (fvMuniEl) { fvMuniEl.addEventListener('focus', fvMunis); fvMuniEl.addEventListener('change', fvSearch); }
-      if (fvBtn) fvBtn.addEventListener('click', fvAdd);
-      fvRender();
-      // 🏷️ Verðmat úr kaupskránni (LOTA 47, Karp+): gata → póstnr → sveitarfélag
-      const fvmOut = document.getElementById('fvm-out');
-      let FST = null; // fasteignir.json (12 mán byMuni-tölfræði) — sótt letilega
-      const fstFetch = () => FST || (FST = fetch('/gogn/fasteignir.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
-      const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-      const pct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
-      const mkr = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(v) + ' þ.kr');
-      async function fvmGo() {
-        const raw = (document.getElementById('fvm-addr').value || '').trim();
-        const fm = +(document.getElementById('fvm-fm').value || 0);
-        const teg = document.getElementById('fvm-teg').value;
-        if (raw.length < 3 || !(fm >= 15)) { fvmOut.hidden = false; fvmOut.innerHTML = '<div class="fvm-note">Sláðu inn heimilisfang og stærð í m².</div>'; return; }
-        fvmOut.hidden = false;
-        // Pro-læsing: niðurstaðan er fyrir innskráða (ókeypis aðgangur)
-        const u = await loadUser().catch(() => null);
-        if (!u || !u.loggedIn) {
-          fvmOut.innerHTML = `<div class="pro-tease2"><b>⭐ Verðmatið er hluti af Karp+</b> — ókeypis aðgangur. Nálgun úr þinglýstum kaupum í götunni þinni, póstnúmerinu og sveitarfélaginu.<div class="pt2-btns"><a class="pt2-main" href="/karp-pro/">Hvað er Karp+?</a><a class="pt2-sec" href="${loginHref()}">Innskráning</a></div></div>`;
-          return;
-        }
-        fvmOut.textContent = 'Reikna úr kaupskránni…';
-        const pnM = raw.match(/\b(\d{3})\b/);
-        const pn = pnM ? pnM[1] : '';
-        const street = fvNorm(raw.replace(/\b\d{3}\b/, '').replace(/[,.]/g, ' ')).replace(/\s+\d+[a-z]?\s*$/i, '').trim();
-        const d = await fvFetch();
-        if (!d || !d.rows) { fvmOut.textContent = 'Náði ekki í kaupskrána — reyndu aftur.'; return; }
-        const ppm = (r) => (r.fm > 15 ? r.v / r.fm : null); // þús.kr/m²
-        const lag = [];
-        if (street.length >= 3) lag.push({ n: 'götunni (' + street + ') sl. 6 mán', rows: d.rows.filter((r) => r.t === teg && fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)), min: 3 });
-        if (pn) lag.push({ n: 'póstnúmeri ' + pn + ' sl. 6 mán', rows: d.rows.filter((r) => r.t === teg && r.pn === pn), min: 6 });
-        let est = null, comps = [];
-        for (const L of lag) {
-          const vals = L.rows.map(ppm).filter(Boolean);
-          if (vals.length >= L.min) { est = { heiti: L.n, n: vals.length, m: med(vals), lo: pct(vals, 0.25), hi: pct(vals, 0.75) }; comps = L.rows.slice(0, 6); break; }
-        }
-        if (!est) {
-          // sveitarfélags-lagið: 12 mán tölfræði úr fasteignir.json (byMuni), vörpuð um póstnr eða götutreff
-          const svGuess = (pn ? d.rows.find((r) => r.pn === pn) : d.rows.find((r) => fvNorm(r.a).startsWith(street)));
-          const sv = svGuess && svGuess.sv;
-          const f = await fstFetch();
-          const bm = sv && f && f.byMuni && f.byMuni[sv];
-          const t = bm && ((bm.types && bm.types[teg]) || bm);
-          if (t && t.m2) est = { heiti: sv + ' (12 mán miðgildi' + (bm.types && bm.types[teg] ? ', ' + teg : ', allar tegundir') + ')', n: t.n, m: t.m2, lo: t.p25, hi: t.p75 };
-        }
-        if (!est) { fvmOut.innerHTML = '<div class="fvm-note">Of fá nýleg kaup til að meta — prófaðu án póstnúmers eða athugaðu stafsetningu götunnar.</div>'; return; }
-        const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
-        fvmOut.innerHTML = `<div class="fvm-card"><div class="fvm-big">${mkr(verd)}</div><div class="fvm-range">líklegt bil ${mkr(lo)} – ${mkr(hi)}</div><div class="fvm-meta">${Math.round(est.m)} þ.kr/m² · byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)} · ${esc(teg)}, ${fm} m²</div><div class="fvm-note">Tölfræðileg nálgun úr kaupskrá HMS — ekki fasteignamat. Ástand, hæð, útsýni og bílastæði geta hliðrað verði verulega.</div></div>` + (comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + comps.map(fvRow).join('') : '');
-      }
-      const fvmBtn = document.getElementById('fvm-go');
-      if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
-      const fvmAddr = document.getElementById('fvm-addr');
-      if (fvmAddr) fvmAddr.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fvmGo(); } });
-      // WP-samstilling eins og leitvakt: sameina vaktir innskráðs notanda
-      karpGet('/fastvakt').then((d) => {
-        const remote = (d && d.vaktir) || [];
-        if (Array.isArray(remote) && remote.length) {
-          const merged = [...fvLoad()];
-          remote.forEach((rv) => { if (rv && (rv.q || rv.sv) && !merged.some((v) => v.q === rv.q && v.sv === rv.sv)) merged.push({ q: String(rv.q || ''), sv: String(rv.sv || '') }); });
-          localStorage.setItem(fvKey, JSON.stringify(merged.slice(0, 6)));
-          fvRender();
-        }
-      }).catch(() => {});
-      // Mínar hagvísavaktir
+      // 📊 Mínar hagvísavaktir
       loadUser().then(async (u) => {
         if (!u || !u.loggedIn) return;
         const vd = await karpGet('/vaktir');
@@ -396,7 +228,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           : '<div class="vk">Engin vakt skráð enn.</div>')
           + '<div class="vk-note">Vaktir eru stofnaðar á <a href="/mitt-svaedi/">Mínu svæði</a> (Stillingar → Vaktir).</div>';
       }).catch(() => {});
-      // ⚖️ Dómavaktin (HR + LR um /api/domar) + AI-endursögn reifunar (LOTA 44, domar_ai.json)
+      // ⚖️ Dómavaktin (HR + LR um /api/domar) + AI-endursögn reifunar (domar_ai.json)
       Promise.all([
         fetch('/api/domar').then((r) => (r.ok ? r.json() : null)).catch(() => null),
         fetch('/gogn/domar_ai.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -415,7 +247,7 @@ const desc = 'Vaktir Karp — fylgstu með hagvísum, fjölmiðlaumfjöllun og o
           }).join('');
         }
       }).catch(() => {});
-      // 💬 Samráðsvaktin (island.is GraphQL um /api/samrad) + atvinnugreina-flokkun (LOTA 44)
+      // 💬 Samráðsvaktin (island.is GraphQL um /api/samrad) + atvinnugreina-flokkun
       const SAMRAD_GREINAR = [
         ['Sjávarútvegur', /sjávar|fisk|veiði|kvót|eldi|hafi\b/i],
         ['Landbúnaður & matvæli', /landbún|bænd|búfé|matvæl|jarðrækt/i],
