@@ -99,6 +99,12 @@ function karp_user_payload() {
         $rep = (array) ( get_user_meta($u->ID, 'karp_reports', true) ?: array() );
         $data['reports'] = array_values( array_map( function ($r) { return is_array($r) ? (string) ( $r['key'] ?? '' ) : (string) $r; }, $rep ) );
         $data['id'] = (int) $u->ID;   // fyrir server-hlið entitlement-skráningu (greiðslu-callback → /reports/grant)
+        // Per-þjónustu áskriftir (LOTA 100): frettir (Fjölmiðlagreining) + utbod (Útboðsvaktin), 3.490 kr/mán hvor.
+        // admin = allt; annars karp_sub_<svc>_until (unix-tími) í FRAMTÍÐ = virk áskrift/fríprófun.
+        $data['subs'] = array(
+            'frettir' => $data['isAdmin'] || ( (int) get_user_meta($u->ID, 'karp_sub_frettir_until', true) > time() ),
+            'utbod'   => $data['isAdmin'] || ( (int) get_user_meta($u->ID, 'karp_sub_utbod_until', true) > time() ),
+        );
     }
     // Greiðsluveggir VIRKIR? Global rofi (option karp_paywall='1') — Aron kveikir þegar billing er tilbúið.
     // SLÖKKT sjálfgefið svo Vöktun/Útboð haldist opin þar til launch. Á við líka útskráða (gátt fyrir alla).
@@ -168,6 +174,26 @@ add_action('rest_api_init', function () {
             update_user_meta($uid, 'karp_plus_until', $until);
             update_user_meta($uid, 'karp_trial_used', '1');
             return array('ok' => true, 'until' => $until);
+        },
+    ));
+    // POST /sub/trial {service:'frettir'|'utbod'} — 1-mánaðar fríprófun per þjónustu (EINU SINNI per þjónustu).
+    // ⚠ Endurtekin rukkun (kort geymt, mánaðarleg endurnýjun karp_sub_<svc>_until) fer gegnum Teya-callback í
+    //   worker EFTIR staðfesta greiðslu — kemur með SecurePay-boðgreiðslum/RPG-tóka (bíður Teya-svars).
+    register_rest_route('karp/v1', '/sub/trial', array(
+        'methods' => 'POST',
+        'permission_callback' => function () { return is_user_logged_in(); },
+        'callback' => function ($req) {
+            $uid = get_current_user_id();
+            $p = (array) $req->get_json_params();
+            $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
+            $used = 'karp_sub_' . $svc . '_trial_used';
+            if ( get_user_meta($uid, $used, true) ) {
+                return array('ok' => false, 'error' => 'used');
+            }
+            $until = time() + 30 * DAY_IN_SECONDS;
+            update_user_meta($uid, 'karp_sub_' . $svc . '_until', $until);
+            update_user_meta($uid, $used, '1');
+            return array('ok' => true, 'service' => $svc, 'until' => $until);
         },
     ));
     register_rest_route('karp/v1', '/reports', array(

@@ -124,6 +124,12 @@ export function locked() { return _u().paywall === true && !isPlus(); }
 // Hefur notandinn keypt (eða admin) þessa skýrslu? key = t.d. 'fasteign:<pn>' eða 'fyrirtaeki:<kt>'.
 export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
 
+// Per-þjónustu ÁSKRIFT (LOTA 100): tvær aðskildar mánaðaráskriftir — 'frettir' (Fjölmiðlagreining/
+// Vöktun & umfjöllun) og 'utbod' (Útboðsvaktin), 3.490 kr/mán hvor. u.subs = { frettir:bool, utbod:bool }
+// (admin = allt). lockedSvc(service) = greiðsluveggur virkur OG notandi ekki áskrifandi/admin.
+export function isSub(service) { const u = _u(); return u.isAdmin === true || (u.subs && u.subs[service] === true); }
+export function lockedSvc(service) { return _u().paywall === true && !isSub(service); }
+
 // Hefja greiðslu (Teya SecurePay, LOTA 97). Worker undirritar pöntun og skilar { action, fields };
 // við byggjum falið form og POST-um → kaupandi fer á hýstu greiðslusíðu Teya. Skilar 'redirected'
 // ef sent var af stað, annars villukóða ('unconfigured'|'free'|'error') svo kallandi geti fallið á prentleið.
@@ -168,5 +174,29 @@ export function plusGate(el, opts) {
   if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; } };
 }
 
+// Per-þjónustu áskriftar-gátt (LOTA 100). opts: { service:'frettir'|'utbod', title, blurb, price }
+export function subGate(el, opts) {
+  if (!el) return; injectGateCss(); opts = opts || {};
+  const u = _u(); const svc = opts.service || ''; const price = opts.price || '3.490 kr/mán';
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">🔒 Áskrift</div>'
+    + '<h2 class="pg-h">' + esc(opts.title || 'Áskriftarþjónusta') + '</h2>'
+    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
+    + '<div class="pg-btns">'
+    + (u.loggedIn ? '<button class="pg-main" id="sg-go" type="button">Byrja — 1 mánuður frír</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skráðu þig inn — 1 mánuður frír</a>')
+    + '</div>'
+    + '<div class="pg-note">Fyrsti mánuðurinn ókeypis, svo <b>' + esc(price) + '</b>. Kort skráð við upphaf, fyrsta rukkun eftir mánuð. Hættu hvenær sem er.</div></div>';
+  const b = el.querySelector('#sg-go');
+  if (b) b.onclick = () => karpSubscribe(svc, b);
+}
+// Hefja áskrift. ENDANLEGT: recurring checkout (kort geymt + Teya boðgreiðslur/RPG-tóki) — BÍÐUR Teya-svars
+// + worker-mergs. BRÁÐABIRGÐA: fríprófun (án korts) svo flæðið sé prófanlegt fyrir launch.
+export async function karpSubscribe(service, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Virkja…'; }
+  const r = await karpPost('/sub/trial', { service });
+  if (r && r.ok) { location.reload(); return true; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Náði ekki — reyndu aftur'; }
+  return false;
+}
+
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe };
