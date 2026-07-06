@@ -726,6 +726,90 @@ function fiskveidiTimabil() {
   const s = m >= 8 ? y : y - 1;
   return String(s % 100).padStart(2, '0') + String((s + 1) % 100).padStart(2, '0');
 }
+// ── Vörumerki (Hugverkastofan, api.hugverk.is — opið leitar-API) → /fyrirtaeki/ flís ──
+// kt+nafn → vörumerkjasafn félags (kt-tengt, nafn-fallback). Fyrirmynd: kvotiHandler.
+// Sjá memory/iceland-hugverkastofa-api.md. Prófað lifandi: Icelandair 62 merki, allt kt.
+const HUG_API = 'https://api.hugverk.is';
+function nafnToken(nafn) { return String(nafn || '').replace(/\s*[.,]?\s*\b(ehf|hf|ohf|opinbert hlutafélag|slf|slhf|sf|ses|hses|bs|svf)\.?\s*$/i, '').trim(); }
+const vmNorm = (s) => String(s || '').toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
+const vmDstr = (d) => (d && !/^0001/.test(d) ? String(d).slice(0, 10) : '');
+async function fetchVorumerki(kt, nafn) {
+  kt = String(kt || '').replace(/\D/g, '');
+  const out = { kt, holdur: false, ok: false, nafn: nafn || null, merki: [], n: 0 };
+  const token = nafnToken(nafn);
+  if (kt.length !== 10 || token.length < 2) return out;
+  const nfNorm = vmNorm(nafn);
+  let names;
+  try {
+    const ac = await fetch(`${HUG_API}/umbraco/api/search/searchtrademarkowner?name=${encodeURIComponent(token)}`, { headers: { accept: 'application/json' } });
+    if (!ac.ok) return out;
+    names = await ac.json();
+  } catch (e) { return out; }
+  if (!Array.isArray(names)) return out;
+  if (!names.length) { out.ok = true; return out; }               // staðfest: 0 eigendur passa (má cache-a)
+  const tk = vmNorm(token);
+  let cands = names.filter((nm) => vmNorm(nm).startsWith(tk));
+  if (!cands.length) cands = names.slice(0, 25);
+  cands = cands.slice(0, 25);
+  const seen = new Set();
+  let reached = false;
+  for (let page = 1; page <= 4; page++) {
+    let j;
+    try {
+      const r = await fetch(`${HUG_API}/umbraco/api/search/searchtrademarks`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ textfield: '', owner: cands, agent: [], type: [], status: [], category: [], page }),
+      });
+      if (!r.ok) break;
+      j = await r.json();
+    } catch (e) { break; }
+    reached = true;
+    const res = (j && j.results) || [];
+    for (const it of res) {
+      const d = it.document || {};
+      const owns = d.owner || [];
+      const ssns = owns.map((o) => String(o.ownerSsn || '').replace(/\D/g, ''));
+      const bySsn = ssns.includes(kt);                            // ★ kjölfesta: kt í eigendum
+      const hasAnyKt = ssns.some((s) => s.length === 10);
+      const byName = !bySsn && !hasAnyKt && owns.some((o) => vmNorm(o.ownerName) === nfNorm); // fallback: merki án kt
+      if (!bySsn && !byName) continue;
+      if (seen.has(d.identifier)) continue;
+      seen.add(d.identifier);
+      out.merki.push({
+        id: d.identifier, titill: d.titleUnchanged || d.title || '', tegund: d.type || '',
+        stada: d.detailStatus || d.status || '', flokkar: d.category || [],
+        umsokn: vmDstr(d.applicationDate), skrad: vmDstr(d.registrationDate), gildirTil: vmDstr(d.expirationDate),
+        mynd: d.imagePath || '', url: 'https://www.hugverk.is/leit/trademark/' + d.identifier,
+        visst: bySsn ? 'kt' : 'nafn',
+      });
+    }
+    if (res.length < 50) break;
+  }
+  out.ok = reached;
+  out.merki.sort((a, b) => (b.umsokn || '').localeCompare(a.umsokn || ''));
+  out.n = out.merki.length;
+  out.holdur = out.n > 0;
+  return out;
+}
+async function vorumerkiHandler(request, ctx) {
+  const u = new URL(request.url);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const nafn = u.searchParams.get('nafn') || '';
+  if (kt.length !== 10) return sjson({ kt, holdur: false, merki: [], n: 0 });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/vorumerki?kt=' + kt);
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  let out;
+  try { out = await fetchVorumerki(kt, nafn); }
+  catch (e) { return sjson({ kt, holdur: false, merki: [], n: 0 }); }
+  res = new Response(JSON.stringify(out), {
+    status: 200,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=604800' },
+  });
+  if (out && out.ok) ctx.waitUntil(cache.put(cacheKey, res.clone()));  // cache-a AÐEINS staðfest svar (7 dagar)
+  return res;
+}
 async function kvotiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
@@ -865,6 +949,7 @@ export default {
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
+    if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {

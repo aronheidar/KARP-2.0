@@ -93,6 +93,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-kv-src { font-size: 10.5px; color: #6b7688; margin-top: 5px; font-style: italic; }
     body.fs-printing #fs-report .fs-kv-ti { background: #eef4ff !important; border-color: #b9cdf0 !important; color: #123 !important; }
     body.fs-printing #fs-report .fs-kv-ti b { color: #111 !important; } body.fs-printing #fs-report .fs-kv-src { color: #555 !important; }
+    .fs-vorumerki { margin-top: 10px; }
+    .fs-vms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .fs-vm { display: inline-flex; align-items: center; gap: 8px; max-width: 320px; border: 1px solid rgba(246,177,59,.30); border-radius: 10px; padding: 5px 9px 5px 6px; background: rgba(255,255,255,.02); text-decoration: none; color: #eaf1fb; }
+    .fs-vm:hover { border-color: rgba(246,177,59,.65); }
+    .fs-vm-i { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 6px; object-fit: contain; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .fs-vm-ph { background: rgba(246,177,59,.14); color: #f6b13b; }
+    .fs-vm-n { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+    .fs-vm-s { font-size: 11px; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+    .fs-vm-s.ok { background: rgba(70,190,120,.18); color: #6fd39b; }
+    .fs-vm-s.bad { background: rgba(231,130,132,.16); color: #e78284; }
+    .fs-vm-s.mid { background: rgba(126,140,166,.18); color: #9fb0c8; }
+    body.fs-printing #fs-report .fs-vm { border-color: #d9c089 !important; color: #123 !important; }
+    body.fs-printing #fs-report .fs-vm-n { color: #111 !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -200,6 +213,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
+          <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
@@ -310,6 +324,20 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     + `<div class="fs-kv-src">Heimild: Gagnavefur Fiskistofu (aflahlutdeild/aflamark) · ${q.nTeg || (q.tegundir || []).length} tegundir</div>`;
                 }).catch(() => {});
               }
+              // Ⓡ Vörumerki (Hugverkastofan) — vörumerkjasafn félagsins um kt (fallback: nafn). Öll félög, utan fiskveiða-hliðs.
+              fetch('/api/vorumerki?kt=' + encodeURIComponent(d.felag.kt || '') + '&nafn=' + encodeURIComponent(d.felag.nafn || ''))
+                .then((r) => (r.ok ? r.json() : null)).then((v) => {
+                  const el = document.getElementById('fs-vorumerki');
+                  if (!el || !v || !v.holdur) return;
+                  el.hidden = false;
+                  const cls = (s) => /skrá/i.test(s) ? 'ok' : (/(hafn|afmá|fallin|niðurfelld|afturk|útrunn)/i.test(s) ? 'bad' : 'mid');
+                  const chips = (v.merki || []).slice(0, 14).map((m) =>
+                    `<a class="fs-vm" href="${escF(m.url)}" target="_blank" rel="noopener" title="${escF(m.tegund)}${(m.flokkar || []).length ? ' · Nice ' + escF(m.flokkar.join(', ')) : ''}${m.visst === 'nafn' ? ' · tengt á nafni' : ''}">`
+                    + (m.mynd ? `<img class="fs-vm-i" src="${escF(m.mynd)}" alt="" loading="lazy">` : `<span class="fs-vm-i fs-vm-ph">${m.tegund === 'myndmerki' ? '🖼️' : 'Ⓡ'}</span>`)
+                    + `<span class="fs-vm-n">${escF(m.titill || m.id)}</span><span class="fs-vm-s ${cls(m.stada)}">${escF(m.stada)}</span></a>`).join('');
+                  el.innerHTML = `<div class="fs-sub">Ⓡ Vörumerki — Hugverkastofan (${v.n})</div><div class="fs-vms">${chips}</div>`
+                    + `<div class="fs-kv-src">Heimild: vörumerkjaskrá Hugverkastofunnar${v.n > 14 ? ' · sýni 14 af ' + v.n : ''} · <a href="https://www.hugverk.is/leit/vorumerki" target="_blank" rel="noopener">öll á hugverk.is</a></div>`;
+                }).catch(() => {});
               // 🔔 Firmavakt (LOTA 73): breytinga- og vanskilavakt á félagið í tölvupósti
               const vb = document.getElementById('fs-vakta');
               if (vb) {
