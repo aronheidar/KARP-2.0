@@ -125,8 +125,6 @@ const MODEGROUPS = [
     <div class="map-wrap">
       <button id="map-reset" hidden>↩ Allt landið</button>
       <div id="map"></div>
-      <div id="map-info" class="minfo"></div>
-      <div id="map-scale" class="scale"></div>
     </div>
 
     <!-- Topp/botn undir kortinu (LOTA 14): graf + tafla í stað yfirlagnar-texta -->
@@ -168,19 +166,6 @@ const MODEGROUPS = [
     .map-wrap { position: relative; background: radial-gradient(ellipse 65% 55% at 52% 46%, rgba(58,141,255,.09), rgba(25,211,197,.03) 55%, transparent 75%), rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; }
     #map { width: 100%; height: 560px; }
     #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: rgba(9,14,26,.9); border: 1px solid rgba(255,255,255,.2); color: #eaf1fb; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .scale { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: #9fb0c8; background: rgba(9,14,26,.75); border-radius: 7px; padding: 5px 10px; }
-    /* Skýringar-yfirlögn á kortinu (LOTA 13) */
-    .minfo { position: absolute; top: 10px; left: 12px; z-index: 3; max-width: 250px; background: rgba(9,14,26,.86); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; pointer-events: none; backdrop-filter: blur(2px); }
-    .minfo .mi-t { font-size: 13px; font-weight: 800; color: #f6b13b; }
-    .minfo .mi-d { font-size: 11px; color: #b9c6da; line-height: 1.45; margin-top: 3px; }
-    .minfo .mi-x { font-size: 11px; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.09); }
-    .minfo .mi-x b { font-variant-numeric: tabular-nums; margin-left: auto; }
-    .minfo .mi-row { display: flex; gap: 5px; align-items: baseline; padding: 1px 0; }
-    .minfo .mi-n { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #cdd6e6; }
-    .minfo .mi-sep { height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; }
-    .minfo .mi-hint { font-size: 10px; color: #7e8ca6; margin-top: 7px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.09); }
-    .minfo .mi-hi { color: #46e08a; } .minfo .mi-lo { color: #ff6d7a; }
-    @media (max-width: 640px) { .minfo { position: static; max-width: none; margin: 8px; pointer-events: auto; } }
     .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
     #flow-wrap h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
     #flow-pie { width: 100%; height: 380px; }
@@ -267,36 +252,6 @@ const MODEGROUPS = [
           };
         });
       }
-      function scaleTxt() {
-        const M = MODES[mode];
-        if (M.cat) { $('map-scale').innerHTML = KJORCOL.map(([k, c]) => `<span style="color:${c}">●</span> ${k}.`).join(' '); return; }
-        let mn = Infinity, mx = -Infinity;
-        MUNIS.forEach((u) => { const v = u.v[mode]; if (v != null) { mn = Math.min(mn, v); mx = Math.max(mx, v); } });
-        const lo = M.dir < 0 ? 'grænt' : M.dir > 0 ? 'rautt' : 'dökkblátt';
-        const hi = M.dir < 0 ? 'rautt' : M.dir > 0 ? 'grænt' : 'ljósblátt';
-        $('map-scale').innerHTML = `<b>${M.l}</b>: ${fmtV(mode, mn)} (${lo}) → ${fmtV(mode, mx)} (${hi})`;
-      }
-      // Skýringar-yfirlögnin á kortinu (LOTA 13): hvað sýnir hamurinn + hæst/lægst
-      const MDESC = {
-        visitala: 'Samsett vísitala Karp (0–100): fjárhagur, vöxtur og atvinna vegin saman. Reiknuð fyrir sveitarfélög með 1.000+ íbúa.',
-        velsaeld: 'Velsældarvísitala Karp (0–100): lífsgæði vega tvo þriðju og samsetta vísitalan (fjárhagur+vöxtur+atvinna) einn þriðja. Tilraunamæling — hlutlæg samsetning, ekki hamingjumæling.',
-        lifs: 'Lífsgæðavísir (0–100): aldurssamsetning, atvinna og öryggi svæðisins vegin saman.',
-        ibuar: 'Íbúafjöldi — punktastærðin fylgir líka íbúafjölda í öllum hömum.',
-        breyting: 'Fólksfjölgun á ári (%) — hvar landið er að vaxa og hvar það fækkar.',
-        aldur: 'Hlutfall íbúa 67 ára og eldri — öldrun byggðanna.',
-        atv: 'Skráð atvinnuleysi (%) skv. Vinnumálastofnun.',
-        afbrot: 'Hegningarlagabrot á 10.000 íbúa — eftir lögregluumdæmum (öll sveitarfélög innan umdæmis fá sama gildi).',
-        hus: 'Söluverð íbúða (þús. kr á m²) úr kaupskrá HMS.',
-        utsvar: 'Útsvarshlutfall sveitarfélagsins — hámark er 14,97%.',
-        tekjur: 'Tekjur sveitarsjóðs á íbúa (þús. kr á ári).',
-        fasteign: 'Fasteignaskattur á íbúa (þús. kr á ári).',
-        skuldir: 'Skuldir sveitarsjóðs á íbúa (þús. kr).',
-        skhlutf: 'Skuldir sem hlutfall af tekjum — viðmið eftirlitsnefndar er 150%.',
-        afkoma: 'Rekstrarafkoma á íbúa (þús. kr) — jákvætt er afgangur.',
-        stadgr: 'Staðgreiðsla íbúa til ríkisins (ma.kr á ári). Örvarnar sýna flæðið til ríkisins og kökuritið að neðan skiptinguna.',
-        jofnun: 'Framlög Jöfnunarsjóðs á íbúa (þús. kr á ári). Örvarnar sýna flæðið frá ríkinu og kökuritið framlagsflokkana.',
-        kjor: 'Kjördæmin sex — litur sýnir hvaða kjördæmi hvert sveitarfélag tilheyrir.',
-      };
       let modeChart = null;
       function paintBelow() {
         const wrap = $('mode-wrap');
@@ -330,25 +285,6 @@ const MODEGROUPS = [
             series: [{ type: 'bar', barMaxWidth: 15, data: top.map((u) => u.v[mode]), itemStyle: { color: '#f6b13b', borderRadius: [0, 5, 5, 0] }, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => fmtV(mode, p.value) } }],
           }, true);
         }
-      }
-      function paintInfo() {
-        const el = $('map-info');
-        if (!el) return;
-        const M = MODES[mode];
-        let x = '';
-        if (!M.cat) {
-          const vals = MUNIS.filter((u) => u.v[mode] != null).sort((a, b) => b.v[mode] - a.v[mode]);
-          if (vals.length > 5) {
-            const row = (u, i, cls, pre) => `<div class="mi-row"><span class="${cls}">${pre}${i}.</span> <span class="mi-n">${u.n}</span> <b>${fmtV(mode, u.v[mode])}</b></div>`;
-            x = '<div class="mi-x">'
-              + vals.slice(0, 3).map((u, i) => row(u, i + 1, 'mi-hi', '▲')).join('')
-              + '<div class="mi-sep"></div>'
-              + vals.slice(-3).reverse().map((u, i) => row(u, vals.length - i, 'mi-lo', '▼')).join('')
-              + '</div>';
-          }
-        }
-        el.innerHTML = `<div class="mi-t">${M.l}</div><div class="mi-d">${MDESC[mode] || ''}</div><div class="mi-hint">💡 Smelltu á landshluta til að þysja · á punkt fyrir síðu</div>`;
-        paintBelow();
       }
       const geoRegions = (REG.features || []).map((f) => { const nm = f.properties.name, base = REGCOL[nm] || 'rgba(255,255,255,.05)'; return { name: nm, itemStyle: { areaColor: base }, emphasis: { itemStyle: { areaColor: base.replace(/[\d.]+\)\s*$/, '0.42)') } } }; });
 
@@ -443,8 +379,7 @@ const MODEGROUPS = [
         tooltip: { backgroundColor: 'rgba(9,14,26,.94)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 } },
         series: [munisSeries(), flowsSeries(), topSeries(), poiSeries()],
       });
-      scaleTxt();
-      paintInfo();
+      paintBelow();
 
       chart.on('click', (p) => {
         if (p.data && p.data.href) { window.location.href = p.data.href; return; }
@@ -458,8 +393,7 @@ const MODEGROUPS = [
           document.querySelectorAll('.mb').forEach((x) => x.classList.toggle('on', x === b));
           mode = b.dataset.m;
           chart.setOption({ series: [munisSeries(), flowsSeries(), topSeries(), poiSeries()] }, { replaceMerge: ['series'] });
-          scaleTxt();
-          paintInfo();
+          paintBelow();
           paintFlow();
         };
       });
