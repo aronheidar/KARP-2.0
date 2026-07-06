@@ -236,6 +236,17 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fst td:first-child, body.fs-printing #fs-report .fst th { color: #555 !important; }
     body.fs-printing #fs-report .fst tr.fst-b td { color: #111 !important; }
     .fs-demonote { margin: 0 0 14px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.08); color: #f6d9a6; font-size: 13px; line-height: 1.45; }
+    .kpi-pend { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 16px 18px; }
+    .kpi-pend-hd { display: flex; align-items: flex-start; gap: 12px; }
+    .kpi-pend-spin { width: 20px; height: 20px; border: 3px solid rgba(246,177,59,.25); border-top-color: #f6b13b; border-radius: 50%; animation: kpiSpin .8s linear infinite; flex: none; margin-top: 2px; }
+    @keyframes kpiSpin { to { transform: rotate(360deg); } }
+    .kpi-pend-hd b { color: #eaf1fb; font-size: 14px; display: block; }
+    .kpi-pend-s { color: #9fb0c8; font-size: 12.5px; display: block; margin-top: 4px; }
+    .kpi-pend-s i { color: #f6b13b; font-style: normal; font-weight: 700; }
+    .kpi-pend-track { height: 6px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin: 14px 0 10px; }
+    .kpi-pend-bar { height: 100%; width: 0; background: linear-gradient(90deg, #f6b13b, #ffd27a); border-radius: 99px; transition: width 1s linear; }
+    .kpi-pend-note { color: #8fa0b8; font-size: 12px; }
+    .kpi-pend-note a { color: #f6b13b; text-decoration: none; }
     body.fs-printing #fs-report .kpi-s, body.fs-printing #fs-report .kpi-c { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     body.fs-printing #fs-report .kpi-s b, body.fs-printing #fs-report .kpi-v { color: #111 !important; }
     body.fs-printing #fs-report .kpi-s span, body.fs-printing #fs-report .kpi-l { color: #555 !important; }
@@ -404,7 +415,32 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       return null;
     }
     function fsKpiPending() {
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Reiknast núna úr ársreikningi félagsins…</b><span>Við sækjum nýjasta ársreikning frá RSK og reiknum lykiltölurnar sjálfvirkt. Þetta tekur nokkrar mínútur — <b>endurhladdu síðuna</b> eftir smá stund. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn á meðan →</a></span></div>';
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div>'
+        + '<div class="kpi-pend"><div class="kpi-pend-hd"><span class="kpi-pend-spin"></span>'
+        + '<div><b>Reiknast núna úr ársreikningi félagsins…</b>'
+        + '<span class="kpi-pend-s">Sæki nýjasta ársreikning frá RSK og reikna lykiltölurnar · <i id="kpi-pend-sec">áætla tíma…</i></span></div></div>'
+        + '<div class="kpi-pend-track"><div class="kpi-pend-bar" id="kpi-pend-bar"></div></div>'
+        + '<div class="kpi-pend-note">🔄 Síðan endurhleðst sjálfkrafa þegar mælaborðið er tilbúið — þú þarft ekkert að gera. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn á meðan →</a></div></div>';
+    }
+    // Poll-ar scrapaða JSON-inn (cache-busted) og endurhleður síðuna sjálfkrafa þegar hann er kominn.
+    function fsPollArsreikningur(kt) {
+      const id = String(kt).replace(/\D/g, '');
+      const bar = () => document.getElementById('kpi-pend-bar');
+      const sec = () => document.getElementById('kpi-pend-sec');
+      let el = 0; const EST = 150;   // ~2,5 mín áætlun (framvinda; raun-reload ræðst af poll-inu)
+      const tick = setInterval(() => {
+        el++;
+        const b = bar(); if (b) b.style.width = Math.min(96, el / EST * 100).toFixed(1) + '%';
+        const s = sec(); if (s) s.textContent = el < EST ? ('um ' + Math.ceil((EST - el) / 30) * 0.5 + ' mín eftir').replace('.5', '½').replace('um 0½', 'innan við ½') : 'næstum tilbúið…';
+      }, 1000);
+      const poll = setInterval(async () => {
+        if (!bar()) { clearInterval(poll); clearInterval(tick); return; }   // notandi fór af síðunni
+        if (el > 420) { clearInterval(poll); clearInterval(tick); const s = sec(); if (s) s.textContent = 'tekur lengri tíma en vanalega — endurhladdu síðar'; return; }
+        try {
+          const r = await fetch('/gogn/arsreikningar/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });
+          if (r.ok) { clearInterval(poll); clearInterval(tick); const b = bar(); if (b) b.style.width = '100%'; const s = sec(); if (s) s.textContent = 'tilbúið!'; setTimeout(() => location.reload(), 600); }
+        } catch (e) {}
+      }, 12000);
     }
     function fsKpiSoon() {
       return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
@@ -578,6 +614,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.fjarhagurPending = !!(fj && fj.pending);
               skila(fsKort(f, d.rsk));
               backWire();
+              if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
               fsBirgjar().then((b) => {
                 const el = document.getElementById('fs-birgir');
