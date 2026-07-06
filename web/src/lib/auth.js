@@ -111,5 +111,42 @@ export async function mountChip(el) {
   renderChip(el, await loadUser());
 }
 
+// ── Karp+ aðgangur / entitlement (LOTA 94) ──────────────────────────────────
+// KARP_USER-svið frá WordPress (karp-user.php): isAdmin (allt frítt), plus (áskrifandi/í
+// fríprófun), paywall (bool: eru greiðsluveggir VIRKIR — SLÖKKT sjálfgefið svo ekkert brotni
+// fyrir launch; kveikt af Aroni þegar billing er tilbúið), reports (fylki lykla keyptra skýrslna).
+const _u = () => (typeof window !== 'undefined' && window.KARP_USER) || {};
+export function isAdmin() { return _u().isAdmin === true; }
+export function isPlus() { const u = _u(); return u.isAdmin === true || u.plus === true; }
+// Er efni læst fyrir ÞENNAN notanda? AÐEINS ef greiðsluveggir eru virkir OG notandi er ekki áskrifandi/admin.
+export function locked() { return _u().paywall === true && !isPlus(); }
+// Hefur notandinn keypt (eða admin) þessa skýrslu? key = t.d. 'fasteign:<pn>' eða 'fyrirtaeki:<kt>'.
+export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
+
+const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(246,177,59,.06);border:1px solid rgba(246,177,59,.35);border-radius:16px;padding:24px 26px;text-align:center}'
+  + '.pg-badge{display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:12px;letter-spacing:.05em;padding:4px 12px;border-radius:999px}'
+  + '.pg-h{font-size:21px;color:#eaf1fb;margin:12px 0 6px}.pg-b{color:#cdd6e6;font-size:14px;line-height:1.55;margin:0 0 16px}'
+  + '.pg-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}'
+  + '.pg-main{background:#f6b13b;color:#131a29;font-weight:800;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px;border:0;cursor:pointer}'
+  + '.pg-sec{border:1px solid rgba(255,255,255,.2);color:#cdd6e6;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px}'
+  + '.pg-note{color:#8fa0b8;font-size:12px;margin-top:12px}';
+function injectGateCss() { if (typeof document === 'undefined' || document.getElementById('karp-gate-css')) return; const s = document.createElement('style'); s.id = 'karp-gate-css'; s.textContent = GATE_CSS; document.head.appendChild(s); }
+
+// Teiknar Karp+ gátt-teaser inn í el (t.d. í stað læsts efnis). Innskráð → „Prófa frítt í mánuð"
+// (POST /plus/trial → reload); útskráð → innskráning (1 mánuður frír eftir á).
+export function plusGate(el, opts) {
+  if (!el) return; injectGateCss(); opts = opts || {};
+  const u = _u();
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ Karp+</div>'
+    + '<h2 class="pg-h">' + esc(opts.title || 'Þetta er hluti af Karp+') + '</h2>'
+    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
+    + '<div class="pg-btns">'
+    + (u.loggedIn ? '<button class="pg-main" id="pg-trial" type="button">Prófa frítt í mánuð</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skráðu þig inn — 1 mánuður frír</a>')
+    + '<a class="pg-sec" href="/karp-pro/">Sjá Karp+</a></div>'
+    + '<div class="pg-note">Ókeypis fyrsta mánuðinn' + (opts.price ? ', svo ' + esc(opts.price) : '') + '. Hættu hvenær sem er.</div></div>';
+  const t = el.querySelector('#pg-trial');
+  if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; } };
+}
+
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, plusGate };

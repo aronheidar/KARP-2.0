@@ -101,7 +101,15 @@ function karp_user_payload() {
         $data['follows'] = is_array($fl) ? array_values($fl) : array();
         // Stjórnandi? → mælaborðið sýnir "Ný könnun"-form (Karp-kannanir).
         $data['isAdmin'] = current_user_can('manage_options');
+        // Karp+ áskrift (LOTA 94): admin = alltaf; annars karp_plus_until (unix-tími) í FRAMTÍÐ = virk áskrift/fríprófun.
+        $data['plus']    = current_user_can('manage_options') || ( (int) get_user_meta($u->ID, 'karp_plus_until', true) > time() );
+        // Keyptar skýrslur (karp_reports = fylki {key,title,ts}) → KARP_USER.reports = LYKLAR (fyrir hasReport-athugun).
+        $rep = (array) ( get_user_meta($u->ID, 'karp_reports', true) ?: array() );
+        $data['reports'] = array_values( array_map( function ($r) { return is_array($r) ? (string) ( $r['key'] ?? '' ) : (string) $r; }, $rep ) );
     }
+    // Greiðsluveggir VIRKIR? Global rofi (option karp_paywall='1') — Aron kveikir þegar billing er tilbúið.
+    // SLÖKKT sjálfgefið svo Vöktun/Útboð haldist opin þar til launch. Á við líka útskráða (gátt fyrir alla).
+    $data['paywall'] = get_option('karp_paywall') === '1';
 
     return $data;
 }
@@ -142,6 +150,40 @@ add_action('rest_api_init', function () {
         //   Opið (__return_true): {loggedIn:false} fyrir gest, full gögn + nonce þegar kakan auðkennir.
         array('methods' => 'GET',  'permission_callback' => '__return_true',                            'callback' => 'karp_me_get'),
         array('methods' => 'POST', 'permission_callback' => function () { return is_user_logged_in(); }, 'callback' => 'karp_me_save'),
+    ));
+});
+
+/**
+ * Karp+ áskrift + keyptar skýrslur (LOTA 94)
+ * --------------------------------------------------------------------------
+ * POST /plus/trial — hefja 1-mánaðar fríprófun (EINU SINNI per notanda; setur karp_plus_until).
+ * GET  /reports    — full gögn keyptra skýrslna notandans (fyrir Mitt svæði).
+ * ⚠ Sjálf greiðslan/áskriftin (endurnýjun karp_plus_until, viðbót í karp_reports) fer gegnum
+ *   PSP-vefhook (Teya) server-hlið EFTIR staðfesta greiðslu — EKKI beint kallanlegt af framenda.
+ *   Sá vefhook-handler kemur með Teya-samþættingunni (worker /api/pay + wp-hook).
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('karp/v1', '/plus/trial', array(
+        'methods' => 'POST',
+        'permission_callback' => function () { return is_user_logged_in(); },
+        'callback' => function () {
+            $uid = get_current_user_id();
+            if ( get_user_meta($uid, 'karp_trial_used', true) ) {
+                return array('ok' => false, 'error' => 'used');
+            }
+            $until = time() + 30 * DAY_IN_SECONDS;
+            update_user_meta($uid, 'karp_plus_until', $until);
+            update_user_meta($uid, 'karp_trial_used', '1');
+            return array('ok' => true, 'until' => $until);
+        },
+    ));
+    register_rest_route('karp/v1', '/reports', array(
+        'methods' => 'GET',
+        'permission_callback' => function () { return is_user_logged_in(); },
+        'callback' => function () {
+            $r = get_user_meta(get_current_user_id(), 'karp_reports', true);
+            return array('reports' => array_values( (array) ( $r ?: array() ) ));
+        },
     ));
 });
 function karp_me_get() {

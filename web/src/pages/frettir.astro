@@ -1091,4 +1091,18 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     window.__fgSetSel = fgSetSel;
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) { initFrettir(); initFjolmidlagreining(); } });
   </script>
+  <script>
+    // 🔒 Karp+ gátt (LOTA 94) — læsir Vöktun AÐEINS ef greiðsluveggir eru VIRKIR (KARP_USER.paywall; slökkt sjálfgefið).
+    import { loadUser, locked, plusGate } from '../lib/auth.js';
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="frettir"]');
+      if (!m) return;
+      loadUser().then(() => {
+        if (!locked() || document.getElementById('plus-gate-box')) return;
+        [...m.children].forEach((c) => { c.style.display = 'none'; });
+        const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
+        plusGate(g, { title: 'Vöktun & umfjöllun er hluti af Karp+', blurb: 'Fylgstu með fjölmiðlaumfjöllun um fyrirtæki, fólk og málefni á einum stað — fréttastraumar, leitarorðavaktir og greining. Fyrsti mánuðurinn er frír.', price: 'áskrift' });
+      });
+    });
+  </script>
 </Layout>
