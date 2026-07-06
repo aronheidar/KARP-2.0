@@ -19,6 +19,7 @@
  *   🏠 Fasteignavaktin — þinglýstar sölur vikunnar á götuvöktum notandans
  *   📋 Útboðsvaktin    — útboð sem vaktin fann í vikunni (seen-tímastimplar)
  *   🏢 Firmavaktin     — staða vöktuðu félaga (vanskil/afskráning úr karp_firmavakt_snap)
+ *   🅡 Ný vörumerki    — nýskráð vörumerki hjá vöktuðum félögum (karp.is/gogn/vorumerki_nyskrad.json)
  *
  * ⚠ AFHENDING: wp_mail þarf virka SMTP-uppsetningu (sjá noreply@karp.is verkefnið).
  */
@@ -128,6 +129,20 @@ function karp_digest_news_hits($word, $wkTs, $limit = 4) {
   if (!$n) return ['n' => 0, 'rows' => []];
   $rows = $wpdb->get_results($wpdb->prepare("SELECT title, url, source FROM $t WHERE ts >= %d AND title LIKE %s ORDER BY ts DESC LIMIT %d", $wkTs, $like, $limit), ARRAY_A);
   return ['n' => $n, 'rows' => is_array($rows) ? $rows : []];
+}
+
+/* Nýskráð vörumerki sl. 35 daga, lyklað á ownerSsn (kt) — byggingartíma-feed build_vorumerki_nyskrad.js.
+   Sótt einu sinni per cron-keyrslu (static cache), notað til að láta fylgjendur vita um ný merki félaga. */
+function karp_digest_vorumerki() {
+  static $c = null;
+  if ($c !== null) return $c;
+  $c = [];
+  $r = wp_remote_get('https://karp.is/gogn/vorumerki_nyskrad.json', ['timeout' => 8]);
+  if (!is_wp_error($r) && (int) wp_remote_retrieve_response_code($r) === 200) {
+    $j = json_decode(wp_remote_retrieve_body($r), true);
+    if (is_array($j) && !empty($j['byKt']) && is_array($j['byKt'])) $c = $j['byKt'];
+  }
+  return $c;
 }
 
 function karp_digest_build($u, $sh) {
@@ -252,6 +267,30 @@ function karp_digest_build($u, $sh) {
       if ($nfl <= 12) $sec .= $li($nafn, $flag, 'https://karp.is/fyrirtaeki/?q=' . rawurlencode($kt));
     }
     if ($sec) { $rows .= $H('🏢', 'Félög á vaktinni þinni — staða'); $rows .= $sec; $personal = true; }
+  }
+
+  /* 🅡 Ný vörumerki hjá félögum á vaktinni (Hugverkastofan, lyklað á ownerSsn — nýskráð sl. 35 daga) */
+  if (is_array($fmv) && !empty($fmv['on']) && !empty($fmv['felog'])) {
+    $vm = karp_digest_vorumerki();
+    if (!empty($vm)) {
+      $sec = '';
+      $nvm = 0;
+      foreach ((array) $fmv['felog'] as $co) {
+        if (!is_array($co) || empty($co['kt'])) continue;
+        $kt = preg_replace('/\D/', '', (string) $co['kt']);
+        if (empty($vm[$kt]) || !is_array($vm[$kt])) continue;
+        $nafn = !empty($co['nafn']) ? $co['nafn'] : $kt;
+        foreach (array_slice($vm[$kt], 0, 4) as $m) {
+          $nvm++;
+          if ($nvm <= 10) {
+            $ti = !empty($m['titill']) ? $m['titill'] : ($m['id'] ?? '');
+            $sub = esc_html($nafn) . ' · ' . esc_html($m['tegund'] ?? 'vörumerki') . (!empty($m['skrad']) ? ' · skráð ' . esc_html($m['skrad']) : '');
+            $sec .= $li('🅡 ' . $ti, $sub, 'https://www.hugverk.is/leit/trademark/' . rawurlencode($m['id'] ?? ''));
+          }
+        }
+      }
+      if ($sec) { $rows .= $H('🅡', 'Ný vörumerki hjá félögum á vaktinni'); $rows .= $sec; $personal = true; }
+    }
   }
 
   /* Vantar allt persónulegt? Hvetjum til að setja upp vaktir. */
