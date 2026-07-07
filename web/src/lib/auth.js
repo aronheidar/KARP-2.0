@@ -155,7 +155,11 @@ const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(24
   + '.pg-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}'
   + '.pg-main{background:#f6b13b;color:#131a29;font-weight:800;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px;border:0;cursor:pointer}'
   + '.pg-sec{border:1px solid rgba(255,255,255,.2);color:#cdd6e6;font-size:14px;text-decoration:none;padding:11px 20px;border-radius:11px}'
-  + '.pg-note{color:#8fa0b8;font-size:12px;margin-top:12px}';
+  + '.pg-note{color:#8fa0b8;font-size:12px;margin-top:12px}'
+  + '.sg-kt{padding:11px 14px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.05);color:#eaf1fb;font:inherit;font-size:14px;width:200px;text-align:center;letter-spacing:.06em}'
+  + '.sg-kt:focus{outline:none;border-color:#f6b13b}'
+  + '.sg-err{color:#ff8a8a;font-size:12.5px;margin-top:10px}'
+  + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}';
 function injectGateCss() { if (typeof document === 'undefined' || document.getElementById('karp-gate-css')) return; const s = document.createElement('style'); s.id = 'karp-gate-css'; s.textContent = GATE_CSS; document.head.appendChild(s); }
 
 // Teiknar Karp+ gátt-teaser inn í el (t.d. í stað læsts efnis). Innskráð → „Prófa frítt í mánuð"
@@ -186,7 +190,49 @@ export function subGate(el, opts) {
     + '</div>'
     + '<div class="pg-note">Fyrsti mánuðurinn ókeypis, svo <b>' + esc(price) + '</b>. Kort skráð við upphaf, fyrsta rukkun eftir mánuð. Hættu hvenær sem er.</div></div>';
   const b = el.querySelector('#sg-go');
-  if (b) b.onclick = () => karpSubscribe(svc, b);
+  if (b) b.onclick = () => karpAskellSubscribe(svc, el);
+}
+// Áskell v2 embedded checkout (LOTA 110). Safnar kt (tengir Áskell-viðskiptavin við Karp-notanda um
+// karp_kt) → worker /api/sub/checkout-session stofnar lotu → askell.js widget rendrar kort+3DS á karp.is.
+// Aðgangur opnast við vefkrók (subscription_contract → /sub/grant), EKKI aðeins onSuccess (staðfest server-hlið).
+let _askellP = null;
+function loadAskellJs() {
+  if (_askellP) return _askellP;
+  _askellP = new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined' && window.Askell && window.Askell.mountCheckout) return resolve();
+    const s = document.createElement('script'); s.src = 'https://cdn.askell.is/js/dist/askell.js'; s.async = true;
+    s.onload = () => resolve(); s.onerror = () => reject(new Error('askell.js'));
+    document.head.appendChild(s);
+  });
+  return _askellP;
+}
+export async function karpAskellSubscribe(service, gateEl) {
+  const btns = gateEl.querySelector('.pg-btns'); if (!btns) return;
+  btns.innerHTML = '<input type="text" id="sg-kt" class="sg-kt" placeholder="Kennitala (10 tölur)" maxlength="11" inputmode="numeric" autocomplete="off" />'
+    + '<button class="pg-main" id="sg-next" type="button">Halda áfram →</button>';
+  const err = document.createElement('div'); err.className = 'sg-err'; err.hidden = true; btns.after(err);
+  const ktIn = gateEl.querySelector('#sg-kt'); if (ktIn) ktIn.focus();
+  const fail = (m) => { err.hidden = false; err.textContent = m; };
+  gateEl.querySelector('#sg-next').onclick = async () => {
+    const kt = String(ktIn.value || '').replace(/\D/g, '');
+    if (kt.length !== 10) return fail('Sláðu inn gilda 10 stafa kennitölu.');
+    const nb = gateEl.querySelector('#sg-next'); nb.disabled = true; nb.textContent = 'Opna greiðslu…'; err.hidden = true;
+    try {
+      await karpPost('/sub/subscribe', { service, kt });   // vistar karp_kt → tengir vefkrók við notanda
+      const d = await (await fetch('/api/sub/checkout-session?service=' + encodeURIComponent(service) + '&kt=' + kt, { credentials: 'include' })).json();
+      if (!d || !d.token) throw new Error(d && d.error === 'unconfigured' ? 'Áskrift ekki virkjuð enn — reyndu síðar.' : 'nosession');
+      await loadAskellJs();
+      btns.innerHTML = '<div id="askell-checkout" class="sg-checkout"></div>';
+      window.Askell.mountCheckout('#askell-checkout', {
+        baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
+        onSuccess() { gateEl.innerHTML = '<div class="plus-gate"><div class="pg-badge">✅ Áskrift virk</div><h2 class="pg-h">Takk fyrir áskriftina!</h2><p class="pg-b">Aðgangurinn opnast eftir augnablik…</p></div>'; setTimeout(() => location.reload(), 3500); },
+        onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
+      });
+    } catch (e) {
+      const nb2 = gateEl.querySelector('#sg-next'); if (nb2) { nb2.disabled = false; nb2.textContent = 'Halda áfram →'; }
+      fail(e && typeof e.message === 'string' && e.message.length < 60 ? e.message : 'Ekki tókst að opna greiðslu — reyndu aftur.');
+    }
+  };
 }
 // Hefja áskrift. ENDANLEGT: recurring checkout (kort geymt + Teya boðgreiðslur/RPG-tóki) — BÍÐUR Teya-svars
 // + worker-mergs. BRÁÐABIRGÐA: fríprófun (án korts) svo flæðið sé prófanlegt fyrir launch.
@@ -199,4 +245,4 @@ export async function karpSubscribe(service, btn) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe, karpAskellSubscribe };
