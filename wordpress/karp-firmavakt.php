@@ -83,6 +83,16 @@ function karp_firmavakt_mynd($kt) {
     foreach ($van['ar'] as $x) { if (is_array($x)) $bits[] = (string) ($x['ar'] ?? '') . ' (' . (string) ($x['vanskil'] ?? '') . ')'; }
     $vanTxt = $bits ? implode(' · ', $bits) : 'engin';
   }
+  // Lögbirtingablaðið (LOTA 111): þrot/innköllun/skiptalok — NÝ tilkynning = viðvörun (kjarninn í vöktun).
+  $lb = $get('https://karp.is/api/logbirting?kt=' . $kt);
+  $lbTxt = (is_array($lb) && !empty($lb['holdur']) && !empty($lb['tilkynningar']))
+    ? ((string) ($lb['count'] ?? count($lb['tilkynningar'])) . ' tilk. · nýjast: ' . (string) ($lb['tilkynningar'][0]['tegundHeiti'] ?? '') . (isset($lb['tilkynningar'][0]['dagsetning']) ? ' (' . (string) $lb['tilkynningar'][0]['dagsetning'] . ')' : ''))
+    : (is_array($lb) ? 'engar' : '');
+  // Opinbert eftirlit RVK (LOTA 111): ný úttekt/einkunn = breyting (aðeins RVK-fyrirtæki hafa gögn).
+  $ef = $get('https://karp.is/api/eftirlit?kt=' . $kt);
+  $efTxt = (is_array($ef) && !empty($ef['holdur']) && !empty($ef['stadir']))
+    ? ((string) ($ef['stadir'][0]['ratingLabel'] ?? '') . (isset($ef['stadir'][0]['lastInspection']) ? ' · ' . (string) $ef['stadir'][0]['lastInspection'] : ''))
+    : '';
   return [
     'Heiti'                      => (string) ($f['nafn'] ?? ''),
     'Rekstrarform'               => (string) ($f['form'] ?? ''),
@@ -92,6 +102,8 @@ function karp_firmavakt_mynd($kt) {
     'Virk VSK-númer'             => (string) $vskA,
     'Nýjustu ársreikningaskil'   => $ars ? (string) $ars : '',
     'Vanskil ársreikningaskila'  => $vanTxt,
+    'Lögbirtingablaðið'          => $lbTxt,
+    'Opinbert eftirlit'          => $efTxt,
   ];
 }
 
@@ -127,6 +139,7 @@ add_action('karp_firmavakt_daily', function () {
       $old = $snap[$kt]['f'];
       $diffs = [];
       foreach ($mynd as $svid => $ny) {
+        if (!array_key_exists($svid, $old)) continue;   // nýtt vöktunar-svið (t.d. Lögbirting) → engin viðvörun við fyrstu skráningu í mynd
         $gam = isset($old[$svid]) ? (string) $old[$svid] : '';
         if ((string) $ny !== $gam) $diffs[] = [$svid, $gam, (string) $ny];
       }
@@ -161,7 +174,7 @@ add_action('karp_firmavakt_daily', function () {
       . '<div style="max-width:600px;margin:0 auto;background:#0e1420;border:1px solid #1d2733;border-radius:16px;overflow:hidden">'
       . '<div style="padding:22px 24px 6px"><div style="color:#f6b13b;font-weight:800;font-size:13px;letter-spacing:1px">🏢 KARP FIRMAVAKT</div>'
       . '<div style="color:#eaf1fb;font-size:20px;font-weight:800;margin-top:6px">' . $nCo . ' ' . ($nCo === 1 ? 'félag á vaktinni þinni breyttist' : 'félög á vaktinni þinni breyttust') . '</div>'
-      . '<div style="color:#8a93a8;font-size:13px;margin-top:4px">Breytingar í opinberri fyrirtækjaskrá og ársreikningaskrá Skattsins.</div></div>'
+      . '<div style="color:#8a93a8;font-size:13px;margin-top:4px">Breytingar í fyrirtækjaskrá, ársreikningaskrá, Lögbirtingablaðinu og opinberu eftirliti.</div></div>'
       . '<table style="width:100%;border-collapse:collapse;margin-top:8px">' . $rows . '</table>'
       . '<div style="padding:18px 24px 24px"><a href="https://karp.is/fyrirtaeki/" style="display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Opna Fyrirtækjaskrána →</a>'
       . '<div style="color:#5c6678;font-size:12px;margin-top:16px;line-height:1.5">Þú færð þennan póst því þú vaktar félögin á karp.is/fyrirtaeki — þar geturðu líka fjarlægt félög af vaktinni.</div></div>'
