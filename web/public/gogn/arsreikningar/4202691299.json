@@ -1,0 +1,75 @@
+{
+ "kt": "4202691299",
+ "nafn": "Landsvirkjun",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.6512,
+    "hagnadarhlutfall": 0.1803,
+    "ROE": 0.029,
+    "ROA": 0.019,
+    "eiginfjarhlutfall": 0.6541,
+    "veltufjarhlutfall": 0.1225,
+    "skuldahlutfall_DE": 0.5288,
+    "eignavelta": 0.1052
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.6128,
+    "hagnadarhlutfall": 0.2495,
+    "ROE": 0.0589,
+    "ROA": 0.039,
+    "eiginfjarhlutfall": 0.6624,
+    "veltufjarhlutfall": 0.117,
+    "skuldahlutfall_DE": 0.5096,
+    "eignavelta": 0.1563
+   }
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.6412,
+    "hagnadarhlutfall": 0.2279,
+    "ROE": 0.0699,
+    "ROA": 0.0451,
+    "eiginfjarhlutfall": 0.6449,
+    "veltufjarhlutfall": 0.1135,
+    "skuldahlutfall_DE": 0.5507,
+    "eignavelta": 0.1977
+   },
+   "rekstur": {
+    "sala": 708665,
+    "ebit": 454369,
+    "afskriftir": -7820,
+    "fjarmagnsgjold": -31183,
+    "hagn_f_skatt": 470122,
+    "tekjuskattur": -71386,
+    "hagnadur": 161505,
+    "adrar_tekjur": 12262,
+    "annar_rekstur": 14413,
+    "fjarmunatekjur": 3541
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3247935,
+    "vidskiptakrofur": 88410,
+    "handbaert": 56105,
+    "eignir": 3583821,
+    "skuldir": 1272757,
+    "efe_skuldir": 3583821,
+    "eigid_fe": 2311064,
+    "skammtimaskuldir": 1272757
+   }
+  }
+ }
+}
