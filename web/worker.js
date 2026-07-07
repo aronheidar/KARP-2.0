@@ -1171,6 +1171,43 @@ async function askellSessionHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
+// ⚠ TÍMABUNDINN greiningar-endapunktur (LOTA 110i) — les Áskell-uppsetningu m/private-lykli til að greina
+// „Payment processor configuration could not be loaded". Skilar AÐEINS fjölda + eligibility + display_names
+// (engin leyndarmál/viðkvæmt) → óhætt án ?t=. EYÐA eftir að webhook er staðfestur.
+async function askellConfigHandler(request, env) {
+  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'no-key' });
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  const get = async (p) => { try { const r = await fetch('https://askell.is' + p, { headers: H }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
+  const post = async (p, body) => { try { const r = await fetch('https://askell.is' + p, { method: 'POST', headers: H, body: JSON.stringify(body) }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
+  const arr = (x) => Array.isArray(x) ? x : (x && Array.isArray(x.results) ? x.results : []);
+  const prod = await get('/api/v2/catalog/products/?active=all');
+  const price = await get('/api/v2/catalog/prices/?active=all');
+  const products = arr(prod.b), prices = arr(price.b);
+  const iskRec = prices.find((p) => p.currency === 'ISK' && (p.billing_type === 'recurring' || p.recurrence_type)) || prices.find((p) => p.currency === 'ISK') || prices[0];
+  const out = {
+    products_status: prod.s, prices_status: price.s,
+    n_products: products.length,
+    n_active_products: products.filter((p) => p.active || p.is_active).length,
+    n_prices: prices.length,
+    isk_prices: prices.filter((p) => p.currency === 'ISK').map((p) => ({ id: p.id || p.pk, amount: p.amount, active: p.active != null ? p.active : p.is_active, billing: p.billing_type, rec: p.recurrence_type })),
+    picked_price: iskRec ? (iskRec.id || iskRec.pk) : null,
+  };
+  if (iskRec) {
+    const pid = iskRec.id || iskRec.pk;
+    const base = { customer_reference: '1234567890', currency: 'ISK', collection_method: 'card' };
+    let r = await post('/api/v2/payment-processor-options/', { ...base, items: [{ price: pid, quantity: 1 }] });
+    if (r.s >= 400) { const r2 = await post('/api/v2/payment-processor-options/', { ...base, initial_items: [{ price: pid, quantity: 1 }] }); if (r2.s < r.s) r = r2; }
+    const res = r.b || {};
+    out.pp_status = r.s;
+    const list = arr(res);
+    out.pp_results = list.length;
+    out.pp_processors = list.map((x) => ({ name: x.display_name, type: x.payment_processor, card: x.card_collection_in_frontend, checkout: x.supports_checkout }));
+    if (r.s >= 400) out.pp_error = res;
+    out.pp_selection = { selected_id: res.selected_account_payment_processor_id, reason: res.selection_reason, requires_selection: res.requires_selection };
+  }
+  return sjson(out);
+}
+
 // ── On-demand ársreikninga-scraping (LOTA 99R) — dispatchar GitHub Action ──
 // /fyrirtaeki/ kallar hér þegar keypt/skoðuð skýrsla hefur engan scrapaðan ársreikning. Worker sendir
 // repository_dispatch { kt } → .github/workflows/arsreikningur.yml scrapar RSK-PDF → web/public/gogn/
@@ -1443,6 +1480,7 @@ export default {
     if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
     if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
+    if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
