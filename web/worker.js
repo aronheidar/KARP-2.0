@@ -1126,14 +1126,13 @@ async function askellWebhookHandler(request, env, ctx) {
 // Framendinn kallar hér þegar notandi vill gerast áskrifandi → worker stofnar v2 checkout-session
 // með PRIVATE key (server-hlið) → skilar { token } sem framendinn setur í Askell.mountCheckout (askell.js).
 // Áskell-widgetinn sér um kortainnslátt + 3DS INNI á karp.is. customer_reference = kt bindur áskriftina.
-// ⚠ ÓVIRKT þar til ASKELL_PRIVATE_KEY + ASKELL_CHANNEL_FRETTIR/UTBOD (sölurásir Arons) eru sett.
+// ⚠ ÓVIRKT þar til ASKELL_PRIVATE_KEY er sett (rása-slug frettir/utbod eru hardkóðuð sjálfgildi).
 async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
   const service = u.searchParams.get('service') === 'utbod' ? 'utbod' : 'frettir';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
-  const channel = service === 'utbod' ? env.ASKELL_CHANNEL_UTBOD : env.ASKELL_CHANNEL_FRETTIR;
-  if (!channel) return sjson({ error: 'unconfigured' });
+  const channel = service === 'utbod' ? (env.ASKELL_CHANNEL_UTBOD || 'utbod') : (env.ASKELL_CHANNEL_FRETTIR || 'frettir');   // sjálfgefið = Tilvísun sölurásar → aðeins ASKELL_PRIVATE_KEY þarf sem secret
   const body = { sales_channel: channel, expires_in_seconds: 1800 };
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
