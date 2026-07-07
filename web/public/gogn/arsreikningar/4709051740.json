@@ -1,0 +1,100 @@
+{
+ "kt": "4709051740",
+ "nafn": "Sýn hf.",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "framlegd": 0.3368,
+    "ebit_hlutfall": -0.0441,
+    "eiginfjarhlutfall": 0.2786,
+    "veltufjarhlutfall": 0.6384,
+    "skuldahlutfall_DE": 2.5888,
+    "eignavelta": 0.6972
+   },
+   "rekstur": {
+    "sala": 21647,
+    "kostnadarverd": -14357,
+    "fjarmagnsgjold": -1354,
+    "hagn_f_skatt": -1940,
+    "tekjuskattur": 261,
+    "afskriftir": 4117,
+    "ebit": -955
+   },
+   "efnahagur": {
+    "fastafjarmunir": 24374,
+    "birgdir": 347,
+    "vidskiptakrofur": 3639,
+    "handbaert": 264,
+    "veltufjarmunir": 6676,
+    "eignir": 31050,
+    "hlutafe": 2476,
+    "eigid_fe": 8652,
+    "langtimaskuldir": 15741,
+    "skammtimaskuldir": 6657,
+    "skuldir": 22398,
+    "efe_skuldir": 31050
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "framlegd": 0.598,
+    "hagnadarhlutfall": -0.0776,
+    "ROE": -0.1941,
+    "ROA": -0.0541,
+    "eiginfjarhlutfall": 0.2786,
+    "veltufjarhlutfall": 0.6384,
+    "skuldahlutfall_DE": 2.5888,
+    "eignavelta": 0.6972
+   }
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "framlegd": 0.595,
+    "hagnadarhlutfall": -0.0288,
+    "ROE": -0.0788,
+    "ROA": -0.0205,
+    "eiginfjarhlutfall": 0.2608,
+    "veltufjarhlutfall": 0.7129,
+    "skuldahlutfall_DE": 2.8338,
+    "eignavelta": 0.7122
+   },
+   "rekstur": {
+    "sala": 21981,
+    "kostnadarverd": 8903,
+    "laun": 6200,
+    "annar_rekstur": 2171,
+    "afskriftir": -4395,
+    "fjarmagnsgjold": -1272,
+    "hagn_f_skatt": -895,
+    "tekjuskattur": 262,
+    "hagnadur": -634,
+    "ebitda": 1339
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23280,
+    "birgdir": 363,
+    "vidskiptakrofur": 4661,
+    "handbaert": 107,
+    "veltufjarmunir": 7582,
+    "eignir": 30862,
+    "hlutafe": 2476,
+    "eigid_fe": 8050,
+    "langtimaskuldir": 15615,
+    "skammtimaskuldir": 7197,
+    "skuldir": 22812,
+    "efe_skuldir": 30862
+   }
+  }
+ }
+}
