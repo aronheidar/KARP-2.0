@@ -1,0 +1,57 @@
+{
+ "kt": "5810080150",
+ "nafn": "Arion banki hf.",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.1319,
+    "veltufjarhlutfall": 0.078,
+    "skuldahlutfall_DE": 6.5826,
+    "eignavelta": 0.041
+   }
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.128,
+    "veltufjarhlutfall": 0.0879,
+    "skuldahlutfall_DE": 6.8145,
+    "eignavelta": 0
+   }
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.1238,
+    "veltufjarhlutfall": 0.0976,
+    "skuldahlutfall_DE": 7.0765,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "fjarmunatekjur": 129777,
+    "fjarmagnsgjold": -77235,
+    "adrar_tekjur": 5516,
+    "tekjuskattur": -12458,
+    "sala": 19.041,
+    "hagn_f_skatt": 8.044
+   },
+   "efnahagur": {
+    "handbaert": 150111,
+    "eignir": 1755765,
+    "skuldir": 1538374,
+    "hlutafe": 1383,
+    "eigid_fe": 217391,
+    "skammtimaskuldir": 1538374
+   }
+  }
+ }
+}
