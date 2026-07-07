@@ -1104,18 +1104,21 @@ async function askellWebhookHandler(request, env, ctx) {
   let body = {}; try { body = JSON.parse(raw); } catch (e) {}
   const ev = String(body.event || event || '');
   const d = body.data || body;   // Áskell pakkar í {event,sender,data:{...}}
-  // Áskrift: subscription.* gefur customer_reference(=kt sem VIÐ settum í ?reference=), plan.reference(=þjónusta)
-  //   og active_until(=nákvæm lok) → veitum aðgang TIL active_until (authoritative, alltaf í takt við Áskell).
-  if (ev.indexOf('subscription.') === 0 && env.KARP_GRANT_SECRET) {
+  // Áskrift: subscription.* (v1) OG subscription_contract.* (v2). customer_reference = kt (VIÐ settum),
+  //   þjónusta úr metadata.service (áreiðanlegt — við setjum í session) EÐA vöru-nafni; aðgangur TIL period-loka.
+  // ⚠ Nákvæm v2-svið staðfestast með raun test-greiðslu; les því mörg möguleg heiti varlega.
+  if (ev.indexOf('subscription') === 0 && env.KARP_GRANT_SECRET) {
     const kt = String(d.customer_reference || '').replace(/\D/g, '');
-    const plan = d.plan || {};
-    const planRef = (String(plan.reference || '') + ' ' + String(plan.name || '')).toLowerCase();
-    const svc = (planRef.indexOf('utbod') >= 0 || planRef.indexOf('útbo') >= 0) ? 'utbod' : 'frettir';
-    const until = d.active_until ? Math.floor(new Date(d.active_until).getTime() / 1000) : 0;
+    let meta = d.metadata || d.meta || {};
+    if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }   // v1 sýnir "meta":"{}" (strengur)
+    const nameBlob = (JSON.stringify(d.plan || d.items || d.product || d.bundle || '') + ' ' + String(d.reference || '')).toLowerCase();
+    const svc = (String(meta.service || '') === 'utbod' || nameBlob.indexOf('utbod') >= 0 || nameBlob.indexOf('útbo') >= 0) ? 'utbod' : 'frettir';
+    const endStr = d.active_until || d.current_period_end || d.next_billing_at || d.period_end || (d.current_period && d.current_period.end) || '';
+    const until = endStr ? Math.floor(new Date(endStr).getTime() / 1000) : 0;
     if (kt.length === 10 && until > 0) {
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, service: svc, until, ref: String(d.id || d.token || '') + '_' + until }),
+        body: JSON.stringify({ kt, service: svc, until, ref: String(d.id || d.token || d.uuid || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
@@ -1133,7 +1136,7 @@ async function askellSessionHandler(request, env, ctx) {
   const service = u.searchParams.get('service') === 'utbod' ? 'utbod' : 'frettir';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
   const channel = service === 'utbod' ? (env.ASKELL_CHANNEL_UTBOD || 'utbod') : (env.ASKELL_CHANNEL_FRETTIR || 'frettir');   // sjálfgefið = Tilvísun sölurásar → aðeins ASKELL_PRIVATE_KEY þarf sem secret
-  const body = { sales_channel: channel, expires_in_seconds: 1800 };
+  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: { service } };   // metadata.service → vefkrókur veit þjónustuna áreiðanlega
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
