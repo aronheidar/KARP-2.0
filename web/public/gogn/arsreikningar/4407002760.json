@@ -1,0 +1,69 @@
+{
+ "kt": "4407002760",
+ "nafn": "Kaffitár ehf.",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.0758,
+    "ROE": -0.6422,
+    "ROA": -0.1423,
+    "eiginfjarhlutfall": 0.2216,
+    "veltufjarhlutfall": 0.9039,
+    "skuldahlutfall_DE": 3.5135,
+    "eignavelta": 1.8761
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.0838,
+    "ROE": -2.0429,
+    "ROA": -0.1649,
+    "eiginfjarhlutfall": 0.0807,
+    "veltufjarhlutfall": 0.5339,
+    "skuldahlutfall_DE": 11.3886,
+    "eignavelta": 1.9671
+   }
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.1422,
+    "ROA": -0.1977,
+    "eiginfjarhlutfall": -0.148,
+    "veltufjarhlutfall": 0.3774,
+    "eignavelta": 1.3902
+   },
+   "rekstur": {
+    "sala": 687961107,
+    "adrar_tekjur": 0,
+    "laun": -162286702,
+    "afskriftir": -17363149,
+    "fjarmagnsgjold": -30417791,
+    "hagn_f_skatt": -122291597,
+    "tekjuskattur": 24454039,
+    "hagnadur": -97837558
+   },
+   "efnahagur": {
+    "birgdir": 210180793,
+    "vidskiptakrofur": 13131,
+    "handbaert": 4214940,
+    "eignir": 494858187,
+    "hlutafe": 30000000,
+    "eigid_fe": -73236747,
+    "skuldir": 568094934,
+    "efe_skuldir": 494858187,
+    "skammtimaskuldir": 568094934
+   }
+  }
+ }
+}

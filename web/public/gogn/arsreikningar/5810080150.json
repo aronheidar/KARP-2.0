@@ -4,21 +4,10 @@
  "sott": "2026-07-07",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
  "ar": {
-  "2023": {
-   "teg": "Ársreikningur",
-   "mynt": "USD",
-   "kvardi": 1,
-   "kpi": {
-    "eiginfjarhlutfall": 0.1319,
-    "veltufjarhlutfall": 0.078,
-    "skuldahlutfall_DE": 6.5826,
-    "eignavelta": 0.041
-   }
-  },
   "2024": {
    "teg": "Samstæðureikningur",
-   "mynt": "USD",
-   "kvardi": 1,
+   "mynt": "ISK",
+   "kvardi": 1000000,
    "kpi": {
     "eiginfjarhlutfall": 0.128,
     "veltufjarhlutfall": 0.0879,
@@ -28,8 +17,8 @@
   },
   "2025": {
    "teg": "Samstæðureikningur",
-   "mynt": "USD",
-   "kvardi": 1,
+   "mynt": "ISK",
+   "kvardi": 1000000,
    "kpi": {
     "eiginfjarhlutfall": 0.1238,
     "veltufjarhlutfall": 0.0976,

@@ -1,7 +1,7 @@
 {
  "kt": "5411850389",
  "nafn": "Brim hf.",
- "sott": "2026-07-06",
+ "sott": "2026-07-07",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
  "ar": {
   "2023": {
@@ -21,58 +21,59 @@
    }
   },
   "2024": {
-   "teg": "Ársreikningur",
+   "teg": "Samstæðureikningur",
    "mynt": "EUR",
    "kvardi": 1000,
    "kpi": {
-    "framlegd": 0.2292,
-    "ebit_hlutfall": 0.001,
-    "hagnadarhlutfall": 0.1565,
-    "ROE": 0.0822,
-    "ROA": 0.0456,
-    "eiginfjarhlutfall": 0.5544,
-    "veltufjarhlutfall": 0.2135,
-    "skuldahlutfall_DE": 0.8036,
-    "eignavelta": 0.291
+    "framlegd": 0.1686,
+    "ebit_hlutfall": 0.1265,
+    "hagnadarhlutfall": 0.1041,
+    "ROE": 0.0829,
+    "ROA": 0.0407,
+    "eiginfjarhlutfall": 0.4909,
+    "veltufjarhlutfall": 0.2943,
+    "skuldahlutfall_DE": 1.0371,
+    "eignavelta": 0.3909
    }
   },
   "2025": {
-   "teg": "Ársreikningur",
+   "teg": "Samstæðureikningur",
    "mynt": "EUR",
    "kvardi": 1000,
    "kpi": {
-    "framlegd": 0.2934,
-    "ebit_hlutfall": 0.001,
-    "hagnadarhlutfall": 0.2125,
-    "ROE": 0.1154,
-    "ROA": 0.0681,
-    "eiginfjarhlutfall": 0.5902,
-    "veltufjarhlutfall": 0.2928,
-    "skuldahlutfall_DE": 0.6943,
-    "eignavelta": 0.3204
+    "framlegd": 0.2183,
+    "ebit_hlutfall": 0.1736,
+    "hagnadarhlutfall": 0.1465,
+    "ROE": 0.1151,
+    "ROA": 0.0601,
+    "eiginfjarhlutfall": 0.5225,
+    "veltufjarhlutfall": 0.3897,
+    "skuldahlutfall_DE": 0.9138,
+    "eignavelta": 0.4106
    },
    "rekstur": {
-    "ebit": 286,
-    "sala": 285632,
-    "kostnadarverd": -201821,
+    "sala": 409668,
+    "kostnadarverd": -320248,
     "adrar_tekjur": 713,
-    "annar_rekstur": -11403,
-    "fjarmunatekjur": 2321,
-    "fjarmagnsgjold": -12613,
-    "hagn_f_skatt": 72345,
-    "tekjuskattur": -11643,
-    "hagnadur": 60702
+    "annar_rekstur": -12944,
+    "ebit": 71118,
+    "fjarmunatekjur": 2702,
+    "fjarmagnsgjold": -18054,
+    "hagn_f_skatt": 70563,
+    "tekjuskattur": -10562,
+    "hagnadur": 60001,
+    "ebitda": 90609
    },
    "efnahagur": {
-    "birgdir": 40837,
-    "vidskiptakrofur": 17641,
-    "handbaert": 48497,
-    "eignir": 891474,
+    "birgdir": 78857,
+    "vidskiptakrofur": 35323,
+    "handbaert": 71467,
+    "eignir": 997670,
     "hlutafe": 20083,
-    "eigid_fe": 526171,
-    "efe_skuldir": 891474,
-    "skuldir": 365303,
-    "skammtimaskuldir": 365303
+    "eigid_fe": 521316,
+    "skuldir": 476354,
+    "efe_skuldir": 997670,
+    "skammtimaskuldir": 476354
    }
   }
  }
