@@ -1083,6 +1083,44 @@ async function payCallbackHandler(request, env, ctx) {
   return new Response('ok', { status: 200 });
 }
 
+// ── Áskell áskriftar-vefkrókur (LOTA 110) — endurtekin Karp+ áskrift gegnum Áskell (kort-á-skrá) ──
+// Áskell rukkar kortið mánaðarlega SJÁLFT + sendir vefkrók við hverja greiðslu. Við sannreynum
+// Hook-HMAC (HMAC-SHA512 base64 af hráum body) → framlengjum aðgang (karp-user.php /sub/grant, kt-lykill,
+// idempotent á greiðslu-id). Afbókun = engar fleiri greiðslur → aðgangur rennur út (engin sér-afturköllun).
+// ⚠ ÓVIRKT þar til ASKELL_WEBHOOK_SECRET er sett. ⚠ Body-lyklar (kennitala/plan/id) SANNPRÓFAST í sandbox.
+async function askellWebhookHandler(request, env, ctx) {
+  if (!env.ASKELL_WEBHOOK_SECRET) return new Response('unconfigured', { status: 200 });
+  const raw = await request.text();
+  const sig = request.headers.get('Hook-HMAC') || '';
+  const event = request.headers.get('Hook-Event') || '';
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(env.ASKELL_WEBHOOK_SECRET), { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']);
+  const macBuf = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(raw)));
+  let bin = ''; for (let i = 0; i < macBuf.length; i++) bin += String.fromCharCode(macBuf[i]);
+  const expect = btoa(bin);
+  // fastatíma-samanburður (svindl-vörn)
+  if (sig.length !== expect.length) return new Response('badsig', { status: 401 });
+  let diff = 0; for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);
+  if (diff !== 0) return new Response('badsig', { status: 401 });
+  let p = {}; try { p = JSON.parse(raw); } catch (e) {}
+  const blob = JSON.stringify(p);
+  const success = (event === 'payment.changed' && /"(state|status)"\s*:\s*"?(success|paid|completed|ok|active)/i.test(blob)) || event === 'subscription.renewed' || event === 'subscription.created';
+  if (success && env.KARP_GRANT_SECRET) {
+    const cust = p.customer || (p.subscription && p.subscription.customer) || {};
+    const kt = String(cust.kennitala || cust.ssn || cust.customer_reference || p.kennitala || '').replace(/\D/g, '');
+    const planRef = String((p.subscription && (p.subscription.plan || p.subscription.reference)) || p.plan || p.reference || '');
+    const utb = String(env.ASKELL_PLAN_UTBOD || '');
+    const svc = (utb && planRef.indexOf(utb) >= 0) ? 'utbod' : 'frettir';
+    const ref = String(p.id || (p.transaction && p.transaction.id) || (event + ':' + (p.created || '')));
+    if (kt.length === 10) {
+      ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+        body: JSON.stringify({ kt, service: svc, months: 1, ref }),
+      }).catch(() => {}));
+    }
+  }
+  return new Response('ok', { status: 200 });
+}
+
 // ── On-demand ársreikninga-scraping (LOTA 99R) — dispatchar GitHub Action ──
 // /fyrirtaeki/ kallar hér þegar keypt/skoðuð skýrsla hefur engan scrapaðan ársreikning. Worker sendir
 // repository_dispatch { kt } → .github/workflows/arsreikningur.yml scrapar RSK-PDF → web/public/gogn/
@@ -1352,6 +1390,7 @@ export default {
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
+    if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
