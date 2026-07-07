@@ -171,13 +171,15 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     const pdf = await downloadPdf(kid);
     fs.writeFileSync(tmp, pdf);
     const parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
-    // parsed.ar = [líðandi, fyrra]; skráum bæði ár úr þessu PDF (KPI þegar reiknað per ár)
+    // parsed.ar = [líðandi, fyrra]; skráum fjárhæðir BEGGJA dálka svo HVERT ár fái tölur → fjölárs-
+    // þróunarrit + tekju-/hagnaðarvöxtur reiknist í framenda. KJÓSUM þó idx0 (ár úr SÍNU EIGIN skjali)
+    // ef sama ár berst bæði sem líðandi (eldra PDF) og fyrra (yngra PDF) — eigin-skjals dálkur er canonical.
     parsed.ar.forEach((y, i) => {
       if (y == null) return;
-      const rec = { teg: r.teg, mynt: parsed.mynt, kvardi: parsed.kvardi, kpi: parsed.kpi[String(y)] || null };
-      // aðeins skrá tölur líðandi árs úr þessu skjali (fyrra ár kemur betur úr sínu eigin skjali)
-      if (i === 0) { rec.rekstur = colOf(parsed.rekstur, 0); rec.efnahagur = colOf(parsed.efnahagur, 0); }
-      out.ar[y] = out.ar[y] || rec;
+      const rec = { teg: r.teg, mynt: parsed.mynt, kvardi: parsed.kvardi, kpi: parsed.kpi[String(y)] || null,
+        rekstur: colOf(parsed.rekstur, i), efnahagur: colOf(parsed.efnahagur, i), _idx: i };
+      const fyrir = out.ar[y];
+      if (!fyrir || (i === 0 && fyrir._idx !== 0)) out.ar[y] = rec;
     });
     await new Promise((x) => setTimeout(x, 1200)); // hófsemi gagnvart RSK
   }
@@ -192,6 +194,7 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     fs.writeFileSync(dest, JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör).' }, null, 1));
     return null;
   }
+  for (const y of Object.keys(out.ar)) delete out.ar[y]._idx;   // innra val-merki, ekki í skrá
   fs.writeFileSync(dest, JSON.stringify(out, null, 1));
   console.log(`  -> ${path.relative(ROOT, dest)}  (ár: ${Object.keys(out.ar).join(', ')})`);
   return out;

@@ -16,6 +16,27 @@
     "veltufjarhlutfall": 0.9039,
     "skuldahlutfall_DE": 3.5135,
     "eignavelta": 1.8761
+   },
+   "rekstur": {
+    "sala": 633880874,
+    "adrar_tekjur": 1234533,
+    "laun": -154564940,
+    "afskriftir": -13638377,
+    "fjarmagnsgjold": -21958161,
+    "hagn_f_skatt": -60086240,
+    "tekjuskattur": 12013208,
+    "hagnadur": -48073032
+   },
+   "efnahagur": {
+    "birgdir": 212977593,
+    "vidskiptakrofur": 553856,
+    "handbaert": 24203560,
+    "eignir": 337874174,
+    "hlutafe": 30000000,
+    "skuldir": 263015766,
+    "efe_skuldir": 337874174,
+    "eigid_fe": 74858408,
+    "skammtimaskuldir": 263015766
    }
   },
   "2024": {
@@ -30,6 +51,27 @@
     "veltufjarhlutfall": 0.5339,
     "skuldahlutfall_DE": 11.3886,
     "eignavelta": 1.9671
+   },
+   "rekstur": {
+    "sala": 599506482,
+    "adrar_tekjur": 539936,
+    "laun": -152933785,
+    "afskriftir": -10947171,
+    "fjarmagnsgjold": -20756601,
+    "hagn_f_skatt": -63968135,
+    "tekjuskattur": 13710538,
+    "hagnadur": -50257597
+   },
+   "efnahagur": {
+    "birgdir": 134363325,
+    "vidskiptakrofur": 924930,
+    "handbaert": 14297400,
+    "eignir": 304768513,
+    "hlutafe": 30000000,
+    "skuldir": 280167702,
+    "efe_skuldir": 304768513,
+    "eigid_fe": 24600811,
+    "skammtimaskuldir": 280167702
    }
   },
   "2025": {

@@ -16,6 +16,25 @@
     "veltufjarhlutfall": 0.0476,
     "skuldahlutfall_DE": 6.0718,
     "eignavelta": 0.0392
+   },
+   "rekstur": {
+    "fjarmunatekjur": 135278,
+    "fjarmagnsgjold": -94077,
+    "adrar_tekjur": 2401,
+    "sala": 63057,
+    "laun": -16329,
+    "annar_rekstur": -11299,
+    "tekjuskattur": -9458,
+    "hagnadur": 24246,
+    "afskriftir": 1662
+   },
+   "efnahagur": {
+    "handbaert": 65716,
+    "eignir": 1607807,
+    "skuldir": 1380452,
+    "hlutafe": 9473,
+    "eigid_fe": 227355,
+    "skammtimaskuldir": 1380452
    }
   },
   "2025": {

@@ -477,6 +477,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           row.skammtimaskuldir = (e.skammtimaskuldir || 0) * kv; }
         return row;
       });
+      // Vöxtur (tekju-/hagnaðar-) reiknast úr fjölærs-gögnunum — þáttarinn skilar honum ekki (per-ár KPI úr einu PDF).
+      rows.forEach((row, i) => {
+        const p = rows[i + 1];   // fyrra ár (raðað nýjast-fyrst)
+        if (row._kpi && p) {
+          // aðeins marktækt frá JÁKVÆÐUM grunni (banka-rekstrarreikn. þáttast stundum í rusl/neikvæðar tekjur)
+          if (p.tekjur > 0 && row.tekjur > 0) row._kpi.tekjuvoxtur = row.tekjur / p.tekjur - 1;
+          if (p.hagnadur > 0) row._kpi.hagnvoxtur = row.hagnadur / p.hagnadur - 1;
+        }
+      });
       return rows;
     }
     async function fsFjarhagur(kt, owned) {
@@ -620,7 +629,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div class="kpi-health-l">Fjárhagsheilsa<span>' + (hs.score == null ? '' : hs.score >= 65 ? 'Sterk staða' : hs.score >= 50 ? 'Í meðallagi' : 'Veik staða') + '</span></div></div>';
     }
     function fsTrendChart(rows, cur) {
-      const yrs = rows.slice().reverse().filter((r) => r.tekjur != null);
+      const yrs = rows.slice().reverse().filter((r) => r.tekjur > 0);   // sleppum ár án/með rusl-tekjum (t.d. bankar)
       if (!yrs.length) return '';
       const mx = Math.max.apply(null, yrs.map((r) => r.tekjur)) || 1;
       const bw = 46, gap = 30, h = 118, x0 = 6;

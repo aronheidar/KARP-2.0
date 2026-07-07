@@ -18,6 +18,30 @@
     "veltufjarhlutfall": 0.3049,
     "skuldahlutfall_DE": 1.0085,
     "eignavelta": 0.4604
+   },
+   "rekstur": {
+    "sala": 437215,
+    "kostnadarverd": -335396,
+    "adrar_tekjur": 369,
+    "annar_rekstur": -12599,
+    "ebit": 79558,
+    "fjarmunatekjur": 4663,
+    "fjarmagnsgjold": -19330,
+    "hagn_f_skatt": 75037,
+    "tekjuskattur": -12089,
+    "hagnadur": 62948,
+    "ebitda": 97224
+   },
+   "efnahagur": {
+    "birgdir": 74405,
+    "vidskiptakrofur": 36800,
+    "handbaert": 34178,
+    "eignir": 949658,
+    "hlutafe": 20083,
+    "eigid_fe": 472808,
+    "skuldir": 476850,
+    "efe_skuldir": 949658,
+    "skammtimaskuldir": 476850
    }
   },
   "2024": {
@@ -34,6 +58,30 @@
     "veltufjarhlutfall": 0.2943,
     "skuldahlutfall_DE": 1.0371,
     "eignavelta": 0.3909
+   },
+   "rekstur": {
+    "sala": 389365,
+    "kostnadarverd": -323708,
+    "adrar_tekjur": 3400,
+    "annar_rekstur": -12382,
+    "ebit": 49241,
+    "fjarmunatekjur": 4011,
+    "fjarmagnsgjold": -23178,
+    "hagn_f_skatt": 46110,
+    "tekjuskattur": -5595,
+    "hagnadur": 40515,
+    "ebitda": 65304
+   },
+   "efnahagur": {
+    "birgdir": 65327,
+    "vidskiptakrofur": 31740,
+    "handbaert": 52135,
+    "eignir": 995973,
+    "hlutafe": 20083,
+    "eigid_fe": 488919,
+    "skuldir": 507054,
+    "efe_skuldir": 995973,
+    "skammtimaskuldir": 507054
    }
   },
   "2025": {
