@@ -1197,14 +1197,19 @@ async function askellConfigHandler(request, env) {
     const base = { customer_reference: '1234567890', currency: 'ISK', collection_method: 'card' };
     let r = await post('/api/v2/payment-processor-options/', { ...base, items: [{ price: pid, quantity: 1 }] });
     if (r.s >= 400) { const r2 = await post('/api/v2/payment-processor-options/', { ...base, initial_items: [{ price: pid, quantity: 1 }] }); if (r2.s < r.s) r = r2; }
-    const res = r.b || {};
     out.pp_status = r.s;
-    const list = arr(res);
-    out.pp_results = list.length;
-    out.pp_processors = list.map((x) => ({ name: x.display_name, type: x.payment_processor, card: x.card_collection_in_frontend, checkout: x.supports_checkout }));
-    if (r.s >= 400) out.pp_error = res;
-    out.pp_selection = { selected_id: res.selected_account_payment_processor_id, reason: res.selection_reason, requires_selection: res.requires_selection };
+    out.pp_raw = r.b;   // fullt hrátt svar → sést hvers vegna results er tómt þrátt fyrir single_eligible
   }
+  // Finna account payment processors (nr. 254) → sést tegund + hvort hann styður innfellt checkout
+  out.processor_probe = {};
+  let processors = null;
+  for (const p of ['/api/v2/account-payment-processors/?active=all', '/api/v2/payment-processors/?active=all', '/api/paymentprocessors/', '/api/v2/account-payment-processors/']) {
+    const g = await get(p);
+    const list = Array.isArray(g.b) ? g.b : ((g.b && g.b.results) || null);
+    out.processor_probe[p] = g.s + (list ? (' n=' + list.length) : '');
+    if (g.s === 200 && list && !processors) processors = list;
+  }
+  if (processors) out.processors = processors.map((x) => ({ id: x.id || x.pk, name: x.display_name || x.name, type: x.payment_processor || x.processor_type || x.type, active: x.active != null ? x.active : x.is_active, checkout: x.supports_checkout, card_frontend: x.card_collection_in_frontend, render: x.render_mode }));
   return sjson(out);
 }
 
