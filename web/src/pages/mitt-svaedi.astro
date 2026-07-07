@@ -173,10 +173,19 @@ const updated = '2026-07-02';
       <div class="w">
         <div class="w-h">👤 Aðgangurinn</div>
         <div id="acc" class="acc"></div>
-        <div class="acc-links">
-          <a href="https://wp.karp.is/notandi/" target="_blank" rel="noopener">Breyta prófíl ↗</a>
-          <a href="https://wp.karp.is/login/?action=lostpassword" target="_blank" rel="noopener">Breyta lykilorði ↗</a>
+        <div class="acc-links" id="acc-links" hidden>
+          <button type="button" id="acc-edit" class="acc-lnk">Breyta prófíl</button>
+          <a class="acc-lnk" href="/endurstilla/">Breyta lykilorði</a>
         </div>
+        <form id="acc-form" class="acc-form" hidden autocomplete="on">
+          <label class="acc-fld"><span>Nafn</span><input type="text" id="acc-name" autocomplete="name" maxlength="80" /></label>
+          <label class="acc-fld"><span>Netfang</span><input type="email" id="acc-email" autocomplete="email" maxlength="120" /></label>
+          <p class="acc-msg" id="acc-msg" hidden></p>
+          <div class="acc-btns">
+            <button type="submit" class="acc-save" id="acc-save">Vista</button>
+            <button type="button" class="acc-cancel" id="acc-cancel">Hætta við</button>
+          </div>
+        </form>
       </div>
     </section>
 
@@ -217,8 +226,20 @@ const updated = '2026-07-02';
     select { width: 100%; max-width: 340px; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 10px 12px; font-size: 14px; }
     .acc { font-size: 13.5px; color: #cdd6e6; margin-bottom: 8px; }
     .acc-links { display: flex; flex-wrap: wrap; gap: 14px; }
-    .acc-links a { font-size: 12.5px; color: #9fb0c8; }
-    .acc-links a:hover { color: #f6b13b; }
+    .acc-links a, .acc-lnk { font-size: 12.5px; color: #9fb0c8; background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; text-decoration: none; }
+    .acc-links a:hover, .acc-lnk:hover { color: #f6b13b; }
+    .acc-form { margin-top: 10px; display: grid; gap: 9px; max-width: 340px; }
+    .acc-fld { display: grid; gap: 3px; }
+    .acc-fld span { font-size: 11.5px; color: #9fb0c8; }
+    .acc-fld input { padding: 8px 10px; border: 1px solid rgba(255,255,255,.14); border-radius: 8px; font: inherit; background: rgba(255,255,255,.04); color: #eef2f8; }
+    .acc-fld input:focus { outline: none; border-color: #f6b13b; }
+    .acc-btns { display: flex; gap: 8px; margin-top: 2px; }
+    .acc-save { background: #f6b13b; color: #201400; border: 0; border-radius: 8px; padding: 8px 15px; font: inherit; font-weight: 700; cursor: pointer; }
+    .acc-save:disabled { opacity: .55; cursor: default; }
+    .acc-cancel { background: none; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; padding: 8px 13px; font: inherit; color: #cdd6e6; cursor: pointer; }
+    .acc-msg { font-size: 12.5px; margin: 0; }
+    .acc-msg.ok { color: #6bd08b; }
+    .acc-msg.err { color: #ff8a8a; }
     .dim { font-size: 13px; color: #7e8ca6; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 20px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
@@ -551,6 +572,36 @@ const updated = '2026-07-02';
           return;
         }
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;
+        // Native „Breyta prófíl" — inline editor (kemur í stað ónotuðu wp-notanda-/UM-síðunnar)
+        (function wireAcc() {
+          const links = $g('acc-links'), form = $g('acc-form');
+          if (!links || !form) return;
+          links.hidden = false;
+          if (form.dataset.wired) return; form.dataset.wired = '1';
+          const nm = $g('acc-name'), em = $g('acc-email'), msg = $g('acc-msg'), save = $g('acc-save');
+          const show = (on) => { form.hidden = !on; links.hidden = on; if (on) { const KU = window.KARP_USER || {}; nm.value = KU.name || u.name || ''; em.value = KU.email || u.email || ''; msg.hidden = true; } };
+          $g('acc-edit').onclick = () => show(true);
+          $g('acc-cancel').onclick = () => show(false);
+          form.onsubmit = async (e) => {
+            e.preventDefault();
+            const name = nm.value.trim(), email = em.value.trim();
+            const bad = (t) => { msg.hidden = false; msg.className = 'acc-msg err'; msg.textContent = t; };
+            if (!name) return bad('Sláðu inn nafn.');
+            if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return bad('Sláðu inn gilt netfang.');
+            save.disabled = true; const t0 = save.textContent; save.textContent = 'Vista…';
+            try {
+              const r = await karpPost('/profile', { name, email });
+              if (r && r.ok) {
+                const nn = r.name || name, ne = r.email || email;
+                if (window.KARP_USER) { window.KARP_USER.name = nn; window.KARP_USER.email = ne; }
+                $g('acc').textContent = `Innskráð(ur) sem ${nn}${ne ? ' · ' + ne : ''}`;
+                msg.hidden = false; msg.className = 'acc-msg ok'; msg.textContent = '✓ Prófíllinn uppfærður.';
+                setTimeout(() => show(false), 1300);
+              } else bad((r && r.error) || 'Ekki tókst að vista — reyndu aftur.');
+            } catch (err) { bad('Villa — reyndu aftur.'); }
+            save.disabled = false; save.textContent = t0;
+          };
+        })();
         // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). LOTA 24.
         if (u.isAdmin) {
           const box = $g('w-traffic-box'), tel = $g('w-traffic');

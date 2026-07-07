@@ -150,6 +150,29 @@ add_action('rest_api_init', function () {
         array('methods' => 'GET',  'permission_callback' => '__return_true',                            'callback' => 'karp_me_get'),
         array('methods' => 'POST', 'permission_callback' => function () { return is_user_logged_in(); }, 'callback' => 'karp_me_save'),
     ));
+    // POST /profile {name,email} — notandi uppfærir EIGIN prófíl (nafn + netfang).
+    // Native „Breyta prófíl" á Mitt svæði — kemur í stað ónotuðu Ultimate-Member/wp-notanda-síðunnar.
+    register_rest_route('karp/v1', '/profile', array(
+        'methods' => 'POST',
+        'permission_callback' => function () { return is_user_logged_in(); },
+        'callback' => function (WP_REST_Request $req) {
+            $uid = get_current_user_id();
+            if (!$uid) { return array('ok' => false, 'error' => 'Ekki innskráð(ur).'); }
+            $name = trim(wp_strip_all_tags((string) $req->get_param('name')));
+            if ($name === '') { return array('ok' => false, 'error' => 'Nafn má ekki vera tómt.'); }
+            $args = array('ID' => $uid, 'display_name' => $name, 'nickname' => $name);
+            $email = sanitize_email((string) $req->get_param('email'));
+            if ($email !== '' && is_email($email)) {
+                $ex = email_exists($email);
+                if ($ex && (int) $ex !== (int) $uid) { return array('ok' => false, 'error' => 'Netfangið er þegar í notkun hjá öðrum aðgangi.'); }
+                $args['user_email'] = $email;
+            }
+            $res = wp_update_user($args);
+            if (is_wp_error($res)) { return array('ok' => false, 'error' => $res->get_error_message()); }
+            $u = get_userdata($uid);
+            return array('ok' => true, 'name' => $u->display_name, 'email' => $u->user_email);
+        },
+    ));
 });
 
 /**
