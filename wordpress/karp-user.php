@@ -294,6 +294,7 @@ function karp_sub_grant($req) {
     $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
     $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
     $months = max(1, (int) ( isset($p['months']) ? $p['months'] : 1 ));
+    $untilAbs = isset($p['until']) ? (int) $p['until'] : 0;   // Áskell active_until (nákvæm lok, unix) → notað beint ef sent
     $ref = (string) ( isset($p['ref']) ? $p['ref'] : '' );
     if ( strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'kt'); }
     // Idempotency: sama greidda krafa (ref/claimId) má AÐEINS framlengja einu sinni (annars +mánuður daglega).
@@ -303,7 +304,7 @@ function karp_sub_grant($req) {
     if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
     $uid = (int) $users[0];
     $cur = (int) get_user_meta($uid, 'karp_sub_' . $svc . '_until', true);
-    $until = max(time(), $cur) + $months * 30 * DAY_IN_SECONDS;
+    $until = $untilAbs > 0 ? max($cur, $untilAbs) : ( max(time(), $cur) + $months * 30 * DAY_IN_SECONDS );   // Áskell: TIL active_until · annars +N mánuðir
     update_user_meta($uid, 'karp_sub_' . $svc . '_until', $until);
     $subs = (array) get_option('karp_subscribers', array());
     $key = $uid . ':' . $svc;

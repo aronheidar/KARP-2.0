@@ -1101,20 +1101,21 @@ async function askellWebhookHandler(request, env, ctx) {
   if (sig.length !== expect.length) return new Response('badsig', { status: 401 });
   let diff = 0; for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);
   if (diff !== 0) return new Response('badsig', { status: 401 });
-  let p = {}; try { p = JSON.parse(raw); } catch (e) {}
-  const blob = JSON.stringify(p);
-  const success = (event === 'payment.changed' && /"(state|status)"\s*:\s*"?(success|paid|completed|ok|active)/i.test(blob)) || event === 'subscription.renewed' || event === 'subscription.created';
-  if (success && env.KARP_GRANT_SECRET) {
-    const cust = p.customer || (p.subscription && p.subscription.customer) || {};
-    const kt = String(cust.kennitala || cust.ssn || cust.customer_reference || p.kennitala || '').replace(/\D/g, '');
-    const planRef = String((p.subscription && (p.subscription.plan || p.subscription.reference)) || p.plan || p.reference || '');
-    const utb = String(env.ASKELL_PLAN_UTBOD || '');
-    const svc = (utb && planRef.indexOf(utb) >= 0) ? 'utbod' : 'frettir';
-    const ref = String(p.id || (p.transaction && p.transaction.id) || (event + ':' + (p.created || '')));
-    if (kt.length === 10) {
+  let body = {}; try { body = JSON.parse(raw); } catch (e) {}
+  const ev = String(body.event || event || '');
+  const d = body.data || body;   // Áskell pakkar í {event,sender,data:{...}}
+  // Áskrift: subscription.* gefur customer_reference(=kt sem VIÐ settum í ?reference=), plan.reference(=þjónusta)
+  //   og active_until(=nákvæm lok) → veitum aðgang TIL active_until (authoritative, alltaf í takt við Áskell).
+  if (ev.indexOf('subscription.') === 0 && env.KARP_GRANT_SECRET) {
+    const kt = String(d.customer_reference || '').replace(/\D/g, '');
+    const plan = d.plan || {};
+    const planRef = (String(plan.reference || '') + ' ' + String(plan.name || '')).toLowerCase();
+    const svc = (planRef.indexOf('utbod') >= 0 || planRef.indexOf('útbo') >= 0) ? 'utbod' : 'frettir';
+    const until = d.active_until ? Math.floor(new Date(d.active_until).getTime() / 1000) : 0;
+    if (kt.length === 10 && until > 0) {
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, service: svc, months: 1, ref }),
+        body: JSON.stringify({ kt, service: svc, until, ref: String(d.id || d.token || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
