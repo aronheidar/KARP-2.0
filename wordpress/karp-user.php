@@ -219,6 +219,25 @@ add_action('rest_api_init', function () {
             return array('ok' => true, 'service' => $svc, 'until' => $until);
         },
     ));
+    // POST /sub/subscribe {service, kt} — innskráður notandi gerist áskrifandi (Arion-kröfu-leið, LOTA 110).
+    //   Geymir kt + skráir í karp_subscribers (status 'pending' → arion_askrift.mjs stofnar kröfu næst).
+    //   Aðgangur opnast EFTIR greidda kröfu (grant frá Action). Kort geymist ekki — krafa í heimabanka.
+    register_rest_route('karp/v1', '/sub/subscribe', array(
+        'methods' => 'POST',
+        'permission_callback' => function () { return is_user_logged_in(); },
+        'callback' => function ($req) {
+            $uid = get_current_user_id();
+            $p = (array) $req->get_json_params();
+            $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
+            $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
+            if ( strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'kt'); }
+            update_user_meta($uid, 'karp_kt', $kt);
+            $subs = (array) get_option('karp_subscribers', array());
+            $subs[ $uid . ':' . $svc ] = array('uid' => $uid, 'kt' => $kt, 'service' => $svc, 'since' => time(), 'next_due' => time(), 'status' => 'pending');
+            update_option('karp_subscribers', $subs, false);
+            return array('ok' => true, 'service' => $svc, 'status' => 'pending');
+        },
+    ));
     register_rest_route('karp/v1', '/reports', array(
         'methods' => 'GET',
         'permission_callback' => function () { return is_user_logged_in(); },
@@ -236,7 +255,62 @@ add_action('rest_api_init', function () {
         'permission_callback' => '__return_true',
         'callback' => 'karp_reports_grant',
     ));
+    // SERVER-TIL-SERVER (arion_askrift.mjs, varið KARP_GRANT_SECRET um X-Karp-Secret haus):
+    //   GET  /subs/due       → áskrifendur sem á að stofna kröfu fyrir (next_due liðinn).
+    //   POST /sub/claimed    → merkja að krafa hafi verið stofnuð (fresta next_due → engin tvöföldun).
+    //   POST /sub/grant      → framlengja aðgang eftir greidda kröfu (karp_sub_<svc>_until += mánuðir).
+    register_rest_route('karp/v1', '/subs/due', array('methods' => 'GET', 'permission_callback' => '__return_true', 'callback' => 'karp_subs_due'));
+    register_rest_route('karp/v1', '/sub/claimed', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_claimed'));
+    register_rest_route('karp/v1', '/sub/grant', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_grant'));
 });
+function karp_grant_secret_ok($req) {
+    $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
+    return $secret !== '' && hash_equals($secret, (string) $req->get_header('X-Karp-Secret'));
+}
+function karp_subs_due($req) {
+    if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
+    $now = time(); $due = array();
+    foreach ( (array) get_option('karp_subscribers', array()) as $s ) {
+        if ( in_array( isset($s['status']) ? $s['status'] : '', array('pending', 'active'), true ) && ( isset($s['next_due']) ? $s['next_due'] : 0 ) <= $now ) {
+            $due[] = array('uid' => $s['uid'], 'kt' => $s['kt'], 'service' => $s['service']);
+        }
+    }
+    return array('subs' => $due);
+}
+function karp_sub_claimed($req) {
+    if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
+    $p = (array) $req->get_json_params();
+    $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
+    $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
+    $subs = (array) get_option('karp_subscribers', array());
+    foreach ( $subs as $k => $s ) {
+        if ( $s['kt'] === $kt && $s['service'] === $svc ) { $subs[$k]['next_due'] = time() + 40 * DAY_IN_SECONDS; update_option('karp_subscribers', $subs, false); break; }   // bíður greiðslu; retry eftir 40 d ef ógreitt
+    }
+    return array('ok' => true);
+}
+function karp_sub_grant($req) {
+    if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
+    $p = (array) $req->get_json_params();
+    $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
+    $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
+    $months = max(1, (int) ( isset($p['months']) ? $p['months'] : 1 ));
+    $ref = (string) ( isset($p['ref']) ? $p['ref'] : '' );
+    if ( strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'kt'); }
+    // Idempotency: sama greidda krafa (ref/claimId) má AÐEINS framlengja einu sinni (annars +mánuður daglega).
+    $done = (array) get_option('karp_sub_granted_refs', array());
+    if ( $ref !== '' && in_array($ref, $done, true) ) { return array('ok' => true, 'dup' => true); }
+    $users = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $kt, 'number' => 1, 'fields' => 'ID'));
+    if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
+    $uid = (int) $users[0];
+    $cur = (int) get_user_meta($uid, 'karp_sub_' . $svc . '_until', true);
+    $until = max(time(), $cur) + $months * 30 * DAY_IN_SECONDS;
+    update_user_meta($uid, 'karp_sub_' . $svc . '_until', $until);
+    $subs = (array) get_option('karp_subscribers', array());
+    $key = $uid . ':' . $svc;
+    if ( isset($subs[$key]) ) { $subs[$key]['status'] = 'active'; $subs[$key]['next_due'] = $until - 7 * DAY_IN_SECONDS; update_option('karp_subscribers', $subs, false); }   // næsta krafa 7 d fyrir lok
+    if ( $ref !== '' ) { $done[] = $ref; if ( count($done) > 5000 ) { $done = array_slice($done, -5000); } update_option('karp_sub_granted_refs', $done, false); }
+    return array('ok' => true, 'uid' => $uid, 'until' => $until);
+}
 function karp_reports_grant($req) {
     $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
     $p = (array) $req->get_json_params();

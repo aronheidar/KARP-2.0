@@ -1,0 +1,43 @@
+name: Karp+ áskrift (Arion kröfur)
+
+# Endurtekin áskrift: býr til mánaðarlegar kröfur fyrir gjaldfallna áskrifendur gegnum
+# Arion Claims API + framlengir aðgang við greiðslu. Keyrir daglega (velur þá sem eru
+# gjaldfallnir þann dag). ⚠ ÓVIRKT þar til Arion-skilríki eru sett sem secrets (sjá script).
+# Handvirkt: Actions → þessi workflow → Run workflow (t.d. til að prófa í sandbox).
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # daglega 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Umhverfi (sandbox/prod)'
+        required: false
+        default: 'sandbox'
+
+concurrency:
+  group: arion-askrift
+  cancel-in-progress: false
+
+jobs:
+  askrift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Búa til kröfur + framlengja aðgang
+        env:
+          ARION_ENV: ${{ github.event.inputs.env || 'prod' }}
+          ARION_API_KEY: ${{ secrets.ARION_API_KEY }}
+          ARION_SANDBOX_TOKEN: ${{ secrets.ARION_SANDBOX_TOKEN }}
+          ARION_CERT_PFX_B64: ${{ secrets.ARION_CERT_PFX_B64 }}
+          ARION_CERT_PASS: ${{ secrets.ARION_CERT_PASS }}
+          ARION_OAUTH_USER: ${{ secrets.ARION_OAUTH_USER }}
+          ARION_OAUTH_PASS: ${{ secrets.ARION_OAUTH_PASS }}
+          ARION_TEMPLATE_CODE: ${{ secrets.ARION_TEMPLATE_CODE }}
+          ARION_CLAIMANT_KT: ${{ secrets.ARION_CLAIMANT_KT }}
+          KARP_API: ${{ secrets.KARP_API }}
+          KARP_GRANT_SECRET: ${{ secrets.KARP_GRANT_SECRET }}
+        run: node skriptur/arion_askrift.mjs
