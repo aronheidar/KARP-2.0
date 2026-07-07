@@ -410,7 +410,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const id = String(kt).replace(/\D/g, '');
       let missing = false;
       try {
-        const r = await fetch('/gogn/arsreikningar/' + id + '.json');
+        const r = await fetch('/gogn/arsreikningar/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });   // cache-bust: nýtt scrape (eða gamalt cache-að 404) má EKKI festast → annars „reiknast…" að eilífu
         if (r.ok) {
           const j = await r.json();
           if (j && j.engin) {   // félag án ársreiknings (nýskráð/undanþegið/óskilað) → loka-ástand, EKKI eilífur spinner
