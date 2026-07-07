@@ -11,8 +11,11 @@ on:
   workflow_dispatch:
     inputs:
       kt:
-        description: 'Kennitala lögaðila (10 tölur)'
-        required: true
+        description: 'Ein kennitala lögaðila (10 tölur)'
+        required: false
+      kts:
+        description: 'Magn-prófun: listi kennitalna (bil eða komma á milli)'
+        required: false
 
 permissions:
   contents: write
@@ -40,11 +43,16 @@ jobs:
         env:
           CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest
           PYTHON: python
+          RAW_PAYLOAD: ${{ github.event.client_payload.kt }}   # untrusted → um env (ekki bein innskeyting) gegn shell-injection
+          RAW_KT: ${{ github.event.inputs.kt }}
+          RAW_KTS: ${{ github.event.inputs.kts }}
         run: |
-          KT="$(echo "${{ github.event.client_payload.kt || github.event.inputs.kt }}" | tr -cd '0-9')"
-          if [ "${#KT}" -ne 10 ]; then echo "Ógild kennitala: '$KT' — hætti."; exit 0; fi
-          echo "Scrapa ársreikning fyrir $KT"
-          node skriptur/build_arsreikningar.mjs "$KT" --ar 2
+          RAW="$RAW_PAYLOAD $RAW_KT $RAW_KTS"
+          # normalisera bandstrik (610406-1060→6104061060) + draga út allar 10-stafa kennitölur (styður lista)
+          KTS="$(echo "$RAW" | sed -E 's/([0-9]{6})-([0-9]{4})/\1\2/g' | grep -oE '[0-9]{10}' | sort -u | tr '\n' ' ')"
+          if [ -z "$KTS" ]; then echo "Engin gild kennitala í '$RAW' — hætti."; exit 0; fi
+          echo "Scrapa ársreikninga fyrir: $KTS"
+          node skriptur/build_arsreikningar.mjs $KTS --ar 2
       - name: Commit JSON (ef ný gögn)
         run: |
           git config user.name "karp-arsreikningar[bot]"
