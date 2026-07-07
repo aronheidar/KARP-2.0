@@ -1131,11 +1131,19 @@ async function askellWebhookHandler(request, env, ctx) {
 
 // ⚠ TÍMABUNDIÐ debug — skilar síðasta Áskell-vefkróks-payloadi (varið ASKELL_WEBHOOK_SECRET). Fjarlægist eftir prófun.
 async function askellLastHandler(request, env) {
-  const t = new URL(request.url).searchParams.get('t') || '';
-  if (!env.ASKELL_WEBHOOK_SECRET || t !== env.ASKELL_WEBHOOK_SECRET) return new Response('nope', { status: 403 });
-  const c = await caches.default.match(new Request('https://cap.karp.internal/askell-last'));
-  if (!c) return sjson({ empty: true, note: 'engin webhook-upptaka enn — gerðu test-greiðslu fyrst' });
-  return new Response(await c.text(), { headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' } });
+  const url = new URL(request.url);
+  const t = url.searchParams.get('t') || '';
+  const secretSet = !!(env.ASKELL_WEBHOOK_SECRET && String(env.ASKELL_WEBHOOK_SECRET).length);
+  const cap = await caches.default.match(new Request('https://cap.karp.internal/askell-last'));
+  const capTxt = cap ? await cap.text() : '';
+  let last = null; try { last = capTxt ? JSON.parse(capTxt) : null; } catch (e) {}
+  // ?diag=1 → greining ÁN leyndarmáls (engin payload-leki): sést hvort secret er sett + hvort webhook barst.
+  if (url.searchParams.get('diag') === '1') {
+    return sjson({ secret_sett: secretSet, secret_lengd: secretSet ? String(env.ASKELL_WEBHOOK_SECRET).length : 0, upptaka_til: !!capTxt, sidasta_sigOk: last ? last.sigOk : null, sidasti_event: last ? last.event : null });
+  }
+  if (!secretSet || t !== env.ASKELL_WEBHOOK_SECRET) return sjson({ error: 'nope', hint: 'nota ?diag=1 til greiningar (án leyndarmáls), annars ?t=<ASKELL_WEBHOOK_SECRET>' });
+  if (!capTxt) return sjson({ empty: true, note: 'engin webhook-upptaka enn — gerðu test-greiðslu fyrst' });
+  return new Response(capTxt, { headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' } });
 }
 
 // ── Áskell v2 embedded checkout — stofna checkout-session (LOTA 110d) ──
