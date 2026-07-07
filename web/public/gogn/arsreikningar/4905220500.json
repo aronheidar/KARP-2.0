@@ -1,7 +1,71 @@
 {
  "kt": "4905220500",
  "nafn": "Steinsson Greykdal ehf.",
- "sott": "2026-07-06",
+ "sott": "2026-07-07",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
- "ar": {}
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -1.3754,
+    "ROA": -1.3754,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   }
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2304,
+    "hagnadarhlutfall": 0.1785,
+    "ROE": 0.4937,
+    "ROA": 0.4937,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 2.7659
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2244,
+    "hagnadarhlutfall": 0.2249,
+    "ROE": 0.4953,
+    "ROA": 0.4953,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 2.202
+   },
+   "rekstur": {
+    "sala": 1814000,
+    "ebit": 407031,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1252,
+    "fjarmagnsgjold": -275,
+    "tekjuskattur": 0,
+    "hagnadur": 408008
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 823790,
+    "veltufjarmunir": 823790,
+    "eignir": 823790,
+    "hlutafe": 500000,
+    "eigid_fe": 823790,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 823790
+   }
+  }
+ }
 }

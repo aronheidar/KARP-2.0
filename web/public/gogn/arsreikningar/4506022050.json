@@ -1,7 +1,76 @@
 {
  "kt": "4506022050",
  "nafn": "Vífilfell ehf.",
- "sott": "2026-07-06",
+ "sott": "2026-07-07",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
- "ar": {}
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0887,
+    "hagnadarhlutfall": 0.0666,
+    "ROE": 0.2749,
+    "ROA": 0.1654,
+    "eiginfjarhlutfall": 0.6019,
+    "veltufjarhlutfall": 1.0933,
+    "skuldahlutfall_DE": 0.6614,
+    "eignavelta": 2.4848
+   }
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1436,
+    "hagnadarhlutfall": 0.135,
+    "ROE": 0.4663,
+    "ROA": 0.3613,
+    "eiginfjarhlutfall": 0.7748,
+    "veltufjarhlutfall": 1.1225,
+    "skuldahlutfall_DE": 0.2906,
+    "eignavelta": 2.6767
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0843,
+    "hagnadarhlutfall": 0.0509,
+    "ROE": 0.1115,
+    "ROA": 0.0832,
+    "eiginfjarhlutfall": 0.7463,
+    "veltufjarhlutfall": 1.4931,
+    "skuldahlutfall_DE": 0.34,
+    "eignavelta": 1.6342
+   },
+   "rekstur": {
+    "sala": 18905022,
+    "ebit": 1593755,
+    "afskriftir": -417171,
+    "fjarmunatekjur": 40160,
+    "fjarmagnsgjold": -84392,
+    "tekjuskattur": -169662,
+    "hagnadur": 962690
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5267544,
+    "birgdir": 0,
+    "vidskiptakrofur": 1216770,
+    "handbaert": 3165782,
+    "veltufjarmunir": 6300699,
+    "eignir": 11568243,
+    "hlutafe": 500000,
+    "eigid_fe": 8633024,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2935219,
+    "skuldir": 2935219,
+    "efe_skuldir": 11568243
+   }
+  }
+ }
 }
