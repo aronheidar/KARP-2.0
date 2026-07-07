@@ -72,6 +72,7 @@ jobs:
           node skriptur/build_leitarvel.js      || true
           node skriptur/build_raunvirdi.js      || true
           node skriptur/build_sveitarstjorar.js || true
+          node skriptur/build_pep.js            || true
           node skriptur/build_sendirad.js       || true
           node skriptur/build_utbod.js          || true
           node skriptur/build_uppbod.js         || true

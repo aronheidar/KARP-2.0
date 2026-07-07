@@ -175,6 +175,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fs-ph.filled { border-color: #9ad9b5 !important; background: #f2fbf6 !important; }
     body.fs-printing #fs-report .fs-eig, body.fs-printing #fs-report .fs-eig > b { color: #222 !important; }
     body.fs-printing #fs-report .fs-eig-s, body.fs-printing #fs-report .fs-ph-src { color: #555 !important; }
+    /* Áreiðanleiki-samantekt (KYC) + PEP (LOTA 109) */
+    .fs-argrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; margin: 8px 0 4px; }
+    .fs-ar { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 9px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-left: 3px solid #6b7688; }
+    .fs-ar.g { border-left-color: #42d086; } .fs-ar.o { border-left-color: #e8b84b; } .fs-ar.b { border-left-color: #ef6a6a; } .fs-ar.n { border-left-color: #6b7688; }
+    .fs-ar-i { font-size: 16px; flex: none; }
+    .fs-ar-tx { display: flex; flex-direction: column; min-width: 0; }
+    .fs-ar-l { font-size: 10px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .3px; }
+    .fs-ar-v { font-size: 13px; color: #eaf1fb; font-weight: 700; }
+    .fs-ar-detail { font-size: 12px; color: #f0c674; margin: 4px 0 0; line-height: 1.5; }
+    .fs-ar-detail:empty { display: none; }
+    .fs-ar-role { color: #9fb0c8; font-weight: 400; }
+    .fs-ar-note { font-size: 11px; color: #7e8ca6; margin: 6px 0 2px; line-height: 1.45; }
+    body.fs-printing #fs-report .fs-ar { background: #f7f8fa !important; border-color: #e6e6e6 !important; }
+    body.fs-printing #fs-report .fs-ar-v { color: #222 !important; }
+    body.fs-printing #fs-report .fs-ar-l, body.fs-printing #fs-report .fs-ar-note, body.fs-printing #fs-report .fs-ar-role { color: #555 !important; }
+    body.fs-printing #fs-report .fs-ar-detail { color: #8a6d00 !important; }
     .fs-note2 { font-size: 11.5px; color: #7e8ca6; margin-top: 14px; line-height: 1.5; border-top: 1px solid rgba(255,255,255,.07); padding-top: 10px; }
     .fs-buyrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
     .fs-buy { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
@@ -307,6 +323,62 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     const fsFinnaBirgja = (vendors, nafn) => fsMatch(nafn, vendors, (v) => v.n);
     // stutt heiti án félagsforms fyrir frjálsa textaleit (fjölmiðlar, Nasdaq)
     const fsStutt = (nafn) => String(nafn || '').replace(/\s*\(félag afskráð\)/gi, '').replace(/\s+(ehf|hf|slhf|ohf|sf|slf|svf|bs)\.?$/i, '').trim();
+    // ── Áreiðanleiki (KYC) + PEP-skimun (LOTA 109) ─────────────────────────────
+    // PEP = stjórnmálalega tengdir aðilar. Client-hlið skimun eigenda/forráðamanna gegn
+    // /gogn/pep.json (þingmenn + ráðherrar + sveitarstjórar). Fornafn+eftirnafn samsvörun →
+    // „MÖGULEG tengsl" (EKKI fullyrðing: sama nafn ≠ sami einstaklingur → notandi staðfestir).
+    let _pepP = null;
+    function fsPep() { if (!_pepP) _pepP = fetch('/gogn/pep.json').then((r) => (r.ok ? r.json() : null)).then((j) => (j && j.folk) || []).catch(() => []); return _pepP; }
+    function pepNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim(); }
+    function pepMatch(name, folk) {
+      const t = pepNorm(name).split(' ').filter(Boolean);
+      if (t.length < 2) return null;
+      const first = t[0], last = t[t.length - 1];
+      for (const p of folk) { const pt = (p.n || '').split(' ').filter(Boolean); if (pt.length >= 2 && pt[0] === first && pt[pt.length - 1] === last) return p; }
+      return null;
+    }
+    async function fsPepScreen(f) {
+      const folk = await fsPep();
+      if (!folk.length) return [];
+      const hits = [], seen = new Set();
+      const chk = (rawName, role) => {
+        const nm = String(rawName || '').split(' - ')[0].trim();   // "Nafn - hlutverk" → nafn
+        if (!nm) return; const p = pepMatch(nm, folk);
+        if (p && !seen.has(p.n)) { seen.add(p.n); hits.push({ nafn: nm, felagshlutverk: role, pep: p }); }
+      };
+      for (const e of (f.eigendur || [])) chk(e.nafn, 'raunv. eigandi' + (e.hlutur ? ' ' + e.hlutur : ''));
+      for (const r of (f.radamenn || [])) { const parts = String(r).split(' - '); chk(parts[0], (parts[1] || 'forráðamaður').toLowerCase()); }
+      return hits;
+    }
+    async function fsWirePep(f) {
+      const chip = document.getElementById('fs-ar-pep'); if (!chip) return;
+      const v = chip.querySelector('.fs-ar-v');
+      const hits = await fsPepScreen(f);
+      if (!hits.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin þekkt'; return; }
+      chip.className = 'fs-ar o';
+      if (v) v.textContent = hits.length + ' möguleg';
+      const d = document.getElementById('fs-ar-pep-detail');
+      if (d) d.innerHTML = '⚠️ <b>Möguleg stjórnmálatengsl (PEP)</b> — nafnasamsvörun, staðfestu auðkenni: '
+        + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">' + escF(h.felagshlutverk) + ' → ' + escF(h.pep.hlutverk) + '</span>').join('; ');
+    }
+    // Áreiðanleika-samantekt (KYC) — opinber stöðumerki, EKKI lánshæfismat.
+    function fsAr(icon, l, v, st) { return '<div class="fs-ar ' + (st || 'n') + '"><span class="fs-ar-i">' + icon + '</span><div class="fs-ar-tx"><span class="fs-ar-l">' + l + '</span><span class="fs-ar-v">' + v + '</span></div></div>'; }
+    function fsAreidanleiki(f) {
+      const nowY = new Date().getFullYear();
+      const skra = f.afskrad ? fsAr('🏢', 'Skráning', 'Afskráð', 'b') : fsAr('🏢', 'Skráning', 'Virkt' + (f.form ? ' · ' + f.form.replace(/\s*\(.*/, '').trim() : ''), 'g');
+      const arY = (f.arsreikningar || []).map((a) => parseInt(a.ar, 10)).filter(Boolean).sort((a, b) => b - a)[0];
+      const skil = arY ? fsAr('📄', 'Ársreikningsskil', 'Síðast ' + arY, arY >= nowY - 2 ? 'g' : 'o') : fsAr('📄', 'Ársreikningsskil', 'Engin skráð', 'o');
+      const k0 = f.fjarhagur && f.fjarhagur.length ? (f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1])) : null;   // scrapað: _kpi · demo/hrátt: reikna
+      const heilsa = k0 ? (() => { const hs = fsHealthScore(k0); return fsAr('💪', 'Fjárhagsheilsa', hs.score == null ? '—' : hs.score + '/100 · ' + hs.grade, hs.score == null ? 'n' : hs.score >= 65 ? 'g' : hs.score >= 50 ? 'o' : 'b'); })() : fsAr('💪', 'Fjárhagsheilsa', 'Enginn ársreikn.', 'n');
+      const eign = (f.eigendur && f.eigendur.length) ? fsAr('👥', 'Eignarhald', 'Gagnsætt · ' + f.eigendur.length + ' skráð', 'g') : (f.eigendurTomt ? fsAr('👥', 'Eignarhald', 'Dreift (<25%)', 'o') : fsAr('👥', 'Eignarhald', 'Óskráð', 'n'));
+      return '<div class="fs-sub">🛡️ Áreiðanleiki — yfirlit (KYC)</div>'
+        + '<div class="fs-argrid">' + skra + skil + heilsa + eign
+        + '<div id="fs-ar-pep" class="fs-ar n"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
+        + '<div id="fs-ar-log" class="fs-ar n"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '</div>'
+        + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
+        + '<div class="fs-ar-note">Samantekt á opinberum stöðumerkjum til áreiðanleikakönnunar — <b>ekki lánshæfismat</b>. Karp birtir hvorki lánshæfiseinkunn né vanskilaskrá (leyfisskyld starfsemi).</div>';
+    }
     function fsKort(felag, rsk) {
       const f = felag;
       const rod = (l, v) => (v ? `<div class="fs-f"><span class="l">${l}</span><span class="v">${escF(v)}</span></div>` : '');
@@ -318,7 +390,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}">🔔 Vakta félagið</button></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div>
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -331,6 +403,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
+          ${fsAreidanleiki(f)}
           ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
@@ -684,7 +757,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               }).catch(() => {});
               // ⚖️ Lögbirtingablaðið (LOTA 95) — opinberar lögform. tilkynningar félagsins (gjaldþrot/
               // innköllun/skiptalok/félagsslit). Öll félög (lögaðilar). Persónuvernd/síun í build_logbirting.py.
+              fsWirePep(d.felag);   // ⚖️ PEP-skimun eigenda/forráðamanna → áreiðanleiki-kort
               fetch('/api/logbirting?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
+                // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
+                const lc = document.getElementById('fs-ar-log');
+                if (lc) { const lv = lc.querySelector('.fs-ar-v'); const nt = (l && l.tilkynningar) || []; const mx = nt.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
+                  if (!l || !l.holdur || !nt.length) { lc.className = 'fs-ar g'; if (lv) lv.textContent = 'Engar tilkynningar'; }
+                  else if (mx >= 2) { lc.className = 'fs-ar b'; if (lv) lv.textContent = 'Gjaldþrot/innköllun'; }
+                  else { lc.className = 'fs-ar o'; if (lv) lv.textContent = nt.length + ' tilkynning' + (nt.length > 1 ? 'ar' : ''); } }
                 const el = document.getElementById('fs-logbirting');
                 if (!el || !l || !l.holdur) return;
                 el.hidden = false;
@@ -821,7 +901,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       // ?syni=1 → sýnifyrirtæki (Norðurhaf) — opið öllum, engin innskráning, ekkert keypt
       if (new URLSearchParams(location.search).get('syni') === '1') {
         form.style.display = 'none';
-        skila(fsKort(demoFyrirtaeki()));
+        const demoF = demoFyrirtaeki();
+        skila(fsKort(demoF));
         const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { location.href = '/fyrirtaeki/'; };
         const br = out.querySelector('.fs-buyrow'); if (br) br.style.display = 'none';
         const rep = document.getElementById('fs-report');
@@ -832,6 +913,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
         setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
+        fsWirePep(demoF);   // sýnishorn: skima gervi-eigendur → „engin þekkt"
+        (() => { const dl = document.getElementById('fs-ar-log'); if (dl) { dl.className = 'fs-ar g'; const dv = dl.querySelector('.fs-ar-v'); if (dv) dv.textContent = 'Engar athugasemdir'; } })();
         const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
         setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
         setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');
