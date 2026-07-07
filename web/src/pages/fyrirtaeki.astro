@@ -295,6 +295,79 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       body.fs-printing #fs-report .fs-van.ok { color: #0a7a43 !important; border-color: #0a7a43 !important; background: #effaf3 !important; }
       body.fs-printing #fs-report .fs-vansub { color: #555 !important; }
     }
+    /* 🕸️ Tengslakort (task #25) — eignarhaldsnet: HTML-hnútar + SVG-leggir (runtime-DOM → global).
+       Miðja = félagið, geislar = skráðir raunverulegir eigendur. Svarar í farsíma (JS endurreiknar). */
+    .tk-sec { margin-top: 16px; }
+    .tk-wrap { position: relative; width: 100%; margin: 8px 0 2px; }
+    .tk-edges { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+    .tk-edge { fill: none; stroke: rgba(246,177,59,.32); stroke-linecap: round; transition: stroke .18s ease; }
+    .tk-edge.hot { stroke: rgba(246,177,59,.9); }
+    .tk-node { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 2px;
+      overflow: hidden; border-radius: 11px; padding: 7px 11px; z-index: 1;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.13); }
+    .tk-co { z-index: 2; background: rgba(246,177,59,.09); border-color: rgba(246,177,59,.5);
+      box-shadow: 0 0 0 1px rgba(246,177,59,.1), 0 8px 22px -14px rgba(0,0,0,.7); }
+    button.tk-node { font: inherit; color: inherit; text-align: left; cursor: pointer; -webkit-appearance: none; appearance: none; transition: border-color .15s ease, background .15s ease; }
+    button.tk-node:hover { border-color: rgba(246,177,59,.6); background: rgba(246,177,59,.08); }
+    button.tk-node:focus-visible { outline: 2px solid rgba(246,177,59,.75); outline-offset: 2px; }
+    .tk-felag { border-color: rgba(246,177,59,.4); }
+    .tk-node.tk-pep { border-color: rgba(240,183,75,.6); }
+    .tk-row { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; }
+    .tk-ic { flex: none; font-size: 13px; line-height: 1; }
+    .tk-nm { flex: 1; min-width: 0; color: #eaf1fb; font-size: 12.5px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tk-nm-co { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 14px; font-weight: 800; color: #fff; }
+    .tk-pepm { flex: none; font-size: 11px; }
+    .tk-meta { color: #8fa0b8; font-size: 10.5px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tk-co .tk-meta { color: #f6c877; font-variant-numeric: tabular-nums; }
+    .tk-open { color: #f6b13b; font-weight: 700; }
+    .tk-pct { position: absolute; z-index: 1; transform: translate(-50%,-50%); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+      color: #f6b13b; background: rgba(18,25,38,.92); border: 1px solid rgba(246,177,59,.34); border-radius: 999px; padding: 1px 7px; white-space: nowrap; pointer-events: none; }
+    .tk-empty { color: #8fa0b8; font-size: 12px; line-height: 1.5; text-align: center; margin: 8px auto 2px; max-width: 40ch; }
+    .tk-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 11px; color: #8fa0b8; }
+    .tk-lg { display: inline-flex; align-items: center; gap: 5px; }
+    .tk-lg i { width: 13px; height: 13px; border-radius: 4px; border: 1px solid rgba(255,255,255,.2); font-style: normal; flex: none; }
+    .tk-lg i.co { background: rgba(246,177,59,.55); border-color: rgba(246,177,59,.6); }
+    .tk-lg i.pe { background: rgba(255,255,255,.14); }
+    .tk-lg i.fe { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); }
+    .tk-src { font-size: 11px; color: #8fa0b8; margin-top: 9px; line-height: 1.55; }
+    .tk-src b { color: #cdd6e6; font-weight: 600; }
+    /* smáatriða-spjald: opnast við smell á einstakling (möguleg tengsl) */
+    .tk-detail { position: relative; margin-top: 12px; border: 1px solid rgba(246,177,59,.32); border-radius: 12px; padding: 13px 15px 14px; background: rgba(255,255,255,.03); }
+    .tk-detail[hidden] { display: none; }
+    .tk-detclose { position: absolute; top: 7px; right: 9px; background: none; border: 0; color: #8fa0b8; font-size: 15px; line-height: 1; cursor: pointer; padding: 3px; }
+    .tk-detclose:hover { color: #eaf1fb; }
+    .tk-det-h { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #eaf1fb; padding-right: 24px; }
+    .tk-det-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+    .tk-fct { font-size: 11.5px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 2px 8px; }
+    .tk-fct b { color: #f6b13b; font-weight: 600; }
+    .tk-det-lbl { font-size: 12.5px; color: #cdd6e6; font-weight: 700; margin-top: 13px; }
+    .tk-det-lbl span { color: #8fa0b8; font-weight: 400; }
+    .tk-det-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .tk-rel { display: flex; align-items: center; gap: 8px; width: 100%; font: inherit; text-align: left; cursor: pointer;
+      background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.28); border-radius: 9px; padding: 7px 10px; color: #eaf1fb; }
+    .tk-rel:hover { background: rgba(246,177,59,.12); border-color: rgba(246,177,59,.5); }
+    .tk-rel .tk-nm2 { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tk-rel .kt { color: #8fa0b8; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .tk-relempty { font-size: 12px; color: #8fa0b8; line-height: 1.55; }
+    .tk-demohint { font-size: 12.5px; color: #f0c674; line-height: 1.55; padding-right: 24px; }
+    .tk-det-note { font-size: 10.5px; color: #7e8ca6; margin-top: 10px; line-height: 1.55; font-style: italic; }
+    /* hreyfing: viðbót ofan á sýnilegt sjálfgefið ástand (öruggt fyrir headless/prent) */
+    @media (prefers-reduced-motion: no-preference) {
+      .tk-anim .tk-node { animation: tkNodeIn .5s cubic-bezier(.22,1,.36,1) both; }
+      .tk-anim .tk-edge { animation: tkEdgeIn .55s ease-out both; }
+    }
+    @keyframes tkNodeIn { from { opacity: 0; transform: translateY(7px) scale(.97); } to { opacity: 1; transform: none; } }
+    @keyframes tkEdgeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 460px) { .tk-nm { font-size: 11.5px; } .tk-nm-co { font-size: 13px; } .tk-pct { font-size: 9.5px; padding: 1px 5px; } }
+    /* prent: læsilegt á hvítum pappír (kortið er innan #fs-report) */
+    body.fs-printing #fs-report .tk-node { background: #fff !important; border-color: #cfd8e6 !important; box-shadow: none !important; }
+    body.fs-printing #fs-report .tk-co { background: #fbf0d8 !important; border-color: #d9b871 !important; }
+    body.fs-printing #fs-report .tk-nm, body.fs-printing #fs-report .tk-nm-co { color: #111 !important; }
+    body.fs-printing #fs-report .tk-meta, body.fs-printing #fs-report .tk-co .tk-meta { color: #555 !important; }
+    body.fs-printing #fs-report .tk-edge { stroke: #c69a4e !important; }
+    body.fs-printing #fs-report .tk-pct { background: #fff !important; color: #7a5900 !important; border-color: #d9b871 !important; }
+    body.fs-printing #fs-report .tk-src, body.fs-printing #fs-report .tk-legend { color: #555 !important; }
+    body.fs-printing #fs-report .tk-src b { color: #222 !important; }
   </style>
 
   <script>
@@ -379,6 +452,163 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
         + '<div class="fs-ar-note">Samantekt á opinberum stöðumerkjum til áreiðanleikakönnunar — <b>ekki lánshæfismat</b>. Karp birtir hvorki lánshæfiseinkunn né vanskilaskrá (leyfisskyld starfsemi).</div>';
     }
+    // ── 🕸️ Tengslakort (task #25) — eignarhaldsnet á prófílnum ─────────────────
+    // Byggir á f.eigendur (skráðir raunverulegir eigendur RSK: nafn + fæðingarár, ÁN kt).
+    // Lögaðili (nafn/tegund bendir til félags) → smellur flettir því félagi upp (leita).
+    // Einstaklingur → smellur opnar „möguleg tengsl" — ÖNNUR uppflett félög í þessari lotu
+    // þar sem sama nafn+fæðingarár birtist (best-effort, ekki tæmandi; engin ný RSK-köll).
+    const tkPct = (h) => { if (!h) return null; const m = String(h).replace(',', '.').match(/([\d.]+)/); return m ? Math.min(100, parseFloat(m[1])) : null; };
+    const tkShort = (s) => { s = String(s || ''); return s.length > 28 ? s.slice(0, 26) + '…' : s; };
+    const tkNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    function tkErFelag(o) {
+      if (o.faeding) return false;                       // einstaklingar hafa fæðingarár, lögaðilar ekki
+      const n = String(o.nafn || ''), t = String(o.tegund || '').toLowerCase();
+      if (/(^|\s)(ehf|hf|ohf|slhf|slf|sf|svf|bs)\.?\s*$/i.test(n)) return true;   // félagsform í enda nafns
+      if (/félag|lögaðil|gegnum félag/.test(t)) return true;
+      return false;                                      // óvíst án fæðingarárs → sýnt sem einstaklingur (varfærið)
+    }
+    // Lotu-vísitala uppflettra félaga (sessionStorage) — grunnur „möguleg tengsl". EKKI viðvarandi DB;
+    // aðeins félög sem NOTANDI hefur flett upp í þessum vafra/lotu. Persónuvernd: aðeins nafn+fæðingarár.
+    const FS_SEEN_KEY = 'karp_fs_seen_v1';
+    function fsSeenLoad() { try { const r = sessionStorage.getItem(FS_SEEN_KEY); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
+    function fsRemember(f) {
+      if (!f || !f.kt || f.demo) return;
+      if (!((f.eigendur && f.eigendur.length) || f.eigendurTomt)) return;
+      try {
+        const list = fsSeenLoad().filter((x) => x && x.kt !== f.kt);
+        list.push({ kt: f.kt, nafn: f.nafn || '', e: (f.eigendur || []).map((o) => ({ n: o.nafn || '', f: o.faeding || null })) });
+        sessionStorage.setItem(FS_SEEN_KEY, JSON.stringify(list.slice(-80)));
+      } catch (e) {}
+    }
+    function fsTengslLeit(owner, selfKt) {
+      if (!owner.nafn) return [];
+      const key = tkNorm(owner.nafn) + '|' + (owner.faeding || '');
+      const out = [];
+      for (const c of fsSeenLoad()) {
+        if (!c || c.kt === selfKt) continue;
+        if ((c.e || []).some((o) => tkNorm(o.n) + '|' + (o.f || '') === key)) out.push({ kt: c.kt, nafn: c.nafn });
+      }
+      return out;
+    }
+    function fsTengsl(f) {
+      const has = !!(f.eigendur && f.eigendur.length);
+      if (!has && !f.eigendurTomt) return '';           // ekki flett upp → ekkert kort
+      const n = has ? f.eigendur.length : 0;
+      const sub = '<div class="fs-sub">🕸️ Tengslakort — skráð eignarhald' + (n ? ' · ' + n + (n === 1 ? ' eigandi' : ' eigendur') : '') + '</div>';
+      const empty = (!has && f.eigendurTomt) ? '<div class="tk-empty">Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir dreift eða skráð eignarhald. Kortið sýnir félagið sjálft.</div>' : '';
+      const legend = has ? '<div class="tk-legend"><span class="tk-lg"><i class="co"></i> Félagið</span><span class="tk-lg"><i class="pe"></i> 👤 Einstaklingur — möguleg tengsl</span><span class="tk-lg"><i class="fe"></i> 🏢 Lögaðili — opna fyrirtækjaskrá</span><span class="tk-lg">Línubreidd ≈ eignarhlutur</span></div>' : '';
+      const src = '<div class="tk-src">ⓘ Byggt á skráðum <b>raunverulegum eigendum</b> (>25% eða yfirráð) í fyrirtækjaskrá Skattsins. Einstaklingar birtast eins og skráin birtir þá (nafn + fæðingarár, án kennitölu). Tengsl eru <b>skráð eða möguleg</b> — ekki fullyrðing. Hvorki lánshæfismat né vanskilaskrá.</div>';
+      return '<div class="tk-sec">' + sub + '<div class="tk-wrap" id="tk-wrap" role="group" aria-label="Tengslakort: skráð eignarhald félagsins"></div>' + empty + '<div class="tk-detail" id="tk-detail" hidden></div>' + legend + src + '</div>';
+    }
+    // Teiknar netið inn í #tk-wrap og tengir smelli. nav(q) = fletta upp félagi (kt eða nafn) í síðunni.
+    function fsWireTengsl(f, nav) {
+      const wrap = document.getElementById('tk-wrap');
+      if (!wrap || wrap.dataset.done) return;
+      wrap.dataset.done = '1';
+      fsRemember(f);                                     // skrá núverandi félag í lotu-vísitölu (ekki demo)
+      const owners = (f.eigendur || []).slice(0, 16).map((o, i) => ({
+        i, nafn: o.nafn || '—', hlutur: o.hlutur || null, pct: tkPct(o.hlutur),
+        faeding: o.faeding || null, buseta: o.buseta || null, rikisfang: o.rikisfang || null,
+        tegund: o.tegund || null, felag: tkErFelag(o), pep: false,
+      }));
+      let lastW = -1;
+      function paint(force) {
+        const W = Math.max(260, Math.round(wrap.clientWidth || 640));
+        if (!force && W === lastW) return;   // aðeins endurteikna þegar breidd breytist → engin ResizeObserver-lykkja
+        lastW = W;
+        const mob = W < 460;
+        const NW = mob ? 132 : 158, NH = 48, GAP = mob ? 12 : 18;
+        const CW = Math.min(W - 12, mob ? 208 : 244), CH = 58;
+        const VGAP = mob ? 50 : 62, RGAP = 24;
+        const N = owners.length, cx = W / 2;
+        let cols = N ? Math.max(1, Math.floor((W + GAP) / (NW + GAP))) : 1;
+        cols = Math.min(cols, N || 1, mob ? 2 : 4);
+        const rows = N ? Math.ceil(N / cols) : 0;
+        const H = CH + (N ? VGAP + rows * NH + (rows - 1) * RGAP : 0) + 4;
+        let edges = '', nodes = '', chips = '';
+        nodes += '<div class="tk-node tk-co" style="left:' + ((W - CW) / 2).toFixed(1) + 'px;top:0;width:' + CW + 'px;height:' + CH + 'px" title="' + escF(f.nafn || '') + '">'
+          + '<span class="tk-row"><span class="tk-ic">🏢</span><span class="tk-nm tk-nm-co">' + escF(f.nafn || '—') + '</span></span>'
+          + '<span class="tk-meta">kt. ' + escF(ktFmt(f.kt)) + '</span></div>';
+        owners.forEach((o, k) => {
+          const r = Math.floor(k / cols);
+          const inRow = (r < rows - 1) ? cols : (N - cols * (rows - 1));
+          const x = (W - (inRow * NW + (inRow - 1) * GAP)) / 2 + (k - r * cols) * (NW + GAP);
+          const y = CH + VGAP + r * (NH + RGAP), ox = x + NW / 2, dy = y - CH;
+          const sw = o.pct != null ? (1.3 + Math.min(o.pct, 100) / 100 * 2.4).toFixed(2) : '1.4';
+          edges += '<path class="tk-edge" data-i="' + o.i + '" d="M' + cx.toFixed(1) + ' ' + CH + ' C' + cx.toFixed(1) + ' ' + (CH + dy * 0.45).toFixed(1)
+            + ',' + ox.toFixed(1) + ' ' + (y - dy * 0.45).toFixed(1) + ',' + ox.toFixed(1) + ' ' + y.toFixed(1) + '" style="stroke-width:' + sw + 'px"'
+            + (o.pct == null ? ' stroke-dasharray="4 5"' : '') + '/>';
+          if (o.hlutur) chips += '<span class="tk-pct" style="left:' + ((cx + ox) / 2).toFixed(1) + 'px;top:' + ((CH + y) / 2).toFixed(1) + 'px">' + escF(o.hlutur) + '</span>';
+          const meta = o.felag ? (o.tegund ? escF(tkShort(o.tegund)) : 'Lögaðili') + ' <span class="tk-open">opna ↗</span>'
+                               : (o.faeding ? 'f. ' + escF(o.faeding) : 'Einstaklingur') + (o.buseta ? ' · ' + escF(o.buseta) : '');
+          const al = (o.felag ? 'Lögaðili: ' : 'Einstaklingur: ') + escF(o.nafn) + (o.hlutur ? ', ' + escF(o.hlutur) : '') + (o.felag ? ' — opna fyrirtækjaskrá' : ' — sjá möguleg tengsl');
+          nodes += '<button type="button" class="tk-node tk-owner ' + (o.felag ? 'tk-felag' : 'tk-person') + (o.pep ? ' tk-pep' : '')
+            + '" data-i="' + o.i + '" style="left:' + x.toFixed(1) + 'px;top:' + y + 'px;width:' + NW + 'px;height:' + NH + 'px;animation-delay:' + (k * 45) + 'ms" title="' + escF(o.nafn) + '" aria-label="' + al + '">'
+            + '<span class="tk-row"><span class="tk-ic">' + (o.felag ? '🏢' : '👤') + '</span><span class="tk-nm">' + escF(o.nafn) + '</span>' + (o.pep ? '<span class="tk-pepm" title="Möguleg stjórnmálatengsl (PEP)">⚖️</span>' : '') + '</span>'
+            + '<span class="tk-meta">' + meta + '</span></button>';
+        });
+        wrap.style.height = H + 'px';
+        wrap.innerHTML = '<svg class="tk-edges" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true">' + edges + '</svg>' + nodes + chips;
+      }
+      if (!wrap.dataset.animated) { wrap.classList.add('tk-anim'); wrap.dataset.animated = '1'; setTimeout(() => { if (wrap) wrap.classList.remove('tk-anim'); }, 950); }
+      paint(true);
+      // PEP-skimun (endurnýtir fsPepScreen) → merkir eigenda-hnúta ⚖️ og teiknar aftur
+      fsPepScreen(f).then((hits) => {
+        if (!hits || !hits.length) return;
+        const set = new Set(hits.map((h) => tkNorm(h.nafn)));
+        let ch = false;
+        owners.forEach((o) => { if (set.has(tkNorm(o.nafn))) { o.pep = true; ch = true; } });
+        if (ch) paint(true);
+      }).catch(() => {});
+      // smellur / lyklaborð (delegað — helst þótt render() endurbyggi)
+      wrap.addEventListener('click', (e) => {
+        const node = e.target.closest && e.target.closest('.tk-owner'); if (!node) return;
+        const o = owners[+node.dataset.i]; if (!o) return;
+        o.felag ? openFelag(o) : openPerson(o);
+      });
+      const hot = (on) => (e) => { const nd = e.target.closest && e.target.closest('.tk-owner'); if (!nd) return; const p = wrap.querySelector('.tk-edge[data-i="' + nd.dataset.i + '"]'); if (p) p.classList.toggle('hot', on); };
+      wrap.addEventListener('mouseover', hot(true)); wrap.addEventListener('mouseout', hot(false));
+      wrap.addEventListener('focusin', hot(true)); wrap.addEventListener('focusout', hot(false));
+      let rt = 0;
+      const relayout = () => { clearTimeout(rt); rt = setTimeout(() => paint(false), 80); };   // debounce (setTimeout, ekki rAF)
+      if (window.ResizeObserver) { try { new ResizeObserver(relayout).observe(wrap); } catch (e) {} }
+      window.addEventListener('resize', relayout);   // + gluggabreidd → nær snúningi/stærðarbreytingu í raunvöfrum
+      function facts(o) {
+        const F = [];
+        if (o.hlutur) F.push('<span class="tk-fct">Hlutur <b>' + escF(o.hlutur) + '</b></span>');
+        if (o.faeding) F.push('<span class="tk-fct">Fæðingarár <b>' + escF(o.faeding) + '</b></span>');
+        if (o.buseta) F.push('<span class="tk-fct">Búseta <b>' + escF(o.buseta) + '</b></span>');
+        if (o.rikisfang) F.push('<span class="tk-fct">Ríkisfang <b>' + escF(o.rikisfang) + '</b></span>');
+        if (o.tegund) F.push('<span class="tk-fct">' + escF(o.tegund) + '</span>');
+        return F.join('');
+      }
+      function openPerson(o) {
+        const det = document.getElementById('tk-detail'); if (!det) return;
+        const hits = fsTengslLeit(o, f.kt);
+        const rel = hits.length
+          ? hits.map((h) => '<button type="button" class="tk-rel" data-kt="' + escF(h.kt) + '"><span class="tk-ic">🏢</span><span class="tk-nm2">' + escF(h.nafn || h.kt) + '</span><span class="kt">kt. ' + escF(ktFmt(h.kt)) + '</span><span class="tk-open">opna ↗</span></button>').join('')
+          : '<div class="tk-relempty">Ekkert annað uppflett félag í þessari lotu nefnir sama einstakling (sama nafn + fæðingarár). Flettu upp fleiri félögum til að víkka netið.</div>';
+        det.innerHTML = '<button type="button" class="tk-detclose" aria-label="Loka">✕</button>'
+          + '<div class="tk-det-h"><span class="tk-ic">👤</span><b>' + escF(o.nafn) + '</b>' + (o.pep ? ' <span class="tk-pepm" title="Möguleg stjórnmálatengsl">⚖️</span>' : '') + '</div>'
+          + '<div class="tk-det-facts">' + facts(o) + '</div>'
+          + '<div class="tk-det-lbl">🔗 Möguleg tengsl <span>(best-effort — uppflett félög í lotunni)</span></div>'
+          + '<div class="tk-det-list">' + rel + '</div>'
+          + '<div class="tk-det-note">Byggt á félögum sem flett hefur verið upp í þessum vafra í þessari lotu — EKKI tæmandi leit í fyrirtækjaskrá. Sama nafn + fæðingarár þýðir ekki með vissu sami einstaklingur; staðfestu auðkenni. Aðeins opinber skráð gögn.</div>';
+        det.hidden = false;
+        det.querySelector('.tk-detclose').onclick = () => { det.hidden = true; };
+        det.querySelectorAll('.tk-rel').forEach((b) => { b.onclick = () => nav(b.dataset.kt); });
+        try { det.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } catch (e) {}
+      }
+      function openFelag(o) {
+        if (f.demo) {
+          const det = document.getElementById('tk-detail'); if (!det) return;
+          det.innerHTML = '<button type="button" class="tk-detclose" aria-label="Loka">✕</button><div class="tk-demohint">🔎 <b>' + escF(o.nafn) + '</b> er lögaðili. Í raunverulegri skýrslu opnar smellur fyrirtækjaskrá þess félags. (Í sýnishorni er ekki flett upp.)</div>';
+          det.hidden = false; det.querySelector('.tk-detclose').onclick = () => { det.hidden = true; };
+          return;
+        }
+        nav(o.nafn);
+      }
+    }
     function fsKort(felag, rsk) {
       const f = felag;
       const rod = (l, v) => (v ? `<div class="fs-f"><span class="l">${l}</span><span class="v">${escF(v)}</span></div>` : '');
@@ -404,6 +634,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
           ${fsAreidanleiki(f)}
+          ${fsTengsl(f)}
           ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
@@ -703,6 +934,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.fjarhagurEngin = !!(fj && fj.engin);   // félag án skráðs ársreiknings → loka-spjald í stað spinner
               skila(fsKort(f, d.rsk));
               backWire();
+              fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
               fsBirgjar().then((b) => {
@@ -914,6 +1146,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
         setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
         fsWirePep(demoF);   // sýnishorn: skima gervi-eigendur → „engin þekkt"
+        fsWireTengsl(demoF, (q) => leita(q, true));   // 🕸️ tengslakort í sýnishorni
         (() => { const dl = document.getElementById('fs-ar-log'); if (dl) { dl.className = 'fs-ar g'; const dv = dl.querySelector('.fs-ar-v'); if (dv) dv.textContent = 'Engar athugasemdir'; } })();
         const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
         setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
