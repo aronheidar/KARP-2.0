@@ -1097,10 +1097,14 @@ async function askellWebhookHandler(request, env, ctx) {
   const macBuf = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(raw)));
   let bin = ''; for (let i = 0; i < macBuf.length; i++) bin += String.fromCharCode(macBuf[i]);
   const expect = btoa(bin);
-  // fastatíma-samanburður (svindl-vörn)
-  if (sig.length !== expect.length) return new Response('badsig', { status: 401 });
-  let diff = 0; for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);
-  if (diff !== 0) return new Response('badsig', { status: 401 });
+  let diff = sig.length === expect.length ? 0 : 1;
+  for (let i = 0; i < sig.length && i < expect.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);
+  const sigOk = diff === 0 && sig.length === expect.length;   // fastatíma-samanburður (svindl-vörn)
+  // ⚠ TÍMABUNDIN debug-upptaka (skoða: /api/askell/last?t=<ASKELL_WEBHOOK_SECRET>) — til að sjá raun v2-payload
+  //    og fínstilla lesturinn. Grípur ÁÐUR en badsig-höfnun svo sést líka ef undirritun mistekst (t.d. rangt secret).
+  try { ctx.waitUntil(caches.default.put(new Request('https://cap.karp.internal/askell-last'),
+    new Response(JSON.stringify({ event, sigOk, at: Date.now(), body: raw.slice(0, 6000) }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } }))); } catch (e) {}
+  if (!sigOk) return new Response('badsig', { status: 401 });
   let body = {}; try { body = JSON.parse(raw); } catch (e) {}
   const ev = String(body.event || event || '');
   const d = body.data || body;   // Áskell pakkar í {event,sender,data:{...}}
@@ -1123,6 +1127,15 @@ async function askellWebhookHandler(request, env, ctx) {
     }
   }
   return new Response('ok', { status: 200 });
+}
+
+// ⚠ TÍMABUNDIÐ debug — skilar síðasta Áskell-vefkróks-payloadi (varið ASKELL_WEBHOOK_SECRET). Fjarlægist eftir prófun.
+async function askellLastHandler(request, env) {
+  const t = new URL(request.url).searchParams.get('t') || '';
+  if (!env.ASKELL_WEBHOOK_SECRET || t !== env.ASKELL_WEBHOOK_SECRET) return new Response('nope', { status: 403 });
+  const c = await caches.default.match(new Request('https://cap.karp.internal/askell-last'));
+  if (!c) return sjson({ empty: true, note: 'engin webhook-upptaka enn — gerðu test-greiðslu fyrst' });
+  return new Response(await c.text(), { headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' } });
 }
 
 // ── Áskell v2 embedded checkout — stofna checkout-session (LOTA 110d) ──
@@ -1420,6 +1433,7 @@ export default {
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
     if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
+    if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
