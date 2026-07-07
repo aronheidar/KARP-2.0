@@ -1,0 +1,102 @@
+{
+ "kt": "4910080160",
+ "nafn": "Íslandsbanki hf.",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.3879,
+    "ROE": 0.1093,
+    "ROA": 0.0155,
+    "eiginfjarhlutfall": 0.142,
+    "veltufjarhlutfall": 0.0644,
+    "skuldahlutfall_DE": 6.0438,
+    "eignavelta": 0.04
+   }
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.3839,
+    "ROE": 0.1063,
+    "ROA": 0.015,
+    "eiginfjarhlutfall": 0.1414,
+    "veltufjarhlutfall": 0.0476,
+    "skuldahlutfall_DE": 6.0718,
+    "eignavelta": 0.0391
+   },
+   "rekstur": {
+    "fjarmunatekjur": 135278,
+    "fjarmagnsgjold": -94077,
+    "adrar_tekjur": 2282,
+    "sala": 62938,
+    "laun": -16329,
+    "annar_rekstur": -11299,
+    "tekjuskattur": -9426,
+    "hagnadur": 24159,
+    "afskriftir": 1662
+   },
+   "efnahagur": {
+    "handbaert": 65716,
+    "eignir": 1607807,
+    "skuldir": 1380452,
+    "hlutafe": 9473,
+    "eigid_fe": 227355,
+    "skammtimaskuldir": 1380452
+   }
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.3755,
+    "ROE": 0.112,
+    "ROA": 0.0146,
+    "eiginfjarhlutfall": 0.1304,
+    "veltufjarhlutfall": 0.0535,
+    "skuldahlutfall_DE": 6.6684,
+    "eignavelta": 0.0389
+   },
+   "rekstur": {
+    "fjarmunatekjur": 129324,
+    "fjarmagnsgjold": -80501,
+    "adrar_tekjur": 1165,
+    "sala": 67240,
+    "laun": -17804,
+    "annar_rekstur": -11676,
+    "tekjuskattur": -9746,
+    "hagnadur": 25249,
+    "afskriftir": 1759
+   },
+   "efnahagur": {
+    "handbaert": 80394,
+    "eignir": 1728147,
+    "skuldir": 1502788,
+    "hlutafe": 8900,
+    "eigid_fe": 225359,
+    "skammtimaskuldir": 1502788
+   }
+  },
+  "2026": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.3845,
+    "ROE": 0.1066,
+    "ROA": 0.0151,
+    "eiginfjarhlutfall": 0.1414,
+    "veltufjarhlutfall": 0.0476,
+    "skuldahlutfall_DE": 6.0718,
+    "eignavelta": 0.0392
+   }
+  }
+ }
+}
