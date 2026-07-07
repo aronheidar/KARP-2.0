@@ -52,6 +52,7 @@ const NAV = [
   ] },
   { label: 'Efnahagur', emoji: '📉', items: [
     { href: '/verdlag/', label: 'Verðlag' },
+    { href: '/lyf/', label: 'Lyf & lyfjaverð' },
     { href: '/vextir/', label: 'Vextir & gengi' },
     { href: '/fasteignir/', label: 'Fasteignaverð' },
     { href: '/samanburdur/', label: 'Ísland í samanburði' },
@@ -372,7 +373,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
-        [/^\/(verdlag|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|eftirlit|okutaeki|skip|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
+        [/^\/(verdlag|lyf|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|eftirlit|okutaeki|skip|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
         [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
         [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
       ];
