@@ -1122,6 +1122,32 @@ async function askellWebhookHandler(request, env, ctx) {
   return new Response('ok', { status: 200 });
 }
 
+// ── Áskell v2 embedded checkout — stofna checkout-session (LOTA 110d) ──
+// Framendinn kallar hér þegar notandi vill gerast áskrifandi → worker stofnar v2 checkout-session
+// með PRIVATE key (server-hlið) → skilar { token } sem framendinn setur í Askell.mountCheckout (askell.js).
+// Áskell-widgetinn sér um kortainnslátt + 3DS INNI á karp.is. customer_reference = kt bindur áskriftina.
+// ⚠ ÓVIRKT þar til ASKELL_PRIVATE_KEY + ASKELL_CHANNEL_FRETTIR/UTBOD (sölurásir Arons) eru sett.
+async function askellSessionHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
+  const u = new URL(request.url);
+  const service = u.searchParams.get('service') === 'utbod' ? 'utbod' : 'frettir';
+  const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const channel = service === 'utbod' ? env.ASKELL_CHANNEL_UTBOD : env.ASKELL_CHANNEL_FRETTIR;
+  if (!channel) return sjson({ error: 'unconfigured' });
+  const body = { sales_channel: channel, expires_in_seconds: 1800 };
+  if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
+  try {
+    const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
+      method: 'POST',
+      headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.token) return sjson({ error: 'askell', status: r.status });
+    return sjson({ token: d.token, expires_at: d.expires_at || null, service });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
 // ── On-demand ársreikninga-scraping (LOTA 99R) — dispatchar GitHub Action ──
 // /fyrirtaeki/ kallar hér þegar keypt/skoðuð skýrsla hefur engan scrapaðan ársreikning. Worker sendir
 // repository_dispatch { kt } → .github/workflows/arsreikningur.yml scrapar RSK-PDF → web/public/gogn/
@@ -1392,6 +1418,7 @@ export default {
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
     if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
+    if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
