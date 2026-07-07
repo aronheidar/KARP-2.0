@@ -1,0 +1,36 @@
+---
+// 🧪 TÍMABUNDIN prófunarsíða — Áskell v2 embedded checkout (LOTA 110i).
+// Rendrar áskriftargáttina ÁN admin/paywall/lockedSvc-gátunar svo hægt sé að klára eina
+// test-greiðslu og fanga fyrsta subscription_contract-vefkrókinn (staðfesta payload-þáttun).
+// EYÐA þessari síðu eftir að webhook er staðfestur (?diag=1 → upptaka_til:true, sidasta_sigOk:true).
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Áskell prófun" description="Tímabundin prófun" canonical="https://karp.is/askell-profun/" noindex={true}>
+  <main data-pg="askell-profun" style="max-width:640px;margin:40px auto;padding:0 16px;min-height:60vh;">
+    <p style="color:#8fa0b8;font-size:13px;margin-bottom:18px;line-height:1.5;">
+      🧪 <b style="color:#cdd6e6;">Tímabundin prófunarsíða</b> — Áskell test-greiðsla. Veldu þjónustu:
+      <a href="?svc=frettir" style="color:#f6b13b;">frettir</a> · <a href="?svc=utbod" style="color:#f6b13b;">utbod</a><br>
+      <span id="ap-svc" style="color:#8fa0b8;"></span>
+    </p>
+    <div id="askell-test-gate"></div>
+  </main>
+  <script>
+    import { loadUser, subGate } from '../lib/auth.js';
+    function boot() {
+      const g = document.getElementById('askell-test-gate');
+      if (!g || g.dataset.on) return; g.dataset.on = '1';
+      const svc = new URLSearchParams(location.search).get('svc') === 'utbod' ? 'utbod' : 'frettir';
+      const lbl = document.getElementById('ap-svc'); if (lbl) lbl.textContent = 'Valið núna: ' + svc;
+      loadUser().then(() => {
+        subGate(g, {
+          service: svc,
+          title: svc === 'utbod' ? 'Útboðsvaktin (prófun)' : 'Fjölmiðlavöktun (prófun)',
+          blurb: 'Test-greiðsla fyrir Áskell v2 embedded checkout. Sláðu inn kennitölu → kortagluggi opnast.',
+          price: '3.490 kr/mán',
+        });
+      });
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>
