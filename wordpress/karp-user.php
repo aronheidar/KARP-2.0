@@ -99,12 +99,11 @@ function karp_user_payload() {
         $rep = (array) ( get_user_meta($u->ID, 'karp_reports', true) ?: array() );
         $data['reports'] = array_values( array_map( function ($r) { return is_array($r) ? (string) ( $r['key'] ?? '' ) : (string) $r; }, $rep ) );
         $data['id'] = (int) $u->ID;   // fyrir server-hlið entitlement-skráningu (greiðslu-callback → /reports/grant)
-        // Per-þjónustu áskriftir (LOTA 100): frettir (Fjölmiðlagreining) + utbod (Útboðsvaktin), 3.490 kr/mán hvor.
-        // admin = allt; annars karp_sub_<svc>_until (unix-tími) í FRAMTÍÐ = virk áskrift/fríprófun.
-        $data['subs'] = array(
-            'frettir' => $data['isAdmin'] || ( (int) get_user_meta($u->ID, 'karp_sub_frettir_until', true) > time() ),
-            'utbod'   => $data['isAdmin'] || ( (int) get_user_meta($u->ID, 'karp_sub_utbod_until', true) > time() ),
-        );
+        // Þrep-áskrift (Verk B): eitt þrep per notandi (grunnur|fyrirtaeki|fyrirtaeki_plus).
+        // karp_tier + karp_tier_until (unix). Sleppt (null) ef útrunnið. admin = allt (auth.js tierLevelOf).
+        $t_until = (int) get_user_meta($u->ID, 'karp_tier_until', true);
+        $data['tier'] = ( $t_until > time() ) ? (string) get_user_meta($u->ID, 'karp_tier', true) : null;
+        $data['tier_until'] = ( $t_until > time() ) ? $t_until : null;
     }
     // Greiðsluveggir VIRKIR? Global rofi (option karp_paywall='1') — Aron kveikir þegar billing er tilbúið.
     // SLÖKKT sjálfgefið svo Vöktun/Útboð haldist opin þar til launch. Á við líka útskráða (gátt fyrir alla).
@@ -208,15 +207,16 @@ add_action('rest_api_init', function () {
         'callback' => function ($req) {
             $uid = get_current_user_id();
             $p = (array) $req->get_json_params();
-            $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
-            $used = 'karp_sub_' . $svc . '_trial_used';
-            if ( get_user_meta($uid, $used, true) ) {
+            $tier = isset($p['tier']) ? preg_replace('/[^a-z_]/', '', (string) $p['tier']) : '';
+            if ( ! in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) ) { return array('ok' => false, 'error' => 'tier'); }
+            if ( get_user_meta($uid, 'karp_tier_trial_used', true) ) {
                 return array('ok' => false, 'error' => 'used');
             }
-            $until = time() + 30 * DAY_IN_SECONDS;
-            update_user_meta($uid, 'karp_sub_' . $svc . '_until', $until);
-            update_user_meta($uid, $used, '1');
-            return array('ok' => true, 'service' => $svc, 'until' => $until);
+            $until = time() + 31 * DAY_IN_SECONDS;
+            update_user_meta($uid, 'karp_tier', $tier);
+            update_user_meta($uid, 'karp_tier_until', $until);
+            update_user_meta($uid, 'karp_tier_trial_used', '1');
+            return array('ok' => true, 'tier' => $tier, 'until' => $until);
         },
     ));
     // POST /sub/subscribe {service, kt} — innskráður notandi gerist áskrifandi (Arion-kröfu-leið, LOTA 110).
@@ -228,14 +228,11 @@ add_action('rest_api_init', function () {
         'callback' => function ($req) {
             $uid = get_current_user_id();
             $p = (array) $req->get_json_params();
-            $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
+            $tier = isset($p['tier']) ? preg_replace('/[^a-z_]/', '', (string) $p['tier']) : '';
             $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
-            if ( strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'kt'); }
-            update_user_meta($uid, 'karp_kt', $kt);
-            $subs = (array) get_option('karp_subscribers', array());
-            $subs[ $uid . ':' . $svc ] = array('uid' => $uid, 'kt' => $kt, 'service' => $svc, 'since' => time(), 'next_due' => time(), 'status' => 'pending');
-            update_option('karp_subscribers', $subs, false);
-            return array('ok' => true, 'service' => $svc, 'status' => 'pending');
+            if ( ! in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'input'); }
+            update_user_meta($uid, 'karp_kt', $kt);   // bindur Áskell-vefkrók (customer_reference=kt) við þennan notanda → grant
+            return array('ok' => true, 'tier' => $tier, 'status' => 'pending');
         },
     ));
     register_rest_route('karp/v1', '/reports', array(
@@ -292,25 +289,20 @@ function karp_sub_grant($req) {
     if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
     $p = (array) $req->get_json_params();
     $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
-    $svc = ( isset($p['service']) && $p['service'] === 'utbod' ) ? 'utbod' : 'frettir';
-    $months = max(1, (int) ( isset($p['months']) ? $p['months'] : 1 ));
-    $untilAbs = isset($p['until']) ? (int) $p['until'] : 0;   // Áskell active_until (nákvæm lok, unix) → notað beint ef sent
+    $tier = isset($p['tier']) ? preg_replace('/[^a-z_]/', '', (string) $p['tier']) : '';
+    $untilAbs = isset($p['until']) ? (int) $p['until'] : 0;   // Áskell active_until (nákvæm lok, unix)
     $ref = (string) ( isset($p['ref']) ? $p['ref'] : '' );
-    if ( strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'kt'); }
-    // Idempotency: sama greidda krafa (ref/claimId) má AÐEINS framlengja einu sinni (annars +mánuður daglega).
+    if ( strlen($kt) !== 10 || ! in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || $untilAbs < time() ) { return array('ok' => false, 'error' => 'input'); }
+    // Idempotency: sama greidda áskrift (ref = Áskell-id_until) má AÐEINS veita einu sinni.
     $done = (array) get_option('karp_sub_granted_refs', array());
     if ( $ref !== '' && in_array($ref, $done, true) ) { return array('ok' => true, 'dup' => true); }
     $users = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $kt, 'number' => 1, 'fields' => 'ID'));
     if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
     $uid = (int) $users[0];
-    $cur = (int) get_user_meta($uid, 'karp_sub_' . $svc . '_until', true);
-    $until = $untilAbs > 0 ? max($cur, $untilAbs) : ( max(time(), $cur) + $months * 30 * DAY_IN_SECONDS );   // Áskell: TIL active_until · annars +N mánuðir
-    update_user_meta($uid, 'karp_sub_' . $svc . '_until', $until);
-    $subs = (array) get_option('karp_subscribers', array());
-    $key = $uid . ':' . $svc;
-    if ( isset($subs[$key]) ) { $subs[$key]['status'] = 'active'; $subs[$key]['next_due'] = $until - 7 * DAY_IN_SECONDS; update_option('karp_subscribers', $subs, false); }   // næsta krafa 7 d fyrir lok
+    update_user_meta($uid, 'karp_tier', $tier);
+    update_user_meta($uid, 'karp_tier_until', $untilAbs);   // Áskell: aðgangur TIL active_until (afbókun → rennur út)
     if ( $ref !== '' ) { $done[] = $ref; if ( count($done) > 5000 ) { $done = array_slice($done, -5000); } update_option('karp_sub_granted_refs', $done, false); }
-    return array('ok' => true, 'uid' => $uid, 'until' => $until);
+    return array('ok' => true, 'uid' => $uid, 'tier' => $tier, 'until' => $untilAbs);
 }
 function karp_reports_grant($req) {
     $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
