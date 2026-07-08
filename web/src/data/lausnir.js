@@ -16,6 +16,7 @@ export const EIGINDIR = [
   { titill: 'Viðskiptamannavakt (kt-vöktun)', gildi: [false, '25 kt', '100 kt'] },
   { titill: 'Fjölmiðlavakt', gildi: [false, true, true] },
   { titill: 'Opnar vaktir (útboð, styrkir, Lögbirting, vörumerki, skip…)', gildi: [true, true, true] },
+  { titill: 'Mitt svæði + frjálsar vaktir (Leitarorða, Eftirlit, Ökutæki & skip)', gildi: [true, true, true] },
   { titill: 'Stakar skýrslur innifaldar', gildi: ['—', '5/mán', '20/mán'] },
   { titill: 'Lánshæfismat · Vanskilaskrá', gildi: ['Bjóðum ekki', 'Bjóðum ekki', 'Bjóðum ekki'], neikvaett: true },
 ];

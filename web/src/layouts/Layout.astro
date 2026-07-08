@@ -7,8 +7,9 @@ const { title, description = '', canonical = '', jsonLd = null, noindex = false,
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
-  { label: 'Fyrirtækjalausnir', emoji: '⭐', icon: 'pro', items: [
+  { label: 'Karp+', emoji: '⭐', icon: 'pro', items: [
     { href: '/karp-pro/', label: 'Yfirlit & verð' },
+    { sub: 'Vörur' },
     { href: '/lausnir/fyrirtaekjaskyrsla/', label: 'Fyrirtækjaskýrsla' },
     { href: '/lausnir/eigendur/', label: 'Endanlegir eigendur' },
     { href: '/lausnir/fyrirtaekjavaktin/', label: 'Fyrirtækjavaktin' },
@@ -16,8 +17,7 @@ const NAV = [
     { href: '/lausnir/fasteignamat/', label: 'Fasteignamat' },
     { href: '/lausnir/fjolmidlavakt/', label: 'Fjölmiðlavakt' },
     { href: '/lausnir/utbodsvaktin/', label: 'Útboðsvaktin' },
-  ] },
-  { label: 'Karp+', emoji: '👤', items: [
+    { sub: 'Innifalið í öllum pökkum' },
     { href: '/mitt-svaedi/', label: 'Mitt svæði' },
     { href: '/vaktir/', label: 'Leitarorðavaktin' },
     { href: '/eftirlit/', label: 'Eftirlitsvaktin' },
