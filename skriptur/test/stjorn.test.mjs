@@ -20,6 +20,40 @@ const BRIM = [
   '290864-7719 Inga Jóna Friðgeirsdóttir, Gnitakór 14, 203 Kópavogur, Prókúruhafi',
 ].join('\n');
 
+// Heilt tvítyngt skjal: íslensk síða 1 (m/haus fyrir nafn) + ensk endurtekning síðu 2.
+const BRIM_FULL = [
+  '- Fyrirtækjaskrá -',
+  'Katrínartúni 6, 105 Reykjavík, Ísland - Sími: +354 442-1250',
+  'www.skatturinn.is',
+  'Yfirlit lögaðila',
+  '8.7.2026',
+  'Brim hf.',
+  'Póstfang',
+  'Norðurgarði 1',
+  '101 Reykjavík',
+  'Kt: 541185-0389',
+  BRIM,
+  'www.skatturinn.is',
+  '- Register of Enterprises -',
+  'Katrínartúni 6, 105 Reykjavík, Iceland - Tel: +354 442-1250',
+  'Registration Overview',
+  '7.8.2026',
+  'Brim hf. Reg Id: 541185-0389',
+  '161160-2889 Kristján Þórarinn Davíðsson, Kirkjusandi 1, 105 Reykjavík, Chairman',
+  '290750-6879 Anna G Sverrisdóttir, Grjótaseli 13, 109 Reykjavík, Director',
+  '521098-2449 Deloitte ehf., Dalvegi 30, 201 Kópavogur, Auditor',
+  '220860-4429 Guðmundur Kristjánsson, Nesvegi 107, 170 Seltjarnarnes, Management',
+  '220860-4429 Guðmundur Kristjánsson, Nesvegi 107, 170 Seltjarnarnes, Power of Procuration',
+].join('\n');
+
+test('parseStjornText: bilingual doc — extracts name, drops English duplicate board', () => {
+  const r = parseStjornText(BRIM_FULL);
+  assert.equal(r.nafn, 'Brim hf.');            // ekki "Iceland" úr enskri síðu
+  assert.equal(r.stjorn.length, 9);            // ensk endurtekning sleppt (ekki 18)
+  const ENGLISH = ['Chairman', 'Director', 'Auditor', 'Management', 'Power of Procuration'];
+  assert.ok(!r.stjorn.some((x) => ENGLISH.includes(x.hlutverk)), 'engin ensk hlutverk');
+});
+
 test('parseStjornText: full board, name+role only', () => {
   const r = parseStjornText(BRIM);
   assert.equal(r.firmaritun, 'Meirihluti stjórnar');

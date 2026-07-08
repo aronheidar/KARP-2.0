@@ -128,10 +128,34 @@ export async function fetchHluthafar(kt, opts = {}) {
   } finally { try { fs.unlinkSync(tmp); } catch {} }
 }
 
+// pdftotext (poppler) -raw -enc UTF-8 → hreinn texti með bilum í nöfnum (staðfest á RSK-yfirliti).
+export function pdftotextRaw(pdfPath, { PDFTOTEXT = process.env.PDFTOTEXT || 'pdftotext' } = {}) {
+  const r = spawnSync(PDFTOTEXT, ['-raw', '-enc', 'UTF-8', pdfPath, '-'], { encoding: 'utf-8', maxBuffer: 1 << 26 });
+  if (r.status !== 0) throw new Error('pdftotext: ' + (r.stderr || (r.error && r.error.message) || 'status ' + r.status));
+  return r.stdout;
+}
+
+// Stjórn úr fríu "Gjaldfrjálsu yfirliti" (typeid 9). Krefst puppeteer (downloadPdf) → keyrir í GH-Action, ekki worker.
+export async function fetchStjorn(kt, opts = {}) {
+  const kid = await addToCart(kt, kt, 9, opts);          // itemid = kt fyrir yfirlits-hnappinn (typeid 9)
+  const pdf = await downloadPdf(kid, opts);
+  const tmp = path.join(__dirname, `_tmp_stj_${kt}.pdf`);
+  fs.writeFileSync(tmp, pdf);
+  try {
+    return parseStjornText(pdftotextRaw(tmp, opts));   // {nafn, stjorn, firmaritun, dags}
+  } finally { try { fs.unlinkSync(tmp); } catch {} }
+}
+
 // ---- Nýtt: stjórn úr "Gjaldfrjálsu yfirliti" (RSK typeid 9), pdftotext -raw -enc UTF-8 texti ----
 // 🔒 Skilar AÐEINS {nafn, hlutverk} — sleppir kennitölum og heimilisföngum einstaklinga (persónuvernd).
+// Skjalið er TVÍTYNGT (íslensk síða 1 + ensk endurtekning síðu 2) → þáttum AÐEINS íslenska hlutann.
 export function parseStjornText(txt) {
-  const lines = String(txt || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const full = String(txt || '');
+  const engIdx = full.search(/Register of Enterprises|Registration Overview/i);
+  const body = engIdx > 0 ? full.slice(0, engIdx) : full;   // sleppa enskri endurtekningu stjórnar
+  const nm = full.match(/\n\s*([^\n]+?)\s*\n\s*Póstfang/i) || full.match(/([^\n]+?)\s+Reg Id:\s*\d/);   // nafn af síðu 1
+  const nafn = nm ? nm[1].trim() : null;
+  const lines = body.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   // <kt> <nafn>, <heimilisfang>, <póstnr borg>, <hlutverk>
   const LINE = /^\d{6}-?\d{4}\s+(.+?),\s*.+?,\s*.+?,\s*([^,]+?)\s*$/;
   const normRole = (r) => {
@@ -142,20 +166,21 @@ export function parseStjornText(txt) {
   const sectionRole = (h) => /Endursko/i.test(h) ? 'Endurskoðandi'
     : /Framkv/i.test(h) ? 'Framkvæmdastjóri'
     : /Prókúr/i.test(h) ? 'Prókúruhafi' : null;
-  const out = [];
+  const out = [], seen = new Set();
   let firmaritun = null, dags = null, section = null, m;
   for (const ln of lines) {
     if ((m = ln.match(/^Firma[ðđ]?\s*rita:?\s*(.+)$/i))) { firmaritun = m[1].trim() || null; continue; }
     if ((m = ln.match(/skipa samkvæmt fundi þann:?\s*([\d.]+)/i))) { dags = m[1] || null; continue; }
     if (/:\s*$/.test(ln)) { section = sectionRole(ln); continue; }   // kaflahaus
     if ((m = ln.match(LINE))) {
-      const nafn = m[1].trim();
+      const p = m[1].trim();
       const hlutverk = normRole(m[2]) || section || 'Stjórn';
-      if (nafn && !/^\d{6}-?\d{4}$/.test(nafn)) out.push({ nafn, hlutverk });
+      const key = p + '|' + hlutverk;
+      if (p && !/^\d{6}-?\d{4}$/.test(p) && !seen.has(key)) { seen.add(key); out.push({ nafn: p, hlutverk }); }
     }
   }
   const ORDER = ['stjórnarformaður', 'varaformaður', 'meðstjórnandi', 'stjórnarmaður', 'varamaður', 'framkvæmdastjóri', 'prókúruhafi', 'endurskoðandi'];
   const rank = (h) => { const i = ORDER.indexOf((h || '').toLowerCase()); return i < 0 ? ORDER.length : i; };
   out.sort((a, b) => rank(a.hlutverk) - rank(b.hlutverk));   // stöðug röðun (Node) heldur skjalaröð innan flokks
-  return { stjorn: out, firmaritun, dags };
+  return { nafn, stjorn: out, firmaritun, dags };
 }
