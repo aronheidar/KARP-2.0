@@ -1,0 +1,184 @@
+{
+ "kt": "5312050810",
+ "nafn": "Nova hf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 6,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5312050810",
+    "kt": "5312050810",
+    "nafn": "Nova hf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Sigríður Olgeirsdóttir",
+    "tegund": "einst",
+    "faeding": "1960-MAÍ"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Jón Óttar Birgisson",
+    "tegund": "einst",
+    "faeding": "1974-APRÍL"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Steinunn Hlíf Sigurðardóttir",
+    "tegund": "einst",
+    "faeding": "1974-JANÚAR"
+   },
+   {
+    "id": "n4",
+    "kt": null,
+    "nafn": "Jóhannes Þorsteinsson",
+    "tegund": "einst",
+    "faeding": "1978-OKTÓBER"
+   },
+   {
+    "id": "n5",
+    "kt": null,
+    "nafn": "Hrund Rudolfsdóttir",
+    "tegund": "einst",
+    "faeding": "1969-MARS"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5312050810",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5312050810",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt5312050810",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n4",
+    "til": "kt5312050810",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n5",
+    "til": "kt5312050810",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Sigríður Olgeirsdóttir",
+   "kt": null,
+   "faeding": "1960-MAÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Jón Óttar Birgisson",
+   "kt": null,
+   "faeding": "1974-APRÍL",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Steinunn Hlíf Sigurðardóttir",
+   "kt": null,
+   "faeding": "1974-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Jóhannes Þorsteinsson",
+   "kt": null,
+   "faeding": "1978-OKTÓBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Hrund Rudolfsdóttir",
+   "kt": null,
+   "faeding": "1969-MARS",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Sigríður Olgeirsdóttir",
+   "faeding": "1960-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Jón Óttar Birgisson",
+   "faeding": "1974-APRÍL",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Steinunn Hlíf Sigurðardóttir",
+   "faeding": "1974-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Jóhannes Þorsteinsson",
+   "faeding": "1978-OKTÓBER",
+   "buseta": "Bandaríkin",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Hrund Rudolfsdóttir",
+   "faeding": "1969-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
