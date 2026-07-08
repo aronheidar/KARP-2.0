@@ -1,0 +1,387 @@
+{
+ "kt": "6209160560",
+ "nafn": "Nova klúbburinn hf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 13,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt6209160560",
+    "kt": "6209160560",
+    "nafn": "Nova klúbburinn hf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Birta lífeyrisjóður ...........................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Lífeyrissjóður starfsmanna rík. 1) .................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Landsbréf hf. 2) ............................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n4",
+    "kt": null,
+    "nafn": "Stapi lífeyrissjóður ........................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n5",
+    "kt": null,
+    "nafn": "Almenni-Lífsverk lífeyrissjóður .....................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n6",
+    "kt": null,
+    "nafn": "Festa lífeyrissjóður .......................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n7",
+    "kt": null,
+    "nafn": "Lífeyrissjóður verslunarmanna .....................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n8",
+    "kt": null,
+    "nafn": "Gildi lífeyrissjóður 3) .....................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n9",
+    "kt": null,
+    "nafn": "Íslandssjóðir hf. 4) ........................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n10",
+    "kt": null,
+    "nafn": "Sjóvá-Almennar tryggingar hf. ......................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n11",
+    "kt": null,
+    "nafn": "Samtals 10 stærstu ......................................................................................",
+    "tegund": "einst"
+   },
+   {
+    "id": "n12",
+    "kt": null,
+    "nafn": "tiltekna stjórnendur félagsins um samtals 63.969.746 hluti í félaginu, eða sem samsvarar af útgefnu hlutafé í",
+    "tegund": "einst"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt6209160560",
+    "hlutur": 12.2,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n2",
+    "til": "kt6209160560",
+    "hlutur": 10.5,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n3",
+    "til": "kt6209160560",
+    "hlutur": 9.2,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n4",
+    "til": "kt6209160560",
+    "hlutur": 8.6,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n5",
+    "til": "kt6209160560",
+    "hlutur": 6.1,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n6",
+    "til": "kt6209160560",
+    "hlutur": 6,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n7",
+    "til": "kt6209160560",
+    "hlutur": 5.2,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n8",
+    "til": "kt6209160560",
+    "hlutur": 4.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n9",
+    "til": "kt6209160560",
+    "hlutur": 3.4,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n10",
+    "til": "kt6209160560",
+    "hlutur": 2.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n11",
+    "til": "kt6209160560",
+    "hlutur": 69.1,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n12",
+    "til": "kt6209160560",
+    "hlutur": 1.8,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Samtals 10 stærstu ......................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 69.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Birta lífeyrisjóður ...........................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 12.2,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lífeyrissjóður starfsmanna rík. 1) .................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 10.5,
+   "gegnum": []
+  },
+  {
+   "nafn": "Landsbréf hf. 2) ............................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 9.2,
+   "gegnum": []
+  },
+  {
+   "nafn": "Stapi lífeyrissjóður ........................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 8.6,
+   "gegnum": []
+  },
+  {
+   "nafn": "Almenni-Lífsverk lífeyrissjóður .....................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 6.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Festa lífeyrissjóður .......................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 6,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lífeyrissjóður verslunarmanna .....................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 5.2,
+   "gegnum": []
+  },
+  {
+   "nafn": "Gildi lífeyrissjóður 3) .....................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 4.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Íslandssjóðir hf. 4) ........................................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 3.4,
+   "gegnum": []
+  },
+  {
+   "nafn": "Sjóvá-Almennar tryggingar hf. ......................................................................",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 2.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "tiltekna stjórnendur félagsins um samtals 63.969.746 hluti í félaginu, eða sem samsvarar af útgefnu hlutafé í",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 1.8,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Sigríður Olgeirsdóttir",
+   "faeding": "1960-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Jón Óttar Birgisson",
+   "faeding": "1974-APRÍL",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Steinunn Hlíf Sigurðardóttir",
+   "faeding": "1974-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Jóhannes Þorsteinsson",
+   "faeding": "1978-OKTÓBER",
+   "buseta": "Bandaríkin",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Hrund Rudolfsdóttir",
+   "faeding": "1969-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [
+  {
+   "nafn": "Birta lífeyrisjóður ...........................................................................................",
+   "kt": null,
+   "hlutur": 12.2
+  },
+  {
+   "nafn": "Lífeyrissjóður starfsmanna rík. 1) .................................................................",
+   "kt": null,
+   "hlutur": 10.5
+  },
+  {
+   "nafn": "Landsbréf hf. 2) ............................................................................................",
+   "kt": null,
+   "hlutur": 9.2
+  },
+  {
+   "nafn": "Stapi lífeyrissjóður ........................................................................................",
+   "kt": null,
+   "hlutur": 8.6
+  },
+  {
+   "nafn": "Almenni-Lífsverk lífeyrissjóður .....................................................................",
+   "kt": null,
+   "hlutur": 6.1
+  },
+  {
+   "nafn": "Festa lífeyrissjóður .......................................................................................",
+   "kt": null,
+   "hlutur": 6
+  },
+  {
+   "nafn": "Lífeyrissjóður verslunarmanna .....................................................................",
+   "kt": null,
+   "hlutur": 5.2
+  },
+  {
+   "nafn": "Gildi lífeyrissjóður 3) .....................................................................................",
+   "kt": null,
+   "hlutur": 4.9
+  },
+  {
+   "nafn": "Íslandssjóðir hf. 4) ........................................................................................",
+   "kt": null,
+   "hlutur": 3.4
+  },
+  {
+   "nafn": "Sjóvá-Almennar tryggingar hf. ......................................................................",
+   "kt": null,
+   "hlutur": 2.9
+  },
+  {
+   "nafn": "Samtals 10 stærstu ......................................................................................",
+   "kt": null,
+   "hlutur": 69.1
+  },
+  {
+   "nafn": "tiltekna stjórnendur félagsins um samtals 63.969.746 hluti í félaginu, eða sem samsvarar af útgefnu hlutafé í",
+   "kt": null,
+   "hlutur": 1.8
+  }
+ ],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
