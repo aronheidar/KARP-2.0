@@ -1,0 +1,64 @@
+{
+ "kt": "5905034950",
+ "nafn": "Iðnver ehf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5905034950",
+    "kt": "5905034950",
+    "nafn": "Iðnver ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Pétur Blöndal",
+    "tegund": "einst",
+    "faeding": "1973-FEBRÚAR"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5905034950",
+    "hlutur": 91.3,
+    "band": "51",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Pétur Blöndal",
+   "kt": null,
+   "faeding": "1973-FEBRÚAR",
+   "tegund": "einst",
+   "hlutur": 91.3,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 8.7,
+ "raunverulegir": [
+  {
+   "nafn": "Pétur Blöndal",
+   "faeding": "1973-FEBRÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "91,3%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
