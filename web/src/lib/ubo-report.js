@@ -173,14 +173,15 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
   if (!hostEl) return;
   const nav = navTo || defaultNav;
   if (!uboOwned(kt)) { hostEl.innerHTML = uboCtaHtml(kt, nafn); wireBuy(hostEl, kt, nafn); return; }
-  hostEl.innerHTML = '<div class="eig-loading">🔗 Sæki endanlega eigendur…</div>';
+  hostEl.innerHTML = '<div class="eig-loading">🔗 Rek eignarhald gegnum allar félagakeðjur beint úr RSK…'
+    + '<br><small style="opacity:.75">Í fyrsta skipti getur þetta tekið 1–2 mín — svo vistast skýrslan og birtist samstundis eftirleiðis.</small></div>';
   let tries = 0;
   const tick = async () => {
     const d = await eigData(kt, true);
     if (d && !d.pending && !d.engin) { eigMount(d, hostEl, nav); return; }
     if (d && d.engin) { hostEl.innerHTML = '<div class="eig-tom">Ekki tókst að byggja eignarhaldsnet fyrir félagið (hvorki hluthafalisti né raunverulegir eigendur fundust).</div>'; return; }
-    if (tries++ < 60) setTimeout(tick, 3000);
-    else hostEl.innerHTML = '<div class="eig-tom">Skýrslan er enn í vinnslu — endurhlaðið síðuna eftir smástund.</div>';
+    if (tries++ < 80) setTimeout(tick, tries < 12 ? 2000 : 3500);   // hraðari fyrstu pollin → grípur fljótari byggingar fyrr
+    else hostEl.innerHTML = '<div class="eig-tom">Skýrslan er enn í vinnslu — endurhlaðið síðuna eftir smástund (hún vistast þegar hún er tilbúin).</div>';
   };
   tick();
 }
