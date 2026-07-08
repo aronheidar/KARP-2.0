@@ -1,0 +1,50 @@
+{
+ "kt": "0000000000",
+ "nafn": "Gervifyrirtæki ehf.",
+ "sott": "2026-07-08",
+ "demo": true,
+ "heimildir": ["Hlutafélagaskrá (RSK)", "Ársreikningaskrá (RSK)", "Raunverulegir eigendur (Skatturinn)"],
+ "dypt": 3,
+ "hnutar_alls": 9,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   { "id": "root", "kt": "0000000000", "nafn": "Gervifyrirtæki ehf.", "tegund": "felag", "er_rot": true },
+   { "id": "vala", "kt": "1111111111", "nafn": "Vala hf.", "tegund": "felag" },
+   { "id": "leggir", "kt": "2222222222", "nafn": "Leggir ehf.", "tegund": "felag" },
+   { "id": "njall", "kt": null, "nafn": "Njáll Þorgeirsson", "tegund": "einst", "faeding": "1972", "land": "Ísland" },
+   { "id": "appels", "kt": "3333333333", "nafn": "Appelsínur ehf.", "tegund": "felag" },
+   { "id": "epli", "kt": "4444444444", "nafn": "Epli ehf.", "tegund": "felag" },
+   { "id": "cranberry", "kt": "6603199530", "nafn": "Cranberry Investments", "tegund": "felag" },
+   { "id": "bromber", "kt": "5555555555", "nafn": "Brómber hf.", "tegund": "felag" },
+   { "id": "monsters", "kt": "6702199960", "nafn": "Monsters Incorporation", "tegund": "felag" }
+  ],
+  "edges": [
+   { "fra": "vala", "til": "root", "hlutur": 80, "band": "51", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
+   { "fra": "leggir", "til": "vala", "hlutur": 84.25, "band": "51", "heimild": "Ársreikningur 2019, Vala hf." },
+   { "fra": "njall", "til": "leggir", "hlutur": 100, "band": "51", "heimild": "Raunverulegir eigendur (Skatturinn)" },
+   { "fra": "epli", "til": "root", "hlutur": 20, "band": "lt25", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
+   { "fra": "appels", "til": "epli", "hlutur": 49.8, "band": "25", "heimild": "Ársreikningur 2019, Epli ehf." },
+   { "fra": "cranberry", "til": "appels", "hlutur": 100, "band": "51", "heimild": "Ársreikningaskrá (RSK)" },
+   { "fra": "bromber", "til": "root", "hlutur": 12, "band": "lt25", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
+   { "fra": "monsters", "til": "bromber", "hlutur": 83, "band": "51", "heimild": "Ársreikningaskrá (RSK)" }
+  ]
+ },
+ "endanlegir": [
+  { "nafn": "Njáll Þorgeirsson", "kt": null, "faeding": "1972", "tegund": "einst", "hlutur": 67.4, "gegnum": ["Leggir ehf.", "Vala hf."] },
+  { "nafn": "Cranberry Investments", "kt": "6603199530", "faeding": null, "tegund": "felag", "hlutur": 9.96, "gegnum": ["Appelsínur ehf.", "Epli ehf."] },
+  { "nafn": "Monsters Incorporation", "kt": "6702199960", "faeding": null, "tegund": "felag", "hlutur": 9.96, "gegnum": ["Brómber hf."] }
+ ],
+ "othekkt": 12.68,
+ "raunverulegir": [
+  { "nafn": "Njáll Þorgeirsson", "faeding": "1972-FEBRÚAR", "buseta": "Ísland", "rikisfang": "Ísland", "tegund": "Óbeint eignarhald á hlutafé", "hlutur": "69%" }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [
+  { "nafn": "A20 ehf.", "kt": "4302694459", "hlutur": 50, "dags": "30.07.2020", "heimild": "Ársreikningur 2019, A20 ehf." },
+  { "nafn": "Universal Export", "kt": "6009780129", "hlutur": 20, "dags": "30.07.2020", "heimild": "Ársreikningur 2019, Universal Export" },
+  { "nafn": "Hallgerður Höskuldsdóttir", "kt": null, "hlutur": 20, "dags": "30.07.2020", "heimild": "Ársreikningur 2019, A20 ehf." },
+  { "nafn": "Kolbeinn Hannibalsson", "kt": "6708989549", "hlutur": 10, "dags": "30.07.2020", "heimild": "Ársreikningur 2019, A20 ehf." }
+ ],
+ "hluthafarUppspretta": "Ársreikningur 2019"
+}
