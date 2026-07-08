@@ -745,6 +745,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             if (owned && j.sott && (Date.now() - new Date(j.sott).getTime()) > 45 * 864e5) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // ~45 daga gamalt merki → reyna aftur í bakgrunni (gæti hafa skilað síðan)
             return { engin: true };
           }
+          if (owned && !j.pdf) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // JSON án PDF (byggt fyrir PDF-vistun, verk 2) → endurbyggja í bakgrunni svo PDF-tengill birtist við næstu uppflettingu
           const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; } return rows;   // beri PDF-slóð með í KPI-render
         }
         missing = true;
