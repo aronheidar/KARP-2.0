@@ -1,0 +1,40 @@
+---
+// web/src/components/VerdTafla.astro — 3-þrepa samanburðartafla. Les THREP + EIGINDIR.
+import { THREP, EIGINDIR } from '../data/lausnir.js';
+---
+<div class="vt-wrap">
+  <table class="vt">
+    <thead>
+      <tr>
+        <th></th>
+        {THREP.map((t) => (
+          <th class={t.vinsaelt ? 'col-hi' : ''}>
+            <div class="tier-nm">{t.heiti}</div>
+            <div class="tier-pr">{t.verd.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
+            <button type="button" class="vt-cta" data-threp={t.slug} data-nafn={t.heiti}>{t.cta}</button>
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {EIGINDIR.map((row) => (
+        <tr>
+          <td>{row.titill}</td>
+          {row.gildi.map((g, i) => (
+            <td class={THREP[i].vinsaelt ? 'col-hi' : ''}>
+              {g === true ? <span class="yes">✓</span> : g === false ? <span class="no">✗</span>
+                : <span class={row.neikvaett ? 'neg' : ''}>{g}</span>}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<p style="color:#8fa0b8;font-size:12px;margin:6px 0 0">Verð án vsk. Engin binding. <b style="color:#cdd6e6">Stök skýrsla 990 kr</b> ef þú vilt enga áskrift.</p>
+<script>
+  import { karpSubscribeTier } from '../lib/auth.js';
+  document.querySelectorAll('.vt-cta').forEach((b) => {
+    b.addEventListener('click', () => karpSubscribeTier({ slug: b.dataset.threp, nafn: b.dataset.nafn, btn: b }));
+  });
+</script>

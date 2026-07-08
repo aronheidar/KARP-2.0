@@ -1,0 +1,159 @@
+// web/src/data/lausnir.js — Fyrirtækjalausnir: ein sannleiksuppspretta (þrep + vörur).
+export const THREP = [
+  { slug: 'grunnur', heiti: 'Grunnur', verd: 2900, adgangar: 2, cta: 'Velja Grunn' },
+  { slug: 'fyrirtaeki', heiti: 'Fyrirtæki', verd: 6900, adgangar: 5, cta: 'Velja Fyrirtæki', vinsaelt: true },
+  { slug: 'fyrirtaeki_plus', heiti: 'Fyrirtæki+', verd: 12900, adgangar: 15, cta: 'Velja Fyrirtæki+' },
+];
+
+// Fylkis-raðir: gildi per þrep [grunnur, fyrirtaeki, fyrirtaeki_plus]. true/false/strengur.
+export const EIGINDIR = [
+  { titill: 'Fjöldi aðganga', gildi: ['2', '5', '15'] },
+  { titill: 'Fyrirtækjaskrá + ársreikningar', gildi: [true, true, true] },
+  { titill: 'Endanlegir eigendur (UBO) + eignarhald', gildi: [true, true, true] },
+  { titill: 'Áreiðanleikamat (KYC)', gildi: [true, true, true] },
+  { titill: 'Verðmat fasteigna', gildi: [true, true, true] },
+  { titill: 'Fyrirtækjavaktin (fylgja félögum)', gildi: ['10 félög', '50 félög', 'ótakmarkað'] },
+  { titill: 'Viðskiptamannavakt (kt-vöktun)', gildi: [false, '25 kt', '100 kt'] },
+  { titill: 'Fjölmiðlavakt', gildi: [false, true, true] },
+  { titill: 'Opnar vaktir (útboð, styrkir, Lögbirting, vörumerki, skip…)', gildi: [true, true, true] },
+  { titill: 'Stakar skýrslur innifaldar', gildi: ['—', '5/mán', '20/mán'] },
+  { titill: 'Lánshæfismat · Vanskilaskrá', gildi: ['Bjóðum ekki', 'Bjóðum ekki', 'Bjóðum ekki'], neikvaett: true },
+];
+
+const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';
+
+export const VORUR = [
+  {
+    slug: 'fyrirtaekjaskyrsla', heiti: 'Fyrirtækjaskýrsla', emoji: '🏢',
+    gildisloford: 'Full mynd af hvaða íslensku félagi sem er — á augabragði.',
+    inngangur: 'Fyrirtækjaskýrsla Karps safnar öllu sem opinberar skrár segja um félag á einn stað: grunnskrá, ársreikninga, greiðslur frá ríkinu, útboð, umfjöllun og lögbirtingar.',
+    eiginleikar: [
+      { emoji: '🧾', titill: 'Grunnskrá', texti: 'Kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga.' },
+      { emoji: '📊', titill: 'Ársreikninga-KPI', texti: 'Framlegð, ROE/ROA, eiginfjárhlutfall, tekjuvöxtur — fjölár, beint úr ársreikningaskrá.' },
+      { emoji: '💰', titill: 'Greiðslur frá ríkinu', texti: 'Samsvörun við opinberar greiðslur og stærstu birgja ríkisins.' },
+      { emoji: '📋', titill: 'Útboð & umfjöllun', texti: 'Opinber innkaup félagsins og öll fjölmiðlaumfjöllun tengd því.' },
+      { emoji: '🔔', titill: 'Tilkynningar', texti: 'Lögbirtingablaðið, ný vörumerki og opinberir styrkir — vaktað sjálfvirkt.' },
+    ],
+    skref: [
+      { titill: 'Leitaðu', texti: 'Sláðu inn nafn félags eða kennitölu.' },
+      { titill: 'Fáðu skýrsluna', texti: 'Full skýrsla á sekúndum — prentvæn PDF.' },
+    ],
+    verd: { tegund: 'stak', upphaed: 990 },
+    synishorn: { label: 'Sjá sýnishorn', href: '/fyrirtaeki/?q=490522-0500' },
+    tol: { label: 'Fletta upp félagi', href: '/fyrirtaeki/' },
+    description: 'Fyrirtækjaskýrsla Karps — grunnskrá, ársreikninga-KPI, greiðslur frá ríkinu, útboð og umfjöllun um hvaða íslenskt félag sem er. ' + LEGAL,
+  },
+  {
+    slug: 'eigendur', heiti: 'Endanlegir eigendur', emoji: '🔗',
+    gildisloford: 'Sjáðu hverjir raunverulega eiga félagið — gegnum allar keðjur.',
+    inngangur: 'Eignarhaldsskýrsla sem rekur eignarhald gegnum allar félagakeðjur og sýnir endanlega eigendur, raunverulega eigendur skv. Skattinum og skráða hluthafa.',
+    eiginleikar: [
+      { emoji: '🕸️', titill: 'Eignarhaldsnet', texti: 'Litakóðað net sem sýnir alla eigendur og eignatengsl gegnum keðjur.' },
+      { emoji: '👤', titill: 'Endanlegir eigendur', texti: 'Reiknað eignarhald hvers aðila gegnum allar félagakeðjur.' },
+      { emoji: '🏛️', titill: 'Raunverulegir eigendur', texti: 'Skráðir raunverulegir eigendur (>25%) beint frá Skattinum.' },
+      { emoji: '📄', titill: 'Hluthafalisti + PDF', texti: 'Skráðir hluthafar úr ársreikningi og prentvæn skýrsla.' },
+    ],
+    skref: [
+      { titill: 'Leitaðu', texti: 'Sláðu inn félag.' },
+      { titill: 'Skoðaðu netið', texti: 'Eignarhaldsnet + töflur + PDF.' },
+    ],
+    verd: { tegund: 'stak', upphaed: 990 },
+    synishorn: { label: 'Sjá sýnishorn', href: '/eigendur/?syni=1' },
+    tol: { label: 'Fletta upp félagi', href: '/eigendur/' },
+    description: 'Endanlegir eigendur — litakóðað eignarhaldsnet gegnum allar félagakeðjur, raunverulegir eigendur og hluthafar. ' + LEGAL,
+  },
+  {
+    slug: 'fasteignamat', heiti: 'Fasteignamat', emoji: '🏠',
+    gildisloford: 'Faglegt verðmat hvaða fasteignar sem er — byggt á sölusögu.',
+    inngangur: 'Verðmatsskýrsla sem safnar sölusögu, fasteigna- og brunabótamati, hverfagögnum og verðþróun á einn stað og skilar faglegu mati á augabragði.',
+    eiginleikar: [
+      { emoji: '📈', titill: 'Sölusaga & verðþróun', texti: 'Öll þinglýst kaup eignarinnar og þróun fermetraverðs yfir tíma.' },
+      { emoji: '🏷️', titill: 'Fasteigna- & brunabótamat', texti: 'Opinbert mat borið saman við metið markaðsverð.' },
+      { emoji: '🗺️', titill: 'Hverfagögn & kort', texti: 'Staðsetning, hverfi og nágrenni á gagnvirku korti + götumynd.' },
+      { emoji: '🏘️', titill: 'Sambærilegar eignir', texti: 'Matið unnið á sambærilegum eignum í nágrenninu.' },
+    ],
+    skref: [
+      { titill: 'Sláðu inn heimilisfang', texti: 'Byrjaðu að skrifa — sjálfvirk uppfletting.' },
+      { titill: 'Fáðu matið', texti: 'Verðmat + kort + graf + sambærilegar eignir.' },
+    ],
+    verd: { tegund: 'stak', upphaed: 990 },
+    synishorn: { label: 'Sjá sýnishorn', href: '/fasteignavakt/?syni=1' },
+    tol: { label: 'Verðmeta eign', href: '/fasteignavakt/' },
+    description: 'Faglegt verðmat fasteigna — sölusaga, fasteigna- og brunabótamat, hverfagögn, kort og sambærilegar eignir. ' + LEGAL,
+  },
+  {
+    slug: 'fyrirtaekjavaktin', heiti: 'Fyrirtækjavaktin', emoji: '📡',
+    gildisloford: 'Fylgstu með félögum sem skipta þig máli — sjálfvirkar tilkynningar.',
+    inngangur: 'Fylgdu félögum og fáðu tilkynningu um leið og eitthvað breytist: nýr ársreikningur, breytt eignarhald, lögbirting eða umfjöllun.',
+    eiginleikar: [
+      { emoji: '⭐', titill: 'Fylgja félögum', texti: 'Bættu félögum í vaktina þína og fáðu breytingar beint.' },
+      { emoji: '🔔', titill: 'Breytingavakt', texti: 'Ársreikningar, eigendur, lögbirtingar og tilkynningar — sjálfvirkt.' },
+      { emoji: '👥', titill: 'Viðskiptamannavakt', texti: 'Vaktaðu heilan lista af kennitölum viðskiptavina í einu.' },
+      { emoji: '📬', titill: 'Vikulegt yfirlit', texti: 'Samantekt á tölvupósti yfir allt sem gerðist.' },
+    ],
+    skref: [
+      { titill: 'Veldu félög', texti: 'Fylgdu félögum af prófílsíðu þeirra.' },
+      { titill: 'Fáðu tilkynningar', texti: 'Breytingar birtast á Mitt svæði + í pósti.' },
+    ],
+    verd: { tegund: 'threp', threp: 'Grunnur' },
+    tol: { label: 'Opna Mitt svæði', href: '/mitt-svaedi/' },
+    description: 'Fyrirtækjavaktin — fylgstu með félögum og fáðu sjálfvirkar tilkynningar um ársreikninga, eigendur og lögbirtingar. ' + LEGAL,
+  },
+  {
+    slug: 'fjolmidlavakt', heiti: 'Fjölmiðlavakt', emoji: '📰',
+    gildisloford: 'Öll umfjöllun um fyrirtæki og fólk — á einum straumi.',
+    inngangur: 'Fjölmiðlavakt Karps safnar umfjöllun úr tugum íslenskra miðla og lætur þig vita þegar fjallað er um það sem þú vaktar.',
+    eiginleikar: [
+      { emoji: '📡', titill: '35+ miðlar', texti: 'Samfelldur straumur úr öllum helstu íslensku fréttamiðlum.' },
+      { emoji: '🔎', titill: 'Leitarorðavakt', texti: 'Vaktaðu fyrirtæki, fólk eða málefni og fáðu tilkynningar.' },
+      { emoji: '📊', titill: 'Greining & þróun', texti: 'Fjölmiðlavog og þróun umfjöllunar yfir tíma.' },
+    ],
+    skref: [
+      { titill: 'Veldu leitarorð', texti: 'Bættu við því sem þú vilt fylgjast með.' },
+      { titill: 'Fylgstu með', texti: 'Umfjöllun birtist jafnóðum + tilkynningar.' },
+    ],
+    verd: { tegund: 'threp', threp: 'Fyrirtæki' },
+    synishorn: { label: 'Skoða vöktun', href: '/frettir/' },
+    tol: { label: 'Opna Vöktun', href: '/frettir/' },
+    description: 'Fjölmiðlavakt — öll umfjöllun um fyrirtæki og fólk úr 35+ íslenskum miðlum, með leitarorðavakt og greiningu. ' + LEGAL,
+  },
+  {
+    slug: 'utbodsvaktin', heiti: 'Útboðsvaktin', emoji: '📋',
+    gildisloford: 'Ekki missa af opinberu útboði — leitað og vaktað fyrir þig.',
+    inngangur: 'Útboðsvaktin safnar öllum opinberum útboðum á einn stað, með leitarorðavakt og samkeppnisgreiningu.',
+    eiginleikar: [
+      { emoji: '📋', titill: 'Öll opinber útboð', texti: 'Samfelldur listi yfir opinber innkaup og útboð.' },
+      { emoji: '🔔', titill: 'Leitarorðavakt', texti: 'Fáðu tilkynningu þegar útboð passar við þín leitarorð.' },
+      { emoji: '🏁', titill: 'Samkeppnisgreining', texti: 'Sjáðu hverjir vinna útboð og hvernig markaðurinn skiptist.' },
+    ],
+    skref: [
+      { titill: 'Veldu vöktun', texti: 'Bættu við leitarorðum fyrir þinn geira.' },
+      { titill: 'Fáðu tilkynningar', texti: 'Ný útboð berast beint til þín.' },
+    ],
+    verd: { tegund: 'threp', threp: 'Fyrirtæki' },
+    synishorn: { label: 'Skoða útboð', href: '/utbod/' },
+    tol: { label: 'Opna Útboðsvaktina', href: '/utbod/' },
+    description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,
+  },
+  {
+    slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅',
+    gildisloford: 'KYC-áreiðanleikamat félags — PEP, eignarhald og staða á einum stað.',
+    inngangur: 'Áreiðanleikamat tekur saman það sem þarf fyrir áreiðanleikakönnun: raunverulega eigendur, PEP-skimun stjórnenda og stöðu félagsins í opinberum skrám.',
+    eiginleikar: [
+      { emoji: '🏛️', titill: 'PEP-skimun', texti: 'Skimun stjórnenda og eigenda gegn lista yfir áhrifafólk í stjórnmálum.' },
+      { emoji: '🔗', titill: 'Endanlegir eigendur', texti: 'Raunverulegt eignarhald gegnum allar keðjur.' },
+      { emoji: '📑', titill: 'Staða í skrám', texti: 'Skil ársreikninga, lögbirtingar og opinber staða félagsins.' },
+      { emoji: '⚠️', titill: 'Áhættumerki', texti: 'Samantekt sem dregur fram það sem þarf að skoða nánar.' },
+    ],
+    skref: [
+      { titill: 'Leitaðu', texti: 'Sláðu inn félag.' },
+      { titill: 'Fáðu matið', texti: 'PEP + eigendur + staða + áhættumerki.' },
+    ],
+    verd: { tegund: 'threp', threp: 'Grunnur' },
+    synishorn: { label: 'Sjá sýnishorn', href: '/fyrirtaeki/?q=490522-0500' },
+    tol: { label: 'Fletta upp félagi', href: '/fyrirtaeki/' },
+    description: 'Áreiðanleikamat (KYC) — PEP-skimun, endanlegir eigendur og staða félags í opinberum skrám. ' + LEGAL,
+  },
+];
+
+export const VARA_BY_SLUG = Object.fromEntries(VORUR.map((v) => [v.slug, v]));
