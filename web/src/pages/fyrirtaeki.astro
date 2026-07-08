@@ -83,6 +83,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-tease-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
     /* Vanskilamerki + firmavakt (LOTA 73) */
     .fs-topbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .fs-hact { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
     .fs-vakta:hover { background: rgba(246,177,59,.1); }
     .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
@@ -619,6 +620,30 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         nav(o.nafn);
       }
     }
+    // 🔖 Fylgja (Fyrirtækjavaktin, VERK A) — bætir/fjarlægir co:<kt> í KARP_USER.follows um /follows.
+    // Aðgreint frá 🔔 firmavakt (tölvupósts-breytingavakt): fylgt félag birtist á „Mitt svæði". Aðeins innskráðir.
+    function fsFylgjaBtn(kt) {
+      return '<button class="fs-vakta" id="fs-fylgja" type="button" data-kt="' + escF(kt) + '" title="Fylgja félaginu — það birtist á „Mitt svæði". (Fyrir tölvupóst um breytingar: 🔔 Vakta félagið.)">🔖 Fylgja</button>';
+    }
+    function fsWireFylgja() {
+      const flb = document.getElementById('fs-fylgja');
+      if (!flb) return;
+      const fkey = 'co:' + (flb.dataset.kt || '');
+      const paint = () => { const on = ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1; flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; };
+      paint();
+      flb.addEventListener('click', async () => {
+        const u = window.KARP_USER;
+        if (!u || !u.loggedIn) { location.href = loginHref(); return; }   // aðeins innskráðir → annars á innskráningu
+        flb.disabled = true;
+        const cur = u.follows || [];
+        const has = cur.indexOf(fkey) !== -1;
+        const next = has ? cur.filter((x) => x !== fkey) : cur.concat([fkey]);
+        const res = await karpPost('/follows', { follows: next });
+        u.follows = (res && res.follows) ? res.follows : next;   // u === window.KARP_USER → uppfærist strax
+        paint();
+        flb.disabled = false;
+      });
+    }
     // 🔗 UBO-skýrsluvél flutt í web/src/lib/ubo-report.js (LOTA 112) — mountUboReport / renderUboSample.
     function fsKort(felag, rsk) {
       const f = felag;
@@ -631,7 +656,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><div class="fs-hact">${fsFylgjaBtn(f.kt)}<button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div></div>
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -942,7 +967,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button>${fsFylgjaBtn(f.kt)}</div>
         <div class="fs-gate">
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
@@ -974,7 +999,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} }; };
               // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin → fullt. Sýnishorn = ?syni=1 (demo).
               if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt))) {
-                skila(fsGate(f)); backWire();
+                skila(fsGate(f)); backWire(); fsWireFylgja();
                 const gb = document.getElementById('fsg-buy');
                 if (gb) gb.addEventListener('click', async () => {
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
@@ -994,6 +1019,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.stjornPending = !!(stj && stj.pending);
               skila(fsKort(f, d.rsk));
               backWire();
+              fsWireFylgja();   // 🔖 fylgja-hnappur (co:<kt> → Mitt svæði)
               fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
               // 🔗 Endanlegir eigendur: sameiginleg vél (web/src/lib/ubo-report.js)
               mountUboReport({ kt: f.kt, nafn: f.nafn, hostEl: document.getElementById('eig-host'), navTo: (q) => leita(q, true) });

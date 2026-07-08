@@ -101,7 +101,8 @@ export const VORUR = [
       { titill: 'Fáðu tilkynningar', texti: 'Breytingar birtast á Mitt svæði + í pósti.' },
     ],
     verd: { tegund: 'threp', threp: 'Grunnur' },
-    tol: { label: 'Opna Mitt svæði', href: '/mitt-svaedi/' },
+    synishorn: { label: 'Opna vöktunina (Mitt svæði)', href: '/mitt-svaedi/' },
+    tol: { label: 'Fletta upp félagi til að fylgja', href: '/fyrirtaeki/' },
     description: 'Fyrirtækjavaktin — fylgstu með félögum og fáðu sjálfvirkar tilkynningar um ársreikninga, eigendur og lögbirtingar. ' + LEGAL,
   },
   {
