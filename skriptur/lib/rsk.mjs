@@ -127,3 +127,35 @@ export async function fetchHluthafar(kt, opts = {}) {
     return { nafn: info.nafn, hluthafar: parsed.hluthafar || [], ar: pick.ar };
   } finally { try { fs.unlinkSync(tmp); } catch {} }
 }
+
+// ---- Nýtt: stjórn úr "Gjaldfrjálsu yfirliti" (RSK typeid 9), pdftotext -raw -enc UTF-8 texti ----
+// 🔒 Skilar AÐEINS {nafn, hlutverk} — sleppir kennitölum og heimilisföngum einstaklinga (persónuvernd).
+export function parseStjornText(txt) {
+  const lines = String(txt || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  // <kt> <nafn>, <heimilisfang>, <póstnr borg>, <hlutverk>
+  const LINE = /^\d{6}-?\d{4}\s+(.+?),\s*.+?,\s*.+?,\s*([^,]+?)\s*$/;
+  const normRole = (r) => {
+    const s = (r || '').replace(/[.,\s]+$/, '').trim();
+    if (/^Framkvæmdastjór/i.test(s)) return 'Framkvæmdastjóri';   // skjalið segir "Framkvæmdastjórn"
+    return s;
+  };
+  const sectionRole = (h) => /Endursko/i.test(h) ? 'Endurskoðandi'
+    : /Framkv/i.test(h) ? 'Framkvæmdastjóri'
+    : /Prókúr/i.test(h) ? 'Prókúruhafi' : null;
+  const out = [];
+  let firmaritun = null, dags = null, section = null, m;
+  for (const ln of lines) {
+    if ((m = ln.match(/^Firma[ðđ]?\s*rita:?\s*(.+)$/i))) { firmaritun = m[1].trim() || null; continue; }
+    if ((m = ln.match(/skipa samkvæmt fundi þann:?\s*([\d.]+)/i))) { dags = m[1] || null; continue; }
+    if (/:\s*$/.test(ln)) { section = sectionRole(ln); continue; }   // kaflahaus
+    if ((m = ln.match(LINE))) {
+      const nafn = m[1].trim();
+      const hlutverk = normRole(m[2]) || section || 'Stjórn';
+      if (nafn && !/^\d{6}-?\d{4}$/.test(nafn)) out.push({ nafn, hlutverk });
+    }
+  }
+  const ORDER = ['stjórnarformaður', 'varaformaður', 'meðstjórnandi', 'stjórnarmaður', 'varamaður', 'framkvæmdastjóri', 'prókúruhafi', 'endurskoðandi'];
+  const rank = (h) => { const i = ORDER.indexOf((h || '').toLowerCase()); return i < 0 ? ORDER.length : i; };
+  out.sort((a, b) => rank(a.hlutverk) - rank(b.hlutverk));   // stöðug röðun (Node) heldur skjalaröð innan flokks
+  return { stjorn: out, firmaritun, dags };
+}
