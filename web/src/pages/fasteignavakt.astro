@@ -574,7 +574,7 @@ const jsonLd = {
         const ph = (t, s) => '<div class="fvm-ph-ph"><span class="big">🏠</span><span>' + t + '</span>' + (s ? '<span style="font-size:10px;opacity:.8">' + s + '</span>' : '') + '</div>';
         el.innerHTML = ph('Sæki götumynd…', '');
         const img = new Image();
-        img.alt = 'Götumynd af eign'; img.loading = 'lazy';
+        img.alt = 'Götumynd af eign';
         img.onload = () => { el.innerHTML = ''; el.appendChild(img); const c = document.createElement('div'); c.className = 'fvm-ph-cap'; c.textContent = '📷 Götumynd · Google'; el.appendChild(c); };
         img.onerror = () => { el.innerHTML = ph(demo ? 'Götumynd frá Google Maps' : 'Götumynd ekki tiltæk', demo ? '(virkjast með API-lykli)' : ''); };
         img.src = '/api/streetview?lat=' + lat + '&lng=' + lng;
