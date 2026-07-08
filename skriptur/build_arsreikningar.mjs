@@ -69,12 +69,14 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
   }
   const nyjust = [...byYear.values()].sort((a, b) => String(b.ar).localeCompare(String(a.ar))).slice(0, arFjoldi);
   const tmp = path.join(OUTDIR, `_tmp_${kt}.pdf`);
+  const pdfDir = path.join(OUTDIR, 'pdf'); fs.mkdirSync(pdfDir, { recursive: true });   // vista opinbert PDF (verk 2, lög 3/2006)
   const out = { kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), heimild: 'RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst', ar: {} };
   for (const r of nyjust) {
     console.log(`  ${kt} ${info.nafn}: sæki ${r.teg} ${r.ar} (nr ${r.nr})`);
     const kid = await addToCart(kt, r.nr, r.typeid);
     const pdf = await downloadPdf(kid);
     fs.writeFileSync(tmp, pdf);
+    if (r === nyjust[0]) { fs.copyFileSync(tmp, path.join(pdfDir, `${kt}.pdf`)); out.pdf = `pdf/${kt}.pdf`; out.pdfAr = r.ar; }   // nýjasta árs PDF → niðurhals-tengill (opinbert skjal)
     const parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
     // parsed.ar = [líðandi, fyrra]; skráum fjárhæðir BEGGJA dálka svo HVERT ár fái tölur → fjölárs-
     // þróunarrit + tekju-/hagnaðarvöxtur reiknist í framenda. KJÓSUM þó idx0 (ár úr SÍNU EIGIN skjali)
