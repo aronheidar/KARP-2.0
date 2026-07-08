@@ -13,6 +13,16 @@ def to_num(tok):
     t = tok.strip()
     neg = t.startswith('(') or t.endswith(')')
     t = t.strip('()').strip()
+    # Komma sem ÞÚSUNDASKIL (ekki aukastafur): '78,391' = 78391. Sumar skýrslur — t.d. rekstrar-
+    # reikningur Arion banka (5810080150) — nota kommu fyrir þúsund þar sem íslenskur staðall notar
+    # punkt (Íslandsbanki: '63.057'). Áður las to_num kommuna sem aukastaf → 78,391 varð 78.391
+    # (~1000x of lágt), eignavelta rúnn í 0. Meðhöndlum sem þúsund AÐEINS þegar ótvírætt: komma +
+    # NÁKVÆMLEGA 3 tölustafir, heiltöluhluti 1–3 stafir og EKKI stakt '0' — svo raunverulegir
+    # aukastafir ('0,17', '12,5', '0,123') og punkt-þúsund ('1.234.567,89') haldist ÓBREYTT.
+    m = re.match(r'^(\d{1,3}),(\d{3})$', t)
+    if m and m.group(1) != '0':
+        v = int(m.group(1) + m.group(2))
+        return -v if neg else v
     t = t.replace('.', '').replace(',', '.')
     try:
         v = float(t)
