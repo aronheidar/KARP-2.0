@@ -1109,20 +1109,22 @@ async function askellWebhookHandler(request, env, ctx) {
   const ev = String(body.event || event || '');
   const d = body.data || body;   // Áskell pakkar í {event,sender,data:{...}}
   // Áskrift: subscription.* (v1) OG subscription_contract.* (v2). customer_reference = kt (VIÐ settum),
-  //   þjónusta úr metadata.service (áreiðanlegt — við setjum í session) EÐA vöru-nafni; aðgangur TIL period-loka.
+  //   þrep úr metadata.tier (áreiðanlegt — við setjum í session) EÐA vöru-nafni; aðgangur TIL period-loka.
   // ⚠ Nákvæm v2-svið staðfestast með raun test-greiðslu; les því mörg möguleg heiti varlega.
   if (ev.indexOf('subscription') === 0 && env.KARP_GRANT_SECRET) {
     const kt = String(d.customer_reference || '').replace(/\D/g, '');
     let meta = d.metadata || d.meta || {};
     if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }   // v1 sýnir "meta":"{}" (strengur)
     const nameBlob = (JSON.stringify(d.plan || d.items || d.product || d.bundle || '') + ' ' + String(d.reference || '')).toLowerCase();
-    const svc = (String(meta.service || '') === 'utbod' || nameBlob.indexOf('utbod') >= 0 || nameBlob.indexOf('útbo') >= 0) ? 'utbod' : 'frettir';
+    const mt = String(meta.tier || '');
+    const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
+      : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
     const endStr = d.active_until || d.current_period_end || d.next_billing_at || d.period_end || (d.current_period && d.current_period.end) || '';
     const until = endStr ? Math.floor(new Date(endStr).getTime() / 1000) : 0;
     if (kt.length === 10 && until > 0) {
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, service: svc, until, ref: String(d.id || d.token || d.uuid || '') + '_' + until }),
+        body: JSON.stringify({ kt, tier, until, ref: String(d.id || d.token || d.uuid || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
@@ -1154,10 +1156,11 @@ async function askellLastHandler(request, env) {
 async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
-  const service = u.searchParams.get('service') === 'utbod' ? 'utbod' : 'frettir';
+  const TIERS = { grunnur: 'ASKELL_CHANNEL_GRUNNUR', fyrirtaeki: 'ASKELL_CHANNEL_FYRIRTAEKI', fyrirtaeki_plus: 'ASKELL_CHANNEL_FYRIRTAEKI_PLUS' };
+  const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
-  const channel = service === 'utbod' ? (env.ASKELL_CHANNEL_UTBOD || 'utbod') : (env.ASKELL_CHANNEL_FRETTIR || 'frettir');   // sjálfgefið = Tilvísun sölurásar → aðeins ASKELL_PRIVATE_KEY þarf sem secret
-  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: { service } };   // metadata.service → vefkrókur veit þjónustuna áreiðanlega
+  const channel = env[TIERS[tier]] || tier;   // sjálfgefið = þrep-slug → aðeins ASKELL_PRIVATE_KEY skylt
+  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: { tier } };   // metadata.tier → vefkrókur veit þrepið
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
@@ -1167,7 +1170,7 @@ async function askellSessionHandler(request, env, ctx) {
     });
     const d = await r.json().catch(() => null);
     if (!r.ok || !d || !d.token) return sjson({ error: 'askell', status: r.status });
-    return sjson({ token: d.token, expires_at: d.expires_at || null, service });
+    return sjson({ token: d.token, expires_at: d.expires_at || null, tier });
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 

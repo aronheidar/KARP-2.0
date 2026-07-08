@@ -10,6 +10,9 @@
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
+import { tierLevelOf } from '../data/lausnir.js';
+const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
+
 export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
 
 const esc = (s) => String(s == null ? '' : s)
@@ -124,11 +127,11 @@ export function locked() { return _u().paywall === true && !isPlus(); }
 // Hefur notandinn keypt (eða admin) þessa skýrslu? key = t.d. 'fasteign:<pn>' eða 'fyrirtaeki:<kt>'.
 export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
 
-// Per-þjónustu ÁSKRIFT (LOTA 100): tvær aðskildar mánaðaráskriftir — 'frettir' (Fjölmiðlagreining/
-// Vöktun & umfjöllun) og 'utbod' (Útboðsvaktin), 3.490 kr/mán hvor. u.subs = { frettir:bool, utbod:bool }
-// (admin = allt). lockedSvc(service) = greiðsluveggur virkur OG notandi ekki áskrifandi/admin.
-export function isSub(service) { const u = _u(); return u.isAdmin === true || (u.subs && u.subs[service] === true); }
-export function lockedSvc(service) { return _u().paywall === true && !isSub(service); }
+// Þrep-áskrift (Verk B): eitt þrep per notandi (u.tier ∈ grunnur|fyrirtaeki|fyrirtaeki_plus), stigveldi.
+// hasTier(min) = notandi (eða admin) hefur a.m.k. þrep-stig `min` (1|2|3). lockedTier = veggur virkur OG ekki nógu hátt þrep.
+export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.tier, u.isAdmin === true); }
+export function hasTier(min) { return tierLevel() >= min; }
+export function lockedTier(min) { return _u().paywall === true && !hasTier(min); }
 
 // Hefja greiðslu (Teya SecurePay, LOTA 97). Worker undirritar pöntun og skilar { action, fields };
 // við byggjum falið form og POST-um → kaupandi fer á hýstu greiðslusíðu Teya. Skilar 'redirected'
@@ -178,19 +181,16 @@ export function plusGate(el, opts) {
   if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; } };
 }
 
-// Per-þjónustu áskriftar-gátt (LOTA 100). opts: { service:'frettir'|'utbod', title, blurb, price }
-export function subGate(el, opts) {
+// Þrep-gátt (Verk B): teaser þegar efni krefst hærra þreps. Trektar á /karp-pro/ (þar sem VerdTafla sér um checkout).
+export function tierGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
-  const u = _u(); const svc = opts.service || ''; const price = opts.price || '3.490 kr/mán';
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">🔒 Áskrift</div>'
-    + '<h2 class="pg-h">' + esc(opts.title || 'Áskriftarþjónusta') + '</h2>'
+  const need = TIER_NAME[opts.minTier] || 'Karp+'; const u = _u();
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ ' + esc(need) + '-þrep</div>'
+    + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
-    + '<div class="pg-btns">'
-    + (u.loggedIn ? '<button class="pg-main" id="sg-go" type="button">Byrja — 1 mánuður frír</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skráðu þig inn — 1 mánuður frír</a>')
-    + '</div>'
-    + '<div class="pg-note">Fyrsti mánuðurinn ókeypis, svo <b>' + esc(price) + '</b>. Kort skráð við upphaf, fyrsta rukkun eftir mánuð. Hættu hvenær sem er.</div></div>';
-  const b = el.querySelector('#sg-go');
-  if (b) b.onclick = () => karpAskellSubscribe(svc, el);
+    + '<div class="pg-btns"><a class="pg-main" href="/karp-pro/#verd">Sjá þrep & verð</a>'
+    + (u.loggedIn ? '' : '<a class="pg-sec" href="' + esc(loginHref()) + '">Skrá inn</a>')
+    + '</div><div class="pg-note">Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuður frír.</div></div>';
 }
 // Áskell v2 embedded checkout (LOTA 110). Safnar kt (tengir Áskell-viðskiptavin við Karp-notanda um
 // karp_kt) → worker /api/sub/checkout-session stofnar lotu → askell.js widget rendrar kort+3DS á karp.is.
@@ -244,19 +244,42 @@ export async function karpSubscribe(service, btn) {
   return false;
 }
 
-// Þrep-áskrift (Grunnur/Fyrirtæki/Fyrirtæki+). PLACEHOLDER — Verk B vírar í Áskel.
-// Byggir EKKERT sem hálf-rukkar; sýnir hóflega „opnar á næstunni" skilaboð.
-export function karpSubscribeTier({ slug, nafn, btn }) {
-  const msg = 'Áskrift að ' + (nafn || 'Karp+') + '-þrepi opnar á næstunni. '
-    + 'Sendu okkur línu á hjalp@karp.is svo við látum þig vita um leið og hún fer í loftið.';
-  if (btn) {
-    const orig = btn.textContent;
-    btn.textContent = 'Opnar á næstunni ✓';
-    btn.disabled = true;
-    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3200);
-  }
-  try { window.alert(msg); } catch (e) {}
+// Þrep-áskrift (Verk B): opnar Áskell embedded checkout fyrir valið þrep. Sami dans og karpAskellSubscribe
+// (kt → /sub/subscribe → /api/sub/checkout-session?tier= → Askell.mountCheckout). Aðgangur opnast við vefkrók.
+export async function karpSubscribeTier({ slug, nafn, btn }) {
+  const u = _u();
+  if (!u.loggedIn) { location.href = loginHref(); return; }
+  injectGateCss();
+  const host = btn && btn.closest ? (btn.closest('th') || btn.parentElement) : null;
+  const box = document.createElement('div'); box.className = 'sg-checkout'; box.style.marginTop = '10px';
+  box.innerHTML = '<input type="text" class="sg-kt" placeholder="Kennitala (10 tölur)" maxlength="11" inputmode="numeric" autocomplete="off" style="width:150px" />'
+    + '<button type="button" class="pg-main" style="margin-top:8px">Halda áfram →</button><div class="sg-err" hidden></div>';
+  if (host) { host.appendChild(box); } else if (btn) { btn.after(box); }
+  if (btn) btn.disabled = true;
+  const ktIn = box.querySelector('.sg-kt'), go = box.querySelector('button'), err = box.querySelector('.sg-err');
+  if (ktIn) ktIn.focus();
+  const fail = (m) => { err.hidden = false; err.textContent = m; };
+  go.onclick = async () => {
+    const kt = String(ktIn.value || '').replace(/\D/g, '');
+    if (kt.length !== 10) return fail('Sláðu inn gilda 10 stafa kennitölu.');
+    go.disabled = true; go.textContent = 'Opna greiðslu…'; err.hidden = true;
+    try {
+      await karpPost('/sub/subscribe', { tier: slug, kt });
+      const d = await (await fetch('/api/sub/checkout-session?tier=' + encodeURIComponent(slug) + '&kt=' + kt, { credentials: 'include' })).json();
+      if (!d || !d.token) throw new Error(d && d.error === 'unconfigured' ? 'Áskrift ekki virkjuð enn — reyndu síðar.' : 'nosession');
+      await loadAskellJs();
+      box.innerHTML = '<div id="askell-checkout-' + esc(slug) + '" class="sg-checkout"></div>';
+      window.Askell.mountCheckout('#askell-checkout-' + slug, {
+        baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
+        onSuccess() { box.innerHTML = '<div class="pg-note">✅ Takk! Aðgangurinn opnast eftir augnablik…</div>'; setTimeout(() => location.reload(), 3500); },
+        onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
+      });
+    } catch (e) {
+      go.disabled = false; go.textContent = 'Halda áfram →';
+      fail(e && typeof e.message === 'string' && e.message.length < 60 ? e.message : 'Ekki tókst að opna greiðslu — reyndu aftur.');
+    }
+  };
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier };
