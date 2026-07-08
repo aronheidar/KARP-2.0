@@ -42,106 +42,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { fetchItemids, addToCart, downloadPdf, parsePdf, TYPE } from './lib/rsk.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUTDIR = path.join(ROOT, 'web', 'public', 'gogn', 'arsreikningar'); // þjónað af /gogn/arsreikningar/<kt>.json
-const PARSER = path.join(__dirname, 'parse_arsreikningur.py');
-const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const UA = 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)';
-const RSK = 'https://www.skatturinn.is';
-const BUYER = { name: 'Karp', email: 'aronheidars@gmail.com' };
-const TYPE = { 1: 'Ársreikningur', 2: 'Samstæðureikningur' };
-
-// ---- kökuhjálp (Node fetch geymir ekki kökur sjálfkrafa) --------------------
-const jarOf = () => {
-  const jar = {};
-  return {
-    absorb: (res) => { for (const c of (res.headers.getSetCookie?.() || [])) { const [kv] = c.split(';'); const i = kv.indexOf('='); jar[kv.slice(0, i).trim()] = kv.slice(i + 1); } },
-    header: () => Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; '),
-  };
-};
-const rskText = (s) => String(s || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/gi, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-
-// ---- 1) Ársreikninga-tafla félags (kt) --------------------------------------
-async function fetchItemids(kt) {
-  const res = await fetch(`${RSK}/fyrirtaekjaskra/leit/kennitala/${kt}`, { headers: { 'User-Agent': UA } });
-  // ⚠ ÖRYGGISVÖRN: throttla/villa (t.d. gagnavers-IP GH-Action) má EKKI túlkast sem „engin gögn" →
-  //    annars skrifar buildForKt falskt engin:true-merki OFAN Á góð gögn. Kasta → per-kt catch → ekkert merki.
-  if (!res.ok) throw new Error(`RSK svaraði HTTP ${res.status} (líkleg throttla) — sleppi til að forðast falskt "engin gögn"`);
-  const html = await res.text();
-  const h1 = html.match(/<h1>\s*([\s\S]*?)\s*\((\d{10})\)/);
-  if (!h1) throw new Error('RSK-síða án fyrirtækjahauss (throttla/villa?) — sleppi til að forðast falskt "engin gögn"');
-  const nafn = rskText(h1[1]);
-  const ti = html.search(/class="annualTable"/);
-  const rows = [];
-  if (ti >= 0) {
-    const tbl = html.slice(ti, html.indexOf('</table>', ti));
-    for (const tr of tbl.split(/<tr\b/i).slice(1)) {
-      const tds = [...tr.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((m) => rskText(m[1]));
-      const dm = tr.match(/data-itemid="(\d+)"\s+data-typeid="(\d+)"/);
-      if (dm && /^\d{4}/.test(tds[0] || '')) rows.push({ ar: tds[0], skil: tds[2] || null, nr: dm[1], typeid: dm[2], teg: tds[4] || TYPE[dm[2]] || null });
-    }
-  }
-  return { kt, nafn, rows };
-}
-
-// ---- 2) addToCart -> kid ----------------------------------------------------
-async function addToCart(kt, itemid, typeid) {
-  const jar = jarOf();
-  let r = await fetch(`${RSK}/fyrirtaekjaskra/leit/kennitala/${kt}`, { headers: { 'User-Agent': UA } });
-  jar.absorb(r); await r.text();
-  r = await fetch(`${RSK}/da/CartService/addToCart?itemid=${itemid}&typeid=${typeid}`, { headers: { 'User-Agent': UA, Cookie: jar.header(), 'X-Requested-With': 'XMLHttpRequest' } });
-  const body = await r.text();
-  const m = body.match(/kid=([A-Z0-9]+)/);
-  if (!m) throw new Error('addToCart brást: ' + body.slice(0, 160));
-  return m[1];
-}
-
-// ---- 3) hauslaus vafri: Áfram -> Sækja -> PDF-buffer ------------------------
-async function downloadPdf(kid) {
-  const { default: puppeteer } = await import('puppeteer-core'); // valfrjáls háð -> lazy
-  const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox'] });
-  try {
-    const page = await browser.newPage();
-    await page.goto(`https://vefur.rsk.is/Vefverslun/Default.aspx?kid=${kid}`, { waitUntil: 'networkidle2', timeout: 40000 });
-    await page.evaluate((b) => { const n = document.querySelector('[name=buyername]'); if (n) n.value = b.name; const e = document.querySelector('[name=buyeremail]'); if (e) e.value = b.email; }, BUYER);
-    const kaupa = await page.$('#MainContent_btnKaupa');
-    if (!kaupa) throw new Error('enginn btnKaupa: ' + (await page.evaluate(() => document.body.innerText.slice(0, 150))));
-    await kaupa.click();                                            // „Áfram" -> ReturnPage (Verð 0)
-    await page.waitForSelector('#MainContent_ucVoruGrid_GridView1_Btn_Saekja_0', { timeout: 20000 }).catch(() => {});
-    // ⚠ Söfnum AÐEINS litlu form-ástandi + kökum innan síðunnar — sækjum PDF-bætin úr NODE (POST).
-    //   Fyrri útgáfa las bætin innan síðunnar og btoa-flutti þau út; stór PDF (banka-samstæður ~20MB)
-    //   felldu Node24/Windows með UV_HANDLE_CLOSING í base64-IPC. Node-fetch á disk-buffer er stöðugt
-    //   á Windows OG Linux (GH-Action) → local-prófun stórra félaga virkar nú líka.
-    const post = await page.evaluate(() => {
-      const btn = document.querySelector('#MainContent_ucVoruGrid_GridView1_Btn_Saekja_0');
-      if (!btn) return { err: 'enginn Sækja-hnappur', txt: document.body.innerText.slice(0, 150) };
-      const form = btn.form; const fd = {};
-      for (const el of form.querySelectorAll('input,select')) { if (el.type === 'submit') continue; if (el.name) fd[el.name] = el.value; }
-      fd['hfMouseClicked'] = 'true'; fd[btn.name] = btn.value || '';
-      return { action: form.action || location.href, fields: fd };
-    });
-    if (post.err) throw new Error(post.err + ' | ' + (post.txt || ''));
-    const cookieHeader = (await page.cookies()).map((c) => `${c.name}=${c.value}`).join('; ');
-    await browser.close();
-    const res = await fetch(post.action, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookieHeader, 'User-Agent': UA }, body: new URLSearchParams(post.fields).toString() });
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.slice(0, 5).toString('latin1') !== '%PDF-') throw new Error('ekki PDF (ct=' + (res.headers.get('content-type') || '') + ', ' + buf.length + 'B)');
-    return buf;
-  } finally { try { await browser.close(); } catch {} }
-}
-
-// ---- 4) parse via python ----------------------------------------------------
-function parsePdf(pdfPath, knownYr) {
-  const py = process.env.PYTHON || 'python';
-  const args = [PARSER, pdfPath];
-  if (knownYr) args.push(String(knownYr));   // RSK-þekkt ár → varaleið ef árs-haus þáttast ekki
-  const r = spawnSync(py, args, { encoding: 'utf-8', maxBuffer: 1 << 26 });
-  if (r.status !== 0) throw new Error('parse_arsreikningur.py: ' + (r.stderr || r.error));
-  return JSON.parse(r.stdout);
-}
 
 // ---- heild: kt -> gogn/arsreikningar/<kt>.json ------------------------------
 async function buildForKt(kt, { arFjoldi = 1 } = {}) {
