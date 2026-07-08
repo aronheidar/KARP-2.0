@@ -1,0 +1,100 @@
+/* ── 🔗 Endanlegir eigendur (UBO) — sameiginlegir stílar ──────────────────────
+   Deilt milli /fyrirtaeki/ og /eigendur/. Dregið út úr fyrirtaeki.astro (LOTA 111). */
+
+/* Leitarbox + niðurstöðulisti (sami og /fyrirtaeki/) */
+#fs-form { display: flex; gap: 8px; margin: 18px 0 14px; }
+#fs-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 11px 14px; color: #eaf1fb; font-size: 15px; }
+#fs-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+#fs-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+#fs-btn:hover { filter: brightness(1.08); }
+.fs-empty { color: #7e8ca6; font-size: 13.5px; padding: 14px 2px; }
+.fs-hits { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
+.fs-hit { display: flex; gap: 12px; align-items: baseline; padding: 9px 13px; border-bottom: 1px solid rgba(255,255,255,.06); cursor: pointer; font-size: 13.5px; }
+.fs-hit:last-child { border-bottom: 0; }
+.fs-hit:hover, .fs-hit:focus-visible { background: rgba(246,177,59,.07); outline: none; }
+.fs-hit .kt { font-variant-numeric: tabular-nums; color: #7e8ca6; font-size: 12px; white-space: nowrap; }
+.fs-hit .n { color: #eaf1fb; font-weight: 600; flex: 1; }
+.fs-hit .h { color: #9fb0c8; font-size: 12px; text-align: right; }
+.fs-hit.af .n { color: #8fa0b8; font-weight: 400; }
+.fs-badge { font-size: 10.5px; color: #e78284; border: 1px solid rgba(231,130,132,.4); border-radius: 6px; padding: 1px 6px; white-space: nowrap; vertical-align: 2px; }
+.fs-more { color: #7e8ca6; font-size: 12px; padding: 8px 2px; }
+
+/* 🔗 Endanlegir eigendur (UBO) — net v3 + töflur */
+.eig-net-wrap{position:relative;width:100%;margin:8px 0 4px}
+.eig-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.eig-edge{fill:none;stroke:#6b7a90;opacity:.85}
+.eig-edge.b51{stroke:#f6b13b}
+.eig-edge.b25{stroke:#5aa9e6}
+.eig-edge.blt{stroke:#54607a}
+.eig-node{position:absolute;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px 8px;border-radius:9px;border:1px solid rgba(246,177,59,.35);background:rgba(255,255,255,.04);color:#eaf1fb;font:inherit;text-align:left;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.eig-node .eig-node-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eig-node .eig-node-mt{font-size:10px;color:#8fa0b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eig-node.root{border-color:#f6b13b;background:linear-gradient(180deg,rgba(246,177,59,.18),rgba(246,177,59,.06))}
+.eig-node.einst{border-color:rgba(90,169,230,.5)}
+.eig-node.einst.yfir{background:rgba(90,169,230,.20);border-color:#5aa9e6}
+.eig-node.felag{border-color:rgba(192,132,252,.5)}
+.eig-node.felag.yfir{background:rgba(192,132,252,.20);border-color:#c084fc}
+.eig-node.klik{cursor:pointer}
+.eig-node.klik:hover{border-color:#f6b13b;background:rgba(246,177,59,.12)}
+.eig-echip{position:absolute;transform:translate(-50%,-50%);font-size:10px;font-weight:600;color:#cdd6e6;background:rgba(11,15,23,.85);padding:0 4px;border-radius:5px;pointer-events:none}
+.eig-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0;font-size:11px;color:#cdd6e6}
+.eig-lg{display:inline-flex;align-items:center;gap:5px}
+.eig-lg i.nd{width:12px;height:12px;border-radius:3px;border:1px solid rgba(246,177,59,.35);display:inline-block}
+.eig-lg i.nd.root{border-color:#f6b13b;background:rgba(246,177,59,.5)}
+.eig-lg i.nd.einst{border-color:#5aa9e6}
+.eig-lg i.nd.einst.yfir{background:#5aa9e6}
+.eig-lg i.nd.felag{border-color:#c084fc}
+.eig-lg i.nd.felag.yfir{background:#c084fc}
+.eig-lg i.ed{width:16px;height:0;border-top-width:3px;border-top-style:solid;display:inline-block}
+.eig-lg i.ed.b51{border-color:#f6b13b}
+.eig-lg i.ed.b25{border-color:#5aa9e6}
+.eig-lg i.ed.blt{border-color:#54607a}
+.eig-tafla{width:100%;border-collapse:collapse;margin:6px 0 14px;font-size:13px}
+.eig-tafla th{text-align:left;color:#8fa0b8;font-weight:600;border-bottom:1px solid rgba(246,177,59,.35);padding:6px 8px}
+.eig-tafla td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+.eig-tafla tfoot td{font-weight:700;border-top:1px solid rgba(246,177,59,.35)}
+.eig-pct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.eig-kt{color:#8fa0b8;font-size:11px}
+.eig-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle;background:#54607a}
+.eig-dot.is-einst{background:#5aa9e6}.eig-dot.is-felag{background:#c084fc}
+.eig-dot.yfir{box-shadow:0 0 0 2px rgba(246,177,59,.5)}
+.eig-othekkt td{color:#8fa0b8;font-style:italic}
+.eig-direct{color:#8fa0b8}
+.eig-tom{color:#8fa0b8;font-size:13px;margin:6px 0 14px}
+.eig-pie{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
+.eig-pie-leg{display:flex;flex-direction:column;gap:3px;font-size:12px}
+.eig-leg-i{display:inline-flex;align-items:center;gap:6px}.eig-leg-i i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.eig-src{font-size:11px;color:#8fa0b8;line-height:1.5;margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px}
+@media print{.eig-node{box-shadow:none}.eig-edge.blt{stroke:#999}.eig-node-mt{color:#555}}
+.eig-cta{display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid rgba(246,177,59,.35);border-radius:12px;background:rgba(246,177,59,.06)}
+.eig-cta b{font-size:15px}.eig-cta span{color:#cdd6e6;font-size:13px}
+.eig-cta-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.eig-buy{background:#f6b13b;color:#1a1205;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+.eig-buy:disabled{opacity:.6;cursor:default}
+.eig-sample{color:#f6b13b;text-decoration:none;font-size:13px}.eig-sample:hover{text-decoration:underline}
+.eig-loading{color:#8fa0b8;padding:14px}
+.eig-report{margin-top:8px}
+.eig-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.eig-h h3{margin:0;font-size:19px}
+.eig-print{background:rgba(255,255,255,.06);color:#eaf1fb;border:1px solid rgba(246,177,59,.35);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+.eig-intro{color:#cdd6e6;font-size:13px;line-height:1.55}
+.eig-sec{margin:18px 0 4px;font-size:15px;color:#f6b13b}
+.eig-cap{color:#8fa0b8;font-size:12px;margin:0 0 4px}
+.eig-samplebar,.fs-samplebar{background:rgba(246,177,59,.10);border:1px solid rgba(246,177,59,.35);border-radius:9px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+.eig-sample-wrap{max-width:900px;margin:16px auto}
+@media print{.eig-print,.eig-cta-btns,.eig-samplebar,.fs-samplebar,.eig-buy{display:none}.eig-sec{color:#000}}
+
+/* Hlekkur á fulla /eigendur/ síðu (frá /fyrirtaeki/) */
+.eig-fulllink { display: inline-block; margin: 4px 0 2px; color: #f6b13b; text-decoration: none; font-size: 13px; font-weight: 600; }
+.eig-fulllink:hover { text-decoration: underline; }
+
+/* Prentun: sýna aðeins skýrsluna (#fs-report umlykur hana á báðum síðum). */
+@media print {
+  body.fs-printing * { visibility: hidden; }
+  body.fs-printing #fs-report, body.fs-printing #fs-report * { visibility: visible; }
+  body.fs-printing #fs-report { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; color: #111; }
+  body.fs-printing #fs-report .eig-report, body.fs-printing #fs-report .eig-intro, body.fs-printing #fs-report .eig-cap { color: #222 !important; }
+  body.fs-printing #fs-report .eig-tafla th, body.fs-printing #fs-report .eig-tafla td { color: #222 !important; border-color: #ccc !important; }
+  body.fs-printing #fs-report .eig-node { color: #111 !important; box-shadow: none; }
+  body.fs-printing #fs-report .eig-node-mt, body.fs-printing #fs-report .eig-src, body.fs-printing #fs-report .eig-kt { color: #555 !important; }
+}
