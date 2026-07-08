@@ -1013,10 +1013,10 @@ async function payCheckoutHandler(request, env, ctx) {
   const uid = await karpUserId(request);   // þarf innskráningu svo kaupið vistist á Mitt svæði
   if (!uid) return sjson({ error: 'login' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
-  const kind = b.kind === 'fyrirtaeki' ? 'fyrirtaeki' : 'fasteign';
+  const kind = ['fyrirtaeki', 'eigendur', 'fasteign'].includes(b.kind) ? b.kind : 'fasteign';
   const ref = String(b.ref || '').slice(0, 80);
   const key = String(b.key || (kind + ':' + ref)).slice(0, 80);
-  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : env.PRICE_FASTEIGN) || 990);
+  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : kind === 'eigendur' ? env.PRICE_EIGENDUR : env.PRICE_FASTEIGN) || 990);
   if (!(price > 0)) return sjson({ error: 'free' });
   const amount = String(price);   // ISK heiltala
   const currency = 'ISK';
@@ -1033,7 +1033,7 @@ async function payCheckoutHandler(request, env, ctx) {
   const msg = [merchantid, returnurlsuccess, returnurlsuccessserver, orderid, amount, currency].join('|');
   const checkhash = await teyaHmacHex(env.TEYA_SECRET_KEY, msg);
   const action = (env.TEYA_ENV === 'dev' ? 'https://test.borgun.is' : 'https://securepay.borgun.is') + '/SecurePay/default.aspx';
-  const desc = kind === 'fyrirtaeki' ? 'Karp fyrirtaekjaskyrsla' : 'Karp verdmatsskyrsla';
+  const desc = kind === 'fyrirtaeki' ? 'Karp fyrirtaekjaskyrsla' : kind === 'eigendur' ? 'Karp eigendaskyrsla' : 'Karp verdmatsskyrsla';
   // Reitir speglaðir eftir virkri WooCommerce-Teya viðbót: SecurePay krefst lína-liða + pagetype/skipreceiptpage.
   // checkhash nær AÐEINS yfir merchantid|url|url|orderid|amount|currency → lína-liðir/pagetype breyta honum ekki.
   return sjson({
@@ -1229,6 +1229,26 @@ async function arsreikningurRequestHandler(request, env, ctx) {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
       body: JSON.stringify({ event_type: 'arsreikningur', client_payload: { kt } }),
+    });
+    return r.status === 204 ? sjson({ ok: true, kt }) : sjson({ error: 'dispatch', status: r.status });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
+// ── On-demand endanlegir eigendur (UBO) — dispatchar GitHub Action ──
+// /fyrirtaeki/ kallar hér þegar keypt eigenda-skýrsla hefur enga byggða JSON. Worker sendir
+// repository_dispatch { kt } → .github/workflows/eigendur.yml byggir UBO-tré (build_eigendur.mjs,
+// puppeteer+pdfplumber) → web/public/gogn/eigendur/<kt>.json. Speglar ársreikninginn. Aðeins kaupendur.
+async function eigendurRequestHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ error: 'kt' });
+  if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  try {
+    const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'eigendur', client_payload: { kt } }),
     });
     return r.status === 204 ? sjson({ ok: true, kt }) : sjson({ error: 'dispatch', status: r.status });
   } catch (e) { return sjson({ error: 'upstream' }); }
@@ -1487,6 +1507,7 @@ export default {
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
+    if (url.pathname === '/api/eigendur/request') return eigendurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {
       const cache = caches.default;
