@@ -157,6 +157,52 @@ def is_statement_label(label):
     # og mengað reit vegna óakkeraðra regexa. Höfnum prósu: > 8 raunorð (tákn með bókstaf).
     return sum(1 for w in label.split() if any(c.isalpha() for c in w)) <= 8
 
+# ---- Hluthafar (hlutafjár-skýring) --------------------------------------------
+KT_RE  = re.compile(r'\b(\d{6}-?\d{4})\b')
+PCT_RE = re.compile(r'(\d{1,3}(?:[.,]\d+)?)\s*%')
+
+def hluthafar_from_lines(lines):
+    """Textalínur -> [{nafn, kt|None, hlutur}]. Hluthafalína ber prósentu; nafn = línan án kt/%."""
+    out = []
+    for ln in lines:
+        mp = PCT_RE.search(ln)
+        if not mp:
+            continue
+        h = to_num(mp.group(1))
+        if h is None or not (0 < h <= 100):
+            continue
+        mk = KT_RE.search(ln)
+        kt = mk.group(1).replace('-', '') if mk else None
+        name = ln
+        if mk:
+            name = name.replace(mk.group(0), ' ')
+        name = PCT_RE.sub(' ', name)
+        name = re.sub(r'\s+', ' ', name).strip(' ,-–')   # heldur '.' í "ehf." — strippar bil/kommu/bandstrik
+        if len(name) >= 2:
+            out.append({'nafn': name, 'kt': kt, 'hlutur': h})
+    return out
+
+# Hausar sem afmarka hluthafa-skýringu (ASCII-beinagrind; '.' passar við brenglaða broddstafi).
+HLUTHAFAR_HEAD = re.compile(r'^(hluthafar|hlutafj.reign|eignarhlutir hluthafa|hlutir og hluthafar)', re.I)
+HLUTHAFAR_END  = re.compile(r'^(sk.ringar?|rekstrarreikning|efnahagsreikning|sj..streymi)\b', re.I)
+
+def parse_hluthafar(pdf):
+    """Finna hluthafa-skýringu í PDF og þátta hana. Skilar [] finnist ekkert nothæft."""
+    for pg in pdf.pages:
+        text = pg.extract_text() or ''
+        lines = [l.strip() for l in text.split('\n')]
+        for i, l in enumerate(lines):
+            if HLUTHAFAR_HEAD.match(l):
+                seg = []
+                for l2 in lines[i + 1:]:
+                    if HLUTHAFAR_END.match(l2):
+                        break
+                    seg.append(l2)
+                res = hluthafar_from_lines(seg)
+                if res:
+                    return res
+    return []
+
 def parse(path):
     pdf = pdfplumber.open(path)
     fulltext = '\n'.join((p.extract_text() or '') for p in pdf.pages)
@@ -204,7 +250,8 @@ def parse(path):
         efnahagur['skammtimaskuldir'] = pair_sub(efnahagur['skuldir'], efnahagur.get('langtimaskuldir'))
         afleitt.append('skammtimaskuldir')
     return {'ar': [ar_cur, ar_prev], 'mynt': cur, 'kvardi': scale,
-            'rekstur': rekstur, 'efnahagur': efnahagur, 'afleitt': afleitt}
+            'rekstur': rekstur, 'efnahagur': efnahagur, 'afleitt': afleitt,
+            'hluthafar': parse_hluthafar(pdf)}
 
 def cur_val(d, k, idx=0):
     v = d.get(k)
