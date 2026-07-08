@@ -415,6 +415,23 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .eig-leg-i{display:inline-flex;align-items:center;gap:6px}.eig-leg-i i{width:11px;height:11px;border-radius:3px;display:inline-block}
     .eig-src{font-size:11px;color:#8fa0b8;line-height:1.5;margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px}
     @media print{.eig-node{box-shadow:none}.eig-edge.blt{stroke:#999}.eig-node-mt{color:#555}}
+    .eig-cta{display:flex;flex-direction:column;gap:6px;padding:14px;border:1px solid rgba(246,177,59,.35);border-radius:12px;background:rgba(246,177,59,.06)}
+    .eig-cta b{font-size:15px}.eig-cta span{color:#cdd6e6;font-size:13px}
+    .eig-cta-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;align-items:center}
+    .eig-buy{background:#f6b13b;color:#1a1205;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+    .eig-buy:disabled{opacity:.6;cursor:default}
+    .eig-sample{color:#f6b13b;text-decoration:none;font-size:13px}.eig-sample:hover{text-decoration:underline}
+    .eig-loading{color:#8fa0b8;padding:14px}
+    .eig-report{margin-top:8px}
+    .eig-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .eig-h h3{margin:0;font-size:19px}
+    .eig-print{background:rgba(255,255,255,.06);color:#eaf1fb;border:1px solid rgba(246,177,59,.35);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+    .eig-intro{color:#cdd6e6;font-size:13px;line-height:1.55}
+    .eig-sec{margin:18px 0 4px;font-size:15px;color:#f6b13b}
+    .eig-cap{color:#8fa0b8;font-size:12px;margin:0 0 4px}
+    .eig-samplebar,.fs-samplebar{background:rgba(246,177,59,.10);border:1px solid rgba(246,177,59,.35);border-radius:9px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+    .eig-sample-wrap{max-width:900px;margin:16px auto}
+    @media print{.eig-print,.eig-cta-btns,.eig-samplebar,.fs-samplebar,.eig-buy{display:none}.eig-sec{color:#000}}
   </style>
 
   <script>
@@ -765,6 +782,36 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       window.addEventListener('resize', relayout);
       wrap.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.eig-node.klik'); if (b && b.dataset.kt) nav(b.dataset.kt); });
     }
+    async function eigData(kt, owned) {
+      let missing = false;
+      try {
+        const r = await fetch('/gogn/eigendur/' + kt + '.json?t=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) { const j = await r.json(); if (j && j.engin) return { engin: true, ...j }; return j; }
+        if (r.status === 404) missing = true;
+      } catch (e) { return null; }
+      if (missing && owned) { try { fetch('/api/eigendur/request?kt=' + kt, { method: 'POST', credentials: 'include' }); } catch (e) {} return { pending: true }; }
+      return null;
+    }
+    function eigReport(rep) {
+      return '<div class="eig-report" id="eig-report">'
+        + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
+        + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
+        + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
+        + '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
+        + eigNet(rep) + eigLegend()
+        + eigTable(rep)
+        + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigRaunv(rep)
+        + '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
+        + eigSources(rep)
+        + '</div>';
+    }
+    // Setur skýrsluna í gám, teiknar netið, tengir prentun.
+    function eigMount(rep, host, nav) {
+      host.innerHTML = eigReport(rep);
+      eigWireNet(rep, nav);
+      const pb = document.getElementById('eig-print');
+      if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
+    }
     function fsKort(felag, rsk) {
       const f = felag;
       const rod = (l, v) => (v ? `<div class="fs-f"><span class="l">${l}</span><span class="v">${escF(v)}</span></div>` : '');
@@ -816,6 +863,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             <div class="fs-ph"><b>📊 Ársreikningar í tölum</b><span>Tekjur, afkoma og eigið fé — Skatturinn birtir ársreikningana á rafrænu formi án endurgjalds${rsk ? `; <a href="${escF(rsk)}" target="_blank" rel="noopener">sæktu þá hjá Skattinum</a>` : ''}. Sjálfvirkur lykiltölu-lestur bíður API-aðgangs.</span></div>
             <div class="fs-ph"><b>🪑 Stjórn & prókúra</b><span>${(f.radamenn || []).length ? 'Forráðamaður: <b style="color:#cdd6e6">' + escF((f.radamenn || []).join(' · ')) + '</b>. ' : ''}Fullur stjórnarlisti og prókúruhafar bíða API-aðgangs að hlutafélagaskrá.</span></div>
           </div>
+          ${(isAdmin() || hasReport('eigendur:' + f.kt))
+            ? '<div class="fs-ph2" id="eig-host"><div class="eig-loading">🔗 Sæki endanlega eigendur…</div></div>'
+            : `<div class="fs-ph2" id="eig-host"><div class="eig-cta"><b>🔗 Endanlegir eigendur</b><span>Full, litakóðuð eignarhaldsskýrsla: endanlegir eigendur í gegnum allar félagakeðjur, raunverulegir eigendur, hluthafalisti og prentvæn PDF — sérskýrsla eins og hjá Creditinfo.</span><div class="eig-cta-btns"><button type="button" class="eig-buy" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn || '')}">🛒 Kaupa eigenda-skýrslu — 990 kr</button><a class="eig-sample" href="/fyrirtaeki/?eigendur-syni=1">👁️ Sjá sýnishorn</a></div></div></div>`}
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>
@@ -1100,6 +1150,28 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               skila(fsKort(f, d.rsk));
               backWire();
               fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
+              // 🔗 Endanlegir eigendur: kaup + poll + mount
+              (function eigWire() {
+                const host = document.getElementById('eig-host'); if (!host) return;
+                const owned = isAdmin() || hasReport('eigendur:' + f.kt);
+                const buy = host.querySelector('.eig-buy');
+                if (buy) buy.addEventListener('click', async () => {
+                  const orig = buy.textContent; buy.disabled = true; buy.textContent = '⏳ Opna greiðslu…';
+                  const res = await karpCheckout({ kind: 'eigendur', ref: (f.nafn || '') + ' ' + f.kt, key: 'eigendur:' + f.kt });
+                  if (res === 'redirected') return;   // vafri á leið á hýstu greiðslusíðu Teya
+                  buy.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; buy.disabled = false; setTimeout(() => { buy.textContent = orig; }, 2800);
+                });
+                if (!owned) return;
+                let tries = 0;
+                const tick = async () => {
+                  const d = await eigData(f.kt, true);
+                  if (d && !d.pending && !d.engin) { eigMount(d, host, (q) => leita(q, true)); return; }
+                  if (d && d.engin) { host.innerHTML = '<div class="eig-tom">Ekki tókst að byggja eignarhaldsnet fyrir félagið (hvorki hluthafalisti né raunverulegir eigendur fundust).</div>'; return; }
+                  if (tries++ < 60) setTimeout(tick, 3000);
+                  else host.innerHTML = '<div class="eig-tom">Skýrslan er enn í vinnslu — endurhlaðið síðuna eftir smástund.</div>';
+                };
+                tick();
+              })();
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
               fsBirgjar().then((b) => {
@@ -1295,6 +1367,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       }
       // Karp+-gátt (LOTA 63): leit + prófílkort læst innskráðum (ókeypis aðgangur)
       form.addEventListener('submit', (e) => { e.preventDefault(); if (!FS_USER || !FS_USER.loggedIn) { skila(fsTease()); return; } leita(inp.value); });
+      // ?eigendur-syni=1 → opið UBO-sýnishorn (Gervifyrirtæki) — engin innskráning/kaup
+      if (new URLSearchParams(location.search).get('eigendur-syni') === '1') {
+        if (form) form.style.display = 'none';
+        const host = document.createElement('div');
+        host.className = 'fs-wrap eig-sample-wrap';
+        const main = document.querySelector('main'); (main || document.body).appendChild(host);
+        fetch('/gogn/eigendur/_synishorn.json').then((r) => r.json()).then((rep) => {
+          host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt lifandi úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="eig-host"></div>';
+          eigMount(rep, host.querySelector('#eig-host'), (q) => { location.href = '/fyrirtaeki/?q=' + encodeURIComponent(q); });
+        }).catch(() => { host.innerHTML = '<p class="eig-tom">Villa við að sækja sýnishorn.</p>'; });
+        return;
+      }
       // ?syni=1 → sýnifyrirtæki (Norðurhaf) — opið öllum, engin innskráning, ekkert keypt
       if (new URLSearchParams(location.search).get('syni') === '1') {
         form.style.display = 'none';

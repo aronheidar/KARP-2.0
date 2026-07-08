@@ -23,10 +23,10 @@
    { "fra": "vala", "til": "root", "hlutur": 80, "band": "51", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
    { "fra": "leggir", "til": "vala", "hlutur": 84.25, "band": "51", "heimild": "Ársreikningur 2019, Vala hf." },
    { "fra": "njall", "til": "leggir", "hlutur": 100, "band": "51", "heimild": "Raunverulegir eigendur (Skatturinn)" },
-   { "fra": "epli", "til": "root", "hlutur": 20, "band": "lt25", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
+   { "fra": "epli", "til": "root", "hlutur": 20, "band": "lt", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
    { "fra": "appels", "til": "epli", "hlutur": 49.8, "band": "25", "heimild": "Ársreikningur 2019, Epli ehf." },
    { "fra": "cranberry", "til": "appels", "hlutur": 100, "band": "51", "heimild": "Ársreikningaskrá (RSK)" },
-   { "fra": "bromber", "til": "root", "hlutur": 12, "band": "lt25", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
+   { "fra": "bromber", "til": "root", "hlutur": 12, "band": "lt", "heimild": "Ársreikningur 2019, Gervifyrirtæki ehf." },
    { "fra": "monsters", "til": "bromber", "hlutur": 83, "band": "51", "heimild": "Ársreikningaskrá (RSK)" }
   ]
  },

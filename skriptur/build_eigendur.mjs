@@ -10,7 +10,7 @@ import * as rsk from './lib/rsk.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTDIR = path.join(__dirname, '..', 'web', 'public', 'gogn', 'eigendur');
 const pct = (s) => { const m = String(s ?? '').replace(',', '.').match(/(-?[\d.]+)/); return m ? Math.min(100, Math.abs(parseFloat(m[1]))) : null; };
-const bandOf = (hl) => (hl == null ? 'lt25' : hl >= 51 ? '51' : hl >= 25 ? '25' : 'lt25');
+const bandOf = (hl) => (hl == null ? 'lt' : hl >= 51 ? '51' : hl >= 25 ? '25' : 'lt');   // -> CSS .b51/.b25/.blt
 
 // Byggja eignarhaldsnet: endurkvæmt niður hluthafa-keðjur; fallback á raunverulega eigendur.
 export async function buildGraph(rootKt, deps) {
