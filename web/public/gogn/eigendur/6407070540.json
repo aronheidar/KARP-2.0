@@ -1,0 +1,124 @@
+{
+ "kt": "6407070540",
+ "nafn": "Marel Iceland ehf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt6407070540",
+    "kt": "6407070540",
+    "nafn": "Marel Iceland ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Viðar Erlingsson",
+    "tegund": "einst",
+    "faeding": "1975-OKTÓBER"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Elín Granz",
+    "tegund": "einst",
+    "faeding": "1974-MAÍ"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Árni Sigurjónsson",
+    "tegund": "einst",
+    "faeding": "1978-DESEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt6407070540",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt6407070540",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt6407070540",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Viðar Erlingsson",
+   "kt": null,
+   "faeding": "1975-OKTÓBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Elín Granz",
+   "kt": null,
+   "faeding": "1974-MAÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Árni Sigurjónsson",
+   "kt": null,
+   "faeding": "1978-DESEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Viðar Erlingsson",
+   "faeding": "1975-OKTÓBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Elín Granz",
+   "faeding": "1974-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Árni Sigurjónsson",
+   "faeding": "1978-DESEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
