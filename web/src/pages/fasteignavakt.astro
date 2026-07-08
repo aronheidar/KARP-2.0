@@ -39,6 +39,7 @@ const jsonLd = {
     </div>
     <div id="fvm-fill" class="fillnote" hidden></div>
     <div class="fvm-samplerow"><a class="fv-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn af fullbúnu verðmati (PDF)</a></div>
+    <div id="fvm-vedbokrow" class="fvm-vedbokrow" hidden>🔗 <a class="fvm-vedbok-link" href="https://island.is/vedbokarvottord" target="_blank" rel="noopener">Sækja veðbókarvottorð</a> <span class="fvm-vedbok-note">(opinbert vottorð, 3.100 kr, greitt á island.is með rafrænum skilríkjum)</span></div>
     <div id="fvm-out" hidden></div>
 
     <h2>🔨 Nauðungarsölur — opinberar auglýsingar sýslumanna <i class="tip" tabindex="0" data-tip="Uppboðsauglýsingar eru opinberar skv. lögum um nauðungarsölu. Staða segir hvar málið er statt: byrjun/framhald uppboðs er framundan, „Sölu lokið“ er afgreitt.">ⓘ</i></h2>
@@ -84,6 +85,9 @@ const jsonLd = {
     main[data-pg="fastvakt"] #fvm-vakta.on { background: rgba(66,208,134,.14); border-color: rgba(66,208,134,.5); color: #42d086; }
     main[data-pg="fastvakt"] #fvm-buy { background: rgba(246,177,59,.1); border-color: rgba(246,177,59,.4); color: #f6b13b; }
     main[data-pg="fastvakt"] .fvm-samplerow { margin: 2px 0 4px; }
+    main[data-pg="fastvakt"] .fvm-vedbokrow { margin: 2px 0 6px; font-size: 12.5px; }
+    main[data-pg="fastvakt"] .fvm-vedbok-link { color: #f6b13b; text-decoration: none; border-bottom: 1px dotted rgba(246,177,59,.5); }
+    main[data-pg="fastvakt"] .fvm-vedbok-note { color: #7e8ca6; font-size: 11px; }
     main[data-pg="fastvakt"] .fv-sample { font-size: 12.5px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); white-space: nowrap; }
     main[data-pg="fastvakt"] .fv-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     main[data-pg="fastvakt"] .fvm-demonote { margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(246,177,59,.4); border-radius: 10px; background: rgba(246,177,59,.07); color: #f6d9a6; font-size: 13.5px; line-height: 1.45; }
@@ -826,6 +830,7 @@ const jsonLd = {
         // skýrsla tilbúin → Vakta- og Kaupa-skýrslu-takkarnir birtast við Meta (LOTA 78)
         const vb = document.getElementById('fvm-vakta'), bb = document.getElementById('fvm-buy');
         if (vb) vb.hidden = false;
+        const vbr = document.getElementById('fvm-vedbokrow'); if (vbr) vbr.hidden = false;   // 🔗 veðbókarvottorð (opinber þjónusta)
         // hingað kemst aðeins eigandi/admin/sýnishorn (gátt skilar fyrir aðra) → takkinn prentar
         if (bb) { bb.hidden = false; bb.dataset.demo = ''; bb.textContent = '🖨️ Sækja skýrslu (PDF)'; }
         paintVaktaBtn();
