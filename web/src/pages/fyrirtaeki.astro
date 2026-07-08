@@ -177,6 +177,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-stj-n { color: #eaf1fb; }
     .fs-stj-h { color: #8fa0b8; white-space: nowrap; }
     .fs-stj-fr { display: block; color: #8fa0b8; font-size: 11px; margin-top: 4px; }
+    .fs-pdf-dl { float: right; color: #f6b13b; font-size: 12px; font-weight: 600; text-decoration: none; }
+    .fs-pdf-dl:hover { text-decoration: underline; }
     body.fs-printing #fs-report .fs-ph.filled { border-color: #9ad9b5 !important; background: #f2fbf6 !important; }
     body.fs-printing #fs-report .fs-eig, body.fs-printing #fs-report .fs-eig > b { color: #222 !important; }
     body.fs-printing #fs-report .fs-eig-s, body.fs-printing #fs-report .fs-ph-src { color: #555 !important; }
@@ -943,7 +945,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             if (owned && j.sott && (Date.now() - new Date(j.sott).getTime()) > 45 * 864e5) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // ~45 daga gamalt merki → reyna aftur í bakgrunni (gæti hafa skilað síðan)
             return { engin: true };
           }
-          return fsMapArs(j);
+          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; } return rows;   // beri PDF-slóð með í KPI-render
         }
         missing = true;
       } catch (e) { return null; }
@@ -1033,7 +1035,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         return '<div class="kpi-c ' + s + '"><div class="kpi-l">' + l + (tip ? ' <i class="tip" tabindex="0" data-tip="' + tip + '">ⓘ</i>' : '') + '</div><div class="kpi-v">' + fmt(v) + '</div>' + spark(key) + '</div>';
       };
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')</div>'
+      const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">📄 Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>'
         + '<div class="kpi-top">' + fsRing(fsHealthScore(k)) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
