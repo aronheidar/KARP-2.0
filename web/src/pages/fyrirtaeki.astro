@@ -173,6 +173,13 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-eig-h { color: #f6b13b; font-weight: 700; }
     .fs-eig-s { display: block; color: #7e8ca6; font-size: 11px; margin-top: 1px; }
     .fs-ph-src { display: block; color: #6b7688; font-size: 10.5px; margin-top: 8px; font-style: italic; }
+    .fs-stj-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; }
+    .fs-stj-r { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+    .fs-stj-n { color: #eaf1fb; }
+    .fs-stj-h { color: #8fa0b8; white-space: nowrap; }
+    .fs-stj-fr { display: block; color: #8fa0b8; font-size: 11px; margin-top: 4px; }
+    .fs-pdf-dl { float: right; color: #f6b13b; font-size: 12px; font-weight: 600; text-decoration: none; }
+    .fs-pdf-dl:hover { text-decoration: underline; }
     body.fs-printing #fs-report .fs-ph.filled { border-color: #9ad9b5 !important; background: #f2fbf6 !important; }
     body.fs-printing #fs-report .fs-eig, body.fs-printing #fs-report .fs-eig > b { color: #222 !important; }
     body.fs-printing #fs-report .fs-eig-s, body.fs-printing #fs-report .fs-ph-src { color: #555 !important; }
@@ -662,7 +669,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b><span>Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir skráð félög og dreift eignarhald.</span></div>`
                 : `<div class="fs-ph"><b>👥 Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
             <div class="fs-ph"><b>📊 Ársreikningar í tölum</b><span>Tekjur, afkoma og eigið fé — Skatturinn birtir ársreikningana á rafrænu formi án endurgjalds${rsk ? `; <a href="${escF(rsk)}" target="_blank" rel="noopener">sæktu þá hjá Skattinum</a>` : ''}. Sjálfvirkur lykiltölu-lestur bíður API-aðgangs.</span></div>
-            <div class="fs-ph"><b>🪑 Stjórn & prókúra</b><span>${(f.radamenn || []).length ? 'Forráðamaður: <b style="color:#cdd6e6">' + escF((f.radamenn || []).join(' · ')) + '</b>. ' : ''}Fullur stjórnarlisti og prókúruhafar bíða API-aðgangs að hlutafélagaskrá.</span></div>
+            ${(f.stjorn || []).length
+              ? fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun })
+              : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`}
           </div>
           <div class="fs-ph2" id="eig-host"></div>
           <a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Sjá fulla eigendaskýrslu →</a>
@@ -736,7 +745,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             if (owned && j.sott && (Date.now() - new Date(j.sott).getTime()) > 45 * 864e5) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // ~45 daga gamalt merki → reyna aftur í bakgrunni (gæti hafa skilað síðan)
             return { engin: true };
           }
-          return fsMapArs(j);
+          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; } return rows;   // beri PDF-slóð með í KPI-render
         }
         missing = true;
       } catch (e) { return null; }
@@ -772,6 +781,36 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         } catch (e) {}
       }, 12000);
     }
+    // 🪑 Stjórn: sækir byggða stjórn (gogn/stjorn/<kt>.json); 404 + owned → dispatch + poll (speglar fsFjarhagur).
+    async function fsStjorn(kt, owned) {
+      const id = String(kt).replace(/\D/g, '');
+      try {
+        const r = await fetch('/gogn/stjorn/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) { const j = await r.json(); return j && j.engin ? { engin: true } : j; }
+      } catch (e) { return null; }
+      if (owned) { try { fetch('/api/stjorn/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} return { pending: true }; }
+      return null;
+    }
+    // Poll-ar byggða stjórn og skiptir hólfinu út þegar hún er komin (léttari en fsPollArsreikningur).
+    function fsPollStjorn(kt) {
+      const id = String(kt).replace(/\D/g, '');
+      let n = 0;
+      const poll = setInterval(async () => {
+        const cell = document.getElementById('fs-stjorn-cell');
+        if (!cell || n++ > 60) { clearInterval(poll); return; }
+        try {
+          const r = await fetch('/gogn/stjorn/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });
+          if (r.ok) { const j = await r.json(); if (j && !j.engin) { clearInterval(poll); cell.outerHTML = fsStjornCell(j); } else if (j && j.engin) { clearInterval(poll); } }
+        } catch (e) {}
+      }, 4000);
+    }
+    // Byggð stjórn (nafn + hlutverk) — fyllir grind-hólfið. rep = gogn/stjorn/<kt>.json.
+    function fsStjornCell(rep) {
+      if (!rep || !(rep.stjorn || []).length) return '';
+      const rows = rep.stjorn.map((p) => '<span class="fs-stj-r"><span class="fs-stj-n">' + escF(p.nafn) + '</span><span class="fs-stj-h">' + escF(p.hlutverk) + '</span></span>').join('');
+      const fr = rep.firmaritun ? '<span class="fs-stj-fr">Firmað rita: ' + escF(rep.firmaritun) + '</span>' : '';
+      return '<div class="fs-ph filled" id="fs-stjorn-cell"><b>🪑 Stjórn &amp; prókúra</b><div class="fs-stj-list">' + rows + '</div>' + fr + '<span class="fs-ph-src">Skráð stjórn, framkvæmdastjórn, prókúra og endurskoðendur — fyrirtækjaskrá Skattsins (gjaldfrjálst yfirlit)</span></div>';
+    }
     function fsKpiSoon() {
       return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
@@ -796,7 +835,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         return '<div class="kpi-c ' + s + '"><div class="kpi-l">' + l + (tip ? ' <i class="tip" tabindex="0" data-tip="' + tip + '">ⓘ</i>' : '') + '</div><div class="kpi-v">' + fmt(v) + '</div>' + spark(key) + '</div>';
       };
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')</div>'
+      const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">📄 Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>'
         + '<div class="kpi-top">' + fsRing(fsHealthScore(k)) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
@@ -947,12 +987,17 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.fjarhagur = Array.isArray(fj) ? fj : null;
               f.fjarhagurPending = !!(fj && fj.pending);
               f.fjarhagurEngin = !!(fj && fj.engin);   // félag án skráðs ársreiknings → loka-spjald í stað spinner
+              const stj = await fsStjorn(f.kt, true);   // full stjórn úr byggðu RSK-yfirliti; 404 → dispatch + "birtist í keyptri skýrslu"
+              f.stjorn = stj && stj.stjorn ? stj.stjorn : null;
+              f.stjornFirmaritun = stj && stj.firmaritun ? stj.firmaritun : null;
+              f.stjornPending = !!(stj && stj.pending);
               skila(fsKort(f, d.rsk));
               backWire();
               fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
               // 🔗 Endanlegir eigendur: sameiginleg vél (web/src/lib/ubo-report.js)
               mountUboReport({ kt: f.kt, nafn: f.nafn, hostEl: document.getElementById('eig-host'), navTo: (q) => leita(q, true) });
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
+              if (f.stjornPending) fsPollStjorn(f.kt);   // fyllir stjórn-hólfið sjálfkrafa þegar byggingin skilar
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
               fsBirgjar().then((b) => {
                 const el = document.getElementById('fs-birgir');

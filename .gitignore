@@ -13,6 +13,7 @@ gogn/*_cache.json
 heimildir/
 logo_backup/
 *.pdf
+!web/public/gogn/arsreikningar/pdf/*.pdf
 *.lnk
 *.log
 .DS_Store

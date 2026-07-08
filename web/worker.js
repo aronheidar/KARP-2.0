@@ -1287,6 +1287,25 @@ async function eigendurRequestHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
+// ── On-demand stjórn — dispatchar GitHub Action (speglar ársreikning/eigendur) ──
+// /fyrirtaeki/ kallar hér þegar skýrsla hefur enga byggða stjórn. repository_dispatch { kt } →
+// .github/workflows/stjorn.yml → web/public/gogn/stjorn/<kt>.json. Aðeins innskráðir → gegn misnotkun.
+async function stjornRequestHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ error: 'kt' });
+  if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  try {
+    const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'stjorn', client_payload: { kt } }),
+    });
+    return r.status === 204 ? sjson({ ok: true, kt }) : sjson({ error: 'dispatch', status: r.status });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
 async function fyrirtaekiHandler(request, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
@@ -1541,6 +1560,7 @@ export default {
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
+    if (url.pathname === '/api/stjorn/request') return stjornRequestHandler(request, env, ctx);
     if (url.pathname === '/api/eigendur/request') return eigendurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {

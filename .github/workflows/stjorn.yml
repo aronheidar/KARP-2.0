@@ -1,0 +1,67 @@
+name: Stjórn (on-demand RSK-yfirlit)
+
+# On-demand: worker (karp21) sendir repository_dispatch { kt } þegar skýrsla hefur enga byggða stjórn.
+# Keyrir puppeteer + pdftotext (getur ekki keyrt í Cloudflare-worker) → build_stjorn.mjs →
+# web/public/gogn/stjorn/<kt>.json → commitar. Handvirkt: Actions → þessi workflow → Run workflow.
+
+on:
+  repository_dispatch:
+    types: [stjorn]
+  workflow_dispatch:
+    inputs:
+      kt:
+        description: 'Ein kennitala lögaðila (10 tölur)'
+        required: false
+      kts:
+        description: 'Magn-prófun: listi kennitalna (bil eða komma á milli)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stjorn
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Uppsetning (puppeteer-core + poppler-utils)
+        run: |
+          npm install puppeteer-core --no-save
+          sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Byggja stjórn
+        env:
+          CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest
+          RAW_PAYLOAD: ${{ github.event.client_payload.kt }}   # untrusted → um env (ekki bein innskeyting) gegn shell-injection
+          RAW_KT: ${{ github.event.inputs.kt }}
+          RAW_KTS: ${{ github.event.inputs.kts }}
+        run: |
+          RAW="$RAW_PAYLOAD $RAW_KT $RAW_KTS"
+          KTS="$(echo "$RAW" | sed -E 's/([0-9]{6})-([0-9]{4})/\1\2/g' | grep -oE '[0-9]{10}' | sort -u | tr '\n' ' ')"
+          if [ -z "$KTS" ]; then echo "Engin gild kennitala í '$RAW' — hætti."; exit 0; fi
+          echo "Byggi stjórn fyrir: $KTS"
+          node skriptur/build_stjorn.mjs $KTS
+      - name: Commit JSON (ef ný gögn)
+        run: |
+          git config user.name "karp-stjorn[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/public/gogn/stjorn/ 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "Engin ný stjórnargögn."; exit 0
+          fi
+          git commit -m "Stjórn byggð (on-demand, GH Action)"
+          # ⚠ main getur hafa færst á meðan bygging stóð yfir → naíft push hafnar (non-fast-forward).
+          #    Rebasa á nýjasta main + endurreyna (JSON = ný skrá → engir árekstrar).
+          for i in 1 2 3 4 5; do
+            if git push; then echo "Push tókst (tilraun $i)"; exit 0; fi
+            echo "Push hafnað (tilraun $i) — sæki + rebasa á origin/main..."
+            git fetch origin main && git rebase origin/main || git rebase --abort 2>/dev/null || true
+            sleep $((i * 3))
+          done
+          echo "❌ Push mistókst eftir 5 tilraunir"; exit 1
