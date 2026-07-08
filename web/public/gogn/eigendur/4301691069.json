@@ -1,0 +1,94 @@
+{
+ "kt": "4301691069",
+ "nafn": "Árvakur hf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4301691069",
+    "kt": "4301691069",
+    "nafn": "Árvakur hf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Haraldur Johannessen",
+    "tegund": "einst",
+    "faeding": "1968-NÓVEMBER"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Sigurbjörn Magnússon",
+    "tegund": "einst",
+    "faeding": "1959-JÚLÍ"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4301691069",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4301691069",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Haraldur Johannessen",
+   "kt": null,
+   "faeding": "1968-NÓVEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Sigurbjörn Magnússon",
+   "kt": null,
+   "faeding": "1959-JÚLÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Haraldur Johannessen",
+   "faeding": "1968-NÓVEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Sigurbjörn Magnússon",
+   "faeding": "1959-JÚLÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
