@@ -1,0 +1,658 @@
+{
+ "kt": "5402062010",
+ "nafn": "Festi hf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 25,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5402062010",
+    "kt": "5402062010",
+    "nafn": "Festi hf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Lífeyrissjóður verzlunarmanna...................................................................... 48.159",
+    "tegund": "einst"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Lífeyrissjóður starfsmanna ríkisins, A- og B-deild........................................ 37.293",
+    "tegund": "einst"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Brú Lífeyrissjóður starfsmanna sveitarfélaga................................................ 33.114",
+    "tegund": "einst"
+   },
+   {
+    "id": "n4",
+    "kt": null,
+    "nafn": "Gildi - lífeyrissjóður....................................................................................... 30.440",
+    "tegund": "einst"
+   },
+   {
+    "id": "n5",
+    "kt": null,
+    "nafn": "Stapi lífeyrissjóður........................................................................................ 16.849",
+    "tegund": "einst"
+   },
+   {
+    "id": "n6",
+    "kt": null,
+    "nafn": "Almenni lífeyrissjóðurinn............................................................................... 14.676",
+    "tegund": "einst"
+   },
+   {
+    "id": "n7",
+    "kt": null,
+    "nafn": "Birta lífeyrissjóður......................................................................................... 12.343",
+    "tegund": "einst"
+   },
+   {
+    "id": "n8",
+    "kt": null,
+    "nafn": "Vanguard...................................................................................................... 12.118",
+    "tegund": "einst"
+   },
+   {
+    "id": "n9",
+    "kt": null,
+    "nafn": "Frjálsi lífeyrissjóðurinn.................................................................................. 10.383",
+    "tegund": "einst"
+   },
+   {
+    "id": "n10",
+    "kt": null,
+    "nafn": "Söfnunarsjóður lífeyrisréttinda...................................................................... 8.937",
+    "tegund": "einst"
+   },
+   {
+    "id": "n11",
+    "kt": null,
+    "nafn": "Landsbréf...................................................................................................... 7.098",
+    "tegund": "einst"
+   },
+   {
+    "id": "n12",
+    "kt": null,
+    "nafn": "Festa - lífeyrissjóður..................................................................................... 6.597",
+    "tegund": "einst"
+   },
+   {
+    "id": "n13",
+    "kt": null,
+    "nafn": "Lífsverk lífeyrissjóður.................................................................................... 6.523",
+    "tegund": "einst"
+   },
+   {
+    "id": "n14",
+    "kt": null,
+    "nafn": "Stefnir........................................................................................................... 5.595",
+    "tegund": "einst"
+   },
+   {
+    "id": "n15",
+    "kt": null,
+    "nafn": "Arion banki hf................................................................................................ 4.036",
+    "tegund": "einst"
+   },
+   {
+    "id": "n16",
+    "kt": null,
+    "nafn": "Íslandssjóðir.................................................................................................. 2.817",
+    "tegund": "einst"
+   },
+   {
+    "id": "n17",
+    "kt": null,
+    "nafn": "Kvika banki hf............................................................................................... 2.769",
+    "tegund": "einst"
+   },
+   {
+    "id": "n18",
+    "kt": null,
+    "nafn": "Folketrygfondet............................................................................................. 2.705",
+    "tegund": "einst"
+   },
+   {
+    "id": "n19",
+    "kt": null,
+    "nafn": "Þarabakki ehf................................................................................................ 2.371",
+    "tegund": "einst"
+   },
+   {
+    "id": "n20",
+    "kt": null,
+    "nafn": "Vátryggingafélag Íslands hf.......................................................................... 2.016",
+    "tegund": "einst"
+   },
+   {
+    "id": "n21",
+    "kt": null,
+    "nafn": "266.839",
+    "tegund": "einst"
+   },
+   {
+    "id": "n22",
+    "kt": null,
+    "nafn": "Aðrir hluthafar............................................................................................... 42.170",
+    "tegund": "einst"
+   },
+   {
+    "id": "n23",
+    "kt": null,
+    "nafn": "309.009",
+    "tegund": "einst"
+   },
+   {
+    "id": "n24",
+    "kt": null,
+    "nafn": "endurkaup á allt að af nafnverði útistandandi hlutafjár sbr. VIII. kafla laga nr. 2/1995 um hlutafélög. Gildistími",
+    "tegund": "einst"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5402062010",
+    "hlutur": 15.6,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5402062010",
+    "hlutur": 12.1,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n3",
+    "til": "kt5402062010",
+    "hlutur": 10.7,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n4",
+    "til": "kt5402062010",
+    "hlutur": 9.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n5",
+    "til": "kt5402062010",
+    "hlutur": 5.5,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n6",
+    "til": "kt5402062010",
+    "hlutur": 4.7,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n7",
+    "til": "kt5402062010",
+    "hlutur": 4,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n8",
+    "til": "kt5402062010",
+    "hlutur": 3.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n9",
+    "til": "kt5402062010",
+    "hlutur": 3.4,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n10",
+    "til": "kt5402062010",
+    "hlutur": 2.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n11",
+    "til": "kt5402062010",
+    "hlutur": 2.3,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n12",
+    "til": "kt5402062010",
+    "hlutur": 2.1,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n13",
+    "til": "kt5402062010",
+    "hlutur": 2.1,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n14",
+    "til": "kt5402062010",
+    "hlutur": 1.8,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n15",
+    "til": "kt5402062010",
+    "hlutur": 1.3,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n16",
+    "til": "kt5402062010",
+    "hlutur": 0.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n17",
+    "til": "kt5402062010",
+    "hlutur": 0.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n18",
+    "til": "kt5402062010",
+    "hlutur": 0.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n19",
+    "til": "kt5402062010",
+    "hlutur": 0.8,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n20",
+    "til": "kt5402062010",
+    "hlutur": 0.7,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n21",
+    "til": "kt5402062010",
+    "hlutur": 86.4,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n22",
+    "til": "kt5402062010",
+    "hlutur": 13.6,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n23",
+    "til": "kt5402062010",
+    "hlutur": 100,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n24",
+    "til": "kt5402062010",
+    "hlutur": 10,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "309.009",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 100,
+   "gegnum": []
+  },
+  {
+   "nafn": "266.839",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 86.4,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lífeyrissjóður verzlunarmanna...................................................................... 48.159",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 15.6,
+   "gegnum": []
+  },
+  {
+   "nafn": "Aðrir hluthafar............................................................................................... 42.170",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 13.6,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lífeyrissjóður starfsmanna ríkisins, A- og B-deild........................................ 37.293",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 12.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Brú Lífeyrissjóður starfsmanna sveitarfélaga................................................ 33.114",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 10.7,
+   "gegnum": []
+  },
+  {
+   "nafn": "endurkaup á allt að af nafnverði útistandandi hlutafjár sbr. VIII. kafla laga nr. 2/1995 um hlutafélög. Gildistími",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 10,
+   "gegnum": []
+  },
+  {
+   "nafn": "Gildi - lífeyrissjóður....................................................................................... 30.440",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 9.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Stapi lífeyrissjóður........................................................................................ 16.849",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 5.5,
+   "gegnum": []
+  },
+  {
+   "nafn": "Almenni lífeyrissjóðurinn............................................................................... 14.676",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 4.7,
+   "gegnum": []
+  },
+  {
+   "nafn": "Birta lífeyrissjóður......................................................................................... 12.343",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 4,
+   "gegnum": []
+  },
+  {
+   "nafn": "Vanguard...................................................................................................... 12.118",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 3.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Frjálsi lífeyrissjóðurinn.................................................................................. 10.383",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 3.4,
+   "gegnum": []
+  },
+  {
+   "nafn": "Söfnunarsjóður lífeyrisréttinda...................................................................... 8.937",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 2.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Landsbréf...................................................................................................... 7.098",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 2.3,
+   "gegnum": []
+  },
+  {
+   "nafn": "Festa - lífeyrissjóður..................................................................................... 6.597",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 2.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lífsverk lífeyrissjóður.................................................................................... 6.523",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 2.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Stefnir........................................................................................................... 5.595",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 1.8,
+   "gegnum": []
+  },
+  {
+   "nafn": "Arion banki hf................................................................................................ 4.036",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 1.3,
+   "gegnum": []
+  },
+  {
+   "nafn": "Íslandssjóðir.................................................................................................. 2.817",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 0.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Kvika banki hf............................................................................................... 2.769",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 0.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Folketrygfondet............................................................................................. 2.705",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 0.9,
+   "gegnum": []
+  },
+  {
+   "nafn": "Þarabakki ehf................................................................................................ 2.371",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 0.8,
+   "gegnum": []
+  },
+  {
+   "nafn": "Vátryggingafélag Íslands hf.......................................................................... 2.016",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 0.7,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [],
+ "raunverulegirTomt": true,
+ "hluthafar": [
+  {
+   "nafn": "Lífeyrissjóður verzlunarmanna...................................................................... 48.159",
+   "kt": null,
+   "hlutur": 15.6
+  },
+  {
+   "nafn": "Lífeyrissjóður starfsmanna ríkisins, A- og B-deild........................................ 37.293",
+   "kt": null,
+   "hlutur": 12.1
+  },
+  {
+   "nafn": "Brú Lífeyrissjóður starfsmanna sveitarfélaga................................................ 33.114",
+   "kt": null,
+   "hlutur": 10.7
+  },
+  {
+   "nafn": "Gildi - lífeyrissjóður....................................................................................... 30.440",
+   "kt": null,
+   "hlutur": 9.9
+  },
+  {
+   "nafn": "Stapi lífeyrissjóður........................................................................................ 16.849",
+   "kt": null,
+   "hlutur": 5.5
+  },
+  {
+   "nafn": "Almenni lífeyrissjóðurinn............................................................................... 14.676",
+   "kt": null,
+   "hlutur": 4.7
+  },
+  {
+   "nafn": "Birta lífeyrissjóður......................................................................................... 12.343",
+   "kt": null,
+   "hlutur": 4
+  },
+  {
+   "nafn": "Vanguard...................................................................................................... 12.118",
+   "kt": null,
+   "hlutur": 3.9
+  },
+  {
+   "nafn": "Frjálsi lífeyrissjóðurinn.................................................................................. 10.383",
+   "kt": null,
+   "hlutur": 3.4
+  },
+  {
+   "nafn": "Söfnunarsjóður lífeyrisréttinda...................................................................... 8.937",
+   "kt": null,
+   "hlutur": 2.9
+  },
+  {
+   "nafn": "Landsbréf...................................................................................................... 7.098",
+   "kt": null,
+   "hlutur": 2.3
+  },
+  {
+   "nafn": "Festa - lífeyrissjóður..................................................................................... 6.597",
+   "kt": null,
+   "hlutur": 2.1
+  },
+  {
+   "nafn": "Lífsverk lífeyrissjóður.................................................................................... 6.523",
+   "kt": null,
+   "hlutur": 2.1
+  },
+  {
+   "nafn": "Stefnir........................................................................................................... 5.595",
+   "kt": null,
+   "hlutur": 1.8
+  },
+  {
+   "nafn": "Arion banki hf................................................................................................ 4.036",
+   "kt": null,
+   "hlutur": 1.3
+  },
+  {
+   "nafn": "Íslandssjóðir.................................................................................................. 2.817",
+   "kt": null,
+   "hlutur": 0.9
+  },
+  {
+   "nafn": "Kvika banki hf............................................................................................... 2.769",
+   "kt": null,
+   "hlutur": 0.9
+  },
+  {
+   "nafn": "Folketrygfondet............................................................................................. 2.705",
+   "kt": null,
+   "hlutur": 0.9
+  },
+  {
+   "nafn": "Þarabakki ehf................................................................................................ 2.371",
+   "kt": null,
+   "hlutur": 0.8
+  },
+  {
+   "nafn": "Vátryggingafélag Íslands hf.......................................................................... 2.016",
+   "kt": null,
+   "hlutur": 0.7
+  },
+  {
+   "nafn": "266.839",
+   "kt": null,
+   "hlutur": 86.4
+  },
+  {
+   "nafn": "Aðrir hluthafar............................................................................................... 42.170",
+   "kt": null,
+   "hlutur": 13.6
+  },
+  {
+   "nafn": "309.009",
+   "kt": null,
+   "hlutur": 100
+  },
+  {
+   "nafn": "endurkaup á allt að af nafnverði útistandandi hlutafjár sbr. VIII. kafla laga nr. 2/1995 um hlutafélög. Gildistími",
+   "kt": null,
+   "hlutur": 10
+  }
+ ],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
