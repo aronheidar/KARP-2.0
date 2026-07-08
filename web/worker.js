@@ -1213,6 +1213,32 @@ async function askellConfigHandler(request, env) {
   return sjson(out);
 }
 
+// ── Götumynd af eign (LOTA 111): Google Street View milliliður ──
+// Framendinn (fasteignaskýrsla) kallar /api/streetview?lat=&lng=. Workerinn geymir Google-lykilinn sem
+// LEYNDAN Cloudflare Secret (GMAPS_KEY) — birtist ALDREI í opinbera kóðanum/vafranum — sækir myndina og
+// cache-ar hana (30 daga) svo hvert heimilisfang kostar aðeins EINA Google-köllun. Metadata-köll eru ókeypis
+// hjá Google → athuga fyrst hvort götumynd sé til (404 ef ekki → framendi fellur á kort í fullri breidd).
+async function streetviewHandler(request, env, ctx) {
+  if (!env.GMAPS_KEY) return new Response('unconfigured', { status: 503 });
+  const u = new URL(request.url);
+  const lat = parseFloat(u.searchParams.get('lat')), lng = parseFloat(u.searchParams.get('lng'));
+  if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return new Response('bad', { status: 400 });
+  const loc = lat.toFixed(6) + ',' + lng.toFixed(6);
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/streetview?l=' + loc);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  try {
+    const meta = await fetch('https://maps.googleapis.com/maps/api/streetview/metadata?location=' + encodeURIComponent(loc) + '&key=' + env.GMAPS_KEY).then((r) => r.json()).catch(() => null);
+    if (!meta || meta.status !== 'OK') return new Response('no-imagery', { status: 404, headers: { 'access-control-allow-origin': '*' } });
+    const g = await fetch('https://maps.googleapis.com/maps/api/streetview?size=640x440&location=' + encodeURIComponent(loc) + '&fov=78&pitch=8&source=outdoor&key=' + env.GMAPS_KEY);
+    if (!g.ok) return new Response('upstream', { status: 502 });
+    const resp = new Response(g.body, { headers: { 'content-type': 'image/jpeg', 'cache-control': 'public, max-age=2592000', 'access-control-allow-origin': '*' } });
+    ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+    return resp;
+  } catch (e) { return new Response('upstream', { status: 502 }); }
+}
+
 // ── On-demand ársreikninga-scraping (LOTA 99R) — dispatchar GitHub Action ──
 // /fyrirtaeki/ kallar hér þegar keypt/skoðuð skýrsla hefur engan scrapaðan ársreikning. Worker sendir
 // repository_dispatch { kt } → .github/workflows/arsreikningur.yml scrapar RSK-PDF → web/public/gogn/
@@ -1486,6 +1512,7 @@ export default {
     if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
+    if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     const proxy = PROXIES[url.pathname];
     if (proxy) {

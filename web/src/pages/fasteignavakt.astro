@@ -180,6 +180,17 @@ const jsonLd = {
     body.fvm-printing #fvm-report .comp-tbl th { color: #444 !important; border-bottom: 2px solid #b07500 !important; }
     /* LOTA 68: kort, verðstika, kaupa-takki */
     .fvm-map { height: 220px; border-radius: 10px; margin-top: 12px; z-index: 0; border: 1px solid rgba(255,255,255,.1); }
+    /* Mynd af eign (Google Street View) við hlið kortsins (LOTA 111) — kortið minnkar svo bæði komist fyrir */
+    .fvm-media { display: flex; gap: 10px; margin-top: 12px; }
+    .fvm-media .fvm-map { flex: 1 1 54%; min-width: 0; margin-top: 0; }
+    .fvm-media .fvm-photo { flex: 1 1 46%; min-width: 0; }
+    .fvm-photo { height: 220px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); overflow: hidden; position: relative; background: #0e1420; }
+    .fvm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fvm-ph-ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: #6a7688; font-size: 12px; text-align: center; padding: 8px; }
+    .fvm-ph-ph .big { font-size: 30px; opacity: .5; }
+    .fvm-ph-cap { position: absolute; left: 0; right: 0; bottom: 0; font-size: 9.5px; color: #eef3fb; background: linear-gradient(transparent, rgba(0,0,0,.6)); padding: 12px 8px 5px; }
+    @media (max-width: 640px) { .fvm-media { flex-direction: column; } .fvm-media .fvm-map, .fvm-media .fvm-photo { flex: none; } }
+    body.fvm-printing #fvm-report .fvm-photo { border-color: #ddd !important; }
     /* Kritískt Leaflet-CSS inline → flísar staðsettar rétt strax, jafnvel þótt CDN leaflet.css sé ekki hlaðið (kemur í veg fyrir dreifðar flísar um allan skjá — kapphlaup JS vs CSS) */
     .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { position: absolute; left: 0; top: 0; }
     .leaflet-container { overflow: hidden; -webkit-tap-highlight-color: transparent; }
@@ -554,6 +565,21 @@ const jsonLd = {
         + rows.map((r) => `<tr><td class="l">${esc(r.a)}</td>${withKm ? `<td>${r.km != null ? String(r.km).replace('.', ',') + ' km' : '–'}</td>` : ''}<td>${r.ar || '–'}</td><td class="l">${esc(r.teg)}</td><td>${r.herb || '–'}</td><td>${String(r.fm).replace('.', ',')} m²</td><td>${dIS(r.d)}</td><td>${(r.kv / 1000).toFixed(1).replace('.', ',')} m.kr</td><td>${thouIS(r.ppm)} kr</td></tr>`).join('')
         + `</tbody></table>`;
 
+      // ── Mynd af eign: götumynd frá Google (LOTA 111) ──
+      // Sótt gegnum worker-millilið /api/streetview?lat=&lng= — Google-lykillinn er LEYNDUR Cloudflare Secret
+      // (GMAPS_KEY), birtist hvergi í vafranum/opinbera kóðanum. Workerinn cache-ar myndina.
+      // Heldur alltaf mynd-slottinu (stöðugt útlit): mynd ef til, annars snyrtilegt placeholder.
+      function renderPhoto(el, lat, lng, demo) {
+        if (!el) return;
+        const ph = (t, s) => '<div class="fvm-ph-ph"><span class="big">🏠</span><span>' + t + '</span>' + (s ? '<span style="font-size:10px;opacity:.8">' + s + '</span>' : '') + '</div>';
+        el.innerHTML = ph('Sæki götumynd…', '');
+        const img = new Image();
+        img.alt = 'Götumynd af eign'; img.loading = 'lazy';
+        img.onload = () => { el.innerHTML = ''; el.appendChild(img); const c = document.createElement('div'); c.className = 'fvm-ph-cap'; c.textContent = '📷 Götumynd · Google'; el.appendChild(c); };
+        img.onerror = () => { el.innerHTML = ph(demo ? 'Götumynd frá Google Maps' : 'Götumynd ekki tiltæk', demo ? '(virkjast með API-lykli)' : ''); };
+        img.src = '/api/streetview?lat=' + lat + '&lng=' + lng;
+      }
+
       // ── Verðmatið (Karp+) ──
       const fvmOut = document.getElementById('fvm-out');
       let FVM_PICK = null;   // LOTA 79: handvalinn eignarhluti (fasteignanúmer) þegar fleiri á heimilisfangi
@@ -746,7 +772,7 @@ const jsonLd = {
 
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
-          + (subjC ? `<div id="fvm-map" class="fvm-map"></div>` : '')
+          + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
           + barHtml + leigaHtml + matHtml + bodyHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`;
 
@@ -774,6 +800,7 @@ const jsonLd = {
             window.L.circleMarker([subjC[0], subjC[1]], { radius: 9, color: '#f6b13b', weight: 3, fillColor: '#f6b13b', fillOpacity: 0.35 }).addTo(m).bindTooltip(esc(self ? self.a : raw), { direction: 'top' });
             setTimeout(() => m.invalidateSize(), 120);
           });
+          renderPhoto(document.getElementById('fvm-photo'), subjC[0], subjC[1], false);
         }
         // sölugraf + raðanleg tafla (m/fjarlægð frá eigninni þegar hnit finnast)
         if (hasGraf) {
@@ -866,22 +893,57 @@ const jsonLd = {
         const eignRows = [['Fasteignanúmer', 'F212-4471'], ['Tegund', 'Fjölbýli'], ['Stærð', '92 m²'], ['Byggingarár', '2016'], ['Herbergi', '4'], ['Hverfi', 'Smárinn']];
         const gognRows = [['Fasteignamat', '58,2 m.kr'], ['Fyrirhugað mat', '61,0 m.kr'], ['Brunabótamat', '51,4 m.kr'], ['Lóð', 'Sameiginleg'], ['Byggingastig', 'Fullgert']];
         const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${v}</span></div>`).join('');
+        // gervi-sölugögn fyrir sýnishorns-graf + sambærilegar (deterministic → demo lítur eins út í hvert sinn)
+        const DEMO_SUBJ = { fm: 92, teg: 'Fjölbýli', ppm: 831000 };
+        const DEMO_COORDS = [64.1017, -21.8845];   // Smárinn, Kópavogur (gervi-hnit fyrir sýnishorn)
+        const DEMO_SALES = (() => {
+          const streets = ['Sólbrekka', 'Furugrund', 'Hlíðarhjalli', 'Digranesvegur', 'Bæjarlind', 'Smárahvammur', 'Álfhólsvegur', 'Kópavogsbraut'];
+          const arr = []; let sd = 20260708;
+          const rnd = () => { sd = (sd * 1103515245 + 12345) & 0x7fffffff; return sd / 0x7fffffff; };
+          for (let i = 0; i < 52; i++) {
+            const mAgo = Math.floor(rnd() * 24);
+            const dt = new Date(); dt.setDate(15); dt.setMonth(dt.getMonth() - mAgo);
+            const fm = 60 + Math.round(rnd() * 66);
+            const teg = rnd() < 0.82 ? 'Fjölbýli' : (rnd() < 0.5 ? 'Sérbýli' : 'Parhús');
+            const ppm = Math.round((760000 + (24 - mAgo) * 4200 + (rnd() - 0.5) * 150000) / 1000) * 1000;
+            arr.push({ d: dt.toISOString().slice(0, 10), fm, teg, ppm, kv: Math.round(ppm * fm / 1000), a: streets[Math.floor(rnd() * streets.length)] + ' ' + (1 + Math.floor(rnd() * 48)), herb: 2 + Math.floor(rnd() * 4), ar: 1996 + Math.floor(rnd() * 28) });
+          }
+          return arr;
+        })();
         out.innerHTML =
           '<div class="fvm-demonote">👁️ <b>Sýnishorn af verðmati</b> — TILBÚIN dæmigögn fyrir gervi-eign, EKKI raunveruleg fasteign. Svona lítur fullbúin matsskýrsla út. Sláðu inn þitt eigið heimilisfang að ofan, eða smelltu á <b>Sækja PDF-sýnishorn</b>.</div>'
           + '<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>Sólbrekka 7, 200 Kópavogi · Fjölbýli, 92 m² · SÝNISHORN (tilbúin dæmigögn) · karp.is/fasteignavakt</span></div>'
           + '<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">76.500.000 kr.</div><div class="rep-ppm">831.000 kr./m²</div><div class="fvm-range">Verðbil 71.000.000 kr. – 82.000.000 kr.</div><div class="fvm-meta">byggt á 34 þinglýstum kaupum í sambærilegum eignum í póstnúmeri 200 (Fjölbýli, ±30% stærð, sl. 18 mán) · hverfi: Smárinn</div></div>'
           + '<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">' + rows2(eignRows) + '</div><div class="ec-panel" data-panel="gogn" hidden>' + rows2(gognRows) + '</div></div></div>'
+          + '<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>'
           + '<div class="fv-head" style="margin-top:14px">Verðbil og opinber möt</div><div class="vbar">'
           + '<div class="vb-row vb-top"><div class="vb-lbl vb-bru" style="left:7.6%"><b>51,4 m.kr</b><span>Brunabótamat</span></div><div class="vb-lbl vb-mat" style="left:26.5%"><b>58,2 m.kr</b><span>Fasteignamat</span></div></div>'
           + '<div class="vb-track"><div class="vb-band" style="left:61.9%;width:30.5%"></div><div class="vb-tick vb-bru" style="left:7.6%"></div><div class="vb-tick vb-mat" style="left:26.5%"></div><div class="vb-tick vb-lo" style="left:61.9%"></div><div class="vb-tick vb-est" style="left:77.1%"></div><div class="vb-tick vb-hi" style="left:92.4%"></div><div class="vb-dot" style="left:77.1%"></div></div>'
           + '<div class="vb-row vb-bot"><div class="vb-lbl vb-lo" style="left:61.9%"><b>71,0 m.kr</b><span>Neðrimörk</span></div><div class="vb-lbl vb-est" style="left:77.1%"><b>76,5 m.kr</b><span>Áætlað verð</span></div><div class="vb-lbl vb-hi" style="left:92.4%"><b>82,0 m.kr</b><span>Efrimörk</span></div></div></div>'
           + '<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — áætlað</div><div class="lei-grid"><div class="lei-c"><div class="lei-v">331.200 kr</div><div class="lei-l">áætluð leiga á mánuði</div></div><div class="lei-c"><div class="lei-v gold">5,2%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div><div class="lei-c"><div class="lei-v">19,2 ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div></div>'
           + '<div class="fvm-signal">🏷️ Eignir í póstnúmeri 200 hafa selst að jafnaði <b>+5%</b> yfir gildandi fasteignamati síðustu 6 mánuði (41 þinglýst kaup).</div>'
+          + '<div class="fv-head" style="margin-top:14px">Verð á fermetra í póstnúmeri 200 — matslína, öryggisbil og raunsölur</div><div id="fvm-graf" class="fvm-graf"></div>'
+          + '<div class="fv-head" style="margin-top:14px">Sambærilegar seldar eignir í póstnúmeri (200)</div><div class="comp-wrap" id="comp-wrap"></div>'
           + '<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir venjulega á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. <b>Í þessu sýnishorni eru tölurnar tilbúnar.</b> Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega.</div></div>';
         out.querySelectorAll('.ec-tab').forEach((b) => b.addEventListener('click', () => {
           out.querySelectorAll('.ec-tab').forEach((x) => x.classList.toggle('on', x === b));
           out.querySelectorAll('.ec-panel').forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.tab; });
         }));
+        // kort (Leaflet) á sýnishorns-hnitum + götumynd við hliðina
+        withLeaflet(() => {
+          const mEl = document.getElementById('fvm-map');
+          if (!mEl || !window.L || mEl.dataset.done) return;
+          mEl.dataset.done = '1';
+          const m = window.L.map(mEl, { scrollWheelZoom: false }).setView(DEMO_COORDS, 15);
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
+          window.L.circleMarker(DEMO_COORDS, { radius: 9, color: '#f6b13b', weight: 3, fillColor: '#f6b13b', fillOpacity: 0.35 }).addTo(m).bindTooltip('Sólbrekka 7 (sýnishorn)', { direction: 'top' });
+          setTimeout(() => m.invalidateSize(), 120);
+        });
+        renderPhoto(document.getElementById('fvm-photo'), DEMO_COORDS[0], DEMO_COORDS[1], true);
+        // sölugraf + sambærilegar — sömu teiknarar og raunskýrslan, með gervi-sölugögnum
+        renderSoluGraf('fvm-graf', DEMO_SALES, DEMO_SUBJ);
+        const cw = document.getElementById('comp-wrap');
+        if (cw) cw.innerHTML = compTblHtml(compRows(DEMO_SALES, DEMO_SUBJ, true).slice(0, 24), false);
       }
       try {
         const _sp = new URLSearchParams(location.search);
