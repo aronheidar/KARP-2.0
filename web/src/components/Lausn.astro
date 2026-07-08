@@ -1,0 +1,49 @@
+---
+// web/src/components/Lausn.astro — samræmt landing-snið per vöru. Opið (engin gátt).
+import Layout from '../layouts/Layout.astro';
+import '../styles/lausn.css';
+const { vara } = Astro.props;
+const v = vara;
+const verdTexti = v.verd.tegund === 'stak'
+  ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ stök skýrsla · engin áskrift' }
+  : { stor: 'Innifalið í Karp+', litli: 'frá ' + v.verd.threp + '-þrepi' };
+---
+<Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
+  canonical={`https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`}>
+  <main class="ls-wrap">
+    <section class="ls-hero">
+      <p class="ls-kicker">Fyrirtækjalausnir</p>
+      <h1>{v.emoji} {v.heiti}</h1>
+      <p class="lead">{v.gildisloford}</p>
+      <p class="lead" style="margin-top:10px">{v.inngangur}</p>
+      <div class="ls-cta-row">
+        <a class="ls-btn" href={v.tol.href}>{v.tol.label}</a>
+        {v.synishorn && <a class="ls-btn ghost" href={v.synishorn.href}>{v.synishorn.label}</a>}
+      </div>
+    </section>
+
+    <h2 class="ls-sec-h">Hvað fæst</h2>
+    <div class="ls-feats">
+      {v.eiginleikar.map((e) => (
+        <div class="ls-feat"><span class="ic">{e.emoji}</span><b>{e.titill}</b><span>{e.texti}</span></div>
+      ))}
+    </div>
+
+    <h2 class="ls-sec-h">Hvernig það virkar</h2>
+    <div class="ls-steps">
+      {v.skref.map((s, i) => (
+        <div class="ls-step"><span class="n">{i + 1}.</span><b>{s.titill}</b><span>{s.texti}</span></div>
+      ))}
+    </div>
+
+    <div class="ls-verd">
+      <div><div class="price">{verdTexti.stor} <small>{verdTexti.litli}</small></div></div>
+      <div class="ls-cta-row" style="margin:0">
+        <a class="ls-btn" href={v.tol.href}>{v.tol.label}</a>
+        <a class="ls-btn ghost" href="/karp-pro/">Sjá öll þrep & verð</a>
+      </div>
+    </div>
+
+    <p class="ls-foot">Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá. Hluti af <a href="/karp-pro/">Fyrirtækjalausnum Karps</a>.</p>
+  </main>
+</Layout>

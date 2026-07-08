@@ -1,0 +1,10 @@
+---
+// web/src/pages/lausnir/[slug].astro — býr til 7 landing-síður úr VORUR.
+import Lausn from '../../components/Lausn.astro';
+import { VORUR } from '../../data/lausnir.js';
+export function getStaticPaths() {
+  return VORUR.map((v) => ({ params: { slug: v.slug }, props: { vara: v } }));
+}
+const { vara } = Astro.props;
+---
+<Lausn vara={vara} />

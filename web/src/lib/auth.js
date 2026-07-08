@@ -244,5 +244,19 @@ export async function karpSubscribe(service, btn) {
   return false;
 }
 
+// Þrep-áskrift (Grunnur/Fyrirtæki/Fyrirtæki+). PLACEHOLDER — Verk B vírar í Áskel.
+// Byggir EKKERT sem hálf-rukkar; sýnir hóflega „opnar á næstunni" skilaboð.
+export function karpSubscribeTier({ slug, nafn, btn }) {
+  const msg = 'Áskrift að ' + (nafn || 'Karp+') + '-þrepi opnar á næstunni. '
+    + 'Sendu okkur línu á hjalp@karp.is svo við látum þig vita um leið og hún fer í loftið.';
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = 'Opnar á næstunni ✓';
+    btn.disabled = true;
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3200);
+  }
+  try { window.alert(msg); } catch (e) {}
+}
+
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe, karpAskellSubscribe };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, isSub, lockedSvc, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier };

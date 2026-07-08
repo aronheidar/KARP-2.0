@@ -1,0 +1,46 @@
+/* web/src/styles/lausn.css — Fyrirtækjalausnir: landing + verðtafla + hub. Deilt, glóbalt. */
+.ls-wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 72px; }
+.ls-kicker { color: #f6b13b; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 6px; }
+.ls-hero h1 { font-size: 34px; line-height: 1.1; margin: 0 0 10px; color: #eaf1fb; }
+.ls-hero .lead { font-size: 16px; color: #cdd6e6; line-height: 1.6; max-width: 640px; }
+.ls-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
+.ls-btn { background: #f6b13b; color: #101623; border: 0; border-radius: 10px; padding: 12px 22px; font-size: 15px; font-weight: 700; text-decoration: none; display: inline-block; cursor: pointer; }
+.ls-btn:hover { filter: brightness(1.08); }
+.ls-btn.ghost { background: rgba(255,255,255,.06); color: #eaf1fb; border: 1px solid rgba(246,177,59,.35); }
+.ls-sec-h { font-size: 20px; color: #f6b13b; margin: 40px 0 14px; }
+.ls-feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.ls-feat { background: #101623; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 16px; }
+.ls-feat .ic { font-size: 22px; } .ls-feat b { display: block; color: #eaf1fb; font-size: 15px; margin: 6px 0 4px; }
+.ls-feat span { color: #9fb0c8; font-size: 13px; line-height: 1.5; }
+.ls-steps { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+.ls-step { flex: 1; min-width: 200px; background: #101623; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+.ls-step .n { color: #f6b13b; font-weight: 800; font-size: 13px; }
+.ls-step b { display: block; color: #eaf1fb; margin: 2px 0 4px; } .ls-step span { color: #9fb0c8; font-size: 13px; }
+.ls-verd { background: linear-gradient(120deg, rgba(246,177,59,.10), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.35); border-radius: 14px; padding: 22px; margin: 40px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.ls-verd .price { font-size: 28px; font-weight: 800; color: #eaf1fb; } .ls-verd .price small { font-size: 13px; color: #8fa0b8; font-weight: 600; }
+.ls-foot { color: #7e8ca6; font-size: 11.5px; line-height: 1.55; margin-top: 24px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 12px; }
+.ls-wrap a:not(.ls-btn) { color: #f6b13b; }
+
+/* Verðtafla */
+.vt { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 13.5px; }
+.vt th, .vt td { padding: 10px 12px; text-align: center; border-bottom: 1px solid rgba(255,255,255,.06); }
+.vt th:first-child, .vt td:first-child { text-align: left; color: #cdd6e6; }
+.vt thead th { vertical-align: bottom; }
+.vt .tier-nm { font-size: 16px; font-weight: 800; color: #eaf1fb; }
+.vt .tier-pr { font-size: 22px; font-weight: 800; color: #f6b13b; } .vt .tier-pr small { font-size: 11px; color: #8fa0b8; font-weight: 600; display: block; }
+.vt .col-hi { background: rgba(246,177,59,.06); }
+.vt .yes { color: #6ee7b7; font-weight: 700; } .vt .no { color: #54607a; } .vt .neg { color: #8fa0b8; font-style: italic; font-size: 12px; }
+.vt-cta { background: #f6b13b; color: #101623; border: 0; border-radius: 9px; padding: 9px 14px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px; }
+.vt-wrap { overflow-x: auto; }
+
+/* Hub */
+.hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 8px 0 10px; }
+.hub-card { background: #101623; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 18px; text-decoration: none; display: block; transition: border-color .15s; }
+.hub-card:hover { border-color: rgba(246,177,59,.5); }
+.hub-card .e { font-size: 26px; } .hub-card b { display: block; color: #eaf1fb; font-size: 16px; margin: 8px 0 4px; }
+.hub-card span { color: #9fb0c8; font-size: 13px; line-height: 1.5; }
+.hub-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 10px 0; }
+.hub-cmp .col { background: #101623; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 18px; }
+.hub-cmp .col.karp { border-color: rgba(246,177,59,.4); }
+.hub-cmp h4 { margin: 0 0 10px; color: #eaf1fb; } .hub-cmp ul { margin: 0; padding-left: 18px; color: #cdd6e6; font-size: 13.5px; line-height: 1.7; }
+@media (max-width: 560px) { .hub-cmp { grid-template-columns: 1fr; } }

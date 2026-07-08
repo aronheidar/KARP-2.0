@@ -1,19 +1,57 @@
 ---
-// /karp-pro/ — ÚRELT. „Um Karp+"-kynningarsíðan er tekin úr notkun.
-// Beinum á forsíðu svo öll gömlu „Karp+"-CTA (pro-tease/plusGate/fyrirtaeki o.fl.)
-// haldi áfram að virka án 404. Meta-refresh + JS = virkar í static-build.
+// /karp-pro/ — Fyrirtækjalausnir Karps: yfirlit + verð (endurbyggt úr redirect-stubb).
+import Layout from '../layouts/Layout.astro';
+import VerdTafla from '../components/VerdTafla.astro';
+import { VORUR } from '../data/lausnir.js';
+import '../styles/lausn.css';
+const desc = 'Fyrirtækjalausnir Karps — öll opinber fyrirtækjagögn á einum stað: fyrirtækjaskýrslur, endanlegir eigendur, verðmat fasteigna, fyrirtækjavakt og fjölmiðlavakt. Frá 2.900 kr/mán eða 990 kr stök skýrsla. Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';
 ---
-<!doctype html>
-<html lang="is">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url=/" />
-    <link rel="canonical" href="https://karp.is/" />
-    <meta name="robots" content="noindex, nofollow" />
-    <title>Karp+ — áfram á Karp</title>
-  </head>
-  <body>
-    <script>location.replace('/');</script>
-    <p>Áfram á <a href="/">karp.is</a>…</p>
-  </body>
-</html>
+<Layout title="⭐ Fyrirtækjalausnir — verð & vörur | Karp" description={desc} canonical="https://karp.is/karp-pro/" ogTitle="Fyrirtækjalausnir Karps — verð & vörur">
+  <main class="ls-wrap">
+    <section class="ls-hero">
+      <p class="ls-kicker">Karp+ · Fyrirtækjalausnir</p>
+      <h1>Öll opinber fyrirtækjagögn á einum stað</h1>
+      <p class="lead">Fyrirtækjaskýrslur, endanlegir eigendur, verðmat fasteigna, fyrirtækjavakt og fjölmiðlavakt — auk heils flokks opinberra vakta sem enginn annar býður. Á broti af verði samkeppninnar.</p>
+      <div class="ls-cta-row">
+        <a class="ls-btn" href="#verd">Sjá verð</a>
+        <a class="ls-btn ghost" href="/fyrirtaeki/">Prófa fría uppflettingu</a>
+      </div>
+    </section>
+
+    <h2 class="ls-sec-h">Vörurnar</h2>
+    <div class="hub-grid">
+      {VORUR.map((v) => (
+        <a class="hub-card" href={`/lausnir/${v.slug}/`}>
+          <span class="e">{v.emoji}</span><b>{v.heiti}</b><span>{v.gildisloford}</span>
+        </a>
+      ))}
+    </div>
+
+    <h2 class="ls-sec-h" id="verd">Verð & þrep</h2>
+    <VerdTafla />
+
+    <h2 class="ls-sec-h">Karp vs. hin gögnin</h2>
+    <div class="hub-cmp">
+      <div class="col karp">
+        <h4>✅ Karp gefur þér</h4>
+        <ul>
+          <li>Fyrirtækjaskrá, ársreikningar & KPI</li>
+          <li>Endanlegir eigendur gegnum allar keðjur</li>
+          <li>Verðmat fasteigna byggt á sölusögu</li>
+          <li>Fyrirtækja- & fjölmiðlavakt</li>
+          <li><b>+ opnar vaktir sem hinir hafa ekki:</b> útboð, styrkir, Lögbirtingablaðið, vörumerki, skip, ökutæki, eftirlit</li>
+          <li><b>Frá 2.900 kr/mán</b> — eða 990 kr stök skýrsla, engin binding</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Það sem við bjóðum ekki</h4>
+        <ul>
+          <li>Lánshæfismat og vanskilaskrá eru leyfisskyld (Persónuvernd) — við einbeitum okkur vísvitandi að opnum gögnum.</li>
+          <li>Fyrir formlegt lánshæfismat eða vanskilaskrá þarf leyfishafa.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="ls-foot">Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá. Verð án vsk.</p>
+  </main>
+</Layout>
