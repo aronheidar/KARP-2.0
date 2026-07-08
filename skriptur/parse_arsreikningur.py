@@ -47,13 +47,13 @@ EFNAHAGUR_MAP = [
     ('vidskiptakrofur', r'(vi.skiptakr.fur|skammt.makr.fur)'),
     ('handbaert',       r'(handb.rt f|sj..ur og banka|ban48kainnst)'),
     ('veltufjarmunir',  r'veltufj.rmunir samtals'),
-    ('eignir',          r'^eignir samtals'),
+    ('eignir',          r'^eignir samtals|^eignir$'),   # + "Eignir" án "samtals" (sum ehf, t.d. Kaffitár)
     ('hlutafe',         r'^hlutaf.'),
-    ('eigid_fe',        r'^eigi. f.( samtals)?$'),
+    ('eigid_fe',        r'^eigi. f.(,| \(| samtals|$)'),   # "Eigið fé[ samtals]", "Eigið fé, (neikvætt)" — EKKI "...hluthafa móðurfélags" (hlutdeild minnihluta) né "...og skuldir"
     ('langtimaskuldir', r'langt.maskuldir samtals'),
     ('skammtimaskuldir',r'skammt.maskuldir samtals'),
-    ('skuldir',         r'^skuldir samtals'),
-    ('efe_skuldir',     r'eigi. f. og skuldir samtals'),
+    ('skuldir',         r'^skuldir samtals|^skuldir$'),   # + "Skuldir" án "samtals"
+    ('efe_skuldir',     r'eigi. f. og skuldir( samtals)?'),
 ]
 
 def rows_of_page(pg, ytol=3):
@@ -78,11 +78,15 @@ def match(label, mp):
     return None
 
 NOTEREF = re.compile(r'^[1-9]\d?[.)]?$')   # skýringarnúmer 1–99 (líka "2.", "15)") = EKKI fjárhæð
+DATERE  = re.compile(r'^\d{1,2}\.\d{1,2}\.(19|20)\d\d$')  # dagsetningardálkur "31.12.2025" = EKKI fjárhæð
+#   (miðhópur 1–2 tölur aðgreinir dagsetningu frá þúsundatölu "31.122.025" sem hefur 3ja-stafa hópa)
 def take_years(nums):
-    """síðustu 2 tölutákn = [líðandi ár, fyrra ár]; hendir skýringar-dálki (1–99)."""
+    """síðustu 2 tölutákn = [líðandi ár, fyrra ár]; hendir skýringar-dálki (1–99) og dagsetningum."""
     vals = []
     for n in nums:
         if NOTEREF.match(n):          # ber skýringarnúmer (t.d. "2", "15") — ekki fjárhæð ('0' heldur sér)
+            continue
+        if DATERE.match(n):           # dálkahaus með dagsetningum (efnahagur sumra ehf: "31.12.2025 31.12.2024")
             continue
         v = to_num(n)
         if v is not None: vals.append(v)
@@ -90,32 +94,58 @@ def take_years(nums):
     if len(vals) == 1: return (vals[0], None)
     return (vals[-2], vals[-1])
 
+def _cur_of(seg):
+    # Mynt úr glugga sterkrar yfirlýsingar. FOREIGN athugað fyrst svo tilfallandi 'króna'-orð
+    # í evru-/dollara-skýrslu ráði ekki. Broddstafir brenglast → ASCII-kjarnar: 'evr','bandar','slensk';
+    # '.' passar við brenglaðan brodd. 'isk'/'eur'/'usd' = ISO-kóðar (enskar skýrslur, t.d. bankar).
+    if re.search(r'\beur\b|evr[au]', seg): return 'EUR'
+    if re.search(r'\busd\b|bandar.k|dollar', seg): return 'USD'
+    if re.search(r'\bgbp\b|sterling|breskum pund', seg): return 'GBP'
+    if re.search(r'\bisk\b|kr.n|slensk', seg): return 'ISK'
+    return None
+
 def detect_scale(text):
     lo = text.lower()
-    scale, cur = 1, None
-    # Framsetningar-yfirlýsing ("Ársreikningur er birtur í [þúsundum|milljónum] [íslenskra króna|evra]").
-    # AKKERUM á framsetningar-sögn + kvarða-orð Í SÖMU LÍNU. Tvær ástæður:
-    #   (1) "milljónum" (1e6) þarf að greinast, ekki bara "þúsundum" (1e3);
-    #   (2) prósa sem nefnir evrur annars staðar (t.d. "færa bókhald í evrur frá 2026") má EKKI
-    #       yfirtaka raunverulega uppgjörsmynt ("íslenskra króna").
-    # Broddstafir brenglast í RSK-PDF → ASCII-kjarnar lifa af: 'millj','sund','kr','evr','slensk'.
-    for m in re.finditer(r'(?:birt\w*|fj.rh..ir\s+eru|ger.\w*\s+upp|sett\w*\s+fram|amounts?|presented|expressed|stated)[^\n]{0,75}', lo):
+    # ── Uppgjörsmynt ──────────────────────────────────────────────────────────
+    # Tier 1 (áreiðanlegast): starfrækslu-/framsetningargjaldmiðill. Mynt-orðið getur staðið
+    #   SITT HVORU MEGIN við frasann ("birtur í evrum, sem er starfrækslugjaldmiðill félagsins")
+    #   → TVÍHLIÐA gluggi. Nær ISK jafnt í íslenskum ("íslenskum krónum") sem enskum
+    #   ("Icelandic króna (ISK), which is the functional currency") skýrslum.
+    cur = None
+    for m in re.finditer(r'starfr.kslugjaldmi|framsetningargjaldmi|reikningsskilagjaldmi|functional currency|presentation currency|reporting currency', lo):
+        c = _cur_of(lo[max(0, m.start() - 55):m.end() + 55])
+        if c: cur = c; break
+    # Tier 2: framsetning fjárhæða ("fjárhæðir eru í X", "amounts are in X", "presented in X").
+    if cur is None:
+        for m in re.finditer(r'(?:fj.rh..ir[^.\n]{0,20}(?:eru|birt)|amounts?\s+(?:are\s+|presented\s+)?in|presented\s+in|expressed\s+in|birt\w*\s+[i.]\s|ger.\w*\s+upp\s+[i.]\s)[^.\n]{0,45}', lo):
+            c = _cur_of(m.group(0))
+            if c: cur = c; break
+    # Sjálfgefið ISK: íslensk fyrirtækjaskrá. Raunverulegir EUR/USD-uppgjörsaðilar (Brim, Samherji,
+    # Landsvirkjun) lýsa mynt SKÝRT og greinast í Tier 1/2 → tilfallandi 'USD'/'evra' í skýringum
+    # (gjaldeyrisáhætta banka, EUR-skuldabréf) yfirtaka EKKI lengur uppgjörsmyntina.
+    if cur is None: cur = 'ISK'
+    # ── Kvarði (þúsundir/milljónir) ───────────────────────────────────────────
+    # Akkerum á framsetningar-yfirlýsingu fjárhæða — EKKI prósu sem nefnir "X millj. evra"
+    #   (Brim skrifar tugi slíkra setninga en gerir upp í ÞÚSUNDUM evra). Sandholt/Vífilfell
+    #   hafa enga slíka yfirlýsingu → kvarði 1 (heilar krónur).
+    # MEIRIHLUTI ræður: skýrsla stjórnar getur sagt "í milljónum USD" (ávalar prósutölur) EN
+    #   sjálfur ársreikningurinn "í þúsundum USD" í síðufæti á HVERRI reikningssíðu (Landsvirkjun).
+    #   Endurtekni síðufóturinn (margar hittingar) ræður yfir stöku prósu-yfirlýsingu.
+    scale, mill, thous = 1, 0, 0
+    for m in re.finditer(r'(?:fj.rh..ir|upph..ir|t.lur\s+eru|figures\s+are|amounts?\s+(?:are\s+|presented\s+)?in|rounded\s+to\s+the\s+nearest)[^.\n]{0,55}', lo):
         seg = m.group(0)
-        if 'millj' in seg or 'million' in seg: scale = 1000000
-        elif 'sund' in seg or 'thousand' in seg: scale = 1000
-        else: continue   # engin kvarða-yfirlýsing í þessum glugga
-        if 'evr' in seg or 'eur' in seg: cur = 'EUR'
-        elif 'usd' in seg or 'bandar' in seg or 'dollar' in seg: cur = 'USD'
-        elif 'gbp' in seg or 'sterling' in seg or 'pund' in seg: cur = 'GBP'
-        elif 'kr' in seg or 'slensk' in seg or 'isl' in seg: cur = 'ISK'
-        break            # fyrsta gild yfirlýsing ræður
-    if scale == 1 and re.search(r'(.sundum|thousands)', lo): scale = 1000   # varaleið (gömul hegðun)
-    if cur is None:      # engin mynt í yfirlýsingu → varaleið
-        if re.search(r'.sundum\s+evr|millj.num\s+evr|thousands?\s+of\s+eur', lo): cur = 'EUR'
-        elif re.search(r'\busd|bandar', lo): cur = 'USD'
-        elif re.search(r'gbp|sterling', lo): cur = 'GBP'
-        else: cur = 'ISK'
+        if 'millj' in seg or 'million' in seg: mill += 1
+        elif 'sund' in seg or 'thousand' in seg: thous += 1
+    if mill or thous:
+        scale = 1000000 if mill > thous else 1000
     return scale, cur
+
+def is_statement_label(label):
+    # Reikningslínur hafa STUTT heiti ("Rekstrarhagnaður", "Eignir samtals", "Seldar vörur ....").
+    # Frásagnarsíður (skýrsla stjórnar) hafa LANGAR setningar sem geta innihaldið sömu lykilorð
+    # (t.d. "...námu 286 millj. evra ... rekstrarhagnaður fyrir afskriftir og fjármagnsgjöld...")
+    # og mengað reit vegna óakkeraðra regexa. Höfnum prósu: > 8 raunorð (tákn með bókstaf).
+    return sum(1 for w in label.split() if any(c.isalpha() for c in w)) <= 8
 
 def parse(path):
     pdf = pdfplumber.open(path)
@@ -137,6 +167,8 @@ def parse(path):
                 if len(ys) >= 2: ar_cur, ar_prev = int(ys[0]), int(ys[1])
             vals = take_years(nums)
             if vals[0] is None:      # haus-/millisummulína án talna -> sleppa (annars stíflar hún reitinn)
+                continue
+            if not is_statement_label(label):   # prósa-lína á frásagnarsíðu -> EKKI reikningsreitur
                 continue
             if is_rekstur:
                 f = match(label, REKSTUR_MAP)
@@ -192,17 +224,22 @@ def kpis(res, idx=0):
     # Framlegð ≤ 100% (sala−kostn ≤ sala); eiginfjárhlutfall ≤ 100% (e.fé ≤ eignir). Gildi utan → þáttunarvilla → sleppa.
     if 'framlegd' in out and not (-2.0 <= out['framlegd'] <= 1.0): del out['framlegd']
     if 'eiginfjarhlutfall' in out and not (-1.5 <= out['eiginfjarhlutfall'] <= 1.0): del out['eiginfjarhlutfall']
+    # Neikvætt eigið fé (t.d. Kaffitár): ROE (hagn/e.fé) og D/E (skuldir/e.fé) verða VILLANDI —
+    # tap ÷ neikvætt eigið fé gefur JÁKVÆTT "ROE" (tap birtist sem arðsemi). Sleppum þeim;
+    # eiginfjárhlutfall (neikvætt), ROA og hagnaðarhlutfall sýna raunstöðuna rétt.
+    if efe is not None and efe <= 0:
+        out.pop('ROE', None); out.pop('skuldahlutfall_DE', None)
     return out
 
 if __name__ == '__main__':
     res = parse(sys.argv[1])
-    # Varaleið fyrir árs-greiningu: RSK-taflan veit ártal skýrslunnar (sent sem argv[2]).
-    # Sum PDF hafa óvenjulegt árs-haus (t.d. dagsetningar "31.12.2024" eða ár í merkingu, ekki dálki)
-    # → sjálfvirk greining skilar [null,null] þótt TÖLURNAR þáttist. Þá notum við þekkta árið.
-    if res['ar'][0] is None:
-        known = next((int(a) for a in sys.argv[2:] if re.match(r'^20\d\d$', a)), None)
-        if known is not None:
-            res['ar'] = [known, known - 1]
+    # RSK-taflan er ÁBYRG heimild um reikningsár skýrslunnar (sent sem argv[2]). PDF-hausgreining
+    # er brothætt: dagsetningar, gjalddagar skuldabréfa eða skýringarár geta lekið inn (Íslandsbanki
+    # las ranglega "2026"). Dálkaröð er ALLTAF [líðandi, fyrra] eftir stöðu → treystum þekkta árinu
+    # fyrir MERKINGAR: [known, known-1]. (19xx leyft fyrir gömul skil, t.d. 1997.)
+    known = next((int(a) for a in sys.argv[2:] if re.match(r'^(19|20)\d\d$', a)), None)
+    if known is not None:
+        res['ar'] = [known, known - 1]
     res['kpi'] = {}
     for idx, ar in enumerate(res['ar']):
         if ar is not None:

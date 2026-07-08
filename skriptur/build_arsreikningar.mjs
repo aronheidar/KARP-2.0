@@ -105,27 +105,32 @@ async function downloadPdf(kid) {
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox'] });
   try {
     const page = await browser.newPage();
-    await page.goto(`https://vefur.rsk.is/Vefverslun/Default.aspx?kid=${kid}`, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto(`https://vefur.rsk.is/Vefverslun/Default.aspx?kid=${kid}`, { waitUntil: 'networkidle2', timeout: 40000 });
     await page.evaluate((b) => { const n = document.querySelector('[name=buyername]'); if (n) n.value = b.name; const e = document.querySelector('[name=buyeremail]'); if (e) e.value = b.email; }, BUYER);
-    await (await page.$('#MainContent_btnKaupa')).click();          // „Áfram" -> ReturnPage (Verð 0)
-    await new Promise((x) => setTimeout(x, 4000));
-    // Sækja-hnappurinn skilar PDF; sækjum bætin með fetch INNAN síðunnar (fer framhjá niðurhalsstjóra)
-    const out = await page.evaluate(async () => {
+    const kaupa = await page.$('#MainContent_btnKaupa');
+    if (!kaupa) throw new Error('enginn btnKaupa: ' + (await page.evaluate(() => document.body.innerText.slice(0, 150))));
+    await kaupa.click();                                            // „Áfram" -> ReturnPage (Verð 0)
+    await page.waitForSelector('#MainContent_ucVoruGrid_GridView1_Btn_Saekja_0', { timeout: 20000 }).catch(() => {});
+    // ⚠ Söfnum AÐEINS litlu form-ástandi + kökum innan síðunnar — sækjum PDF-bætin úr NODE (POST).
+    //   Fyrri útgáfa las bætin innan síðunnar og btoa-flutti þau út; stór PDF (banka-samstæður ~20MB)
+    //   felldu Node24/Windows með UV_HANDLE_CLOSING í base64-IPC. Node-fetch á disk-buffer er stöðugt
+    //   á Windows OG Linux (GH-Action) → local-prófun stórra félaga virkar nú líka.
+    const post = await page.evaluate(() => {
       const btn = document.querySelector('#MainContent_ucVoruGrid_GridView1_Btn_Saekja_0');
       if (!btn) return { err: 'enginn Sækja-hnappur', txt: document.body.innerText.slice(0, 150) };
-      const form = btn.form; const fd = new URLSearchParams();
-      for (const el of form.querySelectorAll('input,select')) { if (el.type === 'submit') continue; if (el.name) fd.set(el.name, el.value); }
-      fd.set('hfMouseClicked', 'true'); fd.set(btn.name, btn.value || '');
-      const res = await fetch(form.action || location.href, { method: 'POST', body: fd, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-      const buf = new Uint8Array(await res.arrayBuffer());
-      let bin = ''; const c = 0x8000; for (let i = 0; i < buf.length; i += c) bin += String.fromCharCode.apply(null, buf.subarray(i, i + c));
-      return { ct: res.headers.get('content-type'), b64: btoa(bin) };
+      const form = btn.form; const fd = {};
+      for (const el of form.querySelectorAll('input,select')) { if (el.type === 'submit') continue; if (el.name) fd[el.name] = el.value; }
+      fd['hfMouseClicked'] = 'true'; fd[btn.name] = btn.value || '';
+      return { action: form.action || location.href, fields: fd };
     });
-    if (out.err) throw new Error(out.err + ' | ' + (out.txt || ''));
-    const buf = Buffer.from(out.b64, 'base64');
-    if (buf.slice(0, 5).toString('latin1') !== '%PDF-') throw new Error('ekki PDF (ct=' + out.ct + ')');
+    if (post.err) throw new Error(post.err + ' | ' + (post.txt || ''));
+    const cookieHeader = (await page.cookies()).map((c) => `${c.name}=${c.value}`).join('; ');
+    await browser.close();
+    const res = await fetch(post.action, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookieHeader, 'User-Agent': UA }, body: new URLSearchParams(post.fields).toString() });
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.slice(0, 5).toString('latin1') !== '%PDF-') throw new Error('ekki PDF (ct=' + (res.headers.get('content-type') || '') + ', ' + buf.length + 'B)');
     return buf;
-  } finally { await browser.close(); }
+  } finally { try { await browser.close(); } catch {} }
 }
 
 // ---- 4) parse via python ----------------------------------------------------
@@ -148,14 +153,16 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     fs.writeFileSync(path.join(OUTDIR, `${kt}.json`), JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Engir ársreikningar skráðir í ársreikningaskrá RSK (t.d. nýskráð, undanþegið eða óskilað félag).' }, null, 1));
     return null;
   }
-  // veljum nýjustu N skil (helst Samstæðu[2] ef til, annars Ársreikning[1]) — hvert PDF gefur 2 ár
-  const nyjust = [];
-  const seenAr = new Set();
+  // Fyrir hvert ár: veljum SAMSTÆÐU (typeid 2 — sýnir raunhagkerfi samstæðunnar, staðlað fyrir
+  // skráð félög/banka) EF til, annars Ársreikning móðurfélags (typeid 1). RSK listar stundum
+  // Ársreikning Á UNDAN Samstæðu (t.d. Brim) → einfalt „fyrsta lína ársins" missti af samstæðunni.
+  const byYear = new Map();
   for (const r of info.rows) {
-    if (!['1', '2'].includes(r.typeid) || seenAr.has(r.ar)) continue;
-    seenAr.add(r.ar); nyjust.push(r);
-    if (nyjust.length >= arFjoldi) break;
+    if (!['1', '2'].includes(r.typeid)) continue;
+    const cur = byYear.get(r.ar);
+    if (!cur || (r.typeid === '2' && cur.typeid !== '2')) byYear.set(r.ar, r);
   }
+  const nyjust = [...byYear.values()].sort((a, b) => String(b.ar).localeCompare(String(a.ar))).slice(0, arFjoldi);
   const tmp = path.join(OUTDIR, `_tmp_${kt}.pdf`);
   const out = { kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), heimild: 'RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst', ar: {} };
   for (const r of nyjust) {
@@ -164,18 +171,30 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     const pdf = await downloadPdf(kid);
     fs.writeFileSync(tmp, pdf);
     const parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
-    // parsed.ar = [líðandi, fyrra]; skráum bæði ár úr þessu PDF (KPI þegar reiknað per ár)
+    // parsed.ar = [líðandi, fyrra]; skráum fjárhæðir BEGGJA dálka svo HVERT ár fái tölur → fjölárs-
+    // þróunarrit + tekju-/hagnaðarvöxtur reiknist í framenda. KJÓSUM þó idx0 (ár úr SÍNU EIGIN skjali)
+    // ef sama ár berst bæði sem líðandi (eldra PDF) og fyrra (yngra PDF) — eigin-skjals dálkur er canonical.
     parsed.ar.forEach((y, i) => {
       if (y == null) return;
-      const rec = { teg: r.teg, mynt: parsed.mynt, kvardi: parsed.kvardi, kpi: parsed.kpi[String(y)] || null };
-      // aðeins skrá tölur líðandi árs úr þessu skjali (fyrra ár kemur betur úr sínu eigin skjali)
-      if (i === 0) { rec.rekstur = colOf(parsed.rekstur, 0); rec.efnahagur = colOf(parsed.efnahagur, 0); }
-      out.ar[y] = out.ar[y] || rec;
+      const rec = { teg: r.teg, mynt: parsed.mynt, kvardi: parsed.kvardi, kpi: parsed.kpi[String(y)] || null,
+        rekstur: colOf(parsed.rekstur, i), efnahagur: colOf(parsed.efnahagur, i), _idx: i };
+      const fyrir = out.ar[y];
+      if (!fyrir || (i === 0 && fyrir._idx !== 0)) out.ar[y] = rec;
     });
     await new Promise((x) => setTimeout(x, 1200)); // hófsemi gagnvart RSK
   }
   try { fs.unlinkSync(tmp); } catch {}
   const dest = path.join(OUTDIR, `${kt}.json`);
+  // Reikningar fundust en EKKERT nothæft þáttaðist (t.d. aðeins mjög gamalt/óstaðlað uppgjör eins og
+  // Eimskip innanlands sem á aðeins 1997-skil) → skrifum MERKI-JSON. Annars sæti framendinn fastur á
+  // „reiknast…" að eilífu (tóm ar:{} = óaðgreinanlegt frá bið). Loka-ástand = fsKpiEngin.
+  const nothaeft = Object.values(out.ar).some((r) => r && r.kpi && Object.keys(r.kpi).length);
+  if (!nothaeft) {
+    console.log(`  ${kt} ${info.nafn}: reikningar fundust en engar nothæfar lykiltölur þáttuðust — skrifa merki-JSON`);
+    fs.writeFileSync(dest, JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör).' }, null, 1));
+    return null;
+  }
+  for (const y of Object.keys(out.ar)) delete out.ar[y]._idx;   // innra val-merki, ekki í skrá
   fs.writeFileSync(dest, JSON.stringify(out, null, 1));
   console.log(`  -> ${path.relative(ROOT, dest)}  (ár: ${Object.keys(out.ar).join(', ')})`);
   return out;

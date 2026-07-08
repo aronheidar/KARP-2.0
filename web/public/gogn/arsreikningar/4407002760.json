@@ -1,0 +1,111 @@
+{
+ "kt": "4407002760",
+ "nafn": "Kaffitár ehf.",
+ "sott": "2026-07-07",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.0758,
+    "ROE": -0.6422,
+    "ROA": -0.1423,
+    "eiginfjarhlutfall": 0.2216,
+    "veltufjarhlutfall": 0.9039,
+    "skuldahlutfall_DE": 3.5135,
+    "eignavelta": 1.8761
+   },
+   "rekstur": {
+    "sala": 633880874,
+    "adrar_tekjur": 1234533,
+    "laun": -154564940,
+    "afskriftir": -13638377,
+    "fjarmagnsgjold": -21958161,
+    "hagn_f_skatt": -60086240,
+    "tekjuskattur": 12013208,
+    "hagnadur": -48073032
+   },
+   "efnahagur": {
+    "birgdir": 212977593,
+    "vidskiptakrofur": 553856,
+    "handbaert": 24203560,
+    "eignir": 337874174,
+    "hlutafe": 30000000,
+    "skuldir": 263015766,
+    "efe_skuldir": 337874174,
+    "eigid_fe": 74858408,
+    "skammtimaskuldir": 263015766
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.0838,
+    "ROE": -2.0429,
+    "ROA": -0.1649,
+    "eiginfjarhlutfall": 0.0807,
+    "veltufjarhlutfall": 0.5339,
+    "skuldahlutfall_DE": 11.3886,
+    "eignavelta": 1.9671
+   },
+   "rekstur": {
+    "sala": 599506482,
+    "adrar_tekjur": 539936,
+    "laun": -152933785,
+    "afskriftir": -10947171,
+    "fjarmagnsgjold": -20756601,
+    "hagn_f_skatt": -63968135,
+    "tekjuskattur": 13710538,
+    "hagnadur": -50257597
+   },
+   "efnahagur": {
+    "birgdir": 134363325,
+    "vidskiptakrofur": 924930,
+    "handbaert": 14297400,
+    "eignir": 304768513,
+    "hlutafe": 30000000,
+    "skuldir": 280167702,
+    "efe_skuldir": 304768513,
+    "eigid_fe": 24600811,
+    "skammtimaskuldir": 280167702
+   }
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.1422,
+    "ROA": -0.1977,
+    "eiginfjarhlutfall": -0.148,
+    "veltufjarhlutfall": 0.3774,
+    "eignavelta": 1.3902
+   },
+   "rekstur": {
+    "sala": 687961107,
+    "adrar_tekjur": 0,
+    "laun": -162286702,
+    "afskriftir": -17363149,
+    "fjarmagnsgjold": -30417791,
+    "hagn_f_skatt": -122291597,
+    "tekjuskattur": 24454039,
+    "hagnadur": -97837558
+   },
+   "efnahagur": {
+    "birgdir": 210180793,
+    "vidskiptakrofur": 13131,
+    "handbaert": 4214940,
+    "eignir": 494858187,
+    "hlutafe": 30000000,
+    "eigid_fe": -73236747,
+    "skuldir": 568094934,
+    "efe_skuldir": 494858187,
+    "skammtimaskuldir": 568094934
+   }
+  }
+ }
+}
