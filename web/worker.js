@@ -1111,20 +1111,24 @@ async function askellWebhookHandler(request, env, ctx) {
   // Áskrift: subscription.* (v1) OG subscription_contract.* (v2). customer_reference = kt (VIÐ settum),
   //   þrep úr metadata.tier (áreiðanlegt — við setjum í session) EÐA vöru-nafni; aðgangur TIL period-loka.
   // ⚠ Nákvæm v2-svið staðfestast með raun test-greiðslu; les því mörg möguleg heiti varlega.
-  if (ev.indexOf('subscription') === 0 && env.KARP_GRANT_SECRET) {
-    const kt = String(d.customer_reference || '').replace(/\D/g, '');
-    let meta = d.metadata || d.meta || {};
+  if ((ev.indexOf('subscription') >= 0 || ev.indexOf('contract') >= 0) && env.KARP_GRANT_SECRET) {
+    const sub = d.subscription || d.contract || d.subscription_contract || {};
+    const cust = d.customer || sub.customer || {};
+    const kt = String(d.customer_reference || d.customerReference || sub.customer_reference || cust.reference || cust.customer_reference || '').replace(/\D/g, '');
+    let meta = d.metadata || d.meta || sub.metadata || sub.meta || {};
     if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }   // v1 sýnir "meta":"{}" (strengur)
-    const nameBlob = (JSON.stringify(d.plan || d.items || d.product || d.bundle || '') + ' ' + String(d.reference || '')).toLowerCase();
+    const nameBlob = (JSON.stringify(d.plan || d.items || d.product || d.bundle || sub.plan || sub.product || '') + ' ' + String(d.reference || sub.reference || '')).toLowerCase();
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
       : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
-    const endStr = d.active_until || d.current_period_end || d.next_billing_at || d.period_end || (d.current_period && d.current_period.end) || '';
-    const until = endStr ? Math.floor(new Date(endStr).getTime() / 1000) : 0;
-    if (kt.length === 10 && until > 0) {
+    const now = Math.floor(Date.now() / 1000);
+    const endStr = d.active_until || d.current_period_end || d.next_billing_at || d.period_end || (d.current_period && d.current_period.end) || sub.active_until || sub.current_period_end || (sub.current_period && sub.current_period.end) || '';
+    let until = endStr ? Math.floor(new Date(endStr).getTime() / 1000) : 0;
+    if (!until || until < now) until = now + 32 * 86400;   // ⚠ vara: ef period-lok finnst ekki í v2-payloadi → mánuður frá núna (grant klárast; fínstillt þegar raun-payload sést)
+    if (kt.length === 10) {   // until-skilyrði fjarlægt (until defaultar alltaf á gilt gildi)
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, tier, until, ref: String(d.id || d.token || d.uuid || '') + '_' + until }),
+        body: JSON.stringify({ kt, tier, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
