@@ -1,0 +1,94 @@
+{
+ "kt": "4211043520",
+ "nafn": "Eimskip Ísland ehf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4211043520",
+    "kt": "4211043520",
+    "nafn": "Eimskip Ísland ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Vilhelm Már Þorsteinsson",
+    "tegund": "einst",
+    "faeding": "1971-JANÚAR"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Rósa Guðmundsdóttir",
+    "tegund": "einst",
+    "faeding": "1976-MARS"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4211043520",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4211043520",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Vilhelm Már Þorsteinsson",
+   "kt": null,
+   "faeding": "1971-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Rósa Guðmundsdóttir",
+   "kt": null,
+   "faeding": "1976-MARS",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Vilhelm Már Þorsteinsson",
+   "faeding": "1971-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Rósa Guðmundsdóttir",
+   "faeding": "1976-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
