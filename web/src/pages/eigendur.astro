@@ -1,0 +1,113 @@
+---
+// ─────────────────────────────────────────────────────────────
+// 🔗 ENDANLEGIR EIGENDUR (UBO) — sjálfstæð söluskýrslu-síða (Karp+)
+// Endurnýtir sömu vél og /fyrirtaeki/ um web/src/lib/ubo-report.js.
+// Leit → val á félagi (kt) → net + töflur + gátt/kaup. ?syni=1 = opið sýnishorn.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+import '../styles/ubo.css';
+const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhaldsnet gegnum allar félagakeðjur, raunverulegir eigendur, skráðir hluthafar og heimildir. Sérskýrsla eins og hjá Creditinfo, byggð á opinberum gögnum.';
+---
+
+<Layout title="🔗 Endanlegir eigendur — eignarhaldsskýrsla | Karp" description={desc} canonical="https://karp.is/eigendur/" ogTitle="Endanlegir eigendur — eignarhaldsskýrsla félaga">
+  <main data-pg="eigendur">
+    <p class="kicker">Karp+ · Fyrirtækjaskrá</p>
+    <h1>🔗 Endanlegir eigendur</h1>
+    <p>Full eignarhaldsskýrsla hvaða íslensks félags sem er: <b>litakóðað eignarhaldsnet</b> gegnum allar félagakeðjur, <b>endanlegir eigendur</b>, <b>raunverulegir eigendur</b> skv. Skattinum, <b>skráðir hluthafar</b> og heimildir — sérskýrsla eins og hjá Creditinfo, byggð eingöngu á opinberum gögnum. Hluti af <a href="/karp-pro/" style="color:#f6b13b">Karp+</a>.</p>
+    <p class="note">👁️ Skoðaðu <a href="/eigendur/?syni=1">opið sýnishorn</a> (gervifélag) — eða flettu upp raunfélagi hér að neðan.</p>
+
+    <form id="fs-form" autocomplete="off">
+      <input id="fs-q" type="search" placeholder="Nafn félags eða kennitala…" autocomplete="off" aria-label="Leit að félagi fyrir eigendaskýrslu" />
+      <button id="fs-btn" type="submit">Fletta upp</button>
+    </form>
+    <div id="fs-out" aria-live="polite"></div>
+
+    <p class="foot">ⓘ Skýrslan byggir á opinberum gögnum: hlutafélagaskrá og ársreikningaskrá RSK og skráðum raunverulegum eigendum frá Skattinum. Eignatengsl eru skráð eða möguleg; án kennitölu einstaklinga er sömu-manneskju-tenging milli félaga ekki tæmandi. Karp birtir hvorki lánshæfismat né vanskilaskrá. Gögn sótt á-eftirspurn (24 klst skyndiminni).</p>
+  </main>
+</Layout>
+
+<style>
+  main[data-pg="eigendur"] { max-width: 900px; margin: 0 auto; padding: 26px 20px 60px; }
+  main[data-pg="eigendur"] .kicker { color: #f6b13b; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 4px; }
+  main[data-pg="eigendur"] h1 { font-size: 27px; margin: 0 0 8px; color: #eaf1fb; }
+  main[data-pg="eigendur"] > p { color: #cdd6e6; font-size: 14.5px; line-height: 1.6; }
+  main[data-pg="eigendur"] .note { color: #9fb0c8; font-size: 13px; }
+  main[data-pg="eigendur"] .foot { color: #7e8ca6; font-size: 11.5px; line-height: 1.55; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 12px; }
+  main[data-pg="eigendur"] a { color: #f6b13b; }
+</style>
+
+<script>
+  import { mountUboReport, renderUboSample } from '../lib/ubo-report.js';
+  import { loadUser, loginHref } from '../lib/auth.js';
+
+  function initEig() {
+    const form = document.getElementById('fs-form');
+    const inp = document.getElementById('fs-q');
+    const out = document.getElementById('fs-out');
+    const main = document.querySelector('main[data-pg="eigendur"]');
+    if (!form || form.dataset.done) return;
+    form.dataset.done = '1';
+    const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
+    const skila = (html) => { out.innerHTML = html; };
+
+    // Val á félagi → sýna eigendaskýrslu (net + töflur + gátt/kaup) fyrir kt.
+    function veljaFelag(kt, nafn) {
+      try { history.replaceState(null, '', '/eigendur/?q=' + encodeURIComponent(kt)); } catch (e) {}
+      skila('<button type="button" class="fs-back" style="background:none;border:0;color:#f6b13b;font-size:12.5px;cursor:pointer;padding:0;margin:0 0 10px">← Ný leit</button>'
+        + '<h2 style="font-size:20px;color:#eaf1fb;margin:0 0 12px">' + escF(nafn || '') + ' <span style="color:#8fa0b8;font-size:13px;font-weight:400">kt. ' + escF(ktFmt(kt)) + '</span></h2>'
+        + '<div id="fs-report"><div class="fs-ph2" id="eig-host"></div></div>');
+      const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/eigendur/'); } catch (e) {} };
+      mountUboReport({ kt: kt, nafn: nafn, hostEl: document.getElementById('eig-host'), navTo: (k) => veljaFelag(k, '') });
+    }
+
+    function leita(q) {
+      q = String(q || '').trim();
+      if (q.length < 2) { skila('<div class="fs-empty">Sláðu inn a.m.k. 2 stafi — nafn félags eða kennitölu.</div>'); return; }
+      try { history.replaceState(null, '', '/eigendur/?q=' + encodeURIComponent(q)); } catch (e) {}
+      skila('<div class="fs-empty">Fletti upp í fyrirtækjaskrá…</div>');
+      fetch('/api/fyrirtaeki?q=' + encodeURIComponent(q))
+        .then((r) => (r.ok ? r.json() : null))
+        .then(async (d) => {
+          if (!d || d.error) { skila('<div class="fs-empty">Ekki náðist í fyrirtækjaskrána í augnablikinu — reyndu aftur eftir andartak.</div>'); return; }
+          if (d.felag) { await loadUser().catch(() => null); veljaFelag(d.felag.kt, d.felag.nafn); return; }
+          if (d.hits && d.hits.length) {
+            skila('<div class="fs-hits">' + d.hits.map((h) => `<div class="fs-hit${h.afskrad ? ' af' : ''}" role="button" tabindex="0" data-kt="${escF(h.kt)}" data-nafn="${escF(h.nafn)}"><span class="kt">${escF(ktFmt(h.kt))}</span><span class="n">${escF(h.nafn)}${h.afskrad ? ' <span class="fs-badge">afskráð</span>' : ''}</span><span class="h">${escF(h.heimili || '')}</span></div>`).join('') + '</div>'
+              + (d.alls ? `<div class="fs-more">Sýni fyrstu ${d.hits.length} af ${d.alls} — þrengdu leitina til að finna félagið beint.</div>` : ''));
+            out.querySelectorAll('.fs-hit').forEach((el) => {
+              const go = async () => { await loadUser().catch(() => null); veljaFelag(el.dataset.kt, el.dataset.nafn); };
+              el.onclick = go; el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+            });
+            return;
+          }
+          skila(`<div class="fs-empty">Leit að „${escF(q)}“ skilaði engri niðurstöðu úr fyrirtækjaskrá.</div>`);
+        })
+        .catch(() => skila('<div class="fs-empty">Villa við uppflettingu — reyndu aftur.</div>'));
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); leita(inp.value); });
+
+    // ?syni=1 → opið sýnishorn (Gervifyrirtæki), engin innskráning.
+    if (new URLSearchParams(location.search).get('syni') === '1') {
+      form.style.display = 'none';
+      const host = document.createElement('div');
+      host.className = 'eig-sample-wrap';
+      host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt lifandi úr opinberum skrám. <a href="/eigendur/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
+      (main || document.body).appendChild(host);
+      renderUboSample(host.querySelector('#eig-host'), { navTo: (k) => { location.href = '/eigendur/?q=' + encodeURIComponent(k); } });
+      return;
+    }
+
+    // Innskráningargátt (eins og /fyrirtaeki/): leit er fyrir Karp+ (ókeypis). Sýnishorn er opið.
+    loadUser().then((u) => {
+      if (!u || !u.loggedIn) {
+        form.style.display = 'none';
+        skila('<div class="fs-empty">⭐ Eigendaskýrslur eru hluti af <a href="/karp-pro/">Karp+</a> — ókeypis aðgangur sem tekur mínútu. <a href="' + loginHref() + '">Skráðu þig inn</a> til að fletta upp félagi, eða skoðaðu <a href="/eigendur/?syni=1">opna sýnishornið</a>.</div>');
+        return;
+      }
+      const q0 = new URLSearchParams(location.search).get('q');
+      if (q0) { inp.value = q0; leita(q0); }
+    }).catch(() => {});
+  }
+  document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="eigendur"]')) initEig(); });
+</script>
