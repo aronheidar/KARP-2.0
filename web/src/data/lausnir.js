@@ -1,4 +1,8 @@
-// web/src/data/lausnir.js — Fyrirtækjalausnir: ein sannleiksuppspretta (þrep + vörur).
+// web/src/data/lausnir.js — Karp+: ein sannleiksuppspretta (þrep + vörur).
+// Þrep-stigveldi: eitt þrep per notandi. Hrein rökvísi hér (node-prófanleg) — auth.js vefur.
+export const TIER_LVL = { grunnur: 1, fyrirtaeki: 2, fyrirtaeki_plus: 3 };
+export function tierLevelOf(tier, isAdmin) { return isAdmin ? 99 : (TIER_LVL[tier] || 0); }
+
 export const THREP = [
   { slug: 'grunnur', heiti: 'Grunnur', verd: 2900, adgangar: 2, cta: 'Velja Grunn' },
   { slug: 'fyrirtaeki', heiti: 'Fyrirtæki', verd: 6900, adgangar: 5, cta: 'Velja Fyrirtæki', vinsaelt: true },
@@ -12,10 +16,10 @@ export const EIGINDIR = [
   { titill: 'Endanlegir eigendur (UBO) + eignarhald', gildi: [true, true, true] },
   { titill: 'Áreiðanleikamat (KYC)', gildi: [true, true, true] },
   { titill: 'Verðmat fasteigna', gildi: [true, true, true] },
-  { titill: 'Fyrirtækjavaktin (fylgja félögum)', gildi: ['10 félög', '50 félög', 'ótakmarkað'] },
-  { titill: 'Viðskiptamannavakt (kt-vöktun)', gildi: [false, '25 kt', '100 kt'] },
-  { titill: 'Fjölmiðlavakt', gildi: [false, true, true] },
-  { titill: 'Opnar vaktir (útboð, styrkir, Lögbirting, vörumerki, skip…)', gildi: [true, true, true] },
+  { titill: 'Fyrirtækjavaktin (fylgja félögum)', gildi: ['10 félög', '50 félög', 'ótakmarkað'], minTier: 1 },
+  { titill: 'Viðskiptamannavakt (kt-vöktun)', gildi: [false, '25 kt', '100 kt'], minTier: 2 },
+  { titill: 'Fjölmiðlavakt', gildi: [false, true, true], minTier: 2 },
+  { titill: 'Opnar vaktir (útboð, styrkir, Lögbirting, vörumerki, skip…)', gildi: [true, true, true], minTier: 1 },
   { titill: 'Mitt svæði + frjálsar vaktir (Leitarorða, Eftirlit, Ökutæki & skip)', gildi: [true, true, true] },
   { titill: 'Stakar skýrslur innifaldar', gildi: ['—', '5/mán', '20/mán'] },
   { titill: 'Lánshæfismat · Vanskilaskrá', gildi: ['Bjóðum ekki', 'Bjóðum ekki', 'Bjóðum ekki'], neikvaett: true },
