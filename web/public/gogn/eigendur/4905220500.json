@@ -1,0 +1,64 @@
+{
+ "kt": "4905220500",
+ "nafn": "Steinsson Greykdal ehf.",
+ "sott": "2026-07-08",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4905220500",
+    "kt": "4905220500",
+    "nafn": "Steinsson Greykdal ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Aron Heiðar Steinsson",
+    "tegund": "einst",
+    "faeding": "1991-SEPTEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4905220500",
+    "hlutur": 100,
+    "band": "51",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Aron Heiðar Steinsson",
+   "kt": null,
+   "faeding": "1991-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 100,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Aron Heiðar Steinsson",
+   "faeding": "1991-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "100%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
