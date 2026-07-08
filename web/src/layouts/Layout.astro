@@ -7,15 +7,20 @@ const { title, description = '', canonical = '', jsonLd = null, noindex = false,
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
-  { label: 'Karp+', emoji: '⭐', icon: 'pro', items: [
+  { label: 'Fyrirtækjalausnir', emoji: '⭐', icon: 'pro', items: [
+    { href: '/karp-pro/', label: 'Yfirlit & verð' },
+    { href: '/lausnir/fyrirtaekjaskyrsla/', label: 'Fyrirtækjaskýrsla' },
+    { href: '/lausnir/eigendur/', label: 'Endanlegir eigendur' },
+    { href: '/lausnir/fyrirtaekjavaktin/', label: 'Fyrirtækjavaktin' },
+    { href: '/lausnir/areidanleikamat/', label: 'Áreiðanleikamat' },
+    { href: '/lausnir/fasteignamat/', label: 'Fasteignamat' },
+    { href: '/lausnir/fjolmidlavakt/', label: 'Fjölmiðlavakt' },
+    { href: '/lausnir/utbodsvaktin/', label: 'Útboðsvaktin' },
+  ] },
+  { label: 'Karp+', emoji: '👤', items: [
     { href: '/mitt-svaedi/', label: 'Mitt svæði' },
-    { href: '/frettir/', label: 'Vöktun & umfjöllun' },
-    { href: '/utbod/', label: 'Útboðsvaktin' },
     { href: '/vaktir/', label: 'Leitarorðavaktin' },
-    { href: '/fasteignavakt/', label: 'Fasteignavaktin' },
     { href: '/eftirlit/', label: 'Eftirlitsvaktin' },
-    { href: '/fyrirtaeki/', label: 'Fyrirtækjaskrá' },
-    { href: '/eigendur/', label: 'Endanlegir eigendur' },
     { href: '/okutaeki-skip/', label: 'Ökutæki & skip' },
   ] },
   { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
