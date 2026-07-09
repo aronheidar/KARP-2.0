@@ -83,6 +83,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-tease-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13px; text-decoration: none; padding: 9px 15px; border-radius: 9px; }
     /* Vanskilamerki + firmavakt (LOTA 73) */
     .fs-topbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .fs-hact { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
     .fs-vakta:hover { background: rgba(246,177,59,.1); }
     .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
@@ -462,6 +463,49 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
         + '<div class="fs-ar-note">Samantekt á opinberum stöðumerkjum til áreiðanleikakönnunar — <b>ekki lánshæfismat</b>. Karp birtir hvorki lánshæfiseinkunn né vanskilaskrá (leyfisskyld starfsemi).</div>';
     }
+    // Sjálfstæð Áreiðanleikamats-skýrsla (VERK B, ?vidmot=areidanleiki): slim haus (heiti+kt) + AÐEINS
+    // KYC-kortið + Lögbirtinga-listi. Endurnýtir fsAreidanleiki/fsWireKyc — fulla skýrslan er án KYC.
+    function fsAreidView(f, rsk) {
+      const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
+      const rskLink = rsk ? `<a class="fs-link" style="margin-top:14px" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : '';
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-areid-print" type="button" title="Prenta eða vista áreiðanleikamatið sem PDF">🖨️ Prenta / PDF</button></div>
+        <div id="fs-report">
+        <div class="fs-rephead" hidden><b>🛡️ KARP — Áreiðanleikamat (KYC)</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/areidanleiki · heimildir: fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðið, PEP-listi (þing/ráðherrar/sveitarstjórnir)</span></div>
+        <div class="fs-card">
+          <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
+          ${fsAreidanleiki(f)}
+          <div id="fs-logbirting" class="fs-logbirting" hidden></div>
+          ${rskLink}
+          <div class="fs-note2">ⓘ Áreiðanleikamat byggir á opinberum stöðumerkjum úr fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu og PEP-skimun (nafnasamsvörun — staðfestu auðkenni). <b>Hvorki lánshæfismat né vanskilaskrá</b> — slík starfsemi er leyfisskyld. Full fyrirtækjaskýrsla með fjárhagsmælaborði, eigendaneti, greiðslum og fleiru er á <a href="/fyrirtaeki/?q=${escF(f.kt)}">fyrirtækjaskránni</a>.</div>
+        </div>
+        </div>`;
+    }
+    // Vefur KYC-kortið: PEP-skimun (#fs-ar-pep) + Lögbirtingablaðið (#fs-ar-log merki + #fs-logbirting listi
+    // þegar hólfin eru til staðar). Kallað BÆÐI í fullri skýrslu (fyllir aðeins #fs-logbirting; KYC-hólf
+    // fjarverandi → no-op) OG í áreiðanleika-view (fyllir KYC-hólfin). Öll element-uppfærsla er null-vörðuð.
+    function fsWireKyc(felag) {
+      fsWirePep(felag);   // ⚖️ PEP-skimun eigenda/forráðamanna → áreiðanleiki-kort (#fs-ar-pep)
+      fetch('/api/logbirting?kt=' + encodeURIComponent(felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
+        // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
+        const lc = document.getElementById('fs-ar-log');
+        if (lc) { const lv = lc.querySelector('.fs-ar-v'); const nt = (l && l.tilkynningar) || []; const mx = nt.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
+          if (!l || !l.holdur || !nt.length) { lc.className = 'fs-ar g'; if (lv) lv.textContent = 'Engar tilkynningar'; }
+          else if (mx >= 2) { lc.className = 'fs-ar b'; if (lv) lv.textContent = 'Gjaldþrot/innköllun'; }
+          else { lc.className = 'fs-ar o'; if (lv) lv.textContent = nt.length + ' tilkynning' + (nt.length > 1 ? 'ar' : ''); } }
+        const el = document.getElementById('fs-logbirting');
+        if (!el || !l || !l.holdur) return;
+        el.hidden = false;
+        const sc = (n) => n >= 2 ? 's2' : n >= 1 ? 's1' : 's0';
+        const rows = (l.tilkynningar || []).slice(0, 8).map((n) => {
+          const meta = [n.domstoll, n.dagsThinghald && ('þinghald ' + n.dagsThinghald), n.frestur && ('kröfulýsingarfrestur ' + n.frestur)].filter(Boolean).map(escF).join(' · ');
+          return `<div class="fs-lb-row"><span class="fs-lb-b ${sc(n.alvarleiki)}" title="Alvarleiki ${n.alvarleiki}/2">⚖</span>`
+            + `<span class="fs-lb-t"><b>${escF(n.tegundHeiti)}</b>${meta ? '<br><span class="fs-lb-l">' + meta + '</span>' : ''}</span>`
+            + `<span class="fs-lb-d">${escF(n.dagsetning || '')}${n.hlekkur ? '<br><a href="' + escF(n.hlekkur) + '" target="_blank" rel="noopener">tölublað' + (n.tolublad ? ' ' + escF(n.tolublad) : '') + ' ↗</a>' : ''}</span></div>`;
+        }).join('');
+        el.innerHTML = `<div class="fs-sub">⚖️ Lögbirtingablaðið — opinberar tilkynningar${l.count > 8 ? ' · nýjustu 8 af ' + l.count : ''}</div>${rows}`
+          + `<div class="fs-kv-src">Opinber lögbirting (lög nr. 15/2005): gjaldþrotaskipti, innkallanir, skiptalok og félagsslit lögaðila · <a href="https://www.logbirtingablad.is" target="_blank" rel="noopener">logbirtingablad.is</a></div>`;
+      }).catch(() => {});
+    }
     // ── 🕸️ Tengslakort (task #25) — eignarhaldsnet á prófílnum ─────────────────
     // Byggir á f.eigendur (skráðir raunverulegir eigendur RSK: nafn + fæðingarár, ÁN kt).
     // Lögaðili (nafn/tegund bendir til félags) → smellur flettir því félagi upp (leita).
@@ -619,6 +663,30 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         nav(o.nafn);
       }
     }
+    // 🔖 Fylgja (Fyrirtækjavaktin, VERK A) — bætir/fjarlægir co:<kt> í KARP_USER.follows um /follows.
+    // Aðgreint frá 🔔 firmavakt (tölvupósts-breytingavakt): fylgt félag birtist á „Mitt svæði". Aðeins innskráðir.
+    function fsFylgjaBtn(kt) {
+      return '<button class="fs-vakta" id="fs-fylgja" type="button" data-kt="' + escF(kt) + '" title="Fylgja félaginu — það birtist á „Mitt svæði". (Fyrir tölvupóst um breytingar: 🔔 Vakta félagið.)">🔖 Fylgja</button>';
+    }
+    function fsWireFylgja() {
+      const flb = document.getElementById('fs-fylgja');
+      if (!flb) return;
+      const fkey = 'co:' + (flb.dataset.kt || '');
+      const paint = () => { const on = ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1; flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; };
+      paint();
+      flb.addEventListener('click', async () => {
+        const u = window.KARP_USER;
+        if (!u || !u.loggedIn) { location.href = loginHref(); return; }   // aðeins innskráðir → annars á innskráningu
+        flb.disabled = true;
+        const cur = u.follows || [];
+        const has = cur.indexOf(fkey) !== -1;
+        const next = has ? cur.filter((x) => x !== fkey) : cur.concat([fkey]);
+        const res = await karpPost('/follows', { follows: next });
+        u.follows = (res && res.follows) ? res.follows : next;   // u === window.KARP_USER → uppfærist strax
+        paint();
+        flb.disabled = false;
+      });
+    }
     // 🔗 UBO-skýrsluvél flutt í web/src/lib/ubo-report.js (LOTA 112) — mountUboReport / renderUboSample.
     function fsKort(felag, rsk) {
       const f = felag;
@@ -631,7 +699,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><div class="fs-hact">${fsFylgjaBtn(f.kt)}<button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div></div>
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -644,7 +712,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
-          ${fsAreidanleiki(f)}
           ${fsTengsl(f)}
           ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
@@ -942,7 +1009,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button>${fsFylgjaBtn(f.kt)}</div>
         <div class="fs-gate">
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
@@ -957,12 +1024,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const out = document.getElementById('fs-out');
       if (!form || form.dataset.done) return;
       form.dataset.done = '1';
+      // ?vidmot=areidanleiki (VERK B) → Áreiðanleikamat-hamur: sama leit, en niðurstaðan er slim KYC-skýrsla.
+      const FS_AREID = new URLSearchParams(location.search).get('vidmot') === 'areidanleiki';
+      if (FS_AREID) {
+        const h1 = document.querySelector('main[data-pg="fyrirtaeki"] h1');
+        if (h1) { h1.textContent = '🛡️ Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
+        const inpEl = document.getElementById('fs-q'); if (inpEl) inpEl.setAttribute('placeholder', 'Nafn félags eða kennitala — áreiðanleikamat…');
+      }
       const skila = (html) => { out.innerHTML = html; };
       function leita(q, fraSmell) {
         q = String(q || '').trim();
         if (q.length < 2) { skila('<div class="fs-empty">Sláðu inn a.m.k. 2 stafi — nafn félags eða kennitölu.</div>'); return; }
         if (fraSmell) inp.value = q;
-        try { history.replaceState(null, '', '/fyrirtaeki/?q=' + encodeURIComponent(q)); } catch (e) {}
+        try { history.replaceState(null, '', '/fyrirtaeki/?' + (FS_AREID ? 'vidmot=areidanleiki&' : '') + 'q=' + encodeURIComponent(q)); } catch (e) {}
         skila('<div class="fs-empty">Fletti upp í fyrirtækjaskrá…</div>');
         fetch('/api/fyrirtaeki?q=' + encodeURIComponent(q))
           .then((r) => (r.ok ? r.json() : null))
@@ -971,10 +1045,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             if (d.felag) {
               const f = d.felag;
               await loadUser().catch(() => null);   // eignarhald þarf KARP_USER
-              const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/'); } catch (e) {} }; };
+              const backWire = () => { const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/fyrirtaeki/' + (FS_AREID ? '?vidmot=areidanleiki' : '')); } catch (e) {} }; };
+              // ?vidmot=areidanleiki (VERK B) → sjálfstæð Áreiðanleikamats-skýrsla (KYC-fókus). Opið innskráðum
+              // (Grunnur-þrep; paywall SLÖKKT) — ekki bundið per-skýrslu kaupum eins og fulla skýrslan.
+              if (FS_AREID) {
+                const fjA = await fsFjarhagur(f.kt, isAdmin() || hasReport('fyrirtaeki:' + f.kt));   // fjárhagsheilsa; on-demand scrape aðeins fyrir eiganda/admin
+                f.fjarhagur = Array.isArray(fjA) ? fjA : null;
+                skila(fsAreidView(f, d.rsk));
+                backWire();
+                fsWireKyc(f);   // PEP (#fs-ar-pep) + Lögbirting (#fs-ar-log + #fs-logbirting)
+                const pb = document.getElementById('fs-areid-print');
+                if (pb) pb.addEventListener('click', () => { pb.disabled = true; pb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); pb.disabled = false; pb.textContent = '🖨️ Prenta / PDF'; }, 600); }, 200); });
+                return;
+              }
               // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin → fullt. Sýnishorn = ?syni=1 (demo).
               if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt))) {
-                skila(fsGate(f)); backWire();
+                skila(fsGate(f)); backWire(); fsWireFylgja();
                 const gb = document.getElementById('fsg-buy');
                 if (gb) gb.addEventListener('click', async () => {
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
@@ -994,6 +1080,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.stjornPending = !!(stj && stj.pending);
               skila(fsKort(f, d.rsk));
               backWire();
+              fsWireFylgja();   // 🔖 fylgja-hnappur (co:<kt> → Mitt svæði)
               fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
               // 🔗 Endanlegir eigendur: sameiginleg vél (web/src/lib/ubo-report.js)
               mountUboReport({ kt: f.kt, nafn: f.nafn, hostEl: document.getElementById('eig-host'), navTo: (q) => leita(q, true) });
@@ -1050,29 +1137,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   ? '<span class="fs-van bad">⚠ Í vanskilum með ársreikning: ' + v.ar.map((x) => escF(String(x.ar)) + ' (' + escF(x.vanskil) + ')').join(' · ') + '</span> <span class="fs-vansub">opinber listi ársreikningaskrár Skattsins</span>'
                   : '<span class="fs-van ok">✓ Engin vanskil á ársreikningaskilum</span> <span class="fs-vansub">rekstrarár ' + v.skodud.join(' og ') + ' · ársreikningaskrá Skattsins</span>';
               }).catch(() => {});
-              // ⚖️ Lögbirtingablaðið (LOTA 95) — opinberar lögform. tilkynningar félagsins (gjaldþrot/
-              // innköllun/skiptalok/félagsslit). Öll félög (lögaðilar). Persónuvernd/síun í build_logbirting.py.
-              fsWirePep(d.felag);   // ⚖️ PEP-skimun eigenda/forráðamanna → áreiðanleiki-kort
-              fetch('/api/logbirting?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
-                // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
-                const lc = document.getElementById('fs-ar-log');
-                if (lc) { const lv = lc.querySelector('.fs-ar-v'); const nt = (l && l.tilkynningar) || []; const mx = nt.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
-                  if (!l || !l.holdur || !nt.length) { lc.className = 'fs-ar g'; if (lv) lv.textContent = 'Engar tilkynningar'; }
-                  else if (mx >= 2) { lc.className = 'fs-ar b'; if (lv) lv.textContent = 'Gjaldþrot/innköllun'; }
-                  else { lc.className = 'fs-ar o'; if (lv) lv.textContent = nt.length + ' tilkynning' + (nt.length > 1 ? 'ar' : ''); } }
-                const el = document.getElementById('fs-logbirting');
-                if (!el || !l || !l.holdur) return;
-                el.hidden = false;
-                const sc = (n) => n >= 2 ? 's2' : n >= 1 ? 's1' : 's0';
-                const rows = (l.tilkynningar || []).slice(0, 8).map((n) => {
-                  const meta = [n.domstoll, n.dagsThinghald && ('þinghald ' + n.dagsThinghald), n.frestur && ('kröfulýsingarfrestur ' + n.frestur)].filter(Boolean).map(escF).join(' · ');
-                  return `<div class="fs-lb-row"><span class="fs-lb-b ${sc(n.alvarleiki)}" title="Alvarleiki ${n.alvarleiki}/2">⚖</span>`
-                    + `<span class="fs-lb-t"><b>${escF(n.tegundHeiti)}</b>${meta ? '<br><span class="fs-lb-l">' + meta + '</span>' : ''}</span>`
-                    + `<span class="fs-lb-d">${escF(n.dagsetning || '')}${n.hlekkur ? '<br><a href="' + escF(n.hlekkur) + '" target="_blank" rel="noopener">tölublað' + (n.tolublad ? ' ' + escF(n.tolublad) : '') + ' ↗</a>' : ''}</span></div>`;
-                }).join('');
-                el.innerHTML = `<div class="fs-sub">⚖️ Lögbirtingablaðið — opinberar tilkynningar${l.count > 8 ? ' · nýjustu 8 af ' + l.count : ''}</div>${rows}`
-                  + `<div class="fs-kv-src">Opinber lögbirting (lög nr. 15/2005): gjaldþrotaskipti, innkallanir, skiptalok og félagsslit lögaðila · <a href="https://www.logbirtingablad.is" target="_blank" rel="noopener">logbirtingablad.is</a></div>`;
-              }).catch(() => {});
+              // ⚖️ Áreiðanleiki-vefun (VERK B): PEP-skimun + Lögbirtingablaðið. Í fullri skýrslu fyllir þetta
+              // AÐEINS #fs-logbirting — KYC-kortið er í sér-view /fyrirtaeki/?vidmot=areidanleiki (hólf fjarv. = no-op).
+              fsWireKyc(d.felag);
               // 🐟 Aflaheimildir (LOTA 84) — AÐEINS sjávarútvegs-geirinn (ÍSAT 03 fiskveiðar/fiskeldi,
               // 10.2 fiskvinnsla — t.d. Brim=10.20.1, 46.38 fiskheildsala) → kvótastaða úr Gagnavef Fiskistofu
               if ((d.felag.isat || []).some((x) => /^(03|10\.2|46\.38)/.test(String(x).trim()))) {
@@ -1218,9 +1285,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
         setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
-        fsWirePep(demoF);   // sýnishorn: skima gervi-eigendur → „engin þekkt"
-        fsWireTengsl(demoF, (q) => leita(q, true));   // 🕸️ tengslakort í sýnishorni
-        (() => { const dl = document.getElementById('fs-ar-log'); if (dl) { dl.className = 'fs-ar g'; const dv = dl.querySelector('.fs-ar-v'); if (dv) dv.textContent = 'Engar athugasemdir'; } })();
+        fsWireTengsl(demoF, (q) => leita(q, true));   // 🕸️ tengslakort í sýnishorni (KYC-kort fjarlægt úr fullu skýrslunni, VERK B)
         const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
         setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
         setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');

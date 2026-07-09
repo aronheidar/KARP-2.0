@@ -1,0 +1,27 @@
+---
+// web/src/pages/areidanleiki.astro (VERK B) — Áreiðanleikamat (KYC): stutt vanity-slóð sem vísar á
+// /fyrirtaeki/?vidmot=areidanleiki (þar sem stóra leitar-/skýrslu-skriptið býr — engin tvítekt á því).
+// Query (t.d. ?q=) borin áfram. Vísunin keyrir bæði við beina hleðslu OG View-Transition-navígasjón
+// (goAreid + astro:page-load, með slóðar-verði). SEO-heimili vörunnar: /lausnir/areidanleikamat/.
+import Layout from '../layouts/Layout.astro';
+const desc = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið á einum stað. Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';
+---
+<Layout title="🛡️ Áreiðanleikamat (KYC) — Karp" description={desc} canonical="https://karp.is/lausnir/areidanleikamat/" ogTitle="Áreiðanleikamat (KYC) — Karp" noindex={true}>
+  <main style="max-width:640px;margin:0 auto;padding:60px 20px;">
+    <p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#7e8ca6;margin:0 0 4px;">Karp+ · Áreiðanleiki</p>
+    <h1 style="font-size:26px;">🛡️ Áreiðanleikamat</h1>
+    <p style="color:#cdd6e6;">Áreiðanleikakönnun (KYC) á íslensku félagi — þú ert send(ur) á <a href="/fyrirtaeki/?vidmot=areidanleiki" style="color:#f6b13b;">leitina</a> sjálfkrafa.</p>
+  </main>
+  <script>
+    // Vísar AÐEINS þegar við erum raunverulega á /areidanleiki/ (module-hlustarinn lifir milli VT-síðna).
+    function goAreid() {
+      if (location.pathname.replace(/\/+$/, '') !== '/areidanleiki') return;
+      const p = new URLSearchParams(location.search);
+      p.set('vidmot', 'areidanleiki');
+      location.replace('/fyrirtaeki/?' + p.toString());
+    }
+    goAreid();
+    document.addEventListener('astro:page-load', goAreid);
+  </script>
+  <noscript><meta http-equiv="refresh" content="0;url=/fyrirtaeki/?vidmot=areidanleiki" /></noscript>
+</Layout>

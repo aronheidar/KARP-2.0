@@ -101,7 +101,8 @@ export const VORUR = [
       { titill: 'Fáðu tilkynningar', texti: 'Breytingar birtast á Mitt svæði + í pósti.' },
     ],
     verd: { tegund: 'threp', threp: 'Grunnur' },
-    tol: { label: 'Opna Mitt svæði', href: '/mitt-svaedi/' },
+    synishorn: { label: 'Opna vöktunina (Mitt svæði)', href: '/mitt-svaedi/' },
+    tol: { label: 'Fletta upp félagi til að fylgja', href: '/fyrirtaeki/' },
     description: 'Fyrirtækjavaktin — fylgstu með félögum og fáðu sjálfvirkar tilkynningar um ársreikninga, eigendur og lögbirtingar. ' + LEGAL,
   },
   {
@@ -155,8 +156,8 @@ export const VORUR = [
       { titill: 'Fáðu matið', texti: 'PEP + eigendur + staða + áhættumerki.' },
     ],
     verd: { tegund: 'threp', threp: 'Grunnur' },
-    synishorn: { label: 'Sjá sýnishorn', href: '/fyrirtaeki/?q=490522-0500' },
-    tol: { label: 'Fletta upp félagi', href: '/fyrirtaeki/' },
+    synishorn: { label: 'Sjá sýnishorn', href: '/fyrirtaeki/?vidmot=areidanleiki&q=490522-0500' },
+    tol: { label: 'Fletta upp félagi', href: '/fyrirtaeki/?vidmot=areidanleiki' },
     description: 'Áreiðanleikamat (KYC) — PEP-skimun, endanlegir eigendur og staða félags í opinberum skrám. ' + LEGAL,
   },
 ];
