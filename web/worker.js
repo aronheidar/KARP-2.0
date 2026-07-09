@@ -1586,6 +1586,21 @@ async function leiHandler(request, ctx) {
   return res;
 }
 
+// Rekstrarleyfi (Sýslumenn, áfangi 1 leyfaskrár) — kt-lyklað úr rekstrarleyfi.json (byKt).
+async function leyfiHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false, leyfi: [] });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/leyfi?kt=' + kt);
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  const data = await augGet(env, 'rekstrarleyfi.json');
+  const list = (data && data.byKt && data.byKt[kt]) || [];
+  const out = { kt, holdur: list.length > 0, n: list.length, afengi: list.some((x) => x.afengi), leyfi: list.slice(0, 12), heimild: 'Sýslumenn (island.is)' };
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=43200' } });
+  if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1614,6 +1629,7 @@ export default {
     if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
     if (url.pathname === '/api/sanctions') return sanctionsHandler(request, env, ctx);
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
+    if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);

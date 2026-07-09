@@ -93,6 +93,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-kv-ti { font-size: 13px; color: #cdd6e6; background: rgba(58,141,255,.08); border: 1px solid rgba(58,141,255,.28); border-radius: 9px; padding: 8px 12px; }
     .fs-kv-ti b { color: #eaf1fb; } .fs-kv-ti b.pos { color: #42d086; } .fs-kv-ti b.neg { color: #e78284; }
     .fs-kv-src { font-size: 10.5px; color: #6b7688; margin-top: 5px; font-style: italic; }
+    .fs-leyfi-af { color: #d9a0e6; font-size: 12px; font-weight: 600; }
+    .fs-leyfi-loc { color: #8fa0b8; font-size: 11px; }
     body.fs-printing #fs-report .fs-kv-ti { background: #eef4ff !important; border-color: #b9cdf0 !important; color: #123 !important; }
     body.fs-printing #fs-report .fs-kv-ti b { color: #111 !important; } body.fs-printing #fs-report .fs-kv-src { color: #555 !important; }
     .fs-vorumerki { margin-top: 10px; }
@@ -912,6 +914,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
+          <div id="fs-leyfi" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
           <div id="fs-styrkir" class="fs-styrkir" hidden></div>
@@ -1431,6 +1434,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 }).catch(() => {});
               }
               // Ⓡ Vörumerki (Hugverkastofan) — vörumerkjasafn félagsins um kt (fallback: nafn). Öll félög, utan fiskveiða-hliðs.
+              // 🎫 Rekstrarleyfi Sýslumanna (áfangi 1 leyfaskrár) — öll félög, kt-lyklað
+              fetch('/api/leyfi?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((ly) => {
+                const el = document.getElementById('fs-leyfi');
+                if (!el || !ly || !ly.holdur) return;
+                el.hidden = false;
+                const chips = (ly.leyfi || []).map((x) => '<span class="fs-chip">' + escF([x.teg, x.undir, x.flokkur ? 'fl. ' + x.flokkur : ''].filter(Boolean).join(' · ')) + (x.stadur ? ' <span class="fs-leyfi-loc">' + escF(x.stadur) + '</span>' : '') + '</span>').join('');
+                el.innerHTML = '<div class="fs-sub">🎫 Rekstrarleyfi Sýslumanna' + (ly.afengi ? ' <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span>' : '') + '</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Útgefin rekstrarleyfi veitinga-/gististaða — Sýslumenn (island.is)</div>';
+              }).catch(() => {});
+              // Ⓡ Vörumerki (Hugverkastofan)
               fetch('/api/vorumerki?kt=' + encodeURIComponent(d.felag.kt || '') + '&nafn=' + encodeURIComponent(d.felag.nafn || ''))
                 .then((r) => (r.ok ? r.json() : null)).then((v) => {
                   const el = document.getElementById('fs-vorumerki');
@@ -1556,6 +1568,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         if (rep && !document.getElementById('fs-demo-note')) { const n = document.createElement('div'); n.id = 'fs-demo-note'; n.className = 'fs-demonote'; n.innerHTML = '👁️ <b>Sýnishorn</b> — Norðurhaf Sjávarfang hf. er EKKI raunverulegt félag. Sýnir allt sem fullbúin fyrirtækjaskýrsla getur innihaldið: fjárhagsmælaborð, kvóta, vörumerki, styrki og eftirlit.'; rep.insertBefore(n, rep.firstChild); }
         const setE = (id, html) => { const el = document.getElementById(id); if (el) { el.hidden = false; el.innerHTML = html; } };
         setE('fs-kvoti', '<div class="fs-sub">🐟 Aflamark (Fiskistofa)</div><div class="fs-chips"><span class="fs-chip"><b>Þorskur</b> 1.840 tonn</span><span class="fs-chip"><b>Ýsa</b> 720 tonn</span><span class="fs-chip"><b>Ufsi</b> 680 tonn</span><span class="fs-chip"><b>Samtals</b> 3.240 þorskígildistonn · 2025/26</span></div>');
+        setE('fs-leyfi', '<div class="fs-sub">🎫 Rekstrarleyfi Sýslumanna <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span></div><div class="fs-chips"><span class="fs-chip">Veitingaleyfi · A Veitingahús · fl. II <span class="fs-leyfi-loc">Hafnargata 12, 220 Hafnarfjörður</span></span></div><div class="fs-kv-src">Útgefin rekstrarleyfi veitinga-/gististaða — Sýslumenn (island.is)</div>');
         setE('fs-vorumerki', '<div class="fs-sub">™️ Skráð vörumerki (Hugverkastofa)</div><div class="fs-chips"><span class="fs-chip">Norðurhaf</span><span class="fs-chip">Bláa hafið</span><span class="fs-chip">SeaFresh</span><span class="fs-chip">Fjörukrydd</span></div>');
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
