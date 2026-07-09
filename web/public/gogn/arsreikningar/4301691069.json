@@ -1,0 +1,121 @@
+{
+ "kt": "4301691069",
+ "nafn": "Árvakur hf.",
+ "sott": "2026-07-09",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5424,
+    "hagnadarhlutfall": -0.0945,
+    "ROE": -1.7093,
+    "ROA": -0.3035,
+    "eiginfjarhlutfall": 0.1776,
+    "veltufjarhlutfall": 0.4807,
+    "skuldahlutfall_DE": 4.6321,
+    "eignavelta": 3.2124
+   },
+   "rekstur": {
+    "sala": 3542420427,
+    "adrar_tekjur": 94029942,
+    "kostnadarverd": -1620928424,
+    "laun": -1849770605,
+    "annar_rekstur": -407342666,
+    "afskriftir": -64577443,
+    "fjarmagnsgjold": -9081688,
+    "hagn_f_skatt": -334669170,
+    "tekjuskattur": 0,
+    "hagnadur": -334669170
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 403981761,
+    "handbaert": 31952153,
+    "eignir": 1102747101,
+    "hlutafe": 45000000,
+    "eigid_fe": 195795849,
+    "skuldir": 906951252,
+    "efe_skuldir": 1102747101,
+    "skammtimaskuldir": 906951252
+   }
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5438,
+    "hagnadarhlutfall": -0.0098,
+    "ROE": -0.2551,
+    "ROA": -0.0347,
+    "eiginfjarhlutfall": 0.1359,
+    "veltufjarhlutfall": 0.5017,
+    "skuldahlutfall_DE": 6.3609,
+    "eignavelta": 3.5442
+   },
+   "rekstur": {
+    "sala": 4069843037,
+    "adrar_tekjur": 311332925,
+    "kostnadarverd": -1856796975,
+    "laun": -2060454583,
+    "annar_rekstur": -403570419,
+    "afskriftir": -65566347,
+    "fjarmagnsgjold": -9833843,
+    "hagn_f_skatt": -39794961,
+    "tekjuskattur": 0,
+    "hagnadur": -39794961
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 481997340,
+    "handbaert": 15875973,
+    "eignir": 1148311077,
+    "hlutafe": 45000000,
+    "eigid_fe": 156000888,
+    "skuldir": 992310189,
+    "efe_skuldir": 1148311077,
+    "skammtimaskuldir": 992310189
+   }
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5262,
+    "hagnadarhlutfall": -0.0663,
+    "ROE": -1.8966,
+    "ROA": -0.2382,
+    "eiginfjarhlutfall": 0.1256,
+    "veltufjarhlutfall": 0.4831,
+    "skuldahlutfall_DE": 6.9636,
+    "eignavelta": 3.5944
+   },
+   "rekstur": {
+    "sala": 4176063263,
+    "adrar_tekjur": 329247563,
+    "kostnadarverd": -1978498504,
+    "laun": -2193914400,
+    "annar_rekstur": -476922990,
+    "afskriftir": -81864729,
+    "fjarmagnsgjold": -17165721,
+    "hagn_f_skatt": -276707192,
+    "tekjuskattur": 0,
+    "hagnadur": -276707192
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 472320730,
+    "handbaert": 18498265,
+    "eignir": 1161836470,
+    "hlutafe": 53886667,
+    "eigid_fe": 145893696,
+    "skuldir": 1015942774,
+    "efe_skuldir": 1161836470,
+    "skammtimaskuldir": 1015942774
+   }
+  }
+ },
+ "pdf": "pdf/4301691069.pdf",
+ "pdfAr": "2024"
+}
