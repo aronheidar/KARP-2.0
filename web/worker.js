@@ -1525,6 +1525,38 @@ async function logbirtingHandler(request, env, ctx) {
   return res;
 }
 
+// F9 — þvingunaraðgerða-skimun: nafna-index opinberra refsilista (ESB+SÞ+OFAC) úr sanctions.json.
+// first+last-token samsvörun (eins og PEP) → „möguleg samsvörun, staðfestu" (nafnasamsvörun, ekki úrskurður).
+let SANCTIONS_IDX = null;
+const sancNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+async function sanctionsIndex(env) {
+  if (SANCTIONS_IDX) return SANCTIONS_IDX;
+  const j = await augGet(env, 'sanctions.json');
+  if (!j || !j.names) return { idx: new Map(), updated: null };   // ekki memo-a bilun → reynir aftur síðar
+  const idx = new Map();
+  for (const x of j.names) {
+    const t = (x.n || '').split(' ').filter(Boolean);
+    if (t.length < 2) continue;
+    const key = t[0] + '|' + t[t.length - 1];
+    if (!idx.has(key)) idx.set(key, { nafn: x.nafn, listar: x.listar });
+  }
+  SANCTIONS_IDX = { idx, updated: j.updated || null };
+  return SANCTIONS_IDX;
+}
+async function sanctionsHandler(request, env, ctx) {
+  const names = (new URL(request.url).searchParams.get('names') || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 40);
+  const { idx, updated } = await sanctionsIndex(env);
+  const hits = [], seen = new Set();
+  for (const raw of names) {
+    const t = sancNorm(raw).split(' ').filter(Boolean);
+    if (t.length < 2) continue;
+    const key = t[0] + '|' + t[t.length - 1];
+    const m = idx.get(key);
+    if (m && !seen.has(key)) { seen.add(key); hits.push({ nafn: raw, listi: m.nafn, listar: m.listar }); }
+  }
+  return sjson({ hits, updated, n: idx.size });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1551,6 +1583,7 @@ export default {
     if (url.pathname === '/api/okutaeki') return okutaekiHandler(request, ctx);
     if (url.pathname === '/api/skip') return skipHandler(request, ctx);
     if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
+    if (url.pathname === '/api/sanctions') return sanctionsHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);

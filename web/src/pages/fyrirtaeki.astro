@@ -195,6 +195,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ar-detail { font-size: 12px; color: #f0c674; margin: 4px 0 0; line-height: 1.5; }
     .fs-ar-detail:empty { display: none; }
     .fs-ar-role { color: #9fb0c8; font-weight: 400; }
+    .fs-ar-more { margin-top: 5px; } .fs-ar-more a { color: #f6b13b; text-decoration: none; font-size: 12px; } .fs-ar-more a:hover { text-decoration: underline; }
     .fs-ar-note { font-size: 11px; color: #7e8ca6; margin: 6px 0 2px; line-height: 1.45; }
     body.fs-printing #fs-report .fs-ar { background: #f7f8fa !important; border-color: #e6e6e6 !important; }
     body.fs-printing #fs-report .fs-ar-v { color: #222 !important; }
@@ -469,8 +470,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div class="fs-argrid">' + skra + skil + heilsa + eign
         + '<div id="fs-ar-pep" class="fs-ar n"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
         + '<div id="fs-ar-log" class="fs-ar n"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-media" class="fs-ar n"><span class="fs-ar-i">📰</span><div class="fs-ar-tx"><span class="fs-ar-l">Fjölmiðlaumfjöllun</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-flakk" class="fs-ar n"><span class="fs-ar-i">🔁</span><div class="fs-ar-tx"><span class="fs-ar-l">Gjaldþrota-tengsl</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-sanction" class="fs-ar n"><span class="fs-ar-i">🌐</span><div class="fs-ar-tx"><span class="fs-ar-l">Þvingunaraðgerðir</span><span class="fs-ar-v">skima…</span></div></div>'
         + '</div>'
         + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
+        + '<div id="fs-ar-media-detail" class="fs-ar-detail"></div>'
+        + '<div id="fs-ar-flakk-detail" class="fs-ar-detail"></div>'
+        + '<div id="fs-ar-sanction-detail" class="fs-ar-detail"></div>'
         + '<div class="fs-ar-note">Samantekt á opinberum stöðumerkjum til áreiðanleikakönnunar — <b>ekki lánshæfismat</b>. Karp birtir hvorki lánshæfiseinkunn né vanskilaskrá (leyfisskyld starfsemi).</div>';
     }
     // Sjálfstæð Áreiðanleikamats-skýrsla (VERK B, ?vidmot=areidanleiki): slim haus (heiti+kt) + AÐEINS
@@ -491,11 +498,80 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         </div>
         </div>`;
     }
+    // F7 — Fjölmiðlaumfjöllun (adverse media): endurnýtir /firma (fjölmiðlavakt Karp), félagsnafn aðal.
+    async function fsWireMedia(f) {
+      const chip = document.getElementById('fs-ar-media'); if (!chip) return;
+      const v = chip.querySelector('.fs-ar-v');
+      try {
+        const fj = await fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(fsStutt(f.nafn)) + '&days=365').then((r) => (r.ok ? r.json() : null));
+        if (!fj || !fj.ready) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Ekki í boði'; return; }
+        const se = fj.sentiment || {}, tot = fj.total || 0;
+        if (!tot) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin umfjöllun'; return; }
+        const idx = se.idx || 0, bad = se.scored && (idx < -15 || (se.neg || 0) > (se.pos || 0));
+        chip.className = 'fs-ar ' + (bad ? 'o' : 'g');
+        if (v) v.textContent = tot + ' grein' + (tot > 1 ? 'ar' : '') + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx : '');
+        const d = document.getElementById('fs-ar-media-detail');
+        if (d && (fj.items || []).length) d.innerHTML = '📰 <b>Fjölmiðlaumfjöllun</b> (sl. 12 mán · ' + tot + ' greinar' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' — neikvæður' : '') : '') + '): '
+          + fj.items.slice(0, 5).map((it) => '<a href="' + escF(it.link) + '" target="_blank" rel="noopener">' + escF(it.title) + '</a> <span class="fs-ar-role">' + escF(it.source || '') + '</span>').join(' · ')
+          + '<div class="fs-ar-more"><a href="/frettir/">Öll fjölmiðlaumfjöllun í vaktinni →</a></div>';
+      } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
+    }
+    // F8 — Gjaldþrota-tengsl / kennitöluflakks-vísbendingar: sama kjarna-nafn (án félagsforms), önnur kt,
+    // nýlega slitið/gjaldþrota í Lögbirtingablaðinu. VÍSBENDING, ekki staðfesting.
+    let _lbAll = null;
+    function fsLogbirtingAll() { if (!_lbAll) _lbAll = fetch('/gogn/logbirting.json').then((r) => (r.ok ? r.json() : null)).catch(() => null); return _lbAll; }
+    function fsCoreName(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\b(ehf|hf|slhf|ohf|sf|slf|svf|bs)\b\.?/g, '').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+    async function fsWireFlakk(f) {
+      const chip = document.getElementById('fs-ar-flakk'); if (!chip) return;
+      const v = chip.querySelector('.fs-ar-v');
+      const core = fsCoreName(f.nafn);
+      if (core.length < 4) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }
+      const data = await fsLogbirtingAll();
+      if (!data || !data.byKt) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }
+      const myKt = String(f.kt).replace(/\D/g, ''), disk = { felagsslit: 1, gjaldthrot_beidni: 1, skiptabeidni: 1, skiptalok: 1 }, matches = [];
+      for (const kt in data.byKt) {
+        if (kt === myKt) continue;
+        const ent = data.byKt[kt];
+        if (fsCoreName(ent.name) !== core) continue;   // nákvæmt kjarna-nafn → varfærið, lág false-positive
+        const notices = (ent.notices || []).filter((n) => disk[n.type]);
+        if (!notices.length) continue;
+        const latest = notices.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0];
+        matches.push({ kt, name: ent.name, date: latest.date });
+      }
+      if (!matches.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin merki'; return; }
+      chip.className = 'fs-ar o';
+      if (v) v.textContent = matches.length + ' vísbending' + (matches.length > 1 ? 'ar' : '');
+      const d = document.getElementById('fs-ar-flakk-detail');
+      if (d) d.innerHTML = '⚠️ <b>Möguleg gjaldþrota-tengsl</b> — félag með sama nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið. <b>Vísbending, ekki staðfesting</b> — staðfestu: '
+        + matches.slice(0, 4).map((m) => escF(m.name) + ' <span class="fs-ar-role">kt. ' + escF(ktFmt(m.kt)) + (m.date ? ' · ' + escF(m.date) : '') + '</span>').join('; ');
+    }
+    // F9 — Þvingunaraðgerða-skimun: eigenda/forráðamanna-nöfn gegn worker /api/sanctions (ESB+SÞ+OFAC).
+    async function fsWireSanction(f) {
+      const chip = document.getElementById('fs-ar-sanction'); if (!chip) return;
+      const v = chip.querySelector('.fs-ar-v'), names = [];
+      for (const e of (f.eigendur || [])) { const nm = String(e.nafn || '').split(' - ')[0].trim(); if (nm) names.push(nm); }
+      for (const r of (f.radamenn || [])) { const nm = String(r).split(' - ')[0].trim(); if (nm) names.push(nm); }
+      if (!names.length) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Engir aðilar'; return; }
+      try {
+        const res = await fetch('/api/sanctions?names=' + encodeURIComponent(names.slice(0, 20).join(','))).then((r) => (r.ok ? r.json() : null));
+        const hits = (res && res.hits) || [];
+        if (!res) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }
+        if (!hits.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin samsvörun'; return; }
+        chip.className = 'fs-ar b';
+        if (v) v.textContent = hits.length + ' möguleg';
+        const d = document.getElementById('fs-ar-sanction-detail');
+        if (d) d.innerHTML = '⚠️ <b>Möguleg samsvörun við refsilista</b> (ESB/SÞ/OFAC) — nafnasamsvörun, <b>EKKI staðfesting</b>, staðfestu auðkenni: '
+          + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ');
+      } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
+    }
     // Vefur KYC-kortið: PEP-skimun (#fs-ar-pep) + Lögbirtingablaðið (#fs-ar-log merki + #fs-logbirting listi
     // þegar hólfin eru til staðar). Kallað BÆÐI í fullri skýrslu (fyllir aðeins #fs-logbirting; KYC-hólf
     // fjarverandi → no-op) OG í áreiðanleika-view (fyllir KYC-hólfin). Öll element-uppfærsla er null-vörðuð.
     function fsWireKyc(felag) {
       fsWirePep(felag);   // ⚖️ PEP-skimun eigenda/forráðamanna → áreiðanleiki-kort (#fs-ar-pep)
+      fsWireMedia(felag);      // 📰 F7 fjölmiðlaumfjöllun
+      fsWireFlakk(felag);      // 🔁 F8 gjaldþrota-tengsl
+      fsWireSanction(felag);   // 🌐 F9 þvingunaraðgerða-skimun
       fetch('/api/logbirting?kt=' + encodeURIComponent(felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
         // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
         const lc = document.getElementById('fs-ar-log');
