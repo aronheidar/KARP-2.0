@@ -199,6 +199,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     /* Chart 2 — fjölmiðla-tímalína */
     .fs-media-tl { margin: 4px 0 8px; }
     .fs-media-tl-h { font-size: 11px; color: #9fb0c8; margin-bottom: 3px; } .fs-media-tl-h span { color: #7f8da3; }
+    /* F7 — fjölmiðlaumfjöllun sem skipulagður listi (ekki belgur) */
+    .fs-media-hd { font-size: 12.5px; color: #c3cede; font-weight: 600; margin: 6px 0 4px; }
+    .fs-media-list { display: flex; flex-direction: column; gap: 4px; }
+    .fs-media-i { display: block; padding: 5px 9px; border-radius: 7px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); text-decoration: none; }
+    .fs-media-i:hover { border-color: rgba(246,177,59,.3); }
+    .fs-media-t { display: block; color: #eaf1fb; font-size: 12.5px; line-height: 1.35; }
+    .fs-media-m { display: block; color: #8fa0b8; font-size: 11px; margin-top: 1px; }
+    body.fs-printing #fs-report .fs-media-i { background: #f6f8fb !important; border-color: #dbe3ee !important; }
+    body.fs-printing #fs-report .fs-media-t { color: #111 !important; } body.fs-printing #fs-report .fs-media-m { color: #555 !important; }
     /* Auðgun 14 — samsett stöðumerkja-yfirlit (EKKI lánshæfismat) */
     .fs-ar-stig { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; margin: 4px 0 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); }
     .fs-ar-stig.n { display: none; }
@@ -584,8 +593,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         chip.className = 'fs-ar ' + (bad ? 'o' : 'g');
         if (v) v.textContent = tot + ' grein' + (tot > 1 ? 'ar' : '') + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx : '');
         const d = document.getElementById('fs-ar-media-detail');
-        if (d && (fj.items || []).length) d.innerHTML = fsMediaTimeline(fj.timeline) + '📰 <b>Fjölmiðlaumfjöllun</b> (sl. 12 mán · ' + tot + ' greinar' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' — neikvæður' : '') : '') + '): '
-          + fj.items.slice(0, 5).map((it) => '<a href="' + escF(it.link) + '" target="_blank" rel="noopener">' + escF(it.title) + '</a> <span class="fs-ar-role">' + escF(it.source || '') + '</span>').join(' · ')
+        if (d && (fj.items || []).length) d.innerHTML = fsMediaTimeline(fj.timeline)
+          + '<div class="fs-media-hd">📰 Fjölmiðlaumfjöllun — ' + tot + ' greinar sl. 12 mán' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' (neikvæður)' : '') : '') + '</div>'
+          + '<div class="fs-media-list">' + fj.items.slice(0, 6).map((it) => '<a class="fs-media-i" href="' + escF(it.link) + '" target="_blank" rel="noopener"><span class="fs-media-t">' + escF(it.title) + '</span><span class="fs-media-m">' + escF(it.source || '') + (it.date ? ' · ' + escF(String(it.date).slice(0, 10)) : '') + '</span></a>').join('') + '</div>'
           + '<div class="fs-ar-more"><a href="/frettir/">Öll fjölmiðlaumfjöllun í vaktinni →</a></div>';
       } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
     }
