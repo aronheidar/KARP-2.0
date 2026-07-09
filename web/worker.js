@@ -1557,6 +1557,35 @@ async function sanctionsHandler(request, env, ctx) {
   return sjson({ hits, updated, n: idx.size });
 }
 
+// LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni eftir kt (registeredAs). 5.500+ íslensk félög.
+async function leiHandler(request, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, lei: null });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/lei?kt=' + kt);
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  let out = { kt, lei: null };
+  try {
+    const r = await fetch('https://api.gleif.org/api/v1/lei-records?filter[entity.registeredAs]=' + kt, { headers: { 'Accept': 'application/vnd.api+json', 'User-Agent': 'KARP (karp.is)' } });
+    if (r.ok) {
+      const d = ((await r.json()).data || [])[0];
+      if (d) {
+        const a = d.attributes || {}, rel = d.relationships || {};
+        out = {
+          kt, lei: a.lei || null, nafn: (a.entity && a.entity.legalName && a.entity.legalName.name) || null,
+          status: (a.entity && a.entity.status) || null,
+          regStatus: (a.registration && a.registration.status) || null,
+          nextRenewal: (a.registration && a.registration.nextRenewalDate) ? a.registration.nextRenewalDate.slice(0, 10) : null,
+          hasParent: !!(rel['ultimate-parent'] && rel['ultimate-parent'].links && rel['ultimate-parent'].links['relationship-record']),
+        };
+      }
+    }
+  } catch (e) {}
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1584,6 +1613,7 @@ export default {
     if (url.pathname === '/api/skip') return skipHandler(request, ctx);
     if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
     if (url.pathname === '/api/sanctions') return sanctionsHandler(request, env, ctx);
+    if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);

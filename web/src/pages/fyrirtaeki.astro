@@ -911,6 +911,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             <a class="fs-link" id="fs-birgir" href="/birgjar/"><span class="t">💸 Greiðslur frá ríkinu</span><div class="s">athuga birgjaskrána…</div></a>
             <a class="fs-link" id="fs-utb" href="/utbod/"><span class="t">🏆 Útboð unnin</span><div class="s">athuga úrslitaskrána…</div></a>
             <a class="fs-link" id="fs-tilk" href="/frettir/"><span class="t">📣 Kauphallartilkynningar</span><div class="s">athuga Nasdaq-veituna…</div></a>
+            <a class="fs-link" id="fs-lei" href="https://search.gleif.org/#/search/simpleSearch:${escF(f.kt)}" target="_blank" rel="noopener"><span class="t">🌐 LEI — alþjóðlegt auðkenni</span><div class="s">athuga GLEIF-skrána…</div></a>
             ${rsk ? `<a class="fs-link" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : ''}
           </div>
           <div class="fs-sub">Eigendur, fjárhagur og stjórn</div>
@@ -1368,6 +1369,17 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   : 'engin nýleg umfjöllun í fjölmiðlavaktinni';
                 if (se && se.scored) el.classList.add('on');
               }).catch(() => { const el = document.getElementById('fs-umfj'); if (el) el.querySelector('.s').textContent = 'fréttir, tónn og tímalínur í fjölmiðlavaktinni →'; });
+              // 🌐 LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni + gildi (ISSUED/LAPSED)
+              fetch('/api/lei?kt=' + encodeURIComponent(String(d.felag.kt).replace(/\D/g, ''))).then((r) => (r.ok ? r.json() : null)).then((le) => {
+                const el = document.getElementById('fs-lei');
+                if (!el) return;
+                if (le && le.lei) {
+                  const gilt = le.regStatus === 'ISSUED';
+                  el.querySelector('.s').textContent = le.lei + ' · ' + (gilt ? 'gilt' : le.regStatus === 'LAPSED' ? 'útrunnið (óendurnýjað)' : (le.regStatus || 'skráð')) + (le.hasParent ? ' · á móðurfélag' : '');
+                  el.href = 'https://search.gleif.org/#/record/' + le.lei;
+                  el.classList.add('on');
+                } else { el.querySelector('.s').textContent = 'ekki með LEI-auðkenni (þarf t.d. fyrir verðbréf/milliríkjaviðskipti)'; }
+              }).catch(() => {});
               // 📣 kauphallartilkynningar (Nasdaq) — freeText nær líka í ÖNNUR félög sem nefna
               // nafnið í meginmáli → sía á útgefandann sjálfan (annars birtist t.d. Reitir undir Origo)
               fetch('/api/tilkynningar?co=' + encodeURIComponent(fsStutt(d.felag.nafn))).then((r) => (r.ok ? r.json() : null)).then((tk) => {
@@ -1543,6 +1555,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');
         setL('fs-utb', '3 útboð unnin · 145 m.kr samtals (TED/LV-vakt)');
         setL('fs-tilk', 'Skráð á Nasdaq First North · 4 tilkynningar 2026');
+        setL('fs-lei', '5493001KJTIIGC8Y1R12 · gilt · á móðurfélag (GLEIF)');
         return;
       }
       loadUser().then((u) => {
