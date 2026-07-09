@@ -38,7 +38,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
 
 <script>
   import { mountUboReport, renderUboSample } from '../lib/ubo-report.js';
-  import { loadUser, loginHref } from '../lib/auth.js';
+  import { loadUser, loginHref, karpWarmReports } from '../lib/auth.js';
 
   function initEig() {
     const form = document.getElementById('fs-form');
@@ -59,6 +59,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
         + '<div id="fs-report"><div class="fs-ph2" id="eig-host"></div></div>');
       const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/eigendur/'); } catch (e) {} };
       mountUboReport({ kt: kt, nafn: nafn, hostEl: document.getElementById('eig-host'), navTo: (k) => veljaFelag(k, '') });
+      karpWarmReports(kt);   // undirbýr fyrirtækjaskýrslu + áreiðanleika í bakgrunni → engin 3× bið
     }
 
     function leita(q) {

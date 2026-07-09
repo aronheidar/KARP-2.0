@@ -15,6 +15,22 @@ const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
 export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
 
+// Undirbýr ALLAR 3 skýrslu-gagnaheimildir í bakgrunni (ársreikningar + eigendur + stjórn) svo
+// notandi bíði ekki 3× ef hann skoðar fyrirtækjaskýrslu + endanlega eigendur + áreiðanleika.
+// Sækir aðeins það sem VANTAR (404 → dispatch bygging); 24h-cache + endanleg {engin}-ástönd halda.
+export function karpWarmReports(kt) {
+  const id = String(kt == null ? '' : kt).replace(/\D/g, '');
+  if (id.length !== 10) return;
+  const warm = (dataPath, reqType) => {
+    fetch(dataPath + id + '.json', { cache: 'no-store' })
+      .then((r) => { if (r.status === 404) fetch('/api/' + reqType + '/request?kt=' + id, { method: 'POST', credentials: 'include' }).catch(() => {}); })
+      .catch(() => {});
+  };
+  warm('/gogn/arsreikningar/', 'arsreikningur');
+  warm('/gogn/eigendur/', 'eigendur');
+  warm('/gogn/stjorn/', 'stjorn');
+}
+
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
