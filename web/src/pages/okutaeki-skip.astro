@@ -5,9 +5,9 @@
 // Rofinn skiptir um API + niðurstöðu-render; báðar virknir haldast óbreyttar.
 // Gömlu slóðirnar /okutaeki/ og /skip/ redirect-a hingað (m/?t= og fyrirspurn).
 import Layout from '../layouts/Layout.astro';
-const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða skipi (skipaskrárnúmer/nafn) og sjáðu skráðar upplýsingar frá Samgöngustofu um island.is. Ókeypis.';
+const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bílnúmeri, skipi (skipaskrárnúmer/nafn) eða loftfari (TF-númer/nafn) og sjáðu skráðar upplýsingar frá Samgöngustofu um island.is. Ókeypis.';
 ---
-<Layout title="Ökutækja- & skipaleit | Karp" description={desc} canonical="https://karp.is/okutaeki-skip/" ogTitle="Ökutækja- & skipaleit">
+<Layout title="Ökutækja-, skipa- & loftfaraleit | Karp" description={desc} canonical="https://karp.is/okutaeki-skip/" ogTitle="Ökutækja-, skipa- & loftfaraleit">
   <main data-pg="okuskip">
     <p class="kicker">Hagvísir Íslands · Uppfletting</p>
     <h1 id="os-title">Ökutækjaleit 🚗</h1>
@@ -15,6 +15,7 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
     <div class="os-toggle" role="tablist" aria-label="Veldu leit">
       <button class="os-tab on" type="button" data-mode="oku" role="tab" aria-selected="true">🚗 Ökutæki</button>
       <button class="os-tab" type="button" data-mode="skip" role="tab" aria-selected="false">🚢 Skip</button>
+      <button class="os-tab" type="button" data-mode="loft" role="tab" aria-selected="false">✈️ Loftför</button>
     </div>
 
     <p class="lead" id="os-lead">Flettu upp íslensku bílnúmeri og sjáðu skráðar upplýsingar ökutækisins — tegund, árgerð, lit, stöðu, <strong>næstu skoðun</strong>, þyngd, CO₂-losun og verksmiðjunúmer. Ókeypis, beint frá Samgöngustofu um island.is.</p>
@@ -120,6 +121,13 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
           lock: '🔒 <strong>Vél/afl, kallmerki, haffærisskírteini og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki X-Road-gátt Samgöngustofu og innskráningar (t.d. „mín skip" á <a href="https://island.is/skipaskra" target="_blank" rel="noopener">island.is</a>).',
           foot: 'Heimild: Samgöngustofa um opna skipaleit island.is (<code>shipRegistryShipSearch</code>). Skipaskrárnúmer er sami lykill og hjá Fiskistofu (aflamark). Opinber skipaskrá; einstaklingseigendur einkabáta birtir með hófsemi. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).',
         },
+        loft: {
+          title: 'Loftfaraleit ✈️', maxlen: 40, plate: false,
+          placeholder: 'TF-númer eða nafn · t.d. TF-FIA eða Icelandair',
+          lead: 'Flettu upp íslensku loftfari eftir <strong>skráningarnúmeri (TF-…) eða nafni/eiganda</strong> og sjáðu skráðar upplýsingar úr loftfaraskrá Samgöngustofu — tegund, árgerð, hámarksþyngd, raðnúmer og skráða eigendur/rekanda. Ókeypis, beint um island.is.',
+          lock: '🔒 <strong>Veðbönd, lofthæfi og skoðunarsaga</strong> eru ekki í opnu skránni — þau liggja að baki innskráningar hjá Samgöngustofu.',
+          foot: 'Heimild: Samgöngustofa um opna loftfaraskrá island.is (<code>aircraftRegistryAllAircrafts</code>). Opinber loftfaraskrá (356 loftför); lögaðila-eigendur tengjast fyrirtækjaskrá, einstaklingar birtir með hófsemi (án kennitölu). Uppfletting takmörkuð.',
+        },
       };
       let mode = 'oku';
 
@@ -203,6 +211,34 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
         showList(ships, d.alls);
       };
 
+      // ── Loftfar-render (leit eftir TF-númeri/nafni; listi → spjald eins og skip) ──
+      let loftState = [];
+      const loftOwners = (a) => {
+        if (!a.eigendur || !a.eigendur.length) return '';
+        const rows = a.eigendur.map((o) => (o.erFyrirtaeki && o.kt) ? '<li><a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + esc(o.nafn) + '</a></li>' : '<li>' + esc(o.nafn) + '</li>').join('');
+        return '<div class="sk-own"><div class="l">Skráðir eigendur</div><ul>' + rows + '</ul></div>';
+      };
+      const loftCard = (a) => '<div class="sk-card">'
+        + '<div class="sk-h"><h2>' + esc(a.skrnr || 'Loftfar') + '</h2>' + (a.afskrad ? '<span class="sk-reg">afskráð</span>' : '') + '</div>'
+        + '<p class="sk-sub">' + esc(a.tegund || '—') + '</p>'
+        + '<div class="sk-grid">' + fS('Árgerð', a.argerd) + fS('Hámarksþyngd', a.hamth != null ? num(a.hamth) + ' kg' : null) + fS('Raðnúmer', a.radnr) + fS('Rekandi', a.rekandi ? a.rekandi.nafn : null) + '</div>'
+        + loftOwners(a) + '</div>';
+      const showLoftList = (acs) => {
+        loftState = acs;
+        const rows = acs.map((a, i) =>
+          '<button class="sk-row" type="button" data-lidx="' + i + '"><span class="sk-row-nm">' + esc(a.skrnr || '—') + '</span>'
+          + '<span class="sk-row-reg">' + esc((a.tegund || '').slice(0, 22)) + '</span>'
+          + '<span class="sk-row-meta">' + esc((a.eigendur[0] && a.eigendur[0].nafn) || (a.argerd ? 'árg. ' + a.argerd : '')) + '</span></button>').join('');
+        out.innerHTML = '<p class="sk-list-h">' + acs.length + ' loftför fundust — smelltu til að sjá nánar:</p>' + rows;
+      };
+      const renderLoft = (d) => {
+        if (d.error === 'q') { out.innerHTML = '<div class="os-msg">Sláðu inn TF-númer eða nafn (a.m.k. 2 stafi).</div>'; return; }
+        const acs = d.loftfor || [];
+        if (!acs.length) { out.innerHTML = '<div class="os-msg">🔍 Ekkert loftfar fannst fyrir <b>' + esc(d.q || '') + '</b>. Athugaðu stafsetningu — leita má eftir TF-númeri eða (hluta úr) nafni/eiganda.</div>'; return; }
+        if (acs.length === 1) { out.innerHTML = loftCard(acs[0]); return; }
+        showLoftList(acs);
+      };
+
       // ── URL-sync ──
       const setUrl = (extra) => { try { history.replaceState(null, '', '/okutaeki-skip/?t=' + mode + (extra || '')); } catch (e) {} };
 
@@ -230,10 +266,14 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
             const d = await fetch('/api/okutaeki?numer=' + encodeURIComponent(q)).then((r) => r.json());
             renderOku(d);
             setUrl('&n=' + encodeURIComponent(q.toUpperCase()));
-          } else {
+          } else if (mode === 'skip') {
             const d = await fetch('/api/skip?q=' + encodeURIComponent(q)).then((r) => r.json());
             renderSkip(d);
             if (!(d.ships && d.ships.length === 1)) setUrl('&q=' + encodeURIComponent(q));
+          } else {
+            const d = await fetch('/api/loftfor?q=' + encodeURIComponent(q)).then((r) => r.json());
+            renderLoft(d);
+            setUrl('&q=' + encodeURIComponent(q));
           }
         } catch (e) { out.innerHTML = '<div class="os-msg">Villa við uppflettingu — reyndu aftur.</div>'; }
         btn.disabled = false;
@@ -241,10 +281,14 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
 
       // Listi/til-baka smellir (aðeins í skip-ham)
       out.addEventListener('click', (e) => {
-        if (mode !== 'skip') return;
         const row = e.target.closest('.sk-row');
-        if (row && skState[+row.dataset.idx]) { showShip(skState[+row.dataset.idx], true); return; }
-        if (e.target.closest('.sk-back')) { showList(skState); setUrl(''); }
+        if (mode === 'skip') {
+          if (row && skState[+row.dataset.idx]) { showShip(skState[+row.dataset.idx], true); return; }
+          if (e.target.closest('.sk-back')) { showList(skState); setUrl(''); }
+        } else if (mode === 'loft') {
+          if (row && loftState[+row.dataset.lidx]) { out.innerHTML = '<button class="sk-back" type="button">← Til baka í niðurstöður</button>' + loftCard(loftState[+row.dataset.lidx]); return; }
+          if (e.target.closest('.sk-back')) { showLoftList(loftState); }
+        }
       });
 
       form.addEventListener('submit', (e) => { e.preventDefault(); go(); });
@@ -253,9 +297,9 @@ const desc = 'Ökutækja- og skipaleit — flettu upp íslensku bílnúmeri eða
 
       // ── Byrjunarstaða úr slóð (?t=oku|skip, +?n=/?q=) ──
       const params = new URLSearchParams(location.search);
-      const startMode = params.get('t') === 'skip' ? 'skip' : 'oku';
+      const startMode = params.get('t') === 'skip' ? 'skip' : params.get('t') === 'loft' ? 'loft' : 'oku';
       applyMode(startMode, true);
-      const preset = startMode === 'skip' ? params.get('q') : params.get('n');
+      const preset = startMode === 'oku' ? params.get('n') : params.get('q');
       if (preset) { inp.value = startMode === 'oku' ? preset.toUpperCase() : preset; go(); }
       inp.focus();
     }

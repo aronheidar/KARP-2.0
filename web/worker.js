@@ -1631,12 +1631,33 @@ async function leyfiHandler(request, env, ctx) {
   return res;
 }
 
-// Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
+// Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina).
+//  ?kt= → loftför sem félagið á/rekur (byKt-vísir). ?q= → LIFANDI leit eftir TF-númeri/nafni (eins og skip/ökutæki).
 // build_loftfor.mjs → gogn/loftfor.json byKt (aðeins lögaðilar). Sjá memory/iceland-islandis-graphql-audit.md.
+const LOFT_Q = 'query($input: AircraftRegistryAllAircraftsInput!){ aircraftRegistryAllAircrafts(input:$input){ totalCount aircrafts { identifiers type maxWeight productionYear serialNumber unregistered operator { name ssn } owners { name ssn } } } }';
+const loftAdili = (a) => { if (!a || !a.name) return null; const kt = String(a.ssn ?? '').replace(/\D/g, '').padStart(10, '0'); const felag = /^\d{10}$/.test(kt) && +kt.slice(0, 2) >= 41 && +kt.slice(0, 2) <= 71; return { nafn: a.name, kt: felag ? kt : null, erFyrirtaeki: felag }; };   // einstaklings-kt EKKI birt (Persónuvernd)
+const loftMap = (a) => ({ skrnr: a.identifiers || null, tegund: a.type || null, argerd: a.productionYear || null, hamth: a.maxWeight || null, radnr: a.serialNumber || null, afskrad: !!a.unregistered, rekandi: loftAdili(a.operator), eigendur: (a.owners || []).map(loftAdili).filter(Boolean) });
 async function loftforHandler(request, env, ctx) {
-  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
-  if (kt.length !== 10) return sjson({ kt, holdur: false, loftfor: [] });
+  const u = new URL(request.url);
+  const q = (u.searchParams.get('q') || '').trim();
   const cache = caches.default;
+  if (q) {   // ── LIFANDI leit (TF-númer eða nafn) → island.is aircraftRegistryAllAircrafts(searchTerm) ──
+    if (q.length < 2) return sjson({ q, error: 'q', loftfor: [] });
+    const cacheKey = new Request('https://cache.karp.internal/api/loftfor?q=' + encodeURIComponent(q.toLowerCase()));
+    const hit = await cache.match(cacheKey); if (hit) return hit;
+    let out = { q, loftfor: [] };
+    try {
+      const r = await fetch('https://island.is/api/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: LOFT_Q, variables: { input: { pageNumber: 1, pageSize: 25, searchTerm: q } } }) });
+      const j = await r.json().catch(() => null);
+      const acs = (j && j.data && j.data.aircraftRegistryAllAircrafts && j.data.aircraftRegistryAllAircrafts.aircrafts) || [];
+      out = { q, n: acs.length, loftfor: acs.map(loftMap), heimild: 'Loftfaraskrá Samgöngustofu (island.is)' };
+    } catch (e) { return sjson(out); }
+    const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+    ctx.waitUntil(cache.put(cacheKey, res.clone()));
+    return res;
+  }
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false, loftfor: [] });
   const cacheKey = new Request('https://cache.karp.internal/api/loftfor?kt=' + kt);
   const hit = await cache.match(cacheKey); if (hit) return hit;
   const data = await augGet(env, 'loftfor.json');
@@ -1644,52 +1665,6 @@ async function loftforHandler(request, env, ctx) {
   const out = { kt, holdur: virk.length > 0, n: virk.length, loftfor: virk.slice(0, 20), heimild: 'Loftfaraskrá Samgöngustofu (island.is)' };
   const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=43200' } });
   if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));
-  return res;
-}
-
-// ── MAST starfsstöðva-/eftirlitsleit (skyrslur.mast.is — OPIÐ, LANDSDEKKANDI) → /fyrirtaeki/ #fs-mast flís ──
-// LIVE-leit per fyrirtækjanafn: tóma-listinn er síuð undirmengd → verður að SEARCH (searchtext). Leitin er substring
-// (Brim→Brimrún) → sía á nákvæmt/prefix-nafn. `healthdepartments` = sveitarfélaga-heilbrigðiseftirlit LANDSDEKKANDI
-// (framlengir RVK-only her.reykjavik flísina). ENGIN kt → nafn-lyklun. ASP.NET: GET /{lt} → cookie+token, POST getpage.
-// Sjá memory/iceland-islandis-graphql-audit.md. 24h cache; mistök → tómt (flís falin). Gátað á matvæla-ÍSAT á framenda.
-const MAST_BASE = 'https://skyrslur.mast.is';
-const MAST_LISTS = [['establishment', 'Samþykkt starfsstöð'], ['healthdepartments', 'Heilbrigðiseftirlit sveitarfélaga'], ['distribution', 'Sölu-/dreifing']];
-const MAST_UA = 'Mozilla/5.0 (KARP dashboard; karp.is)';
-const mastEnt = (s) => s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
-const mastCell = (s) => mastEnt(s.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
-const mastNorm = (s) => String(s || '').toLowerCase().replace(/\b(ehf|hf|slhf|ohf|sf|slf|bs)\b\.?/g, '').replace(/[^a-záðéíóúýþæö0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
-async function mastSearch(lt, q) {
-  try {
-    const g = await fetch(MAST_BASE + '/' + lt, { headers: { 'User-Agent': MAST_UA } });
-    const html = await g.text();
-    const cookies = (g.headers.getSetCookie ? g.headers.getSetCookie() : []).map((c) => c.split(';')[0]).join('; ');
-    const token = (html.match(/name="__RequestVerificationToken"[^>]*value="([^"]+)"/) || [])[1];
-    if (!token || !cookies) return [];
-    const body = new URLSearchParams({ page: '1', sortcolumn: '', sortorder: '', sector: '', section: '', activity: '', searchtext: q, ispager: 'true', __RequestVerificationToken: token });
-    const r = await fetch(MAST_BASE + '/' + lt + '/getpage', { method: 'POST', headers: { 'User-Agent': MAST_UA, 'content-type': 'application/x-www-form-urlencoded', cookie: cookies, 'x-requested-with': 'XMLHttpRequest' }, body });
-    const h = await r.text(), out = [];
-    for (const m of h.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)) {
-      const c = [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((x) => mastCell(x[1]));
-      if (c[0] && /^[A-ZÁÐÉÍÓÚÝÞÆÖ]{1,4}-?\d{2,}$/.test(c[0]) && c[1]) out.push({ nr: c[0], nafn: c[1], heimf: c[2] || null, postnr: c[3] || null, baer: c[4] || null, flokkur: c[5] || null, undir: c[6] || null });
-    }
-    return out;
-  } catch (e) { return []; }
-}
-async function mastHandler(request, ctx) {
-  const nafn = new URL(request.url).searchParams.get('nafn') || '';
-  const norm = mastNorm(nafn);
-  if (norm.length < 3) return sjson({ nafn, holdur: false, stodvar: [] });
-  const cache = caches.default;
-  const cacheKey = new Request('https://cache.karp.internal/api/mast?n=' + encodeURIComponent(norm));
-  const hit = await cache.match(cacheKey); if (hit) return hit;
-  const w = norm.split(' '); const core = w[0].length >= 4 ? w.slice(0, 2).join(' ') : norm;   // leitarorð (kjarni)
-  const lists = await Promise.all(MAST_LISTS.map(([lt, hop]) =>
-    mastSearch(lt, core).then((rows) => rows.filter((r) => { const pn = mastNorm(r.nafn); return pn === norm || pn.startsWith(norm + ' '); }).map((r) => ({ ...r, hop })))));
-  const seen = new Set(), stodvar = [];
-  for (const r of lists.flat()) { if (seen.has(r.nr)) continue; seen.add(r.nr); stodvar.push(r); }
-  const out = { nafn, holdur: stodvar.length > 0, n: stodvar.length, stodvar: stodvar.slice(0, 20), heimild: 'MAST — skyrslur.mast.is (landsdekkandi)' };
-  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
-  ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
 
@@ -1714,7 +1689,6 @@ export default {
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
     if (url.pathname === '/api/loftfor') return loftforHandler(request, env, ctx);
-    if (url.pathname === '/api/mast') return mastHandler(request, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
     if (url.pathname === '/api/styrkir') return styrkirHandler(request, env, ctx);
