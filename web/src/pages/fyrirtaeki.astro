@@ -247,6 +247,16 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-chart-leg { display: flex; gap: 14px; font-size: 11px; margin-top: 2px; }
     .kpi-chart-leg .lg-t { color: #f6b13b; } .kpi-chart-leg .lg-h { color: #42d086; }
     .kpi-chart-leg span::before { content: '▮ '; }
+    /* 🏭 Samanburður við atvinnugrein (F2) */
+    .fs-sector { margin-top: 8px; }
+    .fs-sec-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+    .fs-sec-r { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 6px 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; font-size: 13px; }
+    .fs-sec-l { color: #c3cede; }
+    .fs-sec-c { font-weight: 700; text-align: right; color: #eaf1fb; }
+    .fs-sec-c.up { color: #42d086; } .fs-sec-c.dn { color: #e8b84b; }
+    .fs-sec-s { color: #8b9bb4; font-size: 12px; white-space: nowrap; }
+    .fs-sec-note { font-size: 11px; color: #7f8da3; margin-top: 5px; }
+    body.fs-printing #fs-report .fs-sec-r { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     .kpi-fst { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; margin-top: 6px; }
     .fst { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     .fst caption { text-align: left; color: #f6b13b; font-weight: 800; font-size: 12px; padding-bottom: 6px; }
@@ -922,7 +932,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + card('Skuldir / eigið fé', 'de', fsRat, stInv(1, 2), 'Heildarskuldir / eigið fé (lægra = betra)')
         + card('Vaxtaþekja', 'vaxtathekja', fsRat, st(3, 1.5), 'EBIT / fjármagnsgjöld')
         + card('Eignavelta', 'eignavelta', fsRat, st(1, 0.5), 'Tekjur / heildareignir')
-        + '</div>' + fsTrendChart(rows, cur) + fsStatements(rows, cur)
+        + '</div>' + fsTrendChart(rows, cur) + '<div id="fs-sector" class="fs-sector" hidden></div>' + fsStatements(rows, cur)
         + '<div class="fs-note2">Lykiltölur og einkunn reiknuð úr ársreikningi félagsins. Litur/einkunn sýnir grófa stöðu m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
     }
     // Sýnifyrirtæki (?syni=1) — EKKI raunverulegt; sýnir allt sem skýrsla getur innihaldið.
@@ -986,6 +996,44 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       });
       const w = x0 * 2 + yrs.length * (bw + gap) - gap;
       return '<div class="fs-sub">📈 Tekjur og hagnaður (' + (cur || 'm.kr') + ')</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
+    }
+    // 🏭 Samanburður við atvinnugrein (F2) — greinar-viðmið Hagstofu (FYR08010) á ÍSAT-forskeyti félagsins.
+    let _secCache;
+    async function fsSectorData() {
+      if (_secCache !== undefined) return _secCache;
+      try { _secCache = await fetch('/gogn/sector_kpi.json').then((r) => (r.ok ? r.json() : null)); } catch (e) { _secCache = null; }
+      return _secCache;
+    }
+    async function fsWireSector(f) {
+      const host = document.getElementById('fs-sector');
+      if (!host || !f || !f.fjarhagur || !f.fjarhagur.length) return;
+      const digits = (f.isat && f.isat[0]) ? String(f.isat[0]).replace(/\D/g, '') : '';
+      if (!digits) return;
+      const sec = await fsSectorData();
+      if (!sec || !sec.map) return;
+      let S = null, bl = -1;
+      for (const p in sec.map) { if (digits.indexOf(p) === 0 && p.length > bl) { S = sec.map[p]; bl = p.length; } }
+      S = S || sec.heild;
+      if (!S) return;
+      const k = f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]);
+      const defs = [
+        ['Framlegð', k.framlegd, S.framlegd, fsPct1, true],
+        ['Hagnaðarhlutfall', k.hagnhlutf, S.hagnadarhlutfall, fsPct1, true],
+        ['Eiginfjárhlutfall', k.eiginfjarhlutf, S.eiginfjarhlutfall, fsPct1, true],
+        ['Eignavelta', k.eignavelta, S.eignavelta, fsRat, true],
+        ['Skuldir / eigið fé', k.de, S.skuldahlutfall_DE, fsRat, false],
+      ].filter((d) => d[1] != null && d[2] != null);
+      if (!defs.length) return;
+      const body = defs.map((d) => {
+        const cv = d[1], sv = d[2], fmt = d[3], hi = d[4], better = hi ? cv >= sv : cv <= sv;
+        return '<div class="fs-sec-r"><span class="fs-sec-l">' + d[0] + '</span>'
+          + '<span class="fs-sec-c ' + (better ? 'up' : 'dn') + '">' + fmt(cv) + '</span>'
+          + '<span class="fs-sec-s">grein ' + fmt(sv) + '</span></div>';
+      }).join('');
+      host.hidden = false;
+      host.innerHTML = '<div class="fs-sub">🏭 Samanburður við atvinnugrein <i class="tip" tabindex="0" data-tip="Leiðbeinandi viðmið úr heild atvinnugreinarinnar (Hagstofa FYR08010, ' + (S.ar || sec.ar || '') + '). Grein: ' + escF(S.label || '') + '. Grænt = betra en greinin. Ekki fjárfestingarráðgjöf.">ⓘ</i></div>'
+        + '<div class="fs-sec-grid">' + body + '</div>'
+        + '<div class="fs-sec-note">Viðmið: ' + escF(S.label || '') + ' · Hagstofa ' + (S.ar || sec.ar || '') + ' — leiðbeinandi, ekki nákvæmt jafngildi lykiltalna félagsins.</div>';
     }
     function fsStatements(rows, cur) {
       const cols = rows.filter((r) => r.tekjur != null || r.eignir != null);   // aðeins ár með hráum tölum
@@ -1079,6 +1127,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               skila(fsKort(f, d.rsk));
               backWire();
               fsWireFylgja();   // 🔖 fylgja-hnappur (co:<kt> → Mitt svæði)
+              fsWireSector(f);   // 🏭 samanburður við atvinnugrein (F2)
               // 🔗 Endanlegir eigendur + tengslakort FLUTT á sér-skýrslu /eigendur/ (hlekkur „Sjá fulla eigendaskýrslu →")
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               if (f.stjornPending) fsPollStjorn(f.kt);   // fyllir stjórn-hólfið sjálfkrafa þegar byggingin skilar
@@ -1271,6 +1320,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         form.style.display = 'none';
         const demoF = demoFyrirtaeki();
         skila(fsKort(demoF));
+        fsWireSector(demoF);   // 🏭 F2 í sýnishorni
         const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { location.href = '/fyrirtaeki/'; };
         const br = out.querySelector('.fs-buyrow'); if (br) br.style.display = 'none';
         const rep = document.getElementById('fs-report');
