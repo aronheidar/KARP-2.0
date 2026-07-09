@@ -1,0 +1,111 @@
+{
+ "kt": "6209160560",
+ "nafn": "Nova klúbburinn hf.",
+ "sott": "2026-07-09",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.3099,
+    "eiginfjarhlutfall": 0.4004,
+    "veltufjarhlutfall": 0.1459,
+    "skuldahlutfall_DE": 1.4975,
+    "eignavelta": 0.5541
+   },
+   "rekstur": {
+    "sala": 12837538,
+    "adrar_tekjur": 155211,
+    "laun": 1795748,
+    "ebit": 3978547,
+    "afskriftir": -2152161,
+    "fjarmunatekjur": 87872,
+    "fjarmagnsgjold": -1023697,
+    "hagn_f_skatt": 883550,
+    "tekjuskattur": -154730
+   },
+   "efnahagur": {
+    "birgdir": 405306,
+    "vidskiptakrofur": 1124554,
+    "handbaert": 496960,
+    "eignir": 23169777,
+    "hlutafe": 3694777,
+    "skuldir": 13892766,
+    "eigid_fe": 9277011,
+    "skammtimaskuldir": 13892766
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.3127,
+    "eiginfjarhlutfall": 0.4057,
+    "veltufjarhlutfall": 0.1848,
+    "skuldahlutfall_DE": 1.4647,
+    "eignavelta": 0.5543
+   },
+   "rekstur": {
+    "sala": 13201925,
+    "adrar_tekjur": 112292,
+    "laun": 2030863,
+    "ebit": 4127964,
+    "afskriftir": -2266394,
+    "fjarmunatekjur": 89738,
+    "fjarmagnsgjold": -929949,
+    "hagn_f_skatt": 1022530,
+    "tekjuskattur": -215610
+   },
+   "efnahagur": {
+    "birgdir": 409572,
+    "vidskiptakrofur": 1174161,
+    "handbaert": 1031433,
+    "eignir": 23817869,
+    "hlutafe": 3587181,
+    "skuldir": 14154210,
+    "eigid_fe": 9663659,
+    "skammtimaskuldir": 14154210
+   },
+   "starfsmenn": 157
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.5282,
+    "ebit_hlutfall": 0.3044,
+    "eiginfjarhlutfall": 0.4075,
+    "veltufjarhlutfall": 0.7612,
+    "skuldahlutfall_DE": 1.4537,
+    "eignavelta": 0.5938
+   },
+   "rekstur": {
+    "sala": 13981316,
+    "kostnadarverd": 6597002,
+    "laun": 2276676,
+    "ebit": 4255867,
+    "afskriftir": -2407313,
+    "hagn_f_skatt": 1041639,
+    "tekjuskattur": -258253
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1206143,
+    "handbaert": 889889,
+    "eignir": 23544512,
+    "hlutafe": 3465675,
+    "skammtimaskuldir": 2753562,
+    "skuldir": 13949032,
+    "efe_skuldir": 23544512,
+    "eigid_fe": 9595480
+   },
+   "starfsmenn": 157
+  }
+ },
+ "pdf": "pdf/6209160560.pdf",
+ "pdfAr": "2025"
+}
