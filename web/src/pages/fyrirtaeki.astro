@@ -915,6 +915,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
           <div id="fs-leyfi" class="fs-kvoti" hidden></div>
+          <div id="fs-loftfor" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
           <div id="fs-styrkir" class="fs-styrkir" hidden></div>
@@ -1442,6 +1443,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 const chips = (ly.leyfi || []).map((x) => '<span class="fs-chip">' + escF([x.teg, x.undir, x.flokkur ? 'fl. ' + x.flokkur : ''].filter(Boolean).join(' · ')) + (x.stadur ? ' <span class="fs-leyfi-loc">' + escF(x.stadur) + '</span>' : '') + '</span>').join('');
                 el.innerHTML = '<div class="fs-sub">🎫 Leyfi &amp; réttindi' + (ly.afengi ? ' <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span>' : '') + '</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>';
               }).catch(() => {});
+              // ✈️ Loftför (Loftfaraskrá Samgöngustofu um island.is) — öll félög, kt-lyklað (á/rekur)
+              fetch('/api/loftfor?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((lf) => {
+                const el = document.getElementById('fs-loftfor');
+                if (!el || !lf || !lf.holdur) return;
+                el.hidden = false;
+                const chips = (lf.loftfor || []).slice(0, 14).map((a) => '<span class="fs-chip"><b>' + escF(a.skrnr) + '</b> ' + escF((a.tegund || '').slice(0, 28)) + (a.argerd ? ' · ' + a.argerd : '') + '</span>').join('');
+                el.innerHTML = '<div class="fs-sub">✈️ Loftför — Loftfaraskrá (' + lf.n + ')</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)' + (lf.n > 14 ? ' · sýni 14 af ' + lf.n : '') + '</div>';
+              }).catch(() => {});
               // Ⓡ Vörumerki (Hugverkastofan)
               fetch('/api/vorumerki?kt=' + encodeURIComponent(d.felag.kt || '') + '&nafn=' + encodeURIComponent(d.felag.nafn || ''))
                 .then((r) => (r.ok ? r.json() : null)).then((v) => {
@@ -1569,6 +1578,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const setE = (id, html) => { const el = document.getElementById(id); if (el) { el.hidden = false; el.innerHTML = html; } };
         setE('fs-kvoti', '<div class="fs-sub">🐟 Aflamark (Fiskistofa)</div><div class="fs-chips"><span class="fs-chip"><b>Þorskur</b> 1.840 tonn</span><span class="fs-chip"><b>Ýsa</b> 720 tonn</span><span class="fs-chip"><b>Ufsi</b> 680 tonn</span><span class="fs-chip"><b>Samtals</b> 3.240 þorskígildistonn · 2025/26</span></div>');
         setE('fs-leyfi', '<div class="fs-sub">🎫 Leyfi &amp; réttindi <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span></div><div class="fs-chips"><span class="fs-chip">Veitingaleyfi · A Veitingahús · fl. II <span class="fs-leyfi-loc">Hafnargata 12, 220 Hafnarfjörður</span></span></div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>');
+        setE('fs-loftfor', '<div class="fs-sub">✈️ Loftför — Loftfaraskrá (2)</div><div class="fs-chips"><span class="fs-chip"><b>TF-NHF</b> Beechcraft King Air 350 · 2019</span><span class="fs-chip"><b>TF-SEA</b> Airbus H145 þyrla · 2021</span></div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)</div>');
         setE('fs-vorumerki', '<div class="fs-sub">™️ Skráð vörumerki (Hugverkastofa)</div><div class="fs-chips"><span class="fs-chip">Norðurhaf</span><span class="fs-chip">Bláa hafið</span><span class="fs-chip">SeaFresh</span><span class="fs-chip">Fjörukrydd</span></div>');
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');

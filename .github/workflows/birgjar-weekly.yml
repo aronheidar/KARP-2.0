@@ -39,13 +39,15 @@ jobs:
         run: node skriptur/build_sanctions.mjs || true   # ~5,5MB, listar breytast hægt → vikulega
       - name: Flotavísir (skipaskrá island.is → kt→skipnr → aflamark per fiskveiðifélag)
         run: node skriptur/build_skip_owners.mjs || true # ~7600 island.is-köll (~6 mín), flotinn breytist hægt → vikulega
+      - name: Loftfaraskrá (island.is → kt→loftför per félag)
+        run: node skriptur/build_loftfor.mjs || true     # 1 island.is-kall (356 loftför), skráin breytist hægt → vikulega
       - name: Committa ef breyting
         run: |
-          if [ -n "$(git status --porcelain -- gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/ web/public/gogn/sanctions.json web/public/gogn/skip_owners.json)" ]; then
+          if [ -n "$(git status --porcelain -- gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/ web/public/gogn/sanctions.json web/public/gogn/skip_owners.json web/public/gogn/loftfor.json)" ]; then
             git config user.name  "karp-bot"
             git config user.email "karp-bot@users.noreply.github.com"
-            git add gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/ web/public/gogn/sanctions.json web/public/gogn/skip_owners.json
-            git commit -m "data: vikuleg birgja-, YouTube-, hnita-, refsilista- og flotavísis-uppfærsla ($(date -u +%F))"
+            git add gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/ web/public/gogn/sanctions.json web/public/gogn/skip_owners.json web/public/gogn/loftfor.json
+            git commit -m "data: vikuleg birgja-, YouTube-, hnita-, refsilista-, flotavísis- og loftfara-uppfærsla ($(date -u +%F))"
             git pull --rebase origin main || true
             git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
           else

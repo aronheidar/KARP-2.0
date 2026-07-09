@@ -1631,6 +1631,22 @@ async function leyfiHandler(request, env, ctx) {
   return res;
 }
 
+// Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
+// build_loftfor.mjs → gogn/loftfor.json byKt (aðeins lögaðilar). Sjá memory/iceland-islandis-graphql-audit.md.
+async function loftforHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false, loftfor: [] });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/loftfor?kt=' + kt);
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  const data = await augGet(env, 'loftfor.json');
+  const virk = (((data && data.byKt && data.byKt[kt]) || [])).filter((x) => !x.afskrad);
+  const out = { kt, holdur: virk.length > 0, n: virk.length, loftfor: virk.slice(0, 20), heimild: 'Loftfaraskrá Samgöngustofu (island.is)' };
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=43200' } });
+  if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1651,6 +1667,7 @@ export default {
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
+    if (url.pathname === '/api/loftfor') return loftforHandler(request, env, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
     if (url.pathname === '/api/styrkir') return styrkirHandler(request, env, ctx);
