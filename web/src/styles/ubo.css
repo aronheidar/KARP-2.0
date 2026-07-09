@@ -90,6 +90,21 @@
 /* Víxl-tenglar milli skýrslnanna þriggja (fyrirtæki · eigendur · áreiðanleiki) */
 .eig-related { display: flex; gap: 18px; flex-wrap: wrap; margin: 8px 0 4px; }
 
+/* F5 — PEP-hnútur í neti (stjórnmálaleg tengsl, nafnasamsvörun) */
+.eig-node.pep { border-color: #ef6a6a !important; box-shadow: 0 0 0 2px rgba(239,106,106,.32); }
+.eig-lg i.nd.pep { border-color: #ef6a6a; background: rgba(239,106,106,.55); }
+/* F6 — bókfært virði eignarhlutar */
+.eig-kr { color: #9ecb8f; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eig-krnote { color: #8fa0b8; font-size: 11px; margin: 2px 0 12px; }
+/* F4 — önnur félög sömu eigenda (öfugt eignarhaldsnet) */
+.eig-rev { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 14px; }
+.eig-rev-r { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 7px 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; }
+.eig-rev-o { font-weight: 600; color: #eaf1fb; min-width: 150px; }
+.eig-rev-c { display: flex; flex-wrap: wrap; gap: 6px; }
+.eig-rev-c a { color: #f6b13b; text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 2px 8px; }
+.eig-rev-c a:hover { text-decoration: underline; }
+.eig-rev-c em { color: #8fa0b8; font-style: normal; font-size: 11px; }
+
 /* Prentun: sýna aðeins skýrsluna (#fs-report umlykur hana á báðum síðum). */
 @media print {
   body.fs-printing * { visibility: hidden; }
@@ -99,4 +114,6 @@
   body.fs-printing #fs-report .eig-tafla th, body.fs-printing #fs-report .eig-tafla td { color: #222 !important; border-color: #ccc !important; }
   body.fs-printing #fs-report .eig-node { color: #111 !important; box-shadow: none; }
   body.fs-printing #fs-report .eig-node-mt, body.fs-printing #fs-report .eig-src, body.fs-printing #fs-report .eig-kt { color: #555 !important; }
+  body.fs-printing #fs-report .eig-rev-r { background: #f6f8fb !important; border-color: #dbe3ee !important; }
+  body.fs-printing #fs-report .eig-kr { color: #0a6b2f !important; }
 }
