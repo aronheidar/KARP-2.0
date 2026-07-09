@@ -251,12 +251,36 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     /* 🏭 Samanburður við atvinnugrein (F2) */
     .fs-sector { margin-top: 8px; }
     .fs-sec-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
-    .fs-sec-r { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 6px 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; font-size: 13px; }
+    .fs-sec-r { display: grid; grid-template-columns: minmax(84px,108px) minmax(46px,1fr) auto auto; align-items: center; gap: 10px; padding: 6px 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; font-size: 13px; }
+    .fs-sec-bar { position: relative; height: 8px; background: rgba(255,255,255,.06); border-radius: 5px; }
+    .fs-sec-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 5px; background: #42d086; }
+    .fs-sec-fill.dn { background: #e8b84b; }
+    .fs-sec-tick { position: absolute; top: -2px; width: 2px; height: 12px; background: #cdd6e6; border-radius: 1px; transform: translateX(-1px); }
     .fs-sec-l { color: #c3cede; }
     .fs-sec-c { font-weight: 700; text-align: right; color: #eaf1fb; }
     .fs-sec-c.up { color: #42d086; } .fs-sec-c.dn { color: #e8b84b; }
     .fs-sec-s { color: #8b9bb4; font-size: 12px; white-space: nowrap; }
     .fs-sec-note { font-size: 11px; color: #7f8da3; margin-top: 5px; }
+    /* 💪 Heilsu-stoðir (4 míni-súlur) */
+    .kpi-pillars { display: flex; flex-direction: column; gap: 3px; min-width: 128px; }
+    .kpi-pil { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 6px; font-size: 10.5px; }
+    .kpi-pil-l { color: #9fb0c8; white-space: nowrap; }
+    .kpi-pil-t { height: 6px; background: rgba(255,255,255,.08); border-radius: 4px; overflow: hidden; }
+    .kpi-pil-t i { display: block; height: 100%; border-radius: 4px; }
+    /* 🏦 Efnahags-stöplasúla */
+    .fs-bs-bar { display: flex; height: 20px; border-radius: 6px; overflow: hidden; margin: 4px 0 6px; background: rgba(255,255,255,.05); }
+    .fs-bs-seg { display: block; height: 100%; }
+    .fs-bs-seg.efe { background: #42d086; } .fs-bs-seg.lang { background: #5aa9e6; } .fs-bs-seg.skamm { background: #e8b84b; }
+    .fs-bs-leg { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: #c3cede; margin-bottom: 8px; }
+    .fs-bs-leg > span i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+    .fs-bs-leg .efe { background: #42d086; } .fs-bs-leg .lang { background: #5aa9e6; } .fs-bs-leg .skamm { background: #e8b84b; }
+    /* 📅 Ársreikningaskila-fylgni */
+    .fs-skil-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
+    .fs-skil { display: inline-flex; flex-direction: column; gap: 1px; padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
+    .fs-skil b { color: #eaf1fb; font-size: 13px; } .fs-skil > span { color: #9fb0c8; font-size: 11px; }
+    .fs-skil.g { border-color: rgba(66,208,134,.4); } .fs-skil.o { border-color: rgba(232,184,75,.55); } .fs-skil.o > span { color: #e8b84b; }
+    .fs-skil.n { opacity: .55; }
+    .fs-skil-warn { color: #e8b84b; font-size: 12px; font-weight: 600; }
     body.fs-printing #fs-report .fs-sec-r { background: #f6f8fb !important; border-color: #dbe3ee !important; }
     .kpi-fst { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; margin-top: 6px; }
     .fst { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -458,6 +482,28 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     // Áreiðanleika-samantekt (KYC) — opinber stöðumerki, EKKI lánshæfismat.
     function fsAr(icon, l, v, st) { return '<div class="fs-ar ' + (st || 'n') + '"><span class="fs-ar-i">' + icon + '</span><div class="fs-ar-tx"><span class="fs-ar-l">' + l + '</span><span class="fs-ar-v">' + v + '</span></div></div>'; }
+    // Aldur félags úr skráningardegi (traustmerki: eldra = rótgrónara).
+    function fsSkradAldur(skrad) {
+      const m = String(skrad || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+      if (!m) return skrad || '—';
+      const yrs = Math.floor((Date.now() - new Date(+m[3], +m[2] - 1, +m[1]).getTime()) / (365.25 * 864e5));
+      return (skrad || '—') + (yrs >= 1 ? ' · ' + yrs + ' ára' : '');
+    }
+    // 📅 Ársreikningaskila-fylgni: skilaði félagið á réttum tíma? (áætluð skiladagsetn. 31.8 árið eftir).
+    function fsSkilaSaga(f) {
+      const ars = (f.arsreikningar || []).filter((a) => a.ar).slice(0, 6);
+      if (!ars.length) return '';
+      const parseD = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
+      let anyLate = false;
+      const cells = ars.map((a) => {
+        const yr = parseInt(a.ar, 10), d = parseD(a.skil), late = d && d >= new Date(yr + 1, 8, 1);   // 1.9 = eftir 31.8-fresti
+        if (late) anyLate = true;
+        const st = !a.skil ? 'n' : late ? 'o' : 'g';
+        return '<span class="fs-skil ' + st + '"><b>' + escF(a.ar) + '</b><span>' + (a.skil ? escF(a.skil) + (late ? ' · seint' : ' ✓') : 'óskráð') + '</span></span>';
+      }).join('');
+      return '<div class="fs-sub">📅 Ársreikningaskil — tímanleiki' + (anyLate ? ' <span class="fs-skil-warn">⚠ sein skil</span>' : '') + '</div><div class="fs-skil-row">' + cells + '</div>'
+        + '<div class="fs-ph-src">Grænt = skilað fyrir áætlaðan frest (31. ágúst árið eftir reikningsár, 8 mán.); gult = eftir fresti. Byggt á skráðum skiladögum RSK.</div>';
+    }
     function fsAreidanleiki(f) {
       const nowY = new Date().getFullYear();
       const skra = f.afskrad ? fsAr('🏢', 'Skráning', 'Afskráð', 'b') : fsAr('🏢', 'Skráning', 'Virkt' + (f.form ? ' · ' + f.form.replace(/\s*\(.*/, '').trim() : ''), 'g');
@@ -794,11 +840,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         <div class="fs-card">
           <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fs-grid">
-            ${rod('Skráð', f.skrad)}${rod('Rekstrarform', f.form)}${rod('Lögheimili', f.logheimili)}
+            ${rod('Skráð', fsSkradAldur(f.skrad))}${rod('Rekstrarform', f.form)}${rod('Lögheimili', f.logheimili)}
             ${rod('Póstfang', f.postfang !== f.logheimili ? f.postfang : '')}${rod('Sveitarfélag', f.svf)}
             ${rod('Forráðamaður', (f.radamenn || []).join(' · '))}${rod('Eldri heiti', (f.heiti || []).join(' · '))}
           </div>
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
+          ${fsSkilaSaga(f)}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
           ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
@@ -975,7 +1022,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     function fsKpiHtml(rows) {
       if (!rows || !rows.length) return fsKpiSoon();
       const kAll = rows.map((r, i) => r._kpi || fsKpiCalc(r, rows[i + 1]));   // forreiknuð KPI (scrapað) EÐA reiknuð (demo)
-      const k = kAll[0], y = rows[0], cur = y._cur || 'm.kr';
+      const k = kAll[0], y = rows[0], cur = y._cur || 'm.kr', hs = fsHealthScore(k);
       const st = (g, o) => (v) => (v == null ? '' : v >= g ? 'g' : v >= o ? 'o' : 'b');
       const stInv = (g, o) => (v) => (v == null ? '' : v <= g ? 'g' : v <= o ? 'o' : 'b');
       const spark = (key) => {
@@ -991,7 +1038,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
       const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">📄 Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
       return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>'
-        + '<div class="kpi-top">' + fsRing(fsHealthScore(k)) + '<div class="kpi-sum">'
+        + '<div class="kpi-top">' + fsRing(hs) + fsHealthBars(hs) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe, cur) + '</b></div>'
@@ -1011,7 +1058,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + card('Skuldir / eigið fé', 'de', fsRat, stInv(1, 2), 'Heildarskuldir / eigið fé (lægra = betra)')
         + card('Vaxtaþekja', 'vaxtathekja', fsRat, st(3, 1.5), 'EBIT / fjármagnsgjöld')
         + card('Eignavelta', 'eignavelta', fsRat, st(1, 0.5), 'Tekjur / heildareignir')
-        + '</div>' + fsTrendChart(rows, cur) + '<div id="fs-sector" class="fs-sector" hidden></div>' + fsStatements(rows, cur)
+        + '</div>' + fsTrendChart(rows, cur) + fsBalanceBar(y) + '<div id="fs-sector" class="fs-sector" hidden></div>' + fsStatements(rows, cur)
         + '<div class="fs-note2">Lykiltölur og einkunn reiknuð úr ársreikningi félagsins. Litur/einkunn sýnir grófa stöðu m.v. almenn viðmið — ekki fjárfestingarráðgjöf.</div>';
     }
     // Sýnifyrirtæki (?syni=1) — EKKI raunverulegt; sýnir allt sem skýrsla getur innihaldið.
@@ -1049,7 +1096,30 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const score = w ? Math.round(t / w) : null;
       const grade = score == null ? '–' : score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'E';
       const color = score == null ? '#6b7688' : score >= 65 ? '#42d086' : score >= 50 ? '#e8b84b' : '#ef6a6a';
-      return { score, grade, color };
+      return { score, grade, color, pillars: { ard, skuld, laus, voxt } };
+    }
+    // 💪 Heilsu-stoðir: 4 míni-súlur á bak við hringinn (arðsemi/skuldsetning/lausafé/vöxtur, 0-100)
+    function fsHealthBars(hs) {
+      const p = (hs && hs.pillars) || {};
+      const rows = [['Arðsemi', p.ard], ['Skuldsetning', p.skuld], ['Lausafé', p.laus], ['Vöxtur', p.voxt]].filter((r) => r[1] != null);
+      if (!rows.length) return '';
+      const col = (v) => v >= 65 ? '#42d086' : v >= 45 ? '#e8b84b' : '#ef6a6a';
+      return '<div class="kpi-pillars">' + rows.map((r) => '<div class="kpi-pil"><span class="kpi-pil-l">' + r[0] + '</span><span class="kpi-pil-t"><i style="width:' + Math.round(r[1]) + '%;background:' + col(r[1]) + '"></i></span></div>').join('') + '</div>';
+    }
+    // 🏦 Efnahags-stöplasúla: samsetning fjármögnunar (eigið fé + langtíma- + skammtímaskuldir)
+    function fsBalanceBar(y) {
+      if (!y || y.eigidfe == null || y.skuldir == null) return '';
+      const efe = y.eigidfe, sk = y.skuldir, sam = y.skammtimaskuldir;
+      const hasSplit = (sam != null && sam >= 0 && sam <= sk), lang = hasSplit ? Math.max(0, sk - sam) : null;
+      const tot = (efe || 0) + (sk || 0);
+      if (tot <= 0) return '';
+      const seg = (v, cls, lbl) => (v == null || v <= 0) ? '' : '<i class="fs-bs-seg ' + cls + '" style="width:' + (v / tot * 100).toFixed(1) + '%" title="' + lbl + '"></i>';
+      const pc = (v) => v == null ? '' : ' ' + Math.round(v / tot * 100) + '%';
+      const bar = hasSplit ? seg(efe, 'efe', 'Eigið fé') + seg(lang, 'lang', 'Langtímaskuldir') + seg(sam, 'skamm', 'Skammtímaskuldir') : seg(efe, 'efe', 'Eigið fé') + seg(sk, 'skamm', 'Skuldir');
+      const leg = hasSplit
+        ? '<span><i class="efe"></i>Eigið fé' + pc(efe) + '</span>' + (lang > 0 ? '<span><i class="lang"></i>Langtímaskuldir' + pc(lang) + '</span>' : '') + '<span><i class="skamm"></i>Skammtímaskuldir' + pc(sam) + '</span>'
+        : '<span><i class="efe"></i>Eigið fé' + pc(efe) + '</span><span><i class="skamm"></i>Skuldir' + pc(sk) + '</span>';
+      return '<div class="fs-sub">🏦 Efnahagur — samsetning fjármögnunar</div><div class="fs-bs-bar">' + bar + '</div><div class="fs-bs-leg">' + leg + '</div>';
     }
     function fsRing(hs) {
       const c = 163.4, off = hs.score == null ? c : c * (1 - hs.score / 100);
@@ -1108,7 +1178,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!defs.length) return;
       const body = defs.map((d) => {
         const cv = d[1], sv = d[2], fmt = d[3], hi = d[4], better = hi ? cv >= sv : cv <= sv;
+        const mx = Math.max(Math.abs(cv), Math.abs(sv)) || 1;
+        const cw = Math.max(2, Math.min(100, Math.abs(cv) / mx * 100)), tick = Math.max(0, Math.min(100, Math.abs(sv) / mx * 100));
         return '<div class="fs-sec-r"><span class="fs-sec-l">' + d[0] + '</span>'
+          + '<span class="fs-sec-bar"><i class="fs-sec-fill ' + (better ? 'up' : 'dn') + '" style="width:' + cw.toFixed(0) + '%"></i><i class="fs-sec-tick" style="left:' + tick.toFixed(0) + '%" title="Greinar-viðmið"></i></span>'
           + '<span class="fs-sec-c ' + (better ? 'up' : 'dn') + '">' + fmt(cv) + '</span>'
           + '<span class="fs-sec-s">grein ' + fmt(sv) + '</span></div>';
       }).join('');
