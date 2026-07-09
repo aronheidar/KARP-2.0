@@ -1,0 +1,96 @@
+{
+ "kt": "7112080700",
+ "nafn": "Reitir hf.",
+ "sott": "2026-07-09",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "ROE": 0.1245,
+    "ROA": 0.0388,
+    "eiginfjarhlutfall": 0.3117,
+    "veltufjarhlutfall": 0.0134,
+    "skuldahlutfall_DE": 2.2084
+   },
+   "rekstur": {
+    "ebit": 10150,
+    "fjarmagnsgjold": -11096,
+    "hagn_f_skatt": 10050,
+    "hagnadur": 7504,
+    "tekjuskattur": -1276
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1779,
+    "eignir": 193381,
+    "hlutafe": 722,
+    "eigid_fe": 60273,
+    "skuldir": 133108,
+    "efe_skuldir": 193381,
+    "skammtimaskuldir": 133108
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "ROE": 0.2108,
+    "ROA": 0.066,
+    "eiginfjarhlutfall": 0.313,
+    "veltufjarhlutfall": 0.0148,
+    "skuldahlutfall_DE": 2.1944
+   },
+   "rekstur": {
+    "ebit": 10972,
+    "fjarmagnsgjold": -9515,
+    "hagn_f_skatt": 19559,
+    "hagnadur": 15266,
+    "tekjuskattur": -760
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2353,
+    "eignir": 231369,
+    "hlutafe": 701,
+    "eigid_fe": 72429,
+    "skuldir": 158940,
+    "efe_skuldir": 231369,
+    "skammtimaskuldir": 158940
+   },
+   "starfsmenn": 6
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "ROE": 0.1401,
+    "ROA": 0.0433,
+    "eiginfjarhlutfall": 0.3089,
+    "veltufjarhlutfall": 0.0121,
+    "skuldahlutfall_DE": 2.2372
+   },
+   "rekstur": {
+    "ebit": 12112,
+    "hagn_f_skatt": 14068,
+    "tekjuskattur": -2985,
+    "hagnadur": 11083
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2146,
+    "eignir": 256061,
+    "hlutafe": 685,
+    "eigid_fe": 79099,
+    "skuldir": 176962,
+    "efe_skuldir": 256061,
+    "skammtimaskuldir": 176962
+   },
+   "starfsmenn": 37
+  }
+ },
+ "pdf": "pdf/7112080700.pdf",
+ "pdfAr": "2025"
+}
