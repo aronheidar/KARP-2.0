@@ -87,6 +87,8 @@
 /* Hlekkur á fulla /eigendur/ síðu (frá /fyrirtaeki/) */
 .eig-fulllink { display: inline-block; margin: 4px 0 2px; color: #f6b13b; text-decoration: none; font-size: 13px; font-weight: 600; }
 .eig-fulllink:hover { text-decoration: underline; }
+/* Víxl-tenglar milli skýrslnanna þriggja (fyrirtæki · eigendur · áreiðanleiki) */
+.eig-related { display: flex; gap: 18px; flex-wrap: wrap; margin: 8px 0 4px; }
 
 /* Prentun: sýna aðeins skýrsluna (#fs-report umlykur hana á báðum síðum). */
 @media print {

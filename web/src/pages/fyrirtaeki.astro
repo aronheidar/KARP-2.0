@@ -476,6 +476,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${fsAreidanleiki(f)}
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           ${rskLink}
+          <div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=${escF(f.kt)}">🏢 Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Endanlegir eigendur →</a></div>
           <div class="fs-note2">ⓘ Áreiðanleikamat byggir á opinberum stöðumerkjum úr fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu og PEP-skimun (nafnasamsvörun — staðfestu auðkenni). <b>Hvorki lánshæfismat né vanskilaskrá</b> — slík starfsemi er leyfisskyld. Full fyrirtækjaskýrsla með fjárhagsmælaborði, eigendaneti, greiðslum og fleiru er á <a href="/fyrirtaeki/?q=${escF(f.kt)}">fyrirtækjaskránni</a>.</div>
         </div>
         </div>`;
@@ -738,7 +739,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               ? fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun })
               : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`}
           </div>
-          <a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Sjá fulla eigendaskýrslu →</a>
+          <div class="eig-related"><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Full eigendaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=${escF(f.kt)}">🛡️ Áreiðanleikamat →</a></div>
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>

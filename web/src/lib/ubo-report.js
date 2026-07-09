@@ -124,9 +124,10 @@ async function eigData(kt, owned) {
   if (missing && owned) { try { fetch('/api/eigendur/request?kt=' + kt, { method: 'POST', credentials: 'include' }); } catch (e) {} return { pending: true }; }
   return null;
 }
-function eigReport(rep) {
+function eigReport(rep, kt) {
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
     + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
     + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
     + '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
@@ -138,8 +139,8 @@ function eigReport(rep) {
     + '</div>';
 }
 // Setur skýrsluna í gám, teiknar netið, tengir prentun.
-function eigMount(rep, host, nav) {
-  host.innerHTML = eigReport(rep);
+function eigMount(rep, host, nav, kt) {
+  host.innerHTML = eigReport(rep, kt);
   eigWireNet(rep, nav);
   const pb = document.getElementById('eig-print');
   if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
@@ -178,7 +179,7 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
   let tries = 0;
   const tick = async () => {
     const d = await eigData(kt, true);
-    if (d && !d.pending && !d.engin) { eigMount(d, hostEl, nav); return; }
+    if (d && !d.pending && !d.engin) { eigMount(d, hostEl, nav, kt); return; }
     if (d && d.engin) { hostEl.innerHTML = '<div class="eig-tom">Ekki tókst að byggja eignarhaldsnet fyrir félagið (hvorki hluthafalisti né raunverulegir eigendur fundust).</div>'; return; }
     if (tries++ < 80) setTimeout(tick, tries < 12 ? 2000 : 3500);   // hraðari fyrstu pollin → grípur fljótari byggingar fyrr
     else hostEl.innerHTML = '<div class="eig-tom">Skýrslan er enn í vinnslu — endurhlaðið síðuna eftir smástund (hún vistast þegar hún er tilbúin).</div>';
