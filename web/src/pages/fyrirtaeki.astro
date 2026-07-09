@@ -196,6 +196,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ar-detail:empty { display: none; }
     .fs-ar-role { color: #9fb0c8; font-weight: 400; }
     .fs-ar-more { margin-top: 5px; } .fs-ar-more a { color: #f6b13b; text-decoration: none; font-size: 12px; } .fs-ar-more a:hover { text-decoration: underline; }
+    /* Chart 2 — fjölmiðla-tímalína */
+    .fs-media-tl { margin: 4px 0 8px; }
+    .fs-media-tl-h { font-size: 11px; color: #9fb0c8; margin-bottom: 3px; } .fs-media-tl-h span { color: #7f8da3; }
+    /* Auðgun 14 — samsett stöðumerkja-yfirlit (EKKI lánshæfismat) */
+    .fs-ar-stig { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; margin: 4px 0 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); }
+    .fs-ar-stig.n { display: none; }
+    .fs-ar-stig.g { border-color: rgba(66,208,134,.4); background: rgba(66,208,134,.06); }
+    .fs-ar-stig.o { border-color: rgba(232,184,75,.45); background: rgba(232,184,75,.06); }
+    .fs-ar-stig.b { border-color: rgba(239,106,106,.5); background: rgba(239,106,106,.07); }
+    .fs-ar-stig-b { font-size: 22px; line-height: 1; }
+    .fs-ar-stig-tx { display: flex; flex-direction: column; gap: 1px; }
+    .fs-ar-stig-tx b { color: #eaf1fb; font-size: 14px; } .fs-ar-stig-tx > span { color: #9fb0c8; font-size: 12px; }
+    .fs-ar-stig-n { color: #7f8da3 !important; font-size: 11px !important; }
     .fs-ar-note { font-size: 11px; color: #7e8ca6; margin: 6px 0 2px; line-height: 1.45; }
     body.fs-printing #fs-report .fs-ar { background: #f7f8fa !important; border-color: #e6e6e6 !important; }
     body.fs-printing #fs-report .fs-ar-v { color: #222 !important; }
@@ -513,6 +526,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const heilsa = k0 ? (() => { const hs = fsHealthScore(k0); return fsAr('💪', 'Fjárhagsheilsa', hs.score == null ? '—' : hs.score + '/100 · ' + hs.grade, hs.score == null ? 'n' : hs.score >= 65 ? 'g' : hs.score >= 50 ? 'o' : 'b'); })() : fsAr('💪', 'Fjárhagsheilsa', 'Enginn ársreikn.', 'n');
       const eign = (f.eigendur && f.eigendur.length) ? fsAr('👥', 'Eignarhald', 'Gagnsætt · ' + f.eigendur.length + ' skráð', 'g') : (f.eigendurTomt ? fsAr('👥', 'Eignarhald', 'Dreift (<25%)', 'o') : fsAr('👥', 'Eignarhald', 'Óskráð', 'n'));
       return '<div class="fs-sub">🛡️ Áreiðanleiki — yfirlit (KYC)</div>'
+        + '<div id="fs-ar-stig" class="fs-ar-stig n"></div>'
         + '<div class="fs-argrid">' + skra + skil + heilsa + eign
         + '<div id="fs-ar-pep" class="fs-ar n"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
         + '<div id="fs-ar-log" class="fs-ar n"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
@@ -545,6 +559,19 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         </div>`;
     }
     // F7 — Fjölmiðlaumfjöllun (adverse media): endurnýtir /firma (fjölmiðlavakt Karp), félagsnafn aðal.
+    // Chart 2 — vikuleg umfjöllun/tónn súlurit (/firma timeline: grænt=jákvætt, rautt=neikvætt).
+    function fsMediaTimeline(tl) {
+      const weeks = (tl || []).filter((w) => w && w.n > 0).slice(-26);
+      if (weeks.length < 2) return '';
+      const mx = Math.max.apply(null, weeks.map((w) => w.n)) || 1, bw = 8, gap = 3, h = 40;
+      const bars = weeks.map((w, i) => {
+        const bh = Math.max(2, Math.round(w.n / mx * (h - 6)));
+        const col = w.idx == null ? '#6b7688' : w.idx > 15 ? '#42d086' : w.idx < -15 ? '#ef6a6a' : '#e8b84b';
+        return '<rect x="' + (i * (bw + gap)) + '" y="' + (h - bh) + '" width="' + bw + '" height="' + bh + '" rx="2" fill="' + col + '"><title>' + escF(w.d) + ': ' + w.n + ' greinar' + (w.idx != null ? ' · tónn ' + w.idx : '') + '</title></rect>';
+      }).join('');
+      const wd = weeks.length * (bw + gap);
+      return '<div class="fs-media-tl"><div class="fs-media-tl-h">📊 Umfjöllun eftir vikum <span>grænt = jákvætt · rautt = neikvætt</span></div><svg viewBox="0 0 ' + wd + ' ' + h + '" width="100%" style="max-width:' + Math.max(160, wd) + 'px;height:' + h + 'px" preserveAspectRatio="none">' + bars + '</svg></div>';
+    }
     async function fsWireMedia(f) {
       const chip = document.getElementById('fs-ar-media'); if (!chip) return;
       const v = chip.querySelector('.fs-ar-v');
@@ -557,7 +584,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         chip.className = 'fs-ar ' + (bad ? 'o' : 'g');
         if (v) v.textContent = tot + ' grein' + (tot > 1 ? 'ar' : '') + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx : '');
         const d = document.getElementById('fs-ar-media-detail');
-        if (d && (fj.items || []).length) d.innerHTML = '📰 <b>Fjölmiðlaumfjöllun</b> (sl. 12 mán · ' + tot + ' greinar' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' — neikvæður' : '') : '') + '): '
+        if (d && (fj.items || []).length) d.innerHTML = fsMediaTimeline(fj.timeline) + '📰 <b>Fjölmiðlaumfjöllun</b> (sl. 12 mán · ' + tot + ' greinar' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' — neikvæður' : '') : '') + '): '
           + fj.items.slice(0, 5).map((it) => '<a href="' + escF(it.link) + '" target="_blank" rel="noopener">' + escF(it.title) + '</a> <span class="fs-ar-role">' + escF(it.source || '') + '</span>').join(' · ')
           + '<div class="fs-ar-more"><a href="/frettir/">Öll fjölmiðlaumfjöllun í vaktinni →</a></div>';
       } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
@@ -597,6 +624,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     async function fsWireSanction(f) {
       const chip = document.getElementById('fs-ar-sanction'); if (!chip) return;
       const v = chip.querySelector('.fs-ar-v'), names = [];
+      if (f.nafn) names.push(fsStutt(f.nafn));   // Auðgun 13: skima FÉLAGIÐ sjálft (lögaðilar geta verið á refsilista)
       for (const e of (f.eigendur || [])) { const nm = String(e.nafn || '').split(' - ')[0].trim(); if (nm) names.push(nm); }
       for (const r of (f.radamenn || [])) { const nm = String(r).split(' - ')[0].trim(); if (nm) names.push(nm); }
       if (!names.length) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Engir aðilar'; return; }
@@ -612,6 +640,27 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ');
       } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
     }
+    // Auðgun 14 — samsett áreiðanleika-yfirlit: telur opinber stöðumerki (grænt/gult/rautt). EKKI lánshæfismat.
+    function fsWireAreidStig() {
+      const host = document.getElementById('fs-ar-stig'); if (!host) return;
+      let n = 0;
+      const tick = () => {
+        const chips = [].slice.call(document.querySelectorAll('.fs-argrid .fs-ar'));
+        if (!chips.length) return true;
+        const c = { g: 0, o: 0, b: 0, u: 0 };
+        chips.forEach((el) => { const m = String(el.className).match(/fs-ar (g|o|b)\b/); c[m ? m[1] : 'u']++; });
+        const done = c.u === 0, lvl = c.b ? 'b' : c.o ? 'o' : 'g';
+        const lbl = c.b ? 'Alvarleg stöðumerki' : c.o >= 2 ? 'Nokkur athugunarefni' : c.o ? 'Minniháttar athugunarefni' : 'Engin neikvæð stöðumerki';
+        host.className = 'fs-ar-stig ' + lvl;
+        host.innerHTML = '<div class="fs-ar-stig-b">' + (c.b ? '🔴' : c.o ? '🟡' : '🟢') + '</div>'
+          + '<div class="fs-ar-stig-tx"><b>' + lbl + '</b>'
+          + '<span>' + (chips.length - c.u) + '/' + chips.length + ' opinberar athuganir' + (done ? '' : ' (í vinnslu…)') + ' · ' + '🟢'.repeat(c.g) + '🟡'.repeat(c.o) + '🔴'.repeat(c.b) + '</span>'
+          + '<span class="fs-ar-stig-n">Samantekt á opinberum stöðumerkjum — <b>ekki lánshæfismat</b>.</span></div>';
+        return done || n++ > 24;
+      };
+      const iv = setInterval(() => { if (tick()) clearInterval(iv); }, 700);
+      tick();
+    }
     // Vefur KYC-kortið: PEP-skimun (#fs-ar-pep) + Lögbirtingablaðið (#fs-ar-log merki + #fs-logbirting listi
     // þegar hólfin eru til staðar). Kallað BÆÐI í fullri skýrslu (fyllir aðeins #fs-logbirting; KYC-hólf
     // fjarverandi → no-op) OG í áreiðanleika-view (fyllir KYC-hólfin). Öll element-uppfærsla er null-vörðuð.
@@ -620,6 +669,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       fsWireMedia(felag);      // 📰 F7 fjölmiðlaumfjöllun
       fsWireFlakk(felag);      // 🔁 F8 gjaldþrota-tengsl
       fsWireSanction(felag);   // 🌐 F9 þvingunaraðgerða-skimun
+      fsWireAreidStig();       // 🛡️ Auðgun 14 — samsett stöðumerkja-yfirlit
       fetch('/api/logbirting?kt=' + encodeURIComponent(felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
         // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
         const lc = document.getElementById('fs-ar-log');
