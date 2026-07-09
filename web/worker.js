@@ -301,7 +301,38 @@ async function firmaLookup(q, ctx, env) {
       }
     }
   } catch (e) {}
-  return bits.join(' ').slice(0, 1000) + ' (sjá /fyrirtaeki/)';
+  // ── Efnis-gátaðar auðganir (aðeins þegar spurt er um efnið → forðast óþörf handler-köll) ──
+  try {
+    if (/gjaldþrot|þrot|innköll|skipt|lögbirt|félagsslit|nauðasamn|árangurslaus|fjárnám/i.test(q)) {
+      const ld = await (await logbirtingHandler(new Request('https://k.internal/api/logbirting?kt=' + f.kt), env, ctx)).json().catch(() => null);
+      if (ld && ld.holdur && (ld.tilkynningar || []).length) {
+        const mx = ld.tilkynningar.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
+        bits.push((mx >= 2 ? '⚠ ' : '') + 'Lögbirtingablaðið: ' + ld.count + ' tilkynning' + (ld.count > 1 ? 'ar' : '') + ' — ' + ld.tilkynningar.slice(0, 3).map((n) => n.tegundHeiti + (n.dagsetning ? ' ' + n.dagsetning : '')).join('; ') + '.');
+      } else bits.push('Engar tilkynningar í Lögbirtingablaðinu (gjaldþrot/innkallanir/félagsslit).');
+    }
+  } catch (e) {}
+  try {
+    if (/aflamark|kvóti|kvóta|aflaheimild|aflahlutdeild|veiðiheimild|þorskígild/i.test(q)) {
+      const kd = await (await kvotiHandler(new Request('https://k.internal/api/kvoti?kt=' + f.kt), env, ctx)).json().catch(() => null);
+      if (kd && kd.holdur && kd.torskigildi) {
+        const tn = (kg) => Math.round(kg / 1000).toLocaleString('is-IS') + ' t';
+        bits.push('Aflamark (fiskveiðiár ' + String(kd.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2') + '): þorskígildi ' + tn(kd.torskigildi.aflamark) + ' aflamark, ' + tn(kd.torskigildi.stada) + ' eftir — ' + (kd.nTeg || 0) + ' tegundir' + (kd.nSkip ? ', ' + kd.nSkip + ' skip' : '') + '.');
+      }
+    }
+  } catch (e) {}
+  try {
+    if (/vörumerk|trademark|einkaleyf|hugverk/i.test(q)) {
+      const vd = await (await vorumerkiHandler(new Request('https://k.internal/api/vorumerki?kt=' + f.kt + '&nafn=' + encodeURIComponent(f.nafn)), ctx)).json().catch(() => null);
+      if (vd && vd.holdur) bits.push('Skráð vörumerki (Hugverkastofa): ' + vd.n + ' — ' + (vd.merki || []).slice(0, 4).map((m) => m.titill || m.id).join(', ') + '.');
+    }
+  } catch (e) {}
+  try {
+    if (/starfsleyf|eftirlit|matvælaeftirlit|heilbrigðiseftirlit|\bmast\b|\bleyfi\b/i.test(q)) {
+      const md = await (await mastHandler(new Request('https://k.internal/api/mast?nafn=' + encodeURIComponent(f.nafn)), ctx)).json().catch(() => null);
+      if (md && md.holdur) bits.push('MAST starfsleyfi/eftirlit (landsdekkandi): ' + md.n + ' starfsstöðvar — ' + (md.stodvar || []).slice(0, 3).map((s) => s.baer || s.nr).filter(Boolean).join(', ') + '.');
+    }
+  } catch (e) {}
+  return bits.join(' ').slice(0, 1200) + ' (sjá /fyrirtaeki/)';
 }
 
 async function spyrduHandler(request, env, ctx) {
@@ -1631,33 +1662,12 @@ async function leyfiHandler(request, env, ctx) {
   return res;
 }
 
-// Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina).
-//  ?kt= → loftför sem félagið á/rekur (byKt-vísir). ?q= → LIFANDI leit eftir TF-númeri/nafni (eins og skip/ökutæki).
+// Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
 // build_loftfor.mjs → gogn/loftfor.json byKt (aðeins lögaðilar). Sjá memory/iceland-islandis-graphql-audit.md.
-const LOFT_Q = 'query($input: AircraftRegistryAllAircraftsInput!){ aircraftRegistryAllAircrafts(input:$input){ totalCount aircrafts { identifiers type maxWeight productionYear serialNumber unregistered operator { name ssn } owners { name ssn } } } }';
-const loftAdili = (a) => { if (!a || !a.name) return null; const kt = String(a.ssn ?? '').replace(/\D/g, '').padStart(10, '0'); const felag = /^\d{10}$/.test(kt) && +kt.slice(0, 2) >= 41 && +kt.slice(0, 2) <= 71; return { nafn: a.name, kt: felag ? kt : null, erFyrirtaeki: felag }; };   // einstaklings-kt EKKI birt (Persónuvernd)
-const loftMap = (a) => ({ skrnr: a.identifiers || null, tegund: a.type || null, argerd: a.productionYear || null, hamth: a.maxWeight || null, radnr: a.serialNumber || null, afskrad: !!a.unregistered, rekandi: loftAdili(a.operator), eigendur: (a.owners || []).map(loftAdili).filter(Boolean) });
 async function loftforHandler(request, env, ctx) {
-  const u = new URL(request.url);
-  const q = (u.searchParams.get('q') || '').trim();
-  const cache = caches.default;
-  if (q) {   // ── LIFANDI leit (TF-númer eða nafn) → island.is aircraftRegistryAllAircrafts(searchTerm) ──
-    if (q.length < 2) return sjson({ q, error: 'q', loftfor: [] });
-    const cacheKey = new Request('https://cache.karp.internal/api/loftfor?q=' + encodeURIComponent(q.toLowerCase()));
-    const hit = await cache.match(cacheKey); if (hit) return hit;
-    let out = { q, loftfor: [] };
-    try {
-      const r = await fetch('https://island.is/api/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: LOFT_Q, variables: { input: { pageNumber: 1, pageSize: 25, searchTerm: q } } }) });
-      const j = await r.json().catch(() => null);
-      const acs = (j && j.data && j.data.aircraftRegistryAllAircrafts && j.data.aircraftRegistryAllAircrafts.aircrafts) || [];
-      out = { q, n: acs.length, loftfor: acs.map(loftMap), heimild: 'Loftfaraskrá Samgöngustofu (island.is)' };
-    } catch (e) { return sjson(out); }
-    const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
-    ctx.waitUntil(cache.put(cacheKey, res.clone()));
-    return res;
-  }
-  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ kt, holdur: false, loftfor: [] });
+  const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/loftfor?kt=' + kt);
   const hit = await cache.match(cacheKey); if (hit) return hit;
   const data = await augGet(env, 'loftfor.json');
