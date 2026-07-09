@@ -735,9 +735,9 @@ async function vanskilHandler(request, ctx) {
 }
 // ── AFLAHEIMILDIR / KVÓTI (LOTA 84) — Gagnavefur Fiskistofu opinn GraphQL (Azure) ──
 // SamtalaFyrirtaekis(kt) → kvótastaða útgerðar per fisktegund + þorskígildi. Tengt /fyrirtaeki/ um kt.
-// ⚠ Bakendinn IP-hraðatakmarkar (~5-6 hröð köll → 405 um stund) → 24h cache per kt, 405→tómt (ekki cache-a),
-// og framendi kallar AÐEINS á fiskveiðifélög (ÍSAT 03) → nær engin köll á venjuleg félög. Einstök vara.
-const FISK_API = 'https://gagnavefur-api-btg7credbqbbbaav.northeurope-01.azurewebsites.net/graphql';
+// ⚠ Gamla Azure-APIð (samtalaFyrirtaekis) er AF NETINU. Nú: aflamark um OPNU island.is-gáttina
+// (fiskistofaGetShipStatusForTimePeriod, per skip) — island.is heldur Fiskistofu-skilríkjunum → enginn JWT.
+// Sjá kvotiHandler + memory/iceland-fiskistofa-api.md.
 function fiskveidiTimabil() {
   const d = new Date(), y = d.getUTCFullYear(), m = d.getUTCMonth();   // fiskveiðiár hefst 1. sept
   const s = m >= 8 ? y : y - 1;
@@ -942,7 +942,21 @@ async function okutaekiHandler(request, ctx) {
   if (out.fannst) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
-async function kvotiHandler(request, ctx) {
+// island.is OPNA gáttin: skipnr + fiskveiðiár → aflamark per tegund (úthlutað/aflamark/afli/staða/þorskígildi).
+// allocation=úthlutað aflamark · catchQuota=aflamark (eftir millifærslur) · catch=afli · status=eftirstöðvar.
+// ⚠ EKKI operationName (nafnlaus fyrirspurn). id===0 / "Þorskígildi" = samtala í þorskígildum.
+const ISLAND_GQL = 'https://island.is/api/graphql';
+const AFLA_Q = 'query($input: FiskistofaGetShipStatusForTimePeriodInput!){ fiskistofaGetShipStatusForTimePeriod(input:$input){ fiskistofaShipStatus { catchQuotaCategories { id name allocation catchQuota catch status } } } }';
+async function fetchAflamarkSkip(regno, timabil) {
+  try {
+    const r = await fetch(ISLAND_GQL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: AFLA_Q, variables: { input: { shipNumber: regno, timePeriod: timabil } } }) });
+    const j = await r.json().catch(() => null);
+    const st = j && j.data && j.data.fiskistofaGetShipStatusForTimePeriod && j.data.fiskistofaGetShipStatusForTimePeriod.fiskistofaShipStatus;
+    return (st && st.catchQuotaCategories) || null;
+  } catch (e) { return null; }
+}
+// Fyrirtæki-kt → skip_owners.json (flotavísir) → per skip aflamark um island.is → samlagning þorskígildis + tegunda.
+async function kvotiHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   const cache = caches.default;
@@ -950,22 +964,36 @@ async function kvotiHandler(request, ctx) {
   let res = await cache.match(cacheKey);
   if (res) return res;
   const timabil = fiskveidiTimabil();
-  let out = { kt, holdur: false, timabil };
-  try {
-    const r = await fetch(FISK_API, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query: 'query($input: SamtalaFyrirtaekisInput!){ samtalaFyrirtaekis(input:$input){ companyName rows { species aflamark afli stada } } }', variables: { input: { kennitala: kt, kerfi: 'BAEDI', svaedi: 'INNAN', timabil } } }),
-    });
-    if (r.status === 405) return sjson(out);          // hraðatakmörkun → tómt, endurreynt síðar (ekki cache-að)
-    const j = await r.json().catch(() => null);
-    const d = j && j.data && j.data.samtalaFyrirtaekis;
-    if (d && Array.isArray(d.rows) && d.rows.length) {
-      const rows = d.rows.filter((x) => (+x.aflamark || 0) !== 0 || (+x.afli || 0) !== 0);
-      const ti = rows.find((x) => /Þorskígildi/i.test(x.species || ''));
-      const teg = rows.filter((x) => !/Þorskígildi/i.test(x.species || '')).map((x) => ({ t: x.species, aflamark: +x.aflamark || 0, afli: +x.afli || 0, stada: +x.stada || 0 })).sort((a, b) => b.aflamark - a.aflamark);
-      if (teg.length || ti) out = { kt, holdur: true, timabil, nafn: d.companyName || null, torskigildi: ti ? { aflamark: +ti.aflamark || 0, afli: +ti.afli || 0, stada: +ti.stada || 0 } : null, tegundir: teg.slice(0, 20), nTeg: teg.length };
+  const out = { kt, holdur: false, timabil };
+  const idx = await augGet(env, 'skip_owners.json');
+  if (!idx) return sjson(out);                          // flotavísir ekki til enn → tómt, ekki cache-a
+  const skip = (idx.byKt && idx.byKt[kt]) || [];
+  if (skip.length) {
+    const cap = skip.slice(0, 40);                       // öryggisnet (Brim/Samherji ~15-25 skip)
+    const perShip = [];                                  // lotur af 8 → hófleg samhliðni (island.is throttlar stórar sprengjur)
+    for (let i = 0; i < cap.length; i += 8) {
+      const rs = await Promise.all(cap.slice(i, i + 8).map((s) => fetchAflamarkSkip(s.regno, timabil).then((c) => [s, c])));
+      perShip.push(...rs);
     }
-  } catch (e) { return sjson(out); }
+    const agg = new Map();                               // tegund → samlagt {t, aflamark, afli, stada}
+    let ti = null; const skipMed = [];
+    for (const [s, cats] of perShip) {
+      if (!cats) continue;
+      skipMed.push({ regno: s.regno, nafn: s.nafn });
+      for (const c of cats) {
+        const aflamark = +c.catchQuota || 0, afli = +c.catch || 0, stada = +c.status || 0, uthlutad = +c.allocation || 0;
+        if (c.id === 0 || /Þorskígildi/i.test(c.name || '')) {
+          ti = ti || { aflamark: 0, afli: 0, stada: 0, uthlutad: 0 };
+          ti.aflamark += aflamark; ti.afli += afli; ti.stada += stada; ti.uthlutad += uthlutad;
+        } else if (aflamark || afli) {
+          const g = agg.get(c.name) || { t: c.name, aflamark: 0, afli: 0, stada: 0 };
+          g.aflamark += aflamark; g.afli += afli; g.stada += stada; agg.set(c.name, g);
+        }
+      }
+    }
+    const teg = [...agg.values()].sort((a, b) => b.aflamark - a.aflamark);
+    if (teg.length || ti) Object.assign(out, { holdur: true, nafn: null, torskigildi: ti, tegundir: teg.slice(0, 20), nTeg: teg.length, nSkip: skipMed.length, skip: skipMed.slice(0, 12) });
+  }
   res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
@@ -1622,7 +1650,7 @@ export default {
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
-    if (url.pathname === '/api/kvoti') return kvotiHandler(request, ctx);
+    if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);
     if (url.pathname === '/api/styrkir') return styrkirHandler(request, env, ctx);

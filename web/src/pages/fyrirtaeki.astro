@@ -1430,7 +1430,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   el.innerHTML = `<div class="fs-sub">🐟 Aflaheimildir — fiskveiðiár ${escF((q.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2'))}</div>`
                     + (ti ? `<div class="fs-kv-ti">Þorskígildi: <b>${tonn(ti.aflamark)}</b> aflamark · <b>${tonn(ti.afli)}</b> veitt · <b class="${ti.stada < 0 ? 'neg' : 'pos'}">${tonn(ti.stada)}</b> eftir</div>` : '')
                     + (chips ? `<div class="fs-chips" style="margin-top:6px">${chips}</div>` : '')
-                    + `<div class="fs-kv-src">Heimild: Gagnavefur Fiskistofu (aflahlutdeild/aflamark) · ${q.nTeg || (q.tegundir || []).length} tegundir</div>`;
+                    + `<div class="fs-kv-src">Heimild: Fiskistofa um opnu island.is-gáttina · ${q.nSkip ? q.nSkip + ' skip · ' : ''}${q.nTeg || (q.tegundir || []).length} tegundir</div>`;
                 }).catch(() => {});
               }
               // Ⓡ Vörumerki (Hugverkastofan) — vörumerkjasafn félagsins um kt (fallback: nafn). Öll félög, utan fiskveiða-hliðs.
