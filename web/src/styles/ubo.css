@@ -104,6 +104,18 @@
 .eig-rev-c a { color: #f6b13b; text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 2px 8px; }
 .eig-rev-c a:hover { text-decoration: underline; }
 .eig-rev-c em { color: #8fa0b8; font-style: normal; font-size: 11px; }
+/* Chart 6 — eignarhlutur sem míni-súla í töflu */
+.eig-pbar { display: block; height: 4px; margin-top: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+.eig-pbar i { display: block; height: 100%; background: #f6b13b; border-radius: 3px; }
+/* Auðgun 11 — erlent eignarhald */
+.eig-foreign td { background: rgba(90,169,230,.06); }
+.eig-erlent { margin: 6px 0 12px; padding: 8px 12px; border: 1px solid rgba(90,169,230,.35); border-radius: 10px; background: rgba(90,169,230,.06); font-size: 13px; color: #cdd6e6; }
+.eig-erlent-n { color: #8fa0b8; font-size: 12px; }
+/* Auðgun 12 — dótturfélög (samstæðukort niður) */
+.eig-subs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 14px; }
+.eig-sub-i { color: #f6b13b; text-decoration: none; font-size: 13px; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.2); border-radius: 6px; padding: 3px 9px; }
+.eig-sub-i:hover { text-decoration: underline; }
+.eig-sub-i em { color: #8fa0b8; font-style: normal; font-size: 11px; }
 
 /* Prentun: sýna aðeins skýrsluna (#fs-report umlykur hana á báðum síðum). */
 @media print {

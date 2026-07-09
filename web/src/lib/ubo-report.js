@@ -9,6 +9,7 @@ const eigPctFmt = (n) => (n == null ? '—' : Number(n).toFixed(2).replace('.', 
 const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
 const eigMkr = (v, cur) => (v == null ? '—' : Math.round(v).toLocaleString('is-IS') + ' ' + (cur || 'm.kr'));
 const eigOwnerKey = (nd) => ((nd.kt) ? nd.kt : eigNorm(nd.nafn) + '|' + (nd.faeding || ''));   // sami lykill og build_eigendur_reverse.mjs
+const eigForeign = (r) => !!(r && r.rikisfang && !/ísland|iceland/i.test(String(r.rikisfang)));   // erlent ríkisfang
 // F4/F5/F6 aukagögn — sótt einu sinni, cache-uð, öll null-þolin (brjóta ekki grunn-skýrsluna).
 let _pepCache, _revCache;
 async function eigPepSet() {
@@ -42,7 +43,7 @@ function eigTable(rep, ctx) {
   const krCell = (hl) => (efe ? '<td class="eig-kr">' + (hl != null ? '≈ ' + eigMkr(hl / 100 * efe.mkr, efe.cur) : '—') + '</td>' : '');
   const rows = (rep.endanlegir || []).map((e) =>
     `<tr><td class="eig-nm"><span class="eig-dot ${e.tegund === 'felag' ? 'is-felag' : 'is-einst'}${e.hlutur >= 25 ? ' yfir' : ''}"></span>${escF(e.nafn)}${e.kt ? ' <span class="eig-kt">' + escF(ktFmt(e.kt)) + '</span>' : (e.faeding ? ' <span class="eig-kt">f. ' + escF(e.faeding) + '</span>' : '')}</td>`
-    + `<td class="eig-pct">${eigPctFmt(e.hlutur)}</td>${krCell(e.hlutur)}`
+    + `<td class="eig-pct">${eigPctFmt(e.hlutur)}${e.hlutur > 0 ? '<span class="eig-pbar"><i style="width:' + Math.min(100, e.hlutur).toFixed(0) + '%"></i></span>' : ''}</td>${krCell(e.hlutur)}`
     + `<td class="eig-geg">${e.gegnum && e.gegnum.length ? e.gegnum.map(escF).join(', ') : '<span class="eig-direct">Bein eign</span>'}</td></tr>`).join('');
   const othekkt = (rep.othekkt || 0) > 0.005 ? `<tr class="eig-othekkt"><td>Óþekktir endanlegir eigendur</td><td class="eig-pct">${eigPctFmt(rep.othekkt)}</td>${efe ? '<td></td>' : ''}<td></td></tr>` : '';
   return `<table class="eig-tafla"><thead><tr><th>Endanlegur eigandi</th><th>Eignarhluti</th>${krCol}<th>Eignatengsl í gegnum</th></tr></thead>`
@@ -57,7 +58,7 @@ function eigRaunv(rep, ctx) {
   const krCol = efe ? '<th>Bókfært virði*</th>' : '';
   const krCell = (s) => { if (!efe) return ''; const h = hlNum(s); return '<td class="eig-kr">' + (h != null ? '≈ ' + eigMkr(h / 100 * efe.mkr, efe.cur) : '—') + '</td>'; };
   const rows = rep.raunverulegir.map((e) =>
-    `<tr><td>${escF(e.nafn)}</td><td>${escF(e.faeding || '—')}</td><td>${escF(e.buseta || '—')}</td><td>${escF(e.rikisfang || '—')}</td><td>${escF(e.tegund || '—')}</td><td class="eig-pct">${escF(e.hlutur || '—')}</td>${krCell(e.hlutur)}</tr>`).join('');
+    `<tr${eigForeign(e) ? ' class="eig-foreign"' : ''}><td>${escF(e.nafn)}</td><td>${escF(e.faeding || '—')}</td><td>${escF(e.buseta || '—')}</td><td>${escF(e.rikisfang || '—')}${eigForeign(e) ? ' 🌍' : ''}</td><td>${escF(e.tegund || '—')}</td><td class="eig-pct">${escF(e.hlutur || '—')}</td>${krCell(e.hlutur)}</tr>`).join('');
   return `<table class="eig-tafla"><thead><tr><th>Aðili</th><th>Fæðingarár/mán</th><th>Búsetuland</th><th>Ríkisfang</th><th>Tegund eignahalds</th><th>Eignarhlutur</th>${krCol}</tr></thead><tbody>${rows}</tbody></table>`
     + (efe ? `<p class="eig-krnote">* Bókfært virði = eignarhluti × bókfært eigið fé (ársreikn. ${escF(efe.ar)}). Ekki markaðsvirði.</p>` : '');
 }
@@ -187,6 +188,25 @@ async function eigData(kt, owned) {
   if (missing && owned) { try { fetch('/api/eigendur/request?kt=' + kt, { method: 'POST', credentials: 'include' }); } catch (e) {} return { pending: true }; }
   return null;
 }
+// Auðgun 11 — erlent eignarhald: raunverulegir eigendur með erlent ríkisfang (KYC-áhætta).
+function eigErlent(rep) {
+  const fs = (rep.raunverulegir || []).filter(eigForeign);
+  if (!fs.length) return '';
+  return '<div class="eig-erlent">🌍 <b>Erlent eignarhald</b> — raunverulegir eigendur með erlent ríkisfang: '
+    + fs.map((r) => escF(r.nafn) + ' <span class="eig-kt">(' + escF(r.rikisfang) + ')</span>').join('; ')
+    + '. <span class="eig-erlent-n">Getur kallað á aukna skjölun við áreiðanleikakönnun (PEP-/refsilista-athugun þvert á lögsögur).</span></div>';
+}
+// Auðgun 12 — samstæðukort niður: félög sem RÓTIN sjálf á eignarhlut í (reverse[rootKt]).
+function eigSubsidiaries(rep, ctx) {
+  if (!ctx || !ctx.reverse || !ctx.reverse.byOwner || !ctx.kt) return '';
+  const rec = ctx.reverse.byOwner[ctx.kt];
+  const subs = rec && rec.a ? rec.a.filter((c) => c.kt && c.kt !== ctx.kt) : [];
+  if (!subs.length) return '';
+  const body = subs.map((c) => '<a class="eig-sub-i" href="/fyrirtaeki/?q=' + encodeURIComponent(c.kt) + '">' + escF(c.nafn) + (c.hlutur != null ? ' <em>(' + eigPctFmt(c.hlutur) + ')</em>' : '') + '</a>').join('');
+  return '<h4 class="eig-sec">Dótturfélög og eignarhlutir</h4>'
+    + '<p class="eig-cap">Félög sem félagið á eignarhlut í — byggt á félögum sem Karp hefur rakið (vex með þekju).</p>'
+    + '<div class="eig-subs">' + body + '</div>';
+}
 function eigReport(rep, kt, ctx) {
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
@@ -196,8 +216,8 @@ function eigReport(rep, kt, ctx) {
     + '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
     + eigNet(rep) + eigLegend(ctx)
     + eigTable(rep, ctx)
-    + eigReverse(rep, ctx)
-    + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigRaunv(rep, ctx)
+    + eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
+    + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
     + '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
     + eigSources(rep)
     + '</div>';
