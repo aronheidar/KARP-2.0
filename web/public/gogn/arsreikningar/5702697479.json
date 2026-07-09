@@ -1,0 +1,105 @@
+{
+ "kt": "5702697479",
+ "nafn": "Síldarvinnslan hf.",
+ "sott": "2026-07-09",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.572,
+    "ebit_hlutfall": 0.3014,
+    "hagnadarhlutfall": 0.1818,
+    "ROA": 0.0699,
+    "eignavelta": 0.3843
+   },
+   "rekstur": {
+    "sala": 403924398,
+    "kostnadarverd": 172866888,
+    "annar_rekstur": 9330463,
+    "ebit": 121759332,
+    "afskriftir": 21233370,
+    "fjarmunatekjur": 5111865,
+    "tekjuskattur": -18769829,
+    "hagnadur": 73435782
+   },
+   "efnahagur": {
+    "fastafjarmunir": 864529550,
+    "birgdir": 58937844,
+    "vidskiptakrofur": 38995823,
+    "handbaert": 77289688,
+    "veltufjarmunir": 186504325,
+    "eignir": 1051033875,
+    "efe_skuldir": 1051033875
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5613,
+    "ebit_hlutfall": 0.2587,
+    "hagnadarhlutfall": 0.1359,
+    "ROA": 0.0403,
+    "eignavelta": 0.2969
+   },
+   "rekstur": {
+    "sala": 324750909,
+    "kostnadarverd": 142475714,
+    "annar_rekstur": 9139598,
+    "ebit": 84006899,
+    "afskriftir": 19356695,
+    "fjarmunatekjur": 6140164,
+    "tekjuskattur": -11975879,
+    "hagnadur": 44123497
+   },
+   "efnahagur": {
+    "fastafjarmunir": 884235132,
+    "birgdir": 86181577,
+    "vidskiptakrofur": 35353442,
+    "handbaert": 81650166,
+    "veltufjarmunir": 209599279,
+    "eignir": 1093834411,
+    "efe_skuldir": 1093834411
+   },
+   "starfsmenn": 603
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.604,
+    "ebit_hlutfall": 0.3052,
+    "hagnadarhlutfall": 0.1687,
+    "ROA": 0.0574,
+    "eignavelta": 0.3402
+   },
+   "rekstur": {
+    "sala": 378096049,
+    "kostnadarverd": 149732953,
+    "annar_rekstur": 8095409,
+    "ebit": 115383016,
+    "afskriftir": 21841565,
+    "fjarmunatekjur": 4063401,
+    "tekjuskattur": -17469863,
+    "hagnadur": 63784249
+   },
+   "efnahagur": {
+    "fastafjarmunir": 904486266,
+    "birgdir": 61779858,
+    "vidskiptakrofur": 43431750,
+    "veltufjarmunir": 207066824,
+    "eignir": 1111553090,
+    "efe_skuldir": 1111553090
+   },
+   "starfsmenn": 646
+  }
+ },
+ "pdf": "pdf/5702697479.pdf",
+ "pdfAr": "2025"
+}
