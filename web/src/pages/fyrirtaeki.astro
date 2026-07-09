@@ -529,10 +529,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const data = await fsLogbirtingAll();
       if (!data || !data.byKt) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }
       const myKt = String(f.kt).replace(/\D/g, ''), disk = { felagsslit: 1, gjaldthrot_beidni: 1, skiptabeidni: 1, skiptalok: 1 }, matches = [];
+      // sama kjarna-nafn EÐA orðamarka-forskeyti (styttra ≥7 stafir → varfærið, lág false-positive)
+      const nameMatch = (a) => { if (!a) return false; if (a === core) return true; const s = a.length < core.length ? a : core, l = a.length < core.length ? core : a; return s.length >= 7 && l.startsWith(s + ' '); };
       for (const kt in data.byKt) {
         if (kt === myKt) continue;
         const ent = data.byKt[kt];
-        if (fsCoreName(ent.name) !== core) continue;   // nákvæmt kjarna-nafn → varfærið, lág false-positive
+        if (!nameMatch(fsCoreName(ent.name))) continue;
         const notices = (ent.notices || []).filter((n) => disk[n.type]);
         if (!notices.length) continue;
         const latest = notices.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0];
@@ -860,7 +862,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!years.length) return null;
       const rows = years.map((yr) => {
         const a = j.ar[yr], kv = (a.kvardi || 1) / 1e6, r = a.rekstur, e = a.efnahagur;   // kv → milljónir myntar
-        const row = { ar: yr, _cur: (!a.mynt || a.mynt === 'ISK') ? 'm.kr' : ('m. ' + a.mynt) };
+        const row = { ar: yr, _cur: (!a.mynt || a.mynt === 'ISK') ? 'm.kr' : ('m. ' + a.mynt), starfsmenn: (a.starfsmenn != null ? a.starfsmenn : null) };
         // FORREIKNUÐ KPI úr þáttaranum (myntóháð hlutföll, réttar þrátt fyrir formerki/IFRS) — sitt hvor lyklanöfn
         if (a.kpi) row._kpi = { framlegd: a.kpi.framlegd, rekstrarhlutf: a.kpi.ebit_hlutfall, hagnhlutf: a.kpi.hagnadarhlutfall,
           roe: a.kpi.ROE, roa: a.kpi.ROA, eiginfjarhlutf: a.kpi.eiginfjarhlutfall, veltufjar: a.kpi.veltufjarhlutfall,
@@ -994,6 +996,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Eigið fé</span><b>' + fsMkr(y.eigidfe, cur) + '</b></div>'
         + '<div class="kpi-s"><span>Eignir</span><b>' + fsMkr(y.eignir, cur) + '</b></div>'
+        + (y.starfsmenn != null ? '<div class="kpi-s"><span>Starfsmenn</span><b>' + escF(String(y.starfsmenn)) + '</b><span class="kpi-yoy" style="opacity:.7">' + (y.tekjur ? fsThou(Math.round(y.tekjur / y.starfsmenn)) + ' ' + cur + '/mann' : '') + '</span></div>' : '')
         + '</div></div><div class="kpi-grid">'
         + '<div class="kpi-cat">Arðsemi</div>'
         + card('Framlegð', 'framlegd', fsPct1, st(0.35, 0.2), 'Framlegð / tekjur')
@@ -1027,9 +1030,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           { nafn: 'Fjárfestingafélagið Bára ehf.', hlutur: '31%', tegund: 'Eignarhald í gegnum félag' },
         ],
         fjarhagur: [
-          acc('2025', 4850, 3200, 980, 240, 95, 268, 6200, 1850, 620, 540, 310, 2790, 3410, 1150),
-          acc('2024', 4310, 2900, 890, 220, 90, 210, 5750, 1680, 580, 500, 260, 2560, 3190, 1080),
-          acc('2023', 3920, 2680, 820, 200, 88, 175, 5400, 1520, 540, 470, 230, 2380, 3020, 1010),
+          { ...acc('2025', 4850, 3200, 980, 240, 95, 268, 6200, 1850, 620, 540, 310, 2790, 3410, 1150), starfsmenn: 96 },
+          { ...acc('2024', 4310, 2900, 890, 220, 90, 210, 5750, 1680, 580, 500, 260, 2560, 3190, 1080), starfsmenn: 90 },
+          { ...acc('2023', 3920, 2680, 820, 200, 88, 175, 5400, 1520, 540, 470, 230, 2380, 3020, 1010), starfsmenn: 84 },
         ],
       };
     }
@@ -1092,11 +1095,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       S = S || sec.heild;
       if (!S) return;
       const k = f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]);
+      const r0 = f.fjarhagur[0], tps = (r0 && r0.starfsmenn && r0.tekjur) ? r0.tekjur / r0.starfsmenn : null;
+      const mkrPer = (x) => fsThou(Math.round(x)) + ' m.kr';
       const defs = [
         ['Framlegð', k.framlegd, S.framlegd, fsPct1, true],
         ['Hagnaðarhlutfall', k.hagnhlutf, S.hagnadarhlutfall, fsPct1, true],
         ['Eiginfjárhlutfall', k.eiginfjarhlutf, S.eiginfjarhlutfall, fsPct1, true],
         ['Eignavelta', k.eignavelta, S.eignavelta, fsRat, true],
+        ['Tekjur á starfsmann', tps, S.tekjur_pr_starfsm_mkr, mkrPer, true],
         ['Skuldir / eigið fé', k.de, S.skuldahlutfall_DE, fsRat, false],
       ].filter((d) => d[1] != null && d[2] != null);
       if (!defs.length) return;

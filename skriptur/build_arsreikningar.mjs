@@ -84,7 +84,8 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     parsed.ar.forEach((y, i) => {
       if (y == null) return;
       const rec = { teg: r.teg, mynt: parsed.mynt, kvardi: parsed.kvardi, kpi: parsed.kpi[String(y)] || null,
-        rekstur: colOf(parsed.rekstur, i), efnahagur: colOf(parsed.efnahagur, i), _idx: i };
+        rekstur: colOf(parsed.rekstur, i), efnahagur: colOf(parsed.efnahagur, i),
+        starfsmenn: (i === 0 && parsed.starfsmenn != null) ? parsed.starfsmenn : null, _idx: i };   // parser skilar líðandi-árs fjölda
       const fyrir = out.ar[y];
       if (!fyrir || (i === 0 && fyrir._idx !== 0)) out.ar[y] = rec;
     });

@@ -203,6 +203,20 @@ def parse_hluthafar(pdf):
                     return res
     return []
 
+# Meðalfjöldi starfsmanna/ársverka úr skýringum (best-effort; ártöl útilokuð). Skilar heiltölu eða None.
+def parse_starfsmenn(fulltext):
+    t = fulltext.lower()
+    # AÐEINS fjölda-orðasambönd (ekki "starfsmannakostnaður"); standalone-tala (ekki hluti þúsundaskil-tölu).
+    pats = [r'me[ðd]al(?:fj[öo]ldi|tal)\w*\s+(?:starfsm\w+|[áa]rsverk\w*|st[öo][ðd]ugild\w*)',
+            r'fj[öo]ldi\s+starfsm\w+', r'st[öo][ðd]ugild\w*', r'[áa]rsverk\w*']
+    for p in pats:
+        for m in re.finditer(p, t):
+            for ns in re.findall(r'(\d{1,4})(?![\d.,])', t[m.end(): m.end() + 160]):
+                n = int(ns)
+                if 0 < n < 20000 and not (1900 <= n <= 2099):
+                    return n
+    return None
+
 def parse(path):
     pdf = pdfplumber.open(path)
     fulltext = '\n'.join((p.extract_text() or '') for p in pdf.pages)
@@ -251,6 +265,7 @@ def parse(path):
         afleitt.append('skammtimaskuldir')
     return {'ar': [ar_cur, ar_prev], 'mynt': cur, 'kvardi': scale,
             'rekstur': rekstur, 'efnahagur': efnahagur, 'afleitt': afleitt,
+            'starfsmenn': parse_starfsmenn(fulltext),
             'hluthafar': parse_hluthafar(pdf)}
 
 def cur_val(d, k, idx=0):
