@@ -124,6 +124,7 @@ jobs:
           node skriptur/build_sector.mjs           || true   # Hagstofa: greinar-hlutföll á ÍSAT → sector_kpi.json (breytist árlega)
           node skriptur/build_eigendur_reverse.mjs || true   # snýr við gogn/eigendur/*.json → eigendur_reverse.json (lítið, vex á-eftirspurn)
           node skriptur/build_rekstrarleyfi.mjs    || true   # Sýslumenn rekstrarleyfi (veitingar/gisting/vínveiting) → rekstrarleyfi.json (áfangi 1 leyfaskrár)
+          node skriptur/build_ferdaleyfi.mjs       || true   # Ferðamálastofa leyfishafar (ferðaskrifstofur+dagsferðir) → ferdaleyfi.json (áfangi 1 leyfaskrár)
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:

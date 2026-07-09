@@ -1586,18 +1586,20 @@ async function leiHandler(request, ctx) {
   return res;
 }
 
-// Rekstrarleyfi (Sýslumenn, áfangi 1 leyfaskrár) — kt-lyklað úr rekstrarleyfi.json (byKt).
+// Leyfaskrár (áfangi 1) — kt-lyklað, sameinar Sýslumenn (rekstrarleyfi) + Ferðamálastofu (ferðaleyfi).
 async function leyfiHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ kt, holdur: false, leyfi: [] });
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/leyfi?kt=' + kt);
   const hit = await cache.match(cacheKey); if (hit) return hit;
-  const data = await augGet(env, 'rekstrarleyfi.json');
-  const list = (data && data.byKt && data.byKt[kt]) || [];
-  const out = { kt, holdur: list.length > 0, n: list.length, afengi: list.some((x) => x.afengi), leyfi: list.slice(0, 12), heimild: 'Sýslumenn (island.is)' };
+  const [rek, ferda] = await Promise.all([augGet(env, 'rekstrarleyfi.json'), augGet(env, 'ferdaleyfi.json')]);
+  const list = [];
+  for (const x of ((rek && rek.byKt && rek.byKt[kt]) || [])) list.push({ teg: x.teg, undir: x.undir, flokkur: x.flokkur, stadur: x.stadur, afengi: x.afengi, hop: 'Sýslumenn' });
+  for (const x of ((ferda && ferda.byKt && ferda.byKt[kt]) || [])) list.push({ teg: x.teg, undir: null, flokkur: null, stadur: x.stadur, afengi: false, hop: 'Ferðamálastofa' });
+  const out = { kt, holdur: list.length > 0, n: list.length, afengi: list.some((x) => x.afengi), leyfi: list.slice(0, 16), heimild: 'Sýslumenn + Ferðamálastofa (island.is)' };
   const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=43200' } });
-  if (data) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  if (rek || ferda) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
 
