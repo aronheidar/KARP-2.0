@@ -712,7 +712,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
-          ${fsTengsl(f)}
           ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
@@ -735,12 +734,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               : (f.eigendurTomt
                 ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b><span>Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir skráð félög og dreift eignarhald.</span></div>`
                 : `<div class="fs-ph"><b>👥 Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
-            <div class="fs-ph"><b>📊 Ársreikningar í tölum</b><span>Tekjur, afkoma og eigið fé — Skatturinn birtir ársreikningana á rafrænu formi án endurgjalds${rsk ? `; <a href="${escF(rsk)}" target="_blank" rel="noopener">sæktu þá hjá Skattinum</a>` : ''}. Sjálfvirkur lykiltölu-lestur bíður API-aðgangs.</span></div>
             ${(f.stjorn || []).length
               ? fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun })
               : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`}
           </div>
-          <div class="fs-ph2" id="eig-host"></div>
           <a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Sjá fulla eigendaskýrslu →</a>
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. Karp birtir hvorki lánshæfismat né vanskilaskrá — slík starfsemi er leyfisskyld. Staðfest vottorð fást hjá Skattinum.</div>
         </div>
@@ -1081,9 +1078,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               skila(fsKort(f, d.rsk));
               backWire();
               fsWireFylgja();   // 🔖 fylgja-hnappur (co:<kt> → Mitt svæði)
-              fsWireTengsl(f, (q) => leita(q, true));   // 🕸️ tengslakort — smellur á lögaðila flettir upp
-              // 🔗 Endanlegir eigendur: sameiginleg vél (web/src/lib/ubo-report.js)
-              mountUboReport({ kt: f.kt, nafn: f.nafn, hostEl: document.getElementById('eig-host'), navTo: (q) => leita(q, true) });
+              // 🔗 Endanlegir eigendur + tengslakort FLUTT á sér-skýrslu /eigendur/ (hlekkur „Sjá fulla eigendaskýrslu →")
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               if (f.stjornPending) fsPollStjorn(f.kt);   // fyllir stjórn-hólfið sjálfkrafa þegar byggingin skilar
               // 💸 er félagið meðal 200 stærstu birgja ríkisins?
@@ -1285,7 +1280,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
         setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
         setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
-        fsWireTengsl(demoF, (q) => leita(q, true));   // 🕸️ tengslakort í sýnishorni (KYC-kort fjarlægt úr fullu skýrslunni, VERK B)
         const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
         setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
         setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');
