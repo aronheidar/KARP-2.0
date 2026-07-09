@@ -1,0 +1,121 @@
+{
+ "kt": "5702697479",
+ "nafn": "Síldarvinnslan hf.",
+ "sott": "2026-07-09",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5702697479",
+    "kt": "5702697479",
+    "nafn": "Síldarvinnslan hf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "kosningu stjórnarskaltryggtaðhlutfall hvorskynsséekkilægraen .Stjórninkýssérformannúrsínumhópi.Aflatkvæðaræður",
+    "tegund": "einst"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "2025 var haldinn einn hluthafafundur og var þátttaka um .",
+    "tegund": "einst"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Hluthafar félagsins eru 2.592 talsins en tíu stærstu hluthafar félagsins fara með hlutafjár í félaginu.",
+    "tegund": "einst"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5702697479",
+    "hlutur": 40,
+    "band": "25",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5702697479",
+    "hlutur": 90,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n3",
+    "til": "kt5702697479",
+    "hlutur": 83.2,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "2025 var haldinn einn hluthafafundur og var þátttaka um .",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 90,
+   "gegnum": []
+  },
+  {
+   "nafn": "Hluthafar félagsins eru 2.592 talsins en tíu stærstu hluthafar félagsins fara með hlutafjár í félaginu.",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 83.2,
+   "gegnum": []
+  },
+  {
+   "nafn": "kosningu stjórnarskaltryggtaðhlutfall hvorskynsséekkilægraen .Stjórninkýssérformannúrsínumhópi.Aflatkvæðaræður",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 40,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Gunnþór Björn Ingvason",
+   "faeding": "1968-NÓVEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [
+  {
+   "nafn": "kosningu stjórnarskaltryggtaðhlutfall hvorskynsséekkilægraen .Stjórninkýssérformannúrsínumhópi.Aflatkvæðaræður",
+   "kt": null,
+   "hlutur": 40
+  },
+  {
+   "nafn": "2025 var haldinn einn hluthafafundur og var þátttaka um .",
+   "kt": null,
+   "hlutur": 90
+  },
+  {
+   "nafn": "Hluthafar félagsins eru 2.592 talsins en tíu stærstu hluthafar félagsins fara með hlutafjár í félaginu.",
+   "kt": null,
+   "hlutur": 83.2
+  }
+ ],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
