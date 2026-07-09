@@ -271,7 +271,13 @@ async function firmaLookup(q, ctx, env) {
   const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), ctx); return r.json().catch(() => null); };
   let d = await call(nafn);
   let f = d && d.felag;
-  if (!f && d && d.hits && d.hits.length) { const d2 = await call(d.hits[0].kt); f = d2 && d2.felag; }
+  if (!f && d && d.hits && d.hits.length) {
+    // velja BESTA treffið (nákvæm nafn-samsvörun), ekki hits[0] — „brim" → Brim hf, ekki „BBF 2014 ehf"
+    const nn = (s) => String(s || '').toLowerCase().replace(/\b(ehf|hf|slhf|ohf|sf|slf|bs)\b\.?/g, '').replace(/[^a-záðéíóúýþæö0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const qn = nn(nafn);
+    const best = d.hits.find((h) => nn(h.nafn) === qn) || d.hits.find((h) => nn(h.nafn).startsWith(qn + ' ')) || d.hits[0];
+    const d2 = await call(best.kt); f = d2 && d2.felag;
+  }
   if (!f) return null;
   const bits = ['FYRIRTÆKI ' + f.nafn + ' (kt. ' + f.kt + ')' + (f.afskrad ? ' — AFSKRÁÐ' : '') + (f.form ? ', ' + f.form : '') + (f.logheimili ? ', ' + f.logheimili : '') + '.'];
   if (f.eigendur && f.eigendur.length) bits.push('Raunverulegir eigendur: ' + f.eigendur.map((e) => e.nafn + (e.hlutur ? ' (' + e.hlutur + ')' : '') + (e.tegund ? ' – ' + e.tegund : '')).join('; ') + '.');
@@ -330,7 +336,7 @@ async function spyrduHandler(request, env, ctx) {
   }
   const aug = await augment(env, q);
   // LOTA 80: lifandi fyrirtækja-uppfletting (eigendur/vanskil/grunnur) þegar spurt er um félag
-  if (aug.length < 3 && /(eigend|eigandi|hver á|hvað á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé|aflamark|kvót|aflaheimild|gjaldþrot|þrot|vörumerk|einkaleyf|starfsleyf|matvælaeftirlit|heilbrigðiseftirlit|refsilist|þvingunar|loftfar|flugvél)/i.test(q)) {
+  if (aug.length < 3 && /\b(eigend|eigandi|hver á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé)/i.test(q)) {
     try { const t = await firmaLookup(q, ctx, env); if (t) aug.push(t); } catch (e) {}
   }
   const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, skýrt og hnitmiðað (að hámarki ~170 orð); notaðu stutta upptalningu þegar bornar eru saman tölur. Notaðu EINGÖNGU staðreyndirnar og lifandi tölurnar hér að neðan og vísaðu alltaf á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í gögnunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text
