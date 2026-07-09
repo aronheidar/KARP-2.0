@@ -258,7 +258,7 @@ async function augment(env, q) {
 }
 
 // LOTA 80: draga fyrirtækjanafn/kt úr spurningu — orða-sía (\b virkar ekki á íslenska stafi í JS)
-const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'sé', 'séu', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'vanskilaskrá', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'skuld', 'skuldir', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar', 'ársreikning', 'ársreikninga', 'ársreikningi', 'ársreikningum', 'ársreikninginn', 'ársreikningana', 'ársreikningaskil', 'skil', 'skilað', 'hvort', 'núna', 'nú', 'borgar', 'greiðir', 'atvinnugrein', 'heimilisfang', 'stofnað', 'stofnaður', 'hvenær']);
+const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'sé', 'séu', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'vanskilaskrá', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'skuld', 'skuldir', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar', 'ársreikning', 'ársreikninga', 'ársreikningi', 'ársreikningum', 'ársreikninginn', 'ársreikningana', 'ársreikningaskil', 'skil', 'skilað', 'hvort', 'núna', 'nú', 'borgar', 'greiðir', 'atvinnugrein', 'heimilisfang', 'stofnað', 'stofnaður', 'hvenær', 'aflamark', 'aflamarki', 'kvóti', 'kvóta', 'kvótann', 'aflaheimild', 'aflaheimildir', 'veiðiheimild', 'gjaldþrota', 'gjaldþrot', 'þrot', 'þroti', 'vörumerki', 'vörumerkið', 'vörumerkjum', 'einkaleyfi', 'starfsleyfi', 'leyfi', 'eftirlit', 'eftirliti', 'loftför', 'loftfar', 'flugvél', 'flugvélar', 'þyrla', 'skip', 'skipa', 'bát', 'bátur', 'refsilista', 'refsilistum', 'þvingunar', 'mikið', 'mikinn', 'mikla', 'mörg', 'margar', 'marga', 'skráð', 'skráða', 'hefur', 'hafa', 'fær', 'fékk', 'hversu', 'hve', 'til']);
 function firmaNafn(q) {
   const kt = (String(q).match(/\b(\d{6}-?\d{4})\b/) || [])[1];
   if (kt) return kt.replace('-', '');
@@ -307,7 +307,38 @@ async function firmaLookup(q, ctx, env) {
       }
     }
   } catch (e) {}
-  return bits.join(' ').slice(0, 1000) + ' (sjá /fyrirtaeki/)';
+  // ── Efnis-gátaðar auðganir (aðeins þegar spurt er um efnið → forðast óþörf handler-köll) ──
+  try {
+    if (/gjaldþrot|þrot|innköll|skipt|lögbirt|félagsslit|nauðasamn|árangurslaus|fjárnám/i.test(q)) {
+      const ld = await (await logbirtingHandler(new Request('https://k.internal/api/logbirting?kt=' + f.kt), env, ctx)).json().catch(() => null);
+      if (ld && ld.holdur && (ld.tilkynningar || []).length) {
+        const mx = ld.tilkynningar.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
+        bits.push((mx >= 2 ? '⚠ ' : '') + 'Lögbirtingablaðið: ' + ld.count + ' tilkynning' + (ld.count > 1 ? 'ar' : '') + ' — ' + ld.tilkynningar.slice(0, 3).map((n) => n.tegundHeiti + (n.dagsetning ? ' ' + n.dagsetning : '')).join('; ') + '.');
+      } else bits.push('Engar tilkynningar í Lögbirtingablaðinu (gjaldþrot/innkallanir/félagsslit).');
+    }
+  } catch (e) {}
+  try {
+    if (/aflamark|kvóti|kvóta|aflaheimild|aflahlutdeild|veiðiheimild|þorskígild/i.test(q)) {
+      const kd = await (await kvotiHandler(new Request('https://k.internal/api/kvoti?kt=' + f.kt), env, ctx)).json().catch(() => null);
+      if (kd && kd.holdur && kd.torskigildi) {
+        const tn = (kg) => Math.round(kg / 1000).toLocaleString('is-IS') + ' t';
+        bits.push('Aflamark (fiskveiðiár ' + String(kd.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2') + '): þorskígildi ' + tn(kd.torskigildi.aflamark) + ' aflamark, ' + tn(kd.torskigildi.stada) + ' eftir — ' + (kd.nTeg || 0) + ' tegundir' + (kd.nSkip ? ', ' + kd.nSkip + ' skip' : '') + '.');
+      }
+    }
+  } catch (e) {}
+  try {
+    if (/vörumerk|trademark|einkaleyf|hugverk/i.test(q)) {
+      const vd = await (await vorumerkiHandler(new Request('https://k.internal/api/vorumerki?kt=' + f.kt + '&nafn=' + encodeURIComponent(f.nafn)), ctx)).json().catch(() => null);
+      if (vd && vd.holdur) bits.push('Skráð vörumerki (Hugverkastofa): ' + vd.n + ' — ' + (vd.merki || []).slice(0, 4).map((m) => m.titill || m.id).join(', ') + '.');
+    }
+  } catch (e) {}
+  try {
+    if (/starfsleyf|eftirlit|matvælaeftirlit|heilbrigðiseftirlit|\bmast\b|\bleyfi\b/i.test(q)) {
+      const md = await (await mastHandler(new Request('https://k.internal/api/mast?nafn=' + encodeURIComponent(f.nafn)), ctx)).json().catch(() => null);
+      if (md && md.holdur) bits.push('MAST starfsleyfi/eftirlit (landsdekkandi): ' + md.n + ' starfsstöðvar — ' + (md.stodvar || []).slice(0, 3).map((s) => s.baer || s.nr).filter(Boolean).join(', ') + '.');
+    }
+  } catch (e) {}
+  return bits.join(' ').slice(0, 1200) + ' (sjá /fyrirtaeki/)';
 }
 
 async function spyrduHandler(request, env, ctx) {
@@ -336,8 +367,23 @@ async function spyrduHandler(request, env, ctx) {
   }
   const aug = await augment(env, q);
   // LOTA 80: lifandi fyrirtækja-uppfletting (eigendur/vanskil/grunnur) þegar spurt er um félag
-  if (aug.length < 3 && /\b(eigend|eigandi|hver á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé)/i.test(q)) {
+  if (aug.length < 3 && /(eigend|eigandi|hver á|hvað á|raunveruleg|vanskil|kennitöl|ehf|ohf|\bhf\b|félag[ií]|fyrirtæk|forráðamað|hlutafé|aflamark|kvót|aflaheimild|gjaldþrot|þrot|vörumerk|einkaleyf|starfsleyf|matvælaeftirlit|heilbrigðiseftirlit|refsilist|þvingunar)/i.test(q)) {
     try { const t = await firmaLookup(q, ctx, env); if (t) aug.push(t); } catch (e) {}
+  }
+  // ✈️ Loftfaraleit í spjallinu — TF-númer eða nafn/eigandi → island.is aircraftRegistryAllAircrafts
+  if (aug.length < 3 && /\btf-?\s?[a-záðéíóúýþæö]{2,4}\b|loftfar|flugvél|þyrl/i.test(q)) {
+    try {
+      const m = q.toUpperCase().match(/TF-?\s?([A-ZÁÐÉÍÓÚÝÞÆÖ]{2,4})/);
+      const term = m ? 'TF-' + m[1] : firmaNafn(q);
+      if (term && term.replace(/\W/g, '').length >= 2) {
+        const ld = await (await loftforHandler(new Request('https://k.internal/api/loftfor?q=' + encodeURIComponent(term)), env, ctx)).json().catch(() => null);
+        const acs = (ld && ld.loftfor) || [];
+        if (acs.length) {
+          const a0 = acs[0], eig = (a0.eigendur || []).map((e) => e.nafn).join(', ');
+          aug.push('LOFTFAR ' + (a0.skrnr || term) + (a0.tegund ? ' (' + a0.tegund + (a0.argerd ? ', árg. ' + a0.argerd : '') + ')' : '') + (eig ? ' — skráður eigandi: ' + eig : '') + (acs.length > 1 ? '. Alls ' + acs.length + ' loftför fundust í leitinni' : '') + '. (sjá /okutaeki-skip/?t=loft)');
+        }
+      }
+    } catch (e) {}
   }
   const sys = 'Þú ert „Karp“, aðstoðarmaður á íslenska hagvísavefnum karp.is. Svaraðu á íslensku, skýrt og hnitmiðað (að hámarki ~170 orð); notaðu stutta upptalningu þegar bornar eru saman tölur. Notaðu EINGÖNGU staðreyndirnar og lifandi tölurnar hér að neðan og vísaðu alltaf á viðeigandi undirsíðu vefjarins (t.d. /verdlag/). Ef svarið er ekki í gögnunum: segðu það hreinskilnislega og bentu á líklegustu síðu til að skoða. Aldrei giska á tölur. Þú veitir hvorki fjármála- né lögfræðiráðgjöf.\n\nSTAÐREYNDIR KARP (' + (SPYRDU_CTX.updated || '') + '):\n' + SPYRDU_CTX.text
     + (aug.length ? '\n\nLIFANDI TÖLUR SEM EIGA VIÐ SPURNINGUNA:\n' + aug.join('\n') : '')
