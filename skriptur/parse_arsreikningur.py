@@ -37,16 +37,20 @@ def is_num(tok): return bool(NUMRE.match(tok)) and any(c.isdigit() for c in tok)
 # ---- kortlagning: reitur -> listi af ASCII-beinagrindar-regex (fyrsti hittir) ----
 # '.' í regex passar við brenglaða broddstafi.  Raðað eftir sérhæfni.
 REKSTUR_MAP = [
-    ('sala',            r'^(sala|seldar v|rekstrartekjur|v.rusala|tekjur samt)'),
+    # ^leigutekjur = fasteignafélög (Reitir/Reginn o.fl.); EKKI "hreinar leigutekjur" (millisumma, byrjar á "hreinar")
+    ('sala',            r'^(sala|seldar v|rekstrartekjur|v.rusala|tekjur samt|leigutekjur)'),
     ('adrar_tekjur',    r'^(a.rar (rekstrar)?tekjur|a.rar tekjur)'),
-    ('kostnadarverd',   r'(kostna.arver. seldra|seldra vara)'),
+    # rekstrarkostnaður fjárfestingareigna = beinn kostnaður leigutekna (fasteignafélög) -> framlegð = hreinar leigutekjur
+    ('kostnadarverd',   r'(kostna.arver. seldra|seldra vara|rekstrarkostna.ur fj.rfestingar)'),
     ('laun',            r'^laun'),
-    ('annar_rekstur',   r'^annar rekstrarkostna'),
+    # + stjórnunarkostnaður / skrifstofu- og stjórnunarkostnaður (fasteigna-/eignarhaldsfélög)
+    ('annar_rekstur',   r'(^annar rekstrarkostna|^stj.rnunarkostna|^skrifstofu.*stj.rnunar)'),
+    ('matsbreyting',    r'^matsbreyting'),   # matsbreyting fjárfestingareigna (gangvirðisbreyting) — stór í fasteignafélögum
     ('afskriftir',      r'^afskrift'),
     ('ebitda',          r'^ebitda'),
     ('ebit',            r'(rekstrarhagna.ur|fyrir fj.rmunatekjur|fyrir afskriftir og fj)'),
-    ('fjarmagnsgjold',  r'(fj.rmagnsgj.ld|vaxtagj.ld)'),
-    ('fjarmunatekjur',  r'(fj.reignatekjur|vaxtatekjur)'),
+    ('fjarmagnsgjold',  r'(fj.rmagnsgj.ld|vaxtagj.ld|hrein fj.rmagnsgj)'),
+    ('fjarmunatekjur',  r'(fj.reignatekjur|vaxtatekjur|fj.rmunatekjur)'),
     ('hagn_f_skatt',    r'(hagna.ur|tap) (fyrir (tekju)?skatt|f.r skatt)'),
     ('tekjuskattur',    r'^tekjuskattur'),
     ('hagnadur',        r'^(hagna.ur|tap).{0,10}.rsins'),   # líka "Tap ársins" / "Hagnaður (tap) ársins" (tapfélög)

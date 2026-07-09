@@ -966,7 +966,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           de: a.kpi.skuldahlutfall_DE, eignavelta: a.kpi.eignavelta, vaxtathekja: null, lausafjar: null, tekjuvoxtur: null, hagnvoxtur: null, _ebitda: null };
         if (r) { row.tekjur = ((r.sala || 0) + (r.adrar_tekjur || 0)) * kv; row.hagnadur = (r.hagnadur || 0) * kv;
           row.kostnadarverd = Math.abs(r.kostnadarverd || 0) * kv; row.rekstrargjold = Math.abs((r.annar_rekstur || 0) + (r.laun || 0)) * kv;
-          row.afskriftir = Math.abs(r.afskriftir || 0) * kv; row.fjarmagn = Math.abs(r.fjarmagnsgjold || 0) * kv; }
+          row.afskriftir = Math.abs(r.afskriftir || 0) * kv; row.fjarmagn = Math.abs(r.fjarmagnsgjold || 0) * kv; row.matsbreyting = (r.matsbreyting || 0) * kv; }
         if (e) { row.eignir = (e.eignir || 0) * kv; row.eigidfe = (e.eigid_fe || 0) * kv; row.skuldir = (e.skuldir || 0) * kv;
           row.veltufjarmunir = ((e.birgdir || 0) + (e.vidskiptakrofur || 0) + (e.handbaert || 0)) * kv;
           row.birgdir = (e.birgdir || 0) * kv; row.vidskiptakrofur = (e.vidskiptakrofur || 0) * kv; row.handbaert = (e.handbaert || 0) * kv;
@@ -1250,6 +1250,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + row('Tekjur', (r) => r.tekjur, true) + row('Kostnaðarverð', (r) => -r.kostnadarverd)
         + row('Framlegð', (r) => r.tekjur - r.kostnadarverd, true) + row('Rekstrargjöld', (r) => -r.rekstrargjold)
         + row('EBITDA', (r) => r.tekjur - r.kostnadarverd - r.rekstrargjold, true) + row('Afskriftir', (r) => -r.afskriftir)
+        + (cols.some((r) => r.matsbreyting) ? row('Matsbreyting fjárf.eigna', (r) => r.matsbreyting) : '')
         + row('Fjármagnsgjöld', (r) => -r.fjarmagn) + row('Hagnaður ársins', (r) => r.hagnadur, true) + '</table>';
       const efn = '<table class="fst"><caption>Efnahagsreikningur (' + c + ')</caption>' + hd
         + row('Fastafjármunir', (r) => r.eignir - r.veltufjarmunir) + row('Veltufjármunir', (r) => r.veltufjarmunir)
