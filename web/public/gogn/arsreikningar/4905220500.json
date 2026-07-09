@@ -1,7 +1,7 @@
 {
  "kt": "4905220500",
  "nafn": "Steinsson Greykdal ehf.",
- "sott": "2026-07-07",
+ "sott": "2026-07-09",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
  "ar": {
   "2022": {
@@ -14,7 +14,31 @@
     "eiginfjarhlutfall": 1,
     "skuldahlutfall_DE": 0,
     "eignavelta": 0
-   }
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -289640,
+    "afskriftir": 0,
+    "fjarmunatekjur": 130,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -289510
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 210490,
+    "veltufjarmunir": 210490,
+    "eignir": 210490,
+    "hlutafe": 500000,
+    "eigid_fe": 210490,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 210490
+   },
+   "starfsmenn": null
   },
   "2023": {
    "teg": "Ársreikningur",
@@ -28,7 +52,31 @@
     "eiginfjarhlutfall": 1,
     "skuldahlutfall_DE": 0,
     "eignavelta": 2.7659
-   }
+   },
+   "rekstur": {
+    "sala": 1150000,
+    "ebit": 265009,
+    "afskriftir": 0,
+    "fjarmunatekjur": 663,
+    "fjarmagnsgjold": -380,
+    "tekjuskattur": 0,
+    "hagnadur": 205292
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 414828,
+    "handbaert": 954,
+    "veltufjarmunir": 415782,
+    "eignir": 415782,
+    "hlutafe": 500000,
+    "eigid_fe": 415782,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 415782
+   },
+   "starfsmenn": null
   },
   "2024": {
    "teg": "Ársreikningur",
@@ -65,7 +113,10 @@
     "skammtimaskuldir": 0,
     "skuldir": 0,
     "efe_skuldir": 823790
-   }
+   },
+   "starfsmenn": null
   }
- }
+ },
+ "pdf": "pdf/4905220500.pdf",
+ "pdfAr": "2024"
 }
