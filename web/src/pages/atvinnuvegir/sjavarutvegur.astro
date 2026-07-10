@@ -30,6 +30,45 @@ try {
   if (ys.length) { C2 = { x: ys, u: 'tonn', series: [{ name: 'Fiskeldi alls', color: '#19d3c5', data: ys.map((y) => tot[y] ?? null) }, { name: 'Lax', color: '#f6b13b', data: ys.map((y) => lax[y] ?? null) }] }; eldiL = { y: ys[ys.length - 1], v: tot[ys[ys.length - 1]] }; }
 } catch (e) {}
 
+// ── Landaður afli eftir mánuðum, per tegund (SJA01101, json-stat2) — RAUNAFLI, fyllir kvótamyndina ──
+// Ólíkt aflamarki/afla Fiskistofu (fiskveiðiár) sýnir þetta mánaðarleg raunumsvif: árstíðatoppa uppsjávar-
+// veiða ofan á jafnari botnfiskafla. Landsvísi (allar hafnir). Þolir bilun (try → null → kafli falinn).
+let LAND = null;
+try {
+  const yNow = new Date().getUTCFullYear();
+  const years = [String(yNow - 2), String(yNow - 1), String(yNow)];
+  const mns = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  const res = await fetch('https://px.hagstofa.is/pxis/api/v1/is/Atvinnuvegir/sjavarutvegur/aflatolur/afli_manudir/SJA01101.px', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query: [sel('Fisktegund', 'all', ['*']), sel('Löndunarhöfn', 'item', ['0']), sel('Ár', 'item', years), sel('Mánuður', 'item', mns)], response: { format: 'json-stat2' } }),
+  });
+  if (res.ok) {
+    const d = await res.json();
+    const { id, size } = d, dm = d.dimension;
+    const spc = dm.Fisktegund.category, moC = dm['Mánuður'].category, yrC = dm['Ár'].category;
+    const at = (fi, yi, mi) => { const co = [fi, 0, yi, mi]; let ix = 0; for (let i = 0; i < id.length; i++) ix = ix * size[i] + co[i]; return d.value[ix]; };
+    const monN = ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'];
+    const t3 = (kg) => Math.round((kg || 0) / 1e6 * 10) / 10;    // kg → þús.t (1 aukastafur)
+    let tl = [];
+    for (const y of years) for (const mo of mns) tl.push({ y, m: mo, tot: at(spc.index['0'], yrC.index[y], moC.index[mo]) });
+    let s0 = tl.findIndex((t) => t.tot != null), e0 = tl.length - 1;
+    if (s0 >= 0) {
+      while (e0 > s0 && tl[e0].tot == null) e0--;
+      tl = tl.slice(s0, e0 + 1).slice(-18);                     // síðustu 18 mánuðir m/ gögnum
+      const codes = Object.keys(spc.index).filter((c) => c !== '0');
+      const sumOf = (c) => tl.reduce((a, t) => a + (at(spc.index[c], yrC.index[t.y], moC.index[t.m]) || 0), 0);
+      const ranked = codes.sort((a, b) => sumOf(b) - sumOf(a));
+      const TOP = 7, top = ranked.slice(0, TOP), rest = ranked.slice(TOP);
+      const PAL = ['#3a8dff', '#f6b13b', '#19d3c5', '#3fb950', '#e05299', '#f0883e', '#9b8cff'];
+      const series = top.map((c, i) => ({ name: spc.label[c], color: PAL[i % PAL.length], data: tl.map((t) => t3(at(spc.index[c], yrC.index[t.y], moC.index[t.m]))) }));
+      if (rest.length) series.push({ name: 'Annað', color: '#5a6b80', data: tl.map((t) => t3(rest.reduce((a, c) => a + (at(spc.index[c], yrC.index[t.y], moC.index[t.m]) || 0), 0))) });
+      const last = tl[tl.length - 1];
+      const lastTop = ranked.map((c) => ({ n: spc.label[c], v: at(spc.index[c], yrC.index[last.y], moC.index[last.m]) || 0 })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 4).map((x) => ({ n: x.n, v: t3(x.v) }));
+      LAND = { labels: tl.map((t) => monN[+t.m - 1] + " '" + t.y.slice(2)), series, latest: { label: monN[+last.m - 1] + ' ' + last.y, total: Math.round(last.tot / 1e6), top: lastTop }, updated: (d.updated || '').slice(0, 10) };
+    }
+  }
+} catch (e) {}
+
 // ── Fiskistofu-kvótabanki (gogn/sjavarutvegur.json) ──
 const t = (kg) => Math.round((kg / 1e6) * 10) / 10;            // kg → þús. tonn (1 aukastafur)
 const SP = (SJA.species || []).filter((s) => s.aflamark > 0);  // sleppa tegundum án aflamarks (t.d. humar lokaður)
@@ -70,6 +109,7 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
       {thorsk && <div class="kpi"><div class="k-l">🐟 Þorskaflamark</div><div class="k-v">{Math.round(t(thorsk.aflamark))}</div><div class="k-s">þús. tonn · {timabil}</div></div>}
       {thorsk && <div class="kpi"><div class="k-l">⚓ Skip m/ þorskkvóta</div><div class="k-v">{groupThousands(thorsk.nSkip)}</div><div class="k-s">skráð skip · {timabil}</div></div>}
       {eldiL && <div class="kpi"><div class="k-l">🐠 Fiskeldi</div><div class="k-v">{groupThousands(eldiL.v)}</div><div class="k-s">tonn · {eldiL.y}</div></div>}
+      {LAND && <div class="kpi"><div class="k-l">📦 Landað · {LAND.latest.label}</div><div class="k-v">{groupThousands(LAND.latest.total)}</div><div class="k-s">þús. tonn · nýjasti mánuður</div></div>}
     </div>
 
     <!-- Hero: staða helstu stofna -->
@@ -93,6 +133,14 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
       {C1 && <div class="cwrap"><h3>Heildarafli frá 1995</h3><div id="c1" class="ch sm"></div></div>}
       {C2 && <div class="cwrap"><h3>Fiskeldi — heild og lax</h3><div id="c2" class="ch sm"></div></div>}
     </div>
+
+    <!-- Landaður afli eftir mánuðum, per tegund (Hagstofa/Fiskistofa SJA01101) -->
+    {LAND && <>
+      <h2>Landaður afli eftir mánuðum 📦</h2>
+      <p class="sub">Raunverulegur landaður afli síðustu {LAND.labels.length} mánuði, skipt eftir helstu tegundum — landsvísi, allar löndunarhafnir. Þetta er <strong>raunumsvif veiðanna</strong> (ólíkt úthlutuðu aflamarki neðar): árstíðatoppar uppsjávarveiða — loðna, kolmunni, síld, makríll — ofan á jafnari botnfiskafla árið um kring. Í þúsundum tonna.</p>
+      <div class="cwrap"><div id="c-land" class="ch"></div></div>
+      {LAND.latest.top.length > 0 && <p class="tnote">Mest landað í {LAND.latest.label}: {LAND.latest.top.map((s) => s.n + ' ' + nMark(s.v)).join(' · ')} (þús. tonn).</p>}
+    </>}
 
     <!-- Kvótanýting -->
     {util.length > 0 && <>
@@ -150,7 +198,7 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
       <p class="tnote">Aflamark og afli í þúsundum tonna. Þjöppun = hlutdeild 10 stærstu skipa í aflamarki.</p>
     </>}
 
-    <p class="foot">Forþjónað (SSG). Heimildir: <b>Fiskistofa</b> (Gagnavefur — aflamark/afli/þjöppun per skip, fiskveiðiár {timabil}, uppfært {updated}) og <b>Hagstofa Íslands</b> (SJA01101 heildarafli, SJA07001 fiskeldi). Kvóta einstakra útgerða má fletta upp á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Fiskistofa</b> (Gagnavefur — aflamark/afli/þjöppun per skip, fiskveiðiár {timabil}, uppfært {updated}) og <b>Hagstofa Íslands</b> (SJA01101 heildarafli og mánaðarlegar landanir per tegund, SJA07001 fiskeldi). Kvóta einstakra útgerða má fletta upp á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
   </main>
 
   <style>
@@ -206,7 +254,7 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
     .foot b { color: #9fb0c8; }
   </style>
 
-  <script define:vars={{ C1, C2, util, conc, scatter, HOLDERS, defSp }}>
+  <script define:vars={{ C1, C2, util, conc, scatter, HOLDERS, defSp, LAND }}>
     function initSjav() {
       if (!document.querySelector('main[data-pg="atvinnuvegir-sjavarutvegur"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
@@ -229,6 +277,20 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
             series: C.series.map((s) => ({ name: s.name, type: 'line', data: s.data, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: s.color }, itemStyle: { color: s.color }, areaStyle: C.area ? { color: s.color, opacity: 0.12 } : undefined })),
           });
         });
+
+        // ── Landaður afli eftir mánuðum (stæðusúlur per tegund) ──
+        if (LAND && LAND.series && LAND.series.length) {
+          const c = mk('c-land');
+          if (c) c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: LAND.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0, type: 'scroll' },
+            grid: { left: 48, right: 14, top: 30, bottom: 50 },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => nf(v) + ' þús. t' },
+            xAxis: { type: 'category', data: LAND.labels, axisLabel: { color: AX, fontSize: 10, rotate: 52, interval: 0 }, axisLine: { lineStyle: { color: LINE } } },
+            yAxis: { type: 'value', name: 'þús. tonn', nameTextStyle: { color: AX, fontSize: 10 }, axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            series: LAND.series.map((s) => ({ name: s.name, type: 'bar', stack: 'afli', data: s.data, itemStyle: { color: s.color }, barMaxWidth: 24 })),
+          });
+        }
 
         // ── Kvótanýting: aflamark vs afli (lárétt grúppa) ──
         if (util && util.length) {
