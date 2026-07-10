@@ -1,21 +1,20 @@
-<?php
-/**
- * karp-entitlement.php — Áskriftar-aðgangsstýring (NÝ WPCode-snippet).
- * ---------------------------------------------------------------------------
- * Bætir við karp-user.php (sem geymir karp_tier/karp_reports/karp_follows):
- *   1) Virkt þrep (effective tier) — eigin þrep EÐA erft frá teymis-eiganda (seats).
- *   2) Skýrslu-kvóti (5/20 á mán) — teljari sem núllstillist mánaðarlega.
- *   3) Viðskiptamannavakt (kt-listi) — cap eftir þrepi.
- *   4) Seats/teymi — eigandi bætir við netföngum meðlima (cap eftir þrepi).
- *   5) Server-hlið hlið-hjálpari fyrir Fjölmiðlavakt o.fl.
- *
- * UPPSETNING: (a) límdu þennan snippet í WPCode (PHP, "Run everywhere").
- *             (b) í karp-user.php: bættu `karp_entitlement_augment($data, $u->ID);`
- *                 rétt á undan `return $data;` í /me-handler, og kalli á
- *                 `karp_follows_enforce_limit()` í karp_follows_post (sjá comment neðst).
- *
- * MÖRK speglast við web/src/data/lausnir.js (LIMITS). -1 = ótakmarkað.
- */
+// karp-entitlement.php - Askriftar-adgangsstyring (WPCode PHP snippet).
+// -----------------------------------------------------------------------------
+// WPCODE: Ekki hafa <?php taggid med - WPCode keyrir kodann i PHP-samhengi nu thegar.
+// Baetir vid karp-user.php (sem geymir karp_tier / karp_reports / karp_follows):
+//   1) Virkt threp (effective tier) - eigin threp EDA erft fra teymis-eiganda (seats).
+//   2) Skyrslu-kvoti (5/20 a man) - teljari sem nullstillist manadarlega.
+//   3) Vidskiptamannavakt (kt-listi) - cap eftir threpi.
+//   4) Seats/teymi - eigandi baetir vid netfongum medlima (cap eftir threpi).
+//   5) Server-hlid hjalpari fyrir Fjolmidlavakt o.fl.
+//
+// UPPSETNING: (a) limdu thennan snippet i WPCode (PHP, "Run everywhere").
+//             (b) i karp-user.php: baettu karp_entitlement_augment($data, $u->ID);
+//                 rett a undan return $data; i /me-handler, og kalli a
+//                 karp_follows_enforce_limit() i karp_follows_post (sja comment nedst).
+//
+// MORK speglast vid web/src/data/lausnir.js (LIMITS). -1 = otakmarkad.
+
 if (!defined('ABSPATH')) exit;
 
 function karp_tier_limits($tier, $is_admin = false) {
@@ -29,24 +28,22 @@ function karp_tier_limits($tier, $is_admin = false) {
 }
 function karp_tier_rank($tier) { $r = array('grunnur' => 1, 'fyrirtaeki' => 2, 'fyrirtaeki_plus' => 3); return isset($r[$tier]) ? $r[$tier] : 0; }
 
-/** Eigin virkt þrep notandans (karp_tier ef ekki útrunnið). */
+// Eigin virkt threp notandans (karp_tier ef ekki utrunnid).
 function karp_own_tier($uid) {
     $until = (int) get_user_meta($uid, 'karp_tier_until', true);
     return ($until > time()) ? (string) get_user_meta($uid, 'karp_tier', true) : '';
 }
 
-/**
- * VIRKT ÞREP (effective) = hærra af eigin þrepi og erfðu þrepi frá teymis-eiganda.
- * Seats-líkan: eigandi geymir karp_team_members = fylki netfanga. Meðlimur erfir þrep eiganda.
- */
+// VIRKT THREP (effective) = haerra af eigin threpi og erfdu threpi fra teymis-eiganda.
+// Seats-likan: eigandi geymir karp_team_members = fylki netfanga. Medlimur erfir threp eiganda.
 function karp_effective_tier($uid) {
-    if (user_can($uid, 'manage_options')) return 'fyrirtaeki_plus';   // admin = hæst (rank-lega)
+    if (user_can($uid, 'manage_options')) return 'fyrirtaeki_plus';   // admin = haest (rank-lega)
     $own = karp_own_tier($uid);
     $best = $own; $bestRank = karp_tier_rank($own);
     $user = get_userdata($uid);
     if ($user && $user->user_email) {
         $email = strtolower($user->user_email);
-        // Finna eigendur sem hafa BÆTT þessu netfangi í teymið sitt (og hafa virkt þrep).
+        // Finna eigendur sem hafa BAETT thessu netfangi i teymid sitt (og hafa virkt threp).
         $owners = get_users(array(
             'meta_key' => 'karp_team_members',
             'meta_compare' => 'EXISTS',
@@ -63,44 +60,44 @@ function karp_effective_tier($uid) {
     return $best;
 }
 
-/** Skýrslur notaðar í yfirstandandi mánuði (núllstillist við mánaðamót). */
+// Skyrslur notadar i yfirstandandi manudi (nullstillist vid manadamot).
 function karp_reports_used_this_month($uid) {
     $month = gmdate('Y-m');
     if ((string) get_user_meta($uid, 'karp_reports_month', true) !== $month) return 0;
     return (int) get_user_meta($uid, 'karp_reports_used', true);
 }
 
-/** Bætir entitlement-reitum við /me-farminn (kallað úr karp-user.php rétt fyrir return). */
+// Baetir entitlement-reitum vid /me-farminn (kallad ur karp-user.php rett fyrir return).
 function karp_entitlement_augment(&$data, $uid) {
     $is_admin = user_can($uid, 'manage_options');
     $eff = karp_effective_tier($uid);
     $lim = karp_tier_limits($eff, $is_admin);
     $used = karp_reports_used_this_month($uid);
-    $data['effectiveTier'] = $eff ?: null;                 // virkt þrep (eigin eða erft)
-    $data['limits'] = $lim;                                // mörk þessa þreps
+    $data['effectiveTier'] = $eff ?: null;                 // virkt threp (eigin eda erft)
+    $data['limits'] = $lim;                                // mork thessa threps
     $data['reportsUsed'] = $used;
     $data['reportsRemaining'] = ($lim['reportsMonth'] < 0) ? -1 : max(0, $lim['reportsMonth'] - $used);
     $data['ktWatch'] = array_values((array) ( get_user_meta($uid, 'karp_kt_watch', true) ?: array() ));
     $data['teamMembers'] = array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() ));
-    // Fjöldi co:-fylgja (fyrir client-UX "10/50 notuð").
+    // Fjoldi co:-fylgja (fyrir client-UX "10/50 notud").
     $fl = (array) ( get_user_meta($uid, 'karp_follows', true) ?: array() );
     $data['followsCount'] = count(array_filter($fl, function ($k) { return strpos((string) $k, 'co:') === 0; }));
 }
 
-// ── Nýir endapunktar ────────────────────────────────────────────────────────
+// -- Nyir endapunktar --------------------------------------------------------
 add_action('rest_api_init', function () {
     $auth = function () { return is_user_logged_in(); };
 
-    // POST /reports/open {key,title} — kvóta-athugun: á/kvóti → grant · annars needPay.
+    // POST /reports/open {key,title} - kvota-athugun: a/kvoti -> grant, annars needPay.
     register_rest_route('karp/v1', '/reports/open', array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_reports_open'));
 
-    // Viðskiptamannavakt (kt-listi). GET → listi. POST {kt,action:add|remove}.
+    // Vidskiptamannavakt (kt-listi). GET -> listi. POST {kt,action:add|remove}.
     register_rest_route('karp/v1', '/ktwatch', array(
         array('methods' => 'GET',  'permission_callback' => $auth, 'callback' => 'karp_ktwatch_get'),
         array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_ktwatch_post'),
     ));
 
-    // Seats/teymi. GET → meðlimir + cap. POST {email,action:add|remove}.
+    // Seats/teymi. GET -> medlimir + cap. POST {email,action:add|remove}.
     register_rest_route('karp/v1', '/team', array(
         array('methods' => 'GET',  'permission_callback' => $auth, 'callback' => 'karp_team_get'),
         array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_team_post'),
@@ -120,7 +117,7 @@ function karp_reports_open($req) {
     if ($lim['reportsMonth'] >= 0 && $used >= $lim['reportsMonth']) {
         return array('ok' => false, 'needPay' => true, 'remaining' => 0, 'price' => 990);
     }
-    // Grant: bæta í reports + hækka mánaðar-teljara (nema ótakmarkað).
+    // Grant: baeta i reports + haekka manadar-teljara (nema otakmarkad).
     $rep[] = array('key' => $key, 'title' => $title ?: $key, 'ts' => time(), 'via' => 'kvoti');
     update_user_meta($uid, 'karp_reports', $rep);
     if ($lim['reportsMonth'] >= 0) {
@@ -157,14 +154,14 @@ function karp_team_get() {
     $uid = get_current_user_id();
     $lim = karp_tier_limits(karp_effective_tier($uid), user_can($uid, 'manage_options'));
     $members = array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() ));
-    return array('members' => $members, 'cap' => ($lim['seats'] < 0 ? -1 : max(0, $lim['seats'] - 1)));   // -1 vegna eiganda-sætis
+    return array('members' => $members, 'cap' => ($lim['seats'] < 0 ? -1 : max(0, $lim['seats'] - 1)));   // -1 vegna eiganda-saetis
 }
 function karp_team_post($req) {
     $uid = get_current_user_id();
     $email = strtolower(sanitize_email((string) $req->get_param('email')));
     $action = (string) $req->get_param('action');
     if (!is_email($email)) return new WP_REST_Response(array('ok' => false, 'error' => 'email'), 400);
-    $lim = karp_tier_limits(karp_own_tier($uid), user_can($uid, 'manage_options'));   // aðeins eigin þrep má bjóða seats
+    $lim = karp_tier_limits(karp_own_tier($uid), user_can($uid, 'manage_options'));   // adeins eigin threp ma bjoda seats
     $cap = ($lim['seats'] < 0) ? -1 : max(0, $lim['seats'] - 1);
     if ($cap === 0) return array('ok' => false, 'error' => 'tier');
     $list = array_map('strtolower', array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() )));
@@ -178,23 +175,20 @@ function karp_team_post($req) {
     return array('ok' => true, 'members' => array_values($list));
 }
 
-/** Server-hlið: má notandi (uid) skoða Fjölmiðlavakt? (þrep>=2 EÐA paywall slökkt). Kallað úr karp-frettir.php. */
+// Server-hlid: ma notandi (uid) skoda Fjolmidlavakt? (threp>=2 EDA paywall slokkt). Kallad ur karp-frettir.php.
 function karp_can_fjolmidlavakt($uid = 0) {
-    if (get_option('karp_paywall') !== '1') return true;                 // frítt í bili
+    if (get_option('karp_paywall') !== '1') return true;                 // fritt i bili
     $uid = $uid ?: get_current_user_id();
     if (!$uid) return false;
     return karp_tier_limits(karp_effective_tier($uid), user_can($uid, 'manage_options'))['fjolmidlavakt'] === true;
 }
 
-/**
- * FYLGJA-MÖRK — kallaðu þessa í karp_follows_post (karp-user.php) ÁÐUR en þú vistar
- * nýja lista, til að þvinga co:-fjölda eftir þrepi. Skilar true ef leyfilegt:
- *
- *   if (!karp_follows_enforce_limit($uid, $next)) return new WP_REST_Response(
- *       array('ok'=>false,'error'=>'cap'), 200);
- */
+// FYLGJA-MORK - kalladu thessa i karp_follows_post (karp-user.php) ADUR en thu vistar
+// nyja lista, til ad thvinga co:-fjolda eftir threpi. Skilar true ef leyfilegt:
+//   if (!karp_follows_enforce_limit($uid, $next)) return new WP_REST_Response(
+//       array('ok'=>false,'error'=>'cap'), 200);
 function karp_follows_enforce_limit($uid, $next_list) {
-    if (get_option('karp_paywall') !== '1') return true;                 // frítt í bili
+    if (get_option('karp_paywall') !== '1') return true;                 // fritt i bili
     $lim = karp_tier_limits(karp_effective_tier($uid), user_can($uid, 'manage_options'));
     if ($lim['follows'] < 0) return true;
     $co = count(array_filter((array) $next_list, function ($k) { return strpos((string) $k, 'co:') === 0; }));
