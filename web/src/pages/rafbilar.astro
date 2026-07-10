@@ -2,42 +2,14 @@
 // ─────────────────────────────────────────────────────────────
 // SSG-síða (#2) — Rafbílar & bílafloti: heildarFLOTI (árslok) eftir orkugjafa
 // (SAM30120 — ökutæki eru undir Umhverfi, EKKI Atvinnuvegir!) + rafvæðingar-%.
-// Byggingartíma-PxWeb (þolir bilun). Í app-skelinni. #2.
+// Gögn: daglegt snapshot úr skriptur/build_rafbilar.mjs → gogn/rafbilar.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
+import DATA from '@gogn/rafbilar.json';
 
-const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-
-const FUEL = { BENSIN: ['Bensín', '#8892a6'], DIESEL: ['Dísil', '#5a6678'], RAFMAGN: ['Rafmagn (BEV)', '#46e08a'], TVINN_PLUGIN: ['Tengiltvinn (PHEV)', '#1fb6c9'], TVINN: ['Tvinn (HEV)', '#3a8dff'], METAN_OTH: ['Metan & annað', '#c95cf7'] };
-const CODES = ['ALLIR', ...Object.keys(FUEL)];
-
-let CARS = null;
-try {
-  const j = await px('Umhverfi/5_samgongur/3_okutaekiogvegir/1_okutaeki/SAM30120.px', [sel('Orkugjafi', 'item', CODES), sel('Þyngdarflokkur', 'item', ['ALLIR'])]);
-  const by = {};
-  j.data.forEach((d) => {
-    const y = d.key.find((k) => /^\d{4}$/.test(k));
-    const f = d.key.find((k) => CODES.includes(k));
-    const v = num(d.values[0]);
-    if (y && f && v != null) (by[f] = by[f] || {})[y] = v;
-  });
-  const years = Object.keys(by.ALLIR || {}).filter((y) => +y >= 2005).sort();
-  if (years.length) {
-    const lastY = years[years.length - 1];
-    const bev = by.RAFMAGN?.[lastY] || 0, phev = by.TVINN_PLUGIN?.[lastY] || 0, total = by.ALLIR?.[lastY] || 0;
-    CARS = {
-      years,
-      series: Object.keys(FUEL).map((f) => ({ name: FUEL[f][0], color: FUEL[f][1], data: years.map((y) => by[f]?.[y] ?? null) })),
-      raf: years.map((y) => (by.ALLIR?.[y] ? Math.round((((by.RAFMAGN?.[y] || 0) + (by.TVINN_PLUGIN?.[y] || 0)) / by.ALLIR[y]) * 1000) / 10 : null)),
-      lastY, total, bev, rafPct: total ? Math.round(((bev + phev) / total) * 1000) / 10 : null,
-    };
-  }
-} catch (e) { CARS = null; }
-
-const updated = '2026-07-02';
+const { CARS, updated } = DATA;
 const desc = `Rafbílar og bílafloti Íslands${CARS ? ` — ${groupThousands(CARS.bev)} hreinir rafbílar, rafvæðing ${fmtNum(CARS.rafPct, 1)}% af ${groupThousands(CARS.total)} bíla flota (${CARS.lastY})` : ''}. Þróun flotans eftir orkugjafa.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Rafbílar og bílafloti Íslands', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Fjöldi ökutækja eftir orkugjafa' };
 ---
@@ -73,7 +45,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ra
     )}
 
     <p class="note">ⓘ Tölurnar sýna <strong>heildarflota</strong> í árslok (ekki nýskráningar) — rafvæðingin birtist því hægar en í sölutölum. BEV = hreinn rafbíll, PHEV = tengiltvinn.</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (SAM30120). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (SAM30120). #2.</p>
   </main>
 
   <style>

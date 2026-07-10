@@ -131,6 +131,12 @@ jobs:
           node skriptur/build_hagvoxtur.mjs   || true   # VLF ársfj + VLF-Sankey + Norðurlönd (WB) + IMF-hagvaxtarspá → hagvoxtur.json
           node skriptur/build_mannfjoldi.mjs  || true   # mannfjöldi ársfj + þættir fjölgunar + innflytjendur → mannfjoldi.json
           node skriptur/build_menntun.mjs     || true   # menntunarstaða 25–64 (ISCED) + háskóla-YoY → menntun.json
+          node skriptur/build_ferdathjonusta.mjs || true   # KEF-farþegar (SAM02001) + gistinætur (SAM01601) → ferdathjonusta.json
+          node skriptur/build_landbunadur.mjs || true   # kjötframleiðsla (LAN10201) + búfé (LAN10102) → landbunadur.json
+          node skriptur/build_storidja.mjs    || true   # útflutningsverðmæti ál/kísiljárn (UTA06105) → storidja.json
+          node skriptur/build_rafbilar.mjs    || true   # bílafloti eftir orkugjafa (SAM30120) → rafbilar.json
+          node skriptur/build_umferd.mjs      || true   # KEF-farþegar heild (SAM02001) → umferd.json (lifandi vegaumferð/flug er client-proxy)
+          node skriptur/build_vidskipti.mjs   || true   # utanríkisverslun (UTA06105/06202/06108/06002/06003) → vidskipti.json
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:

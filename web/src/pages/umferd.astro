@@ -1,34 +1,17 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// SSG-síða (#2) — Umferð: farþegar um Keflavíkurflugvöll (Hagstofa, bakað á
-// byggingartíma) + LIFANDI vegaumferð (Vegagerðin gegnum karp-umferd.php proxy,
-// felst á localhost/CORS-bilun). Í app-skelinni. #2.
+// SSG-síða (#2) — Umferð: farþegar um Keflavíkurflugvöll (Hagstofa) + LIFANDI
+// vegaumferð (Vegagerðin gegnum karp-umferd.php proxy, felst á localhost/CORS-bilun)
+// + flug (OpenSky). Í app-skelinni.
+// Gögn: daglegt snapshot úr skriptur/build_umferd.mjs → gogn/umferd.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga).
+// ⚠ Lifandi vegaumferð/flug eru áfram sótt á keyrslutíma í <script>-eyjum — ekki í snapshot. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-import { fmtNum, groupThousands, monthLabel } from '@lib/format.mjs';
+import { fmtNum, groupThousands } from '@lib/format.mjs';
+import DATA from '@gogn/umferd.json';
 
-const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-
-// Keflavík: allir farþegar, mánaðarlega (20 ár → COVID-dýfan sést).
-let KEF = null;
-try {
-  const j = await px('Atvinnuvegir/ferdathjonusta/ferdaidnadurhagvisar/SAM02001.px', [sel('Ríkisfang', 'item', ['0']), sel('Mánuður', 'top', ['240'])]);
-  const m = {};
-  j.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k)); const v = num(d.values[0]); if (t && v != null) m[t] = v; });
-  const ts = Object.keys(m).sort();
-  if (ts.length) {
-    const last = ts[ts.length - 1], y1 = ts[ts.length - 13];
-    KEF = {
-      labels: ts.map(monthLabel), vals: ts.map((t) => m[t]),
-      now: m[last], nowLbl: monthLabel(last),
-      yoy: m[y1] ? Math.round(((m[last] - m[y1]) / m[y1]) * 1000) / 10 : null,
-    };
-  }
-} catch (e) { KEF = null; }
-
-const updated = '2026-07-02';
+const { KEF, updated } = DATA;
 const desc = `Umferð á Íslandi — ${KEF ? groupThousands(KEF.now) + ' farþegar um Keflavíkurflugvöll í ' + KEF.nowLbl + (KEF.yoy != null ? ' (' + (KEF.yoy > 0 ? '+' : '') + fmtNum(KEF.yoy, 1) + '% frá fyrra ári)' : '') : 'flugfarþegar og vegaumferð'} auk lifandi vegaumferðar frá teljurum Vegagerðarinnar.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Umferð á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Farþegar um Keflavíkurflugvöll' };
 ---
@@ -69,7 +52,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       </>
     )}
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: Hagstofa (SAM02001), Vegagerðin (lifandi teljarar). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimildir: Hagstofa (SAM02001), Vegagerðin (lifandi teljarar). #2.</p>
   </main>
 
   <style>

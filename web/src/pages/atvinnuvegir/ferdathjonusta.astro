@@ -1,32 +1,10 @@
 ---
-// Ferðaþjónusta: erlendir farþegar um KEF (SAM02001) + gistinætur (SAM01601) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+// Ferðaþjónusta: erlendir farþegar um KEF (SAM02001) + gistinætur (SAM01601) — daglegt gagna-snapshot úr skriptur/build_ferdathjonusta.mjs → gogn/ferdathjonusta.json (áður byggingartíma-PxWeb í frontmatter á hverri byggingu). #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const curYear = 2026;
-
 import { monthLabel } from '@lib/format.mjs';
-let C1 = null, C2 = null, kefL = null, gistL = null;
-try {
-  const j = await px('Atvinnuvegir/ferdathjonusta/ferdaidnadurhagvisar/SAM02001.px', [sel('Ríkisfang', 'item', ['2']), sel('Mánuður', 'top', ['180'])]);
-  const m = {};
-  j.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k)); const v = num(d.values[0]); if (t && v != null) m[t] = v; });
-  const ts = Object.keys(m).sort();
-  if (ts.length) { C1 = { x: ts.map(monthLabel), u: 'farþegar', series: [{ name: 'Erlendir farþegar', color: '#f6b13b', data: ts.map((t) => m[t]) }], area: true }; const l = ts[ts.length - 1]; kefL = { t: monthLabel(l), v: m[l] }; }
-} catch (e) {}
-try {
-  const j = await px('Atvinnuvegir/ferdathjonusta/Gisting/3_allartegundirgististada/SAM01601.px', [sel('Þjóðerni', 'item', ['Foreigners', 'IS']), sel('Ár', 'all', ['*']), sel('Landshluti', 'item', ['IS']), sel('Eining', 'item', ['0']), sel('Mánuður', 'item', ['0'])]);
-  const erl = {}, isl = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const t = d.key.includes('Foreigners') ? erl : isl; const v = num(d.values[0]); if (y && v != null && +y < curYear) t[y] = Math.round(v / 1e5) / 10; });
-  const ys = Object.keys(erl).sort();
-  if (ys.length) { C2 = { x: ys, u: 'millj. gistinætur', series: [{ name: 'Erlendir gestir', color: '#c95cf7', data: ys.map((y) => erl[y] ?? null) }, { name: 'Íslendingar', color: '#3a8dff', data: ys.map((y) => isl[y] ?? null) }], stack: true }; gistL = { y: ys[ys.length - 1], v: Math.round(((erl[ys[ys.length - 1]] || 0) + (isl[ys[ys.length - 1]] || 0)) * 10) / 10 }; }
-} catch (e) {}
-const updated = '2026-07-02';
+import DATA from '@gogn/ferdathjonusta.json';
+const { C1, C2, kefL, gistL, updated } = DATA;
 const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir farþegar um Keflavík í ' + kefL.t : 'farþegar og gistinætur'}${gistL ? ' og ' + String(gistL.v).replace('.', ',') + ' millj. gistinætur á ári' : ''}. Lifandi frá Hagstofu.`;
 ---
 <Layout title="Ferðaþjónusta | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/ferdathjonusta/" ogTitle="Ferðaþjónusta">
@@ -43,7 +21,7 @@ const desc = `Ferðaþjónustan — ${kefL ? groupThousands(kefL.v) + ' erlendir
       {C1 && <div><h2>Erlendir farþegar um Keflavík (15 ár)</h2><div id="c1"></div></div>}
       {C2 && <div><h2>Gistinætur — erlendir og innlendir</h2><div id="c2"></div></div>}
     </div>
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (SAM02001 farþegar, SAM01601 gistinætur). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (SAM02001 farþegar, SAM01601 gistinætur). #2.</p>
   </main>
 
   <style>

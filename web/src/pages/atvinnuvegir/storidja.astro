@@ -1,29 +1,11 @@
 ---
-// Stóriðja: útflutningsverðmæti áls (UTA06105 fl.15) + kísiljárns (fl.13) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+// Stóriðja: útflutningsverðmæti áls (UTA06105 fl.15) + kísiljárns (fl.13) — daglegt gagna-snapshot úr skriptur/build_storidja.mjs → gogn/storidja.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga). #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const curYear = 2026;
-
-let C1 = null, C2 = null, alL = null;
-try {
-  const j = await px('Efnahagur/utanrikisverslun/1_voruvidskipti/01_voruskipti/UTA06105.px', [sel('Eining', 'item', ['1']), sel('Flokkur', 'item', ['15', '13']), sel('Ár', 'all', ['*'])]);
-  const al = {}, kis = {};
-  // key = [Eining, Flokkur, Ár] — stöðubundnir lyklar (kóðaskörun!)
-  j.data.forEach((d) => { const f = d.key[1], y = d.key[2]; const v = num(d.values[0]); if (!y || v == null || +y < 1995 || +y >= curYear) return; (f === '15' ? al : kis)[y] = Math.round(v / 1e5) / 10; });
-  const ys = [...new Set([...Object.keys(al), ...Object.keys(kis)])].sort();
-  if (ys.length) {
-    C1 = { x: ys, u: 'ma.kr', series: [{ name: 'Ál', color: '#cdd6e6', data: ys.map((y) => al[y] ?? null) }, { name: 'Kísiljárn', color: '#8892a6', data: ys.map((y) => kis[y] ?? null) }] };
-    const l = ys[ys.length - 1];
-    alL = { y: l, al: al[l], kis: kis[l] };
-  }
-} catch (e) {}
-const updated = '2026-07-02';
+import DATA from '@gogn/storidja.json';
+const { C1, alL, updated } = DATA;
+const C2 = null;
 const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null ? ' ' + String(alL.al).replace('.', ',') + ' ma.kr (' + alL.y + ')' : ''} og kísiljárns, knúið af endurnýjanlegri raforku. Lifandi frá Hagstofu.`;
 ---
 <Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/storidja/" ogTitle="Stóriðja & orka">
@@ -37,7 +19,7 @@ const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null
       {alL && alL.kis != null && <div class="kpi"><div class="k-l">⛏️ Kísiljárn</div><div class="k-v">{String(alL.kis).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
     </div>
     {C1 && <><h2>Útflutningsverðmæti frá 1995</h2><div id="c1"></div></>}
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (UTA06105, verðmæti þús.kr → ma.kr). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (UTA06105, verðmæti þús.kr → ma.kr). #2.</p>
   </main>
 
   <style>

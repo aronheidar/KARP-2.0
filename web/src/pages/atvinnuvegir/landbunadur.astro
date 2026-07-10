@@ -1,37 +1,10 @@
 ---
-// Landbúnaður: kjötframleiðsla (LAN10201) + búfé (LAN10102) — byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10.
+// Landbúnaður: kjötframleiðsla (LAN10201) + búfé (LAN10102) — daglegt gagna-snapshot úr skriptur/build_landbunadur.mjs → gogn/landbunadur.json (áður byggingartíma-PxWeb í frontmatter á hverri byggingu). #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const curYear = 2026;
+import DATA from '@gogn/landbunadur.json';
 
-const KJOT = { 0: ['Kindakjöt', '#3a8dff'], 1: ['Nautakjöt', '#e8436f'], 2: ['Hrossakjöt', '#8892a6'], 3: ['Svínakjöt', '#f6b13b'], 4: ['Alifuglakjöt', '#46e08a'] };
-let C1 = null, C2 = null, kjotL = null;
-try {
-  const j = await px('Atvinnuvegir/landbunadur/landframleidsla/LAN10201.px', [sel('Kjöttegund', 'item', Object.keys(KJOT)), sel('Flokkar', 'item', ['1']), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const kt = d.key.find((k) => KJOT[k] && k.length === 1); const v = num(d.values[0]); if (y && kt && v != null && +y >= 2000 && +y < curYear) ((by[kt] = by[kt] || {})[y] = Math.round(v)); });
-  const ys = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
-  if (ys.length) {
-    C1 = { x: ys, u: 'tonn', series: Object.keys(KJOT).filter((k) => by[k]).map((k) => ({ name: KJOT[k][0], color: KJOT[k][1], data: ys.map((y) => by[k][y] ?? null) })), stack: true };
-    const l = ys[ys.length - 1];
-    kjotL = { y: l, v: Object.keys(by).reduce((s, k) => s + (by[k][l] || 0), 0) };
-  }
-} catch (e) {}
-const BUFE = { 0: ['Nautgripir', '#e8436f'], 6: ['Sauðfé', '#3a8dff'] };
-try {
-  const j = await px('Atvinnuvegir/landbunadur/landbufe/LAN10102.px', [sel('Búpeningur', 'item', ['0', '6']), sel('Landshluti', 'item', ['0']), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const b = d.key.find((k) => BUFE[k] && k.length === 1); const v = num(d.values[0]); if (y && b && v != null && +y >= 1995) ((by[b] = by[b] || {})[y] = Math.round(v / 100) / 10); });
-  const ys = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
-  if (ys.length) C2 = { x: ys, u: 'þús. dýr', series: Object.keys(BUFE).filter((k) => by[k]).map((k) => ({ name: BUFE[k][0], color: BUFE[k][1], data: ys.map((y) => by[k][y] ?? null) })) };
-} catch (e) {}
-const updated = '2026-07-02';
+const { C1, C2, kjotL, updated } = DATA;
 const desc = `Landbúnaður — kjötframleiðsla${kjotL ? ' ' + groupThousands(kjotL.v) + ' tonn (' + kjotL.y + ')' : ''} eftir tegundum og þróun bústofnsins (sauðfé fækkar, alifugl vex). Lifandi frá Hagstofu.`;
 ---
 <Layout title="Landbúnaður | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/landbunadur/" ogTitle="Landbúnaður">
@@ -47,7 +20,7 @@ const desc = `Landbúnaður — kjötframleiðsla${kjotL ? ' ' + groupThousands(
       {C1 && <div><h2>Kjötframleiðsla eftir tegundum</h2><div id="c1"></div></div>}
       {C2 && <div><h2>Bústofninn — nautgripir og sauðfé</h2><div id="c2"></div></div>}
     </div>
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (LAN10201 kjöt, LAN10102 búfé). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (LAN10201 kjöt, LAN10102 búfé). #2.</p>
   </main>
 
   <style>
