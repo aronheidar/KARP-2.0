@@ -1841,7 +1841,8 @@ async function rskHandler(request, env, ctx) {
     }
   } catch (e) { diag.threw = String((e && e.message) || e); }
   if (debug) return sjson(diag);
-  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+  // ⚠ Neikvæð svör ALDREI cache-uð (annars festist tímabundin 404/villa á jaðri í 24h).
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': out.holdur ? 'public, max-age=86400' : 'no-store' } });
   if (out.holdur) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
