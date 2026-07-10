@@ -1,0 +1,94 @@
+{
+ "kt": "7107250630",
+ "nafn": "Brim Guesthouse sf.",
+ "sott": "2026-07-10",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt7107250630",
+    "kt": "7107250630",
+    "nafn": "Brim Guesthouse sf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Þórður Grétar Árnason",
+    "tegund": "einst",
+    "faeding": "1982-MARS"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Lovísa Heiðrún Eir Hlynsdóttir",
+    "tegund": "einst",
+    "faeding": "1996-MARS"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt7107250630",
+    "hlutur": 50,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt7107250630",
+    "hlutur": 50,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Þórður Grétar Árnason",
+   "kt": null,
+   "faeding": "1982-MARS",
+   "tegund": "einst",
+   "hlutur": 50,
+   "gegnum": []
+  },
+  {
+   "nafn": "Lovísa Heiðrún Eir Hlynsdóttir",
+   "kt": null,
+   "faeding": "1996-MARS",
+   "tegund": "einst",
+   "hlutur": 50,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Þórður Grétar Árnason",
+   "faeding": "1982-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "50%",
+   "tegund": null
+  },
+  {
+   "nafn": "Lovísa Heiðrún Eir Hlynsdóttir",
+   "faeding": "1996-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "50%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": null
+}
