@@ -97,6 +97,7 @@ jobs:
           node skriptur/build_eftirlit_hnit.js || true  # hnitar eftirlit f. Leaflet-kort (Staðfangaskrá frítt + Google fallback)
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
           node skriptur/build_styrkir.js      || true   # Opinberar styrkveitingar (6 sjóðir → nafn→úthlutun; /api/styrkir + #fs-styrkir)
+          node skriptur/build_ees.js          || true   # EES-vaktin: 3 þrep (CELLAR ESB-gerðir + EES-nefnd ákvarðanir + Alþingi EES-mál) → gogn/ees.json
       - name: Lögbirtingablaðið (opin PDF-tölublöð → lögform. tilkynningar lögaðila á kt)
         run: python skriptur/build_logbirting.py || true   # pypdf; incremental (seen-set í gogn/); persónuvernd: aðeins lögaðilar (gjaldþrot/innköllun/skiptalok/félagsslit)
         env:
