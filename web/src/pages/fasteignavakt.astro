@@ -293,7 +293,7 @@ const jsonLd = {
   </style>
 
   <script>
-    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, karpCheckout } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, karpCheckout, helpNote } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -633,7 +633,7 @@ const jsonLd = {
             gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
             const res = await karpCheckout({ kind: 'fasteign', ref: raw, key: matKey });
             if (res === 'redirected') return;
-            gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
+            gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
           });
           return;
         }
@@ -923,7 +923,7 @@ const jsonLd = {
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey)) { doPrint(); return; }
         const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey });
         if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-        fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
+        fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(fvmBuyBtn); fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
       });
       const fvmAddr = document.getElementById('fvm-addr');
       // ný leit → fela Vakta/Kaupa aftur þar til Meta keyrt (ósk notanda)

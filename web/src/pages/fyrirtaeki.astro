@@ -469,7 +469,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   </style>
 
   <script>
-    import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports } from '../lib/auth.js';
+    import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports, helpNote } from '../lib/auth.js';
     import { mountUboReport, renderUboSample } from '../lib/ubo-report.js';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
@@ -1531,7 +1531,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt });
                   if (res === 'redirected') return;
-                  gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
+                  gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
                 });
                 return;
               }
@@ -1747,7 +1747,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey });
                   if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
-                  bb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; bb.disabled = false; setTimeout(paintBuy, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
+                  bb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(bb); bb.disabled = false; setTimeout(paintBuy, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
                 });
               }
               return;

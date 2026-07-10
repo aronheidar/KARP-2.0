@@ -1,7 +1,7 @@
 // ── 🔗 Endanlegir eigendur (UBO) — sameiginleg skýrsluvél ────────────────────
 // Dregið út úr fyrirtaeki.astro (LOTA 111) svo /fyrirtaeki/ OG /eigendur/ noti
 // sömu vél. Engin tvítekin rökvísi. Public API neðst.
-import { isAdmin, hasReport, karpCheckout } from './auth.js';
+import { isAdmin, hasReport, karpCheckout, helpNote } from './auth.js';
 
 const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
@@ -252,6 +252,7 @@ function wireBuy(hostEl, kt, nafn) {
     const res = await karpCheckout({ kind: 'eigendur', ref: (nafn || '') + ' ' + kt, key: 'eigendur:' + kt });
     if (res === 'redirected') return;
     buy.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur';
+    helpNote(buy);
     buy.disabled = false; setTimeout(() => { buy.textContent = orig; }, 2800);
   });
 }

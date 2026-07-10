@@ -353,6 +353,11 @@ async function spyrduHandler(request, env, ctx) {
     hist = raw.filter((x) => x && x.q && x.a).slice(-3).map((x) => ({ q: String(x.q).slice(0, 300), a: String(x.a).slice(0, 1200) }));
   } catch (e) { return sjson({ error: 'body' }); }
   if (q.length < 3 || q.length > 300) return sjson({ error: 'lengd' });
+  // 🆘 Hjálpar-regla: beiðni um aðstoð / „virkar ekki" / vandamál / villa → vísa beint
+  // á /hjalp/ (ekkert AI-kall, engin kvóta-notkun). Linkify í framendanum gerir /hjalp/ smellanlegt.
+  if (/virkar ekki|virkar illa|virki ekki|bilun|bilað|hrundi|hrynur|kemur villa|villa (í|á|kom|kemur|við)|villu(r)? (í|á)|vandamál|vandræð|kvörtun|kvarta|endurgreiðsl|get ekki (skráð|innskráð|logga|greitt|borgað|opnað)|kemst ekki inn|hafa samband|samband við (ykkur|karp)|tala við (ykkur|manneskju|einhvern|starfsmann)|þarf (aðstoð|hjálp)|fá (aðstoð|hjálp)|biðja um (aðstoð|hjálp)|hjálpar?síð|^\s*(hjálp|help|aðstoð)[!.?\s]*$/i.test(q)) {
+    return sjson({ svar: 'Hljómar eins og þú þurfir aðstoð frá okkur mannfólkinu. 🐟 Sendu okkur línu á /hjalp/ — lýstu vandamálinu þar og við svörum á netfangið þitt, yfirleitt samdægurs. Ef spurningin var um gögnin sjálf máttu líka spyrja mig aftur með öðru orðalagi.' });
+  }
   // Dagskvóti á IP (cache-byggt, per-gagnaver — gróft en heiðarlegt öryggisnet)
   const cache = caches.default;
   const day = new Date().toISOString().slice(0, 10);
@@ -403,6 +408,58 @@ async function spyrduHandler(request, env, ctx) {
     return sjson({ svar: text });
   } catch (e) {
     return sjson({ error: 'ai' });
+  }
+}
+
+// 🆘 Hjálparbeiðnir (/hjalp/ ticket-formið) → tölvupóstur á hjalp@karp.is.
+// Workerinn getur ekki sent SMTP sjálfur → áframsendir á WP REST /karp/v1/hjalp
+// (karp-user.php) sem wp_mail-ar um FluentSMTP/Gmail — SAMA sendileið og vaktirnar.
+// Vörn hér (fyrsta lag): honeypot, gild gögn, 1 beiðni/mín + 8/dag per IP
+// (cache-byggt eins og spyrdu-dagskvótinn — gróft per-gagnaver en nóg gegn rusli).
+// WP-hlið (annað lag): X-Karp-Secret (KARP_GRANT_SECRET, sé það stillt) + eigin
+// honeypot/lengdar/transient-vörn. Sé WP-endapunkturinn ekki límdur enn → 'send'-villa
+// og formið bendir fólki á að senda beint á hjalp@karp.is (ekkert týnist hljóðlaust).
+const HJALP_FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Annað'];
+async function hjalpHandler(request, env, ctx) {
+  if (request.method !== 'POST') return sjson({ error: 'post' }, 405);
+  let b = null;
+  try { b = (await request.json()) || {}; } catch (e) { return sjson({ error: 'body' }, 400); }
+  // Honeypot útfylltur = vélmenni → þykjumst taka við (ekkert sent, engin vísbending)
+  if (String(b.hp || '').trim() !== '') return sjson({ ok: true });
+  const nafn = String(b.nafn || '').trim().slice(0, 120);
+  const netfang = String(b.netfang || '').trim().slice(0, 160);
+  const flokkur = HJALP_FLOKKAR.indexOf(String(b.flokkur || '')) !== -1 ? String(b.flokkur) : 'Annað';
+  const lysing = String(b.lysing || '').trim();
+  if (!nafn || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(netfang)) return sjson({ error: 'gogn' }, 400);
+  if (lysing.length < 20 || lysing.length > 4000) return sjson({ error: 'gogn' }, 400);
+  const cache = caches.default;
+  const ip = request.headers.get('cf-connecting-ip') || 'x';
+  const minKey = new Request('https://cache.karp.internal/hjalp-min/' + encodeURIComponent(ip));
+  if (await cache.match(minKey)) return sjson({ error: 'rate' }, 429);
+  const day = new Date().toISOString().slice(0, 10);
+  const dayKey = new Request('https://cache.karp.internal/hjalp-dag/' + day + '/' + encodeURIComponent(ip));
+  const dh = await cache.match(dayKey);
+  const n = dh ? parseInt(await dh.text(), 10) || 0 : 0;
+  if (n >= 8) return sjson({ error: 'rate' }, 429);
+  ctx.waitUntil(cache.put(minKey, new Response('1', { headers: { 'cache-control': 'public, max-age=60' } })));
+  ctx.waitUntil(cache.put(dayKey, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
+  try {
+    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/hjalp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...(env.KARP_GRANT_SECRET ? { 'X-Karp-Secret': env.KARP_GRANT_SECRET } : {}) },
+      body: JSON.stringify({
+        nafn, netfang, flokkur, lysing,
+        fra: String(b.fra || '').slice(0, 300),
+        innskraning: b.innskraning === true,
+        ua: String(b.ua || '').slice(0, 300),
+        ip,
+      }),
+    });
+    const d = await r.json().catch(() => null);
+    if (r.ok && d && d.ok) return sjson({ ok: true });
+    return sjson({ error: (d && d.error) === 'rate' ? 'rate' : 'send' }, 502);
+  } catch (e) {
+    return sjson({ error: 'send' }, 502);
   }
 }
 
@@ -1722,6 +1779,7 @@ export default {
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
+    if (url.pathname === '/api/hjalp') return hjalpHandler(request, env, ctx);
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);

@@ -66,6 +66,9 @@ function karp_user_payload() {
 
         $data['loggedIn']   = true;
         $data['name']       = $u->display_name;
+        // Netfang notandans — /hjalp/ ticket-formið sjálffyllir það (aðeins eigin lota les það;
+        // /me er kaka-auðkennt og CORS hleypir bara karp.is-hýslum að svarinu).
+        $data['email']      = $u->user_email;
         $data['avatar']     = get_avatar_url($u->ID, array('size' => 64)); // Ultimate Member skiptir hér inn prófílmyndinni
         // wp_logout_url() skilar &#038; (HTML-flúr) — afflúrum svo slóðin fari hrein í JSON
         // (annars tvíflúrast hún í framenda → _wpnonce afbakast → WordPress sýnir „viltu skrá þig út?" síðu).
@@ -280,10 +283,58 @@ add_action('rest_api_init', function () {
     register_rest_route('karp/v1', '/subs/due', array('methods' => 'GET', 'permission_callback' => '__return_true', 'callback' => 'karp_subs_due'));
     register_rest_route('karp/v1', '/sub/claimed', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_claimed'));
     register_rest_route('karp/v1', '/sub/grant', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_grant'));
+    // 🆘 POST /hjalp — hjálparbeiðni af /hjalp/ á karp.is (kemur gegnum worker /api/hjalp,
+    // SERVER-TIL-SERVER) → wp_mail á hjalp@karp.is. Sjá karp_hjalp_post fyrir varnirnar.
+    register_rest_route('karp/v1', '/hjalp', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_hjalp_post'));
 });
 function karp_grant_secret_ok($req) {
     $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
     return $secret !== '' && hash_equals($secret, (string) $req->get_header('X-Karp-Secret'));
+}
+/**
+ * 🆘 Hjálparbeiðni → tölvupóstur á hjalp@karp.is (alias á aron@karp.is í Google Workspace).
+ * Kallað af Cloudflare-workernum (/api/hjalp) sem hefur þegar síað: honeypot, gild gögn,
+ * 1/mín + 8/dag per IP. Varnir hér (annað lag, ef einhver sniðgengur workerinn):
+ *   - X-Karp-Secret: KRAFIST sé KARP_GRANT_SECRET stillt (MJÚKT: sé leyndarmálið óstillt
+ *     virkar endapunkturinn samt — honeypot + transient-hraðatakmörkun + lengdarmörk halda).
+ *   - honeypot (hp), lengdarmörk, transient 1/mín per IP/netfang.
+ * Reply-To = netfang sendanda svo svarið í Gmail fari beint á réttan stað.
+ */
+function karp_hjalp_post($req) {
+    $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
+    if ($secret !== '' && ! hash_equals($secret, (string) $req->get_header('X-Karp-Secret'))) {
+        return new WP_REST_Response(array('ok' => false, 'error' => 'auth'), 401);
+    }
+    $p = (array) $req->get_json_params();
+    if (trim((string) ( isset($p['hp']) ? $p['hp'] : '' )) !== '') { return array('ok' => true); }   // honeypot → þykjast-árangur
+    $nafn    = sanitize_text_field((string) ( isset($p['nafn']) ? $p['nafn'] : '' ));
+    $netfang = sanitize_email((string) ( isset($p['netfang']) ? $p['netfang'] : '' ));
+    $flokkur = sanitize_text_field((string) ( isset($p['flokkur']) ? $p['flokkur'] : '' ));
+    $lysing  = trim(wp_strip_all_tags((string) ( isset($p['lysing']) ? $p['lysing'] : '' )));
+    if ( ! in_array($flokkur, array('Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Annað'), true) ) { $flokkur = 'Annað'; }
+    if ($nafn === '' || ! is_email($netfang) || mb_strlen($lysing) < 20 || mb_strlen($lysing) > 4000) {
+        return new WP_REST_Response(array('ok' => false, 'error' => 'gogn'), 400);
+    }
+    $ip = sanitize_text_field((string) ( isset($p['ip']) ? $p['ip'] : '' ));
+    $tk = 'karp_hjalp_' . md5($ip !== '' ? $ip : $netfang);
+    if (get_transient($tk)) { return new WP_REST_Response(array('ok' => false, 'error' => 'rate'), 429); }
+    set_transient($tk, 1, MINUTE_IN_SECONDS);
+    $body = "Ný hjálparbeiðni af karp.is/hjalp/\n\n"
+        . 'Nafn:      ' . $nafn . "\n"
+        . 'Netfang:   ' . $netfang . "\n"
+        . 'Flokkur:   ' . $flokkur . "\n"
+        . 'Innskráð:  ' . ( ! empty($p['innskraning']) ? 'já' : 'nei' ) . "\n"
+        . 'Kom af:    ' . sanitize_text_field((string) ( isset($p['fra']) ? $p['fra'] : '' )) . "\n"
+        . 'Vafri:     ' . sanitize_text_field((string) ( isset($p['ua']) ? $p['ua'] : '' )) . "\n"
+        . ( $ip !== '' ? 'IP:        ' . $ip . "\n" : '' )
+        . "\nLýsing:\n" . $lysing . "\n";
+    $sent = wp_mail(
+        'hjalp@karp.is',
+        'Karp hjálp [' . $flokkur . ']: ' . $nafn,
+        $body,
+        array('Reply-To: ' . $nafn . ' <' . $netfang . '>')
+    );
+    return array('ok' => (bool) $sent);
 }
 function karp_subs_due($req) {
     if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }

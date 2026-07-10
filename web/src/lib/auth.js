@@ -210,8 +210,21 @@ const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(24
   + '.sg-kt{padding:11px 14px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.05);color:#eaf1fb;font:inherit;font-size:14px;width:200px;text-align:center;letter-spacing:.06em}'
   + '.sg-kt:focus{outline:none;border-color:#f6b13b}'
   + '.sg-err{color:#ff8a8a;font-size:12.5px;margin-top:10px}'
+  + '.sg-err a.pg-help,.pg-note a.pg-help{color:#f6b13b;text-decoration:none}'
   + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}';
 function injectGateCss() { if (typeof document === 'undefined' || document.getElementById('karp-gate-css')) return; const s = document.createElement('style'); s.id = 'karp-gate-css'; s.textContent = GATE_CSS; document.head.appendChild(s); }
+
+// „Fáðu aðstoð"-hlekkur á /hjalp/ (ticket-formið) — ?fra= forvelur flokk þar.
+const helpA = (txt, fra) => '<a class="pg-help" href="/hjalp/?fra=' + (fra || 'greidsla') + '">' + (txt || 'fáðu aðstoð') + '</a>';
+// Setur „fáðu aðstoð"-nótu undir hnapp/reit þegar greiðsluleið klikkar („reyndu aftur"-staðirnir).
+// Notað hér og af karpCheckout-köllurunum (fyrirtaeki/fasteignavakt/ubo-report).
+export function helpNote(el, fra) {
+  if (!el || typeof document === 'undefined') return;
+  injectGateCss();
+  let n = el.nextElementSibling;
+  if (!n || !n.classList || !n.classList.contains('sg-err')) { n = document.createElement('div'); n.className = 'sg-err'; el.after(n); }
+  n.innerHTML = 'Gengur ekki? ' + helpA('Fáðu aðstoð', fra) + ' — við svörum á netfangið þitt.';
+}
 
 // Teiknar Karp+ gátt-teaser inn í el (t.d. í stað læsts efnis). Innskráð → „Prófa frítt í mánuð"
 // (POST /plus/trial → reload); útskráð → innskráning (1 mánuður frír eftir á).
@@ -224,9 +237,9 @@ export function plusGate(el, opts) {
     + '<div class="pg-btns">'
     + (u.loggedIn ? '<button class="pg-main" id="pg-trial" type="button">Prófa frítt í mánuð</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skráðu þig inn — 1 mánuður frír</a>')
     + '<a class="pg-sec" href="/karp-pro/">Sjá Karp+</a></div>'
-    + '<div class="pg-note">Ókeypis fyrsta mánuðinn' + (opts.price ? ', svo ' + esc(opts.price) : '') + '. Hættu hvenær sem er.</div></div>';
+    + '<div class="pg-note">Ókeypis fyrsta mánuðinn' + (opts.price ? ', svo ' + esc(opts.price) : '') + '. Hættu hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
   const t = el.querySelector('#pg-trial');
-  if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; } };
+  if (t) t.onclick = async () => { t.disabled = true; t.textContent = 'Virkja…'; const r = await karpPost('/plus/trial', {}); if (r && r.ok) location.reload(); else { t.disabled = false; t.textContent = 'Náði ekki — reyndu aftur'; helpNote(t); } };
 }
 
 // Þrep-gátt (Verk B): teaser þegar efni krefst hærra þreps. Trektar á /karp-pro/ (þar sem VerdTafla sér um checkout).
@@ -238,7 +251,7 @@ export function tierGate(el, opts) {
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
     + '<div class="pg-btns"><a class="pg-main" href="/karp-pro/#verd">Sjá þrep & verð</a>'
     + (u.loggedIn ? '' : '<a class="pg-sec" href="' + esc(loginHref()) + '">Skrá inn</a>')
-    + '</div><div class="pg-note">Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuður frír.</div></div>';
+    + '</div><div class="pg-note">Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuður frír. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
 }
 
 // Þjónustu-gátt: efni sem fæst annaðhvort með sér-áskrift (opts.service + opts.price kr./mán. um Áskell)
@@ -253,7 +266,7 @@ export function subGate(el, opts) {
     + '<div class="pg-btns">'
     + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">Gerast áskrifandi — ' + esc(verd) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að gerast áskrifandi</a>')
     + '<a class="pg-sec" href="/karp-pro/#verd">Eða Karp+ (frá 2.900 kr./mán.)</a></div>'
-    + '<div class="pg-note">Sér áskrift á ' + esc(verd) + ' — eða innifalið í öllum þrepum Karp+. Engin binding.</div></div>';
+    + '<div class="pg-note">Sér áskrift á ' + esc(verd) + ' — eða innifalið í öllum þrepum Karp+. Engin binding. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
   const b = el.querySelector('#sg-sub');
   if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }
@@ -277,7 +290,7 @@ export async function karpAskellSubscribe(service, gateEl) {
     + '<button class="pg-main" id="sg-next" type="button">Halda áfram →</button>';
   const err = document.createElement('div'); err.className = 'sg-err'; err.hidden = true; btns.after(err);
   const ktIn = gateEl.querySelector('#sg-kt'); if (ktIn) ktIn.focus();
-  const fail = (m) => { err.hidden = false; err.textContent = m; };
+  const fail = (m) => { err.hidden = false; err.innerHTML = esc(m) + ' Eða ' + helpA() + '.'; };
   gateEl.querySelector('#sg-next').onclick = async () => {
     const kt = String(ktIn.value || '').replace(/\D/g, '');
     if (kt.length !== 10) return fail('Sláðu inn gilda 10 stafa kennitölu.');
@@ -305,7 +318,7 @@ export async function karpSubscribe(service, btn) {
   if (btn) { btn.disabled = true; btn.textContent = 'Virkja…'; }
   const r = await karpPost('/sub/trial', { service });
   if (r && r.ok) { location.reload(); return true; }
-  if (btn) { btn.disabled = false; btn.textContent = 'Náði ekki — reyndu aftur'; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Náði ekki — reyndu aftur'; helpNote(btn); }
   return false;
 }
 
@@ -323,7 +336,7 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
   if (btn) btn.disabled = true;
   const ktIn = box.querySelector('.sg-kt'), go = box.querySelector('button'), err = box.querySelector('.sg-err');
   if (ktIn) ktIn.focus();
-  const fail = (m) => { err.hidden = false; err.textContent = m; };
+  const fail = (m) => { err.hidden = false; err.innerHTML = esc(m) + ' Eða ' + helpA() + '.'; };
   go.onclick = async () => {
     const kt = String(ktIn.value || '').replace(/\D/g, '');
     if (kt.length !== 10) return fail('Sláðu inn gilda 10 stafa kennitölu.');
@@ -347,4 +360,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };

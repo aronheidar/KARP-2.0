@@ -1,0 +1,155 @@
+---
+// /hjalp/ — „Þarftu aðstoð?" ticket-form. POST-ar á /api/hjalp (worker) sem
+// áframsendir á WP REST /karp/v1/hjalp → wp_mail á hjalp@karp.is (sama sendileið
+// og vaktirnar). Innskráðir fá nafn+netfang sjálffyllt úr loadUser() (netfang
+// aðeins ef /me-farmurinn skilar því — formið virkar líka án þess).
+// Fylgigögn með beiðninni: ?fra= (eða referrer), innskráningarstaða og vafri.
+// Spam-vörn framenda-megin: honeypot-reitur (#hj-hp) + lágmarkslengd lýsingar.
+import Layout from '../layouts/Layout.astro';
+const desc = 'Þarftu aðstoð með Karp? Sendu okkur línu — greiðslur, innskráning, villur í gögnum eða hvað sem er — og við svörum á netfangið þitt.';
+const FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Annað'];
+---
+<Layout title="Þarftu aðstoð? — Hjálp | Karp" description={desc} canonical="https://karp.is/hjalp/" ogTitle="Hjálp — Karp">
+  <main data-pg="hjalp">
+    <p class="kicker">Karp · Aðstoð</p>
+    <h1>🆘 Þarftu aðstoð?</h1>
+    <p class="hj-intro">Lýstu vandamálinu hér að neðan og við svörum á netfangið þitt — yfirleitt samdægurs á virkum dögum.</p>
+
+    <div class="hj-card">
+      <form id="hj-form" autocomplete="on" novalidate>
+        <div class="hj-row">
+          <label class="hj-field"><span>Nafn</span>
+            <input type="text" id="hj-nafn" name="nafn" maxlength="120" required autocomplete="name" />
+          </label>
+          <label class="hj-field"><span>Netfang</span>
+            <input type="email" id="hj-netfang" name="netfang" maxlength="160" required autocomplete="email" inputmode="email" />
+          </label>
+        </div>
+        <label class="hj-field"><span>Um hvað snýst erindið?</span>
+          <select id="hj-flokkur" name="flokkur">
+            {FLOKKAR.map((f) => <option value={f}>{f}</option>)}
+          </select>
+        </label>
+        <label class="hj-field"><span>Lýsing <small>(sem nákvæmust — hvað gerðist, á hvaða síðu?)</small></span>
+          <textarea id="hj-lysing" name="lysing" rows="7" minlength="20" maxlength="4000" required placeholder="T.d. „Ég reyndi að greiða fyrir skýrslu um Brim hf. en fékk villu eftir kortaskrefið…“"></textarea>
+        </label>
+        <!-- Honeypot: falinn reitur sem fólk fyllir ALDREI út — vélmenni gera það. -->
+        <div class="hj-hp" aria-hidden="true"><label>Vefsíða<input type="text" id="hj-hp" name="vefur" tabindex="-1" autocomplete="off" /></label></div>
+        <p class="hj-msg err" id="hj-err" hidden></p>
+        <button type="submit" class="hj-btn" id="hj-send">Senda beiðni</button>
+        <p class="hj-note">Þú getur líka sent okkur beint á <a href="mailto:hjalp@karp.is">hjalp@karp.is</a>.</p>
+      </form>
+
+      <div id="hj-done" class="hj-done" hidden>
+        <div class="hj-done-ico">✅</div>
+        <h2>Beiðnin er móttekin</h2>
+        <p>Takk fyrir að láta okkur vita — þú færð svar á netfangið þitt<span id="hj-done-email"></span>.</p>
+        <a class="hj-btn hj-btn-sec" href="/">Aftur á forsíðu</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    import { loadUser } from '../lib/auth.js';
+    // ?fra=<staður> → forval á flokki (greiðslu-/innskráningarhlekkir vísa hingað með fra)
+    const FRA2FLOKKUR = { greidsla: 'Greiðslur & áskrift', innskraning: 'Innskráning & aðgangur', nyskraning: 'Innskráning & aðgangur', gogn: 'Villa í gögnum' };
+    let SENDING = false;
+    function boot() {
+      const form = document.getElementById('hj-form');
+      if (!form || form.dataset.wired) return;
+      form.dataset.wired = '1';
+      const p = new URLSearchParams(location.search);
+      // Slóðin sem notandinn kom af: ?fra= trompar, annars referrer (aðeins slóðar-hlutinn).
+      let fra = p.get('fra') || '';
+      if (!fra && document.referrer) { try { fra = new URL(document.referrer).pathname; } catch (e) {} }
+      const fl = document.getElementById('hj-flokkur');
+      if (fl && FRA2FLOKKUR[fra]) fl.value = FRA2FLOKKUR[fra];
+      // Innskráð(ur)? → sjálffylla nafn + netfang (netfang aðeins ef /me skilar því).
+      let loggedIn = false;
+      loadUser().then((u) => {
+        if (!u || !u.loggedIn) return;
+        loggedIn = true;
+        const n = document.getElementById('hj-nafn'), e = document.getElementById('hj-netfang');
+        if (n && !n.value && u.name) n.value = u.name;
+        if (e && !e.value && u.email) e.value = u.email;
+      }).catch(() => {});
+
+      const err = document.getElementById('hj-err');
+      const fail = (m) => { err.textContent = m; err.hidden = false; };
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (SENDING) return;
+        err.hidden = true;
+        const nafn = document.getElementById('hj-nafn').value.trim();
+        const netfang = document.getElementById('hj-netfang').value.trim();
+        const lysing = document.getElementById('hj-lysing').value.trim();
+        if (!nafn) return fail('Sláðu inn nafnið þitt.');
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(netfang)) return fail('Sláðu inn gilt netfang — við svörum þangað.');
+        if (lysing.length < 20) return fail('Lýstu vandamálinu aðeins nánar (a.m.k. 20 stafir) svo við getum hjálpað.');
+        const btn = document.getElementById('hj-send');
+        SENDING = true; btn.disabled = true; btn.textContent = 'Sendi…';
+        let d = null;
+        try {
+          const r = await fetch('/api/hjalp', {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              nafn, netfang, lysing,
+              flokkur: fl ? fl.value : 'Annað',
+              hp: document.getElementById('hj-hp').value,
+              fra: String(fra).slice(0, 300),
+              innskraning: loggedIn,
+              ua: navigator.userAgent.slice(0, 300),
+            }),
+          });
+          d = await r.json().catch(() => null);
+        } catch (e) {}
+        SENDING = false; btn.disabled = false; btn.textContent = 'Senda beiðni';
+        if (d && d.ok) {
+          form.hidden = true;
+          const done = document.getElementById('hj-done');
+          const de = document.getElementById('hj-done-email');
+          if (de) de.textContent = ' (' + netfang + ')';
+          if (done) done.hidden = false;
+          try { done.scrollIntoView({ block: 'center' }); } catch (e) {}
+        } else if (d && d.error === 'rate') {
+          fail('Aðeins ein beiðni á mínútu — reyndu aftur eftir smástund.');
+        } else {
+          fail('Ekki tókst að senda beiðnina. Reyndu aftur — eða sendu beint á hjalp@karp.is.');
+        }
+      });
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+
+  <style>
+    main { max-width: 640px; margin: 0 auto; padding: 34px 20px 64px; }
+    .hj-intro { color: #cdd6e6; font-size: 15px; line-height: 1.6; margin: 0 0 20px; }
+    .hj-card { background: rgba(255,255,255,.04); border: 1px solid rgba(246,177,59,.35); border-radius: 18px; padding: 26px 24px 28px; }
+    .hj-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .hj-row { grid-template-columns: 1fr; gap: 0; } }
+    .hj-field { display: block; margin-bottom: 14px; }
+    .hj-field span { display: block; font-size: 13px; color: #cdd6e6; font-weight: 600; margin-bottom: 6px; }
+    .hj-field small { font-weight: 400; color: #7e8ca6; }
+    .hj-field input, .hj-field select, .hj-field textarea {
+      width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px; padding: 11px 13px; color: #eaf1fb; font: inherit; font-size: 15px; }
+    .hj-field select { color-scheme: dark; }
+    .hj-field textarea { resize: vertical; line-height: 1.5; }
+    .hj-field input:focus, .hj-field select:focus, .hj-field textarea:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    /* Honeypot af skjá (EKKI display:none — sum vélmenni sleppa þeim reitum) */
+    .hj-hp { position: absolute; left: -9999px; top: -9999px; height: 1px; overflow: hidden; }
+    .hj-msg { border-radius: 11px; padding: 11px 14px; font-size: 13.5px; line-height: 1.5; margin: 0 0 14px; }
+    .hj-msg.err { background: rgba(244,63,94,.1); border: 1px solid rgba(244,63,94,.42); color: #fecdd3; }
+    .hj-btn { display: block; width: 100%; background: #f6b13b; color: #131a29; font-weight: 800; font-size: 15px; text-align: center; border: 0; border-radius: 11px; padding: 13px; cursor: pointer; text-decoration: none; }
+    .hj-btn:hover { filter: brightness(1.07); }
+    .hj-btn:disabled { opacity: .6; cursor: wait; }
+    .hj-btn-sec { display: inline-block; width: auto; padding: 11px 22px; margin-top: 6px; }
+    .hj-note { font-size: 12.5px; color: #7e8ca6; text-align: center; margin: 12px 0 0; }
+    .hj-note a { color: #f6b13b; text-decoration: none; }
+    .hj-done { text-align: center; padding: 10px 4px; }
+    .hj-done-ico { font-size: 40px; }
+    .hj-done h2 { color: #eaf1fb; font-size: 21px; margin: 10px 0 8px; }
+    .hj-done p { color: #cdd6e6; font-size: 14.5px; line-height: 1.6; margin: 0 0 18px; }
+  </style>
+</Layout>
