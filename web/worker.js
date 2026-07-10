@@ -268,7 +268,7 @@ function firmaNafn(q) {
 async function firmaLookup(q, ctx, env) {
   const nafn = firmaNafn(q);
   if (nafn.length < 2) return null;
-  const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), ctx); return r.json().catch(() => null); };
+  const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), env, ctx); return r.json().catch(() => null); };
   let d = await call(nafn);
   let f = d && d.felag;
   if (!f && d && d.hits && d.hits.length) {
@@ -1452,7 +1452,7 @@ async function stjornRequestHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
-async function fyrirtaekiHandler(request, ctx) {
+async function fyrirtaekiHandler(request, env, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
   const cache = caches.default;
@@ -1484,6 +1484,26 @@ async function fyrirtaekiHandler(request, ctx) {
     }
   } catch (e) {}
   if (!out) return sjson({ error: 'upstream' });
+  // ── Auðgun úr OPINBERA RSK-API-inu (Fasi 2a) — API aðal, skrap heldur sínu ef API tómt/óvirkt.
+  // felag.rsk = fullur hreinsaður hlutur (afskraning/gjaldþrot, hlutafé, tengsl…). Overlay á lykilreiti.
+  if (out.felag && /^\d{10}$/.test(out.felag.kt || kt)) {
+    try {
+      const rr = await rskHandler(new Request('https://k.internal/api/rsk?kt=' + (out.felag.kt || kt)), env, ctx);
+      const rd = await rr.json().catch(() => null);
+      if (rd && rd.holdur) {
+        const f = out.felag;
+        f.rsk = rd;
+        if (rd.stada) f.stada = rd.stada;                       // opinber staða ("Virk skráning")
+        if (rd.tilgangur) f.tilgangur = rd.tilgangur;
+        if (rd.form) f.form = rd.form;                          // API-form áreiðanlegra en skrap
+        if (rd.afskraning) f.afskraning = rd.afskraning;        // NÝTT: gjaldþrot/gjaldþol + dags → KYC
+        if (rd.hlutafe) { f.hlutafe = rd.hlutafe; f.mynt = rd.mynt || null; }
+        if (rd.undirskrift) f.undirskrift = rd.undirskrift;
+        if (rd.atkvaedi) f.atkvaedi = rd.atkvaedi;
+        if (Array.isArray(rd.tengsl) && rd.tengsl.length) f.fyrirsvar = rd.tengsl;   // structured fyrirsvar (aðal)
+      }
+    } catch (e) {}
+  }
   res = new Response(JSON.stringify(out), {
     status: 200,
     headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' },
@@ -1601,7 +1621,7 @@ async function styrkirHandler(request, env, ctx) {
   // aðeins kt gefið → leysa opinbert nafn úr RSK-leit (EITT félag á view-tíma; ALDREI fjöldakall).
   if (!nafn && kt.length === 10) {
     try {
-      const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), ctx);
+      const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), env, ctx);
       const d = await r.json().catch(() => null);
       if (d && d.felag && d.felag.nafn) nafn = d.felag.nafn;
     } catch (e) {}
@@ -1865,7 +1885,7 @@ export default {
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
-    if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, ctx);
+    if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, env, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
     if (url.pathname === '/api/loftfor') return loftforHandler(request, env, ctx);
