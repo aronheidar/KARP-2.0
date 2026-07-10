@@ -1,96 +1,16 @@
 ---
 // Landbúnaður — kjöt (LAN10201) + búfé (LAN10102) + uppskera/mjólk/korn/grænmeti (LAN10103)
 // + útflutningur búvara (UTA06105 fl.11) + framleiðsluvirði (LAN1101) + Matvælasjóðs-úthlutanir (styrkir.json).
-// Byggingartíma-PxWeb (þolir bilun per hluta). #2 LOTA 10 → auðgað.
+// Hagstofu-hlutar: daglegt snapshot úr skriptur/build_landbunadur.mjs → gogn/landbunadur.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla per hluta). Styrkir áfram bakað-inn import. #2 LOTA 10.
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import STYRKIR from '@gogn/styrkir.json';
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const curYear = 2026;
+import DATA from '@gogn/landbunadur.json';
 
-// 1. Kjötframleiðsla ------------------------------------------------------
-const KJOT = { 0: ['Kindakjöt', '#3a8dff'], 1: ['Nautakjöt', '#e8436f'], 2: ['Hrossakjöt', '#8892a6'], 3: ['Svínakjöt', '#f6b13b'], 4: ['Alifuglakjöt', '#46e08a'] };
-let C1 = null, kjotL = null;
-try {
-  const j = await px('Atvinnuvegir/landbunadur/landframleidsla/LAN10201.px', [sel('Kjöttegund', 'item', Object.keys(KJOT)), sel('Flokkar', 'item', ['1']), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const kt = d.key.find((k) => KJOT[k] && k.length === 1); const v = num(d.values[0]); if (y && kt && v != null && +y >= 2000 && +y < curYear) ((by[kt] = by[kt] || {})[y] = Math.round(v)); });
-  const ys = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
-  if (ys.length) {
-    C1 = { x: ys, u: 'tonn', series: Object.keys(KJOT).filter((k) => by[k]).map((k) => ({ name: KJOT[k][0], color: KJOT[k][1], data: ys.map((y) => by[k][y] ?? null) })), stack: true };
-    const l = ys[ys.length - 1];
-    kjotL = { y: l, v: Object.keys(by).reduce((s, k) => s + (by[k][l] || 0), 0) };
-  }
-} catch (e) {}
+const { C1, C2, C3, C4, C5, C6, C7, kjotL, milkL, grainL, expL, valL, updated } = DATA;
 
-// 2. Bústofn --------------------------------------------------------------
-const BUFE = { 0: ['Nautgripir', '#e8436f'], 6: ['Sauðfé', '#3a8dff'] };
-let C2 = null;
-try {
-  const j = await px('Atvinnuvegir/landbunadur/landbufe/LAN10102.px', [sel('Búpeningur', 'item', ['0', '6']), sel('Landshluti', 'item', ['0']), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const b = d.key.find((k) => BUFE[k] && k.length === 1); const v = num(d.values[0]); if (y && b && v != null && +y >= 1995) ((by[b] = by[b] || {})[y] = Math.round(v / 100) / 10); });
-  const ys = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
-  if (ys.length) C2 = { x: ys, u: 'þús. dýr', series: Object.keys(BUFE).filter((k) => by[k]).map((k) => ({ name: BUFE[k][0], color: BUFE[k][1], data: ys.map((y) => by[k][y] ?? null) })) };
-} catch (e) {}
-
-// 3–5. Uppskera og afurðir (mjólk / korn / grænmeti) — LAN10103 ------------
-const VEG = { 10: ['Kartöflur', '#f6b13b'], 12: ['Gulrætur', '#ff8a3d'], 13: ['Tómatar', '#e8436f'], 14: ['Gúrkur', '#46e08a'], 15: ['Paprika', '#c95cf7'], 21: ['Salat', '#3a8dff'] };
-let C3 = null, C4 = null, C5 = null, milkL = null, grainL = null, vegL = null;
-try {
-  const codes = ['5', '25', ...Object.keys(VEG)];
-  const j = await px('Atvinnuvegir/landbunadur/landbufe/LAN10103.px', [sel('Tegund', 'item', codes), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const t = d.key.find((k) => k !== y); const v = num(d.values[0]); if (y && t != null && v != null && +y >= 1990 && +y <= 2025) ((by[t] = by[t] || {})[y] = v); });
-  // Mjólk (t=25) → þús. tonn
-  if (by['25']) {
-    const ys = Object.keys(by['25']).sort();
-    C3 = { x: ys, u: 'þús. tonn', series: [{ name: 'Mjólk', color: '#dfe7f2', data: ys.map((y) => Math.round(by['25'][y] / 100) / 10) }] };
-    const l = ys[ys.length - 1]; milkL = { y: l, v: Math.round(by['25'][l] / 1000) };
-  }
-  // Korn alls (t=5) → tonn
-  if (by['5']) {
-    const ys = Object.keys(by['5']).sort();
-    C5 = { x: ys, u: 'tonn', area: true, series: [{ name: 'Kornuppskera', color: '#e0b64a', data: ys.map((y) => Math.round(by['5'][y])) }] };
-    const l = ys[ys.length - 1]; grainL = { y: l, v: Math.round(by['5'][l]) };
-  }
-  // Grænmeti (stöfluð svæði) → tonn
-  const vegYs = [...new Set(Object.keys(VEG).flatMap((k) => (by[k] ? Object.keys(by[k]) : [])))].sort();
-  if (vegYs.length) {
-    C4 = { x: vegYs, u: 'tonn', stack: true, series: Object.keys(VEG).filter((k) => by[k]).map((k) => ({ name: VEG[k][0], color: VEG[k][1], data: vegYs.map((y) => (by[k][y] != null ? Math.round(by[k][y]) : null)) })) };
-    const l = vegYs[vegYs.length - 1]; vegL = { y: l, v: Object.keys(VEG).reduce((s, k) => s + (by[k] && by[k][l] || 0), 0) };
-  }
-} catch (e) {}
-
-// 6. Útflutningur búvara — UTA06105 Flokkur 11 (verðmæti þús.kr → ma.kr) ---
-let C6 = null, expL = null;
-try {
-  const j = await px('Efnahagur/utanrikisverslun/1_voruvidskipti/01_voruskipti/UTA06105.px', [sel('Eining', 'item', ['1']), sel('Flokkur', 'item', ['11']), sel('Ár', 'all', ['*'])]);
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const v = num(d.values[0]); if (y && v != null && +y >= 2000 && +y < curYear) by[y] = Math.round(v / 1e5) / 10; });
-  const ys = Object.keys(by).sort();
-  if (ys.length) { C6 = { x: ys, u: 'ma.kr', area: true, series: [{ name: 'Landbúnaðarafurðir', color: '#46e08a', data: ys.map((y) => by[y]) }] }; const l = ys[ys.length - 1]; expL = { y: l, v: by[l] }; }
-} catch (e) {}
-
-// 7. Framleiðsluvirði landbúnaðar (verð til bænda) — LAN1101 (m.kr → ma.kr)
-let C7 = null, valL = null;
-try {
-  const j = await px('Atvinnuvegir/landbunadur/landbhagreikn/afkomalandbundadarins/LAN1101.px', [sel('Verð', 'item', ['Framleiðsluverð']), sel('Mælikvarði', 'item', ['Verðlag hvers árs']), sel('Vöruflokkur', 'item', ['16', '17']), sel('Ár', 'all', ['*'])]);
-  const by = { 16: {}, 17: {} };
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const f = d.key.find((k) => k === '16' || k === '17'); const v = num(d.values[0]); if (y && f && v != null) by[f][y] = Math.round(v / 100) / 10; });
-  const ys = [...new Set([...Object.keys(by[16]), ...Object.keys(by[17])])].sort();
-  if (ys.length) {
-    C7 = { x: ys, u: 'ma.kr', stack: true, series: [{ name: 'Búfjárafurðir', color: '#e8436f', data: ys.map((y) => by[16][y] ?? null) }, { name: 'Jarðargróði', color: '#46e08a', data: ys.map((y) => by[17][y] ?? null) }] };
-    const l = ys[ys.length - 1]; valL = { y: l, v: Math.round((by[16][l] || 0) + (by[17][l] || 0)) };
-  }
-} catch (e) {}
-
-// 8. Matvælasjóður — úthlutanir úr styrkjaskrá ----------------------------
+// 8. Matvælasjóður — úthlutanir úr styrkjaskrá (bakað-inn @gogn/styrkir.json, ekki Hagstofu-sókn) ----
 let C8 = null, grantK = null;
 try {
   const mat = (STYRKIR.styrkir || []).filter((s) => s.sjodur === 'Matvælasjóður');
@@ -106,7 +26,6 @@ try {
 } catch (e) {}
 const styrkKr = (n) => (n >= 1e6 ? fmtNum(n / 1e6, 1) + ' m.kr' : groupThousands(Math.round(n)) + ' kr');
 
-const updated = '2026-07-10';
 const desc = `Landbúnaður á Íslandi — kjöt${kjotL ? ' ' + groupThousands(kjotL.v) + ' tonn' : ''}, mjólk${milkL ? ' ' + milkL.v + ' þús. tonn' : ''}, grænmeti, kornrækt, útflutningur búvara${expL ? ' ' + fmtNum(expL.v, 1) + ' ma.kr' : ''} og úthlutanir Matvælasjóðs. Lifandi frá Hagstofu.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Landbúnaður á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 ---
@@ -157,7 +76,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'La
       </section>
     )}
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: Hagstofa (LAN10201 kjöt, LAN10102 búfé, LAN10103 uppskera/mjólk, LAN1101 framleiðsluvirði, UTA06105 útflutningur) og Matvælasjóður (úthlutunarskrá). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimildir: Hagstofa (LAN10201 kjöt, LAN10102 búfé, LAN10103 uppskera/mjólk, LAN1101 framleiðsluvirði, UTA06105 útflutningur) og Matvælasjóður (úthlutunarskrá). #2.</p>
   </main>
 
   <style>

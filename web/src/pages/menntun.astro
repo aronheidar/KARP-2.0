@@ -3,111 +3,21 @@
 // Menntun (auðgað) — menntunarstaða 25–64 (SKO00002) + eftir kyni,
 // fjöldi nemenda eftir skólastigi (SKO00000), brautskráning háskóla eftir sviði (SKO04205),
 // fræðsluútgjöld % af VLF (THJ05631), kostnaður á nemanda (THJ05661), PISA Norðurlönd (OECD 2022).
-// Byggingartíma-PxWeb (þolir bilun per hluta). #2.
+// Gögn: daglegt snapshot úr skriptur/build_menntun.mjs → gogn/menntun.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla per hluta). PISA er harðkóðuð heimild. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
+import DATA from '@gogn/menntun.json';
 
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const { EDU, ENROLL, FIELD, SPEND, COST, updated } = DATA;
+const { C_edu = null, C_sex = null, uniPct = null, uniY = null, sexY = null } = EDU || {};
+const { C_enroll = null, haskN = null, enrollY = null } = ENROLL || {};
+const { C_field = null, fieldY = null, gradTot = null } = FIELD || {};
+const { C_spend = null, spendPct = null, spendY = null } = SPEND || {};
+const { C_cost = null, costHask = null, costY = null } = COST || {};
 
-// 1. Menntunarstaða 25–64 (SKO00002) — þróun + eftir kyni ------------------
-const ISCED = { 'ISCED 1, 2': ['Grunnmenntun', '#ff8a3d'], 'ISCED 3, 4': ['Framhaldsskólastig', '#3a8dff'], 'ISCED 5, 6, 7, 8': ['Háskólastig', '#46e08a'] };
-const LVLS = Object.keys(ISCED);
-let C_edu = null, C_sex = null, uniPct = null, uniY = null, uniK = null, uniM = null, sexY = null;
-try {
-  const [aj, sj] = await Promise.all([
-    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['Alls']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
-    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['1', '2']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
-  ]);
-  const byLvl = {};
-  aj.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}$/.test(k)); const l = d.key.find((k) => ISCED[k]); const v = num(d.values[0]); if (t && l && v != null) (byLvl[l] = byLvl[l] || {})[t] = v; });
-  const years = [...new Set(Object.values(byLvl).flatMap((m) => Object.keys(m)))].sort();
-  if (years.length) {
-    C_edu = { x: years, u: '%', stack: true, max: 100, pct: true, series: LVLS.map((l) => ({ name: ISCED[l][0], color: ISCED[l][1], data: years.map((y) => byLvl[l]?.[y] ?? null) })) };
-    uniY = years[years.length - 1];
-    uniPct = byLvl['ISCED 5, 6, 7, 8']?.[uniY] ?? null;
-  }
-  const sx = { 1: {}, 2: {} };
-  sj.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}$/.test(k)); const kyn = d.key.includes('1') && !d.key.includes('2') ? '1' : d.key.includes('2') ? '2' : null; const l = d.key.find((k) => ISCED[k]); const v = num(d.values[0]); if (t && kyn && l && v != null) ((sx[kyn][t] = sx[kyn][t] || {})[l] = v); });
-  const yrs = Object.keys(sx[1]).filter((y) => sx[2][y]).sort();
-  sexY = yrs[yrs.length - 1];
-  if (sexY) {
-    C_sex = { kind: 'hbar', u: '%', max: 100, pct: true, showLabel: true, gridLeft: 132, x: LVLS.map((l) => ISCED[l][0]), series: [
-      { name: 'Konur', color: '#c95cf7', data: LVLS.map((l) => sx[2][sexY][l] ?? null) },
-      { name: 'Karlar', color: '#3a8dff', data: LVLS.map((l) => sx[1][sexY][l] ?? null) },
-    ] };
-    uniK = sx[2][sexY]['ISCED 5, 6, 7, 8'] ?? null; uniM = sx[1][sexY]['ISCED 5, 6, 7, 8'] ?? null;
-  }
-} catch (e) {}
-
-// 2. Fjöldi nemenda eftir skólastigi (SKO00000) ----------------------------
-let C_enroll = null, haskN = null, totN = null, enrollY = null;
-try {
-  const j = await px('Samfelag/skolamal/0_yfirlit/yfirlit/SKO00000.px', [sel('Skólastig', 'item', ['1', '2', '3', '4', '5', '6']), sel('Kyn', 'item', ['Alls']), sel('Ár', 'all', ['*'])]);
-  const FOLD = { 1: 0, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3 };
-  const GROUPS = ['Leikskóli', 'Grunnskóli', 'Framhalds- & viðbótarstig', 'Háskóla- & doktorsstig'];
-  const GCOL = ['#46e08a', '#3a8dff', '#f6b13b', '#c95cf7'];
-  const by = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const st = d.key.find((k) => k.length === 1 && FOLD[k] != null); const v = num(d.values[0]); if (y && st && v != null) { const gi = FOLD[st]; (by[gi] = by[gi] || {})[y] = (by[gi][y] || 0) + v; } });
-  const years = [...new Set(Object.values(by).flatMap((o) => Object.keys(o)))].sort();
-  while (years.length && [0, 1, 2, 3].some((i) => by[i]?.[years[years.length - 1]] == null)) years.pop(); // sleppa ófullgerðu nýjasta ári (t.d. leikskólatölur ekki komnar)
-  if (years.length) {
-    C_enroll = { x: years, u: 'nemendur', stack: true, series: GROUPS.map((g, i) => ({ name: g, color: GCOL[i], data: years.map((y) => by[i]?.[y] ?? null) })) };
-    enrollY = years[years.length - 1];
-    haskN = by[3]?.[enrollY] ?? null;
-    totN = [0, 1, 2, 3].reduce((s, i) => s + (by[i]?.[enrollY] || 0), 0);
-  }
-} catch (e) {}
-
-// 3. Brautskráning á háskólastigi eftir sviði (SKO04205) --------------------
-const SVID = { 1: 'Menntun', 2: 'Hugvísindi og listir', 3: 'Félagsvís., viðskipti, lögfr.', 4: 'Raunvís., stærðfr., tölvun.', 5: 'Verkfræði & mannvirki', 6: 'Landbúnaður & dýralækn.', 7: 'Heilbrigði & velferð', 8: 'Þjónusta' };
-let C_field = null, fieldY = null, gradTot = null;
-try {
-  const j = await px('Samfelag/skolamal/4_haskolastig/1_hsProf/SKO04205.px', [sel('Svið', 'item', Object.keys(SVID)), sel('Prófgráða', 'item', ['Alls']), sel('Kyn', 'item', ['Alls']), sel('Ár', 'top', ['1'])]);
-  const by = {};
-  j.data.forEach((d) => { const sv = d.key.find((k) => SVID[k]); const v = num(d.values[0]); if (sv && v != null) by[sv] = v; if (!fieldY) { const yr = d.key.find((k) => /^\d{4}-\d{4}$/.test(k)); if (yr) fieldY = yr; } });
-  const rows = Object.keys(SVID).filter((k) => by[k] != null).map((k) => [SVID[k], by[k]]).sort((a, b) => b[1] - a[1]);
-  if (rows.length) {
-    C_field = { kind: 'hbar', u: 'brautskráðir', gridLeft: 168, showLabel: true, x: rows.map((r) => r[0]), series: [{ name: 'Brautskráðir ' + (fieldY || ''), color: '#46e08a', data: rows.map((r) => r[1]) }] };
-    gradTot = rows.reduce((s, r) => s + r[1], 0);
-  }
-} catch (e) {}
-
-// 4. Fræðsluútgjöld % af VLF (THJ05631) ------------------------------------
-let C_spend = null, spendPct = null, spendY = null;
-try {
-  const j = await px('Efnahagur/fjaropinber/fjarmal_fraedsla/1_utgjold_fraedsla/THJ05631.px', [sel('Skipting', 'item', ['5', '7']), sel('Ár', 'all', ['*'])]);
-  const b5 = {}, b7 = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const s = d.key.find((k) => k === '5' || k === '7'); const v = num(d.values[0]); if (y && s && v != null) (s === '5' ? b5 : b7)[y] = v; });
-  const years = [...new Set([...Object.keys(b5), ...Object.keys(b7)])].sort();
-  if (years.length) {
-    C_spend = { x: years, u: '% af VLF', pct: true, series: [
-      { name: 'Hið opinbera', color: '#3a8dff', data: years.map((y) => b5[y] ?? null) },
-      { name: 'Alls (m. heimilum)', color: '#f6b13b', data: years.map((y) => b7[y] ?? null) },
-    ] };
-    spendY = years[years.length - 1]; spendPct = b5[spendY] ?? null;
-  }
-} catch (e) {}
-
-// 5. Kostnaður á nemanda eftir skólastigi (THJ05661, þús.kr) ---------------
-let C_cost = null, costHask = null, costY = null;
-try {
-  const j = await px('Efnahagur/fjaropinber/fjarmal_fraedsla/1_utgjold_fraedsla/THJ05661.px', [sel('Skipting', 'all', ['*']), sel('Ár', 'top', ['1'])]);
-  const map = [['11 Pre-primary', 'Leikskóli', '#46e08a'], ['12 Primary', 'Barnaskóli', '#3a8dff'], ['22 Upper-secondary', 'Framhaldsskóli', '#f6b13b'], ['University', 'Háskóli', '#c95cf7']];
-  const got = {};
-  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const sk = d.key.find((k) => k !== y); const v = num(d.values[0]); if (!costY && y) costY = y; if (sk && v != null) map.forEach(([m], i) => { if (sk.includes(m)) got[i] = v; }); });
-  if (Object.keys(got).length) {
-    C_cost = { kind: 'bar', u: 'þús.kr', showLabel: true, x: map.map((m) => m[1]), series: [{ name: 'Kostnaður á nemanda ' + (costY || ''), color: '#f6b13b', data: map.map((m, i) => got[i] ?? null) }] };
-    costHask = got[3] ?? null;
-  }
-} catch (e) {}
-
-// 6. PISA Norðurlönd (OECD PISA 2022) — birt heimild ------------------------
+// PISA Norðurlönd (OECD PISA 2022) — HARÐKÓÐUÐ heimild (ekki sótt, verður í frontmatter). ---
 const C_pisa = { kind: 'bar', u: 'stig', min: 400, x: ['Lesskilningur', 'Stærðfræði', 'Náttúrufræði'], series: [
   { name: 'Ísland', color: '#f6b13b', data: [436, 459, 447] },
   { name: 'Danmörk', color: '#e8436f', data: [489, 489, 494] },
@@ -116,7 +26,6 @@ const C_pisa = { kind: 'bar', u: 'stig', min: 400, x: ['Lesskilningur', 'Stærð
   { name: 'Finnland', color: '#c95cf7', data: [490, 484, 511] },
 ] };
 
-const updated = '2026-07-10';
 const desc = `Menntun á Íslandi${uniPct != null ? ' — ' + fmtNum(uniPct, 0) + '% með háskólamenntun (25–64 ára)' : ''}${haskN ? ', ' + groupThousands(haskN) + ' háskólanemar' : ''}. Menntunarstaða, nemendafjöldi, brautskráningar eftir sviði, fræðsluútgjöld, kostnaður á nemanda og PISA-samanburður Norðurlanda.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Menntun á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Menntunarstaða, nemendafjöldi, brautskráningar, fræðsluútgjöld' };
 ---
@@ -152,7 +61,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
     <p class="pisanote">Meðaltal 15 ára nemenda í könnun OECD. Til viðmiðunar var meðaltal OECD-ríkja 476 (lesskilningur), 472 (stærðfræði) og 485 (náttúrufræði). Ísland mælist undir hinum Norðurlöndunum í öllum þremur greinum.</p>
     <div id="cPisa"></div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: Hagstofa (SKO00002 menntunarstaða, SKO00000 nemendafjöldi, SKO04205 brautskráningar, THJ05631 fræðsluútgjöld, THJ05661 kostnaður á nemanda) og OECD (PISA 2022). ISCED 1–2 = grunnmenntun · 3–4 = framhaldsskólastig · 5–8 = háskólastig. #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimildir: Hagstofa (SKO00002 menntunarstaða, SKO00000 nemendafjöldi, SKO04205 brautskráningar, THJ05631 fræðsluútgjöld, THJ05661 kostnaður á nemanda) og OECD (PISA 2022). ISCED 1–2 = grunnmenntun · 3–4 = framhaldsskólastig · 5–8 = háskólastig. #2.</p>
   </main>
 
   <style>
