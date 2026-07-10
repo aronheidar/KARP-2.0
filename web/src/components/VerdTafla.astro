@@ -9,6 +9,7 @@ import { THREP, EIGINDIR } from '../data/lausnir.js';
         <th></th>
         {THREP.map((t) => (
           <th class={t.vinsaelt ? 'col-hi' : ''}>
+            {t.vinsaelt && <div class="tier-badge">★ Vinsælast</div>}
             <div class="tier-nm">{t.heiti}</div>
             <div class="tier-pr">{t.verd.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
             <button type="button" class="vt-cta" data-threp={t.slug} data-nafn={t.heiti}>{t.cta}</button>
@@ -32,6 +33,10 @@ import { THREP, EIGINDIR } from '../data/lausnir.js';
   </table>
 </div>
 <p style="color:#8fa0b8;font-size:12px;margin:6px 0 0">Verð án vsk. Engin binding. <b style="color:#cdd6e6">Stök skýrsla 990 kr</b> ef þú vilt enga áskrift.</p>
+<style>
+  .tier-badge { display:inline-block; background:#f6b13b; color:#131a29; font-size:10.5px; font-weight:800; letter-spacing:.04em; padding:2px 9px; border-radius:999px; margin-bottom:6px; text-transform:uppercase; }
+  .vt th.col-hi { background:rgba(246,177,59,.12); border-top:2px solid #f6b13b; }
+</style>
 <script>
   import { karpSubscribeTier } from '../lib/auth.js';
   document.querySelectorAll('.vt-cta').forEach((b) => {

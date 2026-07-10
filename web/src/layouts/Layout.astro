@@ -131,7 +131,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       '@context': 'https://schema.org',
       '@graph': [
         { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://karp.is/', inLanguage: 'is', description: 'Opinber gögn um íslenskt efnahagslíf, Alþingi, sveitarfélög og markaði — á mannamáli.' },
-        { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/', logo: 'https://karp.is/og-karp.png', email: 'aron@sgdal.is', parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.' } },
+        { '@type': 'Organization', name: 'Karp', legalName: 'Steinsson Greykdal ehf.', url: 'https://karp.is/', logo: 'https://karp.is/og-karp.png', email: 'aron@sgdal.is', taxID: '490522-0500', areaServed: 'IS', contactPoint: { '@type': 'ContactPoint', email: 'aron@sgdal.is', contactType: 'customer support', availableLanguage: 'is' }, parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.', taxID: '490522-0500' } },
       ],
     })} />
     <ClientRouter />
@@ -161,9 +161,23 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .nav-b.on { background:rgba(246,177,59,.12); color:var(--gold); font-weight:600; }
       .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#5a6678; font-weight:700; padding:10px 12px 3px 43px; }
       .nav-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
-      .nav-legal { display:block; margin-top:8px; font-size:10.5px; color:var(--faint); text-decoration:none; }
-      .nav-legal:hover { color:var(--muted); }
-      .theme-tgl { background:none; border:0; padding:0; cursor:pointer; font:inherit; font-size:10.5px; text-align:left; }
+      .nav-legal { display:block; margin-top:8px; font-size:12px; color:var(--muted); text-decoration:none; }
+      .nav-legal:hover { color:var(--ink); }
+      .theme-tgl { background:none; border:0; padding:0; cursor:pointer; font:inherit; font-size:12px; text-align:left; color:var(--muted); }
+      /* Síðufótur — traust/lögmæti (kt, tengiliður, vöru-hlekkir), sömu tóken svo hann fylgir þema */
+      .site-foot { border-top:1px solid var(--line); background:var(--panel); padding:36px 28px 24px; }
+      .sf-grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:28px; }
+      .sf-logo { font-weight:800; letter-spacing:.2em; color:var(--gold); font-size:17px; }
+      .sf-tag { color:var(--muted); font-size:13px; line-height:1.55; margin:8px 0 0; max-width:36ch; }
+      .sf-legal-note { color:var(--faint); font-size:12px; margin:10px 0 0; }
+      .sf-col h3 { font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); margin:0 0 10px; }
+      .sf-col a { display:block; color:var(--muted); text-decoration:none; font-size:13.5px; margin-bottom:7px; }
+      .sf-col a:hover { color:var(--ink); }
+      .sf-org p { color:var(--muted); font-size:13px; margin:0 0 4px; } .sf-org a { color:var(--gold); text-decoration:none; }
+      .sf-bottom { max-width:1100px; margin:22px auto 0; padding-top:16px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; }
+      .sf-bottom a { color:var(--muted); }
+      @media (max-width:760px){ .sf-grid{ grid-template-columns:1fr 1fr; gap:22px; } .site-foot{ padding:28px 18px; } }
+      @media (max-width:440px){ .sf-grid{ grid-template-columns:1fr; } }
 
       /* EFNI (miðja) */
       .content { min-width:0; }
@@ -305,6 +319,37 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <div id="news-list">Hleð…</div>
       </aside>
     </div>
+
+    <footer class="site-foot">
+      <div class="sf-grid">
+        <div class="sf-brand">
+          <div class="sf-logo">KARP</div>
+          <p class="sf-tag">Hagvísir Íslands — opinber fyrirtækja- og efnahagsgögn á einum stað, á mannamáli.</p>
+          <p class="sf-legal-note">Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.</p>
+        </div>
+        <div class="sf-col">
+          <h3>Fyrir fyrirtæki</h3>
+          <a href="/fyrirtaeki/">Fletta upp félagi</a>
+          <a href="/karp-pro/">Karp+ &amp; verð</a>
+          <a href="/lausnir/fyrirtaekjaskyrsla/">Fyrirtækjaskýrsla</a>
+          <a href="/eigendur/">Endanlegir eigendur</a>
+          <a href="/mitt-svaedi/">Mitt svæði</a>
+        </div>
+        <div class="sf-col">
+          <h3>Fyrirtækið</h3>
+          <a href="/um-karp/">Um Karp</a>
+          <a href="/skilmalar/">Skilmálar &amp; persónuvernd</a>
+          <a href="mailto:aron@sgdal.is">Hafa samband</a>
+        </div>
+        <div class="sf-col sf-org">
+          <h3>Útgefandi</h3>
+          <p><strong>Steinsson Greykdal ehf.</strong></p>
+          <p>kt. 490522-0500</p>
+          <p><a href="mailto:aron@sgdal.is">aron@sgdal.is</a></p>
+        </div>
+      </div>
+      <div class="sf-bottom">© 2026 Steinsson Greykdal ehf. · kt. 490522-0500 · <a href="https://karp.is/">karp.is</a></div>
+    </footer>
 
     <script>
       // Keyrir á astro:page-load → bæði við fyrstu hleðslu OG eftir hverja View-Transition
