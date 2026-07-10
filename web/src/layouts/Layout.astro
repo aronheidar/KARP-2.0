@@ -268,14 +268,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       <section id="karp-chat" class="kc" hidden transition:persist>
         <div class="kc-head"><span class="kc-t">🐟 Spyrðu Karp</span><button type="button" class="kc-x" id="kc-x" aria-label="Loka spjalli">✕</button></div>
         <div class="kc-body" id="kc-body"></div>
-        <div class="kc-chips" id="kc-chips">
-          <button class="kc-ch" data-q="Hverjir eru stýrivextirnir núna?">Stýrivextirnir?</button>
-          <button class="kc-ch" data-q="Hvert er fylgi flokkanna í nýjustu könnun?">Fylgi flokkanna?</button>
-          <button class="kc-ch" data-q="Hefur Sláturfélag Suðurlands starfsleyfi?">Starfsleyfi SS?</button>
-          <button class="kc-ch" data-q="Hver á flugvélina TF-FIA?">Hver á TF-FIA?</button>
-          <button class="kc-ch" data-q="Á Icelandair skráð vörumerki?">Vörumerki Icelandair?</button>
-          <button class="kc-ch" data-q="Hvaða fyrirtæki fær mest greitt frá ríkinu?">Stærsti birgir ríkisins?</button>
-        </div>
+        <div class="kc-chips" id="kc-chips"></div>
         <form class="kc-ask" id="kc-ask" autocomplete="off">
           <input id="kc-q" type="text" maxlength="300" placeholder="Spurðu karpann…" aria-label="Spurning" />
           <button type="submit" id="kc-go" aria-label="Senda">➤</button>
@@ -480,6 +473,31 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         fab.addEventListener('click', () => chat.hidden ? openChat() : closeChat());
         document.getElementById('kc-x').addEventListener('click', closeChat);
         form.addEventListener('submit', (e) => { e.preventDefault(); ask(q.value); });
+        // Tillögu-safn — slembi-val 5 per hleðslu svo fjölbreytnin sjáist (hagkerfi · þing · sveitir · fyrirtæki · eignir)
+        const POOL = [
+          ['Hverjir eru stýrivextirnir núna?', 'Stýrivextirnir?'],
+          ['Hver er verðbólgan núna?', 'Verðbólgan?'],
+          ['Hvernig er gengi krónunnar?', 'Gengi krónunnar?'],
+          ['Hvað kostar fermetrinn í leigu?', 'Leiguverð?'],
+          ['Hvað hefur fasteignaverð hækkað mikið?', 'Fasteignaverð?'],
+          ['Hvert er atvinnuleysið núna?', 'Atvinnuleysið?'],
+          ['Hvernig standa hlutabréfin í Kauphöllinni?', 'Kauphöllin?'],
+          ['Hvert er fylgi flokkanna í nýjustu könnun?', 'Fylgi flokkanna?'],
+          ['Hverjir eru ráðherrarnir í ríkisstjórn?', 'Ráðherrarnir?'],
+          ['Hver er bæjarstjóri í Kópavogi?', 'Bæjarstjóri Kópavogs?'],
+          ['Hvaða frumvörp eru til umræðu á þingi?', 'Frumvörp á þingi?'],
+          ['Hvaða ívilnanir og styrkir eru í boði?', 'Ívilnanir?'],
+          ['Hversu mikil raforka er framleidd á Íslandi?', 'Raforkuframleiðsla?'],
+          ['Hvaða opinber útboð eru í gangi?', 'Opinber útboð?'],
+          ['Hvaða dómar hafa fallið nýlega?', 'Nýlegir dómar?'],
+          ['Hvaða fyrirtæki fær mest greitt frá ríkinu?', 'Stærsti birgir ríkisins?'],
+          ['Hverjir eiga Icelandair?', 'Eigendur Icelandair?'],
+          ['Á Icelandair skráð vörumerki?', 'Vörumerki Icelandair?'],
+          ['Hefur Sláturfélag Suðurlands starfsleyfi?', 'Starfsleyfi SS?'],
+          ['Hver á flugvélina TF-FIA?', 'Hver á TF-FIA?'],
+        ];
+        for (let i = POOL.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = POOL[i]; POOL[i] = POOL[j]; POOL[j] = t; }
+        chips.innerHTML = POOL.slice(0, 5).map((p) => '<button class="kc-ch" data-q="' + esc(p[0]) + '">' + esc(p[1]) + '</button>').join('');
         chips.querySelectorAll('.kc-ch').forEach((c) => c.addEventListener('click', () => ask(c.dataset.q)));
       }
       document.addEventListener('astro:page-load', mountChat);
