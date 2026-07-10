@@ -1,0 +1,188 @@
+---
+// Refsilistar / þvingunaraðgerðir (LOTA — ný vöktunarsíða) — samsteyptur nafna-index opinberra
+// refsilista: ESB (Evrópusambandið), SÞ (öryggisráð Sameinuðu þjóðanna) og OFAC (Bandaríkin).
+// Gögnin (sanctions.json) knýja annars F9-skimun per-fyrirtæki; ÞESSI síða = opið nafna-uppflettitól.
+// SSR: KPIs + súlurit per lista (fs-lestur — skráin er 5 MB svo hún er EKKI flutt inn sem eining).
+// Client: LEIT að nafni — sækir /gogn/sanctions.json löt (aðeins þegar notandi leitar).
+// ⚠ Nafnasamsvörun er EKKI úrskurður: nöfn geta verið algeng — staðfestu sjálfstætt.
+import Layout from '../layouts/Layout.astro';
+// Vite leysir JSON-innflutninginn á byggingartíma fyrir SSR-tölurnar (per-lista fjölda).
+// Þetta er AÐEINS í frontmatter (þjónshlið) → 5 MB skráin fer EKKI í client-HTML;
+// leitin sækir /gogn/sanctions.json löt í <script> hlutanum.
+import S from '../../public/gogn/sanctions.json';
+const sourcesRaw = S.sources || [];
+const nTotal = S.n || (S.names || []).length;
+const updated = (S.updated || '').slice(0, 10);
+
+// Aðild deduplikaðra nafna að hverjum lista (nafn getur verið á fleiri en einum).
+const listCount = { ESB: 0, 'SÞ': 0, OFAC: 0 };
+let multi = 0;
+for (const x of (S.names || [])) {
+  const l = (x.listar || '').split(',');
+  l.forEach((k) => { if (listCount[k] != null) listCount[k]++; });
+  if (l.length > 1) multi++;
+}
+
+const LIST_META = {
+  ESB: { nafn: 'Evrópusambandið', undir: 'Samsteyptur þvingunarlisti ESB', col: '#58a6ff' },
+  'SÞ': { nafn: 'Sameinuðu þjóðirnar', undir: 'Öryggisráð SÞ', col: '#56d4dd' },
+  OFAC: { nafn: 'OFAC · Bandaríkin', undir: 'US Treasury (SDN o.fl.)', col: '#f0883e' },
+};
+const lists = ['ESB', 'SÞ', 'OFAC'].map((id) => ({ id, ...LIST_META[id], count: listCount[id] }));
+
+const fmt = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
+const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — ${fmt(nTotal)} nöfn af listum ESB, Sameinuðu þjóðanna og OFAC (Bandaríkin). Leitaðu að nafni. ⚠ Nafnasamsvörun er ekki úrskurður — staðfestu sjálfstætt.`;
+---
+<Layout title="Refsilistar & þvingunaraðgerðir — leit að nafni | Karp" description={desc} canonical="https://karp.is/refsilistar/" ogTitle="Refsilistar & þvingunaraðgerðir">
+  <main data-pg="refsilistar">
+    <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
+    <h1>Refsilistar &amp; þvingunaraðgerðir 🚫</h1>
+    <p class="lead">Samsteyptur nafna-index opinberra refsilista á einum stað — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
+
+    <div class="warn">
+      <b>⚠ Nafnasamsvörun er ekki úrskurður.</b> Þetta eru opinberir refsilistar; samsvörun við nafn þýðir <em>ekki</em> að tiltekinn einstaklingur eða fyrirtæki sé á lista — algeng nöfn geta borið saman. Staðfestu ávallt sjálfstætt í frumheimild (ESB, SÞ, OFAC) áður en niðurstaða er notuð. Karp veitir enga lögfræðilega ráðgjöf.
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">📋 Nöfn samtals</div><div class="k-v">{fmt(nTotal)}</div><div class="k-s">afmáð tvítekt</div></div>
+      {lists.map((l) => (
+        <div class="kpi"><div class="k-l" style={`color:${l.col}`}>● {l.id}</div><div class="k-v" style={`color:${l.col}`}>{fmt(l.count)}</div><div class="k-s">{l.nafn}</div></div>
+      ))}
+    </div>
+
+    <h2>Nöfn eftir lista</h2>
+    <p class="sub">Fjöldi nafna á hverjum lista (nafn getur verið á fleiri en einum). {fmt(multi)} nöfn eru á tveimur eða fleiri listum samtímis.</p>
+    <div class="cwrap"><div id="c-lists" class="ch"></div></div>
+
+    <div class="src-row">
+      {lists.map((l) => (
+        <div class="src-card">
+          <span class="src-dot" style={`background:${l.col}`}></span>
+          <div><div class="src-n">{l.nafn}</div><div class="src-u">{l.undir}</div></div>
+          <div class="src-c" style={`color:${l.col}`}>{fmt(l.count)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Leitaðu að nafni</h2>
+    <p class="sub">Sláðu inn nafn einstaklings eða fyrirtækis (a.m.k. 3 stafir). Listinn (5 MB) sækist þegar þú byrjar að leita.</p>
+    <div class="sc-controls">
+      <input id="sc-q" type="search" placeholder="🔎 Leita að nafni á refsilista…" autocomplete="off" />
+    </div>
+    <div id="sc-count" class="sc-cnt"></div>
+    <div id="sc-list" class="sc-list"><div class="sc-hint">Byrjaðu að slá inn nafn til að leita.</div></div>
+    <button id="sc-more" class="sc-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>ESB</b> (samsteyptur þvingunarlisti Evrópusambandsins), <b>SÞ</b> (öryggisráð Sameinuðu þjóðanna) og <b>OFAC</b> (US Treasury, m.a. SDN-listinn). Uppfært {updated}. Nöfn eru samræmd og afmáð tvítekt á milli lista. <b>Nafnasamsvörun er ekki staðfesting</b> á að tiltekinn aðili sé á lista — staðfestu ávallt í frumheimild.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+
+    .warn { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.30); border-radius: 11px; padding: 13px 16px; margin: 18px 0 6px; font-size: 13px; line-height: 1.6; color: #e8c9c6; }
+    .warn b { color: #ff9d94; } .warn em { color: #eaf1fb; font-style: normal; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f85149; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 260px; }
+
+    .src-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 9px; margin-top: 12px; }
+    .src-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 14px; }
+    .src-dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+    .src-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; }
+    .src-u { font-size: 11.5px; color: #7e8ca6; }
+    .src-c { margin-left: auto; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+
+    .sc-controls { margin: 4px 0 10px; }
+    #sc-q { width: 100%; font: inherit; font-size: 15px; padding: 11px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; box-sizing: border-box; }
+    #sc-q:focus { outline: none; border-color: rgba(248,81,73,.5); }
+    .sc-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .sc-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .sc-more:hover { border-color: rgba(248,81,73,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+    @media (max-width: 600px) { h1 { font-size: 25px; } }
+  </style>
+
+  <style is:global>
+    #sc-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; min-height: 40px; }
+    .sc-hint, .sc-load { color: #7e8ca6; font-size: 13px; padding: 18px 4px; }
+    .sc-item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 10px 14px; }
+    .sc-name { font-size: 14px; font-weight: 600; color: #eaf1fb; min-width: 0; flex: 1 1 auto; }
+    .sc-tags { display: flex; gap: 4px; flex: 0 0 auto; }
+    .sc-tag { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; color: #0a0e14; }
+  </style>
+
+  <script define:vars={{ lists }}>
+    function initRefsilistar() {
+      if (!document.querySelector('main[data-pg="refsilistar"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const nf = new Intl.NumberFormat('is-IS');
+      const COL = {}; lists.forEach((l) => { COL[l.id] = l.col; });
+
+      const drawChart = () => {
+        if (!window.echarts) return;
+        const el = document.getElementById('c-lists');
+        if (!el || window.echarts.getInstanceByDom(el)) return;
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 8, right: 60, top: 8, bottom: 22, containLabel: true },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => esc(p[0].name) + '<br/><b>' + nf.format(p[0].value) + ' nöfn</b>' },
+          xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+          yAxis: { type: 'category', data: lists.map((l) => l.id).reverse(), axisLabel: { color: AX, fontSize: 12 }, axisLine: { lineStyle: { color: LINE } } },
+          series: [{ type: 'bar', data: lists.slice().reverse().map((l) => ({ value: l.count, itemStyle: { color: l.col, borderRadius: [0, 4, 4, 0] } })), barMaxWidth: 30, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 12, formatter: (p) => nf.format(p.value) } }],
+        });
+        window.addEventListener('resize', () => { const i = window.echarts.getInstanceByDom(el); if (i) i.resize(); });
+      };
+      if (window.echarts) drawChart();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawChart, { once: true }); }
+
+      // ── Löt leit ──────────────────────────────────────────────
+      const qEl = document.getElementById('sc-q'), listEl = document.getElementById('sc-list'), cntEl = document.getElementById('sc-count'), moreEl = document.getElementById('sc-more');
+      let DATA = null, loading = false, filtered = [], shown = 0; const PAGE = 80;
+      const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      const item = (x) => {
+        const tags = (x.listar || '').split(',').filter(Boolean).map((k) => '<span class="sc-tag" style="background:' + (COL[k] || '#8b98ad') + '">' + esc(k) + '</span>').join('');
+        return '<div class="sc-item"><span class="sc-name">' + esc(x.nafn || x.n) + '</span><span class="sc-tags">' + tags + '</span></div>';
+      };
+      const render = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(item).join(''));
+        shown += next.length; moreEl.hidden = shown >= filtered.length;
+      };
+      const search = () => {
+        const q = norm(qEl.value.trim());
+        if (q.length < 3) { listEl.innerHTML = '<div class="sc-hint">Sláðu inn a.m.k. 3 stafi.</div>'; cntEl.textContent = ''; moreEl.hidden = true; return; }
+        if (!DATA) return;
+        filtered = DATA.filter((x) => x.n.includes(q)); shown = 0; listEl.innerHTML = '';
+        cntEl.textContent = filtered.length ? nf.format(filtered.length) + ' samsvörun' + (filtered.length === 1 ? '' : 'anir') + ' — ⚠ ekki staðfesting' : '';
+        if (!filtered.length) listEl.innerHTML = '<div class="sc-hint">Engin samsvörun. (Það er jákvætt.)</div>';
+        else render();
+      };
+      const ensure = () => {
+        if (DATA || loading) return; loading = true;
+        listEl.innerHTML = '<div class="sc-load">Sæki refsilista (~5 MB)…</div>';
+        fetch('/gogn/sanctions.json').then((r) => r.json()).then((j) => { DATA = (j.names || []); loading = false; search(); })
+          .catch(() => { loading = false; listEl.innerHTML = '<div class="sc-hint">Ekki tókst að sækja listann.</div>'; });
+      };
+      let t;
+      qEl.addEventListener('input', () => { if (qEl.value.trim().length >= 1) ensure(); clearTimeout(t); t = setTimeout(search, 200); });
+      qEl.addEventListener('focus', () => { if (qEl.value.trim().length >= 1) ensure(); });
+      moreEl.addEventListener('click', render);
+    }
+    document.addEventListener('astro:page-load', initRefsilistar);
+  </script>
+</Layout>

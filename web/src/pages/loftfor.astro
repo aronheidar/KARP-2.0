@@ -1,0 +1,244 @@
+---
+// Loftfaraskrá (LOTA — ný vöktunarsíða) — íslenska loftfaraskráin (Samgöngustofa um island.is).
+// Gögnin (loftfor.json) birtast annars aðeins per-fyrirtæki (#fs-loftfor flís); ÞESSI síða =
+// opið vafrað heildaryfirlit yfir flotann: KPI + stærstu flotar + aldursdreifing + leitanleg skrá.
+// SSR: KPIs + súlurit (stærstu flotar / aldur) + flota-spjöld. Client: leit að TF-númeri/tegund/eiganda.
+// Gögn: build_loftfor.mjs → web/public/gogn/loftfor.json (byKt + nofn). Aðeins LÖGAÐILA-eigendur/rekendur.
+import Layout from '../layouts/Layout.astro';
+import LOFTFOR from '../../public/gogn/loftfor.json';
+
+const byKt = LOFTFOR.byKt || {};
+const nofn = LOFTFOR.nofn || {};
+const nTotal = LOFTFOR.n || 0;
+const nOwners = LOFTFOR.logadilar || Object.keys(byKt).length;
+const updated = (LOFTFOR.updated || '').slice(0, 10);
+
+// ── Flotar (byKt → nafn + fjöldi) ──────────────────────────────────────────
+const fleets = Object.entries(byKt).map(([kt, arr]) => ({
+  kt, nafn: nofn[kt] || null,
+  count: arr.length,
+  active: arr.filter((a) => !a.afskrad).length,
+  aircraft: arr.slice().sort((a, b) => (b.argerd || 0) - (a.argerd || 0)),
+})).sort((a, b) => b.count - a.count);
+const topFleets = fleets.slice(0, 12);
+
+// ── Einstök loftför (afmá tvítekt á skrnr; safna eigendum/rekendum) ────────
+const acMap = new Map();
+for (const [kt, arr] of Object.entries(byKt)) {
+  for (const a of arr) {
+    const key = a.skrnr || (kt + ':' + (a.tegund || ''));
+    if (!acMap.has(key)) acMap.set(key, { skrnr: a.skrnr, tegund: a.tegund, argerd: a.argerd, hamth: a.hamth, afskrad: a.afskrad });
+  }
+}
+const aircraft = [...acMap.values()];
+const nUnique = aircraft.length;
+const activeCount = aircraft.filter((a) => !a.afskrad).length;
+const nTypes = new Set(aircraft.map((a) => (a.tegund || '').trim()).filter(Boolean)).size;
+
+// Aldursdreifing (framleiðsluáratugur)
+const decMap = {};
+aircraft.forEach((a) => { if (a.argerd) { const d = Math.floor(a.argerd / 10) * 10; decMap[d] = (decMap[d] || 0) + 1; } });
+const decades = Object.keys(decMap).map(Number).sort((a, b) => a - b);
+const decCounts = decades.map((d) => decMap[d]);
+
+const fmt = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
+const biggest = topFleets[0] || { nafn: '—', count: 0 };
+
+// Fyrir súlurit (nafn + count), stysta nafn
+const shortNafn = (s) => (s || '').replace(/\s(ehf|hf|slf|sf|ohf)\.?$/i, '').slice(0, 22);
+const fleetChart = topFleets.map((f) => ({ nafn: shortNafn(f.nafn) || f.kt, count: f.count }));
+
+const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför í skrá, ${fmt(nOwners)} lögaðilar eiga eða reka flugvélar. Stærsti flotinn er ${biggest.nafn} með ${biggest.count} loftför. Leitaðu eftir TF-númeri, tegund eða eiganda.`;
+---
+<Layout title="Loftfaraskrá Íslands — flotinn á einum stað | Karp" description={desc} canonical="https://karp.is/loftfor/" ogTitle="Loftfaraskrá Íslands">
+  <main data-pg="loftfor">
+    <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
+    <h1>Loftfaraskrá Íslands ✈️</h1>
+    <p class="lead">Íslenski flugflotinn á einum stað — <strong>{fmt(nTotal)} loftför</strong> í skrá Samgöngustofu, þar af <strong>{fmt(nUnique)}</strong> í eigu eða rekstri <strong>{fmt(nOwners)} lögaðila</strong>. Stærsti flotinn tilheyrir <strong>{biggest.nafn}</strong> ({biggest.count} loftför). Fletta má hverju félagi upp á <a href="/fyrirtaeki/">fyrirtækjaprófíl</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Loftfaraskrá Samgöngustofu um opnu island.is-gáttina (aircraftRegistryAllAircrafts). Skráin telur öll skráð loftför; flota-greiningin nær til loftfara í eigu/rekstri lögaðila (fyrirtækja/félaga) — loftför í einkaeigu einstaklinga eru ekki nafngreind hér af persónuverndarástæðum.">ⓘ</i> Um skrána og gögnin · lögaðila-flotar nafngreindir</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">✈️ Loftför í skrá</div><div class="k-v">{fmt(nTotal)}</div><div class="k-s">öll skráð loftför</div></div>
+      <div class="kpi"><div class="k-l">🏢 Lögaðila-flotar</div><div class="k-v">{fmt(nOwners)}</div><div class="k-s">eigendur / rekendur</div></div>
+      <div class="kpi"><div class="k-l">🛩️ Tegundir</div><div class="k-v">{fmt(nTypes)}</div><div class="k-s">ólíkar flugvélategundir</div></div>
+      <div class="kpi"><div class="k-l">🥇 Stærsti floti</div><div class="k-v">{biggest.count}</div><div class="k-s">{biggest.nafn}</div></div>
+    </div>
+
+    <h2>Stærstu flotar</h2>
+    <p class="sub">Lögaðilar með flest loftför skráð í eigu eða rekstri. Icelandair er langstærst; þar á eftir koma flug-, svifflug- og kennslufélög.</p>
+    <div class="cwrap"><div id="c-fleets" class="ch"></div></div>
+
+    <h2>Aldur flotans</h2>
+    <p class="sub">Fjöldi loftfara eftir framleiðsluáratug. Skráin spannar allt frá gömlum söfnunar- og svifflugum til nýrra farþegaþotna.</p>
+    <div class="cwrap"><div id="c-age" class="ch"></div></div>
+
+    <h2>🏆 Flota-yfirlit</h2>
+    <p class="sub">Efstu {topFleets.length} flotar eftir fjölda loftfara. Smelltu á nafn til að sjá fyrirtækjaprófíl með fleiri opinberum gögnum.</p>
+    <div class="fleet-grid">
+      {topFleets.map((f, i) => (
+        <div class="fleet-card">
+          <span class="fleet-rank">{i + 1}</span>
+          <div class="fleet-body">
+            <a class="fleet-n" href={'/fyrirtaeki/?q=' + f.kt}>{f.nafn || f.kt}</a>
+            <div class="fleet-tf">{f.aircraft.slice(0, 6).map((a) => (<span class="tf">{a.skrnr}</span>))}{f.count > 6 ? <span class="tf more">+{f.count - 6}</span> : null}</div>
+          </div>
+          <div class="fleet-c">{f.count}<span>loftför</span></div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Leitaðu í skránni</h2>
+    <p class="sub">Sláðu inn TF-númer, flugvélategund eða nafn eiganda. Skráin nær til {fmt(nUnique)} loftfara í eigu/rekstri lögaðila.</p>
+    <div class="lf-controls">
+      <input id="lf-q" type="search" placeholder="🔎 Leita: TF-ABC, Boeing, Icelandair…" autocomplete="off" />
+      <label class="lf-chk"><input type="checkbox" id="lf-active" /> Aðeins í rekstri</label>
+    </div>
+    <div id="lf-count" class="lf-cnt"></div>
+    <div id="lf-list" class="lf-list"><div class="lf-load">Hleð skránni…</div></div>
+    <button id="lf-more" class="lf-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Loftfaraskrá Samgöngustofu</b> um opnu island.is-gáttina (aircraftRegistryAllAircrafts). Uppfært {updated}. Flota-greiningin nær til loftfara í eigu eða rekstri lögaðila; loftför í einkaeigu einstaklinga eru talin með í heildinni en ekki nafngreind hér. Uppfletting á fyrirtækjaprófíl leitar eftir kennitölu eiganda.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #58a6ff; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 340px; }
+
+    .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 9px; margin-top: 4px; }
+    .fleet-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; }
+    .fleet-rank { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: rgba(88,166,255,.14); color: #58a6ff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .fleet-body { flex: 1 1 auto; min-width: 0; }
+    .fleet-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fleet-n:hover { color: #58a6ff; }
+    .fleet-tf { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 3px; }
+    .tf { font-size: 10px; font-weight: 600; color: #9fb0c8; background: rgba(255,255,255,.05); border-radius: 4px; padding: 1px 5px; font-variant-numeric: tabular-nums; }
+    .tf.more { color: #7e8ca6; }
+    .fleet-c { flex: 0 0 auto; color: #58a6ff; font-weight: 800; font-size: 18px; text-align: right; font-variant-numeric: tabular-nums; }
+    .fleet-c span { display: block; font-size: 10px; color: #7e8ca6; font-weight: 400; }
+
+    .lf-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 4px 0 10px; }
+    #lf-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #lf-q:focus { outline: none; border-color: rgba(88,166,255,.55); }
+    .lf-chk { font-size: 13px; color: #cdd6e6; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+    .lf-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .lf-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .lf-more:hover { border-color: rgba(88,166,255,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+    @media (max-width: 600px) { h1 { font-size: 26px; } }
+  </style>
+
+  <style is:global>
+    #lf-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .lf-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .lf-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 9px 13px; }
+    .lf-item:hover { border-color: rgba(88,166,255,.35); }
+    .lf-reg { font-size: 13.5px; font-weight: 800; color: #58a6ff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+    .lf-reg.off { color: #7e8ca6; text-decoration: line-through; }
+    .lf-mid { min-width: 0; }
+    .lf-type { font-size: 13px; color: #eaf1fb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lf-own { font-size: 11.5px; color: #9fb0c8; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lf-own a { color: #9fb0c8; text-decoration: none; } .lf-own a:hover { color: #58a6ff; }
+    .lf-meta { font-size: 11px; color: #7e8ca6; text-align: right; white-space: nowrap; }
+    .lf-badge-off { font-size: 9.5px; font-weight: 700; color: #f0883e; border: 1px solid rgba(240,136,62,.4); border-radius: 5px; padding: 0 5px; }
+  </style>
+
+  <script define:vars={{ fleetChart, decades, decCounts }}>
+    function initLoftfor() {
+      if (!document.querySelector('main[data-pg="loftfor"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const nf = new Intl.NumberFormat('is-IS');
+
+      const drawCharts = () => {
+        if (!window.echarts) return;
+        const elF = document.getElementById('c-fleets');
+        if (elF && !window.echarts.getInstanceByDom(elF)) {
+          const c = window.echarts.init(elF);
+          const asc = fleetChart.slice().reverse();
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 42, top: 8, bottom: 22, containLabel: true },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => esc(p[0].name) + '<br/><b>' + nf.format(p[0].value) + ' loftför</b>' },
+            xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { type: 'category', data: asc.map((f) => f.nafn), axisLabel: { color: AX, fontSize: 11.5, width: 150, overflow: 'truncate' }, axisLine: { lineStyle: { color: LINE } } },
+            series: [{ type: 'bar', data: asc.map((f) => f.count), itemStyle: { color: '#58a6ff', borderRadius: [0, 4, 4, 0] }, barMaxWidth: 24, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11 } }],
+          });
+        }
+        const elA = document.getElementById('c-age');
+        if (elA && !window.echarts.getInstanceByDom(elA)) {
+          const c = window.echarts.init(elA);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 44, right: 16, top: 14, bottom: 30 },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => (p[0].name) + '–' + (Number(p[0].name) + 9) + '<br/><b>' + nf.format(p[0].value) + ' loftför</b>' },
+            xAxis: { type: 'category', data: decades, axisLabel: { color: AX, fontSize: 11, formatter: (v) => v + 's' }, axisLine: { lineStyle: { color: LINE } } },
+            yAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            series: [{ type: 'bar', data: decCounts, itemStyle: { color: '#3fb950', borderRadius: [4, 4, 0, 0] }, barMaxWidth: 40 }],
+          });
+        }
+        window.addEventListener('resize', () => { [elF, elA].forEach((el) => { const i = el && window.echarts.getInstanceByDom(el); if (i) i.resize(); }); });
+      };
+      if (window.echarts) drawCharts();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawCharts, { once: true }); }
+
+      // ── Leitanleg skrá ──────────────────────────────────────────
+      const listEl = document.getElementById('lf-list'), cntEl = document.getElementById('lf-count'), moreEl = document.getElementById('lf-more');
+      const qEl = document.getElementById('lf-q'), activeEl = document.getElementById('lf-active');
+      let DATA = null, filtered = [], shown = 0; const PAGE = 60;
+      const item = (a) => {
+        const own = (a.eigendur || []).map((o) => '<a href="/fyrirtaeki/?q=' + o.kt + '">' + esc(o.nafn) + '</a>' + (o.hlutverk && o.hlutverk.indexOf('rekandi') >= 0 && o.hlutverk.indexOf('eigandi') < 0 ? ' <span style="opacity:.6">(rekandi)</span>' : '')).join(', ');
+        return '<div class="lf-item">'
+          + '<span class="lf-reg' + (a.afskrad ? ' off' : '') + '">' + esc(a.skrnr || '—') + '</span>'
+          + '<div class="lf-mid"><div class="lf-type">' + esc(a.tegund || '—') + '</div><div class="lf-own">' + (own || '—') + '</div></div>'
+          + '<div class="lf-meta">' + (a.argerd || '') + (a.afskrad ? ' <span class="lf-badge-off">afskráð</span>' : '') + (a.hamth ? '<br/>' + nf.format(a.hamth) + ' kg' : '') + '</div>'
+          + '</div>';
+      };
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        const onlyActive = activeEl.checked;
+        filtered = DATA.filter((a) =>
+          (!onlyActive || !a.afskrad)
+          && (!q || (a.skrnr || '').toLowerCase().includes(q) || (a.tegund || '').toLowerCase().includes(q) || (a._own || '').includes(q)));
+        shown = 0; listEl.innerHTML = '';
+        cntEl.textContent = nf.format(filtered.length) + ' loftför' + (q || onlyActive ? ' (síað)' : '');
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(item).join('') || (shown === 0 ? '<div class="lf-load">Engin loftför fundust.</div>' : ''));
+        shown += next.length; moreEl.hidden = shown >= filtered.length;
+      };
+      fetch('/gogn/loftfor.json').then((r) => r.json()).then((j) => {
+        const bk = j.byKt || {}, nm = j.nofn || {}, map = new Map();
+        for (const kt in bk) for (const a of bk[kt]) {
+          const key = a.skrnr || (kt + ':' + (a.tegund || ''));
+          if (!map.has(key)) map.set(key, { skrnr: a.skrnr, tegund: a.tegund, argerd: a.argerd, hamth: a.hamth, afskrad: a.afskrad, eigendur: [] });
+          map.get(key).eigendur.push({ kt, nafn: nm[kt] || kt, hlutverk: a.hlutverk });
+        }
+        DATA = [...map.values()].map((a) => ({ ...a, _own: a.eigendur.map((o) => o.nafn).join(' ').toLowerCase() }))
+          .sort((a, b) => (a.afskrad - b.afskrad) || (b.argerd || 0) - (a.argerd || 0));
+        apply();
+      }).catch(() => { listEl.innerHTML = '<div class="lf-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => DATA && apply(), 160); });
+      activeEl.addEventListener('change', () => DATA && apply());
+      moreEl.addEventListener('click', more);
+    }
+    document.addEventListener('astro:page-load', initLoftfor);
+  </script>
+</Layout>

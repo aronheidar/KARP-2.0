@@ -1,0 +1,225 @@
+---
+// Atvinnugreina-viðmið (LOTA — ný yfirlitssíða) — rekstrar- og efnahagshlutföll eftir ÍSAT-grein.
+// Gögnin (sector_kpi.json, Hagstofa FYR08010) knýja annars greinar-viðmið per-fyrirtæki (F2);
+// ÞESSI síða = opinn samanburður greina: framlegð, eiginfjárhlutfall, tekjur/starfsm. o.fl.
+// SSR: KPIs (heild) + súlurit (framlegð) + punktarit (framlegð vs eiginfjárhlutfall) + röðanleg tafla.
+// Client: röðun eftir dálki (smellur á haus) + leit að grein. Gögn eru lítil (82 greinar) → inline.
+import Layout from '../layouts/Layout.astro';
+import SECTOR from '../../public/gogn/sector_kpi.json';
+
+const map = SECTOR.map || {};
+const heildRaw = SECTOR.heild || {};
+const ar = SECTOR.ar;
+const updated = (SECTOR.updated || '').slice(0, 10);
+
+const clean = (s) => String(s || '').replace(/\s*\(ÍSAT.*$/, '').trim();
+const short = (s) => clean(s).slice(0, 24);
+
+const rows = Object.entries(map).map(([isat, m]) => ({
+  isat, heiti: clean(m.label), label: m.label,
+  framlegd: m.framlegd ?? null, hagnadarhlutfall: m.hagnadarhlutfall ?? null,
+  eiginfjarhlutfall: m.eiginfjarhlutfall ?? null, skuldahlutfall_DE: m.skuldahlutfall_DE ?? null,
+  eignavelta: m.eignavelta ?? null, tekjur_pr_starfsm_mkr: m.tekjur_pr_starfsm_mkr ?? null,
+})).sort((a, b) => (b.framlegd ?? -9) - (a.framlegd ?? -9));
+
+const heild = { heiti: 'Viðskiptahagkerfið (heild)', ...heildRaw };
+const nGreinar = rows.length;
+
+const COLS = [
+  { k: 'framlegd', h: 'Framlegð', t: 'pct' },
+  { k: 'hagnadarhlutfall', h: 'Hagnaður', t: 'pct' },
+  { k: 'eiginfjarhlutfall', h: 'Eiginfjárhl.', t: 'pct' },
+  { k: 'skuldahlutfall_DE', h: 'Skuldir/EF', t: 'x' },
+  { k: 'eignavelta', h: 'Eignavelta', t: 'x' },
+  { k: 'tekjur_pr_starfsm_mkr', h: 'Tekjur/starfsm.', t: 'mkr' },
+];
+
+const fmtCell = (v, t) => {
+  if (v == null) return '—';
+  if (t === 'pct') return (v * 100).toFixed(1).replace('.', ',') + '%';
+  if (t === 'x') return v.toFixed(2).replace('.', ',') + '×';
+  if (t === 'mkr') return new Intl.NumberFormat('is-IS').format(Math.round(v));
+  return String(v);
+};
+const pct1 = (v) => v == null ? '—' : (v * 100).toFixed(1).replace('.', ',') + '%';
+
+// Súlurit: efstu 20 greinar eftir framlegð
+const barData = rows.filter((r) => r.framlegd != null).slice(0, 20).map((r) => ({ nafn: short(r.heiti), v: +(r.framlegd * 100).toFixed(1) }));
+// Punktarit: framlegð (x) vs eiginfjárhlutfall (y)
+const scatter = rows.filter((r) => r.framlegd != null && r.eiginfjarhlutfall != null).map((r) => [+(r.framlegd * 100).toFixed(1), +(r.eiginfjarhlutfall * 100).toFixed(1), r.heiti]);
+const heildPt = { x: heild.framlegd != null ? +(heild.framlegd * 100).toFixed(1) : null, y: heild.eiginfjarhlutfall != null ? +(heild.eiginfjarhlutfall * 100).toFixed(1) : null };
+
+const desc = `Rekstrar- og efnahagsviðmið íslenskra atvinnugreina (${ar}, Hagstofa) — framlegð, eiginfjárhlutfall, skuldsetning og tekjur á starfsmann fyrir ${nGreinar} ÍSAT-greinar. Berðu grein saman við heildina og aðrar greinar.`;
+---
+<Layout title="Atvinnugreina-viðmið — rekstur & efnahagur eftir grein | Karp" description={desc} canonical="https://karp.is/atvinnugreinar/" ogTitle="Atvinnugreina-viðmið Íslands">
+  <main data-pg="atvinnugreinar">
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Atvinnugreina-viðmið 🏭</h1>
+    <p class="lead">Rekstrar- og efnahagshlutföll íslenskra atvinnugreina á einum stað — framlegð, hagnaður, eiginfjárhlutfall, skuldsetning, eignavelta og tekjur á starfsmann fyrir <strong>{nGreinar} ÍSAT-greinar</strong> ({ar}). Meðaltal viðskiptahagkerfisins er viðmiðið; hér má bera hverja grein saman við heildina og hver aðra. Sömu viðmið birtast á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> til að setja rekstur einstakra félaga í samhengi.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Hagstofa Íslands, tafla FYR08010 (Rekstrar- og efnahagsyfirlit atvinnugreina). Hlutföll eru meðaltöl greinar á rekstrarárinu og uppfærast árlega. Framlegð = EBITDA / tekjur; eiginfjárhlutfall = eigið fé / heildareignir; Skuldir/EF = skuldir / eigið fé; eignavelta = tekjur / eignir; tekjur á starfsmann í milljónum króna.">ⓘ</i> Hagstofa FYR08010 · viðmiðunarár {ar}</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">📊 Framlegð (heild)</div><div class="k-v">{pct1(heild.framlegd)}</div><div class="k-s">EBITDA / tekjur</div></div>
+      <div class="kpi"><div class="k-l">🏛️ Eiginfjárhlutfall</div><div class="k-v">{pct1(heild.eiginfjarhlutfall)}</div><div class="k-s">eigið fé / eignir</div></div>
+      <div class="kpi"><div class="k-l">💰 Hagnaðarhlutfall</div><div class="k-v">{pct1(heild.hagnadarhlutfall)}</div><div class="k-s">hagnaður / tekjur</div></div>
+      <div class="kpi"><div class="k-l">🏭 Greinar</div><div class="k-v">{nGreinar}</div><div class="k-s">ÍSAT-flokkar, {ar}</div></div>
+    </div>
+
+    <h2>Framlegð eftir grein</h2>
+    <p class="sub">Efstu 20 greinar eftir framlegð (EBITDA-hlutfalli). Rauð lína = meðaltal viðskiptahagkerfisins ({pct1(heild.framlegd)}).</p>
+    <div class="cwrap"><div id="c-bar" class="ch"></div></div>
+
+    <h2>Framlegð vs. eiginfjárhlutfall</h2>
+    <p class="sub">Hver punktur er atvinnugrein: framlegð (lárétt) á móti eiginfjárhlutfalli (lóðrétt). Greinar efst til hægri eru bæði arðbærar og vel fjármagnaðar. Gulur punktur = heildin.</p>
+    <div class="cwrap"><div id="c-scatter" class="ch"></div></div>
+
+    <h2>Öll viðmið — röðanleg tafla</h2>
+    <p class="sub">Smelltu á dálkahaus til að raða. Efsta röðin (feitletruð) er meðaltal viðskiptahagkerfisins til viðmiðunar.</p>
+    <div class="ag-controls"><input id="ag-q" type="search" placeholder="🔎 Leita að atvinnugrein…" autocomplete="off" /><span id="ag-cnt" class="ag-cnt"></span></div>
+    <div class="tbl-wrap">
+      <table class="ag-tbl">
+        <thead>
+          <tr>
+            <th class="th-name">Atvinnugrein</th>
+            {COLS.map((c) => (<th class="th-num" data-k={c.k}>{c.h} <span class="sort-i"></span></th>))}
+          </tr>
+        </thead>
+        <tbody id="ag-heild">
+          <tr class="row-heild">
+            <td class="td-name">{heild.heiti}</td>
+            {COLS.map((c) => (<td class="td-num">{fmtCell(heild[c.k], c.t)}</td>))}
+          </tr>
+        </tbody>
+        <tbody id="ag-body">
+          {rows.map((r) => (
+            <tr>
+              <td class="td-name" title={r.label}>{r.heiti}</td>
+              {COLS.map((c) => (<td class="td-num">{fmtCell(r[c.k], c.t)}</td>))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Hagstofa Íslands</b>, tafla FYR08010 (Rekstrar- og efnahagsyfirlit atvinnugreina). Viðmiðunarár {ar}; uppfært {updated}. Hlutföll eru meðaltöl greinar og uppfærast árlega. Sömu greinar-viðmið birtast á fyrirtækjaprófílum til samanburðar við rekstur einstakra félaga.</p>
+  </main>
+
+  <style>
+    main { max-width: 1040px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #3fb950; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 380px; }
+
+    .ag-controls { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
+    #ag-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #ag-q:focus { outline: none; border-color: rgba(63,185,80,.5); }
+    .ag-cnt { font-size: 12.5px; color: #7e8ca6; }
+
+    .tbl-wrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; }
+    .ag-tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+    .ag-tbl th { text-align: right; padding: 10px 12px; color: #9fb0c8; font-weight: 600; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,.1); white-space: nowrap; position: sticky; top: 0; background: #0e131c; }
+    .ag-tbl th.th-name { text-align: left; }
+    .ag-tbl th.th-num { cursor: pointer; user-select: none; }
+    .ag-tbl th.th-num:hover { color: #eaf1fb; }
+    .sort-i { font-size: 10px; color: #3fb950; }
+    .ag-tbl td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .td-name { color: #eaf1fb; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .td-num { text-align: right; color: #cdd6e6; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .row-heild td { background: rgba(63,185,80,.07); font-weight: 700; border-bottom: 1px solid rgba(63,185,80,.25); }
+    .row-heild .td-name { color: #8ff0a4; }
+    #ag-body tr:hover td { background: rgba(255,255,255,.03); }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+    @media (max-width: 600px) { h1 { font-size: 26px; } }
+  </style>
+
+  <script define:vars={{ barData, scatter, heildPt, rows, COLS, heildFramlegd: heildPt.x }}>
+    function initAtvinnugreinar() {
+      if (!document.querySelector('main[data-pg="atvinnugreinar"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const fmtCell = (v, t) => {
+        if (v == null) return '—';
+        if (t === 'pct') return (v * 100).toFixed(1).replace('.', ',') + '%';
+        if (t === 'x') return v.toFixed(2).replace('.', ',') + '×';
+        if (t === 'mkr') return new Intl.NumberFormat('is-IS').format(Math.round(v));
+        return String(v);
+      };
+
+      const drawCharts = () => {
+        if (!window.echarts) return;
+        const elB = document.getElementById('c-bar');
+        if (elB && !window.echarts.getInstanceByDom(elB)) {
+          const c = window.echarts.init(elB);
+          const asc = barData.slice().reverse();
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 48, top: 8, bottom: 24, containLabel: true },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => esc(p[0].name) + '<br/><b>' + p[0].value + '%</b> framlegð' },
+            xAxis: { type: 'value', axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { type: 'category', data: asc.map((d) => d.nafn), axisLabel: { color: AX, fontSize: 11, width: 150, overflow: 'truncate' }, axisLine: { lineStyle: { color: LINE } } },
+            series: [{ type: 'bar', data: asc.map((d) => d.v), itemStyle: { color: '#3fb950', borderRadius: [0, 4, 4, 0] }, barMaxWidth: 20, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10.5, formatter: '{c}%' },
+              markLine: heildFramlegd != null ? { silent: true, symbol: 'none', lineStyle: { color: '#f85149', type: 'dashed' }, data: [{ xAxis: heildFramlegd }], label: { show: false } } : undefined }],
+          });
+        }
+        const elS = document.getElementById('c-scatter');
+        if (elS && !window.echarts.getInstanceByDom(elS)) {
+          const c = window.echarts.init(elS);
+          const series = [{ type: 'scatter', symbolSize: 9, data: scatter, itemStyle: { color: '#3fb950', opacity: .65 } }];
+          if (heildPt.x != null && heildPt.y != null) series.push({ type: 'scatter', symbolSize: 16, data: [[heildPt.x, heildPt.y, 'Heild']], itemStyle: { color: '#f6b13b', borderColor: '#0e131c', borderWidth: 2 } });
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 46, right: 20, top: 14, bottom: 40 },
+            tooltip: { trigger: 'item', formatter: (p) => esc(p.data[2]) + '<br/>Framlegð: <b>' + p.data[0] + '%</b><br/>Eiginfjárhl.: <b>' + p.data[1] + '%</b>' },
+            xAxis: { name: 'Framlegð', nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: AX }, type: 'value', axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { name: 'Eiginfjárhl.', type: 'value', axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
+            series,
+          });
+        }
+        window.addEventListener('resize', () => { ['c-bar', 'c-scatter'].forEach((id) => { const el = document.getElementById(id); const i = el && window.echarts.getInstanceByDom(el); if (i) i.resize(); }); });
+      };
+      if (window.echarts) drawCharts();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawCharts, { once: true }); }
+
+      // ── Röðanleg + leitanleg tafla ────────────────────────────
+      const body = document.getElementById('ag-body'), qEl = document.getElementById('ag-q'), cntEl = document.getElementById('ag-cnt');
+      const ths = [...document.querySelectorAll('.ag-tbl th.th-num')];
+      let sortK = 'framlegd', sortDir = -1, q = '';
+      const render = () => {
+        const ql = q.toLowerCase().trim();
+        let data = rows.filter((r) => !ql || r.heiti.toLowerCase().includes(ql) || (r.label || '').toLowerCase().includes(ql));
+        data = data.slice().sort((a, b) => {
+          const av = a[sortK], bv = b[sortK];
+          if (av == null) return 1; if (bv == null) return -1;
+          return (av - bv) * sortDir;
+        });
+        body.innerHTML = data.map((r) => '<tr><td class="td-name" title="' + esc(r.label) + '">' + esc(r.heiti) + '</td>'
+          + COLS.map((c) => '<td class="td-num">' + fmtCell(r[c.k], c.t) + '</td>').join('') + '</tr>').join('')
+          || '<tr><td class="td-name" colspan="' + (COLS.length + 1) + '">Engin grein fannst.</td></tr>';
+        cntEl.textContent = data.length + ' greinar' + (ql ? ' (síað)' : '');
+        ths.forEach((th) => { const i = th.querySelector('.sort-i'); i.textContent = th.dataset.k === sortK ? (sortDir < 0 ? '▼' : '▲') : ''; });
+      };
+      ths.forEach((th) => th.addEventListener('click', () => {
+        const k = th.dataset.k;
+        if (k === sortK) sortDir = -sortDir; else { sortK = k; sortDir = -1; }
+        render();
+      }));
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { q = qEl.value; render(); }, 140); });
+      render();
+    }
+    document.addEventListener('astro:page-load', initAtvinnugreinar);
+  </script>
+</Layout>

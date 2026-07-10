@@ -125,6 +125,7 @@ jobs:
           node skriptur/build_eigendur_reverse.mjs || true   # snýr við gogn/eigendur/*.json → eigendur_reverse.json (lítið, vex á-eftirspurn)
           node skriptur/build_rekstrarleyfi.mjs    || true   # Sýslumenn rekstrarleyfi (veitingar/gisting/vínveiting) → rekstrarleyfi.json (áfangi 1 leyfaskrár)
           node skriptur/build_ferdaleyfi.mjs       || true   # Ferðamálastofa leyfishafar (ferðaskrifstofur+dagsferðir) → ferdaleyfi.json (áfangi 1 leyfaskrár)
+          node skriptur/build_stjornartidindi.mjs  || true   # Stjórnartíðindi: nýjustu lög/reglugerðir/auglýsingar → stjornartidindi.json (island.is officialJournalOfIcelandAdverts)
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:
