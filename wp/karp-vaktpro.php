@@ -144,6 +144,53 @@ add_action('rest_api_init', function () {
       },
     ],
   ]);
+  // ── VERKTAKA-PRÓFÍLL (fit-einkunn útboða) ──────────────────────────────
+  //   GET  /karp/v1/verkprofil → { velta, menn, vottord:[], taeki:[] } (sjálfgildi ef ekkert vistað
+  //        — skilar ALDREI null svo framendinn viti að endapunkturinn er lifandi)
+  //   POST /karp/v1/verkprofil { velta, menn, vottord, taeki } → vistar
+  // Gögn: user meta karp_verkprofil. Notað í fit-einkunn á /utbod/ (flokkar+orð koma úr utbodvakt);
+  // velta/mannafli geymt fyrir hæfiskröfu-þáttun (þrep 3).
+  register_rest_route('karp/v1', '/verkprofil', [
+    [
+      'methods' => 'GET',
+      'permission_callback' => function () { return is_user_logged_in(); },
+      'callback' => function () {
+        $v = get_user_meta(get_current_user_id(), 'karp_verkprofil', true);
+        if (!is_array($v)) $v = [];
+        return [
+          'velta'   => isset($v['velta']) ? (int) $v['velta'] : 0,
+          'menn'    => isset($v['menn']) ? (int) $v['menn'] : 0,
+          'vottord' => isset($v['vottord']) && is_array($v['vottord']) ? array_values($v['vottord']) : [],
+          'taeki'   => isset($v['taeki']) && is_array($v['taeki']) ? array_values($v['taeki']) : [],
+        ];
+      },
+    ],
+    [
+      'methods' => 'POST',
+      'permission_callback' => function () { return is_user_logged_in(); },
+      'callback' => function (WP_REST_Request $req) {
+        $uid = get_current_user_id();
+        $p = $req->get_json_params();
+        $lista = function ($arr) {
+          $out = [];
+          foreach ((array) $arr as $x) {
+            $x = sanitize_text_field(mb_substr((string) $x, 0, 60));
+            if (mb_strlen($x) >= 2 && !in_array($x, $out, true)) $out[] = $x;
+            if (count($out) >= 20) break;
+          }
+          return $out;
+        };
+        $v = [
+          'velta'   => max(0, min((int) ($p['velta'] ?? 0), 2000000000000)),   // kr/ár, þak 2.000 ma
+          'menn'    => max(0, min((int) ($p['menn'] ?? 0), 100000)),
+          'vottord' => $lista($p['vottord'] ?? []),
+          'taeki'   => $lista($p['taeki'] ?? []),
+        ];
+        update_user_meta($uid, 'karp_verkprofil', $v);
+        return ['ok' => true] + $v;
+      },
+    ],
+  ]);
 });
 
 if (!wp_next_scheduled('karp_utbodvakt_daily')) {

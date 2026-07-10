@@ -43,7 +43,8 @@ const CATKW = [
 const classify = (title) => { const s = String(title || '').toLowerCase(); const hit = CATKW.find(([, rx]) => rx.test(s)); return hit ? hit[0] : 'annad'; };
 
 const clean = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/&#(\d+);/g, (m, c) => String.fromCharCode(+c)).replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-const isoDate = (d) => { try { const x = new Date(d); return isNaN(x) ? null : x.toISOString().slice(0, 10); } catch (e) { return null; } };
+// TED skilar „2026-07-08+02:00" (dagsetning+tímabelti án tíma) sem Date() þáttar EKKI → regex fyrst.
+const isoDate = (d) => { const m = String(d || '').match(/(\d{4}-\d{2}-\d{2})/); if (m) return m[1]; try { const x = new Date(d); return isNaN(x) ? null : x.toISOString().slice(0, 10); } catch (e) { return null; } };
 
 // ── 1) Útboðsvefur Ríkiskaupa (WP REST) ────────────────────────
 async function ríkiskaup() {
@@ -61,24 +62,47 @@ async function ríkiskaup() {
 }
 
 // ── 2) TED (EES-útboð á Íslandi) ───────────────────────────────
+// CPV-deild (fyrstu 2 stafir) → Karp-flokkur. Notað fyrir TED-færslur (enskir titlar veikja
+// lykilorða-flokkunina) og geymt á færslunni (x.cpv) fyrir fit-einkunn verktaka.
+const CPV_CAT = {
+  45: 'bygg', 44: 'bygg', 71: 'radgjof', 73: 'radgjof', 79: 'radgjof', 72: 'hugb', 48: 'hugb',
+  30: 'hugb', 32: 'hugb', 31: 'raf', '09': 'raf', 65: 'vatn', 41: 'vatn', 90: 'raesting',
+  60: 'flutn', 63: 'flutn', 34: 'flutn', 42: 'vel', 43: 'vel', 50: 'vel', 51: 'vel', 38: 'vel',
+  15: 'matur', 55: 'matur', '03': 'matur', 33: 'matur', 66: 'trygg', 77: 'jardv', 14: 'jardv',
+};
+const cpvCat = (codes) => { for (const c of codes || []) { const k = String(c).slice(0, 2); if (CPV_CAT[k]) return CPV_CAT[k]; } return null; };
+const TED_FIELDS = ['publication-number', 'notice-title', 'publication-date', 'deadline-receipt-tender-date-lot', 'buyer-name', 'classification-cpv'];
+const tedTitle = (tt) => clean(typeof tt === 'object' && tt ? (tt.isl || tt.eng || Object.values(tt)[0]) : tt);
+async function tedQuery(query, limit) {
+  const r = await fetch('https://api.ted.europa.eu/v3/notices/search', {
+    method: 'POST', headers: { ...UA, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, fields: TED_FIELDS, limit }),
+  });
+  if (!r.ok) return [];
+  const j = await r.json();
+  return ((j && j.notices) || []).map((x) => {
+    const t = tedTitle(x['notice-title']);
+    const bn = x['buyer-name'];
+    const buyer = bn ? clean(typeof bn === 'object' ? (bn.isl || bn.eng || Object.values(bn)[0]) : bn) : 'EES-útboð (TED)';
+    const dl = x['deadline-receipt-tender-date-lot'];
+    const deadline = dl ? isoDate(Array.isArray(dl) ? dl[0] : dl) : null;
+    const cpv = [...new Set((Array.isArray(x['classification-cpv']) ? x['classification-cpv'] : (x['classification-cpv'] ? [x['classification-cpv']] : [])).map(String))].slice(0, 4);
+    const out = { t, buyer, d: isoDate(x['publication-date']), deadline, u: 'https://ted.europa.eu/en/notice/-/detail/' + (x['publication-number'] || ''), src: 'ted', cat: cpvCat(cpv) || classify(t) };
+    if (cpv.length) out.cpv = cpv;
+    return out;
+  }).filter((x) => x.t);
+}
 async function ted() {
   try {
-    const r = await fetch('https://api.ted.europa.eu/v3/notices/search', {
-      method: 'POST', headers: { ...UA, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'place-of-performance IN (ISL) SORT BY publication-date DESC', fields: ['publication-number', 'notice-title', 'publication-date', 'deadline-receipt-tender-date-lot', 'buyer-name'], limit: 40 }),
-    });
-    if (!r.ok) return [];
-    const j = await r.json();
-    return ((j && j.notices) || []).map((x) => {
-      const tt = x['notice-title'];
-      const t = clean(typeof tt === 'object' ? (tt.isl || tt.eng || Object.values(tt)[0]) : tt);
-      const bn = x['buyer-name'];
-      const buyer = bn ? clean(typeof bn === 'object' ? (bn.isl || bn.eng || Object.values(bn)[0]) : bn) : 'EES-útboð (TED)';
-      const dl = x['deadline-receipt-tender-date-lot'];
-      const deadline = dl ? isoDate(Array.isArray(dl) ? dl[0] : dl) : null;
-      return { t, buyer, d: isoDate(x['publication-date']), deadline, u: 'https://ted.europa.eu/en/notice/-/detail/' + (x['publication-number'] || ''), src: 'ted', cat: classify(t) };
-    }).filter((x) => x.t);
+    // Aðeins virk samkeppnisútboð (contract notices) — forauglýsingar fara í sér pins-lista
+    return await tedQuery('place-of-performance IN (ISL) AND notice-type IN (cn-standard cn-social cn-desg) SORT BY publication-date DESC', 40);
   } catch (e) { console.log('  TED villa:', String(e).slice(0, 60)); return []; }
+}
+// Forauglýsingar & markaðskannanir (PIN/RFI) — verk sem eru VÆNTANLEG í útboð. Forskot verktaka.
+async function tedPins() {
+  try {
+    return await tedQuery('place-of-performance IN (ISL) AND notice-type IN (pin-only pin-buyer pin-cfc-standard pin-cfc-social) SORT BY publication-date DESC', 25);
+  } catch (e) { console.log('  TED-PIN villa:', String(e).slice(0, 60)); return []; }
 }
 
 // ── 3) Faxaflóahafnir (HTML scrape) ────────────────────────────
@@ -144,8 +168,8 @@ async function landsvirkjun() {
 }
 
 async function main() {
-  const [rk, td, fx, lv, rvk] = await Promise.all([ríkiskaup(), ted(), faxafloahafnir(), landsvirkjun(), reykjavik()]);
-  console.log('  Útboðsvefur:', rk.length, '· TED:', td.length, '· Faxaflóahafnir:', fx.length, '· Landsvirkjun:', lv.length, '· Reykjavík:', rvk.length);
+  const [rk, td, fx, lv, rvk, pins] = await Promise.all([ríkiskaup(), ted(), faxafloahafnir(), landsvirkjun(), reykjavik(), tedPins()]);
+  console.log('  Útboðsvefur:', rk.length, '· TED:', td.length, '· Faxaflóahafnir:', fx.length, '· Landsvirkjun:', lv.length, '· Reykjavík:', rvk.length, '· PIN:', pins.length);
   let all = [...rk, ...td, ...fx, ...lv, ...rvk];
   // Tvítök burt (sami titill+veita)
   const seen = new Set();
@@ -161,12 +185,13 @@ async function main() {
     cats: CATS, byCat, bySrc,
     sources: { rk: 'Útboðsvefur Ríkiskaupa', ted: 'TED (EES)', rvk: 'Reykjavíkurborg', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' },
     tenders: all,
+    pins,   // forauglýsingar & markaðskannanir (TED PIN/RFI) — væntanleg útboð
   };
   const payload = JSON.stringify(out);
   fs.writeFileSync(path.join(__dirname, '..', 'gogn', 'utbod.json'), payload);
   const pub = path.join(__dirname, '..', 'web', 'public', 'gogn');
   fs.mkdirSync(pub, { recursive: true });
   fs.writeFileSync(path.join(pub, 'utbod.json'), payload);
-  console.log('Skrifað: gogn/utbod.json + public ·', all.length, 'útboð ·', Object.keys(byCat).length, 'flokkar ·', Math.round(payload.length / 1024), 'KB');
+  console.log('Skrifað: gogn/utbod.json + public ·', all.length, 'útboð ·', pins.length, 'PIN ·', Object.keys(byCat).length, 'flokkar ·', Math.round(payload.length / 1024), 'KB');
 }
 main().catch((e) => { console.error(e); process.exit(1); });
