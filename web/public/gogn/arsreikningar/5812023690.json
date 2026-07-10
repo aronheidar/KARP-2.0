@@ -1,0 +1,80 @@
+{
+ "kt": "5812023690",
+ "nafn": "Hagvangur ehf.",
+ "sott": "2026-07-10",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "laun": 159818289,
+    "annar_rekstur": 27832764,
+    "afskriftir": 750000,
+    "fjarmunatekjur": 4488466,
+    "fjarmagnsgjold": -601248,
+    "tekjuskattur": 23178325
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 43820389,
+    "handbaert": 81448507,
+    "eignir": 147499528,
+    "hlutafe": 450000,
+    "efe_skuldir": 147499528
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "laun": 159428205,
+    "annar_rekstur": 37268619,
+    "afskriftir": 750000,
+    "fjarmunatekjur": 6949207,
+    "fjarmagnsgjold": -414812,
+    "tekjuskattur": 25229987
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 37738270,
+    "handbaert": 110072170,
+    "eignir": 150390955,
+    "hlutafe": 450000,
+    "efe_skuldir": 150390955
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.6355
+   },
+   "rekstur": {
+    "laun": 172871879,
+    "annar_rekstur": 32895836,
+    "afskriftir": 300000,
+    "ebit": 123158220,
+    "fjarmunatekjur": 4362956,
+    "fjarmagnsgjold": -257010,
+    "tekjuskattur": -25798072,
+    "hagnadur": 103292640
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 40234267,
+    "handbaert": 23802347,
+    "eignir": 162534613,
+    "efe_skuldir": 2025,
+    "hlutafe": 450000
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/5812023690.pdf",
+ "pdfAr": "2025"
+}
