@@ -1,84 +1,18 @@
 ---
 // ─────────────────────────────────────────────────────────────
 // SSG-síða (#2) — Hagvöxtur: VLF ársfjórðungslega (magnbreyting) + einkaneysla,
-// VLF-Sankey (útgjaldaaðferð) og Norðurlanda-samanburður (World Bank).
-// Allt sótt á BYGGINGARTÍMA (þolir bilun per hluta). Í app-skelinni. #2.
+// VLF-Sankey (útgjaldaaðferð), Norðurlanda-samanburður (World Bank) + IMF-hagvaxtarspá.
+// Gögn: daglegt snapshot úr skriptur/build_hagvoxtur.mjs → gogn/hagvoxtur.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga + spá). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
+import DATA from '@gogn/hagvoxtur.json';
 
-// px með EINNI endurtekt — samhliða byggingarsóknir á Hagstofu geta klikkað tímabundið.
-const px = async (path, query) => {
-  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
-};
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const qLbl = (t) => t.replace(/(\d{4})Q?([1-4])$/, '$1 F$2').replace(/(\d{4})-?Q([1-4])/, '$1 F$2');
-
-// VLF + einkaneysla, magnbreyting frá fyrra ári (%), ársfjórðungslega.
-let GDP = null;
-try {
-  const [vj, cj] = await Promise.all([
-    px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['2']), sel('Skipting', 'item', ['14']), sel('Ársfjórðungur', 'top', ['16'])]),
-    px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['2']), sel('Skipting', 'item', ['0']), sel('Ársfjórðungur', 'top', ['16'])]),
-  ]);
-  const grab = (j) => { const m = {}; j.data.forEach((d) => { const t = d.key.find((k) => /\d{4}/.test(k) && /[QF]?[1-4]$/.test(k)) || d.key[d.key.length - 1]; const v = num(d.values[0]); if (t && v != null) m[t] = v; }); return m; };
-  const g = grab(vj), c = grab(cj);
-  const ts = Object.keys(g).sort();
-  if (ts.length) GDP = { labels: ts.map(qLbl), vlf: ts.map((t) => g[t]), neysla: ts.map((t) => c[t] ?? null), latest: g[ts[ts.length - 1]], latestQ: qLbl(ts[ts.length - 1]) };
-} catch (e) { GDP = null; }
-
-// VLF-Sankey: útgjaldaaðferðin, summa síðustu 4 ársfjórðunga (verðlag hvers árs, m.kr → ma.kr).
-// Þjóðhagsjafnan VLF = C+G+I+X−M → C/G/I/X → Heildareftirspurn → M + VLF.
-let VSAN = null;
-try {
-  const j = await px('Efnahagur/thjodhagsreikningar/landsframl/2_landsframleidsla_arsfj/THJ01601.px', [sel('Mælikvarði', 'item', ['0']), sel('Skipting', 'item', ['0', '1', '2', '8', '11', '14']), sel('Ársfjórðungur', 'top', ['4'])]);
-  const LBL = { 0: 'Einkaneysla', 1: 'Samneysla', 2: 'Fjárfesting', 8: 'Útflutningur', 11: 'Innflutningur', 14: 'VLF' };
-  const sums = {};
-  // ATH: key = [Mælikvarði, Skipting, Ársfjórðungur] og Mælikvarði er "0" hér —
-  // find() myndi alltaf grípa hann → nota key[1] (Skipting) beint.
-  j.data.forEach((d) => { const s = d.key[1]; const v = num(d.values[0]); if (LBL[s] != null && v != null) sums[s] = (sums[s] || 0) + v; });
-  if (sums[14]) {
-    const ma = (v) => Math.round(Math.abs(v) / 1000);
-    VSAN = {
-      vlf: ma(sums[14]),
-      nodes: [
-        { name: 'Einkaneysla', itemStyle: { color: '#46e08a' } }, { name: 'Samneysla', itemStyle: { color: '#3a8dff' } },
-        { name: 'Fjárfesting', itemStyle: { color: '#c95cf7' } }, { name: 'Útflutningur', itemStyle: { color: '#1fb6c9' } },
-        { name: 'Heildareftirspurn', itemStyle: { color: '#f6b13b' } },
-        { name: 'Innflutningur', itemStyle: { color: '#ff6d7a' } }, { name: 'VLF', itemStyle: { color: '#ffd479' } },
-      ],
-      links: [
-        { source: 'Einkaneysla', target: 'Heildareftirspurn', value: ma(sums[0]) },
-        { source: 'Samneysla', target: 'Heildareftirspurn', value: ma(sums[1]) },
-        { source: 'Fjárfesting', target: 'Heildareftirspurn', value: ma(sums[2]) },
-        { source: 'Útflutningur', target: 'Heildareftirspurn', value: ma(sums[8]) },
-        { source: 'Heildareftirspurn', target: 'Innflutningur', value: ma(sums[11]) },
-        { source: 'Heildareftirspurn', target: 'VLF', value: ma(sums[14]) },
-      ],
-    };
-  }
-} catch (e) { VSAN = null; }
-
-// Norðurlönd: VLF á mann (USD) — World Bank. ATH: mrnev-breytan er BILUÐ hjá WB
-// (skilar XML-villu) og landakóðar þurfa LÁGSTAFI → nota MRV=2 + fyrsta non-null gildi.
-let WB = null;
-try {
-  const j = await (await fetch('https://api.worldbank.org/v2/country/isl;dnk;nor;swe;fin/indicator/NY.GDP.PCAP.CD?format=json&MRV=2')).json();
-  const NAME = { Iceland: 'Ísland', Denmark: 'Danmörk', Norway: 'Noregur', Sweden: 'Svíþjóð', Finland: 'Finnland' };
-  const byC = {};
-  (j[1] || []).forEach((r) => {
-    if (r.value == null) return;
-    const key = r.countryiso3code;
-    if (!byC[key] || +r.date > +byC[key].yr) byC[key] = { label: NAME[r.country.value] || r.country.value, v: Math.round(r.value), yr: r.date, isl: key === 'ISL' };
-  });
-  const rows = Object.values(byC).sort((a, b) => b.v - a.v);
-  if (rows.length) WB = rows;
-} catch (e) { WB = null; }
-
+const { GDP, VSAN, WB, forecast, updated } = DATA;
 const islWb = WB ? WB.find((r) => r.isl) : null;
-const updated = '2026-07-02';
+// Spá líðandi árs (fyrsta spáár) fyrir KPI.
+const fcNow = forecast ? (() => { const i = forecast.years.indexOf(forecast.splitYear); return i >= 0 ? forecast.values[i] : null; })() : null;
 const desc = `Hagvöxtur á Íslandi — VLF ${GDP ? (GDP.latest > 0 ? 'jókst um ' : 'dróst saman um ') + fmtNum(Math.abs(GDP.latest), 1) + '% (' + GDP.latestQ + ')' : ''}, samsetning landsframleiðslunnar og Norðurlanda-samanburður.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Hagvöxtur á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'VLF (magnbreyting %)' };
 ---
@@ -94,6 +28,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
       {GDP && <div class="kpi"><div class="k-l">📈 Hagvöxtur</div><div class={`k-v ${GDP.latest >= 0 ? 'up' : 'dn'}`}>{GDP.latest > 0 ? '+' : ''}{fmtNum(GDP.latest, 1)}%</div><div class="k-s">{GDP.latestQ} · frá fyrra ári</div></div>}
       {VSAN && <div class="kpi"><div class="k-l">💰 VLF (12 mán)</div><div class="k-v">{groupThousands(VSAN.vlf)}</div><div class="k-s">ma.kr · verðlag hvers árs</div></div>}
       {islWb && <div class="kpi"><div class="k-l">👤 VLF á mann</div><div class="k-v">{groupThousands(islWb.v)}</div><div class="k-s">USD · {islWb.yr} (WB)</div></div>}
+      {fcNow != null && <div class="kpi"><div class="k-l">🔮 Hagvaxtarspá {forecast.splitYear}</div><div class={`k-v ${fcNow >= 0 ? 'up' : 'dn'}`}>{fcNow > 0 ? '+' : ''}{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · raun-VLF</div></div>}
     </div>
 
     {GDP && (
@@ -118,7 +53,15 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
       </>
     )}
 
-    <p class="foot">Forþjónað (SSG) {updated}. VLF: Hagstofa (THJ01601, magnbreyting + verðlag hvers árs). Norðurlönd: World Bank (NY.GDP.PCAP.CD). #2.</p>
+    {forecast && forecast.years && forecast.years.length && (
+      <>
+        <h2>Hagvaxtarspá — raunbreyting VLF milli ára</h2>
+        <div id="chart-fc"></div>
+        <p class="src">Söguleg þróun og spá — {forecast.source}. Spáár ({forecast.splitYear} og síðar) sýnd með brotinni línu.</p>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. VLF: Hagstofa (THJ01601). Norðurlönd: World Bank (NY.GDP.PCAP.CD). Hagvaxtarspá: Alþjóðagjaldeyrissjóðurinn (WEO). #2.</p>
   </main>
 
   <style>
@@ -136,14 +79,15 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
     #chart-gdp { width: 100%; height: 310px; }
     #chart-vsan { width: 100%; height: 380px; }
     #chart-wb { width: 100%; height: 240px; }
+    #chart-fc { width: 100%; height: 280px; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: VLF-súlur+lína, Sankey, WB-súlur. astro:page-load. #2 -->
-  <script define:vars={{ GDP, VSAN, WB }}>
+  <script define:vars={{ GDP, VSAN, WB, forecast }}>
     function initCharts() {
-      if (!document.getElementById('chart-gdp') && !document.getElementById('chart-vsan') && !document.getElementById('chart-wb')) return;
+      if (!document.getElementById('chart-gdp') && !document.getElementById('chart-vsan') && !document.getElementById('chart-wb') && !document.getElementById('chart-fc')) return;
       const go = () => {
         const cg = document.getElementById('chart-gdp');
         if (cg && GDP && !window.echarts.getInstanceByDom(cg)) {
@@ -181,6 +125,26 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ha
             yAxis: { type: 'category', inverse: true, data: WB.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false } },
             tooltip: { trigger: 'axis', valueFormatter: (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' USD' },
             series: [{ type: 'bar', barWidth: 16, data: WB.map((r) => ({ value: r.v, itemStyle: { color: r.isl ? '#f6b13b' : '#42506a' } })), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 10, formatter: (p) => String(Math.round(p.value / 1000)) + ' þús USD' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cf = document.getElementById('chart-fc');
+        if (cf && forecast && !window.echarts.getInstanceByDom(cf)) {
+          const c = window.echarts.init(cf);
+          const yrs = forecast.years, vals = forecast.values, sp = forecast.splitYear;
+          const actual = yrs.map((y, i) => (y <= sp - 1 ? vals[i] : null));
+          const fc = yrs.map((y, i) => (y >= sp - 1 ? vals[i] : null));
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Raun', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 40, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: yrs, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: [
+              { name: 'Raun', type: 'line', data: actual, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#46e08a' }, itemStyle: { color: '#46e08a' } },
+              { name: 'Spá', type: 'line', data: fc, smooth: true, symbol: 'circle', symbolSize: 5, lineStyle: { width: 2.5, color: '#f6b13b', type: 'dashed' }, itemStyle: { color: '#f6b13b' } },
+            ],
           });
           window.addEventListener('resize', () => c.resize());
         }

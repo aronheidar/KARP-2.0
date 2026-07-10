@@ -126,6 +126,12 @@ jobs:
           node skriptur/build_rekstrarleyfi.mjs    || true   # Sýslumenn rekstrarleyfi (veitingar/gisting/vínveiting) → rekstrarleyfi.json (áfangi 1 leyfaskrár)
           node skriptur/build_ferdaleyfi.mjs       || true   # Ferðamálastofa leyfishafar (ferðaskrifstofur+dagsferðir) → ferdaleyfi.json (áfangi 1 leyfaskrár)
 
+      - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)
+        run: |
+          node skriptur/build_hagvoxtur.mjs   || true   # VLF ársfj + VLF-Sankey + Norðurlönd (WB) + IMF-hagvaxtarspá → hagvoxtur.json
+          node skriptur/build_mannfjoldi.mjs  || true   # mannfjöldi ársfj + þættir fjölgunar + innflytjendur → mannfjoldi.json
+          node skriptur/build_menntun.mjs     || true   # menntunarstaða 25–64 (ISCED) + háskóla-YoY → menntun.json
+
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:
           CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}

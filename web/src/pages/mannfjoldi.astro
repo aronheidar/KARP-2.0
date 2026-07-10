@@ -6,60 +6,11 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
+import DATA from '@gogn/mannfjoldi.json';
 
-const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-
-// Heildarmannfjöldi, ársfjórðungslega (16 ár).
-let POP = null;
-try {
-  const j = await px('Ibuar/mannfjoldi/1_yfirlit/arsfjordungstolur/MAN10001.px', [sel('Sveitarfélag', 'item', ['IS']), sel('Kyn og ríkisfang', 'item', ['0']), sel('Ársfjórðungur', 'top', ['64'])]);
-  const m = {};
-  j.data.forEach((d) => { const t = d.key.find((k) => /\d{4}/.test(k)); const v = num(d.values[0]); if (t && v != null) m[t] = v; });
-  const ts = Object.keys(m).sort();
-  if (ts.length) {
-    const last = m[ts[ts.length - 1]], y4 = m[ts[ts.length - 5]];
-    POP = { labels: ts.map((t) => t.replace(/(\d{4}).*?([1-4])$/, '$1 F$2')), vals: ts.map((t) => m[t]), now: last, yoy: y4 ? Math.round(((last - y4) / y4) * 1000) / 10 : null };
-  }
-} catch (e) { POP = null; }
-
-// Þættir fólksfjölgunar: 2=heildarfjölgun, 3=aðfl. umfram brottfl., 4=fæddir umfram dána.
-// Ár sem vantar sundurliðun (3&4) eru síuð út.
-let COMP = null;
-try {
-  const j = await px('Ibuar/mannfjoldi/1_yfirlit/Yfirlit_mannfjolda/MAN00000.px', [sel('Eining', 'item', ['3', '4', '2'])]);
-  const by = { 2: {}, 3: {}, 4: {} };
-  j.data.forEach((d) => {
-    const t = d.key.find((k) => /^\d{4}$/.test(k));
-    const e = d.key.find((k) => k === '2' || k === '3' || k === '4');
-    const v = num(d.values[0]);
-    if (t && e && v != null) by[e][t] = v;
-  });
-  const years = Object.keys(by[2]).filter((y) => by[3][y] != null && by[4][y] != null).sort().slice(-25);
-  if (years.length) COMP = { years, netmig: years.map((y) => by[3][y]), natural: years.map((y) => by[4][y]), total: years.map((y) => by[2][y]) };
-} catch (e) { COMP = null; }
-
-// Innflytjendur: hlutfall af mannfjölda (124 = innflytjendur, -1 = alls).
-let IMM = null;
-try {
-  // ATH: taflan hefur líka KYN-vídd — án Kyn=0 yfirskrifa kynjaraðir hver aðra!
-  const j = await px('Ibuar/mannfjoldi/3_bakgrunnur/Uppruni/MAN43000.px', [sel('Aldur', 'item', ['-1']), sel('Bakgrunnur', 'item', ['-1', '124']), sel('Kyn', 'item', ['0'])]);
-  const all = {}, imm = {};
-  j.data.forEach((d) => {
-    const t = d.key.find((k) => /^\d{4}$/.test(k));
-    const b = d.key.includes('124') ? '124' : '-1'; // Bakgrunnur (Aldur er líka -1 en 124-raðir þekkjast)
-    const v = num(d.values[0]);
-    if (t && v != null) (b === '124' ? imm : all)[t] = v;
-  });
-  const years = Object.keys(imm).filter((y) => all[y]).sort().slice(-20);
-  if (years.length) {
-    const share = years.map((y) => Math.round((imm[y] / all[y]) * 1000) / 10);
-    IMM = { years, share, now: share[share.length - 1] };
-  }
-} catch (e) { IMM = null; }
-
-const updated = '2026-07-02';
+// Gögn: daglegt snapshot úr skriptur/build_mannfjoldi.mjs → gogn/mannfjoldi.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga).
+const { POP, COMP, IMM, updated } = DATA;
 const desc = `Mannfjöldi á Íslandi${POP ? ' — ' + groupThousands(POP.now) + ' íbúar' : ''}, þættir fólksfjölgunar (aðfluttir vs náttúruleg fjölgun) og hlutfall innflytjenda${IMM ? ' (' + fmtNum(IMM.now, 1) + '%)' : ''}.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Mannfjöldi á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Mannfjöldi' };
 ---
@@ -73,7 +24,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
 
     <div class="kpis">
       {POP && <div class="kpi"><div class="k-l">👥 Íbúar</div><div class="k-v">{groupThousands(POP.now)}</div><div class="k-s">nýjasti ársfjórðungur</div></div>}
-      {POP && POP.yoy != null && <div class="kpi"><div class="k-l">📈 Fjölgun</div><div class="k-v">{POP.yoy > 0 ? '+' : ''}{fmtNum(POP.yoy, 1)}%</div><div class="k-s">frá fyrra ári</div></div>}
+      {POP && POP.yoy != null && <div class="kpi"><div class="k-l">📈 Fjölgun</div><div class="k-v">{POP.yoy > 0 ? '+' : ''}{fmtNum(POP.yoy, 1)}%</div><div class="k-s">{POP.yoyAbs != null ? (POP.yoyAbs > 0 ? '+' : '') + groupThousands(POP.yoyAbs) + ' manns · ' : ''}frá fyrra ári</div></div>}
       {IMM && <div class="kpi"><div class="k-l">🌍 Innflytjendur</div><div class="k-v">{fmtNum(IMM.now, 1)}%</div><div class="k-s">af mannfjölda</div></div>}
     </div>
 
@@ -100,7 +51,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
       </>
     )}
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (MAN10001, MAN00000, MAN43000). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (MAN10001, MAN00000, MAN43000). #2.</p>
   </main>
 
   <style>

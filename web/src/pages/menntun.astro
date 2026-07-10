@@ -6,50 +6,13 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum } from '@lib/format.mjs';
+import DATA from '@gogn/menntun.json';
 
-const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
-const ISCED = { 'ISCED 1, 2': ['Grunnmenntun', '#ff8a3d'], 'ISCED 3, 4': ['Framhaldsskólastig', '#3a8dff'], 'ISCED 5, 6, 7, 8': ['Háskólastig', '#46e08a'] };
-const LVLS = Object.keys(ISCED);
-
-let EDU = null; // þróun (bæði kyn)
-let EDUSEX = null; // nýjasta ár eftir kyni
-try {
-  const [aj, sj] = await Promise.all([
-    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['Alls']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
-    px('Samfelag/skolamal/5_menntunarstada/SKO00002.px', [sel('Kyn', 'item', ['1', '2']), sel('Aldursflokkur/búseta', 'item', ['25-64']), sel('Menntun', 'item', LVLS)]),
-  ]);
-  const byLvl = {};
-  aj.data.forEach((d) => {
-    const t = d.key.find((k) => /^\d{4}$/.test(k));
-    const l = d.key.find((k) => ISCED[k]);
-    const v = num(d.values[0]);
-    if (t && l && v != null) (byLvl[l] = byLvl[l] || {})[t] = v;
-  });
-  const years = [...new Set(Object.values(byLvl).flatMap((m) => Object.keys(m)))].sort();
-  if (years.length) {
-    EDU = { years, series: LVLS.map((l) => ({ name: ISCED[l][0], color: ISCED[l][1], data: years.map((y) => byLvl[l]?.[y] ?? null) })) };
-    const lastY = years[years.length - 1];
-    EDU.uni = byLvl['ISCED 5, 6, 7, 8']?.[lastY] ?? null;
-    EDU.lastY = lastY;
-  }
-  const sx = { 1: {}, 2: {} };
-  sj.data.forEach((d) => {
-    const t = d.key.find((k) => /^\d{4}$/.test(k));
-    const kyn = d.key.includes('1') && !d.key.includes('2') ? '1' : d.key.includes('2') ? '2' : null;
-    const l = d.key.find((k) => ISCED[k]);
-    const v = num(d.values[0]);
-    if (t && kyn && l && v != null) ((sx[kyn][t] = sx[kyn][t] || {})[l] = v);
-  });
-  const yrs = Object.keys(sx[1]).filter((y) => sx[2][y]).sort();
-  const y = yrs[yrs.length - 1];
-  if (y) EDUSEX = { year: y, labels: LVLS.map((l) => ISCED[l][0]), karlar: LVLS.map((l) => sx[1][y][l] ?? null), konur: LVLS.map((l) => sx[2][y][l] ?? null) };
-} catch (e) { EDU = null; EDUSEX = null; }
-
+// Gögn: daglegt snapshot úr skriptur/build_menntun.mjs → gogn/menntun.json
+// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga + „vs fyrra ári").
+const { EDU, EDUSEX, updated } = DATA;
 const uniKonur = EDUSEX ? EDUSEX.konur[2] : null;
 const uniKarlar = EDUSEX ? EDUSEX.karlar[2] : null;
-const updated = '2026-07-02';
 const desc = `Menntunarstaða á Íslandi (25–64 ára)${EDU && EDU.uni != null ? ' — ' + fmtNum(EDU.uni, 0) + '% með háskólamenntun' : ''}${uniKonur != null && uniKarlar != null ? `, konur ${fmtNum(uniKonur, 0)}% vs karlar ${fmtNum(uniKarlar, 0)}%` : ''}. Þróun eftir ISCED-stigum.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Menntunarstaða á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Menntunarstaða 25–64 ára (%)' };
 ---
@@ -62,7 +25,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Menntunartölur: skólahalds- og brautskráningartölur Hagstofunnar.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
-      {EDU && EDU.uni != null && <div class="kpi"><div class="k-l">🎓 Háskólamenntun</div><div class="k-v">{fmtNum(EDU.uni, 0)}%</div><div class="k-s">25–64 ára · {EDU.lastY}</div></div>}
+      {EDU && EDU.uni != null && <div class="kpi"><div class="k-l">🎓 Háskólamenntun</div><div class="k-v">{fmtNum(EDU.uni, 0)}%</div><div class="k-s">25–64 ára · {EDU.lastY}{EDU.uniYoY != null ? ` · ${EDU.uniYoY > 0 ? '+' : ''}${fmtNum(EDU.uniYoY, 1)} pp frá fyrra ári` : ''}</div></div>}
       {uniKonur != null && <div class="kpi"><div class="k-l">👩 Konur m/háskólapróf</div><div class="k-v">{fmtNum(uniKonur, 0)}%</div><div class="k-s">{EDUSEX.year}</div></div>}
       {uniKarlar != null && <div class="kpi"><div class="k-l">👨 Karlar m/háskólapróf</div><div class="k-v">{fmtNum(uniKarlar, 0)}%</div><div class="k-s">{EDUSEX.year}</div></div>}
     </div>
@@ -82,7 +45,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Me
       )}
     </div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Heimild: Hagstofa (SKO00002, menntunarstaða 25–64 ára). ISCED 1–2 = grunnmenntun · 3–4 = framhaldsskólastig · 5–8 = háskólastig. #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (SKO00002, menntunarstaða 25–64 ára). ISCED 1–2 = grunnmenntun · 3–4 = framhaldsskólastig · 5–8 = háskólastig. #2.</p>
   </main>
 
   <style>
