@@ -97,6 +97,8 @@ jobs:
           node skriptur/build_eftirlit_hnit.js || true  # hnitar eftirlit f. Leaflet-kort (Staðfangaskrá frítt + Google fallback)
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
           node skriptur/build_styrkir.js      || true   # Opinberar styrkveitingar (6 sjóðir → nafn→úthlutun; /api/styrkir + #fs-styrkir)
+      - name: Byggingarleyfi (opnar fundargerðir byggingarfulltrúa RVK → byggingarsaga heimilisfangs)
+        run: python skriptur/build_byggingarleyfi.py || true   # pypdf; full endurbygging (271 PDF, PDF-cache); heimilisfangs-lyklað, PII-örugg þáttun — engin persónuupplýsing geymd
       - name: Lögbirtingablaðið (opin PDF-tölublöð → lögform. tilkynningar lögaðila á kt)
         run: python skriptur/build_logbirting.py || true   # pypdf; incremental (seen-set í gogn/); persónuvernd: aðeins lögaðilar (gjaldþrot/innköllun/skiptalok/félagsslit)
         env:
