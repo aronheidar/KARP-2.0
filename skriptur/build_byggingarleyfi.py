@@ -323,8 +323,9 @@ def run_audit(n):
 OUT   = os.path.join(GOGN, 'byggingarleyfi.json')          # kanónískt (incremental-staða; ekki þjónað)
 SEEN  = os.path.join(GOGN, 'byggingarleyfi_seen.json')
 META  = os.path.join(GOGN, 'byggingarleyfi_meta.json')
-PN_DIRS  = [os.path.join(PUB, 'byggingarleyfi')]            # þjónað (skýrslu-neytandi)
-VAKT_OUT = [os.path.join(PUB, 'byggingarleyfi_vakt.json')]  # þjónað (Byggingarvakt-síðan)
+PN_DIRS  = [os.path.join(PUB, 'byggingarleyfi')]            # þjónað (skýrslu-neytandi, client-fetch)
+VAKT_OUT = [os.path.join(PUB, 'byggingarleyfi_vakt.json'),  # þjónað (Byggingarvakt client-fetch)
+            os.path.join(GOGN, 'byggingarleyfi_vakt.json')] # + @gogn SSR-import (byggingarvakt.astro)
 
 SOURCE = 'Afgreiðslufundir byggingarfulltrúa Reykjavíkur'
 SOURCE_URL = 'https://reykjavik.is/byggingarmal/fundargerdir-byggingarfulltrua'
