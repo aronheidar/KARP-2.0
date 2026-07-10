@@ -24,6 +24,15 @@ const catBars = Object.keys(CATLABELS).filter((k) => nat.cats && nat.cats[k] != 
 
 const hi = regionBars[0], lo = regionBars[regionBars.length - 1];
 
+// Choropleth-kort: afbrot per landshluta (glaepir.byRegion.hegn) + brotaflokkar í popup.
+const CRIMECATS = { audgun: 'Auðgunarbrot', ofbeldi: 'Ofbeldisbrot', fikni: 'Fíkniefnabrot', kynf: 'Kynferðisbrot', eignsp: 'Eignaspjöll' };
+const mapValues = {}, mapDetail = {};
+Object.keys(byReg).forEach((n) => {
+  if (n === 'Vestmannaeyjar') return;   // sér lögregluumdæmi — enginn landshluta-fjölhyrningur
+  mapValues[n] = byReg[n].hegn;
+  mapDetail[n] = { cats: Object.keys(CRIMECATS).filter((k) => byReg[n].cats && byReg[n].cats[k] != null).map((k) => ({ l: CRIMECATS[k], v: byReg[n].cats[k] })) };
+});
+
 // Landshluta-þróun: lína per landshluta (sömu ár og landsserían).
 const REGPAL = { 'Höfuðborgarsvæðið': '#3a8dff', 'Suðurnes': '#ff8a3d', 'Vesturland': '#46e08a', 'Vestfirðir': '#7c5cf7', 'Norðurland vestra': '#1fb6c9', 'Norðurland eystra': '#f6b13b', 'Austurland': '#e8436f', 'Suðurland': '#5aa84a' };
 const REGLINES = Object.keys(byReg)
@@ -65,6 +74,10 @@ const jsonLd = {
       </div>
     </div>
 
+    <h2>Kort — afbrot eftir landshlutum ({year})</h2>
+    <div id="afbrot-map" class="chl-mapbox"></div>
+    <p class="mapnote">Litað eftir hegningarlagabrotum á 10.000 íbúa. Smelltu á landshluta fyrir brotaflokka. Vestmannaeyjar eru sér lögregluumdæmi (sjá tölur að ofan).</p>
+
     <h2>Þróun eftir landshlutum</h2>
     <div id="chart-reglines"></div>
 
@@ -91,6 +104,7 @@ const jsonLd = {
 
     #chart-region, #chart-cat { width: 100%; }
     #chart-reglines { width: 100%; height: 340px; }
+    .mapnote { font-size: 12px; color: #7e8ca6; margin: 8px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
@@ -143,5 +157,27 @@ const jsonLd = {
       s.addEventListener('load', go, { once: true });
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="afbrot"]')) initCharts(); });
+  </script>
+
+  <!-- Choropleth-kort (Leaflet) — sér eyja sem importar sameiginlega hjálparann. #2 -->
+  <script type="application/json" id="afbrot-mapcfg" set:html={JSON.stringify({ values: mapValues, detail: mapDetail })}></script>
+  <script>
+    import { renderChoropleth } from '../lib/choropleth.mjs';
+    function initAfbrotMap() {
+      const el = document.getElementById('afbrot-map');
+      if (!el || !document.querySelector('main[data-pg="afbrot"]')) return;
+      let cfg; try { cfg = JSON.parse(document.getElementById('afbrot-mapcfg').textContent); } catch (e) { return; }
+      const fmt = (v) => Math.round(v).toLocaleString('is-IS');
+      renderChoropleth(el, {
+        geojsonUrl: '/gogn/landshlutar.json',
+        values: cfg.values, detail: cfg.detail,
+        ramp: 'redgreen', bins: 5, format: fmt,
+        label: 'Brot á 10þ', legendTitle: 'Brot á 10.000 íbúa',
+        popupHtml: (name, v, d) => `<b>${name}</b><br>Hegningarlagabrot: <b>${v == null ? '—' : fmt(v)}</b> /10þ`
+          + (d && d.cats && d.cats.length ? '<br><span style="color:#9fb0c8;font-size:12px">' + d.cats.map((c) => c.l + ': ' + fmt(c.v)).join('<br>') + '</span>' : ''),
+        attribution: 'Mörk: geoBoundaries · Gögn: Ríkislögreglustjóri',
+      });
+    }
+    document.addEventListener('astro:page-load', initAfbrotMap);
   </script>
 </Layout>
