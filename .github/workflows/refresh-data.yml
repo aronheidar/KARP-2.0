@@ -78,6 +78,13 @@ jobs:
           node skriptur/build_uppbod.js         || true
           node skriptur/build_ytsaga.js         || true
           node skriptur/build_ytsafn.js         || true
+      # FIT-ÞREP 3: hæfiskröfu-þáttun TED-útboða með Claude (structured output).
+      # ⚠ Sleppir sér hljóðlega þar til ANTHROPIC_API_KEY er sett í GitHub Secrets.
+      #   Keyrir Á EFTIR build_utbod (les gogn/utbod.json); stigvaxandi — aðeins ný útboð.
+      - name: Hæfiskröfur útboða (Claude-þáttun, krefst ANTHROPIC_API_KEY)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node skriptur/build_utbod_haefi.mjs || true
       - name: Þyngri veitur (HMS, VMST, lögregla, orka, Numbeo, Fiskistofa)
         env:
           GOOGLE_GEOCODE_KEY: ${{ secrets.GOOGLE_GEOCODE_KEY }}
