@@ -1,83 +1,154 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// SSG-síða (#2) — EES / EFTA: útskýring á EES-samstarfinu + LIFANDI
-// tilskipanalisti (WP-endapunktur /wp-json/karp/v1/ees, EUR-Lex proxy) með
-// graceful fallback ef þjónustan er ekki uppi (eins og gamla mælaborðið). #2.
+// SSG-síða — EES-vaktin: útskýring á EES-samstarfinu + RAUNVERULEGUR 3-ÞREPA
+// rakningur á leið ESB-gerða inn í íslenskan rétt. Gögn: gogn/ees.json (build_ees.js,
+// CELLAR SPARQL + Alþingi XML), importuð á byggingartíma. Leysir af hólmi flata WP-listann.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import EES from '@gogn/ees.json';
 
-const updated = '2026-07-02';
-const desc = 'EES-samningurinn og EFTA — hvernig ESB-tilskipanir verða að íslenskum lögum, tveggja stoða kerfið og lifandi listi nýjustu tilskipana úr EUR-Lex.';
+const esb = EES.esb || [];
+const jcd = EES.jcd || [];
+const althingi = EES.althingi || [];
+const updated = EES.updated || '2026-07-02';
+
+// ESB-gerð: CELEX (32026R1703) → "2026/1703"
+const eesNum = (celex) => { const m = /^3(\d{4})[LRD](\d{4})$/.exec(celex || ''); return m ? m[1] + '/' + (+m[2]) : (celex || ''); };
+// Þrep 2 — viðauka-yfirlit (fjöldi ákvarðana per efnissvið)
+const annexCounts = {};
+for (const x of jcd) { const k = x.annexIs || 'Annað / óflokkað'; annexCounts[k] = (annexCounts[k] || 0) + 1; }
+const annexTop = Object.entries(annexCounts).sort((a, b) => b[1] - a[1]);
+// Þrep 3 — staða þingmáls → litaflokkur
+const stColor = (s) => { s = s || ''; return /[Ss]amþykk/.test(s) ? 'ok' : /í nefnd|nefnd eftir/.test(s) ? 'mid' : /[Ee]kki útrætt|Beið|[Bb]íður/.test(s) ? 'wait' : 'neutral'; };
+const nSamþ = althingi.filter((m) => /[Ss]amþykk/.test(m.stada || '')).length;
+
+const desc = 'EES-vaktin: hvernig ESB-gerðir verða að íslenskum lögum gegnum EES-samninginn — rakið í þremur þrepum. Nýjustu EES-merktu gerðir ESB, ákvarðanir sameiginlegu EES-nefndarinnar eftir viðauka, og EES-mál á Alþingi með stöðu.';
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Article', headline: 'EES / EFTA — Ísland og innri markaðurinn', description: desc, author: { '@type': 'Organization', name: 'Karp' }, dateModified: updated };
 ---
 
-<Layout title="EES / EFTA — Ísland og innri markaðurinn | Karp" description={desc} canonical="https://karp.is/ees/" jsonLd={jsonLd} ogTitle="EES / EFTA">
+<Layout title="EES-vaktin — leið ESB-gerða inn í íslensk lög | Karp" description={desc} canonical="https://karp.is/ees/" jsonLd={jsonLd} ogTitle="EES-vaktin">
   <main data-pg="ees">
     <p class="kicker">Hagvísir Íslands · Útlönd</p>
-    <h1>EES / EFTA</h1>
-    <p>Í gegnum EES-samninginn (1994) er Ísland hluti af <strong>innri markaði ESB</strong> — fjórfrelsið (vörur, þjónusta, fjármagn, fólk) gildir hér — án þess að vera aðildarríki sambandsins.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="EES-mál: opin gögn um upptöku ESB-gerða í EES-samninginn og innleiðingarmál á Alþingi. Ferilstigin eru einfölduð framsetning Karp.">ⓘ</i> Um gögnin á síðunni</p>
+    <h1>EES-vaktin</h1>
+    <p>Í gegnum EES-samninginn (1994) er Ísland hluti af <strong>innri markaði ESB</strong> — fjórfrelsið (vörur, þjónusta, fjármagn, fólk) gildir hér — án þess að vera aðildarríki sambandsins. ESB-gerðir sem varða markaðinn rata inn í íslenskan rétt í þremur þrepum. Hér er sú leið rakin með lifandi gögnum.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Þrep 1+2 úr EUR-Lex CELLAR (Útgáfuskrifstofa ESB), Þrep 3 úr opnu XML-viðmóti Alþingis. Þrepaskiptingin er einfölduð framsetning Karp. Uppfært daglega.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="cards">
-      <div class="c"><div class="c-e">🏛️</div><div class="c-t">Tveggja stoða kerfið</div><div class="c-b">ESB-stoðin (framkvæmdastjórn, dómstóll ESB) og EFTA-stoðin (ESA eftirlitsstofnun, EFTA-dómstóllinn) framfylgja sömu reglum sitt hvorum megin.</div></div>
-      <div class="c"><div class="c-e">📜</div><div class="c-t">Upptaka gerða</div><div class="c-b">ESB-gerðir sem varða innri markaðinn eru teknar upp í EES-samninginn með ákvörðun sameiginlegu EES-nefndarinnar og síðan innleiddar í íslenskan rétt — oft með lagasetningu á Alþingi.</div></div>
+      <div class="c"><div class="c-e">🏛️</div><div class="c-t">Tveggja stoða kerfið</div><div class="c-b">ESB-stoðin (framkvæmdastjórn, ESB-dómstóll) og EFTA-stoðin (ESA, EFTA-dómstóllinn) framfylgja sömu reglum sitt hvorum megin.</div></div>
+      <div class="c"><div class="c-e">📜</div><div class="c-t">Upptaka gerða</div><div class="c-b">ESB-gerðir eru teknar upp í EES-samninginn með ákvörðun sameiginlegu EES-nefndarinnar og innleiddar í íslenskan rétt — með reglugerð eða lagasetningu á Alþingi.</div></div>
       <div class="c"><div class="c-e">⚖️</div><div class="c-t">Undanþágur</div><div class="c-b">Sjávarútvegs- og landbúnaðarstefna ESB standa UTAN samningsins — þess vegna heldur Ísland fullum yfirráðum yfir fiskveiðiauðlindinni.</div></div>
       <div class="c"><div class="c-e">🛂</div><div class="c-t">Schengen</div><div class="c-b">Samhliða EES er Ísland í Schengen-samstarfinu (2001) — engin vegabréfaskoðun á innri landamærum Evrópu.</div></div>
     </div>
 
-    <h2>Nýjustu ESB-tilskipanir <span class="live-tag">LIFANDI</span></h2>
-    <div id="ees-track" class="track"><div class="ees-load">Sæki tilskipanir úr EUR-Lex…</div></div>
+    <!-- Þrepa-stiginn -->
+    <div class="steps">
+      <div class="step"><span class="s-n">1</span><div class="s-b"><div class="s-t">ESB samþykkir</div><div class="s-c">{esb.length} nýlegar gerðir</div></div></div>
+      <div class="s-arrow">→</div>
+      <div class="step"><span class="s-n">2</span><div class="s-b"><div class="s-t">EES-nefndin tekur upp</div><div class="s-c">{jcd.length} ákvarðanir</div></div></div>
+      <div class="s-arrow">→</div>
+      <div class="step"><span class="s-n">3</span><div class="s-b"><div class="s-t">Ísland innleiðir</div><div class="s-c">{althingi.length} mál á Alþingi</div></div></div>
+    </div>
 
-    <p class="foot">Forþjónað (SSG) {updated}. Tilskipanalistinn er sóttur lifandi úr EUR-Lex (gegnum karp.is) og sýnir nýjustu samþykktu tilskipanir ESB — þær eiga margar eftir að rata inn í EES-samninginn og íslensk lög. Sjá einnig <a href="/samtok/">Alþjóðasamstarf</a>. #2.</p>
+    <!-- Þrep 1 -->
+    <h2>Þrep 1 · Samþykkt hjá ESB <span class="live-tag">EUR-LEX</span></h2>
+    <p class="sub">EES-merktar reglugerðir og tilskipanir sem ESB hefur samþykkt síðustu ~90 daga. Þær varða innri markaðinn og eiga eftir að rata inn í EES-samninginn.</p>
+    <div class="list">
+      {esb.map((x) => (
+        <a class="item" href={x.url} target="_blank" rel="noopener">
+          <span class={'tag ' + (x.teg === 'Tilskipun' ? 'tag-dir' : 'tag-reg')}>{x.teg}</span>
+          <span class="i-num">ESB {eesNum(x.celex)}</span>
+          <span class="i-t">{x.t}</span>
+          <span class="i-d">{x.d}</span>
+        </a>
+      ))}
+      {esb.length === 0 && <p class="empty">Engar nýjar EES-merktar gerðir í augnablikinu.</p>}
+    </div>
+
+    <!-- Þrep 2 -->
+    <h2>Þrep 2 · Tekið upp í EES-samninginn <span class="live-tag">EES-NEFNDIN</span></h2>
+    <p class="sub">Sameiginlega EES-nefndin (ESB + EFTA-ríkin) tekur gerðirnar formlega inn í EES-samninginn með ákvörðun sem breytir viðkomandi viðauka. Nýjustu ákvarðanir — flokkaðar eftir efnissviði:</p>
+    {annexTop.length > 0 && <div class="chips">{annexTop.map(([k, v]) => <span class="chip">{k} <b>{v}</b></span>)}</div>}
+    <div class="list scroll">
+      {jcd.map((x) => (
+        <a class="item" href={x.url} target="_blank" rel="noopener">
+          <span class="tag tag-jcd">Ákv. {x.decisionNo || '—'}</span>
+          <span class="i-t">{x.annexIs || 'Efnissvið óskráð'}{x.annexNo ? ' · ' + x.annexNo + '. viðauki' : ''}</span>
+          {x.althingi && <span class="i-badge">↔ Alþingi {x.althingi.nr}</span>}
+          <span class="i-d">{x.decisionDate || x.pubDate}</span>
+        </a>
+      ))}
+      {jcd.length === 0 && <p class="empty">Engar nýlegar ákvarðanir sóttar.</p>}
+    </div>
+
+    <!-- Þrep 3 -->
+    <h2>Þrep 3 · Innleitt á Íslandi <span class="live-tag">ALÞINGI</span></h2>
+    <p class="sub">Sá hluti EES-gerða sem krefst lagabreytingar eða stjórnskipulegrar staðfestingar fer fyrir Alþingi — flestar aðrar eru innleiddar með reglugerð ráðuneytis án þingsins. Hér eru EES-mál síðustu þinga með stöðu ({nSamþ} af {althingi.length} samþykkt).</p>
+    <div class="list">
+      {althingi.map((m) => (
+        <a class="item" href={m.html} target="_blank" rel="noopener">
+          <span class="tag tag-al">{m.thing}/{m.nr}</span>
+          <span class="i-t">{m.heiti}{m.jcdRefs.length ? ' (ákv. ' + m.jcdRefs.join(', ') + ')' : ''}</span>
+          <span class={'i-st st-' + stColor(m.stada)}>{m.stada || m.tegund}</span>
+        </a>
+      ))}
+      {althingi.length === 0 && <p class="empty">Engin EES-mál sótt.</p>}
+    </div>
+
+    <p class="foot">Forþjónað (SSG), uppfært {updated}. <b>Þrep 1 &amp; 2</b> úr EUR-Lex CELLAR (SPARQL-gátt Útgáfuskrifstofu ESB), <b>Þrep 3</b> úr opnu XML-viðmóti Alþingis. Þrepin þrjú eru sótt hvert úr sinni heimild; bein tenging milli þreps 2 og 3 (á ákvörðunarnúmeri) er stopul því íslensk staðfesting fer oft fram áður en ákvörðunin birtist í EUR-Lex. Sjá einnig <a href="/samtok/">Alþjóðasamstarf</a> og <a href="https://www.efta.int/eea-lex" target="_blank" rel="noopener">EEA-Lex hjá EFTA ↗</a>.</p>
   </main>
 
   <style>
-    main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 820px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
     p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
-    .live-tag { font-size: 9px; background: rgba(70,224,138,.15); color: #46e08a; border: 1px solid rgba(70,224,138,.4); border-radius: 5px; padding: 2px 6px; vertical-align: middle; letter-spacing: .08em; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 34px 0 6px; display: flex; align-items: center; gap: 8px; }
+    .sub { font-size: 13px; color: #9fb0c8; margin: 0 0 12px; line-height: 1.55; }
+    .live-tag { font-size: 9px; background: rgba(70,224,138,.15); color: #46e08a; border: 1px solid rgba(70,224,138,.4); border-radius: 5px; padding: 2px 6px; letter-spacing: .08em; font-weight: 700; }
+
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .c { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
     .c-e { font-size: 22px; }
-    .c-t { font-weight: 700; font-size: 14.5px; margin: 6px 0 4px; }
+    .c-t { font-weight: 700; font-size: 14.5px; margin: 6px 0 4px; color: #eaf1fb; }
     .c-b { font-size: 13px; color: #9fb0c8; line-height: 1.5; }
-    .track { min-height: 60px; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-    .foot a { color: #9fb0c8; }
-  </style>
-  <style is:global>
-    /* Tilskipanalisti fyllist á keyrslutíma → global. */
-    .ees-load { font-size: 13px; color: #7e8ca6; padding: 12px 0; }
-    .ees-load a { color: #f6b13b; }
-    .ees-item { display: block; padding: 10px 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); border-radius: 10px; margin-bottom: 8px; text-decoration: none; }
-    .ees-item:hover { border-color: rgba(246,177,59,.5); }
-    .ees-num { font-size: 11px; color: #f6b13b; font-weight: 700; }
-    .ees-t { display: block; font-size: 13.5px; color: #eaf1fb; line-height: 1.45; margin-top: 2px; }
-    .ees-d { font-size: 11px; color: #7e8ca6; margin-top: 3px; }
-  </style>
 
-  <!-- Eyja: lifandi tilskipanalisti (WP proxy á EUR-Lex). Fallback ef niðri. #2 -->
-  <script>
-    function initEes() {
-      const box = document.getElementById('ees-track');
-      if (!box || box.dataset.done) return;
-      box.dataset.done = '1';
-      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const eesNum = (celex) => { const m = /^3(\d{4})L(\d{4})$/.exec(celex || ''); return m ? 'ESB ' + m[1] + '/' + (+m[2]) : (celex || ''); };
-      const clean = (t) => String(t || '').replace(/\s*\(Text with EEA relevance\.?\)\s*$/i, '').replace(/\s*\(Texti sem varðar EES\)\s*$/i, '');
-      const fail = () => { box.innerHTML = '<div class="ees-load">Tilskipanalistinn er ekki tiltækur í augnablikinu.<br><span style="font-size:11.5px">Skoðaðu <a href="https://www.efta.int/eea-lex" target="_blank" rel="noopener">EEA-Lex hjá EFTA ↗</a> á meðan.</span></div>'; };
-      fetch('https://wp.karp.is/wp-json/karp/v1/ees')
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d) => {
-          const items = (d && d.items) || [];
-          if (!items.length) return fail();
-          const safeU = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '#'); // javascript:/data: blokkað
-          box.innerHTML = items.slice(0, 20).map((it) => `<a class="ees-item" href="${esc(safeU(it.url))}" target="_blank" rel="noopener"><span class="ees-num">${esc(eesNum(it.celex))}</span><span class="ees-t">${esc(clean(it.title))}</span><span class="ees-d">${esc(it.date || '')}</span></a>`).join('');
-        })
-        .catch(fail);
-    }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="ees"]')) initEes(); });
-  </script>
+    /* Þrepa-stiginn */
+    .steps { display: flex; align-items: stretch; gap: 8px; margin: 26px 0 6px; }
+    .step { flex: 1; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; }
+    .s-n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #f6b13b; color: #10151f; font-weight: 800; font-size: 14px; display: grid; place-items: center; }
+    .s-t { font-weight: 700; font-size: 13.5px; color: #eaf1fb; }
+    .s-c { font-size: 11.5px; color: #9fb0c8; }
+    .s-arrow { display: grid; place-items: center; color: #46e08a; font-size: 18px; flex: none; }
+    @media (max-width: 640px) { .steps { flex-direction: column; } .s-arrow { transform: rotate(90deg); } }
+
+    /* Listar */
+    .list { display: flex; flex-direction: column; gap: 7px; }
+    .list.scroll { max-height: 470px; overflow-y: auto; padding-right: 4px; }
+    .item { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding: 9px 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); border-radius: 10px; text-decoration: none; }
+    .item:hover { border-color: rgba(246,177,59,.5); }
+    .tag { flex: none; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 5px; letter-spacing: .02em; }
+    .tag-reg { background: rgba(58,141,255,.16); color: #6fb0ff; border: 1px solid rgba(58,141,255,.4); }
+    .tag-dir { background: rgba(246,177,59,.16); color: #f6b13b; border: 1px solid rgba(246,177,59,.4); }
+    .tag-jcd { background: rgba(25,211,197,.14); color: #37d6c8; border: 1px solid rgba(25,211,197,.4); }
+    .tag-al { background: rgba(155,140,255,.16); color: #b0a3ff; border: 1px solid rgba(155,140,255,.4); }
+    .i-num { font-size: 11.5px; color: #f6b13b; font-weight: 700; flex: none; }
+    .i-t { flex: 1 1 320px; font-size: 13px; color: #eaf1fb; line-height: 1.4; }
+    .i-d { font-size: 11px; color: #7e8ca6; flex: none; font-variant-numeric: tabular-nums; }
+    .i-badge { font-size: 10.5px; color: #b0a3ff; border: 1px solid rgba(155,140,255,.35); border-radius: 5px; padding: 1px 6px; flex: none; }
+    .i-st { font-size: 11px; flex: none; padding: 1px 8px; border-radius: 5px; }
+    .st-ok { color: #46e08a; background: rgba(70,224,138,.12); }
+    .st-wait { color: #d9a441; background: rgba(217,164,65,.12); }
+    .st-mid { color: #6fb0ff; background: rgba(58,141,255,.12); }
+    .st-neutral { color: #9fb0c8; background: rgba(255,255,255,.06); }
+    .empty { font-size: 13px; color: #7e8ca6; padding: 8px 2px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .chip { font-size: 11.5px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 3px 10px; }
+    .chip b { color: #37d6c8; margin-left: 2px; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot a, .foot b { color: #9fb0c8; }
+  </style>
 </Layout>
