@@ -117,8 +117,13 @@ const updated = '2026-07-02';
       </div>
 
       <div class="w" data-w="fylgja">
-        <div class="w-h">🔖 Að fylgja</div>
+        <div class="w-h">🔖 Að fylgja <span id="fylgja-ny" class="fylgja-ny" hidden></span></div>
         <div id="mine">Hleð…</div>
+      </div>
+
+      <div class="w" data-w="nylegt">
+        <div class="w-h">🕘 Nýlega skoðað</div>
+        <div id="w-nylegt"><span class="dim">Engin félög skoðuð enn — opnaðu fyrirtækjaskýrslu og hún birtist hér.</span></div>
       </div>
 
       <div class="w" data-w="skyrslur">
@@ -148,6 +153,12 @@ const updated = '2026-07-02';
         <div class="w-h">📊 Mælaborðið — hvað birtist</div>
         <p class="w-p">Kveiktu og slökktu á spjöldum mælaborðsins. Valið vistast í vafranum þínum.</p>
         <div id="dash-toggles" class="tgl-list"></div>
+      </div>
+
+      <div class="w">
+        <div class="w-h">🌗 Þema</div>
+        <p class="w-p">Ljóst eða dökkt útlit — valið vistast í vafranum og gildir um alla síðuna.</p>
+        <div class="theme-seg" id="theme-seg"><button type="button" data-th="dark">🌙 Dökkt</button><button type="button" data-th="light">☀️ Ljóst</button></div>
       </div>
 
       <div class="w">
@@ -275,6 +286,11 @@ const updated = '2026-07-02';
     main[data-pg="mitt-svaedi"] .sk-cat:first-child { margin-top: 0; }
     main[data-pg="mitt-svaedi"] .sk-cat-h { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
     main[data-pg="mitt-svaedi"] .sk-cat-h .sk-n { font-size: 11px; color: var(--faint); font-weight: 600; }
+    main[data-pg="mitt-svaedi"] .fc-dot { color: var(--gold); font-size: 9px; vertical-align: middle; }
+    main[data-pg="mitt-svaedi"] .fylgja-ny { font-size: 11px; font-weight: 700; color: var(--gold); background: rgba(246,177,59,.14); padding: 1px 8px; border-radius: 999px; margin-left: 6px; }
+    main[data-pg="mitt-svaedi"] .theme-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+    main[data-pg="mitt-svaedi"] .theme-seg button { background: none; border: 0; padding: 8px 14px; color: var(--muted); cursor: pointer; font: inherit; font-size: 13px; }
+    main[data-pg="mitt-svaedi"] .theme-seg button.on { background: rgba(246,177,59,.16); color: var(--gold); font-weight: 700; }
     main[data-pg="mitt-svaedi"] .sk-t { font-size: 13px; color: #eaf1fb; font-weight: 600; }
     main[data-pg="mitt-svaedi"] .sk-o { font-size: 12px; color: #f6b13b; white-space: nowrap; }
   </style>
@@ -374,7 +390,7 @@ const updated = '2026-07-02';
       });
 
       // 📊 Mælaborðs-rofar (localStorage) — kveikja/slökkva á spjöldum mælaborðsins
-      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['skyrslur', '🛒 Keyptar skýrslur'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
+      const DASH_W = [['hagvisar', '📈 Hagvísar dagsins'], ['sveit', '🗺️ Mitt sveitarfélag'], ['loft', '🌬️ Loftgæði'], ['vaktir', '🔔 Vaktirnar — nýjast'], ['fylgja', '🔖 Að fylgja'], ['nylegt', '🕘 Nýlega skoðað'], ['skyrslur', '🛒 Keyptar skýrslur'], ['seats', '🏛️ Þingsæti-spá'], ['match', '🎯 Flokkamatið mitt']];
       const dhKey = 'karp-dash-hidden';
       const dhLoad = () => { try { return JSON.parse(localStorage.getItem(dhKey) || '[]'); } catch (e) { return []; } };
       const applyDash = () => { const hid = dhLoad(); DASH_W.forEach(([id]) => { const w = document.querySelector('.w[data-w="' + id + '"]'); if (w) w.hidden = hid.indexOf(id) !== -1; }); };
@@ -416,6 +432,25 @@ const updated = '2026-07-02';
             el.innerHTML = html;
           }).catch(() => { el.innerHTML = '<span class="dim">Náði ekki í keyptar skýrslur.</span>'; });
         });
+      })();
+
+      // 🕘 Nýlega skoðað (localStorage karp-recent) — skráð á fyrirtaeki.astro við hverja skoðun.
+      (function () {
+        const el = $g('w-nylegt'); if (!el) return;
+        let arr = []; try { arr = JSON.parse(localStorage.getItem('karp-recent') || '[]'); } catch (e) {}
+        if (!arr.length) return;   // heldur sjálfgefna „engin skoðuð" textanum
+        const ago = (ts) => { const d = Math.floor((Date.now() - ts) / 86400000); return d <= 0 ? 'í dag' : d === 1 ? 'í gær' : 'fyrir ' + d + ' dögum'; };
+        el.innerHTML = '<div class="sk-list">' + arr.slice(0, 8).map((r) => `<a class="sk-row" href="/fyrirtaeki/?q=${encodeURIComponent(r.kt)}"><span class="sk-t">${esc(r.nafn || r.kt)}</span><span class="sk-o">${ago(r.ts)} →</span></a>`).join('') + '</div>';
+      })();
+
+      // 🌗 Þema-rofi í Stillingum — samstillt við nav-rofann (window.karpSetTheme + karp-theme event).
+      (function () {
+        const seg = $g('theme-seg'); if (!seg) return;
+        const cur = () => (window.karpGetTheme ? window.karpGetTheme() : (localStorage.getItem('karp-theme') === 'light' ? 'light' : 'dark'));
+        const paint = () => seg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.th === cur()));
+        paint();
+        seg.querySelectorAll('button').forEach((b) => { b.onclick = () => { if (window.karpSetTheme) window.karpSetTheme(b.dataset.th); else { try { localStorage.setItem('karp-theme', b.dataset.th); } catch (e) {} document.documentElement.setAttribute('data-theme', b.dataset.th); } paint(); }; });
+        window.addEventListener('karp-theme', paint);
       })();
 
       // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum
@@ -651,15 +686,24 @@ const updated = '2026-07-02';
         // Að fylgja
         const MP = J('d-mp') || {};
         const paintMine = () => {
-          const el = $g('mine');
+          const el = $g('mine'); const nyBadge = $g('fylgja-ny');
           const mps = (window.KARP_USER.follows || []).filter((k) => k.indexOf('mp:') === 0 && MP[k]);
           const cos = (window.KARP_USER.follows || []).filter((k) => k.indexOf('co:') === 0);
-          if (!mps.length && !cos.length) { el.innerHTML = '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> eða <a href="/frettir/">Umfjöllun</a> og ýttu „+ Fylgja".</div>'; return; }
+          if (!mps.length && !cos.length) { el.innerHTML = '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> eða <a href="/frettir/">Umfjöllun</a> og ýttu „+ Fylgja".</div>'; if (nyBadge) nyBadge.hidden = true; return; }
+          // „Óskoðuð" merki: fylgt félag sem hefur EKKI verið opnað (karp-seen); nöfn úr karp-recent.
+          let seen = {}, names = {}; try { seen = JSON.parse(localStorage.getItem('karp-seen') || '{}'); } catch (e) {}
+          try { (JSON.parse(localStorage.getItem('karp-recent') || '[]')).forEach((r) => { names['co:' + r.kt] = r.nafn; }); } catch (e) {}
+          let unseen = 0;
+          const coHtml = cos.map((k) => {
+            const kt = k.slice(3), nm = names[k] || kt, isNew = !seen[k]; if (isNew) unseen++;
+            return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="/fyrirtaeki/?q=${encodeURIComponent(kt)}"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(nm)}${isNew ? ' <span class="fc-dot" title="Óskoðað">●</span>' : ''}</span><span class="fc-f">fyrirtæki vaktað</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
+          }).join('');
           el.innerHTML = '<div class="flist">' + mps.map((k) => {
             const m = MP[k];
             const pic = m.img ? `<img src="${esc(m.img)}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<span class="fc-ini">${esc(m.n.charAt(0))}</span>`;
             return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/">${pic}<span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
-          }).join('') + cos.map((k) => { const n = k.slice(3); return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="/frettir/"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(n)}</span><span class="fc-f">umfjöllun vöktuð</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`; }).join('') + '</div>';
+          }).join('') + coHtml + '</div>';
+          if (nyBadge) { nyBadge.hidden = !unseen; nyBadge.textContent = unseen ? unseen + ' óskoðuð' : ''; }
           el.querySelectorAll('.fc-x').forEach((b) => {
             b.onclick = async () => { b.disabled = true; const next = (window.KARP_USER.follows || []).filter((x) => x !== b.dataset.key); const res = await karpPost('/follows', { follows: next }); window.KARP_USER.follows = (res && res.follows) ? res.follows : next; paintMine(); };
           });

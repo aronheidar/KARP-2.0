@@ -878,11 +878,25 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<label class="fs-mailopt" id="fs-mailopt" hidden title="Fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, vörumerki, útboð eða eftirlit berst (Karp+)."><input type="checkbox" id="fs-mailchk" /> 🔔 láta vita í pósti</label>'
         + '</span>';
     }
+    // Skrá skoðun (nýlega skoðað + „skoðað" merki) — localStorage, virkar líka óinnskráð.
+    function fsRecordView(kt, nafn) {
+      if (!kt) return;
+      try {
+        let arr = JSON.parse(localStorage.getItem('karp-recent') || '[]');
+        arr = arr.filter((x) => x.kt !== kt);
+        arr.unshift({ kt: kt, nafn: nafn || kt, ts: Date.now() });
+        localStorage.setItem('karp-recent', JSON.stringify(arr.slice(0, 10)));
+        const seen = JSON.parse(localStorage.getItem('karp-seen') || '{}');
+        seen['co:' + kt] = Date.now();
+        localStorage.setItem('karp-seen', JSON.stringify(seen));
+      } catch (e) {}
+    }
     function fsWireFylgja() {
       const wrap = document.querySelector('.fs-follow');
       const flb = document.getElementById('fs-fylgja');
       if (!wrap || !flb) return;
       const kt = wrap.dataset.kt || '', nafn = wrap.dataset.nafn || '', fkey = 'co:' + kt;
+      fsRecordView(kt, nafn);
       const mailopt = document.getElementById('fs-mailopt'), mailchk = document.getElementById('fs-mailchk');
       const following = () => ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1;
       const paint = () => { const on = following(); flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; if (mailopt) mailopt.hidden = !on; };
