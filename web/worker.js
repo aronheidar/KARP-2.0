@@ -1802,20 +1802,34 @@ function rskClean(kt, d) {
   };
 }
 async function rskHandler(request, env, ctx) {
-  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  const u = new URL(request.url);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const debug = u.searchParams.get('debug') === '1';   // TIMABUNDID: PII-oruggt (lyklar, ekki gildi)
   if (kt.length !== 10) return sjson({ kt, holdur: false });
   if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/rsk?kt=' + kt);
-  const hit = await cache.match(cacheKey); if (hit) return hit;
+  if (!debug) { const hit = await cache.match(cacheKey); if (hit) return hit; }
   let out = { kt, holdur: false };
+  const diag = { kt };
   try {
     const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
       headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
     });
-    if (r.ok) out = rskClean(kt, await r.json());
-    else out = { kt, holdur: false, status: r.status };
-  } catch (e) {}
+    diag.upstreamStatus = r.status;
+    diag.contentType = r.headers.get('content-type') || null;
+    const body = await r.text();
+    diag.len = body.length;
+    if (r.ok) {
+      let d = null; try { d = JSON.parse(body); diag.parsedOk = true; } catch (e) { diag.parsedOk = false; }
+      if (d && typeof d === 'object') { diag.keys = Object.keys(d).slice(0, 40); out = rskClean(kt, d); }
+      diag.holdur = out.holdur;
+    } else {
+      out = { kt, holdur: false, status: r.status };
+      diag.bodyHead = body.slice(0, 200);   // villusvor eru error-JSON, ekki felagsgogn
+    }
+  } catch (e) { diag.threw = String((e && e.message) || e); }
+  if (debug) return sjson(diag);
   const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
   if (out.holdur) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
