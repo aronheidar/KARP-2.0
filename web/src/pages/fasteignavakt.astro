@@ -132,6 +132,15 @@ const jsonLd = {
     .fv-v { color: #f6b13b; }
     .fv-mat { font-size: 10.5px; color: #9fb0c8; background: rgba(255,255,255,.06); border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
     .fvm-signal { font-size: 13px; color: #eaf1fb; background: rgba(58,141,255,.1); border: 1px solid rgba(58,141,255,.3); border-radius: 9px; padding: 8px 12px; margin-top: 8px; }
+    .byg-note { font-size: 12px; color: #9fb0c8; margin: 6px 0 8px; line-height: 1.45; }
+    .byg-note b { color: #eaf1fb; } .byg-note a { color: #f6b13b; text-decoration: none; }
+    .byg-list { display: flex; flex-direction: column; gap: 7px; }
+    .byg-case { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 9px 11px; }
+    .byg-b { flex: 0 0 auto; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #0a0e14; white-space: nowrap; margin-top: 1px; }
+    .byg-bd { flex: 1 1 auto; min-width: 0; }
+    .byg-d { font-size: 12.5px; color: #cdd6e6; line-height: 1.4; }
+    .byg-m { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: #7e8ca6; margin-top: 3px; flex-wrap: wrap; }
+    .byg-m a { color: #f6b13b; text-decoration: none; } .byg-m a:hover { text-decoration: underline; }
     .fvm-anchor { font-size: 12.5px; color: #cdd6e6; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 6px; line-height: 1.5; }
     main[data-pg="fastvakt"] .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
     main[data-pg="fastvakt"] .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
@@ -263,6 +272,9 @@ const jsonLd = {
       body.fvm-printing #fvm-report .fvm-meta, body.fvm-printing #fvm-report .fvm-note, body.fvm-printing #fvm-report .fi .s, body.fvm-printing #fvm-report .fv-head, body.fvm-printing #fvm-report .fv-sv { color: #444 !important; }
       body.fvm-printing #fvm-report .fv-v { color: #b07500 !important; }
       body.fvm-printing #fvm-report .fvm-signal { background: #f3f7ff !important; border: 1px solid #b9cdf0 !important; color: #123 !important; }
+      body.fvm-printing #fvm-report .byg-case { background: #f7f8fb !important; border: 1px solid #d5dae6 !important; }
+      body.fvm-printing #fvm-report .byg-d { color: #1a2230 !important; }
+      body.fvm-printing #fvm-report .byg-note, body.fvm-printing #fvm-report .byg-m { color: #45505f !important; }
       body.fvm-printing #fvm-report .fvm-signal b { color: #123 !important; }
       body.fvm-printing #fvm-report .fvm-anchor { background: #fdf8ec !important; border-left: 3px solid #b07500 !important; color: #222 !important; }
       body.fvm-printing #fvm-report .fvm-anchor b { color: #111 !important; }
@@ -314,6 +326,9 @@ const jsonLd = {
       // LOTA 68: GPS-hnit per heimilisfang (staðfangaskrá) → kort, fjarlægð á sambærilegar, hverfi
       const HNIT = {};
       const hnitPn = (pn) => HNIT[pn] || (HNIT[pn] = fetch('/gogn/hnit/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      // Byggingarleyfi per póstnúmer (afgreiðslur byggingarfulltrúa RVK) → byggingarsaga heimilisfangs
+      const BYG = {};
+      const bygPn = (pn) => BYG[pn] || (BYG[pn] = fetch('/gogn/byggingarleyfi/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const distKm = (a, b) => { const rad = Math.PI / 180, R = 6371; const s = Math.sin((b[0] - a[0]) * rad / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin((b[1] - a[1]) * rad / 2) ** 2; return R * 2 * Math.asin(Math.sqrt(s)); };
       const withLeaflet = (cb) => {
         if (window.L) return cb();
@@ -774,10 +789,38 @@ const jsonLd = {
           bodyHtml = svCtx + `<div class="fvm-comps">${comps.length ? '<div class="fv-head" style="margin-top:8px">Nýlegustu kaupin sem matið byggir á</div>' + d.rows.filter((r) => fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn)).slice(0, 10).map(fvRow).join('') : ''}</div>`;
         }
 
+        // ── Byggingarsaga heimilisfangs (afgreiðslur byggingarfulltrúa RVK, heimilisfangs-lyklað) ──
+        let byggHtml = '';
+        if (selfAddr) {
+          try {
+            let bd = pn ? await bygPn(pn) : null;
+            let rec = bd && bd.addrs && bd.addrs[selfAddr];
+            if (!rec) { const bo = await bygPn('onnur'); if (bo && bo.addrs && bo.addrs[selfAddr]) { rec = bo.addrs[selfAddr]; bd = bo; } }
+            if (rec && rec.cases && rec.cases.length) {
+              const LAB = bd.labels || {}, MEET = bd.meetings || {};
+              const BC = { samthykkt: '#3fb950', jakvaett: '#6fd39b', frestad: '#f6b13b', afgreitt: '#58a6ff', synjad: '#d1242f', neikvaett: '#f85149', visad_fra: '#f0883e', afturkallad: '#8b98ac', annad: '#9fb0c8' };
+              const rows = rec.cases.slice(0, 30).map((c) => {
+                const ev0 = c.events && c.events[0];
+                const u = ((ev0 && MEET[ev0.fund]) || {}).url;
+                const sz = c.sizeM2 ? ' · ' + String(c.sizeM2).replace('.', ',') + ' m²' : '';
+                const tl = c.n > 1 ? ' · ' + c.n + ' afgreiðslur' : '';
+                return '<div class="byg-case"><span class="byg-b" style="background:' + (BC[c.latestCode] || '#9fb0c8') + '">' + esc(LAB[c.latestCode] || c.latestCode) + '</span>'
+                  + '<div class="byg-bd"><div class="byg-d">' + esc(c.desc || 'Byggingarleyfi') + '</div>'
+                  + '<div class="byg-m"><span>' + esc(c.latestDate || '') + tl + sz + ' · mál ' + esc(c.caseNo || '') + '</span>'
+                  + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div></div></div>';
+              }).join('');
+              byggHtml = '<div class="fv-head" style="margin-top:14px">🏗️ Byggingarsaga heimilisfangs</div>'
+                + '<div class="byg-note">Afgreiðslur byggingarfulltrúa Reykjavíkur á <b>' + esc(rec.addr) + '</b> — ' + rec.cases.length + ' byggingarmál (leyfi, breytingar, stækkanir). <a href="/byggingarvakt/">Byggingarvaktin ↗</a></div>'
+                + '<div class="byg-list">' + rows + '</div>'
+                + (rec.cases.length > 30 ? '<div class="fvm-note" style="margin-top:4px">Sýni 30 nýjustu af ' + rec.cases.length + ' málum — sjá öll á Byggingarvaktinni.</div>' : '');
+            }
+          } catch (e) {}
+        }
+
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
-          + barHtml + leigaHtml + matHtml + bodyHtml
+          + barHtml + leigaHtml + matHtml + bodyHtml + byggHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`;
 
         // eignaspjald flipar
