@@ -10,6 +10,7 @@ gogn/*.xlsm
 gogn/~$*
 gogn/Vaktarinn/
 gogn/*_cache.json
+gogn/_cache/
 heimildir/
 logo_backup/
 *.pdf
@@ -22,3 +23,6 @@ Thumbs.db
 .sc-key.json
 grep.exe.stackdump
 gogn/stadfong_rvk.json
+gogn/byggingarleyfi.json
+gogn/byggingarleyfi_seen.json
+gogn/byggingarleyfi_meta.json

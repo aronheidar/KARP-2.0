@@ -20,8 +20,9 @@
 #    python skriptur/build_byggingarleyfi.py             # incremental (les seen-set); tómur seen = full bakfylling
 #  Dep: pypdf (þegar í pípunni, sbr. build_logbirting.py).
 # ============================================================================
-import io, os, re, sys, json, time, csv, html, urllib.request, urllib.parse
-from datetime import date, datetime, timedelta
+import io, os, re, sys, json, time, csv, html, shutil, urllib.request, urllib.parse
+from datetime import date
+from collections import Counter
 
 try:
     sys.stdout.reconfigure(encoding='utf-8')
@@ -40,15 +41,18 @@ SLEEP = 0.35
 
 DECISION_LABELS = {
     'samthykkt':   'Samþykkt',
+    'jakvaett':    'Jákvæð afgreiðsla',        # fyrirspurn afgreidd jákvætt
     'synjad':      'Synjað',
+    'neikvaett':   'Neikvæð afgreiðsla',       # fyrirspurn afgreidd neikvætt
     'frestad':     'Frestað',
     'visad_fra':   'Vísað frá',
     'afturkallad': 'Afturkallað',
+    'afgreitt':    'Afgreitt',                 # afgreitt/staðfest (tilkynning) án já/nei
     'annad':       'Annað',
 }
-# Alvarleiki f. litun (2=jákvætt/grænt, 0=hlutlaust, -1=neikvætt) — notað í UI síðar.
-DECISION_SEV = {'samthykkt': 2, 'synjad': -1, 'frestad': 0,
-                'visad_fra': -1, 'afturkallad': 0, 'annad': 0}
+# Alvarleiki f. litun (2=jákvætt/grænt, 0=hlutlaust, -1=neikvætt) — notað í UI.
+DECISION_SEV = {'samthykkt': 2, 'jakvaett': 2, 'synjad': -1, 'neikvaett': -1,
+                'frestad': 0, 'visad_fra': -1, 'afturkallad': 0, 'afgreitt': 1, 'annad': 0}
 
 MONTHS_FULL = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí',
                'ágúst', 'september', 'október', 'nóvember', 'desember']
@@ -111,7 +115,16 @@ def fetch_pdf_links():
     return out
 
 def pdf_text(url):
-    return "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(_get(url))).pages)
+    cdir = os.path.join(GOGN, '_cache', 'pdf')
+    os.makedirs(cdir, exist_ok=True)
+    fp = os.path.join(cdir, re.sub(r'\W+', '_', url)[-90:] + '.txt')   # PDF-ar breytast ekki → cache
+    if os.path.exists(fp):
+        return open(fp, encoding='utf-8').read()
+    txt = "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(_get(url))).pages)
+    with open(fp, 'w', encoding='utf-8') as f:
+        f.write(txt)
+    time.sleep(SLEEP)                              # kurteisi AÐEINS eftir raun-sókn (ekki cache-hit)
+    return txt
 
 # ----------------------------------------------------------------------- parsing
 # Tvö snið byggingarfulltrúa-fundargerða (bæði byrja á „<N>. <HEIMILISFANG> …"):
@@ -132,14 +145,19 @@ SIZE_RX = re.compile(r'(?:Stækkun|Stærð)\s*:\s*([\d.,]+)\s*ferm.*?([\d.,]+)\s
 PII_RX  = re.compile(r'\bkt\.?\s*\d{6}[-\s]?\d{4}\b', re.I)
 
 def _decision(block):
-    """Fyrsta línu-byrjunar-ákvörðun í blokkinni → (code)."""
+    """Ákvörðun færslu → kóði. Fyrst línu-byrjunar-lykilorð (umsóknir), svo fyrirspurnir/tilkynningar."""
     for ln in block.split('\n'):
         s = ln.strip()
-        if s.startswith('Samþykk'):   return 'samthykkt'
-        if s.startswith('Synja'):     return 'synjad'
-        if s.startswith('Fresta'):    return 'frestad'
-        if s.startswith('Vísað frá'): return 'visad_fra'
-        if s.startswith('Afturkalla'):return 'afturkallad'
+        if s.startswith('Samþykk'):    return 'samthykkt'
+        if s.startswith('Synja'):      return 'synjad'
+        if s.startswith('Fresta'):     return 'frestad'
+        if s.startswith('Vísað frá'):  return 'visad_fra'
+        if s.startswith('Afturkalla'): return 'afturkallad'
+    # fyrirspurnir („Afgreitt. Jákvætt/Neikvætt") + tilkynningar („Afgreitt"/„Staðfest") + afturköllun mið-máls
+    if re.search(r'\bafturköll', block, re.I):    return 'afturkallad'
+    if re.search(r'\bNeikvætt\b', block):         return 'neikvaett'
+    if re.search(r'\bJákvætt\b', block):          return 'jakvaett'
+    if re.search(r'^[ \t]*(?:Afgreitt|Staðfest)', block, re.M): return 'afgreitt'
     return 'annad'
 
 def num(s):
@@ -158,8 +176,9 @@ def clean_desc(s):
 def clean_addr(s):
     s = re.sub(r'\s+', ' ', s or '').strip()
     s = re.sub(r'^\d{1,3}\.\s*', '', s)            # öryggis-klipping á leiðandi „N. "
+    s = re.sub(r',.*$', '', s)                     # strjúka auka-heiti/„, 110 Reykjavík" (horn-lóðir „Austurbakki 2, Reykjastræti 10")
     s = re.sub(r'\s*\([\d.]+\).*$', '', s)         # strjúka staðgreini „(11.365.04) …" ef leki
-    s = re.sub(r'\s+[-–]\s+\D.*$', '', s)          # strjúka viðskeyti „ – breytingaerindi"/„ - Höfðatorg" (heldur „1-3")
+    s = re.sub(r'\s+[-–]\s+.+$', '', s)            # strjúka viðskeyti „ - 2.áfangi"/„ – breytingaerindi"/„ - Höfðatorg" (heldur „1-3")
     s = re.sub(r'\s+\d{4,7}$', '', s)              # strjúka aftandi fastanúmer ef leki
     return s.strip(' ,.-–—')
 
@@ -218,6 +237,63 @@ def parse_meeting(url, txt):
         entries.append(e)
     return {'fund': fund, 'date': mdate, 'entries': entries}
 
+# ------------------------------------------------------------------ Staðfangaskrá
+# Heimilisfang → (postnr, lat, lng, hverfi) úr rvkdata/stadfangaskra_extra.
+# ⚠ RVK-ONLY útgáfan (SVFNR=0000, öll Reykjavík) — permit-in eru öll RVK, og allt-landið útgáfan
+#   veldur kross-bæjar árekstrum (t.d. „Borgartún 8" í Sauðárkróki lyklast á undan Reykjavík).
+STADFONG_URL = 'https://raw.githubusercontent.com/rvkdata/stadfangaskra_extra/master/stadfangaskra_extra.csv'
+CACHE   = os.path.join(GOGN, '_cache')
+CSV_PATH = os.path.join(CACHE, 'stadfangaskra_extra.csv')
+
+def _csv_cached(max_age_days=7):
+    os.makedirs(CACHE, exist_ok=True)
+    if os.path.exists(CSV_PATH) and (time.time() - os.path.getmtime(CSV_PATH)) < max_age_days * 86400:
+        return CSV_PATH
+    print('  sæki staðfangaskrá (~8MB)…', file=sys.stderr)
+    with open(CSV_PATH, 'wb') as f:
+        f.write(_get(STADFONG_URL))
+    return CSV_PATH
+
+def norm_addr(s):
+    """„Bragagata 26A" / „Arnarbakki 1-3" → „bragagata 26a" / „arnarbakki 1" (lykill Staðfangaskrár)."""
+    m = re.match(r'^\s*(.+?)\s+(\d+)\s*([A-Za-záðéíóúýþæö]?)', s or '')
+    if not m:
+        return None
+    return f'{m.group(1)} {m.group(2)}{m.group(3)}'.lower().strip()
+
+def load_stadfong():
+    path = _csv_cached()
+    idx = {}
+    with open(path, encoding='utf-8', newline='') as f:
+        r = csv.reader(f)
+        H = next(r)
+        need = ['POSTNR', 'HEITI_NF', 'HEITI_TGF', 'HUSNR', 'BOKST', 'N_HNIT_WGS84', 'E_HNIT_WGS84']
+        col = {n: H.index(n) for n in need if n in H}
+        if 'N_HNIT_WGS84' not in col or 'HEITI_NF' not in col:
+            raise RuntimeError('Staðfangaskrá-dálkar fundust ekki: ' + ','.join(H[:8]))
+        hv = H.index('LUKR_HVERFAHEITI_HEITI') if 'LUKR_HVERFAHEITI_HEITI' in H else -1
+        for c in r:
+            if len(c) < len(H) - 2:
+                continue
+            try:
+                pn = c[col['POSTNR']].strip()
+                heiti = c[col['HEITI_NF']].strip()
+                husnr = c[col['HUSNR']].strip()
+                lat = float(c[col['N_HNIT_WGS84']]); lng = float(c[col['E_HNIT_WGS84']])
+            except Exception:
+                continue
+            if not (pn.isdigit() and len(pn) == 3 and heiti and husnr and 62 < lat < 67 and -25 < lng < -12):
+                continue
+            bokst = (c[col['BOKST']].strip().lower() if 'BOKST' in col else '')
+            rec = (int(pn), round(lat, 5), round(lng, 5), (c[hv].strip() or None) if 0 <= hv < len(c) else None)
+            tgf = (c[col['HEITI_TGF']].strip() if 'HEITI_TGF' in col else '')
+            for nm in (heiti, tgf):                        # lykla bæði nefnifall OG þágufall → hærri hittni
+                if not nm:
+                    continue
+                key = f'{nm} {husnr}{bokst}'.lower()
+                idx.setdefault(key, rec)                   # fyrsta staðfang gildir
+    return idx
+
 # --------------------------------------------------------------------------- audit
 def run_audit(n):
     links = fetch_pdf_links()
@@ -243,9 +319,182 @@ def run_audit(n):
         time.sleep(SLEEP)
     print(f'AUDIT {n} fundir: {tot} færslur alls  {per}')
 
-# --------------------------------------------------------------------------- main (Task 3)
+# --------------------------------------------------------------------------- io
+OUT   = os.path.join(GOGN, 'byggingarleyfi.json')          # kanónískt (incremental-staða; ekki þjónað)
+SEEN  = os.path.join(GOGN, 'byggingarleyfi_seen.json')
+META  = os.path.join(GOGN, 'byggingarleyfi_meta.json')
+PN_DIRS  = [os.path.join(PUB, 'byggingarleyfi')]            # þjónað (skýrslu-neytandi)
+VAKT_OUT = [os.path.join(PUB, 'byggingarleyfi_vakt.json')]  # þjónað (Byggingarvakt-síðan)
+
+SOURCE = 'Afgreiðslufundir byggingarfulltrúa Reykjavíkur'
+SOURCE_URL = 'https://reykjavik.is/byggingarmal/fundargerdir-byggingarfulltrua'
+DISCLAIMER = ('Byggt á opinberum fundargerðum byggingarfulltrúa Reykjavíkur (afgreiðslur skv. mannvirkjalögum '
+              'nr. 160/2010). Lyklað á heimilisfang — hvorki kennitölur, nöfn né aðrar persónuupplýsingar '
+              'umsækjenda eru geymdar eða birtar. Aðeins Reykjavík; endurbirting getur verið háð skilyrðum.')
+
+# Per-færslu reitir (grönn — `decision`-label afleiðist úr `decisionCode`+labels; `url` úr meetings-korti per `fund`).
+EVENT_KEYS = ('caseNo', 'fnr', 'desc', 'decisionCode', 'date', 'fund', 'sizeM2', 'sizeM3')
+
+def load(path, default):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+def _dump(path, obj):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(obj, f, ensure_ascii=False)
+
+DESC_CAP = 150        # per-mál lýsingar-þak í per-pn (full lýsing er í fundargerð-PDF)
+
+def collapse_cases(permits):
+    """Færslur (decision-atburðir) → distinct MÁL með tímalínu. Sleppir null-reitum (léttir skrár)."""
+    by_case = {}
+    for p in permits:
+        cid = p['caseNo'] or ''
+        c = by_case.get(cid)
+        if not c:
+            c = by_case[cid] = {'caseNo': p['caseNo'], 'fnr': p.get('fnr'),
+                                'desc': None, 'sizeM2': None, 'sizeM3': None, 'events': []}
+        c['events'].append({'date': p['date'], 'code': p['decisionCode'], 'fund': p['fund']})
+        if p.get('desc') and len(p['desc']) > len(c['desc'] or ''):    # ítarlegasta lýsingin
+            c['desc'] = p['desc'][:DESC_CAP]
+        if p.get('sizeM2') and not c['sizeM2']:
+            c['sizeM2'], c['sizeM3'] = p['sizeM2'], p.get('sizeM3')
+    out = []
+    for c in by_case.values():
+        c['events'].sort(key=lambda e: (e['date'] or '', e['fund'] or 0), reverse=True)
+        latest = c['events'][0]
+        rec = {'caseNo': c['caseNo'], 'latestCode': latest['code'], 'latestDate': latest['date'],
+               'n': len(c['events'])}
+        if c['desc']:   rec['desc'] = c['desc']
+        if c['fnr']:    rec['fnr'] = c['fnr']
+        if c['sizeM2']: rec['sizeM2'] = c['sizeM2']
+        if c['sizeM3']: rec['sizeM3'] = c['sizeM3']
+        rec['events'] = c['events']                    # [{date,code,fund}] nýjast fyrst
+        out.append(rec)
+    out.sort(key=lambda c: (c['latestDate'] or ''), reverse=True)
+    return out
+
+def write_outputs(store, seen, meetings):
+    geo_n = sum(1 for r in store.values() if r.get('postnr'))
+    permits_n = sum(len(r['permits']) for r in store.values())
+    counts = {'addresses': len(store), 'permits': permits_n, 'meetings': len(seen), 'geocoded': geo_n}
+    today = date.today().isoformat()
+
+    canonical = {
+        'source': SOURCE, 'sourceUrl': SOURCE_URL, 'disclaimer': DISCLAIMER, 'generated': today,
+        'decisionLabels': DECISION_LABELS, 'decisionSeverity': DECISION_SEV,
+        'counts': counts, 'meetings': meetings, 'byAddr': store,
+    }
+    _dump(OUT, canonical)
+
+    def meetings_for(funds):
+        return {str(f): meetings[str(f)] for f in funds if str(f) in meetings}
+
+    # per-póstnúmer (skýrslu-neytandi): færslum fellt saman í MÁL (caseNo) → distinct byggingarmál
+    # með tímalínu ({date,code,fund}); léttara (desc geymt 1× per mál) + betri skýrslu-framsetning.
+    for d in PN_DIRS:
+        shutil.rmtree(d, ignore_errors=True); os.makedirs(d, exist_ok=True)
+    by_pn = {}
+    for key, r in store.items():
+        pn = str(r['postnr']) if r.get('postnr') else 'onnur'
+        by_pn.setdefault(pn, {})[key] = {'addr': r['addr'], 'cases': collapse_cases(r['permits'])}
+    for pn, addrs in by_pn.items():
+        funds = {ev['fund'] for r in addrs.values() for c in r['cases'] for ev in c['events']}
+        obj = {'labels': DECISION_LABELS, 'severity': DECISION_SEV,
+               'meetings': meetings_for(funds), 'addrs': addrs}
+        for d in PN_DIRS:
+            _dump(os.path.join(d, f'{pn}.json'), obj)
+
+    # vakt-feed (Byggingarvakt-síðan): nýjustu færslur + samantekt
+    events = []
+    for r in store.values():
+        for p in r['permits']:
+            events.append({'addr': r['addr'], 'postnr': r.get('postnr'), 'hverfi': r.get('hverfi'),
+                           'lat': r.get('lat'), 'lng': r.get('lng'), **p})
+    events.sort(key=lambda e: (e.get('date') or '', e.get('fund') or 0), reverse=True)
+    recent = events[:500]
+    by_dec = Counter(e['decisionCode'] for e in events)
+    by_hv  = Counter(e['hverfi'] for e in events if e.get('hverfi'))
+    latest = events[0] if events else {}
+    vakt = {
+        'source': SOURCE, 'sourceUrl': SOURCE_URL, 'disclaimer': DISCLAIMER, 'generated': today,
+        'decisionLabels': DECISION_LABELS, 'decisionSeverity': DECISION_SEV,
+        'counts': counts,
+        'byDecision': dict(by_dec),
+        'byHverfi': dict(by_hv.most_common(20)),
+        'latestFund': latest.get('fund'), 'latestDate': latest.get('date'),
+        'meetings': meetings_for({e['fund'] for e in recent}),
+        'recent': recent,
+    }
+    for p in VAKT_OUT:
+        _dump(p, vakt)
+
+    _dump(SEEN, sorted(seen))
+    _dump(META, {'generated': today, 'counts': counts})
+    return counts
+
+# --------------------------------------------------------------------------- main
 def main():
-    print('main() ekki enn útfært — sjá Task 3.', file=sys.stderr)
+    argv = sys.argv[1:]
+    limit = None
+    if '--limit' in argv:
+        try: limit = int(argv[argv.index('--limit') + 1])
+        except Exception: limit = None
+
+    seen  = set(load(SEEN, []))
+    prev  = load(OUT, {})
+    store = prev.get('byAddr', {})                    # {normKey: {addr, permits:[…]}}
+    meetings = prev.get('meetings', {})               # {str(fund): {url, date}} — afþjöppun á fundargerð-tenglum
+    for r in store.values():                          # enrichment endurreiknast → hreinsa gömul geo-svið
+        for k in ('postnr', 'lat', 'lng', 'hverfi'):
+            r.pop(k, None)
+
+    links = fetch_pdf_links()
+    todo = [u for u in links if u not in seen]
+    if limit is not None:
+        todo = todo[:limit]
+    print(f'Vísir: {len(links)} fundir | ÞÁTTA {len(todo)} nýja (seen={len(seen)})'
+          + (f' [--limit {limit}]' if limit is not None else ''))
+
+    n_new = 0
+    for i, url in enumerate(todo, 1):
+        try:
+            txt = pdf_text(url)
+        except Exception as e:
+            print(f'  ! PDF-sókn brást ({e}) {url}', file=sys.stderr); continue
+        mt = parse_meeting(url, txt)
+        if mt['fund']:
+            meetings[str(mt['fund'])] = {'url': url, 'date': mt['date']}
+        added = 0
+        for e in mt['entries']:
+            key = norm_addr(e['addr']) or e['addr'].lower().strip()
+            rec = store.setdefault(key, {'addr': e['addr'], 'permits': []})
+            if len(e['addr']) > len(rec['addr']):
+                rec['addr'] = e['addr']
+            sig = (e['caseNo'], e['date'], e['decisionCode'])
+            if any((p['caseNo'], p['date'], p['decisionCode']) == sig for p in rec['permits']):
+                continue
+            rec['permits'].append({k: e[k] for k in EVENT_KEYS})
+            added += 1; n_new += 1
+        seen.add(url)
+        if i % 25 == 0 or added:
+            print(f'  [{i}/{len(todo)}] fundur {mt["fund"]} {mt["date"]}  +{added}')
+
+    print('Auðga með Staðfangaskrá…')
+    geo = load_stadfong()
+    for key, rec in store.items():
+        g = geo.get(norm_addr(rec['addr']) or key)
+        rec['postnr'], rec['lat'], rec['lng'], rec['hverfi'] = g if g else (None, None, None, None)
+        rec['permits'].sort(key=lambda p: (p.get('date') or '', p.get('fund') or 0), reverse=True)
+
+    counts = write_outputs(store, seen, meetings)
+    print(f'byggingarleyfi.json: {counts["addresses"]} heimilisföng / {counts["permits"]} leyfi-færslur '
+          f'/ {counts["meetings"]} fundir | hnituð {counts["geocoded"]} '
+          f'({100*counts["geocoded"]//max(counts["addresses"],1)}%) | +{n_new} nýjar færslur')
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--audit':
