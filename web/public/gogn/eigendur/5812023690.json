@@ -1,0 +1,124 @@
+{
+ "kt": "5812023690",
+ "nafn": "Hagvangur ehf.",
+ "sott": "2026-07-10",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5812023690",
+    "kt": "5812023690",
+    "nafn": "Hagvangur ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Geirlaug Jóhannsdóttir",
+    "tegund": "einst",
+    "faeding": "1976-JANÚAR"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Sverrir Briem",
+    "tegund": "einst",
+    "faeding": "1972-MAÍ"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Hlynur Atli Magnússon",
+    "tegund": "einst",
+    "faeding": "1990-SEPTEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5812023690",
+    "hlutur": 30,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5812023690",
+    "hlutur": 30,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt5812023690",
+    "hlutur": 30,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Geirlaug Jóhannsdóttir",
+   "kt": null,
+   "faeding": "1976-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 30,
+   "gegnum": []
+  },
+  {
+   "nafn": "Sverrir Briem",
+   "kt": null,
+   "faeding": "1972-MAÍ",
+   "tegund": "einst",
+   "hlutur": 30,
+   "gegnum": []
+  },
+  {
+   "nafn": "Hlynur Atli Magnússon",
+   "kt": null,
+   "faeding": "1990-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 30,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 10,
+ "raunverulegir": [
+  {
+   "nafn": "Geirlaug Jóhannsdóttir",
+   "faeding": "1976-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "30%",
+   "tegund": null
+  },
+  {
+   "nafn": "Sverrir Briem",
+   "faeding": "1972-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "30%",
+   "tegund": null
+  },
+  {
+   "nafn": "Hlynur Atli Magnússon",
+   "faeding": "1990-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "30%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
