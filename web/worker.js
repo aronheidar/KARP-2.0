@@ -1765,6 +1765,62 @@ async function loftforHandler(request, env, ctx) {
   return res;
 }
 
+// ── RSK Fyrirtækjaskrá — OPINBERT API (Skatturinn, api.skattur.cloud/legalentities/v2.1) ──
+// Server-hlið lykill env.RSK_KEY (Ocp-Apim-Subscription-Key). Mælt/gjaldfært → harð-cache 24h.
+// ⚠ PII: relationships[] bera kennitölur EINSTAKLINGA → aldrei birtar. Fyrirtækja-kt (dagur 41–71)
+// haldið sem tengill milli félaga; einstaklings-kt (01–31) fjarlægt. Secret-gated: án lykils → unconfigured.
+function rskErFyrirtaeki(kt) { const dd = parseInt(String(kt).slice(0, 2), 10); return dd >= 41 && dd <= 71; }
+function rskClean(kt, d) {
+  if (!d || typeof d !== 'object' || !(d.name || d.nationalId)) return { kt, holdur: false };
+  const der = d.deregistration || {};
+  const aoa = d.articlesOfAssociation || {};
+  const tengsl = (Array.isArray(d.relationships) ? d.relationships : []).map((r) => {
+    const rk = String(r.nationalId || '').replace(/\D/g, '');
+    const isCo = rk.length === 10 && rskErFyrirtaeki(rk);
+    return { nafn: r.name || null, kt: isCo ? rk : null, tegund: r.type || null, hlutverk: r.position || null, stada: r.status || null };
+  }).slice(0, 40);
+  return {
+    kt, holdur: true,
+    nafn: d.name || null,
+    aukanafn: d.additionalName || null,
+    tilgangur: d.purposeOfEntity || null,
+    stada: d.status || null,
+    skraning: (d.registered || '').slice(0, 10) || null,
+    form: (d.legalForm && d.legalForm.name) || null,
+    afskraning: {
+      afskrad: !!der.deregistered, dags: (der.deregistrationDate || '').slice(0, 10) || null,
+      gjaldthrot: !!der.bankrupcy, gjaldthrotDags: (der.bankrupcyDate || '').slice(0, 10) || null,
+      gjaldthol: !!der.insolvency, gjaldtholDags: (der.insolvencyDate || '').slice(0, 10) || null,
+    },
+    hlutafe: aoa.shareCapital || null, mynt: aoa.shareCapitalCurrency || null,
+    undirskrift: aoa.signatures || null, atkvaedi: aoa.votingRights || null,
+    isat: (Array.isArray(d.activityCode) ? d.activityCode : []).map((a) => ({ id: a.id || null, nafn: a.name || null })).slice(0, 6),
+    vsk: (Array.isArray(d.vat) ? d.vat : []).map((v) => ({ nr: v.vatNumber || null, skrad: (v.registered || '').slice(0, 10) || null, afskrad: (v.deRegistered || '').slice(0, 10) || null })).slice(0, 8),
+    heiti: (Array.isArray(d.registeredNames) ? d.registeredNames : []).map((n) => n.name).filter(Boolean).slice(0, 8),
+    tengsl,
+    heimild: 'Fyrirtækjaskrá (opinbert API, Skatturinn)',
+  };
+}
+async function rskHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ kt, holdur: false });
+  if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/rsk?kt=' + kt);
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  let out = { kt, holdur: false };
+  try {
+    const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
+      headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
+    });
+    if (r.ok) out = rskClean(kt, await r.json());
+    else out = { kt, holdur: false, status: r.status };
+  } catch (e) {}
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=86400' } });
+  if (out.holdur) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1795,6 +1851,7 @@ export default {
     if (url.pathname === '/api/logbirting') return logbirtingHandler(request, env, ctx);
     if (url.pathname === '/api/sanctions') return sanctionsHandler(request, env, ctx);
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
+    if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
