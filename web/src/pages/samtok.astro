@@ -5,9 +5,14 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import SAMTOK from '../data/samtok.json';
+// Þvingunaraðgerðir/refsilistar — þjónshlið-innflutningur AÐEINS fyrir fjöldann;
+// 5MB skráin fer EKKI í client-HTML (sbr. refsilistar.astro). Full leit er á /refsilistar/.
+import SANCTIONS from '../../public/gogn/sanctions.json';
 
 const orgs = SAMTOK.filter((o) => o.group === 'samtok');
 const deals = SAMTOK.filter((o) => o.group === 'samningur');
+const nSanctions = SANCTIONS.n || (SANCTIONS.names || []).length;
+const fmtN = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
 const updated = '2026-07-02';
 const desc = `Alþjóðasamstarf Íslands — ${orgs.length} alþjóðasamtök (SÞ, NATO, EFTA, Norðurlandaráð…) og ${deals.length} lykilsamningar (EES, Schengen, Parísarsamningurinn…) með inngönguári og skýringum.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Alþjóðasamstarf Íslands', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
@@ -42,6 +47,17 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
       ))}
     </div>
 
+    <h2>Þvingunaraðgerðir &amp; refsilistar</h2>
+    <p class="rl-intro">Sem aðili að EES og Sameinuðu þjóðunum innleiðir Ísland þvingunaraðgerðir (refsiaðgerðir) ESB og öryggisráðs SÞ. Hér má fletta upp nöfnum á opinberum refsilistum.</p>
+    <a class="rl-card" href="/refsilistar/">
+      <span class="rl-e">🚫</span>
+      <span class="rl-b">
+        <span class="rl-n">Refsilistar — ESB, SÞ &amp; OFAC</span>
+        <span class="rl-s">Leitaðu í {fmtN(nSanctions)} nöfnum á samsteyptum refsilistum. ⚠ Nafnasamsvörun er ekki úrskurður — staðfestu ávallt sjálfstætt.</span>
+      </span>
+      <span class="rl-go">Opna vaktina →</span>
+    </a>
+
     <p class="foot">Forþjónað (SSG) {updated}. Ártal = innganga/undirritun Íslands. Sjá einnig <a href="/utanrikis/">NATO & sendiráð</a> og <a href="/ees/">EES</a>. #2.</p>
   </main>
 
@@ -66,5 +82,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
     .c-l:hover { color: #f6b13b; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
+    .rl-intro { font-size: 13.5px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.55; }
+    .rl-card { display: flex; align-items: center; gap: 14px; background: rgba(248,81,73,.06); border: 1px solid rgba(248,81,73,.28); border-radius: 12px; padding: 14px 16px; text-decoration: none; transition: border-color .15s; }
+    .rl-card:hover { border-color: rgba(248,81,73,.55); }
+    .rl-e { font-size: 26px; flex: 0 0 auto; }
+    .rl-b { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+    .rl-n { font-size: 14.5px; font-weight: 700; color: #eaf1fb; }
+    .rl-s { font-size: 12.5px; color: #cdd6e6; margin-top: 3px; line-height: 1.5; }
+    .rl-go { flex: 0 0 auto; font-size: 13px; font-weight: 700; color: #ff9d94; white-space: nowrap; }
+    @media (max-width: 560px) { .rl-card { flex-wrap: wrap; } .rl-go { margin-left: 40px; } }
   </style>
 </Layout>

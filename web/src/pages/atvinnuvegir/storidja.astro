@@ -1,25 +1,119 @@
 ---
-// Stóriðja: útflutningsverðmæti áls (UTA06105 fl.15) + kísiljárns (fl.13) — daglegt gagna-snapshot úr skriptur/build_storidja.mjs → gogn/storidja.json
-// (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga). #2 LOTA 10.
+// Stóriðja & orka (auðgað) — álverð (LME/Yahoo ALI=F), útflutningsverðmæti (UTA06105 fl.15/13),
+// raforkunotkun stóriðju vs almenn + eftir grein (IDN02103), ferlalosun málmframleiðslu (UMH31107 2.C)
+// og framleiðslugeta álveranna þriggja. Byggingartíma-sókn (þolir bilun per hluta). #2 LOTA 10 → auðgað.
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
-import DATA from '@gogn/storidja.json';
-const { C1, alL, updated } = DATA;
-const C2 = null;
-const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null ? ' ' + String(alL.al).replace('.', ',') + ' ma.kr (' + alL.y + ')' : ''} og kísiljárns, knúið af endurnýjanlegri raforku. Lifandi frá Hagstofu.`;
+const px = async (path, query) => {
+  const call = async () => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
+  try { return await call(); } catch (e) { await new Promise((r) => setTimeout(r, 1500)); return call(); }
+};
+const sel = (code, filter, values) => ({ code, selection: { filter, values } });
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+const curYear = 2026;
+
+// 1. Álverð — LME framvirkt gegnum Yahoo (ALI=F) --------------------------
+let C_price = null, priceL = null;
+try {
+  const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent('ALI=F') + '?interval=1mo&range=10y', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const j = await r.json();
+  const res = j && j.chart && j.chart.result && j.chart.result[0];
+  if (res) {
+    const ts = res.timestamp || []; const cl = (res.indicators && res.indicators.quote[0].close) || [];
+    const x = [], d = [];
+    ts.forEach((t, i) => { if (cl[i] != null) { const dt = new Date(t * 1000); x.push(dt.getUTCFullYear() + '-' + String(dt.getUTCMonth() + 1).padStart(2, '0')); d.push(Math.round(cl[i])); } });
+    if (x.length > 3) { C_price = { x, u: 'USD/tonn', area: true, series: [{ name: 'Ál — LME framvirkt', color: '#cdd6e6', data: d }] }; priceL = { v: d[d.length - 1] }; }
+  }
+} catch (e) {}
+
+// 2. Útflutningsverðmæti áls (fl.15) + kísiljárns (fl.13) — UTA06105 -------
+let C_export = null, alL = null;
+try {
+  const j = await px('Efnahagur/utanrikisverslun/1_voruvidskipti/01_voruskipti/UTA06105.px', [sel('Eining', 'item', ['1']), sel('Flokkur', 'item', ['15', '13']), sel('Ár', 'all', ['*'])]);
+  const al = {}, kis = {};
+  j.data.forEach((d) => { const f = d.key[1], y = d.key[2]; const v = num(d.values[0]); if (!y || v == null || +y < 1995 || +y >= curYear) return; (f === '15' ? al : kis)[y] = Math.round(v / 1e5) / 10; });
+  const ys = [...new Set([...Object.keys(al), ...Object.keys(kis)])].sort();
+  if (ys.length) {
+    C_export = { x: ys, u: 'ma.kr', series: [{ name: 'Ál', color: '#cdd6e6', data: ys.map((y) => al[y] ?? null) }, { name: 'Kísiljárn', color: '#8892a6', data: ys.map((y) => kis[y] ?? null) }] };
+    const l = ys[ys.length - 1]; alL = { y: l, al: al[l], kis: kis[l] };
+  }
+} catch (e) {}
+
+// 3–4. Raforkunotkun — stóriðja vs almenn + eftir grein (IDN02103) --------
+let C_use = null, C_sector = null, heavyPct = null, useY = null;
+try {
+  const SEC = { zALUMINUM_PRODUCTION: ['Álver', '#f6b13b'], zIRON_BLENDE: ['Járnblendi', '#e8436f'], zDATA: ['Gagnaver', '#46e08a'], zFERTILIZER: ['Áburðarverksmiðja', '#8892a6'] };
+  const j = await px('Umhverfi/4_orkumal/2_framleidslaognotkun/IDN02103.px', [sel('Ár', 'all', ['*']), sel('Tegund', 'item', ['GENERAL_USE', 'HEAVY_INDUSTRY', 'TOTAL_USE', ...Object.keys(SEC)])]);
+  const by = {};
+  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const t = d.key.find((k) => k !== y); const v = num(d.values[0]); if (y && t && v != null) (by[t] = by[t] || {})[y] = v; });
+  const years = [...new Set(Object.keys(by).flatMap((t) => Object.keys(by[t])))].sort();
+  if (years.length) {
+    C_use = { x: years, u: 'GWh', stack: true, series: [{ name: 'Almenn notkun', color: '#3a8dff', data: years.map((y) => by.GENERAL_USE?.[y] ?? null) }, { name: 'Stóriðja', color: '#f6b13b', data: years.map((y) => by.HEAVY_INDUSTRY?.[y] ?? null) }] };
+    useY = years[years.length - 1];
+    if (by.TOTAL_USE?.[useY] && by.HEAVY_INDUSTRY?.[useY]) heavyPct = Math.round((by.HEAVY_INDUSTRY[useY] / by.TOTAL_USE[useY]) * 1000) / 10;
+    C_sector = { x: years, u: 'GWh', stack: true, series: Object.keys(SEC).map((k) => ({ name: SEC[k][0], color: SEC[k][1], data: years.map((y) => by[k]?.[y] ?? null) })) };
+  }
+} catch (e) {}
+
+// 5. Ferlalosun málmframleiðslu — UMH31107 UNFCCC 2.C (kt CO₂-íg) ---------
+let C_emis = null, emisL = null, emisChg = null;
+try {
+  const j = await px('Umhverfi/2_losunlofttegunda/1_losunlofttegunda_nir/UMH31107.px', [sel('UNFCCC liður', 'item', ['2.C']), sel('Ár', 'all', ['*'])]);
+  const by = {};
+  j.data.forEach((d) => { const y = d.key.find((k) => /^\d{4}$/.test(k)); const v = num(d.values[0]); if (y && v != null) by[y] = Math.round(v * 10) / 10; });
+  const years = Object.keys(by).sort();
+  if (years.length) {
+    C_emis = { x: years, u: 'kt CO₂-íg', area: true, series: [{ name: 'Ferlalosun málmframleiðslu (UNFCCC 2.C)', color: '#e8436f', data: years.map((y) => by[y]) }] };
+    const l = years[years.length - 1], f = years.find((y) => by[y] > 0) || years[0];
+    emisL = { y: l, v: by[l] };
+    if (by[f]) emisChg = Math.round((by[l] / by[f] - 1) * 100);
+  }
+} catch (e) {}
+
+// 6. Álverin þrjú — framleiðslugeta (heimild: fyrirtækin) -----------------
+const SMELT = [['Alcoa Fjarðaál', 344], ['Norðurál Grundartanga', 340], ['Rio Tinto ISAL', 212]];
+const C_smelt = { kind: 'hbar', u: 'þús. tonn/ári', showLabel: true, gridLeft: 158, x: SMELT.map((s) => s[0]), series: [{ name: 'Framleiðslugeta', color: '#f6b13b', data: SMELT.map((s) => s[1]) }] };
+const smeltTot = SMELT.reduce((s, x) => s + x[1], 0);
+
+const updated = '2026-07-10';
+const desc = `Stóriðjan á Íslandi — álverð${priceL ? ' ' + groupThousands(priceL.v) + ' USD/tonn' : ''}, útflutningsverðmæti áls${alL && alL.al != null ? ' ' + fmtNum(alL.al, 0) + ' ma.kr' : ''}, raforkunotkun${heavyPct ? ' (stóriðja ' + fmtNum(heavyPct, 0) + '% raforkunnar)' : ''}, losun og framleiðslugeta álveranna þriggja. Lifandi frá Hagstofu, Orkustofnun og LME.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Stóriðja og orka á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 ---
-<Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/storidja/" ogTitle="Stóriðja & orka">
+<Layout title="Stóriðja & orka | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/storidja/" jsonLd={jsonLd} ogTitle="Stóriðja & orka">
   <main data-pg="atvinnuvegir-storidja">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Stóriðja &amp; orka 🏗️</h1>
-    <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar ~80% raforkunnar. Sjá <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Stóriðjutölur: útflutningsverðmæti úr utanríkisverslunartölum Hagstofunnar og orkutölur Orkustofnunar.">ⓘ</i> Um gögnin á síðunni</p>
+    <p>Álverin þrjú og kísilverin breyta endurnýjanlegri raforku í útflutningsverðmæti — stóriðjan notar um 80% raforkunnar. Afkoman ræðst mjög af heimsmarkaðsverði á áli. Sjá einnig <a href="/orka/">Raforku</a> fyrir framleiðsluhliðina.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Álverð: framvirkt LME-verð gegnum Yahoo Finance. Útflutningsverðmæti: utanríkisverslun Hagstofunnar (UTA06105). Raforkunotkun: Orkustofnun/Hagstofa (IDN02103, til 2019). Losun: gróðurhúsalofttegundabókhald Íslands (UMH31107). Framleiðslugeta álvera: uppgefin af fyrirtækjunum.">ⓘ</i> Um gögnin á síðunni</p>
+
     <div class="kpis">
-      {alL && alL.al != null && <div class="kpi"><div class="k-l">🥫 Ál — útflutningur</div><div class="k-v">{String(alL.al).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
-      {alL && alL.kis != null && <div class="kpi"><div class="k-l">⛏️ Kísiljárn</div><div class="k-v">{String(alL.kis).replace('.', ',')}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
+      {priceL && <div class="kpi"><div class="k-l">📈 Álverð (LME)</div><div class="k-v">{groupThousands(priceL.v)}</div><div class="k-s">USD/tonn</div></div>}
+      {alL && alL.al != null && <div class="kpi"><div class="k-l">🥫 Ál — útflutningur</div><div class="k-v">{fmtNum(alL.al, 0)}</div><div class="k-s">ma.kr · {alL.y}</div></div>}
+      {heavyPct && <div class="kpi"><div class="k-l">⚡ Stóriðja af raforku</div><div class="k-v">{fmtNum(heavyPct, 0)}%</div><div class="k-s">{useY}</div></div>}
+      <div class="kpi"><div class="k-l">🏭 Framleiðslugeta áls</div><div class="k-v">{groupThousands(smeltTot)}</div><div class="k-s">þús. tonn/ári</div></div>
+      {emisL && <div class="kpi"><div class="k-l">🌫️ Ferlalosun (2.C)</div><div class="k-v">{fmtNum(emisL.v, 0)}</div><div class="k-s">kt CO₂-íg · {emisL.y}</div></div>}
     </div>
-    {C1 && <><h2>Útflutningsverðmæti frá 1995</h2><div id="c1"></div></>}
-    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (UTA06105, verðmæti þús.kr → ma.kr). #2.</p>
+
+    {C_price && <><h2>Álverð — LME framvirkt (10 ár)</h2><div id="cPrice"></div></>}
+
+    <div class="ppair">
+      {C_export && <div><h2>Útflutningsverðmæti frá 1995</h2><div id="cExport"></div></div>}
+      <div><h2>Framleiðslugeta álveranna þriggja</h2><div id="cSmelt"></div><p class="src">Uppgefin ársgeta ≈ {groupThousands(smeltTot)} þús. tonn. Heimild: fyrirtækin.</p></div>
+    </div>
+    <div class="ppair">
+      {C_use && <div><h2>Raforkunotkun — stóriðja vs. almenn</h2><div id="cUse"></div></div>}
+      {C_sector && <div><h2>Raforka stóriðju eftir grein</h2><div id="cSector"></div></div>}
+    </div>
+
+    {C_emis && (
+      <>
+        <h2>Ferlalosun frá málmframleiðslu</h2>
+        <p class="src">Raforkan er nær eingöngu endurnýjanleg, svo kolefnisspor stóriðjunnar liggur einkum í ferlalosun (flúorkolefni og kolaskaut) sem fellur undir viðskiptakerfi ESB með losunarheimildir (ETS).{emisChg != null ? ' Ferlalosun málmframleiðslu hefur ' + (emisChg < 0 ? 'lækkað' : 'hækkað') + ' um ' + Math.abs(emisChg) + '% frá upphafi mælinga.' : ''}</p>
+        <div id="cEmis"></div>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: LME/Yahoo Finance (álverð), Hagstofa (UTA06105 útflutningur, IDN02103 raforka til 2019, UMH31107 losun) og fyrirtækin (framleiðslugeta). #2.</p>
   </main>
 
   <style>
@@ -32,27 +126,39 @@ const desc = `Stóriðjan — útflutningsverðmæti áls${alL && alL.al != null
     .k-l { font-size: 12px; color: #9fb0c8; }
     .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
-    #c1, #c2 { width: 100%; height: 300px; }
+    #cPrice, #cExport, #cSmelt, #cUse, #cSector, #cEmis { width: 100%; height: 300px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    .src { font-size: 11.5px; color: #7e8ca6; margin: 6px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
-  <script define:vars={{ C1, C2 }}>
+  <script define:vars={{ charts: { cPrice: C_price, cExport: C_export, cSmelt: C_smelt, cUse: C_use, cSector: C_sector, cEmis: C_emis } }}>
     function initAtv() {
-      const e1 = document.getElementById('c1');
-      if (!e1 && !document.getElementById('c2')) return;
+      const ids = Object.keys(charts);
+      if (!ids.some((id) => document.getElementById(id))) return;
       const go = () => {
-        [['c1', C1]].forEach(([id, C]) => {
-          const el = document.getElementById(id);
+        ids.forEach((id) => {
+          const el = document.getElementById(id); const C = charts[id];
           if (!el || !C || window.echarts.getInstanceByDom(el)) return;
+          const horiz = C.kind === 'hbar'; const isBar = horiz || C.kind === 'bar';
+          const catAxis = { type: 'category', data: C.x, inverse: horiz, boundaryGap: true, axisLabel: { color: '#9fb0c8', fontSize: horiz ? 11 : 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } }, axisTick: { show: !horiz } };
+          const valAxis = { type: 'value', max: C.max, min: C.min, axisLabel: { color: '#7e8ca6', formatter: C.pct ? '{value}%' : undefined }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } };
           const c = window.echarts.init(el);
           c.setOption({
             backgroundColor: 'transparent',
-            legend: C.series.length > 1 ? { data: C.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 } : undefined,
-            grid: { left: 52, right: 14, top: C.series.length > 1 ? 30 : 12, bottom: 24 },
-            xAxis: { type: 'category', data: C.x, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
-            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
-            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + ' ' + C.u) },
-            series: C.series.map((s) => ({ name: s.name, type: C.type || 'line', stack: C.stack ? 'st' : undefined, data: s.data, smooth: true, symbol: 'none', lineStyle: { width: C.stack ? 0 : 2.5, color: s.color }, itemStyle: { color: s.color }, areaStyle: C.area || C.stack ? { color: s.color, opacity: C.stack ? 0.75 : 0.12 } : undefined })),
+            legend: C.series.length > 1 ? { data: C.series.map((s) => s.name), textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0, type: 'scroll' } : undefined,
+            grid: { left: horiz ? (C.gridLeft || 130) : 52, right: horiz ? 52 : 14, top: C.series.length > 1 ? 30 : 12, bottom: 24 },
+            xAxis: horiz ? valAxis : catAxis,
+            yAxis: horiz ? catAxis : valAxis,
+            tooltip: { trigger: 'axis', axisPointer: { type: isBar ? 'shadow' : 'line' }, valueFormatter: (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',') + ' ' + C.u) },
+            series: C.series.map((s) => ({
+              name: s.name, type: isBar ? 'bar' : 'line', stack: C.stack ? 'st' : undefined, data: s.data, smooth: isBar ? false : true, symbol: 'none', barMaxWidth: horiz ? 22 : 24,
+              label: C.showLabel ? { show: true, position: horiz ? 'right' : 'top', color: '#9fb0c8', fontSize: 10, formatter: (p) => (p.value == null ? '' : String(Math.round(p.value)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')) } : undefined,
+              lineStyle: { width: C.stack || isBar ? 0 : 2.5, color: s.color },
+              itemStyle: { color: s.color, borderRadius: isBar ? (horiz ? [0, 3, 3, 0] : [3, 3, 0, 0]) : 0 },
+              areaStyle: (C.area || C.stack) && !isBar ? { color: s.color, opacity: C.stack ? 0.75 : 0.14 } : undefined,
+            })),
           });
           window.addEventListener('resize', () => c.resize());
         });

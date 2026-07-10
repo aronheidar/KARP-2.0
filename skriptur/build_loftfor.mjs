@@ -32,22 +32,24 @@ async function page(pageNumber, pageSize) {
     all = all.concat(nx.aircrafts);
   }
   const byKt = {};
-  const add = (kt, ac, hlutverk) => {
+  const nofn = {};   // kt → nafn lögaðila (kemur í sama svari; til nafngreiningar á /loftfor/)
+  const add = (kt, ac, hlutverk, nafn) => {
     if (!erLogadili(kt)) return;
+    if (nafn && !nofn[kt]) nofn[kt] = String(nafn).trim();
     const arr = (byKt[kt] = byKt[kt] || []);
     const ex = arr.find((x) => x.skrnr === ac.identifiers);
     if (ex) { if (!ex.hlutverk.includes(hlutverk)) ex.hlutverk.push(hlutverk); return; }
     arr.push({ skrnr: ac.identifiers || null, tegund: ac.type || null, argerd: ac.productionYear || null, hamth: ac.maxWeight || null, afskrad: !!ac.unregistered, hlutverk: [hlutverk] });
   };
   for (const ac of all) {
-    add(normKt(ac.operator && ac.operator.ssn), ac, 'rekandi');
-    for (const o of (ac.owners || [])) add(normKt(o.ssn), ac, 'eigandi');
+    add(normKt(ac.operator && ac.operator.ssn), ac, 'rekandi', ac.operator && ac.operator.name);
+    for (const o of (ac.owners || [])) add(normKt(o.ssn), ac, 'eigandi', o.name);
   }
   if (all.length < 100) throw new Error('Grunsamlega fá loftför (' + all.length + ') — hætti');
   const data = {
     updated: new Date().toISOString().slice(0, 10),
     source: 'Loftfaraskrá Samgöngustofu um island.is (aircraftRegistryAllAircrafts)',
-    n: all.length, logadilar: Object.keys(byKt).length, byKt,
+    n: all.length, logadilar: Object.keys(byKt).length, nofn, byKt,
   };
   fs.writeFileSync(OUT, JSON.stringify(data));
   console.log('loftfor.json | loftför:', all.length, '| lögaðilar:', data.logadilar, '| bytes:', fs.statSync(OUT).size);

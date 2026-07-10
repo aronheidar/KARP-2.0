@@ -1,6 +1,6 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// Ívilnanir & styrkir (#2 LOTA 7) — 53 ívilnana-/styrkjaleiðir ríkisins
+// Ívilnanir & stuðningur (#2 LOTA 7) — 53 ívilnana-/styrkjaleiðir ríkisins (heiti aðgreint frá /styrkir/)
 // (ivilnanir.json), flokkaðar og með stöðu. Eins og gamli Alþingis-flipinn.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
@@ -17,14 +17,14 @@ const order = Object.keys(FLOKKAR).filter((f) => groups[f]?.length);
 const total = (Array.isArray(IVILNANIR) ? IVILNANIR : []).length;
 const active = (Array.isArray(IVILNANIR) ? IVILNANIR : []).filter((x) => x.stada === 'virk').length;
 const updated = '2026-07-02';
-const desc = `Ívilnanir og styrkir ríkisins — ${total} leiðir (${active} virkar): endurgreiðslur, skattaívilnanir og stuðningskerfi eftir málaflokkum.`;
+const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active} virkar): endurgreiðslur, skattaívilnanir og stuðningskerfi eftir málaflokkum.`;
 ---
 
-<Layout title="Ívilnanir & styrkir | Karp" description={desc} canonical="https://karp.is/ivilnanir/" ogTitle="Ívilnanir & styrkir">
+<Layout title="Ívilnanir & stuðningur | Karp" description={desc} canonical="https://karp.is/ivilnanir/" ogTitle="Ívilnanir & stuðningur">
   <main>
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <ThingTabs active="ivilnanir" />
-    <h1>Ívilnanir &amp; styrkir</h1>
+    <h1>Ívilnanir &amp; stuðningur</h1>
     <p>Stuðningskerfi ríkisins á einum stað — <strong>{total} leiðir</strong>, þar af {active} virkar. Smelltu á færslu fyrir lýsingu.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ívilnanir: opinberar skrár um ívilnanasamninga og byggðaaðstoð stjórnvalda.">ⓘ</i> Um gögnin á síðunni</p>
 

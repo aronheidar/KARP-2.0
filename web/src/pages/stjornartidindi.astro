@@ -1,0 +1,215 @@
+---
+// Stjórnartíðindavaktin (LOTA — ný yfirlitssíða) — nýjustu lög, reglugerðir og auglýsingar.
+// Gögn: build_stjornartidindi.mjs → web/public/gogn/stjornartidindi.json (island.is officialJournalOfIcelandAdverts).
+// SSR: KPIs + súlurit (tegundir) + tímalína + deilda-skýring + nýjustu færslur. Client: sía eftir deild/tegund + leit.
+import Layout from '../layouts/Layout.astro';
+import ST from '../../public/gogn/stjornartidindi.json';
+
+const adverts = ST.adverts || [];
+const byDept = ST.byDept || {};
+const byType = ST.byType || {};
+const n = ST.n || adverts.length;
+const totalItems = ST.totalItems || 0;
+const updated = (ST.updated || '').slice(0, 10);
+const range = ST.range || {};
+
+const DEPT_META = {
+  'A deild': { key: 'A', col: '#58a6ff', undir: 'Lög, bráðabirgðalög, forsetaúrskurðir og reglur' },
+  'B deild': { key: 'B', col: '#3fb950', undir: 'Reglugerðir, gjaldskrár og auglýsingar ráðuneyta og stofnana' },
+  'C deild': { key: 'C', col: '#bc8cff', undir: 'Samningar við önnur ríki og auglýsingar þar að lútandi' },
+};
+const depts = Object.keys(DEPT_META).map((d) => ({ nafn: d, ...DEPT_META[d], count: byDept[d] || 0 }));
+
+// tegundir (súlurit)
+const typeArr = Object.entries(byType).map(([t, c]) => ({ t, c })).sort((a, b) => b.c - a.c);
+
+// tímalína (færslur eftir dagsetningu)
+const dayMap = {};
+adverts.forEach((a) => { const d = (a.dags || '').slice(0, 10); if (d) dayMap[d] = (dayMap[d] || 0) + 1; });
+const days = Object.keys(dayMap).sort();
+const dayCounts = days.map((d) => dayMap[d]);
+
+const isDate = (s) => (s || '').slice(0, 10).split('-').reverse().join('.');
+const fmt = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
+const deptColor = (d) => (DEPT_META[d] && DEPT_META[d].col) || '#8b98ad';
+const newest = adverts.slice(0, 60);
+
+const desc = `Stjórnartíðindavaktin — nýjustu lög, reglugerðir og auglýsingar úr Stjórnartíðindum. ${fmt(n)} nýjustu færslur eftir deild (A/B/C), tegund og útgefanda. Leitaðu og síaðu.`;
+---
+<Layout title="Stjórnartíðindavaktin — ný lög & reglugerðir | Karp" description={desc} canonical="https://karp.is/stjornartidindi/" ogTitle="Stjórnartíðindavaktin">
+  <main data-pg="stjornartidindi">
+    <p class="kicker">Hagvísir Íslands · Ríkisstjórn</p>
+    <h1>Stjórnartíðindavaktin 📜</h1>
+    <p class="lead">Nýjustu <strong>lög, reglugerðir og auglýsingar</strong> úr Stjórnartíðindum á einum stað — <strong>{fmt(n)} nýjustu færslur</strong>, flokkaðar eftir deild, tegund og útgefanda. Þegar ný reglugerð eða lög eru birt rata þau hingað. Heimild er opna gátt <a href="https://island.is" rel="nofollow">island.is</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Stjórnartíðindi um opnu island.is-gáttina (officialJournalOfIcelandAdverts). Sýndar eru nýjustu ~200 færslur; á tímabilinu í heild (síðustu 120 daga) birtust fleiri. Deildir: A = lög og reglur, B = reglugerðir og gjaldskrár, C = milliríkjasamningar.">ⓘ</i> Stjórnartíðindi · nýjustu {fmt(n)} færslur (af {fmt(totalItems)} síðustu 120 daga)</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">📜 Nýjustu færslur</div><div class="k-v">{fmt(n)}</div><div class="k-s">birtar nýlega</div></div>
+      {depts.map((d) => (
+        <div class="kpi"><div class="k-l" style={`color:${d.col}`}>● {d.nafn}</div><div class="k-v" style={`color:${d.col}`}>{fmt(d.count)}</div><div class="k-s">{d.key === 'A' ? 'lög & reglur' : d.key === 'B' ? 'reglugerðir' : 'samningar'}</div></div>
+      ))}
+    </div>
+
+    <h2>Deildir Stjórnartíðinda</h2>
+    <div class="dept-row">
+      {depts.map((d) => (
+        <div class="dept-card">
+          <span class="dept-badge" style={`background:${d.col}`}>{d.key}</span>
+          <div><div class="dept-n">{d.nafn}</div><div class="dept-u">{d.undir}</div></div>
+          <div class="dept-c" style={`color:${d.col}`}>{fmt(d.count)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Færslur eftir tegund</h2>
+    <p class="sub">Skipting nýjustu {fmt(n)} færslna eftir tegund. Reglugerðir og auglýsingar eru fyrirferðarmestar.</p>
+    <div class="cwrap"><div id="c-type" class="ch"></div></div>
+
+    <h2>Birtingar á tímabilinu</h2>
+    <p class="sub">Fjöldi birtra færslna eftir dögum (nýjustu {fmt(n)} færslur).</p>
+    <div class="cwrap"><div id="c-time" class="ch ch-sm"></div></div>
+
+    <h2>Nýjustu færslur</h2>
+    <p class="sub">Síaðu eftir deild eða tegund, eða leitaðu í fyrirsögnum og útgefendum.</p>
+    <div class="sj-controls">
+      <input id="sj-q" type="search" placeholder="🔎 Leita í fyrirsögn eða útgefanda…" autocomplete="off" />
+      <select id="sj-dept" class="sj-sel"><option value="all">Allar deildir</option>{depts.map((d) => (<option value={d.nafn}>{d.nafn}</option>))}</select>
+      <select id="sj-type" class="sj-sel"><option value="all">Allar tegundir</option>{typeArr.map((t) => (<option value={t.t}>{t.t}</option>))}</select>
+    </div>
+    <div id="sj-count" class="sj-cnt"></div>
+    <div id="sj-list" class="sj-list">
+      {newest.map((a) => (
+        <div class="sj-item">
+          <span class="sj-badge" style={`background:${deptColor(a.deild)}`} title={a.deild}>{(DEPT_META[a.deild] && DEPT_META[a.deild].key) || '·'}</span>
+          <div class="sj-main"><div class="sj-title">{a.titill}</div><div class="sj-meta">{a.tegund}{a.utgefandi ? ' · ' + a.utgefandi : ''}</div></div>
+          <div class="sj-date">{isDate(a.dags)}</div>
+        </div>
+      ))}
+    </div>
+    <button id="sj-more" class="sj-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Stjórnartíðindi</b> um opnu island.is-gáttina (officialJournalOfIcelandAdverts). Uppfært {updated}{range.from ? ` · tímabil frá ${isDate(range.from)}` : ''}. Sýndar eru nýjustu {fmt(n)} færslur; sjá öll Stjórnartíðindi á Stjórnartíðinda-vefnum. A-deild = lög og reglur, B-deild = reglugerðir og gjaldskrár, C-deild = milliríkjasamningar.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+
+    .dept-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 9px; margin-top: 6px; }
+    .dept-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 14px; }
+    .dept-badge { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 7px; color: #0a0e14; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+    .dept-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; }
+    .dept-u { font-size: 11px; color: #7e8ca6; line-height: 1.4; }
+    .dept-c { margin-left: auto; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 300px; } .ch-sm { height: 220px; }
+
+    .sj-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #sj-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #sj-q:focus { outline: none; border-color: rgba(246,177,59,.5); }
+    .sj-sel { font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; max-width: 200px; }
+    .sj-sel:focus { outline: none; border-color: rgba(246,177,59,.5); }
+    .sj-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .sj-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .sj-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+    @media (max-width: 600px) { h1 { font-size: 25px; } .sj-sel { flex: 1 1 45%; max-width: none; } }
+  </style>
+
+  <style is:global>
+    .sj-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .sj-item { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 10px 13px; }
+    .sj-item:hover { border-color: rgba(246,177,59,.3); }
+    .sj-badge { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px; color: #0a0e14; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .sj-main { min-width: 0; }
+    .sj-title { font-size: 13.5px; color: #eaf1fb; line-height: 1.4; }
+    .sj-meta { font-size: 11.5px; color: #9fb0c8; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sj-date { font-size: 11.5px; color: #7e8ca6; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .sj-empty { color: #7e8ca6; font-size: 13px; padding: 18px 4px; }
+  </style>
+
+  <script define:vars={{ adverts, typeArr, days, dayCounts, DEPT_META }}>
+    function initStjornartidindi() {
+      if (!document.querySelector('main[data-pg="stjornartidindi"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const nf = new Intl.NumberFormat('is-IS');
+      const isDate = (s) => (s || '').slice(0, 10).split('-').reverse().join('.');
+      const deptKey = (d) => (DEPT_META[d] && DEPT_META[d].key) || '·';
+      const deptCol = (d) => (DEPT_META[d] && DEPT_META[d].col) || '#8b98ad';
+
+      const drawCharts = () => {
+        if (!window.echarts) return;
+        const elT = document.getElementById('c-type');
+        if (elT && !window.echarts.getInstanceByDom(elT)) {
+          const c = window.echarts.init(elT);
+          const asc = typeArr.slice(0, 10).reverse();
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 44, top: 8, bottom: 22, containLabel: true },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => esc(p[0].name) + '<br/><b>' + nf.format(p[0].value) + '</b>' },
+            xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { type: 'category', data: asc.map((t) => t.t), axisLabel: { color: AX, fontSize: 11, width: 140, overflow: 'truncate' }, axisLine: { lineStyle: { color: LINE } } },
+            series: [{ type: 'bar', data: asc.map((t) => t.c), itemStyle: { color: '#f6b13b', borderRadius: [0, 4, 4, 0] }, barMaxWidth: 20, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11 } }],
+          });
+        }
+        const elD = document.getElementById('c-time');
+        if (elD && !window.echarts.getInstanceByDom(elD)) {
+          const c = window.echarts.init(elD);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 34, right: 14, top: 12, bottom: 28 },
+            tooltip: { trigger: 'axis', formatter: (p) => isDate(p[0].name) + '<br/><b>' + nf.format(p[0].value) + ' færslur</b>' },
+            xAxis: { type: 'category', data: days, axisLabel: { color: AX, fontSize: 10, formatter: (v) => v.slice(5).split('-').reverse().join('.') }, axisLine: { lineStyle: { color: LINE } } },
+            yAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } }, minInterval: 1 },
+            series: [{ type: 'bar', data: dayCounts, itemStyle: { color: '#58a6ff', borderRadius: [3, 3, 0, 0] } }],
+          });
+        }
+        window.addEventListener('resize', () => { ['c-type', 'c-time'].forEach((id) => { const el = document.getElementById(id); const i = el && window.echarts.getInstanceByDom(el); if (i) i.resize(); }); });
+      };
+      if (window.echarts) drawCharts();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawCharts, { once: true }); }
+
+      // ── Sía + leit ─────────────────────────────────────────────
+      const listEl = document.getElementById('sj-list'), cntEl = document.getElementById('sj-count'), moreEl = document.getElementById('sj-more');
+      const qEl = document.getElementById('sj-q'), deptEl = document.getElementById('sj-dept'), typeEl = document.getElementById('sj-type');
+      let filtered = [], shown = 0; const PAGE = 50;
+      const item = (a) => '<div class="sj-item"><span class="sj-badge" style="background:' + deptCol(a.deild) + '" title="' + esc(a.deild) + '">' + esc(deptKey(a.deild)) + '</span>'
+        + '<div class="sj-main"><div class="sj-title">' + esc(a.titill) + '</div><div class="sj-meta">' + esc(a.tegund) + (a.utgefandi ? ' · ' + esc(a.utgefandi) : '') + '</div></div>'
+        + '<div class="sj-date">' + isDate(a.dags) + '</div></div>';
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim(), dv = deptEl.value, tv = typeEl.value;
+        filtered = adverts.filter((a) =>
+          (dv === 'all' || a.deild === dv) && (tv === 'all' || a.tegund === tv)
+          && (!q || (a.titill || '').toLowerCase().includes(q) || (a.utgefandi || '').toLowerCase().includes(q)));
+        shown = 0; listEl.innerHTML = '';
+        const filt = q || dv !== 'all' || tv !== 'all';
+        cntEl.textContent = nf.format(filtered.length) + ' færslur' + (filt ? ' (síað)' : '');
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(item).join('') || (shown === 0 ? '<div class="sj-empty">Engin færsla fannst.</div>' : ''));
+        shown += next.length; moreEl.hidden = shown >= filtered.length;
+      };
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 160); });
+      deptEl.addEventListener('change', apply); typeEl.addEventListener('change', apply); moreEl.addEventListener('click', more);
+      apply();
+    }
+    document.addEventListener('astro:page-load', initStjornartidindi);
+  </script>
+</Layout>

@@ -15,7 +15,7 @@ const GQL = 'https://island.is/api/graphql';
 const UA = { 'content-type': 'application/json', 'User-Agent': 'Mozilla/5.0 (KARP dashboard build; karp.is)' };
 const MAX = 7600;          // hæsta skoðaða skipnr (JÓN GVENDAR #7000 fannst; >7500 tómt)
 const CONC = 6;            // hófleg samhliðni (25 hröð köll þoldust í prófun)
-const Q = 'query($input: ShipRegistryShipSearchInput!){ shipRegistryShipSearch(input:$input){ ships{ shipName regno owners{ nationalId sharePercentage } } } }';
+const Q = 'query($input: ShipRegistryShipSearchInput!){ shipRegistryShipSearch(input:$input){ ships{ shipName regno owners{ name nationalId sharePercentage } } } }';
 const erLogadili = (kt) => /^\d{10}$/.test(kt) && +kt.slice(0, 2) >= 41 && +kt.slice(0, 2) <= 71;
 
 async function fetchShip(regno, tries = 3) {
@@ -32,6 +32,7 @@ async function fetchShip(regno, tries = 3) {
 
 (async () => {
   const byKt = {};
+  const nofn = {};   // kt → nafn lögaðila (kemur í sama svari; til nafngreiningar á /tengsl/)
   let ships = 0, fails = 0;
   const t0 = Date.now();
   for (let base = 1; base <= MAX; base += CONC) {
@@ -45,6 +46,7 @@ async function fetchShip(regno, tries = 3) {
         for (const o of (ship.owners || [])) {
           const kt = String(o.nationalId || '').replace(/\D/g, '');
           if (!erLogadili(kt)) continue;                // aðeins lögaðilar í opinbera vísinn
+          if (o.name && !nofn[kt]) nofn[kt] = String(o.name).trim();
           (byKt[kt] = byKt[kt] || []).push({ regno: ship.regno, nafn: ship.shipName || null, hlutur: o.sharePercentage ?? null });
         }
         ships++;
@@ -61,7 +63,7 @@ async function fetchShip(regno, tries = 3) {
   const data = {
     updated: new Date().toISOString().slice(0, 10),
     source: 'Samgöngustofa skipaskrá um island.is (shipRegistryShipSearch) — eigendur (lögaðilar)',
-    skip: ships, logadilar: Object.keys(byKt).length, mistok: fails, max: MAX, byKt,
+    skip: ships, logadilar: Object.keys(byKt).length, mistok: fails, max: MAX, nofn, byKt,
   };
   fs.writeFileSync(OUT, JSON.stringify(data));
   console.log('skip_owners.json | skip:', ships, '| lögaðilar:', data.logadilar, '| mistök:', fails, '| ' + ((Date.now() - t0) / 1000).toFixed(0) + 's | bytes:', fs.statSync(OUT).size);
