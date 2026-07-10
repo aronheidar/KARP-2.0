@@ -102,6 +102,7 @@ jobs:
         run: python skriptur/build_byggingarleyfi.py || true   # pypdf; full endurbygging (271 PDF, PDF-cache); heimilisfangs-lyklað, PII-örugg þáttun — engin persónuupplýsing geymd
       - name: Lögbirtingablaðið (opin PDF-tölublöð → lögform. tilkynningar lögaðila á kt)
         run: python skriptur/build_logbirting.py || true   # pypdf; incremental (seen-set í gogn/); persónuvernd: aðeins lögaðilar (gjaldþrot/innköllun/skiptalok/félagsslit)
+      - name: AI-samantektir (skilyrt á ANTHROPIC_API_KEY)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
