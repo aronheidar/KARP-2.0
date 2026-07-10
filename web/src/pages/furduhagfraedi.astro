@@ -1,10 +1,14 @@
 ---
 // Furðuhagfræði (#2 LOTA 8) — „hvað kaupir klukkustund af vinnu?" Portað úr
-// gamla (FURDU: wageIdx+hpm+items → numbeo-verð). Allt reiknað á BYGGINGARTÍMA.
+// gamla (FURDU: wageIdx+hpm+items → numbeo-verð, bökuð á byggingartíma). 🏃 Launakapphlaupið
+// (Hagstofa) kemur nú úr daglegu snapshot-i: skriptur/build_furduhagfraedi.mjs → gogn/furduhagfraedi.json.
 import Layout from '../layouts/Layout.astro';
 import FURDU from '../data/furdu.json';
 import NUMBEO from '@gogn/numbeo.json';
+import DATA from '@gogn/furduhagfraedi.json';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
+
+const { RACE, updated } = DATA;
 
 const rvk = (NUMBEO.prices || {}).Reykjavik || [];
 const cph = (NUMBEO.prices || {}).Copenhagen || [];
@@ -24,36 +28,7 @@ const rows = (FURDU.items || []).map((it) => {
   };
 }).filter(Boolean).sort((a, b) => a.mins - b.mins);
 
-// ── 🏃 Launakapphlaupið (LOTA 13g, aftur af gamla): laun vs húsnæði vs verðlag,
-// allt sett á 100 í 2000M03 (fyrsta mán. íbúðavísitölu). Byggingartíma-PxWeb, þolir bilun.
-const px = async (path, query) => (await fetch('https://px.hagstofa.is/pxis/api/v1/is/' + path, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, values) => ({ code, selection: { filter: 'item', values } });
-const toMap = (j, ti = 0) => { const m = {}; (j.data || []).forEach((d) => { const v = parseFloat(String(d.values[0]).replace(',', '.')); if (!isNaN(v)) m[d.key[ti]] = v; }); return m; };
-let RACE = null;
-try {
-  const [lau, hus, cpi] = await Promise.all([
-    px('Samfelag/launogtekjur/2_lvt/1_manadartolur/LAU04000.px', [sel('Eining', ['index'])]),
-    px('Efnahagur/visitolur/1_vnv/3_greiningarvisitolur/VIS01106.px', [sel('Vísitala', ['RI_total'])]),
-    px('Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px', [sel('Vísitala', ['CPI']), sel('Liður', ['index'])]),
-  ]);
-  const L = toMap(lau), H = toMap(hus), C = toMap(cpi);
-  const months = Object.keys(H).filter((m) => L[m] != null && C[m] != null).sort();
-  const base = months[0];
-  if (base && months.length > 24) {
-    const rb = (M) => months.map((m) => Math.round((M[m] / M[base]) * 1000) / 10);
-    const wage = rb(L), house = rb(H), cpix = rb(C);
-    RACE = {
-      labels: months, wage, house, cpi: cpix,
-      baseY: base.slice(0, 4),
-      fW: Math.round((wage[wage.length - 1] / 100) * 10) / 10,
-      fH: Math.round((house[house.length - 1] / 100) * 10) / 10,
-      fC: Math.round((cpix[cpix.length - 1] / 100) * 10) / 10,
-    };
-  }
-} catch (e) { RACE = null; }
 const f1 = (v) => String(v).replace('.', ',');
-
-const updated = '2026-07-02';
 const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu? Tímakaupið (${hourly ? groupThousands(Math.round(hourly)) : '—'} kr) mælt í bjórum, kaffibollum og bíómiðum${RACE ? `, og Launakapphlaupið: frá ${RACE.baseY} hafa laun ${f1(RACE.fW)}-faldast en húsnæðisverð ${f1(RACE.fH)}-faldast` : ''}.`;
 ---
 
@@ -97,7 +72,7 @@ const desc = `Furðuhagfræði — hvað kaupir klukkustund af íslenskri vinnu?
     )}
 
     <p class="note">ⓘ Verð frá Numbeo (samfélagslega söfnuð), laun = meðalnettólaun. Fylgni er ekki orsök og bjór er ekki fjárfestingarráðgjöf. 🍺</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Sama fyrirbæri og gamla mælaborðið — tímakaups-hagfræðin. #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Sama fyrirbæri og gamla mælaborðið — tímakaups-hagfræðin. #2.</p>
   </main>
 
   <style>

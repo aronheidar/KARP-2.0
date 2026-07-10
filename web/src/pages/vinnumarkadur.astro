@@ -1,11 +1,14 @@
 ---
 // ─────────────────────────────────────────────────────────────
 // SSG-síða (#2) — Atvinnuleysi: skráð atvinnuleysi (VMST) — mánaðarþróun +
-// eftir landshlutum + kyn + ríkisfang (atvinnuleysi.json). Í Layout. #2.
+// eftir landshlutum + kyn + ríkisfang (bakað gogn/atvinnuleysi.json).
+// Laun vs verðbólga (kaupmáttur) úr daglegu snapshoti gogn/vinnumarkadur.json
+// (build_vinnumarkadur.mjs; áður sótt beint á Hagstofu í frontmatter). Í Layout. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import { fmtNum, monthLabel } from '@lib/format.mjs';
 import ATV from '@gogn/atvinnuleysi.json';
+import DATA from '@gogn/vinnumarkadur.json';
 
 const latest = ATV.latest;
 const monthly = ATV.monthly || [];
@@ -20,23 +23,9 @@ const updLabel = monthLabel(updated);
 
 const hi = regionBars[0], lo = regionBars[regionBars.length - 1];
 
-// Laun vs verðbólga (byggingartíma, þolir bilun): LAU04001 ársbreyting + VIS01000 CPI.
-let WAGE = null;
-try {
-  const px = async (url, query) => (await fetch(url, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-  const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-  const [lj, cj] = await Promise.all([
-    px('https://px.hagstofa.is/pxis/api/v1/is/Samfelag/launogtekjur/2_lvt/1_manadartolur/LAU04001.px', [sel('Mánuður', 'top', ['37']), sel('Vísitala', 'item', ['LVT']), sel('Eining', 'item', ['change_A'])]),
-    px('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px', [sel('Mánuður', 'top', ['37']), sel('Vísitala', 'item', ['CPI']), sel('Liður', 'item', ['change_A'])]),
-  ]);
-  const grab = (j) => { const m = {}; j.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k)); const v = parseFloat(String(d.values[0]).replace(',', '.')); if (t && !isNaN(v)) m[t] = v; }); return m; };
-  const lw = grab(lj), cp = grab(cj);
-  const ts = Object.keys(lw).filter((t) => cp[t] != null).sort();
-  if (ts.length) {
-    const last = ts[ts.length - 1];
-    WAGE = { months: ts.map(monthLabel), laun: ts.map((t) => lw[t]), verd: ts.map((t) => cp[t]), kaupm: Math.round((lw[last] - cp[last]) * 10) / 10 };
-  }
-} catch (e) { WAGE = null; }
+// Laun vs verðbólga (kaupmáttur) — úr daglegu snapshoti (skriptur/build_vinnumarkadur.mjs):
+// LAU04001 ársbreyting launavísitölu + VIS01000 ársbreyting neysluverðs. Áður sótt hér í frontmatter.
+const { WAGE } = DATA;
 
 // Atvinnugreinar (top 10) + ríkisfangs-þróun úr bökuðu gögnunum.
 const INDBARS = (ATV.industries || []).slice(0, 10).map((x) => ({ label: x.name, v: x.n }));
@@ -109,7 +98,7 @@ const jsonLd = {
     )}
 
     <p class="note">ⓘ Skráð atvinnuleysi (hlutfall á atvinnuleysisskrá VMST) — ekki það sama og atvinnuleysi skv. vinnumarkaðsrannsókn Hagstofu. Erlent ríkisfang mælist umtalsvert hærra en íslenskt.</p>
-    <p class="foot">Forþjónað (SSG). Heimild: Vinnumálastofnun ({updLabel}). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot). Heimild: Vinnumálastofnun ({updLabel}). #2.</p>
   </main>
 
   <style>

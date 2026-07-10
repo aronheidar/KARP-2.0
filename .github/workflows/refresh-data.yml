@@ -137,6 +137,11 @@ jobs:
           node skriptur/build_rafbilar.mjs    || true   # bílafloti eftir orkugjafa (SAM30120) → rafbilar.json
           node skriptur/build_umferd.mjs      || true   # KEF-farþegar heild (SAM02001) → umferd.json (lifandi vegaumferð/flug er client-proxy)
           node skriptur/build_vidskipti.mjs   || true   # utanríkisverslun (UTA06105/06202/06108/06002/06003) → vidskipti.json
+          node skriptur/build_verdlag.mjs     || true   # verðbólga (VIS01000) + uppruni (VIS01101) + karfa (VIS01300) + FX + IMF-verðbólguspá → verdlag.json
+          node skriptur/build_vinnumarkadur.mjs || true # laun vs verðbólga / kaupmáttur (LAU04001 + VIS01000) → vinnumarkadur.json
+          node skriptur/build_audlindir.mjs   || true   # ferðamenn (SAM02001) + CO2 á mann (OWID) → audlindir.json
+          node skriptur/build_furduhagfraedi.mjs || true # launakapphlaupið: laun/húsnæði/verðlag (LAU04000/VIS01106/VIS01000) → furduhagfraedi.json
+          node skriptur/build_hugverk.mjs     || true   # R&Þ-útgjöld (FYR05101) + nýskráð vörumerki (Hugverkastofan) → hugverk.json
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:

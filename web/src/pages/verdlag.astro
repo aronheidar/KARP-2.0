@@ -1,54 +1,32 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// SSG-síða (#2). Keyrir á BYGGINGARTÍMA: sækir verðbólgu af Hagstofu
-// og bakar inn í forþjónað HTML. Importar úr sameiginlega src/lib gegnum @lib.
-// Nú í app-skelinni (Layout: nav + fréttir). #2.
+// SSG-síða (#2) — Verðlag: ársverðbólga (VNV), uppruni verðbólgu, neyslukarfan,
+// gengi krónunnar + IMF-verðbólguspá. Gögn: daglegt snapshot úr
+// skriptur/build_verdlag.mjs → gogn/verdlag.json (áður sótt beint á Hagstofu/
+// frankfurter í frontmatter á hverri byggingu → nú seigla + saga + spá).
+// Atvinnuleysi/Numbeo/Seðlabanki koma áfram úr bökuðum @gogn-snapshots. #2.
 // ─────────────────────────────────────────────────────────────
 import { monthLabel, fmtNum, MON_LONG } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import ATV from '@gogn/atvinnuleysi.json';
 import NUMBEO from '@gogn/numbeo.json';
 import SB from '@gogn/sedlabanki.json';
+import DATA from '@gogn/verdlag.json';
 
 import ATVINNULEYSI from '@gogn/atvinnuleysi.json';
 
-let rows = [];
-let err = null;
-try {
-  const body = JSON.stringify({
-    query: [
-      { code: 'Mánuður', selection: { filter: 'top', values: ['24'] } },
-      { code: 'Vísitala', selection: { filter: 'item', values: ['CPI'] } },
-      { code: 'Liður', selection: { filter: 'item', values: ['change_A'] } },
-    ],
-    response: { format: 'json' },
-  });
-  const res = await fetch(
-    'https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/1_vnv/VIS01000.px',
-    { method: 'POST', body }
-  );
-  const j = await res.json();
-  rows = j.data
-    .map((d) => ({ t: d.key[0], v: parseFloat(String(d.values[0]).replace(',', '.')) }))
-    .filter((r) => !isNaN(r.v));
-} catch (e) {
-  err = e.message;
-}
+// Daglegt snapshot (build_verdlag.mjs): verðbólga + gengi + uppruni + karfa + spá.
+const { rows, fx, FX, INFLSRC, BASKET, forecast, updated } = DATA;
+const err = null;
 
 const labels = rows.map((r) => monthLabel(r.t));   // ← @lib/format
 const vals = rows.map((r) => r.v);
 const latest = rows.length ? rows[rows.length - 1] : null;
 const latestPct = latest ? fmtNum(latest.v, 1) : '—'; // ← @lib/format
-const updated = '2026-07-01';
+// Spá líðandi árs (splitYear) fyrir KPI — eins og í hagvoxtur.
+const fcNow = forecast ? (() => { const i = forecast.years.indexOf(forecast.splitYear); return i >= 0 ? forecast.values[i] : null; })() : null;
 
-// --- Lykiltölur (#2 ríkari efnahagur): gengi (frankfurter/ECB á byggingartíma) + atvinnuleysi + stýrivextir ---
-let fx = null;
-try {
-  const fr = await fetch('https://api.frankfurter.app/latest?from=EUR&to=ISK,USD,GBP');
-  const fj = await fr.json();
-  const eurIsk = fj.rates.ISK; // ISK per EUR
-  fx = { date: fj.date, eur: eurIsk, usd: eurIsk / fj.rates.USD, gbp: eurIsk / fj.rates.GBP };
-} catch (e) { /* fx null → strikin sýna – */ }
+// Lykiltölur (#2): gengi (fx/FX úr daglegu snapshot-i) + atvinnuleysi + stýrivextir.
 const unemp = ATVINNULEYSI.latest;         // % skráð atvinnuleysi (Vinnumálastofnun)
 // Stýrivextir: LIFANDI frá Seðlabanka (gogn/sedlabanki.json, opinn XML-tímaraðaþjónn). „Frá"-dagur
 // reiknaður úr röðinni (fyrsti punktur á núverandi vaxtastigi; ~viku-nákvæmni v. grisjunar).
@@ -69,76 +47,12 @@ if (latest) {
   if (mm) { let y = +mm[1], mo = +mm[2] + 1; if (mo > 12) { mo = 1; y++; } nextLabel = `${MON_LONG[mo - 1]} ${y}`; spaTopic = `vnv_ars_${y}_${mo}`; }
 }
 
-// ── Fleiri hagvísar (allt sótt á byggingartíma, hver hluti þolir bilun) ──
-const px = async (url, query) => (await fetch(url, { method: 'POST', body: JSON.stringify({ query, response: { format: 'json' } }) })).json();
-const sel = (code, filter, values) => ({ code, selection: { filter, values } });
-
 // Stýrivextir: LIFANDI (sama uppspretta og POLICY að ofan — Seðlabanki headline).
 const STYRIVEXTIR = { v: _mv.value, fra: _fraTxt, naest: NAEST };
 
-// Gengi (frankfurter/ECB): nýjasta EUR/USD/GBP + 1 árs EUR/ISK ferill.
-let FX = null;
-try {
-  const [lat, rng] = await Promise.all([
-    fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=ISK,USD,GBP').then((r) => r.json()),
-    fetch('https://api.frankfurter.dev/v1/2025-07-01..?base=EUR&symbols=ISK').then((r) => r.json()),
-  ]);
-  const dates = Object.keys(rng.rates || {}).sort();
-  FX = {
-    eur: Math.round(lat.rates.ISK * 10) / 10,
-    usd: Math.round((lat.rates.ISK / lat.rates.USD) * 10) / 10,
-    gbp: Math.round((lat.rates.ISK / lat.rates.GBP) * 10) / 10,
-    date: lat.date, dates, vals: dates.map((d) => Math.round(rng.rates[d].ISK * 100) / 100),
-  };
-  if (!FX.dates.length) FX = null;
-} catch (e) { FX = null; }
+// Uppruni verðbólgu (INFLSRC, VIS01101) kemur úr daglegu snapshot-i (build_verdlag.mjs).
 
-// Uppruni verðbólgunnar (VIS01101): framlag = vægi × 12-mán verðbreyting flokks.
-const INFLCAT = { '2a': ['Innlendar vörur', '#46e08a'], '2ai': ['Innfluttar vörur', '#3a8dff'], '2bii': ['Blandaðar vörur', '#1fb6c9'], '5a': ['Ferðaþjónusta', '#c95cf7'], '5b': ['Húsnæði', '#f6b13b'], '5c': ['Opinber þjónusta', '#ff8a3d'], '5d': ['Önnur þjónusta', '#8892a6'] };
-let INFLSRC = null;
-try {
-  const CATS = Object.keys(INFLCAT);
-  const j = await px('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/3_greiningarvisitolur/VIS01101.px', [
-    sel('Mánuður', 'top', ['27']), sel('Liður', 'item', ['index', 'breakdown']), sel('Útgjaldaflokkur', 'item', CATS),
-  ]);
-  const idx = {}, wgt = {};
-  j.data.forEach((d) => {
-    const t = d.key.find((k) => /^\d{4}M\d{2}$/.test(k));
-    const cat = d.key.find((k) => CATS.includes(k));
-    const lidur = d.key.find((k) => k === 'index' || k === 'breakdown');
-    const v = parseFloat(String(d.values[0]).replace(',', '.'));
-    if (!t || !cat || !lidur || isNaN(v)) return;
-    const M = lidur === 'index' ? idx : wgt;
-    (M[cat] = M[cat] || {})[t] = v;
-  });
-  const months = [...new Set(j.data.map((d) => d.key.find((k) => /^\d{4}M\d{2}$/.test(k))))].filter(Boolean).sort();
-  const prev12 = (t) => { const m = /^(\d{4})M(\d{2})$/.exec(t); return m ? `${+m[1] - 1}M${m[2]}` : null; };
-  const useM = months.filter((t) => months.includes(prev12(t))).slice(-13);
-  const series = CATS.map((c) => ({
-    name: INFLCAT[c][0], color: INFLCAT[c][1],
-    data: useM.map((t) => {
-      const a = idx[c] && idx[c][t], b = idx[c] && idx[c][prev12(t)], w = wgt[c] && wgt[c][t];
-      return a != null && b != null && w != null ? Math.round((w / 100) * ((a / b - 1) * 100) * 100) / 100 : null;
-    }),
-  }));
-  if (useM.length) INFLSRC = { months: useM.map(monthLabel), series };
-} catch (e) { INFLSRC = null; }
-
-// Neyslukarfan (VIS01300): vægi COICOP-yfirflokka í vísitölunni.
-const CPLBL = { CP01: 'Matur & drykkir', CP02: 'Áfengi & tóbak', CP03: 'Föt & skór', CP04: 'Húsnæði & orka', CP05: 'Húsbúnaður', CP06: 'Heilsa', CP07: 'Ferðir & flutningar', CP08: 'Póstur & sími', CP09: 'Tómstundir & menning', CP10: 'Menntun', CP11: 'Hótel & veitingar', CP12: 'Annað' };
-let BASKET = null;
-try {
-  const j = await px('https://px.hagstofa.is/pxis/api/v1/is/Efnahagur/visitolur/1_vnv/2_undirvisitolur/VIS01300.px', [
-    sel('Mánuður', 'top', ['1']), sel('Liður', 'item', ['breakdown']), sel('Undirvísitala', 'item', Object.keys(CPLBL)),
-  ]);
-  const items = [];
-  j.data.forEach((d) => {
-    const cp = d.key.find((k) => CPLBL[k]);
-    const v = parseFloat(String(d.values[0]).replace(',', '.'));
-    if (cp && !isNaN(v)) items.push({ name: CPLBL[cp], value: Math.round(v * 10) / 10 });
-  });
-  if (items.length >= 8) BASKET = items.sort((a, b) => b.value - a.value);
-} catch (e) { BASKET = null; }
+// Neyslukarfan (BASKET, VIS01300) kemur úr daglegu snapshot-i (build_verdlag.mjs).
 
 const atvLatest = ATV.latest;
 
@@ -219,6 +133,7 @@ const jsonLd = {
     <h2>Lykiltölur</h2>
     <div class="kpis">
       <div class="kpi"><div class="k-l">📉 Verðbólga</div><div class="k-v">{latestPct}%</div><div class="k-s">ársverðbólga</div></div>
+      {fcNow != null && <div class="kpi"><div class="k-l">🔮 Verðbólguspá {forecast.splitYear}</div><div class="k-v">{fmtNum(fcNow, 1)}%</div><div class="k-s">IMF WEO · VNV</div></div>}
       <div class="kpi"><div class="k-l">🏦 Stýrivextir</div><div class="k-v">{fmtNum(POLICY.rate, 2)}%</div><div class="k-s">frá {POLICY.from}</div></div>
       <div class="kpi"><div class="k-l">👷 Atvinnuleysi</div><div class="k-v">{fmtNum(unemp, 1)}%</div><div class="k-s">skráð</div></div>
       <div class="kpi"><div class="k-l">€ EUR/ISK</div><div class="k-v">{fx ? fmtNum(fx.eur, 1) : '–'}</div><div class="k-s">kr. per €</div></div>
@@ -251,6 +166,14 @@ const jsonLd = {
     </table>
 
     <div id="spa" class="spa-card" data-topic={spaTopic} data-next={nextLabel} data-now={latestPct}></div>
+
+    {forecast && forecast.years && forecast.years.length && (
+      <>
+        <h2>Verðbólguspá — VNV milli ára</h2>
+        <div id="chart-fc"></div>
+        <p class="src">Söguleg þróun og spá — {forecast.source}. Spáár ({forecast.splitYear} og síðar) sýnd með brotinni línu.</p>
+      </>
+    )}
 
     {INFLSRC && (
       <>
@@ -329,7 +252,7 @@ const jsonLd = {
     </a>
 
     <p class="foot">
-      Forþjónað (SSG) {updated}. Gögnin sótt af Hagstofu Íslands <strong>á byggingartíma</strong> og bökuð
+      Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Gögnin sótt af Hagstofu Íslands <strong>á byggingartíma</strong> og bökuð
       inn í HTML-ið. Mánaðaheiti + tölur eru sniðin með <strong>sameiginlega <code>src/lib</code></strong>
       (<code>@lib/format.mjs</code>) — #2 sameining.
     </p>
@@ -373,6 +296,7 @@ const jsonLd = {
     #chart-src { width: 100%; height: 330px; }
     #chart-basket { width: 100%; height: 340px; }
     #chart-fx { width: 100%; height: 270px; }
+    #chart-fc { width: 100%; height: 280px; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
     h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -454,9 +378,9 @@ const jsonLd = {
   </script>
 
   <!-- Eyja: uppruni verðbólgu + neyslukarfa + gengi (þrjú gröf). #2 -->
-  <script define:vars={{ INFLSRC, BASKET, FX }}>
+  <script define:vars={{ INFLSRC, BASKET, FX, forecast }}>
     function initExtra() {
-      if (!document.getElementById('chart-src') && !document.getElementById('chart-basket') && !document.getElementById('chart-fx')) return;
+      if (!document.getElementById('chart-src') && !document.getElementById('chart-basket') && !document.getElementById('chart-fx') && !document.getElementById('chart-fc')) return;
       const go = () => {
         const cs = document.getElementById('chart-src');
         if (cs && INFLSRC && !window.echarts.getInstanceByDom(cs)) {
@@ -497,6 +421,26 @@ const jsonLd = {
             yAxis: { type: 'value', scale: true, axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
             tooltip: { trigger: 'axis', valueFormatter: (v) => v.toFixed(1).replace('.', ',') + ' kr' },
             series: [{ type: 'line', data: FX.vals, smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#f6b13b' }, areaStyle: { opacity: 0.12, color: '#f6b13b' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        const cfc = document.getElementById('chart-fc');
+        if (cfc && forecast && !window.echarts.getInstanceByDom(cfc)) {
+          const c = window.echarts.init(cfc);
+          const yrs = forecast.years, vals = forecast.values, sp = forecast.splitYear;
+          const actual = yrs.map((y, i) => (y <= sp - 1 ? vals[i] : null));
+          const fc = yrs.map((y, i) => (y >= sp - 1 ? vals[i] : null));
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Raun', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
+            grid: { left: 40, right: 14, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: yrs, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + '%') },
+            series: [
+              { name: 'Raun', type: 'line', data: actual, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#46e08a' }, itemStyle: { color: '#46e08a' } },
+              { name: 'Spá', type: 'line', data: fc, smooth: true, symbol: 'circle', symbolSize: 5, lineStyle: { width: 2.5, color: '#f6b13b', type: 'dashed' }, itemStyle: { color: '#f6b13b' } },
+            ],
           });
           window.addEventListener('resize', () => c.resize());
         }
