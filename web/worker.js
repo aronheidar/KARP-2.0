@@ -1770,33 +1770,44 @@ async function loftforHandler(request, env, ctx) {
 // ⚠ PII: relationships[] bera kennitölur EINSTAKLINGA → aldrei birtar. Fyrirtækja-kt (dagur 41–71)
 // haldið sem tengill milli félaga; einstaklings-kt (01–31) fjarlægt. Secret-gated: án lykils → unconfigured.
 function rskErFyrirtaeki(kt) { const dd = parseInt(String(kt).slice(0, 2), 10); return dd >= 41 && dd <= 71; }
+// ⚠ APIð skilar PascalCase ("NationalId","Deregistration"…) þótt skjölin sýni camelCase → case-óháð lesning.
+function rg(o, name) {
+  if (!o || typeof o !== 'object') return undefined;
+  if (name in o) return o[name];
+  const lo = name.toLowerCase();
+  for (const k in o) if (k.toLowerCase() === lo) return o[k];
+  return undefined;
+}
 function rskClean(kt, d) {
-  if (!d || typeof d !== 'object' || !(d.name || d.nationalId)) return { kt, holdur: false };
-  const der = d.deregistration || {};
-  const aoa = d.articlesOfAssociation || {};
-  const tengsl = (Array.isArray(d.relationships) ? d.relationships : []).map((r) => {
-    const rk = String(r.nationalId || '').replace(/\D/g, '');
+  const nafn = rg(d, 'name'), natid = rg(d, 'nationalId');
+  if (!d || typeof d !== 'object' || !(nafn || natid)) return { kt, holdur: false };
+  const der = rg(d, 'deregistration') || {};
+  const aoa = rg(d, 'articlesOfAssociation') || {};
+  const arr = (v) => (Array.isArray(v) ? v : []);
+  const dstr = (v) => (v ? String(v).slice(0, 10) : null);
+  const tengsl = arr(rg(d, 'relationships')).map((r) => {
+    const rk = String(rg(r, 'nationalId') || '').replace(/\D/g, '');
     const isCo = rk.length === 10 && rskErFyrirtaeki(rk);
-    return { nafn: r.name || null, kt: isCo ? rk : null, tegund: r.type || null, hlutverk: r.position || null, stada: r.status || null };
+    return { nafn: rg(r, 'name') || null, kt: isCo ? rk : null, tegund: rg(r, 'type') || null, hlutverk: rg(r, 'position') || null, stada: rg(r, 'status') || null };
   }).slice(0, 40);
   return {
     kt, holdur: true,
-    nafn: d.name || null,
-    aukanafn: d.additionalName || null,
-    tilgangur: d.purposeOfEntity || null,
-    stada: d.status || null,
-    skraning: (d.registered || '').slice(0, 10) || null,
-    form: (d.legalForm && d.legalForm.name) || null,
+    nafn: nafn || null,
+    aukanafn: rg(d, 'additionalName') || null,
+    tilgangur: rg(d, 'purposeOfEntity') || null,
+    stada: rg(d, 'status') || null,
+    skraning: dstr(rg(d, 'registered')),
+    form: (rg(rg(d, 'legalForm'), 'name')) || null,
     afskraning: {
-      afskrad: !!der.deregistered, dags: (der.deregistrationDate || '').slice(0, 10) || null,
-      gjaldthrot: !!der.bankrupcy, gjaldthrotDags: (der.bankrupcyDate || '').slice(0, 10) || null,
-      gjaldthol: !!der.insolvency, gjaldtholDags: (der.insolvencyDate || '').slice(0, 10) || null,
+      afskrad: !!rg(der, 'deregistered'), dags: dstr(rg(der, 'deregistrationDate')),
+      gjaldthrot: !!rg(der, 'bankrupcy'), gjaldthrotDags: dstr(rg(der, 'bankrupcyDate')),
+      gjaldthol: !!rg(der, 'insolvency'), gjaldtholDags: dstr(rg(der, 'insolvencyDate')),
     },
-    hlutafe: aoa.shareCapital || null, mynt: aoa.shareCapitalCurrency || null,
-    undirskrift: aoa.signatures || null, atkvaedi: aoa.votingRights || null,
-    isat: (Array.isArray(d.activityCode) ? d.activityCode : []).map((a) => ({ id: a.id || null, nafn: a.name || null })).slice(0, 6),
-    vsk: (Array.isArray(d.vat) ? d.vat : []).map((v) => ({ nr: v.vatNumber || null, skrad: (v.registered || '').slice(0, 10) || null, afskrad: (v.deRegistered || '').slice(0, 10) || null })).slice(0, 8),
-    heiti: (Array.isArray(d.registeredNames) ? d.registeredNames : []).map((n) => n.name).filter(Boolean).slice(0, 8),
+    hlutafe: rg(aoa, 'shareCapital') || null, mynt: rg(aoa, 'shareCapitalCurrency') || null,
+    undirskrift: rg(aoa, 'signatures') || null, atkvaedi: rg(aoa, 'votingRights') || null,
+    isat: arr(rg(d, 'activityCode')).map((a) => ({ id: rg(a, 'id') || null, nafn: rg(a, 'name') || null })).slice(0, 6),
+    vsk: arr(rg(d, 'vat')).map((v) => ({ nr: rg(v, 'vatNumber') || null, skrad: dstr(rg(v, 'registered')), afskrad: dstr(rg(v, 'deRegistered')) })).slice(0, 8),
+    heiti: arr(rg(d, 'registeredNames')).map((n) => rg(n, 'name')).filter(Boolean).slice(0, 8),
     tengsl,
     heimild: 'Fyrirtækjaskrá (opinbert API, Skatturinn)',
   };
