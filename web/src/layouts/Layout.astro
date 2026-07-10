@@ -131,7 +131,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       '@context': 'https://schema.org',
       '@graph': [
         { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://karp.is/', inLanguage: 'is', description: 'Opinber gögn um íslenskt efnahagslíf, Alþingi, sveitarfélög og markaði — á mannamáli.' },
-        { '@type': 'Organization', name: 'Karp', legalName: 'Steinsson Greykdal ehf.', url: 'https://karp.is/', logo: 'https://karp.is/og-karp.png', email: 'aron@sgdal.is', taxID: '490522-0500', areaServed: 'IS', contactPoint: { '@type': 'ContactPoint', email: 'aron@sgdal.is', contactType: 'customer support', availableLanguage: 'is' }, parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.', taxID: '490522-0500' } },
+        { '@type': 'Organization', name: 'Karp', legalName: 'Steinsson Greykdal ehf.', url: 'https://karp.is/', logo: 'https://karp.is/og-karp.png', email: 'aron@sgdal.is', telephone: '+354-778-4543', taxID: '490522-0500', areaServed: 'IS', address: { '@type': 'PostalAddress', streetAddress: 'Brunnstígur 2', addressCountry: 'IS' }, contactPoint: { '@type': 'ContactPoint', email: 'aron@sgdal.is', telephone: '+354-778-4543', contactType: 'customer support', availableLanguage: 'is' }, parentOrganization: { '@type': 'Organization', name: 'Steinsson Greykdal ehf.', taxID: '490522-0500' } },
       ],
     })} />
     <ClientRouter />
@@ -345,10 +345,12 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
           <h3>Útgefandi</h3>
           <p><strong>Steinsson Greykdal ehf.</strong></p>
           <p>kt. 490522-0500</p>
+          <p>Brunnstígur 2</p>
+          <p><a href="tel:+3547784543">778-4543</a></p>
           <p><a href="mailto:aron@sgdal.is">aron@sgdal.is</a></p>
         </div>
       </div>
-      <div class="sf-bottom">© 2026 Steinsson Greykdal ehf. · kt. 490522-0500 · <a href="https://karp.is/">karp.is</a></div>
+      <div class="sf-bottom">© 2026 Steinsson Greykdal ehf. · kt. 490522-0500 · Brunnstígur 2 · s. 778-4543 · <a href="https://karp.is/">karp.is</a></div>
     </footer>
 
     <script>

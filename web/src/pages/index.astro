@@ -70,6 +70,21 @@ const updated = '2026-07-01';
     <h1>Hagvísir Íslands</h1>
     <p class="lead">Borgaralegt mælaborð — opinber gögn, forþjónuð fyrir hraða og sýnileika.</p>
 
+    <section class="b2b-hero">
+      <div class="bh-top">
+        <div class="bh-txt">
+          <div class="bh-kick">⭐ Fyrir fyrirtæki</div>
+          <h2>Fyrirtækjaskýrslur, endanlegir eigendur & áreiðanleikamat</h2>
+          <p>Öll opinber fyrirtækjagögn á einum stað — ársreikningar, eigendanet, KYC-skimun og vaktir. Frá 990 kr. Prófaðu fría uppflettingu:</p>
+        </div>
+      </div>
+      <form class="bh-search" action="/fyrirtaeki/" method="get" role="search">
+        <input name="q" placeholder="Fletta upp félagi eða kt…" aria-label="Leita að félagi" autocomplete="off" />
+        <button type="submit">🔎 Leita</button>
+      </form>
+      <div class="bh-links"><a href="/karp-pro/">Karp+ &amp; verð →</a><a href="/lausnir/fyrirtaekjaskyrsla/">Um fyrirtækjaskýrsluna →</a></div>
+    </section>
+
     {VIKAN.length > 0 && (
       <section class="vikan">
         <div class="v-h">🗞️ Staðan í gögnunum <i class="tip" tabindex="0" data-tip="Setningarnar eru samdar VÉLRÆNT úr nýjustu tölum gagnasafnsins við hverja byggingu — regludrifin gagnaskrif, engin gervigreind og engin ritstjórn.">ⓘ</i></div>
@@ -89,7 +104,7 @@ const updated = '2026-07-01';
     </div>
 
     <p class="foot">
-      Forþjónað (SSG) {updated} · gögn sótt á byggingartíma · fullt mælaborð á <a href="https://www.karp.is">karp.is</a>
+      Forþjónað (SSG) {updated} · gögn sótt á byggingartíma úr opinberum veitum
     </p>
   </main>
 
@@ -101,6 +116,16 @@ const updated = '2026-07-01';
     .kicker { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: #f6b13b; font-weight: 700; margin: 0 0 6px; }
     h1 { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
     .lead { color: #cdd6e6; font-size: 18px; max-width: 620px; }
+    .b2b-hero { background: linear-gradient(180deg,rgba(246,177,59,.10),rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.30); border-radius: 16px; padding: 20px 22px; margin: 20px 0 8px; }
+    .bh-kick { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #f6b13b; margin-bottom: 6px; }
+    .b2b-hero h2 { font-size: 23px; margin: 0 0 6px; color: #eaf1fb; line-height: 1.2; }
+    .bh-txt p { color: #cdd6e6; font-size: 14.5px; line-height: 1.55; margin: 0; max-width: 60ch; }
+    .bh-search { display: flex; gap: 8px; margin: 14px 0 0; max-width: 520px; }
+    .bh-search input { flex: 1; font: inherit; font-size: 16px; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color: #eaf1fb; }
+    .bh-search button { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 10px; padding: 11px 18px; background: #f6b13b; color: #131a29; cursor: pointer; white-space: nowrap; }
+    .bh-links { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+    .bh-links a { color: #f6b13b; text-decoration: none; font-weight: 600; font-size: 13.5px; }
+    @media (max-width: 560px) { .bh-search { flex-direction: column; } .bh-search button { width: 100%; } }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin: 32px 0 8px; }
     .card { display: block; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
     .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }

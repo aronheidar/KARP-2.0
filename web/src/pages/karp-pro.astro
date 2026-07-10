@@ -18,6 +18,13 @@ const desc = 'Karp+ — öll opinber fyrirtækjagögn á einum stað: fyrirtækj
       </div>
     </section>
 
+    <div class="kp-stats">
+      <div class="kp-stat"><b>Öll skráð</b><span>íslensk félög úr fyrirtækjaskrá Skattsins</span></div>
+      <div class="kp-stat"><b>Ársreikningar</b><span>beint úr ársreikningaskrá RSK</span></div>
+      <div class="kp-stat"><b>18 veitur</b><span>opinberar gagnaveitur samþættar</span></div>
+      <div class="kp-stat"><b>Uppfært daglega</b><span>sjálfvirk gagnauppfærsla</span></div>
+    </div>
+
     <h2 class="ls-sec-h" id="verd">Verð & þrep</h2>
     <VerdTafla />
 
@@ -52,6 +59,44 @@ const desc = 'Karp+ — öll opinber fyrirtækjagögn á einum stað: fyrirtækj
       </div>
     </div>
 
+    <h2 class="ls-sec-h">🔒 Öryggi & gagnavernd</h2>
+    <div class="kp-sec">
+      <p class="kp-lead">Karp byggir <b>eingöngu á opinberum gögnum</b> — fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu, island.is, Hagstofu og opinberum refsilistum (ESB/SÞ/OFAC). Við söfnum engum viðkvæmum persónuupplýsingum um viðskiptavini umfram innskráningu, seljum ekki gögn og miðlum þeim ekki til þriðju aðila.</p>
+      <ul class="kp-sec-list">
+        <li><b>Opin gögn, ekki leynileg skrá.</b> Allt sem birtist er þegar aðgengilegt í opinberum skrám — Karp safnar því saman og gerir læsilegt á einum stað.</li>
+        <li><b>Dulkóðuð, forþjónuð afhending.</b> Vefurinn keyrir á Cloudflare og WordPress; síður eru byggðar fyrirfram og afhentar yfir dulkóðaða tengingu (HTTPS/TLS).</li>
+        <li><b>Þín gögn eru þín.</b> Þú getur hvenær sem er beðið um afrit af þínum aðgangsgögnum eða eyðingu aðgangs — sjá <a href="/skilmalar/">persónuverndarstefnu</a>. Karp fylgir persónuverndarlögum (GDPR).</li>
+        <li><b>Áreiðanleikakannanir (KYC/AML).</b> Áreiðanleikamat, PEP- og refsilista-skimun eru <b>vísbendingar úr opinberum heimildum</b> (nafnasamsvörun — staðfestu auðkenni sjálf/ur). Þú, kaupandinn, ert áfram ábyrgðaraðili eigin áreiðanleikakannana skv. lögum um aðgerðir gegn peningaþvætti. Karp kemur ekki í stað formlegs lánshæfismats eða vanskilaskrár.</li>
+        <li><b>Vinnslusamningur í boði.</b> Fyrirtæki sem þurfa vinnslusamning (DPA) eða nánari öryggislýsingu — hafið samband: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a> · <a href="tel:+3547784543">778-4543</a>.</li>
+      </ul>
+    </div>
+
+    <h2 class="ls-sec-h">Algengar spurningar</h2>
+    <div class="kp-faq">
+      <details><summary>Er þetta lánshæfismat eða vanskilaskrá?</summary><p>Nei. Karp vinnur eingöngu með opin, opinber gögn og er ekki leyfisskyld starfsemi. Fyrir formlegt lánshæfismat eða vanskilaskrá þarf leyfishafa.</p></details>
+      <details><summary>Hvaðan koma gögnin?</summary><p>Úr opinberum skrám: fyrirtækjaskrá og ársreikningaskrá Skattsins (RSK), Lögbirtingablaðinu, island.is (skip, ökutæki, loftför, aflamark), Hugverkastofu, Seðlabanka, Hagstofu, opinberum styrkjum, eftirliti og refsilistum. Hver tala vísar í uppruna sinn með ⓘ-merki.</p></details>
+      <details><summary>Má ég nota Karp í áreiðanleikakönnun (KYC)?</summary><p>Já — sem vísbendingar úr opinberum heimildum. Skimun byggir á nafnasamsvörun sem þú staðfestir sjálf/ur, og þú berð áfram ábyrgð sem ábyrgðaraðili eigin áreiðanleikakannana.</p></details>
+      <details><summary>Er einhver binding?</summary><p>Nei. Engin binding — segðu upp áskrift hvenær sem er. Eða keyptu staka skýrslu á 990 kr án áskriftar.</p></details>
+      <details><summary>Fæ ég reikning fyrir fyrirtækið?</summary><p>Já — reikningur með virðisaukaskatti. Verð eru birt án vsk. Þarftu mörg aðgengi, API eða fyrirtækjasamning? Hafðu samband við <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>.</p></details>
+    </div>
+
     <p class="ls-foot">Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá. Verð án vsk.</p>
   </main>
+
+  <style>
+    .kp-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:6px 0 4px; }
+    .kp-stat { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px 16px; }
+    .kp-stat b { display:block; color:#f6b13b; font-size:16px; margin-bottom:3px; }
+    .kp-stat span { color:#9fb0c8; font-size:12.5px; line-height:1.4; }
+    .kp-sec { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px 20px; }
+    .kp-lead { color:#cdd6e6; font-size:14.5px; line-height:1.6; margin:0 0 12px; }
+    .kp-sec-list { margin:0; padding-left:20px; }
+    .kp-sec-list li { color:#cdd6e6; font-size:13.5px; line-height:1.6; margin-bottom:9px; }
+    .kp-sec-list b { color:#eaf1fb; }
+    .kp-sec-list a, .kp-faq a { color:#f6b13b; }
+    .kp-faq details { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px 16px; margin-bottom:8px; }
+    .kp-faq summary { color:#eaf1fb; font-weight:600; font-size:14px; cursor:pointer; }
+    .kp-faq p { color:#b9c6da; font-size:13.5px; line-height:1.6; margin:9px 0 0; }
+    @media (max-width:700px){ .kp-stats { grid-template-columns:1fr 1fr; } }
+  </style>
 </Layout>
