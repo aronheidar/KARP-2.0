@@ -84,6 +84,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     /* Vanskilamerki + firmavakt (LOTA 73) */
     .fs-topbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .fs-hact { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .fs-follow { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .fs-mailopt { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
+    .fs-mailopt input { accent-color: var(--gold); cursor: pointer; margin: 0; }
     .fs-vakta { background: none; border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-size: 12.5px; font-weight: 700; border-radius: 9px; padding: 6px 12px; cursor: pointer; margin: 0 0 10px; }
     .fs-vakta:hover { background: rgba(246,177,59,.1); }
     .fs-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
@@ -866,28 +869,53 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         nav(o.nafn);
       }
     }
-    // 🔖 Fylgja (Fyrirtækjavaktin, VERK A) — bætir/fjarlægir co:<kt> í KARP_USER.follows um /follows.
-    // Aðgreint frá 🔔 firmavakt (tölvupósts-breytingavakt): fylgt félag birtist á „Mitt svæði". Aðeins innskráðir.
-    function fsFylgjaBtn(kt) {
-      return '<button class="fs-vakta" id="fs-fylgja" type="button" data-kt="' + escF(kt) + '" title="Fylgja félaginu — það birtist á „Mitt svæði". (Fyrir tölvupóst um breytingar: 🔔 Vakta félagið.)">🔖 Fylgja</button>';
+    // 🔖 Fylgja — EINN sameinaður hnappur (LOTA: sameinuð fylgja + póstvakt). Bætir/fjarlægir
+    // co:<kt> í KARP_USER.follows (/follows → „Mitt svæði"). Þegar fylgt birtist lítill
+    // „🔔 láta vita í pósti"-valkostur sem kveikir/slekkur á firmavakt (/firmavakt, Karp+).
+    function fsFylgjaBtn(kt, nafn) {
+      return '<span class="fs-follow" data-kt="' + escF(kt) + '" data-nafn="' + escF(nafn || '') + '">'
+        + '<button class="fs-vakta" id="fs-fylgja" type="button" title="Fylgja félaginu — það birtist á „Mitt svæði".">🔖 Fylgja</button>'
+        + '<label class="fs-mailopt" id="fs-mailopt" hidden title="Fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, vörumerki, útboð eða eftirlit berst (Karp+)."><input type="checkbox" id="fs-mailchk" /> 🔔 láta vita í pósti</label>'
+        + '</span>';
     }
     function fsWireFylgja() {
+      const wrap = document.querySelector('.fs-follow');
       const flb = document.getElementById('fs-fylgja');
-      if (!flb) return;
-      const fkey = 'co:' + (flb.dataset.kt || '');
-      const paint = () => { const on = ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1; flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; };
-      paint();
+      if (!wrap || !flb) return;
+      const kt = wrap.dataset.kt || '', nafn = wrap.dataset.nafn || '', fkey = 'co:' + kt;
+      const mailopt = document.getElementById('fs-mailopt'), mailchk = document.getElementById('fs-mailchk');
+      const following = () => ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1;
+      const paint = () => { const on = following(); flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; if (mailopt) mailopt.hidden = !on; };
+      const syncMail = () => { if (mailchk && following()) karpGet('/firmavakt').then((v) => { if (v && Array.isArray(v.felog)) mailchk.checked = v.felog.some((x) => x.kt === kt); }).catch(() => {}); };
+      paint(); syncMail();
       flb.addEventListener('click', async () => {
         const u = window.KARP_USER;
         if (!u || !u.loggedIn) { location.href = loginHref(); return; }   // aðeins innskráðir → annars á innskráningu
         flb.disabled = true;
-        const cur = u.follows || [];
-        const has = cur.indexOf(fkey) !== -1;
+        const cur = u.follows || [], has = cur.indexOf(fkey) !== -1;
         const next = has ? cur.filter((x) => x !== fkey) : cur.concat([fkey]);
         const res = await karpPost('/follows', { follows: next });
         u.follows = (res && res.follows) ? res.follows : next;   // u === window.KARP_USER → uppfærist strax
         paint();
+        if (has && mailchk) mailchk.checked = false; else syncMail();
         flb.disabled = false;
+      });
+      if (mailchk) mailchk.addEventListener('change', async () => {
+        mailchk.disabled = true;
+        try {
+          const cur = await karpGet('/firmavakt');
+          if (!cur || !Array.isArray(cur.felog)) throw new Error('auth');
+          const has = cur.felog.some((x) => x.kt === kt), want = mailchk.checked;
+          if (has !== want) {
+            const felog = want ? cur.felog.concat([{ kt, nafn }]) : cur.felog.filter((x) => x.kt !== kt);
+            const r = await karpPost('/firmavakt', { on: true, felog });
+            if (!r || r.ok !== true) throw new Error('save');
+          }
+        } catch (e) {
+          mailchk.checked = !mailchk.checked;   // afturkalla
+          const t0 = mailopt ? mailopt.title : ''; if (mailopt) { mailopt.title = '🔒 Karp+ áskrift þarf fyrir póstvakt'; setTimeout(() => { mailopt.title = t0; }, 2600); }
+        }
+        mailchk.disabled = false;
       });
     }
     // 🔗 UBO-skýrsluvél flutt í web/src/lib/ubo-report.js (LOTA 112) — mountUboReport / renderUboSample.
@@ -902,7 +930,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><div class="fs-hact">${fsFylgjaBtn(f.kt)}<button class="fs-vakta" id="fs-vakta" type="button" data-kt="${escF(f.kt)}" data-nafn="${escF(f.nafn)}" title="Fyrirtækjavaktin: fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, nýtt vörumerki, útboð eða opinbert eftirlit berst um félagið.">🔔 Vakta félagið</button></div></div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><div class="fs-hact">${fsFylgjaBtn(f.kt, f.nafn)}</div></div>
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -1412,7 +1440,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button>${fsFylgjaBtn(f.kt)}</div>
+      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button>${fsFylgjaBtn(f.kt, f.nafn)}</div>
         <div class="fs-gate">
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>

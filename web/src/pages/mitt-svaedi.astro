@@ -271,6 +271,10 @@ const updated = '2026-07-02';
     main[data-pg="mitt-svaedi"] .sk-list { display: grid; gap: 7px; }
     main[data-pg="mitt-svaedi"] .sk-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; text-decoration: none; }
     main[data-pg="mitt-svaedi"] .sk-row:hover { border-color: #f6b13b; }
+    main[data-pg="mitt-svaedi"] .sk-cat { margin-top: 13px; }
+    main[data-pg="mitt-svaedi"] .sk-cat:first-child { margin-top: 0; }
+    main[data-pg="mitt-svaedi"] .sk-cat-h { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    main[data-pg="mitt-svaedi"] .sk-cat-h .sk-n { font-size: 11px; color: var(--faint); font-weight: 600; }
     main[data-pg="mitt-svaedi"] .sk-t { font-size: 13px; color: #eaf1fb; font-weight: 600; }
     main[data-pg="mitt-svaedi"] .sk-o { font-size: 12px; color: #f6b13b; white-space: nowrap; }
   </style>
@@ -392,8 +396,24 @@ const updated = '2026-07-02';
           karpGet('/reports').then((d) => {
             const arr = (d && d.reports) || [];
             if (!arr.length) { el.innerHTML = '<span class="dim">Engar keyptar skýrslur enn. Kauptu fasteignamat eða fyrirtækjaskýrslu (990 kr) — þær vistast hér.</span>'; return; }
-            const link = (r) => { const k = String(r.key || ''); if (k.indexOf('fyrirtaeki:') === 0) return '/fyrirtaeki/?q=' + encodeURIComponent(k.slice(11)); if (k.indexOf('fasteign:') === 0) return '/fasteignavakt/?q=' + encodeURIComponent(k.slice(9)); return '#'; };
-            el.innerHTML = '<div class="sk-list">' + arr.map((r) => `<a class="sk-row" href="${link(r)}"><span class="sk-t">${esc(r.title || r.key || 'Skýrsla')}</span><span class="sk-o">Opna →</span></a>`).join('') + '</div>';
+            // Flokka keyptar skýrslur eftir tegund (lykil-forskeyti). Nýir flokkar fyllast
+            // sjálfkrafa þegar sölulyklar bætast við (t.d. eigendur:/areidanleiki:).
+            const CATS = [
+              { pfx: 'fyrirtaeki:', label: 'Fyrirtækjaskýrslur', ico: '📄', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) },
+              { pfx: 'eigendur:', label: 'Endanlegir eigendur', ico: '👤', link: (id) => '/eigendur/?q=' + encodeURIComponent(id) },
+              { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', ico: '🛡️', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) + '&vidmot=areidanleiki' },
+              { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', ico: '📰', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) },
+              { pfx: 'fasteign:', label: 'Fasteignaskýrslur', ico: '🏠', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
+            ];
+            const buckets = new Map(); const other = [];
+            arr.forEach((r) => { const k = String(r.key || ''); const cat = CATS.find((c) => k.indexOf(c.pfx) === 0);
+              if (cat) { if (!buckets.has(cat.label)) buckets.set(cat.label, []); buckets.get(cat.label).push({ r, id: k.slice(cat.pfx.length) }); }
+              else other.push({ r }); });
+            const rowH = (href, r) => `<a class="sk-row" href="${href}"><span class="sk-t">${esc(r.title || r.key || 'Skýrsla')}</span><span class="sk-o">Opna →</span></a>`;
+            let html = '';
+            CATS.forEach((c) => { const items = buckets.get(c.label); if (items && items.length) html += `<div class="sk-cat"><div class="sk-cat-h">${c.ico} ${c.label} <span class="sk-n">${items.length}</span></div><div class="sk-list">${items.map((it) => rowH(c.link(it.id), it.r)).join('')}</div></div>`; });
+            if (other.length) html += `<div class="sk-cat"><div class="sk-cat-h">📁 Aðrar skýrslur <span class="sk-n">${other.length}</span></div><div class="sk-list">${other.map((it) => rowH('#', it.r)).join('')}</div></div>`;
+            el.innerHTML = html;
           }).catch(() => { el.innerHTML = '<span class="dim">Náði ekki í keyptar skýrslur.</span>'; });
         });
       })();
