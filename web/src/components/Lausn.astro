@@ -6,7 +6,9 @@ const { vara } = Astro.props;
 const v = vara;
 const verdTexti = v.verd.tegund === 'stak'
   ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ stök skýrsla · engin áskrift' }
-  : { stor: 'Innifalið í Karp+', litli: 'frá ' + v.verd.threp + '-þrepi' };
+  : v.verd.tegund === 'askrift'
+    ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ mánuði · sér áskrift — eða innifalið í Karp+' }
+    : { stor: 'Innifalið í Karp+', litli: 'frá ' + v.verd.threp + '-þrepi' };
 ---
 <Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
   canonical={`https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`}>

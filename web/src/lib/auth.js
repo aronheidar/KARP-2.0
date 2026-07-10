@@ -150,6 +150,10 @@ export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.effectiveTier
 export function hasTier(min) { return tierLevel() >= min; }
 export function lockedTier(min) { return _u().paywall === true && !hasTier(min); }
 
+// Sér þjónustu-áskrift (t.d. 'utbod' = Útboðsvaktin 1.900 kr./mán.) — óháð þrepunum.
+// karp-user.php skilar u.subs = ['utbod',…] þegar karp_sub_<svc>_until er í framtíð.
+export function hasSub(svc) { const u = _u(); return isAdmin() || (Array.isArray(u.subs) && u.subs.indexOf(svc) !== -1); }
+
 // ── Mörk, kvóti, teymi (LOTA: áskriftar-enforcement) ────────────────────────
 // limits() = mörk virka þrepsins (reportsMonth/follows/ktWatch/seats/fjolmidlavakt). Server sendir
 // u.limits í /me; föllum á client-töfluna ef vantar. reportsRemaining/-Used koma frá server.
@@ -235,6 +239,23 @@ export function tierGate(el, opts) {
     + '<div class="pg-btns"><a class="pg-main" href="/karp-pro/#verd">Sjá þrep & verð</a>'
     + (u.loggedIn ? '' : '<a class="pg-sec" href="' + esc(loginHref()) + '">Skrá inn</a>')
     + '</div><div class="pg-note">Innifalið í ' + esc(need) + '-þrepi Karp+. Fyrsti mánuður frír.</div></div>';
+}
+
+// Þjónustu-gátt: efni sem fæst annaðhvort með sér-áskrift (opts.service + opts.price kr./mán. um Áskell)
+// EÐA er innifalið í Karp+ þrepi. Innskráð → embedded checkout beint í gáttinni; útskráð → innskráning.
+export function subGate(el, opts) {
+  if (!el) return; injectGateCss(); opts = opts || {};
+  const u = _u();
+  const verd = (opts.price || 0).toLocaleString('is-IS') + ' kr./mán.';
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ ' + esc(opts.title || 'Karp+') + '</div>'
+    + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
+    + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
+    + '<div class="pg-btns">'
+    + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">Gerast áskrifandi — ' + esc(verd) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að gerast áskrifandi</a>')
+    + '<a class="pg-sec" href="/karp-pro/#verd">Eða Karp+ (frá 2.900 kr./mán.)</a></div>'
+    + '<div class="pg-note">Sér áskrift á ' + esc(verd) + ' — eða innifalið í öllum þrepum Karp+. Engin binding.</div></div>';
+  const b = el.querySelector('#sg-sub');
+  if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }
 // Áskell v2 embedded checkout (LOTA 110). Safnar kt (tengir Áskell-viðskiptavin við Karp-notanda um
 // karp_kt) → worker /api/sub/checkout-session stofnar lotu → askell.js widget rendrar kort+3DS á karp.is.
@@ -326,4 +347,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet };

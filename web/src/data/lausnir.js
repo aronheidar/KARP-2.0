@@ -147,7 +147,7 @@ export const VORUR = [
       { titill: 'Veldu vöktun', texti: 'Bættu við leitarorðum fyrir þinn geira.' },
       { titill: 'Fáðu tilkynningar', texti: 'Ný útboð berast beint til þín.' },
     ],
-    verd: { tegund: 'threp', threp: 'Fyrirtæki' },
+    verd: { tegund: 'askrift', upphaed: 1900, service: 'utbod' },   // sér áskriftarleið — eða innifalið í öllum Karp+ þrepum
     synishorn: { label: 'Skoða útboð', href: '/utbod/' },
     tol: { label: 'Opna Útboðsvaktina', href: '/utbod/' },
     description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,

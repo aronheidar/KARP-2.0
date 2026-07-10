@@ -1198,6 +1198,11 @@ async function askellWebhookHandler(request, env, ctx) {
     let meta = d.metadata || d.meta || sub.metadata || sub.meta || {};
     if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }   // v1 sýnir "meta":"{}" (strengur)
     const nameBlob = (JSON.stringify(d.plan || d.items || d.product || d.bundle || sub.plan || sub.product || '') + ' ' + String(d.reference || sub.reference || '')).toLowerCase();
+    // Sér þjónustu-áskrift (Útboðsvaktin o.fl.): metadata.service áreiðanlegt (VIÐ setjum í session);
+    // vöru-nafn til vara. Slík áskrift veitir karp_sub_<svc>_until í WP — EKKI þrep.
+    const ms = String(meta.service || '');
+    const service = ['utbod', 'frettir'].indexOf(ms) >= 0 ? ms
+      : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod' : '');
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
       : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
@@ -1208,7 +1213,9 @@ async function askellWebhookHandler(request, env, ctx) {
     if (kt.length === 10) {   // until-skilyrði fjarlægt (until defaultar alltaf á gilt gildi)
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, tier, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
+        body: JSON.stringify(service
+          ? { kt, service, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }
+          : { kt, tier, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
@@ -1241,10 +1248,12 @@ async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
   const TIERS = { grunnur: 'ASKELL_CHANNEL_GRUNNUR', fyrirtaeki: 'ASKELL_CHANNEL_FYRIRTAEKI', fyrirtaeki_plus: 'ASKELL_CHANNEL_FYRIRTAEKI_PLUS' };
+  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR' };   // sér þjónustu-áskriftir (Útboðsvaktin 1.900 kr o.fl.)
+  const svc = SVCS[u.searchParams.get('service')] ? u.searchParams.get('service') : '';
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
-  const channel = env[TIERS[tier]] || tier;   // sjálfgefið = þrep-slug → aðeins ASKELL_PRIVATE_KEY skylt
-  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: { tier } };   // metadata.tier → vefkrókur veit þrepið
+  const channel = svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier);   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
+  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: svc ? { service: svc } : { tier } };   // metadata → vefkrókur veit hvað var keypt
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
@@ -1254,7 +1263,7 @@ async function askellSessionHandler(request, env, ctx) {
     });
     const d = await r.json().catch(() => null);
     if (!r.ok || !d || !d.token) return sjson({ error: 'askell', status: r.status });
-    return sjson({ token: d.token, expires_at: d.expires_at || null, tier });
+    return sjson({ token: d.token, expires_at: d.expires_at || null, tier: svc || tier });
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
