@@ -56,8 +56,17 @@ const barData = (byCode) => (byCode ? Object.keys(PEERS).filter((c) => byCode[c]
 const E_BARS = barData(ENERGY);
 const C_BARS = ENERGY ? Object.keys(PEERS).filter((c) => CO2 && CO2[c]).map((c) => ({ c, n: PEERS[c], v: Math.round((CO2[c].v) * 10) / 10 })) : [];
 
-const updated = '2026-07-02';
-const desc = `Ísland í alþjóðlegum samanburði — hagvöxtur og verðbólga (IMF-spár til 2031) og orku- og kolefnisnotkun á mann${eRank ? ` þar sem Ísland er nr. ${eRank.rank} af ${eRank.total} í orkunotkun á mann` : ''}. Samanburður við Norðurlöndin.`;
+// Viðbætur: ríkisfjármál, lífskjör, skattbyrði, hamingja (sama IMF/OWID-mynstur)
+const DEBT = await imf('GGXWDG_NGDP');   // skuldir hins opinbera, verg, % af VLF (spá til 2031)
+const GDPPC = await imf('PPPPC');         // VLF á mann, jafnvirðisgildi (PPP, alþj.$) — lífskjör/framleiðni
+const TAX = await owid('tax-revenues-as-a-share-of-gdp', 'tax');  // skattbyrði: skattar + tryggingagjöld, % VLF (OECD)
+const HAPPY = await owid('happiness-cantril-ladder', 'satisf');   // hamingja: Cantril-kvarði 0–10 (World Happiness Report)
+const hRank = rankOf(HAPPY);
+const TAX_BARS = TAX ? Object.keys(PEERS).filter((c) => TAX[c]).map((c) => ({ c, n: PEERS[c], v: Math.round(TAX[c].v * 10) / 10 })) : [];
+const HAPPY_BARS = HAPPY ? Object.keys(PEERS).filter((c) => HAPPY[c]).map((c) => ({ c, n: PEERS[c], v: Math.round(HAPPY[c].v * 100) / 100 })) : [];
+
+const updated = '2026-07-10';
+const desc = `Ísland í alþjóðlegum samanburði — hagvöxtur, verðbólga, skuldir hins opinbera og lífskjör (IMF-spár til 2031), skattbyrði, orku- og kolefnisnotkun á mann${eRank ? ` (nr. ${eRank.rank} af ${eRank.total} í orkunotkun)` : ''}${hRank ? ` og hamingju (nr. ${hRank.rank} af ${hRank.total})` : ''}. Samanburður við Norðurlöndin.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ísland í alþjóðlegum samanburði', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland' };
 ---
 
@@ -65,13 +74,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
   <main data-pg="samanburdur">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
     <h1>Ísland í samanburði 🌍</h1>
-    <p>Hvar sker Ísland sig úr? Hagvöxtur og verðbólga borin saman við Norðurlöndin (með <strong>IMF-spám til 2031</strong>) — og orkunotkun þar sem Ísland er heimsmethafi.</p>
+    <p>Hvar sker Ísland sig úr? Hagvöxtur, verðbólga, ríkisfjármál og lífskjör borin saman við Norðurlöndin (með <strong>IMF-spám til 2031</strong>) — orkunotkun þar sem Ísland er heimsmethafi, skattbyrði undir norrænu meðaltali og hamingja í fremstu röð heims.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Alþjóðasamanburður: Eurostat, IMF, Our World in Data og Numbeo. Samræming milli landa fylgir aðferðafræði hverrar veitu.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="kpis">
       {eRank && <div class="kpi"><div class="k-l">⚡ Orkunotkun á mann</div><div class="k-v">{eRank.rank}. sæti</div><div class="k-s">af {eRank.total} löndum heims ({eRank.yr})</div></div>}
       {cRank && <div class="kpi"><div class="k-l">🏭 CO₂ á mann</div><div class="k-v">{cRank.rank}. sæti</div><div class="k-s">af {cRank.total} löndum ({cRank.yr})</div></div>}
       {GROWTH && GROWTH.ISL && GROWTH.ISL[FORECAST_FROM] != null && <div class="kpi"><div class="k-l">📈 IMF-spá {FORECAST_FROM}</div><div class="k-v">{fmtNum(GROWTH.ISL[FORECAST_FROM], 1)}%</div><div class="k-s">hagvöxtur Íslands</div></div>}
+      {hRank && <div class="kpi"><div class="k-l">😊 Hamingja</div><div class="k-v">{hRank.rank}. sæti</div><div class="k-s">af {hRank.total} löndum heims ({hRank.yr})</div></div>}
     </div>
 
     {GROWTH && (
@@ -80,7 +90,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
         <div><h2>Verðbólga — Ísland sker sig úr</h2><div id="ch-infl" class="cmp-chart"></div></div>
       </div>
     )}
-    <p class="src">Heilar línur = raun, brotalínur frá {FORECAST_FROM} = spá Alþjóðagjaldeyrissjóðsins (WEO).</p>
+
+    {(DEBT || GDPPC) && (
+      <div class="ppair">
+        {DEBT && <div><h2>Skuldir hins opinbera — Ísland hefur greitt niður</h2><div id="ch-debt" class="cmp-chart"></div></div>}
+        {GDPPC && <div><h2>Landsframleiðsla á mann (PPP) — lífskjör</h2><div id="ch-gdppc" class="cmp-chart"></div></div>}
+      </div>
+    )}
+    <p class="src">Heilar línur = raun, brotalínur frá {FORECAST_FROM} = spá Alþjóðagjaldeyrissjóðsins (WEO). Skuldir = verg staða hins opinbera (% VLF); VLF á mann er í jafnvirðisgildi (PPP, alþj.$).</p>
 
     {E_BARS.length > 1 && (
       <div class="ppair">
@@ -89,7 +106,15 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
       </div>
     )}
     <p class="note">ⓘ Orkumetið skýrist af stóriðju og jarðvarma — raforkan er nær öll endurnýjanleg, en heildarnotkunin (öll orka, líka eldsneyti) á mann er sú mesta í heimi. CO₂-talan telur losun innanlands (án landnotkunar og alþjóðaflugs).</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: IMF World Economic Outlook (DataMapper API) · Our World in Data (Energy Institute/GCB). #2 LOTA 13.</p>
+
+    {(TAX_BARS.length > 1 || HAPPY_BARS.length > 1) && (
+      <div class="ppair">
+        {TAX_BARS.length > 1 && <div><h2>Skattbyrði (% af VLF)</h2><div id="ch-tax" class="cmp-chart"></div></div>}
+        {HAPPY_BARS.length > 1 && <div><h2>Hamingja (Cantril-kvarði 0–10)</h2><div id="ch-happy" class="cmp-chart"></div></div>}
+      </div>
+    )}
+    <p class="note">ⓘ Skattbyrði = heildarskatttekjur og tryggingagjöld sem hlutfall af VLF (OECD) — Ísland er lægra en hin Norðurlöndin. Hamingja er meðaltal Cantril-kvarðans (0–10) úr World Happiness Report, þar sem Norðurlöndin tróna á toppi heimslistans. <a href="/verdlag/">Kaupmáttur innanlands er á Verðlagi</a>.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Heimildir: IMF World Economic Outlook (DataMapper API) · Our World in Data (Energy Institute/GCB, OECD-skattgögn, World Happiness Report). #2 LOTA 13 · viðbót 2026-07-10 (skuldir, lífskjör, skattbyrði, hamingja).</p>
   </main>
 
   <style>
@@ -110,12 +135,12 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
-  <script define:vars={{ GROWTH, INFL, imfYears, FORECAST_FROM, PEERS, PCOL, E_BARS, C_BARS }}>
+  <script define:vars={{ GROWTH, INFL, DEBT, GDPPC, imfYears, FORECAST_FROM, PEERS, PCOL, E_BARS, C_BARS, TAX_BARS, HAPPY_BARS }}>
     function initCmp() {
-      const first = document.getElementById('ch-growth') || document.getElementById('ch-energy');
+      const first = document.getElementById('ch-growth') || document.getElementById('ch-energy') || document.getElementById('ch-debt') || document.getElementById('ch-tax');
       if (!first) return;
       const go = () => {
-        const mkLines = (id, data) => {
+        const mkLines = (id, data, opts = {}) => {
           const el = document.getElementById(id);
           if (!el || !data || window.echarts.getInstanceByDom(el)) return;
           const c = window.echarts.init(el);
@@ -132,15 +157,17 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
             backgroundColor: 'transparent',
             legend: { data: Object.keys(PEERS).filter((k) => data[k]).map((k) => PEERS[k]), textStyle: { color: '#9fb0c8', fontSize: 10.5 }, top: 0, type: 'scroll' },
             grid: { left: 34, right: 12, top: 30, bottom: 22 },
-            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : Number(v).toFixed(1).replace('.', ',') + '%') },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : opts.money ? Math.round(v).toLocaleString('is-IS') + ' $' : Number(v).toFixed(1).replace('.', ',') + '%') },
             xAxis: { type: 'category', data: imfYears, axisLabel: { color: '#7e8ca6', fontSize: 10 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
-            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            yAxis: { type: 'value', scale: !!opts.money, axisLabel: { color: '#7e8ca6', formatter: opts.money ? ((v) => (v / 1000).toFixed(0) + 'k') : '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
             series,
           });
           window.addEventListener('resize', () => c.resize());
         };
         mkLines('ch-growth', GROWTH);
         mkLines('ch-infl', INFL);
+        mkLines('ch-debt', DEBT);
+        mkLines('ch-gdppc', GDPPC, { money: true });
         const mkBars = (id, bars, unit) => {
           const el = document.getElementById(id);
           if (!el || !bars || !bars.length || window.echarts.getInstanceByDom(el)) return;
@@ -156,6 +183,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Í
         };
         mkBars('ch-energy', [...E_BARS].sort((a, b) => b.v - a.v), 'kWh');
         mkBars('ch-co2', [...C_BARS].sort((a, b) => b.v - a.v), 't');
+        mkBars('ch-tax', [...TAX_BARS].sort((a, b) => b.v - a.v), '%');
+        mkBars('ch-happy', [...HAPPY_BARS].sort((a, b) => b.v - a.v), 'stig');
       };
       if (window.echarts) { go(); return; }
       let s = document.getElementById('echarts-cdn');
