@@ -54,6 +54,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-hit .h { color: #9fb0c8; font-size: 12px; text-align: right; }
     .fs-hit.af .n { color: #8fa0b8; font-weight: 400; }
     .fs-badge { font-size: 10.5px; color: #e78284; border: 1px solid rgba(231,130,132,.4); border-radius: 6px; padding: 1px 6px; white-space: nowrap; vertical-align: 2px; }
+    .fs-throt { display: block; margin: 9px 0 2px; padding: 7px 11px; border-radius: 8px; background: rgba(231,130,132,.12); color: #e78284; border: 1px solid rgba(231,130,132,.42); font-weight: 700; font-size: 13px; }
     .fs-more { color: #7e8ca6; font-size: 12px; padding: 8px 2px; }
     .fs-card { border: 1px solid rgba(246,177,59,.35); border-radius: 14px; padding: 18px 20px; background: rgba(255,255,255,.02); }
     .fs-card h2 { font-size: 21px; margin: 0; color: #eaf1fb; display: inline; }
@@ -939,6 +940,16 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const f = felag;
       const rod = (l, v) => (v ? `<div class="fs-f"><span class="l">${l}</span><span class="v">${escF(v)}</span></div>` : '');
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
+      // Gjaldþrot/gjaldþrotaskipti beint úr opinbera RSK-API-inu (f.afskraning) — áhættumerki efst.
+      const afs = f.afskraning || (f.rsk && f.rsk.afskraning) || {};
+      const throtBits = [];
+      if (afs.gjaldthrot) throtBits.push('Gjaldþrota' + (afs.gjaldthrotDags ? ' · ' + afs.gjaldthrotDags : ''));
+      if (afs.gjaldthol) throtBits.push('Gjaldþrotaskipti / slit' + (afs.gjaldtholDags ? ' · ' + afs.gjaldtholDags : ''));
+      const throt = throtBits.length ? `<div class="fs-throt">⚠️ ${throtBits.map(escF).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</div>` : '';
+      // Fyrirsvar (structured) úr opinbera API-inu — aðal; f.radamenn (strengir úr skrapi) sem fallback.
+      const fyrirsvarHtml = (f.fyrirsvar && f.fyrirsvar.length)
+        ? '<div class="fs-stj-list">' + f.fyrirsvar.slice(0, 20).map((p) => `<span class="fs-stj-r"><span class="fs-stj-n">${escF(p.nafn || '')}</span><span class="fs-stj-h">${escF(p.tegund || p.hlutverk || 'fyrirsvar')}</span></span>`).join('') + '</div><span class="fs-ph-src">Fyrirsvar (stjórn, prókúra, framkvæmdastjórn) — fyrirtækjaskrá Skattsins (opinbert API).</span>'
+        : '';
       const isat = (f.isat || []).map((x) => `<span class="fs-chip">${escF(x)}</span>`).join('');
       const vsk = (f.vsk || []).map((v) => `<span class="fs-chip"><b>${escF(v.nr)}</b> skráð ${escF(v.skrad || '–')}${v.afskrad ? ' · afskráð ' + escF(v.afskrad) : ''}</span>`).join('');
       const ars = (f.arsreikningar || []).slice(0, 5).map((a) => `<span class="fs-chip"><b>${escF(a.ar)}</b>${a.skil ? ' skilað ' + escF(a.skil) : ''}</span>`).join('');
@@ -951,10 +962,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
           <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
+          ${throt}
           <div class="fs-grid">
-            ${rod('Skráð', fsSkradAldur(f.skrad))}${rod('Rekstrarform', f.form)}${rod('Lögheimili', f.logheimili)}
-            ${rod('Póstfang', f.postfang !== f.logheimili ? f.postfang : '')}${rod('Sveitarfélag', f.svf)}
-            ${rod('Forráðamaður', (f.radamenn || []).join(' · '))}${rod('Eldri heiti', (f.heiti || []).join(' · '))}
+            ${rod('Skráð', fsSkradAldur(f.skrad))}${rod('Rekstrarform', f.form)}${rod('Staða', f.stada)}
+            ${rod('Lögheimili', f.logheimili)}${rod('Póstfang', f.postfang !== f.logheimili ? f.postfang : '')}${rod('Sveitarfélag', f.svf)}
+            ${rod('Hlutafé', f.hlutafe ? (f.hlutafe + (f.mynt ? ' ' + f.mynt : '')) : '')}${rod('Undirskriftaregla', f.undirskrift)}
+            ${rod('Fyrirsvar', (f.fyrirsvar && f.fyrirsvar.length) ? f.fyrirsvar.map((p) => p.nafn).filter(Boolean).join(' · ') : (f.radamenn || []).join(' · '))}${rod('Eldri heiti', (f.heiti || []).join(' · '))}
           </div>
           ${fsLanshaefi(f)}
           ${isat ? '<div class="fs-sub">ÍSAT atvinnugrein</div><div class="fs-chips">' + isat + '</div>' : ''}
@@ -989,7 +1002,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 : `<div class="fs-ph"><b>👥 Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
             ${(f.stjorn || []).length
               ? fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun })
-              : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`}
+              : (fyrirsvarHtml
+                ? `<div class="fs-ph filled" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${fyrirsvarHtml}</div>`
+                : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`)}
           </div>
           <div class="eig-related"><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Full eigendaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=${escF(f.kt)}">🛡️ Áreiðanleikamat →</a></div>
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. KARP lánshæfismat er leiðbeinandi vísbending reiknuð úr opinberum gögnum — Karp rekur hvorki vanskilaskrá né gefur út formlegt lánshæfismat í skilningi leyfisskyldrar starfsemi (sbr. lög nr. 33/2005). Staðfest vottorð fást hjá Skattinum.</div>
@@ -1229,7 +1244,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // gjaldþrota-tengsl F8, refsilista-skimun F9). EKKI formlegt lánshæfismat skv. lögum nr. 33/2005.
     // Ein einkunn per skýrsla — kemur í stað gömlu „Fjárhagsheilsa"-hringsins (fsKpiHtml) og -raðar (KYC).
     let _lh = null;
-    const FS_LH_ORDER = ['fjarhagur', 'aldur', 'skil', 'vanskil', 'logbirting', 'sector', 'flakk', 'sanction'];
+    const FS_LH_ORDER = ['fjarhagur', 'aldur', 'skil', 'stada', 'vanskil', 'logbirting', 'sector', 'flakk', 'sanction'];
     const FS_LH_SKALI = 'Einkunnaskali 0–100: A 80–100 mjög sterk · B 65–79 sterk · C 50–64 í meðallagi · D 35–49 veik · E 0–34 mjög veik. Grunnurinn er fjárhagsheilsa úr ársreikningi (arðsemi, skuldsetning, lausafé, vöxtur); áhættuþættir hnika henni upp eða niður.';
     function fsLhGrade(s) { return s == null ? '–' : s >= 80 ? 'A' : s >= 65 ? 'B' : s >= 50 ? 'C' : s >= 35 ? 'D' : 'E'; }
     function fsLhColor(s) { return s == null ? '#6b7688' : s >= 65 ? '#42d086' : s >= 50 ? '#e8b84b' : '#ef6a6a'; }
@@ -1261,6 +1276,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (yrs != null) fsLhSet('aldur', { icon: '🏛️', label: 'Starfsaldur', txt: yrs + ' ára' + (yrs >= 10 ? ' · rótgróið' : yrs < 2 ? ' · nýtt félag' : ''), delta: yrs >= 10 ? 4 : yrs >= 3 ? 2 : yrs < 2 ? -4 : 0, status: yrs >= 3 ? 'g' : yrs < 2 ? 'o' : 'n', tip: 'Starfsaldur frá skráningu í fyrirtækjaskrá. Rótgróin félög (10+ ára) +4, meðal (3–10) +2, ný (<2 ára) −4 — eldri rekstur er að jafnaði stöðugri.' });
       const late = fsLhSkilLate(f);
       if (late != null) fsLhSet('skil', { icon: '📅', label: 'Ársreikningaskil', txt: late ? 'Sein skil' : 'Skilað á réttum tíma', delta: late ? -5 : 2, status: late ? 'o' : 'g', tip: 'Voru ársreikningar skilaðir fyrir lögbundinn frest (31. ágúst árið eftir reikningsár)? Í tíma +2, sein skil −5 — mælikvarði á rekstrar-aga.' });
+      // Skráningarstaða beint úr opinbera RSK-API-inu (f.afskraning) — áreiðanlegasta þrota-/afskráningarmerkið.
+      // Aðeins lækkandi: gjaldþrot → þak 20 (E) óháð fjárhag; slit/skipti → þak 25; afskráð −10; virkt hlutlaust.
+      const af = f.afskraning || (f.rsk && f.rsk.afskraning) || null;
+      const tipStada = 'Skráningarstaða félags í fyrirtækjaskrá Skattsins (opinbert API). Gjaldþrot setur matið í lægsta flokk (E, þak 20) óháð fjárhag; gjaldþrotaskipti/slit þak 25; afskráð félag −10. Virkt félag hefur engin áhrif.';
+      if (af && af.gjaldthrot) fsLhSet('stada', { icon: '⚠️', label: 'Skráningarstaða', txt: 'Gjaldþrota' + (af.gjaldthrotDags ? ' · ' + af.gjaldthrotDags : ''), cap: 20, status: 'b', tip: tipStada });
+      else if (af && af.gjaldthol) fsLhSet('stada', { icon: '⚠️', label: 'Skráningarstaða', txt: 'Gjaldþrotaskipti / slit' + (af.gjaldtholDags ? ' · ' + af.gjaldtholDags : ''), cap: 25, status: 'b', tip: tipStada });
+      else if (f.afskrad) fsLhSet('stada', { icon: '🚫', label: 'Skráningarstaða', txt: 'Afskráð félag', delta: -10, status: 'o', tip: tipStada });
+      else if (f.stada) fsLhSet('stada', { icon: '✅', label: 'Skráningarstaða', txt: f.stada, delta: 0, status: 'g', tip: tipStada });
     }
     // Innmatur kortsins (hrein fall af _lh): hringur + einkunn + þátta-listi + fyrirvari.
     function fsLhBody() {
