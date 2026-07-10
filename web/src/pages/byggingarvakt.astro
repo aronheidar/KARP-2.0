@@ -1,0 +1,238 @@
+---
+// Byggingarvaktin — opinberar afgreiðslur byggingarfulltrúa Reykjavíkur (byggingarleyfi).
+// SSR: KPIs + ákvörðunardreifing + topp-hverfi. Client: Leaflet-kort + leitanleg skrá (/gogn/byggingarleyfi_vakt.json).
+// Heimild, lyklun (heimilisfang, engin kt) + full bakfylling: skriptur/build_byggingarleyfi.py.
+import Layout from '../layouts/Layout.astro';
+import VAKT from '@gogn/byggingarleyfi_vakt.json';
+
+const LABELS = VAKT.decisionLabels || {};
+const byDec = VAKT.byDecision || {};
+const byHv = VAKT.byHverfi || {};
+const counts = VAKT.counts || {};
+const updated = (VAKT.generated || '').slice(0, 10);
+const latestDate = VAKT.latestDate || '';
+
+// Litir + röð ákvarðana (grænt=jákvætt, rautt=neikvætt, gult=frestað, blátt/grátt=annað)
+const DCOL = {
+  samthykkt: '#3fb950', jakvaett: '#6fd39b', frestad: '#f6b13b', afgreitt: '#58a6ff',
+  synjad: '#d1242f', neikvaett: '#f85149', visad_fra: '#f0883e', afturkallad: '#8b98ac', annad: '#9fb0c8',
+};
+const ORDER = ['samthykkt', 'jakvaett', 'frestad', 'afgreitt', 'synjad', 'neikvaett', 'visad_fra', 'afturkallad', 'annad'];
+const distRows = ORDER.filter((c) => byDec[c]).map((c) => ({ code: c, label: LABELS[c] || c, n: byDec[c], col: DCOL[c] }));
+
+const nIS = (v) => (v == null ? '–' : Number(v).toLocaleString('is-IS'));
+const samth = (byDec.samthykkt || 0) + (byDec.jakvaett || 0);
+const synj = (byDec.synjad || 0) + (byDec.neikvaett || 0);
+const topHv = Object.entries(byHv).slice(0, 8);
+
+const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykjavíkur á byggingarleyfum: ${nIS(counts.permits)} afgreiðslur á ${nIS(counts.addresses)} heimilisföngum (samþykkt, synjað, frestað). Kort, leit og byggingarsaga hvers heimilisfangs. Opin gögn frá Reykjavíkurborg.`;
+---
+<Layout title="Byggingarvaktin — byggingarleyfi og afgreiðslur byggingarfulltrúa Reykjavíkur | Karp" description={desc} canonical="https://karp.is/byggingarvakt/" ogTitle="Byggingarvaktin — byggingarleyfi í Reykjavík">
+  <main data-pg="byggingarvakt">
+    <p class="kicker">Hagvísir Íslands · Fasteignir</p>
+    <h1>Byggingarvaktin 🏗️</h1>
+    <p class="lead">Opinberar afgreiðslur <strong>byggingarfulltrúa Reykjavíkur</strong> á byggingarleyfum — <strong>{nIS(counts.permits)}</strong> afgreiðslur (samþykkt · synjað · frestað) á <strong>{nIS(counts.addresses)}</strong> heimilisföngum, úr fundargerðum frá 2020. Sjáðu hvað er verið að byggja, breyta og stækka í hverju hverfi. Byggingarsögu hvers heimilisfangs má fletta upp í <a href="/fasteignavakt/">verðmatsskýrslunni</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Afgreiðslufundir byggingarfulltrúa Reykjavíkur (reykjavik.is). Lyklað á heimilisfang — engar kennitölur, nöfn eða persónuupplýsingar umsækjenda. Samþykkt = leyfi veitt · Synjað = hafnað · Frestað = beðið umsagnar/athugasemda · Afgreitt/Jákvæð/Neikvæð = fyrirspurn afgreidd. ⚠ Aðeins Reykjavík — önnur sveitarfélög birta byggingarleyfi á öðru formi.">ⓘ</i> Um gögnin og ákvarðanir · ⚠ aðeins Reykjavík</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏗️ Afgreiðslur</div><div class="k-v">{nIS(counts.permits)}</div><div class="k-s">frá 2020 ({nIS(counts.meetings)} fundir)</div></div>
+      <div class="kpi"><div class="k-l">🏠 Heimilisföng</div><div class="k-v">{nIS(counts.addresses)}</div><div class="k-s">í Reykjavík</div></div>
+      <div class="kpi"><div class="k-l">✅ Samþykkt</div><div class="k-v" style="color:#3fb950">{nIS(samth)}</div><div class="k-s">{synj} synjað / hafnað</div></div>
+      <div class="kpi"><div class="k-l">📅 Nýjasti fundur</div><div class="k-v" style="font-size:19px">{latestDate}</div><div class="k-s">uppfært {updated}</div></div>
+    </div>
+
+    <h2>Dreifing ákvarðana</h2>
+    <p class="sub">Fjöldi afgreiðslna eftir niðurstöðu. „Frestað" er algengast enda fresta fundir málum til umsagnar áður en þau eru samþykkt.</p>
+    <div class="cwrap"><div id="c-dist" class="ch"></div></div>
+
+    {topHv.length > 0 && <>
+      <h2>Flest byggingarmál eftir hverfi</h2>
+      <p class="sub">Hverfi með flestar afgreiðslur byggingarfulltrúa (öll ár).</p>
+      <div class="hv-grid">
+        {topHv.map(([hv, n]) => (
+          <div class="hv-card"><span class="hv-n">{nIS(n)}</span><span class="hv-h">{hv}</span></div>
+        ))}
+      </div>
+    </>}
+
+    <div id="bv-mapwrap" hidden>
+      <h2>Kort — nýjustu leyfi</h2>
+      <p class="sub">Nýjustu afgreiðslur, litaðar eftir niðurstöðu (grænt samþykkt, rautt synjað, gult frestað). Smelltu á punkt fyrir mál og fundargerð. <span id="bv-mapn"></span></p>
+      <div id="bv-map"></div>
+    </div>
+
+    <h2>Nýjustu afgreiðslur</h2>
+    <p class="sub">Sláðu inn heimilisfang eða hverfi, eða síaðu eftir niðurstöðu. Smelltu á heimilisfang fyrir verðmat og byggingarsögu, eða „fundargerð" fyrir opinberu bókunina.</p>
+    <div class="bv-controls">
+      <input id="bv-q" type="search" placeholder="🔎 Leita að heimilisfangi eða hverfi…" autocomplete="off" />
+      <div class="bv-filt" id="bv-filt">
+        <button class="bv-fb active" data-g="all">Allar</button>
+        <button class="bv-fb" data-g="samth">✅ Samþykkt</button>
+        <button class="bv-fb" data-g="synj">⛔ Synjað</button>
+        <button class="bv-fb" data-g="frest">⏸ Frestað</button>
+        <button class="bv-fb" data-g="annad">Annað</button>
+      </div>
+    </div>
+    <div id="bv-count" class="bv-cnt"></div>
+    <div id="bv-list" class="bv-grid"><div class="bv-load">Hleð skránni…</div></div>
+    <button id="bv-more" class="bv-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Afgreiðslufundir byggingarfulltrúa Reykjavíkur</b> (reykjavik.is), afgreiðslur skv. mannvirkjalögum nr. 160/2010, uppfært {updated}. Lyklað á heimilisfang — engar persónuupplýsingar umsækjenda. ⚠ Aðeins Reykjavík; önnur sveitarfélög (Kópavogur, Hafnarfjörður o.fl.) birta byggingarleyfi á öðru formi.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 300px; }
+
+    .hv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .hv-card { display: flex; align-items: baseline; gap: 8px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 9px 12px; }
+    .hv-n { font-size: 18px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .hv-h { font-size: 12.5px; color: #cdd6e6; }
+
+    #bv-map { width: 100%; height: 440px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); overflow: hidden; z-index: 0; }
+    #bv-map :global(.leaflet-popup-content) { font-size: 13px; }
+    #bv-mapn { color: #7e8ca6; font-size: 12px; }
+
+    .bv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; margin-top: 4px; }
+    .bv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    .bv-top { display: flex; align-items: baseline; gap: 8px; }
+    .bv-badge { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #0a0e14; white-space: nowrap; }
+    .bv-a { font-size: 14px; font-weight: 700; color: #eaf1fb; text-decoration: none; }
+    .bv-a:hover { color: #f6b13b; }
+    .bv-desc { font-size: 12.5px; color: #cdd6e6; margin: 5px 0 3px; line-height: 1.45; }
+    .bv-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: #7e8ca6; }
+    .bv-meta a { color: #f6b13b; text-decoration: none; } .bv-meta a:hover { text-decoration: underline; }
+
+    .bv-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #bv-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #bv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .bv-filt { display: flex; flex-wrap: wrap; gap: 5px; }
+    .bv-fb { font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; font-weight: 700; }
+    .bv-fb:hover { color: #eaf1fb; border-color: rgba(246,177,59,.5); }
+    .bv-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .bv-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .bv-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .bv-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .bv-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+  </style>
+
+  <script define:vars={{ distRows, LABELS, DCOL }}>
+    function initBygg() {
+      if (!document.querySelector('main[data-pg="byggingarvakt"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const GROUPS = { samth: ['samthykkt', 'jakvaett'], synj: ['synjad', 'neikvaett'], frest: ['frestad'], annad: ['afgreitt', 'visad_fra', 'afturkallad', 'annad'] };
+
+      // Ákvörðunardreifing (ECharts) — láréttar súlur, litaðar
+      const drawDist = () => {
+        const el = document.getElementById('c-dist');
+        if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return;
+        const rows = distRows.slice().reverse();
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 118, right: 40, top: 8, bottom: 28 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => p[0].name + '<br/><b>' + Number(p[0].value).toLocaleString('is-IS') + '</b> afgreiðslur' },
+          xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+          yAxis: { type: 'category', data: rows.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { lineStyle: { color: LINE } } },
+          series: [{ type: 'bar', data: rows.map((r) => ({ value: r.n, itemStyle: { color: r.col, borderRadius: [0, 4, 4, 0] } })), barMaxWidth: 22, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11.5, fontWeight: 700, formatter: (o) => Number(o.value).toLocaleString('is-IS') } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts) drawDist();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawDist, { once: true }); }
+
+      // Leitanleg skrá + kort — sækir vakt-feed (nýjustu ~500)
+      const listEl = document.getElementById('bv-list'), cntEl = document.getElementById('bv-count'), moreEl = document.getElementById('bv-more'), qEl = document.getElementById('bv-q');
+      let MEET = {}, DATA = [], filtered = [], shown = 0, curG = 'all', PAGE = 40;
+      const fundUrl = (f) => (MEET[f] && MEET[f].url) || null;
+      const badge = (e) => '<span class="bv-badge" style="background:' + (DCOL[e.decisionCode] || '#9fb0c8') + '">' + esc(LABELS[e.decisionCode] || e.decisionCode) + '</span>';
+      const card = (e) => {
+        const u = fundUrl(e.fund);
+        const sz = e.sizeM2 ? ' · ' + String(e.sizeM2).replace('.', ',') + ' m²' : '';
+        return '<div class="bv-card"><div class="bv-top">' + badge(e)
+          + '<a class="bv-a" href="/fasteignavakt/?q=' + encodeURIComponent(e.addr) + '" title="Verðmat og byggingarsaga">' + esc(e.addr) + '</a></div>'
+          + '<div class="bv-desc">' + esc(e.desc || 'Byggingarleyfi') + '</div>'
+          + '<div class="bv-meta"><span>' + esc([e.hverfi, e.date].filter(Boolean).join(' · ')) + sz + '</span>'
+          + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div></div>';
+      };
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        const codes = curG === 'all' ? null : GROUPS[curG];
+        filtered = DATA.filter((e) => (!codes || codes.includes(e.decisionCode))
+          && (!q || (e.addr || '').toLowerCase().includes(q) || (e.hverfi || '').toLowerCase().includes(q)));
+        shown = 0;
+        cntEl.textContent = filtered.length.toLocaleString('is-IS') + ' afgreiðslur' + (q || codes ? ' (síað)' : '') + ' · nýjustu fyrst';
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="bv-load">Engar afgreiðslur fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const withLeaflet = (cb) => {
+        if (window.L) return cb();
+        if (!document.getElementById('leaflet-css')) { const l = document.createElement('link'); l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l); }
+        let s = document.getElementById('leaflet-js');
+        if (!s) { s = document.createElement('script'); s.id = 'leaflet-js'; s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; document.head.appendChild(s); }
+        s.addEventListener('load', () => cb(), { once: true });
+      };
+      const drawMap = () => {
+        const pts = DATA.filter((e) => typeof e.lat === 'number' && typeof e.lng === 'number');
+        if (!pts.length) return;
+        const wrap = document.getElementById('bv-mapwrap'); if (!wrap) return;
+        wrap.hidden = false;
+        document.getElementById('bv-mapn').textContent = '· ' + pts.length + ' af ' + DATA.length + ' staðsett';
+        withLeaflet(() => {
+          const el = document.getElementById('bv-map'); if (!el || el.dataset.done) return;
+          el.dataset.done = '1';
+          const map = window.L.map(el, { scrollWheelZoom: false }).setView([64.13, -21.90], 12);
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+          const bounds = [];
+          pts.forEach((e) => {
+            const u = fundUrl(e.fund);
+            window.L.circleMarker([e.lat, e.lng], { radius: 6, fillColor: DCOL[e.decisionCode] || '#9fb0c8', color: '#0a0e14', weight: 1, fillOpacity: 0.9 })
+              .bindPopup('<b>' + esc(e.addr) + '</b><br>' + esc(LABELS[e.decisionCode] || '') + ' · ' + esc(e.date || '') + '<br>' + esc((e.desc || '').slice(0, 90)) + (u ? '<br><a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : ''))
+              .addTo(map);
+            bounds.push([e.lat, e.lng]);
+          });
+          if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+          setTimeout(() => map.invalidateSize(), 150);
+        });
+      };
+      fetch('/gogn/byggingarleyfi_vakt.json').then((r) => r.json()).then((j) => {
+        MEET = j.meetings || {};
+        DATA = j.recent || [];
+        apply();
+        drawMap();
+      }).catch(() => { listEl.innerHTML = '<div class="bv-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      document.getElementById('bv-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.bv-fb'); if (!b) return;
+        document.querySelectorAll('.bv-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curG = b.dataset.g; if (DATA.length) apply();
+      });
+      moreEl.addEventListener('click', more);
+    }
+    document.addEventListener('astro:page-load', initBygg);
+  </script>
+</Layout>

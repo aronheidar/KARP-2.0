@@ -19,6 +19,7 @@ const NAV = [
     { href: '/lausnir/utbodsvaktin/', label: 'Útboðsvaktin' },
     { href: '/vaktir/', label: 'Leitarorðavaktin' },
     { href: '/eftirlit/', label: 'Eftirlitsvaktin' },
+    { href: '/byggingarvakt/', label: 'Byggingarvaktin' },
     { href: '/okutaeki-skip/', label: 'Ökutæki & skip' },
   ] },
   { href: '/kort/', label: 'Ísland', emoji: '🗺️' },
@@ -378,7 +379,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         [/^\/frettavel/, '__karp'],
         [/^\/(althingi|thingmal|rikisstjorn|stefnuprof|kannanir|karp-kannanir|kosningar)/, 'stjornmal'],
         [/^\/(sveitarfelog|kort|jofnunarsjodur)/, 'sveitarfelog'],
-        [/^\/(verdlag|lyf|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|eftirlit|okutaeki|skip|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
+        [/^\/(verdlag|lyf|vextir|vinnumarkadur|markadir|fasteignir|fasteignavakt|byggingarvakt|eftirlit|okutaeki|skip|rikisfjarmal|skattar|utgjold|birgjar|hagvoxtur|hagspar|vidskipti|langtima|reiknivelar|hermir|furduhagfraedi|fyrirtaeki)/, 'efnahagur'],
         [/^\/(utanrikis|nato|sendirad|ees|samanburdur)/, 'althjoda'],
         [/^\/(afbrot|menntun|mannfjoldi|umferd|orka|audlindir|rafbilar|samtok|topplistar|atvinnuvegir)/, 'samfelag'],
       ];
