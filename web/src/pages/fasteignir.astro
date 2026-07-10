@@ -4,7 +4,7 @@
 // landsbyggð yfir tíma (fasteignir.json months, HMS kaupskrá). Í Layout. #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-import { fmtNum, groupThousands } from '@lib/format.mjs';
+import { fmtNum, groupThousands, slugify } from '@lib/format.mjs';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import LEIGARAW from '@gogn/leiga.json';
 
@@ -37,6 +37,17 @@ const prNow = PR.length ? PR[PR.length - 1] : null;
 const prAvg = PR.length ? Math.round((PR.reduce((a, b) => a + b.pr, 0) / PR.length) * 10) / 10 : null;
 const prVerdict = (prNow && prAvg) ? (prNow.pr > prAvg * 1.08 ? { t: 'Hallar á leigu', c: 'dn', d: 'kaupverð er hátt miðað við leigu í sögulegu samhengi' } : prNow.pr < prAvg * 0.92 ? { t: 'Hallar á kaup', c: 'up', d: 'kaupverð er lágt miðað við leigu í sögulegu samhengi' } : { t: 'Í jafnvægi', c: '', d: 'nálægt sögulegu meðaltali' }) : null;
 
+// Choropleth-kort: miðgildi verð/m² per sveitarfélag (byMuni). Slug (m/nafnaleiðréttingar
+// þar sem fasteignaskrár-nafn víkur frá sveitarfélaga-síðu) fyrir smell → undirsíðu.
+const SUBPAGE_ALIAS = { 'Hafnarfjarðarkaupstaður': 'Hafnarfjörður', 'Seltjarnarnesbær': 'Seltjarnarnes' };
+const BM = FASTEIGNIR.byMuni || {};
+const mapValues = {}, mapDetail = {};
+Object.keys(BM).forEach((n) => {
+  const b = BM[n];
+  if (b && b.m2) { mapValues[n] = b.m2; mapDetail[n] = { p25: b.p25, p75: b.p75, n: b.n, slug: slugify(SUBPAGE_ALIAS[n] || n) }; }
+});
+const mapWindow = FASTEIGNIR.byMuniWindow || '';
+
 const updated = '2026-07-01';
 const yoyTxt = (v) => (v == null ? '' : (v > 0 ? '+' : '') + fmtNum(v, 1) + '%');
 const desc = `Fasteignaverð á Íslandi — miðgildi ${groupThousands(hb.m2)} þús.kr/m² á höfuðborgarsvæðinu (${yoyTxt(yoyHb)} á ári) og ${groupThousands(land.m2)} þús.kr/m² á landsbyggðinni. Þróun úr þinglýstum kaupum.`;
@@ -61,6 +72,10 @@ const jsonLd = {
 
     <h2>Verð á fermetra — þróun</h2>
     <div id="chart"></div>
+
+    <h2>Kort — verð á fermetra eftir sveitarfélagi</h2>
+    <div id="fast-map" class="chl-mapbox"></div>
+    <p class="mapcap">Miðgildi verð/m² (þús.kr) eftir sveitarfélagi, {mapWindow}. Smelltu á sveitarfélag fyrir nánari síðu.</p>
 
     <p class="note">ⓘ Miðgildi (robust gegn útlögum) verð/m² úr þinglýstum kaupum íbúðarhúsnæðis. Höfuðborgarsvæði = 7 sveitarfélög; landsbyggð = önnur. Per-sveitarfélag verðmat er í <a href="/reiknivelar/">Reiknivélum</a>.</p>
 
@@ -133,6 +148,7 @@ const jsonLd = {
     th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
     td.l, th.l { text-align: left; }
     .num { font-variant-numeric: tabular-nums; }
+    .mapcap { font-size: 12px; color: #7e8ca6; margin: 8px 0 0; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
@@ -217,5 +233,28 @@ const jsonLd = {
       window.addEventListener('resize', () => c.resize());
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="fasteignir"]')) { initChart(); initLeiga(); initPr(); } });
+  </script>
+
+  <!-- Choropleth-kort (Leaflet) — sér eyja sem importar sameiginlega hjálparann. #2 -->
+  <script type="application/json" id="fast-mapcfg" set:html={JSON.stringify({ values: mapValues, detail: mapDetail })}></script>
+  <script>
+    import { renderChoropleth } from '../lib/choropleth.mjs';
+    function initFastMap() {
+      const el = document.getElementById('fast-map');
+      if (!el || !document.querySelector('main[data-pg="fasteignir"]')) return;
+      let cfg; try { cfg = JSON.parse(document.getElementById('fast-mapcfg').textContent); } catch (e) { return; }
+      const th = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      renderChoropleth(el, {
+        geojsonUrl: '/gogn/sveitarfelog_adm2.json',
+        values: cfg.values, detail: cfg.detail,
+        ramp: 'gold', bins: 6, binMode: 'quantile', format: th,
+        label: 'Verð/m²', legendTitle: 'þús.kr/m²',
+        tooltip: (name, v, d) => `<b>${name}</b><br>Verð/m²: <b>${v == null ? '—' : th(v) + ' þús'}</b>`
+          + (d ? `<br><span style="color:#9fb0c8;font-size:12px">Bil ${th(d.p25)}–${th(d.p75)} · ${d.n} kaup</span>` : ''),
+        onClick: (name, v, d) => { if (d && d.slug) window.location.href = '/sveitarfelog/' + d.slug + '/'; },
+        attribution: 'Mörk: geoBoundaries · Gögn: HMS kaupskrá',
+      });
+    }
+    document.addEventListener('astro:page-load', initFastMap);
   </script>
 </Layout>

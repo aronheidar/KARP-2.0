@@ -23,6 +23,12 @@ const updLabel = monthLabel(updated);
 
 const hi = regionBars[0], lo = regionBars[regionBars.length - 1];
 
+// Choropleth-kort: atvinnuleysi per landshluta (ATV.byRegion). Samræma nafn +
+// sleppa "Landsbyggð" (landsaggregat, ekki fjölhyrningur).
+const REGION_ALIAS = { 'Höfuðborgarsvæði': 'Höfuðborgarsvæðið' };
+const mapValues = {};
+(ATV.byRegion || []).forEach((r) => { if (r.name !== 'Landsbyggð') mapValues[REGION_ALIAS[r.name] || r.name] = r.v; });
+
 // Laun vs verðbólga (kaupmáttur) — úr daglegu snapshoti (skriptur/build_vinnumarkadur.mjs):
 // LAU04001 ársbreyting launavísitölu + VIS01000 ársbreyting neysluverðs. Áður sótt hér í frontmatter.
 const { WAGE } = DATA;
@@ -70,6 +76,10 @@ const jsonLd = {
 
     <h2>Eftir landshlutum</h2>
     <div id="chart-region"></div>
+
+    <h2>Kort — atvinnuleysi eftir landshlutum</h2>
+    <div id="atv-map" class="chl-mapbox"></div>
+    <p class="srcnote">Skráð atvinnuleysi (%) eftir landshluta. Smelltu á svæði fyrir samanburð við landsmeðaltal.</p>
 
     {WAGE && (
       <>
@@ -210,5 +220,27 @@ const jsonLd = {
       s.addEventListener('load', go, { once: true });
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="vinnumarkadur"]')) initCharts(); });
+  </script>
+
+  <!-- Choropleth-kort (Leaflet) — sér eyja sem importar sameiginlega hjálparann. #2 -->
+  <script type="application/json" id="atv-mapcfg" set:html={JSON.stringify({ values: mapValues, national: latest })}></script>
+  <script>
+    import { renderChoropleth } from '../lib/choropleth.mjs';
+    function initAtvMap() {
+      const el = document.getElementById('atv-map');
+      if (!el || !document.querySelector('main[data-pg="vinnumarkadur"]')) return;
+      let cfg; try { cfg = JSON.parse(document.getElementById('atv-mapcfg').textContent); } catch (e) { return; }
+      const fmt = (v) => (v == null ? '—' : v.toFixed(1).replace('.', ',') + '%');
+      renderChoropleth(el, {
+        geojsonUrl: '/gogn/landshlutar.json',
+        values: cfg.values,
+        ramp: 'redgreen', bins: 5, format: fmt,
+        label: 'Atvinnuleysi', legendTitle: 'Atvinnuleysi (%)',
+        popupHtml: (name, v) => `<b>${name}</b><br>Atvinnuleysi: <b>${fmt(v)}</b>`
+          + `<br><span style="color:#9fb0c8;font-size:12px">Landsmeðaltal: ${fmt(cfg.national)}</span>`,
+        attribution: 'Mörk: geoBoundaries · Gögn: Vinnumálastofnun',
+      });
+    }
+    document.addEventListener('astro:page-load', initAtvMap);
   </script>
 </Layout>
