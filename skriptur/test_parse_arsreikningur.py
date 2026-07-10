@@ -66,6 +66,70 @@ class ToNumTests(unittest.TestCase):
         self.assertIsNone(to_num('abc'))
         self.assertIsNone(to_num(''))
 
+    def test_multi_group_comma_thousands(self):
+        # Ensk-sniðnar skýrslur (Icelandair '1,863,734', Geo Travel '131,363,175') — LOTA 115.
+        self.assertEqual(to_num('1,863,734'), 1863734)
+        self.assertEqual(to_num('131,363,175'), 131363175)
+        self.assertEqual(to_num('(1,863,734)'), -1863734)
+        # eins-hóps reglan óbreytt: '0,123' er aukastafur, ekki þúsund
+        self.assertAlmostEqual(to_num('0,123'), 0.123)
+
+
+# ── LOTA 115: 100-félaga þversnið → rows_of_page tákna-pípa + take_years ─────────
+from parse_arsreikningur import join_parens, unfuse, _clean_tok, _mergeable_nums, take_years
+
+
+class TokenPipeTests(unittest.TestCase):
+    """Svigasamruni + leiðara-afbræðsla — brestir úr 100-félaga prófuninni."""
+
+    def test_join_parens_simple(self):
+        # Íslandshótel: '(' '282.838' ')' → neikvæð tala (formerki tapaðist áður)
+        self.assertEqual(join_parens(['(', '282.838', ')']), ['(282.838)'])
+
+    def test_join_parens_split_leading_digit(self):
+        # RARIK: '(' '8' '91.133)' → -891133 (fremsti stafur síaðist áður sem skýringarnr)
+        self.assertEqual(join_parens(['(', '8', '91.133)']), ['(891.133)'])
+        # Ístak: '(' '2' '56.384)' → -256384
+        self.assertEqual(join_parens(['(', '2', '56.384)']), ['(256.384)'])
+
+    def test_join_parens_leaves_whole_tokens(self):
+        # samföst '(50.478)' fara óbreytta leið (engin regressjón)
+        self.assertEqual(join_parens(['(50.478)', '61']), ['(50.478)', '61'])
+
+    def test_unfuse_leader_glued(self):
+        # punktaleiðari límdur í tölu: '3...558.639' → 3558639
+        self.assertEqual(unfuse('3...558.639'), '3558639')
+        # lögleg íslensk tala ósnert ('..' kemur aldrei fyrir í henni)
+        self.assertEqual(unfuse('1.234.567'), '1.234.567')
+
+    def test_clean_tok_strips_leader_edges(self):
+        self.assertEqual(_clean_tok('.....3.558'), '3.558')
+        self.assertEqual(_clean_tok('31.12.2024'), '31.12.2024')   # dagsetning ósnert (endar á tölustaf)
+
+    def test_mergeable_nums(self):
+        self.assertFalse(_mergeable_nums(['375']))            # stakt síðutal/smátala límist ekki
+        self.assertFalse(_mergeable_nums(['2024', '2023']))   # ártala-dálkahaus límist aldrei
+        self.assertTrue(_mergeable_nums(['15.498.868', '22.713.342']))
+
+
+class TakeYearsTests(unittest.TestCase):
+    """Front-only skýringarnr-strípun + stakt-skýringarnr-vörnin (Samskip eigid_fe→12 gildran)."""
+
+    def test_noteref_stripped_front_only(self):
+        # ['6','155','16']: '6' er skýringarnr, '16' er raunveruleg fjárhæð aftast
+        self.assertEqual(take_years(['6', '155', '16']), (155, 16))
+
+    def test_lone_noteref_is_not_amount(self):
+        # kaflahaus 'Eigið fé  12' má ALDREI verða fjárhæð
+        self.assertEqual(take_years(['12']), (None, None))
+
+    def test_dates_filtered(self):
+        self.assertEqual(take_years(['31.12.2024', '31.12.2023', '5.100', '4.200']), (5100, 4200))
+
+    def test_normal_two_amounts(self):
+        self.assertEqual(take_years(['15.498.868', '22.713.342']), (15498868, 22713342))
+        self.assertEqual(take_years(['(516)', '61']), (-516, 61))
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

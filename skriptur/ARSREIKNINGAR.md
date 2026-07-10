@@ -1,4 +1,16 @@
-# Ársreikningar RSK → KPI  (DRÖG — bíður samþykkis Arons)
+# Ársreikningar RSK → KPI
+
+> **LOTA 115 (2026-07-10): Parserinn hertur með 100-félaga þversniði atvinnuvega.**
+> 100 félög (sjávarútvegur/veitingar/ferðaþj./flug/verslun/iðnaður/tækni/fjármál/orka/
+> fasteignir/verktakar/IFRS-samstæður) sótt og þáttuð; 104 rótarorsakir greindar og lagaðar.
+> Þekja: FULL 45→74 af 85 (87%) · KPI-meðaltal 5,72→7,52/9 · +279 reitir, 3 réttmæt töp.
+> Helstu lagfæringar: gap-klösun+tákna-pípa í rows_of_page (svigasamruni '( 8 91.133)'→−891133,
+> leiðara-afbræðsla), fjölhópa kommu-þúsund ('1,863,734'), síðuval endurritað (höfnun skýringa-/
+> áritunar-/yfirlitssíðna + enska + EFS-hlið + sjóðstreymis-fallback), MAP-regex stórvíkkuð
+> (hagnaður/sala/EBITDA-forgangur/bankaform/enska), pending-kaflahausar ('Rekstrartekjur'-haus →
+> ómerkt summa; sala-yfirskrift millisumma≥íhlutur f. RARIK/Veitur), NOK+framtíðarmynt-vörn.
+> 18 einingapróf. Eftir (lág forgangur): OCR-braut f. skönnuð PDF, kvarða-kosning vigtuð á
+> reikningssíður (Elkem NOK milljón/þúsund), laun/veltufjármunir af skýringasíðum.
 
 Sækir **opinbera ársreikninga íslenskra lögaðila** úr ársreikningaskrá RSK og
 þáttar í fjárhags-KPI fyrir fyrirtækjaskýrslur karp.is — **áður en** opinbera

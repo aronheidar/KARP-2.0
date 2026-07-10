@@ -16,12 +16,13 @@ def to_num(tok):
     # Komma sem ÞÚSUNDASKIL (ekki aukastafur): '78,391' = 78391. Sumar skýrslur — t.d. rekstrar-
     # reikningur Arion banka (5810080150) — nota kommu fyrir þúsund þar sem íslenskur staðall notar
     # punkt (Íslandsbanki: '63.057'). Áður las to_num kommuna sem aukastaf → 78,391 varð 78.391
-    # (~1000x of lágt), eignavelta rúnn í 0. Meðhöndlum sem þúsund AÐEINS þegar ótvírætt: komma +
-    # NÁKVÆMLEGA 3 tölustafir, heiltöluhluti 1–3 stafir og EKKI stakt '0' — svo raunverulegir
-    # aukastafir ('0,17', '12,5', '0,123') og punkt-þúsund ('1.234.567,89') haldist ÓBREYTT.
-    m = re.match(r'^(\d{1,3}),(\d{3})$', t)
-    if m and m.group(1) != '0':
-        v = int(m.group(1) + m.group(2))
+    # (~1000x of lágt), eignavelta rúnn í 0. Meðhöndlum sem þúsund AÐEINS þegar ótvírætt: komma-hópar
+    # með NÁKVÆMLEGA 3 tölustöfum; einn hópur krefst heiltöluhluta ≠ '0', FLEIRI en einn hópur er alltaf
+    # þúsund ('1,863,734' Icelandair, '131,363,175' Geo Travel — ensk-sniðnar skýrslur). Raunverulegir
+    # aukastafir ('0,17', '12,5', '0,123') og punkt-þúsund ('1.234.567,89') haldast ÓBREYTT.
+    m = re.match(r'^(\d{1,3})((?:,\d{3})+)$', t)
+    if m and (m.group(1) != '0' or m.group(2).count(',') > 1):
+        v = int(m.group(1) + m.group(2).replace(',', ''))
         return -v if neg else v
     t = t.replace('.', '').replace(',', '.')
     try:
@@ -31,58 +32,149 @@ def to_num(tok):
     if v == int(v): v = int(v)
     return -v if neg else v
 
-NUMRE = re.compile(r'^\(?-?[\d][\d.]*(?:,\d+)?\)?$')
+NUMRE = re.compile(r'^\(?-?[\d][\d.]*(?:,\d+)*\)?$')   # (?:,\d+)* leyfir ensk fjölhópa-þúsund '1,863,734'
 def is_num(tok): return bool(NUMRE.match(tok)) and any(c.isdigit() for c in tok)
 
 # ---- kortlagning: reitur -> listi af ASCII-beinagrindar-regex (fyrsti hittir) ----
 # '.' í regex passar við brenglaða broddstafi.  Raðað eftir sérhæfni.
 REKSTUR_MAP = [
     # ^leigutekjur = fasteignafélög (Reitir/Reginn o.fl.); EKKI "hreinar leigutekjur" (millisumma, byrjar á "hreinar")
-    ('sala',            r'^(sala|seldar v|rekstrartekjur|v.rusala|tekjur samt|leigutekjur)'),
+    # ⚠ sala\b (ekki ^sala) — enska síðuvalið gerir annars 'Salaries' að sölu. 'hreinar rekstrartekjur' = bankar.
+    # 'tekjur\s*(\.{2,}|$)' = ber 'Tekjur'-lína (m/leiðurum) en EKKI 'Tekjur af hlutdeildarfélögum'.
+    ('sala',            r'^(sala\b|seldar (v|afur)|seld (verktaka)?.j.nusta|rekstrartekjur|v.rusala|v.ru- ?og .j.nustusala|s.lutekjur|tekjur samt|tekjur af verksamning|tekjur af v.trygg|tekjur\s*(\.{2,}|$)|leigutekjur|h.saleigutekjur|flutningatekjur|hreinar rekstrartekjur|(total )?operating income$|total revenue|net sales)'),
     ('adrar_tekjur',    r'^(a.rar (rekstrar)?tekjur|a.rar tekjur)'),
     # rekstrarkostnaður fjárfestingareigna = beinn kostnaður leigutekna (fasteignafélög) -> framlegð = hreinar leigutekjur
-    ('kostnadarverd',   r'(kostna.arver. seldra|seldra vara|rekstrarkostna.ur fj.rfestingar)'),
-    ('laun',            r'^laun'),
+    ('kostnadarverd',   r'(kostna.arver. seldra|seldra vara|rekstrarkostna.ur fj.rfestingar|^v.runotkun|^verktaka- og byggingakostna|^rekstur h.sn..is|^framkv.mdakostna)'),
+    ('laun',            r'^(laun|salaries)'),
     # + stjórnunarkostnaður / skrifstofu- og stjórnunarkostnaður (fasteigna-/eignarhaldsfélög)
-    ('annar_rekstur',   r'(^annar rekstrarkostna|^stj.rnunarkostna|^skrifstofu.*stj.rnunar)'),
+    ('annar_rekstur',   r'(^annar rekstrarkostna|^almennur rekstrarkostna|^stj.rnunarkostna|^skrifstofu.*stj.rnunar)'),
     ('matsbreyting',    r'^matsbreyting'),   # matsbreyting fjárfestingareigna (gangvirðisbreyting) — stór í fasteignafélögum
-    ('afskriftir',      r'^afskrift'),
-    ('ebitda',          r'^ebitda'),
-    ('ebit',            r'(rekstrarhagna.ur|fyrir fj.rmunatekjur|fyrir afskriftir og fj)'),
-    ('fjarmagnsgjold',  r'(fj.rmagnsgj.ld|vaxtagj.ld|hrein fj.rmagnsgj)'),
-    ('fjarmunatekjur',  r'(fj.reignatekjur|vaxtatekjur|fj.rmunatekjur)'),
-    ('hagn_f_skatt',    r'(hagna.ur|tap) (fyrir (tekju)?skatt|f.r skatt)'),
-    ('tekjuskattur',    r'^tekjuskattur'),
-    ('hagnadur',        r'^(hagna.ur|tap).{0,10}.rsins'),   # líka "Tap ársins" / "Hagnaður (tap) ársins" (tapfélög)
+    ('afskriftir',      r'^(afskrift|depreciation)'),
+    # EBITDA VERÐUR að standa á undan ebit — 'Rekstrarhagnaður fyrir afskriftir' er EBITDA, ekki EBIT
+    # (greip áður ebit hjá Nova/Advania/Eik/Skeljungi). ebit-fallback (ebitda−afskriftir) í parse().
+    ('ebitda',          r'(^ebitda|[ ,(]ebitda\)?|^rekstrar(hagna.ur|tap|afkoma) fyrir (afskrift|s.luhagna))'),
+    ('ebit',            r'(rekstrarhagna.ur|rekstrartap|fyrir fj.rmunatekjur|.n fj.rmunatekna|fyrir afskriftir og fj|fyrir fj.rmagnsli.i|\(ebit\))'),
+    ('fjarmagnsgjold',  r'(fj.rmagnsgj.ld|vaxtagj.ld|hrein fj.rmagnsgj|^finance costs?\b)'),
+    ('fjarmunatekjur',  r'(fj.reignatekjur|vaxtatekjur|fj.rmunatekjur|^finance income)'),
+    # sérskattar banka (renna í tekjuskatt í parse()); aflagd Á UNDAN hagnadur (annars gleypir hagnadur
+    # 'Hagnaður ársins ... af eignum haldið til sölu')
+    ('fjarsysluskattur',r'^s.rstakur fj.rs.sluskatt'),
+    ('bankaskattur',    r'^s.rstakur skattur . fj.rm.lafyrirt'),
+    ('aflagd',          r'haldi. til s.lu|af aflag.ri starfsemi'),
+    # hagn_f_skatt Á UNDAN hagnadur: '(Tap) ársins fyrir tekjuskatt' passar annars hagnadur-regexið
+    ('hagn_f_skatt',    r'(hagna.ur|tap|afkoma)\)?( ?\((hagna.ur|tap)\))?( .rsins| af reglulegri starfsemi)? (fyrir (tekju)?skatt|f.r skatt)|\(ebt\)|^(loss|profit) before (income )?tax'),
+    ('tekjuskattur',    r'^(reikna.ur )?tekjuskattur|^income tax'),
+    # víkkað: '(Tap), hagnaður ársins' · 'Hagnaður (tap) og heildarafkoma ársins' · 'Heildarhagnaður ársins'
+    # · 'Rekstrarafkoma ársins' · 'á tímabilinu' · enska. ⚠ 'Heildarafkoma ársins' (hrein OCI-lína) grípst
+    # VILJANDI ekki — heildar-forskeytið er bundið við (hagna.ur|tap).
+    ('hagnadur',        r'^\(?-? ?(heildar(hagna.ur|tap)|hagna.ur|tap|rekstrarafkoma|afkoma)\)?[,;]?( ?\(?-? ?(hagna.ur|tap)\)?)?( og (.nnur )?heildar(hagna.ur|afkoma|tap))?.{0,10}(.rsins|t.mabil)|^(net )?(loss|profit|income) for the year'),
 ]
 EFNAHAGUR_MAP = [
-    ('fastafjarmunir',  r'fastafj.rmunir samtals'),
-    ('birgdir',         r'(^v.rubirg.ir|^birg.ir)'),
-    ('vidskiptakrofur', r'(vi.skiptakr.fur|skammt.makr.fur)'),
-    ('handbaert',       r'(handb.rt f|sj..ur og banka|ban48kainnst)'),
-    ('veltufjarmunir',  r'veltufj.rmunir samtals'),
-    ('eignir',          r'^eignir samtals|^eignir$'),   # + "Eignir" án "samtals" (sum ehf, t.d. Kaffitár)
-    ('hlutafe',         r'^hlutaf.'),
-    ('eigid_fe',        r'^eigi. f.(,| \(| samtals|$)'),   # "Eigið fé[ samtals]", "Eigið fé, (neikvætt)" — EKKI "...hluthafa móðurfélags" (hlutdeild minnihluta) né "...og skuldir"
-    ('langtimaskuldir', r'langt.maskuldir samtals'),
-    ('skammtimaskuldir',r'skammt.maskuldir samtals'),
-    ('skuldir',         r'^skuldir samtals|^skuldir$'),   # + "Skuldir" án "samtals"
-    ('efe_skuldir',     r'eigi. f. og skuldir( samtals)?'),
+    # Ber form '^X[ .]*$' (hörð ankeri + leyfðir leiðarapunktar) nær 'Veltufjármunir'-línu án 'samtals'
+    # en HAFNAR 'Veltufjármunir umfram skammtímaskuldir' o.þ.h. Enska fyrir IFRS-skýrslur.
+    ('fastafjarmunir',  r'fastafj.rmunir samtals|^fastafj.rmunir[ .]*$|^non-current assets\b'),
+    ('birgdir',         r'(^v.rubirg.ir|^birg.ir|^inventories\b)'),
+    ('vidskiptakrofur', r'(vi.skiptakr.fur|skammt.makr.fur|^trade and other receivables)'),
+    ('handbaert',       r'(handb.rt f|sj..ur og banka|bankainnst|innl.nsstofn|cash and cash equivalents)'),
+    ('veltufjarmunir',  r'veltufj.rmunir samtals|^veltufj.rmunir[ .]*$|^current assets\b'),
+    ('eignir',          r'^eignir (samtals|alls)|^eignir$|^total assets\b'),
+    ('hlutafe',         r'^hlutaf.|^share capital\b'),
+    # EKKI 'Óráðstafað eigið fé' (^-ankeri) né '...hluthafa móðurfélags' né '...og skuldir'
+    ('eigid_fe',        r'^(samtals )?eigi. f.(,| \(| samtals| alls|$)|^total equity$'),
+    ('langtimaskuldir', r'langt.maskuldir samtals|^langt.maskuldir[ .]*$|^non-current liabilities\b'),
+    ('skammtimaskuldir',r'skammt.maskuldir samtals|^skammt.maskuldir[ .]*$|^current liabilities\b'),
+    ('skuldir',         r'^skuldir (samtals|alls)|^samtals skuldir$|^skuldir$|^skuldir og skuldbindingar|^total liabilities\b'),
+    ('efe_skuldir',     r'eigi. f. og skuldir( samtals| alls)?|^skuldir og eigi. f.( samtals| alls)?|^total equity and liabilities'),
 ]
 
-def rows_of_page(pg, ytol=3):
-    words = pg.extract_words()
-    buckets = {}
-    for w in words:
-        buckets.setdefault(round(w['top']/ytol), []).append(w)
-    out = []
-    for k in sorted(buckets):
-        ws = sorted(buckets[k], key=lambda w: w['x0'])
-        label = ' '.join(w['text'] for w in ws if not is_num(w['text'])).strip()
-        nums  = [w['text'] for w in ws if is_num(w['text'])]
-        if label:
-            out.append((label, nums))
+# ── Tákna-pípa fyrir rows_of_page (röðin skiptir máli: svigar → leiðarar → jaðar-punktar) ──
+_OPEN  = re.compile(r'^\.*\(\.*$')                 # stakt '(' , má bera leiðarapunkta ('.....(.')
+_CLOSE = re.compile(r'^\.*\)\.*$')                 # stakt ')'
+_FRAG  = re.compile(r'^[\d.,\s]*\d[\d.,]*\)?\.*$') # tölubrot, má enda á ')' + leiðara
+
+def join_parens(toks):
+    """Neikvæð tala klofin í tákn: '(' '282.838' ')' -> '(282.838)' ; '(' '8' '91.133)' -> '(891.133)'.
+    Krefst STAKS '('-tákns — samföst '(50.478)' fara óbreytta leið (engin regressjón)."""
+    out, i = [], 0
+    while i < len(toks):
+        if _OPEN.match(toks[i]):
+            j, frag, closed = i + 1, [], False
+            while j < len(toks) and len(frag) < 4:
+                if _CLOSE.match(toks[j]): closed = True; j += 1; break
+                if not _FRAG.match(toks[j]): break
+                frag.append(toks[j]); j += 1
+                if ')' in frag[-1]: closed = True; break
+            if closed and frag:
+                out.append('(' + re.sub(r'[^\d.,]', '', ''.join(frag)) + ')')
+                i = j; continue
+        out.append(toks[i]); i += 1
     return out
+
+_GLUE = re.compile(r'^[.\s]*\(?[\d.,\s]*\d[\d.,\s]*\)?[.\s]*$')
+def unfuse(t):
+    """Tákn með '..' OG tölustaf = tala flækt í punktaleiðara ('.....3...558.639').
+    '..' kemur ALDREI fyrir í löglegri íslenskri tölu ('1.234.567') → öruggt merki."""
+    if '..' in t and any(c.isdigit() for c in t) and _GLUE.match(t):
+        d = re.sub(r'\D', '', t)
+        if 3 <= len(d) <= 12:
+            return ('(' + d + ')') if ('(' in t or ')' in t) else d
+    return t
+
+def _clean_tok(t):
+    """Strípar leiðarapunkta af jöðrum tákns. Snertir ekki '31.12.2024' (endar á tölustaf)."""
+    s = t.strip().strip('.')
+    return s if s else t   # hreinn leiðari ('......') helst óbreyttur -> fer í label
+
+# Kaflahausar sem mega bíða ómerktrar summuraðar (pending). ⚠ ALDREI fastafjarmunir/veltufjarmunir/
+# fjarmunatekjur — kaflahaus + undirsumma Á UNDAN réttri heild myndi grípa ranga tölu (Geo Travel).
+PENDING_OK = {'sala', 'eignir', 'eigid_fe', 'skuldir', 'efe_skuldir'}
+
+def rows_of_page(pg, ytol=4):
+    # Gap-klösun í stað fastrar round(top/ytol)-fötunar: föst námundunarmörk klufu sjónlínur
+    # sem lentu sitt hvoru megin marka (merki í einni fötu, tölurnar í annarri → reitur tómur).
+    # Línubil ársreikninga er ≥9pt svo ytol=4 sameinar aldrei tvær raunlínur en þolir ~4pt
+    # grunnlínu-hliðrun (feitletrað merki vs fjárhæðir).
+    words = sorted(pg.extract_words(), key=lambda w: (w['top'], w['x0']))
+    lines, cur, last = [], [], None
+    for w in words:
+        if last is not None and w['top'] - last > ytol:
+            lines.append(cur); cur = []
+        cur.append(w); last = w['top']
+    if cur: lines.append(cur)
+    out = []
+    for ln in lines:
+        ws = sorted(ln, key=lambda w: w['x0'])
+        toks = [w['text'] for w in ws]
+        toks = join_parens(toks)               # (i)  FYRST: svigasamruni ('.273)' gildran annars)
+        toks = [unfuse(t) for t in toks]       # (ii) SVO: leiðara-afbræðsla
+        toks = [_clean_tok(t) for t in toks]   # (iii) jaðar-punktastrípun
+        label = ' '.join(t for t in toks if t and not is_num(t)).strip()
+        nums  = [t for t in toks if t and is_num(t)]
+        if label or nums:                      # (iv) halda LÍKA merkislausum talnaröðum (pending-logík)
+            out.append((label, nums, min(w['top'] for w in ws)))
+    # (v) munaðarlausra-líming: fjárhæðaröð án merkis límist við merkisröð beint á undan sem hefur
+    #     ENGAR tölur EÐA AÐEINS skýringarnúmer ('Eigið fé 12' + fjárhæðir á 4–6pt öðrum grunnlínu-y —
+    #     algengasta klofningsformið; take_years strippar skýringarnr framan af eftir samruna).
+    #     ⚠ ÞRJÁR varnir: (a) aðeins raunverulegar fjárhæðir límast (stök '375'/'11' eru síðutöl),
+    #     (b) hreinir ártalahausar ('2024 2023') aldrei, (c) y-nálægð ≤ 7pt — kaflahaus og næsta
+    #     raun-lína eru ≥9pt í sundur svo undirsummuröð límist ALDREI við kaflahaus (Geo Travel gildran).
+    merged = []
+    for label, nums, top in out:
+        if (not label and nums and merged and _mergeable_nums(nums)
+                and merged[-1][0] and all(NOTEREF.match(t) for t in merged[-1][1])
+                and top - merged[-1][2] <= 7):
+            merged[-1] = (merged[-1][0], merged[-1][1] + nums, merged[-1][2])
+        else:
+            merged.append((label, nums, top))
+    return [(l, n) for l, n, _ in merged]
+
+def _mergeable_nums(nums):
+    toks = [t for t in nums if not NOTEREF.match(t)]
+    if not toks: return False
+    if all(re.fullmatch(r'(19|20)\d\d', t) for t in toks): return False   # ártala-dálkahaus
+    if len(toks) >= 2: return True
+    t = toks[0]
+    return ('.' in t or ',' in t or abs(to_num(t) or 0) > 999)   # ein tala: aðeins augljós fjárhæð
 
 def match(label, mp):
     lo = label.lower()
@@ -91,19 +183,28 @@ def match(label, mp):
             return field
     return None
 
-NOTEREF = re.compile(r'^[1-9]\d?[.)]?$')   # skýringarnúmer 1–99 (líka "2.", "15)") = EKKI fjárhæð
+NOTEREF = re.compile(r'^[1-9]\d?[.)]?$')   # skýringarnúmer 1–99 (líka "2.", "15)") — ⚠ ALDREI svigatölur:
+#   '(79)' er neikvæð fjárhæð (USD-milljóna-skýrslur t.d. Alcoa), skýringarnúmer eru aldrei í svigum
 DATERE  = re.compile(r'^\d{1,2}\.\d{1,2}\.(19|20)\d\d$')  # dagsetningardálkur "31.12.2025" = EKKI fjárhæð
 #   (miðhópur 1–2 tölur aðgreinir dagsetningu frá þúsundatölu "31.122.025" sem hefur 3ja-stafa hópa)
 def take_years(nums):
-    """síðustu 2 tölutákn = [líðandi ár, fyrra ár]; hendir skýringar-dálki (1–99) og dagsetningum."""
-    vals = []
-    for n in nums:
-        if NOTEREF.match(n):          # ber skýringarnúmer (t.d. "2", "15") — ekki fjárhæð ('0' heldur sér)
-            continue
-        if DATERE.match(n):           # dálkahaus með dagsetningum (efnahagur sumra ehf: "31.12.2025 31.12.2024")
-            continue
-        v = to_num(n)
-        if v is not None: vals.append(v)
+    """síðustu 2 tölutákn = [líðandi ár, fyrra ár]; hendir dagsetningum og skýringar-dálki FRAMAN AF.
+    Skýringardálkurinn stendur ALLTAF vinstra megin við fjárhæðadálkana → strippum NOTEREF aðeins
+    fremst — aldrei aftast, því þar geta smáar fjárhæðir (t.d. '16' m.kr) verið raunveruleg gildi.
+    Áður henti sían '155' EKKI en '16' JÚ úr ['6','155','16'] → dálkaskekkja í stað (155,16)."""
+    toks = [t for t in nums if not DATERE.match(t)]
+    while toks and NOTEREF.match(toks[0]):
+        rest = toks[1:]
+        # strippa aðeins ef nóg er eftir fyrir fjárhæðadálka, eða eftirstandandi er augljós fjárhæð
+        if len(rest) >= 2 or (rest and ('.' in rest[0] or ',' in rest[0] or abs(to_num(rest[0]) or 0) > 999)):
+            toks = rest
+        else:
+            break
+    # Kaflahaus með aðeins skýringarnúmeri ('Eigið fé  12') má ALDREI verða fjárhæð — annars stíflar
+    # hann reitinn á undan réttu heildarröðinni (Samskip eigid_fe→12). Sama hegðun og fyrir breytingu.
+    if toks and all(NOTEREF.match(t) for t in toks):
+        return (None, None)
+    vals = [v for v in (to_num(t) for t in toks) if v is not None]
     if not vals: return (None, None)
     if len(vals) == 1: return (vals[0], None)
     return (vals[-2], vals[-1])
@@ -115,6 +216,7 @@ def _cur_of(seg):
     if re.search(r'\beur\b|evr[au]', seg): return 'EUR'
     if re.search(r'\busd\b|bandar.k|dollar', seg): return 'USD'
     if re.search(r'\bgbp\b|sterling|breskum pund', seg): return 'GBP'
+    if re.search(r'\bnok\b|norsk', seg): return 'NOK'   # Á UNDAN ISK — annars étur 'kr.n' 'norskum krónum'
     if re.search(r'\bisk\b|kr.n|slensk', seg): return 'ISK'
     return None
 
@@ -127,11 +229,15 @@ def detect_scale(text):
     #   ("Icelandic króna (ISK), which is the functional currency") skýrslum.
     cur = None
     for m in re.finditer(r'starfr.kslugjaldmi|framsetningargjaldmi|reikningsskilagjaldmi|functional currency|presentation currency|reporting currency', lo):
-        c = _cur_of(lo[max(0, m.start() - 55):m.end() + 55])
+        seg = lo[max(0, m.start() - 55):m.end() + 55]
+        # framtíðarbreyting ('Frá og með 1. janúar 2026 mun starfrækslugjaldmiðill ... vera í evrum' —
+        # Síldarvinnslan) er EKKI uppgjörsmynt ÞESSA árs → halda áfram á næsta treff
+        if re.search(r'fr. og me.|\bmun\b', seg): continue
+        c = _cur_of(seg)
         if c: cur = c; break
     # Tier 2: framsetning fjárhæða ("fjárhæðir eru í X", "amounts are in X", "presented in X").
     if cur is None:
-        for m in re.finditer(r'(?:fj.rh..ir[^.\n]{0,20}(?:eru|birt)|amounts?\s+(?:are\s+|presented\s+)?in|presented\s+in|expressed\s+in|birt\w*\s+[i.]\s|ger.\w*\s+upp\s+[i.]\s)[^.\n]{0,45}', lo):
+        for m in re.finditer(r'(?:fj.rh..ir[^.\n]{0,20}(?:eru|birt)|amounts?\s+(?:are\s+|presented\s+)?in|presented\s+in|expressed\s+in|birt\w*\s+[i.]\s|ger.\w*(?:\s+og\s+birt\w*)?\s+(?:upp\s+)?[i.]\s|allar upph..ir\s+(?:eru\s+)?[i.]\s)[^.\n]{0,45}', lo):
             c = _cur_of(m.group(0))
             if c: cur = c; break
     # Sjálfgefið ISK: íslensk fyrirtækjaskrá. Raunverulegir EUR/USD-uppgjörsaðilar (Brim, Samherji,
@@ -224,23 +330,88 @@ def parse_starfsmenn(fulltext):
 def parse(path):
     pdf = pdfplumber.open(path)
     fulltext = '\n'.join((p.extract_text() or '') for p in pdf.pages)
+    skannad = not fulltext.strip()   # myndskannað PDF án textalagas → engin þáttun möguleg (OCR er sér-braut)
     scale, cur = detect_scale(fulltext)
     rekstur, efnahagur = {}, {}
     ar_cur = ar_prev = None
     for pg in pdf.pages:
         low = (pg.extract_text() or '').lower()
-        header = ' '.join(low.split('\n')[:5])   # aðeins EFSTU línur -> sleppum skýringasíðum (Skýringar) sem nefna liðina
-        is_rekstur = 'rekstrarreikning' in header or bool(re.search(r'seldar v.rur|rekstrartekjur', header))
-        is_efnahag = 'efnahagsreikning' in header or bool(re.search(r'^\s*eignir\b|efnahags', header))
-        if not (is_rekstur or is_efnahag):
+        lines5 = [l.strip() for l in low.split('\n')[:5]]
+        header = ' '.join(lines5)
+        first = next((l for l in lines5 if l), '')
+        # ── HÖFNUN (á undan flokkun) ──
+        if re.match(r'sk.ringar\b', first):
+            continue   # skýringasíður — kaflahausar ('5. Rekstrartekjur') gabba annars flokkunina
+        if re.match(r'efnisyfirlit|contents\b', first):
+            continue   # efnisyfirlit
+        if re.match(r'.ritun|sk.rsla( og yfirl.sing)? stj.rnar|yfirl.sing stj.rnar|independent auditor', first):
+            continue   # áritun endurskoðenda / skýrsla stjórnar — álitstextinn telur upp reikningsheiti
+                       # ('...rekstrarreikning, efnahagsreikning...') og flokkast annars sem reikningssíða
+        if not re.search(r'rekstrarreikning|efnahagsreikning', header) and (
+                len(re.findall(r'\b20\d\d\b', header)) >= 4
+                or re.search(r'helstu uppl.singar|yfirlit stj.rnenda|lykilst.r.ir|.rsfj.r.ungsyfirlit|\b.rsfj\.', header)):
+            continue   # 5-ára stjórnendayfirlit / ársfjórðungatöflur (Landsvirkjun, HS Orka)
+        # ── FLOKKUN — línu-ankeruð leit (óankeruð leit í samlímdum haus lak prósa inn) + enska (IFRS) ──
+        is_rekstur = ('rekstrarreikning' in header
+            or any(re.match(r'(seldar v.rur|rekstrartekjur)\b', l) for l in lines5)
+            or any(re.match(r'(consolidated |group )?(income statement|statement of (profit or loss|comprehensive income))', l) for l in lines5))
+        is_efnahag = ('efnahagsreikning' in header or 'efnahags' in header
+            or any(re.match(r'eignir\b|eigi. f. og skuldir|yfirlit um fj.rhagsst', l) for l in lines5)
+            or any(re.match(r'(consolidated |group )?(statement of financial position|balance sheet)', l) for l in lines5))
+        is_sjodstr = (not is_rekstur and not is_efnahag) and bool(re.search(r'sj..streymi', header))
+        if not (is_rekstur or is_efnahag or is_sjodstr):
             continue
+        # sjóðstreymis-fallback: AÐEINS hagnaður (efsta lína yfirlits) — aldrei MAP-in
+        # (annars mengast efnahagur af 'Skammtímaskuldir, hækkun' o.þ.h.)
+        if is_sjodstr:
+            for label, nums in rows_of_page(pg):
+                vals = take_years(nums)
+                if vals[0] is None:
+                    continue
+                if 'hagnadur' not in rekstur and re.search(
+                        r'^\(?(hagna.ur|tap)\)?( ?\(?(hagna.ur|tap)\)?)?.{0,20}(samkv.mt rekstrarreikningi|.rsins)',
+                        label.lower()):
+                    rekstur['hagnadur'] = vals
+            continue
+        pending = None   # (dict, reitur) — kaflahaus bíður ómerktrar summuraðar (sjá PENDING_OK)
         for label, nums in rows_of_page(pg):
-            # ártöl úr haus (t.d. "2024 2023" eða "31.12.2024")
+            # ártöl úr haus (t.d. "2024 2023" eða "31.12.2024") — VERÐUR að standa á undan ártalapars-vörninni
             if ar_cur is None:
                 ys = re.findall(r'\b(20\d\d)\b', ' '.join(nums))
                 if len(ys) >= 2: ar_cur, ar_prev = int(ys[0]), int(ys[1])
+            # ártalapars-vörn: dálkahaus 'Rekstrartekjur Skýring 2024 2023' — ártöl, ekki fjárhæðir
+            raw = [t for t in nums if not NOTEREF.match(t)]
+            if (len(raw) == 2 and all(re.fullmatch(r'(19|20)\d\d', t) for t in raw)
+                    and raw[0].isdigit() and raw[1].isdigit() and int(raw[0]) == int(raw[1]) + 1):
+                continue
             vals = take_years(nums)
-            if vals[0] is None:      # haus-/millisummulína án talna -> sleppa (annars stíflar hún reitinn)
+            if vals[0] is None:
+                # talnalaus röð: kaflahaus ('Rekstrartekjur', 'Eigið fé:') virkjar pending á hvítlistaðan
+                # reit; hver önnur talnalaus röð AFTURKALLAR (stöðvar leka milli kafla).
+                pending = None
+                lbl = label.rstrip().rstrip(':')
+                if lbl and is_statement_label(lbl):
+                    if is_rekstur:
+                        f = match(lbl, REKSTUR_MAP)
+                        if f in PENDING_OK and (f not in rekstur or f == 'sala'):
+                            pending = (rekstur, f)
+                    if pending is None and is_efnahag:
+                        f = match(lbl, EFNAHAGUR_MAP)
+                        if f in PENDING_OK and f not in efnahagur:
+                            pending = (efnahagur, f)
+                continue
+            # tvípunkts-vörn: töflufyrirsögn MEÐ tölum ('...sundurliðast þannig: 123 456') — aldrei reikningslína
+            if label.rstrip().endswith(':'):
+                continue
+            if not label:
+                # merkislaus talnaröð: fyllir AÐEINS virkt pending; hreinar ártalaraðir aldrei.
+                if pending and not all(isinstance(v, int) and 1990 <= v <= 2100 for v in vals if v is not None):
+                    d, f = pending
+                    if f not in d:
+                        d[f] = list(vals)
+                    elif f == 'sala' and vals[0] is not None and d[f][0] is not None and vals[0] >= d[f][0]:
+                        d[f] = list(vals)   # millisumma ≥ íhlutur: 'Sala á heitu vatni' 687m → heild 28.348m (Veitur)
+                pending = None
                 continue
             if not is_statement_label(label):   # prósa-lína á frásagnarsíðu -> EKKI reikningsreitur
                 continue
@@ -257,6 +428,10 @@ def parse(path):
         a = a or [None, None]; b = b or [0, 0]
         return [ (None if a[i] is None else a[i] - (b[i] or 0)) for i in range(2) ]
     afleitt = []
+    # Eignir = Eigið fé og skuldir (reikningsjafnan; FREMST svo hinar afleiðslurnar byggi á henni)
+    if 'eignir' not in efnahagur and 'efe_skuldir' in efnahagur:
+        efnahagur['eignir'] = list(efnahagur['efe_skuldir'])
+        afleitt.append('eignir')
     if 'eigid_fe' not in efnahagur and 'eignir' in efnahagur and 'skuldir' in efnahagur:
         efnahagur['eigid_fe'] = pair_sub(efnahagur['eignir'], efnahagur['skuldir'])
         afleitt.append('eigid_fe')
@@ -267,7 +442,19 @@ def parse(path):
     if 'skammtimaskuldir' not in efnahagur and 'skuldir' in efnahagur:
         efnahagur['skammtimaskuldir'] = pair_sub(efnahagur['skuldir'], efnahagur.get('langtimaskuldir'))
         afleitt.append('skammtimaskuldir')
-    return {'ar': [ar_cur, ar_prev], 'mynt': cur, 'kvardi': scale,
+    # sérskattar banka (fjársýsluskattur/bankaskattur) renna inn í tekjuskatt (Kvika/Íslandsbanki/Arion)
+    for extra in ('fjarsysluskattur', 'bankaskattur'):
+        if extra in rekstur:
+            ts = rekstur.get('tekjuskattur') or [None, None]
+            ex = rekstur.pop(extra)
+            rekstur['tekjuskattur'] = [((ts[i] or 0) + (ex[i] or 0)) if (ts[i] is not None or ex[i] is not None) else None for i in range(2)]
+    # ebit-fallback þegar aðeins EBITDA-lína er til (fylgifiskur ebitda-forgangsins í REKSTUR_MAP)
+    if 'ebit' not in rekstur and 'ebitda' in rekstur and 'afskriftir' in rekstur:
+        rekstur['ebit'] = [(rekstur['ebitda'][i] - abs(rekstur['afskriftir'][i]))
+                           if (rekstur['ebitda'][i] is not None and rekstur['afskriftir'][i] is not None) else None
+                           for i in range(2)]
+        afleitt.append('ebit')
+    return {'ar': [ar_cur, ar_prev], 'mynt': cur, 'kvardi': scale, **({'skannad': True} if skannad else {}),
             'rekstur': rekstur, 'efnahagur': efnahagur, 'afleitt': afleitt,
             'starfsmenn': parse_starfsmenn(fulltext),
             'hluthafar': parse_hluthafar(pdf)}
