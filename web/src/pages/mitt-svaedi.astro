@@ -181,6 +181,11 @@ const updated = '2026-07-02';
         <div id="mail-more" class="mail-more"></div>
       </div>
 
+      <div class="w" id="sub-card">
+        <div class="w-h">⭐ Áskrift, aðgangar & vaktir</div>
+        <div id="sub-body"><span class="dim">Hleð…</span></div>
+      </div>
+
       <div class="w">
         <div class="w-h">👤 Aðgangurinn</div>
         <div id="acc" class="acc"></div>
@@ -291,6 +296,18 @@ const updated = '2026-07-02';
     main[data-pg="mitt-svaedi"] .theme-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
     main[data-pg="mitt-svaedi"] .theme-seg button { background: none; border: 0; padding: 8px 14px; color: var(--muted); cursor: pointer; font: inherit; font-size: 13px; }
     main[data-pg="mitt-svaedi"] .theme-seg button.on { background: rgba(246,177,59,.16); color: var(--gold); font-weight: 700; }
+    main[data-pg="mitt-svaedi"] .sub-row { font-size: 13.5px; color: var(--ink); margin-bottom: 5px; }
+    main[data-pg="mitt-svaedi"] .sub-row b { color: var(--muted); font-weight: 600; }
+    main[data-pg="mitt-svaedi"] .sub-row a, main[data-pg="mitt-svaedi"] .sub-note a { color: var(--gold); }
+    main[data-pg="mitt-svaedi"] .sub-sub { font-size: 12px; font-weight: 700; color: var(--muted); margin: 14px 0 7px; }
+    main[data-pg="mitt-svaedi"] .mem-list { display: flex; flex-direction: column; gap: 5px; }
+    main[data-pg="mitt-svaedi"] .mem { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+    main[data-pg="mitt-svaedi"] .mem-x { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 13px; }
+    main[data-pg="mitt-svaedi"] .mem-x:hover { color: var(--red); }
+    main[data-pg="mitt-svaedi"] .mem-add { display: flex; gap: 6px; margin-top: 8px; }
+    main[data-pg="mitt-svaedi"] .mem-add input { flex: 1; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink); }
+    main[data-pg="mitt-svaedi"] .mem-add button { font: inherit; font-weight: 700; font-size: 13px; border: 0; border-radius: 8px; padding: 0 14px; background: var(--gold); color: #131a29; cursor: pointer; }
+    main[data-pg="mitt-svaedi"] .sub-note { font-size: 11.5px; margin: 8px 0 0; }
     main[data-pg="mitt-svaedi"] .sk-t { font-size: 13px; color: #eaf1fb; font-weight: 600; }
     main[data-pg="mitt-svaedi"] .sk-o { font-size: 12px; color: #f6b13b; white-space: nowrap; }
   </style>
@@ -451,6 +468,52 @@ const updated = '2026-07-02';
         paint();
         seg.querySelectorAll('button').forEach((b) => { b.onclick = () => { if (window.karpSetTheme) window.karpSetTheme(b.dataset.th); else { try { localStorage.setItem('karp-theme', b.dataset.th); } catch (e) {} document.documentElement.setAttribute('data-theme', b.dataset.th); } paint(); }; });
         window.addEventListener('karp-theme', paint);
+      })();
+
+      // ⭐ Áskrift, aðgangar (seats) & Viðskiptamannavakt (kt) — server-varið í karp-entitlement.php
+      (function () {
+        const el = $g('sub-body'); if (!el) return;
+        const A = window.karpAuth || {};
+        const seg = (t, h) => '<div class="sub-sub">' + t + (h ? ' <span class="dim">· ' + h + '</span>' : '') + '</div>';
+        loadUser().then((u) => {
+          if (!u || !u.loggedIn) { el.innerHTML = '<span class="dim">Skráðu þig inn til að sjá áskrift og aðganga.</span>'; return; }
+          const lim = (A.limits && A.limits()) || {};
+          const tierName = ({ grunnur: 'Grunnur', fyrirtaeki: 'Fyrirtæki', fyrirtaeki_plus: 'Fyrirtæki+' })[u.effectiveTier] || (u.isAdmin ? 'Stjórnandi' : 'Enginn þrep-aðgangur');
+          const rem = (typeof u.reportsRemaining === 'number') ? u.reportsRemaining : 0;
+          const remTxt = lim.reportsMonth === 0 ? 'stakar á 990 kr' : (rem < 0 ? 'ótakmarkað' : rem + ' af ' + lim.reportsMonth + ' eftir í mánuðinum');
+          const folCap = (lim.follows < 0) ? 'ótakmarkað' : lim.follows;
+          el.innerHTML =
+            '<div class="sub-row"><b>Þrep:</b> ' + esc(tierName) + (u.effectiveTier || u.isAdmin ? '' : ' · <a href="/karp-pro/#verd">sjá áskrift →</a>') + '</div>'
+            + '<div class="sub-row"><b>Skýrslur:</b> ' + esc(remTxt) + '</div>'
+            + '<div class="sub-row"><b>Fylgt félög:</b> ' + Number(u.followsCount || 0) + ' / ' + esc(String(folCap)) + '</div>'
+            + '<div id="team-box"></div><div id="ktw-box"></div>';
+          renderTeam(); renderKtw();
+        });
+        function renderTeam() {
+          const box = $g('team-box'); if (!box || !A.teamList) return;
+          A.teamList().then((d) => {
+            if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
+            const rows = (d.members || []).map((m) => '<div class="mem"><span>' + esc(m) + '</span><button data-e="' + esc(m) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
+            box.innerHTML = seg('👥 Aðgangar (teymi)', (d.members || []).length + '/' + d.cap + ' notaðir')
+              + '<div class="mem-list">' + rows + '</div>'
+              + ((d.members || []).length < d.cap ? '<div class="mem-add"><input id="mem-email" type="email" placeholder="netfang meðlims" /><button id="mem-go">Bæta við</button></div>' : '')
+              + '<p class="dim sub-note">Meðlimir fá sama þrep-aðgang þegar þeir skrá sig inn með þessu netfangi.</p>';
+            box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.teamSet(b.dataset.e, 'remove'); renderTeam(); });
+            const go = $g('mem-go'); if (go) go.onclick = async () => { const i = $g('mem-email'), em = (i.value || '').trim(); if (!em) return; go.disabled = true; const r = await A.teamSet(em, 'add'); if (r && r.ok) renderTeam(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; } };
+          });
+        }
+        function renderKtw() {
+          const box = $g('ktw-box'); if (!box || !A.ktWatchList) return;
+          A.ktWatchList().then((d) => {
+            if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
+            const rows = (d.kt || []).map((k) => '<div class="mem"><span>' + esc(k) + '</span><button data-k="' + esc(k) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engar kennitölur enn.</span>';
+            box.innerHTML = seg('📇 Viðskiptamannavakt (kt)', (d.kt || []).length + '/' + d.cap + ' notaðar')
+              + '<div class="mem-list">' + rows + '</div>'
+              + ((d.kt || []).length < d.cap ? '<div class="mem-add"><input id="ktw-in" inputmode="numeric" placeholder="kennitala (10)" maxlength="11" /><button id="ktw-go">Bæta við</button></div>' : '');
+            box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.ktWatchSet(b.dataset.k, 'remove'); renderKtw(); });
+            const go = $g('ktw-go'); if (go) go.onclick = async () => { const i = $g('ktw-in'), kt = (i.value || '').replace(/\D/g, ''); if (kt.length !== 10) { i.style.borderColor = 'var(--red)'; return; } go.disabled = true; const r = await A.ktWatchSet(kt, 'add'); if (r && r.ok) renderKtw(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; } };
+          });
+        }
       })();
 
       // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum

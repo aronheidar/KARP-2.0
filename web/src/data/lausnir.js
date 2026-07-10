@@ -3,6 +3,17 @@
 export const TIER_LVL = { grunnur: 1, fyrirtaeki: 2, fyrirtaeki_plus: 3 };
 export function tierLevelOf(tier, isAdmin) { return isAdmin ? 99 : (TIER_LVL[tier] || 0); }
 
+// Vél-læsileg mörk per þrep — ein sannleiksuppspretta fyrir client OG speglað í PHP
+// (karp-entitlement.php). -1 = ótakmarkað. reportsMonth = innifaldar stakar skýrslur/mán.
+export const LIMITS = {
+  grunnur:         { reportsMonth: 0,  follows: 10, ktWatch: 0,   seats: 2,  fjolmidlavakt: false },
+  fyrirtaeki:      { reportsMonth: 5,  follows: 50, ktWatch: 25,  seats: 5,  fjolmidlavakt: true },
+  fyrirtaeki_plus: { reportsMonth: 20, follows: -1, ktWatch: 100, seats: 15, fjolmidlavakt: true },
+};
+const LIMITS_FREE = { reportsMonth: 0, follows: 3, ktWatch: 0, seats: 1, fjolmidlavakt: false };
+const LIMITS_ADMIN = { reportsMonth: -1, follows: -1, ktWatch: -1, seats: -1, fjolmidlavakt: true };
+export function limitsFor(tier, isAdmin) { return isAdmin ? LIMITS_ADMIN : (LIMITS[tier] || LIMITS_FREE); }
+
 export const THREP = [
   { slug: 'grunnur', heiti: 'Grunnur', verd: 2900, adgangar: 2, cta: 'Velja Grunn' },
   { slug: 'fyrirtaeki', heiti: 'Fyrirtæki', verd: 6900, adgangar: 5, cta: 'Velja Fyrirtæki', vinsaelt: true },

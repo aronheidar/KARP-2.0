@@ -104,6 +104,8 @@ function karp_user_payload() {
         $t_until = (int) get_user_meta($u->ID, 'karp_tier_until', true);
         $data['tier'] = ( $t_until > time() ) ? (string) get_user_meta($u->ID, 'karp_tier', true) : null;
         $data['tier_until'] = ( $t_until > time() ) ? $t_until : null;
+        // Áskriftar-aðgangsstýring (karp-entitlement.php): effectiveTier, limits, reportsRemaining, ktWatch, teamMembers, followsCount.
+        if ( function_exists('karp_entitlement_augment') ) karp_entitlement_augment($data, $u->ID);
     }
     // Greiðsluveggir VIRKIR? Global rofi (option karp_paywall='1') — Aron kveikir þegar billing er tilbúið.
     // SLÖKKT sjálfgefið svo Vöktun/Útboð haldist opin þar til launch. Á við líka útskráða (gátt fyrir alla).
@@ -505,6 +507,11 @@ function karp_follows_post($req) {
     }
     $p = $req->get_json_params();
     $fl = (isset($p['follows']) && is_array($p['follows'])) ? array_slice(array_values(array_unique(array_map('sanitize_text_field', $p['follows']))), 0, 200) : array();
+    // Fylgja-mörk eftir þrepi (karp-entitlement.php) — aðeins virkt þegar paywall er kveikt.
+    if ( function_exists('karp_follows_enforce_limit') && !karp_follows_enforce_limit($uid, $fl) ) {
+        $lim = karp_tier_limits(karp_effective_tier($uid), user_can($uid, 'manage_options'));
+        return array('ok' => false, 'error' => 'cap', 'limit' => $lim['follows'], 'follows' => (array) ( get_user_meta($uid, 'karp_follows', true) ?: array() ));
+    }
     update_user_meta($uid, 'karp_follows', $fl);
     return array('ok' => true, 'follows' => $fl);
 }

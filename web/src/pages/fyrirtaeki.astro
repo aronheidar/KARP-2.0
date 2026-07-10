@@ -1511,6 +1511,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt))) {
                 skila(fsGate(f)); backWire(); fsWireFylgja();
                 const gb = document.getElementById('fsg-buy');
+                // Áskrifandi með innifaldar skýrslur → „opna með áskrift" (server-teljari); annars/þegar kvóti búinn → 990 kr.
+                const AU = window.karpAuth, rem = (AU && AU.reportsRemaining) ? AU.reportsRemaining() : 0;
+                if (gb && rem !== 0 && AU && AU.openReport) {
+                  const qb = document.createElement('button');
+                  qb.className = 'fsg-main'; qb.type = 'button';
+                  qb.textContent = rem < 0 ? '📄 Opna skýrslu (áskrift)' : ('📄 Opna með áskrift · ' + rem + ' eftir í mán.');
+                  gb.parentNode.insertBefore(qb, gb);
+                  gb.className = 'fsg-sample'; gb.textContent = '🛒 eða kaupa staka — 990 kr';
+                  qb.addEventListener('click', async () => {
+                    qb.disabled = true; qb.textContent = 'Opna…';
+                    const r = await AU.openReport('fyrirtaeki:' + f.kt, (f.nafn || '') + ' ' + f.kt);
+                    if (r && (r.granted || r.owned)) { location.reload(); return; }
+                    if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = '🛒 Kaupa skýrslu — 990 kr'; }
+                    else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; }
+                  });
+                }
                 if (gb) gb.addEventListener('click', async () => {
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
                   const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt });

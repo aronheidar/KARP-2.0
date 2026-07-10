@@ -10,7 +10,7 @@
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
-import { tierLevelOf } from '../data/lausnir.js';
+import { tierLevelOf, limitsFor } from '../data/lausnir.js';
 const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
 export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
@@ -145,9 +145,37 @@ export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isAr
 
 // Þrep-áskrift (Verk B): eitt þrep per notandi (u.tier ∈ grunnur|fyrirtaeki|fyrirtaeki_plus), stigveldi.
 // hasTier(min) = notandi (eða admin) hefur a.m.k. þrep-stig `min` (1|2|3). lockedTier = veggur virkur OG ekki nógu hátt þrep.
-export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.tier, u.isAdmin === true); }
+// tierLevel notar VIRKT þrep (effectiveTier úr /me) svo teymis-meðlimir erfi þrep eiganda.
+export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.effectiveTier || u.tier, u.isAdmin === true); }
 export function hasTier(min) { return tierLevel() >= min; }
 export function lockedTier(min) { return _u().paywall === true && !hasTier(min); }
+
+// ── Mörk, kvóti, teymi (LOTA: áskriftar-enforcement) ────────────────────────
+// limits() = mörk virka þrepsins (reportsMonth/follows/ktWatch/seats/fjolmidlavakt). Server sendir
+// u.limits í /me; föllum á client-töfluna ef vantar. reportsRemaining/-Used koma frá server.
+export function limits() { const u = _u(); return u.limits || limitsFor(u.effectiveTier || u.tier, u.isAdmin === true); }
+export function reportsRemaining() { const u = _u(); return typeof u.reportsRemaining === 'number' ? u.reportsRemaining : 0; }
+export function followsCount() { return Number(_u().followsCount || 0); }
+
+// Opna skýrslu með kvóta: á/kvóti → grant (skýrsla opnast), annars needPay (990 kr). Server-hlið teljari.
+// Skilar { owned } | { granted, remaining } | { needPay } | { error }.
+export async function openReport(key, title) {
+  const u = _u();
+  if (isAdmin() || hasReport(key)) return { owned: true };
+  if (!u.loggedIn) return { needLogin: true };
+  const r = await karpPost('/reports/open', { key, title });
+  if (!r) return { error: true };
+  if (r.owned) return { owned: true };
+  if (r.granted) { if (Array.isArray(u.reports)) u.reports.push(key); if (typeof r.remaining === 'number') u.reportsRemaining = r.remaining; return { granted: true, remaining: r.remaining }; }
+  if (r.needPay) return { needPay: true };
+  return { error: true };
+}
+
+// Viðskiptamannavakt (kt-listi) + Teymi/seats — notað af Stillingum á Mitt svæði.
+export async function ktWatchList() { return (await karpGet('/ktwatch')) || { kt: [], cap: 0 }; }
+export async function ktWatchSet(kt, action) { return (await karpPost('/ktwatch', { kt, action })) || { ok: false }; }
+export async function teamList() { return (await karpGet('/team')) || { members: [], cap: 0 }; }
+export async function teamSet(email, action) { return (await karpPost('/team', { email, action })) || { ok: false }; }
 
 // Hefja greiðslu (Teya SecurePay, LOTA 97). Worker undirritar pöntun og skilar { action, fields };
 // við byggjum falið form og POST-um → kaupandi fer á hýstu greiðslusíðu Teya. Skilar 'redirected'
@@ -298,4 +326,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet };
