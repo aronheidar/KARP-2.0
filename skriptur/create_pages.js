@@ -1,4 +1,4 @@
-const KEY = '6c6db4894035b383456c09e6fc0e64ce';
+const KEY = process.env.KARP_KEY || '';  // settu $env:KARP_KEY áður en þú keyrir
 const EP = 'https://karp.is/wp-json/royal-mcp/v1/pages';
 const pages = [
   { key: 'verdlag',     title: 'Hagvísir – Verðlag og vextir',           slug: 'hagvisir-verdlag' },

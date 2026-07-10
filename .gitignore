@@ -2,6 +2,8 @@ node_modules/
 dist/
 __pycache__/
 *.pyc
+web/.astro/
+web/.wrangler/
 wordpress/karp-data.txt
 wordpress/karp-embed.html
 gogn/backfill*
