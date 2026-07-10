@@ -1,0 +1,318 @@
+---
+// Styrkjavaktin (LOTA 113) — opinberir styrkir úr 6 sjóðum á einum stað.
+// SSR: KPIs + súlurit (eftir sjóði / eftir ári) + topp-styrkþegar + sjóða-tafla.
+// Client: leitanleg/síanleg heildarskrá (sækir /gogn/styrkir.json), sía eftir sjóði/ári/nafni.
+// Gögn: build_styrkir.js → gogn/styrkir.json (dual-write í web/public/gogn/). ENGIN kt (nafn-lyklað).
+import Layout from '../layouts/Layout.astro';
+import STYRKIR from '@gogn/styrkir.json';
+
+const rows = Array.isArray(STYRKIR.styrkir) ? STYRKIR.styrkir : [];
+const sjodirMeta = STYRKIR.sjodir || {};
+const updated = (STYRKIR.updated || '').slice(0, 10);
+const count = STYRKIR.count || rows.length;
+
+// Heild
+const grandTotal = rows.reduce((s, x) => s + (x.upphaed || 0), 0);
+
+// Sjóðir (nýtum forreiknaða sjodir-metann; röðum eftir heildarupphæð)
+const funds = Object.entries(sjodirMeta)
+  .map(([nafn, m]) => ({ nafn, count: m.count || 0, total: m.total || 0, minAr: m.minAr, maxAr: m.maxAr }))
+  .sort((a, b) => b.total - a.total);
+const nFunds = funds.length;
+
+// Litapalletta per sjóð (stöðug röð)
+const FUND_COLORS = ['#f6b13b', '#58a6ff', '#3fb950', '#bc8cff', '#f0883e', '#56d4dd', '#f85149', '#6fd39b'];
+const fundColor = {};
+funds.forEach((f, i) => { fundColor[f.nafn] = FUND_COLORS[i % FUND_COLORS.length]; });
+
+// Eftir ári (fjöldi + upphæð)
+const yearMap = {};
+rows.forEach((x) => {
+  const y = x.ar;
+  if (y == null) return;
+  (yearMap[y] = yearMap[y] || { count: 0, total: 0 });
+  yearMap[y].count++;
+  yearMap[y].total += x.upphaed || 0;
+});
+const years = Object.keys(yearMap).map(Number).sort((a, b) => a - b);
+const yearTotals = years.map((y) => yearMap[y].total);
+const yearCounts = years.map((y) => yearMap[y].count);
+const minYear = years[0];
+const maxYear = years[years.length - 1];
+
+// Topp-styrkþegar (summuð upphæð per nafn)
+const byName = {};
+rows.forEach((x) => {
+  const n = x.nafn || '—';
+  (byName[n] = byName[n] || { total: 0, count: 0, funds: new Set() });
+  byName[n].total += x.upphaed || 0;
+  byName[n].count++;
+  byName[n].funds.add(x.sjodur);
+});
+const topRecipients = Object.entries(byName)
+  .map(([nafn, v]) => ({ nafn, total: v.total, count: v.count, funds: [...v.funds] }))
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 15);
+
+// Snið
+const fmtISK = (v) => new Intl.NumberFormat('is-IS').format(Math.round(v || 0));
+const kr = (v) => fmtISK(v) + ' kr.';
+// Stór tala → styttri m.kr / mrð.kr fyrir hetjutölur
+const shortKr = (v) => {
+  if (v >= 1e9) return (v / 1e9).toFixed(v >= 1e10 ? 1 : 2).replace('.', ',') + ' mrð.kr';
+  if (v >= 1e6) return Math.round(v / 1e6).toLocaleString('is-IS') + ' m.kr';
+  return fmtISK(v) + ' kr';
+};
+
+const desc = `Styrkjavaktin — ${fmtISK(count)} opinberir styrkir úr ${nFunds} sjóðum (Kvikmyndasjóður, Matvælasjóður, Orkusjóður, Tækniþróunarsjóður o.fl.), samtals ${shortKr(grandTotal)} á árunum ${minYear}–${maxYear}. Leitaðu eftir styrkþega, sjóði eða ári.`;
+---
+<Layout title="Styrkjavaktin — opinberir styrkir úr 6 sjóðum | Karp" description={desc} canonical="https://karp.is/styrkir/" ogTitle="Styrkjavaktin — opinberir styrkir Íslands">
+  <main data-pg="styrkir">
+    <p class="kicker">Hagvísir Íslands · Styrkir</p>
+    <h1>Styrkjavaktin 💰</h1>
+    <p class="lead">Opinberir styrkir úr <strong>{nFunds} sjóðum</strong> á einum stað — <strong>{fmtISK(count)}</strong> styrkveitingar að fjárhæð samtals <strong>{shortKr(grandTotal)}</strong> á árunum <strong>{minYear}–{maxYear}</strong>. Kvikmyndasjóður, Matvælasjóður, Orkusjóður, Tækniþróunarsjóður og uppbyggingarsjóðir landshlutanna birta styrkþega hver í sínu lagi — hér má leita í þeim öllum á einum stað. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Kvikmyndasjóður (kmi.payload.is), Matvælasjóður (stjórnarráðið), Orkusjóður (Orkustofnun), Tækniþróunarsjóður (Rannís), Uppbyggingarsjóðir Vesturlands og Suðurnesja. Upphæðir eru samþykktir/greiddir styrkir; vilyrði merkt sérstaklega þar sem við á. ⚠ Engin kennitala fylgir — styrkþegar eru nafn-lyklaðir og fyrirtæki og einstaklingar geta borið sama eða líkt nafn.">ⓘ</i> Um sjóðina og gögnin · ⚠ nafn-lyklað (engin kennitala)</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">💰 Heildarupphæð</div><div class="k-v">{shortKr(grandTotal)}</div><div class="k-s">{minYear}–{maxYear}</div></div>
+      <div class="kpi"><div class="k-l">📄 Styrkveitingar</div><div class="k-v">{fmtISK(count)}</div><div class="k-s">skráðar færslur</div></div>
+      <div class="kpi"><div class="k-l">🏛️ Sjóðir</div><div class="k-v">{nFunds}</div><div class="k-s">opinberar heimildir</div></div>
+      <div class="kpi"><div class="k-l">📊 Meðalstyrkur</div><div class="k-v">{shortKr(grandTotal / (count || 1))}</div><div class="k-s">á hverja veitingu</div></div>
+    </div>
+
+    <h2>Styrkir eftir sjóði</h2>
+    <p class="sub">Heildarfjárhæð úthlutað úr hverjum sjóði. Orkusjóður og Matvælasjóður eru fjárhæðamestir; Uppbyggingarsjóður Vesturlands veitir flesta (en smærri) styrki.</p>
+    <div class="cwrap"><div id="c-funds" class="ch"></div></div>
+
+    <div class="fund-tbl">
+      {funds.map((f) => (
+        <div class="fund-row">
+          <span class="fund-dot" style={`background:${fundColor[f.nafn]}`}></span>
+          <span class="fund-n">{f.nafn}</span>
+          <span class="fund-bar-wrap"><span class="fund-bar" style={`width:${Math.max(2, (f.total / funds[0].total) * 100)}%;background:${fundColor[f.nafn]}`}></span></span>
+          <span class="fund-t">{shortKr(f.total)}</span>
+          <span class="fund-c">{fmtISK(f.count)} styrkir</span>
+          <span class="fund-y">{f.minAr === f.maxAr ? f.minAr : `${f.minAr}–${f.maxAr}`}</span>
+        </div>
+      ))}
+    </div>
+
+    <h2>Úthlutað eftir ári</h2>
+    <p class="sub">Heildarfjárhæð styrkja á ári (súlur) og fjöldi veitinga (lína). Umfangið vex verulega frá 2019 þegar Orkusjóður og Tækniþróunarsjóður bætast við skrána.</p>
+    <div class="cwrap"><div id="c-years" class="ch"></div></div>
+
+    <h2>🏆 Stærstu styrkþegar</h2>
+    <p class="sub">Efstu {topRecipients.length} styrkþegar eftir samanlagðri fjárhæð allra styrkja á tímabilinu. Smelltu á nafn til að fletta upp fyrirtækjaprófíl.</p>
+    <div class="top-grid">
+      {topRecipients.map((r, i) => (
+        <div class="top-card">
+          <span class="top-rank">{i + 1}</span>
+          <div class="top-t">
+            <a class="top-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(r.nafn)}>{r.nafn}</a>
+            <div class="top-meta">{fmtISK(r.count)} {r.count === 1 ? 'styrkur' : 'styrkir'} · {r.funds.slice(0, 2).join(', ')}{r.funds.length > 2 ? ` +${r.funds.length - 2}` : ''}</div>
+          </div>
+          <div class="top-v">{shortKr(r.total)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Leitaðu í skránni</h2>
+    <p class="sub">Sláðu inn nafn styrkþega eða verkefnis, eða síaðu eftir sjóði og ári. Smelltu á nafn til að sjá fyrirtækjaprófíl.</p>
+    <div class="st-controls">
+      <input id="st-q" type="search" placeholder="🔎 Leita að styrkþega eða verkefni…" autocomplete="off" />
+      <select id="st-fund" class="st-sel">
+        <option value="all">Allir sjóðir</option>
+        {funds.map((f) => (<option value={f.nafn}>{f.nafn}</option>))}
+      </select>
+      <select id="st-year" class="st-sel">
+        <option value="all">Öll ár</option>
+        {years.slice().reverse().map((y) => (<option value={y}>{y}</option>))}
+      </select>
+    </div>
+    <div id="st-count" class="st-cnt"></div>
+    <div id="st-list" class="st-list"><div class="st-load">Hleð skránni…</div></div>
+    <button id="st-more" class="st-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Kvikmyndasjóður</b> (kmi.payload.is), <b>Matvælasjóður</b> (stjórnarráðið), <b>Orkusjóður</b> (Orkustofnun), <b>Tækniþróunarsjóður</b> (Rannís), <b>Uppbyggingarsjóður Vesturlands</b> og <b>Suðurnesja</b>. Uppfært {updated}. Upphæðir eru samþykktir/greiddir styrkir (vilyrði merkt þar sem við á). ⚠ Engin kennitala fylgir gögnunum — styrkþegar eru nafn-lyklaðir; uppfletting á fyrirtækjaprófíl leitar eftir nafni og getur skilað fleiri en einni niðurstöðu.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 320px; }
+
+    /* Sjóða-tafla */
+    .fund-tbl { margin-top: 12px; display: flex; flex-direction: column; gap: 2px; }
+    .fund-row { display: grid; grid-template-columns: 12px minmax(120px, 1.4fr) minmax(60px, 2fr) auto auto auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; font-size: 13px; }
+    .fund-row:hover { background: rgba(255,255,255,.03); }
+    .fund-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .fund-n { color: #eaf1fb; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fund-bar-wrap { height: 8px; background: rgba(255,255,255,.05); border-radius: 4px; overflow: hidden; }
+    .fund-bar { display: block; height: 100%; border-radius: 4px; }
+    .fund-t { color: #f6b13b; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .fund-c { color: #9fb0c8; font-size: 11.5px; white-space: nowrap; text-align: right; }
+    .fund-y { color: #7e8ca6; font-size: 11.5px; white-space: nowrap; text-align: right; }
+    @media (max-width: 640px) {
+      .fund-row { grid-template-columns: 10px 1fr auto; row-gap: 2px; }
+      .fund-bar-wrap { display: none; } .fund-c, .fund-y { grid-column: 2 / 4; text-align: left; }
+    }
+
+    /* Topp-styrkþegar */
+    .top-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 9px; margin-top: 4px; }
+    .top-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; }
+    .top-rank { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: rgba(246,177,59,.14); color: #f6b13b; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .top-t { flex: 1 1 auto; min-width: 0; }
+    .top-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-n:hover { color: #f6b13b; }
+    .top-meta { font-size: 11.5px; color: #7e8ca6; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .top-v { flex: 0 0 auto; color: #f6b13b; font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    /* Leitarstýringar */
+    .st-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #st-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #st-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .st-sel { font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .st-sel:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .st-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .st-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .st-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+  </style>
+
+  <!-- Klasar sem birtast AÐEINS í runtime-innerHTML (leitarlistinn) → is:global svo þeir tréhristist ekki burt -->
+  <style is:global>
+    #st-list { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+    .st-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .st-item { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 10px 13px; }
+    .st-item:hover { border-color: rgba(246,177,59,.35); }
+    .st-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; color: #0a0e14; white-space: nowrap; align-self: center; }
+    .st-main { min-width: 0; }
+    .st-name { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; }
+    .st-name:hover { color: #f6b13b; }
+    .st-vil { font-size: 10px; font-weight: 700; color: #f0883e; border: 1px solid rgba(240,136,62,.4); border-radius: 5px; padding: 0 5px; margin-left: 6px; vertical-align: middle; }
+    .st-proj { font-size: 12px; color: #9fb0c8; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .st-sub { font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .st-amt { font-size: 13.5px; font-weight: 700; color: #f6b13b; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; align-self: center; }
+    .st-yr { display: block; font-size: 11px; color: #7e8ca6; font-weight: 400; margin-top: 1px; }
+  </style>
+
+  <script define:vars={{ funds, fundColor, years, yearTotals, yearCounts }}>
+    function initStyrkir() {
+      if (!document.querySelector('main[data-pg="styrkir"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const nf = new Intl.NumberFormat('is-IS');
+      const shortKr = (v) => {
+        if (v >= 1e9) return (v / 1e9).toFixed(v >= 1e10 ? 1 : 2).replace('.', ',') + ' mrð.kr';
+        if (v >= 1e6) return Math.round(v / 1e6).toLocaleString('is-IS') + ' m.kr';
+        return nf.format(Math.round(v || 0)) + ' kr';
+      };
+
+      // ── Súlurit ────────────────────────────────────────────────
+      const drawCharts = () => {
+        if (!window.echarts) return;
+        // Eftir sjóði (lárétt súlurit, litað)
+        const elF = document.getElementById('c-funds');
+        if (elF && !window.echarts.getInstanceByDom(elF)) {
+          const c = window.echarts.init(elF);
+          const asc = funds.slice().sort((a, b) => a.total - b.total); // minnst neðst → stærst efst
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 8, right: 90, top: 10, bottom: 24, containLabel: true },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => esc(p[0].name) + '<br/><b>' + shortKr(p[0].value) + '</b>' },
+            xAxis: { type: 'value', axisLabel: { color: AX, formatter: (v) => (v >= 1e9 ? (v / 1e9) + ' mrð' : (v / 1e6) + ' m') }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { type: 'category', data: asc.map((f) => f.nafn), axisLabel: { color: AX, fontSize: 11.5, width: 150, overflow: 'truncate' }, axisLine: { lineStyle: { color: LINE } } },
+            series: [{ type: 'bar', data: asc.map((f) => ({ value: f.total, itemStyle: { color: fundColor[f.nafn], borderRadius: [0, 4, 4, 0] } })), barMaxWidth: 26, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11, formatter: (p) => shortKr(p.value) } }],
+          });
+        }
+        // Eftir ári (súlur = upphæð, lína = fjöldi)
+        const elY = document.getElementById('c-years');
+        if (elY && !window.echarts.getInstanceByDom(elY)) {
+          const c = window.echarts.init(elY);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 52, right: 48, top: 20, bottom: 30 },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => { const yr = p[0].name; let s = yr + '<br/>'; p.forEach((it) => { s += it.marker + it.seriesName + ': <b>' + (it.seriesName === 'Fjöldi' ? nf.format(it.value) : shortKr(it.value)) + '</b><br/>'; }); return s; } },
+            legend: { data: ['Fjárhæð', 'Fjöldi'], textStyle: { color: AX, fontSize: 11 }, top: 0, right: 4 },
+            xAxis: { type: 'category', data: years, axisLabel: { color: AX, fontSize: 11 }, axisLine: { lineStyle: { color: LINE } } },
+            yAxis: [
+              { type: 'value', axisLabel: { color: AX, formatter: (v) => (v >= 1e9 ? (v / 1e9) + ' mrð' : (v / 1e6) + ' m') }, splitLine: { lineStyle: { color: GRID } } },
+              { type: 'value', axisLabel: { color: AX }, splitLine: { show: false } },
+            ],
+            series: [
+              { name: 'Fjárhæð', type: 'bar', data: yearTotals, itemStyle: { color: '#f6b13b', borderRadius: [4, 4, 0, 0] }, barMaxWidth: 34 },
+              { name: 'Fjöldi', type: 'line', yAxisIndex: 1, data: yearCounts, smooth: true, symbol: 'circle', symbolSize: 6, lineStyle: { color: '#58a6ff', width: 2 }, itemStyle: { color: '#58a6ff' } },
+            ],
+          });
+        }
+        window.addEventListener('resize', () => {
+          [elF, elY].forEach((el) => { const i = el && window.echarts.getInstanceByDom(el); if (i) i.resize(); });
+        });
+      };
+      if (window.echarts) drawCharts();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawCharts, { once: true }); }
+
+      // ── Leitanleg heildarskrá ──────────────────────────────────
+      const listEl = document.getElementById('st-list'), cntEl = document.getElementById('st-count'), moreEl = document.getElementById('st-more');
+      const qEl = document.getElementById('st-q'), fundEl = document.getElementById('st-fund'), yearEl = document.getElementById('st-year');
+      let DATA = null, filtered = [], shown = 0, PAGE = 50;
+      const item = (x) => {
+        const col = fundColor[x.sjodur] || '#8b98ad';
+        const proj = x.verkefni && x.verkefni !== x.nafn ? '<div class="st-proj">' + esc(x.verkefni) + '</div>' : '';
+        const sub = [x.flokkur && x.flokkur !== 'null' ? esc(x.flokkur) : '', x.stadur ? esc(x.stadur) : '', x.landshluti ? esc(x.landshluti) : ''].filter(Boolean).join(' · ');
+        return '<div class="st-item">'
+          + '<span class="st-badge" style="background:' + col + '" title="' + esc(x.sjodur) + '">' + esc(x.sjodur) + '</span>'
+          + '<div class="st-main"><a class="st-name" href="/fyrirtaeki/?q=' + encodeURIComponent(x.nafn || '') + '">' + esc(x.nafn || '—') + '</a>'
+          + (x.vilyrdi ? '<span class="st-vil" title="Vilyrði — ekki fullgreitt">vilyrði</span>' : '')
+          + proj + (sub ? '<div class="st-sub">' + sub + '</div>' : '') + '</div>'
+          + '<div class="st-amt">' + shortKr(x.upphaed || 0) + '<span class="st-yr">' + esc(x.ar) + '</span></div>'
+          + '</div>';
+      };
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        const fv = fundEl.value, yv = yearEl.value;
+        filtered = DATA.filter((x) =>
+          (fv === 'all' || x.sjodur === fv)
+          && (yv === 'all' || String(x.ar) === yv)
+          && (!q || (x.nafn || '').toLowerCase().includes(q) || (x.verkefni || '').toLowerCase().includes(q)));
+        shown = 0;
+        const isFilt = q || fv !== 'all' || yv !== 'all';
+        const sum = filtered.reduce((s, x) => s + (x.upphaed || 0), 0);
+        cntEl.textContent = nf.format(filtered.length) + ' styrkir' + (isFilt ? ' (síað)' : '') + ' · samtals ' + shortKr(sum);
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(item).join('') || (shown === 0 ? '<div class="st-load">Engir styrkir fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const load = () => fetch('/gogn/styrkir.json').then((r) => r.json()).then((j) => {
+        DATA = (j.styrkir || []).slice().sort((a, b) => (b.ar - a.ar) || ((b.upphaed || 0) - (a.upphaed || 0)));
+        apply();
+      }).catch(() => { listEl.innerHTML = '<div class="st-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      fundEl.addEventListener('change', () => DATA && apply());
+      yearEl.addEventListener('change', () => DATA && apply());
+      moreEl.addEventListener('click', more);
+      load();
+    }
+    document.addEventListener('astro:page-load', initStyrkir);
+  </script>
+</Layout>

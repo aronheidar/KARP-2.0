@@ -1,0 +1,384 @@
+---
+// Gjaldþrota- & félagavakt (LOTA — landsyfirlit Lögbirtingablaðsins).
+// Gögnin (logbirting.json) birtast annars aðeins per-fyrirtæki í paywall-skýrslunni;
+// ÞESSI síða = opið landsyfirlit lögformlegra tilkynninga lögaðila.
+// SSR: hero-tölur + dreifing eftir tegund + tímalína 2026 + nýjustu/alvarlegustu.
+// Client: leit eftir félagsnafni/kt + sía eftir tegund (sækir /gogn/logbirting.json).
+// ⚠ PERSÓNUVERND: aðeins lögaðilar (gögnin þegar síuð); félagsnafn+kt+tegund+dags leyfilegt.
+import Layout from '../layouts/Layout.astro';
+import LB from '@gogn/logbirting.json';
+
+const typeLabels = LB.typeLabels || {};
+const severityMap = LB.severity || {};
+const byKt = LB.byKt || {};
+const counts = LB.counts || {};
+const generated = (LB.generated || '').slice(0, 10);
+
+// Sjónræn alvarleika-þrep (3 stig): gjaldþrota-/skiptabeiðni = rautt (crit),
+// skiptafundur/innköllun = gult (mid), skiptalok/félagsslit = grænt/hlutlaust (low).
+// (Gagna-severity er 1–2; við kortleggjum í 3 sjónræn þrep fyrir litun.)
+const TIER = {
+  gjaldthrot_beidni: 'crit',
+  skiptabeidni: 'crit',
+  innkollun: 'mid',
+  skiptafundur: 'mid',
+  skiptalok: 'low',
+  felagsslit: 'low',
+};
+const tierOf = (t) => TIER[t] || 'low';
+
+// Röð tegunda eftir alvarleika (fyrir súlurit/kökurit og lista).
+const TYPE_ORDER = ['gjaldthrot_beidni', 'skiptabeidni', 'innkollun', 'skiptafundur', 'skiptalok', 'felagsslit'];
+const TYPE_COL = {
+  gjaldthrot_beidni: '#f85149',
+  skiptabeidni: '#f0883e',
+  innkollun: '#f6b13b',
+  skiptafundur: '#d2a24c',
+  skiptalok: '#6fd39b',
+  felagsslit: '#3fb950',
+};
+
+// ── Fletja tilkynningar (nota FÉLAGS-nafn af byKt, ekki tilkynninga-nafn sem getur verið óhreint) ──
+const all = [];
+for (const kt of Object.keys(byKt)) {
+  const e = byKt[kt] || {};
+  const nm = e.name || kt;
+  for (const n of e.notices || []) {
+    all.push({
+      kt,
+      name: nm,
+      type: n.type,
+      date: n.date || '',
+      court: n.court || '',
+      ref: n.ref || (n.issue && n.year ? `${n.issue}-${n.year}` : ''),
+      url: n.url || '',
+    });
+  }
+}
+all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+const totalNotices = counts.notices || all.length;
+const totalCompanies = counts.companies || Object.keys(byKt).length;
+
+// Dreifing eftir tegund
+const byTypeCount = {};
+for (const n of all) byTypeCount[n.type] = (byTypeCount[n.type] || 0) + 1;
+const typeBars = TYPE_ORDER.filter((t) => byTypeCount[t]).map((t) => ({
+  key: t,
+  label: typeLabels[t] || t,
+  v: byTypeCount[t],
+  tier: tierOf(t),
+  color: TYPE_COL[t] || '#8892a6',
+}));
+
+// Lykiltölur: gjaldþrot (beiðni+skiptabeiðni), innkallanir, félagsslit
+const nGjaldthrot = (byTypeCount.gjaldthrot_beidni || 0) + (byTypeCount.skiptabeidni || 0);
+const nInnkollun = byTypeCount.innkollun || 0;
+const nFelagsslit = byTypeCount.felagsslit || 0;
+
+// ── Tímalína: tilkynningar eftir mánuði (2026) ──
+const monthMap = {};
+for (const n of all) {
+  const m = (n.date || '').slice(0, 7);
+  if (/^\d{4}-\d{2}$/.test(m)) monthMap[m] = (monthMap[m] || 0) + 1;
+}
+const months = Object.keys(monthMap).sort();
+const MONTH_IS = ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'];
+const timelineLabels = months.map((m) => {
+  const mm = +m.slice(5, 7);
+  return MONTH_IS[mm - 1] || m;
+});
+const timelineVals = months.map((m) => monthMap[m]);
+
+// ── Nýjustu / alvarlegustu tilkynningar (SSR listi, hámark ~40) ──
+// Röðum: rautt fyrst, svo dagsetning (nýjast efst).
+const tierRank = { crit: 0, mid: 1, low: 2 };
+const latest = all
+  .slice()
+  .sort((a, b) => (tierRank[tierOf(a.type)] - tierRank[tierOf(b.type)]) || (b.date || '').localeCompare(a.date || ''))
+  .slice(0, 40);
+
+const fmtDate = (iso) => {
+  if (!iso || iso.length < 10) return '';
+  const [y, mo, da] = iso.split('-');
+  return `${+da}. ${MONTH_IS[+mo - 1]} ${y}`;
+};
+
+const desc = `Gjaldþrota- og félagavakt — ${totalNotices.toLocaleString('is-IS')} lögformlegar tilkynningar ${totalCompanies.toLocaleString('is-IS')} lögaðila í Lögbirtingablaðinu 2026 (gjaldþrotaskipti, innkallanir, skiptalok, félagsslit). Landsyfirlit með leit og tengingu við fyrirtækjaprófíla.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Gjaldþrota- og félagavakt (Lögbirtingablaðið)',
+  description: desc,
+  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: generated,
+  spatialCoverage: 'Ísland',
+  isBasedOn: 'https://logbirtingablad.is',
+  variableMeasured: 'Lögformlegar tilkynningar lögaðila (gjaldþrot, innköllun, skiptalok, félagsslit)',
+};
+---
+<Layout title="Gjaldþrota- & félagavakt — Lögbirtingablaðið | Karp" description={desc} canonical="https://karp.is/logbirting/" jsonLd={jsonLd} ogTitle="Gjaldþrota- og félagavakt">
+  <main data-pg="logbirting">
+    <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
+    <h1>Gjaldþrota- &amp; félagavakt ⚖️</h1>
+    <p class="lead">Landsyfirlit yfir <strong>{totalNotices.toLocaleString('is-IS')}</strong> lögformlegar tilkynningar sem varða <strong>{totalCompanies.toLocaleString('is-IS')} lögaðila</strong> í Lögbirtingablaðinu árið 2026 — gjaldþrotaskiptabeiðnir, innkallanir þrotabúa, skiptalok og félagsslit. Fletta má upp einstöku félagi á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Lögbirtingablaðið (logbirtingablad.is), unnið úr opinberum PDF-tölublöðum skv. lögum nr. 15/2005. Tegundir: Gjaldþrotaskiptabeiðni · Skiptabeiðni (fyrirtaka) · Innköllun þrotabús (kröfulýsing) · Skiptafundur · Skiptalok þrotabús · Félagsslit / afskráning. Aðeins lögaðilar — einstaklingar, sakamál, dómsmál og nauðungarsölur eru undanskilin.">ⓘ</i> Um gögnin · ⚠ aðeins lögaðilar</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">📄 Tilkynningar</div><div class="k-v">{totalNotices.toLocaleString('is-IS')}</div><div class="k-s">alls · 2026</div></div>
+      <div class="kpi"><div class="k-l">🏢 Lögaðilar</div><div class="k-v">{totalCompanies.toLocaleString('is-IS')}</div><div class="k-s">með tilkynningu</div></div>
+      <div class="kpi"><div class="k-l">⛔ Gjaldþrotabeiðnir</div><div class="k-v" style="color:#f85149">{nGjaldthrot.toLocaleString('is-IS')}</div><div class="k-s">skiptabeiðni</div></div>
+      <div class="kpi"><div class="k-l">📢 Innkallanir</div><div class="k-v" style="color:#f6b13b">{nInnkollun.toLocaleString('is-IS')}</div><div class="k-s">kröfulýsing</div></div>
+    </div>
+
+    <div class="ppair">
+      <div>
+        <h2>Eftir tegund tilkynningar</h2>
+        <p class="sub">Fjöldi tilkynninga eftir tegund. Gjaldþrotaskiptabeiðnir eru rauðar (alvarlegastar), skiptalok og félagsslit græn.</p>
+        <div id="chart-type"></div>
+      </div>
+      <div>
+        <h2>Skipting (kaka)</h2>
+        <p class="sub">Hlutfallsleg skipting tilkynninga milli tegunda.</p>
+        <div class="cwrap"><div id="chart-pie" class="ch-pie"></div></div>
+      </div>
+    </div>
+
+    <h2>Tímalína 2026</h2>
+    <p class="sub">Fjöldi lögformlegra tilkynninga eftir mánuði. Byggt á útgáfudegi í Lögbirtingablaðinu.</p>
+    <div class="cwrap"><div id="chart-time" class="ch"></div></div>
+
+    <h2>⚠ Nýjustu &amp; alvarlegustu tilkynningarnar</h2>
+    <p class="sub">Raðað eftir alvarleika (gjaldþrot efst) og dagsetningu. Smelltu á félag fyrir fyrirtækjaprófíl, eða á tölublaðið til að lesa opinberu auglýsinguna.</p>
+    <div class="lb-grid">
+      {latest.map((n) => (
+        <div class={'lb-card t-' + tierOf(n.type)}>
+          <span class={'lb-b t-' + tierOf(n.type)} title={typeLabels[n.type] || n.type}></span>
+          <div class="lb-t">
+            <a class="lb-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(n.kt)}>{n.name}</a>
+            <div class="lb-meta">{typeLabels[n.type] || n.type}{n.court ? ' · ' + n.court : ''}</div>
+            <div class="lb-kt">kt. {n.kt}</div>
+          </div>
+          <div class="lb-r">
+            <div class="lb-d">{fmtDate(n.date)}</div>
+            {n.url && <a class="lb-rep" href={n.url} target="_blank" rel="noopener">tbl. {n.ref} ↗</a>}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Leitaðu í skránni</h2>
+    <p class="sub">Sláðu inn félagsnafn eða kennitölu, eða síaðu eftir tegund tilkynningar. Smelltu á nafn til að sjá fyrirtækjaprófíl, eða á tölublaðið fyrir opinberu auglýsinguna.</p>
+    <div class="lb-controls">
+      <input id="lb-q" type="search" placeholder="🔎 Leita að félagi eða kennitölu…" autocomplete="off" />
+      <div class="lb-filt" id="lb-filt">
+        <button class="lb-fb active" data-t="all">Allar</button>
+        {typeBars.map((t) => (
+          <button class={'lb-fb tf-' + t.tier} data-t={t.key}>{t.label}</button>
+        ))}
+      </div>
+    </div>
+    <div id="lb-count" class="lb-cnt"></div>
+    <div id="lb-list" class="lb-grid"><div class="lb-load">Hleð skránni…</div></div>
+    <button id="lb-more" class="lb-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimild: <b>Lögbirtingablaðið</b> (logbirtingablad.is), unnið úr opinberum PDF-tölublöðum, uppfært {generated}. Opinber lögbirting skv. lögum nr. 15/2005; aðeins lögaðilar (gjaldþrotaskipti, innkallanir, skiptalok, félagsslit). Einstaklingar, sakamál, dómsmál og nauðungarsölur eru undanskilin. Endurbirting kann að vera háð skilyrðum skv. lögum nr. 90/2018.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: #7e8ca6; }
+
+    .ppair { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    #chart-type { width: 100%; }
+    .ch { width: 100%; height: 300px; }
+    .ch-pie { width: 100%; height: 260px; }
+
+    .lb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px; margin-top: 4px; }
+    .lb-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; border-left-width: 3px; }
+    .lb-card.t-crit { border-left-color: #f85149; }
+    .lb-card.t-mid { border-left-color: #f6b13b; }
+    .lb-card.t-low { border-left-color: #3fb950; }
+    .lb-b { flex: 0 0 12px; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; }
+    .lb-b.t-crit { background: #f85149; }
+    .lb-b.t-mid { background: #f6b13b; }
+    .lb-b.t-low { background: #3fb950; }
+    .lb-t { flex: 1 1 auto; min-width: 0; }
+    .lb-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; }
+    .lb-n:hover { color: #f6b13b; }
+    .lb-meta { font-size: 11.5px; color: #9fb0c8; margin-top: 2px; }
+    .lb-kt { font-size: 11px; color: #7e8ca6; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .lb-r { flex: 0 0 auto; text-align: right; }
+    .lb-d { font-size: 11px; color: #7e8ca6; white-space: nowrap; }
+    .lb-rep { font-size: 11px; color: #f6b13b; text-decoration: none; white-space: nowrap; }
+    .lb-rep:hover { text-decoration: underline; }
+
+    .lb-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #lb-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #lb-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .lb-filt { display: flex; flex-wrap: wrap; gap: 5px; }
+    .lb-fb { font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; font-weight: 700; }
+    .lb-fb:hover { color: #eaf1fb; border-color: rgba(246,177,59,.5); }
+    .lb-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .lb-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    .lb-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .lb-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    .lb-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: #9fb0c8; }
+  </style>
+
+  <!-- is:global — klasar sem birtast aðeins í runtime-innerHTML (annars tré-hristir Astro CSS burt). -->
+  <style is:global>
+    .lb-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; border-left-width: 3px; }
+    .lb-card.t-crit { border-left-color: #f85149; }
+    .lb-card.t-mid { border-left-color: #f6b13b; }
+    .lb-card.t-low { border-left-color: #3fb950; }
+    .lb-b { flex: 0 0 12px; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; }
+    .lb-b.t-crit { background: #f85149; }
+    .lb-b.t-mid { background: #f6b13b; }
+    .lb-b.t-low { background: #3fb950; }
+    .lb-t { flex: 1 1 auto; min-width: 0; }
+    .lb-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; }
+    .lb-n:hover { color: #f6b13b; }
+    .lb-meta { font-size: 11.5px; color: #9fb0c8; margin-top: 2px; }
+    .lb-kt { font-size: 11px; color: #7e8ca6; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .lb-r { flex: 0 0 auto; text-align: right; }
+    .lb-d { font-size: 11px; color: #7e8ca6; white-space: nowrap; }
+    .lb-rep { font-size: 11px; color: #f6b13b; text-decoration: none; white-space: nowrap; }
+    .lb-rep:hover { text-decoration: underline; }
+  </style>
+
+  <script define:vars={{ typeBars, timelineLabels, timelineVals, typeLabels, TIER }}>
+    function initLogb() {
+      if (!document.querySelector('main[data-pg="logbirting"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const tierOf = (t) => TIER[t] || 'low';
+      // Íslensk þúsundaskil (punktur) — óháð ICU-gögnum vafrans (is-IS gefur stundum kommu).
+      const nf = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+      // ── Gröf (ECharts) ──
+      const drawCharts = () => {
+        if (!window.echarts) return;
+
+        // Súlurit eftir tegund (lárétt, litað eftir tegund)
+        const ct = document.getElementById('chart-type');
+        if (ct && !window.echarts.getInstanceByDom(ct)) {
+          ct.style.height = (typeBars.length * 34 + 30) + 'px';
+          const c = window.echarts.init(ct);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 6, right: 46, top: 6, bottom: 20, containLabel: true },
+            xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            yAxis: { type: 'category', inverse: true, data: typeBars.map((d) => d.label), axisLabel: { color: '#cdd6e6', fontSize: 11.5, width: 150, overflow: 'truncate' }, axisLine: { show: false }, axisTick: { show: false } },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => nf(v) + ' tilk.' },
+            series: [{ type: 'bar', barWidth: 16, data: typeBars.map((d) => ({ value: d.v, itemStyle: { color: d.color, borderRadius: [0, 4, 4, 0] } })), label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11, formatter: (p) => nf(p.value) } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+
+        // Kökurit — skipting eftir tegund
+        const cp = document.getElementById('chart-pie');
+        if (cp && !window.echarts.getInstanceByDom(cp)) {
+          const c = window.echarts.init(cp);
+          c.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'item', formatter: (p) => p.name + '<br/><b>' + nf(p.value) + '</b> (' + p.percent + '%)' },
+            legend: { show: false },
+            series: [{
+              type: 'pie', radius: ['42%', '70%'], center: ['50%', '50%'], avoidLabelOverlap: true,
+              itemStyle: { borderColor: '#0e1420', borderWidth: 2 },
+              label: { color: '#9fb0c8', fontSize: 10.5, formatter: '{d}%' },
+              data: typeBars.map((d) => ({ name: d.label, value: d.v, itemStyle: { color: d.color } })),
+            }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+
+        // Tímalína — súlur eftir mánuði
+        const cti = document.getElementById('chart-time');
+        if (cti && !window.echarts.getInstanceByDom(cti)) {
+          const c = window.echarts.init(cti);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 44, right: 16, top: 14, bottom: 30 },
+            xAxis: { type: 'category', data: timelineLabels, axisLabel: { color: AX, fontSize: 12 }, axisLine: { lineStyle: { color: LINE } } },
+            yAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => nf(v) + ' tilk.' },
+            series: [{ type: 'bar', data: timelineVals, barMaxWidth: 46, itemStyle: { color: '#f6b13b', borderRadius: [4, 4, 0, 0] }, label: { show: true, position: 'top', color: '#9fb0c8', fontSize: 11 } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+      };
+      if (window.echarts) drawCharts();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawCharts, { once: true }); }
+
+      // ── Leitanleg skrá — sækir /gogn/logbirting.json, flatur listi, síar client-side ──
+      const listEl = document.getElementById('lb-list'), cntEl = document.getElementById('lb-count'), moreEl = document.getElementById('lb-more'), qEl = document.getElementById('lb-q');
+      let DATA = null, filtered = [], shown = 0, curT = 'all', PAGE = 60;
+      const MONTH_IS = ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'];
+      const fmtDate = (iso) => { if (!iso || iso.length < 10) return ''; const p = iso.split('-'); return (+p[2]) + '. ' + MONTH_IS[+p[1] - 1] + ' ' + p[0]; };
+      const card = (n) => '<div class="lb-card t-' + tierOf(n.type) + '"><span class="lb-b t-' + tierOf(n.type) + '"></span>'
+        + '<div class="lb-t"><a class="lb-n" href="/fyrirtaeki/?q=' + encodeURIComponent(n.kt) + '">' + esc(n.name) + '</a>'
+        + '<div class="lb-meta">' + esc(typeLabels[n.type] || n.type) + (n.court ? ' · ' + esc(n.court) : '') + '</div>'
+        + '<div class="lb-kt">kt. ' + esc(n.kt) + '</div></div>'
+        + '<div class="lb-r"><div class="lb-d">' + esc(fmtDate(n.date)) + '</div>'
+        + (n.url ? '<a class="lb-rep" href="' + esc(n.url) + '" target="_blank" rel="noopener">tbl. ' + esc(n.ref) + ' ↗</a>' : '') + '</div></div>';
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        filtered = DATA.filter((n) => (curT === 'all' || n.type === curT)
+          && (!q || (n.name || '').toLowerCase().includes(q) || (n.kt || '').includes(q)));
+        shown = 0;
+        cntEl.textContent = nf(filtered.length) + ' tilkynningar' + (q || curT !== 'all' ? ' (síað)' : '');
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="lb-load">Engar tilkynningar fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const load = () => fetch('/gogn/logbirting.json').then((r) => r.json()).then((j) => {
+        const rows = [];
+        const bk = j.byKt || {};
+        for (const kt of Object.keys(bk)) {
+          const e = bk[kt] || {};
+          const nm = e.name || kt;
+          for (const n of e.notices || []) {
+            rows.push({ kt, name: nm, type: n.type, date: n.date || '', court: n.court || '', ref: n.ref || ((n.issue && n.year) ? (n.issue + '-' + n.year) : ''), url: n.url || '' });
+          }
+        }
+        const tr = { crit: 0, mid: 1, low: 2 };
+        rows.sort((a, b) => (tr[tierOf(a.type)] - tr[tierOf(b.type)]) || (b.date || '').localeCompare(a.date || ''));
+        DATA = rows;
+        apply();
+      }).catch(() => { listEl.innerHTML = '<div class="lb-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      document.getElementById('lb-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.lb-fb'); if (!b) return;
+        document.querySelectorAll('.lb-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curT = b.dataset.t; if (DATA) apply();
+      });
+      moreEl.addEventListener('click', more);
+      load();
+    }
+    document.addEventListener('astro:page-load', initLogb);
+  </script>
+</Layout>

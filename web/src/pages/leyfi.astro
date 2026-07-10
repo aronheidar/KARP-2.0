@@ -1,0 +1,301 @@
+---
+// Leyfaskrá (LOTA — ný vöktunarsíða) — rekstrar-/gisti-/veitinga-leyfi Sýslumanna
+// + ferðaþjónustuleyfi Ferðamálastofu. Gögnin eru ÞEGAR byggð (per-fyrirtæki flísar);
+// þessi síða er vafraða HEILDARYFIRLITIÐ yfir leyfishafa.
+// SSR: KPIs + dreifing eftir leyfistegund + dreifing eftir svæði. Client: leitanleg skrá.
+// Sniðið eltir eftirlit.astro (vakt-stíll). Enginn sértök persónuvernd — lögaðila-rekstrarleyfi, opinbert.
+import Layout from '../layouts/Layout.astro';
+// Gögnin liggja í public/gogn (þaðan sækir client-hlutinn þau líka um /gogn/…);
+// Vite leysir þessa JSON-innflutninga á byggingartíma (path-óháð) fyrir SSR-tölurnar.
+import REK from '../../public/gogn/rekstrarleyfi.json';
+import FER from '../../public/gogn/ferdaleyfi.json';
+
+const rekBy = REK.byKt || {};
+const ferBy = FER.byKt || {};
+
+// ── SSR-tölur ─────────────────────────────────────────────────────────────
+let rekLeyfi = 0, gist = 0, veit = 0, afengi = 0;
+const rekRegion = {}; // utg → fjöldi (t.d. „á höfuðborgarsvæðinu")
+for (const kt in rekBy) {
+  for (const l of rekBy[kt]) {
+    rekLeyfi++;
+    const t = l.teg || '';
+    if (t.startsWith('Gististaðir')) gist++;
+    else if (t.startsWith('Veitingaleyfi')) veit++;
+    if (l.afengi) afengi++;
+    const r = (l.utg || '').replace(/^á |^í /, '') || 'Óskráð';
+    rekRegion[r] = (rekRegion[r] || 0) + 1;
+  }
+}
+const rekFelog = Object.keys(rekBy).length;
+
+let ferLeyfi = 0, ferskr = 0, dags = 0;
+const ferRegion = {}; // póstsvæði úr stadur-streng → fjöldi
+// Skilar SÖMU þágufalls-heitum og rekstrarleyfi (utg) svo súlurnar sameinist í ~9 landshluta.
+const regFromStadur = (s) => {
+  if (!s) return 'Óskráð';
+  if (/rafr|rafæn/i.test(s)) return 'Rafræn þjónusta';
+  const m = s.match(/\b(\d{3})\b/);
+  if (!m) return 'Óskráð';
+  const pn = +m[1];
+  if ((pn >= 101 && pn <= 132) || [200, 201, 203, 210, 212, 220, 221, 222, 225, 270, 271, 276].includes(pn)) return 'höfuðborgarsvæðinu';
+  if (pn >= 230 && pn <= 262) return 'Suðurnesjum';
+  if (pn >= 300 && pn <= 380) return 'Vesturlandi';
+  if (pn >= 400 && pn <= 470) return 'Vestfjörðum';
+  if (pn >= 500 && pn <= 545) return 'Norðurlandi vestra';
+  if (pn >= 550 && pn <= 690) return 'Norðurlandi eystra';
+  if (pn >= 700 && pn <= 785) return 'Austurlandi';
+  if (pn >= 800 && pn <= 880) return 'Suðurlandi';
+  if (pn >= 900 && pn <= 902) return 'Vestmannaeyjum';
+  return 'Óskráð';
+};
+for (const kt in ferBy) {
+  for (const l of ferBy[kt]) {
+    ferLeyfi++;
+    if ((l.teg || '') === 'Ferðaskrifstofa') ferskr++;
+    else dags++;
+    const r = regFromStadur(l.stadur);
+    ferRegion[r] = (ferRegion[r] || 0) + 1;
+  }
+}
+const ferFelog = Object.keys(ferBy).length;
+
+const totalHafar = rekFelog + ferFelog; // leyfishafar (kt) samtals — smá skörun möguleg milli skránna
+const totalLeyfi = rekLeyfi + ferLeyfi;
+
+// Dreifing eftir leyfistegund (fyrir súlurit + töflu)
+const typeRows = [
+  { key: 'gist', label: 'Gististaðir', n: gist, emoji: '🛏️', col: '#58a6ff' },
+  { key: 'veit', label: 'Veitingaleyfi', n: veit, emoji: '🍽️', col: '#3fb950' },
+  { key: 'dags', label: 'Dagsferðasalar', n: dags, emoji: '🧭', col: '#f6b13b' },
+  { key: 'ferskr', label: 'Ferðaskrifstofur', n: ferskr, emoji: '✈️', col: '#bc8cff' },
+].sort((a, b) => b.n - a.n);
+const maxType = Math.max(...typeRows.map((r) => r.n), 1);
+
+// Sameinuð svæðadreifing (rekstrarleyfi utg-svæði + ferðaleyfi póstsvæði — sömu þágufalls-heiti)
+const regionAll = {};
+for (const k in rekRegion) regionAll[k] = (regionAll[k] || 0) + rekRegion[k];
+for (const k in ferRegion) regionAll[k] = (regionAll[k] || 0) + ferRegion[k];
+const regionRows = Object.entries(regionAll)
+  .filter(([k]) => k !== 'Óskráð' && k !== 'Rafræn þjónusta')
+  .sort((a, b) => b[1] - a[1]);
+const maxRegion = Math.max(...regionRows.map((r) => r[1]), 1);
+
+const updated = ((REK.updated || FER.updated || '') + '').slice(0, 10);
+const nf = (n) => n.toLocaleString('is-IS');
+
+const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rekstrar-, gisti- og veitingaleyfa Sýslumanna og ferðaþjónustuleyfa Ferðamálastofu á Íslandi (${nf(totalLeyfi)} leyfi). ${nf(gist)} gististaðir, ${nf(veit)} veitingaleyfi, ${nf(afengi)} með vínveitingaleyfi, ${nf(ferskr)} ferðaskrifstofur, ${nf(dags)} dagsferðasalar. Leitanlegt eftir nafni, tegund og svæði.`;
+---
+<Layout
+  title="Leyfaskrá — rekstrar-, gisti-, veitinga- og ferðaþjónustuleyfi | Karp"
+  description={desc}
+  canonical="https://karp.is/leyfi/"
+  ogTitle="Leyfaskrá — hverjir hafa rekstrar- og ferðaþjónustuleyfi?"
+>
+  <main data-pg="leyfi">
+    <p class="kicker">Hagvísir Íslands · Atvinnuleyfi</p>
+    <h1>Leyfaskrá 📋</h1>
+    <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong> ásamt <strong>ferðaþjónustuleyfum Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi tilgreina nafn og hjáheiti. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏢 Leyfishafar</div><div class="k-v">{nf(totalHafar)}</div><div class="k-s">kennitölur með leyfi</div></div>
+      <div class="kpi"><div class="k-l">🛏️ Gististaðir</div><div class="k-v">{nf(gist)}</div><div class="k-s">rekstrarleyfi gistingar</div></div>
+      <div class="kpi"><div class="k-l">🍽️ Veitingaleyfi</div><div class="k-v">{nf(veit)}</div><div class="k-s">veitingastaðir</div></div>
+      <div class="kpi"><div class="k-l">🍷 Vínveitingaleyfi</div><div class="k-v" style="color:#bc8cff">{nf(afengi)}</div><div class="k-s">af rekstrarleyfum</div></div>
+      <div class="kpi"><div class="k-l">✈️ Ferðaskrifstofur</div><div class="k-v">{nf(ferskr)}</div><div class="k-s">Ferðamálastofa</div></div>
+      <div class="kpi"><div class="k-l">🧭 Dagsferðasalar</div><div class="k-v">{nf(dags)}</div><div class="k-s">Ferðamálastofa</div></div>
+    </div>
+
+    <h2>Dreifing eftir leyfistegund</h2>
+    <p class="sub">Fjöldi leyfa eftir tegund. Gististaðir eru langfjölmennastir, síðan veitingaleyfi.</p>
+    <div class="bars">
+      {typeRows.map((r) => (
+        <div class="bar-row">
+          <div class="bar-lab">{r.emoji} {r.label}</div>
+          <div class="bar-track"><div class="bar-fill" style={`width:${Math.max(3, (r.n / maxType) * 100)}%;background:${r.col}`}></div></div>
+          <div class="bar-val">{nf(r.n)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Dreifing eftir landshluta</h2>
+    <p class="sub">Leyfi eftir svæði (rekstrarleyfi eftir sýslumannsumdæmi, ferðaþjónustuleyfi eftir póstsvæði rekstrarstaðar). Höfuðborgarsvæðið og Suðurland vega þyngst.</p>
+    <div class="bars">
+      {regionRows.map(([k, n]) => (
+        <div class="bar-row">
+          <div class="bar-lab">{k.charAt(0).toUpperCase() + k.slice(1)}</div>
+          <div class="bar-track"><div class="bar-fill" style={`width:${Math.max(2, (n / maxRegion) * 100)}%;background:#f6b13b`}></div></div>
+          <div class="bar-val">{nf(n)}</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>Leitaðu í skránni</h2>
+    <p class="sub">Sláðu inn nafn, hjáheiti eða stað — eða síaðu eftir tegund leyfis. 🍷 táknar vínveitingaleyfi. Smelltu á færslu til að opna fyrirtækjaprófíl.</p>
+    <div class="ly-controls">
+      <input id="ly-q" type="search" placeholder="🔎 Leita að nafni, stað eða götu…" autocomplete="off" />
+      <div class="ly-filt" id="ly-filt">
+        <button class="ly-fb active" data-t="all">Allar</button>
+        <button class="ly-fb" data-t="gist">🛏️ Gisting</button>
+        <button class="ly-fb" data-t="veit">🍽️ Veitingar</button>
+        <button class="ly-fb" data-t="afengi">🍷 Vín</button>
+        <button class="ly-fb" data-t="ferskr">✈️ Ferðaskrifst.</button>
+        <button class="ly-fb" data-t="dags">🧭 Dagsferðir</button>
+      </div>
+    </div>
+    <div id="ly-count" class="ly-cnt"></div>
+    <div id="ly-list" class="ly-grid"><div class="ly-load">Hleð skránni…</div></div>
+    <button id="ly-more" class="ly-more" hidden>Sýna fleiri</button>
+
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Sýslumenn</b> (rekstrar-, gisti- og vínveitingaleyfi um island.is) og <b>Ferðamálastofa</b> (ferðaskrifstofur + dagsferðasalar), uppfært {updated}. Rekstrarleyfi tilgreina rekstrarstað en ekki nafn leyfishafa; smelltu á fyrirtækjaprófíl til að sjá nafn og kennitölu. Aðeins gild/útgefin leyfi — lögaðila-rekstrarleyfi eru opinberar upplýsingar.</p>
+  </main>
+
+  <style is:global>
+    main[data-pg="leyfi"] { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    main[data-pg="leyfi"] .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    main[data-pg="leyfi"] h1 { font-size: 32px; margin: 0 0 10px; }
+    main[data-pg="leyfi"] p { color: #cdd6e6; } main[data-pg="leyfi"] p a { color: #f6b13b; }
+    main[data-pg="leyfi"] .lead { font-size: 15px; line-height: 1.6; } main[data-pg="leyfi"] .lead strong { color: #eaf0fb; }
+    main[data-pg="leyfi"] h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    main[data-pg="leyfi"] .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    main[data-pg="leyfi"] .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    main[data-pg="leyfi"] .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    main[data-pg="leyfi"] .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    main[data-pg="leyfi"] .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    main[data-pg="leyfi"] .k-l { font-size: 12px; color: #9fb0c8; }
+    main[data-pg="leyfi"] .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    main[data-pg="leyfi"] .k-s { font-size: 11px; color: #7e8ca6; }
+
+    main[data-pg="leyfi"] .bars { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; }
+    main[data-pg="leyfi"] .bar-row { display: grid; grid-template-columns: 170px 1fr 60px; align-items: center; gap: 12px; }
+    main[data-pg="leyfi"] .bar-lab { font-size: 12.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    main[data-pg="leyfi"] .bar-track { height: 16px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
+    main[data-pg="leyfi"] .bar-fill { height: 100%; border-radius: 5px; min-width: 3px; transition: width .3s; }
+    main[data-pg="leyfi"] .bar-val { font-size: 12.5px; color: #9fb0c8; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+    main[data-pg="leyfi"] .ly-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    main[data-pg="leyfi"] #ly-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    main[data-pg="leyfi"] #ly-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    main[data-pg="leyfi"] .ly-filt { display: flex; flex-wrap: wrap; gap: 5px; }
+    main[data-pg="leyfi"] .ly-fb { font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; font-weight: 700; }
+    main[data-pg="leyfi"] .ly-fb:hover { color: #eaf1fb; border-color: rgba(246,177,59,.5); }
+    main[data-pg="leyfi"] .ly-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    main[data-pg="leyfi"] .ly-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
+    main[data-pg="leyfi"] .ly-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+
+    main[data-pg="leyfi"] .ly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
+    main[data-pg="leyfi"] .ly-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    main[data-pg="leyfi"] .ly-ic { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: rgba(255,255,255,.06); }
+    main[data-pg="leyfi"] .ly-t { flex: 1 1 auto; min-width: 0; }
+    main[data-pg="leyfi"] .ly-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; }
+    main[data-pg="leyfi"] .ly-n:hover { color: #f6b13b; }
+    main[data-pg="leyfi"] .ly-meta { font-size: 11.5px; color: #7e8ca6; margin-top: 1px; }
+    main[data-pg="leyfi"] .ly-tags { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+    main[data-pg="leyfi"] .ly-tag { font-size: 10.5px; color: #9fb0c8; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 1px 8px; }
+    main[data-pg="leyfi"] .ly-tag.wine { color: #d2b3ff; border-color: rgba(188,140,255,.35); }
+    main[data-pg="leyfi"] .ly-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
+    main[data-pg="leyfi"] .ly-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+
+    main[data-pg="leyfi"] .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    main[data-pg="leyfi"] .foot b { color: #9fb0c8; }
+
+    @media (max-width: 560px) {
+      main[data-pg="leyfi"] .bar-row { grid-template-columns: 120px 1fr 48px; gap: 8px; }
+      main[data-pg="leyfi"] .bar-lab { font-size: 11.5px; }
+    }
+  </style>
+
+  <script>
+    function initLeyfi() {
+      const root = document.querySelector('main[data-pg="leyfi"]');
+      if (!root) return;
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const listEl = document.getElementById('ly-list'), cntEl = document.getElementById('ly-count'), moreEl = document.getElementById('ly-more'), qEl = document.getElementById('ly-q');
+      let DATA = null, filtered = [], shown = 0, curT = 'all', PAGE = 60;
+
+      // Flatur listi úr báðum byKt-skrám → { kt, name, place, cat, catLabel, emoji, wine, sub }
+      const build = (rek, fer) => {
+        const out = [];
+        const rb = (rek && rek.byKt) || {};
+        for (const kt in rb) {
+          for (const l of rb[kt]) {
+            const t = l.teg || '';
+            const isGist = t.indexOf('Gististaðir') === 0;
+            const cat = isGist ? 'gist' : 'veit';
+            const place = [l.stadur, l.postnr].filter(Boolean).join(', ');
+            out.push({
+              kt, name: place || (l.stadur || 'Rekstrarleyfi'),
+              place, cat, catLabel: isGist ? 'Gististaður' : 'Veitingaleyfi',
+              emoji: isGist ? '🛏️' : '🍽️', wine: !!l.afengi,
+              sub: [l.undir, (l.utg || '').replace(/^á |^í /, '')].filter(Boolean).join(' · '),
+            });
+          }
+        }
+        const fb = (fer && fer.byKt) || {};
+        for (const kt in fb) {
+          for (const l of fb[kt]) {
+            const isFer = (l.teg || '') === 'Ferðaskrifstofa';
+            const cat = isFer ? 'ferskr' : 'dags';
+            out.push({
+              kt, name: l.nafn || l.hjaheiti || 'Ferðaþjónustuleyfi',
+              place: l.stadur || '', cat, catLabel: isFer ? 'Ferðaskrifstofa' : 'Dagsferðasali',
+              emoji: isFer ? '✈️' : '🧭', wine: false,
+              sub: [l.hjaheiti && l.nafn ? l.hjaheiti : '', l.leyfisnr ? 'Leyfi ' + l.leyfisnr : ''].filter(Boolean).join(' · '),
+            });
+          }
+        }
+        return out;
+      };
+
+      const card = (s) => '<div class="ly-card"><span class="ly-ic">' + s.emoji + '</span>'
+        + '<div class="ly-t"><a class="ly-n" href="/fyrirtaeki/?q=' + encodeURIComponent(s.kt) + '">' + esc(s.name) + '</a>'
+        + (s.place && s.place !== s.name ? '<div class="ly-meta">' + esc(s.place) + '</div>' : '')
+        + '<div class="ly-tags"><span class="ly-tag">' + esc(s.catLabel) + '</span>'
+        + (s.wine ? '<span class="ly-tag wine">🍷 Vínveitingaleyfi</span>' : '')
+        + (s.sub ? '<span class="ly-tag">' + esc(s.sub) + '</span>' : '')
+        + '</div></div></div>';
+
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        filtered = DATA.filter((s) => {
+          const catOk = curT === 'all' || (curT === 'afengi' ? s.wine : s.cat === curT);
+          if (!catOk) return false;
+          if (!q) return true;
+          return (s.name || '').toLowerCase().includes(q)
+            || (s.place || '').toLowerCase().includes(q)
+            || (s.sub || '').toLowerCase().includes(q)
+            || (s.kt || '').includes(q);
+        });
+        shown = 0;
+        cntEl.textContent = filtered.length.toLocaleString('is-IS') + ' leyfi' + (q || curT !== 'all' ? ' (síað)' : '');
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="ly-load">Engin leyfi fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+
+      Promise.all([
+        fetch('/gogn/rekstrarleyfi.json').then((r) => r.json()).catch(() => null),
+        fetch('/gogn/ferdaleyfi.json').then((r) => r.json()).catch(() => null),
+      ]).then(([rek, fer]) => {
+        DATA = build(rek, fer).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'is'));
+        apply();
+      }).catch(() => { listEl.innerHTML = '<div class="ly-load">Ekki tókst að hlaða skránni.</div>'; });
+
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { if (DATA) apply(); }, 180); });
+      document.getElementById('ly-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.ly-fb'); if (!b) return;
+        document.querySelectorAll('.ly-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curT = b.dataset.t; if (DATA) apply();
+      });
+      moreEl.addEventListener('click', more);
+    }
+    document.addEventListener('astro:page-load', initLeyfi);
+  </script>
+</Layout>
