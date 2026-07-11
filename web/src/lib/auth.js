@@ -209,7 +209,17 @@ export async function karpStakAskell({ key, ref, gateEl }) {
       holf.innerHTML = '<div id="askell-stak" class="sg-checkout"></div>';
       window.Askell.mountCheckout('#askell-stak', {
         baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
-        onSuccess() { holf.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — skýrslan opnast eftir augnablik og vistast á Mitt svæði…</div>'; setTimeout(() => location.reload(), 3500); },
+        onSuccess() {
+          // Pollum /me þar til vefkrókurinn hefur AFHENT skýrsluna — þá (og fyrst þá) endurhlaðið
+          // → skýrslan er það fyrsta sem opnast, aldrei gáttin aftur (kapphlaups-vörn).
+          holf.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — opna skýrsluna þína…</div>';
+          let n = 0;
+          const t = setInterval(async () => {
+            const u2 = await karpGet('/me').catch(() => null);
+            const has = u2 && Array.isArray(u2.reports) && u2.reports.some((r) => (r && (r.key || r)) === key);
+            if (has || ++n > 14) { clearInterval(t); location.reload(); }   // þak ~35s → reload hvort eð er (grant er á leiðinni)
+          }, 2500);
+        },
         onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
       });
     } catch (e) { gb.disabled = false; gb.textContent = 'Greiða — opna kortaglugga →'; fail('Ekki tókst að opna greiðslu — reyndu aftur.'); }
@@ -347,7 +357,16 @@ export async function karpAskellSubscribe(service, gateEl) {
       btns.innerHTML = '<div id="askell-checkout" class="sg-checkout"></div>';
       window.Askell.mountCheckout('#askell-checkout', {
         baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
-        onSuccess() { gateEl.innerHTML = '<div class="plus-gate"><div class="pg-badge">✅ Áskrift virk</div><h2 class="pg-h">Takk fyrir áskriftina!</h2><p class="pg-b">Aðgangurinn opnast eftir augnablik…</p></div>'; setTimeout(() => location.reload(), 3500); },
+        onSuccess() {
+          // Pollum /me þar til vefkrókurinn hefur virkjað áskriftina — þá fyrst reload (kapphlaups-vörn).
+          gateEl.innerHTML = '<div class="plus-gate"><div class="pg-badge">✅ Áskrift virk</div><h2 class="pg-h">Takk fyrir áskriftina!</h2><p class="pg-b">Opna aðganginn þinn…</p></div>';
+          let n = 0;
+          const t = setInterval(async () => {
+            const u2 = await karpGet('/me').catch(() => null);
+            const has = u2 && Array.isArray(u2.subs) && u2.subs.indexOf(service) >= 0;
+            if (has || ++n > 14) { clearInterval(t); location.reload(); }
+          }, 2500);
+        },
         onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
       });
     } catch (e) {
@@ -393,7 +412,15 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
       box.innerHTML = '<div id="askell-checkout-' + esc(slug) + '" class="sg-checkout"></div>';
       window.Askell.mountCheckout('#askell-checkout-' + slug, {
         baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
-        onSuccess() { box.innerHTML = '<div class="pg-note">✅ Takk! Aðgangurinn opnast eftir augnablik…</div>'; setTimeout(() => location.reload(), 3500); },
+        onSuccess() {
+          box.innerHTML = '<div class="pg-note">✅ Takk! Opna aðganginn þinn…</div>';
+          let n = 0;
+          const t = setInterval(async () => {
+            const u2 = await karpGet('/me').catch(() => null);
+            const has = u2 && (u2.tier === slug || u2.effectiveTier === slug);
+            if (has || ++n > 14) { clearInterval(t); location.reload(); }
+          }, 2500);
+        },
         onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
       });
     } catch (e) {
