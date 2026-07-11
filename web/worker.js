@@ -1374,9 +1374,11 @@ async function askellPriceId(env, ctx, prodRef) {
     const prodIds = new Set(prods.filter((p) => refOf(p) === prodRef).map(idOf).filter((x) => x != null).map(String));
     let best = null;
     for (const pr of prices) {
-      const pid = linkId(pr.product);
-      const pref = (pr.product && typeof pr.product === 'object') ? refOf(pr.product) : '';
-      const match = (pid != null && prodIds.has(String(pid))) || pref === prodRef ||
+      if (pr.active === false) continue;
+      // RAUN-SNIÐ Áskell V2 (staðfest 11.7): verð ber product_reference + product_id beint
+      const pid = pr.product_id != null ? pr.product_id : linkId(pr.product);
+      const pref = String(pr.product_reference || ((pr.product && typeof pr.product === 'object') ? refOf(pr.product) : ''));
+      const match = pref === prodRef || (pid != null && prodIds.has(String(pid))) ||
         String(pr.product || '') === prodRef || refOf(pr) === prodRef;
       if (!match) continue;
       if (!best || String(pr.billing_type || '') === 'one_time') best = pr;   // one_time í forgangi
