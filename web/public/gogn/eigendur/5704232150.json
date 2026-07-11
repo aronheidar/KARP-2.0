@@ -1,0 +1,94 @@
+{
+ "kt": "5704232150",
+ "nafn": "Ægir Gym ehf.",
+ "sott": "2026-07-11",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5704232150",
+    "kt": "5704232150",
+    "nafn": "Ægir Gym ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Gerald Brimir Einarsson",
+    "tegund": "einst",
+    "faeding": "1998-OKTÓBER"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Helgi Arnar Jónsson",
+    "tegund": "einst",
+    "faeding": "1998-FEBRÚAR"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5704232150",
+    "hlutur": 50,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5704232150",
+    "hlutur": 50,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Gerald Brimir Einarsson",
+   "kt": null,
+   "faeding": "1998-OKTÓBER",
+   "tegund": "einst",
+   "hlutur": 50,
+   "gegnum": []
+  },
+  {
+   "nafn": "Helgi Arnar Jónsson",
+   "kt": null,
+   "faeding": "1998-FEBRÚAR",
+   "tegund": "einst",
+   "hlutur": 50,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Gerald Brimir Einarsson",
+   "faeding": "1998-OKTÓBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "50%",
+   "tegund": null
+  },
+  {
+   "nafn": "Helgi Arnar Jónsson",
+   "faeding": "1998-FEBRÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "50%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
