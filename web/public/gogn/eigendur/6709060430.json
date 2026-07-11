@@ -1,0 +1,64 @@
+{
+ "kt": "6709060430",
+ "nafn": "Discover Truenorth ehf.",
+ "sott": "2026-07-11",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt6709060430",
+    "kt": "6709060430",
+    "nafn": "Discover Truenorth ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Leifur Björn B. Dagfinnsson",
+    "tegund": "einst",
+    "faeding": "1968-MARS"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt6709060430",
+    "hlutur": 67.2,
+    "band": "51",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Leifur Björn B. Dagfinnsson",
+   "kt": null,
+   "faeding": "1968-MARS",
+   "tegund": "einst",
+   "hlutur": 67.2,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 32.8,
+ "raunverulegir": [
+  {
+   "nafn": "Leifur Björn B. Dagfinnsson",
+   "faeding": "1968-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "67,2%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
