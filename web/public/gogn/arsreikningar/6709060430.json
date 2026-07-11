@@ -1,0 +1,140 @@
+{
+ "kt": "6709060430",
+ "nafn": "Discover Truenorth ehf.",
+ "sott": "2026-07-11",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1958,
+    "ebit_hlutfall": 0.0178,
+    "hagnadarhlutfall": 0.0173,
+    "ROA": 0.2427,
+    "eiginfjarhlutfall": -1.2122,
+    "veltufjarhlutfall": 0.6132,
+    "eignavelta": 14.0415
+   },
+   "rekstur": {
+    "sala": 502848049,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 404411619,
+    "laun": 58876379,
+    "annar_rekstur": 30548118,
+    "afskriftir": 53956,
+    "ebit": 8957977,
+    "fjarmunatekjur": 645102,
+    "fjarmagnsgjold": -489720,
+    "hagn_f_skatt": 8691903,
+    "tekjuskattur": 0,
+    "hagnadur": 8691903
+   },
+   "efnahagur": {
+    "fastafjarmunir": 215826,
+    "vidskiptakrofur": 16472368,
+    "handbaert": 16045445,
+    "veltufjarmunir": 35595680,
+    "eignir": 35811506,
+    "hlutafe": 500000,
+    "eigid_fe": -43410435,
+    "langtimaskuldir": 26190476,
+    "skammtimaskuldir": 53031465,
+    "skuldir": 79221941,
+    "efe_skuldir": 35811506
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.255,
+    "ebit_hlutfall": 0.0772,
+    "hagnadarhlutfall": 0.0774,
+    "ROE": 1.8031,
+    "ROA": 0.4542,
+    "eiginfjarhlutfall": 0.2519,
+    "veltufjarhlutfall": 1.6203,
+    "skuldahlutfall_DE": 2.9694,
+    "eignavelta": 5.8722
+   },
+   "rekstur": {
+    "sala": 679500876,
+    "adrar_tekjur": 50950541,
+    "kostnadarverd": 506231325,
+    "laun": 72887476,
+    "annar_rekstur": 47890888,
+    "afskriftir": 43165,
+    "ebit": 52448022,
+    "fjarmunatekjur": 1742071,
+    "fjarmagnsgjold": -1448033,
+    "hagn_f_skatt": 54828335,
+    "tekjuskattur": -2266365,
+    "hagnadur": 52561970
+   },
+   "efnahagur": {
+    "fastafjarmunir": 172661,
+    "vidskiptakrofur": 95244568,
+    "handbaert": 19913878,
+    "veltufjarmunir": 115541519,
+    "eignir": 115714180,
+    "hlutafe": 1500000,
+    "eigid_fe": 29151535,
+    "langtimaskuldir": 14285714,
+    "skammtimaskuldir": 71074412,
+    "skuldir": 86562645,
+    "efe_skuldir": 115714180
+   },
+   "starfsmenn": 4
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1837,
+    "ebit_hlutfall": 0.0104,
+    "hagnadarhlutfall": 0.0034,
+    "ROE": 0.0875,
+    "ROA": 0.0174,
+    "eiginfjarhlutfall": 0.1992,
+    "veltufjarhlutfall": 1.3567,
+    "skuldahlutfall_DE": 4.0209,
+    "eignavelta": 5.1337
+   },
+   "rekstur": {
+    "sala": 823433946,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 672165126,
+    "laun": 101501287,
+    "annar_rekstur": 41183839,
+    "afskriftir": 34532,
+    "ebit": 8549162,
+    "fjarmunatekjur": 1183095,
+    "fjarmagnsgjold": -4646965,
+    "hagn_f_skatt": 1768868,
+    "tekjuskattur": 1026062,
+    "hagnadur": 2794930
+   },
+   "efnahagur": {
+    "fastafjarmunir": 281133,
+    "vidskiptakrofur": 155932885,
+    "handbaert": 3802699,
+    "veltufjarmunir": 160117918,
+    "eignir": 160399051,
+    "hlutafe": 1500000,
+    "eigid_fe": 31946465,
+    "langtimaskuldir": 10714285,
+    "skammtimaskuldir": 117738301,
+    "skuldir": 128452586,
+    "efe_skuldir": 160399051
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6709060430.pdf",
+ "pdfAr": "2024"
+}
