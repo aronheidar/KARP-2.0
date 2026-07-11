@@ -1597,35 +1597,6 @@ async function stakConfirmHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
-// ⚠ TÍMABUNDIN prófunarsíða (á karp.is-origin) sem keyrir Áskell-widgetinn beint m/fersku session-token
-// → hægt að sjá NÁKVÆMLEGA hvar áskriftar-checkout stoppar (console/network) án innskráningar. EYÐA eftir.
-async function askellTestWidgetHandler(request, env) {
-  if (!env.ASKELL_PRIVATE_KEY) return new Response('no-key', { status: 200 });
-  const u = new URL(request.url);
-  const chan = u.searchParams.get('chan') || 'utbod';
-  const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
-  let token = '';
-  try {
-    const body = { sales_channel: chan, expires_in_seconds: 1800, metadata: { service: 'debug' } };
-    if (kt.length === 10) body.customer_reference = kt;   // forbinda → sést hvort widget sleppir customer-forminu
-    const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
-      method: 'POST',
-      headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const d = await r.json().catch(() => null);
-    token = (d && d.token) || '';
-  } catch (e) {}
-  const html = '<!doctype html><html lang="is"><head><meta charset="utf-8"><title>Áskell prófun</title></head>'
-    + '<body style="font-family:sans-serif;max-width:640px;margin:20px auto"><h3>Áskell widget prófun — ' + chan + '</h3>'
-    + '<div id="ak"></div><script src="https://cdn.askell.is/js/dist/askell.js"></script><script>'
-    + 'Askell.mountCheckout("#ak",{sessionToken:' + JSON.stringify(token) + ',language:"is",colorScheme:"auto",'
-    + 'onSuccess:function(r){document.title="OK";console.log("SUCCESS",r);},'
-    + 'onError:function(e){document.title="ERR";console.error("WIDGET-ERROR",e);}});'
-    + '</script></body></html>';
-  return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
-}
-
 // ⚠ TÍMABUNDINN greiningar-endapunktur (LOTA 110i) — les Áskell-uppsetningu m/private-lykli til að greina
 // „Payment processor configuration could not be loaded". Skilar AÐEINS fjölda + eligibility + display_names
 // (engin leyndarmál/viðkvæmt) → óhætt án ?t=. EYÐA eftir að webhook er staðfestur.
@@ -1635,44 +1606,6 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
-  // ?sc2=1: kanna V2 subscription-contracts server-hlið (OPTIONS + þurr-tilraun) → sést hvort hægt sé
-  //   að stofna áskrift server-megin (án widget), price úr ?price. Engin greiðsla — sér bara kröfusvið.
-  if (uq.get('sc2')) {
-    const out = {};
-    try { const o = await fetch('https://askell.is/api/v2/subscription-contracts/', { method: 'OPTIONS', headers: H }); out.options_status = o.status; const ob = await o.json().catch(() => null); out.post_fields = ob && ob.actions && ob.actions.POST ? Object.keys(ob.actions.POST) : (ob ? Object.keys(ob) : null); } catch (e) { out.options_err = String((e && e.message) || e); }
-    const price = parseInt(uq.get('price') || '9', 10);
-    const kt = String(uq.get('kt') || '4901022210').replace(/\D/g, '');
-    for (const [n, b] of [
-      ['items', { customer_reference: kt, items: [{ price }] }],
-      ['items_initial_none', { customer_reference: kt, items: [{ price }], initial_billing_mode: 'none' }],
-      ['price_flat', { customer_reference: kt, price }],
-    ]) {
-      try {
-        const r = await fetch('https://askell.is/api/v2/subscription-contracts/', { method: 'POST', headers: H, body: JSON.stringify(b) });
-        out['try_' + n] = r.status + ':' + (await r.text()).slice(0, 400);
-      } catch (e) { out['try_' + n] = 'err'; }
-    }
-    return sjson(out);
-  }
-  // ?contracts=1: lista áskriftarsamninga (+?del=<id> eyðir/afskráir prufu-samningi)
-  if (uq.get('contracts')) {
-    const out = {};
-    const del = uq.get('del');
-    if (del) {
-      // reyna cancel-endapunkt fyrst, svo DELETE
-      let r = await fetch('https://askell.is/api/v2/subscription-contracts/' + del + '/cancel/', { method: 'POST', headers: H, body: JSON.stringify({ cancel_at_period_end: false }) }).catch(() => null);
-      out['cancel_' + del] = r ? r.status : 'net';
-      let r2 = await fetch('https://askell.is/api/v2/subscription-contracts/' + del + '/', { method: 'DELETE', headers: H }).catch(() => null);
-      out['delete_' + del] = r2 ? r2.status : 'net';
-    }
-    try {
-      const r = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=30', { headers: H });
-      const b = await r.json().catch(() => null);
-      const list = Array.isArray(b) ? b : ((b && b.results) || []);
-      out.contracts = list.map((x) => ({ id: x.id, state: x.state, kt: String(x.customer_reference || '').replace(/^\d{6}/, '……'), created: x.created_at || x.created, items: (x.items || []).map((i) => i.price || (i.price_id)) }));
-    } catch (e) { out.err = String((e && e.message) || e); }
-    return sjson(out);
-  }
   // ?wh=1: skráðir vefkrókar í Áskell — er einn skráður og bendir hann á karp.is/api/askell/webhook?
   //   (áskriftir reiða sig ALGJÖRLEGA á vefkrókinn — engin poll-varaleið eins og stakar)
   if (uq.get('wh')) {
@@ -1761,64 +1694,6 @@ async function askellConfigHandler(request, env) {
         if (r.status === 200) { out[p].b = await r.json().catch(() => null); break; }
       } catch (e) { out[p] = { e: String((e && e.message) || e) }; }
     }
-    return sjson(out);
-  }
-  if (uq.get('cs')) {
-    const out = {};
-    try { const r = await fetch('https://askell.is/api/v2/checkout-sessions/', { method: 'OPTIONS', headers: H }); out.options_status = r.status; out.options = await r.json().catch(() => null); } catch (e) { out.options_err = String((e && e.message) || e); }
-    const body = {
-      sales_channel: uq.get('chan') || 'fyrirtaeki_skyrsla', expires_in_seconds: 900,
-      metadata: { service: 'stak', key: 'debug:cs' },
-      initial_items: [{ price: parseInt(uq.get('price') || '12', 10), quantity: 1 }],
-    };
-    try {
-      const pr = await fetch('https://askell.is/api/v2/checkout-sessions/', { method: 'POST', headers: H, body: JSON.stringify(body) });
-      out.create_status = pr.status;
-      const cd = await pr.json().catch(() => null);
-      out.create = cd;   // sést hvort items/offers fylgja session-inu yfirhöfuð
-      const tok = cd && cd.token;
-      if (tok) {
-        // sömu köll og widgetinn: GET public/ (katalógur rásarinnar) + POST quote/ m/þremur tilboðsformum
-        const base = 'https://askell.is/api/v2/checkout-sessions/' + tok + '/';
-        try { const g = await fetch(base + 'public/'); out.public_status = g.status; out.public = await g.json().catch(() => null); } catch (e) { out.public_err = String((e && e.message) || e); }
-        const priceId = parseInt(uq.get('price') || '12', 10);
-        out.quote = {};
-        for (const [n, offer] of [
-          ['items', { items: [{ price: priceId, quantity: 1 }] }],
-          ['initial_items', { initial_items: [{ price: priceId, quantity: 1 }] }],
-          ['baedi_tom_items', { items: [], initial_items: [{ price: priceId, quantity: 1 }] }],
-        ]) {
-          try {
-            const q = await fetch(base + 'quote/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offer) });
-            out.quote[n] = q.status + ':' + (await q.text()).slice(0, 400);
-          } catch (e) { out.quote[n] = 'err:' + String((e && e.message) || e); }
-        }
-        // ── SKREFIN Á EFTIR „yfirfara pöntun" (þar sem það stoppaði): binda kt → sækja greiðslumöguleika
-        //    → stofna checkout → skrá greiðslumáta (kortasíðan). Endurgerum í röð með gildu items-tilboði. ──
-        const offer = { items: [{ price: priceId, quantity: 1 }] };
-        const jbody = { 'Content-Type': 'application/json' };
-        try {
-          const bc = await fetch(base + 'customer/', { method: 'POST', headers: jbody, body: JSON.stringify({ customer_reference: uq.get('kt') || '4901022210', name: 'Debug Próf', email: 'debug@karp.is' }) });
-          out.bind_customer = bc.status + ':' + (await bc.text()).slice(0, 200);
-        } catch (e) { out.bind_customer = 'err:' + String((e && e.message) || e); }
-        try {
-          const pp = await fetch(base + 'payment-processor-options/', { method: 'POST', headers: jbody, body: JSON.stringify(offer) });
-          out.pp_options = pp.status + ':' + (await pp.text()).slice(0, 500);
-        } catch (e) { out.pp_options = 'err:' + String((e && e.message) || e); }
-        // checkout m/skilmála-samþykki (prófum nokkur mögu-svið því nákvæmt heiti er óskjalfest)
-        for (const [n, extra] of [['terms_accepted', { terms_accepted: true }], ['accept_terms', { accept_terms: true }], ['terms', { terms_accepted: true, accept_terms: true, terms_url: 'https://karp.is/skilmalar/' }]]) {
-          try {
-            const co = await fetch(base + 'checkout/', { method: 'POST', headers: jbody, body: JSON.stringify({ ...offer, ...extra }) });
-            out['checkout_' + n] = co.status + ':' + (await co.text()).slice(0, 400);
-            if (co.ok) break;
-          } catch (e) { out['checkout_' + n] = 'err'; }
-        }
-        try {
-          const pmr = await fetch(base + 'payment-method-registrations/', { method: 'POST', headers: jbody, body: JSON.stringify({}) });
-          out.pmr = pmr.status + ':' + (await pmr.text()).slice(0, 600);
-        } catch (e) { out.pmr = 'err:' + String((e && e.message) || e); }
-      }
-    } catch (e) { out.create_err = String((e && e.message) || e); }
     return sjson(out);
   }
   const get = async (p) => { try { const r = await fetch('https://askell.is' + p, { headers: H }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
@@ -2500,7 +2375,6 @@ export default {
     if (url.pathname === '/api/stak/checkout') return stakCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/stak/confirm') return stakConfirmHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
-    if (url.pathname === '/api/askell/testwidget') return askellTestWidgetHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     if (url.pathname === '/api/stjorn/request') return stjornRequestHandler(request, env, ctx);
