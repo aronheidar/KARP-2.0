@@ -1442,6 +1442,18 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?sc=1: sölurásirnar sjálfar — hafa þær „tilboð" (offers/plans/prices) tengd Áskell-megin?
+  if (uq.get('sc')) {
+    const out = {};
+    for (const p of ['/api/v2/sales-channels/?active=all', '/api/v2/sales-channels/', '/api/v2/saleschannels/', '/api/v2/catalog/sales-channels/']) {
+      try {
+        const r = await fetch('https://askell.is' + p, { headers: H });
+        out[p] = { s: r.status };
+        if (r.status === 200) { out[p].b = await r.json().catch(() => null); break; }
+      } catch (e) { out[p] = { e: String((e && e.message) || e) }; }
+    }
+    return sjson(out);
+  }
   if (uq.get('cs')) {
     const out = {};
     try { const r = await fetch('https://askell.is/api/v2/checkout-sessions/', { method: 'OPTIONS', headers: H }); out.options_status = r.status; out.options = await r.json().catch(() => null); } catch (e) { out.options_err = String((e && e.message) || e); }
