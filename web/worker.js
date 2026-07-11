@@ -1602,6 +1602,27 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?pay=1: nýjustu V1-greiðslur (staða/upphæð/reference m/maskaðri kt) — greina prófkaup
+  if (uq.get('pay')) {
+    try {
+      const r = await fetch('https://askell.is/api/payments/?page_size=15', { headers: H });
+      const d = await r.json().catch(() => null);
+      const list = Array.isArray(d) ? d : ((d && d.results) || []);
+      return sjson({
+        status: r.status, n: list.length,
+        greidslur: list.map((x) => ({
+          uuid: String(x.uuid || x.id || '').slice(0, 8),
+          state: x.state, amount: x.amount, currency: x.currency,
+          reference: String(x.reference || '').replace(/\d{6}(\d{4})/g, '……$1'),   // kt möskuð
+          kt_maskad: String(x.customer_reference || '').replace(/^\d{6}/, '……'),
+          descr: String(x.description || '').slice(0, 40),
+          created: x.created_at || x.created || null,
+          villa: x.error || x.failure_reason || x.decline_reason || undefined,
+        })),
+        lyklar_fyrstu: list[0] ? Object.keys(list[0]) : [],
+      });
+    } catch (e) { return sjson({ error: String((e && e.message) || e) }); }
+  }
   // ?v1=1: V1 stak-greiðsluleiðin — styður Teya-færsluhirðirinn hosted checkout (iframe)?
   // + stofna capture_only prufu-checkout og skoða frameability-hausa á checkout_url
   if (uq.get('v1')) {
