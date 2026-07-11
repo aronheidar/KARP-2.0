@@ -1726,6 +1726,26 @@ async function askellConfigHandler(request, env) {
             out.quote[n] = q.status + ':' + (await q.text()).slice(0, 400);
           } catch (e) { out.quote[n] = 'err:' + String((e && e.message) || e); }
         }
+        // ── SKREFIN Á EFTIR „yfirfara pöntun" (þar sem það stoppaði): binda kt → sækja greiðslumöguleika
+        //    → stofna checkout → skrá greiðslumáta (kortasíðan). Endurgerum í röð með gildu items-tilboði. ──
+        const offer = { items: [{ price: priceId, quantity: 1 }] };
+        const jbody = { 'Content-Type': 'application/json' };
+        try {
+          const bc = await fetch(base + 'customer/', { method: 'POST', headers: jbody, body: JSON.stringify({ customer_reference: uq.get('kt') || '4901022210' }) });
+          out.bind_customer = bc.status + ':' + (await bc.text()).slice(0, 200);
+        } catch (e) { out.bind_customer = 'err:' + String((e && e.message) || e); }
+        try {
+          const pp = await fetch(base + 'payment-processor-options/', { method: 'POST', headers: jbody, body: JSON.stringify(offer) });
+          out.pp_options = pp.status + ':' + (await pp.text()).slice(0, 500);
+        } catch (e) { out.pp_options = 'err:' + String((e && e.message) || e); }
+        try {
+          const co = await fetch(base + 'checkout/', { method: 'POST', headers: jbody, body: JSON.stringify(offer) });
+          out.checkout = co.status + ':' + (await co.text()).slice(0, 500);
+        } catch (e) { out.checkout = 'err:' + String((e && e.message) || e); }
+        try {
+          const pmr = await fetch(base + 'payment-method-registrations/', { method: 'POST', headers: jbody, body: JSON.stringify({}) });
+          out.pmr = pmr.status + ':' + (await pmr.text()).slice(0, 500);
+        } catch (e) { out.pmr = 'err:' + String((e && e.message) || e); }
       }
     } catch (e) { out.create_err = String((e && e.message) || e); }
     return sjson(out);
