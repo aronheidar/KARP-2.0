@@ -214,7 +214,7 @@ export async function karpStakAskell({ key, ref, gateEl }) {
       const d = await (await fetch('/api/stak/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ key, kt, email: u.email || '', nafn: u.name || '' }) })).json();
       if (!d || !d.checkout_url || !d.token) throw new Error('nocheckout');
       body.innerHTML = '<iframe class="sg-frame" src="' + esc(d.checkout_url) + '" allow="payment"></iframe>'
-        + '<div class="pg-note">Kortagreiðsla á öruggu formi Áskell (990 kr) — skýrslan opnast sjálfkrafa að greiðslu lokinni.</div>';
+        + '<div class="pg-note">Kortagreiðsla á öruggu formi Áskell. Athugið: staðfestingarbeiðnin í símanum (3D Secure) sýnir <b>0 kr</b> — hún staðfestir aðeins kortið; 990 kr gjaldið er tekið strax í kjölfarið og skýrslan opnast sjálfkrafa hér. Ekki loka síðunni fyrr en staðfesting birtist.</div>';
       // Pollum confirm: workerinn tengir kortið um leið og forminu er lokið, rukkar og VEITIR skýrsluna
       // server-hlið — svo /me-poll þar til hún birtist → reload (skýrslan opnast fyrst, aldrei gáttin).
       let busy = false, lokid = false;
