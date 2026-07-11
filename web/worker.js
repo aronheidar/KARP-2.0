@@ -1271,12 +1271,56 @@ async function askellWebhookHandler(request, env, ctx) {
       ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
         method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
         body: JSON.stringify(service
-          ? { kt, service, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }
-          : { kt, tier, until, ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
+          ? { kt, service, until, askellId: String(sub.id || d.id || ''), ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }
+          : { kt, tier, until, askellId: String(sub.id || d.id || ''), ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
       }).catch(() => {}));
     }
   }
+  // ── Stakar skýrslur um Áskell (einskiptisvara): session-metadata {service:'stak', key:'fyrirtaeki:kt'…} ──
+  // Hlustum vítt (payment/billing_run/contract) — nákvæmt event-heiti er óskjalfest og staðfestist í sandbox.
+  // Grant er idempotent á lykli (WP dedupe) svo tvöföld event eru skaðlaus. userid leyst af kt (karp_kt).
+  if (env.KARP_GRANT_SECRET && (ev.indexOf('payment') >= 0 || ev.indexOf('billing_run') >= 0 || ev.indexOf('contract') >= 0)) {
+    try {
+      const sub2 = d.subscription || d.contract || d.subscription_contract || {};
+      let meta2 = d.metadata || d.meta || sub2.metadata || sub2.meta || {};
+      if (typeof meta2 === 'string') { try { meta2 = JSON.parse(meta2); } catch (e) { meta2 = {}; } }
+      const stakKey = (String(meta2.service || '') === 'stak') ? String(meta2.key || '') : '';
+      const okState = !/fail|error|cancel/i.test(String(d.state || d.status || ''));
+      const kt2 = String(d.customer_reference || (d.customer && d.customer.reference) || sub2.customer_reference || '').replace(/\D/g, '');
+      if (stakKey && okState && /^[a-z]+:[\w .,ÁÉÍÓÚÝÞÆÖáéíóúýþæö-]+$/.test(stakKey) && kt2.length === 10) {
+        ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ kt: kt2, key: stakKey, orderid: 'askell_' + String(d.uuid || d.id || ''), secret: env.KARP_GRANT_SECRET }),
+        }).catch(() => {}));
+      }
+    } catch (e) {}
+  }
   return new Response('ok', { status: 200 });
+}
+
+// ── Uppsögn áskriftar: POST /api/sub/cancel {service?} — innskráður notandi segir upp sinni áskrift ──
+// Flæði: karpUserId → WP /sub/cancelinfo (askellId, varið KARP_GRANT_SECRET) → Áskell cancel
+// (v2 contract cancel_at_period_end, fallback legacy) → áskrift lifir út greitt tímabil (until óbreytt).
+async function subCancelHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY || !env.KARP_GRANT_SECRET) return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const svc = ['utbod', 'frettir', 'fasteign'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
+  try {
+    const info = await (await fetch('https://wp.karp.is/wp-json/karp/v1/sub/cancelinfo', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+      body: JSON.stringify({ userid: uid, service: svc }),
+    })).json();
+    const aid = info && info.askellId;
+    if (!aid) return sjson({ error: 'noid' });   // engin Áskell-tilvísun vistuð (t.d. fríprófun án korts)
+    const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+    // v2 contract fyrst (cancel_at_period_end = aðgangur út greitt tímabil), legacy til vara
+    let r = await fetch('https://askell.is/api/v2/subscription-contracts/' + encodeURIComponent(aid) + '/cancel/', { method: 'POST', headers: H, body: JSON.stringify({ cancel_at_period_end: true }) });
+    if (!r.ok) r = await fetch('https://askell.is/api/subscriptions/' + encodeURIComponent(aid) + '/cancel/', { method: 'POST', headers: H });
+    if (!r.ok) return sjson({ error: 'askell', status: r.status });
+    return sjson({ ok: true, cancelled: true });   // until helst í WP → aðgangur rennur út náttúrulega
+  } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
 // ⚠ TÍMABUNDIÐ debug — skilar síðasta Áskell-vefkróks-payloadi (varið ASKELL_WEBHOOK_SECRET). Fjarlægist eftir prófun.
@@ -1309,8 +1353,14 @@ async function askellSessionHandler(request, env, ctx) {
   const svc = SVCS[u.searchParams.get('service')] ? u.searchParams.get('service') : '';
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
-  const channel = svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier);   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
-  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: svc ? { service: svc } : { tier } };   // metadata → vefkrókur veit hvað var keypt
+  // Stök skýrsla (einskiptisvara um Áskell): ?stak=fyrirtaeki:kt|eigendur:kt|areidanleiki:kt|fasteign:addr
+  // → sölurás ASKELL_CHANNEL_STAK, metadata {service:'stak', key} → vefkrókur veitir um /reports/grant.
+  const stak = String(u.searchParams.get('stak') || '').slice(0, 90);
+  const stakOk = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(stak);
+  if (stak && !stakOk) return sjson({ error: 'stak' });
+  if (stakOk && !env.ASKELL_CHANNEL_STAK) return sjson({ error: 'unconfigured' });
+  const channel = stakOk ? env.ASKELL_CHANNEL_STAK : (svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier));   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
+  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: stakOk ? { service: 'stak', key: stak } : (svc ? { service: svc } : { tier }) };   // metadata → vefkrókur veit hvað var keypt
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
@@ -2000,6 +2050,7 @@ export default {
     if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
     if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
+    if (url.pathname === '/api/sub/cancel') return subCancelHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);

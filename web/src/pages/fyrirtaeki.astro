@@ -1473,8 +1473,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               if (FS_AREID) {
                 // KYC er stök 990-skýrsla (eða úr áskriftar-kvóta). Gátt þegar greiðsluveggur er á og
                 // notandi á hana hvorki keypta né sem admin. Speglar fsGate (990 + opna-með-áskrift + hlekkur).
+                // Gátt ALLTAF virk (eins og fyrirtækja-/eigendaskýrslur) — samræmd 990-vara.
                 const areidKey = 'areidanleiki:' + f.kt;
-                if (!(isAdmin() || hasReport(areidKey)) && (window.KARP_USER && window.KARP_USER.paywall === true)) {
+                if (!(isAdmin() || hasReport(areidKey))) {
                   skila(reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki', refresh: false, pdf: false }) + `
                     <div class="fs-gate">
                       <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>
@@ -1492,7 +1493,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     gb.parentNode.insertBefore(qb, gb); gb.className = 'fsg-sample'; gb.textContent = '🛒 eða kaupa staka — 990 kr';
                     qb.addEventListener('click', async () => { qb.disabled = true; qb.textContent = 'Opna…'; const r = await AU.openReport(areidKey, (f.nafn || '') + ' — áreiðanleikamat'); if (r && (r.granted || r.owned)) { location.reload(); return; } if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = '🛒 Kaupa áreiðanleikamat — 990 kr'; } else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; } });
                   }
-                  if (gb) gb.addEventListener('click', async () => { gb.disabled = true; const t = gb.textContent; gb.textContent = '…'; const res = await karpCheckout({ kind: 'areidanleiki', ref: (f.nafn || '') + ' ' + f.kt, key: areidKey }); if (res === 'redirected') return; gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = t; }, 2800); });
+                  if (gb) gb.addEventListener('click', async () => { gb.disabled = true; const t = gb.textContent; gb.textContent = '…'; const res = await karpCheckout({ kind: 'areidanleiki', ref: (f.nafn || '') + ' ' + f.kt, key: areidKey }, document.querySelector('.fs-gate')); if (res === 'redirected' || res === 'embedded') return; gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = t; }, 2800); });
                   return;
                 }
                 const fjA = await fsFjarhagur(f.kt, isAdmin() || hasReport('fyrirtaeki:' + f.kt));   // fjárhagsheilsa; on-demand scrape aðeins fyrir eiganda/admin
@@ -1546,8 +1547,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 }
                 if (gb) gb.addEventListener('click', async () => {
                   gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
-                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt });
-                  if (res === 'redirected') return;
+                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (f.nafn || '') + ' ' + f.kt, key: 'fyrirtaeki:' + f.kt }, document.querySelector('.fs-gate'));
+                  if (res === 'redirected' || res === 'embedded') return;
                   gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
                 });
                 return;

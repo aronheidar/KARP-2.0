@@ -481,26 +481,54 @@ const updated = '2026-07-02';
           const lim = (A.limits && A.limits()) || {};
           const tierName = ({ grunnur: 'Grunnur', fyrirtaeki: 'Fyrirtæki', fyrirtaeki_plus: 'Fyrirtæki+' })[u.effectiveTier] || (u.isAdmin ? 'Stjórnandi' : 'Enginn þrep-aðgangur');
           const rem = (typeof u.reportsRemaining === 'number') ? u.reportsRemaining : 0;
-          const remTxt = lim.reportsMonth === 0 ? 'stakar á 990 kr' : (rem < 0 ? 'ótakmarkað' : rem + ' af ' + lim.reportsMonth + ' eftir í mánuðinum');
+          const remTxt = lim.reportsMonth === 0 ? 'stakar á 990 kr' : (rem < 0 ? 'ótakmarkað' : rem + ' af ' + lim.reportsMonth + ' eftir í mánuðinum · endurstillist um mánaðamót');
           const folCap = (lim.follows < 0) ? 'ótakmarkað' : lim.follows;
+          const dags = (ts) => { try { return new Date(ts * 1000).toLocaleDateString('is-IS'); } catch (e) { return ''; } };
+          // Sérlausnir (utbod/fasteign/frettir) — birtar með gildistíma + uppsagnar-hnappi
+          const SVCN = { utbod: '📋 Útboðsvaktin', fasteign: '🏠 Fasteignavakt', frettir: '📰 Fjölmiðlavakt' };
+          const subsUntil = u.subsUntil || {};
+          const svcRows = (u.subs || []).map((s) =>
+            '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '')
+            + ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button></div>').join('');
+          const tierUntil = u.tier_until ? ' · til ' + dags(u.tier_until) : '';
+          const tierCancel = (u.tier && u.effectiveTier === u.tier) ? ' · <button class="sub-cancel" data-svc="" type="button">Segja upp</button>' : '';
           el.innerHTML =
-            '<div class="sub-row"><b>Þrep:</b> ' + esc(tierName) + (u.effectiveTier || u.isAdmin ? '' : ' · <a href="/karp-pro/#verd">sjá áskrift →</a>') + '</div>'
+            '<div class="sub-row"><b>Þrep:</b> ' + esc(tierName) + tierUntil + tierCancel
+            + (u.effectiveTier || u.isAdmin ? ' · <a href="/karp-pro/#verd">breyta áskrift →</a>' : ' · <a href="/karp-pro/#verd">sjá áskrift →</a>') + '</div>'
+            + svcRows
+            + ((u.subs || []).length === 0 ? '<div class="sub-row dim">Engin sérlausn virk · <a href="/karp-pro/#verd">skoða sérlausnir →</a></div>' : '')
             + '<div class="sub-row"><b>Skýrslur:</b> ' + esc(remTxt) + '</div>'
             + '<div class="sub-row"><b>Fylgt félög:</b> ' + Number(u.followsCount || 0) + ' / ' + esc(String(folCap)) + '</div>'
             + '<div id="team-box"></div><div id="ktw-box"></div>';
+          // Uppsögn: staðfesting → POST /api/sub/cancel → áskrift lifir út greitt tímabil
+          el.querySelectorAll('.sub-cancel').forEach((b) => b.onclick = async () => {
+            const nafn = b.dataset.svc ? (SVCN[b.dataset.svc] || b.dataset.svc) : 'þrep-áskriftinni';
+            if (!confirm('Segja upp ' + nafn + '? Aðgangurinn helst út greitt tímabil og engin frekari gjöld verða innheimt.')) return;
+            b.disabled = true; b.textContent = 'Segi upp…';
+            try {
+              const r = await (await fetch('/api/sub/cancel', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ service: b.dataset.svc || undefined }) })).json();
+              if (r && r.ok) { b.textContent = '✓ Uppsagt — virk út tímabilið'; }
+              else if (r && r.error === 'noid') { b.textContent = 'Hafðu samband'; b.insertAdjacentHTML('afterend', ' <a href="/hjalp/?fra=askrift" style="font-size:11.5px">hjalp@karp.is →</a>'); }
+              else { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
+            } catch (e) { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
+          });
           renderTeam(); renderKtw();
         });
         function renderTeam() {
           const box = $g('team-box'); if (!box || !A.teamList) return;
           A.teamList().then((d) => {
             if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
-            const rows = (d.members || []).map((m) => '<div class="mem"><span>' + esc(m) + '</span><button data-e="' + esc(m) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
-            box.innerHTML = seg('👥 Aðgangar (teymi)', (d.members || []).length + '/' + d.cap + ' notaðir')
+            // PHP skilar nú {email, skrad} (skráð = netfangið á þegar Karp-aðgang); þolum líka eldri streng-snið.
+            const mems = (d.members || []).map((m) => (typeof m === 'string' ? { email: m, skrad: null } : m));
+            const rows = mems.map((m) => '<div class="mem"><span>' + esc(m.email) + (m.skrad === false ? ' <em class="dim" style="font-style:normal;font-size:10.5px">· óskráð — biðja um nýskráningu</em>' : m.skrad ? ' <em style="font-style:normal;font-size:10.5px;color:var(--green,#6ee7b7)">· virkur</em>' : '') + '</span><button data-e="' + esc(m.email) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
+            const full = mems.length >= d.cap;
+            box.innerHTML = seg('👥 Aðgangar (teymi)', 'þú + ' + mems.length + '/' + d.cap + ' meðlimir')
               + '<div class="mem-list">' + rows + '</div>'
-              + ((d.members || []).length < d.cap ? '<div class="mem-add"><input id="mem-email" type="email" placeholder="netfang meðlims" /><button id="mem-go">Bæta við</button></div>' : '')
-              + '<p class="dim sub-note">Meðlimir fá sama þrep-aðgang þegar þeir skrá sig inn með þessu netfangi.</p>';
+              + (!full ? '<div class="mem-add"><input id="mem-email" type="email" placeholder="netfang meðlims" /><button id="mem-go">Bæta við</button></div>'
+                       : '<p class="dim sub-note">Sætin eru full — <a href="/karp-pro/#verd">fleiri aðgangar í stærra þrepi →</a></p>')
+              + '<p class="dim sub-note">Meðlimur fær boðspóst og skráir sig inn — eða stofnar ókeypis aðgang — með þessu netfangi; þrep-aðgangurinn virkjast sjálfkrafa.</p>';
             box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.teamSet(b.dataset.e, 'remove'); renderTeam(); });
-            const go = $g('mem-go'); if (go) go.onclick = async () => { const i = $g('mem-email'), em = (i.value || '').trim(); if (!em) return; go.disabled = true; const r = await A.teamSet(em, 'add'); if (r && r.ok) renderTeam(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; } };
+            const go = $g('mem-go'); if (go) go.onclick = async () => { const i = $g('mem-email'), em = (i.value || '').trim(); if (!em) return; go.disabled = true; const r = await A.teamSet(em, 'add'); if (r && r.ok) renderTeam(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; i.title = r && r.error === 'cap' ? 'Sætin eru full' : r && r.error === 'tier' ? 'Áskrift þarf til að bæta við aðgöngum' : 'Ógilt netfang'; } };
           });
         }
         function renderKtw() {
@@ -510,7 +538,8 @@ const updated = '2026-07-02';
             const rows = (d.kt || []).map((k) => '<div class="mem"><span>' + esc(k) + '</span><button data-k="' + esc(k) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engar kennitölur enn.</span>';
             box.innerHTML = seg('📇 Viðskiptamannavakt (kt)', (d.kt || []).length + '/' + d.cap + ' notaðar')
               + '<div class="mem-list">' + rows + '</div>'
-              + ((d.kt || []).length < d.cap ? '<div class="mem-add"><input id="ktw-in" inputmode="numeric" placeholder="kennitala (10)" maxlength="11" /><button id="ktw-go">Bæta við</button></div>' : '');
+              + ((d.kt || []).length < d.cap ? '<div class="mem-add"><input id="ktw-in" inputmode="numeric" placeholder="kennitala" maxlength="11" /><button id="ktw-go">Bæta við</button></div>'
+                                             : '<p class="dim sub-note">Vaktin er full — <a href="/karp-pro/#verd">stærri vakt í Fyrirtæki+ →</a></p>');
             box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.ktWatchSet(b.dataset.k, 'remove'); renderKtw(); });
             const go = $g('ktw-go'); if (go) go.onclick = async () => { const i = $g('ktw-in'), kt = (i.value || '').replace(/\D/g, ''); if (kt.length !== 10) { i.style.borderColor = 'var(--red)'; return; } go.disabled = true; const r = await A.ktWatchSet(kt, 'add'); if (r && r.ok) renderKtw(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; } };
           });

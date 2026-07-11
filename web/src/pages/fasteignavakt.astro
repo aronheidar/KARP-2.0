@@ -631,12 +631,12 @@ const jsonLd = {
             + '<div class="fvg-btns"><button id="fvg-buy" class="fvg-main" type="button">🛒 Kaupa matsskýrslu — 990 kr</button>'
             + '<a class="fvg-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn</a></div>'
             + '<p class="fvg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf</p>'
-            + '<p class="fvg-sub2">Metur þú margar eignir? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — 20 verðmöt/mán frá 3.900 kr →</a></p></div>';
+            + '<p class="fvg-sub2">Metur þú margar eignir? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — ótakmörkuð verðmöt á 3.900 kr/mán →</a></p></div>';
           const gb = document.getElementById('fvg-buy');
           if (gb) gb.addEventListener('click', async () => {
             gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';
-            const res = await karpCheckout({ kind: 'fasteign', ref: raw, key: matKey });
-            if (res === 'redirected') return;
+            const res = await karpCheckout({ kind: 'fasteign', ref: raw, key: matKey }, document.querySelector('.fv-gate'));
+            if (res === 'redirected' || res === 'embedded') return;
             gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
           });
           return;
@@ -924,7 +924,7 @@ const jsonLd = {
         const rkey = 'fasteign:' + addr;
         const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
         const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
-        if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey)) { doPrint(); return; }
+        if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey) || hasSub('fasteign')) { doPrint(); return; }   // áskrifandi fær PDF án 990-gjalds
         const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey });
         if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
         fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(fvmBuyBtn); fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun

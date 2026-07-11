@@ -1092,16 +1092,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) { initFrettir(); initFjolmidlagreining(); } });
   </script>
   <script>
-    // 🔒 Karp+ gátt (LOTA 94) — læsir Vöktun AÐEINS ef greiðsluveggir eru VIRKIR (KARP_USER.paywall; slökkt sjálfgefið).
-    import { loadUser, lockedTier, tierGate } from '../lib/auth.js';
+    // 🔒 Gátt — læsir Vöktun AÐEINS ef greiðsluveggir eru VIRKIR (KARP_USER.paywall; slökkt sjálfgefið).
+    // Aðgangur: sérlausnin 'frettir' (Umfjöllun 3.900 kr/mán) EÐA Fyrirtæki/Fyrirtæki+ þrep (innifalið).
+    import { loadUser, lockedTier, hasSub, subGate } from '../lib/auth.js';
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="frettir"]');
       if (!m) return;
       loadUser().then(() => {
-        if (!lockedTier(2) || document.getElementById('plus-gate-box')) return;
+        if (!lockedTier(2) || hasSub('frettir') || document.getElementById('plus-gate-box')) return;
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
-        tierGate(g, { minTier: 2, title: 'Fjölmiðlagreining — Vöktun & umfjöllun', blurb: 'Fylgstu með fjölmiðlaumfjöllun um fyrirtæki, fólk og málefni á einum stað — fréttastraumar, leitarorðavaktir og greining.' });
+        subGate(g, { service: 'frettir', price: 3900, trialDays: 30, title: 'Fjölmiðlavakt — Vöktun & umfjöllun', blurb: 'Fylgstu með fjölmiðlaumfjöllun um fyrirtæki, fólk og málefni á einum stað — fréttastraumar úr 35+ miðlum, leitarorðavaktir og greining. Einnig innifalin í Fyrirtæki- og Fyrirtæki+ þrepum Karp+.' });
       });
     });
   </script>

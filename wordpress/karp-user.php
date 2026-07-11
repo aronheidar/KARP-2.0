@@ -110,10 +110,13 @@ function karp_user_payload() {
         // Sér þjónustu-áskriftir (t.d. 'utbod' = Útboðsvaktin 1.900 kr/mán) — óháðar þrepunum.
         // karp_sub_<svc>_until (unix) í framtíð → svc í subs-fylkinu (auth.js hasSub).
         $subs = array();
-        foreach ( array('utbod', 'frettir') as $svc ) {
-            if ( (int) get_user_meta($u->ID, 'karp_sub_' . $svc . '_until', true) > time() ) { $subs[] = $svc; }
+        $subs_until = array();   // gildistími per sérlausn (unix) → Mitt svæði birtir „virk til D.M."
+        foreach ( array('utbod', 'frettir', 'fasteign') as $svc ) {
+            $su = (int) get_user_meta($u->ID, 'karp_sub_' . $svc . '_until', true);
+            if ( $su > time() ) { $subs[] = $svc; $subs_until[$svc] = $su; }
         }
         $data['subs'] = $subs;
+        $data['subsUntil'] = $subs_until;
         // Áskriftar-aðgangsstýring (karp-entitlement.php): effectiveTier, limits, reportsRemaining, ktWatch, teamMembers, followsCount.
         if ( function_exists('karp_entitlement_augment') ) karp_entitlement_augment($data, $u->ID);
     }
@@ -222,7 +225,7 @@ add_action('rest_api_init', function () {
             $until = time() + 31 * DAY_IN_SECONDS;
             // Sér þjónustu-fríprófun (t.d. Útboðsvaktin): karp_sub_<svc>_until — snertir EKKI þrepið.
             $svc = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
-            if ( in_array($svc, array('utbod', 'frettir'), true) ) {
+            if ( in_array($svc, array('utbod', 'frettir', 'fasteign'), true) ) {
                 if ( get_user_meta($uid, 'karp_sub_' . $svc . '_trial_used', true) ) {
                     return array('ok' => false, 'error' => 'used');
                 }
@@ -253,7 +256,7 @@ add_action('rest_api_init', function () {
             $tier = isset($p['tier']) ? preg_replace('/[^a-z_]/', '', (string) $p['tier']) : '';
             $svc  = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
             $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
-            $ok = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || in_array($svc, array('utbod', 'frettir'), true);
+            $ok = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || in_array($svc, array('utbod', 'frettir', 'fasteign', 'stak'), true);   // 'stak' = stök skýrsla um Áskell (vistar kt f. grant)
             if ( ! $ok || strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'input'); }
             update_user_meta($uid, 'karp_kt', $kt);   // bindur Áskell-vefkrók (customer_reference=kt) við þennan notanda → grant
             return array('ok' => true, 'tier' => $tier ?: $svc, 'status' => 'pending');
@@ -283,6 +286,8 @@ add_action('rest_api_init', function () {
     register_rest_route('karp/v1', '/subs/due', array('methods' => 'GET', 'permission_callback' => '__return_true', 'callback' => 'karp_subs_due'));
     register_rest_route('karp/v1', '/sub/claimed', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_claimed'));
     register_rest_route('karp/v1', '/sub/grant', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_grant'));
+    // Uppsögn: worker sækir Áskell-id áskriftar (varið KARP_GRANT_SECRET) og merkir svo uppsagt.
+    register_rest_route('karp/v1', '/sub/cancelinfo', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_cancelinfo'));
     // 🆘 POST /hjalp — hjálparbeiðni af /hjalp/ á karp.is (kemur gegnum worker /api/hjalp,
     // SERVER-TIL-SERVER) → wp_mail á hjalp@karp.is. Sjá karp_hjalp_post fyrir varnirnar.
     register_rest_route('karp/v1', '/hjalp', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_hjalp_post'));
@@ -366,7 +371,7 @@ function karp_sub_grant($req) {
     $untilAbs = isset($p['until']) ? (int) $p['until'] : 0;   // Áskell active_until (nákvæm lok, unix)
     $ref = (string) ( isset($p['ref']) ? $p['ref'] : '' );
     $tierOk = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true);
-    $svcOk  = in_array($svc, array('utbod', 'frettir'), true);
+    $svcOk  = in_array($svc, array('utbod', 'frettir', 'fasteign'), true);
     if ( strlen($kt) !== 10 || ( ! $tierOk && ! $svcOk ) || $untilAbs < time() ) { return array('ok' => false, 'error' => 'input'); }
     // Idempotency: sama greidda áskrift (ref = Áskell-id_until) má AÐEINS veita einu sinni.
     $done = (array) get_option('karp_sub_granted_refs', array());
@@ -374,14 +379,28 @@ function karp_sub_grant($req) {
     $users = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $kt, 'number' => 1, 'fields' => 'ID'));
     if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
     $uid = (int) $users[0];
+    // Áskell subscription/contract-id vistað → uppsagnar-hnappurinn á Mitt svæði getur sagt upp um API.
+    $askellId = isset($p['askellId']) ? preg_replace('/[^A-Za-z0-9_-]/', '', (string) $p['askellId']) : '';
     if ( $svcOk ) {
         update_user_meta($uid, 'karp_sub_' . $svc . '_until', $untilAbs);   // þjónustu-aðgangur TIL active_until
+        if ( $askellId !== '' ) update_user_meta($uid, 'karp_sub_' . $svc . '_askell', $askellId);
     } else {
         update_user_meta($uid, 'karp_tier', $tier);
         update_user_meta($uid, 'karp_tier_until', $untilAbs);   // Áskell: aðgangur TIL active_until (afbókun → rennur út)
+        if ( $askellId !== '' ) update_user_meta($uid, 'karp_tier_askell', $askellId);
     }
     if ( $ref !== '' ) { $done[] = $ref; if ( count($done) > 5000 ) { $done = array_slice($done, -5000); } update_option('karp_sub_granted_refs', $done, false); }
     return array('ok' => true, 'uid' => $uid, 'tier' => $svcOk ? $svc : $tier, 'until' => $untilAbs);
+}
+// POST /sub/cancelinfo {userid, service|tier:'threp', secret} → {askellId} svo worker geti sagt upp í Áskell.
+function karp_sub_cancelinfo($req) {
+    if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
+    $p = (array) $req->get_json_params();
+    $uid = isset($p['userid']) ? (int) $p['userid'] : 0;
+    $svc = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
+    if ( ! $uid ) { return array('ok' => false, 'error' => 'input'); }
+    $meta = ( $svc && in_array($svc, array('utbod', 'frettir', 'fasteign'), true) ) ? 'karp_sub_' . $svc . '_askell' : 'karp_tier_askell';
+    return array('ok' => true, 'askellId' => (string) get_user_meta($uid, $meta, true));
 }
 function karp_reports_grant($req) {
     $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
@@ -393,6 +412,14 @@ function karp_reports_grant($req) {
     $uid     = isset($p['userid'])  ? (int) $p['userid'] : 0;
     $key     = isset($p['key'])     ? sanitize_text_field($p['key']) : '';
     $orderid = isset($p['orderid']) ? sanitize_text_field($p['orderid']) : '';
+    // Áskell-leiðin (stakar skýrslur um vefkrók) þekkir kt en ekki userid → fletta upp um karp_kt.
+    if ($uid <= 0 && isset($p['kt'])) {
+        $gkt = preg_replace('/\D/', '', (string) $p['kt']);
+        if (strlen($gkt) === 10) {
+            $us = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $gkt, 'number' => 1, 'fields' => 'ID'));
+            if (!empty($us)) $uid = (int) $us[0];
+        }
+    }
     if ($uid <= 0 || $key === '') {
         return array('ok' => false, 'error' => 'args');
     }
@@ -403,7 +430,7 @@ function karp_reports_grant($req) {
     $parts = explode(':', $key, 2);                          // titill leiddur af lykli fyrir Mitt svæði
     $kind  = $parts[0];
     $ref   = isset($parts[1]) ? $parts[1] : '';
-    $title = ( $kind === 'fasteign' ? 'Verðmatsskýrsla' : 'Fyrirtækjaskýrsla' ) . ( $ref !== '' ? ' — ' . $ref : '' );
+    $title = ( $kind === 'fasteign' ? 'Verðmatsskýrsla' : ( $kind === 'eigendur' ? 'Eigendaskýrsla' : ( $kind === 'areidanleiki' ? 'Áreiðanleikamat' : 'Fyrirtækjaskýrsla' ) ) ) . ( $ref !== '' ? ' — ' . $ref : '' );
     $rep[] = array('key' => $key, 'title' => $title, 'ts' => time(), 'order' => $orderid);
     update_user_meta($uid, 'karp_reports', $rep);
     return array('ok' => true);

@@ -19,10 +19,12 @@ if (!defined('ABSPATH')) exit;
 
 function karp_tier_limits($tier, $is_admin = false) {
     if ($is_admin) return array('reportsMonth' => -1, 'follows' => -1, 'ktWatch' => -1, 'seats' => -1, 'fjolmidlavakt' => true);
+    // VERDUR ad spegla LIMITS i web/src/data/lausnir.js NAKVAEMLEGA (verd-endurskipulag 11.7.2026):
+    // reportsMonth 2/10/20, seats 1/5/10 - annars faer kaupandi minna en verdskrain lofar.
     $L = array(
-        'grunnur'         => array('reportsMonth' => 0,  'follows' => 10, 'ktWatch' => 0,   'seats' => 2,  'fjolmidlavakt' => false),
-        'fyrirtaeki'      => array('reportsMonth' => 5,  'follows' => 50, 'ktWatch' => 25,  'seats' => 5,  'fjolmidlavakt' => true),
-        'fyrirtaeki_plus' => array('reportsMonth' => 20, 'follows' => -1, 'ktWatch' => 100, 'seats' => 15, 'fjolmidlavakt' => true),
+        'grunnur'         => array('reportsMonth' => 2,  'follows' => 10, 'ktWatch' => 0,   'seats' => 1,  'fjolmidlavakt' => false),
+        'fyrirtaeki'      => array('reportsMonth' => 10, 'follows' => 50, 'ktWatch' => 25,  'seats' => 5,  'fjolmidlavakt' => true),
+        'fyrirtaeki_plus' => array('reportsMonth' => 20, 'follows' => -1, 'ktWatch' => 100, 'seats' => 10, 'fjolmidlavakt' => true),
     );
     return isset($L[$tier]) ? $L[$tier] : array('reportsMonth' => 0, 'follows' => 3, 'ktWatch' => 0, 'seats' => 1, 'fjolmidlavakt' => false);
 }
@@ -48,12 +50,17 @@ function karp_effective_tier($uid) {
             'meta_key' => 'karp_team_members',
             'meta_compare' => 'EXISTS',
             'fields' => array('ID'),
-            'number' => 50,
+            'number' => 200,
         ));
         foreach ($owners as $o) {
-            $members = (array) ( get_user_meta($o->ID, 'karp_team_members', true) ?: array() );
-            if (!in_array($email, array_map('strtolower', $members), true)) continue;
+            $members = array_map('strtolower', (array) ( get_user_meta($o->ID, 'karp_team_members', true) ?: array() ));
             $ot = karp_own_tier($o->ID);
+            if (!$ot) continue;
+            // Adeins fyrstu (seats-1) netfongin gilda - nidurfaersla threps klippir umfram-saeti sjalfkrafa.
+            $olim = karp_tier_limits($ot, false);
+            $cap = ($olim['seats'] < 0) ? count($members) : max(0, $olim['seats'] - 1);
+            $gild = array_slice($members, 0, $cap);
+            if (!in_array($email, $gild, true)) continue;
             if (karp_tier_rank($ot) > $bestRank) { $best = $ot; $bestRank = karp_tier_rank($ot); }
         }
     }
@@ -152,8 +159,12 @@ function karp_ktwatch_post($req) {
 
 function karp_team_get() {
     $uid = get_current_user_id();
-    $lim = karp_tier_limits(karp_effective_tier($uid), user_can($uid, 'manage_options'));
-    $members = array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() ));
+    // cap midast vid EIGID threp (ekki erft) - erfdur medlimur a ekki ad sja "Baeta vid"-form sem hafnar alltaf.
+    $lim = karp_tier_limits(karp_own_tier($uid), user_can($uid, 'manage_options'));
+    $list = array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() ));
+    // Stada per medlim: hefur netfangid thegar Karp-adgang? (eigandinn ser hvort bodid "tok")
+    $members = array();
+    foreach ($list as $em) { $members[] = array('email' => $em, 'skrad' => (bool) get_user_by('email', $em)); }
     return array('members' => $members, 'cap' => ($lim['seats'] < 0 ? -1 : max(0, $lim['seats'] - 1)));   // -1 vegna eiganda-saetis
 }
 function karp_team_post($req) {
@@ -163,13 +174,23 @@ function karp_team_post($req) {
     if (!is_email($email)) return new WP_REST_Response(array('ok' => false, 'error' => 'email'), 400);
     $lim = karp_tier_limits(karp_own_tier($uid), user_can($uid, 'manage_options'));   // adeins eigin threp ma bjoda seats
     $cap = ($lim['seats'] < 0) ? -1 : max(0, $lim['seats'] - 1);
-    if ($cap === 0) return array('ok' => false, 'error' => 'tier');
     $list = array_map('strtolower', array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() )));
-    if ($action === 'remove') { $list = array_values(array_diff($list, array($email))); }
-    else {
+    if ($action === 'remove') {
+        // remove er ALLTAF leyft (lika med utrunnid threp - annars situr gamli listinn fastur)
+        $list = array_values(array_diff($list, array($email)));
+    } else {
+        if ($cap === 0) return array('ok' => false, 'error' => 'tier');
         if (in_array($email, $list, true)) return array('ok' => true, 'members' => $list);
         if ($cap >= 0 && count($list) >= $cap) return array('ok' => false, 'error' => 'cap', 'cap' => $cap);
         $list[] = $email;
+        // Bodspostur: annars veit vidkomandi ekki af adganginum og eigandinn heldur ad allt se klart.
+        $owner = get_userdata($uid);
+        $frax = $owner ? $owner->display_name : 'samstarfsadili thinn';
+        wp_mail($email, 'Ther hefur verid bodinn adgangur ad Karp',
+            "Saell/sael!\n\n" . $frax . " baetti netfanginu thinu vid Karp-askriftina sina (karp.is).\n\n"
+            . "Til ad virkja adganginn skradu thig inn - eda stofnadu okeypis adgang - med THESSU netfangi:\n"
+            . "https://karp.is/nyskraning/\n\n"
+            . "Adgangurinn virkjast sjalfkrafa vid innskraningu.\n\nKvedja,\nKarp - karp.is");
     }
     update_user_meta($uid, 'karp_team_members', $list);
     return array('ok' => true, 'members' => array_values($list));

@@ -181,10 +181,51 @@ export async function ktWatchSet(kt, action) { return (await karpPost('/ktwatch'
 export async function teamList() { return (await karpGet('/team')) || { members: [], cap: 0 }; }
 export async function teamSet(email, action) { return (await karpPost('/team', { email, action })) || { ok: false }; }
 
+// Stök skýrsla um ÁSKELL (einskiptisvara, embedded checkout á síðunni). Skilar 'embedded' (checkout
+// birt í gateEl), 'unconfigured' (rás ekki sett upp → kallandi fellur á Teya) eða 'error'.
+// Flæði: kt-innsláttur → /sub/subscribe {service:'stak', kt} (vistar karp_kt f. grant-samsvörun) →
+// /api/sub/checkout-session?stak=key → Askell.mountCheckout → vefkrókur veitir um /reports/grant (kt).
+export async function karpStakAskell({ key, ref, gateEl }) {
+  if (!gateEl) return 'unconfigured';
+  try {
+    const probe = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key), { credentials: 'include' })).json();
+    if (probe && probe.error === 'unconfigured') return 'unconfigured';   // engin ASKELL_CHANNEL_STAK → Teya
+  } catch (e) { return 'unconfigured'; }
+  const holf = document.createElement('div');
+  gateEl.appendChild(holf);
+  holf.innerHTML = '<div class="pg-btns" style="margin-top:10px"><input type="text" class="sg-kt" id="stak-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" />'
+    + '<button class="pg-main" id="stak-go" type="button">Greiða — opna kortaglugga →</button></div><div class="sg-err" id="stak-err" hidden></div>';
+  const err = holf.querySelector('#stak-err');
+  const fail = (m) => { err.hidden = false; err.innerHTML = esc(m) + ' Eða ' + helpA() + '.'; };
+  holf.querySelector('#stak-go').onclick = async () => {
+    const kt = String(holf.querySelector('#stak-kt').value || '').replace(/\D/g, '');
+    if (kt.length !== 10) return fail('Sláðu inn gilda kennitölu.');
+    const gb = holf.querySelector('#stak-go'); gb.disabled = true; gb.textContent = 'Opna greiðslu…'; err.hidden = true;
+    try {
+      await karpPost('/sub/subscribe', { service: 'stak', kt });
+      const d = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key) + '&kt=' + kt, { credentials: 'include' })).json();
+      if (!d || !d.token) throw new Error('nosession');
+      await loadAskellJs();
+      holf.innerHTML = '<div id="askell-stak" class="sg-checkout"></div>';
+      window.Askell.mountCheckout('#askell-stak', {
+        baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
+        onSuccess() { holf.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — skýrslan opnast eftir augnablik og vistast á Mitt svæði…</div>'; setTimeout(() => location.reload(), 3500); },
+        onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
+      });
+    } catch (e) { gb.disabled = false; gb.textContent = 'Greiða — opna kortaglugga →'; fail('Ekki tókst að opna greiðslu — reyndu aftur.'); }
+  };
+  return 'embedded';
+}
 // Hefja greiðslu (Teya SecurePay, LOTA 97). Worker undirritar pöntun og skilar { action, fields };
 // við byggjum falið form og POST-um → kaupandi fer á hýstu greiðslusíðu Teya. Skilar 'redirected'
 // ef sent var af stað, annars villukóða ('unconfigured'|'free'|'error') svo kallandi geti fallið á prentleið.
-export async function karpCheckout(body) {
+export async function karpCheckout(body, gateEl) {
+  // Áskell fyrst (greitt Á síðunni, engin redirect) þegar gátt-element fylgir og stak-rásin er sett upp;
+  // annars/á meðan fellur allt sjálfkrafa á Teya SecurePay (hýst greiðslusíða).
+  if (gateEl && body && body.key) {
+    const emb = await karpStakAskell({ key: body.key, ref: body.ref, gateEl });
+    if (emb === 'embedded') return 'embedded';
+  }
   try {
     const r = await fetch('/api/pay/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body || {}) });
     const d = await r.json().catch(() => null);
@@ -268,8 +309,8 @@ export function subGate(el, opts) {
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
     + '<div class="pg-btns">'
     + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">' + esc(cta) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að ' + (trial ? 'prófa frítt' : 'gerast áskrifandi') + '</a>')
-    + '<a class="pg-sec" href="/karp-pro/#verd">Eða Karp+ (frá 2.900 kr./mán.)</a></div>'
-    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Sér áskrift á ' + esc(verd)) + ' — eða innifalið í öllum þrepum Karp+. Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+    + '</div>'
+    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Áskrift á ' + esc(verd)) + '. Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
   const b = el.querySelector('#sg-sub');
   if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }
@@ -289,7 +330,7 @@ function loadAskellJs() {
 }
 export async function karpAskellSubscribe(service, gateEl) {
   const btns = gateEl.querySelector('.pg-btns'); if (!btns) return;
-  btns.innerHTML = '<input type="text" id="sg-kt" class="sg-kt" placeholder="Kennitala (10 tölur)" maxlength="11" inputmode="numeric" autocomplete="off" />'
+  btns.innerHTML = '<input type="text" id="sg-kt" class="sg-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" />'
     + '<button class="pg-main" id="sg-next" type="button">Halda áfram →</button>';
   const err = document.createElement('div'); err.className = 'sg-err'; err.hidden = true; btns.after(err);
   const ktIn = gateEl.querySelector('#sg-kt'); if (ktIn) ktIn.focus();
@@ -333,7 +374,7 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
   injectGateCss();
   const host = btn && btn.closest ? (btn.closest('th') || btn.parentElement) : null;
   const box = document.createElement('div'); box.className = 'sg-checkout'; box.style.marginTop = '10px';
-  box.innerHTML = '<input type="text" class="sg-kt" placeholder="Kennitala (10 tölur)" maxlength="11" inputmode="numeric" autocomplete="off" style="width:150px" />'
+  box.innerHTML = '<input type="text" class="sg-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" style="width:150px" />'
     + '<button type="button" class="pg-main" style="margin-top:8px">Halda áfram →</button><div class="sg-err" hidden></div>';
   if (host) { host.appendChild(box); } else if (btn) { btn.after(box); }
   if (btn) btn.disabled = true;
