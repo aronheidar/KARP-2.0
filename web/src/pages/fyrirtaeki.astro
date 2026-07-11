@@ -1471,6 +1471,30 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               // ?vidmot=areidanleiki (VERK B) → sjálfstæð Áreiðanleikamats-skýrsla (KYC-fókus). Opið innskráðum
               // (Grunnur-þrep; paywall SLÖKKT) — ekki bundið per-skýrslu kaupum eins og fulla skýrslan.
               if (FS_AREID) {
+                // KYC er stök 990-skýrsla (eða úr áskriftar-kvóta). Gátt þegar greiðsluveggur er á og
+                // notandi á hana hvorki keypta né sem admin. Speglar fsGate (990 + opna-með-áskrift + hlekkur).
+                const areidKey = 'areidanleiki:' + f.kt;
+                if (!(isAdmin() || hasReport(areidKey)) && (window.KARP_USER && window.KARP_USER.paywall === true)) {
+                  skila(reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki', refresh: false, pdf: false }) + `
+                    <div class="fs-gate">
+                      <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>
+                      <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Áreiðanleikamat (KYC)</div>
+                      <p class="fsg-b">Skýrslan opnast við kaup: skráningarstaða, ársreikningsskil, PEP-skimun stjórnenda og eigenda, Lögbirtingablaðið, refsilistar og áhættumerki — samantekt fyrir áreiðanleikakönnun.</p>
+                      <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa áreiðanleikamat — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?vidmot=areidanleiki&q=490522-0500">👁️ Sjá sýnishorn</a></div>
+                      <p class="fsg-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — frá 2.900 kr/mán →</a></p>
+                    </div>`);
+                  backWire(); wireReportNav({});
+                  const gb = document.getElementById('fsg-buy');
+                  const AU = window.karpAuth, rem = (AU && AU.reportsRemaining) ? AU.reportsRemaining() : 0;
+                  if (gb && rem !== 0 && AU && AU.openReport) {
+                    const qb = document.createElement('button'); qb.className = 'fsg-main'; qb.type = 'button';
+                    qb.textContent = rem < 0 ? '📄 Opna skýrslu (áskrift)' : ('📄 Opna með áskrift · ' + rem + ' eftir í mán.');
+                    gb.parentNode.insertBefore(qb, gb); gb.className = 'fsg-sample'; gb.textContent = '🛒 eða kaupa staka — 990 kr';
+                    qb.addEventListener('click', async () => { qb.disabled = true; qb.textContent = 'Opna…'; const r = await AU.openReport(areidKey, (f.nafn || '') + ' — áreiðanleikamat'); if (r && (r.granted || r.owned)) { location.reload(); return; } if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = '🛒 Kaupa áreiðanleikamat — 990 kr'; } else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; } });
+                  }
+                  if (gb) gb.addEventListener('click', async () => { gb.disabled = true; const t = gb.textContent; gb.textContent = '…'; const res = await karpCheckout({ kind: 'areidanleiki', ref: (f.nafn || '') + ' ' + f.kt, key: areidKey }); if (res === 'redirected') return; gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = t; }, 2800); });
+                  return;
+                }
                 const fjA = await fsFjarhagur(f.kt, isAdmin() || hasReport('fyrirtaeki:' + f.kt));   // fjárhagsheilsa; on-demand scrape aðeins fyrir eiganda/admin
                 f.fjarhagur = Array.isArray(fjA) ? fjA : null;
                 skila(fsAreidView(f, d.rsk));

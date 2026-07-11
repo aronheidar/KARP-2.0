@@ -1,9 +1,10 @@
 ---
-// web/src/components/VerdTafla.astro — 3-þrepa samanburðartafla + sér-áskriftir. Les THREP + EIGINDIR + VORUR.
-import { THREP, EIGINDIR, VORUR } from '../data/lausnir.js';
-// Sér-áskriftir (þjónustur seldar stakar, óháð þrepum) — t.d. Útboðsvaktin 1.900 kr./mán.
-const SERVICES = VORUR.filter((v) => v.verd && v.verd.tegund === 'askrift');
+// web/src/components/VerdTafla.astro — Karp+ þrep-tafla + aðskilin sérlausna-spjöld.
+// Les THREP + EIGINDIR (þrep) og SERLAUSNIR (sjálfstæðar þjónustu-áskriftir).
+import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
 ---
+<h3 class="vt-h">Karp+ þrep</h3>
+<p class="vt-sub">Fyrir þau sem vinna með fyrirtækjagögn — fyrirtækjaskýrslur, endanlega eigendur og áreiðanleikamat. Eitt þrep á notanda.</p>
 <div class="vt-wrap">
   <table class="vt">
     <thead>
@@ -34,40 +35,65 @@ const SERVICES = VORUR.filter((v) => v.verd && v.verd.tegund === 'askrift');
     </tbody>
   </table>
 </div>
-<p style="color:#8fa0b8;font-size:12px;margin:6px 0 0">Verð án vsk. Engin binding. <b style="color:#cdd6e6">Stök skýrsla 990 kr</b> ef þú vilt enga áskrift.</p>
+<p class="vt-note">Verð án vsk. Engin binding. <b>Allar skýrslur fást líka stakar á 990 kr</b> — án áskriftar.</p>
 
-{SERVICES.length > 0 && (
-  <div class="vt-svc">
-    <div class="vt-svc-h">Sér-áskriftir — eða innifaldar í öllum Karp+ þrepum</div>
-    {SERVICES.map((s) => (
-      <div class="vt-svc-c">
-        <div class="vt-svc-nm"><span class="e">{s.emoji}</span> {s.heiti}{s.verd.trialDays ? <span class="vt-svc-trial">🎁 {s.verd.trialDays} daga frítt</span> : null}</div>
-        <div class="vt-svc-tx">{s.gildisloford}</div>
-        <div class="vt-svc-pr">{s.verd.upphaed.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
-        <a class="vt-svc-cta" href={s.tol ? s.tol.href : `/lausnir/${s.slug}/`}>{s.verd.trialDays ? 'Prófa frítt →' : 'Gerast áskrifandi →'}</a>
-      </div>
-    ))}
-  </div>
-)}
+<h3 class="vt-h" style="margin-top:34px">Sérlausnir</h3>
+<p class="vt-sub">Sjálfstæðar áskriftir fyrir afmarkaðan þarfahóp — óháðar þrepunum að ofan. 30 daga frítt, engin binding.</p>
+<div class="vt-svcgrid">
+  {SERLAUSNIR.map((s) => (
+    <div class="vt-svc" data-service={s.service} data-price={s.verd} data-trial={s.trialDays} data-title={s.heiti} data-blurb={s.lysing} data-href={s.href}>
+      <div class="vt-svc-top"><span class="vt-svc-e">{s.emoji}</span><div><div class="vt-svc-nm">{s.heiti}</div><div class="vt-svc-fyrir">{s.fyrir}</div></div>{s.trialDays ? <span class="vt-svc-trial">🎁 {s.trialDays} daga frítt</span> : null}</div>
+      <p class="vt-svc-tx">{s.lysing}</p>
+      <div class="vt-svc-pr">{s.verd.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
+      <button type="button" class="vt-svc-cta">Velja {s.heiti}</button>
+      <div class="vt-svc-gate"></div>
+    </div>
+  ))}
+</div>
 <style>
+  .vt-h { font-size:19px; color:#eaf1fb; margin:0 0 4px; }
+  .vt-sub { color:#8fa0b8; font-size:13px; margin:0 0 14px; line-height:1.55; }
+  .vt-note { color:#8fa0b8; font-size:12px; margin:6px 0 0; }
+  .vt-note b { color:#cdd6e6; }
   .tier-badge { display:inline-block; background:#f6b13b; color:#131a29; font-size:10.5px; font-weight:800; letter-spacing:.04em; padding:2px 9px; border-radius:999px; margin-bottom:6px; text-transform:uppercase; }
   .vt th.col-hi { background:rgba(246,177,59,.12); border-top:2px solid #f6b13b; }
-  .vt-svc { margin-top:22px; }
-  .vt-svc-h { font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#8fa0b8; margin:0 0 10px; }
-  .vt-svc-c { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px 16px; padding:12px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.09); border-radius:12px; margin-bottom:8px; }
-  @media (max-width:560px) { .vt-svc-c { grid-template-columns:1fr; } }
-  .vt-svc-nm { font-weight:700; color:#eaf1fb; font-size:15px; grid-column:1; }
-  .vt-svc-nm .e { margin-right:4px; }
-  .vt-svc-trial { display:inline-block; margin-left:8px; background:rgba(110,231,183,.14); color:#6ee7b7; font-size:11px; font-weight:700; padding:1px 8px; border-radius:999px; }
-  .vt-svc-tx { grid-column:1; color:#9fb0c8; font-size:12.5px; margin-top:-4px; }
-  .vt-svc-pr { color:#eaf1fb; font-weight:800; font-size:16px; white-space:nowrap; }
+  /* Sérlausna-spjöld */
+  .vt-svcgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:760px) { .vt-svcgrid { grid-template-columns:1fr; } }
+  .vt-svc { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px; display:flex; flex-direction:column; }
+  .vt-svc-top { display:flex; align-items:flex-start; gap:10px; }
+  .vt-svc-e { font-size:26px; line-height:1; }
+  .vt-svc-nm { font-weight:800; color:#eaf1fb; font-size:16px; }
+  .vt-svc-fyrir { color:#8fa0b8; font-size:11.5px; }
+  .vt-svc-trial { margin-left:auto; background:rgba(110,231,183,.14); color:#6ee7b7; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap; }
+  .vt-svc-tx { color:#b9c6da; font-size:12.5px; line-height:1.55; margin:10px 0 12px; flex:1; }
+  .vt-svc-pr { color:#eaf1fb; font-weight:800; font-size:20px; margin-bottom:10px; }
   .vt-svc-pr small { color:#8fa0b8; font-weight:400; font-size:11px; }
-  .vt-svc-cta { background:#f6b13b; color:#131a29; font-weight:700; font-size:13px; padding:8px 14px; border-radius:9px; text-decoration:none; white-space:nowrap; }
+  .vt-svc-cta { background:#f6b13b; color:#131a29; font-weight:700; font-size:13.5px; padding:9px 14px; border-radius:9px; border:0; cursor:pointer; text-align:center; }
   .vt-svc-cta:hover { filter:brightness(1.06); }
+  .vt-svc-gate:not(:empty) { margin-top:12px; }
 </style>
 <script>
-  import { karpSubscribeTier } from '../lib/auth.js';
+  import { karpSubscribeTier, subGate, loadUser, loginHref } from '../lib/auth.js';
   document.querySelectorAll('.vt-cta').forEach((b) => {
     b.addEventListener('click', () => karpSubscribeTier({ slug: b.dataset.threp, nafn: b.dataset.nafn, btn: b }));
+  });
+  // Sérlausnir: opna áskriftar-gátt (subGate) beint í spjaldinu — sama Áskell-flæði og á tólasíðunum.
+  document.querySelectorAll('.vt-svc').forEach((card) => {
+    const btn = card.querySelector('.vt-svc-cta');
+    const gate = card.querySelector('.vt-svc-gate');
+    if (!btn || !gate) return;
+    btn.addEventListener('click', async () => {
+      const u = await loadUser().catch(() => null);
+      if (!u || !u.loggedIn) { location.href = loginHref(); return; }
+      btn.style.display = 'none';
+      subGate(gate, {
+        service: card.dataset.service,
+        price: Number(card.dataset.price),
+        trialDays: Number(card.dataset.trial),
+        title: card.dataset.title,
+        blurb: card.dataset.blurb,
+      });
+    });
   });
 </script>

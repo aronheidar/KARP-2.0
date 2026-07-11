@@ -6,34 +6,50 @@ export function tierLevelOf(tier, isAdmin) { return isAdmin ? 99 : (TIER_LVL[tie
 // Vél-læsileg mörk per þrep — ein sannleiksuppspretta fyrir client OG speglað í PHP
 // (karp-entitlement.php). -1 = ótakmarkað. reportsMonth = innifaldar stakar skýrslur/mán.
 export const LIMITS = {
-  grunnur:         { reportsMonth: 0,  follows: 10, ktWatch: 0,   seats: 2,  fjolmidlavakt: false },
-  fyrirtaeki:      { reportsMonth: 5,  follows: 50, ktWatch: 25,  seats: 5,  fjolmidlavakt: true },
-  fyrirtaeki_plus: { reportsMonth: 20, follows: -1, ktWatch: 100, seats: 15, fjolmidlavakt: true },
+  grunnur:         { reportsMonth: 2,  follows: 10, ktWatch: 0,   seats: 1,  fjolmidlavakt: false },
+  fyrirtaeki:      { reportsMonth: 10, follows: 50, ktWatch: 25,  seats: 5,  fjolmidlavakt: true },
+  fyrirtaeki_plus: { reportsMonth: 20, follows: -1, ktWatch: 100, seats: 10, fjolmidlavakt: true },
 };
 const LIMITS_FREE = { reportsMonth: 0, follows: 3, ktWatch: 0, seats: 1, fjolmidlavakt: false };
 const LIMITS_ADMIN = { reportsMonth: -1, follows: -1, ktWatch: -1, seats: -1, fjolmidlavakt: true };
 export function limitsFor(tier, isAdmin) { return isAdmin ? LIMITS_ADMIN : (LIMITS[tier] || LIMITS_FREE); }
 
 export const THREP = [
-  { slug: 'grunnur', heiti: 'Grunnur', verd: 2900, adgangar: 2, cta: 'Velja Grunn' },
+  { slug: 'grunnur', heiti: 'Grunnur', verd: 2900, adgangar: 1, cta: 'Velja Grunn' },
   { slug: 'fyrirtaeki', heiti: 'Fyrirtæki', verd: 6900, adgangar: 5, cta: 'Velja Fyrirtæki', vinsaelt: true },
-  { slug: 'fyrirtaeki_plus', heiti: 'Fyrirtæki+', verd: 12900, adgangar: 15, cta: 'Velja Fyrirtæki+' },
+  { slug: 'fyrirtaeki_plus', heiti: 'Fyrirtæki+', verd: 12900, adgangar: 10, cta: 'Velja Fyrirtæki+' },
 ];
 
-// Fylkis-raðir: gildi per þrep [grunnur, fyrirtaeki, fyrirtaeki_plus]. true/false/strengur.
+// Fylkis-raðir fyrir þrep-töfluna: gildi per þrep [grunnur, fyrirtaeki, fyrirtaeki_plus].
+// ⚠ Útboðsvaktin, Verðmat fasteigna og Fjölmiðlavakt (stök) eru SÉRLAUSNIR (sjá SERLAUSNIR neðar) —
+// ekki þrep-dálkar. Innifaldar skýrslur er SAMEIGINLEGUR pottur (fyrirtæki · eigendur · KYC).
 export const EIGINDIR = [
-  { titill: 'Fjöldi aðganga', gildi: ['2', '5', '15'] },
+  { titill: 'Fjöldi aðganga', gildi: ['1', '5', '10'] },
+  { titill: 'Innifaldar skýrslur á mánuði (fyrirtækja · eigenda · KYC)', gildi: ['2', '10', '20'] },
   { titill: 'Fyrirtækjaskrá + ársreikningar', gildi: [true, true, true] },
   { titill: 'Endanlegir eigendur (UBO) + eignarhald', gildi: [true, true, true] },
   { titill: 'Áreiðanleikamat (KYC)', gildi: [true, true, true] },
-  { titill: 'Verðmat fasteigna', gildi: [true, true, true] },
-  { titill: 'Fyrirtækjavaktin (fylgja félögum)', gildi: ['10 félög', '50 félög', 'ótakmarkað'], minTier: 1 },
+  { titill: 'Fyrirtækjavaktin (fylgja félögum)', gildi: ['10 félög', '50 félög', 'ótakmarkað'] },
   { titill: 'Viðskiptamannavakt (kt-vöktun)', gildi: [false, '25 kt', '100 kt'], minTier: 2 },
   { titill: 'Fjölmiðlavakt', gildi: [false, true, true], minTier: 2 },
-  { titill: 'Opnar vaktir (útboð, styrkir, Lögbirting, vörumerki, skip…)', gildi: [true, true, true], minTier: 1 },
-  { titill: 'Mitt svæði + frjálsar vaktir (Leitarorða, Eftirlit, Ökutæki & skip)', gildi: [true, true, true] },
-  { titill: 'Stakar skýrslur innifaldar', gildi: ['—', '5/mán', '20/mán'] },
+  { titill: 'Opnar vaktir (styrkir, Lögbirting, vörumerki, skip, ökutæki…)', gildi: [true, true, true] },
+  { titill: 'Mitt svæði + frjálsar vaktir (Leitarorða, Eftirlit)', gildi: [true, true, true] },
+  { titill: 'Stakar skýrslur — 990 kr hvenær sem er', gildi: [true, true, true] },
   { titill: 'Lánshæfismat · Vanskilaskrá', gildi: ['Bjóðum ekki', 'Bjóðum ekki', 'Bjóðum ekki'], neikvaett: true },
+];
+
+// Sérlausnir — sjálfstæðar þjónustu-áskriftir (staflast, óháðar þrepum, 30 daga frítt). Aðskilin spjöld
+// í verðskrá. service = karp_sub_<service>; verd = kr./mán.; tol = síðan þar sem áskriftar-gáttin (subGate) er.
+export const SERLAUSNIR = [
+  { slug: 'utbod', heiti: 'Útboðsvaktin', emoji: '📋', service: 'utbod', verd: 1900, trialDays: 30,
+    lysing: 'Öll opinber útboð á einum stað + leitarorðavakt sniðin að þinni verktöku og samkeppnisgreining.',
+    fyrir: 'Verktakar og bjóðendur', href: '/utbod/' },
+  { slug: 'fasteignir', heiti: 'Fasteignavakt', emoji: '🏠', service: 'fasteign', verd: 3900, trialDays: 30,
+    lysing: '20 verðmöt fasteigna á mánuði — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
+    fyrir: 'Fasteignasalar og fjárfestar', href: '/fasteignavakt/' },
+  { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', emoji: '📰', service: 'frettir', verd: 3900, trialDays: 30,
+    lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
+    fyrir: 'Almannatengsl og ritstjórnir', href: '/frettir/' },
 ];
 
 const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';
@@ -129,7 +145,7 @@ export const VORUR = [
       { titill: 'Veldu leitarorð', texti: 'Bættu við því sem þú vilt fylgjast með.' },
       { titill: 'Fylgstu með', texti: 'Umfjöllun birtist jafnóðum + tilkynningar.' },
     ],
-    verd: { tegund: 'threp', threp: 'Fyrirtæki' },
+    verd: { tegund: 'askrift', upphaed: 3900, service: 'frettir', trialDays: 30 },   // sérlausn (Umfjöllun) — eða innifalið í Fyrirtæki/Fyrirtæki+ þrepum
     synishorn: { label: 'Skoða vöktun', href: '/frettir/' },
     tol: { label: 'Opna Vöktun', href: '/frettir/' },
     description: 'Fjölmiðlavakt — öll umfjöllun um fyrirtæki og fólk úr 35+ íslenskum miðlum, með leitarorðavakt og greiningu. ' + LEGAL,

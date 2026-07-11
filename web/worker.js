@@ -1258,7 +1258,7 @@ async function askellWebhookHandler(request, env, ctx) {
     // Sér þjónustu-áskrift (Útboðsvaktin o.fl.): metadata.service áreiðanlegt (VIÐ setjum í session);
     // vöru-nafn til vara. Slík áskrift veitir karp_sub_<svc>_until í WP — EKKI þrep.
     const ms = String(meta.service || '');
-    const service = ['utbod', 'frettir'].indexOf(ms) >= 0 ? ms
+    const service = ['utbod', 'frettir', 'fasteign'].indexOf(ms) >= 0 ? ms
       : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod' : '');
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
@@ -1305,7 +1305,7 @@ async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
   const TIERS = { grunnur: 'ASKELL_CHANNEL_GRUNNUR', fyrirtaeki: 'ASKELL_CHANNEL_FYRIRTAEKI', fyrirtaeki_plus: 'ASKELL_CHANNEL_FYRIRTAEKI_PLUS' };
-  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR' };   // sér þjónustu-áskriftir (Útboðsvaktin 1.900 kr o.fl.)
+  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR', fasteign: 'ASKELL_CHANNEL_FASTEIGN' };   // sérlausnir: Útboð 1.900, Umfjöllun/frettir 3.900, Fasteignir 3.900
   const svc = SVCS[u.searchParams.get('service')] ? u.searchParams.get('service') : '';
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');

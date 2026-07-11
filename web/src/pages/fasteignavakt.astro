@@ -102,6 +102,9 @@ const jsonLd = {
     main[data-pg="fastvakt"] .fvg-sample { font-size: 13px; color: #9fb0c8; text-decoration: none; border-bottom: 1px dotted rgba(159,176,200,.5); }
     main[data-pg="fastvakt"] .fvg-sample:hover { color: #f6b13b; border-color: #f6b13b; }
     main[data-pg="fastvakt"] .fvg-note { color: #8fa0b8; font-size: 11.5px; margin-top: 14px; }
+    main[data-pg="fastvakt"] .fvg-sub2 { font-size: 12.5px; color: #b9c6da; margin-top: 12px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+    main[data-pg="fastvakt"] .fvg-sub2 a { color: #f6b13b; text-decoration: none; font-weight: 600; }
+    main[data-pg="fastvakt"] .fvg-sub2 a:hover { text-decoration: underline; }
     #fv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
     #fv-chips .fvc-lbl { flex-basis: 100%; font-size: 11.5px; color: #9fb0c8; margin: 2px 0 -2px; }
     #fv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 4px 6px 4px 11px; font-size: 12px; cursor: pointer; }
@@ -293,7 +296,7 @@ const jsonLd = {
   </style>
 
   <script>
-    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, karpCheckout, helpNote } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote } from '../lib/auth.js';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -620,14 +623,15 @@ const jsonLd = {
         // ── GÁTT: matið er læst á bak við greiðslu (990 kr per heimilisfang) ──
         // Eigandi (hasReport) / admin / sýnishorn (?syni) → fullt mat; annars kaupa-gátt (ekkert mat reiknað/birt).
         const matKey = 'fasteign:' + raw;
-        if (!FVM_DEMO && !isAdmin() && !hasReport(matKey)) {
+        if (!FVM_DEMO && !isAdmin() && !hasReport(matKey) && !hasSub('fasteign')) {   // Fasteignir-áskrift opnar öll verðmöt
           ['fvm-vakta', 'fvm-buy'].forEach((id) => { const e = document.getElementById(id); if (e) e.hidden = true; });
           fvmOut.innerHTML = '<div class="fv-gate"><div class="fvg-lock">🔒</div>'
             + '<h3 class="fvg-h">Verðmat fyrir ' + esc(raw) + '</h3>'
             + '<p class="fvg-b">Fullt verðmat opnast við kaup: áætlað markaðsvirði og verðbil, sölugraf götunnar, sambærilegar sölur, fasteignamat og brunabótamat, áætluð leiga og kort.</p>'
             + '<div class="fvg-btns"><button id="fvg-buy" class="fvg-main" type="button">🛒 Kaupa matsskýrslu — 990 kr</button>'
             + '<a class="fvg-sample" href="/fasteignavakt/?syni=1">👁️ Sjá sýnishorn</a></div>'
-            + '<p class="fvg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf</p></div>';
+            + '<p class="fvg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf</p>'
+            + '<p class="fvg-sub2">Metur þú margar eignir? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — 20 verðmöt/mán frá 3.900 kr →</a></p></div>';
           const gb = document.getElementById('fvg-buy');
           if (gb) gb.addEventListener('click', async () => {
             gb.disabled = true; const gt = gb.textContent; gb.textContent = '…';

@@ -268,7 +268,8 @@ function uboCtaHtml(kt, nafn) {
   return '<div class="eig-cta"><b>🔗 Endanlegir eigendur</b>'
     + '<span>Full, litakóðuð eignarhaldsskýrsla: endanlegir eigendur í gegnum allar félagakeðjur, raunverulegir eigendur, hluthafalisti og prentvæn PDF — sérskýrsla eins og hjá Creditinfo.</span>'
     + '<div class="eig-cta-btns"><button type="button" class="eig-buy" data-kt="' + escF(kt) + '" data-nafn="' + escF(nafn || '') + '">🛒 Kaupa eigenda-skýrslu — 990 kr</button>'
-    + '<a class="eig-sample" href="/eigendur/?syni=1">👁️ Sjá sýnishorn</a></div></div>';
+    + '<a class="eig-sample" href="/eigendur/?syni=1">👁️ Sjá sýnishorn</a></div>'
+    + '<p class="eig-cta-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — frá 2.900 kr/mán →</a></p></div>';
 }
 
 function wireBuy(hostEl, kt, nafn) {
