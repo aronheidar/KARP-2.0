@@ -1,0 +1,154 @@
+{
+ "kt": "4901022210",
+ "nafn": "Áskell ehf.",
+ "sott": "2026-07-11",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 5,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4901022210",
+    "kt": "4901022210",
+    "nafn": "Áskell ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Sævar Öfjörð Magnússon",
+    "tegund": "einst",
+    "faeding": "1983-ÁGÚST"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Kjartan Sverrisson",
+    "tegund": "einst",
+    "faeding": "1978-JANÚAR"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Arnar Tumi Þorsteinsson",
+    "tegund": "einst",
+    "faeding": "1983-JÚLÍ"
+   },
+   {
+    "id": "n4",
+    "kt": null,
+    "nafn": "Einar Jónsson",
+    "tegund": "einst",
+    "faeding": "1979-SEPTEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4901022210",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4901022210",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt4901022210",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n4",
+    "til": "kt4901022210",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Sævar Öfjörð Magnússon",
+   "kt": null,
+   "faeding": "1983-ÁGÚST",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Kjartan Sverrisson",
+   "kt": null,
+   "faeding": "1978-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Arnar Tumi Þorsteinsson",
+   "kt": null,
+   "faeding": "1983-JÚLÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Einar Jónsson",
+   "kt": null,
+   "faeding": "1979-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Sævar Öfjörð Magnússon",
+   "faeding": "1983-ÁGÚST",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Kjartan Sverrisson",
+   "faeding": "1978-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Arnar Tumi Þorsteinsson",
+   "faeding": "1983-JÚLÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Einar Jónsson",
+   "faeding": "1979-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
