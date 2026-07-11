@@ -1341,9 +1341,30 @@ async function askellLastHandler(request, env) {
   const cap = await caches.default.match(new Request('https://cap.karp.internal/askell-last'));
   const capTxt = cap ? await cap.text() : '';
   let last = null; try { last = capTxt ? JSON.parse(capTxt) : null; } catch (e) {}
-  // ?diag=1 → greining ÁN leyndarmáls (engin payload-leki): sést hvort secret er sett + hvort webhook barst.
+  // ?diag=1 → greining ÁN leyndarmáls: secret sett? + vefkrókur barst? + STRÚKTÚR síðasta payloads
+  // (maskað — engin PII): sést hvort undirritun gengur upp OG hvort grant-sviðin (kt/metadata/state) finnast.
   if (url.searchParams.get('diag') === '1') {
-    return sjson({ secret_sett: secretSet, secret_lengd: secretSet ? String(env.ASKELL_WEBHOOK_SECRET).length : 0, upptaka_til: !!capTxt, sidasta_sigOk: last ? last.sigOk : null, sidasti_event: last ? last.event : null });
+    const out = { secret_sett: secretSet, secret_lengd: secretSet ? String(env.ASKELL_WEBHOOK_SECRET).length : 0, upptaka_til: !!capTxt, sidasta_sigOk: last ? last.sigOk : null, sidasti_event: last ? last.event : null, sidast: last ? last.at : null };
+    if (last && last.body) {
+      try {
+        const p = JSON.parse(last.body);
+        const d = p.data || p;
+        const sub = d.subscription || d.contract || d.subscription_contract || {};
+        let meta = d.metadata || d.meta || sub.metadata || sub.meta || {};
+        if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }
+        const ktRaw = String(d.customer_reference || (d.customer && d.customer.reference) || sub.customer_reference || (sub.customer && sub.customer.customer_reference) || '');
+        out.struktur = {
+          topp_lyklar: Object.keys(p).slice(0, 12),
+          gogn_lyklar: Object.keys(d).slice(0, 20),
+          hefur_customer_reference: !!ktRaw,
+          kt_maskad: ktRaw ? ktRaw.replace(/^\d{6}/, '……') : null,
+          metadata: { service: meta.service || null, tier: meta.tier || null, key_present: !!meta.key },
+          state: d.state || d.status || sub.state || null,
+          reference: String(d.reference || '').replace(/\d{6}(\d{4})/g, '……$1') || null,
+        };
+      } catch (e) { out.struktur_villa = String((e && e.message) || e); }
+    }
+    return sjson(out);
   }
   if (!secretSet || t !== env.ASKELL_WEBHOOK_SECRET) return sjson({ error: 'nope', hint: 'nota ?diag=1 til greiningar (án leyndarmáls), annars ?t=<ASKELL_WEBHOOK_SECRET>' });
   if (!capTxt) return sjson({ empty: true, note: 'engin webhook-upptaka enn — gerðu test-greiðslu fyrst' });
