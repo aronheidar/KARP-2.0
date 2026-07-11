@@ -1603,12 +1603,15 @@ async function askellTestWidgetHandler(request, env) {
   if (!env.ASKELL_PRIVATE_KEY) return new Response('no-key', { status: 200 });
   const u = new URL(request.url);
   const chan = u.searchParams.get('chan') || 'utbod';
+  const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
   let token = '';
   try {
+    const body = { sales_channel: chan, expires_in_seconds: 1800, metadata: { service: 'debug' } };
+    if (kt.length === 10) body.customer_reference = kt;   // forbinda → sést hvort widget sleppir customer-forminu
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
       method: 'POST',
       headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sales_channel: chan, expires_in_seconds: 1800, metadata: { service: 'debug' } }),
+      body: JSON.stringify(body),
     });
     const d = await r.json().catch(() => null);
     token = (d && d.token) || '';
