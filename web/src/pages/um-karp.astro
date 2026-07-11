@@ -1,10 +1,10 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// UM KARP (LOTA 16) — hvað er Karp, hvernig verða gögnin til, hver stendur
-// á bak við. ATH: [SETTU INN]-hlutarnir bíða texta frá Aroni. #2.
+// UM KARP — hvað er Karp, hvernig verða gögnin til, sjálfstæði og útgefandi.
+// Persónulegur höfundar-kafli fjarlægður (LOTA 116) → fagmannleg/stofnanaleg framsetning.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
-const updated = '2026-07-02';
+const updated = '2026-07-11';
 const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar, greinir og birtir opinber gögn um íslenskt samfélag, efnahag og stjórnmál á mannamáli.';
 ---
 
@@ -30,17 +30,11 @@ const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar
       <li><b>Fréttir eru hjá miðlunum.</b> Vöktunin birtir aðeins fyrirsagnir og hlekki — efnið sjálft er alltaf lesið hjá miðlinum sem skrifaði það.</li>
     </ul>
 
-    <h2>Hver stendur á bak við Karp?</h2>
-    <div class="author">
-      <div class="au-body">
-        <p><strong>Aron Heiðar Steinsson</strong> — rafmagnstæknifræðingur með Executive MBA frá Háskólanum í Reykjavík. Karp varð til á mótum tveggja heima sem hann hefur unnið í: tækninnar (fjarskiptakerfi, gagnaver, snjallmælingar) og opinbera geirans (rekstur veitna, stjórnsýsla, fjárhagsáætlanir). Þar blasti sama vandamálið við aftur og aftur — gögnin um íslenskt samfélag eru til, opinber og ókeypis, en dreifð um tugi vefja og illlæsileg venjulegu fólki. Karp safnar þeim á einn stað og segir söguna sem þau geyma.</p>
-        <p class="dim">Aron er deildarstjóri veitna hjá Reykjanesbæ, stjórnarformaður Tækni- og verkfræðinga án landamæra (EWB Iceland), fyrrum stundakennari í fjarskiptakerfum við HR og hefur m.a. starfað við rekstur gagnavers hjá atNorth, kerfishönnun farneta hjá Nova og stofnað IoT-sprotafyrirtæki. Löggiltur mannvirkjahönnuður, MIT DesignX-alumni og ræðumaður á UTmessunni um 5G og IoT — með óbilandi áhuga á mótum gagna, tækni og samfélags.</p>
-        <p class="contact">📧 <a href="mailto:aron@sgdal.is">aron@sgdal.is</a> · 💼 <a href="https://linkedin.com/in/aronheidar" target="_blank" rel="noopener">linkedin.com/in/aronheidar</a></p>
-      </div>
-    </div>
+    <h2>Sjálfstæði og hlutleysi</h2>
+    <p class="tech">Karp er sjálfstæð upplýsingaveita og er hvorki í eigu né á vegum stjórnmálaflokka, hagsmunasamtaka eða opinberra stofnana. Veitan tekur ekki afstöðu í álitamálum; ritstjórnarleg möt eru merkt sem möt og rökstudd. Markmiðið er eitt: að gera opinber gögn um íslenskt samfélag aðgengileg, læsileg og rekjanleg til frumheimildar.</p>
 
-    <h2>Útgefandi</h2>
-    <p class="tech">Karp er gefið út af <strong>Steinsson Greykdal ehf.</strong> (kt. 490522-0500). Sjá <a href="/skilmalar/">notkunarskilmála og fyrirvara</a>.</p>
+    <h2>Útgefandi og ábyrgð</h2>
+    <p class="tech">Karp er gefið út og rekið af <strong>Steinsson Greykdal ehf.</strong> (kt. 490522-0500, Brunnstígur 2), sem er jafnframt ábyrgðaraðili að vinnslu persónuupplýsinga. Um notkun, fyrirvara og gagnaheimildir gilda <a href="/skilmalar/">skilmálar og persónuverndarstefna</a>. Fyrirspurnir: <a href="mailto:hjalp@karp.is">hjalp@karp.is</a> · persónuvernd: <a href="mailto:personuvernd@karp.is">personuvernd@karp.is</a>.</p>
 
     <h2>Tæknin</h2>
     <p class="tech">Karp er byggt sem forþjónaður vefur (Astro) á Cloudflare — hver síða er tilbúin fyrirfram svo hún opnast hratt og sést af leitarvélum. Gögnin eru sótt á byggingartíma úr opinberum veitum og lifandi gögn (fréttir, markaðir, loftgæði, flug) streyma beint í vafrann. Kóðinn fylgir einni reglu öðrum fremur: <em>ef talan er reiknuð, samsett eða metin — þá stendur það við hana.</em></p>
@@ -63,10 +57,8 @@ const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar
     .rules { margin: 0; padding-left: 20px; }
     .rules li { font-size: 14px; color: #cdd6e6; line-height: 1.6; margin-bottom: 8px; }
     .rules b { color: #eaf1fb; }
-    .author { background: rgba(246,177,59,.05); border: 1px solid rgba(246,177,59,.25); border-radius: 13px; padding: 16px 18px; }
-    .dim { color: #9fb0c8; font-size: 13.5px; }
-    .contact a { color: #f6b13b; }
     .tech { font-size: 14px; line-height: 1.65; }
+    .tech a { color: #9fb0c8; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: #9fb0c8; }
   </style>
