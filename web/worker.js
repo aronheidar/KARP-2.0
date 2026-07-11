@@ -1294,7 +1294,9 @@ async function askellWebhookHandler(request, env, ctx) {
       const st2 = String(d.state || d.status || '');
       // V1-stakgreiðsla: veita AÐEINS við settled (pending/retrying bíða); V2: útiloka villustöður
       const okState = viaMeta ? !/fail|error|cancel/i.test(st2) : /settled/i.test(st2);
-      const kt2 = String(d.customer_reference || (d.customer && d.customer.reference) || sub2.customer_reference || '').replace(/\D/g, '');
+      // ⚠ V1-greiðslu-objekt ber EKKERT customer_reference (sannað 11.7) — kaupanda-kt býr aftan við '|' í reference
+      const ktUrRef = (String(d.reference || '').split('|')[1] || '').replace(/\D/g, '');
+      const kt2 = (String(d.customer_reference || (d.customer && d.customer.reference) || sub2.customer_reference || '').replace(/\D/g, '')) || ktUrRef;
       if (stakKey && okState && /^[a-z]+:[\w .,ÁÉÍÓÚÝÞÆÖáéíóúýþæö-]+$/.test(stakKey) && kt2.length === 10) {
         ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
           method: 'POST', headers: { 'content-type': 'application/json' },
@@ -1602,6 +1604,27 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?fixgrant=1: viðgerð — endurkeyra grant f. SETTLED V1-greiðslur (lykill+kaupanda-kt úr reference).
+  // Örugg: veitir aðeins það sem sannanlega var greitt; WP-grant er idempotent á lykli. Skilar WP-svörum.
+  if (uq.get('fixgrant')) {
+    if (!env.KARP_GRANT_SECRET) return sjson({ error: 'nosecret' });
+    const r = await fetch('https://askell.is/api/payments/?page_size=15', { headers: H });
+    const d = await r.json().catch(() => null);
+    const list = Array.isArray(d) ? d : ((d && d.results) || []);
+    const ut = [];
+    for (const x of list) {
+      if (String(x.state || '') !== 'settled') continue;
+      const [lykill, ktRaw] = String(x.reference || '').split('|');
+      const kt = String(ktRaw || '').replace(/\D/g, '');
+      if (!/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(lykill || '') || kt.length !== 10) continue;
+      const g = await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+        body: JSON.stringify({ kt, key: lykill, orderid: 'askv1_' + String(x.uuid || ''), secret: env.KARP_GRANT_SECRET }),
+      }).catch(() => null);
+      ut.push({ uuid: String(x.uuid || '').slice(0, 8), lykill: lykill.replace(/\d{6}(\d{4})/, '……$1'), wp_status: g ? g.status : 0, wp_svar: g ? (await g.text().catch(() => '')).slice(0, 200) : 'net-villa' });
+    }
+    return sjson({ n: ut.length, grants: ut });
+  }
   // ?pay=1: nýjustu V1-greiðslur (staða/upphæð/reference m/maskaðri kt) — greina prófkaup
   if (uq.get('pay')) {
     try {
