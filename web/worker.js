@@ -1345,6 +1345,38 @@ async function askellLastHandler(request, env) {
 // með PRIVATE key (server-hlið) → skilar { token } sem framendinn setur í Askell.mountCheckout (askell.js).
 // Áskell-widgetinn sér um kortainnslátt + 3DS INNI á karp.is. customer_reference = kt bindur áskriftina.
 // ⚠ ÓVIRKT þar til ASKELL_PRIVATE_KEY er sett (rása-slug frettir/utbod eru hardkóðuð sjálfgildi).
+// Flettir upp verð-ID einskiptisvöru í Áskell V2-katalógnum eftir vöru-TILVÍSUN (reference).
+// Varfærin þáttun (svar-snið óskjalfest í smáatriðum): vörulisti → id→reference kort, verðlisti →
+// fyrsta verð vörunnar (one_time í forgangi). Cache 1h per tilvísun. Skilar id eða null.
+async function askellPriceId(env, ctx, prodRef) {
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/askell-price?ref=' + encodeURIComponent(prodRef));
+  const hit = await cache.match(ck);
+  if (hit) { try { const j = await hit.json(); if (j.id) return j.id; } catch (e) {} }
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Accept': 'application/json' };
+  const lesa = (d) => (Array.isArray(d) ? d : (d && (d.results || d.options || d.items || d.data)) || []);
+  try {
+    const [prodsR, pricesR] = await Promise.all([
+      fetch('https://askell.is/api/v2/catalog/products/?active=all', { headers: H }).then((r) => r.json()).catch(() => null),
+      fetch('https://askell.is/api/v2/catalog/prices/?active=all', { headers: H }).then((r) => r.json()).catch(() => null),
+    ]);
+    const prods = lesa(prodsR), prices = lesa(pricesR);
+    const refOf = (p) => String(p.reference || p.ref || p.sku || '');
+    const idOf = (p) => (p.id != null ? p.id : (p.uuid || p.token || null));
+    const prodIds = new Set(prods.filter((p) => refOf(p) === prodRef).map(idOf).filter((x) => x != null).map(String));
+    let best = null;
+    for (const pr of prices) {
+      const pid = pr.product != null && typeof pr.product === 'object' ? idOf(pr.product) : pr.product;
+      const pref = (pr.product && typeof pr.product === 'object') ? refOf(pr.product) : '';
+      const match = (pid != null && prodIds.has(String(pid))) || pref === prodRef;
+      if (!match) continue;
+      if (!best || String(pr.billing_type || '') === 'one_time') best = pr;   // one_time í forgangi
+    }
+    const id = best ? idOf(best) : null;
+    if (id != null) ctx.waitUntil(cache.put(ck, new Response(JSON.stringify({ id }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } })));
+    return id;
+  } catch (e) { return null; }
+}
 async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
@@ -1368,7 +1400,15 @@ async function askellSessionHandler(request, env, ctx) {
   const channel = stakKind ? (env[STAKS[stakKind][0]] || env.ASKELL_CHANNEL_STAK || STAKS[stakKind][1])
     : (svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier));   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
   const stakOk = !!stakKind;
+  // Einskiptisvara VERÐUR að fylgja session-inum sem initial_items (rásin ein býður ekkert tilboð —
+  // „Ekkert tilboð er tiltækt í þessu kaupferli"). Verð-ID flett upp í V2-katalógnum eftir vöru-tilvísun.
+  let stakPrice = null;
+  if (stakOk) {
+    stakPrice = await askellPriceId(env, ctx, STAKS[stakKind][1]);
+    if (!stakPrice) return sjson({ error: 'noprice', ref: STAKS[stakKind][1] });
+  }
   const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: stakOk ? { service: 'stak', key: stak } : (svc ? { service: svc } : { tier }) };   // metadata → vefkrókur veit hvað var keypt
+  if (stakPrice) body.initial_items = [{ price: stakPrice, quantity: 1 }];   // einskiptisvaran sjálf → tilboð birtist í kaupferlinu
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
     const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
