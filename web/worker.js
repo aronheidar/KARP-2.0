@@ -1442,6 +1442,28 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?v1=1: V1 stak-greiðsluleiðin — styður Teya-færsluhirðirinn hosted checkout (iframe)?
+  // + stofna capture_only prufu-checkout og skoða frameability-hausa á checkout_url
+  if (uq.get('v1')) {
+    const out = {};
+    try { const r = await fetch('https://askell.is/api/checkouts/paymentprocessors/', { headers: H }); out.pp_status = r.status; out.pp = await r.json().catch(() => null); } catch (e) { out.pp_err = String((e && e.message) || e); }
+    const list = (out.pp && (out.pp.payment_processors || out.pp.results)) || (Array.isArray(out.pp) ? out.pp : []);
+    const proc = list.find((x) => x.supports_checkout) || list[0];
+    if (proc && uq.get('mk')) {
+      try {
+        const r = await fetch('https://askell.is/api/checkouts/', { method: 'POST', headers: H, body: JSON.stringify({ payment_processor: proc.id, currency: 'ISK', capture_only: true, allowed_origin: 'https://karp.is' }) });
+        out.create_status = r.status;
+        const cd = await r.json().catch(() => null);
+        out.create = cd;
+        if (cd && cd.checkout_url) {
+          const h = await fetch(cd.checkout_url, { method: 'GET', redirect: 'manual' });
+          out.frame = { status: h.status, xfo: h.headers.get('x-frame-options'), csp: h.headers.get('content-security-policy') };
+        }
+        if (cd && cd.token) { const g = await fetch('https://askell.is/api/checkouts/' + cd.token + '/', { headers: H }); out.chk_status = g.status; out.chk = await g.json().catch(() => null); }
+      } catch (e) { out.create_err = String((e && e.message) || e); }
+    }
+    return sjson(out);
+  }
   // ?sc=1: sölurásirnar sjálfar — hafa þær „tilboð" (offers/plans/prices) tengd Áskell-megin?
   if (uq.get('sc')) {
     const out = {};
