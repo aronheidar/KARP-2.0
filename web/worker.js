@@ -1467,12 +1467,22 @@ async function askellConfigHandler(request, env) {
       out.create_status = pr.status;
       const cd = await pr.json().catch(() => null);
       out.create = cd;   // sést hvort items/offers fylgja session-inu yfirhöfuð
-      const sid = cd && (cd.id != null ? cd.id : cd.uuid), tok = cd && cd.token;
-      if (sid != null) { const g = await fetch('https://askell.is/api/v2/checkout-sessions/' + sid + '/', { headers: H }); out.get_status = g.status; out.get = await g.json().catch(() => null); }
+      const tok = cd && cd.token;
       if (tok) {
-        out.public_probe = {};
-        for (const p of ['/api/v2/checkout-sessions/' + tok + '/', '/api/v2/checkout-sessions/' + tok + '/offers/', '/api/v2/checkout/' + tok + '/', '/checkout-api/' + tok + '/']) {
-          try { const g = await fetch('https://askell.is' + p); out.public_probe[p] = g.status + ':' + (await g.text()).slice(0, 400); } catch (e) { out.public_probe[p] = 'err'; }
+        // sömu köll og widgetinn: GET public/ (katalógur rásarinnar) + POST quote/ m/þremur tilboðsformum
+        const base = 'https://askell.is/api/v2/checkout-sessions/' + tok + '/';
+        try { const g = await fetch(base + 'public/'); out.public_status = g.status; out.public = await g.json().catch(() => null); } catch (e) { out.public_err = String((e && e.message) || e); }
+        const priceId = parseInt(uq.get('price') || '12', 10);
+        out.quote = {};
+        for (const [n, offer] of [
+          ['items', { items: [{ price: priceId, quantity: 1 }] }],
+          ['initial_items', { initial_items: [{ price: priceId, quantity: 1 }] }],
+          ['baedi_tom_items', { items: [], initial_items: [{ price: priceId, quantity: 1 }] }],
+        ]) {
+          try {
+            const q = await fetch(base + 'quote/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(offer) });
+            out.quote[n] = q.status + ':' + (await q.text()).slice(0, 400);
+          } catch (e) { out.quote[n] = 'err:' + String((e && e.message) || e); }
         }
       }
     } catch (e) { out.create_err = String((e && e.message) || e); }
