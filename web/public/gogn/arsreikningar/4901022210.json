@@ -1,0 +1,101 @@
+{
+ "kt": "4901022210",
+ "nafn": "Áskell ehf.",
+ "sott": "2026-07-11",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0676,
+    "ROA": -0.0676,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "hagnadur": -32369
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 478957,
+    "veltufjarmunir": 478957,
+    "eignir": 478957,
+    "hlutafe": 500000,
+    "eigid_fe": 478957,
+    "efe_skuldir": 478957,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.044,
+    "ROA": -0.044,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 458757,
+    "veltufjarmunir": 458757,
+    "eignir": 458757,
+    "hlutafe": 500000,
+    "eigid_fe": 458757,
+    "efe_skuldir": 458757,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0477,
+    "ROA": -0.0477,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 437857,
+    "handbaert": 0,
+    "veltufjarmunir": 437857,
+    "eignir": 437857,
+    "hlutafe": 500000,
+    "eigid_fe": 437857,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 437857
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4901022210.pdf",
+ "pdfAr": "2024"
+}
