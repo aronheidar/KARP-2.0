@@ -1,7 +1,8 @@
 // ── 🔗 Endanlegir eigendur (UBO) — sameiginleg skýrsluvél ────────────────────
 // Dregið út úr fyrirtaeki.astro (LOTA 111) svo /fyrirtaeki/ OG /eigendur/ noti
 // sömu vél. Engin tvítekin rökvísi. Public API neðst.
-import { isAdmin, hasReport, karpCheckout, helpNote } from './auth.js';
+import { isAdmin, hasReport, karpCheckout, helpNote, loginHref } from './auth.js';
+import { pendingBarHtml, pollUntilChanged } from './report-nav.js';
 
 const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
@@ -217,10 +218,34 @@ function eigReport(rep, kt, ctx) {
     + eigNet(rep) + eigLegend(ctx)
     + eigTable(rep, ctx)
     + eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
+    + '<div id="eig-stjornir"></div>'
     + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
     + '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
     + eigSources(rep)
     + '</div>';
+}
+// 🪑 Stjórnendatengsl (F10) — lifandi úr /api/tengslanet (RSK opinbert API): stjórn/framkvæmdastjórn/
+// prókúra rótarinnar + í hvaða ÖÐRUM félögum innan eignarhaldsnetsins sama fólk gegnir hlutverkum.
+// Null-þolið: hólfið er einfaldlega tómt ef endapunkturinn svarar ekki / er unconfigured.
+async function eigStjornir(rootKt) {
+  const holf = document.getElementById('eig-stjornir');
+  if (!holf || !rootKt) return;
+  try {
+    const d = await fetch('/api/tengslanet?kt=' + encodeURIComponent(rootKt), { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null));
+    if (!d || !d.holdur || !(d.stjornendur || []).length) return;
+    const rows = d.stjornendur.map((p) => {
+      const onnur = (p.onnur || []).map((o) =>
+        '<a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + escF(o.nafn) + ' <em>' + escF(o.hlutverk || '') + '</em></a>').join('');
+      return '<div class="eig-stj-r"><span class="eig-stj-p">' + escF(p.nafn) + '<br><span class="eig-stj-h">' + escF((p.hlutverk_rot || []).join(' · ')) + '</span></span>'
+        + '<span class="eig-stj-c">' + (onnur || '<span class="eig-stj-h">engin önnur hlutverk fundin innan netsins</span>') + '</span></div>';
+    }).join('');
+    const krossar = (d.krossar || []).length
+      ? '<p class="eig-cap" style="margin-top:10px"><b>Krosstengsl:</b> ' + d.krossar.map((p) => escF(p.nafn) + ' (' + (p.felog || []).map((f) => escF(f.nafn)).join(', ') + ')').join('; ') + '</p>'
+      : '';
+    holf.innerHTML = '<h4 class="eig-sec">Stjórnendatengsl — stjórn, framkvæmdastjórn og prókúra</h4>'
+      + '<p class="eig-cap">Fyrirsvarsmenn félagsins og hlutverk sama fólks í öðrum félögum <b>innan greinds eignarhaldsnets</b> (' + (d.n_felog || 1) + ' félög skoðuð) — beint úr opinberu API fyrirtækjaskrár Skattsins. Samsvörun er nákvæm (kennitölu-byggð hjá Skattinum) en birt án kennitalna einstaklinga.</p>'
+      + '<div class="eig-stj">' + rows + '</div>' + krossar;
+  } catch (e) {}
 }
 // Setur skýrsluna í gám, teiknar netið, tengir prentun.
 async function eigMount(rep, host, nav, kt) {
@@ -231,6 +256,7 @@ async function eigMount(rep, host, nav, kt) {
   const ctx = { pepSet, eigidfe, reverse, kt: rootKt, hasPep };
   host.innerHTML = eigReport(rep, kt, ctx);
   eigWireNet(rep, nav, pepSet);
+  eigStjornir(rootKt);   // 🪑 F10 fyllist async — brýtur ekkert þótt endapunktur svari ekki
   const pb = document.getElementById('eig-print');
   if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
 }
@@ -264,17 +290,58 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
   if (!hostEl) return;
   const nav = navTo || defaultNav;
   if (!uboOwned(kt)) { hostEl.innerHTML = uboCtaHtml(kt, nafn); wireBuy(hostEl, kt, nafn); return; }
-  hostEl.innerHTML = '<div class="eig-loading">🔗 Rek eignarhald gegnum allar félagakeðjur beint úr RSK…'
-    + '<br><small style="opacity:.75">Í fyrsta skipti getur þetta tekið 1–2 mín — svo vistast skýrslan og birtist samstundis eftirleiðis.</small></div>';
+  let barSett = false;   // stikan birtist aðeins þegar bygging er raunverulega í gangi (fyrsta poll = 404/pending)
   let tries = 0;
   const tick = async () => {
     const d = await eigData(kt, true);
     if (d && !d.pending && !d.engin) { eigMount(d, hostEl, nav, kt); return; }
     if (d && d.engin) { hostEl.innerHTML = '<div class="eig-tom">Ekki tókst að byggja eignarhaldsnet fyrir félagið (hvorki hluthafalisti né raunverulegir eigendur fundust).</div>'; return; }
+    if (!barSett) {   // sama hleðslustika og á fjárhagsmælaborðinu (deild úr report-nav.js)
+      barSett = true;
+      hostEl.innerHTML = pendingBarHtml({
+        title: 'Rek eignarhald gegnum allar félagakeðjur beint úr RSK…',
+        sub: 'Sæki hluthafalista og raunverulega eigendur hvers félags í keðjunni',
+        note: '🔄 Skýrslan birtist sjálfkrafa þegar hún er tilbúin — í fyrsta skipti getur þetta tekið 1–2 mín; svo vistast hún og opnast samstundis eftirleiðis.',
+        sfx: '-eig',
+      });
+      pollUntilChanged({ url: '/gogn/eigendur/' + kt + '.json', est: 120, sfx: '-eig', onDone: () => {} });   // stikan tifar; tick() sér um raun-birtingu
+    }
     if (tries++ < 80) setTimeout(tick, tries < 12 ? 2000 : 3500);   // hraðari fyrstu pollin → grípur fljótari byggingar fyrr
     else hostEl.innerHTML = '<div class="eig-tom">Skýrslan er enn í vinnslu — endurhlaðið síðuna eftir smástund (hún vistast þegar hún er tilbúin).</div>';
   };
   tick();
+}
+
+// 🔄 „Sækja aftur": endurkeyrir eigenda-bygginguna (GH-dispatch), sýnir hleðslustiku og
+// endurbirtir skýrsluna þegar NÝJA skráin (≠ baseline) er komin.
+export async function refreshUboReport({ kt, hostEl, navTo, btn }) {
+  if (!hostEl || !uboOwned(kt)) return;   // ⚠ paywall: aðeins eigandi/admin má endurbyggja og fá skýrsluna birta
+  const nav = navTo || defaultNav;
+  if (btn) { btn.disabled = true; btn.textContent = '🔄 Bið RSK…'; }
+  let baseline = null;
+  try { const r0 = await fetch('/gogn/eigendur/' + kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
+  let ok = false;
+  try {
+    const rr = await fetch('/api/eigendur/request?kt=' + kt, { method: 'POST', credentials: 'include' });
+    const j = await rr.json().catch(() => null); ok = !!(j && j.ok);
+    if (j && j.error === 'login') { location.href = loginHref(); return; }
+  } catch (e) {}
+  if (!ok) { if (btn) { btn.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { btn.textContent = '🔄 Sækja aftur'; btn.disabled = false; }, 2600); } return; }
+  if (btn) btn.textContent = '🔄 Sæki…';
+  hostEl.innerHTML = pendingBarHtml({
+    title: 'Sæki eignarhaldið aftur frá RSK og endurreikna…',
+    sub: 'Rek hluthafakeðjur og raunverulega eigendur upp á nýtt',
+    note: '🔄 Skýrslan birtist sjálfkrafa með nýjum gildum — tekur venjulega 1–2 mín.',
+    sfx: '-eigr',   // sér-id svo mount-pollinn (sfx '-eig') ruglist ekki við þennan
+  });
+  pollUntilChanged({
+    url: '/gogn/eigendur/' + kt + '.json', baseline, est: 120, sfx: '-eigr',
+    onDone: (txt, stale) => {
+      if (btn) { btn.textContent = '🔄 Sækja aftur'; btn.disabled = false; }
+      try { const d = JSON.parse(txt); if (d && !d.engin) { eigMount(d, hostEl, nav, kt); if (stale) setTimeout(() => { const h = document.getElementById('eig-report'); if (h) h.insertAdjacentHTML('afterbegin', '<p class="eig-cap">ⓘ Engin ný gögn hjá RSK — skýrslan er óbreytt.</p>'); }, 50); return; } } catch (e) {}
+      hostEl.innerHTML = '<div class="eig-tom">Endurbyggingin skilaði engu neti — endurhlaðið síðuna.</div>';
+    },
+  });
 }
 
 // Opið sýnishorn (Gervifyrirtæki) — engin innskráning/kaup.

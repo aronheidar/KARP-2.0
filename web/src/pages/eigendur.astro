@@ -37,8 +37,9 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
 </style>
 
 <script>
-  import { mountUboReport, renderUboSample } from '../lib/ubo-report.js';
+  import { mountUboReport, renderUboSample, refreshUboReport, uboOwned } from '../lib/ubo-report.js';
   import { loadUser, loginHref, karpWarmReports } from '../lib/auth.js';
+  import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
 
   function initEig() {
     const form = document.getElementById('fs-form');
@@ -54,11 +55,20 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
     // Val á félagi → sýna eigendaskýrslu (net + töflur + gátt/kaup) fyrir kt.
     function veljaFelag(kt, nafn) {
       try { history.replaceState(null, '', '/eigendur/?q=' + encodeURIComponent(kt)); } catch (e) {}
-      skila('<button type="button" class="fs-back" style="background:none;border:0;color:#f6b13b;font-size:12.5px;cursor:pointer;padding:0;margin:0 0 10px">← Ný leit</button>'
+      // 🧭 sama aðgerðastika og á /fyrirtaeki/ — notandinn ratar alltaf milli skýrslnanna þriggja.
+      // ⚠ 🔄 aðeins fyrir EIGENDUR skýrslunnar (annars opnaði endurbyggingin 990kr-skýrsluna framhjá gáttinni).
+      const owned = uboOwned(kt);
+      skila(reportNavHtml({ kt: kt, nafn: nafn, view: 'eigendur', refresh: owned })
         + '<h2 style="font-size:20px;color:#eaf1fb;margin:0 0 12px">' + escF(nafn || '') + ' <span style="color:#8fa0b8;font-size:13px;font-weight:400">kt. ' + escF(ktFmt(kt)) + '</span></h2>'
         + '<div id="fs-report"><div class="fs-ph2" id="eig-host"></div></div>');
       const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { skila(''); inp.value = ''; inp.focus(); try { history.replaceState(null, '', '/eigendur/'); } catch (e) {} };
-      mountUboReport({ kt: kt, nafn: nafn, hostEl: document.getElementById('eig-host'), navTo: (k) => veljaFelag(k, '') });
+      const hostEl = document.getElementById('eig-host');
+      const nav = (k) => veljaFelag(k, '');
+      mountUboReport({ kt: kt, nafn: nafn, hostEl: hostEl, navTo: nav });
+      wireReportNav({
+        onPdf: () => { const p = document.getElementById('eig-print'); if (p) { p.click(); return; } const b = hostEl.querySelector('.eig-buy'); if (b) b.click(); },
+        onRefresh: owned ? ((rb) => refreshUboReport({ kt: kt, hostEl: hostEl, navTo: nav, btn: rb })) : null,
+      });
       karpWarmReports(kt);   // undirbýr fyrirtækjaskýrslu + áreiðanleika í bakgrunni → engin 3× bið
     }
 

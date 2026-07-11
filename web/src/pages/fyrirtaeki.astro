@@ -471,7 +471,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 
   <script>
     import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports, helpNote } from '../lib/auth.js';
-    import { mountUboReport, renderUboSample } from '../lib/ubo-report.js';
+    import { renderUboSample } from '../lib/ubo-report.js';
+    import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -586,7 +587,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     function fsAreidView(f, rsk) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
       const rskLink = rsk ? `<a class="fs-link" style="margin-top:14px" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : '';
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><button class="fs-vakta" id="fs-areid-print" type="button" title="Prenta eða vista áreiðanleikamatið sem PDF">🖨️ Prenta / PDF</button></div>
+      return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki' }) + `
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🛡️ KARP — Áreiðanleikamat (KYC)</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/areidanleiki · heimildir: fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðið, PEP-listi (þing/ráðherrar/sveitarstjórnir)</span></div>
         <div class="fs-card">
@@ -872,69 +873,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         nav(o.nafn);
       }
     }
-    // 🔖 Fylgja — EINN sameinaður hnappur (LOTA: sameinuð fylgja + póstvakt). Bætir/fjarlægir
-    // co:<kt> í KARP_USER.follows (/follows → „Mitt svæði"). Þegar fylgt birtist lítill
-    // „🔔 láta vita í pósti"-valkostur sem kveikir/slekkur á firmavakt (/firmavakt, Karp+).
-    function fsFylgjaBtn(kt, nafn) {
-      return '<span class="fs-follow" data-kt="' + escF(kt) + '" data-nafn="' + escF(nafn || '') + '">'
-        + '<button class="fs-vakta" id="fs-fylgja" type="button" title="Fylgja félaginu — það birtist á „Mitt svæði".">🔖 Fylgja</button>'
-        + '<label class="fs-mailopt" id="fs-mailopt" hidden title="Fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, vörumerki, útboð eða eftirlit berst (Karp+)."><input type="checkbox" id="fs-mailchk" /> 🔔 láta vita í pósti</label>'
-        + '</span>';
-    }
-    // Skrá skoðun (nýlega skoðað + „skoðað" merki) — localStorage, virkar líka óinnskráð.
-    function fsRecordView(kt, nafn) {
-      if (!kt) return;
-      try {
-        let arr = JSON.parse(localStorage.getItem('karp-recent') || '[]');
-        arr = arr.filter((x) => x.kt !== kt);
-        arr.unshift({ kt: kt, nafn: nafn || kt, ts: Date.now() });
-        localStorage.setItem('karp-recent', JSON.stringify(arr.slice(0, 10)));
-        const seen = JSON.parse(localStorage.getItem('karp-seen') || '{}');
-        seen['co:' + kt] = Date.now();
-        localStorage.setItem('karp-seen', JSON.stringify(seen));
-      } catch (e) {}
-    }
-    function fsWireFylgja() {
-      const wrap = document.querySelector('.fs-follow');
-      const flb = document.getElementById('fs-fylgja');
-      if (!wrap || !flb) return;
-      const kt = wrap.dataset.kt || '', nafn = wrap.dataset.nafn || '', fkey = 'co:' + kt;
-      fsRecordView(kt, nafn);
-      const mailopt = document.getElementById('fs-mailopt'), mailchk = document.getElementById('fs-mailchk');
-      const following = () => ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1;
-      const paint = () => { const on = following(); flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; if (mailopt) mailopt.hidden = !on; };
-      const syncMail = () => { if (mailchk && following()) karpGet('/firmavakt').then((v) => { if (v && Array.isArray(v.felog)) mailchk.checked = v.felog.some((x) => x.kt === kt); }).catch(() => {}); };
-      paint(); syncMail();
-      flb.addEventListener('click', async () => {
-        const u = window.KARP_USER;
-        if (!u || !u.loggedIn) { location.href = loginHref(); return; }   // aðeins innskráðir → annars á innskráningu
-        flb.disabled = true;
-        const cur = u.follows || [], has = cur.indexOf(fkey) !== -1;
-        const next = has ? cur.filter((x) => x !== fkey) : cur.concat([fkey]);
-        const res = await karpPost('/follows', { follows: next });
-        u.follows = (res && res.follows) ? res.follows : next;   // u === window.KARP_USER → uppfærist strax
-        paint();
-        if (has && mailchk) mailchk.checked = false; else syncMail();
-        flb.disabled = false;
-      });
-      if (mailchk) mailchk.addEventListener('change', async () => {
-        mailchk.disabled = true;
-        try {
-          const cur = await karpGet('/firmavakt');
-          if (!cur || !Array.isArray(cur.felog)) throw new Error('auth');
-          const has = cur.felog.some((x) => x.kt === kt), want = mailchk.checked;
-          if (has !== want) {
-            const felog = want ? cur.felog.concat([{ kt, nafn }]) : cur.felog.filter((x) => x.kt !== kt);
-            const r = await karpPost('/firmavakt', { on: true, felog });
-            if (!r || r.ok !== true) throw new Error('save');
-          }
-        } catch (e) {
-          mailchk.checked = !mailchk.checked;   // afturkalla
-          const t0 = mailopt ? mailopt.title : ''; if (mailopt) { mailopt.title = '🔒 Karp+ áskrift þarf fyrir póstvakt'; setTimeout(() => { mailopt.title = t0; }, 2600); }
-        }
-        mailchk.disabled = false;
-      });
-    }
+    // 🔖 Fylgja + skoðana-skráning FLUTT í web/src/lib/report-nav.js (deilt með /eigendur/);
+    // vírast nú gegnum wireReportNav í öllum view-um.
     // 🔗 UBO-skýrsluvél flutt í web/src/lib/ubo-report.js (LOTA 112) — mountUboReport / renderUboSample.
     function fsKort(felag, rsk) {
       const f = felag;
@@ -957,7 +897,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const eig = (f.eigendur || []).map((e) => `<div class="fs-eig"><b>${escF(e.nafn)}</b>${e.hlutur ? ' <span class="fs-eig-h">' + escF(e.hlutur) + '</span>' : ''}<span class="fs-eig-s">${[e.faeding, e.buseta, e.tegund].filter(Boolean).map(escF).join(' · ')}</span></div>`).join('');
       // LOTA 69: prófílkortið er um leið FYRIRTÆKJASKÝRSLA — Karp-samtengingin fyllist lifandi
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button><div class="fs-hact">${fsFylgjaBtn(f.kt, f.nafn)}</div></div>
+      return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'skyrsla', refresh: !f.demo, pdf: !f.demo, demo: !!f.demo }) + `
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
@@ -974,7 +914,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${fsSkilaSaga(f)}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
-          ${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}
+          <div id="fs-kpi-holf">${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}</div>
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
@@ -1095,7 +1035,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div class="kpi-pend-note">🔄 Síðan endurhleðst sjálfkrafa þegar mælaborðið er tilbúið — þú þarft ekkert að gera. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn á meðan →</a></div></div>';
     }
     // Poll-ar scrapaða JSON-inn (cache-busted) og endurhleður síðuna sjálfkrafa þegar hann er kominn.
-    function fsPollArsreikningur(kt) {
+    // baseline (valfrjálst) = JSON-texti FYRIR endurbyggingu („Sækja aftur"): endurhlaðið aðeins
+    // þegar innihaldið hefur BREYST — annars greip r.ok gömlu skrána samstundis.
+    function fsPollArsreikningur(kt, baseline) {
       const id = String(kt).replace(/\D/g, '');
       const bar = () => document.getElementById('kpi-pend-bar');
       const sec = () => document.getElementById('kpi-pend-sec');
@@ -1110,7 +1052,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         if (el > 420) { clearInterval(poll); clearInterval(tick); const s = sec(); if (s) s.textContent = 'tekur lengri tíma en vanalega — endurhladdu síðar'; return; }
         try {
           const r = await fetch('/gogn/arsreikningar/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });
-          if (r.ok) { clearInterval(poll); clearInterval(tick); const b = bar(); if (b) b.style.width = '100%'; const s = sec(); if (s) s.textContent = 'tilbúið!'; setTimeout(() => location.reload(), 600); }
+          if (r.ok) {
+            if (baseline != null && (await r.text()) === baseline) {
+              // enn gamla skráin — endurbygging með ÓBREYTTUM gögnum committast ekki → eftir ~3 mín
+              // gefumst upp snyrtilega og endurhlöðum (gamla mælaborðið birtist aftur óbreytt)
+              if (el > 200) { clearInterval(poll); clearInterval(tick); const s = sec(); if (s) s.textContent = 'engin ný gögn hjá RSK — skýrslan er óbreytt'; setTimeout(() => location.reload(), 1400); }
+              return;
+            }
+            clearInterval(poll); clearInterval(tick); const b = bar(); if (b) b.style.width = '100%'; const s = sec(); if (s) s.textContent = 'tilbúið!'; setTimeout(() => location.reload(), 600);
+          }
         } catch (e) {}
       }, 12000);
     }
@@ -1479,7 +1429,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
-      return `<div class="fs-topbtns"><button class="fs-back" type="button">← Ný leit</button>${fsFylgjaBtn(f.kt, f.nafn)}</div>
+      return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'skyrsla', refresh: false }) + `
         <div class="fs-gate">
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
@@ -1526,13 +1476,33 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 skila(fsAreidView(f, d.rsk));
                 backWire();
                 fsWireKyc(f);   // PEP (#fs-ar-pep) + Lögbirting (#fs-ar-log + #fs-logbirting)
-                const pb = document.getElementById('fs-areid-print');
-                if (pb) pb.addEventListener('click', () => { pb.disabled = true; pb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); pb.disabled = false; pb.textContent = '🖨️ Prenta / PDF'; }, 600); }, 200); });
+                // ársreikningur enn í vinnslu → sama hleðslustika og á fyrirtækjaskýrslunni + sjálfvirk endurhleðsla
+                if (fjA && fjA.pending) {
+                  const stig = document.getElementById('fs-ar-stig');
+                  if (stig) { stig.insertAdjacentHTML('afterend', '<div id="fs-kpi-holf">' + fsKpiPending() + '</div>'); fsPollArsreikningur(f.kt); }
+                }
+                wireReportNav({
+                  onPdf: (pb) => { pb.disabled = true; pb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); pb.disabled = false; pb.textContent = '🖨️ Sækja PDF'; }, 600); }, 200); },
+                  onRefresh: async (rb) => {
+                    rb.disabled = true; rb.textContent = '🔄 Bið RSK…';
+                    let baseline = null;
+                    try { const r0 = await fetch('/gogn/arsreikningar/' + f.kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
+                    let ok = false;
+                    try { const rr = await fetch('/api/arsreikningur/request?kt=' + f.kt, { method: 'POST', credentials: 'include' }); const j = await rr.json().catch(() => null); ok = !!(j && j.ok); if (j && j.error === 'login') { location.href = loginHref(); return; } } catch (e) {}
+                    if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.textContent = '🔄 Sækja aftur'; rb.disabled = false; }, 2600); return; }
+                    rb.textContent = '🔄 Sæki…';
+                    const stig = document.getElementById('fs-ar-stig');
+                    if (stig && !document.getElementById('fs-kpi-holf')) stig.insertAdjacentHTML('afterend', '<div id="fs-kpi-holf">' + fsKpiPending() + '</div>');
+                    else { const h = document.getElementById('fs-kpi-holf'); if (h) h.innerHTML = fsKpiPending(); }
+                    fsPollArsreikningur(f.kt, baseline);
+                  },
+                });
                 return;
               }
               // GÁTT: full skýrsla læst á bak við greiðslu (990 kr). Eigandi/admin → fullt. Sýnishorn = ?syni=1 (demo).
               if (!(isAdmin() || hasReport('fyrirtaeki:' + f.kt))) {
-                skila(fsGate(f)); backWire(); fsWireFylgja();
+                skila(fsGate(f)); backWire();
+                wireReportNav({ onPdf: () => { const b = document.getElementById('fsg-buy'); if (b) b.click(); } });
                 const gb = document.getElementById('fsg-buy');
                 // Áskrifandi með innifaldar skýrslur → „opna með áskrift" (server-teljari); annars/þegar kvóti búinn → 990 kr.
                 const AU = window.karpAuth, rem = (AU && AU.reportsRemaining) ? AU.reportsRemaining() : 0;
@@ -1568,7 +1538,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               f.stjornPending = !!(stj && stj.pending);
               skila(fsKort(f, d.rsk));
               backWire();
-              fsWireFylgja();   // 🔖 fylgja-hnappur (co:<kt> → Mitt svæði)
+              // 🧭 aðgerðastikan: PDF speglar kaupa-/prenthnappinn; 🔄 endurkeyrir ársreikninga-ferlið
+              wireReportNav({
+                onPdf: () => { const b = document.getElementById('fs-buy'); if (b) b.click(); },
+                onRefresh: async (rb) => {
+                  rb.disabled = true; rb.textContent = '🔄 Bið RSK…';
+                  let baseline = null;
+                  try { const r0 = await fetch('/gogn/arsreikningar/' + f.kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
+                  let ok = false;
+                  try { const rr = await fetch('/api/arsreikningur/request?kt=' + f.kt, { method: 'POST', credentials: 'include' }); const j = await rr.json().catch(() => null); ok = !!(j && j.ok); if (j && j.error === 'login') { location.href = loginHref(); return; } } catch (e) {}
+                  if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.textContent = '🔄 Sækja aftur'; rb.disabled = false; }, 2600); return; }
+                  rb.textContent = '🔄 Sæki…';
+                  const holf = document.getElementById('fs-kpi-holf');
+                  if (holf) holf.innerHTML = fsKpiPending();
+                  fsPollArsreikningur(f.kt, baseline);
+                },
+              });
               fsWireSector(f);   // 🏭 samanburður við atvinnugrein (F2)
               fsWireLanshaefi(f);   // 🎯 KARP lánshæfismat — kveikir á áhættuþáttum (Lögbirting/vanskil/F8/F9/grein)
               // 🔗 Endanlegir eigendur + tengslakort FLUTT á sér-skýrslu /eigendur/ (hlekkur „Sjá fulla eigendaskýrslu →")

@@ -1798,17 +1798,19 @@ function rg(o, name) {
   for (const k in o) if (k.toLowerCase() === lo) return o[k];
   return undefined;
 }
-function rskClean(kt, d) {
+function rskClean(kt, d, keepPersonKt) {
   const nafn = rg(d, 'name'), natid = rg(d, 'nationalId');
   if (!d || typeof d !== 'object' || !(nafn || natid)) return { kt, holdur: false };
   const der = rg(d, 'deregistration') || {};
   const aoa = rg(d, 'articlesOfAssociation') || {};
   const arr = (v) => (Array.isArray(v) ? v : []);
   const dstr = (v) => (v ? String(v).slice(0, 10) : null);
+  // keepPersonKt: AÐEINS innri notkun (tengslanetHandler ber saman einstaklinga þvert á félög með kt
+  // server-hlið) — út á við fer kt einstaklinga ALDREI (rskHandler kallar án flaggsins).
   const tengsl = arr(rg(d, 'relationships')).map((r) => {
     const rk = String(rg(r, 'nationalId') || '').replace(/\D/g, '');
     const isCo = rk.length === 10 && rskErFyrirtaeki(rk);
-    return { nafn: rg(r, 'name') || null, kt: isCo ? rk : null, tegund: rg(r, 'type') || null, hlutverk: rg(r, 'position') || null, stada: rg(r, 'status') || null };
+    return { nafn: rg(r, 'name') || null, kt: (isCo || (keepPersonKt && rk.length === 10)) ? rk : null, einst: !isCo && rk.length === 10, tegund: rg(r, 'type') || null, hlutverk: rg(r, 'position') || null, stada: rg(r, 'status') || null };
   }).slice(0, 40);
   return {
     kt, holdur: true,
@@ -1867,6 +1869,98 @@ async function rskHandler(request, env, ctx) {
   return res;
 }
 
+// Innri RAW-sækjari á RSK-API (heldur einstaklings-kt í minni fyrir kt-samsvörun) með eigin
+// jaðar-cache (24h) svo tengslanet endurnýti köll milli róta. Skilar hreinsuðum hlut eða null.
+async function rskFetchRaw(kt, env, ctx) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/rsk-raw?kt=' + kt);
+  const hit = await cache.match(cacheKey);
+  if (hit) { try { const j = await hit.json(); return j.holdur ? j : null; } catch (e) {} }
+  try {
+    const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + kt + '?language=is', {
+      headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
+    });
+    const out = r.ok ? rskClean(kt, await r.json(), true) : { kt, holdur: false };
+    // jákvæð svör 24h; NEIKVÆÐ stutt (10 mín) svo endurtekin köll á sama kt hamri ekki mælda APIð
+    const res = new Response(JSON.stringify(out), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=' + (out.holdur ? 86400 : 600) } });
+    ctx.waitUntil(cache.put(cacheKey, res));
+    return out.holdur ? out : null;
+  } catch (e) { return null; }
+}
+
+// ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
+// GET /api/tengslanet?kt= → { stjornendur: [rótarfyrirsvar + hlutverk í öðrum net-félögum],
+// krossar: [fólk í ≥2 net-félögum án hlutverks í rót] }. Félagamengið = rót + félags-hnútar úr
+// UBO-trénu (gogn/eigendur/<kt>.json), þak 12 (mælt API). Samsvörun með einstaklings-kt SERVER-HLIÐ;
+// út fara AÐEINS nöfn + hlutverk + félags-kt (aldrei kt einstaklinga). Endurskoðendur/stofnendur/
+// látnir síaðir frá (suð, sögulegt).
+async function tengslanetHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10 || !rskErFyrirtaeki(kt)) return sjson({ kt, holdur: false });   // aðeins lögaðila-kt í mælda APIð
+  if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
+  // Innskráðir eingöngu (hluti keyptu eigendaskýrslunnar; ver líka mælda APIð gegn opinni upptalningu).
+  // ⚠ VERÐUR að standa Á UNDAN cache-treffinu — annars þjónaði jaðarinn óinnskráðum úr cache.
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ kt, holdur: false, error: 'login' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/tengslanet?kt=' + kt);
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  // félagamengi: rót + félög úr eignarhaldstrénu (ef byggt)
+  let felog = [kt];
+  try {
+    const tr = await env.ASSETS.fetch(new Request('https://karp.internal/gogn/eigendur/' + kt + '.json'));
+    if (tr.ok) {
+      const t = await tr.json();
+      for (const nd of ((t.net && t.net.nodes) || [])) {
+        const k = String(nd.kt || '').replace(/\D/g, '');
+        if (k.length === 10 && rskErFyrirtaeki(k) && felog.indexOf(k) < 0) felog.push(k);
+      }
+    }
+  } catch (e) {}
+  felog = felog.slice(0, 12);
+  const raw = (await Promise.all(felog.map((k) => rskFetchRaw(k, env, ctx)))).filter(Boolean);
+  const rot = raw.find((r) => r.kt === kt);
+  let out = { kt, holdur: false };
+  if (rot) {
+    const SLEPPA = /^(endursko.andi|stofnandi)/i;
+    const label = (t) => t.hlutverk || t.tegund || 'fyrirsvar';
+    const folk = new Map();   // einstaklings-kt -> { nafn, roles: [{felagKt, felagNafn, label}] }
+    for (const co of raw) {
+      for (const t of (co.tengsl || [])) {
+        if (!t.einst || !t.kt || SLEPPA.test(t.tegund || '') || /l.st/i.test(t.stada || '')) continue;
+        const p = folk.get(t.kt) || { nafn: t.nafn, roles: [] };
+        p.roles.push({ felagKt: co.kt, felagNafn: co.nafn, label: label(t) });
+        folk.set(t.kt, p);
+      }
+    }
+    const stjornendur = [], krossar = [];
+    for (const p of folk.values()) {
+      const rotRoles = p.roles.filter((r) => r.felagKt === kt);
+      const onnurMap = new Map();   // félag -> hlutverkslisti (sameina prókúru+stjórn í eina flís)
+      for (const r of p.roles) {
+        if (r.felagKt === kt) continue;
+        const o = onnurMap.get(r.felagKt) || { kt: r.felagKt, nafn: r.felagNafn, labels: [] };
+        if (o.labels.indexOf(r.label) < 0) o.labels.push(r.label);
+        onnurMap.set(r.felagKt, o);
+      }
+      const onnur = [...onnurMap.values()].map((o) => ({ kt: o.kt, nafn: o.nafn, hlutverk: o.labels.join(' · ') })).slice(0, 12);
+      if (rotRoles.length) {
+        stjornendur.push({ nafn: p.nafn, hlutverk_rot: [...new Set(rotRoles.map((r) => r.label))], onnur });
+      } else if (onnurMap.size >= 2) {
+        krossar.push({ nafn: p.nafn, felog: [...onnurMap.values()].map((o) => ({ kt: o.kt, nafn: o.nafn })).slice(0, 6) });
+      }
+    }
+    // rótarfyrirsvar fremst í sömu röð og RSK skilar; fólk með tengsl í öðrum félögum efst innan hóps
+    stjornendur.sort((a, b) => (b.onnur.length ? 1 : 0) - (a.onnur.length ? 1 : 0));
+    out = { kt, holdur: true, n_felog: raw.length, felog: raw.map((r) => ({ kt: r.kt, nafn: r.nafn })), stjornendur: stjornendur.slice(0, 20), krossar: krossar.slice(0, 12), heimild: 'Fyrirtækjaskrá Skattsins (opinbert API) — fyrirsvar þvert á greint eignarhaldsnet' };
+  }
+  // net óbyggt (n_felog=1) → stutt TTL svo fullbyggt tré taki fljótt við; fullt net → 12h
+  const ttl = out.holdur ? (out.n_felog > 1 ? 43200 : 900) : 0;
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
+  if (ttl) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1898,6 +1992,7 @@ export default {
     if (url.pathname === '/api/sanctions') return sanctionsHandler(request, env, ctx);
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
+    if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
