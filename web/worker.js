@@ -1284,8 +1284,14 @@ async function askellWebhookHandler(request, env, ctx) {
       const sub2 = d.subscription || d.contract || d.subscription_contract || {};
       let meta2 = d.metadata || d.meta || sub2.metadata || sub2.meta || {};
       if (typeof meta2 === 'string') { try { meta2 = JSON.parse(meta2); } catch (e) { meta2 = {}; } }
-      const stakKey = (String(meta2.service || '') === 'stak') ? String(meta2.key || '') : '';
-      const okState = !/fail|error|cancel/i.test(String(d.state || d.status || ''));
+      // V2-leið: session-metadata {service:'stak', key} · V1-leið (stakgreiðsla um /api/payments/):
+      // engin metadata en reference-svið greiðslunnar BER stak-lykilinn sjálfan
+      const refKey = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(String(d.reference || '')) ? String(d.reference) : '';
+      const viaMeta = String(meta2.service || '') === 'stak';
+      const stakKey = viaMeta ? String(meta2.key || '') : refKey;
+      const st2 = String(d.state || d.status || '');
+      // V1-stakgreiðsla: veita AÐEINS við settled (pending/retrying bíða); V2: útiloka villustöður
+      const okState = viaMeta ? !/fail|error|cancel/i.test(st2) : /settled/i.test(st2);
       const kt2 = String(d.customer_reference || (d.customer && d.customer.reference) || sub2.customer_reference || '').replace(/\D/g, '');
       if (stakKey && okState && /^[a-z]+:[\w .,ÁÉÍÓÚÝÞÆÖáéíóúýþæö-]+$/.test(stakKey) && kt2.length === 10) {
         ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
@@ -1430,6 +1436,117 @@ async function askellSessionHandler(request, env, ctx) {
     const d = await r.json().catch(() => null);
     if (!r.ok || !d || !d.token) return sjson({ error: 'askell', status: r.status });
     return sjson({ token: d.token, expires_at: d.expires_at || null, tier: svc || tier });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
+// ── Stakar skýrslur um ÁSKELL V1 (einskiptisgreiðsla, innfellt kortaform) ──
+// V2 embedded checkout getur EKKI selt staka einskiptisvöru (sannað 11.7: quote/ hafnar bæði
+// items m/one-time verði („One-time prices cannot be attached to contracts") og initial_items
+// einu sér („Provide exactly one checkout input mode")). Þess í stað V1-leið Áskell:
+//   1) POST /api/checkouts/ {payment_processor, currency, capture_only:true, allowed_origin}
+//      → checkout_url sem er HANNAÐ fyrir iframe (CSP frame-ancestors karp.is) — kort + 3DS á síðunni
+//   2) framendinn pollar POST /api/stak/confirm → workerinn reynir að tengja kortið við viðskiptavin
+//      (POST /customers/paymentmethod/) — tekst fyrst þegar korti hefur verið slegið inn
+//   3) þá POST /api/payments/ {customer_reference:kt, amount, reference:stak-lykill} (async)
+//   4) polling heldur áfram þar til state=settled → grant á WP (kt-lyklað, sama og vefkrókur)
+// Upphæð ALLTAF server-hlið (aldrei frá vafra). Public-lykil þarf hvergi — allt um secret-lykilinn.
+const STAK_VERD = { fyrirtaeki: ['Fyrirtækjaskýrsla', 990], eigendur: ['Eigendaskýrsla', 990], areidanleiki: ['Áreiðanleikamat', 990], fasteign: ['Fasteignaskýrsla (verðmat)', 990] };
+async function askellProcessorId(env, ctx) {
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/askell-procid');
+  const hit = await cache.match(ck);
+  if (hit) { try { const j = await hit.json(); if (j.id != null) return j.id; } catch (e) {} }
+  try {
+    const r = await fetch('https://askell.is/api/checkouts/paymentprocessors/', { headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY } });
+    const d = await r.json().catch(() => null);
+    const list = (d && (d.payment_processors || d.results)) || (Array.isArray(d) ? d : []);
+    const p = list.find((x) => x.supports_checkout && (x.allowed_currencies || []).indexOf('ISK') >= 0) || list.find((x) => x.supports_checkout);
+    if (p && p.id != null) {
+      ctx.waitUntil(cache.put(ck, new Response(JSON.stringify({ id: p.id }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } })));
+      return p.id;
+    }
+  } catch (e) {}
+  return null;
+}
+async function stakCheckoutHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  if (request.method !== 'POST') {   // létt könnun framendans áður en kt-form birtist
+    const pid = await askellProcessorId(env, ctx);
+    return sjson(pid != null ? { ok: 1 } : { error: 'noprocessor' });
+  }
+  const b = await request.json().catch(() => null);
+  const key = String((b && b.key) || '').slice(0, 90);
+  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  const kt = String((b && b.kt) || '').replace(/\D/g, '');
+  if (!kind || kt.length !== 10) return sjson({ error: 'input' });
+  const pid = await askellProcessorId(env, ctx);
+  if (pid == null) return sjson({ error: 'noprocessor' });
+  // viðskiptavinur verður að vera til áður en kort er tengt — stofna (400 = til nú þegar → í lagi)
+  const nafn = String((b && b.nafn) || '').trim().slice(0, 80) || 'Karp notandi';
+  const bil = nafn.lastIndexOf(' ');
+  const email = String((b && b.email) || '').trim().slice(0, 120);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return sjson({ error: 'email' });   // Áskell krefst netfangs (kvittun)
+  try {
+    await fetch('https://askell.is/api/customers/', {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ first_name: bil > 0 ? nafn.slice(0, bil) : nafn, last_name: bil > 0 ? nafn.slice(bil + 1) : '-', email, customer_reference: kt }),
+    });   // svar vísvitandi hunsað: 201 = nýr, 400 = til → hvort tveggja gott
+    const r = await fetch('https://askell.is/api/checkouts/', {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ payment_processor: pid, currency: 'ISK', capture_only: true, allowed_origin: 'https://karp.is' }),
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.checkout_url || !d.token) return sjson({ error: 'askell', status: r.status });
+    return sjson({ token: d.token, checkout_url: d.checkout_url });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+async function stakConfirmHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  const b = await request.json().catch(() => null);
+  const key = String((b && b.key) || '').slice(0, 90);
+  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  const kt = String((b && b.kt) || '').replace(/\D/g, '');
+  const tok = String((b && b.token) || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
+  if (!kind || kt.length !== 10 || tok.length < 20) return sjson({ error: 'input' });
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/askell-stakpay?tok=' + tok);
+  const granted = async (uuid) => {   // grant á WP — idempotent á orderid; vefkrókurinn er varaleið
+    if (!env.KARP_GRANT_SECRET) return;
+    await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+      body: JSON.stringify({ kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
+    }).catch(() => null);
+  };
+  try {
+    const hit = await cache.match(ck);
+    if (hit) {   // greiðsla þegar stofnuð → aðeins staða + grant þegar settled
+      const j = await hit.json().catch(() => null);
+      const uuid = j && j.uuid;
+      if (uuid) {
+        const r = await fetch('https://askell.is/api/payments/' + uuid + '/', { headers: H });
+        const d = await r.json().catch(() => null);
+        const st = String((d && d.state) || 'pending');
+        if (st === 'settled') { await granted(uuid); return sjson({ state: 'settled' }); }
+        return sjson({ state: st === 'failed' ? 'failed' : 'pending' });
+      }
+    }
+    // kort tengt? — tekst fyrst þegar notandinn hefur klárað kortaformið í iframe-inu
+    const at = await fetch('https://askell.is/api/customers/paymentmethod/', { method: 'POST', headers: H, body: JSON.stringify({ customer_reference: kt, token: tok }) });
+    if (!at.ok) return sjson({ state: 'waiting' });
+    const [heiti, verd] = STAK_VERD[kind];
+    const pr = await fetch('https://askell.is/api/payments/', {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ customer_reference: kt, amount: String(verd), currency: 'ISK', description: heiti + ' — karp.is', reference: key }),
+    });
+    const pd = await pr.json().catch(() => null);
+    const uuid = pd && (pd.uuid || pd.id);
+    if (!pr.ok || !uuid) return sjson({ error: 'payment', status: pr.status });
+    await cache.put(ck, new Response(JSON.stringify({ uuid: String(uuid) }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } }));
+    const st = String((pd && pd.state) || 'pending');
+    if (st === 'settled') { await granted(String(uuid)); return sjson({ state: 'settled' }); }
+    return sjson({ state: 'pending' });
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
@@ -2186,6 +2303,8 @@ export default {
     if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/sub/cancel') return subCancelHandler(request, env, ctx);
+    if (url.pathname === '/api/stak/checkout') return stakCheckoutHandler(request, env, ctx);
+    if (url.pathname === '/api/stak/confirm') return stakConfirmHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);

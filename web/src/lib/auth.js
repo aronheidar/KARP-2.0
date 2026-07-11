@@ -181,15 +181,16 @@ export async function ktWatchSet(kt, action) { return (await karpPost('/ktwatch'
 export async function teamList() { return (await karpGet('/team')) || { members: [], cap: 0 }; }
 export async function teamSet(email, action) { return (await karpPost('/team', { email, action })) || { ok: false }; }
 
-// Stök skýrsla um ÁSKELL (einskiptisvara, embedded checkout á síðunni). Skilar 'embedded' (checkout
-// birt í gateEl), 'unconfigured' (rás ekki sett upp → kallandi fellur á Teya) eða 'error'.
-// Flæði: kt-innsláttur → /sub/subscribe {service:'stak', kt} (vistar karp_kt f. grant-samsvörun) →
-// /api/sub/checkout-session?stak=key → Askell.mountCheckout → vefkrókur veitir um /reports/grant (kt).
+// Stök skýrsla um ÁSKELL V1 (einskiptisgreiðsla, innfellt kortaform á síðunni). Skilar 'embedded',
+// 'unconfigured' (→ kallandi fellur á Teya) eða 'error'. V2 embedded checkout selur EKKI staka
+// einskiptisvöru (sannað 11.7) — því V1: kt-innsláttur → /sub/subscribe {service:'stak', kt} →
+// POST /api/stak/checkout → kortaform Áskell í IFRAME (3DS innifalið) → pollum /api/stak/confirm
+// (workerinn tengir kort + rukkar 990 + veitir skýrsluna á WP) → reload þegar skýrslan er komin.
 export async function karpStakAskell({ key, ref, gateEl }) {
   if (!gateEl) return 'unconfigured';
   try {
-    const probe = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key), { credentials: 'include' })).json();
-    if (!probe || !probe.token) return 'unconfigured';   // rás ekki til/óvirk í Áskell → falla þegjandi á Teya
+    const probe = await (await fetch('/api/stak/checkout', { credentials: 'include' })).json();
+    if (!probe || !probe.ok) return 'unconfigured';   // Áskell-lykill/færsluhirðir ekki til staðar → Teya
   } catch (e) { return 'unconfigured'; }
   injectGateCss();   // hnappurinn getur staðið utan gátta (kaupraðir/tækjastikur) þar sem gátt-CSS vantar
   const old = gateEl.querySelector('.stak-holf'); if (old) old.remove();   // endursmellur → ekki tvöfaldur gluggi
@@ -197,35 +198,52 @@ export async function karpStakAskell({ key, ref, gateEl }) {
   holf.className = 'stak-holf';
   holf.style.flex = '1 1 100%';   // í flex-röð (kaupröð/tækjastika) fer glugginn í heila línu fyrir neðan
   gateEl.appendChild(holf);
-  holf.innerHTML = '<div class="pg-btns" style="margin-top:10px"><input type="text" class="sg-kt" id="stak-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" />'
-    + '<button class="pg-main" id="stak-go" type="button">Greiða — opna kortaglugga →</button></div><div class="sg-err" id="stak-err" hidden></div>';
+  holf.innerHTML = '<div class="stak-body"><div class="pg-btns" style="margin-top:10px"><input type="text" class="sg-kt" id="stak-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" />'
+    + '<button class="pg-main" id="stak-go" type="button">Greiða — opna kortaglugga →</button></div></div><div class="sg-err" id="stak-err" hidden></div>';
+  const body = holf.querySelector('.stak-body');   // err-reiturinn lifir utan body → villur sjást líka eftir að iframe tekur við
   const err = holf.querySelector('#stak-err');
   const fail = (m) => { err.hidden = false; err.innerHTML = esc(m) + ' Eða ' + helpA() + '.'; };
   holf.querySelector('#stak-go').onclick = async () => {
     const kt = String(holf.querySelector('#stak-kt').value || '').replace(/\D/g, '');
     if (kt.length !== 10) return fail('Sláðu inn gilda kennitölu.');
+    const u = _u();
+    if (!u.loggedIn) { location.href = loginHref(); return; }   // skýrslan vistast á Mitt svæði → innskráning skilyrði
     const gb = holf.querySelector('#stak-go'); gb.disabled = true; gb.textContent = 'Opna greiðslu…'; err.hidden = true;
     try {
-      await karpPost('/sub/subscribe', { service: 'stak', kt });
-      const d = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key) + '&kt=' + kt, { credentials: 'include' })).json();
-      if (!d || !d.token) throw new Error('nosession');
-      await loadAskellJs();
-      holf.innerHTML = '<div id="askell-stak" class="sg-checkout"></div>';
-      window.Askell.mountCheckout('#askell-stak', {
-        baseUrl: 'https://askell.is', sessionToken: d.token, language: 'is', colorScheme: 'auto',
-        onSuccess() {
-          // Pollum /me þar til vefkrókurinn hefur AFHENT skýrsluna — þá (og fyrst þá) endurhlaðið
-          // → skýrslan er það fyrsta sem opnast, aldrei gáttin aftur (kapphlaups-vörn).
-          holf.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — opna skýrsluna þína…</div>';
-          let n = 0;
-          const t = setInterval(async () => {
+      await karpPost('/sub/subscribe', { service: 'stak', kt });   // vistar karp_kt → grant-samsvörun á WP
+      const d = await (await fetch('/api/stak/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ key, kt, email: u.email || '', nafn: u.name || '' }) })).json();
+      if (!d || !d.checkout_url || !d.token) throw new Error('nocheckout');
+      body.innerHTML = '<iframe class="sg-frame" src="' + esc(d.checkout_url) + '" allow="payment"></iframe>'
+        + '<div class="pg-note">Kortagreiðsla á öruggu formi Áskell (990 kr) — skýrslan opnast sjálfkrafa að greiðslu lokinni.</div>';
+      // Pollum confirm: workerinn tengir kortið um leið og forminu er lokið, rukkar og VEITIR skýrsluna
+      // server-hlið — svo /me-poll þar til hún birtist → reload (skýrslan opnast fyrst, aldrei gáttin).
+      let busy = false, lokid = false;
+      const hreinsa = () => { lokid = true; clearInterval(t); clearTimeout(tak); window.removeEventListener('message', hint); };
+      const poll = async () => {
+        if (busy || lokid) return; busy = true;
+        let s = null;
+        try { s = await (await fetch('/api/stak/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ token: d.token, key, kt }) })).json(); } catch (e) {}
+        busy = false;
+        if (lokid || !s) return;
+        if (s.state === 'settled') {
+          hreinsa();
+          body.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — opna skýrsluna þína…</div>';
+          let m = 0;
+          const t2 = setInterval(async () => {
             const u2 = await karpGet('/me').catch(() => null);
             const has = u2 && Array.isArray(u2.reports) && u2.reports.some((r) => (r && (r.key || r)) === key);
-            if (has || ++n > 14) { clearInterval(t); location.reload(); }   // þak ~35s → reload hvort eð er (grant er á leiðinni)
+            if (has || ++m > 8) { clearInterval(t2); location.reload(); }   // grant er samstundis → örstutt bið
           }, 2500);
-        },
-        onError() { fail('Villa kom upp í greiðslu — reyndu aftur.'); },
-      });
+        } else if (s.state === 'failed' || s.error) {
+          hreinsa();
+          body.innerHTML = '';
+          fail(s.state === 'failed' ? 'Greiðslan tókst ekki — reyndu aftur eða notaðu annað kort.' : 'Villa kom upp í greiðslu — reyndu aftur.');
+        }
+      };
+      const t = setInterval(poll, 3000);
+      const hint = (e) => { if (e && e.origin === 'https://askell.is') poll(); };   // checkout tilkynnir foreldrasíðu → flýtileið
+      window.addEventListener('message', hint);
+      const tak = setTimeout(hreinsa, 12 * 60 * 1000);   // þak 12 mín á kortainnslátt
     } catch (e) { gb.disabled = false; gb.textContent = 'Greiða — opna kortaglugga →'; fail('Ekki tókst að opna greiðslu — reyndu aftur.'); }
   };
   return 'embedded';
@@ -266,7 +284,8 @@ const GATE_CSS = '.plus-gate{max-width:520px;margin:24px auto;background:rgba(24
   + '.sg-kt:focus{outline:none;border-color:#f6b13b}'
   + '.sg-err{color:#ff8a8a;font-size:12.5px;margin-top:10px}'
   + '.sg-err a.pg-help,.pg-note a.pg-help{color:#f6b13b;text-decoration:none}'
-  + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}';
+  + '.sg-checkout{margin-top:14px;text-align:left;min-height:60px}'
+  + '.sg-frame{width:100%;min-height:540px;border:0;border-radius:12px;background:#fff;margin-top:12px}';
 function injectGateCss() { if (typeof document === 'undefined' || document.getElementById('karp-gate-css')) return; const s = document.createElement('style'); s.id = 'karp-gate-css'; s.textContent = GATE_CSS; document.head.appendChild(s); }
 
 // „Fáðu aðstoð"-hlekkur á /hjalp/ (ticket-formið) — ?fra= forvelur flokk þar.
