@@ -1286,7 +1286,9 @@ async function askellWebhookHandler(request, env, ctx) {
       if (typeof meta2 === 'string') { try { meta2 = JSON.parse(meta2); } catch (e) { meta2 = {}; } }
       // V2-leið: session-metadata {service:'stak', key} · V1-leið (stakgreiðsla um /api/payments/):
       // engin metadata en reference-svið greiðslunnar BER stak-lykilinn sjálfan
-      const refKey = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(String(d.reference || '')) ? String(d.reference) : '';
+      // reference = '<lykill>|<token-forskeyti>' (tvírukkunar-vörn) → klippa '|…' af fyrir grant-lykilinn
+      const ref0 = String(d.reference || '').split('|')[0];
+      const refKey = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(ref0) ? ref0 : '';
       const viaMeta = String(meta2.service || '') === 'stak';
       const stakKey = viaMeta ? String(meta2.key || '') : refKey;
       const st2 = String(d.state || d.status || '');
@@ -1469,7 +1471,10 @@ async function askellProcessorId(env, ctx) {
   return null;
 }
 async function stakCheckoutHandler(request, env, ctx) {
-  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
+  // ⚠ ASKELL_PUBLIC_KEY er SKYLDA: eina örugga „kort komið"-merkið er GET /api/checkouts/{token}/
+  // (status=tokencreated) sem krefst public-lykilsins — án hans myndum við rukka blint (sannað 11.7:
+  // paymentmethod-attach TEKST á fersku checkout-i áður en kort er slegið inn). Án lykils → Teya.
+  if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY) return sjson({ error: 'unconfigured' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   if (request.method !== 'POST') {   // létt könnun framendans áður en kt-form birtist
     const pid = await askellProcessorId(env, ctx);
@@ -1502,7 +1507,7 @@ async function stakCheckoutHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 async function stakConfirmHandler(request, env, ctx) {
-  if (!env.ASKELL_PRIVATE_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
+  if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
@@ -1512,6 +1517,9 @@ async function stakConfirmHandler(request, env, ctx) {
   if (!kind || kt.length !== 10 || tok.length < 20) return sjson({ error: 'input' });
   const cache = caches.default;
   const ck = new Request('https://cache.karp.internal/askell-stakpay?tok=' + tok);
+  // reference ber lykil + token-forskeyti → einkvæmt PER checkout → tvírukkunar-vörn þótt edge-cache
+  // gleymist (leitum að því í nýjustu greiðslum áður en ný er stofnuð); vefkrókur klippir '|…' af.
+  const refStr = key + '|' + tok.slice(0, 12);
   const granted = async (uuid) => {   // grant á WP — idempotent á orderid; vefkrókurinn er varaleið
     if (!env.KARP_GRANT_SECRET) return;
     await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
@@ -1519,31 +1527,47 @@ async function stakConfirmHandler(request, env, ctx) {
       body: JSON.stringify({ kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
     }).catch(() => null);
   };
+  const stada = async (uuid) => {
+    const r = await fetch('https://askell.is/api/payments/' + uuid + '/', { headers: H });
+    const d = await r.json().catch(() => null);
+    const st = String((d && d.state) || 'pending');
+    if (st === 'settled') { await granted(uuid); return sjson({ state: 'settled' }); }
+    return sjson({ state: st === 'failed' ? 'failed' : 'pending' });
+  };
   try {
     const hit = await cache.match(ck);
     if (hit) {   // greiðsla þegar stofnuð → aðeins staða + grant þegar settled
       const j = await hit.json().catch(() => null);
-      const uuid = j && j.uuid;
-      if (uuid) {
-        const r = await fetch('https://askell.is/api/payments/' + uuid + '/', { headers: H });
-        const d = await r.json().catch(() => null);
-        const st = String((d && d.state) || 'pending');
-        if (st === 'settled') { await granted(uuid); return sjson({ state: 'settled' }); }
-        return sjson({ state: st === 'failed' ? 'failed' : 'pending' });
-      }
+      if (j && j.uuid) return stada(String(j.uuid));
     }
-    // kort tengt? — tekst fyrst þegar notandinn hefur klárað kortaformið í iframe-inu
+    // ⚠ EINA örugga „kort komið"-merkið: staða checkout-sins sjálfs (krefst PUBLIC-lykils).
+    // paymentmethod-attach tekst nefnilega STRAX á fersku checkout-i (sannað 11.7) → blind rukkun bönnuð.
+    const cs = await fetch('https://askell.is/api/checkouts/' + tok + '/', { headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PUBLIC_KEY } });
+    const cd = await cs.json().catch(() => null);
+    const cst = String((cd && cd.status) || '');
+    if (cst !== 'tokencreated') {
+      if (/error|fail|cancel|expire/i.test(cst)) return sjson({ state: 'failed' });
+      return sjson({ state: 'waiting' });
+    }
+    // kort komið → tengja við viðskiptavin og rukka — en FYRST: er greiðsla þegar til fyrir þetta checkout?
+    const pl = await fetch('https://askell.is/api/payments/?page_size=100', { headers: H }).then((r) => r.json()).catch(() => null);
+    const fyrri = ((Array.isArray(pl) ? pl : (pl && pl.results) || []).find((x) => String(x.reference || '') === refStr));
+    if (fyrri && (fyrri.uuid || fyrri.id)) {
+      const u0 = String(fyrri.uuid || fyrri.id);
+      ctx.waitUntil(cache.put(ck, new Response(JSON.stringify({ uuid: u0 }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=7200' } })));
+      return stada(u0);
+    }
     const at = await fetch('https://askell.is/api/customers/paymentmethod/', { method: 'POST', headers: H, body: JSON.stringify({ customer_reference: kt, token: tok }) });
     if (!at.ok) return sjson({ state: 'waiting' });
     const [heiti, verd] = STAK_VERD[kind];
     const pr = await fetch('https://askell.is/api/payments/', {
       method: 'POST', headers: H,
-      body: JSON.stringify({ customer_reference: kt, amount: String(verd), currency: 'ISK', description: heiti + ' — karp.is', reference: key }),
+      body: JSON.stringify({ customer_reference: kt, amount: String(verd), currency: 'ISK', description: heiti + ' — karp.is', reference: refStr }),
     });
     const pd = await pr.json().catch(() => null);
     const uuid = pd && (pd.uuid || pd.id);
     if (!pr.ok || !uuid) return sjson({ error: 'payment', status: pr.status });
-    await cache.put(ck, new Response(JSON.stringify({ uuid: String(uuid) }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } }));
+    await cache.put(ck, new Response(JSON.stringify({ uuid: String(uuid) }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=7200' } }));
     const st = String((pd && pd.state) || 'pending');
     if (st === 'settled') { await granted(String(uuid)); return sjson({ state: 'settled' }); }
     return sjson({ state: 'pending' });
