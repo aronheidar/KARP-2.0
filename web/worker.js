@@ -1731,20 +1731,24 @@ async function askellConfigHandler(request, env) {
         const offer = { items: [{ price: priceId, quantity: 1 }] };
         const jbody = { 'Content-Type': 'application/json' };
         try {
-          const bc = await fetch(base + 'customer/', { method: 'POST', headers: jbody, body: JSON.stringify({ customer_reference: uq.get('kt') || '4901022210' }) });
+          const bc = await fetch(base + 'customer/', { method: 'POST', headers: jbody, body: JSON.stringify({ customer_reference: uq.get('kt') || '4901022210', name: 'Debug Próf', email: 'debug@karp.is' }) });
           out.bind_customer = bc.status + ':' + (await bc.text()).slice(0, 200);
         } catch (e) { out.bind_customer = 'err:' + String((e && e.message) || e); }
         try {
           const pp = await fetch(base + 'payment-processor-options/', { method: 'POST', headers: jbody, body: JSON.stringify(offer) });
           out.pp_options = pp.status + ':' + (await pp.text()).slice(0, 500);
         } catch (e) { out.pp_options = 'err:' + String((e && e.message) || e); }
-        try {
-          const co = await fetch(base + 'checkout/', { method: 'POST', headers: jbody, body: JSON.stringify(offer) });
-          out.checkout = co.status + ':' + (await co.text()).slice(0, 500);
-        } catch (e) { out.checkout = 'err:' + String((e && e.message) || e); }
+        // checkout m/skilmála-samþykki (prófum nokkur mögu-svið því nákvæmt heiti er óskjalfest)
+        for (const [n, extra] of [['terms_accepted', { terms_accepted: true }], ['accept_terms', { accept_terms: true }], ['terms', { terms_accepted: true, accept_terms: true, terms_url: 'https://karp.is/skilmalar/' }]]) {
+          try {
+            const co = await fetch(base + 'checkout/', { method: 'POST', headers: jbody, body: JSON.stringify({ ...offer, ...extra }) });
+            out['checkout_' + n] = co.status + ':' + (await co.text()).slice(0, 400);
+            if (co.ok) break;
+          } catch (e) { out['checkout_' + n] = 'err'; }
+        }
         try {
           const pmr = await fetch(base + 'payment-method-registrations/', { method: 'POST', headers: jbody, body: JSON.stringify({}) });
-          out.pmr = pmr.status + ':' + (await pmr.text()).slice(0, 500);
+          out.pmr = pmr.status + ':' + (await pmr.text()).slice(0, 600);
         } catch (e) { out.pmr = 'err:' + String((e && e.message) || e); }
       }
     } catch (e) { out.create_err = String((e && e.message) || e); }
