@@ -1627,6 +1627,17 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?contracts=1: LESA áskriftarsamninga (aðeins lestur — engin stofnun/afskráning) til greiningar
+  if (uq.get('contracts')) {
+    const out = {};
+    try {
+      const r = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=15', { headers: H });
+      const b = await r.json().catch(() => null);
+      const list = Array.isArray(b) ? b : ((b && b.results) || []);
+      out.contracts = list.map((x) => ({ id: x.id, state: x.state, kt: String(x.customer_reference || '').replace(/^\d{6}/, '……'), created: x.created_at || x.created, vara: (x.items || []).map((i) => i.product_reference || i.product_name).join(',') }));
+    } catch (e) { out.err = String((e && e.message) || e); }
+    return sjson(out);
+  }
   // ?wh=1: skráðir vefkrókar í Áskell — er einn skráður og bendir hann á karp.is/api/askell/webhook?
   //   (áskriftir reiða sig ALGJÖRLEGA á vefkrókinn — engin poll-varaleið eins og stakar)
   if (uq.get('wh')) {
