@@ -1534,9 +1534,11 @@ async function stakConfirmHandler(request, env, ctx) {
   const refStr = key + '|' + kt;
   const granted = async (uuid) => {   // grant á WP — idempotent á lykli WP-megin; vefkrókurinn er varaleið
     if (!env.KARP_GRANT_SECRET) return;
+    // userid = INNSKRÁÐI kaupandinn → skýrslan lendir á réttum aðgangi þótt fleiri deili kt
+    // (kt-árekstur sannaður 11.7: sama kt á tveimur aðgöngum → get_users valdi rangan); kt = varaleið
     await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
       method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-      body: JSON.stringify({ kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
+      body: JSON.stringify({ userid: +uid, kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
     }).catch(() => null);
   };
   // BLOCKER-vörn (rýni-atriði #1): grant-lykillinn er lesinn úr GREIÐSLUNNI sjálfri (reference) og
