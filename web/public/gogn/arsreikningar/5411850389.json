@@ -1,7 +1,7 @@
 {
  "kt": "5411850389",
  "nafn": "Brim hf.",
- "sott": "2026-07-09",
+ "sott": "2026-07-11",
  "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
  "ar": {
   "2023": {
@@ -15,7 +15,7 @@
     "ROE": 0.1331,
     "ROA": 0.0663,
     "eiginfjarhlutfall": 0.4979,
-    "veltufjarhlutfall": 0.3049,
+    "veltufjarhlutfall": 2.2729,
     "skuldahlutfall_DE": 1.0085,
     "eignavelta": 0.4604
    },
@@ -33,15 +33,18 @@
     "ebitda": 97224
    },
    "efnahagur": {
+    "fastafjarmunir": 779419,
     "birgdir": 74405,
     "vidskiptakrofur": 36800,
     "handbaert": 34178,
+    "veltufjarmunir": 170239,
     "eignir": 949658,
     "hlutafe": 20083,
     "eigid_fe": 472808,
+    "langtimaskuldir": 412885,
+    "skammtimaskuldir": 63965,
     "skuldir": 476850,
-    "efe_skuldir": 949658,
-    "skammtimaskuldir": 476850
+    "efe_skuldir": 949658
    },
    "starfsmenn": null
   },
@@ -56,7 +59,7 @@
     "ROE": 0.0829,
     "ROA": 0.0407,
     "eiginfjarhlutfall": 0.4909,
-    "veltufjarhlutfall": 0.2943,
+    "veltufjarhlutfall": 1.3694,
     "skuldahlutfall_DE": 1.0371,
     "eignavelta": 0.3909
    },
@@ -74,15 +77,18 @@
     "ebitda": 65304
    },
    "efnahagur": {
+    "fastafjarmunir": 820968,
     "birgdir": 65327,
     "vidskiptakrofur": 31740,
     "handbaert": 52135,
+    "veltufjarmunir": 175005,
     "eignir": 995973,
     "hlutafe": 20083,
     "eigid_fe": 488919,
+    "langtimaskuldir": 398102,
+    "skammtimaskuldir": 108952,
     "skuldir": 507054,
-    "efe_skuldir": 995973,
-    "skammtimaskuldir": 507054
+    "efe_skuldir": 995973
    },
    "starfsmenn": 694
   },
@@ -97,7 +103,7 @@
     "ROE": 0.1151,
     "ROA": 0.0601,
     "eiginfjarhlutfall": 0.5225,
-    "veltufjarhlutfall": 0.3897,
+    "veltufjarhlutfall": 0.8779,
     "skuldahlutfall_DE": 0.9138,
     "eignavelta": 0.4106
    },
@@ -115,15 +121,18 @@
     "ebitda": 90609
    },
    "efnahagur": {
+    "fastafjarmunir": 797428,
     "birgdir": 78857,
     "vidskiptakrofur": 35323,
     "handbaert": 71467,
+    "veltufjarmunir": 200242,
     "eignir": 997670,
     "hlutafe": 20083,
     "eigid_fe": 521316,
+    "langtimaskuldir": 264876,
+    "skammtimaskuldir": 211478,
     "skuldir": 476354,
-    "efe_skuldir": 997670,
-    "skammtimaskuldir": 476354
+    "efe_skuldir": 997670
    },
    "starfsmenn": 661
   }
