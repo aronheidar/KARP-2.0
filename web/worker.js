@@ -1654,6 +1654,25 @@ async function askellConfigHandler(request, env) {
     }
     return sjson(out);
   }
+  // ?contracts=1: lista áskriftarsamninga (+?del=<id> eyðir/afskráir prufu-samningi)
+  if (uq.get('contracts')) {
+    const out = {};
+    const del = uq.get('del');
+    if (del) {
+      // reyna cancel-endapunkt fyrst, svo DELETE
+      let r = await fetch('https://askell.is/api/v2/subscription-contracts/' + del + '/cancel/', { method: 'POST', headers: H, body: JSON.stringify({ cancel_at_period_end: false }) }).catch(() => null);
+      out['cancel_' + del] = r ? r.status : 'net';
+      let r2 = await fetch('https://askell.is/api/v2/subscription-contracts/' + del + '/', { method: 'DELETE', headers: H }).catch(() => null);
+      out['delete_' + del] = r2 ? r2.status : 'net';
+    }
+    try {
+      const r = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=30', { headers: H });
+      const b = await r.json().catch(() => null);
+      const list = Array.isArray(b) ? b : ((b && b.results) || []);
+      out.contracts = list.map((x) => ({ id: x.id, state: x.state, kt: String(x.customer_reference || '').replace(/^\d{6}/, '……'), created: x.created_at || x.created, items: (x.items || []).map((i) => i.price || (i.price_id)) }));
+    } catch (e) { out.err = String((e && e.message) || e); }
+    return sjson(out);
+  }
   // ?wh=1: skráðir vefkrókar í Áskell — er einn skráður og bendir hann á karp.is/api/askell/webhook?
   //   (áskriftir reiða sig ALGJÖRLEGA á vefkrókinn — engin poll-varaleið eins og stakar)
   if (uq.get('wh')) {
