@@ -189,7 +189,7 @@ export async function karpStakAskell({ key, ref, gateEl }) {
   if (!gateEl) return 'unconfigured';
   try {
     const probe = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key), { credentials: 'include' })).json();
-    if (probe && probe.error === 'unconfigured') return 'unconfigured';   // engin ASKELL_CHANNEL_STAK → Teya
+    if (!probe || !probe.token) return 'unconfigured';   // rás ekki til/óvirk í Áskell → falla þegjandi á Teya
   } catch (e) { return 'unconfigured'; }
   const holf = document.createElement('div');
   gateEl.appendChild(holf);

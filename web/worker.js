@@ -1354,12 +1354,20 @@ async function askellSessionHandler(request, env, ctx) {
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
   // Stök skýrsla (einskiptisvara um Áskell): ?stak=fyrirtaeki:kt|eigendur:kt|areidanleiki:kt|fasteign:addr
-  // → sölurás ASKELL_CHANNEL_STAK, metadata {service:'stak', key} → vefkrókur veitir um /reports/grant.
+  // → sölurás per tegund (sjálfgildi = vöru-tilvísanir Arons í Áskell 11.7.2026), metadata {service:'stak', key}
+  // → vefkrókur veitir um /reports/grant. Env-secret yfirskrifar sjálfgildið ef rásar-slug er annað.
+  const STAKS = {
+    fyrirtaeki: ['ASKELL_CHANNEL_STAK_FYRIRTAEKI', 'fyrirtaeki_skyrsla'],
+    eigendur: ['ASKELL_CHANNEL_STAK_EIGENDUR', 'eigendur_skyrsla'],
+    areidanleiki: ['ASKELL_CHANNEL_STAK_AREIDANLEIKI', 'areidanleiki'],
+    fasteign: ['ASKELL_CHANNEL_STAK_FASTEIGN', 'fasteigna_skyrsla'],
+  };
   const stak = String(u.searchParams.get('stak') || '').slice(0, 90);
-  const stakOk = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(stak);
-  if (stak && !stakOk) return sjson({ error: 'stak' });
-  if (stakOk && !env.ASKELL_CHANNEL_STAK) return sjson({ error: 'unconfigured' });
-  const channel = stakOk ? env.ASKELL_CHANNEL_STAK : (svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier));   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
+  const stakKind = (stak.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  if (stak && !stakKind) return sjson({ error: 'stak' });
+  const channel = stakKind ? (env[STAKS[stakKind][0]] || env.ASKELL_CHANNEL_STAK || STAKS[stakKind][1])
+    : (svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier));   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
+  const stakOk = !!stakKind;
   const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: stakOk ? { service: 'stak', key: stak } : (svc ? { service: svc } : { tier }) };   // metadata → vefkrókur veit hvað var keypt
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
