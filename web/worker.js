@@ -1597,6 +1597,32 @@ async function stakConfirmHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
+// ⚠ TÍMABUNDIN prófunarsíða (á karp.is-origin) sem keyrir Áskell-widgetinn beint m/fersku session-token
+// → hægt að sjá NÁKVÆMLEGA hvar áskriftar-checkout stoppar (console/network) án innskráningar. EYÐA eftir.
+async function askellTestWidgetHandler(request, env) {
+  if (!env.ASKELL_PRIVATE_KEY) return new Response('no-key', { status: 200 });
+  const u = new URL(request.url);
+  const chan = u.searchParams.get('chan') || 'utbod';
+  let token = '';
+  try {
+    const r = await fetch('https://askell.is/api/v2/checkout-sessions/', {
+      method: 'POST',
+      headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sales_channel: chan, expires_in_seconds: 1800, metadata: { service: 'debug' } }),
+    });
+    const d = await r.json().catch(() => null);
+    token = (d && d.token) || '';
+  } catch (e) {}
+  const html = '<!doctype html><html lang="is"><head><meta charset="utf-8"><title>Áskell prófun</title></head>'
+    + '<body style="font-family:sans-serif;max-width:640px;margin:20px auto"><h3>Áskell widget prófun — ' + chan + '</h3>'
+    + '<div id="ak"></div><script src="https://cdn.askell.is/js/dist/askell.js"></script><script>'
+    + 'Askell.mountCheckout("#ak",{sessionToken:' + JSON.stringify(token) + ',language:"is",colorScheme:"auto",'
+    + 'onSuccess:function(r){document.title="OK";console.log("SUCCESS",r);},'
+    + 'onError:function(e){document.title="ERR";console.error("WIDGET-ERROR",e);}});'
+    + '</script></body></html>';
+  return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+}
+
 // ⚠ TÍMABUNDINN greiningar-endapunktur (LOTA 110i) — les Áskell-uppsetningu m/private-lykli til að greina
 // „Payment processor configuration could not be loaded". Skilar AÐEINS fjölda + eligibility + display_names
 // (engin leyndarmál/viðkvæmt) → óhætt án ?t=. EYÐA eftir að webhook er staðfestur.
@@ -2433,6 +2459,7 @@ export default {
     if (url.pathname === '/api/stak/checkout') return stakCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/stak/confirm') return stakConfirmHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
+    if (url.pathname === '/api/askell/testwidget') return askellTestWidgetHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     if (url.pathname === '/api/stjorn/request') return stjornRequestHandler(request, env, ctx);
