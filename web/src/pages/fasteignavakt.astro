@@ -916,7 +916,7 @@ const jsonLd = {
       if (fvmBtn) fvmBtn.addEventListener('click', fvmGo);
       const fvmVaktaBtn = document.getElementById('fvm-vakta');
       if (fvmVaktaBtn) fvmVaktaBtn.addEventListener('click', fvmVakta);
-      // 🛒 kaupa matsskýrslu (990 kr) — eigandi/admin → PDF strax; annars Teya-gátt (eða prentun fyrir launch)
+      // 🛒 kaupa matsskýrslu (990 kr) — eigandi/admin → PDF strax; annars Áskell embedded fyrir neðan röðina (Teya varaleið)
       const fvmBuyBtn = document.getElementById('fvm-buy');
       if (fvmBuyBtn) fvmBuyBtn.addEventListener('click', async () => {
         if (document.getElementById('fvm-out').hidden) return;
@@ -925,8 +925,11 @@ const jsonLd = {
         const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
         const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey) || hasSub('fasteign')) { doPrint(); return; }   // áskrifandi fær PDF án 990-gjalds
-        const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey });
-        if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
+        let askHolf = document.getElementById('fvm-askell');
+        if (!askHolf) { askHolf = document.createElement('div'); askHolf.id = 'fvm-askell'; const row = fvmBuyBtn.closest('.fvm-row'); if (row) row.after(askHolf); else fvmBuyBtn.after(askHolf); }
+        const res = await karpCheckout({ kind: 'fasteign', ref: addr, key: rkey }, askHolf);
+        if (res === 'embedded') { fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; return; } // Áskell-kortagluggi birtur undir leitarröðinni
+        if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya (varaleið)
         fvmBuyBtn.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(fvmBuyBtn); fvmBuyBtn.disabled = false; setTimeout(() => { fvmBuyBtn.textContent = t0; }, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
       });
       const fvmAddr = document.getElementById('fvm-addr');

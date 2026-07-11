@@ -191,7 +191,11 @@ export async function karpStakAskell({ key, ref, gateEl }) {
     const probe = await (await fetch('/api/sub/checkout-session?stak=' + encodeURIComponent(key), { credentials: 'include' })).json();
     if (!probe || !probe.token) return 'unconfigured';   // rás ekki til/óvirk í Áskell → falla þegjandi á Teya
   } catch (e) { return 'unconfigured'; }
+  injectGateCss();   // hnappurinn getur staðið utan gátta (kaupraðir/tækjastikur) þar sem gátt-CSS vantar
+  const old = gateEl.querySelector('.stak-holf'); if (old) old.remove();   // endursmellur → ekki tvöfaldur gluggi
   const holf = document.createElement('div');
+  holf.className = 'stak-holf';
+  holf.style.flex = '1 1 100%';   // í flex-röð (kaupröð/tækjastika) fer glugginn í heila línu fyrir neðan
   gateEl.appendChild(holf);
   holf.innerHTML = '<div class="pg-btns" style="margin-top:10px"><input type="text" class="sg-kt" id="stak-kt" placeholder="Kennitala" maxlength="11" inputmode="numeric" autocomplete="off" />'
     + '<button class="pg-main" id="stak-go" type="button">Greiða — opna kortaglugga →</button></div><div class="sg-err" id="stak-err" hidden></div>';

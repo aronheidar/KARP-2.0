@@ -1768,7 +1768,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   vb.disabled = false;
                 });
               }
-              // 🛒 kaupa skýrslu (990 kr) — eigandi/admin → PDF strax; annars Teya-gátt (eða prentun fyrir launch)
+              // 🛒 kaupa skýrslu (990 kr) — eigandi/admin → PDF strax; annars Áskell embedded í kaupröðinni (Teya varaleið)
               const bb = document.getElementById('fs-buy');
               if (bb) {
                 const kt = bb.dataset.kt || '', rkey = 'fyrirtaeki:' + kt;
@@ -1778,8 +1778,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 bb.addEventListener('click', async () => {
                   if (bb.dataset.owned) { bb.disabled = true; doPrint(); return; }
                   bb.disabled = true; const t0 = bb.textContent; bb.textContent = '…';
-                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey });
-                  if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya
+                  const res = await karpCheckout({ kind: 'fyrirtaeki', ref: (d.felag.nafn || '') + ' ' + kt, key: rkey }, bb.closest('.fs-buyrow') || bb.parentElement);
+                  if (res === 'redirected') return; // vafri á leið á hýstu greiðslusíðu Teya (varaleið)
+                  if (res === 'embedded') { bb.textContent = t0; bb.disabled = false; return; } // Áskell-kortagluggi birtur í kaupröðinni
                   bb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(bb); bb.disabled = false; setTimeout(paintBuy, 2800); // greiðsla fór ekki af stað → ENGIN ókeypis prentun
                 });
               }

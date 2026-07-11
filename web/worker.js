@@ -1362,13 +1362,22 @@ async function askellPriceId(env, ctx, prodRef) {
     ]);
     const prods = lesa(prodsR), prices = lesa(pricesR);
     const refOf = (p) => String(p.reference || p.ref || p.sku || '');
-    const idOf = (p) => (p.id != null ? p.id : (p.uuid || p.token || null));
+    const idOf = (p) => (p.id != null ? p.id : (p.pk != null ? p.pk : (p.uuid || p.token || null)));
+    // product-tengill verðs getur verið heiltala, "12", DRF-hyperlink ".../products/12/", hlutur — eða
+    // tilvísunin sjálf; verðið getur líka borið eigin reference. Prófa allt (snið óskjalfest).
+    const linkId = (v) => {
+      if (v == null) return null;
+      if (typeof v === 'object') return idOf(v);
+      const s = String(v), m = s.match(/\/(\d+)\/?$/);
+      return m ? m[1] : s;
+    };
     const prodIds = new Set(prods.filter((p) => refOf(p) === prodRef).map(idOf).filter((x) => x != null).map(String));
     let best = null;
     for (const pr of prices) {
-      const pid = pr.product != null && typeof pr.product === 'object' ? idOf(pr.product) : pr.product;
+      const pid = linkId(pr.product);
       const pref = (pr.product && typeof pr.product === 'object') ? refOf(pr.product) : '';
-      const match = (pid != null && prodIds.has(String(pid))) || pref === prodRef;
+      const match = (pid != null && prodIds.has(String(pid))) || pref === prodRef ||
+        String(pr.product || '') === prodRef || refOf(pr) === prodRef;
       if (!match) continue;
       if (!best || String(pr.billing_type || '') === 'one_time') best = pr;   // one_time í forgangi
     }
@@ -1442,6 +1451,11 @@ async function askellConfigHandler(request, env) {
     n_prices: prices.length,
     isk_prices: prices.filter((p) => p.currency === 'ISK').map((p) => ({ id: p.id || p.pk, amount: p.amount, active: p.active != null ? p.active : p.is_active, billing: p.billing_type, rec: p.recurrence_type })),
     picked_price: iskRec ? (iskRec.id || iskRec.pk) : null,
+    // Linkage-sýni (vörukatalógur Karp sjálfs — engin viðskiptavina-gögn): hvernig tengist verð vöru?
+    product_samples: products.map((p) => ({ id: p.id != null ? p.id : p.pk, reference: p.reference || p.ref || p.sku || null, name: String(p.name || '').slice(0, 40) })),
+    price_link_samples: prices.map((p) => ({ id: p.id != null ? p.id : p.pk, product: p.product != null ? (typeof p.product === 'object' ? { id: p.product.id, reference: p.product.reference } : p.product) : null, reference: p.reference || null, billing: p.billing_type, amount: p.amount, currency: p.currency })),
+    price_keys: prices[0] ? Object.keys(prices[0]) : [],
+    product_keys: products[0] ? Object.keys(products[0]) : [],
   };
   if (iskRec) {
     const pid = iskRec.id || iskRec.pk;
