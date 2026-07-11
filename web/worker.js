@@ -1439,6 +1439,33 @@ async function askellSessionHandler(request, env, ctx) {
 async function askellConfigHandler(request, env) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'no-key' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
+  // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
+  const uq = new URL(request.url).searchParams;
+  if (uq.get('cs')) {
+    const out = {};
+    try { const r = await fetch('https://askell.is/api/v2/checkout-sessions/', { method: 'OPTIONS', headers: H }); out.options_status = r.status; out.options = await r.json().catch(() => null); } catch (e) { out.options_err = String((e && e.message) || e); }
+    const body = {
+      sales_channel: uq.get('chan') || 'fyrirtaeki_skyrsla', expires_in_seconds: 900,
+      metadata: { service: 'stak', key: 'debug:cs' },
+      initial_items: [{ price: parseInt(uq.get('price') || '12', 10), quantity: 1 }],
+    };
+    try {
+      const pr = await fetch('https://askell.is/api/v2/checkout-sessions/', { method: 'POST', headers: H, body: JSON.stringify(body) });
+      out.create_status = pr.status;
+      const cd = await pr.json().catch(() => null);
+      out.create = cd;   // sést hvort items/offers fylgja session-inu yfirhöfuð
+      const sid = cd && (cd.id != null ? cd.id : cd.uuid), tok = cd && cd.token;
+      if (sid != null) { const g = await fetch('https://askell.is/api/v2/checkout-sessions/' + sid + '/', { headers: H }); out.get_status = g.status; out.get = await g.json().catch(() => null); }
+      if (tok) {
+        out.public_probe = {};
+        for (const p of ['/api/v2/checkout-sessions/' + tok + '/', '/api/v2/checkout-sessions/' + tok + '/offers/', '/api/v2/checkout/' + tok + '/', '/checkout-api/' + tok + '/']) {
+          try { const g = await fetch('https://askell.is' + p); out.public_probe[p] = g.status + ':' + (await g.text()).slice(0, 400); } catch (e) { out.public_probe[p] = 'err'; }
+        }
+      }
+    } catch (e) { out.create_err = String((e && e.message) || e); }
+    return sjson(out);
+  }
   const get = async (p) => { try { const r = await fetch('https://askell.is' + p, { headers: H }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
   const post = async (p, body) => { try { const r = await fetch('https://askell.is' + p, { method: 'POST', headers: H, body: JSON.stringify(body) }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
   const arr = (x) => Array.isArray(x) ? x : (x && Array.isArray(x.results) ? x.results : []);
