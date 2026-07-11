@@ -234,7 +234,9 @@ export async function karpStakAskell({ key, ref, gateEl }) {
             const has = u2 && Array.isArray(u2.reports) && u2.reports.some((r) => (r && (r.key || r)) === key);
             if (has || ++m > 8) { clearInterval(t2); location.reload(); }   // grant er samstundis → örstutt bið
           }, 2500);
-        } else if (s.state === 'failed' || s.error) {
+        } else if (s.state === 'failed' || s.error === 'mismatch' || s.error === 'login' || s.error === 'input' || s.error === 'unconfigured') {
+          // aðeins ENDANLEGAR villur stöðva — tímabundnar (upstream/payment/net) polla áfram,
+          // enda finnur workerinn þegar-stofnaða greiðslu aftur á reference (engin tvírukkun)
           hreinsa();
           body.innerHTML = '';
           fail(s.state === 'failed' ? 'Greiðslan tókst ekki — reyndu aftur eða notaðu annað kort.' : 'Villa kom upp í greiðslu — reyndu aftur.');
@@ -243,7 +245,11 @@ export async function karpStakAskell({ key, ref, gateEl }) {
       const t = setInterval(poll, 3000);
       const hint = (e) => { if (e && e.origin === 'https://askell.is') poll(); };   // checkout tilkynnir foreldrasíðu → flýtileið
       window.addEventListener('message', hint);
-      const tak = setTimeout(hreinsa, 12 * 60 * 1000);   // þak 12 mín á kortainnslátt
+      const tak = setTimeout(() => {   // þak 12 mín á kortainnslátt — aldrei þegja (greiðsla gæti hafa tekist)
+        hreinsa();
+        body.innerHTML = '<div class="pg-note">Tíminn rann út án staðfestingar. Ef þú kláraðir greiðsluna skaltu endurhlaða — skýrslan birtist þá á síðunni og á Mitt svæði.</div>'
+          + '<div class="pg-btns" style="margin-top:8px"><button class="pg-main" type="button" onclick="location.reload()">Endurhlaða síðuna</button></div>';
+      }, 12 * 60 * 1000);
     } catch (e) { gb.disabled = false; gb.textContent = 'Greiða — opna kortaglugga →'; fail('Ekki tókst að opna greiðslu — reyndu aftur.'); }
   };
   return 'embedded';

@@ -1480,6 +1480,8 @@ async function stakCheckoutHandler(request, env, ctx) {
     const pid = await askellProcessorId(env, ctx);
     return sjson(pid != null ? { ok: 1 } : { error: 'noprocessor' });
   }
+  const uid = await karpUserId(request);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
+  if (!uid) return sjson({ error: 'login' });
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
   const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
@@ -1487,16 +1489,21 @@ async function stakCheckoutHandler(request, env, ctx) {
   if (!kind || kt.length !== 10) return sjson({ error: 'input' });
   const pid = await askellProcessorId(env, ctx);
   if (pid == null) return sjson({ error: 'noprocessor' });
-  // viðskiptavinur verður að vera til áður en kort er tengt — stofna (400 = til nú þegar → í lagi)
   const nafn = String((b && b.nafn) || '').trim().slice(0, 80) || 'Karp notandi';
   const bil = nafn.lastIndexOf(' ');
   const email = String((b && b.email) || '').trim().slice(0, 120);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return sjson({ error: 'email' });   // Áskell krefst netfangs (kvittun)
   try {
-    await fetch('https://askell.is/api/customers/', {
+    // viðskiptavinur verður að vera til áður en kort er tengt — stofna; 400 er aðeins í lagi ef hann
+    // ER til (annars endar kaupandinn í eilífu 'waiting' eftir kortainnslátt — rýni-atriði #6)
+    const cr = await fetch('https://askell.is/api/customers/', {
       method: 'POST', headers: H,
       body: JSON.stringify({ first_name: bil > 0 ? nafn.slice(0, bil) : nafn, last_name: bil > 0 ? nafn.slice(bil + 1) : '-', email, customer_reference: kt }),
-    });   // svar vísvitandi hunsað: 201 = nýr, 400 = til → hvort tveggja gott
+    });
+    if (!cr.ok) {
+      const til = await fetch('https://askell.is/api/customers/' + encodeURIComponent(kt) + '/', { headers: H });
+      if (!til.ok) return sjson({ error: 'customer' });
+    }
     const r = await fetch('https://askell.is/api/checkouts/', {
       method: 'POST', headers: H,
       body: JSON.stringify({ payment_processor: pid, currency: 'ISK', capture_only: true, allowed_origin: 'https://karp.is' }),
@@ -1508,6 +1515,8 @@ async function stakCheckoutHandler(request, env, ctx) {
 }
 async function stakConfirmHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
+  if (!uid) return sjson({ error: 'login' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
@@ -1517,21 +1526,30 @@ async function stakConfirmHandler(request, env, ctx) {
   if (!kind || kt.length !== 10 || tok.length < 20) return sjson({ error: 'input' });
   const cache = caches.default;
   const ck = new Request('https://cache.karp.internal/askell-stakpay?tok=' + tok);
-  // reference ber lykil + token-forskeyti → einkvæmt PER checkout → tvírukkunar-vörn þótt edge-cache
-  // gleymist (leitum að því í nýjustu greiðslum áður en ný er stofnuð); vefkrókur klippir '|…' af.
-  const refStr = key + '|' + tok.slice(0, 12);
-  const granted = async (uuid) => {   // grant á WP — idempotent á orderid; vefkrókurinn er varaleið
+  // reference = lykill + KAUPANDA-kt → einkvæmt per (skýrsla, kaupandi) og STÖÐUGT þvert á
+  // endurtilraunir/ný checkout → tvírukkunar-vörn þótt edge-cache gleymist (rýni-atriði #2).
+  // Vefkrókur klippir '|…' af fyrir grant-lykilinn.
+  const refStr = key + '|' + kt;
+  const granted = async (uuid) => {   // grant á WP — idempotent á lykli WP-megin; vefkrókurinn er varaleið
     if (!env.KARP_GRANT_SECRET) return;
     await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
       method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
       body: JSON.stringify({ kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
     }).catch(() => null);
   };
+  // BLOCKER-vörn (rýni-atriði #1): grant-lykillinn er lesinn úr GREIÐSLUNNI sjálfri (reference) og
+  // verður að passa við key/kt beiðninnar — annars gæti ein greidd skýrsla „opnað" allar hinar.
   const stada = async (uuid) => {
     const r = await fetch('https://askell.is/api/payments/' + uuid + '/', { headers: H });
     const d = await r.json().catch(() => null);
     const st = String((d && d.state) || 'pending');
-    if (st === 'settled') { await granted(uuid); return sjson({ state: 'settled' }); }
+    if (st === 'settled') {
+      const greiddurLykill = String((d && d.reference) || '').split('|')[0];
+      const greiddKt = String((d && d.customer_reference) || '').replace(/\D/g, '');
+      if (greiddurLykill !== key || (greiddKt && greiddKt !== kt)) return sjson({ error: 'mismatch' });
+      await granted(uuid);
+      return sjson({ state: 'settled' });
+    }
     return sjson({ state: st === 'failed' ? 'failed' : 'pending' });
   };
   try {
@@ -1549,9 +1567,10 @@ async function stakConfirmHandler(request, env, ctx) {
       if (/error|fail|cancel|expire/i.test(cst)) return sjson({ state: 'failed' });
       return sjson({ state: 'waiting' });
     }
-    // kort komið → tengja við viðskiptavin og rukka — en FYRST: er greiðsla þegar til fyrir þetta checkout?
+    // kort komið → en FYRST: er lifandi greiðsla þegar til fyrir (skýrslu, kaupanda)? — misheppnaðar
+    // greiðslur (hafnað kort) mega EKKI stífla nýja tilraun → aðeins non-failed telja
     const pl = await fetch('https://askell.is/api/payments/?page_size=100', { headers: H }).then((r) => r.json()).catch(() => null);
-    const fyrri = ((Array.isArray(pl) ? pl : (pl && pl.results) || []).find((x) => String(x.reference || '') === refStr));
+    const fyrri = ((Array.isArray(pl) ? pl : (pl && pl.results) || []).find((x) => String(x.reference || '') === refStr && !/fail/i.test(String(x.state || ''))));
     if (fyrri && (fyrri.uuid || fyrri.id)) {
       const u0 = String(fyrri.uuid || fyrri.id);
       ctx.waitUntil(cache.put(ck, new Response(JSON.stringify({ uuid: u0 }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=7200' } })));
