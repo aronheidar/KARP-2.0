@@ -260,13 +260,16 @@ export function subGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const u = _u();
   const verd = (opts.price || 0).toLocaleString('is-IS') + ' kr./mán.';
-  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">⭐ ' + esc(opts.title || 'Karp+') + '</div>'
+  const trial = opts.trialDays > 0;
+  const cta = trial ? 'Prófa frítt í ' + opts.trialDays + ' daga' : 'Gerast áskrifandi — ' + verd;
+  const badge = trial ? '🎁 ' + opts.trialDays + ' daga frítt' : '⭐ ' + (opts.title || 'Karp+');
+  el.innerHTML = '<div class="plus-gate"><div class="pg-badge">' + esc(badge) + '</div>'
     + '<h2 class="pg-h">' + esc(opts.title || 'Hluti af Karp+') + '</h2>'
     + '<p class="pg-b">' + esc(opts.blurb || '') + '</p>'
     + '<div class="pg-btns">'
-    + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">Gerast áskrifandi — ' + esc(verd) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að gerast áskrifandi</a>')
+    + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">' + esc(cta) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að ' + (trial ? 'prófa frítt' : 'gerast áskrifandi') + '</a>')
     + '<a class="pg-sec" href="/karp-pro/#verd">Eða Karp+ (frá 2.900 kr./mán.)</a></div>'
-    + '<div class="pg-note">Sér áskrift á ' + esc(verd) + ' — eða innifalið í öllum þrepum Karp+. Engin binding. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Sér áskrift á ' + esc(verd)) + ' — eða innifalið í öllum þrepum Karp+. Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
   const b = el.querySelector('#sg-sub');
   if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }

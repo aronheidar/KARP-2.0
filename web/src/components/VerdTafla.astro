@@ -1,6 +1,8 @@
 ---
-// web/src/components/VerdTafla.astro — 3-þrepa samanburðartafla. Les THREP + EIGINDIR.
-import { THREP, EIGINDIR } from '../data/lausnir.js';
+// web/src/components/VerdTafla.astro — 3-þrepa samanburðartafla + sér-áskriftir. Les THREP + EIGINDIR + VORUR.
+import { THREP, EIGINDIR, VORUR } from '../data/lausnir.js';
+// Sér-áskriftir (þjónustur seldar stakar, óháð þrepum) — t.d. Útboðsvaktin 1.900 kr./mán.
+const SERVICES = VORUR.filter((v) => v.verd && v.verd.tegund === 'askrift');
 ---
 <div class="vt-wrap">
   <table class="vt">
@@ -33,9 +35,35 @@ import { THREP, EIGINDIR } from '../data/lausnir.js';
   </table>
 </div>
 <p style="color:#8fa0b8;font-size:12px;margin:6px 0 0">Verð án vsk. Engin binding. <b style="color:#cdd6e6">Stök skýrsla 990 kr</b> ef þú vilt enga áskrift.</p>
+
+{SERVICES.length > 0 && (
+  <div class="vt-svc">
+    <div class="vt-svc-h">Sér-áskriftir — eða innifaldar í öllum Karp+ þrepum</div>
+    {SERVICES.map((s) => (
+      <div class="vt-svc-c">
+        <div class="vt-svc-nm"><span class="e">{s.emoji}</span> {s.heiti}{s.verd.trialDays ? <span class="vt-svc-trial">🎁 {s.verd.trialDays} daga frítt</span> : null}</div>
+        <div class="vt-svc-tx">{s.gildisloford}</div>
+        <div class="vt-svc-pr">{s.verd.upphaed.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
+        <a class="vt-svc-cta" href={s.tol ? s.tol.href : `/lausnir/${s.slug}/`}>{s.verd.trialDays ? 'Prófa frítt →' : 'Gerast áskrifandi →'}</a>
+      </div>
+    ))}
+  </div>
+)}
 <style>
   .tier-badge { display:inline-block; background:#f6b13b; color:#131a29; font-size:10.5px; font-weight:800; letter-spacing:.04em; padding:2px 9px; border-radius:999px; margin-bottom:6px; text-transform:uppercase; }
   .vt th.col-hi { background:rgba(246,177,59,.12); border-top:2px solid #f6b13b; }
+  .vt-svc { margin-top:22px; }
+  .vt-svc-h { font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#8fa0b8; margin:0 0 10px; }
+  .vt-svc-c { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:10px 16px; padding:12px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.09); border-radius:12px; margin-bottom:8px; }
+  @media (max-width:560px) { .vt-svc-c { grid-template-columns:1fr; } }
+  .vt-svc-nm { font-weight:700; color:#eaf1fb; font-size:15px; grid-column:1; }
+  .vt-svc-nm .e { margin-right:4px; }
+  .vt-svc-trial { display:inline-block; margin-left:8px; background:rgba(110,231,183,.14); color:#6ee7b7; font-size:11px; font-weight:700; padding:1px 8px; border-radius:999px; }
+  .vt-svc-tx { grid-column:1; color:#9fb0c8; font-size:12.5px; margin-top:-4px; }
+  .vt-svc-pr { color:#eaf1fb; font-weight:800; font-size:16px; white-space:nowrap; }
+  .vt-svc-pr small { color:#8fa0b8; font-weight:400; font-size:11px; }
+  .vt-svc-cta { background:#f6b13b; color:#131a29; font-weight:700; font-size:13px; padding:8px 14px; border-radius:9px; text-decoration:none; white-space:nowrap; }
+  .vt-svc-cta:hover { filter:brightness(1.06); }
 </style>
 <script>
   import { karpSubscribeTier } from '../lib/auth.js';

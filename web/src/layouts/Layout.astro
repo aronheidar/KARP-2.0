@@ -288,7 +288,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       <nav class="tb-links">
         <a href="/karp-pro/#verd">Verð</a>
         <a href="/mitt-svaedi/">Mitt svæði</a>
-        <a class="tb-login" href="/innskra/">Innskrá</a>
+        <a class="tb-login" id="tb-login" href="/innskra/" hidden>Innskrá</a>
       </nav>
     </header>
     <div class="shell">
@@ -309,7 +309,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
             <a class={`nav-a${active(n) ? ' on' : ''}`} href={n.href}>{n.label}</a>
           ))}
         </nav>
-        <div class="nav-foot"><div id="chip" class="chip"></div><button type="button" id="theme-toggle" class="nav-legal theme-tgl" aria-label="Skipta um ljóst/dökkt þema"><span id="tt-ico">🌙</span> <span id="tt-lbl">Dökkt þema</span></button><a class="nav-legal" href="/um-karp/">Um Karp</a><a class="nav-legal" href="/skilmalar/">Skilmálar</a></div>
+        <div class="nav-foot"><div id="chip" class="chip"></div></div>
       </aside>
 
       <div class="content"><slot /></div>
@@ -525,8 +525,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         const chipEl = document.getElementById('chip');
         if (chipEl && !chipEl.dataset.mounted) { chipEl.dataset.mounted = '1'; mountChip(chipEl); }
         applyTheme(getTheme());
-        const tt = document.getElementById('theme-toggle');
-        if (tt && !tt.dataset.wired) { tt.dataset.wired = '1'; tt.addEventListener('click', () => setTheme(getTheme() === 'light' ? 'dark' : 'light')); }
+        // Haus: "Innskrá" birtist AÐEINS óinnskráðum (falið sjálfgefið svo það blikki ekki fyrir innskráða).
+        loadUser().then((u) => { const lg = document.getElementById('tb-login'); if (lg) lg.hidden = !!(u && u.loggedIn); }).catch(() => {});
         updateActiveNav();
         mountNewsCats();
         railFollowPath();
