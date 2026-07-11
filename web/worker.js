@@ -1635,6 +1635,25 @@ async function askellConfigHandler(request, env) {
   // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
   // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
   const uq = new URL(request.url).searchParams;
+  // ?sc2=1: kanna V2 subscription-contracts server-hlið (OPTIONS + þurr-tilraun) → sést hvort hægt sé
+  //   að stofna áskrift server-megin (án widget), price úr ?price. Engin greiðsla — sér bara kröfusvið.
+  if (uq.get('sc2')) {
+    const out = {};
+    try { const o = await fetch('https://askell.is/api/v2/subscription-contracts/', { method: 'OPTIONS', headers: H }); out.options_status = o.status; const ob = await o.json().catch(() => null); out.post_fields = ob && ob.actions && ob.actions.POST ? Object.keys(ob.actions.POST) : (ob ? Object.keys(ob) : null); } catch (e) { out.options_err = String((e && e.message) || e); }
+    const price = parseInt(uq.get('price') || '9', 10);
+    const kt = String(uq.get('kt') || '4901022210').replace(/\D/g, '');
+    for (const [n, b] of [
+      ['items', { customer_reference: kt, items: [{ price }] }],
+      ['items_initial_none', { customer_reference: kt, items: [{ price }], initial_billing_mode: 'none' }],
+      ['price_flat', { customer_reference: kt, price }],
+    ]) {
+      try {
+        const r = await fetch('https://askell.is/api/v2/subscription-contracts/', { method: 'POST', headers: H, body: JSON.stringify(b) });
+        out['try_' + n] = r.status + ':' + (await r.text()).slice(0, 400);
+      } catch (e) { out['try_' + n] = 'err'; }
+    }
+    return sjson(out);
+  }
   // ?wh=1: skráðir vefkrókar í Áskell — er einn skráður og bendir hann á karp.is/api/askell/webhook?
   //   (áskriftir reiða sig ALGJÖRLEGA á vefkrókinn — engin poll-varaleið eins og stakar)
   if (uq.get('wh')) {
