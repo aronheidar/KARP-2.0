@@ -670,8 +670,8 @@ const jsonLd = {
                 '🛒 Kaupa þetta verðmat — 990 kr', '');
               return;
             }
-            if (!mv.granted && !mv.owned) { fvmOut.hidden = false; fvmOut.innerHTML = '<div class="fvm-note">Ekki tókst að staðfesta kvóta — reyndu aftur.</div>'; return; }
-            // granted/owned → halda áfram og reikna matið
+            // granted / owned / tæknifeill → HALDA ÁFRAM og reikna matið. Fellur OPIÐ: borgandi áskrifandi er
+            // aldrei læstur úti vegna baklás (t.d. WP-endapunktur enn óuppfærður) — aðeins needPay lokar.
           } else {
             showFvGate(raw, matKey, 'Verðmat fyrir ' + esc(raw),
               'Fullt verðmat opnast við kaup: áætlað markaðsvirði og verðbil, sölugraf götunnar, sambærilegar sölur, fasteignamat og brunabótamat, áætluð leiga og kort.',
