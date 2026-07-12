@@ -118,6 +118,7 @@ jobs:
             node skriptur/build_summaries.js || true
             node skriptur/build_malrof_ai.js || true
             node skriptur/build_domar_ai.js  || true
+            node skriptur/build_thingskyrsla_ai.js || true   # djúp AI-greining Þingmannaskýrslunnar (inkremental + endurnýjun v/+30% ræðna)
           else
             echo "• Enginn ANTHROPIC_API_KEY-secret — AI-skriftum sleppt."
           fi

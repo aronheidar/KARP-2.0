@@ -3,9 +3,12 @@
 // Ítarlegri en build_malrof_ai.js: les 12–18 ræður per þingmann VALDAR ÞVERT Á MÁLEFNI
 // (ekki bara nýjustu) og skilar yfirliti, tón, rökstuðningi, samskiptastíl og
 // greiningu EFTIR MÁLAFLOKKUM → gogn/thingskyrsla_ai.json.
-// Keyrt HANDVIRKT með skammlífum lykli (eins og build_malrof_ai.js):
-//   ANTHROPIC_API_KEY=... node skriptur/build_thingskyrsla_ai.js
-// Inkremental: sleppir þingmönnum sem þegar eru í skránni (eyddu færslu til að endurgreina).
+// Keyrsla: ANTHROPIC_API_KEY=... node skriptur/build_thingskyrsla_ai.js
+// (í CI: skilyrt AI-þrep refresh-data.yml með secrets.ANTHROPIC_API_KEY)
+// SJÁLFVIRK UPPFÆRSLA: inkremental — greinir þingmann þegar (a) hann VANTAR í skrána
+// eða (b) hæfum ræðum hans hefur fjölgað um ≥30% síðan síðast (geymt í `tot` per færslu)
+// → engin API-köll dag frá degi í þinghléi, endurnýjast sjálfkrafa þegar þing kemur saman.
+// Færsla án `tot` (t.d. handunnið sýnishorn) fær tot-stimpil ÁN endurgreiningar.
 // LYKILLINN ER ALDREI SKRIFAÐUR Í SKRÁ — aðeins process.env.
 // ─────────────────────────────────────────────────────────────
 const fs = require('fs');
@@ -68,8 +71,19 @@ async function main() {
 
   let existing = { mp: {} };
   try { existing = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) {}
-  const mps = THINGMENN.filter((m) => (byMp[m.id] || []).length >= 3 && !(existing.mp || {})[m.id]);
-  console.log('Þingmenn sem vantar djúpgreiningu (3+ efnisræður):', mps.length);
+  existing.mp = existing.mp || {};
+  // Val: vantar EÐA hæfum ræðum fjölgað ≥30% frá síðustu greiningu (tot).
+  let stamped = 0;
+  const mps = THINGMENN.filter((m) => {
+    const tot = (byMp[m.id] || []).length;
+    if (tot < 3) return false;
+    const e = existing.mp[m.id];
+    if (!e) return true;
+    if (e.tot == null) { e.tot = tot; e.d = e.d || new Date().toISOString().slice(0, 10); stamped++; return false; } // handunnin færsla → stimpla, ekki endurgreina
+    return tot >= e.tot * 1.3;
+  });
+  console.log('Þingmenn til greiningar (vantar eða +30% ræður):', mps.length, stamped ? '| tot-stimplaðar handfærslur: ' + stamped : '');
+  if (!mps.length && !stamped) { console.log('Ekkert að greina — skrá óbreytt (engin API-köll).'); return; }
   const out = {
     updated: new Date().toISOString().slice(0, 10), model: MODEL, thing: 157,
     note: 'Vélrænt mat gervigreindar á tón, áherslum og málflutningi, byggt EINGÖNGU á brotum úr raunverulegum þingræðum viðkomandi á þingi 157 (althingi.is). Ekki dómur Karp og ekki staðreyndafullyrðing um viðkomandi.',
@@ -114,6 +128,8 @@ Greindu málflutning þingmannsins ÍTARLEGA og EINGÖNGU út frá þessum brotu
           malaflokkar: j.malaflokkar.slice(0, 6).map((x) => ({ svid: String(x.svid || '').slice(0, 60), greining: String(x.greining || '').slice(0, 700), afstada: String(x.afstada || '').slice(0, 250), n: +x.n || 1 })),
           merki: (j.merki || []).slice(0, 5).map((x) => String(x).slice(0, 30)),
           n: texts.length,
+          tot: byMp[m.id].length,                       // hæfar ræður við greiningu → +30%-reglan
+          d: new Date().toISOString().slice(0, 10),
         };
         // vista jafnóðum svo hrun kosti ekki allt
         fs.writeFileSync(OUT, JSON.stringify(out));
