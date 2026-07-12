@@ -85,6 +85,23 @@ const jsonLd = {
     main[data-pg="fastvakt"] .fvm-quota b { color: #cdd6e6; font-weight: 700; }
     main[data-pg="fastvakt"] .fvm-quota.fvm-quota-low b { color: #f6b13b; }
     main[data-pg="fastvakt"] .fvm-quota.fvm-quota-zero { color: #f6b13b; }
+    /* Vörumerkt ~5 sek hleðsla fyrir verðmatið — innspýtt í #fvm-out á keyrslutíma → þarf global CSS */
+    main[data-pg="fastvakt"] .fvm-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 42px 20px; text-align: center; background: linear-gradient(180deg, rgba(246,177,59,.07), rgba(246,177,59,.02)); border: 1px solid rgba(246,177,59,.22); border-radius: 14px; animation: fvl-in .35s ease; }
+    @keyframes fvl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    main[data-pg="fastvakt"] .fvl-emoji { font-size: 44px; line-height: 1; animation: fvl-bob 1.8s ease-in-out infinite; filter: drop-shadow(0 5px 12px rgba(246,177,59,.4)); }
+    @keyframes fvl-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-9px) rotate(3deg); } }
+    main[data-pg="fastvakt"] .fvl-dots { display: inline-flex; gap: 7px; }
+    main[data-pg="fastvakt"] .fvl-dots span { width: 8px; height: 8px; border-radius: 50%; background: #f6b13b; opacity: .35; animation: fvl-dot 1.2s ease-in-out infinite; }
+    main[data-pg="fastvakt"] .fvl-dots span:nth-child(2) { animation-delay: .18s; }
+    main[data-pg="fastvakt"] .fvl-dots span:nth-child(3) { animation-delay: .36s; }
+    @keyframes fvl-dot { 0%, 100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.2); } }
+    main[data-pg="fastvakt"] .fvl-msg { font-size: 16.5px; font-weight: 800; color: #f2f6fc; letter-spacing: .2px; }
+    main[data-pg="fastvakt"] .fvl-sub { font-size: 13px; color: #cdd6e6; }
+    main[data-pg="fastvakt"] .fvl-sub b { color: #f6b13b; font-weight: 800; }
+    main[data-pg="fastvakt"] .fvl-bar { width: min(240px, 72%); height: 5px; border-radius: 99px; background: rgba(246,177,59,.14); overflow: hidden; margin-top: 2px; }
+    main[data-pg="fastvakt"] .fvl-bar i { display: block; height: 100%; width: 4%; border-radius: 99px; background: linear-gradient(90deg, #f6b13b, #ffcf7a); animation: fvl-fill 5s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes fvl-fill { 0% { width: 4%; } 20% { width: 34%; } 55% { width: 66%; } 85% { width: 88%; } 100% { width: 100%; } }
+    @media (prefers-reduced-motion: reduce) { main[data-pg="fastvakt"] .fvl-emoji, main[data-pg="fastvakt"] .fvl-dots span, main[data-pg="fastvakt"] .fvl-bar i { animation-duration: .01ms; animation-iteration-count: 1; } }
     main[data-pg="fastvakt"] .cta-alt { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.2); color: #cdd6e6; }
     main[data-pg="fastvakt"] .cta-alt:hover { background: rgba(255,255,255,.1); }
     main[data-pg="fastvakt"] #fvm-vakta.on { background: rgba(66,208,134,.14); border-color: rgba(66,208,134,.5); color: #42d086; }
@@ -643,6 +660,32 @@ const jsonLd = {
           gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = gt; }, 2800);
         });
       }
+      // ── Vörumerkt hleðsla (~5 sek) fyrir verðmatið: „🏠 Hér er matið þitt…" ──────────────
+      // Matið er reiknað í bakgrunni (fetch heldur áfram) en BIRTIST ekki fyrr en lágmarks-
+      // tíminn er liðinn — vandað, vörumerkt augnablik (gult #f6b13b þema) í hvert sinn.
+      const FVM_LOADER_MS = 5000;
+      function fvmLoaderStart(countTxt) {
+        fvmOut.hidden = false;
+        fvmOut.innerHTML = '<div class="fvm-loader" role="status" aria-live="polite">'
+          + '<div class="fvl-emoji">🏠</div>'
+          + '<div class="fvl-dots"><span></span><span></span><span></span></div>'
+          + '<div class="fvl-msg">Hér er matið þitt…</div>'
+          + (countTxt ? '<div class="fvl-sub">' + countTxt + '</div>' : '')
+          + '<div class="fvl-bar"><i></i></div></div>';
+        return Date.now();
+      }
+      function fvmLoaderHold(start) {
+        const left = FVM_LOADER_MS - (Date.now() - start);
+        return left > 0 ? new Promise((r) => setTimeout(r, left)) : Promise.resolve();
+      }
+      // Kvóta-skilaboð í hleðsluna — AÐEINS fasteign-áskrifendur með þekktan kvóta (fasteignQuotaKnown).
+      // Ekki-áskrifendur (keyptu 990-skýrslu) fá enga talningu → bara „Hér er matið þitt…".
+      function fvmQuotaMsg() {
+        if (isAdmin() || !hasSub('fasteign') || !fasteignQuotaKnown()) return '';
+        const rem = fasteignRemaining();
+        if (rem === 0) return 'Þetta var síðasta innifalda verðmatið í mánuðinum';
+        return 'Þú átt <b>' + rem + '</b> ' + (rem === 1 ? 'verðmat' : 'verðmöt') + ' eftir í mánuðinum';
+      }
       async function fvmGo() {
         const raw = (document.getElementById('fvm-addr').value || '').trim();
         const fm = +(document.getElementById('fvm-fm').value || 0);
@@ -680,7 +723,7 @@ const jsonLd = {
             return;
           }
         }
-        fvmOut.textContent = 'Reikna úr kaupskránni…';
+        const fvmLoad0 = fvmLoaderStart(fvmQuotaMsg());   // vörumerkt hleðsla; matið reiknast í bakgrunni
         // þátta inntak — styður öll sniðin: „Gata N", „Gata N, PNN" (fléttilistinn!), „Gata N, PNN Muni",
         // „Gata N PNN Muni" — og 3ja stafa HÚSNÚMER („Langholtsvegur 187") ruglast ekki við póstnúmer
         let pn = '';
@@ -860,6 +903,7 @@ const jsonLd = {
           } catch (e) {}
         }
 
+        await fvmLoaderHold(fvmLoad0);   // vörumerkt lágmarks-hleðsla búin → birta matið sjálft
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
@@ -981,10 +1025,12 @@ const jsonLd = {
       // ── Sýnishorn (?syni=1): TILBÚIÐ verðmat af GERVI-eign (Sólbrekka 7, 200 — Smárinn) — engin
       // raungögn, opið öllum án innskráningar. Áður: raunmat af heimili höfundar (persónuvernd) →
       // nú hardkóðuð dæmigögn sprautuð beint í #fvm-out, eins og gervi-fyrirtækið „Norðurhaf". ──
-      function renderDemoValuation() {
+      function renderDemoValuation(_held) {
         const out = document.getElementById('fvm-out');
         if (!out) return;
         out.hidden = false;
+        // Sama vörumerkta ~5 sek hleðsla og raunmatið (án kvóta-talningar) áður en sýnishornið birtist
+        if (!_held) { const s = fvmLoaderStart(''); fvmLoaderHold(s).then(() => renderDemoValuation(true)); return; }
         const eignRows = [['Fasteignanúmer', 'F212-4471'], ['Tegund', 'Fjölbýli'], ['Stærð', '92 m²'], ['Byggingarár', '2016'], ['Herbergi', '4'], ['Hverfi', 'Smárinn']];
         const gognRows = [['Fasteignamat', '58,2 m.kr'], ['Fyrirhugað mat', '61,0 m.kr'], ['Brunabótamat', '51,4 m.kr'], ['Lóð', 'Sameiginleg'], ['Byggingastig', 'Fullgert']];
         const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${v}</span></div>`).join('');
