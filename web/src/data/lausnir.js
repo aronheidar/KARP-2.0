@@ -51,7 +51,7 @@ export const SERLAUSNIR = [
     lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
     fyrir: 'Almannatengsl og ritstjórnir', href: '/frettir/' },
   { slug: 'thingskyrslur', heiti: 'Þingmannaskýrslur', emoji: '🏛️', service: 'thingskyrslur', verd: 3900, trialDays: 30,
-    lysing: '20 þingmannaskýrslur á mánuði — atkvæðaferill, uppreisnar-atkvæði, málaflokkar, ræðugreining með gervigreind, fyrirspurnir og umfjöllun.',
+    lysing: '10 þingmannaskýrslur á mánuði — atkvæðaferill, uppreisnar-atkvæði, málaflokkar, ræðugreining með gervigreind, fyrirspurnir og umfjöllun.',
     fyrir: 'Blaðamenn, hagsmunaverðir og greinendur', href: '/althingi/thingmenn/' },
 ];
 
@@ -184,12 +184,12 @@ export const VORUR = [
     ],
     skref: [
       { titill: 'Veldu þingmann', texti: 'Af þingmannalistanum eða beint af síðu þingmannsins.' },
-      { titill: 'Opnaðu skýrsluna', texti: 'Stök skýrsla á 990 kr — eða 20 á mánuði í áskrift á 3.900 kr.' },
+      { titill: 'Opnaðu skýrsluna', texti: 'Stök skýrsla á 990 kr — eða 10 á mánuði í áskrift á 3.900 kr.' },
     ],
     verd: { tegund: 'askrift', upphaed: 3900, service: 'thingskyrslur', trialDays: 30 },   // sér áskriftarleið — stakar skýrslur 990 kr án áskriftar
     synishorn: { label: 'Sjá sýnishorn', href: '/althingi/jon-petur-zimsen/skyrsla/' },
     tol: { label: 'Velja þingmann', href: '/althingi/thingmenn/' },
-    description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 20 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
+    description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 10 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
   },
   {
     slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅',

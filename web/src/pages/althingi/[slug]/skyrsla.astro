@@ -115,7 +115,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
     {IS_SAMPLE && (
       <div class="tk-sample">👁️ <b>Sýnishorn</b> — þessi skýrsla er opin öllum svo þú sjáir hvað Þingmannaskýrsla Karp inniheldur.
-        Skýrslur um aðra þingmenn: <b>990 kr stök</b> eða <b>3.900 kr/mán áskrift</b> með 20 skýrslum innifaldar.</div>
+        Skýrslur um aðra þingmenn: <b>990 kr stök</b> eða <b>3.900 kr/mán áskrift</b> með 10 skýrslum innifaldar.</div>
     )}
 
     <!-- GÁTTIN (aðrir en sýnishornið; JS opnar fyrir eigendur/áskrifendur) -->
@@ -128,7 +128,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
             ræðugreining og 🤖 tónn &amp; áherslur með gervigreind · fyrirspurnir og flutt mál · nefndavald · fjölmiðlaumfjöllun með viðhorfsmati — allt í einni skýrslu með PDF-útprentun.</p>
           <div class="pg-btns" id="tkg-btns">
             <button class="pg-main" id="tk-buy" type="button">Kaupa skýrsluna — 990 kr</button>
-            <button class="pg-sec" id="tk-sub" type="button">Áskrift — 3.900 kr/mán · 20 skýrslur</button>
+            <button class="pg-sec" id="tk-sub" type="button">Áskrift — 3.900 kr/mán · 10 skýrslur</button>
           </div>
           <div id="tk-qnote"></div>
           <div class="tkg-note">Innifalið í <a href="/karp-pro/">Karp+ þingskýrslu-áskriftinni</a> · engin binding ·
@@ -531,14 +531,14 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         const rem = thingQuotaKnown() ? thingRemaining() : null;
         const openBtn = document.createElement('button');
         openBtn.className = 'pg-main'; openBtn.type = 'button';
-        openBtn.textContent = '📖 Opna með áskriftinni' + (rem != null && rem >= 0 ? ' — ' + rem + ' af 20 eftir í mánuðinum' : '');
+        openBtn.textContent = '📖 Opna með áskriftinni' + (rem != null && rem >= 0 ? ' — ' + rem + ' af 10 eftir í mánuðinum' : '');
         btns.prepend(openBtn);
         openBtn.onclick = async () => {
           openBtn.disabled = true; openBtn.textContent = 'Opna…';
           const r = await openThingReport(KEY, TITLE);
           if (r.owned || r.granted) { revealReport(); return; }
           openBtn.disabled = false;
-          if (r.needPay) { openBtn.remove(); qnote.innerHTML = '<div class="tkg-open" style="color:#f6b13b">⚠ Mánaðarkvótinn (20) er fullnýttur — stök skýrsla á 990 kr eða bíddu mánaðamóta.</div>'; }
+          if (r.needPay) { openBtn.remove(); qnote.innerHTML = '<div class="tkg-open" style="color:#f6b13b">⚠ Mánaðarkvótinn (10) er fullnýttur — stök skýrsla á 990 kr eða bíddu mánaðamóta.</div>'; }
           else { openBtn.textContent = 'Náði ekki — reyndu aftur'; }
         };
       }

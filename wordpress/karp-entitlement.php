@@ -94,12 +94,12 @@ function karp_fasteign_reset_ts() {
     return gmmktime(0, 0, 0, $m, 1, $y);
 }
 
-// Thingmannaskyrslu-kvoti: 20/man fyrir 'thingskyrslur'-askrifendur (3.900 kr/man).
+// Thingmannaskyrslu-kvoti: 10/man fyrir 'thingskyrslur'-askrifendur (3.900 kr/man).
 // (admin otakmarkad -1, annars 0 = borgar 990 per skyrslu). Speglar fasteigna-mynstrid.
 function karp_thing_quota($uid) {
     if (user_can($uid, 'manage_options')) return -1;
     $until = (int) get_user_meta($uid, 'karp_sub_thingskyrslur_until', true);
-    return ($until > time()) ? 20 : 0;
+    return ($until > time()) ? 10 : 0;
 }
 function karp_thing_used_this_month($uid) {
     $month = gmdate('Y-m');
@@ -127,7 +127,7 @@ function karp_entitlement_augment(&$data, $uid) {
     // Thingmannaskyrslu-kvoti (ser-askrift 'thingskyrslur'): teljari vid Opna-takkann + 990-gatt vid 0.
     $tq = karp_thing_quota($uid);
     $tused = karp_thing_used_this_month($uid);
-    $data['thingQuota'] = $tq;                               // 20 = askrifandi, -1 = admin/otakm., 0 = ekki askrifandi
+    $data['thingQuota'] = $tq;                               // 10 = askrifandi, -1 = admin/otakm., 0 = ekki askrifandi
     $data['thingUsed'] = $tused;
     $data['thingRemaining'] = ($tq < 0) ? -1 : max(0, $tq - $tused);
     $data['thingResets'] = karp_fasteign_reset_ts();
@@ -149,7 +149,7 @@ add_action('rest_api_init', function () {
     // annars needPay (990). Nullstillist vid manadamot. Adeins 'fasteign'-askrifendur (annars nosub -> client synir 990-gatt).
     register_rest_route('karp/v1', '/fasteign/meta', array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_fasteign_meta'));
 
-    // POST /thing/open {key,title} - thingmannaskyrslu-kvoti (askrift 'thingskyrslur', 20/man):
+    // POST /thing/open {key,title} - thingmannaskyrslu-kvoti (askrift 'thingskyrslur', 10/man):
     // a/kvoti -> varanlegt grant i karp_reports (hasReport virkar) + teljari, annars needPay (990) eda nosub.
     register_rest_route('karp/v1', '/thing/open', array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_thing_open'));
 
