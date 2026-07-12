@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /skel-fyrirtaeki/
 
-Sitemap: https://app.karp.is/sitemap-index.xml
+Sitemap: https://karp.is/sitemap-index.xml
+Sitemap: https://karp.is/sitemap-fyrirtaeki.xml
