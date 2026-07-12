@@ -1741,6 +1741,14 @@ async function askellConfigHandler(request, env) {
   // ?contracts=1: LESA áskriftarsamninga (aðeins lestur — engin stofnun/afskráning) til greiningar
   if (uq.get('contracts')) {
     const out = {};
+    const det = uq.get('detail');
+    if (det) {   // LESA einn samning í heild (vara/metadata/dags) — staðfesta að sub2-flæðið hafi rétt
+      try {
+        const g = await fetch('https://askell.is/api/v2/subscription-contracts/' + det + '/', { headers: H });
+        const c = await g.json().catch(() => null);
+        out.detail = c ? { id: c.id, state: c.state, kt: String(c.customer_reference || '').replace(/^\d{6}/, '……'), items: (c.items || []).map((i) => ({ ref: i.product_reference, nafn: i.product_name, verd: i.unit_amount })), metadata: c.metadata, trial_end_at: c.trial_end_at, billing_anchor_at: c.billing_anchor_at, next_billing_at: c.next_billing_at, created: c.created_at } : null;
+      } catch (e) { out.detail_err = String((e && e.message) || e); }
+    }
     try {
       const r = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=15', { headers: H });
       const b = await r.json().catch(() => null);
