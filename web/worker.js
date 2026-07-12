@@ -1317,19 +1317,45 @@ async function subCancelHandler(request, env, ctx) {
   if (!uid) return sjson({ error: 'login' });
   let body = {}; try { body = await request.json(); } catch (e) {}
   const svc = ['utbod', 'frettir', 'fasteign'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  // Segir upp EINUM Áskell-samningi: v2 cancel_at_period_end (aðgangur helst út greitt tímabil), legacy til vara.
+  const cancelById = async (id) => {
+    let r = await fetch('https://askell.is/api/v2/subscription-contracts/' + encodeURIComponent(id) + '/cancel/', { method: 'POST', headers: H, body: JSON.stringify({ cancel_at_period_end: true }) });
+    if (!r.ok) r = await fetch('https://askell.is/api/subscriptions/' + encodeURIComponent(id) + '/cancel/', { method: 'POST', headers: H });
+    return r.ok;
+  };
   try {
     const info = await (await fetch('https://wp.karp.is/wp-json/karp/v1/sub/cancelinfo', {
       method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
       body: JSON.stringify({ userid: uid, service: svc }),
     })).json();
     const aid = info && info.askellId;
-    if (!aid) return sjson({ error: 'noid' });   // engin Áskell-tilvísun vistuð (t.d. fríprófun án korts)
-    const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
-    // v2 contract fyrst (cancel_at_period_end = aðgangur út greitt tímabil), legacy til vara
-    let r = await fetch('https://askell.is/api/v2/subscription-contracts/' + encodeURIComponent(aid) + '/cancel/', { method: 'POST', headers: H, body: JSON.stringify({ cancel_at_period_end: true }) });
-    if (!r.ok) r = await fetch('https://askell.is/api/subscriptions/' + encodeURIComponent(aid) + '/cancel/', { method: 'POST', headers: H });
-    if (!r.ok) return sjson({ error: 'askell', status: r.status });
-    return sjson({ ok: true, cancelled: true });   // until helst í WP → aðgangur rennur út náttúrulega
+    const kt = String((info && info.kt) || '').replace(/\D/g, '');
+    const slug = String((info && info.slug) || svc || '').toLowerCase();   // þjónusta (utbod/…) EÐA þrep (grunnur/…)
+    // 1) Fljótleið: vistað contract-id → reyna beint (frettir/fasteign/þrep um sub2 lenda hér).
+    if (aid && await cancelById(aid)) return sjson({ ok: true, cancelled: true });
+    // 2) askellId vantar EÐA er úrelt → fletta upp VIRKUM samningi kaupanda í Áskell (kt + vara) og segja upp.
+    //    Rót: WP-vistaða id-ið er aðeins flýtileið sem getur rekið sig frá Áskell — t.d. útboð veitt um
+    //    /sub/trial (aldrei _askell) eða id sem bendir á hreinsaðan/afskráðan samning. Áskell = sannleikur.
+    if (kt.length === 10 && slug) {
+      const resp = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=100', { headers: H }).catch(() => null);
+      if (resp && resp.ok) {
+        const lst = await resp.json().catch(() => null);
+        const contracts = Array.isArray(lst) ? lst : ((lst && lst.results) || []);
+        const match = contracts.filter((c) => String(c.customer_reference || '').replace(/\D/g, '') === kt
+          && !/cancel/i.test(String(c.state || '')) && (c.items || []).some((i) => String(i.product_reference || '') === slug));
+        let any = false;
+        for (const c of match) { if (c && c.id && await cancelById(c.id)) any = true; }
+        if (any) return sjson({ ok: true, cancelled: true });
+        // Enginn virkur rukkandi samningur til → fríprófun/ó-rukkandi áskrift: ekkert að stöðva í Áskell.
+        // Aðgangur rennur samt út á `until` (WP) og ENGIN frekari gjöld verða innheimt → uppsögn telst tókst.
+        if (match.length === 0) return sjson({ ok: true, cancelled: false, note: 'no-billing' });
+        return sjson({ error: 'askell' });   // fann samning en cancel mistókst → láta notanda reyna aftur
+      }
+      // Áskell-listun mistókst (staða óstaðfest) → EKKI fullyrða uppsögn; leyfa endurtilraun.
+    }
+    if (!aid) return sjson({ error: 'noid' });   // hvorki id, kt né vara → getum ekkert gert
+    return sjson({ error: 'askell' });
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 

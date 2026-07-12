@@ -376,9 +376,16 @@ function karp_sub_grant($req) {
     // Idempotency: sama greidda áskrift (ref = Áskell-id_until) má AÐEINS veita einu sinni.
     $done = (array) get_option('karp_sub_granted_refs', array());
     if ( $ref !== '' && in_array($ref, $done, true) ) { return array('ok' => true, 'dup' => true); }
-    $users = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $kt, 'number' => 1, 'fields' => 'ID'));
-    if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
-    $uid = (int) $users[0];
+    // userid = INNSKRÁÐI kaupandinn (worker sendir úr sub2-flæði) → áskriftin lendir á RÉTTUM aðgangi þótt
+    // fleiri deili kennitölu (kt-árekstur sannaður 12.7: sama kt á 2 aðgöngum → get_users valdi rangan).
+    // kt = varaleið (vefkrókur ber engan userid). Sama mynstur og karp_reports_grant.
+    $uid = isset($p['userid']) ? (int) $p['userid'] : 0;
+    if ( $uid > 0 && ! get_user_by('ID', $uid) ) { $uid = 0; }   // ógilt userid → falla á kt
+    if ( $uid <= 0 ) {
+        $users = get_users(array('meta_key' => 'karp_kt', 'meta_value' => $kt, 'number' => 1, 'fields' => 'ID'));
+        if ( empty($users) ) { return array('ok' => false, 'error' => 'notfound'); }
+        $uid = (int) $users[0];
+    }
     // Áskell subscription/contract-id vistað → uppsagnar-hnappurinn á Mitt svæði getur sagt upp um API.
     $askellId = isset($p['askellId']) ? preg_replace('/[^A-Za-z0-9_-]/', '', (string) $p['askellId']) : '';
     if ( $svcOk ) {
@@ -399,8 +406,17 @@ function karp_sub_cancelinfo($req) {
     $uid = isset($p['userid']) ? (int) $p['userid'] : 0;
     $svc = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
     if ( ! $uid ) { return array('ok' => false, 'error' => 'input'); }
-    $meta = ( $svc && in_array($svc, array('utbod', 'frettir', 'fasteign'), true) ) ? 'karp_sub_' . $svc . '_askell' : 'karp_tier_askell';
-    return array('ok' => true, 'askellId' => (string) get_user_meta($uid, $meta, true));
+    $isSvc = ( $svc && in_array($svc, array('utbod', 'frettir', 'fasteign'), true) );
+    $meta = $isSvc ? 'karp_sub_' . $svc . '_askell' : 'karp_tier_askell';
+    // kt + slug (þjónusta EÐA þrep) fylgja svo worker geti flett upp VIRKUM Áskell-samningi kaupanda þegar
+    // vistaða askellId vantar (t.d. útboð veitt um /sub/trial → aldrei _askell) eða er úrelt. Áskell = sannleikur.
+    $slug = $isSvc ? $svc : (string) get_user_meta($uid, 'karp_tier', true);
+    return array(
+        'ok'       => true,
+        'askellId' => (string) get_user_meta($uid, $meta, true),
+        'kt'       => (string) get_user_meta($uid, 'karp_kt', true),
+        'slug'     => $slug,
+    );
 }
 function karp_reports_grant($req) {
     $secret = defined('KARP_GRANT_SECRET') ? (string) KARP_GRANT_SECRET : (string) get_option('karp_grant_secret');
