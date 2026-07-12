@@ -24,10 +24,10 @@
 
 ## File Structure
 
-- **Create** `web/src/pages/_skel-fyrirtaeki.astro` — worker-skel (Layout + tókar + `is:global` CSS `.kf-*`). Ber aldrei fram beint.
+- **Create** `web/src/pages/skel-fyrirtaeki.astro` — worker-skel (Layout + tókar + `is:global` CSS `.kf-*`). Ber aldrei fram beint.
 - **Modify** `web/worker.js` — bæta helpers (`htmlEsc`, `ktSep`, `erLogadili`, `isoDate`, `orgJsonLd`, `felagMainHtml`) + `fyrirtaekiSidaHandler` + route fyrir línu ~2605.
 - **Modify** `web/src/pages/fyrirtaeki.astro` — hits → `<a href="/fyrirtaeki/<kt>/">` (crawlanlegt) + preventDefault heldur inline-hegðun.
-- **Modify** `web/astro.config.mjs` — útiloka `_skel-fyrirtaeki` úr sitemap.
+- **Modify** `web/astro.config.mjs` — útiloka `skel-fyrirtaeki` úr sitemap.
 - **Create** `web/src/pages/lyf/[slug].astro` — per-lyf síða + Drug JSON-LD.
 - **Modify** `web/src/pages/lyf.astro` — leitar-niðurstöður hlekkja í `/lyf/<slug>/`.
 - **Create** `web/src/pages/utbod/[id].astro` — per-útboð síða.
@@ -42,15 +42,15 @@ Person JSON-LD á þingmönnum er ÞEGAR til (`web/src/pages/althingi/[slug].ast
 ## Task 1: Skel-síða fyrir /fyrirtaeki/<kt>/ + sitemap-útilokun
 
 **Files:**
-- Create: `web/src/pages/_skel-fyrirtaeki.astro`
+- Create: `web/src/pages/skel-fyrirtaeki.astro`
 - Modify: `web/astro.config.mjs`
 
 **Interfaces:**
-- Produces: byggða HTML á `dist/_skel-fyrirtaeki/index.html` sem inniheldur nákvæmlega tókana `%%KARP_TITLE%%`, `%%KARP_OGTITLE%%`, `%%KARP_DESC%%`, `%%KARP_CANON%%`, `"%%KARP_JSONLD%%"` (með gæsalöppum, inni í ld+json script), `%%KARP_MAIN%%` (inni í `<main>`). Notar `is:global` klasa `.kf-wrap .kf-h1 .kf-kt .kf-chips .kf-chip .kf-grid .kf-cell .kf-l .kf-v .kf-sec .kf-tbl .kf-cta .kf-cta-main .kf-cta-sec .kf-links .kf-note`.
+- Produces: byggða HTML á `dist/skel-fyrirtaeki/index.html` sem inniheldur nákvæmlega tókana `%%KARP_TITLE%%`, `%%KARP_OGTITLE%%`, `%%KARP_DESC%%`, `%%KARP_CANON%%`, `"%%KARP_JSONLD%%"` (með gæsalöppum, inni í ld+json script), `%%KARP_MAIN%%` (inni í `<main>`). Notar `is:global` klasa `.kf-wrap .kf-h1 .kf-kt .kf-chips .kf-chip .kf-grid .kf-cell .kf-l .kf-v .kf-sec .kf-tbl .kf-cta .kf-cta-main .kf-cta-sec .kf-links .kf-note`.
 
 - [ ] **Step 1: Búa til skel-síðuna**
 
-Create `web/src/pages/_skel-fyrirtaeki.astro`:
+Create `web/src/pages/skel-fyrirtaeki.astro`:
 
 ```astro
 ---
@@ -107,22 +107,22 @@ import Layout from '../layouts/Layout.astro';
 Modify `web/astro.config.mjs` línu með `sitemap(...)`:
 
 ```js
-integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) && !/\/_skel-fyrirtaeki\/?$/.test(page) })],
+integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) && !/\/skel-fyrirtaeki\/?$/.test(page) })],
 ```
 
 - [ ] **Step 3: Byggja og staðfesta tóka í output**
 
 Run:
 ```bash
-cd web && npx astro build 2>&1 | tail -5 && grep -o '%%KARP_[A-Z]*%%' dist/_skel-fyrirtaeki/index.html | sort -u
+cd web && npx astro build 2>&1 | tail -5 && grep -o '%%KARP_[A-Z]*%%' dist/skel-fyrirtaeki/index.html | sort -u
 ```
 Expected: build klárar; grep skilar `%%KARP_CANON%% %%KARP_DESC%% %%KARP_MAIN%% %%KARP_OGTITLE%% %%KARP_TITLE%%` og `"%%KARP_JSONLD%%"` sést í ld+json script:
 ```bash
-grep -c '"%%KARP_JSONLD%%"' dist/_skel-fyrirtaeki/index.html
+grep -c '"%%KARP_JSONLD%%"' dist/skel-fyrirtaeki/index.html
 ```
 Expected: `1`. Og noindex-meta til staðar:
 ```bash
-grep -c 'name="robots" content="noindex' dist/_skel-fyrirtaeki/index.html
+grep -c 'name="robots" content="noindex' dist/skel-fyrirtaeki/index.html
 ```
 Expected: `1`.
 
@@ -130,14 +130,14 @@ Expected: `1`.
 
 Run:
 ```bash
-grep -c '_skel-fyrirtaeki' dist/sitemap-0.xml
+grep -c 'skel-fyrirtaeki' dist/sitemap-0.xml
 ```
 Expected: `0`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add web/src/pages/_skel-fyrirtaeki.astro web/astro.config.mjs
+git add web/src/pages/skel-fyrirtaeki.astro web/astro.config.mjs
 git commit -m "SEO: worker-skel fyrir /fyrirtaeki/<kt>/ + sitemap-útilokun"
 ```
 
@@ -149,7 +149,7 @@ git commit -m "SEO: worker-skel fyrir /fyrirtaeki/<kt>/ + sitemap-útilokun"
 - Modify: `web/worker.js` (bæta helpers + handler nálægt `fyrirtaekiHandler` línu ~2005; bæta route fyrir `return env.ASSETS.fetch(request)` línu ~2605)
 
 **Interfaces:**
-- Consumes: `fyrirtaekiHandler(request, env, ctx)` (til, línu 2005) → `{ felag: { nafn, kt, form, isat[], postfang, logheimili, svf, skrad, afskrad, stada, hlutafe, mynt, vsk[{nr}], radamenn[], fyrirsvar[], arsreikningar[{ar,skil,teg}], eigendur[], eigendurTomt, heiti[] } }`. Skel á `dist/_skel-fyrirtaeki/index.html` (Task 1).
+- Consumes: `fyrirtaekiHandler(request, env, ctx)` (til, línu 2005) → `{ felag: { nafn, kt, form, isat[], postfang, logheimili, svf, skrad, afskrad, stada, hlutafe, mynt, vsk[{nr}], radamenn[], fyrirsvar[], arsreikningar[{ar,skil,teg}], eigendur[], eigendurTomt, heiti[] } }`. Skel á `dist/skel-fyrirtaeki/index.html` (Task 1).
 - Produces: route `/fyrirtaeki/<10 tölur>/` → 200 text/html indexeranleg síða, eða 301 (án slash), eða fall-through 404.
 
 - [ ] **Step 1: Bæta helper-föllum**
@@ -158,7 +158,7 @@ git commit -m "SEO: worker-skel fyrir /fyrirtaeki/<kt>/ + sitemap-útilokun"
 
 ```js
 // ── /fyrirtaeki/<kt>/ — indexeranleg opinber félagssíða (worker-SSR, SEO) ──
-// Sækir byggða Astro-skel (_skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
+// Sækir byggða Astro-skel (skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
 // tókum út fyrir per-félag efni. Öll gögn koma úr fyrirtaekiHandler (RSK).
 const htmlEsc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const ktSep = (kt) => (/^\d{10}$/.test(kt) ? kt.slice(0, 6) + '-' + kt.slice(6) : String(kt || ''));
@@ -234,7 +234,7 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
   const dParts = [f.form, f.isat && f.isat[0], f.postfang || f.logheimili, f.afskrad ? 'Afskráð' : (f.stada || 'Virk skráning')].filter(Boolean).join(' · ');
   const desc = htmlEsc(f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 300);
   const ld = JSON.stringify(orgJsonLd(f, kt, canonical));
-  let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/_skel-fyrirtaeki/'))).text();
+  let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/skel-fyrirtaeki/'))).text();
   html = html.replace(/<meta name="robots"[^>]*>\s*/i, '');   // gera indexeranlegt
   html = repAll(html, '%%KARP_TITLE%%', title);
   html = repAll(html, '%%KARP_OGTITLE%%', htmlEsc(f.nafn + ' — ' + ktSep(kt)));
@@ -256,11 +256,11 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
     if (/^\/fyrirtaeki\/\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
 ```
 
-- [ ] **Step 3: Byggja skel svo ASSETS á _skel-fyrirtaeki**
+- [ ] **Step 3: Byggja skel svo ASSETS á skel-fyrirtaeki**
 
 Run:
 ```bash
-cd web && npx astro build 2>&1 | tail -3 && ls dist/_skel-fyrirtaeki/index.html
+cd web && npx astro build 2>&1 | tail -3 && ls dist/skel-fyrirtaeki/index.html
 ```
 Expected: skráin til.
 
@@ -682,7 +682,7 @@ Skipta út `web/public/robots.txt` að fullu:
 ```
 User-agent: *
 Allow: /
-Disallow: /_skel-fyrirtaeki/
+Disallow: /skel-fyrirtaeki/
 
 Sitemap: https://karp.is/sitemap-index.xml
 Sitemap: https://karp.is/sitemap-fyrirtaeki.xml
@@ -724,7 +724,7 @@ Expected: klárar án villu; „Completed" með fjölda síðna (grunnur ~208 + 
 
 Run:
 ```bash
-ls dist/_skel-fyrirtaeki/index.html
+ls dist/skel-fyrirtaeki/index.html
 ls -d dist/lyf/*/ | wc -l
 ls -d dist/utbod/*/ | wc -l
 grep -c 'fyrirtaeki' dist/sitemap-fyrirtaeki.xml
