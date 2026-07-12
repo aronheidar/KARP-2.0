@@ -19,6 +19,10 @@ const verd = l.priceLow ? (l.priceHigh && l.priceHigh !== l.priceLow ? `${kr(l.p
 const title = `${l.name}${l.strength ? ' ' + l.strength : ''} — verð, ATC, markaðsleyfi | Karp`;
 const desc = `${l.name} — ${ingr.join(', ') || atcName}${l.strength ? ', ' + l.strength : ''}${l.form ? ', ' + l.form : ''}. Markaðsleyfishafi ${l.holder || '—'}.${verd ? ' Verð ' + verd + '.' : ''}${l.shortage ? ' Lyfjaskortur skráður.' : ''}`.slice(0, 300);
 
+// Rx-staða úr fremsta sviga-kóða: (R…) = lyfseðilsskylt, (L) = lausasala, (L R) = blandað → varfærið PrescriptionOnly.
+const rxCode = (String(l.rx || '').match(/^\(([^)]*)\)/) || [])[1] || '';
+const rxStatus = /R/.test(rxCode) ? 'https://schema.org/PrescriptionOnly' : /L/.test(rxCode) ? 'https://schema.org/OTC' : '';
+
 const jsonLd = {
   '@context': 'https://schema.org', '@type': 'Drug', name: l.name, url: canonical,
   ...(ingr.length ? { activeIngredient: ingr } : {}),
@@ -26,10 +30,8 @@ const jsonLd = {
   ...(l.form ? { dosageForm: l.form } : {}),
   ...(l.strength ? { availableStrength: { '@type': 'DrugStrength', description: l.strength } } : {}),
   ...(l.holder ? { manufacturer: { '@type': 'Organization', name: l.holder } } : {}),
-  ...(l.rx ? { prescriptionStatus: /R|lyfseðil/i.test(l.rx) ? 'https://schema.org/PrescriptionOnly' : 'https://schema.org/OTC' } : {}),
+  ...(rxStatus ? { prescriptionStatus: rxStatus } : {}),
 };
-
-const row = (label, val) => val;
 ---
 <Layout title={title} description={desc} canonical={canonical} jsonLd={jsonLd}>
   <main class="lyf-kt">
