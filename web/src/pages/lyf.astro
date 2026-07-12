@@ -50,7 +50,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       {shortageList.map((r) => (
         <article class="card is-sk">
           <div class="c-h">
-            <div class="c-t">{r.name} {r.strength && <span class="c-str">{r.strength}</span>}</div>
+            <div class="c-t"><a href={`/lyf/${r.slug}/`}>{r.name}</a> {r.strength && <span class="c-str">{r.strength}</span>}</div>
             {r.atc.code && <span class="atc" title={r.atc.name}>{r.atc.code}</span>}
           </div>
           <div class="c-badges"><span class="bd sk">Lyfjaskortur</span>{r.vet && <span class="bd vt">Dýralyf</span>}</div>
@@ -98,6 +98,8 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
     main[data-pg="lyf"] .card.is-sk { border-color: rgba(240,120,96,.3); }
     main[data-pg="lyf"] .c-h { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
     main[data-pg="lyf"] .c-t { font-size: 15px; font-weight: 700; color: #eaf1fb; line-height: 1.3; }
+    main[data-pg="lyf"] .c-t a { color: inherit; text-decoration: none; }
+    main[data-pg="lyf"] .c-t a:hover { color: var(--gold); }
     main[data-pg="lyf"] .c-str { color: #9fb0c8; font-weight: 600; font-size: 13px; }
     main[data-pg="lyf"] .atc { font-size: 11px; color: #8fa0b8; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
     main[data-pg="lyf"] .c-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
@@ -161,7 +163,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       const url = 'https://serlyfjaskra.is/lyf/' + encodeURIComponent(r.slug);
       const ing = (r.ingredients || []).join(', ');
       return `<article class="card${r.shortage ? ' is-sk' : ''}"${hasPk ? ` data-slug="${escL(r.slug)}"` : ''}>
-        <div class="c-h"><div class="c-t">${escL(r.name)}${r.strength ? ` <span class="c-str">${escL(r.strength)}</span>` : ''}</div>${r.atc.code ? `<span class="atc" title="${escL(r.atc.name)}">${escL(r.atc.code)}</span>` : ''}</div>
+        <div class="c-h"><div class="c-t"><a href="/lyf/${escL(r.slug)}/">${escL(r.name)}</a>${r.strength ? ` <span class="c-str">${escL(r.strength)}</span>` : ''}</div>${r.atc.code ? `<span class="atc" title="${escL(r.atc.name)}">${escL(r.atc.code)}</span>` : ''}</div>
         <div class="c-badges">${badges}</div>
         <div class="c-m">${escL(r.form)}${r.holder ? ' · ' + escL(r.holder) : ''}</div>
         ${ing ? `<div class="c-i">${escL(ing)}</div>` : ''}
