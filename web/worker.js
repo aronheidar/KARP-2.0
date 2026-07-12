@@ -2449,6 +2449,32 @@ export function maskaKortSvar(out) {
   return { ...out, krossar, kort: true };
 }
 
+// 🕸️ Landsdekkandi auðgun úr tengslagrunni (D1). Null-þolið: án env.TENGSL → óbreytt.
+// Bætir landsvísu-félögum rót-tengds fólks í onnur[]. Persónu-kt (out.stjornendur[]._kt,
+// server-hlið eingöngu) er notað sem D1-lykill og STRIPPAÐ hér áður en svarið fer út.
+export async function tengslGrunnurEnrich(env, out, rotKt) {
+  if (!env || !env.TENGSL || !out || !out.holdur) { if (out && out.stjornendur) for (const p of out.stjornendur) delete p._kt; return out; }
+  const rkt = String(rotKt || '').replace(/\D/g, '');
+  for (const p of (out.stjornendur || [])) {
+    const pkt = p._kt; delete p._kt;
+    if (!pkt) continue;
+    try {
+      const q = await env.TENGSL.prepare(
+        "SELECT h.felag_kt AS kt, f.nafn AS nafn, h.hlutverk AS hlutverk FROM hlutverk h JOIN felog f ON f.kt=h.felag_kt WHERE h.person_key=? AND h.seen_last IS NULL AND h.felag_kt<>? LIMIT 40"
+      ).bind(pkt, rkt).all();
+      const rows = (q && q.results) || [];
+      const have = new Set((p.onnur || []).map((o) => o.kt));
+      for (const r of rows) {
+        if (have.has(r.kt)) { const ex = p.onnur.find((o) => o.kt === r.kt); if (ex) ex.grunnur = true; continue; }
+        (p.onnur = p.onnur || []).push({ kt: r.kt, nafn: r.nafn, hlutverk: r.hlutverk || '', grunnur: true });
+        have.add(r.kt);
+      }
+      p.onnur = (p.onnur || []).slice(0, 30);
+    } catch (e) {}
+  }
+  return out;
+}
+
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
 // GET /api/tengslanet?kt= → { stjornendur: [rótarfyrirsvar + hlutverk í öðrum net-félögum],
 // krossar: [fólk í ≥2 net-félögum án hlutverks í rót] }. Félagamengið = rót + félags-hnútar úr
@@ -2491,7 +2517,7 @@ async function tengslanetHandler(request, env, ctx) {
     for (const co of raw) {
       for (const t of (co.tengsl || [])) {
         if (!t.einst || !t.kt || SLEPPA.test(t.tegund || '') || /l.st/i.test(t.stada || '')) continue;
-        const p = folk.get(t.kt) || { nafn: t.nafn, roles: [] };
+        const p = folk.get(t.kt) || { nafn: t.nafn, kt: t.kt, roles: [] };
         p.roles.push({ felagKt: co.kt, felagNafn: co.nafn, label: label(t) });
         folk.set(t.kt, p);
       }
@@ -2508,7 +2534,7 @@ async function tengslanetHandler(request, env, ctx) {
       }
       const onnur = [...onnurMap.values()].map((o) => ({ kt: o.kt, nafn: o.nafn, hlutverk: o.labels.join(' · ') })).slice(0, 12);
       if (rotRoles.length) {
-        stjornendur.push({ nafn: p.nafn, hlutverk_rot: [...new Set(rotRoles.map((r) => r.label))], onnur });
+        stjornendur.push({ nafn: p.nafn, _kt: p.kt, hlutverk_rot: [...new Set(rotRoles.map((r) => r.label))], onnur });
       } else if (onnurMap.size >= 2) {
         krossar.push({ nafn: p.nafn, felog: [...onnurMap.values()].map((o) => ({ kt: o.kt, nafn: o.nafn })).slice(0, 6) });
       }
@@ -2519,6 +2545,7 @@ async function tengslanetHandler(request, env, ctx) {
   }
   // net óbyggt (n_felog=1) → stutt TTL svo fullbyggt tré taki fljótt við; fullt net → 12h
   const ttl = out.holdur ? (out.n_felog > 1 ? 43200 : 900) : 0;
+  if (out.holdur) out = await tengslGrunnurEnrich(env, out, kt);   // 🕸️ landsvísu-auðgun (null-þolið; strippar _kt)
   const body = kort ? maskaKortSvar(out) : out;   // 🕸️ nafna-felun aðeins í kort-ham
   const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
   if (ttl) ctx.waitUntil(cache.put(cacheKey, res.clone()));
