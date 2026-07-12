@@ -10,10 +10,17 @@ compatibility_date = "2026-06-29"
 directory = "./dist"
 binding = "ASSETS"
 
-# Tengslagrunnur (D1) — landsdekkandi eigenda-/stjórnendagrunnur. Kóðinn er null-þolinn:
-# ef bindingin/gögnin vantar hegðar workerinn sér nákvæmlega eins og áður.
-# ⚠ database_id = dummy þar til Aron keyrir `npx wrangler d1 create tengsl`.
-[[d1_databases]]
-binding = "TENGSL"
-database_name = "tengsl"
-database_id = "00000000-0000-0000-0000-000000000000"
+# Tengslagrunnur (D1) — landsdekkandi eigenda-/stjórnendagrunnur.
+# ⚠ BINDING ER AF-VIRKJUÐ VILJANDI þar til grunnurinn er til: Cloudflare STAÐFESTIR
+# database_id við DEPLOY (ekki bara runtime) og HAFNAR deploy-i ef id-ið er ekki til —
+# sem myndi loka á ALLAR main-ýtingar (síða+worker deploya saman). Kóðinn er null-þolinn
+# (env.TENGSL undefined → nákvæmlega eins og áður), svo það er ÖRUGGT að skipa bindingunni
+# ekki fyrr en grunnurinn er til.
+#
+# ARON, til að kveikja: keyrðu `npx wrangler d1 create tengsl` (í web/), af-athugasemdaðu
+# blokkina að neðan og settu raunverulegt database_id (eða sendu mér id-ið):
+#
+# [[d1_databases]]
+# binding = "TENGSL"
+# database_name = "tengsl"
+# database_id = "<raunverulegt-id-úr-wrangler-d1-create>"

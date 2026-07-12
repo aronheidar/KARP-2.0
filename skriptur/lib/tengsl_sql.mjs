@@ -8,7 +8,10 @@ export function sqlLit(v) {
 }
 const L = sqlLit;
 
-export function buildNightSql({ today, felog = [], folk = [], hlutverk = [], eign = [], queueDone = [], queueAdd = [] }) {
+// MAX_ATTEMPTS: eftir svona margar tímabundnar villur á sama kt gefumst við upp (status='error').
+export const MAX_ATTEMPTS = 5;
+
+export function buildNightSql({ today, felog = [], folk = [], hlutverk = [], eign = [], queueMark = [], queueRetry = [], queueAdd = [], sweepMark = [], sweepAdd = [] }) {
   const s = [];
   const T = L(today);
   for (const f of felog) {
@@ -23,8 +26,15 @@ export function buildNightSql({ today, felog = [], folk = [], hlutverk = [], eig
   for (const e of eign) {
     s.push(`INSERT INTO eign (felag_kt,eigandi_key,eigandi_tegund,hlutur,tegund,heimild,seen_first,seen_last) VALUES (${L(e.felag_kt)},${L(e.eigandi_key)},${L(e.eigandi_tegund)},${L(e.hlutur)},${L(e.tegund)},${L(e.heimild)},${T},NULL) ON CONFLICT(felag_kt,eigandi_key,tegund) DO UPDATE SET hlutur=excluded.hlutur,eigandi_tegund=excluded.eigandi_tegund,heimild=excluded.heimild,seen_last=NULL;`);
   }
-  for (const kt of queueDone) s.push(`DELETE FROM crawl_queue WHERE kt=${L(kt)};`);
+  // Enda-staða (done/notfound/error): færsla HELDST í biðröð með stöðu → endur-uppgötvun
+  // (INSERT OR IGNORE) endur-pending-ar hana EKKI (lagfæring á endalausu re-crawl-i).
+  for (const m of queueMark) s.push(`UPDATE crawl_queue SET status=${L(m.status)}, crawled_at=${T}, attempts=attempts+1 WHERE kt=${L(m.kt)};`);
+  // Tímabundin villa (5xx/429/net): hækka attempts; gefast upp (error) eftir MAX_ATTEMPTS, annars pending.
+  for (const kt of queueRetry) s.push(`UPDATE crawl_queue SET attempts=attempts+1, crawled_at=${T}, status=(CASE WHEN attempts+1>=${MAX_ATTEMPTS} THEN 'error' ELSE 'pending' END) WHERE kt=${L(kt)};`);
   for (const q of queueAdd) s.push(`INSERT OR IGNORE INTO crawl_queue (kt,priority,discovered_from,added_at,status) VALUES (${L(q.kt)},${L(q.priority || 2)},${L(q.from || null)},${T},'pending');`);
+  // Nafnaleitar-sweep: merkja forskeyti klárað + bæta dýpri forskeytum við (mettuð → dýpka).
+  for (const m of sweepMark) s.push(`UPDATE sweep_state SET done=1, hit_count=${L(m.hit_count)}, updated_at=${T} WHERE prefix=${L(m.prefix)};`);
+  for (const p of sweepAdd) s.push(`INSERT OR IGNORE INTO sweep_state (prefix,done,updated_at) VALUES (${L(p)},0,${T});`);
   return s.join('\n');
 }
 

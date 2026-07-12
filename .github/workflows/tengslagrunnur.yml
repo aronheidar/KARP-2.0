@@ -46,15 +46,17 @@ jobs:
         if: env.SKIP != '1'
         run: npm ci
         working-directory: web
+      - name: Migrate schema (idempotent)
+        # ⚠ VERÐUR að standa Á UNDAN seed — seed-SQL er aðeins INSERT (engin CREATE TABLE),
+        # svo á ferskum D1 (áður en töflur eru til) fellur seed með 'no such table'.
+        if: env.SKIP != '1'
+        run: npx wrangler d1 execute tengsl --remote --file migrations/0001_tengsl.sql
+        working-directory: web
       - name: Sá biðröð (valfrjálst)
         if: env.SKIP != '1' && github.event.inputs.seed == 'true'
         run: |
           node skriptur/seed_tengsl.mjs --out web/seed.sql
           cd web && npx wrangler d1 execute tengsl --remote --file seed.sql
-      - name: Migrate schema (idempotent)
-        if: env.SKIP != '1'
-        run: npx wrangler d1 execute tengsl --remote --file migrations/0001_tengsl.sql
-        working-directory: web
       - name: Crawl
         if: env.SKIP != '1'
         run: node skriptur/crawl_tengsl.mjs

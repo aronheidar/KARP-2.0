@@ -1,6 +1,12 @@
 // rsk_parse.mjs — HREINAR þáttunarfallar fyrir tengslagrunn-crawlerinn.
 // Speglar rskClean/rskFelag í web/worker.js EN sem sjálfstæð, prófanleg Node-eining.
 // Engin DOM, ekkert net. Notað af crawl_tengsl.mjs + unit-prófunum.
+//
+// ⚠⚠ HALDA Í TAKT VIÐ web/worker.js: `rg`, `rskErFyrirtaeki` og síu-reglurnar
+// (/^(endursko.andi|stofnandi)/i, /l.st/i, dagur 41–71) eru VILJANDI afrit af sömu
+// frumstæðum í worker.js (rskClean/tengslanetHandler). Þær ákvarða D1-LYKLA (person_key,
+// hvaða hlutverk eru skráð). Ef þú breytir annarri hlið VERÐUR þú að breyta hinni — annars
+// skrifar crawlerinn lykla sem workerinn finnur ekki við uppflettingu (þögul und-auðgun).
 
 // ---- deildir hjálparar (sömu reglur og ubo-report.js / worker.js) ----
 export const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD')

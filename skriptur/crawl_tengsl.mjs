@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // crawl_tengsl.mjs — næturlegur snjóbolta-crawler. Les batch úr crawl_queue,
-// kallar RSK-API (stjórn, með persónu-kt) + frítt eigenda-skrap, skrifar EITT
-// night.sql og beitir því á D1 um wrangler. Kvóta-þak = TENGSL_BUDGET.
+// kallar RSK-API (stjórn, með persónu-kt) + frítt eigenda-skrap, keyrir nafnaleitar-
+// sweep (landsdekkandi upptalning), skrifar EITT night.sql og beitir því á D1 um
+// wrangler. Metrað API-þak = TENGSL_BUDGET; frí nafnaleit = SWEEP_BUDGET.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { parseLegalEntity, parseEigendur, personKey } from './lib/rsk_parse.mjs';
 import { buildNightSql, buildSeenLastSql } from './lib/tengsl_sql.mjs';
+import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
 const BUDGET = bi >= 0 ? parseInt(process.argv[bi + 1], 10) : parseInt(process.env.TENGSL_BUDGET || '1500', 10);
+const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '200', 10);   // frí nafnaleit-köll á nótt
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
 const API = 'https://api.skattur.cloud/legalentities/v2.1/';
@@ -21,56 +24,68 @@ if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til s
 function wrangler(args) {
   return execFileSync('npx', ['wrangler', ...args], { cwd: 'web', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: process.env });
 }
+function d1Query(sql) {
+  const out = wrangler(['d1', 'execute', 'tengsl', '--remote', '--json', '--command', sql]);
+  try { const j = JSON.parse(out); return (j[0] && j[0].results) || j.results || []; }
+  catch (e) { console.error('D1-fyrirspurn brást:', e.message); return []; }
+}
+// Biðröð: pending fyrst (forgangur), svo done-félög eldri en 90 daga (endurnýjun). Aldrei 'error'/'notfound'.
 function queueBatch(n) {
-  const out = wrangler(['d1', 'execute', 'tengsl', '--remote', '--json', '--command',
-    `SELECT kt FROM crawl_queue WHERE status='pending' ORDER BY priority, added_at LIMIT ${n}`]);
-  try { const j = JSON.parse(out); const rows = (j[0] && j[0].results) || j.results || []; return rows.map((r) => r.kt); }
-  catch (e) { console.error('Gat ekki lesið biðröð:', e.message); return []; }
+  return d1Query(
+    "SELECT kt FROM crawl_queue WHERE status='pending' OR (status='done' AND (crawled_at IS NULL OR crawled_at <= date('now','-90 days')))"
+    + " ORDER BY (status='pending') DESC, priority, added_at LIMIT " + n
+  ).map((r) => r.kt);
+}
+function sweepBatch(n) {
+  return d1Query("SELECT prefix FROM sweep_state WHERE done=0 ORDER BY length(prefix), prefix LIMIT " + n).map((r) => r.prefix);
 }
 
+// fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). AÐEINS 401/403 kasta (banvænt).
 async function fetchApi(kt) {
-  const r = await fetch(API + kt + '?language=is', { headers: { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' } });
-  if (r.status === 401 || r.status === 403) { throw new Error('AUTH ' + r.status); }   // rangur lykill → stöðva nótt
+  let r;
+  try { r = await fetch(API + kt + '?language=is', { headers: { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' } }); }
+  catch (e) { return { retry: 'network' }; }   // DNS/tenging/tímarof → reyna aftur síðar
+  if (r.status === 401 || r.status === 403) throw new Error('AUTH ' + r.status);   // rangur lykill → stöðva nótt
   if (r.status === 404) return { notfound: true };
-  if (!r.ok) return { error: r.status };
-  return { json: await r.json().catch(() => null) };
+  if (r.status === 429 || r.status >= 500) return { retry: r.status };            // tímabundið → reyna aftur
+  if (!r.ok) return { error: r.status };                                          // annað 4xx → gefast upp
+  const json = await r.json().catch(() => null);
+  return json ? { json } : { retry: 'badjson' };
 }
-async function fetchEigendur(kt) {
-  try {
-    const r = await fetch(RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt, { headers: { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' } });
-    if (!r.ok) return [];
-    return parseEigendur(await r.text());
-  } catch (e) { return []; }
+async function fetchText(url) {
+  try { const r = await fetch(url, { headers: { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' } }); return r.ok ? await r.text() : null; }
+  catch (e) { return null; }
 }
 
-const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueDone: [], queueAdd: [] };
+const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueRetry: [], queueAdd: [], sweepMark: [], sweepAdd: [] };
 const seenLastSql = [];
 let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0;
 
+// ── 1) Félaga-crawl (metrað API) ──────────────────────────────────────────────
 const batch = queueBatch(BUDGET);
-console.error(`Batch: ${batch.length} kt (budget ${BUDGET}).`);
-
+console.error(`Félaga-batch: ${batch.length} kt (budget ${BUDGET}).`);
 for (const kt of batch) {
   if (used >= BUDGET) break;
   used++;
   let api;
   try { api = await fetchApi(kt); }
-  catch (e) { console.error('STÖÐVA nótt:', e.message); break; }   // AUTH → hætta strax
-  acc.queueDone.push(kt);
-  if (api.notfound) { notfound++; continue; }
-  if (api.error || !api.json) { errs++; continue; }
+  catch (e) { console.error('STÖÐVA nótt (AUTH):', e.message); break; }   // AUTH → hætta strax (biðröð ósnert)
+  if (api.retry) { acc.queueRetry.push(kt); errs++; continue; }            // tímabundið → attempts++ (helst pending)
+  if (api.notfound) { acc.queueMark.push({ kt, status: 'notfound' }); notfound++; continue; }
+  if (api.error) { acc.queueMark.push({ kt, status: 'error' }); errs++; continue; }
   const rec = parseLegalEntity(kt, api.json);
-  if (!rec) { errs++; continue; }
+  if (!rec) { acc.queueMark.push({ kt, status: 'error' }); errs++; continue; }
   ok++;
+  acc.queueMark.push({ kt, status: 'done' });
   acc.felog.push(rec.felag);
   acc.folk.push(...rec.folk);
   acc.hlutverk.push(...rec.hlutverk);
   for (const dk of rec.discovered) { acc.queueAdd.push({ kt: dk, from: kt, priority: 2 }); discovered++; }
   // frítt eigenda-skrap (kurteist)
   await sleep(1500);
-  const eig = await fetchEigendur(kt);
+  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt);
   const eignRows = [];
-  for (const e of eig) {
+  for (const e of (html ? parseEigendur(html) : [])) {
     const key = personKey({ nafn: e.nafn, faeding: e.faeding });
     acc.folk.push({ person_key: key, kt: null, nafn: e.nafn, faeding: e.faeding });
     const row = { felag_kt: kt, eigandi_key: key, eigandi_tegund: 'einst', hlutur: e.hlutur, tegund: 'raunverulegur', heimild: 'RSK raunverulegir eigendur' };
@@ -82,18 +97,34 @@ for (const kt of batch) {
   seenLastSql.push(buildSeenLastSql(kt, keptH, keptE, today));
 }
 
-const sql = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n') + '\n';
-fs.writeFileSync('web/night.sql', sql);
-console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${used} köll notuð.`);
-console.error(`Rita ${(sql.length / 1024).toFixed(0)} KiB í web/night.sql.`);
+// ── 2) Nafnaleitar-sweep (frí HTML-upptalning → ný félög í biðröð) ─────────────
+const prefixes = sweepBatch(SWEEP_BUDGET);
+console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}).`);
+let sweepFound = 0;
+for (const pfx of prefixes) {
+  await sleep(1200);   // kurteist við skatturinn.is
+  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
+  const kts = html ? extractKts(html) : [];
+  for (const k of kts) { acc.queueAdd.push({ kt: k, from: 'sweep:' + pfx, priority: 3 }); sweepFound++; }
+  const { children } = nextPrefixes(pfx, kts.length, 100);   // mettað (≥100) → dýpka
+  for (const c of children) acc.sweepAdd.push(c);
+  acc.sweepMark.push({ prefix: pfx, hit_count: kts.length });
+}
+
+// ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
+const body = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n').trim();
+console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${used} API-köll.`);
+
+if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
+fs.writeFileSync('web/night.sql', body + '\n');
+console.error(`Rita ${(body.length / 1024).toFixed(0)} KiB í web/night.sql.`);
 
 if (DRY) { console.error('--dry-run: beiti EKKI á D1.'); process.exit(0); }
-if (used === 0) { console.error('Ekkert að skrifa.'); process.exit(0); }
 wrangler(['d1', 'execute', 'tengsl', '--remote', '--file', 'night.sql']);
 fs.unlinkSync('web/night.sql');
 console.error('✓ Beitt á D1.');
 
 // GH-summary
 if (process.env.GITHUB_STEP_SUMMARY) {
-  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n- Köll notuð: **${used}** / ${BUDGET}\n- Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur\n- Uppgötvuð ný félög: ${discovered}\n`);
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n- API-köll: **${used}** / ${BUDGET}\n- Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur\n- Uppgötvuð ný félög: ${discovered} (crawl) + ${sweepFound} (sweep)\n- Sweep-forskeyti: ${prefixes.length}\n`);
 }
