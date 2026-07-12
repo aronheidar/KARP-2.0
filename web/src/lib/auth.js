@@ -163,6 +163,9 @@ export function followsCount() { return Number(_u().followsCount || 0); }
 // Fasteignamata-kvóti (sér-áskrift 'fasteign'): fjöldi eftir í mánuðinum. -1 = ótakmarkað (admin), 0 = ekki áskrifandi.
 export function fasteignRemaining() { const u = _u(); return typeof u.fasteignRemaining === 'number' ? u.fasteignRemaining : 0; }
 export function fasteignResets() { const u = _u(); return Number(u.fasteignResets || 0); }
+// Kvóti (20 áskrifandi / -1 admin / 0 ekki-áskrifandi) — undefined ef server hefur EKKI skilað (WP óuppfært).
+// Notað til að fela teljarann þar til raun-gögn liggja fyrir (annars sýndi hann ranglega „0" í millibili).
+export function fasteignQuotaKnown() { return typeof _u().fasteignQuota === 'number'; }
 // Meta eign með kvóta: á/kvóti → granted (eyðir 1, endurmat sama heimilisfangs í mán frítt), annars needPay (990).
 // Skilar { granted, remaining } | { owned } | { needPay, resets } | { nosub } | { error }. Uppfærir u.fasteignRemaining.
 export async function metaValuation(key) {
