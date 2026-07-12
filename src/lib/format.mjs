@@ -37,3 +37,6 @@ export const slugify = (s) =>
     .replace(/[áéíóúýþæöð]/g, (c) => SLUG_MAP[c] || c)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+// SEO: '&' í lyf-slug fær Cloudflare til að 307-redirect-a (svigar eru í lagi). Fjarlægt fyrir /lyf/<slug>/ route + innri hlekki; ytri serlyfjaskra-hlekkir halda upprunaslug.
+export const lyfUrlSlug = (s) => String(s == null ? '' : s).replace(/&/g, '').replace(/-{2,}/g, '-');

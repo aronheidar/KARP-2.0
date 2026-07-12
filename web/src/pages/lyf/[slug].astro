@@ -3,15 +3,17 @@
 // snapshot Sérlyfjaskrár). Drug JSON-LD. Leitin er /lyf/ (lyf.astro).
 import Layout from '../../layouts/Layout.astro';
 import LYF from '@gogn/lyf.json';
+import { lyfUrlSlug } from '@lib/format.mjs';
 
 export function getStaticPaths() {
   const seen = new Set();
-  return (LYF.lyf || []).filter((l) => l.slug && !seen.has(l.slug) && seen.add(l.slug))
-    .map((l) => ({ params: { slug: l.slug }, props: { l } }));
+  return (LYF.lyf || []).filter((l) => l.slug).map((l) => ({ l, u: lyfUrlSlug(l.slug) }))
+    .filter((o) => !seen.has(o.u) && seen.add(o.u))
+    .map((o) => ({ params: { slug: o.u }, props: { l: o.l } }));
 }
 
 const { l } = Astro.props;
-const canonical = `https://karp.is/lyf/${l.slug}/`;
+const canonical = `https://karp.is/lyf/${lyfUrlSlug(l.slug)}/`;
 const ingr = (l.ingredients || []).filter(Boolean);
 const atcName = l.atc && l.atc.name ? l.atc.name : '';
 const kr = (v) => (v || v === 0 ? Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr' : '');

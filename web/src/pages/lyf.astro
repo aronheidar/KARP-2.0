@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import LYF from '@gogn/lyf.json';
-import { groupThousands } from '@lib/format.mjs';
+import { groupThousands, lyfUrlSlug } from '@lib/format.mjs';
 
 const { updated, count, priced, shortageCount, atc } = LYF;
 const pricedPct = count ? Math.round((priced / count) * 100) : 0;
@@ -50,7 +50,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       {shortageList.map((r) => (
         <article class="card is-sk">
           <div class="c-h">
-            <div class="c-t"><a href={`/lyf/${r.slug}/`}>{r.name}</a> {r.strength && <span class="c-str">{r.strength}</span>}</div>
+            <div class="c-t"><a href={`/lyf/${lyfUrlSlug(r.slug)}/`}>{r.name}</a> {r.strength && <span class="c-str">{r.strength}</span>}</div>
             {r.atc.code && <span class="atc" title={r.atc.name}>{r.atc.code}</span>}
           </div>
           <div class="c-badges"><span class="bd sk">Lyfjaskortur</span>{r.vet && <span class="bd vt">Dýralyf</span>}</div>
@@ -131,6 +131,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
 
   <!-- LOTA lyf: client-side leit + pakkningaraukning úr /gogn/lyf.json -->
   <script>
+    import { lyfUrlSlug } from '@lib/format.mjs';
     const escL = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const gt = (n) => (n == null ? '' : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
     let LYFALL = null, BYSLUG = null;
@@ -163,7 +164,7 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       const url = 'https://serlyfjaskra.is/lyf/' + encodeURIComponent(r.slug);
       const ing = (r.ingredients || []).join(', ');
       return `<article class="card${r.shortage ? ' is-sk' : ''}"${hasPk ? ` data-slug="${escL(r.slug)}"` : ''}>
-        <div class="c-h"><div class="c-t"><a href="/lyf/${escL(r.slug)}/">${escL(r.name)}</a>${r.strength ? ` <span class="c-str">${escL(r.strength)}</span>` : ''}</div>${r.atc.code ? `<span class="atc" title="${escL(r.atc.name)}">${escL(r.atc.code)}</span>` : ''}</div>
+        <div class="c-h"><div class="c-t"><a href="/lyf/${escL(lyfUrlSlug(r.slug))}/">${escL(r.name)}</a>${r.strength ? ` <span class="c-str">${escL(r.strength)}</span>` : ''}</div>${r.atc.code ? `<span class="atc" title="${escL(r.atc.name)}">${escL(r.atc.code)}</span>` : ''}</div>
         <div class="c-badges">${badges}</div>
         <div class="c-m">${escL(r.form)}${r.holder ? ' · ' + escL(r.holder) : ''}</div>
         ${ing ? `<div class="c-i">${escL(ing)}</div>` : ''}
