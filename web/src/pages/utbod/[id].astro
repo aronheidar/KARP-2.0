@@ -1,0 +1,56 @@
+---
+// PROGRAMMATIC SEO — síða per útboð. getStaticPaths úr gogn/utbod.json.
+// Enginn stöðugur id í gögnum → tenderSlug = slugify(titill) + '-' + hash(u).
+// Enginn JSON-LD (engin hrein schema.org útboðs-tegund). Leitin er /utbod/.
+import Layout from '../../layouts/Layout.astro';
+import UTBOD from '@gogn/utbod.json';
+import { slugify } from '@lib/format.mjs';
+
+// NB: getStaticPaths keyrir í einangruðu scope (Astro compiler hífir hana upp) —
+// hún sér AÐEINS imports, ekki aðrar const-breytur úr frontmatter. Því er
+// hash/tenderSlug endurskilgreint hér að innan (og aftur fyrir neðan f. canonical).
+export function getStaticPaths() {
+  const hash = (s) => { let h = 5381; const str = String(s || ''); for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(36); };
+  const tenderSlug = (x) => (slugify(x.t || 'utbod').slice(0, 60) || 'utbod') + '-' + hash(x.u || x.t);
+  const seen = new Set();
+  return (UTBOD.tenders || []).map((x) => ({ ...x, _id: tenderSlug(x) }))
+    .filter((x) => !seen.has(x._id) && seen.add(x._id))
+    .map((x) => ({ params: { id: x._id }, props: { x } }));
+}
+
+const hash = (s) => { let h = 5381; const str = String(s || ''); for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(36); };
+const { x } = Astro.props;
+const canonical = `https://karp.is/utbod/${x._id || (slugify(x.t || 'utbod').slice(0, 60) + '-' + hash(x.u || x.t))}/`;
+const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+const catLabel = (UTBOD.cats && UTBOD.cats[x.cat] ? UTBOD.cats[x.cat][0] : x.cat) || '';
+const SRC = { rk: 'Útboðsvefur Ríkiskaupa', ted: 'TED (EES)', rvk: 'Reykjavíkurborg', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' };
+const title = `${x.t} — útboð${x.buyer ? ', ' + x.buyer : ''} | Karp`;
+const desc = `Opinbert útboð: ${x.t}. Kaupandi ${x.buyer || SRC[x.src] || '—'}.${x.deadline ? ' Tilboðsfrestur ' + dIS(x.deadline) + '.' : ''}${catLabel ? ' Flokkur: ' + catLabel + '.' : ''} Sjá öll útboð á Karp.`.slice(0, 300);
+---
+<Layout title={title} description={desc} canonical={canonical}>
+  <main class="ut-kt">
+    <p class="bk"><a href="/utbod/">← Útboðsgátt</a></p>
+    <h1>{x.t}</h1>
+    <div class="grid">
+      {x.buyer && <div class="cell"><span class="l">Kaupandi</span><span class="v">{x.buyer}</span></div>}
+      <div class="cell"><span class="l">Gátt</span><span class="v">{SRC[x.src] || x.src}</span></div>
+      {catLabel && <div class="cell"><span class="l">Flokkur</span><span class="v">{catLabel}</span></div>}
+      {x.d && <div class="cell"><span class="l">Birt</span><span class="v">{dIS(x.d)}</span></div>}
+      {x.deadline && <div class="cell"><span class="l">Tilboðsfrestur</span><span class="v">{dIS(x.deadline)}</span></div>}
+    </div>
+    {x.u && <p class="src"><a href={x.u} target="_blank" rel="nofollow noopener">Opna útboð í upprunagátt ↗</a></p>}
+    <p class="note">Heimild: {SRC[x.src] || x.src}. Karp safnar opinberum útboðum frá öllum helstu gáttum — sjá <a href="/utbod/">útboðsgáttina</a> og <a href="/lausnir/utbodsvaktin/">Útboðsvaktina</a> (tölvupósts-vakt fyrir verktaka).</p>
+  </main>
+
+  <style>
+    main.ut-kt { max-width: 820px; margin: 0 auto; padding: 40px 20px 64px; }
+    .bk a { color: var(--gold); font-size: 13px; text-decoration: none; }
+    h1 { font-size: 26px; margin: 8px 0 18px; line-height: 1.3; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+    .cell { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); }
+    .l { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin-bottom: 3px; }
+    .v { color: var(--ink); font-size: 14.5px; }
+    .src { margin: 20px 0 0; } .src a { color: var(--gold); font-weight: 600; }
+    .note { font-size: 12.5px; color: var(--faint); margin-top: 20px; } .note a { color: var(--gold); }
+  </style>
+</Layout>
