@@ -1,0 +1,72 @@
+---
+// PROGRAMMATIC SEO — síða per lyf. getStaticPaths úr gogn/lyf.json (Algolia-
+// snapshot Sérlyfjaskrár). Drug JSON-LD. Leitin er /lyf/ (lyf.astro).
+import Layout from '../../layouts/Layout.astro';
+import LYF from '@gogn/lyf.json';
+
+export function getStaticPaths() {
+  const seen = new Set();
+  return (LYF.lyf || []).filter((l) => l.slug && !seen.has(l.slug) && seen.add(l.slug))
+    .map((l) => ({ params: { slug: l.slug }, props: { l } }));
+}
+
+const { l } = Astro.props;
+const canonical = `https://karp.is/lyf/${l.slug}/`;
+const ingr = (l.ingredients || []).filter(Boolean);
+const atcName = l.atc && l.atc.name ? l.atc.name : '';
+const kr = (v) => (v || v === 0 ? Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr' : '');
+const verd = l.priceLow ? (l.priceHigh && l.priceHigh !== l.priceLow ? `${kr(l.priceLow)}–${kr(l.priceHigh)}` : kr(l.priceLow)) : '';
+const title = `${l.name}${l.strength ? ' ' + l.strength : ''} — verð, ATC, markaðsleyfi | Karp`;
+const desc = `${l.name} — ${ingr.join(', ') || atcName}${l.strength ? ', ' + l.strength : ''}${l.form ? ', ' + l.form : ''}. Markaðsleyfishafi ${l.holder || '—'}.${verd ? ' Verð ' + verd + '.' : ''}${l.shortage ? ' Lyfjaskortur skráður.' : ''}`.slice(0, 300);
+
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Drug', name: l.name, url: canonical,
+  ...(ingr.length ? { activeIngredient: ingr } : {}),
+  ...(l.atc && l.atc.code ? { code: { '@type': 'MedicalCode', code: l.atc.code, codingSystem: 'ATC' } } : {}),
+  ...(l.form ? { dosageForm: l.form } : {}),
+  ...(l.strength ? { availableStrength: { '@type': 'DrugStrength', description: l.strength } } : {}),
+  ...(l.holder ? { manufacturer: { '@type': 'Organization', name: l.holder } } : {}),
+  ...(l.rx ? { prescriptionStatus: /R|lyfseðil/i.test(l.rx) ? 'https://schema.org/PrescriptionOnly' : 'https://schema.org/OTC' } : {}),
+};
+
+const row = (label, val) => val;
+---
+<Layout title={title} description={desc} canonical={canonical} jsonLd={jsonLd}>
+  <main class="lyf-kt">
+    <p class="bk"><a href="/lyf/">← Lyf & lyfjaverð</a></p>
+    <h1>{l.name}</h1>
+    <p class="sub">{[l.strength, l.form].filter(Boolean).join(' · ')}</p>
+    <div class="chips">
+      {l.shortage && <span class="chip b">⚠ Lyfjaskortur</span>}
+      {l.rx && <span class="chip">{l.rx}</span>}
+      {l.essential && <span class="chip">Nauðsynjalyf</span>}
+      {l.narcotic && <span class="chip b">Ávana/fíkn</span>}
+      {l.vet && <span class="chip">Dýralyf</span>}
+    </div>
+    <div class="grid">
+      {ingr.length > 0 && <div class="cell"><span class="l">Virk innihaldsefni</span><span class="v">{ingr.join(', ')}</span></div>}
+      {l.atc && l.atc.code && <div class="cell"><span class="l">ATC-flokkur</span><span class="v">{l.atc.code}{atcName ? ' — ' + atcName : ''}</span></div>}
+      {l.strength && <div class="cell"><span class="l">Styrkur</span><span class="v">{l.strength}</span></div>}
+      {l.form && <div class="cell"><span class="l">Lyfjaform</span><span class="v">{l.form}</span></div>}
+      {l.holder && <div class="cell"><span class="l">Markaðsleyfishafi</span><span class="v">{l.holder}</span></div>}
+      {l.agent && <div class="cell"><span class="l">Umboðsaðili</span><span class="v">{l.agent}</span></div>}
+      {verd && <div class="cell"><span class="l">Verð (smásölu)</span><span class="v">{verd}</span></div>}
+    </div>
+    <p class="note">Heimild: Sérlyfjaskrá Lyfjastofnunar. Verð og framboð geta breyst — sjá <a href="/lyf/">lyfjaleit</a> fyrir nýjustu stöðu.</p>
+  </main>
+
+  <style>
+    main.lyf-kt { max-width: 820px; margin: 0 auto; padding: 40px 20px 64px; }
+    .bk a { color: var(--gold); font-size: 13px; text-decoration: none; }
+    h1 { font-size: 30px; margin: 8px 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 16px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+    .chip { font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; color: var(--muted); }
+    .chip.b { color: #e78284; border-color: rgba(231,130,132,.4); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+    .cell { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); }
+    .l { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin-bottom: 3px; }
+    .v { color: var(--ink); font-size: 14.5px; }
+    .note { font-size: 12.5px; color: var(--faint); margin-top: 22px; } .note a { color: var(--gold); }
+  </style>
+</Layout>
