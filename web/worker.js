@@ -2002,6 +2002,96 @@ async function stjornRequestHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
+// ── /fyrirtaeki/<kt>/ — indexeranleg opinber félagssíða (worker-SSR, SEO) ──
+// Sækir byggða Astro-skel (skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
+// tókum út fyrir per-félag efni. Öll gögn koma úr fyrirtaekiHandler (RSK).
+const htmlEsc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const ktSep = (kt) => (/^\d{10}$/.test(kt) ? kt.slice(0, 6) + '-' + kt.slice(6) : String(kt || ''));
+const erLogadili = (kt) => /^\d{10}$/.test(kt) && +String(kt).slice(0, 2) >= 41 && +String(kt).slice(0, 2) <= 71;
+const isoDate = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : undefined; };
+const repAll = (h, t, v) => h.split(t).join(v);
+
+function orgJsonLd(f, kt, canonical) {
+  const ld = { '@context': 'https://schema.org', '@type': 'Organization', name: f.nafn, identifier: kt, taxID: kt, url: canonical };
+  const addr = f.postfang || f.logheimili;
+  if (addr) ld.address = { '@type': 'PostalAddress', streetAddress: addr, ...(f.svf ? { addressLocality: f.svf } : {}), addressCountry: 'IS' };
+  if (Array.isArray(f.heiti) && f.heiti.length) ld.alternateName = f.heiti.slice(0, 6);
+  if (f.form) ld.additionalType = f.form;
+  const fd = isoDate(f.skrad);
+  if (fd) ld.foundingDate = fd;
+  if (f.vsk && f.vsk[0] && f.vsk[0].nr) ld.vatID = 'IS' + f.vsk[0].nr;
+  return ld;
+}
+
+function felagMainHtml(f, kt) {
+  const e = htmlEsc;
+  const virk = f.afskrad ? '<span class="kf-chip b">Afskráð</span>' : `<span class="kf-chip g">${e(f.stada || 'Virk skráning')}</span>`;
+  const chips = [virk, f.form ? `<span class="kf-chip">${e(f.form)}</span>` : '', (f.isat && f.isat[0]) ? `<span class="kf-chip">${e(f.isat[0])}</span>` : ''].filter(Boolean).join('');
+  const cell = (l, v) => (v ? `<div class="kf-cell"><span class="kf-l">${e(l)}</span><span class="kf-v">${e(v)}</span></div>` : '');
+  const grid = [
+    cell('Heimilisfang', f.postfang || f.logheimili),
+    cell('Sveitarfélag', f.svf),
+    cell('Rekstrarform', f.form),
+    cell('Stofnað / skráð', f.skrad),
+    cell('Hlutafé', f.hlutafe ? `${f.hlutafe}${f.mynt ? ' ' + f.mynt : ''}` : ''),
+    cell('VSK-númer', f.vsk && f.vsk[0] ? f.vsk[0].nr : ''),
+  ].filter(Boolean).join('');
+  const isatSec = (f.isat && f.isat.length) ? `<div class="kf-sec"><h2>ÍSAT atvinnugrein</h2><div class="kf-links">${f.isat.map((x) => e(x)).join('<br>')}</div></div>` : '';
+  const fyrirsvar = Array.isArray(f.fyrirsvar) && f.fyrirsvar.length ? f.fyrirsvar.map((t) => e(t.nafn || t)).slice(0, 12)
+    : (f.radamenn || []).map((x) => e(x)).slice(0, 12);
+  const fyrirsvarSec = fyrirsvar.length ? `<div class="kf-sec"><h2>Fyrirsvar</h2><div class="kf-links">${fyrirsvar.join('<br>')}</div></div>` : '';
+  const ars = (f.arsreikningar || []).slice(0, 8);
+  const arsSec = ars.length ? `<div class="kf-sec"><h2>Skil ársreikninga</h2><table class="kf-tbl"><tr><th>Ár</th><th>Skil</th><th>Tegund</th></tr>${ars.map((a) => `<tr><td>${e(a.ar)}</td><td>${e(a.skil || '—')}</td><td>${e(a.teg || '—')}</td></tr>`).join('')}</table></div>` : '';
+  const nEig = Array.isArray(f.eigendur) ? f.eigendur.length : 0;
+  const eigTeaser = `<div class="kf-sec"><h2>Endanlegir eigendur</h2><div class="kf-note" style="border:0;padding:0;margin:0 0 10px">${nEig ? `${nEig} raunverulegir eigendur skráðir (>25%).` : (f.eigendurTomt ? 'Enginn með >25% skráður.' : 'Eigendagreining í boði.')} Fullt eignarhald, þrepaskipting og félagakeðja í eigendaskýrslunni.</div></div>`;
+  const cta = `<div class="kf-cta">
+    <a class="kf-cta-main" href="/fyrirtaeki/?q=${e(kt)}">🛒 Fyrirtækjaskýrsla — 990 kr</a>
+    <a class="kf-cta-sec" href="/eigendur/?kt=${e(kt)}">Endanlegir eigendur — 990 kr</a>
+    <a class="kf-cta-sec" href="/lausnir/fyrirtaekjavaktin/">Fyrirtækjavaktin</a>
+  </div>`;
+  const links = `<p class="kf-links">Sjá einnig: <a href="/fyrirtaeki/?q=${e(kt)}">lifandi uppfletting</a> · <a href="/birgjar/">greiðslur ríkisins</a> · <a href="/frettir/">fjölmiðlaumfjöllun</a> · <a href="/utbod/">útboð</a></p>`;
+  return `<p class="kf-links"><a href="/fyrirtaeki/">← Fyrirtækjaskrá</a></p>
+    <h1 class="kf-h1">${e(f.nafn)}</h1>
+    <div class="kf-kt">kt. ${e(ktSep(kt))}</div>
+    <div class="kf-chips">${chips}</div>
+    <div class="kf-grid">${grid}</div>
+    ${isatSec}${fyrirsvarSec}${arsSec}${eigTeaser}${cta}${links}
+    <p class="kf-note">Grunngögn úr opinberri fyrirtækjaskrá Skattsins (skatturinn.is), sótt lifandi. Ekki vottorð. Formleg fyrirtækjaskýrsla og eigendaskýrsla fást keyptar hér að ofan.</p>`;
+}
+
+async function fyrirtaekiSidaHandler(request, env, ctx) {
+  const url = new URL(request.url);
+  const m = url.pathname.match(/^\/fyrirtaeki\/(\d{10})\/?$/);
+  if (!m) return env.ASSETS.fetch(request);
+  const kt = m[1];
+  if (!url.pathname.endsWith('/')) return Response.redirect(url.origin + '/fyrirtaeki/' + kt + '/', 301);
+  if (!erLogadili(kt)) return env.ASSETS.fetch(request);   // einstaklingar → 404 (persónuvernd)
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/pg/fyrirtaeki/' + kt);
+  let res = await cache.match(cacheKey);
+  if (res) return res;
+  const dr = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), env, ctx);
+  const d = await dr.json().catch(() => null);
+  const f = d && d.felag;
+  if (!f || !f.nafn) return env.ASSETS.fetch(request);      // ekkert raunfélag → 404, EKKI tóm 200
+  const canonical = 'https://karp.is/fyrirtaeki/' + kt + '/';
+  const title = htmlEsc(f.nafn) + ' (' + ktSep(kt) + ') — ársreikningur, eigendur, kennitala | Karp';
+  const dParts = [f.form, f.isat && f.isat[0], f.postfang || f.logheimili, f.afskrad ? 'Afskráð' : (f.stada || 'Virk skráning')].filter(Boolean).join(' · ');
+  const desc = htmlEsc(f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 300);
+  const ld = JSON.stringify(orgJsonLd(f, kt, canonical));
+  let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/skel-fyrirtaeki/'))).text();
+  html = html.replace(/<meta name="robots"[^>]*>\s*/i, '');   // gera indexeranlegt
+  html = repAll(html, '%%KARP_TITLE%%', title);
+  html = repAll(html, '%%KARP_OGTITLE%%', htmlEsc(f.nafn + ' — ' + ktSep(kt)));
+  html = repAll(html, '%%KARP_DESC%%', desc);
+  html = repAll(html, '%%KARP_CANON%%', canonical);
+  html = repAll(html, '"%%KARP_JSONLD%%"', ld);
+  html = repAll(html, '%%KARP_MAIN%%', felagMainHtml(f, kt));
+  res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 async function fyrirtaekiHandler(request, env, ctx) {
   const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 60);
   if (q.length < 2) return sjson({ error: 'q' });
@@ -2629,6 +2719,7 @@ export default {
       }
       return res;
     }
+    if (/^\/fyrirtaeki\/\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
     return env.ASSETS.fetch(request);
   },
 };
