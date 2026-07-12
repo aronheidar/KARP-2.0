@@ -211,17 +211,26 @@ function eigSubsidiaries(rep, ctx) {
 function eigReport(rep, kt, ctx) {
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
-    + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
-    + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
-    + '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
-    + eigNet(rep) + eigLegend(ctx)
-    + eigTable(rep, ctx)
-    + eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
-    + '<div id="eig-stjornir"></div>'
-    + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
-    + '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
-    + eigSources(rep)
+    + '<div class="eig-tabs" role="tablist">'
+    +   '<button type="button" class="eig-tab on" id="eig-tab-listi" role="tab" aria-selected="true" data-tab="listi">📋 Listi</button>'
+    +   '<button type="button" class="eig-tab" id="eig-tab-kort" role="tab" aria-selected="false" data-tab="kort">🕸️ Tengslakort</button>'
+    + '</div>'
+    + '<div class="eig-panel on" id="eig-panel-listi" role="tabpanel" aria-labelledby="eig-tab-listi">'
+    +   (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    +   '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
+    +   '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
+    +   '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
+    +   eigNet(rep) + eigLegend(ctx)
+    +   eigTable(rep, ctx)
+    +   eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
+    +   '<div id="eig-stjornir"></div>'
+    +   '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
+    +   '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
+    +   eigSources(rep)
+    + '</div>'
+    + '<div class="eig-panel" id="eig-panel-kort" role="tabpanel" aria-labelledby="eig-tab-kort" hidden>'
+    +   '<p class="eig-cap">Myndrænt net eignarhalds (heil lína, %) og stjórnar/fyrirsvars (brotalína) þvert á félög. Fjarlægari einstaklingar eru grímuklæddir skv. persónuverndarstefnu — nöfn þeirra fara ekki í vafrann.</p>'
+    +   '<div class="eig-kort-host" id="eig-kort-host"></div>'
     + '</div>';
 }
 // 🪑 Stjórnendatengsl (F10) — lifandi úr /api/tengslanet (RSK opinbert API): stjórn/framkvæmdastjórn/
@@ -247,6 +256,33 @@ async function eigStjornir(rootKt) {
       + '<div class="eig-stj">' + rows + '</div>' + krossar;
   } catch (e) {}
 }
+// 🕸️ Flipar: Listi (sjálfgefið) ↔ Tengslakort. Kortið er byggt LAZY við fyrsta smell
+// (dynamic import af tengslakort.mjs + cytoscape af CDN → engin þyngd fyrr en beðið er um).
+function eigWireTabs(rep, rootKt) {
+  const tabs = Array.prototype.slice.call(document.querySelectorAll('.eig-tab'));
+  if (!tabs.length) return;
+  const panels = { listi: document.getElementById('eig-panel-listi'), kort: document.getElementById('eig-panel-kort') };
+  let kortByggt = false;
+  tabs.forEach((t) => t.addEventListener('click', () => {
+    const which = t.dataset.tab;
+    tabs.forEach((x) => { const on = x.dataset.tab === which; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    for (const k in panels) { if (!panels[k]) continue; const on = k === which; panels[k].classList.toggle('on', on); panels[k].hidden = !on; }
+    if (which === 'kort' && !kortByggt) { kortByggt = true; eigMountKort(rep, rootKt); }
+  }));
+}
+async function eigMountKort(rep, rootKt) {
+  const host = document.getElementById('eig-kort-host');
+  if (!host || host.dataset.done) return;
+  host.dataset.done = '1';
+  host.innerHTML = '<div class="eig-kort-load">🕸️ Hleð tengslakorti…</div>';
+  let stjornData = null;   // null-þolið: án innskráningar / í sýnishorni skilar þetta null → eignarhalds-kort eitt
+  if (rootKt) { try { stjornData = await fetch('/api/tengslanet?kort=1&kt=' + encodeURIComponent(rootKt), { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null)); } catch (e) {} }
+  try {
+    const { renderTengslakort } = await import('./tengslakort.mjs');
+    host.innerHTML = '';
+    await renderTengslakort(host, { rotKt: rootKt, eignData: rep, stjornData });
+  } catch (e) { host.innerHTML = '<div class="eig-tom">Ekki tókst að hlaða tengslakorti.</div>'; }
+}
 // Setur skýrsluna í gám, teiknar netið, tengir prentun.
 async function eigMount(rep, host, nav, kt) {
   const rootKt = kt || ((rep.net && rep.net.nodes || []).find((n) => n.er_rot) || {}).kt || null;
@@ -257,6 +293,7 @@ async function eigMount(rep, host, nav, kt) {
   host.innerHTML = eigReport(rep, kt, ctx);
   eigWireNet(rep, nav, pepSet);
   eigStjornir(rootKt);   // 🪑 F10 fyllist async — brýtur ekkert þótt endapunktur svari ekki
+  eigWireTabs(rep, rootKt);   // 🕸️ Listi/Kort-flipar; kort lazy við fyrsta smell
   const pb = document.getElementById('eig-print');
   if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
 }

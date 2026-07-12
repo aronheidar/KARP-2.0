@@ -170,3 +170,17 @@ a.rnav-v:hover { color: #eaf1fb; background: rgba(255,255,255,.06); }
   body.fs-printing #fs-report .eig-rev-r { background: #f6f8fb !important; border-color: #dbe3ee !important; }
   body.fs-printing #fs-report .eig-kr { color: #0a6b2f !important; }
 }
+
+/* 🕸️ Listi ↔ Tengslakort flipar (LOTA — tengslakort) */
+.eig-tabs { display: flex; gap: 6px; margin: 8px 0 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.eig-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: #9fb0c8; font: inherit; font-weight: 600; font-size: 14px; padding: 8px 13px; cursor: pointer; margin-bottom: -1px; }
+.eig-tab:hover { color: #eaf1fb; }
+.eig-tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
+.eig-panel { display: none; }
+.eig-panel.on { display: block; }
+.eig-kort-host { margin-top: 6px; }
+.eig-kort-load { padding: 46px 0; text-align: center; color: #9fb0c8; font-size: 13.5px; }
+/* prentun (fs-printing hamur): fela flipa, þvinga Lista fram, sleppa korti */
+body.fs-printing .eig-tabs { display: none !important; }
+body.fs-printing #eig-panel-listi { display: block !important; }
+body.fs-printing #eig-panel-kort { display: none !important; }
