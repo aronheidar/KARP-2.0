@@ -160,6 +160,19 @@ export function hasSub(svc) { const u = _u(); return isAdmin() || (Array.isArray
 export function limits() { const u = _u(); return u.limits || limitsFor(u.effectiveTier || u.tier, u.isAdmin === true); }
 export function reportsRemaining() { const u = _u(); return typeof u.reportsRemaining === 'number' ? u.reportsRemaining : 0; }
 export function followsCount() { return Number(_u().followsCount || 0); }
+// Fasteignamata-kvóti (sér-áskrift 'fasteign'): fjöldi eftir í mánuðinum. -1 = ótakmarkað (admin), 0 = ekki áskrifandi.
+export function fasteignRemaining() { const u = _u(); return typeof u.fasteignRemaining === 'number' ? u.fasteignRemaining : 0; }
+export function fasteignResets() { const u = _u(); return Number(u.fasteignResets || 0); }
+// Meta eign með kvóta: á/kvóti → granted (eyðir 1, endurmat sama heimilisfangs í mán frítt), annars needPay (990).
+// Skilar { granted, remaining } | { owned } | { needPay, resets } | { nosub } | { error }. Uppfærir u.fasteignRemaining.
+export async function metaValuation(key) {
+  const r = await karpPost('/fasteign/meta', { key });
+  if (!r) return { error: true };
+  if (r.granted) { const u = _u(); if (typeof r.remaining === 'number') u.fasteignRemaining = r.remaining; return { granted: true, owned: !!r.owned, remaining: r.remaining }; }
+  if (r.needPay) return { needPay: true, resets: r.resets || 0 };
+  if (r.error === 'nosub') return { nosub: true };
+  return { error: true };
+}
 
 // Opna skýrslu með kvóta: á/kvóti → grant (skýrsla opnast), annars needPay (990 kr). Server-hlið teljari.
 // Skilar { owned } | { granted, remaining } | { needPay } | { error }.
@@ -451,4 +464,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };

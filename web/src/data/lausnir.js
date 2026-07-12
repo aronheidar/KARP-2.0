@@ -45,7 +45,7 @@ export const SERLAUSNIR = [
     lysing: 'Öll opinber útboð á einum stað + leitarorðavakt sniðin að þinni verktöku og samkeppnisgreining.',
     fyrir: 'Verktakar og bjóðendur', href: '/utbod/' },
   { slug: 'fasteignir', heiti: 'Fasteignavakt', emoji: '🏠', service: 'fasteign', verd: 3900, trialDays: 30,
-    lysing: 'Ótakmörkuð verðmöt fasteigna — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
+    lysing: '20 verðmöt fasteigna á mánuði — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
     fyrir: 'Fasteignasalar og fjárfestar', href: '/fasteignavakt/' },
   { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', emoji: '📰', service: 'frettir', verd: 3900, trialDays: 30,
     lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
