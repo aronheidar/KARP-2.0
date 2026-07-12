@@ -1106,4 +1106,70 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       });
     });
   </script>
+  <style is:global>
+    /* 👁️ Sýnishorn fyrir útskráða (?syni=1) — kynningarborði + dæmispjöld (runtime-DOM → is:global) */
+    .syni-wrap { margin: 4px 0 18px; }
+    .syni-banner { background: linear-gradient(180deg, rgba(246,177,59,.13), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.5); border-radius: 14px; padding: 16px 18px; margin: 0 0 14px; }
+    .syni-banner .syni-t { font-size: 15.5px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; line-height: 1.35; }
+    .syni-banner p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.5; }
+    .syni-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .syni-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    .syni-main:hover { filter: brightness(1.07); }
+    .syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    .syni-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 16px; margin: 0 0 14px; }
+    .syni-lbl { font-size: 11px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+    .syni-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .syni-kpi { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
+    .syni-kpi b { display: block; font-size: 17px; color: #eaf1fb; }
+    .syni-kpi span { font-size: 11.5px; color: #8fa0ba; }
+  </style>
+  <script>
+    // 👁️ Sýnishorn — útskráðir gestir sjá dæmi um fjölmiðlagreiningu áður en þeir skrá sig / gerast áskrifendur.
+    // ?syni=1 → fullt sýnishorn (opið öllum, tilbúin gögn, engin PII). Annars: kynningarspjald efst fyrir útskráða.
+    // Sama mynstur og fasteignavakt (renderDemoValuation) og fyrirtaeki (demoFyrirtaeki).
+    import { loadUser, loginHref } from '../lib/auth.js';
+    function frettirSampleHtml(full) {
+      // Tilbúið (EKKI raunverulegt) fyrirtæki — sama gervifélag og í fyrirtækjaskýrslu-sýnishorninu.
+      const heads = [
+        ['Norðurhaf Sjávarfang eykur útflutning um 14% milli ára', 'Viðskiptablaðið', '9.7.2026'],
+        ['Nýr afurðasamningur styrkir stöðu Norðurhafs á Asíumarkaði', 'mbl.is', '7.7.2026'],
+        ['Forstjóri Norðurhafs: sjálfbærni er orðin samkeppnisforskot', 'RÚV', '3.7.2026'],
+        ['Norðurhaf fjárfestir í nýju vinnsluskipi fyrir 2,3 ma.kr.', 'Vísir', '1.7.2026'],
+        ['Greining: sjávarútvegur á uppleið þrátt fyrir gengissveiflur', 'Kjarninn', '28.6.2026'],
+        ['Norðurhaf og sveitarfélag undirrita samstarf um hafnaraðstöðu', 'Austurfrétt', '24.6.2026'],
+      ];
+      const rows = heads.slice(0, full ? 6 : 3).map((h) => `<div class="it"><span class="t">${h[0]}</span><span class="s">${h[1]} · ${h[2]}</span></div>`).join('');
+      const kpis = [['24', '📊 Greinar sl. 30 daga'], ['+18', '🙂 Tónn (jákvæður)'], ['Viðskiptabl.', '📰 Mest áberandi'], ['↑ hækkandi', '💬 Umtal']]
+        .map((k) => `<div class="syni-kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join('');
+      const cta = `<div class="syni-btns"><a class="syni-main" href="${loginHref()}">Skráðu þig inn</a><a class="syni-sec" href="/karp-pro/">Sjá Karp+ →</a></div>`;
+      return `<div class="syni-banner"><div class="syni-t">⭐ Þetta er sýnishorn — svona lítur fjölmiðlagreining Karp+ út</div>`
+        + `<p>Tilbúin dæmigögn fyrir eitt fyrirtæki, <b>Norðurhaf Sjávarfang hf.</b> Með Karp+ vaktar þú og greinir hvaða fyrirtæki, stofnun eða einstakling sem er — heilsumerki umfjöllunar, tón yfir tíma, verðkennitölur og miðladreifingu. <b>Skráðu þig inn eða gerstu áskrifandi til að sjá allt.</b></p>${cta}</div>`
+        + `<div class="syni-card"><div class="syni-lbl">🐟 Norðurhaf Sjávarfang hf. · umfjöllunargreining (sýnishorn)</div><div class="syni-kpis">${kpis}</div></div>`
+        + `<div class="syni-card"><div class="syni-lbl">🗞️ Nýleg umfjöllun (dæmi)</div><div class="live" style="column-count:1">${rows}</div></div>`
+        + (full
+          ? `<div class="syni-banner"><div class="syni-t">Viltu greina þitt fyrirtæki?</div><p>Þetta sýnishorn notar tilbúin gögn. Skráðu þig inn til að vakta raunverulega umfjöllun um hvaða aðila sem er.</p>${cta}</div>`
+          : `<p style="font-size:12.5px;color:#8fa0ba;margin:2px 0 0"><a href="/frettir/?syni=1" style="color:#f6b13b">👁️ Sjá fullt sýnishorn →</a> · leitin og opnu fyrirsagnirnar eru alltaf aðgengilegar hér að neðan.</p>`);
+    }
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="frettir"]');
+      if (!m) return;
+      const sp = new URLSearchParams(location.search);
+      if (sp.get('syni') === '1' || sp.get('demo') === 'frettir') {
+        if (m.querySelector('#syni-full')) return;
+        [...m.children].forEach((c) => { c.style.display = 'none'; });
+        const host = document.createElement('div'); host.id = 'syni-full'; host.className = 'syni-wrap';
+        host.innerHTML = frettirSampleHtml(true);
+        m.insertBefore(host, m.firstChild);
+        return;
+      }
+      loadUser().then((u) => {
+        if (u && u.loggedIn) return;               // aðeins útskráðir gestir sjá kynningarspjaldið
+        if (m.querySelector('#syni-inline')) return;
+        const host = document.createElement('div'); host.id = 'syni-inline'; host.className = 'syni-wrap';
+        host.innerHTML = frettirSampleHtml(false);
+        const anchor = m.querySelector('.fy-search');
+        m.insertBefore(host, anchor || m.firstChild);
+      });
+    });
+  </script>
 </Layout>
