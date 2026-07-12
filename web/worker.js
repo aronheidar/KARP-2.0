@@ -2438,6 +2438,17 @@ async function rskFetchRaw(kt, env, ctx) {
   } catch (e) { return null; }
 }
 
+// ── 🕸️ Kort-hamur: server-hlið nafna-felun (DPIA leið A) ─────────────────────
+// Tengslakortið (?kort=1) birtir AÐEINS nöfn rót-tengds fólks. „krossar" = fólk með
+// hlutverk í ≥2 net-félögum EN EKKI í rótinni → fjarlægir aðilar. Nöfn þeirra eru
+// KLIPPT ÚR svarinu (fara aldrei í vafrann); þeir bera aðeins stöðugt token 'E'+n.
+// Félög (lögaðilar) og rót-fyrirsvar (stjornendur) halda nöfnum — sama KYC-gildi og listinn.
+export function maskaKortSvar(out) {
+  if (!out || !out.holdur) return out;
+  const krossar = (out.krossar || []).map((p, i) => ({ token: 'E' + (i + 1), maskad: true, felog: p.felog || [] }));
+  return { ...out, krossar, kort: true };
+}
+
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
 // GET /api/tengslanet?kt= → { stjornendur: [rótarfyrirsvar + hlutverk í öðrum net-félögum],
 // krossar: [fólk í ≥2 net-félögum án hlutverks í rót] }. Félagamengið = rót + félags-hnútar úr
@@ -2445,7 +2456,9 @@ async function rskFetchRaw(kt, env, ctx) {
 // út fara AÐEINS nöfn + hlutverk + félags-kt (aldrei kt einstaklinga). Endurskoðendur/stofnendur/
 // látnir síaðir frá (suð, sögulegt).
 async function tengslanetHandler(request, env, ctx) {
-  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  const u = new URL(request.url);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const kort = u.searchParams.get('kort') === '1';   // 🕸️ kort-hamur: strangari nafna-felun (sjá maskaKortSvar)
   if (kt.length !== 10 || !rskErFyrirtaeki(kt)) return sjson({ kt, holdur: false });   // aðeins lögaðila-kt í mælda APIð
   if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
   // Innskráðir eingöngu (hluti keyptu eigendaskýrslunnar; ver líka mælda APIð gegn opinni upptalningu).
@@ -2453,7 +2466,7 @@ async function tengslanetHandler(request, env, ctx) {
   const uid = await karpUserId(request);
   if (!uid) return sjson({ kt, holdur: false, error: 'login' });
   const cache = caches.default;
-  const cacheKey = new Request('https://cache.karp.internal/api/tengslanet?kt=' + kt);
+  const cacheKey = new Request('https://cache.karp.internal/api/tengslanet?kt=' + kt + (kort ? '&kort=1' : ''));
   const hit = await cache.match(cacheKey); if (hit) return hit;
   // félagamengi: rót + félög úr eignarhaldstrénu (ef byggt)
   let felog = [kt];
@@ -2506,7 +2519,8 @@ async function tengslanetHandler(request, env, ctx) {
   }
   // net óbyggt (n_felog=1) → stutt TTL svo fullbyggt tré taki fljótt við; fullt net → 12h
   const ttl = out.holdur ? (out.n_felog > 1 ? 43200 : 900) : 0;
-  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
+  const body = kort ? maskaKortSvar(out) : out;   // 🕸️ nafna-felun aðeins í kort-ham
+  const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
   if (ttl) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
