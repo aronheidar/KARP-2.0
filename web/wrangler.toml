@@ -9,3 +9,11 @@ compatibility_date = "2026-06-29"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+
+# Tengslagrunnur (D1) — landsdekkandi eigenda-/stjórnendagrunnur. Kóðinn er null-þolinn:
+# ef bindingin/gögnin vantar hegðar workerinn sér nákvæmlega eins og áður.
+# ⚠ database_id = dummy þar til Aron keyrir `npx wrangler d1 create tengsl`.
+[[d1_databases]]
+binding = "TENGSL"
+database_name = "tengsl"
+database_id = "00000000-0000-0000-0000-000000000000"
