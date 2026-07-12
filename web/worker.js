@@ -2037,9 +2037,8 @@ function felagMainHtml(f, kt) {
     cell('VSK-númer', f.vsk && f.vsk[0] ? f.vsk[0].nr : ''),
   ].filter(Boolean).join('');
   const isatSec = (f.isat && f.isat.length) ? `<div class="kf-sec"><h2>ÍSAT atvinnugrein</h2><div class="kf-links">${f.isat.map((x) => e(x)).join('<br>')}</div></div>` : '';
-  const fyrirsvar = Array.isArray(f.fyrirsvar) && f.fyrirsvar.length ? f.fyrirsvar.map((t) => e(t.nafn || t)).slice(0, 12)
-    : (f.radamenn || []).map((x) => e(x)).slice(0, 12);
-  const fyrirsvarSec = fyrirsvar.length ? `<div class="kf-sec"><h2>Fyrirsvar</h2><div class="kf-links">${fyrirsvar.join('<br>')}</div></div>` : '';
+  const nFyrirsvar = Array.isArray(f.fyrirsvar) && f.fyrirsvar.length ? f.fyrirsvar.length : (f.radamenn || []).length;
+  const fyrirsvarSec = nFyrirsvar ? `<div class="kf-sec"><h2>Fyrirsvar</h2><div class="kf-note" style="border:0;padding:0;margin:0">${nFyrirsvar} skráðir fyrirsvarsmenn (stjórn/prókúra). Nöfn og hlutverk í fyrirtækjaskýrslunni.</div></div>` : '';
   const ars = (f.arsreikningar || []).slice(0, 8);
   const arsSec = ars.length ? `<div class="kf-sec"><h2>Skil ársreikninga</h2><table class="kf-tbl"><tr><th>Ár</th><th>Skil</th><th>Tegund</th></tr>${ars.map((a) => `<tr><td>${e(a.ar)}</td><td>${e(a.skil || '—')}</td><td>${e(a.teg || '—')}</td></tr>`).join('')}</table></div>` : '';
   const nEig = Array.isArray(f.eigendur) ? f.eigendur.length : 0;

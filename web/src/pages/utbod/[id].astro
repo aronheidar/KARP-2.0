@@ -18,9 +18,8 @@ export function getStaticPaths() {
     .map((x) => ({ params: { id: x._id }, props: { x } }));
 }
 
-const hash = (s) => { let h = 5381; const str = String(s || ''); for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(36); };
 const { x } = Astro.props;
-const canonical = `https://karp.is/utbod/${x._id || (slugify(x.t || 'utbod').slice(0, 60) + '-' + hash(x.u || x.t))}/`;
+const canonical = `https://karp.is/utbod/${x._id}/`;
 const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
 const catLabel = (UTBOD.cats && UTBOD.cats[x.cat] ? UTBOD.cats[x.cat][0] : x.cat) || '';
 const SRC = { rk: 'Útboðsvefur Ríkiskaupa', ted: 'TED (EES)', rvk: 'Reykjavíkurborg', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' };
@@ -38,7 +37,7 @@ const desc = `Opinbert útboð: ${x.t}. Kaupandi ${x.buyer || SRC[x.src] || '—
       {x.d && <div class="cell"><span class="l">Birt</span><span class="v">{dIS(x.d)}</span></div>}
       {x.deadline && <div class="cell"><span class="l">Tilboðsfrestur</span><span class="v">{dIS(x.deadline)}</span></div>}
     </div>
-    {x.u && <p class="src"><a href={x.u} target="_blank" rel="nofollow noopener">Opna útboð í upprunagátt ↗</a></p>}
+    {/^https?:\/\//i.test(x.u || '') && <p class="src"><a href={x.u} target="_blank" rel="nofollow noopener">Opna útboð í upprunagátt ↗</a></p>}
     <p class="note">Heimild: {SRC[x.src] || x.src}. Karp safnar opinberum útboðum frá öllum helstu gáttum — sjá <a href="/utbod/">útboðsgáttina</a> og <a href="/lausnir/utbodsvaktin/">Útboðsvaktina</a> (tölvupósts-vakt fyrir verktaka).</p>
   </main>
 
