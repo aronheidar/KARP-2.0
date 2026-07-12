@@ -191,6 +191,26 @@ export async function openReport(key, title) {
   return { error: true };
 }
 
+// Þingmannaskýrslu-kvóti (sér-áskrift 'thingskyrslur' 3.900 kr/mán): 20 skýrslur/mán innifaldar.
+// -1 = ótakmarkað (admin), 0 = ekki áskrifandi. Speglar fasteign-hjálparana.
+export function thingRemaining() { const u = _u(); return typeof u.thingRemaining === 'number' ? u.thingRemaining : 0; }
+export function thingQuotaKnown() { return typeof _u().thingQuota === 'number'; }
+export function thingResets() { const u = _u(); return Number(u.thingResets || 0); }
+// Opna þingmannaskýrslu með áskriftar-kvóta: á/kvóti → varanlegt grant (hasReport verður satt).
+// Skilar { owned } | { granted, remaining } | { needPay, resets } | { nosub } | { needLogin } | { error }.
+export async function openThingReport(key, title) {
+  const u = _u();
+  if (isAdmin() || hasReport(key)) return { owned: true };
+  if (!u.loggedIn) return { needLogin: true };
+  const r = await karpPost('/thing/open', { key, title });
+  if (!r) return { error: true };
+  if (r.owned) return { owned: true };
+  if (r.granted) { if (Array.isArray(u.reports)) u.reports.push(key); if (typeof r.remaining === 'number') u.thingRemaining = r.remaining; return { granted: true, remaining: r.remaining }; }
+  if (r.needPay) { u.thingRemaining = 0; return { needPay: true, resets: r.resets || 0 }; }
+  if (r.error === 'nosub') return { nosub: true };
+  return { error: true };
+}
+
 // ── Skýrslu-kvóti (þrep-áskrift): teljari + upsell við kauphnappana ──────────
 // Speglar fasteign-teljarann (#fvm-quota/paintQuota): „N skýrslur eftir í mánuðinum" (gult ≤2/0)
 // + „⬆ Uppfærðu í <næsta þrep>"-hlekkur fyrir grunnur/fyrirtæki. Falið þar til /me skilar raun-kvóta

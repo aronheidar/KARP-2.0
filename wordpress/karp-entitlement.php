@@ -94,6 +94,19 @@ function karp_fasteign_reset_ts() {
     return gmmktime(0, 0, 0, $m, 1, $y);
 }
 
+// Thingmannaskyrslu-kvoti: 20/man fyrir 'thingskyrslur'-askrifendur (3.900 kr/man).
+// (admin otakmarkad -1, annars 0 = borgar 990 per skyrslu). Speglar fasteigna-mynstrid.
+function karp_thing_quota($uid) {
+    if (user_can($uid, 'manage_options')) return -1;
+    $until = (int) get_user_meta($uid, 'karp_sub_thingskyrslur_until', true);
+    return ($until > time()) ? 20 : 0;
+}
+function karp_thing_used_this_month($uid) {
+    $month = gmdate('Y-m');
+    if ((string) get_user_meta($uid, 'karp_thing_month', true) !== $month) return 0;
+    return (int) get_user_meta($uid, 'karp_thing_used', true);
+}
+
 // Baetir entitlement-reitum vid /me-farminn (kallad ur karp-user.php rett fyrir return).
 function karp_entitlement_augment(&$data, $uid) {
     $is_admin = user_can($uid, 'manage_options');
@@ -111,6 +124,13 @@ function karp_entitlement_augment(&$data, $uid) {
     $data['fasteignUsed'] = $fused;
     $data['fasteignRemaining'] = ($fq < 0) ? -1 : max(0, $fq - $fused);
     $data['fasteignResets'] = karp_fasteign_reset_ts();
+    // Thingmannaskyrslu-kvoti (ser-askrift 'thingskyrslur'): teljari vid Opna-takkann + 990-gatt vid 0.
+    $tq = karp_thing_quota($uid);
+    $tused = karp_thing_used_this_month($uid);
+    $data['thingQuota'] = $tq;                               // 20 = askrifandi, -1 = admin/otakm., 0 = ekki askrifandi
+    $data['thingUsed'] = $tused;
+    $data['thingRemaining'] = ($tq < 0) ? -1 : max(0, $tq - $tused);
+    $data['thingResets'] = karp_fasteign_reset_ts();
     $data['ktWatch'] = array_values((array) ( get_user_meta($uid, 'karp_kt_watch', true) ?: array() ));
     $data['teamMembers'] = array_values((array) ( get_user_meta($uid, 'karp_team_members', true) ?: array() ));
     // Fjoldi co:-fylgja (fyrir client-UX "10/50 notud").
@@ -128,6 +148,10 @@ add_action('rest_api_init', function () {
     // POST /fasteign/meta {key} - fasteignamata-kvota: a/kvoti -> granted (eydir 1, endurmat sama heimilisfangs i man frítt),
     // annars needPay (990). Nullstillist vid manadamot. Adeins 'fasteign'-askrifendur (annars nosub -> client synir 990-gatt).
     register_rest_route('karp/v1', '/fasteign/meta', array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_fasteign_meta'));
+
+    // POST /thing/open {key,title} - thingmannaskyrslu-kvoti (askrift 'thingskyrslur', 20/man):
+    // a/kvoti -> varanlegt grant i karp_reports (hasReport virkar) + teljari, annars needPay (990) eda nosub.
+    register_rest_route('karp/v1', '/thing/open', array('methods' => 'POST', 'permission_callback' => $auth, 'callback' => 'karp_thing_open'));
 
     // Vidskiptamannavakt (kt-listi). GET -> listi. POST {kt,action:add|remove}.
     register_rest_route('karp/v1', '/ktwatch', array(
@@ -163,6 +187,29 @@ function karp_reports_open($req) {
         update_user_meta($uid, 'karp_reports_used', $used + 1);
     }
     return array('ok' => true, 'granted' => true, 'remaining' => ($lim['reportsMonth'] < 0 ? -1 : max(0, $lim['reportsMonth'] - $used - 1)));
+}
+
+function karp_thing_open($req) {
+    $uid = get_current_user_id();
+    $key = sanitize_text_field((string) $req->get_param('key'));
+    $title = sanitize_text_field((string) $req->get_param('title'));
+    if ($key === '' || strpos($key, 'thingmadur:') !== 0) return new WP_REST_Response(array('ok' => false, 'error' => 'nokey'), 400);
+    // Thegar keypt/opnud? -> beint inn (varanlegur adgangur, kostar ekki kvota aftur)
+    $rep = (array) ( get_user_meta($uid, 'karp_reports', true) ?: array() );
+    foreach ($rep as $r) { if ((is_array($r) ? ($r['key'] ?? '') : $r) === $key) return array('ok' => true, 'owned' => true); }
+    $q = karp_thing_quota($uid);
+    if ($q === 0) return array('ok' => false, 'error' => 'nosub');            // ekki askrifandi -> client synir 990/askriftar-gatt
+    $used = karp_thing_used_this_month($uid);
+    if ($q >= 0 && $used >= $q) {                                             // kvoti buinn -> 990-gatt eda bida manadamota
+        return array('ok' => false, 'needPay' => true, 'remaining' => 0, 'price' => 990, 'resets' => karp_fasteign_reset_ts());
+    }
+    $rep[] = array('key' => $key, 'title' => $title ?: $key, 'ts' => time(), 'via' => 'thingkvoti');
+    update_user_meta($uid, 'karp_reports', $rep);
+    if ($q >= 0) {
+        if ((string) get_user_meta($uid, 'karp_thing_month', true) !== gmdate('Y-m')) { update_user_meta($uid, 'karp_thing_month', gmdate('Y-m')); $used = 0; }
+        update_user_meta($uid, 'karp_thing_used', $used + 1);
+    }
+    return array('ok' => true, 'granted' => true, 'remaining' => ($q < 0 ? -1 : max(0, $q - $used - 1)));
 }
 
 function karp_fasteign_meta($req) {

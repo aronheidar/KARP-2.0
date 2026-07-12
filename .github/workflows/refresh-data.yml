@@ -58,6 +58,7 @@ jobs:
           node skriptur/build_cabinet.js    || true
           node skriptur/build_laun.js       || true
           node skriptur/build_raedur.js     || true
+          node skriptur/build_thingskyrsla.js || true   # Þingmannaskýrslan (selda varan): uppreisn/svið/fyrirspurnir/flutt mál
       - name: Kannanir + markaðir + samfélag
         env:
           ARION_OPENDATA_API_KEY: ${{ secrets.ARION_OPENDATA_API_KEY }}

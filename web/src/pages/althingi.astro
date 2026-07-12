@@ -105,19 +105,8 @@ const BILLS_DONE = BILLS_GO.length >= 22 ? [] : FRUMVORP
 const billUrl = (b) => `/thingmal/?nr=${b.nr}`;
 const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 
-// Stefnuprófs-spurningar (sama smíði og Mitt svæði) → ÞÚ-punktur á pólitíska kortið (LOTA 15b)
-const SPQ = FRUMVORP
-  .filter((b) => (b.hs === 'Frv.' || b.hs === 'Till.') && (b.ja || 0) > 0 && (b.nei || 0) > 5 && b.sam)
-  .sort((a, b) => (b.d || '').localeCompare(a.d || '')).slice(0, 12)
-  .map((b) => { const P2 = b.P || {}; const st = {}; Object.keys(P2).forEach((k) => { const [ja, nei] = P2[k]; if (k === 'U' || ja + nei === 0 || ja === nei) return; st[k] = ja > nei ? 1 : -1; }); return { id: 'q' + b.nr, stance: st }; })
-  .filter((q) => Object.keys(q.stance).length >= 4);
-const SPKEY = {};
-[...new Set(SPQ.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { SPKEY[k] = partyName(k); });
-
-// ── Pólitíska kortið: mx/my forreiknað úr öllum nafnakalls-atkvæðagreiðslum ──
-const POLD = THINGMENN.filter((m) => m.mx != null).map((m) => ({ v: [m.mx, m.my], id: m.id, n: m.nafn, f: m.flokkur, ho: m.hollusta ?? null, up: m.uppreisn ?? 0, ne: m.nefndir ?? null }));
-const PCOL = {};
-THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
+// Pólitíska kortið fluttist í SELDU Þingmannaskýrsluna (/althingi/<slug>/skyrsla/)
+// — þar er það teiknað með highlight á viðkomandi þingmann (LOTA: þingskýrslur).
 ---
 
 <Layout
@@ -136,7 +125,7 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
       (nýjust {lastPoll?.pollster}, {lastPoll?.date}). Ríkisstjórnarflokkarnir <strong>{govNames}</strong>
       fá {r.govS} af 63 sætum.
     </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Sætakort, atkvæði og mál: opin XML-gögn Alþingis. Pólitíska kortið er vélrænn útreikningur úr nafnakalls-atkvæðum — nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr svörum þínum í stefnuprófinu og vistast aðeins í vafranum þínum.">ⓘ</i> Um gögnin á síðunni</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspáin er vélræn D'Hondt-spá úr meðaltali nýjustu kannana — nálgun Karp.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div class="tiles">
       <div class="tile">
@@ -241,10 +230,6 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
       </tbody>
     </table></div>
 
-    <h2>Pólitískt kort þingsins</h2>
-    <div id="polmap"></div>
-    <p class="src">Reiknað úr <strong>öllum nafnakalls-atkvæðagreiðslum þingsins 157</strong> — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða, lóðrétt: næststerkasta mynstrið). Smelltu á þingmann fyrir nánar.</p>
-
     <h2>Þingfundadagatal</h2>
     <div class="dg-stats">
       <span class="dg-chip"><b>{DAGATAL.days}</b> starfsdagar</span>
@@ -311,8 +296,6 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
     .sb-all { display: block; text-align: right; font-size: 12px; color: #f6b13b; text-decoration: none; padding: 8px 6px 2px; }
     .sb-all:hover { text-decoration: underline; }
     @media (max-width: 900px) { .seat-wrap { grid-template-columns: 1fr; } .sb-list { max-height: 300px; } }
-    /* ── Pólitískt kort ── */
-    #polmap { width: 100%; height: 520px; margin: 4px 0; }
     /* ── Dagatal ── */
     .dg-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
     .dg-chip { font-size: 12px; color: #9fb0c8; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 4px 12px; }
@@ -467,83 +450,14 @@ THINGMENN.forEach((m) => { PCOL[m.flokkur] = colorByName(m.flokkur); });
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi"]')) initSeats(); });
   </script>
 
-  <!-- Eyja: pólitíska kortið (mx/my forreiknað úr nafnaköllum) + ráðherra-smellir. #2 LOTA 12 -->
-  <script define:vars={{ POLD, PCOL, SPQ, SPKEY }}>
-    function initPolMap() {
-      const el = document.getElementById('polmap');
-      if (!el) return;
-      if (!window.echarts) {
-        let s = document.getElementById('echarts-cdn');
-        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
-        s.addEventListener('load', initPolMap, { once: true });
-        return;
-      }
-      if (window.echarts.getInstanceByDom(el)) return;
-      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const ini = (n) => { const w = String(n).split(/\s+/).filter(Boolean); return ((w[0] || ' ')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
-      const fmt = (v) => String(v).replace('.', ',');
-      const byP = {};
-      POLD.forEach((m) => { (byP[m.f] = byP[m.f] || []).push(m); });
-      const order = Object.keys(byP).sort((a, b) => byP[b].length - byP[a].length);
-      const series = order.map((p) => ({
-        name: p, type: 'scatter', symbolSize: 15, emphasis: { focus: 'series', scale: 1.45 },
-        itemStyle: { color: PCOL[p], borderColor: 'rgba(4,8,16,.5)', borderWidth: 1, opacity: 0.92 },
-        label: { show: true, position: 'top', distance: 3, fontSize: 8.5, color: '#9fb0c8', formatter: (d) => ini(d.data.n) },
-        labelLayout: { hideOverlap: true },
-        data: byP[p].map((m) => ({ value: m.v, id: m.id, n: m.n, f: m.f, ho: m.ho, up: m.up, ne: m.ne })),
-      }));
-      series[0].markLine = { silent: true, symbol: 'none', lineStyle: { color: 'rgba(255,255,255,.1)', type: 'dashed' }, data: [{ xAxis: 0 }, { yAxis: 0 }] };
-      // ÞÚ á kortinu (LOTA 15b): stefnuprófs-svör → samsvörun við flokka → vegin staða flokkamiðja
-      try {
-        const ans = JSON.parse(localStorage.getItem('karp-stefnuprof') || '{}');
-        if (Object.keys(ans).length >= 4 && SPQ && SPQ.length) {
-          const score = {}, max = {};
-          SPQ.forEach((q) => { const a = ans[q.id]; if (!a) return; Object.keys(q.stance).forEach((k) => { max[k] = (max[k] || 0) + 1; if (q.stance[k] === a) score[k] = (score[k] || 0) + 1; }); });
-          const cent = {};
-          POLD.forEach((m) => { (cent[m.f] = cent[m.f] || []).push(m.v); });
-          let sx = 0, sy = 0, sw = 0;
-          Object.keys(max).forEach((k) => {
-            const name = SPKEY[k], pts = cent[name];
-            if (!pts || !max[k]) return;
-            const cx = pts.reduce((a2, p) => a2 + p[0], 0) / pts.length;
-            const cy = pts.reduce((a2, p) => a2 + p[1], 0) / pts.length;
-            const w = Math.pow((score[k] || 0) / max[k], 2);
-            sx += cx * w; sy += cy * w; sw += w;
-          });
-          if (sw > 0) {
-            series.push({ name: 'ÞÚ', type: 'effectScatter', symbol: 'pin', symbolSize: 34, zlevel: 5,
-              rippleEffect: { brushType: 'stroke', scale: 2.6 },
-              itemStyle: { color: '#ffd479', borderColor: '#06101c', borderWidth: 1.5 },
-              label: { show: true, position: 'inside', formatter: 'ÞÚ', fontSize: 9, fontWeight: 800, color: '#06101c' },
-              tooltip: { formatter: 'Áætluð staða ÞÍN út frá stefnuprófinu — vegið meðaltal flokkamiðja eftir samsvörun svara þinna. Nálgun, ekki nafnakallsmæling.' },
-              data: [{ value: [sx / sw, sy / sw] }] });
-          }
-        }
-      } catch (e) {}
-      const chart = window.echarts.init(el);
-      chart.setOption({
-        backgroundColor: 'transparent',
-        legend: { type: 'scroll', top: 0, textStyle: { color: '#aab6cc', fontSize: 12 }, inactiveColor: '#3a455e', itemGap: 13, pageTextStyle: { color: '#aab6cc' }, pageIconColor: '#aab6cc', pageIconInactiveColor: '#3a455e' },
-        tooltip: { trigger: 'item', backgroundColor: 'rgba(9,14,26,.95)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 },
-          formatter: (p) => { const d = p.data; return `<b>${esc(d.n)}</b><br>${esc(d.f)}${d.ho != null ? '<br>Flokkshollusta ' + fmt(d.ho) + '%' : ''}${d.up ? ' · ' + d.up + '× á móti flokki' : ''}${d.ne ? '<br>' + d.ne + ' fastanefndir' : ''}<br><span style="color:#19d3c5">Smelltu fyrir nánar →</span>`; } },
-        grid: { left: 10, right: 10, top: 38, bottom: 24 },
-        xAxis: { type: 'value', min: -108, max: 108, show: false },
-        yAxis: { type: 'value', min: -108, max: 108, show: false },
-        graphic: [
-          { type: 'text', left: '4%', top: 'middle', style: { text: '◄ Ríkisstjórn', fill: '#56657f', font: '600 12.5px Inter, sans-serif' } },
-          { type: 'text', right: '4%', top: 'middle', style: { text: 'Stjórnarandstaða ►', fill: '#56657f', font: '600 12.5px Inter, sans-serif' } },
-        ],
-        series,
-      });
-      chart.on('click', (p) => { if (p.data && p.data.id && window.karpMpOpen) window.karpMpOpen(p.data.id); });
-      window.addEventListener('resize', () => chart.resize());
-    }
+  <!-- Eyja: ráðherra-smellir. (Pólitíska kortið fluttist í Þingmannaskýrsluna.) -->
+  <script>
     function initCabClicks() {
       document.querySelectorAll('.cab-clk[data-id]').forEach((b) => {
         b.addEventListener('click', () => { const id = +b.getAttribute('data-id'); if (window.karpMpOpen && id) window.karpMpOpen(id); });
       });
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi"]')) { initPolMap(); initCabClicks(); } });
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi"]')) { initCabClicks(); } });
   </script>
 
   <!-- Eyja: þingfundadagatalið (mánaðarsýn + dagsupplýsingar). #2 LOTA 12 -->

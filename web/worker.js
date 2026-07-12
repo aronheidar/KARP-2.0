@@ -1150,10 +1150,10 @@ async function payCheckoutHandler(request, env, ctx) {
   const uid = await karpUserId(request);   // þarf innskráningu svo kaupið vistist á Mitt svæði
   if (!uid) return sjson({ error: 'login' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
-  const kind = ['fyrirtaeki', 'eigendur', 'fasteign'].includes(b.kind) ? b.kind : 'fasteign';
+  const kind = ['fyrirtaeki', 'eigendur', 'fasteign', 'thingmadur'].includes(b.kind) ? b.kind : 'fasteign';
   const ref = String(b.ref || '').slice(0, 80);
   const key = String(b.key || (kind + ':' + ref)).slice(0, 80);
-  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : kind === 'eigendur' ? env.PRICE_EIGENDUR : env.PRICE_FASTEIGN) || 990);
+  const price = Math.round(+(kind === 'fyrirtaeki' ? env.PRICE_FYRIRTAEKI : kind === 'eigendur' ? env.PRICE_EIGENDUR : kind === 'thingmadur' ? env.PRICE_THINGMADUR : env.PRICE_FASTEIGN) || 990);
   if (!(price > 0)) return sjson({ error: 'free' });
   const amount = String(price);   // ISK heiltala
   const currency = 'ISK';
@@ -1170,7 +1170,7 @@ async function payCheckoutHandler(request, env, ctx) {
   const msg = [merchantid, returnurlsuccess, returnurlsuccessserver, orderid, amount, currency].join('|');
   const checkhash = await teyaHmacHex(env.TEYA_SECRET_KEY, msg);
   const action = (env.TEYA_ENV === 'dev' ? 'https://test.borgun.is' : 'https://securepay.borgun.is') + '/SecurePay/default.aspx';
-  const desc = kind === 'fyrirtaeki' ? 'Karp fyrirtaekjaskyrsla' : kind === 'eigendur' ? 'Karp eigendaskyrsla' : 'Karp verdmatsskyrsla';
+  const desc = kind === 'fyrirtaeki' ? 'Karp fyrirtaekjaskyrsla' : kind === 'eigendur' ? 'Karp eigendaskyrsla' : kind === 'thingmadur' ? 'Karp thingmannaskyrsla' : 'Karp verdmatsskyrsla';
   // Reitir speglaðir eftir virkri WooCommerce-Teya viðbót: SecurePay krefst lína-liða + pagetype/skipreceiptpage.
   // checkhash nær AÐEINS yfir merchantid|url|url|orderid|amount|currency → lína-liðir/pagetype breyta honum ekki.
   return sjson({
@@ -1258,8 +1258,9 @@ async function askellWebhookHandler(request, env, ctx) {
     // Sér þjónustu-áskrift (Útboðsvaktin o.fl.): metadata.service áreiðanlegt (VIÐ setjum í session);
     // vöru-nafn til vara. Slík áskrift veitir karp_sub_<svc>_until í WP — EKKI þrep.
     const ms = String(meta.service || '');
-    const service = ['utbod', 'frettir', 'fasteign'].indexOf(ms) >= 0 ? ms
-      : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod' : '');
+    const service = ['utbod', 'frettir', 'fasteign', 'thingskyrslur'].indexOf(ms) >= 0 ? ms
+      : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod'
+        : (nameBlob.indexOf('thingskyrsl') >= 0 || nameBlob.indexOf('þingmannaskýrsl') >= 0 ? 'thingskyrslur' : ''));
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
       : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
@@ -1288,7 +1289,7 @@ async function askellWebhookHandler(request, env, ctx) {
       // engin metadata en reference-svið greiðslunnar BER stak-lykilinn sjálfan
       // reference = '<lykill>|<token-forskeyti>' (tvírukkunar-vörn) → klippa '|…' af fyrir grant-lykilinn
       const ref0 = String(d.reference || '').split('|')[0];
-      const refKey = /^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(ref0) ? ref0 : '';
+      const refKey = /^(fyrirtaeki|eigendur|areidanleiki|fasteign|thingmadur):.+/.test(ref0) ? ref0 : '';
       const viaMeta = String(meta2.service || '') === 'stak';
       const stakKey = viaMeta ? String(meta2.key || '') : refKey;
       const st2 = String(d.state || d.status || '');
@@ -1451,7 +1452,7 @@ async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
   const TIERS = { grunnur: 'ASKELL_CHANNEL_GRUNNUR', fyrirtaeki: 'ASKELL_CHANNEL_FYRIRTAEKI', fyrirtaeki_plus: 'ASKELL_CHANNEL_FYRIRTAEKI_PLUS' };
-  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR', fasteign: 'ASKELL_CHANNEL_FASTEIGN' };   // sérlausnir: Útboð 1.900, Umfjöllun/frettir 3.900, Fasteignir 3.900
+  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR', fasteign: 'ASKELL_CHANNEL_FASTEIGN', thingskyrslur: 'ASKELL_CHANNEL_THINGSKYRSLUR' };   // sérlausnir: Útboð 1.900, Umfjöllun/frettir 3.900, Fasteignir 3.900, Þingmannaskýrslur 3.900 (20 skýrslur/mán)
   const svc = SVCS[u.searchParams.get('service')] ? u.searchParams.get('service') : '';
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
@@ -1463,9 +1464,10 @@ async function askellSessionHandler(request, env, ctx) {
     eigendur: ['ASKELL_CHANNEL_STAK_EIGENDUR', 'eigendur_skyrsla'],
     areidanleiki: ['ASKELL_CHANNEL_STAK_AREIDANLEIKI', 'areidanleiki'],
     fasteign: ['ASKELL_CHANNEL_STAK_FASTEIGN', 'fasteigna_skyrsla'],
+    thingmadur: ['ASKELL_CHANNEL_STAK_THINGMADUR', 'thingmanna_skyrsla'],
   };
   const stak = String(u.searchParams.get('stak') || '').slice(0, 90);
-  const stakKind = (stak.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  const stakKind = (stak.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign|thingmadur):.+/) || [])[1] || '';
   if (stak && !stakKind) return sjson({ error: 'stak' });
   const channel = stakKind ? (env[STAKS[stakKind][0]] || env.ASKELL_CHANNEL_STAK || STAKS[stakKind][1])
     : (svc ? (env[SVCS[svc]] || svc) : (env[TIERS[tier]] || tier));   // sjálfgefið = slug → aðeins ASKELL_PRIVATE_KEY skylt
@@ -1503,7 +1505,7 @@ async function askellSessionHandler(request, env, ctx) {
 //   3) þá POST /api/payments/ {customer_reference:kt, amount, reference:stak-lykill} (async)
 //   4) polling heldur áfram þar til state=settled → grant á WP (kt-lyklað, sama og vefkrókur)
 // Upphæð ALLTAF server-hlið (aldrei frá vafra). Public-lykil þarf hvergi — allt um secret-lykilinn.
-const STAK_VERD = { fyrirtaeki: ['Fyrirtækjaskýrsla', 990], eigendur: ['Eigendaskýrsla', 990], areidanleiki: ['Áreiðanleikamat', 990], fasteign: ['Fasteignaskýrsla (verðmat)', 990] };
+const STAK_VERD = { fyrirtaeki: ['Fyrirtækjaskýrsla', 990], eigendur: ['Eigendaskýrsla', 990], areidanleiki: ['Áreiðanleikamat', 990], fasteign: ['Fasteignaskýrsla (verðmat)', 990], thingmadur: ['Þingmannaskýrsla', 990] };
 async function askellProcessorId(env, ctx) {
   const cache = caches.default;
   const ck = new Request('https://cache.karp.internal/askell-procid');
@@ -1535,7 +1537,7 @@ async function stakCheckoutHandler(request, env, ctx) {
   if (!uid) return sjson({ error: 'login' });
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
-  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign|thingmadur):.+/) || [])[1] || '';
   const kt = String((b && b.kt) || '').replace(/\D/g, '');
   if (!kind || kt.length !== 10) return sjson({ error: 'input' });
   const pid = await askellProcessorId(env, ctx);
@@ -1571,7 +1573,7 @@ async function stakConfirmHandler(request, env, ctx) {
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
-  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/) || [])[1] || '';
+  const kind = (key.match(/^(fyrirtaeki|eigendur|areidanleiki|fasteign|thingmadur):.+/) || [])[1] || '';
   const kt = String((b && b.kt) || '').replace(/\D/g, '');
   const tok = String((b && b.token) || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
   if (!kind || kt.length !== 10 || tok.length < 20) return sjson({ error: 'input' });
@@ -1652,7 +1654,7 @@ async function stakConfirmHandler(request, env, ctx) {
 // Þess í stað: sama iframe-kortaform og stökin (V1 hosted checkout) → server-megin stofnum við
 // V2 subscription-contract OG veitum aðgang STRAX á /sub/grant (ekki beðið eftir rukkunar-vefkrók).
 // slug = þrep (grunnur/fyrirtaeki/fyrirtaeki_plus) EÐA þjónusta (utbod/frettir/fasteign) = vöru-tilvísun í Áskell.
-const SUB2_SLUGS = { grunnur: 'tier', fyrirtaeki: 'tier', fyrirtaeki_plus: 'tier', utbod: 'svc', frettir: 'svc', fasteign: 'svc' };
+const SUB2_SLUGS = { grunnur: 'tier', fyrirtaeki: 'tier', fyrirtaeki_plus: 'tier', utbod: 'svc', frettir: 'svc', fasteign: 'svc', thingskyrslur: 'svc' };
 async function sub2CheckoutHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY) return sjson({ error: 'unconfigured' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };

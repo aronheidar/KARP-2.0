@@ -44,9 +44,11 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
       if (!main) return;
       const p = new URLSearchParams(location.search);
       const s = p.get('s') || '', o = p.get('o') || '', k = p.get('k') || '', t = p.get('t') || '';
-      const kind = t === 'fyrirtaeki' || /^fyrirtaeki:/.test(k) ? 'fyrirtaeki' : 'fasteign';
+      const kind = t === 'fyrirtaeki' || /^fyrirtaeki:/.test(k) ? 'fyrirtaeki' : (t === 'thingmadur' || /^thingmadur:/.test(k) ? 'thingmadur' : 'fasteign');
       const rest = k.indexOf(':') > -1 ? k.slice(k.indexOf(':') + 1) : '';
-      const backHref = kind === 'fyrirtaeki' ? ('/fyrirtaeki/' + (rest ? '?q=' + encodeURIComponent(rest) : '')) : ('/fasteignavakt/' + (rest ? '?q=' + encodeURIComponent(rest) : ''));
+      const backHref = kind === 'fyrirtaeki' ? ('/fyrirtaeki/' + (rest ? '?q=' + encodeURIComponent(rest) : ''))
+        : kind === 'thingmadur' ? ('/althingi/' + (rest ? encodeURIComponent(rest) + '/skyrsla/' : 'thingmenn/'))
+        : ('/fasteignavakt/' + (rest ? '?q=' + encodeURIComponent(rest) : ''));
       const $ = (id) => document.getElementById(id);
       if (s === 'ok') {
         $('kaup-ico').textContent = '✅';

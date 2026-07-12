@@ -5,8 +5,6 @@
 // Nú í app-skelinni (Layout: nav + fréttir). #2.
 // ─────────────────────────────────────────────────────────────
 import THINGMENN from '@gogn/althingi.json';
-import RAEDUR from '@gogn/raedugreining.json';
-import MALROF_AI from '@gogn/malrof_ai.json';
 import { colorByName } from '@lib/parties.mjs';
 import { slugify, groupThousands } from '@lib/format.mjs';
 import Layout from '../../layouts/Layout.astro';
@@ -34,17 +32,10 @@ const tiles = [
   { e: '🧾', l: 'Kostnaður', v: m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–', s: 'starfskostn./mán' },
 ];
 
-// Málróf (LOTA 16): tölfræði úr ræðulista 157 — engin gervigreind, hrein talning
-const RD = (RAEDUR.mp || {})[m.id] || null;
-const MALROF = RD ? {
-  n: RD.n, min: RD.min, klst: Math.round(RD.min / 6) / 10,
-  andsvarPct: RD.n ? Math.round((RD.andsvor / RD.n) * 100) : 0,
-  fundarstjPct: RD.n ? Math.round((RD.fundarstj / RD.n) * 100) : 0,
-  topMal: RD.topMal || [], longest: RD.longest, longestHeiti: RD.longestHeiti,
-  maxMin: Math.max(1, ...(RD.topMal || []).map((x) => x.min)),
-} : null;
-
-const AIM = (MALROF_AI.mp || {})[m.id] || null;
+// Málróf, AI-tónn og fjölmiðlaumfjöllun fluttust í SELDU Þingmannaskýrsluna
+// (/althingi/<slug>/skyrsla/) — hér stendur sölureitur í þeirra stað.
+const SKYRSLA_URL = `/althingi/${slugify(m.nafn)}/skyrsla/`;
+const SAMPLE_URL = `/althingi/${slugify('Jón Pétur Zimsen')}/skyrsla/`;
 
 const roleTxt = m.adalmadur ? 'Alþingismaður' : 'Varaþingmaður';
 const desc = `${m.nafn} — ${roleTxt} ${m.flokks || m.flokkur} í ${m.kjordaemi}. ${m.aldur ? m.aldur + ' ára, ' : ''}${m.fjoldiThinga ? m.fjoldiThinga + ' þing setið, ' : ''}hollusta við flokk ${m.hollusta != null ? m.hollusta + '%' : '—'}.`;
@@ -94,39 +85,24 @@ const jsonLd = {
       </>
     )}
 
-    {MALROF && MALROF.n > 3 && (
-      <>
-        <h2>🗣️ Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (þing 157) — fjöldi, tími og tegundir ræðna. Engin gervigreind, hrein talning úr opinberu XML-i.">ⓘ</i></h2>
-        <div class="mr-tiles">
-          <span class="mrt"><b>{MALROF.n}</b><i>ræður alls</i></span>
-          <span class="mrt"><b>{MALROF.klst >= 1 ? String(MALROF.klst).replace('.', ',') + ' klst' : MALROF.min + ' mín'}</b><i>ræðutími</i></span>
-          <span class="mrt"><b>{MALROF.andsvarPct}%</b><i>andsvör</i></span>
-          <span class="mrt"><b>{MALROF.fundarstjPct}%</b><i>um fundarstjórn</i></span>
-          {MALROF.longest > 0 && <span class="mrt"><b>{MALROF.longest} mín</b><i>lengsta ræðan</i></span>}
-        </div>
-        {MALROF.topMal.length > 0 && (
-          <div class="mr-mal">
-            <div class="mr-h">Talar mest um (eftir ræðutíma):</div>
-            {MALROF.topMal.map((x) => (
-              <div class="mr-row"><span class="mr-n">{x.h}</span><span class="mr-bar"><i style={`width:${Math.round((x.min / MALROF.maxMin) * 100)}%`}></i></span><span class="mr-v">{x.min} mín · {x.n}×</span></div>
-            ))}
-          </div>
-        )}
-        {AIM && (
-          <div class="aim">
-            <div class="aim-h">🤖 Tónn og áherslur <span class="aim-sub">AI-mat á {AIM.n} nýlegum efnisræðum</span>
-              <i class="tip" tabindex="0" data-tip="Gervigreind (Claude) las brot úr nýlegum efnisræðum þingmannsins og lýsti tón og áherslum — EINGÖNGU út frá textunum sjálfum. Vélrænt mat til fróðleiks, ekki dómur Karp.">ⓘ</i>
-            </div>
-            {AIM.merki && AIM.merki.length > 0 && <div class="aim-tags">{AIM.merki.map((t) => <span class="aim-tag">{t}</span>)}</div>}
-            <p class="aim-ton">{AIM.ton}</p>
-            <ul class="aim-list">{AIM.aherslur.map((a) => <li>{a}</li>)}</ul>
-          </div>
-        )}
-      </>
-    )}
-
-    <h2>📰 Fjölmiðlaumfjöllun <i class="tip" tabindex="0" data-tip="Lifandi leit í fréttasafni Karp eftir fullu nafni þingmannsins — viðhorf metið vélrænt. Getur vanmetið þá sem oft eru nefndir með fornafni.">ⓘ</i></h2>
-    <div id="mp-umf">Sæki umfjöllun…</div>
+    <!-- SÖLUREITUR: Málróf, AI-tónn og umfjöllun fluttust í seldu Þingmannaskýrsluna -->
+    <div class="tk-sell">
+      <div class="tks-badge">📊 Þingmannaskýrsla Karp</div>
+      <h2 class="tks-h">Ítarleg greining á {m.nafn.split(' ')[0]} — í einni skýrslu</h2>
+      <ul class="tks-list">
+        <li>🗳️ <b>Atkvæðaferill</b> — uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð</li>
+        <li>🧩 <b>Afstaða eftir málaflokkum</b> — já/nei-atkvæði flokkuð eftir opinberum efnisflokkum Alþingis</li>
+        <li>🗣️ <b>Málróf</b> — ræður, andsvör, ræðutími eftir málefnum og hvað er talað mest um</li>
+        <li>🤖 <b>Tónn og áherslur</b> — AI-greining á raunverulegum þingræðum, eftir málaflokkum</li>
+        <li>❓ <b>Fyrirspurnir og flutt mál</b> · 📋 nefndavald · 💰 laun · 🧭 pólitískt kort með staðsetningu</li>
+        <li>📰 <b>Fjölmiðlaumfjöllun</b> með vélrænu viðhorfsmati + 🖨️ PDF-útprentun</li>
+      </ul>
+      <div class="tks-btns">
+        <a class="tks-main" href={SKYRSLA_URL}>Opna skýrsluna — 990 kr →</a>
+        <a class="tks-sec" href={SAMPLE_URL}>👁️ Sjá sýnishorn (ókeypis)</a>
+      </div>
+      <div class="tks-note">Eða <b>áskrift á 3.900 kr/mán</b> — 20 þingmannaskýrslur innifaldar í hverjum mánuði. Hluti af <a href="/karp-pro/">Karp+</a>.</div>
+    </div>
 
     <p class="foot">
       Forþjónað (SSG) {updated}. Gögn frá Alþingi (althingi.is) — flokkslitur úr sameiginlega
@@ -135,24 +111,19 @@ const jsonLd = {
   </main>
 
   <style>
-    .aim { background: rgba(124,92,247,.06); border: 1px solid rgba(124,92,247,.3); border-radius: 12px; padding: 12px 15px; margin-top: 10px; }
-    .aim-h { font-size: 13px; font-weight: 800; color: #b9a6ff; }
-    .aim-sub { font-size: 11px; color: #8fa0ba; font-weight: 400; margin-left: 6px; }
-    .aim-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0 2px; }
-    .aim-tag { font-size: 11px; font-weight: 700; color: #b9a6ff; background: rgba(124,92,247,.14); border-radius: 999px; padding: 2px 10px; }
-    .aim-ton { font-size: 13.5px; color: #dfe7f4; line-height: 1.55; margin: 7px 0; }
-    .aim-list { margin: 0; padding-left: 18px; }
-    .aim-list li { font-size: 12.5px; color: #b9c6da; line-height: 1.5; padding: 1px 0; }
-    .mr-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .mrt { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 8px 12px; }
-    .mrt b { display: block; font-size: 16px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
-    .mrt i { display: block; font-style: normal; font-size: 10.5px; color: #8fa0ba; }
-    .mr-h { font-size: 12px; color: #9fb0c8; margin-bottom: 4px; }
-    .mr-row { display: grid; grid-template-columns: minmax(0, 1.3fr) 1fr 92px; gap: 8px; align-items: center; padding: 3px 0; }
-    .mr-n { font-size: 12.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mr-bar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
-    .mr-bar i { display: block; height: 100%; background: var(--pc, #f6b13b); border-radius: 5px; }
-    .mr-v { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
+    /* Sölureiturinn — vísar á seldu Þingmannaskýrsluna */
+    .tk-sell { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 20px 22px; margin-top: 26px; }
+    .tks-badge { display: inline-block; background: #f6b13b; color: #131a29; font-weight: 800; font-size: 11.5px; letter-spacing: .05em; padding: 3px 11px; border-radius: 999px; }
+    .tks-h { font-size: 19px; color: #eaf1fb; margin: 10px 0 8px; text-transform: none; letter-spacing: 0; }
+    .tks-list { margin: 0 0 14px; padding: 0; list-style: none; }
+    .tks-list li { font-size: 13px; color: #c7d2e4; line-height: 1.65; padding: 1px 0; }
+    .tks-list b { color: #e6ecf7; }
+    .tks-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+    .tks-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 14px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
+    .tks-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13.5px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
+    .tks-sec:hover { border-color: #f6b13b; color: #f6b13b; }
+    .tks-note { font-size: 12px; color: #8fa0b8; margin-top: 12px; }
+    .tks-note a, .tks-note b { color: #f6b13b; text-decoration: none; }
     main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
     .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
     .back:hover { color: #f6b13b; }
@@ -172,15 +143,6 @@ const jsonLd = {
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
-    /* Umfjöllunarlistinn er fylltur á KEYRSLUTÍMA (innerHTML) → verður að vera global,
-       annars scope-ast stílarnir burt og textinn rennur saman í einn belg (LOTA 49). */
-    .umf-head { font-size: 13px; color: #9fb0c8; margin-bottom: 6px; }
-    .umf-head b { color: #eaf1fb; }
-    .umf-it { display: block; font-size: 13.5px; color: #dfe7f4; text-decoration: none; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.07); line-height: 1.35; }
-    .umf-it:hover { color: #f6b13b; }
-    .umf-it span { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
-    .umf-more { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #f6b13b; text-decoration: none; }
-    .umf-none { font-size: 13px; color: #9fb0c8; }
     /* Fylgja-hnappur er búinn til á keyrslutíma → global. Erfir --pc frá <main>. */
     .follow-wrap { margin-top: 10px; min-height: 34px; }
     .fbtn { background: var(--pc); color: #06121a; border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
@@ -223,26 +185,5 @@ const jsonLd = {
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi-slug"]')) initFollow(); });
   </script>
-  <!-- Eyja: lifandi umfjöllun um þingmanninn (/firma). LOTA 15b -->
-  <script define:vars={{ MPNAME: m.nafn, MPSLUG: slugify(m.nafn) }}>
-    function initMpUmf() {
-      const el = document.getElementById('mp-umf');
-      if (!el || el.dataset.done) return;
-      el.dataset.done = '1';
-      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
-      fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((f) => {
-          if (!f || !f.ready || !f.total) { el.innerHTML = '<p class="umf-none">Lítil umfjöllun fannst síðustu 6 mánuði (leitað eftir fullu nafni).</p>'; return; }
-          const se = f.sentiment || {};
-          const tone = se.scored ? (se.idx > 15 ? ['jákvæð', '#46e08a'] : se.idx < -15 ? ['neikvæð', '#ff6d7a'] : ['hlutlaus', '#9fb0c8']) : null;
-          el.innerHTML = '<div class="umf-head"><b>' + f.total + '</b> fréttir sl. 6 mán' + (tone ? ' · tónn <b style="color:' + tone[1] + '">' + (se.idx > 0 ? '+' : '') + se.idx + '</b> (' + tone[0] + ')' : '') + '</div>'
-            + (f.items || []).slice(0, 6).map((x) => '<a class="umf-it" href="' + safe(x.link) + '" target="_blank" rel="noopener">' + esc(x.title) + '<span>' + esc(x.source || '') + '</span></a>').join('')
-            + '<a class="umf-more" href="/frettir/">Greina nánar í Umfjöllun →</a>';
-        })
-        .catch(() => { el.innerHTML = '<p class="umf-none">Umfjöllunin birtist á karp.is.</p>'; });
-    }
-    document.addEventListener('astro:page-load', () => { const mn = document.querySelector('main[data-pg="althingi-slug"]'); if (mn && location.pathname.includes(MPSLUG)) initMpUmf(); });
-  </script>
+
 </Layout>

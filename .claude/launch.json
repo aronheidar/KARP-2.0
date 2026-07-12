@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["astro", "preview", "--root", "web", "--port", "4321"],
       "port": 4321
+    },
+    {
+      "name": "thingskyrsla-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["astro", "preview", "--root", "web", "--port", "4325"],
+      "port": 4325
     }
   ]
 }

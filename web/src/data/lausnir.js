@@ -50,6 +50,9 @@ export const SERLAUSNIR = [
   { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', emoji: '📰', service: 'frettir', verd: 3900, trialDays: 30,
     lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
     fyrir: 'Almannatengsl og ritstjórnir', href: '/frettir/' },
+  { slug: 'thingskyrslur', heiti: 'Þingmannaskýrslur', emoji: '🏛️', service: 'thingskyrslur', verd: 3900, trialDays: 30,
+    lysing: '20 þingmannaskýrslur á mánuði — atkvæðaferill, uppreisnar-atkvæði, málaflokkar, ræðugreining með gervigreind, fyrirspurnir og umfjöllun.',
+    fyrir: 'Blaðamenn, hagsmunaverðir og greinendur', href: '/althingi/thingmenn/' },
 ];
 
 const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';

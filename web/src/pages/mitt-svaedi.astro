@@ -438,6 +438,7 @@ const updated = '2026-07-02';
               { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', ico: '🛡️', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) + '&vidmot=areidanleiki' },
               { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', ico: '📰', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) },
               { pfx: 'fasteign:', label: 'Fasteignaskýrslur', ico: '🏠', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
+              { pfx: 'thingmadur:', label: 'Þingmannaskýrslur', ico: '🏛️', link: (id) => '/althingi/' + encodeURIComponent(id) + '/skyrsla/' },
             ];
             const buckets = new Map(); const other = [];
             arr.forEach((r) => { const k = String(r.key || ''); const cat = CATS.find((c) => k.indexOf(c.pfx) === 0);

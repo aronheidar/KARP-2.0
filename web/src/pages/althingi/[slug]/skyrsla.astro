@@ -1,0 +1,705 @@
+---
+// ─────────────────────────────────────────────────────────────────────────────
+// ÞINGMANNASKÝRSLAN — seld vara (stök 990 kr / áskrift 'thingskyrslur' 3.900 kr
+// m/20 skýrslum á mánuði). Ein SSG-síða per þingmann (63) á /althingi/<slug>/skyrsla/.
+// SÝNISHORN: skýrsla SAMPLE_ID (Jón Pétur Zimsen) er opin öllum — hinar gáttar.
+// Gögn: thingskyrsla.json (build_thingskyrsla.js) + thingskyrsla_ai.json (djúp AI)
+// + althingi.json/raedugreining.json/malrof_ai.json. Pólitíska kortið flutt HINGAÐ
+// af /althingi/ (highlight á viðkomandi þingmann).
+// ─────────────────────────────────────────────────────────────────────────────
+import THINGMENN from '@gogn/althingi.json';
+import RAEDUR from '@gogn/raedugreining.json';
+import TSK from '@gogn/thingskyrsla.json';
+import TSK_AI from '@gogn/thingskyrsla_ai.json';
+import MALROF_AI from '@gogn/malrof_ai.json';
+import FRUMVORP from '@gogn/frumvorp.json';
+import CABINET from '@gogn/cabinet.json';
+import { colorByName, partyName } from '@lib/parties.mjs';
+import { slugify, groupThousands } from '@lib/format.mjs';
+import Layout from '../../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return THINGMENN.map((m) => ({ params: { slug: slugify(m.nafn) }, props: { m } }));
+}
+
+const SAMPLE_ID = 1521; // Jón Pétur Zimsen — sýnishornsskýrslan, opin öllum
+
+const { m } = Astro.props;
+const slug = slugify(m.nafn);
+const color = colorByName(m.flokkur);
+const IS_SAMPLE = m.id === SAMPLE_ID;
+const KEY = 'thingmadur:' + slug;
+const TITLE = 'Þingmannaskýrsla — ' + m.nafn;
+
+const t = (TSK.mp || {})[m.id] || { rebel: [], man: [], voteAreas: [], speechAreas: [], fyrirspurnir: [], flutt: [], medflutt: 0, maeting: null, pct: {} };
+const AREAS = TSK.areas || {};
+const AVG = TSK.avg || {};
+const FLAVG = (TSK.flAvg || {})[m.flokkur] || {};
+const RD = (RAEDUR.mp || {})[m.id] || null;
+const AI = (TSK_AI.mp || {})[m.id] || null;
+const AIM = (MALROF_AI.mp || {})[m.id] || null; // grunn-AI (fallback ef djúpgreining vantar)
+const minister = CABINET.find((c) => c.id === m.id) || null;
+const yearFrom = m.fyrstInn ? String(m.fyrstInn).slice(0, 4) : null;
+const committees = Array.isArray(m.nefndalisti) ? m.nefndalisti : [];
+const updated = TSK.updated || '2026-07-12';
+
+const fmtP = (x) => (x == null ? '–' : String(x).replace('.', ','));
+const pctBadge = (p) => (p == null ? null : Math.min(99, p));
+
+// KPI-röðin: gildi + samanburður
+const kpis = [
+  { e: '🤝', l: 'Flokkshollusta', v: m.hollusta != null ? fmtP(m.hollusta) + '%' : '–', s: FLAVG.hollusta != null ? 'flokksmeðaltal ' + fmtP(FLAVG.hollusta) + '%' : '' },
+  { e: '⚡', l: 'Gegn eigin flokki', v: String(t.rebel.length) + '×', s: 'þingmeðaltal ' + fmtP(AVG.uppreisn) + '×' },
+  { e: '🪑', l: 'Mæting í atkvgr.', v: t.maeting != null ? fmtP(t.maeting) + '%' : '–', s: AVG.maeting != null ? 'þingmeðaltal ' + fmtP(AVG.maeting) + '%' : '' },
+  { e: '🗣️', l: 'Ræðutími', v: m.raedumin != null ? fmtP(Math.round(m.raedumin / 6) / 10) + ' klst' : '–', s: t.pct.raedumin != null ? 'meira en ' + pctBadge(t.pct.raedumin) + '% þingmanna' : '' },
+  { e: '↩️', l: 'Andsvör', v: RD ? String(RD.andsvor) : '–', s: t.pct.andsvor != null ? 'meira en ' + pctBadge(t.pct.andsvor) + '% þingmanna' : '' },
+  { e: '❓', l: 'Fyrirspurnir', v: String(t.fyrirspurnir.length), s: 'til ráðherra á þingi 157' },
+  { e: '📜', l: 'Flutt mál', v: String(t.flutt.length), s: 'fyrsti flutningsm. · meðflm. á ' + t.medflutt },
+  { e: '✅', l: 'Greidd atkvæði', v: m.greidd != null ? groupThousands(m.greidd) : '–', s: 'af ' + groupThousands(m.recVotes || 0) + ' skráðum' },
+];
+
+// Mánaðarleg mæting → CSS-súlur
+const manRows = (t.man || []).map(([mon, rec, fj]) => {
+  const p = rec ? Math.round(((rec - fj) / rec) * 100) : 0;
+  return { mon, lbl: mon.slice(5) + '.' + mon.slice(2, 4), p, rec };
+});
+
+// Atkvæði eftir málaflokkum → já/nei-skipt stika (top 10 eftir fjölda)
+const vaRows = (t.voteAreas || []).slice(0, 10).map(([aid, greidd, ja, nei]) => ({
+  h: (AREAS[aid] || {}).h || '—', y: (AREAS[aid] || {}).y || '', greidd,
+  jaPct: greidd ? Math.round((ja / greidd) * 100) : 0, ja, nei,
+}));
+const vaMax = Math.max(1, ...vaRows.map((r) => r.greidd));
+
+// Ræðutími eftir málaflokkum (top 8)
+const saRows = (t.speechAreas || []).slice(0, 8).map(([aid, min, n]) => ({ h: (AREAS[aid] || {}).h || '—', min, n }));
+const saMax = Math.max(1, ...saRows.map((r) => r.min));
+
+// Málróf-tölur
+const MALROF = RD ? {
+  n: RD.n, min: RD.min, klst: Math.round(RD.min / 6) / 10,
+  andsvarPct: RD.n ? Math.round((RD.andsvor / RD.n) * 100) : 0,
+  fundarstjPct: RD.n ? Math.round((RD.fundarstj / RD.n) * 100) : 0,
+  flutn: RD.flutn || 0,
+  topMal: RD.topMal || [], longest: RD.longest, longestHeiti: RD.longestHeiti,
+  maxMin: Math.max(1, ...(RD.topMal || []).map((x) => x.min)),
+} : null;
+
+// Pólitíska kortið: allir þingmenn + highlight á þennan; smellur flakkar á skýrslu viðkomandi
+const POLD = THINGMENN.filter((x) => x.mx != null).map((x) => ({ v: [x.mx, x.my], id: x.id, n: x.nafn, f: x.flokkur, ho: x.hollusta ?? null, up: x.uppreisn ?? 0, sl: slugify(x.nafn) }));
+const PCOL = {};
+THINGMENN.forEach((x) => { PCOL[x.flokkur] = colorByName(x.flokkur); });
+// ÞÚ-punkturinn (stefnupróf) — sama smíð og var á /althingi/
+const SPQ = FRUMVORP
+  .filter((b) => (b.hs === 'Frv.' || b.hs === 'Till.') && (b.ja || 0) > 0 && (b.nei || 0) > 5 && b.sam)
+  .sort((a, b) => (b.d || '').localeCompare(a.d || '')).slice(0, 12)
+  .map((b) => { const P2 = b.P || {}; const st = {}; Object.keys(P2).forEach((k) => { const [ja, nei] = P2[k]; if (k === 'U' || ja + nei === 0 || ja === nei) return; st[k] = ja > nei ? 1 : -1; }); return { id: 'q' + b.nr, stance: st }; })
+  .filter((q) => Object.keys(q.stance).length >= 4);
+const SPKEY = {};
+[...new Set(SPQ.flatMap((q) => Object.keys(q.stance)))].forEach((k) => { SPKEY[k] = partyName(k); });
+
+const roleTxt = m.adalmadur ? 'Alþingismaður' : 'Varaþingmaður';
+const desc = `Ítarleg þingmannaskýrsla um ${m.nafn} (${m.flokkur}): atkvæðaferill, uppreisnar-atkvæði, afstaða eftir málaflokkum, ræðugreining með gervigreind, fyrirspurnir, nefndavald og fjölmiðlaumfjöllun.`;
+const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}` : '');
+---
+
+<Layout
+  title={`Þingmannaskýrsla — ${m.nafn} | Karp`}
+  description={desc}
+  canonical={`https://karp.is/althingi/${slug}/skyrsla/`}
+  ogTitle={`Þingmannaskýrsla — ${m.nafn}`}
+  ogImage={m.mynd || ''}
+>
+  <main data-pg="thingskyrsla" style={`--pc:${color}`}>
+    <a class="back" href={`/althingi/${slug}/`}>← {m.nafn}</a>
+
+    {IS_SAMPLE && (
+      <div class="tk-sample">👁️ <b>Sýnishorn</b> — þessi skýrsla er opin öllum svo þú sjáir hvað Þingmannaskýrsla Karp inniheldur.
+        Skýrslur um aðra þingmenn: <b>990 kr stök</b> eða <b>3.900 kr/mán áskrift</b> með 20 skýrslum innifaldar.</div>
+    )}
+
+    <!-- GÁTTIN (aðrir en sýnishornið; JS opnar fyrir eigendur/áskrifendur) -->
+    {!IS_SAMPLE && (
+      <div id="tk-gate" data-key={KEY} data-title={TITLE} data-nafn={m.nafn}>
+        <div class="tkg">
+          <div class="tkg-badge">📊 Þingmannaskýrsla</div>
+          <h2 class="tkg-h">{m.nafn} — ítarleg greining</h2>
+          <p class="tkg-b">Atkvæðaferill og uppreisnar-atkvæði · mæting mánuð fyrir mánuð · afstaða eftir málaflokkum ·
+            ræðugreining og 🤖 tónn &amp; áherslur með gervigreind · fyrirspurnir og flutt mál · nefndavald · fjölmiðlaumfjöllun með viðhorfsmati — allt í einni skýrslu með PDF-útprentun.</p>
+          <div class="pg-btns" id="tkg-btns">
+            <button class="pg-main" id="tk-buy" type="button">Kaupa skýrsluna — 990 kr</button>
+            <button class="pg-sec" id="tk-sub" type="button">Áskrift — 3.900 kr/mán · 20 skýrslur</button>
+          </div>
+          <div id="tk-qnote"></div>
+          <div class="tkg-note">Innifalið í <a href="/karp-pro/">Karp+ þingskýrslu-áskriftinni</a> · engin binding ·
+            <a href={`/althingi/${slugify('Jón Pétur Zimsen')}/skyrsla/`}>👁️ Sjá sýnishorn af skýrslu</a></div>
+        </div>
+      </div>
+    )}
+
+    <!-- SKÝRSLAN SJÁLF -->
+    <div id="tk-report" hidden={!IS_SAMPLE}>
+      <div class="tk-rephead" aria-hidden="true">
+        <b>Þingmannaskýrsla — {m.nafn}</b> · Karp (karp.is) · gögn frá Alþingi (althingi.is) · uppfært {updated}
+      </div>
+
+      <div class="hero">
+        {m.mynd && <img src={m.mynd} alt={m.nafn} loading="lazy" onerror="this.style.display='none'" />}
+        <div>
+          <h1>{m.nafn}</h1>
+          <div class="hero-chips">
+            <span class="party">{m.flokkur}</span>
+            {minister && <span class="min-chip">⭐ {(minister.emb || ['Ráðherra']).join(' · ')}</span>}
+          </div>
+          <div class="meta">{roleTxt} · {m.kjordaemi}{m.aldur != null && ` · ${m.aldur} ára`}{yearFrom && ` · á þingi frá ${yearFrom}`}{m.fjoldiThinga ? ` (${m.fjoldiThinga} þing)` : ''}</div>
+          <div class="actions no-print">
+            <button class="act-btn" id="tk-pdf" type="button">🖨️ Sækja PDF</button>
+            <div id="follow" class="follow-wrap" data-key={`mp:${m.id}`}></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        {kpis.map((k) => (
+          <div class="kpi">
+            <div class="k-top">{k.e} {k.l}</div>
+            <div class="k-v">{k.v}</div>
+            {k.s && <div class="k-s">{k.s}</div>}
+          </div>
+        ))}
+      </div>
+
+      <h2>🧭 Pólitískt kort þingsins <i class="tip" tabindex="0" data-tip="Vélrænn útreikningur úr ÖLLUM nafnakalls-atkvæðagreiðslum þingsins 157 — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða). Nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr stefnuprófs-svörum þínum og vistast aðeins í vafranum.">ⓘ</i></h2>
+      <div id="tk-polmap" class="no-print"></div>
+      <p class="src no-print">{m.nafn} er <b style={`color:${color}`}>auðkennd(ur)</b> á kortinu. Smelltu á aðra þingmenn til að skoða skýrslur þeirra.</p>
+
+      <h2>🗳️ Atkvæðahegðun</h2>
+      <div class="card">
+        <div class="c-sub">Uppreisnar-atkvæði — kaus gegn meirihluta eigin flokks <i class="tip" tabindex="0" data-tip="Skráð já/nei-nafnaköll þar sem atkvæði þingmannsins fór gegn meirihluta annarra þingmanna sama flokks í sömu atkvæðagreiðslu. Heimild: XML Alþingis.">ⓘ</i></div>
+        {t.rebel.length === 0 ? (
+          <p class="c-empty">Kaus <b>aldrei</b> gegn meirihluta eigin flokks í skráðum nafnaköllum á þingi 157 — flokkshollusta {fmtP(m.hollusta)}%.</p>
+        ) : (
+          <div class="rebel-list">
+            {t.rebel.map((r) => (
+              <a class="rebel-row" href={`/thingmal/?nr=${r.m}`}>
+                <span class="rb-d">{dLoc(r.t)}</span>
+                <span class="rb-h">{r.h}</span>
+                <span class={`rb-atk ${r.atk === 'já' ? 'ja' : 'nei'}`}>{r.atk === 'já' ? '✓ já' : '✗ nei'}</span>
+                <span class="rb-fl">flokkur {r.fj[0]}–{r.fj[1]}</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {manRows.length > 1 && (
+        <div class="card">
+          <div class="c-sub">Mæting í atkvæðagreiðslur — mánuð fyrir mánuð</div>
+          <div class="man-chart">
+            {manRows.map((r) => (
+              <div class="man-col" title={`${r.lbl} — ${r.p}% þátttaka (${r.rec} nafnaköll)`}>
+                <div class="man-bar"><i style={`height:${r.p}%`}></i></div>
+                <span class="man-l">{r.lbl}</span>
+                <span class="man-v">{r.p}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {vaRows.length > 0 && (
+        <>
+          <h2>🧩 Afstaða eftir málaflokkum <i class="tip" tabindex="0" data-tip="Já/nei-atkvæði þingmannsins flokkuð eftir OPINBERUM efnisflokkum Alþingis (mál getur átt fleiri en einn flokk). Grænt = já, rautt = nei.">ⓘ</i></h2>
+          <div class="card">
+            {vaRows.map((r) => (
+              <div class="va-row">
+                <span class="va-n" title={r.y}>{r.h}</span>
+                <span class="va-bar" style={`width:${Math.round((r.greidd / vaMax) * 100)}%`}>
+                  <i class="va-ja" style={`width:${r.jaPct}%`}></i><i class="va-nei" style={`width:${100 - r.jaPct}%`}></i>
+                </span>
+                <span class="va-v">{r.ja} já · {r.nei} nei</span>
+              </div>
+            ))}
+            <div class="va-leg"><span><i class="va-ja"></i> já</span><span><i class="va-nei"></i> nei</span></div>
+          </div>
+        </>
+      )}
+
+      {MALROF && MALROF.n > 3 && (
+        <>
+          <h2>🗣️ Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (þing 157) — fjöldi, tími og tegundir ræðna. Hrein talning úr opinberu XML-i.">ⓘ</i></h2>
+          <div class="mr-tiles">
+            <span class="mrt"><b>{MALROF.n}</b><i>ræður alls</i></span>
+            <span class="mrt"><b>{MALROF.klst >= 1 ? fmtP(MALROF.klst) + ' klst' : MALROF.min + ' mín'}</b><i>ræðutími</i></span>
+            <span class="mrt"><b>{MALROF.andsvarPct}%</b><i>andsvör</i></span>
+            <span class="mrt"><b>{MALROF.fundarstjPct}%</b><i>um fundarstjórn</i></span>
+            <span class="mrt"><b>{MALROF.flutn}</b><i>flutningsræður</i></span>
+            {MALROF.longest > 0 && <span class="mrt" title={MALROF.longestHeiti}><b>{MALROF.longest} mín</b><i>lengsta ræðan</i></span>}
+          </div>
+          {MALROF.topMal.length > 0 && (
+            <div class="card">
+              <div class="c-sub">Talar mest um (eftir ræðutíma)</div>
+              {MALROF.topMal.map((x) => (
+                <div class="mr-row"><span class="mr-n">{x.h}</span><span class="mr-bar"><i style={`width:${Math.round((x.min / MALROF.maxMin) * 100)}%`}></i></span><span class="mr-v">{x.min} mín · {x.n}×</span></div>
+              ))}
+            </div>
+          )}
+          {saRows.length > 0 && (
+            <div class="card">
+              <div class="c-sub">Ræðutími eftir málaflokkum <i class="tip" tabindex="0" data-tip="Allar ræður þingmannsins flokkaðar eftir opinberum efnisflokkum Alþingis — mál getur átt fleiri en einn flokk.">ⓘ</i></div>
+              {saRows.map((r) => (
+                <div class="mr-row"><span class="mr-n">{r.h}</span><span class="mr-bar"><i style={`width:${Math.round((r.min / saMax) * 100)}%`}></i></span><span class="mr-v">{r.min} mín · {r.n} ræður</span></div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {(t.flutt.length > 0 || t.fyrirspurnir.length > 0) && (
+        <>
+          <h2>📜 Þingmál sem {m.nafn.split(' ')[0]} flytur</h2>
+          {t.flutt.length > 0 && (
+            <div class="card">
+              <div class="c-sub">Fyrsti flutningsmaður að {t.flutt.length} málum{t.medflutt ? ` · meðflutningsmaður á ${t.medflutt} til viðbótar` : ''}</div>
+              {t.flutt.slice(0, 12).map((f) => (
+                <a class="mal-row" href={`/thingmal/?nr=${f.m}`}>
+                  <span class="ml-h">{f.h}</span>
+                  <span class="ml-teg">{f.teg}</span>
+                  {f.s && <span class={`ml-st ${/samþykkt/i.test(f.s) ? 'ok' : ''}`}>{f.s}</span>}
+                </a>
+              ))}
+              {t.flutt.length > 12 && <div class="c-more">+ {t.flutt.length - 12} mál til viðbótar</div>}
+            </div>
+          )}
+          {t.fyrirspurnir.length > 0 && (
+            <div class="card">
+              <div class="c-sub">Fyrirspurnir til ráðherra ({t.fyrirspurnir.length})</div>
+              {t.fyrirspurnir.slice(0, 12).map((f) => (
+                <a class="mal-row" href={`/thingmal/?nr=${f.m}`}>
+                  <span class="ml-h">{f.h}</span>
+                  {f.til && <span class="ml-teg">→ {f.til}</span>}
+                  <span class={`ml-st ${f.sv ? 'ok' : ''}`}>{f.sv ? '✓ svarað' : 'bíður svars'}</span>
+                </a>
+              ))}
+              {t.fyrirspurnir.length > 12 && <div class="c-more">+ {t.fyrirspurnir.length - 12} fyrirspurnir til viðbótar</div>}
+            </div>
+          )}
+        </>
+      )}
+
+      <h2>🤖 Tónn og áherslur — AI-greining <i class="tip" tabindex="0" data-tip="Gervigreind (Claude) las brot úr raunverulegum þingræðum þingmannsins, valin þvert á málefni, og lýsti tón, rökstuðningi og áherslum — EINGÖNGU út frá textunum sjálfum. Vélrænt mat til fróðleiks, ekki dómur Karp og ekki staðreyndafullyrðing.">ⓘ</i></h2>
+      {AI ? (
+        <>
+          <div class="aim">
+            {AI.merki && AI.merki.length > 0 && <div class="aim-tags">{AI.merki.map((x) => <span class="aim-tag">{x}</span>)}</div>}
+            <p class="aim-yfir">{AI.yfirlit}</p>
+            <div class="aim-grid">
+              <div class="aim-cell"><b>Tónn og stíll</b><p>{AI.ton}</p></div>
+              <div class="aim-cell"><b>Rökstuðningur</b><p>{AI.rokstudningur}</p></div>
+              {AI.samskipti && <div class="aim-cell"><b>Samskipti í andsvörum</b><p>{AI.samskipti}</p></div>}
+            </div>
+            <div class="aim-note">Vélrænt mat byggt á {AI.n} ræðum af þingi 157 — ekki dómur Karp.</div>
+          </div>
+          {(AI.malaflokkar || []).length > 0 && (
+            <div class="aim-areas">
+              {AI.malaflokkar.map((a) => (
+                <div class="aima">
+                  <div class="aima-h">{a.svid} <span class="aima-n">{a.n} ræður</span></div>
+                  <p class="aima-g">{a.greining}</p>
+                  <p class="aima-a"><b>Afstaða:</b> {a.afstada}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : AIM ? (
+        <div class="aim">
+          {AIM.merki && AIM.merki.length > 0 && <div class="aim-tags">{AIM.merki.map((x) => <span class="aim-tag">{x}</span>)}</div>}
+          <p class="aim-yfir">{AIM.ton}</p>
+          <ul class="aim-list">{(AIM.aherslur || []).map((a) => <li>{a}</li>)}</ul>
+          <div class="aim-note">Grunn-mat á {AIM.n} nýlegum efnisræðum — ítarleg greining eftir málaflokkum væntanleg í næstu uppfærslu skýrslunnar.</div>
+        </div>
+      ) : (
+        <div class="aim"><p class="aim-yfir">AI-greining á ræðum þingmannsins er væntanleg — hún birtist hér sjálfkrafa í næstu uppfærslu skýrslunnar.</p></div>
+      )}
+
+      {committees.length > 0 && (
+        <>
+          <h2>📋 Nefndavald</h2>
+          <div class="nefndir">{committees.map((n) => {
+            const arr = Array.isArray(n) ? n : [n, ''];
+            const forysta = /formaður/i.test(arr[1] || '');
+            return <span class={forysta ? 'nf-lead' : ''}>{arr[0]}{arr[1] ? ` — ${arr[1]}` : ''}</span>;
+          })}</div>
+        </>
+      )}
+
+      <h2>💰 Laun og kostnaður</h2>
+      <div class="kpi-grid kpi-3">
+        <div class="kpi"><div class="k-top">💰 Mánaðarlaun</div><div class="k-v">{m.laun != null ? groupThousands(m.laun) + ' kr' : '–'}</div><div class="k-s">skv. launatöflu Alþingis</div></div>
+        <div class="kpi"><div class="k-top">🧾 Starfskostnaður</div><div class="k-v">{m.kostn != null ? groupThousands(m.kostn) + ' kr' : '–'}</div><div class="k-s">á mánuði</div></div>
+        <div class="kpi"><div class="k-top">⚖️ Meðallaun þingmanna</div><div class="k-v">{AVG.laun != null ? groupThousands(Math.round(AVG.laun)) + ' kr' : '–'}</div><div class="k-s">til samanburðar</div></div>
+      </div>
+
+      <h2 class="no-print">📰 Fjölmiðlaumfjöllun <i class="tip" tabindex="0" data-tip="Lifandi leit í fréttasafni Karp eftir fullu nafni þingmannsins — viðhorf metið vélrænt. Getur vanmetið þá sem oft eru nefndir með fornafni.">ⓘ</i></h2>
+      <div id="tk-umf" class="no-print">Sæki umfjöllun…</div>
+
+      <div class="tk-foot">
+        <p><b>Heimildir og fyrirvarar.</b> Öll grunngögn eru opinber gögn Alþingis (althingi.is, opið XML): atkvæðagreiðslur, ræðulisti,
+        þingmálaskrá, þingskjöl, nefndir og launatafla. Efnisflokkun mála er opinber flokkun Alþingis. Uppreisnar-mælingin,
+        pólitíska kortið og hundraðshlutaraðanir eru vélrænir útreikningar Karp — nálganir, ekki opinber flokkun.
+        AI-greining á tón og áherslum er <b>vélrænt mat</b> byggt eingöngu á ræðubrotum — ekki dómur Karp og ekki staðreyndafullyrðing um viðkomandi.</p>
+        <p>Uppfært {updated} · þing 157 · <a href="/hjalp/?fra=thingskyrsla">Ábending eða leiðrétting? Láttu okkur vita</a>.</p>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    main { max-width: 880px; margin: 0 auto; padding: 40px 20px 64px; }
+    .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
+    .back:hover { color: #f6b13b; }
+    .tk-sample { background: rgba(70,224,138,.07); border: 1px solid rgba(70,224,138,.35); border-radius: 12px; padding: 12px 16px; font-size: 13.5px; color: #cdE6d6; margin: 14px 0 4px; line-height: 1.55; }
+    .tk-sample b { color: #6ee7b7; }
+    .hero { display: flex; gap: 20px; align-items: center; margin: 18px 0 6px; }
+    .hero img { width: 104px; height: 130px; object-fit: cover; border-radius: 12px; border: 2px solid var(--pc); flex: none; background: #0e1626; }
+    h1 { font-size: 30px; line-height: 1.1; margin: 0 0 6px; }
+    .hero-chips { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+    .party { display: inline-block; font-size: 13px; font-weight: 700; color: #06121a; background: var(--pc); border-radius: 6px; padding: 2px 9px; }
+    .min-chip { font-size: 12px; font-weight: 700; color: #ffd479; border: 1px solid rgba(255,212,121,.45); border-radius: 6px; padding: 2px 8px; }
+    .meta { color: #9fb0c8; font-size: 13.5px; margin-top: 6px; }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    .act-btn { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #cdd6e6; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .act-btn:hover { border-color: #f6b13b; color: #f6b13b; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 22px 0 8px; }
+    .kpi-3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 15px; }
+    .k-top { font-size: 12px; color: #9fb0c8; }
+    .k-v { font-size: 22px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11.5px; color: #7e8ca6; margin-top: 1px; }
+    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    #tk-polmap { width: 100%; height: 500px; }
+    .src { font-size: 12.5px; color: #7e8ca6; margin: 4px 0 0; }
+    .card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; margin: 10px 0; }
+    .c-sub { font-size: 12.5px; font-weight: 700; color: #cdd6e6; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+    .c-empty { font-size: 13.5px; color: #b9c6da; margin: 0; }
+    .c-more { font-size: 12px; color: #7e8ca6; margin-top: 8px; }
+    .rebel-row { display: grid; grid-template-columns: 74px minmax(0,1fr) 64px 96px; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; }
+    .rebel-row:hover .rb-h { color: #f6b13b; }
+    .rb-d { font-size: 11.5px; color: #7e8ca6; font-variant-numeric: tabular-nums; }
+    .rb-h { font-size: 13px; color: #dfe7f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rb-atk { font-size: 12px; font-weight: 800; text-align: center; border-radius: 6px; padding: 2px 6px; }
+    .rb-atk.ja { color: #46e08a; background: rgba(70,224,138,.1); }
+    .rb-atk.nei { color: #ff6d7a; background: rgba(255,109,122,.1); }
+    .rb-fl { font-size: 11px; color: #8fa0ba; text-align: right; }
+    .man-chart { display: flex; gap: 6px; align-items: flex-end; overflow-x: auto; padding-bottom: 4px; }
+    .man-col { flex: 1 0 44px; text-align: center; }
+    .man-bar { height: 90px; background: rgba(255,255,255,.05); border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+    .man-bar i { display: block; width: 100%; background: var(--pc, #f6b13b); border-radius: 6px 6px 0 0; opacity: .85; }
+    .man-l { display: block; font-size: 10px; color: #7e8ca6; margin-top: 4px; }
+    .man-v { display: block; font-size: 10.5px; color: #b9c6da; font-variant-numeric: tabular-nums; }
+    .va-row { display: grid; grid-template-columns: minmax(0,1.15fr) 1fr 110px; gap: 10px; align-items: center; padding: 4px 0; }
+    .va-n { font-size: 12.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .va-bar { height: 11px; border-radius: 6px; overflow: hidden; display: flex; min-width: 26px; }
+    .va-ja { display: block; height: 100%; background: #2ea56a; }
+    .va-nei { display: block; height: 100%; background: #c2495a; }
+    .va-v { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
+    .va-leg { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: #8fa0ba; }
+    .va-leg i { display: inline-block; width: 12px; height: 8px; border-radius: 3px; margin-right: 4px; }
+    .mr-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .mrt { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 8px 12px; }
+    .mrt b { display: block; font-size: 16px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .mrt i { display: block; font-style: normal; font-size: 10.5px; color: #8fa0ba; }
+    .mr-row { display: grid; grid-template-columns: minmax(0, 1.3fr) 1fr 100px; gap: 8px; align-items: center; padding: 3px 0; }
+    .mr-n { font-size: 12.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mr-bar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
+    .mr-bar i { display: block; height: 100%; background: var(--pc, #f6b13b); border-radius: 5px; }
+    .mr-v { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
+    .mal-row { display: flex; gap: 10px; align-items: baseline; padding: 6px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; flex-wrap: wrap; }
+    .mal-row:hover .ml-h { color: #f6b13b; }
+    .ml-h { font-size: 13px; color: #dfe7f4; flex: 1 1 340px; min-width: 0; }
+    .ml-teg { font-size: 11px; color: #8fa0ba; }
+    .ml-st { font-size: 11px; color: #9fb0c8; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+    .ml-st.ok { color: #6ee7b7; border-color: rgba(110,231,183,.4); }
+    .aim { background: rgba(124,92,247,.06); border: 1px solid rgba(124,92,247,.3); border-radius: 14px; padding: 15px 18px; margin: 10px 0; }
+    .aim-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 8px; }
+    .aim-tag { font-size: 11px; font-weight: 700; color: #b9a6ff; background: rgba(124,92,247,.14); border-radius: 999px; padding: 2px 10px; }
+    .aim-yfir { font-size: 14px; color: #e6ecf7; line-height: 1.6; margin: 4px 0 10px; }
+    .aim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+    .aim-cell { background: rgba(255,255,255,.04); border-radius: 10px; padding: 10px 13px; }
+    .aim-cell b { font-size: 11.5px; color: #b9a6ff; text-transform: uppercase; letter-spacing: .04em; }
+    .aim-cell p { font-size: 12.5px; color: #c7d2e4; line-height: 1.55; margin: 5px 0 0; }
+    .aim-list { margin: 0; padding-left: 18px; }
+    .aim-list li { font-size: 12.5px; color: #b9c6da; line-height: 1.5; padding: 1px 0; }
+    .aim-note { font-size: 11px; color: #8fa0ba; margin-top: 10px; }
+    .aim-areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; margin: 10px 0; }
+    .aima { background: rgba(124,92,247,.05); border: 1px solid rgba(124,92,247,.22); border-radius: 12px; padding: 12px 15px; }
+    .aima-h { font-size: 13.5px; font-weight: 800; color: #d5c8ff; }
+    .aima-n { font-size: 10.5px; font-weight: 400; color: #8fa0ba; margin-left: 6px; }
+    .aima-g { font-size: 12.5px; color: #c7d2e4; line-height: 1.55; margin: 6px 0; }
+    .aima-a { font-size: 12px; color: #b9c6da; margin: 0; }
+    .aima-a b { color: #b9a6ff; }
+    .nefndir { display: flex; flex-wrap: wrap; gap: 8px; }
+    .nefndir span { font-size: 13px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; }
+    .nefndir span.nf-lead { color: #ffd479; border-color: rgba(255,212,121,.45); font-weight: 700; }
+    .tk-foot { font-size: 12px; color: #8593a8; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .tk-foot a { color: #f6b13b; text-decoration: none; }
+    .tk-rephead { display: none; }
+  </style>
+  <style is:global>
+    /* Gáttin + runtime-innerHTML hlutar VERÐA að vera global (scoped-CSS tré-hristist). */
+    [data-pg="thingskyrsla"] .tkg { max-width: 560px; margin: 26px auto; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 24px 26px; text-align: center; }
+    [data-pg="thingskyrsla"] .tkg-badge { display: inline-block; background: #f6b13b; color: #131a29; font-weight: 800; font-size: 12px; letter-spacing: .05em; padding: 4px 12px; border-radius: 999px; }
+    [data-pg="thingskyrsla"] .tkg-h { font-size: 21px; color: #eaf1fb; margin: 12px 0 6px; text-transform: none; letter-spacing: 0; }
+    [data-pg="thingskyrsla"] .tkg-b { color: #cdd6e6; font-size: 13.5px; line-height: 1.6; margin: 0 0 16px; }
+    [data-pg="thingskyrsla"] .pg-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    [data-pg="thingskyrsla"] .pg-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 14px; text-decoration: none; padding: 11px 20px; border-radius: 11px; border: 0; cursor: pointer; }
+    [data-pg="thingskyrsla"] .pg-sec { border: 1px solid rgba(255,255,255,.2); background: transparent; color: #cdd6e6; font-size: 14px; text-decoration: none; padding: 11px 20px; border-radius: 11px; cursor: pointer; }
+    [data-pg="thingskyrsla"] .pg-sec:hover, [data-pg="thingskyrsla"] .pg-main:hover { filter: brightness(1.08); }
+    [data-pg="thingskyrsla"] .tkg-note { color: #8fa0b8; font-size: 12px; margin-top: 12px; line-height: 1.6; }
+    [data-pg="thingskyrsla"] .tkg-note a { color: #f6b13b; text-decoration: none; }
+    [data-pg="thingskyrsla"] .tkg-open { color: #6ee7b7; font-size: 12.5px; margin-top: 10px; }
+    /* Umfjöllun (runtime-innerHTML) */
+    .umf-head { font-size: 13px; color: #9fb0c8; margin-bottom: 6px; }
+    .umf-head b { color: #eaf1fb; }
+    .umf-it { display: block; font-size: 13.5px; color: #dfe7f4; text-decoration: none; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.07); line-height: 1.35; }
+    .umf-it:hover { color: #f6b13b; }
+    .umf-it span { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .umf-more { display: inline-block; margin-top: 8px; font-size: 12.5px; color: #f6b13b; text-decoration: none; }
+    .umf-none { font-size: 13px; color: #9fb0c8; }
+    /* Fylgja-hnappur (runtime) */
+    .follow-wrap { min-height: 34px; }
+    .fbtn { background: var(--pc); color: #06121a; border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .fbtn.on { background: transparent; color: var(--pc); }
+    .fbtn:disabled { opacity: .6; cursor: default; }
+    .f-note { font-size: 11px; color: #7e8ca6; margin-left: 8px; }
+    /* PRENT: aðeins skýrslan sjálf, ljóst þema */
+    @media print {
+      body.tk-printing * { visibility: hidden; }
+      body.tk-printing #tk-report, body.tk-printing #tk-report * { visibility: visible; }
+      body.tk-printing #tk-report { position: absolute; left: 0; top: 0; width: 100%; background: #fff; color: #111; padding: 8mm; }
+      body.tk-printing .no-print, body.tk-printing .actions { display: none !important; }
+      body.tk-printing .tk-rephead { display: block !important; font-size: 11px; color: #444; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-bottom: 10px; }
+      body.tk-printing #tk-report h1, body.tk-printing #tk-report h2 { color: #111; }
+      body.tk-printing #tk-report .kpi, body.tk-printing #tk-report .card, body.tk-printing #tk-report .mrt,
+      body.tk-printing #tk-report .aim, body.tk-printing #tk-report .aima { background: #fff; border-color: #ddd; }
+      body.tk-printing #tk-report .k-v, body.tk-printing #tk-report .mrt b { color: #111; }
+      body.tk-printing #tk-report .k-top, body.tk-printing #tk-report .k-s, body.tk-printing #tk-report .meta,
+      body.tk-printing #tk-report .c-sub, body.tk-printing #tk-report .mrt i, body.tk-printing #tk-report .mr-n,
+      body.tk-printing #tk-report .mr-v, body.tk-printing #tk-report .va-n, body.tk-printing #tk-report .va-v,
+      body.tk-printing #tk-report .rb-h, body.tk-printing #tk-report .rb-d, body.tk-printing #tk-report .rb-fl,
+      body.tk-printing #tk-report .ml-h, body.tk-printing #tk-report .ml-teg, body.tk-printing #tk-report .ml-st,
+      body.tk-printing #tk-report .c-empty, body.tk-printing #tk-report .aim-yfir, body.tk-printing #tk-report .aim-cell p,
+      body.tk-printing #tk-report .aima-g, body.tk-printing #tk-report .aima-a, body.tk-printing #tk-report .aim-list li,
+      body.tk-printing #tk-report .tk-foot, body.tk-printing #tk-report .nefndir span { color: #222 !important; }
+      body.tk-printing #tk-report .man-bar, body.tk-printing #tk-report .mr-bar, body.tk-printing #tk-report .va-bar { background: #eee; }
+    }
+  </style>
+
+  <!-- Eyja: gátt + aðgangur + kaup + PDF + fylgja (module → auth.js) -->
+  <script>
+    import { loadUser, hasReport, isAdmin, hasSub, openThingReport, thingRemaining, thingQuotaKnown, karpCheckout, loginHref, karpAskellSubscribe, karpPost } from '../../../lib/auth.js';
+
+    function revealReport() {
+      const rep = document.getElementById('tk-report');
+      const gate = document.getElementById('tk-gate');
+      if (rep) rep.hidden = false;
+      if (gate) gate.remove();
+    }
+
+    async function initGate() {
+      const gate = document.getElementById('tk-gate');
+      if (!gate || gate.dataset.done) return;
+      gate.dataset.done = '1';
+      const KEY = gate.dataset.key, TITLE = gate.dataset.title, NAFN = gate.dataset.nafn;
+      const u = await loadUser();
+      if (isAdmin() || hasReport(KEY)) { revealReport(); return; }
+      const btns = document.getElementById('tkg-btns');
+      const qnote = document.getElementById('tk-qnote');
+      if (!u || !u.loggedIn) {
+        // útskráð: kaup krefjast innskráningar — CTA breytist í innskráningu, sýnishorn alltaf aðgengilegt
+        btns.innerHTML = '<a class="pg-main" href="' + loginHref() + '">Skrá inn til að kaupa eða opna →</a>';
+        return;
+      }
+      if (hasSub('thingskyrslur')) {
+        // áskrifandi: opna með kvóta (varanlegt grant server-hlið)
+        const rem = thingQuotaKnown() ? thingRemaining() : null;
+        const openBtn = document.createElement('button');
+        openBtn.className = 'pg-main'; openBtn.type = 'button';
+        openBtn.textContent = '📖 Opna með áskriftinni' + (rem != null && rem >= 0 ? ' — ' + rem + ' af 20 eftir í mánuðinum' : '');
+        btns.prepend(openBtn);
+        openBtn.onclick = async () => {
+          openBtn.disabled = true; openBtn.textContent = 'Opna…';
+          const r = await openThingReport(KEY, TITLE);
+          if (r.owned || r.granted) { revealReport(); return; }
+          openBtn.disabled = false;
+          if (r.needPay) { openBtn.remove(); qnote.innerHTML = '<div class="tkg-open" style="color:#f6b13b">⚠ Mánaðarkvótinn (20) er fullnýttur — stök skýrsla á 990 kr eða bíddu mánaðamóta.</div>'; }
+          else { openBtn.textContent = 'Náði ekki — reyndu aftur'; }
+        };
+      }
+      const buy = document.getElementById('tk-buy');
+      if (buy) buy.onclick = async () => {
+        buy.disabled = true;
+        const res = await karpCheckout({ kind: 'thingmadur', ref: NAFN, key: KEY }, gate.querySelector('.tkg'));
+        if (res === 'redirected' || res === 'embedded') return;
+        buy.disabled = false;
+        qnote.innerHTML = '<div class="tkg-open" style="color:#f6b13b">Greiðslugáttin er ekki opin í augnablikinu — <a style="color:#f6b13b" href="/hjalp/?fra=thingskyrsla">hafðu samband</a> eða skoðaðu sýnishornið.</div>';
+      };
+      const sub = document.getElementById('tk-sub');
+      if (sub) sub.onclick = () => { karpAskellSubscribe('thingskyrslur', gate.querySelector('.tkg')); };
+    }
+
+    function initPdf() {
+      const b = document.getElementById('tk-pdf');
+      if (!b || b.dataset.done) return;
+      b.dataset.done = '1';
+      b.onclick = () => {
+        document.body.classList.add('tk-printing');
+        window.print();
+        setTimeout(() => document.body.classList.remove('tk-printing'), 600);
+      };
+    }
+
+    function initFollow() {
+      const el = document.getElementById('follow');
+      if (!el || el.dataset.done) return;
+      el.dataset.done = '1';
+      const KEY = el.dataset.key;
+      const lfl = () => { try { return JSON.parse(localStorage.getItem('karp-follows-local') || '[]'); } catch (e) { return []; } };
+      function render() {
+        const u = window.KARP_USER || { loggedIn: false };
+        const follows = u.loggedIn ? (u.follows || []) : lfl();
+        const following = follows.includes(KEY);
+        el.innerHTML = `<button class="fbtn${following ? ' on' : ''}">${following ? '✓ Fylgist með' : '+ Fylgja'}</button>${!u.loggedIn ? '<span class="f-note">vistast á þessu tæki</span>' : ''}`;
+        el.querySelector('button').onclick = async () => {
+          const u2 = window.KARP_USER || { loggedIn: false };
+          const cur = u2.loggedIn ? (u2.follows || []) : lfl();
+          const next = cur.includes(KEY) ? cur.filter((k) => k !== KEY) : cur.concat([KEY]);
+          const b = el.querySelector('button');
+          b.disabled = true; b.textContent = '…';
+          if (u2.loggedIn) {
+            const res = await karpPost('/follows', { follows: next });
+            window.KARP_USER.follows = (res && res.follows) ? res.follows : next;
+          } else {
+            try { localStorage.setItem('karp-follows-local', JSON.stringify(next)); } catch (e) {}
+          }
+          render();
+        };
+      }
+      loadUser().then(render);
+    }
+
+    document.addEventListener('astro:page-load', () => {
+      if (!document.querySelector('main[data-pg="thingskyrsla"]')) return;
+      initGate(); initPdf(); initFollow();
+    });
+  </script>
+
+  <!-- Eyja: pólitíska kortið m/highlight (flutt af /althingi/, LOTA 12 → skýrslan) -->
+  <script define:vars={{ POLD, PCOL, SPQ, SPKEY, SELF: { id: m.id, n: m.nafn } }}>
+    function initTkPolMap() {
+      const el = document.getElementById('tk-polmap');
+      if (!el) return;
+      if (!window.echarts) {
+        let s = document.getElementById('echarts-cdn');
+        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+        s.addEventListener('load', initTkPolMap, { once: true });
+        return;
+      }
+      if (window.echarts.getInstanceByDom(el)) return;
+      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const ini = (n) => { const w = String(n).split(/\s+/).filter(Boolean); return ((w[0] || ' ')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
+      const fmt = (v) => String(v).replace('.', ',');
+      const byP = {};
+      POLD.forEach((m) => { (byP[m.f] = byP[m.f] || []).push(m); });
+      const order = Object.keys(byP).sort((a, b) => byP[b].length - byP[a].length);
+      const series = order.map((p) => ({
+        name: p, type: 'scatter', symbolSize: 14, emphasis: { focus: 'series', scale: 1.45 },
+        itemStyle: { color: PCOL[p], borderColor: 'rgba(4,8,16,.5)', borderWidth: 1, opacity: 0.8 },
+        label: { show: true, position: 'top', distance: 3, fontSize: 8.5, color: '#9fb0c8', formatter: (d) => ini(d.data.n) },
+        labelLayout: { hideOverlap: true },
+        data: byP[p].filter((m) => m.id !== SELF.id).map((m) => ({ value: m.v, id: m.id, n: m.n, f: m.f, ho: m.ho, up: m.up, sl: m.sl })),
+      })).filter((s) => s.data.length);
+      // ÞESSI þingmaður: stór, gylltur hringur + nafn — alltaf efst
+      const me = POLD.find((m) => m.id === SELF.id);
+      if (me) {
+        series.push({ name: SELF.n, type: 'effectScatter', symbolSize: 26, zlevel: 5,
+          rippleEffect: { brushType: 'stroke', scale: 2.2 },
+          itemStyle: { color: PCOL[me.f], borderColor: '#ffd479', borderWidth: 3 },
+          label: { show: true, position: 'top', distance: 5, fontSize: 11, fontWeight: 800, color: '#ffd479', formatter: () => SELF.n },
+          data: [{ value: me.v, id: me.id, n: me.n, f: me.f, ho: me.ho, up: me.up, sl: me.sl }] });
+      }
+      if (series[0]) series[0].markLine = { silent: true, symbol: 'none', lineStyle: { color: 'rgba(255,255,255,.1)', type: 'dashed' }, data: [{ xAxis: 0 }, { yAxis: 0 }] };
+      // ÞÚ-punkturinn (stefnupróf, vistast aðeins í vafra)
+      try {
+        const ans = JSON.parse(localStorage.getItem('karp-stefnuprof') || '{}');
+        if (Object.keys(ans).length >= 4 && SPQ && SPQ.length) {
+          const score = {}, max = {};
+          SPQ.forEach((q) => { const a = ans[q.id]; if (!a) return; Object.keys(q.stance).forEach((k) => { max[k] = (max[k] || 0) + 1; if (q.stance[k] === a) score[k] = (score[k] || 0) + 1; }); });
+          const cent = {};
+          POLD.forEach((m) => { (cent[m.f] = cent[m.f] || []).push(m.v); });
+          let sx = 0, sy = 0, sw = 0;
+          Object.keys(max).forEach((k) => {
+            const name = SPKEY[k], pts = cent[name];
+            if (!pts || !max[k]) return;
+            const cx = pts.reduce((a2, p) => a2 + p[0], 0) / pts.length;
+            const cy = pts.reduce((a2, p) => a2 + p[1], 0) / pts.length;
+            const w = Math.pow((score[k] || 0) / max[k], 2);
+            sx += cx * w; sy += cy * w; sw += w;
+          });
+          if (sw > 0) {
+            series.push({ name: 'ÞÚ', type: 'effectScatter', symbol: 'pin', symbolSize: 32, zlevel: 6,
+              rippleEffect: { brushType: 'stroke', scale: 2.4 },
+              itemStyle: { color: '#ffd479', borderColor: '#06101c', borderWidth: 1.5 },
+              label: { show: true, position: 'inside', formatter: 'ÞÚ', fontSize: 9, fontWeight: 800, color: '#06101c' },
+              tooltip: { formatter: 'Áætluð staða ÞÍN út frá stefnuprófinu — vegið meðaltal flokkamiðja eftir samsvörun svara þinna. Nálgun, ekki nafnakallsmæling.' },
+              data: [{ value: [sx / sw, sy / sw] }] });
+          }
+        }
+      } catch (e) {}
+      const chart = window.echarts.init(el);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        legend: { type: 'scroll', top: 0, textStyle: { color: '#aab6cc', fontSize: 11.5 }, inactiveColor: '#3a455e', itemGap: 12, pageTextStyle: { color: '#aab6cc' }, pageIconColor: '#aab6cc', pageIconInactiveColor: '#3a455e' },
+        tooltip: { trigger: 'item', backgroundColor: 'rgba(9,14,26,.95)', borderColor: 'rgba(255,255,255,.12)', textStyle: { color: '#eaf1fb', fontSize: 12.5 },
+          formatter: (p) => { const d = p.data; if (!d || !d.n) return ''; return `<b>${esc(d.n)}</b><br>${esc(d.f)}${d.ho != null ? '<br>Flokkshollusta ' + fmt(d.ho) + '%' : ''}${d.up ? ' · ' + d.up + '× á móti flokki' : ''}<br><span style="color:#19d3c5">Smelltu fyrir skýrslu →</span>`; } },
+        grid: { left: 10, right: 10, top: 38, bottom: 24 },
+        xAxis: { type: 'value', min: -108, max: 108, show: false },
+        yAxis: { type: 'value', min: -108, max: 108, show: false },
+        graphic: [
+          { type: 'text', left: '4%', top: 'middle', style: { text: '◄ Ríkisstjórn', fill: '#56657f', font: '600 12.5px Inter, sans-serif' } },
+          { type: 'text', right: '4%', top: 'middle', style: { text: 'Stjórnarandstaða ►', fill: '#56657f', font: '600 12.5px Inter, sans-serif' } },
+        ],
+        series,
+      });
+      chart.on('click', (p) => { if (p.data && p.data.sl) location.href = '/althingi/' + p.data.sl + '/skyrsla/'; });
+      window.addEventListener('resize', () => chart.resize());
+    }
+    document.addEventListener('astro:page-load', () => {
+      const mn = document.querySelector('main[data-pg="thingskyrsla"]');
+      if (mn) initTkPolMap();
+    });
+  </script>
+
+  <!-- Eyja: lifandi umfjöllun (sama leit og þingmanns-prófíllinn notaði) -->
+  <script define:vars={{ MPNAME: m.nafn, MPSLUG: slug }}>
+    function initTkUmf() {
+      const el = document.getElementById('tk-umf');
+      if (!el || el.dataset.done) return;
+      el.dataset.done = '1';
+      const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
+      fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((f) => {
+          if (!f || !f.ready || !f.total) { el.innerHTML = '<p class="umf-none">Lítil umfjöllun fannst síðustu 6 mánuði (leitað eftir fullu nafni).</p>'; return; }
+          const se = f.sentiment || {};
+          const tone = se.scored ? (se.idx > 15 ? ['jákvæð', '#46e08a'] : se.idx < -15 ? ['neikvæð', '#ff6d7a'] : ['hlutlaus', '#9fb0c8']) : null;
+          el.innerHTML = '<div class="umf-head"><b>' + f.total + '</b> fréttir sl. 6 mán' + (tone ? ' · tónn <b style="color:' + tone[1] + '">' + (se.idx > 0 ? '+' : '') + se.idx + '</b> (' + tone[0] + ')' : '') + '</div>'
+            + (f.items || []).slice(0, 8).map((x) => '<a class="umf-it" href="' + safe(x.link) + '" target="_blank" rel="noopener">' + esc(x.title) + '<span>' + esc(x.source || '') + '</span></a>').join('')
+            + '<a class="umf-more" href="/frettir/">Greina nánar í Umfjöllun →</a>';
+        })
+        .catch(() => { el.innerHTML = '<p class="umf-none">Umfjöllunin birtist á karp.is.</p>'; });
+    }
+    document.addEventListener('astro:page-load', () => { const mn = document.querySelector('main[data-pg="thingskyrsla"]'); if (mn && location.pathname.includes(MPSLUG)) initTkUmf(); });
+  </script>
+</Layout>

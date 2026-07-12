@@ -26,6 +26,10 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
     <h1>Þingmenn ({mps.length})</h1>
     <p>Smelltu á þingmann fyrir lykilupplýsingar í glugga — eða opnaðu fulla síðu hans þaðan.</p>
 
+    <div class="tk-promo">📊 <b>Nýtt — Þingmannaskýrslan:</b> ítarleg greining á hverjum þingmanni (atkvæðaferill, uppreisnar-atkvæði,
+      málaflokkar, AI-ræðugreining, fyrirspurnir, umfjöllun) á 990 kr — eða 20 skýrslur/mán í áskrift á 3.900 kr.
+      <a href={`/althingi/${slugify('Jón Pétur Zimsen')}/skyrsla/`}>👁️ Sjá sýnishorn →</a></div>
+
     <div class="grid">
       {mps.map((m) => (
         <a class="mp" href={`/althingi/${slugify(m.nafn)}/`} data-mpid={m.id} style={`--pc:${colorByName(m.flokkur)}`} data-tip={`${m.kjordaemi || ""} · ${m.aldur ? m.aldur + " ára" : ""}${m.hollusta != null ? ` · hollusta ${m.hollusta}%` : ""}${m.raedur ? ` · ${m.raedur} ræður` : ""}${m.nefndir ? ` · ${m.nefndir} nefndir` : ""}${m.laun ? ` · laun ${Math.round(m.laun / 1000)} þús` : ""}`}>
@@ -46,6 +50,9 @@ const desc = `Allir ${mps.length} þingmenn Alþingis með mynd, flokki og kjör
     main { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .tk-promo { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 12px; padding: 11px 15px; font-size: 13px; color: #c7d2e4; line-height: 1.55; margin-top: 12px; }
+    .tk-promo b { color: #f6b13b; }
+    .tk-promo a { color: #f6b13b; text-decoration: none; font-weight: 700; white-space: nowrap; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin-top: 16px; }
     .mp { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-top: 3px solid var(--pc); border-radius: 11px; padding: 10px 8px; text-decoration: none; transition: border-color .12s, transform .12s; }
     .mp:hover { border-color: var(--pc); transform: translateY(-2px); }
