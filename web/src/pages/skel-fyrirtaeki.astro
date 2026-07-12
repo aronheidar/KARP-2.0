@@ -1,0 +1,47 @@
+---
+// ─────────────────────────────────────────────────────────────
+// WORKER-SSR SKEL fyrir /fyrirtaeki/<kt>/ (SEO — indexeranleg félagssíða).
+// RENDERAST ALDREI beint. worker.js:fyrirtaekiSidaHandler sækir þessa byggðu
+// HTML úr ASSETS og string-replace-ar %%KARP_*%% tóka fyrir per-félag efni.
+// Þannig fæst sami haus/nav/footer/global-CSS og allar aðrar síður án þess að
+// tvírita Layout. noindex hér (raw skel aldrei indexað); worker fjarlægir
+// robots-meta þegar hann ber fram raunfélag. Útilokuð úr sitemap (astro.config).
+// CSS = is:global (worker-injectað efni má ekki reiða sig á scoped CSS).
+// ─────────────────────────────────────────────────────────────
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="%%KARP_TITLE%%"
+  description="%%KARP_DESC%%"
+  canonical="%%KARP_CANON%%"
+  ogTitle="%%KARP_OGTITLE%%"
+  jsonLd={"%%KARP_JSONLD%%"}
+  noindex={true}
+>
+  <main class="kf-wrap" data-pg="fyrirtaeki-kt">%%KARP_MAIN%%</main>
+
+  <style is:global>
+    main.kf-wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px 72px; }
+    .kf-h1 { font-size: 30px; margin: 0 0 4px; color: var(--ink); }
+    .kf-kt { color: var(--faint); font-variant-numeric: tabular-nums; font-size: 15px; }
+    .kf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; }
+    .kf-chip { font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; color: var(--muted); }
+    .kf-chip.b { color: #e78284; border-color: rgba(231,130,132,.4); }
+    .kf-chip.g { color: #42d086; border-color: rgba(66,208,134,.4); }
+    .kf-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; margin: 0 0 26px; }
+    .kf-cell { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); }
+    .kf-l { display: block; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: 3px; }
+    .kf-v { color: var(--ink); font-size: 14.5px; }
+    .kf-sec { margin: 0 0 26px; }
+    .kf-sec h2 { font-size: 17px; margin: 0 0 10px; color: var(--ink); }
+    .kf-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .kf-tbl th, .kf-tbl td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .kf-tbl th { color: var(--faint); font-weight: 600; }
+    .kf-cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 26px; }
+    .kf-cta-main { background: var(--gold); color: #101623; border-radius: 10px; padding: 11px 18px; font-weight: 700; font-size: 14px; text-decoration: none; }
+    .kf-cta-sec { border: 1px solid rgba(246,177,59,.5); color: var(--gold); border-radius: 10px; padding: 11px 18px; font-weight: 700; font-size: 14px; text-decoration: none; }
+    .kf-links { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+    .kf-links a { color: var(--gold); }
+    .kf-note { font-size: 12px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 24px; }
+  </style>
+</Layout>

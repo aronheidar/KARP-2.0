@@ -8,7 +8,7 @@ export default defineConfig({
   site: 'https://karp.is',       // fyrir sitemap + canonical (breyta ef annað lén)
   output: 'static',
   build: { format: 'directory' },
-  integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) })], // Mitt svæði = noindex
+  integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) && !/\/skel-fyrirtaeki\/?$/.test(page) })], // Mitt svæði = noindex
   vite: {
     resolve: {
       alias: {
