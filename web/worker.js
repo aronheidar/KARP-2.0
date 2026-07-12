@@ -1379,9 +1379,10 @@ async function askellLastHandler(request, env) {
 // Flettir upp verð-ID einskiptisvöru í Áskell V2-katalógnum eftir vöru-TILVÍSUN (reference).
 // Varfærin þáttun (svar-snið óskjalfest í smáatriðum): vörulisti → id→reference kort, verðlisti →
 // fyrsta verð vörunnar (one_time í forgangi). Cache 1h per tilvísun. Skilar id eða null.
-async function askellPriceId(env, ctx, prodRef) {
+// recurring=true → skilar ENDURTEKNA verðinu (áskriftir); annars one_time í forgangi (stök skýrsla)
+async function askellPriceId(env, ctx, prodRef, recurring) {
   const cache = caches.default;
-  const ck = new Request('https://cache.karp.internal/askell-price?ref=' + encodeURIComponent(prodRef));
+  const ck = new Request('https://cache.karp.internal/askell-price?ref=' + encodeURIComponent(prodRef) + (recurring ? '&rec=1' : ''));
   const hit = await cache.match(ck);
   if (hit) { try { const j = await hit.json(); if (j.id) return j.id; } catch (e) {} }
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Accept': 'application/json' };
@@ -1412,7 +1413,8 @@ async function askellPriceId(env, ctx, prodRef) {
       const match = pref === prodRef || (pid != null && prodIds.has(String(pid))) ||
         String(pr.product || '') === prodRef || refOf(pr) === prodRef;
       if (!match) continue;
-      if (!best || String(pr.billing_type || '') === 'one_time') best = pr;   // one_time í forgangi
+      const vil = recurring ? 'recurring' : 'one_time';
+      if (!best || String(pr.billing_type || '') === vil) best = pr;   // óskað snið í forgangi
     }
     const id = best ? idOf(best) : null;
     if (id != null) ctx.waitUntil(cache.put(ck, new Response(JSON.stringify({ id }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } })));
@@ -1615,6 +1617,115 @@ async function stakConfirmHandler(request, env, ctx) {
     const st = String((pd && pd.state) || 'pending');
     if (st === 'settled') { await granted(String(uuid)); return sjson({ state: 'settled' }); }
     return sjson({ state: 'pending' });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+
+// ── Áskriftir um ÁSKELL V1-FLÆÐI (framhjá V2 embedded widget) ──
+// V2 widget getur EKKI tengt viðskiptavin sem er þegar til („A customer with this reference already exists")
+// OG Áskell sendir ENGAN vefkrók við trial-contract-stofnun (sannað 12.7) → widget-leiðin veitir aldrei aðgang.
+// Þess í stað: sama iframe-kortaform og stökin (V1 hosted checkout) → server-megin stofnum við
+// V2 subscription-contract OG veitum aðgang STRAX á /sub/grant (ekki beðið eftir rukkunar-vefkrók).
+// slug = þrep (grunnur/fyrirtaeki/fyrirtaeki_plus) EÐA þjónusta (utbod/frettir/fasteign) = vöru-tilvísun í Áskell.
+const SUB2_SLUGS = { grunnur: 'tier', fyrirtaeki: 'tier', fyrirtaeki_plus: 'tier', utbod: 'svc', frettir: 'svc', fasteign: 'svc' };
+async function sub2CheckoutHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY) return sjson({ error: 'unconfigured' });
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  if (request.method !== 'POST') { const pid = await askellProcessorId(env, ctx); return sjson(pid != null ? { ok: 1 } : { error: 'noprocessor' }); }
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  const b = await request.json().catch(() => null);
+  const slug = String((b && b.slug) || '').toLowerCase();
+  if (!SUB2_SLUGS[slug]) return sjson({ error: 'input' });
+  const kt = String((b && b.kt) || '').replace(/\D/g, '');
+  if (kt.length !== 10) return sjson({ error: 'input' });
+  const email = String((b && b.email) || '').trim().slice(0, 120);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return sjson({ error: 'email' });
+  const nafn = String((b && b.nafn) || '').trim().slice(0, 80) || 'Karp notandi';
+  const bil = nafn.lastIndexOf(' ');
+  const pid = await askellProcessorId(env, ctx);
+  if (pid == null) return sjson({ error: 'noprocessor' });
+  const price = await askellPriceId(env, ctx, slug, true);   // endurtekna verðið — verður að finnast ÁÐUR en kort birtist
+  if (!price) return sjson({ error: 'noprice', ref: slug });
+  try {
+    const cr = await fetch('https://askell.is/api/customers/', {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ first_name: bil > 0 ? nafn.slice(0, bil) : nafn, last_name: bil > 0 ? nafn.slice(bil + 1) : '-', email, customer_reference: kt }),
+    });
+    if (!cr.ok) { const til = await fetch('https://askell.is/api/customers/' + encodeURIComponent(kt) + '/', { headers: H }); if (!til.ok) return sjson({ error: 'customer' }); }
+    const r = await fetch('https://askell.is/api/checkouts/', {
+      method: 'POST', headers: H,
+      body: JSON.stringify({ payment_processor: pid, currency: 'ISK', capture_only: true, allowed_origin: 'https://karp.is' }),
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.checkout_url || !d.token) return sjson({ error: 'askell', status: r.status });
+    return sjson({ token: d.token, checkout_url: d.checkout_url });
+  } catch (e) { return sjson({ error: 'upstream' }); }
+}
+async function sub2ConfirmHandler(request, env, ctx) {
+  if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
+  const b = await request.json().catch(() => null);
+  const slug = String((b && b.slug) || '').toLowerCase();
+  if (!SUB2_SLUGS[slug]) return sjson({ error: 'input' });
+  const kt = String((b && b.kt) || '').replace(/\D/g, '');
+  const tok = String((b && b.token) || '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
+  if (kt.length !== 10 || tok.length < 20) return sjson({ error: 'input' });
+  const isTier = SUB2_SLUGS[slug] === 'tier';
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/askell-sub2?tok=' + tok);
+  const untilOf = (c) => {
+    const s = c && (c.trial_end_at || c.billing_anchor_at || c.next_billing_at || c.current_period_end_at);
+    const now = Math.floor(Date.now() / 1000);
+    let u = s ? Math.floor(new Date(s).getTime() / 1000) : 0;
+    if (!u || u < now) u = now + 32 * 86400;   // ef period-lok finnst ekki → mánuður frá núna (grant klárast)
+    return u;
+  };
+  const virk = (st) => /active|trial|current/i.test(String(st || '')) && !/cancel|fail|expire|inactive/i.test(String(st || ''));
+  const granted = async (cid, until) => {   // grant STRAX server-megin (ekki beðið eftir vefkrók); userid → réttur aðgangur
+    if (!env.KARP_GRANT_SECRET) return;
+    await fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
+      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+      body: JSON.stringify({ userid: +uid, kt, ...(isTier ? { tier: slug } : { service: slug }), until, askellId: String(cid), ref: 'sub2_' + String(cid) + '_' + until, secret: env.KARP_GRANT_SECRET }),
+    }).catch(() => null);
+  };
+  const contractGet = async (cid) => { const g = await fetch('https://askell.is/api/v2/subscription-contracts/' + cid + '/', { headers: H }); return g.json().catch(() => null); };
+  try {
+    const hit = await cache.match(ck);
+    if (hit) {   // samningur þegar stofnaður → aðeins staða + grant þegar virkur
+      const j = await hit.json().catch(() => null);
+      if (j && j.cid) { const c = await contractGet(j.cid); if (virk(c && c.state)) { await granted(j.cid, untilOf(c)); return sjson({ state: 'active' }); } return sjson({ state: 'pending' }); }
+    }
+    // kort komið? (checkout status = tokencreated, krefst public-lykils — annars blind virkjun)
+    const cs = await fetch('https://askell.is/api/checkouts/' + tok + '/', { headers: { 'Authorization': 'Api-Key ' + env.ASKELL_PUBLIC_KEY } });
+    const cd = await cs.json().catch(() => null);
+    const cst = String((cd && cd.status) || '');
+    if (cst !== 'tokencreated') { if (/error|fail|cancel|expire/i.test(cst)) return sjson({ state: 'failed' }); return sjson({ state: 'waiting' }); }
+    const price = await askellPriceId(env, ctx, slug, true);
+    if (!price) return sjson({ error: 'noprice' });
+    // dedup: ó-afskráður samningur fyrir þennan kaupanda+vöru þegar til? → endurnýta (engin tvöföldun v/endurtilrauna)
+    const lst = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=50', { headers: H }).then((r) => r.json()).catch(() => null);
+    const contracts = Array.isArray(lst) ? lst : ((lst && lst.results) || []);
+    let contract = contracts.find((c) => String(c.customer_reference || '').replace(/\D/g, '') === kt && !/cancel/i.test(String(c.state || '')) && (c.items || []).some((i) => String(i.product_reference || '') === slug)) || null;
+    // tengja kort við viðskiptavin (nauðsynlegt fyrir rukkun þegar trial rennur út)
+    const at = await fetch('https://askell.is/api/customers/paymentmethod/', { method: 'POST', headers: H, body: JSON.stringify({ customer_reference: kt, token: tok }) });
+    if (!at.ok && !contract) return sjson({ state: 'waiting' });
+    if (!contract) {   // stofna+virkja samning server-megin (widget kemur hvergi við)
+      const body = { customer_reference: kt, items: [{ price }], state: 'active', metadata: { karp: (isTier ? 'tier:' : 'svc:') + slug, uid: String(uid) } };
+      const cr = await fetch('https://askell.is/api/v2/subscription-contracts/', { method: 'POST', headers: H, body: JSON.stringify(body) });
+      contract = await cr.json().catch(() => null);
+      if (!cr.ok || !contract || !contract.id) return sjson({ error: 'contract', status: cr.status });
+    }
+    const cid = contract.id;
+    await cache.put(ck, new Response(JSON.stringify({ cid }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=7200' } }));
+    if (!virk(contract.state)) {   // ekki virkur enn → reyna PATCH state active, lesa aftur
+      const pc = await fetch('https://askell.is/api/v2/subscription-contracts/' + cid + '/', { method: 'PATCH', headers: H, body: JSON.stringify({ state: 'active' }) });
+      const c2 = await pc.json().catch(() => null);
+      if (c2 && c2.state) contract = c2; else { const c3 = await contractGet(cid); if (c3) contract = c3; }
+    }
+    if (virk(contract.state)) { await granted(cid, untilOf(contract)); return sjson({ state: 'active' }); }
+    return sjson({ state: 'pending', contract_state: contract.state || null });   // sést í prófi ef virkjun tókst ekki
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
@@ -2406,6 +2517,8 @@ export default {
     if (url.pathname === '/api/sub/cancel') return subCancelHandler(request, env, ctx);
     if (url.pathname === '/api/stak/checkout') return stakCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/stak/confirm') return stakConfirmHandler(request, env, ctx);
+    if (url.pathname === '/api/sub2/checkout') return sub2CheckoutHandler(request, env, ctx);
+    if (url.pathname === '/api/sub2/confirm') return sub2ConfirmHandler(request, env, ctx);
     if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
