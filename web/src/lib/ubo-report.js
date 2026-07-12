@@ -277,20 +277,22 @@ function wireBuy(hostEl, kt, nafn) {
   // Þrepa-áskrifandi með innifaldar skýrslur → „Opna með áskrift" (sami server-kvóti og fyrirtækja-/KYC-skýrslur).
   const AU = (typeof window !== 'undefined') && window.karpAuth;
   const rem = (AU && AU.reportsRemaining) ? AU.reportsRemaining() : 0;
+  const qbtns = hostEl.querySelector('.eig-cta-btns');
   if (rem !== 0 && AU && AU.openReport) {
     const qb = document.createElement('button');
     qb.type = 'button'; qb.className = 'eig-buy';
-    qb.textContent = rem < 0 ? '📄 Opna skýrslu (áskrift)' : ('📄 Opna með áskrift · ' + rem + ' eftir í mán.');
+    qb.textContent = '📄 Opna með áskrift';
     buy.parentNode.insertBefore(qb, buy);
     buy.textContent = '🛒 eða kaupa staka — 990 kr';
     qb.addEventListener('click', async () => {
       qb.disabled = true; qb.textContent = 'Opna…';
       const r = await AU.openReport('eigendur:' + kt, (nafn || kt) + ' — eigendaskýrsla');
       if (r && (r.granted || r.owned)) { location.reload(); return; }
-      if (r && r.needPay) { qb.remove(); buy.textContent = '🛒 Kaupa eigenda-skýrslu — 990 kr'; return; }
+      if (r && r.needPay) { qb.remove(); buy.textContent = '🛒 Kaupa eigenda-skýrslu — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); return; }
       qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur';
     });
   }
+  if (AU && AU.paintReportQuota) AU.paintReportQuota(qbtns);   // teljari „N skýrslur eftir í mánuðinum" + upsell
   buy.addEventListener('click', async () => {
     const orig = buy.textContent; buy.disabled = true; buy.textContent = '⏳ Opna greiðslu…';
     const res = await karpCheckout({ kind: 'eigendur', ref: (nafn || '') + ' ' + kt, key: 'eigendur:' + kt }, hostEl.querySelector('.eig-cta'));

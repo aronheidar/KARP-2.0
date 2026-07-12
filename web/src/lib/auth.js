@@ -10,7 +10,7 @@
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
-import { tierLevelOf, limitsFor } from '../data/lausnir.js';
+import { tierLevelOf, limitsFor, THREP } from '../data/lausnir.js';
 const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
 export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
@@ -187,8 +187,55 @@ export async function openReport(key, title) {
   if (!r) return { error: true };
   if (r.owned) return { owned: true };
   if (r.granted) { if (Array.isArray(u.reports)) u.reports.push(key); if (typeof r.remaining === 'number') u.reportsRemaining = r.remaining; return { granted: true, remaining: r.remaining }; }
-  if (r.needPay) return { needPay: true };
+  if (r.needPay) { u.reportsRemaining = 0; return { needPay: true }; }   // kvóti búinn → teljari sýni „fullnýttur" við endurmálun
   return { error: true };
+}
+
+// ── Skýrslu-kvóti (þrep-áskrift): teljari + upsell við kauphnappana ──────────
+// Speglar fasteign-teljarann (#fvm-quota/paintQuota): „N skýrslur eftir í mánuðinum" (gult ≤2/0)
+// + „⬆ Uppfærðu í <næsta þrep>"-hlekkur fyrir grunnur/fyrirtæki. Falið þar til /me skilar raun-kvóta
+// (reportsQuotaKnown) svo hann sýni ekki ranglega „0" meðan WP-entitlement er óuppfært.
+export function reportsQuotaKnown() { return typeof _u().reportsRemaining === 'number'; }
+
+// Næsta þrep fyrir ofan virkt þrep notandans (til upsell „fleiri skýrslur"). Skilar þrep-hlut úr THREP
+// ({slug,heiti,verd,adgangar}) eða null (admin / efsta þrep Fyrirtæki+ / ekki-þrep-áskrifandi).
+export function nextTierUp() {
+  if (isAdmin()) return null;
+  const lvl = tierLevel();                 // 1=grunnur, 2=fyrirtaeki, 3=fyrirtaeki_plus
+  if (lvl < 1 || lvl >= 3) return null;    // aðeins grunnur/fyrirtæki fá upsell (Fyrirtæki+ er efst)
+  return THREP[lvl] || null;               // THREP[1]=Fyrirtæki (næst á eftir Grunni), THREP[2]=Fyrirtæki+
+}
+
+const RQ_CSS = '.krq{font-size:12.5px;color:#8fa0b8;margin:9px 0 2px;display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;line-height:1.5}'
+  + '.krq b{color:#cdd6e6;font-weight:700}'
+  + '.krq-low b{color:#f6b13b}'
+  + '.krq.krq-zero{color:#f6b13b}'
+  + '.krq-up{color:#f6b13b;text-decoration:none;font-weight:600;white-space:nowrap}'
+  + '.krq-up:hover{text-decoration:underline}';
+function injectReportQuotaCss() { if (typeof document === 'undefined' || document.getElementById('karp-rquota-css')) return; const s = document.createElement('style'); s.id = 'karp-rquota-css'; s.textContent = RQ_CSS; document.head.appendChild(s); }
+
+// HTML fyrir teljarann (+upsell). '' ef ekki á við (admin / ekki-áskrifandi / óþekktur kvóti → aðeins 990-leiðin sýnileg).
+export function reportQuotaNoteHtml() {
+  if (isAdmin() || !hasTier(1) || !reportsQuotaKnown()) return '';
+  const rem = reportsRemaining();
+  const cls = 'krq' + (rem === 0 ? ' krq-zero' : (rem <= 2 ? ' krq-low' : ''));
+  const txt = rem === 0
+    ? '⚠ Mánaðarkvóti skýrslna fullnýttur — næsta skýrsla á 990 kr'
+    : '<b>' + rem + '</b> ' + (rem === 1 ? 'skýrsla' : 'skýrslur') + ' eftir í mánuðinum';
+  const nt = nextTierUp();
+  const up = nt ? ' <a class="krq-up" href="/karp-pro/#verd">⬆ Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
+  return '<div class="' + cls + '">' + txt + up + '</div>';
+}
+
+// Setur/uppfærir teljarann beint á eftir kauphnappa-röðinni (afterEl). Fjarlægir hann ef ekki á við — svo hann
+// falli líka rétt út þegar /me skilar ekki kvóta (WP óuppfært) eða áskrift rennur út.
+export function paintReportQuota(afterEl) {
+  if (!afterEl || typeof document === 'undefined') return;
+  injectReportQuotaCss();
+  const sib = afterEl.nextElementSibling;
+  if (sib && sib.classList && sib.classList.contains('krq')) sib.remove();
+  const html = reportQuotaNoteHtml();
+  if (html) afterEl.insertAdjacentHTML('afterend', html);
 }
 
 // Viðskiptamannavakt (kt-listi) + Teymi/seats — notað af Stillingum á Mitt svæði.
@@ -467,4 +514,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, reportsQuotaKnown, nextTierUp, reportQuotaNoteHtml, paintReportQuota, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };

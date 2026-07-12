@@ -482,6 +482,9 @@ const updated = '2026-07-02';
           const tierName = ({ grunnur: 'Grunnur', fyrirtaeki: 'Fyrirtæki', fyrirtaeki_plus: 'Fyrirtæki+' })[u.effectiveTier] || (u.isAdmin ? 'Stjórnandi' : 'Enginn þrep-aðgangur');
           const rem = (typeof u.reportsRemaining === 'number') ? u.reportsRemaining : 0;
           const remTxt = lim.reportsMonth === 0 ? 'stakar á 990 kr' : (rem < 0 ? 'ótakmarkað' : rem + ' af ' + lim.reportsMonth + ' eftir í mánuðinum · endurstillist um mánaðamót');
+          // Upsell fyrir grunnur/fyrirtæki: „⬆ Uppfærðu í <næsta þrep> fyrir fleiri skýrslur" (Fyrirtæki+ er efst → ekkert).
+          const nt = (A.nextTierUp && A.nextTierUp()) || null;
+          const remUpsell = nt ? ' · <a href="/karp-pro/#verd">⬆ Uppfærðu í ' + esc(nt.heiti) + ' fyrir fleiri skýrslur →</a>' : '';
           const folCap = (lim.follows < 0) ? 'ótakmarkað' : lim.follows;
           const dags = (ts) => { try { return new Date(ts * 1000).toLocaleDateString('is-IS'); } catch (e) { return ''; } };
           // Sérlausnir (utbod/fasteign/frettir) — birtar með gildistíma + uppsagnar-hnappi
@@ -497,17 +500,20 @@ const updated = '2026-07-02';
             + (u.effectiveTier || u.isAdmin ? ' · <a href="/karp-pro/#verd">breyta áskrift →</a>' : ' · <a href="/karp-pro/#verd">sjá áskrift →</a>') + '</div>'
             + svcRows
             + ((u.subs || []).length === 0 ? '<div class="sub-row dim">Engin sérlausn virk · <a href="/karp-pro/#verd">skoða sérlausnir →</a></div>' : '')
-            + '<div class="sub-row"><b>Skýrslur:</b> ' + esc(remTxt) + '</div>'
+            + '<div class="sub-row"><b>Skýrslur:</b> ' + esc(remTxt) + remUpsell + '</div>'
             + '<div class="sub-row"><b>Fylgt félög:</b> ' + Number(u.followsCount || 0) + ' / ' + esc(String(folCap)) + '</div>'
             + '<div id="team-box"></div><div id="ktw-box"></div>';
           // Uppsögn: staðfesting → POST /api/sub/cancel → áskrift lifir út greitt tímabil
           el.querySelectorAll('.sub-cancel').forEach((b) => b.onclick = async () => {
             const nafn = b.dataset.svc ? (SVCN[b.dataset.svc] || b.dataset.svc) : 'þrep-áskriftinni';
-            if (!confirm('Segja upp ' + nafn + '? Aðgangurinn helst út greitt tímabil og engin frekari gjöld verða innheimt.')) return;
+            const untilTs = b.dataset.svc ? subsUntil[b.dataset.svc] : u.tier_until;   // sama dagsetning og Áskell-pósturinn sýnir
+            const tilDags = untilTs ? dags(untilTs) : '';
+            // Skýr staðfesting: aðgangur helst (til og með dags.), engin gjöld, endurnýjast ekki → sama og pósturinn segir.
+            if (!confirm('Segja upp ' + nafn + '?\n\nÞú heldur fullum aðgangi' + (tilDags ? ' til og með ' + tilDags : ' út greitt tímabil') + '. Áskriftin endurnýjast ekki og engin frekari gjöld verða innheimt.')) return;
             b.disabled = true; b.textContent = 'Segi upp…';
             try {
               const r = await (await fetch('/api/sub/cancel', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ service: b.dataset.svc || undefined }) })).json();
-              if (r && r.ok) { b.textContent = '✓ Uppsagt — virk út tímabilið'; }
+              if (r && r.ok) { b.textContent = '✓ Uppsagt — virk' + (tilDags ? ' til ' + tilDags : ' út tímabilið'); }
               else if (r && r.error === 'noid') { b.textContent = 'Hafðu samband'; b.insertAdjacentHTML('afterend', ' <a href="/hjalp/?fra=askrift" style="font-size:11.5px">hjalp@karp.is →</a>'); }
               else { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
             } catch (e) { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
