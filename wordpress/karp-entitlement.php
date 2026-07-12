@@ -20,9 +20,10 @@ if (!defined('ABSPATH')) exit;
 function karp_tier_limits($tier, $is_admin = false) {
     if ($is_admin) return array('reportsMonth' => -1, 'follows' => -1, 'ktWatch' => -1, 'seats' => -1, 'fjolmidlavakt' => true);
     // VERDUR ad spegla LIMITS i web/src/data/lausnir.js NAKVAEMLEGA (verd-endurskipulag 11.7.2026):
-    // reportsMonth 2/10/20, seats 1/5/10 - annars faer kaupandi minna en verdskrain lofar.
+    // reportsMonth 4/10/20, seats 1/5/10 - annars faer kaupandi minna en verdskrain lofar.
+    // Grunnur = 4 (var 2): 2 stakar (1.980) voru odyrari en askriftin (2.900) -> 4 gefur 3.960 kr virdi = raunverulegur dill.
     $L = array(
-        'grunnur'         => array('reportsMonth' => 2,  'follows' => 10, 'ktWatch' => 0,   'seats' => 1,  'fjolmidlavakt' => false),
+        'grunnur'         => array('reportsMonth' => 4,  'follows' => 10, 'ktWatch' => 0,   'seats' => 1,  'fjolmidlavakt' => false),
         'fyrirtaeki'      => array('reportsMonth' => 10, 'follows' => 50, 'ktWatch' => 25,  'seats' => 5,  'fjolmidlavakt' => true),
         'fyrirtaeki_plus' => array('reportsMonth' => 20, 'follows' => -1, 'ktWatch' => 100, 'seats' => 10, 'fjolmidlavakt' => true),
     );

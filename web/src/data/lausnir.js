@@ -6,7 +6,7 @@ export function tierLevelOf(tier, isAdmin) { return isAdmin ? 99 : (TIER_LVL[tie
 // Vél-læsileg mörk per þrep — ein sannleiksuppspretta fyrir client OG speglað í PHP
 // (karp-entitlement.php). -1 = ótakmarkað. reportsMonth = innifaldar stakar skýrslur/mán.
 export const LIMITS = {
-  grunnur:         { reportsMonth: 2,  follows: 10, ktWatch: 0,   seats: 1,  fjolmidlavakt: false },
+  grunnur:         { reportsMonth: 4,  follows: 10, ktWatch: 0,   seats: 1,  fjolmidlavakt: false },
   fyrirtaeki:      { reportsMonth: 10, follows: 50, ktWatch: 25,  seats: 5,  fjolmidlavakt: true },
   fyrirtaeki_plus: { reportsMonth: 20, follows: -1, ktWatch: 100, seats: 10, fjolmidlavakt: true },
 };
@@ -25,7 +25,7 @@ export const THREP = [
 // ekki þrep-dálkar. Innifaldar skýrslur er SAMEIGINLEGUR pottur (fyrirtæki · eigendur · KYC).
 export const EIGINDIR = [
   { titill: 'Fjöldi aðganga', gildi: ['1', '5', '10'] },
-  { titill: 'Innifaldar skýrslur á mánuði (fyrirtækja · eigenda · KYC)', gildi: ['2', '10', '20'] },
+  { titill: 'Innifaldar skýrslur á mánuði (fyrirtækja · eigenda · KYC)', gildi: ['4', '10', '20'] },
   { titill: 'Fyrirtækjaskrá + ársreikningar', gildi: [true, true, true] },
   { titill: 'Endanlegir eigendur (UBO) + eignarhald', gildi: [true, true, true] },
   { titill: 'Áreiðanleikamat (KYC)', gildi: [true, true, true] },
