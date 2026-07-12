@@ -46,7 +46,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     /* fyrirtækjaskrá — runtime-DOM (innerHTML) → verður að vera global */
     .fs-empty { color: #7e8ca6; font-size: 13.5px; padding: 14px 2px; }
     .fs-hits { border: 1px solid rgba(255,255,255,.08); border-radius: 12px; overflow: hidden; }
-    .fs-hit { display: flex; gap: 12px; align-items: baseline; padding: 9px 13px; border-bottom: 1px solid rgba(255,255,255,.06); cursor: pointer; font-size: 13.5px; }
+    .fs-hit { text-decoration: none; color: inherit; display: flex; gap: 12px; align-items: baseline; padding: 9px 13px; border-bottom: 1px solid rgba(255,255,255,.06); cursor: pointer; font-size: 13.5px; }
     .fs-hit:last-child { border-bottom: 0; }
     .fs-hit:hover, .fs-hit:focus-visible { background: rgba(246,177,59,.07); outline: none; }
     .fs-hit .kt { font-variant-numeric: tabular-nums; color: #7e8ca6; font-size: 12px; white-space: nowrap; }
@@ -1791,12 +1791,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               return;
             }
             if (d.hits && d.hits.length) {
-              skila('<div class="fs-hits">' + d.hits.map((h) => `<div class="fs-hit${h.afskrad ? ' af' : ''}" role="button" tabindex="0" data-kt="${escF(h.kt)}"><span class="kt">${escF(ktFmt(h.kt))}</span><span class="n">${escF(h.nafn)}${h.afskrad ? ' <span class="fs-badge">afskráð</span>' : ''}</span><span class="h">${escF(h.heimili || '')}</span></div>`).join('') + '</div>'
+              skila('<div class="fs-hits">' + d.hits.map((h) => `<a class="fs-hit${h.afskrad ? ' af' : ''}" href="/fyrirtaeki/${escF(h.kt)}/" data-kt="${escF(h.kt)}"><span class="kt">${escF(ktFmt(h.kt))}</span><span class="n">${escF(h.nafn)}${h.afskrad ? ' <span class="fs-badge">afskráð</span>' : ''}</span><span class="h">${escF(h.heimili || '')}</span></a>`).join('') + '</div>'
                 + (d.alls ? `<div class="fs-more">Sýni fyrstu ${d.hits.length} af ${d.alls} — þrengdu leitina til að finna félagið beint.</div>` : ''));
               out.querySelectorAll('.fs-hit').forEach((el) => {
-                const opna = () => leita(el.dataset.kt, true);
-                el.onclick = opna;
-                el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opna(); } };
+                // <a href> er crawlanlegt + cmd/ctrl/miðju-smellur opnar raunsíðu;
+                // venjulegur smellur heldur inline-hleðslunni (progressive enhancement).
+                el.onclick = (e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; e.preventDefault(); leita(el.dataset.kt, true); };
               });
               return;
             }
