@@ -172,6 +172,26 @@ export const VORUR = [
     description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,
   },
   {
+    slug: 'thingmannavaktin', heiti: 'Þingmannavaktin', emoji: '🏛️',
+    gildisloford: 'Ítarleg skýrsla um hvern þingmann — atkvæði, ræður, áherslur.',
+    inngangur: 'Þingmannaskýrsla Karps greinir hvern þingmann til hlítar: atkvæðaferil og uppreisnar-atkvæði, mætingu, afstöðu eftir málaflokkum, ræðugreiningu með gervigreind, fyrirspurnir, flutt mál, nefndavald og fjölmiðlaumfjöllun — með PDF-útprentun og vöktun.',
+    eiginleikar: [
+      { emoji: '🗳️', titill: 'Atkvæðaferill', texti: 'Uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð og afstaða eftir opinberum efnisflokkum Alþingis.' },
+      { emoji: '🤖', titill: 'AI-ræðugreining', texti: 'Tónn, rökstuðningur og áherslur eftir málaflokkum — greint úr raunverulegum þingræðum.' },
+      { emoji: '🧭', titill: 'Pólitískt kort', texti: 'Staðsetning þingmannsins á korti þingsins, reiknuð úr öllum nafnakalls-atkvæðagreiðslum.' },
+      { emoji: '❓', titill: 'Fyrirspurnir & flutt mál', texti: 'Öll mál sem þingmaðurinn flytur og fyrirspurnir hans til ráðherra með svar-stöðu.' },
+      { emoji: '📰', titill: 'Umfjöllun & vöktun', texti: 'Fjölmiðlaumfjöllun með viðhorfsmati — og Fylgja-hnappur til að vakta þingmanninn.' },
+    ],
+    skref: [
+      { titill: 'Veldu þingmann', texti: 'Af þingmannalistanum eða beint af síðu þingmannsins.' },
+      { titill: 'Opnaðu skýrsluna', texti: 'Stök skýrsla á 990 kr — eða 20 á mánuði í áskrift á 3.900 kr.' },
+    ],
+    verd: { tegund: 'askrift', upphaed: 3900, service: 'thingskyrslur', trialDays: 30 },   // sér áskriftarleið — stakar skýrslur 990 kr án áskriftar
+    synishorn: { label: 'Sjá sýnishorn', href: '/althingi/jon-petur-zimsen/skyrsla/' },
+    tol: { label: 'Velja þingmann', href: '/althingi/thingmenn/' },
+    description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 20 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
+  },
+  {
     slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅',
     gildisloford: 'KYC-áreiðanleikamat félags — PEP, eignarhald og staða á einum stað.',
     inngangur: 'Áreiðanleikamat tekur saman það sem þarf fyrir áreiðanleikakönnun: raunverulega eigendur, PEP-skimun stjórnenda og stöðu félagsins í opinberum skrám.',

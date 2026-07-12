@@ -504,6 +504,12 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
       const gate = document.getElementById('tk-gate');
       if (rep) rep.hidden = false;
       if (gate) gate.remove();
+      // Kortið var breiddarlaust á meðan skýrslan var falin — init-a/resize-a núna
+      // (initTkPolMap er global úr classic-script eyjunni; resize-event grípur restina).
+      setTimeout(() => {
+        try { if (window.initTkPolMap) window.initTkPolMap(); } catch (e) {}
+        try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+      }, 80);
     }
 
     async function initGate() {
@@ -605,7 +611,16 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         s.addEventListener('load', initTkPolMap, { once: true });
         return;
       }
-      if (window.echarts.getInstanceByDom(el)) return;
+      // VÖRN: containerinn getur verið breiddarlaus við init (skýrslan falin bak við gátt,
+      // eða síðu-transition í gangi) → ECharts teiknaði örmjótt og lagaði sig aldrei.
+      // Pollum þar til alvöru breidd fæst (revealReport kallar líka beint þegar gátt opnast).
+      if (el.clientWidth < 120) {
+        el.__tkTries = (el.__tkTries || 0) + 1;
+        if (el.__tkTries < 60) setTimeout(initTkPolMap, 500);   // ≤30 sek; gátt-opnun endurræsir hvort eð er
+        return;
+      }
+      const prev = window.echarts.getInstanceByDom(el);
+      if (prev) { prev.resize(); return; }
       const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const ini = (n) => { const w = String(n).split(/\s+/).filter(Boolean); return ((w[0] || ' ')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
       const fmt = (v) => String(v).replace('.', ',');
@@ -673,7 +688,13 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
       });
       chart.on('click', (p) => { if (p.data && p.data.sl) location.href = '/althingi/' + p.data.sl + '/skyrsla/'; });
       window.addEventListener('resize', () => chart.resize());
+      // Belti og axlabönd gegn rangri breidd við init (transition/leturhleðsla breytir
+      // layouti á eftir): fylgjast með container-breidd + tímastillt leiðréttingar-resize.
+      if (typeof ResizeObserver !== 'undefined') { new ResizeObserver(() => chart.resize()).observe(el); }
+      setTimeout(() => chart.resize(), 600);
+      setTimeout(() => chart.resize(), 2000);
     }
+    window.initTkPolMap = initTkPolMap;   // define:vars er IIFE-skópað → revealReport() nær í fallið hér
     document.addEventListener('astro:page-load', () => {
       const mn = document.querySelector('main[data-pg="thingskyrsla"]');
       if (mn) initTkPolMap();
