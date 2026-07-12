@@ -1,0 +1,60 @@
+name: Tengslagrunnur (næturlegur crawl)
+
+# Sáir einu sinni (workflow_dispatch með seed=true), svo næturlega snjóbolta-crawl.
+# Secret-gátt: vantar RSK_KEY/CF-token → hreint exit 0 (crawl sefur þar til Aron kveikir).
+on:
+  schedule:
+    - cron: '30 3 * * *'   # 03:30 UTC — utan refresh-data (06:00)
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Sá crawl_queue fyrst (true/false)'
+        required: false
+        default: 'false'
+      budget:
+        description: 'Kvóti kalla þessa keyrslu (annars TENGSL_BUDGET)'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tengslagrunnur
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      RSK_KEY: ${{ secrets.RSK_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TENGSL_BUDGET: ${{ github.event.inputs.budget || vars.TENGSL_BUDGET || '1500' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Secret-gátt
+        run: |
+          if [ -z "$RSK_KEY" ] || [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "⏸️  Vantar secrets (RSK_KEY / CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID) — crawl sefur." >> "$GITHUB_STEP_SUMMARY"
+            echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+      - name: Deps (wrangler)
+        if: env.SKIP != '1'
+        run: npm ci
+        working-directory: web
+      - name: Sá biðröð (valfrjálst)
+        if: env.SKIP != '1' && github.event.inputs.seed == 'true'
+        run: |
+          node skriptur/seed_tengsl.mjs --out web/seed.sql
+          cd web && npx wrangler d1 execute tengsl --remote --file seed.sql
+      - name: Migrate schema (idempotent)
+        if: env.SKIP != '1'
+        run: npx wrangler d1 execute tengsl --remote --file migrations/0001_tengsl.sql
+        working-directory: web
+      - name: Crawl
+        if: env.SKIP != '1'
+        run: node skriptur/crawl_tengsl.mjs
