@@ -2077,8 +2077,8 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
   const canonical = 'https://karp.is/fyrirtaeki/' + kt + '/';
   const title = htmlEsc(f.nafn) + ' (' + ktSep(kt) + ') — ársreikningur, eigendur, kennitala | Karp';
   const dParts = [f.form, f.isat && f.isat[0], f.postfang || f.logheimili, f.afskrad ? 'Afskráð' : (f.stada || 'Virk skráning')].filter(Boolean).join(' · ');
-  const desc = htmlEsc(f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 300);
-  const ld = JSON.stringify(orgJsonLd(f, kt, canonical));
+  const desc = htmlEsc((f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 280));
+  const ld = JSON.stringify(orgJsonLd(f, kt, canonical)).replace(/</g, '\\u003c');
   let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/skel-fyrirtaeki/'))).text();
   html = html.replace(/<meta name="robots"[^>]*>\s*/i, '');   // gera indexeranlegt
   html = repAll(html, '%%KARP_TITLE%%', title);
