@@ -25,11 +25,16 @@ setur secrets.
 3. **Veitur:** stjórn/fyrirsvar úr **mælda LegalEntities-API-inu** (eina uppsprettn með
    persónu-kt í `relationships[]`); raunverulegir eigendur úr **fría rskFelag-HTML-skrapinu**
    (nafn+fæðingarár, ekkert kt — lyklað eins og `eigOwnerKey`).
-4. **Upptalning = snjóbolti:** APIð er uppfletti-eingöngu (staðfest í OpenAPI: aðeins
-   `GET /{kt}` + `GET /{kt}/overview`); island.is `companyRegistryCompanies` er LÆST
-   (Unauthorized, prófað 2026-07-12); engin opin VSK-/fyrirtækjaskrá til niðurhals.
-   Fræ: ársreikningaskrár-skilendur + Karp-snert félög + Lögbirtingablaðs-nýskráningar;
-   síðan uppgötvun úr crawl-svörunum sjálfum.
+4. **Upptalning = snjóbolti + nafnaleitar-sweep:** APIð er uppfletti-eingöngu (staðfest í
+   OpenAPI: aðeins `GET /{kt}` + `GET /{kt}/overview`); island.is `companyRegistryCompanies`
+   er LÆST (Unauthorized, prófað 2026-07-12); engin opin VSK-/fyrirtækjaskrá til niðurhals.
+   **Sannreynt 2026-07-12:** `skatturinn.is/fyrirtaekjaskra/leit?nafn=<q>` skilar ≤100
+   treffum (þak) — **adaptív forskeyta-dýpkun** (2 stafir → 3 stafir þegar 100-þak næst,
+   staða geymd í `sweep_state`-töflu) telur upp ALLA skrána á ~1–2 vikum samhliða crawli.
+   Önnur fræ: Karp-snert félög (eigendur/stjorn/reverse/logbirting.byKt ~1.100 kt +
+   vörumerkja-/skipa-/loftfara-eigendur) + Lögbirtingablaðs-nýskráningar daglega;
+   síðan uppgötvun úr crawl-svörunum sjálfum. (Leiðrétting úr rannsókn: Eplica-árs-paging
+   ársreikningaskrár er EKKI til sem upptalningarleið — nafnaleitar-sweep kemur í staðinn.)
 5. **Taktur:** „tökum okkur tíma" — kvóta-þak `TENGSL_BUDGET` (repo variable, sjálfgefið
    1.500 köll/nótt), full-pass ≈ 30–45 nætur, svo ~90-daga endurnýjunarhringur.
 6. **Saga í stað eyðinga:** `seen_first`/`seen_last` á leggjum — grunnurinn verður söguleg
