@@ -42,6 +42,10 @@ const jsonLd = {
     <h2>Yfirlit</h2>
     <div id="kv-stats" class="kv-kpis"><div class="kv-empty">Hleð yfirlitinu…</div></div>
 
+    <h2>Breytingar á aflamarki <i class="tip" tabindex="0" data-tip="Samanburður við síðustu vikulegu mælingu. Breyting getur verið flutningur aflamarks, tilfærsla milli tímabila eða ný úthlutun — ekki fullyrt um kaup/sölu.">ⓘ</i></h2>
+    <p class="sub">Stærstu hreyfingar milli vikulegra mælinga — hverjir bæta við sig aflamarki og hverjir láta frá sér.</p>
+    <div id="kv-breyt"><div class="kv-empty">Hleð breytingum…</div></div>
+
     <h2>20 stærstu útgerðirnar</h2>
     <p class="sub">Samanlagt aflamark hverrar útgerðar í þorskígildum — smelltu á „Skoða" fyrir skipalista og tegundagreiningu, eða „Eigendahópur" til að sjá samanlagða hlutdeild tengdra félaga.</p>
     <div id="kv-top"><div class="kv-empty">Hleð topplistanum…</div></div>
@@ -93,6 +97,8 @@ const jsonLd = {
     main[data-pg="kvotavaktin"] .kv-b-red { background: rgba(248,81,73,.15); color: #f85149; border: 1px solid rgba(248,81,73,.4); }
     main[data-pg="kvotavaktin"] .kv-b-yel { background: rgba(210,153,34,.15); color: #d29922; border: 1px solid rgba(210,153,34,.4); }
     main[data-pg="kvotavaktin"] .kv-b-grn { background: rgba(63,185,80,.15); color: #3fb950; border: 1px solid rgba(63,185,80,.4); }
+    main[data-pg="kvotavaktin"] .kv-upp { color: #3fb950; }
+    main[data-pg="kvotavaktin"] .kv-nidur { color: #ff8a8a; }
 
     /* Töflur (farsíma-vænar: overflow-x á umbúðunum) */
     main[data-pg="kvotavaktin"] .kv-twrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; margin: 6px 0 4px; }
@@ -249,6 +255,41 @@ const jsonLd = {
           + '<div class="kv-kpi"><div class="kv-kl">🏢 Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks</div></div>'
           + '<div class="kv-kpi"><div class="kv-kl">🚢 Skip</div><div class="kv-kv">' + nIS(h.nSkip) + '</div><div class="kv-ks">með úthlutað aflamark</div></div>'
           + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span></div></div>';
+      }
+
+      // ── Breytingar á aflamarki (vikulegur samanburður úr build_kvoti) ───────
+      // D.breytingar = { fra, til, staerstu:[{kt,nafn,d_kg,d_pct,nytt?}], horfnir:[...], n } | null.
+      // null = fyrsta mæling (engin fyrri keyrsla) → útskýrum í stað þess að þegja.
+      function renderBreyt() {
+        const el = $('kv-breyt');
+        if (!el) return;
+        const b = D.breytingar;
+        if (!b || !Array.isArray(b.staerstu)) {
+          el.innerHTML = '<div class="kv-empty">📅 Fyrsta viðmiðunarmæling skráð ' + (D.uppfaert ? esc(D.uppfaert.slice(0, 10)) : '') + ' — breytingar birtast eftir næstu vikulegu uppfærslu (mánudaga).</div>';
+          return;
+        }
+        if (!b.staerstu.length && !(b.horfnir || []).length) {
+          el.innerHTML = '<div class="kv-empty">Engar breytingar ≥1 tonn frá ' + esc(String(b.fra).slice(0, 10)) + '.</div>';
+          return;
+        }
+        if (SYNI) {   // sýnishorn: læst kynningarflís (breytingavaktin er áskriftar-virði)
+          el.innerHTML = '<div class="kv-locked">🔐 Breytingavaktin — hverjir bættu við sig og hverjir létu frá sér milli vikna — fylgir fullri áskrift.</div>';
+          return;
+        }
+        const upp = b.staerstu.filter((x) => x.d_kg > 0).slice(0, 8);
+        const nidur = b.staerstu.filter((x) => x.d_kg < 0).slice(0, 8);
+        const rod = (x) => '<tr><td>' + ktLink(x.kt, x.nafn) + (x.nytt ? ' <span class="kv-badge kv-b-grn">nýr hafi</span>' : '') + '</td>'
+          + '<td class="r kv-num ' + (x.d_kg > 0 ? 'kv-upp' : 'kv-nidur') + '">' + (x.d_kg > 0 ? '▲ +' : '▼ −') + tonnIS(Math.abs(x.d_kg)) + ' t</td>'
+          + '<td class="r kv-num">' + (x.d_pct != null ? (x.d_pct > 0 ? '+' : '') + pctIS(x.d_pct) : '—') + '</td></tr>';
+        const tafla = (t, list) => list.length
+          ? '<div class="kv-dlbl">' + t + '</div><div class="kv-twrap"><table style="min-width:460px"><thead><tr><th>Útgerð</th><th class="r">Δ þorskígildi</th><th class="r">Δ hlutdeild</th></tr></thead><tbody>' + list.map(rod).join('') + '</tbody></table></div>'
+          : '';
+        const horfnir = (b.horfnir || []).length
+          ? '<p class="kv-note">Horfnir af skrá: ' + b.horfnir.map((x) => esc(x.nafn || x.kt) + ' (−' + tonnIS(Math.abs(x.d_kg)) + ' t)').join(' · ') + '</p>'
+          : '';
+        el.innerHTML = '<p class="kv-note">Tímabil: ' + esc(String(b.fra).slice(0, 10)) + ' → ' + esc(String(b.til).slice(0, 10)) + ' · ' + nIS(b.n) + ' útgerðir með breytingu ≥1 tonn.</p>'
+          + tafla('▲ Bættu við sig', upp) + tafla('▼ Létu frá sér', nidur) + horfnir
+          + '<p class="kv-note">Breyting getur verið flutningur aflamarks, tilfærsla milli tímabila eða ný úthlutun — ekki fullyrt um kaup/sölu.</p>';
       }
 
       // ── Topp-20 útgerðir ────────────────────────────────────────────────────
@@ -412,7 +453,7 @@ const jsonLd = {
       fetch('/gogn/kvoti.json').then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
         D = d;
         if (!D || !D.heild) {
-          ['kv-stats', 'kv-top', 'kv-teg'].forEach((id) => { $(id).innerHTML = VINNSLA; });
+          ['kv-stats', 'kv-breyt', 'kv-top', 'kv-teg'].forEach((id) => { $(id).innerHTML = VINNSLA; });
           $('kv-lres').innerHTML = '';
           const q = $('kv-q');
           if (q) { q.disabled = true; q.placeholder = 'Gögn í vinnslu — kíktu við á eftir…'; }
@@ -425,6 +466,7 @@ const jsonLd = {
         const fa = fiskar(D.timabil);
         if (fa) $('kv-timabil').textContent = ' · ' + fa;
         renderStats();
+        renderBreyt();
         renderTop();
         renderTeg();
         initLeit();

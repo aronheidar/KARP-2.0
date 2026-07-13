@@ -165,6 +165,36 @@ async function fetchAflamark(regno, timabil, tries = 3) {
   const leit = {};   // ALLIR lögaðila-hafar (fyrir leitarbox) — létt form [nafn, ti_kg, pct]
   for (const h of hafArr) leit[h.kt] = [h.nafn, Math.round(h.ti), pctTi(h.ti)];
 
+  // ── BREYTINGA-VAKT: bera saman við SÍÐUSTU keyrslu (áður en yfirskrifað) — kvótaflutningar/-tilfærslur
+  // per útgerð (Δ þorskígildi + Δ hlutdeild), nýir hafar og horfnir. ⚠ Orðað „breytingar á aflamarki"
+  // (ekki fullyrt „sala/kaup" — breyting getur verið flutningur, tilfærsla milli tímabila eða ný úthlutun).
+  let breytingar = null;
+  try {
+    if (fs.existsSync(OUT)) {
+      const fyrri = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+      if (fyrri.leit && fyrri.uppfaert) {
+        const deltas = [];
+        for (const [kt, [nafn, ti, pct]] of Object.entries(leit)) {
+          const f = fyrri.leit[kt];
+          if (!f) { deltas.push({ kt, nafn, d_kg: Math.round(ti), d_pct: pct, nytt: true }); continue; }
+          const d_kg = Math.round(ti - f[1]);
+          if (Math.abs(d_kg) >= 1000) deltas.push({ kt, nafn, d_kg, d_pct: pct2(pct - f[2]) });   // ≥1 tonn telur
+        }
+        const horfnir = Object.entries(fyrri.leit)
+          .filter(([kt]) => !leit[kt])
+          .map(([kt, [nafn, ti]]) => ({ kt, nafn, d_kg: -Math.round(ti) }));
+        deltas.sort((a, b) => Math.abs(b.d_kg) - Math.abs(a.d_kg));
+        breytingar = {
+          fra: fyrri.uppfaert, til: new Date().toISOString(),
+          staerstu: deltas.slice(0, 25),
+          horfnir: horfnir.slice(0, 15),
+          n: deltas.length + horfnir.length,
+        };
+        console.log('Breytingar frá ' + fyrri.uppfaert.slice(0, 10) + ': ' + deltas.length + ' útgerðir m/breytingu ≥1t, ' + horfnir.length + ' horfnir');
+      }
+    }
+  } catch (e) { console.log('Breytinga-samanburður sleppt:', e.message); }
+
   const arFmt = '20' + timabil.slice(0, 2) + '/20' + timabil.slice(2);   // '2526' → '2025/2026'
   const data = {
     uppfaert: new Date().toISOString(),
@@ -173,9 +203,25 @@ async function fetchAflamark(regno, timabil, tries = 3) {
     tegundir: tegArr,
     hafar: hafarUt,
     leit,
+    breytingar,
     heimild: 'Fiskistofa — aflamark og þorskígildi fiskveiðiárið ' + arFmt + '; eigendur skipa úr skipaskrá island.is. Hlutdeild reiknuð af Karp (áætlun; eignarhlutur skips ræður skiptingu).',
   };
   fs.writeFileSync(OUT, JSON.stringify(data));
+
+  // ── SÖGUÞRÓUN: viðauka-lína per keyrslu í kvoti_saga.json (samþjöppunar-tímaröð + hafa-snapshot).
+  // Létt form (~10KB/viku): heildartölur + kt→ti_kg heiltölur. Knýr þróunar-línurit þegar ≥3 punktar.
+  try {
+    const SAGA = path.join(path.dirname(OUT), 'kvoti_saga.json');
+    const saga = fs.existsSync(SAGA) ? JSON.parse(fs.readFileSync(SAGA, 'utf8')) : { punktar: [] };
+    const dagur = new Date().toISOString().slice(0, 10);
+    saga.punktar = saga.punktar.filter((p) => p.dags !== dagur);   // sama-dags endurkeyrsla yfirskrifar
+    const hafKompakt = {};
+    for (const h of hafArr) hafKompakt[h.kt] = Math.round(h.ti);
+    saga.punktar.push({ dags: dagur, timabil, ti_kg: Math.round(heildTi), top10pct, hhi, nHafar: hafArr.length, hafar: hafKompakt });
+    if (saga.punktar.length > 120) saga.punktar = saga.punktar.slice(-120);   // ~2,3 ár vikulega
+    fs.writeFileSync(SAGA, JSON.stringify(saga));
+    console.log('kvoti_saga.json: ' + saga.punktar.length + ' punktar');
+  } catch (e) { console.log('Saga sleppt:', e.message); }
   console.log('kvoti.json | skip m/aflamark:', nSkipMed, '/', done, '| tóm:', tom, '| mistök:', fails, '| hafar:', hafArr.length,
     '| tegundir:', tegArr.length, '| ti-heild:', Math.round(heildTi / 1e6) + 'kt', '| top10:', top10pct + '%', '| HHI:', hhi,
     '| ' + ((Date.now() - t0) / 1000).toFixed(0) + 's | bytes:', fs.statSync(OUT).size);
