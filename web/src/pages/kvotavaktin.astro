@@ -48,6 +48,9 @@ const jsonLd = {
       <button type="button" class="kv-gtab kv-gtab-on" data-graf="sol">☀️ Sólgeisli</button>
       <button type="button" class="kv-gtab" data-graf="strengir">🎻 Strengir</button>
       <button type="button" class="kv-gtab" data-graf="skip">⚓ Skipin</button>
+      <button type="button" class="kv-gtab" data-graf="nyting">📊 Nýting</button>
+      <button type="button" class="kv-gtab" data-graf="greining">🎯 Greining</button>
+      <button type="button" class="kv-gtab" data-graf="throun">📈 Þróun</button>
     </div>
     <div id="kv-graf"><div class="kv-empty">Hleð heildarmyndinni…</div></div>
 
@@ -126,6 +129,19 @@ const jsonLd = {
     .kvg-tip { position: fixed; z-index: 90; background: #101a2e; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45; color: #eaf1fb; pointer-events: none; max-width: 260px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
     main[data-pg="kvotavaktin"] .kv-stada { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; }
     main[data-pg="kvotavaktin"] .kv-stada-l { font-size: 12.5px; font-weight: 700; color: #9fb0c8; margin-right: 4px; }
+    /* Nýtingar-stikur (teiknaNyting) + D3-ásar (greining/þróun) */
+    main[data-pg="kvotavaktin"] .kvg-nyt { display: flex; flex-direction: column; gap: 7px; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-r { display: grid; grid-template-columns: 130px 1fr 44px minmax(120px, auto); gap: 10px; align-items: center; font-size: 13px; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-n { color: #cdd6e6; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-b { height: 12px; background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-b span { display: block; height: 100%; border-radius: 6px; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-v { text-align: right; font-variant-numeric: tabular-nums; color: #eaf1fb; font-weight: 700; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-t { color: #7e8ca6; font-size: 12px; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kvg-skyr { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
+    main[data-pg="kvotavaktin"] .kvg-as text { fill: #8fa0b8; font-size: 11px; }
+    main[data-pg="kvotavaktin"] .kvg-as line, main[data-pg="kvotavaktin"] .kvg-as path { stroke: rgba(255,255,255,.18); }
+    main[data-pg="kvotavaktin"] .kvg-lina { stroke: rgba(246,177,59,.35); stroke-dasharray: 4,4; }
+    @media (max-width: 560px) { main[data-pg="kvotavaktin"] .kvg-nyt-r { grid-template-columns: 96px 1fr 40px; } main[data-pg="kvotavaktin"] .kvg-nyt-t { display: none; } }
     .kvg-tip i { color: #8fa0b8; }
 
     /* Töflur (farsíma-vænar: overflow-x á umbúðunum) */
@@ -212,7 +228,7 @@ const jsonLd = {
     // ⚓ Kvótavaktin — client-eyja: sækir /gogn/kvoti.json (404-þolið), teiknar yfirlit, topp-20,
     // tegundir og leit; eigendahópurinn kemur lifandi frá workernum (/api/kvoti/hopur).
     import { loginHref } from '../lib/auth.js';
-    import { teiknaSolgeisla, teiknaStrengi, teiknaPakka } from '../lib/kvotagraf.mjs';
+    import { teiknaSolgeisla, teiknaStrengi, teiknaPakka, teiknaNyting, teiknaDreifirit, teiknaThroun } from '../lib/kvotagraf.mjs';
 
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="kvotavaktin"]');
@@ -300,6 +316,9 @@ const jsonLd = {
           box.innerHTML = '<div class="kv-empty">Teikna…</div>';
           if (hvad === 'sol') teiknaSolgeisla(box, D, { dyptEin: SYNI });
           else if (hvad === 'strengir') teiknaStrengi(box, D);
+          else if (hvad === 'nyting') teiknaNyting(box, SJ);
+          else if (hvad === 'greining') teiknaDreifirit(box, SJ);
+          else if (hvad === 'throun') fetch('/gogn/kvoti_saga.json').then((r) => (r.ok ? r.json() : null)).catch(() => null).then((s) => teiknaThroun(box, s));
           else teiknaPakka(box, D);
         };
         tabs.querySelectorAll('.kv-gtab').forEach((b) => b.addEventListener('click', () => {

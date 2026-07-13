@@ -153,6 +153,82 @@ export function teiknaStrengi(el, D) {
   });
 }
 
+// ── 4. KVÓTANÝTING (láréttar stikur, hreint DOM — engin D3 þörf): afli sem % af kvóta per tegund ──
+// SJ = gogn/sjavarutvegur.json (species[]: {nafn, aflamark, afli, nyting, ...}, dagleg Fiskistofu-bökun).
+export function teiknaNyting(el, SJ) {
+  const sp = ((SJ && SJ.species) || []).filter((s) => s.aflamark > 0).sort((a, b) => b.aflamark - a.aflamark).slice(0, 16);
+  if (!sp.length) { el.innerHTML = '<div class="kv-empty">Nýtingargögn ekki tiltæk.</div>'; return; }
+  const lit = (n) => (n >= 95 ? '#ff8a8a' : n >= 75 ? '#f6b13b' : '#3fb950');
+  el.innerHTML = '<div class="kvg-nyt">' + sp.map((s) => {
+    const n = Math.max(0, Math.min(100, +s.nyting || 0));
+    return '<div class="kvg-nyt-r"><span class="kvg-nyt-n">' + s.nafn + '</span>'
+      + '<span class="kvg-nyt-b"><span style="width:' + n.toFixed(1) + '%;background:' + lit(n) + '"></span></span>'
+      + '<span class="kvg-nyt-v">' + n.toFixed(0) + '%</span>'
+      + '<span class="kvg-nyt-t">' + tonn(s.afli || 0) + ' af ' + tonn(s.aflamark) + '</span></div>';
+  }).join('') + '</div>'
+  + '<p class="kvg-skyr">Afli fiskveiðiársins sem hlutfall af úthlutuðum kvóta — grænt &lt;75%, gult 75–95%, rautt ≥95% (kvótinn að klárast).</p>';
+}
+
+// ── 5. GREINING (dreifirit, D3): nýting × samþjöppun × umfang per tegund ───
+export function teiknaDreifirit(el, SJ) {
+  withD3((d3) => {
+    const sp = ((SJ && SJ.species) || []).filter((s) => s.aflamark > 0 && s.nyting != null && s.top10pct != null).slice(0, 22);
+    if (!sp.length) { el.innerHTML = '<div class="kv-empty">Greiningargögn ekki tiltæk.</div>'; return; }
+    const W = 700, H = 460, M = { t: 18, r: 18, b: 44, l: 52 };
+    el.innerHTML = '';
+    const svg = d3.select(el).append('svg').attr('viewBox', [0, 0, W, H]).attr('class', 'kvg-svg');
+    const x = d3.scaleLinear().domain([0, 105]).range([M.l, W - M.r]);
+    const y = d3.scaleLinear().domain([0, 100]).range([H - M.b, M.t]);
+    const r = d3.scaleSqrt().domain([0, d3.max(sp, (s) => s.aflamark)]).range([4, 26]);
+    const T = tip(el);
+    svg.append('g').attr('transform', 'translate(0,' + (H - M.b) + ')').call(d3.axisBottom(x).ticks(6).tickFormat((v) => v + '%')).attr('class', 'kvg-as');
+    svg.append('g').attr('transform', 'translate(' + M.l + ',0)').call(d3.axisLeft(y).ticks(5).tickFormat((v) => v + '%')).attr('class', 'kvg-as');
+    svg.append('text').attr('class', 'kvg-lbl').attr('x', (M.l + W - M.r) / 2).attr('y', H - 8).attr('text-anchor', 'middle').text('Nýting kvótans (afli sem % af aflamarki)');
+    svg.append('text').attr('class', 'kvg-lbl').attr('transform', 'rotate(-90)').attr('x', -(H - M.b + M.t) / 2).attr('y', 14).attr('text-anchor', 'middle').text('Samþjöppun (hlutdeild 10 stærstu skipa)');
+    svg.append('line').attr('x1', M.l).attr('x2', W - M.r).attr('y1', y(50)).attr('y2', y(50)).attr('class', 'kvg-lina');
+    svg.selectAll('circle').data(sp).join('circle')
+      .attr('cx', (s) => x(Math.min(105, s.nyting))).attr('cy', (s) => y(Math.min(100, s.top10pct))).attr('r', (s) => r(s.aflamark))
+      .attr('fill', (s, i) => LITIR[i % LITIR.length]).attr('fill-opacity', 0.6).attr('stroke', 'rgba(255,255,255,.35)')
+      .on('mousemove', (ev, s) => T.syna('<b>' + s.nafn + '</b><br>nýting ' + (+s.nyting).toFixed(0) + '% · 10 stærstu skip: ' + (+s.top10pct).toFixed(0) + '%<br>aflamark ' + tonn(s.aflamark), ev))
+      .on('mouseleave', () => T.fela());
+    svg.selectAll('.kvg-pl').data(sp.filter((s) => r(s.aflamark) > 13)).join('text')
+      .attr('class', 'kvg-lbl kvg-pl').attr('text-anchor', 'middle')
+      .attr('x', (s) => x(Math.min(105, s.nyting))).attr('y', (s) => y(Math.min(100, s.top10pct)) - r(s.aflamark) - 4)
+      .text((s) => stytt(s.nafn, 14));
+  });
+}
+
+// ── 6. ÞRÓUN (línurit, D3): samþjöppun yfir tíma úr kvoti_saga.json ────────
+export function teiknaThroun(el, saga) {
+  const p = ((saga && saga.punktar) || []).slice();
+  if (p.length < 2) {
+    el.innerHTML = '<div class="kv-empty">📈 Þróunarlínurnar teiknast þegar 2+ vikulegar mælingar eru komnar — fyrsta mæling var '
+      + (p[0] ? p[0].dags : '—') + ' og ný bætist við hvern mánudag. Hér birtist þá þróun samþjöppunar (top-10 og HHI) viku fyrir viku.</div>';
+    return;
+  }
+  withD3((d3) => {
+    const W = 700, H = 380, M = { t: 16, r: 52, b: 40, l: 52 };
+    el.innerHTML = '';
+    const svg = d3.select(el).append('svg').attr('viewBox', [0, 0, W, H]).attr('class', 'kvg-svg');
+    const xs = d3.scalePoint().domain(p.map((d) => d.dags)).range([M.l, W - M.r]);
+    const y1 = d3.scaleLinear().domain([0, Math.max(60, d3.max(p, (d) => d.top10pct) + 5)]).range([H - M.b, M.t]);
+    const y2 = d3.scaleLinear().domain([0, Math.max(600, d3.max(p, (d) => d.hhi) + 50)]).range([H - M.b, M.t]);
+    svg.append('g').attr('transform', 'translate(0,' + (H - M.b) + ')').call(d3.axisBottom(xs).tickValues(xs.domain().filter((_, i, a) => a.length <= 10 || i % Math.ceil(a.length / 10) === 0))).attr('class', 'kvg-as');
+    svg.append('g').attr('transform', 'translate(' + M.l + ',0)').call(d3.axisLeft(y1).ticks(5).tickFormat((v) => v + '%')).attr('class', 'kvg-as');
+    svg.append('g').attr('transform', 'translate(' + (W - M.r) + ',0)').call(d3.axisRight(y2).ticks(5)).attr('class', 'kvg-as');
+    const l1 = d3.line().x((d) => xs(d.dags)).y((d) => y1(d.top10pct));
+    const l2 = d3.line().x((d) => xs(d.dags)).y((d) => y2(d.hhi));
+    svg.append('path').datum(p).attr('d', l1).attr('fill', 'none').attr('stroke', '#f6b13b').attr('stroke-width', 2.5);
+    svg.append('path').datum(p).attr('d', l2).attr('fill', 'none').attr('stroke', '#58a6ff').attr('stroke-width', 2).attr('stroke-dasharray', '5,4');
+    const T = tip(el);
+    svg.selectAll('circle').data(p).join('circle')
+      .attr('cx', (d) => xs(d.dags)).attr('cy', (d) => y1(d.top10pct)).attr('r', 4).attr('fill', '#f6b13b')
+      .on('mousemove', (ev, d) => T.syna('<b>' + d.dags + '</b><br>top-10: ' + d.top10pct + '% · HHI: ' + d.hhi + '<br>' + tonn(d.ti_kg) + ' þorskígildi · ' + d.nHafar + ' útgerðir', ev))
+      .on('mouseleave', () => T.fela());
+    svg.append('text').attr('class', 'kvg-lbl').attr('x', M.l).attr('y', 12).text('— top-10 hlutdeild (gult) · - - HHI (blátt, hægri ás)');
+  });
+}
+
 // ── 3. PAKKAGRAF (circle packing): útgerðir → skip ─────────────────────────
 export function teiknaPakka(el, D) {
   withD3((d3) => {
