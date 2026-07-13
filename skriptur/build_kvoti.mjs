@@ -121,16 +121,20 @@ async function fetchAflamark(regno, timabil, tries = 3) {
   console.log('Nafna-uppfylling: ' + vantarNofn.length + ' af ' + hafar.size + ' hafa vantar nafn — les úr skipaskrá (eigenda-nöfn fylgja skipum)');
   for (let i = 0; i < vantarNofn.length; i += 5) {
     await Promise.all(vantarNofn.slice(i, i + 5).map(async ([kt, regno]) => {
-      try {
-        const r = await fetch(GQL, { method: 'POST', headers: UA, body: JSON.stringify({ query: SKIP_Q, variables: { input: { qs: String(regno) } } }) });
-        const j = await r.json().catch(() => null);
-        for (const ship of ((j && j.data && j.data.shipRegistryShipSearch && j.data.shipRegistryShipSearch.ships) || [])) {
-          if (ship.regno !== regno) continue;
-          for (const o of (ship.owners || [])) {
-            if (String(o.nationalId || '').replace(/\D/g, '') === kt && o.name) { nofn[kt] = String(o.name).trim(); return; }
+      for (let t = 0; t < 3; t++) {   // retry á throttle (429/405) — án þess töpuðust ~10% nafna í raun
+        try {
+          const r = await fetch(GQL, { method: 'POST', headers: UA, body: JSON.stringify({ query: SKIP_Q, variables: { input: { qs: String(regno) } } }) });
+          if (r.status === 429 || r.status === 405) { await sofa(1200 * (t + 1)); continue; }
+          const j = await r.json().catch(() => null);
+          for (const ship of ((j && j.data && j.data.shipRegistryShipSearch && j.data.shipRegistryShipSearch.ships) || [])) {
+            if (ship.regno !== regno) continue;
+            for (const o of (ship.owners || [])) {
+              if (String(o.nationalId || '').replace(/\D/g, '') === kt && o.name) { nofn[kt] = String(o.name).trim(); return; }
+            }
           }
-        }
-      } catch (e) {}
+          return;
+        } catch (e) { await sofa(800 * (t + 1)); }
+      }
     }));
     if (i % 100 === 0 && i) console.log('  ..nöfn ' + i + '/' + vantarNofn.length);
     await sofa(150);
@@ -157,7 +161,7 @@ async function fetchAflamark(regno, timabil, tries = 3) {
 
   const hafarUt = hafArr.slice(0, 150).map((h) => ({
     kt: h.kt, nafn: h.nafn, ti_kg: Math.round(h.ti), pct: pctTi(h.ti), nSkip: h.skip.length,
-    skip: [...h.skip].sort((a, b) => b.ti - a.ti).slice(0, 8).map((s) => ({ regno: s.regno, nafn: s.nafn })),
+    skip: [...h.skip].sort((a, b) => b.ti - a.ti).slice(0, 14).map((s) => ({ regno: s.regno, nafn: s.nafn, ti_kg: Math.round(s.ti) })),   // ti_kg per skip → pakkagraf (útgerð→skip)
     tegundir: [...h.teg.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
       .map(([tn, kg]) => ({ nafn: tn, kg: Math.round(kg), pct: tegundir.get(tn).heild > 0 ? pct2((kg / tegundir.get(tn).heild) * 100) : 0 })),
   }));

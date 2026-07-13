@@ -1,7 +1,9 @@
 ---
-// Sjávarútvegur (LOTA 85): Hagstofu-söguferlar (afli+fiskeldi, PxWeb byggingartíma) + RÍKUR kvótabanki
-// úr Gagnavef Fiskistofu (gogn/sjavarutvegur.json, bakað 1×/dag). Kvótanýting, þjöppun aflaheimilda,
-// stærstu kvótahafar (tegundaval) og dreifirit. Opin síða — almannahagsmuna-gagnsæi um auðlindina.
+// Sjávarútvegur (LOTA 85 → sölutrekt): Hagstofu-söguferlar (afli+fiskeldi, PxWeb byggingartíma) og
+// mánaðarlegar landanir per tegund. Kvóta-efnið sem áður var hér (aflamark, kvótanýting, þjöppun
+// aflaheimilda, stærstu kvótahafar, dreifirit og tegundatafla úr gogn/sjavarutvegur.json) FLUTTI í
+// premium-vöruna ⚓ Kvótavaktina (/kvotavaktin/, 9.900 kr./mán., 14 d. frítt) — þessi opna síða er nú
+// almennt hagtölu-yfirlit + sölutrekt inn í hana. SJA-innflutningur aðeins notaður f. timabilLabel.
 import Layout from '../../layouts/Layout.astro';
 import { groupThousands } from '@lib/format.mjs';
 import SJA from '@gogn/sjavarutvegur.json';
@@ -30,9 +32,9 @@ try {
   if (ys.length) { C2 = { x: ys, u: 'tonn', series: [{ name: 'Fiskeldi alls', color: '#19d3c5', data: ys.map((y) => tot[y] ?? null) }, { name: 'Lax', color: '#f6b13b', data: ys.map((y) => lax[y] ?? null) }] }; eldiL = { y: ys[ys.length - 1], v: tot[ys[ys.length - 1]] }; }
 } catch (e) {}
 
-// ── Landaður afli eftir mánuðum, per tegund (SJA01101, json-stat2) — RAUNAFLI, fyllir kvótamyndina ──
-// Ólíkt aflamarki/afla Fiskistofu (fiskveiðiár) sýnir þetta mánaðarleg raunumsvif: árstíðatoppa uppsjávar-
-// veiða ofan á jafnari botnfiskafla. Landsvísi (allar hafnir). Þolir bilun (try → null → kafli falinn).
+// ── Landaður afli eftir mánuðum, per tegund (SJA01101, json-stat2) — RAUNAFLI (hagtala, ekki kvóti) ──
+// Mánaðarleg raunumsvif veiðanna: árstíðatoppar uppsjávarveiða ofan á jafnari botnfiskafla.
+// Landsvísi (allar hafnir). Þolir bilun (try → null → kafli falinn).
 let LAND = null;
 try {
   const yNow = new Date().getUTCFullYear();
@@ -69,63 +71,35 @@ try {
   }
 } catch (e) {}
 
-// ── Fiskistofu-kvótabanki (gogn/sjavarutvegur.json) ──
-const t = (kg) => Math.round((kg / 1e6) * 10) / 10;            // kg → þús. tonn (1 aukastafur)
-const SP = (SJA.species || []).filter((s) => s.aflamark > 0);  // sleppa tegundum án aflamarks (t.d. humar lokaður)
-const featured = SJA.featured || [];
+// ── Fiskveiðiárs-merkimiði úr gogn/sjavarutvegur.json (kvóta-GÖGNIN sjálf birtast í Kvótavaktinni) ──
 const timabil = SJA.timabilLabel || '';
-// Kvótanýting: aflamark vs afli (þús.t), raðað hækkandi → stærst efst í láréttu súluriti
-const util = SP.slice().sort((a, b) => a.aflamark - b.aflamark).map((s) => ({ n: s.nafn, mark: t(s.aflamark), afli: t(s.afli) }));
-// Þjöppun: hlutdeild 10 stærstu skipa (%), hækkandi → mest þjappað efst
-const conc = SP.slice().sort((a, b) => a.top10pct - b.top10pct).map((s) => ({ n: s.nafn, v: s.top10pct }));
-// Dreifirit: nýting (x) vs þjöppun (y), stærð = aflamark
-const scatter = SP.map((s) => ({ n: s.nafn, x: Math.min(s.nyting, 160), y: s.top10pct, mark: t(s.aflamark) }));
-// Stærstu kvótahafar per tegund (topp 15 skip)
-const HOLDERS = {};
-SP.forEach((s) => { HOLDERS[s.nafn] = (s.top || []).slice(0, 15).map((x) => ({ skip: x.skip, pct: x.pct, mark: t(x.aflamark) })); });
-const spNames = SP.slice().sort((a, b) => b.aflamark - a.aflamark).map((s) => s.nafn); // val í tegundavali (stærst fyrst)
-const thorsk = SP.find((s) => s.nafn === 'Þorskur') || SP[0];
-const defSp = thorsk ? thorsk.nafn : spNames[0];
 const nMark = (v) => { const [i, d] = (Math.round(v * 10) / 10).toFixed(1).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + d; }; // þús.t m/ 1 aukastaf, íslenskt
-const pc = (v) => String(v).replace('.', ',');  // prósenta m/ íslensku kommu (þjöppun/nýting eru rá tölur)
-// Tafla: allar tegundir raðaðar eftir aflamarki
-const tafla = SP.slice().sort((a, b) => b.aflamark - a.aflamark).map((s) => ({ n: s.nafn, mark: t(s.aflamark), afli: t(s.afli), nyt: s.nyting, skip: s.nSkip, topp: s.top10pct }));
-// Sláandi þjöppunardæmi fyrir texta/SEO
-const mestThjappad = SP.slice().sort((a, b) => b.top10pct - a.top10pct)[0];
 
-const updated = (SJA.updated || '').slice(0, 10);
-const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.round(t(thorsk.aflamark)) + ' þús. tonn ' + timabil + ', ' : ''}kvótanýting og þjöppun aflaheimilda eftir tegund${mestThjappad ? ' — 10 stærstu skip halda ' + Math.round(mestThjappad.top10pct) + '% af ' + mestThjappad.nafn.toLowerCase() + 'kvóta' : ''}. Lifandi gögn frá Fiskistofu og Hagstofu.`;
+const desc = 'Sjávarútvegur Íslands: heildarafli frá 1995, landaður afli eftir mánuðum og tegundum og fiskeldi í sögulegu samhengi — lifandi hagtölur frá Hagstofu Íslands. Aflamark, kvótahafar og samþjöppun aflaheimilda: sjá Kvótavaktina.';
 ---
-<Layout title="Sjávarútvegur — kvóti, afli og þjöppun aflaheimilda | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/sjavarutvegur/" ogTitle="Sjávarútvegur á Íslandi">
+<Layout title="Sjávarútvegur — afli, landanir og fiskeldi | Karp" description={desc} canonical="https://karp.is/atvinnuvegir/sjavarutvegur/" ogTitle="Sjávarútvegur á Íslandi">
   <main data-pg="atvinnuvegir-sjavarutvegur">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Sjávarútvegur 🐟</h1>
-    <p class="lead">Undirstöðuatvinnuvegurinn í tölum: heildarafli og fiskeldi frá Hagstofu, og <strong>aflaheimildir (kvóti) eftir tegund frá Fiskistofu</strong> — nýting, þjöppun og stærstu kvótahafar fiskveiðiársins {timabil}. Útflutningsverðmæti sjávarafurða: sjá <a href="/vidskipti/">Utanríkisverslun</a>.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark = úthlutuð aflaheimild (kvóti) skips/útgerðar fyrir fiskveiðiárið (1. sept–31. ág). Afli getur farið yfir 100% af aflamarki vegna tilfærslu milli ára og tegunda. Þjöppun = samanlögð hlutdeild 10 stærstu skipa í aflamarki tegundarinnar.">ⓘ</i> Um hugtökin: aflamark, nýting og þjöppun</p>
+    <p class="lead">Undirstöðuatvinnuvegurinn í tölum: <strong>heildarafli, mánaðarlegar landanir eftir tegundum og fiskeldi</strong> frá Hagstofu í sögulegu samhengi. Útflutningsverðmæti sjávarafurða: sjá <a href="/vidskipti/">Utanríkisverslun</a>. Hver heldur kvótanum? Aflamark, eigendahópar og samþjöppun eru í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>.</p>
 
-    <!-- KPI-röð -->
+    <!-- KPI-röð (almennar hagtölur) -->
     <div class="kpis">
       {latest && <div class="kpi"><div class="k-l">🎣 Heildarafli</div><div class="k-v">{groupThousands(latest.v)}</div><div class="k-s">þús. tonn · {latest.y}</div></div>}
-      {thorsk && <div class="kpi"><div class="k-l">🐟 Þorskaflamark</div><div class="k-v">{Math.round(t(thorsk.aflamark))}</div><div class="k-s">þús. tonn · {timabil}</div></div>}
-      {thorsk && <div class="kpi"><div class="k-l">⚓ Skip m/ þorskkvóta</div><div class="k-v">{groupThousands(thorsk.nSkip)}</div><div class="k-s">skráð skip · {timabil}</div></div>}
       {eldiL && <div class="kpi"><div class="k-l">🐠 Fiskeldi</div><div class="k-v">{groupThousands(eldiL.v)}</div><div class="k-s">tonn · {eldiL.y}</div></div>}
       {LAND && <div class="kpi"><div class="k-l">📦 Landað · {LAND.latest.label}</div><div class="k-v">{groupThousands(LAND.latest.total)}</div><div class="k-s">þús. tonn · nýjasti mánuður</div></div>}
     </div>
 
-    <!-- Hero: staða helstu stofna -->
-    {featured.length > 0 && <>
-      <h2>Staða helstu stofna · {timabil}</h2>
-      <p class="sub">Afli fiskveiðiársins sem hlutfall af heildarkvóta. Heimild: forsíðuvísar Fiskistofu.</p>
-      <div class="feat">
-        {featured.map((f) => (
-          <div class={'fcard sev-' + (f.severity || 'normal')}>
-            <div class="f-sp">{f.species}</div>
-            <div class="f-bar"><span style={'width:' + Math.min(f.pct, 100) + '%'}></span></div>
-            <div class="f-row"><b>{f.pct}%</b> nýtt<span class="f-t">{groupThousands(f.afli)} / {groupThousands(f.kvoti)} þús. t</span></div>
-          </div>
-        ))}
+    <!-- ⚓ Sölu-flís: Kvótavaktin — kvóta-efnið sem áður var á þessari síðu býr nú þar -->
+    <aside class="kv-cta">
+      <div class="kv-cta-h">⚓ Hver heldur kvótanum?</div>
+      <p class="kv-cta-p"><strong>Kvótavaktin</strong> svarar því{timabil ? ' fyrir fiskveiðiárið ' + timabil : ''}: aflamark alls flotans samlagt <strong>per útgerð og eigendahóp</strong> · samþjöppun aflaheimilda og 12%-viðmið laganna · tegundagreining og vikuleg vakt á breytingum á aflamarki.</p>
+      <div class="kv-cta-btns">
+        <a class="kv-cta-main" href="/kvotavaktin/?syni=1">👁️ Sjá sýnishorn →</a>
+        <a class="kv-cta-sec" href="/lausnir/kvotavaktin/">Kvótavaktin — 9.900 kr/mán →</a>
       </div>
-    </>}
+      <div class="kv-cta-s">14 daga frí prufa · engin binding</div>
+    </aside>
 
     <!-- Söguferlar (Hagstofa) -->
     <h2>Heildarafli og fiskeldi í sögulegu samhengi</h2>
@@ -137,68 +111,15 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
     <!-- Landaður afli eftir mánuðum, per tegund (Hagstofa/Fiskistofa SJA01101) -->
     {LAND && <>
       <h2>Landaður afli eftir mánuðum 📦</h2>
-      <p class="sub">Raunverulegur landaður afli síðustu {LAND.labels.length} mánuði, skipt eftir helstu tegundum — landsvísi, allar löndunarhafnir. Þetta er <strong>raunumsvif veiðanna</strong> (ólíkt úthlutuðu aflamarki neðar): árstíðatoppar uppsjávarveiða — loðna, kolmunni, síld, makríll — ofan á jafnari botnfiskafla árið um kring. Í þúsundum tonna.</p>
+      <p class="sub">Raunverulegur landaður afli síðustu {LAND.labels.length} mánuði, skipt eftir helstu tegundum — landsvísi, allar löndunarhafnir. Þetta er <strong>raunumsvif veiðanna</strong> (úthlutað aflamark per útgerð er í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>): árstíðatoppar uppsjávarveiða — loðna, kolmunni, síld, makríll — ofan á jafnari botnfiskafla árið um kring. Í þúsundum tonna.</p>
       <div class="cwrap"><div id="c-land" class="ch"></div></div>
       {LAND.latest.top.length > 0 && <p class="tnote">Mest landað í {LAND.latest.label}: {LAND.latest.top.map((s) => s.n + ' ' + nMark(s.v)).join(' · ')} (þús. tonn).</p>}
     </>}
 
-    <!-- Kvótanýting -->
-    {util.length > 0 && <>
-      <h2>Kvótanýting eftir tegund · {timabil}</h2>
-      <p class="sub">Úthlutað aflamark (heimild) borið saman við landaðan afla ársins, í þúsundum tonna.</p>
-      <div class="cwrap"><div id="c-util" class="ch tall"></div></div>
-    </>}
+    <!-- Kvóta-kaflarnir (staða stofna, kvótanýting, þjöppun, stærstu kvótahafar, dreifirit, tegundatafla) fluttu í Kvótavaktina -->
+    <p class="moved">⚓ Aflamark og samþjöppun eftir útgerðum er nú í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a> — þar er líka kvótastaða tegunda, stærstu kvótahafar og vikuleg breytinga-vakt.</p>
 
-    <!-- Þjöppun — flaggskipið -->
-    {conc.length > 0 && <>
-      <h2>Þjöppun aflaheimilda 🎯</h2>
-      <p class="sub">Samanlögð hlutdeild <strong>10 stærstu skipa</strong> í aflamarki hverrar tegundar. Því hærra sem hlutfallið er, því færri hendur halda á kvótanum.{mestThjappad ? ' Mest þjöppuð tegund: ' + mestThjappad.nafn + ' (' + pc(mestThjappad.top10pct) + '%).' : ''}</p>
-      <div class="cwrap"><div id="c-conc" class="ch tall"></div></div>
-      <p class="legend"><span class="lg" style="--c:#3fb950"></span>&lt;40% dreift <span class="lg" style="--c:#f6b13b"></span>40–60% <span class="lg" style="--c:#f0883e"></span>60–80% <span class="lg" style="--c:#f85149"></span>&gt;80% mjög þjappað</p>
-    </>}
-
-    <!-- Stærstu kvótahafar (tegundaval) -->
-    {spNames.length > 0 && <>
-      <h2>Stærstu kvótahafar eftir tegund</h2>
-      <p class="sub">Topp 15 skip eftir aflamarki — veldu tegund. Hlutfall er af heildaraflamarki tegundarinnar.</p>
-      <div class="sp-picker">
-        {spNames.map((n) => <button class={'sp-btn' + (n === defSp ? ' active' : '')} data-sp={n}>{n}</button>)}
-      </div>
-      <div class="cwrap"><div id="c-hold" class="ch tall"></div></div>
-    </>}
-
-    <!-- Dreifirit -->
-    {scatter.length > 0 && <>
-      <h2>Nýting vs. þjöppun</h2>
-      <p class="sub">Hver kúla er tegund: lárétt = nýting aflamarks, lóðrétt = þjöppun (10 stærstu), stærð = umfang aflamarks. Efst til hægri: fullnýttur og þjappaður kvóti.</p>
-      <div class="cwrap"><div id="c-scat" class="ch"></div></div>
-    </>}
-
-    <!-- Gagnatafla -->
-    {tafla.length > 0 && <>
-      <h2>Helstu tegundir í aflamarkskerfi · {timabil}</h2>
-      <p class="sub">Botnfisktegundir með úthlutað aflamark innan lögsögu. Uppsjávartegundir (makríll, síld, kolmunni) eru í sérstöku kerfi og birtast í hero-spjöldunum að ofan.</p>
-      <div class="twrap">
-        <table>
-          <thead><tr><th>Tegund</th><th class="r">Aflamark</th><th class="r">Afli</th><th class="r">Nýting</th><th class="r">Skip</th><th class="r">Þjöppun</th></tr></thead>
-          <tbody>
-            {tafla.map((r) => (
-              <tr>
-                <td>{r.n}</td>
-                <td class="r">{nMark(r.mark)}</td>
-                <td class="r">{nMark(r.afli)}</td>
-                <td class="r">{pc(r.nyt)}%</td>
-                <td class="r">{groupThousands(r.skip)}</td>
-                <td class="r"><b class={r.topp >= 80 ? 'hi' : r.topp >= 60 ? 'md' : ''}>{pc(r.topp)}%</b></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p class="tnote">Aflamark og afli í þúsundum tonna. Þjöppun = hlutdeild 10 stærstu skipa í aflamarki.</p>
-    </>}
-
-    <p class="foot">Forþjónað (SSG). Heimildir: <b>Fiskistofa</b> (Gagnavefur — aflamark/afli/þjöppun per skip, fiskveiðiár {timabil}, uppfært {updated}) og <b>Hagstofa Íslands</b> (SJA01101 heildarafli og mánaðarlegar landanir per tegund, SJA07001 fiskeldi). Kvóta einstakra útgerða má fletta upp á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Hagstofa Íslands</b> (SJA01101 — heildarafli og mánaðarlegar landanir per tegund, SJA07001 — fiskeldi). Aflamark, kvótanýting og samþjöppun aflaheimilda{timabil ? ' fiskveiðiársins ' + timabil : ''} — per útgerð, skip og eigendahóp — er í <a href="/kvotavaktin/?syni=1">Kvótavaktinni</a>.</p>
   </main>
 
   <style>
@@ -210,8 +131,6 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
     h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; letter-spacing: .01em; }
     h3 { font-size: 13px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 8px; font-weight: 700; }
     .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; } .sub strong { color: #cdd6e6; }
-    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
-    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
@@ -219,47 +138,37 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
     .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
     .k-s { font-size: 11px; color: #7e8ca6; }
 
-    .feat { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 6px 0 4px; }
-    .fcard { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 14px 16px; }
-    .f-sp { font-size: 14.5px; font-weight: 700; color: #eaf0fb; margin-bottom: 10px; }
-    .f-bar { height: 9px; border-radius: 5px; background: rgba(255,255,255,.08); overflow: hidden; }
-    .f-bar span { display: block; height: 100%; border-radius: 5px; background: #3fb950; transition: width .6s; }
-    .sev-warning .f-bar span { background: #f6b13b; } .sev-critical .f-bar span { background: #f85149; }
-    .f-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 9px; font-size: 12px; color: #9fb0c8; }
-    .f-row b { font-size: 18px; color: #eaf0fb; font-variant-numeric: tabular-nums; } .f-t { font-variant-numeric: tabular-nums; }
+    /* ⚓ Sölu-flís Kvótavaktarinnar — Karp-gulur rammi, sami stíll og aðrar CTA-flísar */
+    .kv-cta { background: linear-gradient(135deg, rgba(246,177,59,.09), rgba(246,177,59,.03)); border: 1px solid rgba(246,177,59,.45); border-radius: 14px; padding: 18px 20px; margin: 22px 0 6px; }
+    .kv-cta-h { font-size: 18px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; }
+    .kv-cta-p { font-size: 13.5px; color: #cdd6e6; line-height: 1.6; margin: 0 0 12px; }
+    .kv-cta-p strong { color: #eaf0fb; }
+    .kv-cta-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .kv-cta-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 13px; text-decoration: none; padding: 9px 16px; border-radius: 9px; }
+    .kv-cta-main:hover { background: #ffc35c; }
+    .kv-cta-sec { border: 1px solid rgba(246,177,59,.5); color: #f6b13b; font-weight: 700; font-size: 13px; text-decoration: none; padding: 9px 16px; border-radius: 9px; }
+    .kv-cta-sec:hover { background: rgba(246,177,59,.1); }
+    .kv-cta-s { font-size: 11.5px; color: #8fa0ba; margin-top: 9px; }
 
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
-    .ch { width: 100%; height: 380px; } .ch.sm { height: 290px; } .ch.tall { height: 560px; }
+    .ch { width: 100%; height: 380px; } .ch.sm { height: 290px; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } .ch.tall { height: 620px; } }
-    .legend { font-size: 12px; color: #7e8ca6; margin: 8px 2px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
-    .lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; background: var(--c); vertical-align: -1px; margin-right: 3px; }
-
-    .sp-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
-    .sp-btn { font: inherit; font-size: 12.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; transition: .15s; }
-    .sp-btn:hover { border-color: rgba(246,177,59,.5); color: #eaf0fb; }
-    .sp-btn.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; font-weight: 700; }
-
-    .twrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
-    thead th { text-align: left; padding: 10px 12px; color: #9fb0c8; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); }
-    th.r, td.r { text-align: right; font-variant-numeric: tabular-nums; }
-    tbody td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,.05); color: #cdd6e6; }
-    tbody tr:last-child td { border-bottom: 0; }
-    tbody td:first-child { font-weight: 600; color: #eaf0fb; }
-    td .hi { color: #f85149; } td .md { color: #f0883e; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
     .tnote { font-size: 11.5px; color: #6f7b8d; margin: 8px 2px 0; }
+
+    /* Vísun þangað sem kvóta-kaflarnir fóru */
+    .moved { border: 1px dashed rgba(246,177,59,.35); border-radius: 11px; padding: 12px 15px; font-size: 13px; color: #9fb0c8; line-height: 1.55; margin: 34px 0 0; }
+    .moved a { color: #f6b13b; font-weight: 700; }
 
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
     .foot b { color: #9fb0c8; }
   </style>
 
-  <script define:vars={{ C1, C2, util, conc, scatter, HOLDERS, defSp, LAND }}>
+  <script define:vars={{ C1, C2, LAND }}>
     function initSjav() {
       if (!document.querySelector('main[data-pg="atvinnuvegir-sjavarutvegur"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
       const nf = (v) => (Math.round(v * 10) / 10).toString().replace('.', ','); // 1 aukastafur, íslenskt komma
-      const concColor = (v) => (v >= 80 ? '#f85149' : v >= 60 ? '#f0883e' : v >= 40 ? '#f6b13b' : '#3fb950');
       const insts = [];
       const mk = (id) => { const el = document.getElementById(id); if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return null; const c = window.echarts.init(el); insts.push(c); return c; };
 
@@ -289,82 +198,6 @@ const desc = `Sjávarútvegur Íslands: ${thorsk ? 'þorskaflamark ' + Math.roun
             xAxis: { type: 'category', data: LAND.labels, axisLabel: { color: AX, fontSize: 10, rotate: 52, interval: 0 }, axisLine: { lineStyle: { color: LINE } } },
             yAxis: { type: 'value', name: 'þús. tonn', nameTextStyle: { color: AX, fontSize: 10 }, axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
             series: LAND.series.map((s) => ({ name: s.name, type: 'bar', stack: 'afli', data: s.data, itemStyle: { color: s.color }, barMaxWidth: 24 })),
-          });
-        }
-
-        // ── Kvótanýting: aflamark vs afli (lárétt grúppa) ──
-        if (util && util.length) {
-          const c = mk('c-util');
-          if (c) c.setOption({
-            backgroundColor: 'transparent',
-            legend: { data: ['Aflamark', 'Afli'], textStyle: { color: '#9fb0c8', fontSize: 11 }, top: 0 },
-            grid: { left: 82, right: 20, top: 28, bottom: 30 },
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => nf(v) + ' þús. t' },
-            xAxis: { type: 'value', axisLabel: { color: AX, formatter: '{value}' }, splitLine: { lineStyle: { color: GRID } }, name: 'þús. tonn', nameTextStyle: { color: AX, fontSize: 10 }, nameLocation: 'end', nameGap: 8 },
-            yAxis: { type: 'category', data: util.map((d) => d.n), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { lineStyle: { color: LINE } } },
-            series: [
-              { name: 'Aflamark', type: 'bar', data: util.map((d) => d.mark), itemStyle: { color: '#3a8dff', borderRadius: [0, 3, 3, 0] }, barMaxWidth: 11 },
-              { name: 'Afli', type: 'bar', data: util.map((d) => d.afli), itemStyle: { color: '#f6b13b', borderRadius: [0, 3, 3, 0] }, barMaxWidth: 11 },
-            ],
-          });
-        }
-
-        // ── Þjöppun: hlutdeild 10 stærstu (lárétt, litað eftir þjöppun) ──
-        if (conc && conc.length) {
-          const c = mk('c-conc');
-          if (c) c.setOption({
-            backgroundColor: 'transparent',
-            grid: { left: 82, right: 46, top: 10, bottom: 30 },
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => p[0].name + '<br/><b>' + nf(p[0].value) + '%</b> hjá 10 stærstu skipum' },
-            xAxis: { type: 'value', max: 100, axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
-            yAxis: { type: 'category', data: conc.map((d) => d.n), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { lineStyle: { color: LINE } } },
-            series: [{
-              type: 'bar', data: conc.map((d) => ({ value: d.v, itemStyle: { color: concColor(d.v), borderRadius: [0, 3, 3, 0] } })), barMaxWidth: 16,
-              markLine: { symbol: 'none', silent: true, lineStyle: { color: 'rgba(255,255,255,.35)', type: 'dashed' }, data: [{ xAxis: 50 }], label: { formatter: '50%', color: '#9fb0c8', fontSize: 10 } },
-              label: { show: true, position: 'right', formatter: (o) => nf(o.value) + '%', color: '#9fb0c8', fontSize: 10 },
-            }],
-          });
-        }
-
-        // ── Stærstu kvótahafar (tegundaval) ──
-        let hold = null;
-        const drawHold = (sp) => {
-          if (!hold) hold = mk('c-hold'); if (!hold) return;
-          const rows = (HOLDERS[sp] || []).slice().reverse(); // stærst efst
-          hold.setOption({
-            backgroundColor: 'transparent',
-            grid: { left: 128, right: 44, top: 10, bottom: 30 },
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => p[0].name + '<br/><b>' + nf(p[0].value) + '%</b> · ' + nf(p[0].data.mark) + ' þús. t' },
-            xAxis: { type: 'value', axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
-            yAxis: { type: 'category', data: rows.map((r) => r.skip), axisLabel: { color: '#cdd6e6', fontSize: 11 }, axisLine: { lineStyle: { color: LINE } } },
-            series: [{
-              type: 'bar', data: rows.map((r) => ({ value: r.pct, mark: r.mark })), itemStyle: { color: '#19d3c5', borderRadius: [0, 3, 3, 0] }, barMaxWidth: 15,
-              label: { show: true, position: 'right', formatter: (o) => nf(o.value) + '%', color: '#9fb0c8', fontSize: 10 },
-            }],
-          }, true);
-        };
-        document.querySelectorAll('.sp-btn').forEach((b) => b.addEventListener('click', () => {
-          document.querySelectorAll('.sp-btn').forEach((x) => x.classList.remove('active'));
-          b.classList.add('active'); drawHold(b.dataset.sp);
-        }));
-        if (document.getElementById('c-hold')) drawHold(defSp);
-
-        // ── Dreifirit: nýting vs þjöppun (kúlur) ──
-        if (scatter && scatter.length) {
-          const c = mk('c-scat');
-          const maxM = Math.max.apply(null, scatter.map((d) => d.mark));
-          if (c) c.setOption({
-            backgroundColor: 'transparent',
-            grid: { left: 46, right: 24, top: 16, bottom: 42 },
-            tooltip: { formatter: (p) => '<b>' + p.data.n + '</b><br/>Nýting: ' + nf(p.data.x) + '%<br/>Þjöppun: ' + nf(p.data.y) + '%<br/>Aflamark: ' + nf(p.data.mark) + ' þús. t' },
-            xAxis: { type: 'value', name: 'Nýting aflamarks (%)', nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: AX, fontSize: 11 }, axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
-            yAxis: { type: 'value', name: 'Þjöppun (%)', axisLabel: { color: AX, formatter: '{value}%' }, splitLine: { lineStyle: { color: GRID } } },
-            series: [{
-              type: 'scatter', data: scatter.map((d) => ({ value: [d.x, d.y], x: d.x, y: d.y, n: d.n, mark: d.mark })),
-              symbolSize: (val, p) => 10 + Math.sqrt(p.data.mark / maxM) * 42,
-              itemStyle: { color: (p) => concColor(p.data.y), opacity: .78, borderColor: 'rgba(255,255,255,.25)' },
-              label: { show: true, formatter: (p) => p.data.n, position: 'top', color: '#9fb0c8', fontSize: 10 },
-            }],
           });
         }
 

@@ -42,6 +42,15 @@ const jsonLd = {
     <h2>Yfirlit</h2>
     <div id="kv-stats" class="kv-kpis"><div class="kv-empty">Hleð yfirlitinu…</div></div>
 
+    <h2>Heildarmyndin <i class="tip" tabindex="0" data-tip="Allur úthlutaði kvótinn í einni mynd. Sólgeisli: smelltu á tegund til að þysja inn. Strengir: flæðin milli tegunda og stærstu útgerða. Skip: hver hringur er skip, stærð eftir þorskígildum.">ⓘ</i></h2>
+    <p class="sub">Allur kvótinn í einni mynd — eftir tegundum, útgerðum og skipum. Smelltu til að kafa dýpra.</p>
+    <div class="kv-graftabs" id="kv-graftabs">
+      <button type="button" class="kv-gtab kv-gtab-on" data-graf="sol">☀️ Sólgeisli</button>
+      <button type="button" class="kv-gtab" data-graf="strengir">🎻 Strengir</button>
+      <button type="button" class="kv-gtab" data-graf="skip">⚓ Skipin</button>
+    </div>
+    <div id="kv-graf"><div class="kv-empty">Hleð heildarmyndinni…</div></div>
+
     <h2>Breytingar á aflamarki <i class="tip" tabindex="0" data-tip="Samanburður við síðustu vikulegu mælingu. Breyting getur verið flutningur aflamarks, tilfærsla milli tímabila eða ný úthlutun — ekki fullyrt um kaup/sölu.">ⓘ</i></h2>
     <p class="sub">Stærstu hreyfingar milli vikulegra mælinga — hverjir bæta við sig aflamarki og hverjir láta frá sér.</p>
     <div id="kv-breyt"><div class="kv-empty">Hleð breytingum…</div></div>
@@ -99,6 +108,25 @@ const jsonLd = {
     main[data-pg="kvotavaktin"] .kv-b-grn { background: rgba(63,185,80,.15); color: #3fb950; border: 1px solid rgba(63,185,80,.4); }
     main[data-pg="kvotavaktin"] .kv-upp { color: #3fb950; }
     main[data-pg="kvotavaktin"] .kv-nidur { color: #ff8a8a; }
+    /* Heildarmynds-gröfin (kvotagraf.mjs — D3) */
+    main[data-pg="kvotavaktin"] .kv-graftabs { display: flex; gap: 8px; margin: 10px 0 12px; flex-wrap: wrap; }
+    main[data-pg="kvotavaktin"] .kv-gtab { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; }
+    main[data-pg="kvotavaktin"] .kv-gtab:hover { color: var(--ink); }
+    main[data-pg="kvotavaktin"] .kv-gtab-on { background: rgba(246,177,59,.12); border-color: rgba(246,177,59,.45); color: #f6b13b; }
+    main[data-pg="kvotavaktin"] #kv-graf { max-width: 720px; margin: 0 auto; }
+    main[data-pg="kvotavaktin"] .kvg-svg { width: 100%; height: auto; display: block; }
+    main[data-pg="kvotavaktin"] .kvg-arc { cursor: pointer; stroke: var(--bg); stroke-width: 1; }
+    main[data-pg="kvotavaktin"] .kvg-arc:hover { fill-opacity: 1; }
+    main[data-pg="kvotavaktin"] .kvg-strengur:hover { fill-opacity: 0.85; }
+    main[data-pg="kvotavaktin"] .kvg-lbl { font-size: 11.5px; fill: #cdd6e6; pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kvg-mid { font-size: 17px; font-weight: 800; fill: #eaf1fb; pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kvg-mid2 { font-size: 13px; font-weight: 500; fill: #8fa0b8; }
+    main[data-pg="kvotavaktin"] .kvg-utg { }
+    main[data-pg="kvotavaktin"] .kvg-skip { stroke: rgba(0,0,0,.25); stroke-width: .5; }
+    .kvg-tip { position: fixed; z-index: 90; background: #101a2e; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45; color: #eaf1fb; pointer-events: none; max-width: 260px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+    main[data-pg="kvotavaktin"] .kv-stada { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; }
+    main[data-pg="kvotavaktin"] .kv-stada-l { font-size: 12.5px; font-weight: 700; color: #9fb0c8; margin-right: 4px; }
+    .kvg-tip i { color: #8fa0b8; }
 
     /* Töflur (farsíma-vænar: overflow-x á umbúðunum) */
     main[data-pg="kvotavaktin"] .kv-twrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; margin: 6px 0 4px; }
@@ -184,6 +212,7 @@ const jsonLd = {
     // ⚓ Kvótavaktin — client-eyja: sækir /gogn/kvoti.json (404-þolið), teiknar yfirlit, topp-20,
     // tegundir og leit; eigendahópurinn kemur lifandi frá workernum (/api/kvoti/hopur).
     import { loginHref } from '../lib/auth.js';
+    import { teiknaSolgeisla, teiknaStrengi, teiknaPakka } from '../lib/kvotagraf.mjs';
 
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="kvotavaktin"]');
@@ -199,6 +228,7 @@ const jsonLd = {
       const SYNI = new URLSearchParams(location.search).get('syni') === '1';
 
       let D = null;    // kvoti.json
+      let SJ = null;   // sjavarutvegur.json (kvótastaða/nýting — dagleg Fiskistofu-bökun); má vanta
       let LEIT = [];   // [{kt,nafn,ti,pct}] — allir handhafar, raðað eftir þorskígildum
 
       // HHI-merki: >2500 mikil (rautt), 1500–2500 nokkur (gult), annars lítil (grænt).
@@ -257,6 +287,28 @@ const jsonLd = {
           + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span></div></div>';
       }
 
+      // ── Heildarmyndin: þrjú D3-gröf (kvotagraf.mjs, lazy CDN) — flipa-skipt ─
+      // Sýnishorn: sólgeislinn á tegunda-stigi (engin útgerðanöfn); hin gröfin læst.
+      function initGraf() {
+        const box = $('kv-graf'), tabs = $('kv-graftabs');
+        if (!box || !tabs) return;
+        const teikna = (hvad) => {
+          if (SYNI && hvad !== 'sol') {
+            box.innerHTML = '<div class="kv-locked">🔐 Strengja- og skipa-gröfin fylgja fullri áskrift — sólgeislinn hér sýnir tegunda-stigið eitt.</div>';
+            return;
+          }
+          box.innerHTML = '<div class="kv-empty">Teikna…</div>';
+          if (hvad === 'sol') teiknaSolgeisla(box, D, { dyptEin: SYNI });
+          else if (hvad === 'strengir') teiknaStrengi(box, D);
+          else teiknaPakka(box, D);
+        };
+        tabs.querySelectorAll('.kv-gtab').forEach((b) => b.addEventListener('click', () => {
+          tabs.querySelectorAll('.kv-gtab').forEach((x) => x.classList.toggle('kv-gtab-on', x === b));
+          teikna(b.dataset.graf);
+        }));
+        teikna('sol');
+      }
+
       // ── Breytingar á aflamarki (vikulegur samanburður úr build_kvoti) ───────
       // D.breytingar = { fra, til, staerstu:[{kt,nafn,d_kg,d_pct,nytt?}], horfnir:[...], n } | null.
       // null = fyrsta mæling (engin fyrri keyrsla) → útskýrum í stað þess að þegja.
@@ -308,11 +360,22 @@ const jsonLd = {
         $('kv-top').innerHTML = html;
       }
 
+      // ── Kvótastaða fiskveiðiársins (severity-spjöld úr gogn/sjavarutvegur.json — flutt af fríu
+      // sjávarútvegs-síðunni inn í vöruna): afli sem % af kvóta per lykiltegund. SJ getur verið null.
+      function kvotastadaHtml() {
+        const f = (SJ && Array.isArray(SJ.featured)) ? SJ.featured : [];
+        if (!f.length) return '';
+        const lit = (s) => (/danger|crit|red/i.test(s) ? 'kv-b-red' : /warn/i.test(s) ? 'kv-b-yel' : 'kv-b-grn');
+        return '<div class="kv-stada"><span class="kv-stada-l" data-tip="Afli fiskveiðiársins sem hlutfall af kvóta — beint úr forsíðuvísum Fiskistofu. Uppfært daglega.">Kvótastaða ' + esc((SJ.timabilLabel || '')) + ' ⓘ</span>'
+          + f.slice(0, 8).map((x) => '<span class="kv-badge ' + lit(x.severity) + '">' + esc(x.species) + ' <b>' + Math.round(x.pct) + '%</b> veitt</span>').join('') + '</div>';
+      }
       // ── Tegundir: val + topp-15 per tegund ─────────────────────────────────
       function fillTeg(t) {
         const [ht, hc] = hhiMerki(Number(t.hhi) || 0);
+        const sj = (SJ && Array.isArray(SJ.species)) ? SJ.species.find((x) => String(x.nafn).toLowerCase() === String(t.nafn).toLowerCase()) : null;
         $('kv-teg-info').innerHTML = '<span class="kv-ti"><b>' + tonnIS(t.heild_kg) + '</b> tonn alls</span>'
           + '<span class="kv-ti">10 stærstu: <b>' + pctIS(t.top10pct) + '</b></span>'
+          + (sj && sj.nyting != null ? '<span class="kv-ti" data-tip="Afli fiskveiðiársins sem hlutfall af kvóta (Fiskistofa, daglega).">nýting: <b>' + pctIS(sj.nyting) + '</b></span>' : '')
           + '<span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(t.hhi) + ' innan tegundarinnar.">' + ht + '</span>';
         let html = topTableHtml((t.top || []).slice(0, 15), { skip: false, blurFrom: SYNI ? 5 : null });
         if (SYNI) html = syniOverlay(html);
@@ -324,12 +387,12 @@ const jsonLd = {
         if (SYNI) {
           // Sýnishornið: aðeins þorskurinn (stærsta/þekktasta tegundin) — restin er hluti af áskriftinni.
           const t = ts.find((x) => /þorsk/i.test(String(x.nafn || ''))) || ts[0];
-          $('kv-teg').innerHTML = '<div class="kv-teghead"><span class="kv-tegname">' + esc(t.nafn) + '</span><div class="kv-teg-info" id="kv-teg-info"></div></div><div id="kv-teg-tafla"></div>'
+          $('kv-teg').innerHTML = kvotastadaHtml() + '<div class="kv-teghead"><span class="kv-tegname">' + esc(t.nafn) + '</span><div class="kv-teg-info" id="kv-teg-info"></div></div><div id="kv-teg-tafla"></div>'
             + '<p class="kv-note">Sýnishornið sýnir eina tegund — full áskrift opnar allar ' + nIS(ts.length) + '.</p>';
           fillTeg(t);
           return;
         }
-        $('kv-teg').innerHTML = '<div class="kv-teghead"><label class="kv-sellbl">Tegund <select id="kv-teg-sel">'
+        $('kv-teg').innerHTML = kvotastadaHtml() + '<div class="kv-teghead"><label class="kv-sellbl">Tegund <select id="kv-teg-sel">'
           + ts.map((t, i) => '<option value="' + i + '">' + esc(t.nafn) + ' — ' + tonnIS(t.heild_kg) + ' t</option>').join('')
           + '</select></label><div class="kv-teg-info" id="kv-teg-info"></div></div><div id="kv-teg-tafla"></div>';
         const sel = $('kv-teg-sel');
@@ -450,10 +513,16 @@ const jsonLd = {
       });
 
       // ── Ræsing: kvoti.json er e.t.v. ekki til enn (verið að byggja) → mjúk lending ──
-      fetch('/gogn/kvoti.json').then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+      Promise.all([
+        fetch('/gogn/kvoti.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+        fetch('/gogn/sjavarutvegur.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      ]).then(([d, sj]) => {
+        SJ = sj;
+        return d;
+      }).then((d) => {
         D = d;
         if (!D || !D.heild) {
-          ['kv-stats', 'kv-breyt', 'kv-top', 'kv-teg'].forEach((id) => { $(id).innerHTML = VINNSLA; });
+          ['kv-stats', 'kv-graf', 'kv-breyt', 'kv-top', 'kv-teg'].forEach((id) => { $(id).innerHTML = VINNSLA; });
           $('kv-lres').innerHTML = '';
           const q = $('kv-q');
           if (q) { q.disabled = true; q.placeholder = 'Gögn í vinnslu — kíktu við á eftir…'; }
@@ -466,6 +535,7 @@ const jsonLd = {
         const fa = fiskar(D.timabil);
         if (fa) $('kv-timabil').textContent = ' · ' + fa;
         renderStats();
+        initGraf();
         renderBreyt();
         renderTop();
         renderTeg();
