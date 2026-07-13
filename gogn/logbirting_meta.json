@@ -1,9 +1,9 @@
 {
- "generated": "2026-07-12",
+ "generated": "2026-07-13",
  "counts": {
-  "companies": 1084,
-  "notices": 2114
+  "companies": 1107,
+  "notices": 2186
  },
- "issuesParsed": 109,
- "newNotices": 0
+ "issuesParsed": 114,
+ "newNotices": 72
 }
