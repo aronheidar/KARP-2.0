@@ -21,20 +21,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til secret kemur).'); process.exit(0); }
 
-// ── TÍMABUNDINN DIAG (fjarlægt eftir greiningu): hvað nær GH-runnerinn í www.skatturinn.is? ──
-if (process.env.TENGSL_DIAG === '1') {
-  const R = 'https://www.skatturinn.is';
-  const botUA = 'karp.is tengslagrunnur (aronheidars@gmail.com)';
-  const browUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
-  const probe = async (label, url, ua) => {
-    try { const r = await fetch(url, { headers: { 'User-Agent': ua } }); const t = await r.text(); console.error(`DIAG ${label}: HTTP ${r.status} len=${t.length} kts=${extractKts(t).length} snip="${t.replace(/\s+/g, ' ').slice(0, 100)}"`); }
-    catch (e) { console.error(`DIAG ${label}: ERR ${e.message}`); }
-  };
-  await probe('detail(bot)', R + '/fyrirtaekjaskra/leit/kennitala/4301691069', botUA);
-  await probe('search(bot)', R + '/fyrirtaekjaskra/leit?nafn=a', botUA);
-  await probe('search(browser)', R + '/fyrirtaekjaskra/leit?nafn=a', browUA);
-  console.error('DIAG búið.');
-}
+// www.skatturinn.is (frítt skrap) er hraðatakmarkað (throttlar við magn — sannreynt 13.7). Því
+// höldum við utan um samfelldar bilanir og HÆTTUM skrapi þegar þjónninn fer að hafna okkur, í stað
+// þess að hamra hann. API-hlutinn (api.skattur.cloud) er ósnortinn (mælt/greitt, þolir magn).
+const SCRAPE_MAXFAIL = 5;
+let scrapeFails = 0, scrapeStop = false;
+const noteScrape = (okHtml) => { if (okHtml === null) { if (++scrapeFails >= SCRAPE_MAXFAIL) { scrapeStop = true; console.error(`⚠ ${SCRAPE_MAXFAIL} samfelldar www.skatturinn.is-bilanir (throttla) — hætti skrapi þessa nótt (API heldur áfram).`); } } else scrapeFails = 0; };
 
 function wrangler(args) {
   return execFileSync('npx', ['wrangler', ...args], { cwd: 'web', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: process.env });
@@ -96,9 +88,9 @@ for (const kt of batch) {
   acc.folk.push(...rec.folk);
   acc.hlutverk.push(...rec.hlutverk);
   for (const dk of rec.discovered) { acc.queueAdd.push({ kt: dk, from: kt, priority: 2 }); discovered++; }
-  // frítt eigenda-skrap (kurteist)
-  await sleep(1500);
-  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt);
+  // frítt eigenda-skrap (kurteist; sleppt ef þjónninn er farinn að throttla)
+  let html = null;
+  if (!scrapeStop) { await sleep(1500); html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt); noteScrape(html); }
   const eignRows = [];
   for (const e of (html ? parseEigendur(html) : [])) {
     const key = personKey({ nafn: e.nafn, faeding: e.faeding });
@@ -113,17 +105,20 @@ for (const kt of batch) {
 }
 
 // ── 2) Nafnaleitar-sweep (frí HTML-upptalning → ný félög í biðröð) ─────────────
-const prefixes = sweepBatch(SWEEP_BUDGET);
-console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}).`);
+const prefixes = scrapeStop ? [] : sweepBatch(SWEEP_BUDGET);
+console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET})${scrapeStop ? ' — SLEPPT (throttla)' : ''}.`);
 let sweepFound = 0;
 for (const pfx of prefixes) {
-  await sleep(1200);   // kurteist við skatturinn.is
+  if (scrapeStop) break;
+  await sleep(1500);   // kurteist við skatturinn.is
   const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
-  const kts = html ? extractKts(html) : [];
+  noteScrape(html);
+  if (html === null) continue;   // ⚠ sókn brást (throttla) → EKKI merkja forskeytið done; reynt aftur næstu nótt
+  const kts = extractKts(html);
   for (const k of kts) { acc.queueAdd.push({ kt: k, from: 'sweep:' + pfx, priority: 3 }); sweepFound++; }
   const { children } = nextPrefixes(pfx, kts.length, 100);   // mettað (≥100) → dýpka
   for (const c of children) acc.sweepAdd.push(c);
-  acc.sweepMark.push({ prefix: pfx, hit_count: kts.length });
+  acc.sweepMark.push({ prefix: pfx, hit_count: kts.length });   // aðeins við VELHEPPNAÐA sókn
 }
 
 // ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
