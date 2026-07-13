@@ -72,7 +72,7 @@ export function teiknaSolgeisla(el, D, { dyptEin = false } = {}) {
       .attr('d', arc).attr('fill', litur)
       .attr('fill-opacity', (d) => d.depth === 1 ? 0.92 : (d.data.adrir ? 0.25 : 0.55))
       .attr('class', 'kvg-arc')
-      .on('mousemove', (ev, d) => T.syna('<b>' + stytt(d.data.name, 40) + '</b><br>' + tonn(d.value) + ' þorskígildi · ' + ((d.value / rot.value) * 100).toFixed(1) + '% af heild' + (d.depth === 2 ? '<br><i>' + stytt(d.parent.data.name, 30) + '</i>' : ''), ev))
+      .on('mousemove', (ev, d) => T.syna('<b>' + stytt(d.data.name, 40) + '</b><br>' + tonn(d.value) + ' aflamark · ' + ((d.value / rot.value) * 100).toFixed(1) + '% af heild' + (d.depth === 2 ? '<br><i>' + stytt(d.parent.data.name, 30) + '</i>' : ''), ev))
       .on('mouseleave', () => T.fela())
       .on('click', (ev, d) => zoom(d.depth === 1 && fokus !== d ? d : rot));
     const merki = g.selectAll('text').data(rot.descendants().filter((d) => d.depth === 1 && (d.x1 - d.x0) > 0.12)).join('text')
