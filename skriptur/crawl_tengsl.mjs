@@ -12,7 +12,7 @@ import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
 const BUDGET = bi >= 0 ? parseInt(process.argv[bi + 1], 10) : parseInt(process.env.TENGSL_BUDGET || '1500', 10);
-const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '200', 10);   // frí nafnaleit-köll á nótt
+const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '30', 10);   // frí nafnaleit-köll á nótt (www.skatturinn.is throttlar við ~30/keyrslu)
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
 const API = 'https://api.skattur.cloud/legalentities/v2.1/';
@@ -68,7 +68,27 @@ const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueR
 const seenLastSql = [];
 let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0;
 
-// ── 1) Félaga-crawl (metrað API) ──────────────────────────────────────────────
+// ── 1) Nafnaleitar-sweep FYRST (ferskur runner) ───────────────────────────────
+// www.skatturinn.is (frítt skrap) throttlar við ~30 köll/keyrslu og skilar þá HTTP 200 með
+// TÓMRI niðurstöðusíðu (ekki 429). Sweepið keyrir því á undan félaga-lykkjunni til að fá ferskt
+// aðgengi; 0 treff = throttla (eins stafs forskeyti eiga ALLTAF treff) → EKKI merkt done, reynt aftur.
+const prefixes = sweepBatch(SWEEP_BUDGET);
+console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}).`);
+let sweepFound = 0;
+for (const pfx of prefixes) {
+  if (scrapeStop) break;
+  await sleep(1500);   // kurteist við skatturinn.is
+  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
+  const kts = html ? extractKts(html) : [];
+  if (!kts.length) { noteScrape(null); continue; }   // net-fall EÐA 200-tómt (throttla) → EKKI done; retry + back-off
+  noteScrape('ok');
+  for (const k of kts) { acc.queueAdd.push({ kt: k, from: 'sweep:' + pfx, priority: 3 }); sweepFound++; }
+  const { children } = nextPrefixes(pfx, kts.length, 100);   // mettað (≥100) → dýpka
+  for (const c of children) acc.sweepAdd.push(c);
+  acc.sweepMark.push({ prefix: pfx, hit_count: kts.length });   // aðeins við VELHEPPNAÐA sókn
+}
+
+// ── 2) Félaga-crawl (metrað API + eigenda-skrap) ──────────────────────────────
 const batch = queueBatch(BUDGET);
 console.error(`Félaga-batch: ${batch.length} kt (budget ${BUDGET}).`);
 for (const kt of batch) {
@@ -102,23 +122,6 @@ for (const kt of batch) {
   const keptH = rec.hlutverk.map((h) => h.person_key + '|' + h.hlutverk);
   const keptE = eignRows.map((r) => r.eigandi_key + '|' + r.tegund);
   seenLastSql.push(buildSeenLastSql(kt, keptH, keptE, today));
-}
-
-// ── 2) Nafnaleitar-sweep (frí HTML-upptalning → ný félög í biðröð) ─────────────
-const prefixes = scrapeStop ? [] : sweepBatch(SWEEP_BUDGET);
-console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET})${scrapeStop ? ' — SLEPPT (throttla)' : ''}.`);
-let sweepFound = 0;
-for (const pfx of prefixes) {
-  if (scrapeStop) break;
-  await sleep(1500);   // kurteist við skatturinn.is
-  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
-  noteScrape(html);
-  if (html === null) continue;   // ⚠ sókn brást (throttla) → EKKI merkja forskeytið done; reynt aftur næstu nótt
-  const kts = extractKts(html);
-  for (const k of kts) { acc.queueAdd.push({ kt: k, from: 'sweep:' + pfx, priority: 3 }); sweepFound++; }
-  const { children } = nextPrefixes(pfx, kts.length, 100);   // mettað (≥100) → dýpka
-  for (const c of children) acc.sweepAdd.push(c);
-  acc.sweepMark.push({ prefix: pfx, hit_count: kts.length });   // aðeins við VELHEPPNAÐA sókn
 }
 
 // ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
