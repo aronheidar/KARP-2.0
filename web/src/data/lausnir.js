@@ -53,6 +53,11 @@ export const SERLAUSNIR = [
   { slug: 'thingskyrslur', heiti: 'Þingmannaskýrslur', emoji: '🏛️', service: 'thingskyrslur', verd: 3900, trialDays: 30,
     lysing: '10 þingmannaskýrslur á mánuði — atkvæðaferill, uppreisnar-atkvæði, málaflokkar, ræðugreining með gervigreind, fyrirspurnir og umfjöllun.',
     fyrir: 'Blaðamenn, hagsmunaverðir og greinendur', href: '/althingi/thingmenn/' },
+  // PREMIUM: Kvótavaktin — eina varan á markaðnum sem rekur aflamark gegnum eignarhaldskeðjur.
+  // Verðlögð hátt viljandi (fá-en-verðmæt kaupendahópur: fjölmiðlar/bankar/útgerðir); 14 daga frítt.
+  { slug: 'kvotavaktin', heiti: 'Kvótavaktin', emoji: '⚓', service: 'kvoti', verd: 9900, trialDays: 14,
+    lysing: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-viðmið, tegundagreining og tengsl við eigendur og ársreikninga.',
+    fyrir: 'Fjölmiðlar, bankar, útgerðir og greinendur', href: '/kvotavaktin/' },
 ];
 
 const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskilaskrá.';
@@ -170,6 +175,26 @@ export const VORUR = [
     synishorn: { label: 'Skoða útboð', href: '/utbod/' },
     tol: { label: 'Opna Útboðsvaktina', href: '/utbod/' },
     description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,
+  },
+  {
+    slug: 'kvotavaktin', heiti: 'Kvótavaktin', emoji: '⚓',
+    gildisloford: 'Hver heldur kvótanum? Aflamark rakið gegnum eignarhaldskeðjur.',
+    inngangur: 'Kvótavaktin samlagður aflamark alls flotans per útgerð og eigendahóp — eina varan sem tengir aflamark Fiskistofu, eigendur skipa úr skipaskrá og eignarhaldskeðjur fyrirtækja í eina greiningarmynd. Samþjöppun, tegundagreining og nálgun á 12%-viðmið laga um fiskveiðistjórnun.',
+    eiginleikar: [
+      { emoji: '⚓', titill: 'Aflamark alls flotans', texti: 'Öll skip, allar tegundir — samlagt á útgerðir í þorskígildum, beint frá Fiskistofu.' },
+      { emoji: '🕸️', titill: 'Eigendahópar', texti: 'Kvóti rakinn gegnum eignarhaldskeðjur — samanlögð hlutdeild tengdra félaga.' },
+      { emoji: '📊', titill: 'Samþjöppun & 12%-viðmið', texti: 'Top-10 hlutdeild, HHI-stuðull og viðvörun þegar hópur nálgast lögbundið þak.' },
+      { emoji: '🐟', titill: 'Tegundagreining', texti: 'Þorskur, ýsa, karfi, uppsjávartegundir — hver heldur hverju, með samþjöppun per tegund.' },
+      { emoji: '🔗', titill: 'Full samþætting', texti: 'Beintengt í fyrirtækjaskýrslur, endanlega eigendur og ársreikninga hverrar útgerðar.' },
+    ],
+    skref: [
+      { titill: 'Opnaðu yfirlitið', texti: 'Top-útgerðir, samþjöppun og tegundir á einum stað.' },
+      { titill: 'Rektu hópinn', texti: 'Smelltu á útgerð — sjáðu eigendahópinn og samanlagða hlutdeild.' },
+    ],
+    verd: { tegund: 'askrift', upphaed: 9900, service: 'kvoti', trialDays: 14 },   // premium sérlausn — fá-en-verðmæt kaupendahópur
+    synishorn: { label: 'Sjá sýnishorn', href: '/kvotavaktin/?syni=1' },
+    tol: { label: 'Opna Kvótavaktina', href: '/kvotavaktin/' },
+    description: 'Kvótavaktin — aflamark, eigendur og samþjöppun í sjávarútvegi, rakið gegnum eignarhaldskeðjur. Fyrir fjölmiðla, banka, útgerðir og greinendur. ' + LEGAL,
   },
   {
     slug: 'thingmannavaktin', heiti: 'Þingmannavaktin', emoji: '🏛️',

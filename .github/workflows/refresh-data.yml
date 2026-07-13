@@ -140,6 +140,10 @@ jobs:
           node skriptur/build_ferdaleyfi.mjs       || true   # Ferðamálastofa leyfishafar (ferðaskrifstofur+dagsferðir) → ferdaleyfi.json (áfangi 1 leyfaskrár)
           node skriptur/build_stjornartidindi.mjs  || true   # Stjórnartíðindi: nýjustu lög/reglugerðir/auglýsingar → stjornartidindi.json (island.is officialJournalOfIcelandAdverts)
 
+      - name: Kvótavaktin — aflamark flotans per útgerð (VIKULEGA á mánudögum; þungt flotasveip ~2500 skip á island.is, ~10-15 mín)
+        run: |
+          if [ "$(date -u +%u)" = "1" ]; then node skriptur/build_kvoti.mjs || true; fi
+
       - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)
         run: |
           node skriptur/build_hagvoxtur.mjs   || true   # VLF ársfj + VLF-Sankey + Norðurlönd (WB) + IMF-hagvaxtarspá → hagvoxtur.json

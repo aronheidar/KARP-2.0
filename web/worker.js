@@ -1108,6 +1108,64 @@ async function kvotiHandler(request, env, ctx) {
   return res;
 }
 
+// ── Kvótavaktin (premium): eigendahópur útgerðar ──
+// GET /api/kvoti/hopur?kt= — rekur EIGENDAHÓP útgerðar (rót + lögaðilar úr eignarhaldstré hennar,
+// sama félagamengi og tengslanet notar) og leggur saman kvóta-hlutdeild hópsins úr gogn/kvoti.json
+// (byggt vikulega af build_kvoti.mjs). Kjarna-differentiator vörunnar: „tengd félög halda X% samtals".
+// ⚠ ÁÆTLUN — ekki lagalegur úrskurður um „tengda aðila" skv. lögum nr. 116/2006; birt með fyrirvara.
+// Innskráðir eingöngu (premium virði); login-gátt Á UNDAN cache-treffi (sama gildra og tengslanet).
+async function kvotiHopurHandler(request, env, ctx) {
+  const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
+  if (kt.length !== 10 || !rskErFyrirtaeki(kt)) return sjson({ kt, error: 'kt' });
+  const uid = await karpUserId(request);
+  if (!uid) return sjson({ error: 'login' });
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/api/kvoti-hopur?kt=' + kt);
+  const hit = await cache.match(ck); if (hit) return hit;
+  const kv = await augGet(env, 'kvoti.json');
+  if (!kv || !kv.leit) return sjson({ kt, error: 'gogn' });   // pípan ekki keyrð enn → framendi sýnir „í vinnslu"
+  // hópur = rót + lögaðilar úr eignarhaldstrénu (ef byggt — annars aðeins rótin sjálf)
+  const felogSet = new Set([kt]);
+  let treTil = false;
+  try {
+    const tr = await env.ASSETS.fetch(new Request('https://karp.internal/gogn/eigendur/' + kt + '.json'));
+    if (tr.ok) {
+      treTil = true;
+      const t = await tr.json();
+      for (const nd of ((t.net && t.net.nodes) || [])) {
+        const k = String(nd.kt || '').replace(/\D/g, '');
+        if (k.length === 10 && rskErFyrirtaeki(k)) felogSet.add(k);
+      }
+    }
+  } catch (e) {}
+  const heildTi = (kv.heild && kv.heild.ti_kg) || 0;
+  const felog = [];
+  let samtals = 0;
+  for (const k of [...felogSet].slice(0, 40)) {
+    const l = kv.leit[k];
+    if (!l) { if (k === kt) felog.push({ kt: k, nafn: null, ti_kg: 0, pct: 0 }); continue; }
+    felog.push({ kt: k, nafn: l[0], ti_kg: +l[1] || 0, pct: +l[2] || 0 });
+    samtals += (+l[1] || 0);
+  }
+  felog.sort((a, b) => b.ti_kg - a.ti_kg);
+  const samtalsPct = heildTi ? +(samtals / heildTi * 100).toFixed(2) : 0;
+  const out = {
+    kt, nafn: (kv.leit[kt] && kv.leit[kt][0]) || null, treTil,
+    felog: felog.slice(0, 20), samtals_ti_kg: Math.round(samtals), samtals_pct: samtalsPct,
+    nalaegt_thaki: samtalsPct >= 10,   // 12% er lögbundið hámark heildar-þorskígilda — vörum við frá 10%
+    heimild: 'Áætlun Karps: eignarhaldstré úr opinberum skrám + aflamark Fiskistofu — ekki úrskurður um tengda aðila skv. lögum nr. 116/2006',
+  };
+  if (!treTil) {
+    // SJÁLFHEILUN (rýni-atriði #1): tré ekki byggt enn → kveikja á on-demand byggingunni (sama flæði
+    // og eigenda-skýrslan notar) og skila ÓCACHE-uðu svari svo endurtilraun eftir ~2 mín fái fullan hóp.
+    ctx.waitUntil(fetch('https://karp.is/api/eigendur/request?kt=' + kt, { method: 'POST' }).catch(() => {}));
+    return sjson({ ...out, byggja: true });
+  }
+  const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=43200' } });
+  ctx.waitUntil(cache.put(ck, res.clone()));
+  return res;
+}
+
 // ── TEYA/BORGUN SECUREPAY (RPG hýst greiðslusíða, LOTA 97) — „kaupa skýrslu" ──
 // PCI-öruggt: worker undirritar pöntun (checkhash) og skilar form-reitum; framendi POST-ar á
 // hýstu greiðslusíðu Teya sem vinnur kortið — við snertum ALDREI kortagögn.
@@ -1258,9 +1316,10 @@ async function askellWebhookHandler(request, env, ctx) {
     // Sér þjónustu-áskrift (Útboðsvaktin o.fl.): metadata.service áreiðanlegt (VIÐ setjum í session);
     // vöru-nafn til vara. Slík áskrift veitir karp_sub_<svc>_until í WP — EKKI þrep.
     const ms = String(meta.service || '');
-    const service = ['utbod', 'frettir', 'fasteign', 'thingskyrslur'].indexOf(ms) >= 0 ? ms
+    const service = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(ms) >= 0 ? ms
       : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod'
-        : (nameBlob.indexOf('thingskyrsl') >= 0 || nameBlob.indexOf('þingmannaskýrsl') >= 0 ? 'thingskyrslur' : ''));
+        : (nameBlob.indexOf('thingskyrsl') >= 0 || nameBlob.indexOf('þingmannaskýrsl') >= 0 ? 'thingskyrslur'
+          : (nameBlob.indexOf('kvótavakt') >= 0 || nameBlob.indexOf('kvotavakt') >= 0 ? 'kvoti' : '')));
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
       : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
@@ -1317,7 +1376,7 @@ async function subCancelHandler(request, env, ctx) {
   const uid = await karpUserId(request);
   if (!uid) return sjson({ error: 'login' });
   let body = {}; try { body = await request.json(); } catch (e) {}
-  const svc = ['utbod', 'frettir', 'fasteign'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
+  const svc = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   // Segir upp EINUM Áskell-samningi: v2 cancel_at_period_end (aðgangur helst út greitt tímabil), legacy til vara.
   const cancelById = async (id) => {
@@ -1452,7 +1511,7 @@ async function askellSessionHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const u = new URL(request.url);
   const TIERS = { grunnur: 'ASKELL_CHANNEL_GRUNNUR', fyrirtaeki: 'ASKELL_CHANNEL_FYRIRTAEKI', fyrirtaeki_plus: 'ASKELL_CHANNEL_FYRIRTAEKI_PLUS' };
-  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR', fasteign: 'ASKELL_CHANNEL_FASTEIGN', thingskyrslur: 'ASKELL_CHANNEL_THINGSKYRSLUR' };   // sérlausnir: Útboð 1.900, Umfjöllun/frettir 3.900, Fasteignir 3.900, Þingmannaskýrslur 3.900 (20 skýrslur/mán)
+  const SVCS = { utbod: 'ASKELL_CHANNEL_UTBOD', frettir: 'ASKELL_CHANNEL_FRETTIR', fasteign: 'ASKELL_CHANNEL_FASTEIGN', thingskyrslur: 'ASKELL_CHANNEL_THINGSKYRSLUR', kvoti: 'ASKELL_CHANNEL_KVOTI' };   // sérlausnir: Útboð 1.900, Umfjöllun/frettir 3.900, Fasteignir 3.900, Þingmannaskýrslur 3.900, Kvótavaktin 9.900 (premium)
   const svc = SVCS[u.searchParams.get('service')] ? u.searchParams.get('service') : '';
   const tier = TIERS[u.searchParams.get('tier')] ? u.searchParams.get('tier') : 'grunnur';
   const kt = String(u.searchParams.get('kt') || '').replace(/\D/g, '');
@@ -1654,7 +1713,7 @@ async function stakConfirmHandler(request, env, ctx) {
 // Þess í stað: sama iframe-kortaform og stökin (V1 hosted checkout) → server-megin stofnum við
 // V2 subscription-contract OG veitum aðgang STRAX á /sub/grant (ekki beðið eftir rukkunar-vefkrók).
 // slug = þrep (grunnur/fyrirtaeki/fyrirtaeki_plus) EÐA þjónusta (utbod/frettir/fasteign) = vöru-tilvísun í Áskell.
-const SUB2_SLUGS = { grunnur: 'tier', fyrirtaeki: 'tier', fyrirtaeki_plus: 'tier', utbod: 'svc', frettir: 'svc', fasteign: 'svc', thingskyrslur: 'svc' };
+const SUB2_SLUGS = { grunnur: 'tier', fyrirtaeki: 'tier', fyrirtaeki_plus: 'tier', utbod: 'svc', frettir: 'svc', fasteign: 'svc', thingskyrslur: 'svc', kvoti: 'svc' };
 async function sub2CheckoutHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY) return sjson({ error: 'unconfigured' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
@@ -2662,6 +2721,7 @@ export default {
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, env, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
+    if (url.pathname === '/api/kvoti/hopur') return kvotiHopurHandler(request, env, ctx);
     if (url.pathname === '/api/loftfor') return loftforHandler(request, env, ctx);
     if (url.pathname === '/api/vorumerki') return vorumerkiHandler(request, ctx);
     if (url.pathname === '/api/eftirlit') return eftirlitHandler(request, ctx);

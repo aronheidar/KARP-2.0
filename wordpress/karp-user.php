@@ -111,7 +111,7 @@ function karp_user_payload() {
         // karp_sub_<svc>_until (unix) í framtíð → svc í subs-fylkinu (auth.js hasSub).
         $subs = array();
         $subs_until = array();   // gildistími per sérlausn (unix) → Mitt svæði birtir „virk til D.M."
-        foreach ( array('utbod', 'frettir', 'fasteign', 'thingskyrslur') as $svc ) {
+        foreach ( array('utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti') as $svc ) {
             $su = (int) get_user_meta($u->ID, 'karp_sub_' . $svc . '_until', true);
             if ( $su > time() ) { $subs[] = $svc; $subs_until[$svc] = $su; }
         }
@@ -256,7 +256,7 @@ add_action('rest_api_init', function () {
             $tier = isset($p['tier']) ? preg_replace('/[^a-z_]/', '', (string) $p['tier']) : '';
             $svc  = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
             $kt = preg_replace('/\D/', '', (string) ( isset($p['kt']) ? $p['kt'] : '' ));
-            $ok = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || in_array($svc, array('utbod', 'frettir', 'fasteign', 'stak'), true);   // 'stak' = stök skýrsla um Áskell (vistar kt f. grant)
+            $ok = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true) || in_array($svc, array('utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti', 'stak'), true);   // 'stak' = stök skýrsla um Áskell (vistar kt f. grant)
             if ( ! $ok || strlen($kt) !== 10 ) { return array('ok' => false, 'error' => 'input'); }
             update_user_meta($uid, 'karp_kt', $kt);   // bindur Áskell-vefkrók (customer_reference=kt) við þennan notanda → grant
             return array('ok' => true, 'tier' => $tier ?: $svc, 'status' => 'pending');
@@ -371,7 +371,7 @@ function karp_sub_grant($req) {
     $untilAbs = isset($p['until']) ? (int) $p['until'] : 0;   // Áskell active_until (nákvæm lok, unix)
     $ref = (string) ( isset($p['ref']) ? $p['ref'] : '' );
     $tierOk = in_array($tier, array('grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'), true);
-    $svcOk  = in_array($svc, array('utbod', 'frettir', 'fasteign', 'thingskyrslur'), true);
+    $svcOk  = in_array($svc, array('utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'), true);
     if ( strlen($kt) !== 10 || ( ! $tierOk && ! $svcOk ) || $untilAbs < time() ) { return array('ok' => false, 'error' => 'input'); }
     // Idempotency: sama greidda áskrift (ref = Áskell-id_until) má AÐEINS veita einu sinni.
     $done = (array) get_option('karp_sub_granted_refs', array());
@@ -406,7 +406,7 @@ function karp_sub_cancelinfo($req) {
     $uid = isset($p['userid']) ? (int) $p['userid'] : 0;
     $svc = isset($p['service']) ? preg_replace('/[^a-z]/', '', (string) $p['service']) : '';
     if ( ! $uid ) { return array('ok' => false, 'error' => 'input'); }
-    $isSvc = ( $svc && in_array($svc, array('utbod', 'frettir', 'fasteign', 'thingskyrslur'), true) );
+    $isSvc = ( $svc && in_array($svc, array('utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'), true) );
     $meta = $isSvc ? 'karp_sub_' . $svc . '_askell' : 'karp_tier_askell';
     // kt + slug (þjónusta EÐA þrep) fylgja svo worker geti flett upp VIRKUM Áskell-samningi kaupanda þegar
     // vistaða askellId vantar (t.d. útboð veitt um /sub/trial → aldrei _askell) eða er úrelt. Áskell = sannleikur.

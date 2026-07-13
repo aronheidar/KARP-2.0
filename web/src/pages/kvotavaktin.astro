@@ -1,0 +1,454 @@
+---
+// kvotavaktin.astro — ⚓ Kvótavaktin: premium söluvara (sér-áskrift 'kvoti', 9.900 kr./mán., 14 d. frítt).
+// Hver heldur kvótanum? Aflamark alls flotans samlagt per útgerð (þorskígildi), tegundagreining,
+// samþjöppun (HHI + top-10) og EIGENDAHÓPAR raktir gegnum eignarhaldsnet Karps (/api/kvoti/hopur).
+// Gögn: /gogn/kvoti.json (build-skript, daglegt) — sótt CLIENT-hlið svo build brotnar ekki þó skráin
+// vanti (404 → „Gögn í vinnslu"). ?syni=1 = opið sýnishorn (sölutól, sama mynstur og fasteignavakt/utbod).
+// Gátun: subGate 'kvoti' — virk AÐEINS þegar greiðsluveggur (KARP_USER.paywall) er á (sama og utbod).
+import Layout from '../layouts/Layout.astro';
+
+const desc = 'Kvótavaktin — kvóti, aflamark og kvótaeigendur á einum stað. Þorskígildi allra útgerða, samþjöppun í sjávarútvegi (HHI, hlutdeild 10 stærstu), tegundagreining og eigendahópar raktir gegnum eignarhaldskeðjur með nálgun við 12%-þak laganna. Fyrir fjölmiðla, banka, útgerðir og greinendur.';
+
+// Service/Product schema — mánaðaráskrift 9.900 kr.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['Product', 'Service'],
+  name: 'Kvótavaktin',
+  description: desc,
+  url: 'https://karp.is/kvotavaktin/',
+  brand: { '@type': 'Brand', name: 'Karp' },
+  provider: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/' },
+  offers: {
+    '@type': 'Offer',
+    price: 9900,
+    priceCurrency: 'ISK',
+    url: 'https://karp.is/kvotavaktin/',
+    availability: 'https://schema.org/InStock',
+    priceSpecification: { '@type': 'UnitPriceSpecification', price: 9900, priceCurrency: 'ISK', unitText: 'mánuður' },
+  },
+};
+---
+
+<Layout title="Kvótavaktin — aflamark, eigendur og samþjöppun | Karp" description={desc} canonical="https://karp.is/kvotavaktin/" ogTitle="⚓ Kvótavaktin — Karp" jsonLd={jsonLd}>
+  <main data-pg="kvotavaktin">
+    <p class="kicker">Karp+ · Sjávarútvegur</p>
+    <h1>⚓ Kvótavaktin</h1>
+    <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða á einum stað, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark og krókaaflamark frá Fiskistofu, umreiknað í þorskígildi. Eigendahópar eru raktir gegnum eignarhaldsnet Karps (hluthafaskrár ársreikninga + fyrirtækjaskrá). Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.">ⓘ</i> Heimild: <span id="kv-heimild">Fiskistofa — aflamark í þorskígildum</span> · uppfært <span id="kv-uppfaert">—</span><span id="kv-timabil"></span></p>
+
+    <!-- 👁️ Sýnishorns-borði (?syni=1) — fyllt í runtime -->
+    <div id="kv-syni"></div>
+
+    <h2>Yfirlit</h2>
+    <div id="kv-stats" class="kv-kpis"><div class="kv-empty">Hleð yfirlitinu…</div></div>
+
+    <h2>20 stærstu útgerðirnar</h2>
+    <p class="sub">Samanlagt aflamark hverrar útgerðar í þorskígildum — smelltu á „Skoða" fyrir skipalista og tegundagreiningu, eða „Eigendahópur" til að sjá samanlagða hlutdeild tengdra félaga.</p>
+    <div id="kv-top"><div class="kv-empty">Hleð topplistanum…</div></div>
+
+    <h2>Tegundir</h2>
+    <p class="sub">Aflamark eftir tegundum — heildarmagn, samþjöppun og stærstu handhafar hverrar tegundar.</p>
+    <div id="kv-teg"><div class="kv-empty">Hleð tegundunum…</div></div>
+
+    <h2>Útgerðar-leit</h2>
+    <p class="sub">Flettu upp hvaða handhafa aflamarks sem er — eftir nafni eða kennitölu.</p>
+    <div id="kv-leitbox"><input id="kv-q" type="search" placeholder="🔎 Leitaðu að útgerð — nafn eða kennitala…" autocomplete="off" /></div>
+    <div id="kv-lres"></div>
+    <div id="kv-detail"></div>
+
+    <p class="foot">Heimild: <span id="kv-heimild2">Fiskistofa</span> · uppfært <span id="kv-uppfaert2">—</span>. Áætlun byggð á opinberum gögnum — eigendahópar og hlutdeildir eru útreikningur Karps, ekki úrskurður um tengda aðila skv. lögum nr. 116/2006. Samhengi: <a href="/atvinnuvegir/sjavarutvegur/">sjávarútvegur í tölum</a>.</p>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+    #kv-q { width: 100%; max-width: 420px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 10px 13px; color: #eaf1fb; font-size: 13.5px; }
+    #kv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .foot { font-size: 12px; color: #6f7b8d; margin-top: 32px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.55; }
+  </style>
+
+  <style is:global>
+    /* ⚠ Runtime-innerHTML → Astro scoped-CSS nær EKKI yfir — því is:global með .kv- forskeyti,
+       njörvað við main[data-pg="kvotavaktin"] svo ekkert leki á aðrar síður. */
+    main[data-pg="kvotavaktin"] .kv-empty { background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.14); border-radius: 12px; padding: 18px; text-align: center; color: #9fb0c8; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-locked { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; color: #cdd6e6; font-size: 13.5px; line-height: 1.55; }
+    main[data-pg="kvotavaktin"] .kv-locked a { color: #f6b13b; font-weight: 700; text-decoration: none; }
+
+    /* Yfirlits-flísar */
+    main[data-pg="kvotavaktin"] .kv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 14px 0 6px; }
+    main[data-pg="kvotavaktin"] .kv-kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    main[data-pg="kvotavaktin"] .kv-kl { font-size: 12px; color: #9fb0c8; }
+    main[data-pg="kvotavaktin"] .kv-kv { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    main[data-pg="kvotavaktin"] .kv-ks { font-size: 11px; color: #7e8ca6; margin-top: 3px; line-height: 1.5; }
+
+    /* HHI-merki */
+    main[data-pg="kvotavaktin"] .kv-badge { display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700; white-space: nowrap; cursor: help; }
+    main[data-pg="kvotavaktin"] .kv-b-red { background: rgba(248,81,73,.15); color: #f85149; border: 1px solid rgba(248,81,73,.4); }
+    main[data-pg="kvotavaktin"] .kv-b-yel { background: rgba(210,153,34,.15); color: #d29922; border: 1px solid rgba(210,153,34,.4); }
+    main[data-pg="kvotavaktin"] .kv-b-grn { background: rgba(63,185,80,.15); color: #3fb950; border: 1px solid rgba(63,185,80,.4); }
+
+    /* Töflur (farsíma-vænar: overflow-x á umbúðunum) */
+    main[data-pg="kvotavaktin"] .kv-twrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; margin: 6px 0 4px; }
+    main[data-pg="kvotavaktin"] .kv-twrap table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 660px; }
+    main[data-pg="kvotavaktin"] .kv-twrap th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8fa0ba; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-twrap td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: #cdd6e6; vertical-align: middle; }
+    main[data-pg="kvotavaktin"] .kv-twrap tbody tr:last-child td { border-bottom: none; }
+    main[data-pg="kvotavaktin"] .kv-twrap .r { text-align: right; }
+    main[data-pg="kvotavaktin"] .kv-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-dim { color: #7e8ca6; }
+    main[data-pg="kvotavaktin"] .kv-n { color: #eaf1fb; text-decoration: none; font-weight: 600; }
+    main[data-pg="kvotavaktin"] .kv-n:hover { color: #f6b13b; }
+    main[data-pg="kvotavaktin"] .kv-kt { display: block; font-size: 11.5px; color: #7e8ca6; }
+    main[data-pg="kvotavaktin"] .kv-sum td { background: rgba(246,177,59,.07); border-top: 1px solid rgba(246,177,59,.35); }
+
+    /* Hlutdeildar-stika */
+    main[data-pg="kvotavaktin"] .kv-pwrap { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+    main[data-pg="kvotavaktin"] .kv-pct { font-size: 12.5px; color: #eaf1fb; font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+    main[data-pg="kvotavaktin"] .kv-bar { flex: 1; height: 7px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; min-width: 60px; }
+    main[data-pg="kvotavaktin"] .kv-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f6b13b, #e08b1f); border-radius: 4px; }
+
+    /* Hnappar */
+    main[data-pg="kvotavaktin"] .kv-btn { display: inline-block; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #eaf1fb; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-btn:hover { border-color: rgba(246,177,59,.55); color: #f6b13b; }
+    main[data-pg="kvotavaktin"] .kv-btn2 { background: rgba(246,177,59,.12); border-color: rgba(246,177,59,.4); color: #f6b13b; }
+    main[data-pg="kvotavaktin"] .kv-acts { white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-acts .kv-btn { margin-left: 6px; }
+
+    /* Tegunda-haus */
+    main[data-pg="kvotavaktin"] .kv-teghead { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 8px 0 10px; }
+    main[data-pg="kvotavaktin"] .kv-sellbl { font-size: 13px; color: #9fb0c8; display: flex; align-items: center; gap: 8px; }
+    main[data-pg="kvotavaktin"] .kv-teghead select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; max-width: 320px; }
+    main[data-pg="kvotavaktin"] .kv-teghead select option { background: #0e1420; }
+    main[data-pg="kvotavaktin"] .kv-teghead select:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    main[data-pg="kvotavaktin"] .kv-teg-info { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: #9fb0c8; }
+    main[data-pg="kvotavaktin"] .kv-ti b { color: #eaf1fb; }
+    main[data-pg="kvotavaktin"] .kv-tegname { font-size: 16px; font-weight: 800; color: #eaf1fb; }
+
+    /* Leitar-niðurstöður */
+    main[data-pg="kvotavaktin"] .kv-hit { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; margin: 6px 0 0; cursor: pointer; color: #eaf1fb; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-hit:hover { border-color: rgba(246,177,59,.5); }
+    main[data-pg="kvotavaktin"] .kv-hn { font-weight: 600; }
+    main[data-pg="kvotavaktin"] .kv-hm { color: #7e8ca6; font-size: 12px; white-space: nowrap; }
+
+    /* Detail-spjald + eigendahópur */
+    main[data-pg="kvotavaktin"] .kv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 16px 18px; margin: 16px 0 6px; }
+    main[data-pg="kvotavaktin"] .kv-dhead { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: baseline; margin-bottom: 8px; }
+    main[data-pg="kvotavaktin"] .kv-dname { font-size: 19px; font-weight: 800; color: #eaf1fb; }
+    main[data-pg="kvotavaktin"] .kv-dstats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: #9fb0c8; align-items: baseline; }
+    main[data-pg="kvotavaktin"] .kv-dstats b { color: #f6b13b; font-size: 15px; }
+    main[data-pg="kvotavaktin"] .kv-dlbl { font-size: 11px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    main[data-pg="kvotavaktin"] .kv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    main[data-pg="kvotavaktin"] .kv-chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: #cdd6e6; }
+    main[data-pg="kvotavaktin"] .kv-chip i { font-style: normal; color: #7e8ca6; font-size: 11px; }
+    main[data-pg="kvotavaktin"] .kv-dbtns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    main[data-pg="kvotavaktin"] .kv-note { font-size: 12px; color: #7e8ca6; margin: 8px 0 0; line-height: 1.5; }
+    main[data-pg="kvotavaktin"] .kv-warn { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.45); border-radius: 10px; padding: 10px 14px; margin: 10px 0 4px; font-size: 13px; color: #f2b8b5; line-height: 1.55; }
+    main[data-pg="kvotavaktin"] .kv-warn b { color: #f85149; }
+
+    /* 👁️ Sýnishorn: blur á læstar raðir + yfirlag + kynningarborði */
+    main[data-pg="kvotavaktin"] .kv-blur td { filter: blur(4.5px); pointer-events: none; user-select: none; }
+    main[data-pg="kvotavaktin"] .kv-syniwrap { position: relative; }
+    main[data-pg="kvotavaktin"] .kv-syni-ol { position: absolute; left: 0; right: 0; bottom: 0; top: 42%; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: linear-gradient(180deg, rgba(13,18,28,0), rgba(13,18,28,.92) 55%); border-radius: 0 0 12px 12px; pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kv-syni-card { pointer-events: auto; text-align: center; background: rgba(19,26,41,.95); border: 1px solid rgba(246,177,59,.5); border-radius: 12px; padding: 14px 20px; max-width: 420px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card b { display: block; color: #f6b13b; font-size: 14.5px; margin-bottom: 2px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card span { display: block; color: #cdd6e6; font-size: 12.5px; margin-bottom: 8px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card a { display: inline-block; background: #f6b13b; color: #131a29; font-weight: 800; padding: 7px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card a:hover { filter: brightness(1.07); }
+    main[data-pg="kvotavaktin"] .kv-syni-banner { background: linear-gradient(180deg, rgba(246,177,59,.13), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.5); border-radius: 14px; padding: 16px 18px; margin: 14px 0 4px; }
+    main[data-pg="kvotavaktin"] .kv-syni-t { font-size: 15.5px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; line-height: 1.35; }
+    main[data-pg="kvotavaktin"] .kv-syni-banner p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.5; }
+    main[data-pg="kvotavaktin"] .kv-syni-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    main[data-pg="kvotavaktin"] .kv-syni-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-syni-main:hover { filter: brightness(1.07); }
+    main[data-pg="kvotavaktin"] .kv-syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+
+    /* Sýnishorns-hlekkur inni í aðgangsgáttinni */
+    main[data-pg="kvotavaktin"] .kv-samplerow { text-align: center; margin-top: 12px; }
+    main[data-pg="kvotavaktin"] .kv-samplerow a { color: #f6b13b; font-size: 13.5px; text-decoration: none; }
+  </style>
+
+  <script>
+    // ⚓ Kvótavaktin — client-eyja: sækir /gogn/kvoti.json (404-þolið), teiknar yfirlit, topp-20,
+    // tegundir og leit; eigendahópurinn kemur lifandi frá workernum (/api/kvoti/hopur).
+    import { loginHref } from '../lib/auth.js';
+
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="kvotavaktin"]');
+      if (!m || m.dataset.init) return;
+      m.dataset.init = '1';
+
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      const nIS = (v) => Number(v || 0).toLocaleString('is-IS');
+      // Tonn: 1 aukastafur undir 100 t, annars heilar tölur með þús-punktum.
+      const tonnIS = (kg) => { const t = (Number(kg) || 0) / 1000; return t < 100 ? t.toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : Math.round(t).toLocaleString('is-IS'); };
+      const pctIS = (p) => (Number(p) || 0).toLocaleString('is-IS', { maximumFractionDigits: 1 }) + '%';
+      const SYNI = new URLSearchParams(location.search).get('syni') === '1';
+
+      let D = null;    // kvoti.json
+      let LEIT = [];   // [{kt,nafn,ti,pct}] — allir handhafar, raðað eftir þorskígildum
+
+      // HHI-merki: >2500 mikil (rautt), 1500–2500 nokkur (gult), annars lítil (grænt).
+      const hhiMerki = (h) => (h > 2500 ? ['mikil samþjöppun', 'kv-b-red'] : h >= 1500 ? ['nokkur samþjöppun', 'kv-b-yel'] : ['lítil samþjöppun', 'kv-b-grn']);
+      // "2526" → „fiskveiðiárið 2025/2026"
+      const fiskar = (tb) => { const t = String(tb || ''); return t.length === 4 ? 'fiskveiðiárið 20' + t.slice(0, 2) + '/20' + t.slice(2) : ''; };
+      const VINNSLA = '<div class="kv-empty">🛠 Gögn í vinnslu — kíktu við á eftir.</div>';
+      const FYRIRVARI = 'Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.';
+
+      const ktLink = (kt, nafn) => '<a class="kv-n" href="/fyrirtaeki/?q=' + esc(kt) + '" title="Fyrirtækjaprófíll á Karp">' + esc(nafn) + '</a><span class="kv-kt">' + esc(kt) + '</span>';
+      // Lárétt stika: breiddin skalast við stærstu hlutdeildina í töflunni (max) svo listinn lesist vel.
+      const bar = (pct, max) => {
+        const w = Math.max(2, Math.min(100, ((Number(pct) || 0) / (max || 1)) * 100));
+        return '<div class="kv-pwrap"><span class="kv-pct">' + pctIS(pct) + '</span><div class="kv-bar"><i style="width:' + w.toFixed(1) + '%"></i></div></div>';
+      };
+
+      // Sameiginlegur töflu-teiknari: topp-20 (m/skipadálki) og tegunda-topp-15 (án hans).
+      // opts.blurFrom: raðir frá og með því sæti fá blur (sýnishornið).
+      function topTableHtml(list, opts) {
+        opts = opts || {};
+        const withSkip = opts.skip !== false;
+        const max = list.reduce((a, u) => Math.max(a, Number(u.pct) || 0), 0) || 1;
+        const head = '<thead><tr><th class="r">#</th><th>Útgerð</th><th class="r">Þorskígildi (tonn)</th><th>Hlutdeild</th>'
+          + (withSkip ? '<th class="r">Skip</th>' : '') + '<th></th></tr></thead>';
+        const rows = list.map((u, i) => {
+          const blur = opts.blurFrom != null && i >= opts.blurFrom;
+          return '<tr' + (blur ? ' class="kv-blur"' : '') + '>'
+            + '<td class="r kv-dim">' + (i + 1) + '</td>'
+            + '<td>' + ktLink(u.kt, u.nafn) + '</td>'
+            + '<td class="r kv-num">' + tonnIS(u.kg != null ? u.kg : u.ti_kg) + '</td>'
+            + '<td>' + bar(u.pct, max) + '</td>'
+            + (withSkip ? '<td class="r kv-num">' + nIS(u.nSkip) + '</td>' : '')
+            + '<td class="r kv-acts">'
+            + '<button type="button" class="kv-btn" data-kt="' + esc(u.kt) + '" data-act="detail">Skoða</button>'
+            + '<button type="button" class="kv-btn kv-btn2" data-kt="' + esc(u.kt) + '" data-act="hopur" title="Tengd félög gegnum eignarhaldsnetið og samanlögð hlutdeild hópsins">Eigendahópur</button>'
+            + '</td></tr>';
+        }).join('');
+        return '<div class="kv-twrap"><table>' + head + '<tbody>' + rows + '</tbody></table></div>';
+      }
+
+      // Yfirlag sýnishornsins ofan á blur-aðar raðir.
+      const syniOverlay = (html) => '<div class="kv-syniwrap">' + html
+        + '<div class="kv-syni-ol"><div class="kv-syni-card"><b>⭐ Full aðgangur með Kvótavaktinni</b>'
+        + '<span>9.900 kr./mán. · 14 daga frítt · engin binding</span>'
+        + '<a href="/lausnir/kvotavaktin/">Kynntu þér Kvótavaktina →</a></div></div></div>';
+
+      // ── Yfirlit: 4 stat-flísar ──────────────────────────────────────────────
+      function renderStats() {
+        const h = D.heild || {};
+        const [ht, hc] = hhiMerki(Number(h.hhi) || 0);
+        const thusTonn = ((Number(h.ti_kg) || 0) / 1e6).toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        $('kv-stats').innerHTML =
+          '<div class="kv-kpi"><div class="kv-kl">🐟 Þorskígildi alls</div><div class="kv-kv">' + thusTonn + '</div><div class="kv-ks">þús. tonn · ' + esc(fiskar(D.timabil) || 'úthlutað aflamark') + '</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">🏢 Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">🚢 Skip</div><div class="kv-kv">' + nIS(h.nSkip) + '</div><div class="kv-ks">með úthlutað aflamark</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span></div></div>';
+      }
+
+      // ── Topp-20 útgerðir ────────────────────────────────────────────────────
+      function renderTop() {
+        const list = (D.hafar || []).slice(0, SYNI ? 10 : 20);
+        if (!list.length) { $('kv-top').innerHTML = VINNSLA; return; }
+        let html = topTableHtml(list, { blurFrom: SYNI ? 5 : null });
+        if (SYNI) html = syniOverlay(html);
+        const h = D.heild || {};
+        // utan topp-150 = heild − Σ(top-150) — reiknað hér (adrir_kg er ANNAÐ hugtak: óeignað/einstaklingar)
+        const utan150 = Math.max(0, (h.ti_kg || 0) - (D.hafar || []).reduce((s, x) => s + (x.ti_kg || 0), 0));
+        html += '<p class="kv-note">Sýnir ' + (SYNI ? '5' : '20') + ' stærstu af ' + nIS(h.nHafar) + ' handhöfum aflamarks'
+          + (SYNI ? '' : ' — leitin hér að neðan nær yfir þá alla')
+          + (utan150 > 1000 ? '. Útgerðir utan topp-150 halda ' + tonnIS(utan150) + ' tonnum samtals' : '')
+          + (h.adrir_kg > 1000 ? '. Aflamark í eigu einstaklinga/óskráð: ' + tonnIS(h.adrir_kg) + ' tonn' : '') + '.</p>';
+        $('kv-top').innerHTML = html;
+      }
+
+      // ── Tegundir: val + topp-15 per tegund ─────────────────────────────────
+      function fillTeg(t) {
+        const [ht, hc] = hhiMerki(Number(t.hhi) || 0);
+        $('kv-teg-info').innerHTML = '<span class="kv-ti"><b>' + tonnIS(t.heild_kg) + '</b> tonn alls</span>'
+          + '<span class="kv-ti">10 stærstu: <b>' + pctIS(t.top10pct) + '</b></span>'
+          + '<span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(t.hhi) + ' innan tegundarinnar.">' + ht + '</span>';
+        let html = topTableHtml((t.top || []).slice(0, 15), { skip: false, blurFrom: SYNI ? 5 : null });
+        if (SYNI) html = syniOverlay(html);
+        $('kv-teg-tafla').innerHTML = html;
+      }
+      function renderTeg() {
+        const ts = (D.tegundir || []).slice().sort((a, b) => (Number(b.heild_kg) || 0) - (Number(a.heild_kg) || 0));
+        if (!ts.length) { $('kv-teg').innerHTML = VINNSLA; return; }
+        if (SYNI) {
+          // Sýnishornið: aðeins þorskurinn (stærsta/þekktasta tegundin) — restin er hluti af áskriftinni.
+          const t = ts.find((x) => /þorsk/i.test(String(x.nafn || ''))) || ts[0];
+          $('kv-teg').innerHTML = '<div class="kv-teghead"><span class="kv-tegname">' + esc(t.nafn) + '</span><div class="kv-teg-info" id="kv-teg-info"></div></div><div id="kv-teg-tafla"></div>'
+            + '<p class="kv-note">Sýnishornið sýnir eina tegund — full áskrift opnar allar ' + nIS(ts.length) + '.</p>';
+          fillTeg(t);
+          return;
+        }
+        $('kv-teg').innerHTML = '<div class="kv-teghead"><label class="kv-sellbl">Tegund <select id="kv-teg-sel">'
+          + ts.map((t, i) => '<option value="' + i + '">' + esc(t.nafn) + ' — ' + tonnIS(t.heild_kg) + ' t</option>').join('')
+          + '</select></label><div class="kv-teg-info" id="kv-teg-info"></div></div><div id="kv-teg-tafla"></div>';
+        const sel = $('kv-teg-sel');
+        sel.addEventListener('change', () => fillTeg(ts[+sel.value]));
+        fillTeg(ts[0]);
+      }
+
+      // ── Útgerðar-leit (nafn/kt substring í leit-lyklinum) ──────────────────
+      function initLeit() {
+        if (SYNI) {
+          $('kv-leitbox').innerHTML = '<div class="kv-locked">🔒 Útgerðar-leitin — uppfletting á öllum handhöfum aflamarks með skipalista, tegundagreiningu og eigendahóps-rakningu — er hluti af fullri áskrift. <a href="/lausnir/kvotavaktin/">Kynntu þér Kvótavaktina →</a></div>';
+          return;
+        }
+        LEIT = Object.entries(D.leit || {})
+          .map(([kt, v]) => ({ kt, nafn: String((v && v[0]) || ''), ti: Number(v && v[1]) || 0, pct: Number(v && v[2]) || 0 }))
+          .sort((a, b) => b.ti - a.ti);
+        const inp = $('kv-q'), res = $('kv-lres');
+        if (!inp) return;
+        inp.addEventListener('input', () => {
+          const q = inp.value.trim().toLowerCase();
+          if (q.length < 2) { res.innerHTML = ''; return; }
+          const digits = q.replace(/\D/g, '');
+          const hits = LEIT.filter((e) => e.nafn.toLowerCase().indexOf(q) !== -1 || (digits.length >= 3 && e.kt.indexOf(digits) !== -1)).slice(0, 15);
+          res.innerHTML = hits.length
+            ? hits.map((e) => '<button type="button" class="kv-hit" data-kt="' + esc(e.kt) + '" data-act="detail"><span class="kv-hn">' + esc(e.nafn) + '</span><span class="kv-hm">' + esc(e.kt) + ' · ' + tonnIS(e.ti) + ' t · ' + pctIS(e.pct) + '</span></button>').join('')
+            : '<div class="kv-empty">Engin útgerð fannst — prófaðu annað nafn eða kennitölu.</div>';
+        });
+      }
+
+      // ── Detail-spjald (notað bæði úr „Skoða" og leitinni) ──────────────────
+      function showDetail(kt, autoHopur) {
+        const box = $('kv-detail');
+        const h = (D.hafar || []).find((x) => String(x.kt) === String(kt));
+        const l = (D.leit || {})[kt];
+        if (!h && !l) { box.innerHTML = '<div class="kv-empty">Fann ekki útgerðina í gögnunum.</div>'; return; }
+        const nafn = h ? h.nafn : l[0];
+        const ti = h ? h.ti_kg : l[1];
+        const pct = h ? h.pct : l[2];
+        let html = '<div class="kv-card">'
+          + '<div class="kv-dhead"><div><div class="kv-dname">' + esc(nafn) + '</div><span class="kv-kt">kt. ' + esc(kt) + '</span></div>'
+          + '<div class="kv-dstats"><span><b>' + tonnIS(ti) + '</b> tonn þorskígilda</span><span><b>' + pctIS(pct) + '</b> af heild</span>'
+          + (h ? '<span><b>' + nIS(h.nSkip) + '</b> skip</span>' : '') + '</div></div>';
+        if (h && Array.isArray(h.skip) && h.skip.length) {
+          html += '<div class="kv-dlbl">Skip</div><div class="kv-chips">'
+            + h.skip.map((s) => '<span class="kv-chip" title="Skipaskrárnúmer ' + esc(s.regno) + '">' + esc(s.nafn) + ' <i>' + esc(s.regno) + '</i></span>').join('') + '</div>';
+        }
+        if (h && Array.isArray(h.tegundir) && h.tegundir.length) {
+          html += '<div class="kv-dlbl">Aflamark eftir tegundum</div><div class="kv-twrap"><table style="min-width:420px"><thead><tr><th>Tegund</th><th class="r">Tonn</th><th class="r">Hlutdeild í tegund</th></tr></thead><tbody>'
+            + h.tegundir.map((t) => '<tr><td>' + esc(t.nafn) + '</td><td class="r kv-num">' + tonnIS(t.kg) + '</td><td class="r kv-num">' + pctIS(t.pct) + '</td></tr>').join('')
+            + '</tbody></table></div>';
+        }
+        if (!h) html += '<p class="kv-note">Skipalisti og tegundagreining fylgja 150 stærstu útgerðunum — þessi útgerð er utan þess hóps.</p>';
+        html += '<div class="kv-dbtns">'
+          + '<a class="kv-btn" href="/fyrirtaeki/?q=' + esc(kt) + '">Fyrirtækjaskýrsla →</a>'
+          + '<a class="kv-btn" href="/eigendur/?q=' + esc(kt) + '">Endanlegir eigendur →</a>'
+          + '<button type="button" class="kv-btn kv-btn2" data-kt="' + esc(kt) + '" data-act="hopurload">Eigendahópur</button>'
+          + '</div><div id="kv-hopur"></div></div>';
+        box.innerHTML = html;
+        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (autoHopur) loadHopur(kt);
+      }
+
+      // ── Eigendahópurinn: lifandi frá workernum — kjarna-differentiator vörunnar ──
+      // GET /api/kvoti/hopur?kt= (krefst innskráningar) → { kt, nafn, felog:[{kt,nafn,ti_kg,pct}],
+      // samtals_ti_kg, samtals_pct, nalaegt_thaki, heimild } EÐA { error:'login' }.
+      function loadHopur(kt) {
+        const box = $('kv-hopur');
+        if (!box) return;
+        box.innerHTML = '<div class="kv-empty">Rek eigendahópinn gegnum eignarhaldsnetið…</div>';
+        fetch('/api/kvoti/hopur?kt=' + encodeURIComponent(kt), { credentials: 'include' })
+          .then((r) => r.json())
+          .then((r) => {
+            if (r && r.error === 'login') {
+              box.innerHTML = '<div class="kv-locked">🔐 Eigendahóps-greiningin krefst innskráningar. <a href="' + esc(loginHref()) + '">Skráðu þig inn →</a></div>';
+              return;
+            }
+            if (!r || r.error || !Array.isArray(r.felog)) {
+              box.innerHTML = '<div class="kv-empty">Náði ekki í eigendahópinn — reyndu aftur á eftir.</div>';
+              return;
+            }
+            const rows = r.felog.map((f) => '<tr><td>' + ktLink(f.kt, f.nafn) + '</td><td class="r kv-num">' + tonnIS(f.ti_kg) + '</td><td class="r kv-num">' + pctIS(f.pct) + '</td></tr>').join('');
+            // ≥10% samanlagt (eða flagg frá workernum) → áberandi 12%-þaks viðvörun (lög 116/2006).
+            const warn = (Number(r.samtals_pct) >= 10 || r.nalaegt_thaki === true)
+              ? '<div class="kv-warn">⚠ <b>Nálgast 12% viðmið heildaraflamarks</b> — samanlögð hlutdeild eigendahópsins er ' + pctIS(r.samtals_pct) + ' af þorskígildum alls. Lög um stjórn fiskveiða setja tengdum aðilum 12% hámark. ' + esc(FYRIRVARI) + '</div>'
+              : '';
+            // treTil=false → workerinn kveikti sjálfkrafa á byggingu eignarhaldsnetsins (on-demand);
+            // hópurinn birtist að fullu eftir ~2-5 mín — bjóðum endurtilraun í stað þess að þegja.
+            const byggja = (r.byggja === true || r.treTil === false)
+              ? '<div class="kv-empty">🛠 Eignarhaldsnet þessarar útgerðar er í byggingu (fer sjálfkrafa af stað núna) — tengd félög birtast hér eftir ~2–5 mínútur. '
+                + '<button type="button" class="kv-btn kv-btn2" data-kt="' + esc(kt) + '" data-act="hopurload">Reyna aftur</button></div>'
+              : '';
+            box.innerHTML = '<div class="kv-dlbl">Eigendahópur' + (r.nafn ? ' — ' + esc(r.nafn) : '') + '</div>'
+              + '<div class="kv-twrap"><table style="min-width:480px"><thead><tr><th>Félag</th><th class="r">Þorskígildi (tonn)</th><th class="r">Hlutdeild</th></tr></thead><tbody>' + rows
+              + '<tr class="kv-sum"><td><b>Samtals — eigendahópurinn</b></td><td class="r kv-num"><b>' + tonnIS(r.samtals_ti_kg) + '</b></td><td class="r kv-num"><b>' + pctIS(r.samtals_pct) + '</b></td></tr>'
+              + '</tbody></table></div>' + byggja + warn
+              + '<p class="kv-note">' + esc(FYRIRVARI) + (r.heimild ? ' Heimild: ' + esc(r.heimild) + '.' : '') + '</p>';
+          })
+          .catch(() => { box.innerHTML = '<div class="kv-empty">Náði ekki sambandi við eigendahóps-þjónustuna — reyndu aftur á eftir.</div>'; });
+      }
+
+      // ── Sýnishorns-borði efst (?syni=1) ─────────────────────────────────────
+      function renderSyniBanner() {
+        $('kv-syni').innerHTML = '<div class="kv-syni-banner"><div class="kv-syni-t">⭐ Þetta er sýnishorn Kvótavaktarinnar</div>'
+          + '<p>Raungögn — yfirlitið, 5 stærstu útgerðirnar og þorskurinn eru opin. Full áskrift opnar topp-150 listann, allar tegundir, útgerðar-leitina og eigendahóps-greininguna — samanlagða kvóta-hlutdeild tengdra félaga.</p>'
+          + '<div class="kv-syni-btns"><a class="kv-syni-main" href="/lausnir/kvotavaktin/">Kvótavaktin — 9.900 kr./mán., 14 daga frítt →</a>'
+          + '<a class="kv-syni-sec" href="' + esc(loginHref()) + '">Skrá inn</a></div></div>';
+      }
+
+      // ── Smellir: „Skoða" / „Eigendahópur" / leitar-raðir (event delegation) ──
+      m.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-act]');
+        if (!b || !m.contains(b)) return;
+        const kt = b.getAttribute('data-kt') || '';
+        if (!kt) return;
+        if (b.dataset.act === 'detail') showDetail(kt, false);
+        else if (b.dataset.act === 'hopur') showDetail(kt, true);
+        else if (b.dataset.act === 'hopurload') loadHopur(kt);
+      });
+
+      // ── Ræsing: kvoti.json er e.t.v. ekki til enn (verið að byggja) → mjúk lending ──
+      fetch('/gogn/kvoti.json').then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+        D = d;
+        if (!D || !D.heild) {
+          ['kv-stats', 'kv-top', 'kv-teg'].forEach((id) => { $(id).innerHTML = VINNSLA; });
+          $('kv-lres').innerHTML = '';
+          const q = $('kv-q');
+          if (q) { q.disabled = true; q.placeholder = 'Gögn í vinnslu — kíktu við á eftir…'; }
+          return;
+        }
+        const upp = (D.uppfaert || '').slice(0, 10) || '—';
+        $('kv-uppfaert').textContent = upp;
+        $('kv-uppfaert2').textContent = upp;
+        if (D.heimild) { $('kv-heimild').textContent = D.heimild; $('kv-heimild2').textContent = D.heimild; }
+        const fa = fiskar(D.timabil);
+        if (fa) $('kv-timabil').textContent = ' · ' + fa;
+        renderStats();
+        renderTop();
+        renderTeg();
+        initLeit();
+        if (SYNI) renderSyniBanner();
+      });
+    });
+  </script>
+
+  <script>
+    // 🔒 Aðgangsgátt — læsir Kvótavaktina AÐEINS þegar greiðsluveggur er VIRKUR (KARP_USER.paywall;
+    // slökkt sjálfgefið). Aðgangur: admin EÐA sér-áskriftin 'kvoti' (9.900 kr./mán., 14 daga frítt).
+    // ?syni=1 er sölutólið — alltaf opið, gáttin sleppir því. Sama mynstur og utbod.astro.
+    import { loadUser, hasSub, subGate, isAdmin } from '../lib/auth.js';
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="kvotavaktin"]');
+      if (!m) return;
+      if (new URLSearchParams(location.search).get('syni') === '1') return;
+      loadUser().then((u) => {
+        if (isAdmin() || hasSub('kvoti') || !(u && u.paywall === true) || document.getElementById('plus-gate-box')) return;
+        [...m.children].forEach((c) => { c.style.display = 'none'; });
+        const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
+        subGate(g, { service: 'kvoti', price: 9900, trialDays: 14, title: 'Kvótavaktin', blurb: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-þaks nálgun, tegundagreining og tengsl við ársreikninga og eigendur. Fyrir fjölmiðla, banka, útgerðir og greinendur.' });
+        g.insertAdjacentHTML('beforeend', '<div class="kv-samplerow"><a href="/kvotavaktin/?syni=1">👁️ Sjá sýnishorn Kvótavaktarinnar</a></div>');
+      });
+    });
+  </script>
+</Layout>

@@ -489,7 +489,7 @@ const updated = '2026-07-02';
           const folCap = (lim.follows < 0) ? 'ótakmarkað' : lim.follows;
           const dags = (ts) => { try { return new Date(ts * 1000).toLocaleDateString('is-IS'); } catch (e) { return ''; } };
           // Sérlausnir (utbod/fasteign/frettir) — birtar með gildistíma + uppsagnar-hnappi
-          const SVCN = { utbod: '📋 Útboðsvaktin', fasteign: '🏠 Fasteignavakt', frettir: '📰 Fjölmiðlavakt' };
+          const SVCN = { utbod: '📋 Útboðsvaktin', fasteign: '🏠 Fasteignavakt', frettir: '📰 Fjölmiðlavakt', thingskyrslur: '🏛️ Þingmannaskýrslur', kvoti: '⚓ Kvótavaktin' };
           const subsUntil = u.subsUntil || {};
           const svcRows = (u.subs || []).map((s) =>
             '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '')
