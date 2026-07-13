@@ -21,6 +21,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til secret kemur).'); process.exit(0); }
 
+// ── TÍMABUNDINN DIAG (fjarlægt eftir greiningu): hvað nær GH-runnerinn í www.skatturinn.is? ──
+if (process.env.TENGSL_DIAG === '1') {
+  const R = 'https://www.skatturinn.is';
+  const botUA = 'karp.is tengslagrunnur (aronheidars@gmail.com)';
+  const browUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+  const probe = async (label, url, ua) => {
+    try { const r = await fetch(url, { headers: { 'User-Agent': ua } }); const t = await r.text(); console.error(`DIAG ${label}: HTTP ${r.status} len=${t.length} kts=${extractKts(t).length} snip="${t.replace(/\s+/g, ' ').slice(0, 100)}"`); }
+    catch (e) { console.error(`DIAG ${label}: ERR ${e.message}`); }
+  };
+  await probe('detail(bot)', R + '/fyrirtaekjaskra/leit/kennitala/4301691069', botUA);
+  await probe('search(bot)', R + '/fyrirtaekjaskra/leit?nafn=a', botUA);
+  await probe('search(browser)', R + '/fyrirtaekjaskra/leit?nafn=a', browUA);
+  console.error('DIAG búið.');
+}
+
 function wrangler(args) {
   return execFileSync('npx', ['wrangler', ...args], { cwd: 'web', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: process.env });
 }
