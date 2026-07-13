@@ -1,0 +1,94 @@
+{
+ "kt": "7011200270",
+ "nafn": "EGO hús ehf.",
+ "sott": "2026-07-13",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt7011200270",
+    "kt": "7011200270",
+    "nafn": "EGO hús ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Elvar Magnússon",
+    "tegund": "einst",
+    "faeding": "1984-JANÚAR"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Gunnlaugur Svansson",
+    "tegund": "einst",
+    "faeding": "1986-DESEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt7011200270",
+    "hlutur": 30,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt7011200270",
+    "hlutur": 30,
+    "band": "25",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Elvar Magnússon",
+   "kt": null,
+   "faeding": "1984-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 30,
+   "gegnum": []
+  },
+  {
+   "nafn": "Gunnlaugur Svansson",
+   "kt": null,
+   "faeding": "1986-DESEMBER",
+   "tegund": "einst",
+   "hlutur": 30,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 40,
+ "raunverulegir": [
+  {
+   "nafn": "Elvar Magnússon",
+   "faeding": "1984-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "30%",
+   "tegund": null
+  },
+  {
+   "nafn": "Gunnlaugur Svansson",
+   "faeding": "1986-DESEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "30%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2024"
+}
