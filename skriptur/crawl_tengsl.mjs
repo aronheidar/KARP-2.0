@@ -15,6 +15,11 @@ const BUDGET = bi >= 0 ? parseInt(process.argv[bi + 1], 10) : parseInt(process.e
 const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '30', 10);   // frí nafnaleit-köll á nótt (www.skatturinn.is throttlar við ~30/keyrslu)
 // Bið milli API-kalla. Mælt hraðatakmark api.skattur.cloud ≈60–70 köll/mín → 1000ms ≈ 60/mín.
 const API_DELAY = parseInt(process.env.API_DELAY_MS || '1000', 10);
+const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT_MS || '12000', 10);   // hangandi tengingar → hætta
+// Vegg-klukku-þak: hættum að krafla í tæka tíð svo night.sql sé ALLTAF skrifað (workflow-þak = 60 mín).
+const DEADLINE_MS = parseInt(process.env.DEADLINE_MIN || '40', 10) * 60000;
+const t0 = Date.now();
+const outOfTime = () => (Date.now() - t0) > DEADLINE_MS;
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
 const API = 'https://api.skattur.cloud/legalentities/v2.1/';
@@ -52,7 +57,7 @@ function sweepBatch(n) {
 // fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). AÐEINS 401/403 kasta (banvænt).
 async function fetchApi(kt) {
   let r;
-  try { r = await fetch(API + kt + '?language=is', { headers: { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' } }); }
+  try { r = await fetch(API + kt + '?language=is', { headers: { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' }, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); }
   catch (e) { return { retry: 'network' }; }   // DNS/tenging/tímarof → reyna aftur síðar
   if (r.status === 401 || r.status === 403) throw new Error('AUTH ' + r.status);   // rangur lykill → stöðva nótt
   if (r.status === 404) return { notfound: true };
@@ -62,7 +67,9 @@ async function fetchApi(kt) {
   return json ? { json } : { retry: 'badjson' };
 }
 async function fetchText(url) {
-  try { const r = await fetch(url, { headers: { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' } }); return r.ok ? await r.text() : null; }
+  // ⚠ TIMEOUT SKYLDA: www.skatturinn.is throttlar m.a. með því að STÖÐVA tengingar — án tímamarka
+  // hangir crawlið (mælt 15.7: 14s/félag) og 60-mín workflow-þakið drepur keyrsluna ÁÐUR en night.sql er skrifað.
+  try { const r = await fetch(url, { headers: { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' }, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); return r.ok ? await r.text() : null; }
   catch (e) { return null; }
 }
 
@@ -79,7 +86,7 @@ const prefixes = sweepBatch(SWEEP_BUDGET);
 console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}).`);
 let sweepFound = 0;
 for (const pfx of prefixes) {
-  if (scrapeStop) break;
+  if (scrapeStop || outOfTime()) break;
   await sleep(1500);   // kurteist við skatturinn.is
   const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
   const kts = html ? extractKts(html) : [];
@@ -96,6 +103,7 @@ const batch = queueBatch(BUDGET);
 console.error(`Félaga-batch: ${batch.length} kt (budget ${BUDGET}).`);
 for (const kt of batch) {
   if (used >= BUDGET) break;
+  if (outOfTime()) { console.error(`⏱ Vegg-klukku-þak (${DEADLINE_MS / 60000} mín) — hætti kraflinu og skrifa það sem er komið.`); break; }
   used++;
   // ⚠⚠ HRAÐATAKMARK mælda APIsins ≈60–70 köll/mín (mælt 14.–15.7: 138 ok/126s, 240 ok/201s).
   // Þessi bið VERÐUR að vera ÓHÁÐ eigenda-skrapinu — áður lá hún inni í `if (!scrapeStop)` og
