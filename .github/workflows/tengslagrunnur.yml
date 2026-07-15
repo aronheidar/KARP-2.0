@@ -18,6 +18,10 @@ on:
         description: 'Endursetja nafnaleitar-sweep (true = merkja öll forskeyti ókláruð aftur)'
         required: false
         default: 'false'
+      reset_attempts:
+        description: 'Endursetja attempts/error í biðröð (eftir hraðatakmarks-atvik)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -64,6 +68,12 @@ jobs:
       - name: Endursetja sweep (valfrjálst)
         if: env.SKIP != '1' && github.event.inputs.reset_sweep == 'true'
         run: npx wrangler d1 execute tengsl --remote --command "UPDATE sweep_state SET done=0, hit_count=NULL"
+        working-directory: web
+      - name: Endursetja attempts (valfrjálst)
+        # Notað eftir hraðatakmarks-atvikið 14.–15.7: 429-villur hækkuðu attempts á ~1.200 félögum
+        # sem hefðu annars orðið varanlega 'error' við MAX_ATTEMPTS. Skilar þeim í hreint pending.
+        if: env.SKIP != '1' && github.event.inputs.reset_attempts == 'true'
+        run: npx wrangler d1 execute tengsl --remote --command "UPDATE crawl_queue SET attempts=0 WHERE status='pending'; UPDATE crawl_queue SET status='pending', attempts=0 WHERE status='error'"
         working-directory: web
       - name: Crawl
         if: env.SKIP != '1'

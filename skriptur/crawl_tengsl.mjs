@@ -13,6 +13,8 @@ const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
 const BUDGET = bi >= 0 ? parseInt(process.argv[bi + 1], 10) : parseInt(process.env.TENGSL_BUDGET || '1500', 10);
 const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '30', 10);   // frí nafnaleit-köll á nótt (www.skatturinn.is throttlar við ~30/keyrslu)
+// Bið milli API-kalla. Mælt hraðatakmark api.skattur.cloud ≈60–70 köll/mín → 1000ms ≈ 60/mín.
+const API_DELAY = parseInt(process.env.API_DELAY_MS || '1000', 10);
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
 const API = 'https://api.skattur.cloud/legalentities/v2.1/';
@@ -67,6 +69,7 @@ async function fetchText(url) {
 const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueRetry: [], queueAdd: [], sweepMark: [], sweepAdd: [] };
 const seenLastSql = [];
 let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0;
+const errBy = {};   // sundurliðun villna eftir HTTP-stöðu (t.d. {"retry:429": n}) — sést í nætur-samantekt
 
 // ── 1) Nafnaleitar-sweep FYRST (ferskur runner) ───────────────────────────────
 // www.skatturinn.is (frítt skrap) throttlar við ~30 köll/keyrslu og skilar þá HTTP 200 með
@@ -94,14 +97,18 @@ console.error(`Félaga-batch: ${batch.length} kt (budget ${BUDGET}).`);
 for (const kt of batch) {
   if (used >= BUDGET) break;
   used++;
+  // ⚠⚠ HRAÐATAKMARK mælda APIsins ≈60–70 köll/mín (mælt 14.–15.7: 138 ok/126s, 240 ok/201s).
+  // Þessi bið VERÐUR að vera ÓHÁÐ eigenda-skrapinu — áður lá hún inni í `if (!scrapeStop)` og
+  // datt út þegar sweepið kveikti á scrapeStop → lykkjan hamraði APIð (6–11/s) → 85% 429-villur.
+  await sleep(API_DELAY);
   let api;
   try { api = await fetchApi(kt); }
   catch (e) { console.error('STÖÐVA nótt (AUTH):', e.message); break; }   // AUTH → hætta strax (biðröð ósnert)
-  if (api.retry) { acc.queueRetry.push(kt); errs++; continue; }            // tímabundið → attempts++ (helst pending)
+  if (api.retry) { acc.queueRetry.push(kt); errs++; errBy['retry:' + api.retry] = (errBy['retry:' + api.retry] || 0) + 1; continue; }   // tímabundið → attempts++ (helst pending)
   if (api.notfound) { acc.queueMark.push({ kt, status: 'notfound' }); notfound++; continue; }
-  if (api.error) { acc.queueMark.push({ kt, status: 'error' }); errs++; continue; }
+  if (api.error) { acc.queueMark.push({ kt, status: 'error' }); errs++; errBy['error:' + api.error] = (errBy['error:' + api.error] || 0) + 1; continue; }
   const rec = parseLegalEntity(kt, api.json);
-  if (!rec) { acc.queueMark.push({ kt, status: 'error' }); errs++; continue; }
+  if (!rec) { acc.queueMark.push({ kt, status: 'error' }); errs++; errBy.parse = (errBy.parse || 0) + 1; continue; }
   ok++;
   acc.queueMark.push({ kt, status: 'done' });
   acc.felog.push(rec.felag);
@@ -127,6 +134,7 @@ for (const kt of batch) {
 // ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
 const body = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n').trim();
 console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${used} API-köll.`);
+if (errs) console.error(`Villu-sundurliðun: ${JSON.stringify(errBy)}`);
 
 if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
 fs.writeFileSync('web/night.sql', body + '\n');
