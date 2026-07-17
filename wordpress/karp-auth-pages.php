@@ -113,12 +113,17 @@ add_filter('authenticate', function ($user, $username, $password) {
     return $user;
 }, 30, 3);
 
-// (d) Virkja við fyrstu lykilorðs-setningu (hlekkurinn úr staðfestingar-/nýskráningar-póstinum).
+// (d) Virkja við fyrstu lykilorðs-setningu (hlekkurinn úr staðfestingar-/nýskráningar-póstinum)
+//     + SJÁLFVIRK INNSKRÁNING og fara á NATIVE Mitt svæði (í stað óstílaðrar wp-login-staðfestingar
+//     eða gömlu wp.karp.is-forsíðunnar). Forgangur 1 → keyrir á undan UM-endurvísun (exit vinnur).
 add_action('after_password_reset', function ($user) {
-    if ($user instanceof WP_User) {
-        update_user_meta($user->ID, 'karp_email_activated', '1');
-    }
-});
+    if (!($user instanceof WP_User)) { return; }
+    update_user_meta($user->ID, 'karp_email_activated', '1');   // netfang staðfest → aðgangur virkur
+    wp_set_current_user($user->ID);
+    wp_set_auth_cookie($user->ID, true);
+    wp_safe_redirect('https://karp.is/mitt-svaedi/');
+    exit;
+}, 1);
 
 /* ── EIGIN NÝSKRÁNINGAR-HANDLER (admin-post → FRAMHJÁ Ultimate Member) ────── */
 // /nyskraning/ POST-ar á admin-post.php?action=karp_register (EKKI wp-login.php) svo UM grípi EKKI
@@ -160,3 +165,30 @@ add_filter('lostpassword_errors', function ($errors, $user_data) {
     }
     return $errors;
 }, 10, 2);
+
+/* ── KARP-ÚTLIT Á wp-login.php SÍÐUM (rp/resetpass o.fl.) ─────────────────── */
+// „Stilltu lykilorð"-hlekkurinn úr póstinum opnast á wp-login.php?action=rp — hér er hann
+// Karp-stílaður (dökkt + gyllt + KARP-orðmerki sem hlekkur á karp.is) svo hann sé ekki í hráu
+// WP-útliti. Gildir á ÖLLUM wp-login-skjám (skaðlaust; wp-admin innskráning fær sömu vörumerki).
+add_filter('login_headerurl', function () { return 'https://karp.is/'; });
+add_filter('login_headertext', function () { return 'KARP'; });
+add_action('login_enqueue_scripts', function () {
+    echo '<style>
+      body.login{background:#0b111e;color:#eaf1fb}
+      #login{padding-top:6%}
+      .login h1 a{background:none!important;width:auto;height:auto;text-indent:0;overflow:visible;
+        font:800 34px/1 system-ui,"Segoe UI",Arial,sans-serif;color:#f6b13b!important;letter-spacing:.20em;padding-left:.20em}
+      .login form,.login .message,.login #login_error,.login .notice{background:#101a2e;border:1px solid rgba(255,255,255,.12);
+        color:#eaf1fb;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:14px}
+      .login .message,.login #login_error{border-left:4px solid #f6b13b}
+      .login label{color:#cdd6e6}
+      .login input[type=text],.login input[type=password],.login input[type=email]{background:#0e1626;color:#eaf1fb;
+        border:1px solid rgba(255,255,255,.18);border-radius:8px}
+      .login input:focus{border-color:#f6b13b;box-shadow:0 0 0 2px rgba(246,177,59,.3)}
+      .wp-core-ui .button-primary{background:#f6b13b!important;border-color:#f6b13b!important;color:#0b111e!important;
+        text-shadow:none!important;box-shadow:none!important;border-radius:8px;font-weight:700}
+      .login #nav a,.login #backtoblog a{color:#9fb0c8!important}
+      .login #nav a:hover,.login #backtoblog a:hover{color:#f6b13b!important}
+      #pass-strength-result{background:#0e1626!important;color:#eaf1fb;border-color:rgba(255,255,255,.18)!important}
+    </style>';
+});
