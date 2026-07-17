@@ -2639,7 +2639,7 @@ export function maskaKortSvar(out) {
 // landsdekkun á vikum í stað mánaða. GATT: X-Karp-Proxy === RSK_KEY (til á báðum hliðum, ekkert
 // nýtt secret). SSRF-vörn: aðeins /fyrirtaekjaskra/-slóðir á www.skatturinn.is. Skilar hráu HTML.
 async function rskProxyHandler(request, env) {
-  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 403 });
+  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 401 });   // 401=gátt (aðgr. frá upstream 403 í greiningu)
   const u = new URL(request.url);
   // ── API-hamur (?api=<kt>): Azure LegalEntities. Worker-egress er 403-laust (öfugt við GH-runner-IP
   //    sem Azure fór að 403-a eftir 429-þungu næturnar). Lykill bætt SERVER-HLIÐ; skilar hráu JSON + upstream-status.
