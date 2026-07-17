@@ -3,6 +3,8 @@
 //   • Heildarmannfjöldi ársfj. (16 ár) + fjölgun frá fyrra ári   (Hagstofa MAN10001)
 //   • Þættir fólksfjölgunar: aðfl. umfram brottfl. + fæddir umfram dána (MAN00000)
 //   • Hlutfall innflytjenda af mannfjölda                          (MAN43000)
+//   • Frjósemi (börn á ævi hverrar konu) 1960–                      (MAN05202)
+//   • Mannfjöldaspá til 2074 (mannfjöldi/nátt.fjölgun/flutn.) lág/mið/há (MAN09012)
 // Áður .astro-frontmatter á hverri byggingu → nú daglegt snapshot (seigla + saga).
 // -> gogn/mannfjoldi.json + web/public/gogn/mannfjoldi.json
 import { px, sel, num, loadPrev, writeSnapshot, today } from './_pxlib.mjs';
@@ -55,11 +57,51 @@ try {
   }
 } catch (e) { console.error('IMM', e.message); }
 
+// Frjósemi: Eining 0 = lifandi fædd börn á ævi hverrar konu (heildarfrjósemi). Frá 1960.
+let FERT = null;
+try {
+  const j = await px('Ibuar/Faeddirdanir/Faeddir/faedingar/MAN05202.px', [sel('Ár', 'all', ['*']), sel('Eining', 'item', ['0'])]);
+  const m = {};
+  j.data.forEach((d) => { const t = d.key.find((k) => /^\d{4}$/.test(k)); const v = num(d.values[0]); if (t && v != null) m[t] = v; });
+  const years = Object.keys(m).filter((y) => +y >= 1960).sort();
+  if (years.length) FERT = { years: years.map(Number), tfr: years.map((y) => m[y]), now: m[years[years.length - 1]] };
+} catch (e) { console.error('FERT', e.message); }
+
+// Mannfjöldaspá til 2074 (MAN09012): spáafbrigði 2=lágspá L1, 3=miðgildi, 4=háspá H1.
+// Þættir: Mannfjöldi (1. jan), Náttúrufjölgun (fæddir umfram dána), Flutningsjöfnuður (aðfl. umfram brottfl.).
+let PROJ = null;
+try {
+  const j = await px('Ibuar/mannfjoldaspa/MAN09012.px', [sel('Ár', 'all', ['*']), sel('Spáafbrigði', 'item', ['2', '3', '4']), sel('Helstu þættir', 'item', ['Mannfjöldi', 'Náttúrufjölgun', 'Flutningsjöfnuður'])]);
+  const st = {};
+  j.data.forEach((d) => {
+    const t = d.key.find((k) => /^\d{4}$/.test(k));
+    const vv = d.key.find((k) => k === '2' || k === '3' || k === '4');
+    const f = d.key.find((k) => k === 'Mannfjöldi' || k === 'Náttúrufjölgun' || k === 'Flutningsjöfnuður');
+    const v = num(d.values[0]);
+    if (t && vv && f) { (st[t] = st[t] || {})[vv] = (st[t][vv] || {}); st[t][vv][f] = v; }
+  });
+  const years = Object.keys(st).sort();
+  const pick = (y, vv, f) => (st[y] && st[y][vv] && st[y][vv][f] != null ? st[y][vv][f] : null);
+  if (years.length) {
+    // fyrsta árið þar sem miðspá náttúrufjölgunar verður neikvæð (fleiri deyja en fæðast).
+    let natNeg = null;
+    for (const y of years) { if (pick(y, '3', 'Náttúrufjölgun') != null && pick(y, '3', 'Náttúrufjölgun') < 0) { natNeg = +y; break; } }
+    PROJ = {
+      years: years.map(Number),
+      popMid: years.map((y) => pick(y, '3', 'Mannfjöldi')), popLow: years.map((y) => pick(y, '2', 'Mannfjöldi')), popHigh: years.map((y) => pick(y, '4', 'Mannfjöldi')),
+      natural: years.map((y) => pick(y, '3', 'Náttúrufjölgun')), netmig: years.map((y) => pick(y, '3', 'Flutningsjöfnuður')),
+      natNeg,
+    };
+  }
+} catch (e) { console.error('PROJ', e.message); }
+
 // Seigla: haltu fyrri hluta ef ný sókn brást.
 POP = POP ?? prev.POP ?? null;
 COMP = COMP ?? prev.COMP ?? null;
 IMM = IMM ?? prev.IMM ?? null;
+FERT = FERT ?? prev.FERT ?? null;
+PROJ = PROJ ?? prev.PROJ ?? null;
 if (!POP && !COMP && !IMM) { console.error('mannfjoldi: allt tómt og ekkert fyrra snapshot — hætti án skrifa'); process.exit(1); }
 
-const bytes = writeSnapshot('mannfjoldi', { updated: today(), POP, COMP, IMM });
-console.log('mannfjoldi.json | POP', POP && POP.now, '| COMP', COMP && COMP.years.length, 'ár | IMM', IMM && IMM.now, '% | bytes', bytes);
+const bytes = writeSnapshot('mannfjoldi', { updated: today(), POP, COMP, IMM, FERT, PROJ });
+console.log('mannfjoldi.json | POP', POP && POP.now, '| COMP', COMP && COMP.years.length, 'ár | IMM', IMM && IMM.now, '% | FERT', FERT && FERT.now, '| PROJ', PROJ && PROJ.years.length + ' ár, natNeg ' + (PROJ && PROJ.natNeg), '| bytes', bytes);

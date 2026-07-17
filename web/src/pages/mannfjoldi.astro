@@ -10,7 +10,7 @@ import DATA from '@gogn/mannfjoldi.json';
 
 // Gögn: daglegt snapshot úr skriptur/build_mannfjoldi.mjs → gogn/mannfjoldi.json
 // (áður sótt beint á Hagstofu í frontmatter á hverri byggingu → seigla + saga).
-const { POP, COMP, IMM, updated } = DATA;
+const { POP, COMP, IMM, FERT, PROJ, updated } = DATA;
 const desc = `Mannfjöldi á Íslandi${POP ? ' — ' + groupThousands(POP.now) + ' íbúar' : ''}, þættir fólksfjölgunar (aðfluttir vs náttúruleg fjölgun) og hlutfall innflytjenda${IMM ? ' (' + fmtNum(IMM.now, 1) + '%)' : ''}.`;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Mannfjöldi á Íslandi', description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' }, dateModified: updated, spatialCoverage: 'Ísland', variableMeasured: 'Mannfjöldi' };
 ---
@@ -26,6 +26,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
       {POP && <div class="kpi"><div class="k-l">👥 Íbúar</div><div class="k-v">{groupThousands(POP.now)}</div><div class="k-s">nýjasti ársfjórðungur</div></div>}
       {POP && POP.yoy != null && <div class="kpi"><div class="k-l">📈 Fjölgun</div><div class="k-v">{POP.yoy > 0 ? '+' : ''}{fmtNum(POP.yoy, 1)}%</div><div class="k-s">{POP.yoyAbs != null ? (POP.yoyAbs > 0 ? '+' : '') + groupThousands(POP.yoyAbs) + ' manns · ' : ''}frá fyrra ári</div></div>}
       {IMM && <div class="kpi"><div class="k-l">🌍 Innflytjendur</div><div class="k-v">{fmtNum(IMM.now, 1)}%</div><div class="k-s">af mannfjölda</div></div>}
+      {FERT && <div class="kpi"><div class="k-l">👶 Frjósemi</div><div class="k-v">{fmtNum(FERT.now, 2)}</div><div class="k-s">börn/kona · viðhald 2,1</div></div>}
     </div>
 
     <div class="ppair">
@@ -51,7 +52,30 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
       </>
     )}
 
-    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (MAN10001, MAN00000, MAN43000). #2.</p>
+    {FERT && PROJ && (
+      <>
+        <h2>Til lengri tíma — frjósemi og spá Hagstofu</h2>
+        <p class="lead">Frjósemi er komin niður fyrir þau <b>2,1 börn á konu</b> sem þarf til að viðhalda mannfjölda af sjálfu sér. Spá Hagstofu sýnir hvenær fleiri fara að deyja en fæðast — og hvers vegna Ísland heldur samt áfram að stækka.</p>
+
+        <h3>Frjósemi — börn á ævi hverrar konu</h3>
+        <div id="chart-tfr"></div>
+        <p class="src">Rauð lína = viðhaldsmörk (2,1). Frjósemi fór varanlega undir þau um 2013 og er nú <b>{fmtNum(FERT.now, 2)}</b>. Heimild: Hagstofa (MAN05202).</p>
+
+        <h3>Fæddir umfram dána — og hvenær það snýst við</h3>
+        <div id="chart-natproj"></div>
+        <p class="src">Frá 2025 eru tölur spá (skyggða svæðið). Náttúruleg fjölgun (grænt) verður neikvæð um <b>{PROJ.natNeg}</b> — þá deyja fleiri en fæðast og öll fjölgun kemur frá aðflutningi (blátt). Heimild: Hagstofa (MAN00000 + spá MAN09012).</p>
+
+        <h3>Mannfjöldaspá til {PROJ.years[PROJ.years.length - 1]}</h3>
+        <div id="chart-projpop"></div>
+        <p class="src">Miðspá með lág- og háspá bili. Þrátt fyrir færri fæðingar heldur mannfjöldinn áfram að vaxa — í ~<b>{groupThousands(PROJ.popMid[PROJ.popMid.length - 1])}</b> árið {PROJ.years[PROJ.years.length - 1]} — borinn uppi af aðflutningi. Heimild: Hagstofa (MAN09012).</p>
+
+        <div class="note">
+          <b>Verður þetta „Japan-vandi"?</b> Frá um {PROJ.natNeg} deyja fleiri Íslendingar en fæðast, líkt og í Japan. En ólíkt Japan heldur mannfjöldinn samt áfram að stækka af því aðflutningur fólks ber fjölgunina. Spurningin er því ekki „hvenær hættum við að fjölga okkur" heldur hversu háð við verðum aðfluttu fólki.
+        </div>
+      </>
+    )}
+
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimild: Hagstofa (MAN10001, MAN00000, MAN43000, MAN05202, MAN09012). #2.</p>
   </main>
 
   <style>
@@ -72,11 +96,17 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
     #chart-comp { width: 100%; height: 310px; }
     #chart-imm { width: 100%; height: 250px; }
     .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+    .src b, .lead b { color: #eaf1fb; }
+    h3 { font-size: 14px; color: #cdd6e6; margin: 24px 0 8px; font-weight: 700; }
+    .lead { color: #cdd6e6; font-size: 15px; margin: 8px 0 0; }
+    #chart-tfr, #chart-natproj, #chart-projpop { width: 100%; height: 300px; }
+    .note { margin: 24px 0 0; border: 1px solid rgba(90,143,224,.3); border-left: 3px solid #5a8fe0; border-radius: 0 12px 12px 0; background: linear-gradient(90deg, rgba(90,143,224,.10), transparent 72%); padding: 15px 20px; font-size: 14.5px; color: #dfe8f5; line-height: 1.62; }
+    .note b { color: #8fb4ea; }
     .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: 3 gröf. astro:page-load. #2 -->
-  <script define:vars={{ POP, COMP, IMM }}>
+  <script define:vars={{ POP, COMP, IMM, FERT, PROJ }}>
     function initCharts() {
       if (!document.getElementById('chart-pop') && !document.getElementById('chart-comp') && !document.getElementById('chart-imm')) return;
       const go = () => {
@@ -119,6 +149,64 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
             yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: '{value}%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
             tooltip: { trigger: 'axis', valueFormatter: (v) => v.toFixed(1).replace('.', ',') + '%' },
             series: [{ type: 'line', data: IMM.share, smooth: true, symbol: 'circle', symbolSize: 4, lineStyle: { width: 2.5, color: '#c95cf7' }, itemStyle: { color: '#c95cf7' }, areaStyle: { opacity: 0.1, color: '#c95cf7' } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        // Frjósemi (TFR) 1960– með viðhaldsmörkum 2,1
+        const ct = document.getElementById('chart-tfr');
+        if (ct && FERT && !window.echarts.getInstanceByDom(ct)) {
+          const c = window.echarts.init(ct);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 40, right: 16, top: 16, bottom: 24 },
+            xAxis: { type: 'category', data: FERT.years, axisLabel: { color: '#7e8ca6', fontSize: 10, interval: (i, v) => (+v) % 10 === 0 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', min: 1.4, axisLabel: { color: '#7e8ca6', formatter: (v) => String(v).replace('.', ',') }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : v.toFixed(2).replace('.', ',')) },
+            series: [{ type: 'line', data: FERT.tfr, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#f6b13b' }, areaStyle: { opacity: 0.12, color: '#f6b13b' },
+              markLine: { silent: true, symbol: 'none', data: [{ yAxis: 2.1 }], lineStyle: { color: '#ff7a6b', type: 'dashed', width: 1.4 }, label: { color: '#ff7a6b', fontSize: 10.5, formatter: 'Viðhaldsmörk 2,1', position: 'insideEndTop' } } }],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        // Fæddir umfram dána vs aðflutningur — sögulegt (COMP) + spá (PROJ), zero-lína + 2053-merki
+        const cn = document.getElementById('chart-natproj');
+        if (cn && COMP && PROJ && !window.echarts.getInstanceByDom(cn)) {
+          const yrs = COMP.years.concat(PROJ.years.map(String));
+          const nat = COMP.natural.concat(PROJ.natural);
+          const mig = COMP.netmig.concat(PROJ.netmig);
+          const c = window.echarts.init(cn);
+          c.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['Fæddir umfram dána', 'Aðfluttir umfram brottflutta'], textStyle: { color: '#9fb0c8', fontSize: 10.5 }, top: 0 },
+            grid: { left: 50, right: 16, top: 32, bottom: 24 },
+            xAxis: { type: 'category', data: yrs, axisLabel: { color: '#7e8ca6', fontSize: 10, interval: (i, v) => (+v) % 10 === 0 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#7e8ca6', formatter: (v) => (Math.abs(v) >= 1000 ? v / 1000 + 'þ' : v) }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '–' : String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')) },
+            series: [
+              { name: 'Fæddir umfram dána', type: 'line', data: nat, smooth: true, symbol: 'none', lineStyle: { width: 2.6, color: '#46e08a' }, itemStyle: { color: '#46e08a' },
+                markLine: { silent: true, symbol: 'none', data: [{ yAxis: 0 }, { xAxis: '2053' }], lineStyle: { color: '#ff7a6b', type: 'dashed', width: 1.2 }, label: { color: '#ff7a6b', fontSize: 10, formatter: (p) => (p.data.xAxis ? '2053 →' : '') } },
+                markArea: { silent: true, itemStyle: { color: 'rgba(120,140,170,.09)' }, label: { color: '#7e8ca6', fontSize: 10, position: 'insideTop', formatter: 'spá →' }, data: [[{ xAxis: '2025' }, { xAxis: yrs[yrs.length - 1] }]] } },
+              { name: 'Aðfluttir umfram brottflutta', type: 'line', data: mig, smooth: true, symbol: 'none', lineStyle: { width: 2.6, color: '#3a8dff' }, itemStyle: { color: '#3a8dff' } },
+            ],
+          });
+          window.addEventListener('resize', () => c.resize());
+        }
+        // Mannfjöldaspá til 2074 — miðspá + lág/há bil (band) + 2053-merki
+        const cpp = document.getElementById('chart-projpop');
+        if (cpp && PROJ && !window.echarts.getInstanceByDom(cpp)) {
+          const yrs = PROJ.years.map(String);
+          const band = PROJ.popHigh.map((h, i) => (h != null && PROJ.popLow[i] != null ? h - PROJ.popLow[i] : null));
+          const g = (n) => (n == null ? '–' : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'));
+          const c = window.echarts.init(cpp);
+          c.setOption({
+            backgroundColor: 'transparent', grid: { left: 46, right: 16, top: 16, bottom: 24 },
+            xAxis: { type: 'category', data: yrs, boundaryGap: false, axisLabel: { color: '#7e8ca6', fontSize: 10, interval: (i, v) => (+v) % 10 === 0 }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+            yAxis: { type: 'value', scale: true, axisLabel: { color: '#7e8ca6', formatter: (v) => Math.round(v / 1000) + 'þ' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+            tooltip: { trigger: 'axis', formatter: (ps) => { const i = ps[0].dataIndex; return yrs[i] + ' · spá<br/>Miðspá: <b>' + g(PROJ.popMid[i]) + '</b><br/>Lág–há: ' + g(PROJ.popLow[i]) + '–' + g(PROJ.popHigh[i]); } },
+            series: [
+              { name: 'lag', type: 'line', data: PROJ.popLow, stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, areaStyle: { opacity: 0 }, silent: true },
+              { name: 'bil', type: 'line', data: band, stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, areaStyle: { color: '#f6b13b', opacity: 0.13 }, silent: true },
+              { name: 'Miðspá', type: 'line', data: PROJ.popMid, smooth: true, symbol: 'none', lineStyle: { width: 3, color: '#f6b13b' },
+                markLine: { silent: true, symbol: 'none', data: [{ xAxis: '2053' }], lineStyle: { color: '#ff7a6b', type: 'dashed', width: 1.2 }, label: { color: '#ff7a6b', fontSize: 10, formatter: '2053' } } },
+            ],
           });
           window.addEventListener('resize', () => c.resize());
         }
