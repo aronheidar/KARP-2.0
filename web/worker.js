@@ -1201,6 +1201,25 @@ async function karpUserId(request) {
     return (j && j.loggedIn && +j.id > 0) ? +j.id : 0;
   } catch (e) { return 0; }
 }
+// ── Prufuvörn ──────────────────────────────────────────────────────────────
+// Hefur notandinn (uid, auðkenndur í karpUserId) þegar nýtt frípróf á þessari vöru? WP geymir
+// karp_sub_<svc>_trial_used / karp_tier_trial_used PER USER-ID (ekki kt → kt-skipti duga ekki).
+// Fail-open (false) ef WP/secret vantar: grant þarf hvort eð er WP, svo bilun blokkar ekki löglega nýja.
+async function trialUsedFor(env, uid, kind, slug) {
+  if (!uid || !env.KARP_GRANT_SECRET) return false;
+  try {
+    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/sub/trialstatus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
+      body: JSON.stringify({ uid, kind, slug }),
+    });
+    if (!r.ok) return false;
+    const j = await r.json().catch(() => null);
+    return !!(j && j.used);
+  } catch (e) { return false; }
+}
+// Rás/verð ÁN fríprófs fyrir endurkomu-notanda (Aron stillir valfrjálst í Áskell). null → blokka.
+const notrialChannel = (env, slug) => env['ASKELL_CHANNEL_' + String(slug).toUpperCase() + '_NOTRIAL'] || null;
 async function payCheckoutHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   // óuppsett (engin secrets) EÐA öryggisrofi óvirkur → framendi notar ókeypis prentleiðina
@@ -1538,7 +1557,20 @@ async function askellSessionHandler(request, env, ctx) {
     stakPrice = await askellPriceId(env, ctx, STAKS[stakKind][1]);
     if (!stakPrice) return sjson({ error: 'noprice', ref: STAKS[stakKind][1] });
   }
-  const body = { sales_channel: channel, expires_in_seconds: 1800, metadata: stakOk ? { service: 'stak', key: stak } : (svc ? { service: svc } : { tier }) };   // metadata → vefkrókur veit hvað var keypt
+  // PRUFUVÖRN: áskrift (svc/þrep) — stök skýrsla (stakOk) hefur ekkert frípróf, sleppt. Endurtekið
+  // frípróf → án-frípróf rás ef stillt, annars blokka. Auðkennt per user-id (kt-skipti duga ekki).
+  let useChannel = channel;
+  if (!stakOk) {
+    const uid = await karpUserId(request);
+    const kind = svc ? 'svc' : 'tier';
+    const slug = svc || tier;
+    if (uid && await trialUsedFor(env, uid, kind, slug)) {
+      const nt = notrialChannel(env, slug);
+      if (!nt) return sjson({ error: 'trial_used' });
+      useChannel = nt;
+    }
+  }
+  const body = { sales_channel: useChannel, expires_in_seconds: 1800, metadata: stakOk ? { service: 'stak', key: stak } : (svc ? { service: svc } : { tier }) };   // metadata → vefkrókur veit hvað var keypt
   if (stakPrice) body.initial_items = [{ price: stakPrice, quantity: 1 }];   // einskiptisvaran sjálf → tilboð birtist í kaupferlinu
   if (kt.length === 10) body.customer_reference = kt;   // bindur áskriftina við kt → vefkrókur skilar því → grant
   try {
@@ -1725,6 +1757,10 @@ async function sub2CheckoutHandler(request, env, ctx) {
   if (!SUB2_SLUGS[slug]) return sjson({ error: 'input' });
   const kt = String((b && b.kt) || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'input' });
+  // PRUFUVÖRN: endurtekið frípróf blokkað (server-hlið, per user-id). sub2 notar endurtekið VERÐ
+  // (frípróf á Áskell-áætluninni) → engin sjálfvirk án-frípróf leið hér, svo blokka. Endurkomu-payer:
+  // hafðu samband (eða Aron útbýr án-frípróf verð síðar). uid er auðkennt að ofan.
+  if (await trialUsedFor(env, uid, SUB2_SLUGS[slug], slug)) return sjson({ error: 'trial_used' });
   const email = String((b && b.email) || '').trim().slice(0, 120);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return sjson({ error: 'email' });
   const nafn = String((b && b.nafn) || '').trim().slice(0, 80) || 'Karp notandi';

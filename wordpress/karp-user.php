@@ -286,6 +286,8 @@ add_action('rest_api_init', function () {
     register_rest_route('karp/v1', '/subs/due', array('methods' => 'GET', 'permission_callback' => '__return_true', 'callback' => 'karp_subs_due'));
     register_rest_route('karp/v1', '/sub/claimed', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_claimed'));
     register_rest_route('karp/v1', '/sub/grant', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_grant'));
+    // PRUFUVÖRN: worker spyr hvort user-id hafi þegar nýtt frípróf á vöru (svc) eða þrepi (tier).
+    register_rest_route('karp/v1', '/sub/trialstatus', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_trialstatus'));
     // Uppsögn: worker sækir Áskell-id áskriftar (varið KARP_GRANT_SECRET) og merkir svo uppsagt.
     register_rest_route('karp/v1', '/sub/cancelinfo', array('methods' => 'POST', 'permission_callback' => '__return_true', 'callback' => 'karp_sub_cancelinfo'));
     // 🆘 POST /hjalp — hjálparbeiðni af /hjalp/ á karp.is (kemur gegnum worker /api/hjalp,
@@ -391,13 +393,31 @@ function karp_sub_grant($req) {
     if ( $svcOk ) {
         update_user_meta($uid, 'karp_sub_' . $svc . '_until', $untilAbs);   // þjónustu-aðgangur TIL active_until
         if ( $askellId !== '' ) update_user_meta($uid, 'karp_sub_' . $svc . '_askell', $askellId);
+        update_user_meta($uid, 'karp_sub_' . $svc . '_trial_used', '1');   // PRUFUVÖRN: frípróf þessarar vöru nýtt (einu sinni per notanda)
     } else {
         update_user_meta($uid, 'karp_tier', $tier);
         update_user_meta($uid, 'karp_tier_until', $untilAbs);   // Áskell: aðgangur TIL active_until (afbókun → rennur út)
         if ( $askellId !== '' ) update_user_meta($uid, 'karp_tier_askell', $askellId);
+        update_user_meta($uid, 'karp_tier_trial_used', '1');   // PRUFUVÖRN: frípróf þreps nýtt
     }
     if ( $ref !== '' ) { $done[] = $ref; if ( count($done) > 5000 ) { $done = array_slice($done, -5000); } update_option('karp_sub_granted_refs', $done, false); }
     return array('ok' => true, 'uid' => $uid, 'tier' => $svcOk ? $svc : $tier, 'until' => $untilAbs);
+}
+// POST /sub/trialstatus {uid, kind:'svc'|'tier', slug} → {used} — PRUFUVÖRN (server-til-server, varið secret).
+// Lyklað á USER-ID (ekki kt), svo kt-skipti dugi ekki til að fá annað frípróf. Sama _trial_used meta og
+// kortalausa /sub/trial-leiðin setur → einn sannleikur um „notandi hefur nýtt frípróf X".
+function karp_sub_trialstatus($req) {
+    if ( ! karp_grant_secret_ok($req) ) { return new WP_REST_Response(array('error' => 'auth'), 401); }
+    $p = (array) $req->get_json_params();
+    $uid = isset($p['uid']) ? (int) $p['uid'] : 0;
+    if ( $uid <= 0 || ! get_user_by('ID', $uid) ) { return array('used' => false); }
+    $kind = ( isset($p['kind']) && $p['kind'] === 'tier' ) ? 'tier' : 'svc';
+    if ( $kind === 'tier' ) {
+        return array('used' => (bool) get_user_meta($uid, 'karp_tier_trial_used', true));
+    }
+    $slug = preg_replace('/[^a-z]/', '', (string) ( isset($p['slug']) ? $p['slug'] : '' ));
+    if ( ! in_array($slug, array('utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'), true) ) { return array('used' => false); }
+    return array('used' => (bool) get_user_meta($uid, 'karp_sub_' . $slug . '_trial_used', true));
 }
 // POST /sub/cancelinfo {userid, service|tier:'threp', secret} → {askellId} svo worker geti sagt upp í Áskell.
 function karp_sub_cancelinfo($req) {

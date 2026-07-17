@@ -471,7 +471,7 @@ async function karpSubIframe(container, opts) {
     try {
       await karpPost('/sub/subscribe', { ...(kind === 'tier' ? { tier: slug } : { service: slug }), kt });   // vistar karp_kt (grant-varaleið)
       const d = await (await fetch('/api/sub2/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ slug, kt, email: u.email || '', nafn: u.name || '' }) })).json();
-      if (!d || !d.checkout_url || !d.token) throw new Error(d && d.error === 'unconfigured' ? 'Áskrift ekki virkjuð enn — reyndu síðar.' : (d && d.error === 'noprice' ? 'Verð fannst ekki — hafðu samband.' : 'nocheckout'));
+      if (!d || !d.checkout_url || !d.token) throw new Error(d && d.error === 'trial_used' ? 'Þú hefur þegar nýtt frípróf á þessari vöru. Hafðu samband við hjalp@karp.is til að gerast áskrifandi.' : (d && d.error === 'unconfigured' ? 'Áskrift ekki virkjuð enn — reyndu síðar.' : (d && d.error === 'noprice' ? 'Verð fannst ekki — hafðu samband.' : 'nocheckout')));
       btns().style.display = 'none';
       body.innerHTML = '<iframe class="sg-frame" src="' + esc(d.checkout_url) + '" allow="payment"></iframe>'
         + '<div class="pg-note">Kortagreiðsla á öruggu formi Áskell. 3D Secure staðfestir kortið (sýnir 0 kr) — ekkert er rukkað strax ef prufa fylgir. Ekki loka síðunni fyrr en staðfesting birtist.</div>';
