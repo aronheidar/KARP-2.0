@@ -2640,8 +2640,22 @@ export function maskaKortSvar(out) {
 // nýtt secret). SSRF-vörn: aðeins /fyrirtaekjaskra/-slóðir á www.skatturinn.is. Skilar hráu HTML.
 async function rskProxyHandler(request, env) {
   if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 403 });
-  const p = new URL(request.url).searchParams.get('p') || '';
-  if (!/^\/fyrirtaekjaskra\//.test(p)) return new Response('bad path', { status: 400 });   // aðeins fyrirtækjaskrá
+  const u = new URL(request.url);
+  // ── API-hamur (?api=<kt>): Azure LegalEntities. Worker-egress er 403-laust (öfugt við GH-runner-IP
+  //    sem Azure fór að 403-a eftir 429-þungu næturnar). Lykill bætt SERVER-HLIÐ; skilar hráu JSON + upstream-status.
+  const apiKt = (u.searchParams.get('api') || '').replace(/\D/g, '');
+  if (apiKt.length === 10) {
+    try {
+      const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + apiKt + '?language=is', {
+        headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' }, cf: { cacheTtl: 0 },
+      });
+      const body = await r.text();
+      return new Response(body, { status: r.status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+    } catch (e) { return new Response('{}', { status: 502 }); }
+  }
+  // ── Skrap-hamur (?p=/fyrirtaekjaskra/...): www.skatturinn.is HTML.
+  const p = u.searchParams.get('p') || '';
+  if (!/^\/fyrirtaekjaskra\//.test(p)) return new Response('bad path', { status: 400 });   // SSRF-vörn
   try {
     const r = await fetch('https://www.skatturinn.is' + p, {
       headers: { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' }, cf: { cacheTtl: 0 },

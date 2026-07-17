@@ -58,9 +58,13 @@ function sweepBatch(n) {
 }
 
 // fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). AÐEINS 401/403 kasta (banvænt).
+// Gegnum PROXY_BASE (worker) ef sett — Azure fór að 403-a GH-runner-IP eftir 429-þungu næturnar;
+// worker-egress er hreint. Lykill fer þá EKKI beint í Azure héðan (worker bætir honum server-hlið).
 async function fetchApi(kt) {
   let r;
-  try { r = await fetch(API + kt + '?language=is', { headers: { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' }, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); }
+  const url = PROXY_BASE ? (PROXY_BASE + '/api/rskproxy?api=' + kt) : (API + kt + '?language=is');
+  const headers = PROXY_BASE ? { 'X-Karp-Proxy': RSK_KEY, 'Accept': 'application/json' } : { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' };
+  try { r = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); }
   catch (e) { return { retry: 'network' }; }   // DNS/tenging/tímarof → reyna aftur síðar
   if (r.status === 401 || r.status === 403) throw new Error('AUTH ' + r.status);   // rangur lykill → stöðva nótt
   if (r.status === 404) return { notfound: true };
