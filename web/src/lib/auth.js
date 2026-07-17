@@ -43,7 +43,9 @@ export function loadUser() {
   if (_userPromise) return _userPromise;
   _userPromise = (async () => {
     try {
-      const r = await fetch(KARP_API + '/me', { credentials: 'include' });
+      // WP→Cloudflare (F3): /me kemur nú frá karp21-worker (D1), ekki wp.karp.is. Sama-uppruna,
+      // svo lotu-kakan (karp_session á .karp.is) berst; sama KARP_USER-lögun og WP skilaði.
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
       if (!r.ok) return setUser({ loggedIn: false, _status: r.status });
       const u = await r.json();
       return setUser(u && typeof u.loggedIn === 'boolean' ? u : { loggedIn: false });
@@ -52,6 +54,25 @@ export function loadUser() {
     }
   })();
   return _userPromise;
+}
+
+// ── WP→Cloudflare (F3): innskráning/nýskráning/útskráning gegnum karp21-worker (D1) ──
+// Sama-uppruna fetch (karp.is/api/auth/*) → lotu-kaka sett/hreinsuð af svarinu. Skila { ok, error }.
+export async function karpLogin(login, password) {
+  try {
+    const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ login, password }) });
+    return await r.json().catch(() => ({ ok: false, error: 'net' }));
+  } catch (e) { return { ok: false, error: 'net' }; }
+}
+export async function karpRegister(data) {
+  try {
+    const r = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
+    return await r.json().catch(() => ({ ok: false, error: 'net' }));
+  } catch (e) { return { ok: false, error: 'net' }; }
+}
+export async function karpLogout() {
+  try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch (e) {}
+  location.href = 'https://karp.is/';
 }
 
 function authHeaders(extra) {
@@ -117,7 +138,7 @@ export function renderChip(el, u) {
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;
     el.innerHTML =
       `<a class="kc-prof" href="/mitt-svaedi/">${av}<span class="kc-name">${esc(u.name || '')}</span></a>`
-      + `<a class="kc-out" href="${esc(u.logoutUrl || site)}" title="Skrá út" aria-label="Skrá út"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>`;
+      + `<a class="kc-out" href="#" onclick="event.preventDefault();window.karpAuth.karpLogout()" title="Skrá út" aria-label="Skrá út"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>`;
   } else {
     el.innerHTML =
       `<a class="kc-in" href="${esc(loginHref())}">Skrá inn</a>`
@@ -534,4 +555,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, reportsQuotaKnown, nextTierUp, reportQuotaNoteHtml, paintReportQuota, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpLogin, karpRegister, karpLogout, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, reportsQuotaKnown, nextTierUp, reportQuotaNoteHtml, paintReportQuota, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };

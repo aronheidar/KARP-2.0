@@ -14,8 +14,7 @@ const WP_LOGIN = 'https://wp.karp.is/wp-login.php';
     <p class="ka-msg err" id="ka-err" hidden></p>
 
     <div id="ka-form-wrap">
-      <form method="POST" action={WP_LOGIN} id="ka-form" autocomplete="on">
-        <input type="hidden" name="karp_auth" value="1" />
+      <form method="POST" action="/api/auth/login" id="ka-form" autocomplete="on">
         <input type="hidden" name="redirect_to" id="ka-redirect" value="https://karp.is/mitt-svaedi/" />
         <div class="ka-field">
           <label for="ka-log">Notandanafn eða netfang</label>
@@ -42,17 +41,14 @@ const WP_LOGIN = 'https://wp.karp.is/wp-login.php';
   </AuthShell>
 
   <script>
-    import { loadUser } from '../lib/auth.js';
-    // Sama villuboð fyrir „notandi fannst ekki" og „rangt lykilorð" (kemur í veg fyrir
-    // notenda-upptalningu). Kóðarnir koma úr WP_Error frá wp_login_failed.
+    import { loadUser, karpLogin } from '../lib/auth.js';
+    // WP→Cloudflare (F3): innskráning gegnum karp21-worker. Sama villuboð fyrir alla ranga-skilríkja
+    // kóða (kemur í veg fyrir notenda-upptalningu).
     const MSG = {
-      invalid_username: 'Rangt notandanafn/netfang eða lykilorð.',
-      invalid_email: 'Rangt notandanafn/netfang eða lykilorð.',
-      incorrect_password: 'Rangt notandanafn/netfang eða lykilorð.',
-      invalidcombo: 'Rangt notandanafn/netfang eða lykilorð.',
-      empty_username: 'Sláðu inn notandanafn eða netfang.',
-      empty_password: 'Sláðu inn lykilorð.',
-      karp_unactivated: 'Þú átt eftir að staðfesta netfangið þitt. Smelltu á hlekkinn í póstinum sem við sendum þér — eða endurstilltu lykilorðið hér að neðan til að fá nýjan hlekk.',
+      invalid: 'Rangt notandanafn/netfang eða lykilorð.',
+      input: 'Sláðu inn notandanafn/netfang og lykilorð.',
+      unverified: 'Þú átt eftir að staðfesta netfangið þitt — athugaðu póstinn.',
+      net: 'Tenging mistókst — reyndu aftur.',
       _: 'Innskráning tókst ekki — reyndu aftur.',
     };
     // Aðeins karp.is-slóðir samþykktar sem redirect_to (varnir gegn opnu-endurvísun;
@@ -72,6 +68,23 @@ const WP_LOGIN = 'https://wp.karp.is/wp-login.php';
       if (log) { const el = document.getElementById('ka-log'); if (el && !el.value) el.value = log; }
       const err = p.get('villa');
       if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+      // Innskráning gegnum worker (fetch) — intercept submit.
+      const form = document.getElementById('ka-form');
+      if (form && !form.dataset.wired) {
+        form.dataset.wired = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = form.querySelector('.ka-btn'); const eb = document.getElementById('ka-err');
+          if (eb) eb.hidden = true;
+          const login = (document.getElementById('ka-log').value || '').trim();
+          const pwd = document.getElementById('ka-pwd').value || '';
+          if (btn) { btn.disabled = true; btn.textContent = 'Skrái inn…'; }
+          const res = await window.karpAuth.karpLogin(login, pwd);
+          if (res && res.ok) { location.href = safeRedirect(new URLSearchParams(location.search).get('redirect_to')); return; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Skrá inn'; }
+          if (eb) { eb.textContent = MSG[(res && res.error)] || MSG._; eb.hidden = false; }
+        });
+      }
       // Þegar innskráð(ur)? → sýna „Fara á Mitt svæði" í stað formsins.
       loadUser().then((u) => {
         if (u && u.loggedIn) {

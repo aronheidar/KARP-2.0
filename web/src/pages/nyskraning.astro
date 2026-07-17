@@ -16,9 +16,7 @@ const WP_REGISTER = 'https://wp.karp.is/wp-admin/admin-post.php';
     <p class="ka-msg ok" id="ka-ok" hidden></p>
 
     <div id="ka-form-wrap">
-      <form method="POST" action={WP_REGISTER} id="ka-form" autocomplete="on">
-        <input type="hidden" name="action" value="karp_register" />
-        <input type="hidden" name="karp_auth" value="1" />
+      <form method="POST" action="/api/auth/register" id="ka-form" autocomplete="on">
         <div class="ka-field">
           <label for="ka-login">Notandanafn</label>
           <input type="text" name="user_login" id="ka-login" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
@@ -27,12 +25,16 @@ const WP_REGISTER = 'https://wp.karp.is/wp-admin/admin-post.php';
           <label for="ka-email">Netfang</label>
           <input type="email" name="user_email" id="ka-email" required autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" />
         </div>
+        <div class="ka-field">
+          <label for="ka-pwd">Lykilorð</label>
+          <input type="password" name="password" id="ka-pwd" required minlength="8" autocomplete="new-password" />
+        </div>
         <label class="ka-terms">
           <input type="checkbox" name="karp_terms" value="1" id="ka-terms" required />
           <span>Ég samþykki <a href="/skilmalar/" target="_blank" rel="noopener">skilmála og persónuverndarstefnu</a> Karp.</span>
         </label>
         <button type="submit" class="ka-btn">Nýskrá</button>
-        <p class="ka-note">Eftir skráningu sendum við þér tölvupóst til að staðfesta netfangið og velja lykilorð.</p>
+        <p class="ka-note">Lykilorðið þarf að vera a.m.k. 8 stafir. Þú verður skráð(ur) inn strax.</p>
       </form>
     </div>
 
@@ -45,33 +47,46 @@ const WP_REGISTER = 'https://wp.karp.is/wp-admin/admin-post.php';
   </AuthShell>
 
   <script>
-    import { loadUser } from '../lib/auth.js';
+    import { loadUser, karpRegister } from '../lib/auth.js';
+    // WP→Cloudflare (F3): nýskráning gegnum karp21-worker (D1). Villukóðar frá worker.
     const MSG = {
-      username_exists: 'Notandanafnið er þegar í notkun — veldu annað.',
-      email_exists: 'Netfangið er þegar skráð. Prófaðu að skrá þig inn.',
-      invalid_username: 'Ógilt notandanafn (nota má bókstafi, tölur og _ . - @).',
-      empty_username: 'Sláðu inn notandanafn.',
-      username_too_short: 'Notandanafnið er of stutt.',
-      invalid_email: 'Netfangið lítur ekki rétt út.',
-      empty_email: 'Sláðu inn netfang.',
-      karp_terms: 'Þú þarft að samþykkja skilmálana til að halda áfram.',
+      exists: 'Netfangið eða notandanafnið er þegar skráð. Prófaðu að skrá þig inn.',
+      email: 'Netfangið lítur ekki rétt út.',
+      weakpass: 'Lykilorðið þarf að vera a.m.k. 8 stafir.',
+      terms: 'Þú þarft að samþykkja skilmálana til að halda áfram.',
+      net: 'Tenging mistókst — reyndu aftur.',
       _: 'Nýskráning tókst ekki — reyndu aftur.',
     };
     function boot() {
       const main = document.querySelector('main[data-pg="nyskraning"]');
       if (!main) return;
       const p = new URLSearchParams(location.search);
-      const skrad = p.get('skrad');
-      if (skrad) {
-        const ok = document.getElementById('ka-ok');
-        const fw = document.getElementById('ka-form-wrap');
-        if (ok) { ok.textContent = '📧 Frábært! Við sendum þér tölvupóst til að staðfesta netfangið og velja lykilorð. Athugaðu pósthólfið — og ruslpóstinn ef hann skilar sér ekki strax.'; ok.hidden = false; }
-        if (fw) fw.hidden = true;
-      }
       const err = p.get('villa');
       if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
       const login = p.get('log'); if (login) { const el = document.getElementById('ka-login'); if (el && !el.value) el.value = login; }
       const email = p.get('email'); if (email) { const el = document.getElementById('ka-email'); if (el && !el.value) el.value = email; }
+      // Nýskráning gegnum worker (fetch) — intercept submit → skráð(ur) inn strax.
+      const form = document.getElementById('ka-form');
+      if (form && !form.dataset.wired) {
+        form.dataset.wired = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = form.querySelector('.ka-btn'); const eb = document.getElementById('ka-err');
+          if (eb) eb.hidden = true;
+          const data = {
+            username: (document.getElementById('ka-login').value || '').trim(),
+            name: (document.getElementById('ka-login').value || '').trim(),
+            email: (document.getElementById('ka-email').value || '').trim(),
+            password: document.getElementById('ka-pwd').value || '',
+            terms: !!document.getElementById('ka-terms').checked,
+          };
+          if (btn) { btn.disabled = true; btn.textContent = 'Skrái…'; }
+          const res = await window.karpAuth.karpRegister(data);
+          if (res && res.ok) { location.href = 'https://karp.is/mitt-svaedi/'; return; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Nýskrá'; }
+          if (eb) { eb.textContent = MSG[(res && res.error)] || MSG._; eb.hidden = false; }
+        });
+      }
       // Þegar innskráð(ur) (og ekki nýbúin(n) að skrá sig) → benda á Mitt svæði.
       loadUser().then((u) => {
         if (u && u.loggedIn && !skrad) {
