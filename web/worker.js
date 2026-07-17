@@ -2633,6 +2633,20 @@ export function maskaKortSvar(out) {
   return { ...out, krossar, kort: true };
 }
 
+// TÍMABUNDINN greiningar-endapunktur (fjarlægt STRAX eftir próf): mælir hvort worker-egress sé
+// throttlað af www.skatturinn.is. Skilar AÐEINS talningu (engin skröpuð gögn út) → ekki misnotanlegt.
+async function rskProbeHandler(request) {
+  const n = ((new URL(request.url).searchParams.get('n') || 'a').match(/[a-zðþæö0-9]/gi) || ['a']).join('').slice(0, 4) || 'a';
+  try {
+    const r = await fetch('https://www.skatturinn.is/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(n), {
+      headers: { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' }, cf: { cacheTtl: 0 },
+    });
+    const t = await r.text();
+    const kts = new Set([...t.matchAll(/kennitala\/(\d{10})/g)].map((m) => m[1])).size;
+    return sjson({ n, status: r.status, kts, len: t.length });
+  } catch (e) { return sjson({ n, err: String((e && e.message) || e) }); }
+}
+
 // 🕸️ Landsdekkandi auðgun úr tengslagrunni (D1). Null-þolið: án env.TENGSL → óbreytt.
 // Bætir landsvísu-félögum rót-tengds fólks í onnur[]. Persónu-kt (out.stjornendur[]._kt,
 // server-hlið eingöngu) er notað sem D1-lykill og STRIPPAÐ hér áður en svarið fer út.
@@ -2769,6 +2783,7 @@ export default {
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
+    if (url.pathname === '/api/rskprobe') return rskProbeHandler(request);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
