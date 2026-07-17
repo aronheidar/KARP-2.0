@@ -66,7 +66,7 @@ async function fetchApi(kt) {
   const headers = PROXY_BASE ? { 'X-Karp-Proxy': RSK_KEY, 'Accept': 'application/json' } : { 'Ocp-Apim-Subscription-Key': RSK_KEY, 'Accept': 'application/json' };
   try { r = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); }
   catch (e) { return { retry: 'network' }; }   // DNS/tenging/tímarof → reyna aftur síðar
-  if (r.status === 401 || r.status === 403) throw new Error('AUTH ' + r.status);   // rangur lykill → stöðva nótt
+  if (r.status === 401 || r.status === 403) { const b = await r.text().catch(() => ''); throw new Error('AUTH ' + r.status + ' :: ' + b.replace(/\s+/g, ' ').slice(0, 180)); }   // rangur lykill/kvóti → stöðva nótt + skoða skilaboð
   if (r.status === 404) return { notfound: true };
   if (r.status === 429 || r.status >= 500) return { retry: r.status };            // tímabundið → reyna aftur
   if (!r.ok) return { error: r.status };                                          // annað 4xx → gefast upp
