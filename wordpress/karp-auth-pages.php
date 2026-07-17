@@ -120,6 +120,33 @@ add_action('after_password_reset', function ($user) {
     }
 });
 
+/* ── EIGIN NÝSKRÁNINGAR-HANDLER (admin-post → FRAMHJÁ Ultimate Member) ────── */
+// /nyskraning/ POST-ar á admin-post.php?action=karp_register (EKKI wp-login.php) svo UM grípi EKKI
+// nýskráninguna og hendi notandanum á sína eigin síðu. Handlerinn kallar register_new_user() = SAMA
+// kjarna-flæði og wp-login.php?action=register, svo ALLIR hookar að ofan keyra óbreyttir:
+//   registration_errors → skilmála-skylda + villu-bounce; user_register → terms + email_activated=0.
+// Á villu bounce-ar registration_errors-hookinn + exit; hér meðhöndlum við aðeins ÁRANGUR (+ varnagla).
+// ⚠ Krefst „Anyone can register"=á (register_new_user gátar users_can_register). Enginn nonce —
+//   sama og opinber wp-login-nýskráning (opið signup þegar users_can_register er á).
+function karp_register_handler() {
+    if (!karp_auth_is_ours()) { karp_auth_bounce(KARP_REGISTER_URL, array('villa' => 'failed')); }
+    if (is_user_logged_in()) { wp_safe_redirect('https://karp.is/mitt-svaedi/'); exit; }
+    $login = isset($_POST['user_login']) ? wp_unslash((string) $_POST['user_login']) : '';
+    $email = isset($_POST['user_email']) ? wp_unslash((string) $_POST['user_email']) : '';
+    $result = register_new_user($login, $email);   // kjarna-flæði; OKKAR registration_errors-hook bounce-ar á villu
+    if (is_wp_error($result)) {   // varnagli (ef hook fjarlægður): bounce með fyrsta villukóða
+        $codes = $result->get_error_codes();
+        karp_auth_bounce(KARP_REGISTER_URL, array(
+            'villa' => !empty($codes) ? $codes[0] : 'failed',
+            'log'   => rawurlencode($login),
+            'email' => rawurlencode($email),
+        ));
+    }
+    karp_auth_bounce(KARP_REGISTER_URL, array('skrad' => '1'));   // árangur → „athugaðu póstinn"
+}
+add_action('admin_post_nopriv_karp_register', 'karp_register_handler');
+add_action('admin_post_karp_register', 'karp_register_handler');
+
 /* ── GLEYMT LYKILORÐ (wp-login.php?action=lostpassword) ──────────────────── */
 
 // Villa (tómt eða óþekkt netfang) → aftur á /endurstilla/?villa=. Árangur notar
