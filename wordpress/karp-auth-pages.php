@@ -88,10 +88,35 @@ add_filter('registration_errors', function ($errors, $sanitized_user_login, $use
     return $errors;
 }, 99, 3);
 
-// (b) Skrá samþykki (heimild) þegar Karp-notandi verður til — sami meta-lykill og UM-leiðin.
+// (b) Skrá samþykki (heimild) + merkja netfang ÓSTAÐFEST þegar Karp-notandi verður til.
 add_action('user_register', function ($user_id) {
-    if (karp_auth_is_ours() && !empty($_POST['karp_terms'])) {
-        update_user_meta($user_id, 'karp_terms_accepted', current_time('mysql'));
+    if (!karp_auth_is_ours()) { return; }
+    if (!empty($_POST['karp_terms'])) {
+        update_user_meta($user_id, 'karp_terms_accepted', current_time('mysql'));   // sami meta-lykill og UM-leiðin
+    }
+    update_user_meta($user_id, 'karp_email_activated', '0');   // NETFANGS-STAÐFESTING: óvirkur þar til hlekkur smelltur
+});
+
+/* ── NETFANGS-STAÐFESTING (activation link) ──────────────────────────────── */
+// Nýskráður Karp-notandi er ÓVIRKUR þar til hann smellir á hlekkinn í „stilltu lykilorð"-póstinum
+// sem WP sendir sjálfkrafa við nýskráningu (= sannar eignarhald á netfanginu) og velur lykilorð.
+// Enginn auka-póstur. Innskráning er BLOKKUÐ þar til. Gleymdur hlekkur → /endurstilla/ sendir nýjan.
+
+// (c) Blokka innskráningu óstaðfestra. Forgangur 30 → EFTIR lykilorðs-athugun WP-kjarna (20),
+//     svo „rangt lykilorð" komi á undan. Aðeins EXPLICIT '0' blokkar → eldri notendur (vantandi
+//     meta = '') og admin haldast ÓSNERTIR (engin læsing á núverandi aðgöngum). Gildir alls staðar.
+add_filter('authenticate', function ($user, $username, $password) {
+    if (is_wp_error($user) || !($user instanceof WP_User)) { return $user; }
+    if (get_user_meta($user->ID, 'karp_email_activated', true) === '0') {
+        return new WP_Error('karp_unactivated', 'Þú átt eftir að staðfesta netfangið þitt — smelltu á hlekkinn í póstinum sem við sendum (eða endurstilltu lykilorðið til að fá nýjan hlekk).');
+    }
+    return $user;
+}, 30, 3);
+
+// (d) Virkja við fyrstu lykilorðs-setningu (hlekkurinn úr staðfestingar-/nýskráningar-póstinum).
+add_action('after_password_reset', function ($user) {
+    if ($user instanceof WP_User) {
+        update_user_meta($user->ID, 'karp_email_activated', '1');
     }
 });
 
