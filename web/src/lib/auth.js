@@ -74,6 +74,19 @@ export async function karpLogout() {
   try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch (e) {}
   location.href = 'https://karp.is/';
 }
+// F5: gleymt-lykilorð. forgot skilar alltaf { ok:true } (engin upptalning); reset setur nýtt lykilorð + skráir inn.
+export async function karpForgot(login) {
+  try {
+    const r = await fetch('/api/auth/forgot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ login }) });
+    return await r.json().catch(() => ({ ok: true }));
+  } catch (e) { return { ok: true }; }
+}
+export async function karpReset(token, password) {
+  try {
+    const r = await fetch('/api/auth/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ token, password }) });
+    return await r.json().catch(() => ({ ok: false, error: 'net' }));
+  } catch (e) { return { ok: false, error: 'net' }; }
+}
 
 function authHeaders(extra) {
   const h = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
@@ -555,4 +568,4 @@ export async function karpSubscribeTier({ slug, nafn, btn }) {
 }
 
 // Aðgengilegt öðrum eyju-skriftum + til prófunar (mælaborðið afhjúpar svipað).
-if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpLogin, karpRegister, karpLogout, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, reportsQuotaKnown, nextTierUp, reportQuotaNoteHtml, paintReportQuota, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };
+if (typeof window !== 'undefined') window.karpAuth = { loadUser, karpLogin, karpRegister, karpLogout, karpForgot, karpReset, karpGet, karpPost, renderChip, mountChip, isAdmin, isPlus, locked, hasReport, hasSub, karpCheckout, plusGate, hasTier, lockedTier, tierLevel, tierGate, subGate, karpSubscribe, karpAskellSubscribe, karpSubscribeTier, limits, reportsRemaining, reportsQuotaKnown, nextTierUp, reportQuotaNoteHtml, paintReportQuota, followsCount, openReport, fasteignRemaining, fasteignResets, metaValuation, ktWatchList, ktWatchSet, teamList, teamSet, helpNote };

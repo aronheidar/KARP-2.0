@@ -443,24 +443,15 @@ async function hjalpHandler(request, env, ctx) {
   if (n >= 8) return sjson({ error: 'rate' }, 429);
   ctx.waitUntil(cache.put(minKey, new Response('1', { headers: { 'cache-control': 'public, max-age=60' } })));
   ctx.waitUntil(cache.put(dayKey, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
-  try {
-    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/hjalp', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', ...(env.KARP_GRANT_SECRET ? { 'X-Karp-Secret': env.KARP_GRANT_SECRET } : {}) },
-      body: JSON.stringify({
-        nafn, netfang, flokkur, lysing,
-        fra: String(b.fra || '').slice(0, 300),
-        innskraning: b.innskraning === true,
-        ua: String(b.ua || '').slice(0, 300),
-        ip,
-      }),
-    });
-    const d = await r.json().catch(() => null);
-    if (r.ok && d && d.ok) return sjson({ ok: true });
-    return sjson({ error: (d && d.error) === 'rate' ? 'rate' : 'send' }, 502);
-  } catch (e) {
-    return sjson({ error: 'send' }, 502);
-  }
+  // F5: hjálparbeiðni send með Gmail (áður WP wp_mail). Reply-To = notandinn svo svar fer beint.
+  const fra = String(b.fra || '').slice(0, 300);
+  const html = '<div style="font-family:system-ui,Arial,sans-serif;color:#222;max-width:560px">'
+    + '<h3 style="color:#8a5e00;margin:0 0 10px">Ný hjálparbeiðni — ' + _esc(flokkur) + '</h3>'
+    + '<p style="margin:4px 0"><b>Nafn:</b> ' + _esc(nafn) + '<br><b>Netfang:</b> ' + _esc(netfang) + '</p>'
+    + '<p style="white-space:pre-wrap;border-left:3px solid #8a5e00;padding-left:12px;margin:14px 0">' + _esc(lysing) + '</p>'
+    + '<p style="color:#999;font-size:12px">Frá: ' + _esc(fra || '—') + ' · innskráð: ' + (b.innskraning === true ? 'já' : 'nei') + ' · IP: ' + _esc(ip) + '</p></div>';
+  const r = await sendGmail(env, { to: env.HJALP_TO || 'hjalp@karp.is', replyTo: netfang, subject: '[Hjálp] ' + flokkur + ' — ' + nafn, html });
+  return r.ok ? sjson({ ok: true }) : sjson({ error: 'send' }, 502);
 }
 
 // 💸 Greiðsluvakt: opnirreikningar.is (Fjársýslan) — DataTables-bakendinn svarar
@@ -2913,6 +2904,73 @@ async function authSaveKtHandler(request, env) {
   return _ajson({ ok: true });
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// F5: TÖLVUPÓSTUR gegnum Gmail REST API (OAuth refresh-token) — leysir WP wp_mail af hólmi.
+// Secret-gated: án GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN skilar sendGmail {unconfigured:true}
+// og kallendur falla mjúkt. Notað fyrir: gleymt-lykilorð (/api/auth/forgot+reset) og /api/hjalp.
+// ══════════════════════════════════════════════════════════════════════════
+const _esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const _tokenHex = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, '0')).join('');
+const _b64std = (u8) => btoa(String.fromCharCode(...new Uint8Array(u8)));   // stöðluð base64 (encoded-word/MIME-body)
+async function _gmailToken(env) {
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: env.GMAIL_CLIENT_ID, client_secret: env.GMAIL_CLIENT_SECRET, refresh_token: env.GMAIL_REFRESH_TOKEN, grant_type: 'refresh_token' }).toString(),
+  }).catch(() => null);
+  const d = r && (await r.json().catch(() => null));
+  return (d && d.access_token) || null;
+}
+async function sendGmail(env, { to, subject, html, replyTo }) {
+  if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) return { ok: false, unconfigured: true };
+  const tok = await _gmailToken(env);
+  if (!tok) return { ok: false, error: 'token' };
+  const from = env.GMAIL_FROM || 'Karp <hjalp@karp.is>';
+  const lines = ['From: ' + from, 'To: ' + to];
+  if (replyTo) lines.push('Reply-To: ' + replyTo);
+  lines.push(
+    'Subject: =?UTF-8?B?' + _b64std(_te.encode(subject)) + '?=',
+    'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '',
+    _b64std(_te.encode(html)).replace(/(.{76})/g, '$1\r\n'),
+  );
+  const raw = _b64u(_te.encode(lines.join('\r\n')));
+  const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST', headers: { authorization: 'Bearer ' + tok, 'content-type': 'application/json' }, body: JSON.stringify({ raw }),
+  }).catch(() => null);
+  return (r && r.ok) ? { ok: true } : { ok: false, error: 'send', status: r ? r.status : 0 };
+}
+// Gleymt lykilorð — biður um endurstillingar-hlekk. Alltaf {ok:true} (engin notenda-upptalning).
+async function authForgotHandler(request, env, ctx) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: true });
+  const b = (await request.json().catch(() => null)) || {};
+  const login = String(b.login || b.email || '').trim().toLowerCase().slice(0, 120);
+  if (!login) return _ajson({ ok: true });
+  const u = await env.TENGSL.prepare('SELECT id, email FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
+  if (u) {
+    const now = Math.floor(Date.now() / 1000);
+    const token = _tokenHex();
+    await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
+    const link = 'https://karp.is/endurstilla/?token=' + token;
+    const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Endurstilla lykilorð</h2><p>Þú (eða einhver) baðst um að endurstilla lykilorðið á Karp-aðgangi þínum.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Velja nýtt lykilorð</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í eina klukkustund. Baðstu ekki um þetta? Hunsaðu póstinn — lykilorðið breytist ekki.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
+    ctx.waitUntil(sendGmail(env, { to: u.email, subject: 'Endurstilla lykilorð á Karp', html }));
+  }
+  return _ajson({ ok: true });
+}
+// Setur nýtt lykilorð úr endurstillingar-tóken → skráir inn (staðfestir netfang um leið).
+async function authResetHandler(request, env) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const b = (await request.json().catch(() => null)) || {};
+  const token = String(b.token || '').trim().slice(0, 80);
+  const pw = String(b.password || '');
+  if (!token) return _ajson({ ok: false, error: 'badtoken' });
+  if (pw.length < 8) return _ajson({ ok: false, error: 'weakpass' });
+  const now = Math.floor(Date.now() / 1000);
+  const t = await env.TENGSL.prepare("SELECT token, user_id FROM auth_tokens WHERE token=? AND kind='reset' AND expires>?").bind(token, now).first().catch(() => null);
+  if (!t) return _ajson({ ok: false, error: 'badtoken' });
+  await env.TENGSL.prepare('UPDATE users SET pass_hash=?, email_verified=1, updated=? WHERE id=?').bind(await hashPassword(pw), now, t.user_id).run().catch(() => {});
+  await env.TENGSL.prepare('DELETE FROM auth_tokens WHERE token=?').bind(token).run().catch(() => {});
+  return _ajson({ ok: true, id: t.user_id }, { 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2929,6 +2987,8 @@ export default {
     if (url.pathname === '/api/auth/login') return authLoginHandler(request, env);
     if (url.pathname === '/api/auth/logout') return authLogoutHandler();
     if (url.pathname === '/api/auth/kt') return authSaveKtHandler(request, env);
+    if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
+    if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

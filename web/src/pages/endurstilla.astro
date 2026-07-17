@@ -1,28 +1,43 @@
 ---
-// /endurstilla/ — native Karp „gleymt lykilorð"-síða. Formið POST-ar (top-level) á
-// wp-login.php?action=lostpassword með netfangi/notandanafni. WordPress sendir
-// endurstillingar-tölvupóst. Árangur → ?sent=1 (redirect_to); villur (tómt/óþekkt
-// netfang) → ?villa=<kóði> gegnum lostpassword_errors-hook í karp-auth-pages.php.
-// (Sjálft nýja-lykilorðs-skrefið gerist á WP-hlekknum úr póstinum — wp-login.php?action=rp.)
+// /endurstilla/ — native Karp „gleymt lykilorð"-síða (WP→Cloudflare F5). Tveir hamir:
+//   (1) Beiðni: án ?token → netfang/notandanafn → POST /api/auth/forgot → worker sendir
+//       endurstillingar-hlekk með Gmail. Alltaf sama staðfesting (engin notenda-upptalning).
+//   (2) Endurstilling: með ?token=<hex> → nýtt lykilorð → POST /api/auth/reset → worker
+//       setur lykilorðið, staðfestir netfangið og skráir inn → /mitt-svaedi/.
+// Allt gegnum karp21-worker + D1 (auth_tokens). Enginn WordPress lengur.
 import Layout from '../layouts/Layout.astro';
 import AuthShell from '../components/AuthShell.astro';
 const desc = 'Gleymdirðu lykilorðinu? Sláðu inn netfangið þitt og við sendum þér hlekk til að velja nýtt lykilorð.';
-const WP_LOST = 'https://wp.karp.is/wp-login.php?action=lostpassword';
 ---
 <Layout title="Endurstilla lykilorð — Karp" description={desc} canonical="https://karp.is/endurstilla/" ogTitle="Endurstilla lykilorð" noindex={true}>
   <AuthShell pg="endurstilla" heading="Gleymt lykilorð?" sub="Sláðu inn netfangið þitt og við sendum þér hlekk til að velja nýtt lykilorð.">
     <p class="ka-msg err" id="ka-err" hidden></p>
     <p class="ka-msg ok" id="ka-ok" hidden></p>
 
-    <div id="ka-form-wrap">
-      <form method="POST" action={WP_LOST} id="ka-form" autocomplete="on">
-        <input type="hidden" name="karp_auth" value="1" />
-        <input type="hidden" name="redirect_to" value="https://karp.is/endurstilla/?sent=1" />
+    <!-- Hamur 1: biðja um endurstillingar-hlekk -->
+    <div id="ka-req-wrap">
+      <form method="POST" action="/api/auth/forgot" id="ka-req-form" autocomplete="on">
         <div class="ka-field">
           <label for="ka-user">Netfang eða notandanafn</label>
-          <input type="text" name="user_login" id="ka-user" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+          <input type="text" name="login" id="ka-user" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
         </div>
         <button type="submit" class="ka-btn">Senda endurstillingarhlekk</button>
+      </form>
+    </div>
+
+    <!-- Hamur 2: velja nýtt lykilorð (birt þegar ?token= er í slóð) -->
+    <div id="ka-reset-wrap" hidden>
+      <form method="POST" action="/api/auth/reset" id="ka-reset-form" autocomplete="on">
+        <div class="ka-field">
+          <label for="ka-pwd">Nýtt lykilorð</label>
+          <input type="password" name="password" id="ka-pwd" required minlength="8" autocomplete="new-password" />
+        </div>
+        <div class="ka-field">
+          <label for="ka-pwd2">Staðfestu lykilorð</label>
+          <input type="password" name="password2" id="ka-pwd2" required minlength="8" autocomplete="new-password" />
+        </div>
+        <button type="submit" class="ka-btn">Vista nýtt lykilorð</button>
+        <p class="ka-note">Lykilorðið þarf að vera a.m.k. 8 stafir. Þú verður skráð(ur) inn strax.</p>
       </form>
     </div>
 
@@ -30,24 +45,61 @@ const WP_LOST = 'https://wp.karp.is/wp-login.php?action=lostpassword';
   </AuthShell>
 
   <script>
+    import { karpForgot, karpReset } from '../lib/auth.js';
     const MSG = {
-      empty_username: 'Sláðu inn netfang eða notandanafn.',
-      invalid_email: 'Enginn aðgangur fannst með þessu netfangi.',
-      invalidcombo: 'Enginn aðgangur fannst með þessum upplýsingum.',
-      _: 'Ekki tókst að senda — reyndu aftur.',
+      badtoken: 'Hlekkurinn er útrunninn eða ógildur. Biddu um nýjan hér að neðan.',
+      weakpass: 'Lykilorðið þarf að vera a.m.k. 8 stafir.',
+      mismatch: 'Lykilorðin stemma ekki.',
+      net: 'Tenging mistókst — reyndu aftur.',
+      _: 'Aðgerðin tókst ekki — reyndu aftur.',
     };
+    function show(id, txt) { const el = document.getElementById(id); if (el) { if (txt != null) el.textContent = txt; el.hidden = false; } }
+    function hide(id) { const el = document.getElementById(id); if (el) el.hidden = true; }
     function boot() {
       const main = document.querySelector('main[data-pg="endurstilla"]');
       if (!main) return;
       const p = new URLSearchParams(location.search);
-      if (p.get('sent')) {
-        const ok = document.getElementById('ka-ok');
-        const fw = document.getElementById('ka-form-wrap');
-        if (ok) { ok.textContent = '📧 Ef aðgangur er skráður á þetta netfang sendum við hlekk til að endurstilla lykilorðið. Athugaðu pósthólfið — og ruslpóstinn.'; ok.hidden = false; }
-        if (fw) fw.hidden = true;
+      const token = (p.get('token') || '').trim();
+
+      if (token) {
+        // ── Hamur 2: endurstilling úr hlekk ──
+        hide('ka-req-wrap'); show('ka-reset-wrap');
+        const form = document.getElementById('ka-reset-form');
+        if (form && !form.dataset.wired) {
+          form.dataset.wired = '1';
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hide('ka-err');
+            const pwd = document.getElementById('ka-pwd').value || '';
+            const pwd2 = document.getElementById('ka-pwd2').value || '';
+            if (pwd.length < 8) { show('ka-err', MSG.weakpass); return; }
+            if (pwd !== pwd2) { show('ka-err', MSG.mismatch); return; }
+            const btn = form.querySelector('.ka-btn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Vista…'; }
+            const res = await window.karpAuth.karpReset(token, pwd);
+            if (res && res.ok) { location.href = 'https://karp.is/mitt-svaedi/'; return; }
+            if (btn) { btn.disabled = false; btn.textContent = 'Vista nýtt lykilorð'; }
+            show('ka-err', MSG[(res && res.error)] || MSG._);
+          });
+        }
+        return;
       }
-      const err = p.get('villa');
-      if (err) { const box = document.getElementById('ka-err'); if (box) { box.textContent = MSG[err] || MSG._; box.hidden = false; } }
+
+      // ── Hamur 1: biðja um hlekk ──
+      const form = document.getElementById('ka-req-form');
+      if (form && !form.dataset.wired) {
+        form.dataset.wired = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          hide('ka-err');
+          const login = (document.getElementById('ka-user').value || '').trim();
+          const btn = form.querySelector('.ka-btn');
+          if (btn) { btn.disabled = true; btn.textContent = 'Sendi…'; }
+          await window.karpAuth.karpForgot(login);
+          hide('ka-req-wrap');
+          show('ka-ok', '📧 Ef aðgangur er skráður á þetta netfang sendum við hlekk til að endurstilla lykilorðið. Athugaðu pósthólfið — og ruslpóstinn.');
+        });
+      }
     }
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);
