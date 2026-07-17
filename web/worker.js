@@ -2769,6 +2769,95 @@ async function tengslanetHandler(request, env, ctx) {
   return res;
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// CLOUDFLARE-NATIVE AUÐKENNING (F2) — leysir WordPress/wp.karp.is af hólmi.
+// Notendur/réttindi í D1 (env.TENGSL); lotur = undirritaðar HttpOnly-kökur (SESSION_SECRET).
+// F1: lykilorðs-auth ÁN póst-staðfestingar (email_verified=1 við nýskráningu). F5 bætir póst-verify.
+// ══════════════════════════════════════════════════════════════════════════
+const _te = new TextEncoder();
+const _b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const _fromB64 = (s) => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+async function hashPassword(pw) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iter = 100000;
+  const key = await crypto.subtle.importKey('raw', _te.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, key, 256);
+  return `pbkdf2$${iter}$${_b64u(salt)}$${_b64u(bits)}`;
+}
+async function verifyPassword(pw, stored) {
+  try {
+    const [alg, iterS, saltS, hashS] = String(stored).split('$');
+    if (alg !== 'pbkdf2') return false;
+    const key = await crypto.subtle.importKey('raw', _te.encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: _fromB64(saltS), iterations: +iterS, hash: 'SHA-256' }, key, 256);
+    return _b64u(bits) === hashS;
+  } catch (e) { return false; }
+}
+async function _hmac(env, msg) {
+  const key = await crypto.subtle.importKey('raw', _te.encode(env.SESSION_SECRET || 'dev-uncfg-secret'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return _b64u(await crypto.subtle.sign('HMAC', key, _te.encode(msg)));
+}
+async function makeSession(env, uid) {
+  const body = uid + '.' + (Math.floor(Date.now() / 1000) + 60 * 86400);   // 60 daga gildi
+  return body + '.' + await _hmac(env, body);
+}
+async function readSession(env, request) {
+  const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)karp_session=([^;]+)/);
+  if (!m) return 0;
+  const [uid, exp, sig] = decodeURIComponent(m[1]).split('.');
+  if (!uid || !exp || !sig || +exp < Math.floor(Date.now() / 1000)) return 0;
+  if (await _hmac(env, uid + '.' + exp) !== sig) return 0;
+  return +uid;
+}
+const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+const _ajson = (obj, extra = {}) => new Response(JSON.stringify(obj), { status: 200, headers: { 'content-type': 'application/json', ...extra } });
+// D1 notandi → KARP_USER-lögun (sama snið og WP /me skilaði svo auth.js þurfi engar breytingar á lögun).
+function userPayload(u) {
+  const base = { loginUrl: 'https://karp.is/innskra/', registerUrl: 'https://karp.is/nyskraning/', paywall: false };
+  if (!u) return { loggedIn: false, ...base };
+  const now = Math.floor(Date.now() / 1000);
+  const tierActive = !!(u.tier && u.tier_until && u.tier_until > now);
+  return {
+    loggedIn: true, id: u.id, email: u.email, name: u.name || u.username || u.email,
+    isAdmin: u.is_admin === 1, plus: u.is_admin === 1 || tierActive,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
+    tier: tierActive ? u.tier : null, effectiveTier: tierActive ? u.tier : null,
+    emailVerified: u.email_verified === 1, kt: u.kt || null, ...base,
+  };
+}
+async function authMeHandler(request, env) {
+  const uid = await readSession(env, request);
+  if (!uid || !env.TENGSL) return _ajson(userPayload(null));
+  const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  return _ajson(userPayload(u));
+}
+async function authRegisterHandler(request, env) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const b = (await request.json().catch(() => null)) || {};
+  const email = String(b.email || '').trim().toLowerCase().slice(0, 120);
+  const username = String(b.username || '').trim().slice(0, 60) || null;
+  const pw = String(b.password || '');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return _ajson({ ok: false, error: 'email' });
+  if (pw.length < 8) return _ajson({ ok: false, error: 'weakpass' });
+  if (!b.terms) return _ajson({ ok: false, error: 'terms' });
+  const dup = await env.TENGSL.prepare('SELECT id FROM users WHERE email=? OR (username IS NOT NULL AND username=?)').bind(email, username).first().catch(() => null);
+  if (dup) return _ajson({ ok: false, error: 'exists' });
+  const now = Math.floor(Date.now() / 1000);
+  const res = await env.TENGSL.prepare('INSERT INTO users (email, username, pass_hash, name, email_verified, terms_accepted, created) VALUES (?,?,?,?,1,?,?)')
+    .bind(email, username, await hashPassword(pw), b.name || null, b.terms ? now : null, now).run();
+  return _ajson({ ok: true, id: res.meta.last_row_id }, { 'set-cookie': _sessCookie(await makeSession(env, res.meta.last_row_id), 60 * 86400) });
+}
+async function authLoginHandler(request, env) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const b = (await request.json().catch(() => null)) || {};
+  const login = String(b.login || b.email || '').trim().toLowerCase().slice(0, 120);
+  const pw = String(b.password || '');
+  if (!login || !pw) return _ajson({ ok: false, error: 'input' });
+  const u = await env.TENGSL.prepare('SELECT * FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
+  if (!u || !(await verifyPassword(pw, u.pass_hash))) return _ajson({ ok: false, error: 'invalid' });   // sama villa (engin upptalning)
+  if (u.email_verified !== 1) return _ajson({ ok: false, error: 'unverified' });
+  return _ajson({ ok: true, id: u.id }, { 'set-cookie': _sessCookie(await makeSession(env, u.id), 60 * 86400) });
+}
+const authLogoutHandler = () => _ajson({ ok: true }, { 'set-cookie': _sessCookie('', 0) });
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2779,6 +2868,11 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (/^\/hagvisir\/?$/.test(url.pathname)) return Response.redirect('https://karp.is/', 301);
+    // ── Cloudflare-native auðkenning (F2) — leysir wp.karp.is /me + innskráningu af hólmi ──
+    if (url.pathname === '/api/auth/me') return authMeHandler(request, env);
+    if (url.pathname === '/api/auth/register') return authRegisterHandler(request, env);
+    if (url.pathname === '/api/auth/login') return authLoginHandler(request, env);
+    if (url.pathname === '/api/auth/logout') return authLogoutHandler();
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
