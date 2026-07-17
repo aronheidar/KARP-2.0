@@ -2633,18 +2633,22 @@ export function maskaKortSvar(out) {
   return { ...out, krossar, kort: true };
 }
 
-// TÍMABUNDINN greiningar-endapunktur (fjarlægt STRAX eftir próf): mælir hvort worker-egress sé
-// throttlað af www.skatturinn.is. Skilar AÐEINS talningu (engin skröpuð gögn út) → ekki misnotanlegt.
-async function rskProbeHandler(request) {
-  const n = ((new URL(request.url).searchParams.get('n') || 'a').match(/[a-zðþæö0-9]/gi) || ['a']).join('').slice(0, 4) || 'a';
+// 🔀 RSK-proxy (LOTA — tengslagrunnur): Cloudflare-worker-egress er EKKI throttlað af
+// www.skatturinn.is við magn (sannreynt: 32/40 köll m/≥100 treff, ekkert cutoff — öfugt við
+// GitHub-runner sem deyr við ~30). Því beinir næturlegi crawlerinn skrapinu HINGAÐ og fær
+// landsdekkun á vikum í stað mánaða. GATT: X-Karp-Proxy === RSK_KEY (til á báðum hliðum, ekkert
+// nýtt secret). SSRF-vörn: aðeins /fyrirtaekjaskra/-slóðir á www.skatturinn.is. Skilar hráu HTML.
+async function rskProxyHandler(request, env) {
+  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 403 });
+  const p = new URL(request.url).searchParams.get('p') || '';
+  if (!/^\/fyrirtaekjaskra\//.test(p)) return new Response('bad path', { status: 400 });   // aðeins fyrirtækjaskrá
   try {
-    const r = await fetch('https://www.skatturinn.is/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(n), {
+    const r = await fetch('https://www.skatturinn.is' + p, {
       headers: { 'User-Agent': 'karp.is fyrirtaekjaskra (aronheidars@gmail.com)' }, cf: { cacheTtl: 0 },
     });
-    const t = await r.text();
-    const kts = new Set([...t.matchAll(/kennitala\/(\d{10})/g)].map((m) => m[1])).size;
-    return sjson({ n, status: r.status, kts, len: t.length });
-  } catch (e) { return sjson({ n, err: String((e && e.message) || e) }); }
+    const body = await r.text();
+    return new Response(body, { status: r.status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+  } catch (e) { return new Response('upstream error', { status: 502 }); }
 }
 
 // 🕸️ Landsdekkandi auðgun úr tengslagrunni (D1). Null-þolið: án env.TENGSL → óbreytt.
@@ -2783,7 +2787,7 @@ export default {
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
-    if (url.pathname === '/api/rskprobe') return rskProbeHandler(request);
+    if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);

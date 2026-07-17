@@ -16,6 +16,9 @@ const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '30', 10);   // frí n
 // Bið milli API-kalla. Mælt hraðatakmark api.skattur.cloud ≈60–70 köll/mín → 1000ms ≈ 60/mín.
 const API_DELAY = parseInt(process.env.API_DELAY_MS || '1000', 10);
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT_MS || '12000', 10);   // hangandi tengingar → hætta
+// PROXY_BASE (t.d. https://karp.is): beinir www.skatturinn.is-skrapinu gegnum RSK-proxy í workernum
+// (Cloudflare-egress EKKI throttlað) → landsdekkun á vikum í stað mánaða. Tómt = beint skrap (GH-IP).
+const PROXY_BASE = (process.env.PROXY_BASE || '').replace(/\/$/, '');
 // Vegg-klukku-þak: hættum að krafla í tæka tíð svo night.sql sé ALLTAF skrifað (workflow-þak = 60 mín).
 const DEADLINE_MS = parseInt(process.env.DEADLINE_MIN || '40', 10) * 60000;
 const t0 = Date.now();
@@ -66,10 +69,14 @@ async function fetchApi(kt) {
   const json = await r.json().catch(() => null);
   return json ? { json } : { retry: 'badjson' };
 }
-async function fetchText(url) {
-  // ⚠ TIMEOUT SKYLDA: www.skatturinn.is throttlar m.a. með því að STÖÐVA tengingar — án tímamarka
-  // hangir crawlið (mælt 15.7: 14s/félag) og 60-mín workflow-þakið drepur keyrsluna ÁÐUR en night.sql er skrifað.
-  try { const r = await fetch(url, { headers: { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' }, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); return r.ok ? await r.text() : null; }
+// path = /fyrirtaekjaskra/... Beint á www.skatturinn.is EÐA gegnum RSK-proxy (PROXY_BASE) ef sett.
+// ⚠ TIMEOUT SKYLDA: www.skatturinn.is throttlar m.a. með því að STÖÐVA tengingar — án tímamarka
+// hangir crawlið (mælt 15.7: 14s/félag) og 60-mín workflow-þakið drepur keyrsluna ÁÐUR en night.sql er skrifað.
+async function fetchText(path) {
+  const url = PROXY_BASE ? (PROXY_BASE + '/api/rskproxy?p=' + encodeURIComponent(path)) : (RSK_ROT + path);
+  const headers = { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' };
+  if (PROXY_BASE) headers['X-Karp-Proxy'] = RSK_KEY;   // gátt proxy-sins (=RSK_KEY, ekkert nýtt secret)
+  try { const r = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); return r.ok ? await r.text() : null; }
   catch (e) { return null; }
 }
 
@@ -88,7 +95,7 @@ let sweepFound = 0;
 for (const pfx of prefixes) {
   if (scrapeStop || outOfTime()) break;
   await sleep(1500);   // kurteist við skatturinn.is
-  const html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
+  const html = await fetchText('/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
   const kts = html ? extractKts(html) : [];
   if (!kts.length) { noteScrape(null); continue; }   // net-fall EÐA 200-tómt (throttla) → EKKI done; retry + back-off
   noteScrape('ok');
@@ -125,7 +132,7 @@ for (const kt of batch) {
   for (const dk of rec.discovered) { acc.queueAdd.push({ kt: dk, from: kt, priority: 2 }); discovered++; }
   // frítt eigenda-skrap (kurteist; sleppt ef þjónninn er farinn að throttla)
   let html = null;
-  if (!scrapeStop) { await sleep(1500); html = await fetchText(RSK_ROT + '/fyrirtaekjaskra/leit/kennitala/' + kt); noteScrape(html); }
+  if (!scrapeStop) { await sleep(1500); html = await fetchText('/fyrirtaekjaskra/leit/kennitala/' + kt); noteScrape(html); }
   const eignRows = [];
   for (const e of (html ? parseEigendur(html) : [])) {
     const key = personKey({ nafn: e.nafn, faeding: e.faeding });

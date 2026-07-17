@@ -39,6 +39,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       TENGSL_BUDGET: ${{ github.event.inputs.budget || vars.TENGSL_BUDGET || '1500' }}
+      PROXY_BASE: 'https://karp.is'   # beina www.skatturinn.is-skrapinu gegnum RSK-proxy (worker-egress ekki throttlað)
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
