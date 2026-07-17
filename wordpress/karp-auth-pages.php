@@ -173,22 +173,17 @@ add_filter('lostpassword_errors', function ($errors, $user_data) {
 add_filter('login_headerurl', function () { return 'https://karp.is/'; });
 add_filter('login_headertext', function () { return 'KARP'; });
 add_action('login_enqueue_scripts', function () {
+    // ÖRUGG stílun: dökkur bakgrunnur + gyllt merki/hnappur, en HVÍT kort með SJÁLFGEFNUM (dökkum)
+    // texta látin óbreytt → aldrei hvítt-á-hvítt (WP/plugin þröngvar hvítum kortum; ekki barist gegn því).
     echo '<style>
-      body.login{background:#0b111e;color:#eaf1fb}
+      body.login{background:#0b111e}
       #login{padding-top:6%}
-      .login h1 a{background:none!important;width:auto;height:auto;text-indent:0;overflow:visible;
-        font:800 34px/1 system-ui,"Segoe UI",Arial,sans-serif;color:#f6b13b!important;letter-spacing:.20em;padding-left:.20em}
-      .login form,.login .message,.login #login_error,.login .notice{background:#101a2e;border:1px solid rgba(255,255,255,.12);
-        color:#eaf1fb;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:14px}
-      .login .message,.login #login_error{border-left:4px solid #f6b13b}
-      .login label{color:#cdd6e6}
-      .login input[type=text],.login input[type=password],.login input[type=email]{background:#0e1626;color:#eaf1fb;
-        border:1px solid rgba(255,255,255,.18);border-radius:8px}
-      .login input:focus{border-color:#f6b13b;box-shadow:0 0 0 2px rgba(246,177,59,.3)}
-      .wp-core-ui .button-primary{background:#f6b13b!important;border-color:#f6b13b!important;color:#0b111e!important;
-        text-shadow:none!important;box-shadow:none!important;border-radius:8px;font-weight:700}
+      .login h1 a{background:none!important;width:auto!important;height:auto!important;text-indent:0!important;overflow:visible!important;
+        font:800 34px/1 system-ui,"Segoe UI",Arial,sans-serif!important;color:#f6b13b!important;letter-spacing:.20em!important;padding-left:.20em}
+      .wp-core-ui .button-primary{background:#f6b13b!important;border-color:#e59e2b!important;color:#0b111e!important;
+        text-shadow:none!important;box-shadow:none!important;border-radius:8px!important;font-weight:700!important}
+      .login input:focus{border-color:#f6b13b!important;box-shadow:0 0 0 2px rgba(246,177,59,.3)!important}
       .login #nav a,.login #backtoblog a{color:#9fb0c8!important}
-      .login #nav a:hover,.login #backtoblog a:hover{color:#f6b13b!important}
-      #pass-strength-result{background:#0e1626!important;color:#eaf1fb;border-color:rgba(255,255,255,.18)!important}
+      .login #nav a:hover,.login #backtoblog a:hover,.login h1 a:hover{color:#f6b13b!important}
     </style>';
 });
