@@ -314,7 +314,7 @@ export async function karpStakAskell({ key, ref, gateEl }) {
     if (!u.loggedIn) { location.href = loginHref(); return; }   // skýrslan vistast á Mitt svæði → innskráning skilyrði
     const gb = holf.querySelector('#stak-go'); gb.disabled = true; gb.textContent = 'Opna greiðslu…'; err.hidden = true;
     try {
-      await karpPost('/sub/subscribe', { service: 'stak', kt });   // vistar karp_kt → grant-samsvörun á WP
+      await fetch('/api/auth/kt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ kt }) }).catch(() => {});   // F4: vistar kt í D1 → webhook grant-samsvörun
       const d = await (await fetch('/api/stak/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ key, kt, email: u.email || '', nafn: u.name || '' }) })).json();
       if (!d || !d.checkout_url || !d.token) throw new Error('nocheckout');
       body.innerHTML = '<iframe class="sg-frame" src="' + esc(d.checkout_url) + '" allow="payment"></iframe>'
@@ -490,7 +490,7 @@ async function karpSubIframe(container, opts) {
     if (kt.length !== 10) return fail('Sláðu inn gilda 10 stafa kennitölu.');
     const gb = container.querySelector('#s2-go'); gb.disabled = true; gb.textContent = 'Opna greiðslu…'; err.hidden = true;
     try {
-      await karpPost('/sub/subscribe', { ...(kind === 'tier' ? { tier: slug } : { service: slug }), kt });   // vistar karp_kt (grant-varaleið)
+      await fetch('/api/auth/kt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ kt }) }).catch(() => {});   // F4: vistar kt í D1 → webhook grant
       const d = await (await fetch('/api/sub2/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ slug, kt, email: u.email || '', nafn: u.name || '' }) })).json();
       if (!d || !d.checkout_url || !d.token) throw new Error(d && d.error === 'trial_used' ? 'Þú hefur þegar nýtt frípróf á þessari vöru. Hafðu samband við hjalp@karp.is til að gerast áskrifandi.' : (d && d.error === 'unconfigured' ? 'Áskrift ekki virkjuð enn — reyndu síðar.' : (d && d.error === 'noprice' ? 'Verð fannst ekki — hafðu samband.' : 'nocheckout')));
       btns().style.display = 'none';

@@ -1117,7 +1117,7 @@ async function kvotiHandler(request, env, ctx) {
 async function kvotiHopurHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10 || !rskErFyrirtaeki(kt)) return sjson({ kt, error: 'kt' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   const cache = caches.default;
   const ck = new Request('https://cache.karp.internal/api/kvoti-hopur?kt=' + kt);
@@ -1191,32 +1191,16 @@ function teyaOrderId() {
 function teyaConfigured(env) { return !!(env.TEYA_MERCHANT_ID && env.TEYA_GATEWAY_ID && env.TEYA_SECRET_KEY); }
 // Auðkennir kaupanda: framsendir innskráningar-kökuna á WP /me → WP userid (0 ef óinnskráð/villa).
 // Kakan lifir á .karp.is (COOKIE_DOMAIN) svo hún berst til worker-sins með credentials:'include'.
-async function karpUserId(request) {
-  try {
-    const cookie = request.headers.get('Cookie') || '';
-    if (!cookie) return 0;
-    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/me', { headers: { Cookie: cookie } });
-    if (!r.ok) return 0;
-    const j = await r.json().catch(() => null);
-    return (j && j.loggedIn && +j.id > 0) ? +j.id : 0;
-  } catch (e) { return 0; }
+// F4: notanda-auðkenni úr WORKER-lotu (karp_session, D1) — leysir WP /me af hólmi.
+async function karpUserId(request, env) {
+  return await readSession(env, request);
 }
 // ── Prufuvörn ──────────────────────────────────────────────────────────────
 // Hefur notandinn (uid, auðkenndur í karpUserId) þegar nýtt frípróf á þessari vöru? WP geymir
 // karp_sub_<svc>_trial_used / karp_tier_trial_used PER USER-ID (ekki kt → kt-skipti duga ekki).
 // Fail-open (false) ef WP/secret vantar: grant þarf hvort eð er WP, svo bilun blokkar ekki löglega nýja.
-async function trialUsedFor(env, uid, kind, slug) {
-  if (!uid || !env.KARP_GRANT_SECRET) return false;
-  try {
-    const r = await fetch('https://wp.karp.is/wp-json/karp/v1/sub/trialstatus', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-      body: JSON.stringify({ uid, kind, slug }),
-    });
-    if (!r.ok) return false;
-    const j = await r.json().catch(() => null);
-    return !!(j && j.used);
-  } catch (e) { return false; }
+async function trialUsedFor(env, uid, kind, slug) {   // F4: prufuvörn úr D1 (ekki WP)
+  return await trialUsedD1(env, uid, kind, slug);
 }
 // Rás/verð ÁN fríprófs fyrir endurkomu-notanda (Aron stillir valfrjálst í Áskell). null → blokka.
 const notrialChannel = (env, slug) => env['ASKELL_CHANNEL_' + String(slug).toUpperCase() + '_NOTRIAL'] || null;
@@ -1224,7 +1208,7 @@ async function payCheckoutHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' });
   // óuppsett (engin secrets) EÐA öryggisrofi óvirkur → framendi notar ókeypis prentleiðina
   if (!teyaConfigured(env) || env.TEYA_LIVE !== '1') return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);   // þarf innskráningu svo kaupið vistist á Mitt svæði
+  const uid = await karpUserId(request, env);   // þarf innskráningu svo kaupið vistist á Mitt svæði
   if (!uid) return sjson({ error: 'login' });
   let b = {}; try { b = (await request.json()) || {}; } catch (e) {}
   const kind = ['fyrirtaeki', 'eigendur', 'fasteign', 'thingmadur'].includes(b.kind) ? b.kind : 'fasteign';
@@ -1325,7 +1309,7 @@ async function askellWebhookHandler(request, env, ctx) {
   // Áskrift: subscription.* (v1) OG subscription_contract.* (v2). customer_reference = kt (VIÐ settum),
   //   þrep úr metadata.tier (áreiðanlegt — við setjum í session) EÐA vöru-nafni; aðgangur TIL period-loka.
   // ⚠ Nákvæm v2-svið staðfestast með raun test-greiðslu; les því mörg möguleg heiti varlega.
-  if ((ev.indexOf('subscription') >= 0 || ev.indexOf('contract') >= 0) && env.KARP_GRANT_SECRET) {
+  if (ev.indexOf('subscription') >= 0 || ev.indexOf('contract') >= 0) {   // F4: grant→D1 (KARP_GRANT_SECRET óþarft)
     const sub = d.subscription || d.contract || d.subscription_contract || {};
     const cust = d.customer || sub.customer || {};
     const kt = String(d.customer_reference || d.customerReference || sub.customer_reference || cust.reference || cust.customer_reference || '').replace(/\D/g, '');
@@ -1346,19 +1330,16 @@ async function askellWebhookHandler(request, env, ctx) {
     const endStr = d.active_until || d.current_period_end || d.next_billing_at || d.period_end || (d.current_period && d.current_period.end) || sub.active_until || sub.current_period_end || (sub.current_period && sub.current_period.end) || '';
     let until = endStr ? Math.floor(new Date(endStr).getTime() / 1000) : 0;
     if (!until || until < now) until = now + 32 * 86400;   // ⚠ vara: ef period-lok finnst ekki í v2-payloadi → mánuður frá núna (grant klárast; fínstillt þegar raun-payload sést)
-    if (kt.length === 10) {   // until-skilyrði fjarlægt (until defaultar alltaf á gilt gildi)
-      ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
-        method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify(service
-          ? { kt, service, until, askellId: String(sub.id || d.id || ''), ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }
-          : { kt, tier, until, askellId: String(sub.id || d.id || ''), ref: String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until }),
-      }).catch(() => {}));
+    if (kt.length === 10) {   // F4: grant → D1 (ekki WP)
+      const _aid = String(sub.id || d.id || '');
+      const _ref = String(d.id || d.token || d.uuid || sub.id || sub.uuid || '') + '_' + until;
+      ctx.waitUntil(grantSubD1(env, service ? { kt, service, until, askellId: _aid, ref: _ref } : { kt, tier, until, askellId: _aid, ref: _ref }));
     }
   }
   // ── Stakar skýrslur um Áskell (einskiptisvara): session-metadata {service:'stak', key:'fyrirtaeki:kt'…} ──
   // Hlustum vítt (payment/billing_run/contract) — nákvæmt event-heiti er óskjalfest og staðfestist í sandbox.
   // Grant er idempotent á lykli (WP dedupe) svo tvöföld event eru skaðlaus. userid leyst af kt (karp_kt).
-  if (env.KARP_GRANT_SECRET && (ev.indexOf('payment') >= 0 || ev.indexOf('billing_run') >= 0 || ev.indexOf('contract') >= 0)) {
+  if (ev.indexOf('payment') >= 0 || ev.indexOf('billing_run') >= 0 || ev.indexOf('contract') >= 0) {   // F4: stök skýrsla→D1
     try {
       const sub2 = d.subscription || d.contract || d.subscription_contract || {};
       let meta2 = d.metadata || d.meta || sub2.metadata || sub2.meta || {};
@@ -1377,10 +1358,7 @@ async function askellWebhookHandler(request, env, ctx) {
       const ktUrRef = (String(d.reference || '').split('|')[1] || '').replace(/\D/g, '');
       const kt2 = (String(d.customer_reference || (d.customer && d.customer.reference) || sub2.customer_reference || '').replace(/\D/g, '')) || ktUrRef;
       if (stakKey && okState && /^[a-z]+:[\w .,ÁÉÍÓÚÝÞÆÖáéíóúýþæö-]+$/.test(stakKey) && kt2.length === 10) {
-        ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
-          method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ kt: kt2, key: stakKey, orderid: 'askell_' + String(d.uuid || d.id || ''), secret: env.KARP_GRANT_SECRET }),
-        }).catch(() => {}));
+        ctx.waitUntil(grantReportD1(env, kt2, stakKey));   // F4: skýrslu-grant → D1
       }
     } catch (e) {}
   }
@@ -1392,7 +1370,7 @@ async function askellWebhookHandler(request, env, ctx) {
 // (v2 contract cancel_at_period_end, fallback legacy) → áskrift lifir út greitt tímabil (until óbreytt).
 async function subCancelHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.KARP_GRANT_SECRET) return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   let body = {}; try { body = await request.json(); } catch (e) {}
   const svc = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
@@ -1404,13 +1382,18 @@ async function subCancelHandler(request, env, ctx) {
     return r.ok;
   };
   try {
-    const info = await (await fetch('https://wp.karp.is/wp-json/karp/v1/sub/cancelinfo', {
-      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-      body: JSON.stringify({ userid: uid, service: svc }),
-    })).json();
-    const aid = info && info.askellId;
-    const kt = String((info && info.kt) || '').replace(/\D/g, '');
-    const slug = String((info && info.slug) || svc || '').toLowerCase();   // þjónusta (utbod/…) EÐA þrep (grunnur/…)
+    // F4: askell_id + kt + vara úr D1 (ekki WP /sub/cancelinfo).
+    const urow = env.TENGSL ? await env.TENGSL.prepare('SELECT kt, tier, tier_askell FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const kt = String((urow && urow.kt) || '').replace(/\D/g, '');
+    let aid = '', slug = '';
+    if (svc) {
+      const srow = env.TENGSL ? await env.TENGSL.prepare('SELECT askell_id FROM sub_service WHERE user_id=? AND service=?').bind(uid, svc).first().catch(() => null) : null;
+      aid = (srow && srow.askell_id) || '';
+      slug = svc;
+    } else {
+      aid = (urow && urow.tier_askell) || '';
+      slug = String((urow && urow.tier) || '').toLowerCase();
+    }
     // 1) Fljótleið: vistað contract-id → reyna beint (frettir/fasteign/þrep um sub2 lenda hér).
     if (aid && await cancelById(aid)) return sjson({ ok: true, cancelled: true });
     // 2) askellId vantar EÐA er úrelt → fletta upp VIRKUM samningi kaupanda í Áskell (kt + vara) og segja upp.
@@ -1561,7 +1544,7 @@ async function askellSessionHandler(request, env, ctx) {
   // frípróf → án-frípróf rás ef stillt, annars blokka. Auðkennt per user-id (kt-skipti duga ekki).
   let useChannel = channel;
   if (!stakOk) {
-    const uid = await karpUserId(request);
+    const uid = await karpUserId(request, env);
     const kind = svc ? 'svc' : 'tier';
     const slug = svc || tier;
     if (uid && await trialUsedFor(env, uid, kind, slug)) {
@@ -1624,7 +1607,7 @@ async function stakCheckoutHandler(request, env, ctx) {
     const pid = await askellProcessorId(env, ctx);
     return sjson(pid != null ? { ok: 1 } : { error: 'noprocessor' });
   }
-  const uid = await karpUserId(request);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
+  const uid = await karpUserId(request, env);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
   if (!uid) return sjson({ error: 'login' });
   const b = await request.json().catch(() => null);
   const key = String((b && b.key) || '').slice(0, 90);
@@ -1659,7 +1642,7 @@ async function stakCheckoutHandler(request, env, ctx) {
 }
 async function stakConfirmHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
+  const uid = await karpUserId(request, env);   // peninga-endapunktur: innskráning skylda (rýni-atriði #3)
   if (!uid) return sjson({ error: 'login' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   const b = await request.json().catch(() => null);
@@ -1750,7 +1733,7 @@ async function sub2CheckoutHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY) return sjson({ error: 'unconfigured' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   if (request.method !== 'POST') { const pid = await askellProcessorId(env, ctx); return sjson(pid != null ? { ok: 1 } : { error: 'noprocessor' }); }
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   const b = await request.json().catch(() => null);
   const slug = String((b && b.slug) || '').toLowerCase();
@@ -1786,7 +1769,7 @@ async function sub2CheckoutHandler(request, env, ctx) {
 }
 async function sub2ConfirmHandler(request, env, ctx) {
   if (!env.ASKELL_PRIVATE_KEY || !env.ASKELL_PUBLIC_KEY || request.method !== 'POST') return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   const b = await request.json().catch(() => null);
@@ -2046,7 +2029,7 @@ async function arsreikningurRequestHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   try {
     const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
@@ -2066,7 +2049,7 @@ async function eigendurRequestHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   try {
     const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
@@ -2085,7 +2068,7 @@ async function stjornRequestHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ error: 'kt' });
   if (!env.GITHUB_DISPATCH_TOKEN) return sjson({ error: 'unconfigured' });
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   try {
     const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
@@ -2706,7 +2689,7 @@ async function tengslanetHandler(request, env, ctx) {
   if (!env.RSK_KEY) return sjson({ kt, holdur: false, unconfigured: true });
   // Innskráðir eingöngu (hluti keyptu eigendaskýrslunnar; ver líka mælda APIð gegn opinni upptalningu).
   // ⚠ VERÐUR að standa Á UNDAN cache-treffinu — annars þjónaði jaðarinn óinnskráðum úr cache.
-  const uid = await karpUserId(request);
+  const uid = await karpUserId(request, env);
   if (!uid) return sjson({ kt, holdur: false, error: 'login' });
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/tengslanet?kt=' + kt + (kort ? '&kort=1' : ''));
@@ -2823,11 +2806,25 @@ function userPayload(u) {
     emailVerified: u.email_verified === 1, kt: u.kt || null, ...base,
   };
 }
+const REPORT_QUOTA = { grunnur: 4, fyrirtaeki: 10, fyrirtaeki_plus: 20 };   // stakar skýrslur/mán per þrep
 async function authMeHandler(request, env) {
   const uid = await readSession(env, request);
   if (!uid || !env.TENGSL) return _ajson(userPayload(null));
   const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
-  return _ajson(userPayload(u));
+  if (!u) return _ajson(userPayload(null));
+  const p = userPayload(u);
+  const now = Math.floor(Date.now() / 1000);
+  // F4: réttindi úr D1 — virkar þjónustu-áskriftir + keyptar skýrslur + skýrslu-kvóti mánaðarins.
+  const subsR = await env.TENGSL.prepare('SELECT service FROM sub_service WHERE user_id=? AND until>?').bind(uid, now).all().catch(() => ({ results: [] }));
+  const repsR = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(uid).all().catch(() => ({ results: [] }));
+  p.subs = (subsR.results || []).map((r) => r.service);
+  p.reports = (repsR.results || []).map((r) => r.report_key);
+  const ym = new Date(now * 1000).toISOString().slice(0, 7);
+  const used = (u.reports_month === ym) ? (u.reports_used || 0) : 0;
+  const quota = u.is_admin === 1 ? 9999 : (p.tier ? (REPORT_QUOTA[p.tier] || 0) : 0);
+  p.reportsRemaining = Math.max(0, quota - used);
+  p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
+  return _ajson(p);
 }
 async function authRegisterHandler(request, env) {
   if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
@@ -2858,6 +2855,64 @@ async function authLoginHandler(request, env) {
 }
 const authLogoutHandler = () => _ajson({ ok: true }, { 'set-cookie': _sessCookie('', 0) });
 
+// ── F4: Áskell-grant + réttindi í D1 (leysir WP /sub/grant + /reports/grant af hólmi) ──
+const _svcOk = (s) => ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(s) >= 0;
+const _tierOk = (t) => ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(t) >= 0;
+async function _uidByKt(env, kt) {   // kt → user_id (fyrsta/nýjasta samsvörun); 0 ef enginn
+  if (!env.TENGSL || !kt || kt.length !== 10) return 0;
+  const r = await env.TENGSL.prepare('SELECT id FROM users WHERE kt=? ORDER BY id DESC LIMIT 1').bind(kt).first().catch(() => null);
+  return r ? r.id : 0;
+}
+async function _refSeen(env, ref) {
+  if (!ref) return false;
+  return !!(await env.TENGSL.prepare('SELECT ref FROM granted_refs WHERE ref=?').bind(ref).first().catch(() => null));
+}
+// Áskrift (þjónusta eða þrep) → D1. Idempotent á ref. Setur trial_used (prufuvörn).
+async function grantSubD1(env, o) {
+  if (!env.TENGSL) return;
+  if (await _refSeen(env, o.ref)) return;
+  const uid = await _uidByKt(env, o.kt);
+  if (!uid) return;   // enginn notandi með þessa kt enn (kt sett í checkout → webhook finnur svo)
+  const now = Math.floor(Date.now() / 1000);
+  if (o.service && _svcOk(o.service)) {
+    await env.TENGSL.prepare('INSERT INTO sub_service (user_id, service, until, askell_id, trial_used) VALUES (?,?,?,?,1) ON CONFLICT(user_id, service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id, trial_used=1')
+      .bind(uid, o.service, o.until, o.askellId || null).run().catch(() => {});
+  } else if (o.tier && _tierOk(o.tier)) {
+    await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_askell=?, tier_trial_used=1, updated=? WHERE id=?')
+      .bind(o.tier, o.until, o.askellId || null, now, uid).run().catch(() => {});
+  }
+  if (o.ref) await env.TENGSL.prepare('INSERT OR IGNORE INTO granted_refs (ref, created) VALUES (?,?)').bind(o.ref, now).run().catch(() => {});
+}
+// Stök skýrsla → D1 (varanlegt grant, idempotent á user+key).
+async function grantReportD1(env, kt, key) {
+  const uid = await _uidByKt(env, kt);
+  if (!uid) return;
+  await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)')
+    .bind(uid, key, Math.floor(Date.now() / 1000)).run().catch(() => {});
+}
+// Prufuvörn úr D1 (leysir WP /sub/trialstatus af hólmi).
+async function trialUsedD1(env, uid, kind, slug) {
+  if (!env.TENGSL || !uid) return false;
+  if (kind === 'tier') {
+    const r = await env.TENGSL.prepare('SELECT tier_trial_used FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    return !!(r && r.tier_trial_used);
+  }
+  const r = await env.TENGSL.prepare('SELECT trial_used FROM sub_service WHERE user_id=? AND service=?').bind(uid, slug).first().catch(() => null);
+  return !!(r && r.trial_used);
+}
+// F4: vista kt á innskráðan notanda (bindur Áskell customer_reference → webhook finnur notanda).
+// Leysir WP /sub/subscribe (sem vistaði karp_kt) af hólmi. Framendinn kallar á undan checkout.
+async function authSaveKtHandler(request, env) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const uid = await readSession(env, request);
+  if (!uid) return _ajson({ ok: false, error: 'login' });
+  const b = (await request.json().catch(() => null)) || {};
+  const kt = String(b.kt || '').replace(/\D/g, '');
+  if (kt.length !== 10) return _ajson({ ok: false, error: 'input' });
+  await env.TENGSL.prepare('UPDATE users SET kt=?, updated=? WHERE id=?').bind(kt, Math.floor(Date.now() / 1000), uid).run().catch(() => {});
+  return _ajson({ ok: true });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2873,6 +2928,7 @@ export default {
     if (url.pathname === '/api/auth/register') return authRegisterHandler(request, env);
     if (url.pathname === '/api/auth/login') return authLoginHandler(request, env);
     if (url.pathname === '/api/auth/logout') return authLogoutHandler();
+    if (url.pathname === '/api/auth/kt') return authSaveKtHandler(request, env);
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
