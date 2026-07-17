@@ -2639,15 +2639,16 @@ export function maskaKortSvar(out) {
 // landsdekkun á vikum í stað mánaða. GATT: X-Karp-Proxy === RSK_KEY (til á báðum hliðum, ekkert
 // nýtt secret). SSRF-vörn: aðeins /fyrirtaekjaskra/-slóðir á www.skatturinn.is. Skilar hráu HTML.
 async function rskProxyHandler(request, env) {
-  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 401 });   // 401=gátt (aðgr. frá upstream 403 í greiningu)
+  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 403 });
   const u = new URL(request.url);
-  // ── API-hamur (?api=<kt>): Azure LegalEntities. Worker-egress er 403-laust (öfugt við GH-runner-IP
-  //    sem Azure fór að 403-a eftir 429-þungu næturnar). Lykill bætt SERVER-HLIÐ; skilar hráu JSON + upstream-status.
+  // ── API-hamur (?api=<kt>): Azure LegalEntities. Worker-egress er hreint; lykill bætt SERVER-HLIÐ.
+  // ⚠ ENGIN `cf: {cacheTtl}` hér — Azure APIM 403-ar köll með þeim valkosti (sannreynt 17.7); rskHandler
+  //    (án cf) skilar 200/404 eðlilega. Azure-svör eru no-store hvort eð er svo þetta er ferskt.
   const apiKt = (u.searchParams.get('api') || '').replace(/\D/g, '');
   if (apiKt.length === 10) {
     try {
       const r = await fetch('https://api.skattur.cloud/legalentities/v2.1/' + apiKt + '?language=is', {
-        headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' }, cf: { cacheTtl: 0 },
+        headers: { 'Ocp-Apim-Subscription-Key': env.RSK_KEY, 'Accept': 'application/json' },
       });
       const body = await r.text();
       return new Response(body, { status: r.status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
