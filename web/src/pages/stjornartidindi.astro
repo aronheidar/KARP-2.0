@@ -93,42 +93,42 @@ const desc = `Stjórnartíðindavaktin — nýjustu lög, reglugerðir og auglý
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
-    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
     .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
-    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
-    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-l { font-size: 12px; color: var(--muted); }
     .k-v { font-size: 24px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .k-s { font-size: 11px; color: #7e8ca6; }
+    .k-s { font-size: 11px; color: var(--faint); }
 
     .dept-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 9px; margin-top: 6px; }
     .dept-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 14px; }
     .dept-badge { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 7px; color: #0a0e14; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-    .dept-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; }
-    .dept-u { font-size: 11px; color: #7e8ca6; line-height: 1.4; }
+    .dept-n { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+    .dept-u { font-size: 11px; color: var(--faint); line-height: 1.4; }
     .dept-c { margin-left: auto; font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; }
 
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
     .ch { width: 100%; height: 300px; } .ch-sm { height: 220px; }
 
     .sj-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
-    #sj-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #sj-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
     #sj-q:focus { outline: none; border-color: rgba(246,177,59,.5); }
-    .sj-sel { font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; max-width: 200px; }
+    .sj-sel { font: inherit; font-size: 13px; padding: 8px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; max-width: 200px; }
     .sj-sel:focus { outline: none; border-color: rgba(246,177,59,.5); }
-    .sj-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
-    .sj-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
-    .sj-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+    .sj-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .sj-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .sj-more:hover { border-color: rgba(246,177,59,.5); color: var(--ink); }
 
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
-    .foot b { color: #9fb0c8; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
     @media (max-width: 600px) { h1 { font-size: 25px; } .sj-sel { flex: 1 1 45%; max-width: none; } }
   </style>
 
@@ -138,10 +138,10 @@ const desc = `Stjórnartíðindavaktin — nýjustu lög, reglugerðir og auglý
     .sj-item:hover { border-color: rgba(246,177,59,.3); }
     .sj-badge { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px; color: #0a0e14; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
     .sj-main { min-width: 0; }
-    .sj-title { font-size: 13.5px; color: #eaf1fb; line-height: 1.4; }
-    .sj-meta { font-size: 11.5px; color: #9fb0c8; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sj-date { font-size: 11.5px; color: #7e8ca6; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
-    .sj-empty { color: #7e8ca6; font-size: 13px; padding: 18px 4px; }
+    .sj-title { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+    .sj-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sj-date { font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+    .sj-empty { color: var(--faint); font-size: 13px; padding: 18px 4px; }
   </style>
 
   <script define:vars={{ adverts, typeArr, days, dayCounts, DEPT_META }}>

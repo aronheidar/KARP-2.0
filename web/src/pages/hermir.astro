@@ -27,31 +27,31 @@ const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð 
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
-    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 12px; }
-    .presets button { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .presets button { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     .presets button:hover, .presets button.on { color: #f6b13b; border-color: #f6b13b; }
-    .drv-h { font-size: 13px; font-weight: 800; color: #9fb0c8; text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 10px; }
+    .drv-h { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 10px; }
     .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
     @media (max-width: 720px) { .sliders { grid-template-columns: 1fr; } }
     .sl { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 14px; }
-    .sl-t { display: flex; justify-content: space-between; font-size: 13px; color: #cdd6e6; font-weight: 600; }
+    .sl-t { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink); font-weight: 600; }
     .sl-t b { color: #f6b13b; font-variant-numeric: tabular-nums; }
     .sl input[type=range] { width: 100%; accent-color: #f6b13b; }
     .out { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-content: start; }
     @media (max-width: 720px) { .out { grid-template-columns: 1fr 1fr; } }
     .ot { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-    .ot .l { font-size: 12px; color: #9fb0c8; white-space: nowrap; }
+    .ot .l { font-size: 12px; color: var(--muted); white-space: nowrap; }
     .ot .v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .ot .d { font-size: 11px; color: #7e8ca6; }
+    .ot .d { font-size: 11px; color: var(--faint); }
     .ot .delta { font-size: 11px; font-weight: 700; margin-left: 6px; }
     .actions { margin-top: 14px; }
-    #hm-reset { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+    #hm-reset { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
     #hm-reset:hover { color: #f6b13b; border-color: #f6b13b; }
   </style>
 

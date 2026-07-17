@@ -51,11 +51,11 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
   ))}
 </div>
 <style>
-  .vt-h { font-size:19px; color:#eaf1fb; margin:0 0 4px; }
-  .vt-sub { color:#8fa0b8; font-size:13px; margin:0 0 14px; line-height:1.55; }
-  .vt-note { color:#8fa0b8; font-size:12px; margin:6px 0 0; }
-  .vt-note b { color:#cdd6e6; }
-  .tier-badge { display:inline-block; background:#f6b13b; color:#131a29; font-size:10.5px; font-weight:800; letter-spacing:.04em; padding:2px 9px; border-radius:999px; margin-bottom:6px; text-transform:uppercase; }
+  .vt-h { font-size:19px; color:var(--ink); margin:0 0 4px; }
+  .vt-sub { color:var(--muted); font-size:13px; margin:0 0 14px; line-height:1.55; }
+  .vt-note { color:var(--muted); font-size:12px; margin:6px 0 0; }
+  .vt-note b { color:var(--ink); }
+  .tier-badge { display:inline-block; background:#f6b13b; color:var(--surface); font-size:10.5px; font-weight:800; letter-spacing:.04em; padding:2px 9px; border-radius:999px; margin-bottom:6px; text-transform:uppercase; }
   .vt th.col-hi { background:rgba(246,177,59,.12); border-top:2px solid #f6b13b; }
   /* Sérlausna-spjöld */
   .vt-svcgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
@@ -63,13 +63,13 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
   .vt-svc { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px; display:flex; flex-direction:column; }
   .vt-svc-top { display:flex; align-items:flex-start; gap:10px; }
   .vt-svc-e { font-size:26px; line-height:1; }
-  .vt-svc-nm { font-weight:800; color:#eaf1fb; font-size:16px; }
-  .vt-svc-fyrir { color:#8fa0b8; font-size:11.5px; }
+  .vt-svc-nm { font-weight:800; color:var(--ink); font-size:16px; }
+  .vt-svc-fyrir { color:var(--muted); font-size:11.5px; }
   .vt-svc-trial { margin-left:auto; background:rgba(110,231,183,.14); color:#6ee7b7; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap; }
   .vt-svc-tx { color:#b9c6da; font-size:12.5px; line-height:1.55; margin:10px 0 12px; flex:1; }
-  .vt-svc-pr { color:#eaf1fb; font-weight:800; font-size:20px; margin-bottom:10px; }
-  .vt-svc-pr small { color:#8fa0b8; font-weight:400; font-size:11px; }
-  .vt-svc-cta { background:#f6b13b; color:#131a29; font-weight:700; font-size:13.5px; padding:9px 14px; border-radius:9px; border:0; cursor:pointer; text-align:center; }
+  .vt-svc-pr { color:var(--ink); font-weight:800; font-size:20px; margin-bottom:10px; }
+  .vt-svc-pr small { color:var(--muted); font-weight:400; font-size:11px; }
+  .vt-svc-cta { background:#f6b13b; color:var(--surface); font-weight:700; font-size:13.5px; padding:9px 14px; border-radius:9px; border:0; cursor:pointer; text-align:center; }
   .vt-svc-cta:hover { filter:brightness(1.06); }
   .vt-svc-gate:not(:empty) { margin-top:12px; }
 </style>

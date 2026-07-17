@@ -78,21 +78,21 @@ const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — $
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
-    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
-    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
 
     .warn { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.30); border-radius: 11px; padding: 13px 16px; margin: 18px 0 6px; font-size: 13px; line-height: 1.6; color: #e8c9c6; }
-    .warn b { color: #ff9d94; } .warn em { color: #eaf1fb; font-style: normal; }
+    .warn b { color: #ff9d94; } .warn em { color: var(--ink); font-style: normal; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-l { font-size: 12px; color: var(--muted); }
     .k-v { font-size: 24px; font-weight: 800; color: #f85149; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .k-s { font-size: 11px; color: #7e8ca6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .k-s { font-size: 11px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
     .ch { width: 100%; height: 260px; }
@@ -100,27 +100,27 @@ const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — $
     .src-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 9px; margin-top: 12px; }
     .src-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 14px; }
     .src-dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
-    .src-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; }
-    .src-u { font-size: 11.5px; color: #7e8ca6; }
+    .src-n { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+    .src-u { font-size: 11.5px; color: var(--faint); }
     .src-c { margin-left: auto; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
 
     .sc-controls { margin: 4px 0 10px; }
-    #sc-q { width: 100%; font: inherit; font-size: 15px; padding: 11px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; box-sizing: border-box; }
+    #sc-q { width: 100%; font: inherit; font-size: 15px; padding: 11px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); box-sizing: border-box; }
     #sc-q:focus { outline: none; border-color: rgba(248,81,73,.5); }
-    .sc-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
-    .sc-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
-    .sc-more:hover { border-color: rgba(248,81,73,.5); color: #eaf1fb; }
+    .sc-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .sc-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .sc-more:hover { border-color: rgba(248,81,73,.5); color: var(--ink); }
 
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
-    .foot b { color: #9fb0c8; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
     @media (max-width: 600px) { h1 { font-size: 25px; } }
   </style>
 
   <style is:global>
     #sc-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; min-height: 40px; }
-    .sc-hint, .sc-load { color: #7e8ca6; font-size: 13px; padding: 18px 4px; }
+    .sc-hint, .sc-load { color: var(--faint); font-size: 13px; padding: 18px 4px; }
     .sc-item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 10px 14px; }
-    .sc-name { font-size: 14px; font-weight: 600; color: #eaf1fb; min-width: 0; flex: 1 1 auto; }
+    .sc-name { font-size: 14px; font-weight: 600; color: var(--ink); min-width: 0; flex: 1 1 auto; }
     .sc-tags { display: flex; gap: 4px; flex: 0 0 auto; }
     .sc-tag { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; color: #0a0e14; }
   </style>

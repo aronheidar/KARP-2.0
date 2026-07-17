@@ -163,27 +163,27 @@ const jsonLd = {
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
-    p { color: #cdd6e6; }
-    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+    p { color: var(--ink); }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
     #chart { width: 100%; margin: 22px 0 8px; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .tw { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
     th, td { text-align: right; padding: 7px 9px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
-    th { color: #7e8ca6; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    th { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
     td.l, th.l { text-align: left; }
-    td.rank { color: #7e8ca6; font-variant-numeric: tabular-nums; }
+    td.rank { color: var(--faint); font-variant-numeric: tabular-nums; }
     td.num { font-variant-numeric: tabular-nums; }
-    .muni { font-weight: 600; color: #eaf1fb; text-decoration: none; }
+    .muni { font-weight: 600; color: var(--ink); text-decoration: none; }
     .muni:hover { color: #f6b13b; text-decoration: underline; }
-    .reg { display: block; font-size: 11px; color: #7e8ca6; font-weight: 400; }
+    .reg { display: block; font-size: 11px; color: var(--faint); font-weight: 400; }
     .all-munis { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0 8px; }
-    .all-munis a { color: #9fb0c8; text-decoration: none; font-size: 13px; }
+    .all-munis a { color: var(--muted); text-decoration: none; font-size: 13px; }
     .all-munis a:hover { color: #f6b13b; text-decoration: underline; }
-    .vis { display: inline-block; min-width: 30px; padding: 2px 8px; border-radius: 6px; color: #06121a; font-weight: 800; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .vis { display: inline-block; min-width: 30px; padding: 2px 8px; border-radius: 6px; color: var(--bg); font-weight: 800; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     /* Verðlaunapallur + síun (LOTA 13f) */
     .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 8px; }
     @media (max-width: 640px) { .podium { grid-template-columns: 1fr; } }
@@ -191,20 +191,20 @@ const jsonLd = {
     .pod:hover { border-color: #f6b13b; transform: translateY(-2px); }
     .pod-0 { border-color: rgba(246,177,59,.55); background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(255,255,255,.03)); }
     .pod-m { font-size: 26px; }
-    .pod-n { font-weight: 800; font-size: 14.5px; color: #eaf1fb; }
+    .pod-n { font-weight: 800; font-size: 14.5px; color: var(--ink); }
     .pod-v { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .pod-r { font-size: 11px; color: #7e8ca6; }
+    .pod-r { font-size: 11px; color: var(--faint); }
     .fbar { margin: 4px 0 10px; }
-    #sv-filter { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #eaf1fb; border-radius: 10px; padding: 9px 13px; font-size: 13.5px; outline: none; margin-bottom: 8px; }
+    #sv-filter { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 10px; padding: 9px 13px; font-size: 13.5px; outline: none; margin-bottom: 8px; }
     #sv-filter:focus { border-color: #f6b13b; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .chip:hover { color: #f6b13b; border-color: #f6b13b; }
-    .chip.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
+    .chip.on { color: var(--bg); background: #f6b13b; border-color: #f6b13b; }
     td.fac { position: relative; min-width: 58px; }
     td.fac i { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); height: 62%; max-width: calc(100% - 8px); opacity: .18; border-radius: 4px; }
     td.fac span { position: relative; }
-    .fempty { font-size: 13px; color: #9fb0c8; padding: 10px 4px; }
+    .fempty { font-size: 13px; color: var(--muted); padding: 10px 4px; }
   </style>
 
   <!-- Eyja: raðað lárétt súlurit (ECharts hydrast í vafra) -->

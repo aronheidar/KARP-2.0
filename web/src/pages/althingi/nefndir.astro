@@ -72,31 +72,31 @@ const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og f
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 28px 0 8px; }
     .nf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 14px; }
     .nf { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; }
     .nf[open] { border-color: rgba(246,177,59,.5); }
     .nf summary { list-style: none; cursor: pointer; padding: 12px 14px; }
     .nf summary::-webkit-details-marker { display: none; }
     .nf-h { display: block; font-weight: 700; font-size: 14px; }
-    .nf-s { display: block; font-size: 12px; color: #9fb0c8; margin-top: 3px; }
-    .nf-f { display: block; font-size: 12px; color: #7e8ca6; margin-top: 4px; }
+    .nf-s { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .nf-f { display: block; font-size: 12px; color: var(--faint); margin-top: 4px; }
     .nf-f a, .nf-f b { text-decoration: none; font-weight: 600; }
     .nf-m { padding: 0 14px 12px; }
-    .nf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #cdd6e6; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.05); }
+    .nf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink); padding: 3px 0; border-top: 1px solid rgba(255,255,255,.05); }
     .nf-p { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-    .nf-p a { color: #cdd6e6; text-decoration: none; }
+    .nf-p a { color: var(--ink); text-decoration: none; }
     .nf-p a:hover { color: #f6b13b; text-decoration: underline; }
     .nf-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
-    .nf-st { color: #7e8ca6; white-space: nowrap; }
+    .nf-st { color: var(--faint); white-space: nowrap; }
     .nf-st.nf-lead { color: #ffd479; font-weight: 700; }
-    .cal-kpis { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13.5px; color: #9fb0c8; margin: 4px 0 8px; }
+    .cal-kpis { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; }
     .cal-kpis b { color: #f6b13b; }
     #calchart { width: 100%; height: 210px; }
-    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .src { font-size: 12px; color: var(--faint); margin: 2px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: þingdagatal (calendar heatmap). #2 -->

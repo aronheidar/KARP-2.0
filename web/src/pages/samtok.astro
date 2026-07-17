@@ -63,32 +63,32 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Al
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
-    p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
+    p { color: var(--ink); }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
     .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 0; }
     .card summary { list-style: none; cursor: pointer; padding: 13px 15px; position: relative; }
     .card summary::-webkit-details-marker { display: none; }
     .card[open] { border-color: rgba(246,177,59,.5); }
     .c-e { font-size: 20px; margin-right: 8px; }
-    .c-n { font-weight: 700; font-size: 14.5px; color: #eaf1fb; }
+    .c-n { font-weight: 700; font-size: 14.5px; color: var(--ink); }
     .c-y { position: absolute; top: 13px; right: 14px; font-size: 11px; color: #f6b13b; font-weight: 700; }
-    .c-s { font-size: 12px; color: #9fb0c8; margin-top: 4px; }
-    .c-b { font-size: 13px; color: #cdd6e6; padding: 0 15px 12px; line-height: 1.55; }
-    .c-b :global(b) { color: #eaf1fb; }
-    .c-l { display: inline-block; margin: 0 15px 13px; font-size: 12px; color: #9fb0c8; }
+    .c-s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .c-b { font-size: 13px; color: var(--ink); padding: 0 15px 12px; line-height: 1.55; }
+    .c-b :global(b) { color: var(--ink); }
+    .c-l { display: inline-block; margin: 0 15px 13px; font-size: 12px; color: var(--muted); }
     .c-l:hover { color: #f6b13b; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-    .foot a { color: #9fb0c8; }
-    .rl-intro { font-size: 13.5px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.55; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: var(--muted); }
+    .rl-intro { font-size: 13.5px; color: var(--ink); margin: 0 0 12px; line-height: 1.55; }
     .rl-card { display: flex; align-items: center; gap: 14px; background: rgba(248,81,73,.06); border: 1px solid rgba(248,81,73,.28); border-radius: 12px; padding: 14px 16px; text-decoration: none; transition: border-color .15s; }
     .rl-card:hover { border-color: rgba(248,81,73,.55); }
     .rl-e { font-size: 26px; flex: 0 0 auto; }
     .rl-b { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-    .rl-n { font-size: 14.5px; font-weight: 700; color: #eaf1fb; }
-    .rl-s { font-size: 12.5px; color: #cdd6e6; margin-top: 3px; line-height: 1.5; }
+    .rl-n { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+    .rl-s { font-size: 12.5px; color: var(--ink); margin-top: 3px; line-height: 1.5; }
     .rl-go { flex: 0 0 auto; font-size: 13px; font-weight: 700; color: #ff9d94; white-space: nowrap; }
     @media (max-width: 560px) { .rl-card { flex-wrap: wrap; } .rl-go { margin-left: 40px; } }
   </style>

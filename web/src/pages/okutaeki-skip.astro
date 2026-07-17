@@ -32,66 +32,66 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
 
   <style>
     main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
+    p { color: var(--ink); } a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
 
     /* Kveðju-rofi (segmented) */
     .os-toggle { display: inline-flex; gap: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 4px; margin: 2px 0 14px; }
-    .os-tab { font: inherit; font-size: 14px; font-weight: 700; padding: 8px 18px; border-radius: 9px; border: 0; background: none; color: #9fb0c8; cursor: pointer; }
-    .os-tab:hover { color: #eaf1fb; }
+    .os-tab { font: inherit; font-size: 14px; font-weight: 700; padding: 8px 18px; border-radius: 9px; border: 0; background: none; color: var(--muted); cursor: pointer; }
+    .os-tab:hover { color: var(--ink); }
     .os-tab.on { background: #f6b13b; color: #10151f; }
 
     .os-form { display: flex; gap: 8px; margin: 6px 0 4px; }
-    #os-q { flex: 1 1 auto; font: inherit; font-size: 18px; font-weight: 600; padding: 12px 14px; border-radius: 11px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: #eaf1fb; }
+    #os-q { flex: 1 1 auto; font: inherit; font-size: 18px; font-weight: 600; padding: 12px 14px; border-radius: 11px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.04); color: var(--ink); }
     #os-q:focus { outline: none; border-color: rgba(246,177,59,.6); }
-    #os-q::placeholder { color: #6f7b8d; font-weight: 400; letter-spacing: normal; }
+    #os-q::placeholder { color: var(--faint); font-weight: 400; letter-spacing: normal; }
     #os-q.plate { font-size: 20px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-align: center; }
     #os-go { font: inherit; font-size: 15px; font-weight: 700; padding: 0 22px; border-radius: 11px; border: 0; background: #f6b13b; color: #10151f; cursor: pointer; }
     #os-go:disabled { opacity: .55; cursor: default; }
 
     .os-result { margin-top: 14px; }
-    .os-msg { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 16px 18px; color: #cdd6e6; font-size: 14px; }
-    .os-lock { font-size: 12.5px; color: #9fb0c8; margin-top: 16px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.18); border-radius: 10px; padding: 10px 13px; }
-    .os-lock strong { color: #eaf1fb; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 14px; line-height: 1.6; } .foot code { color: #9fb0c8; }
+    .os-msg { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 16px 18px; color: var(--ink); font-size: 14px; }
+    .os-lock { font-size: 12.5px; color: var(--muted); margin-top: 16px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.18); border-radius: 10px; padding: 10px 13px; }
+    .os-lock strong { color: var(--ink); }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 14px; line-height: 1.6; } .foot code { color: var(--muted); }
 
     /* 🚗 Ökutæki-spjald */
     .ok-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 18px 20px; }
     .ok-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-    .ok-h h2 { font-size: 21px; margin: 0; color: #eaf1fb; }
+    .ok-h h2 { font-size: 21px; margin: 0; color: var(--ink); }
     .ok-plate { font-size: 13px; font-weight: 800; letter-spacing: .12em; background: #12203a; color: #cfe0ff; border: 1px solid #2b4272; border-radius: 6px; padding: 3px 9px; }
-    .ok-sub { font-size: 13px; color: #9fb0c8; margin: 0 0 14px; }
+    .ok-sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
     .ok-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 16px; }
-    .ok-f .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; }
-    .ok-f .v { font-size: 15px; color: #eaf1fb; font-weight: 600; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .ok-f .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+    .ok-f .v { font-size: 15px; color: var(--ink); font-weight: 600; margin-top: 1px; font-variant-numeric: tabular-nums; }
     .ok-f .v.ok { color: #46d086; } .ok-f .v.warn { color: #f6b13b; } .ok-f .v.bad { color: #f85149; }
 
     /* 🚢 Skip-spjald + listi */
     .sk-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 18px 20px; }
     .sk-card + .sk-card { margin-top: 12px; }
     .sk-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-    .sk-h h2 { font-size: 21px; margin: 0; color: #eaf1fb; }
+    .sk-h h2 { font-size: 21px; margin: 0; color: var(--ink); }
     .sk-reg { font-size: 13px; font-weight: 800; letter-spacing: .06em; background: #12203a; color: #cfe0ff; border: 1px solid #2b4272; border-radius: 6px; padding: 3px 9px; }
-    .sk-sub { font-size: 13px; color: #9fb0c8; margin: 0 0 14px; }
+    .sk-sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
     .sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 16px; }
-    .sk-f .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; }
-    .sk-f .v { font-size: 15px; color: #eaf1fb; font-weight: 600; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .sk-f .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+    .sk-f .v { font-size: 15px; color: var(--ink); font-weight: 600; margin-top: 1px; font-variant-numeric: tabular-nums; }
     .sk-own { margin-top: 16px; }
-    .sk-own .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; margin-bottom: 6px; }
+    .sk-own .l { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin-bottom: 6px; }
     .sk-own ul { list-style: none; margin: 0; padding: 0; }
-    .sk-own li { font-size: 15px; color: #eaf1fb; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .sk-own li { font-size: 15px; color: var(--ink); padding: 4px 0; border-top: 1px solid rgba(255,255,255,.06); }
     .sk-own li:first-child { border-top: 0; }
     .sk-own a { font-weight: 600; }
-    .sk-pct { font-size: 12.5px; color: #9fb0c8; font-variant-numeric: tabular-nums; }
+    .sk-pct { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
     .sk-fisk { display: inline-block; margin-top: 12px; font-size: 13px; }
-    .sk-list-h { font-size: 13px; color: #9fb0c8; margin: 0 0 10px; }
+    .sk-list-h { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
     .sk-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; width: 100%; text-align: left; cursor: pointer; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 15px; margin-bottom: 8px; color: inherit; font: inherit; }
     .sk-row:hover { border-color: rgba(246,177,59,.5); background: rgba(255,255,255,.05); }
-    .sk-row-nm { font-size: 16px; font-weight: 700; color: #eaf1fb; }
+    .sk-row-nm { font-size: 16px; font-weight: 700; color: var(--ink); }
     .sk-row-reg { font-size: 12px; font-weight: 800; letter-spacing: .06em; background: #12203a; color: #cfe0ff; border: 1px solid #2b4272; border-radius: 5px; padding: 2px 7px; }
-    .sk-row-meta { font-size: 12.5px; color: #9fb0c8; margin-left: auto; }
+    .sk-row-meta { font-size: 12.5px; color: var(--muted); margin-left: auto; }
     .sk-back { display: inline-block; margin-bottom: 10px; font-size: 13px; color: #f6b13b; cursor: pointer; background: none; border: 0; padding: 0; font: inherit; }
   </style>
 

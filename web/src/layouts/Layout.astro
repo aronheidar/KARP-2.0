@@ -138,9 +138,16 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     })} />
     <ClientRouter />
     <style is:global>
-      :root { color-scheme: dark; --bg:#070b16; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
-      /* Ljóst þema — virkjað með data-theme="light" á <html> (rofi í nav-foot + Stillingum) */
-      :root[data-theme="light"] { color-scheme: light; --bg:#f4f7fc; --panel:rgba(12,22,44,.045); --line:rgba(12,22,44,.12); --ink:#141d2e; --muted:#53627a; --faint:#7c8aa1; --gold:#9c6400; }
+      :root { color-scheme: dark; --bg:#070b16; --surface:#0e1626; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
+      /* Ljóst þema (KREMAÐ) — virkjað með data-theme="light" á <html> (rofi í nav-foot + Stillingum) */
+      :root[data-theme="light"] { color-scheme: light; --bg:#f4efe3; --surface:#fffdf6; --panel:rgba(74,58,30,.05); --line:rgba(74,58,30,.16); --ink:#2a2417; --muted:#6a5f48; --faint:#8c8067; --gold:#8a5e00; }
+      /* Global ljós-þema lagfæring: form-stýringar + native fellilistar (mörg með harða dökka liti sem
+         flippast ekki). !important yfirskrifar scoped einingastíla. Frekari fínstilling per síðu á eftir. */
+      :root[data-theme="light"] select,
+      :root[data-theme="light"] input:not([type=checkbox]):not([type=radio]):not([type=range]),
+      :root[data-theme="light"] textarea { background:var(--surface)!important; color:var(--ink)!important; border-color:var(--line)!important; }
+      :root[data-theme="light"] option, :root[data-theme="light"] optgroup { background:#fff; color:#2a2417; }
+      :root[data-theme="light"] input::placeholder, :root[data-theme="light"] textarea::placeholder { color:var(--faint)!important; }
       * { box-sizing: border-box; }
       body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,sans-serif; }
       /* Topbar — global fyrirtækjaleit + Verð + Innskrá sýnileg á öllum síðum (B2B) */
@@ -152,7 +159,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .tb-links { display:flex; align-items:center; gap:16px; margin-left:auto; flex-shrink:0; }
       .tb-links a { color:var(--muted); text-decoration:none; font-size:13.5px; font-weight:600; }
       .tb-links a:hover { color:var(--ink); }
-      .tb-login { background:var(--gold); color:#131a29 !important; padding:6px 14px; border-radius:8px; }
+      .tb-login { background:var(--gold); color:var(--surface) !important; padding:6px 14px; border-radius:8px; }
       @media (max-width:640px){ .topbar{ gap:10px; padding:0 12px; } .tb-links a:not(.tb-login){ display:none; } .tb-logo{ font-size:14px; } .tb-links{ gap:8px; } }
       .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
 
@@ -170,7 +177,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .ng-c { margin-left:auto; font-size:10px; color:#5a6678; transition:transform .15s; }
       .ng[open] > .ng-s .ng-c { transform:rotate(90deg); }
       .ng-i { padding:1px 0 5px; }
-      .nav-b { display:block; padding:6px 12px 6px 26px; border-radius:8px; text-decoration:none; color:#8fa0b8; color:#8b9cb5; font-size:13px; }
+      .nav-b { display:block; padding:6px 12px 6px 26px; border-radius:8px; text-decoration:none; color:var(--muted); color:#8b9cb5; font-size:13px; }
       .nav-b:hover { background:var(--panel); color:var(--ink); }
       .nav-b.on { background:rgba(246,177,59,.12); color:var(--gold); font-weight:600; }
       .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#5a6678; font-weight:700; padding:10px 12px 3px 43px; }
@@ -233,11 +240,11 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     </style>
     <style is:global>
       /* ⓘ-tooltip (LOTA 13j): data-tip á hvaða element sem er — útskýrir tölu/uppruna */
-      .tip { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,.1); color: #9fb0c8; font-size: 10px; font-style: normal; cursor: help; margin-left: 5px; vertical-align: middle; position: relative; }
+      .tip { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,.1); color: var(--muted); font-size: 10px; font-style: normal; cursor: help; margin-left: 5px; vertical-align: middle; position: relative; }
       [data-tip] { position: relative; }
-      [data-tip]:hover::after, [data-tip]:focus::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); z-index: 90; width: max-content; max-width: 260px; background: rgba(9,14,26,.97); border: 1px solid rgba(255,255,255,.16); border-radius: 9px; padding: 8px 11px; font-size: 11.5px; font-weight: 400; line-height: 1.45; color: #dfe7f4; text-align: left; white-space: normal; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; }
+      [data-tip]:hover::after, [data-tip]:focus::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); z-index: 90; width: max-content; max-width: 260px; background: var(--surface); border: 1px solid rgba(255,255,255,.16); border-radius: 9px; padding: 8px 11px; font-size: 11.5px; font-weight: 400; line-height: 1.45; color: #dfe7f4; text-align: left; white-space: normal; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; }
       [data-tip]:hover::before, [data-tip]:focus::before { content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,.16); z-index: 90; }
-      main p.datainfo, p.datainfo { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
+      main p.datainfo, p.datainfo { font-size: 12px; color: var(--faint); margin: 2px 0 0; }
       /* hidden-attributið á ALLTAF að fela — display-reglur á klösum mega ekki
          yfirskrifa það (t.d. .cos{display:grid} á Vöktun braut sýnileikastýringu). */
       [hidden] { display: none !important; }
@@ -248,30 +255,30 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
          flutti HEIM í KarpFish.astro í LOTU 50 — hér aðeins staðsetning + hover-hraði) */
       #karp-fab { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
       /* 💬 Spyrðu-Karp spjallglugginn (LOTA 94) — ofan fisksins í hægra horni, á öllum síðum */
-      .kc { position: fixed; right: 18px; bottom: 96px; z-index: 61; width: 350px; max-width: calc(100vw - 24px); max-height: min(72vh, 560px); display: flex; flex-direction: column; background: linear-gradient(#141f37, #0e1626); border: 1px solid rgba(124,92,255,.35); border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.55); overflow: hidden; }
+      .kc { position: fixed; right: 18px; bottom: 96px; z-index: 61; width: 350px; max-width: calc(100vw - 24px); max-height: min(72vh, 560px); display: flex; flex-direction: column; background: linear-gradient(#141f37, var(--surface)); border: 1px solid rgba(124,92,255,.35); border-radius: 16px; box-shadow: 0 18px 50px rgba(0,0,0,.55); overflow: hidden; }
       .kc[hidden] { display: none; }
       .kc-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
-      .kc-t { font-weight: 800; font-size: 14px; color: #eaf1fb; }
-      .kc-x { background: none; border: 0; color: #9fb0c8; font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+      .kc-t { font-weight: 800; font-size: 14px; color: var(--ink); }
+      .kc-x { background: none; border: 0; color: var(--muted); font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
       .kc-x:hover { color: #f6b13b; }
       .kc-body { flex: 1 1 auto; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 90px; }
       .kc-msg { font-size: 13.5px; line-height: 1.55; border-radius: 12px; padding: 9px 12px; max-width: 88%; white-space: pre-wrap; word-wrap: break-word; }
-      .kc-msg.u { align-self: flex-end; background: #f6b13b; color: #131a29; font-weight: 600; }
+      .kc-msg.u { align-self: flex-end; background: #f6b13b; color: var(--surface); font-weight: 600; }
       .kc-msg.a { align-self: flex-start; background: rgba(124,92,255,.12); border: 1px solid rgba(124,92,255,.28); color: #dfe7f4; }
       .kc-msg.a a { color: #f6b13b; }
-      .kc-msg.err { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; align-self: flex-start; }
-      .kc-hint { font-size: 12.5px; color: #9fb0c8; line-height: 1.5; padding: 2px; }
+      .kc-msg.err { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: var(--muted); align-self: flex-start; }
+      .kc-hint { font-size: 12.5px; color: var(--muted); line-height: 1.5; padding: 2px; }
       .kc-hint a { color: #f6b13b; font-weight: 700; }
       .kc-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
-      .kc-ch { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 11px; font-size: 11.5px; cursor: pointer; }
+      .kc-ch { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 5px 11px; font-size: 11.5px; cursor: pointer; }
       .kc-ch:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
       .kc-ask { display: flex; gap: 7px; padding: 10px 12px 12px; border-top: 1px solid rgba(255,255,255,.08); }
-      #kc-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: #eaf1fb; font-size: 13.5px; }
+      #kc-q { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: var(--ink); font-size: 13.5px; }
       #kc-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-      #kc-go { background: #f6b13b; color: #131a29; border: 0; border-radius: 10px; padding: 0 14px; font-weight: 800; font-size: 14px; cursor: pointer; }
+      #kc-go { background: #f6b13b; color: var(--surface); border: 0; border-radius: 10px; padding: 0 14px; font-weight: 800; font-size: 14px; cursor: pointer; }
       #kc-go:disabled { opacity: .55; cursor: wait; }
       @media (max-width: 760px) { .kc { right: 10px; bottom: 78px; width: calc(100vw - 20px); } }
-      .kfab-bub { background: #f6b13b; color: #131a29; font-size: 12.5px; font-weight: 800; padding: 7px 12px; border-radius: 999px 999px 4px 999px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
+      .kfab-bub { background: #f6b13b; color: var(--surface); font-size: 12.5px; font-weight: 800; padding: 7px 12px; border-radius: 999px 999px 4px 999px; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
       #karp-fab:hover .kfab-bub, #karp-fab:focus-visible .kfab-bub { opacity: 1; transform: translateY(0); }
       #karp-fab:hover .karpfish { animation-duration: 1.6s; }
       #karp-fab:hover .kf-tail { animation-duration: .8s; }

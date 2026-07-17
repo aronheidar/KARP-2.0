@@ -62,17 +62,17 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberu
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .disclosure { background: rgba(58,160,255,.06); border: 1px solid rgba(58,160,255,.28); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #9fb0c8; line-height: 1.55; margin: 14px 0 6px; }
-    .disclosure b { color: #cdd6e6; }
-    h2 { font-size: 13px; color: #7e8ca6; text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .disclosure { background: rgba(58,160,255,.06); border: 1px solid rgba(58,160,255,.28); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--muted); line-height: 1.55; margin: 14px 0 6px; }
+    .disclosure b { color: var(--ink); }
+    h2 { font-size: 13px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; }
     .fv-list { display: flex; flex-direction: column; gap: 12px; }
     .fv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 18px; scroll-margin-top: 80px; }
-    .fv-card h3 { font-size: 16.5px; color: #eaf1fb; margin: 8px 0 6px; line-height: 1.35; }
+    .fv-card h3 { font-size: 16.5px; color: var(--ink); margin: 8px 0 6px; line-height: 1.35; }
     .fv-text { font-size: 13.5px; line-height: 1.6; margin: 0; }
-    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: rgba(255,255,255,.06); color: #9fb0c8; border: 1px solid rgba(255,255,255,.12); }
+    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
     .fv-badge.rebel { background: rgba(224,101,95,.12); color: #e0655f; border-color: rgba(224,101,95,.35); }
     .fv-badge.taep { background: rgba(255,138,61,.12); color: #ff8a3d; border-color: rgba(255,138,61,.35); }
     .fv-badge.fylgi { background: rgba(58,160,255,.12); color: #3aa0ff; border-color: rgba(58,160,255,.35); }
@@ -82,9 +82,9 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberu
     .fv-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
     .fv-src { font-size: 12.5px; color: #f6b13b; text-decoration: none; font-weight: 600; }
     .fv-src:hover { text-decoration: underline; }
-    .fv-ai { font-size: 11px; color: #6f7b8d; }
-    .empty { color: #7e8ca6; margin-top: 20px; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-    .foot a { color: #9fb0c8; }
+    .fv-ai { font-size: 11px; color: var(--faint); }
+    .empty { color: var(--faint); margin-top: 20px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: var(--muted); }
   </style>
 </Layout>

@@ -19,25 +19,25 @@ const desc = 'Kannanir Karp — taktu þátt í púlsinum: kjóstu í könnunum 
 
   <style>
     main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: #f6b13b; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
-    #kn .empty { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
+    #kn .empty { font-size: 13.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
     #kn .poll { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 16px 18px; margin-top: 12px; }
-    #kn .q { font-size: 16px; font-weight: 700; color: #eaf1fb; margin-bottom: 10px; }
-    #kn .opt { display: block; width: 100%; text-align: left; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 10px 12px; font-size: 14px; cursor: pointer; margin-top: 6px; }
+    #kn .q { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+    #kn .opt { display: block; width: 100%; text-align: left; background: var(--surface); border: 1px solid rgba(255,255,255,.15); color: var(--ink); border-radius: 9px; padding: 10px 12px; font-size: 14px; cursor: pointer; margin-top: 6px; }
     #kn .opt:hover { border-color: #f6b13b; }
     #kn .res { margin-top: 6px; }
-    #kn .res-row { display: grid; grid-template-columns: 1fr 46px; gap: 8px; align-items: center; margin-top: 7px; font-size: 13px; color: #cdd6e6; }
+    #kn .res-row { display: grid; grid-template-columns: 1fr 46px; gap: 8px; align-items: center; margin-top: 7px; font-size: 13px; color: var(--ink); }
     #kn .res-bar { height: 20px; border-radius: 6px; background: rgba(255,255,255,.06); overflow: hidden; position: relative; }
     #kn .res-bar i { display: block; height: 100%; background: rgba(246,177,59,.5); }
     #kn .res-bar.mine i { background: #f6b13b; }
-    #kn .res-bar span { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 9px; font-size: 12px; color: #eaf1fb; }
+    #kn .res-bar span { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 9px; font-size: 12px; color: var(--ink); }
     #kn .res-v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
-    #kn .meta { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; }
-    #kn .gate { font-size: 13px; color: #9fb0c8; margin-top: 8px; }
+    #kn .meta { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+    #kn .gate { font-size: 13px; color: var(--muted); margin-top: 8px; }
     #kn .gate a { color: #f6b13b; }
   </style>
 

@@ -149,28 +149,28 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
   <style>
     main { max-width: 980px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 12px; } p { color: #cdd6e6; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 12px; } p { color: var(--ink); }
     .chip-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.14); margin: 0 4px; }
     .rel { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px; }
-    .rel-l { font-size: 11.5px; color: #7e8ca6; }
+    .rel-l { font-size: 11.5px; color: var(--faint); }
     .rel-b { background: rgba(25,211,197,.08); border: 1px solid rgba(25,211,197,.35); color: #19d3c5; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .rel-b:hover { background: rgba(25,211,197,.18); }
     .cos { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 10px; }
-    .co { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; color: #eaf1fb; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
+    .co { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
     .co:hover { border-color: #f6b13b; }
-    .co-s { font-size: 11px; font-weight: 800; color: #9fb0c8; }
+    .co-s { font-size: 11px; font-weight: 800; color: var(--muted); }
     .co-ent .co-s { font-weight: 400; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .fy-search { display: flex; gap: 8px; margin: 10px 0 12px; }
-    .fy-search input { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #eaf1fb; border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; }
+    .fy-search input { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; }
     .fy-search input:focus { border-color: #f6b13b; }
-    .fy-search button { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+    .fy-search button { background: #f6b13b; color: var(--bg); border: 0; border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; }
     .fy-search button:hover { filter: brightness(1.1); }
-    .co-fl { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #cdd6e6; border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .co-fl { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: var(--ink); border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
     .co-fl.on { background: rgba(70,224,138,.14); border-color: rgba(70,224,138,.5); color: #46e08a; }
     .co-s.up { color: #46e08a; } .co-s.dn { color: #ff6d7a; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-    .more-link { font-size: 12.5px; color: #9fb0c8; margin-top: 14px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .more-link { font-size: 12.5px; color: var(--muted); margin-top: 14px; }
     .more-link a { color: #f6b13b; }
   </style>
   <style is:global>
@@ -179,36 +179,36 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     @media (max-width: 760px) { .live { column-count: 1; } }
     /* LOTA 21: fyrirsagnalistinn fer af síðunni á breiðum skjá (stikan sér um hann)
        — helst sem fallback á mjóum skjá þar sem stikan er falin (<1000px). */
-    .rail-hint { font-size: 13px; color: #9fb0c8; margin: 10px 0 4px; }
+    .rail-hint { font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
     @media (min-width: 1000.1px) { #live-wrap { display: none; } }
     @media (max-width: 1000px) { .rail-hint { display: none; } }
     .live .it { break-inside: avoid; }
     .live .it, #co-detail .it, #btm-news .it { display: block; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
-    .live .it .t, #co-detail .it .t, #btm-news .it .t { display: block; font-size: 14px; color: #eaf1fb; line-height: 1.35; }
+    .live .it .t, #co-detail .it .t, #btm-news .it .t { display: block; font-size: 14px; color: var(--ink); line-height: 1.35; }
     .live .it:hover .t, #co-detail .it:hover .t, #btm-news .it:hover .t { color: #f6b13b; }
-    .live .it .s, #co-detail .it .s, #btm-news .it .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .live .it .s, #co-detail .it .s, #btm-news .it .s { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     /* LOTA 36: felligluggi fyrir eldri fyrirsagnir */
     .btm-more { margin-top: 4px; }
     .btm-more summary { cursor: pointer; list-style: none; display: inline-block; font-size: 12.5px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 6px 16px; margin: 10px 0 4px; user-select: none; }
     .btm-more summary::-webkit-details-marker { display: none; }
     .btm-more summary:hover { background: rgba(246,177,59,.18); }
-    .btm-more[open] summary { color: #9fb0c8; background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.15); }
-    .live-empty { font-size: 13.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
+    .btm-more[open] summary { color: var(--muted); background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.15); }
+    .live-empty { font-size: 13.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 12px 14px; border-radius: 0 8px 8px 0; }
     #co-detail { margin-top: 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px 18px; }
     #co-detail .d-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
     #co-detail .d-n { font-size: 19px; font-weight: 800; color: #f6b13b; }
     #co-detail .d-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-    #co-detail .d-t { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 7px 11px; font-size: 12px; color: #9fb0c8; }
-    #co-detail .d-t b { color: #eaf1fb; font-size: 14px; }
+    #co-detail .d-t { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 7px 11px; font-size: 12px; color: var(--muted); }
+    #co-detail .d-t b { color: var(--ink); font-size: 14px; }
     #co-detail .d-t b.up { color: #46e08a; } #co-detail .d-t b.dn { color: #ff6d7a; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
-    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     .chip:hover { color: #f6b13b; border-color: #f6b13b; }
-    .chip.on { color: #06121a; background: #f6b13b; border-color: #f6b13b; }
+    .chip.on { color: var(--bg); background: #f6b13b; border-color: #f6b13b; }
     #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
     #co-detail #d-tl { width: 100%; height: 190px; }
     #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
-    #co-detail .d-w { color: #cdd6e6; }
+    #co-detail .d-w { color: var(--ink); }
     #co-detail .d-w:nth-child(3n) { color: #f6b13b; } #co-detail .d-w:nth-child(3n+1) { color: #19d3c5; }
     /* Premium-spjöldin (LOTA 13, eins og gamla) */
     .se-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
@@ -221,95 +221,95 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     @media (min-width: 1150px) {
       .d-more { grid-template-columns: 1fr 1fr 1fr; }
     }
-    .fg-follow { font-size: 11px; font-weight: 400; color: #7e8ca6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 2px 9px; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+    .fg-follow { font-size: 11px; font-weight: 400; color: var(--faint); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: 2px 9px; margin-left: 6px; text-transform: none; letter-spacing: 0; }
     #btm-news { margin-top: 26px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 6px; }
     /* ⭐ Pro-kynningin í spjaldinu (runtime-DOM) */
     .pro-tease { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 13px; padding: 16px 18px; }
     .pt-t { font-size: 15px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; }
-    .pro-tease p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; }
+    .pro-tease p { font-size: 13px; color: var(--ink); margin: 0 0 12px; }
     .pt-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pt-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 8px 18px; border-radius: 9px; text-decoration: none; font-size: 13px; }
-    .pt-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 8px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
-    .se-card .se-l { font-size: 13px; font-weight: 800; color: #eaf1fb; }
-    .se-sub { font-size: 11px; color: #7e8ca6; font-weight: 400; margin-left: 6px; }
+    .pt-main { background: #f6b13b; color: var(--surface); font-weight: 800; padding: 8px 18px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    .pt-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--ink); padding: 8px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    .se-card .se-l { font-size: 13px; font-weight: 800; color: var(--ink); }
+    .se-sub { font-size: 11px; color: var(--faint); font-weight: 400; margin-left: 6px; }
     .se-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
     .se-idx { font-size: 30px; font-weight: 800; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
     .se-idx small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; }
-    .se-pos { color: #46e08a; } .se-neg { color: #ff6d7a; } .se-neu { color: #9fb0c8; }
+    .se-pos { color: #46e08a; } .se-neg { color: #ff6d7a; } .se-neu { color: var(--muted); }
     .se-bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0 6px; }
     .se-bar i { display: block; height: 100%; }
     .se-bneg { background: #ff6d7a; } .se-bneu { background: #5a6678; } .se-bpos { background: #46e08a; }
     .se-leg { display: flex; gap: 14px; font-size: 11.5px; flex-wrap: wrap; }
-    .se-note { font-size: 11px; color: #7e8ca6; margin-top: 8px; line-height: 1.45; }
+    .se-note { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.45; }
     /* 💸 Greiðslur frá ríkinu (LOTA 53) */
     .rik-tot { font-size: 21px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; margin: 4px 0 6px; }
     .rik-tr { font-size: 11.5px; font-weight: 700; }
     .rik-tr.up { color: #46e08a; } .rik-tr.dn { color: #ff6d7a; }
     .rik-bars { display: flex; align-items: flex-end; gap: 3px; height: 44px; margin: 4px 0 2px; }
     .rik-bar { flex: 1; max-width: 26px; background: rgba(246,177,59,.65); border-radius: 3px 3px 0 0; min-height: 3px; }
-    .rik-orgs { font-size: 11.5px; color: #9fb0c8; margin-top: 6px; line-height: 1.5; }
+    .rik-orgs { font-size: 11.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
     .rv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: 10px; }
     .rv-tile { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 9px 11px; }
     .rv-tile.good { border-color: rgba(70,224,138,.4); } .rv-tile.warn { border-color: rgba(246,177,59,.4); } .rv-tile.bad { border-color: rgba(255,109,122,.4); }
-    .rv-v { font-size: 17px; font-weight: 800; color: #eaf1fb; font-variant-numeric: tabular-nums; }
+    .rv-v { font-size: 17px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
     .rv-tile.good .rv-v { color: #46e08a; } .rv-tile.warn .rv-v { color: #f6b13b; } .rv-tile.bad .rv-v { color: #ff6d7a; }
-    .rv-l { font-size: 10.5px; color: #8fa0ba; margin-top: 2px; }
-    .rv-l span { color: #7e8ca6; font-size: 10px; }
+    .rv-l { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .rv-l span { color: var(--faint); font-size: 10px; }
     .fy-srcrows, .fy-dist { margin-top: 10px; }
     .fy-srcrow { display: grid; grid-template-columns: 110px 1fr 44px 52px; gap: 8px; align-items: center; padding: 3px 0; }
-    .fy-srcn { font-size: 11.5px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fy-srcn { font-size: 11.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .fy-srcbar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
     .fy-srcbar i { display: block; height: 100%; border-radius: 5px; }
-    .st-pos { background: #46e08a; color: #46e08a; } .st-neg { background: #ff6d7a; color: #ff6d7a; } .st-neu { background: #8892a6; color: #9fb0c8; }
+    .st-pos { background: #46e08a; color: #46e08a; } .st-neg { background: #ff6d7a; color: #ff6d7a; } .st-neu { background: #8892a6; color: var(--muted); }
     .fy-srcidx { font-size: 11.5px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
-    .fy-srcc { font-size: 10.5px; color: #7e8ca6; text-align: right; font-variant-numeric: tabular-nums; }
+    .fy-srcc { font-size: 10.5px; color: var(--faint); text-align: right; font-variant-numeric: tabular-nums; }
     .fy-d0 { background: #3a8dff; } .fy-d1 { background: #19d3c5; } .fy-d2 { background: #7c5cf7; } .fy-d3 { background: #f6b13b; }
     /* 📊 Fjölmiðlagreiningin (LOTA 34B — runtime-DOM) */
     #greining { margin-top: 34px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 18px; }
-    .fg-h { font-size: 17px; color: #eaf1fb; margin: 0 0 10px; }
+    .fg-h { font-size: 17px; color: var(--ink); margin: 0 0 10px; }
     #fg-selname { font-size: 12px; color: #f6b13b; font-weight: 600; margin-left: 8px; }
-    #fg-selname button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 12px; }
-    .fg-sh { font-size: 13px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 22px 0 8px; }
+    #fg-selname button { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 12px; }
+    .fg-sh { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 22px 0 8px; }
     #fg-kpis .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0 8px; }
     #fg-kpis .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    #fg-kpis .k-l { font-size: 12px; color: #9fb0c8; }
+    #fg-kpis .k-l { font-size: 12px; color: var(--muted); }
     #fg-kpis .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    #fg-kpis .k-s { font-size: 11px; color: #7e8ca6; }
+    #fg-kpis .k-s { font-size: 11px; color: var(--faint); }
     .fg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .fg-pair { grid-template-columns: 1fr; } }
     #fg-months, #fg-src { width: 100%; height: 270px; }
     #fg-vog .fy-srcrow { display: grid; grid-template-columns: 130px 1fr 44px 52px; gap: 8px; align-items: center; padding: 3px 0; }
-    #fg-vog .fy-srcn { font-size: 12px; color: #cdd6e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #fg-vog .fy-srcn { font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #fg-vog .fy-srcbar { height: 10px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
     #fg-vog .fy-srcbar i { display: block; height: 100%; border-radius: 5px; }
-    #fg-vog .st-pos { background: #46e08a; color: #46e08a; } #fg-vog .st-neg { background: #ff6d7a; color: #ff6d7a; } #fg-vog .st-neu { background: #8892a6; color: #9fb0c8; }
+    #fg-vog .st-pos { background: #46e08a; color: #46e08a; } #fg-vog .st-neg { background: #ff6d7a; color: #ff6d7a; } #fg-vog .st-neu { background: #8892a6; color: var(--muted); }
     #fg-vog .fy-srcidx { font-size: 12px; font-weight: 800; text-align: right; background: none !important; font-variant-numeric: tabular-nums; }
-    #fg-vog .fy-srcc { font-size: 11px; color: #7e8ca6; text-align: right; }
-    #fg-vog .vog-note { font-size: 11.5px; color: #7e8ca6; margin-top: 8px; }
-    #fg-vog .empty, #fg-kpis .empty { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    #fg-vog .fy-srcc { font-size: 11px; color: var(--faint); text-align: right; }
+    #fg-vog .vog-note { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+    #fg-vog .empty, #fg-kpis .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
     /* 🕸️ Tengslanetið */
     #tn-graph { width: 100%; height: 470px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; }
-    .tn-note { font-size: 12px; color: #7e8ca6; text-align: center; margin: 8px 0 4px; min-height: 16px; }
+    .tn-note { font-size: 12px; color: var(--faint); text-align: center; margin: 8px 0 4px; min-height: 16px; }
     .tn-note a { color: #f6b13b; }
     #tn-pairs { margin-top: 10px; }
-    .tn-pairs-h { font-size: 12px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    .tn-pairs-h { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
     .tn-pair { display: grid; grid-template-columns: 1fr 90px; gap: 10px; align-items: center; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.05); }
-    .tn-pair-n { font-size: 12.5px; color: #cdd6e6; }
-    .tn-pair-n b { color: #eaf1fb; font-weight: 600; }
+    .tn-pair-n { font-size: 12.5px; color: var(--ink); }
+    .tn-pair-n b { color: var(--ink); font-weight: 600; }
     .tn-pair-v { font-size: 12px; color: #f6b13b; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     /* ⚖️ SoV-samanburður */
     .sov-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
-    .sov-row input { flex: 1; min-width: 170px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: #eaf1fb; font-size: 13px; }
+    .sov-row input { flex: 1; min-width: 170px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 12px; color: var(--ink); font-size: 13px; }
     .sov-row input:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    .sov-vs { font-size: 12px; color: #7e8ca6; font-weight: 700; }
-    #sov-go { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .sov-vs { font-size: 12px; color: var(--faint); font-weight: 700; }
+    #sov-go { background: #f6b13b; color: var(--bg); border: 0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 800; cursor: pointer; }
     .sov-bar { display: flex; border-radius: 10px; overflow: hidden; height: 34px; margin: 10px 0 8px; font-size: 12px; font-weight: 700; }
-    .sov-bar .sov-a { background: rgba(246,177,59,.8); color: #06121a; display: flex; align-items: center; padding: 0 10px; white-space: nowrap; overflow: hidden; }
-    .sov-bar .sov-b { background: rgba(58,160,255,.75); color: #06121a; display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; white-space: nowrap; overflow: hidden; }
-    .sov-kpis { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: #9fb0c8; margin-bottom: 6px; }
-    .sov-kpis b { color: #eaf1fb; }
+    .sov-bar .sov-a { background: rgba(246,177,59,.8); color: var(--bg); display: flex; align-items: center; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .sov-bar .sov-b { background: rgba(58,160,255,.75); color: var(--bg); display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; white-space: nowrap; overflow: hidden; }
+    .sov-kpis { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+    .sov-kpis b { color: var(--ink); }
     #sov-tl { width: 100%; height: 220px; }
-    #sov-out .empty { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
+    #sov-out .empty { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 13px; border-radius: 0 8px 8px 0; }
     /* 🖨️ PDF-skýrslan (prent-DOM) */
     #fg-selname .fg-btn { background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.45); color: #f6b13b; border-radius: 8px; padding: 3px 10px; font-size: 11.5px; cursor: pointer; margin-left: 6px; }
     #fg-report { display: none; }
@@ -344,11 +344,11 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .yt-row { display: block; padding: 7px 2px; border-bottom: 1px solid rgba(255,255,255,.06); text-decoration: none; }
     .yt-row:last-child { border-bottom: 0; }
     .yt-row:hover .yt-t { color: #f6b13b; }
-    .yt-t { display: block; font-size: 12.5px; color: #cdd6e6; line-height: 1.35; }
-    .yt-m { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .yt-t { display: block; font-size: 12.5px; color: var(--ink); line-height: 1.35; }
+    .yt-m { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     .fy-health { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; border-radius: 10px; padding: 9px 13px; margin: 10px 0; font-size: 12.5px; }
     .fy-hb { font-weight: 800; white-space: nowrap; }
-    .fy-ht { color: #cdd6e6; }
+    .fy-ht { color: var(--ink); }
     .fy-h-hi { background: rgba(255,109,122,.1); border: 1px solid rgba(255,109,122,.35); }
     .fy-h-mid { background: rgba(246,177,59,.1); border: 1px solid rgba(246,177,59,.35); }
     .fy-h-lo { background: rgba(58,141,255,.08); border: 1px solid rgba(58,141,255,.3); }
@@ -1111,17 +1111,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .syni-wrap { margin: 4px 0 18px; }
     .syni-banner { background: linear-gradient(180deg, rgba(246,177,59,.13), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.5); border-radius: 14px; padding: 16px 18px; margin: 0 0 14px; }
     .syni-banner .syni-t { font-size: 15.5px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; line-height: 1.35; }
-    .syni-banner p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.5; }
+    .syni-banner p { font-size: 13px; color: var(--ink); margin: 0 0 12px; line-height: 1.5; }
     .syni-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    .syni-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    .syni-main { background: #f6b13b; color: var(--surface); font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
     .syni-main:hover { filter: brightness(1.07); }
-    .syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    .syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--ink); padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
     .syni-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 16px; margin: 0 0 14px; }
-    .syni-lbl { font-size: 11px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
+    .syni-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 0 0 10px; }
     .syni-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
     .syni-kpi { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
-    .syni-kpi b { display: block; font-size: 17px; color: #eaf1fb; }
-    .syni-kpi span { font-size: 11.5px; color: #8fa0ba; }
+    .syni-kpi b { display: block; font-size: 17px; color: var(--ink); }
+    .syni-kpi span { font-size: 11.5px; color: var(--muted); }
   </style>
   <script>
     // 👁️ Sýnishorn — útskráðir gestir sjá dæmi um fjölmiðlagreiningu áður en þeir skrá sig / gerast áskrifendur.

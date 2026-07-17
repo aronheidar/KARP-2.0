@@ -85,54 +85,54 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
-    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
-    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
-    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
     .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-l { font-size: 12px; color: var(--muted); }
     .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .k-s { font-size: 11px; color: #7e8ca6; }
+    .k-s { font-size: 11px; color: var(--faint); }
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
     .ch { width: 100%; height: 300px; }
     #ef-map { width: 100%; height: 440px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); overflow: hidden; z-index: 0; }
     #ef-map :global(.leaflet-popup-content) { font-size: 13px; }
-    #ef-mapn { color: #7e8ca6; font-size: 12px; }
+    #ef-mapn { color: var(--faint); font-size: 12px; }
 
     .ef-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
     .ef-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
     .ef-b { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #10151f; }
     .ef-b.r5 { background: #3fb950; } .ef-b.r4 { background: #6fd39b; } .ef-b.r3 { background: #f6b13b; } .ef-b.r2 { background: #f0883e; } .ef-b.r1 { background: #f85149; color: #fff; } .ef-b.r0 { background: #d1242f; color: #fff; }
     .ef-t { flex: 1 1 auto; min-width: 0; }
-    .ef-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; }
+    .ef-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; }
     .ef-n:hover { color: #f6b13b; }
-    .ef-meta { font-size: 11.5px; color: #7e8ca6; margin-top: 1px; }
-    .ef-lab { font-size: 11.5px; color: #9fb0c8; margin-top: 3px; }
+    .ef-meta { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+    .ef-lab { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
     .ef-r { flex: 0 0 auto; text-align: right; }
-    .ef-d { font-size: 11px; color: #7e8ca6; white-space: nowrap; }
+    .ef-d { font-size: 11px; color: var(--faint); white-space: nowrap; }
     .ef-rep { font-size: 11px; color: #f6b13b; text-decoration: none; }
     .ef-rep:hover { text-decoration: underline; }
 
     .ef-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
-    #ef-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #ef-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
     #ef-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
     .ef-filt { display: flex; gap: 5px; }
-    .ef-fb { font: inherit; font-size: 13px; min-width: 34px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: #9fb0c8; cursor: pointer; font-weight: 700; }
-    .ef-fb:hover { color: #eaf1fb; border-color: rgba(246,177,59,.5); }
+    .ef-fb { font: inherit; font-size: 13px; min-width: 34px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: var(--muted); cursor: pointer; font-weight: 700; }
+    .ef-fb:hover { color: var(--ink); border-color: rgba(246,177,59,.5); }
     .ef-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
-    .ef-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
-    .ef-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
-    .ef-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
-    .ef-more:hover { border-color: rgba(246,177,59,.5); color: #eaf1fb; }
+    .ef-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .ef-load { color: var(--faint); font-size: 13px; padding: 20px; }
+    .ef-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .ef-more:hover { border-color: rgba(246,177,59,.5); color: var(--ink); }
 
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
-    .foot b { color: #9fb0c8; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
   </style>
 
   <script define:vars={{ dist, RLAB }}>

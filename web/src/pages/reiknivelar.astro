@@ -154,49 +154,49 @@ const jsonLd = {
 
   <style>
     main { max-width: 760px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 14px; }
-    p { color: #cdd6e6; }
+    p { color: var(--ink); }
     .tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 18px; }
-    .tab { background: none; border: 0; color: #9fb0c8; font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-    .tab:hover { color: #eaf1fb; }
+    .tab { background: none; border: 0; color: var(--muted); font-size: 15px; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab:hover { color: var(--ink); }
     .tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
     .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 14px 0 6px; align-items: start; }
     .form { display: flex; flex-direction: column; gap: 13px; }
-    label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: #9fb0c8; font-weight: 600; }
-    .inp { display: flex; align-items: center; background: #0e1626; border: 1px solid rgba(255,255,255,.15); border-radius: 9px; overflow: hidden; }
-    .inp input { flex: 1; background: none; border: 0; color: #eaf1fb; padding: 10px 12px; font-size: 16px; font-variant-numeric: tabular-nums; width: 100%; }
-    .inp span { padding: 0 12px; color: #7e8ca6; font-size: 14px; }
-    select { background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 10px 12px; font-size: 15px; }
+    label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); font-weight: 600; }
+    .inp { display: flex; align-items: center; background: var(--surface); border: 1px solid rgba(255,255,255,.15); border-radius: 9px; overflow: hidden; }
+    .inp input { flex: 1; background: none; border: 0; color: var(--ink); padding: 10px 12px; font-size: 16px; font-variant-numeric: tabular-nums; width: 100%; }
+    .inp span { padding: 0 12px; color: var(--faint); font-size: 14px; }
+    select { background: var(--surface); border: 1px solid rgba(255,255,255,.15); color: var(--ink); border-radius: 9px; padding: 10px 12px; font-size: 15px; }
     .seg { display: flex; gap: 6px; }
-    .seg button { flex: 1; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #9fb0c8; border-radius: 8px; padding: 9px 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .seg button { flex: 1; background: var(--surface); border: 1px solid rgba(255,255,255,.15); color: var(--muted); border-radius: 8px; padding: 9px 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .seg button.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
-    .note { font-size: 12px; color: #7e8ca6; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 20px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 24px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .note { font-size: 12px; color: var(--faint); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 20px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 24px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     @media (max-width: 620px) { .calc { grid-template-columns: 1fr; } }
   </style>
   <style is:global>
     #out-laun, #out-hus { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 18px 20px; }
-    .out .o-l { font-size: 13px; color: #9fb0c8; }
+    .out .o-l { font-size: 13px; color: var(--muted); }
     .out .o-net { font-size: 38px; font-weight: 800; color: #46e08a; line-height: 1.05; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
-    .out .o-yr { font-size: 12px; color: #7e8ca6; margin-bottom: 12px; }
+    .out .o-yr { font-size: 12px; color: var(--faint); margin-bottom: 12px; }
     .out .o-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 12px 0 4px; }
     .out .o-bar i { display: block; height: 100%; }
-    .out .o-leg { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 11px; color: #9fb0c8; margin-bottom: 12px; }
-    .out .o-leg b { color: #eaf1fb; font-weight: 600; }
+    .out .o-leg { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+    .out .o-leg b { color: var(--ink); font-weight: 600; }
     .out .o-chart { width: 100%; height: 235px; }
     .out .o-chart-tall { height: 265px; }
     .out .o-leg .sw { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
     .out table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .out td { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
     .out td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-    .out tr.sum td { font-weight: 700; color: #eaf1fb; border-bottom: 0; padding-top: 9px; }
+    .out tr.sum td { font-weight: 700; color: var(--ink); border-bottom: 0; padding-top: 9px; }
     .out .o-mini { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
     .out .o-mc { flex: 1; min-width: 90px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
-    .out .o-mc .m-l { font-size: 11px; color: #9fb0c8; }
-    .out .o-mc .m-v { font-size: 16px; font-weight: 800; color: #eaf1fb; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .out .o-mc .m-l { font-size: 11px; color: var(--muted); }
+    .out .o-mc .m-v { font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
     .out .neg { color: #ff8e98; }
-    .out .o-note { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
+    .out .o-note { font-size: 12px; color: var(--faint); margin-top: 10px; }
   </style>
 
   <!-- Reiknivél-eyja: reiknar í vafra. Keyrir á astro:page-load (VT). #2 -->

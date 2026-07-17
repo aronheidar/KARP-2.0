@@ -77,32 +77,32 @@ const jsonLd = {
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
-    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
-    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
-    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
     .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
-    #kv-q { width: 100%; max-width: 420px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 10px 13px; color: #eaf1fb; font-size: 13.5px; }
+    #kv-q { width: 100%; max-width: 420px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 10px 13px; color: var(--ink); font-size: 13.5px; }
     #kv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 32px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.55; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 32px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.55; }
   </style>
 
   <style is:global>
     /* ⚠ Runtime-innerHTML → Astro scoped-CSS nær EKKI yfir — því is:global með .kv- forskeyti,
        njörvað við main[data-pg="kvotavaktin"] svo ekkert leki á aðrar síður. */
-    main[data-pg="kvotavaktin"] .kv-empty { background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.14); border-radius: 12px; padding: 18px; text-align: center; color: #9fb0c8; font-size: 13.5px; }
-    main[data-pg="kvotavaktin"] .kv-locked { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; color: #cdd6e6; font-size: 13.5px; line-height: 1.55; }
+    main[data-pg="kvotavaktin"] .kv-empty { background: rgba(255,255,255,.03); border: 1px dashed rgba(255,255,255,.14); border-radius: 12px; padding: 18px; text-align: center; color: var(--muted); font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-locked { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 12px; padding: 14px 16px; color: var(--ink); font-size: 13.5px; line-height: 1.55; }
     main[data-pg="kvotavaktin"] .kv-locked a { color: #f6b13b; font-weight: 700; text-decoration: none; }
 
     /* Yfirlits-flísar */
     main[data-pg="kvotavaktin"] .kv-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 14px 0 6px; }
     main[data-pg="kvotavaktin"] .kv-kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    main[data-pg="kvotavaktin"] .kv-kl { font-size: 12px; color: #9fb0c8; }
+    main[data-pg="kvotavaktin"] .kv-kl { font-size: 12px; color: var(--muted); }
     main[data-pg="kvotavaktin"] .kv-kv { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    main[data-pg="kvotavaktin"] .kv-ks { font-size: 11px; color: #7e8ca6; margin-top: 3px; line-height: 1.5; }
+    main[data-pg="kvotavaktin"] .kv-ks { font-size: 11px; color: var(--faint); margin-top: 3px; line-height: 1.5; }
 
     /* HHI-merki */
     main[data-pg="kvotavaktin"] .kv-badge { display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700; white-space: nowrap; cursor: help; }
@@ -121,51 +121,51 @@ const jsonLd = {
     main[data-pg="kvotavaktin"] .kvg-arc { cursor: pointer; stroke: var(--bg); stroke-width: 1; }
     main[data-pg="kvotavaktin"] .kvg-arc:hover { fill-opacity: 1; }
     main[data-pg="kvotavaktin"] .kvg-strengur:hover { fill-opacity: 0.85; }
-    main[data-pg="kvotavaktin"] .kvg-lbl { font-size: 11.5px; fill: #cdd6e6; pointer-events: none; }
-    main[data-pg="kvotavaktin"] .kvg-mid { font-size: 17px; font-weight: 800; fill: #eaf1fb; pointer-events: none; }
-    main[data-pg="kvotavaktin"] .kvg-mid2 { font-size: 13px; font-weight: 500; fill: #8fa0b8; }
+    main[data-pg="kvotavaktin"] .kvg-lbl { font-size: 11.5px; fill: var(--ink); pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kvg-mid { font-size: 17px; font-weight: 800; fill: var(--ink); pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kvg-mid2 { font-size: 13px; font-weight: 500; fill: var(--muted); }
     main[data-pg="kvotavaktin"] .kvg-utg { }
     main[data-pg="kvotavaktin"] .kvg-skip { stroke: rgba(0,0,0,.25); stroke-width: .5; }
-    .kvg-tip { position: fixed; z-index: 90; background: #101a2e; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45; color: #eaf1fb; pointer-events: none; max-width: 260px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+    .kvg-tip { position: fixed; z-index: 90; background: var(--surface); border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45; color: var(--ink); pointer-events: none; max-width: 260px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
     main[data-pg="kvotavaktin"] .kv-stada { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; }
-    main[data-pg="kvotavaktin"] .kv-stada-l { font-size: 12.5px; font-weight: 700; color: #9fb0c8; margin-right: 4px; }
+    main[data-pg="kvotavaktin"] .kv-stada-l { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-right: 4px; }
     /* Nýtingar-stikur (teiknaNyting) + D3-ásar (greining/þróun) */
     main[data-pg="kvotavaktin"] .kvg-nyt { display: flex; flex-direction: column; gap: 7px; }
     main[data-pg="kvotavaktin"] .kvg-nyt-r { display: grid; grid-template-columns: 130px 1fr 44px minmax(120px, auto); gap: 10px; align-items: center; font-size: 13px; }
-    main[data-pg="kvotavaktin"] .kvg-nyt-n { color: #cdd6e6; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-n { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     main[data-pg="kvotavaktin"] .kvg-nyt-b { height: 12px; background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; }
     main[data-pg="kvotavaktin"] .kvg-nyt-b span { display: block; height: 100%; border-radius: 6px; }
-    main[data-pg="kvotavaktin"] .kvg-nyt-v { text-align: right; font-variant-numeric: tabular-nums; color: #eaf1fb; font-weight: 700; }
-    main[data-pg="kvotavaktin"] .kvg-nyt-t { color: #7e8ca6; font-size: 12px; white-space: nowrap; }
-    main[data-pg="kvotavaktin"] .kvg-skyr { font-size: 12px; color: #7e8ca6; margin-top: 10px; }
-    main[data-pg="kvotavaktin"] .kvg-as text { fill: #8fa0b8; font-size: 11px; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-v { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+    main[data-pg="kvotavaktin"] .kvg-nyt-t { color: var(--faint); font-size: 12px; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kvg-skyr { font-size: 12px; color: var(--faint); margin-top: 10px; }
+    main[data-pg="kvotavaktin"] .kvg-as text { fill: var(--muted); font-size: 11px; }
     main[data-pg="kvotavaktin"] .kvg-as line, main[data-pg="kvotavaktin"] .kvg-as path { stroke: rgba(255,255,255,.18); }
     main[data-pg="kvotavaktin"] .kvg-lina { stroke: rgba(246,177,59,.35); stroke-dasharray: 4,4; }
     @media (max-width: 560px) { main[data-pg="kvotavaktin"] .kvg-nyt-r { grid-template-columns: 96px 1fr 40px; } main[data-pg="kvotavaktin"] .kvg-nyt-t { display: none; } }
-    .kvg-tip i { color: #8fa0b8; }
+    .kvg-tip i { color: var(--muted); }
 
     /* Töflur (farsíma-vænar: overflow-x á umbúðunum) */
     main[data-pg="kvotavaktin"] .kv-twrap { overflow-x: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; margin: 6px 0 4px; }
     main[data-pg="kvotavaktin"] .kv-twrap table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 660px; }
-    main[data-pg="kvotavaktin"] .kv-twrap th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8fa0ba; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); white-space: nowrap; }
-    main[data-pg="kvotavaktin"] .kv-twrap td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: #cdd6e6; vertical-align: middle; }
+    main[data-pg="kvotavaktin"] .kv-twrap th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-twrap td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--ink); vertical-align: middle; }
     main[data-pg="kvotavaktin"] .kv-twrap tbody tr:last-child td { border-bottom: none; }
     main[data-pg="kvotavaktin"] .kv-twrap .r { text-align: right; }
     main[data-pg="kvotavaktin"] .kv-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-    main[data-pg="kvotavaktin"] .kv-dim { color: #7e8ca6; }
-    main[data-pg="kvotavaktin"] .kv-n { color: #eaf1fb; text-decoration: none; font-weight: 600; }
+    main[data-pg="kvotavaktin"] .kv-dim { color: var(--faint); }
+    main[data-pg="kvotavaktin"] .kv-n { color: var(--ink); text-decoration: none; font-weight: 600; }
     main[data-pg="kvotavaktin"] .kv-n:hover { color: #f6b13b; }
-    main[data-pg="kvotavaktin"] .kv-kt { display: block; font-size: 11.5px; color: #7e8ca6; }
+    main[data-pg="kvotavaktin"] .kv-kt { display: block; font-size: 11.5px; color: var(--faint); }
     main[data-pg="kvotavaktin"] .kv-sum td { background: rgba(246,177,59,.07); border-top: 1px solid rgba(246,177,59,.35); }
 
     /* Hlutdeildar-stika */
     main[data-pg="kvotavaktin"] .kv-pwrap { display: flex; align-items: center; gap: 8px; min-width: 140px; }
-    main[data-pg="kvotavaktin"] .kv-pct { font-size: 12.5px; color: #eaf1fb; font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+    main[data-pg="kvotavaktin"] .kv-pct { font-size: 12.5px; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
     main[data-pg="kvotavaktin"] .kv-bar { flex: 1; height: 7px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; min-width: 60px; }
     main[data-pg="kvotavaktin"] .kv-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f6b13b, #e08b1f); border-radius: 4px; }
 
     /* Hnappar */
-    main[data-pg="kvotavaktin"] .kv-btn { display: inline-block; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #eaf1fb; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-btn { display: inline-block; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: var(--ink); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; }
     main[data-pg="kvotavaktin"] .kv-btn:hover { border-color: rgba(246,177,59,.55); color: #f6b13b; }
     main[data-pg="kvotavaktin"] .kv-btn2 { background: rgba(246,177,59,.12); border-color: rgba(246,177,59,.4); color: #f6b13b; }
     main[data-pg="kvotavaktin"] .kv-acts { white-space: nowrap; }
@@ -173,51 +173,51 @@ const jsonLd = {
 
     /* Tegunda-haus */
     main[data-pg="kvotavaktin"] .kv-teghead { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: 8px 0 10px; }
-    main[data-pg="kvotavaktin"] .kv-sellbl { font-size: 13px; color: #9fb0c8; display: flex; align-items: center; gap: 8px; }
-    main[data-pg="kvotavaktin"] .kv-teghead select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: #eaf1fb; font-size: 13px; max-width: 320px; }
+    main[data-pg="kvotavaktin"] .kv-sellbl { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    main[data-pg="kvotavaktin"] .kv-teghead select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 10px; color: var(--ink); font-size: 13px; max-width: 320px; }
     main[data-pg="kvotavaktin"] .kv-teghead select option { background: #0e1420; }
     main[data-pg="kvotavaktin"] .kv-teghead select:focus { outline: none; border-color: rgba(246,177,59,.55); }
-    main[data-pg="kvotavaktin"] .kv-teg-info { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: #9fb0c8; }
-    main[data-pg="kvotavaktin"] .kv-ti b { color: #eaf1fb; }
-    main[data-pg="kvotavaktin"] .kv-tegname { font-size: 16px; font-weight: 800; color: #eaf1fb; }
+    main[data-pg="kvotavaktin"] .kv-teg-info { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
+    main[data-pg="kvotavaktin"] .kv-ti b { color: var(--ink); }
+    main[data-pg="kvotavaktin"] .kv-tegname { font-size: 16px; font-weight: 800; color: var(--ink); }
 
     /* Leitar-niðurstöður */
-    main[data-pg="kvotavaktin"] .kv-hit { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; margin: 6px 0 0; cursor: pointer; color: #eaf1fb; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-hit { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px 12px; margin: 6px 0 0; cursor: pointer; color: var(--ink); font-size: 13.5px; }
     main[data-pg="kvotavaktin"] .kv-hit:hover { border-color: rgba(246,177,59,.5); }
     main[data-pg="kvotavaktin"] .kv-hn { font-weight: 600; }
-    main[data-pg="kvotavaktin"] .kv-hm { color: #7e8ca6; font-size: 12px; white-space: nowrap; }
+    main[data-pg="kvotavaktin"] .kv-hm { color: var(--faint); font-size: 12px; white-space: nowrap; }
 
     /* Detail-spjald + eigendahópur */
     main[data-pg="kvotavaktin"] .kv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 16px 18px; margin: 16px 0 6px; }
     main[data-pg="kvotavaktin"] .kv-dhead { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: baseline; margin-bottom: 8px; }
-    main[data-pg="kvotavaktin"] .kv-dname { font-size: 19px; font-weight: 800; color: #eaf1fb; }
-    main[data-pg="kvotavaktin"] .kv-dstats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: #9fb0c8; align-items: baseline; }
+    main[data-pg="kvotavaktin"] .kv-dname { font-size: 19px; font-weight: 800; color: var(--ink); }
+    main[data-pg="kvotavaktin"] .kv-dstats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); align-items: baseline; }
     main[data-pg="kvotavaktin"] .kv-dstats b { color: #f6b13b; font-size: 15px; }
-    main[data-pg="kvotavaktin"] .kv-dlbl { font-size: 11px; font-weight: 700; color: #8fa0ba; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
+    main[data-pg="kvotavaktin"] .kv-dlbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 6px; }
     main[data-pg="kvotavaktin"] .kv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    main[data-pg="kvotavaktin"] .kv-chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: #cdd6e6; }
-    main[data-pg="kvotavaktin"] .kv-chip i { font-style: normal; color: #7e8ca6; font-size: 11px; }
+    main[data-pg="kvotavaktin"] .kv-chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--ink); }
+    main[data-pg="kvotavaktin"] .kv-chip i { font-style: normal; color: var(--faint); font-size: 11px; }
     main[data-pg="kvotavaktin"] .kv-dbtns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-    main[data-pg="kvotavaktin"] .kv-note { font-size: 12px; color: #7e8ca6; margin: 8px 0 0; line-height: 1.5; }
+    main[data-pg="kvotavaktin"] .kv-note { font-size: 12px; color: var(--faint); margin: 8px 0 0; line-height: 1.5; }
     main[data-pg="kvotavaktin"] .kv-warn { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.45); border-radius: 10px; padding: 10px 14px; margin: 10px 0 4px; font-size: 13px; color: #f2b8b5; line-height: 1.55; }
     main[data-pg="kvotavaktin"] .kv-warn b { color: #f85149; }
 
     /* 👁️ Sýnishorn: blur á læstar raðir + yfirlag + kynningarborði */
     main[data-pg="kvotavaktin"] .kv-blur td { filter: blur(4.5px); pointer-events: none; user-select: none; }
     main[data-pg="kvotavaktin"] .kv-syniwrap { position: relative; }
-    main[data-pg="kvotavaktin"] .kv-syni-ol { position: absolute; left: 0; right: 0; bottom: 0; top: 42%; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: linear-gradient(180deg, rgba(13,18,28,0), rgba(13,18,28,.92) 55%); border-radius: 0 0 12px 12px; pointer-events: none; }
-    main[data-pg="kvotavaktin"] .kv-syni-card { pointer-events: auto; text-align: center; background: rgba(19,26,41,.95); border: 1px solid rgba(246,177,59,.5); border-radius: 12px; padding: 14px 20px; max-width: 420px; }
+    main[data-pg="kvotavaktin"] .kv-syni-ol { position: absolute; left: 0; right: 0; bottom: 0; top: 42%; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: linear-gradient(180deg, rgba(13,18,28,0), var(--surface) 55%); border-radius: 0 0 12px 12px; pointer-events: none; }
+    main[data-pg="kvotavaktin"] .kv-syni-card { pointer-events: auto; text-align: center; background: var(--surface); border: 1px solid rgba(246,177,59,.5); border-radius: 12px; padding: 14px 20px; max-width: 420px; }
     main[data-pg="kvotavaktin"] .kv-syni-card b { display: block; color: #f6b13b; font-size: 14.5px; margin-bottom: 2px; }
-    main[data-pg="kvotavaktin"] .kv-syni-card span { display: block; color: #cdd6e6; font-size: 12.5px; margin-bottom: 8px; }
-    main[data-pg="kvotavaktin"] .kv-syni-card a { display: inline-block; background: #f6b13b; color: #131a29; font-weight: 800; padding: 7px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card span { display: block; color: var(--ink); font-size: 12.5px; margin-bottom: 8px; }
+    main[data-pg="kvotavaktin"] .kv-syni-card a { display: inline-block; background: #f6b13b; color: var(--surface); font-weight: 800; padding: 7px 16px; border-radius: 9px; text-decoration: none; font-size: 13px; }
     main[data-pg="kvotavaktin"] .kv-syni-card a:hover { filter: brightness(1.07); }
     main[data-pg="kvotavaktin"] .kv-syni-banner { background: linear-gradient(180deg, rgba(246,177,59,.13), rgba(246,177,59,.04)); border: 1px solid rgba(246,177,59,.5); border-radius: 14px; padding: 16px 18px; margin: 14px 0 4px; }
     main[data-pg="kvotavaktin"] .kv-syni-t { font-size: 15.5px; font-weight: 800; color: #f6b13b; margin-bottom: 6px; line-height: 1.35; }
-    main[data-pg="kvotavaktin"] .kv-syni-banner p { font-size: 13px; color: #cdd6e6; margin: 0 0 12px; line-height: 1.5; }
+    main[data-pg="kvotavaktin"] .kv-syni-banner p { font-size: 13px; color: var(--ink); margin: 0 0 12px; line-height: 1.5; }
     main[data-pg="kvotavaktin"] .kv-syni-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    main[data-pg="kvotavaktin"] .kv-syni-main { background: #f6b13b; color: #131a29; font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-syni-main { background: #f6b13b; color: var(--surface); font-weight: 800; padding: 9px 20px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
     main[data-pg="kvotavaktin"] .kv-syni-main:hover { filter: brightness(1.07); }
-    main[data-pg="kvotavaktin"] .kv-syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: #eaf1fb; padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
+    main[data-pg="kvotavaktin"] .kv-syni-sec { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); color: var(--ink); padding: 9px 18px; border-radius: 9px; text-decoration: none; font-size: 13.5px; }
 
     /* Sýnishorns-hlekkur inni í aðgangsgáttinni */
     main[data-pg="kvotavaktin"] .kv-samplerow { text-align: center; margin-top: 12px; }

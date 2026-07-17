@@ -24,26 +24,26 @@ const desc = 'Hagspár lesenda Karp — spáðu um verðbólgu, stýrivexti og h
 
   <style>
     main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); } p a { color: #f6b13b; }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     .spa-card { margin: 14px 0 0; padding: 16px 18px; background: rgba(124,92,247,.08); border: 1px solid rgba(124,92,247,.28); border-radius: 12px; }
-    .spa-h { font-weight: 700; font-size: 15px; color: #eaf1fb; }
-    .spa-sub { font-size: 12.5px; color: #9fb0c8; margin-top: 2px; }
-    .spa-avg { font-size: 14px; color: #cdd6e6; margin-top: 10px; }
+    .spa-h { font-weight: 700; font-size: 15px; color: var(--ink); }
+    .spa-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .spa-avg { font-size: 14px; color: var(--ink); margin-top: 10px; }
     .spa-avg b { color: #b9a6ff; }
-    .spa-avg span { color: #7e8ca6; font-size: 12px; }
+    .spa-avg span { color: var(--faint); font-size: 12px; }
     .spa-form { display: flex; gap: 8px; margin-top: 10px; }
-    .spa-form input { width: 120px; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 8px; padding: 7px 10px; font-size: 14px; }
+    .spa-form input { width: 120px; background: var(--surface); border: 1px solid rgba(255,255,255,.15); color: var(--ink); border-radius: 8px; padding: 7px 10px; font-size: 14px; }
     .spa-form button { background: #7c5cf7; color: #fff; border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 700; cursor: pointer; font-size: 14px; }
     .spa-form button:disabled { opacity: .6; }
     .spa-mine { font-size: 13px; color: #b9a6ff; margin-top: 8px; }
-    .spa-gate { font-size: 13.5px; color: #9fb0c8; margin-top: 10px; }
-    .spa-note { font-size: 11px; color: #7e8ca6; margin-top: 6px; }
-    .spa-note a { color: #9fb0c8; }
+    .spa-gate { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+    .spa-note { font-size: 11px; color: var(--faint); margin-top: 6px; }
+    .spa-note a { color: var(--muted); }
     .spa-gate a { color: #f6b13b; }
   </style>
 

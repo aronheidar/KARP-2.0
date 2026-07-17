@@ -66,17 +66,17 @@ const desc = 'Leitarorðavaktin á Karp — skráðu leitarorð og láttu Karp l
 
   <style>
     main { max-width: 940px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
     .sub { font-size: 15px; line-height: 1.6; margin: 0 0 6px; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; display: flex; align-items: center; gap: 9px; }
-    h3 { font-size: 13px; color: #cdd6e6; margin: 0 0 6px; }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; display: flex; align-items: center; gap: 9px; }
+    h3 { font-size: 13px; color: var(--ink); margin: 0 0 6px; }
     .live { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #42d086; background: rgba(66,208,134,.13); border: 1px solid rgba(66,208,134,.3); border-radius: 999px; padding: 1px 8px; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
-    .feed { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 11px; padding: 8px 12px; min-height: 80px; font-size: 13px; color: #9fb0c8; }
-    .dim { color: #7e8ca6; font-size: 13px; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .feed { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 11px; padding: 8px 12px; min-height: 80px; font-size: 13px; color: var(--muted); }
+    .dim { color: var(--faint); font-size: 13px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     /* Feed-línur (dómar/samráð/greiðslur) — treff lýsast upp af leitarorðavaktinni */
@@ -84,46 +84,46 @@ const desc = 'Leitarorðavaktin á Karp — skráðu leitarorð og láttu Karp l
     #greidslur-list .pos { color: #42d086; } #greidslur-list .neg { color: #e0655f; }
     #greidslur-list b { color: #f6b13b; font-weight: 600; }
     .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
-    .fi .t { display: block; font-size: 13px; color: #eaf1fb; line-height: 1.35; }
+    .fi .t { display: block; font-size: 13px; color: var(--ink); line-height: 1.35; }
     .fi:hover .t { color: #f6b13b; }
-    .fi .s { display: block; font-size: 11px; color: #7e8ca6; margin-top: 2px; }
+    .fi .s { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
-    #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: #9fb0c8; }
+    #samrad-list .pill, #domar-hr .pill, #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: var(--muted); }
     #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
     #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
     #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
-    #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #9fb0c8; border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
+    #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--muted); border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
     #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
     #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
 
     /* 🔎 Leitarorðavaktin — áberandi kassi efst */
     .lv-box { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.32); border-radius: 14px; padding: 16px 18px; margin: 14px 0 6px; }
     .lv-row { display: flex; gap: 8px; }
-    #lv-q { flex: 1; min-width: 0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 11px 14px; color: #eaf1fb; font-size: 14.5px; }
+    #lv-q { flex: 1; min-width: 0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-size: 14.5px; }
     #lv-q:focus { outline: none; border-color: rgba(246,177,59,.6); }
-    #lv-q::placeholder { color: #7e8ca6; }
+    #lv-q::placeholder { color: var(--faint); }
     #lv-add { flex: none; background: #f6b13b; border: 0; color: #10151f; border-radius: 10px; padding: 0 18px; font-size: 13.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     #lv-add:hover { filter: brightness(1.05); }
-    .lv-hint { font-size: 12.5px; color: #9fb0c8; margin: 9px 0 0; line-height: 1.5; }
-    .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.14); padding: 1px 6px; border-radius: 4px; color: #eaf1fb; }
-    .lv-active-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7e8ca6; font-weight: 700; margin: 14px 0 7px; }
+    .lv-hint { font-size: 12.5px; color: var(--muted); margin: 9px 0 0; line-height: 1.5; }
+    .lv-demo { border-left: 3px solid #f6b13b; background: rgba(246,177,59,.14); padding: 1px 6px; border-radius: 4px; color: var(--ink); }
+    .lv-active-h { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); font-weight: 700; margin: 14px 0 7px; }
     #lv-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-    #lv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: #cdd6e6; border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 12.5px; }
+    #lv-chips .lvc { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 12.5px; }
     #lv-chips .lvc b { color: #f6b13b; font-weight: 700; }
-    #lv-chips .lvc button { background: none; border: 0; color: #7e8ca6; cursor: pointer; font-size: 13px; padding: 0 4px; line-height: 1; }
+    #lv-chips .lvc button { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 13px; padding: 0 4px; line-height: 1; }
     #lv-chips .lvc button:hover { color: #e0655f; }
 
     /* 📬 Vikuyfirlit */
-    .dg-row { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 13px; color: #cdd6e6; line-height: 1.5; }
+    .dg-row { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 13px; color: var(--ink); line-height: 1.5; }
     .dg-row:hover { border-color: rgba(246,177,59,.4); }
     .dg-row input { margin-top: 3px; accent-color: #f6b13b; }
-    .dg-row b { color: #eaf1fb; }
+    .dg-row b { color: var(--ink); }
     .dg-note { font-size: 12px; color: #42d086; margin-top: 6px; }
 
     /* 📊 Mínar hagvísavaktir */
-    #vaktir-mine .vk { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #cdd6e6; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
-    #vaktir-mine .vk-note { font-size: 12px; color: #7e8ca6; margin-top: 8px; }
-    #vaktir-mine .vk-note a { color: #9fb0c8; }
+    #vaktir-mine .vk { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink); padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    #vaktir-mine .vk-note { font-size: 12px; color: var(--faint); margin-top: 8px; }
+    #vaktir-mine .vk-note a { color: var(--muted); }
 
     /* Fleiri vaktir — krosslindir */
     .more-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }

@@ -66,28 +66,28 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
 
   <style>
     main { max-width: 1040px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 14px; }
     .tile { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
     .tile.hero { border-color: rgba(246,177,59,.4); }
-    .t-top { font-size: 11.5px; color: #7e8ca6; } .t-v { font-size: 24px; font-weight: 700; color: #eaf1fb; margin: 3px 0 1px; }
-    .t-v.s { font-size: 17px; } .t-s { font-size: 11.5px; color: #7e8ca6; }
+    .t-top { font-size: 11.5px; color: var(--faint); } .t-v { font-size: 24px; font-weight: 700; color: var(--ink); margin: 3px 0 1px; }
+    .t-v.s { font-size: 17px; } .t-s { font-size: 11.5px; color: var(--faint); }
 
     .ctl { display: flex; flex-direction: column; gap: 10px; margin: 22px 0 4px; }
-    #lyf-q { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 10px 13px; color: #eaf1fb; font-size: 14px; }
+    #lyf-q { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 10px 13px; color: var(--ink); font-size: 14px; }
     #lyf-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; }
+    .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; }
     .chip:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
     .chip.on { background: rgba(246,177,59,.14); border-color: #f6b13b; color: #f6b13b; }
-    #lyf-atc { background: #0d1424; border: 1px solid rgba(255,255,255,.12); color: #cdd6e6; border-radius: 999px; padding: 6px 12px; font-size: 12.5px; }
-    .count { font-size: 12.5px; color: #7e8ca6; margin: 12px 0; } .count b { color: #cdd6e6; }
+    #lyf-atc { background: #0d1424; border: 1px solid rgba(255,255,255,.12); color: var(--ink); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; }
+    .count { font-size: 12.5px; color: var(--faint); margin: 12px 0; } .count b { color: var(--ink); }
 
     #lyf-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(304px, 1fr)); gap: 12px; }
     /* Spjaldastílar færðir í <style is:global> að neðan — client-teiknuð spjöld (innerHTML úr
        leit) fá EKKI Astro scope-hash og yrðu annars óstíluð. Nafnrýmt á main[data-pg="lyf"]. */
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
     @media (max-width: 520px) { #lyf-results { grid-template-columns: 1fr; } }
   </style>
 
@@ -97,36 +97,36 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
     main[data-pg="lyf"] .card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 15px; }
     main[data-pg="lyf"] .card.is-sk { border-color: rgba(240,120,96,.3); }
     main[data-pg="lyf"] .c-h { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-    main[data-pg="lyf"] .c-t { font-size: 15px; font-weight: 700; color: #eaf1fb; line-height: 1.3; }
+    main[data-pg="lyf"] .c-t { font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; }
     main[data-pg="lyf"] .c-t a { color: inherit; text-decoration: none; }
     main[data-pg="lyf"] .c-t a:hover { color: var(--gold); }
-    main[data-pg="lyf"] .c-str { color: #9fb0c8; font-weight: 600; font-size: 13px; }
-    main[data-pg="lyf"] .atc { font-size: 11px; color: #8fa0b8; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
+    main[data-pg="lyf"] .c-str { color: var(--muted); font-weight: 600; font-size: 13px; }
+    main[data-pg="lyf"] .atc { font-size: 11px; color: var(--muted); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
     main[data-pg="lyf"] .c-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
     main[data-pg="lyf"] .c-badges:empty { display: none; }
     main[data-pg="lyf"] .bd { font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .02em; }
     main[data-pg="lyf"] .bd.sk { background: rgba(240,120,96,.16); color: #f0917c; border: 1px solid rgba(240,120,96,.35); }
     main[data-pg="lyf"] .bd.vt { background: rgba(120,160,255,.14); color: #9db8ff; border: 1px solid rgba(120,160,255,.3); }
-    main[data-pg="lyf"] .bd.nc { background: rgba(255,255,255,.06); color: #9fb0c8; border: 1px solid rgba(255,255,255,.12); }
-    main[data-pg="lyf"] .c-m { font-size: 12.5px; color: #9fb0c8; margin-top: 7px; }
-    main[data-pg="lyf"] .c-i { font-size: 12px; color: #7e8ca6; margin-top: 3px; }
+    main[data-pg="lyf"] .bd.nc { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
+    main[data-pg="lyf"] .c-m { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+    main[data-pg="lyf"] .c-i { font-size: 12px; color: var(--faint); margin-top: 3px; }
     main[data-pg="lyf"] .pr { margin-top: 8px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
     main[data-pg="lyf"] .pr-v { color: #f6b13b; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
     main[data-pg="lyf"] .pr-b { font-size: 11px; color: #86d896; border: 1px solid rgba(134,216,150,.3); border-radius: 6px; padding: 1px 6px; }
-    main[data-pg="lyf"] .pr-w { font-size: 11.5px; color: #7e8ca6; }
+    main[data-pg="lyf"] .pr-w { font-size: 11.5px; color: var(--faint); }
     main[data-pg="lyf"] .c-f { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); }
     main[data-pg="lyf"] .c-f a { color: #f6b13b; font-size: 12px; text-decoration: none; }
     main[data-pg="lyf"] .c-f a:hover { text-decoration: underline; }
-    main[data-pg="lyf"] .c-x { background: none; border: 1px solid rgba(255,255,255,.14); color: #9fb0c8; border-radius: 8px; padding: 4px 9px; font-size: 11.5px; cursor: pointer; white-space: nowrap; }
+    main[data-pg="lyf"] .c-x { background: none; border: 1px solid rgba(255,255,255,.14); color: var(--muted); border-radius: 8px; padding: 4px 9px; font-size: 11.5px; cursor: pointer; white-space: nowrap; }
     main[data-pg="lyf"] .c-x:hover { color: #f6b13b; border-color: rgba(246,177,59,.4); }
     main[data-pg="lyf"] .c-pk { margin-top: 9px; overflow-x: auto; }
     main[data-pg="lyf"] table.pk { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-    main[data-pg="lyf"] table.pk th { text-align: left; color: #7e8ca6; font-weight: 600; padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,.1); text-transform: uppercase; font-size: 10px; }
-    main[data-pg="lyf"] table.pk td { padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,.05); color: #cdd6e6; }
+    main[data-pg="lyf"] table.pk th { text-align: left; color: var(--faint); font-weight: 600; padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,.1); text-transform: uppercase; font-size: 10px; }
+    main[data-pg="lyf"] table.pk td { padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--ink); }
     main[data-pg="lyf"] table.pk .r { text-align: right; font-variant-numeric: tabular-nums; }
-    main[data-pg="lyf"] table.pk .npn { color: #7e8ca6; }
-    main[data-pg="lyf"] .count b { color: #cdd6e6; }
-    main[data-pg="lyf"] .empty { color: #7e8ca6; padding: 20px 2px; grid-column: 1 / -1; }
+    main[data-pg="lyf"] table.pk .npn { color: var(--faint); }
+    main[data-pg="lyf"] .count b { color: var(--ink); }
+    main[data-pg="lyf"] .empty { color: var(--faint); padding: 20px 2px; grid-column: 1 / -1; }
   </style>
 
   <!-- LOTA lyf: client-side leit + pakkningaraukning úr /gogn/lyf.json -->

@@ -84,30 +84,30 @@ const MODEBTNS = [
 
   <style>
     main { max-width: 780px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
     .modes { display: flex; flex-wrap: wrap; gap: 5px; margin: 16px 0 10px; }
-    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #9fb0c8; border-radius: 7px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .mb:hover { color: #eaf1fb; }
+    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--muted); border-radius: 7px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .mb:hover { color: var(--ink); }
     .mb.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
     .dirw { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; }
-    #dir-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9fb0c8; border-radius: 7px; padding: 5px 11px; font-size: 12px; cursor: pointer; }
-    #dir-btn:hover { color: #eaf1fb; }
-    .info { font-size: 12px; color: #7e8ca6; }
-    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    #dir-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 7px; padding: 5px 11px; font-size: 12px; cursor: pointer; }
+    #dir-btn:hover { color: var(--ink); }
+    .info { font-size: 12px; color: var(--faint); }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     /* Listi byggður á keyrslutíma → global. */
     #toplist .row { display: grid; grid-template-columns: 34px 1fr 130px 86px; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 8px; text-decoration: none; }
     #toplist .row:hover { background: rgba(255,255,255,.05); }
-    #toplist .rk { color: #7e8ca6; font-size: 12px; font-variant-numeric: tabular-nums; }
-    #toplist .nm { color: #eaf1fb; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #toplist .nm span { display: block; font-size: 10.5px; color: #7e8ca6; font-weight: 400; }
+    #toplist .rk { color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+    #toplist .nm { color: var(--ink); font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #toplist .nm span { display: block; font-size: 10.5px; color: var(--faint); font-weight: 400; }
     #toplist .bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,.07); overflow: hidden; }
     #toplist .bar i { display: block; height: 100%; border-radius: 5px; }
-    #toplist .vl { text-align: right; color: #cdd6e6; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #toplist .vl { text-align: right; color: var(--ink); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
     #toplist .top3 .rk { color: #f6b13b; font-weight: 800; }
   </style>
 

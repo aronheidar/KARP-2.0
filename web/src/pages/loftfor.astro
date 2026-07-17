@@ -102,20 +102,20 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
 
   <style>
     main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: #cdd6e6; } p a { color: #f6b13b; }
-    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: #eaf0fb; }
-    h2 { font-size: 17px; color: #eaf0fb; margin: 38px 0 4px; }
-    .sub { font-size: 13.5px; color: #9fb0c8; margin: 0 0 14px; line-height: 1.55; }
-    .datainfo { font-size: 12.5px; color: #7e8ca6; margin: 6px 0 4px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
     .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
 
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-l { font-size: 12px; color: var(--muted); }
     .k-v { font-size: 24px; font-weight: 800; color: #58a6ff; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .k-s { font-size: 11px; color: #7e8ca6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .k-s { font-size: 11px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
     .ch { width: 100%; height: 340px; }
@@ -124,39 +124,39 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
     .fleet-card { display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 13px; }
     .fleet-rank { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 7px; background: rgba(88,166,255,.14); color: #58a6ff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
     .fleet-body { flex: 1 1 auto; min-width: 0; }
-    .fleet-n { font-size: 13.5px; font-weight: 700; color: #eaf1fb; text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fleet-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .fleet-n:hover { color: #58a6ff; }
     .fleet-tf { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 3px; }
-    .tf { font-size: 10px; font-weight: 600; color: #9fb0c8; background: rgba(255,255,255,.05); border-radius: 4px; padding: 1px 5px; font-variant-numeric: tabular-nums; }
-    .tf.more { color: #7e8ca6; }
+    .tf { font-size: 10px; font-weight: 600; color: var(--muted); background: rgba(255,255,255,.05); border-radius: 4px; padding: 1px 5px; font-variant-numeric: tabular-nums; }
+    .tf.more { color: var(--faint); }
     .fleet-c { flex: 0 0 auto; color: #58a6ff; font-weight: 800; font-size: 18px; text-align: right; font-variant-numeric: tabular-nums; }
-    .fleet-c span { display: block; font-size: 10px; color: #7e8ca6; font-weight: 400; }
+    .fleet-c span { display: block; font-size: 10px; color: var(--faint); font-weight: 400; }
 
     .lf-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 4px 0 10px; }
-    #lf-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #eaf1fb; }
+    #lf-q { flex: 1 1 240px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
     #lf-q:focus { outline: none; border-color: rgba(88,166,255,.55); }
-    .lf-chk { font-size: 13px; color: #cdd6e6; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
-    .lf-cnt { font-size: 12.5px; color: #7e8ca6; margin: 0 2px 8px; }
-    .lf-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: #cdd6e6; cursor: pointer; }
-    .lf-more:hover { border-color: rgba(88,166,255,.5); color: #eaf1fb; }
+    .lf-chk { font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+    .lf-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .lf-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .lf-more:hover { border-color: rgba(88,166,255,.5); color: var(--ink); }
 
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
-    .foot b { color: #9fb0c8; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
     @media (max-width: 600px) { h1 { font-size: 26px; } }
   </style>
 
   <style is:global>
     #lf-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
-    .lf-load { color: #7e8ca6; font-size: 13px; padding: 20px; }
+    .lf-load { color: var(--faint); font-size: 13px; padding: 20px; }
     .lf-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 10px; padding: 9px 13px; }
     .lf-item:hover { border-color: rgba(88,166,255,.35); }
     .lf-reg { font-size: 13.5px; font-weight: 800; color: #58a6ff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
-    .lf-reg.off { color: #7e8ca6; text-decoration: line-through; }
+    .lf-reg.off { color: var(--faint); text-decoration: line-through; }
     .lf-mid { min-width: 0; }
-    .lf-type { font-size: 13px; color: #eaf1fb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .lf-own { font-size: 11.5px; color: #9fb0c8; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .lf-own a { color: #9fb0c8; text-decoration: none; } .lf-own a:hover { color: #58a6ff; }
-    .lf-meta { font-size: 11px; color: #7e8ca6; text-align: right; white-space: nowrap; }
+    .lf-type { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lf-own { font-size: 11.5px; color: var(--muted); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lf-own a { color: var(--muted); text-decoration: none; } .lf-own a:hover { color: #58a6ff; }
+    .lf-meta { font-size: 11px; color: var(--faint); text-align: right; white-space: nowrap; }
     .lf-badge-off { font-size: 9.5px; font-weight: 700; color: #f0883e; border: 1px solid rgba(240,136,62,.4); border-radius: 5px; padding: 0 5px; }
   </style>
 

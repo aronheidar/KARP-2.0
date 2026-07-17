@@ -80,29 +80,29 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Ma
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 10px; }
-    p { color: #cdd6e6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
+    p { color: var(--ink); }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 8px; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 6px; }
     .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
-    .k-l { font-size: 12px; color: #9fb0c8; }
+    .k-l { font-size: 12px; color: var(--muted); }
     .k-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .k-s { font-size: 11px; color: #7e8ca6; }
+    .k-s { font-size: 11px; color: var(--faint); }
     #chart-pop { width: 100%; height: 290px; }
     .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
 
     #chart-comp { width: 100%; height: 310px; }
     #chart-imm { width: 100%; height: 250px; }
-    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
-    .src b, .lead b { color: #eaf1fb; }
-    h3 { font-size: 14px; color: #cdd6e6; margin: 24px 0 8px; font-weight: 700; }
-    .lead { color: #cdd6e6; font-size: 15px; margin: 8px 0 0; }
+    .src { font-size: 12px; color: var(--faint); margin: 2px 0 0; }
+    .src b, .lead b { color: var(--ink); }
+    h3 { font-size: 14px; color: var(--ink); margin: 24px 0 8px; font-weight: 700; }
+    .lead { color: var(--ink); font-size: 15px; margin: 8px 0 0; }
     #chart-tfr, #chart-natproj, #chart-projpop { width: 100%; height: 300px; }
     .note { margin: 24px 0 0; border: 1px solid rgba(90,143,224,.3); border-left: 3px solid #5a8fe0; border-radius: 0 12px 12px 0; background: linear-gradient(90deg, rgba(90,143,224,.10), transparent 72%); padding: 15px 20px; font-size: 14.5px; color: #dfe8f5; line-height: 1.62; }
     .note b { color: #8fb4ea; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
 
   <!-- Eyja: 3 gröf. astro:page-load. #2 -->

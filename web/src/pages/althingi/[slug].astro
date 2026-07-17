@@ -113,43 +113,43 @@ const jsonLd = {
   <style>
     /* Sölureiturinn — vísar á seldu Þingmannaskýrsluna */
     .tk-sell { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.35); border-radius: 16px; padding: 20px 22px; margin-top: 26px; }
-    .tks-badge { display: inline-block; background: #f6b13b; color: #131a29; font-weight: 800; font-size: 11.5px; letter-spacing: .05em; padding: 3px 11px; border-radius: 999px; }
-    .tks-h { font-size: 19px; color: #eaf1fb; margin: 10px 0 8px; text-transform: none; letter-spacing: 0; }
+    .tks-badge { display: inline-block; background: #f6b13b; color: var(--surface); font-weight: 800; font-size: 11.5px; letter-spacing: .05em; padding: 3px 11px; border-radius: 999px; }
+    .tks-h { font-size: 19px; color: var(--ink); margin: 10px 0 8px; text-transform: none; letter-spacing: 0; }
     .tks-list { margin: 0 0 14px; padding: 0; list-style: none; }
     .tks-list li { font-size: 13px; color: #c7d2e4; line-height: 1.65; padding: 1px 0; }
     .tks-list b { color: #e6ecf7; }
     .tks-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-    .tks-main { background: #f6b13b; color: #131a29; font-weight: 800; font-size: 14px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
-    .tks-sec { border: 1px solid rgba(255,255,255,.2); color: #cdd6e6; font-size: 13.5px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
+    .tks-main { background: #f6b13b; color: var(--surface); font-weight: 800; font-size: 14px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
+    .tks-sec { border: 1px solid rgba(255,255,255,.2); color: var(--ink); font-size: 13.5px; text-decoration: none; padding: 10px 18px; border-radius: 10px; }
     .tks-sec:hover { border-color: #f6b13b; color: #f6b13b; }
-    .tks-note { font-size: 12px; color: #8fa0b8; margin-top: 12px; }
+    .tks-note { font-size: 12px; color: var(--muted); margin-top: 12px; }
     .tks-note a, .tks-note b { color: #f6b13b; text-decoration: none; }
     main { max-width: 780px; margin: 0 auto; padding: 40px 20px 64px; }
-    .back { font-size: 13px; color: #7e8ca6; text-decoration: none; }
+    .back { font-size: 13px; color: var(--faint); text-decoration: none; }
     .back:hover { color: #f6b13b; }
     .hero { display: flex; gap: 20px; align-items: center; margin: 16px 0 6px; }
-    .hero img { width: 96px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid var(--pc); flex: none; background: #0e1626; }
+    .hero img { width: 96px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid var(--pc); flex: none; background: var(--surface); }
     h1 { font-size: 30px; line-height: 1.1; margin: 0 0 6px; }
-    .party { display: inline-block; font-size: 13px; font-weight: 700; color: #06121a; background: var(--pc); border-radius: 6px; padding: 2px 9px; }
-    .meta { color: #9fb0c8; font-size: 14px; margin-top: 6px; }
+    .party { display: inline-block; font-size: 13px; font-weight: 700; color: var(--bg); background: var(--pc); border-radius: 6px; padding: 2px 9px; }
+    .meta { color: var(--muted); font-size: 14px; margin-top: 6px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0 8px; }
     .tile { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-    .t-top { font-size: 12px; color: #9fb0c8; }
+    .t-top { font-size: 12px; color: var(--muted); }
     .t-v { font-size: 24px; font-weight: 800; margin-top: 2px; }
-    .t-s { font-size: 12px; color: #7e8ca6; }
-    h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+    .t-s { font-size: 12px; color: var(--faint); }
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
     .nefndir { display: flex; flex-wrap: wrap; gap: 8px; }
-    .nefndir span { font-size: 13px; color: #cdd6e6; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .nefndir span { font-size: 13px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 5px 10px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     /* Fylgja-hnappur er búinn til á keyrslutíma → global. Erfir --pc frá <main>. */
     .follow-wrap { margin-top: 10px; min-height: 34px; }
-    .fbtn { background: var(--pc); color: #06121a; border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .fbtn { background: var(--pc); color: var(--bg); border: 1px solid var(--pc); border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 14px; cursor: pointer; }
     .fbtn.on { background: transparent; color: var(--pc); }
     .fbtn:disabled { opacity: .6; cursor: default; }
-    .follow-gate { font-size: 13px; color: #9fb0c8; text-decoration: none; }
-    .f-note { font-size: 11px; color: #7e8ca6; margin-left: 8px; }
+    .follow-gate { font-size: 13px; color: var(--muted); text-decoration: none; }
+    .f-note { font-size: 11px; color: var(--faint); margin-left: 8px; }
     .follow-gate:hover { color: #f6b13b; }
   </style>
 

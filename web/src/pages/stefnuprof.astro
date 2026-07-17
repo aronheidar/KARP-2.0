@@ -46,29 +46,29 @@ const desc = `Stefnupróf Karp — svaraðu ${QUESTIONS.length} raunverulegum þ
 
   <style>
     main { max-width: 720px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; } p { color: #cdd6e6; }
-    .note { font-size: 13px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
+    .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
   <style is:global>
     #sp .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 18px 20px; margin-top: 14px; }
-    #sp .prog { font-size: 12px; color: #7e8ca6; margin-bottom: 6px; }
-    #sp .qt { font-size: 17px; font-weight: 700; color: #eaf1fb; line-height: 1.3; }
-    #sp .qs { font-size: 13.5px; color: #9fb0c8; margin: 8px 0 14px; line-height: 1.55; }
+    #sp .prog { font-size: 12px; color: var(--faint); margin-bottom: 6px; }
+    #sp .qt { font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+    #sp .qs { font-size: 13.5px; color: var(--muted); margin: 8px 0 14px; line-height: 1.55; }
     #sp .btns { display: flex; gap: 8px; flex-wrap: wrap; }
-    #sp .b { flex: 1; min-width: 100px; background: #0e1626; border: 1px solid rgba(255,255,255,.15); color: #eaf1fb; border-radius: 9px; padding: 11px 12px; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+    #sp .b { flex: 1; min-width: 100px; background: var(--surface); border: 1px solid rgba(255,255,255,.15); color: var(--ink); border-radius: 9px; padding: 11px 12px; font-weight: 700; font-size: 14.5px; cursor: pointer; }
     #sp .b.ja:hover { border-color: #46e08a; color: #46e08a; }
     #sp .b.nei:hover { border-color: #ff6d7a; color: #ff6d7a; }
-    #sp .b.skip { flex: 0 1 auto; font-size: 12.5px; color: #7e8ca6; font-weight: 500; }
-    #sp .start, #sp .reset { background: #f6b13b; color: #06121a; border: 0; border-radius: 10px; padding: 12px 22px; font-weight: 800; font-size: 15px; cursor: pointer; }
-    #sp .reset { background: rgba(255,255,255,.08); color: #9fb0c8; font-weight: 600; font-size: 13px; margin-top: 14px; }
+    #sp .b.skip { flex: 0 1 auto; font-size: 12.5px; color: var(--faint); font-weight: 500; }
+    #sp .start, #sp .reset { background: #f6b13b; color: var(--bg); border: 0; border-radius: 10px; padding: 12px 22px; font-weight: 800; font-size: 15px; cursor: pointer; }
+    #sp .reset { background: rgba(255,255,255,.08); color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 14px; }
     #sp .res-row { display: grid; grid-template-columns: 130px 1fr 56px; gap: 10px; align-items: center; margin-top: 8px; }
     #sp .res-n { font-size: 13.5px; font-weight: 700; color: var(--pc); }
     #sp .res-bar { height: 12px; border-radius: 6px; background: rgba(255,255,255,.07); overflow: hidden; }
     #sp .res-bar i { display: block; height: 100%; background: var(--pc); border-radius: 6px; }
-    #sp .res-v { text-align: right; font-size: 13px; font-weight: 700; color: #eaf1fb; font-variant-numeric: tabular-nums; }
-    #sp .res-top { font-size: 15px; color: #cdd6e6; margin-bottom: 10px; }
+    #sp .res-v { text-align: right; font-size: 13px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    #sp .res-top { font-size: 15px; color: var(--ink); margin-bottom: 10px; }
     #sp .res-top b { color: #f6b13b; }
   </style>
 

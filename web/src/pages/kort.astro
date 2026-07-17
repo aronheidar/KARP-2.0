@@ -154,20 +154,20 @@ const MODEGROUPS = [
 
   <style>
     main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7e8ca6; margin: 0 0 4px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 8px; }
-    p { color: #cdd6e6; }
+    p { color: var(--ink); }
     .modes { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 10px; }
     .mg { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
     .mg-l { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #5a6678; font-weight: 700; width: 108px; flex: none; }
-    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #9fb0c8; border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .mb:hover { color: #eaf1fb; border-color: rgba(255,255,255,.25); }
+    .mb { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--muted); border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .mb:hover { color: var(--ink); border-color: rgba(255,255,255,.25); }
     .mb.on { background: rgba(246,177,59,.15); border-color: #f6b13b; color: #f6b13b; }
     .map-wrap { position: relative; background: radial-gradient(ellipse 65% 55% at 52% 46%, rgba(58,141,255,.09), rgba(25,211,197,.03) 55%, transparent 75%), rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; }
     #map { width: 100%; height: 560px; }
-    #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: rgba(9,14,26,.9); border: 1px solid rgba(255,255,255,.2); color: #eaf1fb; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .note { font-size: 12.5px; color: #9fb0c8; background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
-    #flow-wrap h2 { font-size: 15px; color: #9fb0c8; text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+    #map-reset { position: absolute; top: 10px; right: 10px; z-index: 4; background: var(--surface); border: 1px solid rgba(255,255,255,.2); color: var(--ink); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .note { font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0 0; }
+    #flow-wrap h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
     #flow-pie { width: 100%; height: 380px; }
     .ppair { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; align-items: start; margin-top: 8px; }
     @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
@@ -175,12 +175,12 @@ const MODEGROUPS = [
     .tw { overflow-x: auto; }
     #mode-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     #mode-tbl th, #mode-tbl td { text-align: right; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.07); white-space: nowrap; }
-    #mode-tbl th { color: #7e8ca6; font-size: 10.5px; text-transform: uppercase; }
+    #mode-tbl th { color: var(--faint); font-size: 10.5px; text-transform: uppercase; }
     #mode-tbl td.l, #mode-tbl th.l { text-align: left; }
     #mode-tbl tr.sep td { border-bottom: 2px solid rgba(255,255,255,.14); padding: 2px; }
-    .src { font-size: 12px; color: #7e8ca6; margin: 2px 0 0; }
-    .foot { font-size: 12px; color: #6f7b8d; margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
-    .foot a { color: #9fb0c8; }
+    .src { font-size: 12px; color: var(--faint); margin: 2px 0 0; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot a { color: var(--muted); }
     @media (max-width: 640px) { #map { height: 420px; } .mg-l { width: 100%; } }
   </style>
 
