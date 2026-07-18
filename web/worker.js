@@ -3169,10 +3169,131 @@ async function userDataHandler(request, env) {
     return _ajson(await _pollsPayload(env, uid));
   }
 
+  // Handvirk digest-kveikja (admin) — til prófunar; cron keyrir annars sjálfkrafa.
+  if (path === '/digest-run' && method === 'POST') {
+    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u || u.is_admin !== 1) return _ajson({ ok: false, error: 'admin' });
+    return _ajson(await digestRun(env));
+  }
+
   return _ajson({ ok: false, error: 'unknown' });
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// F6: VIKU-DIGEST (worker cron) — leysir WP-cron karp_weekly_digest af hólmi.
+// Gögn: opnar karp.is JSON (tölur/kaupskrá/althingi/útboð/frettavel/vörumerki).
+// Notendur+vaktir úr D1 (user_prefs digest=on). Sendir með Gmail (sendGmail).
+// ⚠ v1: orðaleit notar frettavel-feed (minna en gamla WP-fréttasafnið); firmavakt-
+// staða (vanskil/afskráning) sleppt (þarf CF-snapshot) — vörumerki-hlutinn heldur sér.
+// ══════════════════════════════════════════════════════════════════════════
+// Les eigin static-eign (gogn/*.json) gegnum ASSETS-binding — EKKI HTTP self-subrequest
+// (sama-svæðis fetch endur-kallar workerinn og skilar tómu). Fellur á global fetch ef ASSETS vantar.
+async function _dget(env, path) {
+  try {
+    const req = new Request('https://karp.is' + path);
+    const r = (env && env.ASSETS) ? await env.ASSETS.fetch(req) : await fetch(req);
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
+async function digestShared(env) {
+  const now = Math.floor(Date.now() / 1000);
+  const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);
+  const sh = { tolur: [], kaup7: [], mp: {}, utbod: {}, news: [], vm: {} };
+  const [ctx, ks, al, ut, fv, vm] = await Promise.all([
+    _dget(env, '/gogn/spyrdu_context.json'), _dget(env, '/gogn/kaupskra_nyjast.json'),
+    _dget(env, '/gogn/althingi.json'), _dget(env, '/gogn/utbod.json'),
+    _dget(env, '/gogn/frettavel.json'), _dget(env, '/gogn/vorumerki_nyskrad.json'),
+  ]);
+  if (ctx && ctx.text) for (const line of String(ctx.text).split('\n')) for (const k of ['VERÐBÓLGA', 'GENGI', 'STÝRIVEXTIR']) if (line.indexOf(k) === 0) sh.tolur.push(line.trim());
+  for (const x of ((ks && ks.rows) || [])) if (x && String(x.d || '') >= wkDate) sh.kaup7.push(x);
+  for (const m of (Array.isArray(al) ? al : [])) if (m && m.id != null) sh.mp[String(m.id)] = String(m.nafn || '');
+  for (const t of ((ut && ut.tenders) || [])) if (t && t.u) sh.utbod[String(t.u)] = { t: String(t.t || ''), b: String(t.buyer || '') };
+  sh.news = ((fv && fv.items) || []).filter((x) => x && String(x.date || '') >= wkDate).map((x) => ({ title: String(x.title || ''), text: String(x.text || ''), url: String(x.url || '') }));
+  sh.vm = (vm && vm.byKt) || {};
+  return sh;
+}
+function _newsHits(news, word, limit) {
+  const w = String(word || '').toLowerCase(); if (!w) return { n: 0, rows: [] };
+  const rows = news.filter((x) => (x.title + ' ' + x.text).toLowerCase().indexOf(w) >= 0);
+  return { n: rows.length, rows: rows.slice(0, limit) };
+}
+function digestBuild(name, prefs, sh) {
+  const dIS = (d) => { const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? (+m[3]) + '.' + (+m[2]) + '.' + m[1] : ''; };
+  const mkr = (v) => (Number(v || 0) / 1000).toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' m.kr';
+  const H = (ico, txt) => '<tr><td style="padding:18px 20px 4px;color:#f6b13b;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">' + ico + ' ' + _esc(txt) + '</td></tr>';
+  const _u = (u) => u ? ('https://karp.is' + (u[0] === '/' ? u : '/' + u)) : '';
+  const li = (main, sub, url) => { const t = url ? '<a href="' + _esc(url) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + _esc(main) + '</a>' : '<span style="color:#eaf1fb;font-size:14.5px;font-weight:600">' + _esc(main) + '</span>'; return '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + t + (sub ? '<br><span style="color:#8a93a8;font-size:12px">' + _esc(sub) + '</span>' : '') + '</td></tr>'; };
+  let rows = '', personal = false;
+  if (sh.tolur.length) {
+    rows += H('📊', 'Vikan í tölum');
+    let chips = '';
+    for (const line of sh.tolur) { const p = line.split(':'); const head = p.shift(); chips += '<span style="display:inline-block;background:#141c2b;border:1px solid #263349;border-radius:9px;padding:6px 10px;margin:3px 4px 3px 0;color:#cdd6e6;font-size:12px"><b style="color:#f6b13b">' + _esc(head.trim()) + '</b> ' + _esc(p.join(':').trim()) + '</span>'; }
+    rows += '<tr><td style="padding:6px 20px 10px">' + chips + '</td></tr>';
+  }
+  const ord = (prefs.leitvakt && Array.isArray(prefs.leitvakt.ord)) ? prefs.leitvakt.ord : [];
+  if (ord.length) {
+    let sec = '';
+    for (const w of ord.slice(0, 12)) { const hit = _newsHits(sh.news, w, 3); if (!hit.n) continue; sec += li('„' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), '', _u(r.url)); }
+    if (sec) { rows += H('🔎', 'Leitarorðin þín í fréttum vikunnar') + sec; personal = true; }
+  }
+  const fl = Array.isArray(prefs.follows) ? prefs.follows : [];
+  if (fl.length) {
+    let sec = '', done = 0;
+    for (const key of fl) { if (done >= 12) break; let nafn = ''; const k = String(key); if (k.indexOf('mp:') === 0) nafn = sh.mp[k.slice(3)] || ''; else if (k.indexOf('co:') === 0) nafn = k.slice(3).trim(); else if (!/^\d{7,10}$/.test(k)) nafn = k; if (!nafn) continue; done++; const hit = _newsHits(sh.news, nafn, 1); if (!hit.n) continue; const top = hit.rows[0]; sec += li(nafn + ' — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir'), top ? top.title.slice(0, 88) : '', 'https://karp.is/frettir/'); }
+    if (sec) { rows += H('⭐', 'Þau sem þú fylgist með — vikan í fréttum') + sec; personal = true; }
+  }
+  const fv = prefs.fastvakt;
+  if (fv && fv.on && Array.isArray(fv.vaktir) && fv.vaktir.length && sh.kaup7.length) {
+    const match = (x, sv, q) => { if (sv && String(x.sv || '') !== sv) return false; if (!q) return true; if (/^\d{3}$/.test(q)) return String(x.pn || '') === q; return String(x.a || '').toLowerCase().indexOf(String(q).toLowerCase()) === 0; };
+    let sec = '', n = 0;
+    for (const x of sh.kaup7) for (const w of fv.vaktir) { if (match(x, String(w.sv || ''), String(w.q || ''))) { n++; if (n <= 8) { const fm = Number(x.fm || 0); sec += li(String(x.a || '') + ' — ' + mkr(x.v || 0), (dIS(x.d) + ' · ' + String(fm).replace('.', ',') + ' m²' + (fm > 0 ? ' · ' + Math.round(Number(x.v || 0) / fm) + ' þ/m²' : '') + ' · ' + String(x.pn || '') + ' ' + String(x.sv || '')).trim(), 'https://karp.is/fasteignavakt/'); } break; } }
+    if (n) { rows += H('🏠', 'Fasteignavaktin — ' + n + ' þinglýst' + (n === 1 ? ' sala' : 'ar sölur') + ' í vikunni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/fasteignavakt/'); personal = true; }
+  }
+  const uv = prefs.utbodvakt;
+  if (uv && uv.on && uv.seen && Object.keys(uv.seen).length && Object.keys(sh.utbod).length) {
+    const wkTs = Math.floor(Date.now() / 1000) - 7 * 86400;
+    let sec = '', n = 0;
+    for (const url of Object.keys(uv.seen)) { if (Number(uv.seen[url]) < wkTs || !sh.utbod[url]) continue; n++; if (n <= 6) { const t = sh.utbod[url]; sec += li(t.t, t.b, url); } }
+    if (n) { rows += H('📋', 'Útboðsvaktin — ' + n + ' ' + (n === 1 ? 'nýtt útboð' : 'ný útboð') + ' í vikunni') + sec; personal = true; }
+  }
+  const fmv = prefs.firmavakt;
+  if (fmv && fmv.on && Array.isArray(fmv.felog) && fmv.felog.length && Object.keys(sh.vm).length) {
+    let sec = '', nvm = 0;
+    for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
+    if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
+  }
+  if (!personal && !sh.tolur.length) return '';
+  if (!personal) rows += '<tr><td style="padding:14px 20px;color:#8a93a8;font-size:13px;line-height:1.6">Engin persónuleg treff í vikunni — settu upp <a href="https://karp.is/vaktir/" style="color:#f6b13b">leitarorða-, útboðs- eða fasteignavakt</a> eða fylgstu með fyrirtækjum og þingmönnum til að fá vikuna þína hér.</td></tr>';
+  const nm = name ? _esc(name) : '';
+  return '<div style="background:#0a0e14;padding:28px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"><div style="max-width:600px;margin:0 auto;background:#0e1420;border:1px solid #1d2733;border-radius:16px;overflow:hidden"><div style="padding:22px 24px 8px"><div style="color:#f6b13b;font-weight:800;font-size:13px;letter-spacing:1px">🐟 KARP VIKUYFIRLIT</div><div style="color:#eaf1fb;font-size:21px;font-weight:800;margin-top:6px">' + (nm ? 'Vikan þín, ' + nm : 'Vikan þín á Karp') + '</div><div style="color:#8a93a8;font-size:13.5px;margin-top:4px">Það sem gerðist í vikunni á vöktunum þínum og hjá þeim sem þú fylgist með.</div></div><table style="width:100%;border-collapse:collapse;margin-top:6px">' + rows + '</table><div style="padding:18px 24px 24px"><a href="https://karp.is/mitt-svaedi/" style="display:inline-block;background:#f6b13b;color:#131a29;font-weight:800;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Opna Mitt svæði →</a><div style="color:#5c6678;font-size:12px;margin-top:18px;line-height:1.5">Þú færð þennan póst því vikuyfirlitið er virkt á aðganginum þínum. Slökktu á <a href="https://karp.is/vaktir/" style="color:#8a93a8">karp.is/vaktir</a> — „📬 Vikuyfirlitið".</div></div></div></div>';
+}
+async function digestRun(env) {
+  if (!env.TENGSL) return { sent: 0, reason: 'no-d1' };
+  const rows = await env.TENGSL.prepare("SELECT DISTINCT p.user_id AS uid, u.email, u.name FROM user_prefs p JOIN users u ON u.id=p.user_id WHERE p.k='digest' AND p.v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }));
+  const users = rows.results || [];
+  if (!users.length) return { sent: 0, users: 0 };
+  const sh = await digestShared(env);
+  let sent = 0, built = 0, gmail = null;
+  for (const u of users) {
+    if (!u.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email)) continue;
+    const pr = {};
+    const pres = await env.TENGSL.prepare("SELECT k, v FROM user_prefs WHERE user_id=? AND k IN ('leitvakt','follows','fastvakt','utbodvakt','firmavakt')").bind(u.uid).all().catch(() => ({ results: [] }));
+    for (const row of (pres.results || [])) { try { pr[row.k] = JSON.parse(row.v); } catch (e) {} }
+    const html = digestBuild(u.name, pr, sh);
+    if (!html) continue;
+    built++;
+    const r = await sendGmail(env, { to: u.email, subject: '🐟 Vikuyfirlitið þitt á Karp', html });
+    gmail = r;
+    if (r && r.ok) sent++;
+  }
+  return { sent, users: users.length, built, tolur: sh.tolur.length, news: sh.news.length, gmail };
+}
+
 export default {
+  // F6: viku-digest cron (wrangler [triggers] crons). Mánudaga 08:10 UTC.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(digestRun(env));
+  },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     // LEIÐ A (lénaflutningur): app.karp.is og www.karp.is 301-a á karp.is —
