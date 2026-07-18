@@ -87,6 +87,10 @@ export async function karpReset(token, password) {
     return await r.json().catch(() => ({ ok: false, error: 'net' }));
   } catch (e) { return { ok: false, error: 'net' }; }
 }
+// Fersk /me-uppfletting (án cache) — fyrir eftir-checkout poll sem bíður réttinda úr D1 (worker /me).
+export async function freshMe() {
+  try { return await (await fetch('/api/auth/me', { credentials: 'include' })).json(); } catch (e) { return null; }
+}
 
 function authHeaders(extra) {
   const h = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
@@ -347,7 +351,7 @@ export async function karpStakAskell({ key, ref, gateEl }) {
           body.innerHTML = '<div class="pg-note">✅ Greiðsla móttekin — opna skýrsluna þína…</div>';
           let m = 0;
           const t2 = setInterval(async () => {
-            const u2 = await karpGet('/me').catch(() => null);
+            const u2 = await freshMe().catch(() => null);
             const has = u2 && Array.isArray(u2.reports) && u2.reports.some((r) => (r && (r.key || r)) === key);
             if (has || ++m > 8) { clearInterval(t2); location.reload(); }   // grant er samstundis → örstutt bið
           }, 2500);
@@ -521,7 +525,7 @@ async function karpSubIframe(container, opts) {
           hreinsa();
           body.innerHTML = '<div class="pg-note">✅ Áskrift virk — opna aðganginn þinn…</div>';
           let m = 0;
-          const t2 = setInterval(async () => { const u2 = await karpGet('/me').catch(() => null); if (doneHas(u2) || ++m > 8) { clearInterval(t2); location.reload(); } }, 2500);
+          const t2 = setInterval(async () => { const u2 = await freshMe().catch(() => null); if (doneHas(u2) || ++m > 8) { clearInterval(t2); location.reload(); } }, 2500);
         } else if (s.state === 'failed' || s.error === 'contract' || s.error === 'noprice' || s.error === 'login' || s.error === 'input' || s.error === 'unconfigured') {
           // endanlegar villur stöðva — tímabundnar (upstream/net) polla áfram (worker endurnýtir samninginn)
           hreinsa(); body.innerHTML = ''; btns().style.display = ''; gb.disabled = false; gb.textContent = 'Greiða — opna kortaglugga →';
