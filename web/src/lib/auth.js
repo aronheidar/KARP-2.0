@@ -13,7 +13,9 @@
 import { tierLevelOf, limitsFor, THREP } from '../data/lausnir.js';
 const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
-export const KARP_API = 'https://wp.karp.is/wp-json/karp/v1';
+// WP→Cloudflare (F6): períferu notenda-gögn (vaktir/kvóti/samfélag) flutt í karp21-worker + D1
+// undir /api/u/*. Sama-uppruna → lotu-kaka berst sjálfkrafa. (Áður: wp.karp.is/wp-json/karp/v1.)
+export const KARP_API = '/api/u';
 
 // Undirbýr ALLAR 3 skýrslu-gagnaheimildir í bakgrunni (ársreikningar + eigendur + stjórn) svo
 // notandi bíði ekki 3× ef hann skoðar fyrirtækjaskýrslu + endanlega eigendur + áreiðanleika.

@@ -2815,6 +2815,9 @@ async function authMeHandler(request, env) {
   const quota = u.is_admin === 1 ? 9999 : (p.tier ? (REPORT_QUOTA[p.tier] || 0) : 0);
   p.reportsRemaining = Math.max(0, quota - used);
   p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
+  // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði).
+  p.follows = await _prefGet(env, uid, 'follows', []);
+  p.followsCount = p.follows.length;
   return _ajson(p);
 }
 async function authRegisterHandler(request, env) {
@@ -2971,6 +2974,204 @@ async function authResetHandler(request, env) {
   return _ajson({ ok: true, id: t.user_id }, { 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) });
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// F6: PERÍFERU NOTENDA-GÖGN — allt undir /api/u/* (leysir WP user-meta af hólmi).
+// Vakt-/stillinga-blobbar → user_prefs; kvóti → users.reports_used + sub_service.used;
+// samfélag (atkvæði/spár/kannanir) → deildar töflur með aggregate. KARP_API=/api/u í framhlið.
+// ══════════════════════════════════════════════════════════════════════════
+const _U_BLOBS = ['leitvakt', 'fastvakt', 'firmavakt', 'utbodvakt', 'verkprofil', 'digest', 'vaktir', 'burst'];
+const _monthStr = (now) => new Date(now * 1000).toISOString().slice(0, 7);
+const _nextMonth = (now) => { const d = new Date(now * 1000); return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000); };
+const _uTier = (u, now) => (u.tier && u.tier_until && u.tier_until > now) ? u.tier : null;
+const _ktwatchCap = (u, now) => u.is_admin === 1 ? -1 : ({ fyrirtaeki: 25, fyrirtaeki_plus: 100 }[_uTier(u, now)] || 0);
+const _seatsCap = (u, now) => u.is_admin === 1 ? -1 : ({ fyrirtaeki: 5, fyrirtaeki_plus: 10 }[_uTier(u, now)] || 1);
+async function _prefGet(env, uid, k, dflt) {
+  if (!uid) return dflt;
+  const r = await env.TENGSL.prepare('SELECT v FROM user_prefs WHERE user_id=? AND k=?').bind(uid, k).first().catch(() => null);
+  if (!r) return dflt;
+  try { return JSON.parse(r.v); } catch (e) { return dflt; }
+}
+async function _prefSet(env, uid, k, obj) {
+  await env.TENGSL.prepare('INSERT INTO user_prefs (user_id,k,v,updated) VALUES (?,?,?,?) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, updated=excluded.updated')
+    .bind(uid, k, JSON.stringify(obj), Math.floor(Date.now() / 1000)).run().catch(() => {});
+}
+async function _pollsPayload(env, uid) {
+  const ps = await env.TENGSL.prepare('SELECT id, spurning, valkostir FROM polls WHERE virk=1 ORDER BY created DESC').all().catch(() => ({ results: [] }));
+  const out = [];
+  for (const p of (ps.results || [])) {
+    const vs = await env.TENGSL.prepare('SELECT opt, COUNT(*) c FROM poll_votes WHERE poll_id=? GROUP BY opt').bind(p.id).all().catch(() => ({ results: [] }));
+    const mine = uid ? await env.TENGSL.prepare('SELECT opt FROM poll_votes WHERE poll_id=? AND user_id=?').bind(p.id, uid).first().catch(() => null) : null;
+    let valk = []; try { valk = JSON.parse(p.valkostir); } catch (e) {}
+    out.push({ id: p.id, q: p.spurning, valkostir: valk, votes: valk.map((_, i) => { const f = (vs.results || []).find((v) => v.opt === i); return f ? f.c : 0; }), mine: mine ? mine.opt : null });
+  }
+  return { polls: out };
+}
+async function userDataHandler(request, env) {
+  if (!env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/^\/api\/u/, '');   // '/leitvakt', '/reports/open', ...
+  const method = request.method;
+  const uid = await readSession(env, request);
+  const now = Math.floor(Date.now() / 1000);
+  const body = method === 'POST' ? ((await request.json().catch(() => null)) || {}) : {};
+  if (method === 'POST' && !uid) return _ajson({ ok: false, error: 'login' });   // allar skriftir krefjast innskráningar
+
+  // ── Blobb-endapunktar (geymdu-og-echo) ──
+  const bk = path.slice(1);
+  if (_U_BLOBS.indexOf(bk) >= 0) {
+    if (method === 'POST') { await _prefSet(env, uid, bk, body); return _ajson(Object.assign({ ok: true }, body)); }
+    return _ajson(await _prefGet(env, uid, bk, {}));
+  }
+
+  // ── Fylgja (array-blobb; birtist líka í /me.follows) ──
+  if (path === '/follows' && method === 'POST') {
+    const f = Array.isArray(body.follows) ? body.follows.map((x) => String(x)).slice(0, 500) : [];
+    await _prefSet(env, uid, 'follows', f);
+    return _ajson({ follows: f });
+  }
+
+  // ── Prófíll (nafn) ──
+  if (path === '/profile' && method === 'POST') {
+    const name = String(body.name || '').trim().slice(0, 80);
+    await env.TENGSL.prepare('UPDATE users SET name=?, updated=? WHERE id=?').bind(name || null, now, uid).run().catch(() => {});
+    return _ajson({ ok: true, name });
+  }
+
+  // ── Keyptar/veittar skýrslur ──
+  if (path === '/reports' && method === 'GET') {
+    if (!uid) return _ajson({ reports: [] });
+    const r = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(uid).all().catch(() => ({ results: [] }));
+    return _ajson({ reports: (r.results || []).map((x) => x.report_key) });
+  }
+
+  // ── Skýrslu-kvóti þreps: /reports/open ──
+  if (path === '/reports/open' && method === 'POST') {
+    const key = String(body.key || ''); if (!key) return _ajson({ error: true });
+    const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u) return _ajson({ error: true });
+    if (u.is_admin === 1) return _ajson({ owned: true });
+    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(uid, key).first().catch(() => null)) return _ajson({ owned: true });
+    const quota = REPORT_QUOTA[_uTier(u, now)] || 0;
+    const used = (u.reports_month === _monthStr(now)) ? (u.reports_used || 0) : 0;
+    if (quota > 0 && used < quota) {
+      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(uid, key, now).run().catch(() => {});
+      await env.TENGSL.prepare('UPDATE users SET reports_used=?, reports_month=?, updated=? WHERE id=?').bind(used + 1, _monthStr(now), now, uid).run().catch(() => {});
+      return _ajson({ granted: true, remaining: quota - used - 1 });
+    }
+    return _ajson({ needPay: true });
+  }
+
+  // ── Þingmannaskýrslu-kvóti (thingskyrslur-áskrift, 20/mán): /thing/open ──
+  if (path === '/thing/open' && method === 'POST') {
+    const key = String(body.key || ''); if (!key) return _ajson({ error: true });
+    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u) return _ajson({ error: true });
+    if (u.is_admin === 1) return _ajson({ owned: true });
+    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(uid, key).first().catch(() => null)) return _ajson({ owned: true });
+    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(uid, 'thingskyrslur', now).first().catch(() => null);
+    if (!s) return _ajson({ error: 'nosub' });
+    const used = (s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
+    if (used < 20) {
+      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(uid, key, now).run().catch(() => {});
+      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), uid, 'thingskyrslur').run().catch(() => {});
+      return _ajson({ granted: true, remaining: 20 - used - 1 });
+    }
+    return _ajson({ needPay: true, resets: _nextMonth(now) });
+  }
+
+  // ── Fasteignamats-kvóti (fasteign-áskrift, 20/mán; endurmat sama fangs frítt): /fasteign/meta ──
+  if (path === '/fasteign/meta' && method === 'POST') {
+    const key = String(body.key || ''); if (!key) return _ajson({ error: true });
+    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u) return _ajson({ error: true });
+    const done = await _prefGet(env, uid, 'fasteign_done', []);
+    if (u.is_admin === 1) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, uid, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }
+    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(uid, 'fasteign', now).first().catch(() => null);
+    const used = (s && s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
+    if (done.indexOf(key) >= 0) return _ajson({ granted: true, owned: true, remaining: s ? Math.max(0, 20 - used) : 0 });
+    if (!s) return _ajson({ error: 'nosub' });
+    if (used < 20) {
+      done.push(key); await _prefSet(env, uid, 'fasteign_done', done);
+      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), uid, 'fasteign').run().catch(() => {});
+      return _ajson({ granted: true, owned: false, remaining: 20 - used - 1 });
+    }
+    return _ajson({ needPay: true, resets: _nextMonth(now) });
+  }
+
+  // ── Viðskiptamannavakt (kt-listi) + Teymi (sæti) ──
+  if (path === '/ktwatch') {
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const cap = u ? _ktwatchCap(u, now) : 0;
+    let list = await _prefGet(env, uid, 'ktwatch', []);
+    if (method === 'POST') {
+      const kt = String(body.kt || '').replace(/\D/g, '');
+      if (kt.length === 10) {
+        if (body.action === 'remove') list = list.filter((x) => x !== kt);
+        else if (list.indexOf(kt) < 0) { if (cap >= 0 && list.length >= cap) return _ajson({ ok: false, error: 'cap', kt: list, cap }); list.push(kt); }
+        await _prefSet(env, uid, 'ktwatch', list);
+      }
+      return _ajson({ ok: true, kt: list, cap });
+    }
+    return _ajson({ kt: list, cap });
+  }
+  if (path === '/team') {
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const cap = u ? _seatsCap(u, now) : 1;
+    let members = await _prefGet(env, uid, 'team', []);
+    if (method === 'POST') {
+      const email = String(body.email || '').trim().toLowerCase().slice(0, 120);
+      if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        if (body.action === 'remove') members = members.filter((x) => x !== email);
+        else if (members.indexOf(email) < 0) { if (cap >= 0 && members.length >= cap) return _ajson({ ok: false, error: 'cap', members, cap }); members.push(email); }
+        await _prefSet(env, uid, 'team', members);
+      }
+      return _ajson({ ok: true, members, cap });
+    }
+    return _ajson({ members, cap });
+  }
+
+  // ── Kortalausar prufur (bráðabirgða launch-flæði) ──
+  if (path === '/plus/trial' && method === 'POST') {
+    const u = await env.TENGSL.prepare('SELECT tier_trial_used FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u || u.tier_trial_used) return _ajson({ ok: false, error: 'used' });
+    await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_trial_used=1, updated=? WHERE id=?').bind('grunnur', now + 30 * 86400, now, uid).run().catch(() => {});
+    return _ajson({ ok: true });
+  }
+  if (path === '/sub/trial' && method === 'POST') {
+    const service = String(body.service || '');
+    if (!_svcOk(service)) return _ajson({ ok: false, error: 'input' });
+    if (await trialUsedD1(env, uid, 'service', service)) return _ajson({ ok: false, error: 'used' });
+    await env.TENGSL.prepare('INSERT INTO sub_service (user_id,service,until,trial_used) VALUES (?,?,?,1) ON CONFLICT(user_id,service) DO UPDATE SET until=excluded.until, trial_used=1').bind(uid, service, now + 30 * 86400).run().catch(() => {});
+    return _ajson({ ok: true });
+  }
+
+  // ── Samfélag: spár, þingmála-atkvæði, kannanir (opinberar tölur; skrif krefjast innskr.) ──
+  if (path === '/spa') {
+    const topic = (method === 'POST' ? String(body.topic || '') : String(url.searchParams.get('topic') || '')).slice(0, 80);
+    if (!topic) return _ajson({});
+    if (method === 'POST') { const val = Number(body.value); if (isFinite(val)) await env.TENGSL.prepare('INSERT INTO spa_votes (topic,user_id,val,updated) VALUES (?,?,?,?) ON CONFLICT(topic,user_id) DO UPDATE SET val=excluded.val, updated=excluded.updated').bind(topic, uid, val, now).run().catch(() => {}); return _ajson({ ok: true }); }
+    const agg = await env.TENGSL.prepare('SELECT AVG(val) a, COUNT(*) c FROM spa_votes WHERE topic=?').bind(topic).first().catch(() => null);
+    const mine = uid ? await env.TENGSL.prepare('SELECT val FROM spa_votes WHERE topic=? AND user_id=?').bind(topic, uid).first().catch(() => null) : null;
+    return _ajson({ avg: agg && agg.a != null ? Math.round(agg.a * 100) / 100 : null, count: agg ? agg.c : 0, mine: mine ? mine.val : null });
+  }
+  if (path === '/vote') {
+    const bill = (method === 'POST' ? String(body.bill || '') : String(url.searchParams.get('bill') || '')).slice(0, 120);
+    if (!bill) return _ajson({});
+    if (method === 'POST') { const c = String(body.choice || ''); if (c === 'ja' || c === 'nei') await env.TENGSL.prepare('INSERT INTO bill_votes (bill,user_id,choice,updated) VALUES (?,?,?,?) ON CONFLICT(bill,user_id) DO UPDATE SET choice=excluded.choice, updated=excluded.updated').bind(bill, uid, c, now).run().catch(() => {}); }
+    const agg = await env.TENGSL.prepare("SELECT SUM(choice='ja') ja, SUM(choice='nei') nei FROM bill_votes WHERE bill=?").bind(bill).first().catch(() => null);
+    const mine = uid ? await env.TENGSL.prepare('SELECT choice FROM bill_votes WHERE bill=? AND user_id=?').bind(bill, uid).first().catch(() => null) : null;
+    return _ajson({ ja: agg && agg.ja ? agg.ja : 0, nei: agg && agg.nei ? agg.nei : 0, mine: mine ? mine.choice : '' });
+  }
+  if (path === '/polls' && method === 'GET') return _ajson(await _pollsPayload(env, uid));
+  if (path === '/pollvote' && method === 'POST') {
+    const id = String(body.id || ''); const opt = Number(body.option);
+    if (id && isFinite(opt)) await env.TENGSL.prepare('INSERT INTO poll_votes (poll_id,user_id,opt,updated) VALUES (?,?,?,?) ON CONFLICT(poll_id,user_id) DO UPDATE SET opt=excluded.opt, updated=excluded.updated').bind(id, uid, opt, now).run().catch(() => {});
+    return _ajson(await _pollsPayload(env, uid));
+  }
+
+  return _ajson({ ok: false, error: 'unknown' });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -2989,6 +3190,7 @@ export default {
     if (url.pathname === '/api/auth/kt') return authSaveKtHandler(request, env);
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
+    if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
