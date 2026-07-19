@@ -647,6 +647,42 @@ function detect(state) {
     }
   }
 
+  // ══ BYLGJA 2 (LOTA 34): djúp innsýn ══
+  // Íbúðamarkaðurinn skiptir um takt (hitnar/kólnar) — verdict-diff
+  const fa2 = J('fasteignir.json');
+  if (fa2 && fa2.direction && typeof fa2.direction.chg3 === 'number' && fa2.direction.verdict) {
+    const dir = fa2.direction, v = dir.verdict;
+    if (state.fastVerdict && state.fastVerdict !== v) {
+      const label = { cooling: 'kólnar', heating: 'hitnar', stable: 'stendur í stað' }[v] || v;
+      ev.push({ id: `fastthr-${dir.updated}-${v}`, type: 'fastthr', spark: downsample((fa2.months || []).map((m) => (m.hbsv || {}).m2 || 0), 24), facts: { verdict: v, breyting3man: dir.chg3, breyting12man: dir.chg12, manudur: dir.updated }, url: '/fasteignir/',
+        title: `Íbúðamarkaðurinn ${label}`,
+        text: `Íbúðaverð á höfuðborgarsvæðinu ${dir.chg3 < 0 ? 'lækkaði' : 'hækkaði'} um ${pct1(Math.abs(dir.chg3))}% síðustu þrjá mánuði (${dir.chg12 >= 0 ? '+' : ''}${pct1(dir.chg12)}% á tólf mánuðum) samkvæmt kaupskrá HMS — markaðurinn ${label}.` });
+    }
+    state.fastVerdict = v;
+  }
+  // Leiguverð í sögulegu hámarki
+  const lei = J('leiga.json');
+  if (lei && lei.latest && Array.isArray(lei.quarters) && lei.quarters.length > 8 && lei.latest.medM2) {
+    const cur = lei.latest, prev = lei.quarters.filter((q) => q.q !== cur.q).map((q) => q.medM2 || 0);
+    if (prev.length && cur.medM2 > Math.max(...prev)) {
+      ev.push({ id: `leiga-${cur.q}`, type: 'leiga', spark: downsample(lei.quarters.map((q) => q.medM2 || 0), 24), facts: { arsfjordungur: cur.q, medaltal_m2: cur.medM2, samningar: cur.n }, url: '/fasteignir/',
+        title: `Leiguverð í sögulegu hámarki: ${kr(cur.medM2)} kr./m²`,
+        text: `Miðgildi leiguverðs á íbúðarhúsnæði náði sögulegu hámarki á ${String(cur.q).replace(/(\d{4})F(\d)/, '$2. ársfj. $1')}: ${kr(cur.medM2)} kr. á fermetra samkvæmt þinglýstum leigusamningum í Leiguskrá HMS (${cur.n} samningar).` });
+    }
+  }
+  // Ísland í samhengi — Reykjavík vs höfuðborgir Norðurlanda (Numbeo)
+  const nb2 = J('numbeo.json');
+  if (nb2 && nb2.indices && nb2.indices.Reykjavik && typeof nb2.indices.Reykjavik.pp === 'number') {
+    const nordic = ['Reykjavik', 'Copenhagen', 'Oslo', 'Stockholm', 'Helsinki'];
+    const gr = nordic.map((c) => ({ c, g: (nb2.indices[c] || {}).groceries })).filter((x) => typeof x.g === 'number').sort((a, b) => b.g - a.g);
+    const rvkG = gr.find((x) => x.c === 'Reykjavik'), rank = gr.findIndex((x) => x.c === 'Reykjavik') + 1, mm = (nb2.updated || 'x').slice(0, 7);
+    if (rvkG && rank >= 1) {
+      ev.push({ id: `samanburdur-${mm}`, type: 'samanburdur', facts: { borg: 'Reykjavík', matvara_visitala: rvkG.g, matvara_rod: rank + ' af ' + gr.length, kaupmattur: nb2.indices.Reykjavik.pp, kaupmannahofn: (nb2.indices.Copenhagen || {}).groceries, oslo: (nb2.indices.Oslo || {}).groceries }, url: '/verdlag/',
+        title: rank === 1 ? 'Matarkarfan dýrust í Reykjavík af Norðurlöndum' : `Reykjavík ${rank}. dýrust í matvöru á Norðurlöndum`,
+        text: `Matvöruvísitala Reykjavíkur mælist ${rvkG.g} samkvæmt Numbeo — ${rank === 1 ? 'sú hæsta' : rank + '. hæsta'} af ${gr.length} höfuðborgum Norðurlanda (Kaupmannahöfn ${(nb2.indices.Copenhagen || {}).groceries}, Osló ${(nb2.indices.Oslo || {}).groceries}). Kaupmáttarvísitala Reykjavíkur er ${nb2.indices.Reykjavik.pp}.` });
+    }
+  }
+
   return ev;
 }
 
