@@ -37,15 +37,20 @@ export const CAT = {
   sendiherra: { label: 'Utanríkis', emoji: '🌍', color: '#3aa0ff', img: 'utanrikis', heimild: 'Utanríkisráðuneytið', rule: 'Ný skipan sendiherra Íslands skv. uppfærðri sendiráðaskrá.' },
   lyf:        { label: 'Lyfjaskortur', emoji: '💊', color: '#ff8a3d', img: 'lyf', heimild: 'Sérlyfjaskrá', rule: 'Skráður skortur á nauðsynlegu lyfi (Lyfjastofnun).' },
   sent:       { label: 'Umfjöllun', emoji: '🗣️', color: '#3aa0ff', img: 'fjolmidlar', heimild: 'Fjölmiðlavöktun Karp', rule: 'Tónn fjölmiðlaumfjöllunar um fyrirtæki breyttist skarpt (≥40 stig á -100…+100 kvarða).' },
+  // ── Fasi 3: fleiri fjölbreytt fréttaefni ──
+  kvoti:      { label: 'Sjávarútvegur', emoji: '🐟', color: '#2bb7a3', img: 'sjavarutvegur', heimild: 'Fiskistofa', rule: 'Aflamark fisktegundar nálgast fullnýtingu (≥85% nýtt).' },
+  gengi:      { label: 'Gengi krónu', emoji: '💱', color: '#3aa0ff', img: 'markadir', heimild: 'Seðlabanki Íslands', rule: 'Gengisvísitala krónunnar setti nýtt hæsta eða lægsta gildi.' },
+  ees:        { label: 'Evrópusambandið', emoji: '🇪🇺', color: '#5a8fe0', img: 'utanrikis', heimild: 'Stjórnartíðindi ESB / EES', rule: 'Ný gerð ESB sem kann að verða tekin upp í EES-samninginn.' },
+  vika:       { label: 'Vika í tölum', emoji: '📅', color: '#f6b13b', img: 'annad', heimild: 'Samantekt Karp', rule: 'Vikulegur útdráttur lykil-hagtalna (birt á mánudögum).' },
 };
 
 export const catOf = (t) => CAT[t] || { label: 'Frétt', emoji: '📰', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
 
 // Yfir-deildir (fréttamiðils-flokkar) — hópa tegundir í deildir eins og MBL/Vísir (Viðskipti, Stjórnmál…).
 export const SECTIONS = [
-  { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun'] },
-  { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra'] },
-  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv'] },
+  { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun', 'kvoti'] },
+  { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra', 'ees'] },
+  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika'] },
   { key: 'domsmal', label: 'Dómsmál', types: ['domur', 'glaepir'] },
   { key: 'samfelag', label: 'Samfélag', types: ['baejarstjori', 'sendiherra', 'lyf', 'sent'] },
 ];
@@ -54,7 +59,7 @@ export const sectionOf = (t) => SEC_OF[t] || SECTIONS[0];
 
 // Mikilvægis-vog (1–10) — velur aðalfrétt (hero) + „helstu" á forsíðu. Þung mál (vextir/gjaldþrot/verðbólga)
 // vega meira en dagleg markaðs-tíst. Blandast við nýleika við röðun.
-const WEIGHT = { vextir: 10, gjaldthrot: 9, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3 };
+const WEIGHT = { vextir: 10, gjaldthrot: 9, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3, gengi: 7, kvoti: 6, ees: 5, vika: 5 };
 export const weightOf = (t) => WEIGHT[t] || 4;
 
 // ASCII-hreint slóðar-id (SEO): íslenskir stafir → ascii, aðeins [a-z0-9-]. Nota BÆÐI á forsíðu-hlekkjum

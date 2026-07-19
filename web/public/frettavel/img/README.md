@@ -32,6 +32,7 @@ Endurnýttar **eftir frétta-tegund** (ekki per frétt). Notaðar á fréttakort
 | `utanrikis.jpg` | Utanríkis (sendiherrar) | *The Icelandic flag alongside foreign flags, or an embassy building. Diplomatic theme, no faces, no text.* |
 | `lyf.jpg` | Lyfjaskortur | *Pharmacy shelves with medicine boxes / pill bottles. Clinical, neutral, no readable brand text.* |
 | `fjolmidlar.jpg` | Umfjöllun (tónn) | *Stacked newspapers and news screens. Media theme, muted, no readable headlines.* |
+| `sjavarutvegur.jpg` | Sjávarútvegur (kvóti) | *An Icelandic fishing trawler at sea or a harbor with fishing boats and crates of fish. Documentary daylight, no text, no faces.* |
 | `annad.jpg` | Fallback (aðrar tegundir) | *Abstract Icelandic data/statistics imagery — charts over a subtle map of Iceland. Neutral, no text.* |
 
 > Þegar þú hefur búið þær til, leggðu þær í þessa möppu (`web/public/frettavel/img/`) með réttum nöfnum og pushaðu — þær birtast sjálfkrafa.

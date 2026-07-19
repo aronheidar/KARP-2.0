@@ -534,6 +534,67 @@ function detect(state) {
     });
   }
 
+  // ══ LOTA 32 (Fasi 3): sjávarútvegur, gengi, EES, vikuyfirlit ══
+  // Gengi krónu — met í gengisvísitölu (state-gated svo endurtaki sig EKKI daglega; fyrsta keyrsla þögul).
+  if (sb && sb.datasets) {
+    const g = ((sb.datasets.gengisvisit || {}).series || []).find((s) => s.name === 'Gengisvísitala');
+    if (g && Array.isArray(g.points) && g.points.length >= 30) {
+      const rec = state.gengiRec || {}, gInit = !!state.gengiRec;
+      const dNu = g.points[g.points.length - 1][0], vNu = g.points[g.points.length - 1][1], hist = g.points.map((p) => p[1]).filter((x) => typeof x === 'number');
+      if (typeof vNu === 'number' && hist.length) {
+        if (gInit && vNu >= Math.max(...hist) && vNu > (typeof rec.hi === 'number' ? rec.hi : 0)) {
+          ev.push({ id: `gengi-${dNu}-hi`, type: 'gengi', spark: downsample(hist, 24), facts: { gildi: +vNu.toFixed(1), met: 'hæsta', dags: dNu }, url: '/vextir/',
+            title: 'Krónan aldrei veikari — gengisvísitala í hæsta gildi',
+            text: `Gengisvísitala krónunnar stendur í ${pct1(vNu)} (${dNu}), það hæsta í gagnaröð Karp. Hærri gengisvísitala merkir veikari krónu.` });
+        } else if (gInit && vNu <= Math.min(...hist) && vNu < (typeof rec.lo === 'number' ? rec.lo : Infinity)) {
+          ev.push({ id: `gengi-${dNu}-lo`, type: 'gengi', spark: downsample(hist, 24), facts: { gildi: +vNu.toFixed(1), met: 'lægsta', dags: dNu }, url: '/vextir/',
+            title: 'Krónan aldrei sterkari — gengisvísitala í lægsta gildi',
+            text: `Gengisvísitala krónunnar stendur í ${pct1(vNu)} (${dNu}), það lægsta í gagnaröð Karp. Lægri gengisvísitala merkir sterkari krónu.` });
+        }
+        state.gengiRec = { hi: Math.max(typeof rec.hi === 'number' ? rec.hi : 0, vNu), lo: Math.min(typeof rec.lo === 'number' ? rec.lo : Infinity, vNu) };
+      }
+    }
+  }
+
+  // Sjávarútvegur — aflamark fisktegundar nálgast fullnýtingu (aggregat, engin PII)
+  const sja = J('sjavarutvegur.json');
+  if (sja && Array.isArray(sja.featured)) {
+    sja.featured.filter((f) => f && f.pct >= 85 && f.kvoti > 0).sort((a, b) => b.pct - a.pct).slice(0, 2).forEach((f) => {
+      ev.push({ id: `kvoti-${sja.timabil}-${slug(f.species)}`, type: 'kvoti', facts: { tegund: f.species, nyting: f.pct, afli: f.afli, kvoti: f.kvoti, fiskveidiar: sja.timabilLabel }, url: '/sjavarutvegur/',
+        title: `${f.species}kvótinn ${f.pct}% nýttur — nálgast fullnýtingu`,
+        text: `Aflamark ${String(f.species).toLowerCase()} fiskveiðiársins ${sja.timabilLabel} er ${f.pct}% nýtt — ${kr(f.afli)} af ${kr(f.kvoti)} þúsund tonnum landað samkvæmt flotavísi Karp úr gögnum Fiskistofu.` });
+    });
+  }
+
+  // EES — nýjar ESB-gerðir (AI þýðir enska titilinn í CI; sniðmát ber enska heitið til vara)
+  const ees = J('ees.json');
+  if (ees && Array.isArray(ees.esb)) {
+    ees.esb.filter((x) => x && RECENT(x.d, 30)).sort((a, b) => (b.d || '').localeCompare(a.d || '')).slice(0, 2).forEach((x) => {
+      ev.push({ id: `ees-${x.celex || slug(String(x.t).slice(0, 40))}`, type: 'ees', facts: { titill_enska: x.t, celex: x.celex || null, dags: x.d }, url: '/ees/',
+        title: 'Ný ESB-gerð til skoðunar á EES-vettvangi',
+        text: `Ný gerð Evrópusambandsins (birt ${x.d}) sem kann að verða tekin upp í EES-samninginn og þar með í íslensk lög. Heiti á ensku: ${String(x.t).slice(0, 220)}.` });
+    });
+  }
+
+  // Vika í tölum — vikulegur talna-útdráttur (aðeins mánudaga)
+  if (new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1 && sb && sb.datasets) {
+    const lastPt = (arr, name, pred) => { const s = (arr || []).find((x) => x.name === name && (!pred || (x.points || []).some((p) => pred(p[1])))); return s && s.points && s.points.length ? s.points[s.points.length - 1][1] : null; };
+    const vb = lastPt((sb.datasets.verdbolga || {}).series, 'Vísitala neysluverðs', (v) => typeof v === 'number' && v < 50);
+    const meg = lastPt((sb.datasets.vextir_si || {}).series, 'Meginvextir (vextir á 7 daga bundnum innlánum)');
+    const g = lastPt((sb.datasets.gengisvisit || {}).series, 'Gengisvísitala');
+    const at = J('atvinnuleysi.json'); const atv = at && Array.isArray(at.monthly) && at.monthly.length ? at.monthly[at.monthly.length - 1].v : null;
+    const parts = [];
+    if (vb != null) parts.push(`verðbólga ${pct1(vb)}%`);
+    if (meg != null) parts.push(`meginvextir ${pct1(meg)}%`);
+    if (atv != null) parts.push(`atvinnuleysi ${pct1(atv)}%`);
+    if (g != null) parts.push(`gengisvísitala ${pct1(g)}`);
+    if (parts.length >= 3) {
+      ev.push({ id: `vika-${TODAY}`, type: 'vika', facts: { verdbolga: vb, meginvextir: meg, atvinnuleysi: atv, gengisvisitala: g == null ? null : +g.toFixed(1) }, url: '/frettavel/',
+        title: `Vika í tölum: ${parts.slice(0, 2).join(', ')}`,
+        text: `Lykiltölur íslensks efnahagslífs í dag: ${parts.join(', ')}. Samantekt Fréttavélar Karp úr opinberum hagtölum Seðlabanka Íslands og Vinnumálastofnunar.` });
+    }
+  }
+
   return ev;
 }
 
