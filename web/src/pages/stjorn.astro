@@ -32,6 +32,11 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div class="stj-block"><h2>📄 Seldar skýrslur</h2><div id="stj-reports" class="stj-kv"></div></div>
       </section>
 
+      <section class="stj-block">
+        <h2>🕐 Nýjustu skýrslukaup</h2>
+        <div id="stj-recent" class="stj-kv"></div>
+      </section>
+
       <p class="stj-note">🤖 AI-stjórnendurnir (COO/CFO/CMO o.fl.) keyra á Node-hýsli og lesa þessa sömu gagnagrunn. Herferðir, samþykktir og tickets flytjast hingað í næsta fasa.</p>
     </div>
   </main>
@@ -94,11 +99,13 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       gate.hidden = true; $('stj-body').hidden = false;
       const s = ov.stats;
       // spjöld
+      const kr = (n) => (n || 0).toLocaleString('is-IS') + ' kr';
       $('stj-cards').innerHTML =
         card(s.total, 'Notendur', '+' + s.new7 + ' síðustu 7 daga') +
+        card(kr(s.mrr), 'Áætl. mánaðartekjur', s.tierUsers + ' þrep · ' + s.activeSubs + ' þjónustur') +
+        card(kr(s.reportRevenue), 'Skýrslutekjur (alls)', s.reportsTotal + ' seldar (990 kr)') +
+        card(s.watchers + ' / ' + s.digestSubs, 'Virkir notendur', 'með vakt / vikuyfirlit') +
         card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
-        card(s.tierUsers + s.activeSubs, 'Virk réttindi', s.tierUsers + ' þrep · ' + s.activeSubs + ' þjónustur') +
-        card(s.reportsTotal, 'Seldar skýrslur', '') +
         (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Flettingar (7d)', (burst.week.visitors || 0).toLocaleString('is-IS') + ' gestir') : '');
       // notendur
       $('stj-ucount').textContent = ov.users.length;
@@ -114,6 +121,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // skýrslur
       const repEntries = Object.entries(s.reportsByType);
       $('stj-reports').innerHTML = repEntries.length ? repEntries.map(([k, v]) => `<div class="stj-kv-row"><span>${esc(REP[k] || k)}</span><b>${v}</b></div>`).join('') : '<div class="stj-kv-empty">Engar seldar skýrslur enn.</div>';
+      // nýjustu skýrslukaup
+      const rec = ov.recentReports || [];
+      $('stj-recent').innerHTML = rec.length ? rec.map((r) => {
+        const t = String(r.key || '').split(':')[0];
+        return `<div class="stj-kv-row"><span>${esc(REP[t] || t)} <span style="color:var(--faint)">· ${esc(r.email || '—')}</span></span><b style="font-weight:600;color:var(--muted)">${dIS(r.granted)}</b></div>`;
+      }).join('') : '<div class="stj-kv-empty">Engin skýrslukaup enn.</div>';
     }
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);

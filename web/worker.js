@@ -3623,6 +3623,17 @@ async function adminOverviewHandler(request, env) {
   const byService = {}; for (const s of subs) byService[s.service] = (byService[s.service] || 0) + 1;
   const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
   const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
+  // Tekjur (áætlaðar): virkar þjónustu-áskriftir + þrep (mán) + keyptar skýrslur (einskiptis 990).
+  const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3490, fasteign: 3900, thingskyrslur: 3900 };
+  const PRICE_TIER = { grunnur: 2900, fyrirtaeki: 6900, fyrirtaeki_plus: 12900 };
+  let mrr = 0;
+  for (const s of subs) mrr += PRICE_SVC[s.service] || 0;
+  for (const u of uList) if (u.tier) mrr += PRICE_TIER[u.tier] || 0;
+  // Virkni: notendur með einhverja vakt / digest á (úr user_prefs).
+  const watchRows = (await env.TENGSL.prepare("SELECT DISTINCT user_id FROM user_prefs WHERE k IN ('leitvakt','firmavakt','fastvakt','follows','ktwatch')").all().catch(() => ({ results: [] }))).results || [];
+  const digestRows = (await env.TENGSL.prepare("SELECT user_id FROM user_prefs WHERE k='digest' AND v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }))).results || [];
+  // Nýleg umsvif: síðustu skýrslukaup (með netfangi).
+  const recentReps = (await env.TENGSL.prepare('SELECT rg.report_key, rg.granted, u.email FROM reports_granted rg LEFT JOIN users u ON u.id=rg.user_id ORDER BY rg.granted DESC LIMIT 12').all().catch(() => ({ results: [] }))).results || [];
   return _ajson({
     ok: true, now,
     users: uList,
@@ -3631,7 +3642,10 @@ async function adminOverviewHandler(request, env) {
       new7: recent(7), new30: recent(30),
       tierUsers: uList.filter((u) => u.tier).length, activeSubs: subs.length, subsByService: byService,
       reportsTotal: reps.length, reportsByType: byReport,
+      mrr, reportRevenue: reps.length * 990,
+      watchers: watchRows.length, digestSubs: digestRows.length,
     },
+    recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
   });
 }
 
