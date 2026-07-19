@@ -3384,7 +3384,7 @@ async function newsIngest(env) {
     batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts, body));
   }
   for (let i = 0; i < batch.length; i += 40) await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => {});
-  await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 90 * 86400).run().catch(() => {});
+  await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 400 * 86400).run().catch(() => {});   // 400 daga geymsla (heilt ár+ f. yearreview/firma)
   return { fetched: items.length, batched: batch.length };
 }
 async function newsSince(env, days, limit) {
@@ -3393,14 +3393,27 @@ async function newsSince(env, days, limit) {
   const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body FROM news WHERE ts>=? ORDER BY ts DESC LIMIT ?').bind(since, Math.min(limit || 60, 2000)).all().catch(() => ({ results: [] }));
   return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title }));
 }
+// SQL-leit í öllu safninu (51k+) eftir orðum — pushar síuna á D1 svo greiningar noti heilt ár.
+// SQLite LIKE case-fold-ar aðeins ASCII → leitum bæði lágstöfum OG hástafs-fyrsta (nær ísl. Íslandsbanki/Össur).
+function _searchVariants(t) { const lc = String(t).toLowerCase().trim(); if (lc.length < 3) return []; const cap = lc.charAt(0).toUpperCase() + lc.slice(1); return cap === lc ? [lc] : [lc, cap]; }
+async function newsSearch(env, terms, days, limit) {
+  if (!env.TENGSL || !terms || !terms.length) return [];
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const vars = [...new Set(terms.flatMap(_searchVariants))].slice(0, 60);
+  if (!vars.length) return [];
+  const clauses = vars.map(() => 'body LIKE ?').join(' OR ');
+  const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body FROM news WHERE ts>=? AND (' + clauses + ') ORDER BY ts DESC LIMIT ?')
+    .bind(since, ...vars.map((v) => '%' + v + '%'), Math.min(limit || 500, 4000)).all().catch(() => ({ results: [] }));
+  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title }));
+}
 // /api/frettir?efni=&q=&fjoldi= → { efni, items:[{title,link,date,source}] } (frétta-stika + /frettir/)
 async function frettirHandler(request, env) {
   const url = new URL(request.url);
   const q = url.searchParams.get('q');
   const fjoldi = Math.min(+(url.searchParams.get('fjoldi') || 30) || 30, 60);
-  let items = await newsSince(env, 14, 300);
-  if (!items.length) items = await fetchNews();   // þrautavari meðan safn er að fyllast
-  if (q) { const terms = String(q).toLowerCase().split(',').map((s) => s.trim()).filter(Boolean); items = items.filter((n) => terms.some((t) => n.title.toLowerCase().includes(t))); }
+  let items;
+  if (q) { items = await newsSearch(env, String(q).split(',').map((s) => s.trim()).filter((s) => s.length >= 3), 366, fjoldi); }   // fyrirtækja-fréttir: allt árið
+  else { items = await newsSince(env, 14, 300); if (!items.length) items = await fetchNews(); }
   return _fjson({ efni: url.searchParams.get('efni') || 'allt', items: items.slice(0, fjoldi).map((n) => ({ title: n.title, link: n.url, date: n.date, source: n.source })) }, 600);
 }
 // Léttur íslenskur tónn-lexíkon (fyrirtækja-umfjöllun). Ekki AI — nægir fyrir grænt/rautt merki.
@@ -3413,9 +3426,8 @@ async function firmaHandler(request, env) {
   const q = String(url.searchParams.get('q') || '').trim();
   const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);
   if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 1800);
-  const terms = q.toLowerCase().split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
-  const all = await newsSince(env, days, 2000);
-  const items = all.filter((nw) => { const hay = (nw.body || nw.title).toLowerCase(); return terms.some((t) => hay.includes(t)); });
+  const terms = q.split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
+  const items = await newsSearch(env, terms, days, 800);   // SQL-leit í öllu safninu (heilt ár)
   let pos = 0, neg = 0;
   for (const it of items) { it._t = _tone(it.title); if (it._t > 0) pos++; else if (it._t < 0) neg++; }
   const scored = items.length > 0;
@@ -3436,7 +3448,7 @@ function _entCos(list) {   // [{n,a:[...]}] → [{name, al:[lágstafir≥3]}]
   return cos;
 }
 async function _graphCompute(env, cos, days) {   // co-occurrence í frétta-body → { nodes, links }
-  const all = await newsSince(env, days, 2000);
+  const all = await newsSearch(env, cos.flatMap((c) => c.al), days, 4000);   // aðeins greinar sem nefna einhvern aðilann
   const counts = {}, pair = {};
   for (const nw of all) {
     const hay = (nw.body || nw.title).toLowerCase();
@@ -3468,7 +3480,7 @@ async function agendaHandler(request, env) {
   const days = Math.min(365, Math.max(28, +(body.days || 180) || 180));
   const cos = _entCos(body.topics);
   if (!cos.length) return _fjson({ ready: true, topics: [], weekKeys: [] }, 1800);
-  const all = await newsSince(env, days, 2000);
+  const all = await newsSearch(env, cos.flatMap((c) => c.al), days, 4000);   // aðeins greinar sem nefna eitthvert þema
   const now = Math.floor(Date.now() / 1000), cut30 = now - 30 * 86400, cut60 = now - 60 * 86400;
   const wk = {}, r30 = {}, p30 = {}, tot = {}, allWeeks = {};
   for (const nw of all) {
@@ -3489,18 +3501,19 @@ async function agendaHandler(request, env) {
 }
 // /api/yearreview → {ready,year,total,scored,months,bySource} (nær aftur til upphafs safnsins; vex með tíma)
 async function yearreviewHandler(request, env) {
-  const all = await newsSince(env, 366, 2000);
-  const mo = {}, src = {}; let total = 0, scored = 0;
-  for (const nw of all) {
-    const k = nw.date.slice(0, 7);
-    const m = (mo[k] = mo[k] || { m: k, n: 0, ss: 0, sn: 0 });
-    m.n++; total++; scored++;
-    m.ss += _tone(nw.body || nw.title); m.sn++;
-    src[nw.source] = (src[nw.source] || 0) + 1;
-  }
-  const months = Object.values(mo).sort((a, b) => a.m < b.m ? -1 : 1).map((m) => ({ m: m.m, n: m.n, scored: m.sn, idx: m.sn ? Math.round(m.ss / m.sn * 20) : 0 }));
-  const bySource = Object.entries(src).map(([s, n]) => ({ s, n })).sort((a, b) => b.n - a.n);
-  return _fjson({ ready: true, year: 2026, total, scored, months, bySource, best: null, worst: null }, 3600);
+  if (!env.TENGSL) return _fjson({ ready: true, year: 2026, total: 0, months: [], bySource: [] }, 3600);
+  const since = Math.floor(Date.now() / 1000) - 366 * 86400;
+  // Mánaðar-magn + heimildir: SQL-aggregation yfir ALLT safnið (ekki sótt í minni).
+  const moR = (await env.TENGSL.prepare("SELECT strftime('%Y-%m', ts, 'unixepoch') m, COUNT(*) n FROM news WHERE ts>=? GROUP BY m ORDER BY m").bind(since).all().catch(() => ({ results: [] }))).results || [];
+  const srcR = (await env.TENGSL.prepare('SELECT source, COUNT(*) n FROM news WHERE ts>=? GROUP BY source ORDER BY n DESC LIMIT 12').bind(since).all().catch(() => ({ results: [] }))).results || [];
+  const total = moR.reduce((s, x) => s + x.n, 0);
+  // Tónn: reiknaður úr úrtaki (nýjustu 6000) → mánaðar-nálgun (eldri mánuðir fá magn en hlutlausan tón).
+  const sample = await newsSince(env, 366, 6000);
+  const tone = {};
+  for (const nw of sample) { const k = nw.date.slice(0, 7); const b = (tone[k] = tone[k] || { s: 0, n: 0 }); b.s += _tone(nw.body || nw.title); b.n++; }
+  const months = moR.map((x) => { const t = tone[x.m]; return { m: x.m, n: x.n, scored: t ? t.n : 0, idx: (t && t.n) ? Math.round(t.s / t.n * 20) : 0 }; });
+  const bySource = srcR.map((x) => ({ s: x.source, n: x.n }));
+  return _fjson({ ready: true, year: 2026, total, scored: total, months, bySource, best: null, worst: null }, 3600);
 }
 // /api/topwords?days= → {ready,words:[{w,n}]} — algengustu orð í fyrirsögnum (Í umræðunni)
 const _STOP = new Set('eftir verður vegna fyrir með milli þegar aðeins mikið einnig þeirra hafði mundi verið meðal komið gæti þeim þessi þetta þessa hvað þarna síðan höfðu einn hafa munu ekki þess sína sínum sinni yfir undir gegn þrátt gerir enginn allir aðrir öllum sagði kemur komu koma nýtt nýja fram fékk fara farið meira miklu margir margar mjög allt öllu þau þær þeir þar þangað þaðan segir gera'.split(' '));
