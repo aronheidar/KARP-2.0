@@ -619,7 +619,20 @@ async function main() {
   const pub = path.join(__dirname, '..', 'web', 'public', 'gogn');
   fs.mkdirSync(pub, { recursive: true });
   fs.writeFileSync(path.join(pub, 'frettavel.json'), JSON.stringify(out));
+  // Varanlegt safn (500 nýjustu, ber `facts`) fyrir sér-fréttasíður — permalink /frettavel/<id>/ hverfur EKKI
+  // þótt frétt detti úr forsíðu-straumnum (feed-cap). facts → „Aðferð Karp" á article-síðunni.
+  const arch0 = (J('frettavel_archive.json') || {}).items || [];
+  // Safnið = birtar fréttir dagsins (m/facts) → allur straumurinn (items, þ.m.t. eldri) → fyrra safn. Dedup á id
+  // svo HVER frétt á forsíðunni eigi sér article-síðu (ekkert 404), og eldri fréttir haldist sem permalink.
+  const archById = new Map();
+  for (const e of published) archById.set(e.id, { id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, facts: e.facts || undefined });
+  for (const it of items) if (!archById.has(it.id)) archById.set(it.id, it);
+  for (const a of arch0) if (!archById.has(a.id)) archById.set(a.id, a);
+  const archItems = [...archById.values()].slice(0, 500);
+  const archive = JSON.stringify({ updated: new Date().toISOString(), n: archItems.length, items: archItems });
+  fs.writeFileSync(G('frettavel_archive.json'), archive);
+  fs.writeFileSync(path.join(pub, 'frettavel_archive.json'), archive);
   fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'frettavel.xml'), rss(feed));
-  console.log('Skrifað: frettavel.json (' + items.length + ' fréttir) + frettavel.xml (RSS)');
+  console.log('Skrifað: frettavel.json (' + feed.length + ') + frettavel_archive.json (' + archItems.length + ') + frettavel.xml (RSS)');
 }
 main().catch((e) => { console.error(e); process.exit(1); });

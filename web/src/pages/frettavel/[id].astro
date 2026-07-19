@@ -1,0 +1,122 @@
+---
+// 🗞️ Sér-fréttasíða Fréttavélarinnar — varanlegur permalink /frettavel/<id>/ (SSG).
+// getStaticPaths yfir varanlegt safn (frettavel_archive.json, 500 nýjustu). SEO-vædd:
+// NewsArticle + Dataset JSON-LD, canonical, OG-mynd (flokka-mynd) → indexeranleg + tilvitnanleg.
+import Layout from '../../layouts/Layout.astro';
+import ARCH from '@gogn/frettavel_archive.json';
+import { catOf, asciiId, imgPath, artHref, dIS, spark } from '../../lib/frettavel.mjs';
+
+export function getStaticPaths() {
+  const items = (ARCH.items || []);
+  const seen = new Set();
+  return items.filter((it) => { const s = asciiId(it.id); if (!s || seen.has(s)) return false; seen.add(s); return true; })
+    .map((it) => ({ params: { id: asciiId(it.id) }, props: { it, rel: items.filter((r) => r.type === it.type && r.id !== it.id).slice(0, 4) } }));
+}
+const { it, rel } = Astro.props;
+const cat = catOf(it.type);
+const url = 'https://karp.is' + artHref(it.id);
+const img = 'https://karp.is' + imgPath(it.type);
+const srcAbs = (it.url || '').startsWith('http') ? it.url : 'https://karp.is' + (it.url || '/frettavel/');
+const sp = spark(it.spark, 640, 150);
+const dags = dIS(it.date);
+const desc = String(it.text || '').slice(0, 200);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org', '@type': 'NewsArticle', headline: it.title, description: desc,
+    datePublished: it.date + 'T08:00:00+00:00', dateModified: it.date + 'T08:00:00+00:00',
+    image: [img], mainEntityOfPage: url, url, articleSection: cat.label, isBasedOn: srcAbs,
+    author: { '@type': 'Organization', name: 'Fréttavél Karp', url: 'https://karp.is/frettavel/' },
+    publisher: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is', logo: { '@type': 'ImageObject', url: 'https://karp.is/og-karp.png' } },
+  },
+  { '@context': 'https://schema.org', '@type': 'Dataset', name: cat.label + ' — ' + it.title, description: cat.rule, creator: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is' }, url: srcAbs, isAccessibleForFree: true, license: 'https://karp.is/frettavel/' },
+];
+---
+<Layout title={`${it.title} | Fréttavél Karp`} description={desc} canonical={url} ogTitle={it.title} ogType="article" ogImage={img} jsonLd={jsonLd}>
+  <main data-pg="fv-art">
+    <a class="fv-back" href="/frettavel/">← Fréttavélin</a>
+    <article class="fv-art" style={`--c:${cat.color}`}>
+      <div class="fv-hero">
+        <span class="fv-hero-emoji">{cat.emoji}</span>
+        <img class="fv-hero-img" src={imgPath(it.type)} alt={`Myndskreyting — ${cat.label}`} width="1200" height="630" loading="eager" onerror="this.style.display='none'" />
+        <span class="fv-hero-badge">{cat.emoji} {cat.label}</span>
+      </div>
+
+      <div class="fv-meta"><span class="fv-by">Fréttavél Karp</span><span class="fv-dot">·</span><time datetime={it.date}>{dags}</time><span class="fv-dot">·</span><span>{it.ai ? '🤖 vélskrifað (gervigreind)' : '⚙️ sniðmátstexti úr gögnum'}</span></div>
+      <h1>{it.title}</h1>
+      <p class="fv-body">{it.text}</p>
+
+      {sp && (
+        <figure class="fv-chart">
+          <svg viewBox={`0 0 ${sp.w} ${sp.h}`} width="100%" style={`color:${cat.color}`} aria-hidden="true">
+            <polyline points={sp.area} fill="currentColor" opacity="0.12" stroke="none" />
+            <polyline points={sp.pts} fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+            <circle cx={sp.ex} cy={sp.ey} r="3.4" fill="currentColor" />
+          </svg>
+          <figcaption>Gagnaröð Karp · heimild: {cat.heimild}</figcaption>
+        </figure>
+      )}
+
+      <div class="fv-method">
+        <div class="fv-method-h">🔍 Aðferð Karp</div>
+        <p>{cat.rule}</p>
+        <a class="fv-src" href={it.url}>Skoða frumgögnin á {cat.heimild} →</a>
+      </div>
+
+      <div class="fv-cite">
+        <div class="fv-cite-h">📌 Vitna í þessa frétt</div>
+        <p class="fv-cite-t">Fréttavél Karp, „{it.title}", {dags}. {url}</p>
+      </div>
+    </article>
+
+    {rel.length > 0 && (
+      <section class="fv-rel">
+        <h2>Fleiri {cat.label.toLowerCase()}-fréttir</h2>
+        <div class="fv-rel-list">
+          {rel.map((r) => (
+            <a class="fv-rel-card" href={artHref(r.id)} style={`border-left-color:${catOf(r.type).color}`}>
+              <span class="fv-rel-emoji">{catOf(r.type).emoji}</span><span class="fv-rel-t">{r.title}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <p class="fv-foot">Sjálfvirk gagnafrétt skrifuð úr opinberum gögnum · <a href="/frettavel/">allar fréttir</a> · <a href="/frettavel.xml">RSS</a>. Engin mannleg ritstjórn — reglan sem kveikti fréttina er birt að ofan svo hægt sé að sannreyna hana.</p>
+  </main>
+
+  <style>
+    main[data-pg="fv-art"] { max-width: 720px; margin: 0 auto; padding: 30px 20px 72px; }
+    .fv-back { display: inline-block; font-size: 13px; color: var(--muted); text-decoration: none; margin-bottom: 14px; }
+    .fv-back:hover { color: var(--gold); }
+    .fv-art { --c: #8fa0b8; }
+    .fv-hero { position: relative; aspect-ratio: 1200 / 500; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, var(--surface)), var(--surface)); border: 1px solid var(--line); }
+    .fv-hero-emoji { font-size: clamp(46px, 12vw, 80px); opacity: .5; }
+    .fv-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .fv-hero-badge { position: absolute; left: 12px; bottom: 12px; z-index: 2; font-size: 12px; font-weight: 700; color: #fff;
+      background: color-mix(in srgb, var(--c) 82%, #000); padding: 5px 12px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.3); }
+    .fv-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; font-size: 12.5px; color: var(--faint); margin: 16px 0 6px; }
+    .fv-meta .fv-by { color: var(--c); font-weight: 700; }
+    .fv-meta .fv-dot { opacity: .5; }
+    main[data-pg="fv-art"] h1 { font-size: clamp(24px, 5vw, 33px); line-height: 1.18; letter-spacing: -.01em; margin: 4px 0 14px; color: var(--ink); }
+    .fv-body { font-size: 17px; line-height: 1.7; color: var(--ink); margin: 0 0 20px; }
+    .fv-chart { margin: 0 0 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 10px; }
+    .fv-chart svg { display: block; max-width: 640px; height: auto; }
+    .fv-chart figcaption { font-size: 11.5px; color: var(--faint); margin-top: 6px; }
+    .fv-method, .fv-cite { border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 0 0 14px; background: var(--panel); }
+    .fv-method-h, .fv-cite-h { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--c); margin-bottom: 6px; }
+    .fv-method p { font-size: 14px; color: var(--ink); margin: 0 0 8px; line-height: 1.55; }
+    .fv-src { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: 600; }
+    .fv-src:hover { text-decoration: underline; }
+    .fv-cite-t { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.55; word-break: break-word; font-family: ui-monospace, monospace; }
+    .fv-rel { margin-top: 30px; }
+    main[data-pg="fv-art"] .fv-rel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); margin: 0 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    .fv-rel-list { display: flex; flex-direction: column; gap: 8px; }
+    .fv-rel-card { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 10px; padding: 10px 13px; text-decoration: none; }
+    .fv-rel-card:hover { border-color: var(--gold); }
+    .fv-rel-emoji { flex: none; font-size: 16px; }
+    .fv-rel-t { font-size: 13.5px; color: var(--ink); line-height: 1.35; }
+    .fv-foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; line-height: 1.6; }
+    .fv-foot a { color: var(--muted); }
+  </style>
+</Layout>
