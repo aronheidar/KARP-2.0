@@ -1,0 +1,50 @@
+# frettavel-now — handvirk endurmyndun Fréttavélarinnar (AÐEINS fréttavélin, ekki þunga gagnapípan).
+# Notað þegar maður vill FERSKAR fréttir strax (nýir skynjarar + AI-texti) án þess að bíða eftir
+# daglegu refresh-data (sem sækir þungar ytri veitur og tekur 20–30 mín). Les gögnin sem eru þegar
+# í repo (fersk frá síðustu refresh-data), keyrir build_frettavel með ANTHROPIC-lykli → AI-texti,
+# og committar frettavel*-skrárnar → Cloudflare endurbyggir síðuna (fréttir + nýjar flokkamyndir).
+name: frettavel-now
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frettavel-now
+  cancel-in-progress: false
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Deps (npm — inniheldur @anthropic-ai/sdk)
+        run: npm ci
+      - name: „Sama fyrirsvar" aggregate úr D1 (valfrjálst; nafnlaust)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node skriptur/export_tengsl_fonix.mjs || true
+      - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node skriptur/build_frettavel.js || true
+      - name: Commit + push fréttavél
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A gogn web/public/gogn web/public/frettavel.xml
+          if git diff --cached --quiet; then
+            echo "• Engar breytingar á fréttavélinni."
+          else
+            git commit -m "Fréttavél: handvirk endurmyndun (frettavel-now, AI-texti)"
+            git push
+            echo "• Fréttavélin endurmynduð og ýtt."
+          fi
