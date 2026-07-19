@@ -595,6 +595,58 @@ function detect(state) {
     }
   }
 
+  // ══ BYLGJA 1 (LOTA 33): kross-tengingar + innsýn ══
+  const birW = J('birgjar.json');
+  const lbW = J('logbirting.json');
+  // #9 Hvert fer ríkisféð? — mánaðarlegt yfirlit greiðslna ríkisins (heild + stærstu birgjar)
+  if (birW && Array.isArray(birW.months) && birW.months.length && birW.vendorDetail) {
+    const li = birW.months.length - 1, mM = birW.months[li];
+    const top = Object.entries(birW.vendorDetail).map(([n, d]) => ({ n, v: (d.m || [])[li] || 0 })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v).slice(0, 3);
+    if (top.length >= 3 && mM && mM.total) {
+      ev.push({ id: `rikisfe-${mM.m}`, type: 'rikisfe', facts: { manudur: mM.m, heildargreidslur: Math.round(mM.total), faerslur: mM.n, staerstu: top.map((t) => ({ birgir: t.n, upphaed: Math.round(t.v) })) }, url: '/birgjar/',
+        title: `Ríkið greiddi ${kr(Math.round(mM.total / 1e6))} m.kr. til birgja í ${manIS(mM.m)}`,
+        text: `Greiðslur ríkisins til birgja námu ${kr(Math.round(mM.total))} kr. í ${manIS(mM.m)} samkvæmt opnum reikningum ríkisins. Stærstu birgjarnir: ${top.map((t) => t.n + ' (' + kr(Math.round(t.v)) + ' kr.)').join(', ')}.` });
+    }
+  }
+  // #1 ⭐ Ríkisbirgir í gjaldþrotameðferð — KROSS-TENGING: birgjar (nafn) × logbirting (kt/nafn). Watchdog.
+  if (birW && birW.vendorDetail && lbW && lbW.byKt) {
+    const norm = (s) => String(s).toLowerCase().replace(/\s+(ehf|hf|ohf|slhf|sf|ses)\.?$/g, '').replace(/[^a-zá-öþæð0-9]/g, '');
+    const gjald = {};
+    for (const [kt, o] of Object.entries(lbW.byKt)) { const g = (o.notices || []).find((n) => (n.type === 'gjaldthrot_beidni' || n.type === 'skiptabeidni') && RECENT(n.date, 150)); if (g) gjald[norm(o.name)] = { name: o.name, kt, date: g.date }; }
+    Object.entries(birW.vendorDetail).map(([n, d]) => ({ n, tot: (d.m || []).reduce((a, b) => a + (b || 0), 0), g: gjald[norm(n)] })).filter((x) => x.g && x.tot >= 20000000).sort((a, b) => b.tot - a.tot).slice(0, 2).forEach((x) => {
+      ev.push({ id: `birgirthrot-${x.g.kt}`, type: 'birgirthrot', facts: { birgir: x.n, rikisgreidslur_12man: Math.round(x.tot), gjaldthrot_dags: x.g.date, kt: x.g.kt }, url: '/logbirting/',
+        title: `Ríkisbirgir í gjaldþrotameðferð: ${x.n}`,
+        text: `${x.n} fékk ${kr(Math.round(x.tot))} kr. í greiðslur frá ríkinu síðustu tólf mánuði en er nú kominn í gjaldþrotameðferð samkvæmt Lögbirtingablaðinu (${x.g.date}).` });
+    });
+  }
+  // #17 Ný formennska þingnefndar — diff (þögul frumstilling)
+  const nef = J('nefndir.json');
+  if (Array.isArray(nef)) {
+    const cur = {};
+    nef.forEach((c) => { const f = (c.members || []).find((m) => /formaður/i.test(m.stada || '')); if (c.id) cur[c.id] = { heiti: c.heiti, formadur: f ? f.nafn : null }; });
+    if (state.nefndir) {
+      for (const [id, c] of Object.entries(cur)) {
+        const p = state.nefndir[id];
+        if (p && c.formadur && p.formadur && p.formadur !== c.formadur) {
+          ev.push({ id: `nefnd-${id}-${slug(c.formadur)}`, type: 'nefnd', facts: { nefnd: c.heiti, formadur: c.formadur, fyrri: p.formadur }, url: '/althingi/',
+            title: `${c.formadur} nýr formaður ${c.heiti}`,
+            text: `${c.formadur} er orðinn formaður ${c.heiti} Alþingis samkvæmt uppfærðri nefndaskrá Alþingis. Fyrri formaður var ${p.formadur}.` });
+        }
+      }
+    }
+    state.nefndir = cur;
+  }
+  // #27 Topplisti — verðmætustu opinberu útboð nýlega (kviknar þegar nýtt stærsta útboð birtist)
+  const urW = J('utbod_urslit.json');
+  if (urW && Array.isArray(urW.awards)) {
+    const top = urW.awards.filter((a) => a.cur === 'ISK' && a.value > 0 && RECENT(a.d, 30)).sort((a, b) => b.value - a.value).slice(0, 5);
+    if (top.length >= 3) {
+      ev.push({ id: `toppar-utbod-${top[0].nr}`, type: 'toppar', facts: { flokkur: 'Verðmætustu útboð (30 dagar)', listi: top.map((a) => ({ titill: String(a.t).replace(/^Iceland – /, '').slice(0, 80), kaupandi: a.buyer, sigurvegari: (a.winners || [])[0], verdmaeti: a.value })) }, url: '/utbod/',
+        title: 'Verðmætustu opinberu útboð undanfarið',
+        text: `Stærstu samningar í opinberum útboðum síðustu 30 daga: ${top.slice(0, 3).map((a) => `${(a.winners || [])[0]} — ${kr(Math.round(a.value / 1e6))} m.kr. (${a.buyer})`).join('; ')}.` });
+    }
+  }
+
   return ev;
 }
 
