@@ -66,3 +66,29 @@ Til að ekki birtist alltaf sama myndin á öllum fréttum sama flokks má bæta
 | `fjolmidlar-2.jpg` | *A microphone with press badges, or a newsroom with screens, or a printing press. Media theme, no readable headlines.* |
 | `sjavarutvegur-2.jpg` | *Fishermen hauling nets on deck, or a fish market with crates of cod, or an Icelandic harbour at dawn. Documentary, no faces, no text.* |
 | `annad-2.jpg` | *Abstract data visualization — a bar chart over a subtle map of Iceland, alternate angle. Neutral, no text.* |
+
+## Sérstakar myndir fyrir bylgju-tegundir (7 nýir flokkar)
+
+Þessar frétta-tegundir (Bylgja 1–3) lánuðu áður mynd frá öðrum flokki. Nú fá þær **sérstakan flokk** (eigin `img`-slug). Þar til myndin er komin sýnir vélin sjálfkrafa upprunalegu láns-myndina (engin afturför). Sömu tæknikröfur og að ofan (1200×630 JPG, hlutlaust, engin texti/andlit/lógó, íslenskt/norrænt yfirbragð, almenn flokka-mynd).
+
+| Skrá | Flokkur (frétta-tegund) | Prompt (enska) |
+|---|---|---|
+| `graent.jpg` | 🔋 Grænar tölur (rafbílar/BEV) | *An electric-car charging station with a plug connected to a car, or a row of EVs at chargers in an Icelandic setting. Clean green-energy theme, soft daylight, no text, no faces, no readable logos.* |
+| `leiga.jpg` | 🔑 Leiga (leiguverð) | *A rental-housing theme — an Icelandic apartment building with a "for rent" sign, or a set of keys handed over a lease document. Neutral daylight, no readable text on signage, no faces.* |
+| `bygging.jpg` | 🏗️ Byggingarleyfi (atvinnuhúsnæði) | *A newly built commercial building — a modern storefront, restaurant or office facade with scaffolding. Editorial daylight, no readable signage, no faces, no logos.* |
+| `sveitfe.jpg` | 🏛️ Sveitarfjármál (skuldir/íbúa) | *A municipal-finance theme — a Nordic town hall beside a calculator and ledgers, or coins stacked in front of a town hall. Neutral, no text, no faces.* |
+| `gengi.jpg` | 💱 Gengi krónu | *Icelandic króna banknotes and coins beside a blurred currency-exchange board, or króna notes fanned out. Financial theme, no readable text, no faces.* |
+| `ees.jpg` | 🇪🇺 Evrópusambandið / EES | *The European Union flag (ring of gold stars on blue) alongside the Icelandic flag, or an EU-stars motif over a document. Diplomatic/regulatory theme, no text, no faces.* |
+| `samanburdur.jpg` | 🌍 Ísland í samhengi (Norðurlönd) | *A comparison theme — skylines of Nordic capitals side by side, or a world map with Reykjavík highlighted among Nordic cities. Neutral editorial, no text.* |
+
+### Sett 2 — `<skrá>-2.jpg` (önnur sena, sami flokkur)
+
+| Skrá | Prompt (enska) |
+|---|---|
+| `graent-2.jpg` | *Close-up of an EV charging cable and connector plugged into a car port, or wind turbines / geothermal steam behind a modern electric car. Green-energy theme, no text, no logos.* |
+| `leiga-2.jpg` | *Interior of an empty rental apartment with bare walls and a window, or keys resting on a lease contract (close-up). Muted, editorial, no readable text, no faces.* |
+| `bygging-2.jpg` | *Architectural blueprints and a hard hat on a table at a commercial building site, or a crane over a half-finished commercial building. No text, no faces.* |
+| `sveitfe-2.jpg` | *An overhead view of an Icelandic town with budget documents and a calculator, or a piggy bank beside municipal accounts. Muted, no readable text.* |
+| `gengi-2.jpg` | *Close-up of Icelandic króna coins with a faint rising/falling chart line, or a currency-exchange rate display with blurred numbers. Neutral, no logos.* |
+| `ees-2.jpg` | *A row of European flags on poles outside a building, or the EU stars over a gavel/document (regulatory theme). Neutral, no readable text, no faces.* |
+| `samanburdur-2.jpg` | *A shopping basket beside a price/currency comparison motif, or Reykjavík rooftops with an abstract index bar. Muted, no readable text.* |
