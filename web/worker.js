@@ -2643,6 +2643,23 @@ async function rskProxyHandler(request, env) {
   } catch (e) { return new Response('upstream error', { status: 502 }); }
 }
 
+// 📊 Tengslagrunns-tölfræði (gátað: X-Karp-Proxy===RSK_KEY). Aðeins samtölur (engin PII) svo Aron/ég
+// getum fylgst með framvindu crawl-sins hvenær sem er. GET /api/tengsl-stats.
+async function tengslStatsHandler(request, env) {
+  if (!env.RSK_KEY || request.headers.get('X-Karp-Proxy') !== env.RSK_KEY) return new Response('forbidden', { status: 403 });
+  if (!env.TENGSL) return sjson({ error: 'no-d1' });
+  const one = (sql) => env.TENGSL.prepare(sql).first().then((r) => (r ? r.n : null)).catch(() => null);
+  const many = (sql) => env.TENGSL.prepare(sql).all().then((r) => r.results).catch(() => []);
+  const [felog, folk, hlutverk, eign, hlutverk_virk, queue, sweep] = await Promise.all([
+    one('SELECT COUNT(*) n FROM felog'), one('SELECT COUNT(*) n FROM folk'),
+    one('SELECT COUNT(*) n FROM hlutverk'), one('SELECT COUNT(*) n FROM eign'),
+    one('SELECT COUNT(*) n FROM hlutverk WHERE seen_last IS NULL'),
+    many('SELECT status, COUNT(*) n FROM crawl_queue GROUP BY status'),
+    many('SELECT done, COUNT(*) n FROM sweep_state GROUP BY done'),
+  ]);
+  return sjson({ felog, folk, hlutverk, hlutverk_virk, eign, queue, sweep, ts: new Date().toISOString() });
+}
+
 // 🕸️ Landsdekkandi auðgun úr tengslagrunni (D1). Null-þolið: án env.TENGSL → óbreytt.
 // Bætir landsvísu-félögum rót-tengds fólks í onnur[]. Persónu-kt (out.stjornendur[]._kt,
 // server-hlið eingöngu) er notað sem D1-lykill og STRIPPAÐ hér áður en svarið fer út.
@@ -3759,6 +3776,7 @@ export default {
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
     if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
+    if (url.pathname === '/api/tengsl-stats') return tengslStatsHandler(request, env);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
     if (url.pathname === '/api/pay/checkout') return payCheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
