@@ -10,10 +10,10 @@ compatibility_date = "2026-06-29"
 directory = "./dist"
 binding = "ASSETS"
 
-# F6: viku-digest (leysir WP-cron karp_weekly_digest af hólmi). Mánudaga 08:10 UTC.
-# scheduled()-handler í worker.js les user_prefs digest=on + sendir með Gmail.
+# Cron: viku-digest (mánud. 08:10 UTC) + frétta-innlestur í D1-safn (á 3 klst fresti, F7).
+# scheduled()-handler í worker.js greinir á milli á event.cron.
 [triggers]
-crons = ["10 8 * * 1"]
+crons = ["10 8 * * 1", "0 */3 * * *"]
 
 # Tengslagrunnur (D1) — landsdekkandi eigenda-/stjórnendagrunnur.
 # ✅ VIRKT 2026-07-12 (Aron bjó til grunninn). Kóðinn er null-þolinn: þótt grunnurinn

@@ -17,7 +17,8 @@ import SJODIR from '@gogn/sjodir.json';
 // eyjan endurhleður svo í vafra (CORS er opið fyrir karp.is). Þolir bilun.
 let LIVEMK = null;
 try {
-  const r = await fetch('https://wp.karp.is/wp-json/karp/v1/markadir');
+  // Byggingartími (Node): alger slóð á deployaðan worker. Vafra-eyjan endurhleður svo relatíft.
+  const r = await fetch('https://karp.is/api/markadir');
   if (r.ok) LIVEMK = await r.json();
 } catch (e) { LIVEMK = null; }
 const FX = (LIVEMK && LIVEMK.fx) || [];
@@ -395,7 +396,7 @@ const jsonLd = {
           })
           .catch(() => {});
         // Lifandi fyrirsagnir um félagið (frettir-endpoint, {items}-lögun!)
-        fetch('https://wp.karp.is/wp-json/karp/v1/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
+        fetch('/api/frettir?q=' + encodeURIComponent(d.co || d.name) + '&days=90')
           .then((r) => (r.ok ? r.json() : null))
           .then((res) => {
             const lv = $id('stk-live');
@@ -531,7 +532,7 @@ const jsonLd = {
       const grid = document.getElementById('fx-grid');
       if (!grid || grid.dataset.live) return;
       grid.dataset.live = '1';
-      fetch('https://wp.karp.is/wp-json/karp/v1/markadir')
+      fetch('/api/markadir')
         .then((r) => (r.ok ? r.json() : null))
         .then((mk) => {
           if (!mk) return;

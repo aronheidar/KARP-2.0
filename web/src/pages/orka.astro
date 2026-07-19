@@ -139,7 +139,7 @@ const jsonLd = {
     function initLive() {
       const box = document.getElementById('orka-live');
       if (!box || box.dataset.done) return;
-      fetch('https://wp.karp.is/wp-json/karp/v1/orka')
+      fetch('/api/orka')
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const mw = (v) => (v == null ? null : Math.round(v));

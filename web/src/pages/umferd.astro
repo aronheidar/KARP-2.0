@@ -110,7 +110,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
     function initVeg() {
       const box = document.getElementById('veg-live');
       if (!box || box.dataset.done) return;
-      fetch('https://wp.karp.is/wp-json/karp/v1/umferd')
+      fetch('/api/umferd')
         .then((r) => (r.ok ? r.json() : Promise.reject()))
         .then((d) => {
           const th = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');

@@ -380,7 +380,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const rest = arr.slice(3, 30);
       el.innerHTML = first + (rest.length ? `<details class="btm-more"><summary>Sýna fleiri fyrirsagnir (${rest.length})</summary>${rest.map(row).join('')}</details>` : '');
     };
-    const API = 'https://wp.karp.is/wp-json/karp/v1';
+    const API = '/api';
     function withEcharts(fn) {
       if (window.echarts) { fn(); return; }
       let s = document.getElementById('echarts-cdn');

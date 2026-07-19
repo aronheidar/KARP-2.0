@@ -618,7 +618,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const chip = document.getElementById('fs-ar-media'); if (!chip) return;
       const v = chip.querySelector('.fs-ar-v');
       try {
-        const fj = await fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(fsStutt(f.nafn)) + '&days=365').then((r) => (r.ok ? r.json() : null));
+        const fj = await fetch('/api/firma?q=' + encodeURIComponent(fsStutt(f.nafn)) + '&days=365').then((r) => (r.ok ? r.json() : null));
         if (!fj || !fj.ready) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Ekki í boði'; return; }
         const se = fj.sentiment || {}, tot = fj.total || 0;
         if (!tot) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin umfjöllun'; return; }
@@ -1609,7 +1609,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 if (w) el.classList.add('on');
               }).catch(() => {});
               // 📰 umfjöllun fjölmiðla (fjölmiðlavakt Karp, sl. 180 dagar) — fallback ef veitan svarar ekki
-              fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(fsStutt(d.felag.nafn)) + '&days=180').then((r) => (r.ok ? r.json() : null)).then((fj) => {
+              fetch('/api/firma?q=' + encodeURIComponent(fsStutt(d.felag.nafn)) + '&days=180').then((r) => (r.ok ? r.json() : null)).then((fj) => {
                 const el = document.getElementById('fs-umfj');
                 if (!el) return;
                 const se = fj && fj.ready && fj.sentiment;

@@ -709,7 +709,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
       el.dataset.done = '1';
       const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       const safe = (u) => (/^https?:/i.test(String(u || '')) ? String(u) : '#');
-      fetch('https://wp.karp.is/wp-json/karp/v1/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
+      fetch('/api/firma?q=' + encodeURIComponent(MPNAME) + '&days=180')
         .then((r) => (r.ok ? r.json() : null))
         .then((f) => {
           if (!f || !f.ready || !f.total) { el.innerHTML = '<p class="umf-none">Lítil umfjöllun fannst síðustu 6 mánuði (leitað eftir fullu nafni).</p>'; return; }

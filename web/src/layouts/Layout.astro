@@ -446,7 +446,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
             .catch(() => { nl.innerHTML = '<div class="news-empty">Erlendi straumurinn svarar ekki í augnablikinu.</div>'; });
           return;
         }
-        fetch('https://wp.karp.is/wp-json/karp/v1/frettir' + (newsEfni ? '?efni=' + encodeURIComponent(newsEfni) : ''))
+        fetch('/api/frettir' + (newsEfni ? '?efni=' + encodeURIComponent(newsEfni) : ''))
           .then((r) => (r.ok ? r.json() : []))
           // Endapunkturinn skilar {efni, cached, items:[...]} — EKKI beinu fylki.
           .then((d) => { newsCache[newsEfni] = Array.isArray(d) ? d : (d && d.items) || []; nl.innerHTML = renderNews(newsCache[newsEfni]); })

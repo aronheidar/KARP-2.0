@@ -142,7 +142,7 @@ function injectChipCss() {
 // endurspeglar ?redirect_to= í formið og karp-user.php leyfir karp.is-hýsla
 // (allowed_redirect_hosts) svo wp_safe_redirect strípar ekki cross-host slóðina.
 export function loginHref(returnTo) {
-  const base = ((typeof window !== 'undefined' && window.KARP_USER && window.KARP_USER.loginUrl) || 'https://wp.karp.is/login/');
+  const base = ((typeof window !== 'undefined' && window.KARP_USER && window.KARP_USER.loginUrl) || 'https://karp.is/innskra/');
   const to = returnTo || (typeof location !== 'undefined' ? location.href : 'https://karp.is/');
   return base + (base.indexOf('?') > -1 ? '&' : '?') + 'redirect_to=' + encodeURIComponent(to);
 }
@@ -151,7 +151,7 @@ export function loginHref(returnTo) {
 export function renderChip(el, u) {
   injectChipCss();
   u = u || window.KARP_USER || { loggedIn: false };
-  const site = 'https://wp.karp.is'; // innskráningarsíðurnar búa á WP (Leið A)
+  const site = 'https://karp.is'; // innskráningar-/nýskráningarsíður á Cloudflare (F3)
   if (u.loggedIn) {
     const av = u.avatar ? `<img class="kc-av" src="${esc(u.avatar)}" alt="" width="26" height="26">`
                         : `<span class="kc-av kc-ini">${esc((u.name || '?').charAt(0))}</span>`;

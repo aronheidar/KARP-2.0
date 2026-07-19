@@ -1263,7 +1263,10 @@ async function payCallbackHandler(request, env, ctx) {
   // ✓ Greiðsla staðfest → skrá entitlement í WP (server-til-server m/ sameiginlegu leyndarmáli).
   const uid = u.searchParams.get('u') || '';
   const key = u.searchParams.get('k') || '';
-  if (uid && key && env.KARP_GRANT_SECRET) {
+  if (uid && key && env.TENGSL) {   // F7: grant→D1 á kaupanda-uid (leysir WP af hólmi)
+    ctx.waitUntil(env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)').bind(+uid, key, Math.floor(Date.now() / 1000)).run().catch(() => {}));
+  }
+  if (uid && key && env.KARP_GRANT_SECRET) {   // WP-varaleið meðan hún tórir
     ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ userid: +uid, key, orderid, secret: env.KARP_GRANT_SECRET }),
@@ -1648,10 +1651,9 @@ async function stakConfirmHandler(request, env, ctx) {
   // endurtilraunir/ný checkout → tvírukkunar-vörn þótt edge-cache gleymist (rýni-atriði #2).
   // Vefkrókur klippir '|…' af fyrir grant-lykilinn.
   const refStr = key + '|' + kt;
-  const granted = async (uuid) => {   // grant á WP — idempotent á lykli WP-megin; vefkrókurinn er varaleið
-    if (!env.KARP_GRANT_SECRET) return;
-    // userid = INNSKRÁÐI kaupandinn → skýrslan lendir á réttum aðgangi þótt fleiri deili kt
-    // (kt-árekstur sannaður 11.7: sama kt á tveimur aðgöngum → get_users valdi rangan); kt = varaleið
+  const granted = async (uuid) => {   // F7: grant→D1 (leysir WP af hólmi) á INNSKRÁÐA kaupandann (uid) — idempotent á user+key.
+    if (env.TENGSL && uid) await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)').bind(+uid, key, Math.floor(Date.now() / 1000)).run().catch(() => {});
+    if (!env.KARP_GRANT_SECRET) return;   // WP-varaleið meðan hún tórir (fellur út þegar WP fer)
     await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
       method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
       body: JSON.stringify({ userid: +uid, kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
@@ -1780,8 +1782,13 @@ async function sub2ConfirmHandler(request, env, ctx) {
     return u;
   };
   const virk = (st) => /active|trial|current/i.test(String(st || '')) && !/cancel|fail|expire|inactive/i.test(String(st || ''));
-  const granted = async (cid, until) => {   // grant STRAX server-megin (ekki beðið eftir vefkrók); userid → réttur aðgangur
-    if (!env.KARP_GRANT_SECRET) return;
+  const granted = async (cid, until) => {   // F7: grant STRAX á D1 (leysir WP af hólmi) á kaupanda-uid — idempotent.
+    if (env.TENGSL && uid) {
+      const now = Math.floor(Date.now() / 1000);
+      if (isTier) await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_askell=?, tier_trial_used=1, updated=? WHERE id=?').bind(slug, until, String(cid), now, +uid).run().catch(() => {});
+      else await env.TENGSL.prepare('INSERT INTO sub_service (user_id, service, until, askell_id, trial_used) VALUES (?,?,?,?,1) ON CONFLICT(user_id, service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id, trial_used=1').bind(+uid, slug, until, String(cid)).run().catch(() => {});
+    }
+    if (!env.KARP_GRANT_SECRET) return;   // WP-varaleið meðan hún tórir
     await fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
       method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
       body: JSON.stringify({ userid: +uid, kt, ...(isTier ? { tier: slug } : { service: slug }), until, askellId: String(cid), ref: 'sub2_' + String(cid) + '_' + until, secret: env.KARP_GRANT_SECRET }),
@@ -1871,7 +1878,6 @@ async function askellConfigHandler(request, env) {
   // ?fixgrant=1: viðgerð — endurkeyra grant f. SETTLED V1-greiðslur (lykill+kaupanda-kt úr reference).
   // Örugg: veitir aðeins það sem sannanlega var greitt; WP-grant er idempotent á lykli. Skilar WP-svörum.
   if (uq.get('fixgrant')) {
-    if (!env.KARP_GRANT_SECRET) return sjson({ error: 'nosecret' });
     const r = await fetch('https://askell.is/api/payments/?page_size=15', { headers: H });
     const d = await r.json().catch(() => null);
     const list = Array.isArray(d) ? d : ((d && d.results) || []);
@@ -1881,11 +1887,8 @@ async function askellConfigHandler(request, env) {
       const [lykill, ktRaw] = String(x.reference || '').split('|');
       const kt = String(ktRaw || '').replace(/\D/g, '');
       if (!/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(lykill || '') || kt.length !== 10) continue;
-      const g = await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
-        method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-        body: JSON.stringify({ kt, key: lykill, orderid: 'askv1_' + String(x.uuid || ''), secret: env.KARP_GRANT_SECRET }),
-      }).catch(() => null);
-      ut.push({ uuid: String(x.uuid || '').slice(0, 8), lykill: lykill.replace(/\d{6}(\d{4})/, '……$1'), wp_status: g ? g.status : 0, wp_svar: g ? (await g.text().catch(() => '')).slice(0, 200) : 'net-villa' });
+      await grantReportD1(env, kt, lykill);   // F7: grant→D1 (um kt→uid)
+      ut.push({ uuid: String(x.uuid || '').slice(0, 8), lykill: lykill.replace(/\d{6}(\d{4})/, '……$1'), d1: 'grantað' });
     }
     return sjson({ n: ut.length, grants: ut });
   }
@@ -3182,6 +3185,12 @@ async function userDataHandler(request, env) {
     if (!u || u.is_admin !== 1) return _ajson({ ok: false, error: 'admin' });
     return _ajson(await digestRun(env));
   }
+  // Handvirkur frétta-innlestur (admin) — prime-ar/uppfærir news-safnið; cron keyrir á 3 klst fresti.
+  if (path === '/news-ingest' && method === 'POST') {
+    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u || u.is_admin !== 1) return _ajson({ ok: false, error: 'admin' });
+    return _ajson(await newsIngest(env));
+  }
 
   return _ajson({ ok: false, error: 'unknown' });
 }
@@ -3239,7 +3248,7 @@ async function digestShared(env) {
     _dget(env, '/gogn/spyrdu_context.json'), _dget(env, '/gogn/kaupskra_nyjast.json'),
     _dget(env, '/gogn/althingi.json'), _dget(env, '/gogn/utbod.json'),
     _dget(env, '/gogn/frettavel.json'), _dget(env, '/gogn/vorumerki_nyskrad.json'),
-    fetchNews(),   // íslenskir fjölmiðlar (RSS, síðustu 7 daga)
+    newsSince(env, 7, 500).then((r) => r.length ? r : fetchNews()),   // D1 frétta-safn (þrautavari: lifandi RSS)
   ]);
   if (ctx && ctx.text) for (const line of String(ctx.text).split('\n')) for (const k of ['VERÐBÓLGA', 'GENGI', 'STÝRIVEXTIR']) if (line.indexOf(k) === 0) sh.tolur.push(line.trim());
   for (const x of ((ks && ks.rows) || [])) if (x && String(x.d || '') >= wkDate) sh.kaup7.push(x);
@@ -3352,10 +3361,150 @@ async function burstStats(env) {
   return { available: true, today: { pageviews: (tday.sum && tday.sum.pageViews) || 0, visitors: (tday.uniq && tday.uniq.uniques) || 0 }, week: { pageviews: wkPv, visitors: wkUq }, top: [] };
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// F7: GAGNA-ENDAPUNKTAR úr WP í worker — frétta-safn (D1), fyrirtækja-umfjöllun,
+// markaðir (Yahoo), orka (Landsnet), umferð (Vegagerðin). Leysir karp-frettir/
+// markadir/orka/umferd.php af hólmi svo síðurnar virki eftir WP-eyðingu.
+// ══════════════════════════════════════════════════════════════════════════
+const _fjson = (o, ttl) => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=' + (ttl || 600) } });
+// Frétta-safn: cron les RSS → D1 (dedup á slóð), grisjar > 90 daga.
+async function newsIngest(env) {
+  if (!env.TENGSL) return { kept: 0 };
+  const items = await fetchNews();
+  const now = Math.floor(Date.now() / 1000);
+  const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts) VALUES (?,?,?,?)');
+  const batch = [];
+  for (const it of items) {
+    if (!it.url || !it.title) continue;
+    const ts = it.date ? Math.floor(new Date(it.date + 'T12:00:00Z').getTime() / 1000) || now : now;
+    batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts));
+  }
+  for (let i = 0; i < batch.length; i += 40) await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => {});
+  await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 90 * 86400).run().catch(() => {});
+  return { fetched: items.length, batched: batch.length };
+}
+async function newsSince(env, days, limit) {
+  if (!env.TENGSL) return [];
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const r = await env.TENGSL.prepare('SELECT title, url, source, ts FROM news WHERE ts>=? ORDER BY ts DESC LIMIT ?').bind(since, Math.min(limit || 60, 1000)).all().catch(() => ({ results: [] }));
+  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts }));
+}
+// /api/frettir?efni=&q=&fjoldi= → { efni, items:[{title,link,date,source}] } (frétta-stika + /frettir/)
+async function frettirHandler(request, env) {
+  const url = new URL(request.url);
+  const q = url.searchParams.get('q');
+  const fjoldi = Math.min(+(url.searchParams.get('fjoldi') || 30) || 30, 60);
+  let items = await newsSince(env, 14, 300);
+  if (!items.length) items = await fetchNews();   // þrautavari meðan safn er að fyllast
+  if (q) { const terms = String(q).toLowerCase().split(',').map((s) => s.trim()).filter(Boolean); items = items.filter((n) => terms.some((t) => n.title.toLowerCase().includes(t))); }
+  return _fjson({ efni: url.searchParams.get('efni') || 'allt', items: items.slice(0, fjoldi).map((n) => ({ title: n.title, link: n.url, date: n.date, source: n.source })) }, 600);
+}
+// Léttur íslenskur tónn-lexíkon (fyrirtækja-umfjöllun). Ekki AI — nægir fyrir grænt/rautt merki.
+const _SENT_POS = ['vöxt', 'hagnað', 'aukning', 'aukn', 'sterk', 'jákvæð', 'styrk', 'samning', 'fjárfest', 'útrás', 'stækk', 'bætir', 'árangur', 'verðlaun', 'vinnur', 'ágóð', 'uppgang', 'kaupir', 'nýr samningur'];
+const _SENT_NEG = ['tap', 'gjaldþrot', 'uppsögn', 'uppsagn', 'samdrátt', 'lækk', 'veik', 'neikvæð', 'vandræð', 'sekt', 'deila', 'rannsókn', 'kæra', 'svik', 'lokun', 'rift', 'vanskil', 'tjón', 'mistök', 'gagnrýn', 'afskrá'];
+function _tone(title) { const t = String(title).toLowerCase(); let p = 0, n = 0; for (const w of _SENT_POS) if (t.includes(w)) p++; for (const w of _SENT_NEG) if (t.includes(w)) n++; return p - n; }
+// /api/firma?q=nafn[,samheiti]&days= → { ready, total, items, timeline:[{d,n,idx}], sentiment:{idx,scored,pos,neg} }
+async function firmaHandler(request, env) {
+  const url = new URL(request.url);
+  const q = String(url.searchParams.get('q') || '').trim();
+  const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);
+  if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 1800);
+  const terms = q.toLowerCase().split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
+  const all = await newsSince(env, days, 1000);
+  const items = all.filter((nw) => terms.some((t) => nw.title.toLowerCase().includes(t)));
+  let pos = 0, neg = 0;
+  for (const it of items) { it._t = _tone(it.title); if (it._t > 0) pos++; else if (it._t < 0) neg++; }
+  const scored = items.length > 0;
+  const idx = scored ? Math.max(-100, Math.min(100, Math.round((pos - neg) / items.length * 100))) : 0;
+  const wk = {};
+  for (const it of items) { const d = new Date(it.ts * 1000); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const key = mon.toISOString().slice(0, 10); const b = (wk[key] = wk[key] || { d: key, n: 0, tone: 0 }); b.n++; b.tone += it._t || 0; }
+  const timeline = Object.values(wk).sort((a, b) => a.d < b.d ? -1 : 1).map((w) => ({ d: w.d, n: w.n, idx: w.n ? Math.round(w.tone / w.n * 20) : 0 }));
+  return _fjson({ ready: true, total: items.length, items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })), timeline, sentiment: { idx, scored, pos, neg } }, 1800);
+}
+// /api/markadir → Yahoo Finance (port úr karp-markadir.php). {updated,live,indices,stocks,fx,crypto,metals}
+const _MKT = {
+  indices: { '^OMXIPI': 'OMXIPI — Heildarvísitala', '^OMXI15': 'OMXI15 — Úrvalsvísitala' },
+  stocks: { ARION: 'Arion banki', ISB: 'Íslandsbanki', KVIKA: 'Kvika banki', ALVO: 'Alvotech', AMRQ: 'Amaroq Minerals', BRIM: 'Brim', EIM: 'Eimskip', EIK: 'Eik fasteignafélag', FESTI: 'Festi', HAGA: 'Hagar', HAMP: 'Hampiðjan', ICEAIR: 'Icelandair', KALD: 'Kaldalón', NOVA: 'Nova', REITIR: 'Reitir', SJOVA: 'Sjóvá', SKEL: 'Skel', SIMINN: 'Síminn', SOLID: 'Solid Clouds', SVN: 'Síldarvinnslan', SYN: 'Sýn', VIS: 'VÍS' },
+  fx: { 'EURISK=X': 'Evra (EUR)', 'USDISK=X': 'Bandaríkjadalur (USD)', 'GBPISK=X': 'Sterlingspund (GBP)', 'DKKISK=X': 'Dönsk króna (DKK)', 'NOKISK=X': 'Norsk króna (NOK)', 'SEKISK=X': 'Sænsk króna (SEK)' },
+  crypto: { 'BTC-USD': 'Bitcoin', 'ETH-USD': 'Ethereum', 'XRP-USD': 'XRP', 'SOL-USD': 'Solana', 'DOGE-USD': 'Dogecoin', 'ADA-USD': 'Cardano' },
+  metals: { 'GC=F': 'Gull', 'SI=F': 'Silfur', 'PL=F': 'Platína' },
+};
+async function _yahoo(ysym) {
+  try {
+    const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(ysym) + '?range=1mo&interval=1d', { headers: { 'user-agent': 'Mozilla/5.0 (compatible; KARP-Hagvisir/1.0)', accept: 'application/json' }, cf: { cacheTtl: 300 } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const res = j && j.chart && j.chart.result && j.chart.result[0];
+    const meta = (res && res.meta) || {};
+    const price = meta.regularMarketPrice;
+    if (price == null) return null;
+    const hist = ((res.indicators && res.indicators.quote && res.indicators.quote[0] && res.indicators.quote[0].close) || []).filter((v) => v != null).map((v) => Math.round(v * 10000) / 10000);
+    let prev = meta.previousClose;
+    if (prev == null && hist.length >= 2) prev = hist[hist.length - 2];
+    if (prev == null) prev = meta.chartPreviousClose;
+    const chg = (prev && prev != 0) ? Math.round((price - prev) / prev * 10000) / 100 : 0;
+    return { price: +price, chgPct: chg, cur: meta.currency || 'ISK', hist };
+  } catch (e) { return null; }
+}
+async function markadirHandler(request, env, ctx) {
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/api/markadir-v1');
+  const hit = await cache.match(ck);
+  if (hit) return hit;
+  const out = { updated: new Date().toISOString(), live: true, indices: [], stocks: [], fx: [], crypto: [], metals: [] };
+  const jobs = [];
+  for (const [cat, map] of Object.entries(_MKT)) for (const [sym, name] of Object.entries(map)) {
+    const ysym = cat === 'stocks' ? sym + '.IC' : sym;
+    jobs.push(_yahoo(ysym).then((d) => { if (d) out[cat].push({ sym, name, price: d.price, chgPct: d.chgPct, cur: cat === 'fx' ? 'ISK' : d.cur, hist: d.hist }); }));
+  }
+  await Promise.all(jobs);
+  const ttl = out.stocks.length >= 4 ? 1200 : 180;
+  const res = _fjson(out, ttl);
+  ctx.waitUntil(cache.put(ck, res.clone()));
+  return res;
+}
+// /api/orka → Landsnet raforkuvinnsla. {hydro,geothermal,oil,timestamp}
+async function orkaHandler(request, env, ctx) {
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/api/orka-v1');
+  const hit = await cache.match(ck);
+  if (hit) return hit;
+  const j = await fetch('https://amper.landsnet.is/generation/api/Values', { headers: { 'user-agent': 'Mozilla/5.0 (compatible; KARP-Hagvisir/1.0)', accept: 'application/json' }, cf: { cacheTtl: 300 } }).then((r) => r.ok ? r.json() : null).catch(() => null);
+  const out = j ? { hydro: j.hydro != null ? Math.round(j.hydro * 10) / 10 : null, geothermal: j.geothermal != null ? Math.round(j.geothermal * 10) / 10 : null, oil: j.oil != null ? Math.round(j.oil * 10) / 10 : 0, timestamp: new Date().toISOString() } : { error: 'unavailable' };
+  const res = _fjson(out, 300);
+  if (j) ctx.waitUntil(cache.put(ck, res.clone()));
+  return res;
+}
+// /api/umferd → Vegagerðin WFS umferðarteljarar. {total_today,counters,days,busiest,updated}
+async function umferdHandler(request, env, ctx) {
+  const cache = caches.default;
+  const ck = new Request('https://cache.karp.internal/api/umferd-v1');
+  const hit = await cache.match(ck);
+  if (hit) return hit;
+  const j = await fetch('https://gagnaveita.vegagerdin.is/geoserver/gis/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=gis:test_umferdteljarar&outputFormat=application/json', { headers: { 'user-agent': 'Mozilla/5.0 (compatible; KARP-Hagvisir/1.0)', accept: 'application/json' }, cf: { cacheTtl: 600 } }).then((r) => r.ok ? r.json() : null).catch(() => null);
+  if (!j || !j.features) return _fjson({ error: 'unavailable' }, 60);
+  let total_today = 0, counters = 0;
+  const byName = {}, dayTot = [0, 0, 0, 0, 0, 0, 0, 0], dayDate = [null, null, null, null, null, null, null, null];
+  for (const f of j.features) {
+    const p = f.properties || {};
+    const td = +(p.UMF_I_DAG || 0);
+    if (td > 0) { total_today += td; counters++; const nm = String(p.NAFN || '?').trim(); byName[nm] = (byName[nm] || 0) + td; }
+    for (let d = 1; d <= 7; d++) { const k = 'UMF_DAGUR' + d; if (p[k] != null) { dayTot[d] += +p[k]; if (!dayDate[d] && p['DAGS_DAGUR' + d]) dayDate[d] = String(p['DAGS_DAGUR' + d]).slice(0, 10); } }
+  }
+  const busiest = Object.entries(byName).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([nafn, umf]) => ({ nafn, umf }));
+  const WD = ['Sun', 'Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau'];
+  const days = [];
+  for (let d = 7; d >= 1; d--) { const dt = dayDate[d]; const lab = dt ? (WD[new Date(dt + 'T00:00:00Z').getUTCDay()] + ' ' + (+dt.slice(8, 10)) + '.') : ('d' + d); days.push({ label: lab, date: dt, total: dayTot[d] }); }
+  const res = _fjson({ total_today, counters, days, busiest, updated: new Date().toISOString() }, 600);
+  ctx.waitUntil(cache.put(ck, res.clone()));
+  return res;
+}
+
 export default {
-  // F6: viku-digest cron (wrangler [triggers] crons). Mánudaga 08:10 UTC.
+  // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(digestRun(env));
+    if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env));
+    else ctx.waitUntil(newsIngest(env));   // F7: safnar RSS → news-tafla
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -3375,6 +3524,11 @@ export default {
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
+    if (url.pathname === '/api/frettir') return frettirHandler(request, env);   // F7: gagna-endapunktar úr WP
+    if (url.pathname === '/api/firma') return firmaHandler(request, env);
+    if (url.pathname === '/api/markadir') return markadirHandler(request, env, ctx);
+    if (url.pathname === '/api/orka') return orkaHandler(request, env, ctx);
+    if (url.pathname === '/api/umferd') return umferdHandler(request, env, ctx);
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
