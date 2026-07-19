@@ -43,8 +43,8 @@ export const CAT = {
   sent:       { label: 'Umfjöllun', emoji: '🗣️', color: '#3aa0ff', img: 'fjolmidlar', heimild: 'Fjölmiðlavöktun Karp', rule: 'Tónn fjölmiðlaumfjöllunar um fyrirtæki breyttist skarpt (≥40 stig á -100…+100 kvarða).' },
   // ── Fasi 3: fleiri fjölbreytt fréttaefni ──
   kvoti:      { label: 'Sjávarútvegur', emoji: '🐟', color: '#2bb7a3', img: 'sjavarutvegur', heimild: 'Fiskistofa', rule: 'Aflamark fisktegundar nálgast fullnýtingu (≥85% nýtt).' },
-  gengi:      { label: 'Gengi krónu', emoji: '💱', color: '#3aa0ff', img: 'markadir', heimild: 'Seðlabanki Íslands', rule: 'Gengisvísitala krónunnar setti nýtt hæsta eða lægsta gildi.' },
-  ees:        { label: 'Evrópusambandið', emoji: '🇪🇺', color: '#5a8fe0', img: 'utanrikis', heimild: 'Stjórnartíðindi ESB / EES', rule: 'Ný gerð ESB sem kann að verða tekin upp í EES-samninginn.' },
+  gengi:      { label: 'Gengi krónu', emoji: '💱', color: '#3aa0ff', img: 'gengi', imgFb: 'markadir', heimild: 'Seðlabanki Íslands', rule: 'Gengisvísitala krónunnar setti nýtt hæsta eða lægsta gildi.' },
+  ees:        { label: 'Evrópusambandið', emoji: '🇪🇺', color: '#5a8fe0', img: 'ees', imgFb: 'utanrikis', heimild: 'Stjórnartíðindi ESB / EES', rule: 'Ný gerð ESB sem kann að verða tekin upp í EES-samninginn.' },
   vika:       { label: 'Vika í tölum', emoji: '📅', color: '#f6b13b', img: 'annad', heimild: 'Samantekt Karp', rule: 'Vikulegur útdráttur lykil-hagtalna (birt á mánudögum).' },
   // ── Bylgja 1: kross-tengingar + innsýn ──
   rikisfe:    { label: 'Ríkisféð', emoji: '💰', color: '#f6b13b', img: 'rikisgreidslur', heimild: 'Opnir reikningar ríkisins', rule: 'Mánaðarlegt yfirlit yfir greiðslur ríkisins til birgja — heild og stærstu birgjar.' },
@@ -53,12 +53,12 @@ export const CAT = {
   toppar:     { label: 'Topplisti', emoji: '🏆', color: '#f6b13b', img: 'utbod', heimild: 'Útboðsgáttir', rule: 'Verðmætustu opinberu útboðssamningar nýlega.' },
   // ── Bylgja 2: djúp innsýn ──
   fastthr:    { label: 'Íbúðamarkaður', emoji: '🏠', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS', rule: 'Íbúðamarkaðurinn skiptir um takt (hitnar/kólnar) — 3ja og 12 mánaða verðþróun.' },
-  leiga:      { label: 'Leiga', emoji: '🔑', color: '#42d086', img: 'fasteignir', heimild: 'Leiguskrá HMS', rule: 'Miðgildi leiguverðs á fermetra nær sögulegu hámarki.' },
-  samanburdur:{ label: 'Ísland í samhengi', emoji: '🌍', color: '#3aa0ff', img: 'annad', heimild: 'Numbeo', rule: 'Samanburður Reykjavíkur við aðrar höfuðborgir á verðlagi og kaupmætti.' },
+  leiga:      { label: 'Leiga', emoji: '🔑', color: '#42d086', img: 'leiga', imgFb: 'fasteignir', heimild: 'Leiguskrá HMS', rule: 'Miðgildi leiguverðs á fermetra nær sögulegu hámarki.' },
+  samanburdur:{ label: 'Ísland í samhengi', emoji: '🌍', color: '#3aa0ff', img: 'samanburdur', imgFb: 'annad', heimild: 'Numbeo', rule: 'Samanburður Reykjavíkur við aðrar höfuðborgir á verðlagi og kaupmætti.' },
   // ── Bylgja 3: einfaldir skynjarar ──
-  bygging:    { label: 'Byggingarleyfi', emoji: '🏗️', color: '#9d86ff', img: 'utbod', heimild: 'Byggingarfulltrúi Reykjavíkur', rule: 'Nýtt byggingarleyfi fyrir atvinnuhúsnæði (verslun/veitingar/þjónusta) afgreitt hjá byggingarfulltrúa RVK.' },
-  sveitfe:    { label: 'Sveitarfjármál', emoji: '🏛️', color: '#42d086', img: 'sveitarstjorn', heimild: 'Ársreikningar sveitarfélaga', rule: 'Röðun sveitarfélaga eftir skuldum á hvern íbúa.' },
-  graent:     { label: 'Grænar tölur', emoji: '🔋', color: '#42d086', img: 'annad', heimild: 'Samgöngustofa', rule: 'Hlutfall hreinorkubíla (BEV) í bílaflotanum.' },
+  bygging:    { label: 'Byggingarleyfi', emoji: '🏗️', color: '#9d86ff', img: 'bygging', imgFb: 'utbod', heimild: 'Byggingarfulltrúi Reykjavíkur', rule: 'Nýtt byggingarleyfi fyrir atvinnuhúsnæði (verslun/veitingar/þjónusta) afgreitt hjá byggingarfulltrúa RVK.' },
+  sveitfe:    { label: 'Sveitarfjármál', emoji: '🏛️', color: '#42d086', img: 'sveitfe', imgFb: 'sveitarstjorn', heimild: 'Ársreikningar sveitarfélaga', rule: 'Röðun sveitarfélaga eftir skuldum á hvern íbúa.' },
+  graent:     { label: 'Grænar tölur', emoji: '🔋', color: '#42d086', img: 'graent', imgFb: 'annad', heimild: 'Samgöngustofa', rule: 'Hlutfall hreinorkubíla (BEV) í bílaflotanum.' },
 };
 
 export const catOf = (t) => CAT[t] || { label: 'Frétt', emoji: '📰', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
@@ -107,8 +107,9 @@ const _hash = (s) => { let h = 5381; const t = String(s); for (let i = 0; i < t.
 // Velur flokka-mynd fyrir tiltekna frétt: fast afbrigði eftir id (sama frétt = sama mynd; ólíkar fréttir í
 // flokknum dreifast á afbrigðin). Fellur á grunn-slóð ef ekkert afbrigði fannst (þá sér onerror um emoji-fallback).
 export const imgFor = (t, id) => {
-  const s = catOf(t).img;
-  const v = scanVariants()[s];
+  const c = catOf(t), sv = scanVariants();
+  let s = c.img, v = sv[s];
+  if ((!v || !v.length) && c.imgFb) { s = c.imgFb; v = sv[s]; }   // vara-mynd (imgFb) þar til sérmynd flokks er hlaðið upp — engin afturför
   return (v && v.length) ? v[_hash(id || s) % v.length] : ('/frettavel/img/' + s + '.jpg');
 };
 export const artHref = (id) => '/frettavel/' + asciiId(id) + '/';
