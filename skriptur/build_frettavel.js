@@ -811,6 +811,25 @@ function detect(state) {
     }
   }
 
+  // „Sama fyrirsvar" (fönix-mynstur) — GÁTTAÐ á KARP_FONIX_PUBLISH=1 (sjálfgefið SLÖKKT: nöfn einstaklinga →
+  // Aron yfirfer útflutning fyrst + tryggir DPIA/lögmæti). Vikulegt (mánudaga), rótering um state.fonixSeen.
+  // ÁREIÐANLEGT: sjálf-tenging á persónu innan D1 (ekki nafna-samanburður). HLUTLAUST orðalag + fyrirvari + heimild.
+  // noai=true → fastur texti fer EKKI gegnum AI (tón-stýring á nafngreindu efni um einstaklinga).
+  if (process.env.KARP_FONIX_PUBLISH === '1' && new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
+    const fx = J('tengsl_fonix.json');
+    if (fx && Array.isArray(fx.cases) && fx.cases.length) {
+      const seenX = new Set(state.fonixSeen || []);
+      const pick = fx.cases.filter((c) => c.person && (c.throta || []).length && (c.ny || []).length).find((c) => !seenX.has(slug(c.person)));
+      if (pick) {
+        const t0 = pick.throta[0], nyNofn = pick.ny.map((n) => n.felag);
+        ev.push({ id: `fonix-${slug(pick.person)}`, type: 'fonix', noai: true, facts: { einstaklingur: pick.person, throta_felog: pick.throta.map((t) => t.felag), nyju_felog: nyNofn }, url: '/logbirting/',
+          title: `Sama fyrirsvar: ${pick.person}`,
+          text: `${pick.person} var í fyrirsvari fyrir ${t0.felag}, sem er í gjaldþrotameðferð${t0.dags ? ` (${t0.dags})` : ''}, og er nú í fyrirsvari fyrir ${nyNofn.slice(0, 2).join(' og ')}${nyNofn.length > 2 ? ` o.fl. (${nyNofn.length} félög alls)` : ''} samkvæmt fyrirtækjaskrá. Að stofna eða stýra nýju félagi eftir gjaldþrot fyrra félags er löglegt og getur átt fullkomlega eðlilegar skýringar; yfirlitið byggir eingöngu á opinberum skráningum og felur ekki í sér ásökun um neitt.` });
+        state.fonixSeen = [...(state.fonixSeen || []), slug(pick.person)].slice(-500);
+      }
+    }
+  }
+
   return ev;
 }
 
