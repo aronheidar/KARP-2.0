@@ -528,7 +528,7 @@ function detect(state) {
     }
     const dnum = (d) => String(d || '').split('.').reverse().join('-');
     nyleg.sort((a, b) => dnum(b.skrad).localeCompare(dnum(a.skrad))).slice(0, 2).forEach((t) => {
-      ev.push({ id: `vorumerki-${t.id}`, type: 'vorumerki', facts: { merki: t.titill, tegund: t.tegund || null, eigandi: t.eigandi, flokkar: t.flokkar || null, skrad: t.skrad || null }, url: '/vorumerki/',
+      ev.push({ id: `vorumerki-${t.id}`, type: 'vorumerki', facts: { merki: t.titill, tegund: t.tegund || null, eigandi: t.eigandi, flokkar: t.flokkar || null, skrad: t.skrad || null }, url: '/atvinnuvegir/hugverk/',
         title: `Nýtt vörumerki skráð: ${t.titill}`,
         text: `${t.eigandi} hefur skráð vörumerkið „${t.titill}“${t.tegund ? ' (' + t.tegund + ')' : ''} hjá Hugverkastofunni${(t.flokkar || []).length ? ', í vöru-/þjónustuflokki ' + t.flokkar.join(', ') : ''}.` });
     });
@@ -560,7 +560,7 @@ function detect(state) {
   const sja = J('sjavarutvegur.json');
   if (sja && Array.isArray(sja.featured)) {
     sja.featured.filter((f) => f && f.pct >= 85 && f.kvoti > 0).sort((a, b) => b.pct - a.pct).slice(0, 2).forEach((f) => {
-      ev.push({ id: `kvoti-${sja.timabil}-${slug(f.species)}`, type: 'kvoti', facts: { tegund: f.species, nyting: f.pct, afli: f.afli, kvoti: f.kvoti, fiskveidiar: sja.timabilLabel }, url: '/sjavarutvegur/',
+      ev.push({ id: `kvoti-${sja.timabil}-${slug(f.species)}`, type: 'kvoti', facts: { tegund: f.species, nyting: f.pct, afli: f.afli, kvoti: f.kvoti, fiskveidiar: sja.timabilLabel }, url: '/atvinnuvegir/sjavarutvegur/',
         title: `${f.species}kvótinn ${f.pct}% nýttur — nálgast fullnýtingu`,
         text: `Aflamark ${String(f.species).toLowerCase()} fiskveiðiársins ${sja.timabilLabel} er ${f.pct}% nýtt — ${kr(f.afli)} af ${kr(f.kvoti)} þúsund tonnum landað samkvæmt flotavísi Karp úr gögnum Fiskistofu.` });
     });
@@ -665,6 +665,9 @@ async function main() {
   const items = published.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined }))
     .concat(old.filter((o) => !published.some((f) => f.id === o.id)))
     .slice(0, 120);
+  // Leiðrétta úreltar frumgagna-slóðir (síður undir /atvinnuvegir/) í öllum birtum fréttum — líka eldri.
+  const URLFIX = { '/sjavarutvegur/': '/atvinnuvegir/sjavarutvegur/', '/vorumerki/': '/atvinnuvegir/hugverk/' };
+  items.forEach((it) => { if (URLFIX[it.url]) it.url = URLFIX[it.url]; });
 
   published.forEach((e) => { seen[e.id] = TODAY; });
   // seen-skráin vex ekki endalaust: klippum færslur sem eru horfnar úr items og eldri en 180 daga
@@ -690,6 +693,7 @@ async function main() {
   for (const it of items) if (!archById.has(it.id)) archById.set(it.id, it);
   for (const a of arch0) if (!archById.has(a.id)) archById.set(a.id, a);
   const archItems = [...archById.values()].slice(0, 500);
+  archItems.forEach((it) => { if (URLFIX[it.url]) it.url = URLFIX[it.url]; });
   const archive = JSON.stringify({ updated: new Date().toISOString(), n: archItems.length, items: archItems });
   fs.writeFileSync(G('frettavel_archive.json'), archive);
   fs.writeFileSync(path.join(pub, 'frettavel_archive.json'), archive);

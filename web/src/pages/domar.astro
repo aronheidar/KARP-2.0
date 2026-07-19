@@ -1,0 +1,63 @@
+---
+// /domar/ — Dómar Hæstaréttar og Landsréttar í einfölduðu máli (úr domar_ai.json).
+// Frumgagna-heimild fyrir dóma-fréttir Fréttavélarinnar + sjálfstæð SEO-síða.
+import Layout from '../layouts/Layout.astro';
+import DA from '@gogn/domar_ai.json';
+
+const courtName = (k) => k.startsWith('hr') ? 'Hæstiréttur' : k.startsWith('lr') ? 'Landsréttur' : 'Dómstóll';
+const rulings = Object.entries(DA)
+  .map(([k, v]) => ({ court: courtName(k), nr: k.replace(/^[a-z]+:/, ''), svid: v.svid || '', einfalt: v.einfalt || '', d: v.d || '', titill: v.t || '' }))
+  .filter((r) => r.einfalt)
+  .sort((a, b) => (b.d || '').localeCompare(a.d || ''));
+
+const dIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
+const desc = `Dómar Hæstaréttar og Landsréttar í einfölduðu máli — ${rulings.length} nýlegir dómar reifaðir af gervigreind Karp úr opinberum dómum. Málsnúmer, réttarsvið og dagsetning.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Dómar — Hæstiréttur og Landsréttur', description: desc, url: 'https://karp.is/domar/', isPartOf: { '@type': 'WebSite', name: 'Karp', url: 'https://karp.is' } };
+---
+
+<Layout title="Dómar — Hæstiréttur & Landsréttur | Karp" description={desc} canonical="https://karp.is/domar/" jsonLd={jsonLd} ogTitle="Dómar í einfölduðu máli">
+  <main data-pg="domar">
+    <p class="kicker">Karp · Dómsmál</p>
+    <h1>⚖️ Dómar</h1>
+    <p class="intro">Nýlegir dómar Hæstaréttar og Landsréttar í <b>einfölduðu máli</b> — reifaðir sjálfvirkt af gervigreind Karp úr opinberum dómum. Smelltu á heimildina til að lesa dóminn í heild.</p>
+    <div class="disclosure">🤖 Reifanirnar eru vélrænar til glöggvunar og koma ekki í stað dómsins sjálfs. Heimild: birtir dómar á <a href="https://www.domstolar.is/" rel="nofollow">domstolar.is</a>.</div>
+
+    {rulings.length === 0 && <p class="empty">Engir dómar skráðir sem stendur.</p>}
+    <div class="dom-list">
+      {rulings.map((r) => (
+        <article class="dom-card">
+          <div class="dom-top">
+            <span class={`dom-badge ${r.court === 'Hæstiréttur' ? 'hr' : 'lr'}`}>{r.court} · nr. {r.nr}</span>
+            {r.svid && <span class="dom-svid">{r.svid}</span>}
+            {r.d && <time class="dom-date" datetime={r.d}>{dIS(r.d)}</time>}
+          </div>
+          <p class="dom-text">{r.einfalt}</p>
+          {r.titill && <p class="dom-parties">{r.titill}</p>}
+        </article>
+      ))}
+    </div>
+
+    <p class="foot">Forþjónað (SSG). Reifanir vélritaðar úr opinberum dómum — sjá einnig <a href="/frettavel/">Fréttavélina</a>. Heimild: domstolar.is.</p>
+  </main>
+
+  <style>
+    main[data-pg="domar"] { max-width: 800px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    .intro { color: var(--ink); font-size: 15px; line-height: 1.6; max-width: 70ch; } .intro b { color: var(--ink); }
+    .disclosure { background: rgba(157,134,255,.07); border: 1px solid rgba(157,134,255,.28); border-radius: 12px; padding: 11px 15px; font-size: 12.5px; color: var(--muted); line-height: 1.55; margin: 14px 0 18px; }
+    .disclosure a { color: var(--gold); }
+    .dom-list { display: flex; flex-direction: column; gap: 12px; }
+    .dom-card { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid #9d86ff; border-radius: 13px; padding: 14px 17px; }
+    .dom-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }
+    .dom-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 10px; color: #9d86ff; background: rgba(157,134,255,.12); border: 1px solid rgba(157,134,255,.35); white-space: nowrap; }
+    .dom-badge.hr { color: #f6b13b; background: rgba(246,177,59,.12); border-color: rgba(246,177,59,.35); }
+    .dom-svid { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .dom-date { font-size: 12px; color: var(--faint); margin-left: auto; }
+    .dom-text { font-size: 14.5px; line-height: 1.6; color: var(--ink); margin: 0; }
+    .dom-parties { font-size: 12px; color: var(--faint); line-height: 1.45; margin: 8px 0 0; }
+    .empty { color: var(--faint); }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; }
+    .foot a { color: var(--muted); }
+  </style>
+</Layout>
