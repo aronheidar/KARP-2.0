@@ -45,6 +45,13 @@ const jsonLd = [
       <h1>{it.title}</h1>
       <p class="fv-body">{it.text}</p>
 
+      {it.samhengi && (
+        <div class="fv-samhengi" style={`--c:${cat.color}`}>
+          <span class="fv-samhengi-i">💡</span>
+          <div><strong>Samhengi</strong><p>{it.samhengi}</p></div>
+        </div>
+      )}
+
       {sp && (
         <figure class="fv-chart">
           <svg viewBox={`0 0 ${sp.w} ${sp.h}`} width="100%" style={`color:${cat.color}`} aria-hidden="true">
@@ -100,6 +107,10 @@ const jsonLd = [
     .fv-meta .fv-dot { opacity: .5; }
     main[data-pg="fv-art"] h1 { font-size: clamp(24px, 5vw, 33px); line-height: 1.18; letter-spacing: -.01em; margin: 4px 0 14px; color: var(--ink); }
     .fv-body { font-size: 17px; line-height: 1.7; color: var(--ink); margin: 0 0 20px; }
+    .fv-samhengi { display: flex; gap: 11px; align-items: flex-start; background: color-mix(in srgb, var(--c, #f6b13b) 8%, transparent); border: 1px solid color-mix(in srgb, var(--c, #f6b13b) 28%, transparent); border-radius: 12px; padding: 13px 16px; margin: 0 0 22px; }
+    .fv-samhengi-i { font-size: 18px; line-height: 1.3; }
+    .fv-samhengi strong { display: block; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--c, #f6b13b); margin-bottom: 3px; }
+    .fv-samhengi p { font-size: 14.5px; line-height: 1.55; color: var(--ink); margin: 0; }
     .fv-chart { margin: 0 0 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 10px; }
     .fv-chart svg { display: block; max-width: 640px; height: auto; }
     .fv-chart figcaption { font-size: 11.5px; color: var(--faint); margin-top: 6px; }

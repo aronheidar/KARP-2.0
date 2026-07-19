@@ -446,6 +446,7 @@ function detect(state) {
     nyleg.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).forEach((n) => {
       const heiti = (lb.typeLabels || {})[n.type] || n.type;
       ev.push({ id: `gjaldthrot-${n.ref || n.date}-${n.kt}`, type: 'gjaldthrot', facts: { felag: n.nafn, tegund: heiti, domstoll: n.court || null, dags: n.date, fyrirtaka: n.when || null }, url: '/logbirting/',
+        samhengi: `Ein af ${nyleg.length} gjaldþrota- og skiptabeiðnum lögaðila sem birst hafa í Lögbirtingablaðinu síðustu 30 daga.`,
         title: `${heiti}: ${n.nafn}`,
         text: `${heiti} vegna ${n.nafn} birtist í Lögbirtingablaðinu ${n.date}${n.court ? ' (' + n.court + ')' : ''}${n.when ? `. Fyrirtaka málsins er ${n.when}` : ''}.` });
     });
@@ -483,11 +484,15 @@ function detect(state) {
   // ── Seðlabankinn: meginvextir (breyting) + verðbólga (ný mæling) ──
   const sb = J('sedlabanki.json');
   if (sb && sb.datasets) {
+    // Nýjasta ársverðbólga (til raun-vaxta samhengis) — sama röð og verðbólgu-skynjarinn notar
+    const vbS = ((sb.datasets.verdbolga || {}).series || []).find((s) => s.name === 'Vísitala neysluverðs' && (s.points || []).some((p) => typeof p[1] === 'number' && p[1] < 50));
+    const vbLatest = vbS && vbS.points.length ? vbS.points[vbS.points.length - 1][1] : null;
     const meg = ((sb.datasets.vextir_si || {}).series || []).find((s) => /megin/i.test(s.name));
     if (meg && Array.isArray(meg.points) && meg.points.length >= 2) {
       const [dNu, vNu] = meg.points[meg.points.length - 1], vFyrri = meg.points[meg.points.length - 2][1];
       if (typeof vNu === 'number' && typeof vFyrri === 'number' && vNu !== vFyrri) {
         ev.push({ id: `vextir-${dNu}`, type: 'vextir', spark: downsample(meg.points.map((p) => p[1]), 24), facts: { nyir: vNu, fyrri: vFyrri, breyting: +(vNu - vFyrri).toFixed(2), dags: dNu }, url: '/vextir/',
+          samhengi: typeof vbLatest === 'number' ? `Raunstýrivextir eru um ${pct1(vNu - vbLatest)}% — meginvextir að frádreginni ${pct1(vbLatest)}% ársverðbólgu.` : undefined,
           title: `Seðlabankinn ${vNu > vFyrri ? 'hækkar' : 'lækkar'} meginvexti í ${pct1(vNu)}%`,
           text: `Meginvextir Seðlabanka Íslands eru nú ${pct1(vNu)}% og ${vNu > vFyrri ? 'hækkuðu' : 'lækkuðu'} úr ${pct1(vFyrri)}% (${dNu}).` });
       }
@@ -497,6 +502,7 @@ function detect(state) {
       const [dNu, vNu] = vb.points[vb.points.length - 1], vF = vb.points[vb.points.length - 2][1];
       if (typeof vNu === 'number' && typeof vF === 'number') {
         ev.push({ id: `verdbolga-${dNu}`, type: 'verdbolga', spark: downsample(vb.points.map((p) => p[1]), 24), facts: { verdbolga: vNu, fyrri: vF, stefna: vNu > vF ? 'jókst' : vNu < vF ? 'minnkaði' : 'óbreytt', dags: dNu }, url: '/verdlag/',
+          samhengi: `${pct1(Math.abs(vNu - 2.5))} prósentustigum ${vNu >= 2.5 ? 'yfir' : 'undir'} 2,5% verðbólgumarkmiði Seðlabankans.`,
           title: `Verðbólga ${vNu > vF ? 'eykst' : vNu < vF ? 'hjaðnar' : 'stendur í stað'}: ${pct1(vNu)}%`,
           text: `Ársverðbólga mældist ${pct1(vNu)}% í ${manIS(dNu.slice(0, 7))} samkvæmt vísitölu neysluverðs — ${vNu > vF ? 'hækkun' : vNu < vF ? 'lækkun' : 'óbreytt'} frá ${pct1(vF)}% mánuðinn á undan.` });
       }
@@ -827,7 +833,7 @@ async function main() {
   console.log('AI-skrifaðar:', aiN, 'af', Math.min(published.length, 16), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
 
   const old = (J('frettavel.json') || {}).items || [];
-  const items = published.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined }))
+  const items = published.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, samhengi: e.samhengi || undefined }))
     .concat(old.filter((o) => !published.some((f) => f.id === o.id)))
     .slice(0, 120);
   // Leiðrétta úreltar frumgagna-slóðir (síður undir /atvinnuvegir/) í öllum birtum fréttum — líka eldri.
@@ -854,7 +860,7 @@ async function main() {
   // Safnið = birtar fréttir dagsins (m/facts) → allur straumurinn (items, þ.m.t. eldri) → fyrra safn. Dedup á id
   // svo HVER frétt á forsíðunni eigi sér article-síðu (ekkert 404), og eldri fréttir haldist sem permalink.
   const archById = new Map();
-  for (const e of published) archById.set(e.id, { id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, facts: e.facts || undefined });
+  for (const e of published) archById.set(e.id, { id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, samhengi: e.samhengi || undefined, facts: e.facts || undefined });
   for (const it of items) if (!archById.has(it.id)) archById.set(it.id, it);
   for (const a of arch0) if (!archById.has(a.id)) archById.set(a.id, a);
   const archItems = [...archById.values()].slice(0, 500);

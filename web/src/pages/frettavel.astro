@@ -38,6 +38,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
           <span class="fp-kick">{c.emoji} {c.label}</span>
           <h2>{hero.title}</h2>
           <p>{hero.text}</p>
+          {hero.samhengi && <p class="fp-samhengi">💡 <span>{hero.samhengi}</span></p>}
           <span class="fp-time">{dIS(hero.date)}</span>
         </div>
       </a>
@@ -126,6 +127,8 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
     .fp-kick { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--c); }
     .fp-kick.sm { font-size: 10px; }
     .fp-time { font-size: 11.5px; color: var(--faint); }
+    .fp-samhengi { display: flex; gap: 7px; align-items: flex-start; font-size: 12.5px; line-height: 1.5; color: var(--muted); background: color-mix(in srgb, var(--c, #f6b13b) 9%, transparent); border-left: 2px solid var(--c, #f6b13b); border-radius: 0 8px 8px 0; padding: 7px 11px; margin: 0 0 10px; }
+    .fp-samhengi span { color: var(--ink); }
     .fp-time.sm { font-size: 11px; white-space: nowrap; }
 
     /* Meginrist: deildir + hliðardálkur */
