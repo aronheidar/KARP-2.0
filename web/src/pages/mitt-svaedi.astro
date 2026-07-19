@@ -760,7 +760,7 @@ const updated = '2026-07-02';
         // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). LOTA 24.
         if (u.isAdmin) {
           const box = $g('w-traffic-box'), tel = $g('w-traffic');
-          if (box) box.hidden = false;
+          if (box) { box.hidden = false; box.insertAdjacentHTML('afterbegin', '<a href="/stjorn/" style="display:inline-block;margin:0 0 12px;padding:8px 14px;background:rgba(246,177,59,.14);border:1px solid rgba(246,177,59,.3);border-radius:8px;color:var(--gold);font-weight:700;font-size:13.5px;text-decoration:none">🛠️ Opna stjórnborð — notendur, áskriftir, rekstur →</a>'); }
           karpGet('/burst').then((d) => {
             if (!tel) return;
             if (!d || d.available === false) { tel.innerHTML = '<span class="dim">Cloudflare-vefgreining er ekki tengd enn — tölfræðin birtist þegar API-tóki (CF_ANALYTICS_TOKEN) er kominn.</span>'; return; }

@@ -3600,6 +3600,41 @@ async function umferdHandler(request, env, ctx) {
   return res;
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// STJÓRNBORÐ (admin-bakendi karp.is) — S1: yfirlit notenda/áskrifta/skýrslna/tekna.
+// Admin-gátað (users.is_admin). Hýbríð: agentarnir keyra á Node en lesa sömu D1.
+// ══════════════════════════════════════════════════════════════════════════
+async function _isAdmin(env, request) {
+  const uid = await readSession(env, request);
+  if (!uid || !env.TENGSL) return 0;
+  const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  return (u && u.is_admin === 1) ? uid : 0;
+}
+async function adminOverviewHandler(request, env) {
+  if (!(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
+  const now = Math.floor(Date.now() / 1000);
+  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
+  const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
+  const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
+  const subByUser = {}, repByUser = {};
+  for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
+  for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
+  const byService = {}; for (const s of subs) byService[s.service] = (byService[s.service] || 0) + 1;
+  const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
+  const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
+  return _ajson({
+    ok: true, now,
+    users: uList,
+    stats: {
+      total: users.length, verified: users.filter((u) => u.email_verified === 1).length, admins: users.filter((u) => u.is_admin === 1).length,
+      new7: recent(7), new30: recent(30),
+      tierUsers: uList.filter((u) => u.tier).length, activeSubs: subs.length, subsByService: byService,
+      reportsTotal: reps.length, reportsByType: byReport,
+    },
+  });
+}
+
 export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
@@ -3634,6 +3669,7 @@ export default {
     if (url.pathname === '/api/yearreview') return yearreviewHandler(request, env);
     if (url.pathname === '/api/topwords') return topwordsHandler(request, env);
     if (url.pathname === '/api/erlent') return erlentHandler(request, env);
+    if (url.pathname === '/api/admin/overview') return adminOverviewHandler(request, env);   // stjórnborð S1
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

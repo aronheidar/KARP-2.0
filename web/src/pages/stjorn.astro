@@ -1,0 +1,121 @@
+---
+// /stjorn/ — STJÓRNBORÐ (admin-bakendi karp.is). Aðeins stjórnendur (is_admin).
+// Sýnir notendur, áskriftir, keyptar skýrslur, tekjur og umferð beint úr D1
+// gegnum worker /api/admin/overview (+ /api/u/burst). Fyrsti fasi hýbríð-flutnings
+// stjórnborðsins: gögnin á Cloudflare, AI-agentarnir keyra áfram á Node og lesa sömu D1.
+import Layout from '../layouts/Layout.astro';
+const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðeins stjórnendur.';
+---
+<Layout title="Stjórnborð — Karp" description={desc} canonical="https://karp.is/stjorn/" noindex={true}>
+  <main data-pg="stjorn" class="stj-wrap">
+    <div id="stj-gate" class="stj-gate">Sæki…</div>
+    <div id="stj-body" hidden>
+      <header class="stj-head">
+        <h1>🛠️ Stjórnborð</h1>
+        <span class="stj-sub">Rekstraryfirlit — aðeins stjórnendur</span>
+      </header>
+
+      <section class="stj-cards" id="stj-cards"></section>
+
+      <section class="stj-block">
+        <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
+        <div class="stj-tablewrap">
+          <table class="stj-table" id="stj-users">
+            <thead><tr><th>#</th><th>Netfang</th><th>Nafn</th><th>Þrep</th><th>Áskriftir</th><th>Skýrslur</th><th>Staðf.</th><th>Skráð</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="stj-grid2">
+        <div class="stj-block"><h2>💳 Virkar áskriftir</h2><div id="stj-subs" class="stj-kv"></div></div>
+        <div class="stj-block"><h2>📄 Seldar skýrslur</h2><div id="stj-reports" class="stj-kv"></div></div>
+      </section>
+
+      <p class="stj-note">🤖 AI-stjórnendurnir (COO/CFO/CMO o.fl.) keyra á Node-hýsli og lesa þessa sömu gagnagrunn. Herferðir, samþykktir og tickets flytjast hingað í næsta fasa.</p>
+    </div>
+  </main>
+
+  <style>
+    .stj-wrap { max-width: 1100px; margin: 0 auto; padding: 22px 16px 60px; }
+    .stj-gate { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 15px; }
+    .stj-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .stj-head h1 { font-size: 24px; margin: 0; color: var(--ink); }
+    .stj-sub { color: var(--faint); font-size: 13px; }
+    .stj-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stj-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .stj-card .n { font-size: 26px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+    .stj-card .l { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stj-card .s { font-size: 11px; color: var(--faint); margin-top: 4px; }
+    .stj-block { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px; }
+    .stj-block h2 { font-size: 15px; margin: 0 0 12px; color: var(--ink); }
+    .stj-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .stj-grid2 { grid-template-columns: 1fr; } }
+    .stj-tablewrap { overflow-x: auto; }
+    .stj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stj-table th { text-align: left; color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .stj-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--ink); white-space: nowrap; }
+    .stj-table tr:hover td { background: var(--panel); }
+    .stj-badge { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; background: var(--panel); color: var(--muted); margin: 0 2px 0 0; }
+    .stj-badge.tier { background: rgba(246,177,59,.16); color: var(--gold); }
+    .stj-badge.ok { color: #46e08a; }
+    .stj-badge.admin { background: rgba(246,177,59,.16); color: var(--gold); }
+    .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
+    .stj-kv-row b { color: var(--gold); font-variant-numeric: tabular-nums; }
+    .stj-kv-empty { color: var(--faint); font-size: 13px; }
+    .stj-note { color: var(--faint); font-size: 12.5px; line-height: 1.6; margin-top: 8px; }
+    .stj-denied { padding: 60px 20px; text-align: center; }
+    .stj-denied h1 { font-size: 20px; color: var(--ink); }
+    .stj-denied p { color: var(--muted); }
+    .stj-denied a { color: var(--gold); }
+  </style>
+
+  <script>
+    import { loadUser } from '../lib/auth.js';
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
+    const SVC = { kvoti: 'Kvótavaktin', utbod: 'Útboðsvaktin', frettir: 'Fjölmiðlavakt', fasteign: 'Fasteignavakt', thingskyrslur: 'Þingmannaskýrslur' };
+    const REP = { fyrirtaeki: 'Fyrirtækjaskýrslur', eigendur: 'Eigendaskýrslur', areidanleiki: 'Áreiðanleikamat', fasteign: 'Fasteignamöt', thingmadur: 'Þingmannaskýrslur' };
+
+    function card(n, l, s) { return `<div class="stj-card"><div class="n">${n}</div><div class="l">${l}</div>${s ? '<div class="s">' + s + '</div>' : ''}</div>`; }
+
+    async function boot() {
+      const main = document.querySelector('main[data-pg="stjorn"]'); if (!main) return;
+      const u = await loadUser().catch(() => null);
+      const gate = $('stj-gate');
+      if (!u || !u.loggedIn) { gate.innerHTML = '<div class="stj-denied"><h1>Innskráning</h1><p>Skráðu þig inn til að opna stjórnborðið.</p><p><a href="/innskra/?redirect_to=' + encodeURIComponent(location.href) + '">Skrá inn →</a></p></div>'; return; }
+      if (!u.isAdmin) { gate.innerHTML = '<div class="stj-denied"><h1>Aðgangur bannaður</h1><p>Stjórnborðið er aðeins fyrir stjórnendur.</p><p><a href="/mitt-svaedi/">Fara á Mitt svæði →</a></p></div>'; return; }
+      const [ov, burst] = await Promise.all([
+        fetch('/api/admin/overview', { credentials: 'include' }).then((r) => r.json()).catch(() => null),
+        fetch('/api/u/burst', { credentials: 'include' }).then((r) => r.json()).catch(() => null),
+      ]);
+      if (!ov || !ov.ok) { gate.innerHTML = '<div class="stj-denied"><h1>Villa</h1><p>Náði ekki í yfirlit.</p></div>'; return; }
+      gate.hidden = true; $('stj-body').hidden = false;
+      const s = ov.stats;
+      // spjöld
+      $('stj-cards').innerHTML =
+        card(s.total, 'Notendur', '+' + s.new7 + ' síðustu 7 daga') +
+        card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
+        card(s.tierUsers + s.activeSubs, 'Virk réttindi', s.tierUsers + ' þrep · ' + s.activeSubs + ' þjónustur') +
+        card(s.reportsTotal, 'Seldar skýrslur', '') +
+        (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Flettingar (7d)', (burst.week.visitors || 0).toLocaleString('is-IS') + ' gestir') : '');
+      // notendur
+      $('stj-ucount').textContent = ov.users.length;
+      $('stj-users').querySelector('tbody').innerHTML = ov.users.map((x) =>
+        `<tr><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}</td><td>${esc(x.name)}</td>`
+        + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
+        + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
+        + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td></tr>`
+      ).join('');
+      // áskriftir
+      const subEntries = Object.entries(s.subsByService);
+      $('stj-subs').innerHTML = subEntries.length ? subEntries.map(([k, v]) => `<div class="stj-kv-row"><span>${esc(SVC[k] || k)}</span><b>${v}</b></div>`).join('') : '<div class="stj-kv-empty">Engar virkar áskriftir enn.</div>';
+      // skýrslur
+      const repEntries = Object.entries(s.reportsByType);
+      $('stj-reports').innerHTML = repEntries.length ? repEntries.map(([k, v]) => `<div class="stj-kv-row"><span>${esc(REP[k] || k)}</span><b>${v}</b></div>`).join('') : '<div class="stj-kv-empty">Engar seldar skýrslur enn.</div>';
+    }
+    if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('astro:page-load', boot);
+  </script>
+</Layout>
