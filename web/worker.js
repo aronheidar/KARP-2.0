@@ -2926,17 +2926,19 @@ async function _gmailToken(env) {
   const d = r && (await r.json().catch(() => null));
   return (d && d.access_token) || null;
 }
-async function sendGmail(env, { to, subject, html, replyTo }) {
+async function sendGmail(env, { to, subject, html, text, replyTo, inReplyTo }) {
   if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) return { ok: false, unconfigured: true };
   const tok = await _gmailToken(env);
   if (!tok) return { ok: false, error: 'token' };
   const from = env.GMAIL_FROM || 'Karp <hjalp@karp.is>';
+  const bodyHtml = html || (text != null ? _esc(text).replace(/\n/g, '<br>') : '');
   const lines = ['From: ' + from, 'To: ' + to];
   if (replyTo) lines.push('Reply-To: ' + replyTo);
+  if (inReplyTo) { lines.push('In-Reply-To: ' + inReplyTo); lines.push('References: ' + inReplyTo); }   // þráður (hjalp-svör)
   lines.push(
     'Subject: =?UTF-8?B?' + _b64std(_te.encode(subject)) + '?=',
     'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '',
-    _b64std(_te.encode(html)).replace(/(.{76})/g, '$1\r\n'),
+    _b64std(_te.encode(bodyHtml)).replace(/(.{76})/g, '$1\r\n'),
   );
   const raw = _b64u(_te.encode(lines.join('\r\n')));
   const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
@@ -3651,6 +3653,20 @@ async function adminOverviewHandler(request, env) {
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
   });
 }
+// Póstsending fyrir Node-stjórnborðið gegnum worker Gmail REST (S4 — sameinar á OAuth, ekkert app-lykilorð).
+// Aðgangur: X-Admin-Key EÐA innskráður admin. Body: {to, subject, html|text, replyTo?, inReplyTo?}.
+async function adminSendHandler(request, env) {
+  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const key = request.headers.get('X-Admin-Key');
+  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
+  if (!okAuth) return _ajson({ ok: false, error: 'admin' });
+  const b = (await request.json().catch(() => null)) || {};
+  const to = String(b.to || '').trim();
+  const subject = String(b.subject || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) || !subject) return _ajson({ ok: false, error: 'input' });
+  const r = await sendGmail(env, { to, subject, html: b.html, text: b.text, replyTo: b.replyTo, inReplyTo: b.inReplyTo });
+  return _ajson({ ok: !!r.ok, error: r.ok ? undefined : (r.unconfigured ? 'unconfigured' : (r.error || 'send')) });
+}
 
 export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
@@ -3687,6 +3703,7 @@ export default {
     if (url.pathname === '/api/topwords') return topwordsHandler(request, env);
     if (url.pathname === '/api/erlent') return erlentHandler(request, env);
     if (url.pathname === '/api/admin/overview') return adminOverviewHandler(request, env);   // stjórnborð S1
+    if (url.pathname === '/api/admin/send') return adminSendHandler(request, env);   // stjórnborð S4: póstur um Gmail REST
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
