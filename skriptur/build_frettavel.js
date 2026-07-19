@@ -766,6 +766,51 @@ function detect(state) {
     }
   }
 
+  // AI-ÞEMAGREIN — vikuleg (mánudaga) samantekt sem TENGIR margar opinberar gagnaveitur í eina mynd. Rótering milli þema.
+  if (new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
+    const sbT = J('sedlabanki.json');
+    const lastPtN = (ds, nm, pred) => { const s = ((ds || {}).series || []).find((x) => (nm instanceof RegExp) ? nm.test(x.name) : x.name === nm); if (!s || !Array.isArray(s.points)) return null; const p = pred ? s.points.filter((q) => pred(q[1])) : s.points; return p.length ? p[p.length - 1][1] : null; };
+    const themas = [];
+    // Þema 1: Peningastefnan — vextir × verðbólga × gengi × raunvextir
+    if (sbT && sbT.datasets) {
+      const meg = lastPtN(sbT.datasets.vextir_si, /megin/i), vbv = lastPtN(sbT.datasets.verdbolga, 'Vísitala neysluverðs', (v) => typeof v === 'number' && v < 50), ge = lastPtN(sbT.datasets.gengisvisit, 'Gengisvísitala');
+      if (typeof meg === 'number' && typeof vbv === 'number') {
+        const raun = +(meg - vbv).toFixed(1);
+        themas.push({ key: 'peningastefna', url: '/vextir/', facts: { meginvextir: meg, arsverdbolga: vbv, raunvextir: raun, verdbolgumarkmid: 2.5, gengisvisitala: ge == null ? null : +ge.toFixed(1) },
+          samhengi: `Raunstýrivextir ≈ ${pct1(raun)}%; verðbólga ${pct1(Math.abs(vbv - 2.5))} pp ${vbv >= 2.5 ? 'yfir' : 'undir'} 2,5% markmiði.`,
+          title: `Peningastefnan: ${pct1(meg)}% meginvextir, ${pct1(vbv)}% verðbólga`,
+          text: `Peningastefna Seðlabanka Íslands í hnotskurn: meginvextir standa í ${pct1(meg)}% og ársverðbólga mælist ${pct1(vbv)}% — ${pct1(Math.abs(vbv - 2.5))} prósentustigum ${vbv >= 2.5 ? 'yfir' : 'undir'} 2,5% verðbólgumarkmiðinu. Raunstýrivextir (meginvextir að frádreginni verðbólgu) eru því um ${pct1(raun)}%.${ge != null ? ` Gengisvísitala krónunnar stendur í ${pct1(ge)}.` : ''} Tölurnar eru teknar saman úr opinberum gögnum Seðlabankans.` });
+      }
+    }
+    // Þema 2: Hvert fer ríkisféð — ríkisgreiðslur × útboð × styrkir
+    const biT = J('birgjar.json'), urT = J('utbod_urslit.json'), stT = J('styrkir.json');
+    if (biT && Array.isArray(biT.months) && biT.months.length) {
+      const mM = biT.months[biT.months.length - 1], topV = (biT.vendors || []).slice().sort((a, b) => (b.t || 0) - (a.t || 0))[0];
+      const nAward = ((urT && urT.awards) || []).filter((a) => RECENT(a.d, 30)).length, stTot = ((stT && stT.styrkir) || []).reduce((s, x) => s + (x.upphaed || 0), 0);
+      if (mM && mM.total) {
+        themas.push({ key: 'opinbertfe', url: '/birgjar/', facts: { manudur: mM.m, rikisgreidslur: Math.round(mM.total), staersti_birgir: topV ? topV.n : null, ny_utbod_30d: nAward, styrkir_alls: Math.round(stTot) },
+          samhengi: `Þrjár fjárstreymis-leiðir: ríkisgreiðslur, ${nAward} ný útboð (30 d.) og ${kr(Math.round(stTot / 1e6))} m.kr. í skráðum styrkjum.`,
+          title: `Hvert fer ríkisféð? ${kr(Math.round(mM.total / 1e9))} ma.kr. til birgja í ${manIS(mM.m)}`,
+          text: `Opinbert fé streymir eftir mörgum leiðum. Í ${manIS(mM.m)} greiddi ríkið ${kr(Math.round(mM.total))} kr. til birgja samkvæmt opnum reikningum${topV ? `, þar sem ${topV.n} var stærsti einstaki birgirinn` : ''}. Á sama tíma voru ${nAward} ný opinber útboð með skráða niðurstöðu síðustu 30 daga og ${kr(Math.round(stTot))} kr. í skráðum styrkjum úr opinberum sjóðum. Karp tengir þessar gagnaveitur saman í eina mynd.` });
+      }
+    }
+    // Þema 3: Húsnæðismarkaðurinn — kaupverð × leiga
+    const faT = J('fasteignir.json'), leT = J('leiga.json');
+    if (faT && faT.direction && typeof faT.direction.chg12 === 'number' && typeof faT.direction.chg3 === 'number') {
+      const d = faT.direction, m2 = (faT.months && faT.months.length ? (faT.months[faT.months.length - 1].hbsv || {}).m2 : null), rent = (leT && leT.latest) ? leT.latest.medM2 : null;
+      themas.push({ key: 'husnaedi', url: '/fasteignir/', facts: { breyting3man: d.chg3, breyting12man: d.chg12, fermetraverd_thus: m2, leiga_m2: rent, takt: d.verdict || null },
+        samhengi: `Kaupverð ${d.chg3 < 0 ? 'lækkaði' : 'hækkaði'} ${pct1(Math.abs(d.chg3))}% á 3 mán.${rent ? ` · leiga ${kr(rent)} kr./m².` : ''}`,
+        title: `Húsnæðismarkaðurinn: ${d.chg12 >= 0 ? '+' : ''}${pct1(d.chg12)}% á tólf mánuðum`,
+        text: `Húsnæðismarkaðurinn í einni mynd: íbúðaverð á höfuðborgarsvæðinu ${d.chg12 >= 0 ? 'hækkaði' : 'lækkaði'} um ${pct1(Math.abs(d.chg12))}% á tólf mánuðum og ${d.chg3 < 0 ? 'lækkaði' : 'hækkaði'} um ${pct1(Math.abs(d.chg3))}% síðustu þrjá mánuði${m2 ? ` (fermetraverð um ${kr(m2)} þús. kr.)` : ''}.${rent ? ` Miðgildi leiguverðs stendur í ${kr(rent)} kr. á fermetra.` : ''} Samantekt úr kaupskrá og leiguskrá HMS.` });
+    }
+    if (themas.length) {
+      const ti = ((typeof state.themaIdx === 'number' ? state.themaIdx : -1) + 1);
+      const pick = themas[ti % themas.length];
+      ev.push({ id: `thema-${pick.key}-${TODAY}`, type: 'thema', facts: pick.facts, url: pick.url, samhengi: pick.samhengi, title: pick.title, text: pick.text });
+      state.themaIdx = ti;
+    }
+  }
+
   return ev;
 }
 
