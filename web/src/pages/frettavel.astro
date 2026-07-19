@@ -1,10 +1,11 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// 🗞️ FRÉTTAVÉL KARP (LOTA 28) — sjálfvirk gagnablaðamennska.
-// build_frettavel.js finnur atburði vélrænt í opinberu gögnunum (atkvæði gegn
-// flokki, tæpar atkvæðagreiðslur, fylgismet, fasteignamet, greiðslufrávik,
-// útboðsbylgjur) og skrifar örfrétt um hvern — AI-grundað sé lykill í cron,
-// annars sniðmát úr sömu tölum. Hver frétt ber ai-flagg og hlekk á frumgögnin.
+// 🗞️ FRÉTTAVÉL KARP — sjálfvirk gagnablaðamennska.
+// build_frettavel.js finnur atburði vélrænt í opinberu gögnunum (þing, kannanir,
+// fasteignir, ríkisgreiðslur, útboð, gjaldþrot, dómar, styrkir, vextir, verðbólga,
+// lyfjaskortur, vörumerki, markaðir) og skrifar örfrétt um hvern — AI-grundað sé
+// lykill í cron, annars sniðmát úr sömu tölum. Hver frétt ber ai-flagg + heimild.
+// Litakóðaðir flokka-hausar + gagnadrifin smágröf (spark) þar sem tímaröð er til.
 // Forþjónað (SSG) — engin runtime-DOM, engir scoped-CSS fyrirvarar.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
@@ -22,19 +23,45 @@ const TYPES = {
   baejarstjori: ['🏘️', 'Sveitarstjórn'], sendiherra: ['🌍', 'Utanríkis'],
   ivilnun: ['📜', 'Ívilnun'], stjorntap: ['⚡', 'Stjórnartap'],
   einn: ['🗳️', 'Einn gegn öllum'], urslit: ['🏆', 'Útboðsniðurstaða'],
+  gjaldthrot: ['💼', 'Gjaldþrot'], domur: ['⚖️', 'Dómsmál'],
+  styrkur: ['💰', 'Styrkur'], vextir: ['🏦', 'Stýrivextir'],
+  verdbolga: ['🛒', 'Verðbólga'], lyf: ['💊', 'Lyfjaskortur'],
+  vorumerki: ['🏷️', 'Vörumerki'],
+};
+// Litur per flokk — knýr bæði flokka-haus (badge + vinstri kant) og smágraf.
+const COLOR = {
+  rebel: '#e0655f', taep: '#ff8a3d', fylgi: '#3aa0ff', fast: '#42d086', spike: '#f6b13b', utbod: '#9d86ff',
+  stjorn: '#3aa0ff', fjarvist: '#e0655f', raedur: '#9d86ff', mark: '#f6b13b', sent: '#3aa0ff', glaepir: '#e0655f',
+  atv: '#42d086', radherra: '#9d86ff', baejarstjori: '#42d086', sendiherra: '#3aa0ff', ivilnun: '#f6b13b',
+  stjorntap: '#ff8a3d', einn: '#e0655f', urslit: '#f6b13b',
+  gjaldthrot: '#e0655f', domur: '#9d86ff', styrkur: '#42d086', vextir: '#3aa0ff', verdbolga: '#ff8a3d',
+  lyf: '#ff8a3d', vorumerki: '#3aa0ff',
+};
+const cOf = (t) => COLOR[t] || '#8fa0b8';
+// Smágraf úr tímaröð (spark): normaliserað polyline + flötur + endapunktur.
+const spark = (arr) => {
+  const a = (arr || []).filter((x) => typeof x === 'number');
+  if (a.length < 4) return null;
+  const w = 130, h = 32, p = 3;
+  const mn = Math.min(...a), mx = Math.max(...a), rng = (mx - mn) || 1;
+  const xs = (i) => p + (i / (a.length - 1)) * (w - 2 * p);
+  const ys = (v) => p + (1 - (v - mn) / rng) * (h - 2 * p);
+  const pts = a.map((v, i) => `${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const area = `${xs(0).toFixed(1)},${h - p} ${pts} ${xs(a.length - 1).toFixed(1)},${h - p}`;
+  return { pts, area, w, h, ex: xs(a.length - 1).toFixed(1), ey: ys(a[a.length - 1]).toFixed(1) };
 };
 const dIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
 // Hópa eftir degi (nýjast efst — items koma þegar raðaðar nýjast fyrst)
 const byDate = [];
 for (const it of items) { const last = byDate[byDate.length - 1]; if (last && last.d === it.date) last.list.push(it); else byDate.push({ d: it.date, list: [it] }); }
-const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberum gögnum: atkvæði þingmanna gegn eigin flokki, fylgismet, fasteignamet, greiðslufrávik ríkisins og útboðsbylgjur. Hver frétt tengir á frumgögnin.`;
+const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberum gögnum: atkvæði þingmanna, fylgismet, fasteignamet, ríkisgreiðslur, útboð, gjaldþrot, dómar, styrkir, vextir og verðbólga. Hver frétt tengir á frumgögnin.`;
 ---
 
 <Layout title="🗞️ Fréttavélin | Karp" description={desc} canonical="https://karp.is/frettavel/" ogTitle="Fréttavél Karp">
   <main data-pg="frettavel">
     <p class="kicker">Karp · Fréttavélin</p>
     <h1>🗞️ Fréttavélin</h1>
-    <p>Fréttir sem gögnin skrifa sjálf: vél Karp vaktar opinberu gögnin — atkvæðagreiðslur Alþingis, kannanir, kaupskrá HMS, opna reikninga ríkisins og útboðsgáttirnar — og birtir frétt þegar eitthvað fréttnæmt gerist í tölunum. <a href="/frettavel.xml">RSS-veita ↗</a></p>
+    <p>Fréttir sem gögnin skrifa sjálf: vél Karp vaktar opinberu gögnin — Alþingi, kannanir, kaupskrá HMS, reikninga ríkisins, útboð, Lögbirtingablaðið, dóma, styrki, vexti og verðbólgu — og birtir frétt þegar eitthvað fréttnæmt gerist í tölunum. <a href="/frettavel.xml">RSS-veita ↗</a></p>
     <div class="disclosure">🤖 <b>Gagnsæi:</b> Atburðirnir eru fundnir vélrænt eftir föstum reglum (t.d. „þingmaður kýs gegn ≥75% eigin þingflokks") og textinn er skrifaður af gervigreind <i>eingöngu</i> úr reiknuðu staðreyndunum — eða af sniðmáti úr sömu tölum. Engin mannleg ritstjórn. Hver frétt tengir á frumgögnin á Karp svo þú getir sannreynt allt sjálf(ur).</div>
 
     {byDate.length === 0 && <p class="empty">Engar fréttir enn — vélin keyrir daglega og birtir um leið og gögnin hreyfast fréttnæmt.</p>}
@@ -42,9 +69,18 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberu
       <section>
         <h2>{dIS(g.d)}</h2>
         <div class="fv-list">
-          {g.list.map((it) => { const tm = TYPES[it.type] || ['📰', 'Frétt']; return (
-            <article class="fv-card" id={it.id}>
-              <div class="fv-top"><span class={`fv-badge ${it.type}`}>{tm[0]} {tm[1]}</span></div>
+          {g.list.map((it) => { const tm = TYPES[it.type] || ['📰', 'Frétt']; const c = cOf(it.type); const sp = spark(it.spark); return (
+            <article class="fv-card" id={it.id} style={`border-left-color:${c}`}>
+              <div class="fv-top">
+                <span class="fv-badge" style={`color:${c};border-color:${c}55;background:${c}1a`}>{tm[0]} {tm[1]}</span>
+                {sp && (
+                  <svg class="fv-spark" viewBox={`0 0 ${sp.w} ${sp.h}`} width={sp.w} height={sp.h} aria-hidden="true" style={`color:${c}`}>
+                    <polyline points={sp.area} fill="currentColor" opacity="0.13" stroke="none" />
+                    <polyline points={sp.pts} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
+                    <circle cx={sp.ex} cy={sp.ey} r="2.4" fill="currentColor" />
+                  </svg>
+                )}
+              </div>
               <h3>{it.title}</h3>
               <p class="fv-text">{it.text}</p>
               <div class="fv-foot">
@@ -57,34 +93,30 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberu
       </section>
     ))}
 
-    <p class="foot">Forþjónað (SSG). Vélin keyrir daglega kl. 06 UTC (build_frettavel.js) — atburðareglur og heimildir í hverri frétt. Uppfært {updated}. Ábendingar: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>. LOTA 28.</p>
+    <p class="foot">Forþjónað (SSG). Vélin keyrir daglega kl. 06 UTC (build_frettavel.js) — atburðareglur og heimildir í hverri frétt. Uppfært {updated}. Ábendingar: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>.</p>
   </main>
 
   <style>
     main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: var(--ink); } p a { color: #f6b13b; }
+    p { color: var(--ink); } p a { color: var(--gold); }
     .disclosure { background: rgba(58,160,255,.06); border: 1px solid rgba(58,160,255,.28); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--muted); line-height: 1.55; margin: 14px 0 6px; }
     .disclosure b { color: var(--ink); }
-    h2 { font-size: 13px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; }
+    h2 { font-size: 13px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
     .fv-list { display: flex; flex-direction: column; gap: 12px; }
-    .fv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); border-radius: 13px; padding: 15px 18px; scroll-margin-top: 80px; }
-    .fv-card h3 { font-size: 16.5px; color: var(--ink); margin: 8px 0 6px; line-height: 1.35; }
-    .fv-text { font-size: 13.5px; line-height: 1.6; margin: 0; }
-    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
-    .fv-badge.rebel { background: rgba(224,101,95,.12); color: #e0655f; border-color: rgba(224,101,95,.35); }
-    .fv-badge.taep { background: rgba(255,138,61,.12); color: #ff8a3d; border-color: rgba(255,138,61,.35); }
-    .fv-badge.fylgi { background: rgba(58,160,255,.12); color: #3aa0ff; border-color: rgba(58,160,255,.35); }
-    .fv-badge.fast { background: rgba(66,208,134,.12); color: #42d086; border-color: rgba(66,208,134,.35); }
-    .fv-badge.spike { background: rgba(246,177,59,.12); color: #f6b13b; border-color: rgba(246,177,59,.35); }
-    .fv-badge.utbod { background: rgba(124,92,255,.12); color: #9d86ff; border-color: rgba(124,92,255,.35); }
+    .fv-card { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 13px; padding: 15px 18px; scroll-margin-top: 80px; }
+    .fv-card h3 { font-size: 16.5px; color: var(--ink); margin: 9px 0 6px; line-height: 1.35; }
+    .fv-text { font-size: 13.5px; line-height: 1.62; margin: 0; color: var(--ink); }
+    .fv-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); white-space: nowrap; }
+    .fv-spark { flex: none; height: 30px; width: auto; }
     .fv-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
-    .fv-src { font-size: 12.5px; color: #f6b13b; text-decoration: none; font-weight: 600; }
+    .fv-src { font-size: 12.5px; color: var(--gold); text-decoration: none; font-weight: 600; }
     .fv-src:hover { text-decoration: underline; }
     .fv-ai { font-size: 11px; color: var(--faint); }
     .empty { color: var(--faint); margin-top: 20px; }
-    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid var(--line); padding-top: 14px; }
     .foot a { color: var(--muted); }
   </style>
 </Layout>

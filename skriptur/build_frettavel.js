@@ -31,6 +31,8 @@ const pct1 = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
 const kr = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 const MAN = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
 const manIS = (ym) => { const m = String(ym).match(/(\d{4})-(\d{2})/); return m ? MAN[+m[2] - 1] + ' ' + m[1] : ym; };
+// Smágraf: síðustu n tölugildi úr röð (fyrir sparkline á fréttakorti). Skilar [] ef of stutt.
+const downsample = (arr, n = 24) => { const a = (arr || []).filter((x) => typeof x === 'number'); return a.length <= n ? a : a.slice(-n); };
 
 // ── Detectorar ────────────────────────────────────────────────
 // state = frettavel_state.json: snapshot-samanburður milli keyrslna (diff-fréttir)
@@ -91,7 +93,7 @@ function detect(state) {
       const met = nu > Math.max(...fyrri) ? 'hæsta' : nu < Math.min(...fyrri) ? 'lægsta' : null;
       if (!met) continue;
       const kosn = ((polls.election2024 || {}).v || {})[st];
-      ev.push({ id: `fylgi-${last.date}-${st}-${met}`, type: 'fylgi', facts: { flokkur: nafn, fylgi: nu, met, pollster: last.pollster, dags: last.date, kannanir: serie.length, kosningar2024: kosn ?? null }, url: '/kannanir/',
+      ev.push({ id: `fylgi-${last.date}-${st}-${met}`, type: 'fylgi', spark: downsample(serie, 24), facts: { flokkur: nafn, fylgi: nu, met, pollster: last.pollster, dags: last.date, kannanir: serie.length, kosningar2024: kosn ?? null }, url: '/kannanir/',
         title: `${nafn} ${met === 'hæsta' ? 'aldrei hærri' : 'aldrei lægri'} í könnunum: ${String(nu).replace('.', ',')}%`,
         text: `${nafn} mælist með ${String(nu).replace('.', ',')}% fylgi hjá ${last.pollster} (${last.date}) — það ${met} í ${serie.length} könnunum sem Karp hefur safnað.${typeof kosn === 'number' ? ` Í alþingiskosningunum 2024 fékk flokkurinn ${String(kosn).replace('.', ',')}%.` : ''}` });
     }
@@ -105,7 +107,7 @@ function detect(state) {
       const fyrri = m.slice(0, -1).map((x) => (x.hbsv || {}).m2 || 0);
       const prevMax = Math.max(...fyrri);
       if (s.hbsv.m2 > prevMax) {
-        ev.push({ id: `fast-${s.m}`, type: 'fast', facts: { manudur: s.m, m2: s.hbsv.m2, n: s.hbsv.n, fyrraMet: prevMax }, url: '/fasteignir/',
+        ev.push({ id: `fast-${s.m}`, type: 'fast', spark: downsample(m.map((x) => (x.hbsv || {}).m2 || 0), 24), facts: { manudur: s.m, m2: s.hbsv.m2, n: s.hbsv.n, fyrraMet: prevMax }, url: '/fasteignir/',
           title: `Fermetraverð á höfuðborgarsvæðinu í nýju hámarki: ${kr(s.hbsv.m2)} þús. kr.`,
           text: `Meðalfermetraverð íbúða á höfuðborgarsvæðinu náði sögulegu hámarki í ${manIS(s.m)}: ${kr(s.hbsv.m2)} þús. kr. á fermetra samkvæmt kaupskrá HMS (${s.hbsv.n} kaupsamningar). Fyrra hámark mánaðarraðarinnar var ${kr(prevMax)} þús. kr.` });
       }
@@ -232,21 +234,33 @@ function detect(state) {
   // ── Markaðir: dagshreyfarar ≥4% + met í gagnaröð ─────────────
   const mk = J('markadir.json');
   if (mk && Array.isArray(mk.stocks)) {
+    const rec = state.markRec || {}, recInit = !!state.markRec;   // markRec = síðasta TILKYNNTA met per bréfi
     const cand = [];
     for (const s of mk.stocks) {
       const h = (s.hist || []).filter((x) => x > 0);
+      const sp = downsample((s.hist || []).concat([s.price]), 30);
       if (typeof s.chgPct === 'number' && Math.abs(s.chgPct) >= 4) {
-        cand.push({ w: Math.abs(s.chgPct), e: { id: `mark-${TODAY}-${slug(s.sym)}`, type: 'mark', facts: { felag: s.name, breyting: +s.chgPct.toFixed(1), verd: s.price }, url: '/markadir/',
+        cand.push({ w: Math.abs(s.chgPct), e: { id: `mark-${TODAY}-${slug(s.sym)}`, type: 'mark', spark: sp, facts: { felag: s.name, breyting: +s.chgPct.toFixed(1), verd: s.price }, url: '/markadir/',
           title: `${s.name} ${s.chgPct > 0 ? 'hækkar' : 'lækkar'} um ${pct1(Math.abs(s.chgPct))}% í Kauphöllinni`,
           text: `Gengi ${s.name} ${s.chgPct > 0 ? 'hækkaði' : 'lækkaði'} um ${pct1(Math.abs(s.chgPct))}% í dag og stendur í ${String(s.price).replace('.', ',')}.` } });
-      } else if (h.length >= 30 && (s.price >= Math.max(...h) || s.price <= Math.min(...h))) {
-        const ha = s.price >= Math.max(...h);
-        cand.push({ w: 2, e: { id: `markmet-${TODAY}-${slug(s.sym)}-${ha ? 'ha' : 'la'}`, type: 'mark', facts: { felag: s.name, verd: s.price, met: ha ? 'hæsta' : 'lægsta', dagar: h.length }, url: '/markadir/',
-          title: `${s.name} í ${ha ? 'hæsta' : 'lægsta'} gildi í gagnaröð Karp`,
-          text: `Gengi ${s.name} stendur í ${String(s.price).replace('.', ',')} — það ${ha ? 'hæsta' : 'lægsta'} í gagnaröð Karp (${h.length} síðustu viðskiptadagar).` } });
+      } else if (h.length >= 30) {
+        // ENDURTEKNINGARVÖRN: met-frétt kviknar AÐEINS þegar NÝTT met er sett — ekki daglega meðan bréfið
+        // situr í hámarki. rec[sym] geymir síðasta tilkynnta hámark/lágmark. Fyrsta keyrsla er þögul (recInit=false).
+        const r = rec[s.sym] || {};
+        if (recInit && s.price >= Math.max(...h) && s.price > (typeof r.hi === 'number' ? r.hi : 0)) {
+          cand.push({ w: 3, e: { id: `markmet-${TODAY}-${slug(s.sym)}-ha`, type: 'mark', spark: sp, facts: { felag: s.name, verd: s.price, met: 'hæsta', dagar: h.length }, url: '/markadir/',
+            title: `${s.name} í hæsta gildi í gagnaröð Karp`,
+            text: `Gengi ${s.name} stendur í ${String(s.price).replace('.', ',')} — það hæsta í gagnaröð Karp (${h.length} viðskiptadagar).` } });
+        } else if (recInit && s.price <= Math.min(...h) && s.price < (typeof r.lo === 'number' ? r.lo : Infinity)) {
+          cand.push({ w: 3, e: { id: `markmet-${TODAY}-${slug(s.sym)}-la`, type: 'mark', spark: sp, facts: { felag: s.name, verd: s.price, met: 'lægsta', dagar: h.length }, url: '/markadir/',
+            title: `${s.name} í lægsta gildi í gagnaröð Karp`,
+            text: `Gengi ${s.name} stendur í ${String(s.price).replace('.', ',')} — það lægsta í gagnaröð Karp (${h.length} viðskiptadagar).` } });
+        }
+        rec[s.sym] = { hi: Math.max(typeof r.hi === 'number' ? r.hi : 0, s.price), lo: Math.min(typeof r.lo === 'number' ? r.lo : Infinity, s.price) };
       }
     }
-    cand.sort((a, b) => b.w - a.w).slice(0, 3).forEach((c) => ev.push(c.e));
+    state.markRec = rec;
+    cand.sort((a, b) => b.w - a.w).slice(0, 2).forEach((c) => ev.push(c.e));   // þak 2 markaðsfréttir/dag
   }
 
   // ── Umfjöllunarviðsnúningur (diff á sentiment-vísitölu) ──────
@@ -291,10 +305,10 @@ function detect(state) {
     const m = at.monthly, last = m[m.length - 1];
     let lowN = 0; for (let i = m.length - 2; i >= 0 && m[i].v > last.v; i--) lowN++;
     let hiN = 0; for (let i = m.length - 2; i >= 0 && m[i].v < last.v; i--) hiN++;
-    if (lowN >= 12) ev.push({ id: `atv-${last.t}-lag`, type: 'atv', facts: { gildi: last.v, timabil: last.t, manudir: lowN }, url: '/atvinnuleysi/',
+    if (lowN >= 12) ev.push({ id: `atv-${last.t}-lag`, type: 'atv', spark: downsample(m.map((x) => x.v), 24), facts: { gildi: last.v, timabil: last.t, manudir: lowN }, url: '/atvinnuleysi/',
       title: `Atvinnuleysi ekki lægra í ${lowN} mánuði: ${pct1(last.v)}%`,
       text: `Skráð atvinnuleysi mældist ${pct1(last.v)}% í ${manIS(last.t.replace('M', '-'))} — það lægsta í ${lowN} mánuði samkvæmt Vinnumálastofnun.` });
-    if (hiN >= 12) ev.push({ id: `atv-${last.t}-ha`, type: 'atv', facts: { gildi: last.v, timabil: last.t, manudir: hiN }, url: '/atvinnuleysi/',
+    if (hiN >= 12) ev.push({ id: `atv-${last.t}-ha`, type: 'atv', spark: downsample(m.map((x) => x.v), 24), facts: { gildi: last.v, timabil: last.t, manudir: hiN }, url: '/atvinnuleysi/',
       title: `Atvinnuleysi ekki hærra í ${hiN} mánuði: ${pct1(last.v)}%`,
       text: `Skráð atvinnuleysi mældist ${pct1(last.v)}% í ${manIS(last.t.replace('M', '-'))} — það hæsta í ${hiN} mánuði samkvæmt Vinnumálastofnun.` });
   }
@@ -417,6 +431,109 @@ function detect(state) {
     state.opnanirInit = ur.opnanir.map((x) => slug(x.t)).slice(0, 100);
   }
 
+  // ══ LOTA 31: fjölbreytni — ný gagnaefni ═════════════════════════
+  const RECENT = (d, days = 30) => d && d >= new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+
+  // ── Gjaldþrot / skiptabeiðnir (Lögbirtingablaðið, aðeins lögaðilar, nýlegt) ──
+  const lb = J('logbirting.json');
+  if (lb && lb.byKt) {
+    const nyleg = [];
+    for (const [kt, o] of Object.entries(lb.byKt)) {
+      for (const n of (o.notices || [])) {
+        if ((n.type === 'gjaldthrot_beidni' || n.type === 'skiptabeidni') && RECENT(n.date, 30)) nyleg.push({ kt, nafn: o.name, ...n });
+      }
+    }
+    nyleg.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).forEach((n) => {
+      const heiti = (lb.typeLabels || {})[n.type] || n.type;
+      ev.push({ id: `gjaldthrot-${n.ref || n.date}-${n.kt}`, type: 'gjaldthrot', facts: { felag: n.nafn, tegund: heiti, domstoll: n.court || null, dags: n.date, fyrirtaka: n.when || null }, url: '/logbirting/',
+        title: `${heiti}: ${n.nafn}`,
+        text: `${heiti} vegna ${n.nafn} birtist í Lögbirtingablaðinu ${n.date}${n.court ? ' (' + n.court + ')' : ''}${n.when ? `. Fyrirtaka málsins er ${n.when}` : ''}.` });
+    });
+  }
+
+  // ── Dómar Hæstaréttar/Landsréttar (AI-einfölduð reifun liggur fyrir í domar_ai) ──
+  const dm = J('domar_ai.json');
+  if (dm) {
+    Object.entries(dm).map(([k, v]) => ({ k, ...v })).filter((x) => x.einfalt && RECENT(x.d, 30))
+      .sort((a, b) => (b.d || '').localeCompare(a.d || '')).slice(0, 3).forEach((x) => {
+        const dom = x.k.startsWith('hr') ? 'Hæstiréttur' : x.k.startsWith('lr') ? 'Landsréttur' : 'Dómstóll';
+        const malsnr = x.k.replace(/^[a-z]+:/, '');
+        ev.push({ id: `domur-${slug(x.k)}`, type: 'domur', facts: { domstoll: dom, malsnr, svid: x.svid || null, reifun: x.einfalt, dags: x.d }, url: '/domar/',
+          title: `${dom} í máli nr. ${malsnr}${x.svid ? ' — ' + x.svid : ''}`,
+          text: x.einfalt });
+      });
+  }
+
+  // ── Nýir styrkir (kvikmynda-/vísinda-/atvinnusjóðir) — state-diff, þögul frumstilling ──
+  const sty = J('styrkir.json');
+  if (sty && Array.isArray(sty.styrkir)) {
+    const key = (s) => `${s.slug}-${s.ar}-${s.upphaed}`;
+    if (Array.isArray(state.styrkirSeen)) {
+      const seen = new Set(state.styrkirSeen);
+      sty.styrkir.filter((s) => s.upphaed >= 15000000 && !seen.has(key(s)))
+        .sort((a, b) => b.upphaed - a.upphaed).slice(0, 3).forEach((s) => {
+          ev.push({ id: `styrkur-${s.slug}-${s.ar}`, type: 'styrkur', facts: { thegi: s.nafn, sjodur: s.sjodur, flokkur: s.flokkur || null, upphaed: s.upphaed, ar: s.ar, verkefni: s.verkefni || null }, url: '/styrkir/',
+            title: `${s.nafn} fær ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}`,
+            text: `${s.nafn} hlýtur ${kr(s.upphaed)} kr. styrk úr ${s.sjodur}${s.flokkur ? ' (' + s.flokkur + ')' : ''}${s.verkefni ? ` fyrir verkefnið „${s.verkefni}“` : ''}${s.ar ? `, úthlutað ${s.ar}` : ''}.` });
+        });
+    }
+    state.styrkirSeen = sty.styrkir.map(key).slice(0, 4000);
+  }
+
+  // ── Seðlabankinn: meginvextir (breyting) + verðbólga (ný mæling) ──
+  const sb = J('sedlabanki.json');
+  if (sb && sb.datasets) {
+    const meg = ((sb.datasets.vextir_si || {}).series || []).find((s) => /megin/i.test(s.name));
+    if (meg && Array.isArray(meg.points) && meg.points.length >= 2) {
+      const [dNu, vNu] = meg.points[meg.points.length - 1], vFyrri = meg.points[meg.points.length - 2][1];
+      if (typeof vNu === 'number' && typeof vFyrri === 'number' && vNu !== vFyrri) {
+        ev.push({ id: `vextir-${dNu}`, type: 'vextir', spark: downsample(meg.points.map((p) => p[1]), 24), facts: { nyir: vNu, fyrri: vFyrri, breyting: +(vNu - vFyrri).toFixed(2), dags: dNu }, url: '/vextir/',
+          title: `Seðlabankinn ${vNu > vFyrri ? 'hækkar' : 'lækkar'} meginvexti í ${pct1(vNu)}%`,
+          text: `Meginvextir Seðlabanka Íslands eru nú ${pct1(vNu)}% og ${vNu > vFyrri ? 'hækkuðu' : 'lækkuðu'} úr ${pct1(vFyrri)}% (${dNu}).` });
+      }
+    }
+    const vb = ((sb.datasets.verdbolga || {}).series || []).find((s) => s.name === 'Vísitala neysluverðs' && (s.points || []).some((p) => typeof p[1] === 'number' && p[1] < 50));
+    if (vb && Array.isArray(vb.points) && vb.points.length >= 2) {
+      const [dNu, vNu] = vb.points[vb.points.length - 1], vF = vb.points[vb.points.length - 2][1];
+      if (typeof vNu === 'number' && typeof vF === 'number') {
+        ev.push({ id: `verdbolga-${dNu}`, type: 'verdbolga', spark: downsample(vb.points.map((p) => p[1]), 24), facts: { verdbolga: vNu, fyrri: vF, stefna: vNu > vF ? 'jókst' : vNu < vF ? 'minnkaði' : 'óbreytt', dags: dNu }, url: '/verdlag/',
+          title: `Verðbólga ${vNu > vF ? 'eykst' : vNu < vF ? 'hjaðnar' : 'stendur í stað'}: ${pct1(vNu)}%`,
+          text: `Ársverðbólga mældist ${pct1(vNu)}% í ${manIS(dNu.slice(0, 7))} samkvæmt vísitölu neysluverðs — ${vNu > vF ? 'hækkun' : vNu < vF ? 'lækkun' : 'óbreytt'} frá ${pct1(vF)}% mánuðinn á undan.` });
+      }
+    }
+  }
+
+  // ── Lyfjaskortur á nauðsynlegum lyfjum (Sérlyfjaskrá) — state-diff, þögul frumstilling ──
+  const lyf = J('lyf.json');
+  if (lyf && Array.isArray(lyf.lyf)) {
+    const inShort = lyf.lyf.filter((x) => x.shortage);
+    if (Array.isArray(state.lyfSeen)) {
+      const seen = new Set(state.lyfSeen);
+      inShort.filter((x) => x.essential && !seen.has(x.slug)).slice(0, 2).forEach((x) => {
+        const efni = (x.ingredients || []).join(', ') || ((x.atc || {}).name) || '';
+        ev.push({ id: `lyfskortur-${x.slug}`, type: 'lyf', facts: { lyf: x.name, virkt: efni || null, styrkur: x.strength || null, form: x.form || null, markadsleyfishafi: x.holder || null }, url: '/lyf/',
+          title: `Lyfjaskortur: ${x.name}${x.strength ? ' ' + x.strength : ''}`,
+          text: `Skráður er skortur á lyfinu ${x.name}${x.strength ? ' (' + x.strength + ')' : ''}${efni ? `, virkt efni ${efni}` : ''} samkvæmt Sérlyfjaskrá Lyfjastofnunar. Lyfið er skráð sem nauðsynlegt lyf.` });
+      });
+    }
+    state.lyfSeen = inShort.map((x) => x.slug).slice(0, 4000);
+  }
+
+  // ── Ný vörumerki íslenskra aðila (Hugverkastofan) ──
+  const vm = J('vorumerki_nyskrad.json');
+  if (vm && vm.byKt) {
+    const nyleg = [];
+    for (const [kt, list] of Object.entries(vm.byKt)) {
+      for (const t of (list || [])) { if (t.eigandi && t.titill && String(kt).replace(/\D/g, '').length === 10) nyleg.push({ kt, ...t }); }
+    }
+    const dnum = (d) => String(d || '').split('.').reverse().join('-');
+    nyleg.sort((a, b) => dnum(b.skrad).localeCompare(dnum(a.skrad))).slice(0, 2).forEach((t) => {
+      ev.push({ id: `vorumerki-${t.id}`, type: 'vorumerki', facts: { merki: t.titill, tegund: t.tegund || null, eigandi: t.eigandi, flokkar: t.flokkar || null, skrad: t.skrad || null }, url: '/vorumerki/',
+        title: `Nýtt vörumerki skráð: ${t.titill}`,
+        text: `${t.eigandi} hefur skráð vörumerkið „${t.titill}“${t.tegund ? ' (' + t.tegund + ')' : ''} hjá Hugverkastofunni${(t.flokkar || []).length ? ', í vöru-/þjónustuflokki ' + t.flokkar.join(', ') : ''}.` });
+    });
+  }
+
   return ev;
 }
 
@@ -427,13 +544,13 @@ async function aiWrite(events) {
   try { const p = require('@anthropic-ai/sdk'); Anthropic = p.Anthropic || p.default || p; }
   catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return 0; }
   const client = new Anthropic();
-  const batch = events.slice(0, 14); // kostnaðarþak per keyrslu
+  const batch = events.slice(0, 16); // kostnaðarþak per keyrslu (ein köllun/dag)
   const spec = batch.map((e) => ({ id: e.id, type: e.type, facts: e.facts }));
   try {
     const msg = await client.messages.create({
       model: MODEL,
-      max_tokens: 3000,
-      system: 'Þú ert fréttavél Karp (karp.is). Þú skrifar ÖRSTUTTAR fréttir á íslensku (2–3 setningar) EINGÖNGU úr staðreyndunum í facts-hlutnum. STRANGT BANN: engar tölur, nöfn eða fullyrðingar sem ekki standa í facts; engar orsakaskýringar, engin gildishlaðin orð, engin upphrópunarmerki. Hlutlaus fréttatónn. Skilaðu AÐEINS JSON-fylki: [{"id":"...","title":"...","text":"..."}] — title hámark 90 stafir.',
+      max_tokens: 5000,
+      system: 'Þú ert fréttavél Karp (karp.is). Þú skrifar hlutlausar fréttir á íslensku EINGÖNGU úr staðreyndunum í facts-hlutnum. LENGD RÆÐST AF EFNI: 1–2 setningar fyrir einfaldar tölur (markaðshreyfingar, vísitölur, vextir); 3–6 setningar með samhengi fyrir efnismeiri mál (þing, dómar, gjaldþrot, útboð, styrkir) — nýttu þá ÖLL viðeigandi atriði úr facts (dagsetningar, dómstól, upphæðir, aðila, samanburð). STRANGT BANN: engar tölur, nöfn eða fullyrðingar sem ekki standa í facts; engar orsakaskýringar eða spádómar; engin gildishlaðin orð; engin upphrópunarmerki. Hlutlaus, skýr fréttatónn. Skilaðu AÐEINS JSON-fylki: [{"id":"...","title":"...","text":"..."}] — title hámark 90 stafir, text hámark 800 stafir.',
       messages: [{ role: 'user', content: JSON.stringify(spec) }],
     });
     const raw = (msg.content || []).map((c) => c.text || '').join('');
@@ -441,7 +558,7 @@ async function aiWrite(events) {
     let n = 0;
     for (const w of arr) {
       const e = batch.find((x) => x.id === w.id);
-      if (e && w.text && w.title) { e.title = String(w.title).slice(0, 120); e.text = String(w.text).slice(0, 600); e.ai = true; n++; }
+      if (e && w.text && w.title) { e.title = String(w.title).slice(0, 120); e.text = String(w.text).slice(0, 900); e.ai = true; n++; }
     }
     return n;
   } catch (e) { console.log('• AI-skrif brugðust (' + String(e).slice(0, 80) + ') — sniðmátstextar notaðir.'); return 0; }
@@ -474,28 +591,35 @@ async function main() {
   fs.writeFileSync(G('frettavel_state.json'), JSON.stringify(state));
   const seen = J('frettavel_seen.json') || {};
   const fresh = events.filter((e) => !seen[e.id]);
-  console.log('Atburðir fundnir:', events.length, '· nýir:', fresh.length, '·', fresh.map((e) => e.type + ':' + e.id.slice(0, 40)).join(' | ') || '—');
+  // JAFNVÆGI: hámark 3 fréttir af hverri tegund á dag svo engin ein uppspretta (t.d. markaðir) drottni.
+  // Umfram-fréttir eru EKKI merktar séðar → birtast næstu daga þegar rúm er (dreifir fjölbreytni yfir tíma).
+  const perType = {};
+  const published = fresh.filter((e) => { perType[e.type] = (perType[e.type] || 0) + 1; return perType[e.type] <= 3; });
+  console.log('Atburðir fundnir:', events.length, '· nýir:', fresh.length, '· birtir:', published.length, '·', published.map((e) => e.type + ':' + e.id.slice(0, 34)).join(' | ') || '—');
 
-  const aiN = await aiWrite(fresh);
-  console.log('AI-skrifaðar:', aiN, 'af', Math.min(fresh.length, 14), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
+  const aiN = await aiWrite(published);
+  console.log('AI-skrifaðar:', aiN, 'af', Math.min(published.length, 16), process.env.ANTHROPIC_API_KEY ? '' : '(enginn lykill — sniðmát)');
 
   const old = (J('frettavel.json') || {}).items || [];
-  const items = fresh.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai }))
-    .concat(old.filter((o) => !fresh.some((f) => f.id === o.id)))
+  const items = published.map((e) => ({ id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined }))
+    .concat(old.filter((o) => !published.some((f) => f.id === o.id)))
     .slice(0, 120);
 
-  fresh.forEach((e) => { seen[e.id] = TODAY; });
+  published.forEach((e) => { seen[e.id] = TODAY; });
   // seen-skráin vex ekki endalaust: klippum færslur sem eru horfnar úr items og eldri en 180 daga
   const cutoff = new Date(Date.now() - 180 * 86400000).toISOString().slice(0, 10);
   for (const [id, d] of Object.entries(seen)) { if (d < cutoff && !items.some((x) => x.id === id)) delete seen[id]; }
 
-  const out = { updated: new Date().toISOString(), n: items.length, items };
+  // Þak per tegund í birtum straumi (8) svo eldri bylgja (t.d. uppsafnaðar markaðsfréttir) yfirtaki ekki
+  // listann. items eru nýjast-fyrst → heldur 8 NÝJUSTU af hverri tegund, eldri detta af.
+  const tcap = {}; const feed = items.filter((it) => { tcap[it.type] = (tcap[it.type] || 0) + 1; return tcap[it.type] <= 8; });
+  const out = { updated: new Date().toISOString(), n: feed.length, items: feed };
   fs.writeFileSync(G('frettavel.json'), JSON.stringify(out));
   fs.writeFileSync(G('frettavel_seen.json'), JSON.stringify(seen));
   const pub = path.join(__dirname, '..', 'web', 'public', 'gogn');
   fs.mkdirSync(pub, { recursive: true });
   fs.writeFileSync(path.join(pub, 'frettavel.json'), JSON.stringify(out));
-  fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'frettavel.xml'), rss(items));
+  fs.writeFileSync(path.join(__dirname, '..', 'web', 'public', 'frettavel.xml'), rss(feed));
   console.log('Skrifað: frettavel.json (' + items.length + ' fréttir) + frettavel.xml (RSS)');
 }
 main().catch((e) => { console.error(e); process.exit(1); });
