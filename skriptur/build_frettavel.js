@@ -683,6 +683,48 @@ function detect(state) {
     }
   }
 
+  // ══ BYLGJA 3 (LOTA 35): byggingar · sveitarfjármál · grænar tölur ══
+  const dmyIS = (d) => { const m = String(d).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : d; };
+  // Nýtt byggingarleyfi fyrir atvinnuhúsnæði SAMÞYKKT hjá byggingarfulltrúa RVK (nýlegt, ekki íbúðarhúsnæði — engin PII)
+  const byW = J('byggingarleyfi_vakt.json');
+  if (byW && Array.isArray(byW.recent)) {
+    const COM = /veitingasta|verslun|hótel|gistihe|atvinnuh|skrifstof|iðnað|verksmiðj|kaffihús|þjónustuh|samkomu/i;
+    const RES = /íbúð|einbýl|bílskúr|sólskál|viðbygg|svalir|heimili|raðhús/i;
+    byW.recent
+      .filter((m) => m.decisionCode === 'samthykkt' && RECENT(m.date, 40) && COM.test(m.desc || '') && !RES.test(m.desc || ''))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .slice(0, 2)
+      .forEach((m) => {
+        const stutt = String(m.desc || '').replace(/\s+/g, ' ').trim();
+        const stad = m.hverfi ? `${m.addr} (${m.hverfi})` : m.addr;
+        ev.push({ id: `bygging-${m.caseNo}`, type: 'bygging', facts: { heimilisfang: m.addr, hverfi: m.hverfi || null, malsnumer: m.caseNo, dagsetning: m.date, lysing: stutt.slice(0, 200) }, url: '/byggingarvakt/',
+          title: `Nýtt byggingarleyfi fyrir atvinnuhúsnæði: ${m.addr}`,
+          text: `Byggingarfulltrúi Reykjavíkur samþykkti byggingarleyfi fyrir atvinnuhúsnæði að ${stad} þann ${dmyIS(m.date)}: ${stutt.slice(0, 180)}${stutt.length > 180 ? '…' : ''} (málsnr. ${m.caseNo}).` });
+      });
+  }
+  // Röðun sveitarfélaga eftir skuldum á hvern íbúa — kviknar á skuldsettasta (breytist sjaldan; sjálf-dedup um seen)
+  const sfW = J('sveitarfelog_fin.json');
+  if (sfW && typeof sfW === 'object' && !Array.isArray(sfW)) {
+    const arr = Object.entries(sfW).map(([n, v]) => ({ n, ...v })).filter((x) => typeof x.skuldir_ibui === 'number' && x.skuldir_ibui > 0);
+    arr.sort((a, b) => b.skuldir_ibui - a.skuldir_ibui);
+    if (arr.length >= 5) {
+      const top = arr[0], medal = Math.round(arr.reduce((s, x) => s + x.skuldir_ibui, 0) / arr.length);
+      const naest = arr.slice(1, 4).map((x) => `${x.n} (${kr(x.skuldir_ibui)} þús.)`).join(', ');
+      ev.push({ id: `sveitfe-skuld-${slug(top.n)}`, type: 'sveitfe', facts: { sveitarfelag: top.n, skuldir_a_ibua_thus: top.skuldir_ibui, medaltal_thus: medal, naestu: arr.slice(1, 4).map((x) => ({ sveitarfelag: x.n, skuldir_ibui: x.skuldir_ibui })) }, url: '/sveitarfelog/',
+        title: `${top.n} skuldsettasta sveitarfélagið: ${kr(top.skuldir_ibui)} þús. kr. á íbúa`,
+        text: `${top.n} er skuldsettasta sveitarfélag landsins miðað við skuldir á hvern íbúa — ${kr(top.skuldir_ibui)} þús. kr., borið saman við ${kr(medal)} þús. kr. að meðaltali hjá ${arr.length} sveitarfélögum. Næst á eftir koma ${naest}.` });
+    }
+  }
+  // Hlutfall hreinorkubíla (BEV) í bílaflotanum — árleg gögn (sjálf-dedup um ár)
+  const rbW = J('rafbilar.json');
+  if (rbW && rbW.CARS && rbW.CARS.total && rbW.CARS.bev) {
+    const c = rbW.CARS, yr = c.lastY, bevPct = c.bev / c.total * 100;
+    const bevSeries = (c.series || []).find((s) => /BEV|Rafmagn/i.test(s.name));
+    ev.push({ id: `graent-bev-${yr}`, type: 'graent', spark: bevSeries ? downsample(bevSeries.data.map((x) => x || 0), 20) : undefined, facts: { ar: yr, bev_fjoldi: c.bev, floti: c.total, bev_hlutfall: Math.round(bevPct * 10) / 10, rafmagnadir_hlutfall: c.rafPct }, url: '/rafbilar/',
+      title: `Hreinorkubílar ${pct1(bevPct)}% af bílaflotanum ${yr}`,
+      text: `Hreinir rafmagnsbílar (BEV) voru ${kr(c.bev)} talsins í árslok ${yr} — ${pct1(bevPct)}% af ${kr(c.total)} bíla flota landsmanna. Séu tengiltvinnbílar taldir með eru rafmagnaðir bílar ${pct1(c.rafPct)}% flotans samkvæmt tölum Samgöngustofu.` });
+  }
+
   return ev;
 }
 
