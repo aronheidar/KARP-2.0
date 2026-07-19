@@ -154,7 +154,7 @@ export const VORUR = [
       { titill: 'Fylgstu með', texti: 'Umfjöllun birtist jafnóðum + tilkynningar.' },
     ],
     verd: { tegund: 'askrift', upphaed: 3900, service: 'frettir', trialDays: 30 },   // sérlausn (Umfjöllun) — eða innifalið í Fyrirtæki/Fyrirtæki+ þrepum
-    synishorn: { label: 'Skoða vöktun', href: '/frettir/' },
+    synishorn: { label: '🗞️ Karp fréttir', href: '/frettavel/' },
     tol: { label: 'Opna Vöktun', href: '/frettir/' },
     description: 'Fjölmiðlavakt — öll umfjöllun um fyrirtæki og fólk úr 35+ íslenskum miðlum, með leitarorðavakt og greiningu. ' + LEGAL,
   },

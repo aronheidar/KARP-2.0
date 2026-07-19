@@ -4,7 +4,7 @@
 // NewsArticle + Dataset JSON-LD, canonical, OG-mynd (flokka-mynd) → indexeranleg + tilvitnanleg.
 import Layout from '../../layouts/Layout.astro';
 import ARCH from '@gogn/frettavel_archive.json';
-import { catOf, asciiId, imgPath, artHref, dIS, spark } from '../../lib/frettavel.mjs';
+import { catOf, asciiId, imgFor, artHref, dIS, spark } from '../../lib/frettavel.mjs';
 
 export function getStaticPaths() {
   const items = (ARCH.items || []);
@@ -15,7 +15,7 @@ export function getStaticPaths() {
 const { it, rel } = Astro.props;
 const cat = catOf(it.type);
 const url = 'https://karp.is' + artHref(it.id);
-const img = 'https://karp.is' + imgPath(it.type);
+const img = 'https://karp.is' + imgFor(it.type, it.id);
 const srcAbs = (it.url || '').startsWith('http') ? it.url : 'https://karp.is' + (it.url || '/frettavel/');
 const sp = spark(it.spark, 640, 150);
 const dags = dIS(it.date);
@@ -37,7 +37,7 @@ const jsonLd = [
     <article class="fv-art" style={`--c:${cat.color}`}>
       <div class="fv-hero">
         <span class="fv-hero-emoji">{cat.emoji}</span>
-        <img class="fv-hero-img" src={imgPath(it.type)} alt={`Myndskreyting — ${cat.label}`} width="1200" height="630" loading="eager" onerror="this.style.display='none'" />
+        <img class="fv-hero-img" src={imgFor(it.type, it.id)} alt={`Myndskreyting — ${cat.label}`} width="1200" height="630" loading="eager" onerror="this.style.display='none'" />
         <span class="fv-hero-badge">{cat.emoji} {cat.label}</span>
       </div>
 

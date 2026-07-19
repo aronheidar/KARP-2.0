@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import FV from '@gogn/frettavel.json';
-import { catOf, artHref, imgPath, spark, dIS, SECTIONS, sectionOf, weightOf } from '../lib/frettavel.mjs';
+import { catOf, artHref, imgFor, spark, dIS, SECTIONS, sectionOf, weightOf } from '../lib/frettavel.mjs';
 const items = (FV.items || []);
 const updated = (FV.updated || '').slice(0, 10);
 
@@ -33,7 +33,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
 
     {hero && (() => { const c = catOf(hero.type); return (
       <a class="fp-hero" href={artHref(hero.id)} style={`--c:${c.color}`}>
-        <div class="fp-img fp-hero-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(hero.type)} alt="" loading="eager" onerror="this.remove()" /></div>
+        <div class="fp-img fp-hero-img"><span class="fp-emoji">{c.emoji}</span><img src={imgFor(hero.type, hero.id)} alt="" loading="eager" onerror="this.remove()" /></div>
         <div class="fp-hero-body">
           <span class="fp-kick">{c.emoji} {c.label}</span>
           <h2>{hero.title}</h2>
@@ -47,7 +47,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
       <div class="fp-lead-row">
         {helstu.map((it) => { const c = catOf(it.type); return (
           <a class="fp-lead" href={artHref(it.id)} style={`--c:${c.color}`}>
-            <div class="fp-img fp-lead-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(it.type)} alt="" loading="lazy" onerror="this.remove()" /></div>
+            <div class="fp-img fp-lead-img"><span class="fp-emoji">{c.emoji}</span><img src={imgFor(it.type, it.id)} alt="" loading="lazy" onerror="this.remove()" /></div>
             <span class="fp-kick sm">{c.emoji} {c.label}</span>
             <h3>{it.title}</h3>
             <span class="fp-time">{dIS(it.date)}</span>
@@ -63,7 +63,7 @@ const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: 
             <h2 class="fp-sec-h"><a href={`/frettavel/#${sec.key}`}>{sec.label}</a></h2>
             {list.map((it, idx) => { const c = catOf(it.type); return idx === 0 ? (
               <a class="fp-feat" href={artHref(it.id)} style={`--c:${c.color}`}>
-                <div class="fp-img fp-feat-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(it.type)} alt="" loading="lazy" onerror="this.remove()" /></div>
+                <div class="fp-img fp-feat-img"><span class="fp-emoji">{c.emoji}</span><img src={imgFor(it.type, it.id)} alt="" loading="lazy" onerror="this.remove()" /></div>
                 <div class="fp-feat-body"><span class="fp-kick sm">{c.emoji} {c.label}</span><h3>{it.title}</h3><p>{it.text}</p><span class="fp-time">{dIS(it.date)}</span></div>
               </a>
             ) : (

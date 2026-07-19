@@ -1,7 +1,11 @@
 // frettavel.mjs — sameiginleg flokka-skilgreining fyrir Fréttavélina (deilt af frettavel.astro + frettavel/[id].astro).
 // Ein sannleiksuppspretta per frétta-tegund: merki (emoji+heiti), litur, flokka-mynd (endurnýtt),
 // heimild (til birtingar) og „aðferð" (hvaða regla kviknaði — gagnsæi fyrir fréttamenn).
-// img → web/public/frettavel/img/<img>.webp (búið til handvirkt; mjúkt fallback ef vantar).
+// img → web/public/frettavel/img/<img>.jpg (búið til handvirkt; mjúkt fallback ef vantar).
+// Fjölbreytni: fleiri afbrigði per flokk (<img>-2.jpg, <img>-3.jpg…) — imgFor velur eitt fast eftir frétt-id.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const CAT = {
   // ── Alþingi (deila althingi-mynd) ──
@@ -70,6 +74,30 @@ export const asciiId = (id) => String(id).toLowerCase()
   .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
 export const imgPath = (t) => '/frettavel/img/' + (catOf(t).img) + '.jpg';
+
+// Skannar mynda-möppuna á BYGGINGARTÍMA og finnur öll afbrigði per slug (<slug>.jpg, <slug>-2.jpg …).
+let _variants = null;
+function scanVariants() {
+  if (_variants) return _variants;
+  _variants = {};
+  try {
+    const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'frettavel', 'img');
+    for (const f of fs.readdirSync(dir)) {
+      const m = f.match(/^([a-z0-9_]+)(?:-(\d+))?\.jpe?g$/i);
+      if (m) { const s = m[1].toLowerCase(); (_variants[s] = _variants[s] || []).push('/frettavel/img/' + f); }
+    }
+    for (const k in _variants) _variants[k].sort();
+  } catch (e) { _variants = {}; }
+  return _variants;
+}
+const _hash = (s) => { let h = 5381; const t = String(s); for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h; };
+// Velur flokka-mynd fyrir tiltekna frétt: fast afbrigði eftir id (sama frétt = sama mynd; ólíkar fréttir í
+// flokknum dreifast á afbrigðin). Fellur á grunn-slóð ef ekkert afbrigði fannst (þá sér onerror um emoji-fallback).
+export const imgFor = (t, id) => {
+  const s = catOf(t).img;
+  const v = scanVariants()[s];
+  return (v && v.length) ? v[_hash(id || s) % v.length] : ('/frettavel/img/' + s + '.jpg');
+};
 export const artHref = (id) => '/frettavel/' + asciiId(id) + '/';
 
 // Dagsetning á íslensku (birt).

@@ -36,3 +36,33 @@ Endurnýttar **eftir frétta-tegund** (ekki per frétt). Notaðar á fréttakort
 | `annad.jpg` | Fallback (aðrar tegundir) | *Abstract Icelandic data/statistics imagery — charts over a subtle map of Iceland. Neutral, no text.* |
 
 > Þegar þú hefur búið þær til, leggðu þær í þessa möppu (`web/public/frettavel/img/`) með réttum nöfnum og pushaðu — þær birtast sjálfkrafa.
+
+## Fjölbreytni — fleiri afbrigði per flokk
+
+Til að ekki birtist alltaf sama myndin á öllum fréttum sama flokks má bæta við **afbrigðum**: `<skrá>-2.jpg`, `<skrá>-3.jpg` … (sömu kröfur: 1200×630 JPG). Vélin skannar möppuna á byggingartíma og velur afbrigði **fast eftir frétt-id** — sama frétt fær alltaf sömu mynd, en ólíkar fréttir í flokknum dreifast á afbrigðin. Ef aðeins ein mynd er til er hún alltaf notuð (engin afturför).
+
+### Sett 2 — `<skrá>-2.jpg` (önnur sena, sami flokkur)
+
+| Skrá | Prompt (enska) |
+|---|---|
+| `althingi-2.jpg` | *Interior of the Icelandic parliament — rows of empty seats and desks, or the Alþingishúsið facade at dusk with lit windows. No people, no text.* |
+| `kannanir-2.jpg` | *A hand placing a folded ballot into a box, or a polling-station sign and queue seen from behind. Muted, no faces, no text.* |
+| `fasteignir-2.jpg` | *A "Til sölu" (for sale) sign outside an Icelandic house, or house keys on a floor plan. Neutral daylight, no text on signage.* |
+| `markadir-2.jpg` | *Close-up of a candlestick trading chart on multiple monitors, cool blue tones. No logos, no text.* |
+| `rikisgreidslur-2.jpg` | *A stack of coins beside a calculator and printed ledgers, or a treasury/ministry building facade. Neutral, no text.* |
+| `utbod-2.jpg` | *Architectural blueprints and a hard hat on a table, or a road-construction site with machinery. Editorial, no faces, no text.* |
+| `gjaldthrot-2.jpg` | *A "Lokað" (closed) sign on a shop door, or an empty retail storefront with bare shelves. Quiet, muted, no readable text.* |
+| `vextir-2.jpg` | *Close-up of a percent sign, or a mortgage document with a calculator. Financial, neutral, no readable text.* |
+| `verdbolga-2.jpg` | *A long supermarket receipt and coins, or close-up of price tags on shelves. Everyday documentary, no readable brand text.* |
+| `styrkir-2.jpg` | *A film-set clapperboard, or a microscope in a research lab, or a trophy. Creative/science theme, no text.* |
+| `vorumerki-2.jpg` | *A designer sketching a logo, or a registered-trademark ® symbol, minimal flat lay. Clean, no readable text.* |
+| `ivilnun-2.jpg` | *A pen signing a contract (close-up), or official documents with a government seal. No faces, no readable text.* |
+| `domsmal-2.jpg` | *Close-up of a wooden judge's gavel, or law books on a shelf, or courthouse steps. Serious, no people, no text.* |
+| `afbrot-2.jpg` | *Close-up of police tape, or a patrol car parked at night with blurred blue lights. Documentary, no faces, no text.* |
+| `vinnumarkadur-2.jpg` | *Construction workers on scaffolding, or a factory floor / busy office seen from afar (no identifiable faces). Neutral, no text.* |
+| `sveitarstjorn-2.jpg` | *A council meeting room, or a Nordic town-hall building in daylight, or an aerial of an Icelandic village. Neutral, no text.* |
+| `utanrikis-2.jpg` | *Flags on poles outside a building, or a passport and a globe. Diplomatic theme, no faces, no text.* |
+| `lyf-2.jpg` | *A pharmacist's counter, or pills spilling from a bottle, or a prescription slip. Clinical, no readable brand text.* |
+| `fjolmidlar-2.jpg` | *A microphone with press badges, or a newsroom with screens, or a printing press. Media theme, no readable headlines.* |
+| `sjavarutvegur-2.jpg` | *Fishermen hauling nets on deck, or a fish market with crates of cod, or an Icelandic harbour at dawn. Documentary, no faces, no text.* |
+| `annad-2.jpg` | *Abstract data visualization — a bar chart over a subtle map of Iceland, alternate angle. Neutral, no text.* |
