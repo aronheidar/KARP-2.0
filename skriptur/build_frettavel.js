@@ -725,6 +725,41 @@ function detect(state) {
       text: `Hreinir rafmagnsbílar (BEV) voru ${kr(c.bev)} talsins í árslok ${yr} — ${pct1(bevPct)}% af ${kr(c.total)} bíla flota landsmanna. Séu tengiltvinnbílar taldir með eru rafmagnaðir bílar ${pct1(c.rafPct)}% flotans samkvæmt tölum Samgöngustofu.` });
   }
 
+  // ══ BYLGJA 4 (LOTA 36): kross-tenging margra opinberra gagnaheimilda ══
+  // Fyrirtæki í brennidepli — EINKAfyrirtæki (ehf./hf.) sem kemur fram í fleiri en einni opinberri fjárstreymis-heimild
+  // (styrkir · ríkisgreiðslur · útboð). Vikulegt (mánudaga), snýst gegnum lista (state.fyrvikSeen). HLUTLAUST: aðeins
+  // staðreyndir + heimildir; ehf/hf-sía útilokar einstaklinga (styrkir geta farið til einstaklinga → aldrei birt). noai=fastur texti.
+  if (new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
+    const styF = J('styrkir.json'), biF = J('birgjar.json'), urF = J('utbod_urslit.json');
+    if (styF && biF && urF) {
+      const nmz = (s) => String(s || '').toLowerCase().replace(/\s+(ehf|hf|ohf|slhf|sf|ses)\.?$/g, '').replace(/[^a-zá-öþæð0-9]/g, '');
+      const priv = (s) => /\s(ehf|hf)\.?$/i.test(String(s || ''));
+      const grants = {}, vend = {}, win = {};
+      (styF.styrkir || []).forEach((g) => { if (!priv(g.nafn)) return; const k = nmz(g.nafn); if (!k) return; (grants[k] = grants[k] || { nafn: g.nafn, tot: 0, n: 0, sjodir: new Set() }); grants[k].tot += g.upphaed || 0; grants[k].n++; grants[k].sjodir.add(g.sjodur); });
+      Object.entries(biF.vendorDetail || {}).forEach(([n, d]) => { if (!priv(n)) return; const k = nmz(n); if (!k) return; vend[k] = { nafn: n, tot: (d.m || []).reduce((a, b) => a + (b || 0), 0) }; });
+      (urF.awards || []).forEach((a) => { (a.winners || []).forEach((w) => { if (!priv(w)) return; const k = nmz(w); if (!k) return; (win[k] = win[k] || { nafn: w, n: 0 }); win[k].n++; }); });
+      const cand = [];
+      for (const k of new Set([...Object.keys(grants), ...Object.keys(vend), ...Object.keys(win)])) {
+        const src = []; if (grants[k]) src.push('styrkur'); if (vend[k]) src.push('rikisgreidslur'); if (win[k]) src.push('utbod');
+        if (src.length >= 2) cand.push({ k, nsrc: src.length, nafn: (vend[k] || win[k] || grants[k]).nafn, rank: ((grants[k] || {}).tot || 0) + ((vend[k] || {}).tot || 0) });
+      }
+      // Röðun: fleiri heimildir fyrst, svo styrkur+ríkisgreiðslur samtala (útboðs-fjárhæð sleppt — getur verið rammasamningur/ofmetin).
+      cand.sort((a, b) => b.nsrc - a.nsrc || b.rank - a.rank);
+      const seenF = new Set(state.fyrvikSeen || []);
+      const pick = cand.find((c) => !seenF.has(c.k));
+      if (pick) {
+        const g = grants[pick.k], v = vend[pick.k], w = win[pick.k], h = [];
+        if (g) h.push(`styrk${g.n > 1 ? 'i (' + g.n + ')' : ''} úr ${[...g.sjodir].slice(0, 2).join(', ')}${g.tot ? ' að fjárhæð ' + kr(Math.round(g.tot)) + ' kr.' : ''}`);
+        if (v && v.tot > 0) h.push(`ríkisgreiðslur upp á ${kr(Math.round(v.tot))} kr. síðustu tólf mánuði`);
+        if (w) h.push(`${w.n} unnin opinber útboð`);
+        ev.push({ id: `fyrvik-${pick.k}`, type: 'fyrvik', noai: true, facts: { fyrirtaeki: pick.nafn, heimildir_fjoldi: pick.nsrc, styrkur_kr: g ? Math.round(g.tot) : null, sjodir: g ? [...g.sjodir] : [], rikisgreidslur_12man_kr: v ? Math.round(v.tot) : null, utbod_unnin: w ? w.n : 0 }, url: '/birgjar/',
+          title: `Fyrirtæki í brennidepli: ${pick.nafn}`,
+          text: `Fréttavél Karp tengdi saman opinberar gagnaheimildir og fann að ${pick.nafn} kemur fram í ${pick.nsrc} þeirra: ${h.join('; ')}. Allar upplýsingarnar eru úr opnum opinberum gögnum — opinberum sjóðum, opnum reikningum ríkisins og útboðsgáttum. Að birtast í fleiri en einni slíkri heimild er algengt hjá stærri þjónustu- og verktakafyrirtækjum og felur ekki í sér neitt óeðlilegt; yfirlitið sýnir hvernig Karp tengir saman opinberar gagnaveitur.` });
+        state.fyrvikSeen = [...(state.fyrvikSeen || []), pick.k].slice(-200);
+      }
+    }
+  }
+
   return ev;
 }
 
@@ -735,7 +770,7 @@ async function aiWrite(events) {
   try { const p = require('@anthropic-ai/sdk'); Anthropic = p.Anthropic || p.default || p; }
   catch (e) { console.log('• @anthropic-ai/sdk ekki til — sniðmátstextar notaðir.'); return 0; }
   const client = new Anthropic();
-  const batch = events.slice(0, 16); // kostnaðarþak per keyrslu (ein köllun/dag)
+  const batch = events.filter((e) => !e.noai).slice(0, 16); // kostnaðarþak per keyrslu; noai=fastur (hlutlaus) texti óbreyttur
   const spec = batch.map((e) => ({ id: e.id, type: e.type, facts: e.facts }));
   try {
     const msg = await client.messages.create({
