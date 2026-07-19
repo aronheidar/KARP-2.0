@@ -41,6 +41,22 @@ export const CAT = {
 
 export const catOf = (t) => CAT[t] || { label: 'Frétt', emoji: '📰', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
 
+// Yfir-deildir (fréttamiðils-flokkar) — hópa tegundir í deildir eins og MBL/Vísir (Viðskipti, Stjórnmál…).
+export const SECTIONS = [
+  { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun'] },
+  { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra'] },
+  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv'] },
+  { key: 'domsmal', label: 'Dómsmál', types: ['domur', 'glaepir'] },
+  { key: 'samfelag', label: 'Samfélag', types: ['baejarstjori', 'sendiherra', 'lyf', 'sent'] },
+];
+const SEC_OF = {}; SECTIONS.forEach((s) => s.types.forEach((t) => { SEC_OF[t] = s; }));
+export const sectionOf = (t) => SEC_OF[t] || SECTIONS[0];
+
+// Mikilvægis-vog (1–10) — velur aðalfrétt (hero) + „helstu" á forsíðu. Þung mál (vextir/gjaldþrot/verðbólga)
+// vega meira en dagleg markaðs-tíst. Blandast við nýleika við röðun.
+const WEIGHT = { vextir: 10, gjaldthrot: 9, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3 };
+export const weightOf = (t) => WEIGHT[t] || 4;
+
 // ASCII-hreint slóðar-id (SEO): íslenskir stafir → ascii, aðeins [a-z0-9-]. Nota BÆÐI á forsíðu-hlekkjum
 // og í getStaticPaths svo þau stemmi. Deterministic → sama id gefur sömu slóð.
 export const asciiId = (id) => String(id).toLowerCase()

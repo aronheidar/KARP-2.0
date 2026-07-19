@@ -1,93 +1,169 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// 🗞️ FRÉTTAVÉL KARP — sjálfvirk gagnablaðamennska (forsíða/straumur).
-// build_frettavel.js finnur atburði vélrænt í opinberu gögnunum og skrifar örfrétt.
-// Kort eru smellanleg → sér-fréttasíða (/frettavel/<id>/) fyrir SEO + tilvísun.
-// Flokka-skilgreining (mynd/litur/merki) deilt úr ../lib/frettavel.mjs.
+// 🗞️ FRÉTTAVÉL KARP — forsíða í fréttamiðils-stíl (MBL/Vísir): aðalfrétt (hero) +
+// flokka-deildir (Viðskipti/Stjórnmál/Efnahagur/Dómsmál/Samfélag) + „Nýjast"-hliðardálkur.
+// Aðalfrétt/„helstu" valdar eftir mikilvægis-vog (weightOf) blandaðri við nýleika.
+// Kort smellanleg → sér-fréttasíða (/frettavel/<id>/). Flokka-skilgreining úr ../lib/frettavel.mjs.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
 import FV from '@gogn/frettavel.json';
-import { catOf, artHref, imgPath, spark, dIS } from '../lib/frettavel.mjs';
-const items = FV.items || [];
+import { catOf, artHref, imgPath, spark, dIS, SECTIONS, sectionOf, weightOf } from '../lib/frettavel.mjs';
+const items = (FV.items || []);
 const updated = (FV.updated || '').slice(0, 10);
-// Hópa eftir degi (nýjast efst — items koma þegar raðaðar nýjast fyrst)
-const byDate = [];
-for (const it of items) { const last = byDate[byDate.length - 1]; if (last && last.d === it.date) last.list.push(it); else byDate.push({ d: it.date, list: [it] }); }
-const desc = `Fréttavél Karp — sjálfvirkar fréttir skrifaðar úr opinberum gögnum: atkvæði þingmanna, fylgismet, fasteignamet, ríkisgreiðslur, útboð, gjaldþrot, dómar, styrkir, vextir og verðbólga. Hver frétt tengir á frumgögnin.`;
+
+// Aðalfrétt + helstu: mikilvægi (vog) − nýleika-refsing (index; items eru nýjast-fyrst).
+const ranked = items.map((it, i) => ({ it, s: weightOf(it.type) - i * 0.4 })).sort((a, b) => b.s - a.s).map((x) => x.it);
+const hero = ranked[0] || null;
+const helstu = ranked.slice(1, 4);
+const usedIds = new Set([hero, ...helstu].filter(Boolean).map((x) => x.id));
+
+// Flokka-deildir: hver deild sýnir sínar fréttir (fyrsta með mynd, restin þjöppuð) — sleppir hero/helstu.
+const secBlocks = SECTIONS.map((sec) => ({ sec, list: items.filter((it) => sectionOf(it.type).key === sec.key && !usedIds.has(it.id)).slice(0, 5) })).filter((b) => b.list.length);
+const latest = items.slice(0, 16);   // „Nýjast" hliðardálkur (tímaröð)
+const desc = `Fréttavél Karp — sjálfvirkar fréttir úr opinberum gögnum: viðskipti, stjórnmál, efnahagur, dómsmál og samfélag. Hver frétt tengir á frumgögnin og er tilvitnanleg.`;
 ---
 
 <Layout title="🗞️ Fréttavélin | Karp" description={desc} canonical="https://karp.is/frettavel/" ogTitle="Fréttavél Karp">
   <main data-pg="frettavel">
-    <p class="kicker">Karp · Fréttavélin</p>
-    <h1>🗞️ Fréttavélin</h1>
-    <p>Fréttir sem gögnin skrifa sjálf: vél Karp vaktar opinberu gögnin — Alþingi, kannanir, kaupskrá HMS, reikninga ríkisins, útboð, Lögbirtingablaðið, dóma, styrki, vexti og verðbólgu — og birtir frétt þegar eitthvað fréttnæmt gerist í tölunum. <a href="/frettavel.xml">RSS-veita ↗</a></p>
-    <div class="disclosure">🤖 <b>Gagnsæi:</b> Atburðirnir eru fundnir vélrænt eftir föstum reglum (t.d. „þingmaður kýs gegn ≥75% eigin þingflokks") og textinn er skrifaður af gervigreind <i>eingöngu</i> úr reiknuðu staðreyndunum — eða af sniðmáti úr sömu tölum. Engin mannleg ritstjórn. Smelltu á frétt fyrir fulla útgáfu, aðferð og frumgögn.</div>
+    <div class="fp-top">
+      <p class="kicker">Karp · Fréttavélin</p>
+      <a class="fp-rss" href="/frettavel.xml">RSS ↗</a>
+    </div>
+    <p class="fp-intro">Fréttir sem gögnin skrifa sjálf — vél Karp vaktar opinberu gögnin og birtir frétt þegar eitthvað fréttnæmt gerist í tölunum. Smelltu á frétt fyrir fulla útgáfu, aðferð og frumgögn. <span class="fp-note">🤖 vélrænt fundið, engin mannleg ritstjórn.</span></p>
 
-    {byDate.length === 0 && <p class="empty">Engar fréttir enn — vélin keyrir daglega og birtir um leið og gögnin hreyfast fréttnæmt.</p>}
-    {byDate.map((g) => (
-      <section>
-        <h2>{dIS(g.d)}</h2>
-        <div class="fv-list">
-          {g.list.map((it) => { const cat = catOf(it.type); const c = cat.color; const sp = spark(it.spark); return (
-            <article class="fv-card" id={it.id} style={`--c:${c}`}>
-              <a class="fv-card-link" href={artHref(it.id)}>
-                <div class="fv-thumb"><span class="fv-thumb-emoji">{cat.emoji}</span><img src={imgPath(it.type)} alt="" loading="lazy" onerror="this.remove()" /></div>
-                <div class="fv-card-body">
-                  <div class="fv-top">
-                    <span class="fv-badge" style={`color:${c};border-color:${c}55;background:${c}1a`}>{cat.emoji} {cat.label}</span>
-                    {sp && (
-                      <svg class="fv-spark" viewBox={`0 0 ${sp.w} ${sp.h}`} width={sp.w} height={sp.h} aria-hidden="true" style={`color:${c}`}>
-                        <polyline points={sp.area} fill="currentColor" opacity="0.13" stroke="none" />
-                        <polyline points={sp.pts} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
-                        <circle cx={sp.ex} cy={sp.ey} r="2.4" fill="currentColor" />
-                      </svg>
-                    )}
-                  </div>
-                  <h3>{it.title}</h3>
-                  <p class="fv-text">{it.text}</p>
-                </div>
+    {hero && (() => { const c = catOf(hero.type); return (
+      <a class="fp-hero" href={artHref(hero.id)} style={`--c:${c.color}`}>
+        <div class="fp-img fp-hero-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(hero.type)} alt="" loading="eager" onerror="this.remove()" /></div>
+        <div class="fp-hero-body">
+          <span class="fp-kick">{c.emoji} {c.label}</span>
+          <h2>{hero.title}</h2>
+          <p>{hero.text}</p>
+          <span class="fp-time">{dIS(hero.date)}</span>
+        </div>
+      </a>
+    ); })()}
+
+    {helstu.length > 0 && (
+      <div class="fp-lead-row">
+        {helstu.map((it) => { const c = catOf(it.type); return (
+          <a class="fp-lead" href={artHref(it.id)} style={`--c:${c.color}`}>
+            <div class="fp-img fp-lead-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(it.type)} alt="" loading="lazy" onerror="this.remove()" /></div>
+            <span class="fp-kick sm">{c.emoji} {c.label}</span>
+            <h3>{it.title}</h3>
+            <span class="fp-time">{dIS(it.date)}</span>
+          </a>
+        ); })}
+      </div>
+    )}
+
+    <div class="fp-grid">
+      <div class="fp-main">
+        {secBlocks.map(({ sec, list }) => (
+          <section class="fp-sec">
+            <h2 class="fp-sec-h"><a href={`/frettavel/#${sec.key}`}>{sec.label}</a></h2>
+            {list.map((it, idx) => { const c = catOf(it.type); return idx === 0 ? (
+              <a class="fp-feat" href={artHref(it.id)} style={`--c:${c.color}`}>
+                <div class="fp-img fp-feat-img"><span class="fp-emoji">{c.emoji}</span><img src={imgPath(it.type)} alt="" loading="lazy" onerror="this.remove()" /></div>
+                <div class="fp-feat-body"><span class="fp-kick sm">{c.emoji} {c.label}</span><h3>{it.title}</h3><p>{it.text}</p><span class="fp-time">{dIS(it.date)}</span></div>
               </a>
-              <div class="fv-foot">
-                <a class="fv-src" href={it.url}>Skoða frumgögnin →</a>
-                <span class="fv-ai">{it.ai ? '🤖 vélskrifað' : '⚙️ sniðmát'}</span>
-              </div>
-            </article>
+            ) : (
+              <a class="fp-item" href={artHref(it.id)}>
+                <span class="fp-dot" style={`background:${c.color}`}></span>
+                <span class="fp-item-t">{it.title}</span>
+                <span class="fp-time sm">{dIS(it.date)}</span>
+              </a>
+            ); })}
+          </section>
+        ))}
+      </div>
+
+      <aside class="fp-side">
+        <h2 class="fp-side-h">Nýjast</h2>
+        <div class="fp-side-list">
+          {latest.map((it) => { const c = catOf(it.type); return (
+            <a class="fp-side-item" href={artHref(it.id)}>
+              <span class="fp-dot" style={`background:${c.color}`} title={c.label}></span>
+              <span class="fp-side-t">{it.title}</span>
+              <span class="fp-time sm">{dIS(it.date)}</span>
+            </a>
           ); })}
         </div>
-      </section>
-    ))}
+        <a class="fp-side-more" href="/frettavel.xml">Öll fréttaveitan (RSS) ↗</a>
+      </aside>
+    </div>
 
-    <p class="foot">Forþjónað (SSG). Vélin keyrir daglega kl. 06 UTC (build_frettavel.js) — atburðareglur og heimildir í hverri frétt. Uppfært {updated}. Ábendingar: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>.</p>
+    <p class="foot">Forþjónað (SSG). Vélin keyrir daglega kl. 06 UTC — atburðareglur og heimildir í hverri frétt. Uppfært {updated}. Ábendingar: <a href="mailto:aron@sgdal.is">aron@sgdal.is</a>.</p>
   </main>
 
   <style>
-    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
-    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
-    h1 { font-size: 32px; margin: 0 0 10px; }
-    p { color: var(--ink); } p a { color: var(--gold); }
-    .disclosure { background: rgba(58,160,255,.06); border: 1px solid rgba(58,160,255,.28); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--muted); line-height: 1.55; margin: 14px 0 6px; }
-    .disclosure b { color: var(--ink); }
-    h2 { font-size: 13px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin: 26px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
-    .fv-list { display: flex; flex-direction: column; gap: 12px; }
-    .fv-card { --c: #8fa0b8; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 13px; padding: 13px 15px; scroll-margin-top: 80px; }
-    .fv-card-link { display: flex; gap: 13px; text-decoration: none; }
-    .fv-thumb { position: relative; flex: none; width: 104px; height: 80px; border-radius: 9px; overflow: hidden; align-self: flex-start; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 34%, var(--panel)), var(--panel)); border: 1px solid var(--line); }
-    .fv-thumb-emoji { font-size: 30px; opacity: .55; }
-    .fv-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .fv-card-body { min-width: 0; flex: 1; }
-    .fv-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .fv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--line); white-space: nowrap; }
-    .fv-spark { flex: none; height: 26px; width: auto; }
-    .fv-card h3 { font-size: 16px; color: var(--ink); margin: 8px 0 5px; line-height: 1.32; }
-    .fv-card-link:hover h3 { color: var(--c); }
-    .fv-text { font-size: 13px; line-height: 1.55; margin: 0; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .fv-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
-    .fv-src { font-size: 12px; color: var(--gold); text-decoration: none; font-weight: 600; }
-    .fv-src:hover { text-decoration: underline; }
-    .fv-ai { font-size: 11px; color: var(--faint); }
-    .empty { color: var(--faint); margin-top: 20px; }
-    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid var(--line); padding-top: 14px; }
+    main[data-pg="frettavel"] { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+    .fp-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0; }
+    .fp-rss { font-size: 12px; color: var(--gold); text-decoration: none; font-weight: 600; }
+    .fp-intro { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 6px 0 20px; max-width: 74ch; }
+    .fp-intro .fp-note { color: var(--faint); }
+
+    /* Sameiginlegt mynd-hólf (flokka-mynd + emoji/halli fallback) */
+    .fp-img { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 34%, var(--panel)), var(--panel)); border: 1px solid var(--line); flex: none; }
+    .fp-img .fp-emoji { font-size: clamp(28px, 6vw, 54px); opacity: .5; }
+    .fp-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+    /* Aðalfrétt */
+    .fp-hero { --c: #8fa0b8; display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; text-decoration: none; padding: 16px; border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 16px; background: var(--panel); }
+    .fp-hero-img { aspect-ratio: 16 / 10; border-radius: 12px; }
+    .fp-hero-body { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .fp-hero-body h2 { font-size: clamp(21px, 3.2vw, 29px); line-height: 1.18; letter-spacing: -.01em; color: var(--ink); margin: 8px 0 8px; }
+    .fp-hero:hover h2 { color: var(--c); }
+    .fp-hero-body p { font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Helstu (3 kort) */
+    .fp-lead-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 14px 0 4px; }
+    .fp-lead { --c: #8fa0b8; text-decoration: none; display: flex; flex-direction: column; }
+    .fp-lead-img { aspect-ratio: 16 / 9; border-radius: 10px; margin-bottom: 8px; }
+    .fp-lead h3 { font-size: 15px; line-height: 1.32; color: var(--ink); margin: 5px 0 5px; }
+    .fp-lead:hover h3 { color: var(--c); }
+
+    .fp-kick { font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--c); }
+    .fp-kick.sm { font-size: 10px; }
+    .fp-time { font-size: 11.5px; color: var(--faint); }
+    .fp-time.sm { font-size: 11px; white-space: nowrap; }
+
+    /* Meginrist: deildir + hliðardálkur */
+    .fp-grid { display: grid; grid-template-columns: 1fr 300px; gap: 28px; margin-top: 30px; align-items: start; }
+    .fp-main { min-width: 0; display: flex; flex-direction: column; gap: 26px; }
+    .fp-sec-h { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 12px; border-bottom: 2px solid var(--gold); padding-bottom: 7px; }
+    .fp-sec-h a { color: var(--ink); text-decoration: none; }
+    .fp-feat { --c: #8fa0b8; display: flex; gap: 14px; text-decoration: none; padding-bottom: 13px; margin-bottom: 11px; border-bottom: 1px solid var(--line); }
+    .fp-feat-img { width: 150px; aspect-ratio: 16 / 10; border-radius: 10px; align-self: flex-start; }
+    .fp-feat-body { min-width: 0; }
+    .fp-feat-body h3 { font-size: 17px; line-height: 1.3; color: var(--ink); margin: 5px 0 5px; }
+    .fp-feat:hover h3 { color: var(--c); }
+    .fp-feat-body p { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0 0 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .fp-item { display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .fp-item:last-child { border-bottom: 0; }
+    .fp-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+    .fp-item-t { flex: 1; min-width: 0; font-size: 14px; line-height: 1.35; color: var(--ink); }
+    .fp-item:hover .fp-item-t { color: var(--gold); }
+
+    /* Hliðardálkur „Nýjast" */
+    .fp-side { position: sticky; top: 68px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px 14px; }
+    .fp-side-h { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); margin: 14px 0 4px; }
+    .fp-side-item { display: flex; align-items: center; gap: 9px; text-decoration: none; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .fp-side-t { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .fp-side-item:hover .fp-side-t { color: var(--gold); }
+    .fp-side-more { display: inline-block; margin-top: 12px; font-size: 12px; color: var(--gold); text-decoration: none; font-weight: 600; }
+
+    .foot { font-size: 12px; color: var(--faint); margin-top: 34px; border-top: 1px solid var(--line); padding-top: 14px; }
     .foot a { color: var(--muted); }
-    @media (max-width: 520px) { .fv-thumb { width: 76px; height: 62px; } .fv-thumb-emoji { font-size: 24px; } }
+
+    @media (max-width: 900px) {
+      .fp-grid { grid-template-columns: 1fr; gap: 30px; }
+      .fp-side { position: static; }
+    }
+    @media (max-width: 620px) {
+      .fp-hero { grid-template-columns: 1fr; gap: 12px; }
+      .fp-lead-row { grid-template-columns: 1fr; }
+      .fp-feat-img { width: 104px; }
+    }
   </style>
 </Layout>
