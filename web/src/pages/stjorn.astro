@@ -37,7 +37,16 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-recent" class="stj-kv"></div>
       </section>
 
-      <p class="stj-note">🤖 AI-stjórnendurnir (COO/CFO/CMO o.fl.) keyra á Node-hýsli og lesa þessa sömu gagnagrunn. Herferðir, samþykktir og tickets flytjast hingað í næsta fasa.</p>
+      <section class="stj-block" id="stj-ops-wrap" hidden>
+        <h2>🤖 Rekstur stjórnborðsins <span class="w-sub" id="stj-ops-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
+        <div class="stj-cards" id="stj-ops-cards" style="margin-bottom:16px"></div>
+        <div class="stj-grid2">
+          <div><h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">✅ Bíður samþykktar</h3><div id="stj-appr" class="stj-kv"></div></div>
+          <div><h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">🛟 Opnar hjálparbeiðnir</h3><div id="stj-tickets" class="stj-kv"></div></div>
+        </div>
+      </section>
+
+      <p class="stj-note">🤖 AI-stjórnendurnir (COO/CFO/CMO o.fl.) keyra á Node-hýsli, lesa þessa sömu gagnagrunn (raun-tekjur/notendur) og ýta rekstrar-samantekt hingað á 5 mín fresti. Samþykktir, tickets og herferðir eru afgreidd í sjálfu stjórnborðinu.</p>
     </div>
   </main>
 
@@ -127,6 +136,24 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const t = String(r.key || '').split(':')[0];
         return `<div class="stj-kv-row"><span>${esc(REP[t] || t)} <span style="color:var(--faint)">· ${esc(r.email || '—')}</span></span><b style="font-weight:600;color:var(--muted)">${dIS(r.granted)}</b></div>`;
       }).join('') : '<div class="stj-kv-empty">Engin skýrslukaup enn.</div>';
+
+      // 🤖 Rekstur stjórnborðsins (synced úr Node-appinu)
+      const st = ov.stjorn;
+      if (st) {
+        $('stj-ops-wrap').hidden = false;
+        const mins = Math.round((Date.now() / 1000 - (st.syncedAt || 0)) / 60);
+        $('stj-ops-fresh').textContent = '· uppfært fyrir ' + (mins < 1 ? 'augnabliki' : mins + ' mín') + ' síðan';
+        const led = st.ledger || {};
+        $('stj-ops-cards').innerHTML =
+          card((st.approvalsPending || []).length, 'Bíða samþykktar', '') +
+          card((st.ticketsOpen || []).length, 'Opnar hjálparbeiðnir', '') +
+          card((st.campaigns || []).length, 'Herferðir', (st.todosOpen || 0) + ' opin verk') +
+          card(kr(led.stada || 0), 'Sjóðstaða (ledger)', kr(led.sala || 0) + ' sala · ' + kr(led.kostnadur || 0) + ' kostn.');
+        const appr = st.approvalsPending || [];
+        $('stj-appr').innerHTML = appr.length ? appr.slice(0, 10).map((a) => `<div class="stj-kv-row"><span>${esc(a.txt || a.kind || ('#' + a.id))}</span><b style="font-weight:600;color:var(--muted)">${esc(a.kind || '')}</b></div>`).join('') : '<div class="stj-kv-empty">Ekkert bíður samþykktar. 🎉</div>';
+        const tix = st.ticketsOpen || [];
+        $('stj-tickets').innerHTML = tix.length ? tix.slice(0, 10).map((t) => `<div class="stj-kv-row"><span>${esc(t.txt || t.who || ('#' + t.id))} <span style="color:var(--faint)">· ${esc(t.who || '')}</span></span><b style="font-weight:600;color:var(--gold)">${esc(t.stada || '')}</b></div>`).join('') : '<div class="stj-kv-empty">Engar opnar hjálparbeiðnir.</div>';
+      }
     }
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);

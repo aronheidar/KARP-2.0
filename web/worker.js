@@ -3639,7 +3639,11 @@ async function adminOverviewHandler(request, env) {
   const digestRows = (await env.TENGSL.prepare("SELECT user_id FROM user_prefs WHERE k='digest' AND v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }))).results || [];
   // Nýleg umsvif: síðustu skýrslukaup (með netfangi).
   const recentReps = (await env.TENGSL.prepare('SELECT rg.report_key, rg.granted, u.email FROM reports_granted rg LEFT JOIN users u ON u.id=rg.user_id ORDER BY rg.granted DESC LIMIT 12').all().catch(() => ({ results: [] }))).results || [];
+  // S2b: rekstrar-samantekt Node-stjórnborðsins (samþykktir/tickets/herferðir/ledger) ef ýtt hefur verið.
+  const syncRow = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
+  let stjorn = null; if (syncRow) { try { stjorn = Object.assign(JSON.parse(syncRow.v), { syncedAt: syncRow.updated }); } catch (e) {} }
   return _ajson({
+    stjorn,
     ok: true, now,
     users: uList,
     stats: {
@@ -3666,6 +3670,22 @@ async function adminSendHandler(request, env) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) || !subject) return _ajson({ ok: false, error: 'input' });
   const r = await sendGmail(env, { to, subject, html: b.html, text: b.text, replyTo: b.replyTo, inReplyTo: b.inReplyTo });
   return _ajson({ ok: !!r.ok, error: r.ok ? undefined : (r.unconfigured ? 'unconfigured' : (r.error || 'send')) });
+}
+// S2b: Node-stjórnborðið ýtir rekstrar-samantekt í D1 (X-Admin-Key). Body: {k, v}. GET les.
+async function adminSyncHandler(request, env) {
+  const key = request.headers.get('X-Admin-Key');
+  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
+  if (!okAuth) return _ajson({ ok: false, error: 'admin' });
+  if (request.method === 'POST') {
+    const b = (await request.json().catch(() => null)) || {};
+    const k = String(b.k || '').slice(0, 40); const v = String(b.v || '');
+    if (!k || v.length > 200000) return _ajson({ ok: false, error: 'input' });
+    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k, v, updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind(k, v, Math.floor(Date.now() / 1000)).run().catch(() => {});
+    return _ajson({ ok: true });
+  }
+  const r = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
+  let data = null; if (r) { try { data = JSON.parse(r.v); } catch (e) {} }
+  return _ajson({ ok: true, data, updated: r ? r.updated : 0 });
 }
 
 export default {
@@ -3704,6 +3724,7 @@ export default {
     if (url.pathname === '/api/erlent') return erlentHandler(request, env);
     if (url.pathname === '/api/admin/overview') return adminOverviewHandler(request, env);   // stjórnborð S1
     if (url.pathname === '/api/admin/send') return adminSendHandler(request, env);   // stjórnborð S4: póstur um Gmail REST
+    if (url.pathname === '/api/admin/sync') return adminSyncHandler(request, env);   // stjórnborð S2b: rekstrar-samantekt
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
