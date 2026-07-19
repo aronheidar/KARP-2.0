@@ -3611,7 +3611,10 @@ async function _isAdmin(env, request) {
   return (u && u.is_admin === 1) ? uid : 0;
 }
 async function adminOverviewHandler(request, env) {
-  if (!(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
+  // Aðgangur: annaðhvort innskráður admin (vafri) EÐA X-Admin-Key leyndarmál (Node-stjórnborð, server-til-server).
+  const key = request.headers.get('X-Admin-Key');
+  const bySecret = key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY;
+  if (!bySecret && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
   const now = Math.floor(Date.now() / 1000);
   const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
