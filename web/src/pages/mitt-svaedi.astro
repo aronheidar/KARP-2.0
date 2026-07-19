@@ -767,10 +767,10 @@ const updated = '2026-07-02';
             const gt = (v) => String(v == null ? 0 : v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             const cell = (e, l, v, s) => `<div class="tr-c"><div class="tr-l">${e} ${l}</div><div class="tr-v">${gt(v)}</div><div class="tr-s">${s}</div></div>`;
             let h = '<div class="tr-grid">'
-              + cell('👁️', 'Flettingar í dag', (d.today || {}).pageviews, 'síðuskoðanir')
-              + cell('🧑', 'Gestir í dag', (d.today || {}).visitors, 'einstakir')
-              + cell('👁️', 'Flettingar (7d)', (d.week || {}).pageviews, 'vikan')
-              + cell('🧑', 'Gestir (7d)', (d.week || {}).visitors, 'vikan')
+              + cell('🌐', 'Jaðar-beiðnir í dag', (d.today || {}).pageviews, 'öll umferð')
+              + cell('🔢', 'Einstök IP í dag', (d.today || {}).visitors, 'm/vélmennum')
+              + cell('🌐', 'Jaðar-beiðnir (7d)', (d.week || {}).pageviews, 'vikan')
+              + cell('🔢', 'Einstök IP (7d)', (d.week || {}).visitors, 'm/vélmennum')
               + '</div>';
             const top = (d.top || []).filter((x) => x && x.url);
             if (top.length) {
@@ -779,7 +779,7 @@ const updated = '2026-07-02';
                 + top.slice(0, 6).map((x) => `<div class="tr-row"><a href="${esc(short(x.url))}">${esc(short(x.url))}</a><b>${gt(x.pv)}</b></div>`).join('')
                 + '</div>';
             }
-            h += '<div class="tr-note">Heimild: Cloudflare vefgreining (nafnlaus, cookie-laus, jaðar-mæld). Gestir vikunnar eru samtala daga (nálgun). Aðeins sýnilegt stjórnanda.</div>';
+            h += '<div class="tr-note">⚠ Þetta eru <b>allar jaðar-beiðnir</b> á karp.is (Cloudflare zone-analytics) — <b>vélmenni og skriðarar meðtaldir</b>, svo tölurnar eru miklu hærri en raunverulegar mannlegar heimsóknir. Fyrir rétta manntalningu þarf Cloudflare Web Analytics (RUM-beacon). Aðeins sýnilegt stjórnanda.</div>';
             tel.innerHTML = h;
           }).catch(() => { if (tel) tel.innerHTML = '<span class="dim">Náði ekki í umferðartölfræði.</span>'; });
         }

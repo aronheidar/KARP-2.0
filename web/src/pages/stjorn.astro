@@ -115,7 +115,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         card(kr(s.reportRevenue), 'Skýrslutekjur (alls)', s.reportsTotal + ' seldar (990 kr)') +
         card(s.watchers + ' / ' + s.digestSubs, 'Virkir notendur', 'með vakt / vikuyfirlit') +
         card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
-        (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Flettingar (7d)', (burst.week.visitors || 0).toLocaleString('is-IS') + ' gestir') : '');
+        (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Jaðar-beiðnir (7d)', '⚠ öll umferð m/vélmennum — ekki manntalning') : '');
       // notendur
       $('stj-ucount').textContent = ov.users.length;
       $('stj-users').querySelector('tbody').innerHTML = ov.users.map((x) =>
