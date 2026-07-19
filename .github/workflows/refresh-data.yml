@@ -124,15 +124,14 @@ jobs:
           fi
       - name: Útboðsniðurstöður (TED awards + LV opnanir; á undan fréttavél)
         run: node skriptur/build_urslit.js || true
-      - name: Tengslagrunnur → „sama fyrirsvar" útflutningur (D1; transient, nöfn EKKI committuð; á undan fréttavél)
+      - name: Tengslagrunnur → „sama fyrirsvar" AGGREGATE-tölur (D1; nafnlaust; á undan fréttavél)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node skriptur/export_tengsl_fonix.mjs || true   # sleppir sjálft ef leyndarlyklar vantar
+        run: node skriptur/export_tengsl_fonix.mjs || true   # sleppir sjálft ef leyndarlyklar vantar; skrifar aðeins heildartölur
       - name: Fréttavélin (gagnaatburðir → fréttir; AI-skrif ef lykill)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          KARP_FONIX_PUBLISH: ${{ vars.KARP_FONIX_PUBLISH }}   # tómt=slökkt; settu '1' í Repo Variables til að birta „sama fyrirsvar" (eftir yfirferð)
         run: node skriptur/build_frettavel.js || true
       - name: Samhengispakki Spyrðu Karp (úr ferskum gögnum)
         run: node skriptur/build_spyrdu_context.js || true

@@ -25,9 +25,6 @@ Thumbs.db
 .sc-key.json
 grep.exe.stackdump
 gogn/stadfong_rvk.json
-# Persónuvernd: „sama fyrirsvar" útflutningur ber nöfn einstaklinga → ALDREI committað í repo.
-# Skrifað transient í CI (export_tengsl_fonix.mjs) og lesið af build_frettavel.js í sömu keyrslu.
-gogn/tengsl_fonix.json
 gogn/byggingarleyfi.json
 gogn/byggingarleyfi_seen.json
 gogn/byggingarleyfi_meta.json

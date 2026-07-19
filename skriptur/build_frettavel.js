@@ -811,22 +811,18 @@ function detect(state) {
     }
   }
 
-  // „Sama fyrirsvar" (fönix-mynstur) — GÁTTAÐ á KARP_FONIX_PUBLISH=1 (sjálfgefið SLÖKKT: nöfn einstaklinga →
-  // Aron yfirfer útflutning fyrst + tryggir DPIA/lögmæti). Vikulegt (mánudaga), rótering um state.fonixSeen.
-  // ÁREIÐANLEGT: sjálf-tenging á persónu innan D1 (ekki nafna-samanburður). HLUTLAUST orðalag + fyrirvari + heimild.
-  // noai=true → fastur texti fer EKKI gegnum AI (tón-stýring á nafngreindu efni um einstaklinga).
-  if (process.env.KARP_FONIX_PUBLISH === '1' && new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
-    const fx = J('tengsl_fonix.json');
-    if (fx && Array.isArray(fx.cases) && fx.cases.length) {
-      const seenX = new Set(state.fonixSeen || []);
-      const pick = fx.cases.filter((c) => c.person && (c.throta || []).length && (c.ny || []).length).find((c) => !seenX.has(slug(c.person)));
-      if (pick) {
-        const t0 = pick.throta[0], nyNofn = pick.ny.map((n) => n.felag);
-        ev.push({ id: `fonix-${slug(pick.person)}`, type: 'fonix', noai: true, facts: { einstaklingur: pick.person, throta_felog: pick.throta.map((t) => t.felag), nyju_felog: nyNofn }, url: '/logbirting/',
-          title: `Sama fyrirsvar: ${pick.person}`,
-          text: `${pick.person} var í fyrirsvari fyrir ${t0.felag}, sem er í gjaldþrotameðferð${t0.dags ? ` (${t0.dags})` : ''}, og er nú í fyrirsvari fyrir ${nyNofn.slice(0, 2).join(' og ')}${nyNofn.length > 2 ? ` o.fl. (${nyNofn.length} félög alls)` : ''} samkvæmt fyrirtækjaskrá. Að stofna eða stýra nýju félagi eftir gjaldþrot fyrra félags er löglegt og getur átt fullkomlega eðlilegar skýringar; yfirlitið byggir eingöngu á opinberum skráningum og felur ekki í sér ásökun um neitt.` });
-        state.fonixSeen = [...(state.fonixSeen || []), slug(pick.person)].slice(-500);
-      }
+  // „Sama fyrirsvar" — NAFNLAUS AGGREGATE-innsýn (Aron valdi 19.7: engin einstaklings-birting, ~85% ein-gjaldþrota
+  // tilvik saklaus). Heildartala einstaklinga sem stýrðu gjaldþrota félagi OG eru í fyrirsvari annars starfandi félags.
+  // Vikulegt (mánudaga) + birtir aðeins þegar talan breytist ≥10 frá síðast birtu (D1 í uppbyggingu → talan vex m/þekju).
+  const fx = J('tengsl_fonix.json');
+  if (fx && typeof fx.total === 'number' && fx.total > 0 && new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
+    const prev = state.fonixPub;
+    if (typeof prev !== 'number' || Math.abs(fx.total - prev) >= 10) {
+      const rad = fx.radmynstur || 0;
+      ev.push({ id: `fonix-yfirlit-${TODAY}`, type: 'fonix', facts: { einstaklingar: fx.total, radmynstur_2plus: rad, timabil_fra: fx.cutoff || null }, url: '/logbirting/',
+        title: `${fx.total} stýrðu gjaldþrota félagi og eru í fyrirsvari annarra félaga`,
+        text: `Í tengslagrunni Karp eru ${fx.total} einstaklingar sem voru í fyrirsvari fyrir félag sem fór í gjaldþrotameðferð (síðustu tvö ár) og eru jafnframt skráðir í fyrirsvari fyrir annað starfandi félag. Þar af eru ${rad} með fleiri en eitt gjaldþrot að baki. Yfirlitið er á heildar-grunni og nefnir enga einstaklinga; tengslagrunnurinn er í uppbyggingu svo talan endurspeglar núverandi þekju. Að stofna eða stýra nýju félagi eftir gjaldþrot fyrra félags er löglegt og oftast fullkomlega eðlilegt.` });
+      state.fonixPub = fx.total;
     }
   }
 
