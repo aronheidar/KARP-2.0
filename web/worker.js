@@ -3375,13 +3375,13 @@ async function newsIngest(env) {
   if (!env.TENGSL) return { kept: 0 };
   const items = await fetchNews();
   const now = Math.floor(Date.now() / 1000);
-  const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts, body) VALUES (?,?,?,?,?)');
+  const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts, body, sent) VALUES (?,?,?,?,?,?)');
   const batch = [];
   for (const it of items) {
     if (!it.url || !it.title) continue;
     const ts = it.date ? Math.floor(new Date(it.date + 'T12:00:00Z').getTime() / 1000) || now : now;
     const body = (String(it.title) + ' ' + String(it.desc || '')).slice(0, 800);
-    batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts, body));
+    batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts, body, _tone(body)));
   }
   for (let i = 0; i < batch.length; i += 40) await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => {});
   await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 400 * 86400).run().catch(() => {});   // 400 daga geymsla (heilt ár+ f. yearreview/firma)
@@ -3504,14 +3504,11 @@ async function yearreviewHandler(request, env) {
   if (!env.TENGSL) return _fjson({ ready: true, year: 2026, total: 0, months: [], bySource: [] }, 3600);
   const since = Math.floor(Date.now() / 1000) - 366 * 86400;
   // Mánaðar-magn + heimildir: SQL-aggregation yfir ALLT safnið (ekki sótt í minni).
-  const moR = (await env.TENGSL.prepare("SELECT strftime('%Y-%m', ts, 'unixepoch') m, COUNT(*) n FROM news WHERE ts>=? GROUP BY m ORDER BY m").bind(since).all().catch(() => ({ results: [] }))).results || [];
+  // Mánaðar-magn + NÁKVÆMUR tónn (AVG(sent)) + heimildir — allt í SQL yfir heilt safn (geymdur tónn, dálkur sent).
+  const moR = (await env.TENGSL.prepare("SELECT strftime('%Y-%m', ts, 'unixepoch') m, COUNT(*) n, AVG(sent) t FROM news WHERE ts>=? GROUP BY m ORDER BY m").bind(since).all().catch(() => ({ results: [] }))).results || [];
   const srcR = (await env.TENGSL.prepare('SELECT source, COUNT(*) n FROM news WHERE ts>=? GROUP BY source ORDER BY n DESC LIMIT 12').bind(since).all().catch(() => ({ results: [] }))).results || [];
   const total = moR.reduce((s, x) => s + x.n, 0);
-  // Tónn: reiknaður úr úrtaki (nýjustu 6000) → mánaðar-nálgun (eldri mánuðir fá magn en hlutlausan tón).
-  const sample = await newsSince(env, 366, 6000);
-  const tone = {};
-  for (const nw of sample) { const k = nw.date.slice(0, 7); const b = (tone[k] = tone[k] || { s: 0, n: 0 }); b.s += _tone(nw.body || nw.title); b.n++; }
-  const months = moR.map((x) => { const t = tone[x.m]; return { m: x.m, n: x.n, scored: t ? t.n : 0, idx: (t && t.n) ? Math.round(t.s / t.n * 20) : 0 }; });
+  const months = moR.map((x) => ({ m: x.m, n: x.n, scored: x.n, idx: x.t != null ? Math.round(x.t * 20) : 0 }));
   const bySource = srcR.map((x) => ({ s: x.source, n: x.n }));
   return _fjson({ ready: true, year: 2026, total, scored: total, months, bySource, best: null, worst: null }, 3600);
 }
