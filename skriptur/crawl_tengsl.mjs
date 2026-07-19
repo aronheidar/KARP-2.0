@@ -12,9 +12,14 @@ import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
 const BUDGET = bi >= 0 ? parseInt(process.argv[bi + 1], 10) : parseInt(process.env.TENGSL_BUDGET || '1500', 10);
-const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '30', 10);   // frí nafnaleit-köll á nótt (www.skatturinn.is throttlar við ~30/keyrslu)
+const SWEEP_BUDGET = parseInt(process.env.SWEEP_BUDGET || '40', 10);      // nafnaleitar-forskeyti á nótt
+const EIGENDUR_BUDGET = parseInt(process.env.EIGENDUR_BUDGET || '25', 10); // eigenda-skröp á nótt (hægt)
 // Bið milli API-kalla. Mælt hraðatakmark api.skattur.cloud ≈60–70 köll/mín → 1000ms ≈ 60/mín.
 const API_DELAY = parseInt(process.env.API_DELAY_MS || '1000', 10);
+// ⚠ SCRAPE_DELAY: www.skatturinn.is er HRAÐATAKMARKAÐ (ekki bannað) — sannreynt 19.7: 1,5s bursti
+// throttlar (0 treff), en 15s milli (4/mín) virkar 6/6. Höldum okkur því GÓÐUM MEGIN við throttluna
+// og stækkum netið hægt+örugglega í stað þess að fá blokk. Aðeins www.skatturinn.is; API er 1s.
+const SCRAPE_DELAY = parseInt(process.env.SCRAPE_DELAY_MS || '15000', 10);
 const FETCH_TIMEOUT = parseInt(process.env.FETCH_TIMEOUT_MS || '12000', 10);   // hangandi tengingar → hætta
 // PROXY_BASE (t.d. https://karp.is): beinir www.skatturinn.is-skrapinu gegnum RSK-proxy í workernum
 // (Cloudflare-egress EKKI throttlað) → landsdekkun á vikum í stað mánaða. Tómt = beint skrap (GH-IP).
@@ -88,7 +93,7 @@ async function fetchText(path) {
 
 const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueRetry: [], queueAdd: [], sweepMark: [], sweepAdd: [] };
 const seenLastSql = [];
-let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0;
+let used = 0, ok = 0, notfound = 0, errs = 0, discovered = 0, eigDone = 0;
 const errBy = {};   // sundurliðun villna eftir HTTP-stöðu (t.d. {"retry:429": n}) — sést í nætur-samantekt
 
 // ── 1) Nafnaleitar-sweep FYRST (ferskur runner) ───────────────────────────────
@@ -100,7 +105,7 @@ console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}
 let sweepFound = 0;
 for (const pfx of prefixes) {
   if (scrapeStop || outOfTime()) break;
-  await sleep(1500);   // kurteist við skatturinn.is
+  await sleep(SCRAPE_DELAY);   // hægt — góðum megin við hraðatakmarkið
   const html = await fetchText('/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
   const kts = html ? extractKts(html) : [];
   if (!kts.length) { noteScrape(null); continue; }   // net-fall EÐA 200-tómt (throttla) → EKKI done; retry + back-off
@@ -136,9 +141,9 @@ for (const kt of batch) {
   acc.folk.push(...rec.folk);
   acc.hlutverk.push(...rec.hlutverk);
   for (const dk of rec.discovered) { acc.queueAdd.push({ kt: dk, from: kt, priority: 2 }); discovered++; }
-  // frítt eigenda-skrap (kurteist; sleppt ef þjónninn er farinn að throttla)
+  // frítt eigenda-skrap — HÆGT og með dags-þaki (EIGENDUR_BUDGET) svo www.skatturinn.is throttli ekki.
   let html = null;
-  if (!scrapeStop) { await sleep(1500); html = await fetchText('/fyrirtaekjaskra/leit/kennitala/' + kt); noteScrape(html); }
+  if (!scrapeStop && eigDone < EIGENDUR_BUDGET) { eigDone++; await sleep(SCRAPE_DELAY); html = await fetchText('/fyrirtaekjaskra/leit/kennitala/' + kt); noteScrape(html); }
   const eignRows = [];
   for (const e of (html ? parseEigendur(html) : [])) {
     const key = personKey({ nafn: e.nafn, faeding: e.faeding });
@@ -154,7 +159,7 @@ for (const kt of batch) {
 
 // ── 3) Skrifa + beita ─────────────────────────────────────────────────────────
 const body = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n').trim();
-console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${used} API-köll.`);
+console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${eigDone} eigenda-skröp · ${used} API-köll.`);
 if (errs) console.error(`Villu-sundurliðun: ${JSON.stringify(errBy)}`);
 
 if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
