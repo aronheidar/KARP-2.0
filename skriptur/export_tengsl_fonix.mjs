@@ -69,9 +69,11 @@ try {
 
   const out = { updated: new Date().toISOString(), cutoff, n: cases.length, cases };
   fs.writeFileSync(OUT, JSON.stringify(out));
-  console.log(`• export_tengsl_fonix: ${cases.length} tilvik skrifuð í gogn/tengsl_fonix.json (gjaldþrot ≥ ${cutoff}).`);
-  // Forskoðun í CI-logg (svo Aron geti yfirfarið ÁÐUR en KARP_FONIX_PUBLISH er kveikt) — nöfn birt í loggi eingöngu.
-  cases.slice(0, 8).forEach((c) => console.log(`   • ${c.person}: þrot=${c.throta.map((t) => t.felag).join(', ')} → nú=${c.ny.map((n) => n.felag).join(', ')}`));
+  // ⚠ REPO ER PUBLIC → GitHub Actions-logg eru opinber. Prentum EINGÖNGU tölur, ALDREI nöfn, í stdout.
+  //   Nöfnin lifa aðeins í gogn/tengsl_fonix.json (gitignored, eyðist með runner). Yfirferð fer fram STAÐBUNDIÐ
+  //   (keyra þetta skript á eigin vél með CF-token → opna JSON) eða í einka-umhverfi. Sjá athugasemd efst.
+  const withMany = cases.filter((c) => c.ny.length > 1).length;
+  console.log(`• export_tengsl_fonix: ${cases.length} tilvik (gjaldþrot ≥ ${cutoff}); ${withMany} með fleiri en eitt núverandi félag. [Nöfn EKKI prentuð — sjá gitignored JSON staðbundið.]`);
 } catch (e) {
   console.log('• export_tengsl_fonix: D1-fyrirspurn brást (' + String(e.message || e).slice(0, 120) + ') — engin skrá skrifuð.');
   process.exit(0);
