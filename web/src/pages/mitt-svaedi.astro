@@ -92,7 +92,7 @@ const updated = '2026-07-02';
 
       <!-- Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). Falið sjálfgefið. -->
       <div class="w" id="w-traffic-box" hidden>
-        <div class="w-h">📊 Umferð á Karp <span class="w-sub">Burst · aðeins stjórnandi</span></div>
+        <div class="w-h">📊 Umferð á Karp <span class="w-sub">Cloudflare · aðeins stjórnandi</span></div>
         <div id="w-traffic">Sæki tölfræði…</div>
       </div>
 
@@ -763,7 +763,7 @@ const updated = '2026-07-02';
           if (box) box.hidden = false;
           karpGet('/burst').then((d) => {
             if (!tel) return;
-            if (!d || d.available === false) { tel.innerHTML = '<span class="dim">Burst Statistics er ekki uppsett á wp.karp.is — tölfræðin birtist þegar viðbótin er virk.</span>'; return; }
+            if (!d || d.available === false) { tel.innerHTML = '<span class="dim">Cloudflare-vefgreining er ekki tengd enn — tölfræðin birtist þegar API-tóki (CF_ANALYTICS_TOKEN) er kominn.</span>'; return; }
             const gt = (v) => String(v == null ? 0 : v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             const cell = (e, l, v, s) => `<div class="tr-c"><div class="tr-l">${e} ${l}</div><div class="tr-v">${gt(v)}</div><div class="tr-s">${s}</div></div>`;
             let h = '<div class="tr-grid">'
@@ -779,7 +779,7 @@ const updated = '2026-07-02';
                 + top.slice(0, 6).map((x) => `<div class="tr-row"><a href="${esc(short(x.url))}">${esc(short(x.url))}</a><b>${gt(x.pv)}</b></div>`).join('')
                 + '</div>';
             }
-            h += '<div class="tr-note">Heimild: Burst Statistics á wp.karp.is (nafnlaus, cookie-laus vefmæling). Aðeins sýnilegt stjórnanda.</div>';
+            h += '<div class="tr-note">Heimild: Cloudflare vefgreining (nafnlaus, cookie-laus, jaðar-mæld). Gestir vikunnar eru samtala daga (nálgun). Aðeins sýnilegt stjórnanda.</div>';
             tel.innerHTML = h;
           }).catch(() => { if (tel) tel.innerHTML = '<span class="dim">Náði ekki í umferðartölfræði.</span>'; });
         }

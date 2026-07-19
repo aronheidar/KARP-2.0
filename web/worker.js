@@ -2979,7 +2979,7 @@ async function authResetHandler(request, env) {
 // Vakt-/stillinga-blobbar → user_prefs; kvóti → users.reports_used + sub_service.used;
 // samfélag (atkvæði/spár/kannanir) → deildar töflur með aggregate. KARP_API=/api/u í framhlið.
 // ══════════════════════════════════════════════════════════════════════════
-const _U_BLOBS = ['leitvakt', 'fastvakt', 'firmavakt', 'utbodvakt', 'verkprofil', 'digest', 'vaktir', 'burst'];
+const _U_BLOBS = ['leitvakt', 'fastvakt', 'firmavakt', 'utbodvakt', 'verkprofil', 'digest', 'vaktir'];
 const _monthStr = (now) => new Date(now * 1000).toISOString().slice(0, 7);
 const _nextMonth = (now) => { const d = new Date(now * 1000); return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000); };
 const _uTier = (u, now) => (u.tier && u.tier_until && u.tier_until > now) ? u.tier : null;
@@ -3169,6 +3169,13 @@ async function userDataHandler(request, env) {
     return _ajson(await _pollsPayload(env, uid));
   }
 
+  // 📊 Umferð (admin) — Cloudflare zone-analytics í stað WP Burst Statistics.
+  if (path === '/burst' && method === 'GET') {
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    if (!u || u.is_admin !== 1) return _ajson({ available: false, error: 'admin' });
+    return _ajson(await burstStats(env));
+  }
+
   // Handvirk digest-kveikja (admin) — til prófunar; cron keyrir annars sjálfkrafa.
   if (path === '/digest-run' && method === 'POST') {
     const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
@@ -3195,20 +3202,52 @@ async function _dget(env, path) {
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
+// Íslenskir fjölmiðla-RSS (port úr karp-frettir.php) — fullt fréttasafn f. digest-orðaleit.
+const NEWS_FEEDS = [
+  ['https://www.mbl.is/feeds/fp/', 'mbl.is'], ['https://www.mbl.is/feeds/innlent/', 'mbl.is'], ['https://www.mbl.is/feeds/vidskipti/', 'mbl.is'],
+  ['https://www.ruv.is/rss/frettir', 'RÚV'], ['https://www.ruv.is/rss/innlent', 'RÚV'],
+  ['https://www.visir.is/rss/frettir', 'Vísir'], ['https://www.visir.is/rss/vidskipti', 'Vísir'],
+  ['https://heimildin.is/rss/', 'Heimildin'], ['https://vb.is/rss/', 'Viðskiptablaðið'],
+];
+const _cdata = (s) => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").trim();
+function _rssItems(xml, source) {
+  const out = [];
+  for (const b of String(xml).split(/<item[\s>]/i).slice(1)) {
+    const title = _cdata((b.match(/<title>([\s\S]*?)<\/title>/i) || [])[1]);
+    if (!title) continue;
+    const link = _cdata((b.match(/<link>([\s\S]*?)<\/link>/i) || [])[1]);
+    const p = ((b.match(/<pubDate>([\s\S]*?)<\/pubDate>/i) || [])[1] || '').trim();
+    let date = ''; if (p) { const dt = new Date(p); if (!isNaN(dt.getTime())) date = dt.toISOString().slice(0, 10); }
+    out.push({ title, url: link, date, source });
+  }
+  return out;
+}
+async function fetchNews() {
+  const wkDate = new Date(Date.now() - 7 * 86400 * 1000).toISOString().slice(0, 10);
+  const lists = await Promise.all(NEWS_FEEDS.map(async ([u, src]) => {
+    try { const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (KarpBot; +https://karp.is)' }, cf: { cacheTtl: 900 } }); return r.ok ? _rssItems(await r.text(), src) : []; } catch (e) { return []; }
+  }));
+  const seen = new Set(), out = [];
+  for (const arr of lists) for (const it of arr) { if (it.date && it.date < wkDate) continue; const k = it.title.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(it); }
+  return out;
+}
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
   const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);
   const sh = { tolur: [], kaup7: [], mp: {}, utbod: {}, news: [], vm: {} };
-  const [ctx, ks, al, ut, fv, vm] = await Promise.all([
+  const [ctx, ks, al, ut, fv, vm, media] = await Promise.all([
     _dget(env, '/gogn/spyrdu_context.json'), _dget(env, '/gogn/kaupskra_nyjast.json'),
     _dget(env, '/gogn/althingi.json'), _dget(env, '/gogn/utbod.json'),
     _dget(env, '/gogn/frettavel.json'), _dget(env, '/gogn/vorumerki_nyskrad.json'),
+    fetchNews(),   // íslenskir fjölmiðlar (RSS, síðustu 7 daga)
   ]);
   if (ctx && ctx.text) for (const line of String(ctx.text).split('\n')) for (const k of ['VERÐBÓLGA', 'GENGI', 'STÝRIVEXTIR']) if (line.indexOf(k) === 0) sh.tolur.push(line.trim());
   for (const x of ((ks && ks.rows) || [])) if (x && String(x.d || '') >= wkDate) sh.kaup7.push(x);
   for (const m of (Array.isArray(al) ? al : [])) if (m && m.id != null) sh.mp[String(m.id)] = String(m.nafn || '');
   for (const t of ((ut && ut.tenders) || [])) if (t && t.u) sh.utbod[String(t.u)] = { t: String(t.t || ''), b: String(t.buyer || '') };
-  sh.news = ((fv && fv.items) || []).filter((x) => x && String(x.date || '') >= wkDate).map((x) => ({ title: String(x.title || ''), text: String(x.text || ''), url: String(x.url || '') }));
+  // Fréttasafn: fjölmiðla-fyrirsagnir (RSS) + Karp-fréttavél atburðir (bæði síðustu 7 daga).
+  const fvNews = ((fv && fv.items) || []).filter((x) => x && String(x.date || '') >= wkDate).map((x) => ({ title: String(x.title || ''), text: String(x.text || ''), url: String(x.url || ''), source: 'Karp fréttavél' }));
+  sh.news = (Array.isArray(media) ? media.map((x) => ({ title: x.title, text: '', url: x.url, source: x.source })) : []).concat(fvNews);
   sh.vm = (vm && vm.byKt) || {};
   return sh;
 }
@@ -3221,7 +3260,7 @@ function digestBuild(name, prefs, sh) {
   const dIS = (d) => { const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? (+m[3]) + '.' + (+m[2]) + '.' + m[1] : ''; };
   const mkr = (v) => (Number(v || 0) / 1000).toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' m.kr';
   const H = (ico, txt) => '<tr><td style="padding:18px 20px 4px;color:#f6b13b;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">' + ico + ' ' + _esc(txt) + '</td></tr>';
-  const _u = (u) => u ? ('https://karp.is' + (u[0] === '/' ? u : '/' + u)) : '';
+  const _u = (u) => !u ? '' : (/^https?:\/\//.test(u) ? u : 'https://karp.is' + (u[0] === '/' ? u : '/' + u));
   const li = (main, sub, url) => { const t = url ? '<a href="' + _esc(url) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + _esc(main) + '</a>' : '<span style="color:#eaf1fb;font-size:14.5px;font-weight:600">' + _esc(main) + '</span>'; return '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + t + (sub ? '<br><span style="color:#8a93a8;font-size:12px">' + _esc(sub) + '</span>' : '') + '</td></tr>'; };
   let rows = '', personal = false;
   if (sh.tolur.length) {
@@ -3233,7 +3272,7 @@ function digestBuild(name, prefs, sh) {
   const ord = (prefs.leitvakt && Array.isArray(prefs.leitvakt.ord)) ? prefs.leitvakt.ord : [];
   if (ord.length) {
     let sec = '';
-    for (const w of ord.slice(0, 12)) { const hit = _newsHits(sh.news, w, 3); if (!hit.n) continue; sec += li('„' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), '', _u(r.url)); }
+    for (const w of ord.slice(0, 12)) { const hit = _newsHits(sh.news, w, 3); if (!hit.n) continue; sec += li('„' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), r.source || '', _u(r.url)); }
     if (sec) { rows += H('🔎', 'Leitarorðin þín í fréttum vikunnar') + sec; personal = true; }
   }
   const fl = Array.isArray(prefs.follows) ? prefs.follows : [];
@@ -3287,6 +3326,30 @@ async function digestRun(env) {
     if (r && r.ok) sent++;
   }
   return { sent, users: users.length, built, tolur: sh.tolur.length, news: sh.news.length, gmail };
+}
+
+// 📊 Umferðartölfræði úr Cloudflare zone-analytics (GraphQL) — leysir WP Burst Statistics af hólmi.
+// Secret-gated: án CF_ANALYTICS_TOKEN skilar {available:false} (búnaðurinn sýnir „ekki uppsett").
+// Þarf API-tóka m/ Zone Analytics:Read + CF_ZONE_ID (eða token m/Zone:Read → fletti upp karp.is).
+async function _cfZoneId(env) {
+  if (env.CF_ZONE_ID) return env.CF_ZONE_ID;
+  const r = await fetch('https://api.cloudflare.com/client/v4/zones?name=karp.is', { headers: { authorization: 'Bearer ' + env.CF_ANALYTICS_TOKEN } }).then((x) => x.json()).catch(() => null);
+  return (r && r.result && r.result[0] && r.result[0].id) || null;
+}
+async function burstStats(env) {
+  if (!env.CF_ANALYTICS_TOKEN) return { available: false };
+  const zone = await _cfZoneId(env);
+  if (!zone) return { available: false };
+  const today = new Date().toISOString().slice(0, 10);
+  const wk = new Date(Date.now() - 6 * 86400 * 1000).toISOString().slice(0, 10);
+  const q = 'query($z:String!,$today:String!,$wk:String!){viewer{zones(filter:{zoneTag:$z}){today:httpRequests1dGroups(filter:{date:$today},limit:1){sum{pageViews}uniq{uniques}} wk:httpRequests1dGroups(filter:{date_geq:$wk},limit:7){sum{pageViews}uniq{uniques}}}}}';
+  const r = await fetch('https://api.cloudflare.com/client/v4/graphql', { method: 'POST', headers: { authorization: 'Bearer ' + env.CF_ANALYTICS_TOKEN, 'content-type': 'application/json' }, body: JSON.stringify({ query: q, variables: { z: zone, today, wk } }) }).then((x) => x.json()).catch(() => null);
+  const z = r && r.data && r.data.viewer && r.data.viewer.zones && r.data.viewer.zones[0];
+  if (!z) return { available: false };
+  const tday = (z.today && z.today[0]) || { sum: {}, uniq: {} };
+  let wkPv = 0, wkUq = 0;
+  for (const d of (z.wk || [])) { wkPv += (d.sum && d.sum.pageViews) || 0; wkUq += (d.uniq && d.uniq.uniques) || 0; }
+  return { available: true, today: { pageviews: (tday.sum && tday.sum.pageViews) || 0, visitors: (tday.uniq && tday.uniq.uniques) || 0 }, week: { pageviews: wkPv, visitors: wkUq }, top: [] };
 }
 
 export default {
