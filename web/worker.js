@@ -3225,9 +3225,10 @@ function _rssItems(xml, source) {
     const title = _cdata((b.match(/<title>([\s\S]*?)<\/title>/i) || [])[1]);
     if (!title) continue;
     const link = _cdata((b.match(/<link>([\s\S]*?)<\/link>/i) || [])[1]);
+    const desc = _cdata((b.match(/<description>([\s\S]*?)<\/description>/i) || [])[1]).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 600);
     const p = ((b.match(/<pubDate>([\s\S]*?)<\/pubDate>/i) || [])[1] || '').trim();
     let date = ''; if (p) { const dt = new Date(p); if (!isNaN(dt.getTime())) date = dt.toISOString().slice(0, 10); }
-    out.push({ title, url: link, date, source });
+    out.push({ title, url: link, date, source, desc });
   }
   return out;
 }
@@ -3372,12 +3373,13 @@ async function newsIngest(env) {
   if (!env.TENGSL) return { kept: 0 };
   const items = await fetchNews();
   const now = Math.floor(Date.now() / 1000);
-  const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts) VALUES (?,?,?,?)');
+  const stmt = env.TENGSL.prepare('INSERT OR IGNORE INTO news (url, title, source, ts, body) VALUES (?,?,?,?,?)');
   const batch = [];
   for (const it of items) {
     if (!it.url || !it.title) continue;
     const ts = it.date ? Math.floor(new Date(it.date + 'T12:00:00Z').getTime() / 1000) || now : now;
-    batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts));
+    const body = (String(it.title) + ' ' + String(it.desc || '')).slice(0, 800);
+    batch.push(stmt.bind(String(it.url).slice(0, 400), String(it.title).slice(0, 300), it.source || '', ts, body));
   }
   for (let i = 0; i < batch.length; i += 40) await env.TENGSL.batch(batch.slice(i, i + 40)).catch(() => {});
   await env.TENGSL.prepare('DELETE FROM news WHERE ts < ?').bind(now - 90 * 86400).run().catch(() => {});
@@ -3386,8 +3388,8 @@ async function newsIngest(env) {
 async function newsSince(env, days, limit) {
   if (!env.TENGSL) return [];
   const since = Math.floor(Date.now() / 1000) - days * 86400;
-  const r = await env.TENGSL.prepare('SELECT title, url, source, ts FROM news WHERE ts>=? ORDER BY ts DESC LIMIT ?').bind(since, Math.min(limit || 60, 1000)).all().catch(() => ({ results: [] }));
-  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts }));
+  const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body FROM news WHERE ts>=? ORDER BY ts DESC LIMIT ?').bind(since, Math.min(limit || 60, 2000)).all().catch(() => ({ results: [] }));
+  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title }));
 }
 // /api/frettir?efni=&q=&fjoldi= → { efni, items:[{title,link,date,source}] } (frétta-stika + /frettir/)
 async function frettirHandler(request, env) {
@@ -3410,8 +3412,8 @@ async function firmaHandler(request, env) {
   const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);
   if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 1800);
   const terms = q.toLowerCase().split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
-  const all = await newsSince(env, days, 1000);
-  const items = all.filter((nw) => terms.some((t) => nw.title.toLowerCase().includes(t)));
+  const all = await newsSince(env, days, 2000);
+  const items = all.filter((nw) => { const hay = (nw.body || nw.title).toLowerCase(); return terms.some((t) => hay.includes(t)); });
   let pos = 0, neg = 0;
   for (const it of items) { it._t = _tone(it.title); if (it._t > 0) pos++; else if (it._t < 0) neg++; }
   const scored = items.length > 0;
@@ -3420,6 +3422,104 @@ async function firmaHandler(request, env) {
   for (const it of items) { const d = new Date(it.ts * 1000); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const key = mon.toISOString().slice(0, 10); const b = (wk[key] = wk[key] || { d: key, n: 0, tone: 0 }); b.n++; b.tone += it._t || 0; }
   const timeline = Object.values(wk).sort((a, b) => a.d < b.d ? -1 : 1).map((w) => ({ d: w.d, n: w.n, idx: w.n ? Math.round(w.tone / w.n * 20) : 0 }));
   return _fjson({ ready: true, total: items.length, items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })), timeline, sentiment: { idx, scored, pos, neg } }, 1800);
+}
+// ── Premium-greining úr D1-frétta-safni (port úr karp-frettir.php). Sparsara en WP meðan safnið vex. ──
+function _entCos(list) {   // [{n,a:[...]}] → [{name, al:[lágstafir≥3]}]
+  const cos = [];
+  for (const e of (list || []).slice(0, 120)) {
+    const nm = String((e && e.n) || '').trim(); if (!nm) continue;
+    const al = ((e.a && e.a.length) ? e.a : [nm]).map((a) => String(a).trim().toLowerCase()).filter((a) => a.length >= 3);
+    if (al.length) cos.push({ name: nm, al });
+  }
+  return cos;
+}
+async function _graphCompute(env, cos, days) {   // co-occurrence í frétta-body → { nodes, links }
+  const all = await newsSince(env, days, 2000);
+  const counts = {}, pair = {};
+  for (const nw of all) {
+    const hay = (nw.body || nw.title).toLowerCase();
+    const hit = [];
+    for (const c of cos) if (c.al.some((a) => hay.includes(a))) hit.push(c.name);
+    if (!hit.length) continue;
+    for (const nm of hit) counts[nm] = (counts[nm] || 0) + 1;
+    if (hit.length >= 2) { hit.sort(); for (let i = 0; i < hit.length; i++) for (let j = i + 1; j < hit.length; j++) { const k = hit[i] + '|@|' + hit[j]; pair[k] = (pair[k] || 0) + 1; } }
+  }
+  const allow = {}, nodes = [];
+  for (const nm in counts) if (counts[nm] >= 2) { nodes.push({ name: nm, val: counts[nm] }); allow[nm] = 1; }
+  const links = [];
+  for (const k in pair) { const p = k.split('|@|'); if (allow[p[0]] && allow[p[1]]) links.push({ source: p[0], target: p[1], value: pair[k] }); }
+  nodes.sort((a, b) => b.val - a.val); links.sort((a, b) => b.value - a.value);
+  return { nodes, links };
+}
+// /api/firmagraph (GET/POST body{entities:[{n,a}],days}) → {ready,days,nodes,links}
+async function firmagraphHandler(request, env) {
+  const url = new URL(request.url);
+  const body = request.method === 'POST' ? ((await request.json().catch(() => null)) || {}) : {};
+  const days = Math.min(365, Math.max(7, +(body.days || url.searchParams.get('days') || 180) || 180));
+  const cos = _entCos(body.entities);
+  if (cos.length < 2) return _fjson({ ready: true, days, nodes: [], links: [] }, 1800);
+  return _fjson({ ready: true, days, ...(await _graphCompute(env, cos, days)) }, 1800);
+}
+// /api/agenda POST body{topics:[{n,a}],days} → {ready,weekKeys,topics:[{n,total,recent,prior,weeks}]}
+async function agendaHandler(request, env) {
+  const body = (await request.json().catch(() => null)) || {};
+  const days = Math.min(365, Math.max(28, +(body.days || 180) || 180));
+  const cos = _entCos(body.topics);
+  if (!cos.length) return _fjson({ ready: true, topics: [], weekKeys: [] }, 1800);
+  const all = await newsSince(env, days, 2000);
+  const now = Math.floor(Date.now() / 1000), cut30 = now - 30 * 86400, cut60 = now - 60 * 86400;
+  const wk = {}, r30 = {}, p30 = {}, tot = {}, allWeeks = {};
+  for (const nw of all) {
+    const hay = (nw.body || nw.title).toLowerCase();
+    const mon = nw.ts - ((new Date(nw.ts * 1000).getUTCDay() + 6) % 7) * 86400;
+    const wkk = new Date(mon * 1000).toISOString().slice(0, 10);
+    for (const c of cos) {
+      if (!c.al.some((a) => hay.includes(a))) continue;
+      const nm = c.name;
+      (wk[nm] = wk[nm] || {})[wkk] = (wk[nm][wkk] || 0) + 1;
+      allWeeks[wkk] = 1; tot[nm] = (tot[nm] || 0) + 1;
+      if (nw.ts >= cut30) r30[nm] = (r30[nm] || 0) + 1; else if (nw.ts >= cut60) p30[nm] = (p30[nm] || 0) + 1;
+    }
+  }
+  const weekKeys = Object.keys(allWeeks).sort();
+  const topics = cos.filter((c) => tot[c.name]).map((c) => ({ n: c.name, total: tot[c.name], recent: r30[c.name] || 0, prior: p30[c.name] || 0, weeks: weekKeys.map((k) => (wk[c.name] && wk[c.name][k]) || 0) })).sort((a, b) => b.total - a.total);
+  return _fjson({ ready: true, weekKeys, topics, days }, 1800);
+}
+// /api/yearreview → {ready,year,total,scored,months,bySource} (nær aftur til upphafs safnsins; vex með tíma)
+async function yearreviewHandler(request, env) {
+  const all = await newsSince(env, 366, 2000);
+  const mo = {}, src = {}; let total = 0, scored = 0;
+  for (const nw of all) {
+    const k = nw.date.slice(0, 7);
+    const m = (mo[k] = mo[k] || { m: k, n: 0, ss: 0, sn: 0 });
+    m.n++; total++; scored++;
+    m.ss += _tone(nw.body || nw.title); m.sn++;
+    src[nw.source] = (src[nw.source] || 0) + 1;
+  }
+  const months = Object.values(mo).sort((a, b) => a.m < b.m ? -1 : 1).map((m) => ({ m: m.m, n: m.n, scored: m.sn, idx: m.sn ? Math.round(m.ss / m.sn * 20) : 0 }));
+  const bySource = Object.entries(src).map(([s, n]) => ({ s, n })).sort((a, b) => b.n - a.n);
+  return _fjson({ ready: true, year: 2026, total, scored, months, bySource, best: null, worst: null }, 3600);
+}
+// /api/topwords?days= → {ready,words:[{w,n}]} — algengustu orð í fyrirsögnum (Í umræðunni)
+const _STOP = new Set('eftir verður vegna fyrir með milli þegar aðeins mikið einnig þeirra hafði mundi verið meðal komið gæti þeim þessi þetta þessa hvað þarna síðan höfðu einn hafa munu ekki þess sína sínum sinni yfir undir gegn þrátt gerir enginn allir aðrir öllum sagði kemur komu koma nýtt nýja fram fékk fara farið meira miklu margir margar mjög allt öllu þau þær þeir þar þangað þaðan segir gera'.split(' '));
+async function topwordsHandler(request, env) {
+  const url = new URL(request.url);
+  const days = Math.min(120, Math.max(3, +(url.searchParams.get('days') || 30) || 30));
+  const all = await newsSince(env, days, 6000);
+  const wc = {};
+  for (const nw of all) for (const w of nw.title.toLowerCase().split(/[^\p{L}0-9]+/u)) { if (w.length < 4 || _STOP.has(w)) continue; wc[w] = (wc[w] || 0) + 1; }
+  const words = Object.entries(wc).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).slice(0, 60).map(([w, n]) => ({ w, n }));
+  return _fjson({ ready: true, days, words }, 3600);
+}
+// /api/erlent → erlendar fréttir (RSS). {efni,items}
+const _ERLENT_FEEDS = [['https://www.mbl.is/feeds/erlent/', 'mbl.is'], ['https://www.ruv.is/rss/erlent', 'RÚV'], ['https://www.visir.is/rss/erlent', 'Vísir']];
+async function erlentHandler(request, env) {
+  const lists = await Promise.all(_ERLENT_FEEDS.map(async ([u, src]) => {
+    try { const r = await fetch(u, { headers: { 'user-agent': 'Mozilla/5.0 (KarpBot)' }, cf: { cacheTtl: 900 } }); return r.ok ? _rssItems(await r.text(), src) : []; } catch (e) { return []; }
+  }));
+  const seen = new Set(), items = [];
+  for (const arr of lists) for (const it of arr) { const k = it.title.toLowerCase(); if (seen.has(k)) continue; seen.add(k); items.push({ title: it.title, link: it.url, date: it.date, source: it.source }); }
+  return _fjson({ efni: 'erlent', items: items.slice(0, 40) }, 900);
 }
 // /api/markadir → Yahoo Finance (port úr karp-markadir.php). {updated,live,indices,stocks,fx,crypto,metals}
 const _MKT = {
@@ -3529,6 +3629,11 @@ export default {
     if (url.pathname === '/api/markadir') return markadirHandler(request, env, ctx);
     if (url.pathname === '/api/orka') return orkaHandler(request, env, ctx);
     if (url.pathname === '/api/umferd') return umferdHandler(request, env, ctx);
+    if (url.pathname === '/api/firmagraph') return firmagraphHandler(request, env);   // F7b: premium-greining
+    if (url.pathname === '/api/agenda') return agendaHandler(request, env);
+    if (url.pathname === '/api/yearreview') return yearreviewHandler(request, env);
+    if (url.pathname === '/api/topwords') return topwordsHandler(request, env);
+    if (url.pathname === '/api/erlent') return erlentHandler(request, env);
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
