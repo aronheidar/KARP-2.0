@@ -3412,7 +3412,32 @@ async function newsSince(env, days, limit) {
 }
 // SQL-leit í öllu safninu (51k+) eftir orðum — pushar síuna á D1 svo greiningar noti heilt ár.
 // SQLite LIKE case-fold-ar aðeins ASCII → leitum bæði lágstöfum OG hástafs-fyrsta (nær ísl. Íslandsbanki/Össur).
-function _searchVariants(t) { const lc = String(t).toLowerCase().trim(); if (lc.length < 3) return []; const cap = lc.charAt(0).toUpperCase() + lc.slice(1); return cap === lc ? [lc] : [lc, cap]; }
+// + ÍSLENSK BEYGING: fyrir einyrt, nógu-langt nafn bætum við ORÐAMÖRKUÐUM stofni (bil-á-undan '% stofn' EÐA
+// texta-byrjun 'stofn%') svo beygðar myndir finnist (Landsbankinn/Landsbankans/Landsbankanum/Landsbanka → 'landsbank').
+// Orðamörkin verja gegn samsetningar-árekstri: '% landsbank' passar EKKI 'Íslandsbanka'. Grunnmyndin er höfð áfram
+// óbreytt (ber '%nafn%') svo ekkert recall tapist fyrir óbeygjanleg/stutt nöfn (Marel, Icelandair, Össur).
+const _ISUF = ['innar', 'arnir', 'irnir', 'inum', 'anum', 'anna', 'unum', 'inni', 'ana', 'ins', 'ans', 'nir', 'nar', 'num', 'inn', 'in', 'ið', 'ur', 'ns', 'na', 'um', 's', 'i', 'a'];
+function _isStem(lc) { if (/\s/.test(lc) || lc.length < 7) return null; for (const suf of _ISUF) { if (lc.endsWith(suf) && lc.length - suf.length >= 5) return lc.slice(0, -suf.length); } return null; }
+function _searchVariants(t) {
+  const lc = String(t).toLowerCase().trim();
+  if (lc.length < 3) return [];
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const pats = new Set(['%' + lc + '%']);                 // grunnmynd hvar sem er
+  if (cap(lc) !== lc) pats.add('%' + cap(lc) + '%');       // ísl. upphafsstafur (Í/Ö/Þ/Æ)
+  const st = _isStem(lc);
+  if (st && st.length >= 5 && st !== lc) for (const s of (cap(st) !== st ? [st, cap(st)] : [st])) { pats.add('% ' + s + '%'); pats.add(s + '%'); }
+  return [...pats];
+}
+// JS-hliðstæða _searchVariants fyrir per-grein eigna-mörkun (firmagraph/agenda co-occurrence): grunnmynd (includes)
+// EÐA orðamarkaður stofn (byrjun eða bil-á-undan) — sama orðamörk og SQL svo 'landsbank' passi ekki 'íslandsbanka'.
+function _mentions(hay, al) {
+  for (const a of al) {
+    if (hay.includes(a)) return true;
+    const st = _isStem(a);
+    if (st && st.length >= 5) { let i = hay.indexOf(st); while (i >= 0) { if (i === 0 || hay[i - 1] === ' ') return true; i = hay.indexOf(st, i + 1); } }
+  }
+  return false;
+}
 async function newsSearch(env, terms, days, limit) {
   if (!env.TENGSL || !terms || !terms.length) return [];
   const since = Math.floor(Date.now() / 1000) - days * 86400;
@@ -3420,7 +3445,7 @@ async function newsSearch(env, terms, days, limit) {
   if (!vars.length) return [];
   const clauses = vars.map(() => 'body LIKE ?').join(' OR ');
   const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body FROM news WHERE ts>=? AND (' + clauses + ') ORDER BY ts DESC LIMIT ?')
-    .bind(since, ...vars.map((v) => '%' + v + '%'), Math.min(limit || 500, 4000)).all().catch(() => ({ results: [] }));
+    .bind(since, ...vars, Math.min(limit || 500, 4000)).all().catch(() => ({ results: [] }));
   return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title }));
 }
 // /api/frettir?efni=&q=&fjoldi= → { efni, items:[{title,link,date,source}] } (frétta-stika + /frettir/)
@@ -3442,7 +3467,7 @@ async function firmaHandler(request, env) {
   const url = new URL(request.url);
   const q = String(url.searchParams.get('q') || '').trim();
   const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);
-  if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 1800);
+  if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 300);
   const terms = q.split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
   const items = await newsSearch(env, terms, days, 800);   // SQL-leit í öllu safninu (heilt ár)
   let pos = 0, neg = 0;
@@ -3452,7 +3477,7 @@ async function firmaHandler(request, env) {
   const wk = {};
   for (const it of items) { const d = new Date(it.ts * 1000); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const key = mon.toISOString().slice(0, 10); const b = (wk[key] = wk[key] || { d: key, n: 0, tone: 0 }); b.n++; b.tone += it._t || 0; }
   const timeline = Object.values(wk).sort((a, b) => a.d < b.d ? -1 : 1).map((w) => ({ d: w.d, n: w.n, idx: w.n ? Math.round(w.tone / w.n * 20) : 0 }));
-  return _fjson({ ready: true, total: items.length, items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })), timeline, sentiment: { idx, scored, pos, neg } }, 1800);
+  return _fjson({ ready: true, total: items.length, items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })), timeline, sentiment: { idx, scored, pos, neg } }, 300);
 }
 // ── Premium-greining úr D1-frétta-safni (port úr karp-frettir.php). Sparsara en WP meðan safnið vex. ──
 function _entCos(list) {   // [{n,a:[...]}] → [{name, al:[lágstafir≥3]}]
@@ -3470,7 +3495,7 @@ async function _graphCompute(env, cos, days) {   // co-occurrence í frétta-bod
   for (const nw of all) {
     const hay = (nw.body || nw.title).toLowerCase();
     const hit = [];
-    for (const c of cos) if (c.al.some((a) => hay.includes(a))) hit.push(c.name);
+    for (const c of cos) if (_mentions(hay, c.al)) hit.push(c.name);
     if (!hit.length) continue;
     for (const nm of hit) counts[nm] = (counts[nm] || 0) + 1;
     if (hit.length >= 2) { hit.sort(); for (let i = 0; i < hit.length; i++) for (let j = i + 1; j < hit.length; j++) { const k = hit[i] + '|@|' + hit[j]; pair[k] = (pair[k] || 0) + 1; } }
@@ -3488,15 +3513,15 @@ async function firmagraphHandler(request, env) {
   const body = request.method === 'POST' ? ((await request.json().catch(() => null)) || {}) : {};
   const days = Math.min(365, Math.max(7, +(body.days || url.searchParams.get('days') || 180) || 180));
   const cos = _entCos(body.entities);
-  if (cos.length < 2) return _fjson({ ready: true, days, nodes: [], links: [] }, 1800);
-  return _fjson({ ready: true, days, ...(await _graphCompute(env, cos, days)) }, 1800);
+  if (cos.length < 2) return _fjson({ ready: true, days, nodes: [], links: [] }, 300);
+  return _fjson({ ready: true, days, ...(await _graphCompute(env, cos, days)) }, 300);
 }
 // /api/agenda POST body{topics:[{n,a}],days} → {ready,weekKeys,topics:[{n,total,recent,prior,weeks}]}
 async function agendaHandler(request, env) {
   const body = (await request.json().catch(() => null)) || {};
   const days = Math.min(365, Math.max(28, +(body.days || 180) || 180));
   const cos = _entCos(body.topics);
-  if (!cos.length) return _fjson({ ready: true, topics: [], weekKeys: [] }, 1800);
+  if (!cos.length) return _fjson({ ready: true, topics: [], weekKeys: [] }, 300);
   const all = await newsSearch(env, cos.flatMap((c) => c.al), days, 4000);   // aðeins greinar sem nefna eitthvert þema
   const now = Math.floor(Date.now() / 1000), cut30 = now - 30 * 86400, cut60 = now - 60 * 86400;
   const wk = {}, r30 = {}, p30 = {}, tot = {}, allWeeks = {};
@@ -3505,7 +3530,7 @@ async function agendaHandler(request, env) {
     const mon = nw.ts - ((new Date(nw.ts * 1000).getUTCDay() + 6) % 7) * 86400;
     const wkk = new Date(mon * 1000).toISOString().slice(0, 10);
     for (const c of cos) {
-      if (!c.al.some((a) => hay.includes(a))) continue;
+      if (!_mentions(hay, c.al)) continue;
       const nm = c.name;
       (wk[nm] = wk[nm] || {})[wkk] = (wk[nm][wkk] || 0) + 1;
       allWeeks[wkk] = 1; tot[nm] = (tot[nm] || 0) + 1;
@@ -3514,11 +3539,11 @@ async function agendaHandler(request, env) {
   }
   const weekKeys = Object.keys(allWeeks).sort();
   const topics = cos.filter((c) => tot[c.name]).map((c) => ({ n: c.name, total: tot[c.name], recent: r30[c.name] || 0, prior: p30[c.name] || 0, weeks: weekKeys.map((k) => (wk[c.name] && wk[c.name][k]) || 0) })).sort((a, b) => b.total - a.total);
-  return _fjson({ ready: true, weekKeys, topics, days }, 1800);
+  return _fjson({ ready: true, weekKeys, topics, days }, 300);
 }
 // /api/yearreview → {ready,year,total,scored,months,bySource} (nær aftur til upphafs safnsins; vex með tíma)
 async function yearreviewHandler(request, env) {
-  if (!env.TENGSL) return _fjson({ ready: true, year: 2026, total: 0, months: [], bySource: [] }, 3600);
+  if (!env.TENGSL) return _fjson({ ready: true, year: 2026, total: 0, months: [], bySource: [] }, 300);
   const since = Math.floor(Date.now() / 1000) - 366 * 86400;
   // Mánaðar-magn + heimildir: SQL-aggregation yfir ALLT safnið (ekki sótt í minni).
   // Mánaðar-magn + NÁKVÆMUR tónn (AVG(sent)) + heimildir — allt í SQL yfir heilt safn (geymdur tónn, dálkur sent).
@@ -3527,7 +3552,7 @@ async function yearreviewHandler(request, env) {
   const total = moR.reduce((s, x) => s + x.n, 0);
   const months = moR.map((x) => ({ m: x.m, n: x.n, scored: x.n, idx: x.t != null ? Math.round(x.t * 20) : 0 }));
   const bySource = srcR.map((x) => ({ s: x.source, n: x.n }));
-  return _fjson({ ready: true, year: 2026, total, scored: total, months, bySource, best: null, worst: null }, 3600);
+  return _fjson({ ready: true, year: 2026, total, scored: total, months, bySource, best: null, worst: null }, 300);
 }
 // /api/topwords?days= → {ready,words:[{w,n}]} — algengustu orð í fyrirsögnum (Í umræðunni)
 const _STOP = new Set('eftir verður vegna fyrir með milli þegar aðeins mikið einnig þeirra hafði mundi verið meðal komið gæti þeim þessi þetta þessa hvað þarna síðan höfðu einn hafa munu ekki þess sína sínum sinni yfir undir gegn þrátt gerir enginn allir aðrir öllum sagði kemur komu koma nýtt nýja fram fékk fara farið meira miklu margir margar mjög allt öllu þau þær þeir þar þangað þaðan segir gera'.split(' '));
@@ -3538,7 +3563,7 @@ async function topwordsHandler(request, env) {
   const wc = {};
   for (const nw of all) for (const w of nw.title.toLowerCase().split(/[^\p{L}0-9]+/u)) { if (w.length < 4 || _STOP.has(w)) continue; wc[w] = (wc[w] || 0) + 1; }
   const words = Object.entries(wc).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]).slice(0, 60).map(([w, n]) => ({ w, n }));
-  return _fjson({ ready: true, days, words }, 3600);
+  return _fjson({ ready: true, days, words }, 300);
 }
 // /api/erlent → erlendar fréttir (RSS). {efni,items}
 const _ERLENT_FEEDS = [['https://www.mbl.is/feeds/erlent/', 'mbl.is'], ['https://www.ruv.is/rss/erlent', 'RÚV'], ['https://www.visir.is/rss/erlent', 'Vísir']];
