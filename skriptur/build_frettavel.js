@@ -830,6 +830,18 @@ function detect(state) {
     }
   }
 
+  // Eftirlitsvaktin (matvælaeftirlit RVK) — AGGREGATE, engin nöfn. Diff á fjölda stöðvaðra/takmarkaðra (einkunn 0–1).
+  const eft = J('eftirlit.json');
+  if (eft && Array.isArray(eft.dist) && eft.dist.length >= 6 && eft.count) {
+    const bad = (eft.dist[0] || 0) + (eft.dist[1] || 0), full = eft.dist[5] || 0;
+    if (typeof state.eftirlitBad === 'number' && state.eftirlitBad !== bad) {
+      ev.push({ id: `eftirlit-${TODAY}`, type: 'eftirlit', facts: { stodvud_takmorkud: bad, fjoldi: eft.count, medaleinkunn: eft.avg, krofur_uppfylltar: full, fyrri: state.eftirlitBad }, url: '/eftirlit/',
+        title: `Eftirlitsvaktin: ${bad} matvælastaðir með stöðvaða eða takmarkaða starfsemi`,
+        text: `${bad} af ${eft.count} matvæla- og veitingastöðum í Reykjavík eru nú með stöðvaða eða takmarkaða starfsemi samkvæmt heilbrigðiseftirliti Reykjavíkur (einkunn 0–1 á kvarðanum 0–5), borið saman við ${state.eftirlitBad} áður. Meðaleinkunn allra staða er ${String(eft.avg).replace('.', ',')} og ${full} staðir uppfylla allar kröfur. Yfirlitið er á heildar-grunni og nefnir ekki einstaka staði.` });
+    }
+    state.eftirlitBad = bad;
+  }
+
   return ev;
 }
 
