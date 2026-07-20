@@ -169,5 +169,17 @@
   },
   "shocks": {},
   "sentence": "Hærra kolefnisgjald (+50%) lækkar CO₂-losun með nokkurri töf, með litlu hagvaxtar-dragi."
+ },
+ {
+  "id": "greidsluerfidleikar",
+  "label": "Greiðsluerfiðleikar (vextir +2,5 + samdráttur)",
+  "tldr": "Háir vextir + minnkandi umsvif",
+  "levers": {
+   "vextir": 10.25
+  },
+  "shocks": {
+   "ferdamenn": -25
+  },
+  "sentence": "Háir vextir samhliða samdrætti (ferðamönnum fækkar 25%) þyngja greiðslubyrði og auka atvinnuleysi — vanskil heimila og fyrirtækja aukast tafið, sem dregur enn frekar úr hagvexti (fjármála-hraðall)."
  }
 ]
