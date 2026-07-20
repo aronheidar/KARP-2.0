@@ -15,6 +15,7 @@
 // =============================================================================
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEigendur, personKey } from './lib/rsk_parse.mjs';
@@ -89,7 +90,10 @@ console.log('');
 
 // ── 3) Skrifa í D1 ──
 const body = [buildNightSql({ today, ...acc }), ...extraSql].join('\n').trim();
-console.log(`Fann: ${sweepFound} úr sweep · ${eigDone} eigenda-skröp · ${acc.eign.length} eign-leggir`);
+const summary = `Fann: ${sweepFound} úr sweep · ${eigDone} eigenda-skröp · ${acc.eign.length} eign-leggir`;
+console.log(summary);
+// Logg fyrir bakgrunns-keyrslu (Task Scheduler sér ekki console) — ein lína per keyrslu í temp.
+try { fs.appendFileSync(path.join(os.tmpdir(), 'karp-scrape.log'), `${new Date().toISOString()}  ${summary}\n`); } catch (e) {}
 if (!body) { console.log('Ekkert að skrifa.'); process.exit(0); }
 const sqlFile = path.join(WEB, 'local_scrape.sql');
 fs.writeFileSync(sqlFile, body + '\n');
