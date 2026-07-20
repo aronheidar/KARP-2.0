@@ -43,5 +43,15 @@ const okAdhBal = expC.outcomes.afkoma.mid[q] > baseline.outcomes.afkoma.path[q];
 const okDebtAccum = (taxC.outcomes.skuldir.mid[11] - taxC.outcomes.skuldir.baseline[11]) > (taxC.outcomes.skuldir.mid[3] - taxC.outcomes.skuldir.baseline[3]); // aukaskuldir v/hallans vaxa (frávik frá BAU)
 const okFiscBand = [taxC, expC].every((r) => ['afkoma', 'skuldir'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i])));
 console.log('skattalækkun→afkoma↓:', okTaxBal, '| aðhald→afkoma↑:', okAdhBal, '| halli→skuldir vaxandi:', okDebtAccum, '| ríkis-bönd:', okFiscBand);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand);
+// Auðlinda-eining (module 5)
+const kvC = simulate({ baseline, links, levers: { kvoti: 10 }, quarters: 12 });
+const orC = simulate({ baseline, links, levers: { orka: 20 }, quarters: 12 });
+const caC = simulate({ baseline, links, levers: { kolefnisgjald: 50 }, quarters: 12 });
+const okKvExp = kvC.outcomes.utflutningur.mid[q] > baseline.outcomes.utflutningur.path[q];
+const okOrExp = orC.outcomes.utflutningur.mid[q] > baseline.outcomes.utflutningur.path[q];
+const okOrEmis = orC.outcomes.losun.mid[q] > baseline.outcomes.losun.path[q];
+const okCarbEmis = caC.outcomes.losun.mid[q] < baseline.outcomes.losun.path[q];
+const okResBand = [kvC, orC, caC].every((r) => ['utflutningur', 'losun'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i])));
+console.log('+kvóti→útflutn↑:', okKvExp, '| +orka→útflutn↑:', okOrExp, '| +orka→losun↑:', okOrEmis, '| +kolefnisgj→losun↓:', okCarbEmis, '| auðlinda-bönd:', okResBand);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand);
 process.exit(bad ? 1 : 0);

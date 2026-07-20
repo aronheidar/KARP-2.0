@@ -36,6 +36,9 @@ const baseline = {
     frambod: { base: 0, min: -20, max: 40, step: 5, unit: '%', label: 'Nýbygginga-framboð (frávik)' },
     skattar: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Skattbreyting (frávik)' },
     utgjold: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Útgjöld ríkis (frávik)' },
+    kvoti: { base: 0, min: -30, max: 20, step: 5, unit: '%', label: 'Aflamark (frávik)' },
+    orka: { base: 0, min: -15, max: 30, step: 5, unit: '%', label: 'Orka til stóriðju (frávik)' },
+    kolefnisgjald: { base: 0, min: -50, max: 100, step: 10, unit: '%', label: 'Kolefnisgjald (frávik)' },
   },
   shocks: {
     olia: { base: 0, min: -50, max: 100, step: 5, unit: '%', label: 'Olíuverð (frávik)' },
@@ -56,8 +59,10 @@ const baseline = {
     vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: glide(1.5, 1.2) },
     afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: glide(balNow, -0.5) },
     skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: glide(debtNow, 37) },
+    utflutningur: { label: 'Útflutningsvöxtur', unit: '%', path: glide(2, 2.5) },
+    losun: { label: 'CO₂-losun (vísit.)', unit: '', path: glide(100, 100) },
   },
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -106,6 +111,13 @@ const links = [
   { id: 'bal_debt', from: 'afkoma', to: 'skuldir', coef: -0.25, lag: 1, unit: '%VLF/%VLF', ci_lo: -0.35, ci_hi: -0.15, source: 'Halli eykur skuldir (~afkoma/4 per ársfj.)' },
   { id: 'tax_gdp', from: 'skattar', to: 'hagvoxtur', coef: -0.05, lag: 2, unit: 'pp/%', ci_lo: -0.10, ci_hi: -0.01, source: 'Skatta-drag á eftirspurn' },
   { id: 'exp_gdp', from: 'utgjold', to: 'hagvoxtur', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.10, source: 'Fjármála-margfaldari' },
+  // ── Auðlinda-eining (module 5) ──
+  { id: 'kvoti_exp', from: 'kvoti', to: 'utflutningur', coef: 0.20, lag: 2, unit: '%/%', ci_lo: 0.10, ci_hi: 0.32, source: 'Sjávarafurðir ~stór hluti útflutnings (Hagstofa)' },
+  { id: 'orka_exp', from: 'orka', to: 'utflutningur', coef: 0.25, lag: 2, unit: '%/%', ci_lo: 0.12, ci_hi: 0.40, source: 'Ál/stóriðja útflutningur (79,9% orku)' },
+  { id: 'exp_gdp2', from: 'utflutningur', to: 'hagvoxtur', coef: 0.10, lag: 1, unit: 'pp/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Útflutningur drífur VLF' },
+  { id: 'orka_emis', from: 'orka', to: 'losun', coef: 0.30, lag: 1, unit: 'vísit/%', ci_lo: 0.15, ci_hi: 0.50, source: 'Stóriðju-orkunotkun → losun' },
+  { id: 'carb_emis', from: 'kolefnisgjald', to: 'losun', coef: -0.15, lag: 2, unit: 'vísit/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Kolefnisgjald → minni losun' },
+  { id: 'carb_gdp', from: 'kolefnisgjald', to: 'hagvoxtur', coef: -0.02, lag: 1, unit: 'pp/%', ci_lo: -0.05, ci_hi: -0.005, source: 'Kostnaðar-drag grænna skatta' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
@@ -125,6 +137,9 @@ const scenarios = [
   { id: 'skattalaekkun', label: 'Skattalækkun (−10%)', tldr: 'Lægri skattar', levers: { skattar: -10 }, shocks: {}, sentence: 'Skattalækkun (−10%) örvar hagvöxt lítillega en versnar afkomu ríkissjóðs og eykur skuldir smám saman.' },
   { id: 'adhald', label: 'Aðhald (útgjöld −10%)', tldr: 'Ríkisaðhald', levers: { utgjold: -10 }, shocks: {}, sentence: 'Aðhald í útgjöldum (−10%) bætir afkomu ríkissjóðs og lækkar skuldir, en dregur lítillega úr hagvexti til skamms tíma.' },
   { id: 'innspyting', label: 'Innspýting (útgjöld +10%)', tldr: 'Aukin ríkisútgjöld', levers: { utgjold: 10 }, shocks: {}, sentence: 'Aukin ríkisútgjöld (+10%) örva hagvöxt en versna afkomu og auka skuldir ríkissjóðs.' },
+  { id: 'kvotaskerding', label: 'Kvótaskerðing (−20%)', tldr: 'Minna aflamark', levers: { kvoti: -20 }, shocks: {}, sentence: 'Skerðing aflamarks (−20%) dregur úr sjávarafurða-útflutningi og þar með lítillega úr hagvexti.' },
+  { id: 'ny_storidja', label: 'Ný stóriðja (orka +15%)', tldr: 'Aukin stóriðja', levers: { orka: 15 }, shocks: {}, sentence: 'Aukin orka til stóriðju (+15%) eykur útflutning og hagvöxt en hækkar CO₂-losun.' },
+  { id: 'graenir_skattar', label: 'Grænir skattar (kolefnisgjald +50%)', tldr: 'Hærra kolefnisgjald', levers: { kolefnisgjald: 50 }, shocks: {}, sentence: 'Hærra kolefnisgjald (+50%) lækkar CO₂-losun með nokkurri töf, með litlu hagvaxtar-dragi.' },
 ];
 
 mkdirSync(join(ROOT, 'gogn', 'roads'), { recursive: true });

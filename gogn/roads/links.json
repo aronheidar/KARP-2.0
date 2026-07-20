@@ -428,5 +428,71 @@
   "ci_lo": 0.01,
   "ci_hi": 0.1,
   "source": "Fjármála-margfaldari"
+ },
+ {
+  "id": "kvoti_exp",
+  "from": "kvoti",
+  "to": "utflutningur",
+  "coef": 0.2,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.1,
+  "ci_hi": 0.32,
+  "source": "Sjávarafurðir ~stór hluti útflutnings (Hagstofa)"
+ },
+ {
+  "id": "orka_exp",
+  "from": "orka",
+  "to": "utflutningur",
+  "coef": 0.25,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.12,
+  "ci_hi": 0.4,
+  "source": "Ál/stóriðja útflutningur (79,9% orku)"
+ },
+ {
+  "id": "exp_gdp2",
+  "from": "utflutningur",
+  "to": "hagvoxtur",
+  "coef": 0.1,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.18,
+  "source": "Útflutningur drífur VLF"
+ },
+ {
+  "id": "orka_emis",
+  "from": "orka",
+  "to": "losun",
+  "coef": 0.3,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.15,
+  "ci_hi": 0.5,
+  "source": "Stóriðju-orkunotkun → losun"
+ },
+ {
+  "id": "carb_emis",
+  "from": "kolefnisgjald",
+  "to": "losun",
+  "coef": -0.15,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.3,
+  "ci_hi": -0.05,
+  "source": "Kolefnisgjald → minni losun"
+ },
+ {
+  "id": "carb_gdp",
+  "from": "kolefnisgjald",
+  "to": "hagvoxtur",
+  "coef": -0.02,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.05,
+  "ci_hi": -0.005,
+  "source": "Kostnaðar-drag grænna skatta"
  }
 ]

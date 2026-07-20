@@ -139,5 +139,35 @@
   },
   "shocks": {},
   "sentence": "Aukin ríkisútgjöld (+10%) örva hagvöxt en versna afkomu og auka skuldir ríkissjóðs."
+ },
+ {
+  "id": "kvotaskerding",
+  "label": "Kvótaskerðing (−20%)",
+  "tldr": "Minna aflamark",
+  "levers": {
+   "kvoti": -20
+  },
+  "shocks": {},
+  "sentence": "Skerðing aflamarks (−20%) dregur úr sjávarafurða-útflutningi og þar með lítillega úr hagvexti."
+ },
+ {
+  "id": "ny_storidja",
+  "label": "Ný stóriðja (orka +15%)",
+  "tldr": "Aukin stóriðja",
+  "levers": {
+   "orka": 15
+  },
+  "shocks": {},
+  "sentence": "Aukin orka til stóriðju (+15%) eykur útflutning og hagvöxt en hækkar CO₂-losun."
+ },
+ {
+  "id": "graenir_skattar",
+  "label": "Grænir skattar (kolefnisgjald +50%)",
+  "tldr": "Hærra kolefnisgjald",
+  "levers": {
+   "kolefnisgjald": 50
+  },
+  "shocks": {},
+  "sentence": "Hærra kolefnisgjald (+50%) lækkar CO₂-losun með nokkurri töf, með litlu hagvaxtar-dragi."
  }
 ]

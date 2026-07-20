@@ -50,6 +50,30 @@
    "step": 1,
    "unit": "%",
    "label": "Útgjöld ríkis (frávik)"
+  },
+  "kvoti": {
+   "base": 0,
+   "min": -30,
+   "max": 20,
+   "step": 5,
+   "unit": "%",
+   "label": "Aflamark (frávik)"
+  },
+  "orka": {
+   "base": 0,
+   "min": -15,
+   "max": 30,
+   "step": 5,
+   "unit": "%",
+   "label": "Orka til stóriðju (frávik)"
+  },
+  "kolefnisgjald": {
+   "base": 0,
+   "min": -50,
+   "max": 100,
+   "step": 10,
+   "unit": "%",
+   "label": "Kolefnisgjald (frávik)"
   }
  },
  "shocks": {
@@ -292,6 +316,42 @@
     37.164,
     37
    ]
+  },
+  "utflutningur": {
+   "label": "Útflutningsvöxtur",
+   "unit": "%",
+   "path": [
+    2,
+    2.045,
+    2.091,
+    2.136,
+    2.182,
+    2.227,
+    2.273,
+    2.318,
+    2.364,
+    2.409,
+    2.455,
+    2.5
+   ]
+  },
+  "losun": {
+   "label": "CO₂-losun (vísit.)",
+   "unit": "",
+   "path": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ]
   }
  },
  "clamp": {
@@ -338,6 +398,14 @@
   "skuldir": [
    10,
    120
+  ],
+  "utflutningur": [
+   -15,
+   20
+  ],
+  "losun": [
+   40,
+   200
   ]
  }
 }
