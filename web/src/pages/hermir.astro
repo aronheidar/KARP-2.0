@@ -11,8 +11,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 <Layout title="ROADS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnklefi" wide={true}>
   <main data-pg="roads" class="dash">
     <div class="dash-top">
-      <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div><span class="disc" id="disc"></span></div>
-      <div class="topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
+      <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
+      <p class="disc" id="disc"></p>
+      <div class="r-topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
       <div id="scn" class="scn"></div>
       <p id="news" class="news" hidden></p>
       <p id="hnote" class="hnote" hidden></p>
@@ -43,16 +44,15 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
   <style is:global>
     main[data-pg="roads"].dash { max-width: none; margin: 0; padding: 20px 22px 60px; }
-    main[data-pg="roads"] .dash-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    main[data-pg="roads"] .dash-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0; }
     main[data-pg="roads"] .dash-head h1 { font-size: 25px; margin: 0; }
-    main[data-pg="roads"] .disc { font-size: 12px; color: var(--faint); }
-    main[data-pg="roads"] .horizon { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
+    main[data-pg="roads"] .disc { display: block; font-size: 12px; color: var(--faint); margin: 6px 0 16px; }
+    main[data-pg="roads"] .horizon { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); margin-left: auto; }
     main[data-pg="roads"] .horizon button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
     main[data-pg="roads"] .horizon button.on { color: #f6b13b; border-color: #f6b13b; background: rgba(246,177,59,.1); }
     main[data-pg="roads"] .hnote { font-size: 12px; color: var(--muted); background: rgba(110,168,254,.08); border: 1px solid rgba(110,168,254,.28); border-radius: 10px; padding: 8px 13px; margin: 0 0 12px; }
     main[data-pg="roads"] .hnote a { color: #6ea8fe; }
-    main[data-pg="roads"] .dash-head { margin-bottom: 6px; }
-    main[data-pg="roads"] .topbar { display: flex; gap: 10px; align-items: stretch; margin: 18px 0 10px; flex-wrap: wrap; }
+    main[data-pg="roads"] .r-topbar { display: flex; gap: 10px; align-items: stretch; margin: 0 0 14px; flex-wrap: wrap; }
     main[data-pg="roads"] .health { flex: 0 0 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; }
     main[data-pg="roads"] .health .h-l { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
     main[data-pg="roads"] .health .h-v { font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05; }
