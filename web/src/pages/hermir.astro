@@ -32,6 +32,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <p class="hint">Hreyfðu bendil yfir sleða til að lýsa upp hagvísana sem hann drífur.</p>
       </div>
     </div>
+    <details class="chainmap"><summary>🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</summary><div id="cmwrap"><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytra sjokk</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div></details>
     <details class="transp"><summary>⚙︎ Sjá öll orsakasambönd, stuðla og heimildir</summary><div id="lnks"></div></details>
     <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ROADS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
@@ -89,6 +90,19 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .lnk-tbl th, main[data-pg="roads"] .lnk-tbl td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
     main[data-pg="roads"] details.transp { margin: 18px 0 0; }
     main[data-pg="roads"] details.transp summary { cursor: pointer; color: #f6b13b; font-size: 13px; font-weight: 700; }
+    main[data-pg="roads"] details.chainmap { margin: 18px 0 0; }
+    main[data-pg="roads"] details.chainmap summary { cursor: pointer; color: #f6b13b; font-size: 13px; font-weight: 700; }
+    main[data-pg="roads"] #cmwrap { margin-top: 10px; }
+    main[data-pg="roads"] .cm-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+    main[data-pg="roads"] .cm-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    main[data-pg="roads"] .cm-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    main[data-pg="roads"] .cm-legend .cm-in { background: #6ea8fe; } .cm-legend .cm-shk { background: #f6b13b; } .cm-legend .cm-out { background: #9fb0c8; }
+    main[data-pg="roads"] .cm-legend .cm-pos { background: #54d08a; border-radius: 1px; height: 3px; } .cm-legend .cm-neg { background: #e78284; border-radius: 1px; height: 3px; }
+    main[data-pg="roads"] #chainmap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,.15); }
+    main[data-pg="roads"] #chainmap svg { display: block; }
+    main[data-pg="roads"] .cm-node { cursor: pointer; }
+    main[data-pg="roads"] .cm-node rect { stroke: rgba(255,255,255,.18); }
+    main[data-pg="roads"] .cm-node text { font-size: 10.5px; fill: var(--ink); pointer-events: none; }
     main[data-pg="roads"] .foot { font-size: 12px; color: var(--faint); margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
   </style>
 
@@ -271,6 +285,60 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       host.innerHTML = `<table class="lnk-tbl"><tr><th>Keðja</th><th>Stuðull</th><th>Töf</th><th>Óvissa</th><th>Heimild</th></tr>${rows}</table><p style="font-size:11.5px;color:var(--faint);margin-top:8px">Hver stuðull er metinn úr Karp-gögnum eða úr birtum heimildum (SÍ/Hagstofa/OECD). Stílfærð sambönd — ekki opinber spá.</p>`;
     }
 
+    // Keðju-kort: lagskipt net allra tengsla (dálkar eftir „dýpt" frá inntökum). Grænt=eykur, rautt=dregur úr.
+    function buildChainMap() {
+      const host = document.getElementById('chainmap'); if (!host) return;
+      const NS = 'http://www.w3.org/2000/svg';
+      const levers = Object.keys(BASELINE.levers), shocks = Object.keys(BASELINE.shocks), outs = Object.keys(BASELINE.outcomes);
+      const inputs = [...levers, ...shocks];
+      const isShock = (k) => BASELINE.shocks[k] != null, isOut = (k) => BASELINE.outcomes[k] != null;
+      const depth = {}; inputs.forEach((k) => (depth[k] = 0)); outs.forEach((k) => (depth[k] = 1));
+      for (let pass = 0; pass < 6; pass++) for (const l of LINKS) if (isOut(l.to) && depth[l.from] != null && l.from !== l.to && depth[l.to] <= depth[l.from]) depth[l.to] = Math.min(depth[l.from] + 1, 6);
+      const maxD = Math.max(1, ...outs.map((k) => depth[k]));
+      const cols = []; for (let c = 0; c <= maxD; c++) cols[c] = [];
+      inputs.forEach((k) => cols[0].push(k)); outs.forEach((k) => cols[depth[k]].push(k));
+      const M = 14, COLW = 174, NW = 136, NH = 22, VG = 9;
+      const rows = Math.max(...cols.map((c) => c.length));
+      const W = M * 2 + maxD * COLW + NW, H = M * 2 + rows * (NH + VG) - VG;
+      const pos = {};
+      cols.forEach((list, c) => { const colH = list.length * (NH + VG) - VG; const y0 = M + (H - 2 * M - colH) / 2; list.forEach((k, i) => { pos[k] = { x: M + c * COLW, y: y0 + i * (NH + VG), c }; }); });
+      const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      const defs = document.createElementNS(NS, 'defs');
+      defs.innerHTML = '<marker id="cm-ap" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#54d08a"/></marker><marker id="cm-an" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e78284"/></marker>';
+      svg.appendChild(defs);
+      const edgeEls = [], gE = document.createElementNS(NS, 'g');
+      for (const l of LINKS) {
+        if (l.from === l.to) continue;
+        const a = pos[l.from], b = pos[l.to]; if (!a || !b) continue;
+        const sx = a.x + NW, sy = a.y + NH / 2, tx = b.x, ty = b.y + NH / 2, back = tx <= sx, dx = Math.max(30, Math.abs(tx - sx) * 0.4);
+        const bow = back ? 34 + Math.abs(a.c - b.c) * 12 : 0;
+        const d = back ? `M${sx},${sy} C${sx + dx},${sy - bow} ${tx - dx},${ty - bow} ${tx},${ty}` : `M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`;
+        const p = document.createElementNS(NS, 'path'), pv = l.coef > 0;
+        p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', pv ? '#54d08a' : '#e78284'); p.setAttribute('stroke-width', '1.2'); p.setAttribute('opacity', '0.13'); p.setAttribute('marker-end', `url(#${pv ? 'cm-ap' : 'cm-an'})`);
+        gE.appendChild(p); edgeEls.push({ el: p, from: l.from, to: l.to });
+      }
+      svg.appendChild(gE);
+      const nodeEls = {};
+      for (const k of [...inputs, ...outs]) {
+        const p = pos[k]; if (!p) continue;
+        const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cm-node'); g.dataset.k = k;
+        const rect = document.createElementNS(NS, 'rect'); rect.setAttribute('x', p.x); rect.setAttribute('y', p.y); rect.setAttribute('width', NW); rect.setAttribute('height', NH); rect.setAttribute('rx', 5);
+        rect.setAttribute('fill', isOut(k) ? 'rgba(159,176,200,.16)' : isShock(k) ? 'rgba(246,177,59,.22)' : 'rgba(110,168,254,.22)');
+        const t = document.createElementNS(NS, 'text'); t.setAttribute('x', p.x + 8); t.setAttribute('y', p.y + NH / 2 + 3.5); let la = lbl(k); if (la.length > 20) la = la.slice(0, 19) + '…'; t.textContent = la;
+        const tt = document.createElementNS(NS, 'title'); tt.textContent = lbl(k) + (driversOf(k).length ? ' ← ' + driversOf(k).join(', ') : '');
+        g.appendChild(rect); g.appendChild(t); g.appendChild(tt);
+        g.addEventListener('mouseenter', () => hoverNode(k)); g.addEventListener('mouseleave', clearHover);
+        svg.appendChild(g); nodeEls[k] = g;
+      }
+      host.innerHTML = ''; host.appendChild(svg);
+      function hoverNode(k) {
+        const conn = new Set([k]);
+        edgeEls.forEach((e) => { const on = e.from === k || e.to === k; e.el.setAttribute('opacity', on ? '0.95' : '0.03'); e.el.setAttribute('stroke-width', on ? '2.2' : '1'); if (on) { conn.add(e.from); conn.add(e.to); } });
+        for (const nk in nodeEls) nodeEls[nk].setAttribute('opacity', conn.has(nk) ? '1' : '0.25');
+      }
+      function clearHover() { edgeEls.forEach((e) => { e.el.setAttribute('opacity', '0.13'); e.el.setAttribute('stroke-width', '1.2'); }); for (const nk in nodeEls) nodeEls[nk].setAttribute('opacity', '1'); }
+    }
+
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
     function init() {
@@ -280,7 +348,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       const restored = deserialize(); // sviðsmynd úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;
-      buildControls(); run(); buildLinkTable();
+      buildControls(); run(); buildLinkTable(); buildChainMap();
       if (restored) { const n = document.getElementById('news'); n.hidden = false; n.innerHTML = '🔗 <b>Sviðsmynd úr hlekk.</b> Stýringarnar sýna deilda sviðsmynd — breyttu að vild eða núllstilltu.'; }
       document.getElementById('rs').addEventListener('click', reset);
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
