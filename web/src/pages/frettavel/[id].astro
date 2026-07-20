@@ -84,6 +84,25 @@ const jsonLd = [
         </section>
       )}
 
+      {it.type === 'vikan' && Array.isArray(it.facts?.mal) && (
+        <section class="fv-vikan">
+          <div class="fv-vikan-h">📰 5 mál vikunnar</div>
+          <ol class="fv-vikan-list">
+            {it.facts.mal.map((m, i) => (
+              <li>
+                <span class="fv-vikan-n">{i + 1}</span>
+                <div class="fv-vikan-b">
+                  <span class="fv-vikan-cat">{m.emoji} {m.cat}</span>
+                  <a class="fv-vikan-t" href={`/frettavel/${m.slug}/`}>{m.title}</a>
+                  {m.hook && <span class="fv-vikan-hook">{m.hook}</span>}
+                  <span class="fv-vikan-d">{m.dags}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {sp && (
         <figure class="fv-chart">
           <svg viewBox={`0 0 ${sp.w} ${sp.h}`} width="100%" style={`color:${cat.color}`} aria-hidden="true">
@@ -173,6 +192,17 @@ const jsonLd = [
     .fv-thread-status { font-size: 12.5px; color: var(--muted); margin: 10px 0 8px; }
     .fv-thread-link { font-size: 13px; color: var(--gold); text-decoration: none; font-weight: 600; }
     .fv-thread-link:hover { text-decoration: underline; }
+    .fv-vikan { border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 0 0 22px; background: var(--panel); }
+    .fv-vikan-h { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .fv-vikan-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+    .fv-vikan-list li { display: flex; gap: 12px; align-items: flex-start; }
+    .fv-vikan-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .fv-vikan-b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .fv-vikan-cat { font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--faint); }
+    .fv-vikan-t { font-size: 15px; color: var(--ink); text-decoration: none; line-height: 1.3; }
+    .fv-vikan-t:hover { color: var(--gold); }
+    .fv-vikan-hook { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .fv-vikan-d { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
     .fv-chart { margin: 0 0 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 10px; }
     .fv-chart svg { display: block; max-width: 640px; height: auto; }
     .fv-chart figcaption { font-size: 11.5px; color: var(--faint); margin-top: 6px; }
