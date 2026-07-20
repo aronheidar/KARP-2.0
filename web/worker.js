@@ -2880,7 +2880,7 @@ async function authMeHandler(request, env) {
   const p = userPayload(u);
   const now = Math.floor(Date.now() / 1000);
   // F4: réttindi úr D1 — virkar þjónustu-áskriftir + keyptar skýrslur + skýrslu-kvóti mánaðarins.
-  const subsR = await env.TENGSL.prepare('SELECT service FROM sub_service WHERE user_id=? AND until>?').bind(uid, now).all().catch(() => ({ results: [] }));
+  const subsR = await env.TENGSL.prepare('SELECT service, used, used_month FROM sub_service WHERE user_id=? AND until>?').bind(uid, now).all().catch(() => ({ results: [] }));
   const repsR = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(uid).all().catch(() => ({ results: [] }));
   p.subs = (subsR.results || []).map((r) => r.service);
   p.reports = (repsR.results || []).map((r) => r.report_key);
@@ -2892,6 +2892,10 @@ async function authMeHandler(request, env) {
   // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði).
   p.follows = await _prefGet(env, uid, 'follows', []);
   p.followsCount = p.follows.length;
+  // #22: mánaðar-kvóti þjónustu-áskrifta (fasteign/þingskyrslur = 20/mán) svo UI geti sýnt „N eftir í mánuðinum".
+  const _svcQ = { fasteign: 20, thingskyrslur: 20 };
+  p.svcQuota = {};
+  for (const r of (subsR.results || [])) { if (_svcQ[r.service]) { const su = (r.used_month === ym) ? (r.used || 0) : 0; p.svcQuota[r.service] = { used: su, quota: _svcQ[r.service], remaining: Math.max(0, _svcQ[r.service] - su) }; } }
   return _ajson(p);
 }
 async function authRegisterHandler(request, env) {

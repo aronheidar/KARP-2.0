@@ -491,9 +491,12 @@ const updated = '2026-07-02';
           // Sérlausnir (utbod/fasteign/frettir) — birtar með gildistíma + uppsagnar-hnappi
           const SVCN = { utbod: '📋 Útboðsvaktin', fasteign: '🏠 Fasteignavakt', frettir: '📰 Fjölmiðlavakt', thingskyrslur: '🏛️ Þingmannaskýrslur', kvoti: '⚓ Kvótavaktin' };
           const subsUntil = u.subsUntil || {};
-          const svcRows = (u.subs || []).map((s) =>
-            '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '')
-            + ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button></div>').join('');
+          const svcRows = (u.subs || []).map((s) => {
+            const sq = (u.svcQuota || {})[s];   // #22: fasteign/þingskyrslur = 20/mán → sýna „N eftir í mánuðinum"
+            const qtxt = sq ? ' · <span class="dim">' + sq.remaining + ' af ' + sq.quota + ' eftir í mánuðinum</span>' : '';
+            return '<div class="sub-row"><b>' + (SVCN[s] || s) + ':</b> virk' + (subsUntil[s] ? ' til ' + dags(subsUntil[s]) : '') + qtxt
+              + ' · <button class="sub-cancel" data-svc="' + esc(s) + '" type="button">Segja upp</button></div>';
+          }).join('');
           const tierUntil = u.tier_until ? ' · til ' + dags(u.tier_until) : '';
           const tierCancel = (u.tier && u.effectiveTier === u.tier) ? ' · <button class="sub-cancel" data-svc="" type="button">Segja upp</button>' : '';
           el.innerHTML =
