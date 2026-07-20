@@ -1,0 +1,55 @@
+{
+ "updated": "2026-06",
+ "span": "2010-01 → 2026-05",
+ "husnaedi_hbs": {
+  "range": [
+   -6.3,
+   27
+  ],
+  "std": 6.3,
+  "n": 187
+ },
+ "husnaedi_land": {
+  "range": [
+   -8.9,
+   33
+  ],
+  "std": 8.6,
+  "n": 187
+ },
+ "atvinnuleysi": {
+  "range": [
+   1.8,
+   17.8
+  ],
+  "mean": 4.7,
+  "n": 197
+ },
+ "verdbolga": {
+  "range": [
+   0.8,
+   10.2
+  ],
+  "ar1": 0.98,
+  "n": 198
+ },
+ "rateHouseCorr": -0.36,
+ "corrHbs": -0.36,
+ "corrLand": -0.43,
+ "rateN": 145,
+ "checks": {
+  "okHouseRange": true,
+  "okUnempRange": true,
+  "okInflRange": true,
+  "okHouseVolatile": true,
+  "okInflPersist": true,
+  "okRateHouse": true,
+  "okNairu": true
+ },
+ "model": {
+  "r_house": -0.8,
+  "r_hbs": -0.9,
+  "r_land": -0.7,
+  "infl_persist": 0.25
+ }
+}

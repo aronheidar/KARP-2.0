@@ -1445,12 +1445,12 @@
   "id": "r_hbs",
   "from": "vextir",
   "to": "husnaedi_hbs",
-  "coef": -1,
+  "coef": -0.9,
   "lag": 2,
   "unit": "%/pp",
-  "ci_lo": -1.6,
-  "ci_hi": -0.5,
-  "source": "Höfuðborgar-húsnæði mjög vaxta-næmt"
+  "ci_lo": -1.5,
+  "ci_hi": -0.4,
+  "source": "Höfuðborgar-húsnæði vaxta-næmt (bakprófað: fylgni −0,36 við vexti töf 2ár, 2010–2026)"
  },
  {
   "id": "w_hbs",
@@ -1511,12 +1511,12 @@
   "id": "r_land",
   "from": "vextir",
   "to": "husnaedi_land",
-  "coef": -0.5,
+  "coef": -0.7,
   "lag": 2,
   "unit": "%/pp",
-  "ci_lo": -0.9,
-  "ci_hi": -0.2,
-  "source": "Landsbyggð minna vaxta-næm"
+  "ci_lo": -1.2,
+  "ci_hi": -0.3,
+  "source": "Landsbyggð einnig vaxta-næm (bakprófað: fylgni −0,43 við vexti töf 2ár — nálægt höfuðborg, 2010–2026)"
  },
  {
   "id": "fr_land",

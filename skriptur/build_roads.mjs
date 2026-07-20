@@ -99,7 +99,8 @@ const baseline = {
     husnaedi_hbs: { label: 'Húsnæði — höfuðborg (12-mán)', unit: '%', path: bau(houseNow, 3.5) },
     husnaedi_land: { label: 'Húsnæði — landsbyggð (12-mán)', unit: '%', path: bau(houseNow, 2.0) },
   },
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-22, 32], husnaedi_land: [-22, 30] },
+  // clamp-mörk víkkuð til að ná yfir SÖGULEG bil 2010–2026 (sjá backtest_history.mjs): húsnæði ±33%, atvinnuleysi 17,8% (COVID)
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -255,14 +256,14 @@ const links = [
   { id: 'mennt_gdp', from: 'menntun', to: 'hagvoxtur', coef: 0.02, lag: 5, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Menntun → vinnuaflsgæði → framleiðni (mjög löng töf, óháð nýsköpun)' },
   { id: 'clim_gdp', from: 'losun', to: 'hagvoxtur', coef: -0.004, lag: 4, unit: 'pp/vísit', ci_lo: -0.009, ci_hi: -0.001, source: 'Loftslagshlýnun → tjón á ferðaþjónustu/landbúnaði/innviðum (langtíma; grænir sleðar fá vaxtar-ávinning)' },
   // Höfuðborg — eftirspurnar-drifið (vextir/laun/aðflutningur ráða)
-  { id: 'r_hbs', from: 'vextir', to: 'husnaedi_hbs', coef: -1.0, lag: 2, unit: '%/pp', ci_lo: -1.6, ci_hi: -0.5, source: 'Höfuðborgar-húsnæði mjög vaxta-næmt' },
+  { id: 'r_hbs', from: 'vextir', to: 'husnaedi_hbs', coef: -0.9, lag: 2, unit: '%/pp', ci_lo: -1.5, ci_hi: -0.4, source: 'Höfuðborgar-húsnæði vaxta-næmt (bakprófað: fylgni −0,36 við vexti töf 2ár, 2010–2026)' },
   { id: 'w_hbs', from: 'laun', to: 'husnaedi_hbs', coef: 0.5, lag: 3, unit: '%/pp', ci_lo: 0.2, ci_hi: 0.85, source: 'Kaupgeta → eftirspurn á höfuðborgarsvæði' },
   { id: 'ltv_hbs', from: 'vedhlutfall', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Veðhlutfall → lánsgeta → eftirspurn' },
   { id: 'dsti_hbs', from: 'dsti', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Rýmra greiðslubyrðisþak → hærra höfuðborgarverð' },
   { id: 'mig_hbs', from: 'adflutningur', to: 'husnaedi_hbs', coef: 0.10, lag: 2, unit: '%/%', ci_lo: 0.04, ci_hi: 0.16, source: 'Aðflutningur sest einkum á höfuðborgarsvæðið' },
   { id: 'immig_hbs', from: 'innflytjendastefna', to: 'husnaedi_hbs', coef: 0.05, lag: 2, unit: '%/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Stýrður innflutningur → höfuðborgar-eftirspurn' },
   // Landsbyggð — framboðs-/byggða-drifið (framboð/byggðastefna/innviðir ráða)
-  { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.5, lag: 2, unit: '%/pp', ci_lo: -0.9, ci_hi: -0.2, source: 'Landsbyggð minna vaxta-næm' },
+  { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.7, lag: 2, unit: '%/pp', ci_lo: -1.2, ci_hi: -0.3, source: 'Landsbyggð einnig vaxta-næm (bakprófað: fylgni −0,43 við vexti töf 2ár — nálægt höfuðborg, 2010–2026)' },
   { id: 'fr_land', from: 'frambod', to: 'husnaedi_land', coef: -0.35, lag: 4, unit: '%/%', ci_lo: -0.55, ci_hi: -0.15, source: 'Framboð ræður meiru um verð úti á landi' },
   { id: 'loda_land', from: 'lodaframbod', to: 'husnaedi_land', coef: -0.20, lag: 6, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Lóðaframboð → lægra verð (löng töf)' },
   { id: 'byggd_land', from: 'byggdastefna', to: 'husnaedi_land', coef: 0.10, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.18, source: 'Byggðaefling → hærra fasteignaverð á landsbyggð (vitnisburður um vöxt)' },

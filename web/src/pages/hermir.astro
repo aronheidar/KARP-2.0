@@ -165,6 +165,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import BASELINE from '@gogn/roads/baseline.json';
     import LINKS from '@gogn/roads/links.json';
     import SCENARIOS from '@gogn/roads/scenarios.json';
+    import HISTORY from '@gogn/roads/history.json';
 
     const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit' };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
@@ -477,6 +478,24 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       host.innerHTML = `<table class="lnk-tbl"><tr><th>Keðja</th><th>Stuðull</th><th>Töf</th><th>Óvissa</th><th>Heimild</th></tr>${rows}</table><p style="font-size:11.5px;color:var(--faint);margin-top:8px">Hver stuðull er metinn úr Karp-gögnum eða úr birtum heimildum (SÍ/Hagstofa/OECD). Stílfærð sambönd — ekki opinber spá.</p>`;
     }
 
+    function buildBacktest() {
+      const host = document.getElementById('backtest'); if (!host || !HISTORY || !HISTORY.checks) return;
+      const H = HISTORY, ck = H.checks, all = Object.values(ck).every(Boolean), C = BASELINE.clamp;
+      const chk = (b) => (b ? '<span style="color:#54d08a">✓</span>' : '<span style="color:#e78284">✗</span>');
+      const rows = [
+        ['Húsnæði — höfuðborg (12-mán %)', `${H.husnaedi_hbs.range[0]} … ${H.husnaedi_hbs.range[1]}% (staðalfrávik ${H.husnaedi_hbs.std})`, `clamp ${C.husnaedi_hbs.join(' … ')}`, ck.okHouseRange],
+        ['Húsnæði — landsbyggð (12-mán %)', `${H.husnaedi_land.range[0]} … ${H.husnaedi_land.range[1]}% (staðalfrávik ${H.husnaedi_land.std})`, `clamp ${C.husnaedi_land.join(' … ')}`, ck.okHouseRange],
+        ['Atvinnuleysi (%)', `${H.atvinnuleysi.range[0]} … ${H.atvinnuleysi.range[1]}% · meðaltal ${H.atvinnuleysi.mean}`, `clamp ${C.atvinnuleysi.join(' … ')} · NAIRU≈4`, ck.okUnempRange && ck.okNairu],
+        ['Verðbólga (12-mán %)', `${H.verdbolga.range[0]} … ${H.verdbolga.range[1]}% · AR(1)=${H.verdbolga.ar1}`, `þrálæti staðfest (infl_persist ${H.model.infl_persist})`, ck.okInflRange && ck.okInflPersist],
+        ['Vextir → húsnæði (fylgni, töf 2 ár)', `höfuðb ${H.corrHbs} · landsb ${H.corrLand}`, `neikvæð staðfest (r_hbs ${H.model.r_hbs}, r_land ${H.model.r_land})`, ck.okRateHouse],
+      ];
+      host.innerHTML = `<div class="cm-title">📊 Söguleg bakprófun — raun-gögn ${H.span}${all ? ' <span style="color:#54d08a;font-weight:400">· allt í takt við gögnin ✓</span>' : ''}</div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">„Veruleika-próf": eru módel-mörkin (clamp) og lykil-stuðlarnir í takt við það sem raunverulega gerðist 2010–2026? Gögn: Seðlabanki (CPI/vextir), Þjóðskrá (fasteignaverð höfuðb./landsb.), Vinnumálastofnun (atvinnuleysi). Ekki hagfræðileg nákvæmnis-kvörðun.</p>
+        <table class="lnk-tbl"><tr><th>Hagvísir</th><th>Raun-gögn 2010–2026</th><th>Módel</th><th style="text-align:center">✓</th></tr>
+        ${rows.map((r) => `<tr><td>${r[0]}</td><td style="font-variant-numeric:tabular-nums">${r[1]}</td><td style="color:var(--faint)">${r[2]}</td><td style="text-align:center">${chk(r[3])}</td></tr>`).join('')}</table>
+        <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka.</p>`;
+    }
+
     // Keðju-kort: lagskipt net allra tengsla (dálkar eftir „dýpt" frá inntökum). Grænt=eykur, rautt=dregur úr.
     function buildChainMap() {
       const host = document.getElementById('chainmap'); if (!host) return;
@@ -574,7 +593,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap();
+      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;
