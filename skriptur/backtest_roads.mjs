@@ -16,5 +16,15 @@ const okHouse = hi.outcomes.husnaedi.mid[q] < lo.outcomes.husnaedi.mid[q];
 const okGdp = hi.outcomes.hagvoxtur.mid[q] < lo.outcomes.hagvoxtur.mid[q];
 const okBand = Object.values(hi.outcomes).every((o) => o.lo.every((v, i) => v <= o.mid[i] && o.mid[i] <= o.hi[i]));
 console.log('hærri vextir → lægri verðbólga:', okDir, '| lægra húsnæðisverð:', okHouse, '| lægri hagvöxtur:', okGdp, '| lo≤mið≤hi:', okBand);
-const bad = !(okDir && okHouse && okGdp && okBand);
+// Húsnæðis-eining (module 2)
+const frH = simulate({ baseline, links, levers: { frambod: 20 }, quarters: 12 });
+const migH = simulate({ baseline, links, shocks: { adflutningur: 40 }, quarters: 12 });
+const rtB = simulate({ baseline, links, levers: { vextir: baseline.levers.vextir.base + 3 }, quarters: 12 });
+const okFrHouse = frH.outcomes.husnaedi.mid[q] < baseline.outcomes.husnaedi.path[q];
+const okMigHouse = migH.outcomes.husnaedi.mid[q] > baseline.outcomes.husnaedi.path[q];
+const okMigRent = migH.outcomes.leiga.mid[q] > baseline.outcomes.leiga.path[q];
+const okRateBurden = rtB.outcomes.greidslubyrdi.mid[q] > baseline.outcomes.greidslubyrdi.path[q];
+const okHouseBand = [frH, migH, rtB].every((r) => ['leiga', 'greidslubyrdi'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i])));
+console.log('+framboð→húsnæði↓:', okFrHouse, '| +aðflutn→húsnæði↑:', okMigHouse, '| +aðflutn→leiga↑:', okMigRent, '| +vextir→greiðslubyrði↑:', okRateBurden, '| húsnæðis-bönd gild:', okHouseBand);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand);
 process.exit(bad ? 1 : 0);
