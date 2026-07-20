@@ -186,5 +186,104 @@
   "ci_lo": 0.15,
   "ci_hi": 0.55,
   "source": "Verðbólga → næstu kjarasamningar (vísitölu-tenging)"
+ },
+ {
+  "id": "fr_house",
+  "from": "frambod",
+  "to": "husnaedi",
+  "coef": -0.3,
+  "lag": 4,
+  "unit": "%/%",
+  "ci_lo": -0.5,
+  "ci_hi": -0.12,
+  "source": "Framboðs-teygni húsnæðis (OECD/HMS)"
+ },
+ {
+  "id": "mig_house",
+  "from": "adflutningur",
+  "to": "husnaedi",
+  "coef": 0.06,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.1,
+  "source": "Aðflutningur → húsnæðiseftirspurn (HMS/SÍ)"
+ },
+ {
+  "id": "mig_rent",
+  "from": "adflutningur",
+  "to": "leiga",
+  "coef": 0.08,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.14,
+  "source": "Aðflutningur → leigueftirspurn"
+ },
+ {
+  "id": "house_rent",
+  "from": "husnaedi",
+  "to": "leiga",
+  "coef": 0.35,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.15,
+  "ci_hi": 0.55,
+  "source": "Verð↔leiga samhreyfing (HMS)"
+ },
+ {
+  "id": "fr_rent",
+  "from": "frambod",
+  "to": "leiga",
+  "coef": -0.15,
+  "lag": 4,
+  "unit": "%/%",
+  "ci_lo": -0.3,
+  "ci_hi": -0.03,
+  "source": "Framboð → lægri leiga"
+ },
+ {
+  "id": "r_burden",
+  "from": "vextir",
+  "to": "greidslubyrdi",
+  "coef": 2.5,
+  "lag": 1,
+  "unit": "vísit/pp",
+  "ci_lo": 1.5,
+  "ci_hi": 3.5,
+  "source": "Greiðslubyrði-næmni f. vöxtum"
+ },
+ {
+  "id": "house_burden",
+  "from": "husnaedi",
+  "to": "greidslubyrdi",
+  "coef": 0.4,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.2,
+  "ci_hi": 0.6,
+  "source": "Hærra verð → stærra lán"
+ },
+ {
+  "id": "kaup_burden",
+  "from": "kaupmattur",
+  "to": "greidslubyrdi",
+  "coef": -0.6,
+  "lag": 1,
+  "unit": "vísit/pp",
+  "ci_lo": -1,
+  "ci_hi": -0.3,
+  "source": "Hærri ráðstöfunartekjur → lægri byrði"
+ },
+ {
+  "id": "ltv_burden",
+  "from": "vedhlutfall",
+  "to": "greidslubyrdi",
+  "coef": 0.3,
+  "lag": 2,
+  "unit": "vísit/pp",
+  "ci_lo": 0.1,
+  "ci_hi": 0.5,
+  "source": "Hærra veðhlutfall → stærra lán"
  }
 ]

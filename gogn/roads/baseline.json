@@ -26,6 +26,14 @@
    "step": 5,
    "unit": "%",
    "label": "Hámarks veðsetningarhlutfall"
+  },
+  "frambod": {
+   "base": 0,
+   "min": -20,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Nýbygginga-framboð (frávik)"
   }
  },
  "shocks": {
@@ -52,6 +60,14 @@
    "step": 5,
    "unit": "%",
    "label": "Ferðamenn (frávik)"
+  },
+  "adflutningur": {
+   "base": 0,
+   "min": -60,
+   "max": 60,
+   "step": 10,
+   "unit": "%",
+   "label": "Aðflutningur (frávik)"
   }
  },
  "outcomes": {
@@ -144,6 +160,42 @@
     2.873,
     3
    ]
+  },
+  "leiga": {
+   "label": "Leiga (12-mán)",
+   "unit": "%",
+   "path": [
+    6.6,
+    6.364,
+    6.127,
+    5.891,
+    5.655,
+    5.418,
+    5.182,
+    4.945,
+    4.709,
+    4.473,
+    4.236,
+    4
+   ]
+  },
+  "greidslubyrdi": {
+   "label": "Greiðslubyrði (vísit.)",
+   "unit": "",
+   "path": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ]
   }
  },
  "clamp": {
@@ -166,6 +218,14 @@
   "husnaedi": [
    -20,
    30
+  ],
+  "leiga": [
+   -15,
+   25
+  ],
+  "greidslubyrdi": [
+   50,
+   200
   ]
  }
 }

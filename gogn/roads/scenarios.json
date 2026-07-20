@@ -58,5 +58,35 @@
    "olia": 40
   },
   "sentence": "Olíuverðshækkun um 40% ýtir undir verðbólgu gegnum eldsneyti og flutning, með takmörkuðum beinum áhrifum á hagvöxt."
+ },
+ {
+  "id": "adflutningur_upp",
+  "label": "Aðflutningur +50%",
+  "tldr": "Mikil fólksfjölgun",
+  "levers": {},
+  "shocks": {
+   "adflutningur": 50
+  },
+  "sentence": "Aukinn aðflutningur (+50% umfram forsendur) eykur eftirspurn eftir húsnæði og leigu — hækkar verð og leigu og þyngir greiðslubyrði nýrra kaupenda."
+ },
+ {
+  "id": "byggingarhrina",
+  "label": "Byggingarhrina (+30% framboð)",
+  "tldr": "Aukið nýbygginga-framboð",
+  "levers": {
+   "frambod": 30
+  },
+  "shocks": {},
+  "sentence": "Aukið framboð nýbygginga (+30%) hægir á húsnæðisverði og leigu með nokkurra ára töf — helsta tækið gegn húsnæðisverðbólgu."
+ },
+ {
+  "id": "adflutningsstopp",
+  "label": "Aðflutningsstopp (−40%)",
+  "tldr": "Samdráttur í aðflutningi",
+  "levers": {},
+  "shocks": {
+   "adflutningur": -40
+  },
+  "sentence": "Snörp fækkun aðflutnings (−40%) dregur úr húsnæðis- og leigueftirspurn — kælir verð og leigu."
  }
 ]
