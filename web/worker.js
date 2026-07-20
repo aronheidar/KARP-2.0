@@ -2693,12 +2693,17 @@ export async function tengslGrunnurEnrich(env, out, rotKt) {
 export function topplistaBody(rows, entitled, total) {
   return entitled ? { radir: rows, total, locked: false } : { radir: rows.slice(0, 3), total, locked: true };
 }
+// pure: réttindi = admin EÐA virk Karp+-áskrift (tier og ekki útrunnið). nowSec = Unix-sekúndur.
+export function topplistaEntitled(urow, nowSec) {
+  return !!(urow && (urow.is_admin || (urow.tier && urow.tier_until > nowSec)));
+}
 const TOPP_RADAD = { sala: 'sala', hagnadur: 'hagnadur', eignir: 'eignir', efe: 'eigid_fe' };
 async function topplistarHandler(request, env, ctx) {
   const u = new URL(request.url);
   const grein = u.searchParams.get('grein') || 'island';
   const radadKey = u.searchParams.get('radad') || 'sala';
-  const filter = greinaSql(grein), col = TOPP_RADAD[radadKey];
+  const filter = greinaSql(grein);
+  const col = Object.hasOwn(TOPP_RADAD, radadKey) ? TOPP_RADAD[radadKey] : null;
   if (filter === null || !col) return sjson({ error: 'bad-params' }, 400);
   if (!env.TENGSL) return sjson({ error: 'unconfigured' });
   // entitlement: admin EÐA virk Karp+-áskrift (sama og userPayload.tierActive)
@@ -2707,11 +2712,12 @@ async function topplistarHandler(request, env, ctx) {
   if (uid) {
     const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
     const now = Math.floor(Date.now() / 1000);
-    entitled = !!(urow && (urow.is_admin || (urow.tier && urow.tier_until > now)));
+    entitled = topplistaEntitled(urow, now);
   }
   const cacheKey = new Request('https://cache.karp.internal/api/topplistar?g=' + grein + '&r=' + radadKey + '&e=' + (entitled ? 1 : 0));
   const cache = caches.default;
-  const hit = await cache.match(cacheKey); if (hit) return hit;
+  const hit = await cache.match(cacheKey);
+  if (hit) { const h = new Response(hit.body, hit); h.headers.set('cache-control', 'private, max-age=21600'); return h; }
   const whereFilter = filter ? (filter + ' AND ') : '';
   const rows = (await env.TENGSL.prepare(
     `SELECT f.kt, f.nafn, fj.sala, fj.hagnadur, fj.eignir, fj.eigid_fe, fj.ar
@@ -2724,9 +2730,11 @@ async function topplistarHandler(request, env, ctx) {
   const alls = (await env.TENGSL.prepare(`SELECT COUNT(*) n FROM felog f ${covWhere}`).first().catch(() => ({ n: 0 }))).n;
   const greind = (await env.TENGSL.prepare(`SELECT COUNT(*) n FROM felog f JOIN fjarhagur fj ON fj.kt=f.kt WHERE ${whereFilter}fj.sala IS NOT NULL`).first().catch(() => ({ n: 0 }))).n;
   const body = { grein, radad: radadKey, ...topplistaBody(rows, entitled, rows.length), coverage: { greind, alls } };
-  const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
-  ctx.waitUntil(cache.put(cacheKey, res.clone()));
-  return res;
+  const payload = JSON.stringify(body);
+  const baseHdr = { 'content-type': 'application/json; charset=utf-8' };
+  const cached = new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'public, max-age=21600' } });
+  ctx.waitUntil(cache.put(cacheKey, cached.clone()));
+  return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=21600' } });
 }
 
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
