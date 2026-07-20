@@ -3,13 +3,14 @@
 // #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
 import { ClientRouter } from 'astro:transitions';
 import KarpFish from '../components/KarpFish.astro';
-const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
+const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '', wide = false } = Astro.props;
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
   { label: 'Karp+', emoji: '⭐', icon: 'pro', items: [
     { href: '/karp-pro/', label: 'Yfirlit & verð' },
     { href: '/mitt-svaedi/', label: 'Mitt svæði' },
+    { href: '/hermir/', label: 'ROADS hermir' },
     { href: '/lausnir/fyrirtaekjaskyrsla/', label: 'Fyrirtækjaskýrsla' },
     { href: '/lausnir/fasteignamat/', label: 'Fasteignamat' },
     { href: '/lausnir/fjolmidlavakt/', label: 'Fjölmiðlavakt' },
@@ -66,7 +67,6 @@ const NAV = [
     { href: '/vinnumarkadur/', label: 'Vinnumarkaður' },
     { href: '/atvinnugreinar/', label: 'Atvinnugreinar' },
     { href: '/hagspar/', label: 'Hagspár' },
-    { href: '/hermir/', label: 'Hagkerfis-hermir' },
     { href: '/furduhagfraedi/', label: 'Furðuhagfræði' },
     { sub: 'Reiknivélar' },
     { href: '/reiknivelar/', label: 'Launareiknivél', exact: true },
@@ -159,6 +159,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .tb-login { background:var(--gold); color:var(--surface) !important; padding:6px 14px; border-radius:8px; }
       @media (max-width:640px){ .topbar{ gap:10px; padding:0 12px; } .tb-links a:not(.tb-login){ display:none; } .tb-logo{ font-size:14px; } .tb-links{ gap:8px; } }
       .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
+      .shell-wide { grid-template-columns:212px minmax(0,1fr); }
+      .shell-wide .news { display:none; }
 
       /* NAV (vinstra) */
       .nav { border-right:1px solid var(--line); padding:20px 14px; display:flex; flex-direction:column; gap:3px; position:sticky; top:52px; height:calc(100vh - 52px); overflow-y:auto; scrollbar-width:thin; }
@@ -297,7 +299,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <a class="tb-login" id="tb-login" href="/innskra/" hidden>Innskrá</a>
       </nav>
     </header>
-    <div class="shell">
+    <div class={`shell${wide ? ' shell-wide' : ''}`}>
       <aside class="nav" transition:persist>
         <a class="brand" href="/"><span>KARP</span></a>
         <nav>

@@ -1,3 +1,199 @@
+# ROADS Ríkisfjármál (m4) + Stjórnborð Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Bæta ríkisfjármála-módúli (skattar/útgjöld → afkoma/skuldir) við ROADS OG endurhanna /hermir/ í þétt stjórnborð (nav→Karp+, fela fréttir, stýringar-vinstra/net-hægra, rík kort+mælir+scorecard+tooltips).
+
+**Architecture:** Módúlið = gögn í `build_roads.mjs` (0 vélar-breyting). Stjórnborðið = UI-breyting á `Layout.astro` (nav+wide) og heildar-endurskrif á `hermir.astro` (vélin `engine.mjs` ósnert). Gagna-drifið → 11 kort birtast sjálfkrafa.
+
+**Tech Stack:** Node ES-module, Astro, Canvas 2D. Engin ný dependency.
+
+## Global Constraints
+
+- Worktree `C:\Users\aronh\dev\KARP\mitt-svaedi-wt`, branch `b2b-topbar`. ⚠ Deildur — `git add <nákvæmar skrár>` + commit promptly. Deploy bíður notanda.
+- **Engin breyting á `src/lib/roads/engine.mjs` né `skriptur/verify_roads_model.mjs`.**
+- Útkomu-röð: `afkoma`, `skuldir` bætast AFTAST (→ 10., 11.). Öll ný útkoma→útkoma tengsl lag≥1 (þ.m.t. `skuldir→skuldir` sjálf-lykkja lag 1 = uppsöfnun; ekki lag-0 → verify óbreytt).
+- Hvert nýtt tengsl: `{from,to,coef,lag,unit,source,ci_lo,ci_hi}`, `ci_lo ≤ coef ≤ ci_hi`.
+- Núverandi tölur: afkoma −0,65% / skuldir 38,8% (2026, úr `langtima`).
+- Dashboard: vélin ósnert; UI gagna-drifið; tooltips (`title`) á sleða/kort/scorecard.
+
+---
+
+## File Structure
+- **Modify** `skriptur/build_roads.mjs` — `skattar`/`utgjold` levers, `afkoma`/`skuldir` outcomes, 8 tengsl, 3 sviðsmyndir, `langtima`-lestur.
+- **Regen** `gogn/roads/{baseline,links,scenarios}.json`.
+- **Modify** `skriptur/backtest_roads.mjs` — ríkisfjármál-áttir.
+- **Modify** `web/src/layouts/Layout.astro` — nav-færsla + `wide`-prop + `.shell-wide` CSS.
+- **Modify** `web/src/pages/hermir.astro` — heildar dashboard-endurskrif.
+
+---
+
+## Task 1: Ríkisfjármál-módúl (build_roads) + backtest + regen + verify
+
+**Files:** Modify `skriptur/build_roads.mjs`, `skriptur/backtest_roads.mjs`; regen `gogn/roads/*.json`.
+
+- [ ] **Step 1: langtima-lestur** — finna `const popNow = g('mannfjoldi').POP.yoy; // 1.3 (%/ári)` og skipta út fyrir:
+```js
+const popNow = g('mannfjoldi').POP.yoy; // 1.3 (%/ári)
+const LT = g('langtima'); const ltI = LT.ar.indexOf(2026);
+const balNow = LT.afkoma[ltI] ?? -0.65, debtNow = LT.skuldir[ltI] ?? 38.8;
+```
+
+- [ ] **Step 2: skattar+utgjold levers** — finna:
+```js
+    frambod: { base: 0, min: -20, max: 40, step: 5, unit: '%', label: 'Nýbygginga-framboð (frávik)' },
+  },
+```
+skipta út fyrir:
+```js
+    frambod: { base: 0, min: -20, max: 40, step: 5, unit: '%', label: 'Nýbygginga-framboð (frávik)' },
+    skattar: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Skattbreyting (frávik)' },
+    utgjold: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Útgjöld ríkis (frávik)' },
+  },
+```
+
+- [ ] **Step 3: afkoma+skuldir outcomes + clamp** — finna:
+```js
+    vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: glide(1.5, 1.2) },
+  },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5] },
+```
+skipta út fyrir:
+```js
+    vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: glide(1.5, 1.2) },
+    afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: glide(balNow, -0.5) },
+    skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: glide(debtNow, 37) },
+  },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120] },
+```
+
+- [ ] **Step 4: 8 tengsl** — finna:
+```js
+  { id: 'labor_unem', from: 'vinnuafl', to: 'atvinnuleysi', coef: 0.10, lag: 2, unit: 'pp/pp', ci_lo: 0.02, ci_hi: 0.20, source: 'Aukið framboð vinnuafls (skammtíma frásog)' },
+];
+```
+skipta út fyrir:
+```js
+  { id: 'labor_unem', from: 'vinnuafl', to: 'atvinnuleysi', coef: 0.10, lag: 2, unit: 'pp/pp', ci_lo: 0.02, ci_hi: 0.20, source: 'Aukið framboð vinnuafls (skammtíma frásog)' },
+  // ── Ríkisfjármála-eining (module 4) ──
+  { id: 'tax_bal', from: 'skattar', to: 'afkoma', coef: 0.08, lag: 1, unit: '%VLF/%', ci_lo: 0.04, ci_hi: 0.12, source: 'Skattbreyting → tekjur ríkissjóðs' },
+  { id: 'exp_bal', from: 'utgjold', to: 'afkoma', coef: -0.08, lag: 1, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.04, source: 'Útgjöld → gjöld ríkissjóðs' },
+  { id: 'gdp_bal', from: 'hagvoxtur', to: 'afkoma', coef: 0.30, lag: 1, unit: '%VLF/pp', ci_lo: 0.15, ci_hi: 0.45, source: 'Sjálfvirkir jöfnarar (hærri VLF → meiri tekjur)' },
+  { id: 'unem_bal', from: 'atvinnuleysi', to: 'afkoma', coef: -0.20, lag: 1, unit: '%VLF/pp', ci_lo: -0.35, ci_hi: -0.08, source: 'Atvinnuleysi → bætur + minni tekjur' },
+  { id: 'debt_carry', from: 'skuldir', to: 'skuldir', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Skulda-uppsöfnun — fyrri staða flyst áfram (STOFN gegnum sjálf-lykkju)' },
+  { id: 'bal_debt', from: 'afkoma', to: 'skuldir', coef: -0.25, lag: 1, unit: '%VLF/%VLF', ci_lo: -0.35, ci_hi: -0.15, source: 'Halli eykur skuldir (~afkoma/4 per ársfj.)' },
+  { id: 'tax_gdp', from: 'skattar', to: 'hagvoxtur', coef: -0.05, lag: 2, unit: 'pp/%', ci_lo: -0.10, ci_hi: -0.01, source: 'Skatta-drag á eftirspurn' },
+  { id: 'exp_gdp', from: 'utgjold', to: 'hagvoxtur', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.10, source: 'Fjármála-margfaldari' },
+];
+```
+
+- [ ] **Step 5: 3 sviðsmyndir** — finna `oldrun`-línuna + `];` og bæta 3 fyrir ofan `];`:
+```js
+  { id: 'oldrun', label: 'Öldrun (frjósemi −30%)', tldr: 'Lækkandi frjósemi', levers: {}, shocks: { frjosemi: -30 }, sentence: 'Lækkandi frjósemi (−30%) hefur hverfandi áhrif á 3 árum — raunveruleg áhrif á vinnuafl og framfærslubyrði koma áratugum síðar. Sjá mannfjöldaspá til 2074 á /mannfjoldi/.' },
+  { id: 'skattalaekkun', label: 'Skattalækkun (−10%)', tldr: 'Lægri skattar', levers: { skattar: -10 }, shocks: {}, sentence: 'Skattalækkun (−10%) örvar hagvöxt lítillega en versnar afkomu ríkissjóðs og eykur skuldir smám saman.' },
+  { id: 'adhald', label: 'Aðhald (útgjöld −10%)', tldr: 'Ríkisaðhald', levers: { utgjold: -10 }, shocks: {}, sentence: 'Aðhald í útgjöldum (−10%) bætir afkomu ríkissjóðs og lækkar skuldir, en dregur lítillega úr hagvexti til skamms tíma.' },
+  { id: 'innspyting', label: 'Innspýting (útgjöld +10%)', tldr: 'Aukin ríkisútgjöld', levers: { utgjold: 10 }, shocks: {}, sentence: 'Aukin ríkisútgjöld (+10%) örva hagvöxt en versna afkomu og auka skuldir ríkissjóðs.' },
+];
+```
+
+- [ ] **Step 6: backtest ríkisfjármál** — í `skriptur/backtest_roads.mjs`, finna línuna sem byrjar `const bad = !(` og setja fyrir framan hana:
+```js
+// Ríkisfjármála-eining (module 4)
+const taxC = simulate({ baseline, links, levers: { skattar: -10 }, quarters: 12 });
+const expC = simulate({ baseline, links, levers: { utgjold: -10 }, quarters: 12 });
+const okTaxBal = taxC.outcomes.afkoma.mid[q] < baseline.outcomes.afkoma.path[q];   // skattalækkun → verri afkoma
+const okAdhBal = expC.outcomes.afkoma.mid[q] > baseline.outcomes.afkoma.path[q];   // aðhald → betri afkoma
+const okDebtAccum = taxC.outcomes.skuldir.mid[11] > taxC.outcomes.skuldir.mid[3];  // sjálfbær halli → vaxandi skuldir
+const okFiscBand = [taxC, expC].every((r) => ['afkoma', 'skuldir'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i])));
+console.log('skattalækkun→afkoma↓:', okTaxBal, '| aðhald→afkoma↑:', okAdhBal, '| halli→skuldir vaxandi:', okDebtAccum, '| ríkis-bönd:', okFiscBand);
+```
+Og bæta `&& okTaxBal && okAdhBal && okDebtAccum && okFiscBand` inn í `bad`-tjáninguna (á undan `);`).
+
+- [ ] **Step 7: regen + verify + heildar-svíta**
+```bash
+cd /c/Users/aronh/dev/KARP/mitt-svaedi-wt
+node skriptur/build_roads.mjs   # 11 útkomur, 39 tengsl, 14 sviðsmyndir
+node skriptur/verify_roads_model.mjs; echo "verify=$?"
+node src/lib/roads/engine.test.mjs 2>&1 | tail -1
+node skriptur/backtest_roads.mjs; echo "backtest=$?"
+```
+Expected: build 11/39/14; verify heilbrigt exit 0; engine 11 passed; backtest allar áttir (öll 4 módúl) `true` exit 0.
+
+- [ ] **Step 8: Commit** — `git add skriptur/build_roads.mjs skriptur/backtest_roads.mjs gogn/roads/baseline.json gogn/roads/links.json gogn/roads/scenarios.json && git commit -m "ROADS module 4: ríkisfjármál (skattar/útgjöld → afkoma/skuldir, skuldir-stofn v/sjálf-lykkju)"`
+
+---
+
+## Task 2: Layout.astro — nav→Karp+, wide-prop, hide news
+
+**Files:** Modify `web/src/layouts/Layout.astro`.
+
+- [ ] **Step 1: Færa hermir í Karp+ nav** — finna:
+```js
+    { href: '/mitt-svaedi/', label: 'Mitt svæði' },
+```
+skipta út fyrir:
+```js
+    { href: '/mitt-svaedi/', label: 'Mitt svæði' },
+    { href: '/hermir/', label: 'ROADS hermir' },
+```
+
+- [ ] **Step 2: Fjarlægja hermir úr Efnahagur** — finna:
+```js
+    { href: '/hagspar/', label: 'Hagspár' },
+    { href: '/hermir/', label: 'Hagkerfis-hermir' },
+    { href: '/furduhagfraedi/', label: 'Furðuhagfræði' },
+```
+skipta út fyrir:
+```js
+    { href: '/hagspar/', label: 'Hagspár' },
+    { href: '/furduhagfraedi/', label: 'Furðuhagfræði' },
+```
+
+- [ ] **Step 3: Bæta `wide`-prop** — finna:
+```js
+const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '' } = Astro.props;
+```
+skipta út fyrir:
+```js
+const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '', wide = false } = Astro.props;
+```
+
+- [ ] **Step 4: shell-wide klasi** — finna `    <div class="shell">` og skipta út fyrir:
+```astro
+    <div class={`shell${wide ? ' shell-wide' : ''}`}>
+```
+
+- [ ] **Step 5: `.shell-wide` CSS** — finna:
+```css
+      .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
+```
+skipta út fyrir:
+```css
+      .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
+      .shell-wide { grid-template-columns:212px minmax(0,1fr); }
+      .shell-wide .news { display:none; }
+```
+
+- [ ] **Step 6: Byggja + commit**
+```bash
+cd /c/Users/aronh/dev/KARP/mitt-svaedi-wt/web && npx astro build 2>&1 | tail -2
+cd /c/Users/aronh/dev/KARP/mitt-svaedi-wt && git add web/src/layouts/Layout.astro && git commit -m "ROADS dashboard: hermir í Karp+ nav + wide-flag felur fréttir hægra megin"
+```
+Expected: build klárar.
+
+---
+
+## Task 3: hermir.astro — dashboard-endurskrif (rík kort + mælir + scorecard + tooltips)
+
+**Files:** Modify `web/src/pages/hermir.astro` (heildar-endurskrif).
+
+**Interfaces:** Consumes `@lib/roads/engine.mjs` (`simulate`), `@gogn/roads/*.json`, Layout `wide`-prop (Task 2).
+
+- [ ] **Step 1: Skrifa nýja hermir.astro (heildar-útskipti)**
+
+Replace `web/src/pages/hermir.astro` að fullu:
+
+```astro
 ---
 // ROADS Íslands — hagkerfis-STJÓRNBORÐ. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
 // Módel: @gogn/roads/*.json. Gagna-drifið → öll kort/sleðar/sviðsmyndir sjálfkrafa. Ekki spá.
@@ -110,7 +306,7 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
       const h = document.getElementById('score'); h.innerHTML = '';
       for (const k of SCORE_KEYS) { const o = r.outcomes[k]; if (!o) continue; const { dlt, c } = dInfo(o); const end = o.mid[o.mid.length - 1];
         const t = document.createElement('div'); t.className = 'sc'; t.title = OUT_TIP[k] || o.label;
-        t.innerHTML = `<span class="sc-l">${o.label}</span><span class="sc-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</span><span class="sc-d" style="color:${c}">${dlt >= 0 ? '▲' : '▼'} ${num(Math.abs(dlt))} vs grunnur</span>`;
+        t.innerHTML = `<span class="sc-l">${o.label}</span><span class="sc-v">${num(end)}${o.unit === '% VLF' ? '' : o.unit}</span><span class="sc-d" style="color:${c}">${dlt >= 0 ? '▲' : '▼'} ${num(Math.abs(dlt))} vs grunnur</span>`;
         h.appendChild(t);
       }
     }
@@ -120,7 +316,7 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
       for (const k of Object.keys(r.outcomes)) { const o = r.outcomes[k]; const { dlt, c } = dInfo(o); const end = o.mid[o.mid.length - 1];
         const card = document.createElement('div'); card.className = 'card';
         card.title = (OUT_TIP[k] || o.label) + (driversOf(k).length ? ' Drifið af: ' + driversOf(k).join(', ') + '.' : '');
-        card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill (BAU)"><span class="c-gb"></span><span class="c-gm"></span></div>`;
+        card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill"><span class="c-gb"></span><span class="c-gm"></span></div>`;
         host.appendChild(card);
         drawTrace(card.querySelector('canvas'), o);
         const cl = (BASELINE.clamp || {})[k] || [Math.min(...o.lo), Math.max(...o.hi)];
@@ -186,3 +382,28 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
     document.addEventListener('astro:page-load', init);
   </script>
 </Layout>
+```
+
+- [ ] **Step 2: Byggja** — `cd web && npx astro build 2>&1 | tail -3`. Expected: klárar.
+
+- [ ] **Step 3: Commit** — `git add web/src/pages/hermir.astro && git commit -m "ROADS dashboard: hermir.astro endurhannað — scorecard + stýringar-vinstra/net-hægra + rík kort m/mæli + tooltips"`
+
+---
+
+## Task 4: Heildar-staðfesting (headless) + deploy-hlið
+
+- [ ] **Step 1: Preview + headless** — ræsa `astro preview` og keyra headless-athugun á `/hermir/`: `.card`==11, `.sl input`==11 (6 levers + 5 shocks), `.scn button`==14, `.score .sc`==5 (scorecard), engar ROADS-console-villur; smella á „Skattalækkun" → afkoma-kort delta neikvætt; staðfesta að `.dash-body` sé 2-dálka (breidd) og `.news` (fréttir) EKKI sýnilegt á /hermir/. Taka skjámynd.
+
+- [ ] **Step 2: Nav + news-endurkoma** — headless: á `/hermir/` er hermir-hlekkur undir Karp+ hóp; fara á `/kort/` (önnur síða) → `.news` (fréttir) birtist aftur (wide-flag víxlast rétt).
+
+- [ ] **Step 3: Deploy-hlið (BÍÐUR notanda)** — STOPP. Segja notanda: m4+dashboard tilbúið (11 kort, stjórnborð, fréttir faldar, nav undir Karp+), skjámynd sýnd. Bíða „deploy".
+
+---
+
+## Self-Review
+
+**Spec coverage:** m4 levers/outcomes/8 tengsl/3 sviðsmyndir → Task 1 ✓ · skuldir-sjálflykkja → Task 1 Step 4 ✓ · backtest ríkis-áttir → Task 1 Step 6 ✓ · nav→Karp+ → Task 2 Step 1-2 ✓ · wide+hide-news → Task 2 Step 3-5 ✓ · dashboard (scorecard/2-dálka/rík kort/mælir/tooltips) → Task 3 ✓ · staðfesting 11 kort+nav+news → Task 4 ✓.
+
+**Placeholder scan:** Engin TODO/TBD. Full kóði í hverju skrefi.
+
+**Type consistency:** Útkomu-lyklar `afkoma,skuldir` samræmdir baseline↔links↔clamp↔backtest. Lever-lyklar `skattar,utgjold` samræmdir levers↔tengslum↔sviðsmyndum↔LEV_TIP. `wide`-prop samræmt Layout(Task2)↔hermir(Task3). Tooltip-maps `OUT_TIP`/`LEV_TIP` þekja allar 11 útkomur / 11 sleða. `driversOf` útilokar sjálf-lykkju (`l.from!==k`) svo skuldir birtist ekki sem eigin drifkraftur.

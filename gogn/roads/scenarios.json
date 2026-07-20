@@ -109,5 +109,65 @@
    "frjosemi": -30
   },
   "sentence": "Lækkandi frjósemi (−30%) hefur hverfandi áhrif á 3 árum — raunveruleg áhrif á vinnuafl og framfærslubyrði koma áratugum síðar. Sjá mannfjöldaspá til 2074 á /mannfjoldi/."
+ },
+ {
+  "id": "skattalaekkun",
+  "label": "Skattalækkun (−10%)",
+  "tldr": "Lægri skattar",
+  "levers": {
+   "skattar": -10
+  },
+  "shocks": {},
+  "sentence": "Skattalækkun (−10%) örvar hagvöxt lítillega en versnar afkomu ríkissjóðs og eykur skuldir smám saman."
+ },
+ {
+  "id": "adhald",
+  "label": "Aðhald (útgjöld −10%)",
+  "tldr": "Ríkisaðhald",
+  "levers": {
+   "utgjold": -10
+  },
+  "shocks": {},
+  "sentence": "Aðhald í útgjöldum (−10%) bætir afkomu ríkissjóðs og lækkar skuldir, en dregur lítillega úr hagvexti til skamms tíma."
+ },
+ {
+  "id": "innspyting",
+  "label": "Innspýting (útgjöld +10%)",
+  "tldr": "Aukin ríkisútgjöld",
+  "levers": {
+   "utgjold": 10
+  },
+  "shocks": {},
+  "sentence": "Aukin ríkisútgjöld (+10%) örva hagvöxt en versna afkomu og auka skuldir ríkissjóðs."
+ },
+ {
+  "id": "kvotaskerding",
+  "label": "Kvótaskerðing (−20%)",
+  "tldr": "Minna aflamark",
+  "levers": {
+   "kvoti": -20
+  },
+  "shocks": {},
+  "sentence": "Skerðing aflamarks (−20%) dregur úr sjávarafurða-útflutningi og þar með lítillega úr hagvexti."
+ },
+ {
+  "id": "ny_storidja",
+  "label": "Ný stóriðja (orka +15%)",
+  "tldr": "Aukin stóriðja",
+  "levers": {
+   "orka": 15
+  },
+  "shocks": {},
+  "sentence": "Aukin orka til stóriðju (+15%) eykur útflutning og hagvöxt en hækkar CO₂-losun."
+ },
+ {
+  "id": "graenir_skattar",
+  "label": "Grænir skattar (kolefnisgjald +50%)",
+  "tldr": "Hærra kolefnisgjald",
+  "levers": {
+   "kolefnisgjald": 50
+  },
+  "shocks": {},
+  "sentence": "Hærra kolefnisgjald (+50%) lækkar CO₂-losun með nokkurri töf, með litlu hagvaxtar-dragi."
  }
 ]
