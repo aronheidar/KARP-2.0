@@ -179,6 +179,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
       { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn'], hero: { title: 'Sjálfbærni — CO₂-losun & fiskistofn', series: ['losun', 'fiskistofn'] } },
       { id: 'byggd', label: '🗺️ Byggð & nýsköpun', levers: ['byggdastefna', 'ivilnanir', 'menntun', 'ferdamannagjald'], shocks: [], out: ['byggdajofnudur', 'nyskopun', 'hagvoxtur', 'utflutningur'], hero: { title: 'Byggðajöfnuður & nýsköpun', series: ['byggdajofnudur', 'nyskopun'] } },
+      { id: 'fjarmal', label: '💹 Fjármál & ytra', levers: ['vextir', 'bindiskylda', 'skattar', 'vsk', 'tilfaerslur'], shocks: ['gengi', 'heimshagvoxtur', 'hravaruverd'], out: ['peningamagn', 'utlanavoxtur', 'hlutabref', 'vaxtaalag', 'lifeyriseignir', 'vidskiptajofnudur', 'niip', 'gengi_endo', 'jofnudur', 'heimilaskuldir'], hero: { title: 'Viðskiptajöfnuður & erlend staða þjóðarbús (% VLF)', series: ['vidskiptajofnudur', 'niip'] } },
       { id: 'model', label: '🕸️ Módel & gögn', model: true },
     ];
     const curTab = () => TABS.find((t) => t.id === state.tab) || TABS[0];
@@ -205,6 +206,15 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       husnaedi_hbs: 'Húsnæðisverð á höfuðborgarsvæðinu — eftirspurnar-drifið (vextir/laun/aðflutningur ráða mestu). Berðu saman við landsbyggð til að sjá svæðabilið.',
       husnaedi_land: 'Húsnæðisverð á landsbyggð — framboðs-/byggða-drifið (nýbyggingar/byggðaáhersla/innviðir ráða mestu). Minna vaxta-næmt en höfuðborg.',
       gengi_endo: 'Gengi krónu — ENDÓGEN viðbrögð (+ = styrking). Bregst við vöxtum (↑→styrking), verðbólgu (↑→veiking) og útflutningi; flyst til baka í innflutt verð og útflutning. Leggst við ytra gengis-sjokkið sem þú stillir.',
+      peningamagn: 'Peningamagn M3 — árs-breyting. Hægir á við hærri vexti; forspá um verðbólgu/húsnæði (veik peningamagns-kenning).',
+      utlanavoxtur: 'Útlánavöxtur — árs-breyting útlána. Drifið af vöxtum (−) og bindiskyldu (−); ýtir undir húsnæðisverð og heimilaskuldir.',
+      lifeyriseignir: 'Lífeyrissjóða-eignir (% VLF) — ~175% í dag (einn stærsti á heimsvísu). Sveiflast með hlutabréfum; styður innlenda fjárfestingu.',
+      hlutabref: 'Hlutabréf — vísitala (100 í dag). Lækkar við hærri vexti (ávöxtunarkrafa), hækkar með hagvexti; auðsáhrif á neyslu.',
+      vaxtaalag: 'Vaxtaálag ríkis (pp) — áhættuálag ofan á áhættulausa vexti. Hækkar með skuldum og fjármálaóstöðugleika; dýrari fjármögnun.',
+      vidskiptajofnudur: 'Viðskiptajöfnuður (% VLF) — gjaldeyris-jöfnuður við útlönd. Afgangur (+) styrkir krónu og byggir upp erlenda stöðu.',
+      niip: 'Erlend staða þjóðarbús (% VLF) — nettó eignir Íslands erlendis. STOFN sem safnar viðskiptajöfnuði; jákvæð staða styður krónu.',
+      jofnudur: 'Tekjujöfnuður — vísitala (100 í dag, hærra=jafnara). Batnar við tilfærslur/skatta/kaupmátt; versnar við atvinnuleysi og húsnæðis-eignaójöfnuð.',
+      heimilaskuldir: 'Skuldir heimila — vísitala (100 í dag). Vaxa með útlánum/húsnæðisverði; auka vanskilahættu og draga úr neyslu (deleveraging).',
     };
     const LEV_TIP = {
       vextir: 'Stýrivextir Seðlabankans. Hærri → hægir á verðbólgu/húsnæði (töf), dregur úr hagvexti.',
@@ -239,10 +249,11 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       skograekt: 'Skógrækt & kolefnisbinding. Bindur kolefni (löng töf → losun↓); kostar til skamms tíma.',
       ferdamannagjald: 'Ferðamannagjald (komu-/gistináttagjald). Tekjur ríkissjóðs; dregur lítillega úr ferðaþjónustu.',
       heimshagvoxtur: 'Heimshagvöxtur (frávik) — ytra sjokk. Meiri ytri eftirspurn → aukinn útflutningur og hagvöxtur (opið hagkerfi).',
+      hravaruverd: 'Hrávöruverð (ál/fiskur, frávik) — viðskiptakjör. Hærra verð → meira verðmæti útflutnings og betri viðskiptajöfnuður.',
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
-    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0 };
+    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0, lifeyriseignir: 1, hlutabref: 1, vidskiptajofnudur: 1, niip: 1, jofnudur: 1, peningamagn: 0, utlanavoxtur: 0, vaxtaalag: -1, heimilaskuldir: -1 };
     const GOOD = '#54d08a', NEUT = '#e8c14a', BAD = '#e78284';
     const BAND = { '#54d08a': 'rgba(84,208,138,.13)', '#e8c14a': 'rgba(232,193,74,.12)', '#e78284': 'rgba(231,130,132,.13)' };
     // Litur eftir því hvort frávik frá grunnferli (BAU) er jákvætt/hlutlaust/neikvætt FYRIR þennan hagvísi.

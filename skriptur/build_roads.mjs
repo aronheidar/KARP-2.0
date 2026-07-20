@@ -75,6 +75,7 @@ const baseline = {
     adflutningur: { base: 0, min: -60, max: 60, step: 10, unit: '%', label: 'Aðflutningur (frávik)' },
     frjosemi: { base: 0, min: -40, max: 40, step: 5, unit: '%', label: 'Frjósemi (frávik)' },
     heimshagvoxtur: { base: 0, min: -6, max: 6, step: 1, unit: '%', label: 'Heimshagvöxtur (frávik)' },
+    hravaruverd: { base: 0, min: -40, max: 60, step: 5, unit: '%', label: 'Hrávöruverð (ál/fiskur, frávik)' },
   },
   outcomes: {
     verdbolga: { label: 'Verðbólga', unit: '%', path: bau(inflNow, 2.6) },
@@ -99,9 +100,21 @@ const baseline = {
     husnaedi_hbs: { label: 'Húsnæði — höfuðborg (12-mán)', unit: '%', path: bau(houseNow, 3.5) },
     husnaedi_land: { label: 'Húsnæði — landsbyggð (12-mán)', unit: '%', path: bau(houseNow, 2.0) },
     gengi_endo: { label: 'Gengi krónu — endógen (styrking +)', unit: '%', path: bau(0, 0) },
+    // ── Fjármálahlið (module 13) ──
+    peningamagn: { label: 'Peningamagn M3 (árs-breyting)', unit: '%', path: bau(7, 5) },
+    utlanavoxtur: { label: 'Útlánavöxtur (árs-breyting)', unit: '%', path: bau(6, 5) },
+    lifeyriseignir: { label: 'Lífeyrissjóða-eignir (% VLF)', unit: '% VLF', path: bau(175, 182) },
+    hlutabref: { label: 'Hlutabréf (vísit.)', unit: '', path: bau(100, 100) },
+    vaxtaalag: { label: 'Vaxtaálag ríkis (pp)', unit: 'pp', path: bau(0.8, 0.7) },
+    // ── Ytri staða (module 13) ──
+    vidskiptajofnudur: { label: 'Viðskiptajöfnuður (% VLF)', unit: '% VLF', path: bau(2, 2) },
+    niip: { label: 'Erlend staða þjóðarbús (% VLF)', unit: '% VLF', path: bau(30, 35) },
+    // ── Dreifing & heimili (module 13) ──
+    jofnudur: { label: 'Tekjujöfnuður (vísit., hærra=jafnara)', unit: '', path: bau(100, 100) },
+    heimilaskuldir: { label: 'Skuldir heimila (vísit.)', unit: '', path: bau(100, 100) },
   },
   // clamp-mörk víkkuð til að ná yfir SÖGULEG bil 2010–2026 (sjá backtest_history.mjs): húsnæði ±33%, atvinnuleysi 17,8% (COVID)
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35], peningamagn: [-8, 22], utlanavoxtur: [-15, 28], lifeyriseignir: [140, 240], hlutabref: [45, 190], vaxtaalag: [0, 7], vidskiptajofnudur: [-16, 14], niip: [-90, 90], jofnudur: [78, 122], heimilaskuldir: [55, 185] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -285,6 +298,41 @@ const links = [
   { id: 'wage_unem', from: 'laun', to: 'atvinnuleysi', coef: 0.03, lag: 3, unit: 'pp/pp', ci_lo: 0.01, ci_hi: 0.06, source: 'Hærri launakostnaður → færri ráðningar (tafið; vegur á móti neyslu-örvun launa)' },
   { id: 'arrears_debt', from: 'vanskil', to: 'skuldir', coef: 0.02, lag: 3, unit: '%VLF/vísit', ci_lo: 0.005, ci_hi: 0.045, source: 'Fjármálaáföll → björgunar-/stuðnings-skuldbindingar ríkissjóðs' },
   { id: 'tour_hbs', from: 'ferdamenn', to: 'husnaedi_hbs', coef: 0.03, lag: 2, unit: '%/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Skammtímaleiga (Airbnb) → höfuðborgar-húsnæðisverð' },
+  // ── Fjármálahlið (module 13): peningamagn, útlán, lífeyriseignir, hlutabréf, vaxtaálag ──
+  { id: 'r_m3', from: 'vextir', to: 'peningamagn', coef: -0.9, lag: 1, unit: '%/pp', ci_lo: -1.6, ci_hi: -0.3, source: 'Aðhald → hægari peningamyndun (M3)' },
+  { id: 'r_credit', from: 'vextir', to: 'utlanavoxtur', coef: -1.1, lag: 1, unit: '%/pp', ci_lo: -1.8, ci_hi: -0.4, source: 'Hærri vextir → minni útlánaeftirspurn' },
+  { id: 'bind_credit', from: 'bindiskylda', to: 'utlanavoxtur', coef: -0.4, lag: 2, unit: '%/%', ci_lo: -0.7, ci_hi: -0.15, source: 'Bindiskylda → minni útlánageta banka' },
+  { id: 'm3_infl', from: 'peningamagn', to: 'verdbolga', coef: 0.04, lag: 3, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Peningamagn → verðbólga tafið (peningamagns-kenning, veik)' },
+  { id: 'credit_house', from: 'utlanavoxtur', to: 'husnaedi', coef: 0.15, lag: 2, unit: '%/%', ci_lo: 0.06, ci_hi: 0.28, source: 'Útlánaþensla drífur húsnæðisverð' },
+  { id: 'credit_hdebt', from: 'utlanavoxtur', to: 'heimilaskuldir', coef: 0.3, lag: 1, unit: 'vísit/%', ci_lo: 0.12, ci_hi: 0.5, source: 'Útlánavöxtur → uppsöfnun heimilaskulda' },
+  { id: 'r_equity', from: 'vextir', to: 'hlutabref', coef: -1.5, lag: 1, unit: 'vísit/pp', ci_lo: -3.0, ci_hi: -0.5, source: 'Hærri ávöxtunarkrafa → lægra verðmat hlutabréfa' },
+  { id: 'gdp_equity', from: 'hagvoxtur', to: 'hlutabref', coef: 1.2, lag: 1, unit: 'vísit/pp', ci_lo: 0.5, ci_hi: 2.2, source: 'Hagvöxtur → hagnaðarvæntingar → hlutabréf' },
+  { id: 'equity_gdp', from: 'hlutabref', to: 'hagvoxtur', coef: 0.01, lag: 2, unit: 'pp/vísit', ci_lo: 0.003, ci_hi: 0.02, source: 'Auðsáhrif hlutabréfa á neyslu/fjárfestingu' },
+  { id: 'equity_pension', from: 'hlutabref', to: 'lifeyriseignir', coef: 0.25, lag: 1, unit: '%VLF/vísit', ci_lo: 0.1, ci_hi: 0.45, source: 'Lífeyrissjóðir eiga hlutabréf → eignir sveiflast með markaði' },
+  { id: 'debt_spread', from: 'skuldir', to: 'vaxtaalag', coef: 0.02, lag: 2, unit: 'pp/%VLF', ci_lo: 0.005, ci_hi: 0.045, source: 'Hærri ríkisskuldir → hærra áhættuálag' },
+  { id: 'arrears_spread', from: 'vanskil', to: 'vaxtaalag', coef: 0.01, lag: 2, unit: 'pp/vísit', ci_lo: 0.003, ci_hi: 0.025, source: 'Fjármálaóstöðugleiki → hærra áhættuálag' },
+  { id: 'spread_gdp', from: 'vaxtaalag', to: 'hagvoxtur', coef: -0.15, lag: 2, unit: 'pp/pp', ci_lo: -0.30, ci_hi: -0.05, source: 'Hærra álag → dýrari fjármögnun → minni fjárfesting' },
+  { id: 'spread_bal', from: 'vaxtaalag', to: 'afkoma', coef: -0.10, lag: 1, unit: '%VLF/pp', ci_lo: -0.2, ci_hi: -0.03, source: 'Hærra álag → dýrari ríkisfjármögnun' },
+  { id: 'pension_gdp', from: 'lifeyriseignir', to: 'hagvoxtur', coef: 0.006, lag: 2, unit: 'pp/%VLF', ci_lo: 0.001, ci_hi: 0.013, source: 'Lífeyris-eignir → innlend fjárfesting/auðsáhrif' },
+  { id: 'house_hdebt', from: 'husnaedi', to: 'heimilaskuldir', coef: 0.25, lag: 2, unit: 'vísit/%', ci_lo: 0.1, ci_hi: 0.45, source: 'Hærra húsnæðisverð → stærri húsnæðislán' },
+  { id: 'hdebt_arrears', from: 'heimilaskuldir', to: 'vanskil', coef: 0.15, lag: 2, unit: 'vísit/vísit', ci_lo: 0.06, ci_hi: 0.28, source: 'Skuldsettari heimili → meiri vanskilahætta' },
+  { id: 'hdebt_gdp', from: 'heimilaskuldir', to: 'hagvoxtur', coef: -0.01, lag: 3, unit: 'pp/vísit', ci_lo: -0.022, ci_hi: -0.003, source: 'Skuldsett heimili → skuldaafborgun fram yfir neyslu (deleveraging)' },
+  // ── Ytri staða (module 13): viðskiptajöfnuður, erlend staða ──
+  { id: 'exp_ca', from: 'utflutningur', to: 'vidskiptajofnudur', coef: 0.15, lag: 1, unit: '%VLF/%', ci_lo: 0.07, ci_hi: 0.26, source: 'Útflutningsvöxtur → betri viðskiptajöfnuður' },
+  { id: 'tour_ca', from: 'ferdamenn', to: 'vidskiptajofnudur', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Ferðaþjónusta = gjaldeyristekjur' },
+  { id: 'fx_ca', from: 'gengi_endo', to: 'vidskiptajofnudur', coef: -0.06, lag: 2, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Sterk króna → meiri innflutningur → lakari jöfnuður' },
+  { id: 'comm_exp', from: 'hravaruverd', to: 'utflutningur', coef: 0.10, lag: 1, unit: '%/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Ál-/fiskverð → verðmæti útflutnings (viðskiptakjör)' },
+  { id: 'comm_ca', from: 'hravaruverd', to: 'vidskiptajofnudur', coef: 0.05, lag: 1, unit: '%VLF/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Betri viðskiptakjör → betri jöfnuður' },
+  { id: 'niip_carry', from: 'niip', to: 'niip', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Erlend staða er STOFN — fyrri staða flyst áfram (sjálf-lykkja)' },
+  { id: 'ca_niip', from: 'vidskiptajofnudur', to: 'niip', coef: 0.9, lag: 1, unit: '%VLF/%VLF', ci_lo: 0.7, ci_hi: 1.0, source: 'Viðskiptaafgangur safnast í erlenda stöðu' },
+  { id: 'niip_fx', from: 'niip', to: 'gengi_endo', coef: 0.02, lag: 2, unit: '%/%VLF', ci_lo: 0.005, ci_hi: 0.04, source: 'Sterk erlend staða → stöðugri/sterkari króna' },
+  { id: 'ca_fx', from: 'vidskiptajofnudur', to: 'gengi_endo', coef: 0.3, lag: 1, unit: '%/%VLF', ci_lo: 0.1, ci_hi: 0.55, source: 'Viðskiptaafgangur → gjaldeyris-innflæði → sterkari króna' },
+  // ── Dreifing & heimili (module 13): tekjujöfnuður ──
+  { id: 'transf_eq', from: 'tilfaerslur', to: 'jofnudur', coef: 0.2, lag: 1, unit: 'vísit/%', ci_lo: 0.08, ci_hi: 0.35, source: 'Tilfærslur (barna-/vaxtabætur) → meiri jöfnuður' },
+  { id: 'tax_eq', from: 'skattar', to: 'jofnudur', coef: 0.1, lag: 1, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.2, source: 'Hærri (stighækkandi) skattar → meiri jöfnuður' },
+  { id: 'house_eq', from: 'husnaedi', to: 'jofnudur', coef: -0.1, lag: 2, unit: 'vísit/%', ci_lo: -0.2, ci_hi: -0.03, source: 'Húsnæðisverðshækkun → eignaójöfnuður (eigendur vs leigjendur)' },
+  { id: 'unem_eq', from: 'atvinnuleysi', to: 'jofnudur', coef: -0.5, lag: 1, unit: 'vísit/pp', ci_lo: -1.0, ci_hi: -0.2, source: 'Atvinnuleysi bitnar mest á lágtekjuhópum → ójöfnuður' },
+  { id: 'kaup_eq', from: 'kaupmattur', to: 'jofnudur', coef: 0.2, lag: 1, unit: 'vísit/pp', ci_lo: 0.05, ci_hi: 0.4, source: 'Almenn kaupmáttaraukning → dreifður ávinningur' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
