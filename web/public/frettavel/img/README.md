@@ -92,3 +92,11 @@ Til að ekki birtist alltaf sama myndin á öllum fréttum sama flokks má bæta
 | `gengi-2.jpg` | *Close-up of Icelandic króna coins with a faint rising/falling chart line, or a currency-exchange rate display with blurred numbers. Neutral, no logos.* |
 | `ees-2.jpg` | *A row of European flags on poles outside a building, or the EU stars over a gavel/document (regulatory theme). Neutral, no readable text, no faces.* |
 | `samanburdur-2.jpg` | *A shopping basket beside a price/currency comparison motif, or Reykjavík rooftops with an abstract index bar. Muted, no readable text.* |
+
+## Fyrirtæki í brennidepli (`fyrvik`) — kastljós / tengslanet
+
+| Skrá | Prompt (enska) |
+|---|---|
+| `fyrvik.jpg` | *A magnifying glass resting over a stack of financial documents and a printed company org-chart on a desk. Editorial, soft directional light, muted tones. No text, no faces, no logos.* |
+| `fyrvik-2.jpg` | *A single illuminated office building standing out among many darker buildings at dusk (one lit, the rest in shadow) — "in the spotlight" theme. Neutral, cinematic, no text, no logos.* |
+| `fyrvik-3.jpg` | *An abstract network of connected nodes and lines on a dark background with one node glowing brighter than the rest — a company linked to many sources. Cool tones, no text.* |
