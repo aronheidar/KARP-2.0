@@ -181,5 +181,25 @@
    "ferdamenn": -25
   },
   "sentence": "Háir vextir samhliða samdrætti (ferðamönnum fækkar 25%) þyngja greiðslubyrði og auka atvinnuleysi — vanskil heimila og fyrirtækja aukast tafið, sem dregur enn frekar úr hagvexti (fjármála-hraðall)."
+ },
+ {
+  "id": "lifeyrisaldur_upp",
+  "label": "Hækka lífeyrisaldur í 70",
+  "tldr": "Viðbragð við öldrun",
+  "levers": {
+   "lifeyrisaldur": 70
+  },
+  "shocks": {},
+  "sentence": "Hækkun lífeyrisaldurs í 70 ár lækkar framfærsluhlutfallið (færri lífeyrisþegar á hvern vinnandi) og bætir afkomu ríkissjóðs tafið — sýnilegast í 10 ára sýn þar sem öldrun safnast upp."
+ },
+ {
+  "id": "byggdaatak",
+  "label": "Byggðaátak (áhersla +30%)",
+  "tldr": "Efling landsbyggðar",
+  "levers": {
+   "byggdastefna": 30
+  },
+  "shocks": {},
+  "sentence": "Aukin byggðaáhersla (+30% í innviði og ívilnanir á landsbyggð) bætir byggðajöfnuð með nokkurra ára töf og nýtir mannafla og auðlindir betur um allt land — vinnur gegn þéttbýlis-þunga grunnþróunar."
  }
 ]
