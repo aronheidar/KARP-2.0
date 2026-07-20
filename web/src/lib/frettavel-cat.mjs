@@ -1,4 +1,11 @@
 // frettavel-cat.mjs — hrein flokka-gögn (engin node:fs). Deilt af frettavel.mjs, worker.js og Mitt svæði.
+// ASCII-hreint slóðar-id (SEO): íslenskir stafir → ascii, aðeins [a-z0-9-]. Nota BÆÐI á forsíðu-hlekkjum
+// og í getStaticPaths svo þau stemmi. Deterministic → sama id gefur sömu slóð.
+export const asciiId = (id) => String(id).toLowerCase()
+  .replace(/[áàäâ]/g, 'a').replace(/æ/g, 'ae').replace(/[öøô]/g, 'o').replace(/þ/g, 'th').replace(/ð/g, 'd')
+  .replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/[úü]/g, 'u').replace(/ý/g, 'y')
+  .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
 export const CAT = {
   // ── Alþingi (deila althingi-mynd) ──
   rebel:      { label: 'Atkvæði gegn flokki', emoji: '🗳️', color: '#e0655f', img: 'althingi', heimild: 'Alþingi', rule: 'Þingmaður kaus gegn ≥75% meirihluta eigin þingflokks í atkvæðagreiðslu.' },

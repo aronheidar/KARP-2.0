@@ -86,7 +86,7 @@ Fyrir hverja keyrslu:
 
 Endurnýtir stíl `digestBuild` (`worker.js:3288`):
 - **Efni:** `🔔 Fréttavakt: N ný mál` (eða `1 nýtt mál`).
-- **Meginmál:** atriði raðað eftir flokki (deildar-hausar úr `SECTIONS`), hvert með titli (hlekkur á `https://karp.is/frettavel/<id>/`), stuttum texta, flokka-merki og heimild.
+- **Meginmál:** atriði raðað eftir flokki (deildar-hausar úr `SECTIONS`), hvert með titli (hlekkur á `https://karp.is/frettavel/<asciiId(id)>/` — permalink-slóðin er ascii-hreinsuð útgáfa af `id`-inu, sbr. `getStaticPaths` í `frettavel/[id].astro`, svo hlekkurinn stemmi við raunverulega byggða síðu), stuttum texta, flokka-merki og heimild.
 - **Fótur:** hlekkur „Stilla vaktir" (Mitt svæði) + „Slökkva á fréttavakt".
 - Ef `> MAX_PER_EMAIL` mál: sýna 30 efstu + „og N til viðbótar → skoða á karp.is/frettavel/".
 

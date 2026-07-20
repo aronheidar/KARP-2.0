@@ -1,5 +1,5 @@
 import { greinaSql } from './src/lib/greinar.mjs';
-import { CAT, SECTIONS, sectionOfType } from './src/lib/frettavel-cat.mjs';
+import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -3356,7 +3356,7 @@ export function frettavaktEmail(matches) {
   for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
   const rows = [...bySec.entries()].map(([label, items]) => {
     const li = items.map((m) => {
-      const href = m.type === 'frett' ? esc(m.url) : ('https://karp.is/frettavel/' + esc(m.id) + '/');
+      const href = m.type === 'frett' ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
       const badge = m.type === 'frett' ? (m.source || 'frétt') : ((CAT[m.type] || {}).label || m.type);
       return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
     }).join('');

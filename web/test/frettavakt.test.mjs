@@ -97,6 +97,12 @@ test('email: contains a link to each match article + its title', () => {
   assert.ok(/Stilla vaktir/.test(html));                         // footer settings link
 });
 
+test('email: fréttavél href uses asciiId (transliterated) so links resolve', () => {
+  const html = frettavaktEmail([{ id: 'kvoti-2526-þorskur', type: 'kvoti', title: 'Þorskur', url: '/x/' }]);
+  assert.ok(html.includes('karp.is/frettavel/kvoti-2526-thorskur/'));
+  assert.ok(!html.includes('þorskur/'));
+});
+
 test('email: escapes quotes/brackets to prevent attribute injection + no double-escape', () => {
   const html = frettavaktEmail([{ id: 'x', type: 'frett', title: 'A & B <b>', url: 'https://mbl.is/a" onmouseover="alert(1)', source: 'R&Ú' }]);
   assert.ok(!html.includes('" onmouseover="alert(1)"'));   // attribute did not break out

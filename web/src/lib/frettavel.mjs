@@ -6,8 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CAT, SECTIONS } from './frettavel-cat.mjs';
-export { CAT, SECTIONS };
+import { CAT, SECTIONS, asciiId } from './frettavel-cat.mjs';
+export { CAT, SECTIONS, asciiId };
 
 export const catOf = (t) => CAT[t] || { label: 'Frétt', emoji: '📰', color: '#8fa0b8', img: 'annad', heimild: 'Opinber gögn', rule: 'Sjálfvirkur atburður greindur í opinberum gögnum.' };
 
@@ -19,13 +19,6 @@ export const sectionOf = (t) => SEC_OF[t] || SECTIONS[0];
 // vega meira en dagleg markaðs-tíst. Blandast við nýleika við röðun.
 const WEIGHT = { vextir: 10, gjaldthrot: 9, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3, gengi: 7, kvoti: 6, ees: 5, vika: 5, birgirthrot: 9, rikisfe: 6, toppar: 6, nefnd: 5, fastthr: 7, leiga: 6, samanburdur: 5, bygging: 5, sveitfe: 6, graent: 5, fyrvik: 6, thema: 8, fonix: 7, eftirlit: 6 };
 export const weightOf = (t) => WEIGHT[t] || 4;
-
-// ASCII-hreint slóðar-id (SEO): íslenskir stafir → ascii, aðeins [a-z0-9-]. Nota BÆÐI á forsíðu-hlekkjum
-// og í getStaticPaths svo þau stemmi. Deterministic → sama id gefur sömu slóð.
-export const asciiId = (id) => String(id).toLowerCase()
-  .replace(/[áàäâ]/g, 'a').replace(/æ/g, 'ae').replace(/[öøô]/g, 'o').replace(/þ/g, 'th').replace(/ð/g, 'd')
-  .replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/[úü]/g, 'u').replace(/ý/g, 'y')
-  .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
 export const imgPath = (t) => '/frettavel/img/' + (catOf(t).img) + '.jpg';
 
