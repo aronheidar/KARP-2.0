@@ -96,3 +96,10 @@ test('email: contains a link to each match article + its title', () => {
   assert.ok(html.includes('mbl.is/a'));                          // external news → its own url
   assert.ok(/Stilla vaktir/.test(html));                         // footer settings link
 });
+
+test('email: escapes quotes/brackets to prevent attribute injection + no double-escape', () => {
+  const html = frettavaktEmail([{ id: 'x', type: 'frett', title: 'A & B <b>', url: 'https://mbl.is/a" onmouseover="alert(1)', source: 'R&Ú' }]);
+  assert.ok(!html.includes('" onmouseover="alert(1)"'));   // attribute did not break out
+  assert.ok(html.includes('&quot;'));                      // the " in url is escaped inside href
+  assert.ok(!html.includes('&amp;amp;'));                  // source escaped once, not twice
+});

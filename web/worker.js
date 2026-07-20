@@ -3339,13 +3339,13 @@ export function frettavaktMerge(existing, body, validTypes) {
   return { on: !!b.on, flokkar, cadence, lastSent: e.lastSent || 0, seenIds: Array.isArray(e.seenIds) ? e.seenIds : [] };
 }
 export function frettavaktEmail(matches) {
-  const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const bySec = new Map();
   for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
   const rows = [...bySec.entries()].map(([label, items]) => {
     const li = items.map((m) => {
       const href = m.type === 'frett' ? esc(m.url) : ('https://karp.is/frettavel/' + esc(m.id) + '/');
-      const badge = m.type === 'frett' ? esc(m.source || 'frétt') : ((CAT[m.type] || {}).label || m.type);
+      const badge = m.type === 'frett' ? (m.source || 'frétt') : ((CAT[m.type] || {}).label || m.type);
       return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
     }).join('');
     return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
