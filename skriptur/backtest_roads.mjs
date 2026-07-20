@@ -75,5 +75,15 @@ const okLongClamp = Object.keys(long.outcomes).every((k) => { const cl = baselin
 const okLongBand = Object.values(long.outcomes).every((o) => o.lo.every((v, i) => v <= o.mid[i] + 1e-9 && o.mid[i] <= o.hi[i] + 1e-9));
 const okLongLen = long.outcomes.skuldir.mid.length === 40;
 console.log('langtími(40Q) endanlegt:', okLongFinite, '| innan clamp:', okLongClamp, '| lo≤mið≤hi:', okLongBand, '| lengd 40:', okLongLen);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen);
+// Stofn-lýðfræði + öldrun (module 7) — prófað á 40Q (stofn safnast upp yfir tíma)
+const migL = simulate({ baseline, links, shocks: { adflutningur: 50 }, quarters: 40 });
+const penL = simulate({ baseline, links, levers: { lifeyrisaldur: 70 }, quarters: 40 });
+const okPopStock = (migL.outcomes.folksfjoldi.mid[39] - migL.outcomes.folksfjoldi.baseline[39]) > (migL.outcomes.folksfjoldi.mid[11] - migL.outcomes.folksfjoldi.baseline[11]); // stofn safnast upp: 10-ára frávik > 3-ára frávik
+const okMigPopLvl = migL.outcomes.folksfjoldi.mid[39] > baseline.outcomes.folksfjoldi.path[39]; // +aðflutningur → hærri fólksfjöldi
+const okMigDep = migL.outcomes.framfaersla.mid[39] < baseline.outcomes.framfaersla.path[39]; // +aðflutningur → lægra framfærsluhlutfall
+const okPenDep = penL.outcomes.framfaersla.mid[39] < baseline.outcomes.framfaersla.path[39]; // hærri lífeyrisaldur → lægra framfærsluhlutfall
+const okPenBal = penL.outcomes.afkoma.mid[39] > baseline.outcomes.afkoma.path[39]; // hærri lífeyrisaldur → betri afkoma (tafið)
+const okDemo7Band = [migL, penL].every((r) => ['folksfjoldi', 'framfaersla'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9)));
+console.log('fólksfjöldi=stofn (10>3ár frávik):', okPopStock, '| +aðflutn→fólksfj↑:', okMigPopLvl, '| +aðflutn→framfærsla↓:', okMigDep, '| +lífaldur→framfærsla↓:', okPenDep, '| +lífaldur→afkoma↑:', okPenBal, '| lýðfr7-bönd:', okDemo7Band);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band);
 process.exit(bad ? 1 : 0);

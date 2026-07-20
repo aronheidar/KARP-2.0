@@ -593,5 +593,71 @@
   "ci_lo": -0.03,
   "ci_hi": -0.003,
   "source": "Fjárhagsvandi → stuðningsaðgerðir + minni skatttekjur"
+ },
+ {
+  "id": "pop_carry",
+  "from": "folksfjoldi",
+  "to": "folksfjoldi",
+  "coef": 1,
+  "lag": 1,
+  "unit": "",
+  "ci_lo": 1,
+  "ci_hi": 1,
+  "source": "Fólksfjöldi er STOFN — fyrri staða flyst áfram (sjálf-lykkja)"
+ },
+ {
+  "id": "growth_pop",
+  "from": "mannfjoldi",
+  "to": "folksfjoldi",
+  "coef": 0.25,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.22,
+  "ci_hi": 0.28,
+  "source": "Ársfjórðungsleg uppsöfnun fólksfjölgunar í stofninn (≈vöxtur/4)"
+ },
+ {
+  "id": "mig_dep",
+  "from": "adflutningur",
+  "to": "framfaersla",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.09,
+  "ci_hi": -0.02,
+  "source": "Aðflutningur (á vinnualdri) lækkar framfærsluhlutfall varanlega (Hagstofa aldursdreifing)"
+ },
+ {
+  "id": "pension_dep",
+  "from": "lifeyrisaldur",
+  "to": "framfaersla",
+  "coef": -2.5,
+  "lag": 1,
+  "unit": "vísit/ár",
+  "ci_lo": -4,
+  "ci_hi": -1.5,
+  "source": "Hærri lífeyrisaldur → færri lífeyrisþegar á hvern vinnandi (OECD Pensions at a Glance)"
+ },
+ {
+  "id": "dep_bal",
+  "from": "framfaersla",
+  "to": "afkoma",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "%VLF/vísit",
+  "ci_lo": -0.09,
+  "ci_hi": -0.02,
+  "source": "Hærra framfærsluhlutfall → meiri lífeyris-/heilbrigðisútgjöld"
+ },
+ {
+  "id": "dep_gdp",
+  "from": "framfaersla",
+  "to": "hagvoxtur",
+  "coef": -0.01,
+  "lag": 2,
+  "unit": "pp/vísit",
+  "ci_lo": -0.02,
+  "ci_hi": -0.003,
+  "source": "Öldrun → lægra atvinnuþátttökuhlutfall → minni framleiðslugeta"
  }
 ]
