@@ -1,72 +1,93 @@
 ---
-// ROADS Íslands — hagkerfis-STJÓRNBORÐ. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
-// Módel: @gogn/roads/*.json. Gagna-drifið → öll kort/sleðar/sviðsmyndir sjálfkrafa. Ekki spá.
+// ROADS Íslands — hagkerfis-STJÓRNKLEFI. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
+// Ákvarðanir vinstra · útkomu-net miðju · ytri sjokk hægra. Sjálfvirk peningastefna/launaþróun
+// = UI fastpunkts-ítrun (vélin ósnert). Hover á sleða lýsir upp keðjurnar. Ekki opinber spá.
 import Layout from '../layouts/Layout.astro';
 import BASELINE from '@gogn/roads/baseline.json';
 import LINKS from '@gogn/roads/links.json';
 import SCENARIOS from '@gogn/roads/scenarios.json';
-const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi: stilltu vexti, laun, skatta, framboð og aðflutning og sjáðu stílfærð áhrif á hagvísa næstu 3 árin, með óvissu og heimildum.';
+const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti, laun, skatta, kvóta og fleira (eða láttu peningastefnuna vera sjálfvirka) og sjáðu stílfærð áhrif á 13 hagvísa næstu 3 árin, með óvissu og heimildum.';
 ---
-<Layout title="ROADS Íslands — hagkerfis-stjórnborð | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnborð" wide={true}>
+<Layout title="ROADS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnklefi" wide={true}>
   <main data-pg="roads" class="dash">
     <div class="dash-top">
       <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><span class="disc" id="disc"></span></div>
-      <div id="score" class="score"></div>
+      <div class="topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
       <div id="scn" class="scn"></div>
       <p id="news" class="news" hidden></p>
     </div>
-    <div class="dash-body">
+    <div class="dash-body3">
       <div class="controls">
-        <div class="ctl-h">🎚️ Ákvarðanir</div><div id="levers"></div>
-        <div class="ctl-h">⚡ Ytri sjokk</div><div id="shocks"></div>
+        <div class="ctl-h">🎚️ Þínar ákvarðanir</div>
+        <label class="auto" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
+        <label class="auto" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
+        <div id="levers"></div>
         <button id="rs" type="button">↺ Núllstilla</button>
       </div>
       <div id="charts" class="charts"></div>
+      <div class="controls">
+        <div class="ctl-h">⚡ Heimurinn / ytri sjokk</div>
+        <div id="shocks"></div>
+        <p class="hint">Hreyfðu bendil yfir sleða til að lýsa upp hagvísana sem hann drífur.</p>
+      </div>
     </div>
     <details class="transp"><summary>⚙︎ Sjá öll orsakasambönd, stuðla og heimildir</summary><div id="lnks"></div></details>
     <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ROADS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
 
   <style is:global>
-    main[data-pg="roads"].dash { max-width: none; margin: 0; padding: 22px 24px 60px; }
+    main[data-pg="roads"].dash { max-width: none; margin: 0; padding: 20px 22px 60px; }
     main[data-pg="roads"] .dash-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-    main[data-pg="roads"] .dash-head h1 { font-size: 26px; margin: 0; }
+    main[data-pg="roads"] .dash-head h1 { font-size: 25px; margin: 0; }
     main[data-pg="roads"] .disc { font-size: 12px; color: var(--faint); }
-    main[data-pg="roads"] .score { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; }
-    main[data-pg="roads"] .sc { flex: 1 1 130px; min-width: 130px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; }
-    main[data-pg="roads"] .sc-l { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
-    main[data-pg="roads"] .sc-v { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
-    main[data-pg="roads"] .sc-d { font-size: 11.5px; font-weight: 700; }
+    main[data-pg="roads"] .topbar { display: flex; gap: 10px; align-items: stretch; margin: 12px 0 8px; flex-wrap: wrap; }
+    main[data-pg="roads"] .health { flex: 0 0 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; }
+    main[data-pg="roads"] .health .h-l { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+    main[data-pg="roads"] .health .h-v { font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05; }
+    main[data-pg="roads"] .health .h-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.08); margin-top: 5px; overflow: hidden; }
+    main[data-pg="roads"] .health .h-bar > i { display: block; height: 100%; border-radius: 3px; }
+    main[data-pg="roads"] .score { flex: 1 1 400px; display: flex; flex-wrap: wrap; gap: 8px; }
+    main[data-pg="roads"] .sc { flex: 1 1 118px; min-width: 118px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 7px 11px; display: flex; flex-direction: column; }
+    main[data-pg="roads"] .sc-l { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+    main[data-pg="roads"] .sc-v { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .sc-d { font-size: 11px; font-weight: 700; }
     main[data-pg="roads"] .scn { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
     main[data-pg="roads"] .scn button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 5px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
     main[data-pg="roads"] .scn button:hover, main[data-pg="roads"] .scn button.on { color: #f6b13b; border-color: #f6b13b; }
     main[data-pg="roads"] .news { font-size: 14px; color: var(--ink); background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 10px 14px; margin: 0 0 12px; }
     main[data-pg="roads"] .news b { color: #f6b13b; }
-    main[data-pg="roads"] .dash-body { display: grid; grid-template-columns: 250px minmax(0,1fr); gap: 16px; align-items: start; }
-    @media (max-width: 760px) { main[data-pg="roads"] .dash-body { grid-template-columns: 1fr; } }
+    main[data-pg="roads"] .dash-body3 { display: grid; grid-template-columns: 232px minmax(0,1fr) 232px; gap: 14px; align-items: start; }
+    @media (max-width: 1080px) { main[data-pg="roads"] .dash-body3 { grid-template-columns: 210px minmax(0,1fr); } main[data-pg="roads"] .controls:last-child { grid-column: 1 / -1; } }
+    @media (max-width: 720px) { main[data-pg="roads"] .dash-body3 { grid-template-columns: 1fr; } }
     main[data-pg="roads"] .controls { position: sticky; top: 60px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-    main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 4px 0 8px; }
-    main[data-pg="roads"] .ctl-h:not(:first-child) { margin-top: 14px; }
-    main[data-pg="roads"] .sl { margin-bottom: 8px; }
+    main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 8px; }
+    main[data-pg="roads"] .auto { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 6px; cursor: pointer; }
+    main[data-pg="roads"] .auto input { accent-color: #f6b13b; }
+    main[data-pg="roads"] .sl { margin-bottom: 8px; padding: 3px 4px; border-radius: 6px; }
+    main[data-pg="roads"] .sl.auto-on { opacity: .55; }
+    main[data-pg="roads"] .sl.hot { background: rgba(246,177,59,.1); }
     main[data-pg="roads"] .sl-t { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink); }
     main[data-pg="roads"] .sl-t b { color: #f6b13b; font-variant-numeric: tabular-nums; }
     main[data-pg="roads"] .sl input[type=range] { width: 100%; accent-color: #f6b13b; margin: 2px 0 0; }
-    main[data-pg="roads"] #rs { margin-top: 12px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
-    main[data-pg="roads"] .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap: 12px; }
-    main[data-pg="roads"] .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+    main[data-pg="roads"] .hint { font-size: 11px; color: var(--faint); margin: 10px 0 0; }
+    main[data-pg="roads"] #rs { margin-top: 10px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
+    main[data-pg="roads"] .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
+    main[data-pg="roads"] .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; transition: opacity .15s, border-color .15s; }
+    main[data-pg="roads"] .card.dim { opacity: .28; }
+    main[data-pg="roads"] .card.lit { border-color: rgba(246,177,59,.6); }
     main[data-pg="roads"] .c-h { display: flex; justify-content: space-between; align-items: baseline; }
-    main[data-pg="roads"] .c-t { font-size: 12.5px; color: var(--muted); font-weight: 600; }
-    main[data-pg="roads"] .c-d { font-size: 12px; font-weight: 700; }
-    main[data-pg="roads"] .c-v { font-size: 23px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 1px 0 2px; }
-    main[data-pg="roads"] .c-cv { width: 100%; height: 96px; display: block; }
-    main[data-pg="roads"] .c-g { position: relative; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; margin-top: 8px; }
+    main[data-pg="roads"] .c-t { font-size: 12px; color: var(--muted); font-weight: 600; }
+    main[data-pg="roads"] .c-d { font-size: 11.5px; font-weight: 700; }
+    main[data-pg="roads"] .c-v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 1px 0 2px; }
+    main[data-pg="roads"] .c-cv { width: 100%; height: 88px; display: block; }
+    main[data-pg="roads"] .c-g { position: relative; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; margin-top: 7px; }
     main[data-pg="roads"] .c-gm { position: absolute; top: -2px; width: 3px; height: 10px; border-radius: 2px; transform: translateX(-50%); }
     main[data-pg="roads"] .c-gb { position: absolute; top: -1px; width: 2px; height: 8px; background: rgba(255,255,255,.4); transform: translateX(-50%); }
     main[data-pg="roads"] .lnk-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
     main[data-pg="roads"] .lnk-tbl th, main[data-pg="roads"] .lnk-tbl td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
     main[data-pg="roads"] details.transp { margin: 18px 0 0; }
     main[data-pg="roads"] details.transp summary { cursor: pointer; color: #f6b13b; font-size: 13px; font-weight: 700; }
-    main[data-pg="roads"] .foot { font-size: 12px; color: var(--faint); margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+    main[data-pg="roads"] .foot { font-size: 12px; color: var(--faint); margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
   </style>
 
   <script>
@@ -75,10 +96,14 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
     import LINKS from '@gogn/roads/links.json';
     import SCENARIOS from '@gogn/roads/scenarios.json';
 
-    const state = { levers: {}, shocks: {} };
+    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false };
+    const Q = BASELINE.quarters, LAST = Q - 1;
     const num = (v, d = 1) => (v == null ? '–' : v.toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d }));
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lbl = (k) => BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k;
     const driversOf = (k) => [...new Set(LINKS.filter((l) => l.to === k && l.from !== k).map((l) => lbl(l.from)))];
+    // Transitive reach: hvaða útkomur nær tiltekinn sleði (fyrir hover-highlight)
+    const reachFrom = (start) => { const seen = new Set(), stack = [start]; while (stack.length) { const n = stack.pop(); for (const l of LINKS) if (l.from === n && !seen.has(l.to)) { seen.add(l.to); stack.push(l.to); } } return seen; };
 
     const OUT_TIP = {
       verdbolga: 'Verðbólga — árshækkun neysluverðs.', hagvoxtur: 'Hagvöxtur — árs-breyting raun-VLF.',
@@ -86,17 +111,20 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
       husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting.',
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
-      skuldir: 'Skuldir ríkissjóðs (% VLF).',
+      skuldir: 'Skuldir ríkissjóðs (% VLF).', utflutningur: 'Útflutningsvöxtur — árs-breyting.', losun: 'CO₂-losun — vísitala (100 = núverandi).',
     };
     const LEV_TIP = {
       vextir: 'Stýrivextir Seðlabankans. Hærri → hægir á verðbólgu/húsnæði (töf), dregur úr hagvexti.',
-      laun: 'Launahækkun kjarasamninga. Eykur kaupmátt en ýtir undir verðbólgu/húsnæði.',
+      laun: 'Launahækkun kjarasamninga. Eykur kaupmátt/neyslu en ýtir undir verðbólgu/húsnæði.',
       vedhlutfall: 'Hámarks veðsetningarhlutfall (þjóðhagsvarúð). Hærra þak → hærra húsnæðisverð.',
       frambod: 'Framboð nýrra íbúða. Meira → lægra verð/leiga (töf).',
       skattar: 'Skattbreyting ríkisins. Meiri skattar bæta afkomu, draga lítillega úr hagvexti.',
       utgjold: 'Útgjöld ríkisins. Meiri útgjöld örva hagvöxt en versna afkomu.',
+      kvoti: 'Aflamark (kvóti). Meira → meiri sjávarafurða-útflutningur.',
+      orka: 'Orka til stóriðju / ný virkjun. Meira → meiri útflutningur en hærri losun.',
+      kolefnisgjald: 'Kolefnisgjald. Hærra → minni CO₂-losun, lítið hagvaxtar-drag.',
       olia: 'Olíuverð. Hærra → meiri verðbólga.', gengi: 'Gengi krónu (+ = styrking). Sterk króna → lægri innflutt verðbólga.',
-      ferdamenn: 'Ferðamannafjöldi. Fleiri → meiri hagvöxtur, minna atvinnuleysi.',
+      ferdamenn: 'Ferðamannafjöldi. Fleiri → meiri hagvöxtur, minna atvinnuleysi, hærri leiga.',
       adflutningur: 'Aðflutningur (nettó). Meiri → fjölgun, meira vinnuafl, húsnæðis-þrýstingur.',
       frjosemi: 'Frjósemi. Langtíma — hverfandi á 3 árum (sjá /mannfjoldi/).',
     };
@@ -104,13 +132,46 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
 
     function dInfo(o) { const dlt = o.mid[o.mid.length - 1] - o.baseline[o.baseline.length - 1]; return { dlt, c: dlt > 0.05 ? '#e78284' : dlt < -0.05 ? '#54d08a' : 'var(--faint)' }; }
 
-    function run() { const r = simulate({ baseline: BASELINE, links: LINKS, levers: state.levers, shocks: state.shocks, quarters: BASELINE.quarters }); drawScore(r); drawCharts(r); }
+    // sjálfvirk peningastefna/launaþróun: fastpunkts-ítrun (vélin ósnert)
+    function solveLevers() {
+      const L = { ...state.levers };
+      if (!state.autoTay && !state.autoPhi) return L;
+      for (let it = 0; it < 8; it++) {
+        const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: Q });
+        if (state.autoTay) { const infl = r.outcomes.verdbolga.mid[LAST]; const tgt = clamp(BASELINE.levers.vextir.base + 0.9 * (infl - 2.5), 0, 12); L.vextir = 0.45 * (L.vextir ?? BASELINE.levers.vextir.base) + 0.55 * tgt; }
+        if (state.autoPhi) { const unem = r.outcomes.atvinnuleysi.mid[LAST]; const tgt = clamp(BASELINE.levers.laun.base + 0.35 * (4.0 - unem), 0, 14); L.laun = 0.45 * (L.laun ?? BASELINE.levers.laun.base) + 0.55 * tgt; }
+      }
+      if (state.autoTay) L.vextir = Math.round(L.vextir / BASELINE.levers.vextir.step) * BASELINE.levers.vextir.step;
+      if (state.autoPhi) L.laun = Math.round(L.laun / BASELINE.levers.laun.step) * BASELINE.levers.laun.step;
+      return L;
+    }
+
+    function run() {
+      const L = solveLevers();
+      state._sol = { vextir: L.vextir, laun: L.laun }; // geymt svo hægt sé að „baka inn" við afvirkjun
+      if (state.autoTay) syncSlider('vextir', L.vextir);
+      if (state.autoPhi) syncSlider('laun', L.laun);
+      const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: Q });
+      drawHealth(r); drawScore(r); drawCharts(r);
+    }
+
+    function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; }
+
+    function drawHealth(r) {
+      const g = (k) => r.outcomes[k]?.mid[LAST] ?? 0;
+      let pen = Math.abs(g('verdbolga') - 2.5) * 7 + Math.max(0, g('atvinnuleysi') - 4) * 6 + Math.max(0, 2 - g('hagvoxtur')) * 5 + Math.max(0, -g('afkoma')) * 4 + Math.max(0, g('husnaedi') - 5) * 1.2;
+      const score = Math.round(clamp(100 - pen, 0, 100));
+      const c = score >= 70 ? '#54d08a' : score >= 45 ? '#f6b13b' : '#e78284';
+      const h = document.getElementById('health');
+      h.title = 'Samsett heilsufar: nær 100 þegar verðbólga ~2,5%, atvinnuleysi lágt, hagvöxtur jákvæður og afkoma í jafnvægi.';
+      h.innerHTML = `<span class="h-l">Þjóðhagslegt heilsufar</span><span class="h-v" style="color:${c}">${score}<span style="font-size:14px;color:var(--faint)">/100</span></span><span class="h-bar"><i style="width:${score}%;background:${c}"></i></span>`;
+    }
 
     function drawScore(r) {
       const h = document.getElementById('score'); h.innerHTML = '';
       for (const k of SCORE_KEYS) { const o = r.outcomes[k]; if (!o) continue; const { dlt, c } = dInfo(o); const end = o.mid[o.mid.length - 1];
         const t = document.createElement('div'); t.className = 'sc'; t.title = OUT_TIP[k] || o.label;
-        t.innerHTML = `<span class="sc-l">${o.label}</span><span class="sc-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</span><span class="sc-d" style="color:${c}">${dlt >= 0 ? '▲' : '▼'} ${num(Math.abs(dlt))} vs grunnur</span>`;
+        t.innerHTML = `<span class="sc-l">${o.label}</span><span class="sc-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</span><span class="sc-d" style="color:${c}">${dlt >= 0 ? '▲' : '▼'} ${num(Math.abs(dlt))}</span>`;
         h.appendChild(t);
       }
     }
@@ -118,7 +179,7 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
     function drawCharts(r) {
       const host = document.getElementById('charts'); host.innerHTML = '';
       for (const k of Object.keys(r.outcomes)) { const o = r.outcomes[k]; const { dlt, c } = dInfo(o); const end = o.mid[o.mid.length - 1];
-        const card = document.createElement('div'); card.className = 'card';
+        const card = document.createElement('div'); card.className = 'card'; card.dataset.k = k;
         card.title = (OUT_TIP[k] || o.label) + (driversOf(k).length ? ' Drifið af: ' + driversOf(k).join(', ') + '.' : '');
         card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${o.unit === '% VLF' ? '%' : o.unit}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill (BAU)"><span class="c-gb"></span><span class="c-gm"></span></div>`;
         host.appendChild(card);
@@ -132,31 +193,41 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
     }
 
     function drawTrace(cv, o) {
-      const dpr = Math.min(2, window.devicePixelRatio || 1); const w = cv.clientWidth, h = 96; cv.width = w * dpr; cv.height = h * dpr;
+      const dpr = Math.min(2, window.devicePixelRatio || 1); const w = cv.clientWidth, h = 88; cv.width = w * dpr; cv.height = h * dpr;
       const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
       const all = o.lo.concat(o.hi, o.baseline); let mn = Math.min(...all), mx = Math.max(...all);
       if (mx - mn < 1) { const m = (mx + mn) / 2; mn = m - 0.6; mx = m + 0.6; }
       const pad = 6, n = o.mid.length, X = (i) => pad + (w - 2 * pad) * i / (n - 1), Y = (v) => (h - pad) - (h - 2 * pad) * (v - mn) / (mx - mn);
       ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0])); for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i])); for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i])); ctx.closePath(); ctx.fillStyle = 'rgba(246,177,59,.13)'; ctx.fill();
       ctx.beginPath(); o.baseline.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.4; ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath(); o.mid.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = '#f6b13b'; ctx.lineWidth = 2.3; ctx.lineJoin = 'round'; ctx.stroke();
+      ctx.beginPath(); o.mid.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = '#f6b13b'; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
       ctx.fillStyle = 'rgba(159,176,200,.85)'; ctx.font = '10px system-ui'; ctx.textBaseline = 'alphabetic';
       ctx.textAlign = 'left'; ctx.fillText(num(o.mid[0]), X(0) + 1, Y(o.mid[0]) - 4);
       ctx.textAlign = 'right'; ctx.fillStyle = '#f6b13b'; ctx.fillText(num(o.mid[n - 1]), X(n - 1) - 1, Y(o.mid[n - 1]) - 4);
     }
 
+    function highlight(k) { const reach = reachFrom(k); document.querySelectorAll('#charts .card').forEach((c) => { c.classList.toggle('lit', reach.has(c.dataset.k)); c.classList.toggle('dim', !reach.has(c.dataset.k)); }); }
+    function clearHighlight() { document.querySelectorAll('#charts .card').forEach((c) => c.classList.remove('lit', 'dim')); }
+
     function buildControls() {
       const mk = (host, k, cfg, grp) => {
-        const el = document.createElement('div'); el.className = 'sl'; el.title = LEV_TIP[k] || cfg.label;
+        const el = document.createElement('div'); el.className = 'sl'; el.dataset.k = k; el.title = LEV_TIP[k] || cfg.label;
         const val = state[grp][k] ?? cfg.base;
         el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><b>${num(val, cfg.step < 1 ? 2 : 0)}${cfg.unit}</b></div><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}">`;
         const inp = el.querySelector('input'), b = el.querySelector('b');
         inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; run(); });
+        el.addEventListener('mouseenter', () => { el.classList.add('hot'); highlight(k); }); el.addEventListener('mouseleave', () => { el.classList.remove('hot'); clearHighlight(); });
         host.appendChild(el);
       };
       const lh = document.getElementById('levers'), sh = document.getElementById('shocks'); lh.innerHTML = ''; sh.innerHTML = '';
       for (const k in BASELINE.levers) mk(lh, k, BASELINE.levers[k], 'levers');
       for (const k in BASELINE.shocks) mk(sh, k, BASELINE.shocks[k], 'shocks');
+      applyAutoDisable();
+    }
+
+    function applyAutoDisable() {
+      const set = (k, on) => { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; el.classList.toggle('auto-on', on); const inp = el.querySelector('input'); inp.disabled = on; };
+      set('vextir', state.autoTay); set('laun', state.autoPhi);
     }
 
     function buildScenarios() {
@@ -181,6 +252,8 @@ const desc = 'ROADS Íslands — gagnsætt stjórnborð fyrir íslenskt hagkerfi
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
       buildScenarios(); buildControls(); run(); buildLinkTable();
       document.getElementById('rs').addEventListener('click', reset);
+      document.getElementById('auto-tay').addEventListener('change', (e) => { state.autoTay = e.target.checked; if (!e.target.checked && state._sol) { state.levers.vextir = state._sol.vextir; syncSlider('vextir', state._sol.vextir); } applyAutoDisable(); run(); });
+      document.getElementById('auto-phi').addEventListener('change', (e) => { state.autoPhi = e.target.checked; if (!e.target.checked && state._sol) { state.levers.laun = state._sol.laun; syncSlider('laun', state._sol.laun); } applyAutoDisable(); run(); });
     }
     init();
     document.addEventListener('astro:page-load', init);
