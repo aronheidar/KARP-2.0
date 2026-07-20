@@ -230,7 +230,7 @@ export const VORUR = [
       { titill: 'Leitaðu', texti: 'Sláðu inn félag.' },
       { titill: 'Fáðu matið', texti: 'PEP + eigendur + staða + áhættumerki.' },
     ],
-    verd: { tegund: 'threp', threp: 'Grunnur' },
+    verd: { tegund: 'stak', upphaed: 990 },
     synishorn: { label: 'Sjá sýnishorn', href: '/fyrirtaeki/?vidmot=areidanleiki&q=490522-0500' },
     tol: { label: 'Fletta upp félagi', href: '/fyrirtaeki/?vidmot=areidanleiki' },
     description: 'Áreiðanleikamat (KYC) — PEP-skimun, endanlegir eigendur og staða félags í opinberum skrám. ' + LEGAL,

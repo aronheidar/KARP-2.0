@@ -163,7 +163,10 @@ console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · 
 if (errs) console.error(`Villu-sundurliðun: ${JSON.stringify(errBy)}`);
 
 if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
-fs.writeFileSync('web/night.sql', body + '\n');
+// N1 (topplistar): viðhalda felog.isat_primary fyrir NÝ félög (fyrsti ÍSAT-kóði úr isat-JSON) — annars
+// birtast þau hvorki í topplistum né sækir ársreikninga-trickle þau (SELECT hans krefst isat_primary).
+const isatPrimarySql = "UPDATE felog SET isat_primary = json_extract(isat, '$[0].id') WHERE isat IS NOT NULL AND isat <> '[]' AND isat_primary IS NULL;";
+fs.writeFileSync('web/night.sql', body + '\n' + isatPrimarySql + '\n');
 console.error(`Rita ${(body.length / 1024).toFixed(0)} KiB í web/night.sql.`);
 
 if (DRY) { console.error('--dry-run: beiti EKKI á D1.'); process.exit(0); }

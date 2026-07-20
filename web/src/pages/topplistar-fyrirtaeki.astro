@@ -1,0 +1,63 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/ubo.css';
+import { GREINAR } from '../lib/greinar.mjs';
+const desc = 'Stærstu fyrirtæki Íslands eftir atvinnugrein — raðað eftir veltu, hagnaði og eignum úr ársreikningum. Karp+ vara.';
+---
+<Layout title="Topplistar fyrirtækja | Karp" description={desc} canonical="https://karp.is/topplistar-fyrirtaeki/">
+  <main data-pg="topp-fyr">
+    <h1>Stærstu fyrirtæki eftir atvinnugrein</h1>
+    <p class="tf-intro">Raðað eftir veltu úr ársreikningum (Karp+). Smelltu á félag fyrir fulla skýrslu.</p>
+    <div class="tf-tabs" role="tablist">
+      {GREINAR.map((g, i) => (
+        <button type="button" class={"tf-tab" + (i === 0 ? " on" : "")} data-grein={g.slug}>{g.nafn}</button>
+      ))}
+    </div>
+    <div class="tf-controls">
+      <label>Raða eftir:
+        <select class="tf-radad">
+          <option value="sala">Veltu</option>
+          <option value="hagnadur">Hagnaði</option>
+          <option value="eignir">Eignum</option>
+          <option value="efe">Eigin fé</option>
+        </select>
+      </label>
+      <button type="button" class="tf-pdf">🖨️ Sækja PDF</button>
+    </div>
+    <div class="tf-cov" id="tf-cov"></div>
+    <div class="tf-host" id="tf-host"><div class="eig-loading">Hleð…</div></div>
+  </main>
+  <script>
+    import { hasTier } from '../lib/auth.js';
+    const kr = (n) => (n == null ? '—' : Math.round(n / 1e6).toLocaleString('is-IS') + ' m.kr');
+    const ktF = (k) => (k && k.length === 10 ? k.slice(0, 6) + '-' + k.slice(6) : k || '');
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let grein = 'island', radad = 'sala';
+    async function load() {
+      const host = document.getElementById('tf-host');
+      host.innerHTML = '<div class="eig-loading">Hleð…</div>';
+      let d = null;
+      try { d = await fetch('/api/topplistar?grein=' + grein + '&radad=' + radad, { credentials: 'include' }).then((r) => r.json()); } catch (e) {}
+      if (!d || !d.radir) { host.innerHTML = '<div class="eig-tom">Ekki tókst að hlaða lista.</div>'; return; }
+      document.getElementById('tf-cov').textContent = d.coverage ? ('Byggt á ' + d.coverage.greind + ' greindum félögum af ' + d.coverage.alls + ' í greininni — vex daglega.') : '';
+      const rows = d.radir.map((r, i) => `<tr><td class="tf-rank">${i + 1}</td><td class="tf-nm"><a href="/fyrirtaeki/?q=${encodeURIComponent(r.kt)}">${esc(r.nafn)}</a> <span class="eig-kt">${esc(ktF(r.kt))}</span></td><td class="tf-num">${kr(r.sala)}</td><td class="tf-num">${kr(r.hagnadur)}</td><td class="tf-num">${kr(r.eignir)}</td><td class="tf-num">${kr(r.eigid_fe)}</td><td class="tf-yr">${esc(r.ar || '')}</td></tr>`).join('');
+      let html = `<table class="eig-tafla tf-tafla"><thead><tr><th>#</th><th>Fyrirtæki</th><th>Velta</th><th>Hagnaður</th><th>Eignir</th><th>Eigið fé</th><th>Ár</th></tr></thead><tbody>${rows}</tbody></table>`;
+      if (d.locked) {
+        html += `<div class="eig-cta tf-lock"><b>🔒 Fullur listi — Karp+</b><span>Sjáðu alla ${d.total >= 100 ? '100' : d.total} + veltu/hagnað/eignir og PDF-niðurhal með Karp+ áskrift.</span><div class="eig-cta-btns"><button type="button" class="eig-buy tf-buy">⭐ Fá Karp+</button></div></div>`;
+      }
+      host.innerHTML = html;
+      const buy = host.querySelector('.tf-buy');
+      if (buy) buy.addEventListener('click', () => { if (!hasTier(1)) location.href = '/karp-pro/#verd'; });
+    }
+    function init() {
+      document.querySelectorAll('.tf-tab').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('.tf-tab').forEach((x) => x.classList.toggle('on', x === t));
+        grein = t.dataset.grein; load();
+      }));
+      document.querySelector('.tf-radad').addEventListener('change', (e) => { radad = e.target.value; load(); });
+      document.querySelector('.tf-pdf').addEventListener('click', () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); });
+      load();
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="topp-fyr"]')) init(); });
+  </script>
+</Layout>

@@ -1,0 +1,94 @@
+{
+ "kt": "5212250170",
+ "nafn": "Nova Innviðir ehf.",
+ "sott": "2026-07-20",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5212250170",
+    "kt": "5212250170",
+    "nafn": "Nova Innviðir ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Sigríður Olgeirsdóttir",
+    "tegund": "einst",
+    "faeding": "1960-MAÍ"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Hrund Rudolfsdóttir",
+    "tegund": "einst",
+    "faeding": "1969-MARS"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5212250170",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5212250170",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Sigríður Olgeirsdóttir",
+   "kt": null,
+   "faeding": "1960-MAÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Hrund Rudolfsdóttir",
+   "kt": null,
+   "faeding": "1969-MARS",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Sigríður Olgeirsdóttir",
+   "faeding": "1960-MAÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Hrund Rudolfsdóttir",
+   "faeding": "1969-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
