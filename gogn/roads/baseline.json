@@ -34,6 +34,22 @@
    "step": 5,
    "unit": "%",
    "label": "Nýbygginga-framboð (frávik)"
+  },
+  "skattar": {
+   "base": 0,
+   "min": -15,
+   "max": 15,
+   "step": 1,
+   "unit": "%",
+   "label": "Skattbreyting (frávik)"
+  },
+  "utgjold": {
+   "base": 0,
+   "min": -15,
+   "max": 15,
+   "step": 1,
+   "unit": "%",
+   "label": "Útgjöld ríkis (frávik)"
   }
  },
  "shocks": {
@@ -240,6 +256,42 @@
     1.227,
     1.2
    ]
+  },
+  "afkoma": {
+   "label": "Afkoma ríkissjóðs",
+   "unit": "% VLF",
+   "path": [
+    -0.65,
+    -0.636,
+    -0.623,
+    -0.609,
+    -0.595,
+    -0.582,
+    -0.568,
+    -0.555,
+    -0.541,
+    -0.527,
+    -0.514,
+    -0.5
+   ]
+  },
+  "skuldir": {
+   "label": "Skuldir ríkis",
+   "unit": "% VLF",
+   "path": [
+    38.8,
+    38.636,
+    38.473,
+    38.309,
+    38.145,
+    37.982,
+    37.818,
+    37.655,
+    37.491,
+    37.327,
+    37.164,
+    37
+   ]
   }
  },
  "clamp": {
@@ -278,6 +330,14 @@
   "vinnuafl": [
    -2,
    5
+  ],
+  "afkoma": [
+   -8,
+   6
+  ],
+  "skuldir": [
+   10,
+   120
   ]
  }
 }

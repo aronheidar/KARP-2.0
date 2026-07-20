@@ -340,5 +340,93 @@
   "ci_lo": 0.02,
   "ci_hi": 0.2,
   "source": "Aukið framboð vinnuafls (skammtíma frásog)"
+ },
+ {
+  "id": "tax_bal",
+  "from": "skattar",
+  "to": "afkoma",
+  "coef": 0.08,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.12,
+  "source": "Skattbreyting → tekjur ríkissjóðs"
+ },
+ {
+  "id": "exp_bal",
+  "from": "utgjold",
+  "to": "afkoma",
+  "coef": -0.08,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": -0.12,
+  "ci_hi": -0.04,
+  "source": "Útgjöld → gjöld ríkissjóðs"
+ },
+ {
+  "id": "gdp_bal",
+  "from": "hagvoxtur",
+  "to": "afkoma",
+  "coef": 0.3,
+  "lag": 1,
+  "unit": "%VLF/pp",
+  "ci_lo": 0.15,
+  "ci_hi": 0.45,
+  "source": "Sjálfvirkir jöfnarar (hærri VLF → meiri tekjur)"
+ },
+ {
+  "id": "unem_bal",
+  "from": "atvinnuleysi",
+  "to": "afkoma",
+  "coef": -0.2,
+  "lag": 1,
+  "unit": "%VLF/pp",
+  "ci_lo": -0.35,
+  "ci_hi": -0.08,
+  "source": "Atvinnuleysi → bætur + minni tekjur"
+ },
+ {
+  "id": "debt_carry",
+  "from": "skuldir",
+  "to": "skuldir",
+  "coef": 1,
+  "lag": 1,
+  "unit": "",
+  "ci_lo": 1,
+  "ci_hi": 1,
+  "source": "Skulda-uppsöfnun — fyrri staða flyst áfram (STOFN gegnum sjálf-lykkju)"
+ },
+ {
+  "id": "bal_debt",
+  "from": "afkoma",
+  "to": "skuldir",
+  "coef": -0.25,
+  "lag": 1,
+  "unit": "%VLF/%VLF",
+  "ci_lo": -0.35,
+  "ci_hi": -0.15,
+  "source": "Halli eykur skuldir (~afkoma/4 per ársfj.)"
+ },
+ {
+  "id": "tax_gdp",
+  "from": "skattar",
+  "to": "hagvoxtur",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.1,
+  "ci_hi": -0.01,
+  "source": "Skatta-drag á eftirspurn"
+ },
+ {
+  "id": "exp_gdp",
+  "from": "utgjold",
+  "to": "hagvoxtur",
+  "coef": 0.05,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.1,
+  "source": "Fjármála-margfaldari"
  }
 ]
