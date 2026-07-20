@@ -22,6 +22,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <div id="cmpbar" class="cmpbar" hidden></div>
       <div id="mcbar" class="mcbar" hidden></div>
       <div id="narrative" class="narrative" hidden></div>
+      <div id="challenges" class="challenges" hidden></div>
     </div>
     <div class="dash-body3" id="body3">
       <div class="controls" id="ctl-left">
@@ -36,6 +37,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
         <button id="share" type="button" title="Afritar hlekk sem geymir núverandi sviðsmynd — hægt að deila eða vista">🔗 Afrita hlekk á sviðsmynd</button>
         <button id="frett" type="button" title="Býr til frétta-drög á mannamáli um núverandi sviðsmynd — tilbúin til að afrita.">📄 Frétta-drög</button>
+        <button id="game" type="button" title="Kveikir á áskorunum — leystu þjóðhagsleg þrautir með því að stilla ákvarðanir. Uppfærist jafnóðum.">🎮 Áskoranir</button>
       </div>
       <div class="center"><div id="hero" class="hero"></div><div id="charts" class="charts"></div></div>
       <div class="controls" id="ctl-right">
@@ -174,7 +176,16 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .narrative .nv-act { margin-top: 8px; display: flex; gap: 8px; }
     main[data-pg="roads"] .narrative .nv-act button { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
     main[data-pg="roads"] .narrative .nv-act button.ok { color: #54d08a; border-color: #54d08a; }
-    main[data-pg="roads"] #frett { margin-top: 8px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
+    main[data-pg="roads"] #frett, main[data-pg="roads"] #game { margin-top: 8px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
+    main[data-pg="roads"] #game.on { color: #5ed3a5; border-color: #5ed3a5; }
+    main[data-pg="roads"] .challenges { background: rgba(94,211,165,.07); border: 1px solid rgba(94,211,165,.3); border-radius: 10px; padding: 10px 14px; margin: 0 0 12px; }
+    main[data-pg="roads"] .challenges .ch-h { font-size: 12.5px; font-weight: 800; color: #5ed3a5; margin-bottom: 7px; }
+    main[data-pg="roads"] .challenges .ch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 6px 16px; }
+    main[data-pg="roads"] .challenges .ch { font-size: 12px; display: flex; gap: 7px; align-items: baseline; }
+    main[data-pg="roads"] .challenges .ch .ci { font-size: 14px; flex: 0 0 auto; }
+    main[data-pg="roads"] .challenges .ch.done { color: var(--ink); }
+    main[data-pg="roads"] .challenges .ch.todo { color: var(--faint); }
+    main[data-pg="roads"] .challenges .ch b { color: var(--muted); font-weight: 700; }
     main[data-pg="roads"] .cmpbar { font-size: 12.5px; color: var(--ink); background: rgba(90,200,224,.08); border: 1px solid rgba(90,200,224,.3); border-radius: 10px; padding: 8px 13px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     main[data-pg="roads"] .cmpbar .sw { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; }
     main[data-pg="roads"] .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
@@ -217,7 +228,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import SCENARIOS from '@gogn/roads/scenarios.json';
     import HISTORY from '@gogn/roads/history.json';
 
-    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit', mc: null };
+    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit', mc: null, gameOn: false };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
     // Tab-skipulag (gagna-drifið): hver flipi sýnir sín ákvarðana-sett, hagvísa og hero-rit. Vélin keyrir alltaf FULLA módelið.
     const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
@@ -359,7 +370,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       if (state.autoPhi) syncSlider('laun', L.laun);
       const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: state.horizon });
       state._lastR = r;
-      drawHealth(r); drawScore(r); drawHero(r); drawCharts(r);
+      drawHealth(r); drawScore(r); drawHero(r); drawCharts(r); if (state.gameOn) drawChallenges(r);
       serialize();
     }
 
@@ -764,6 +775,24 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       document.getElementById('nv-close').addEventListener('click', () => { host.hidden = true; });
     }
 
+    // Leikja-hamur: þjóðhagslegar áskoranir sem uppfærast jafnóðum (markmið + skorður).
+    const CHALLENGES = [
+      { t: 'Verðbólgu-markmið', d: 'verðbólga í 2,3–2,7%', ok: (e) => e('verdbolga') >= 2.3 && e('verdbolga') <= 2.7 },
+      { t: 'Afgangur + full atvinna', d: 'afkoma > 0 og atvinnuleysi < 5%', ok: (e) => e('afkoma') > 0 && e('atvinnuleysi') < 5 },
+      { t: 'Grænt & vaxandi', d: 'losun < 95 og hagvöxtur > 1,5%', ok: (e) => e('losun') < 95 && e('hagvoxtur') > 1.5 },
+      { t: 'Húsnæði í böndum', d: 'húsnæði < 3% og leiga < 4%', ok: (e) => e('husnaedi') < 3 && e('leiga') < 4 },
+      { t: 'Sjálfbær sjávarútvegur', d: 'útflutningur > 3% og fiskistofn ≥ 98', ok: (e) => e('utflutningur') > 3 && e('fiskistofn') >= 98 },
+      { t: 'Fullkomið heilsufar', d: 'heilsufar 100/100', ok: (e, r) => Math.round(healthScore(r)) >= 100 },
+    ];
+    function drawChallenges(r) {
+      const host = document.getElementById('challenges'); if (!state.gameOn) { host.hidden = true; return; }
+      const e = (k) => { const o = r.outcomes[k]; return o ? o.mid[o.mid.length - 1] : 0; };
+      const res = CHALLENGES.map((c) => ({ c, done: c.ok(e, r) })), solved = res.filter((x) => x.done).length;
+      host.hidden = false;
+      host.innerHTML = `<div class="ch-h">🎮 Áskoranir — leyst ${solved}/${CHALLENGES.length}${solved === CHALLENGES.length ? ' · 🏆 ALLT LEYST!' : ' · stilltu ákvarðanir til að leysa'}</div><div class="ch-grid">`
+        + res.map((x) => `<div class="ch ${x.done ? 'done' : 'todo'}"><span class="ci">${x.done ? '✅' : '⬜'}</span><span><b>${x.c.t}:</b> ${x.c.d}</span></div>`).join('') + '</div>';
+    }
+
     function buildTabs() {
       const bar = document.getElementById('tabbar'); bar.innerHTML = '';
       TABS.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.title = t.label; b.classList.toggle('on', t.id === state.tab); b.addEventListener('click', () => switchTab(t.id)); bar.appendChild(b); });
@@ -818,6 +847,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       });
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
       document.getElementById('frett').addEventListener('click', generateNarrative);
+      document.getElementById('game').addEventListener('click', (e) => { state.gameOn = !state.gameOn; e.currentTarget.classList.toggle('on', state.gameOn); if (state.gameOn && state._lastR) drawChallenges(state._lastR); else document.getElementById('challenges').hidden = true; });
       document.getElementById('auto-tay').addEventListener('change', (e) => { state.autoTay = e.target.checked; if (!e.target.checked && state._sol) { state.levers.vextir = state._sol.vextir; syncSlider('vextir', state._sol.vextir); } applyAutoDisable(); run(); });
       document.getElementById('auto-phi').addEventListener('change', (e) => { state.autoPhi = e.target.checked; if (!e.target.checked && state._sol) { state.levers.laun = state._sol.laun; syncSlider('laun', state._sol.laun); } applyAutoDisable(); run(); });
     }
