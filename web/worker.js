@@ -2714,10 +2714,10 @@ async function topplistarHandler(request, env, ctx) {
     const now = Math.floor(Date.now() / 1000);
     entitled = topplistaEntitled(urow, now);
   }
-  const cacheKey = new Request('https://cache.karp.internal/api/topplistar?g=' + grein + '&r=' + radadKey + '&e=' + (entitled ? 1 : 0));
+  const cacheKey = new Request('https://cache.karp.internal/api/topplistar?g=' + grein + '&r=' + radadKey + '&e=' + (entitled ? 1 : 0) + '&v=2');
   const cache = caches.default;
   const hit = await cache.match(cacheKey);
-  if (hit) { const h = new Response(hit.body, hit); h.headers.set('cache-control', 'private, max-age=21600'); return h; }
+  if (hit) { const h = new Response(hit.body, hit); h.headers.set('cache-control', 'private, max-age=300'); return h; }
   const whereFilter = filter ? (filter + ' AND ') : '';
   const rows = (await env.TENGSL.prepare(
     `SELECT f.kt, f.nafn, fj.sala, fj.hagnadur, fj.eignir, fj.eigid_fe, fj.ar
@@ -2732,9 +2732,9 @@ async function topplistarHandler(request, env, ctx) {
   const body = { grein, radad: radadKey, ...topplistaBody(rows, entitled, rows.length), coverage: { greind, alls } };
   const payload = JSON.stringify(body);
   const baseHdr = { 'content-type': 'application/json; charset=utf-8' };
-  const cached = new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'public, max-age=21600' } });
+  const cached = new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'public, max-age=300' } });
   ctx.waitUntil(cache.put(cacheKey, cached.clone()));
-  return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=21600' } });
+  return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=300' } });
 }
 
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
