@@ -33,7 +33,6 @@ const baseline = {
     olia: { base: 0, min: -50, max: 100, step: 5, unit: '%', label: 'Olíuverð (frávik)' },
     gengi: { base: 0, min: -25, max: 25, step: 1, unit: '%', label: 'Gengi krónu (styrking +)' },
     ferdamenn: { base: 0, min: -40, max: 40, step: 5, unit: '%', label: 'Ferðamenn (frávik)' },
-    althjodavextir: { base: 0, min: -3, max: 3, step: 0.25, unit: 'pp', label: 'Alþjóðavextir (frávik)' },
   },
   outcomes: {
     verdbolga: { label: 'Verðbólga', unit: '%', path: glide(inflNow, 2.6) },
@@ -60,7 +59,6 @@ const links = [
   { id: 'fx_gdp', from: 'gengi', to: 'hagvoxtur', coef: -0.03, lag: 2, unit: 'pp/%', ci_lo: -0.07, ci_hi: 0.0, source: 'Sterk króna → lakari útflutningsvegur' },
   { id: 'tour_gdp', from: 'ferdamenn', to: 'hagvoxtur', coef: 0.03, lag: 1, unit: 'pp/%', ci_lo: 0.015, ci_hi: 0.05, source: 'Ferðaþjónusta ~8% VLF, ferdathjonusta × hagvoxtur' },
   { id: 'tour_unem', from: 'ferdamenn', to: 'atvinnuleysi', coef: -0.02, lag: 1, unit: 'pp/%', ci_lo: -0.04, ci_hi: -0.005, source: 'Ferðaþjónusta vinnuaflsfrek' },
-  { id: 'wr_infl', from: 'althjodavextir', to: 'vextir', coef: 0, lag: 0, unit: '', ci_lo: 0, ci_hi: 0, source: 'ATH: alþjóðavextir hafa ekki bein áhrif á útkomu í v0 (aðeins í gegnum gengi handvirkt)', note: 'placeholder — engin bein keðja í v0' },
   // Feedback-lykkjur (lag ≥ 1):
   { id: 'infl_wage', from: 'verdbolga', to: 'kaupmattur', coef: -1.0, lag: 0, unit: 'pp/pp', ci_lo: -1.0, ci_hi: -1.0, source: 'Skilgreining: kaupmáttur = nafnlaun − verðbólga' },
   { id: 'wage_kaup', from: 'laun', to: 'kaupmattur', coef: 1.0, lag: 0, unit: 'pp/pp', ci_lo: 1.0, ci_hi: 1.0, source: 'Skilgreining: nafnlauna-hluti kaupmáttar' },
