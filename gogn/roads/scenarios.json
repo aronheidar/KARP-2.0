@@ -88,5 +88,26 @@
    "adflutningur": -40
   },
   "sentence": "Snörp fækkun aðflutnings (−40%) dregur úr húsnæðis- og leigueftirspurn — kælir verð og leigu."
+ },
+ {
+  "id": "folksfjolgun",
+  "label": "Fólksfjölgun (+aðflutn. +frjós.)",
+  "tldr": "Ör fólksfjölgun",
+  "levers": {},
+  "shocks": {
+   "adflutningur": 40,
+   "frjosemi": 20
+  },
+  "sentence": "Ör fólksfjölgun (aðflutningur +40%, frjósemi +20%) eykur mannfjölda og vinnuafl — ýtir undir hagvöxt en einnig húsnæðis- og leigueftirspurn."
+ },
+ {
+  "id": "oldrun",
+  "label": "Öldrun (frjósemi −30%)",
+  "tldr": "Lækkandi frjósemi",
+  "levers": {},
+  "shocks": {
+   "frjosemi": -30
+  },
+  "sentence": "Lækkandi frjósemi (−30%) hefur hverfandi áhrif á 3 árum — raunveruleg áhrif á vinnuafl og framfærslubyrði koma áratugum síðar. Sjá mannfjöldaspá til 2074 á /mannfjoldi/."
  }
 ]

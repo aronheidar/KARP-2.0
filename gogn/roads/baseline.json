@@ -68,6 +68,14 @@
    "step": 10,
    "unit": "%",
    "label": "Aðflutningur (frávik)"
+  },
+  "frjosemi": {
+   "base": 0,
+   "min": -40,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Frjósemi (frávik)"
   }
  },
  "outcomes": {
@@ -196,6 +204,42 @@
     100,
     100
    ]
+  },
+  "mannfjoldi": {
+   "label": "Fólksfjölgun",
+   "unit": "%",
+   "path": [
+    1.3,
+    1.273,
+    1.245,
+    1.218,
+    1.191,
+    1.164,
+    1.136,
+    1.109,
+    1.082,
+    1.055,
+    1.027,
+    1
+   ]
+  },
+  "vinnuafl": {
+   "label": "Vinnuaflsvöxtur",
+   "unit": "%",
+   "path": [
+    1.5,
+    1.473,
+    1.445,
+    1.418,
+    1.391,
+    1.364,
+    1.336,
+    1.309,
+    1.282,
+    1.255,
+    1.227,
+    1.2
+   ]
   }
  },
  "clamp": {
@@ -226,6 +270,14 @@
   "greidslubyrdi": [
    50,
    200
+  ],
+  "mannfjoldi": [
+   -1,
+   4
+  ],
+  "vinnuafl": [
+   -2,
+   5
   ]
  }
 }

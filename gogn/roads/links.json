@@ -285,5 +285,60 @@
   "ci_lo": 0.1,
   "ci_hi": 0.5,
   "source": "Hærra veðhlutfall → stærra lán"
+ },
+ {
+  "id": "adf_pop",
+  "from": "adflutningur",
+  "to": "mannfjoldi",
+  "coef": 0.01,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.006,
+  "ci_hi": 0.016,
+  "source": "Aðflutningur = meginþáttur mannfjölgunar (Hagstofa)"
+ },
+ {
+  "id": "fer_pop",
+  "from": "frjosemi",
+  "to": "mannfjoldi",
+  "coef": 0.004,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.001,
+  "ci_hi": 0.008,
+  "source": "Fæðingar → höfðatala; ⚠langtíma-áhrif, 3-ára hverfandi — sjá /mannfjoldi/ (spá til 2074)"
+ },
+ {
+  "id": "adf_labor",
+  "from": "adflutningur",
+  "to": "vinnuafl",
+  "coef": 0.015,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.008,
+  "ci_hi": 0.024,
+  "source": "Vinnualdurs-innflytjendur → vinnuafl (Hagstofa/VMST)"
+ },
+ {
+  "id": "labor_gdp",
+  "from": "vinnuafl",
+  "to": "hagvoxtur",
+  "coef": 0.3,
+  "lag": 1,
+  "unit": "pp/pp",
+  "ci_lo": 0.15,
+  "ci_hi": 0.5,
+  "source": "Vinnuafl sem framleiðsluþáttur"
+ },
+ {
+  "id": "labor_unem",
+  "from": "vinnuafl",
+  "to": "atvinnuleysi",
+  "coef": 0.1,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": 0.02,
+  "ci_hi": 0.2,
+  "source": "Aukið framboð vinnuafls (skammtíma frásog)"
  }
 ]
