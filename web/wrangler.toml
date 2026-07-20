@@ -9,6 +9,9 @@ compatibility_date = "2026-06-29"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+# Greidd skýrslu-gögn (persónuupplýsingar + 990 kr vara): worker keyrir FYRST svo GÁTTIN í worker.js
+# nái þeim (annars þjónar CF static-skránum beint framhjá gátun). Aðrar slóðir þjónast beint sem áður.
+run_worker_first = ["/gogn/eigendur/*", "/gogn/arsreikningar/*", "/gogn/stjorn/*"]
 
 # Cron: viku-digest (mánud. 08:10 UTC) + frétta-innlestur í D1-safn (á 3 klst fresti, F7).
 # scheduled()-handler í worker.js greinir á milli á event.cron.
