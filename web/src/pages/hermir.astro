@@ -21,6 +21,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <p id="hnote" class="hnote" hidden></p>
       <div id="cmpbar" class="cmpbar" hidden></div>
       <div id="mcbar" class="mcbar" hidden></div>
+      <div id="narrative" class="narrative" hidden></div>
     </div>
     <div class="dash-body3" id="body3">
       <div class="controls" id="ctl-left">
@@ -34,6 +35,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <button id="mc" type="button" title="Keyrir hundruð herma með slembnum stuðlum innan óvissubils hvers tengsls → líkinda-viftur (5–95%) og líkinda-yfirlýsingar í stað fastra banda.">🎲 Óvissu-hermun</button>
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
         <button id="share" type="button" title="Afritar hlekk sem geymir núverandi sviðsmynd — hægt að deila eða vista">🔗 Afrita hlekk á sviðsmynd</button>
+        <button id="frett" type="button" title="Býr til frétta-drög á mannamáli um núverandi sviðsmynd — tilbúin til að afrita.">📄 Frétta-drög</button>
       </div>
       <div class="center"><div id="hero" class="hero"></div><div id="charts" class="charts"></div></div>
       <div class="controls" id="ctl-right">
@@ -166,6 +168,13 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .mcbar b { color: #b98cff; }
     main[data-pg="roads"] .mcbar .mcp { display: inline-block; margin-right: 16px; }
     main[data-pg="roads"] .mcbar .mcp b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .narrative { background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 12px 15px; margin: 0 0 12px; }
+    main[data-pg="roads"] .narrative .nv-h { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 5px; }
+    main[data-pg="roads"] .narrative .nv-b { font-size: 13px; color: var(--muted); line-height: 1.55; }
+    main[data-pg="roads"] .narrative .nv-act { margin-top: 8px; display: flex; gap: 8px; }
+    main[data-pg="roads"] .narrative .nv-act button { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    main[data-pg="roads"] .narrative .nv-act button.ok { color: #54d08a; border-color: #54d08a; }
+    main[data-pg="roads"] #frett { margin-top: 8px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
     main[data-pg="roads"] .cmpbar { font-size: 12.5px; color: var(--ink); background: rgba(90,200,224,.08); border: 1px solid rgba(90,200,224,.3); border-radius: 10px; padding: 8px 13px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     main[data-pg="roads"] .cmpbar .sw { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; }
     main[data-pg="roads"] .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
@@ -729,6 +738,32 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
+    // Auto-frétt: sjálfvirk frásögn af núverandi sviðsmynd (fyrsta útgáfa AI-fréttalags — regla-drifið úr útkomum).
+    function generateNarrative() {
+      const r = state._lastR; if (!r) return; const host = document.getElementById('narrative');
+      const yrs = state.horizon > BASELINE.quarters ? '10' : '3', desc = describeState(), health = Math.round(healthScore(r));
+      const gk = (k) => { const o = r.outcomes[k]; return o ? o.mid[o.mid.length - 1] : 0; };
+      const rangeOf = (k) => { const c = BASELINE.clamp[k]; return c ? (c[1] - c[0]) : 10; }; // stöðluð stærð hagvísis (til samanburðar % vs vísitölu)
+      const outs = Object.keys(r.outcomes).map((k) => { const o = r.outcomes[k], end = o.mid[o.mid.length - 1], dlt = end - o.baseline[o.baseline.length - 1]; return { k, label: o.label, end, dlt, us: o.unit === '% VLF' ? '%' : o.unit, sig: Math.abs(dlt) / rangeOf(k) }; });
+      const changed = outs.filter((x) => Math.abs(x.dlt) > 0.15).sort((a, b) => b.sig - a.sig);
+      const dir = (d) => (d > 0 ? 'hækkar' : 'lækkar'), uw = (us) => (us === '%' || us === 'pp' ? ' prósentustig' : us ? '' : ' stig');
+      const fmt = (x) => `${x.label.toLowerCase()} ${dir(x.dlt)} um ${num(Math.abs(x.dlt))}${uw(x.us)} og verður ${num(x.end)}${x.us}`;
+      let head, body;
+      if (!changed.length) {
+        head = 'Óbreytt stefna: grunnspáin gildir';
+        body = `Að ${yrs} árum liðnum, án breytinga á stefnu, gerir ROADS ráð fyrir verðbólgu ${num(gk('verdbolga'))}%, hagvexti ${num(gk('hagvoxtur'))}% og atvinnuleysi ${num(gk('atvinnuleysi'))}%. Þjóðhagslegt heilsufar mælist ${health}/100.`;
+      } else {
+        const t = changed[0];
+        head = `${t.label} ${dir(t.dlt)} í ${num(t.end)}${t.us} — ${health}/100 heilsufar`;
+        body = `Sviðsmyndin (${desc}) hefði þau áhrif að ${changed.slice(0, 4).map(fmt).join('; ')}. Að ${yrs} árum liðnum mælist þjóðhagslegt heilsufar ${health}/100.`;
+      }
+      body += ' Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.';
+      host.hidden = false;
+      host.innerHTML = `<div class="nv-h">📰 ${head}</div><div class="nv-b">${body}</div><div class="nv-act"><button id="nv-copy" type="button">📋 Afrita texta</button><button id="nv-close" type="button">✕ Loka</button></div>`;
+      document.getElementById('nv-copy').addEventListener('click', (e) => { navigator.clipboard.writeText('📰 ' + head + '\n\n' + body).then(() => { e.currentTarget.classList.add('ok'); e.currentTarget.textContent = '✓ Afritað'; }).catch(() => {}); });
+      document.getElementById('nv-close').addEventListener('click', () => { host.hidden = true; });
+    }
+
     function buildTabs() {
       const bar = document.getElementById('tabbar'); bar.innerHTML = '';
       TABS.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.title = t.label; b.classList.toggle('on', t.id === state.tab); b.addEventListener('click', () => switchTab(t.id)); bar.appendChild(b); });
@@ -782,6 +817,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         setTimeout(() => { runMC(); btn.classList.add('on'); btn.textContent = t0; btn.disabled = false; drawHero(state._lastR); drawMCbar(); }, 20);
       });
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
+      document.getElementById('frett').addEventListener('click', generateNarrative);
       document.getElementById('auto-tay').addEventListener('change', (e) => { state.autoTay = e.target.checked; if (!e.target.checked && state._sol) { state.levers.vextir = state._sol.vextir; syncSlider('vextir', state._sol.vextir); } applyAutoDisable(); run(); });
       document.getElementById('auto-phi').addEventListener('change', (e) => { state.autoPhi = e.target.checked; if (!e.target.checked && state._sol) { state.levers.laun = state._sol.laun; syncSlider('laun', state._sol.laun); } applyAutoDisable(); run(); });
     }

@@ -166,6 +166,13 @@ jobs:
           node skriptur/build_furduhagfraedi.mjs || true # launakapphlaupið: laun/húsnæði/verðlag (LAU04000/VIS01106/VIS01000) → furduhagfraedi.json
           node skriptur/build_hugverk.mjs     || true   # R&Þ-útgjöld (FYR05101) + nýskráð vörumerki (Hugverkastofan) → hugverk.json
 
+      # RAUNTÍMA ROADS: keyrt Á EFTIR öllum gagna-veitum svo BAU-ferlar (vextir/verðbólga/húsnæði/atvinnuleysi/leiga…) séu alltaf á „í dag".
+      - name: ROADS hermir (endurkvarða BAU + söguleg bakprófun úr ferskum gögnum)
+        run: |
+          node skriptur/build_roads.mjs        || true   # baseline/links/scenarios úr ferskum SÍ/Hagstofu/Þjóðskrá → grunnferill alltaf á núgildi
+          node skriptur/verify_roads_model.mjs || true   # heilbrigðis-eftirlit (feedback-regla/BAU/ci)
+          node skriptur/backtest_history.mjs   || true   # söguleg bakprófun 2010–2026 → gogn/roads/history.json
+
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:
           CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
