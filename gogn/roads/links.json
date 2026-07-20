@@ -1583,5 +1583,115 @@
   "ci_lo": 0.01,
   "ci_hi": 0.06,
   "source": "Hluti aðflutnings → landsbyggð"
+ },
+ {
+  "id": "rate_fx",
+  "from": "vextir",
+  "to": "gengi_endo",
+  "coef": 1.5,
+  "lag": 1,
+  "unit": "%/pp",
+  "ci_lo": 0.6,
+  "ci_hi": 2.5,
+  "source": "Vaxtamunur → fjármagns-innflæði → sterkari króna (óvarið vaxtajafnvægi)"
+ },
+ {
+  "id": "infl_fx",
+  "from": "verdbolga",
+  "to": "gengi_endo",
+  "coef": -1,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": -1.8,
+  "ci_hi": -0.4,
+  "source": "Hærri verðbólga → veikari króna (kaupmáttarjafnvægi/PPP)"
+ },
+ {
+  "id": "exp_fx",
+  "from": "utflutningur",
+  "to": "gengi_endo",
+  "coef": 0.25,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.1,
+  "ci_hi": 0.45,
+  "source": "Meiri útflutningur → betri viðskiptajöfnuður → sterkari króna"
+ },
+ {
+  "id": "fxendo_infl",
+  "from": "gengi_endo",
+  "to": "verdbolga",
+  "coef": -0.06,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.12,
+  "ci_hi": -0.02,
+  "source": "Sterk króna → lægra innflutt verð (endógen gengisyfirfærsla) — auka-rás peningastefnu"
+ },
+ {
+  "id": "fxendo_exp",
+  "from": "gengi_endo",
+  "to": "utflutningur",
+  "coef": -0.1,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": -0.18,
+  "ci_hi": -0.04,
+  "source": "Sterk króna → ósamkeppnishæfari útflutningur"
+ },
+ {
+  "id": "fxendo_gdp",
+  "from": "gengi_endo",
+  "to": "hagvoxtur",
+  "coef": -0.012,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.03,
+  "ci_hi": 0,
+  "source": "Sterk króna → lakari samkeppnisstaða útflutningsgreina"
+ },
+ {
+  "id": "infl_debt",
+  "from": "verdbolga",
+  "to": "skuldir",
+  "coef": -0.06,
+  "lag": 2,
+  "unit": "%VLF/pp",
+  "ci_lo": -0.12,
+  "ci_hi": -0.02,
+  "source": "Verðbólga étur raunvirði skulda (hærra nafn-VLF í nefnara skuldahlutfalls)"
+ },
+ {
+  "id": "wage_unem",
+  "from": "laun",
+  "to": "atvinnuleysi",
+  "coef": 0.03,
+  "lag": 3,
+  "unit": "pp/pp",
+  "ci_lo": 0.01,
+  "ci_hi": 0.06,
+  "source": "Hærri launakostnaður → færri ráðningar (tafið; vegur á móti neyslu-örvun launa)"
+ },
+ {
+  "id": "arrears_debt",
+  "from": "vanskil",
+  "to": "skuldir",
+  "coef": 0.02,
+  "lag": 3,
+  "unit": "%VLF/vísit",
+  "ci_lo": 0.005,
+  "ci_hi": 0.045,
+  "source": "Fjármálaáföll → björgunar-/stuðnings-skuldbindingar ríkissjóðs"
+ },
+ {
+  "id": "tour_hbs",
+  "from": "ferdamenn",
+  "to": "husnaedi_hbs",
+  "coef": 0.03,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.06,
+  "source": "Skammtímaleiga (Airbnb) → höfuðborgar-húsnæðisverð"
  }
 ]

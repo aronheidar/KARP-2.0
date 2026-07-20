@@ -173,7 +173,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
     const TABS = [
       { id: 'yfirlit', label: '📊 Yfirlit', levers: [], shocks: [], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'husnaedi', 'leiga', 'afkoma', 'skuldir', 'vanskil'] },
-      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
+      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'gengi_endo', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
       { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
       { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
       { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
@@ -204,6 +204,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       fiskistofn: 'Fiskistofn — sjálfbærni-vísitala (100). Hærra aflamark gengur á stofninn; lægra byggir hann upp. Ofveiði dregur úr sjálfbærum útflutningi tafið.',
       husnaedi_hbs: 'Húsnæðisverð á höfuðborgarsvæðinu — eftirspurnar-drifið (vextir/laun/aðflutningur ráða mestu). Berðu saman við landsbyggð til að sjá svæðabilið.',
       husnaedi_land: 'Húsnæðisverð á landsbyggð — framboðs-/byggða-drifið (nýbyggingar/byggðaáhersla/innviðir ráða mestu). Minna vaxta-næmt en höfuðborg.',
+      gengi_endo: 'Gengi krónu — ENDÓGEN viðbrögð (+ = styrking). Bregst við vöxtum (↑→styrking), verðbólgu (↑→veiking) og útflutningi; flyst til baka í innflutt verð og útflutning. Leggst við ytra gengis-sjokkið sem þú stillir.',
     };
     const LEV_TIP = {
       vextir: 'Stýrivextir Seðlabankans. Hærri → hægir á verðbólgu/húsnæði (töf), dregur úr hagvexti.',
@@ -241,7 +242,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
-    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0 };
+    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0 };
     const GOOD = '#54d08a', NEUT = '#e8c14a', BAD = '#e78284';
     const BAND = { '#54d08a': 'rgba(84,208,138,.13)', '#e8c14a': 'rgba(232,193,74,.12)', '#e78284': 'rgba(231,130,132,.13)' };
     // Litur eftir því hvort frávik frá grunnferli (BAU) er jákvætt/hlutlaust/neikvætt FYRIR þennan hagvísi.

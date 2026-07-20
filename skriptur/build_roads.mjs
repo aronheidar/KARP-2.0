@@ -98,9 +98,10 @@ const baseline = {
     fiskistofn: { label: 'Fiskistofn (vísit.)', unit: '', path: bau(100, 100) },
     husnaedi_hbs: { label: 'Húsnæði — höfuðborg (12-mán)', unit: '%', path: bau(houseNow, 3.5) },
     husnaedi_land: { label: 'Húsnæði — landsbyggð (12-mán)', unit: '%', path: bau(houseNow, 2.0) },
+    gengi_endo: { label: 'Gengi krónu — endógen (styrking +)', unit: '%', path: bau(0, 0) },
   },
   // clamp-mörk víkkuð til að ná yfir SÖGULEG bil 2010–2026 (sjá backtest_history.mjs): húsnæði ±33%, atvinnuleysi 17,8% (COVID)
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -270,6 +271,20 @@ const links = [
   { id: 'innv_land', from: 'innvidir', to: 'husnaedi_land', coef: 0.08, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Innviðir → aðgengi → hærra verð úti á landi' },
   { id: 'orka_land', from: 'orka', to: 'husnaedi_land', coef: 0.06, lag: 3, unit: '%/%', ci_lo: 0.02, ci_hi: 0.12, source: 'Stóriðju-verkefni → húsnæðiseftirspurn í nágrenni' },
   { id: 'mig_land', from: 'adflutningur', to: 'husnaedi_land', coef: 0.03, lag: 3, unit: '%/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Hluti aðflutnings → landsbyggð' },
+  // ── Yfirferð (module 12): ENDÓGENT GENGI + vantandi lykkjur ──
+  // Gengið bregst við undirstöðum (til viðbótar við ytra gengis-sjokkið sem notandi stillir):
+  { id: 'rate_fx', from: 'vextir', to: 'gengi_endo', coef: 1.5, lag: 1, unit: '%/pp', ci_lo: 0.6, ci_hi: 2.5, source: 'Vaxtamunur → fjármagns-innflæði → sterkari króna (óvarið vaxtajafnvægi)' },
+  { id: 'infl_fx', from: 'verdbolga', to: 'gengi_endo', coef: -1.0, lag: 2, unit: '%/pp', ci_lo: -1.8, ci_hi: -0.4, source: 'Hærri verðbólga → veikari króna (kaupmáttarjafnvægi/PPP)' },
+  { id: 'exp_fx', from: 'utflutningur', to: 'gengi_endo', coef: 0.25, lag: 2, unit: '%/%', ci_lo: 0.10, ci_hi: 0.45, source: 'Meiri útflutningur → betri viðskiptajöfnuður → sterkari króna' },
+  // …og flytur til baka (speglar gengis-sjokkið, leggst við það):
+  { id: 'fxendo_infl', from: 'gengi_endo', to: 'verdbolga', coef: -0.06, lag: 1, unit: 'pp/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Sterk króna → lægra innflutt verð (endógen gengisyfirfærsla) — auka-rás peningastefnu' },
+  { id: 'fxendo_exp', from: 'gengi_endo', to: 'utflutningur', coef: -0.10, lag: 2, unit: '%/%', ci_lo: -0.18, ci_hi: -0.04, source: 'Sterk króna → ósamkeppnishæfari útflutningur' },
+  { id: 'fxendo_gdp', from: 'gengi_endo', to: 'hagvoxtur', coef: -0.012, lag: 2, unit: 'pp/%', ci_lo: -0.03, ci_hi: 0.0, source: 'Sterk króna → lakari samkeppnisstaða útflutningsgreina' },
+  // Vantandi lykkjur:
+  { id: 'infl_debt', from: 'verdbolga', to: 'skuldir', coef: -0.06, lag: 2, unit: '%VLF/pp', ci_lo: -0.12, ci_hi: -0.02, source: 'Verðbólga étur raunvirði skulda (hærra nafn-VLF í nefnara skuldahlutfalls)' },
+  { id: 'wage_unem', from: 'laun', to: 'atvinnuleysi', coef: 0.03, lag: 3, unit: 'pp/pp', ci_lo: 0.01, ci_hi: 0.06, source: 'Hærri launakostnaður → færri ráðningar (tafið; vegur á móti neyslu-örvun launa)' },
+  { id: 'arrears_debt', from: 'vanskil', to: 'skuldir', coef: 0.02, lag: 3, unit: '%VLF/vísit', ci_lo: 0.005, ci_hi: 0.045, source: 'Fjármálaáföll → björgunar-/stuðnings-skuldbindingar ríkissjóðs' },
+  { id: 'tour_hbs', from: 'ferdamenn', to: 'husnaedi_hbs', coef: 0.03, lag: 2, unit: '%/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Skammtímaleiga (Airbnb) → höfuðborgar-húsnæðisverð' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
