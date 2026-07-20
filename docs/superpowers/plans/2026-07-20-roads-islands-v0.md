@@ -14,7 +14,7 @@
 - **Módelið er gögn, ekki kóði:** öll orsakasambönd í `links.json` (`coef,lag,source,ci_lo,ci_hi`). Vélin er almenn; að breyta módeli = breyta JSON.
 - **Vélin er isomorphic:** hrein JS, engar node-deps, keyrir í node (próf) OG í vafra (gagnvirkir sleðar). Engin `fs`/`process` í `engine.mjs`.
 - **Óvissa = jaðra-samsetning (deterministísk):** band per útkomu/ársfj. = `Σ ((ci_hi−ci_lo)/2 · |frávik_uppsprettu|)`; `lo=mid−band`, `hi=mid+band`. Ekki tölfræðilegt öryggisbil — næmni fyrir stuðla-óvissu. Óvissa er EKKI keyrð gegnum feedback-lykkjur í v0 (bein-tengsl-óvissa aðeins) — skjalfest einföldun.
-- **Feedback-regla:** útkoma→útkoma tengsl VERÐA að hafa `lag ≥ 1` (annars hringrás-lás innan ársfjórðungs). Vogarstöng/sjokk→útkoma mega hafa `lag ≥ 0`.
+- **Feedback-regla:** vogarstöng/sjokk→útkoma mega hafa `lag ≥ 0`. Útkoma→útkoma með `lag ≥ 1` er alltaf öruggt. Útkoma→útkoma með `lag 0` er leyft AÐEINS ef (a) það myndar ekki lag-0 hringrás og (b) uppspretta kemur á undan neytanda í `baseline.outcomes` lyklaröð (vélin reiknar í þeirri röð, svo `dev[uppspretta][t]` er þegar reiknað). Eina lag-0 útkoma→útkoma tengsl v0 er `verdbolga→kaupmattur` (verðbólga er 1. lykill, kaupmáttur 4. → í lagi, engin hringrás því kaupmáttur drífur ekkert).
 - **Frávik (deviation):** vogarstöng = `gildi − base`; sjokk = `gildi` (base 0, sjokk ER frávik); útkoma = `dev[from][t−lag]` (mið-frávik, tafið).
 - Astro `output:'static'`; scoped-CSS tré-hristist í runtime-innerHTML → nota `is:global`/inline fyrir client-teiknað efni (macro-dashboard gildra).
 - Heiðarleg merking áberandi: „stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá."
@@ -310,12 +310,16 @@ const R = join(dirname(fileURLToPath(import.meta.url)), '..', 'gogn', 'roads');
 const baseline = JSON.parse(readFileSync(join(R, 'baseline.json')));
 const links = JSON.parse(readFileSync(join(R, 'links.json')));
 let bad = 0;
-// (a) útkoma→útkoma tengsl VERÐA lag ≥ 1
-const outKeys = new Set(Object.keys(baseline.outcomes));
-for (const l of links) if (outKeys.has(l.from) && outKeys.has(l.to) && (l.lag || 0) < 1 && !(l.from === l.to)) {
-  // undanþága: skilgreiningar-tengsl (kaupmattur) mega hafa lag 0 því uppspretta er lever/annar
-}
-for (const l of links) if (outKeys.has(l.from) && outKeys.has(l.to) && (l.lag || 0) < 1) { console.log('⚠ útkoma→útkoma með lag<1:', l.id); bad++; }
+const outArr = Object.keys(baseline.outcomes);
+const outKeys = new Set(outArr);
+// (a) útkoma→útkoma með lag 0: bannað EF það myndar lag-0 hringrás; og uppspretta verður á undan
+//     neytanda í outcome-lyklaröð (vélin reiknar í þeirri röð). lag ≥ 1 er alltaf öruggt.
+const oo0 = links.filter((l) => outKeys.has(l.from) && outKeys.has(l.to) && (l.lag || 0) === 0);
+const adj = {}; for (const l of oo0) (adj[l.from] ||= []).push(l.to);
+const GREY = 1, BLACK = 2, color = {};
+const hasCycle = (n) => { color[n] = GREY; for (const m of (adj[n] || [])) { if (color[m] === GREY) return true; if (color[m] === undefined && hasCycle(m)) return true; } color[n] = BLACK; return false; };
+for (const n of Object.keys(adj)) if (color[n] === undefined && hasCycle(n)) { console.log('⚠ lag-0 hringrás um', n); bad++; }
+for (const l of oo0) if (outArr.indexOf(l.from) >= outArr.indexOf(l.to)) { console.log('⚠ lag-0 útkoma-röð röng (uppspretta ekki á undan neytanda):', l.id); bad++; }
 // (b) hver stuðull ber heimild + ci
 for (const l of links) if (!l.source || l.ci_lo === undefined || l.ci_hi === undefined) { console.log('⚠ tengsl vantar source/ci:', l.id); bad++; }
 // (c) grunn-keyrsla: engin breyting → mið == grunnur
@@ -328,9 +332,12 @@ console.log(bad ? `\n${bad} vandamál` : '\n✓ módel heilbrigt: feedback-regla
 process.exit(bad ? 1 : 0);
 ```
 
-> ATH: skilgreiningar-tengslin `infl_wage`/`wage_kaup` (kaupmáttur) hafa `lag 0` en uppspretta þeirra er `verdbolga`/`laun`. `laun` er lever-líkt drifið en `verdbolga` er útkoma → `infl_wage` (verdbolga→kaupmattur, lag 0) BROTNAR feedback-regluna. **Lagfæring í build_roads:** setja `infl_wage` með `lag: 0` er í lagi AÐEINS ef `kaupmattur` er reiknað EFTIR `verdbolga` innan ársfj. Til að forðast röð-ósjálfstæði: gefðu `infl_wage` og `house_infl`/`gdp_unem` (útkoma→útkoma) öllum `lag ≥ 1`. Uppfærðu `infl_wage` í `lag: 0`→ færðu kaupmátt-skilgreiningu í UI-afleiðslu í staðinn (sjá Task 3), EÐA haltu `lag:0` og tryggðu að `verdbolga` sé í `outKeys` á undan `kaupmattur` (það er — Object key röð). Velja: **halda `lag:0` fyrir skilgreiningar-tengsl og reikna `kaupmattur` síðast**; verify-skriptið sleyfir skilgreiningar-tengsl (undanþága skjalfest).
-
-Uppfæra `verify_roads_model.mjs` (b)-lykkju svo skilgreiningar-tengsl (`infl_wage`,`wage_kaup`) séu undanþegin lag-reglunni, EN aðeins ef `kaupmattur` kemur síðast í `baseline.outcomes` röð. Í `build_roads.mjs`: raða `outcomes` svo `kaupmattur` sé síðasti lykill (það er nú þegar). Bæta í `engine.mjs` engu — röðin í `Object.keys` heldur.
+> ATH (skilgreiningar-tengsl): `infl_wage` (verdbolga→kaupmattur, lag 0) og `wage_kaup`
+> (laun→kaupmattur, lag 0) skilgreina kaupmátt = nafnlaun − verðbólga. `wage_kaup` er
+> lever→útkoma (alltaf í lagi). `infl_wage` er útkoma→útkoma lag 0 — LÖGLEGT skv. feedback-reglu
+> því (a) engin lag-0 hringrás (kaupmáttur drífur ekkert) og (b) `verdbolga` er á undan
+> `kaupmattur` í `outcomes`-röð. Verify-skriptið hér að ofan sannreynir einmitt þetta (lag-0
+> hringrás + röð), svo það stenst án undanþágu. Halda `outcomes`-röð: verdbolga … kaupmattur (síðar).
 
 Run: `node skriptur/verify_roads_model.mjs`
 Expected: `✓ módel heilbrigt: …`, exit 0.
