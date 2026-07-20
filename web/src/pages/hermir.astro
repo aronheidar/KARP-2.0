@@ -13,32 +13,38 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div class="dash-top">
       <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
       <p class="disc" id="disc"></p>
+      <div class="tabbar" id="tabbar"></div>
       <div class="r-topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
+      <div id="realnow" class="realnow"></div>
       <div id="scn" class="scn"></div>
       <p id="news" class="news" hidden></p>
       <p id="hnote" class="hnote" hidden></p>
       <div id="cmpbar" class="cmpbar" hidden></div>
     </div>
-    <div class="dash-body3">
-      <div class="controls">
-        <div class="ctl-h">🎚️ Þínar ákvarðanir</div>
+    <div class="dash-body3" id="body3">
+      <div class="controls" id="ctl-left">
+        <div class="ctl-h" id="ctl-left-h">🎚️ Ákvarðanir</div>
         <button id="karp" type="button" title="Leitar sjálfkrafa í gegnum allar ákvarðana-stillingar að þeirri samsetningu sem hámarkar þjóðhagslegt heilsufar (miðað við núverandi sjóndeildarhring og hlutlaus ytri áhrif).">🏆 KARP-lausnin — besta útkoman</button>
-        <label class="auto" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
-        <label class="auto" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
+        <label class="auto" id="lbl-tay" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
+        <label class="auto" id="lbl-phi" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
         <div id="levers"></div>
+        <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir. Eða prófaðu sviðsmynd eða KARP-lausnina.</p>
         <button id="rs" type="button">↺ Núllstilla</button>
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
         <button id="share" type="button" title="Afritar hlekk sem geymir núverandi sviðsmynd — hægt að deila eða vista">🔗 Afrita hlekk á sviðsmynd</button>
       </div>
-      <div id="charts" class="charts"></div>
-      <div class="controls">
-        <div class="ctl-h">⚡ Heimurinn / ytri áhrif</div>
+      <div class="center"><div id="hero" class="hero"></div><div id="charts" class="charts"></div></div>
+      <div class="controls" id="ctl-right">
+        <div class="ctl-h">⚡ Ytri áhrif</div>
         <div id="shocks"></div>
-        <p class="hint">Hreyfðu bendil yfir sleða til að lýsa upp hagvísana sem hann drífur.</p>
+        <p class="hint" id="shock-hint">Hreyfðu bendil yfir sleða til að lýsa upp hagvísana sem hann drífur.</p>
       </div>
     </div>
-    <details class="chainmap"><summary>🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</summary><div id="cmwrap"><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div></details>
-    <details class="transp"><summary>⚙︎ Sjá öll orsakasambönd, stuðla og heimildir</summary><div id="lnks"></div></details>
+    <div id="modelview" class="modelview" hidden>
+      <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div>
+      <div id="backtest" class="backtest"></div>
+      <details class="transp" open><summary>⚙︎ Öll orsakasambönd, stuðlar og heimildir</summary><div id="lnks"></div></details>
+    </div>
     <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ROADS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
 
@@ -71,6 +77,30 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .dash-body3 { display: grid; grid-template-columns: 232px minmax(0,1fr) 232px; gap: 14px; align-items: start; }
     @media (max-width: 1080px) { main[data-pg="roads"] .dash-body3 { grid-template-columns: 210px minmax(0,1fr); } main[data-pg="roads"] .controls:last-child { grid-column: 1 / -1; } }
     @media (max-width: 720px) { main[data-pg="roads"] .dash-body3 { grid-template-columns: 1fr; } }
+    main[data-pg="roads"] .dash-body3.no-right { grid-template-columns: 232px minmax(0,1fr); }
+    @media (max-width: 1080px) { main[data-pg="roads"] .dash-body3.no-right { grid-template-columns: 210px minmax(0,1fr); } }
+    main[data-pg="roads"] .tabbar { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 12px; border-bottom: 1px solid var(--line); }
+    main[data-pg="roads"] .tabbar button { background: transparent; border: 1px solid transparent; border-bottom: none; color: var(--muted); border-radius: 9px 9px 0 0; padding: 8px 13px; font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: -1px; }
+    main[data-pg="roads"] .tabbar button:hover { color: var(--ink); }
+    main[data-pg="roads"] .tabbar button.on { color: #f6b13b; border-color: var(--line); border-bottom: 1px solid var(--panel); background: var(--panel); }
+    main[data-pg="roads"] .realnow { display: flex; flex-wrap: wrap; gap: 7px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; margin: 0 0 12px; }
+    main[data-pg="roads"] .realnow .rn-h { font-size: 11px; font-weight: 800; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; align-self: center; margin-right: 4px; }
+    main[data-pg="roads"] .realnow .rn { font-size: 12.5px; color: var(--muted); }
+    main[data-pg="roads"] .realnow .rn b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .center { min-width: 0; }
+    main[data-pg="roads"] .hero { margin-bottom: 12px; }
+    main[data-pg="roads"] .hero:empty { display: none; }
+    main[data-pg="roads"] .hero-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    main[data-pg="roads"] .hero-card .hc-t { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+    main[data-pg="roads"] .hero-card .hc-s { font-size: 11.5px; color: var(--faint); margin-bottom: 8px; }
+    main[data-pg="roads"] .hero-card canvas { width: 100%; height: 190px; display: block; }
+    main[data-pg="roads"] .hero-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+    main[data-pg="roads"] .hero-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    main[data-pg="roads"] .hero-legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+    main[data-pg="roads"] .c-now { font-size: 10px; color: var(--faint); font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .modelview { margin-top: 6px; }
+    main[data-pg="roads"] .cm-title { font-size: 13px; font-weight: 700; color: #f6b13b; margin-bottom: 8px; }
+    main[data-pg="roads"] .backtest { margin: 18px 0; }
     main[data-pg="roads"] .controls { position: sticky; top: 60px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
     main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 8px; }
     main[data-pg="roads"] .auto { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 6px; cursor: pointer; }
@@ -136,8 +166,21 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import LINKS from '@gogn/roads/links.json';
     import SCENARIOS from '@gogn/roads/scenarios.json';
 
-    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters };
+    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit' };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
+    // Tab-skipulag (gagna-drifið): hver flipi sýnir sín ákvarðana-sett, hagvísa og hero-rit. Vélin keyrir alltaf FULLA módelið.
+    const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
+    const TABS = [
+      { id: 'yfirlit', label: '📊 Yfirlit', levers: [], shocks: [], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'husnaedi', 'leiga', 'afkoma', 'skuldir', 'vanskil'] },
+      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
+      { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
+      { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
+      { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
+      { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn'], hero: { title: 'Sjálfbærni — CO₂-losun & fiskistofn', series: ['losun', 'fiskistofn'] } },
+      { id: 'byggd', label: '🗺️ Byggð & nýsköpun', levers: ['byggdastefna', 'ivilnanir', 'menntun', 'ferdamannagjald'], shocks: [], out: ['byggdajofnudur', 'nyskopun', 'hagvoxtur', 'utflutningur'], hero: { title: 'Byggðajöfnuður & nýsköpun', series: ['byggdajofnudur', 'nyskopun'] } },
+      { id: 'model', label: '🕸️ Módel & gögn', model: true },
+    ];
+    const curTab = () => TABS.find((t) => t.id === state.tab) || TABS[0];
     const num = (v, d = 1) => (v == null ? '–' : v.toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d }));
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lbl = (k) => BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k;
@@ -227,6 +270,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       for (const k in state.shocks) if (state.shocks[k] != null) p.set('s.' + k, state.shocks[k]);
       let a = ''; if (state.autoTay) a += 't'; if (state.autoPhi) a += 'p'; if (a) p.set('a', a);
       if (state.horizon !== BASELINE.quarters) p.set('h', state.horizon);
+      if (state.tab !== 'yfirlit') p.set('tb', state.tab);
       const h = p.toString();
       try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); } catch (e) {}
     }
@@ -238,6 +282,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         else if (k.startsWith('s.') && BASELINE.shocks[k.slice(2)]) { state.shocks[k.slice(2)] = +v; any = true; }
         else if (k === 'a') { state.autoTay = v.includes('t'); state.autoPhi = v.includes('p'); any = true; }
         else if (k === 'h') { const hv = +v; if (hv >= BASELINE.quarters && hv <= MAXQ) { state.horizon = hv; any = true; } }
+        else if (k === 'tb') { if (TABS.some((t) => t.id === v)) { state.tab = v; any = true; } }
       }
       return any;
     }
@@ -249,9 +294,38 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       if (state.autoPhi) syncSlider('laun', L.laun);
       const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: state.horizon });
       state._lastR = r;
-      drawHealth(r); drawScore(r); drawCharts(r);
+      drawHealth(r); drawScore(r); drawHero(r); drawCharts(r);
       serialize();
     }
+
+    // Hero-rit hvers flipa: breið fjöl-lína af lykil-hagvísum (deilt ás), grunnferill punktaður, valkvæð markmiðs-lína.
+    function drawHero(r) {
+      const host = document.getElementById('hero'); host.innerHTML = '';
+      const tab = curTab(); if (!tab.hero) return;
+      const series = tab.hero.series.filter((k) => r.outcomes[k]); if (!series.length) return;
+      const card = document.createElement('div'); card.className = 'hero-card';
+      const yrs = state.horizon > BASELINE.quarters ? '10' : '3';
+      card.innerHTML = `<div class="hc-t">${tab.hero.title}</div><div class="hc-s">Ferlar næstu ${yrs} ár · heil lína = sviðsmynd, punktalína = grunnferill (BAU)${tab.hero.target != null ? ' · strikalína = markmið' : ''} · skyggt = óvissa</div><canvas></canvas><div class="hero-legend"></div>`;
+      host.appendChild(card);
+      const cv = card.querySelector('canvas'); const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = cv.clientWidth || 600, h = 190; cv.width = w * dpr; cv.height = h * dpr; const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+      let all = []; series.forEach((k) => { const o = r.outcomes[k]; all = all.concat(o.lo, o.hi, o.baseline); }); if (tab.hero.target != null) all.push(tab.hero.target);
+      let mn = Math.min(...all), mx = Math.max(...all); if (mx - mn < 1) { const m = (mx + mn) / 2; mn = m - 1; mx = m + 1; } const padY = (mx - mn) * 0.08; mn -= padY; mx += padY;
+      const n = r.outcomes[series[0]].mid.length, padL = 34, padR = 8, padT = 8, padB = 18;
+      const X = (i) => padL + (w - padL - padR) * i / (n - 1), Y = (v) => (h - padB) - (h - padT - padB) * (v - mn) / (mx - mn);
+      // ás-merki
+      ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.fillStyle = 'rgba(159,176,200,.7)'; ctx.font = '10px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let g = 0; g <= 4; g++) { const v = mn + (mx - mn) * g / 4, y = Y(v); ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke(); ctx.fillText(num(v, Math.abs(mx - mn) > 20 ? 0 : 1), padL - 4, y); }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('í dag', X(0), h - padB + 3); ctx.fillText('+' + yrs + ' ár', X(n - 1), h - padB + 3);
+      if (tab.hero.target != null) { ctx.beginPath(); ctx.setLineDash([6, 4]); ctx.moveTo(padL, Y(tab.hero.target)); ctx.lineTo(w - padR, Y(tab.hero.target)); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]); }
+      const line = (arr, col, lw, dash) => { ctx.beginPath(); arr.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = col; ctx.setLineDash(dash || []); ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(); ctx.setLineDash([]); };
+      series.forEach((k, si) => { const o = r.outcomes[k], col = HPAL[si % HPAL.length];
+        ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0])); for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i])); for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i])); ctx.closePath(); ctx.fillStyle = hexA(col, .09); ctx.fill();
+        line(o.baseline, hexA(col, .5), 1.2, [3, 3]); line(o.mid, col, 2.2);
+      });
+      const leg = card.querySelector('.hero-legend'); series.forEach((k, si) => { const s = document.createElement('span'); s.innerHTML = `<i style="background:${HPAL[si % HPAL.length]}"></i>${r.outcomes[k].label}`; leg.appendChild(s); }); if (tab.hero.target != null) { const s = document.createElement('span'); s.innerHTML = `<i style="background:rgba(255,255,255,.5)"></i>markmið ${num(tab.hero.target)}%`; leg.appendChild(s); }
+    }
+    const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
 
     function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); }
 
@@ -283,11 +357,14 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function drawCharts(r) {
       const host = document.getElementById('charts'); host.innerHTML = '';
       const cmpR = state.compare ? state.compare.r : null;
-      for (const k of Object.keys(r.outcomes)) { const o = r.outcomes[k]; const { dlt, c } = dInfo(o, k); const end = o.mid[o.mid.length - 1];
+      const tab = curTab(), outList = tab.out || Object.keys(r.outcomes);
+      for (const k of outList) { const o = r.outcomes[k]; if (!o) continue; const { dlt, c } = dInfo(o, k); const end = o.mid[o.mid.length - 1];
         const cmp = cmpR ? cmpR.outcomes[k] : null; const us = o.unit === '% VLF' ? '%' : o.unit;
+        const idx = o.unit === '' ? ' (vísitala)' : ''; // vísitölur: 100 = staðan í dag
+        const today = o.baseline[0]; // raun-gildi í dag (upphaf grunnferils)
         const card = document.createElement('div'); card.className = 'card'; card.dataset.k = k;
         card.title = (OUT_TIP[k] || o.label) + (driversOf(k).length ? ' Drifið af: ' + driversOf(k).join(', ') + '.' : '') + ' (grænt=jákvæð þróun, gult=hlutlaust, rautt=neikvæð fyrir þennan hagvísi).';
-        card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${us}${cmp ? ` <span class="c-b">⚖ ${num(cmp.mid[cmp.mid.length - 1])}${us}</span>` : ''}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill (BAU)"><span class="c-gb"></span><span class="c-gm"></span></div>`;
+        card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${us}${cmp ? ` <span class="c-b">⚖ ${num(cmp.mid[cmp.mid.length - 1])}${us}</span>` : ''}</div><div class="c-now">í dag: ${num(today)}${us}${idx}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill (BAU)"><span class="c-gb"></span><span class="c-gm"></span></div>`;
         host.appendChild(card);
         drawTrace(card.querySelector('canvas'), o, cmp, c);
         const cl = (BASELINE.clamp || {})[k] || [Math.min(...o.lo), Math.max(...o.hi)];
@@ -337,9 +414,16 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         host.appendChild(el);
       };
       const lh = document.getElementById('levers'), sh = document.getElementById('shocks'); lh.innerHTML = ''; sh.innerHTML = '';
+      const tab = curTab(), levSet = new Set(tab.levers || []), shkSet = new Set(tab.shocks || []);
       let curGroup = '';
-      for (const k in BASELINE.levers) { const cfg = BASELINE.levers[k]; if (cfg.group && cfg.group !== curGroup) { curGroup = cfg.group; const h = document.createElement('div'); h.className = 'sl-group'; h.textContent = cfg.group; lh.appendChild(h); } mk(lh, k, cfg, 'levers'); }
-      for (const k in BASELINE.shocks) mk(sh, k, BASELINE.shocks[k], 'shocks');
+      for (const k in BASELINE.levers) { if (!levSet.has(k)) continue; const cfg = BASELINE.levers[k]; if (cfg.group && cfg.group !== curGroup) { curGroup = cfg.group; const h = document.createElement('div'); h.className = 'sl-group'; h.textContent = cfg.group; lh.appendChild(h); } mk(lh, k, cfg, 'levers'); }
+      for (const k in BASELINE.shocks) { if (!shkSet.has(k)) continue; mk(sh, k, BASELINE.shocks[k], 'shocks'); }
+      document.getElementById('lever-hint').hidden = levSet.size > 0;
+      document.getElementById('ctl-right').hidden = shkSet.size === 0;
+      document.getElementById('body3').classList.toggle('no-right', shkSet.size === 0);
+      const showAuto = levSet.has('vextir') || levSet.has('laun');
+      document.getElementById('lbl-tay').hidden = !levSet.has('vextir');
+      document.getElementById('lbl-phi').hidden = !levSet.has('laun');
       applyAutoDisable();
     }
 
@@ -469,15 +553,33 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
+    function buildTabs() {
+      const bar = document.getElementById('tabbar'); bar.innerHTML = '';
+      TABS.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.title = t.label; b.classList.toggle('on', t.id === state.tab); b.addEventListener('click', () => switchTab(t.id)); bar.appendChild(b); });
+    }
+    function switchTab(id) { state.tab = id; [...document.getElementById('tabbar').children].forEach((b, i) => b.classList.toggle('on', TABS[i].id === id)); renderTab(); serialize(); }
+    function renderTab() {
+      const tab = curTab(), isModel = !!tab.model;
+      document.getElementById('body3').hidden = isModel;
+      document.getElementById('modelview').hidden = !isModel;
+      if (isModel) return; // keðju-kort/tafla þegar byggð í init
+      buildControls(); run();
+    }
+    function buildRealNow() {
+      const host = document.getElementById('realnow'); if (!host) return; const O = BASELINE.outcomes, L = BASELINE.levers;
+      const items = [['Stýrivextir', L.vextir.base, '%', 2], ['Verðbólga', O.verdbolga.path[0], '%'], ['Hagvöxtur', O.hagvoxtur.path[0], '%'], ['Atvinnuleysi', O.atvinnuleysi.path[0], '%'], ['Húsnæðisverð', O.husnaedi.path[0], '% 12m'], ['Leiga', O.leiga.path[0], '% 12m'], ['Afkoma ríkis', O.afkoma.path[0], '% VLF'], ['Skuldir ríkis', O.skuldir.path[0], '% VLF'], ['Fólksfjölgun', O.mannfjoldi.path[0], '%']];
+      host.innerHTML = '<span class="rn-h">📍 Staðan í dag</span>' + items.map(([l, v, u, d]) => `<span class="rn">${l} <b>${num(v, d ?? 1)}${u}</b></span>`).join('');
+    }
+
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildScenarios();
-      const restored = deserialize(); // sviðsmynd úr hlekk (ef til)
+      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap();
+      const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;
       applyHorizon();
-      buildControls(); run(); buildLinkTable(); buildChainMap();
+      buildTabs(); renderTab();
       if (restored) { const n = document.getElementById('news'); n.hidden = false; n.innerHTML = '🔗 <b>Sviðsmynd úr hlekk.</b> Stýringarnar sýna deilda sviðsmynd — breyttu að vild eða núllstilltu.'; }
       document.getElementById('rs').addEventListener('click', reset);
       document.getElementById('karp').addEventListener('click', (e) => {
