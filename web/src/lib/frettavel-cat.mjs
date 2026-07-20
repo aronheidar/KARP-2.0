@@ -26,6 +26,7 @@ export const CAT = {
   verdbolga:  { label: 'Verðbólga', emoji: '🛒', color: '#ff8a3d', img: 'verdbolga', heimild: 'Seðlabanki Íslands', rule: 'Ný mæling ársverðbólgu (vísitala neysluverðs) birt.' },
   // ── Viðskipti / lögbirting ──
   gjaldthrot: { label: 'Gjaldþrot', emoji: '💼', color: '#e0655f', img: 'gjaldthrot', heimild: 'Lögbirtingablaðið', rule: 'Ný gjaldþrotaskiptabeiðni eða skiptabeiðni lögaðila birt í Lögbirtingablaðinu.' },
+  throtlok:   { label: 'Þrotabú gert upp', emoji: '📕', color: '#7f8a9c', img: 'gjaldthrot', heimild: 'Lögbirtingablaðið', rule: 'Skiptum á þrotabúi lögaðila lokið (skiptalok) skv. Lögbirtingablaðinu.' },
   utbod:      { label: 'Útboðsbylgja', emoji: '📋', color: '#9d86ff', img: 'utbod', heimild: 'Útboðsgáttir', rule: '≥3 ný opinber útboð í sama flokki auglýst á einum degi.' },
   urslit:     { label: 'Útboðsniðurstaða', emoji: '🏆', color: '#f6b13b', img: 'utbod', heimild: 'TED / útboðsgáttir', rule: 'Samningur gerður eða tilboð opnuð í opinberu útboði.' },
   styrkur:    { label: 'Styrkur', emoji: '💰', color: '#42d086', img: 'styrkir', heimild: 'Opinberir sjóðir', rule: 'Nýr styrkur ≥15 m.kr. úthlutaður úr opinberum sjóði.' },
@@ -65,7 +66,7 @@ export const CAT = {
   eftirlit:   { label: 'Eftirlitsvaktin', emoji: '🍽️', color: '#ff8a3d', img: 'annad', heimild: 'Heilbrigðiseftirlit Reykjavíkur', rule: 'Breyting á fjölda matvæla-/veitingastaða í Reykjavík með stöðvaða eða takmarkaða starfsemi (einkunn 0–1 af 5). Aggregate — nefnir ekki einstaka staði.' },
 };
 export const SECTIONS = [
-  { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun', 'kvoti', 'rikisfe', 'birgirthrot', 'toppar', 'bygging', 'fyrvik', 'fonix'] },
+  { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'throtlok', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun', 'kvoti', 'rikisfe', 'birgirthrot', 'toppar', 'bygging', 'fyrvik', 'fonix'] },
   { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra', 'ees', 'nefnd'], skip_:0 },
   { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika', 'fastthr', 'leiga', 'samanburdur', 'thema'] },
   { key: 'domsmal', label: 'Dómsmál', types: ['domur', 'glaepir'] },

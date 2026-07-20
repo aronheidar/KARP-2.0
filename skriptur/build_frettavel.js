@@ -19,6 +19,7 @@
 // ─────────────────────────────────────────────────────────────
 const fs = require('fs');
 const path = require('path');
+const { pickThrotlok } = require('./throtlok_detect.js');
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
 const MODEL = process.env.KARP_FRETTAVEL_MODEL || 'claude-opus-4-8';
@@ -450,6 +451,11 @@ function detect(state) {
         title: `${heiti}: ${n.nafn}`,
         text: `${heiti} vegna ${n.nafn} birtist í Lögbirtingablaðinu ${n.date}${n.court ? ' (' + n.court + ')' : ''}${n.when ? `. Fyrirtaka málsins er ${n.when}` : ''}.` });
     });
+  }
+
+  // ── Þrotabú gert upp (skiptalok, Lögbirtingablaðið) — landar á kt með fullan feril → söguþráður "Lokið" ──
+  if (lb && lb.byKt) {
+    for (const it of pickThrotlok(lb.byKt, lb.typeLabels, { todayISO: TODAY, days: 30, max: 3 })) ev.push(it);
   }
 
   // ── Dómar Hæstaréttar/Landsréttar (AI-einfölduð reifun liggur fyrir í domar_ai) ──
