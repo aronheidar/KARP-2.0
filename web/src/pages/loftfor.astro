@@ -90,7 +90,7 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
     <h2>Leitaðu í skránni</h2>
     <p class="sub">Sláðu inn TF-númer, flugvélategund eða nafn eiganda. Skráin nær til {fmt(nUnique)} loftfara í eigu/rekstri lögaðila.</p>
     <div class="lf-controls">
-      <input id="lf-q" type="search" placeholder="🔎 Leita: TF-ABC, Boeing, Icelandair…" autocomplete="off" />
+      <input id="lf-q" type="search" placeholder="🔎 Leita: TF-ABC, Boeing, Icelandair…" autocomplete="off" aria-label="Leita að loftfari eftir einkennisstöfum, gerð eða eiganda" />
       <label class="lf-chk"><input type="checkbox" id="lf-active" /> Aðeins í rekstri</label>
     </div>
     <div id="lf-count" class="lf-cnt"></div>

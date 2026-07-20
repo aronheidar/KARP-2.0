@@ -140,7 +140,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
     <style is:global>
       :root { color-scheme: dark; --bg:#070b16; --surface:#0e1626; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.08); --ink:#eaf1fb; --muted:#9fb0c8; --faint:#7e8ca6; --gold:#f6b13b; }
       /* Ljóst þema (KREMAÐ) — virkjað með data-theme="light" á <html> (rofi í nav-foot + Stillingum) */
-      :root[data-theme="light"] { color-scheme: light; --bg:#f4efe3; --surface:#fffdf6; --panel:rgba(74,58,30,.05); --line:rgba(74,58,30,.16); --ink:#2a2417; --muted:#6a5f48; --faint:#8c8067; --gold:#8a5e00; }
+      :root[data-theme="light"] { color-scheme: light; --bg:#f4efe3; --surface:#fffdf6; --panel:rgba(74,58,30,.05); --line:rgba(74,58,30,.16); --ink:#2a2417; --muted:#6a5f48; --faint:#6f6349; --gold:#8a5e00; }
       /* Global ljós-þema lagfæring: form-stýringar + native fellilistar (mörg með harða dökka liti sem
          flippast ekki). !important yfirskrifar scoped einingastíla. Frekari fínstilling per síðu á eftir. */
       :root[data-theme="light"] select,
@@ -180,7 +180,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .nav-b { display:block; padding:6px 12px 6px 26px; border-radius:8px; text-decoration:none; color:var(--muted); color:#8b9cb5; font-size:13px; }
       .nav-b:hover { background:var(--panel); color:var(--ink); }
       .nav-b.on { background:rgba(246,177,59,.12); color:var(--gold); font-weight:600; }
-      .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#5a6678; font-weight:700; padding:10px 12px 3px 43px; }
+      .ng-sub { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:#8794aa; font-weight:700; padding:10px 12px 3px 43px; }
       .nav-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
       .nav-legal { display:block; margin-top:8px; font-size:12px; color:var(--muted); text-decoration:none; }
       .nav-legal:hover { color:var(--ink); }
@@ -342,11 +342,11 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <div class="news-cats" id="news-cats">
           <button class="nc on" data-e="">Allt</button>
           <button class="nc" data-e="__karp" title="Karp-fréttir — skrifaðar sjálfvirkt úr gögnunum">🐟</button>
-          <button class="nc" data-e="efnahagur">💹</button>
-          <button class="nc" data-e="stjornmal">🏛️</button>
-          <button class="nc" data-e="sveitarfelog">🏘️</button>
-          <button class="nc" data-e="althjoda">🌍</button>
-          <button class="nc" data-e="samfelag">👥</button>
+          <button class="nc" data-e="efnahagur" aria-label="Efnahagur" title="Efnahagur">💹</button>
+          <button class="nc" data-e="stjornmal" aria-label="Stjórnmál" title="Stjórnmál">🏛️</button>
+          <button class="nc" data-e="sveitarfelog" aria-label="Sveitarfélög" title="Sveitarfélög">🏘️</button>
+          <button class="nc" data-e="althjoda" aria-label="Alþjóðamál" title="Alþjóðamál">🌍</button>
+          <button class="nc" data-e="samfelag" aria-label="Samfélag" title="Samfélag">👥</button>
           <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">🗺️</button>
         </div>
         <div id="news-list">Hleð…</div>
