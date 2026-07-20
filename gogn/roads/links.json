@@ -1,0 +1,190 @@
+[
+ {
+  "id": "r_infl",
+  "from": "vextir",
+  "to": "verdbolga",
+  "coef": -0.15,
+  "lag": 4,
+  "unit": "pp/pp",
+  "ci_lo": -0.28,
+  "ci_hi": -0.06,
+  "source": "SÍ QMM peningastefnu-yfirfærsla (~1 árs töf)",
+  "note": "Aðhald lækkar verðbólgu tafið"
+ },
+ {
+  "id": "r_gdp",
+  "from": "vextir",
+  "to": "hagvoxtur",
+  "coef": -0.2,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": -0.35,
+  "ci_hi": -0.08,
+  "source": "SÍ QMM / OECD teygni"
+ },
+ {
+  "id": "r_unem",
+  "from": "vextir",
+  "to": "atvinnuleysi",
+  "coef": 0.1,
+  "lag": 4,
+  "unit": "pp/pp",
+  "ci_lo": 0.03,
+  "ci_hi": 0.18,
+  "source": "Okun-tengt, SÍ"
+ },
+ {
+  "id": "r_house",
+  "from": "vextir",
+  "to": "husnaedi",
+  "coef": -0.8,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": -1.3,
+  "ci_hi": -0.4,
+  "source": "Röð-metið: sedlabanki × fasteignir (2010–2026)"
+ },
+ {
+  "id": "w_infl",
+  "from": "laun",
+  "to": "verdbolga",
+  "coef": 0.3,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": 0.15,
+  "ci_hi": 0.45,
+  "source": "Launa-verð spírall, Hagstofa/SÍ"
+ },
+ {
+  "id": "w_house",
+  "from": "laun",
+  "to": "husnaedi",
+  "coef": 0.4,
+  "lag": 3,
+  "unit": "%/pp",
+  "ci_lo": 0.15,
+  "ci_hi": 0.7,
+  "source": "Kaupgeta → húsnæðiseftirspurn"
+ },
+ {
+  "id": "ltv_house",
+  "from": "vedhlutfall",
+  "to": "husnaedi",
+  "coef": 0.15,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": 0.05,
+  "ci_hi": 0.3,
+  "source": "Þjóðhagsvarúð, HMS/FME"
+ },
+ {
+  "id": "oil_infl",
+  "from": "olia",
+  "to": "verdbolga",
+  "coef": 0.02,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.035,
+  "source": "Olíuverðs-yfirfærsla, Hagstofa VNV-vægi"
+ },
+ {
+  "id": "fx_infl",
+  "from": "gengi",
+  "to": "verdbolga",
+  "coef": -0.06,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.12,
+  "ci_hi": -0.02,
+  "source": "Gengisyfirfærsla (styrking lækkar innflutt verð)"
+ },
+ {
+  "id": "fx_gdp",
+  "from": "gengi",
+  "to": "hagvoxtur",
+  "coef": -0.03,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.07,
+  "ci_hi": 0,
+  "source": "Sterk króna → lakari útflutningsvegur"
+ },
+ {
+  "id": "tour_gdp",
+  "from": "ferdamenn",
+  "to": "hagvoxtur",
+  "coef": 0.03,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.015,
+  "ci_hi": 0.05,
+  "source": "Ferðaþjónusta ~8% VLF, ferdathjonusta × hagvoxtur"
+ },
+ {
+  "id": "tour_unem",
+  "from": "ferdamenn",
+  "to": "atvinnuleysi",
+  "coef": -0.02,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.04,
+  "ci_hi": -0.005,
+  "source": "Ferðaþjónusta vinnuaflsfrek"
+ },
+ {
+  "id": "infl_wage",
+  "from": "verdbolga",
+  "to": "kaupmattur",
+  "coef": -1,
+  "lag": 0,
+  "unit": "pp/pp",
+  "ci_lo": -1,
+  "ci_hi": -1,
+  "source": "Skilgreining: kaupmáttur = nafnlaun − verðbólga"
+ },
+ {
+  "id": "wage_kaup",
+  "from": "laun",
+  "to": "kaupmattur",
+  "coef": 1,
+  "lag": 0,
+  "unit": "pp/pp",
+  "ci_lo": 1,
+  "ci_hi": 1,
+  "source": "Skilgreining: nafnlauna-hluti kaupmáttar"
+ },
+ {
+  "id": "gdp_unem",
+  "from": "hagvoxtur",
+  "to": "atvinnuleysi",
+  "coef": -0.3,
+  "lag": 1,
+  "unit": "pp/pp",
+  "ci_lo": -0.5,
+  "ci_hi": -0.15,
+  "source": "Okun's law, íslensk aðlögun"
+ },
+ {
+  "id": "house_infl",
+  "from": "husnaedi",
+  "to": "verdbolga",
+  "coef": 0.05,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.09,
+  "source": "Reiknuð húsaleiga í VNV"
+ },
+ {
+  "id": "infl_wageloop",
+  "from": "verdbolga",
+  "to": "laun",
+  "coef": 0.35,
+  "lag": 4,
+  "unit": "pp/pp",
+  "ci_lo": 0.15,
+  "ci_hi": 0.55,
+  "source": "Verðbólga → næstu kjarasamningar (vísitölu-tenging)"
+ }
+]
