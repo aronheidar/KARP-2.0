@@ -1,0 +1,72 @@
+{
+ "kt": "5212250170",
+ "nafn": "Nova Innviðir ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.3495,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.8616,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": 0,
+    "ebit": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "eignir": 994740,
+    "hlutafe": 500,
+    "eigid_fe": 347620,
+    "skuldir": 647120,
+    "efe_skuldir": 994740,
+    "skammtimaskuldir": 647120
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": -2.7285,
+    "ROA": -0.2639,
+    "eiginfjarhlutfall": 0.0967,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 9.3393,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": -272717,
+    "ebit": -272717,
+    "fjarmagnsgjold": -45263,
+    "hagn_f_skatt": -317980,
+    "tekjuskattur": 63591,
+    "hagnadur": -254388
+   },
+   "efnahagur": {
+    "eignir": 963951,
+    "hlutafe": 500,
+    "eigid_fe": 93232,
+    "skuldir": 870719,
+    "efe_skuldir": 963951,
+    "skammtimaskuldir": 870719
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5212250170.pdf",
+ "pdfAr": "2025"
+}
