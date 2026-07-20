@@ -212,7 +212,9 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
         const div = document.createElement('div'); div.className = 'c-pk'; div.innerHTML = pkgTable(r);
         card.appendChild(div);
       });
-      paintLyf(); // hydra sjálfgefna sýn með ríkari spjöldum (verð + aukning)
+      // Frestuð hydrun (#3): SSG-spjöldin birtast strax; 1,9MB lyf.json sótt á LAUSUM tíma til auðgunar
+      // (verð + aukning) svo það blokkeri ekki fyrstu hleðslu/LCP. Leit/síun sækir líka gögnin (lazy).
+      (window.requestIdleCallback || ((cb) => setTimeout(cb, 1500)))(() => paintLyf());
     }
     document.addEventListener('astro:page-load', initLyf);
   </script>
