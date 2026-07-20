@@ -1,13 +1,11 @@
 ---
-// /innskra/ — native Karp innskráningarsíða. Formið POST-ar beint (top-level) á
-// wp-login.php á wp.karp.is → engin CORS. WordPress setur innskráningarkökuna á
-// .karp.is (COOKIE_DOMAIN) svo hún gildir strax á karp.is. ENGINN `testcookie`-reitur
-// (þá sleppir WP „Cookies are blocked"-villunni sem er gátuð á isset($_POST['testcookie'])).
-// Villur skila sér aftur hingað gegnum karp-auth-pages.php (wp_login_failed → ?villa=).
+// /innskra/ — native Karp innskráningarsíða. Formið er gripið client-hlið og POST-ar á
+// karp21-worker (/api/auth/login → D1); worker setur undirritaða lotu-köku á .karp.is.
+// Villuboð eru samræmd fyrir alla ranga-skilríkja kóða (engin notenda-upptalning).
+// (Áður: wp-login.php á wp.karp.is.)
 import Layout from '../layouts/Layout.astro';
 import AuthShell from '../components/AuthShell.astro';
 const desc = 'Skráðu þig inn á Karp — aðgangur að Karp+ vöktun, stefnuprófi, uppáhaldsgröfum og persónulegu yfirliti.';
-const WP_LOGIN = 'https://wp.karp.is/wp-login.php';
 ---
 <Layout title="Skrá inn — Karp" description={desc} canonical="https://karp.is/innskra/" ogTitle="Skrá inn á Karp" noindex={true}>
   <AuthShell pg="innskra" heading="Skrá inn" sub="Aðgangur að Karp+ og þínu persónulega svæði.">

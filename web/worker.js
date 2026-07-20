@@ -2105,7 +2105,7 @@ function felagMainHtml(f, kt) {
     cell('Sveitarfélag', f.svf),
     cell('Rekstrarform', f.form),
     cell('Stofnað / skráð', f.skrad),
-    cell('Hlutafé', f.hlutafe ? `${f.hlutafe}${f.mynt ? ' ' + f.mynt : ''}` : ''),
+    cell('Hlutafé', f.hlutafe ? `${String(f.hlutafe).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}${f.mynt ? ' ' + f.mynt : ''}` : ''),
     cell('VSK-númer', f.vsk && f.vsk[0] ? f.vsk[0].nr : ''),
   ].filter(Boolean).join('');
   const isatSec = (f.isat && f.isat.length) ? `<div class="kf-sec"><h2>ÍSAT atvinnugrein</h2><div class="kf-links">${f.isat.map((x) => e(x)).join('<br>')}</div></div>` : '';

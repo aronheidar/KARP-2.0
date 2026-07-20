@@ -90,7 +90,7 @@ const updated = '2026-07-02';
     <section id="p-dash">
       <div id="gate-note"></div>
 
-      <!-- Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). Falið sjálfgefið. -->
+      <!-- Umferðartölfræði — AÐEINS stjórnandi (Burst um worker /api/u/burst → CF-vefgreining). Falið sjálfgefið. -->
       <div class="w" id="w-traffic-box" hidden>
         <div class="w-h">📊 Umferð á Karp <span class="w-sub">Cloudflare · aðeins stjórnandi</span></div>
         <div id="w-traffic">Sæki tölfræði…</div>
@@ -757,7 +757,7 @@ const updated = '2026-07-02';
             save.disabled = false; save.textContent = t0;
           };
         })();
-        // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um wp.karp.is). LOTA 24.
+        // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um worker /api/u/burst → CF-vefgreining). LOTA 24.
         if (u.isAdmin) {
           const box = $g('w-traffic-box'), tel = $g('w-traffic');
           if (box) { box.hidden = false; box.insertAdjacentHTML('afterbegin', '<a href="/stjorn/" style="display:inline-block;margin:0 0 12px;padding:8px 14px;background:rgba(246,177,59,.14);border:1px solid rgba(246,177,59,.3);border-radius:8px;color:var(--gold);font-weight:700;font-size:13.5px;text-decoration:none">🛠️ Opna stjórnborð — notendur, áskriftir, rekstur →</a>'); }

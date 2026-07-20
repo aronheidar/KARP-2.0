@@ -1,14 +1,11 @@
 ---
-// /nyskraning/ — native Karp nýskráningarsíða. Formið POST-ar (top-level) á
-// admin-post.php?action=karp_register (EKKI wp-login.php → fer FRAMHJÁ Ultimate Member sem
-// annars grípur wp-login-nýskráningu). Handlerinn í karp-auth-pages.php kallar register_new_user()
-// → býr til aðganginn + sendir „stilltu lykilorð"-tölvupóst (= netfangs-staðfesting) og hoppar
-// aftur á ?skrad=1 (árangur) eða ?villa=<kóði> (villa). Skilmála-gátreitur skylda (client `required`
-// + server-hlið í registration_errors-hook, sem líka skráir samþykki í meta karp_terms_accepted).
+// /nyskraning/ — native Karp nýskráningarsíða. Formið er gripið client-hlið og POST-ar á
+// karp21-worker (/api/auth/register → D1): býr til aðganginn, skráir samþykki skilmála og
+// skráir notandann inn strax (undirrituð lotu-kaka). Skilmála-gátreitur skylda (client `required`
+// + server-hlið). (Áður: admin-post.php?action=karp_register á wp.karp.is.)
 import Layout from '../layouts/Layout.astro';
 import AuthShell from '../components/AuthShell.astro';
 const desc = 'Nýskráðu þig á Karp — ókeypis aðgangur að Karp+ vöktun, stefnuprófi og persónulegu yfirliti. Tekur mínútu.';
-const WP_REGISTER = 'https://wp.karp.is/wp-admin/admin-post.php';
 ---
 <Layout title="Nýskráning — Karp" description={desc} canonical="https://karp.is/nyskraning/" ogTitle="Nýskrá á Karp" noindex={true}>
   <AuthShell pg="nyskraning" heading="Nýskráning" sub="Ókeypis aðgangur að Karp — tekur mínútu.">
@@ -89,7 +86,7 @@ const WP_REGISTER = 'https://wp.karp.is/wp-admin/admin-post.php';
       }
       // Þegar innskráð(ur) (og ekki nýbúin(n) að skrá sig) → benda á Mitt svæði.
       loadUser().then((u) => {
-        if (u && u.loggedIn && !skrad) {
+        if (u && u.loggedIn) {
           const fw = document.getElementById('ka-form-wrap');
           const al = document.getElementById('ka-already');
           const tx = document.getElementById('ka-already-txt');
