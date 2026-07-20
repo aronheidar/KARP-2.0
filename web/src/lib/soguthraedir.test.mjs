@@ -63,3 +63,19 @@ test('status: terminal notice → done + label; else Í ferli', () => {
   assert.deepEqual(caseThread(gj('4444444444'), BYKT).status, { done: true, label: 'Félagsslit 1.3.2026' });
   assert.deepEqual(caseThread(gj('4102160270'), BYKT).status, { done: false, label: 'Í ferli' });
 });
+
+const tl = (kt, date = '2026-06-02') => ({ id: 'throtlok-' + kt, type: 'throtlok', date });
+
+test('threadKey recognizes the throtlok type', () => {
+  assert.equal(threadKey(tl('4102160270')), '4102160270');
+  assert.equal(threadKey({ id: 'throtlok-123', type: 'throtlok' }), null);
+  assert.equal(threadKey(gj('4102160270')), '4102160270');
+  assert.equal(threadKey({ id: 'vika-x', type: 'vika' }), null);
+});
+
+test('caseThread on a throtlok item → done/Lokið with the skiptalok step current', () => {
+  const t = caseThread(tl('2222222222', '2026-06-02'), BYKT);
+  assert.equal(t.status.done, true);
+  assert.equal(t.status.label, 'Lauk með skiptalokum 1.6.2026');
+  assert.equal(t.steps.find((s) => s.current).titill, 'Skiptalok þrotabús');
+});

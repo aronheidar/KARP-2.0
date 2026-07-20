@@ -16,7 +16,7 @@ const dmy = (iso) => { const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/); r
 const dayNum = (iso) => { const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000 : NaN; };
 
 export function threadKey(item) {
-  if (!item || typeof item.id !== 'string' || item.type !== 'gjaldthrot') return null;
+  if (!item || typeof item.id !== 'string' || !['gjaldthrot', 'throtlok'].includes(item.type)) return null;
   const last = item.id.split('-').pop();
   return /^\d{10}$/.test(last) ? last : null;
 }
