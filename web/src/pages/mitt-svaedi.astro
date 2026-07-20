@@ -25,6 +25,7 @@ import { slugify } from '@lib/format.mjs';
 import { computeMuniIndex } from '@lib/muniIndex.mjs';
 import { makeMuniStats, svStab } from '@lib/muniStats.mjs';
 import { makeRegionOf, makeLifsQ } from '@lib/geo.mjs';
+import { CAT, SECTIONS } from '../lib/frettavel-cat.mjs';
 
 // Þingmenn (fylgja-widget)
 const MP = {};
@@ -203,6 +204,36 @@ const updated = '2026-07-02';
             <button type="button" class="acc-cancel" id="acc-cancel">Hætta við</button>
           </div>
         </form>
+      </div>
+
+      <div id="fv-vakt" class="card" style="margin-top:14px">
+        <h3>🔔 Fréttavaktir</h3>
+        <p class="dim" style="font-size:13px">Veldu fréttaflokka og fáðu tölvupóst þegar nýtt mál kviknar. Flokkarnir bera innbyggða fréttnæmis-þröskulda.</p>
+        <div id="fv-login" hidden class="dim">Skráðu þig inn til að setja upp fréttavaktir.</div>
+        <div id="fv-body" hidden>
+          {SECTIONS.map((sec) => (
+            <fieldset style="border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:8px 0">
+              <legend style="font-size:12px;color:var(--muted)">{sec.label}</legend>
+              {sec.types.map((t) => CAT[t] && (
+                <label style="display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;font-size:13px">
+                  <input type="checkbox" class="fv-cb" value={t} /> {CAT[t].emoji} {CAT[t].label}
+                </label>
+              ))}
+            </fieldset>
+          ))}
+          <div style="margin-top:10px">
+            <label style="font-size:13px">Tíðni:
+              <select id="fv-cadence">
+                <option value="strax">Strax (allt að 3 klst)</option>
+                <option value="daglegt" selected>Daglegt yfirlit</option>
+                <option value="vikulegt">Vikulegt</option>
+              </select>
+            </label>
+            <label style="margin-left:14px;font-size:13px"><input type="checkbox" id="fv-on" /> Kveikt</label>
+            <button id="fv-save" class="btn" style="margin-left:14px">Vista</button>
+            <span id="fv-status" class="dim" style="margin-left:10px;font-size:12px"></span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -577,6 +608,28 @@ const updated = '2026-07-02';
         };
       }
 
+      // 🔔 Fréttavaktir (flokkaval + tíðni) — í Stillingum
+      async function wireFrettavakt(loggedIn) {
+        const body = document.getElementById('fv-body'), login = document.getElementById('fv-login');
+        if (!body) return;
+        if (!loggedIn) { body.hidden = true; if (login) login.hidden = false; return; }
+        login.hidden = true; body.hidden = false;
+        const cur = await karpGet('/frettavakt').catch(() => null) || { on: false, flokkar: [], cadence: 'daglegt' };
+        const set = new Set(cur.flokkar || []);
+        document.querySelectorAll('.fv-cb').forEach((cb) => { cb.checked = set.has(cb.value); });
+        document.getElementById('fv-cadence').value = cur.cadence || 'daglegt';
+        document.getElementById('fv-on').checked = !!cur.on;
+        document.getElementById('fv-save').onclick = async (e) => {
+          e.target.disabled = true;
+          const flokkar = [...document.querySelectorAll('.fv-cb')].filter((c) => c.checked).map((c) => c.value);
+          const on = document.getElementById('fv-on').checked;
+          const cadence = document.getElementById('fv-cadence').value;
+          const r = await karpPost('/frettavakt', { on, flokkar, cadence }).catch(() => null);
+          document.getElementById('fv-status').textContent = (r && r.ok) ? 'Vistað ✓' : 'Villa — reyndu aftur';
+          e.target.disabled = false;
+        };
+      }
+
       // Mitt sveitarfélag (localStorage karp-sveit) — FULLT SPJALD: lykiltölur + radar (LOTA 12)
       const gt = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
       const f1 = (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ','));
@@ -723,7 +776,7 @@ const updated = '2026-07-02';
           $g('mine').innerHTML = mps.length
             ? '<div class="flist">' + mps.map((k) => { const m = MPL[k]; return `<div class="fcard" style="--pc:${m.c}"><a class="fc-link" href="/althingi/${m.s}/"><span class="fc-txt"><span class="fc-n">${esc(m.n)}</span><span class="fc-f">${esc(m.f)}</span></span></a></div>`; }).join('') + '</div><div class="dim" style="margin-top:6px">Vistað á þessu tæki.</div>'
             : '<div class="empty">Þú fylgist ekki með neinum enn — farðu á <a href="/althingi/thingmenn/">Þingmenn</a> og ýttu „+ Fylgja" (vistast á tækinu án innskráningar).</div>';
-          paintVaktYfirlit(false); wireDigest(false);
+          paintVaktYfirlit(false); wireDigest(false); wireFrettavakt(false);
           return;
         }
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;
@@ -810,7 +863,7 @@ const updated = '2026-07-02';
         };
         paintMine();
         // 📋 Vakta-samantekt (öll kerfi) + 📬 vikupóstur í Stillingum
-        paintVaktYfirlit(true); wireDigest(true);
+        paintVaktYfirlit(true); wireDigest(true); wireFrettavakt(true);
       });
     }
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="mitt-svaedi"]')) initMitt(); });
