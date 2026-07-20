@@ -37,7 +37,7 @@ const desc = 'Stærstu fyrirtæki Íslands eftir atvinnugrein — raðað eftir 
       const host = document.getElementById('tf-host');
       host.innerHTML = '<div class="eig-loading">Hleð…</div>';
       let d = null;
-      try { d = await fetch('/api/topplistar?grein=' + grein + '&radad=' + radad, { credentials: 'include' }).then((r) => r.json()); } catch (e) {}
+      try { d = await fetch('/api/topplistar?grein=' + grein + '&radad=' + radad, { credentials: 'include', cache: 'no-store' }).then((r) => r.json()); } catch (e) {}
       if (!d || !d.radir) { host.innerHTML = '<div class="eig-tom">Ekki tókst að hlaða lista.</div>'; return; }
       document.getElementById('tf-cov').textContent = d.coverage ? ('Byggt á ' + d.coverage.greind + ' greindum félögum af ' + d.coverage.alls + ' í greininni — vex daglega.') : '';
       const rows = d.radir.map((r, i) => `<tr><td class="tf-rank">${i + 1}</td><td class="tf-nm"><a href="/fyrirtaeki/?q=${encodeURIComponent(r.kt)}">${esc(r.nafn)}</a> <span class="eig-kt">${esc(ktF(r.kt))}</span></td><td class="tf-num">${kr(r.sala)}</td><td class="tf-num">${kr(r.hagnadur)}</td><td class="tf-num">${kr(r.eignir)}</td><td class="tf-num">${kr(r.eigid_fe)}</td><td class="tf-yr">${esc(r.ar || '')}</td></tr>`).join('');

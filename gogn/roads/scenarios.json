@@ -1,0 +1,62 @@
+[
+ {
+  "id": "vaxtahaekkun",
+  "label": "Vaxtahækkun 0,25pp",
+  "tldr": "Seðlabankinn hækkar stýrivexti",
+  "levers": {
+   "vextir": 8
+  },
+  "shocks": {},
+  "sentence": "Vaxtahækkun um 0,25 prósentustig gæti — að öllu óbreyttu — hægt á verðbólgu og húsnæðisverði á 1–2 árum, en dregið lítillega úr hagvexti."
+ },
+ {
+  "id": "vaxtalaekkun",
+  "label": "Vaxtalækkun 0,5pp",
+  "tldr": "Seðlabankinn lækkar stýrivexti",
+  "levers": {
+   "vextir": 7.25
+  },
+  "shocks": {},
+  "sentence": "Vaxtalækkun um 0,5 prósentustig gæti örvað hagvöxt og húsnæðisverð, á kostnað hærri verðbólgu tafið."
+ },
+ {
+  "id": "kjarasamningar",
+  "label": "Kjarasamningar +8%",
+  "tldr": "Launahækkun umfram forsendur",
+  "levers": {
+   "laun": 8
+  },
+  "shocks": {},
+  "sentence": "Launahækkun upp á 8% eykur kaupmátt til skamms tíma en ýtir undir verðbólgu og húsnæðisverð, sem getur kallað á hærri vexti."
+ },
+ {
+  "id": "lodnubrestur",
+  "label": "Aflabrestur (útflutn. −10%)",
+  "tldr": "Loðnubrestur veikir gjaldeyri",
+  "levers": {},
+  "shocks": {
+   "gengi": -6
+  },
+  "sentence": "Aflabrestur sem veikir krónuna um ~6% hækkar innflutt verð og verðbólgu, og bætir tímabundið útflutningsveg."
+ },
+ {
+  "id": "ferdamannafall",
+  "label": "Ferðamönnum fækkar 20%",
+  "tldr": "Samdráttur í ferðaþjónustu",
+  "levers": {},
+  "shocks": {
+   "ferdamenn": -20
+  },
+  "sentence": "Fækkun ferðamanna um 20% dregur úr hagvexti og eykur atvinnuleysi, einkum á Suðurnesjum og í þjónustu."
+ },
+ {
+  "id": "oliuskellur",
+  "label": "Olíuverð +40%",
+  "tldr": "Alþjóðlegur olíuskellur",
+  "levers": {},
+  "shocks": {
+   "olia": 40
+  },
+  "sentence": "Olíuverðshækkun um 40% ýtir undir verðbólgu gegnum eldsneyti og flutning, með takmörkuðum beinum áhrifum á hagvöxt."
+ }
+]
