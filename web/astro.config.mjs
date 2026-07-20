@@ -8,7 +8,8 @@ export default defineConfig({
   site: 'https://karp.is',       // fyrir sitemap + canonical (breyta ef annað lén)
   output: 'static',
   build: { format: 'directory' },
-  integrations: [sitemap({ filter: (page) => !/\/mitt-svaedi\/?$/.test(page) && !/\/skel-fyrirtaeki\/?$/.test(page) })], // Mitt svæði = noindex
+  // Sitemap: sleppa auth-/utility-/redirect-/noindex-síðum (#4) — annars misvísandi crawl-merki.
+  integrations: [sitemap({ filter: (page) => !/\/(mitt-svaedi|skel-fyrirtaeki|innskra|nyskraning|endurstilla|kaup|greining|areidanleiki|atvinnuleysi|efnahagur)\/?$/.test(page) })],
   vite: {
     resolve: {
       alias: {

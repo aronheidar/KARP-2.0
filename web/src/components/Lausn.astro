@@ -9,9 +9,16 @@ const verdTexti = v.verd.tegund === 'stak'
   : v.verd.tegund === 'askrift'
     ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ mánuði · sjálfstæð áskrift (óháð Karp+ þrepum)' }
     : { stor: 'Innifalið í Karp+', litli: 'frá ' + v.verd.threp + '-þrepi' };
+// Product/Offer structured data (#14) — ríkari leitarvéla-niðurstöður fyrir vöru-lendingarsíður.
+const _price = v.verd && v.verd.upphaed;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Product', name: v.heiti, description: v.gildisloford,
+  brand: { '@type': 'Brand', name: 'Karp' },
+  ...(_price ? { offers: { '@type': 'Offer', price: String(_price), priceCurrency: 'ISK', availability: 'https://schema.org/InStock', url: `https://karp.is/lausnir/${v.slug}/` } } : {}),
+};
 ---
 <Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
-  canonical={`https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`}>
+  canonical={`https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`} jsonLd={jsonLd}>
   <main class="ls-wrap">
     <section class="ls-hero">
       <p class="ls-kicker">Karp+</p>

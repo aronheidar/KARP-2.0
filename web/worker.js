@@ -1260,6 +1260,12 @@ async function payCallbackHandler(request, env, ctx) {
   // ekki status-reit (casing/step ótraust; gæti hafa blokkað grant áður). orderhash = svindl-vörnin.
   const expect = await teyaHmacHex(env.TEYA_SECRET_KEY, [orderid, amount, currency].join('|'));
   if (!orderhash || orderhash.toLowerCase() !== expect) return new Response('badhash', { status: 400 });
+  // Replay-vörn (#7): orderhash þekur aðeins orderid|amount|currency — EKKI u/k. Bindum því hverja orderid
+  // við EINA veitingu (atómískt INSERT OR IGNORE); endurspilun sömu orderid (t.d. með öðru k) → idempotent skil.
+  if (orderid && env.TENGSL) {
+    const ins = await env.TENGSL.prepare('INSERT OR IGNORE INTO granted_refs (ref, created) VALUES (?,?)').bind('teya:' + orderid, Math.floor(Date.now() / 1000)).run().catch(() => null);
+    if (!ins || !ins.meta || ins.meta.changes === 0) return new Response('ok', { status: 200 });   // orderid þegar unnin → engin ný grant
+  }
   // ✓ Greiðsla staðfest → skrá entitlement í WP (server-til-server m/ sameiginlegu leyndarmáli).
   const uid = u.searchParams.get('u') || '';
   const key = u.searchParams.get('k') || '';
@@ -1292,10 +1298,6 @@ async function askellWebhookHandler(request, env, ctx) {
   let diff = sig.length === expect.length ? 0 : 1;
   for (let i = 0; i < sig.length && i < expect.length; i++) diff |= sig.charCodeAt(i) ^ expect.charCodeAt(i);
   const sigOk = diff === 0 && sig.length === expect.length;   // fastatíma-samanburður (svindl-vörn)
-  // ⚠ TÍMABUNDIN debug-upptaka (skoða: /api/askell/last?t=<ASKELL_WEBHOOK_SECRET>) — til að sjá raun v2-payload
-  //    og fínstilla lesturinn. Grípur ÁÐUR en badsig-höfnun svo sést líka ef undirritun mistekst (t.d. rangt secret).
-  try { ctx.waitUntil(caches.default.put(new Request('https://cap.karp.internal/askell-last'),
-    new Response(JSON.stringify({ event, sigOk, at: Date.now(), body: raw.slice(0, 6000) }), { headers: { 'content-type': 'application/json', 'cache-control': 'max-age=3600' } }))); } catch (e) {}
   if (!sigOk) return new Response('badsig', { status: 401 });
   let body = {}; try { body = JSON.parse(raw); } catch (e) {}
   const ev = String(body.event || event || '');
@@ -2787,7 +2789,8 @@ async function verifyPassword(pw, stored) {
   } catch (e) { return false; }
 }
 async function _hmac(env, msg) {
-  const key = await crypto.subtle.importKey('raw', _te.encode(env.SESSION_SECRET || 'dev-uncfg-secret'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  if (!env.SESSION_SECRET) throw new Error('SESSION_SECRET missing');   // fail-closed: ekkert giskanlegt fallback (annars mætti falsa lotu-köku)
+  const key = await crypto.subtle.importKey('raw', _te.encode(env.SESSION_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return _b64u(await crypto.subtle.sign('HMAC', key, _te.encode(msg)));
 }
 async function makeSession(env, uid) {
@@ -2795,12 +2798,14 @@ async function makeSession(env, uid) {
   return body + '.' + await _hmac(env, body);
 }
 async function readSession(env, request) {
-  const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)karp_session=([^;]+)/);
-  if (!m) return 0;
-  const [uid, exp, sig] = decodeURIComponent(m[1]).split('.');
-  if (!uid || !exp || !sig || +exp < Math.floor(Date.now() / 1000)) return 0;
-  if (await _hmac(env, uid + '.' + exp) !== sig) return 0;
-  return +uid;
+  try {
+    const m = (request.headers.get('Cookie') || '').match(/(?:^|;\s*)karp_session=([^;]+)/);
+    if (!m) return 0;
+    const [uid, exp, sig] = decodeURIComponent(m[1]).split('.');
+    if (!uid || !exp || !sig || +exp < Math.floor(Date.now() / 1000)) return 0;
+    if (await _hmac(env, uid + '.' + exp) !== sig) return 0;
+    return +uid;
+  } catch (e) { return 0; }   // t.d. SESSION_SECRET vantar → engin lota (fail-closed)
 }
 const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 const _ajson = (obj, extra = {}) => new Response(JSON.stringify(obj), { status: 200, headers: { 'content-type': 'application/json', ...extra } });
@@ -3807,7 +3812,7 @@ export default {
     if (url.pathname === '/api/pay/return') return payReturnHandler(request, env, ctx);
     if (url.pathname === '/api/pay/callback') return payCallbackHandler(request, env, ctx);
     if (url.pathname === '/api/askell/webhook') return askellWebhookHandler(request, env, ctx);
-    if (url.pathname === '/api/askell/last') return askellLastHandler(request, env);
+    // (#20) /api/askell/last debug-endapunktur fjarlægður — geymdi hrátt vefkróks-payload (PII).
     if (url.pathname === '/api/sub/checkout-session') return askellSessionHandler(request, env, ctx);
     if (url.pathname === '/api/sub/cancel') return subCancelHandler(request, env, ctx);
     if (url.pathname === '/api/stak/checkout') return stakCheckoutHandler(request, env, ctx);
