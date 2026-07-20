@@ -1,5 +1,6 @@
 import { greinaSql } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
+import { buildTimalina } from './src/lib/firma-timalina.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -2134,6 +2135,30 @@ function felagMainHtml(f, kt) {
     <p class="kf-note">Grunngögn úr opinberri fyrirtækjaskrá Skattsins (skatturinn.is), sótt lifandi. Ekki vottorð. Formleg fyrirtækjaskýrsla og eigendaskýrsla fást keyptar hér að ofan.</p>`;
 }
 
+async function firmaTimalinaHandler(request, env, ctx) {
+  const u = new URL(request.url);
+  const kt = (u.searchParams.get('kt') || '').replace(/\D/g, '');
+  const nafn = (u.searchParams.get('nafn') || '').trim().slice(0, 120);
+  if (kt.length !== 10 && !nafn) return sjson({ atburdir: [], n: 0 });
+  const [lb, vm, st, arch] = await Promise.all([
+    augGet(env, 'logbirting.json').catch(() => null),
+    augGet(env, 'vorumerki_nyskrad.json').catch(() => null),
+    augGet(env, 'styrkir.json').catch(() => null),
+    augGet(env, 'frettavel_archive.json').catch(() => null),
+  ]);
+  const logbirting = (kt.length === 10 && lb && lb.byKt && lb.byKt[kt] && lb.byKt[kt].notices) || [];
+  const vorumerki = (kt.length === 10 && vm && vm.byKt && vm.byKt[kt]) || [];
+  let styrkir = [];
+  if (st && nafn) { const mm = matchStyrkir(nafn, st); styrkir = (mm.idx || []).map((i) => st.styrkir[i]).filter(Boolean); }
+  let frettir = [];
+  if (arch && arch.items && nafn) {
+    const core = nafn.replace(/\s+(ehf|hf|ohf|slhf|sf|ses)\.?$/i, '').toLowerCase();
+    if (core.length >= 3) frettir = arch.items.filter((x) => (((x.title || '') + ' ' + (x.text || '')).toLowerCase().indexOf(core) >= 0));
+  }
+  const atburdir = buildTimalina({ logbirting, vorumerki, styrkir, frettir });
+  return sjson({ updated: new Date().toISOString(), kt, nafn, n: atburdir.length, aggreidanleiki: { kt: ['gjaldthrot', 'vorumerki'], nafn: ['styrkur', 'frett'] }, atburdir });
+}
+
 async function fyrirtaekiSidaHandler(request, env, ctx) {
   const url = new URL(request.url);
   const m = url.pathname.match(/^\/fyrirtaeki\/(\d{10})\/?$/);
@@ -3933,6 +3958,7 @@ export default {
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);
+    if (url.pathname === '/api/firma-timalina') return firmaTimalinaHandler(request, env, ctx);
     if (url.pathname === '/api/fyrirtaeki') return fyrirtaekiHandler(request, env, ctx);
     if (url.pathname === '/api/vanskil') return vanskilHandler(request, ctx);
     if (url.pathname === '/api/kvoti') return kvotiHandler(request, env, ctx);
