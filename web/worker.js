@@ -3369,6 +3369,33 @@ export function frettavaktEmail(matches) {
       <a href="https://karp.is/mitt-svaedi/#p-still" style="color:#8a5e00">Stilla vaktir</a> · Fréttavél Karp — sjálfvirkt fundið úr opinberum gögnum.
     </p></div>`;
 }
+export const SEEN_CAP = 300;
+export async function frettavaktCron(env) {
+  if (!env || !env.TENGSL) return;
+  const now = Math.floor(Date.now() / 1000);
+  const feed = await _dget(env, '/gogn/frettavel.json').catch(() => null);
+  const items = (feed && feed.items) || [];
+  const news = await newsSince(env, 2, 500).catch(() => []);
+  const subs = await env.TENGSL.prepare("SELECT user_id, v FROM user_prefs WHERE k='frettavakt' AND v LIKE '%\"on\":true%'").all().catch(() => null);
+  for (const row of (subs && subs.results) || []) {
+    try {
+      const sub = JSON.parse(row.v);
+      if (!sub.on || !frettavaktDue(sub.cadence, sub.lastSent, now)) continue;
+      // Byggja leitarorð úr núverandi vöktum: leitvakt.ord + nöfn úr follows ("co:<nafn>").
+      const lv = await _prefGet(env, row.user_id, 'leitvakt', {});
+      const fl = await _prefGet(env, row.user_id, 'follows', []);
+      const ord = [].concat(Array.isArray(lv.ord) ? lv.ord : [], (Array.isArray(fl) ? fl : []).filter((x) => String(x).indexOf('co:') === 0).map((x) => String(x).slice(3))).filter(Boolean);
+      const matches = frettavaktMatch(items, news, { flokkar: sub.flokkar || [], ord, seenIds: sub.seenIds || [] });
+      if (!matches.length) continue;
+      const u = await env.TENGSL.prepare('SELECT email, name FROM users WHERE id=?').bind(row.user_id).first().catch(() => null);
+      if (!u || !u.email) continue;
+      const r = await sendGmail(env, { to: u.email, subject: `🔔 Fréttavakt: ${matches.length === 1 ? '1 nýtt mál' : matches.length + ' ný mál'}`, html: frettavaktEmail(matches) });
+      if (!r.ok) continue;                                       // óstillt/villa → reyna aftur næst (ekki uppfæra stöðu)
+      const seen = [...matches.map((m) => m.id), ...(sub.seenIds || [])].slice(0, SEEN_CAP);
+      await _prefSet(env, row.user_id, 'frettavakt', Object.assign({}, sub, { seenIds: seen, lastSent: now }));
+    } catch (e) { /* eins notanda villa fellir ekki hina */ }
+  }
+}
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
   const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);
@@ -3853,7 +3880,7 @@ export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
     if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env));
-    else ctx.waitUntil(newsIngest(env));   // F7: safnar RSS → news-tafla
+    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)));   // F7 ingest → vakt-alerts
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
