@@ -5,6 +5,27 @@
   <description>Sjálfvirkar fréttir skrifaðar úr opinberum gögnum: Alþingi, kannanir, fasteignir, ríkisgreiðslur og útboð. Hver frétt tengir á frumgögnin.</description>
   <language>is</language>
   <item>
+    <title>Fyrirtæki í brennidepli: Höldur ehf.</title>
+    <link>https://karp.is/frettavel/#fyrvik-höldur</link>
+    <guid isPermaLink="false">fyrvik-höldur</guid>
+    <pubDate>Mon, 20 Jul 2026 08:00:00 GMT</pubDate>
+    <description>Fréttavél Karp tengdi saman opinberar gagnaheimildir og fann að Höldur ehf. kemur fram í 3 þeirra: styrki (2) úr Orkusjóður að fjárhæð 4.424.000 kr.; ríkisgreiðslur upp á 384.348.930 kr. síðustu tólf mánuði; 1 unnin opinber útboð. Allar upplýsingarnar eru úr opnum opinberum gögnum — opinberum sjóðum, opnum reikningum ríkisins og útboðsgáttum. Að birtast í fleiri en einni slíkri heimild er algengt hjá stærri þjónustu- og verktakafyrirtækjum og felur ekki í sér neitt óeðlilegt; yfirlitið sýnir hvernig Karp tengir saman opinberar gagnaveitur. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/birgjar/)</description>
+  </item>
+  <item>
+    <title>Fermetraverð íbúða 819 þúsund krónur</title>
+    <link>https://karp.is/frettavel/#thema-husnaedi-2026-07-20</link>
+    <guid isPermaLink="false">thema-husnaedi-2026-07-20</guid>
+    <pubDate>Mon, 20 Jul 2026 08:00:00 GMT</pubDate>
+    <description>Fermetraverð íbúða mælist 819 þúsund krónur. Verð hefur lækkað um 1,8 prósent á síðustu þremur mánuðum en hækkað um 1,6 prósent á síðustu tólf mánuðum. Leiga á fermetra er 3.086 krónur. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/fasteignir/)</description>
+  </item>
+  <item>
+    <title>5 mál vikunnar</title>
+    <link>https://karp.is/frettavel/#vikan-2026-07-20</link>
+    <guid isPermaLink="false">vikan-2026-07-20</guid>
+    <pubDate>Mon, 20 Jul 2026 08:00:00 GMT</pubDate>
+    <description>Fimm mál stóðu upp úr í fréttavél Karp vikuna á undan — raðað eftir vægi. Smelltu til að lesa hvert mál. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/frettavel/)</description>
+  </item>
+  <item>
     <title>Skiptum lokið hjá Brands ehf</title>
     <link>https://karp.is/frettavel/#throtlok-4205182180</link>
     <guid isPermaLink="false">throtlok-4205182180</guid>
@@ -262,26 +283,5 @@
     <guid isPermaLink="false">urslit-395597-2025</guid>
     <pubDate>Fri, 17 Jul 2026 08:00:00 GMT</pubDate>
     <description>Vegagerðin gekk frá samningi um vetrarþjónustu í Árnessýslu 2025-2028 við Heflun. Verðmæti samningsins er 230.820.000 og var hann gerður 19. júní 2025. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/utbod/)</description>
-  </item>
-  <item>
-    <title>Gengi Eikar fasteignafélags í lægsta gildi í 40 daga</title>
-    <link>https://karp.is/frettavel/#markmet-2026-07-16-eik-la</link>
-    <guid isPermaLink="false">markmet-2026-07-16-eik-la</guid>
-    <pubDate>Thu, 16 Jul 2026 08:00:00 GMT</pubDate>
-    <description>Gengi bréfa Eikar fasteignafélags fór í 14,15. Það er lægsta gildi félagsins síðustu 40 daga. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/markadir/)</description>
-  </item>
-  <item>
-    <title>Rammasamningur um eftirlit með framkvæmdum Borgarlínunnar</title>
-    <link>https://karp.is/frettavel/#urslit-493933-2026</link>
-    <guid isPermaLink="false">urslit-493933-2026</guid>
-    <pubDate>Thu, 16 Jul 2026 08:00:00 GMT</pubDate>
-    <description>Betri Samgöngur ohf og Veitur ohf gerðu rammasamning um eftirlit með verkframkvæmdum. Samningsaðilar eru Verkís, EFLA hf, Hnit verkfræðistofa hf og VSÓ Ráðgjöf ehf, að verðmæti 3.200.000.000 króna. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/utbod/)</description>
-  </item>
-  <item>
-    <title>Blikkás fær samning um loftræsikerfi Smáraskóla</title>
-    <link>https://karp.is/frettavel/#urslit-493221-2026</link>
-    <guid isPermaLink="false">urslit-493221-2026</guid>
-    <pubDate>Thu, 16 Jul 2026 08:00:00 GMT</pubDate>
-    <description>Kópavogsbær samdi við Blikkás ehf um loftræsikerfi Smáraskóla, 1. áfanga. Verðmæti samningsins er 61.296.830 krónur. (Vélskrifuð frétt úr opinberum gögnum — heimild: karp.is/utbod/)</description>
   </item>
 </channel></rss>
