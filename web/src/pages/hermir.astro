@@ -112,6 +112,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
       skuldir: 'Skuldir ríkissjóðs (% VLF).', utflutningur: 'Útflutningsvöxtur — árs-breyting.', losun: 'CO₂-losun — vísitala (100 = núverandi).',
+      vanskil: 'Vanskil heimila & fyrirtækja — vísitala fjárhagsvanda (100 = núverandi). Hækkar með vöxtum, atvinnuleysi og greiðslubyrði.',
     };
     const LEV_TIP = {
       vextir: 'Stýrivextir Seðlabankans. Hærri → hægir á verðbólgu/húsnæði (töf), dregur úr hagvexti.',
@@ -132,14 +133,16 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     function dInfo(o) { const dlt = o.mid[o.mid.length - 1] - o.baseline[o.baseline.length - 1]; return { dlt, c: dlt > 0.05 ? '#e78284' : dlt < -0.05 ? '#54d08a' : 'var(--faint)' }; }
 
-    // sjálfvirk peningastefna/launaþróun: fastpunkts-ítrun (vélin ósnert)
+    // sjálfvirk peningastefna/launaþróun: fastpunkts-ítrun (vélin ósnert).
+    // Bregst við MEÐALTALI seinni helmings sjóndeildar (það sem stefnan getur haft áhrif á með töf) — ekki lokagildi.
+    const midTerm = (arr) => { let s = 0, n = 0; for (let i = 6; i <= LAST; i++) { s += arr[i]; n++; } return n ? s / n : arr[LAST]; };
     function solveLevers() {
       const L = { ...state.levers };
       if (!state.autoTay && !state.autoPhi) return L;
       for (let it = 0; it < 8; it++) {
         const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: Q });
-        if (state.autoTay) { const infl = r.outcomes.verdbolga.mid[LAST]; const tgt = clamp(BASELINE.levers.vextir.base + 0.9 * (infl - 2.5), 0, 12); L.vextir = 0.45 * (L.vextir ?? BASELINE.levers.vextir.base) + 0.55 * tgt; }
-        if (state.autoPhi) { const unem = r.outcomes.atvinnuleysi.mid[LAST]; const tgt = clamp(BASELINE.levers.laun.base + 0.35 * (4.0 - unem), 0, 14); L.laun = 0.45 * (L.laun ?? BASELINE.levers.laun.base) + 0.55 * tgt; }
+        if (state.autoTay) { const infl = midTerm(r.outcomes.verdbolga.mid); const tgt = clamp(BASELINE.levers.vextir.base + 0.9 * (infl - 2.5), 0, 12); L.vextir = 0.45 * (L.vextir ?? BASELINE.levers.vextir.base) + 0.55 * tgt; }
+        if (state.autoPhi) { const unem = midTerm(r.outcomes.atvinnuleysi.mid); const tgt = clamp(BASELINE.levers.laun.base + 0.35 * (4.0 - unem), 0, 14); L.laun = 0.45 * (L.laun ?? BASELINE.levers.laun.base) + 0.55 * tgt; }
       }
       if (state.autoTay) L.vextir = Math.round(L.vextir / BASELINE.levers.vextir.step) * BASELINE.levers.vextir.step;
       if (state.autoPhi) L.laun = Math.round(L.laun / BASELINE.levers.laun.step) * BASELINE.levers.laun.step;

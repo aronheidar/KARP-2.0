@@ -527,5 +527,71 @@
   "ci_lo": -0.3,
   "ci_hi": -0.05,
   "source": "Vaxtabyrði ríkisskulda (hærri vextir → dýrari skuldir)"
+ },
+ {
+  "id": "rate_arrears",
+  "from": "vextir",
+  "to": "vanskil",
+  "coef": 2.5,
+  "lag": 2,
+  "unit": "vísit/pp",
+  "ci_lo": 1.2,
+  "ci_hi": 4,
+  "source": "Hærri vextir → þyngri greiðslubyrði → vanskil (SÍ Fjármálastöðugleiki)"
+ },
+ {
+  "id": "unem_arrears",
+  "from": "atvinnuleysi",
+  "to": "vanskil",
+  "coef": 4,
+  "lag": 2,
+  "unit": "vísit/pp",
+  "ci_lo": 2,
+  "ci_hi": 6.5,
+  "source": "Atvinnumissir → tekjufall → vanskil (helsti drifkraftur, sögulega)"
+ },
+ {
+  "id": "burden_arrears",
+  "from": "greidslubyrdi",
+  "to": "vanskil",
+  "coef": 0.5,
+  "lag": 1,
+  "unit": "vísit/vísit",
+  "ci_lo": 0.2,
+  "ci_hi": 0.9,
+  "source": "Greiðslubyrði húsnæðislána → vanskilalíkur"
+ },
+ {
+  "id": "kaup_arrears",
+  "from": "kaupmattur",
+  "to": "vanskil",
+  "coef": -1.5,
+  "lag": 2,
+  "unit": "vísit/pp",
+  "ci_lo": -3,
+  "ci_hi": -0.5,
+  "source": "Bætt ráðstöfunartekjur → færri vanskil"
+ },
+ {
+  "id": "arrears_gdp",
+  "from": "vanskil",
+  "to": "hagvoxtur",
+  "coef": -0.02,
+  "lag": 2,
+  "unit": "pp/vísit",
+  "ci_lo": -0.04,
+  "ci_hi": -0.005,
+  "source": "Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla"
+ },
+ {
+  "id": "arrears_bal",
+  "from": "vanskil",
+  "to": "afkoma",
+  "coef": -0.015,
+  "lag": 2,
+  "unit": "%VLF/vísit",
+  "ci_lo": -0.03,
+  "ci_hi": -0.003,
+  "source": "Fjárhagsvandi → stuðningsaðgerðir + minni skatttekjur"
  }
 ]

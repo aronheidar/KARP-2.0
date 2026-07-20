@@ -61,5 +61,12 @@ const okKaupGdp = wageC.outcomes.hagvoxtur.mid[q] > baseline.outcomes.hagvoxtur.
 const okTourRent = tourC.outcomes.leiga.mid[q] > baseline.outcomes.leiga.path[q];
 const okRateBal = rateC.outcomes.afkoma.mid[q] < baseline.outcomes.afkoma.path[q]; // hærri vextir → vaxtabyrði → verri afkoma
 console.log('+laun→hagvöxtur↑ (neysla):', okKaupGdp, '| +ferðam→leiga↑:', okTourRent, '| +vextir→afkoma↓ (vaxtabyrði):', okRateBal);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal);
+// Fjármálastöðugleiki (module 6): vanskil drifin af vöxtum/atvinnuleysi/greiðslubyrði
+const tourA = simulate({ baseline, links, shocks: { ferdamenn: -25 }, quarters: 12 });
+const okRateArrears = rateC.outcomes.vanskil.mid[q] > baseline.outcomes.vanskil.path[q]; // háir vextir → þyngri byrði → vanskil↑
+const okTourArrears = tourA.outcomes.vanskil.mid[q] > baseline.outcomes.vanskil.path[q]; // samdráttur → atvinnuleysi↑ → vanskil↑
+const okArrGdp = rateC.outcomes.hagvoxtur.mid[q] < baseline.outcomes.hagvoxtur.path[q]; // fjármála-hraðall magnar hagvaxtar-drag vaxtahækkunar
+const okArrBand = [rateC, tourA].every((r) => r.outcomes.vanskil.lo.every((v, i) => v <= r.outcomes.vanskil.mid[i] && r.outcomes.vanskil.mid[i] <= r.outcomes.vanskil.hi[i]));
+console.log('+vextir→vanskil↑:', okRateArrears, '| +samdráttur→vanskil↑:', okTourArrears, '| vanskil→hagvöxtur-drag:', okArrGdp, '| vanskil-bönd:', okArrBand);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand);
 process.exit(bad ? 1 : 0);
