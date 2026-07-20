@@ -7,7 +7,7 @@ const v = vara;
 const verdTexti = v.verd.tegund === 'stak'
   ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ stök skýrsla · engin áskrift' }
   : v.verd.tegund === 'askrift'
-    ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ mánuði · sér áskrift — eða innifalið í Karp+' }
+    ? { stor: v.verd.upphaed.toLocaleString('is-IS') + ' kr', litli: '/ mánuði · sjálfstæð áskrift (óháð Karp+ þrepum)' }
     : { stor: 'Innifalið í Karp+', litli: 'frá ' + v.verd.threp + '-þrepi' };
 ---
 <Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}

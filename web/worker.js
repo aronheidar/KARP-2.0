@@ -3681,7 +3681,7 @@ async function adminOverviewHandler(request, env) {
   const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
   const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
   // Tekjur (áætlaðar): virkar þjónustu-áskriftir + þrep (mán) + keyptar skýrslur (einskiptis 990).
-  const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3490, fasteign: 3900, thingskyrslur: 3900 };
+  const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3900, fasteign: 3900, thingskyrslur: 3900 };
   const PRICE_TIER = { grunnur: 2900, fyrirtaeki: 6900, fyrirtaeki_plus: 12900 };
   let mrr = 0;
   for (const s of subs) mrr += PRICE_SVC[s.service] || 0;
