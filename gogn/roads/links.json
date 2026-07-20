@@ -1418,5 +1418,170 @@
   "ci_lo": -0.02,
   "ci_hi": -0.002,
   "source": "Hærra gjald dregur lítillega úr ferðaþjónustu"
+ },
+ {
+  "id": "mennt_gdp",
+  "from": "menntun",
+  "to": "hagvoxtur",
+  "coef": 0.02,
+  "lag": 5,
+  "unit": "pp/%",
+  "ci_lo": 0.005,
+  "ci_hi": 0.04,
+  "source": "Menntun → vinnuaflsgæði → framleiðni (mjög löng töf, óháð nýsköpun)"
+ },
+ {
+  "id": "clim_gdp",
+  "from": "losun",
+  "to": "hagvoxtur",
+  "coef": -0.004,
+  "lag": 4,
+  "unit": "pp/vísit",
+  "ci_lo": -0.009,
+  "ci_hi": -0.001,
+  "source": "Loftslagshlýnun → tjón á ferðaþjónustu/landbúnaði/innviðum (langtíma; grænir sleðar fá vaxtar-ávinning)"
+ },
+ {
+  "id": "r_hbs",
+  "from": "vextir",
+  "to": "husnaedi_hbs",
+  "coef": -1,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": -1.6,
+  "ci_hi": -0.5,
+  "source": "Höfuðborgar-húsnæði mjög vaxta-næmt"
+ },
+ {
+  "id": "w_hbs",
+  "from": "laun",
+  "to": "husnaedi_hbs",
+  "coef": 0.5,
+  "lag": 3,
+  "unit": "%/pp",
+  "ci_lo": 0.2,
+  "ci_hi": 0.85,
+  "source": "Kaupgeta → eftirspurn á höfuðborgarsvæði"
+ },
+ {
+  "id": "ltv_hbs",
+  "from": "vedhlutfall",
+  "to": "husnaedi_hbs",
+  "coef": 0.2,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": 0.08,
+  "ci_hi": 0.35,
+  "source": "Veðhlutfall → lánsgeta → eftirspurn"
+ },
+ {
+  "id": "dsti_hbs",
+  "from": "dsti",
+  "to": "husnaedi_hbs",
+  "coef": 0.2,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": 0.08,
+  "ci_hi": 0.35,
+  "source": "Rýmra greiðslubyrðisþak → hærra höfuðborgarverð"
+ },
+ {
+  "id": "mig_hbs",
+  "from": "adflutningur",
+  "to": "husnaedi_hbs",
+  "coef": 0.1,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.16,
+  "source": "Aðflutningur sest einkum á höfuðborgarsvæðið"
+ },
+ {
+  "id": "immig_hbs",
+  "from": "innflytjendastefna",
+  "to": "husnaedi_hbs",
+  "coef": 0.05,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.09,
+  "source": "Stýrður innflutningur → höfuðborgar-eftirspurn"
+ },
+ {
+  "id": "r_land",
+  "from": "vextir",
+  "to": "husnaedi_land",
+  "coef": -0.5,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": -0.9,
+  "ci_hi": -0.2,
+  "source": "Landsbyggð minna vaxta-næm"
+ },
+ {
+  "id": "fr_land",
+  "from": "frambod",
+  "to": "husnaedi_land",
+  "coef": -0.35,
+  "lag": 4,
+  "unit": "%/%",
+  "ci_lo": -0.55,
+  "ci_hi": -0.15,
+  "source": "Framboð ræður meiru um verð úti á landi"
+ },
+ {
+  "id": "loda_land",
+  "from": "lodaframbod",
+  "to": "husnaedi_land",
+  "coef": -0.2,
+  "lag": 6,
+  "unit": "%/%",
+  "ci_lo": -0.35,
+  "ci_hi": -0.08,
+  "source": "Lóðaframboð → lægra verð (löng töf)"
+ },
+ {
+  "id": "byggd_land",
+  "from": "byggdastefna",
+  "to": "husnaedi_land",
+  "coef": 0.1,
+  "lag": 3,
+  "unit": "%/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.18,
+  "source": "Byggðaefling → hærra fasteignaverð á landsbyggð (vitnisburður um vöxt)"
+ },
+ {
+  "id": "innv_land",
+  "from": "innvidir",
+  "to": "husnaedi_land",
+  "coef": 0.08,
+  "lag": 3,
+  "unit": "%/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.15,
+  "source": "Innviðir → aðgengi → hærra verð úti á landi"
+ },
+ {
+  "id": "orka_land",
+  "from": "orka",
+  "to": "husnaedi_land",
+  "coef": 0.06,
+  "lag": 3,
+  "unit": "%/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.12,
+  "source": "Stóriðju-verkefni → húsnæðiseftirspurn í nágrenni"
+ },
+ {
+  "id": "mig_land",
+  "from": "adflutningur",
+  "to": "husnaedi_land",
+  "coef": 0.03,
+  "lag": 3,
+  "unit": "%/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.06,
+  "source": "Hluti aðflutnings → landsbyggð"
  }
 ]

@@ -96,8 +96,10 @@ const baseline = {
     byggdajofnudur: { label: 'Byggðajöfnuður (vísit.)', unit: '', path: glideFull(100, 96) },
     nyskopun: { label: 'Nýsköpun & hugvit (vísit.)', unit: '', path: bau(100, 100) },
     fiskistofn: { label: 'Fiskistofn (vísit.)', unit: '', path: bau(100, 100) },
+    husnaedi_hbs: { label: 'Húsnæði — höfuðborg (12-mán)', unit: '%', path: bau(houseNow, 3.5) },
+    husnaedi_land: { label: 'Húsnæði — landsbyggð (12-mán)', unit: '%', path: bau(houseNow, 2.0) },
   },
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-22, 32], husnaedi_land: [-22, 30] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -249,6 +251,24 @@ const links = [
   { id: 'skog_bal', from: 'skograekt', to: 'afkoma', coef: -0.015, lag: 1, unit: '%VLF/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Kostnaður við skógrækt' },
   { id: 'tourfee_bal', from: 'ferdamannagjald', to: 'afkoma', coef: 0.02, lag: 1, unit: '%VLF/%', ci_lo: 0.008, ci_hi: 0.04, source: 'Komugjald/gistináttagjald → tekjur ríkissjóðs' },
   { id: 'tourfee_gdp', from: 'ferdamannagjald', to: 'hagvoxtur', coef: -0.008, lag: 1, unit: 'pp/%', ci_lo: -0.02, ci_hi: -0.002, source: 'Hærra gjald dregur lítillega úr ferðaþjónustu' },
+  // ── Framhald (module 11): mannauðs-framleiðni, loftslags-tjón, svæðaskipt húsnæði ──
+  { id: 'mennt_gdp', from: 'menntun', to: 'hagvoxtur', coef: 0.02, lag: 5, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Menntun → vinnuaflsgæði → framleiðni (mjög löng töf, óháð nýsköpun)' },
+  { id: 'clim_gdp', from: 'losun', to: 'hagvoxtur', coef: -0.004, lag: 4, unit: 'pp/vísit', ci_lo: -0.009, ci_hi: -0.001, source: 'Loftslagshlýnun → tjón á ferðaþjónustu/landbúnaði/innviðum (langtíma; grænir sleðar fá vaxtar-ávinning)' },
+  // Höfuðborg — eftirspurnar-drifið (vextir/laun/aðflutningur ráða)
+  { id: 'r_hbs', from: 'vextir', to: 'husnaedi_hbs', coef: -1.0, lag: 2, unit: '%/pp', ci_lo: -1.6, ci_hi: -0.5, source: 'Höfuðborgar-húsnæði mjög vaxta-næmt' },
+  { id: 'w_hbs', from: 'laun', to: 'husnaedi_hbs', coef: 0.5, lag: 3, unit: '%/pp', ci_lo: 0.2, ci_hi: 0.85, source: 'Kaupgeta → eftirspurn á höfuðborgarsvæði' },
+  { id: 'ltv_hbs', from: 'vedhlutfall', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Veðhlutfall → lánsgeta → eftirspurn' },
+  { id: 'dsti_hbs', from: 'dsti', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Rýmra greiðslubyrðisþak → hærra höfuðborgarverð' },
+  { id: 'mig_hbs', from: 'adflutningur', to: 'husnaedi_hbs', coef: 0.10, lag: 2, unit: '%/%', ci_lo: 0.04, ci_hi: 0.16, source: 'Aðflutningur sest einkum á höfuðborgarsvæðið' },
+  { id: 'immig_hbs', from: 'innflytjendastefna', to: 'husnaedi_hbs', coef: 0.05, lag: 2, unit: '%/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Stýrður innflutningur → höfuðborgar-eftirspurn' },
+  // Landsbyggð — framboðs-/byggða-drifið (framboð/byggðastefna/innviðir ráða)
+  { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.5, lag: 2, unit: '%/pp', ci_lo: -0.9, ci_hi: -0.2, source: 'Landsbyggð minna vaxta-næm' },
+  { id: 'fr_land', from: 'frambod', to: 'husnaedi_land', coef: -0.35, lag: 4, unit: '%/%', ci_lo: -0.55, ci_hi: -0.15, source: 'Framboð ræður meiru um verð úti á landi' },
+  { id: 'loda_land', from: 'lodaframbod', to: 'husnaedi_land', coef: -0.20, lag: 6, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Lóðaframboð → lægra verð (löng töf)' },
+  { id: 'byggd_land', from: 'byggdastefna', to: 'husnaedi_land', coef: 0.10, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.18, source: 'Byggðaefling → hærra fasteignaverð á landsbyggð (vitnisburður um vöxt)' },
+  { id: 'innv_land', from: 'innvidir', to: 'husnaedi_land', coef: 0.08, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Innviðir → aðgengi → hærra verð úti á landi' },
+  { id: 'orka_land', from: 'orka', to: 'husnaedi_land', coef: 0.06, lag: 3, unit: '%/%', ci_lo: 0.02, ci_hi: 0.12, source: 'Stóriðju-verkefni → húsnæðiseftirspurn í nágrenni' },
+  { id: 'mig_land', from: 'adflutningur', to: 'husnaedi_land', coef: 0.03, lag: 3, unit: '%/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Hluti aðflutnings → landsbyggð' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
