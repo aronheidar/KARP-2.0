@@ -85,5 +85,14 @@ const okPenDep = penL.outcomes.framfaersla.mid[39] < baseline.outcomes.framfaers
 const okPenBal = penL.outcomes.afkoma.mid[39] > baseline.outcomes.afkoma.path[39]; // hærri lífeyrisaldur → betri afkoma (tafið)
 const okDemo7Band = [migL, penL].every((r) => ['folksfjoldi', 'framfaersla'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9)));
 console.log('fólksfjöldi=stofn (10>3ár frávik):', okPopStock, '| +aðflutn→fólksfj↑:', okMigPopLvl, '| +aðflutn→framfærsla↓:', okMigDep, '| +lífaldur→framfærsla↓:', okPenDep, '| +lífaldur→afkoma↑:', okPenBal, '| lýðfr7-bönd:', okDemo7Band);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band);
+// Svæðis-vídd (module 8): byggðajöfnuður
+const byC = simulate({ baseline, links, levers: { byggdastefna: 30 }, quarters: 40 });
+const orB = simulate({ baseline, links, levers: { orka: 25 }, quarters: 40 });
+const miB = simulate({ baseline, links, shocks: { adflutningur: 50 }, quarters: 40 });
+const okByggdUp = byC.outcomes.byggdajofnudur.mid[39] > baseline.outcomes.byggdajofnudur.path[39]; // byggðaáhersla → jöfnuður↑
+const okOrkaByggd = orB.outcomes.byggdajofnudur.mid[39] > baseline.outcomes.byggdajofnudur.path[39]; // orka (dreifbýli) → jöfnuður↑
+const okMigByggd = miB.outcomes.byggdajofnudur.mid[39] < baseline.outcomes.byggdajofnudur.path[39]; // aðflutningur (höfuðborg) → jöfnuður↓
+const okByggdBand = [byC, orB, miB].every((r) => r.outcomes.byggdajofnudur.lo.every((v, i) => v <= r.outcomes.byggdajofnudur.mid[i] + 1e-9 && r.outcomes.byggdajofnudur.mid[i] <= r.outcomes.byggdajofnudur.hi[i] + 1e-9));
+console.log('+byggðaáhersla→jöfnuður↑:', okByggdUp, '| +orka→jöfnuður↑:', okOrkaByggd, '| +aðflutn→jöfnuður↓:', okMigByggd, '| byggða-bönd:', okByggdBand);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand);
 process.exit(bad ? 1 : 0);

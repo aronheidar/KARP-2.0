@@ -44,6 +44,7 @@ const baseline = {
     orka: { base: 0, min: -15, max: 30, step: 5, unit: '%', label: 'Orka til stóriðju (frávik)' },
     kolefnisgjald: { base: 0, min: -50, max: 100, step: 10, unit: '%', label: 'Kolefnisgjald (frávik)' },
     lifeyrisaldur: { base: 67, min: 65, max: 72, step: 1, unit: ' ár', label: 'Lífeyrisaldur' },
+    byggdastefna: { base: 0, min: -10, max: 40, step: 5, unit: '%', label: 'Byggðaáhersla (til landsbyggðar)' },
   },
   shocks: {
     olia: { base: 0, min: -50, max: 100, step: 5, unit: '%', label: 'Olíuverð (frávik)' },
@@ -69,8 +70,9 @@ const baseline = {
     vanskil: { label: 'Vanskil (vísit.)', unit: '', path: bau(100, 100) },
     folksfjoldi: { label: 'Fólksfjöldi (vísit., frávik)', unit: '', path: bau(100, 100) },
     framfaersla: { label: 'Framfærsluhlutfall (vísit.)', unit: '', path: glideFull(100, 106) },
+    byggdajofnudur: { label: 'Byggðajöfnuður (vísit.)', unit: '', path: glideFull(100, 96) },
   },
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -145,6 +147,12 @@ const links = [
   { id: 'pension_dep', from: 'lifeyrisaldur', to: 'framfaersla', coef: -2.5, lag: 1, unit: 'vísit/ár', ci_lo: -4.0, ci_hi: -1.5, source: 'Hærri lífeyrisaldur → færri lífeyrisþegar á hvern vinnandi (OECD Pensions at a Glance)' },
   { id: 'dep_bal', from: 'framfaersla', to: 'afkoma', coef: -0.05, lag: 2, unit: '%VLF/vísit', ci_lo: -0.09, ci_hi: -0.02, source: 'Hærra framfærsluhlutfall → meiri lífeyris-/heilbrigðisútgjöld' },
   { id: 'dep_gdp', from: 'framfaersla', to: 'hagvoxtur', coef: -0.01, lag: 2, unit: 'pp/vísit', ci_lo: -0.02, ci_hi: -0.003, source: 'Öldrun → lægra atvinnuþátttökuhlutfall → minni framleiðslugeta' },
+  // ── Svæðis-vídd (module 8): byggðajöfnuður (höfuðborg vs landsbyggð). Grunnferill lækkar (þéttbýlis-þungi) ──
+  { id: 'byggd_bal', from: 'byggdastefna', to: 'byggdajofnudur', coef: 0.30, lag: 2, unit: 'vísit/%', ci_lo: 0.12, ci_hi: 0.50, source: 'Byggðaáhersla (innviðir/ívilnanir) styrkir landsbyggð (Byggðastofnun)' },
+  { id: 'mig_byggd', from: 'adflutningur', to: 'byggdajofnudur', coef: -0.03, lag: 2, unit: 'vísit/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Aðflutningur sest einkum á höfuðborgarsvæðið → aukinn ójöfnuður' },
+  { id: 'orka_byggd', from: 'orka', to: 'byggdajofnudur', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Stóriðja/virkjanir eru á landsbyggð → störf úti á landi' },
+  { id: 'kvoti_byggd', from: 'kvoti', to: 'byggdajofnudur', coef: 0.06, lag: 2, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.12, source: 'Sjávarútvegur er burðarás landsbyggðar' },
+  { id: 'byggd_gdp', from: 'byggdajofnudur', to: 'hagvoxtur', coef: 0.008, lag: 2, unit: 'pp/vísit', ci_lo: 0.002, ci_hi: 0.016, source: 'Betri nýting mannafla/auðlinda um allt land' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
@@ -169,6 +177,7 @@ const scenarios = [
   { id: 'graenir_skattar', label: 'Grænir skattar (kolefnisgjald +50%)', tldr: 'Hærra kolefnisgjald', levers: { kolefnisgjald: 50 }, shocks: {}, sentence: 'Hærra kolefnisgjald (+50%) lækkar CO₂-losun með nokkurri töf, með litlu hagvaxtar-dragi.' },
   { id: 'greidsluerfidleikar', label: 'Greiðsluerfiðleikar (vextir +2,5 + samdráttur)', tldr: 'Háir vextir + minnkandi umsvif', levers: { vextir: rateNow + 2.5 }, shocks: { ferdamenn: -25 }, sentence: 'Háir vextir samhliða samdrætti (ferðamönnum fækkar 25%) þyngja greiðslubyrði og auka atvinnuleysi — vanskil heimila og fyrirtækja aukast tafið, sem dregur enn frekar úr hagvexti (fjármála-hraðall).' },
   { id: 'lifeyrisaldur_upp', label: 'Hækka lífeyrisaldur í 70', tldr: 'Viðbragð við öldrun', levers: { lifeyrisaldur: 70 }, shocks: {}, sentence: 'Hækkun lífeyrisaldurs í 70 ár lækkar framfærsluhlutfallið (færri lífeyrisþegar á hvern vinnandi) og bætir afkomu ríkissjóðs tafið — sýnilegast í 10 ára sýn þar sem öldrun safnast upp.' },
+  { id: 'byggdaatak', label: 'Byggðaátak (áhersla +30%)', tldr: 'Efling landsbyggðar', levers: { byggdastefna: 30 }, shocks: {}, sentence: 'Aukin byggðaáhersla (+30% í innviði og ívilnanir á landsbyggð) bætir byggðajöfnuð með nokkurra ára töf og nýtir mannafla og auðlindir betur um allt land — vinnur gegn þéttbýlis-þunga grunnþróunar.' },
 ];
 
 mkdirSync(join(ROOT, 'gogn', 'roads'), { recursive: true });

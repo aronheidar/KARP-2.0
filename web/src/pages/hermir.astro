@@ -153,6 +153,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       vanskil: 'Vanskil heimila & fyrirtækja — vísitala fjárhagsvanda (100 = núverandi). Hækkar með vöxtum, atvinnuleysi og greiðslubyrði.',
       folksfjoldi: 'Fólksfjöldi sem UPPSAFNAÐUR stofn — vísitala (100 = grunnspá). Safnar upp fólksfjölgun/fækkun; skýrast í 10 ára sýn.',
       framfaersla: 'Framfærsluhlutfall — lífeyrisþegar á hvern vinnandi (vísitala 100). Hækkar við öldrun (grunnferill), lækkar við aðflutning/hærri lífeyrisaldur.',
+      byggdajofnudur: 'Byggðajöfnuður — heldur landsbyggð í við höfuðborg (vísitala 100, hærra=jafnara). Grunnferill lækkar (þéttbýlis-þungi); byggðaáhersla/orka/kvóti bæta, aðflutningur (á höfuðborg) versnar.',
     };
     const LEV_TIP = {
       vextir: 'Stýrivextir Seðlabankans. Hærri → hægir á verðbólgu/húsnæði (töf), dregur úr hagvexti.',
@@ -169,10 +170,11 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       adflutningur: 'Aðflutningur (nettó). Meiri → fjölgun, meira vinnuafl, húsnæðis-þrýstingur.',
       frjosemi: 'Frjósemi. Langtíma — hverfandi á 3 árum (sjá /mannfjoldi/).',
       lifeyrisaldur: 'Lífeyrisaldur (eftirlaunaaldur). Hærri aldur → færri lífeyrisþegar á hvern vinnandi → lægra framfærsluhlutfall og betri afkoma. Viðbragð við öldrun; skýrast í 10 ára sýn.',
+      byggdastefna: 'Byggðaáhersla — innviðir/ívilnanir beint til landsbyggðar. Hærri áhersla → betri byggðajöfnuður (tafið). Orka og kvóti styðja líka landsbyggð.',
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
-    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0 };
+    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0 };
     const GOOD = '#54d08a', NEUT = '#e8c14a', BAD = '#e78284';
     const BAND = { '#54d08a': 'rgba(84,208,138,.13)', '#e8c14a': 'rgba(232,193,74,.12)', '#e78284': 'rgba(231,130,132,.13)' };
     // Litur eftir því hvort frávik frá grunnferli (BAU) er jákvætt/hlutlaust/neikvætt FYRIR þennan hagvísi.

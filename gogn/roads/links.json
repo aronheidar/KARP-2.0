@@ -659,5 +659,60 @@
   "ci_lo": -0.02,
   "ci_hi": -0.003,
   "source": "Öldrun → lægra atvinnuþátttökuhlutfall → minni framleiðslugeta"
+ },
+ {
+  "id": "byggd_bal",
+  "from": "byggdastefna",
+  "to": "byggdajofnudur",
+  "coef": 0.3,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": 0.12,
+  "ci_hi": 0.5,
+  "source": "Byggðaáhersla (innviðir/ívilnanir) styrkir landsbyggð (Byggðastofnun)"
+ },
+ {
+  "id": "mig_byggd",
+  "from": "adflutningur",
+  "to": "byggdajofnudur",
+  "coef": -0.03,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.06,
+  "ci_hi": -0.01,
+  "source": "Aðflutningur sest einkum á höfuðborgarsvæðið → aukinn ójöfnuður"
+ },
+ {
+  "id": "orka_byggd",
+  "from": "orka",
+  "to": "byggdajofnudur",
+  "coef": 0.08,
+  "lag": 3,
+  "unit": "vísit/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.15,
+  "source": "Stóriðja/virkjanir eru á landsbyggð → störf úti á landi"
+ },
+ {
+  "id": "kvoti_byggd",
+  "from": "kvoti",
+  "to": "byggdajofnudur",
+  "coef": 0.06,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.12,
+  "source": "Sjávarútvegur er burðarás landsbyggðar"
+ },
+ {
+  "id": "byggd_gdp",
+  "from": "byggdajofnudur",
+  "to": "hagvoxtur",
+  "coef": 0.008,
+  "lag": 2,
+  "unit": "pp/vísit",
+  "ci_lo": 0.002,
+  "ci_hi": 0.016,
+  "source": "Betri nýting mannafla/auðlinda um allt land"
  }
 ]
