@@ -17,7 +17,7 @@ export const sectionOf = (t) => SEC_OF[t] || SECTIONS[0];
 
 // Mikilvægis-vog (1–10) — velur aðalfrétt (hero) + „helstu" á forsíðu. Þung mál (vextir/gjaldþrot/verðbólga)
 // vega meira en dagleg markaðs-tíst. Blandast við nýleika við röðun.
-const WEIGHT = { vextir: 10, gjaldthrot: 9, throtlok: 8, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3, gengi: 7, kvoti: 6, ees: 5, vika: 5, birgirthrot: 9, rikisfe: 6, toppar: 6, nefnd: 5, fastthr: 7, leiga: 6, samanburdur: 5, bygging: 5, sveitfe: 6, graent: 5, fyrvik: 6, thema: 8, fonix: 7, eftirlit: 6 };
+const WEIGHT = { vextir: 10, gjaldthrot: 9, throtlok: 8, stjorntap: 9, verdbolga: 8, radherra: 8, domur: 7, stjorn: 7, spike: 7, atv: 7, lyf: 6, fast: 6, fylgi: 6, styrkur: 6, urslit: 6, glaepir: 6, taep: 6, rebel: 6, einn: 6, utbod: 5, baejarstjori: 5, sendiherra: 5, fjarvist: 5, raedur: 5, ivilnun: 5, vorumerki: 3, mark: 3, sent: 3, gengi: 7, kvoti: 6, ees: 5, vika: 5, vikan: 9, birgirthrot: 9, rikisfe: 6, toppar: 6, nefnd: 5, fastthr: 7, leiga: 6, samanburdur: 5, bygging: 5, sveitfe: 6, graent: 5, fyrvik: 6, thema: 8, fonix: 7, eftirlit: 6 };
 export const weightOf = (t) => WEIGHT[t] || 4;
 
 export const imgPath = (t) => '/frettavel/img/' + (catOf(t).img) + '.jpg';

@@ -46,6 +46,7 @@ export const CAT = {
   gengi:      { label: 'Gengi krónu', emoji: '💱', color: '#3aa0ff', img: 'gengi', imgFb: 'markadir', heimild: 'Seðlabanki Íslands', rule: 'Gengisvísitala krónunnar setti nýtt hæsta eða lægsta gildi.' },
   ees:        { label: 'Evrópusambandið', emoji: '🇪🇺', color: '#5a8fe0', img: 'ees', imgFb: 'utanrikis', heimild: 'Stjórnartíðindi ESB / EES', rule: 'Ný gerð ESB sem kann að verða tekin upp í EES-samninginn.' },
   vika:       { label: 'Vika í tölum', emoji: '📅', color: '#f6b13b', img: 'annad', heimild: 'Samantekt Karp', rule: 'Vikulegur útdráttur lykil-hagtalna (birt á mánudögum).' },
+  vikan:      { label: '5 mál vikunnar', emoji: '📰', color: '#f6b13b', img: 'annad', heimild: 'Fréttavél Karp', rule: 'Vikulegt úrval fimm mikilvægustu mála fréttavélarinnar — raðað eftir vægi (birt á mánudögum).' },
   // ── Bylgja 1: kross-tengingar + innsýn ──
   rikisfe:    { label: 'Ríkisféð', emoji: '💰', color: '#f6b13b', img: 'rikisgreidslur', heimild: 'Opnir reikningar ríkisins', rule: 'Mánaðarlegt yfirlit yfir greiðslur ríkisins til birgja — heild og stærstu birgjar.' },
   birgirthrot:{ label: 'Ríkisbirgir í þroti', emoji: '⚠️', color: '#e0655f', img: 'gjaldthrot', heimild: 'Reikningar ríkisins × Lögbirtingablaðið', rule: 'Fyrirtæki sem fékk umtalsverðar ríkisgreiðslur OG er komið í gjaldþrotameðferð (kross-tenging tveggja gagnaheimilda).' },
@@ -68,7 +69,7 @@ export const CAT = {
 export const SECTIONS = [
   { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'throtlok', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun', 'kvoti', 'rikisfe', 'birgirthrot', 'toppar', 'bygging', 'fyrvik', 'fonix'] },
   { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra', 'ees', 'nefnd'], skip_:0 },
-  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika', 'fastthr', 'leiga', 'samanburdur', 'thema'] },
+  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika', 'vikan', 'fastthr', 'leiga', 'samanburdur', 'thema'] },
   { key: 'domsmal', label: 'Dómsmál', types: ['domur', 'glaepir'] },
   { key: 'samfelag', label: 'Samfélag', types: ['baejarstjori', 'sendiherra', 'lyf', 'sent', 'sveitfe', 'graent', 'eftirlit'] },
 ];
