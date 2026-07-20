@@ -3331,6 +3331,12 @@ export function frettavaktDue(cadence, lastSent, now) {
   if (cadence === 'vikulegt') return dt >= 6.5 * 86400;
   return dt >= 20 * 3600;                                       // daglegt (default)
 }
+export function frettavaktMerge(existing, body, validTypes) {
+  const e = existing || {}; const b = body || {};
+  const flokkar = (Array.isArray(b.flokkar) ? b.flokkar : []).filter((t) => validTypes.has(t)).slice(0, 60);
+  const cadence = ['strax', 'daglegt', 'vikulegt'].indexOf(b.cadence) >= 0 ? b.cadence : (e.cadence || 'daglegt');
+  return { on: !!b.on, flokkar, cadence, lastSent: e.lastSent || 0, seenIds: Array.isArray(e.seenIds) ? e.seenIds : [] };
+}
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
   const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);

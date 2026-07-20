@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { frettavaktMatch, frettavaktDue } from '../worker.js';
+import { frettavaktMatch, frettavaktDue, frettavaktMerge } from '../worker.js';
 
 const FEED = [
   { id: 'gjaldthrot-1', date: '2026-07-20', type: 'gjaldthrot', title: 'Gjaldþrot Alfa ehf.', text: 'Beiðni birt', url: '/logbirting/' },
@@ -63,4 +63,25 @@ test('vikulegt: due only after ~6.5d', () => {
 test('never sent (falsy lastSent): due', () => {
   assert.equal(frettavaktDue('daglegt', 0, NOW), true);
   assert.equal(frettavaktDue('vikulegt', undefined, NOW), true);
+});
+
+const VALID = new Set(['gjaldthrot', 'utbod', 'mark']);
+
+test('merge: takes on/flokkar/cadence from body, filters invalid types', () => {
+  const m = frettavaktMerge({}, { on: true, flokkar: ['gjaldthrot', 'bogus', 'utbod'], cadence: 'strax' }, VALID);
+  assert.equal(m.on, true);
+  assert.deepEqual(m.flokkar, ['gjaldthrot', 'utbod']);
+  assert.equal(m.cadence, 'strax');
+});
+
+test('merge: PRESERVES server-controlled seenIds/lastSent even if body sends them', () => {
+  const existing = { on: true, flokkar: [], cadence: 'daglegt', lastSent: 999, seenIds: ['a', 'b'] };
+  const m = frettavaktMerge(existing, { on: false, flokkar: [], cadence: 'daglegt', lastSent: 0, seenIds: [] }, VALID);
+  assert.equal(m.lastSent, 999);
+  assert.deepEqual(m.seenIds, ['a', 'b']);
+});
+
+test('merge: invalid cadence falls back to existing (or daglegt)', () => {
+  assert.equal(frettavaktMerge({ cadence: 'vikulegt' }, { cadence: 'hourly' }, VALID).cadence, 'vikulegt');
+  assert.equal(frettavaktMerge({}, { cadence: 'hourly' }, VALID).cadence, 'daglegt');
 });
