@@ -24,10 +24,13 @@ const balNow = LT.afkoma[ltI] ?? -0.65, debtNow = LT.skuldir[ltI] ?? 38.8;
 
 // línulegur glide núverandi → target yfir Q ársfj.
 const glide = (from, to, q = Q) => Array.from({ length: q }, (_, i) => +(from + (to - from) * (i / (q - 1))).toFixed(3));
+const MAXQ = 40; // langtíma-hamur: 10 ár (40 ársfj.). BAU = glide á 3-ára jafnvægi, síðan haldið.
+const bau = (from, to) => { const gg = glide(from, to, Q); return gg.concat(Array(MAXQ - Q).fill(gg[Q - 1])); };
 
 const baseline = {
   updated: new Date().toISOString().slice(0, 10),
   quarters: Q,
+  maxQuarters: MAXQ,
   disclaimer: 'Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.',
   levers: {
     vextir: { base: rateNow, min: 0, max: 12, step: 0.25, unit: '%', label: 'Stýrivextir (Seðlabanki)' },
@@ -48,20 +51,20 @@ const baseline = {
     frjosemi: { base: 0, min: -40, max: 40, step: 5, unit: '%', label: 'Frjósemi (frávik)' },
   },
   outcomes: {
-    verdbolga: { label: 'Verðbólga', unit: '%', path: glide(inflNow, 2.6) },
-    hagvoxtur: { label: 'Hagvöxtur (VLF)', unit: '%', path: glide(gdpF[10] ?? 1.9, gdpF[gdpF.length - 1] ?? 2.4) },
-    atvinnuleysi: { label: 'Atvinnuleysi', unit: '%', path: glide(unemNow, 4.0) },
-    kaupmattur: { label: 'Kaupmáttur launa', unit: '%', path: glide(0.8, 1.5) },
-    husnaedi: { label: 'Húsnæðisverð (12-mán)', unit: '%', path: glide(houseNow, 3.0) },
-    leiga: { label: 'Leiga (12-mán)', unit: '%', path: glide(rentNow, 4.0) },
-    greidslubyrdi: { label: 'Greiðslubyrði (vísit.)', unit: '', path: glide(100, 100) },
-    mannfjoldi: { label: 'Fólksfjölgun', unit: '%', path: glide(popNow, 1.0) },
-    vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: glide(1.5, 1.2) },
-    afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: glide(balNow, -0.5) },
-    skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: glide(debtNow, 37) },
-    utflutningur: { label: 'Útflutningsvöxtur', unit: '%', path: glide(2, 2.5) },
-    losun: { label: 'CO₂-losun (vísit.)', unit: '', path: glide(100, 100) },
-    vanskil: { label: 'Vanskil (vísit.)', unit: '', path: glide(100, 100) },
+    verdbolga: { label: 'Verðbólga', unit: '%', path: bau(inflNow, 2.6) },
+    hagvoxtur: { label: 'Hagvöxtur (VLF)', unit: '%', path: bau(gdpF[10] ?? 1.9, gdpF[gdpF.length - 1] ?? 2.4) },
+    atvinnuleysi: { label: 'Atvinnuleysi', unit: '%', path: bau(unemNow, 4.0) },
+    kaupmattur: { label: 'Kaupmáttur launa', unit: '%', path: bau(0.8, 1.5) },
+    husnaedi: { label: 'Húsnæðisverð (12-mán)', unit: '%', path: bau(houseNow, 3.0) },
+    leiga: { label: 'Leiga (12-mán)', unit: '%', path: bau(rentNow, 4.0) },
+    greidslubyrdi: { label: 'Greiðslubyrði (vísit.)', unit: '', path: bau(100, 100) },
+    mannfjoldi: { label: 'Fólksfjölgun', unit: '%', path: bau(popNow, 1.0) },
+    vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: bau(1.5, 1.2) },
+    afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: bau(balNow, -0.5) },
+    skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: bau(debtNow, 37) },
+    utflutningur: { label: 'Útflutningsvöxtur', unit: '%', path: bau(2, 2.5) },
+    losun: { label: 'CO₂-losun (vísit.)', unit: '', path: bau(100, 100) },
+    vanskil: { label: 'Vanskil (vísit.)', unit: '', path: bau(100, 100) },
   },
   clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260] },
 };

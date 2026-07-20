@@ -68,5 +68,12 @@ const okTourArrears = tourA.outcomes.vanskil.mid[q] > baseline.outcomes.vanskil.
 const okArrGdp = rateC.outcomes.hagvoxtur.mid[q] < baseline.outcomes.hagvoxtur.path[q]; // fjármála-hraðall magnar hagvaxtar-drag vaxtahækkunar
 const okArrBand = [rateC, tourA].every((r) => r.outcomes.vanskil.lo.every((v, i) => v <= r.outcomes.vanskil.mid[i] && r.outcomes.vanskil.mid[i] <= r.outcomes.vanskil.hi[i]));
 console.log('+vextir→vanskil↑:', okRateArrears, '| +samdráttur→vanskil↑:', okTourArrears, '| vanskil→hagvöxtur-drag:', okArrGdp, '| vanskil-bönd:', okArrBand);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand);
+// Langtíma-hamur (40 ársfj. = 10 ár): viðvarandi útgjöld — allt endanlegt, innan clamp, gild bönd
+const long = simulate({ baseline, links, levers: { utgjold: 8 }, shocks: {}, quarters: 40 });
+const okLongFinite = Object.values(long.outcomes).every((o) => [o.mid, o.lo, o.hi].every((s) => s.every((v) => Number.isFinite(v))));
+const okLongClamp = Object.keys(long.outcomes).every((k) => { const cl = baseline.clamp[k]; return long.outcomes[k].mid.every((v) => v >= cl[0] - 0.01 && v <= cl[1] + 0.01); });
+const okLongBand = Object.values(long.outcomes).every((o) => o.lo.every((v, i) => v <= o.mid[i] + 1e-9 && o.mid[i] <= o.hi[i] + 1e-9));
+const okLongLen = long.outcomes.skuldir.mid.length === 40;
+console.log('langtími(40Q) endanlegt:', okLongFinite, '| innan clamp:', okLongClamp, '| lo≤mið≤hi:', okLongBand, '| lengd 40:', okLongLen);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen);
 process.exit(bad ? 1 : 0);

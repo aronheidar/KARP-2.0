@@ -11,10 +11,11 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 <Layout title="ROADS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnklefi" wide={true}>
   <main data-pg="roads" class="dash">
     <div class="dash-top">
-      <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><span class="disc" id="disc"></span></div>
+      <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div><span class="disc" id="disc"></span></div>
       <div class="topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
       <div id="scn" class="scn"></div>
       <p id="news" class="news" hidden></p>
+      <p id="hnote" class="hnote" hidden></p>
       <div id="cmpbar" class="cmpbar" hidden></div>
     </div>
     <div class="dash-body3">
@@ -44,6 +45,11 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .dash-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
     main[data-pg="roads"] .dash-head h1 { font-size: 25px; margin: 0; }
     main[data-pg="roads"] .disc { font-size: 12px; color: var(--faint); }
+    main[data-pg="roads"] .horizon { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
+    main[data-pg="roads"] .horizon button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    main[data-pg="roads"] .horizon button.on { color: #f6b13b; border-color: #f6b13b; background: rgba(246,177,59,.1); }
+    main[data-pg="roads"] .hnote { font-size: 12px; color: var(--muted); background: rgba(110,168,254,.08); border: 1px solid rgba(110,168,254,.28); border-radius: 10px; padding: 8px 13px; margin: 0 0 12px; }
+    main[data-pg="roads"] .hnote a { color: #6ea8fe; }
     main[data-pg="roads"] .topbar { display: flex; gap: 10px; align-items: stretch; margin: 12px 0 8px; flex-wrap: wrap; }
     main[data-pg="roads"] .health { flex: 0 0 168px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; }
     main[data-pg="roads"] .health .h-l { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
@@ -118,8 +124,8 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import LINKS from '@gogn/roads/links.json';
     import SCENARIOS from '@gogn/roads/scenarios.json';
 
-    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false };
-    const Q = BASELINE.quarters, LAST = Q - 1;
+    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters };
+    const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
     const num = (v, d = 1) => (v == null ? '–' : v.toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d }));
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lbl = (k) => BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k;
@@ -157,12 +163,12 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     // sjálfvirk peningastefna/launaþróun: fastpunkts-ítrun (vélin ósnert).
     // Bregst við MEÐALTALI seinni helmings sjóndeildar (það sem stefnan getur haft áhrif á með töf) — ekki lokagildi.
-    const midTerm = (arr) => { let s = 0, n = 0; for (let i = 6; i <= LAST; i++) { s += arr[i]; n++; } return n ? s / n : arr[LAST]; };
+    const midTerm = (arr) => { const s0 = Math.floor(arr.length / 2); let s = 0, n = 0; for (let i = s0; i < arr.length; i++) { s += arr[i]; n++; } return n ? s / n : arr[arr.length - 1]; };
     function solveLevers() {
       const L = { ...state.levers };
       if (!state.autoTay && !state.autoPhi) return L;
       for (let it = 0; it < 8; it++) {
-        const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: Q });
+        const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: state.horizon });
         if (state.autoTay) { const infl = midTerm(r.outcomes.verdbolga.mid); const tgt = clamp(BASELINE.levers.vextir.base + 0.9 * (infl - 2.5), 0, 12); L.vextir = 0.45 * (L.vextir ?? BASELINE.levers.vextir.base) + 0.55 * tgt; }
         if (state.autoPhi) { const unem = midTerm(r.outcomes.atvinnuleysi.mid); const tgt = clamp(BASELINE.levers.laun.base + 0.35 * (4.0 - unem), 0, 14); L.laun = 0.45 * (L.laun ?? BASELINE.levers.laun.base) + 0.55 * tgt; }
       }
@@ -177,6 +183,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       for (const k in state.levers) if (state.levers[k] != null) p.set('l.' + k, state.levers[k]);
       for (const k in state.shocks) if (state.shocks[k] != null) p.set('s.' + k, state.shocks[k]);
       let a = ''; if (state.autoTay) a += 't'; if (state.autoPhi) a += 'p'; if (a) p.set('a', a);
+      if (state.horizon !== BASELINE.quarters) p.set('h', state.horizon);
       const h = p.toString();
       try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); } catch (e) {}
     }
@@ -187,6 +194,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         if (k.startsWith('l.') && BASELINE.levers[k.slice(2)]) { state.levers[k.slice(2)] = +v; any = true; }
         else if (k.startsWith('s.') && BASELINE.shocks[k.slice(2)]) { state.shocks[k.slice(2)] = +v; any = true; }
         else if (k === 'a') { state.autoTay = v.includes('t'); state.autoPhi = v.includes('p'); any = true; }
+        else if (k === 'h') { const hv = +v; if (hv >= BASELINE.quarters && hv <= MAXQ) { state.horizon = hv; any = true; } }
       }
       return any;
     }
@@ -196,7 +204,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       state._sol = { vextir: L.vextir, laun: L.laun }; // geymt svo hægt sé að „baka inn" við afvirkjun
       if (state.autoTay) syncSlider('vextir', L.vextir);
       if (state.autoPhi) syncSlider('laun', L.laun);
-      const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: Q });
+      const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: state.horizon });
       state._lastR = r;
       drawHealth(r); drawScore(r); drawCharts(r);
       serialize();
@@ -205,7 +213,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; }
 
     function drawHealth(r) {
-      const g = (k) => r.outcomes[k]?.mid[LAST] ?? 0;
+      const g = (k) => { const m = r.outcomes[k]?.mid; return m ? m[m.length - 1] : 0; };
       let pen = Math.abs(g('verdbolga') - 2.5) * 7 + Math.max(0, g('atvinnuleysi') - 4) * 6 + Math.max(0, 2 - g('hagvoxtur')) * 5 + Math.max(0, -g('afkoma')) * 4 + Math.max(0, g('husnaedi') - 5) * 1.2;
       const score = Math.round(clamp(100 - pen, 0, 100));
       const c = score >= 70 ? '#54d08a' : score >= 45 ? '#f6b13b' : '#e78284';
@@ -368,7 +376,14 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       else { btn.classList.remove('on'); btn.textContent = '⚖️ Festa til samanburðar'; bar.hidden = true; }
     }
 
-    function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
+    function applyHorizon() {
+      document.querySelectorAll('#horizon button').forEach((b) => b.classList.toggle('on', +b.dataset.h === state.horizon));
+      const hn = document.getElementById('hnote');
+      if (state.horizon > BASELINE.quarters) { hn.hidden = false; hn.innerHTML = '🔭 <b>10 ára sýn</b> — stílfærð langtíma-framreikning (grunnferill heldur 3-ára jafnvægi). Skýrust fyrir <b>skuldir, losun og vanskil</b> sem safnast upp; lýðfræði til langs tíma er á <a href="/mannfjoldi/">/mannfjoldi/</a>. Óvissa vex með tíma.'; }
+      else hn.hidden = true;
+    }
+
+    function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
@@ -377,9 +392,11 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       const restored = deserialize(); // sviðsmynd úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;
+      applyHorizon();
       buildControls(); run(); buildLinkTable(); buildChainMap();
       if (restored) { const n = document.getElementById('news'); n.hidden = false; n.innerHTML = '🔗 <b>Sviðsmynd úr hlekk.</b> Stýringarnar sýna deilda sviðsmynd — breyttu að vild eða núllstilltu.'; }
       document.getElementById('rs').addEventListener('click', reset);
+      document.querySelectorAll('#horizon button').forEach((b) => b.addEventListener('click', () => { state.horizon = +b.dataset.h; state.compare = null; updateCmp(); applyHorizon(); run(); }));
       document.getElementById('cmp').addEventListener('click', () => { state.compare = state.compare ? null : { r: state._lastR, desc: describeState() }; updateCmp(); run(); });
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
       document.getElementById('auto-tay').addEventListener('change', (e) => { state.autoTay = e.target.checked; if (!e.target.checked && state._sol) { state.levers.vextir = state._sol.vextir; syncSlider('vextir', state._sol.vextir); } applyAutoDisable(); run(); });
