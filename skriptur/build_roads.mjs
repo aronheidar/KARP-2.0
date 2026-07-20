@@ -347,6 +347,11 @@ const links = [
   { id: 'orka_vlfi', from: 'orka', to: 'vlf_idnadur', coef: 0.20, lag: 1, unit: 'vísit/%', ci_lo: 0.1, ci_hi: 0.35, source: 'Orka til stóriðju → iðnaðar-virðisauki' },
   { id: 'comm_vlfi', from: 'hravaruverd', to: 'vlf_idnadur', coef: 0.05, lag: 1, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Hærra hrávöruverð (t.d. ál) → betri afkoma útflutnings-iðnaðar' },
   { id: 'skipti_vlfi', from: 'orkuskipti', to: 'vlf_idnadur', coef: 0.04, lag: 2, unit: 'vísit/pp', ci_lo: 0.01, ci_hi: 0.08, source: 'Orkuskipti → ný græn iðnaðar-tækifæri' },
+  // ── Yfirferð orsakasambanda (viðbót — göt sem fundust í úttekt: dauðir kraftar sleða + vantandi lykil-rásir) ──
+  { id: 'carbon_innov', from: 'kolefnisgjald', to: 'nyskopun', coef: 0.04, lag: 4, unit: 'vísit/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Porter-tilgáta: kolefnisverð hvetur græna/hreintækni-nýsköpun (áður snerti kolefnisgjald ekki nýsköpun)' },
+  { id: 'retire_labor', from: 'lifeyrisaldur', to: 'vinnuafl', coef: 0.15, lag: 2, unit: 'pp/ár', ci_lo: 0.06, ci_hi: 0.28, source: 'Hærri lífeyrisaldur → eldri kynslóðir vinna lengur → meira vinnuafl (áður snerti lífeyrisaldur aðeins framfærsluhlutfall)' },
+  { id: 'edu_unem', from: 'menntun', to: 'atvinnuleysi', coef: -0.015, lag: 6, unit: 'pp/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Menntun/þjálfun → betri samsvörun starfa → minna skipulags-atvinnuleysi (hæg áhrif)' },
+  { id: 'spread_fx', from: 'vaxtaalag', to: 'gengi_endo', coef: -0.5, lag: 1, unit: '%/pp', ci_lo: -1.0, ci_hi: -0.15, source: 'Hærra áhættuálag ríkis → fjármagns-útflæði → veikari króna (risk-off; fullkomnar áhættuálags-lykkjuna)' },
   { id: 'niip_fx', from: 'niip', to: 'gengi_endo', coef: 0.02, lag: 2, unit: '%/%VLF', ci_lo: 0.005, ci_hi: 0.04, source: 'Sterk erlend staða → stöðugri/sterkari króna' },
   { id: 'ca_fx', from: 'vidskiptajofnudur', to: 'gengi_endo', coef: 0.3, lag: 1, unit: '%/%VLF', ci_lo: 0.1, ci_hi: 0.55, source: 'Viðskiptaafgangur → gjaldeyris-innflæði → sterkari króna' },
   // ── Dreifing & heimili (module 13): tekjujöfnuður ──

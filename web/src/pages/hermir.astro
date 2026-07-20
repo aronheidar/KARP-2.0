@@ -5,7 +5,6 @@
 import Layout from '../layouts/Layout.astro';
 import BASELINE from '@gogn/roads/baseline.json';
 import LINKS from '@gogn/roads/links.json';
-import SCENARIOS from '@gogn/roads/scenarios.json';
 const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti, laun, skatta, kvóta og fleira (eða láttu peningastefnuna vera sjálfvirka) og sjáðu stílfærð áhrif á 13 hagvísa næstu 3 árin, með óvissu og heimildum.';
 ---
 <Layout title="ROADS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnklefi" wide={true}>
@@ -16,7 +15,6 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <div class="tabbar" id="tabbar"></div>
       <div class="r-topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
       <div id="realnow" class="realnow"></div>
-      <div id="scn" class="scn"></div>
       <p id="news" class="news" hidden></p>
       <p id="hnote" class="hnote" hidden></p>
       <div id="cmpbar" class="cmpbar" hidden></div>
@@ -31,7 +29,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <label class="auto" id="lbl-tay" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
         <label class="auto" id="lbl-phi" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
         <div id="levers"></div>
-        <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir. Eða prófaðu sviðsmynd eða KARP-lausnina.</p>
+        <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir. Eða prófaðu KARP-lausnina.</p>
         <button id="rs" type="button">↺ Núllstilla</button>
         <button id="mc" type="button" title="Keyrir hundruð herma með slembnum stuðlum innan óvissubils hvers tengsls → líkinda-viftur (5–95%) og líkinda-yfirlýsingar í stað fastra banda.">🎲 Óvissu-hermun</button>
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
@@ -244,7 +242,6 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import { simulate } from '@lib/roads/engine.mjs';
     import BASELINE from '@gogn/roads/baseline.json';
     import LINKS from '@gogn/roads/links.json';
-    import SCENARIOS from '@gogn/roads/scenarios.json';
     import HISTORY from '@gogn/roads/history.json';
     import CALIBRATION from '@gogn/roads/calibration.json';
 
@@ -662,14 +659,6 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       }, 30);
     }
 
-    function buildScenarios() {
-      const box = document.getElementById('scn'); box.innerHTML = '';
-      SCENARIOS.forEach((s) => { const b = document.createElement('button'); b.textContent = s.label; b.title = s.tldr;
-        b.addEventListener('click', () => { state.levers = { ...s.levers }; state.shocks = { ...s.shocks }; [...box.children].forEach((c) => c.classList.remove('on')); b.classList.add('on');
-          const news = document.getElementById('news'); news.hidden = false; news.innerHTML = '📰 <b>' + s.label + ':</b> ' + s.sentence; buildControls(); run(); });
-        box.appendChild(b);
-      });
-    }
 
     function buildLinkTable() {
       const host = document.getElementById('lnks'); if (!host) return;
@@ -915,7 +904,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     }
     function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); drawStress(); }
 
-    function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
+    function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); document.getElementById('news').hidden = true; buildControls(); run(); }
 
     // Auto-frétt: sjálfvirk frásögn af núverandi sviðsmynd (fyrsta útgáfa AI-fréttalags — regla-drifið úr útkomum).
     function generateNarrative() {
@@ -984,7 +973,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildCalibration(); buildSectorsReal();
+      buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildCalibration(); buildSectorsReal();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;
@@ -998,7 +987,6 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
           const best = findBest();
           state.levers = { ...best.levers }; state.autoTay = false; state.autoPhi = false; state.compare = null;
           document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false;
-          [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on'));
           updateCmp(); buildControls(); run();
           const extra = Object.values(state.shocks).some((v) => v) ? ' — besta stefnu-svar við núverandi ytri áhrifum' : '';
           const n = document.getElementById('news'); n.hidden = false; n.innerHTML = `🏆 <b>KARP-lausnin</b>${extra} — hæsta þjóðhagslega heilsufar sem fannst (${best.score}/100) á ${state.horizon > BASELINE.quarters ? '10 ára' : '3 ára'} sjóndeild: ${describeState() === 'grunnstaða' ? 'engin breyting bætir núverandi horfur' : describeState()}. (Heuristísk leit — ekki opinber ráðgjöf.)`;
