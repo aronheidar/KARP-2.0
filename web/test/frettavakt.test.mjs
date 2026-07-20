@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { frettavaktMatch, frettavaktDue, frettavaktMerge } from '../worker.js';
+import { frettavaktMatch, frettavaktDue, frettavaktMerge, frettavaktEmail } from '../worker.js';
 
 const FEED = [
   { id: 'gjaldthrot-1', date: '2026-07-20', type: 'gjaldthrot', title: 'Gjaldþrot Alfa ehf.', text: 'Beiðni birt', url: '/logbirting/' },
@@ -84,4 +84,15 @@ test('merge: PRESERVES server-controlled seenIds/lastSent even if body sends the
 test('merge: invalid cadence falls back to existing (or daglegt)', () => {
   assert.equal(frettavaktMerge({ cadence: 'vikulegt' }, { cadence: 'hourly' }, VALID).cadence, 'vikulegt');
   assert.equal(frettavaktMerge({}, { cadence: 'hourly' }, VALID).cadence, 'daglegt');
+});
+
+test('email: contains a link to each match article + its title', () => {
+  const html = frettavaktEmail([
+    { id: 'gjaldthrot-1', type: 'gjaldthrot', title: 'Gjaldþrot Alfa ehf.', url: '/logbirting/' },
+    { id: 'frett:x', type: 'frett', title: 'Marel uppgjör', url: 'https://mbl.is/a', source: 'mbl.is' },
+  ]);
+  assert.ok(html.includes('Gjaldþrot Alfa ehf.'));
+  assert.ok(html.includes('karp.is/frettavel/gjaldthrot-1/'));   // fréttavél item → article page
+  assert.ok(html.includes('mbl.is/a'));                          // external news → its own url
+  assert.ok(/Stilla vaktir/.test(html));                         // footer settings link
 });

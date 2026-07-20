@@ -1,4 +1,5 @@
 import { greinaSql } from './src/lib/greinar.mjs';
+import { CAT, SECTIONS, sectionOfType } from './src/lib/frettavel-cat.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -3336,6 +3337,25 @@ export function frettavaktMerge(existing, body, validTypes) {
   const flokkar = (Array.isArray(b.flokkar) ? b.flokkar : []).filter((t) => validTypes.has(t)).slice(0, 60);
   const cadence = ['strax', 'daglegt', 'vikulegt'].indexOf(b.cadence) >= 0 ? b.cadence : (e.cadence || 'daglegt');
   return { on: !!b.on, flokkar, cadence, lastSent: e.lastSent || 0, seenIds: Array.isArray(e.seenIds) ? e.seenIds : [] };
+}
+export function frettavaktEmail(matches) {
+  const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const bySec = new Map();
+  for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
+  const rows = [...bySec.entries()].map(([label, items]) => {
+    const li = items.map((m) => {
+      const href = m.type === 'frett' ? esc(m.url) : ('https://karp.is/frettavel/' + esc(m.id) + '/');
+      const badge = m.type === 'frett' ? esc(m.source || 'frétt') : ((CAT[m.type] || {}).label || m.type);
+      return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
+    }).join('');
+    return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
+  }).join('');
+  return `<div style="font-family:system-ui,Arial,sans-serif;max-width:600px;color:#222">
+    <p style="font-size:15px">Ný mál á vöktunum þínum hjá Karp:</p>
+    ${rows}
+    <p style="margin-top:22px;font-size:12px;color:#888;border-top:1px solid #eee;padding-top:12px">
+      <a href="https://karp.is/mitt-svaedi/#p-still" style="color:#8a5e00">Stilla vaktir</a> · Fréttavél Karp — sjálfvirkt fundið úr opinberum gögnum.
+    </p></div>`;
 }
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
