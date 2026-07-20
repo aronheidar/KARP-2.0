@@ -3324,6 +3324,13 @@ export function frettavaktMatch(feedItems, newsRows, ctx) {
   }
   return [...out.values()].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, MAX_PER_EMAIL);
 }
+export function frettavaktDue(cadence, lastSent, now) {
+  if (!lastSent) return true;
+  const dt = now - lastSent;
+  if (cadence === 'strax') return true;
+  if (cadence === 'vikulegt') return dt >= 6.5 * 86400;
+  return dt >= 20 * 3600;                                       // daglegt (default)
+}
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
   const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);

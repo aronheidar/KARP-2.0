@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { frettavaktMatch } from '../worker.js';
+import { frettavaktMatch, frettavaktDue } from '../worker.js';
 
 const FEED = [
   { id: 'gjaldthrot-1', date: '2026-07-20', type: 'gjaldthrot', title: 'Gjaldþrot Alfa ehf.', text: 'Beiðni birt', url: '/logbirting/' },
@@ -39,4 +39,28 @@ test('cap: never returns more than 30', () => {
 
 test('empty: no subscription → no matches', () => {
   assert.equal(frettavaktMatch(FEED, NEWS, { flokkar: [], ord: [], seenIds: [] }).length, 0);
+});
+
+const NOW = 1_000_000;
+const H = 3600;
+const D = 86400;
+
+test('strax: always due', () => {
+  assert.equal(frettavaktDue('strax', NOW - 1, NOW), true);
+  assert.equal(frettavaktDue('strax', NOW, NOW), true);
+});
+
+test('daglegt: due only after ~20h', () => {
+  assert.equal(frettavaktDue('daglegt', NOW - 19 * H, NOW), false);
+  assert.equal(frettavaktDue('daglegt', NOW - 21 * H, NOW), true);
+});
+
+test('vikulegt: due only after ~6.5d', () => {
+  assert.equal(frettavaktDue('vikulegt', NOW - 6 * D, NOW), false);
+  assert.equal(frettavaktDue('vikulegt', NOW - 7 * D, NOW), true);
+});
+
+test('never sent (falsy lastSent): due', () => {
+  assert.equal(frettavaktDue('daglegt', 0, NOW), true);
+  assert.equal(frettavaktDue('vikulegt', undefined, NOW), true);
 });
