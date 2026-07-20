@@ -3306,6 +3306,24 @@ async function fetchNews() {
   for (const arr of lists) for (const it of arr) { if (it.date && it.date < wkDate) continue; const k = it.title.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(it); }
   return out;
 }
+// ── Fréttavaktir (news alerts) ────────────────────────────────────────────────
+export const MAX_PER_EMAIL = 30;
+export function frettavaktMatch(feedItems, newsRows, ctx) {
+  const flokkar = new Set(ctx.flokkar || []);
+  const ord = (ctx.ord || []).map((w) => String(w).toLowerCase()).filter(Boolean);
+  const seen = new Set(ctx.seenIds || []);
+  const hitsOrd = (hay) => { const h = String(hay || '').toLowerCase(); return ord.some((w) => h.indexOf(w) >= 0); };
+  const out = new Map();                                        // id → item (dedup + union)
+  for (const it of feedItems || []) {
+    if (!it || !it.id || seen.has(it.id)) continue;
+    if (flokkar.has(it.type) || (ord.length && hitsOrd((it.title || '') + ' ' + (it.text || '')))) out.set(it.id, it);
+  }
+  if (ord.length) for (const n of newsRows || []) {
+    if (!n || !n.url || seen.has(n.url) || out.has(n.url)) continue;
+    if (hitsOrd((n.title || '') + ' ' + (n.body || ''))) out.set(n.url, { id: n.url, date: (n.ts ? new Date(n.ts * 1000).toISOString().slice(0, 10) : ''), type: 'frett', title: n.title, text: '', url: n.url, source: n.source });
+  }
+  return [...out.values()].sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, MAX_PER_EMAIL);
+}
 async function digestShared(env) {
   const now = Math.floor(Date.now() / 1000);
   const wkDate = new Date((now - 7 * 86400) * 1000).toISOString().slice(0, 10);
