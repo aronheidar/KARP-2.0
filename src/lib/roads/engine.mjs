@@ -2,11 +2,25 @@
 // Módel = gögn (baseline + links). Skilar ferlum m/óvissu-böndum (jaðra-samsetning).
 // Frávik: vogarstöng = gildi−base (fast yfir t); sjokk = gildi (base 0); útkoma = tafið mið-frávik.
 // Regla: útkoma→útkoma tengsl verða að hafa lag ≥ 1.
+// ÓLÍNULEIKI (valkvæður, afturvirkt-samhæfður): tengsl mega hafa `nl`-svið:
+//   {type:'sat', k}    → mettun (minnkandi ávöxtun): áhrif = k·tanh(coef·frávik/k). Lítið frávik ≈ línulegt.
+//   {type:'accel', at, by, cap} → hröðun yfir þröskuld (t.d. skuldakreppa/þensla): áhrif = coef·frávik·min(cap, 1+by·max(0,|coef·frávik|−at)).
+// Án `nl` er tengslið HREINT LÍNULEGT (öll fyrri tengsl óbreytt → öll próf standast).
 
+export function applyNL(x, nl) {
+  if (!nl) return x;
+  if (nl.type === 'sat') return nl.k * Math.tanh(x / nl.k);
+  if (nl.type === 'accel') return x * Math.min(nl.cap ?? 2.5, 1 + nl.by * Math.max(0, Math.abs(x) - nl.at));
+  return x;
+}
+
+// Tímaháð leið: vogarstöng/sjokk mega vera fylki (gildi per skref) — dýnamísk bestun.
+// Fylki styttra en Q → heldur síðasta gildi. Tala = fast yfir tímann (afturvirkt-samhæft).
+function atStep(v, s) { return Array.isArray(v) ? (v[s] ?? v[v.length - 1]) : v; }
 export function deviationOf(from, s, ctx) {
   const { levers, shocks, dev } = ctx;
-  if (levers && from in levers) return levers[from].value - levers[from].base;
-  if (shocks && from in shocks) return shocks[from].value;
+  if (levers && from in levers) return atStep(levers[from].value, s) - levers[from].base;
+  if (shocks && from in shocks) return atStep(shocks[from].value, s);
   if (dev && dev[from]) return dev[from][s] ?? 0;
   return 0;
 }
@@ -28,7 +42,7 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
         const s = t - (ln.lag || 0);
         if (s < 0) continue;
         const fd = deviationOf(ln.from, s, ctx);
-        d += ln.coef * fd;
+        d += applyNL(ln.coef * fd, ln.nl);
         const band = ((ln.ci_hi ?? ln.coef) - (ln.ci_lo ?? ln.coef)) / 2;
         u += Math.abs(band * fd);
       }

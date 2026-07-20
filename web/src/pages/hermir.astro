@@ -49,6 +49,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div id="modelview" class="modelview" hidden>
       <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div>
       <div id="backtest" class="backtest"></div>
+      <div id="sectors-real" class="backtest"></div>
       <details class="transp" open><summary>⚙︎ Öll orsakasambönd, stuðlar og heimildir</summary><div id="lnks"></div></details>
     </div>
     <div id="analysisview" class="analysisview" hidden>
@@ -66,6 +67,12 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <div class="an-tool">
         <div class="an-h">🛡️ Álagspróf — hversu vel þolir núverandi stefna óhagstæð áföll?</div>
         <div id="stress"></div>
+      </div>
+      <div class="an-tool">
+        <div class="an-h">🏆 Dýnamísk KARP-leið — borgar sig að fasa stefnuna (herða fyrst, slaka svo)?</div>
+        <p class="an-intro" style="margin:2px 0 8px">Bestar 2-fasa leið (áfangi 1 = fyrri helmingur sjóndeildar, áfangi 2 = seinni) fyrir tíma-næmar ákvarðanir og ber saman við bestu FÖSTU KARP-stillingu. Markmið: hæst <b>meðal</b>-heilsufar yfir alla sjóndeildina — umbunar leið sem kemst hratt í gott ástand, ekki bara lokastöðu. Nýtir tímaháðar leiðir í vélinni.</p>
+        <div class="an-ctl"><button id="dyn-go" type="button">Reikna dýnamíska leið</button></div>
+        <div id="dyn-result" class="inv-result"></div>
       </div>
       <div class="an-tool">
         <div class="an-h">🎯 Markmiða-leit — hvaða stilling hittir markmiðið? (andhverfur hamur)</div>
@@ -144,6 +151,13 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] #frontier canvas { width: 100%; height: 300px; display: block; }
     main[data-pg="roads"] .inv-result { font-size: 13px; margin-top: 8px; }
     main[data-pg="roads"] .inv-result b { color: #f6b13b; }
+    main[data-pg="roads"] .dyn-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+    main[data-pg="roads"] .dyn-tbl th, main[data-pg="roads"] .dyn-tbl td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .dyn-tbl th:first-child, main[data-pg="roads"] .dyn-tbl td:first-child { text-align: left; color: var(--muted); font-variant-numeric: normal; }
+    main[data-pg="roads"] .dyn-tbl thead th { color: var(--faint); font-weight: 700; }
+    main[data-pg="roads"] .dyn-sub { font-size: 10.5px; color: var(--faint); }
+    main[data-pg="roads"] .sec-bar { display: inline-block; width: 70px; height: 7px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; vertical-align: middle; margin-right: 5px; }
+    main[data-pg="roads"] .sec-bar > i { display: block; height: 100%; background: #6ea8fe; border-radius: 4px; }
     main[data-pg="roads"] .controls { position: sticky; top: 60px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
     main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 8px; }
     main[data-pg="roads"] .auto { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 6px; cursor: pointer; }
@@ -436,13 +450,16 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); }
 
     // Samsett þjóðhagslegt heilsufar (0–100) — markfall sem KARP-hnappurinn hámarkar.
-    function healthScore(r) {
-      const g = (k) => { const m = r.outcomes[k]?.mid; return m ? m[m.length - 1] : 0; };
+    function healthAt(r, t) {
+      const g = (k) => { const m = r.outcomes[k]?.mid; return m ? m[Math.min(t, m.length - 1)] : 0; };
       const pen = Math.abs(g('verdbolga') - 2.5) * 7 + Math.max(0, g('atvinnuleysi') - 4) * 6 + Math.max(0, 2 - g('hagvoxtur')) * 5 + Math.max(0, -g('afkoma')) * 4
         + Math.max(0, g('husnaedi') - 5) * 1.2 + Math.max(0, g('leiga') - 6) * 0.8 + Math.max(0, g('skuldir') - 45) * 0.3 + Math.max(0, g('vanskil') - 100) * 0.4 + Math.max(0, g('losun') - 100) * 0.3
         + Math.max(0, 1 - g('kaupmattur')) * 2 + Math.max(0, 100 - g('fiskistofn')) * 0.25 + Math.max(0, g('framfaersla') - 102) * 0.3 - Math.min(6, Math.max(0, g('nyskopun') - 100) * 0.06);
       return clamp(100 - pen, 0, 100);
     }
+    function healthScore(r) { const m = r.outcomes.verdbolga?.mid; return healthAt(r, m ? m.length - 1 : 0); }   // lokastaða (óbreytt hegðun)
+    // path-aware: meðal-heilsufar yfir sjóndeildina, seinni skref vega meira → umbunar hraðri leið að góðu ástandi (fyrir dýnamíska bestun)
+    function healthPath(r) { const H = r.outcomes.verdbolga.mid.length; let s = 0, w = 0; for (let t = 0; t < H; t++) { const wt = 1 + t / H; s += wt * healthAt(r, t); w += wt; } return s / w; }
     function drawHealth(r) {
       const score = Math.round(healthScore(r));
       const c = score >= 70 ? GOOD : score >= 45 ? NEUT : BAD;
@@ -568,6 +585,77 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       return { levers: best, score: Math.round(bestScore) };
     }
 
+    // Dýnamísk KARP: bestar 2-fasa leið (áfangi 1 = fyrri helmingur, áfangi 2 = seinni helmingur) fyrir
+    // tíma-næmar ákvarðanir, m.v. path-aware markmið (healthPath). Byrjar frá bestu FÖSTU lausn. Skilar
+    // EKKI í state (state heldur skala-gildum) — aðeins niðurstöðu til birtingar í Greiningu.
+    const DYN_KEYS = ['vextir', 'laun', 'utgjold', 'skattar', 'tilfaerslur', 'innvidir', 'vsk'];
+    function findBestDynamic() {
+      const base = findBest();
+      const H = state.horizon, half = Math.max(1, Math.floor(H / 2));
+      const keys = DYN_KEYS.filter((k) => BASELINE.levers[k]);
+      const mkPath = (e, l) => [...new Array(half).fill(e), ...new Array(H - half).fill(l)];
+      const others = { ...base.levers }; for (const k of keys) delete others[k];
+      const cur = {}; for (const k of keys) { const v = base.levers[k] ?? BASELINE.levers[k].base; cur[k] = { e: v, l: v }; }
+      const build = (c) => { const lv = { ...others }; for (const k in c) lv[k] = mkPath(c[k].e, c[k].l); return lv; };
+      const sim = (c) => healthPath(simulate({ baseline: BASELINE, links: LINKS, levers: build(c), shocks: state.shocks, quarters: H }));
+      let bestScore = sim(cur);
+      for (let pass = 0; pass < 3; pass++) {
+        let improved = false;
+        for (const k of keys) {
+          const cfg = BASELINE.levers[k], st = Math.max(cfg.step, (cfg.max - cfg.min) / 12);
+          for (const ph of ['e', 'l']) {
+            let lb = cur[k][ph], ls = bestScore;
+            for (let v = cfg.min; v <= cfg.max + 1e-9; v += st) {
+              const vr = +(Math.round(v / cfg.step) * cfg.step).toFixed(4);
+              if (vr < cfg.min - 1e-9 || vr > cfg.max + 1e-9) continue;
+              const s = sim({ ...cur, [k]: { ...cur[k], [ph]: vr } });
+              if (s > ls + 1e-6) { ls = s; lb = vr; }
+            }
+            if (lb !== cur[k][ph]) { cur[k][ph] = lb; improved = true; }
+            bestScore = ls;
+          }
+        }
+        if (!improved) break;
+      }
+      const rDyn = simulate({ baseline: BASELINE, links: LINKS, levers: build(cur), shocks: state.shocks, quarters: H });
+      const rConst = simulate({ baseline: BASELINE, links: LINKS, levers: base.levers, shocks: state.shocks, quarters: H });
+      return { phases: cur, keys, half, H, rDyn, rConst, base, pathDyn: bestScore, pathConst: healthPath(rConst) };
+    }
+    function drawMiniLines(cv, seriesArr, mn, mx) {
+      const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 500, h = 150;
+      cv.width = w * dpr; cv.height = h * dpr; const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+      const n = seriesArr[0].pts.length, padL = 30, padR = 8, padT = 8, padB = 16;
+      const X = (i) => padL + (w - padL - padR) * i / (n - 1), Y = (v) => (h - padB) - (h - padT - padB) * (v - mn) / (mx - mn);
+      ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.fillStyle = 'rgba(159,176,200,.7)'; ctx.font = '10px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let g = 0; g <= 4; g++) { const v = mn + (mx - mn) * g / 4, y = Y(v); ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke(); ctx.fillText(num(v, 0), padL - 4, y); }
+      seriesArr.forEach((s) => { ctx.beginPath(); s.pts.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = s.color; ctx.setLineDash(s.dash || []); ctx.lineWidth = s.lw || 2; ctx.lineJoin = 'round'; ctx.stroke(); ctx.setLineDash([]); });
+    }
+    function drawDynamic() {
+      const host = document.getElementById('dyn-result'); if (!host) return;
+      host.innerHTML = '<div style="color:var(--faint);font-size:13px">Reikna dýnamíska leið…</div>';
+      setTimeout(() => {
+        const d = findBestDynamic();
+        const gain = d.pathDyn - d.pathConst, yr = (t) => (t / 4).toFixed(1).replace('.0', '');
+        const rows = d.keys.map((k) => { const cfg = BASELINE.levers[k], p = d.phases[k]; return { k, cfg, e: p.e, l: p.l, diff: Math.abs(p.e - p.l) >= cfg.step - 1e-9 }; })
+          .filter((r) => r.diff || r.e !== r.cfg.base);
+        const fmt = (v, cfg) => num(v, cfg.step < 1 ? 2 : 0) + cfg.unit;
+        const tbl = rows.length
+          ? '<table class="dyn-tbl"><thead><tr><th>Ákvörðun</th><th>Áfangi 1<br><span class="dyn-sub">ár 0–' + yr(d.half) + '</span></th><th>Áfangi 2<br><span class="dyn-sub">ár ' + yr(d.half) + '–' + yr(d.H) + '</span></th></tr></thead><tbody>'
+            + rows.map((r) => '<tr><td>' + lbl(r.k) + '</td><td>' + fmt(r.e, r.cfg) + '</td><td>' + fmt(r.l, r.cfg) + (r.diff ? ' <b style="color:#f6b13b">' + (r.l > r.e ? '↑' : '↓') + '</b>' : '') + '</td></tr>').join('')
+            + '</tbody></table>'
+          : '<p class="an-intro">Engin tíma-næm ákvörðun batnar við fösun núna — föst stefna er þegar best.</p>';
+        const verdict = gain > 0.4
+          ? '<b style="color:' + GOOD + '">Fösun borgar sig.</b> Að fasa stefnuna hækkar meðal-heilsufar um <b>' + gain.toFixed(1) + ' stig</b> umfram bestu FÖSTU stillingu — það svarar sig að stilla ákvarðanir ólíkt milli áfanga.'
+          : '<b>Föst stefna dugar.</b> 2-fasa leið bætir meðal-heilsufar um aðeins ' + gain.toFixed(1) + ' stig; tímasetning skiptir litlu við núverandi horfur.';
+        host.innerHTML = '<p style="margin:2px 0 10px;font-size:13.5px">' + verdict + '</p>' + tbl
+          + '<canvas id="dyn-canvas" style="width:100%;height:150px;display:block;margin-top:12px"></canvas>'
+          + '<div class="hero-legend" style="margin-top:6px"><span><i style="background:#f6b13b"></i> Dýnamísk leið (meðal ' + d.pathDyn.toFixed(0) + ')</span><span><i style="background:#9fb0c8"></i> Föst KARP (meðal ' + d.pathConst.toFixed(0) + ')</span></div>'
+          + '<div class="dyn-sub" style="margin-top:4px">Þjóðhagslegt heilsufar hvern ársfjórðung yfir sjóndeildina · hærra = betra</div>';
+        const ser = (r) => { const out = []; for (let t = 0; t < d.H; t++) out.push(healthAt(r, t)); return out; };
+        drawMiniLines(document.getElementById('dyn-canvas'), [{ pts: ser(d.rConst), color: '#9fb0c8', lw: 1.8, dash: [4, 3] }, { pts: ser(d.rDyn), color: '#f6b13b', lw: 2.4 }], 0, 100);
+      }, 30);
+    }
+
     function buildScenarios() {
       const box = document.getElementById('scn'); box.innerHTML = '';
       SCENARIOS.forEach((s) => { const b = document.createElement('button'); b.textContent = s.label; b.title = s.tldr;
@@ -608,6 +696,25 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <table class="lnk-tbl"><tr><th>Hagvísir</th><th>Raun-gögn 2010–2026</th><th>Módel</th><th style="text-align:center">✓</th></tr>
         ${rows.map((r) => `<tr><td>${r[0]}</td><td style="font-variant-numeric:tabular-nums">${r[1]}</td><td style="color:var(--faint)">${r[2]}</td><td style="text-align:center">${chk(r[3])}</td></tr>`).join('')}</table>${fc}
         <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka; grunnferill = opinber spá.</p>`;
+    }
+
+    // 🏭 Raunhagkerfið: sækir samandregna ÍSAT-samsetningu úr D1 (ársreikningar) og grundar herminn í raun-fyrirtækjum.
+    // Bilar hljóðlega (fela spjaldið) ef endapunktur óstilltur/tómur — módelið stendur eitt og sér án þessa.
+    async function buildSectorsReal() {
+      const host = document.getElementById('sectors-real'); if (!host) return;
+      let d; try { const res = await fetch('/api/roads/atvinnuvegir'); if (!res.ok) return; d = await res.json(); } catch (e) { return; }
+      if (!d || !d.greinar || !d.greinar.length) return;
+      const mx = Math.max(...d.greinar.map((g) => g.hlutur), 1);
+      const mak = (v) => v >= 1e9 ? num(v / 1e9, 0) + ' ma.kr.' : num(Math.max(0, v) / 1e6, 0) + ' m.kr.';
+      const rows = d.greinar.map((g) => `<tr><td>${g.nafn}</td>
+        <td style="font-variant-numeric:tabular-nums">${mak(g.sala)}</td>
+        <td><span class="sec-bar"><i style="width:${(100 * g.hlutur / mx).toFixed(0)}%"></i></span> <b>${num(g.hlutur)}%</b></td>
+        <td style="font-variant-numeric:tabular-nums;color:${g.framlegd == null ? 'var(--faint)' : g.framlegd >= 0 ? '#54d08a' : '#e78284'}">${g.framlegd == null ? '–' : num(g.framlegd) + '%'}</td>
+        <td style="color:var(--faint);font-variant-numeric:tabular-nums">${num(g.n, 0)}</td></tr>`).join('');
+      host.innerHTML = `<div class="cm-title">🏭 Raunhagkerfið í dag — samsetning atvinnuvega úr ársreikningum</div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">Grundar herminn í raun-fyrirtækjagögnum: heildarvelta, hlutur af heild og framlegð (hagnaður/velta) hverrar ÍSAT-greinar, dregið saman úr <b>${num(d.n_felog, 0)}</b> ársreikningum (nýjasta ár per félag). Sýnir hlutfallslega stærð greinanna sem herminn stillir. Vaxandi úrtak — ekki tæmandi þjóðhagsreikningur.</p>
+        <table class="lnk-tbl"><tr><th>Atvinnugrein</th><th>Velta</th><th>Hlutur af veltu</th><th>Framlegð</th><th>Félög</th></tr>${rows}</table>
+        <p style="font-size:11.5px;color:var(--faint);margin-top:8px">${d.heimild} Samandregið — engin fyrirtæki nafngreind. Sjá <a href="/topplistar-fyrirtaeki/" style="color:#6ea8fe">topplista fyrirtækja</a> fyrir einstök félög í hverri grein.</p>`;
     }
 
     // Keðju-kort: lagskipt net allra tengsla (dálkar eftir „dýpt" frá inntökum). Grænt=eykur, rautt=dregur úr.
@@ -748,6 +855,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         el.innerHTML = r.ok ? `✅ Stilltu <b>${cfg.label}</b> á <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} verður <b>${num(r.achieved)}${us}</b> (markmið ${num(tgt)}${us}).`
           : `⚠ Markmiðið næst ekki með þessum sleða einum innan sviðs. Næst kemst með <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} = <b>${num(r.achieved)}${us}</b>. Prófaðu annan sleða eða raunhæfara markmið.`;
       });
+      document.getElementById('dyn-go').addEventListener('click', drawDynamic);
     }
     const STRESS = [
       { t: 'Olíuskellur (+80%)', s: { olia: 80 } },
@@ -849,7 +957,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest();
+      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildSectorsReal();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;

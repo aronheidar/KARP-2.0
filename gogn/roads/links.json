@@ -8,8 +8,12 @@
   "unit": "pp/pp",
   "ci_lo": -0.28,
   "ci_hi": -0.06,
+  "nl": {
+   "type": "sat",
+   "k": 1
+  },
   "source": "SÍ QMM peningastefnu-yfirfærsla (~1 árs töf)",
-  "note": "Aðhald lækkar verðbólgu tafið"
+  "note": "ÓLÍNULEGT: minnkandi jaðar-hjöðnun af mjög stórum vaxtahækkunum (mettun)"
  },
  {
   "id": "r_gdp",
@@ -53,7 +57,14 @@
   "unit": "pp/pp",
   "ci_lo": 0.15,
   "ci_hi": 0.45,
-  "source": "Launa-verð spírall, Hagstofa/SÍ"
+  "nl": {
+   "type": "accel",
+   "at": 1,
+   "by": 0.15,
+   "cap": 2
+  },
+  "source": "Launa-verð spírall, Hagstofa/SÍ",
+  "note": "ÓLÍNULEGT: stórar launahækkanir hraða launa-verð spíral (hröðun yfir þröskuld)"
  },
  {
   "id": "w_house",
@@ -581,7 +592,14 @@
   "unit": "pp/vísit",
   "ci_lo": -0.04,
   "ci_hi": -0.005,
-  "source": "Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla"
+  "nl": {
+   "type": "accel",
+   "at": 0.3,
+   "by": 0.4,
+   "cap": 2.5
+  },
+  "source": "Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla",
+  "note": "ÓLÍNULEGT: fjármála-hraðall magnast í kreppu (hröðun)"
  },
  {
   "id": "arrears_bal",
@@ -1813,7 +1831,14 @@
   "unit": "pp/%VLF",
   "ci_lo": 0.005,
   "ci_hi": 0.045,
-  "source": "Hærri ríkisskuldir → hærra áhættuálag"
+  "nl": {
+   "type": "accel",
+   "at": 0.2,
+   "by": 0.5,
+   "cap": 3
+  },
+  "source": "Hærri ríkisskuldir → hærra áhættuálag",
+  "note": "ÓLÍNULEGT: áhættuálag hraðar við háa skuldsetningu (skuldakreppu-kúfur)"
  },
  {
   "id": "arrears_spread",

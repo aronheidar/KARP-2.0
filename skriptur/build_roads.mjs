@@ -120,11 +120,11 @@ const baseline = {
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
 // Heimildir: SÍ Peningamál/QMM-yfirfærslustuðlar, Hagstofa, OECD; röð-metið þar sem tekið fram.
 const links = [
-  { id: 'r_infl', from: 'vextir', to: 'verdbolga', coef: -0.15, lag: 4, unit: 'pp/pp', ci_lo: -0.28, ci_hi: -0.06, source: 'SÍ QMM peningastefnu-yfirfærsla (~1 árs töf)', note: 'Aðhald lækkar verðbólgu tafið' },
+  { id: 'r_infl', from: 'vextir', to: 'verdbolga', coef: -0.15, lag: 4, unit: 'pp/pp', ci_lo: -0.28, ci_hi: -0.06, nl: { type: 'sat', k: 1.0 }, source: 'SÍ QMM peningastefnu-yfirfærsla (~1 árs töf)', note: 'ÓLÍNULEGT: minnkandi jaðar-hjöðnun af mjög stórum vaxtahækkunum (mettun)' },
   { id: 'r_gdp', from: 'vextir', to: 'hagvoxtur', coef: -0.20, lag: 2, unit: 'pp/pp', ci_lo: -0.35, ci_hi: -0.08, source: 'SÍ QMM / OECD teygni' },
   { id: 'r_unem', from: 'vextir', to: 'atvinnuleysi', coef: 0.10, lag: 4, unit: 'pp/pp', ci_lo: 0.03, ci_hi: 0.18, source: 'Okun-tengt, SÍ' },
   { id: 'r_house', from: 'vextir', to: 'husnaedi', coef: -0.80, lag: 2, unit: '%/pp', ci_lo: -1.30, ci_hi: -0.40, source: 'Röð-metið: sedlabanki × fasteignir (2010–2026)' },
-  { id: 'w_infl', from: 'laun', to: 'verdbolga', coef: 0.30, lag: 2, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.45, source: 'Launa-verð spírall, Hagstofa/SÍ' },
+  { id: 'w_infl', from: 'laun', to: 'verdbolga', coef: 0.30, lag: 2, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.45, nl: { type: 'accel', at: 1.0, by: 0.15, cap: 2 }, source: 'Launa-verð spírall, Hagstofa/SÍ', note: 'ÓLÍNULEGT: stórar launahækkanir hraða launa-verð spíral (hröðun yfir þröskuld)' },
   { id: 'w_house', from: 'laun', to: 'husnaedi', coef: 0.40, lag: 3, unit: '%/pp', ci_lo: 0.15, ci_hi: 0.70, source: 'Kaupgeta → húsnæðiseftirspurn' },
   { id: 'ltv_house', from: 'vedhlutfall', to: 'husnaedi', coef: 0.15, lag: 2, unit: '%/pp', ci_lo: 0.05, ci_hi: 0.30, source: 'Þjóðhagsvarúð, HMS/FME' },
   { id: 'oil_infl', from: 'olia', to: 'verdbolga', coef: 0.02, lag: 1, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.035, source: 'Olíuverðs-yfirfærsla, Hagstofa VNV-vægi' },
@@ -179,7 +179,7 @@ const links = [
   { id: 'unem_arrears', from: 'atvinnuleysi', to: 'vanskil', coef: 4.0, lag: 2, unit: 'vísit/pp', ci_lo: 2.0, ci_hi: 6.5, source: 'Atvinnumissir → tekjufall → vanskil (helsti drifkraftur, sögulega)' },
   { id: 'burden_arrears', from: 'greidslubyrdi', to: 'vanskil', coef: 0.5, lag: 1, unit: 'vísit/vísit', ci_lo: 0.2, ci_hi: 0.9, source: 'Greiðslubyrði húsnæðislána → vanskilalíkur' },
   { id: 'kaup_arrears', from: 'kaupmattur', to: 'vanskil', coef: -1.5, lag: 2, unit: 'vísit/pp', ci_lo: -3.0, ci_hi: -0.5, source: 'Bætt ráðstöfunartekjur → færri vanskil' },
-  { id: 'arrears_gdp', from: 'vanskil', to: 'hagvoxtur', coef: -0.02, lag: 2, unit: 'pp/vísit', ci_lo: -0.04, ci_hi: -0.005, source: 'Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla' },
+  { id: 'arrears_gdp', from: 'vanskil', to: 'hagvoxtur', coef: -0.02, lag: 2, unit: 'pp/vísit', ci_lo: -0.04, ci_hi: -0.005, nl: { type: 'accel', at: 0.3, by: 0.4, cap: 2.5 }, source: 'Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla', note: 'ÓLÍNULEGT: fjármála-hraðall magnast í kreppu (hröðun)' },
   { id: 'arrears_bal', from: 'vanskil', to: 'afkoma', coef: -0.015, lag: 2, unit: '%VLF/vísit', ci_lo: -0.03, ci_hi: -0.003, source: 'Fjárhagsvandi → stuðningsaðgerðir + minni skatttekjur' },
   // ── Stofn-lýðfræði + öldrun (module 7): fólksfjöldi sem UPPSAFNAÐUR STOFN + framfærsluhlutfall ──
   { id: 'pop_carry', from: 'folksfjoldi', to: 'folksfjoldi', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Fólksfjöldi er STOFN — fyrri staða flyst áfram (sjálf-lykkja)' },
@@ -309,7 +309,7 @@ const links = [
   { id: 'gdp_equity', from: 'hagvoxtur', to: 'hlutabref', coef: 1.2, lag: 1, unit: 'vísit/pp', ci_lo: 0.5, ci_hi: 2.2, source: 'Hagvöxtur → hagnaðarvæntingar → hlutabréf' },
   { id: 'equity_gdp', from: 'hlutabref', to: 'hagvoxtur', coef: 0.01, lag: 2, unit: 'pp/vísit', ci_lo: 0.003, ci_hi: 0.02, source: 'Auðsáhrif hlutabréfa á neyslu/fjárfestingu' },
   { id: 'equity_pension', from: 'hlutabref', to: 'lifeyriseignir', coef: 0.25, lag: 1, unit: '%VLF/vísit', ci_lo: 0.1, ci_hi: 0.45, source: 'Lífeyrissjóðir eiga hlutabréf → eignir sveiflast með markaði' },
-  { id: 'debt_spread', from: 'skuldir', to: 'vaxtaalag', coef: 0.02, lag: 2, unit: 'pp/%VLF', ci_lo: 0.005, ci_hi: 0.045, source: 'Hærri ríkisskuldir → hærra áhættuálag' },
+  { id: 'debt_spread', from: 'skuldir', to: 'vaxtaalag', coef: 0.02, lag: 2, unit: 'pp/%VLF', ci_lo: 0.005, ci_hi: 0.045, nl: { type: 'accel', at: 0.2, by: 0.5, cap: 3 }, source: 'Hærri ríkisskuldir → hærra áhættuálag', note: 'ÓLÍNULEGT: áhættuálag hraðar við háa skuldsetningu (skuldakreppu-kúfur)' },
   { id: 'arrears_spread', from: 'vanskil', to: 'vaxtaalag', coef: 0.01, lag: 2, unit: 'pp/vísit', ci_lo: 0.003, ci_hi: 0.025, source: 'Fjármálaóstöðugleiki → hærra áhættuálag' },
   { id: 'spread_gdp', from: 'vaxtaalag', to: 'hagvoxtur', coef: -0.15, lag: 2, unit: 'pp/pp', ci_lo: -0.30, ci_hi: -0.05, source: 'Hærra álag → dýrari fjármögnun → minni fjárfesting' },
   { id: 'spread_bal', from: 'vaxtaalag', to: 'afkoma', coef: -0.10, lag: 1, unit: '%VLF/pp', ci_lo: -0.2, ci_hi: -0.03, source: 'Hærra álag → dýrari ríkisfjármögnun' },

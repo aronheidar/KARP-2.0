@@ -1,4 +1,4 @@
-import { greinaSql } from './src/lib/greinar.mjs';
+import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -2764,6 +2764,42 @@ async function topplistarHandler(request, env, ctx) {
   return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=300' } });
 }
 
+// ── 🏭 ROADS: raunveruleg samsetning atvinnuvega úr ársreikningum (D1) ─────────────────────────
+// GET /api/roads/atvinnuvegir → grundar þjóðhags-herminn í raun-fyrirtækjagögnum: fyrir hverja ÍSAT-grein
+// heildarvelta, hlutur af heild, framlegð (hagnaður/velta), fjöldi greindra félaga. Nýjasta ár PER kt
+// (MAX(ar)) svo fjölár tvítelji ekki. Opinbert samandregið (engin fyrirtæki nafngreind), cache 1klst.
+async function roadsSectorsHandler(request, env, ctx) {
+  if (!env.TENGSL) return sjson({ error: 'unconfigured', greinar: [] });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/roads/atvinnuvegir?v=1');
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  // nýjasta ár per félag (SQLite: ber dálkur með MAX() skilar röð hámarks-árs), samandregið á ÍSAT-2
+  const rows = (await env.TENGSL.prepare(
+    `SELECT substr(f.isat_primary,1,2) isat2, COUNT(*) n, SUM(fj.sala) sala, SUM(fj.hagnadur) hagnadur, SUM(fj.eignir) eignir
+     FROM felog f JOIN (SELECT kt, sala, hagnadur, eignir, MAX(ar) ar FROM fjarhagur WHERE sala IS NOT NULL GROUP BY kt) fj ON fj.kt=f.kt
+     WHERE f.isat_primary IS NOT NULL
+     GROUP BY isat2`
+  ).all().catch(() => ({ results: [] }))).results;
+  const bySector = {}; let heild = 0;
+  for (const r of rows) {
+    const g = GREINAR.find((x) => x.isat && x.isat.includes(r.isat2));   // ÍSAT-2 → grein (greinarnar skarast ekki)
+    if (!g) continue;
+    const s = bySector[g.slug] || (bySector[g.slug] = { slug: g.slug, nafn: g.nafn, n: 0, sala: 0, hagnadur: 0, eignir: 0 });
+    s.n += r.n; s.sala += r.sala || 0; s.hagnadur += r.hagnadur || 0; s.eignir += r.eignir || 0;
+    heild += r.sala || 0;
+  }
+  const greinar = Object.values(bySector).map((s) => ({
+    slug: s.slug, nafn: s.nafn, n: s.n, sala: Math.round(s.sala),
+    hlutur: heild ? +(100 * s.sala / heild).toFixed(1) : 0,
+    framlegd: s.sala ? +(100 * s.hagnadur / s.sala).toFixed(1) : null,
+  })).sort((a, b) => b.sala - a.sala);
+  const body = { greinar, heild_sala: Math.round(heild), n_felog: greinar.reduce((a, s) => a + s.n, 0),
+    heimild: 'Ársreikningar (RSK) — nýjasta ár per félag, ISK. Vaxandi úrtak.' };
+  const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=3600' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
 // GET /api/tengslanet?kt= → { stjornendur: [rótarfyrirsvar + hlutverk í öðrum net-félögum],
 // krossar: [fólk í ≥2 net-félögum án hlutverks í rót] }. Félagamengið = rót + félags-hnútar úr
@@ -3976,6 +4012,7 @@ export default {
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
     if (url.pathname === '/api/topplistar') return topplistarHandler(request, env, ctx);
+    if (url.pathname === '/api/roads/atvinnuvegir') return roadsSectorsHandler(request, env, ctx);
     if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
     if (url.pathname === '/api/tengsl-stats') return tengslStatsHandler(request, env);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
