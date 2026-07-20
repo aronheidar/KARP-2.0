@@ -570,11 +570,20 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         ['Verðbólga (12-mán %)', `${H.verdbolga.range[0]} … ${H.verdbolga.range[1]}% · AR(1)=${H.verdbolga.ar1}`, `þrálæti staðfest (infl_persist ${H.model.infl_persist})`, ck.okInflRange && ck.okInflPersist],
         ['Vextir → húsnæði (fylgni, töf 2 ár)', `höfuðb ${H.corrHbs} · landsb ${H.corrLand}`, `neikvæð staðfest (r_hbs ${H.model.r_hbs}, r_land ${H.model.r_land})`, ck.okRateHouse],
       ];
+      if (H.leiga) rows.push(['Leiga (12-mán %, 5–95% bil)', `${H.leiga.range[0]} … ${H.leiga.range[1]}%`, `clamp ${C.leiga.join(' … ')}`, ck.okRentRange]);
+      if (H.hagvoxtur) rows.push(['Hagvöxtur (ársfj. %)', `${H.hagvoxtur.range[0]} … ${H.hagvoxtur.range[1]}%`, `clamp ${C.hagvoxtur.join(' … ')}`, ck.okGdpRange]);
+      if (H.laun) rows.push(['Launavöxtur (%)', `${H.laun.range[0]} … ${H.laun.range[1]}%`, `sleði 0 … ${BASELINE.levers.laun.max}%`, ck.okWageRange]);
+      const F = H.forecast;
+      const fc = F && F.infl_imf != null ? `<p style="font-size:12px;color:var(--muted);margin:12px 0 4px"><b style="color:#f6b13b">📅 Viðmið við opinbera spá (${F.src})</b></p>
+        <table class="lnk-tbl"><tr><th>Hagvísir ${F.tgtYear}</th><th>ROADS grunnferill (BAU)</th><th>Opinber spá</th><th style="text-align:center">✓</th></tr>
+        <tr><td>Verðbólga</td><td>${num(F.infl_bau)}%</td><td style="color:var(--faint)">${num(F.infl_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr>
+        <tr><td>Hagvöxtur</td><td>${num(F.gdp_bau)}%</td><td style="color:var(--faint)">${num(F.gdp_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr></table>
+        <p style="font-size:11.5px;color:var(--faint);margin-top:4px">Grunnferill módelsins er festur á opinberu spána — sviðsmyndir eru FRÁVIK frá henni. Staðfestir að útgangsstaðan = alþjóðleg samstaða.</p>` : '';
       host.innerHTML = `<div class="cm-title">📊 Söguleg bakprófun — raun-gögn ${H.span}${all ? ' <span style="color:#54d08a;font-weight:400">· allt í takt við gögnin ✓</span>' : ''}</div>
-        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">„Veruleika-próf": eru módel-mörkin (clamp) og lykil-stuðlarnir í takt við það sem raunverulega gerðist 2010–2026? Gögn: Seðlabanki (CPI/vextir), Þjóðskrá (fasteignaverð höfuðb./landsb.), Vinnumálastofnun (atvinnuleysi). Ekki hagfræðileg nákvæmnis-kvörðun.</p>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">„Veruleika-próf": eru módel-mörkin (clamp) og lykil-stuðlarnir í takt við það sem raunverulega gerðist 2010–2026? Gögn: Seðlabanki (CPI/vextir/gengi), Þjóðskrá (fasteignaverð höfuðb./landsb.), Vinnumálastofnun (atvinnuleysi), HMS (leiga), Hagstofa (VLF/laun). Ekki hagfræðileg nákvæmnis-kvörðun.</p>
         <table class="lnk-tbl"><tr><th>Hagvísir</th><th>Raun-gögn 2010–2026</th><th>Módel</th><th style="text-align:center">✓</th></tr>
-        ${rows.map((r) => `<tr><td>${r[0]}</td><td style="font-variant-numeric:tabular-nums">${r[1]}</td><td style="color:var(--faint)">${r[2]}</td><td style="text-align:center">${chk(r[3])}</td></tr>`).join('')}</table>
-        <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka.</p>`;
+        ${rows.map((r) => `<tr><td>${r[0]}</td><td style="font-variant-numeric:tabular-nums">${r[1]}</td><td style="color:var(--faint)">${r[2]}</td><td style="text-align:center">${chk(r[3])}</td></tr>`).join('')}</table>${fc}
+        <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka; grunnferill = opinber spá.</p>`;
     }
 
     // Keðju-kort: lagskipt net allra tengsla (dálkar eftir „dýpt" frá inntökum). Grænt=eykur, rautt=dregur úr.

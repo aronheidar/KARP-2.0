@@ -37,11 +37,20 @@ for (const k of ['parvextir', 'reibor', 'vextir_si']) { const s = (rateDs[k]?.se
 const rateMonthly = {}; (rateSeries?.points || []).forEach(([d, v]) => { const m = d.slice(0, 7); if (m >= FROM && v != null) (rateMonthly[m] ||= []).push(v); });
 const rate = Object.entries(rateMonthly).map(([t, vs]) => ({ t, v: mean(vs) })).sort((a, b) => a.t.localeCompare(b.t));
 
+// Leiga (leiga.quarters, medM2) → 12-mán %-breyting (4 ársfj.)
+const lq = g('leiga').quarters;
+const rent = []; for (let i = 4; i < lq.length; i++) { const a = lq[i].medM2, b = lq[i - 4].medM2; if (a && b) rent.push({ t: lq[i].q, v: +(100 * (a / b - 1)).toFixed(2) }); }
+// Hagvöxtur (hagvoxtur.GDP.vlf, ársfj. yoy %)
+const gdp = g('hagvoxtur').GDP.vlf.filter((v) => v != null).map((v) => ({ v }));
+// Laun (vinnumarkadur.WAGE.laun, mán yoy %)
+const wages = g('vinnumarkadur').WAGE.laun.filter((v) => v != null).map((v) => ({ v }));
+
 // ── Samstilla raðir eftir mánuði fyrir fylgni ──
 const alignBy = (...series) => { const maps = series.map((s) => Object.fromEntries(s.map((r) => [r.t, r.v]))); const keys = Object.keys(maps[0]).filter((t) => maps.every((m) => m[t] != null)).sort(); return maps.map((m) => keys.map((t) => m[t])); };
 
 // ── Reynslu-mælingar ──
-const clamp = roads('baseline').clamp;
+const baseline = roads('baseline');
+const clamp = baseline.clamp;
 const links = roads('links');
 const linkCoef = (id) => links.find((l) => l.id === id)?.coef;
 
@@ -72,7 +81,23 @@ if (rate.length > 24) {
 }
 const rateHouseCorr = corrHbs;
 
-// 5) Okun: atvinnuleysi mean-reverting nálægt NAIRU (~3.5–4.5)
+// 5) Fleiri hagvísar vs clamp (leiga, hagvöxtur, laun→kaupmáttur)
+// Leiga: nota 5–95% bil (hrá yoy 2011–13 mjög sveiflukennd v/þunns markaðar → útlagar; róbúst bil lýsir raunverulegu sviði)
+const pctile = (a, p) => { const s = a.map((r) => r.v).slice().sort((x, y) => x - y); return +s[Math.max(0, Math.min(s.length - 1, Math.floor(p * s.length)))].toFixed(1); };
+const rentP = rent.length ? [pctile(rent, 0.05), pctile(rent, 0.95)] : null;
+const okRentRange = !rentP || (rentP[0] >= clamp.leiga[0] - 3 && rentP[1] <= clamp.leiga[1] + 3);
+const okGdpRange = gdp.length ? (Math.min(...gdp.map((r) => r.v)) >= clamp.hagvoxtur[0] - 2 && Math.max(...gdp.map((r) => r.v)) <= clamp.hagvoxtur[1] + 2) : true;
+const okWageRange = wages.length ? (Math.max(...wages.map((r) => r.v)) <= baseline.levers.laun.max + 3) : true;
+
+// 6) Viðmið við opinbera IMF-spá (BAU-ferill módelsins er festur á IMF; sýnir að grunnstaða = alþjóðleg samstaða)
+const imfInfl = g('verdlag').forecast, imfGdp = g('hagvoxtur').forecast;
+const bauEnd = (k) => baseline.outcomes[k].path[baseline.quarters - 1];
+const imfAt = (fc, yr) => { const i = fc.years.indexOf(yr); return i >= 0 ? fc.values[i] : null; };
+const curYear = 2026; const tgtYear = curYear + 3; // ~3-ára sjóndeild
+const forecast = { infl_bau: bauEnd('verdbolga'), infl_imf: imfAt(imfInfl, tgtYear), gdp_bau: bauEnd('hagvoxtur'), gdp_imf: imfAt(imfGdp, tgtYear), src: imfInfl.source, tgtYear };
+const okForecast = forecast.infl_imf == null || (Math.abs(forecast.infl_bau - forecast.infl_imf) < 1.5 && Math.abs(forecast.gdp_bau - forecast.gdp_imf) < 1.5);
+
+// (Okun) atvinnuleysi mean-reverting nálægt NAIRU (~3.5–4.5)
 const unempMean = +mean(unemp.map((r) => r.v)).toFixed(1);
 const okNairu = unempMean > 2.5 && unempMean < 6;
 
@@ -83,8 +108,12 @@ const report = {
   husnaedi_land: { range: rng(houseLand).map((x) => +x.toFixed(1)), std: +std(houseLand.map((r) => r.v)).toFixed(1), n: houseLand.length },
   atvinnuleysi: { range: rng(unemp).map((x) => +x.toFixed(1)), mean: unempMean, n: unemp.length },
   verdbolga: { range: inflArr.length ? rng(inflArr).map((x) => +x.toFixed(1)) : null, ar1: inflAR1, n: inflArr.length },
+  leiga: rentP ? { range: rentP, n: rent.length, note: '5–95% bil' } : null,
+  hagvoxtur: gdp.length ? { range: [Math.min(...gdp.map((r) => r.v)), Math.max(...gdp.map((r) => r.v))].map((x) => +x.toFixed(1)), n: gdp.length } : null,
+  laun: wages.length ? { range: [Math.min(...wages.map((r) => r.v)), Math.max(...wages.map((r) => r.v))].map((x) => +x.toFixed(1)), n: wages.length } : null,
   rateHouseCorr, corrHbs, corrLand, rateN: rate.length,
-  checks: { okHouseRange, okUnempRange, okInflRange, okHouseVolatile, okInflPersist, okRateHouse, okNairu },
+  forecast,
+  checks: { okHouseRange, okUnempRange, okInflRange, okHouseVolatile, okInflPersist, okRateHouse, okNairu, okRentRange, okGdpRange, okWageRange, okForecast },
   model: { r_house: linkCoef('r_house'), r_hbs: linkCoef('r_hbs'), r_land: linkCoef('r_land'), infl_persist: linkCoef('infl_persist') },
 };
 writeFileSync(join(ROOT, 'gogn', 'roads', 'history.json'), JSON.stringify(report, null, 1));
@@ -94,8 +123,10 @@ console.log('  Húsnæði höfuðb. yoy: bil', report.husnaedi_hbs.range, '% std
 console.log('  Húsnæði landsb. yoy: bil', report.husnaedi_land.range, '% std', report.husnaedi_land.std);
 console.log('  Atvinnuleysi: bil', report.atvinnuleysi.range, '% meðaltal', report.atvinnuleysi.mean);
 console.log('  Verðbólga: bil', report.verdbolga.range, '% AR(1)', report.verdbolga.ar1, '(n=' + report.verdbolga.n + ')');
+console.log('  Leiga: bil', report.leiga?.range, '% | Hagvöxtur: bil', report.hagvoxtur?.range, '% | Laun: bil', report.laun?.range, '%');
 console.log('  Vextir→húsnæði fylgni (töf 2ár): höfuðb', corrHbs, '| landsb', corrLand, '(vænt: neikvæð, staðfestir r_hbs/r_land<0)');
+console.log('  IMF-viðmið ' + tgtYear + ': verðbólga BAU', forecast.infl_bau, 'vs IMF', forecast.infl_imf, '| hagvöxtur BAU', forecast.gdp_bau, 'vs IMF', forecast.gdp_imf);
 console.log('  CHECKS:', JSON.stringify(report.checks));
-const bad = !(okHouseRange && okUnempRange && okInflRange && okHouseVolatile && okInflPersist && okRateHouse && okNairu);
+const bad = !(okHouseRange && okUnempRange && okInflRange && okHouseVolatile && okInflPersist && okRateHouse && okNairu && okRentRange && okGdpRange && okWageRange && okForecast);
 console.log(bad ? 'FAIL — sjá checks' : 'PASS — módel í takt við söguleg gögn');
 process.exit(bad ? 1 : 0);

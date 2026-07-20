@@ -33,10 +33,40 @@
   "ar1": 0.98,
   "n": 198
  },
+ "leiga": {
+  "range": [
+   0.4,
+   20.4
+  ],
+  "n": 49,
+  "note": "5–95% bil"
+ },
+ "hagvoxtur": {
+  "range": [
+   -3,
+   10.4
+  ],
+  "n": 16
+ },
+ "laun": {
+  "range": [
+   5.9,
+   10.9
+  ],
+  "n": 36
+ },
  "rateHouseCorr": -0.36,
  "corrHbs": -0.36,
  "corrLand": -0.43,
  "rateN": 145,
+ "forecast": {
+  "infl_bau": 2.6,
+  "infl_imf": 2.5,
+  "gdp_bau": 2.4,
+  "gdp_imf": 2.4,
+  "src": "Alþjóðagjaldeyrissjóðurinn (IMF WEO)",
+  "tgtYear": 2029
+ },
  "checks": {
   "okHouseRange": true,
   "okUnempRange": true,
@@ -44,7 +74,11 @@
   "okHouseVolatile": true,
   "okInflPersist": true,
   "okRateHouse": true,
-  "okNairu": true
+  "okNairu": true,
+  "okRentRange": true,
+  "okGdpRange": true,
+  "okWageRange": true,
+  "okForecast": true
  },
  "model": {
   "r_house": -0.8,
