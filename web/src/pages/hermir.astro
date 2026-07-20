@@ -75,6 +75,8 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 8px; }
     main[data-pg="roads"] .auto { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 6px; cursor: pointer; }
     main[data-pg="roads"] .auto input { accent-color: #f6b13b; }
+    main[data-pg="roads"] .sl-group { font-size: 10px; font-weight: 800; color: #f6b13b; text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 5px; padding-bottom: 3px; border-bottom: 1px solid var(--line); opacity: .85; }
+    main[data-pg="roads"] .sl-group:first-child { margin-top: 2px; }
     main[data-pg="roads"] .sl { margin-bottom: 8px; padding: 3px 4px; border-radius: 6px; }
     main[data-pg="roads"] .sl.auto-on { opacity: .55; }
     main[data-pg="roads"] .sl.hot { background: rgba(246,177,59,.1); }
@@ -175,6 +177,21 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       byggdastefna: 'Byggðaáhersla — innviðir/ívilnanir beint til landsbyggðar. Hærri áhersla → betri byggðajöfnuður (tafið). Orka og kvóti styðja líka landsbyggð.',
       ivilnanir: 'Styrkir & ívilnanir — R&Þ-endurgreiðslur, fjárfestingar-ívilnanir (Rannís/Kría). Örva nýsköpun og hugvit (tafið) → framleiðni og útflutning; kosta ríkissjóð.',
       menntun: 'Menntun & rannsóknir — fjárfesting í mannauði. Löng töf → nýsköpun og framleiðni. Kostar ríkissjóð til skamms tíma.',
+      dsti: 'Greiðslubyrðisþak (DSTI) — hámark greiðslubyrði sem hlutfall af tekjum. Rýmra þak → meiri lántaka → hærra húsnæðisverð og greiðslubyrði. Þjóðhagsvarúð.',
+      bindiskylda: 'Bindiskylda banka — lausafjárkrafa. Hærri → minni útlánageta → lægra húsnæðisverð og verðbólga (tafið).',
+      vsk: 'Virðisaukaskattur (frávik). Hækkun eykur neysluverð beint (verðbólga↑, kaupmáttur↓) en er stór tekjustofn ríkissjóðs.',
+      tilfaerslur: 'Tilfærslur (barna-/vaxtabætur, o.fl.). Auka ráðstöfunartekjur og kaupmátt (einkum lágtekju), örva neyslu; kosta ríkissjóð.',
+      innvidir: 'Innviðafjárfesting (vegir/ljósleiðari/orka). → hagvöxtur, byggðajöfnuður og nýsköpun (tafið); kostar til skamms tíma.',
+      veidigjald: 'Veiðigjald (frávik) — auðlindarenta til ríkis. Bætir afkomu, dregur lítillega úr sóknarhvata (heilbrigðari stofn), íþyngir sjávarbyggðum.',
+      leiguhusnaedi: 'Félagslegt/leiguhúsnæði — opinbert leiguframboð. Lækkar leigu (tafið); kostar ríkissjóð.',
+      lodaframbod: 'Lóðaframboð & skipulag — losar byggingarland. Lækkar húsnæðisverð með langri töf (uppstreymis-tæki vs nýbygginga-framboð).',
+      atvinnuthatttaka: 'Atvinnuþátttökuhvatar — fjölga á vinnumarkaði. → aukið vinnuafl, lægra framfærsluhlutfall.',
+      innflytjendastefna: 'Innflytjendastefna (atvinnuleyfi/atgervi). Stýrður vinnualdurs-innflutningur → vinnuafl↑, framfærsla↓, en húsnæðiseftirspurn↑.',
+      fridun: 'Friðun/verndarsvæði sjávar. Byggir upp fiskistofn (tafið) á kostnað minni veiðisvæða til skamms tíma.',
+      orkuskipti: 'Orkuskipta-hvati — rafvæðing samgangna (rafbílar/innviðir). Lækkar CO₂-losun; kostar ríkissjóð.',
+      skograekt: 'Skógrækt & kolefnisbinding. Bindur kolefni (löng töf → losun↓); kostar til skamms tíma.',
+      ferdamannagjald: 'Ferðamannagjald (komu-/gistináttagjald). Tekjur ríkissjóðs; dregur lítillega úr ferðaþjónustu.',
+      heimshagvoxtur: 'Heimshagvöxtur (frávik) — ytra sjokk. Meiri ytri eftirspurn → aukinn útflutningur og hagvöxtur (opið hagkerfi).',
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
@@ -318,7 +335,8 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         host.appendChild(el);
       };
       const lh = document.getElementById('levers'), sh = document.getElementById('shocks'); lh.innerHTML = ''; sh.innerHTML = '';
-      for (const k in BASELINE.levers) mk(lh, k, BASELINE.levers[k], 'levers');
+      let curGroup = '';
+      for (const k in BASELINE.levers) { const cfg = BASELINE.levers[k]; if (cfg.group && cfg.group !== curGroup) { curGroup = cfg.group; const h = document.createElement('div'); h.className = 'sl-group'; h.textContent = cfg.group; lh.appendChild(h); } mk(lh, k, cfg, 'levers'); }
       for (const k in BASELINE.shocks) mk(sh, k, BASELINE.shocks[k], 'shocks');
       applyAutoDisable();
     }

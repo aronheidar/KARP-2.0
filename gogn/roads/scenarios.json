@@ -232,5 +232,49 @@
   },
   "shocks": {},
   "sentence": "Aukið aflamark (+20%) eykur útflutning strax en gengur á fiskistofninn — sem dregur úr sjálfbærum útflutningi þegar frá líður. Klassísk sjálfbærni-togstreita, skýrust í 10 ára sýn."
+ },
+ {
+  "id": "innvidaatak",
+  "label": "Innviðaátak (+30%)",
+  "tldr": "Fjárfest í innviðum",
+  "levers": {
+   "innvidir": 30
+  },
+  "shocks": {},
+  "sentence": "Stórt innviðaátak (+30%) örvar hagvöxt, styrkir byggðajöfnuð og styður nýsköpun með töf — en versnar afkomu ríkissjóðs til skamms tíma."
+ },
+ {
+  "id": "graent_atak",
+  "label": "Grænt átak (orkuskipti+skógrækt+kolefnisgjald)",
+  "tldr": "Loftslagsaðgerðir",
+  "levers": {
+   "orkuskipti": 30,
+   "skograekt": 30,
+   "kolefnisgjald": 50
+  },
+  "shocks": {},
+  "sentence": "Samhæft grænt átak (orkuskipti +30%, skógrækt +30%, kolefnisgjald +50%) lækkar CO₂-losun verulega með tíma — skýrast í 10 ára sýn — með hóflegu hagvaxtar-dragi og kostnaði."
+ },
+ {
+  "id": "husnaedispakki",
+  "label": "Húsnæðispakki (framboð+leiga+lóðir)",
+  "tldr": "Sókn í húsnæðismálum",
+  "levers": {
+   "frambod": 30,
+   "leiguhusnaedi": 30,
+   "lodaframbod": 30
+  },
+  "shocks": {},
+  "sentence": "Heildstæður húsnæðispakki (nýbyggingar +30%, félagslegt/leiguhúsnæði +30%, lóðaframboð +30%) hægir á húsnæðisverði og leigu með nokkurra ára töf — helsta tækið gegn húsnæðis-verðbólgu."
+ },
+ {
+  "id": "heimskreppa",
+  "label": "Heimskreppa (heimshagvöxtur −4%)",
+  "tldr": "Samdráttur ytra",
+  "levers": {},
+  "shocks": {
+   "heimshagvoxtur": -4
+  },
+  "sentence": "Samdráttur í heimshagkerfinu (−4%) dregur úr útflutningi og hagvexti á Íslandi — opið hagkerfi er berskjaldað fyrir ytri eftirspurn."
  }
 ]

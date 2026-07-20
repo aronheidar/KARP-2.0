@@ -109,5 +109,29 @@ const okKvFiskUp = kvD.outcomes.fiskistofn.mid[39] > baseline.outcomes.fiskistof
 const okCarbInfl = carbU.outcomes.verdbolga.mid[11] > baseline.outcomes.verdbolga.path[11]; // kolefnisgjald → verðbólga↑
 const okMod9Band = [taxU, hvati, kvU, kvD].every((r) => ['nyskopun', 'fiskistofn', 'kaupmattur'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9)));
 console.log('+skattar→kaupmáttur↓ (GAT):', okTaxKaup, '| +skattar→nýsköpun↓:', okTaxInnov, '| ívilnanir+menntun→nýsköpun↑:', okHvatiInnov, '| nýsköpun→hagvöxtur↑:', okInnovGdp, '| +aflamark→fiskistofn↓:', okKvFisk, '| −aflamark→fiskistofn↑:', okKvFiskUp, '| kolefnisgj→verðbólga↑:', okCarbInfl, '| mod9-bönd:', okMod9Band);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand && okTaxKaup && okTaxInnov && okHvatiInnov && okInnovGdp && okKvFisk && okKvFiskUp && okCarbInfl && okMod9Band);
+// Stór útvíkkun (module 10) — nýjar ákvarðanir + ytra sjokk
+const wG = simulate({ baseline, links, shocks: { heimshagvoxtur: 4 }, quarters: 12 });
+const vsU = simulate({ baseline, links, levers: { vsk: 4 }, quarters: 12 });
+const dsU = simulate({ baseline, links, levers: { dsti: 45 }, quarters: 12 });
+const biU = simulate({ baseline, links, levers: { bindiskylda: 10 }, quarters: 12 });
+const tfU = simulate({ baseline, links, levers: { tilfaerslur: 20 }, quarters: 12 });
+const inU = simulate({ baseline, links, levers: { innvidir: 30 }, quarters: 40 });
+const veU = simulate({ baseline, links, levers: { veidigjald: 50 }, quarters: 12 });
+const osU = simulate({ baseline, links, levers: { orkuskipti: 30 }, quarters: 40 });
+const frU = simulate({ baseline, links, levers: { fridun: 30 }, quarters: 40 });
+const fgU = simulate({ baseline, links, levers: { ferdamannagjald: 30 }, quarters: 12 });
+const okWorldExp = wG.outcomes.utflutningur.mid[11] > baseline.outcomes.utflutningur.path[11]; // heimshagvöxtur → útflutningur↑
+const okVskInfl = vsU.outcomes.verdbolga.mid[11] > baseline.outcomes.verdbolga.path[11]; // VSK → verðbólga↑
+const okVskKaup = vsU.outcomes.kaupmattur.mid[11] < baseline.outcomes.kaupmattur.path[11]; // VSK → kaupmáttur↓
+const okDstiHouse = dsU.outcomes.husnaedi.mid[11] > baseline.outcomes.husnaedi.path[11]; // rýmra DSTI → húsnæði↑
+const okBindHouse = biU.outcomes.husnaedi.mid[11] < baseline.outcomes.husnaedi.path[11]; // bindiskylda → húsnæði↓
+const okTransfKaup = tfU.outcomes.kaupmattur.mid[11] > baseline.outcomes.kaupmattur.path[11]; // tilfærslur → kaupmáttur↑
+const okInnvGdp = inU.outcomes.hagvoxtur.mid[39] > baseline.outcomes.hagvoxtur.path[39]; // innviðir → hagvöxtur↑
+const okVeidiBal = veU.outcomes.afkoma.mid[11] > baseline.outcomes.afkoma.path[11]; // veiðigjald → afkoma↑
+const okSkiptiEmis = osU.outcomes.losun.mid[39] < baseline.outcomes.losun.path[39]; // orkuskipti → losun↓
+const okFridunFisk = frU.outcomes.fiskistofn.mid[39] > baseline.outcomes.fiskistofn.path[39]; // friðun → fiskistofn↑
+const okTourfeeBal = fgU.outcomes.afkoma.mid[11] > baseline.outcomes.afkoma.path[11]; // ferðamannagjald → afkoma↑
+const okMod10Band = [wG, vsU, dsU, biU, tfU, inU, veU, osU, frU, fgU].every((r) => Object.keys(r.outcomes).every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9 && r.outcomes[k].mid[i] >= baseline.clamp[k][0] - 0.01 && r.outcomes[k].mid[i] <= baseline.clamp[k][1] + 0.01)));
+console.log('+heimshagv→útflutn↑:', okWorldExp, '| +VSK→verðbólga↑:', okVskInfl, '| +VSK→kaupm↓:', okVskKaup, '| rýmra DSTI→húsn↑:', okDstiHouse, '| +bindisk→húsn↓:', okBindHouse, '| +tilfærslur→kaupm↑:', okTransfKaup, '| +innviðir→hagv↑:', okInnvGdp, '| +veiðigj→afkoma↑:', okVeidiBal, '| +orkuskipti→losun↓:', okSkiptiEmis, '| +friðun→fiskist↑:', okFridunFisk, '| +ferðamgj→afkoma↑:', okTourfeeBal, '| mod10-bönd+clamp:', okMod10Band);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand && okTaxKaup && okTaxInnov && okHvatiInnov && okInnovGdp && okKvFisk && okKvFiskUp && okCarbInfl && okMod9Band && okWorldExp && okVskInfl && okVskKaup && okDstiHouse && okBindHouse && okTransfKaup && okInnvGdp && okVeidiBal && okSkiptiEmis && okFridunFisk && okTourfeeBal && okMod10Band);
 process.exit(bad ? 1 : 0);

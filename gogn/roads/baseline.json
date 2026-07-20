@@ -10,15 +10,8 @@
    "max": 12,
    "step": 0.25,
    "unit": "%",
-   "label": "Stýrivextir (Seðlabanki)"
-  },
-  "laun": {
-   "base": 6,
-   "min": 0,
-   "max": 14,
-   "step": 0.5,
-   "unit": "%/ári",
-   "label": "Launahækkun (kjarasamningar)"
+   "label": "Stýrivextir (Seðlabanki)",
+   "group": "Peningastefna & varúð"
   },
   "vedhlutfall": {
    "base": 80,
@@ -26,15 +19,26 @@
    "max": 90,
    "step": 5,
    "unit": "%",
-   "label": "Hámarks veðsetningarhlutfall"
+   "label": "Hámarks veðsetningarhlutfall",
+   "group": "Peningastefna & varúð"
   },
-  "frambod": {
-   "base": 0,
-   "min": -20,
-   "max": 40,
+  "dsti": {
+   "base": 35,
+   "min": 25,
+   "max": 45,
    "step": 5,
    "unit": "%",
-   "label": "Nýbygginga-framboð (frávik)"
+   "label": "Greiðslubyrðisþak (DSTI)",
+   "group": "Peningastefna & varúð"
+  },
+  "bindiskylda": {
+   "base": 0,
+   "min": -5,
+   "max": 15,
+   "step": 1,
+   "unit": "%",
+   "label": "Bindiskylda banka (frávik)",
+   "group": "Peningastefna & varúð"
   },
   "skattar": {
    "base": 0,
@@ -42,7 +46,17 @@
    "max": 15,
    "step": 1,
    "unit": "%",
-   "label": "Skattbreyting (frávik)"
+   "label": "Tekjuskattur (frávik)",
+   "group": "Ríkisfjármál & skattar"
+  },
+  "vsk": {
+   "base": 0,
+   "min": -4,
+   "max": 6,
+   "step": 1,
+   "unit": "%",
+   "label": "Virðisaukaskattur (frávik)",
+   "group": "Ríkisfjármál & skattar"
   },
   "utgjold": {
    "base": 0,
@@ -50,47 +64,35 @@
    "max": 15,
    "step": 1,
    "unit": "%",
-   "label": "Útgjöld ríkis (frávik)"
+   "label": "Útgjöld ríkis (frávik)",
+   "group": "Ríkisfjármál & skattar"
   },
-  "kvoti": {
+  "tilfaerslur": {
    "base": 0,
-   "min": -30,
+   "min": -10,
    "max": 20,
    "step": 5,
    "unit": "%",
-   "label": "Aflamark (frávik)"
+   "label": "Tilfærslur (barna-/vaxtabætur)",
+   "group": "Ríkisfjármál & skattar"
   },
-  "orka": {
+  "innvidir": {
    "base": 0,
-   "min": -15,
+   "min": -10,
    "max": 30,
    "step": 5,
    "unit": "%",
-   "label": "Orka til stóriðju (frávik)"
+   "label": "Innviðafjárfesting",
+   "group": "Ríkisfjármál & skattar"
   },
-  "kolefnisgjald": {
+  "veidigjald": {
    "base": 0,
    "min": -50,
    "max": 100,
    "step": 10,
    "unit": "%",
-   "label": "Kolefnisgjald (frávik)"
-  },
-  "lifeyrisaldur": {
-   "base": 67,
-   "min": 65,
-   "max": 72,
-   "step": 1,
-   "unit": " ár",
-   "label": "Lífeyrisaldur"
-  },
-  "byggdastefna": {
-   "base": 0,
-   "min": -10,
-   "max": 40,
-   "step": 5,
-   "unit": "%",
-   "label": "Byggðaáhersla (til landsbyggðar)"
+   "label": "Veiðigjald (frávik)",
+   "group": "Ríkisfjármál & skattar"
   },
   "ivilnanir": {
    "base": 0,
@@ -98,7 +100,8 @@
    "max": 40,
    "step": 5,
    "unit": "%",
-   "label": "Styrkir & ívilnanir (nýsköpun)"
+   "label": "Styrkir & ívilnanir (nýsköpun)",
+   "group": "Ríkisfjármál & skattar"
   },
   "menntun": {
    "base": 0,
@@ -106,7 +109,143 @@
    "max": 30,
    "step": 5,
    "unit": "%",
-   "label": "Menntun & rannsóknir (fjárfesting)"
+   "label": "Menntun & rannsóknir (fjárfesting)",
+   "group": "Ríkisfjármál & skattar"
+  },
+  "frambod": {
+   "base": 0,
+   "min": -20,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Nýbygginga-framboð (frávik)",
+   "group": "Húsnæði"
+  },
+  "leiguhusnaedi": {
+   "base": 0,
+   "min": 0,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Félagslegt/leiguhúsnæði",
+   "group": "Húsnæði"
+  },
+  "lodaframbod": {
+   "base": 0,
+   "min": -10,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Lóðaframboð & skipulag",
+   "group": "Húsnæði"
+  },
+  "laun": {
+   "base": 6,
+   "min": 0,
+   "max": 14,
+   "step": 0.5,
+   "unit": "%/ári",
+   "label": "Launahækkun (kjarasamningar)",
+   "group": "Vinnumarkaður & mannauður"
+  },
+  "atvinnuthatttaka": {
+   "base": 0,
+   "min": -5,
+   "max": 15,
+   "step": 1,
+   "unit": "%",
+   "label": "Atvinnuþátttökuhvatar",
+   "group": "Vinnumarkaður & mannauður"
+  },
+  "innflytjendastefna": {
+   "base": 0,
+   "min": -20,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Innflytjendastefna (atvinnuleyfi)",
+   "group": "Vinnumarkaður & mannauður"
+  },
+  "lifeyrisaldur": {
+   "base": 67,
+   "min": 65,
+   "max": 72,
+   "step": 1,
+   "unit": " ár",
+   "label": "Lífeyrisaldur",
+   "group": "Vinnumarkaður & mannauður"
+  },
+  "kvoti": {
+   "base": 0,
+   "min": -30,
+   "max": 20,
+   "step": 5,
+   "unit": "%",
+   "label": "Aflamark (frávik)",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "fridun": {
+   "base": 0,
+   "min": 0,
+   "max": 30,
+   "step": 5,
+   "unit": "%",
+   "label": "Friðun/verndarsvæði sjávar",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "orka": {
+   "base": 0,
+   "min": -15,
+   "max": 30,
+   "step": 5,
+   "unit": "%",
+   "label": "Orka til stóriðju (frávik)",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "orkuskipti": {
+   "base": 0,
+   "min": -10,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Orkuskipta-hvati (rafvæðing)",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "kolefnisgjald": {
+   "base": 0,
+   "min": -50,
+   "max": 100,
+   "step": 10,
+   "unit": "%",
+   "label": "Kolefnisgjald (frávik)",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "skograekt": {
+   "base": 0,
+   "min": 0,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Skógrækt & kolefnisbinding",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "byggdastefna": {
+   "base": 0,
+   "min": -10,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Byggðaáhersla (til landsbyggðar)",
+   "group": "Byggð & ferðaþjónusta"
+  },
+  "ferdamannagjald": {
+   "base": 0,
+   "min": 0,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Ferðamannagjald",
+   "group": "Byggð & ferðaþjónusta"
   }
  },
  "shocks": {
@@ -149,6 +288,14 @@
    "step": 5,
    "unit": "%",
    "label": "Frjósemi (frávik)"
+  },
+  "heimshagvoxtur": {
+   "base": 0,
+   "min": -6,
+   "max": 6,
+   "step": 1,
+   "unit": "%",
+   "label": "Heimshagvöxtur (frávik)"
   }
  },
  "outcomes": {
