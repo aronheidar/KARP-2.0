@@ -47,6 +47,24 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <div id="backtest" class="backtest"></div>
       <details class="transp" open><summary>⚙︎ Öll orsakasambönd, stuðlar og heimildir</summary><div id="lnks"></div></details>
     </div>
+    <div id="analysisview" class="analysisview" hidden>
+      <p class="an-intro">Greiningar-tól sem keyra módelið mörgum sinnum til að svara „hvað ef"- og „hvað þarf"-spurningum. Miðað við núverandi sviðsmynd og sjóndeild.</p>
+      <div class="an-tool">
+        <div class="an-h">📊 Næmnisgreining — hvaða ákvarðanir hreyfa hagvísi mest?</div>
+        <div class="an-ctl"><label>Hagvísir: <select id="tor-out"></select></label></div>
+        <div id="tornado"></div>
+      </div>
+      <div class="an-tool">
+        <div class="an-h">📈 Skipti-jaðar — samband tveggja hagvísa þegar ein ákvörðun breytist yfir allt sviðið</div>
+        <div class="an-ctl"><label>Ákvörðun: <select id="fr-lev"></select></label> <label>X-ás: <select id="fr-x"></select></label> <label>Y-ás: <select id="fr-y"></select></label></div>
+        <div id="frontier"></div>
+      </div>
+      <div class="an-tool">
+        <div class="an-h">🎯 Markmiða-leit — hvaða stilling hittir markmiðið? (andhverfur hamur)</div>
+        <div class="an-ctl"><label>Ég vil <select id="inv-out"></select> =</label> <input id="inv-target" type="number" step="0.1" style="width:80px"> <label>með því að stilla <select id="inv-lev"></select></label> <button id="inv-go" type="button">Finna stillingu</button></div>
+        <div id="inv-result" class="inv-result"></div>
+      </div>
+    </div>
     <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ROADS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
 
@@ -103,6 +121,21 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .modelview { margin-top: 6px; }
     main[data-pg="roads"] .cm-title { font-size: 13px; font-weight: 700; color: #f6b13b; margin-bottom: 8px; }
     main[data-pg="roads"] .backtest { margin: 18px 0; }
+    main[data-pg="roads"] .analysisview { margin-top: 6px; }
+    main[data-pg="roads"] .an-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 14px; }
+    main[data-pg="roads"] .an-tool { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; margin-bottom: 14px; }
+    main[data-pg="roads"] .an-h { font-size: 13.5px; font-weight: 700; color: #f6b13b; margin-bottom: 8px; }
+    main[data-pg="roads"] .an-ctl { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+    main[data-pg="roads"] .an-ctl select, main[data-pg="roads"] .an-ctl input { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 4px 7px; font-size: 12.5px; }
+    main[data-pg="roads"] .an-ctl button { background: linear-gradient(180deg,#f6b13b,#e0961f); border: none; color: #1a1204; border-radius: 8px; padding: 5px 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; }
+    main[data-pg="roads"] .tor-row { display: grid; grid-template-columns: 210px 1fr 96px; gap: 8px; align-items: center; font-size: 12px; margin: 3px 0; }
+    main[data-pg="roads"] .tor-bar { position: relative; height: 16px; background: rgba(255,255,255,.05); border-radius: 4px; }
+    main[data-pg="roads"] .tor-bar > i { position: absolute; top: 0; height: 100%; border-radius: 4px; }
+    main[data-pg="roads"] .tor-mid { position: absolute; top: -3px; height: 22px; width: 1px; background: rgba(255,255,255,.3); left: 50%; }
+    main[data-pg="roads"] .tor-row .tv { text-align: right; font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] #frontier canvas { width: 100%; height: 300px; display: block; }
+    main[data-pg="roads"] .inv-result { font-size: 13px; margin-top: 8px; }
+    main[data-pg="roads"] .inv-result b { color: #f6b13b; }
     main[data-pg="roads"] .controls { position: sticky; top: 60px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
     main[data-pg="roads"] .ctl-h { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 2px 0 8px; }
     main[data-pg="roads"] .auto { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); margin-bottom: 6px; cursor: pointer; }
@@ -188,6 +221,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn'], hero: { title: 'Sjálfbærni — CO₂-losun & fiskistofn', series: ['losun', 'fiskistofn'] } },
       { id: 'byggd', label: '🗺️ Byggð & nýsköpun', levers: ['byggdastefna', 'ivilnanir', 'menntun', 'ferdamannagjald'], shocks: [], out: ['byggdajofnudur', 'nyskopun', 'hagvoxtur', 'utflutningur'], hero: { title: 'Byggðajöfnuður & nýsköpun', series: ['byggdajofnudur', 'nyskopun'] } },
       { id: 'fjarmal', label: '💹 Fjármál & ytra', levers: ['vextir', 'bindiskylda', 'skattar', 'vsk', 'tilfaerslur'], shocks: ['gengi', 'heimshagvoxtur', 'hravaruverd'], out: ['peningamagn', 'utlanavoxtur', 'hlutabref', 'vaxtaalag', 'lifeyriseignir', 'vidskiptajofnudur', 'niip', 'gengi_endo', 'jofnudur', 'heimilaskuldir'], hero: { title: 'Viðskiptajöfnuður & erlend staða þjóðarbús (% VLF)', series: ['vidskiptajofnudur', 'niip'] } },
+      { id: 'greining', label: '🔬 Greining', special: 'analysis' },
       { id: 'model', label: '🕸️ Módel & gögn', model: true },
     ];
     const curTab = () => TABS.find((t) => t.id === state.tab) || TABS[0];
@@ -617,6 +651,73 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       else hn.hidden = true;
     }
 
+    // ── Greiningar-tól (Tier 3): keyra módelið mörgum sinnum ──
+    const simFull = (ov) => simulate({ baseline: BASELINE, links: LINKS, levers: { ...state.levers, ...ov }, shocks: state.shocks, quarters: state.horizon });
+    const endVal = (r, k) => r.outcomes[k].mid[r.outcomes[k].mid.length - 1];
+
+    function drawTornado(outKey) {
+      const host = document.getElementById('tornado'); if (!host || !BASELINE.outcomes[outKey]) return;
+      const rows = [];
+      for (const k in BASELINE.levers) { const cfg = BASELINE.levers[k], step = (cfg.max - cfg.min) * 0.25, cur = state.levers[k] ?? cfg.base;
+        const up = endVal(simFull({ [k]: Math.min(cfg.max, cur + step) }), outKey), dn = endVal(simFull({ [k]: Math.max(cfg.min, cur - step) }), outKey);
+        const impact = up - dn; if (Math.abs(impact) > 1e-3) rows.push({ label: cfg.label, impact }); }
+      rows.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact)); const top = rows.slice(0, 12);
+      const us = BASELINE.outcomes[outKey].unit === '% VLF' ? '%' : BASELINE.outcomes[outKey].unit, pol = POLARITY[outKey] ?? 0;
+      if (!top.length) { host.innerHTML = '<p style="color:var(--faint);font-size:12px">Engin ákvörðun hefur mælanleg áhrif á þennan hagvísi.</p>'; return; }
+      const maxA = Math.max(...top.map((r) => Math.abs(r.impact)));
+      host.innerHTML = `<p style="font-size:11.5px;color:var(--faint);margin:0 0 6px">Sveifla í «${BASELINE.outcomes[outKey].label}» af ±25% hreyfingu hvers sleða (raðað eftir áhrifum). Grænt=hreyfir í jákvæða átt fyrir hagvísinn, rautt=neikvæða.</p>` +
+        top.map((r) => { const col = pol === 0 ? '#6ea8fe' : (r.impact * pol > 0 ? '#54d08a' : '#e78284'); return `<div class="tor-row"><span>${r.label}</span><div class="tor-bar"><i style="left:0;width:${Math.abs(r.impact) / maxA * 100}%;background:${col}"></i></div><span class="tv">${r.impact > 0 ? '+' : ''}${num(r.impact)}${us}</span></div>`; }).join('');
+    }
+
+    function drawFrontier(levKey, xKey, yKey) {
+      const host = document.getElementById('frontier'); if (!host) return; host.innerHTML = '<canvas></canvas>';
+      const cfg = BASELINE.levers[levKey], N = 15, pts = [];
+      for (let i = 0; i < N; i++) { const v = cfg.min + (cfg.max - cfg.min) * i / (N - 1), r = simFull({ [levKey]: v }); pts.push({ v, x: endVal(r, xKey), y: endVal(r, yKey) }); }
+      const cv = host.querySelector('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 600, h = 300; cv.width = w * dpr; cv.height = h * dpr; const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+      const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y); let xmn = Math.min(...xs), xmx = Math.max(...xs), ymn = Math.min(...ys), ymx = Math.max(...ys);
+      if (xmx - xmn < 0.4) { xmn -= 0.4; xmx += 0.4; } if (ymx - ymn < 0.4) { ymn -= 0.4; ymx += 0.4; } const px = (xmx - xmn) * 0.06, py = (ymx - ymn) * 0.08; xmn -= px; xmx += px; ymn -= py; ymx += py;
+      const pl = 44, pr = 12, pt = 10, pb = 30, X = (v) => pl + (w - pl - pr) * (v - xmn) / (xmx - xmn || 1), Y = (v) => (h - pb) - (h - pt - pb) * (v - ymn) / (ymx - ymn || 1);
+      ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.fillStyle = 'rgba(159,176,200,.7)'; ctx.font = '10px system-ui';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; for (let g = 0; g <= 4; g++) { const v = ymn + (ymx - ymn) * g / 4, y = Y(v); ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(w - pr, y); ctx.stroke(); ctx.fillText(num(v, 1), pl - 4, y); }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; for (let g = 0; g <= 4; g++) { const v = xmn + (xmx - xmn) * g / 4; ctx.fillText(num(v, 1), X(v), h - pb + 3); }
+      ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y)))); ctx.strokeStyle = '#f6b13b'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+      const curV = state.levers[levKey] ?? cfg.base;
+      pts.forEach((p, i) => { const near = Math.abs(p.v - curV) < (cfg.max - cfg.min) / (N - 1) / 2; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), near ? 5 : 2.6, 0, 7); ctx.fillStyle = near ? '#fff' : '#f6b13b'; ctx.fill(); });
+      const dec = cfg.step < 1 ? 2 : 0;
+      ctx.fillStyle = 'rgba(159,176,200,.9)'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(cfg.label + ' = ' + num(pts[0].v, dec) + cfg.unit, X(pts[0].x) + 5, Y(pts[0].y) - 4);
+      ctx.fillText(num(pts[N - 1].v, dec) + cfg.unit, X(pts[N - 1].x) + 5, Y(pts[N - 1].y) - 4);
+      ctx.fillStyle = '#f6b13b'; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
+      ctx.fillText('X: ' + BASELINE.outcomes[xKey].label + '  ·  Y: ' + BASELINE.outcomes[yKey].label + '  (hvítur punktur = núverandi stilling)', w / 2, h - 2);
+    }
+
+    function runInverse(outKey, target, levKey) {
+      const cfg = BASELINE.levers[levKey], f = (v) => endVal(simFull({ [levKey]: v }), outKey) - target;
+      let lo = cfg.min, hi = cfg.max; const flo = f(lo), fhi = f(hi);
+      if (flo * fhi > 0) { const closest = Math.abs(flo) < Math.abs(fhi) ? lo : hi; return { ok: false, v: closest, achieved: endVal(simFull({ [levKey]: closest }), outKey) }; }
+      for (let it = 0; it < 40; it++) { const mid = (lo + hi) / 2; if (f(lo) * f(mid) <= 0) hi = mid; else lo = mid; }
+      const vr = Math.round((lo + hi) / 2 / cfg.step) * cfg.step; return { ok: true, v: vr, achieved: endVal(simFull({ [levKey]: vr }), outKey) };
+    }
+
+    function buildAnalysisSelects() {
+      if (document.getElementById('tor-out').options.length) return;
+      const outs = Object.keys(BASELINE.outcomes), levs = Object.keys(BASELINE.levers);
+      const oopt = outs.map((k) => `<option value="${k}">${BASELINE.outcomes[k].label}</option>`).join(''), lopt = levs.map((k) => `<option value="${k}">${BASELINE.levers[k].label}</option>`).join('');
+      ['tor-out', 'fr-x', 'fr-y', 'inv-out'].forEach((id) => (document.getElementById(id).innerHTML = oopt));
+      ['fr-lev', 'inv-lev'].forEach((id) => (document.getElementById(id).innerHTML = lopt));
+      document.getElementById('tor-out').value = 'verdbolga'; document.getElementById('fr-lev').value = 'vextir'; document.getElementById('fr-x').value = 'atvinnuleysi'; document.getElementById('fr-y').value = 'verdbolga';
+      document.getElementById('inv-out').value = 'verdbolga'; document.getElementById('inv-lev').value = 'vextir'; document.getElementById('inv-target').value = 2.5;
+      document.getElementById('tor-out').addEventListener('change', (e) => drawTornado(e.target.value));
+      ['fr-lev', 'fr-x', 'fr-y'].forEach((id) => document.getElementById(id).addEventListener('change', () => drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value)));
+      document.getElementById('inv-go').addEventListener('click', () => {
+        const oK = document.getElementById('inv-out').value, lK = document.getElementById('inv-lev').value, tgt = +document.getElementById('inv-target').value;
+        const cfg = BASELINE.levers[lK], dec = cfg.step < 1 ? 2 : 0, oL = BASELINE.outcomes[oK].label, us = BASELINE.outcomes[oK].unit === '% VLF' ? '%' : BASELINE.outcomes[oK].unit;
+        const r = runInverse(oK, tgt, lK), el = document.getElementById('inv-result');
+        el.innerHTML = r.ok ? `✅ Stilltu <b>${cfg.label}</b> á <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} verður <b>${num(r.achieved)}${us}</b> (markmið ${num(tgt)}${us}).`
+          : `⚠ Markmiðið næst ekki með þessum sleða einum innan sviðs. Næst kemst með <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} = <b>${num(r.achieved)}${us}</b>. Prófaðu annan sleða eða raunhæfara markmið.`;
+      });
+    }
+    function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); }
+
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
     function buildTabs() {
@@ -625,10 +726,12 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     }
     function switchTab(id) { state.tab = id; [...document.getElementById('tabbar').children].forEach((b, i) => b.classList.toggle('on', TABS[i].id === id)); renderTab(); serialize(); }
     function renderTab() {
-      const tab = curTab(), isModel = !!tab.model;
-      document.getElementById('body3').hidden = isModel;
+      const tab = curTab(), isModel = !!tab.model, isAn = tab.special === 'analysis';
+      document.getElementById('body3').hidden = isModel || isAn;
       document.getElementById('modelview').hidden = !isModel;
-      if (isModel) return; // keðju-kort/tafla þegar byggð í init
+      document.getElementById('analysisview').hidden = !isAn;
+      if (isModel) return;
+      if (isAn) { runAnalysis(); return; }
       buildControls(); run();
     }
     function buildRealNow() {
