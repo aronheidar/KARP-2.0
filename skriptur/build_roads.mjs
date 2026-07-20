@@ -45,6 +45,8 @@ const baseline = {
     kolefnisgjald: { base: 0, min: -50, max: 100, step: 10, unit: '%', label: 'Kolefnisgjald (frávik)' },
     lifeyrisaldur: { base: 67, min: 65, max: 72, step: 1, unit: ' ár', label: 'Lífeyrisaldur' },
     byggdastefna: { base: 0, min: -10, max: 40, step: 5, unit: '%', label: 'Byggðaáhersla (til landsbyggðar)' },
+    ivilnanir: { base: 0, min: -10, max: 40, step: 5, unit: '%', label: 'Styrkir & ívilnanir (nýsköpun)' },
+    menntun: { base: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Menntun & rannsóknir (fjárfesting)' },
   },
   shocks: {
     olia: { base: 0, min: -50, max: 100, step: 5, unit: '%', label: 'Olíuverð (frávik)' },
@@ -71,8 +73,10 @@ const baseline = {
     folksfjoldi: { label: 'Fólksfjöldi (vísit., frávik)', unit: '', path: bau(100, 100) },
     framfaersla: { label: 'Framfærsluhlutfall (vísit.)', unit: '', path: glideFull(100, 106) },
     byggdajofnudur: { label: 'Byggðajöfnuður (vísit.)', unit: '', path: glideFull(100, 96) },
+    nyskopun: { label: 'Nýsköpun & hugvit (vísit.)', unit: '', path: bau(100, 100) },
+    fiskistofn: { label: 'Fiskistofn (vísit.)', unit: '', path: bau(100, 100) },
   },
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 16], kaupmattur: [-10, 12], husnaedi: [-20, 30], leiga: [-15, 25], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -153,6 +157,28 @@ const links = [
   { id: 'orka_byggd', from: 'orka', to: 'byggdajofnudur', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Stóriðja/virkjanir eru á landsbyggð → störf úti á landi' },
   { id: 'kvoti_byggd', from: 'kvoti', to: 'byggdajofnudur', coef: 0.06, lag: 2, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.12, source: 'Sjávarútvegur er burðarás landsbyggðar' },
   { id: 'byggd_gdp', from: 'byggdajofnudur', to: 'hagvoxtur', coef: 0.008, lag: 2, unit: 'pp/vísit', ci_lo: 0.002, ci_hi: 0.016, source: 'Betri nýting mannafla/auðlinda um allt land' },
+  // ── Nýsköpun/hugvit + sjálfbærni + tekjuáhrif (module 9) ──
+  // Tekjuáhrif skatta (VAR GAT: skattar snertu EKKI kaupmátt):
+  { id: 'tax_kaup', from: 'skattar', to: 'kaupmattur', coef: -0.04, lag: 1, unit: 'pp/%', ci_lo: -0.07, ci_hi: -0.02, source: 'Hærri skattar → lægri ráðstöfunartekjur → minni kaupmáttur' },
+  // Nýsköpun & hugvit (langtíma framleiðni-drifkraftur):
+  { id: 'tax_innov', from: 'skattar', to: 'nyskopun', coef: -0.15, lag: 2, unit: 'vísit/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Hærri skattar draga úr fjárfestingu í nýsköpun/hugviti (öfugt: lægri skattar örva)' },
+  { id: 'ivil_innov', from: 'ivilnanir', to: 'nyskopun', coef: 0.25, lag: 2, unit: 'vísit/%', ci_lo: 0.12, ci_hi: 0.42, source: 'Styrkir & ívilnanir → aukin nýsköpun (Rannís/Kría, endurgreiðslur R&Þ)' },
+  { id: 'mennt_innov', from: 'menntun', to: 'nyskopun', coef: 0.20, lag: 4, unit: 'vísit/%', ci_lo: 0.08, ci_hi: 0.35, source: 'Menntun & rannsóknir → mannauður → nýsköpun (löng töf)' },
+  { id: 'innov_gdp', from: 'nyskopun', to: 'hagvoxtur', coef: 0.03, lag: 3, unit: 'pp/vísit', ci_lo: 0.01, ci_hi: 0.05, source: 'Nýsköpun → framleiðniaukning (TFP), löng töf' },
+  { id: 'innov_exp', from: 'nyskopun', to: 'utflutningur', coef: 0.05, lag: 3, unit: '%/vísit', ci_lo: 0.02, ci_hi: 0.09, source: 'Hugvit → verðmætur útflutningur (hátækni/hugbúnaður/lyf)' },
+  { id: 'ivil_bal', from: 'ivilnanir', to: 'afkoma', coef: -0.03, lag: 1, unit: '%VLF/%', ci_lo: -0.05, ci_hi: -0.01, source: 'Ívilnanir/styrkir kosta ríkissjóð' },
+  { id: 'ivil_gdp', from: 'ivilnanir', to: 'hagvoxtur', coef: 0.02, lag: 2, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Bein fjárfestingar-örvun (skammtíma)' },
+  { id: 'mennt_bal', from: 'menntun', to: 'afkoma', coef: -0.03, lag: 1, unit: '%VLF/%', ci_lo: -0.05, ci_hi: -0.01, source: 'Menntunar-/rannsóknafjárfesting kostar ríkissjóð' },
+  // Sjálfbærni sjávar (VANTAÐI: aflamark hafði engin áhrif á stofninn):
+  { id: 'kvoti_fisk', from: 'kvoti', to: 'fiskistofn', coef: -0.09, lag: 1, unit: 'vísit/%', ci_lo: -0.15, ci_hi: -0.04, source: 'Hærra aflamark gengur á fiskistofninn; lægra byggir hann upp (Hafró ráðgjöf)' },
+  { id: 'fisk_regen', from: 'fiskistofn', to: 'fiskistofn', coef: 0.9, lag: 1, unit: '', ci_lo: 0.88, ci_hi: 0.92, source: 'Stofninn endurnýjar sig hægt — STOFN með endurheimt að jafnvægi (sjálf-lykkja <1)' },
+  { id: 'fisk_exp', from: 'fiskistofn', to: 'utflutningur', coef: 0.15, lag: 2, unit: '%/vísit', ci_lo: 0.07, ci_hi: 0.25, source: 'Heilbrigður stofn styður sjálfbæran útflutning; ofveiði dregur úr honum tafið (sjálfbærni-togstreita)' },
+  // Þóruferð yfir fleiri vantandi tengsl:
+  { id: 'carb_infl', from: 'kolefnisgjald', to: 'verdbolga', coef: 0.01, lag: 1, unit: 'pp/%', ci_lo: 0.003, ci_hi: 0.02, source: 'Kolefnisgjald hækkar eldsneytis-/orkuverð → verðbólga (skammtíma)' },
+  { id: 'oil_gdp', from: 'olia', to: 'hagvoxtur', coef: -0.008, lag: 2, unit: 'pp/%', ci_lo: -0.015, ci_hi: -0.002, source: 'Olíuverðshækkun = kostnaðarskellur → minni eftirspurn/hagvöxtur' },
+  { id: 'fr_gdp', from: 'frambod', to: 'hagvoxtur', coef: 0.015, lag: 1, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.03, source: 'Byggingarumsvif nýbygginga → hagvöxtur' },
+  { id: 'debt_bal', from: 'skuldir', to: 'afkoma', coef: -0.006, lag: 2, unit: '%VLF/%VLF', ci_lo: -0.012, ci_hi: -0.002, source: 'Vaxtakostnaður skulda þyngir afkomu (aðhalds-þörf við háar skuldir)' },
+  { id: 'labor_infl', from: 'vinnuafl', to: 'verdbolga', coef: -0.05, lag: 2, unit: 'pp/pp', ci_lo: -0.10, ci_hi: -0.02, source: 'Aukið vinnuaflsframboð slakar á launa-verð þrýstingi' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
@@ -178,6 +204,9 @@ const scenarios = [
   { id: 'greidsluerfidleikar', label: 'Greiðsluerfiðleikar (vextir +2,5 + samdráttur)', tldr: 'Háir vextir + minnkandi umsvif', levers: { vextir: rateNow + 2.5 }, shocks: { ferdamenn: -25 }, sentence: 'Háir vextir samhliða samdrætti (ferðamönnum fækkar 25%) þyngja greiðslubyrði og auka atvinnuleysi — vanskil heimila og fyrirtækja aukast tafið, sem dregur enn frekar úr hagvexti (fjármála-hraðall).' },
   { id: 'lifeyrisaldur_upp', label: 'Hækka lífeyrisaldur í 70', tldr: 'Viðbragð við öldrun', levers: { lifeyrisaldur: 70 }, shocks: {}, sentence: 'Hækkun lífeyrisaldurs í 70 ár lækkar framfærsluhlutfallið (færri lífeyrisþegar á hvern vinnandi) og bætir afkomu ríkissjóðs tafið — sýnilegast í 10 ára sýn þar sem öldrun safnast upp.' },
   { id: 'byggdaatak', label: 'Byggðaátak (áhersla +30%)', tldr: 'Efling landsbyggðar', levers: { byggdastefna: 30 }, shocks: {}, sentence: 'Aukin byggðaáhersla (+30% í innviði og ívilnanir á landsbyggð) bætir byggðajöfnuð með nokkurra ára töf og nýtir mannafla og auðlindir betur um allt land — vinnur gegn þéttbýlis-þunga grunnþróunar.' },
+  { id: 'nyskopunarhvati', label: 'Nýsköpunarhvati (ívilnanir +30, menntun +20)', tldr: 'Fjárfest í hugviti', levers: { ivilnanir: 30, menntun: 20 }, shocks: {}, sentence: 'Öflugur nýsköpunarhvati (styrkir/ívilnanir +30%, menntun & rannsóknir +20%) eykur nýsköpun og hugvit — skilar framleiðniaukningu og verðmætum útflutningi með töf (skýrast í 10 ára sýn), en kostar ríkissjóð til skamms tíma.' },
+  { id: 'skattalaekkun_nyskopun', label: 'Skattalækkun → nýsköpun (−10%)', tldr: 'Lægri skattar örva hugvit', levers: { skattar: -10 }, shocks: {}, sentence: 'Skattalækkun (−10%) eykur ráðstöfunartekjur og kaupmátt, og örvar fjárfestingu í nýsköpun og hugviti — á kostnað lakari afkomu ríkissjóðs.' },
+  { id: 'ofveidi', label: 'Ofveiði (aflamark +20%)', tldr: 'Skammtíma-gróði, langtíma-tap', levers: { kvoti: 20 }, shocks: {}, sentence: 'Aukið aflamark (+20%) eykur útflutning strax en gengur á fiskistofninn — sem dregur úr sjálfbærum útflutningi þegar frá líður. Klassísk sjálfbærni-togstreita, skýrust í 10 ára sýn.' },
 ];
 
 mkdirSync(join(ROOT, 'gogn', 'roads'), { recursive: true });

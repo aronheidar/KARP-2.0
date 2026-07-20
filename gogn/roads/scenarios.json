@@ -201,5 +201,36 @@
   },
   "shocks": {},
   "sentence": "Aukin byggðaáhersla (+30% í innviði og ívilnanir á landsbyggð) bætir byggðajöfnuð með nokkurra ára töf og nýtir mannafla og auðlindir betur um allt land — vinnur gegn þéttbýlis-þunga grunnþróunar."
+ },
+ {
+  "id": "nyskopunarhvati",
+  "label": "Nýsköpunarhvati (ívilnanir +30, menntun +20)",
+  "tldr": "Fjárfest í hugviti",
+  "levers": {
+   "ivilnanir": 30,
+   "menntun": 20
+  },
+  "shocks": {},
+  "sentence": "Öflugur nýsköpunarhvati (styrkir/ívilnanir +30%, menntun & rannsóknir +20%) eykur nýsköpun og hugvit — skilar framleiðniaukningu og verðmætum útflutningi með töf (skýrast í 10 ára sýn), en kostar ríkissjóð til skamms tíma."
+ },
+ {
+  "id": "skattalaekkun_nyskopun",
+  "label": "Skattalækkun → nýsköpun (−10%)",
+  "tldr": "Lægri skattar örva hugvit",
+  "levers": {
+   "skattar": -10
+  },
+  "shocks": {},
+  "sentence": "Skattalækkun (−10%) eykur ráðstöfunartekjur og kaupmátt, og örvar fjárfestingu í nýsköpun og hugviti — á kostnað lakari afkomu ríkissjóðs."
+ },
+ {
+  "id": "ofveidi",
+  "label": "Ofveiði (aflamark +20%)",
+  "tldr": "Skammtíma-gróði, langtíma-tap",
+  "levers": {
+   "kvoti": 20
+  },
+  "shocks": {},
+  "sentence": "Aukið aflamark (+20%) eykur útflutning strax en gengur á fiskistofninn — sem dregur úr sjálfbærum útflutningi þegar frá líður. Klassísk sjálfbærni-togstreita, skýrust í 10 ára sýn."
  }
 ]

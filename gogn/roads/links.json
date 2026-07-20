@@ -714,5 +714,192 @@
   "ci_lo": 0.002,
   "ci_hi": 0.016,
   "source": "Betri nýting mannafla/auðlinda um allt land"
+ },
+ {
+  "id": "tax_kaup",
+  "from": "skattar",
+  "to": "kaupmattur",
+  "coef": -0.04,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.07,
+  "ci_hi": -0.02,
+  "source": "Hærri skattar → lægri ráðstöfunartekjur → minni kaupmáttur"
+ },
+ {
+  "id": "tax_innov",
+  "from": "skattar",
+  "to": "nyskopun",
+  "coef": -0.15,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.3,
+  "ci_hi": -0.05,
+  "source": "Hærri skattar draga úr fjárfestingu í nýsköpun/hugviti (öfugt: lægri skattar örva)"
+ },
+ {
+  "id": "ivil_innov",
+  "from": "ivilnanir",
+  "to": "nyskopun",
+  "coef": 0.25,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": 0.12,
+  "ci_hi": 0.42,
+  "source": "Styrkir & ívilnanir → aukin nýsköpun (Rannís/Kría, endurgreiðslur R&Þ)"
+ },
+ {
+  "id": "mennt_innov",
+  "from": "menntun",
+  "to": "nyskopun",
+  "coef": 0.2,
+  "lag": 4,
+  "unit": "vísit/%",
+  "ci_lo": 0.08,
+  "ci_hi": 0.35,
+  "source": "Menntun & rannsóknir → mannauður → nýsköpun (löng töf)"
+ },
+ {
+  "id": "innov_gdp",
+  "from": "nyskopun",
+  "to": "hagvoxtur",
+  "coef": 0.03,
+  "lag": 3,
+  "unit": "pp/vísit",
+  "ci_lo": 0.01,
+  "ci_hi": 0.05,
+  "source": "Nýsköpun → framleiðniaukning (TFP), löng töf"
+ },
+ {
+  "id": "innov_exp",
+  "from": "nyskopun",
+  "to": "utflutningur",
+  "coef": 0.05,
+  "lag": 3,
+  "unit": "%/vísit",
+  "ci_lo": 0.02,
+  "ci_hi": 0.09,
+  "source": "Hugvit → verðmætur útflutningur (hátækni/hugbúnaður/lyf)"
+ },
+ {
+  "id": "ivil_bal",
+  "from": "ivilnanir",
+  "to": "afkoma",
+  "coef": -0.03,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": -0.05,
+  "ci_hi": -0.01,
+  "source": "Ívilnanir/styrkir kosta ríkissjóð"
+ },
+ {
+  "id": "ivil_gdp",
+  "from": "ivilnanir",
+  "to": "hagvoxtur",
+  "coef": 0.02,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": 0.005,
+  "ci_hi": 0.04,
+  "source": "Bein fjárfestingar-örvun (skammtíma)"
+ },
+ {
+  "id": "mennt_bal",
+  "from": "menntun",
+  "to": "afkoma",
+  "coef": -0.03,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": -0.05,
+  "ci_hi": -0.01,
+  "source": "Menntunar-/rannsóknafjárfesting kostar ríkissjóð"
+ },
+ {
+  "id": "kvoti_fisk",
+  "from": "kvoti",
+  "to": "fiskistofn",
+  "coef": -0.09,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": -0.15,
+  "ci_hi": -0.04,
+  "source": "Hærra aflamark gengur á fiskistofninn; lægra byggir hann upp (Hafró ráðgjöf)"
+ },
+ {
+  "id": "fisk_regen",
+  "from": "fiskistofn",
+  "to": "fiskistofn",
+  "coef": 0.9,
+  "lag": 1,
+  "unit": "",
+  "ci_lo": 0.88,
+  "ci_hi": 0.92,
+  "source": "Stofninn endurnýjar sig hægt — STOFN með endurheimt að jafnvægi (sjálf-lykkja <1)"
+ },
+ {
+  "id": "fisk_exp",
+  "from": "fiskistofn",
+  "to": "utflutningur",
+  "coef": 0.15,
+  "lag": 2,
+  "unit": "%/vísit",
+  "ci_lo": 0.07,
+  "ci_hi": 0.25,
+  "source": "Heilbrigður stofn styður sjálfbæran útflutning; ofveiði dregur úr honum tafið (sjálfbærni-togstreita)"
+ },
+ {
+  "id": "carb_infl",
+  "from": "kolefnisgjald",
+  "to": "verdbolga",
+  "coef": 0.01,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.003,
+  "ci_hi": 0.02,
+  "source": "Kolefnisgjald hækkar eldsneytis-/orkuverð → verðbólga (skammtíma)"
+ },
+ {
+  "id": "oil_gdp",
+  "from": "olia",
+  "to": "hagvoxtur",
+  "coef": -0.008,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.015,
+  "ci_hi": -0.002,
+  "source": "Olíuverðshækkun = kostnaðarskellur → minni eftirspurn/hagvöxtur"
+ },
+ {
+  "id": "fr_gdp",
+  "from": "frambod",
+  "to": "hagvoxtur",
+  "coef": 0.015,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.005,
+  "ci_hi": 0.03,
+  "source": "Byggingarumsvif nýbygginga → hagvöxtur"
+ },
+ {
+  "id": "debt_bal",
+  "from": "skuldir",
+  "to": "afkoma",
+  "coef": -0.006,
+  "lag": 2,
+  "unit": "%VLF/%VLF",
+  "ci_lo": -0.012,
+  "ci_hi": -0.002,
+  "source": "Vaxtakostnaður skulda þyngir afkomu (aðhalds-þörf við háar skuldir)"
+ },
+ {
+  "id": "labor_infl",
+  "from": "vinnuafl",
+  "to": "verdbolga",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": -0.1,
+  "ci_hi": -0.02,
+  "source": "Aukið vinnuaflsframboð slakar á launa-verð þrýstingi"
  }
 ]

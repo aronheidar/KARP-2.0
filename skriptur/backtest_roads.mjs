@@ -94,5 +94,20 @@ const okOrkaByggd = orB.outcomes.byggdajofnudur.mid[39] > baseline.outcomes.bygg
 const okMigByggd = miB.outcomes.byggdajofnudur.mid[39] < baseline.outcomes.byggdajofnudur.path[39]; // aðflutningur (höfuðborg) → jöfnuður↓
 const okByggdBand = [byC, orB, miB].every((r) => r.outcomes.byggdajofnudur.lo.every((v, i) => v <= r.outcomes.byggdajofnudur.mid[i] + 1e-9 && r.outcomes.byggdajofnudur.mid[i] <= r.outcomes.byggdajofnudur.hi[i] + 1e-9));
 console.log('+byggðaáhersla→jöfnuður↑:', okByggdUp, '| +orka→jöfnuður↑:', okOrkaByggd, '| +aðflutn→jöfnuður↓:', okMigByggd, '| byggða-bönd:', okByggdBand);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand);
+// Nýsköpun/hugvit + sjálfbærni + tekjuáhrif (module 9)
+const taxU = simulate({ baseline, links, levers: { skattar: 10 }, quarters: 12 });
+const hvati = simulate({ baseline, links, levers: { ivilnanir: 30, menntun: 20 }, quarters: 40 });
+const kvU = simulate({ baseline, links, levers: { kvoti: 20 }, quarters: 40 });
+const kvD = simulate({ baseline, links, levers: { kvoti: -20 }, quarters: 40 });
+const carbU = simulate({ baseline, links, levers: { kolefnisgjald: 50 }, quarters: 12 });
+const okTaxKaup = taxU.outcomes.kaupmattur.mid[11] < baseline.outcomes.kaupmattur.path[11]; // VAR GAT: skattar → kaupmáttur↓
+const okTaxInnov = taxU.outcomes.nyskopun.mid[11] < baseline.outcomes.nyskopun.path[11]; // hærri skattar → minni nýsköpun (öfugt: skattalækkun örvar)
+const okHvatiInnov = hvati.outcomes.nyskopun.mid[39] > baseline.outcomes.nyskopun.path[39]; // ívilnanir+menntun → nýsköpun↑
+const okInnovGdp = hvati.outcomes.hagvoxtur.mid[39] > baseline.outcomes.hagvoxtur.path[39]; // nýsköpun → hagvöxtur (langtíma)
+const okKvFisk = kvU.outcomes.fiskistofn.mid[39] < baseline.outcomes.fiskistofn.path[39]; // KJARNI: +aflamark → fiskistofn↓
+const okKvFiskUp = kvD.outcomes.fiskistofn.mid[39] > baseline.outcomes.fiskistofn.path[39]; // öfugt: −aflamark → fiskistofn↑
+const okCarbInfl = carbU.outcomes.verdbolga.mid[11] > baseline.outcomes.verdbolga.path[11]; // kolefnisgjald → verðbólga↑
+const okMod9Band = [taxU, hvati, kvU, kvD].every((r) => ['nyskopun', 'fiskistofn', 'kaupmattur'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9)));
+console.log('+skattar→kaupmáttur↓ (GAT):', okTaxKaup, '| +skattar→nýsköpun↓:', okTaxInnov, '| ívilnanir+menntun→nýsköpun↑:', okHvatiInnov, '| nýsköpun→hagvöxtur↑:', okInnovGdp, '| +aflamark→fiskistofn↓:', okKvFisk, '| −aflamark→fiskistofn↑:', okKvFiskUp, '| kolefnisgj→verðbólga↑:', okCarbInfl, '| mod9-bönd:', okMod9Band);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand && okTaxKaup && okTaxInnov && okHvatiInnov && okInnovGdp && okKvFisk && okKvFiskUp && okCarbInfl && okMod9Band);
 process.exit(bad ? 1 : 0);
