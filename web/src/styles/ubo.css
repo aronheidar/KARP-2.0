@@ -184,3 +184,18 @@ a.rnav-v:hover { color: var(--ink); background: rgba(255,255,255,.06); }
 body.fs-printing .eig-tabs { display: none !important; }
 body.fs-printing #eig-panel-listi { display: block !important; }
 body.fs-printing #eig-panel-kort { display: none !important; }
+
+/* 📊 Topplistar fyrirtækja */
+.tf-intro { color: var(--muted); font-size: 13.5px; margin: 4px 0 12px; }
+.tf-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.tf-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: #9fb0c8; font: inherit; font-weight: 600; font-size: 13.5px; padding: 7px 11px; cursor: pointer; margin-bottom: -1px; }
+.tf-tab:hover { color: #eaf1fb; } .tf-tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
+.tf-controls { display: flex; gap: 14px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+.tf-controls select { background: rgba(255,255,255,.06); color: var(--ink); border: 1px solid rgba(246,177,59,.35); border-radius: 8px; padding: 5px 8px; font: inherit; }
+.tf-pdf { background: rgba(255,255,255,.06); color: var(--ink); border: 1px solid rgba(246,177,59,.35); border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; }
+.tf-cov { color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
+.tf-tafla .tf-rank { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; width: 32px; }
+.tf-tafla .tf-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tf-tafla .tf-nm a { color: #f6b13b; text-decoration: none; font-weight: 600; } .tf-tafla .tf-nm a:hover { text-decoration: underline; }
+.tf-lock { margin-top: 14px; }
+@media print { .tf-tabs, .tf-controls, .tf-lock { display: none !important; } }
