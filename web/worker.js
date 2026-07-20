@@ -3848,6 +3848,26 @@ export default {
       return res;
     }
     if (/^\/fyrirtaeki\/\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
+    // GÁTT: greidd skýrslu-gögn (/gogn/{eigendur,arsreikningar,stjorn}/<kt>.json) = persónuupplýsingar + 990 kr vara.
+    // Aðeins admin eða notandi með reports_granted fyrir viðkomandi skýrslu (nákvæm spegilmynd client-paywall/hasReport).
+    // Sýnishorn (_synishorn.json + ?syni hardkóðað) og SSR-forskoðun (karp.internal-undirbeiðnir) fara EKKI hér um.
+    {
+      const gm = url.pathname.match(/^\/gogn\/(eigendur|arsreikningar|stjorn)\/(\d{6,10})\.json$/);
+      if (gm) {
+        const gkey = gm[1] === 'eigendur' ? 'eigendur:' + gm[2] : 'fyrirtaeki:' + gm[2];
+        const guid = await readSession(env, request);
+        let gok = false;
+        if (guid && env.TENGSL) {
+          const gu = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(guid).first().catch(() => null);
+          if (gu && gu.is_admin === 1) gok = true;
+          else if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(guid, gkey).first().catch(() => null)) gok = true;
+        }
+        if (!gok) return new Response(JSON.stringify({ error: 'locked', key: gkey }), { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store' } });
+        const gres = await env.ASSETS.fetch(request);
+        const gh = new Headers(gres.headers); gh.set('cache-control', 'private, no-store');
+        return new Response(gres.body, { status: gres.status, headers: gh });
+      }
+    }
     return env.ASSETS.fetch(request);
   },
 };
