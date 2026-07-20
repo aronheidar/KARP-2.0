@@ -118,6 +118,10 @@ const links = [
   { id: 'orka_emis', from: 'orka', to: 'losun', coef: 0.30, lag: 1, unit: 'vísit/%', ci_lo: 0.15, ci_hi: 0.50, source: 'Stóriðju-orkunotkun → losun' },
   { id: 'carb_emis', from: 'kolefnisgjald', to: 'losun', coef: -0.15, lag: 2, unit: 'vísit/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Kolefnisgjald → minni losun' },
   { id: 'carb_gdp', from: 'kolefnisgjald', to: 'hagvoxtur', coef: -0.02, lag: 1, unit: 'pp/%', ci_lo: -0.05, ci_hi: -0.005, source: 'Kostnaðar-drag grænna skatta' },
+  // ── Dýpkun (lota 1): tengsla-göt sem stefna á útkomur ──
+  { id: 'kaup_gdp', from: 'kaupmattur', to: 'hagvoxtur', coef: 0.15, lag: 1, unit: 'pp/pp', ci_lo: 0.08, ci_hi: 0.25, source: 'Einkaneysla (~50% VLF) — hærri kaupmáttur → meiri neysla' },
+  { id: 'tour_rent', from: 'ferdamenn', to: 'leiga', coef: 0.04, lag: 1, unit: '%/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Skammtímaleiga (Airbnb) → leigueftirspurn' },
+  { id: 'rate_bal', from: 'vextir', to: 'afkoma', coef: -0.15, lag: 2, unit: '%VLF/pp', ci_lo: -0.30, ci_hi: -0.05, source: 'Vaxtabyrði ríkisskulda (hærri vextir → dýrari skuldir)' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);

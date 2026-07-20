@@ -494,5 +494,38 @@
   "ci_lo": -0.05,
   "ci_hi": -0.005,
   "source": "Kostnaðar-drag grænna skatta"
+ },
+ {
+  "id": "kaup_gdp",
+  "from": "kaupmattur",
+  "to": "hagvoxtur",
+  "coef": 0.15,
+  "lag": 1,
+  "unit": "pp/pp",
+  "ci_lo": 0.08,
+  "ci_hi": 0.25,
+  "source": "Einkaneysla (~50% VLF) — hærri kaupmáttur → meiri neysla"
+ },
+ {
+  "id": "tour_rent",
+  "from": "ferdamenn",
+  "to": "leiga",
+  "coef": 0.04,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.08,
+  "source": "Skammtímaleiga (Airbnb) → leigueftirspurn"
+ },
+ {
+  "id": "rate_bal",
+  "from": "vextir",
+  "to": "afkoma",
+  "coef": -0.15,
+  "lag": 2,
+  "unit": "%VLF/pp",
+  "ci_lo": -0.3,
+  "ci_hi": -0.05,
+  "source": "Vaxtabyrði ríkisskulda (hærri vextir → dýrari skuldir)"
  }
 ]

@@ -53,5 +53,13 @@ const okOrEmis = orC.outcomes.losun.mid[q] > baseline.outcomes.losun.path[q];
 const okCarbEmis = caC.outcomes.losun.mid[q] < baseline.outcomes.losun.path[q];
 const okResBand = [kvC, orC, caC].every((r) => ['utflutningur', 'losun'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i])));
 console.log('+kvóti→útflutn↑:', okKvExp, '| +orka→útflutn↑:', okOrExp, '| +orka→losun↑:', okOrEmis, '| +kolefnisgj→losun↓:', okCarbEmis, '| auðlinda-bönd:', okResBand);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand);
+// Dýpkun (lota 1)
+const wageC = simulate({ baseline, links, levers: { laun: 10 }, quarters: 12 });
+const tourC = simulate({ baseline, links, shocks: { ferdamenn: 30 }, quarters: 12 });
+const rateC = simulate({ baseline, links, levers: { vextir: baseline.levers.vextir.base + 3 }, quarters: 12 });
+const okKaupGdp = wageC.outcomes.hagvoxtur.mid[q] > baseline.outcomes.hagvoxtur.path[q]; // +laun → kaupmáttur → neysla → hagvöxtur
+const okTourRent = tourC.outcomes.leiga.mid[q] > baseline.outcomes.leiga.path[q];
+const okRateBal = rateC.outcomes.afkoma.mid[q] < baseline.outcomes.afkoma.path[q]; // hærri vextir → vaxtabyrði → verri afkoma
+console.log('+laun→hagvöxtur↑ (neysla):', okKaupGdp, '| +ferðam→leiga↑:', okTourRent, '| +vextir→afkoma↓ (vaxtabyrði):', okRateBal);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal);
 process.exit(bad ? 1 : 0);
