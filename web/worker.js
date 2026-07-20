@@ -1,3 +1,4 @@
+import { greinaSql } from './src/lib/greinar.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -2688,6 +2689,46 @@ export async function tengslGrunnurEnrich(env, out, rotKt) {
   return out;
 }
 
+// 📊 Topplistar fyrirtækja (Karp+-læst). Pure gátun: entitled → fullt; annars topp-3 agn.
+export function topplistaBody(rows, entitled, total) {
+  return entitled ? { radir: rows, total, locked: false } : { radir: rows.slice(0, 3), total, locked: true };
+}
+const TOPP_RADAD = { sala: 'sala', hagnadur: 'hagnadur', eignir: 'eignir', efe: 'eigid_fe' };
+async function topplistarHandler(request, env, ctx) {
+  const u = new URL(request.url);
+  const grein = u.searchParams.get('grein') || 'island';
+  const radadKey = u.searchParams.get('radad') || 'sala';
+  const filter = greinaSql(grein), col = TOPP_RADAD[radadKey];
+  if (filter === null || !col) return sjson({ error: 'bad-params' }, 400);
+  if (!env.TENGSL) return sjson({ error: 'unconfigured' });
+  // entitlement: admin EÐA virk Karp+-áskrift (sama og userPayload.tierActive)
+  const uid = await karpUserId(request, env);
+  let entitled = false;
+  if (uid) {
+    const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const now = Math.floor(Date.now() / 1000);
+    entitled = !!(urow && (urow.is_admin || (urow.tier && urow.tier_until > now)));
+  }
+  const cacheKey = new Request('https://cache.karp.internal/api/topplistar?g=' + grein + '&r=' + radadKey + '&e=' + (entitled ? 1 : 0));
+  const cache = caches.default;
+  const hit = await cache.match(cacheKey); if (hit) return hit;
+  const whereFilter = filter ? (filter + ' AND ') : '';
+  const rows = (await env.TENGSL.prepare(
+    `SELECT f.kt, f.nafn, fj.sala, fj.hagnadur, fj.eignir, fj.eigid_fe, fj.ar
+     FROM felog f JOIN fjarhagur fj ON fj.kt=f.kt
+     WHERE ${whereFilter}fj.sala IS NOT NULL
+     ORDER BY fj.${col} DESC LIMIT 100`
+  ).all().catch(() => ({ results: [] }))).results;
+  // coverage: greind (fjarhagur með veltu) af öllum í greininni
+  const covWhere = filter ? ('WHERE ' + filter) : '';
+  const alls = (await env.TENGSL.prepare(`SELECT COUNT(*) n FROM felog f ${covWhere}`).first().catch(() => ({ n: 0 }))).n;
+  const greind = (await env.TENGSL.prepare(`SELECT COUNT(*) n FROM felog f JOIN fjarhagur fj ON fj.kt=f.kt WHERE ${whereFilter}fj.sala IS NOT NULL`).first().catch(() => ({ n: 0 }))).n;
+  const body = { grein, radad: radadKey, ...topplistaBody(rows, entitled, rows.length), coverage: { greind, alls } };
+  const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 // ── 🪑 Tengslanet (F10): fyrirsvarsmenn þvert á félög eignarhaldsnetsins ─────────────────────
 // GET /api/tengslanet?kt= → { stjornendur: [rótarfyrirsvar + hlutverk í öðrum net-félögum],
 // krossar: [fólk í ≥2 net-félögum án hlutverks í rót] }. Félagamengið = rót + félags-hnútar úr
@@ -3805,6 +3846,7 @@ export default {
     if (url.pathname === '/api/lei') return leiHandler(request, ctx);
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
+    if (url.pathname === '/api/topplistar') return topplistarHandler(request, env, ctx);
     if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
     if (url.pathname === '/api/tengsl-stats') return tengslStatsHandler(request, env);
     if (url.pathname === '/api/leyfi') return leyfiHandler(request, env, ctx);
