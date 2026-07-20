@@ -20,6 +20,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       <p id="news" class="news" hidden></p>
       <p id="hnote" class="hnote" hidden></p>
       <div id="cmpbar" class="cmpbar" hidden></div>
+      <div id="mcbar" class="mcbar" hidden></div>
     </div>
     <div class="dash-body3" id="body3">
       <div class="controls" id="ctl-left">
@@ -30,6 +31,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <div id="levers"></div>
         <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir. Eða prófaðu sviðsmynd eða KARP-lausnina.</p>
         <button id="rs" type="button">↺ Núllstilla</button>
+        <button id="mc" type="button" title="Keyrir hundruð herma með slembnum stuðlum innan óvissubils hvers tengsls → líkinda-viftur (5–95%) og líkinda-yfirlýsingar í stað fastra banda.">🎲 Óvissu-hermun</button>
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
         <button id="share" type="button" title="Afritar hlekk sem geymir núverandi sviðsmynd — hægt að deila eða vista">🔗 Afrita hlekk á sviðsmynd</button>
       </div>
@@ -125,6 +127,12 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] #rs, main[data-pg="roads"] #share, main[data-pg="roads"] #cmp { margin-top: 8px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
     main[data-pg="roads"] #share.ok { color: #54d08a; border-color: #54d08a; }
     main[data-pg="roads"] #cmp.on { color: #5ac8e0; border-color: #5ac8e0; }
+    main[data-pg="roads"] #mc { margin-top: 8px; width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--ink); border-radius: 9px; padding: 7px; font-size: 12.5px; cursor: pointer; }
+    main[data-pg="roads"] #mc.on { color: #b98cff; border-color: #b98cff; }
+    main[data-pg="roads"] .mcbar { font-size: 12.5px; color: var(--ink); background: rgba(185,140,255,.08); border: 1px solid rgba(185,140,255,.3); border-radius: 10px; padding: 9px 13px; margin: 0 0 12px; }
+    main[data-pg="roads"] .mcbar b { color: #b98cff; }
+    main[data-pg="roads"] .mcbar .mcp { display: inline-block; margin-right: 16px; }
+    main[data-pg="roads"] .mcbar .mcp b { color: var(--ink); font-variant-numeric: tabular-nums; }
     main[data-pg="roads"] .cmpbar { font-size: 12.5px; color: var(--ink); background: rgba(90,200,224,.08); border: 1px solid rgba(90,200,224,.3); border-radius: 10px; padding: 8px 13px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     main[data-pg="roads"] .cmpbar .sw { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; }
     main[data-pg="roads"] .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
@@ -167,7 +175,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import SCENARIOS from '@gogn/roads/scenarios.json';
     import HISTORY from '@gogn/roads/history.json';
 
-    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit' };
+    const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit', mc: null };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
     // Tab-skipulag (gagna-drifið): hver flipi sýnir sín ákvarðana-sett, hagvísa og hero-rit. Vélin keyrir alltaf FULLA módelið.
     const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
@@ -301,6 +309,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     }
 
     function run() {
+      if (state.mc) { state.mc = null; document.getElementById('mc').classList.remove('on'); document.getElementById('mcbar').hidden = true; } // breyting → aftur í ákveðna sýn
       const L = solveLevers();
       state._sol = { vextir: L.vextir, laun: L.laun }; // geymt svo hægt sé að „baka inn" við afvirkjun
       if (state.autoTay) syncSlider('vextir', L.vextir);
@@ -316,13 +325,15 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       const host = document.getElementById('hero'); host.innerHTML = '';
       const tab = curTab(); if (!tab.hero) return;
       const series = tab.hero.series.filter((k) => r.outcomes[k]); if (!series.length) return;
+      const mcOn = !!state.mc;
+      const eff = (k) => (mcOn && state.mc.outcomes[k]) ? { ...r.outcomes[k], lo: state.mc.outcomes[k].p5, hi: state.mc.outcomes[k].p95, mid: state.mc.outcomes[k].p50 } : r.outcomes[k];
       const card = document.createElement('div'); card.className = 'hero-card';
       const yrs = state.horizon > BASELINE.quarters ? '10' : '3';
-      card.innerHTML = `<div class="hc-t">${tab.hero.title}</div><div class="hc-s">Ferlar næstu ${yrs} ár · heil lína = sviðsmynd, punktalína = grunnferill (BAU)${tab.hero.target != null ? ' · strikalína = markmið' : ''} · skyggt = óvissa</div><canvas></canvas><div class="hero-legend"></div>`;
+      card.innerHTML = `<div class="hc-t">${tab.hero.title}${mcOn ? ' <span style="color:#b98cff">🎲 óvissu-hermun</span>' : ''}</div><div class="hc-s">Ferlar næstu ${yrs} ár · heil lína = ${mcOn ? 'miðgildi (50%)' : 'sviðsmynd'}, punktalína = grunnferill (BAU)${tab.hero.target != null ? ' · strikalína = markmið' : ''} · skyggt = ${mcOn ? '5–95% líkindabil (300 hermar)' : 'óvissa'}</div><canvas></canvas><div class="hero-legend"></div>`;
       host.appendChild(card);
       const cv = card.querySelector('canvas'); const dpr = Math.min(2, window.devicePixelRatio || 1);
       const w = cv.clientWidth || 600, h = 190; cv.width = w * dpr; cv.height = h * dpr; const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
-      let all = []; series.forEach((k) => { const o = r.outcomes[k]; all = all.concat(o.lo, o.hi, o.baseline); }); if (tab.hero.target != null) all.push(tab.hero.target);
+      let all = []; series.forEach((k) => { const o = eff(k); all = all.concat(o.lo, o.hi, o.baseline); }); if (tab.hero.target != null) all.push(tab.hero.target);
       let mn = Math.min(...all), mx = Math.max(...all); if (mx - mn < 1) { const m = (mx + mn) / 2; mn = m - 1; mx = m + 1; } const padY = (mx - mn) * 0.08; mn -= padY; mx += padY;
       const n = r.outcomes[series[0]].mid.length, padL = 34, padR = 8, padT = 8, padB = 18;
       const X = (i) => padL + (w - padL - padR) * i / (n - 1), Y = (v) => (h - padB) - (h - padT - padB) * (v - mn) / (mx - mn);
@@ -332,13 +343,37 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('í dag', X(0), h - padB + 3); ctx.fillText('+' + yrs + ' ár', X(n - 1), h - padB + 3);
       if (tab.hero.target != null) { ctx.beginPath(); ctx.setLineDash([6, 4]); ctx.moveTo(padL, Y(tab.hero.target)); ctx.lineTo(w - padR, Y(tab.hero.target)); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.setLineDash([]); }
       const line = (arr, col, lw, dash) => { ctx.beginPath(); arr.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v)))); ctx.strokeStyle = col; ctx.setLineDash(dash || []); ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.stroke(); ctx.setLineDash([]); };
-      series.forEach((k, si) => { const o = r.outcomes[k], col = HPAL[si % HPAL.length];
-        ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0])); for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i])); for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i])); ctx.closePath(); ctx.fillStyle = hexA(col, .09); ctx.fill();
+      series.forEach((k, si) => { const o = eff(k), col = HPAL[si % HPAL.length];
+        ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0])); for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i])); for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i])); ctx.closePath(); ctx.fillStyle = hexA(col, mcOn ? .14 : .09); ctx.fill();
         line(o.baseline, hexA(col, .5), 1.2, [3, 3]); line(o.mid, col, 2.2);
       });
       const leg = card.querySelector('.hero-legend'); series.forEach((k, si) => { const s = document.createElement('span'); s.innerHTML = `<i style="background:${HPAL[si % HPAL.length]}"></i>${r.outcomes[k].label}`; leg.appendChild(s); }); if (tab.hero.target != null) { const s = document.createElement('span'); s.innerHTML = `<i style="background:rgba(255,255,255,.5)"></i>markmið ${num(tab.hero.target)}%`; leg.appendChild(s); }
     }
     const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
+
+    // Óvissu-hermun (Monte Carlo): keyrir N herma með slembnum stuðlum innan óvissubils hvers tengsls → líkinda-viftur.
+    const THRESH = { verdbolga: { op: '>', v: 4, lbl: 'verðbólga >4%' }, hagvoxtur: { op: '<', v: 0, lbl: 'samdráttur' }, atvinnuleysi: { op: '>', v: 6, lbl: 'atvinnuleysi >6%' }, afkoma: { op: '<', v: -2, lbl: 'halli >2% VLF' }, skuldir: { op: '>', v: 50, lbl: 'skuldir >50%' }, husnaedi: { op: '>', v: 10, lbl: 'húsnæði >10%' }, vanskil: { op: '>', v: 115, lbl: 'vanskil +15%' }, kaupmattur: { op: '<', v: 0, lbl: 'kaupmáttur rýrnar' }, fiskistofn: { op: '<', v: 90, lbl: 'fiskistofn <90' }, losun: { op: '>', v: 105, lbl: 'losun +5%' }, vidskiptajofnudur: { op: '<', v: 0, lbl: 'viðskiptahalli' } };
+    function runMC() {
+      const N = 300, L = solveLevers(), outs = Object.keys(BASELINE.outcomes), H = state.horizon, last = H - 1;
+      const acc = {}, endS = {}; outs.forEach((k) => { acc[k] = Array.from({ length: H }, () => []); endS[k] = []; });
+      for (let i = 0; i < N; i++) {
+        const pL = LINKS.map((l) => (l.ci_lo === l.ci_hi ? l : { ...l, coef: l.ci_lo + Math.random() * (l.ci_hi - l.ci_lo) }));
+        const r = simulate({ baseline: BASELINE, links: pL, levers: L, shocks: state.shocks, quarters: H });
+        for (const k of outs) { const m = r.outcomes[k].mid; for (let t = 0; t < H; t++) acc[k][t].push(m[t]); endS[k].push(m[last]); }
+      }
+      const pct = (a, p) => { const s = a.slice().sort((x, y) => x - y); return s[Math.max(0, Math.min(s.length - 1, Math.floor(p * s.length)))]; };
+      const mc = { outcomes: {}, end: endS, n: N };
+      for (const k of outs) { const o = { p5: [], p50: [], p95: [] }; for (let t = 0; t < H; t++) { const a = acc[k][t]; o.p5.push(pct(a, 0.05)); o.p50.push(pct(a, 0.5)); o.p95.push(pct(a, 0.95)); } mc.outcomes[k] = o; }
+      state.mc = mc;
+    }
+    function drawMCbar() {
+      const bar = document.getElementById('mcbar'); if (!state.mc) { bar.hidden = true; return; }
+      const tab = curTab(), outList = (tab.out || []).filter((k) => state.mc.outcomes[k]), yrs = state.horizon > BASELINE.quarters ? '10' : '3';
+      const meds = outList.slice(0, 5).map((k) => { const o = state.mc.outcomes[k], last = o.p50.length - 1, u = BASELINE.outcomes[k].unit === '% VLF' ? '%' : BASELINE.outcomes[k].unit; return `<span class="mcp">${BASELINE.outcomes[k].label}: <b>${num(o.p50[last])}${u}</b> <span style="color:var(--faint)">(${num(o.p5[last])}–${num(o.p95[last])})</span></span>`; }).join('');
+      const probs = outList.filter((k) => THRESH[k]).map((k) => { const th = THRESH[k], s = state.mc.end[k], cnt = s.filter((v) => (th.op === '>' ? v > th.v : v < th.v)).length; return `<span class="mcp">P(${th.lbl}) <b>${Math.round(100 * cnt / s.length)}%</b></span>`; }).join('');
+      bar.hidden = false;
+      bar.innerHTML = `🎲 <b>Óvissu-hermun</b> — ${state.mc.n} hermar, miðgildi & 90% líkindabil eftir ${yrs} ár:<br>${meds}${probs ? '<br><span style="color:var(--faint);font-size:11.5px">Líkur á áhættum: </span>' + probs : ''}`;
+    }
 
     function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); }
 
@@ -628,6 +663,12 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       });
       document.querySelectorAll('#horizon button').forEach((b) => b.addEventListener('click', () => { state.horizon = +b.dataset.h; state.compare = null; updateCmp(); applyHorizon(); run(); }));
       document.getElementById('cmp').addEventListener('click', () => { state.compare = state.compare ? null : { r: state._lastR, desc: describeState() }; updateCmp(); run(); });
+      document.getElementById('mc').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        if (state.mc) { state.mc = null; btn.classList.remove('on'); document.getElementById('mcbar').hidden = true; drawHero(state._lastR); return; }
+        const t0 = btn.textContent; btn.textContent = '⏳ Hermar…'; btn.disabled = true;
+        setTimeout(() => { runMC(); btn.classList.add('on'); btn.textContent = t0; btn.disabled = false; drawHero(state._lastR); drawMCbar(); }, 20);
+      });
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
       document.getElementById('auto-tay').addEventListener('change', (e) => { state.autoTay = e.target.checked; if (!e.target.checked && state._sol) { state.levers.vextir = state._sol.vextir; syncSlider('vextir', state._sol.vextir); } applyAutoDisable(); run(); });
       document.getElementById('auto-phi').addEventListener('change', (e) => { state.autoPhi = e.target.checked; if (!e.target.checked && state._sol) { state.levers.laun = state._sol.laun; syncSlider('laun', state._sol.laun); } applyAutoDisable(); run(); });
