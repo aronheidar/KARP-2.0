@@ -3085,6 +3085,17 @@ async function userDataHandler(request, env) {
   const body = method === 'POST' ? ((await request.json().catch(() => null)) || {}) : {};
   if (method === 'POST' && !uid) return _ajson({ ok: false, error: 'login' });   // allar skriftir krefjast innskráningar
 
+  // ── Fréttavakt (merge-safe; verndar seenIds/lastSent gegn framenda) ──
+  if (path === '/frettavakt') {
+    const cur = await _prefGet(env, uid, 'frettavakt', { on: false, flokkar: [], cadence: 'daglegt', lastSent: 0, seenIds: [] });
+    if (method === 'POST') {
+      const merged = frettavaktMerge(cur, body, FRETTA_TYPES);
+      await _prefSet(env, uid, 'frettavakt', merged);
+      return _ajson({ ok: true, on: merged.on, flokkar: merged.flokkar, cadence: merged.cadence });
+    }
+    return _ajson({ on: cur.on, flokkar: cur.flokkar, cadence: cur.cadence });   // never echo seenIds/lastSent
+  }
+
   // ── Blobb-endapunktar (geymdu-og-echo) ──
   const bk = path.slice(1);
   if (_U_BLOBS.indexOf(bk) >= 0) {
@@ -3309,6 +3320,7 @@ async function fetchNews() {
 }
 // ── Fréttavaktir (news alerts) ────────────────────────────────────────────────
 export const MAX_PER_EMAIL = 30;
+const FRETTA_TYPES = new Set(Object.keys(CAT));
 export function frettavaktMatch(feedItems, newsRows, ctx) {
   const flokkar = new Set(ctx.flokkar || []);
   const ord = (ctx.ord || []).map((w) => String(w).toLowerCase()).filter(Boolean);
