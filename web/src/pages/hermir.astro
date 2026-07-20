@@ -64,6 +64,10 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <div id="frontier"></div>
       </div>
       <div class="an-tool">
+        <div class="an-h">🛡️ Álagspróf — hversu vel þolir núverandi stefna óhagstæð áföll?</div>
+        <div id="stress"></div>
+      </div>
+      <div class="an-tool">
         <div class="an-h">🎯 Markmiða-leit — hvaða stilling hittir markmiðið? (andhverfur hamur)</div>
         <div class="an-ctl"><label>Ég vil <select id="inv-out"></select> =</label> <input id="inv-target" type="number" step="0.1" style="width:80px"> <label>með því að stilla <select id="inv-lev"></select></label> <button id="inv-go" type="button">Finna stillingu</button></div>
         <div id="inv-result" class="inv-result"></div>
@@ -745,7 +749,36 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
           : `⚠ Markmiðið næst ekki með þessum sleða einum innan sviðs. Næst kemst með <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} = <b>${num(r.achieved)}${us}</b>. Prófaðu annan sleða eða raunhæfara markmið.`;
       });
     }
-    function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); }
+    const STRESS = [
+      { t: 'Olíuskellur (+80%)', s: { olia: 80 } },
+      { t: 'Heimskreppa (−5%)', s: { heimshagvoxtur: -5 } },
+      { t: 'Ferðamannahrun (−35%)', s: { ferdamenn: -35 } },
+      { t: 'Gengishrun (−20%)', s: { gengi: -20 } },
+      { t: 'Aðflutningsstopp (−50%)', s: { adflutningur: -50 } },
+      { t: 'Hrávöruverðfall (−30%)', s: { hravaruverd: -30 } },
+      { t: 'Samsett áfall (olía + heimskreppa + ferðam.)', s: { olia: 60, heimshagvoxtur: -4, ferdamenn: -25 } },
+      { t: 'Fjármálaáfall (gengi + hrávöru + heimskr.)', s: { gengi: -15, hravaruverd: -25, heimshagvoxtur: -3 } },
+    ];
+    function drawStress() {
+      const host = document.getElementById('stress'); if (!host) return;
+      const base = Math.round(healthScore(simFull({})));
+      const rows = STRESS.map((sc) => {
+        const r = simulate({ baseline: BASELINE, links: LINKS, levers: { ...state.levers }, shocks: { ...state.shocks, ...sc.s }, quarters: state.horizon });
+        const h = Math.round(healthScore(r)), e = (k) => { const o = r.outcomes[k]; return o ? o.mid[o.mid.length - 1] : 0; }, dmg = [];
+        if (e('verdbolga') > 4) dmg.push('verðbólga ' + num(e('verdbolga')) + '%');
+        if (e('atvinnuleysi') > 6) dmg.push('atvinnuleysi ' + num(e('atvinnuleysi')) + '%');
+        if (e('hagvoxtur') < 0) dmg.push('samdráttur ' + num(e('hagvoxtur')) + '%');
+        if (e('afkoma') < -2) dmg.push('halli ' + num(e('afkoma')) + '% VLF');
+        if (e('vanskil') > 115) dmg.push('vanskil +' + num(e('vanskil') - 100));
+        return { t: sc.t, h, drop: base - h, dmg: dmg.slice(0, 3).join(', ') || '— þolir vel' };
+      }).sort((a, b) => a.h - b.h);
+      const worst = rows[0];
+      host.innerHTML = `<p style="font-size:11.5px;color:var(--faint);margin:0 0 6px">Hvert áfall keyrt ofan á NÚVERANDI stefnu (heilsufar án áfalls: <b style="color:${base >= 70 ? '#54d08a' : '#f6b13b'}">${base}/100</b>). Raðað eftir tjóni. Styrktu stefnuna og keyrðu aftur til að byggja upp viðnám.</p>
+        <table class="lnk-tbl"><tr><th>Áfall</th><th>Heilsufar</th><th>Fall</th><th>Helstu skemmdir</th></tr>
+        ${rows.map((r) => { const col = r.h >= 70 ? '#54d08a' : r.h >= 45 ? '#f6b13b' : '#e78284'; return `<tr><td>${r.t}</td><td style="color:${col};font-weight:700">${r.h}/100</td><td style="color:${r.drop > 0 ? '#e78284' : 'var(--faint)'}">${r.drop > 0 ? '−' + r.drop : '0'}</td><td style="color:var(--faint)">${r.dmg}</td></tr>`; }).join('')}</table>
+        <p style="font-size:11.5px;color:var(--faint);margin-top:6px">Versta áfallið fyrir þessa stefnu: <b style="color:#e78284">${worst.t}</b> → heilsufar ${worst.h}/100 (fall um ${worst.drop}).</p>`;
+    }
+    function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); drawStress(); }
 
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on')); document.getElementById('news').hidden = true; buildControls(); run(); }
 
