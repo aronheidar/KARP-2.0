@@ -2126,12 +2126,13 @@ function felagMainHtml(f, kt) {
     <a class="kf-cta-sec" href="/lausnir/fyrirtaekjavaktin/">Fyrirtækjavaktin</a>
   </div>`;
   const links = `<p class="kf-links">Sjá einnig: <a href="/fyrirtaeki/?q=${e(kt)}">lifandi uppfletting</a> · <a href="/birgjar/">greiðslur ríkisins</a> · <a href="/frettir/">fjölmiðlaumfjöllun</a> · <a href="/utbod/">útboð</a></p>`;
+  const timalinaSec = `<div class="kf-sec"><h2>🕑 Atburða-tímalína</h2><div id="fb-timalina" class="kf-tl" data-kt="${e(kt)}" data-nafn="${e(f.nafn)}"><div class="kf-note" style="border:0;padding:0;margin:0">Sæki atburði…</div></div></div>`;
   return `<p class="kf-links"><a href="/fyrirtaeki/">← Fyrirtækjaskrá</a></p>
     <h1 class="kf-h1">${e(f.nafn)}</h1>
     <div class="kf-kt">kt. ${e(ktSep(kt))}</div>
     <div class="kf-chips">${chips}</div>
     <div class="kf-grid">${grid}</div>
-    ${isatSec}${fyrirsvarSec}${arsSec}${eigTeaser}${cta}${links}
+    ${isatSec}${fyrirsvarSec}${arsSec}${timalinaSec}${eigTeaser}${cta}${links}
     <p class="kf-note">Grunngögn úr opinberri fyrirtækjaskrá Skattsins (skatturinn.is), sótt lifandi. Ekki vottorð. Formleg fyrirtækjaskýrsla og eigendaskýrsla fást keyptar hér að ofan.</p>`;
 }
 

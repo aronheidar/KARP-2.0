@@ -43,5 +43,35 @@ import Layout from '../layouts/Layout.astro';
     .kf-links { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
     .kf-links a { color: var(--gold); }
     .kf-note { font-size: 12px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 12px; margin-top: 24px; }
+    .kf-tl-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .kf-tl-list li { padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 0 10px 10px 0; }
+    .kf-tl-d { font-size: 12px; color: var(--faint); font-weight: 600; }
+    .kf-tl-b { font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; margin-left: 6px; }
+    .kf-tl-t { font-size: 14px; color: var(--ink); margin-top: 2px; } .kf-tl-t a { color: var(--gold); text-decoration: none; }
+    .kf-tl-l { color: var(--muted); font-size: 12.5px; }
   </style>
+
+  <script>
+    (function () {
+      const el = document.getElementById('fb-timalina');
+      if (!el) return;
+      const kt = el.dataset.kt || '', nafn = el.dataset.nafn || '';
+      const COL = { gjaldthrot: '#e0655f', vorumerki: '#3aa0ff', styrkur: '#42d086', frett: '#9a8c6f' };
+      const LBL = { gjaldthrot: 'Lögbirting', vorumerki: 'Vörumerki', styrkur: 'Styrkur', frett: 'Frétt' };
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      fetch('/api/firma-timalina?kt=' + encodeURIComponent(kt) + '&nafn=' + encodeURIComponent(nafn))
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const box = document.getElementById('fb-timalina'); if (!box) return;
+          const a = (d && d.atburdir) || [];
+          if (!a.length) { box.innerHTML = '<div class="kf-note" style="border:0;padding:0;margin:0">Engir skráðir atburðir í tímaröð.</div>'; return; }
+          box.innerHTML = '<ul class="kf-tl-list">' + a.map((x) => {
+            const c = COL[x.flokkur] || '#888';
+            const t = x.slod ? '<a href="' + x.slod + '">' + esc(x.titill) + '</a>' : esc(x.titill);
+            return '<li style="border-left:3px solid ' + c + '"><span class="kf-tl-d">' + esc(x.birt) + '</span><span class="kf-tl-b" style="color:' + c + '">' + (LBL[x.flokkur] || x.flokkur) + '</span><div class="kf-tl-t">' + t + (x.lysing ? ' <span class="kf-tl-l">· ' + esc(x.lysing) + '</span>' : '') + '</div></li>';
+          }).join('') + '</ul>';
+        })
+        .catch(() => { const box = document.getElementById('fb-timalina'); if (box && box.closest('.kf-sec')) box.closest('.kf-sec').style.display = 'none'; });
+    })();
+  </script>
 </Layout>
