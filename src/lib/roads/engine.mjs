@@ -39,6 +39,15 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
     for (const to of outKeys) {
       let d = 0, u = 0;
       for (const ln of (byTo[to] || [])) {
+        // Framsýnar væntingar: `lead` → viðbrögð við VÆNTRI BREYTINGU boðaðrar exogenrar leiðar (framtíð − nú).
+        // 0 fyrir fasta leið (afturvirkt-samhæft); bítur aðeins þegar stýring er tímaháð/boðuð. Aðeins exogen uppspretta.
+        if (ln.lead && ((L && ln.from in L) || (S && ln.from in S))) {
+          const anticip = deviationOf(ln.from, t + ln.lead, ctx) - deviationOf(ln.from, t, ctx);
+          d += applyNL(ln.coef * anticip, ln.nl);
+          const band = ((ln.ci_hi ?? ln.coef) - (ln.ci_lo ?? ln.coef)) / 2;
+          u += Math.abs(band * anticip);
+          continue;
+        }
         const s = t - (ln.lag || 0);
         if (s < 0) continue;
         const fd = deviationOf(ln.from, s, ctx);

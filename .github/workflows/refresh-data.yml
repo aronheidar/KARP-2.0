@@ -172,6 +172,7 @@ jobs:
           node skriptur/build_roads.mjs        || true   # baseline/links/scenarios úr ferskum SÍ/Hagstofu/Þjóðskrá → grunnferill alltaf á núgildi
           node skriptur/verify_roads_model.mjs || true   # heilbrigðis-eftirlit (feedback-regla/BAU/ci)
           node skriptur/backtest_history.mjs   || true   # söguleg bakprófun 2010–2026 → gogn/roads/history.json
+          node skriptur/calibrate_roads.mjs    || true   # econometrísk kvörðun (OLS) → gogn/roads/calibration.json
 
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:

@@ -49,6 +49,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div id="modelview" class="modelview" hidden>
       <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div>
       <div id="backtest" class="backtest"></div>
+      <div id="calibration" class="backtest"></div>
       <div id="sectors-real" class="backtest"></div>
       <details class="transp" open><summary>⚙︎ Öll orsakasambönd, stuðlar og heimildir</summary><div id="lnks"></div></details>
     </div>
@@ -245,6 +246,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     import LINKS from '@gogn/roads/links.json';
     import SCENARIOS from '@gogn/roads/scenarios.json';
     import HISTORY from '@gogn/roads/history.json';
+    import CALIBRATION from '@gogn/roads/calibration.json';
 
     const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit', mc: null, gameOn: false };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
@@ -256,9 +258,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
       { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
       { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
-      { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn'], hero: { title: 'Sjálfbærni — CO₂-losun & fiskistofn', series: ['losun', 'fiskistofn'] } },
+      { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt', 'veidigjald', 'ferdamannagjald'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn', 'vlf_sjavar', 'vlf_ferda', 'vlf_idnadur'], hero: { title: 'Geira-virðisauki — sjávarútvegur · ferðaþjónusta · iðnaður (vísit.)', series: ['vlf_sjavar', 'vlf_ferda', 'vlf_idnadur'] } },
       { id: 'byggd', label: '🗺️ Byggð & nýsköpun', levers: ['byggdastefna', 'ivilnanir', 'menntun', 'ferdamannagjald'], shocks: [], out: ['byggdajofnudur', 'nyskopun', 'hagvoxtur', 'utflutningur'], hero: { title: 'Byggðajöfnuður & nýsköpun', series: ['byggdajofnudur', 'nyskopun'] } },
-      { id: 'fjarmal', label: '💹 Fjármál & ytra', levers: ['vextir', 'bindiskylda', 'skattar', 'vsk', 'tilfaerslur'], shocks: ['gengi', 'heimshagvoxtur', 'hravaruverd'], out: ['peningamagn', 'utlanavoxtur', 'hlutabref', 'vaxtaalag', 'lifeyriseignir', 'vidskiptajofnudur', 'niip', 'gengi_endo', 'jofnudur', 'heimilaskuldir'], hero: { title: 'Viðskiptajöfnuður & erlend staða þjóðarbús (% VLF)', series: ['vidskiptajofnudur', 'niip'] } },
+      { id: 'fjarmal', label: '💹 Fjármál & ytra', levers: ['vextir', 'bindiskylda', 'skattar', 'vsk', 'tilfaerslur'], shocks: ['gengi', 'heimshagvoxtur', 'hravaruverd'], out: ['peningamagn', 'utlanavoxtur', 'hlutabref', 'vaxtaalag', 'lifeyriseignir', 'vidskiptajofnudur', 'niip', 'einkajofnudur', 'gengi_endo', 'jofnudur', 'heimilaskuldir'], hero: { title: 'Viðskiptajöfnuður & erlend staða þjóðarbús (% VLF)', series: ['vidskiptajofnudur', 'niip'] } },
       { id: 'greining', label: '🔬 Greining', special: 'analysis' },
       { id: 'model', label: '🕸️ Módel & gögn', model: true },
     ];
@@ -293,6 +295,10 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       vaxtaalag: 'Vaxtaálag ríkis (pp) — áhættuálag ofan á áhættulausa vexti. Hækkar með skuldum og fjármálaóstöðugleika; dýrari fjármögnun.',
       vidskiptajofnudur: 'Viðskiptajöfnuður (% VLF) — gjaldeyris-jöfnuður við útlönd. Afgangur (+) styrkir krónu og byggir upp erlenda stöðu.',
       niip: 'Erlend staða þjóðarbús (% VLF) — nettó eignir Íslands erlendis. STOFN sem safnar viðskiptajöfnuði; jákvæð staða styður krónu.',
+      einkajofnudur: 'Einkageira-jöfnuður (% VLF) — nettó sparnaður heimila+fyrirtækja. SFC-kennisetning: einkageiri = viðskiptajöfnuður − ríkisjöfnuður (geira-jöfnuðir summast í núll). Ríkisaðhald við fastan viðskiptajöfnuð þýðir MINNI einkageira-afgang.',
+      vlf_sjavar: 'Sjávarútvegur — virðisauki (vísit.). Drifið af fiskistofni, aflamarki og veiðigjaldi. Diagnostík: sýnir geira-áhrif, telst EKKI aftur í heildar-hagvöxt.',
+      vlf_ferda: 'Ferðaþjónusta — virðisauki (vísit.). Drifið af ferðamannafjölda, gengi (sterk króna dregur úr) og ferðamannagjaldi. Diagnostík — engin tvítöldun í hagvöxt.',
+      vlf_idnadur: 'Iðnaður & orka — virðisauki (vísit.). Drifið af orku til stóriðju, hrávöruverði (ál) og orkuskiptum. Diagnostík — engin tvítöldun í hagvöxt.',
       jofnudur: 'Tekjujöfnuður — vísitala (100 í dag, hærra=jafnara). Batnar við tilfærslur/skatta/kaupmátt; versnar við atvinnuleysi og húsnæðis-eignaójöfnuð.',
       heimilaskuldir: 'Skuldir heimila — vísitala (100 í dag). Vaxa með útlánum/húsnæðisverði; auka vanskilahættu og draga úr neyslu (deleveraging).',
     };
@@ -333,7 +339,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
-    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0, lifeyriseignir: 1, hlutabref: 1, vidskiptajofnudur: 1, niip: 1, jofnudur: 1, peningamagn: 0, utlanavoxtur: 0, vaxtaalag: -1, heimilaskuldir: -1 };
+    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0, lifeyriseignir: 1, hlutabref: 1, vidskiptajofnudur: 1, niip: 1, jofnudur: 1, peningamagn: 0, utlanavoxtur: 0, vaxtaalag: -1, heimilaskuldir: -1, einkajofnudur: 0, vlf_sjavar: 1, vlf_ferda: 1, vlf_idnadur: 1 };
     const GOOD = '#54d08a', NEUT = '#e8c14a', BAD = '#e78284';
     const BAND = { '#54d08a': 'rgba(84,208,138,.13)', '#e8c14a': 'rgba(232,193,74,.12)', '#e78284': 'rgba(231,130,132,.13)' };
     // Litur eftir því hvort frávik frá grunnferli (BAU) er jákvætt/hlutlaust/neikvætt FYRIR þennan hagvísi.
@@ -698,6 +704,27 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka; grunnferill = opinber spá.</p>`;
     }
 
+    // 📐 Econometrísk kvörðun: OLS-mat lykil-stuðla úr raun-röðum 2010-26 (calibration.json) borið saman við handsett
+    // módel-gildi — sýnir hvort gögnin STAÐFESTA eða HAFNA hverju gildi (dómur = fellur módel-gildi innan 95% CI matsins).
+    function buildCalibration() {
+      const host = document.getElementById('calibration'); if (!host || !CALIBRATION || !CALIBRATION.regressions) return;
+      const R = CALIBRATION.regressions.filter((r) => r.ok !== false);
+      if (!R.length) return;
+      const verdict = (r) => r.validated == null ? '<span style="color:var(--faint)">viðmið</span>'
+        : r.validated ? '<span style="color:#54d08a">✓ staðfest</span>' : '<span style="color:#e78284">⚠ víkur</span>';
+      const rows = R.map((r) => `<tr><td>${r.label}</td>
+        <td style="font-variant-numeric:tabular-nums">${r.modelCoef == null ? '<span style="color:var(--faint)">–</span>' : num(r.modelCoef, 2)}</td>
+        <td style="font-variant-numeric:tabular-nums">${num(r.coef, 2)} <span class="dyn-sub">±${num(1.96 * r.se, 2)}</span>${r.sig ? '' : ' <span class="dyn-sub">(ómarkt.)</span>'}</td>
+        <td style="font-variant-numeric:tabular-nums;color:var(--faint)">${num(r.r2, 2)}</td>
+        <td style="font-variant-numeric:tabular-nums;color:var(--faint)">${r.n}</td>
+        <td style="text-align:center">${verdict(r)}</td></tr>`).join('');
+      const nVal = R.filter((r) => r.validated === true).length, nMod = R.filter((r) => r.modelCoef != null).length;
+      host.innerHTML = `<div class="cm-title">📐 Econometrísk kvörðun — hvað segja gögnin um stuðlana? ${nMod ? `<span style="font-weight:400;color:var(--faint)">· ${nVal}/${nMod} handsett gildi staðfest af gögnum</span>` : ''}</div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">OLS-aðhvarf á ársfjórðungslegum raun-röðum 2010–2026 metur lykil-stuðla módelsins beint úr gögnunum. „Dómur" = fellur handsetta módel-gildið innan 95% öryggisbils matsins (þá <b>hafna gögnin því ekki</b>). Færir herminn frá „stílfært" að „reynslu-grundað".</p>
+        <table class="lnk-tbl"><tr><th>Samband</th><th>Módel (handsett)</th><th>OLS-mat (95%)</th><th>R²</th><th>n</th><th style="text-align:center">Dómur</th></tr>${rows}</table>
+        <p style="font-size:11.5px;color:var(--faint);margin-top:8px">${CALIBRATION.note} T.d. staðfestir mat vaxta→húsnæðis (semi-teygni ~−1,1) handsetta gildið; verðbólgu-tregða mælist há (ársfj. AR1 ~0,9) en dreifist í módelinu á fleiri en eina endurgjöf; Phillips-halli er flatur/ómarktækur í íslenskum gögnum (þekkt). Einstök jöfnu-aðhvörf — ekki full kerfis-kvörðun.</p>`;
+    }
+
     // 🏭 Raunhagkerfið: sækir samandregna ÍSAT-samsetningu úr D1 (ársreikningar) og grundar herminn í raun-fyrirtækjum.
     // Bilar hljóðlega (fela spjaldið) ef endapunktur óstilltur/tómur — módelið stendur eitt og sér án þessa.
     async function buildSectorsReal() {
@@ -957,7 +984,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildSectorsReal();
+      buildScenarios(); buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildCalibration(); buildSectorsReal();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;

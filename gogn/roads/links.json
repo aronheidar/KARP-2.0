@@ -27,6 +27,18 @@
   "source": "SÍ QMM / OECD teygni"
  },
  {
+  "id": "exp_rate",
+  "from": "vextir",
+  "to": "verdbolga",
+  "coef": -0.08,
+  "lag": 0,
+  "lead": 4,
+  "unit": "pp/pp",
+  "ci_lo": -0.16,
+  "ci_hi": -0.02,
+  "source": "Framsýnar verðbólguvæntingar af boðaðri peningastefnu (trúverðug framsýn leiðsögn)"
+ },
+ {
   "id": "r_unem",
   "from": "vextir",
   "to": "atvinnuleysi",
@@ -1993,6 +2005,127 @@
   "ci_lo": 0.7,
   "ci_hi": 1,
   "source": "Viðskiptaafgangur safnast í erlenda stöðu"
+ },
+ {
+  "id": "ca_priv",
+  "from": "vidskiptajofnudur",
+  "to": "einkajofnudur",
+  "coef": 1,
+  "lag": 0,
+  "unit": "%VLF/%VLF",
+  "ci_lo": 1,
+  "ci_hi": 1,
+  "source": "SFC-kennisetning: geira-jöfnuðir summast í núll (net lending: einkageiri + ríki + útlönd = 0)"
+ },
+ {
+  "id": "gov_priv",
+  "from": "afkoma",
+  "to": "einkajofnudur",
+  "coef": -1,
+  "lag": 0,
+  "unit": "%VLF/%VLF",
+  "ci_lo": -1,
+  "ci_hi": -1,
+  "source": "SFC-kennisetning: ríkishalli fjármagnast af einkageira eða útlöndum (afgangur ríkis dregur úr einkageira-afgangi)"
+ },
+ {
+  "id": "fisk_vlfsj",
+  "from": "fiskistofn",
+  "to": "vlf_sjavar",
+  "coef": 0.15,
+  "lag": 1,
+  "unit": "vísit/vísit",
+  "ci_lo": 0.06,
+  "ci_hi": 0.28,
+  "source": "Heilbrigður fiskistofn → sjálfbær sjávarafurða-framleiðsla"
+ },
+ {
+  "id": "kvoti_vlfsj",
+  "from": "kvoti",
+  "to": "vlf_sjavar",
+  "coef": 0.1,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.18,
+  "source": "Hærra aflamark → meiri afli skammtíma"
+ },
+ {
+  "id": "veidi_vlfsj",
+  "from": "veidigjald",
+  "to": "vlf_sjavar",
+  "coef": -0.02,
+  "lag": 1,
+  "unit": "vísit/pp",
+  "ci_lo": -0.05,
+  "ci_hi": 0,
+  "source": "Hærra veiðigjald → minni framlegð greinarinnar"
+ },
+ {
+  "id": "tour_vlff",
+  "from": "ferdamenn",
+  "to": "vlf_ferda",
+  "coef": 0.3,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.18,
+  "ci_hi": 0.45,
+  "source": "Ferðamannafjöldi drífur ferðaþjónustu-virðisauka"
+ },
+ {
+  "id": "fx_vlff",
+  "from": "gengi_endo",
+  "to": "vlf_ferda",
+  "coef": -0.12,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": -0.22,
+  "ci_hi": -0.04,
+  "source": "Sterk króna → dýrari áfangastaður → minni ferðaþjónusta"
+ },
+ {
+  "id": "ferdagj_vlff",
+  "from": "ferdamannagjald",
+  "to": "vlf_ferda",
+  "coef": -0.03,
+  "lag": 1,
+  "unit": "vísit/pp",
+  "ci_lo": -0.07,
+  "ci_hi": 0,
+  "source": "Hærra ferðamannagjald → eftirspurnar-dempun"
+ },
+ {
+  "id": "orka_vlfi",
+  "from": "orka",
+  "to": "vlf_idnadur",
+  "coef": 0.2,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.1,
+  "ci_hi": 0.35,
+  "source": "Orka til stóriðju → iðnaðar-virðisauki"
+ },
+ {
+  "id": "comm_vlfi",
+  "from": "hravaruverd",
+  "to": "vlf_idnadur",
+  "coef": 0.05,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.09,
+  "source": "Hærra hrávöruverð (t.d. ál) → betri afkoma útflutnings-iðnaðar"
+ },
+ {
+  "id": "skipti_vlfi",
+  "from": "orkuskipti",
+  "to": "vlf_idnadur",
+  "coef": 0.04,
+  "lag": 2,
+  "unit": "vísit/pp",
+  "ci_lo": 0.01,
+  "ci_hi": 0.08,
+  "source": "Orkuskipti → ný græn iðnaðar-tækifæri"
  },
  {
   "id": "niip_fx",

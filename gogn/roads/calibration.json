@@ -1,0 +1,101 @@
+{
+ "updated": "2026-06",
+ "method": "OLS á ársfjórðungslegum raun-röðum (Seðlabanki CPI/vextir, VMST atvinnuleysi, Þjóðskrá fasteignaverð, Hagstofa laun)",
+ "note": "Til hliðsjónar/grundunar — ekki full kerfis-kvörðun (einstök jöfnu-aðhvörf, mögulegar innbyrðis-tengingar). Grundar óvissu-bönd (ci) og sýnir handsett vs metið.",
+ "regressions": [
+  {
+   "id": "infl_persist",
+   "label": "Verðbólgu-tregða (AR1, ársfj.)",
+   "coef": 0.918,
+   "se": 0.045,
+   "t": 20.44,
+   "ci": [
+    0.83,
+    1.006
+   ],
+   "r2": 0.87,
+   "n": 65,
+   "span": [
+    "2010.1",
+    "2026.2"
+   ],
+   "modelId": "infl_persist",
+   "modelCoef": 0.25,
+   "sig": true,
+   "validated": false,
+   "note": "ρ = ársfjórðungsleg sjálffylgni verðbólgu; réttlætir verðbólguvæntinga-lykkjuna."
+  },
+  {
+   "id": "r_hbs",
+   "label": "Vextir → húsnæði höfuðb. (semi-teygni, töf 2 ár)",
+   "coef": -1.113,
+   "se": 0.428,
+   "t": -2.6,
+   "ci": [
+    -1.951,
+    -0.275
+   ],
+   "r2": 0.15,
+   "n": 41,
+   "span": [
+    "2011.1",
+    "2026.3"
+   ],
+   "modelId": "r_hbs",
+   "modelCoef": -0.9,
+   "sig": true,
+   "validated": true,
+   "note": "β = %-breyting húsnæðisverðs á hverja pp í stýrivöxtum, 2 ára töf. Vænt: neikvætt."
+  },
+  {
+   "id": "r_land",
+   "label": "Vextir → húsnæði landsb. (semi-teygni, töf 2 ár)",
+   "coef": -1.619,
+   "se": 0.412,
+   "t": -3.93,
+   "ci": [
+    -2.427,
+    -0.812
+   ],
+   "r2": 0.28,
+   "n": 41,
+   "span": [
+    "2011.1",
+    "2026.3"
+   ],
+   "modelId": "r_land",
+   "modelCoef": -0.7,
+   "sig": true,
+   "validated": false,
+   "note": "β = %-breyting húsnæðisverðs landsb. á hverja pp í vöxtum, 2 ára töf."
+  },
+  {
+   "id": "phillips",
+   "label": "Phillips (verðbólga ~ atvinnuleysi)",
+   "coef": 0.103,
+   "se": 0.108,
+   "t": 0.96,
+   "ci": [
+    -0.108,
+    0.315
+   ],
+   "r2": 0.01,
+   "n": 66,
+   "span": [
+    "2010.1",
+    "2026.2"
+   ],
+   "modelId": null,
+   "modelCoef": null,
+   "sig": false,
+   "validated": null,
+   "note": "β = pp verðbólgu á hvert pp atvinnuleysis; halli Phillips-kúrfunnar (til hliðsjónar við launa-svörun)."
+  },
+  {
+   "id": "w_infl",
+   "label": "Laun → verðbólga (töf 2 ársfj., stýrt f. tregðu)",
+   "ok": false,
+   "note": "ófullnægjandi gögn"
+  }
+ ]
+}

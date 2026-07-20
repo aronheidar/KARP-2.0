@@ -112,9 +112,16 @@ const baseline = {
     // ── Dreifing & heimili (module 13) ──
     jofnudur: { label: 'Tekjujöfnuður (vísit., hærra=jafnara)', unit: '', path: bau(100, 100) },
     heimilaskuldir: { label: 'Skuldir heimila (vísit.)', unit: '', path: bau(100, 100) },
+    // ── SFC: geira-jöfnuðir tie-out (Godley). Einkageiri = viðskiptajöfnuður − ríkisjöfnuður (kennisetning). ──
+    // Baseline = CA_base − afkoma_base = bau(2,2) − bau(balNow,−0.5) = bau(2−balNow, 2,5) (bau línulegt → mismunur =bau mismuna).
+    einkajofnudur: { label: 'Einkageira-jöfnuður (% VLF, sparn.−fjárf.)', unit: '% VLF', path: bau(2 - balNow, 2.5) },
+    // ── Geira-virðisauki (diagnostík, vísit. base 100 — TERMINAL: engin endurgjöf í heildar-VLF → engin tvítöldun; grundað í raun-greina-hlutum úr D1 /api/roads/atvinnuvegir) ──
+    vlf_sjavar: { label: 'Sjávarútvegur — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
+    vlf_ferda: { label: 'Ferðaþjónusta — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
+    vlf_idnadur: { label: 'Iðnaður & orka — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
   },
   // clamp-mörk víkkuð til að ná yfir SÖGULEG bil 2010–2026 (sjá backtest_history.mjs): húsnæði ±33%, atvinnuleysi 17,8% (COVID)
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35], peningamagn: [-8, 22], utlanavoxtur: [-15, 28], lifeyriseignir: [140, 240], hlutabref: [45, 190], vaxtaalag: [0, 7], vidskiptajofnudur: [-16, 14], niip: [-90, 90], jofnudur: [78, 122], heimilaskuldir: [55, 185] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35], peningamagn: [-8, 22], utlanavoxtur: [-15, 28], lifeyriseignir: [140, 240], hlutabref: [45, 190], vaxtaalag: [0, 7], vidskiptajofnudur: [-16, 14], niip: [-90, 90], jofnudur: [78, 122], heimilaskuldir: [55, 185], einkajofnudur: [-24, 24], vlf_sjavar: [40, 180], vlf_ferda: [40, 180], vlf_idnadur: [40, 180] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -122,6 +129,8 @@ const baseline = {
 const links = [
   { id: 'r_infl', from: 'vextir', to: 'verdbolga', coef: -0.15, lag: 4, unit: 'pp/pp', ci_lo: -0.28, ci_hi: -0.06, nl: { type: 'sat', k: 1.0 }, source: 'SÍ QMM peningastefnu-yfirfærsla (~1 árs töf)', note: 'ÓLÍNULEGT: minnkandi jaðar-hjöðnun af mjög stórum vaxtahækkunum (mettun)' },
   { id: 'r_gdp', from: 'vextir', to: 'hagvoxtur', coef: -0.20, lag: 2, unit: 'pp/pp', ci_lo: -0.35, ci_hi: -0.08, source: 'SÍ QMM / OECD teygni' },
+  // Framsýnar væntingar (lead): BOÐUÐ vaxtahækkun (framsýn stefnu-leið) lækkar verðbólguvæntingar STRAX. 0 ef stefna föst → bítur aðeins á tímaháða/boðaða leið (t.d. dýnamíska KARP). Módel-samræmt fyrir exogenu leiðina (ekki fastpunkts-lausn endógenra vænta).
+  { id: 'exp_rate', from: 'vextir', to: 'verdbolga', coef: -0.08, lag: 0, lead: 4, unit: 'pp/pp', ci_lo: -0.16, ci_hi: -0.02, source: 'Framsýnar verðbólguvæntingar af boðaðri peningastefnu (trúverðug framsýn leiðsögn)' },
   { id: 'r_unem', from: 'vextir', to: 'atvinnuleysi', coef: 0.10, lag: 4, unit: 'pp/pp', ci_lo: 0.03, ci_hi: 0.18, source: 'Okun-tengt, SÍ' },
   { id: 'r_house', from: 'vextir', to: 'husnaedi', coef: -0.80, lag: 2, unit: '%/pp', ci_lo: -1.30, ci_hi: -0.40, source: 'Röð-metið: sedlabanki × fasteignir (2010–2026)' },
   { id: 'w_infl', from: 'laun', to: 'verdbolga', coef: 0.30, lag: 2, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.45, nl: { type: 'accel', at: 1.0, by: 0.15, cap: 2 }, source: 'Launa-verð spírall, Hagstofa/SÍ', note: 'ÓLÍNULEGT: stórar launahækkanir hraða launa-verð spíral (hröðun yfir þröskuld)' },
@@ -325,6 +334,19 @@ const links = [
   { id: 'comm_ca', from: 'hravaruverd', to: 'vidskiptajofnudur', coef: 0.05, lag: 1, unit: '%VLF/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Betri viðskiptakjör → betri jöfnuður' },
   { id: 'niip_carry', from: 'niip', to: 'niip', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Erlend staða er STOFN — fyrri staða flyst áfram (sjálf-lykkja)' },
   { id: 'ca_niip', from: 'vidskiptajofnudur', to: 'niip', coef: 0.9, lag: 1, unit: '%VLF/%VLF', ci_lo: 0.7, ci_hi: 1.0, source: 'Viðskiptaafgangur safnast í erlenda stöðu' },
+  // SFC geira-jöfnuðir (Godley): einkageiri = viðskiptajöfnuður − ríkisjöfnuður. Kennisetning (lag 0, ci=coef → ekkert óvissu-band).
+  { id: 'ca_priv', from: 'vidskiptajofnudur', to: 'einkajofnudur', coef: 1.0, lag: 0, unit: '%VLF/%VLF', ci_lo: 1.0, ci_hi: 1.0, source: 'SFC-kennisetning: geira-jöfnuðir summast í núll (net lending: einkageiri + ríki + útlönd = 0)' },
+  { id: 'gov_priv', from: 'afkoma', to: 'einkajofnudur', coef: -1.0, lag: 0, unit: '%VLF/%VLF', ci_lo: -1.0, ci_hi: -1.0, source: 'SFC-kennisetning: ríkishalli fjármagnast af einkageira eða útlöndum (afgangur ríkis dregur úr einkageira-afgangi)' },
+  // ── Geira-virðisauki (diagnostík): sértækir drifkraftar → geira-VLF. TERMINAL (engin útgangs-tengsl → engin tvítöldun í hagvöxt). ──
+  { id: 'fisk_vlfsj', from: 'fiskistofn', to: 'vlf_sjavar', coef: 0.15, lag: 1, unit: 'vísit/vísit', ci_lo: 0.06, ci_hi: 0.28, source: 'Heilbrigður fiskistofn → sjálfbær sjávarafurða-framleiðsla' },
+  { id: 'kvoti_vlfsj', from: 'kvoti', to: 'vlf_sjavar', coef: 0.10, lag: 1, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Hærra aflamark → meiri afli skammtíma' },
+  { id: 'veidi_vlfsj', from: 'veidigjald', to: 'vlf_sjavar', coef: -0.02, lag: 1, unit: 'vísit/pp', ci_lo: -0.05, ci_hi: 0.0, source: 'Hærra veiðigjald → minni framlegð greinarinnar' },
+  { id: 'tour_vlff', from: 'ferdamenn', to: 'vlf_ferda', coef: 0.30, lag: 1, unit: 'vísit/%', ci_lo: 0.18, ci_hi: 0.45, source: 'Ferðamannafjöldi drífur ferðaþjónustu-virðisauka' },
+  { id: 'fx_vlff', from: 'gengi_endo', to: 'vlf_ferda', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Sterk króna → dýrari áfangastaður → minni ferðaþjónusta' },
+  { id: 'ferdagj_vlff', from: 'ferdamannagjald', to: 'vlf_ferda', coef: -0.03, lag: 1, unit: 'vísit/pp', ci_lo: -0.07, ci_hi: 0.0, source: 'Hærra ferðamannagjald → eftirspurnar-dempun' },
+  { id: 'orka_vlfi', from: 'orka', to: 'vlf_idnadur', coef: 0.20, lag: 1, unit: 'vísit/%', ci_lo: 0.1, ci_hi: 0.35, source: 'Orka til stóriðju → iðnaðar-virðisauki' },
+  { id: 'comm_vlfi', from: 'hravaruverd', to: 'vlf_idnadur', coef: 0.05, lag: 1, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Hærra hrávöruverð (t.d. ál) → betri afkoma útflutnings-iðnaðar' },
+  { id: 'skipti_vlfi', from: 'orkuskipti', to: 'vlf_idnadur', coef: 0.04, lag: 2, unit: 'vísit/pp', ci_lo: 0.01, ci_hi: 0.08, source: 'Orkuskipti → ný græn iðnaðar-tækifæri' },
   { id: 'niip_fx', from: 'niip', to: 'gengi_endo', coef: 0.02, lag: 2, unit: '%/%VLF', ci_lo: 0.005, ci_hi: 0.04, source: 'Sterk erlend staða → stöðugri/sterkari króna' },
   { id: 'ca_fx', from: 'vidskiptajofnudur', to: 'gengi_endo', coef: 0.3, lag: 1, unit: '%/%VLF', ci_lo: 0.1, ci_hi: 0.55, source: 'Viðskiptaafgangur → gjaldeyris-innflæði → sterkari króna' },
   // ── Dreifing & heimili (module 13): tekjujöfnuður ──
