@@ -84,7 +84,7 @@ export const VORUR = [
     description: 'Fyrirtækjaskýrsla Karps — grunnskrá, ársreikninga-KPI, greiðslur frá ríkinu, útboð og umfjöllun um hvaða íslenskt félag sem er. ' + LEGAL,
   },
   {
-    slug: 'eigendur', heiti: 'Endanlegir eigendur', emoji: '🔗',
+    slug: 'eigendur', heiti: 'Endanlegir eigendur', emoji: '🔗', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'Sjáðu hverjir raunverulega eiga félagið — gegnum allar keðjur.',
     inngangur: 'Eignarhaldsskýrsla sem rekur eignarhald gegnum allar félagakeðjur og sýnir endanlega eigendur, raunverulega eigendur skv. Skattinum og skráða hluthafa.',
     eiginleikar: [
@@ -122,7 +122,7 @@ export const VORUR = [
     description: 'Faglegt verðmat fasteigna — sölusaga, fasteigna- og brunabótamat, hverfagögn, kort og sambærilegar eignir. ' + LEGAL,
   },
   {
-    slug: 'fyrirtaekjavaktin', heiti: 'Fyrirtækjavaktin', emoji: '📡',
+    slug: 'fyrirtaekjavaktin', heiti: 'Fyrirtækjavaktin', emoji: '📡', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'Fylgstu með félögum sem skipta þig máli — sjálfvirkar tilkynningar.',
     inngangur: 'Fylgdu félögum og fáðu tilkynningu um leið og eitthvað breytist: nýr ársreikningur, breytt eignarhald, lögbirting eða umfjöllun.',
     eiginleikar: [
@@ -217,7 +217,7 @@ export const VORUR = [
     description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 10 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
   },
   {
-    slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅',
+    slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'KYC-áreiðanleikamat félags — PEP, eignarhald og staða á einum stað.',
     inngangur: 'Áreiðanleikamat tekur saman það sem þarf fyrir áreiðanleikakönnun: raunverulega eigendur, PEP-skimun stjórnenda og stöðu félagsins í opinberum skrám.',
     eiginleikar: [

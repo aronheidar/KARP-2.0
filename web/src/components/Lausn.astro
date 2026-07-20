@@ -18,7 +18,7 @@ const jsonLd = {
 };
 ---
 <Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
-  canonical={`https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`} jsonLd={jsonLd}>
+  canonical={v.canonicalTo ? `https://karp.is${v.canonicalTo}` : `https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`} jsonLd={jsonLd}>
   <main class="ls-wrap">
     <section class="ls-hero">
       <p class="ls-kicker">Karp+</p>

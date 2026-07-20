@@ -3,7 +3,8 @@
 import Lausn from '../../components/Lausn.astro';
 import { VORUR } from '../../data/lausnir.js';
 export function getStaticPaths() {
-  return VORUR.map((v) => ({ params: { slug: v.slug }, props: { vara: v } }));
+  // fyrirtaekjaskyrsla = sérsniðin sameinuð síða (lausnir/fyrirtaekjaskyrsla.astro) → útilokuð hér (annars tvítekin).
+  return VORUR.filter((v) => v.slug !== 'fyrirtaekjaskyrsla').map((v) => ({ params: { slug: v.slug }, props: { vara: v } }));
 }
 const { vara } = Astro.props;
 ---
