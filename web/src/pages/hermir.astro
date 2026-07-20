@@ -1,113 +1,165 @@
 ---
-// Hagkerfis-hermir (#2 LOTA 8) — portað ORÐRÉTT úr gamla: hermir.json
-// (baseline+drivers+presets úr dashboard.html) + hermirCompute-stuðlarnir.
-// Einfaldað kennslulíkan, reiknað í vafra. Ekki opinber spá.
+// ROADS Íslands v0 — Peningastefnu-hermir. Vél: @lib/roads/engine.mjs (client-hlið).
+// Módel: @gogn/roads/*.json (byggt af build_roads.mjs). Stílfærð sambönd, ekki spá.
 import Layout from '../layouts/Layout.astro';
-import HERMIR from '../data/hermir.json';
-const updated = '2026-07-02';
-const desc = 'Hagkerfis-hermir — stilltu stýrivexti, laun, gengi, olíuverð og ferðamenn og sjáðu hvernig verðbólga, hagvöxtur, atvinnuleysi og húsnæðisverð gætu brugðist við. Einfaldað kennslulíkan.';
+import BASELINE from '@gogn/roads/baseline.json';
+import LINKS from '@gogn/roads/links.json';
+import SCENARIOS from '@gogn/roads/scenarios.json';
+const desc = 'ROADS Íslands — gagnsær sviðsmynda-hermir fyrir peningastefnu: stilltu vexti, laun og sjokk og sjáðu stílfærð áhrif á verðbólgu, hagvöxt, atvinnuleysi og húsnæðisverð næstu 3 árin, með óvissu og heimildum.';
 ---
-
-<Layout title="Hagkerfis-hermir | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="Hagkerfis-hermir">
-  <main data-pg="hermir">
+<Layout title="ROADS Íslands — peningastefnu-hermir | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — hermir">
+  <main data-pg="roads">
     <p class="kicker">Hagvísir Íslands · Efnahagur</p>
-    <h1>Hagkerfis-hermir 🎛️</h1>
-    <p>Stilltu lykilbreytur hagkerfisins og sjáðu hvernig helstu hagvísar gætu brugðist við. <strong>Einfaldað kennslulíkan til að sýna sambönd — ekki opinber spá.</strong></p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Hermirinn er einfaldað fræðslulíkan Karp — sviðsmyndirnar sýna stílfærð tengsl hagstærða, ekki spá. Stuðlarnir eru valdir til kennslu.">ⓘ</i> Um gögnin á síðunni</p>
+    <h1>ROADS Íslands 🎛️</h1>
+    <p>Stilltu ákvarðanir og ytri sjokk — sjáðu stílfærð áhrif á hagkerfið næstu 3 árin, með óvissu og heimild á hverri keðju. <strong>Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.</strong></p>
 
-    <div id="presets" class="presets"></div>
-    <div id="out" class="out"></div>
-    <div class="drv-h">Breyturnar þínar</div>
-    <div id="sliders" class="sliders"></div>
-    <div class="actions"><button id="hm-reset" type="button">↺ Núllstilla á núverandi stöðu</button></div>
-
-    <p class="note">ⓘ Líkanið notar fastar næmnistölur (t.d. −0,25 pp hagvöxtur per +1 pp stýrivexti) — raunveruleikinn er flóknari, tafinn og háður væntingum. Til fróðleiks og tilrauna.</p>
-    <p class="foot">Forþjónað (SSG) {updated}. Sama líkan og gamla mælaborðið. #2.</p>
+    <div id="scn" class="scn"></div>
+    <p id="news" class="news" hidden></p>
+    <div id="charts" class="charts"></div>
+    <div class="lev-h">Ákvarðanir & sjokk</div>
+    <div id="levers" class="levers"></div>
+    <div class="actions"><button id="rs" type="button">↺ Núllstilla</button></div>
+    <details class="transp"><summary>⚙︎ Sjá öll orsakasambönd, stuðla og heimildir</summary><div id="lnks"></div></details>
+    <p class="note" id="disc"></p>
+    <p class="foot">Forþjónað (SSG) {BASELINE.updated}. Vél: ROADS-tímaskref-líkan · módel = {LINKS.length} kvörðuð tengsl m/heimildum. Sjá heimild á hverri keðju.</p>
   </main>
 
   <style>
-    main { max-width: 860px; margin: 0 auto; padding: 44px 20px 64px; }
+    main { max-width: 920px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; } p { color: var(--ink); }
     .note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 18px 0 0; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 22px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .lev-h { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 22px 0 10px; }
   </style>
   <style is:global>
-    .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 12px; }
-    .presets button { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-    .presets button:hover, .presets button.on { color: #f6b13b; border-color: #f6b13b; }
-    .drv-h { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 10px; }
-    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
-    @media (max-width: 720px) { .sliders { grid-template-columns: 1fr; } }
-    .sl { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 14px; }
-    .sl-t { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink); font-weight: 600; }
-    .sl-t b { color: #f6b13b; font-variant-numeric: tabular-nums; }
-    .sl input[type=range] { width: 100%; accent-color: #f6b13b; }
-    .out { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-content: start; }
-    @media (max-width: 720px) { .out { grid-template-columns: 1fr 1fr; } }
-    .ot { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-    .ot .l { font-size: 12px; color: var(--muted); white-space: nowrap; }
-    .ot .v { font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
-    .ot .d { font-size: 11px; color: var(--faint); }
-    .ot .delta { font-size: 11px; font-weight: 700; margin-left: 6px; }
-    .actions { margin-top: 14px; }
-    #hm-reset { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
-    #hm-reset:hover { color: #f6b13b; border-color: #f6b13b; }
+    main[data-pg="roads"] .scn { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
+    main[data-pg="roads"] .scn button { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    main[data-pg="roads"] .scn button:hover, main[data-pg="roads"] .scn button.on { color: #f6b13b; border-color: #f6b13b; }
+    main[data-pg="roads"] .news { font-size: 14.5px; color: var(--ink); background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 12px 15px; margin: 0 0 16px; }
+    main[data-pg="roads"] .news b { color: #f6b13b; }
+    main[data-pg="roads"] .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 720px) { main[data-pg="roads"] .charts { grid-template-columns: 1fr; } }
+    main[data-pg="roads"] .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
+    main[data-pg="roads"] .card h3 { font-size: 13.5px; margin: 0 0 2px; color: var(--ink); }
+    main[data-pg="roads"] .card .now { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .card .dlt { font-size: 12px; font-weight: 700; margin-left: 6px; }
+    main[data-pg="roads"] .card canvas { width: 100%; height: 120px; display: block; margin-top: 6px; }
+    main[data-pg="roads"] .levers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+    @media (max-width: 720px) { main[data-pg="roads"] .levers { grid-template-columns: 1fr; } }
+    main[data-pg="roads"] .sl { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px 14px; }
+    main[data-pg="roads"] .sl.shk { border-left: 3px solid #6ea8ff; }
+    main[data-pg="roads"] .sl-t { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink); font-weight: 600; }
+    main[data-pg="roads"] .sl-t b { color: #f6b13b; font-variant-numeric: tabular-nums; }
+    main[data-pg="roads"] .sl input[type=range] { width: 100%; accent-color: #f6b13b; }
+    main[data-pg="roads"] .actions { margin-top: 14px; }
+    main[data-pg="roads"] #rs { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--ink); border-radius: 9px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+    main[data-pg="roads"] .lnk-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+    main[data-pg="roads"] .lnk-tbl th, main[data-pg="roads"] .lnk-tbl td { text-align: left; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.08); color: var(--muted); }
+    main[data-pg="roads"] .lnk-tbl th { color: var(--faint); }
+    main[data-pg="roads"] details.transp { margin: 16px 0 0; }
+    main[data-pg="roads"] details.transp summary { cursor: pointer; color: #f6b13b; font-size: 13px; font-weight: 700; }
   </style>
 
-  <script define:vars={{ HERMIR }}>
-    // hermirCompute — ÓBREYTT úr gamla mælaborðinu.
-    function compute(d) {
-      const b = HERMIR.baseline, cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-      const verdb = b.verdb + 0.35 * (d.wage - 6) + 0.035 * d.oil - 0.08 * d.fx + 0.55 * (d.ginfl - 3) - 0.15 * (d.rate - 8);
-      const hagv = b.hagv - 0.25 * (d.rate - 8) + 0.045 * d.tour - 0.02 * d.oil + 0.10 * (d.wage - 6) + 0.03 * d.fx;
-      const atv = b.atv + 0.13 * (d.rate - 8) - 0.035 * d.tour - 0.10 * (d.wage - 6) - 0.06 * d.fx;
-      const hus = b.hus - 0.60 * (d.rate - 8) + 0.40 * (d.wage - 6) + 0.10 * d.tour + 0.05 * d.fx;
-      return { verdb: cl(verdb, 0, 25), hagv: cl(hagv, -8, 9), atv: cl(atv, 0, 16), hus: cl(hus, -20, 28) };
+  <script>
+    import { simulate } from '@lib/roads/engine.mjs';
+    import BASELINE from '@gogn/roads/baseline.json';
+    import LINKS from '@gogn/roads/links.json';
+    import SCENARIOS from '@gogn/roads/scenarios.json';
+
+    const state = { levers: {}, shocks: {} };
+    const num = (v, d = 1) => (v == null ? '–' : v.toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d }));
+
+    function run() {
+      const r = simulate({ baseline: BASELINE, links: LINKS, levers: state.levers, shocks: state.shocks, quarters: BASELINE.quarters });
+      drawCharts(r);
     }
-    function initHermir() {
-      const box = document.getElementById('sliders');
-      if (!box || box.dataset.done) return;
-      box.dataset.done = '1';
-      const st = {};
-      HERMIR.drivers.forEach((x) => { st[x.k] = x.n; });
-      const f1 = (v) => Number(v).toFixed(1).replace('.', ',');
-      const paint = () => {
-        const r = compute(st), b0 = HERMIR.baseline;
-        const OUT = [
-          ['📈 Verðbólga', r.verdb, b0.verdb, '%', (v) => (v > 6 ? '#ff6d7a' : v > 3.5 ? '#f6b13b' : '#46e08a')],
-          ['🚀 Hagvöxtur', r.hagv, b0.hagv, '%', (v) => (v < 0 ? '#ff6d7a' : v < 1.5 ? '#f6b13b' : '#46e08a')],
-          ['👷 Atvinnuleysi', r.atv, b0.atv, '%', (v) => (v > 6 ? '#ff6d7a' : v > 4 ? '#f6b13b' : '#46e08a')],
-          ['🏠 Húsnæðisverð', r.hus, b0.hus, '% á ári', (v) => (v > 12 || v < -5 ? '#ff6d7a' : '#eaf1fb')],
-        ];
-        document.getElementById('out').innerHTML = OUT.map(([l, v, base, u, col]) => {
-          const d = Math.round((v - base) * 10) / 10;
-          const delta = d ? `<span class="delta" style="color:${d > 0 ? '#f6b13b' : '#19d3c5'}">${d > 0 ? '▲' : '▼'} ${f1(Math.abs(d))} pp</span>` : '';
-          return `<div class="ot"><div class="l">${l}</div><div class="v" style="color:${col(v)}">${v > 0 && l.includes('Hús') ? '+' : ''}${f1(v)}${u.startsWith('%') ? '%' : ''}${delta}</div><div class="d">${u.slice(1) || 'ársbreyting'} · grunnur ${f1(base)}%</div></div>`;
-        }).join('');
-        HERMIR.drivers.forEach((x) => { const b = document.getElementById('v-' + x.k); if (b) b.textContent = f1(st[x.k]) + (x.u || ''); });
+
+    function drawCharts(r) {
+      const host = document.getElementById('charts'); host.innerHTML = '';
+      for (const k of Object.keys(r.outcomes)) {
+        const o = r.outcomes[k];
+        const endMid = o.mid[o.mid.length - 1], endBase = o.baseline[o.baseline.length - 1];
+        const dlt = endMid - endBase;
+        const dc = dlt > 0.05 ? '#e78284' : dlt < -0.05 ? '#54d08a' : 'var(--faint)';
+        const card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<h3>${o.label}</h3><div><span class="now">${num(endMid)}${o.unit}</span><span class="dlt" style="color:${dc}">${dlt >= 0 ? '+' : ''}${num(dlt)} pp vs grunnur</span></div><canvas></canvas>`;
+        host.appendChild(card);
+        drawTrace(card.querySelector('canvas'), o);
+      }
+    }
+
+    function drawTrace(cv, o) {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = cv.clientWidth, h = 120; cv.width = w * dpr; cv.height = h * dpr;
+      const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+      const all = o.lo.concat(o.hi, o.baseline); let mn = Math.min(...all), mx = Math.max(...all);
+      if (mx - mn < 1) { const m = (mx + mn) / 2; mn = m - 0.5; mx = m + 0.5; }
+      const pad = 6, n = o.mid.length;
+      const X = (i) => pad + (w - 2 * pad) * i / (n - 1);
+      const Y = (v) => (h - pad) - (h - 2 * pad) * (v - mn) / (mx - mn);
+      // óvissu-band
+      ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0]));
+      for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i]));
+      for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i]));
+      ctx.closePath(); ctx.fillStyle = 'rgba(246,177,59,.14)'; ctx.fill();
+      // grunn-lína (BAU)
+      ctx.beginPath(); o.baseline.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))));
+      ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+      // mið-ferill
+      ctx.beginPath(); o.mid.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))));
+      ctx.strokeStyle = '#f6b13b'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+    }
+
+    function buildLevers() {
+      const box = document.getElementById('levers'); box.innerHTML = '';
+      const mk = (k, cfg, grp) => {
+        const el = document.createElement('div'); el.className = 'sl' + (grp === 'shocks' ? ' shk' : '');
+        const val = state[grp][k] ?? cfg.base;
+        el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><b>${num(val, cfg.step < 1 ? 2 : 0)}${cfg.unit}</b></div><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}">`;
+        const inp = el.querySelector('input'), b = el.querySelector('b');
+        inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; run(); });
+        box.appendChild(el);
       };
-      box.innerHTML = HERMIR.drivers.map((x) => `<div class="sl"><div class="sl-t"><span>${x.e} ${x.l}</span><b id="v-${x.k}"></b></div><input type="range" data-k="${x.k}" min="${x.min}" max="${x.max}" step="${x.step}" value="${x.n}"></div>`).join('');
-      box.querySelectorAll('input[type=range]').forEach((inp) => { inp.oninput = () => { st[inp.dataset.k] = +inp.value; paint(); }; });
-      const pr = document.getElementById('presets');
-      const presets = HERMIR.presets || [];
-      pr.innerHTML = presets.map((p, i) => `<button data-i="${i}">${p.e || ''} ${p.l}</button>`).join('');
-      pr.querySelectorAll('button').forEach((b) => {
-        b.onclick = () => {
-          pr.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
-          const p = presets[+b.dataset.i];
-          Object.keys(p.set || p.v || {}).forEach((k) => { const pv = (p.set || p.v)[k]; st[k] = pv; const inp = box.querySelector(`input[data-k="${k}"]`); if (inp) inp.value = pv; });
-          paint();
-        };
+      for (const k in BASELINE.levers) mk(k, BASELINE.levers[k], 'levers');
+      for (const k in BASELINE.shocks) mk(k, BASELINE.shocks[k], 'shocks');
+    }
+
+    function buildScenarios() {
+      const box = document.getElementById('scn'); box.innerHTML = '';
+      SCENARIOS.forEach((s) => {
+        const b = document.createElement('button'); b.textContent = s.label; b.title = s.tldr;
+        b.addEventListener('click', () => {
+          state.levers = { ...s.levers }; state.shocks = { ...s.shocks };
+          [...box.children].forEach((c) => c.classList.remove('on')); b.classList.add('on');
+          const news = document.getElementById('news'); news.hidden = false; news.innerHTML = '📰 <b>' + s.label + ':</b> ' + s.sentence;
+          buildLevers(); run();
+        });
+        box.appendChild(b);
       });
-      const rst = document.getElementById('hm-reset');
-      if (rst) rst.onclick = () => {
-        pr.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
-        HERMIR.drivers.forEach((x) => { st[x.k] = x.n; const inp = box.querySelector(`input[data-k="${x.k}"]`); if (inp) inp.value = x.n; });
-        paint();
-      };
-      paint();
     }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="hermir"]')) initHermir(); });
+
+    function buildLinkTable() {
+      const host = document.getElementById('lnks'); if (!host) return;
+      const lbl = (k) => (BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k);
+      const rows = LINKS.map((l) => `<tr><td>${lbl(l.from)} → ${lbl(l.to)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${l.coef} ${l.unit}</td><td style="text-align:right">töf ${l.lag} ársfj.</td><td style="text-align:right">±${(((l.ci_hi - l.ci_lo) / 2)).toFixed(2)}</td><td>${l.source}</td></tr>`).join('');
+      host.innerHTML = `<table class="lnk-tbl"><tr><th>Keðja</th><th>Stuðull</th><th>Töf</th><th>Óvissa</th><th>Heimild</th></tr>${rows}</table><p style="font-size:12px;color:var(--faint);margin-top:8px">Hver stuðull er metinn úr Karp-gögnum eða fenginn úr birtum heimildum (SÍ/Hagstofa/OECD). Stílfærð sambönd — ekki opinber spá.</p>`;
+    }
+
+    function reset() {
+      state.levers = {}; state.shocks = {};
+      [...document.getElementById('scn').children].forEach((c) => c.classList.remove('on'));
+      document.getElementById('news').hidden = true;
+      buildLevers(); run();
+    }
+
+    function init() {
+      const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
+      document.getElementById('disc').textContent = 'ⓘ ' + BASELINE.disclaimer + ' Óvissu-böndin sýna næmni fyrir óvissu í kvörðuðum stuðlum, ekki tölfræðilegt öryggisbil.';
+      buildScenarios(); buildLevers(); run(); buildLinkTable();
+      document.getElementById('rs').addEventListener('click', reset);
+    }
+    init();
+    document.addEventListener('astro:page-load', init);
   </script>
 </Layout>
