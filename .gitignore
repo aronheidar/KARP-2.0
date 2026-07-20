@@ -22,6 +22,8 @@ logo_backup/
 .DS_Store
 Thumbs.db
 .env
+.dev.vars
+.d1-creds
 .sc-key.json
 grep.exe.stackdump
 gogn/stadfong_rvk.json
