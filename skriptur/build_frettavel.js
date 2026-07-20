@@ -20,6 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const { pickThrotlok } = require('./throtlok_detect.js');
+const { pickVikan } = require('./vikan_detect.js');
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
 const MODEL = process.env.KARP_FRETTAVEL_MODEL || 'claude-opus-4-8';
@@ -898,6 +899,13 @@ ${it}
 async function main() {
   const state = J('frettavel_state.json') || {};
   const events = detect(state);
+  // „5 mál vikunnar" — vikuleg samantekt (mánudaga). Raðar safninu (síðustu 7 daga) eftir vægi; noai (fastur listi).
+  if (new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
+    const { weightOf, catOf, asciiId } = await import('../web/src/lib/frettavel.mjs');
+    const arch = (J('frettavel_archive.json') || {}).items || [];
+    const vikan = pickVikan([...events, ...arch], { todayISO: TODAY, weightOf, catOf, asciiId });
+    if (vikan) events.push(vikan);
+  }
   fs.writeFileSync(G('frettavel_state.json'), JSON.stringify(state));
   const seen = J('frettavel_seen.json') || {};
   const fresh = events.filter((e) => !seen[e.id]);
