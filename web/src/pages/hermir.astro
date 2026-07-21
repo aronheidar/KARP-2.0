@@ -1,17 +1,17 @@
 ---
-// ÞRÁÐUR Íslands — hagkerfis-STJÓRNKLEFI. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
+// RÁS Íslands — hagkerfis-STJÓRNKLEFI. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
 // Ákvarðanir vinstra · útkomu-net miðju · ytri sjokk hægra. Sjálfvirk peningastefna/launaþróun
 // = UI fastpunkts-ítrun (vélin ósnert). Hover á sleða lýsir upp keðjurnar. Ekki opinber spá.
 import Layout from '../layouts/Layout.astro';
 import BASELINE from '@gogn/roads/baseline.json';
 import LINKS from '@gogn/roads/links.json';
-const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, Þróun, Útgjöld og Ráðstöfun. Gagnsær hermir sem sýnir þráðinn frá ákvörðun til afleiðingar: stilltu vexti, laun, skatta, kvóta og fleira og sjáðu stílfærð áhrif á hagvísa næstu 3–10 árin, með óvissu og heimildum.';
+const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær hermir sem sýnir rásina frá ákvörðun til afleiðingar: stilltu vexti, laun, skatta, kvóta og fleira og sjáðu stílfærð áhrif á hagvísa næstu 3–10 árin, með óvissu og heimildum.';
 ---
-<Layout title="ÞRÁÐUR Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ÞRÁÐUR Íslands — stjórnklefi" wide={true}>
+<Layout title="RÁS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="RÁS Íslands — stjórnklefi" wide={true}>
   <main data-pg="roads" class="dash">
     <div class="dash-top">
-      <div class="dash-head"><h1>ÞRÁÐUR Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
-      <p class="brandsub">Þjóðar-Reiknilíkan fyrir <b>Á</b>kvarðanir, <b>Þ</b>róun, <b>Ú</b>tgjöld og <b>R</b>áðstöfun — þráðurinn milli ákvörðunar og afleiðingar.</p>
+      <div class="dash-head"><h1>RÁS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
+      <p class="brandsub"><b>R</b>eiknilíkan <b>Á</b>hrifa á <b>S</b>amfélagið — rásin frá ákvörðun til afleiðingar.</p>
       <p class="disc" id="disc"></p>
       <div class="tabbar" id="tabbar"></div>
       <div class="r-topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
@@ -80,7 +80,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
         <div id="inv-result" class="inv-result"></div>
       </div>
     </div>
-    <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ÞRÁÐUR-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
+    <p class="foot">Forþjónað (SSG) {BASELINE.updated}. RÁS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
 
   <style is:global>
@@ -273,7 +273,11 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
     const lbl = (k) => BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k;
     // Birting sleða-gildis: sýnir RAUN-gildi (realBase + frávik) þegar realBase er sett; annars gildið sjálft. Vélin notar áfram frávikið.
     const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.realBase % 1 !== 0))) ? 2 : 0;
-    const disp = (cfg, v, d) => num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? cfg.unit : '');
+    // Birting raun-gildis: 'add' = realBase + frávik (sömu ein., t.d. skattar %); 'mult' = realBase × (1 + frávik%/100) (t.d. veiðigjald ma.kr.). Vélin notar áfram frávikið.
+    const disp = (cfg, v, d) => {
+      if (cfg && cfg.realBase != null && cfg.realMode === 'mult') return num(cfg.realBase * (1 + v / 100), d != null ? d : (cfg.realDec ?? 0)) + (cfg.realUnit || cfg.unit);
+      return num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? cfg.unit : '');
+    };
     const driversOf = (k) => [...new Set(LINKS.filter((l) => l.to === k && l.from !== k).map((l) => lbl(l.from)))];
     // Transitive reach: hvaða útkomur nær tiltekinn sleði (fyrir hover-highlight)
     const reachFrom = (start) => { const seen = new Set(), stack = [start]; while (stack.length) { const n = stack.pop(); for (const l of LINKS) if (l.from === n && !seen.has(l.to)) { seen.add(l.to); stack.push(l.to); } } return seen; };
@@ -541,7 +545,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
     function buildControls() {
       const mk = (host, k, cfg, grp) => {
         const el = document.createElement('div'); el.className = 'sl'; el.dataset.k = k; el.title = LEV_TIP[k] || cfg.label;
-        const dec = decOf(cfg), val = state[grp][k] ?? cfg.base;
+        const dec = cfg.realMode === 'mult' ? (cfg.realDec ?? 0) : decOf(cfg), val = state[grp][k] ?? cfg.base;
         const basePct = ((cfg.base - cfg.min) / (cfg.max - cfg.min || 1)) * 100;
         const nowLbl = grp === 'shocks' ? 'hlutlaust' : ('nú ' + disp(cfg, cfg.base, dec));
         el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><span class="sl-r"><b>${disp(cfg, val, dec)}</b> <em class="sl-now" title="Núverandi raun-gildi / sjálfgefið — daufa strikið á rásinni sýnir það">${nowLbl}</em></span></div><div class="sl-track"><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}"><span class="sl-base" style="left:${basePct}%"></span></div>`;
@@ -702,7 +706,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
       if (H.laun) rows.push(['Launavöxtur (%)', `${H.laun.range[0]} … ${H.laun.range[1]}%`, `sleði 0 … ${BASELINE.levers.laun.max}%`, ck.okWageRange]);
       const F = H.forecast;
       const fc = F && F.infl_imf != null ? `<p style="font-size:12px;color:var(--muted);margin:12px 0 4px"><b style="color:#f6b13b">📅 Viðmið við opinbera spá (${F.src})</b></p>
-        <table class="lnk-tbl"><tr><th>Hagvísir ${F.tgtYear}</th><th>ÞRÁÐUR grunnferill (BAU)</th><th>Opinber spá</th><th style="text-align:center">✓</th></tr>
+        <table class="lnk-tbl"><tr><th>Hagvísir ${F.tgtYear}</th><th>RÁS grunnferill (BAU)</th><th>Opinber spá</th><th style="text-align:center">✓</th></tr>
         <tr><td>Verðbólga</td><td>${num(F.infl_bau)}%</td><td style="color:var(--faint)">${num(F.infl_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr>
         <tr><td>Hagvöxtur</td><td>${num(F.gdp_bau)}%</td><td style="color:var(--faint)">${num(F.gdp_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr></table>
         <p style="font-size:11.5px;color:var(--faint);margin-top:4px">Grunnferill módelsins er festur á opinberu spána — sviðsmyndir eru FRÁVIK frá henni. Staðfestir að útgangsstaðan = alþjóðleg samstaða.</p>` : '';
@@ -955,7 +959,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
       let head, body;
       if (!changed.length) {
         head = 'Óbreytt stefna: grunnspáin gildir';
-        body = `Að ${yrs} árum liðnum, án breytinga á stefnu, gerir ÞRÁÐUR ráð fyrir verðbólgu ${num(gk('verdbolga'))}%, hagvexti ${num(gk('hagvoxtur'))}% og atvinnuleysi ${num(gk('atvinnuleysi'))}%. Þjóðhagslegt heilsufar mælist ${health}/100.`;
+        body = `Að ${yrs} árum liðnum, án breytinga á stefnu, gerir RÁS ráð fyrir verðbólgu ${num(gk('verdbolga'))}%, hagvexti ${num(gk('hagvoxtur'))}% og atvinnuleysi ${num(gk('atvinnuleysi'))}%. Þjóðhagslegt heilsufar mælist ${health}/100.`;
       } else {
         const t = changed[0];
         head = `${t.label} ${dir(t.dlt)} í ${num(t.end)}${t.us} — ${health}/100 heilsufar`;
