@@ -25,7 +25,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div class="dash-body3" id="body3">
       <div class="controls" id="ctl-left">
         <div class="ctl-h" id="ctl-left-h">🎚️ Ákvarðanir</div>
-        <button id="karp" type="button" title="Leitar sjálfkrafa í gegnum allar ákvarðana-stillingar að þeirri samsetningu sem hámarkar þjóðhagslegt heilsufar (miðað við núverandi sjóndeildarhring og hlutlaus ytri áhrif).">🏆 KARP-lausnin — besta útkoman</button>
+        <button id="karp" type="button" title="Leitar sjálfkrafa að þeim TRÚVERÐUGA, HÓFLEGA aðgerðapakka sem hámarkar þjóðhagslegt heilsufar (miðað við núverandi sjóndeild og hlutlaus ytri áhrif). Refsar öfga-sveiflum sleða svo lausnin sé raunhæf — ekki hámörkun eins sleða út í kant.">🏆 KARP-lausnin — besta útkoman</button>
         <label class="auto" id="lbl-tay" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
         <label class="auto" id="lbl-phi" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
         <div id="levers"></div>
@@ -560,9 +560,13 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     // KARP-lausnin: hnitráð (coordinate descent) yfir ákvarðana-sleðana til að hámarka heilsufar.
     // Ytri áhrif höfð hlutlaus (0) — þú velur ekki olíuskell; leitar að bestu STEFNU miðað við núverandi horfur.
+    // HÓFSEMIS-REFSING: stórar (pólitískt/hagrænt óraunhæfar) stefnu-sveiflur kosta stig → KARP finnur
+    // TRÚVERÐUGAN, hóflegan aðgerðapakka fremur en að keyra sleða í öfgar (Σ(frávik/svið)²·REG_W).
+    const REG_W = 3.5;
+    function regCost(lv) { let s = 0; for (const k in lv) { const c = BASELINE.levers[k], f = (lv[k] - c.base) / (c.max - c.min); s += f * f; } return s * REG_W; }
     function findBest() {
       const keys = Object.keys(BASELINE.levers), H = state.horizon;
-      const sim = (lv) => healthScore(simulate({ baseline: BASELINE, links: LINKS, levers: lv, shocks: state.shocks, quarters: H }));
+      const sim = (lv) => healthScore(simulate({ baseline: BASELINE, links: LINKS, levers: lv, shocks: state.shocks, quarters: H })) - regCost(lv);
       const best = {}; let bestScore = sim(best);
       const scan = (lo, hi, step) => { // gróf leit + fín pössun deila þessu
         for (const k of keys) {
@@ -585,7 +589,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       // 2) fín pössun á fullri upplausn í glugga kringum núverandi bestu
       for (let pass = 0; pass < 2; pass++) { improved = false; scan((c, cur) => cur - (c.max - c.min) / 14, (c, cur) => cur + (c.max - c.min) / 14, (c) => c.step); if (!improved) break; }
       for (const k in best) if (best[k] === BASELINE.levers[k].base) delete best[k]; // sleppa óbreyttum
-      return { levers: best, score: Math.round(bestScore) };
+      // birta HREINT heilsufar valda pakkans (án hófsemis-refsingar, sem stýrir bara leitinni)
+      const pureScore = healthScore(simulate({ baseline: BASELINE, links: LINKS, levers: best, shocks: state.shocks, quarters: H }));
+      return { levers: best, score: Math.round(pureScore) };
     }
 
     // Dýnamísk KARP: bestar 2-fasa leið (áfangi 1 = fyrri helmingur, áfangi 2 = seinni helmingur) fyrir
@@ -600,7 +606,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       const others = { ...base.levers }; for (const k of keys) delete others[k];
       const cur = {}; for (const k of keys) { const v = base.levers[k] ?? BASELINE.levers[k].base; cur[k] = { e: v, l: v }; }
       const build = (c) => { const lv = { ...others }; for (const k in c) lv[k] = mkPath(c[k].e, c[k].l); return lv; };
-      const sim = (c) => healthPath(simulate({ baseline: BASELINE, links: LINKS, levers: build(c), shocks: state.shocks, quarters: H }));
+      // hófsemis-refsing líka hér (bæði fasa-gildi) svo dýnamíska leiðin verði líka trúverðug, ekki öfga-sveiflur
+      const regDyn = (c) => { let s = regCost(others); for (const k in c) { const cf = BASELINE.levers[k], fe = (c[k].e - cf.base) / (cf.max - cf.min), fl = (c[k].l - cf.base) / (cf.max - cf.min); s += (fe * fe + fl * fl) / 2 * REG_W; } return s; };
+      const sim = (c) => healthPath(simulate({ baseline: BASELINE, links: LINKS, levers: build(c), shocks: state.shocks, quarters: H })) - regDyn(c);
       let bestScore = sim(cur);
       for (let pass = 0; pass < 3; pass++) {
         let improved = false;
@@ -622,7 +630,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       }
       const rDyn = simulate({ baseline: BASELINE, links: LINKS, levers: build(cur), shocks: state.shocks, quarters: H });
       const rConst = simulate({ baseline: BASELINE, links: LINKS, levers: base.levers, shocks: state.shocks, quarters: H });
-      return { phases: cur, keys, half, H, rDyn, rConst, base, pathDyn: bestScore, pathConst: healthPath(rConst) };
+      return { phases: cur, keys, half, H, rDyn, rConst, base, pathDyn: healthPath(rDyn), pathConst: healthPath(rConst) };
     }
     function drawMiniLines(cv, seriesArr, mn, mx) {
       const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 500, h = 150;

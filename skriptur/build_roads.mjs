@@ -164,7 +164,7 @@ const links = [
   { id: 'labor_gdp', from: 'vinnuafl', to: 'hagvoxtur', coef: 0.30, lag: 1, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.50, source: 'Vinnuafl sem framleiðsluþáttur' },
   { id: 'labor_unem', from: 'vinnuafl', to: 'atvinnuleysi', coef: 0.10, lag: 2, unit: 'pp/pp', ci_lo: 0.02, ci_hi: 0.20, source: 'Aukið framboð vinnuafls (skammtíma frásog)' },
   // ── Ríkisfjármála-eining (module 4) ──
-  { id: 'tax_bal', from: 'skattar', to: 'afkoma', coef: 0.08, lag: 1, unit: '%VLF/%', ci_lo: 0.04, ci_hi: 0.12, source: 'Skattbreyting → tekjur ríkissjóðs' },
+  { id: 'tax_bal', from: 'skattar', to: 'afkoma', coef: 0.08, lag: 1, unit: '%VLF/%', ci_lo: 0.04, ci_hi: 0.12, nl: { type: 'sat', k: 0.55 }, source: 'Skattbreyting → tekjur ríkissjóðs', note: 'LAFFER: Ísland er nú þegar háskatta-land → tekjuauki af frekari hækkun fer minnkandi (grunnrýrnun: vinnuframboð/flótti/undanskot). Tvöföldun hækkunar skilar litlu meira.' },
   { id: 'exp_bal', from: 'utgjold', to: 'afkoma', coef: -0.08, lag: 1, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.04, source: 'Útgjöld → gjöld ríkissjóðs' },
   { id: 'gdp_bal', from: 'hagvoxtur', to: 'afkoma', coef: 0.30, lag: 1, unit: '%VLF/pp', ci_lo: 0.15, ci_hi: 0.45, source: 'Sjálfvirkir jöfnarar (hærri VLF → meiri tekjur)' },
   { id: 'unem_bal', from: 'atvinnuleysi', to: 'afkoma', coef: -0.20, lag: 1, unit: '%VLF/pp', ci_lo: -0.35, ci_hi: -0.08, source: 'Atvinnuleysi → bætur + minni tekjur' },

@@ -373,7 +373,12 @@
   "unit": "%VLF/%",
   "ci_lo": 0.04,
   "ci_hi": 0.12,
-  "source": "Skattbreyting → tekjur ríkissjóðs"
+  "nl": {
+   "type": "sat",
+   "k": 0.55
+  },
+  "source": "Skattbreyting → tekjur ríkissjóðs",
+  "note": "LAFFER: Ísland er nú þegar háskatta-land → tekjuauki af frekari hækkun fer minnkandi (grunnrýrnun: vinnuframboð/flótti/undanskot). Tvöföldun hækkunar skilar litlu meira."
  },
  {
   "id": "exp_bal",
