@@ -1,7 +1,7 @@
 ---
-// web/src/pages/lausnir/fyrirtaekjaskyrsla.astro — SAMEINUÐ fyrirtækja-síða.
-// Sameinar 4 fyrirtækja-vörur (skýrsla · eigendur · vaktin · áreiðanleikamat) + fyrirtækja-topplista
-// á eina síðu. Hinar 3 fjarlægðar úr vinstri nav (Layout.astro NAV) — allt aðgengilegt héðan.
+// web/src/pages/lausnir/fyrirtaekjaskyrsla.astro — SAMEINUÐ fyrirtækja-síða (leitar-fyrst, stigveldi).
+// Sameinar 4 fyrirtækja-vörur (skýrsla · eigendur · vaktin · áreiðanleikamat) + fyrirtækja-topplista á
+// eina síðu: leit efst, AÐALSKÝRSLA áberandi, 3 sérskýrslur, „þvert á félög" topplistar, verð neðst.
 // ⚠ fyrirtaekjaskyrsla er útilokuð frá lausnir/[slug].astro getStaticPaths (annars tvítekin síða).
 import Layout from '../../layouts/Layout.astro';
 import VerdTafla from '../../components/VerdTafla.astro';
@@ -9,7 +9,8 @@ import { VORUR } from '../../data/lausnir.js';
 import '../../styles/lausn.css';
 
 const bySlug = Object.fromEntries(VORUR.map((v) => [v.slug, v]));
-const PRODS = ['fyrirtaekjaskyrsla', 'eigendur', 'fyrirtaekjavaktin', 'areidanleikamat'].map((s) => bySlug[s]).filter(Boolean);
+const flagship = bySlug['fyrirtaekjaskyrsla'];
+const secondary = ['eigendur', 'fyrirtaekjavaktin', 'areidanleikamat'].map((s) => bySlug[s]).filter(Boolean);
 const verdTxt = (v) => v.verd.tegund === 'stak' ? v.verd.upphaed.toLocaleString('is-IS') + ' kr · stök skýrsla'
   : v.verd.tegund === 'askrift' ? v.verd.upphaed.toLocaleString('is-IS') + ' kr/mán'
   : 'Innifalið í Karp+';
@@ -22,49 +23,64 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'CollectionPage', na
     <section class="ls-hero">
       <p class="ls-kicker">Karp+</p>
       <h1>🏢 Fyrirtækjagögn</h1>
-      <p class="lead">Allt sem opinberar skrár segja um íslenskt félag — á einum stað: fyrirtækjaskýrsla, endanlegir eigendur, sjálfvirk vöktun, áreiðanleikamat (KYC) og topplistar stærstu félaga.</p>
+      <p class="lead">Ein leit — öll opinber gögn um íslenskt félag: fyrirtækjaskýrsla, endanlegir eigendur, sjálfvirk vöktun, áreiðanleikamat (KYC) og topplistar stærstu félaga.</p>
       <form class="fg-search" method="get" action="/fyrirtaeki/">
         <input name="q" placeholder="Fletta upp félagi eða kennitölu…" aria-label="Leita að félagi eða kennitölu" autocomplete="off" />
         <button type="submit">🔎 Leita</button>
       </form>
     </section>
 
-    <div class="fg-prods">
-      {PRODS.map((v) => (
-        <section class="fg-prod">
-          <div class="fg-prod-h">
-            <span class="fg-e">{v.emoji}</span>
-            <div class="fg-prod-t"><h2>{v.heiti}</h2><p>{v.gildisloford}</p></div>
-            <span class="fg-verd">{verdTxt(v)}</span>
-          </div>
-          <div class="ls-feats">
-            {v.eiginleikar.map((e) => (
-              <div class="ls-feat"><span class="ic">{e.emoji}</span><b>{e.titill}</b><span>{e.texti}</span></div>
-            ))}
-          </div>
-          <div class="ls-cta-row">
-            <a class="ls-btn" href={v.tol.href}>{v.tol.label}</a>
-            {v.synishorn && <a class="ls-btn ghost" href={v.synishorn.href}>{v.synishorn.label}</a>}
-          </div>
-        </section>
-      ))}
+    <h2 class="ls-sec-h">Öll gögn um hvert félag</h2>
 
-      <section class="fg-prod">
+    {flagship && (
+      <section class="fg-flagship">
+        <span class="fg-flagship-badge">Aðalskýrsla</span>
         <div class="fg-prod-h">
-          <span class="fg-e">🏆</span>
-          <div class="fg-prod-t"><h2>Topplistar fyrirtækja</h2><p>Stærstu félög hverrar atvinnugreinar — raðað úr ársreikningum.</p></div>
-          <span class="fg-verd">Innifalið í Karp+</span>
+          <span class="fg-e">{flagship.emoji}</span>
+          <div class="fg-prod-t"><h2>{flagship.heiti}</h2><p>{flagship.gildisloford}</p></div>
+          <span class="fg-verd">{verdTxt(flagship)}</span>
         </div>
         <div class="ls-feats">
-          <div class="ls-feat"><span class="ic">📊</span><b>Per atvinnugrein</b><span>Stærstu félög hverrar greinar eftir veltu og eignum.</span></div>
-          <div class="ls-feat"><span class="ic">📈</span><b>Úr ársreikningum</b><span>Raðað úr opinberri ársreikningaskrá RSK — uppfært sjálfvirkt.</span></div>
-          <div class="ls-feat"><span class="ic">🔗</span><b>Beint í skýrslu</b><span>Smelltu á félag og fáðu fulla fyrirtækjaskýrslu.</span></div>
+          {flagship.eiginleikar.map((e) => (
+            <div class="ls-feat"><span class="ic">{e.emoji}</span><b>{e.titill}</b><span>{e.texti}</span></div>
+          ))}
         </div>
         <div class="ls-cta-row">
-          <a class="ls-btn" href="/topplistar-fyrirtaeki/">Skoða topplistana</a>
+          <a class="ls-btn" href={flagship.tol.href}>{flagship.tol.label}</a>
+          {flagship.synishorn && <a class="ls-btn ghost" href={flagship.synishorn.href}>{flagship.synishorn.label}</a>}
         </div>
       </section>
+    )}
+
+    <div class="fg-sec">
+      {secondary.map((v) => (
+        <section class="fg-sec-card">
+          <span class="fg-e">{v.emoji}</span>
+          <h3>{v.heiti}</h3>
+          <p>{v.gildisloford}</p>
+          <span class="fg-verd">{verdTxt(v)}</span>
+          <a class="ls-btn" href={v.tol.href}>{v.tol.label}</a>
+        </section>
+      ))}
     </div>
+
+    <div class="fg-div"><span>Þvert á félög</span></div>
+
+    <section class="fg-prod">
+      <div class="fg-prod-h">
+        <span class="fg-e">🏆</span>
+        <div class="fg-prod-t"><h2>Topplistar fyrirtækja</h2><p>Stærstu félög hverrar atvinnugreinar — raðað úr ársreikningum.</p></div>
+        <span class="fg-verd">Innifalið í Karp+</span>
+      </div>
+      <div class="ls-feats">
+        <div class="ls-feat"><span class="ic">📊</span><b>Per atvinnugrein</b><span>Stærstu félög hverrar greinar eftir veltu og eignum.</span></div>
+        <div class="ls-feat"><span class="ic">📈</span><b>Úr ársreikningum</b><span>Raðað úr opinberri ársreikningaskrá RSK — uppfært sjálfvirkt.</span></div>
+        <div class="ls-feat"><span class="ic">🔗</span><b>Beint í skýrslu</b><span>Smelltu á félag og fáðu fulla fyrirtækjaskýrslu.</span></div>
+      </div>
+      <div class="ls-cta-row">
+        <a class="ls-btn" href="/topplistar-fyrirtaeki/">Skoða topplistana</a>
+      </div>
+    </section>
 
     <h2 class="ls-sec-h" id="verd">Verð &amp; þrep</h2>
     <VerdTafla />
@@ -76,14 +92,25 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'CollectionPage', na
     .fg-search { display:flex; gap:8px; margin-top:16px; max-width:540px; }
     .fg-search input { flex:1; min-width:0; padding:12px 14px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:15px; }
     .fg-search button { padding:12px 18px; border-radius:10px; border:0; background:var(--gold); color:#1a1205; font-weight:700; cursor:pointer; white-space:nowrap; }
-    .fg-prods { display:grid; gap:16px; margin:24px 0 8px; }
-    .fg-prod { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 22px; }
+    .fg-prod { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin:0 0 16px; }
     .fg-prod-h { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; flex-wrap:wrap; }
     .fg-prod-t { flex:1; min-width:200px; }
     .fg-prod-h h2 { margin:0; font-size:20px; }
     .fg-prod-h p { margin:3px 0 0; color:var(--muted); font-size:14px; line-height:1.45; }
     .fg-e { font-size:30px; line-height:1; }
     .fg-verd { margin-left:auto; color:var(--gold); font-weight:700; font-size:13.5px; white-space:nowrap; padding-top:4px; }
-    @media (max-width:560px) { .fg-verd { margin-left:44px; width:100%; padding-top:0; } }
+    @media (max-width:560px) { .fg-prod-h .fg-verd { margin-left:44px; width:100%; padding-top:0; } }
+    .fg-flagship { position:relative; background:var(--panel); border:1.5px solid color-mix(in srgb, var(--gold) 50%, transparent); border-radius:16px; padding:22px 22px 20px; margin:22px 0 12px; }
+    .fg-flagship-badge { position:absolute; top:-10px; left:18px; background:var(--gold); color:#1a1205; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:3px 10px; border-radius:999px; }
+    .fg-sec { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin:0 0 8px; }
+    .fg-sec-card { display:flex; flex-direction:column; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    .fg-sec-card .fg-e { font-size:26px; }
+    .fg-sec-card h3 { margin:2px 0 0; font-size:16px; }
+    .fg-sec-card p { margin:0; color:var(--muted); font-size:13px; line-height:1.45; flex:1; }
+    .fg-sec-card .fg-verd { margin:0; padding:0; }
+    .fg-sec-card .ls-btn { margin-top:4px; text-align:center; }
+    .fg-div { display:flex; align-items:center; gap:12px; margin:26px 0 14px; }
+    .fg-div span { font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--faint); font-weight:700; white-space:nowrap; }
+    .fg-div::after { content:''; flex:1; height:1px; background:var(--line); }
   </style>
 </Layout>
