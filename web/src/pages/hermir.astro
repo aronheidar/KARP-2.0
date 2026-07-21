@@ -47,6 +47,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div id="modelview" class="modelview" hidden>
       <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div>
       <div id="backtest" class="backtest"></div>
+      <div id="fiscalplan" class="backtest"></div>
       <div id="calibration" class="backtest"></div>
       <div id="sectors-real" class="backtest"></div>
       <details class="transp" open><summary>⚙︎ Öll orsakasambönd, stuðlar og heimildir</summary><div id="lnks"></div></details>
@@ -140,7 +141,10 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .an-tool { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; margin-bottom: 14px; }
     main[data-pg="roads"] .an-h { font-size: 13.5px; font-weight: 700; color: #f6b13b; margin-bottom: 8px; }
     main[data-pg="roads"] .an-ctl { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
-    main[data-pg="roads"] .an-ctl select, main[data-pg="roads"] .an-ctl input { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 4px 7px; font-size: 12.5px; }
+    main[data-pg="roads"] .an-ctl select, main[data-pg="roads"] .an-ctl input { background: #12161f; border: 1px solid var(--line); color: var(--ink); border-radius: 7px; padding: 4px 7px; font-size: 12.5px; }
+    /* opinn fellilisti (<option>) fellur á hvítan browser-bakgrunn ef select-bg er gegnsær (var(--panel) er hálfgegnsætt) → læsa ÓGEGNSÆjum dökkum lit */
+    main[data-pg="roads"] select { background: #12161f; color: var(--ink); }
+    main[data-pg="roads"] select option { background: #12161f; color: var(--ink); }
     main[data-pg="roads"] .an-ctl button { background: linear-gradient(180deg,#f6b13b,#e0961f); border: none; color: #1a1204; border-radius: 8px; padding: 5px 12px; font-weight: 800; font-size: 12.5px; cursor: pointer; }
     main[data-pg="roads"] .tor-row { display: grid; grid-template-columns: 210px 1fr 96px; gap: 8px; align-items: center; font-size: 12px; margin: 3px 0; }
     main[data-pg="roads"] .tor-bar { position: relative; height: 16px; background: rgba(255,255,255,.05); border-radius: 4px; }
@@ -701,6 +705,22 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka; grunnferill = opinber spá.</p>`;
     }
 
+    // 🏛️ Fjármálaáætlun ríkisins: grunnferill afkomu/skulda (10 ár) tekinn úr henni. Sýnir markmið + skilaboð + öldrunar-kostnað.
+    function buildFiscalPlan() {
+      const host = document.getElementById('fiscalplan'); if (!host || !BASELINE.fiscalPlan) return;
+      const fp = BASELINE.fiscalPlan, A = BASELINE.outcomes.afkoma.path, S = BASELINE.outcomes.skuldir.path;
+      const yr = (t) => 2026 + Math.round(t / 4);
+      let jofnAr = null; for (let t = 0; t < A.length; t++) if (A[t] >= -0.05) { jofnAr = yr(t); break; }
+      const msgs = (fp.skilabod || []).map((m) => `<li><b>${m[0]}</b> — ${m[1]}</li>`).join('');
+      const heilbr = fp.heilbr ? `Öldrun: heilbrigðisútgjöld fara úr ${fp.heilbr.vlf[0]}% í ${fp.heilbr.vlf[fp.heilbr.vlf.length - 1]}% af VLF til ${fp.heilbr.ar[fp.heilbr.ar.length - 1]} — vaxandi langtíma-þrýstingur á ríkissjóð.` : '';
+      const bonds = fp.bonds ? `💹 Skuldabréfamarkaður: ríkisbréf (RIKB) ${fp.bonds.short.yr} <b>${num(fp.bonds.short.yield)}%</b> → ${fp.bonds.long.yr} <b>${num(fp.bonds.long.yield)}%</b>${fp.bonds.short.yield > fp.bonds.long.yield ? ' — öfug vaxtaferill: markaðurinn verðleggur vaxtalækkanir' : ''}. Ávöxtunarkrafan sem markaðurinn rukkar til að fjármagna skuldirnar.` : '';
+      host.innerHTML = `<div class="cm-title">🏛️ Fjármálaáætlun ríkisins — 10-ára grunnferill fylgir henni</div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 8px">Grunnferill (BAU) afkomu og skulda er tekinn BEINT úr langtíma-fjármálaáætlun ríkisins (${fp.heimild || 'fjármálaáætlun'}) — sviðsmyndir eru FRÁVIK frá henni. Áætlunin: afkoma nær jöfnuði ~${jofnAr || 2028}, skuldir ${num(S[0])}% → ${num(S[S.length - 1])}% að ${fp.markmid || 30}%-skuldamarkmiði.</p>
+        <ul style="font-size:12px;color:var(--muted);margin:0 0 6px;padding-left:18px;line-height:1.55">${msgs}</ul>
+        ${heilbr ? `<p style="font-size:11.5px;color:var(--faint);margin-top:6px">${heilbr}</p>` : ''}
+        ${bonds ? `<p style="font-size:11.5px;color:var(--muted);margin-top:6px;border-top:1px solid var(--line);padding-top:6px">${bonds}</p>` : ''}`;
+    }
+
     // 📐 Econometrísk kvörðun: OLS-mat lykil-stuðla úr raun-röðum 2010-26 (calibration.json) borið saman við handsett
     // módel-gildi — sýnir hvort gögnin STAÐFESTA eða HAFNA hverju gildi (dómur = fellur módel-gildi innan 95% CI matsins).
     function buildCalibration() {
@@ -981,7 +1001,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildCalibration(); buildSectorsReal();
+      buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildFiscalPlan(); buildCalibration(); buildSectorsReal();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;

@@ -21,18 +21,38 @@ const rentNow = lq.length >= 5 ? +(100 * (lq[lq.length - 1].medM2 / lq[lq.length
 const popNow = g('mannfjoldi').POP.yoy; // 1.3 (%/ári)
 const LT = g('langtima'); const ltI = LT.ar.indexOf(2026);
 const balNow = LT.afkoma[ltI] ?? -0.65, debtNow = LT.skuldir[ltI] ?? 38.8;
+// Ríkisskuldabréfa-markaður (markadir.json) — EINA markaðs-gagnið sem tengist herminum með viti: ávöxtunarkrafa
+// RIKB sýnir hvað markaðurinn rukkar fyrir að fjármagna ríkisskuldirnar + væntingar um vexti (ferill-halli). Til samhengis, ekki drifkraftur.
+const MK = (() => { try { return g('markadir'); } catch (e) { return null; } })();
+const rikb = ((MK && MK.bonds && MK.bonds.nominal) || []).slice().sort((a, b) => a.yr - b.yr);
+const bondCurve = rikb.length >= 2 ? { short: rikb[0], long: rikb[rikb.length - 1], updated: MK.updated } : null;
 
 // línulegur glide núverandi → target yfir Q ársfj.
 const glide = (from, to, q = Q) => Array.from({ length: q }, (_, i) => +(from + (to - from) * (i / (q - 1))).toFixed(3));
 const MAXQ = 40; // langtíma-hamur: 10 ár (40 ársfj.). BAU = glide á 3-ára jafnvægi, síðan haldið.
 const bau = (from, to) => { const gg = glide(from, to, Q); return gg.concat(Array(MAXQ - Q).fill(gg[Q - 1])); };
 const glideFull = (from, to) => glide(from, to, MAXQ); // hæg drift yfir allan sjóndeildarhring (t.d. öldrun)
+// Ársfjórðungslegur ferill úr ÁRLEGRI röð (t.d. fjármálaáætlun ríkisins) — línuleg brúun milli ára frá startYear.
+// Notað fyrir 10-ára BAU skulda/afkomu svo grunnferillinn fylgi RAUNVERULEGRI langtímastefnu, ekki flötu haldi.
+const fromAnnual = (vals, years, startYear, q = MAXQ) => Array.from({ length: q }, (_, t) => {
+  const yr = startYear + t / 4;
+  let i = years.findIndex((y) => y >= yr); if (i < 0) i = years.length - 1; if (i === 0) i = 1;
+  const y0 = years[i - 1], y1 = years[i], v0 = vals[i - 1] ?? vals[vals.length - 1], v1 = vals[i] ?? vals[vals.length - 1];
+  return +(v0 + (v1 - v0) * (y1 === y0 ? 0 : (yr - y0) / (y1 - y0))).toFixed(3);
+});
+// Fjármála-ferlar úr áætlun (deildir svo SFC-kennisetning haldist: einkajöfnuður = viðskiptajöfnuður − ríkisjöfnuður)
+const afkomaPath = fromAnnual(LT.afkoma, LT.ar, 2026);
+const skuldirPath = fromAnnual(LT.skuldir, LT.ar, 2026);
+const caPath = bau(2, 2);                                             // viðskiptajöfnuður BAU
+const einkaPath = caPath.map((ca, t) => +(ca - afkomaPath[t]).toFixed(3)); // CA − ríki (nákvæmt tie-out)
 
 const baseline = {
   updated: new Date().toISOString().slice(0, 10),
   quarters: Q,
   maxQuarters: MAXQ,
   disclaimer: 'Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.',
+  // Fjármálaáætlun ríkisins (langtima.json) — grunnferill afkomu/skulda fylgir henni; sýnt sem samhengi í Módel-flipa.
+  fiscalPlan: { heimild: LT.heimild, markmid: LT.markmid, skilabod: LT.skilabod, heilbr: { ar: LT.heilbr_ar, vlf: LT.heilbr_vlf }, bonds: bondCurve },
   levers: {
     // Peningastefna & þjóðhagsvarúð
     vextir: { base: rateNow, min: 0, max: 12, step: 0.25, unit: '%', label: 'Stýrivextir (Seðlabanki)', group: 'Peningastefna & varúð' },
@@ -87,8 +107,9 @@ const baseline = {
     greidslubyrdi: { label: 'Greiðslubyrði (vísit.)', unit: '', path: bau(100, 100) },
     mannfjoldi: { label: 'Fólksfjölgun', unit: '%', path: bau(popNow, 1.0) },
     vinnuafl: { label: 'Vinnuaflsvöxtur', unit: '%', path: bau(1.5, 1.2) },
-    afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: bau(balNow, -0.5) },
-    skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: bau(debtNow, 37) },
+    // 10-ára BAU beint úr fjármálaáætlun ríkisins (langtima.json): afkoma nær jöfnuði 2028 → +0,3% afgangur; skuldir 38,8%→30% að markmiði.
+    afkoma: { label: 'Afkoma ríkissjóðs', unit: '% VLF', path: afkomaPath },
+    skuldir: { label: 'Skuldir ríkis', unit: '% VLF', path: skuldirPath },
     utflutningur: { label: 'Útflutningsvöxtur', unit: '%', path: bau(2, 2.5) },
     losun: { label: 'CO₂-losun (vísit.)', unit: '', path: bau(100, 100) },
     vanskil: { label: 'Vanskil (vísit.)', unit: '', path: bau(100, 100) },
@@ -107,14 +128,14 @@ const baseline = {
     hlutabref: { label: 'Hlutabréf (vísit.)', unit: '', path: bau(100, 100) },
     vaxtaalag: { label: 'Vaxtaálag ríkis (pp)', unit: 'pp', path: bau(0.8, 0.7) },
     // ── Ytri staða (module 13) ──
-    vidskiptajofnudur: { label: 'Viðskiptajöfnuður (% VLF)', unit: '% VLF', path: bau(2, 2) },
+    vidskiptajofnudur: { label: 'Viðskiptajöfnuður (% VLF)', unit: '% VLF', path: caPath },
     niip: { label: 'Erlend staða þjóðarbús (% VLF)', unit: '% VLF', path: bau(30, 35) },
     // ── Dreifing & heimili (module 13) ──
     jofnudur: { label: 'Tekjujöfnuður (vísit., hærra=jafnara)', unit: '', path: bau(100, 100) },
     heimilaskuldir: { label: 'Skuldir heimila (vísit.)', unit: '', path: bau(100, 100) },
     // ── SFC: geira-jöfnuðir tie-out (Godley). Einkageiri = viðskiptajöfnuður − ríkisjöfnuður (kennisetning). ──
     // Baseline = CA_base − afkoma_base = bau(2,2) − bau(balNow,−0.5) = bau(2−balNow, 2,5) (bau línulegt → mismunur =bau mismuna).
-    einkajofnudur: { label: 'Einkageira-jöfnuður (% VLF, sparn.−fjárf.)', unit: '% VLF', path: bau(2 - balNow, 2.5) },
+    einkajofnudur: { label: 'Einkageira-jöfnuður (% VLF, sparn.−fjárf.)', unit: '% VLF', path: einkaPath },
     // ── Geira-virðisauki (diagnostík, vísit. base 100 — TERMINAL: engin endurgjöf í heildar-VLF → engin tvítöldun; grundað í raun-greina-hlutum úr D1 /api/roads/atvinnuvegir) ──
     vlf_sjavar: { label: 'Sjávarútvegur — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
     vlf_ferda: { label: 'Ferðaþjónusta — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
