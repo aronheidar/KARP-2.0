@@ -110,11 +110,12 @@
   },
   "bindiskylda": {
    "base": 0,
-   "min": -5,
+   "realBase": 3,
+   "min": -3,
    "max": 15,
    "step": 1,
    "unit": "%",
-   "label": "Bindiskylda banka (frávik)",
+   "label": "Bindiskylda banka",
    "group": "Peningastefna & varúð"
   },
   "verdtrygging": {
@@ -168,11 +169,15 @@
   },
   "utgjold": {
    "base": 0,
+   "realBase": 1450,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 0,
    "min": -15,
    "max": 15,
    "step": 1,
    "unit": "%",
-   "label": "Útgjöld ríkis (frávik)",
+   "label": "Almenn ríkisútgjöld (rekstur, breyting)",
    "group": "Ríkisfjármál & skattar"
   },
   "tilfaerslur": {
@@ -195,11 +200,15 @@
   },
   "veidigjald": {
    "base": 0,
+   "realBase": 10.2,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 1,
    "min": -50,
    "max": 100,
    "step": 10,
    "unit": "%",
-   "label": "Veiðigjald (frávik)",
+   "label": "Veiðigjald",
    "group": "Ríkisfjármál & skattar"
   },
   "ivilnanir": {
@@ -222,11 +231,15 @@
   },
   "frambod": {
    "base": 0,
+   "realBase": 3.2,
+   "realMode": "mult",
+   "realUnit": " þús. íbúðir/ári",
+   "realDec": 1,
    "min": -20,
    "max": 40,
    "step": 5,
    "unit": "%",
-   "label": "Nýbygginga-framboð (frávik)",
+   "label": "Nýbygginga-framboð",
    "group": "Húsnæði"
   },
   "leiguhusnaedi": {
@@ -285,11 +298,15 @@
   },
   "kvoti": {
    "base": 0,
+   "realBase": 211,
+   "realMode": "mult",
+   "realUnit": " þús. tonn",
+   "realDec": 0,
    "min": -30,
    "max": 20,
    "step": 5,
    "unit": "%",
-   "label": "Aflamark (frávik)",
+   "label": "Aflamark þorsks",
    "group": "Auðlindir, orka & loftslag"
   },
   "fridun": {
@@ -303,11 +320,15 @@
   },
   "orka": {
    "base": 0,
+   "realBase": 14,
+   "realMode": "mult",
+   "realUnit": " TWh",
+   "realDec": 1,
    "min": -15,
    "max": 30,
    "step": 5,
    "unit": "%",
-   "label": "Orka til stóriðju (frávik)",
+   "label": "Orka til stóriðju",
    "group": "Auðlindir, orka & loftslag"
   },
   "orkuskipti": {
@@ -321,11 +342,15 @@
   },
   "kolefnisgjald": {
    "base": 0,
+   "realBase": 5.9,
+   "realMode": "mult",
+   "realUnit": " þús.kr/t CO₂",
+   "realDec": 1,
    "min": -50,
    "max": 100,
    "step": 10,
    "unit": "%",
-   "label": "Kolefnisgjald (frávik)",
+   "label": "Kolefnisgjald",
    "group": "Auðlindir, orka & loftslag"
   },
   "skograekt": {
@@ -348,11 +373,15 @@
   },
   "ferdamannagjald": {
    "base": 0,
+   "realBase": 600,
+   "realMode": "mult",
+   "realUnit": " kr/nótt",
+   "realDec": 0,
    "min": 0,
    "max": 40,
    "step": 5,
    "unit": "%",
-   "label": "Ferðamannagjald",
+   "label": "Ferðamannagjald (gistináttaskattur)",
    "group": "Byggð & ferðaþjónusta"
   }
  },
