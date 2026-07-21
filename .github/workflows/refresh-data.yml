@@ -94,6 +94,7 @@ jobs:
           node skriptur/build_fasteignir.js   || true
           node skriptur/build_fasteignaskra.js || true
           node skriptur/build_leiga.js        || true
+          node skriptur/build_leiga_cpi.mjs   || true   # Hagstofa CPI-leiga (fersk 12-mán breyting; HMS-skrá fraus 2024F1)
           node skriptur/build_atvinnuleysi.js || true
           node skriptur/build_glaepir.js      || true
           node skriptur/build_orka.js         || true

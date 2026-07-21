@@ -2276,6 +2276,94 @@
   "source": "Launakostnaðar-drag á atvinnulíf"
  },
  {
+  "id": "ltv_gdp",
+  "from": "vedhlutfall",
+  "to": "hagvoxtur",
+  "coef": 0.04,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.08,
+  "source": "Rýmra veðhlutfall → meira íbúðalánsfé → meiri fjárfesting/neysla; herðing dregur úr (fórnarskipti varúðar)"
+ },
+ {
+  "id": "ltv_rent",
+  "from": "vedhlutfall",
+  "to": "leiga",
+  "coef": -0.06,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": -0.12,
+  "ci_hi": -0.02,
+  "source": "Herðing veðhlutfalls → erfiðara að kaupa → meiri leiguþörf → hærri leiga"
+ },
+ {
+  "id": "dsti_gdp",
+  "from": "dsti",
+  "to": "hagvoxtur",
+  "coef": 0.04,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.08,
+  "source": "Rýmra greiðslubyrðisþak → meira lánsfé → hagvöxtur; herðing dregur úr"
+ },
+ {
+  "id": "dsti_rent",
+  "from": "dsti",
+  "to": "leiga",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": -0.1,
+  "ci_hi": -0.01,
+  "source": "Herðing greiðslubyrðisþaks → færri komast í kaup → meiri leiguþörf → hærri leiga"
+ },
+ {
+  "id": "bind_gdp",
+  "from": "bindiskylda",
+  "to": "hagvoxtur",
+  "coef": -0.04,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.08,
+  "ci_hi": -0.01,
+  "source": "Hærri bindiskylda → minna útlánsfé banka → lægri fjárfesting/hagvöxtur (fórnarskipti stöðugleika)"
+ },
+ {
+  "id": "part_bal",
+  "from": "atvinnuthatttaka",
+  "to": "afkoma",
+  "coef": -0.03,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": -0.06,
+  "ci_hi": -0.01,
+  "source": "Atvinnuþátttökuhvatar (barnabætur/dagvistun/virkni) kosta ríkissjóð"
+ },
+ {
+  "id": "supply_bal",
+  "from": "frambod",
+  "to": "afkoma",
+  "coef": -0.015,
+  "lag": 2,
+  "unit": "%VLF/%",
+  "ci_lo": -0.03,
+  "ci_hi": -0.004,
+  "source": "Nýbygginga-framboð krefst opinberra innviða/þjónustu (gatnagerð/veitur/skólar) → kostnaður"
+ },
+ {
+  "id": "land_bal",
+  "from": "lodaframbod",
+  "to": "afkoma",
+  "coef": -0.01,
+  "lag": 2,
+  "unit": "%VLF/%",
+  "ci_lo": -0.025,
+  "ci_hi": -0.003,
+  "source": "Nýtt lóðaframboð krefst innviða-uppbyggingar → kostnaður"
+ },
+ {
   "id": "niip_fx",
   "from": "niip",
   "to": "gengi_endo",

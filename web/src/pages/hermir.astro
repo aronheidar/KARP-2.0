@@ -271,6 +271,9 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
     const num = (v, d = 1) => (v == null ? '–' : v.toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d }));
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lbl = (k) => BASELINE.levers[k]?.label || BASELINE.shocks[k]?.label || BASELINE.outcomes[k]?.label || k;
+    // Birting sleða-gildis: sýnir RAUN-gildi (realBase + frávik) þegar realBase er sett; annars gildið sjálft. Vélin notar áfram frávikið.
+    const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.realBase % 1 !== 0))) ? 2 : 0;
+    const disp = (cfg, v, d) => num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? cfg.unit : '');
     const driversOf = (k) => [...new Set(LINKS.filter((l) => l.to === k && l.from !== k).map((l) => lbl(l.from)))];
     // Transitive reach: hvaða útkomur nær tiltekinn sleði (fyrir hover-highlight)
     const reachFrom = (start) => { const seen = new Set(), stack = [start]; while (stack.length) { const n = stack.pop(); for (const l of LINKS) if (l.from === n && !seen.has(l.to)) { seen.add(l.to); stack.push(l.to); } } return seen; };
@@ -278,7 +281,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
     const OUT_TIP = {
       verdbolga: 'Verðbólga — árshækkun neysluverðs.', hagvoxtur: 'Hagvöxtur — árs-breyting raun-VLF.',
       atvinnuleysi: 'Skráð atvinnuleysi (% af vinnuafli).', kaupmattur: 'Kaupmáttur launa — nafnlaun umfram verðbólgu.',
-      husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting. ⚠ Grunngildi byggt á leiguskrá HMS til 2024F1 — þinglýsingarskylda leigusamninga féll niður með nýju húsaleigulögunum 2024 svo skráin fraus; uppfærist þegar nýja leiguskráin tengist.',
+      husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting. Núgildi úr Hagstofu VNV („greidd húsaleiga", mánaðarlegt, ferskt). ⚠ Nákvæm leiguskrá HMS per sveitarfélag fraus 2024F1 (þinglýsingarskylda féll niður 2024) en CPI-undirvísitalan heldur áfram.',
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
       skuldir: 'Skuldir ríkissjóðs (% VLF).', utflutningur: 'Útflutningsvöxtur — árs-breyting.', losun: 'CO₂-losun — vísitala (100 = núverandi).',
@@ -459,7 +462,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
       bar.innerHTML = `🎲 <b>Óvissu-hermun</b> — ${state.mc.n} hermar, miðgildi & 90% líkindabil eftir ${yrs} ár:<br>${meds}${probs ? '<br><span style="color:var(--faint);font-size:11.5px">Líkur á áhættum: </span>' + probs : ''}`;
     }
 
-    function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); }
+    function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = disp(cfg, v); el.classList.toggle('moved', v !== cfg.base); }
 
     // Samsett þjóðhagslegt heilsufar (0–100) — markfall sem dýnamíska leiðin (Greining) hámarkar.
     function healthAt(r, t) {
@@ -538,12 +541,12 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
     function buildControls() {
       const mk = (host, k, cfg, grp) => {
         const el = document.createElement('div'); el.className = 'sl'; el.dataset.k = k; el.title = LEV_TIP[k] || cfg.label;
-        const dec = cfg.step < 1 ? 2 : 0, val = state[grp][k] ?? cfg.base;
+        const dec = decOf(cfg), val = state[grp][k] ?? cfg.base;
         const basePct = ((cfg.base - cfg.min) / (cfg.max - cfg.min || 1)) * 100;
-        const nowLbl = grp === 'shocks' ? 'hlutlaust' : ('nú ' + num(cfg.base, dec) + cfg.unit);
-        el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><span class="sl-r"><b>${num(val, dec)}${cfg.unit}</b> <em class="sl-now" title="Núverandi raun-gildi / sjálfgefið — daufa strikið á rásinni sýnir það">${nowLbl}</em></span></div><div class="sl-track"><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}"><span class="sl-base" style="left:${basePct}%"></span></div>`;
+        const nowLbl = grp === 'shocks' ? 'hlutlaust' : ('nú ' + disp(cfg, cfg.base, dec));
+        el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><span class="sl-r"><b>${disp(cfg, val, dec)}</b> <em class="sl-now" title="Núverandi raun-gildi / sjálfgefið — daufa strikið á rásinni sýnir það">${nowLbl}</em></span></div><div class="sl-track"><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}"><span class="sl-base" style="left:${basePct}%"></span></div>`;
         const inp = el.querySelector('input'), b = el.querySelector('b');
-        inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; b.textContent = num(v, dec) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); run(); });
+        inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; b.textContent = disp(cfg, v, dec); el.classList.toggle('moved', v !== cfg.base); run(); });
         el.classList.toggle('moved', val !== cfg.base);
         el.addEventListener('mouseenter', () => { el.classList.add('hot'); highlight(k); }); el.addEventListener('mouseleave', () => { el.classList.remove('hot'); clearHighlight(); });
         host.appendChild(el);
@@ -658,7 +661,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
         const gain = d.pathDyn - d.pathConst, yr = (t) => (t / 4).toFixed(1).replace('.0', '');
         const rows = d.keys.map((k) => { const cfg = BASELINE.levers[k], p = d.phases[k]; return { k, cfg, e: p.e, l: p.l, diff: Math.abs(p.e - p.l) >= cfg.step - 1e-9 }; })
           .filter((r) => r.diff || r.e !== r.cfg.base);
-        const fmt = (v, cfg) => num(v, cfg.step < 1 ? 2 : 0) + cfg.unit;
+        const fmt = (v, cfg) => disp(cfg, v);
         const tbl = rows.length
           ? '<table class="dyn-tbl"><thead><tr><th>Ákvörðun</th><th>Áfangi 1<br><span class="dyn-sub">ár 0–' + yr(d.half) + '</span></th><th>Áfangi 2<br><span class="dyn-sub">ár ' + yr(d.half) + '–' + yr(d.H) + '</span></th></tr></thead><tbody>'
             + rows.map((r) => '<tr><td>' + lbl(r.k) + '</td><td>' + fmt(r.e, r.cfg) + '</td><td>' + fmt(r.l, r.cfg) + (r.diff ? ' <b style="color:#f6b13b">' + (r.l > r.e ? '↑' : '↓') + '</b>' : '') + '</td></tr>').join('')
@@ -822,7 +825,7 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
 
     function describeState() {
       const p = [];
-      for (const k in state.levers) if (state.levers[k] != null && state.levers[k] !== BASELINE.levers[k].base) p.push(lbl(k) + ' ' + num(state.levers[k], BASELINE.levers[k].step < 1 ? 2 : 0) + BASELINE.levers[k].unit);
+      for (const k in state.levers) if (state.levers[k] != null && state.levers[k] !== BASELINE.levers[k].base) p.push(lbl(k) + ' ' + disp(BASELINE.levers[k], state.levers[k]));
       for (const k in state.shocks) if (state.shocks[k]) p.push(lbl(k) + ' ' + (state.shocks[k] > 0 ? '+' : '') + num(state.shocks[k], 0) + BASELINE.shocks[k].unit);
       if (state.autoTay) p.push('sjálfv. vextir'); if (state.autoPhi) p.push('sjálfv. laun');
       return p.length ? p.join(', ') : 'grunnstaða';
@@ -873,8 +876,8 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
       const curV = state.levers[levKey] ?? cfg.base;
       pts.forEach((p, i) => { const near = Math.abs(p.v - curV) < (cfg.max - cfg.min) / (N - 1) / 2; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), near ? 5 : 2.6, 0, 7); ctx.fillStyle = near ? '#fff' : '#f6b13b'; ctx.fill(); });
       const dec = cfg.step < 1 ? 2 : 0;
-      ctx.fillStyle = 'rgba(159,176,200,.9)'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(cfg.label + ' = ' + num(pts[0].v, dec) + cfg.unit, X(pts[0].x) + 5, Y(pts[0].y) - 4);
-      ctx.fillText(num(pts[N - 1].v, dec) + cfg.unit, X(pts[N - 1].x) + 5, Y(pts[N - 1].y) - 4);
+      ctx.fillStyle = 'rgba(159,176,200,.9)'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(cfg.label + ' = ' + disp(cfg, pts[0].v, dec), X(pts[0].x) + 5, Y(pts[0].y) - 4);
+      ctx.fillText(disp(cfg, pts[N - 1].v, dec), X(pts[N - 1].x) + 5, Y(pts[N - 1].y) - 4);
       ctx.fillStyle = '#f6b13b'; ctx.textAlign = 'center'; ctx.font = '11px system-ui';
       ctx.fillText('X: ' + BASELINE.outcomes[xKey].label + '  ·  Y: ' + BASELINE.outcomes[yKey].label + '  (hvítur punktur = núverandi stilling)', w / 2, h - 2);
     }
@@ -901,8 +904,8 @@ const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, 
         const oK = document.getElementById('inv-out').value, lK = document.getElementById('inv-lev').value, tgt = +document.getElementById('inv-target').value;
         const cfg = BASELINE.levers[lK], dec = cfg.step < 1 ? 2 : 0, oL = BASELINE.outcomes[oK].label, us = BASELINE.outcomes[oK].unit === '% VLF' ? '%' : BASELINE.outcomes[oK].unit;
         const r = runInverse(oK, tgt, lK), el = document.getElementById('inv-result');
-        el.innerHTML = r.ok ? `✅ Stilltu <b>${cfg.label}</b> á <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} verður <b>${num(r.achieved)}${us}</b> (markmið ${num(tgt)}${us}).`
-          : `⚠ Markmiðið næst ekki með þessum sleða einum innan sviðs. Næst kemst með <b>${num(r.v, dec)}${cfg.unit}</b> → ${oL} = <b>${num(r.achieved)}${us}</b>. Prófaðu annan sleða eða raunhæfara markmið.`;
+        el.innerHTML = r.ok ? `✅ Stilltu <b>${cfg.label}</b> á <b>${disp(cfg, r.v, dec)}</b> → ${oL} verður <b>${num(r.achieved)}${us}</b> (markmið ${num(tgt)}${us}).`
+          : `⚠ Markmiðið næst ekki með þessum sleða einum innan sviðs. Næst kemst með <b>${disp(cfg, r.v, dec)}</b> → ${oL} = <b>${num(r.achieved)}${us}</b>. Prófaðu annan sleða eða raunhæfara markmið.`;
       });
       document.getElementById('dyn-go').addEventListener('click', drawDynamic);
     }

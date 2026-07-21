@@ -17,7 +17,10 @@ const inflF = g('verdlag').forecast.values;  // IMF, → 2.5
 const unemNow = g('atvinnuleysi').latest;    // 4.24
 const houseNow = g('fasteignir').direction.chg12; // 1.6
 const lq = g('leiga').quarters;
-const rentNow = lq.length >= 5 ? +(100 * (lq[lq.length - 1].medM2 / lq[lq.length - 5].medM2 - 1)).toFixed(1) : 5; // ~6.6% (2024F1, gögn stöðnuð)
+// Núverandi leigu-breyting: Hagstofa VNV undirvísitala „Greidd húsaleiga" (fersk, mánaðarleg) ef til; annars HMS-leiguskrá (fraus 2024F1).
+const LCPI = (() => { try { return g('leiga_cpi'); } catch (e) { return null; } })();
+const rentNow = (LCPI && LCPI.latest && LCPI.latest.yoy != null) ? LCPI.latest.yoy
+  : (lq.length >= 5 ? +(100 * (lq[lq.length - 1].medM2 / lq[lq.length - 5].medM2 - 1)).toFixed(1) : 5);
 const popNow = g('mannfjoldi').POP.yoy; // 1.3 (%/ári)
 const LT = g('langtima'); const ltI = LT.ar.indexOf(2026);
 const balNow = LT.afkoma[ltI] ?? -0.65, debtNow = LT.skuldir[ltI] ?? 38.8;
@@ -61,10 +64,10 @@ const baseline = {
     bindiskylda: { base: 0, min: -5, max: 15, step: 1, unit: '%', label: 'Bindiskylda banka (frávik)', group: 'Peningastefna & varúð' },
     verdtrygging: { base: 40, min: 0, max: 80, step: 10, unit: '%', label: 'Verðtrygging húsnæðislána (hlutfall nýrra lána)', group: 'Peningastefna & varúð' },
     // Ríkisfjármál & skattar
-    skattar: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Tekjuskattur (frávik)', group: 'Ríkisfjármál & skattar' },
-    fjarmagnstekjuskattur: { base: 0, min: -10, max: 15, step: 1, unit: '%', label: 'Fjármagnstekjuskattur (frávik)', group: 'Ríkisfjármál & skattar' },
-    tryggingagjald: { base: 0, min: -5, max: 8, step: 1, unit: '%', label: 'Tryggingagjald (launatengt, frávik)', group: 'Ríkisfjármál & skattar' },
-    vsk: { base: 0, min: -4, max: 6, step: 1, unit: '%', label: 'Virðisaukaskattur (frávik)', group: 'Ríkisfjármál & skattar' },
+    skattar: { base: 0, realBase: 37, min: -15, max: 15, step: 1, unit: '%', label: 'Tekjuskattur (samsett jaðar)', group: 'Ríkisfjármál & skattar' },
+    fjarmagnstekjuskattur: { base: 0, realBase: 22, min: -10, max: 15, step: 1, unit: '%', label: 'Fjármagnstekjuskattur', group: 'Ríkisfjármál & skattar' },
+    tryggingagjald: { base: 0, realBase: 6.35, min: -5, max: 8, step: 1, unit: '%', label: 'Tryggingagjald (launatengt)', group: 'Ríkisfjármál & skattar' },
+    vsk: { base: 0, realBase: 24, min: -4, max: 6, step: 1, unit: '%', label: 'Virðisaukaskattur', group: 'Ríkisfjármál & skattar' },
     utgjold: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Útgjöld ríkis (frávik)', group: 'Ríkisfjármál & skattar' },
     tilfaerslur: { base: 0, min: -10, max: 20, step: 5, unit: '%', label: 'Tilfærslur (barna-/vaxtabætur)', group: 'Ríkisfjármál & skattar' },
     innvidir: { base: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Innviðafjárfesting', group: 'Ríkisfjármál & skattar' },
@@ -386,6 +389,17 @@ const links = [
   { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.06, lag: 1, unit: '%VLF/%', ci_lo: 0.03, ci_hi: 0.1, source: 'Tryggingagjald (breiður launastofn) → tekjur ríkissjóðs' },
   { id: 'payroll_unem', from: 'tryggingagjald', to: 'atvinnuleysi', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Hærra launatengt gjald → hærri launakostnaður → minni ráðning' },
   { id: 'payroll_gdp', from: 'tryggingagjald', to: 'hagvoxtur', coef: -0.03, lag: 2, unit: 'pp/%', ci_lo: -0.07, ci_hi: -0.01, source: 'Launakostnaðar-drag á atvinnulíf' },
+  // ── TVÍHLIÐA-JÖFNUÐUR: fórnarskipti sem vantaði (sleðar sem höfðu áður BARA jákvæð/neikvæð áhrif) ──
+  // Þjóðhagsvarúð (LTV/DSTI/bindiskylda): herðing bætir húsnæðis-viðráðanleika EN heftir lánsfé → lægri hagvöxtur + meiri leiguþörf.
+  { id: 'ltv_gdp', from: 'vedhlutfall', to: 'hagvoxtur', coef: 0.04, lag: 2, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Rýmra veðhlutfall → meira íbúðalánsfé → meiri fjárfesting/neysla; herðing dregur úr (fórnarskipti varúðar)' },
+  { id: 'ltv_rent', from: 'vedhlutfall', to: 'leiga', coef: -0.06, lag: 2, unit: '%/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Herðing veðhlutfalls → erfiðara að kaupa → meiri leiguþörf → hærri leiga' },
+  { id: 'dsti_gdp', from: 'dsti', to: 'hagvoxtur', coef: 0.04, lag: 2, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Rýmra greiðslubyrðisþak → meira lánsfé → hagvöxtur; herðing dregur úr' },
+  { id: 'dsti_rent', from: 'dsti', to: 'leiga', coef: -0.05, lag: 2, unit: '%/%', ci_lo: -0.1, ci_hi: -0.01, source: 'Herðing greiðslubyrðisþaks → færri komast í kaup → meiri leiguþörf → hærri leiga' },
+  { id: 'bind_gdp', from: 'bindiskylda', to: 'hagvoxtur', coef: -0.04, lag: 2, unit: 'pp/%', ci_lo: -0.08, ci_hi: -0.01, source: 'Hærri bindiskylda → minna útlánsfé banka → lægri fjárfesting/hagvöxtur (fórnarskipti stöðugleika)' },
+  // Hvatar sem kosta ríkissjóð (voru áður „ókeypis"):
+  { id: 'part_bal', from: 'atvinnuthatttaka', to: 'afkoma', coef: -0.03, lag: 1, unit: '%VLF/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Atvinnuþátttökuhvatar (barnabætur/dagvistun/virkni) kosta ríkissjóð' },
+  { id: 'supply_bal', from: 'frambod', to: 'afkoma', coef: -0.015, lag: 2, unit: '%VLF/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Nýbygginga-framboð krefst opinberra innviða/þjónustu (gatnagerð/veitur/skólar) → kostnaður' },
+  { id: 'land_bal', from: 'lodaframbod', to: 'afkoma', coef: -0.01, lag: 2, unit: '%VLF/%', ci_lo: -0.025, ci_hi: -0.003, source: 'Nýtt lóðaframboð krefst innviða-uppbyggingar → kostnaður' },
   { id: 'niip_fx', from: 'niip', to: 'gengi_endo', coef: 0.02, lag: 2, unit: '%/%VLF', ci_lo: 0.005, ci_hi: 0.04, source: 'Sterk erlend staða → stöðugri/sterkari króna' },
   { id: 'ca_fx', from: 'vidskiptajofnudur', to: 'gengi_endo', coef: 0.3, lag: 1, unit: '%/%VLF', ci_lo: 0.1, ci_hi: 0.55, source: 'Viðskiptaafgangur → gjaldeyris-innflæði → sterkari króna' },
   // ── Dreifing & heimili (module 13): tekjujöfnuður ──
