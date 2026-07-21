@@ -37,7 +37,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         <button id="frett" type="button" title="Býr til skriflega lýsingu á mannamáli á núverandi sviðsmynd — tilbúna til að afrita.">📄 Skrifleg lýsing</button>
         <button id="game" type="button" title="Kveikir á áskorunum — leystu þjóðhagsleg þrautir með því að stilla ákvarðanir. Uppfærist jafnóðum.">🎮 Áskoranir</button>
       </div>
-      <div class="center"><div id="hero" class="hero"></div><div id="charts" class="charts"></div></div>
+      <div class="center"><div id="hero" class="hero"></div><div id="tabnote" hidden></div><div id="charts" class="charts"></div></div>
       <div class="controls" id="ctl-right">
         <div class="ctl-h">⚡ Ytri áhrif</div>
         <div id="shocks"></div>
@@ -45,7 +45,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       </div>
     </div>
     <div id="modelview" class="modelview" hidden>
-      <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover/smelltu á hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span></div><div id="chainmap"></div></div>
+      <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover eða smelltu til að festa hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span><span style="color:#f6b13b">⟳ uppsafnaður stofn</span></div><div id="chainmap"></div></div>
       <div id="backtest" class="backtest"></div>
       <div id="fiscalplan" class="backtest"></div>
       <div id="calibration" class="backtest"></div>
@@ -179,6 +179,8 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     main[data-pg="roads"] .sl.moved .sl-now { color: #6ea8fe; }
     main[data-pg="roads"] .sl-track { position: relative; margin: 2px 0 0; }
     main[data-pg="roads"] .sl-track input[type=range] { width: 100%; accent-color: #f6b13b; margin: 0; display: block; }
+    main[data-pg="roads"] :focus-visible { outline: 2px solid #f6b13b; outline-offset: 2px; border-radius: 5px; }   /* aðgengi: sýnilegur lyklaborðs-fókus (WCAG 2.4.7) */
+    main[data-pg="roads"] input[type=range]:focus-visible { outline-offset: 5px; }
     main[data-pg="roads"] .sl-base { position: absolute; top: 50%; width: 2px; height: 13px; background: rgba(255,255,255,.5); border-radius: 1px; transform: translate(-50%,-50%); pointer-events: none; }
     main[data-pg="roads"] .hint { font-size: 11px; color: var(--faint); margin: 10px 0 0; }
     main[data-pg="roads"] #karp { width: 100%; margin: 0 0 10px; background: linear-gradient(180deg, #f6b13b, #e0961f); border: none; color: #1a1204; border-radius: 9px; padding: 9px; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 1px 6px rgba(246,177,59,.3); }
@@ -286,7 +288,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     const OUT_TIP = {
       verdbolga: 'Verðbólga — árshækkun neysluverðs.', hagvoxtur: 'Hagvöxtur — árs-breyting raun-VLF.',
       atvinnuleysi: 'Skráð atvinnuleysi (% af vinnuafli).', kaupmattur: 'Kaupmáttur launa — nafnlaun umfram verðbólgu.', launaskrid: 'Launaskrið — endógen nafnlauna-hækkun umfram kjarasamninga (verðbólga → vísitölutenging → launaskrið → aftur í verðbólgu). Lokar launa-verð spíralnum.',
-      husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting. Núgildi úr Hagstofu VNV („greidd húsaleiga", mánaðarlegt, ferskt). ⚠ Nákvæm leiguskrá HMS per sveitarfélag fraus 2024F1 (þinglýsingarskylda féll niður 2024) en CPI-undirvísitalan heldur áfram.',
+      husnaedi: 'Húsnæðisverð — 12-mán breyting. Litamat miðast við VIÐRÁÐANLEIKA (kaupendur/leigjendur): hækkun = rautt. Eigendur hagnast þó á hækkun — auðsáhrifin (wealth_gdp) eru samt í módelinu.', leiga: 'Leiga — 12-mán breyting. Núgildi úr Hagstofu VNV („greidd húsaleiga", mánaðarlegt, ferskt). ⚠ Nákvæm leiguskrá HMS per sveitarfélag fraus 2024F1 (þinglýsingarskylda féll niður 2024) en CPI-undirvísitalan heldur áfram.',
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
       skuldir: 'Skuldir ríkissjóðs (% VLF).', utflutningur: 'Útflutningsvöxtur — árs-breyting.', losun: 'CO₂-losun — vísitala (100 = núverandi).',
@@ -420,8 +422,31 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       if (state.autoPhi) syncSlider('laun', L.laun);
       const r = simulate({ baseline: BASELINE, links: LINKS, levers: L, shocks: state.shocks, quarters: state.horizon });
       state._lastR = r;
-      drawHealth(r); drawScore(r); drawHero(r); drawCharts(r); if (state.gameOn) drawChallenges(r);
+      drawHealth(r); drawScore(r); drawHero(r); drawAflaregla(r); drawCharts(r); if (state.gameOn) drawChallenges(r);
       serialize();
+    }
+
+    // Aflaregla-viðmið (aðeins Auðlindir-flipi): ber VALIÐ aflamark saman við það sem aflaregla (ráðlagt aflamark ∝ stofnstærð) leyfir.
+    // Kennslufræðilegt viðmið — sýnir sjálfbærni-togstreitu aflamarks beint, ekki formleg Hafró-ráðgjöf.
+    function drawAflaregla(r) {
+      const host = document.getElementById('tabnote'); if (!host) return;
+      if (curTab().id !== 'audlindir' || !r.outcomes.fiskistofn) { host.hidden = true; host.innerHTML = ''; return; }
+      const cfg = BASELINE.levers.kvoti, refTAC = cfg.realBase;               // 211 þús. tonn þegar stofn = 100
+      const kvoti = state.levers.kvoti ?? cfg.base;
+      const chosen = refTAC * (1 + kvoti / 100);                             // valið aflamark
+      const stockEnd = r.outcomes.fiskistofn.mid[r.outcomes.fiskistofn.mid.length - 1];
+      const rec = refTAC * (stockEnd / 100);                                 // aflaregla: ráðlagt aflamark skalast með stofnstærð
+      const over = chosen > rec * 1.02, under = chosen < rec * 0.98;
+      const col = over ? '#e78284' : under ? '#8bb5f0' : '#54d08a';
+      const msg = over
+        ? `⚠ <b>Ofveiði</b> — valið aflamark (${num(chosen, 0)} þús. t) er yfir aflaregluviðmiði miðað við stofninn (${num(rec, 0)} þús. t). Skammtíma-afli á kostnað stofnsins → minni sjálfbær afli síðar.`
+        : under
+          ? `🌱 <b>Uppbygging</b> — valið aflamark (${num(chosen, 0)} þús. t) er undir aflaregluviðmiði (${num(rec, 0)} þús. t). Stofninn byggist upp → meiri sjálfbær afli þegar frá líður.`
+          : `✅ <b>Í jafnvægi</b> — valið aflamark (${num(chosen, 0)} þús. t) er í takt við það sem stofnstærðin ber (${num(rec, 0)} þús. t).`;
+      host.hidden = false;
+      host.innerHTML = `<div style="border-left:3px solid ${col};background:rgba(255,255,255,.03);border-radius:8px;padding:9px 12px;margin:2px 0 0;font-size:12.5px;line-height:1.5">`
+        + `<span style="color:${col};font-weight:700">🎣 Aflaregla</span> — ${msg}`
+        + `<span style="display:block;color:var(--faint);font-size:11px;margin-top:4px">Viðmið: ráðlagt aflamark ∝ stofnstærð (afli-regla ráðgjafar). Fiskistofn eftir ${state.horizon > BASELINE.quarters ? '10 ár' : '3 ár'}: <b>${num(stockEnd, 0)}</b> (100 = grunnspá).</span></div>`;
     }
 
     // Hero-rit hvers flipa: breið fjöl-lína af lykil-hagvísum (deilt ás), grunnferill punktaður, valkvæð markmiðs-lína.
@@ -490,7 +515,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       bar.innerHTML = `🎲 <b>Óvissu-hermun</b> — ${state.mc.n} hermar, miðgildi & 90% líkindabil eftir ${yrs} ár:<br>${meds}${probs ? '<br><span style="color:var(--faint);font-size:11.5px">Líkur á áhættum: </span>' + probs : ''}`;
     }
 
-    function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = disp(cfg, v); el.classList.toggle('moved', v !== cfg.base); }
+    function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; const d = disp(cfg, v); b.textContent = d; inp.setAttribute('aria-valuetext', d); el.classList.toggle('moved', v !== cfg.base); }
 
     // Samsett þjóðhagslegt heilsufar (0–100) — markfall sem dýnamíska leiðin (Greining) hámarkar.
     function healthAt(r, t) {
@@ -525,7 +550,11 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       const host = document.getElementById('charts'); host.innerHTML = '';
       const cmpR = state.compare ? state.compare.r : null;
       const tab = curTab(), outList = tab.out || Object.keys(r.outcomes);
-      for (const k of outList) { const o = r.outcomes[k]; if (!o) continue; const { dlt, c } = dInfo(o, k); const end = o.mid[o.mid.length - 1];
+      const mcOn = !!state.mc;   // óvissu-hermun: sýna MC-viftu (fjólublátt) á smákortunum líka, ekki bara hero
+      for (const k of outList) { const raw = r.outcomes[k]; if (!raw) continue;
+        const mck = mcOn && state.mc.outcomes[k];
+        const o = mck ? { ...raw, lo: state.mc.outcomes[k].p5, hi: state.mc.outcomes[k].p95, mid: state.mc.outcomes[k].p50 } : raw;
+        const { dlt, c } = dInfo(o, k); const end = o.mid[o.mid.length - 1];
         const cmp = cmpR ? cmpR.outcomes[k] : null; const us = o.unit === '% VLF' ? '%' : o.unit;
         const idx = o.unit === '' ? ' (vísitala)' : ''; // vísitölur: 100 = staðan í dag
         const today = o.baseline[0]; // raun-gildi í dag (upphaf grunnferils)
@@ -533,7 +562,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         card.title = (OUT_TIP[k] || o.label) + (driversOf(k).length ? ' Drifið af: ' + driversOf(k).join(', ') + '.' : '') + ' (grænt=jákvæð þróun, gult=hlutlaust, rautt=neikvæð fyrir þennan hagvísi).';
         card.innerHTML = `<div class="c-h"><span class="c-t">${o.label}</span><span class="c-d" style="color:${c}">${dlt >= 0 ? '+' : ''}${num(dlt)}</span></div><div class="c-v">${num(end)}${us}${cmp ? ` <span class="c-b">⚖ ${num(cmp.mid[cmp.mid.length - 1])}${us}</span>` : ''}</div><div class="c-now">í dag: ${num(today)}${us}${idx}</div><canvas class="c-cv"></canvas><div class="c-g" title="Staða lokagildis innan mögulegs bils; hvíta strikið = grunnferill (BAU)"><span class="c-gb"></span><span class="c-gm"></span></div>`;
         host.appendChild(card);
-        drawTrace(card.querySelector('canvas'), o, cmp, c);
+        drawTrace(card.querySelector('canvas'), o, cmp, c, mck);
         const cl = (BASELINE.clamp || {})[k] || [Math.min(...o.lo), Math.max(...o.hi)];
         const pos = (v) => Math.max(0, Math.min(1, (v - cl[0]) / (cl[1] - cl[0] || 1)));
         const gm = card.querySelector('.c-gm'), gb = card.querySelector('.c-gb');
@@ -542,7 +571,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       }
     }
 
-    function drawTrace(cv, o, cmp, vcol) {
+    function drawTrace(cv, o, cmp, vcol, mc) {
       const dpr = Math.min(2, window.devicePixelRatio || 1); const w = cv.clientWidth, h = 88; cv.width = w * dpr; cv.height = h * dpr;
       const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
       const all = cmp ? o.mid.concat(cmp.mid) : o.lo.concat(o.hi, o.baseline); let mn = Math.min(...all), mx = Math.max(...all);
@@ -556,7 +585,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         ctx.fillStyle = '#5ac8e0'; ctx.fillText(num(cmp.mid[n - 1]), X(n - 1) - 1, Y(cmp.mid[n - 1]) + 11);
         return;
       }
-      const col = vcol || '#f6b13b', bandCol = BAND[col] || 'rgba(246,177,59,.13)';
+      const col = vcol || '#f6b13b', bandCol = mc ? 'rgba(185,140,255,.17)' : (BAND[col] || 'rgba(246,177,59,.13)');   // fjólublátt = MC-líkindabil, gult = CI
       ctx.beginPath(); ctx.moveTo(X(0), Y(o.hi[0])); for (let i = 1; i < n; i++) ctx.lineTo(X(i), Y(o.hi[i])); for (let i = n - 1; i >= 0; i--) ctx.lineTo(X(i), Y(o.lo[i])); ctx.closePath(); ctx.fillStyle = bandCol; ctx.fill();
       line(o.baseline, 'rgba(255,255,255,.28)', 1.4, [4, 4]); line(o.mid, col, 2.2);
       ctx.fillStyle = 'rgba(159,176,200,.85)'; ctx.font = '10px system-ui'; ctx.textBaseline = 'alphabetic';
@@ -573,11 +602,13 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         const dec = cfg.realMode === 'mult' ? (cfg.realDec ?? 0) : decOf(cfg), val = state[grp][k] ?? cfg.base;
         const basePct = ((cfg.base - cfg.min) / (cfg.max - cfg.min || 1)) * 100;
         const nowLbl = grp === 'shocks' ? 'hlutlaust' : ('nú ' + disp(cfg, cfg.base, dec));
-        el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><span class="sl-r"><b>${disp(cfg, val, dec)}</b> <em class="sl-now" title="Núverandi raun-gildi / sjálfgefið — daufa strikið á rásinni sýnir það">${nowLbl}</em></span></div><div class="sl-track"><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}"><span class="sl-base" style="left:${basePct}%"></span></div>`;
+        el.innerHTML = `<div class="sl-t"><span>${cfg.label}</span><span class="sl-r"><b>${disp(cfg, val, dec)}</b> <em class="sl-now" title="Núverandi raun-gildi / sjálfgefið — daufa strikið á rásinni sýnir það">${nowLbl}</em></span></div><div class="sl-track"><input type="range" min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}" aria-label="${cfg.label.replace(/"/g, '')}" aria-valuetext="${disp(cfg, val, dec)}"><span class="sl-base" style="left:${basePct}%"></span></div>`;
         const inp = el.querySelector('input'), b = el.querySelector('b');
-        inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; b.textContent = disp(cfg, v, dec); el.classList.toggle('moved', v !== cfg.base); run(); });
+        inp.addEventListener('input', () => { const v = +inp.value; state[grp][k] = v; const d = disp(cfg, v, dec); b.textContent = d; inp.setAttribute('aria-valuetext', d); el.classList.toggle('moved', v !== cfg.base); run(); });
         el.classList.toggle('moved', val !== cfg.base);
+        // hover OG lyklaborðs-fókus lýsa upp keðjuna (aðgengi — var aðeins hover)
         el.addEventListener('mouseenter', () => { el.classList.add('hot'); highlight(k); }); el.addEventListener('mouseleave', () => { el.classList.remove('hot'); clearHighlight(); });
+        inp.addEventListener('focus', () => { el.classList.add('hot'); highlight(k); }); inp.addEventListener('blur', () => { el.classList.remove('hot'); clearHighlight(); });
         host.appendChild(el);
       };
       const lh = document.getElementById('levers'), sh = document.getElementById('shocks'); lh.innerHTML = ''; sh.innerHTML = '';
@@ -832,24 +863,30 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       }
       svg.appendChild(gE);
       const nodeEls = {};
+      const stockKeys = new Set(LINKS.filter((l) => l.from === l.to).map((l) => l.from));   // B17: sjálf-lykkja (lag≥1) = UPPSAFNAÐUR STOFN → ⟳-merki
+      let pinned = null;   // B17: smellur festir hnút (highlight helst þar til smellt aftur eða á auðan flöt)
       for (const k of [...inputs, ...outs]) {
         const p = pos[k]; if (!p) continue;
-        const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cm-node'); g.dataset.k = k;
+        const isStock = stockKeys.has(k);
+        const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'cm-node'); g.dataset.k = k; g.style.cursor = 'pointer';
         const rect = document.createElementNS(NS, 'rect'); rect.setAttribute('x', p.x); rect.setAttribute('y', p.y); rect.setAttribute('width', NW); rect.setAttribute('height', NH); rect.setAttribute('rx', 5);
         rect.setAttribute('fill', isOut(k) ? 'rgba(159,176,200,.16)' : isShock(k) ? 'rgba(246,177,59,.22)' : 'rgba(110,168,254,.22)');
-        const t = document.createElementNS(NS, 'text'); t.setAttribute('x', p.x + 8); t.setAttribute('y', p.y + NH / 2 + 3.5); let la = lbl(k); if (la.length > 20) la = la.slice(0, 19) + '…'; t.textContent = la;
-        const tt = document.createElementNS(NS, 'title'); tt.textContent = lbl(k) + (driversOf(k).length ? ' ← ' + driversOf(k).join(', ') : '');
+        const t = document.createElementNS(NS, 'text'); t.setAttribute('x', p.x + 8); t.setAttribute('y', p.y + NH / 2 + 3.5); let la = lbl(k); const maxc = isStock ? 18 : 20; if (la.length > maxc) la = la.slice(0, maxc - 1) + '…'; t.textContent = la;
+        const tt = document.createElementNS(NS, 'title'); tt.textContent = lbl(k) + (isStock ? ' ⟳ uppsafnaður stofn (safnar upp yfir tíma)' : '') + (driversOf(k).length ? ' ← ' + driversOf(k).join(', ') : '');
         g.appendChild(rect); g.appendChild(t); g.appendChild(tt);
+        if (isStock) { const s = document.createElementNS(NS, 'text'); s.setAttribute('x', p.x + NW - 6); s.setAttribute('y', p.y + NH / 2 + 4); s.setAttribute('text-anchor', 'end'); s.setAttribute('fill', '#f6b13b'); s.setAttribute('font-size', '11'); s.setAttribute('pointer-events', 'none'); s.textContent = '⟳'; g.appendChild(s); }
         g.addEventListener('mouseenter', () => hoverNode(k)); g.addEventListener('mouseleave', clearHover);
+        g.addEventListener('click', (ev) => { ev.stopPropagation(); pinned = pinned === k ? null : k; pinned ? hoverNode(k) : clearHover(); });
         svg.appendChild(g); nodeEls[k] = g;
       }
       host.innerHTML = ''; host.appendChild(svg);
+      svg.addEventListener('click', () => { if (pinned) { pinned = null; clearHover(); } });   // smellur á auðan flöt af-festir
       function hoverNode(k) {
         const conn = new Set([k]);
         edgeEls.forEach((e) => { const on = e.from === k || e.to === k; e.el.setAttribute('opacity', on ? '0.95' : '0.03'); e.el.setAttribute('stroke-width', on ? '2.2' : '1'); if (on) { conn.add(e.from); conn.add(e.to); } });
-        for (const nk in nodeEls) nodeEls[nk].setAttribute('opacity', conn.has(nk) ? '1' : '0.25');
+        for (const nk in nodeEls) { nodeEls[nk].setAttribute('opacity', conn.has(nk) ? '1' : '0.25'); const r = nodeEls[nk].firstChild; if (nk === pinned) { r.setAttribute('stroke', '#f6b13b'); r.setAttribute('stroke-width', '1.6'); } else { r.removeAttribute('stroke'); } }
       }
-      function clearHover() { edgeEls.forEach((e) => { e.el.setAttribute('opacity', '0.13'); e.el.setAttribute('stroke-width', '1.2'); }); for (const nk in nodeEls) nodeEls[nk].setAttribute('opacity', '1'); }
+      function clearHover() { if (pinned) { hoverNode(pinned); return; } edgeEls.forEach((e) => { e.el.setAttribute('opacity', '0.13'); e.el.setAttribute('stroke-width', '1.2'); }); for (const nk in nodeEls) { nodeEls[nk].setAttribute('opacity', '1'); nodeEls[nk].firstChild.removeAttribute('stroke'); } }
     }
 
     function describeState() {
@@ -1029,10 +1066,10 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     }
 
     function buildTabs() {
-      const bar = document.getElementById('tabbar'); bar.innerHTML = '';
-      TABS.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.title = t.label; b.classList.toggle('on', t.id === state.tab); b.addEventListener('click', () => switchTab(t.id)); bar.appendChild(b); });
+      const bar = document.getElementById('tabbar'); bar.innerHTML = ''; bar.setAttribute('role', 'tablist');
+      TABS.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.title = t.label; b.setAttribute('role', 'tab'); const on = t.id === state.tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); b.addEventListener('click', () => switchTab(t.id)); bar.appendChild(b); });
     }
-    function switchTab(id) { state.tab = id; [...document.getElementById('tabbar').children].forEach((b, i) => b.classList.toggle('on', TABS[i].id === id)); renderTab(); serialize(); }
+    function switchTab(id) { state.tab = id; [...document.getElementById('tabbar').children].forEach((b, i) => { const on = TABS[i].id === id; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); }); renderTab(); serialize(); }
     function renderTab() {
       const tab = curTab(), isModel = !!tab.model, isAn = tab.special === 'analysis';
       document.getElementById('body3').hidden = isModel || isAn;
@@ -1063,9 +1100,9 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       document.getElementById('cmp').addEventListener('click', () => { state.compare = state.compare ? null : { r: state._lastR, desc: describeState() }; updateCmp(); run(); });
       document.getElementById('mc').addEventListener('click', (e) => {
         const btn = e.currentTarget;
-        if (state.mc) { state.mc = null; btn.classList.remove('on'); document.getElementById('mcbar').hidden = true; drawHero(state._lastR); return; }
+        if (state.mc) { state.mc = null; btn.classList.remove('on'); document.getElementById('mcbar').hidden = true; drawHero(state._lastR); drawCharts(state._lastR); return; }
         const t0 = btn.textContent; btn.textContent = '⏳ Hermar…'; btn.disabled = true;
-        setTimeout(() => { runMC(); btn.classList.add('on'); btn.textContent = t0; btn.disabled = false; drawHero(state._lastR); drawMCbar(); }, 20);
+        setTimeout(() => { runMC(); btn.classList.add('on'); btn.textContent = t0; btn.disabled = false; drawHero(state._lastR); drawCharts(state._lastR); drawMCbar(); }, 20);
       });
       document.getElementById('share').addEventListener('click', (e) => { const b = e.currentTarget; navigator.clipboard.writeText(location.href).then(() => { b.classList.add('ok'); const t = b.textContent; b.textContent = '✓ Hlekkur afritaður'; setTimeout(() => { b.classList.remove('ok'); b.textContent = t; }, 1800); }).catch(() => {}); });
       document.getElementById('frett').addEventListener('click', generateNarrative);
