@@ -182,6 +182,10 @@
   },
   "tilfaerslur": {
    "base": 0,
+   "realBase": 20,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 0,
    "min": -10,
    "max": 20,
    "step": 5,
@@ -191,6 +195,10 @@
   },
   "innvidir": {
    "base": 0,
+   "realBase": 90,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 0,
    "min": -10,
    "max": 30,
    "step": 5,
@@ -213,6 +221,10 @@
   },
   "ivilnanir": {
    "base": 0,
+   "realBase": 13,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 0,
    "min": -10,
    "max": 40,
    "step": 5,
@@ -222,6 +234,10 @@
   },
   "menntun": {
    "base": 0,
+   "realBase": 50,
+   "realMode": "mult",
+   "realUnit": " ma.kr.",
+   "realDec": 0,
    "min": -10,
    "max": 30,
    "step": 5,
@@ -244,6 +260,10 @@
   },
   "leiguhusnaedi": {
    "base": 0,
+   "realBase": 0.8,
+   "realMode": "mult",
+   "realUnit": " þús. íbúðir/ári",
+   "realDec": 1,
    "min": 0,
    "max": 40,
    "step": 5,
@@ -253,6 +273,7 @@
   },
   "lodaframbod": {
    "base": 0,
+   "stance": true,
    "min": -10,
    "max": 40,
    "step": 5,
@@ -271,6 +292,7 @@
   },
   "atvinnuthatttaka": {
    "base": 0,
+   "stance": true,
    "min": -5,
    "max": 15,
    "step": 1,
@@ -280,6 +302,7 @@
   },
   "innflytjendastefna": {
    "base": 0,
+   "stance": true,
    "min": -20,
    "max": 40,
    "step": 5,
@@ -311,6 +334,7 @@
   },
   "fridun": {
    "base": 0,
+   "stance": true,
    "min": 0,
    "max": 30,
    "step": 5,
@@ -333,6 +357,7 @@
   },
   "orkuskipti": {
    "base": 0,
+   "stance": true,
    "min": -10,
    "max": 40,
    "step": 5,
@@ -355,6 +380,10 @@
   },
   "skograekt": {
    "base": 0,
+   "realBase": 4,
+   "realMode": "mult",
+   "realUnit": " þús. ha/ári",
+   "realDec": 1,
    "min": 0,
    "max": 40,
    "step": 5,
@@ -364,6 +393,7 @@
   },
   "byggdastefna": {
    "base": 0,
+   "stance": true,
    "min": -10,
    "max": 40,
    "step": 5,

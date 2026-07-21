@@ -275,6 +275,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.realBase % 1 !== 0))) ? 2 : 0;
     // Birting raun-gildis: 'add' = realBase + frávik (sömu ein., t.d. skattar %); 'mult' = realBase × (1 + frávik%/100) (t.d. veiðigjald ma.kr.). Vélin notar áfram frávikið.
     const disp = (cfg, v, d) => {
+      if (cfg && cfg.stance) return v === (cfg.base ?? 0) ? 'óbreytt' : (v > 0 ? '+' : '') + num(v, 0) + '% átak';   // stefnu-/átaks-sleðar: „óbreytt" í stað nakins 0%
       if (cfg && cfg.realBase != null && cfg.realMode === 'mult') return num(cfg.realBase * (1 + v / 100), d != null ? d : (cfg.realDec ?? 0)) + (cfg.realUnit || cfg.unit);
       return num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? cfg.unit : '');
     };
@@ -341,8 +342,8 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       veidigjald: 'Veiðigjald (frávik) — auðlindarenta til ríkis. Bætir afkomu, dregur lítillega úr sóknarhvata (heilbrigðari stofn), íþyngir sjávarbyggðum.',
       leiguhusnaedi: 'Félagslegt/leiguhúsnæði — opinbert leiguframboð. Lækkar leigu (tafið); kostar ríkissjóð.',
       lodaframbod: 'Lóðaframboð & skipulag — losar byggingarland. Lækkar húsnæðisverð með langri töf (uppstreymis-tæki vs nýbygginga-framboð).',
-      atvinnuthatttaka: 'Atvinnuþátttökuhvatar — fjölga á vinnumarkaði. → aukið vinnuafl, lægra framfærsluhlutfall.',
-      innflytjendastefna: 'Innflytjendastefna (atvinnuleyfi/atgervi). Stýrður vinnualdurs-innflutningur → vinnuafl↑, framfærsla↓, en húsnæðiseftirspurn↑.',
+      atvinnuthatttaka: 'Atvinnuþátttökuhvatar — átak til að fjölga á vinnumarkaði (atvinnuþátttaka ~82% í dag). „óbreytt" = engin viðbót. → aukið vinnuafl, lægra framfærsluhlutfall.',
+      innflytjendastefna: 'Innflytjendastefna (atvinnuleyfi/atgervi) — átaks-stig (nettó-aðflutningur ~7 þús./ári í dag). „óbreytt" = óbreytt stefna. Stýrður vinnualdurs-innflutningur → vinnuafl↑, framfærsla↓, húsnæðiseftirspurn↑.',
       fridun: 'Friðun/verndarsvæði sjávar. Byggir upp fiskistofn (tafið) á kostnað minni veiðisvæða til skamms tíma.',
       orkuskipti: 'Orkuskipta-hvati — rafvæðing samgangna (rafbílar/innviðir). Lækkar CO₂-losun; kostar ríkissjóð.',
       skograekt: 'Skógrækt & kolefnisbinding. Bindur kolefni (löng töf → losun↓); kostar til skamms tíma.',
