@@ -257,7 +257,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
     const TABS = [
       { id: 'yfirlit', label: '📊 Yfirlit', levers: [], shocks: [], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'husnaedi', 'leiga', 'afkoma', 'skuldir', 'vanskil'] },
-      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'verdtrygging', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'gengi_endo', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
+      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'verdtrygging', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'launaskrid', 'gengi_endo', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
       { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti', 'verdtrygging'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
       { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'fjarmagnstekjuskattur', 'tryggingagjald', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur', 'jofnudur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
       { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
@@ -285,7 +285,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
 
     const OUT_TIP = {
       verdbolga: 'Verðbólga — árshækkun neysluverðs.', hagvoxtur: 'Hagvöxtur — árs-breyting raun-VLF.',
-      atvinnuleysi: 'Skráð atvinnuleysi (% af vinnuafli).', kaupmattur: 'Kaupmáttur launa — nafnlaun umfram verðbólgu.',
+      atvinnuleysi: 'Skráð atvinnuleysi (% af vinnuafli).', kaupmattur: 'Kaupmáttur launa — nafnlaun umfram verðbólgu.', launaskrid: 'Launaskrið — endógen nafnlauna-hækkun umfram kjarasamninga (verðbólga → vísitölutenging → launaskrið → aftur í verðbólgu). Lokar launa-verð spíralnum.',
       husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting. Núgildi úr Hagstofu VNV („greidd húsaleiga", mánaðarlegt, ferskt). ⚠ Nákvæm leiguskrá HMS per sveitarfélag fraus 2024F1 (þinglýsingarskylda féll niður 2024) en CPI-undirvísitalan heldur áfram.',
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
@@ -353,7 +353,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     };
     const SCORE_KEYS = ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'husnaedi', 'afkoma'];
     // Formerki hvers hagvísis: +1 = hærra er BETRA, −1 = hærra er VERRA, 0 = hlutlaust.
-    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0, lifeyriseignir: 1, hlutabref: 1, vidskiptajofnudur: 1, niip: 1, jofnudur: 1, peningamagn: 0, utlanavoxtur: 0, vaxtaalag: -1, heimilaskuldir: -1, einkajofnudur: 0, vlf_sjavar: 1, vlf_ferda: 1, vlf_idnadur: 1 };
+    const POLARITY = { hagvoxtur: 1, kaupmattur: 1, launaskrid: 0, afkoma: 1, utflutningur: 1, vinnuafl: 1, byggdajofnudur: 1, nyskopun: 1, fiskistofn: 1, verdbolga: -1, atvinnuleysi: -1, husnaedi: -1, husnaedi_hbs: -1, husnaedi_land: -1, leiga: -1, greidslubyrdi: -1, skuldir: -1, losun: -1, vanskil: -1, framfaersla: -1, mannfjoldi: 0, folksfjoldi: 0, gengi_endo: 0, lifeyriseignir: 1, hlutabref: 1, vidskiptajofnudur: 1, niip: 1, jofnudur: 1, peningamagn: 0, utlanavoxtur: 0, vaxtaalag: -1, heimilaskuldir: -1, einkajofnudur: 0, vlf_sjavar: 1, vlf_ferda: 1, vlf_idnadur: 1 };
     const GOOD = '#54d08a', NEUT = '#e8c14a', BAD = '#e78284';
     const BAND = { '#54d08a': 'rgba(84,208,138,.13)', '#e8c14a': 'rgba(232,193,74,.12)', '#e78284': 'rgba(231,130,132,.13)' };
     // Litur eftir því hvort frávik frá grunnferli (BAU) er jákvætt/hlutlaust/neikvætt FYRIR þennan hagvísi.
@@ -849,13 +849,18 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     }
 
     // ── Greiningar-tól (Tier 3): keyra módelið mörgum sinnum ──
-    const simFull = (ov) => simulate({ baseline: BASELINE, links: LINKS, levers: { ...state.levers, ...ov }, shocks: state.shocks, quarters: state.horizon });
+    // L9: Greining notar SÖMU sviðsmynd og aðal-sýnin — leyst peningastefna (solveLevers) þegar sjálfvirkni er á, ekki hráir state.levers.
+    // _anBase er cache-að einu sinni per runAnalysis (annars myndi solveLevers keyra í hverri simFull-köllun).
+    let _anBase = null;
+    const anBase = () => _anBase || state.levers;
+    const simFull = (ov) => simulate({ baseline: BASELINE, links: LINKS, levers: { ...anBase(), ...ov }, shocks: state.shocks, quarters: state.horizon });
     const endVal = (r, k) => r.outcomes[k].mid[r.outcomes[k].mid.length - 1];
 
     function drawTornado(outKey) {
       const host = document.getElementById('tornado'); if (!host || !BASELINE.outcomes[outKey]) return;
+      _anBase = solveLevers();   // leyst sviðsmynd (sama og aðal-sýn) — hvert inntak (dropdown/runAnalysis) endurleysir
       const rows = [];
-      for (const k in BASELINE.levers) { const cfg = BASELINE.levers[k], step = (cfg.max - cfg.min) * 0.25, cur = state.levers[k] ?? cfg.base;
+      for (const k in BASELINE.levers) { const cfg = BASELINE.levers[k], step = (cfg.max - cfg.min) * 0.25, cur = anBase()[k] ?? cfg.base;
         const up = endVal(simFull({ [k]: Math.min(cfg.max, cur + step) }), outKey), dn = endVal(simFull({ [k]: Math.max(cfg.min, cur - step) }), outKey);
         const impact = up - dn; if (Math.abs(impact) > 1e-3) rows.push({ label: cfg.label, impact }); }
       rows.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact)); const top = rows.slice(0, 12);
@@ -868,6 +873,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
 
     function drawFrontier(levKey, xKey, yKey) {
       const host = document.getElementById('frontier'); if (!host) return; host.innerHTML = '<canvas></canvas>';
+      _anBase = solveLevers();
       const cfg = BASELINE.levers[levKey], N = 15, pts = [];
       for (let i = 0; i < N; i++) { const v = cfg.min + (cfg.max - cfg.min) * i / (N - 1), r = simFull({ [levKey]: v }); pts.push({ v, x: endVal(r, xKey), y: endVal(r, yKey) }); }
       const cv = host.querySelector('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 600, h = 300; cv.width = w * dpr; cv.height = h * dpr; const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
@@ -878,7 +884,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; for (let g = 0; g <= 4; g++) { const v = ymn + (ymx - ymn) * g / 4, y = Y(v); ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(w - pr, y); ctx.stroke(); ctx.fillText(num(v, 1), pl - 4, y); }
       ctx.textAlign = 'center'; ctx.textBaseline = 'top'; for (let g = 0; g <= 4; g++) { const v = xmn + (xmx - xmn) * g / 4; ctx.fillText(num(v, 1), X(v), h - pb + 3); }
       ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y)))); ctx.strokeStyle = '#f6b13b'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
-      const curV = state.levers[levKey] ?? cfg.base;
+      const curV = anBase()[levKey] ?? cfg.base;
       pts.forEach((p, i) => { const near = Math.abs(p.v - curV) < (cfg.max - cfg.min) / (N - 1) / 2; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), near ? 5 : 2.6, 0, 7); ctx.fillStyle = near ? '#fff' : '#f6b13b'; ctx.fill(); });
       const dec = cfg.step < 1 ? 2 : 0;
       ctx.fillStyle = 'rgba(159,176,200,.9)'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(cfg.label + ' = ' + disp(cfg, pts[0].v, dec), X(pts[0].x) + 5, Y(pts[0].y) - 4);
@@ -888,6 +894,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     }
 
     function runInverse(outKey, target, levKey) {
+      _anBase = solveLevers();
       const cfg = BASELINE.levers[levKey], f = (v) => endVal(simFull({ [levKey]: v }), outKey) - target;
       let lo = cfg.min, hi = cfg.max; const flo = f(lo), fhi = f(hi);
       if (flo * fhi > 0) { const closest = Math.abs(flo) < Math.abs(fhi) ? lo : hi; return { ok: false, v: closest, achieved: endVal(simFull({ [levKey]: closest }), outKey) }; }
@@ -926,6 +933,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     ];
     function drawStress() {
       const host = document.getElementById('stress'); if (!host) return;
+      _anBase = solveLevers();   // álagspróf ofan á leysta stefnu (Taylor endur-leysir EKKI með sjokkunum — sýnir viðnám fastrar stefnu)
       const base = Math.round(healthScore(simFull({})));
       const rows = STRESS.map((sc) => {
         const r = simulate({ baseline: BASELINE, links: LINKS, levers: { ...state.levers }, shocks: { ...state.shocks, ...sc.s }, quarters: state.horizon });

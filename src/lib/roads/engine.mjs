@@ -35,6 +35,7 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
   const ctx = { levers: L, shocks: S, dev };
   const byTo = {};
   for (const ln of links) (byTo[ln.to] ||= []).push(ln);
+  const clampOf = (to) => { const cl = (baseline.clamp || {})[to]; return cl ? (v) => Math.max(cl[0], Math.min(cl[1], v)) : (v) => v; };
   for (let t = 0; t < Q; t++) {
     for (const to of outKeys) {
       let d = 0, u = 0;
@@ -54,8 +55,13 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
         d += applyNL(ln.coef * fd, ln.nl);
         const band = ((ln.ci_hi ?? ln.coef) - (ln.ci_lo ?? ln.coef)) / 2;
         u += Math.abs(band * fd);
+        // Óvissu-KEÐJUN (L8): útkomu-uppsprettur bera eigin óvissu áfram (fyrsta-stigs; unc[from]=0 f. levers/shocks).
+        if (dev[ln.from] && unc[ln.from][s]) u += Math.abs(ln.coef) * unc[ln.from][s];
       }
-      dev[to][t] = d; unc[to][t] = u;
+      // ÁSTANDS-CLAMP (L7): dev geymir KLIPPT ástand svo niðurstreymis-tengsl lesi það sama og birt er (ekki óklippt öfgar).
+      const p = baseline.outcomes[to].path[t];
+      dev[to][t] = clampOf(to)(p + d) - p;
+      unc[to][t] = u;
     }
   }
   const outcomes = {};

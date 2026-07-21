@@ -62,16 +62,16 @@ const baseline = {
     vedhlutfall: { base: 80, min: 50, max: 90, step: 5, unit: '%', label: 'Hámarks veðsetningarhlutfall', group: 'Peningastefna & varúð' },
     dsti: { base: 35, min: 25, max: 45, step: 5, unit: '%', label: 'Greiðslubyrðisþak (DSTI)', group: 'Peningastefna & varúð' },
     bindiskylda: { base: 0, realBase: 3, min: -3, max: 15, step: 1, unit: '%', label: 'Bindiskylda banka', group: 'Peningastefna & varúð' },
-    verdtrygging: { base: 40, min: 0, max: 80, step: 10, unit: '%', label: 'Verðtrygging húsnæðislána (hlutfall nýrra lána)', group: 'Peningastefna & varúð' },
+    verdtrygging: { base: 20, min: 0, max: 80, step: 10, unit: '%', label: 'Verðtrygging húsnæðislána (hlutfall nýrra lána)', group: 'Peningastefna & varúð' },
     // Ríkisfjármál & skattar
     skattar: { base: 0, realBase: 37, min: -15, max: 15, step: 1, unit: '%', label: 'Tekjuskattur (samsett jaðar)', group: 'Ríkisfjármál & skattar' },
     fjarmagnstekjuskattur: { base: 0, realBase: 22, min: -10, max: 15, step: 1, unit: '%', label: 'Fjármagnstekjuskattur', group: 'Ríkisfjármál & skattar' },
     tryggingagjald: { base: 0, realBase: 6.35, min: -5, max: 8, step: 1, unit: '%', label: 'Tryggingagjald (launatengt)', group: 'Ríkisfjármál & skattar' },
     vsk: { base: 0, realBase: 24, min: -4, max: 6, step: 1, unit: '%', label: 'Virðisaukaskattur', group: 'Ríkisfjármál & skattar' },
     utgjold: { base: 0, realBase: 1450, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Almenn ríkisútgjöld (rekstur, breyting)', group: 'Ríkisfjármál & skattar' },
-    tilfaerslur: { base: 0, realBase: 20, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 20, step: 5, unit: '%', label: 'Tilfærslur (barna-/vaxtabætur)', group: 'Ríkisfjármál & skattar' },
+    tilfaerslur: { base: 0, realBase: 20, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 20, step: 5, unit: '%', label: 'Tilfærslur (barnabætur o.fl.)', group: 'Ríkisfjármál & skattar' },
     innvidir: { base: 0, realBase: 90, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Innviðafjárfesting', group: 'Ríkisfjármál & skattar' },
-    veidigjald: { base: 0, realBase: 10.2, realMode: 'mult', realUnit: ' ma.kr.', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Veiðigjald', group: 'Ríkisfjármál & skattar' },
+    veidigjald: { base: 0, realBase: 17.3, realMode: 'mult', realUnit: ' ma.kr.', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Veiðigjald', group: 'Ríkisfjármál & skattar' },
     ivilnanir: { base: 0, realBase: 13, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 40, step: 5, unit: '%', label: 'Styrkir & ívilnanir (nýsköpun)', group: 'Ríkisfjármál & skattar' },
     menntun: { base: 0, realBase: 50, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Menntun & rannsóknir (fjárfesting)', group: 'Ríkisfjármál & skattar' },
     // Húsnæði
@@ -88,11 +88,11 @@ const baseline = {
     fridun: { base: 0, stance: true, min: 0, max: 30, step: 5, unit: '%', label: 'Friðun/verndarsvæði sjávar', group: 'Auðlindir, orka & loftslag' },
     orka: { base: 0, realBase: 14, realMode: 'mult', realUnit: ' TWh', realDec: 1, min: -15, max: 30, step: 5, unit: '%', label: 'Orka til stóriðju', group: 'Auðlindir, orka & loftslag' },
     orkuskipti: { base: 0, stance: true, min: -10, max: 40, step: 5, unit: '%', label: 'Orkuskipta-hvati (rafvæðing)', group: 'Auðlindir, orka & loftslag' },
-    kolefnisgjald: { base: 0, realBase: 5.9, realMode: 'mult', realUnit: ' þús.kr/t CO₂', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Kolefnisgjald', group: 'Auðlindir, orka & loftslag' },
-    skograekt: { base: 0, realBase: 4, realMode: 'mult', realUnit: ' þús. ha/ári', realDec: 1, min: 0, max: 40, step: 5, unit: '%', label: 'Skógrækt & kolefnisbinding', group: 'Auðlindir, orka & loftslag' },
+    kolefnisgjald: { base: 0, realBase: 10.5, realMode: 'mult', realUnit: ' þús.kr/t CO₂', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Kolefnisgjald', group: 'Auðlindir, orka & loftslag' },
+    skograekt: { base: 0, realBase: 2.5, realMode: 'mult', realUnit: ' þús. ha/ári', realDec: 1, min: 0, max: 40, step: 5, unit: '%', label: 'Skógrækt & kolefnisbinding', group: 'Auðlindir, orka & loftslag' },
     // Byggð & ferðaþjónusta
     byggdastefna: { base: 0, stance: true, min: -10, max: 40, step: 5, unit: '%', label: 'Byggðaáhersla (til landsbyggðar)', group: 'Byggð & ferðaþjónusta' },
-    ferdamannagjald: { base: 0, realBase: 600, realMode: 'mult', realUnit: ' kr/nótt', realDec: 0, min: 0, max: 40, step: 5, unit: '%', label: 'Ferðamannagjald (gistináttaskattur)', group: 'Byggð & ferðaþjónusta' },
+    ferdamannagjald: { base: 0, realBase: 800, realMode: 'mult', realUnit: ' kr/nótt', realDec: 0, min: 0, max: 40, step: 5, unit: '%', label: 'Ferðamannagjald (gistináttaskattur)', group: 'Byggð & ferðaþjónusta' },
   },
   shocks: {
     olia: { base: 0, min: -50, max: 100, step: 5, unit: '%', label: 'Olíuverð (frávik)' },
@@ -107,6 +107,9 @@ const baseline = {
     verdbolga: { label: 'Verðbólga', unit: '%', path: bau(inflNow, 2.6) },
     hagvoxtur: { label: 'Hagvöxtur (VLF)', unit: '%', path: bau(gdpF[10] ?? 1.9, gdpF[gdpF.length - 1] ?? 2.4) },
     atvinnuleysi: { label: 'Atvinnuleysi', unit: '%', path: bau(unemNow, 4.0) },
+    // Launaskrið (endógent nafnlauna-frávik umfram samninga) — VERÐUR að koma á undan kaupmattur (lag-0 tengsl).
+    // Lokar launa-verð spíralnum sem áður endaði á dauðu tengsli (infl_wageloop → sleðann `laun`, sem vélin ítrar aldrei).
+    launaskrid: { label: 'Launaskrið (nafnlaun umfram samninga)', unit: '%', path: bau(0, 0) },
     kaupmattur: { label: 'Kaupmáttur launa', unit: '%', path: bau(0.8, 1.5) },
     husnaedi: { label: 'Húsnæðisverð (12-mán)', unit: '%', path: bau(houseNow, 3.0) },
     leiga: { label: 'Leiga (12-mán)', unit: '%', path: bau(rentNow, 4.0) },
@@ -148,7 +151,7 @@ const baseline = {
     vlf_idnadur: { label: 'Iðnaður & orka — virðisauki (vísit.)', unit: '', path: bau(100, 100) },
   },
   // clamp-mörk víkkuð til að ná yfir SÖGULEG bil 2010–2026 (sjá backtest_history.mjs): húsnæði ±33%, atvinnuleysi 17,8% (COVID)
-  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35], peningamagn: [-8, 22], utlanavoxtur: [-15, 28], lifeyriseignir: [140, 240], hlutabref: [45, 190], vaxtaalag: [0, 7], vidskiptajofnudur: [-16, 14], niip: [-90, 90], jofnudur: [78, 122], heimilaskuldir: [55, 185], einkajofnudur: [-24, 24], vlf_sjavar: [40, 180], vlf_ferda: [40, 180], vlf_idnadur: [40, 180] },
+  clamp: { verdbolga: [-2, 25], hagvoxtur: [-8, 9], atvinnuleysi: [0, 20], launaskrid: [-10, 15], kaupmattur: [-10, 12], husnaedi: [-25, 38], leiga: [-15, 30], greidslubyrdi: [50, 200], mannfjoldi: [-1, 4], vinnuafl: [-2, 5], afkoma: [-8, 6], skuldir: [10, 120], utflutningur: [-15, 20], losun: [40, 200], vanskil: [60, 260], folksfjoldi: [90, 120], framfaersla: [88, 135], byggdajofnudur: [78, 122], nyskopun: [70, 165], fiskistofn: [55, 140], husnaedi_hbs: [-25, 38], husnaedi_land: [-28, 42], gengi_endo: [-35, 35], peningamagn: [-8, 22], utlanavoxtur: [-15, 28], lifeyriseignir: [140, 240], hlutabref: [45, 190], vaxtaalag: [0, 7], vidskiptajofnudur: [-16, 14], niip: [-90, 90], jofnudur: [78, 122], heimilaskuldir: [55, 185], einkajofnudur: [-24, 24], vlf_sjavar: [40, 180], vlf_ferda: [40, 180], vlf_idnadur: [40, 180] },
 };
 
 // ── Tengsl (curated, með heimild + óvissu). pp = prósentustig, % = prósent-breyting. ──
@@ -159,21 +162,25 @@ const links = [
   // Framsýnar væntingar (lead): BOÐUÐ vaxtahækkun (framsýn stefnu-leið) lækkar verðbólguvæntingar STRAX. 0 ef stefna föst → bítur aðeins á tímaháða/boðaða leið (t.d. dýnamíska KARP). Módel-samræmt fyrir exogenu leiðina (ekki fastpunkts-lausn endógenra vænta).
   { id: 'exp_rate', from: 'vextir', to: 'verdbolga', coef: -0.08, lag: 0, lead: 4, unit: 'pp/pp', ci_lo: -0.16, ci_hi: -0.02, source: 'Framsýnar verðbólguvæntingar af boðaðri peningastefnu (trúverðug framsýn leiðsögn)' },
   { id: 'r_unem', from: 'vextir', to: 'atvinnuleysi', coef: 0.10, lag: 4, unit: 'pp/pp', ci_lo: 0.03, ci_hi: 0.18, source: 'Okun-tengt, SÍ' },
-  { id: 'r_house', from: 'vextir', to: 'husnaedi', coef: -0.80, lag: 2, unit: '%/pp', ci_lo: -1.30, ci_hi: -0.40, source: 'Röð-metið: sedlabanki × fasteignir (2010–2026)' },
+  { id: 'r_house', from: 'vextir', to: 'husnaedi', coef: -0.90, lag: 2, unit: '%/pp', ci_lo: -1.40, ci_hi: -0.45, source: 'Röð-metið: sedlabanki × fasteignir (2010–2026); vigtað samræmi við hbs/land (báðir −0,9)' },
   { id: 'w_infl', from: 'laun', to: 'verdbolga', coef: 0.30, lag: 2, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.45, nl: { type: 'accel', at: 1.0, by: 0.15, cap: 2 }, source: 'Launa-verð spírall, Hagstofa/SÍ', note: 'ÓLÍNULEGT: stórar launahækkanir hraða launa-verð spíral (hröðun yfir þröskuld)' },
   { id: 'w_house', from: 'laun', to: 'husnaedi', coef: 0.40, lag: 3, unit: '%/pp', ci_lo: 0.15, ci_hi: 0.70, source: 'Kaupgeta → húsnæðiseftirspurn' },
   { id: 'ltv_house', from: 'vedhlutfall', to: 'husnaedi', coef: 0.15, lag: 2, unit: '%/pp', ci_lo: 0.05, ci_hi: 0.30, source: 'Þjóðhagsvarúð, HMS/FME' },
   { id: 'oil_infl', from: 'olia', to: 'verdbolga', coef: 0.02, lag: 1, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.035, source: 'Olíuverðs-yfirfærsla, Hagstofa VNV-vægi' },
   { id: 'fx_infl', from: 'gengi', to: 'verdbolga', coef: -0.06, lag: 1, unit: 'pp/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Gengisyfirfærsla (styrking lækkar innflutt verð)' },
   { id: 'fx_gdp', from: 'gengi', to: 'hagvoxtur', coef: -0.012, lag: 2, unit: 'pp/%', ci_lo: -0.03, ci_hi: 0.0, source: 'Sterk króna → lakari samkeppnisstaða (annað en útflutningur; sjá fx_exp)' },
-  { id: 'tour_gdp', from: 'ferdamenn', to: 'hagvoxtur', coef: 0.018, lag: 1, unit: 'pp/%', ci_lo: 0.008, ci_hi: 0.03, source: 'Ferðaþjónusta bein VLF-áhrif (afgangur um útflutning; sjá tour_exp)' },
+  { id: 'tour_gdp', from: 'ferdamenn', to: 'hagvoxtur', coef: 0.005, lag: 1, unit: 'pp/%', ci_lo: 0.002, ci_hi: 0.01, source: 'Ferðaþjónusta bein VLF-áhrif — RESIDÚAL (megin-farvegur nú um útflutning→exp_gdp2, sjá tour_exp; lækkað gegn tvítöldun)' },
   { id: 'tour_unem', from: 'ferdamenn', to: 'atvinnuleysi', coef: -0.02, lag: 1, unit: 'pp/%', ci_lo: -0.04, ci_hi: -0.005, source: 'Ferðaþjónusta vinnuaflsfrek' },
   // Feedback-lykkjur (lag ≥ 1):
   { id: 'infl_wage', from: 'verdbolga', to: 'kaupmattur', coef: -1.0, lag: 0, unit: 'pp/pp', ci_lo: -1.0, ci_hi: -1.0, source: 'Skilgreining: kaupmáttur = nafnlaun − verðbólga' },
   { id: 'wage_kaup', from: 'laun', to: 'kaupmattur', coef: 1.0, lag: 0, unit: 'pp/pp', ci_lo: 1.0, ci_hi: 1.0, source: 'Skilgreining: nafnlauna-hluti kaupmáttar' },
   { id: 'gdp_unem', from: 'hagvoxtur', to: 'atvinnuleysi', coef: -0.30, lag: 1, unit: 'pp/pp', ci_lo: -0.5, ci_hi: -0.15, source: "Okun's law, íslensk aðlögun" },
   { id: 'house_infl', from: 'husnaedi', to: 'verdbolga', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Reiknuð húsaleiga í VNV' },
-  { id: 'infl_wageloop', from: 'verdbolga', to: 'laun', coef: 0.35, lag: 4, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.55, source: 'Verðbólga → næstu kjarasamningar (vísitölu-tenging)' },
+  // Launa-verð spírall (LAGAÐ): verðbólga → launaskrið (endógent, um kjarasamninga/vísitölutengingu) → kaupmátt + aftur í verðbólgu.
+  // Áður: infl_wageloop → sleðann `laun` sem vélin ítrar ALDREI (dautt tengsl). Nú um útkomuna launaskrid.
+  { id: 'infl_launaskrid', from: 'verdbolga', to: 'launaskrid', coef: 0.35, lag: 4, unit: 'pp/pp', ci_lo: 0.15, ci_hi: 0.55, source: 'Verðbólga → næstu kjarasamningar/vísitölutenging → nafnlauna-skrið (tafið)' },
+  { id: 'launaskrid_kaup', from: 'launaskrid', to: 'kaupmattur', coef: 1.0, lag: 0, unit: 'pp/pp', ci_lo: 1.0, ci_hi: 1.0, source: 'Skilgreining: launaskrið er hluti nafnlauna → kaupmáttar (til viðbótar við samninga-sleðann `laun`)' },
+  { id: 'launaskrid_infl', from: 'launaskrid', to: 'verdbolga', coef: 0.20, lag: 2, unit: 'pp/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Launaskrið → kostnaðar-þrýstingur → verðbólga (lokar spíralnum sem áður var dauður)' },
   // ── Húsnæðis-eining (module 2) ──
   { id: 'fr_house', from: 'frambod', to: 'husnaedi', coef: -0.30, lag: 4, unit: '%/%', ci_lo: -0.50, ci_hi: -0.12, source: 'Framboðs-teygni húsnæðis (OECD/HMS)' },
   { id: 'mig_house', from: 'adflutningur', to: 'husnaedi', coef: 0.06, lag: 2, unit: '%/%', ci_lo: 0.02, ci_hi: 0.10, source: 'Aðflutningur → húsnæðiseftirspurn (HMS/SÍ)' },
@@ -181,7 +188,9 @@ const links = [
   { id: 'house_rent', from: 'husnaedi', to: 'leiga', coef: 0.35, lag: 2, unit: '%/%', ci_lo: 0.15, ci_hi: 0.55, source: 'Verð↔leiga samhreyfing (HMS)' },
   { id: 'fr_rent', from: 'frambod', to: 'leiga', coef: -0.15, lag: 4, unit: '%/%', ci_lo: -0.30, ci_hi: -0.03, source: 'Framboð → lægri leiga' },
   { id: 'r_burden', from: 'vextir', to: 'greidslubyrdi', coef: 2.5, lag: 1, unit: 'vísit/pp', ci_lo: 1.5, ci_hi: 3.5, source: 'Greiðslubyrði-næmni f. vöxtum' },
-  { id: 'house_burden', from: 'husnaedi', to: 'greidslubyrdi', coef: 0.40, lag: 1, unit: 'vísit/%', ci_lo: 0.20, ci_hi: 0.60, source: 'Hærra verð → stærra lán' },
+  { id: 'house_burden', from: 'husnaedi', to: 'greidslubyrdi', coef: 0.15, lag: 1, unit: 'vísit/%', ci_lo: 0.06, ci_hi: 0.28, source: 'Hærra verð → stærra lán (lækkað — megin-farvegur nú um heimilaskulda-stofn hdebt_burden svo verðvöxtur SAFNIST rétt í byrði)' },
+  { id: 'hdebt_burden', from: 'heimilaskuldir', to: 'greidslubyrdi', coef: 0.12, lag: 1, unit: 'vísit/vísit', ci_lo: 0.05, ci_hi: 0.22, source: 'Uppsafnaðar heimilaskuldir → hærri greiðslubyrði (B7: stofn→byrði svo verðvöxtur→lán→byrði safnist)' },
+  { id: 'infl_burden', from: 'verdbolga', to: 'greidslubyrdi', coef: 0.4, lag: 1, unit: 'vísit/pp', ci_lo: 0.15, ci_hi: 0.7, source: 'Greiðslur verðtryggðra jafngreiðslulána fylgja VNV (HMS/SÍ) — verðbólga hækkar greiðslubyrði beint' },
   { id: 'kaup_burden', from: 'kaupmattur', to: 'greidslubyrdi', coef: -0.60, lag: 1, unit: 'vísit/pp', ci_lo: -1.0, ci_hi: -0.30, source: 'Hærri ráðstöfunartekjur → lægri byrði' },
   { id: 'ltv_burden', from: 'vedhlutfall', to: 'greidslubyrdi', coef: 0.30, lag: 2, unit: 'vísit/pp', ci_lo: 0.10, ci_hi: 0.50, source: 'Hærra veðhlutfall → stærra lán' },
   // ── Lýðfræði-eining (module 3) ──
@@ -192,13 +201,13 @@ const links = [
   { id: 'labor_unem', from: 'vinnuafl', to: 'atvinnuleysi', coef: 0.10, lag: 2, unit: 'pp/pp', ci_lo: 0.02, ci_hi: 0.20, source: 'Aukið framboð vinnuafls (skammtíma frásog)' },
   // ── Ríkisfjármála-eining (module 4) ──
   { id: 'tax_bal', from: 'skattar', to: 'afkoma', coef: 0.08, lag: 1, unit: '%VLF/%', ci_lo: 0.04, ci_hi: 0.12, nl: { type: 'sat', k: 0.55 }, source: 'Skattbreyting → tekjur ríkissjóðs', note: 'LAFFER: Ísland er nú þegar háskatta-land → tekjuauki af frekari hækkun fer minnkandi (grunnrýrnun: vinnuframboð/flótti/undanskot). Tvöföldun hækkunar skilar litlu meira.' },
-  { id: 'exp_bal', from: 'utgjold', to: 'afkoma', coef: -0.08, lag: 1, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.04, source: 'Útgjöld → gjöld ríkissjóðs' },
+  { id: 'exp_bal', from: 'utgjold', to: 'afkoma', coef: -0.30, lag: 1, unit: '%VLF/%', ci_lo: -0.38, ci_hi: -0.22, source: 'Útgjöld → gjöld ríkissjóðs (kvarðað: coef≈realBase/VLF, útgjöld 1.450 ma / VLF ~4.200 ma)' },
   { id: 'gdp_bal', from: 'hagvoxtur', to: 'afkoma', coef: 0.30, lag: 1, unit: '%VLF/pp', ci_lo: 0.15, ci_hi: 0.45, source: 'Sjálfvirkir jöfnarar (hærri VLF → meiri tekjur)' },
   { id: 'unem_bal', from: 'atvinnuleysi', to: 'afkoma', coef: -0.20, lag: 1, unit: '%VLF/pp', ci_lo: -0.35, ci_hi: -0.08, source: 'Atvinnuleysi → bætur + minni tekjur' },
   { id: 'debt_carry', from: 'skuldir', to: 'skuldir', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Skulda-uppsöfnun — fyrri staða flyst áfram (STOFN gegnum sjálf-lykkju)' },
   { id: 'bal_debt', from: 'afkoma', to: 'skuldir', coef: -0.25, lag: 1, unit: '%VLF/%VLF', ci_lo: -0.35, ci_hi: -0.15, source: 'Halli eykur skuldir (~afkoma/4 per ársfj.)' },
   { id: 'tax_gdp', from: 'skattar', to: 'hagvoxtur', coef: -0.05, lag: 2, unit: 'pp/%', ci_lo: -0.10, ci_hi: -0.01, source: 'Skatta-drag á eftirspurn' },
-  { id: 'exp_gdp', from: 'utgjold', to: 'hagvoxtur', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.10, source: 'Fjármála-margfaldari' },
+  { id: 'exp_gdp', from: 'utgjold', to: 'hagvoxtur', coef: 0.12, lag: 1, unit: 'pp/%', ci_lo: 0.05, ci_hi: 0.20, source: 'Fjármála-margfaldari (kvarðað per krónu: margfaldari ~0,4 á 1.450 ma stofn)' },
   // ── Auðlinda-eining (module 5) ──
   { id: 'kvoti_exp', from: 'kvoti', to: 'utflutningur', coef: 0.20, lag: 2, unit: '%/%', ci_lo: 0.10, ci_hi: 0.32, source: 'Sjávarafurðir ~stór hluti útflutnings (Hagstofa)' },
   { id: 'orka_exp', from: 'orka', to: 'utflutningur', coef: 0.25, lag: 2, unit: '%/%', ci_lo: 0.12, ci_hi: 0.40, source: 'Ál/stóriðja útflutningur (79,9% orku)' },
@@ -240,9 +249,9 @@ const links = [
   { id: 'mennt_innov', from: 'menntun', to: 'nyskopun', coef: 0.20, lag: 4, unit: 'vísit/%', ci_lo: 0.08, ci_hi: 0.35, source: 'Menntun & rannsóknir → mannauður → nýsköpun (löng töf)' },
   { id: 'innov_gdp', from: 'nyskopun', to: 'hagvoxtur', coef: 0.03, lag: 3, unit: 'pp/vísit', ci_lo: 0.01, ci_hi: 0.05, source: 'Nýsköpun → framleiðniaukning (TFP), löng töf' },
   { id: 'innov_exp', from: 'nyskopun', to: 'utflutningur', coef: 0.05, lag: 3, unit: '%/vísit', ci_lo: 0.02, ci_hi: 0.09, source: 'Hugvit → verðmætur útflutningur (hátækni/hugbúnaður/lyf)' },
-  { id: 'ivil_bal', from: 'ivilnanir', to: 'afkoma', coef: -0.03, lag: 1, unit: '%VLF/%', ci_lo: -0.05, ci_hi: -0.01, source: 'Ívilnanir/styrkir kosta ríkissjóð' },
-  { id: 'ivil_gdp', from: 'ivilnanir', to: 'hagvoxtur', coef: 0.02, lag: 2, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Bein fjárfestingar-örvun (skammtíma)' },
-  { id: 'mennt_bal', from: 'menntun', to: 'afkoma', coef: -0.03, lag: 1, unit: '%VLF/%', ci_lo: -0.05, ci_hi: -0.01, source: 'Menntunar-/rannsóknafjárfesting kostar ríkissjóð' },
+  { id: 'ivil_bal', from: 'ivilnanir', to: 'afkoma', coef: -0.003, lag: 1, unit: '%VLF/%', ci_lo: -0.005, ci_hi: -0.001, source: 'Ívilnanir/styrkir kosta ríkissjóð (kvarðað: ~13 ma / VLF)' },
+  { id: 'ivil_gdp', from: 'ivilnanir', to: 'hagvoxtur', coef: 0.002, lag: 2, unit: 'pp/%', ci_lo: 0.0005, ci_hi: 0.004, source: 'Bein fjárfestingar-örvun (margfaldari ~0,7 á 13 ma stofn)' },
+  { id: 'mennt_bal', from: 'menntun', to: 'afkoma', coef: -0.011, lag: 1, unit: '%VLF/%', ci_lo: -0.018, ci_hi: -0.005, source: 'Menntunar-/rannsóknafjárfesting kostar ríkissjóð (kvarðað: ~50 ma / VLF)' },
   // Sjálfbærni sjávar (VANTAÐI: aflamark hafði engin áhrif á stofninn):
   { id: 'kvoti_fisk', from: 'kvoti', to: 'fiskistofn', coef: -0.09, lag: 1, unit: 'vísit/%', ci_lo: -0.15, ci_hi: -0.04, source: 'Hærra aflamark gengur á fiskistofninn; lægra byggir hann upp (Hafró ráðgjöf)' },
   { id: 'fisk_regen', from: 'fiskistofn', to: 'fiskistofn', coef: 0.9, lag: 1, unit: '', ci_lo: 0.88, ci_hi: 0.92, source: 'Stofninn endurnýjar sig hægt — STOFN með endurheimt að jafnvægi (sjálf-lykkja <1)' },
@@ -251,7 +260,7 @@ const links = [
   { id: 'carb_infl', from: 'kolefnisgjald', to: 'verdbolga', coef: 0.01, lag: 1, unit: 'pp/%', ci_lo: 0.003, ci_hi: 0.02, source: 'Kolefnisgjald hækkar eldsneytis-/orkuverð → verðbólga (skammtíma)' },
   { id: 'oil_gdp', from: 'olia', to: 'hagvoxtur', coef: -0.008, lag: 2, unit: 'pp/%', ci_lo: -0.015, ci_hi: -0.002, source: 'Olíuverðshækkun = kostnaðarskellur → minni eftirspurn/hagvöxtur' },
   { id: 'fr_gdp', from: 'frambod', to: 'hagvoxtur', coef: 0.015, lag: 1, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.03, source: 'Byggingarumsvif nýbygginga → hagvöxtur' },
-  { id: 'debt_bal', from: 'skuldir', to: 'afkoma', coef: -0.006, lag: 2, unit: '%VLF/%VLF', ci_lo: -0.012, ci_hi: -0.002, source: 'Vaxtakostnaður skulda þyngir afkomu (aðhalds-þörf við háar skuldir)' },
+  { id: 'debt_bal', from: 'skuldir', to: 'afkoma', coef: -0.05, lag: 2, unit: '%VLF/%VLF', ci_lo: -0.07, ci_hi: -0.03, source: 'Vaxtakostnaður skulda þyngir afkomu (RIKB-krafa 6,8–8,5% → snjóbolti; lykkjustyrkur m/bal_debt 0,013/ársfj., stöðugt)' },
   { id: 'labor_infl', from: 'vinnuafl', to: 'verdbolga', coef: -0.05, lag: 2, unit: 'pp/pp', ci_lo: -0.10, ci_hi: -0.02, source: 'Aukið vinnuaflsframboð slakar á launa-verð þrýstingi' },
   // ── Stór útvíkkun (module 10): ný orsakasambönd milli fyrirliggjandi breyta ──
   { id: 'infl_persist', from: 'verdbolga', to: 'verdbolga', coef: 0.25, lag: 1, unit: '', ci_lo: 0.15, ci_hi: 0.35, source: 'Verðbólguvæntingar/tregða — verðbólga viðheldur sér (sjálf-lykkja <1)' },
@@ -261,7 +270,7 @@ const links = [
   { id: 'world_exp', from: 'heimshagvoxtur', to: 'utflutningur', coef: 0.8, lag: 1, unit: '%/%', ci_lo: 0.4, ci_hi: 1.3, source: 'Ytri eftirspurn drífur útflutning (opið hagkerfi)' },
   { id: 'world_gdp', from: 'heimshagvoxtur', to: 'hagvoxtur', coef: 0.08, lag: 1, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Bein ytri eftirspurn/traust (afgangur um útflutning)' },
   { id: 'fx_exp', from: 'gengi', to: 'utflutningur', coef: -0.10, lag: 2, unit: '%/%', ci_lo: -0.18, ci_hi: -0.04, source: 'Sterk króna → dýrari/ósamkeppnishæfari útflutningur' },
-  { id: 'tour_exp', from: 'ferdamenn', to: 'utflutningur', coef: 0.04, lag: 1, unit: '%/%', ci_lo: 0.02, ci_hi: 0.07, source: 'Ferðaþjónusta = þjónustuútflutningur' },
+  { id: 'tour_exp', from: 'ferdamenn', to: 'utflutningur', coef: 0.27, lag: 1, unit: '%/%', ci_lo: 0.15, ci_hi: 0.40, source: 'Ferðaþjónusta = STÆRSTI útflutningsliðurinn (~37% 2024) → réttur farvegur um útflutning→VLF/gengi/CA (áður vanmetin 6×)' },
   { id: 'gdp_emis', from: 'hagvoxtur', to: 'losun', coef: 0.3, lag: 1, unit: 'vísit/pp', ci_lo: 0.1, ci_hi: 0.5, source: 'Umsvif drífa losun (virknis-áhrif)' },
   { id: 'tour_emis', from: 'ferdamenn', to: 'losun', coef: 0.05, lag: 1, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.10, source: 'Flug/ferðaþjónusta → losun' },
   { id: 'clim_fisk', from: 'losun', to: 'fiskistofn', coef: -0.02, lag: 4, unit: 'vísit/vísit', ci_lo: -0.04, ci_hi: -0.005, source: 'Hafhlýnun/súrnun (uppsöfnuð losun) → verri skilyrði stofns (langtíma)' },
@@ -277,13 +286,13 @@ const links = [
   { id: 'vsk_bal', from: 'vsk', to: 'afkoma', coef: 0.10, lag: 1, unit: '%VLF/%', ci_lo: 0.05, ci_hi: 0.16, source: 'VSK = stór tekjustofn ríkissjóðs' },
   { id: 'vsk_kaup', from: 'vsk', to: 'kaupmattur', coef: -0.05, lag: 1, unit: 'pp/%', ci_lo: -0.09, ci_hi: -0.02, source: 'Hærra neysluverð → minni kaupmáttur' },
   { id: 'transf_kaup', from: 'tilfaerslur', to: 'kaupmattur', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Tilfærslur auka ráðstöfunartekjur (einkum lágtekju)' },
-  { id: 'transf_bal', from: 'tilfaerslur', to: 'afkoma', coef: -0.04, lag: 1, unit: '%VLF/%', ci_lo: -0.07, ci_hi: -0.02, source: 'Tilfærslur kosta ríkissjóð' },
-  { id: 'transf_gdp', from: 'tilfaerslur', to: 'hagvoxtur', coef: 0.02, lag: 1, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Há neysluhneigð lágtekjuhópa → eftirspurn' },
-  { id: 'innv_gdp', from: 'innvidir', to: 'hagvoxtur', coef: 0.04, lag: 2, unit: 'pp/%', ci_lo: 0.02, ci_hi: 0.07, source: 'Innviðafjárfesting → framleiðni og eftirspurn' },
+  { id: 'transf_bal', from: 'tilfaerslur', to: 'afkoma', coef: -0.004, lag: 1, unit: '%VLF/%', ci_lo: -0.007, ci_hi: -0.002, source: 'Tilfærslur kosta ríkissjóð (kvarðað: barna-/vaxtabætur ~20 ma / VLF)' },
+  { id: 'transf_gdp', from: 'tilfaerslur', to: 'hagvoxtur', coef: 0.003, lag: 1, unit: 'pp/%', ci_lo: 0.001, ci_hi: 0.006, source: 'Há neysluhneigð lágtekjuhópa → eftirspurn (margfaldari ~0,7 á 20 ma stofn)' },
+  { id: 'innv_gdp', from: 'innvidir', to: 'hagvoxtur', coef: 0.025, lag: 2, unit: 'pp/%', ci_lo: 0.012, ci_hi: 0.045, source: 'Innviðafjárfesting → framleiðni og eftirspurn (hæsti margfaldari ~1,3 á 90 ma stofn)' },
   { id: 'innv_byggd', from: 'innvidir', to: 'byggdajofnudur', coef: 0.10, lag: 3, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Innviðir (vegir/ljósleiðari) styrkja landsbyggð' },
-  { id: 'innv_bal', from: 'innvidir', to: 'afkoma', coef: -0.04, lag: 1, unit: '%VLF/%', ci_lo: -0.07, ci_hi: -0.02, source: 'Innviðafjárfesting kostar (skammtíma)' },
+  { id: 'innv_bal', from: 'innvidir', to: 'afkoma', coef: -0.02, lag: 1, unit: '%VLF/%', ci_lo: -0.032, ci_hi: -0.01, source: 'Innviðafjárfesting kostar (kvarðað: ~90 ma / VLF)' },
   { id: 'innv_innov', from: 'innvidir', to: 'nyskopun', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Rannsókna-/stafrænir innviðir styðja nýsköpun' },
-  { id: 'veidi_bal', from: 'veidigjald', to: 'afkoma', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.05, source: 'Veiðigjald = auðlindarenta til ríkissjóðs' },
+  { id: 'veidi_bal', from: 'veidigjald', to: 'afkoma', coef: 0.004, lag: 1, unit: '%VLF/%', ci_lo: 0.002, ci_hi: 0.007, source: 'Veiðigjald = auðlindarenta til ríkissjóðs (kvarðað: ~17,3 ma innheimt 2026 / VLF)' },
   { id: 'veidi_fisk', from: 'veidigjald', to: 'fiskistofn', coef: 0.02, lag: 2, unit: 'vísit/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Hærra gjald → minni sóknarhvati → heilbrigðari stofn' },
   { id: 'veidi_byggd', from: 'veidigjald', to: 'byggdajofnudur', coef: -0.03, lag: 2, unit: 'vísit/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Íþyngir sjávarbyggðum' },
   { id: 'leigu_rent', from: 'leiguhusnaedi', to: 'leiga', coef: -0.20, lag: 3, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Aukið félagslegt/leiguframboð → lægri leiga' },
@@ -311,9 +320,11 @@ const links = [
   { id: 'ltv_hbs', from: 'vedhlutfall', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Veðhlutfall → lánsgeta → eftirspurn' },
   { id: 'dsti_hbs', from: 'dsti', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Rýmra greiðslubyrðisþak → hærra höfuðborgarverð' },
   { id: 'mig_hbs', from: 'adflutningur', to: 'husnaedi_hbs', coef: 0.10, lag: 2, unit: '%/%', ci_lo: 0.04, ci_hi: 0.16, source: 'Aðflutningur sest einkum á höfuðborgarsvæðið' },
+  { id: 'fr_hbs', from: 'frambod', to: 'husnaedi_hbs', coef: -0.28, lag: 4, unit: '%/%', ci_lo: -0.45, ci_hi: -0.12, source: 'Nýbygginga-framboð (~70% á höfuðborgarsvæði) → lægra höfuðborgarverð — VANTAÐI (frambod snerti aðeins landsbyggð/þjóðar); vigtað samræmi 0,64·(−0,28)+0,36·(−0,35)≈−0,30=fr_house' },
+  { id: 'loda_hbs', from: 'lodaframbod', to: 'husnaedi_hbs', coef: -0.13, lag: 6, unit: '%/%', ci_lo: -0.25, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → byggingarland á höfuðborgarsvæði → lægra verð (löng töf); vigtað samræmi við loda_house' },
   { id: 'immig_hbs', from: 'innflytjendastefna', to: 'husnaedi_hbs', coef: 0.05, lag: 2, unit: '%/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Stýrður innflutningur → höfuðborgar-eftirspurn' },
   // Landsbyggð — framboðs-/byggða-drifið (framboð/byggðastefna/innviðir ráða)
-  { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.7, lag: 2, unit: '%/pp', ci_lo: -1.2, ci_hi: -0.3, source: 'Landsbyggð einnig vaxta-næm (bakprófað: fylgni −0,43 við vexti töf 2ár — nálægt höfuðborg, 2010–2026)' },
+  { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.9, lag: 2, unit: '%/pp', ci_lo: -1.5, ci_hi: -0.4, source: 'Landsbyggð A.M.K. jafn vaxta-næm og höfuðborg (eigin OLS −1,62, ci [−2,43;−0,81] hafnaði fyrra −0,7 gildi; sett jafnt hbs −0,9)' },
   { id: 'fr_land', from: 'frambod', to: 'husnaedi_land', coef: -0.35, lag: 4, unit: '%/%', ci_lo: -0.55, ci_hi: -0.15, source: 'Framboð ræður meiru um verð úti á landi' },
   { id: 'loda_land', from: 'lodaframbod', to: 'husnaedi_land', coef: -0.20, lag: 6, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Lóðaframboð → lægra verð (löng töf)' },
   { id: 'byggd_land', from: 'byggdastefna', to: 'husnaedi_land', coef: 0.10, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.18, source: 'Byggðaefling → hærra fasteignaverð á landsbyggð (vitnisburður um vöxt)' },
@@ -340,7 +351,10 @@ const links = [
   { id: 'bind_credit', from: 'bindiskylda', to: 'utlanavoxtur', coef: -0.4, lag: 2, unit: '%/%', ci_lo: -0.7, ci_hi: -0.15, source: 'Bindiskylda → minni útlánageta banka' },
   { id: 'm3_infl', from: 'peningamagn', to: 'verdbolga', coef: 0.04, lag: 3, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Peningamagn → verðbólga tafið (peningamagns-kenning, veik)' },
   { id: 'credit_house', from: 'utlanavoxtur', to: 'husnaedi', coef: 0.15, lag: 2, unit: '%/%', ci_lo: 0.06, ci_hi: 0.28, source: 'Útlánaþensla drífur húsnæðisverð' },
-  { id: 'credit_hdebt', from: 'utlanavoxtur', to: 'heimilaskuldir', coef: 0.3, lag: 1, unit: 'vísit/%', ci_lo: 0.12, ci_hi: 0.5, source: 'Útlánavöxtur → uppsöfnun heimilaskulda' },
+  // Heimilaskuldir eru STOFN (L4-lagfæring): sjálf-lykkja svo útlánaþensla/verðbætur SAFNIST upp (áður fast level-shift). Innflæði endurskalað /4 (ársfjórðungs-flæði í stofn).
+  { id: 'hdebt_carry', from: 'heimilaskuldir', to: 'heimilaskuldir', coef: 0.97, lag: 1, unit: '', ci_lo: 0.95, ci_hi: 0.98, source: 'Skuldir heimila eru STOFN — fyrri staða flyst áfram (sjálf-lykkja <1, hæg afborgun/verðbætur)' },
+  { id: 'credit_hdebt', from: 'utlanavoxtur', to: 'heimilaskuldir', coef: 0.075, lag: 1, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.13, source: 'Útlánavöxtur → uppsöfnun heimilaskulda (ársfjórðungs-innflæði í stofn)' },
+  { id: 'infl_hdebt', from: 'verdbolga', to: 'heimilaskuldir', coef: 0.12, lag: 1, unit: 'vísit/pp', ci_lo: 0.05, ci_hi: 0.22, source: 'Verðbætur á höfuðstól verðtryggðra lána (~60% stofns verðtryggður, SÍ) — verðbólga HÆKKAR skuldir yfir tíma (öfugt við óverðtryggð)' },
   { id: 'r_equity', from: 'vextir', to: 'hlutabref', coef: -1.5, lag: 1, unit: 'vísit/pp', ci_lo: -3.0, ci_hi: -0.5, source: 'Hærri ávöxtunarkrafa → lægra verðmat hlutabréfa' },
   { id: 'gdp_equity', from: 'hagvoxtur', to: 'hlutabref', coef: 1.2, lag: 1, unit: 'vísit/pp', ci_lo: 0.5, ci_hi: 2.2, source: 'Hagvöxtur → hagnaðarvæntingar → hlutabréf' },
   { id: 'equity_gdp', from: 'hlutabref', to: 'hagvoxtur', coef: 0.01, lag: 2, unit: 'pp/vísit', ci_lo: 0.003, ci_hi: 0.02, source: 'Auðsáhrif hlutabréfa á neyslu/fjárfestingu' },
@@ -350,17 +364,20 @@ const links = [
   { id: 'spread_gdp', from: 'vaxtaalag', to: 'hagvoxtur', coef: -0.15, lag: 2, unit: 'pp/pp', ci_lo: -0.30, ci_hi: -0.05, source: 'Hærra álag → dýrari fjármögnun → minni fjárfesting' },
   { id: 'spread_bal', from: 'vaxtaalag', to: 'afkoma', coef: -0.10, lag: 1, unit: '%VLF/pp', ci_lo: -0.2, ci_hi: -0.03, source: 'Hærra álag → dýrari ríkisfjármögnun' },
   { id: 'pension_gdp', from: 'lifeyriseignir', to: 'hagvoxtur', coef: 0.006, lag: 2, unit: 'pp/%VLF', ci_lo: 0.001, ci_hi: 0.013, source: 'Lífeyris-eignir → innlend fjárfesting/auðsáhrif' },
-  { id: 'house_hdebt', from: 'husnaedi', to: 'heimilaskuldir', coef: 0.25, lag: 2, unit: 'vísit/%', ci_lo: 0.1, ci_hi: 0.45, source: 'Hærra húsnæðisverð → stærri húsnæðislán' },
+  { id: 'house_hdebt', from: 'husnaedi', to: 'heimilaskuldir', coef: 0.06, lag: 2, unit: 'vísit/%', ci_lo: 0.025, ci_hi: 0.11, source: 'Hærra húsnæðisverð → stærri húsnæðislán (ársfjórðungs-innflæði í stofn, endurskalað /4)' },
   { id: 'hdebt_arrears', from: 'heimilaskuldir', to: 'vanskil', coef: 0.15, lag: 2, unit: 'vísit/vísit', ci_lo: 0.06, ci_hi: 0.28, source: 'Skuldsettari heimili → meiri vanskilahætta' },
   { id: 'hdebt_gdp', from: 'heimilaskuldir', to: 'hagvoxtur', coef: -0.01, lag: 3, unit: 'pp/vísit', ci_lo: -0.022, ci_hi: -0.003, source: 'Skuldsett heimili → skuldaafborgun fram yfir neyslu (deleveraging)' },
   // ── Ytri staða (module 13): viðskiptajöfnuður, erlend staða ──
   { id: 'exp_ca', from: 'utflutningur', to: 'vidskiptajofnudur', coef: 0.15, lag: 1, unit: '%VLF/%', ci_lo: 0.07, ci_hi: 0.26, source: 'Útflutningsvöxtur → betri viðskiptajöfnuður' },
-  { id: 'tour_ca', from: 'ferdamenn', to: 'vidskiptajofnudur', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Ferðaþjónusta = gjaldeyristekjur' },
+  { id: 'tour_ca', from: 'ferdamenn', to: 'vidskiptajofnudur', coef: 0.01, lag: 1, unit: '%VLF/%', ci_lo: 0.004, ci_hi: 0.02, source: 'Ferðaþjónusta = gjaldeyristekjur — RESIDÚAL (megin-farvegur nú um útflutning→exp_ca; lækkað gegn tvítöldun)' },
   { id: 'fx_ca', from: 'gengi_endo', to: 'vidskiptajofnudur', coef: -0.06, lag: 2, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Sterk króna → meiri innflutningur → lakari jöfnuður' },
+  { id: 'gdp_ca', from: 'hagvoxtur', to: 'vidskiptajofnudur', coef: -0.25, lag: 1, unit: '%VLF/pp', ci_lo: -0.4, ci_hi: -0.12, source: 'Innflutnings-leki innlendrar eftirspurnar (jaðarhneigð >40%) → tvíburahalli: örvun versnar ytri jöfnuð' },
+  { id: 'fxsh_ca', from: 'gengi', to: 'vidskiptajofnudur', coef: -0.06, lag: 2, unit: '%VLF/%', ci_lo: -0.12, ci_hi: -0.02, source: 'Speglun: ytra gengis-sjokk hefur sömu CA-áhrif og endógent gengi (fx_ca) — var áður vantalið' },
   { id: 'comm_exp', from: 'hravaruverd', to: 'utflutningur', coef: 0.10, lag: 1, unit: '%/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Ál-/fiskverð → verðmæti útflutnings (viðskiptakjör)' },
   { id: 'comm_ca', from: 'hravaruverd', to: 'vidskiptajofnudur', coef: 0.05, lag: 1, unit: '%VLF/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Betri viðskiptakjör → betri jöfnuður' },
   { id: 'niip_carry', from: 'niip', to: 'niip', coef: 1.0, lag: 1, unit: '', ci_lo: 1.0, ci_hi: 1.0, source: 'Erlend staða er STOFN — fyrri staða flyst áfram (sjálf-lykkja)' },
-  { id: 'ca_niip', from: 'vidskiptajofnudur', to: 'niip', coef: 0.9, lag: 1, unit: '%VLF/%VLF', ci_lo: 0.7, ci_hi: 1.0, source: 'Viðskiptaafgangur safnast í erlenda stöðu' },
+  { id: 'ca_niip', from: 'vidskiptajofnudur', to: 'niip', coef: 0.25, lag: 1, unit: '%VLF/%VLF', ci_lo: 0.15, ci_hi: 0.35, source: 'Viðskiptaafgangur safnast í erlenda stöðu (≈CA/4 per ársfjórðung — CA er árs-eining, vélin ársfjórðungsleg)' },
+  { id: 'niip_ca', from: 'niip', to: 'vidskiptajofnudur', coef: 0.04, lag: 1, unit: '%VLF/%VLF', ci_lo: 0.02, ci_hi: 0.07, source: 'Frumþáttatekjur af erlendri stöðu (~4% ávöxtun) → viðskiptajöfnuður; lokar ytri-stöðu-lykkjunni' },
   // SFC geira-jöfnuðir (Godley): einkageiri = viðskiptajöfnuður − ríkisjöfnuður. Kennisetning (lag 0, ci=coef → ekkert óvissu-band).
   { id: 'ca_priv', from: 'vidskiptajofnudur', to: 'einkajofnudur', coef: 1.0, lag: 0, unit: '%VLF/%VLF', ci_lo: 1.0, ci_hi: 1.0, source: 'SFC-kennisetning: geira-jöfnuðir summast í núll (net lending: einkageiri + ríki + útlönd = 0)' },
   { id: 'gov_priv', from: 'afkoma', to: 'einkajofnudur', coef: -1.0, lag: 0, unit: '%VLF/%VLF', ci_lo: -1.0, ci_hi: -1.0, source: 'SFC-kennisetning: ríkishalli fjármagnast af einkageira eða útlöndum (afgangur ríkis dregur úr einkageira-afgangi)' },
@@ -370,6 +387,7 @@ const links = [
   { id: 'veidi_vlfsj', from: 'veidigjald', to: 'vlf_sjavar', coef: -0.02, lag: 1, unit: 'vísit/pp', ci_lo: -0.05, ci_hi: 0.0, source: 'Hærra veiðigjald → minni framlegð greinarinnar' },
   { id: 'tour_vlff', from: 'ferdamenn', to: 'vlf_ferda', coef: 0.30, lag: 1, unit: 'vísit/%', ci_lo: 0.18, ci_hi: 0.45, source: 'Ferðamannafjöldi drífur ferðaþjónustu-virðisauka' },
   { id: 'fx_vlff', from: 'gengi_endo', to: 'vlf_ferda', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Sterk króna → dýrari áfangastaður → minni ferðaþjónusta' },
+  { id: 'fxsh_vlff', from: 'gengi', to: 'vlf_ferda', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Speglun: ytra gengis-sjokk hefur sömu ferðaþjónustu-áhrif og endógent gengi (fx_vlff)' },
   { id: 'ferdagj_vlff', from: 'ferdamannagjald', to: 'vlf_ferda', coef: -0.03, lag: 1, unit: 'vísit/pp', ci_lo: -0.07, ci_hi: 0.0, source: 'Hærra ferðamannagjald → eftirspurnar-dempun' },
   { id: 'orka_vlfi', from: 'orka', to: 'vlf_idnadur', coef: 0.20, lag: 1, unit: 'vísit/%', ci_lo: 0.1, ci_hi: 0.35, source: 'Orka til stóriðju → iðnaðar-virðisauki' },
   { id: 'comm_vlfi', from: 'hravaruverd', to: 'vlf_idnadur', coef: 0.05, lag: 1, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Hærra hrávöruverð (t.d. ál) → betri afkoma útflutnings-iðnaðar' },
@@ -381,12 +399,12 @@ const links = [
   { id: 'spread_fx', from: 'vaxtaalag', to: 'gengi_endo', coef: -0.5, lag: 1, unit: '%/pp', ci_lo: -1.0, ci_hi: -0.15, source: 'Hærra áhættuálag ríkis → fjármagns-útflæði → veikari króna (risk-off; fullkomnar áhættuálags-lykkjuna)' },
   // ── Nýjar íslenskar ákvarðanir: verðtrygging + fjármagnstekjuskattur + tryggingagjald ──
   { id: 'vt_burden', from: 'verdtrygging', to: 'greidslubyrdi', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Verðtryggð lán hafa lægri NAFN-greiðslubyrði (verðbætur leggjast á höfuðstól) → lægri greiðslubyrði skammtíma' },
-  { id: 'vt_hdebt', from: 'verdtrygging', to: 'heimilaskuldir', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.16, source: 'Verðtrygging → höfuðstóll vex með verðbólgu → hærri heimilaskuldir yfir tíma' },
+  { id: 'vt_hdebt', from: 'verdtrygging', to: 'heimilaskuldir', coef: 0.02, lag: 3, unit: 'vísit/%', ci_lo: 0.008, ci_hi: 0.04, source: 'Verðtrygging → höfuðstóll vex með verðbólgu → hærri heimilaskuldir yfir tíma (ársfjórðungs-innflæði í stofn, endurskalað /4)' },
   { id: 'capg_bal', from: 'fjarmagnstekjuskattur', to: 'afkoma', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Fjármagnstekjuskattur → tekjur ríkissjóðs (þrengri stofn en tekjuskattur)' },
   { id: 'capg_eq', from: 'fjarmagnstekjuskattur', to: 'jofnudur', coef: 0.12, lag: 1, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.22, source: 'Fjármagnstekjur samþjappaðar efst → hærri skattur eykur tekjujöfnuð' },
   { id: 'capg_stock', from: 'fjarmagnstekjuskattur', to: 'hlutabref', coef: -0.30, lag: 1, unit: 'vísit/%', ci_lo: -0.55, ci_hi: -0.1, source: 'Hærri skattur á söluhagnað → lægri eftir-skatts ávöxtun → lægra hlutabréfaverð/fjárfesting' },
   { id: 'capg_innov', from: 'fjarmagnstekjuskattur', to: 'nyskopun', coef: -0.05, lag: 2, unit: 'vísit/%', ci_lo: -0.12, ci_hi: -0.01, source: 'Hærri fjármagnstekjuskattur → minna áhættufjármagn í nýsköpun' },
-  { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.06, lag: 1, unit: '%VLF/%', ci_lo: 0.03, ci_hi: 0.1, source: 'Tryggingagjald (breiður launastofn) → tekjur ríkissjóðs' },
+  { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.14, lag: 1, unit: '%VLF/%', ci_lo: 0.09, ci_hi: 0.19, source: 'Tryggingagjald (breiðasti launastofn ~20 ma/pp) → tekjur ríkissjóðs (sami ⅓-virknis-afsláttur og aðrir tekjustofnar)' },
   { id: 'payroll_unem', from: 'tryggingagjald', to: 'atvinnuleysi', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Hærra launatengt gjald → hærri launakostnaður → minni ráðning' },
   { id: 'payroll_gdp', from: 'tryggingagjald', to: 'hagvoxtur', coef: -0.03, lag: 2, unit: 'pp/%', ci_lo: -0.07, ci_hi: -0.01, source: 'Launakostnaðar-drag á atvinnulíf' },
   // ── TVÍHLIÐA-JÖFNUÐUR: fórnarskipti sem vantaði (sleðar sem höfðu áður BARA jákvæð/neikvæð áhrif) ──
@@ -411,6 +429,22 @@ const links = [
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
+
+// ── BUILD-GÁT (varnarpakki): hvert tengsl VERÐUR að enda á útkomu (grípur dauð tengsl eins og gamla infl_wageloop→`laun`),
+// uppspretta að vera sleði/sjokk/útkoma, og lag-0 útkomu→útkomu að hafa uppsprettu Á UNDAN marki í outcomes-röð. ──
+{
+  const outSet = new Set(Object.keys(baseline.outcomes));
+  const order = Object.keys(baseline.outcomes);
+  const fromSet = new Set([...Object.keys(baseline.levers), ...Object.keys(baseline.shocks), ...outSet]);
+  for (const ln of cleanLinks) {
+    if (!outSet.has(ln.to)) throw new Error(`BUILD-GÁT: tengsl '${ln.id}' endar á '${ln.to}' sem er EKKI útkoma (dautt tengsl — vélin ítrar aðeins útkomur).`);
+    if (!fromSet.has(ln.from)) throw new Error(`BUILD-GÁT: tengsl '${ln.id}' kemur frá '${ln.from}' — hvorki sleði, sjokk né útkoma.`);
+    if ((ln.lag || 0) === 0 && !ln.lead && outSet.has(ln.from) && order.indexOf(ln.from) >= order.indexOf(ln.to))
+      throw new Error(`BUILD-GÁT: lag-0 tengsl '${ln.id}' (${ln.from}→${ln.to}) — uppspretta verður á UNDAN marki í outcomes-röð, annars les markið 0.`);
+    if (ln.lead && !(ln.from in baseline.levers || ln.from in baseline.shocks))
+      throw new Error(`BUILD-GÁT: lead-tengsl '${ln.id}' á uppsprettu '${ln.from}' sem er ekki exogen (lever/sjokk) — framtíðar-frávik útkomu er ekki reiknað.`);
+  }
+}
 
 const scenarios = [
   { id: 'vaxtahaekkun', label: 'Vaxtahækkun 0,25pp', tldr: 'Seðlabankinn hækkar stýrivexti', levers: { vextir: rateNow + 0.25 }, shocks: {}, sentence: 'Vaxtahækkun um 0,25 prósentustig gæti — að öllu óbreyttu — hægt á verðbólgu og húsnæðisverði á 1–2 árum, en dregið lítillega úr hagvexti.' },

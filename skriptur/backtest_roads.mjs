@@ -139,12 +139,20 @@ const byL = simulate({ baseline, links, levers: { byggdastefna: 30 }, quarters: 
 const frL = simulate({ baseline, links, levers: { frambod: 30 }, quarters: 40 });
 const meG = simulate({ baseline, links, levers: { menntun: 30 }, quarters: 40 });
 const okHbsRate = rH.outcomes.husnaedi_hbs.mid[39] < baseline.outcomes.husnaedi_hbs.path[39]; // vextir → höfuðborg↓
-const okHbsMoreSensitive = (rH.outcomes.husnaedi_hbs.mid[39] - baseline.outcomes.husnaedi_hbs.path[39]) < (rH.outcomes.husnaedi_land.mid[39] - baseline.outcomes.husnaedi_land.path[39]); // höfuðborg fellur MEIRA en landsbyggð
+// B1: höfuðb OG landsb bæði vaxta-næm (eigin OLS hafnaði fyrri öfugu röðun) — SAMHVERFT: bæði falla, munur <0,5pp
+const dHbs = rH.outcomes.husnaedi_hbs.mid[39] - baseline.outcomes.husnaedi_hbs.path[39];
+const dLand = rH.outcomes.husnaedi_land.mid[39] - baseline.outcomes.husnaedi_land.path[39];
+const okHbsLandSym = dHbs < 0 && dLand < 0 && Math.abs(dHbs - dLand) < 0.5;
 const okByggdLand = byL.outcomes.husnaedi_land.mid[39] > baseline.outcomes.husnaedi_land.path[39]; // byggðaefling → landsbyggðar-verð↑
 const okFrLand = frL.outcomes.husnaedi_land.mid[39] < baseline.outcomes.husnaedi_land.path[39]; // framboð → landsbyggðar-verð↓
+const okFrHbs = frL.outcomes.husnaedi_hbs.mid[39] < baseline.outcomes.husnaedi_hbs.path[39]; // L5: framboð → HÖFUÐBORGAR-verð↓ (vantaði áður)
+// Vigtað svæða-samræmispróf (varnarpakki c3): |0,64·c_hbs + 0,36·c_land − c_nat| lítið fyrir sömu-uppsprettu tengsl
+const linkc = (id) => (links.find((l) => l.id === id) || {}).coef ?? 0;
+const regionConsist = (nat, hbs, land) => Math.abs(0.64 * linkc(hbs) + 0.36 * linkc(land) - linkc(nat)) <= Math.max(0.05, 0.25 * Math.abs(linkc(nat)));
+const okRegionConsist = regionConsist('r_house', 'r_hbs', 'r_land') && regionConsist('fr_house', 'fr_hbs', 'fr_land') && regionConsist('loda_house', 'loda_hbs', 'loda_land');
 const okMenntGdp = meG.outcomes.hagvoxtur.mid[39] > baseline.outcomes.hagvoxtur.path[39]; // menntun → hagvöxtur (mannauður)
 const okMod11Band = [rH, byL, frL, meG].every((r) => ['husnaedi_hbs', 'husnaedi_land'].every((k) => r.outcomes[k].lo.every((v, i) => v <= r.outcomes[k].mid[i] + 1e-9 && r.outcomes[k].mid[i] <= r.outcomes[k].hi[i] + 1e-9 && r.outcomes[k].mid[i] >= baseline.clamp[k][0] - 0.01 && r.outcomes[k].mid[i] <= baseline.clamp[k][1] + 0.01)));
-console.log('+vextir→höfuðb-húsn↓:', okHbsRate, '| höfuðb næmari en landsb:', okHbsMoreSensitive, '| +byggðastefna→landsb-húsn↑:', okByggdLand, '| +framboð→landsb-húsn↓:', okFrLand, '| +menntun→hagvöxtur↑:', okMenntGdp, '| mod11-bönd+clamp:', okMod11Band);
+console.log('+vextir→höfuðb-húsn↓:', okHbsRate, '| hbs/land samhverft vaxtanæmt:', okHbsLandSym, '| +byggðastefna→landsb↑:', okByggdLand, '| +framboð→landsb↓:', okFrLand, '| +framboð→höfuðb↓:', okFrHbs, '| svæða-samræmi:', okRegionConsist, '| +menntun→hagvöxtur↑:', okMenntGdp, '| mod11-bönd+clamp:', okMod11Band);
 // Yfirferð (module 12): endógent gengi + vantandi lykkjur
 const rFx = simulate({ baseline, links, levers: { vextir: baseline.levers.vextir.base + 3 }, quarters: 40 });
 const tHb = simulate({ baseline, links, shocks: { ferdamenn: 30 }, quarters: 40 });
@@ -214,5 +222,26 @@ console.log('nýjar ákvarðanir — verðtrygging→greiðslubyrði↓:', okVt,
 const okDstiTO = simulate({ baseline, links, levers: { dsti: 25 }, shocks: {}, quarters: 12 }).outcomes.hagvoxtur.mid[11] < bAud.outcomes.hagvoxtur.mid[11] - 1e-9;
 const okBindTO = simulate({ baseline, links, levers: { bindiskylda: 10 }, shocks: {}, quarters: 12 }).outcomes.hagvoxtur.mid[11] < bAud.outcomes.hagvoxtur.mid[11] - 1e-9;
 console.log('tvíhliða-jöfnuður — DSTI-herðing→hagvöxtur↓:', okDstiTO, '| bindiskylda→hagvöxtur↓:', okBindTO);
-const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand && okTaxKaup && okTaxInnov && okHvatiInnov && okInnovGdp && okKvFisk && okKvFiskUp && okCarbInfl && okMod9Band && okWorldExp && okVskInfl && okVskKaup && okDstiHouse && okBindHouse && okTransfKaup && okInnvGdp && okVeidiBal && okSkiptiEmis && okFridunFisk && okTourfeeBal && okMod10Band && okHbsRate && okHbsMoreSensitive && okByggdLand && okFrLand && okMenntGdp && okMod11Band && okRateFx && okFxDisinfl && okTourHbs && okMod12 && okRateCredit && okRateEquity && okExpCA && okCaNiip && okTransfEq && okCommExp && okMod13 && okSaturation && okAccel && okArrIdentity && okPhaseDiffers && okSFC && okFwdExp && okFwdBackcompat && okCarbonInnov && okRetireLabor && okEduUnem && okSpreadFx && okLaffer && okVt && okCapg && okPayroll && okDstiTO && okBindTO);
+// ── VARNARPAKKI (P10): bókhalds-efri-mark + stefnupróf fyrir áður prófalaus inntök ──
+// Bókhalds-þak: |afkomu-coef mult-sleða| ≤ 1,5·realBase/VLF (grípur skölunar-villur eins og gamla veidi_bal 14×)
+const VLF_TEST = 4200;
+const balC = (id) => Math.abs((links.find((l) => l.id === id) || {}).coef ?? 0);
+const rB = (lev) => baseline.levers[lev]?.realBase ?? 0;
+const okAcctCap = [['exp_bal', 'utgjold'], ['transf_bal', 'tilfaerslur'], ['innv_bal', 'innvidir'], ['veidi_bal', 'veidigjald'], ['ivil_bal', 'ivilnanir'], ['mennt_bal', 'menntun']]
+  .every(([id, lev]) => balC(id) <= 1.5 * rB(lev) / VLF_TEST + 1e-9);
+// 8 áður prófalaus inntök (24 tengsl aldrei virkjuð í backtest) — grunn-áttir
+const dirOf = (lev, val, out, t, up) => { const s = simulate({ baseline, links, levers: typeof lev === 'object' ? lev : { [lev]: val }, shocks: typeof lev === 'object' ? {} : {}, quarters: 12 }); const d = s.outcomes[out].mid[t] - bAud.outcomes[out].mid[t]; return up ? d > 1e-9 : d < -1e-9; };
+const shockDir = (sh, val, out, t, up) => { const s = simulate({ baseline, links, shocks: { [sh]: val }, quarters: 12 }); const d = s.outcomes[out].mid[t] - bAud.outcomes[out].mid[t]; return up ? d > 1e-9 : d < -1e-9; };
+const okUntested = [
+  shockDir('olia', 40, 'verdbolga', 3, true),          // olíuskellur → verðbólga↑
+  shockDir('gengi', -10, 'verdbolga', 3, true),        // veikari króna → verðbólga↑
+  dirOf('vedhlutfall', 90, 'husnaedi', 6, true),       // rýmra veðhlutfall → húsnæði↑
+  dirOf('leiguhusnaedi', 40, 'leiga', 8, false),       // félagslegt húsnæði → leiga↓
+  dirOf('lodaframbod', 40, 'husnaedi', 10, false),     // lóðaframboð → húsnæði↓
+  dirOf('atvinnuthatttaka', 15, 'vinnuafl', 6, true),  // þátttaka → vinnuafl↑
+  dirOf('innflytjendastefna', 40, 'vinnuafl', 6, true),// innflytjendur → vinnuafl↑
+  dirOf('skograekt', 40, 'losun', 8, false),           // skógrækt → losun↓
+].every(Boolean);
+console.log('varnarpakki — bókhalds-þak mult-sleða:', okAcctCap, '| 8 áður-prófalaus inntök (áttir):', okUntested);
+const bad = !(okDir && okHouse && okGdp && okBand && okFrHouse && okMigHouse && okMigRent && okRateBurden && okHouseBand && okMigPop && okMigLabor && okMigGdp && okFerPop && okDemoBand && okTaxBal && okAdhBal && okDebtAccum && okFiscBand && okKvExp && okOrExp && okOrEmis && okCarbEmis && okResBand && okKaupGdp && okTourRent && okRateBal && okRateArrears && okTourArrears && okArrGdp && okArrBand && okLongFinite && okLongClamp && okLongBand && okLongLen && okPopStock && okMigPopLvl && okMigDep && okPenDep && okPenBal && okDemo7Band && okByggdUp && okOrkaByggd && okMigByggd && okByggdBand && okTaxKaup && okTaxInnov && okHvatiInnov && okInnovGdp && okKvFisk && okKvFiskUp && okCarbInfl && okMod9Band && okWorldExp && okVskInfl && okVskKaup && okDstiHouse && okBindHouse && okTransfKaup && okInnvGdp && okVeidiBal && okSkiptiEmis && okFridunFisk && okTourfeeBal && okMod10Band && okHbsRate && okHbsLandSym && okByggdLand && okFrLand && okFrHbs && okRegionConsist && okMenntGdp && okMod11Band && okRateFx && okFxDisinfl && okTourHbs && okMod12 && okRateCredit && okRateEquity && okExpCA && okCaNiip && okTransfEq && okCommExp && okMod13 && okSaturation && okAccel && okArrIdentity && okPhaseDiffers && okSFC && okFwdExp && okFwdBackcompat && okCarbonInnov && okRetireLabor && okEduUnem && okSpreadFx && okLaffer && okVt && okCapg && okPayroll && okDstiTO && okBindTO && okAcctCap && okUntested);
 process.exit(bad ? 1 : 0);

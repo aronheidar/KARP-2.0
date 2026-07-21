@@ -119,7 +119,7 @@
    "group": "Peningastefna & varúð"
   },
   "verdtrygging": {
-   "base": 40,
+   "base": 20,
    "min": 0,
    "max": 80,
    "step": 10,
@@ -190,7 +190,7 @@
    "max": 20,
    "step": 5,
    "unit": "%",
-   "label": "Tilfærslur (barna-/vaxtabætur)",
+   "label": "Tilfærslur (barnabætur o.fl.)",
    "group": "Ríkisfjármál & skattar"
   },
   "innvidir": {
@@ -208,7 +208,7 @@
   },
   "veidigjald": {
    "base": 0,
-   "realBase": 10.2,
+   "realBase": 17.3,
    "realMode": "mult",
    "realUnit": " ma.kr.",
    "realDec": 1,
@@ -367,7 +367,7 @@
   },
   "kolefnisgjald": {
    "base": 0,
-   "realBase": 5.9,
+   "realBase": 10.5,
    "realMode": "mult",
    "realUnit": " þús.kr/t CO₂",
    "realDec": 1,
@@ -380,7 +380,7 @@
   },
   "skograekt": {
    "base": 0,
-   "realBase": 4,
+   "realBase": 2.5,
    "realMode": "mult",
    "realUnit": " þús. ha/ári",
    "realDec": 1,
@@ -403,7 +403,7 @@
   },
   "ferdamannagjald": {
    "base": 0,
-   "realBase": 600,
+   "realBase": 800,
    "realMode": "mult",
    "realUnit": " kr/nótt",
    "realDec": 0,
@@ -610,6 +610,52 @@
     4,
     4,
     4
+   ]
+  },
+  "launaskrid": {
+   "label": "Launaskrið (nafnlaun umfram samninga)",
+   "unit": "%",
+   "path": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
    ]
   },
   "kaupmattur": {
@@ -2097,6 +2143,10 @@
   "atvinnuleysi": [
    0,
    20
+  ],
+  "launaskrid": [
+   -10,
+   15
   ],
   "kaupmattur": [
    -10,
