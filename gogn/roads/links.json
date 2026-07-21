@@ -73,10 +73,11 @@
    "type": "accel",
    "at": 1,
    "by": 0.15,
-   "cap": 2
+   "cap": 2,
+   "side": "pos"
   },
   "source": "Launa-verð spírall, Hagstofa/SÍ",
-  "note": "ÓLÍNULEGT: stórar launahækkanir hraða launa-verð spíral (hröðun yfir þröskuld)"
+  "note": "ÓLÍNULEGT+EINHLIÐA: stórar launaHÆKKANIR hraða spíral (side:pos — launalækkun hraðar ekki)"
  },
  {
   "id": "w_house",
@@ -93,12 +94,12 @@
   "id": "ltv_house",
   "from": "vedhlutfall",
   "to": "husnaedi",
-  "coef": 0.15,
+  "coef": 0.12,
   "lag": 2,
   "unit": "%/pp",
-  "ci_lo": 0.05,
-  "ci_hi": 0.3,
-  "source": "Þjóðhagsvarúð, HMS/FME"
+  "ci_lo": 0.04,
+  "ci_hi": 0.24,
+  "source": "Þjóðhagsvarúð, HMS/FME (lækkað — hluti nú um vedhlutfall→utlanavoxtur→husnaedi, ltv_credit)"
  },
  {
   "id": "oil_infl",
@@ -120,7 +121,12 @@
   "unit": "pp/%",
   "ci_lo": -0.12,
   "ci_hi": -0.02,
-  "source": "Gengisyfirfærsla (styrking lækkar innflutt verð)"
+  "nl": {
+   "type": "asym",
+   "up": 0.6,
+   "dn": 1.4
+  },
+  "source": "Gengisyfirfærsla — ÓSAMHVERF: veiking (fd<0) skilar sér hraðar í verð en styrking (verð hækka hraðar en þau lækka)"
  },
  {
   "id": "fx_gdp",
@@ -186,7 +192,12 @@
   "unit": "pp/pp",
   "ci_lo": -0.5,
   "ci_hi": -0.15,
-  "source": "Okun's law, íslensk aðlögun"
+  "nl": {
+   "type": "asym",
+   "up": 0.7,
+   "dn": 1.3
+  },
+  "source": "Okun's law — ÓSAMHVERFT: atvinnuleysi rýkur hraðar upp í samdrætti (fd<0, ×1,3) en það fellur í uppsveiflu (×0,7)"
  },
  {
   "id": "house_infl",
@@ -208,7 +219,12 @@
   "unit": "pp/pp",
   "ci_lo": 0.15,
   "ci_hi": 0.55,
-  "source": "Verðbólga → næstu kjarasamningar/vísitölutenging → nafnlauna-skrið (tafið)"
+  "nl": {
+   "type": "asym",
+   "up": 1,
+   "dn": 0.2
+  },
+  "source": "Verðbólga → kjarasamningar/vísitölutenging → launaskrið — ÓSAMHVERF: NIÐURSTÍFNI nafnlauna (verðhjöðnun lækkar laun aðeins ×0,2)"
  },
  {
   "id": "launaskrid_kaup",
@@ -657,10 +673,11 @@
    "type": "accel",
    "at": 0.3,
    "by": 0.4,
-   "cap": 2.5
+   "cap": 2.5,
+   "side": "pos"
   },
   "source": "Fjármála-hraðall: vanskil → útlánasamdráttur → minni fjárfesting/neysla",
-  "note": "ÓLÍNULEGT: fjármála-hraðall magnast í kreppu (hröðun)"
+  "note": "ÓLÍNULEGT+EINHLIÐA: hraðall magnast þegar vanskil RJÚKA UPP (side:pos), ekki þegar þau lagast"
  },
  {
   "id": "arrears_bal",
@@ -985,12 +1002,12 @@
   "id": "infl_persist",
   "from": "verdbolga",
   "to": "verdbolga",
-  "coef": 0.25,
+  "coef": 0.5,
   "lag": 1,
   "unit": "",
-  "ci_lo": 0.15,
-  "ci_hi": 0.35,
-  "source": "Verðbólguvæntingar/tregða — verðbólga viðheldur sér (sjálf-lykkja <1)"
+  "ci_lo": 0.35,
+  "ci_hi": 0.65,
+  "source": "Verðbólguvæntingar/tregða — verðbólga viðheldur sér (sjálf-lykkja <1; hækkað úr 0,25: eigin OLS AR1=0,92 á yoy, yfirlapps-leiðrétt ~0,5–0,7; sannreynt stöðugt 40Q með launaskriðs-lykkju)"
  },
  {
   "id": "gap_infl",
@@ -1139,12 +1156,12 @@
   "id": "dsti_house",
   "from": "dsti",
   "to": "husnaedi",
-  "coef": 0.15,
+  "coef": 0.12,
   "lag": 2,
   "unit": "%/pp",
-  "ci_lo": 0.05,
-  "ci_hi": 0.28,
-  "source": "Rýmra greiðslubyrðisþak → meiri lántaka → hærra húsnæðisverð"
+  "ci_lo": 0.04,
+  "ci_hi": 0.24,
+  "source": "Rýmra greiðslubyrðisþak → meiri lántaka → hærra húsnæðisverð (lækkað — hluti nú um dsti→utlanavoxtur, dsti_credit)"
  },
  {
   "id": "dsti_burden",
@@ -1727,7 +1744,12 @@
   "unit": "pp/%",
   "ci_lo": -0.12,
   "ci_hi": -0.02,
-  "source": "Sterk króna → lægra innflutt verð (endógen gengisyfirfærsla) — auka-rás peningastefnu"
+  "nl": {
+   "type": "asym",
+   "up": 0.6,
+   "dn": 1.4
+  },
+  "source": "Endógen gengisyfirfærsla — ÓSAMHVERF (veiking skilar sér hraðar en styrking)"
  },
  {
   "id": "fxendo_exp",
@@ -1755,12 +1777,12 @@
   "id": "infl_debt",
   "from": "verdbolga",
   "to": "skuldir",
-  "coef": -0.06,
+  "coef": -0.03,
   "lag": 2,
   "unit": "%VLF/pp",
-  "ci_lo": -0.12,
-  "ci_hi": -0.02,
-  "source": "Verðbólga étur raunvirði skulda (hærra nafn-VLF í nefnara skuldahlutfalls)"
+  "ci_lo": -0.06,
+  "ci_hi": -0.01,
+  "source": "Verðbólga étur raunvirði skulda (nefnara-áhrif) — mildað því hluti ríkisbréfa er VERÐTRYGGÐUR (verðbætur á höfuðstól vega á móti)"
  },
  {
   "id": "wage_unem",
@@ -1799,12 +1821,12 @@
   "id": "r_m3",
   "from": "vextir",
   "to": "peningamagn",
-  "coef": -0.9,
+  "coef": -0.4,
   "lag": 1,
   "unit": "%/pp",
-  "ci_lo": -1.6,
-  "ci_hi": -0.3,
-  "source": "Aðhald → hægari peningamyndun (M3)"
+  "ci_lo": -0.8,
+  "ci_hi": -0.15,
+  "source": "Aðhald → hægari peningamyndun (M3) — beina rásin (megin nú um utlanavoxtur→peningamagn, credit_m3: lán skapa innlán)"
  },
  {
   "id": "r_credit",
@@ -1940,10 +1962,11 @@
    "type": "accel",
    "at": 0.2,
    "by": 0.5,
-   "cap": 3
+   "cap": 3,
+   "side": "pos"
   },
   "source": "Hærri ríkisskuldir → hærra áhættuálag",
-  "note": "ÓLÍNULEGT: áhættuálag hraðar við háa skuldsetningu (skuldakreppu-kúfur)"
+  "note": "ÓLÍNULEGT+EINHLIÐA: álag hraðar þegar skuldir HÆKKA (side:pos, skuldakreppu-kúfur), ekki við niðurgreiðslu"
  },
  {
   "id": "arrears_spread",
@@ -2571,5 +2594,283 @@
   "ci_lo": 0.05,
   "ci_hi": 0.4,
   "source": "Almenn kaupmáttaraukning → dreifður ávinningur"
+ },
+ {
+  "id": "world_spread",
+  "from": "heimshagvoxtur",
+  "to": "vaxtaalag",
+  "coef": -0.12,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.22,
+  "ci_hi": -0.04,
+  "nl": {
+   "type": "accel",
+   "at": 0.1,
+   "by": 0.3,
+   "cap": 2,
+   "side": "neg"
+  },
+  "source": "Alþjóðleg áhættufælni (heimssamdráttur) → hærra áhættuálag smáríkja (risk-off, CDS 2008/2020; magnast í samdrætti)"
+ },
+ {
+  "id": "world_equity",
+  "from": "heimshagvoxtur",
+  "to": "hlutabref",
+  "coef": 1.2,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.5,
+  "ci_hi": 2,
+  "source": "ICEX fylgir alþjóðlegri áhættusækni (OMXI −27% 2022 á erlendum fréttum) → keðjast í lífeyriseignir"
+ },
+ {
+  "id": "pension_spread",
+  "from": "lifeyriseignir",
+  "to": "vaxtaalag",
+  "coef": -0.01,
+  "lag": 2,
+  "unit": "pp/%VLF",
+  "ci_lo": -0.02,
+  "ci_hi": -0.003,
+  "source": "Lífeyrissjóðir (175% VLF) ráðandi RIKB-kaupendur → innlend eftirspurn eftir ríkisbréfum lækkar álag"
+ },
+ {
+  "id": "pension_fx",
+  "from": "lifeyriseignir",
+  "to": "gengi_endo",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "%/%VLF",
+  "ci_lo": -0.1,
+  "ci_hi": -0.01,
+  "source": "Stærsti flæðisþáttur gjaldeyrismarkaðar — erlendar fjárfestingar sjóðanna → útflæði → veikari króna"
+ },
+ {
+  "id": "arrears_credit",
+  "from": "vanskil",
+  "to": "utlanavoxtur",
+  "coef": -0.06,
+  "lag": 2,
+  "unit": "%/vísit",
+  "ci_lo": -0.11,
+  "ci_hi": -0.02,
+  "nl": {
+   "type": "accel",
+   "at": 0.3,
+   "by": 0.4,
+   "cap": 2.5,
+   "side": "pos"
+  },
+  "source": "Vanskil → varkárari útlán banka (framboðssamdráttur 2009–11) → lægri útlánavöxtur; í dag ýtti Taylor útlánum UPP í kreppu (magnast í kreppu)"
+ },
+ {
+  "id": "ltv_credit",
+  "from": "vedhlutfall",
+  "to": "utlanavoxtur",
+  "coef": 0.12,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": 0.05,
+  "ci_hi": 0.22,
+  "source": "Rýmra veðhlutfall → meiri lánsgeta → útlánavöxtur (SÍ 2021–23; LTV BEINT tæki á útlán)"
+ },
+ {
+  "id": "dsti_credit",
+  "from": "dsti",
+  "to": "utlanavoxtur",
+  "coef": 0.12,
+  "lag": 2,
+  "unit": "%/pp",
+  "ci_lo": 0.05,
+  "ci_hi": 0.22,
+  "source": "Rýmra greiðslubyrðisþak → meiri lánsgeta → útlánavöxtur"
+ },
+ {
+  "id": "credit_m3",
+  "from": "utlanavoxtur",
+  "to": "peningamagn",
+  "coef": 0.5,
+  "lag": 1,
+  "unit": "%/%",
+  "ci_lo": 0.25,
+  "ci_hi": 0.8,
+  "source": "Útlán skapa innlán → peningamagn (BoE 2014, endógen peningamyndun; bindiskylda hreyfir þá loks M3)"
+ },
+ {
+  "id": "gdp_debt",
+  "from": "hagvoxtur",
+  "to": "skuldir",
+  "coef": -0.1,
+  "lag": 1,
+  "unit": "%VLF/pp",
+  "ci_lo": -0.18,
+  "ci_hi": -0.04,
+  "source": "Hagvöxtur lækkar skuldahlutfall (nefnara-liður Δd≈−pb−d(g+π)/400) — spegill infl_debt sem vantaði (r−g)"
+ },
+ {
+  "id": "rate_rent",
+  "from": "vextir",
+  "to": "leiga",
+  "coef": 0.25,
+  "lag": 1,
+  "unit": "%/pp",
+  "ci_lo": 0.1,
+  "ci_hi": 0.45,
+  "source": "LEIÐRÉTTING: útilokun fyrstu kaupenda + fjármagnskostnaður leigusala → HÆRRI leiga (HMS +15% 2024 við 9,25% vexti); óbeina húsnæðis-rásin (töf) vegur á móti → nettó ≈0 langtíma"
+ },
+ {
+  "id": "unem_launaskrid",
+  "from": "atvinnuleysi",
+  "to": "launaskrid",
+  "coef": -0.12,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": -0.22,
+  "ci_hi": -0.05,
+  "source": "Þröngur vinnumarkaður → launaskrið↑, hátt atvinnuleysi → launaskrið↓ (Phillips um skrið; í grunnstillingu án autoPhi hafði þensla áður engin launaáhrif)"
+ },
+ {
+  "id": "gdp_labor",
+  "from": "hagvoxtur",
+  "to": "vinnuafl",
+  "coef": 0.12,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": 0.05,
+  "ci_hi": 0.22,
+  "source": "Hagsveifluháður aðflutningur — fólk fylgir störfum (2017 +8.240 nettó); helsta aðlögunarrás vinnumarkaðar, dempar ofhitnun"
+ },
+ {
+  "id": "immig_pop",
+  "from": "innflytjendastefna",
+  "to": "mannfjoldi",
+  "coef": 0.012,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.006,
+  "ci_hi": 0.02,
+  "source": "Atvinnuleyfi → höfðatala (fólkið sem fær leyfin taldist ekki áður í mannfjölda)"
+ },
+ {
+  "id": "fer_dep",
+  "from": "frjosemi",
+  "to": "framfaersla",
+  "coef": 0.02,
+  "lag": 3,
+  "unit": "vísit/%",
+  "ci_lo": 0.008,
+  "ci_hi": 0.035,
+  "source": "Börn (0–19) eru framfærsluþegar — minni frjósemi LÆKKAR hlutfallið innan 10 ára (fræðandi mótsögn)"
+ },
+ {
+  "id": "payroll_kaup",
+  "from": "tryggingagjald",
+  "to": "kaupmattur",
+  "coef": -0.03,
+  "lag": 3,
+  "unit": "pp/%",
+  "ci_lo": -0.06,
+  "ci_hi": -0.01,
+  "source": "Incidence launaskatta færist á laun (klassískt skiptimynt kjarasamninga)"
+ },
+ {
+  "id": "byggd_bal2",
+  "from": "byggdastefna",
+  "to": "afkoma",
+  "coef": -0.02,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": -0.04,
+  "ci_hi": -0.008,
+  "source": "Byggðaáhersla (innviðir/ívilnanir) kostar ríkissjóð (var eini hvata-sleðinn án kostnaðar → frír hádegisverður í KARP)"
+ },
+ {
+  "id": "house_supply",
+  "from": "husnaedi",
+  "to": "husnaedi",
+  "coef": -0.08,
+  "lag": 6,
+  "unit": "",
+  "ci_lo": -0.15,
+  "ci_hi": -0.03,
+  "source": "Framboðssvörun byggingargeirans — verðhækkun → byggingarhvati → verð-mean-reversion (íbúðir ~þrefölduðust 2018–21; sjálf-lykkja <0, eina jafnvægisaflið á verðhlið annað en clamp)"
+ },
+ {
+  "id": "tour_byggd",
+  "from": "ferdamenn",
+  "to": "byggdajofnudur",
+  "coef": 0.02,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": 0.008,
+  "ci_hi": 0.04,
+  "source": "Ferðaþjónusta dreifir virðisauka á landsbyggð"
+ },
+ {
+  "id": "fridun_byggd",
+  "from": "fridun",
+  "to": "byggdajofnudur",
+  "coef": -0.03,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.06,
+  "ci_hi": -0.01,
+  "source": "Friðun minnkar veiðar → íþyngir sjávarbyggðum til skamms tíma (speglar veidi_byggd)"
+ },
+ {
+  "id": "eldi_exp",
+  "from": "fiskeldi",
+  "to": "utflutningur",
+  "coef": 0.04,
+  "lag": 2,
+  "unit": "%/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.07,
+  "source": "Fiskeldi = ör-vaxandi útflutningsgrein (lax/bleikja); hlutdeildar-vægi minna en villtur fiskur"
+ },
+ {
+  "id": "eldi_vlfsj",
+  "from": "fiskeldi",
+  "to": "vlf_sjavar",
+  "coef": 0.1,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.18,
+  "source": "Fiskeldi → sjávarútvegs-virðisauki"
+ },
+ {
+  "id": "eldi_byggd",
+  "from": "fiskeldi",
+  "to": "byggdajofnudur",
+  "coef": 0.05,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.1,
+  "source": "Fiskeldi (Vestfirðir/Austfirðir) → störf á landsbyggð → byggðajöfnuður"
+ },
+ {
+  "id": "eldi_fisk",
+  "from": "fiskeldi",
+  "to": "fiskistofn",
+  "coef": -0.02,
+  "lag": 4,
+  "unit": "vísit/%",
+  "ci_lo": -0.05,
+  "ci_hi": -0.005,
+  "source": "Sjókvíaeldi → erfðablöndun/laxalús → álag á VILLTAN stofn (sjálfbærni-togstreita)"
+ },
+ {
+  "id": "votl_emis",
+  "from": "votlendi",
+  "to": "losun",
+  "coef": -0.12,
+  "lag": 6,
+  "unit": "vísit/%",
+  "ci_lo": -0.22,
+  "ci_hi": -0.05,
+  "source": "Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%); löng töf"
  }
 ]

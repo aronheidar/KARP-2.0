@@ -4,13 +4,20 @@
 // Regla: útkoma→útkoma tengsl verða að hafa lag ≥ 1.
 // ÓLÍNULEIKI (valkvæður, afturvirkt-samhæfður): tengsl mega hafa `nl`-svið:
 //   {type:'sat', k}    → mettun (minnkandi ávöxtun): áhrif = k·tanh(coef·frávik/k). Lítið frávik ≈ línulegt.
-//   {type:'accel', at, by, cap} → hröðun yfir þröskuld (t.d. skuldakreppa/þensla): áhrif = coef·frávik·min(cap, 1+by·max(0,|coef·frávik|−at)).
+//   {type:'accel', at, by, cap, side?} → hröðun yfir þröskuld (skuldakreppa/þensla). side:'pos'/'neg' → hröðun
+//        AÐEINS þegar UPPSPRETTU-frávik (fd) hefur það formerki (einhliða fyrirbæri).
+//   {type:'asym', up, dn} → ÓSAMHVERF mögnun: áhrif × up ef fd≥0, × dn ef fd<0 (t.d. verðtregða niður, ósamhverft Okun).
+// ⚠ side/asym lykla á formerki UPPSPRETTU-fráviks (fd), EKKI x=coef·fd — annars snýst greinin öfugt á neikvæðum coef.
 // Án `nl` er tengslið HREINT LÍNULEGT (öll fyrri tengsl óbreytt → öll próf standast).
 
-export function applyNL(x, nl) {
+export function applyNL(x, nl, fd = x) {
   if (!nl) return x;
   if (nl.type === 'sat') return nl.k * Math.tanh(x / nl.k);
-  if (nl.type === 'accel') return x * Math.min(nl.cap ?? 2.5, 1 + nl.by * Math.max(0, Math.abs(x) - nl.at));
+  if (nl.type === 'accel') {
+    if ((nl.side === 'pos' && fd <= 0) || (nl.side === 'neg' && fd >= 0)) return x;   // einhliða: engin hröðun í rangri átt
+    return x * Math.min(nl.cap ?? 2.5, 1 + nl.by * Math.max(0, Math.abs(x) - nl.at));
+  }
+  if (nl.type === 'asym') return x * (fd >= 0 ? (nl.up ?? 1) : (nl.dn ?? 1));
   return x;
 }
 
@@ -44,7 +51,7 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
         // 0 fyrir fasta leið (afturvirkt-samhæft); bítur aðeins þegar stýring er tímaháð/boðuð. Aðeins exogen uppspretta.
         if (ln.lead && ((L && ln.from in L) || (S && ln.from in S))) {
           const anticip = deviationOf(ln.from, t + ln.lead, ctx) - deviationOf(ln.from, t, ctx);
-          d += applyNL(ln.coef * anticip, ln.nl);
+          d += applyNL(ln.coef * anticip, ln.nl, anticip);
           const band = ((ln.ci_hi ?? ln.coef) - (ln.ci_lo ?? ln.coef)) / 2;
           u += Math.abs(band * anticip);
           continue;
@@ -52,7 +59,7 @@ export function simulate({ baseline, links, levers = {}, shocks = {}, quarters }
         const s = t - (ln.lag || 0);
         if (s < 0) continue;
         const fd = deviationOf(ln.from, s, ctx);
-        d += applyNL(ln.coef * fd, ln.nl);
+        d += applyNL(ln.coef * fd, ln.nl, fd);
         const band = ((ln.ci_hi ?? ln.coef) - (ln.ci_lo ?? ln.coef)) / 2;
         u += Math.abs(band * fd);
         // Óvissu-KEÐJUN (L8): útkomu-uppsprettur bera eigin óvissu áfram (fyrsta-stigs; unc[from]=0 f. levers/shocks).

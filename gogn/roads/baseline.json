@@ -332,6 +332,19 @@
    "label": "Aflamark þorsks",
    "group": "Auðlindir, orka & loftslag"
   },
+  "fiskeldi": {
+   "base": 0,
+   "realBase": 50,
+   "realMode": "mult",
+   "realUnit": " þús. tonn",
+   "realDec": 0,
+   "min": -20,
+   "max": 60,
+   "step": 10,
+   "unit": "%",
+   "label": "Fiskeldi (framleiðsla)",
+   "group": "Auðlindir, orka & loftslag"
+  },
   "fridun": {
    "base": 0,
    "stance": true,
@@ -389,6 +402,16 @@
    "step": 5,
    "unit": "%",
    "label": "Skógrækt & kolefnisbinding",
+   "group": "Auðlindir, orka & loftslag"
+  },
+  "votlendi": {
+   "base": 0,
+   "stance": true,
+   "min": 0,
+   "max": 40,
+   "step": 5,
+   "unit": "%",
+   "label": "Endurheimt votlendis",
    "group": "Auðlindir, orka & loftslag"
   },
   "byggdastefna": {
