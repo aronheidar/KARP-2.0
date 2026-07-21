@@ -1216,7 +1216,11 @@
   "unit": "%VLF/%",
   "ci_lo": 0.05,
   "ci_hi": 0.16,
-  "source": "VSK = stór tekjustofn ríkissjóðs"
+  "nl": {
+   "type": "sat",
+   "k": 0.6
+  },
+  "source": "VSK = stór tekjustofn ríkissjóðs (B4: Laffer-mettun — grunnrýrnun/neysluflótti við háar hækkanir, vægari en tekjuskattur)"
  },
  {
   "id": "vsk_kaup",
@@ -1381,7 +1385,11 @@
   "unit": "pp/%",
   "ci_lo": 0.03,
   "ci_hi": 0.15,
-  "source": "Þátttökuhvatar → aukið vinnuaflsframboð"
+  "nl": {
+   "type": "sat",
+   "k": 0.9
+  },
+  "source": "Þátttökuhvatar → aukið vinnuaflsframboð (B10: mettun — þátttaka þegar ~82%, takmarkað svigrúm; stigsáhrif ekki ótakmörkuð)"
  },
  {
   "id": "part_dep",
@@ -2362,7 +2370,11 @@
   "unit": "%VLF/%",
   "ci_lo": 0.01,
   "ci_hi": 0.06,
-  "source": "Fjármagnstekjuskattur → tekjur ríkissjóðs (þrengri stofn en tekjuskattur)"
+  "nl": {
+   "type": "sat",
+   "k": 0.2
+  },
+  "source": "Fjármagnstekjuskattur → tekjur ríkissjóðs (B4: STERK Laffer-mettun — fjármagn hreyfanlegt, stofnrýrnun/flótti við háar hækkanir)"
  },
  {
   "id": "capg_eq",
@@ -2406,7 +2418,11 @@
   "unit": "%VLF/%",
   "ci_lo": 0.09,
   "ci_hi": 0.19,
-  "source": "Tryggingagjald (breiðasti launastofn ~20 ma/pp) → tekjur ríkissjóðs (sami ⅓-virknis-afsláttur og aðrir tekjustofnar)"
+  "nl": {
+   "type": "sat",
+   "k": 0.5
+  },
+  "source": "Tryggingagjald (breiðasti launastofn ~20 ma/pp) → tekjur ríkissjóðs (B4: Laffer-mettun — hærra gjald dregur úr ráðningum/launastofni)"
  },
  {
   "id": "payroll_unem",
@@ -2872,5 +2888,40 @@
   "ci_lo": -0.22,
   "ci_hi": -0.05,
   "source": "Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%); löng töf"
+ },
+ {
+  "id": "rate_kaup",
+  "from": "vextir",
+  "to": "kaupmattur",
+  "coef": -0.08,
+  "lag": 2,
+  "unit": "pp/pp",
+  "ci_lo": -0.14,
+  "ci_hi": -0.03,
+  "source": "Vaxtabyrði skuldsettra heimila étur ráðstöfunartekjur (til viðbótar við óbeinu greiðslubyrðar-rásina) → togstreita verðbólguvörn vs kjör"
+ },
+ {
+  "id": "rate_fx_lead",
+  "from": "vextir",
+  "to": "gengi_endo",
+  "coef": 0.5,
+  "lag": 0,
+  "lead": 4,
+  "unit": "%/pp",
+  "ci_lo": 0.2,
+  "ci_hi": 0.9,
+  "source": "Framsýnt gengi (UIP): boðuð vaxtahækkun styrkir krónu STRAX (væntingar)"
+ },
+ {
+  "id": "rate_eq_lead",
+  "from": "vextir",
+  "to": "hlutabref",
+  "coef": -0.5,
+  "lag": 0,
+  "lead": 4,
+  "unit": "vísit/pp",
+  "ci_lo": -0.9,
+  "ci_hi": -0.2,
+  "source": "Framsýnt verðmat hlutabréfa: boðuð vaxtahækkun (hærri afvöxtun) lækkar verð STRAX"
  }
 ]

@@ -285,7 +285,7 @@ const links = [
   { id: 'bind_house', from: 'bindiskylda', to: 'husnaedi', coef: -0.4, lag: 2, unit: '%/%', ci_lo: -0.7, ci_hi: -0.15, source: 'Hærri bindiskylda → minni útlánageta → lægra húsnæðisverð' },
   { id: 'bind_infl', from: 'bindiskylda', to: 'verdbolga', coef: -0.03, lag: 3, unit: 'pp/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Aðhald í lausafé → minni verðbólga (tafið)' },
   { id: 'vsk_infl', from: 'vsk', to: 'verdbolga', coef: 0.15, lag: 1, unit: 'pp/%', ci_lo: 0.08, ci_hi: 0.25, source: 'Virðisaukaskattur hækkar neysluverð beint' },
-  { id: 'vsk_bal', from: 'vsk', to: 'afkoma', coef: 0.10, lag: 1, unit: '%VLF/%', ci_lo: 0.05, ci_hi: 0.16, source: 'VSK = stór tekjustofn ríkissjóðs' },
+  { id: 'vsk_bal', from: 'vsk', to: 'afkoma', coef: 0.10, lag: 1, unit: '%VLF/%', ci_lo: 0.05, ci_hi: 0.16, nl: { type: 'sat', k: 0.6 }, source: 'VSK = stór tekjustofn ríkissjóðs (B4: Laffer-mettun — grunnrýrnun/neysluflótti við háar hækkanir, vægari en tekjuskattur)' },
   { id: 'vsk_kaup', from: 'vsk', to: 'kaupmattur', coef: -0.05, lag: 1, unit: 'pp/%', ci_lo: -0.09, ci_hi: -0.02, source: 'Hærra neysluverð → minni kaupmáttur' },
   { id: 'transf_kaup', from: 'tilfaerslur', to: 'kaupmattur', coef: 0.05, lag: 1, unit: 'pp/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Tilfærslur auka ráðstöfunartekjur (einkum lágtekju)' },
   { id: 'transf_bal', from: 'tilfaerslur', to: 'afkoma', coef: -0.004, lag: 1, unit: '%VLF/%', ci_lo: -0.007, ci_hi: -0.002, source: 'Tilfærslur kosta ríkissjóð (kvarðað: barna-/vaxtabætur ~20 ma / VLF)' },
@@ -300,7 +300,7 @@ const links = [
   { id: 'leigu_rent', from: 'leiguhusnaedi', to: 'leiga', coef: -0.20, lag: 3, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Aukið félagslegt/leiguframboð → lægri leiga' },
   { id: 'leigu_bal', from: 'leiguhusnaedi', to: 'afkoma', coef: -0.02, lag: 1, unit: '%VLF/%', ci_lo: -0.04, ci_hi: -0.005, source: 'Uppbygging leiguíbúða kostar' },
   { id: 'loda_house', from: 'lodaframbod', to: 'husnaedi', coef: -0.15, lag: 6, unit: '%/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → meira byggingarland → lægra verð (löng töf)' },
-  { id: 'part_labor', from: 'atvinnuthatttaka', to: 'vinnuafl', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Þátttökuhvatar → aukið vinnuaflsframboð' },
+  { id: 'part_labor', from: 'atvinnuthatttaka', to: 'vinnuafl', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, nl: { type: 'sat', k: 0.9 }, source: 'Þátttökuhvatar → aukið vinnuaflsframboð (B10: mettun — þátttaka þegar ~82%, takmarkað svigrúm; stigsáhrif ekki ótakmörkuð)' },
   { id: 'part_dep', from: 'atvinnuthatttaka', to: 'framfaersla', coef: -0.05, lag: 2, unit: 'vísit/%', ci_lo: -0.10, ci_hi: -0.02, source: 'Fleiri á vinnumarkaði → lægra framfærsluhlutfall' },
   { id: 'immig_labor', from: 'innflytjendastefna', to: 'vinnuafl', coef: 0.02, lag: 2, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.035, source: 'Atvinnuleyfi/atgervis-innflutningur → vinnuafl' },
   { id: 'immig_dep', from: 'innflytjendastefna', to: 'framfaersla', coef: -0.02, lag: 2, unit: 'vísit/%', ci_lo: -0.04, ci_hi: -0.008, source: 'Vinnualdurs-innflytjendur → lægra framfærsluhlutfall' },
@@ -402,11 +402,11 @@ const links = [
   // ── Nýjar íslenskar ákvarðanir: verðtrygging + fjármagnstekjuskattur + tryggingagjald ──
   { id: 'vt_burden', from: 'verdtrygging', to: 'greidslubyrdi', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Verðtryggð lán hafa lægri NAFN-greiðslubyrði (verðbætur leggjast á höfuðstól) → lægri greiðslubyrði skammtíma' },
   { id: 'vt_hdebt', from: 'verdtrygging', to: 'heimilaskuldir', coef: 0.02, lag: 3, unit: 'vísit/%', ci_lo: 0.008, ci_hi: 0.04, source: 'Verðtrygging → höfuðstóll vex með verðbólgu → hærri heimilaskuldir yfir tíma (ársfjórðungs-innflæði í stofn, endurskalað /4)' },
-  { id: 'capg_bal', from: 'fjarmagnstekjuskattur', to: 'afkoma', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Fjármagnstekjuskattur → tekjur ríkissjóðs (þrengri stofn en tekjuskattur)' },
+  { id: 'capg_bal', from: 'fjarmagnstekjuskattur', to: 'afkoma', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, nl: { type: 'sat', k: 0.2 }, source: 'Fjármagnstekjuskattur → tekjur ríkissjóðs (B4: STERK Laffer-mettun — fjármagn hreyfanlegt, stofnrýrnun/flótti við háar hækkanir)' },
   { id: 'capg_eq', from: 'fjarmagnstekjuskattur', to: 'jofnudur', coef: 0.12, lag: 1, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.22, source: 'Fjármagnstekjur samþjappaðar efst → hærri skattur eykur tekjujöfnuð' },
   { id: 'capg_stock', from: 'fjarmagnstekjuskattur', to: 'hlutabref', coef: -0.30, lag: 1, unit: 'vísit/%', ci_lo: -0.55, ci_hi: -0.1, source: 'Hærri skattur á söluhagnað → lægri eftir-skatts ávöxtun → lægra hlutabréfaverð/fjárfesting' },
   { id: 'capg_innov', from: 'fjarmagnstekjuskattur', to: 'nyskopun', coef: -0.05, lag: 2, unit: 'vísit/%', ci_lo: -0.12, ci_hi: -0.01, source: 'Hærri fjármagnstekjuskattur → minna áhættufjármagn í nýsköpun' },
-  { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.14, lag: 1, unit: '%VLF/%', ci_lo: 0.09, ci_hi: 0.19, source: 'Tryggingagjald (breiðasti launastofn ~20 ma/pp) → tekjur ríkissjóðs (sami ⅓-virknis-afsláttur og aðrir tekjustofnar)' },
+  { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.14, lag: 1, unit: '%VLF/%', ci_lo: 0.09, ci_hi: 0.19, nl: { type: 'sat', k: 0.5 }, source: 'Tryggingagjald (breiðasti launastofn ~20 ma/pp) → tekjur ríkissjóðs (B4: Laffer-mettun — hærra gjald dregur úr ráðningum/launastofni)' },
   { id: 'payroll_unem', from: 'tryggingagjald', to: 'atvinnuleysi', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Hærra launatengt gjald → hærri launakostnaður → minni ráðning' },
   { id: 'payroll_gdp', from: 'tryggingagjald', to: 'hagvoxtur', coef: -0.03, lag: 2, unit: 'pp/%', ci_lo: -0.07, ci_hi: -0.01, source: 'Launakostnaðar-drag á atvinnulíf' },
   // ── TVÍHLIÐA-JÖFNUÐUR: fórnarskipti sem vantaði (sleðar sem höfðu áður BARA jákvæð/neikvæð áhrif) ──
@@ -455,6 +455,11 @@ const links = [
   { id: 'eldi_fisk', from: 'fiskeldi', to: 'fiskistofn', coef: -0.02, lag: 4, unit: 'vísit/%', ci_lo: -0.05, ci_hi: -0.005, source: 'Sjókvíaeldi → erfðablöndun/laxalús → álag á VILLTAN stofn (sjálfbærni-togstreita)' },
   // Votlendi: framræst votlendi ≈ 57% heildarlosunar Íslands (LULUCF) — stærsta einstaka loftslags-vogaraflið:
   { id: 'votl_emis', from: 'votlendi', to: 'losun', coef: -0.12, lag: 6, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.05, source: 'Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%); löng töf' },
+  // B11: vaxtabyrði heimila BEINT í kaupmátt (skuldir ~150% ráðstöfunartekna) — nettó BÆTTI vaxtahækkun áður kaupmátt:
+  { id: 'rate_kaup', from: 'vextir', to: 'kaupmattur', coef: -0.08, lag: 2, unit: 'pp/pp', ci_lo: -0.14, ci_hi: -0.03, source: 'Vaxtabyrði skuldsettra heimila étur ráðstöfunartekjur (til viðbótar við óbeinu greiðslubyrðar-rásina) → togstreita verðbólguvörn vs kjör' },
+  // B19: framsýn eignaverð (UIP/afvöxtun eru framsýnar) — bregðast við BOÐAÐRI vaxtaleið, ekki bara töf. 0 á fastri leið (bíta í dýnamískri KARP):
+  { id: 'rate_fx_lead', from: 'vextir', to: 'gengi_endo', coef: 0.5, lag: 0, lead: 4, unit: '%/pp', ci_lo: 0.2, ci_hi: 0.9, source: 'Framsýnt gengi (UIP): boðuð vaxtahækkun styrkir krónu STRAX (væntingar)' },
+  { id: 'rate_eq_lead', from: 'vextir', to: 'hlutabref', coef: -0.5, lag: 0, lead: 4, unit: 'vísit/pp', ci_lo: -0.9, ci_hi: -0.2, source: 'Framsýnt verðmat hlutabréfa: boðuð vaxtahækkun (hærri afvöxtun) lækkar verð STRAX' },
 ];
 // fjarlægja placeholder-tengsl með coef 0 (halda gögnum hreinum)
 const cleanLinks = links.filter((l) => l.coef !== 0 || l.ci_lo !== 0 || l.ci_hi !== 0);
