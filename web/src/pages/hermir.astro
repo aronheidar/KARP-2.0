@@ -1,16 +1,17 @@
 ---
-// ROADS Íslands — hagkerfis-STJÓRNKLEFI. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
+// ÞRÁÐUR Íslands — hagkerfis-STJÓRNKLEFI. Vél: @lib/roads/engine.mjs (client-hlið, ósnert).
 // Ákvarðanir vinstra · útkomu-net miðju · ytri sjokk hægra. Sjálfvirk peningastefna/launaþróun
 // = UI fastpunkts-ítrun (vélin ósnert). Hover á sleða lýsir upp keðjurnar. Ekki opinber spá.
 import Layout from '../layouts/Layout.astro';
 import BASELINE from '@gogn/roads/baseline.json';
 import LINKS from '@gogn/roads/links.json';
-const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti, laun, skatta, kvóta og fleira (eða láttu peningastefnuna vera sjálfvirka) og sjáðu stílfærð áhrif á 13 hagvísa næstu 3 árin, með óvissu og heimildum.';
+const desc = 'ÞRÁÐUR Íslands — Þjóðar-Reiknilíkan fyrir Ákvarðanir, Þróun, Útgjöld og Ráðstöfun. Gagnsær hermir sem sýnir þráðinn frá ákvörðun til afleiðingar: stilltu vexti, laun, skatta, kvóta og fleira og sjáðu stílfærð áhrif á hagvísa næstu 3–10 árin, með óvissu og heimildum.';
 ---
-<Layout title="ROADS Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ROADS Íslands — stjórnklefi" wide={true}>
+<Layout title="ÞRÁÐUR Íslands — hagkerfis-stjórnklefi | Karp" description={desc} canonical="https://karp.is/hermir/" ogTitle="ÞRÁÐUR Íslands — stjórnklefi" wide={true}>
   <main data-pg="roads" class="dash">
     <div class="dash-top">
-      <div class="dash-head"><h1>ROADS Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
+      <div class="dash-head"><h1>ÞRÁÐUR Íslands 🎛️</h1><div class="horizon" id="horizon"><span>Sjóndeildarhringur:</span><button type="button" data-h="12" class="on">3 ár</button><button type="button" data-h="40">10 ár</button></div></div>
+      <p class="brandsub">Þjóðar-Reiknilíkan fyrir <b>Á</b>kvarðanir, <b>Þ</b>róun, <b>Ú</b>tgjöld og <b>R</b>áðstöfun — þráðurinn milli ákvörðunar og afleiðingar.</p>
       <p class="disc" id="disc"></p>
       <div class="tabbar" id="tabbar"></div>
       <div class="r-topbar"><div id="health" class="health"></div><div id="score" class="score"></div></div>
@@ -25,16 +26,15 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     <div class="dash-body3" id="body3">
       <div class="controls" id="ctl-left">
         <div class="ctl-h" id="ctl-left-h">🎚️ Ákvarðanir</div>
-        <button id="karp" type="button" title="Leitar sjálfkrafa að þeim TRÚVERÐUGA, HÓFLEGA aðgerðapakka sem hámarkar þjóðhagslegt heilsufar (miðað við núverandi sjóndeild og hlutlaus ytri áhrif). Refsar öfga-sveiflum sleða svo lausnin sé raunhæf — ekki hámörkun eins sleða út í kant.">🏆 KARP-lausnin — besta útkoman</button>
         <label class="auto" id="lbl-tay" title="Kveikt: Seðlabankinn stillir vexti sjálfur eftir Taylor-reglu (bregst við verðbólgu). Sleðinn hreyfist sjálfkrafa."><input type="checkbox" id="auto-tay"> 🏛️ Sjálfvirk peningastefna</label>
         <label class="auto" id="lbl-phi" title="Kveikt: laun bregðast sjálf við atvinnuleysi (Phillips-kúrfa). Lítið atvinnuleysi → hærri laun."><input type="checkbox" id="auto-phi"> 💬 Sjálfvirk launaþróun</label>
         <div id="levers"></div>
-        <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir. Eða prófaðu KARP-lausnina.</p>
+        <p class="hint" id="lever-hint" hidden>Veldu efnis-flipa að ofan til að stilla ákvarðanir og rekja þráðinn frá ákvörðun til afleiðingar.</p>
         <button id="rs" type="button">↺ Núllstilla</button>
         <button id="mc" type="button" title="Keyrir hundruð herma með slembnum stuðlum innan óvissubils hvers tengsls → líkinda-viftur (5–95%) og líkinda-yfirlýsingar í stað fastra banda.">🎲 Óvissu-hermun</button>
         <button id="cmp" type="button" title="Festir núverandi sviðsmynd (B). Breyttu svo stýringum og berðu saman við hana á öllum kortum.">⚖️ Festa til samanburðar</button>
         <button id="share" type="button" title="Afritar hlekk sem geymir núverandi sviðsmynd — hægt að deila eða vista">🔗 Afrita hlekk á sviðsmynd</button>
-        <button id="frett" type="button" title="Býr til frétta-drög á mannamáli um núverandi sviðsmynd — tilbúin til að afrita.">📄 Frétta-drög</button>
+        <button id="frett" type="button" title="Býr til skriflega lýsingu á mannamáli á núverandi sviðsmynd — tilbúna til að afrita.">📄 Skrifleg lýsing</button>
         <button id="game" type="button" title="Kveikir á áskorunum — leystu þjóðhagsleg þrautir með því að stilla ákvarðanir. Uppfærist jafnóðum.">🎮 Áskoranir</button>
       </div>
       <div class="center"><div id="hero" class="hero"></div><div id="charts" class="charts"></div></div>
@@ -69,8 +69,8 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <div id="stress"></div>
       </div>
       <div class="an-tool">
-        <div class="an-h">🏆 Dýnamísk KARP-leið — borgar sig að fasa stefnuna (herða fyrst, slaka svo)?</div>
-        <p class="an-intro" style="margin:2px 0 8px">Bestar 2-fasa leið (áfangi 1 = fyrri helmingur sjóndeildar, áfangi 2 = seinni) fyrir tíma-næmar ákvarðanir og ber saman við bestu FÖSTU KARP-stillingu. Markmið: hæst <b>meðal</b>-heilsufar yfir alla sjóndeildina — umbunar leið sem kemst hratt í gott ástand, ekki bara lokastöðu. Nýtir tímaháðar leiðir í vélinni.</p>
+        <div class="an-h">🏆 Dýnamísk leið — borgar sig að fasa stefnuna (herða fyrst, slaka svo)?</div>
+        <p class="an-intro" style="margin:2px 0 8px">Bestar 2-fasa leið (áfangi 1 = fyrri helmingur sjóndeildar, áfangi 2 = seinni) fyrir tíma-næmar ákvarðanir og ber saman við bestu FÖSTU stillingu. Markmið: hæst <b>meðal</b>-heilsufar yfir alla sjóndeildina — umbunar leið sem kemst hratt í gott ástand, ekki bara lokastöðu. Nýtir tímaháðar leiðir í vélinni.</p>
         <div class="an-ctl"><button id="dyn-go" type="button">Reikna dýnamíska leið</button></div>
         <div id="dyn-result" class="inv-result"></div>
       </div>
@@ -80,7 +80,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
         <div id="inv-result" class="inv-result"></div>
       </div>
     </div>
-    <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ROADS-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
+    <p class="foot">Forþjónað (SSG) {BASELINE.updated}. ÞRÁÐUR-tímaskref-líkan · {LINKS.length} kvörðuð tengsl m/heimildum · {Object.keys(BASELINE.outcomes).length} hagvísar. Stílfærð sambönd — ekki opinber spá.</p>
   </main>
 
   <style is:global>
@@ -88,6 +88,8 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     main[data-pg="roads"] .dash-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0; }
     main[data-pg="roads"] .dash-head h1 { font-size: 25px; margin: 0; }
     main[data-pg="roads"] .disc { display: block; font-size: 12px; color: var(--faint); margin: 6px 0 16px; }
+    main[data-pg="roads"] .brandsub { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
+    main[data-pg="roads"] .brandsub b { color: #f6b13b; }
     main[data-pg="roads"] .horizon { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); margin-left: auto; }
     main[data-pg="roads"] .horizon button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
     main[data-pg="roads"] .horizon button.on { color: #f6b13b; border-color: #f6b13b; background: rgba(246,177,59,.1); }
@@ -255,9 +257,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     const HPAL = ['#f6b13b', '#5ac8e0', '#54d08a', '#e78284', '#6ea8fe'];
     const TABS = [
       { id: 'yfirlit', label: '📊 Yfirlit', levers: [], shocks: [], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'husnaedi', 'leiga', 'afkoma', 'skuldir', 'vanskil'] },
-      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'gengi_endo', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
-      { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
-      { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
+      { id: 'peningar', label: '🏛️ Peningastefna', levers: ['vextir', 'laun', 'vedhlutfall', 'dsti', 'bindiskylda', 'verdtrygging', 'vsk'], shocks: ['olia', 'gengi', 'heimshagvoxtur'], out: ['verdbolga', 'hagvoxtur', 'atvinnuleysi', 'kaupmattur', 'gengi_endo', 'vanskil'], hero: { title: 'Verðbólga & hagvöxtur vs 2,5% markmið', series: ['verdbolga', 'hagvoxtur'], target: 2.5 } },
+      { id: 'husnaedi', label: '🏘️ Húsnæði', levers: ['frambod', 'leiguhusnaedi', 'lodaframbod', 'vedhlutfall', 'dsti', 'verdtrygging'], shocks: ['adflutningur'], out: ['husnaedi', 'husnaedi_hbs', 'husnaedi_land', 'leiga', 'greidslubyrdi'], hero: { title: 'Húsnæðisverð — höfuðborg vs landsbyggð', series: ['husnaedi_hbs', 'husnaedi_land', 'husnaedi'] } },
+      { id: 'rikisfjarmal', label: '💰 Ríkisfjármál', levers: ['skattar', 'fjarmagnstekjuskattur', 'tryggingagjald', 'vsk', 'utgjold', 'tilfaerslur', 'innvidir', 'veidigjald'], shocks: [], out: ['afkoma', 'skuldir', 'hagvoxtur', 'jofnudur'], hero: { title: 'Skuldir ríkissjóðs (% VLF) — sjálfbærni', series: ['skuldir'] } },
       { id: 'lydfraedi', label: '👥 Lýðfræði & vinna', levers: ['lifeyrisaldur', 'atvinnuthatttaka', 'innflytjendastefna'], shocks: ['adflutningur', 'frjosemi'], out: ['mannfjoldi', 'folksfjoldi', 'vinnuafl', 'framfaersla', 'atvinnuleysi'], hero: { title: 'Framfærsluhlutfall & fólksfjöldi (öldrun)', series: ['framfaersla', 'folksfjoldi'] } },
       { id: 'audlindir', label: '🌱 Auðlindir & loftslag', levers: ['kvoti', 'fridun', 'orka', 'orkuskipti', 'kolefnisgjald', 'skograekt', 'veidigjald', 'ferdamannagjald'], shocks: ['ferdamenn'], out: ['utflutningur', 'losun', 'fiskistofn', 'vlf_sjavar', 'vlf_ferda', 'vlf_idnadur'], hero: { title: 'Geira-virðisauki — sjávarútvegur · ferðaþjónusta · iðnaður (vísit.)', series: ['vlf_sjavar', 'vlf_ferda', 'vlf_idnadur'] } },
       { id: 'byggd', label: '🗺️ Byggð & nýsköpun', levers: ['byggdastefna', 'ivilnanir', 'menntun', 'ferdamannagjald'], shocks: [], out: ['byggdajofnudur', 'nyskopun', 'hagvoxtur', 'utflutningur'], hero: { title: 'Byggðajöfnuður & nýsköpun', series: ['byggdajofnudur', 'nyskopun'] } },
@@ -276,7 +278,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
     const OUT_TIP = {
       verdbolga: 'Verðbólga — árshækkun neysluverðs.', hagvoxtur: 'Hagvöxtur — árs-breyting raun-VLF.',
       atvinnuleysi: 'Skráð atvinnuleysi (% af vinnuafli).', kaupmattur: 'Kaupmáttur launa — nafnlaun umfram verðbólgu.',
-      husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting.',
+      husnaedi: 'Húsnæðisverð — 12-mán breyting.', leiga: 'Leiga — 12-mán breyting. ⚠ Grunngildi byggt á leiguskrá HMS til 2024F1 — þinglýsingarskylda leigusamninga féll niður með nýju húsaleigulögunum 2024 svo skráin fraus; uppfærist þegar nýja leiguskráin tengist.',
       greidslubyrdi: 'Greiðslubyrði húsnæðislána — vísitala (100 = núverandi).', mannfjoldi: 'Fólksfjölgun — árs-breyting.',
       vinnuafl: 'Vinnuaflsvöxtur — árs-breyting vinnuafls.', afkoma: 'Afkoma ríkissjóðs (% VLF; mínus = halli).',
       skuldir: 'Skuldir ríkissjóðs (% VLF).', utflutningur: 'Útflutningsvöxtur — árs-breyting.', losun: 'CO₂-losun — vísitala (100 = núverandi).',
@@ -323,6 +325,9 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       menntun: 'Menntun & rannsóknir — fjárfesting í mannauði. Löng töf → nýsköpun og framleiðni. Kostar ríkissjóð til skamms tíma.',
       dsti: 'Greiðslubyrðisþak (DSTI) — hámark greiðslubyrði sem hlutfall af tekjum. Rýmra þak → meiri lántaka → hærra húsnæðisverð og greiðslubyrði. Þjóðhagsvarúð.',
       bindiskylda: 'Bindiskylda banka — lausafjárkrafa. Hærri → minni útlánageta → lægra húsnæðisverð og verðbólga (tafið).',
+      verdtrygging: 'Verðtrygging húsnæðislána — hlutfall nýrra lána sem eru verðtryggð. Hærra hlutfall → lægri NAFN-greiðslubyrði (verðbætur á höfuðstól) en hærri heimilaskuldir yfir tíma. Íslenskt sérkenni sem deyfir vaxta-yfirfærslu í greiðslubyrði.',
+      fjarmagnstekjuskattur: 'Fjármagnstekjuskattur (frávik) — skattur á vaxta-/arð-/söluhagnað. Hækkun → tekjur ríkis + meiri tekjujöfnuður, en lægra hlutabréfaverð og minna áhættufjármagn í nýsköpun.',
+      tryggingagjald: 'Tryggingagjald (launatengt, frávik) — gjald á laun. Hækkun → tekjur ríkis en hærri launakostnaður → meira atvinnuleysi og minni hagvöxtur (tafið).',
       vsk: 'Virðisaukaskattur (frávik). Hækkun eykur neysluverð beint (verðbólga↑, kaupmáttur↓) en er stór tekjustofn ríkissjóðs.',
       tilfaerslur: 'Tilfærslur (barna-/vaxtabætur, o.fl.). Auka ráðstöfunartekjur og kaupmátt (einkum lágtekju), örva neyslu; kosta ríkissjóð.',
       innvidir: 'Innviðafjárfesting (vegir/ljósleiðari/orka). → hagvöxtur, byggðajöfnuður og nýsköpun (tafið); kostar til skamms tíma.',
@@ -456,7 +461,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
 
     function syncSlider(k, v) { const el = document.querySelector(`.sl[data-k="${k}"]`); if (!el) return; const inp = el.querySelector('input'), b = el.querySelector('b'), cfg = BASELINE.levers[k]; inp.value = v; b.textContent = num(v, cfg.step < 1 ? 2 : 0) + cfg.unit; el.classList.toggle('moved', v !== cfg.base); }
 
-    // Samsett þjóðhagslegt heilsufar (0–100) — markfall sem KARP-hnappurinn hámarkar.
+    // Samsett þjóðhagslegt heilsufar (0–100) — markfall sem dýnamíska leiðin (Greining) hámarkar.
     function healthAt(r, t) {
       const g = (k) => { const m = r.outcomes[k]?.mid; return m ? m[Math.min(t, m.length - 1)] : 0; };
       const pen = Math.abs(g('verdbolga') - 2.5) * 7 + Math.max(0, g('atvinnuleysi') - 4) * 6 + Math.max(0, 2 - g('hagvoxtur')) * 5 + Math.max(0, -g('afkoma')) * 4
@@ -471,7 +476,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       const score = Math.round(healthScore(r));
       const c = score >= 70 ? GOOD : score >= 45 ? NEUT : BAD;
       const h = document.getElementById('health');
-      h.title = 'Samsett heilsufar: nær 100 þegar verðbólga ~2,5%, atvinnuleysi/skuldir/vanskil/losun lág, hagvöxtur jákvæður og afkoma í jafnvægi. „🏆 KARP-lausnin" leitar að stillingum sem hámarka þetta.';
+      h.title = 'Samsett þjóðhagslegt heilsufar (0–100): nær 100 þegar verðbólga ~2,5%, atvinnuleysi/skuldir/vanskil/losun lág, hagvöxtur jákvæður og afkoma í jafnvægi.';
       h.innerHTML = `<span class="h-l">Þjóðhagslegt heilsufar</span><span class="h-v" style="color:${c}">${score}<span style="font-size:14px;color:var(--faint)">/100</span></span><span class="h-bar"><i style="width:${score}%;background:${c}"></i></span>`;
     }
 
@@ -664,7 +669,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
           : '<b>Föst stefna dugar.</b> 2-fasa leið bætir meðal-heilsufar um aðeins ' + gain.toFixed(1) + ' stig; tímasetning skiptir litlu við núverandi horfur.';
         host.innerHTML = '<p style="margin:2px 0 10px;font-size:13.5px">' + verdict + '</p>' + tbl
           + '<canvas id="dyn-canvas" style="width:100%;height:150px;display:block;margin-top:12px"></canvas>'
-          + '<div class="hero-legend" style="margin-top:6px"><span><i style="background:#f6b13b"></i> Dýnamísk leið (meðal ' + d.pathDyn.toFixed(0) + ')</span><span><i style="background:#9fb0c8"></i> Föst KARP (meðal ' + d.pathConst.toFixed(0) + ')</span></div>'
+          + '<div class="hero-legend" style="margin-top:6px"><span><i style="background:#f6b13b"></i> Dýnamísk leið (meðal ' + d.pathDyn.toFixed(0) + ')</span><span><i style="background:#9fb0c8"></i> Föst leið (meðal ' + d.pathConst.toFixed(0) + ')</span></div>'
           + '<div class="dyn-sub" style="margin-top:4px">Þjóðhagslegt heilsufar hvern ársfjórðung yfir sjóndeildina · hærra = betra</div>';
         const ser = (r) => { const out = []; for (let t = 0; t < d.H; t++) out.push(healthAt(r, t)); return out; };
         drawMiniLines(document.getElementById('dyn-canvas'), [{ pts: ser(d.rConst), color: '#9fb0c8', lw: 1.8, dash: [4, 3] }, { pts: ser(d.rDyn), color: '#f6b13b', lw: 2.4 }], 0, 100);
@@ -694,7 +699,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       if (H.laun) rows.push(['Launavöxtur (%)', `${H.laun.range[0]} … ${H.laun.range[1]}%`, `sleði 0 … ${BASELINE.levers.laun.max}%`, ck.okWageRange]);
       const F = H.forecast;
       const fc = F && F.infl_imf != null ? `<p style="font-size:12px;color:var(--muted);margin:12px 0 4px"><b style="color:#f6b13b">📅 Viðmið við opinbera spá (${F.src})</b></p>
-        <table class="lnk-tbl"><tr><th>Hagvísir ${F.tgtYear}</th><th>ROADS grunnferill (BAU)</th><th>Opinber spá</th><th style="text-align:center">✓</th></tr>
+        <table class="lnk-tbl"><tr><th>Hagvísir ${F.tgtYear}</th><th>ÞRÁÐUR grunnferill (BAU)</th><th>Opinber spá</th><th style="text-align:center">✓</th></tr>
         <tr><td>Verðbólga</td><td>${num(F.infl_bau)}%</td><td style="color:var(--faint)">${num(F.infl_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr>
         <tr><td>Hagvöxtur</td><td>${num(F.gdp_bau)}%</td><td style="color:var(--faint)">${num(F.gdp_imf)}%</td><td style="text-align:center">${chk(ck.okForecast)}</td></tr></table>
         <p style="font-size:11.5px;color:var(--faint);margin-top:4px">Grunnferill módelsins er festur á opinberu spána — sviðsmyndir eru FRÁVIK frá henni. Staðfestir að útgangsstaðan = alþjóðleg samstaða.</p>` : '';
@@ -947,7 +952,7 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       let head, body;
       if (!changed.length) {
         head = 'Óbreytt stefna: grunnspáin gildir';
-        body = `Að ${yrs} árum liðnum, án breytinga á stefnu, gerir ROADS ráð fyrir verðbólgu ${num(gk('verdbolga'))}%, hagvexti ${num(gk('hagvoxtur'))}% og atvinnuleysi ${num(gk('atvinnuleysi'))}%. Þjóðhagslegt heilsufar mælist ${health}/100.`;
+        body = `Að ${yrs} árum liðnum, án breytinga á stefnu, gerir ÞRÁÐUR ráð fyrir verðbólgu ${num(gk('verdbolga'))}%, hagvexti ${num(gk('hagvoxtur'))}% og atvinnuleysi ${num(gk('atvinnuleysi'))}%. Þjóðhagslegt heilsufar mælist ${health}/100.`;
       } else {
         const t = changed[0];
         head = `${t.label} ${dir(t.dlt)} í ${num(t.end)}${t.us} — ${health}/100 heilsufar`;
@@ -1009,18 +1014,6 @@ const desc = 'ROADS Íslands — gagnsær hagkerfis-stjórnklefi: stilltu vexti,
       buildTabs(); renderTab();
       if (restored) { const n = document.getElementById('news'); n.hidden = false; n.innerHTML = '🔗 <b>Sviðsmynd úr hlekk.</b> Stýringarnar sýna deilda sviðsmynd — breyttu að vild eða núllstilltu.'; }
       document.getElementById('rs').addEventListener('click', reset);
-      document.getElementById('karp').addEventListener('click', (e) => {
-        const btn = e.currentTarget, t0 = btn.textContent; btn.textContent = '⏳ Reikna bestu lausn…'; btn.disabled = true; btn.classList.add('busy');
-        setTimeout(() => {
-          const best = findBest();
-          state.levers = { ...best.levers }; state.autoTay = false; state.autoPhi = false; state.compare = null;
-          document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false;
-          updateCmp(); buildControls(); run();
-          const extra = Object.values(state.shocks).some((v) => v) ? ' — besta stefnu-svar við núverandi ytri áhrifum' : '';
-          const n = document.getElementById('news'); n.hidden = false; n.innerHTML = `🏆 <b>KARP-lausnin</b>${extra} — hæsta þjóðhagslega heilsufar sem fannst (${best.score}/100) á ${state.horizon > BASELINE.quarters ? '10 ára' : '3 ára'} sjóndeild: ${describeState() === 'grunnstaða' ? 'engin breyting bætir núverandi horfur' : describeState()}. (Heuristísk leit — ekki opinber ráðgjöf.)`;
-          btn.textContent = t0; btn.disabled = false; btn.classList.remove('busy');
-        }, 30);
-      });
       document.querySelectorAll('#horizon button').forEach((b) => b.addEventListener('click', () => { state.horizon = +b.dataset.h; state.compare = null; updateCmp(); applyHorizon(); run(); }));
       document.getElementById('cmp').addEventListener('click', () => { state.compare = state.compare ? null : { r: state._lastR, desc: describeState() }; updateCmp(); run(); });
       document.getElementById('mc').addEventListener('click', (e) => {

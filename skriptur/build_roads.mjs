@@ -59,8 +59,11 @@ const baseline = {
     vedhlutfall: { base: 80, min: 50, max: 90, step: 5, unit: '%', label: 'Hámarks veðsetningarhlutfall', group: 'Peningastefna & varúð' },
     dsti: { base: 35, min: 25, max: 45, step: 5, unit: '%', label: 'Greiðslubyrðisþak (DSTI)', group: 'Peningastefna & varúð' },
     bindiskylda: { base: 0, min: -5, max: 15, step: 1, unit: '%', label: 'Bindiskylda banka (frávik)', group: 'Peningastefna & varúð' },
+    verdtrygging: { base: 40, min: 0, max: 80, step: 10, unit: '%', label: 'Verðtrygging húsnæðislána (hlutfall nýrra lána)', group: 'Peningastefna & varúð' },
     // Ríkisfjármál & skattar
     skattar: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Tekjuskattur (frávik)', group: 'Ríkisfjármál & skattar' },
+    fjarmagnstekjuskattur: { base: 0, min: -10, max: 15, step: 1, unit: '%', label: 'Fjármagnstekjuskattur (frávik)', group: 'Ríkisfjármál & skattar' },
+    tryggingagjald: { base: 0, min: -5, max: 8, step: 1, unit: '%', label: 'Tryggingagjald (launatengt, frávik)', group: 'Ríkisfjármál & skattar' },
     vsk: { base: 0, min: -4, max: 6, step: 1, unit: '%', label: 'Virðisaukaskattur (frávik)', group: 'Ríkisfjármál & skattar' },
     utgjold: { base: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Útgjöld ríkis (frávik)', group: 'Ríkisfjármál & skattar' },
     tilfaerslur: { base: 0, min: -10, max: 20, step: 5, unit: '%', label: 'Tilfærslur (barna-/vaxtabætur)', group: 'Ríkisfjármál & skattar' },
@@ -373,6 +376,16 @@ const links = [
   { id: 'retire_labor', from: 'lifeyrisaldur', to: 'vinnuafl', coef: 0.15, lag: 2, unit: 'pp/ár', ci_lo: 0.06, ci_hi: 0.28, source: 'Hærri lífeyrisaldur → eldri kynslóðir vinna lengur → meira vinnuafl (áður snerti lífeyrisaldur aðeins framfærsluhlutfall)' },
   { id: 'edu_unem', from: 'menntun', to: 'atvinnuleysi', coef: -0.015, lag: 6, unit: 'pp/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Menntun/þjálfun → betri samsvörun starfa → minna skipulags-atvinnuleysi (hæg áhrif)' },
   { id: 'spread_fx', from: 'vaxtaalag', to: 'gengi_endo', coef: -0.5, lag: 1, unit: '%/pp', ci_lo: -1.0, ci_hi: -0.15, source: 'Hærra áhættuálag ríkis → fjármagns-útflæði → veikari króna (risk-off; fullkomnar áhættuálags-lykkjuna)' },
+  // ── Nýjar íslenskar ákvarðanir: verðtrygging + fjármagnstekjuskattur + tryggingagjald ──
+  { id: 'vt_burden', from: 'verdtrygging', to: 'greidslubyrdi', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Verðtryggð lán hafa lægri NAFN-greiðslubyrði (verðbætur leggjast á höfuðstól) → lægri greiðslubyrði skammtíma' },
+  { id: 'vt_hdebt', from: 'verdtrygging', to: 'heimilaskuldir', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.16, source: 'Verðtrygging → höfuðstóll vex með verðbólgu → hærri heimilaskuldir yfir tíma' },
+  { id: 'capg_bal', from: 'fjarmagnstekjuskattur', to: 'afkoma', coef: 0.03, lag: 1, unit: '%VLF/%', ci_lo: 0.01, ci_hi: 0.06, source: 'Fjármagnstekjuskattur → tekjur ríkissjóðs (þrengri stofn en tekjuskattur)' },
+  { id: 'capg_eq', from: 'fjarmagnstekjuskattur', to: 'jofnudur', coef: 0.12, lag: 1, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.22, source: 'Fjármagnstekjur samþjappaðar efst → hærri skattur eykur tekjujöfnuð' },
+  { id: 'capg_stock', from: 'fjarmagnstekjuskattur', to: 'hlutabref', coef: -0.30, lag: 1, unit: 'vísit/%', ci_lo: -0.55, ci_hi: -0.1, source: 'Hærri skattur á söluhagnað → lægri eftir-skatts ávöxtun → lægra hlutabréfaverð/fjárfesting' },
+  { id: 'capg_innov', from: 'fjarmagnstekjuskattur', to: 'nyskopun', coef: -0.05, lag: 2, unit: 'vísit/%', ci_lo: -0.12, ci_hi: -0.01, source: 'Hærri fjármagnstekjuskattur → minna áhættufjármagn í nýsköpun' },
+  { id: 'payroll_bal', from: 'tryggingagjald', to: 'afkoma', coef: 0.06, lag: 1, unit: '%VLF/%', ci_lo: 0.03, ci_hi: 0.1, source: 'Tryggingagjald (breiður launastofn) → tekjur ríkissjóðs' },
+  { id: 'payroll_unem', from: 'tryggingagjald', to: 'atvinnuleysi', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Hærra launatengt gjald → hærri launakostnaður → minni ráðning' },
+  { id: 'payroll_gdp', from: 'tryggingagjald', to: 'hagvoxtur', coef: -0.03, lag: 2, unit: 'pp/%', ci_lo: -0.07, ci_hi: -0.01, source: 'Launakostnaðar-drag á atvinnulíf' },
   { id: 'niip_fx', from: 'niip', to: 'gengi_endo', coef: 0.02, lag: 2, unit: '%/%VLF', ci_lo: 0.005, ci_hi: 0.04, source: 'Sterk erlend staða → stöðugri/sterkari króna' },
   { id: 'ca_fx', from: 'vidskiptajofnudur', to: 'gengi_endo', coef: 0.3, lag: 1, unit: '%/%VLF', ci_lo: 0.1, ci_hi: 0.55, source: 'Viðskiptaafgangur → gjaldeyris-innflæði → sterkari króna' },
   // ── Dreifing & heimili (module 13): tekjujöfnuður ──

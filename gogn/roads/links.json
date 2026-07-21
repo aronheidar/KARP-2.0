@@ -2177,6 +2177,105 @@
   "source": "Hærra áhættuálag ríkis → fjármagns-útflæði → veikari króna (risk-off; fullkomnar áhættuálags-lykkjuna)"
  },
  {
+  "id": "vt_burden",
+  "from": "verdtrygging",
+  "to": "greidslubyrdi",
+  "coef": -0.12,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": -0.22,
+  "ci_hi": -0.04,
+  "source": "Verðtryggð lán hafa lægri NAFN-greiðslubyrði (verðbætur leggjast á höfuðstól) → lægri greiðslubyrði skammtíma"
+ },
+ {
+  "id": "vt_hdebt",
+  "from": "verdtrygging",
+  "to": "heimilaskuldir",
+  "coef": 0.08,
+  "lag": 3,
+  "unit": "vísit/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.16,
+  "source": "Verðtrygging → höfuðstóll vex með verðbólgu → hærri heimilaskuldir yfir tíma"
+ },
+ {
+  "id": "capg_bal",
+  "from": "fjarmagnstekjuskattur",
+  "to": "afkoma",
+  "coef": 0.03,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.06,
+  "source": "Fjármagnstekjuskattur → tekjur ríkissjóðs (þrengri stofn en tekjuskattur)"
+ },
+ {
+  "id": "capg_eq",
+  "from": "fjarmagnstekjuskattur",
+  "to": "jofnudur",
+  "coef": 0.12,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": 0.04,
+  "ci_hi": 0.22,
+  "source": "Fjármagnstekjur samþjappaðar efst → hærri skattur eykur tekjujöfnuð"
+ },
+ {
+  "id": "capg_stock",
+  "from": "fjarmagnstekjuskattur",
+  "to": "hlutabref",
+  "coef": -0.3,
+  "lag": 1,
+  "unit": "vísit/%",
+  "ci_lo": -0.55,
+  "ci_hi": -0.1,
+  "source": "Hærri skattur á söluhagnað → lægri eftir-skatts ávöxtun → lægra hlutabréfaverð/fjárfesting"
+ },
+ {
+  "id": "capg_innov",
+  "from": "fjarmagnstekjuskattur",
+  "to": "nyskopun",
+  "coef": -0.05,
+  "lag": 2,
+  "unit": "vísit/%",
+  "ci_lo": -0.12,
+  "ci_hi": -0.01,
+  "source": "Hærri fjármagnstekjuskattur → minna áhættufjármagn í nýsköpun"
+ },
+ {
+  "id": "payroll_bal",
+  "from": "tryggingagjald",
+  "to": "afkoma",
+  "coef": 0.06,
+  "lag": 1,
+  "unit": "%VLF/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.1,
+  "source": "Tryggingagjald (breiður launastofn) → tekjur ríkissjóðs"
+ },
+ {
+  "id": "payroll_unem",
+  "from": "tryggingagjald",
+  "to": "atvinnuleysi",
+  "coef": 0.08,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": 0.03,
+  "ci_hi": 0.15,
+  "source": "Hærra launatengt gjald → hærri launakostnaður → minni ráðning"
+ },
+ {
+  "id": "payroll_gdp",
+  "from": "tryggingagjald",
+  "to": "hagvoxtur",
+  "coef": -0.03,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": -0.07,
+  "ci_hi": -0.01,
+  "source": "Launakostnaðar-drag á atvinnulíf"
+ },
+ {
   "id": "niip_fx",
   "from": "niip",
   "to": "gengi_endo",

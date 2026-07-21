@@ -117,6 +117,15 @@
    "label": "Bindiskylda banka (frávik)",
    "group": "Peningastefna & varúð"
   },
+  "verdtrygging": {
+   "base": 40,
+   "min": 0,
+   "max": 80,
+   "step": 10,
+   "unit": "%",
+   "label": "Verðtrygging húsnæðislána (hlutfall nýrra lána)",
+   "group": "Peningastefna & varúð"
+  },
   "skattar": {
    "base": 0,
    "min": -15,
@@ -124,6 +133,24 @@
    "step": 1,
    "unit": "%",
    "label": "Tekjuskattur (frávik)",
+   "group": "Ríkisfjármál & skattar"
+  },
+  "fjarmagnstekjuskattur": {
+   "base": 0,
+   "min": -10,
+   "max": 15,
+   "step": 1,
+   "unit": "%",
+   "label": "Fjármagnstekjuskattur (frávik)",
+   "group": "Ríkisfjármál & skattar"
+  },
+  "tryggingagjald": {
+   "base": 0,
+   "min": -5,
+   "max": 8,
+   "step": 1,
+   "unit": "%",
+   "label": "Tryggingagjald (launatengt, frávik)",
    "group": "Ríkisfjármál & skattar"
   },
   "vsk": {
