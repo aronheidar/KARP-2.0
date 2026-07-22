@@ -23,10 +23,17 @@ const RAS_SIZE = { skattar:{lítil:3,meðal:5,stór:10}, fjarmagnstekjuskattur:{
 // Efnahags-hlið: aðeins kalla LLM fyrir mál sem líklega snerta líkanið (spara kostnað).
 const ECON_KW = /skatt|virðisauk|tolla|gjald|fjárlög|fjáraukalög|ríkisfj|útgj|húsnæð|íbúð|leigu|byggingarl|lóða|fisk|kvóta|veiðig|orku|orka|kolefni|loftslag|innvið|vegal|samgöng|nýsköp|ívilnan|lífeyri|kjarasamn|tryggingagj|skógrækt|votlend|fiskeldi/i;
 
-function magOf(key, dir, size) {
-  const tbl = RAS_SIZE[key];
-  const base = tbl ? (tbl[size] ?? tbl['meðal']) : ((baseline.levers[key]?.step || 5) * (size === 'lítil' ? 1 : size === 'stór' ? 4 : 2));
-  return dir * base;
+// Umbreytir flokkun í (kind, value) fyrir projectRas.
+// Lever: value = base + dir*mag (deviationOf dregur base frá → rétt frávik). Shock: base 0 → value = dir*mag.
+// mag úr RAS_SIZE, annars step-margfeldi (les BÆÐI levers og shocks step).
+export function inputValue(cls, baseline) {
+  const isShock = !baseline.levers[cls.key] && !!baseline.shocks[cls.key];
+  const tbl = RAS_SIZE[cls.key];
+  const mag = tbl
+    ? (tbl[cls.size] ?? tbl['meðal'])
+    : ((baseline.levers[cls.key]?.step ?? baseline.shocks[cls.key]?.step ?? 5) * (cls.size === 'lítil' ? 1 : cls.size === 'stór' ? 4 : 2));
+  const base = isShock ? 0 : (baseline.levers[cls.key].base || 0);
+  return { kind: isShock ? 'shock' : 'lever', value: base + cls.dir * mag };
 }
 
 const SYSTEM = [
@@ -82,8 +89,7 @@ async function main() {
   for (const b of bills) {
     const c = cache[LTHING + '_' + b.nr];
     if (!c || c.none) { if (b.ras) delete b.ras; continue; }
-    const value = magOf(c.key, c.dir, c.size);
-    const kind = LEVER_KEYS.includes(c.key) ? 'lever' : 'shock';
+    const { kind, value } = inputValue(c, baseline);
     const proj = projectRas({ kind, key: c.key, value, illustrative: true }, CTX);
     if (proj) { b.ras = { ...proj, illustrative: true, why: c.why }; n++; } else if (b.ras) delete b.ras;
   }
@@ -94,4 +100,6 @@ async function main() {
     console.log('Skrifað: gogn/frumvorp.json + gogn/thingmal_ras.json');
   } else console.log('(--dry: engin skrif)');
 }
-main();
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('build_thingmal_ras.mjs')) {
+  main().catch((e) => { console.error('VILLA', e); process.exit(1); });
+}

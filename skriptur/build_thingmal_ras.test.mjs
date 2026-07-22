@@ -1,0 +1,24 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { inputValue } from './build_thingmal_ras.mjs';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const baseline = JSON.parse(readFileSync(join(__dirname, '..', 'gogn', 'roads', 'baseline.json'), 'utf8'));
+let pass = 0, fail = 0;
+const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
+
+const vb = baseline.levers.vextir.base;
+ok('vextir base non-zero', vb !== 0);
+const vUp = inputValue({ key: 'vextir', dir: 1, size: 'meðal' }, baseline);
+ok('vextir → kind lever', vUp.kind === 'lever');
+ok('vextir dir+1 → value > base (base+mag, not raw mag)', vUp.value > vb);
+ok('vextir dir-1 → value < base', inputValue({ key: 'vextir', dir: -1, size: 'meðal' }, baseline).value < vb);
+const sk = inputValue({ key: 'skattar', dir: -1, size: 'meðal' }, baseline);
+ok('skattar base 0', baseline.levers.skattar.base === 0);
+ok('skattar dir-1 → value < 0 (dir*mag)', sk.kind === 'lever' && sk.value < 0);
+const g = inputValue({ key: 'gengi', dir: -1, size: 'meðal' }, baseline);
+ok('gengi → kind shock', g.kind === 'shock');
+ok('gengi dir-1 → value < 0', g.value < 0);
+ok('gengi fallback uses shock step (|value| = step*2)', Math.abs(g.value) === baseline.shocks.gengi.step * 2);
+console.log(`\n${pass} pass, ${fail} fail`);
+process.exit(fail ? 1 : 0);
