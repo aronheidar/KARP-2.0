@@ -32,12 +32,13 @@ const bills = FRUMVORP
       passed: (b.stada || '').startsWith('Samþykkt'),
       dissent,
       parties: Object.keys(P).map((k) => ({ n: pName(k), ja: P[k][0] || 0, nei: P[k][1] || 0 })).sort((a, b2) => b2.ja + b2.nei - (a.ja + a.nei)),
+      ras: b.ras || null,
     };
   });
 
 // Gluggagögn (frumvarpa-modal): key → full lýsing + flokka-atkvæði.
 const BILLS = {};
-bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties }; });
+bills.forEach((b) => { BILLS[b.key] = { t: b.titill, type: b.type, d: b.d, sam: b.sam, stada: b.stada, ja: b.ja, nei: b.nei, fj: b.fj, passed: b.passed, parties: b.parties, ras: b.ras }; });
 // Nafnakallið (LOTA 19→23): sótt LATÍNT af /gogn/atkvaedi.json við fyrsta glugga
 // (var 272KB inline — óþarfa þungi á hverri síðuhleðslu).
 
@@ -140,6 +141,9 @@ const jsonLd = {
           </div>
           <h2 class="b-title" data-bkey={b.key} role="button" tabindex="0" title="Smelltu fyrir nánari upplýsingar">{b.titill}</h2>
           {b.sam && <p class="b-sam">{b.sam}</p>}
+          {b.ras && b.ras.topEffects && b.ras.topEffects[0] && (
+            <p class="b-ras-chip">📊 RÁS: {b.ras.topEffects[0].label} {b.ras.topEffects[0].dir > 0 ? '▲' : '▼'}<span class="b-ras-more"> · sjá nánar</span></p>
+          )}
           <div class="b-result">
             {b.stada && <span class={`r-tag ${b.passed ? 'r-yes' : 'r-neu'}`}>{b.stada}</span>}
             <span class="r-count">Alþingi: {b.ja}–{b.nei}{b.fj ? ` · ${b.fj} fjarv.` : ''}</span>
@@ -207,6 +211,20 @@ const jsonLd = {
     .r-neu { background: rgba(255,255,255,.07); color: var(--muted); }
     .r-count { color: var(--muted); font-variant-numeric: tabular-nums; }
     .r-dissent { color: #ff8e98; }
+    .b-ras-chip { font-size: 12px; color: #9db6e6; margin: 4px 0 0; }
+    .b-ras-more { color: var(--muted, #9fb0c8); }
+    :global(.bm-body .r-ras) { border: 1px solid color-mix(in srgb, #6ea8fe 30%, transparent); background: color-mix(in srgb, #6ea8fe 8%, transparent); border-radius: 10px; padding: 12px 14px; margin: 12px 0 0; }
+    :global(.bm-body .r-ras-h) { font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: #9db6e6; font-weight: 700; margin-bottom: 7px; }
+    :global(.bm-body .r-ras-badge) { font-size: 10px; text-transform: none; letter-spacing: 0; background: #3a2a12; color: #f6b13b; border-radius: 5px; padding: 1px 5px; margin-left: 4px; }
+    :global(.bm-body .r-ras-per) { font-size: 10px; text-transform: none; letter-spacing: 0; color: var(--muted, #9fb0c8); }
+    :global(.bm-body .r-ras-in) { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+    :global(.bm-body .r-ras-row) { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    :global(.bm-body .r-ras-row:first-child) { border-top: 0; }
+    :global(.bm-body .r-ras-val) { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    :global(.bm-body .r-ras-s) { font-size: 13px; line-height: 1.5; margin: 9px 0 0; }
+    :global(.bm-body .r-ras-foot) { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 9px; flex-wrap: wrap; }
+    :global(.bm-body .r-ras-disc) { font-size: 10.5px; color: var(--faint, #7b879c); }
+    :global(.bm-body .r-ras-cta) { font-size: 12px; font-weight: 700; color: #6ea8fe; text-decoration: none; white-space: nowrap; }
   </style>
   <style is:global>
     /* Kjósa-eyjan er búin til á keyrslutíma → global. */
@@ -314,6 +332,7 @@ const jsonLd = {
 
   <!-- Eyja: frumvarpa-glugginn. #2 LOTA 7 -->
   <script>
+    import { renderRasBox } from '@lib/roads/render-ras-box.mjs';
     // LOTA 23 (a11y): fókus fer INN í gluggann við opnun, helst þar (Tab hringar)
     // og skilar sér á upprunastað við lokun.
     let bmPrevFocus = null;
@@ -338,6 +357,7 @@ const jsonLd = {
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       let h = `<div class="bm-type">${esc(d.type)} · ${esc(d.d || '')}</div><div class="bm-t">${esc(d.t)}</div>`;
       if (d.sam) h += `<div class="bm-sam">${esc(d.sam)}</div>`;
+      if (d.ras) h += renderRasBox(d.ras);
       h += `<div class="bm-res"><span class="${d.passed ? 'yes' : 'neu'}">${esc(d.stada || 'Niðurstaða liggur ekki fyrir')}</span> · Alþingi: ${d.ja}–${d.nei}${d.fj ? ` · ${d.fj} fjarvistir` : ''}</div>`;
       if (d.parties && d.parties.length) {
         h += '<div class="bm-ph">Atkvæði eftir flokkum</div><div class="bm-p"><span class="h">Flokkur</span><span class="h ja">Með</span><span class="h nei">Á móti</span>';
