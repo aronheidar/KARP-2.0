@@ -47,13 +47,14 @@ const SYSTEM = [
   'size = gróft umfang breytingar. why = stutt röksemd (<12 orð).',
 ].join('\n');
 
-function parseRas(text) {
+export function parseRas(text) {
   try {
     const m = text.match(/\{[\s\S]*\}/); if (!m) return null;
     const o = JSON.parse(m[0]);
     if (!o.relevant || !o.key) return null;
     if (!LEVER_KEYS.includes(o.key) && !SHOCK_KEYS.includes(o.key)) return null;
-    const dir = o.dir === -1 ? -1 : 1;
+    if (o.dir !== 1 && o.dir !== -1) return null;
+    const dir = o.dir;
     const size = ['lítil', 'meðal', 'stór'].includes(o.size) ? o.size : 'meðal';
     return { key: o.key, dir, size, why: String(o.why || '').slice(0, 120) };
   } catch (e) { return null; }
