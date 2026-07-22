@@ -26,6 +26,19 @@ const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } cat
 const MODEL = process.env.KARP_FRETTAVEL_MODEL || 'claude-opus-4-8';
 const TODAY = new Date().toISOString().slice(0, 10);
 
+// RÁS-vörpun: macro-fréttir fá projection úr þjóðhags-herminum (bakað í facts → archive → article-síðu).
+const RAS_ROOT = path.join(__dirname, '..', 'gogn', 'roads');
+const RJ = (f) => { try { return JSON.parse(fs.readFileSync(path.join(RAS_ROOT, f), 'utf8')); } catch (e) { return null; } };
+const RAS_CTX = (() => { const b = RJ('baseline.json'), l = RJ('links.json'), s = RJ('scenarios.json'); return (b && l) ? { baseline: b, links: l, scenarios: s || [] } : null; })();
+const RAS_MAP = {
+  vextir: (f) => (typeof f.nyir === 'number' ? { kind: 'lever', key: 'vextir', value: f.nyir } : null),
+  gengi: (f) => ({ kind: 'shock', key: 'gengi', value: f.met === 'hæsta' ? -5 : 5, illustrative: true }),
+  verdbolga: () => ({ kind: 'outcome', key: 'verdbolga' }),
+  atv: () => ({ kind: 'outcome', key: 'atvinnuleysi' }),
+  fast: () => ({ kind: 'outcome', key: 'husnaedi' }),
+  fastthr: () => ({ kind: 'outcome', key: 'husnaedi' }),
+};
+
 const LETTER = { S: 'Samfylkingin', C: 'Viðreisn', F: 'Flokkur fólksins', D: 'Sjálfstæðisflokkurinn', M: 'Miðflokkurinn', B: 'Framsóknarflokkurinn', J: 'Sósíalistaflokkurinn', P: 'Píratar', V: 'Vinstri græn' };
 const NAME2LETTER = { 'Samfylkingin': 'S', 'Viðreisn': 'C', 'Flokkur fólksins': 'F', 'Sjálfstæðisflokkur': 'D', 'Sjálfstæðisflokkurinn': 'D', 'Miðflokkurinn': 'M', 'Framsóknarflokkur': 'B', 'Framsóknarflokkurinn': 'B', 'Sósíalistaflokkurinn': 'J', 'Píratar': 'P', 'Vinstri græn': 'V', 'Vinstrihreyfingin – grænt framboð': 'V' };
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9á-öþæð]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40);
@@ -899,6 +912,18 @@ ${it}
 async function main() {
   const state = J('frettavel_state.json') || {};
   const events = detect(state);
+  // RÁS-projection á macro-fréttir (regla per skynjara). Þögult ef módel vantar eða projection = null.
+  if (RAS_CTX) {
+    const { projectRas } = await import('../src/lib/roads/frett-ras.mjs');
+    for (const e of events) {
+      const mk = RAS_MAP[e.type];
+      if (!mk || !e.facts) continue;
+      const trig = mk(e.facts);
+      if (!trig) continue;
+      const proj = projectRas(trig, RAS_CTX);
+      if (proj) e.facts.ras = proj;
+    }
+  }
   // „5 mál vikunnar" — vikuleg samantekt (mánudaga). Raðar safninu (síðustu 7 daga) eftir vægi; noai (fastur listi).
   if (new Date(TODAY + 'T00:00:00Z').getUTCDay() === 1) {
     const { weightOf, catOf, asciiId } = await import('../web/src/lib/frettavel.mjs');
