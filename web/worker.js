@@ -422,7 +422,7 @@ async function spyrduHandler(request, env, ctx) {
 // WP-hlið (annað lag): X-Karp-Secret (KARP_GRANT_SECRET, sé það stillt) + eigin
 // honeypot/lengdar/transient-vörn. Sé WP-endapunkturinn ekki límdur enn → 'send'-villa
 // og formið bendir fólki á að senda beint á hjalp@karp.is (ekkert týnist hljóðlaust).
-const HJALP_FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Annað'];
+const HJALP_FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Leiðrétting', 'Annað'];
 async function hjalpHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' }, 405);
   let b = null;
