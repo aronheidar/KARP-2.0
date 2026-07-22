@@ -8,6 +8,8 @@ import { catOf, asciiId, imgFor, artHref, dIS, spark } from '../../lib/frettavel
 import { hasExport } from '../../lib/frettavel-export.mjs';
 import LOGB from '@gogn/logbirting.json';
 import { caseThread } from '../../lib/soguthraedir.mjs';
+import LEIDR from '@gogn/leidrettingar.json';
+import { leidrettFor } from '../../lib/leidrettingar.mjs';
 
 export function getStaticPaths() {
   const items = (ARCH.items || []);
@@ -25,6 +27,7 @@ const ex = hasExport(it);
 const hasSeries = Array.isArray(it.spark) && it.spark.filter((n) => typeof n === 'number').length >= 4;
 const slug = asciiId(it.id);
 const thread = caseThread(it, LOGB.byKt);
+const leidr = leidrettFor(slug, LEIDR);
 const SITE = 'https://karp.is';
 const dags = dIS(it.date);
 const desc = String(it.text || '').slice(0, 200);
@@ -55,6 +58,9 @@ const jsonLd = [
 
       <div class="fv-meta"><span class="fv-by">Fréttavél Karp</span><span class="fv-dot">·</span><time datetime={it.date}>{dags}</time><span class="fv-dot">·</span><span>{it.ai ? '🤖 vélskrifað (gervigreind)' : '⚙️ sniðmátstexti úr gögnum'}</span></div>
       <h1>{it.title}</h1>
+      {leidr && (
+        <a class="fv-leidr" href="/frettavel/leidrettingar/">🔧 Leiðrétt {leidr.dags}{leidr.hvad ? ' — ' + leidr.hvad : ''}</a>
+      )}
       <p class="fv-body">{it.text}</p>
 
       {it.samhengi && (
@@ -137,6 +143,20 @@ const jsonLd = [
           </div>
         </div>
       )}
+
+      <details class="fv-villa" data-title={it.title} data-url={url}>
+        <summary>🚩 Tilkynna villu eða leiðréttingu</summary>
+        <form class="fv-villa-form">
+          <label>Hvað er rangt?<textarea name="lysing" rows="4" minlength="20" maxlength="4000" required placeholder="Lýstu villunni — og réttu upplýsingunum ef þú veist þær."></textarea></label>
+          <div class="fv-villa-row">
+            <label>Nafn<input type="text" name="nafn" maxlength="120" required autocomplete="name" /></label>
+            <label>Netfang<input type="email" name="netfang" maxlength="160" required autocomplete="email" inputmode="email" /></label>
+          </div>
+          <input type="text" name="hp" class="fv-villa-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <button type="submit">Senda ábendingu</button>
+          <p class="fv-villa-msg" hidden></p>
+        </form>
+      </details>
     </article>
 
     {rel.length > 0 && (
@@ -152,7 +172,7 @@ const jsonLd = [
       </section>
     )}
 
-    <p class="fv-foot">Sjálfvirk gagnafrétt skrifuð úr opinberum gögnum · <a href="/frettavel/">allar fréttir</a> · <a href="/frettavel.xml">RSS</a>. Engin mannleg ritstjórn — reglan sem kveikti fréttina er birt að ofan svo hægt sé að sannreyna hana.</p>
+    <p class="fv-foot">Sjálfvirk gagnafrétt skrifuð úr opinberum gögnum · <a href="/frettavel/">allar fréttir</a> · <a href="/frettavel.xml">RSS</a> · <a href="/frettavel/leidrettingar/">Leiðréttingaskrá</a>. Engin mannleg ritstjórn — reglan sem kveikti fréttina er birt að ofan svo hægt sé að sannreyna hana.</p>
   </main>
 
   <style>
@@ -227,6 +247,23 @@ const jsonLd = [
     .fv-rel-t { font-size: 13.5px; color: var(--ink); line-height: 1.35; }
     .fv-foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid var(--line); padding-top: 14px; line-height: 1.6; }
     .fv-foot a { color: var(--muted); }
+    .fv-leidr { display: block; font-size: 13px; color: #d9a441; background: color-mix(in srgb, #d9a441 10%, transparent); border: 1px solid color-mix(in srgb, #d9a441 30%, transparent); border-radius: 10px; padding: 8px 13px; margin: 0 0 16px; text-decoration: none; line-height: 1.45; }
+    .fv-leidr:hover { background: color-mix(in srgb, #d9a441 16%, transparent); }
+    .fv-villa { margin: 20px 0 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    .fv-villa > summary { cursor: pointer; padding: 12px 16px; font-size: 13.5px; font-weight: 600; color: var(--muted); list-style: none; }
+    .fv-villa > summary::-webkit-details-marker { display: none; }
+    .fv-villa[open] > summary { border-bottom: 1px solid var(--line); color: var(--ink); }
+    .fv-villa-form { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .fv-villa-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--faint); }
+    .fv-villa-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .fv-villa-row { grid-template-columns: 1fr; } }
+    .fv-villa-form textarea, .fv-villa-form input { width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 14px; font-family: inherit; }
+    .fv-villa-hp { position: absolute; left: -9999px; width: 1px; height: 1px; }
+    .fv-villa-form button { align-self: flex-start; background: var(--gold); color: #101623; border: 0; border-radius: 9px; padding: 9px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+    .fv-villa-form button:disabled { opacity: .6; cursor: default; }
+    .fv-villa-msg { font-size: 13px; margin: 2px 0 0; }
+    .fv-villa-msg.ok { color: #42d086; }
+    .fv-villa-msg.err { color: #e0655f; }
   </style>
 
   <script>
@@ -248,5 +285,35 @@ const jsonLd = [
         img.src = url;
       } catch (e) { window.open(svgUrl, '_blank'); }
     });
+  </script>
+
+  <script>
+    (function () {
+      const box = document.querySelector('.fv-villa');
+      const form = box && box.querySelector('.fv-villa-form');
+      if (!form) return;
+      const msg = form.querySelector('.fv-villa-msg');
+      const show = (t, ok) => { msg.hidden = false; msg.textContent = t; msg.className = 'fv-villa-msg ' + (ok ? 'ok' : 'err'); };
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const nafn = form.nafn.value.trim(), netfang = form.netfang.value.trim(), lysing = form.lysing.value.trim();
+        if (!nafn) return show('Sláðu inn nafnið þitt.', false);
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(netfang)) return show('Sláðu inn gilt netfang.', false);
+        if (lysing.length < 20) return show('Lýstu villunni aðeins nánar (a.m.k. 20 stafir).', false);
+        const btn = form.querySelector('button');
+        btn.disabled = true; btn.textContent = 'Sendi…';
+        const body = 'LEIÐRÉTTING við fréttavélar-frétt.\nFrétt: ' + (box.dataset.title || '') + '\nSlóð: ' + (box.dataset.url || '') + '\n\nHvað er rangt / hvað á að leiðrétta:\n' + lysing;
+        let d = null;
+        try {
+          const r = await fetch('/api/hjalp', { method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ nafn, netfang, flokkur: 'Leiðrétting', lysing: body, hp: form.hp.value, fra: box.dataset.url || '', innskraning: false, ua: navigator.userAgent.slice(0, 300) }) });
+          d = await r.json().catch(() => null);
+        } catch (e) {}
+        btn.disabled = false; btn.textContent = 'Senda ábendingu';
+        if (d && d.ok) { form.innerHTML = '<p class="fv-villa-msg ok">Takk — ábendingin er komin til ritstjórnar.</p>'; }
+        else if (d && d.error === 'rate') show('Of margar sendingar — reyndu aftur eftir smá stund.', false);
+        else show('Eitthvað fór úrskeiðis. Sendu beint á hjalp@karp.is ef þetta heldur áfram.', false);
+      });
+    })();
   </script>
 </Layout>
