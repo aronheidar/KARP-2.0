@@ -1,0 +1,134 @@
+---
+// web/src/components/Saetaspa.astro — Sætaspá Alþingis (vélræn D'Hondt-spá úr könnunum) +
+// „Nú vs. spá" tafla + súlurit. Sjálfstæður íhlutur; fluttur af /althingi/ á /kannanir/ (20.7).
+// ⚠ chart-id = #saetachart (EKKI #chart) svo það rekist ekki á tímalínu-graf kannana-síðunnar.
+import { projectSeats } from '@lib/seats.mjs';
+import { partyName, partyColor } from '@lib/parties.mjs';
+import { fmtNum } from '@lib/format.mjs';
+import POLLS from '@gogn/polls.json';
+import THINGMENN from '@gogn/althingi.json';
+
+const r = projectSeats(POLLS, THINGMENN);
+const lastPoll = POLLS.polls[POLLS.polls.length - 1];
+const pv = (lastPoll && lastPoll.v) || {};
+const GOV = Object.keys(r.GOVK);
+const govNames = GOV.map(partyName).join(', ');
+
+const codes = [...new Set([...(POLLS.parties || []), ...Object.keys(r.cur)])];
+const prows = codes
+  .map((c) => ({
+    code: c, name: partyName(c), color: partyColor(c),
+    cur: r.cur[c] || 0, proj: r.proj[c] || 0,
+    poll: pv[c] != null ? pv[c] : null, gov: !!r.GOVK[c],
+  }))
+  .sort((a, b) => b.proj - a.proj || b.cur - a.cur || (b.poll || 0) - (a.poll || 0));
+const seatRows = prows.filter((p) => p.cur > 0 || p.proj > 0);
+const chartNames = seatRows.map((p) => p.name);
+const chartCur = seatRows.map((p) => p.cur);
+const chartProj = seatRows.map((p) => ({ value: p.proj, itemStyle: { color: p.color } }));
+const chg = (d) => (d > 0 ? '+' + d : d < 0 ? String(d) : '±0');
+---
+<section class="sp">
+  <h2>Sætaspá Alþingis</h2>
+  <p class="sp-lead">
+    Ef kosið væri nú — vélræn spá reiknuð með D'Hondt-reglu úr meðaltali síðustu <strong>{r.used} kannana</strong>
+    (nýjust {lastPoll?.pollster}, {lastPoll?.date}). Ríkisstjórnarflokkarnir <strong>{govNames}</strong> fá {r.govS} af 63 sætum.
+  </p>
+
+  <div class="sp-tiles">
+    <div class="sp-tile">
+      <div class="sp-t-l">Ríkisstjórn</div>
+      <div class={`sp-t-v ${r.maj ? 'maj-y' : 'maj-n'}`}>{r.govS}</div>
+      <div class="sp-t-s">{r.maj ? '✓ meirihluti' : '✗ fallinn meirihluti'} · þarf 32</div>
+    </div>
+    <div class="sp-tile">
+      <div class="sp-t-l">Stjórnarandstaða</div>
+      <div class="sp-t-v">{r.oppS}</div>
+      <div class="sp-t-s">af 63 sætum</div>
+    </div>
+    <div class="sp-tile">
+      <div class="sp-t-l">Stærsti flokkur</div>
+      <div class="sp-t-v" style={`color:${seatRows[0]?.color}`}>{seatRows[0]?.proj}</div>
+      <div class="sp-t-s">{seatRows[0]?.name}</div>
+    </div>
+  </div>
+
+  <p class="sp-note">
+    ⓘ <strong>Vélræn spá</strong>, ekki opinber. D'Hondt-sætaúthlutun úr 3-kannana meðaltali með 5% þröskuldi;
+    „Nú" = núverandi þingmenn. Kannanir eru óvissar og spáin breytist með þeim — þetta er ekki niðurstaða kosninga.
+  </p>
+
+  <h3>Nú vs. spá — eftir flokkum</h3>
+  <div id="saetachart"></div>
+  <div class="sp-tblwrap"><table>
+    <thead>
+      <tr><th class="l">Flokkur</th><th>Nú</th><th>Spá</th><th>Breyting</th><th>Síðasta könnun</th></tr>
+    </thead>
+    <tbody>
+      {prows.map((p) => (
+        <tr>
+          <td class="l"><span class="sp-dot" style={`background:${p.color}`}></span><span class="sp-party">{p.name}</span>{p.gov && <span class="sp-gov">ríkisstj.</span>}</td>
+          <td class="sp-num">{p.cur}</td>
+          <td class="sp-num">{p.proj}</td>
+          <td class={`sp-num ${p.proj - p.cur > 0 ? 'up' : p.proj - p.cur < 0 ? 'dn' : 'fl'}`}>{chg(p.proj - p.cur)}</td>
+          <td class="sp-num">{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table></div>
+</section>
+
+<style>
+  .sp { margin: 8px 0 28px; }
+  .sp h2 { font-size: 22px; color: var(--ink); text-transform: none; letter-spacing: 0; margin: 0 0 8px; }
+  .sp h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 26px 0 8px; }
+  .sp-lead { color: var(--ink); margin: 0 0 4px; }
+  .sp-tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0 6px; }
+  .sp-tile { flex: 1; min-width: 150px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
+  .sp-t-l { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .sp-t-v { font-size: 30px; font-weight: 800; line-height: 1.1; margin-top: 2px; }
+  .sp-t-s { font-size: 12px; color: var(--faint); }
+  .maj-y { color: #46e08a; } .maj-n { color: #ff6d7a; }
+  .sp-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  #saetachart { width: 100%; margin: 8px 0; }
+  .sp-tblwrap { overflow-x: auto; }
+  .sp table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+  .sp th, .sp td { text-align: right; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+  .sp th { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .sp td.l, .sp th.l { text-align: left; }
+  .sp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .sp-party { font-weight: 600; }
+  .sp-gov { font-size: 10px; color: var(--bg); background: #46e08a; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+  .sp-num { font-variant-numeric: tabular-nums; }
+  .sp-num.up { color: #46e08a; } .sp-num.dn { color: #ff6d7a; } .sp-num.fl { color: var(--faint); }
+</style>
+
+<script define:vars={{ chartNames, chartCur, chartProj }}>
+  function initSaetachart() {
+    const el = document.getElementById('saetachart');
+    if (!el) return;
+    if (!window.echarts) {
+      let s = document.getElementById('echarts-cdn');
+      if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
+      s.addEventListener('load', initSaetachart, { once: true });
+      return;
+    }
+    if (window.echarts.getInstanceByDom(el)) return;
+    el.style.height = (chartNames.length * 46 + 60) + 'px';
+    const chart = window.echarts.init(el);
+    chart.setOption({
+      backgroundColor: 'transparent',
+      legend: { data: ['Nú', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
+      grid: { left: 110, right: 34, top: 34, bottom: 20 },
+      xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
+      yAxis: { type: 'category', inverse: true, data: chartNames, axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false } },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      series: [
+        { name: 'Nú', type: 'bar', data: chartCur, barGap: 0, itemStyle: { color: '#42506a' }, label: { show: true, position: 'right', color: '#7e8ca6', fontSize: 10 } },
+        { name: 'Spá', type: 'bar', data: chartProj, label: { show: true, position: 'right', color: '#eaf1fb', fontSize: 11, fontWeight: 'bold' } },
+      ],
+    });
+    window.addEventListener('resize', () => chart.resize());
+  }
+  document.addEventListener('astro:page-load', () => { if (document.getElementById('saetachart')) initSaetachart(); });
+</script>
