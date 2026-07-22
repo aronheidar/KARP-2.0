@@ -1,0 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const baseline = JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/baseline.json'), 'utf8'));
+let pass = 0, fail = 0;
+const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
+const EXPECT = { hagvoxtur:1, kaupmattur:1, launaskrid:0, afkoma:1, utflutningur:1, vinnuafl:1, byggdajofnudur:1, nyskopun:1, fiskistofn:1, verdbolga:-1, atvinnuleysi:-1, husnaedi:-1, husnaedi_hbs:-1, husnaedi_land:-1, leiga:-1, greidslubyrdi:-1, skuldir:-1, losun:-1, vanskil:-1, framfaersla:-1, mannfjoldi:0, folksfjoldi:0, gengi_endo:0, lifeyriseignir:1, hlutabref:1, vidskiptajofnudur:1, niip:1, jofnudur:1, peningamagn:0, utlanavoxtur:0, vaxtaalag:-1, heimilaskuldir:-1, einkajofnudur:0, vlf_sjavar:1, vlf_ferda:1, vlf_idnadur:1 };
+for (const k of Object.keys(baseline.outcomes)) ok('polarity present: ' + k, typeof baseline.outcomes[k].polarity === 'number');
+for (const k in EXPECT) ok('polarity value: ' + k, baseline.outcomes[k] && baseline.outcomes[k].polarity === EXPECT[k]);
+console.log(`\n${pass} pass, ${fail} fail`);
+process.exit(fail ? 1 : 0);

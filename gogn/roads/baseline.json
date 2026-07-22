@@ -541,7 +541,8 @@
     2.6,
     2.6,
     2.6
-   ]
+   ],
+   "polarity": -1
   },
   "hagvoxtur": {
    "label": "Hagvöxtur (VLF)",
@@ -587,7 +588,8 @@
     2.4,
     2.4,
     2.4
-   ]
+   ],
+   "polarity": 1
   },
   "atvinnuleysi": {
    "label": "Atvinnuleysi",
@@ -633,7 +635,8 @@
     4,
     4,
     4
-   ]
+   ],
+   "polarity": -1
   },
   "launaskrid": {
    "label": "Launaskrið (nafnlaun umfram samninga)",
@@ -679,7 +682,8 @@
     0,
     0,
     0
-   ]
+   ],
+   "polarity": 0
   },
   "kaupmattur": {
    "label": "Kaupmáttur launa",
@@ -725,7 +729,8 @@
     1.5,
     1.5,
     1.5
-   ]
+   ],
+   "polarity": 1
   },
   "husnaedi": {
    "label": "Húsnæðisverð (12-mán)",
@@ -771,7 +776,8 @@
     3,
     3,
     3
-   ]
+   ],
+   "polarity": -1
   },
   "leiga": {
    "label": "Leiga (12-mán)",
@@ -817,7 +823,8 @@
     4,
     4,
     4
-   ]
+   ],
+   "polarity": -1
   },
   "greidslubyrdi": {
    "label": "Greiðslubyrði (vísit.)",
@@ -863,7 +870,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": -1
   },
   "mannfjoldi": {
    "label": "Fólksfjölgun",
@@ -909,7 +917,8 @@
     1,
     1,
     1
-   ]
+   ],
+   "polarity": 0
   },
   "vinnuafl": {
    "label": "Vinnuaflsvöxtur",
@@ -955,7 +964,8 @@
     1.2,
     1.2,
     1.2
-   ]
+   ],
+   "polarity": 1
   },
   "afkoma": {
    "label": "Afkoma ríkissjóðs",
@@ -1001,7 +1011,8 @@
     0.31,
     0.31,
     0.31
-   ]
+   ],
+   "polarity": 1
   },
   "skuldir": {
    "label": "Skuldir ríkis",
@@ -1047,7 +1058,8 @@
     31.225,
     30.95,
     30.675
-   ]
+   ],
+   "polarity": -1
   },
   "utflutningur": {
    "label": "Útflutningsvöxtur",
@@ -1093,7 +1105,8 @@
     2.5,
     2.5,
     2.5
-   ]
+   ],
+   "polarity": 1
   },
   "losun": {
    "label": "CO₂-losun (vísit.)",
@@ -1139,7 +1152,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": -1
   },
   "vanskil": {
    "label": "Vanskil (vísit.)",
@@ -1185,7 +1199,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": -1
   },
   "folksfjoldi": {
    "label": "Fólksfjöldi (vísit., frávik)",
@@ -1231,7 +1246,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 0
   },
   "framfaersla": {
    "label": "Framfærsluhlutfall (vísit.)",
@@ -1277,7 +1293,8 @@
     105.692,
     105.846,
     106
-   ]
+   ],
+   "polarity": -1
   },
   "byggdajofnudur": {
    "label": "Byggðajöfnuður (vísit.)",
@@ -1323,7 +1340,8 @@
     96.205,
     96.103,
     96
-   ]
+   ],
+   "polarity": 1
   },
   "nyskopun": {
    "label": "Nýsköpun & hugvit (vísit.)",
@@ -1369,7 +1387,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "fiskistofn": {
    "label": "Fiskistofn (vísit.)",
@@ -1415,7 +1434,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "husnaedi_hbs": {
    "label": "Húsnæði — höfuðborg (12-mán)",
@@ -1461,7 +1481,8 @@
     3.5,
     3.5,
     3.5
-   ]
+   ],
+   "polarity": -1
   },
   "husnaedi_land": {
    "label": "Húsnæði — landsbyggð (12-mán)",
@@ -1507,7 +1528,8 @@
     2,
     2,
     2
-   ]
+   ],
+   "polarity": -1
   },
   "gengi_endo": {
    "label": "Gengi krónu — endógen (styrking +)",
@@ -1553,7 +1575,8 @@
     0,
     0,
     0
-   ]
+   ],
+   "polarity": 0
   },
   "peningamagn": {
    "label": "Peningamagn M3 (árs-breyting)",
@@ -1599,7 +1622,8 @@
     5,
     5,
     5
-   ]
+   ],
+   "polarity": 0
   },
   "utlanavoxtur": {
    "label": "Útlánavöxtur (árs-breyting)",
@@ -1645,7 +1669,8 @@
     5,
     5,
     5
-   ]
+   ],
+   "polarity": 0
   },
   "lifeyriseignir": {
    "label": "Lífeyrissjóða-eignir (% VLF)",
@@ -1691,7 +1716,8 @@
     182,
     182,
     182
-   ]
+   ],
+   "polarity": 1
   },
   "hlutabref": {
    "label": "Hlutabréf (vísit.)",
@@ -1737,7 +1763,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "vaxtaalag": {
    "label": "Vaxtaálag ríkis (pp)",
@@ -1783,7 +1810,8 @@
     0.7,
     0.7,
     0.7
-   ]
+   ],
+   "polarity": -1
   },
   "vidskiptajofnudur": {
    "label": "Viðskiptajöfnuður (% VLF)",
@@ -1829,7 +1857,8 @@
     2,
     2,
     2
-   ]
+   ],
+   "polarity": 1
   },
   "niip": {
    "label": "Erlend staða þjóðarbús (% VLF)",
@@ -1875,7 +1904,8 @@
     35,
     35,
     35
-   ]
+   ],
+   "polarity": 1
   },
   "jofnudur": {
    "label": "Tekjujöfnuður (vísit., hærra=jafnara)",
@@ -1921,7 +1951,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "heimilaskuldir": {
    "label": "Skuldir heimila (vísit.)",
@@ -1967,7 +1998,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": -1
   },
   "einkajofnudur": {
    "label": "Einkageira-jöfnuður (% VLF, sparn.−fjárf.)",
@@ -2013,7 +2045,8 @@
     1.69,
     1.69,
     1.69
-   ]
+   ],
+   "polarity": 0
   },
   "vlf_sjavar": {
    "label": "Sjávarútvegur — virðisauki (vísit.)",
@@ -2059,7 +2092,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "vlf_ferda": {
    "label": "Ferðaþjónusta — virðisauki (vísit.)",
@@ -2105,7 +2139,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   },
   "vlf_idnadur": {
    "label": "Iðnaður & orka — virðisauki (vísit.)",
@@ -2151,7 +2186,8 @@
     100,
     100,
     100
-   ]
+   ],
+   "polarity": 1
   }
  },
  "clamp": {
