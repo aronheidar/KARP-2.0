@@ -18,5 +18,6 @@ ok('no badge when not illustrative', !h.includes('dæmi til skýringar'));
 ok('good color for +valence', h.includes('#54d08a'));
 ok('bad color for -valence', h.includes('#e78284'));
 ok('badge when illustrative', renderRasBox(illu).includes('dæmi til skýringar'));
+ok('deterministic comma decimal', renderRasBox(sim).includes('+0,40'));
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

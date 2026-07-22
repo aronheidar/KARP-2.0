@@ -5,7 +5,9 @@ const arrow = (dir) => dir > 0 ? '▲' : dir < 0 ? '▼' : '■';
 function fmt(delta, unit) {
   const u = unit === '% VLF' ? '%' : unit;
   const dec = Math.abs(delta) < 1 ? 2 : 1;
-  return (delta > 0 ? '+' : '') + delta.toLocaleString('is-IS', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (u ? ' ' + u : '');
+  const num = Math.abs(delta).toFixed(dec).replace('.', ',');   // fast íslenskt kommu-snið, óháð staðfangi vafra
+  const sign = delta > 0 ? '+' : delta < 0 ? '-' : '';
+  return sign + num + (u ? ' ' + u : '');
 }
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
