@@ -18,7 +18,7 @@ export function renderRasBox(p) {
     return '<div class="r-ras-row"><span class="r-ras-lbl">' + esc(e.label) + '</span>'
       + '<span class="r-ras-val" style="color:' + c + '">' + arrow(e.dir) + ' ' + esc(fmt(e.delta, e.unit)) + '</span></div>';
   }).join('');
-  const disc = 'Stílfærð sviðsmynd úr opna RÁS-hermin um — ekki spá.' + (p.illustrative ? ' Byggt á dæmi-stærð.' : '');
+  const disc = 'Stílfærð sviðsmynd úr opna RÁS-herminum — ekki spá.' + (p.illustrative ? ' Byggt á dæmi-stærð.' : '');
   const cta = p.deepLink ? '<a class="r-ras-cta" href="' + esc(p.deepLink) + '">Prófa í RÁS →</a>' : '';
   return '<div class="r-ras">'
     + '<div class="r-ras-h">📊 Samkvæmt RÁS-hermi' + perNote + ' ' + badge + '</div>'
