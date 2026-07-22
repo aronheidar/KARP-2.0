@@ -140,26 +140,37 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
       </aside>
     </div>
 
-    <h2>Þingfundadagatal</h2>
-    <div class="dg-stats">
-      <span class="dg-chip"><b>{DAGATAL.days}</b> starfsdagar</span>
-      <span class="dg-chip"><b>{DAGATAL.plenary}</b> þingfundir</span>
-      <span class="dg-chip"><b>{DAGATAL.meetings}</b> nefndarfundir</span>
-      <span class="dg-chip dg-leg"><i class="dg-dot dg-t"></i> þingfundur <i class="dg-dot dg-n"></i> nefndarfundir</span>
-    </div>
-    <div id="dg-up" class="dg-up-note"></div>
-    <div class="dg-wrap">
-      <div class="dg-cal">
-        <div class="dg-head">
-          <button class="dg-nav" data-d="-1" type="button" aria-label="Fyrri mánuður">◀</button>
-          <div id="dg-title"></div>
-          <button class="dg-nav" data-d="1" type="button" aria-label="Næsti mánuður">▶</button>
+    <div class="live-cal">
+      <div class="lc-feed">
+        <h2>🔴 Þingið í beinni</h2>
+        <div class="live-frame">
+          <iframe src="https://vod.althingi.is/player/?type=dvr&dvrwindow=1" title="Bein útsending frá Alþingi" loading="lazy" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
         </div>
-        <div id="dg-grid" class="dg-grid"></div>
+        <p class="src">Bein útsending úr þingsal Alþingis (<a href="https://www.althingi.is/" target="_blank" rel="noopener">althingi.is</a>). Þegar þing situr ekki sýnir spilarinn nýjustu upptöku (DVR).</p>
       </div>
-      <div id="dg-detail" class="dg-detail"><p class="dg-hint">Smelltu á dag með punktum til að sjá fundahöld dagsins.</p></div>
+      <div class="lc-cal">
+        <h2>Þingfundadagatal</h2>
+        <div class="dg-stats">
+          <span class="dg-chip"><b>{DAGATAL.days}</b> starfsdagar</span>
+          <span class="dg-chip"><b>{DAGATAL.plenary}</b> þingfundir</span>
+          <span class="dg-chip"><b>{DAGATAL.meetings}</b> nefndarfundir</span>
+          <span class="dg-chip dg-leg"><i class="dg-dot dg-t"></i> þingfundur <i class="dg-dot dg-n"></i> nefndarfundir</span>
+        </div>
+        <div id="dg-up" class="dg-up-note"></div>
+        <div class="dg-wrap">
+          <div class="dg-cal">
+            <div class="dg-head">
+              <button class="dg-nav" data-d="-1" type="button" aria-label="Fyrri mánuður">◀</button>
+              <div id="dg-title"></div>
+              <button class="dg-nav" data-d="1" type="button" aria-label="Næsti mánuður">▶</button>
+            </div>
+            <div id="dg-grid" class="dg-grid"></div>
+          </div>
+          <div id="dg-detail" class="dg-detail"><p class="dg-hint">Smelltu á dag með punktum til að sjá fundahöld dagsins.</p></div>
+        </div>
+        <p class="src">Þingfundir og nefndarfundir löggjafarþingsins 157 ({DAGATAL.range[0]} – {DAGATAL.range[1]}), skv. fundargerðum Alþingis.</p>
+      </div>
     </div>
-    <p class="src">Þingfundir og nefndarfundir löggjafarþingsins 157 ({DAGATAL.range[0]} – {DAGATAL.range[1]}), skv. fundargerðum Alþingis.</p>
 
     <p class="mini-links">
       Sjá einnig: <a href="/althingi/thingmenn/">Þingmenn (myndir)</a> · <a href="/althingi/flokkar/">Flokkar</a> · <a href="/althingi/nefndir/">Nefndir &amp; dagatal</a> · <a href="/thingmal/">Frumvörp &amp; atkvæði</a>
@@ -271,6 +282,13 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
     .mp-list { display: flex; flex-wrap: wrap; gap: 4px 14px; }
     .mp-list a { color: var(--ink); text-decoration: none; font-size: 13px; }
     .mp-list a:hover { color: #f6b13b; text-decoration: underline; }
+    /* ── Live feed (Alþingi) + dagatal hlið við hlið ── */
+    .live-cal { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    .live-cal h2 { margin-top: 0; }
+    .live-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #06101c; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; overflow: hidden; }
+    .live-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .lc-cal .dg-wrap { grid-template-columns: 1fr; }
+    @media (max-width: 900px) { .live-cal { grid-template-columns: 1fr; } }
   </style>
 
   <!-- Eyja: þingsalurinn (raun-sætaskipan, scatter). Keyrir á astro:page-load (VT). #2 -->
