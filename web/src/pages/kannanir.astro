@@ -6,6 +6,7 @@
 // Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
+import Saetaspa from '../components/Saetaspa.astro';
 import { partyName, partyColor } from '@lib/parties.mjs';
 import { fmtNum, MON } from '@lib/format.mjs';
 import POLLS from '@gogn/polls.json';
@@ -74,7 +75,9 @@ const jsonLd = {
       Nýjust: <strong>{latest.pollster}</strong>, þar sem <strong style={`color:${top.color}`}>{top.name}</strong> er
       stærst með {fmtNum(top.now, 1)}%. Heimild: {POLLS.source}{POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>Wikipedia</a>)</> : null}.
     </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fylgistölur: birtar skoðanakannanir settar á tímalínu. Meðaltalslínur reiknar Karp; aðferðafræði einstakra kannana er hjá útgefendum þeirra.">ⓘ</i> Um gögnin á síðunni</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Fylgistölur: birtar skoðanakannanir settar á tímalínu. Meðaltalslínur reiknar Karp; aðferðafræði einstakra kannana er hjá útgefendum þeirra. Sætaspáin er vélræn D'Hondt-nálgun Karp.">ⓘ</i> Um gögnin á síðunni</p>
+
+    <Saetaspa />
 
     <h2>Þróun yfir tíma</h2>
     <div id="chart"></div>
@@ -101,7 +104,7 @@ const jsonLd = {
 
     <p class="note">
       ⓘ Kannanir eru óvissar (skekkjumörk, mismunandi aðferðir könnuða). „Frá kosningum" ber saman við raunúrslit
-      Alþingiskosninga 30. nóvember 2024. Sjá <a href="/althingi/">sætaspá Alþingis</a> fyrir þýðingu fylgis í þingsæti.
+      Alþingiskosninga 30. nóvember 2024. Sætaspáin efst þýðir fylgið í þingsæti (D'Hondt) — sjá <a href="/althingi/">Alþingi</a> fyrir þingsalinn og ríkisstjórnina.
     </p>
 
     <p class="foot">

@@ -4,67 +4,30 @@
 // (seats.mjs) úr könnunum + núverandi þingmenn, litað með parties.mjs.
 // Nú í app-skelinni (Layout: nav + fréttir). #2.
 // ─────────────────────────────────────────────────────────────
-import { projectSeats } from '@lib/seats.mjs';
-import { partyName, partyColor, colorByName } from '@lib/parties.mjs';
-import { fmtNum, slugify } from '@lib/format.mjs';
+import { partyName, colorByName } from '@lib/parties.mjs';
+import { slugify } from '@lib/format.mjs';
 import Layout from '../layouts/Layout.astro';
 import ThingTabs from '../components/ThingTabs.astro';
 
 import MpModal from '../components/MpModal.astro';
-import POLLS from '@gogn/polls.json';
 import THINGMENN from '@gogn/althingi.json';
 import SEATS from '@gogn/seats.json';
 import CABINET from '@gogn/cabinet.json';
 import FRUMVORP from '@gogn/frumvorp.json';
 import DAGATAL from '@gogn/dagatal.json';
 
-const r = projectSeats(POLLS, THINGMENN);
-const lastPoll = POLLS.polls[POLLS.polls.length - 1];
-const pv = (lastPoll && lastPoll.v) || {};
-const GOV = Object.keys(r.GOVK);
-const govNames = GOV.map(partyName).join(', ');
-
-const codes = [...new Set([...(POLLS.parties || []), ...Object.keys(r.cur)])];
-const prows = codes
-  .map((c) => ({
-    code: c,
-    name: partyName(c),
-    color: partyColor(c),
-    cur: r.cur[c] || 0,
-    proj: r.proj[c] || 0,
-    poll: pv[c] != null ? pv[c] : null,
-    gov: !!r.GOVK[c],
-  }))
-  .sort((a, b) => b.proj - a.proj || b.cur - a.cur || (b.poll || 0) - (a.poll || 0));
-
-const seatRows = prows.filter((p) => p.cur > 0 || p.proj > 0);
-const chartNames = seatRows.map((p) => p.name);
-const chartCur = seatRows.map((p) => p.cur);
-const chartProj = seatRows.map((p) => ({ value: p.proj, itemStyle: { color: p.color } }));
-
 const updated = '2026-07-01';
-
-// Þingmenn eftir flokki (fyrir innri tengla → engar munaðarlausar þingmanna-síður).
-const mpByParty = {};
-THINGMENN.forEach((mp) => { (mpByParty[mp.flokkur] = mpByParty[mp.flokkur] || []).push(mp); });
-const mpGroups = seatRows
-  .map((row) => ({ party: row.name, color: row.color, mps: (mpByParty[row.name] || []).slice().sort((a, b) => a.nafn.localeCompare(b.nafn, 'is')) }))
-  .filter((g) => g.mps.length);
-const desc = `Sætaspá fyrir Alþingi (D'Hondt úr meðaltali síðustu ${r.used} kannana): ríkisstjórnin (${govNames}) fær ${r.govS} af 63 sætum — ${r.maj ? 'heldur meirihluta' : 'missir meirihluta'}.`;
+// Ríkisstjórnarflokkar úr cabinet.json (ráðherra-flokkar) — óháð sætaspánni (flutt á /kannanir/).
+const GOV = [...new Set(CABINET.map((c) => c.flokur).filter(Boolean))];
+const desc = `Alþingi — þingsalurinn með raun-sætaskipan, ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings 157. Úr opnum XML-gögnum Alþingis.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Dataset',
-  name: 'Sætaspá Alþingis',
-  description: "Vélræn sætaspá fyrir Alþingi reiknuð með D'Hondt-reglu úr meðaltali nýjustu skoðanakannana (5% þröskuldur, 63 sæti).",
-  creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  '@type': 'WebPage',
+  name: 'Alþingi — Þingið 157',
+  description: 'Þingsalurinn (raun-sætaskipan), ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings 157.',
   dateModified: updated,
-  spatialCoverage: 'Ísland',
-  measurementTechnique: "D'Hondt-sætaúthlutun úr 3-kannana meðaltali, 5% þröskuldur",
-  variableMeasured: 'Þingsæti (af 63)',
 };
-
-const chg = (d) => (d > 0 ? '+' + d : d < 0 ? String(d) : '±0');
 
 // Þingsalurinn: raun-sætaskipan (seats.json) → bakað fyrir scatter-eyjuna.
 const mpSlug = {};
@@ -110,47 +73,17 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 ---
 
 <Layout
-  title={`Sætaspá Alþingis — ${govNames.split(',')[0]} stærst | Karp`}
+  title={`Alþingi — Þingið 157, þingsalurinn & þingmál | Karp`}
   description={desc}
   canonical="https://karp.is/althingi/"
   jsonLd={jsonLd}
-  ogTitle="Sætaspá Alþingis"
+  ogTitle="Alþingi — Þingið 157"
 >
   <main data-pg="althingi">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <ThingTabs active="salur" />
-    <h1>Sætaspá Alþingis</h1>
-    <p>
-      Ef kosið væri nú — vélræn spá reiknuð með D'Hondt-reglu úr meðaltali síðustu <strong>{r.used} kannana</strong>
-      (nýjust {lastPoll?.pollster}, {lastPoll?.date}). Ríkisstjórnarflokkarnir <strong>{govNames}</strong>
-      fá {r.govS} af 63 sætum.
-    </p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspáin er vélræn D'Hondt-spá úr meðaltali nýjustu kannana — nálgun Karp.">ⓘ</i> Um gögnin á síðunni</p>
-
-    <div class="tiles">
-      <div class="tile">
-        <div class="t-l">Ríkisstjórn</div>
-        <div class={`t-v ${r.maj ? 'maj-y' : 'maj-n'}`}>{r.govS}</div>
-        <div class="t-s">{r.maj ? '✓ meirihluti' : '✗ fallinn meirihluti'} · þarf 32</div>
-      </div>
-      <div class="tile">
-        <div class="t-l">Stjórnarandstaða</div>
-        <div class="t-v">{r.oppS}</div>
-        <div class="t-s">af 63 sætum</div>
-      </div>
-      <div class="tile">
-        <div class="t-l">Stærsti flokkur</div>
-        <div class="t-v" style={`color:${seatRows[0]?.color}`}>{seatRows[0]?.proj}</div>
-        <div class="t-s">{seatRows[0]?.name}</div>
-      </div>
-    </div>
-
-    <p class="note">
-      ⓘ <strong>Vélræn spá</strong>, ekki opinber. D'Hondt-sætaúthlutun úr 3-kannana meðaltali með 5% þröskuldi;
-      „Nú" = núverandi þingmenn. Kannanir eru óvissar og spáin breytist með þeim — þetta er ekki niðurstaða kosninga.
-    </p>
-
-    <h2>Þingið 157 — {govNum} flokka meirihlutastjórn</h2>
+    <h1>Þingið 157 — {govNum} flokka meirihlutastjórn</h1>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ráðherrar, sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspá (fylgi→þingsæti) er á /kannanir/.">ⓘ</i> Um gögnin á síðunni</p>
     <div class="cab">
       <button class="cab-pm cab-clk" data-id={PM.id} type="button" style={`--pc:${colorByName(PM.flokur)}`}>
         {PM.mynd && <img src={PM.mynd} alt={PM.nafn} loading="lazy" />}
@@ -207,29 +140,6 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
       </aside>
     </div>
 
-    <h2>Nú vs. spá — eftir flokkum</h2>
-    <div id="chart"></div>
-
-    <div class="tblwrap"><table>
-      <thead>
-        <tr><th class="l">Flokkur</th><th>Nú</th><th>Spá</th><th>Breyting</th><th>Síðasta könnun</th></tr>
-      </thead>
-      <tbody>
-        {prows.map((p) => (
-          <tr>
-            <td class="l">
-              <span class="dot" style={`background:${p.color}`}></span>
-              <span class="party">{p.name}</span>{p.gov && <span class="gov-tag">ríkisstj.</span>}
-            </td>
-            <td class="num">{p.cur}</td>
-            <td class="num">{p.proj}</td>
-            <td class={`num ${p.proj - p.cur > 0 ? 'up' : p.proj - p.cur < 0 ? 'dn' : 'fl'}`}>{chg(p.proj - p.cur)}</td>
-            <td class="num">{p.poll == null ? '–' : fmtNum(p.poll, 1) + '%'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table></div>
-
     <h2>Þingfundadagatal</h2>
     <div class="dg-stats">
       <span class="dg-chip"><b>{DAGATAL.days}</b> starfsdagar</span>
@@ -256,9 +166,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
     </p>
 
     <p class="foot">
-      Forþjónað (SSG) {updated}. Spáin reiknuð á <strong>byggingartíma</strong> úr sameiginlega <code>src/lib</code>
-      (<code>seats</code> D'Hondt + <code>parties</code>). Kannanagögn: {POLLS.source}
-      {POLLS.sourceUrl ? <> (<a href={POLLS.sourceUrl}>heimild</a>)</> : null}. #2 Á3.
+      Forþjónað (SSG) {updated}. Þingsalur, ráðherrar, mál og dagatal úr opnum XML-gögnum Alþingis. Sætaspá (fylgi→þingsæti) er á <a href="/kannanir/">Kannanir</a>. #2 Á3.
     </p>
   </main>
 
@@ -364,42 +272,6 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
     .mp-list a { color: var(--ink); text-decoration: none; font-size: 13px; }
     .mp-list a:hover { color: #f6b13b; text-decoration: underline; }
   </style>
-
-  <!-- Eyja: grúppað lárétt súlurit (Nú vs Spá) -->
-  <script define:vars={{ chartNames, chartCur, chartProj }}>
-    function initChart() {
-      const el = document.getElementById('chart');
-      if (!el) return;
-      if (!window.echarts) {
-        let s = document.getElementById('echarts-cdn');
-        if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); }
-        s.addEventListener('load', initChart, { once: true });
-        return;
-      }
-      if (window.echarts.getInstanceByDom(el)) return;
-      el.style.height = (chartNames.length * 46 + 60) + 'px';
-      const chart = window.echarts.init(el);
-      chart.setOption({
-        backgroundColor: 'transparent',
-        legend: { data: ['Nú', 'Spá'], textStyle: { color: '#9fb0c8' }, top: 0 },
-        grid: { left: 110, right: 34, top: 34, bottom: 20 },
-        xAxis: { type: 'value', axisLabel: { color: '#7e8ca6' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
-        yAxis: {
-          type: 'category', inverse: true, data: chartNames,
-          axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { show: false }, axisTick: { show: false },
-        },
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        series: [
-          { name: 'Nú', type: 'bar', data: chartCur, barGap: 0, itemStyle: { color: '#42506a' },
-            label: { show: true, position: 'right', color: '#7e8ca6', fontSize: 10 } },
-          { name: 'Spá', type: 'bar', data: chartProj,
-            label: { show: true, position: 'right', color: '#eaf1fb', fontSize: 11, fontWeight: 'bold' } },
-        ],
-      });
-      window.addEventListener('resize', () => chart.resize());
-    }
-    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="althingi"]')) initChart(); });
-  </script>
 
   <!-- Eyja: þingsalurinn (raun-sætaskipan, scatter). Keyrir á astro:page-load (VT). #2 -->
   <script define:vars={{ SEATDATA }}>
