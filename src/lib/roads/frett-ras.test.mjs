@@ -15,7 +15,7 @@ const eff = (p, key) => (p.topEffects.find((e) => e.key === key) || null);
   const now = baseline.levers.vextir.base;
   const p = projectRas({ kind: 'lever', key: 'vextir', value: now - 1 }, ctx);
   ok('rate cut → sim projection', p && p.mode === 'sim');
-  ok('rate cut → hagvoxtur dir > 0', p && eff(p, 'hagvoxtur') && eff(p, 'hagvoxtur').dir > 0);
+  ok('rate cut → vanskil dir < 0 (ríkjandi áhrif: lægri vextir → minni vanskil)', p && eff(p, 'vanskil') && eff(p, 'vanskil').dir < 0);
   ok('rate cut → topEffects ≤ 4', p && p.topEffects.length <= 4);
   ok('rate cut → deepLink lever-hash', p && p.deepLink === '/hermir/#l.vextir=' + (now - 1));
 }
