@@ -50,13 +50,13 @@
  },
  "laun": {
   "range": [
-   5.9,
+   5.8,
    10.9
   ],
   "n": 36
  },
- "rateHouseCorr": -0.36,
- "corrHbs": -0.36,
+ "rateHouseCorr": -0.35,
+ "corrHbs": -0.35,
  "corrLand": -0.42,
  "rateN": 145,
  "forecast": {
