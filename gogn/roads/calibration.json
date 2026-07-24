@@ -1,23 +1,23 @@
 {
- "updated": "2026-06",
+ "updated": "2026-07",
  "method": "OLS á ársfjórðungslegum raun-röðum (Seðlabanki CPI/vextir, VMST atvinnuleysi, Þjóðskrá fasteignaverð, Hagstofa laun)",
  "note": "Til hliðsjónar/grundunar — ekki full kerfis-kvörðun (einstök jöfnu-aðhvörf, mögulegar innbyrðis-tengingar). Grundar óvissu-bönd (ci) og sýnir handsett vs metið.",
  "regressions": [
   {
    "id": "infl_persist",
    "label": "Verðbólgu-tregða (AR1, ársfj.)",
-   "coef": 0.918,
+   "coef": 0.919,
    "se": 0.045,
-   "t": 20.44,
+   "t": 20.64,
    "ci": [
-    0.83,
+    0.832,
     1.006
    ],
    "r2": 0.87,
-   "n": 65,
+   "n": 66,
    "span": [
     "2010.1",
-    "2026.2"
+    "2026.3"
    ],
    "modelId": "infl_persist",
    "modelCoef": 0.5,
@@ -83,7 +83,7 @@
    "n": 66,
    "span": [
     "2010.1",
-    "2026.2"
+    "2026.3"
    ],
    "modelId": null,
    "modelCoef": null,
