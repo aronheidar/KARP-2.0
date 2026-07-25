@@ -14,7 +14,7 @@
    -8.9,
    33
   ],
-  "std": 8.5,
+  "std": 8.6,
   "n": 187
  },
  "atvinnuleysi": {
@@ -55,9 +55,9 @@
   ],
   "n": 36
  },
- "rateHouseCorr": -0.35,
- "corrHbs": -0.35,
- "corrLand": -0.42,
+ "rateHouseCorr": -0.36,
+ "corrHbs": -0.36,
+ "corrLand": -0.43,
  "rateN": 145,
  "forecast": {
   "infl_bau": 2.6,
