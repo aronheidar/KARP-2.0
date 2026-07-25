@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // build_lyf.js — SÉRLYFJASKRÁ (Lyfjastofnun) → gogn/lyf.json
-// DRÖG (bíður samþykkis Arons). Sjá spec: docs/superpowers/specs/2026-07-07-serlyfjaskra-lyf-design.md
+// Í DAGLEGRI CI (.github/workflows/refresh-data.yml). Sjá spec: docs/superpowers/specs/2026-07-07-serlyfjaskra-lyf-design.md
 //
 // KEYRSLA: node skriptur/build_lyf.js            (svo endurbygging: cd web && npx astro build)
 //   • LYF_PRICE_MAX : fjöldi verð-sókna. Óstillt/„0" = ÖLL. „none" = engin. N = fyrstu N (forgangsröðuð).
@@ -168,6 +168,16 @@ function buildOut(lyf) {
 function writeOut(lyf) {
   const out = buildOut(lyf);
   const json = JSON.stringify(out);
+  // SEIGLA: aldrei yfirskrifa heilt eintak með stórlega rýrðum gögnum (t.d. API skilaði 200 en tómu/hálfu → ekki tapa gögnum).
+  if (!process.env.LYF_OUT && fs.existsSync(OUT)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+      if (prev && prev.count > 50 && out.count < prev.count * 0.5) {
+        console.log(`  ! SEIGLA: ný talning ${out.count} < 50% af fyrri ${prev.count} — held eldra lyf.json (API-rýrnun?).`);
+        return prev;
+      }
+    } catch (e) { /* ónýtt/ekkert fyrra eintak → höldum áfram og skrifum nýtt */ }
+  }
   fs.writeFileSync(OUT, json);
   if (!process.env.LYF_OUT) {
     const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn', 'lyf.json');
@@ -175,6 +185,24 @@ function writeOut(lyf) {
     catch (e) { console.log('  ! dual-write brást:', String(e.message || e).slice(0, 90)); }
   }
   return out;
+}
+
+// ── SEIGLA: berðu fram síðast-sótt verð (X ?? prev.X) svo bundin/biluð verð-sókn tapi ekki verðum ──
+// Les fyrra gogn/lyf.json (ef til) → npn → verð-reitir. Þrep 2 skrifar yfir með fersku fyrir forgangs-lyf.
+function loadPrevPrices() {
+  const map = new Map();
+  try {
+    const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+    for (const r of (prev.lyf || [])) {
+      for (const p of (r.packages || [])) {
+        if (p && p.npn && (p.retail != null || p.reference != null)) {
+          map.set(p.npn, { retail: p.retail ?? null, reference: p.reference ?? null,
+            reimb: !!p.reimb, wholesaler: p.wholesaler ?? null, refUpdated: p.refUpdated ?? null });
+        }
+      }
+    }
+  } catch (e) { /* ekkert nothæft fyrra eintak → engin borin-fram verð */ }
+  return map;
 }
 
 // ── keyrsla ───────────────────────────────────────────────────
@@ -190,6 +218,8 @@ async function main() {
   // móta grunnfærslur
   const lyf = [];
   const npnIndex = new Map();  // npn -> {record, pkg}
+  const prevPrices = loadPrevPrices();  // SEIGLA: síðast-sótt verð til að bera fram (X ?? prev.X)
+  if (prevPrices.size) console.log('Ber fram', prevPrices.size, 'fyrri verð (npn) — bundin/biluð verð-sókn tapar ekki verðum.');
   for (const h of seen.values()) {
     const a = h.attributes || {};
     const rec = {
@@ -209,6 +239,14 @@ async function main() {
       packages: (h.packages || []).map(p => ({ npn: p.nordicProductNumber || '', size: p.packaging || '' })),
       priceLow: null, priceHigh: null, priced: false,
     };
+    // SEIGLA (X ?? prev.X): berðu fram fyrra verð; þrep 2 skrifar yfir með fersku fyrir forgangs-lyf.
+    const carried = [];
+    for (const p of rec.packages) {
+      const pp = prevPrices.get(p.npn);
+      if (pp) { p.retail = pp.retail; p.reference = pp.reference; p.reimb = pp.reimb; p.wholesaler = pp.wholesaler; p.refUpdated = pp.refUpdated;
+        if (pp.retail != null) carried.push(pp.retail); }
+    }
+    if (carried.length) { rec.priceLow = Math.min(...carried); rec.priceHigh = Math.max(...carried); rec.priced = true; }
     for (const p of rec.packages) if (p.npn) npnIndex.set(p.npn, { rec, pkg: p });
     lyf.push(rec);
   }
@@ -237,7 +275,7 @@ async function main() {
           if (pr.retail != null) retails.push(pr.retail); }
       }
       if (retails.length) { rec.priceLow = Math.min(...retails); rec.priceHigh = Math.max(...retails); rec.priced = true; ok++; }
-      else ok++; // síðan svaraði en engin smásöluverð (t.d. sjúkrahúslyf) — telst sótt
+      else { rec.priceLow = rec.priceHigh = null; rec.priced = false; ok++; } // fersk síða svaraði en engin smásöluverð → hreinsa borið-fram (ferskt ræður)
     } else fail++;
     if (done % 100 === 0) console.log('   ·', done + '/' + budget, '(' + ok + ' ok,', fail, 'engin verð) —', Math.round((Date.now() - t0) / 6e4) + ' mín');
     if (done % 250 === 0) writeOut(lyf);   // checkpoint: löng sókn tapist ekki

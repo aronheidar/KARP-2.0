@@ -107,6 +107,9 @@ jobs:
           node skriptur/build_vorumerki_nyskrad.js || true   # Hugverkastofan: nýskráð vörumerki (tilkynninga-vakt → digest)
           node skriptur/build_styrkir.js      || true   # Opinberar styrkveitingar (6 sjóðir → nafn→úthlutun; /api/styrkir + #fs-styrkir)
           node skriptur/build_ees.js          || true   # EES-vaktin: 3 þrep (CELLAR ESB-gerðir + EES-nefnd ákvarðanir + Alþingi EES-mál) → gogn/ees.json
+          # Sérlyfjaskrá (Lyfjastofnun): grunngögn + LYFJASKORTUR (tímaviðkvæmt) fersk DAGLEGA; verð borin fram (X ?? prev.X) svo bundin sókn tapi ekki verðum.
+          #   1. hvers mánaðar (UTC) = full verð-endurnýjun (öll ~3023, ~75 mín); aðra daga forgangs-verð LYF_PRICE_MAX=400 (allur skortur + efstu nauðsyn, ~8 mín).
+          if [ "$(date -u +%d)" = "01" ]; then node skriptur/build_lyf.js || true; else LYF_PRICE_MAX=400 node skriptur/build_lyf.js || true; fi
       - name: Byggingarleyfi (opnar fundargerðir byggingarfulltrúa RVK → byggingarsaga heimilisfangs)
         run: python skriptur/build_byggingarleyfi.py || true   # pypdf; full endurbygging (271 PDF, PDF-cache); heimilisfangs-lyklað, PII-örugg þáttun — engin persónuupplýsing geymd
       - name: Lögbirtingablaðið (opin PDF-tölublöð → lögform. tilkynningar lögaðila á kt)
