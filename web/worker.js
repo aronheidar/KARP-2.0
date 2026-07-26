@@ -2644,6 +2644,60 @@ async function kycHandler(request, env, ctx) {
   return _ajson({ ok: false, error: 'notfound' });
 }
 
+// ── KYC v1 vöktunar-cron (Task 7): dagleg full-skimun (kycDiffCron) + 3-tíma kritísk skimun (kycCriticalCron) ──
+async function _kycRunDiff(env, kt, onlySignals) {
+  const now = Math.floor(Date.now() / 1000);
+  const states = await kycScreenKt(env, kt);
+  const prevRows = (await env.TENGSL.prepare('SELECT signal,state_json FROM kyc_snapshot WHERE kt=?').bind(kt).all().catch(() => ({ results: [] }))).results || [];
+  const prev = {}; for (const r of prevRows) { try { prev[r.signal] = JSON.parse(r.state_json); } catch (e) {} }
+  const sigs = onlySignals || KYC_SIGNALS;
+  const evStmt = env.TENGSL.prepare('INSERT INTO kyc_event (kt,signal,kind,severity,detail_json,detected_at) VALUES (?,?,?,?,?,?)');
+  const snapStmt = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO UPDATE SET state_hash=excluded.state_hash, state_json=excluded.state_json, computed_at=excluded.computed_at');
+  const writes = []; const newEvents = [];
+  for (const sig of sigs) {
+    const cur = states[sig] || {};
+    const evs = kycSignalEvents(sig, Object.prototype.hasOwnProperty.call(prev, sig) ? prev[sig] : null, cur);
+    for (const e of evs) { writes.push(evStmt.bind(kt, sig, e.kind, e.severity, JSON.stringify(e.detail || {}), now)); newEvents.push(e); }
+    const j = kycCanon(cur); writes.push(snapStmt.bind(kt, sig, kycHash(j), j, now));
+  }
+  for (let i = 0; i < writes.length; i += 40) await env.TENGSL.batch(writes.slice(i, i + 40)).catch(() => {});
+  return { newEvents, risk: kycDeriveRisk(states) };
+}
+async function _kycOwnersOf(env, kt) {
+  return ((await env.TENGSL.prepare("SELECT DISTINCT owner_id FROM kyc_watch WHERE kt=? AND status='active'").bind(kt).all().catch(() => ({ results: [] }))).results || []).map((r) => r.owner_id);
+}
+async function _kycAfterEvents(env, kt, res, critical) {
+  if (!res.newEvents.length) return;
+  const now = Math.floor(Date.now() / 1000);
+  const owners = await _kycOwnersOf(env, kt);
+  for (const oid of owners) {
+    const stmts = [];
+    for (const e of res.newEvents) {
+      stmts.push(env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(oid, kt, now, 'system', 'change_detected', e.kind, JSON.stringify(e.detail || {})));
+    }
+    for (let i = 0; i < stmts.length; i += 40) await env.TENGSL.batch(stmts.slice(i, i + 40)).catch(() => {});
+    // opnar viðvaranir eru sóttar úr kyc_event↔kyc_ack (default 'open'); kritísk merki senda strax póst.
+    if (critical) {
+      const crit = res.newEvents.filter((e) => e.severity === 'critical');
+      if (crit.length) { const em = (await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(oid).first().catch(() => null))?.email; if (em) await kycSendAlert(env, em, kt, crit).catch(() => {}); }
+    }
+  }
+}
+async function kycDiffCron(env) {
+  const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);
+  for (const kt of kts) { const res = await _kycRunDiff(env, kt, null).catch(() => ({ newEvents: [] })); await _kycAfterEvents(env, kt, res, false).catch(() => {}); }
+}
+async function kycCriticalCron(env) {
+  const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);
+  for (const kt of kts) { const res = await _kycRunDiff(env, kt, ['sanctions', 'legal']).catch(() => ({ newEvents: [] })); await _kycAfterEvents(env, kt, res, true).catch(() => {}); }
+}
+async function kycSendAlert(env, email, kt, crit) {
+  const lines = crit.map((e) => '• ' + e.kind + (e.detail?.name ? ' — ' + e.detail.name : '')).join('\n');
+  const subject = 'Áreiðanleikavaktin: kritísk breyting (' + kt + ')';
+  const text = 'Kritísk vöktunar-breyting á vöktuðu félagi ' + kt + ':\n\n' + lines + '\n\nSkoðaðu möppuna: https://karp.is/areidanleikavaktin/?kt=' + kt;
+  await sendGmail(env, { to: email, subject, text }); // sendGmail (worker.js:3247) er secret-gated: skilar {unconfigured:true} án Gmail-secrets, brotnar ekki.
+}
+
 // LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni eftir kt (registeredAs). 5.500+ íslensk félög.
 async function leiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
@@ -4134,7 +4188,8 @@ export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
     if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env));
-    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)));   // F7 ingest → vakt-alerts
+    else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env));
+    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

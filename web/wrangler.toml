@@ -16,7 +16,7 @@ run_worker_first = ["/gogn/eigendur/*", "/gogn/arsreikningar/*", "/gogn/stjorn/*
 # Cron: viku-digest (mánud. 08:10 UTC) + frétta-innlestur í D1-safn (á 3 klst fresti, F7).
 # scheduled()-handler í worker.js greinir á milli á event.cron.
 [triggers]
-crons = ["10 8 * * 1", "0 */3 * * *"]
+crons = ["10 8 * * 1", "0 */3 * * *", "30 6 * * *"]
 
 # Tengslagrunnur (D1) — landsdekkandi eigenda-/stjórnendagrunnur.
 # ✅ VIRKT 2026-07-12 (Aron bjó til grunninn). Kóðinn er null-þolinn: þótt grunnurinn
