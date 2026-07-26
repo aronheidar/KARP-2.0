@@ -2,6 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
+import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
@@ -3160,15 +3161,16 @@ async function readSession(env, request) {
 const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 const _ajson = (obj, extra = {}) => new Response(JSON.stringify(obj), { status: 200, headers: { 'content-type': 'application/json', ...extra } });
 // D1 notandi → KARP_USER-lögun (sama snið og WP /me skilaði svo auth.js þurfi engar breytingar á lögun).
-function userPayload(u) {
+function userPayload(u, owner, now) {
   const base = { loginUrl: 'https://karp.is/innskra/', registerUrl: 'https://karp.is/nyskraning/', paywall: false };
   if (!u) return { loggedIn: false, ...base };
-  const now = Math.floor(Date.now() / 1000);
-  const tierActive = !!(u.tier && u.tier_until && u.tier_until > now);
+  now = now || Math.floor(Date.now() / 1000);
+  const tf = tierFields(u, owner || u, now);   // tier = eigin virkt þrep; effectiveTier = hærra af eigin/account
+  const plus = u.is_admin === 1 || !!tf.effectiveTier;
   return {
     loggedIn: true, id: u.id, email: u.email, name: u.name || u.username || u.email,
-    isAdmin: u.is_admin === 1, plus: u.is_admin === 1 || tierActive,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
-    tier: tierActive ? u.tier : null, effectiveTier: tierActive ? u.tier : null,
+    isAdmin: u.is_admin === 1, plus,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
+    tier: tf.tier, effectiveTier: tf.effectiveTier,
     emailVerified: u.email_verified === 1, kt: u.kt || null, ...base,
   };
 }
@@ -3178,20 +3180,34 @@ async function authMeHandler(request, env) {
   if (!uid || !env.TENGSL) return _ajson(userPayload(null));
   const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
   if (!u) return _ajson(userPayload(null));
-  const p = userPayload(u);
   const now = Math.floor(Date.now() / 1000);
-  // F4: réttindi úr D1 — virkar þjónustu-áskriftir + keyptar skýrslur + skýrslu-kvóti mánaðarins.
-  const subsR = await env.TENGSL.prepare('SELECT service, used, used_month FROM sub_service WHERE user_id=? AND until>?').bind(uid, now).all().catch(() => ({ results: [] }));
-  const repsR = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(uid).all().catch(() => ({ results: [] }));
+  await _autoLinkAccount(env, u, now);   // firma-account: sjálf-tengja meðlim við eiganda (á team-lista virks eiganda)
+  // afskráning: hreinsa tengingu ef ekki lengur á team-lista virks eiganda
+  if (u.parent_account_id) {
+    const ot = await _prefGet(env, u.parent_account_id, 'team', []);
+    const ow = await env.TENGSL.prepare('SELECT is_admin,tier,tier_until FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null);
+    const oActive = ow && (ow.is_admin === 1 || (ow.tier && ow.tier_until > now));
+    if (!Array.isArray(ot) || ot.indexOf((u.email || '').toLowerCase()) < 0 || !oActive) {
+      await env.TENGSL.prepare('UPDATE users SET parent_account_id=NULL WHERE id=?').bind(u.id).run().catch(() => {});
+      u.parent_account_id = null;
+    }
+  }
+  const acct = accountId(u);   // account-eigandi (parent_account_id || id) fyrir deild réttindi/gögn
+  const owner = await accountOwner(env, u);
+  const p = userPayload(u, owner, now);
+  // F4: réttindi úr D1 — virkar þjónustu-áskriftir + keyptar skýrslur + skýrslu-kvóti mánaðarins. Account-resolved (acct/owner).
+  const subsR = await env.TENGSL.prepare('SELECT service, used, used_month FROM sub_service WHERE user_id=? AND until>?').bind(acct, now).all().catch(() => ({ results: [] }));
+  const repsR = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(acct).all().catch(() => ({ results: [] }));
   p.subs = (subsR.results || []).map((r) => r.service);
   p.reports = (repsR.results || []).map((r) => r.report_key);
   const ym = new Date(now * 1000).toISOString().slice(0, 7);
-  const used = (u.reports_month === ym) ? (u.reports_used || 0) : 0;
-  const quota = u.is_admin === 1 ? 9999 : (p.tier ? (REPORT_QUOTA[p.tier] || 0) : 0);
+  const used = (owner.reports_month === ym) ? (owner.reports_used || 0) : 0;   // kvóta-teljari á account-eigandanum
+  const quota = u.is_admin === 1 ? 9999 : (p.effectiveTier ? (REPORT_QUOTA[p.effectiveTier] || 0) : 0);   // þak skv. account-þrepi
   p.reportsRemaining = Math.max(0, quota - used);
   p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
-  // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði).
-  p.follows = await _prefGet(env, uid, 'follows', []);
+  p.membership = u.parent_account_id ? { owner: owner.email } : null;   // UI-borði fyrir meðlimi
+  // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði). Account-scoped.
+  p.follows = await _prefGet(env, acct, 'follows', []);
   p.followsCount = p.follows.length;
   // #22: mánaðar-kvóti þjónustu-áskrifta (fasteign/þingskyrslur = 20/mán) svo UI geti sýnt „N eftir í mánuðinum".
   const _svcQ = { fasteign: 20, thingskyrslur: 20 };
@@ -3371,6 +3387,32 @@ async function _prefGet(env, uid, k, dflt) {
   const r = await env.TENGSL.prepare('SELECT v FROM user_prefs WHERE user_id=? AND k=?').bind(uid, k).first().catch(() => null);
   if (!r) return dflt;
   try { return JSON.parse(r.v); } catch (e) { return dflt; }
+}
+// ── firma-account (sæta-sameign v1): resolve account-eiganda + sjálf-tenging meðlima ──
+async function accountOwner(env, u) {
+  if (!u || !u.parent_account_id) return u;   // eigandi/sjálfstæður → sjálfur sig
+  return (await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null)) || u;
+}
+// Sjálf-tengir meðlim (u) við eiganda sem hefur netfang hans á 'team'-lista, ef eigandi er virkur og sæti laust.
+async function _autoLinkAccount(env, u, now) {
+  if (!u || u.parent_account_id) return u;   // þegar tengt eða er eigandi
+  const email = (u.email || '').toLowerCase();
+  const rows = (await env.TENGSL.prepare("SELECT user_id, v FROM user_prefs WHERE k='team'").all().catch(() => ({ results: [] }))).results || [];
+  for (const r of rows) {
+    let team = []; try { team = JSON.parse(r.v); } catch (e) {}
+    if (!Array.isArray(team) || team.indexOf(email) < 0 || r.user_id === u.id) continue;
+    const owner = await env.TENGSL.prepare('SELECT id,is_admin,tier,tier_until FROM users WHERE id=?').bind(r.user_id).first().catch(() => null);
+    if (!owner) continue;
+    const ownerActive = owner.is_admin === 1 || (owner.tier && owner.tier_until > now);
+    if (!ownerActive) continue;
+    const cap = _seatsCap(owner, now);
+    const n = (await env.TENGSL.prepare('SELECT COUNT(*) AS n FROM users WHERE parent_account_id=?').bind(owner.id).first().catch(() => ({ n: 0 }))).n || 0;
+    if (cap >= 0 && n >= cap) continue;   // þak fullt → ótengdur
+    await env.TENGSL.prepare('UPDATE users SET parent_account_id=? WHERE id=?').bind(owner.id, u.id).run().catch(() => {});
+    u.parent_account_id = owner.id;
+    return u;
+  }
+  return u;
 }
 async function _prefSet(env, uid, k, obj) {
   await env.TENGSL.prepare('INSERT INTO user_prefs (user_id,k,v,updated) VALUES (?,?,?,?) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, updated=excluded.updated')
