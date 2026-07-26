@@ -1793,12 +1793,11 @@ async function sub2ConfirmHandler(request, env, ctx) {
     return u;
   };
   const virk = (st) => /active|trial|current/i.test(String(st || '')) && !/cancel|fail|expire|inactive/i.test(String(st || ''));
-  const granted = async (cid, until) => {   // F7: grant STRAX á D1 (leysir WP af hólmi) á kaupanda-uid — account-resolved (Task 5), idempotent.
+  const granted = async (cid, until) => {   // F7: grant STRAX á D1 (leysir WP af hólmi) á kaupanda-uid — idempotent. Buyer-scoped (fix): tier/sub_service = RAUN-kaupandinn, EKKI account-deilt.
     if (env.TENGSL && uid) {
       const now = Math.floor(Date.now() / 1000);
-      const auid = await _acctOfUid(env, uid);
-      if (isTier) await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_askell=?, tier_trial_used=1, updated=? WHERE id=?').bind(slug, until, String(cid), now, auid).run().catch(() => {});
-      else await env.TENGSL.prepare('INSERT INTO sub_service (user_id, service, until, askell_id, trial_used) VALUES (?,?,?,?,1) ON CONFLICT(user_id, service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id, trial_used=1').bind(auid, slug, until, String(cid)).run().catch(() => {});
+      if (isTier) await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_askell=?, tier_trial_used=1, updated=? WHERE id=?').bind(slug, until, String(cid), now, +uid).run().catch(() => {});
+      else await env.TENGSL.prepare('INSERT INTO sub_service (user_id, service, until, askell_id, trial_used) VALUES (?,?,?,?,1) ON CONFLICT(user_id, service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id, trial_used=1').bind(+uid, slug, until, String(cid)).run().catch(() => {});
     }
     if (!env.KARP_GRANT_SECRET) return;   // WP-varaleið meðan hún tórir
     await fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
@@ -3253,10 +3252,10 @@ const authLogoutHandler = () => _ajson({ ok: true }, { 'set-cookie': _sessCookie
 // ── F4: Áskell-grant + réttindi í D1 (leysir WP /sub/grant + /reports/grant af hólmi) ──
 const _svcOk = (s) => ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(s) >= 0;
 const _tierOk = (t) => ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(t) >= 0;
-async function _uidByKt(env, kt) {   // kt → account-id eiganda (fyrsta/nýjasta samsvörun kt); 0 ef enginn. Account-resolved (Task 5): kaup gagnast allri stofunni.
+async function _uidByKt(env, kt) {   // kt → RAUN-notandi (fyrsta/nýjasta samsvörun kt); 0 ef enginn. Buyer-scoped (fix): tier/sub_service má EKKI accountId-visa (sjá grantSubD1).
   if (!env.TENGSL || !kt || kt.length !== 10) return 0;
-  const r = await env.TENGSL.prepare('SELECT id, parent_account_id FROM users WHERE kt=? ORDER BY id DESC LIMIT 1').bind(kt).first().catch(() => null);
-  return r ? accountId(r) : 0;
+  const r = await env.TENGSL.prepare('SELECT id FROM users WHERE kt=? ORDER BY id DESC LIMIT 1').bind(kt).first().catch(() => null);
+  return r ? r.id : 0;
 }
 // Hrátt session/URL-uid (t.d. kaupandi úr checkout-slóð) → accountId eiganda. Task 5: kaup gagnast allri stofunni (ekki bara kaupandanum sjálfum).
 async function _acctOfUid(env, rawUid) {
@@ -3289,8 +3288,9 @@ async function grantSubD1(env, o) {
 async function grantReportD1(env, kt, key) {
   const uid = await _uidByKt(env, kt);
   if (!uid) return;
+  const gid = await _acctOfUid(env, uid);   // additive skýrslu-grant MÁ deilast með account-inu (öfugt við tier/sub_service)
   await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)')
-    .bind(uid, key, Math.floor(Date.now() / 1000)).run().catch(() => {});
+    .bind(gid, key, Math.floor(Date.now() / 1000)).run().catch(() => {});
 }
 // Prufuvörn úr D1 (leysir WP /sub/trialstatus af hólmi).
 async function trialUsedD1(env, uid, kind, slug) {
@@ -3488,7 +3488,9 @@ async function userDataHandler(request, env) {
   // ── Keyptar/veittar skýrslur ──
   if (path === '/reports' && method === 'GET') {
     if (!uid) return _ajson({ reports: [] });
-    const r = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(uid).all().catch(() => ({ results: [] }));
+    const ru = await env.TENGSL.prepare('SELECT id, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const racct = accountId(ru) || uid;   // account-scoped (samræmi við /me.reports)
+    const r = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(racct).all().catch(() => ({ results: [] }));
     return _ajson({ reports: (r.results || []).map((x) => x.report_key) });
   }
 
@@ -3568,10 +3570,11 @@ async function userDataHandler(request, env) {
     return _ajson({ kt: list, cap });
   }
   if (path === '/team') {
-    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
     const cap = u ? _seatsCap(u, now) : 1;
     let members = await _prefGet(env, uid, 'team', []);
     if (method === 'POST') {
+      if (u && u.parent_account_id) return _ajson({ ok: false, error: 'member' });   // meðlimur má ekki stjórna team-i (aðeins eigandi)
       const email = String(body.email || '').trim().toLowerCase().slice(0, 120);
       if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
         if (body.action === 'remove') members = members.filter((x) => x !== email);
