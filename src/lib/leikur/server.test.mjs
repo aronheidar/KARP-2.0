@@ -77,6 +77,21 @@ const J = async (res) => JSON.parse(await res.text());
   ok('analytics scorecard raðað (hæsta fyrst)', st2.analytics.scorecard.length >= 2 && st2.analytics.scorecard[0].cumulative >= st2.analytics.scorecard[1].cumulative);
   const teamSt = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + jn.teamToken } }), env));
   ok('team /state hefur EKKI analytics', !teamSt.analytics);
+
+  // Task S4: custom game create
+  const MANDATE = (await import('./game-config.mjs')).MANDATE;
+  const custom = { rounds: 2, mandate: JSON.parse(JSON.stringify(MANDATE)),
+    scenario: { id: 'custom', events: [
+      { round: 1, title: 'Sérsniðið upphaf', text: '', shocks: {}, responses: [{ key: 'a', label: 'Ekkert', effect: {} }] },
+      { round: 2, title: 'Sérsniðin kreppa', text: '', shocks: { olia: 40 }, responses: [{ key: 'a', label: 'Bregðast við', effect: { lever: { utgjold: 6 } } }] } ] } };
+  const cc = await J(await leikurHandler(req('/api/leikur/create', custom), env));
+  ok('custom create → code', !!cc.code);
+  await leikurHandler(req('/api/leikur/' + cc.code + '/join', { name: 'C' }), env);
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + cc.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + cc.facToken }, body: JSON.stringify({ action: 'start' }) }), env);
+  const cst = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + cc.code + '/state', { headers: { authorization: 'Bearer ' + cc.facToken } }), env));
+  ok('custom event birtist í state', cst.event && cst.event.title === 'Sérsniðið upphaf');
+  const bad = await leikurHandler(req('/api/leikur/create', { rounds: 2, mandate: custom.mandate, scenario: { id: 'x', events: [{ round: 1, title: 'T', shocks: { ekki_til: 5 }, responses: [{ key: 'a', label: 'A', effect: {} }] }] } }), env);
+  ok('ógilt custom → 400', bad.status === 400);
   // idempotency: resolve aftur má ekki tvítelja
   const before = st2.teams.map((t) => t.cumulative).join(',');
   await ctrl('resolve');
