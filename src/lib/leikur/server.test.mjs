@@ -59,6 +59,24 @@ const J = async (res) => JSON.parse(await res.text());
   // ógildur kóði
   ok('óþekktur kóði → 404', (await leikurHandler(new Request('https://karp.is/api/leikur/ZZZZZ/state'), env)).status === 404);
 
+  // Task 5: round loop
+  const jn2 = await J(await leikurHandler(req('/api/leikur/' + code + '/join', { name: 'Lið B' }), env));
+  const fac = { headers: { 'content-type': 'application/json', authorization: 'Bearer ' + cr.facToken } };
+  const ctrl = (a) => leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/control', { method: 'POST', headers: fac.headers, body: JSON.stringify({ action: a }) }), env);
+  ok('start → phase decide, round 1', (await J(await ctrl('start'))).phase === 'decide');
+  const dec = (tok, obj) => leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify(obj) }), env);
+  await dec(jn.teamToken, { round: 1, locked: true, decisions: { peningastefna: 'slaka2', utgjold: 'orvun2', skattar: 'obreytt', fjarfesting: 'innvidir', vidbragd: 'ekkert' } });
+  await dec(jn2.teamToken, { round: 1, locked: true, decisions: { peningastefna: 'herda2', utgjold: 'adhald2', skattar: 'haekka2', fjarfesting: 'engin', vidbragd: 'vardsjodur' } });
+  ok('resolve → phase resolved', (await J(await ctrl('resolve'))).phase === 'resolved');
+  const st2 = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + cr.facToken } }), env));
+  ok('bæði lið hafa cumulative eftir umferð', st2.teams.every((t) => typeof t.cumulative === 'number'));
+  ok('liðin fá ÓLÍK stig (ólíkar ákvarðanir)', st2.teams[0].cumulative !== st2.teams[1].cumulative);
+  // idempotency: resolve aftur má ekki tvítelja
+  const before = st2.teams.map((t) => t.cumulative).join(',');
+  await ctrl('resolve');
+  const st3 = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + cr.facToken } }), env));
+  ok('resolve idempotent', st3.teams.map((t) => t.cumulative).join(',') === before);
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();
