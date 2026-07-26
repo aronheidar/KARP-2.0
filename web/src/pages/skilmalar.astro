@@ -6,8 +6,8 @@
 import Layout from '../layouts/Layout.astro';
 import SK from '../data/skilmalar.json';
 
-const updated = '2026-07-11';
-const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarskilmálar, gagnaheimildir, kökur og réttindi notenda.';
+const updated = '2026-07-26';
+const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarskilmálar, gagnaheimildir, kökur, réttindi notenda og gagnavinnslusamningur (DPA) fyrir compliance-vörur.';
 ---
 
 <Layout title="Skilmálar & persónuvernd | Karp" description={desc} canonical="https://karp.is/skilmalar/">
@@ -31,6 +31,17 @@ const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarski
       </div>
     ))}
 
+    <h2>Gagnavinnslusamningur (Karp sem vinnsluaðili)</h2>
+    <div class="draft-note">
+      <b>⚠ DRÖG — bíður yfirferðar lögfræðings.</b> Þessi gagnavinnslusamningur (DPA) er í drögum og hefur <b>ekki tekið gildi</b>. Hann á við þegar áskrifandi að compliance-vörum Karp (Áreiðanleikavaktin, Firma-account) vinnur persónuupplýsingar um eigin viðskiptavini — þá er áskrifandinn ábyrgðaraðili og Karp vinnsluaðili skv. 28. gr. GDPR. Endanleg útgáfa verður staðfest af Steinsson Greykdal ehf. og gerð hluti af Fyrirtæki+ skilmálum. Fyrirspurnir: <a href="mailto:personuvernd@karp.is">personuvernd@karp.is</a>.
+    </div>
+    {SK.dpa.map((s) => (
+      <div class="sec">
+        <h3>{s.n}. {s.t}</h3>
+        <div set:html={s.b} />
+      </div>
+    ))}
+
     <p class="foot">Síðast uppfært {updated}. Spurningar: sjá lið 1 í persónuverndarstefnu.</p>
   </main>
 
@@ -44,5 +55,8 @@ const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarski
     .sec :global(a) { color: var(--muted); }
     .sec :global(ul) { font-size: 13.5px; color: var(--ink); margin: 4px 0 8px; padding-left: 20px; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
+    .draft-note { background: rgba(246,177,59,.09); border: 1px solid rgba(246,177,59,.35); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--ink); line-height: 1.55; margin: 4px 0 16px; }
+    .draft-note b { color: #f6b13b; }
+    .draft-note :global(a), .draft-note a { color: #f6b13b; }
   </style>
 </Layout>
