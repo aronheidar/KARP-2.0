@@ -43,3 +43,12 @@ export function signalEvents(signal, prev, cur) {
   }
   return ev;
 }
+export function deriveRisk(s) {
+  s = s || {};
+  const L = (sig) => s[sig] || {};
+  if ((L('sanctions').hits || []).length || L('status').gjaldthrot ||
+      (L('legal').notices || []).some((n) => n.type === 'bankruptcy')) return 'Há';
+  if ((L('pep').matches || []).length || (L('tax').claims || []).length || L('status').afskrad ||
+      (L('legal').notices || []).length || (L('media').titles || []).length) return 'Venjuleg';
+  return 'Lág';
+}

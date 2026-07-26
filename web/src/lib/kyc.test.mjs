@@ -41,3 +41,16 @@ test('signalEvents: nýtt PEP-match = high', () => {
 test('SEVERITY_RANK raðar', () => {
   assert.ok(SEVERITY_RANK.critical > SEVERITY_RANK.high && SEVERITY_RANK.high > SEVERITY_RANK.info);
 });
+import { deriveRisk } from './kyc.mjs';
+test('deriveRisk: refsilisti eða gjaldþrot = Há', () => {
+  assert.equal(deriveRisk({ sanctions: { hits: [{ name: 'X' }] } }), 'Há');
+  assert.equal(deriveRisk({ status: { gjaldthrot: 1 } }), 'Há');
+});
+test('deriveRisk: PEP eða neikvæð media = Venjuleg', () => {
+  assert.equal(deriveRisk({ pep: { matches: [{ name: 'P' }] } }), 'Venjuleg');
+  assert.equal(deriveRisk({ media: { titles: [{ h: '1' }] } }), 'Venjuleg');
+});
+test('deriveRisk: ekkert = Lág', () => {
+  assert.equal(deriveRisk({ status: { gjaldthrot: 0 } }), 'Lág');
+  assert.equal(deriveRisk({}), 'Lág');
+});
