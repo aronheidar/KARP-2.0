@@ -110,7 +110,11 @@ Nýtt eðli áhættu: í v1.0 var PEP-/áhættumat **stakt og ó­geymt**; hér 
 |---|---|---|
 | **Karp / Steinsson Greykdal ehf.** | **Vinnsluaðili stofunnar** fyrir Vinnslu A/B | Vinnslusamningur (DPA) við hverja stofu — sbr. Viðauka B |
 | Cloudflare | Hýsing + jaðar-worker + D1-gagnagrunnur (`tengsl`) | **Undirvinnsluaðili** — DPA; EES/​fullnægjandi ábyrgðir |
-| WordPress-hýsing (wp.karp.is) | Aðgangskerfi/notendareikningar | Undirvinnsluaðili — DPA |
+| **Google LLC / Google Ireland Ltd.** | Gmail — afhending viðvörunar- og tilkynningapósts (getur innihaldið nöfn/kt í vöktunar-samhengi) | Undirvinnsluaðili — DPA; EES/SCC/DPF |
+
+> **Samræmi við DPA 7. lið.** Þessir undirvinnsluaðilar (Cloudflare + Google) eru þeir sömu og gagnavinnslusamningurinn telur upp (skilmálar → `dpa`). Áhættumöt/áhættureikningar fara fram **innan innviða Karp úr opinberum gögnum — engum persónuupplýsingum er miðlað til utanaðkomandi gervigreindarveitna.**
+
+> **WordPress (wp.karp.is) — leiðrétting frá DPIA v1.0 §1.6.** v1.0 taldi WordPress-hýsingu sem „aðgangskerfi/notendareikninga". Eftir Cloudflare-native auðkenningu (F2) hafa **auth + notendareikningar flust í Cloudflare D1/worker** (`worker.js` :3125/:4294); WordPress er **ekki í gagnaslóð KYC/account** (þau gögn eru alfarið í D1) — aðeins eftirstæð, secret-varin entitlement-grant varaleið (kóði: „WP-varaleið meðan hún tórir … fellur út þegar WP fer") sem er í niðurlagningu. Því er WordPress **ekki undirvinnsluaðili þessarar vinnslu**.
 
 Þar sem Karp er vinnsluaðili verður að upplýsa stofur um undirvinnsluaðila og fá heimild fyrir þeim (28. gr. 2./4. mgr.).
 
@@ -218,7 +222,7 @@ Til yfirferðar lögfræðings; ekki tæmandi.
 2. Vinnsla **eingöngu samkvæmt skjalfestum fyrirmælum** ábyrgðaraðila; **bann við eigin-notkun** Karp.
 3. **Trúnaður** starfsmanna Karp.
 4. **Öryggisráðstafanir** (32. gr.): per-account einangrun, aðgangsstýring, dulkóðun í flutningi, append-only audit.
-5. **Undirvinnsluaðilar** (Cloudflare, WordPress-hýsing): heimild + jafngild skylda; tilkynning um breytingar.
+5. **Undirvinnsluaðilar** (Cloudflare, Google/Gmail): almenn heimild + jafngild skylda; tilkynning um fyrirhugaðar breytingar + andmælaréttur. (WordPress ekki í KYC/account-slóð — sbr. 1.7.)
 6. **Aðstoð** við réttindi skráðra (kap. III) og við 32.–36. gr. (öryggi, tilkynning öryggisbrests, DPIA).
 7. **Öryggisbrestur:** tilkynning til ábyrgðaraðila án ótilhlýðilegs dráttar.
 8. **Eyðing/​skil** allra gagna við lok þjónustu, með fyrirvara um AML-varðveisluskyldu ábyrgðaraðila.
