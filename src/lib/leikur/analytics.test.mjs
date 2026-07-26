@@ -10,8 +10,8 @@ const history = [
   { round: 2, teamId: 2, roundScore: 60, cumulative: 150, perKpi: perKpi(60) },
 ];
 const decisions = [
-  { round: 2, teamId: 1, decisions: { peningastefna: 'slaka2', utgjold: 'orvun2', skattar: 'obreytt', fjarfesting: 'innvidir', vidbragd: 'kolefni' } },
-  { round: 2, teamId: 2, decisions: { peningastefna: 'herda2', utgjold: 'adhald2', skattar: 'haekka2', fjarfesting: 'engin', vidbragd: 'absorb' } },
+  { round: 2, teamId: 1, decisions: { peningastefna: 'slaka2', utgjold: 'orvun2', skattar: 'obreytt', fjarfesting: 'innvidir', vidbragd: 'herda' } },
+  { round: 2, teamId: 2, decisions: { peningastefna: 'herda2', utgjold: 'adhald2', skattar: 'haekka2', fjarfesting: 'engin', vidbragd: 'leyfa' } },
 ];
 const a = buildAnalytics({ history, decisions, teams, mandate: MANDATE, decisionsConfig: DECISIONS, scenario: SCENARIO, currentRound: 2 });
 
@@ -21,7 +21,7 @@ ok('scorecard perKpi 4 stig', a.scorecard[0].perKpi.length === 4 && a.scorecard[
 ok('decisionsTable 2 lið', a.decisionsTable.length === 2);
 const t1 = a.decisionsTable.find((r) => r.teamId === 1);
 ok('#1 optLabel leyst (Slaka mikið)', t1.choices.find((c) => c.decId === 'peningastefna').optLabel === 'Slaka mikið');
-ok('#5 vidbragd leyst úr scenario (Flýta orkuskiptum)', t1.choices.find((c) => c.decId === 'vidbragd').optLabel === 'Flýta orkuskiptum');
+ok('#5 vidbragd leyst úr scenario (Herða lánþegaskilyrði (DSTI↓))', t1.choices.find((c) => c.decId === 'vidbragd').optLabel === 'Herða lánþegaskilyrði (DSTI↓)');
 ok('trajectories.cumulative 2 línur', a.trajectories.cumulative.length === 2);
 ok('cumulative A 2 punktar (r1,r2)', a.trajectories.cumulative.find((s) => s.teamId === 1).points.length === 2);
 ok('byKpi hefur 4 KPI', Object.keys(a.trajectories.byKpi).length === 4);

@@ -9,7 +9,7 @@ const MODEL = {
   defaultScenario: SCENARIO, defaultMandate: MANDATE, rounds: ROUNDS,
 };
 ---
-<Layout title="RÁS-Leikurinn — þjóðhagfræði-hermir" desc="Turn-based kennsluleikur í þjóðhagfræði fyrir Ísland.">
+<Layout title="RÁS-Leikurinn — þjóðhagfræði-hermir" desc="Turn-based kennsluleikur í þjóðhagfræði fyrir Ísland." bare={true}>
   <main data-pg="leikur">
     <script type="application/json" id="leikur-model" set:html={JSON.stringify(MODEL)}></script>
     <div id="leikur-root">Hleð…</div>
@@ -20,7 +20,7 @@ const MODEL = {
   mountLeikur(document.getElementById('leikur-root'));
 </script>
 <style>
-  main[data-pg="leikur"] { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; color: var(--ink, #e8ecf3); }
+  main[data-pg="leikur"] { max-width: 1440px; margin: 0 auto; padding: 20px 20px 80px; color: var(--ink, #e8ecf3); }
   main[data-pg="leikur"] :global(h1) { font-size: 26px; margin: 0 0 8px; }
   main[data-pg="leikur"] :global(h2) { font-size: 17px; margin: 0 0 10px; }
   main[data-pg="leikur"] :global(.lk-btn) { background: #f6b13b; color: #12161f; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 700; cursor: pointer; }
@@ -56,4 +56,37 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-studio-grid) { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 12px; }
   main[data-pg="leikur"] :global(.lk-og) { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
   main[data-pg="leikur"] :global(.lk-lock-big) { width: 100%; font-size: 16px; padding: 14px; }
+  /* Tímalínu-borði 2000–2032 */
+  main[data-pg="leikur"] :global(.lk-ribbon) { display: flex; gap: 4px; margin: 4px 0 14px; overflow-x: auto; }
+  main[data-pg="leikur"] :global(.lk-term) { flex: 1 1 0; min-width: 54px; text-align: center; padding: 8px 2px; border-radius: 8px; border: 1px solid var(--line, #2a2f3a); background: rgba(255,255,255,.02); }
+  main[data-pg="leikur"] :global(.lk-term.past) { opacity: .55; }
+  main[data-pg="leikur"] :global(.lk-term.now) { border-color: #f6b13b; background: rgba(246,177,59,.14); box-shadow: 0 0 0 1px #f6b13b inset; }
+  main[data-pg="leikur"] :global(.lk-term.future) { opacity: .32; }
+  main[data-pg="leikur"] :global(.lk-term.end) { flex: 0 0 46px; opacity: .5; }
+  main[data-pg="leikur"] :global(.lk-term-ic) { display: block; font-size: 16px; height: 20px; }
+  main[data-pg="leikur"] :global(.lk-term-y) { display: block; font-size: 11px; color: var(--muted, #9fb0c8); font-weight: 700; margin-top: 2px; }
+  /* Kjörtímabils-haus */
+  main[data-pg="leikur"] :global(.lk-term-head) { margin: 0 0 10px; }
+  main[data-pg="leikur"] :global(.lk-term-badge) { display: inline-block; font-size: 12px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.12); border-radius: 999px; padding: 3px 12px; }
+  main[data-pg="leikur"] :global(.lk-term-title) { font-size: 24px; margin: 8px 0 4px; }
+  main[data-pg="leikur"] :global(.lk-term-text) { color: var(--muted, #9fb0c8); font-size: 14px; margin: 0; max-width: 760px; }
+  /* Aðal-rist: gröf vinstri, stýringar hægri (sticky) */
+  main[data-pg="leikur"] :global(.lk-studio-main) { display: grid; grid-template-columns: minmax(0,1fr) 380px; gap: 16px; align-items: start; }
+  main[data-pg="leikur"] :global(.lk-studio-controls) { position: sticky; top: 64px; }
+  @media (max-width: 900px) { main[data-pg="leikur"] :global(.lk-studio-main) { grid-template-columns: 1fr; } main[data-pg="leikur"] :global(.lk-studio-controls) { position: static; } }
+  /* Þjóðarhagur-mælir */
+  main[data-pg="leikur"] :global(.lk-gauge-card) { display: flex; align-items: center; gap: 16px; }
+  main[data-pg="leikur"] :global(.lk-gauge) { flex: 0 0 auto; }
+  /* Markmiðs-mælar */
+  main[data-pg="leikur"] :global(.lk-goalmeters) { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  main[data-pg="leikur"] :global(.lk-goalmeter) { }
+  main[data-pg="leikur"] :global(.lk-gm-top) { display: flex; justify-content: space-between; font-size: 13px; }
+  main[data-pg="leikur"] :global(.lk-gm-bar) { height: 8px; background: rgba(255,255,255,.08); border-radius: 6px; margin: 4px 0; overflow: hidden; }
+  main[data-pg="leikur"] :global(.lk-gm-fill) { height: 100%; border-radius: 6px; transition: width .15s; }
+  main[data-pg="leikur"] :global(.lk-gm-sub) { display: flex; justify-content: space-between; font-size: 11px; }
+  /* Útkomu-hitakort */
+  main[data-pg="leikur"] :global(.lk-heat) { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 5px; }
+  main[data-pg="leikur"] :global(.lk-heat-tile) { display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 7px; font-size: 11px; }
+  main[data-pg="leikur"] :global(.lk-heat-tile span) { color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur"] :global(.lk-heat-tile b) { font-size: 13px; }
 </style>

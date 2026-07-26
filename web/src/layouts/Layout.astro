@@ -3,7 +3,7 @@
 // #2. Engin React — hrein Astro + vanilla-eyjur + View Transitions (mjúk skipti án endurhleðslu).
 import { ClientRouter } from 'astro:transitions';
 import KarpFish from '../components/KarpFish.astro';
-const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '', wide = false } = Astro.props;
+const { title, description = '', canonical = '', jsonLd = null, noindex = false, ogTitle = '', ogType = 'website', ogImage = '', wide = false, bare = false } = Astro.props;
 // NAV — NÁKVÆM eftirmynd gamla mælaborðsins (röð, hópar, undirflokkar, heiti).
 // Hópar opnast/lokast (accordion); hópur virku síðunnar er sjálfkrafa opinn.
 const NAV = [
@@ -161,6 +161,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .shell { display:grid; grid-template-columns:212px minmax(0,1fr) 300px; min-height:100vh; }
       .shell-wide { grid-template-columns:212px minmax(0,1fr); }
       .shell-wide .news { display:none; }
+      .shell.shell-bare { grid-template-columns:minmax(0,1fr); }
+      .shell-bare .nav, .shell-bare .news { display:none; }
 
       /* NAV (vinstra) */
       .nav { border-right:1px solid var(--line); padding:20px 14px; display:flex; flex-direction:column; gap:3px; position:sticky; top:52px; height:calc(100vh - 52px); overflow-y:auto; scrollbar-width:thin; }
@@ -299,7 +301,7 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <a class="tb-login" id="tb-login" href="/innskra/" hidden>Innskrá</a>
       </nav>
     </header>
-    <div class={`shell${wide ? ' shell-wide' : ''}`}>
+    <div class={`shell${wide ? ' shell-wide' : ''}${bare ? ' shell-bare' : ''}`}>
       <aside class="nav" transition:persist>
         <a class="brand" href="/"><span>KARP</span></a>
         <nav>

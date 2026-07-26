@@ -3,7 +3,9 @@
 // Sýnir: lending, leikstjóri, lið (classic-kubbar / studio-stjórnstöð), niðurstöður.
 import { simulate } from '../roads/engine.mjs';
 import { buildInputs } from './resolve.mjs';
+import { scoreRound } from './scoring.mjs';
 import { studioCatalog, defaultDials, changedLevers } from './studio.mjs';
+import { YEAR_START } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 const STUDIO_CAT = studioCatalog(BASELINE);
@@ -79,14 +81,17 @@ function lkLineChart(title, series, opts = {}) {
   for (const r of rounds) g += `<text x="${X(r).toFixed(1)}" y="${H - 7}" font-size="9" fill="#7b879c" text-anchor="middle">${r}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;
 }
-// Studio-forskoðunar-rit: ferill útkomu yfir fjórðunga + BAU (punktalína) + markmiðs-lína.
+// Studio-forskoðunar-rit: ferill útkomu yfir ÁR (2000+i) + BAU (punktalína) + markmiðs-lína.
 function stChart(title, mid, bau, targetLine, color) {
-  const W = 300, H = 116, pl = 34, pr = 10, pt = 18, pb = 14, n = mid.length;
+  const W = 320, H = 132, pl = 34, pr = 10, pt = 18, pb = 24, n = mid.length;
   const all = mid.concat((bau || []).slice(0, n), targetLine != null ? [targetLine] : []);
   let ymin = Math.min(...all), ymax = Math.max(...all); if (ymax - ymin < 1) { ymax += 1; ymin -= 1; }
   const X = (i) => pl + (W - pl - pr) * (n <= 1 ? 0.5 : i / (n - 1));
   const Y = (v) => (H - pb) - (H - pt - pb) * (v - ymin) / (ymax - ymin);
   let g = `<text x="${pl}" y="12" font-size="11" fill="#9fb0c8">${esc(title)}</text>`;
+  // ár-ás: merki á kjörtímabils-skilum (á 4 ára fresti)
+  for (let i = 0; i < n; i += 4) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="middle">${YEAR_START + i}</text>`;
+  if (n > 1) g += `<text x="${X(n - 1).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="end">${YEAR_START + n}</text>`;
   if (bau && bau.length) { const d = bau.slice(0, n).map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' '); g += `<path d="${d}" fill="none" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3"/>`; }
   if (targetLine != null) { const y = Y(targetLine).toFixed(1); g += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" stroke="#f6b13b" stroke-width="1" stroke-dasharray="4 2" opacity="0.55"/>`; }
   const d = mid.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
@@ -94,6 +99,21 @@ function stChart(title, mid, bau, targetLine, color) {
   g += `<circle cx="${X(n - 1).toFixed(1)}" cy="${Y(mid[n - 1]).toFixed(1)}" r="2.5" fill="${color}"/>`;
   g += `<text x="${W - pr}" y="${(Y(mid[n - 1]) - 4).toFixed(1)}" font-size="10" fill="${color}" text-anchor="end">${num(mid[n - 1])}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${g}</svg>`;
+}
+// „Þjóðarhagur"-heildarmælir: hálfhringur 0–100, valens-litur.
+function arcGauge(score) {
+  const s = Math.max(0, Math.min(100, score)), W = 200, H = 116, cx = W / 2, cy = 104, r = 84;
+  const col = s >= 70 ? '#54d08a' : s >= 40 ? '#e8c14a' : '#e78284';
+  const ang = Math.PI * (1 - s / 100), x = cx + r * Math.cos(ang), y = cy - r * Math.sin(ang);
+  const bg = `<path d="M${cx - r},${cy} A${r},${r} 0 0 1 ${cx + r},${cy}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="13"/>`;
+  const fg = `<path d="M${cx - r},${cy} A${r},${r} 0 0 1 ${x.toFixed(1)},${y.toFixed(1)}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${bg}${fg}<text x="${cx}" y="${cy - 14}" text-anchor="middle" font-size="42" font-weight="800" fill="${col}">${Math.round(s)}</text><text x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="12" fill="#9fb0c8">/ 100</text></svg>`;
+}
+// Markmiðs-mælir: núgildi vs markmið + stig-fylltur borði.
+function goalMeter(kpi, value, scoreVal) {
+  const dir = kpi.dir, tgt = dir === 'target' ? kpi.target : dir === 'max' ? kpi.max : kpi.min;
+  const col = scoreVal >= 80 ? '#54d08a' : scoreVal >= 40 ? '#e8c14a' : '#e78284';
+  return `<div class="lk-goalmeter"><div class="lk-gm-top"><span>${esc(kpi.label)}${kpi.weight > 1 ? ' <span class="lk-kpi-w">×' + kpi.weight + '</span>' : ''}</span><b style="color:${col}">${num(value)}</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:${Math.max(2, Math.min(100, scoreVal))}%;background:${col}"></div></div><div class="lk-gm-sub"><span class="lk-muted">markmið ${dir === 'max' ? '≤ ' : dir === 'min' ? '≥ ' : ''}${num(tgt)}</span><span style="color:${col}">${scoreVal}/100</span></div></div>`;
 }
 function renderFacAnalytics(an) {
   if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
@@ -294,29 +314,49 @@ export function mountLeikur(root) {
     for (const k in inp.shocks) shkOv[k] = inp.shocks[k].value;
     return simulate({ baseline: BASELINE, links: LINKS, levers: levOv, shocks: shkOv, quarters: inp.quarters });
   }
+  const termYears = (r) => [YEAR_START + 4 * (r - 1), YEAR_START + 4 * r];
+  // Tímalínu-borði: 8 kjörtímabil 2000▬2032, núverandi gyllt, liðin ✓, framtíð faint (án spillis).
+  function ribbonHtml(st) {
+    const cur = st.round, evs = st.scenarioSoFar || [];
+    let segs = '';
+    for (let r = 1; r <= 8; r++) {
+      const [y0] = termYears(r), cls = r < cur ? 'past' : r === cur ? 'now' : 'future';
+      const ev = r <= cur ? evs[r - 1] : null, ic = ev && ev.icon ? ev.icon : (r < cur ? '✓' : '');
+      segs += `<div class="lk-term ${cls}"><span class="lk-term-ic">${ic}</span><span class="lk-term-y">${y0}</span></div>`;
+    }
+    return `<div class="lk-ribbon">${segs}<div class="lk-term end"><span class="lk-term-ic">🏁</span><span class="lk-term-y">2032</span></div></div>`;
+  }
   function drawStudioPreview(st) {
     const el = root.querySelector('#lk-st-chart'); if (!el) return;
-    const r = studioSim(st);
-    let charts = '<div class="lk-charts">';
+    const sim = studioSim(st), endYear = YEAR_START + st.round * 4;
+    const kpiVals = {}; for (const k of st.mandate.kpis) { const oc = sim.outcomes[k.key]; kpiVals[k.key] = oc ? oc.mid[oc.mid.length - 1] : 0; }
+    const sc = scoreRound(kpiVals, st.mandate);
+    let html = '<div class="lk-card lk-gauge-card"><div class="lk-gauge">' + arcGauge(sc.composite) + '</div><div><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 0">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + '</p></div></div>';
+    html += '<div class="lk-card"><h2>🎯 Markmið</h2><div class="lk-goalmeters">';
+    for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
+    html += '</div></div>';
+    let charts = '<div class="lk-card"><h2>📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
     for (const k of st.mandate.kpis) {
-      const oc = r.outcomes[k.key]; if (!oc) continue;
+      const oc = sim.outcomes[k.key]; if (!oc) continue;
       const mid = oc.mid, last = mid.length - 1, bau = (BASELINE.outcomes[k.key] || {}).path || [];
       const tgt = k.dir === 'target' ? k.target : k.dir === 'max' ? k.max : k.min, fin = mid[last], b = k.band || 0;
       const good = k.dir === 'target' ? Math.abs(fin - k.target) <= b : k.dir === 'max' ? fin <= k.max + b : fin >= k.min - b;
       charts += stChart(k.label + (k.weight > 1 ? ' ×' + k.weight : ''), mid, bau, tgt, good ? '#54d08a' : '#e78284');
     }
-    charts += '</div>';
-    let grid = '<div class="lk-studio-grid">';
+    charts += '</div><div class="lk-muted" style="font-size:11px;margin-top:4px">– – grunnlína (óbreytt stefna) · gul strikalína = markmið</div></div>';
+    html += charts;
+    let grid = '<div class="lk-card"><h2>Allar útkomur (' + endYear + ')</h2><div class="lk-heat">';
     for (const o of STUDIO_CAT.outcomes) {
-      const oc = r.outcomes[o.key]; if (!oc) continue;
+      const oc = sim.outcomes[o.key]; if (!oc) continue;
       const fin = oc.mid[oc.mid.length - 1], bau = (BASELINE.outcomes[o.key] || {}).path || [];
       const bf = bau.length ? bau[Math.min(bau.length - 1, oc.mid.length - 1)] : fin;
       const dev = fin - bf, val = dev * (o.polarity || 0);
-      const col = (o.polarity === 0 || Math.abs(dev) < 1e-6) ? '#9fb0c8' : val > 0 ? '#54d08a' : '#e78284';
-      grid += `<div class="lk-og"><span>${esc(o.label)}</span><b style="color:${col}">${num(fin)}${o.unit ? ' ' + esc(o.unit) : ''}</b></div>`;
+      const bg = (o.polarity === 0 || Math.abs(dev) < 1e-6) ? 'rgba(255,255,255,.04)' : val > 0 ? 'rgba(84,208,138,.16)' : 'rgba(231,130,132,.16)';
+      grid += `<div class="lk-heat-tile" style="background:${bg}"><span>${esc(o.label)}</span><b>${num(fin)}${o.unit ? ' ' + esc(o.unit) : ''}</b></div>`;
     }
-    grid += '</div>';
-    el.innerHTML = charts + '<div class="lk-muted" style="font-size:11px;margin:6px 0 4px">– – grunnlína (óbreytt stefna) · litur = betra/verra en grunnlína</div><h3 style="font-size:13px;margin:8px 0 4px">Allar útkomur (lokafjórðungur)</h3>' + grid;
+    grid += '</div></div>';
+    html += grid;
+    el.innerHTML = html;
   }
   function renderStudio(st) {
     if (!S.dials) S.dials = initDials(st);
@@ -326,14 +366,19 @@ export function mountLeikur(root) {
       const v = S.dials[l.key] != null ? S.dials[l.key] : l.base, moved = +v !== l.base;
       return `<div class="lk-slider-row"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${num(v)}${l.unit ? ' ' + esc(l.unit) : ''}</span> <span class="lk-muted" style="font-size:11px">grunnur ${num(l.base)}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
     }).join('');
-    const ev = st.event;
+    const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
+      ribbonHtml(st) +
+      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span><h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>` +
       roleBanner(st) +
-      (ev ? card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>' + (ev.shocks && Object.keys(ev.shocks).length ? '<p class="lk-muted" style="font-size:12px">⚡ Ytra sjokk þessa umferð — stilltu viðbrögð með sleðunum.</p>' : '')) : '') +
-      '<div class="lk-card"><h2>📈 Áhrif ákvarðana (lifandi forskoðun)</h2><div id="lk-st-chart"></div></div>' +
-      '<div class="lk-card"><h2>🎛️ Stjórnstöð — stilltu stefnuna</h2><div class="lk-tabs">' + tabBar + '</div><div id="lk-st-sliders">' + sliders + '</div></div>' +
-      mandateCard(st) +
-      '<div class="lk-card"><button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa ákvörðunum umferðar ' + st.round + '</button></div>' +
+      '<div class="lk-studio-main">' +
+        '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
+        '<div class="lk-studio-controls">' +
+          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div><div id="lk-st-sliders">' + sliders + '</div></div>' +
+          mandateCard(st) +
+          '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
+        '</div>' +
+      '</div>' +
       leaderboard(st);
     attachStudio(st);
     drawStudioPreview(st);
