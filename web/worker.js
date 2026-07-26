@@ -2619,7 +2619,7 @@ async function kycHandler(request, env, ctx) {
   }
   if (request.method === 'POST' && path === '/ack') {
     const eid = parseInt(body.event_id, 10); const status = ['resolved', 'dismissed', 'open'].includes(body.status) ? body.status : 'resolved';
-    const ev = await env.TENGSL.prepare('SELECT kt FROM kyc_event WHERE id=?').bind(eid).first().catch(() => null);
+    const ev = await env.TENGSL.prepare("SELECT e.kt FROM kyc_event e JOIN kyc_watch w ON w.kt=e.kt AND w.owner_id=? AND w.status='active' WHERE e.id=?").bind(uid, eid).first().catch(() => null);
     if (!ev) return _ajson({ ok: false, error: 'event' });
     await env.TENGSL.prepare('INSERT INTO kyc_ack (owner_id,event_id,status,note,by,at) VALUES (?,?,?,?,?,?) ON CONFLICT(owner_id,event_id) DO UPDATE SET status=excluded.status, note=excluded.note, by=excluded.by, at=excluded.at')
       .bind(uid, eid, status, String(body.note || '').slice(0, 500), u.email || String(uid), now).run().catch(() => {});
