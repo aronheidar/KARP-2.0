@@ -3186,7 +3186,6 @@ async function authMeHandler(request, env) {
   const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
   if (!u) return _ajson(userPayload(null));
   const now = Math.floor(Date.now() / 1000);
-  await _autoLinkAccount(env, u, now);   // firma-account: sjálf-tengja meðlim við eiganda (á team-lista virks eiganda)
   // afskráning: hreinsa tengingu ef ekki lengur á team-lista virks eiganda
   if (u.parent_account_id) {
     const ot = await _prefGet(env, u.parent_account_id, 'team', []);
@@ -3211,6 +3210,7 @@ async function authMeHandler(request, env) {
   p.reportsRemaining = Math.max(0, quota - used);
   p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
   p.membership = u.parent_account_id ? { owner: owner.email } : null;   // UI-borði fyrir meðlimi
+  p.pendingInvite = u.parent_account_id ? null : await _pendingInvite(env, u, now);
   // F6: fylgja-listi úr user_prefs (KARP_USER.follows notað víða; followsCount á Mitt svæði). Account-scoped.
   p.follows = await _prefGet(env, acct, 'follows', []);
   p.followsCount = p.follows.length;
@@ -3406,26 +3406,30 @@ async function accountOwner(env, u) {
   if (!u || !u.parent_account_id) return u;   // eigandi/sjálfstæður → sjálfur sig
   return (await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null)) || u;
 }
-// Sjálf-tengir meðlim (u) við eiganda sem hefur netfang hans á 'team'-lista, ef eigandi er virkur og sæti laust.
-async function _autoLinkAccount(env, u, now) {
-  if (!u || u.parent_account_id) return u;   // þegar tengt eða er eigandi
-  const email = (u.email || '').toLowerCase();
-  const rows = (await env.TENGSL.prepare("SELECT user_id, v FROM user_prefs WHERE k='team'").all().catch(() => ({ results: [] }))).results || [];
+// Er u boðið af ownerId (email á team-lista + eigandi virkur + laust sæti)? Skilar owner-röð eða null.
+async function _inviteEligible(env, u, ownerId, now) {
+  const owner = await env.TENGSL.prepare('SELECT id,email,name,is_admin,tier,tier_until FROM users WHERE id=?').bind(ownerId).first().catch(() => null);
+  if (!owner || owner.id === u.id) return null;
+  const ownerActive = owner.is_admin === 1 || (owner.tier && owner.tier_until > now);
+  if (!ownerActive) return null;
+  const team = await _prefGet(env, owner.id, 'team', []);
+  if (!Array.isArray(team) || team.indexOf((u.email || '').toLowerCase()) < 0) return null;
+  const cap = _seatsCap(owner, now);
+  const n = (await env.TENGSL.prepare('SELECT COUNT(*) AS n FROM users WHERE parent_account_id=?').bind(owner.id).first().catch(() => ({ n: 0 }))).n || 0;
+  if (cap >= 0 && n >= cap) return null;
+  return owner;
+}
+// Fyrsta gilda boðið f. u sem er EKKI hafnað; null ef ekkert. Tengir EKKI.
+async function _pendingInvite(env, u, now) {
+  if (!u || u.parent_account_id) return null;
+  const declined = await _prefGet(env, u.id, 'invite_declined', []);
+  const rows = (await env.TENGSL.prepare("SELECT user_id FROM user_prefs WHERE k='team'").all().catch(() => ({ results: [] }))).results || [];
   for (const r of rows) {
-    let team = []; try { team = JSON.parse(r.v); } catch (e) {}
-    if (!Array.isArray(team) || team.indexOf(email) < 0 || r.user_id === u.id) continue;
-    const owner = await env.TENGSL.prepare('SELECT id,is_admin,tier,tier_until FROM users WHERE id=?').bind(r.user_id).first().catch(() => null);
-    if (!owner) continue;
-    const ownerActive = owner.is_admin === 1 || (owner.tier && owner.tier_until > now);
-    if (!ownerActive) continue;
-    const cap = _seatsCap(owner, now);
-    const n = (await env.TENGSL.prepare('SELECT COUNT(*) AS n FROM users WHERE parent_account_id=?').bind(owner.id).first().catch(() => ({ n: 0 }))).n || 0;
-    if (cap >= 0 && n >= cap) continue;   // þak fullt → ótengdur
-    await env.TENGSL.prepare('UPDATE users SET parent_account_id=? WHERE id=?').bind(owner.id, u.id).run().catch(() => {});
-    u.parent_account_id = owner.id;
-    return u;
+    if (declined.indexOf(r.user_id) >= 0) continue;
+    const owner = await _inviteEligible(env, u, r.user_id, now);
+    if (owner) return { owner_id: owner.id, owner: owner.name || owner.email };
   }
-  return u;
+  return null;
 }
 async function _prefSet(env, uid, k, obj) {
   await env.TENGSL.prepare('INSERT INTO user_prefs (user_id,k,v,updated) VALUES (?,?,?,?) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, updated=excluded.updated')
