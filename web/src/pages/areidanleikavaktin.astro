@@ -1,0 +1,78 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Áreiðanleikavaktin — KYC-vöktun | Karp+" description="Áframhaldandi KYC-vöktun viðskiptavina: eigenda-, refsilista-, PEP- og gjaldþrota-vakt með audit-slóð." canonical="https://karp.is/areidanleikavaktin/">
+  <main class="kv-wrap" data-pg="areidanleikavaktin">
+    <p class="kicker">Karp+ · Fyrirtæki+</p>
+    <h1>Áreiðanleikavaktin</h1>
+    <p class="lead">Vaktaðu viðskiptavini yfir 8 merki — eigendur, stjórn, refsilistar, PEP, gjaldþrot, staða, skattkröfur, fjölmiðla — með sjálf-viðhaldinni compliance-möppu og audit-slóð.</p>
+    <p class="pep-note">ⓘ Innlend PEP + opinberir refsilistar (OFAC/UN/EU). Erlendir PEP-ar takmarkaðir í þessari útgáfu.</p>
+
+    <div id="kv-gate" hidden><p>Þessi vakt er hluti af <a href="/karp-pro/#verd">Fyrirtæki+</a> þrepinu.</p></div>
+
+    <section id="kv-app" hidden>
+      <form id="kv-add" class="kv-add"><input id="kv-kt" placeholder="Kennitala viðskiptavinar…" inputmode="numeric" aria-label="Kennitala" /><button type="submit">Bæta við vöktun</button><span id="kv-cap" class="kv-cap"></span></form>
+      <div id="kv-msg" class="kv-msg" hidden></div>
+      <table class="kv-tbl"><thead><tr><th>Viðskiptavinur</th><th>Áhætta</th><th>Opnar viðv.</th><th>Síðast skimað</th><th></th></tr></thead><tbody id="kv-rows"></tbody></table>
+      <p id="kv-empty" class="kv-empty" hidden>Engir viðskiptavinir í vöktun enn — bættu við kennitölu að ofan.</p>
+    </section>
+  </main>
+
+  <style>
+    .kv-wrap { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 30px; margin: 0 0 10px; }
+    .lead { color: var(--ink); }
+    .pep-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; }
+    .kv-add { display: flex; gap: 8px; margin: 18px 0 6px; flex-wrap: wrap; }
+    .kv-add input { flex: 1; min-width: 220px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+    .kv-add button { padding: 11px 18px; border-radius: 10px; border: 0; background: var(--gold); color: #1a1205; font-weight: 700; cursor: pointer; }
+    .kv-cap { align-self: center; font-size: 12px; color: var(--faint); }
+    .kv-msg { font-size: 13px; margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: rgba(255,109,122,.12); color: #ff9aa4; }
+    .kv-tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+    .kv-tbl th, .kv-tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .kv-tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
+    .risk-Há { color: #ff6d7a; font-weight: 700; } .risk-Venjuleg { color: #f6b13b; } .risk-Lág { color: #46e08a; }
+    .kv-empty { color: var(--muted); margin-top: 14px; }
+    .kv-rm { background: none; border: 0; color: var(--faint); cursor: pointer; }
+    .kv-open { background: #ff6d7a; color: #1a1205; border-radius: 999px; padding: 1px 8px; font-weight: 700; font-size: 12px; }
+  </style>
+
+  <script>
+    import { hasTier } from '../lib/auth.js';
+    const $ = (s) => document.querySelector(s);
+    async function api(path, opts) { const r = await fetch('/api/kyc' + path, { credentials: 'include', headers: { 'content-type': 'application/json' }, ...opts }); return r.json().catch(() => ({})); }
+    function row(w) {
+      const kt = w.kt; const risk = w.risk || 'Lág';
+      return `<tr data-kt="${kt}"><td><a href="/areidanleikavaktin/?kt=${kt}">${w.nafn || kt}</a><br><small style="color:var(--faint)">${kt}</small></td>`
+        + `<td class="risk-${risk}">${risk}</td>`
+        + `<td>${w.opnar ? `<span class="kv-open">${w.opnar}</span>` : '0'}</td>`
+        + `<td>${w.reviewed_at ? new Date(w.reviewed_at * 1000).toLocaleDateString('is-IS') : '–'}</td>`
+        + `<td><button class="kv-rm" data-kt="${kt}" title="Fjarlægja">✕</button></td></tr>`;
+    }
+    async function load() {
+      const d = await api('/watch');
+      if (!d.ok) { $('#kv-gate').hidden = false; return; }
+      $('#kv-app').hidden = false;
+      $('#kv-cap').textContent = (d.cap < 0 ? '' : `${d.watch.length} / ${d.cap}`);
+      $('#kv-rows').innerHTML = (d.watch || []).map(row).join('');
+      $('#kv-empty').hidden = (d.watch || []).length > 0;
+    }
+    async function boot() {
+      if (!hasTier(3)) { $('#kv-gate').hidden = false; return; }
+      await load();
+      $('#kv-add').addEventListener('submit', async (e) => {
+        e.preventDefault(); const kt = ($('#kv-kt').value || '').replace(/\D/g, ''); const msg = $('#kv-msg');
+        const d = await api('/watch', { method: 'POST', body: JSON.stringify({ kt }) });
+        if (!d.ok) { msg.hidden = false; msg.textContent = d.error === 'cap' ? 'Hámarki náð (' + d.cap + ' kt).' : d.error === 'kt' ? 'Ógild kennitala.' : 'Villa.'; return; }
+        msg.hidden = true; $('#kv-kt').value = ''; await load();
+      });
+      $('#kv-rows').addEventListener('click', async (e) => {
+        const b = e.target.closest('.kv-rm'); if (!b) return;
+        if (!confirm('Fjarlægja úr vöktun? (audit-skráin varðveitist)')) return;
+        await api('/watch?kt=' + b.dataset.kt, { method: 'DELETE' }); await load();
+      });
+    }
+    document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="areidanleikavaktin"]')) boot(); });
+  </script>
+</Layout>

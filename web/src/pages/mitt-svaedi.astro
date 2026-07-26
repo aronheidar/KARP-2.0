@@ -146,6 +146,8 @@ const updated = '2026-07-02';
         <div class="w-h">🎯 Flokkamatið mitt</div>
         <div id="w-match"></div>
       </div>
+
+      <a id="ms-kyc" class="ms-card" href="/areidanleikavaktin/" hidden>🛡️ Áreiðanleikavaktin — KYC-vöktun viðskiptavina</a>
     </section>
 
     <!-- ── STILLINGAR ── -->
@@ -265,6 +267,8 @@ const updated = '2026-07-02';
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
     .kpi { display: flex; flex-direction: column; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; text-decoration: none; }
     .kpi:hover { border-color: #f6b13b; }
+    .ms-card { display: flex; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; color: var(--ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+    .ms-card:hover { border-color: #f6b13b; color: #f6b13b; }
     .k-l { font-size: 11px; color: var(--muted); }
     .k-v { font-size: 18px; font-weight: 800; color: var(--ink); }
     .seats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13.5px; color: var(--muted); align-items: baseline; }
@@ -421,7 +425,7 @@ const updated = '2026-07-02';
 
   <!-- Eyja: flipar + widgets (fylgja/sveitarfélag/flokkamat/vaktir/aðgangur). #2 -->
   <script>
-    import { loadUser, karpGet, karpPost, loginHref } from '../lib/auth.js';
+    import { loadUser, karpGet, karpPost, loginHref, hasTier } from '../lib/auth.js';
     const $g = (id) => document.getElementById(id);
     const J = (id) => { try { return JSON.parse($g(id).textContent); } catch (e) { return null; } };
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -769,6 +773,7 @@ const updated = '2026-07-02';
       // líka localStorage-listann (karp-follows-local af þingmanna-/frétta-síðum).
       loadUser().then(async (u) => {
         const gate = $g('gate-note');
+        if (hasTier(3)) document.getElementById('ms-kyc')?.removeAttribute('hidden');
         if (!u || !u.loggedIn) {
           gate.innerHTML = '';
           $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${loginHref()}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
