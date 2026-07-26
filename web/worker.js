@@ -1,6 +1,7 @@
 import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
+import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -2462,6 +2463,83 @@ async function sanctionsHandler(request, env, ctx) {
     if (m && !seen.has(key)) { seen.add(key); hits.push({ nafn: raw, listi: m.nafn, listar: m.listar }); }
   }
   return sjson({ hits, updated, n: idx.size });
+}
+
+// ── Áreiðanleikavaktin: server-hlið skimun + merkja-lesari (v1). Sjá spec 2026-07-26. ──
+let KYC_PEP_IDX = null;
+async function kycPepIndex(env) {
+  if (KYC_PEP_IDX) return KYC_PEP_IDX;
+  const idx = new Map();
+  const arr = await augGet(env, 'pep.json').catch(() => null);
+  for (const p of (Array.isArray(arr) ? arr : (arr?.pep || arr?.results || []))) {
+    const nafn = p.nafn || p.name || p.fulltNafn; if (!nafn) continue;
+    idx.set(sancNorm(nafn), { nafn, tegund: p.tegund || p.embaetti || 'PEP' });
+  }
+  KYC_PEP_IDX = idx; return idx;
+}
+async function _kycNames(env, kt) {
+  // Nöfn sem eru skimuð: félagið sjálft + virkir eigendur + virk stjórn (RCA v1 = beinir tengdir).
+  const felag = await env.TENGSL.prepare('SELECT nafn,stada,gjaldthrot,afskrad,gjaldthol FROM felog WHERE kt=?').bind(kt).first().catch(() => null);
+  const owners = (await env.TENGSL.prepare(
+    "SELECT e.eigandi_key AS key, e.hlutur AS hlutur, COALESCE(p.nafn,f.nafn,e.eigandi_key) AS nafn " +
+    "FROM eign e LEFT JOIN folk p ON p.person_key=e.eigandi_key LEFT JOIN felog f ON f.kt=e.eigandi_key " +
+    "WHERE e.felag_kt=? AND e.seen_last IS NULL").bind(kt).all().catch(() => ({ results: [] }))).results || [];
+  const board = (await env.TENGSL.prepare(
+    "SELECT h.person_key AS key, h.hlutverk AS hlutverk, COALESCE(p.nafn,h.person_key) AS nafn " +
+    "FROM hlutverk h LEFT JOIN folk p ON p.person_key=h.person_key " +
+    "WHERE h.felag_kt=? AND h.seen_last IS NULL").bind(kt).all().catch(() => ({ results: [] }))).results || [];
+  return { felag, owners, board };
+}
+async function kycScreenKt(env, kt) {
+  const { felag, owners, board } = await _kycNames(env, kt);
+  const nameList = [felag?.nafn, ...owners.map((o) => o.nafn), ...board.map((b) => b.nafn)].filter(Boolean);
+  // sanctions — endurnýtir sanctionsIndex/sancNorm (L2438-2452): idx er { idx:Map, updated }, lykill er
+  // fyrsta+síðasta-tóken (sama lyklun og sanctionsHandler L2453 notar), EKKI heil-sancNorm-strengur.
+  const { idx: sIdx } = await sanctionsIndex(env);
+  const sHits = [];
+  for (const nm of nameList) {
+    const t = sancNorm(nm).split(' ').filter(Boolean);
+    if (t.length < 2) continue;
+    const key = t[0] + '|' + t[t.length - 1];
+    const m = sIdx.get(key);
+    if (m) sHits.push({ name: nm });
+  }
+  // pep
+  const pIdx = await kycPepIndex(env);
+  const pMatches = [];
+  for (const nm of nameList) { const m = pIdx.get(sancNorm(nm)); if (m) pMatches.push({ name: nm, tegund: m.tegund }); }
+  // legal (Lögbirting) — bökuð, kt-lyklað
+  const lb = await augGet(env, 'logbirting.json').catch(() => null);
+  const notices = [];
+  const lbRows = Array.isArray(lb) ? lb : (lb?.faerslur || lb?.results || []);
+  for (const r of lbRows) {
+    if (String(r.kt || '').replace(/\D/g, '') !== kt) continue;
+    const teg = /gjaldþrot|þrotabú|bankrupt/i.test(r.tegund || r.flokkur || '') ? 'bankruptcy'
+      : /innköllun/i.test(r.tegund || '') ? 'innkollun'
+        : /nauðung/i.test(r.tegund || '') ? 'nauthungarsala' : 'legal';
+    notices.push({ ref: String(r.id || r.ref || (r.dags + '|' + (r.tegund || ''))), type: teg, dags: r.dags || r.date || '' });
+  }
+  // media (íhaldssamt: nákvæmt nafn-token match í sentiment.json titlum; info-only)
+  const titles = [];
+  const sent = await augGet(env, 'sentiment.json').catch(() => null);
+  const felagNafn = (felag?.nafn || '').trim();
+  if (felagNafn.length >= 4) {
+    const rows = Array.isArray(sent) ? sent : (sent?.results || sent?.greinar || []);
+    for (const a of rows) {
+      const t = a.title || a.titill || ''; if (!t) continue;
+      if ((a.sent ?? a.sentiment ?? 0) < 0 && t.includes(felagNafn)) titles.push({ h: kycHash(t), title: t.slice(0, 200) });
+    }
+  }
+  return {
+    ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })) },
+    board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
+    sanctions: { hits: sHits },
+    pep: { matches: pMatches },
+    status: { stada: felag?.stada || '', gjaldthrot: felag?.gjaldthrot || 0, afskrad: felag?.afskrad || 0, gjaldthol: felag?.gjaldthol || 0 },
+    legal: { notices },
+    tax: { claims: [] }, // v1: engin áreiðanleg vanskilaskrá (bíður leyfis #36) — stubbur, engin atburðamyndun.
+    media: { titles },
+  };
 }
 
 // LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni eftir kt (registeredAs). 5.500+ íslensk félög.
