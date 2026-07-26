@@ -39,5 +39,24 @@ const setAll = (o) => ({ peningastefna: 'obreytt', utgjold: 'obreytt', skattar: 
   const h = [setAll({ peningastefna: 'slaka', fjarfesting: 'innvidir' }), setAll({ utgjold: 'orvun' })];
   ok('determinismi', JSON.stringify(resolveTeam({ ...ctx, history: h })) === JSON.stringify(resolveTeam({ ...ctx, history: h })));
 }
+// 6) STUDIO: sleða-stilling skilar KPI; hærri vextir → lægri verðbólga en base-run
+{
+  const sctx = { ...ctx, mode: 'studio' };
+  const base = resolveTeam({ ...sctx, history: [{ levers: {} }] });
+  const hike = resolveTeam({ ...sctx, history: [{ levers: { vextir: baseline.levers.vextir.base + 3 } }] });
+  ok('studio skilar KPI-lyklum', ['verdbolga', 'hagvoxtur'].every((k) => Number.isFinite(hike.kpis[k])));
+  ok('studio: hærri vextir → lægri verðbólga', hike.kpis.verdbolga < base.kpis.verdbolga);
+}
+// 7) STUDIO carry-forward: umferð-1 sleði heldur gildi í umferð 2 (án nýrra sleða)
+{
+  const sctx = { ...ctx, mode: 'studio' };
+  const { levers } = buildInputs([{ levers: { vextir: 9.5 } }, { levers: {} }], { baseline, scenario: SCENARIO, mode: 'studio' });
+  ok('studio carry-forward: vextir 9.5 í öllum 8 fjórðungum', levers.vextir.value.length === 8 && levers.vextir.value.every((v) => v === 9.5));
+}
+// 8) STUDIO clamp: gildi út fyrir max klippt (ekki NaN)
+{
+  const { levers } = buildInputs([{ levers: { vextir: 999 } }], { baseline, scenario: SCENARIO, mode: 'studio' });
+  ok('studio clamp í max', levers.vextir.value[0] === baseline.levers.vextir.max);
+}
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

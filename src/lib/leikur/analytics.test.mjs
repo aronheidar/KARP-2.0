@@ -29,5 +29,17 @@ ok('byKpi verdbolga hefur línu per lið', a.trajectories.byKpi.verdbolga.series
 const a1 = buildAnalytics({ history: history.filter((h) => h.round === 1), decisions: [], teams, mandate: MANDATE, decisionsConfig: DECISIONS, scenario: SCENARIO, currentRound: 1 });
 ok('1 umferð → cumulative 1 punktur', a1.trajectories.cumulative[0].points.length === 1);
 ok('engin ákvörðun → optLabel —', a1.decisionsTable[0].choices[0].optLabel === '—');
+// STUDIO: decisionsTable sýnir breytta-sleða-samantekt
+const sLeverBase = { vextir: 7.75, utgjold: 1450 };
+const sDecisions = [
+  // team1 sendir fullt ástand: vextir breytt (9.5), utgjold á grunni (1450 → á að síast burt)
+  { round: 1, teamId: 1, decisions: { levers: { vextir: 9.5, utgjold: 1450 } } },
+  { round: 1, teamId: 2, decisions: { levers: { vextir: 7.75 } } },
+];
+const sa = buildAnalytics({ history: history.filter((h) => h.round === 1), decisions: sDecisions, teams, mandate: MANDATE, decisionsConfig: DECISIONS, scenario: SCENARIO, currentRound: 1, mode: 'studio', leverLabels: { vextir: 'Stýrivextir', utgjold: 'Ríkisútgjöld' }, leverBase: sLeverBase });
+ok('studio: decisionsTable studio-merkt', sa.decisionsTable.every((r) => r.studio === true));
+ok('studio: samantekt sýnir breyttan sleða', sa.decisionsTable.find((r) => r.teamId === 1).summary.includes('Stýrivextir 9.5'));
+ok('studio: grunn-gildi síast burt úr samantekt', !sa.decisionsTable.find((r) => r.teamId === 1).summary.includes('Ríkisútgjöld'));
+ok('studio: allt á grunni → —', sa.decisionsTable.find((r) => r.teamId === 2).summary === '—');
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

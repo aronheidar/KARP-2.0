@@ -45,4 +45,15 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-err) { color: #e78284; font-size: 13px; }
   main[data-pg="leikur"] :global(.lk-role-banner) { background: rgba(185,140,255,.12); border: 1px solid #b98cff55; border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
   main[data-pg="leikur"] :global(.lk-kpi-w) { display: inline-block; background: #b98cff33; color: #d9c6ff; border-radius: 5px; padding: 0 5px; font-size: 11px; font-weight: 700; margin-left: 4px; }
+  main[data-pg="leikur"] :global(.lk-tabs) { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 10px; }
+  main[data-pg="leikur"] :global(.lk-tab) { padding: 5px 10px; border: 1px solid var(--line, #2a2f3a); border-radius: 8px; cursor: pointer; font-size: 12.5px; }
+  main[data-pg="leikur"] :global(.lk-tab.sel) { outline: 2px solid #f6b13b; background: rgba(246,177,59,.12); }
+  main[data-pg="leikur"] :global(.lk-slider-row) { margin: 8px 0; }
+  main[data-pg="leikur"] :global(.lk-slider-row label) { display: block; font-size: 13px; margin-bottom: 2px; }
+  main[data-pg="leikur"] :global(.lk-slider-row input[type=range]) { width: 100%; accent-color: #f6b13b; }
+  main[data-pg="leikur"] :global(.lk-val) { font-weight: 700; color: #6ea8fe; }
+  main[data-pg="leikur"] :global(.lk-val.moved) { color: #f6b13b; }
+  main[data-pg="leikur"] :global(.lk-studio-grid) { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 12px; }
+  main[data-pg="leikur"] :global(.lk-og) { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+  main[data-pg="leikur"] :global(.lk-lock-big) { width: 100%; font-size: 16px; padding: 14px; }
 </style>

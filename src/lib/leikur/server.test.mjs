@@ -30,7 +30,12 @@ function mockD1() {
   const all = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
     if (s.includes('FROM leikur_teams')) return { results: t.leikur_teams.filter((x) => x.game_code === args[0]) };
     if (s.includes('FROM leikur_results')) return { results: t.leikur_results.filter((x) => x.game_code === args[0]) };
-    if (s.includes('FROM leikur_decisions')) return { results: t.leikur_decisions.filter((x) => x.game_code === args[0] && (args[1] === undefined || x.team_id === args[1])).sort((a, b) => a.round - b.round) };
+    if (s.includes('FROM leikur_decisions')) {
+      let rows = t.leikur_decisions.filter((x) => x.game_code === args[0]);
+      if (/AND round=\?/.test(s)) rows = rows.filter((x) => x.round === args[1]);
+      else if (/AND team_id=\?/.test(s)) rows = rows.filter((x) => x.team_id === args[1]);
+      return { results: rows.slice().sort((a, b) => a.round - b.round) };
+    }
     return { results: [] }; };
   const prep = (sql) => ({ bind: (...args) => ({ run: async () => run(sql, args), first: async () => first(sql, args), all: async () => all(sql, args) }), run: async () => run(sql, []), first: async () => first(sql, []), all: async () => all(sql, []) });
   return { prepare: prep, _t: t };
@@ -131,6 +136,42 @@ const J = async (res) => JSON.parse(await res.text());
   await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + cg.facToken }, body: JSON.stringify({ action: 'start' }) }), env);
   ok('klassískur: fac /state EKKI roleMap', !(await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/state', { headers: { authorization: 'Bearer ' + cg.facToken } }), env))).roleMap);
   ok('klassískur: lið /state EKKI role', !(await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/state', { headers: { authorization: 'Bearer ' + cgj.teamToken } }), env))).role);
+
+  // Task Stjórnstöð: studio-hamur + læsa-staða (A) + stop (B)
+  const stG = (code, tok) => leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + tok } }), env);
+  const sc = await J(await leikurHandler(req('/api/leikur/create', { mode: 'studio' }), env));
+  ok('studio create → code', !!sc.code);
+  const sj1 = await J(await leikurHandler(req('/api/leikur/' + sc.code + '/join', { name: 'S-Alfa' }), env));
+  const sj2 = await J(await leikurHandler(req('/api/leikur/' + sc.code + '/join', { name: 'S-Beta' }), env));
+  const sFacHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + sc.facToken };
+  const sCtrl = (a) => leikurHandler(new Request('https://karp.is/api/leikur/' + sc.code + '/control', { method: 'POST', headers: sFacHdr, body: JSON.stringify({ action: a }) }), env);
+  await sCtrl('start');
+  const sSt1 = await J(await stG(sc.code, sj1.teamToken));
+  ok('studio: team /state mode=studio', sSt1.mode === 'studio');
+  ok('studio: history tómt í umferð 1', Array.isArray(sSt1.history) && sSt1.history.length === 0);
+  ok('studio: scenarioSoFar 1 atburður', Array.isArray(sSt1.scenarioSoFar) && sSt1.scenarioSoFar.length === 1);
+  ok('studio: you.locked false fyrir læsingu', sSt1.you && sSt1.you.locked === false);
+  const sDec = (tok, lev) => leikurHandler(new Request('https://karp.is/api/leikur/' + sc.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: 1, locked: true, decisions: { levers: lev } }) }), env);
+  await sDec(sj1.teamToken, { vextir: 9.5 });
+  await sDec(sj2.teamToken, { vextir: 5 });
+  const sSt1b = await J(await stG(sc.code, sj1.teamToken));
+  ok('studio: you.locked true eftir læsingu', sSt1b.you && sSt1b.you.locked === true);
+  const sFacSt = await J(await stG(sc.code, sc.facToken));
+  ok('studio: fac lockRoster 2 lið bæði læst', Array.isArray(sFacSt.lockRoster) && sFacSt.lockRoster.length === 2 && sFacSt.lockRoster.every((r) => r.locked));
+  await sCtrl('resolve');
+  const sResSt = await J(await stG(sc.code, sc.facToken));
+  ok('studio: bæði lið skoruð', sResSt.teams.every((t) => typeof t.cumulative === 'number'));
+  ok('studio: analytics decisionsTable studio-samantekt', sResSt.analytics && sResSt.analytics.decisionsTable.every((r) => r.studio && typeof r.summary === 'string'));
+  await sCtrl('next');
+  const sSt2 = await J(await stG(sc.code, sj1.teamToken));
+  ok('studio: umferð 2 history 1 (eigin læst umferð 1)', Array.isArray(sSt2.history) && sSt2.history.length === 1 && sSt2.history[0].levers && sSt2.history[0].levers.vextir === 9.5);
+  ok('studio: control stop → ended', (await J(await sCtrl('stop'))).phase === 'ended');
+  // classic óbreytt: mode classic, engin studio-svið
+  const cgS = await J(await leikurHandler(req('/api/leikur/create', {}), env));
+  const cgSj = await J(await leikurHandler(req('/api/leikur/' + cgS.code + '/join', { name: 'Z' }), env));
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + cgS.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + cgS.facToken }, body: JSON.stringify({ action: 'start' }) }), env);
+  const cgSt = await J(await stG(cgS.code, cgSj.teamToken));
+  ok('classic: mode=classic + engin history/scenarioSoFar', cgSt.mode === 'classic' && cgSt.history === undefined && cgSt.scenarioSoFar === undefined);
 
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

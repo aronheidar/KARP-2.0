@@ -4,7 +4,7 @@ function optLabelFor(decId, optKey, decisionsConfig, scenario, round) {
   const d = decisionsConfig.find((x) => x.id === decId); const o = d && (d.options || []).find((x) => x.key === optKey); return o ? o.label : (optKey || '—');
 }
 
-export function buildAnalytics({ history, decisions, teams, mandate, decisionsConfig, scenario, currentRound }) {
+export function buildAnalytics({ history, decisions, teams, mandate, decisionsConfig, scenario, currentRound, mode = 'classic', leverLabels = {}, leverBase = {} }) {
   const nameOf = Object.fromEntries(teams.map((t) => [t.id, t.name]));
   const kpiKeys = mandate.kpis.map((k) => k.key);
   const kpiLabel = Object.fromEntries(mandate.kpis.map((k) => [k.key, k.label]));
@@ -20,6 +20,12 @@ export function buildAnalytics({ history, decisions, teams, mandate, decisionsCo
   const decIds = decisionsConfig.map((d) => d.id);
   const decisionsTable = teams.map((t) => {
     const row = decCur.find((d) => d.teamId === t.id), dec = row ? row.decisions : {};
+    if (mode === 'studio') {
+      const lv = (dec && dec.levers) || {};
+      const changed = Object.entries(lv).filter(([k, v]) => !(k in leverBase) || +v !== leverBase[k]);
+      const items = changed.map(([k, v]) => (leverLabels[k] || k) + ' ' + v).slice(0, 6);
+      return { teamId: t.id, name: t.name, studio: true, summary: items.length ? items.join(' · ') : '—' };
+    }
     return { teamId: t.id, name: t.name, choices: decIds.map((id) => ({ decId: id, decLabel: decLabelOf[id], optLabel: (dec && dec[id] != null) ? optLabelFor(id, dec[id], decisionsConfig, scenario, currentRound) : '—' })) };
   });
 
