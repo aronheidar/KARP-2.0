@@ -189,13 +189,6 @@ const updated = '2026-07-02';
         <div id="sub-body"><span class="dim">Hleð…</span></div>
       </div>
 
-      <section id="ms-team" class="w" hidden>
-        <div class="w-h">👥 Team (sæti)</div>
-        <p class="ms-team-note">Bættu við netföngum starfsmanna — þeir erfa þrepið þitt og deila gögnum þegar þeir skrá sig inn.</p>
-        <form id="ms-team-add" class="ms-team-add"><input id="ms-team-email" type="email" placeholder="netfang@stofa.is" /><button type="submit">Bæta við</button><span id="ms-team-cap" class="ms-team-cap"></span></form>
-        <ul id="ms-team-list" class="ms-team-list"></ul>
-      </section>
-
       <div class="w">
         <div class="w-h">👤 Aðgangurinn</div>
         <div id="acc" class="acc"></div>
@@ -350,15 +343,6 @@ const updated = '2026-07-02';
     main[data-pg="mitt-svaedi"] .mem-add { display: flex; gap: 6px; margin-top: 8px; }
     main[data-pg="mitt-svaedi"] .mem-add input { flex: 1; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
     main[data-pg="mitt-svaedi"] .mem-add button { font: inherit; font-weight: 700; font-size: 13px; border: 0; border-radius: 8px; padding: 0 14px; background: var(--gold); color: var(--surface); cursor: pointer; }
-    main[data-pg="mitt-svaedi"] .ms-team-note { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
-    main[data-pg="mitt-svaedi"] .ms-team-add { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
-    main[data-pg="mitt-svaedi"] .ms-team-add input { flex: 1; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
-    main[data-pg="mitt-svaedi"] .ms-team-add button { font: inherit; font-weight: 700; font-size: 13px; border: 0; border-radius: 8px; padding: 0 14px; background: var(--gold); color: var(--surface); cursor: pointer; }
-    main[data-pg="mitt-svaedi"] .ms-team-cap { font-size: 12px; color: var(--faint); white-space: nowrap; }
-    main[data-pg="mitt-svaedi"] .ms-team-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-    main[data-pg="mitt-svaedi"] .ms-team-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
-    main[data-pg="mitt-svaedi"] .ms-team-rm { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 13px; }
-    main[data-pg="mitt-svaedi"] .ms-team-rm:hover { color: var(--red); }
     main[data-pg="mitt-svaedi"] .sub-note { font-size: 11.5px; margin: 8px 0 0; }
     main[data-pg="mitt-svaedi"] .sk-t { font-size: 13px; color: var(--ink); font-weight: 600; }
     main[data-pg="mitt-svaedi"] .sk-o { font-size: 12px; color: #f6b13b; white-space: nowrap; }
@@ -573,10 +557,13 @@ const updated = '2026-07-02';
               else { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
             } catch (e) { b.textContent = 'Ekki tókst — reyndu aftur'; b.disabled = false; }
           });
-          renderTeam(); renderKtw();
+          renderTeam(u); renderKtw();
         });
-        function renderTeam() {
+        // Account v1: #team-box er AÐEINS fyrir eiganda (ekki meðlim) með sætis-þrep — meðlimur
+        // erfir þrepið/gögnin en stjórnar ekki teyminu (sjá meðlima-borðann í #gate-note).
+        function renderTeam(u) {
           const box = $g('team-box'); if (!box || !A.teamList) return;
+          if (!(u && u.loggedIn && !u.membership && hasTier(2))) { box.innerHTML = ''; return; }
           A.teamList().then((d) => {
             if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
             // PHP skilar nú {email, skrad} (skráð = netfangið á þegar Karp-aðgang); þolum líka eldri streng-snið.
@@ -588,8 +575,8 @@ const updated = '2026-07-02';
               + (!full ? '<div class="mem-add"><input id="mem-email" type="email" placeholder="netfang meðlims" /><button id="mem-go">Bæta við</button></div>'
                        : '<p class="dim sub-note">Sætin eru full — <a href="/karp-pro/#verd">fleiri aðgangar í stærra þrepi →</a></p>')
               + '<p class="dim sub-note">Meðlimur fær boðspóst og skráir sig inn — eða stofnar ókeypis aðgang — með þessu netfangi; þrep-aðgangurinn virkjast sjálfkrafa.</p>';
-            box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.teamSet(b.dataset.e, 'remove'); renderTeam(); });
-            const go = $g('mem-go'); if (go) go.onclick = async () => { const i = $g('mem-email'), em = (i.value || '').trim(); if (!em) return; go.disabled = true; const r = await A.teamSet(em, 'add'); if (r && r.ok) renderTeam(); else { go.disabled = false; i.style.borderColor = 'var(--red)'; i.title = r && r.error === 'cap' ? 'Sætin eru full' : r && r.error === 'tier' ? 'Áskrift þarf til að bæta við aðgöngum' : 'Ógilt netfang'; } };
+            box.querySelectorAll('.mem-x').forEach((b) => b.onclick = async () => { b.disabled = true; await A.teamSet(b.dataset.e, 'remove'); renderTeam(u); });
+            const go = $g('mem-go'); if (go) go.onclick = async () => { const i = $g('mem-email'), em = (i.value || '').trim(); if (!em) return; go.disabled = true; const r = await A.teamSet(em, 'add'); if (r && r.ok) renderTeam(u); else { go.disabled = false; i.style.borderColor = 'var(--red)'; i.title = r && r.error === 'cap' ? 'Sætin eru full' : r && r.error === 'tier' ? 'Áskrift þarf til að bæta við aðgöngum' : 'Ógilt netfang'; } };
           });
         }
         function renderKtw() {
@@ -836,26 +823,6 @@ const updated = '2026-07-02';
             save.disabled = false; save.textContent = t0;
           };
         })();
-        // 👥 Team (sæti) — Account v1: aðeins eigandi (ekki meðlimur) með sætis-þrep stjórnar team;
-        // meðlimir erfa þrepið og deila gögnum sjálfkrafa við innskráningu (sjá meðlima-borðann).
-        async function loadTeam() {
-          const d = await karpGet('/team'); if (!d) return;
-          $g('ms-team-cap').textContent = (d.cap < 0 ? '' : `${d.members.length} / ${d.cap} sæti`);
-          $g('ms-team-list').innerHTML = (d.members || []).map((e) => `<li>${esc(e)} <button class="ms-team-rm" data-e="${esc(e)}">✕</button></li>`).join('');
-        }
-        if (!u.membership && hasTier(2)) { $g('ms-team').removeAttribute('hidden'); loadTeam(); }
-        $g('ms-team-add').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const em = $g('ms-team-email').value.trim();
-          const r = await karpPost('/team', { email: em });
-          if (r && r.ok) { $g('ms-team-email').value = ''; loadTeam(); }
-          else if (r && r.error === 'cap') alert('Öll sæti í notkun.');
-        });
-        $g('ms-team-list').addEventListener('click', async (e) => {
-          const b = e.target.closest('.ms-team-rm'); if (!b) return;
-          await karpPost('/team', { email: b.dataset.e, action: 'remove' });
-          loadTeam();
-        });
         // 📊 Umferðartölfræði — AÐEINS stjórnandi (Burst um worker /api/u/burst → CF-vefgreining). LOTA 24.
         if (u.isAdmin) {
           const box = $g('w-traffic-box'), tel = $g('w-traffic');
