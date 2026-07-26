@@ -1,8 +1,9 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
 import { DECISIONS, MANDATE, SCENARIO, ROUNDS } from './game-config.mjs';
-import { resolveTeam } from './resolve.mjs';
+import { resolveTeam, buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
+import { buildChain, activeInputsFromInputs } from './chain.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -120,11 +121,13 @@ export async function leikurHandler(request, env, ctx) {
         const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
         const { kpis } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: SCENARIO });
         const sc = scoreRound(kpis);
+        const inp = buildInputs(history, { baseline: BASELINE, scenario: SCENARIO });
+        const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: MANDATE.kpis.map((k) => k.key) });
         // uppsafnað = fyrri cumulative + þessi
         const prev = await env.TENGSL.prepare('SELECT cumulative FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         const cumulative = ((prev && prev.cumulative) || 0) + sc.composite;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis, perKpi: sc.perKpi, crisis: sc.crisis }), sc.composite, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis, perKpi: sc.perKpi, crisis: sc.crisis, chain }), sc.composite, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });
