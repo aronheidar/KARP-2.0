@@ -23,4 +23,10 @@ import Layout from '../../layouts/Layout.astro';
   main[data-pg="leikur"] :global(.lk-chain) { width: 100%; overflow-x: auto; }
   main[data-pg="leikur"] :global(.lk-chain svg) { display: block; max-width: 100%; height: auto; }
   main[data-pg="leikur"] :global(.lk-muted) { color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur"] :global(.lk-tbl) { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 14px; }
+  main[data-pg="leikur"] :global(.lk-tbl th), main[data-pg="leikur"] :global(.lk-tbl td) { border-bottom: 1px solid rgba(255,255,255,.08); padding: 5px 8px; text-align: left; }
+  main[data-pg="leikur"] :global(.lk-tbl th) { color: var(--muted, #9fb0c8); font-weight: 600; }
+  main[data-pg="leikur"] :global(.lk-charts) { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  main[data-pg="leikur"] :global(.lk-charts svg) { max-width: 100%; height: auto; }
+  main[data-pg="leikur"] :global(.lk-swatch) { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 </style>

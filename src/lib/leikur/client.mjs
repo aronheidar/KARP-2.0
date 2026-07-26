@@ -47,6 +47,56 @@ function renderChain(chain) {
     + (chain.clipped ? ' · <i>(sýni sterkustu tengslin)</i>' : '') + '</p>';
 }
 
+// Leikstjóra-greiningarmælaborð: skorkort-tafla + ákvarðanir + ferla-gröf. Lit per lið (samræmt).
+const LK_PAL = ['#6ea8fe', '#f6b13b', '#54d08a', '#e78284', '#b98cff', '#5ac8e0', '#f0a3c8', '#a0d468'];
+function lkLineChart(title, series, opts = {}) {
+  const W = 320, H = 150, pl = 34, pr = 10, pt = 22, pb = 22;
+  const allPts = series.flatMap((s) => s.points);
+  if (!allPts.length) return '';
+  const rounds = [...new Set(allPts.map((p) => p.round))].sort((a, b) => a - b);
+  const xmin = rounds[0], xmax = rounds[rounds.length - 1] > xmin ? rounds[rounds.length - 1] : xmin + 1;
+  let ymin = opts.min != null ? opts.min : Math.min(...allPts.map((p) => p.value));
+  let ymax = opts.max != null ? opts.max : Math.max(...allPts.map((p) => p.value));
+  if (ymax - ymin < 1) { ymax += 1; ymin -= 1; }
+  const X = (r) => pl + (W - pl - pr) * (xmax === xmin ? 0.5 : (r - xmin) / (xmax - xmin));
+  const Y = (v) => (H - pb) - (H - pt - pb) * (v - ymin) / (ymax - ymin);
+  const col = (s, i) => opts.colorOf ? opts.colorOf(s.teamId) : LK_PAL[i % LK_PAL.length];
+  let g = `<text x="${pl}" y="14" font-size="11" fill="#9fb0c8">${esc(title)}</text>`;
+  for (let i = 0; i <= 2; i++) { const v = ymin + (ymax - ymin) * i / 2, y = Y(v); g += `<line x1="${pl}" y1="${y.toFixed(1)}" x2="${W - pr}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.07)"/><text x="${pl - 4}" y="${(y + 3).toFixed(1)}" font-size="9" fill="#7b879c" text-anchor="end">${num(v, 0)}</text>`; }
+  series.forEach((s, i) => {
+    const c = col(s, i), pts = s.points.slice().sort((a, b) => a.round - b.round);
+    const d = pts.map((p, j) => (j ? 'L' : 'M') + X(p.round).toFixed(1) + ',' + Y(p.value).toFixed(1)).join(' ');
+    g += `<path d="${d}" fill="none" stroke="${c}" stroke-width="2"/>`;
+    for (const p of pts) g += `<circle cx="${X(p.round).toFixed(1)}" cy="${Y(p.value).toFixed(1)}" r="2.5" fill="${c}"/>`;
+  });
+  for (const r of rounds) g += `<text x="${X(r).toFixed(1)}" y="${H - 7}" font-size="9" fill="#7b879c" text-anchor="middle">${r}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;
+}
+function renderFacAnalytics(an) {
+  if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
+  const order = an.trajectories.cumulative.map((s) => s.teamId);
+  const colorOf = (teamId) => LK_PAL[((order.indexOf(teamId) % LK_PAL.length) + LK_PAL.length) % LK_PAL.length];
+  const scoreCol = (v) => v == null ? '#9fb0c8' : v >= 80 ? '#54d08a' : v >= 40 ? '#e8c14a' : '#e78284';
+  const kpiCols = an.scorecard[0].perKpi.map((p) => p.label);
+  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th></tr>';
+  an.scorecard.forEach((row) => {
+    sc += '<tr><td><span class="lk-swatch" style="background:' + colorOf(row.teamId) + '"></span>' + esc(row.name) + '</td>'
+      + row.perKpi.map((p) => '<td style="color:' + scoreCol(p.score) + ';font-weight:600">' + (p.score == null ? '–' : p.score) + '</td>').join('')
+      + '<td><b>' + num(row.cumulative) + '</b></td></tr>';
+  });
+  sc += '</table>';
+  const decHeads = an.decisionsTable[0] ? an.decisionsTable[0].choices.map((c) => c.decLabel) : [];
+  let dt = '<table class="lk-tbl"><tr><th>Lið</th>' + decHeads.map((l) => '<th>' + esc(l) + '</th>').join('') + '</tr>';
+  an.decisionsTable.forEach((row) => { dt += '<tr><td>' + esc(row.name) + '</td>' + row.choices.map((c) => '<td>' + esc(c.optLabel) + '</td>').join('') + '</tr>'; });
+  dt += '</table>';
+  let charts = '<div class="lk-charts">' + lkLineChart('Uppsafnað stig', an.trajectories.cumulative, { colorOf });
+  for (const k of Object.keys(an.trajectories.byKpi)) { const b = an.trajectories.byKpi[k]; charts += lkLineChart(b.label + ' (stig)', b.series, { min: 0, max: 100, colorOf }); }
+  charts += '</div>';
+  return '<h3 style="font-size:14px;margin:4px 0">Staða liða</h3>' + sc
+    + '<h3 style="font-size:14px;margin:12px 0 4px">Ákvarðanir umferðar</h3>' + dt
+    + '<h3 style="font-size:14px;margin:12px 0 4px">Þróun yfir umferðir</h3>' + charts;
+}
+
 export function mountLeikur(root) {
   const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false };
 
@@ -135,7 +185,8 @@ export function mountLeikur(root) {
       (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
       '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
       '<div class="lk-card">' + controls + '</div>' +
-      leaderboard(st);
+      leaderboard(st) +
+      (st.analytics ? card('📈 Greining (leikstjóri)', renderFacAnalytics(st.analytics)) : '');
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
   }
