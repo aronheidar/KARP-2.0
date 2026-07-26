@@ -13,6 +13,40 @@ async function api(path, { method = 'GET', body, token } = {}) {
 const lsFac = (code) => 'leikur_fac_' + code;
 const lsTeam = (code) => 'leikur_team_' + code;
 
+// Teiknar orsaka-keðju (SVG) úr {nodes:[{key,label,kind,depth}], edges:[{from,to,sign,strength}], clipped}.
+function renderChain(chain) {
+  if (!chain || !Array.isArray(chain.edges) || !chain.edges.length) return '<p class="lk-muted">Engin virk áhrif á markmiðin þessa umferð.</p>';
+  const nodes = chain.nodes, edges = chain.edges;
+  const maxD = Math.max(1, ...nodes.map((n) => n.depth));
+  const cols = {}; for (const n of nodes) (cols[n.depth] ||= []).push(n);
+  const NW = 128, NH = 24, COLW = 178, VG = 12, M = 12;
+  const rows = Math.max(1, ...Object.values(cols).map((c) => c.length));
+  const W = M * 2 + maxD * COLW + NW, H = M * 2 + rows * (NH + VG) - VG;
+  const pos = {};
+  Object.keys(cols).map(Number).sort((a, b) => a - b).forEach((d) => {
+    const list = cols[d], colH = list.length * (NH + VG) - VG, y0 = M + (H - 2 * M - colH) / 2;
+    list.forEach((n, i) => { pos[n.key] = { x: M + d * COLW, y: y0 + i * (NH + VG) }; });
+  });
+  const COL = { input: '#6ea8fe', mid: '#9fb0c8', kpi: '#f6b13b' };
+  let e = '';
+  for (const ed of edges) {
+    const a = pos[ed.from], b = pos[ed.to]; if (!a || !b) continue;
+    const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;
+    const col = ed.sign > 0 ? '#54d08a' : '#e78284', w = (1 + Math.min(4, ed.strength * 3)).toFixed(1);
+    e += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${w}" opacity="0.75" marker-end="url(#lk-ah-${ed.sign > 0 ? 'p' : 'n'})"/>`;
+  }
+  let nd = '';
+  for (const n of nodes) {
+    const p = pos[n.key]; if (!p) continue;
+    let la = n.label; if (la.length > 17) la = la.slice(0, 16) + '…';
+    nd += `<g><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="6" fill="${COL[n.kind] || '#9fb0c8'}" opacity="0.92"/><text x="${p.x + 8}" y="${p.y + NH / 2 + 4}" font-size="11" fill="#12161f" font-weight="600">${esc(la)}</text></g>`;
+  }
+  const defs = '<defs><marker id="lk-ah-p" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e78284"/></marker></defs>';
+  return `<div class="lk-chain"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}${e}${nd}</svg></div>`
+    + '<p class="lk-muted" style="font-size:12px;margin-top:6px">🟦 ákvörðun · ⬜ milliliður · 🟨 markmið · <span style="color:#54d08a">grænt</span>=eykur · <span style="color:#e78284">rautt</span>=dregur úr'
+    + (chain.clipped ? ' · <i>(sýni sterkustu tengslin)</i>' : '') + '</p>';
+}
+
 export function mountLeikur(root) {
   const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false };
 
@@ -141,8 +175,11 @@ export function mountLeikur(root) {
       scorecard = rows + '<div class="lk-lb-row" style="border-top:2px solid #f6b13b;margin-top:6px"><span><b>Umferðar-stig</b></span><span><b>' + num(mine.roundScore) + '</b></span></div>'
         + (mine.detail.crisis ? '<p style="color:#e78284;font-weight:700;margin-top:8px">⚠ Kreppa — stig skert.</p>' : '');
     }
-    root.innerHTML = card('📊 Skorkort — umferð ' + st.round, scorecard) + leaderboard(st) +
-      '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næstu umferð…</p></div>';
+    const chainHtml = (mine && mine.detail && mine.detail.chain) ? renderChain(mine.detail.chain) : '';
+    root.innerHTML = card('📊 Skorkort — umferð ' + st.round, scorecard)
+      + (chainHtml ? card('🔗 Orsaka-keðja ákvarðana ykkar', chainHtml) : '')
+      + leaderboard(st)
+      + '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næstu umferð…</p></div>';
   }
 
   function renderWatch(st) { root.innerHTML = card('👀 Áhorf — leikur ' + esc(st.code), '<p>Umferð ' + (st.round || 0) + ' · ' + esc(st.phase) + '</p>') + leaderboard(st); }
