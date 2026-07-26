@@ -2542,6 +2542,64 @@ async function kycScreenKt(env, kt) {
   };
 }
 
+// ── KYC v1 (Áreiðanleikavaktin) — vöktunarlisti per eiganda, tier-gátaður, upphafs-CDD við skráningu ──
+const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'tax', 'media'];
+const _kycGate = (u, now) => !!(u && (u.is_admin === 1 || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
+const _kycWatchCap = (u, now) => (u.is_admin === 1 ? -1 : (u.tier === 'fyrirtaeki_plus' && u.tier_until > now ? 100 : 0));
+
+async function _kycSnapshotWrite(env, kt, states, ts) {
+  const stmts = [];
+  const p = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO UPDATE SET state_hash=excluded.state_hash, state_json=excluded.state_json, computed_at=excluded.computed_at');
+  for (const sig of KYC_SIGNALS) { const st = states[sig] || {}; const j = kycCanon(st); stmts.push(p.bind(kt, sig, kycHash(j), j, ts)); }
+  for (let i = 0; i < stmts.length; i += 40) await env.TENGSL.batch(stmts.slice(i, i + 40)).catch(() => {});
+}
+async function kycHandler(request, env, ctx) {
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/^\/api\/kyc/, '');
+  const uid = await readSession(env, request);
+  const now = Math.floor(Date.now() / 1000);
+  if (!uid) return _ajson({ ok: false, error: 'login' }, { status: 401 });
+  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,tier,tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  if (!_kycGate(u, now)) return _ajson({ ok: false, error: 'tier' }, { status: 403 });
+  const body = request.method === 'POST' ? await request.json().catch(() => ({})) : {};
+
+  if (path === '/watch') {
+    if (request.method === 'GET') {
+      const rows = (await env.TENGSL.prepare(
+        "SELECT w.kt,w.nafn,w.risk,w.status,w.reviewed_at, (SELECT COUNT(*) FROM kyc_ack a JOIN kyc_event e ON e.id=a.event_id WHERE a.owner_id=w.owner_id AND e.kt=w.kt AND a.status='open') AS opnar " +
+        "FROM kyc_watch w WHERE w.owner_id=? AND w.status='active' ORDER BY w.added_at DESC").bind(uid).all().catch(() => ({ results: [] }))).results || [];
+      return _ajson({ ok: true, cap: _kycWatchCap(u, now), watch: rows });
+    }
+    if (request.method === 'POST') {
+      const kt = String(body.kt || '').replace(/\D/g, '');
+      if (kt.length !== 10) return _ajson({ ok: false, error: 'kt' });
+      const cap = _kycWatchCap(u, now);
+      const cnt = (await env.TENGSL.prepare("SELECT COUNT(*) AS n FROM kyc_watch WHERE owner_id=? AND status='active'").bind(uid).first().catch(() => ({ n: 0 }))).n || 0;
+      const exists = await env.TENGSL.prepare('SELECT id,status FROM kyc_watch WHERE owner_id=? AND kt=?').bind(uid, kt).first().catch(() => null);
+      if (!exists && cap >= 0 && cnt >= cap) return _ajson({ ok: false, error: 'cap', cap });
+      // Upphafs-CDD: skima strax, geyma grunnlínu-snapshot, skrá initial_cdd.
+      const states = await kycScreenKt(env, kt);
+      const risk = kycDeriveRisk(states);
+      const felagNafn = (await env.TENGSL.prepare('SELECT nafn FROM felog WHERE kt=?').bind(kt).first().catch(() => null))?.nafn || kt;
+      await env.TENGSL.prepare('INSERT INTO kyc_watch (owner_id,kt,nafn,risk,status,added_at,reviewed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(owner_id,kt) DO UPDATE SET status=\'active\', reviewed_at=excluded.reviewed_at')
+        .bind(uid, kt, felagNafn, risk, 'active', now, now).run().catch(() => {});
+      await _kycSnapshotWrite(env, kt, states, now);
+      const findings = { sanctions: (states.sanctions.hits || []).length, pep: (states.pep.matches || []).length, gjaldthrot: states.status.gjaldthrot ? 1 : 0, risk };
+      await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)')
+        .bind(uid, kt, now, u.email || String(uid), 'initial_cdd', 'Upphafleg áreiðanleikakönnun', JSON.stringify(findings)).run().catch(() => {});
+      return _ajson({ ok: true, kt, nafn: felagNafn, risk });
+    }
+    if (request.method === 'DELETE') {
+      const kt = String((url.searchParams.get('kt') || body.kt || '')).replace(/\D/g, '');
+      await env.TENGSL.prepare("UPDATE kyc_watch SET status='archived' WHERE owner_id=? AND kt=?").bind(uid, kt).run().catch(() => {});
+      await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)')
+        .bind(uid, kt, now, u.email || String(uid), 'note', 'Viðskiptavinur færður í geymslu (archived)', '{}').run().catch(() => {});
+      return _ajson({ ok: true });
+    }
+  }
+  return _ajson({ ok: false, error: 'notfound' }, { status: 404 });
+}
+
 // LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni eftir kt (registeredAs). 5.500+ íslensk félög.
 async function leiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
@@ -4052,6 +4110,7 @@ export default {
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
+    if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin
     if (url.pathname === '/api/frettir') return frettirHandler(request, env);   // F7: gagna-endapunktar úr WP
     if (url.pathname === '/api/firma') return firmaHandler(request, env);
     if (url.pathname === '/api/markadir') return markadirHandler(request, env, ctx);
