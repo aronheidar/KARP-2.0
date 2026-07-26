@@ -5,6 +5,30 @@ export const QUARTERS_PER_ROUND = 4;
 // Tímalíkan: hvert skref = 1 ár, hver umferð = 4-ára kjörtímabil. Leikurinn nær 2000→2032 (8 umferðir × 4 ár).
 export const YEAR_START = 2000;
 
+// Besta-nálgun á stefnu Íslands árið 2000 (studio-sjálfgefið). Fráviks-sleðar (base 0) bera 2000-frávik
+// frá núverandi raunstöðu; algerir sleðar (vextir/veðhlutfall/DSTI/verðtrygging) bera raun-2000-gildi. Klippt í [min,max].
+export const YEAR2000_DIALS = {
+  vextir: 11,            // háir stýrivextir um aldamótin
+  vedhlutfall: 65,       // fyrir 90–100% íbúðalánin (komu ~2004)
+  dsti: 45,              // engin greiðslubyrðar-þök
+  verdtrygging: 40,      // flest lán verðtryggð
+  veidigjald: -50,       // ekkert veiðigjald enn (kom 2004)
+  kolefnisgjald: -50,    // ekkert kolefnisgjald (kom ~2010)
+  ferdamannagjald: 0,    // ekkert ferðamannagjald
+  orkuskipti: -10,       // ekkert orkuskipta-átak
+  fjarmagnstekjuskattur: -10, // 10% (vs ~22% nú)
+  tryggingagjald: -1,    // ~5,3% (vs 6,35% nú)
+};
+
+// Söguleg raun-gildi 2000–2032 (best-effort nálgun; STÍLFÆRT viðmið, ekki nákvæm hagsaga).
+// 33 gildi per KPI (2000..2032). Notað í „Raunveruleikinn"-línu + „Svona fór það"-samanburð.
+export const REALITY = {
+  verdbolga:    [5.0, 6.7, 4.8, 2.1, 3.2, 4.0, 6.8, 5.0, 12.7, 12.0, 5.4, 4.0, 5.2, 3.9, 2.0, 1.6, 1.7, 1.8, 2.7, 3.0, 2.8, 4.4, 8.3, 8.7, 5.9, 4.0, 3.5, 3.0, 2.8, 2.6, 2.5, 2.5, 2.5],
+  atvinnuleysi: [2.3, 2.3, 3.3, 3.4, 3.1, 2.6, 2.9, 2.3, 3.0, 7.2, 7.6, 7.1, 6.0, 5.4, 5.0, 4.0, 3.0, 2.8, 2.7, 3.6, 6.4, 6.0, 3.8, 3.4, 3.5, 3.6, 3.7, 3.7, 3.6, 3.6, 3.6, 3.6, 3.6],
+  skuldir:      [41, 42, 41, 40, 35, 26, 28, 29, 68, 82, 88, 92, 90, 84, 80, 65, 52, 42, 37, 36, 48, 53, 52, 49, 47, 45, 43, 42, 41, 40, 39, 38, 38],
+  hagvoxtur:    [4.3, 3.9, 0.1, 2.4, 7.8, 5.7, 4.2, 9.5, 1.5, -6.8, -3.4, 2.0, 1.2, 4.1, 2.1, 4.4, 6.3, 4.2, 4.9, 2.4, -6.8, 4.5, 8.9, 5.0, 0.5, 1.8, 2.2, 2.4, 2.4, 2.3, 2.3, 2.2, 2.2],
+};
+
 // #1-3: afstaða = Δ á hlaupandi sleða-stig. #4: eins-árs púls (fjárhags-kostnaður kemur SJÁLFKRAFA úr
 // tengslum sleðans við afkomu í vélinni — engin sér-refsing). #5 (viðbragð) er í SCENARIO.
 export const DECISIONS = [
@@ -43,33 +67,33 @@ export const MANDATE = {
 export const SCENARIO = {
   id: 'island2000',
   events: [
-    { round: 1, year: 2000, icon: '💻', title: 'Ný öld — netbólan springur', text: 'Aldamótin: alþjóðleg netbóla springur og bankarnir eru einkavæddir. Hófleg ládeyða úti í heimi — grunnurinn er lagður.', shocks: { heimshagvoxtur: -1 }, responses: [
+    { round: 1, year: 2000, icon: '💻', title: 'Ný öld — netbólan springur', text: 'Aldamótin ganga í garð. Alþjóðleg netbóla springur en Ísland stendur traustum fótum: atvinnuleysi er lágt, hagvöxtur góður og bankarnir nýlega einkavæddir. Þið takið við hagkerfi í jafnvægi — en grunnurinn sem þið leggið núna mótar næstu áratugi.', watch: 'Freistingin er að ýta undir vöxtinn. En ofhitnun og skuldasöfnun heimila geta orðið að vandamáli síðar. Hugið að stöðugleika.', shocks: { heimshagvoxtur: -1 }, responses: [
       { key: 'bida', label: 'Halda ró', effect: {} },
       { key: 'innvidir', label: 'Örva með innviðum', effect: { lever: { innvidir: 10 } } } ] },
-    { round: 2, year: 2004, icon: '🚀', title: 'Útrásin — ofþensla', text: 'Bankarnir þenjast út erlendis, erlent fjármagn streymir inn og krónan styrkist. Hagkerfið ofhitnar.', shocks: { adflutningur: 15, gengi: 8 }, responses: [
+    { round: 2, year: 2004, icon: '🚀', title: 'Útrásin — ofþensla', text: 'Útrásin er í hámarki. Bankarnir þenjast út erlendis, erlent fjármagn streymir inn og krónan styrkist. Íbúðalán upp í 90–100% verða til, húsnæðisverð rýkur upp og neyslan æðir áfram. Allir virðast græða — en undir yfirborðinu safnast upp áhætta.', watch: 'Ofhitnun, viðskiptahalli og skuldsetning heimila eru að verða hættuleg. Aðhald núna gæti verið óvinsælt en varið ykkur gegn falli.', shocks: { adflutningur: 15, gengi: 8 }, responses: [
       { key: 'herda', label: 'Herða lánþegaskilyrði (DSTI↓)', effect: { lever: { dsti: -10 } } },
       { key: 'sjodur', label: 'Safna í varasjóð (skattar↑)', effect: { lever: { skattar: 3 } } },
       { key: 'leyfa', label: 'Leyfa uppsveiflunni að rúlla', effect: {} } ] },
-    { round: 3, year: 2008, icon: '🏦', title: 'Bankahrunið', text: 'Alþjóðleg fjármálakreppa fellir bankana. Krónan hrynur, atvinnuleysi rýkur upp og traust gufar upp. Stærsta prófraunin.', shocks: { gengi: -35, heimshagvoxtur: -4, hravaruverd: -10 }, responses: [
+    { round: 3, year: 2008, icon: '🏦', title: 'Bankahrunið', text: 'Hrunið er skollið á. Alþjóðleg fjármálakreppa fellir alla þrjá stóru bankana á einni viku. Krónan hrynur um tugi prósenta, verðbólga rýkur í tveggja stafa tölu, atvinnuleysi margfaldast og skuldir heimila með verðtryggingu stökkbreytast. Þetta er stærsta prófraun lýðveldisins.', watch: 'Nú reynir á allt: verja heimilin, halda ríkissjóði á floti OG endurheimta traust — í senn. Það er engin sársaukalaus leið út.', shocks: { gengi: -35, heimshagvoxtur: -4, hravaruverd: -10 }, responses: [
       { key: 'adhald', label: 'Neyðarlán og aðhald', effect: { lever: { utgjold: -6 } } },
       { key: 'verja', label: 'Verja heimilin (útgjöld↑)', effect: { lever: { utgjold: 8 } } },
       { key: 'vextir', label: 'Lækka vexti hratt', effect: { lever: { vextir: -1 } } } ] },
-    { round: 4, year: 2012, icon: '🔒', title: 'Endurreisn í höftum', text: 'Fjármagnshöft verja krónuna meðan hagkerfið réttir úr sér. Ferðamenn fara að streyma inn.', shocks: { heimshagvoxtur: 1, ferdamenn: 12 }, responses: [
+    { round: 4, year: 2012, icon: '🔒', title: 'Endurreisn í höftum', text: 'Versta er afstaðið. Fjármagnshöft verja krónuna meðan hagkerfið réttir hægt úr sér. Ferðamenn fara að streyma inn og gefa nýja von. En ríkissjóður er skuldsettur upp fyrir haus og heimilin bera enn þungar byrðar.', watch: 'Jafnvægið milli þess að greiða niður skuldir og að fjárfesta í viðspyrnu. Of hart aðhald kæfir batann; of laust eykur skuldirnar.', shocks: { heimshagvoxtur: 1, ferdamenn: 12 }, responses: [
       { key: 'uppbygging', label: 'Fjárfesta í uppbyggingu', effect: { lever: { innvidir: 12 } } },
       { key: 'skuldir', label: 'Greiða niður skuldir', effect: { lever: { utgjold: -4 } } } ] },
-    { round: 5, year: 2016, icon: '✈️', title: 'Ferðamannasprengjan', text: 'Metfjöldi ferðamanna, gjaldeyrir flæðir inn og krónan styrkist á ný. Húsnæðisverð rýkur upp.', shocks: { ferdamenn: 30, gengi: 6 }, responses: [
+    { round: 5, year: 2016, icon: '✈️', title: 'Ferðamannasprengjan', text: 'Ferðamannasprengjan umbreytir hagkerfinu. Metfjöldi ferðamanna, gjaldeyrir flæðir inn og krónan styrkist á ný. En húsnæðisverð rýkur upp — ungt fólk ræður ekki við íbúðaverð og Airbnb þrengir að leigumarkaði.', watch: 'Uppsveiflan er kærkomin en einhæf. Húsnæðiskreppa og of mikið traust á einni atvinnugrein eru áhætturnar. Hugið að framboði og fjölbreytni.', shocks: { ferdamenn: 30, gengi: 6 }, responses: [
       { key: 'frambod', label: 'Stórauka íbúðaframboð', effect: { lever: { frambod: 20 } } },
       { key: 'gjald', label: 'Hækka ferðamannagjald', effect: { lever: { ferdamannagjald: 500 } } },
       { key: 'nyta', label: 'Nýta uppsveifluna', effect: {} } ] },
-    { round: 6, year: 2020, icon: '🦠', title: 'Heimsfaraldur', text: 'COVID-19 lokar landamærum. Ferðaþjónustan hrynur og heimshagkerfið dregst saman.', shocks: { ferdamenn: -40, heimshagvoxtur: -3 }, responses: [
+    { round: 6, year: 2020, icon: '🦠', title: 'Heimsfaraldur', text: 'Heimsfaraldur skellur á. COVID-19 lokar landamærum og ferðaþjónustan — nú burðarás hagkerfisins — hrynur nánast á einni nóttu. Heimshagkerfið dregst saman og óvissan er alger. Vextir eru þó lágir um allan heim.', watch: 'Hvað á að verja og hvað á að láta? Stór stuðningur bjargar störfum en hleður á skuldir. Þetta gæti líka verið tækifæri til að endurhugsa hagkerfið.', shocks: { ferdamenn: -40, heimshagvoxtur: -3 }, responses: [
       { key: 'studningur', label: 'Stór stuðningspakki', effect: { lever: { utgjold: 10 } } },
       { key: 'graent', label: 'Græn viðspyrna', effect: { lever: { orkuskipti: 15 } } },
       { key: 'adhald', label: 'Halda að sér höndum', effect: { lever: { utgjold: -2 } } } ] },
-    { round: 7, year: 2024, icon: '🔥', title: 'Verðbólgu-bylgjan', text: 'Eftirspurn og orkuverð keyra upp verðbólgu um allan heim. Seðlabankar hækka vexti hratt.', shocks: { olia: 30, hravaruverd: 15 }, responses: [
+    { round: 7, year: 2024, icon: '🔥', title: 'Verðbólgu-bylgjan', text: 'Verðbólgan er komin aftur. Uppsöfnuð eftirspurn eftir faraldurinn, stríð og hátt orkuverð keyra upp verðlag um allan heim. Seðlabankar hækka vexti hratt og greiðslubyrði heimila þyngist. Kaupmáttur er í hættu.', watch: 'Klassíska klemman: að kæla verðbólguna án þess að kalla fram samdrátt og atvinnuleysi. Vaxtahækkanir bíta — en of hægt viðbragð festir verðbólguna í sessi.', shocks: { olia: 30, hravaruverd: 15 }, responses: [
       { key: 'herdavexti', label: 'Herða peningastefnu', effect: { lever: { vextir: 1 } } },
       { key: 'kaupmattur', label: 'Verja kaupmátt (tilfærslur↑)', effect: { lever: { tilfaerslur: 8 } } },
       { key: 'bida', label: 'Bíða af sér bylgjuna', effect: {} } ] },
-    { round: 8, year: 2028, icon: '🗳️', title: 'Framtíðin — óviss (kosningaár)', text: 'Orkuskipti, loftslag og alþjóðleg óvissa móta lokakjörtímabilið. Almenningur vill sjá árangur.', shocks: { heimshagvoxtur: -1, olia: 5 }, responses: [
+    { round: 8, year: 2028, icon: '🗳️', title: 'Framtíðin — óviss (kosningaár)', text: 'Lokakjörtímabilið. Orkuskipti, loftslagsskuldbindingar og alþjóðleg óvissa móta framtíðina. Almenningur er þreyttur á sveiflum og vill sjá stöðugan, sjálfbæran árangur. Arfleifð ykkar verður dæmd í kosningum — og af sögunni.', watch: 'Skammtíma-vinsældir gegn langtíma-sjálfbærni. Það sem þið byggið upp núna ræður hvernig heildar-ferillinn 2000–2032 verður metinn.', shocks: { heimshagvoxtur: -1, olia: 5 }, responses: [
       { key: 'agi', label: 'Sýna ábyrgð (aðhald)', effect: { lever: { utgjold: -4 } } },
       { key: 'graentatak', label: 'Grænt lokaátak', effect: { lever: { orkuskipti: 20 } } },
       { key: 'kosningar', label: 'Örva fyrir kosningar', effect: { lever: { utgjold: 8 } } } ] },

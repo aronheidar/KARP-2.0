@@ -1,0 +1,35 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { leverEffects, newsHeadlines, popularity, endTitle } from './flavor.mjs';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rj = (f) => JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/' + f), 'utf8'));
+const baseline = rj('baseline.json'), links = rj('links.json');
+let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
+
+// leverEffects
+const ve = leverEffects('vextir', baseline, links);
+ok('vextir hefur áhrif (≥3)', ve.length >= 3);
+ok('vextir → greiðslubyrði meðal sterkustu áhrifa', ve.some((e) => e.key === 'greidslubyrdi'));
+ok('leverEffect hefur label + dir', ve[0].label && (ve[0].dir === 1 || ve[0].dir === -1));
+ok('topp 5 að hámarki', ve.length <= 5);
+ok('óþekktur lever → tómt', leverEffects('ekki_til', baseline, links).length === 0);
+
+// newsHeadlines
+ok('há verðbólga → tveggja stafa fyrirsögn', newsHeadlines({ verdbolga: 12, hagvoxtur: 2, atvinnuleysi: 4, skuldir: 40 }).some((s) => s.includes('tveggja stafa')));
+ok('samdráttur → fyrirsögn', newsHeadlines({ verdbolga: 2, hagvoxtur: -3, atvinnuleysi: 5, skuldir: 40 }).some((s) => s.includes('Samdráttur')));
+ok('rólegt → default fyrirsögn', newsHeadlines({ verdbolga: 2.5, hagvoxtur: 2.5, atvinnuleysi: 4, skuldir: 45 }).some((s) => s.includes('Rólegt')));
+ok('≤3 fyrirsagnir', newsHeadlines({ verdbolga: 12, hagvoxtur: -3, atvinnuleysi: 9, skuldir: 90 }).length <= 3);
+
+// popularity
+ok('gott ástand → hátt fylgi', popularity({ verdbolga: 2.5, hagvoxtur: 4, atvinnuleysi: 3 }) > 55);
+ok('slæmt ástand → lágt fylgi', popularity({ verdbolga: 12, hagvoxtur: -4, atvinnuleysi: 10 }) < 40);
+ok('fylgi klippt 0–100', popularity({ verdbolga: 30, hagvoxtur: -10, atvinnuleysi: 20 }) >= 0 && popularity({ verdbolga: 2.5, hagvoxtur: 10, atvinnuleysi: 2 }) <= 100);
+
+// endTitle
+ok('hátt avg → Efnahags-undrið', endTitle(90).title.includes('Efnahags-undrið'));
+ok('lágt avg → Hrun-stjórnin', endTitle(20).title.includes('Hrun-stjórnin'));
+ok('meðal avg → titill + blurb', endTitle(60).title && endTitle(60).blurb.length > 0);
+
+console.log(`\n${pass} pass, ${fail} fail`);
+process.exit(fail ? 1 : 0);

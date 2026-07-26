@@ -5,7 +5,8 @@ import { simulate } from '../roads/engine.mjs';
 import { buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { studioCatalog, defaultDials, changedLevers } from './studio.mjs';
-import { YEAR_START } from './game-config.mjs';
+import { leverEffects, newsHeadlines, popularity, endTitle } from './flavor.mjs';
+import { YEAR_START, REALITY, YEAR2000_DIALS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 const STUDIO_CAT = studioCatalog(BASELINE);
@@ -81,10 +82,10 @@ function lkLineChart(title, series, opts = {}) {
   for (const r of rounds) g += `<text x="${X(r).toFixed(1)}" y="${H - 7}" font-size="9" fill="#7b879c" text-anchor="middle">${r}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;
 }
-// Studio-forskoðunar-rit: ferill útkomu yfir ÁR (2000+i) + BAU (punktalína) + markmiðs-lína.
-function stChart(title, mid, bau, targetLine, color) {
+// Studio-forskoðunar-rit: ferill útkomu yfir ÁR (2000+i) + BAU (punktalína) + markmiðs-lína + raun-lína (fjólublá).
+function stChart(title, mid, bau, targetLine, color, reality) {
   const W = 320, H = 132, pl = 34, pr = 10, pt = 18, pb = 24, n = mid.length;
-  const all = mid.concat((bau || []).slice(0, n), targetLine != null ? [targetLine] : []);
+  const all = mid.concat((bau || []).slice(0, n), (reality || []).slice(0, n), targetLine != null ? [targetLine] : []);
   let ymin = Math.min(...all), ymax = Math.max(...all); if (ymax - ymin < 1) { ymax += 1; ymin -= 1; }
   const X = (i) => pl + (W - pl - pr) * (n <= 1 ? 0.5 : i / (n - 1));
   const Y = (v) => (H - pb) - (H - pt - pb) * (v - ymin) / (ymax - ymin);
@@ -93,6 +94,7 @@ function stChart(title, mid, bau, targetLine, color) {
   for (let i = 0; i < n; i += 4) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="middle">${YEAR_START + i}</text>`;
   if (n > 1) g += `<text x="${X(n - 1).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="end">${YEAR_START + n}</text>`;
   if (bau && bau.length) { const d = bau.slice(0, n).map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' '); g += `<path d="${d}" fill="none" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3"/>`; }
+  if (reality && reality.length) { const d = reality.slice(0, n).map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' '); g += `<path d="${d}" fill="none" stroke="#b98cff" stroke-width="1.4" opacity="0.85"/>`; }
   if (targetLine != null) { const y = Y(targetLine).toFixed(1); g += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" stroke="#f6b13b" stroke-width="1" stroke-dasharray="4 2" opacity="0.55"/>`; }
   const d = mid.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
   g += `<path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>`;
@@ -113,7 +115,9 @@ function arcGauge(score) {
 function goalMeter(kpi, value, scoreVal) {
   const dir = kpi.dir, tgt = dir === 'target' ? kpi.target : dir === 'max' ? kpi.max : kpi.min;
   const col = scoreVal >= 80 ? '#54d08a' : scoreVal >= 40 ? '#e8c14a' : '#e78284';
-  return `<div class="lk-goalmeter"><div class="lk-gm-top"><span>${esc(kpi.label)}${kpi.weight > 1 ? ' <span class="lk-kpi-w">×' + kpi.weight + '</span>' : ''}</span><b style="color:${col}">${num(value)}</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:${Math.max(2, Math.min(100, scoreVal))}%;background:${col}"></div></div><div class="lk-gm-sub"><span class="lk-muted">markmið ${dir === 'max' ? '≤ ' : dir === 'min' ? '≥ ' : ''}${num(tgt)}</span><span style="color:${col}">${scoreVal}/100</span></div></div>`;
+  const aim = dir === 'target' ? 'sem næst ' + num(tgt) : dir === 'max' ? 'ekki yfir ' + num(tgt) : 'ekki undir ' + num(tgt);
+  const tip = kpi.label + ' — markmiðið er ' + aim + '. Stig 100 = innan marka; lækkar eftir því sem fjær dregur.' + (kpi.weight > 1 ? ' (vegur ×' + kpi.weight + ' í þínu umboði.)' : '');
+  return `<div class="lk-goalmeter" title="${esc(tip)}"><div class="lk-gm-top"><span>${esc(kpi.label)}${kpi.weight > 1 ? ' <span class="lk-kpi-w">×' + kpi.weight + '</span>' : ''}</span><b style="color:${col}">${num(value)}</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:${Math.max(2, Math.min(100, scoreVal))}%;background:${col}"></div></div><div class="lk-gm-sub"><span class="lk-muted">markmið ${dir === 'max' ? '≤ ' : dir === 'min' ? '≥ ' : ''}${num(tgt)}</span><span style="color:${col}">${scoreVal}/100</span></div></div>`;
 }
 function renderFacAnalytics(an) {
   if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
@@ -253,7 +257,17 @@ export function mountLeikur(root) {
 
   function renderTeam(st) {
     if (st.phase === 'lobby') { root.innerHTML = card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
-    if (st.phase === 'ended') { root.innerHTML = card('🏁 Leik lokið', '<p>Takk fyrir leikinn!</p>') + revealCard(st) + leaderboard(st); return; }
+    if (st.phase === 'ended') {
+      const me = (st.teams || []).find((t) => t.id === S.teamId);
+      const rounds = st.round || 8, cum = me ? (me.cumulative || 0) : 0, avg = rounds ? cum / rounds : 0, et = endTitle(avg);
+      const rank = me ? ([...st.teams].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0)).findIndex((t) => t.id === S.teamId) + 1) : 0;
+      const shareText = 'RÁS-Leikurinn — Ísland 2000–2032\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + '\nkarp.is/leikur/';
+      root.innerHTML = card('🏁 Leik lokið — árið er 2032',
+        '<div class="lk-title-card"><div class="lk-muted">Arfleifð ríkisstjórnarinnar 2000–2032</div><div class="lk-title-big">' + esc(et.title) + '</div><p>' + esc(et.blurb) + '</p><p><b>' + num(cum) + '</b> stig uppsafnað · meðal <b>' + num(avg) + '</b>/100' + (rank ? ' · sæti <b>' + rank + '/' + st.teams.length + '</b>' : '') + '</p><button class="lk-btn" id="lk-share" style="margin-top:8px">📋 Afrita niðurstöðu</button></div>')
+        + revealCard(st) + leaderboard(st);
+      const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
+      return;
+    }
     if (st.phase === 'resolved') return renderTeamResults(st);
     // Ný umferð → núlla „breyta"-stöðu
     if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; }
@@ -293,15 +307,35 @@ export function mountLeikur(root) {
         + (mine.detail.crisis ? '<p style="color:#e78284;font-weight:700;margin-top:8px">⚠ Kreppa — stig skert.</p>' : '');
     }
     const chainHtml = (mine && mine.detail && mine.detail.chain) ? renderChain(mine.detail.chain) : '';
+    // Flavor: fréttir, „svona fór það" (vs raunveruleikinn), fylgi/endurkjör
+    let extras = '';
+    if (mine && mine.detail && mine.detail.kpis) {
+      const kp = mine.detail.kpis;
+      const heads = newsHeadlines(kp);
+      extras += '<div class="lk-card"><h2>📰 Fréttir kjörtímabilsins</h2><div class="lk-news">' + heads.map((h) => '<div class="lk-news-item"><span>📰</span><span>' + esc(h) + '</span></div>').join('') + '</div></div>';
+      const idx = Math.min((REALITY.verdbolga || []).length - 1, st.round * 4 - 1);
+      const realK = {}; let haveReal = true;
+      for (const kpi of st.mandate.kpis) { const arr = REALITY[kpi.key]; if (arr) realK[kpi.key] = arr[idx]; else haveReal = false; }
+      if (haveReal) {
+        const realComp = scoreRound(realK, st.mandate).composite, you = mine.roundScore, diff = Math.round((you - realComp) * 10) / 10;
+        const dcol = diff >= 0 ? '#54d08a' : '#e78284', dtxt = 'þú stóðst þig ' + num(Math.abs(diff)) + ' stigum ' + (diff >= 0 ? 'BETUR' : 'VERR') + ' en raunveruleg ríkisstjórn';
+        extras += '<div class="lk-card"><h2 title="Þín stig þessa kjörtímabils borin saman við hvernig raunveruleg útkoma Íslands skoraði á sömu markmið (stílfært viðmið).">🕰️ Svona fór það</h2><div class="lk-vs"><div><div class="lk-muted" style="font-size:12px">Þú</div><div class="lk-vs-num" style="color:#6ea8fe">' + num(you) + '</div></div><div class="lk-muted">vs</div><div><div class="lk-muted" style="font-size:12px">Raunveruleikinn</div><div class="lk-vs-num" style="color:#b98cff">' + num(realComp) + '</div></div><div style="color:' + dcol + ';font-weight:700;flex:1;min-width:180px">' + dtxt + '</div></div></div>';
+      }
+      const pop = popularity(kp), reElect = pop >= 50, pcol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
+      extras += '<div class="lk-card"><h2>🗳️ Kosningar</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + pop + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p></div>';
+    }
     root.innerHTML = roleBanner(st) + card('📊 Skorkort — umferð ' + st.round, scorecard)
+      + extras
       + (chainHtml ? card('🔗 Orsaka-keðja ákvarðana ykkar', chainHtml) : '')
       + leaderboard(st)
-      + '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næstu umferð…</p></div>';
+      + '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næsta kjörtímabil…</p></div>';
   }
 
   // ── Studio-stjórnstöð (fullur hermir sem ákvörðunar-yfirborð; forskoðun keyrir vélina á eigin drögum) ──
   function initDials(st) {
     const d = defaultDials(BASELINE);
+    // Byrjunar-staða = besta-nálgun á 2000-stefnu (klippt); læstar umferðir bera svo á milli.
+    for (const [k, v] of Object.entries(YEAR2000_DIALS)) { const c = BASELINE.levers[k]; if (c) d[k] = Math.max(c.min, Math.min(c.max, v)); }
     for (const set of (st.history || [])) if (set && set.levers) for (const [k, v] of Object.entries(set.levers)) d[k] = v;
     return d;
   }
@@ -320,9 +354,10 @@ export function mountLeikur(root) {
     const cur = st.round, evs = st.scenarioSoFar || [];
     let segs = '';
     for (let r = 1; r <= 8; r++) {
-      const [y0] = termYears(r), cls = r < cur ? 'past' : r === cur ? 'now' : 'future';
+      const [y0, y1] = termYears(r), cls = r < cur ? 'past' : r === cur ? 'now' : 'future';
       const ev = r <= cur ? evs[r - 1] : null, ic = ev && ev.icon ? ev.icon : (r < cur ? '✓' : '');
-      segs += `<div class="lk-term ${cls}"><span class="lk-term-ic">${ic}</span><span class="lk-term-y">${y0}</span></div>`;
+      const tip = ev ? y0 + '–' + y1 + ': ' + ev.title : y0 + '–' + y1 + ' (óráðið)';
+      segs += `<div class="lk-term ${cls}" title="${esc(tip)}"><span class="lk-term-ic">${ic}</span><span class="lk-term-y">${y0}</span></div>`;
     }
     return `<div class="lk-ribbon">${segs}<div class="lk-term end"><span class="lk-term-ic">🏁</span><span class="lk-term-y">2032</span></div></div>`;
   }
@@ -331,28 +366,30 @@ export function mountLeikur(root) {
     const sim = studioSim(st), endYear = YEAR_START + st.round * 4;
     const kpiVals = {}; for (const k of st.mandate.kpis) { const oc = sim.outcomes[k.key]; kpiVals[k.key] = oc ? oc.mid[oc.mid.length - 1] : 0; }
     const sc = scoreRound(kpiVals, st.mandate);
-    let html = '<div class="lk-card lk-gauge-card"><div class="lk-gauge">' + arcGauge(sc.composite) + '</div><div><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 0">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + '</p></div></div>';
-    html += '<div class="lk-card"><h2>🎯 Markmið</h2><div class="lk-goalmeters">';
+    const pop = popularity(kpiVals), popCol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
+    let html = '<div class="lk-card lk-gauge-card"><div class="lk-gauge" title="Samsett stig 0–100 úr umboðs-markmiðunum í lok kjörtímabilsins. Hærra = betri hagstjórn.">' + arcGauge(sc.composite) + '</div><div style="flex:1"><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 8px">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + '</p><div class="lk-pop" title="Fylgi ríkisstjórnarinnar — ræðst af verðbólgu, atvinnuleysi og hagvexti. Undir 50% og þú átt á hættu að falla í kosningum."><div class="lk-gm-top"><span>🗳️ Fylgi ríkisstjórnar</span><b style="color:' + popCol + '">' + pop + '%</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:' + pop + '%;background:' + popCol + '"></div></div></div></div></div>';
+    html += '<div class="lk-card"><h2 title="Hversu nálægt hverju umboðs-markmiði þú ert. Fyllri borði = betra.">🎯 Markmið</h2><div class="lk-goalmeters">';
     for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
     html += '</div></div>';
-    let charts = '<div class="lk-card"><h2>📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
+    let charts = '<div class="lk-card"><h2 title="Þróun frá 2000: þín braut (heil lína), grunnlína (punktar), raunveruleikinn (fjólublár) og markmið (gult).">📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
     for (const k of st.mandate.kpis) {
       const oc = sim.outcomes[k.key]; if (!oc) continue;
-      const mid = oc.mid, last = mid.length - 1, bau = (BASELINE.outcomes[k.key] || {}).path || [];
+      const mid = oc.mid, last = mid.length - 1, bau = (BASELINE.outcomes[k.key] || {}).path || [], reality = REALITY[k.key] || [];
       const tgt = k.dir === 'target' ? k.target : k.dir === 'max' ? k.max : k.min, fin = mid[last], b = k.band || 0;
       const good = k.dir === 'target' ? Math.abs(fin - k.target) <= b : k.dir === 'max' ? fin <= k.max + b : fin >= k.min - b;
-      charts += stChart(k.label + (k.weight > 1 ? ' ×' + k.weight : ''), mid, bau, tgt, good ? '#54d08a' : '#e78284');
+      charts += stChart(k.label + (k.weight > 1 ? ' ×' + k.weight : ''), mid, bau, tgt, good ? '#54d08a' : '#e78284', reality);
     }
-    charts += '</div><div class="lk-muted" style="font-size:11px;margin-top:4px">– – grunnlína (óbreytt stefna) · gul strikalína = markmið</div></div>';
+    charts += '</div><div class="lk-muted" style="font-size:11px;margin-top:4px">– – grunnlína · <span style="color:#b98cff">▬ raunveruleikinn</span> · gul strikalína = markmið</div></div>';
     html += charts;
-    let grid = '<div class="lk-card"><h2>Allar útkomur (' + endYear + ')</h2><div class="lk-heat">';
+    let grid = '<div class="lk-card"><h2 title="Allar 36 útkomur líkansins í lok kjörtímabilsins. Grænt = betra en grunnlína, rautt = verra.">Allar útkomur (' + endYear + ')</h2><div class="lk-heat">';
     for (const o of STUDIO_CAT.outcomes) {
       const oc = sim.outcomes[o.key]; if (!oc) continue;
       const fin = oc.mid[oc.mid.length - 1], bau = (BASELINE.outcomes[o.key] || {}).path || [];
       const bf = bau.length ? bau[Math.min(bau.length - 1, oc.mid.length - 1)] : fin;
       const dev = fin - bf, val = dev * (o.polarity || 0);
       const bg = (o.polarity === 0 || Math.abs(dev) < 1e-6) ? 'rgba(255,255,255,.04)' : val > 0 ? 'rgba(84,208,138,.16)' : 'rgba(231,130,132,.16)';
-      grid += `<div class="lk-heat-tile" style="background:${bg}"><span>${esc(o.label)}</span><b>${num(fin)}${o.unit ? ' ' + esc(o.unit) : ''}</b></div>`;
+      const tip = esc(o.label) + ': ' + num(fin) + (o.unit ? ' ' + o.unit : '') + ' (grunnlína ' + num(bf) + ')';
+      grid += `<div class="lk-heat-tile" style="background:${bg}" title="${tip}"><span>${esc(o.label)}</span><b>${num(fin)}${o.unit ? ' ' + esc(o.unit) : ''}</b></div>`;
     }
     grid += '</div></div>';
     html += grid;
@@ -361,15 +398,18 @@ export function mountLeikur(root) {
   function renderStudio(st) {
     if (!S.dials) S.dials = initDials(st);
     const tab = STUDIO_CAT.tabs[S.studioTab] || STUDIO_CAT.tabs[0];
-    const tabBar = STUDIO_CAT.tabs.map((t, i) => `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0">${esc(t.group)}</span>`).join('');
+    const tabBar = STUDIO_CAT.tabs.map((t, i) => `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="Stefnu-svið: ${esc(t.group)} (${t.levers.length} sleðar)">${esc(t.group)}</span>`).join('');
     const sliders = tab.levers.map((l) => {
       const v = S.dials[l.key] != null ? S.dials[l.key] : l.base, moved = +v !== l.base;
-      return `<div class="lk-slider-row"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${num(v)}${l.unit ? ' ' + esc(l.unit) : ''}</span> <span class="lk-muted" style="font-size:11px">grunnur ${num(l.base)}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
+      const eff = leverEffects(l.key, BASELINE, LINKS);
+      const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
+      const tip = l.label + (l.unit ? ' (' + l.unit + ')' : '') + '.' + effTxt;
+      return `<div class="lk-slider-row" title="${esc(tip)}"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${num(v)}${l.unit ? ' ' + esc(l.unit) : ''}</span> <span class="lk-muted" style="font-size:11px">grunnur ${num(l.base)}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
     }).join('');
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
-      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span><h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>` +
+      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span><h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       roleBanner(st) +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
