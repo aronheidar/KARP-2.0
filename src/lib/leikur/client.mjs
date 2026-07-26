@@ -98,7 +98,8 @@ function renderFacAnalytics(an) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null };
+  let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
   const u = new URL(location.href);
@@ -153,7 +154,7 @@ export function mountLeikur(root) {
   }
 
   function render() {
-    if (!S.code) return renderLanding();
+    if (!S.code) { if (S.view === 'editor') return renderEditor(); return renderLanding(); }
     const st = S.state; if (!st) { root.innerHTML = '<p>Hleð…</p>'; return; }
     if (S.role === 'fac') return renderFacilitator(st);
     if (S.role === 'team') return renderTeam(st);
@@ -163,9 +164,10 @@ export function mountLeikur(root) {
   function renderLanding() {
     root.innerHTML =
       '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>' +
-      '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button></div>' +
+      '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button></div>' +
       '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
     root.querySelector('#lk-create').onclick = () => createGame();
+    root.querySelector('#lk-createcustom').onclick = () => { S.view = 'editor'; render(); };
     root.querySelector('#lk-join').onclick = () => {
       const c = (root.querySelector('#lk-code').value || '').trim().toUpperCase();
       const n = (root.querySelector('#lk-name').value || '').trim();
@@ -234,6 +236,86 @@ export function mountLeikur(root) {
   }
 
   function renderWatch(st) { root.innerHTML = card('👀 Áhorf — leikur ' + esc(st.code), '<p>Umferð ' + (st.round || 0) + ' · ' + esc(st.phase) + '</p>') + leaderboard(st); }
+
+  // ── Sviðsmynda-/umboðs-ritill (S4) ──
+  function renderEditor() {
+    if (!model.defaultScenario) { root.innerHTML = card('Ritill', '<p class="lk-muted">Líkan hleðst ekki. <a href="/leikur/">Til baka</a></p>'); return; }
+    if (!S.editDraft) S.editDraft = { rounds: model.rounds || 8, mandate: JSON.parse(JSON.stringify(model.defaultMandate)), scenario: { id: 'custom', events: JSON.parse(JSON.stringify(model.defaultScenario.events)) } };
+    const d = S.editDraft;
+    const shockOpt = (sel, blank) => (blank ? '<option value="">ekkert</option>' : '') + (model.shocks || []).map((s) => `<option value="${s.key}"${s.key === sel ? ' selected' : ''}>${esc(s.label)}</option>`).join('');
+    const leverOpt = (sel) => (model.levers || []).map((s) => `<option value="${s.key}"${s.key === sel ? ' selected' : ''}>${esc(s.label)}</option>`).join('');
+    let mh = '<table class="lk-tbl"><tr><th>Markmið</th><th>Gildi</th><th>Band</th></tr>';
+    d.mandate.kpis.forEach((k, i) => {
+      const cur = k.dir === 'target' ? k.target : k.dir === 'max' ? k.max : k.min;
+      mh += `<tr><td>${esc(k.label)} <span style="color:var(--muted)">(${k.dir === 'max' ? '≤' : k.dir === 'min' ? '≥' : '≈'})</span></td><td><input type="number" step="0.1" value="${cur}" data-mk="${i}" data-mf="val" style="width:80px"/></td><td><input type="number" step="0.1" value="${k.band}" data-mk="${i}" data-mf="band" style="width:70px"/></td></tr>`;
+    });
+    mh += '</table>';
+    let rh = '';
+    d.scenario.events.forEach((e, r) => {
+      const resp = e.responses.map((rp, j) => {
+        const type = (rp.effect && rp.effect.lever) ? 'lever' : (rp.effect && rp.effect.shock) ? 'shock' : 'none';
+        const effKey = type === 'lever' ? Object.keys(rp.effect.lever)[0] : type === 'shock' ? Object.keys(rp.effect.shock)[0] : '';
+        const effVal = type === 'lever' ? rp.effect.lever[effKey] : type === 'shock' ? rp.effect.shock[effKey] : '';
+        const keySel = type === 'lever' ? `<select data-r="${r}" data-resp="${j}" data-rf="effkey">${leverOpt(effKey)}</select>` : type === 'shock' ? `<select data-r="${r}" data-resp="${j}" data-rf="effkey">${shockOpt(effKey, false)}</select>` : '';
+        return `<div style="margin:4px 0;padding:6px;border:1px solid rgba(255,255,255,.06);border-radius:6px"><input value="${esc(rp.label)}" placeholder="Heiti viðbragðs" data-r="${r}" data-resp="${j}" data-rf="label" style="width:170px"/> <select data-r="${r}" data-resp="${j}" data-rf="efftype"><option value="none"${type === 'none' ? ' selected' : ''}>engin áhrif</option><option value="lever"${type === 'lever' ? ' selected' : ''}>sleði</option><option value="shock"${type === 'shock' ? ' selected' : ''}>sjokk</option></select> ${keySel}${type !== 'none' ? ` <input type="number" step="0.5" value="${effVal}" data-r="${r}" data-resp="${j}" data-rf="effval" style="width:70px"/>` : ''} <button data-r="${r}" data-delresp="${j}" style="background:none;border:0;color:#e78284;cursor:pointer">✕</button></div>`;
+      }).join('');
+      rh += `<div class="lk-ed-round"><b>Umferð ${r + 1}</b> <button data-delround="${r}" style="background:none;border:0;color:#e78284;cursor:pointer;font-size:12px">✕ eyða</button><input value="${esc(e.title)}" placeholder="Titill atburðar" data-r="${r}" data-ef="title" style="width:100%;margin:4px 0"/><input value="${esc(e.text || '')}" placeholder="Lýsing" data-r="${r}" data-ef="text" style="width:100%;margin:4px 0"/><div>Sjokk: <select data-r="${r}" data-ef="shockkey">${shockOpt(Object.keys(e.shocks || {})[0] || '', true)}</select> <input type="number" step="1" value="${Object.values(e.shocks || {})[0] ?? ''}" placeholder="gildi" data-r="${r}" data-ef="shockval" style="width:70px"/></div><div style="margin-top:6px;color:var(--muted)">Viðbrögð:</div>${resp}<button class="lk-btn" data-addresp="${r}" style="font-size:12px;padding:4px 10px;margin-top:4px">+ viðbragð</button></div>`;
+    });
+    root.innerHTML = card('🛠️ Sérsníða leik', '<h3 style="font-size:14px;margin:2px 0">Umboð (markmið)</h3>' + mh + '<h3 style="font-size:14px;margin:10px 0 2px">Umferðir (' + d.scenario.events.length + ')</h3>' + rh + '<button class="lk-btn" id="ed-addround" style="margin-top:6px">+ Bæta umferð</button><div id="ed-err" class="lk-err" style="margin-top:8px"></div><div style="margin-top:14px"><button class="lk-btn" id="ed-create">Búa til leik</button> <button id="ed-back" style="background:none;border:1px solid var(--line,#2a2f3a);color:var(--ink,#e8ecf3);border-radius:8px;padding:9px 16px;cursor:pointer">Til baka</button></div>');
+    attachEditor();
+  }
+  function attachEditor() {
+    const d = S.editDraft;
+    const setRespEff = (r, j) => {
+      const rp = d.scenario.events[r].responses[j];
+      const type = root.querySelector(`select[data-r="${r}"][data-resp="${j}"][data-rf="efftype"]`).value;
+      const keyEl = root.querySelector(`select[data-r="${r}"][data-resp="${j}"][data-rf="effkey"]`);
+      const valEl = root.querySelector(`input[data-r="${r}"][data-resp="${j}"][data-rf="effval"]`);
+      const key = keyEl ? keyEl.value : '', val = valEl && valEl.value !== '' ? +valEl.value : 0;
+      rp.effect = type === 'lever' ? { lever: { [key]: val } } : type === 'shock' ? { shock: { [key]: val } } : {};
+    };
+    root.querySelectorAll('[data-ef]').forEach((el) => el.addEventListener('input', () => {
+      const r = +el.dataset.r, f = el.dataset.ef, e = d.scenario.events[r];
+      if (f === 'title') e.title = el.value; else if (f === 'text') e.text = el.value;
+      else if (f === 'shockval') { const k = Object.keys(e.shocks || {})[0]; if (k) e.shocks[k] = el.value === '' ? 0 : +el.value; }
+    }));
+    root.querySelectorAll('select[data-ef="shockkey"]').forEach((el) => el.addEventListener('change', () => {
+      const r = +el.dataset.r, e = d.scenario.events[r], vi = root.querySelector(`input[data-r="${r}"][data-ef="shockval"]`);
+      e.shocks = el.value ? { [el.value]: vi && vi.value !== '' ? +vi.value : 0 } : {};
+    }));
+    root.querySelectorAll('[data-rf="label"]').forEach((el) => el.addEventListener('input', () => { d.scenario.events[+el.dataset.r].responses[+el.dataset.resp].label = el.value; }));
+    root.querySelectorAll('[data-rf="effval"]').forEach((el) => el.addEventListener('input', () => setRespEff(+el.dataset.r, +el.dataset.resp)));
+    root.querySelectorAll('[data-rf="effkey"]').forEach((el) => el.addEventListener('change', () => setRespEff(+el.dataset.r, +el.dataset.resp)));
+    root.querySelectorAll('[data-rf="efftype"]').forEach((el) => el.addEventListener('change', () => {
+      const rp = d.scenario.events[+el.dataset.r].responses[+el.dataset.resp];
+      rp.effect = el.value === 'none' ? {} : el.value === 'lever' ? { lever: { [model.levers[0].key]: 0 } } : { shock: { [model.shocks[0].key]: 0 } };
+      renderEditor();
+    }));
+    root.querySelectorAll('[data-mk]').forEach((el) => el.addEventListener('input', () => {
+      const k = d.mandate.kpis[+el.dataset.mk], v = el.value === '' ? 0 : +el.value;
+      if (el.dataset.mf === 'band') k.band = v; else if (k.dir === 'target') k.target = v; else if (k.dir === 'max') k.max = v; else k.min = v;
+    }));
+    root.querySelectorAll('[data-delround]').forEach((el) => el.onclick = () => { d.scenario.events.splice(+el.dataset.delround, 1); d.rounds = d.scenario.events.length; renderEditor(); });
+    root.querySelectorAll('[data-addresp]').forEach((el) => el.onclick = () => { const e = d.scenario.events[+el.dataset.addresp]; e.responses.push({ key: 'r' + (e.responses.length + 1), label: '', effect: {} }); renderEditor(); });
+    root.querySelectorAll('[data-delresp]').forEach((el) => el.onclick = () => { d.scenario.events[+el.dataset.r].responses.splice(+el.dataset.delresp, 1); renderEditor(); });
+    const ar = root.querySelector('#ed-addround'); if (ar) ar.onclick = () => { const n = d.scenario.events.length + 1; d.scenario.events.push({ round: n, title: 'Umferð ' + n, text: '', shocks: {}, responses: [{ key: 'r1', label: 'Ekkert', effect: {} }] }); d.rounds = d.scenario.events.length; renderEditor(); };
+    const bk = root.querySelector('#ed-back'); if (bk) bk.onclick = () => { S.view = null; render(); };
+    const cr = root.querySelector('#ed-create'); if (cr) cr.onclick = () => submitEditor();
+  }
+  async function submitEditor() {
+    const d = S.editDraft, errEl = root.querySelector('#ed-err');
+    d.scenario.events.forEach((e, i) => { e.round = i + 1; e.responses.forEach((rp, j) => { rp.key = 'r' + (j + 1); }); });
+    d.rounds = d.scenario.events.length;
+    const errs = [];
+    if (d.rounds < 1) errs.push('a.m.k. 1 umferð');
+    d.scenario.events.forEach((e, i) => { if (!e.title.trim()) errs.push('Umferð ' + (i + 1) + ': titil vantar'); if (!e.responses.length) errs.push('Umferð ' + (i + 1) + ': a.m.k. 1 viðbragð'); e.responses.forEach((rp, j) => { if (!rp.label.trim()) errs.push('Umferð ' + (i + 1) + ' viðbragð ' + (j + 1) + ': heiti vantar'); }); });
+    if (errs.length) { errEl.innerHTML = errs.map(esc).join('<br>'); return; }
+    errEl.textContent = 'Bý til leik…';
+    const { status, json } = await api('/create', { method: 'POST', body: { scenario: d.scenario, mandate: d.mandate, rounds: d.rounds } });
+    if (status !== 200 || !json.code) { errEl.innerHTML = (json.errors ? json.errors.map(esc).join('<br>') : 'Villa við að búa til leik.'); return; }
+    localStorage.setItem(lsFac(json.code), json.facToken);
+    location.href = '/leikur/?g=' + json.code;
+  }
 
   // ── Ræsing ──
   if (S.code && S.token) startPoll();
