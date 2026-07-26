@@ -2550,7 +2550,7 @@ const _kycWatchCap = (u, now) => (u.is_admin === 1 ? -1 : (u.tier === 'fyrirtaek
 
 async function _kycSnapshotWrite(env, kt, states, ts) {
   const stmts = [];
-  const p = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO UPDATE SET state_hash=excluded.state_hash, state_json=excluded.state_json, computed_at=excluded.computed_at');
+  const p = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO NOTHING');
   for (const sig of KYC_SIGNALS) { const st = states[sig] || {}; const j = kycCanon(st); stmts.push(p.bind(kt, sig, kycHash(j), j, ts)); }
   for (let i = 0; i < stmts.length; i += 40) await env.TENGSL.batch(stmts.slice(i, i + 40)).catch(() => {});
 }
@@ -2567,7 +2567,7 @@ async function kycHandler(request, env, ctx) {
   if (path === '/watch') {
     if (request.method === 'GET') {
       const rows = (await env.TENGSL.prepare(
-        "SELECT w.kt,w.nafn,w.risk,w.status,w.reviewed_at, (SELECT COUNT(*) FROM kyc_ack a JOIN kyc_event e ON e.id=a.event_id WHERE a.owner_id=w.owner_id AND e.kt=w.kt AND a.status='open') AS opnar " +
+        "SELECT w.kt,w.nafn,w.risk,w.status,w.reviewed_at, (SELECT COUNT(*) FROM kyc_event e WHERE e.kt=w.kt AND NOT EXISTS (SELECT 1 FROM kyc_ack a WHERE a.owner_id=w.owner_id AND a.event_id=e.id AND a.status IN ('resolved','dismissed'))) AS opnar " +
         "FROM kyc_watch w WHERE w.owner_id=? AND w.status='active' ORDER BY w.added_at DESC").bind(uid).all().catch(() => ({ results: [] }))).results || [];
       return _ajson({ ok: true, cap: _kycWatchCap(u, now), watch: rows });
     }
@@ -2614,6 +2614,8 @@ async function kycHandler(request, env, ctx) {
   if (request.method === 'POST' && path === '/risk') {
     const kt = String(body.kt || '').replace(/\D/g, ''); const risk = String(body.risk || ''); const reason = String(body.reason || '').slice(0, 500);
     if (!['Lág', 'Venjuleg', 'Há'].includes(risk)) return _ajson({ ok: false, error: 'risk' });
+    const w = await env.TENGSL.prepare("SELECT 1 FROM kyc_watch WHERE owner_id=? AND kt=? AND status='active'").bind(uid, kt).first().catch(() => null);
+    if (!w) return _ajson({ ok: false, error: 'notwatched' });
     await env.TENGSL.prepare('UPDATE kyc_watch SET risk=?, risk_reason=?, reviewed_at=? WHERE owner_id=? AND kt=?').bind(risk, reason, now, uid, kt).run().catch(() => {});
     await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(uid, kt, now, u.email || String(uid), 'risk_set', 'Áhætturating: ' + risk, JSON.stringify({ risk, reason })).run().catch(() => {});
     return _ajson({ ok: true });
@@ -2630,17 +2632,20 @@ async function kycHandler(request, env, ctx) {
   if (request.method === 'POST' && path === '/note') {
     const kt = String(body.kt || '').replace(/\D/g, ''); const note = String(body.note || '').slice(0, 1000);
     if (!note) return _ajson({ ok: false, error: 'empty' });
+    const w = await env.TENGSL.prepare("SELECT 1 FROM kyc_watch WHERE owner_id=? AND kt=? AND status='active'").bind(uid, kt).first().catch(() => null);
+    if (!w) return _ajson({ ok: false, error: 'notwatched' });
     await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(uid, kt, now, u.email || String(uid), 'note', note, '{}').run().catch(() => {});
     return _ajson({ ok: true });
   }
   if (request.method === 'POST' && path === '/rescreen') {
     const kt = String(body.kt || '').replace(/\D/g, '');
-    const states = await kycScreenKt(env, kt);
-    await _kycSnapshotWrite(env, kt, states, now); // athugið: rescreen uppfærir grunnlínu (handvirk endurskoðun, ekki cron-diff)
-    const risk = kycDeriveRisk(states);
+    const w = await env.TENGSL.prepare("SELECT 1 FROM kyc_watch WHERE owner_id=? AND kt=? AND status='active'").bind(uid, kt).first().catch(() => null);
+    if (!w) return _ajson({ ok: false, error: 'notwatched' });
+    const res = await _kycRunDiff(env, kt, null);
+    await _kycAfterEvents(env, kt, res, true);
     await env.TENGSL.prepare('UPDATE kyc_watch SET reviewed_at=? WHERE owner_id=? AND kt=?').bind(now, uid, kt).run().catch(() => {});
-    await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(uid, kt, now, u.email || String(uid), 'screening', 'Handvirk endurskimun', JSON.stringify({ risk, sanctions: states.sanctions.hits.length, pep: states.pep.matches.length })).run().catch(() => {});
-    return _ajson({ ok: true, risk });
+    await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(uid, kt, now, u.email || String(uid), 'screening', 'Handvirk endurskimun', JSON.stringify({ risk: res.risk, changes: res.newEvents.length })).run().catch(() => {});
+    return _ajson({ ok: true, risk: res.risk, changes: res.newEvents.length });
   }
   return _ajson({ ok: false, error: 'notfound' });
 }
@@ -2678,10 +2683,8 @@ async function _kycAfterEvents(env, kt, res, critical) {
     }
     for (let i = 0; i < stmts.length; i += 40) await env.TENGSL.batch(stmts.slice(i, i + 40)).catch(() => {});
     // opnar viðvaranir eru sóttar úr kyc_event↔kyc_ack (default 'open'); kritísk merki senda strax póst.
-    if (critical) {
       const crit = res.newEvents.filter((e) => e.severity === 'critical');
       if (crit.length) { const em = (await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(oid).first().catch(() => null))?.email; if (em) await kycSendAlert(env, em, kt, crit).catch(() => {}); }
-    }
   }
 }
 async function kycDiffCron(env) {
