@@ -1,0 +1,64 @@
+{
+ "kt": "4801100800",
+ "nafn": "21 ehf",
+ "sott": "2026-07-23",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4801100800",
+    "kt": "4801100800",
+    "nafn": "21 ehf",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Guðmundur Reynir Gunnarsson",
+    "tegund": "einst",
+    "faeding": "1989-JANÚAR"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4801100800",
+    "hlutur": 100,
+    "band": "51",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Guðmundur Reynir Gunnarsson",
+   "kt": null,
+   "faeding": "1989-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 100,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Guðmundur Reynir Gunnarsson",
+   "faeding": "1989-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "100%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2023"
+}

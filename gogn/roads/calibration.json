@@ -1,23 +1,23 @@
 {
- "updated": "2026-06",
+ "updated": "2026-07",
  "method": "OLS á ársfjórðungslegum raun-röðum (Seðlabanki CPI/vextir, VMST atvinnuleysi, Þjóðskrá fasteignaverð, Hagstofa laun)",
  "note": "Til hliðsjónar/grundunar — ekki full kerfis-kvörðun (einstök jöfnu-aðhvörf, mögulegar innbyrðis-tengingar). Grundar óvissu-bönd (ci) og sýnir handsett vs metið.",
  "regressions": [
   {
    "id": "infl_persist",
    "label": "Verðbólgu-tregða (AR1, ársfj.)",
-   "coef": 0.918,
+   "coef": 0.919,
    "se": 0.045,
-   "t": 20.44,
+   "t": 20.64,
    "ci": [
-    0.83,
+    0.832,
     1.006
    ],
    "r2": 0.87,
-   "n": 65,
+   "n": 66,
    "span": [
     "2010.1",
-    "2026.2"
+    "2026.3"
    ],
    "modelId": "infl_persist",
    "modelCoef": 0.5,
@@ -28,14 +28,14 @@
   {
    "id": "r_hbs",
    "label": "Vextir → húsnæði höfuðb. (semi-teygni, töf 2 ár)",
-   "coef": -1.097,
+   "coef": -1.1,
    "se": 0.427,
    "t": -2.57,
    "ci": [
-    -1.935,
-    -0.26
+    -1.938,
+    -0.262
    ],
-   "r2": 0.14,
+   "r2": 0.15,
    "n": 41,
    "span": [
     "2011.1",
@@ -50,12 +50,12 @@
   {
    "id": "r_land",
    "label": "Vextir → húsnæði landsb. (semi-teygni, töf 2 ár)",
-   "coef": -1.583,
-   "se": 0.41,
-   "t": -3.87,
+   "coef": -1.623,
+   "se": 0.412,
+   "t": -3.94,
    "ci": [
-    -2.386,
-    -0.781
+    -2.431,
+    -0.815
    ],
    "r2": 0.28,
    "n": 41,
@@ -83,7 +83,7 @@
    "n": 66,
    "span": [
     "2010.1",
-    "2026.2"
+    "2026.3"
    ],
    "modelId": null,
    "modelCoef": null,

@@ -1,0 +1,64 @@
+{
+ "kt": "6309212010",
+ "nafn": "Skeljungur ehf.",
+ "sott": "2026-07-23",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 2,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt6309212010",
+    "kt": "6309212010",
+    "nafn": "Skeljungur ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Ásmundur Tryggvason",
+    "tegund": "einst",
+    "faeding": "1975-JANÚAR"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt6309212010",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Ásmundur Tryggvason",
+   "kt": null,
+   "faeding": "1975-JANÚAR",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Ásmundur Tryggvason",
+   "faeding": "1975-JANÚAR",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
