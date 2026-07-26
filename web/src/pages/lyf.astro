@@ -11,7 +11,8 @@ import { groupThousands, lyfUrlSlug } from '@lib/format.mjs';
 
 const { updated, count, priced, shortageCount, atc } = LYF;
 const pricedPct = count ? Math.round((priced / count) * 100) : 0;
-const shortageList = LYF.lyf.filter((r) => r.shortage);
+// Sjálfgefið: ÖLL lyf í stafrófsröð (fyrstu 120 forþjónuð). Lyfjaskortur er SÍA (chip), ekki sjálfgefin sýn.
+const defaultList = [...LYF.lyf].sort((a, b) => a.name.localeCompare(b.name, 'is')).slice(0, 120);
 // ATC efsta-stigs heiti (Q = dýralyf skv. ATC-vet); síðan á heitin svo þau séu rétt óháð gögnum.
 const ATC1 = { A: 'Meltingarfæri og efnaskipti', B: 'Blóð og blóðmyndandi líffæri', C: 'Hjarta og æðakerfi', D: 'Húðlyf', G: 'Þvagfæri, kynfæri og kynhormón', H: 'Hormón (ekki kyn-)', J: 'Sýkingalyf', L: 'Æxlishemjandi og ónæmislyf', M: 'Stoðkerfi', N: 'Taugakerfi', P: 'Sníkjudýralyf', Q: 'Dýralyf (ATC-vet)', R: 'Öndunarfæri', S: 'Skynfæri', V: 'Ýmislegt' };
 const atcRows = Object.entries(atc).sort((a, b) => a[0].localeCompare(b[0]));
@@ -45,15 +46,15 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       </div>
     </div>
 
-    <div id="lyf-count" class="count">Í skorti núna: <b>{shortageCount}</b> lyf</div>
+    <div id="lyf-count" class="count"><b>{groupThousands(count)}</b> markaðssett lyf — sýni fyrstu 120, leitaðu eða síaðu til að þrengja</div>
     <div id="lyf-results">
-      {shortageList.map((r) => (
-        <article class="card is-sk">
+      {defaultList.map((r) => (
+        <article class={`card${r.shortage ? ' is-sk' : ''}`}>
           <div class="c-h">
             <div class="c-t"><a href={`/lyf/${lyfUrlSlug(r.slug)}/`}>{r.name}</a> {r.strength && <span class="c-str">{r.strength}</span>}</div>
             {r.atc.code && <span class="atc" title={r.atc.name}>{r.atc.code}</span>}
           </div>
-          <div class="c-badges"><span class="bd sk">Lyfjaskortur</span>{r.vet && <span class="bd vt">Dýralyf</span>}</div>
+          <div class="c-badges">{r.shortage && <span class="bd sk">Lyfjaskortur</span>}{r.vet && <span class="bd vt">Dýralyf</span>}{r.narcotic && <span class="bd nc">Ávana/fíkn</span>}</div>
           <div class="c-m">{r.form}{r.holder && <span> · {r.holder}</span>}</div>
           {r.ingredients && r.ingredients.length > 0 && <div class="c-i">{r.ingredients.join(', ')}</div>}
           <div class="c-f"><a href={`https://serlyfjaskra.is/lyf/${r.slug}`} target="_blank" rel="noopener">Nánar á serlyfjaskra.is ↗</a></div>
@@ -183,10 +184,11 @@ const desc = `Uppfletting í sérlyfjaskrá Lyfjastofnunar: ${count} markaðsset
       lyfData().then((d) => {
         if (!d) { resEl.innerHTML = '<div class="empty">Lyfjaskráin svarar ekki í augnablikinu.</div>'; return; }
         const def = !st.q && !st.shortage && !st.rx && !st.vet && !st.atc;
-        const list = def ? d.lyf.filter((r) => r.shortage) : d.lyf.filter(matchLyf);
+        // Sjálfgefið: ÖLL lyf í stafrófsröð (skortur er sía, ekki sjálfgefið). Annars: síað skv. matchLyf.
+        const list = def ? d.lyf.slice().sort((a, b) => a.name.localeCompare(b.name, 'is')) : d.lyf.filter(matchLyf);
         const shown = list.slice(0, 120);
         countEl.innerHTML = def
-          ? `Í skorti núna: <b>${list.length}</b> lyf — leitaðu til að sjá öll ${gt(d.count)}`
+          ? `<b>${gt(d.count)}</b> markaðssett lyf — sýni fyrstu 120, leitaðu eða síaðu til að þrengja`
           : `Fann <b>${list.length}</b> lyf${list.length > 120 ? ' — sýni fyrstu 120' : ''}`;
         resEl.innerHTML = shown.map(cardLyf).join('') || '<div class="empty">Ekkert lyf passar við leitina.</div>';
       });
