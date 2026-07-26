@@ -16,6 +16,19 @@ import Layout from '../layouts/Layout.astro';
       <table class="kv-tbl"><thead><tr><th>Viðskiptavinur</th><th>Áhætta</th><th>Opnar viðv.</th><th>Síðast skimað</th><th></th></tr></thead><tbody id="kv-rows"></tbody></table>
       <p id="kv-empty" class="kv-empty" hidden>Engir viðskiptavinir í vöktun enn — bættu við kennitölu að ofan.</p>
     </section>
+
+    <section id="kv-file" hidden>
+      <p><a href="/areidanleikavaktin/">← Til baka í yfirlit</a></p>
+      <div class="kv-file-h"><div><h2 id="kf-nafn"></h2><small id="kf-kt" style="color:var(--faint)"></small></div>
+        <div class="kf-actions"><button id="kf-rescreen">Skima aftur</button><button id="kf-print">Prenta / PDF</button></div></div>
+      <div class="kf-risk">Áhætta: <select id="kf-risk"><option>Lág</option><option>Venjuleg</option><option>Há</option></select>
+        <input id="kf-reason" placeholder="rökstuðningur (valfrjálst)" /><button id="kf-risk-save">Vista</button></div>
+      <h3>Opnar viðvaranir</h3><div id="kf-events"></div>
+      <h3>Núverandi skimun</h3><div id="kf-states"></div>
+      <h3>Atburðaskrá (audit)</h3><div class="kf-note"><input id="kf-note" placeholder="Bæta athugasemd…" /><button id="kf-note-save">Skrá</button></div>
+      <ol id="kf-audit" class="kf-audit"></ol>
+      <p class="pep-note">ⓘ Innlend PEP + opinberir refsilistar (OFAC/UN/EU). Erlendir PEP-ar takmarkaðir.</p>
+    </section>
   </main>
 
   <style>
@@ -36,6 +49,20 @@ import Layout from '../layouts/Layout.astro';
     .kv-empty { color: var(--muted); margin-top: 14px; }
     .kv-rm { background: none; border: 0; color: var(--faint); cursor: pointer; }
     .kv-open { background: #ff6d7a; color: #1a1205; border-radius: 999px; padding: 1px 8px; font-weight: 700; font-size: 12px; }
+
+    .kv-file-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .kf-actions button, .kf-risk button, .kf-note button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+    .kf-risk, .kf-note { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .kf-risk select, .kf-risk input, .kf-note input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+    .kf-ev { border-left: 3px solid #ff6d7a; padding: 6px 10px; margin: 6px 0; background: rgba(255,109,122,.08); border-radius: 0 6px 6px 0; }
+    .kf-ev.sev-info { border-color: #7e8ca6; background: rgba(255,255,255,.04); } .kf-ev.sev-high { border-color: #f6b13b; }
+    .kf-audit { font-size: 13px; color: var(--muted); padding-left: 18px; } .kf-audit li { margin: 4px 0; }
+    @media print {
+      body * { visibility: hidden; }
+      #kv-file, #kv-file * { visibility: visible; }
+      #kv-file { position: absolute; left: 0; top: 0; width: 100%; }
+      .kf-actions, .kf-risk button, .kf-note, #kf-risk, .kv-rm { display: none !important; }
+    }
   </style>
 
   <script>
@@ -58,8 +85,29 @@ import Layout from '../layouts/Layout.astro';
       $('#kv-rows').innerHTML = (d.watch || []).map(row).join('');
       $('#kv-empty').hidden = (d.watch || []).length > 0;
     }
+    const kSev = (s) => 'sev-' + s;
+    async function openFile(kt) {
+      $('#kv-app').hidden = true; $('#kv-file').hidden = false;
+      const d = await api('/file?kt=' + kt); if (!d.ok) { $('#kv-file').innerHTML = '<p>Fannst ekki.</p>'; return; }
+      $('#kf-nafn').textContent = d.watch.nafn || kt; $('#kf-kt').textContent = kt;
+      $('#kf-risk').value = d.watch.risk || 'Lág'; $('#kf-reason').value = d.watch.risk_reason || '';
+      const open = (d.events || []).filter((e) => e.ack === 'open');
+      $('#kf-events').innerHTML = open.length ? open.map((e) => `<div class="kf-ev ${kSev(e.severity)}"><b>${e.kind}</b> — ${new Date(e.detected_at*1000).toLocaleDateString('is-IS')} <button class="kf-ack" data-id="${e.id}">✓ Ljúka</button></div>`).join('') : '<p style="color:var(--muted)">Engar opnar viðvaranir.</p>';
+      const st = d.states || {};
+      $('#kf-states').innerHTML = `<ul><li>Refsilistar: <b>${(st.sanctions?.hits||[]).length}</b></li><li>PEP: <b>${(st.pep?.matches||[]).length}</b></li>`
+        + `<li>Gjaldþrot: <b>${st.status?.gjaldthrot ? 'JÁ' : 'nei'}</b></li><li>Endanlegir eigendur: <b>${(st.ubo?.owners||[]).length}</b></li>`
+        + `<li>Stjórn: <b>${(st.board?.members||[]).length}</b></li><li>Lögbirtingar: <b>${(st.legal?.notices||[]).length}</b></li></ul>`;
+      $('#kf-audit').innerHTML = (d.audit || []).map((a) => `<li>${new Date(a.ts*1000).toLocaleString('is-IS')} — <b>${a.action}</b>: ${a.summary || ''} <small>(${a.actor})</small></li>`).join('');
+      $('#kf-print').onclick = () => window.print();
+      $('#kf-rescreen').onclick = async () => { await api('/rescreen', { method: 'POST', body: JSON.stringify({ kt }) }); openFile(kt); };
+      $('#kf-risk-save').onclick = async () => { await api('/risk', { method: 'POST', body: JSON.stringify({ kt, risk: $('#kf-risk').value, reason: $('#kf-reason').value }) }); openFile(kt); };
+      $('#kf-note-save').onclick = async () => { const n = $('#kf-note').value.trim(); if (!n) return; await api('/note', { method: 'POST', body: JSON.stringify({ kt, note: n }) }); $('#kf-note').value=''; openFile(kt); };
+      $('#kf-events').onclick = async (e) => { const b = e.target.closest('.kf-ack'); if (!b) return; await api('/ack', { method: 'POST', body: JSON.stringify({ event_id: +b.dataset.id, status: 'resolved' }) }); openFile(kt); };
+    }
     async function boot() {
       if (!hasTier(3)) { $('#kv-gate').hidden = false; return; }
+      const qkt = new URLSearchParams(location.search).get('kt');
+      if (qkt) { await openFile(qkt.replace(/\D/g, '')); return; }
       await load();
       $('#kv-add').addEventListener('submit', async (e) => {
         e.preventDefault(); const kt = ($('#kv-kt').value || '').replace(/\D/g, ''); const msg = $('#kv-msg');
