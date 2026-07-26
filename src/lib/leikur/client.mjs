@@ -77,10 +77,12 @@ function renderFacAnalytics(an) {
   const order = an.trajectories.cumulative.map((s) => s.teamId);
   const colorOf = (teamId) => LK_PAL[((order.indexOf(teamId) % LK_PAL.length) + LK_PAL.length) % LK_PAL.length];
   const scoreCol = (v) => v == null ? '#9fb0c8' : v >= 80 ? '#54d08a' : v >= 40 ? '#e8c14a' : '#e78284';
+  const hasRole = an.scorecard.some((r) => r.role);
   const kpiCols = an.scorecard[0].perKpi.map((p) => p.label);
-  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th></tr>';
+  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + (hasRole ? '<th>Hlutverk</th>' : '') + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th></tr>';
   an.scorecard.forEach((row) => {
     sc += '<tr><td><span class="lk-swatch" style="background:' + colorOf(row.teamId) + '"></span>' + esc(row.name) + '</td>'
+      + (hasRole ? '<td style="font-size:12px">' + esc(row.role || '–') + '</td>' : '')
       + row.perKpi.map((p) => '<td style="color:' + scoreCol(p.score) + ';font-weight:600">' + (p.score == null ? '–' : p.score) + '</td>').join('')
       + '<td><b>' + num(row.cumulative) + '</b></td></tr>';
   });
@@ -98,7 +100,7 @@ function renderFacAnalytics(an) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -127,7 +129,8 @@ export function mountLeikur(root) {
 
   // ── Aðgerðir ──
   async function createGame() {
-    const { json } = await api('/create', { method: 'POST', body: {} });
+    const roles = !!(root.querySelector('#lk-roles') && root.querySelector('#lk-roles').checked);
+    const { json } = await api('/create', { method: 'POST', body: roles ? { roles: true } : {} });
     if (!json.code) return;
     localStorage.setItem(lsFac(json.code), json.facToken);
     location.href = '/leikur/?g=' + json.code;
@@ -149,9 +152,13 @@ export function mountLeikur(root) {
     return '<div class="lk-card"><h2>🏆 Stigatafla</h2>' + (rows || '<p>Engin lið enn.</p>') + '</div>';
   }
   function mandateCard(st) {
-    const rows = st.mandate.kpis.map((k) => '<div class="lk-lb-row"><span>' + esc(k.label) + '</span><span>' + (k.dir === 'target' ? 'markmið ' + num(k.target) : k.dir === 'max' ? '≤ ' + num(k.max) : '≥ ' + num(k.min)) + '</span></div>').join('');
+    const rows = st.mandate.kpis.map((k) => '<div class="lk-lb-row"><span>' + esc(k.label) + (k.weight && k.weight !== 1 ? ' <span class="lk-kpi-w">×' + k.weight + '</span>' : '') + '</span><span>' + (k.dir === 'target' ? 'markmið ' + num(k.target) : k.dir === 'max' ? '≤ ' + num(k.max) : '≥ ' + num(k.min)) + '</span></div>').join('');
     return '<div class="lk-card"><h2>🎯 Umboð</h2><p>Náðu markmiðunum — þau eru í togstreitu.</p>' + rows + '</div>';
   }
+  // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
+  function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
+  function roleMapCard(st) { if (!st.roleMap || !st.roleMap.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Hlutverk liða (leynileg)</h2>' + st.roleMap.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span>' + esc(r.label) + '</span></div>').join('') + '</div>'; }
+  function revealCard(st) { if (!st.rolesReveal || !st.rolesReveal.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Umboð afhjúpuð</h2>' + st.rolesReveal.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span><b>' + esc(r.label) + '</b></span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px">' + esc(r.blurb) + '</div>').join('') + '</div>'; }
 
   function render() {
     if (!S.code) { if (S.view === 'editor') return renderEditor(); return renderLanding(); }
@@ -164,7 +171,7 @@ export function mountLeikur(root) {
   function renderLanding() {
     root.innerHTML =
       '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>' +
-      '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button></div>' +
+      '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label></div>' +
       '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
     root.querySelector('#lk-create').onclick = () => createGame();
     root.querySelector('#lk-createcustom').onclick = () => { S.view = 'editor'; render(); };
@@ -186,6 +193,7 @@ export function mountLeikur(root) {
       '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila:</p><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div></div>' +
       (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
       '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
+      roleMapCard(st) +
       '<div class="lk-card">' + controls + '</div>' +
       leaderboard(st) +
       (st.analytics ? card('📈 Greining (leikstjóri)', renderFacAnalytics(st.analytics)) : '');
@@ -195,7 +203,7 @@ export function mountLeikur(root) {
 
   function renderTeam(st) {
     if (st.phase === 'lobby') { root.innerHTML = card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
-    if (st.phase === 'ended') { root.innerHTML = card('🏁 Leik lokið', '<p>Takk fyrir leikinn!</p>') + leaderboard(st); return; }
+    if (st.phase === 'ended') { root.innerHTML = card('🏁 Leik lokið', '<p>Takk fyrir leikinn!</p>') + revealCard(st) + leaderboard(st); return; }
     if (st.phase === 'resolved') return renderTeamResults(st);
 
     // decide-fasi: atburður + 5 ákvarðanir
@@ -207,6 +215,7 @@ export function mountLeikur(root) {
     }).join('');
     const ready = st.decisions.every((d) => S.draft[d.id] != null);
     root.innerHTML =
+      roleBanner(st) +
       card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>') +
       '<div class="lk-card"><h2>Ákvarðanir liðsins</h2>' + decHtml +
       '<button class="lk-btn" id="lk-lock"' + (ready ? '' : ' disabled') + ' style="margin-top:10px">Læsa ákvörðunum</button>' +
@@ -229,13 +238,13 @@ export function mountLeikur(root) {
         + (mine.detail.crisis ? '<p style="color:#e78284;font-weight:700;margin-top:8px">⚠ Kreppa — stig skert.</p>' : '');
     }
     const chainHtml = (mine && mine.detail && mine.detail.chain) ? renderChain(mine.detail.chain) : '';
-    root.innerHTML = card('📊 Skorkort — umferð ' + st.round, scorecard)
+    root.innerHTML = roleBanner(st) + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + (chainHtml ? card('🔗 Orsaka-keðja ákvarðana ykkar', chainHtml) : '')
       + leaderboard(st)
       + '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næstu umferð…</p></div>';
   }
 
-  function renderWatch(st) { root.innerHTML = card('👀 Áhorf — leikur ' + esc(st.code), '<p>Umferð ' + (st.round || 0) + ' · ' + esc(st.phase) + '</p>') + leaderboard(st); }
+  function renderWatch(st) { root.innerHTML = card('👀 Áhorf — leikur ' + esc(st.code), '<p>Umferð ' + (st.round || 0) + ' · ' + esc(st.phase) + '</p>') + leaderboard(st) + revealCard(st); }
 
   // ── Sviðsmynda-/umboðs-ritill (S4) ──
   function renderEditor() {
@@ -261,7 +270,7 @@ export function mountLeikur(root) {
       }).join('');
       rh += `<div class="lk-ed-round"><b>Umferð ${r + 1}</b> <button data-delround="${r}" style="background:none;border:0;color:#e78284;cursor:pointer;font-size:12px">✕ eyða</button><input value="${esc(e.title)}" placeholder="Titill atburðar" data-r="${r}" data-ef="title" style="width:100%;margin:4px 0"/><input value="${esc(e.text || '')}" placeholder="Lýsing" data-r="${r}" data-ef="text" style="width:100%;margin:4px 0"/><div>Sjokk: <select data-r="${r}" data-ef="shockkey">${shockOpt(Object.keys(e.shocks || {})[0] || '', true)}</select> <input type="number" step="1" value="${Object.values(e.shocks || {})[0] ?? ''}" placeholder="gildi" data-r="${r}" data-ef="shockval" style="width:70px"/></div><div style="margin-top:6px;color:var(--muted)">Viðbrögð:</div>${resp}<button class="lk-btn" data-addresp="${r}" style="font-size:12px;padding:4px 10px;margin-top:4px">+ viðbragð</button></div>`;
     });
-    root.innerHTML = card('🛠️ Sérsníða leik', '<h3 style="font-size:14px;margin:2px 0">Umboð (markmið)</h3>' + mh + '<h3 style="font-size:14px;margin:10px 0 2px">Umferðir (' + d.scenario.events.length + ')</h3>' + rh + '<button class="lk-btn" id="ed-addround" style="margin-top:6px">+ Bæta umferð</button><div id="ed-err" class="lk-err" style="margin-top:8px"></div><div style="margin-top:14px"><button class="lk-btn" id="ed-create">Búa til leik</button> <button id="ed-back" style="background:none;border:1px solid var(--line,#2a2f3a);color:var(--ink,#e8ecf3);border-radius:8px;padding:9px 16px;cursor:pointer">Til baka</button></div>');
+    root.innerHTML = card('🛠️ Sérsníða leik', '<h3 style="font-size:14px;margin:2px 0">Umboð (markmið)</h3>' + mh + '<h3 style="font-size:14px;margin:10px 0 2px">Umferðir (' + d.scenario.events.length + ')</h3>' + rh + '<button class="lk-btn" id="ed-addround" style="margin-top:6px">+ Bæta umferð</button><div id="ed-err" class="lk-err" style="margin-top:8px"></div><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="ed-roles"' + (S.editRoles ? ' checked' : '') + ' style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð</label><div style="margin-top:14px"><button class="lk-btn" id="ed-create">Búa til leik</button> <button id="ed-back" style="background:none;border:1px solid var(--line,#2a2f3a);color:var(--ink,#e8ecf3);border-radius:8px;padding:9px 16px;cursor:pointer">Til baka</button></div>');
     attachEditor();
   }
   function attachEditor() {
@@ -300,6 +309,7 @@ export function mountLeikur(root) {
     root.querySelectorAll('[data-delresp]').forEach((el) => el.onclick = () => { d.scenario.events[+el.dataset.r].responses.splice(+el.dataset.delresp, 1); renderEditor(); });
     const ar = root.querySelector('#ed-addround'); if (ar) ar.onclick = () => { const n = d.scenario.events.length + 1; d.scenario.events.push({ round: n, title: 'Umferð ' + n, text: '', shocks: {}, responses: [{ key: 'r1', label: 'Ekkert', effect: {} }] }); d.rounds = d.scenario.events.length; renderEditor(); };
     const bk = root.querySelector('#ed-back'); if (bk) bk.onclick = () => { S.view = null; render(); };
+    const rolesEl = root.querySelector('#ed-roles'); if (rolesEl) rolesEl.onchange = () => { S.editRoles = rolesEl.checked; };
     const cr = root.querySelector('#ed-create'); if (cr) cr.onclick = () => submitEditor();
   }
   async function submitEditor() {
@@ -311,7 +321,7 @@ export function mountLeikur(root) {
     d.scenario.events.forEach((e, i) => { if (!e.title.trim()) errs.push('Umferð ' + (i + 1) + ': titil vantar'); if (!e.responses.length) errs.push('Umferð ' + (i + 1) + ': a.m.k. 1 viðbragð'); e.responses.forEach((rp, j) => { if (!rp.label.trim()) errs.push('Umferð ' + (i + 1) + ' viðbragð ' + (j + 1) + ': heiti vantar'); }); });
     if (errs.length) { errEl.innerHTML = errs.map(esc).join('<br>'); return; }
     errEl.textContent = 'Bý til leik…';
-    const { status, json } = await api('/create', { method: 'POST', body: { scenario: d.scenario, mandate: d.mandate, rounds: d.rounds } });
+    const { status, json } = await api('/create', { method: 'POST', body: { scenario: d.scenario, mandate: d.mandate, rounds: d.rounds, ...(S.editRoles ? { roles: true } : {}) } });
     if (status !== 200 || !json.code) { errEl.innerHTML = (json.errors ? json.errors.map(esc).join('<br>') : 'Villa við að búa til leik.'); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
     location.href = '/leikur/?g=' + json.code;

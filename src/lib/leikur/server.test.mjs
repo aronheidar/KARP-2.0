@@ -10,6 +10,7 @@ function mockD1() {
     if (s.startsWith('CREATE TABLE') || s.startsWith('CREATE INDEX')) return { meta: {} };
     if (s.startsWith('INSERT INTO leikur_games')) { t.leikur_games.push({ code: args[0], config: args[1], phase: args[2], current_round: args[3], created: args[4] }); return { meta: {} }; }
     if (s.startsWith('INSERT INTO leikur_teams')) { const id = auto++; t.leikur_teams.push({ id, game_code: args[0], name: args[1], joined: args[2] }); return { meta: { last_row_id: id } }; }
+    if (s.startsWith('UPDATE leikur_games SET config')) { const g = t.leikur_games.find((x) => x.code === args[3]); if (g) { g.config = args[0]; g.phase = args[1]; g.current_round = args[2]; } return { meta: {} }; }
     if (s.startsWith('UPDATE leikur_games SET phase')) { const g = t.leikur_games.find((x) => x.code === args[args.length - 1]); if (g) { g.phase = args[0]; if (args.length === 3) g.current_round = args[1]; } return { meta: {} }; }
     if (s.startsWith('INSERT INTO leikur_decisions') || s.startsWith('INSERT OR REPLACE INTO leikur_decisions')) {
       const key = args[0] + '|' + args[1] + '|' + args[2]; const i = t.leikur_decisions.findIndex((x) => x.game_code + '|' + x.round + '|' + x.team_id === key);
@@ -97,6 +98,39 @@ const J = async (res) => JSON.parse(await res.text());
   await ctrl('resolve');
   const st3 = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + cr.facToken } }), env));
   ok('resolve idempotent', st3.teams.map((t) => t.cumulative).join(',') === before);
+
+  // Task S5: leynileg hlutverk (roles) — 1-umferðar custom roles-leik svo hægt sé að ná ended
+  const rolesBody = { roles: true, rounds: 1, mandate: JSON.parse(JSON.stringify(MANDATE)),
+    scenario: { id: 'r', events: [ { round: 1, title: 'T', text: '', shocks: {}, responses: [{ key: 'a', label: 'A', effect: {} }] } ] } };
+  const rc = await J(await leikurHandler(req('/api/leikur/create', rolesBody), env));
+  ok('roles create → code', !!rc.code);
+  const rj1 = await J(await leikurHandler(req('/api/leikur/' + rc.code + '/join', { name: 'A' }), env));
+  const rj2 = await J(await leikurHandler(req('/api/leikur/' + rc.code + '/join', { name: 'B' }), env));
+  const rFacHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + rc.facToken };
+  const rState = (tok) => leikurHandler(new Request('https://karp.is/api/leikur/' + rc.code + '/state', { headers: { authorization: 'Bearer ' + tok } }), env);
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + rc.code + '/control', { method: 'POST', headers: rFacHdr, body: JSON.stringify({ action: 'start' }) }), env);
+  const rFacState = await J(await rState(rc.facToken));
+  ok('fac /state hefur roleMap (2 lið)', Array.isArray(rFacState.roleMap) && rFacState.roleMap.length === 2);
+  const rTeamState = await J(await rState(rj1.teamToken));
+  ok('lið /state hefur role', !!(rTeamState.role && rTeamState.role.label));
+  ok('lið /state hefur EKKI roleMap (leynd)', !rTeamState.roleMap);
+  ok('lið /state umboð með weight-svið', rTeamState.mandate.kpis.some((k) => k.weight != null));
+  const rDec = (tok) => leikurHandler(new Request('https://karp.is/api/leikur/' + rc.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: 1, locked: true, decisions: { peningastefna: 'obreytt', utgjold: 'obreytt', skattar: 'obreytt', fjarfesting: 'engin', vidbragd: 'a' } }) }), env);
+  await rDec(rj1.teamToken); await rDec(rj2.teamToken);
+  const rCtrl = (a) => leikurHandler(new Request('https://karp.is/api/leikur/' + rc.code + '/control', { method: 'POST', headers: rFacHdr, body: JSON.stringify({ action: a }) }), env);
+  await rCtrl('resolve');
+  ok('roles: bæði lið skoruð', (await J(await rState(rc.facToken))).teams.every((t) => typeof t.cumulative === 'number'));
+  const rEnd = await J(await rCtrl('next'));
+  ok('next umfram rounds → ended', rEnd.phase === 'ended');
+  const rReveal = await J(await rState(rj1.teamToken));
+  ok('lið /state við ended hefur rolesReveal (2)', Array.isArray(rReveal.rolesReveal) && rReveal.rolesReveal.length === 2);
+  ok('rolesReveal hefur label+blurb', !!(rReveal.rolesReveal[0].label) && typeof rReveal.rolesReveal[0].blurb === 'string');
+  // klassískur leikur (roles off) → engin ný svið
+  const cg = await J(await leikurHandler(req('/api/leikur/create', {}), env));
+  const cgj = await J(await leikurHandler(req('/api/leikur/' + cg.code + '/join', { name: 'X' }), env));
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + cg.facToken }, body: JSON.stringify({ action: 'start' }) }), env);
+  ok('klassískur: fac /state EKKI roleMap', !(await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/state', { headers: { authorization: 'Bearer ' + cg.facToken } }), env))).roleMap);
+  ok('klassískur: lið /state EKKI role', !(await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + cg.code + '/state', { headers: { authorization: 'Bearer ' + cgj.teamToken } }), env))).role);
 
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

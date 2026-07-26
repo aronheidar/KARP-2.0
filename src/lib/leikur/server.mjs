@@ -6,6 +6,7 @@ import { scoreRound } from './scoring.mjs';
 import { buildChain, activeInputsFromInputs } from './chain.mjs';
 import { buildAnalytics } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
+import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -38,7 +39,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: (c.mandate && Array.isArray(c.mandate.kpis)) ? c.mandate : MANDATE, rounds: c.rounds || ROUNDS }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: (c.mandate && Array.isArray(c.mandate.kpis)) ? c.mandate : MANDATE, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null }; }
 
 export async function leikurHandler(request, env, ctx) {
   if (!env.TENGSL) return sjson({ error: 'no-d1' }, 503);
@@ -56,6 +57,7 @@ export async function leikurHandler(request, env, ctx) {
       if (!v.ok) return sjson({ error: 'invalid', errors: v.errors }, 400);
       config = { custom: true, rounds: +cb.rounds, scenario: cb.scenario, mandate: cb.mandate };
     }
+    if (cb && cb.roles) config.roles = true;
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -90,13 +92,26 @@ export async function leikurHandler(request, env, ctx) {
     const ev = cfg.scenario.events[(game.current_round || 1) - 1] || null;
     const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0 }));
     const roundResults = resultsRaw.filter((r) => r.round === game.current_round).map((r) => ({ teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, detail: JSON.parse(r.kpis || '{}') }));
-    const out = { phase: game.phase, round: game.current_round, code, teams, mandate: cfg.mandate, decisions: DECISIONS, event: game.phase === 'lobby' ? null : ev, results: game.phase === 'resolved' ? roundResults : null, you: you && you.code === code ? { role: you.role, teamId: you.teamId } : null };
+    // Umboð per áhorfanda: lið sér SITT hlutverks-umboð; leynd á hlutverkum hinna.
+    let outMandate = cfg.mandate, youRole = null;
+    if (cfg.roles && cfg.roleMap && you && you.role === 'team' && you.code === code) {
+      const rl = roleById(cfg.roleMap[you.teamId]);
+      if (rl) { outMandate = mandateForRole(cfg.mandate, rl); youRole = { id: rl.id, label: rl.label, blurb: rl.blurb }; }
+    }
+    const out = { phase: game.phase, round: game.current_round, code, teams, mandate: outMandate, decisions: DECISIONS, event: game.phase === 'lobby' ? null : ev, results: game.phase === 'resolved' ? roundResults : null, you: you && you.code === code ? { role: you.role, teamId: you.teamId } : null };
+    if (youRole) out.role = youRole;
+    if (cfg.roles && cfg.roleMap && you && you.role === 'fac' && you.code === code) out.roleMap = revealRoles(cfg.roleMap, ROLES);
+    if (cfg.roles && cfg.roleMap && game.phase === 'ended') out.rolesReveal = revealRoles(cfg.roleMap, ROLES);
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
     if (you && you.role === 'fac' && you.code === code) {
       const decRaw = (await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results || [];
       const history = resultsRaw.map((r) => { let d = {}; try { d = JSON.parse(r.kpis || '{}'); } catch (e) {} return { round: r.round, teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, perKpi: d.perKpi || [] }; });
       const decisions = decRaw.map((r) => { let dd = {}; try { dd = JSON.parse(r.decisions || '{}'); } catch (e) {} return { round: r.round, teamId: r.team_id, decisions: dd }; });
       out.analytics = history.length ? buildAnalytics({ history, decisions, teams: teamsRaw.map((t) => ({ id: t.id, name: t.name })), mandate: cfg.mandate, decisionsConfig: DECISIONS, scenario: cfg.scenario, currentRound: game.current_round }) : null;
+      if (out.analytics && cfg.roles && cfg.roleMap) {
+        const lbl = Object.fromEntries(revealRoles(cfg.roleMap, ROLES).map((r) => [r.teamId, r.label]));
+        out.analytics.scorecard.forEach((row) => { row.role = lbl[row.teamId] || null; });
+      }
     }
     return sjson(out);
   }
@@ -119,7 +134,17 @@ export async function leikurHandler(request, env, ctx) {
     if (!you || you.role !== 'fac' || you.code !== code) return sjson({ error: 'auth' }, 401);
     const b = await request.json().catch(() => ({}));
     const act = b.action;
-    if (act === 'start') { await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', 1, code).run().catch(() => null); return sjson({ ok: true, phase: 'decide', round: 1 }); }
+    if (act === 'start') {
+      if (cfg.roles && !cfg.roleMap) {
+        const teamRows = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+        let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
+        cobj.roleMap = assignRoles(teamRows.map((t) => t.id), ROLES);
+        await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', 1, code).run().catch(() => null);
+      } else {
+        await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', 1, code).run().catch(() => null);
+      }
+      return sjson({ ok: true, phase: 'decide', round: 1 });
+    }
     if (act === 'next') {
       const nr = (game.current_round || 0) + 1;
       if (nr > cfg.rounds) { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
@@ -137,7 +162,8 @@ export async function leikurHandler(request, env, ctx) {
         const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
         const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
         const { kpis } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario });
-        const sc = scoreRound(kpis, cfg.mandate);
+        const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(cfg.mandate, roleById(cfg.roleMap[tm.id])) : cfg.mandate;
+        const sc = scoreRound(kpis, tMandate);
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: cfg.mandate.kpis.map((k) => k.key) });
         // uppsafnað = fyrri cumulative + þessi
