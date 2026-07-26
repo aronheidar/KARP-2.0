@@ -3573,6 +3573,23 @@ async function userDataHandler(request, env) {
     }
     return _ajson({ kt: list, cap });
   }
+  if (method === 'POST' && path === '/invite/accept') {
+    if (!uid) return _ajson({ ok: false, error: 'login' });
+    const u = await env.TENGSL.prepare('SELECT id,email,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    if (!u) return _ajson({ ok: false, error: 'login' });
+    if (u.parent_account_id) return _ajson({ ok: false, error: 'already' });
+    const owner = await _inviteEligible(env, u, parseInt(body.owner_id, 10), now);
+    if (!owner) return _ajson({ ok: false, error: 'invalid' });
+    await env.TENGSL.prepare('UPDATE users SET parent_account_id=? WHERE id=?').bind(owner.id, uid).run().catch(() => {});
+    return _ajson({ ok: true, owner: owner.name || owner.email });
+  }
+  if (method === 'POST' && path === '/invite/decline') {
+    if (!uid) return _ajson({ ok: false, error: 'login' });
+    const ownerId = parseInt(body.owner_id, 10);
+    const declined = await _prefGet(env, uid, 'invite_declined', []);
+    if (declined.indexOf(ownerId) < 0) { declined.push(ownerId); await _prefSet(env, uid, 'invite_declined', declined); }
+    return _ajson({ ok: true });
+  }
   if (path === '/team') {
     const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
     const cap = u ? _seatsCap(u, now) : 1;
@@ -3587,7 +3604,9 @@ async function userDataHandler(request, env) {
       }
       return _ajson({ ok: true, members, cap });
     }
-    return _ajson({ members, cap });
+    const activeSet = new Set(((await env.TENGSL.prepare('SELECT email FROM users WHERE parent_account_id=?').bind(uid).all().catch(() => ({ results: [] }))).results || []).map((r) => (r.email || '').toLowerCase()));
+    const status = {}; for (const e of members) status[e] = activeSet.has(e) ? 'active' : 'pending';
+    return _ajson({ members, cap, status });
   }
 
   // ── Kortalausar prufur (bráðabirgða launch-flæði) ──
