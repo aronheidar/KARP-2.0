@@ -73,6 +73,10 @@ const J = async (res) => JSON.parse(await res.text());
   ok('liðin fá ÓLÍK stig (ólíkar ákvarðanir)', st2.teams[0].cumulative !== st2.teams[1].cumulative);
   ok('detail hefur chain (nodes+edges)', (st2.results || []).some((r) => r.detail && r.detail.chain && Array.isArray(r.detail.chain.nodes) && Array.isArray(r.detail.chain.edges)));
   ok('a.m.k. eitt lið með ekki-tóma keðju', (st2.results || []).some((r) => r.detail && r.detail.chain && r.detail.chain.edges.length > 0));
+  ok('fac /state hefur analytics', st2.analytics && Array.isArray(st2.analytics.scorecard) && Array.isArray(st2.analytics.trajectories.cumulative));
+  ok('analytics scorecard raðað (hæsta fyrst)', st2.analytics.scorecard.length >= 2 && st2.analytics.scorecard[0].cumulative >= st2.analytics.scorecard[1].cumulative);
+  const teamSt = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + jn.teamToken } }), env));
+  ok('team /state hefur EKKI analytics', !teamSt.analytics);
   // idempotency: resolve aftur má ekki tvítelja
   const before = st2.teams.map((t) => t.cumulative).join(',');
   await ctrl('resolve');

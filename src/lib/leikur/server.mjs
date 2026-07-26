@@ -4,6 +4,7 @@ import { DECISIONS, MANDATE, SCENARIO, ROUNDS } from './game-config.mjs';
 import { resolveTeam, buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildChain, activeInputsFromInputs } from './chain.mjs';
+import { buildAnalytics } from './analytics.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -81,6 +82,13 @@ export async function leikurHandler(request, env, ctx) {
     const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0 }));
     const roundResults = resultsRaw.filter((r) => r.round === game.current_round).map((r) => ({ teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, detail: JSON.parse(r.kpis || '{}') }));
     const out = { phase: game.phase, round: game.current_round, code, teams, mandate: MANDATE, decisions: DECISIONS, event: game.phase === 'lobby' ? null : ev, results: game.phase === 'resolved' ? roundResults : null, you: you && you.code === code ? { role: you.role, teamId: you.teamId } : null };
+    // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
+    if (you && you.role === 'fac' && you.code === code) {
+      const decRaw = (await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results || [];
+      const history = resultsRaw.map((r) => { let d = {}; try { d = JSON.parse(r.kpis || '{}'); } catch (e) {} return { round: r.round, teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, perKpi: d.perKpi || [] }; });
+      const decisions = decRaw.map((r) => { let dd = {}; try { dd = JSON.parse(r.decisions || '{}'); } catch (e) {} return { round: r.round, teamId: r.team_id, decisions: dd }; });
+      out.analytics = history.length ? buildAnalytics({ history, decisions, teams: teamsRaw.map((t) => ({ id: t.id, name: t.name })), mandate: MANDATE, decisionsConfig: DECISIONS, scenario: SCENARIO, currentRound: game.current_round }) : null;
+    }
     return sjson(out);
   }
 
