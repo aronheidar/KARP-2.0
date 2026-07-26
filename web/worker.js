@@ -2561,8 +2561,9 @@ async function kycHandler(request, env, ctx) {
   const uid = await readSession(env, request);
   const now = Math.floor(Date.now() / 1000);
   if (!uid) return _ajson({ ok: false, error: 'login' });
-  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,tier,tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null);
-  if (!_kycGate(u, now)) return _ajson({ ok: false, error: 'tier' });
+  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,tier,tier_until,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  const owner = await accountOwner(env, u);   // meðlimur erfir þrep/þak eiganda (audit-actor helst u.email)
+  if (!_kycGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
   const body = request.method === 'POST' ? await request.json().catch(() => ({})) : {};
 
   if (path === '/watch') {
@@ -2570,12 +2571,12 @@ async function kycHandler(request, env, ctx) {
       const rows = (await env.TENGSL.prepare(
         "SELECT w.kt,w.nafn,w.risk,w.status,w.reviewed_at, (SELECT COUNT(*) FROM kyc_event e WHERE e.kt=w.kt AND NOT EXISTS (SELECT 1 FROM kyc_ack a WHERE a.owner_id=w.owner_id AND a.event_id=e.id AND a.status IN ('resolved','dismissed'))) AS opnar " +
         "FROM kyc_watch w WHERE w.owner_id=? AND w.status='active' ORDER BY w.added_at DESC").bind(uid).all().catch(() => ({ results: [] }))).results || [];
-      return _ajson({ ok: true, cap: _kycWatchCap(u, now), watch: rows });
+      return _ajson({ ok: true, cap: _kycWatchCap(owner, now), watch: rows });
     }
     if (request.method === 'POST') {
       const kt = String(body.kt || '').replace(/\D/g, '');
       if (kt.length !== 10) return _ajson({ ok: false, error: 'kt' });
-      const cap = _kycWatchCap(u, now);
+      const cap = _kycWatchCap(owner, now);
       const cnt = (await env.TENGSL.prepare("SELECT COUNT(*) AS n FROM kyc_watch WHERE owner_id=? AND status='active'").bind(uid).first().catch(() => ({ n: 0 }))).n || 0;
       const exists = await env.TENGSL.prepare('SELECT id,status FROM kyc_watch WHERE owner_id=? AND kt=?').bind(uid, kt).first().catch(() => null);
       if (!exists && cap >= 0 && cnt >= cap) return _ajson({ ok: false, error: 'cap', cap });
@@ -2976,9 +2977,9 @@ async function topplistarHandler(request, env, ctx) {
   const uid = await karpUserId(request, env);
   let entitled = false;
   if (uid) {
-    const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
     const now = Math.floor(Date.now() / 1000);
-    entitled = topplistaEntitled(urow, now);
+    entitled = topplistaEntitled(await accountOwner(env, urow), now);   // meðlimur erfir þrep eiganda
   }
   const cacheKey = new Request('https://cache.karp.internal/api/topplistar?g=' + grein + '&r=' + radadKey + '&e=' + (entitled ? 1 : 0) + '&v=2');
   const cache = caches.default;
@@ -3484,12 +3485,14 @@ async function userDataHandler(request, env) {
     const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
     if (u.is_admin === 1) return _ajson({ owned: true });
-    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(uid, key).first().catch(() => null)) return _ajson({ owned: true });
-    const quota = REPORT_QUOTA[_uTier(u, now)] || 0;
-    const used = (u.reports_month === _monthStr(now)) ? (u.reports_used || 0) : 0;
+    const acct = accountId(u);                       // grant + kvóta-teljari á account-eiganda (revenue-leak vörn)
+    const owner = await accountOwner(env, u);
+    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(acct, key).first().catch(() => null)) return _ajson({ owned: true });
+    const quota = REPORT_QUOTA[tierFields(u, owner, now).effectiveTier] || 0;   // þak skv. account-þrepi (effectiveTier, sama og /me)
+    const used = (owner.reports_month === _monthStr(now)) ? (owner.reports_used || 0) : 0;
     if (quota > 0 && used < quota) {
-      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(uid, key, now).run().catch(() => {});
-      await env.TENGSL.prepare('UPDATE users SET reports_used=?, reports_month=?, updated=? WHERE id=?').bind(used + 1, _monthStr(now), now, uid).run().catch(() => {});
+      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(acct, key, now).run().catch(() => {});
+      await env.TENGSL.prepare('UPDATE users SET reports_used=?, reports_month=?, updated=? WHERE id=?').bind(used + 1, _monthStr(now), now, acct).run().catch(() => {});
       return _ajson({ granted: true, remaining: quota - used - 1 });
     }
     return _ajson({ needPay: true });
@@ -3498,16 +3501,17 @@ async function userDataHandler(request, env) {
   // ── Þingmannaskýrslu-kvóti (thingskyrslur-áskrift, 20/mán): /thing/open ──
   if (path === '/thing/open' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
-    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
     if (u.is_admin === 1) return _ajson({ owned: true });
-    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(uid, key).first().catch(() => null)) return _ajson({ owned: true });
-    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(uid, 'thingskyrslur', now).first().catch(() => null);
+    const acct = accountId(u);                       // áskrift + grant + kvóti á account-eiganda
+    if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(acct, key).first().catch(() => null)) return _ajson({ owned: true });
+    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(acct, 'thingskyrslur', now).first().catch(() => null);
     if (!s) return _ajson({ error: 'nosub' });
     const used = (s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
     if (used < 20) {
-      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(uid, key, now).run().catch(() => {});
-      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), uid, 'thingskyrslur').run().catch(() => {});
+      await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id,report_key,granted) VALUES (?,?,?)').bind(acct, key, now).run().catch(() => {});
+      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), acct, 'thingskyrslur').run().catch(() => {});
       return _ajson({ granted: true, remaining: 20 - used - 1 });
     }
     return _ajson({ needPay: true, resets: _nextMonth(now) });
@@ -3516,17 +3520,18 @@ async function userDataHandler(request, env) {
   // ── Fasteignamats-kvóti (fasteign-áskrift, 20/mán; endurmat sama fangs frítt): /fasteign/meta ──
   if (path === '/fasteign/meta' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
-    const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
+    const acct = accountId(u);                       // fasteign-áskrift + kvóti á account-eiganda (fasteign_done-pref = Task 5)
     const done = await _prefGet(env, uid, 'fasteign_done', []);
     if (u.is_admin === 1) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, uid, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }
-    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(uid, 'fasteign', now).first().catch(() => null);
+    const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(acct, 'fasteign', now).first().catch(() => null);
     const used = (s && s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
     if (done.indexOf(key) >= 0) return _ajson({ granted: true, owned: true, remaining: s ? Math.max(0, 20 - used) : 0 });
     if (!s) return _ajson({ error: 'nosub' });
     if (used < 20) {
       done.push(key); await _prefSet(env, uid, 'fasteign_done', done);
-      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), uid, 'fasteign').run().catch(() => {});
+      await env.TENGSL.prepare('UPDATE sub_service SET used=?, used_month=? WHERE user_id=? AND service=?').bind(used + 1, _monthStr(now), acct, 'fasteign').run().catch(() => {});
       return _ajson({ granted: true, owned: false, remaining: 20 - used - 1 });
     }
     return _ajson({ needPay: true, resets: _nextMonth(now) });
@@ -3534,8 +3539,8 @@ async function userDataHandler(request, env) {
 
   // ── Viðskiptamannavakt (kt-listi) + Teymi (sæti) ──
   if (path === '/ktwatch') {
-    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
-    const cap = u ? _ktwatchCap(u, now) : 0;
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const cap = u ? _ktwatchCap(await accountOwner(env, u), now) : 0;   // þak skv. account-eiganda (ktwatch-listi = Task 5)
     let list = await _prefGet(env, uid, 'ktwatch', []);
     if (method === 'POST') {
       const kt = String(body.kt || '').replace(/\D/g, '');
@@ -4354,9 +4359,9 @@ export default {
         const guid = await readSession(env, request);
         let gok = false;
         if (guid && env.TENGSL) {
-          const gu = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(guid).first().catch(() => null);
+          const gu = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(guid).first().catch(() => null);
           if (gu && gu.is_admin === 1) gok = true;
-          else if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(guid, gkey).first().catch(() => null)) gok = true;
+          else if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(accountId(gu) || guid, gkey).first().catch(() => null)) gok = true;   // account-heimild (accountId eiganda)
         }
         if (!gok) return new Response(JSON.stringify({ error: 'locked', key: gkey }), { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store' } });
         const gres = await env.ASSETS.fetch(request);
