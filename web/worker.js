@@ -2,6 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
+import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -4209,6 +4210,7 @@ export default {
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
+    if (url.pathname.startsWith('/api/leikur')) return leikurHandler(request, env, ctx);   // RÁS-Leikurinn (kennsluleikur)
     if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin
     if (url.pathname === '/api/frettir') return frettirHandler(request, env);   // F7: gagna-endapunktar úr WP
     if (url.pathname === '/api/firma') return firmaHandler(request, env);
