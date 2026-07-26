@@ -568,7 +568,13 @@ const updated = '2026-07-02';
             if (!d || (d.cap | 0) <= 0) { box.innerHTML = ''; return; }
             // PHP skilar nú {email, skrad} (skráð = netfangið á þegar Karp-aðgang); þolum líka eldri streng-snið.
             const mems = (d.members || []).map((m) => (typeof m === 'string' ? { email: m, skrad: null } : m));
-            const rows = mems.map((m) => '<div class="mem"><span>' + esc(m.email) + (m.skrad === false ? ' <em class="dim" style="font-style:normal;font-size:10.5px">· óskráð — biðja um nýskráningu</em>' : m.skrad ? ' <em style="font-style:normal;font-size:10.5px;color:var(--green,#6ee7b7)">· virkur</em>' : '') + '</span><button data-e="' + esc(m.email) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
+            // invite/accept: staða-merki úr /team d.status (email→'active'/'pending') — greinir hvort
+            // boðið hefur verið samþykkt (parent_account_id tengt), óháð eldra skrad-merki (á-þegar-aðgang).
+            const stMap = d.status || {};
+            const stBadge = (email) => (stMap[email] === 'active'
+              ? ' <em style="font-style:normal;font-size:10.5px;color:var(--green,#6ee7b7)">· virk(ur)</em>'
+              : ' <em class="dim" style="font-style:normal;font-size:10.5px">· bíður samþykkis</em>');
+            const rows = mems.map((m) => '<div class="mem"><span>' + esc(m.email) + (m.skrad === false ? ' <em class="dim" style="font-style:normal;font-size:10.5px">· óskráð — biðja um nýskráningu</em>' : m.skrad ? ' <em style="font-style:normal;font-size:10.5px;color:var(--green,#6ee7b7)">· virkur</em>' : '') + stBadge(m.email) + '</span><button data-e="' + esc(m.email) + '" class="mem-x" title="Fjarlægja">✕</button></div>').join('') || '<span class="dim">Engir meðlimir enn.</span>';
             const full = mems.length >= d.cap;
             box.innerHTML = seg('👥 Aðgangar (teymi)', 'þú + ' + mems.length + '/' + d.cap + ' meðlimir')
               + '<div class="mem-list">' + rows + '</div>'
@@ -793,6 +799,13 @@ const updated = '2026-07-02';
         $g('acc').textContent = `Innskráð(ur) sem ${u.name || ''}${u.email ? ' · ' + u.email : ''}`;
         // Account v1: meðlima-borði — birtist þegar notandinn er meðlimur í team (ekki eigandi).
         if (u.membership) gate.innerHTML = `<div class="gate">Þú ert í account <b>${esc(u.membership.owner)}</b> — þú deilir gögnum og þrepi með stofunni.</div>`;
+        // Boð-borði (invite/accept): meðlimur með óstaðfest boð sér samþykkja/hafna — mutually
+        // exclusive við u.membership (biðjandi meðlimur hefur enga tengingu enn).
+        else if (u.pendingInvite) {
+          gate.innerHTML = `<div class="gate">Stofan <b>${esc(u.pendingInvite.owner)}</b> bauð þér í account sitt — þú munt deila gögnum og erfa þrep. <button id="inv-yes">Samþykkja</button> <button id="inv-no">Hafna</button></div>`;
+          document.getElementById('inv-yes').onclick = async () => { await karpPost('/invite/accept', { owner_id: u.pendingInvite.owner_id }); location.reload(); };
+          document.getElementById('inv-no').onclick = async () => { await karpPost('/invite/decline', { owner_id: u.pendingInvite.owner_id }); location.reload(); };
+        }
         // Native „Breyta prófíl" — inline editor (kemur í stað ónotuðu wp-notanda-/UM-síðunnar)
         (function wireAcc() {
           const links = $g('acc-links'), form = $g('acc-form');
