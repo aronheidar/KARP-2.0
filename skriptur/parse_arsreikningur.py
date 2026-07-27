@@ -41,7 +41,7 @@ REKSTUR_MAP = [
     # ^leigutekjur = fasteignafélög (Reitir/Reginn o.fl.); EKKI "hreinar leigutekjur" (millisumma, byrjar á "hreinar")
     # ⚠ sala\b (ekki ^sala) — enska síðuvalið gerir annars 'Salaries' að sölu. 'hreinar rekstrartekjur' = bankar.
     # 'tekjur\s*(\.{2,}|$)' = ber 'Tekjur'-lína (m/leiðurum) en EKKI 'Tekjur af hlutdeildarfélögum'.
-    ('sala',            r'^(sala\b|seldar (v|afur)|seld (verktaka)?.j.nusta|rekstrartekjur|v.rusala|v.ru- ?og .j.nustusala|s.lutekjur|tekjur samt|tekjur af verksamning|tekjur af v.trygg|tekjur\s*(\.{2,}|$)|leigutekjur|h.saleigutekjur|flutningatekjur|hreinar rekstrartekjur|(total )?operating income$|total revenue|net sales)'),
+    ('sala',            r'^(sala\b|seldar (v|afur)|seld (verktaka)?.j.nusta|rekstrartekjur|v.rusala|v.ru- ?og .j.nustusala|s.lutekjur|tekjur samt|tekjur af verksamning|tekjur af v.trygg|tekjur\s*(\.{2,}|$)|leigutekjur|h.saleigutekjur|flutningatekjur|hreinar rekstrartekjur|(total\s*)?operating\s*income$|total\s*revenue|net\s*sales)'),
     ('adrar_tekjur',    r'^(a.rar (rekstrar)?tekjur|a.rar tekjur)'),
     # rekstrarkostnaður fjárfestingareigna = beinn kostnaður leigutekna (fasteignafélög) -> framlegð = hreinar leigutekjur
     ('kostnadarverd',   r'(kostna.arver. seldra|seldra vara|rekstrarkostna.ur fj.rfestingar|^v.runotkun|^verktaka- og byggingakostna|^rekstur h.sn..is|^framkv.mdakostna)'),
@@ -67,7 +67,7 @@ REKSTUR_MAP = [
     # víkkað: '(Tap), hagnaður ársins' · 'Hagnaður (tap) og heildarafkoma ársins' · 'Heildarhagnaður ársins'
     # · 'Rekstrarafkoma ársins' · 'á tímabilinu' · enska. ⚠ 'Heildarafkoma ársins' (hrein OCI-lína) grípst
     # VILJANDI ekki — heildar-forskeytið er bundið við (hagna.ur|tap).
-    ('hagnadur',        r'^\(?-? ?(heildar(hagna.ur|tap)|hagna.ur|tap|rekstrarafkoma|afkoma)\)?[,;]?( ?\(?-? ?(hagna.ur|tap)\)?)?( og (.nnur )?heildar(hagna.ur|afkoma|tap))?.{0,10}(.rsins|t.mabil)|^(net )?(loss|profit|income) for the year'),
+    ('hagnadur',        r'^\(?-? ?(heildar(hagna.ur|tap)|hagna.ur|tap|rekstrarafkoma|afkoma)\)?[,;]?( ?\(?-? ?(hagna.ur|tap)\)?)?( og (.nnur )?heildar(hagna.ur|afkoma|tap))?.{0,10}(.rsins|t.mabil)|^(net\s*)?(loss|profit|income)\s*for\s*the\s*year'),
 ]
 EFNAHAGUR_MAP = [
     # Ber form '^X[ .]*$' (hörð ankeri + leyfðir leiðarapunktar) nær 'Veltufjármunir'-línu án 'samtals'
@@ -77,14 +77,14 @@ EFNAHAGUR_MAP = [
     ('vidskiptakrofur', r'(vi.skiptakr.fur|skammt.makr.fur|^trade and other receivables)'),
     ('handbaert',       r'(handb.rt f|sj..ur og banka|bankainnst|innl.nsstofn|cash and cash equivalents)'),
     ('veltufjarmunir',  r'veltufj.rmunir samtals|^veltufj.rmunir[ .]*$|^current assets\b'),
-    ('eignir',          r'^eignir (samtals|alls)|^eignir$|^total assets\b'),
+    ('eignir',          r'^eignir (samtals|alls)|^eignir$|^total\s*assets\b'),
     ('hlutafe',         r'^hlutaf.|^share capital\b'),
     # EKKI 'Óráðstafað eigið fé' (^-ankeri) né '...hluthafa móðurfélags' né '...og skuldir'
-    ('eigid_fe',        r'^(samtals )?eigi. f.(,| \(| samtals| alls|$)|^total equity$'),
+    ('eigid_fe',        r'^(samtals )?eigi. f.(,| \(| samtals| alls|$)|^total\s*equity$'),
     ('langtimaskuldir', r'langt.maskuldir samtals|^langt.maskuldir[ .]*$|^non-current liabilities\b'),
     ('skammtimaskuldir',r'skammt.maskuldir samtals|^skammt.maskuldir[ .]*$|^current liabilities\b'),
-    ('skuldir',         r'^skuldir (samtals|alls)|^samtals skuldir$|^skuldir$|^skuldir og skuldbindingar|^total liabilities\b'),
-    ('efe_skuldir',     r'eigi. f. og skuldir( samtals| alls)?|^skuldir og eigi. f.( samtals| alls)?|^total equity and liabilities'),
+    ('skuldir',         r'^skuldir (samtals|alls)|^samtals skuldir$|^skuldir$|^skuldir og skuldbindingar|^total\s*liabilities\b'),
+    ('efe_skuldir',     r'eigi. f. og skuldir( samtals| alls)?|^skuldir og eigi. f.( samtals| alls)?|^total\s*equity\s*and\s*liabilities'),
 ]
 
 # ── Tákna-pípa fyrir rows_of_page (röðin skiptir máli: svigar → leiðarar → jaðar-punktar) ──
@@ -354,10 +354,10 @@ def parse(path):
         # ── FLOKKUN — línu-ankeruð leit (óankeruð leit í samlímdum haus lak prósa inn) + enska (IFRS) ──
         is_rekstur = ('rekstrarreikning' in header
             or any(re.match(r'(seldar v.rur|rekstrartekjur)\b', l) for l in lines5)
-            or any(re.match(r'(consolidated |group )?(income statement|statement of (profit or loss|comprehensive income))', l) for l in lines5))
+            or any(re.match(r'(consolidated\s*|group\s*)?(income\s*stat|statement\s*of\s*(profit\s*or\s*loss|comprehensive\s*income))', l) for l in lines5))   # \s* þolir samlímdan (bil-lausan) enskan haus
         is_efnahag = ('efnahagsreikning' in header or 'efnahags' in header
             or any(re.match(r'eignir\b|eigi. f. og skuldir|yfirlit um fj.rhagsst', l) for l in lines5)
-            or any(re.match(r'(consolidated |group )?(statement of financial position|balance sheet)', l) for l in lines5))
+            or any(re.match(r'(consolidated\s*|group\s*)?(statement\s*of\s*financial\s*position|balance\s*sheet)', l) for l in lines5))   # \s* þolir samlímdan enskan haus (t.d. "BalanceSheet")
         is_sjodstr = (not is_rekstur and not is_efnahag) and bool(re.search(r'sj..streymi', header))
         if not (is_rekstur or is_efnahag or is_sjodstr):
             continue
