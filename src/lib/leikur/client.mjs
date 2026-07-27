@@ -268,6 +268,14 @@ export function mountLeikur(root) {
     }).join('');
     return '<div class="lk-card"><h2>🎯 Umboð — kjörtímabil ' + st.round + '</h2><p>Náðu markmiðunum — þau eru í togstreitu. <b>🔄 Markmiðin breytast milli kjörtímabila</b> — ný þemu bætast við (sjálfbærni, byggð, loftslag, jöfnuður), svo það borgar sig að skoða fleiri sleða.</p>' + rows + '</div>';
   }
+  // Fasi C — Gjaldeyrishöft: virk frá 2008-hruni; frá KT5 má afnema (gátreitur). Aðeins sýnt þegar höft virk.
+  function hoftCard(st) {
+    const h = st.hoft; if (!h || !h.active) return '';
+    const liftUI = h.canLift
+      ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="lk-hoft-lift"' + (S.hoftLift ? ' checked' : '') + ' style="margin-top:2px"/><span>🔓 <b>Afnema höftin þetta kjörtímabil</b> — opnar hagkerfið (meiri fjárfesting/vöxtur) en gengið flýtur á ný.</span></label>'
+      : '<p class="lk-muted" style="font-size:12px;margin-top:4px">Afnemanleg frá kjörtímabili 5 (2016).</p>';
+    return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🔒 Gjaldeyrishöft (virk)</h2><p style="font-size:12.5px;color:var(--muted);margin:0">Sett í hruninu 2008 til að stöðva fjármagnsflótta. Veita <b>stöðugleika</b> (verja gengi &amp; verðbólgu í kreppu) EN eru <b>drag á hagvöxt</b> (fæla frá fjárfestingu).</p>' + liftUI + '</div>';
+  }
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
   // Fastur liðs-borði — þátttakandi sér alltaf í hvaða liði hann er.
@@ -549,6 +557,7 @@ export function mountLeikur(root) {
         '<div class="lk-studio-controls">' +
           '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div><div id="lk-st-sliders">' + sliders + '</div></div>' +
           mandateCard(st) +
+          hoftCard(st) +
           '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
         '</div>' +
       '</div>' +
@@ -557,6 +566,8 @@ export function mountLeikur(root) {
     drawStudioPreview(st);
   }
   function attachStudio(st) {
+    if (S.hoftRound !== st.round) { S.hoftRound = st.round; S.hoftLift = !!(st.hoft && st.hoft.lifting); }  // Fasi C: höft-val endursett per kjörtímabil
+    const hl = root.querySelector('#lk-hoft-lift'); if (hl) hl.onchange = () => { S.hoftLift = hl.checked; pushDraft(st); };
     root.querySelectorAll('.lk-tab').forEach((el) => { el.onclick = () => { S.studioTab = +el.dataset.tab; renderStudio(st); }; });
     const clearDrag = () => { S.dragging = null; };
     root.querySelectorAll('input[data-lev]').forEach((el) => {
@@ -576,7 +587,7 @@ export function mountLeikur(root) {
   // Ýtir deilanlegum liðs-drögum á þjón (locked:false, debounce) → félagar samstilla.
   function pushDraft(st) {
     if (S.pushTimer) clearTimeout(S.pushTimer);
-    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials }, locked: false }, token: S.token }); }, 500);
+    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, hoftLift: !!S.hoftLift }, locked: false }, token: S.token }); }, 500);
   }
   // Poll-uppfærsla Á STAÐNUM: samstillir fjar-drög í sleða sem ÞÚ ert ekki að draga/hefur ekki breytt; endurteiknar gröf. ENGIN sleða-endurbygging.
   function updateStudio(st) {
@@ -593,7 +604,7 @@ export function mountLeikur(root) {
     });
     drawStudioPreview(st);
   }
-  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials }, locked: true }, token: S.token }); S.unlocked = false; }); }
+  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, hoftLift: !!S.hoftLift }, locked: true }, token: S.token }); S.unlocked = false; }); }
 
   // Læst-staða (A): staðfesting + samantekt + „Breyta" (aflæsa fram að resolve).
   function renderLocked(st) {

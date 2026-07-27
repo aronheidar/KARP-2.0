@@ -8,6 +8,7 @@ import { buildAnalytics } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
+import { HOFT, hoftActive, liftedAtRound, applyHoft } from './hoft.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -129,6 +130,8 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         out.scenarioSoFar = (cfg.scenario.events || []).slice(0, game.current_round);
         // Deilanleg liðs-drög núverandi umferðar (einangruð per team_id) → félagar samstilla sleða.
         out.draft = (byR[game.current_round] || {}).levers || {};
+        // Fasi C: gjaldeyrishöft — virk (frá KT3 skv. fyrri ákvörðunum) + hvort megi afnema núna + hvort valið sé að afnema.
+        out.hoft = { active: hoftActive(game.current_round, liftedAtRound(out.history)), canLift: game.current_round >= HOFT.liftableFrom, lifting: !!(byR[game.current_round] || {}).hoftLift };
       }
     }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
@@ -196,12 +199,16 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const rows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, tm.id).all().catch(() => ({ results: [] }))).results) || [];
         const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
         const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
-        const { kpis } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode });
+        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode });
+        // Fasi C: gjaldeyrishöft (leik-lag) — virk frá KT3, afnemanleg frá KT5. Stöðugleiki + vaxtar-drag á kpis.
+        const hoftOn = hoftActive(game.current_round, liftedAtRound(history)), qL = quarters - 1;
+        const bl = (k) => (BASELINE.outcomes[k] ? BASELINE.outcomes[k].path[qL] : null);
+        const kpis2 = hoftOn ? applyHoft(kpis, { gengi: bl('gengi'), gengi_endo: bl('gengi_endo'), verdbolga: bl('verdbolga'), hagvoxtur: bl('hagvoxtur') }) : kpis;
         const roundMandate = mandateAt(cfg, game.current_round);
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
-        const sc = scoreRound(kpis, tMandate);
+        const sc = scoreRound(kpis2, tMandate);
         // Fasi B: stjórnar-stöðugleiki — lágt fylgi margfaldar stigin niður (uppreisn/mótmæli).
-        const stab = govtStability(kpis);
+        const stab = govtStability(kpis2);
         const roundScore = Math.round(sc.composite * stab.factor * 10) / 10;
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
@@ -209,7 +216,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const prev = await env.TENGSL.prepare('SELECT cumulative FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, hoft: { active: hoftOn } }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });
