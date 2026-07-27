@@ -293,6 +293,29 @@
   "source": "Verð↔leiga samhreyfing (HMS)"
  },
  {
+  "id": "rent_cpi",
+  "from": "leiga",
+  "to": "verdbolga",
+  "coef": 0.03,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": 0.01,
+  "ci_hi": 0.05,
+  "source": "Greidd húsaleiga er beinn CPI-liður (Hagstofa) — aðgreint frá reiknaðri húsaleigu sem kemur um husnaedi→verdbolga",
+  "note": "Lítill stuðull: greidd leiga er minni CPI-vigt en eigin húsnæði; forðast tvítalningu við húsnæðis-verð."
+ },
+ {
+  "id": "rent_realwage",
+  "from": "leiga",
+  "to": "kaupmattur",
+  "coef": -0.03,
+  "lag": 1,
+  "unit": "pp/%",
+  "ci_lo": -0.05,
+  "ci_hi": -0.01,
+  "source": "Leiga er stór útgjaldaliður leigjenda → hærri leiga rýrir ráðstöfunartekjur/kaupmátt (HMS/Hagstofa)"
+ },
+ {
   "id": "fr_rent",
   "from": "frambod",
   "to": "leiga",
