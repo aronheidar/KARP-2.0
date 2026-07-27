@@ -146,10 +146,17 @@ function renderFacAnalytics(an) {
       + '<td><b>' + num(row.cumulative) + '</b></td></tr>';
   });
   sc += '</table>';
-  const decHeads = an.decisionsTable[0] ? an.decisionsTable[0].choices.map((c) => c.decLabel) : [];
-  let dt = '<table class="lk-tbl"><tr><th>Lið</th>' + decHeads.map((l) => '<th>' + esc(l) + '</th>').join('') + '</tr>';
-  an.decisionsTable.forEach((row) => { dt += '<tr><td>' + esc(row.name) + '</td>' + row.choices.map((c) => '<td>' + esc(c.optLabel) + '</td>').join('') + '</tr>'; });
-  dt += '</table>';
+  // Studio-hamur: raðir hafa {studio,summary} (sleða-yfirlit), EKKI choices — sér-tafla (annars kastaði row.choices.map).
+  let dt;
+  if (an.decisionsTable[0] && an.decisionsTable[0].studio) {
+    dt = '<table class="lk-tbl"><tr><th>Lið</th><th>Stillingar (breytt frá grunni)</th></tr>'
+      + an.decisionsTable.map((row) => '<tr><td>' + esc(row.name) + '</td><td style="font-size:12px">' + esc(row.summary || '—') + '</td></tr>').join('') + '</table>';
+  } else {
+    const decHeads = an.decisionsTable[0] ? an.decisionsTable[0].choices.map((c) => c.decLabel) : [];
+    dt = '<table class="lk-tbl"><tr><th>Lið</th>' + decHeads.map((l) => '<th>' + esc(l) + '</th>').join('') + '</tr>';
+    an.decisionsTable.forEach((row) => { dt += '<tr><td>' + esc(row.name) + '</td>' + (row.choices || []).map((c) => '<td>' + esc(c.optLabel) + '</td>').join('') + '</tr>'; });
+    dt += '</table>';
+  }
   let charts = '<div class="lk-charts">' + lkLineChart('Uppsafnað stig', an.trajectories.cumulative, { colorOf });
   for (const k of Object.keys(an.trajectories.byKpi)) { const b = an.trajectories.byKpi[k]; charts += lkLineChart(b.label + ' (stig)', b.series, { min: 0, max: 100, colorOf }); }
   charts += '</div>';
