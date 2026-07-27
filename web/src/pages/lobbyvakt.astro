@@ -1,0 +1,213 @@
+---
+// lobbyvakt.astro — 🏛️ Lobbývakt: Fyrirtæki+ reglu-vöktun. Fyrirtæki velja atvinnugrein(ar) og fá
+// persónulegan straum af þingmálum (Alþingi) + samráðsmálum (samráðsgátt) sem snerta greinina, hvert
+// með AI-áhrifa-brief, relevans-stigi og fresti/stöðu. Sjá docs/superpowers/specs/2026-07-27-lobbyvakt-design.md.
+// Gögn eru síuð LIFANDI af workernum (/api/lobbyvakt, Fyrirtæki+ gátt: _lobbyGate) — því client-hlið
+// fetch hér, ekkert build-tíma gagnainnlestur. Taxonomy = EIN uppspretta: SECTORS úr lib/lobbyvakt.mjs
+// (sama fasti og build_lobbyvakt.mjs + worker.js nota — ekkert harðkóðað hér).
+import Layout from '../layouts/Layout.astro';
+import { SECTORS } from '../lib/lobbyvakt.mjs';
+
+const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta þína atvinnugrein, með AI-áhrifa-brief, relevans-stigi og fresti. Fyrir Fyrirtæki+ áskrifendur.';
+---
+<Layout title="Lobbývakt — reglur í pípunni | Karp+" description={desc} canonical="https://karp.is/lobbyvakt/">
+  <main class="lv-wrap" data-pg="lobbyvakt">
+    <p class="kicker">Karp+ · Fyrirtæki+</p>
+    <h1>Lobbývakt</h1>
+    <p class="lead">Frumvörp og samráðsmál í pípunni sem snerta þína grein — með áhrifa-briefi og fresti.</p>
+    <p class="lv-note">⚠ Sjálfvirk túlkun með gervigreind — til glöggvunar, ekki lögfræðiráðgjöf. Staðfestu í frumtextanum.</p>
+
+    <div id="lv-gate" hidden>
+      <p id="lv-gate-tier" hidden>Þessi vakt er hluti af <a href="/karp-pro/#verd">Fyrirtæki+</a> þrepinu.</p>
+      <p id="lv-gate-login" hidden>Skráðu þig inn til að nota Lobbývaktina. <a id="lv-gate-login-a" href="/innskra/">Skráðu þig inn →</a></p>
+      <p id="lv-gate-err" hidden>Náði ekki í Lobbývaktina — reyndu aftur síðar.</p>
+    </div>
+
+    <section id="lv-app" hidden>
+      <h2>Þínar greinar</h2>
+      <p class="sub">Veldu eina eða fleiri atvinnugreinar — straumurinn og tölvupóst-vaktin sníða sig að þeim. Mál merkt „Þvert á greinar" (skattar, vinnuréttur, persónuvernd o.fl.) birtast alltaf, óháð vali.</p>
+      <div id="lv-sectors" class="lv-pills">
+        {Object.entries(SECTORS).map(([code, label]) => (
+          <button type="button" class="lv-pill" data-sector={code} aria-pressed="false">{label}</button>
+        ))}
+      </div>
+      <div class="lv-save-row">
+        <button type="button" id="lv-save">Vista greinar</button>
+        <span id="lv-save-msg" class="lv-save-msg" hidden></span>
+      </div>
+      <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar að ofan og ýttu á „Vista greinar" til að byrja.</p>
+
+      <h2>Straumurinn þinn</h2>
+      <div id="lv-feed"></div>
+      <p id="lv-empty" class="lv-empty" hidden>Engin mál passa við valdar greinar eins og er — mál merkt „Þvert á greinar" birtast sjálfkrafa þegar þau koma fram.</p>
+    </section>
+  </main>
+
+  <script type="application/json" id="d-lv-sectors" set:html={JSON.stringify(SECTORS)}></script>
+
+  <style>
+    .lv-wrap { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 30px; margin: 0 0 10px; }
+    .lead { color: var(--ink); font-size: 15px; line-height: 1.6; }
+    .lv-note { font-size: 13px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }
+
+    #lv-gate { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    #lv-gate a { color: #f6b13b; font-weight: 700; }
+
+    h2 { font-size: 18px; color: var(--ink); margin: 30px 0 6px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+
+    .lv-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+    .lv-pill { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; }
+    .lv-pill:hover { color: var(--ink); border-color: rgba(246,177,59,.4); }
+    .lv-pill-on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 700; }
+
+    .lv-save-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; flex-wrap: wrap; }
+    .lv-save-row button { padding: 9px 18px; border-radius: 10px; border: 0; background: var(--gold); color: #1a1205; font-weight: 700; cursor: pointer; }
+    .lv-save-row button:disabled { opacity: .6; cursor: default; }
+    .lv-save-msg { font-size: 12.5px; color: var(--muted); }
+    .lv-save-msg.ok { color: #46e08a; }
+    .lv-save-msg.err { color: #ff6d7a; }
+    .lv-hint { font-size: 13px; color: #f6b13b; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
+
+    .lv-empty { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
+
+    @media print {
+      .lv-pills, .lv-save-row, #lv-gate, .lv-note { display: none !important; }
+    }
+  </style>
+
+  <!-- ⚠ Runtime-innerHTML (straumur-kortin) → Astro scoped-CSS nær EKKI yfir → is:global með
+       .lv- forskeyti, njörvað við main[data-pg="lobbyvakt"] svo ekkert leki á aðrar síður. -->
+  <style is:global>
+    main[data-pg="lobbyvakt"] .lv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
+    main[data-pg="lobbyvakt"] .lv-card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+    main[data-pg="lobbyvakt"] .lv-kind { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    main[data-pg="lobbyvakt"] .lv-stig { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    main[data-pg="lobbyvakt"] .lv-stig-mikil { background: rgba(255,109,122,.15); color: #ff6d7a; }
+    main[data-pg="lobbyvakt"] .lv-stig-midl { background: rgba(246,177,59,.15); color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .lv-stig-litil { background: rgba(255,255,255,.07); color: var(--faint); }
+    main[data-pg="lobbyvakt"] .lv-title { font-size: 16px; margin: 2px 0 8px; line-height: 1.35; }
+    main[data-pg="lobbyvakt"] .lv-title a { color: var(--ink); text-decoration: none; }
+    main[data-pg="lobbyvakt"] .lv-title a:hover { color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .lv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+    main[data-pg="lobbyvakt"] .lv-tag { font-size: 11.5px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; color: var(--muted); }
+    main[data-pg="lobbyvakt"] .lv-brief { font-size: 13.5px; color: var(--ink); line-height: 1.5; margin: 0 0 8px; }
+    main[data-pg="lobbyvakt"] .lv-meta { font-size: 12.5px; color: var(--muted); }
+    main[data-pg="lobbyvakt"] .lv-deadline { color: #f6b13b; font-weight: 700; }
+    main[data-pg="lobbyvakt"] .lv-stada { color: var(--muted); }
+    main[data-pg="lobbyvakt"] .lv-card-note { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.4; }
+  </style>
+
+  <script>
+    // 🏛️ Lobbývakt — client-eyja: GET /api/lobbyvakt (Fyrirtæki+ gátt í workernum sjálfum — engin
+    // client-hlið hasTier()-forgátt hér, API-svarið (ok:false,error:'tier'|'login') er heimildin).
+    // Greina-val vistast um POST /api/u/lobbyvakt-greinar (karpPost → /api/u + nonce sjálfkrafa).
+    import { karpPost, loginHref } from '../lib/auth.js';
+
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const SECTORS = (() => { try { return JSON.parse(document.getElementById('d-lv-sectors').textContent) || {}; } catch (e) { return {}; } })();
+    const KIND_LABEL = { thingmal: '📜 Þingmál', samrad: '💬 Samráð' };
+    const STIG_CLASS = { 'Mikil': 'lv-stig-mikil', 'Miðlungs': 'lv-stig-midl', 'Lítil': 'lv-stig-litil' };
+
+    const dagsIS = (iso) => { try { return new Date(iso).toLocaleDateString('is-IS'); } catch (e) { return String(iso || ''); } };
+
+    function sectorTags(greinar) {
+      return (Array.isArray(greinar) ? greinar : [])
+        .map((g) => (SECTORS[g] ? '<span class="lv-tag">' + esc(SECTORS[g]) + '</span>' : ''))
+        .join('');
+    }
+
+    function itemCard(it) {
+      const kind = KIND_LABEL[it && it.kind] || esc((it && it.kind) || '');
+      const stig = (it && it.stig) || 'Miðlungs';
+      const stigCls = STIG_CLASS[stig] || 'lv-stig-midl';
+      const brief = it && it.brief ? '<p class="lv-brief">' + esc(it.brief) + '</p>' : '';
+      const meta = it && it.frestur
+        ? '<span class="lv-deadline">Frestur: ' + esc(dagsIS(it.frestur)) + '</span>'
+        : (it && it.stada ? '<span class="lv-stada">' + esc(it.stada) + '</span>' : '');
+      const href = esc((it && it.hlekkur) || '#');
+      const titill = esc((it && it.titill) || 'Ónefnt mál');
+      return '<article class="lv-card">'
+        + '<div class="lv-card-h"><span class="lv-kind">' + kind + '</span><span class="lv-stig ' + stigCls + '">' + esc(stig) + '</span></div>'
+        + '<h3 class="lv-title"><a href="' + href + '" target="_blank" rel="noopener">' + titill + '</a></h3>'
+        + '<div class="lv-tags">' + sectorTags(it && it.greinar) + '</div>'
+        + brief
+        + '<div class="lv-meta">' + meta + '</div>'
+        + '<p class="lv-card-note">⚠ Sjálfvirk túlkun (gervigreind) — ekki lögfræðiráðgjöf.</p>'
+        + '</article>';
+    }
+
+    function renderFeed(items) { $('#lv-feed').innerHTML = (items || []).map(itemCard).join(''); }
+
+    function selectedSectors() {
+      return [...document.querySelectorAll('#lv-sectors .lv-pill-on')].map((b) => b.dataset.sector);
+    }
+
+    function applySelection(greinar) {
+      const set = new Set(Array.isArray(greinar) ? greinar : []);
+      document.querySelectorAll('#lv-sectors .lv-pill').forEach((b) => {
+        const on = set.has(b.dataset.sector);
+        b.classList.toggle('lv-pill-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+    }
+
+    async function fetchFeed() {
+      try { const r = await fetch('/api/lobbyvakt', { credentials: 'include' }); return await r.json(); }
+      catch (e) { return { ok: false, error: 'network' }; }
+    }
+
+    function showGate(which) {
+      $('#lv-gate').hidden = false;
+      $('#lv-app').hidden = true;
+      ['tier', 'login', 'err'].forEach((k) => { const el = $('#lv-gate-' + k); if (el) el.hidden = k !== which; });
+    }
+
+    async function load() {
+      const d = await fetchFeed();
+      if (!d || !d.ok) { showGate(d && d.error === 'login' ? 'login' : d && d.error === 'tier' ? 'tier' : 'err'); return; }
+      $('#lv-gate').hidden = true;
+      $('#lv-app').hidden = false;
+      applySelection(d.greinar);
+      $('#lv-setup-msg').hidden = !d.needsSetup;
+      $('#lv-empty').hidden = !!d.needsSetup || (d.items || []).length > 0;
+      renderFeed(d.items);
+    }
+
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="lobbyvakt"]');
+      if (!m || m.dataset.init) return;
+      m.dataset.init = '1';
+
+      const loginA = $('#lv-gate-login-a');
+      if (loginA) loginA.href = loginHref();
+
+      $('#lv-sectors').addEventListener('click', (e) => {
+        const b = e.target.closest('.lv-pill');
+        if (!b) return;
+        const on = !b.classList.contains('lv-pill-on');
+        b.classList.toggle('lv-pill-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+
+      $('#lv-save').addEventListener('click', async () => {
+        const btn = $('#lv-save'), msg = $('#lv-save-msg');
+        btn.disabled = true; msg.hidden = true;
+        const greinar = selectedSectors();
+        const d = await karpPost('/lobbyvakt-greinar', { greinar }).catch(() => null);
+        btn.disabled = false;
+        if (d && d.ok) {
+          msg.hidden = false; msg.className = 'lv-save-msg ok'; msg.textContent = '✓ Vistað';
+          await load();
+        } else {
+          msg.hidden = false; msg.className = 'lv-save-msg err'; msg.textContent = 'Ekki tókst að vista — reyndu aftur.';
+        }
+      });
+
+      load();
+    });
+  </script>
+</Layout>

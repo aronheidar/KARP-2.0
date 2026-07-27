@@ -148,6 +148,7 @@ const updated = '2026-07-02';
       </div>
 
       <a id="ms-kyc" class="ms-card" href="/areidanleikavaktin/" hidden>🛡️ Áreiðanleikavaktin — KYC-vöktun viðskiptavina</a>
+      <a id="ms-lobbyvakt" class="ms-card" href="/lobbyvakt/" hidden>🏛️ Lobbývakt — reglur í pípunni sem snerta þína grein</a>
     </section>
 
     <!-- ── STILLINGAR ── -->
@@ -797,6 +798,7 @@ const updated = '2026-07-02';
       loadUser().then(async (u) => {
         const gate = $g('gate-note');
         if (hasTier(3)) document.getElementById('ms-kyc')?.removeAttribute('hidden');
+        if (hasTier(3)) document.getElementById('ms-lobbyvakt')?.removeAttribute('hidden');
         if (!u || !u.loggedIn) {
           gate.innerHTML = '';
           $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${loginHref()}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;
