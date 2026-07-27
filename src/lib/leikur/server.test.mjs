@@ -182,6 +182,21 @@ const J = async (res) => JSON.parse(await res.text());
   const cgSt = await J(await stG(cgS.code, cgSj.teamToken));
   ok('classic: mode=classic + engin history/scenarioSoFar', cgSt.mode === 'classic' && cgSt.history === undefined && cgSt.scenarioSoFar === undefined);
 
+  // #3 Umferðar-klukka: timerSec → secondsLeft í decide; engin klukka → undefined
+  const tg = await J(await leikurHandler(req('/api/leikur/create', { timerSec: 120 }), env));
+  const tFacHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + tg.facToken };
+  await leikurHandler(req('/api/leikur/' + tg.code + '/join', { name: 'T' }), env);
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + tg.code + '/control', { method: 'POST', headers: tFacHdr, body: JSON.stringify({ action: 'start' }) }), env);
+  const tSt = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + tg.code + '/state', { headers: { authorization: 'Bearer ' + tg.facToken } }), env));
+  ok('klukka: secondsLeft sett í decide (~120)', typeof tSt.secondsLeft === 'number' && tSt.secondsLeft > 100 && tSt.secondsLeft <= 120);
+  ok('engin klukka: secondsLeft undefined', cgSt.secondsLeft === undefined);
+  // Klukka klippt í [30,3600]
+  const tg2 = await J(await leikurHandler(req('/api/leikur/create', { timerSec: 5 }), env));
+  await leikurHandler(req('/api/leikur/' + tg2.code + '/join', { name: 'T' }), env);
+  await leikurHandler(new Request('https://karp.is/api/leikur/' + tg2.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tg2.facToken }, body: JSON.stringify({ action: 'start' }) }), env);
+  const tSt2 = await J(await leikurHandler(new Request('https://karp.is/api/leikur/' + tg2.code + '/state', { headers: { authorization: 'Bearer ' + tg2.facToken } }), env));
+  ok('klukka: 5s klippt upp í ≥30', tSt2.secondsLeft >= 29);
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();

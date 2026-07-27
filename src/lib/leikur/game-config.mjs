@@ -67,6 +67,9 @@ export const LEVER_UNLOCK = {
   votlendi: 5,               // endurheimt votlendis
 };
 
+// #4 Mýkri byrjun: kjarna-stjórntæki auðkennd (⭐) í umferð 1 svo fyrstu-spilarar byrji á fáum, skýrum tólum.
+export const CORE_LEVERS = ['vextir', 'skattar', 'tilfaerslur', 'menntun'];
+
 // #1-3: afstaða = Δ á hlaupandi sleða-stig. #4: eins-árs púls (fjárhags-kostnaður kemur SJÁLFKRAFA úr
 // tengslum sleðans við afkomu í vélinni — engin sér-refsing). #5 (viðbragð) er í SCENARIO.
 export const DECISIONS = [

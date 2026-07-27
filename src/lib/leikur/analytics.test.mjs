@@ -1,4 +1,4 @@
-import { buildAnalytics } from './analytics.mjs';
+import { buildAnalytics, teachingPrompts } from './analytics.mjs';
 import { MANDATE, DECISIONS, SCENARIO } from './game-config.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
@@ -41,5 +41,19 @@ ok('studio: decisionsTable studio-merkt', sa.decisionsTable.every((r) => r.studi
 ok('studio: samantekt sýnir breyttan sleða', sa.decisionsTable.find((r) => r.teamId === 1).summary.includes('Stýrivextir 9.5'));
 ok('studio: grunn-gildi síast burt úr samantekt', !sa.decisionsTable.find((r) => r.teamId === 1).summary.includes('Ríkisútgjöld'));
 ok('studio: allt á grunni → —', sa.decisionsTable.find((r) => r.teamId === 2).summary === '—');
+
+// #6 teachingPrompts
+const scEv = SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
+const tp = teachingPrompts(a, { scenarioEvents: scEv });
+ok('teachingPrompts skilar fylki', Array.isArray(tp));
+ok('teachingPrompts ≤ 5', tp.length <= 5);
+ok('teachingPrompts nefnir forystu (A vs B)', tp.some((p) => p.includes('A') && p.includes('B')));
+// Sameiginlegur veikleiki: bæði lið mjög lág í öllu
+const lowHist = [ { round: 1, teamId: 1, cumulative: 20, perKpi: perKpi(20) }, { round: 1, teamId: 2, cumulative: 25, perKpi: perKpi(25) } ];
+const lowA = buildAnalytics({ history: lowHist, decisions: [], teams, mandate: MANDATE, decisionsConfig: DECISIONS, scenario: SCENARIO, currentRound: 1 });
+ok('teachingPrompts greinir sameiginlegan veikleika', teachingPrompts(lowA, { scenarioEvents: scEv }).some((p) => p.includes('erfitt með')));
+// Tóm greining → tómt
+ok('teachingPrompts tóm greining → tómt', teachingPrompts(null).length === 0);
+
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

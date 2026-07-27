@@ -115,4 +115,27 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-team-banner) { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: rgba(110,168,254,.14); border: 1px solid #6ea8fe55; border-radius: 10px; padding: 8px 14px; margin: 0 0 10px; font-size: 14px; }
   main[data-pg="leikur"] :global(.lk-invite-btn) { background: rgba(84,208,138,.16); color: #54d08a; border: 1px solid #54d08a55; border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   main[data-pg="leikur"] :global(.lk-invite-btn:hover) { background: rgba(84,208,138,.26); }
+  /* #1 debrief */
+  main[data-pg="leikur"] :global(.lk-debrief) { border-color: #6ea8fe66; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  main[data-pg="leikur"] :global(.lk-debrief-line) { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+  main[data-pg="leikur"] :global(.lk-debrief-line b) { color: #cfe0ff; }
+  /* #2 live fórnarskipti */
+  main[data-pg="leikur"] :global(.lk-conflict) { background: rgba(232,193,74,.12); border: 1px solid #e8c14a66; border-radius: 10px; padding: 8px 12px; margin: 0 0 10px; }
+  main[data-pg="leikur"] :global(.lk-conflict-row) { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #f0d488; line-height: 1.45; padding: 3px 0; }
+  main[data-pg="leikur"] :global(.lk-conflict-ic) { flex: 0 0 auto; }
+  /* #3 umferðar-klukka */
+  main[data-pg="leikur"] :global(.lk-timer) { display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 999px; background: rgba(110,168,254,.16); border: 1px solid #6ea8fe55; color: #cfe0ff; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; vertical-align: middle; }
+  main[data-pg="leikur"] :global(.lk-timer.low) { background: rgba(232,193,74,.18); border-color: #e8c14a77; color: #f0d488; }
+  main[data-pg="leikur"] :global(.lk-timer.out) { background: rgba(231,130,132,.20); border-color: #e7828477; color: #f2a6a8; }
+  /* #4 kjarna-sleði + intro */
+  main[data-pg="leikur"] :global(.lk-slider-row.lk-core) { background: rgba(246,177,59,.07); border-left: 2px solid #f6b13b; padding-left: 8px; border-radius: 6px; }
+  main[data-pg="leikur"] :global(.lk-intro) { background: rgba(90,200,224,.12); border: 1px solid #5ac8e055; border-radius: 10px; padding: 9px 14px; margin: 0 0 10px; font-size: 13.5px; color: #a9e6f2; line-height: 1.5; }
+  /* #5 leikslok-samantekt */
+  main[data-pg="leikur"] :global(.lk-recap) { border-color: #f6b13b66; background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(246,177,59,.02)); }
+  main[data-pg="leikur"] :global(.lk-recap-line) { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+  main[data-pg="leikur"] :global(.lk-recap-line b) { color: #f8d79a; }
+  /* #6 kennslu-vísbendingar */
+  main[data-pg="leikur"] :global(.lk-prompts) { margin: 2px 0 4px; padding-left: 20px; }
+  main[data-pg="leikur"] :global(.lk-prompts li) { margin: 5px 0; font-size: 13.5px; line-height: 1.5; color: #d6def0; }
+  main[data-pg="leikur"] :global(.lk-prompts li b) { color: #cfe0ff; }
 </style>
