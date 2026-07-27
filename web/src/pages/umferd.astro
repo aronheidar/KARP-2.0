@@ -20,7 +20,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
   <main data-pg="umferd">
     <p class="kicker">Hagvísir Íslands · Samfélag</p>
     <h1>Umferð</h1>
-    <p>Farþegar um Keflavíkurflugvöll (allir farþegar, mánaðarlega) og lifandi vegaumferð af teljurum Vegagerðarinnar. Heimildir: Hagstofa, Vegagerðin.</p>
+    <p>Farþegar um Keflavíkurflugvöll (allir farþegar, mánaðarlega) og vegaumferð af teljurum Vegagerðarinnar. Heimildir: Hagstofa, Vegagerðin.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Umferðartölur: teljarar Vegagerðarinnar (um veitu Karp) og farþegatölur um Keflavíkurflugvöll frá Hagstofu.">ⓘ</i> Um gögnin á síðunni</p>
 
     {KEF && (
@@ -34,14 +34,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       <h2>🚗 Vegaumferð núna</h2>
       <div class="kpis" id="veg-live-row"></div>
       <div id="veg-roads" class="roads"></div>
-      <p class="srcnote">Lifandi gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á karp.is.</p>
+      <p class="srcnote">Gögn frá teljurum Vegagerðarinnar (15 mín) — birtast aðeins á karp.is.</p>
     </div>
 
     <div id="flug-live" hidden>
       <h2>✈️ Flug yfir Íslandi — núna</h2>
       <div class="kpis" id="flug-row"></div>
       <div id="flug-list" class="roads"></div>
-      <p class="srcnote">Lifandi ratsjárgögn (ADS-B) frá OpenSky Network, uppfært á ~5 mín fresti. Sýnir loftför innan svæðisins 62,5–67,5°N.</p>
+      <p class="srcnote">Ratsjárgögn (ADS-B) frá OpenSky Network, uppfært á ~5 mín fresti. Sýnir loftför innan svæðisins 62,5–67,5°N.</p>
     </div>
 
     {KEF && (
@@ -52,7 +52,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'Dataset', name: 'Um
       </>
     )}
 
-    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimildir: Hagstofa (SAM02001), Vegagerðin (lifandi teljarar). #2.</p>
+    <p class="foot">Forþjónað (SSG, daglegt gagna-snapshot) {updated}. Heimildir: Hagstofa (SAM02001), Vegagerðin (teljarar). #2.</p>
   </main>
 
   <style>

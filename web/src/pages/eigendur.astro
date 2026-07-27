@@ -103,7 +103,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
       form.style.display = 'none';
       const host = document.createElement('div');
       host.className = 'eig-sample-wrap';
-      host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt lifandi úr opinberum skrám. <a href="/eigendur/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
+      host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/eigendur/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
       (main || document.body).appendChild(host);
       renderUboSample(host.querySelector('#eig-host'), { navTo: (k) => { location.href = '/eigendur/?q=' + encodeURIComponent(k); } });
       return;

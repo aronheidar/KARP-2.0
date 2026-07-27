@@ -144,7 +144,7 @@ const jsonLd = {
 
     <div class="ppair">
       <div>
-        <h2>💱 Gengi krónunnar <span class="hint" id="fx-note">— {LIVEMK ? 'lifandi' : 'töfð'} gögn</span></h2>
+        <h2>💱 Gengi krónunnar <span class="hint" id="fx-note">— {LIVEMK ? 'gögn' : 'töfð gögn'}</span></h2>
         <div id="fx-grid" class="mini-grid">
           {FX.map((c) => (
             <div class="mini" data-sym={c.sym} data-name={c.name} data-cur={c.cur || 'USD'} data-hist={JSON.stringify(c.hist || [])} role="button" tabindex="0">
@@ -547,7 +547,7 @@ const jsonLd = {
             if (ch) { ch.textContent = (c.chgPct > 0 ? '+' : '') + f1(c.chgPct, 2) + '%'; ch.className = 'mini-ch ' + (c.chgPct >= 0 ? 'up' : 'dn'); }
           });
           const note = document.getElementById('fx-note');
-          if (note) note.textContent = '— 🟢 lifandi gögn';
+          if (note) note.textContent = '— 🟢 gögn';
         })
         .catch(() => {});
     }
