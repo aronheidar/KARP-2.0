@@ -17,7 +17,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     <p class="kicker">Karp+ · Atvinnulíf</p>
     <h1>🏢 Fyrirtækjaskrá</h1>
     <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:#f6b13b">Um Fyrirtækjaskýrsluna →</a></p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Lifandi uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <form id="fs-form" autocomplete="off">
       <input id="fs-q" type="search" placeholder="Nafn félags eða kennitala…" autocomplete="off" aria-label="Leit í fyrirtækjaskrá" />
@@ -26,7 +26,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     <div id="fs-out" aria-live="polite"></div>
 
     <p class="note">ⓘ Uppflettingin notar opinberu fyrirtækjaskrána og er ókeypis — sambærileg grunnuppfletting kostar áskrift annars staðar. Fyrir stærstu birgja ríkisins er stokkið beint í <a href="/birgjar/">Birgja ríkisins</a>, umfjöllun fjölmiðla er í <a href="/frettir/">Vöktun</a> og opinber innkaup í <a href="/utbod/">Útboðum</a>.</p>
-    <p class="foot">Lifandi uppfletting: fyrirtækjaskrá Skattsins (skatturinn.is) um /api/fyrirtaeki — 24 klst skyndiminni. LOTA 57b.</p>
+    <p class="foot">Uppfletting: fyrirtækjaskrá Skattsins (skatturinn.is) um /api/fyrirtaeki — 24 klst skyndiminni. LOTA 57b.</p>
   </main>
 
   <style>
@@ -1812,7 +1812,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const host = document.createElement('div');
         host.className = 'fs-wrap eig-sample-wrap';
         const main = document.querySelector('main'); (main || document.body).appendChild(host);
-        host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt lifandi úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
+        host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
         renderUboSample(host.querySelector('#eig-host'), { navTo: (q) => { location.href = '/fyrirtaeki/?q=' + encodeURIComponent(q); } });
         return;
       }
