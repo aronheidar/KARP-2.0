@@ -31,11 +31,20 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
           <button type="button" class="lv-pill" data-sector={code} aria-pressed="false">{label}</button>
         ))}
       </div>
+
+      <h3 class="lv-sub-h">Leitarorð <span class="lv-sub-h-note">(til viðbótar við greinar)</span></h3>
+      <p class="sub">Bættu við leitarorðum — mál sem innihalda orðið (í titli, áhrifa-briefi eða efnisorðum) birtast líka í straumnum og vaktinni, óháð grein. T.d. „veiðigjald", nafn reglugerðar eða málaflokkur.</p>
+      <div class="lv-kw-row">
+        <input type="text" id="lv-kw-input" placeholder="t.d. veiðigjald" maxlength="40" autocomplete="off" spellcheck="false" />
+        <button type="button" id="lv-kw-add">Bæta við</button>
+      </div>
+      <div id="lv-kw-chips" class="lv-kw-chips"></div>
+
       <div class="lv-save-row">
-        <button type="button" id="lv-save">Vista greinar</button>
+        <button type="button" id="lv-save">Vista</button>
         <span id="lv-save-msg" class="lv-save-msg" hidden></span>
       </div>
-      <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar að ofan og ýttu á „Vista greinar" til að byrja.</p>
+      <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar og/eða bættu við leitarorðum að ofan og ýttu á „Vista" til að byrja.</p>
 
       <h2>Straumurinn þinn</h2>
       <div id="lv-feed"></div>
@@ -71,10 +80,22 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
     .lv-save-msg.err { color: #ff6d7a; }
     .lv-hint { font-size: 13px; color: #f6b13b; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
 
+    .lv-sub-h { font-size: 15px; color: var(--ink); margin: 24px 0 4px; font-weight: 700; }
+    .lv-sub-h-note { font-weight: 500; color: var(--faint); font-size: 13px; }
+    .lv-kw-row { display: flex; gap: 8px; margin: 8px 0 10px; flex-wrap: wrap; }
+    .lv-kw-row input { font: inherit; font-size: 13.5px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); min-width: 200px; flex: 1 1 240px; }
+    .lv-kw-row input:focus { outline: none; border-color: rgba(246,177,59,.5); }
+    .lv-kw-row button { font: inherit; font-size: 13.5px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .lv-kw-row button:hover { border-color: rgba(246,177,59,.4); color: #f6b13b; }
+    .lv-kw-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
+    .lv-kw-chip { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; padding: 5px 6px 5px 12px; border-radius: 999px; border: 1px solid rgba(246,177,59,.5); background: rgba(246,177,59,.12); color: #f6b13b; }
+    .lv-kw-chip button { font: inherit; border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 5px; border-radius: 999px; }
+    .lv-kw-chip button:hover { color: #ff6d7a; }
+
     .lv-empty { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
 
     @media print {
-      .lv-pills, .lv-save-row, #lv-gate, .lv-note { display: none !important; }
+      .lv-pills, .lv-save-row, .lv-kw-row, .lv-sub-h, #lv-gate, .lv-note { display: none !important; }
     }
   </style>
 
@@ -84,6 +105,7 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
     main[data-pg="lobbyvakt"] .lv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 0 0 12px; }
     main[data-pg="lobbyvakt"] .lv-card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
     main[data-pg="lobbyvakt"] .lv-kind { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    main[data-pg="lobbyvakt"] .lv-kwmark { font-size: 11px; font-weight: 700; color: #f6b13b; margin-left: 7px; text-transform: none; letter-spacing: 0; }
     main[data-pg="lobbyvakt"] .lv-stig { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
     main[data-pg="lobbyvakt"] .lv-stig-mikil { background: rgba(255,109,122,.15); color: #ff6d7a; }
     main[data-pg="lobbyvakt"] .lv-stig-midl { background: rgba(246,177,59,.15); color: #f6b13b; }
@@ -111,8 +133,28 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
     const SECTORS = (() => { try { return JSON.parse(document.getElementById('d-lv-sectors').textContent) || {}; } catch (e) { return {}; } })();
     const KIND_LABEL = { thingmal: '📜 Þingmál', samrad: '💬 Samráð' };
     const STIG_CLASS = { 'Mikil': 'lv-stig-mikil', 'Miðlungs': 'lv-stig-midl', 'Lítil': 'lv-stig-litil' };
+    let keywords = [];   // valin leitarorð (lágstöfuð); vistast með greinum um POST /api/u/lobbyvakt-greinar
 
     const dagsIS = (iso) => { try { return new Date(iso).toLocaleDateString('is-IS'); } catch (e) { return String(iso || ''); } };
+
+    // Speglar matchKeyword úr lib/lobbyvakt.mjs — merkir mál sem rötuðu inn um leitarorð (🔍) frekar en grein.
+    function itemMatchesKeyword(it) {
+      if (!keywords.length || !it) return false;
+      const hay = ((it.titill || '') + ' ' + (it.brief || '') + ' ' + ((Array.isArray(it.efni) ? it.efni : []).join(' '))).toLowerCase();
+      return keywords.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.indexOf(s) >= 0; });
+    }
+
+    function renderChips() {
+      $('#lv-kw-chips').innerHTML = keywords
+        .map((w) => '<span class="lv-kw-chip">' + esc(w) + '<button type="button" class="lv-kw-del" data-kw="' + esc(w) + '" aria-label="Fjarlægja leitarorð">×</button></span>')
+        .join('');
+    }
+    function addKeyword(raw) {
+      const w = String(raw == null ? '' : raw).trim().toLowerCase();
+      if (!w) return;
+      if (keywords.indexOf(w) < 0 && keywords.length < 20) keywords.push(w);
+      renderChips();
+    }
 
     function sectorTags(greinar) {
       return (Array.isArray(greinar) ? greinar : [])
@@ -122,6 +164,7 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
 
     function itemCard(it) {
       const kind = KIND_LABEL[it && it.kind] || esc((it && it.kind) || '');
+      const kindHtml = kind + (itemMatchesKeyword(it) ? '<span class="lv-kwmark" title="Passar við leitarorð">🔍 leitarorð</span>' : '');
       const stig = (it && it.stig) || 'Miðlungs';
       const stigCls = STIG_CLASS[stig] || 'lv-stig-midl';
       const brief = it && it.brief ? '<p class="lv-brief">' + esc(it.brief) + '</p>' : '';
@@ -131,7 +174,7 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
       const href = esc((it && it.hlekkur) || '#');
       const titill = esc((it && it.titill) || 'Ónefnt mál');
       return '<article class="lv-card">'
-        + '<div class="lv-card-h"><span class="lv-kind">' + kind + '</span><span class="lv-stig ' + stigCls + '">' + esc(stig) + '</span></div>'
+        + '<div class="lv-card-h"><span class="lv-kind">' + kindHtml + '</span><span class="lv-stig ' + stigCls + '">' + esc(stig) + '</span></div>'
         + '<h3 class="lv-title"><a href="' + href + '" target="_blank" rel="noopener">' + titill + '</a></h3>'
         + '<div class="lv-tags">' + sectorTags(it && it.greinar) + '</div>'
         + brief
@@ -172,6 +215,8 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
       $('#lv-gate').hidden = true;
       $('#lv-app').hidden = false;
       applySelection(d.greinar);
+      keywords = Array.isArray(d.ord) ? d.ord.slice() : [];
+      renderChips();
       $('#lv-setup-msg').hidden = !d.needsSetup;
       $('#lv-empty').hidden = !!d.needsSetup || (d.items || []).length > 0;
       renderFeed(d.items);
@@ -193,11 +238,22 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
         b.setAttribute('aria-pressed', String(on));
       });
 
+      const kwInput = $('#lv-kw-input');
+      const kwCommit = () => { addKeyword(kwInput.value); kwInput.value = ''; kwInput.focus(); };
+      $('#lv-kw-add').addEventListener('click', kwCommit);
+      kwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); kwCommit(); } });
+      $('#lv-kw-chips').addEventListener('click', (e) => {
+        const b = e.target.closest('.lv-kw-del');
+        if (!b) return;
+        keywords = keywords.filter((x) => x !== b.dataset.kw);
+        renderChips();
+      });
+
       $('#lv-save').addEventListener('click', async () => {
         const btn = $('#lv-save'), msg = $('#lv-save-msg');
         btn.disabled = true; msg.hidden = true;
         const greinar = selectedSectors();
-        const d = await karpPost('/lobbyvakt-greinar', { greinar }).catch(() => null);
+        const d = await karpPost('/lobbyvakt-greinar', { greinar, ord: keywords }).catch(() => null);
         btn.disabled = false;
         if (d && d.ok) {
           msg.hidden = false; msg.className = 'lv-save-msg ok'; msg.textContent = '✓ Vistað';

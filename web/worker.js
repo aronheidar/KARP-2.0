@@ -4,7 +4,7 @@ import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
-import { matchItem, filterFeed, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
+import { matchItem, matchKeyword, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
@@ -2808,10 +2808,13 @@ async function lobbyvaktHandler(request, env, ctx) {
   if (!_lobbyGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
   // greina-val er persónuleg vakt-stilling (per uid, EKKI accountId) — hver meðlimur velur sínar greinar.
   const greinar = await _prefGet(env, uid, 'lobbyvakt_greinar', []);
-  if (!Array.isArray(greinar) || !greinar.length) return _ajson({ ok: true, greinar: [], items: [], needsSetup: true });
+  const ord = await _prefGet(env, uid, 'lobbyvakt_ord', []);
+  const gArr = Array.isArray(greinar) ? greinar : [];
+  const oArr = Array.isArray(ord) ? ord : [];
+  if (!gArr.length && !oArr.length) return _ajson({ ok: true, greinar: [], ord: [], items: [], needsSetup: true });
   const data = await augGet(env, 'lobbyvakt.json').catch(() => null);
-  const items = filterFeed((data && data.items) || [], greinar);
-  return _ajson({ ok: true, greinar, items, updated: (data && data.updated) || null });
+  const items = feedFor((data && data.items) || [], { greinar: gArr, ord: oArr });
+  return _ajson({ ok: true, greinar: gArr, ord: oArr, items, updated: (data && data.updated) || null });
 }
 
 // Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
@@ -3565,11 +3568,20 @@ async function userDataHandler(request, env) {
   // ── Lobbývakt: greina-val (persónuleg vakt-stilling per uid, eins og frettavakt; gátt liggur á /api/lobbyvakt) ──
   if (path === '/lobbyvakt-greinar') {
     if (method === 'POST') {
-      const greinar = (Array.isArray(body.greinar) ? body.greinar : []).filter((g) => ALL_SECTORS.includes(g));
-      await _prefSet(env, uid, 'lobbyvakt_greinar', greinar);
-      return _ajson({ ok: true, greinar });
+      let greinar, ord;
+      if (Array.isArray(body.greinar)) {
+        greinar = body.greinar.filter((g) => ALL_SECTORS.includes(g));
+        await _prefSet(env, uid, 'lobbyvakt_greinar', greinar);
+      }
+      if (Array.isArray(body.ord)) {
+        ord = [...new Set(body.ord.map((w) => String(w == null ? '' : w).trim().toLowerCase()).filter(Boolean))].slice(0, 20);
+        await _prefSet(env, uid, 'lobbyvakt_ord', ord);
+      }
+      if (greinar === undefined) greinar = await _prefGet(env, uid, 'lobbyvakt_greinar', []);
+      if (ord === undefined) ord = await _prefGet(env, uid, 'lobbyvakt_ord', []);
+      return _ajson({ ok: true, greinar, ord });
     }
-    return _ajson({ greinar: await _prefGet(env, uid, 'lobbyvakt_greinar', []) });
+    return _ajson({ greinar: await _prefGet(env, uid, 'lobbyvakt_greinar', []), ord: await _prefGet(env, uid, 'lobbyvakt_ord', []) });
   }
 
   // ── Blobb-endapunktar (geymdu-og-echo) ──
@@ -4013,13 +4025,15 @@ async function digestRun(env) {
   for (const u of users) {
     if (!u.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email)) continue;
     const pr = {};
-    const pres = await env.TENGSL.prepare("SELECT k, v FROM user_prefs WHERE user_id=? AND k IN ('leitvakt','follows','fastvakt','utbodvakt','firmavakt','lobbyvakt_greinar','lobbyvakt_seen')").bind(u.uid).all().catch(() => ({ results: [] }));
+    const pres = await env.TENGSL.prepare("SELECT k, v FROM user_prefs WHERE user_id=? AND k IN ('leitvakt','follows','fastvakt','utbodvakt','firmavakt','lobbyvakt_greinar','lobbyvakt_ord','lobbyvakt_seen')").bind(u.uid).all().catch(() => ({ results: [] }));
     for (const row of (pres.results || [])) { try { pr[row.k] = JSON.parse(row.v); } catch (e) {} }
-    // Lobbývakt: reikna ný mál (sinceTs=0 + seen — dags er í MS en digest-tíð í sek; sjá lobbyvakt.mjs newSince); slice svo fyrsta digest flæði ekki yfir.
+    // Lobbývakt: reikna ný mál (sinceTs=0 + seen — dags er í MS en digest-tíð í sek; sjá lobbyvakt.mjs newSince); slice svo fyrsta digest flæði ekki yfir. Leitarorð (ord) ofan á greinar.
     let lobbyNew = [];
-    if (sh.lobbyvakt && Array.isArray(pr.lobbyvakt_greinar) && pr.lobbyvakt_greinar.length) {
+    const lgrein = Array.isArray(pr.lobbyvakt_greinar) ? pr.lobbyvakt_greinar : [];
+    const lord = Array.isArray(pr.lobbyvakt_ord) ? pr.lobbyvakt_ord : [];
+    if (sh.lobbyvakt && (lgrein.length || lord.length)) {
       const lseen = Array.isArray(pr.lobbyvakt_seen) ? pr.lobbyvakt_seen : [];
-      lobbyNew = newSince((sh.lobbyvakt.items) || [], 0, lseen).filter((it) => matchItem(it, pr.lobbyvakt_greinar)).slice(0, 12);
+      lobbyNew = newSince((sh.lobbyvakt.items) || [], 0, lseen).filter((it) => matchItem(it, lgrein) || matchKeyword(it, lord)).slice(0, 12);
       pr._lobbyNew = lobbyNew;
     }
     const html = digestBuild(u.name, pr, sh);

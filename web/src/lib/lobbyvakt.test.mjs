@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import {
   SECTORS, ALL_SECTORS, SECTOR_HINTS,
-  matchItem, filterFeed, newSince, classifyHeuristic, stigRank, isatToSector,
+  matchItem, matchKeyword, filterFeed, feedFor, newSince, classifyHeuristic, stigRank, isatToSector,
 } from './lobbyvakt.mjs';
 
 // ── fixtures ──────────────────────────────────────────────────────────────
@@ -129,4 +129,48 @@ test('isatToSector: fjölmiðla-deildir innan J (58-60) → fjolmidlar; annað J
   assert.equal(isatToSector('58'), 'fjolmidlar');
   assert.equal(isatToSector('61'), 'ut');
   assert.equal(isatToSector('R'), 'fjolmidlar');
+});
+
+// ── matchKeyword ──────────────────────────────────────────────────────────
+test('matchKeyword: leitarorð sem hlutstrengur í titli/brief/efni = true', () => {
+  assert.equal(matchKeyword({ titill: 'Frumvarp um veiðigjald' }, ['veiðigjald']), true);
+  assert.equal(matchKeyword({ titill: 'X', brief: 'Hefur áhrif á kvóta útgerða' }, ['kvóta']), true);
+  assert.equal(matchKeyword({ titill: 'X', efni: ['skattar', 'vsk'] }, ['vsk']), true);
+});
+test('matchKeyword: hástafanæmi skiptir ekki máli', () => {
+  assert.equal(matchKeyword({ titill: 'VEIÐIGJALD Í SJÁVARÚTVEGI' }, ['veiðigjald']), true);
+});
+test('matchKeyword: tómt/ekkert ord → false; engin samsvörun → false; ógilt item → false', () => {
+  assert.equal(matchKeyword({ titill: 'Frumvarp um veiðigjald' }, []), false);
+  assert.equal(matchKeyword({ titill: 'Frumvarp um veiðigjald' }, undefined), false);
+  assert.equal(matchKeyword({ titill: 'Frumvarp um X' }, ['ferðaþjónusta']), false);
+  assert.equal(matchKeyword(null, ['x']), false);
+});
+
+// ── feedFor ────────────────────────────────────────────────────────────────
+test('feedFor: item er með ef grein EÐA leitarorð passar (a5 grein, a1 orð, a3 almennt)', () => {
+  const out = feedFor(ITEMS, { greinar: ['ferdathjonusta'], ord: ['veiðigjald'] });
+  assert.deepEqual(out.map((x) => x.id).sort(), ['a1', 'a3', 'a5']);
+});
+test('feedFor: engin samsvörun (hvorki grein né orð) → tómt fylki', () => {
+  const noAlmennt = ITEMS.filter((x) => !x.greinar.includes('almennt'));
+  assert.deepEqual(feedFor(noAlmennt, { greinar: ['orka'], ord: ['ekkifinnst'] }), []);
+});
+test('feedFor: röðun eins og filterFeed þegar aðeins greinar (ord tómt) — sort-jafngildi', () => {
+  const greinar = ['sjavarutvegur', 'bygging', 'almennt', 'ferdathjonusta'];
+  assert.deepEqual(
+    feedFor(ITEMS, { greinar }).map((x) => x.id),
+    filterFeed(ITEMS, greinar).map((x) => x.id),
+  );
+  assert.deepEqual(feedFor(ITEMS, { greinar }).map((x) => x.id), ['a3', 'a2', 'a5', 'a4', 'a1']);
+});
+test('feedFor: mutar ekki inntak og skilar nýju fylki', () => {
+  const items = ITEMS.map((x) => ({ ...x }));
+  const before = JSON.stringify(items);
+  const out = feedFor(items, { greinar: ['bygging'], ord: ['fiskeldi'] });
+  assert.notEqual(out, items);
+  assert.equal(JSON.stringify(items), before);
+});
+test('feedFor: default-args (aðeins items) → aðeins almennt-mál', () => {
+  assert.deepEqual(feedFor(ITEMS).map((x) => x.id), ['a3']);
 });

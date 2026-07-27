@@ -56,10 +56,10 @@ export function matchItem(item, userSectors) {
   return greinar.some((g) => sectors.includes(g));
 }
 
-// Nýtt fylki (mutar ekki inntak), síað með matchItem, raðað: virkur (truthy) frestur fyrst
-// (næsti frestur efst = hækkandi), svo frestlaus mál eftir dags lækkandi (nýjast efst).
-export function filterFeed(items, userSectors) {
-  const filtered = (Array.isArray(items) ? items : []).filter((it) => matchItem(it, userSectors));
+// Röðun straums (deilt af filterFeed + feedFor svo hegðun sé NÁKVÆMLEGA eins): virkur (truthy) frestur
+// fyrst (næsti frestur efst = hækkandi), svo frestlaus mál eftir dags lækkandi (nýjast efst). Tekur við
+// þegar-síuðu fylki; byggir ný fylki (mutar ekki inntak).
+function _sortFeed(filtered) {
   const withFrestur = [];
   const without = [];
   for (const it of filtered) {
@@ -69,6 +69,27 @@ export function filterFeed(items, userSectors) {
   withFrestur.sort((a, b) => Date.parse(a.frestur) - Date.parse(b.frestur));
   without.sort((a, b) => Date.parse(b.dags) - Date.parse(a.dags));
   return [...withFrestur, ...without];
+}
+
+// Nýtt fylki (mutar ekki inntak), síað með matchItem, raðað skv. _sortFeed.
+export function filterFeed(items, userSectors) {
+  return _sortFeed((Array.isArray(items) ? items : []).filter((it) => matchItem(it, userSectors)));
+}
+
+// true ef eitthvert leitarorð í ord (fylki, ætlast til lágstafað) er hlutstrengur (case-insensitive) af
+// (titill + ' ' + brief + ' ' + efni.join(' ')). Tómt/ekkert ord → false.
+export function matchKeyword(item, ord) {
+  const words = Array.isArray(ord) ? ord : [];
+  if (!words.length) return false;
+  const hay = `${(item && item.titill) || ''} ${(item && item.brief) || ''} ${((item && item.efni) || []).join(' ')}`.toLowerCase();
+  return words.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.includes(s); });
+}
+
+// Straumur með BÆÐI greina-samsvörun OG leitarorðum: item er með ef matchItem(greinar) EÐA matchKeyword(ord).
+// Raðað eins og filterFeed (deilt _sortFeed). Mutar ekki inntak.
+export function feedFor(items, { greinar = [], ord = [] } = {}) {
+  const filtered = (Array.isArray(items) ? items : []).filter((it) => matchItem(it, greinar) || matchKeyword(it, ord));
+  return _sortFeed(filtered);
 }
 
 // Mál til að tilkynna í digest: dags (Date.parse — því er sinceTs í MILLISEKÚNDUM, ekki unix-sekúndum)
