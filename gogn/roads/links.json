@@ -664,11 +664,11 @@
   "id": "arrears_gdp",
   "from": "vanskil",
   "to": "hagvoxtur",
-  "coef": -0.02,
+  "coef": -0.06,
   "lag": 2,
   "unit": "pp/vísit",
-  "ci_lo": -0.04,
-  "ci_hi": -0.005,
+  "ci_lo": -0.09,
+  "ci_hi": -0.02,
   "nl": {
    "type": "accel",
    "at": 0.3,
@@ -1879,6 +1879,18 @@
   "ci_lo": 0.06,
   "ci_hi": 0.28,
   "source": "Útlánaþensla drífur húsnæðisverð"
+ },
+ {
+  "id": "credit_gdp",
+  "from": "utlanavoxtur",
+  "to": "hagvoxtur",
+  "coef": 0.04,
+  "lag": 2,
+  "unit": "pp/%",
+  "ci_lo": 0.02,
+  "ci_hi": 0.06,
+  "source": "Útlánaframboð → fjárfesting/neysla (credit-crunch rás, BIS/SÍ FSR)",
+  "note": "Klárar fjármála-hraðalinn: vanskil→utlanavoxtur (samdráttur)→hagvöxtur. Í venjulegu árferði lítil; bítur í skuldakreppu þegar útlán dragast saman."
  },
  {
   "id": "hdebt_carry",
