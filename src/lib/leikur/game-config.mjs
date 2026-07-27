@@ -102,6 +102,37 @@ export const MANDATE = {
   crisisFactor: 0.3,
 };
 
+// Fasi A — MARKMIÐ BREYTAST EFTIR KJÖRTÍMABILI. Þjóðhagslegur kjarni (verðb/atvl/skuldir/hagv) ALLTAF með,
+// þemu lögð á smám saman svo umhverfis-/sjálfbærni-/byggða-/jöfnuðar-sleðar skipti máli í stiginu (annars 0 áhrif).
+// Aðeins fyrir sjálfgefna leiki; sérsniðnir leikir nota fast mandate úr config. Hagvísar 100-vísitala (2000).
+export const GOAL_SPECS = {
+  verdbolga: { key: 'verdbolga', label: 'Verðbólga', target: 2.5, band: 1.0, zeroAt: 4.0, dir: 'target', weight: 1, icon: '💵' },
+  atvinnuleysi: { key: 'atvinnuleysi', label: 'Atvinnuleysi', max: 4.5, band: 1.0, zeroAt: 4.0, dir: 'max', weight: 1, icon: '👥' },
+  skuldir: { key: 'skuldir', label: 'Skuldir ríkis', max: 40, band: 5, zeroAt: 30, dir: 'max', weight: 1, icon: '🏛️' },
+  hagvoxtur: { key: 'hagvoxtur', label: 'Hagvöxtur', min: 2.0, band: 1.0, zeroAt: 3.0, dir: 'min', weight: 1, icon: '📈' },
+  kaupmattur: { key: 'kaupmattur', label: 'Kaupmáttur launa', min: 0.5, band: 1.5, zeroAt: 6, dir: 'min', weight: 1, icon: '🛒' },
+  fiskistofn: { key: 'fiskistofn', label: 'Fiskistofn (sjálfbærni)', min: 96, band: 4, zeroAt: 25, dir: 'min', weight: 1, icon: '🐟' },
+  byggdajofnudur: { key: 'byggdajofnudur', label: 'Byggðajöfnuður', min: 98, band: 3, zeroAt: 15, dir: 'min', weight: 1, icon: '🗺️' },
+  losun: { key: 'losun', label: 'CO₂-losun (loftslag)', max: 106, band: 4, zeroAt: 60, dir: 'max', weight: 1, icon: '🌱' },
+  jofnudur: { key: 'jofnudur', label: 'Tekjujöfnuður', min: 98, band: 3, zeroAt: 15, dir: 'min', weight: 1, icon: '⚖️' },
+};
+const CORE_GOALS = ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur'];
+// Markmið per kjörtímabil (KT1..KT8): kjarni + þema. Þemu magnast: lífskjör→fiskur→(hrun)→byggð→ferðamenn→loftslag→jöfnuður→allt.
+export const ROUND_GOALS = [
+  [...CORE_GOALS, 'kaupmattur'],                                         // KT1 2000 netbóla: lífskjör
+  [...CORE_GOALS, 'fiskistofn'],                                         // KT2 2004 útrás: sjálfbær sjávarútvegur
+  [...CORE_GOALS],                                                       // KT3 2008 hrun: lifa af (þjóðhagur ræður)
+  [...CORE_GOALS, 'byggdajofnudur'],                                     // KT4 2012 endurreisn: byggðir
+  [...CORE_GOALS, 'fiskistofn', 'kaupmattur'],                           // KT5 2016 ferðamenn: án ofþenslu
+  [...CORE_GOALS, 'losun'],                                              // KT6 2020 COVID+Paris: græn viðreisn
+  [...CORE_GOALS, 'losun', 'jofnudur'],                                  // KT7 2024 verðbólga: loftslag+jöfnuður
+  [...CORE_GOALS, 'losun', 'fiskistofn', 'byggdajofnudur', 'jofnudur'],  // KT8 2028 framtíð: allt
+];
+export function mandateFor(round) {
+  const keys = ROUND_GOALS[Math.min(ROUND_GOALS.length - 1, Math.max(0, (round || 1) - 1))] || CORE_GOALS;
+  return { kpis: keys.map((k) => GOAL_SPECS[k]).filter(Boolean), crisis: MANDATE.crisis, crisisFactor: MANDATE.crisisFactor };
+}
+
 // Söguleg sjálfgefin sviðsmynd: ÍSLAND 2000–2032, hvert kjörtímabil (4 ár) fær raun-atburð + sjokk.
 // `year` = upphafsár kjörtímabils, `icon` = tákn f. tímalínu. shocks = exogen (sömu f. öll lið).
 // responses (≥2, gild effect) haldast f. classic-samhæfi; studio-hamur hunsar þau (svarað með sleðum).

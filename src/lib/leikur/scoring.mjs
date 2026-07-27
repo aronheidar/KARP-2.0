@@ -12,7 +12,8 @@ export function scoreKpi(value, spec) {
 }
 
 export function scoreRound(kpis, mandate = MANDATE) {
-  const perKpi = mandate.kpis.map((spec) => ({ key: spec.key, label: spec.label, value: kpis[spec.key], score: scoreKpi(kpis[spec.key], spec), weight: spec.weight || 1 }));
+  // Vörn: sleppa markmiðum sem vantar gildi (annars NaN-ar heildina). Raunleikur skilar öllum, en per-lotu markmið gera þetta öruggt.
+  const perKpi = mandate.kpis.filter((spec) => Number.isFinite(kpis[spec.key])).map((spec) => ({ key: spec.key, label: spec.label, value: kpis[spec.key], score: scoreKpi(kpis[spec.key], spec), weight: spec.weight || 1 }));
   const wsum = perKpi.reduce((a, p) => a + p.weight, 0);
   let composite = perKpi.reduce((a, p) => a + p.score * p.weight, 0) / (wsum || 1);
   const crisis = mandate.crisis.some((c) => kpis[c.key] > c.over);

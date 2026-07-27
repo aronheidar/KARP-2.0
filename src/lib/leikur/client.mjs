@@ -255,8 +255,15 @@ export function mountLeikur(root) {
     return '<div class="lk-card"><h2>🏆 Stigatafla</h2>' + (rows || '<p>Engin lið enn.</p>') + '</div>';
   }
   function mandateCard(st) {
-    const rows = st.mandate.kpis.map((k) => '<div class="lk-lb-row"><span>' + esc(k.label) + (k.weight && k.weight !== 1 ? ' <span class="lk-kpi-w">×' + k.weight + '</span>' : '') + '</span><span>' + (k.dir === 'target' ? 'markmið ' + num(k.target) : k.dir === 'max' ? '≤ ' + num(k.max) : '≥ ' + num(k.min)) + '</span></div>').join('');
-    return '<div class="lk-card"><h2>🎯 Umboð</h2><p>Náðu markmiðunum — þau eru í togstreitu.</p>' + rows + '</div>';
+    const CORE = ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur'];
+    const rows = st.mandate.kpis.map((k) => {
+      const themed = !CORE.includes(k.key);
+      const aim = k.dir === 'target' ? 'markmið ' + num(k.target) : k.dir === 'max' ? '≤ ' + num(k.max) : '≥ ' + num(k.min);
+      return '<div class="lk-lb-row"><span>' + (k.icon ? k.icon + ' ' : '') + esc(k.label)
+        + (themed ? ' <span class="lk-kpi-w" style="background:#2f4a33;color:#8fe0a0">þema</span>' : '')
+        + (k.weight && k.weight !== 1 ? ' <span class="lk-kpi-w">×' + k.weight + '</span>' : '') + '</span><span>' + aim + '</span></div>';
+    }).join('');
+    return '<div class="lk-card"><h2>🎯 Umboð — kjörtímabil ' + st.round + '</h2><p>Náðu markmiðunum — þau eru í togstreitu. <b>🔄 Markmiðin breytast milli kjörtímabila</b> — ný þemu bætast við (sjálfbærni, byggð, loftslag, jöfnuður), svo það borgar sig að skoða fleiri sleða.</p>' + rows + '</div>';
   }
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
@@ -331,9 +338,10 @@ export function mountLeikur(root) {
     const perRoundScores = pts.map((p, i) => ({ round: p.round, score: Math.round((p.value - (i ? pts[i - 1].value : 0)) * 10) / 10 }));
     const realityPerTerm = perRoundScores.map((p) => {
       const idx = Math.min((REALITY.verdbolga || []).length - 1, p.round * 4 - 1);
-      const realK = {}; let haveReal = true;
-      for (const kpi of st.mandate.kpis) { const arr = REALITY[kpi.key]; if (arr) realK[kpi.key] = arr[idx]; else haveReal = false; }
-      return haveReal ? { round: p.round, score: Math.round(scoreRound(realK, st.mandate).composite * 10) / 10 } : { round: p.round, score: null };
+      // Þolið gagnvart per-lotu markmiðum: skora raunveruleikann yfir AÐEINS þau KPI sem hafa REALITY-gögn (kjarninn).
+      const subKpis = st.mandate.kpis.filter((kpi) => REALITY[kpi.key]); const realK = {};
+      for (const kpi of subKpis) realK[kpi.key] = REALITY[kpi.key][idx];
+      return subKpis.length ? { round: p.round, score: Math.round(scoreRound(realK, { ...st.mandate, kpis: subKpis }).composite * 10) / 10 } : { round: p.round, score: null };
     });
     const leversFull = [];
     (st.history || []).forEach((h, i) => { if (h && h.levers) leversFull.push({ round: i + 1, levers: h.levers }); });
@@ -419,10 +427,10 @@ export function mountLeikur(root) {
       const heads = newsHeadlines(kp);
       extras += '<div class="lk-card"><h2>📰 Fréttir kjörtímabilsins</h2><div class="lk-news">' + heads.map((h) => '<div class="lk-news-item"><span>📰</span><span>' + esc(h) + '</span></div>').join('') + '</div></div>';
       const idx = Math.min((REALITY.verdbolga || []).length - 1, st.round * 4 - 1);
-      const realK = {}; let haveReal = true;
-      for (const kpi of st.mandate.kpis) { const arr = REALITY[kpi.key]; if (arr) realK[kpi.key] = arr[idx]; else haveReal = false; }
-      if (haveReal) {
-        const realComp = scoreRound(realK, st.mandate).composite, you = mine.roundScore, diff = Math.round((you - realComp) * 10) / 10;
+      const subKpis = st.mandate.kpis.filter((kpi) => REALITY[kpi.key]); const realK = {};
+      for (const kpi of subKpis) realK[kpi.key] = REALITY[kpi.key][idx];
+      if (subKpis.length) {
+        const realComp = scoreRound(realK, { ...st.mandate, kpis: subKpis }).composite, you = mine.roundScore, diff = Math.round((you - realComp) * 10) / 10;
         const dcol = diff >= 0 ? '#54d08a' : '#e78284', dtxt = 'þú stóðst þig ' + num(Math.abs(diff)) + ' stigum ' + (diff >= 0 ? 'BETUR' : 'VERR') + ' en raunveruleg ríkisstjórn';
         extras += '<div class="lk-card"><h2 title="Þín stig þessa kjörtímabils borin saman við hvernig raunveruleg útkoma Íslands skoraði á sömu markmið (stílfært viðmið).">🕰️ Svona fór það</h2><div class="lk-vs"><div><div class="lk-muted" style="font-size:12px">Þú</div><div class="lk-vs-num" style="color:#6ea8fe">' + num(you) + '</div></div><div class="lk-muted">vs</div><div><div class="lk-muted" style="font-size:12px">Raunveruleikinn</div><div class="lk-vs-num" style="color:#b98cff">' + num(realComp) + '</div></div><div style="color:' + dcol + ';font-weight:700;flex:1;min-width:180px">' + dtxt + '</div></div></div>';
       }
