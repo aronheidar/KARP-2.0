@@ -17,6 +17,7 @@ function isWorse(key, now, prev, mandate) {
 
 export function explainRound({ changes = [], perKpi = [], kpisNow = {}, kpisPrev = null, mandate, links, baseline, disp } = {}) {
   const lines = [];
+  const dot = (s) => (/\.$/.test(s) ? s : s + '.'); // forðast tvöfaldan punkt þegar gildi endar á '.' (t.d. „ma.kr.")
   const fmt = (c) => ((disp && baseline && baseline.levers[c.key]) ? disp(baseline.levers[c.key], c.to) : n1(c.to));
 
   // 1) Aðal-aðgerð (stærsta hlutfallslega hreyfing = changes[0])
@@ -24,7 +25,7 @@ export function explainRound({ changes = [], perKpi = [], kpisNow = {}, kpisPrev
     let s = 'Stærsta aðgerð ykkar: <b>' + changes[0].label + '</b> → ' + fmt(changes[0]);
     const rest = changes.length - 1;
     if (rest > 0) s += ' (og ' + rest + (rest === 1 ? ' önnur breyting)' : ' aðrar breytingar)');
-    lines.push(s + '.');
+    lines.push(dot(s));
   } else {
     lines.push('Þið gerðuð engar stefnu-breytingar þessa umferð — kyrrstaða frá fyrra kjörtímabili.');
   }

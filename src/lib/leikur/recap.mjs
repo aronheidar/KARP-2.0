@@ -43,7 +43,7 @@ export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFul
     if (biggest) s += ' (mest í ' + biggest.title + ': ' + (biggest.diff >= 0 ? '+' : '') + n1(biggest.diff) + ' stig)';
     lines.push(s + '.');
   }
-  if (defining) lines.push('🎯 Afdrifaríkasta ákvörðunin: <b>' + defining.label + '</b> stillt í ' + defining.disp + '.');
+  if (defining) lines.push('🎯 Afdrifaríkasta ákvörðunin: <b>' + defining.label + '</b> stillt í ' + defining.disp + (/\.$/.test(defining.disp) ? '' : '.'));
 
   return { bestTerm, worstTerm, vsReality: { beat, trailed, biggest }, defining, lines };
 }
