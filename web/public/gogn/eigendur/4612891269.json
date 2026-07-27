@@ -1,0 +1,184 @@
+{
+ "kt": "4612891269",
+ "nafn": "FISK-Seafood ehf.",
+ "sott": "2026-07-27",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 6,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4612891269",
+    "kt": "4612891269",
+    "nafn": "FISK-Seafood ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Bjarni Pétur Maronsson",
+    "tegund": "einst",
+    "faeding": "1949-SEPTEMBER"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Ingileif Oddsdóttir",
+    "tegund": "einst",
+    "faeding": "1964-DESEMBER"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Þórólfur Gíslason",
+    "tegund": "einst",
+    "faeding": "1952-MARS"
+   },
+   {
+    "id": "n4",
+    "kt": null,
+    "nafn": "Sigurjón Rúnar Rafnsson",
+    "tegund": "einst",
+    "faeding": "1965-DESEMBER"
+   },
+   {
+    "id": "n5",
+    "kt": null,
+    "nafn": "Herdís Ásu Sæmundardóttir",
+    "tegund": "einst",
+    "faeding": "1954-JÚLÍ"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4612891269",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4612891269",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt4612891269",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n4",
+    "til": "kt4612891269",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n5",
+    "til": "kt4612891269",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Bjarni Pétur Maronsson",
+   "kt": null,
+   "faeding": "1949-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Ingileif Oddsdóttir",
+   "kt": null,
+   "faeding": "1964-DESEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Þórólfur Gíslason",
+   "kt": null,
+   "faeding": "1952-MARS",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Sigurjón Rúnar Rafnsson",
+   "kt": null,
+   "faeding": "1965-DESEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Herdís Ásu Sæmundardóttir",
+   "kt": null,
+   "faeding": "1954-JÚLÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Bjarni Pétur Maronsson",
+   "faeding": "1949-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Ingileif Oddsdóttir",
+   "faeding": "1964-DESEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Þórólfur Gíslason",
+   "faeding": "1952-MARS",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Sigurjón Rúnar Rafnsson",
+   "faeding": "1965-DESEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Herdís Ásu Sæmundardóttir",
+   "faeding": "1954-JÚLÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
