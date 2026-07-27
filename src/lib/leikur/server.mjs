@@ -8,7 +8,7 @@ import { buildAnalytics } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
-import { POLICIES, policyAvailable, policyStates, applyPolicies } from './policies.mjs';
+import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -121,7 +121,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
-    if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) { try { out.finalPerKpi = JSON.parse(mr[0].kpis || '{}').perKpi || []; } catch (e) {} } }
+    if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) { try { const d = JSON.parse(mr[0].kpis || '{}'); out.finalPerKpi = d.perKpi || []; out.policySummary = describePolicies(d.policies || {}); } catch (e) {} } }
     if (game.phase !== 'lobby') {
       const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const lockedOf = {}; for (const lr of lockRows) lockedOf[lr.team_id] = !!lr.locked;
@@ -137,7 +137,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Fasi E: stefnu-rofar — núverandi staða (úr fyrri ákvörðunum), drög þessarar umferðar, og hvað er í boði núna.
         const polStates = policyStates(out.history);
         out.policies = { states: polStates, draft: (byR[game.current_round] || {}).policies || {},
-          available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options })) };
+          available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options, pop: POLICY_POP[p.id] || null })) };
+        // Fasi „fylgi" B2: stjórnarkreppa — féll stjórnin síðasta kjörtímabil? (birt sem borði + dýpri byrjun þessa lotu).
+        const prevRes = resultsRaw.find((r) => r.team_id === you.teamId && r.round === game.current_round - 1);
+        if (prevRes) { try { out.stjornarkreppa = ((JSON.parse(prevRes.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
       }
     }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
@@ -149,6 +152,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       if (out.analytics && cfg.roles && cfg.roleMap) {
         const lbl = Object.fromEntries(revealRoles(cfg.roleMap, ROLES).map((r) => [r.teamId, r.label]));
         out.analytics.scorecard.forEach((row) => { row.role = lbl[row.teamId] || null; });
+      }
+      // Stefnu-ákvarðanir hvers liðs (nýjasta staða) → leikstjóra-samantekt + umræðupunktar.
+      if (out.analytics) {
+        const nm = Object.fromEntries(teamsRaw.map((t) => [t.id, t.name]));
+        const latest = {}; for (const r of resultsRaw) { if (!latest[r.team_id] || r.round > latest[r.team_id].round) latest[r.team_id] = r; }
+        out.analytics.policiesByTeam = Object.values(latest).map((r) => { let pol = {}; try { pol = JSON.parse(r.kpis || '{}').policies || {}; } catch (e) {} return { teamId: r.team_id, name: nm[r.team_id] || ('Lið ' + r.team_id), policies: describePolicies(pol) }; }).filter((x) => x.policies.length);
       }
     }
     return sjson(out);
@@ -210,23 +219,25 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
         const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
         const polStates = policyStates(history);
+        // Fasi „fylgi" B2: féll stjórnin síðasta kjörtímabil? → stjórnarkreppa berst yfir (hagvaxtar-drag + lægra byrjunar-fylgi).
+        const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
+        let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
         const kpis2 = applyPolicies(kpis, polStates, bl2);
+        if (prevFell && kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.4;   // stjórnarmyndun/lömun eftir fall
         // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
         const penFactor = (f) => 1 - (1 - f) * diff.penalty;
         const raw = mandateAt(cfg, game.current_round);
         const roundMandate = { ...scaleMandate(raw, diff.band), crisisFactor: penFactor(raw.crisisFactor) };
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis2, tMandate);
-        // Fasi B: stjórnar-stöðugleiki — lágt fylgi margfaldar stigin niður (uppreisn/mótmæli), skalað eftir erfiðleika.
-        const stab = govtStability(kpis2);
+        // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
+        const stab = govtStability(kpis2, policyApproval(polStates) + (prevFell ? -6 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
-        // uppsafnað = fyrri cumulative + þessi (eftir stöðugleika-margfaldara)
-        const prev = await env.TENGSL.prepare('SELECT cumulative FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, policies: polStates }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, policies: polStates, stjornarkreppa: prevFell }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });

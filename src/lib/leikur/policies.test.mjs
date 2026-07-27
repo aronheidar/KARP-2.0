@@ -1,4 +1,4 @@
-import { POLICIES, policyAvailable, policyStates, applyPolicies } from './policies.mjs';
+import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval } from './policies.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 
 const P = Object.fromEntries(POLICIES.map((p) => [p.id, p]));
@@ -28,6 +28,14 @@ ok('bankar einka: skuldir↓ vöxtur↑ vanskil↑', (() => { const r = applyPol
 ok('verðtrygging afnumin í hárri verðbólgu → kaupmáttur varinn', (() => { const r = applyPolicies({ ...base, verdbolga: 12 }, { verdtrygging: true }, bl); return r.kaupmattur > base.kaupmattur; })());
 ok('höft: gengi-hrun dregið að grunni', (() => { const r = applyPolicies({ ...base, gengi: -30 }, { hoft: true }, bl); return r.gengi > -30 && r.hagvoxtur < 2; })());
 ok('engir rofar → óbreytt', (() => { const r = applyPolicies(base, {}, bl); return r.skuldir === 40 && r.hagvoxtur === 2; })());
+
+// policyApproval — bein fylgis-áhrif
+ok('Icesave hafna → jákvætt fylgi', policyApproval({ icesave: 'reject' }) > 0);
+ok('Icesave greiða → neikvætt fylgi', policyApproval({ icesave: 'pay' }) < 0);
+ok('afnema verðtryggingu → jákvætt fylgi', policyApproval({ verdtrygging: true }) > 0);
+ok('einkavæða banka → neikvætt fylgi', policyApproval({ bankar: 'einka' }) < 0);
+ok('engir rofar → 0 fylgi', policyApproval({}) === 0);
+ok('samlegð margra rofa', policyApproval({ icesave: 'reject', verdtrygging: true }) === 8 + 6);
 
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

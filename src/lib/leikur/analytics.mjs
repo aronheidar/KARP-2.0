@@ -86,6 +86,13 @@ export function teachingPrompts(an, { scenarioEvents = [] } = {}) {
   }
   // 5) Ólík umboð (hlutverk)
   if (sc.some((r) => r.role)) out.push('Umboðin voru ólík milli liða — var samkeppnin sanngjörn, og hvernig mótaði leynda hlutverkið ákvarðanir hvers liðs?');
+  // 6) Stórar stefnu-ákvarðanir (Icesave/verðtrygging/ESB/bankar/höft) — bein umræða
+  if (an.policiesByTeam && an.policiesByTeam.length) {
+    const byPolicy = {}; for (const t of an.policiesByTeam) for (const p of (t.policies || [])) (byPolicy[p.id] || (byPolicy[p.id] = { label: p.label, choices: new Set() })).choices.add(p.choice);
+    const split = Object.values(byPolicy).find((x) => x.choices.size > 1);
+    if (split) out.push('Liðin tóku ólíka stóra ákvörðun um <b>' + esc(split.label) + '</b> — berðu saman rökin og hvernig valið mótaði fylgi og útkomu.');
+    else out.push('Ræðið stóru pólitísku ákvarðanirnar sem liðin tóku (t.d. Icesave, verðtryggingu, gjaldeyrishöft) — hvaða áhrif höfðu þær á fylgi og traust, umfram þjóðhags-tölurnar?');
+  }
 
-  return out.slice(0, 5);
+  return out.slice(0, 6);
 }

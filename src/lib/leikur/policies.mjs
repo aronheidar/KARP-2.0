@@ -70,4 +70,37 @@ export function applyPolicies(kpis, states = {}, baselineLevels = {}) {
   return k;
 }
 
+// Pólitísk vigt hvers rofa/vals — BEIN áhrif á fylgi (óháð þjóðhags-útkomu). +vinsælt / −óvinsælt.
+export const POLICY_POP = {
+  hoft: { on: -2 },              // höft: væg óvinsæld (frelsis-skerðing) þótt stöðugleiki hjálpi
+  verdtrygging: { on: 6 },       // afnám verðtryggingar mjög vinsælt hjá heimilum/skuldurum
+  esb: { on: -2 },               // ESB/evra klofin þjóð, örlítið neikvætt í heild
+  icesave: { pay: -8, reject: 8 }, // þjóðin hafnaði tvisvar — höfnun mjög vinsæl, greiðsla óvinsæl
+  bankar: { thjod: 4, einka: -5 }, // þjóðnýting vinsæl (ábyrgð), endur-einkavæðing óvinsæl
+};
+// Nettó fylgis-breyting af virkum rofum/völum.
+export function policyApproval(states = {}) {
+  let d = 0;
+  for (const id in states) {
+    const m = POLICY_POP[id]; if (!m) continue;
+    const v = states[id];
+    if (v === true && m.on != null) d += m.on;
+    else if (typeof v === 'string' && m[v] != null) d += m[v];
+  }
+  return d;
+}
+
+// Manna-læsileg samantekt á stefnu-ákvörðunum liðs (úr lokastöðu rofa) — f. leikslok-samantekt + leikstjóra.
+export function describePolicies(states = {}) {
+  const out = [];
+  for (const p of POLICIES) {
+    const v = states[p.id]; if (v == null || v === false) continue;
+    let choice;
+    if (p.kind === 'toggle') choice = p.onLabel || 'virkt';
+    else { const o = (p.options || []).find((x) => x.key === v); choice = o ? o.label : String(v); }
+    out.push({ id: p.id, icon: p.icon, label: p.label, choice });
+  }
+  return out;
+}
+
 export { byId as policyById };

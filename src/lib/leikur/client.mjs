@@ -166,9 +166,14 @@ function renderFacAnalytics(an) {
   // #6 Kennslu-vísbendingar: sjálfvirkar umræðu-spurningar úr mynstrum (birt efst — leiðbeinandi f. leikstjóra).
   const prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })) });
   const promptsHtml = prompts.length ? '<h3 style="font-size:14px;margin:4px 0">💡 Kennslu-vísbendingar (umræðu-spurningar)</h3><ul class="lk-prompts">' + prompts.map((p) => '<li>' + p + '</li>').join('') + '</ul>' : '';
+  // Stórar stefnu-ákvarðanir hvers liðs (leikstjóra-samantekt).
+  const polHtml = (an.policiesByTeam && an.policiesByTeam.length)
+    ? '<h3 style="font-size:14px;margin:12px 0 4px">🏛️ Stórar ákvarðanir liða</h3><table class="lk-tbl"><tr><th>Lið</th><th>Ákvarðanir</th></tr>' + an.policiesByTeam.map((t) => '<tr><td>' + esc(t.name) + '</td><td style="font-size:12.5px">' + t.policies.map((p) => p.icon + ' ' + esc(p.label) + ': <b>' + esc(p.choice) + '</b>').join(' · ') + '</td></tr>').join('') + '</table>'
+    : '';
   return promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
     + '<h3 style="font-size:14px;margin:12px 0 4px">Ákvarðanir umferðar</h3>' + dt
+    + polHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Þróun yfir umferðir</h3>' + charts;
 }
 
@@ -273,14 +278,15 @@ export function mountLeikur(root) {
   // Fasi E — Stefnu-rofar: stórar tvíkosta-ákvarðanir í boði þetta kjörtímabil (rofar á/af + varanleg val).
   function policiesCard(st) {
     const P = st.policies; if (!P || !P.available || !P.available.length) return '';
+    const popTag = (v) => (v == null || v === 0) ? '' : ' <span style="color:#b98cff;font-size:11px;white-space:nowrap">🗳️ fylgi ' + (v > 0 ? '+' : '') + v + '</span>';
     const body = P.available.map((p) => {
       const draft = S.policyDraft ? S.policyDraft[p.id] : undefined;
       if (p.kind === 'toggle') {
         const on = draft != null ? draft : (P.states[p.id] === true);
-        return '<div style="margin:10px 0"><label style="cursor:pointer;font-size:13.5px;display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-pol="' + p.id + '"' + (on ? ' checked' : '') + ' style="margin-top:2px"/><b>' + p.icon + ' ' + esc(p.onLabel || p.label) + '</b></label><p style="font-size:12px;color:var(--muted);margin:3px 0 0 24px">' + esc(p.desc) + '</p></div>';
+        return '<div style="margin:10px 0"><label style="cursor:pointer;font-size:13.5px;display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-pol="' + p.id + '"' + (on ? ' checked' : '') + ' style="margin-top:2px"/><span><b>' + p.icon + ' ' + esc(p.onLabel || p.label) + '</b>' + (p.pop ? popTag(p.pop.on) : '') + '</span></label><p style="font-size:12px;color:var(--muted);margin:3px 0 0 24px">' + esc(p.desc) + '</p></div>';
       }
       const cur = draft != null ? draft : (P.states[p.id] || null);
-      const opts = (p.options || []).map((o) => '<span class="lk-opt' + (cur === o.key ? ' sel' : '') + '" data-polc="' + p.id + '" data-polk="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + '</span>').join(' ');
+      const opts = (p.options || []).map((o) => '<span class="lk-opt' + (cur === o.key ? ' sel' : '') + '" data-polc="' + p.id + '" data-polk="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + (p.pop ? popTag(p.pop[o.key]) : '') + '</span>').join(' ');
       return '<div style="margin:10px 0"><b>' + p.icon + ' ' + esc(p.label) + '</b><p style="font-size:12px;color:var(--muted);margin:3px 0 6px">' + esc(p.desc) + '</p><div>' + opts + '</div></div>';
     }).join('');
     return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + body + '</div>';
@@ -368,8 +374,11 @@ export function mountLeikur(root) {
     if (st.mode === 'studio' && st.draft && Object.keys(st.draft).length) leversFull.push({ round: (st.history || []).length + 1, levers: st.draft });
     const events = ((st.scenarioSoFar && st.scenarioSoFar.length ? st.scenarioSoFar : SCENARIO.events) || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
     const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp, finalPerKpi: st.finalPerKpi || [] });
-    if (!rc.lines.length) return '';
-    return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + '</div>';
+    const polSum = (st.policySummary && st.policySummary.length)
+      ? '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>🏛️ Stóru ákvarðanirnar ykkar á leiðinni:</b><ul style="margin:5px 0 0;padding-left:20px;line-height:1.6;font-size:13.5px">' + st.policySummary.map((p) => '<li>' + p.icon + ' ' + esc(p.label) + ': <b>' + esc(p.choice) + '</b></li>').join('') + '</ul></div>'
+      : '';
+    if (!rc.lines.length && !polSum) return '';
+    return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + polSum + '</div>';
   }
 
   function renderTeam(st) {
@@ -561,6 +570,7 @@ export function mountLeikur(root) {
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner +
+      (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">⚠</span><span><b>Stjórnarkreppa.</b> Ríkisstjórnin féll í mótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu umboði. Stjórnarmyndun og lömun draga úr hagvexti, og fylgi byrjar lægra.</span></div></div>' : '') +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +

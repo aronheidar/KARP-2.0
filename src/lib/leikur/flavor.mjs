@@ -35,8 +35,8 @@ export function popularity(kpis) {
 
 // Fasi B — Stjórnar-stöðugleiki: lágt fylgi → ólga/uppreisn með STIG-afleiðingum (búsáhaldabyltingin 2009).
 // factor margfaldast við umferðar-stig (server + client-forskoðun). Hrein — aðeins úr kpis.
-export function govtStability(kpis) {
-  const approval = popularity(kpis);
+export function govtStability(kpis, approvalAdj = 0) {
+  const approval = Math.max(0, Math.min(100, popularity(kpis) + (approvalAdj || 0)));
   if (approval < 28) return { approval, level: 'revolt', factor: 0.80, icon: '🍳', title: 'Búsáhaldabyltingin', blurb: 'Fylgið hrundi (' + approval + '%) — fjöldamótmæli á Austurvelli, ríkisstjórnin fellur. Stig ×0,80.' };
   if (approval < 40) return { approval, level: 'unrest', factor: 0.92, icon: '😠', title: 'Fjöldamótmæli', blurb: 'Vaxandi ólga (fylgi ' + approval + '%) — mótmæli og verkföll veikja stjórnina. Stig ×0,92.' };
   return { approval, level: 'stable', factor: 1, icon: '🗳️', title: 'Starfhæf stjórn', blurb: 'Fylgi ' + approval + '% — stjórnin heldur umboði sínu.' };
