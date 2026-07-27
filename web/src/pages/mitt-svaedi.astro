@@ -475,14 +475,28 @@ const updated = '2026-07-02';
               { pfx: 'fasteign:', label: 'Fasteignaskýrslur', ico: '🏠', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
               { pfx: 'thingmadur:', label: 'Þingmannaskýrslur', ico: '🏛️', link: (id) => '/althingi/' + encodeURIComponent(id) + '/skyrsla/' },
             ];
+            // /reports skilar hlutum { key, nafn } (nafn úr felog fyrir kt-lyklaðar skýrslur).
+            // Þolir líka eldri skil (streng-lykla) svo cache/eldri útgáfa brjóti ekki upp.
+            const asObj = (x) => (typeof x === 'string' ? { key: x } : (x || {}));
+            const ktF = (id) => (/^\d{10}$/.test(id) ? id.slice(0, 6) + '-' + id.slice(6) : id);
             const buckets = new Map(); const other = [];
-            arr.forEach((r) => { const k = String(r.key || ''); const cat = CATS.find((c) => k.indexOf(c.pfx) === 0);
-              if (cat) { if (!buckets.has(cat.label)) buckets.set(cat.label, []); buckets.get(cat.label).push({ r, id: k.slice(cat.pfx.length) }); }
-              else other.push({ r }); });
-            const rowH = (href, r) => `<a class="sk-row" href="${href}"><span class="sk-t">${esc(r.title || r.key || 'Skýrsla')}</span><span class="sk-o">Opna →</span></a>`;
+            arr.forEach((raw) => {
+              const r = asObj(raw); const k = String(r.key || '');
+              const cat = CATS.find((c) => k.indexOf(c.pfx) === 0);
+              const id = cat ? k.slice(cat.pfx.length) : '';
+              const rec = { r, id, cat };
+              if (cat) { if (!buckets.has(cat.label)) buckets.set(cat.label, []); buckets.get(cat.label).push(rec); }
+              else other.push(rec);
+            });
+            const rowH = (href, rec) => {
+              const r = rec.r, id = rec.id;
+              const title = r.nafn || r.title || (id ? ktF(id) : (r.key || 'Skýrsla'));
+              const sub = rec.cat ? (rec.cat.label + (id ? ' · ' + ktF(id) : '')) : (r.key || '');
+              return `<a class="sk-row" href="${href}"><span class="sk-t">${esc(title)}${sub ? '<small style="display:block;font-weight:400;font-size:11px;color:var(--muted);opacity:.85;margin-top:1px">' + esc(sub) + '</small>' : ''}</span><span class="sk-o">Opna →</span></a>`;
+            };
             let html = '';
-            CATS.forEach((c) => { const items = buckets.get(c.label); if (items && items.length) html += `<div class="sk-cat"><div class="sk-cat-h">${c.ico} ${c.label} <span class="sk-n">${items.length}</span></div><div class="sk-list">${items.map((it) => rowH(c.link(it.id), it.r)).join('')}</div></div>`; });
-            if (other.length) html += `<div class="sk-cat"><div class="sk-cat-h">📁 Aðrar skýrslur <span class="sk-n">${other.length}</span></div><div class="sk-list">${other.map((it) => rowH('#', it.r)).join('')}</div></div>`;
+            CATS.forEach((c) => { const items = buckets.get(c.label); if (items && items.length) html += `<div class="sk-cat"><div class="sk-cat-h">${c.ico} ${c.label} <span class="sk-n">${items.length}</span></div><div class="sk-list">${items.map((rec) => rowH(c.link(rec.id), rec)).join('')}</div></div>`; });
+            if (other.length) html += `<div class="sk-cat"><div class="sk-cat-h">📁 Aðrar skýrslur <span class="sk-n">${other.length}</span></div><div class="sk-list">${other.map((rec) => rowH('#', rec)).join('')}</div></div>`;
             el.innerHTML = html;
           }).catch(() => { el.innerHTML = '<span class="dim">Náði ekki í keyptar skýrslur.</span>'; });
         });

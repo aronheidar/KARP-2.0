@@ -3569,8 +3569,18 @@ async function userDataHandler(request, env) {
     if (!uid) return _ajson({ reports: [] });
     const ru = await env.TENGSL.prepare('SELECT id, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
     const racct = accountId(ru) || uid;   // account-scoped (samræmi við /me.reports)
-    const r = await env.TENGSL.prepare('SELECT report_key FROM reports_granted WHERE user_id=?').bind(racct).all().catch(() => ({ results: [] }));
-    return _ajson({ reports: (r.results || []).map((x) => x.report_key) });
+    const r = await env.TENGSL.prepare('SELECT report_key, granted FROM reports_granted WHERE user_id=? ORDER BY granted DESC').bind(racct).all().catch(() => ({ results: [] }));
+    const rows = r.results || [];
+    // Auðga með félagsnafni (úr felog) fyrir kt-lyklaðar skýrslur → „nafn + tegund" á Mitt svæði
+    // (fyrirtaeki:/eigendur:/areidanleiki:/fjolmidlar: bera 10-stafa kt í lyklinum).
+    const ktOf = (k) => { const i = String(k).indexOf(':'); const id = i < 0 ? '' : String(k).slice(i + 1); return /^\d{10}$/.test(id) ? id : null; };
+    const kts = [...new Set(rows.map((x) => ktOf(x.report_key)).filter(Boolean))];
+    const nafnBy = {};
+    if (kts.length) {
+      const nr = await env.TENGSL.prepare('SELECT kt,nafn FROM felog WHERE kt IN (' + kts.map(() => '?').join(',') + ')').bind(...kts).all().catch(() => ({ results: [] }));
+      for (const f of (nr.results || [])) nafnBy[f.kt] = f.nafn;
+    }
+    return _ajson({ reports: rows.map((x) => ({ key: x.report_key, nafn: nafnBy[ktOf(x.report_key)] || null, granted: x.granted || null })) });
   }
 
   // ── Skýrslu-kvóti þreps: /reports/open ──
