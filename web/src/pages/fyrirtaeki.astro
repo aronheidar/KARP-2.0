@@ -114,6 +114,24 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-vm-s.mid { background: rgba(126,140,166,.18); color: var(--muted); }
     body.fs-printing #fs-report .fs-vm { border-color: #d9c089 !important; color: #123 !important; }
     body.fs-printing #fs-report .fs-vm-n { color: #111 !important; }
+    /* 🏛️ Reglur í pípunni (fast-follow B) — reglu-teaser úr Lobbývaktinni á fyrirtækjaprófíl, tengir í /lobbyvakt/ (Fyrirtæki+) */
+    .fs-lob { margin-top: 10px; }
+    .fs-lob-row { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
+    .fs-lob-row:first-of-type { border-top: 0; }
+    .fs-lob-i { flex: 0 0 auto; font-size: 13px; line-height: 1.45; }
+    .fs-lob-t { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); min-width: 0; line-height: 1.45; }
+    .fs-lob-t a { color: var(--ink); text-decoration: none; font-weight: 600; }
+    .fs-lob-t a:hover { color: #f6b13b; text-decoration: underline; }
+    .fs-lob-stig { display: inline-block; font-size: 10px; padding: 0 6px; border-radius: 999px; white-space: nowrap; margin-left: 6px; vertical-align: 1px; }
+    .fs-lob-stig.mikil { background: rgba(231,130,132,.16); color: #e78284; }
+    .fs-lob-stig.midlungs { background: rgba(240,136,62,.16); color: #f0a35e; }
+    .fs-lob-stig.litil { background: rgba(126,140,166,.16); color: var(--muted); }
+    .fs-lob-meta { color: var(--muted); font-size: 11.5px; display: block; margin-top: 1px; }
+    .fs-lob-cta { display: block; margin-top: 8px; color: #f6b13b; font-size: 12px; text-decoration: none; font-weight: 600; }
+    .fs-lob-cta:hover { text-decoration: underline; }
+    .fs-lob-note { font-size: 10.5px; color: var(--faint); margin-top: 6px; font-style: italic; }
+    body.fs-printing #fs-report .fs-lob-t, body.fs-printing #fs-report .fs-lob-t a { color: #123 !important; }
+    body.fs-printing #fs-report .fs-lob-meta { color: #445 !important; }
     .fs-eftirlit { margin-top: 10px; }
     .fs-ef-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
     .fs-ef-row:first-of-type { border-top: 0; }
@@ -473,6 +491,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports, helpNote } from '../lib/auth.js';
     import { renderUboSample } from '../lib/ubo-report.js';
     import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
+    import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -921,6 +940,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-leyfi" class="fs-kvoti" hidden></div>
           <div id="fs-loftfor" class="fs-kvoti" hidden></div>
           <div id="fs-vorumerki" class="fs-vorumerki" hidden></div>
+          <div id="fs-lobbyvakt" class="fs-lob" hidden></div>
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
           <div id="fs-mast" class="fs-eftirlit" hidden></div>
           <div id="fs-styrkir" class="fs-styrkir" hidden></div>
@@ -1420,6 +1440,46 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div class="fs-sec-grid">' + body + '</div>'
         + '<div class="fs-sec-note">Viðmið: ' + escF(S.label || '') + ' · Hagstofa ' + (S.ar || sec.ar || '') + ' — leiðbeinandi, ekki nákvæmt jafngildi lykiltalna félagsins.</div>';
     }
+    // 🏛️ Reglur í pípunni (fast-follow B) — opinn reglu-teaser úr Lobbývaktinni (build_lobbyvakt.mjs →
+    // gogn/lobbyvakt.json, opinn static-eign, engin Fyrirtæki+ gátt á þessu gagnasetti) eftir ÍSAT-atvinnugrein
+    // félagsins; drífur vitund + áskrift á fullu Lobbývaktina (/lobbyvakt/, Fyrirtæki+). Client-side eingöngu.
+    let _fsLobbyP = null;
+    function fsLobbyData() { if (!_fsLobbyP) _fsLobbyP = fetch('/gogn/lobbyvakt.json').then((r) => (r.ok ? r.json() : null)).catch(() => null); return _fsLobbyP; }
+    // ÍSAT birtist sem "KÓÐI lýsing" (t.d. "56.10.0 Rekstur veitingastaða") — tökum fyrsta orðið (kóðann).
+    // Ef fyrsta orðið er hvorki tölukóði né bókstafur (bara laus texti, ekkert kóðað ÍSAT) er skilað null
+    // og teaser-inn er þá sleppt alveg — frekar en að giska á atvinnugrein út frá lýsingartexta.
+    function fsLobbyIsatCode(f) {
+      const raw = (f && f.isat && f.isat[0]) ? String(f.isat[0]).trim() : '';
+      const code = raw.split(/\s+/)[0] || '';
+      return /^([A-Za-z]|\d[\d.]*)$/.test(code) ? code : null;
+    }
+    function fsLobbyRow(it) {
+      const icon = it.kind === 'samrad' ? '💬' : '📜';
+      const stigCls = it.stig === 'Mikil' ? 'mikil' : it.stig === 'Lítil' ? 'litil' : 'midlungs';
+      const when = it.frestur ? ('frestur ' + new Date(it.frestur).toLocaleDateString('is-IS')) : (it.stada || '');
+      return '<div class="fs-lob-row"><span class="fs-lob-i">' + icon + '</span>'
+        + '<span class="fs-lob-t"><a href="' + escF(it.hlekkur || '#') + '" target="_blank" rel="noopener">' + escF(it.titill || '') + '</a>'
+        + (it.stig ? '<span class="fs-lob-stig ' + stigCls + '">' + escF(it.stig) + '</span>' : '')
+        + (when ? '<span class="fs-lob-meta">' + escF(when) + '</span>' : '') + '</span></div>';
+    }
+    function fsWireLobbyvakt(f) {
+      const el = document.getElementById('fs-lobbyvakt');
+      if (!el || !f) return;
+      const code = fsLobbyIsatCode(f);
+      if (!code) return;   // ekkert nothæft ÍSAT-kóðaform — sleppum frekar en að giska
+      const sector = isatToSector(code);   // getur skilað null (kóði án skilgreindrar greinar) — þá birtast aðeins 'almennt'-mál
+      fsLobbyData().then((data) => {
+        const items = data && Array.isArray(data.items) ? data.items : null;
+        if (!items || !items.length) return;
+        const top = filterFeed(items, sector ? [sector] : []).slice(0, 3);
+        if (!top.length) return;   // engin viðeigandi mál í dag → sleppa alveg, ekki tómur kassi
+        el.hidden = false;
+        el.innerHTML = '<div class="fs-sub">🏛️ Reglur í pípunni' + (sector && SECTORS[sector] ? ' · ' + escF(SECTORS[sector]) : '') + '</div>'
+          + top.map(fsLobbyRow).join('')
+          + '<a class="fs-lob-cta" href="/lobbyvakt/">Sjá alla reglu-vaktina fyrir þína grein →</a>'
+          + '<div class="fs-lob-note">⚠ sjálfvirk túlkun, ekki lögfræðiráðgjöf.</div>';
+      }).catch(() => {});
+    }
     function fsStatements(rows, cur) {
       const cols = rows.filter((r) => r.tekjur != null || r.eignir != null);   // aðeins ár með hráum tölum
       if (!cols.length) return '';
@@ -1597,6 +1657,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               });
               fsWireSector(f);   // 🏭 samanburður við atvinnugrein (F2)
               fsWireLanshaefi(f);   // 🎯 KARP lánshæfismat — kveikir á áhættuþáttum (Lögbirting/vanskil/F8/F9/grein)
+              fsWireLobbyvakt(f);   // 🏛️ Reglur í pípunni (fast-follow B) — reglu-teaser eftir ÍSAT-atvinnugrein
               // 🔗 Endanlegir eigendur + tengslakort FLUTT á sér-skýrslu /eigendur/ (hlekkur „Sjá fulla eigendaskýrslu →")
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               if (f.stjornPending) fsPollStjorn(f.kt);   // fyllir stjórn-hólfið sjálfkrafa þegar byggingin skilar
@@ -1835,6 +1896,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         skila(fsKort(demoF));
         fsWireSector(demoF);   // 🏭 F2 í sýnishorni
         fsWireLanshaefi(demoF);   // 🎯 KARP lánshæfismat í sýnishorni
+        fsWireLobbyvakt(demoF);   // 🏛️ Reglur í pípunni í sýnishorni (raun-gögn úr /gogn/lobbyvakt.json, sjávarútvegs-grein)
         const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { location.href = '/fyrirtaeki/'; };
         const br = out.querySelector('.fs-buyrow'); if (br) br.style.display = 'none';
         const rep = document.getElementById('fs-report');
