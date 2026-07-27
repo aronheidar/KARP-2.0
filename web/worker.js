@@ -2776,20 +2776,21 @@ async function leiHandler(request, ctx) {
   return res;
 }
 
-// Leyfaskrár (áfangi 1) — kt-lyklað, sameinar Sýslumenn (rekstrarleyfi) + Ferðamálastofu (ferðaleyfi).
+// Leyfaskrár (áfangi 1) — kt-lyklað, sameinar Sýslumenn (rekstrarleyfi) + Ferðamálastofu (ferðaleyfi) + Lyfjastofnun (apótek).
 async function leyfiHandler(request, env, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
   if (kt.length !== 10) return sjson({ kt, holdur: false, leyfi: [] });
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/leyfi?kt=' + kt);
   const hit = await cache.match(cacheKey); if (hit) return hit;
-  const [rek, ferda] = await Promise.all([augGet(env, 'rekstrarleyfi.json'), augGet(env, 'ferdaleyfi.json')]);
+  const [rek, ferda, apo] = await Promise.all([augGet(env, 'rekstrarleyfi.json'), augGet(env, 'ferdaleyfi.json'), augGet(env, 'apotek.json')]);
   const list = [];
   for (const x of ((rek && rek.byKt && rek.byKt[kt]) || [])) list.push({ teg: x.teg, undir: x.undir, flokkur: x.flokkur, stadur: x.stadur, afengi: x.afengi, hop: 'Sýslumenn' });
   for (const x of ((ferda && ferda.byKt && ferda.byKt[kt]) || [])) list.push({ teg: x.teg, undir: null, flokkur: null, stadur: x.stadur, afengi: false, hop: 'Ferðamálastofa' });
-  const out = { kt, holdur: list.length > 0, n: list.length, afengi: list.some((x) => x.afengi), leyfi: list.slice(0, 16), heimild: 'Sýslumenn + Ferðamálastofa (island.is)' };
+  for (const x of ((apo && apo.byKt && apo.byKt[kt]) || [])) list.push({ teg: x.teg, undir: null, flokkur: null, stadur: x.stadur, afengi: false, hop: 'Lyfjastofnun' });
+  const out = { kt, holdur: list.length > 0, n: list.length, afengi: list.some((x) => x.afengi), leyfi: list.slice(0, 16), heimild: 'Sýslumenn (island.is) + Ferðamálastofa + Lyfjastofnun' };
   const res = new Response(JSON.stringify(out), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=43200' } });
-  if (rek || ferda) ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  if (rek || ferda || apo) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
 }
 
