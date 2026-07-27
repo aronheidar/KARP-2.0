@@ -266,7 +266,8 @@ export function mountLeikur(root) {
         + (themed ? ' <span class="lk-kpi-w" style="background:#2f4a33;color:#8fe0a0">þema</span>' : '')
         + (k.weight && k.weight !== 1 ? ' <span class="lk-kpi-w">×' + k.weight + '</span>' : '') + '</span><span>' + aim + '</span></div>';
     }).join('');
-    return '<div class="lk-card"><h2>🎯 Umboð — kjörtímabil ' + st.round + '</h2><p>Náðu markmiðunum — þau eru í togstreitu. <b>🔄 Markmiðin breytast milli kjörtímabila</b> — ný þemu bætast við (sjálfbærni, byggð, loftslag, jöfnuður), svo það borgar sig að skoða fleiri sleða.</p>' + rows + '</div>';
+    const intro = (st.event && st.event.focus) ? '<p style="font-size:13px;line-height:1.5">' + esc(st.event.focus) + '</p>' : '';
+    return '<div class="lk-card"><h2>🎯 Umboð — kjörtímabil ' + st.round + '</h2>' + intro + rows + '</div>';
   }
   // Fasi C — Gjaldeyrishöft: virk frá 2008-hruni; frá KT5 má afnema (gátreitur). Aðeins sýnt þegar höft virk.
   function hoftCard(st) {
@@ -550,12 +551,12 @@ export function mountLeikur(root) {
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
-      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev && ev.scene ? '<p class="lk-term-scene" style="font-style:italic;color:#c9b98a;border-left:2px solid #6a5c3a;padding-left:10px;margin:8px 0">' + esc(ev.scene) + '</p>' : ''}${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
+      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +
-          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div><div id="lk-st-sliders">' + sliders + '</div></div>' +
+          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + '<div id="lk-st-sliders">' + sliders + '</div></div>' +
           mandateCard(st) +
           hoftCard(st) +
           '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
