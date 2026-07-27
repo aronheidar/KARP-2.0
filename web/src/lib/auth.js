@@ -200,7 +200,7 @@ export function hasSub(svc) { const u = _u(); return _free() || (Array.isArray(u
 // ── Mörk, kvóti, teymi (LOTA: áskriftar-enforcement) ────────────────────────
 // limits() = mörk virka þrepsins (reportsMonth/follows/ktWatch/seats/fjolmidlavakt). Server sendir
 // u.limits í /me; föllum á client-töfluna ef vantar. reportsRemaining/-Used koma frá server.
-export function limits() { const u = _u(); return u.limits || limitsFor(u.effectiveTier || u.tier, u.isAdmin === true); }
+export function limits() { const u = _u(); return u.limits || limitsFor(u.effectiveTier || u.tier, u.isAdmin === true || u.freeAccess === true); }
 export function reportsRemaining() { const u = _u(); return typeof u.reportsRemaining === 'number' ? u.reportsRemaining : 0; }
 export function followsCount() { return Number(_u().followsCount || 0); }
 // Fasteignamata-kvóti (sér-áskrift 'fasteign'): fjöldi eftir í mánuðinum. -1 = ótakmarkað (admin), 0 = ekki áskrifandi.
