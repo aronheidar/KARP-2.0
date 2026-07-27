@@ -27,14 +27,26 @@ let _variants = null;
 function scanVariants() {
   if (_variants) return _variants;
   _variants = {};
-  try {
-    const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'frettavel', 'img');
-    for (const f of fs.readdirSync(dir)) {
-      const m = f.match(/^([a-z0-9_]+)(?:-(\d+))?\.jpe?g$/i);
-      if (m) { const s = m[1].toLowerCase(); (_variants[s] = _variants[s] || []).push('/frettavel/img/' + f); }
-    }
-    for (const k in _variants) _variants[k].sort();
-  } catch (e) { _variants = {}; }
+  // ⚠ Astro/Vite-build getur brotið `import.meta.url`-slóðina (fs+import.meta.url-gildra) → skönnun fann ekkert
+  // og ALLAR fréttamyndir duttu á grunn-afbrigðið. Reynum nokkrar líklegar slóðir svo þetta virki bæði í hráu
+  // node OG í `astro build` (þar sem cwd = web/). Fyrsta slóð sem inniheldur myndir vinnur.
+  let here = '';
+  try { here = path.dirname(fileURLToPath(import.meta.url)); } catch (e) { /* import.meta.url ófáanlegt */ }
+  const cands = [
+    here && path.join(here, '..', '..', 'public', 'frettavel', 'img'),
+    path.join(process.cwd(), 'public', 'frettavel', 'img'),        // astro build (cwd = web/)
+    path.join(process.cwd(), 'web', 'public', 'frettavel', 'img'), // úr rót geymslunnar
+  ].filter(Boolean);
+  for (const dir of cands) {
+    try {
+      const found = {};
+      for (const f of fs.readdirSync(dir)) {
+        const m = f.match(/^([a-z0-9_]+)(?:-(\d+))?\.jpe?g$/i);
+        if (m) { const s = m[1].toLowerCase(); (found[s] = found[s] || []).push('/frettavel/img/' + f); }
+      }
+      if (Object.keys(found).length) { for (const k in found) found[k].sort(); _variants = found; return _variants; }
+    } catch (e) { /* reyna næstu slóð */ }
+  }
   return _variants;
 }
 const _hash = (s) => { let h = 5381; const t = String(s); for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h; };
