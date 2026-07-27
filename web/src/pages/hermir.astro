@@ -47,6 +47,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     <div id="modelview" class="modelview" hidden>
       <div id="cmwrap"><div class="cm-title">🕸️ Keðju-kort — allt orsakanetið á einni mynd (hover eða smelltu til að festa hnút)</div><div class="cm-legend"><span><i class="cm-in"></i> ákvörðun</span><span><i class="cm-shk"></i> ytri áhrif</span><span><i class="cm-out"></i> hagvísir</span><span><i class="cm-pos"></i> eykur</span><span><i class="cm-neg"></i> dregur úr</span><span style="color:#f6b13b">⟳ uppsafnaður stofn</span></div><div id="chainmap"></div></div>
       <div id="backtest" class="backtest"></div>
+      <div id="oos-scorecard" class="backtest"></div>
       <div id="fiscalplan" class="backtest"></div>
       <div id="calibration" class="backtest"></div>
       <div id="sectors-real" class="backtest"></div>
@@ -58,6 +59,11 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         <div class="an-h">📊 Næmnisgreining — hvaða ákvarðanir hreyfa hagvísi mest?</div>
         <div class="an-ctl"><label>Hagvísir: <select id="tor-out"></select></label></div>
         <div id="tornado"></div>
+      </div>
+      <div class="an-tool">
+        <div class="an-h">🧩 Framlags-niðurbrot — af hverju er hagvísirinn þar sem hann er?</div>
+        <div class="an-ctl"><label>Hagvísir: <select id="decomp-out"></select></label></div>
+        <div id="decomp"></div>
       </div>
       <div class="an-tool">
         <div class="an-h">📈 Skipti-jaðar — samband tveggja hagvísa þegar ein ákvörðun breytist yfir allt sviðið</div>
@@ -252,6 +258,8 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     import LINKS from '@gogn/roads/links.json';
     import HISTORY from '@gogn/roads/history.json';
     import CALIBRATION from '@gogn/roads/calibration.json';
+    import OOS from '@gogn/roads/oos_episodes.json';
+    import { scoreEpisode } from '@lib/roads/oos-score.mjs';
 
     const state = { levers: {}, shocks: {}, autoTay: false, autoPhi: false, horizon: BASELINE.quarters, tab: 'yfirlit', mc: null, gameOn: false };
     const MAXQ = BASELINE.maxQuarters || BASELINE.quarters;
@@ -773,6 +781,38 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         <p style="font-size:11.5px;color:var(--faint);margin-top:8px">Lykil-niðurstöður: verðbólga er MJÖG þrálát (AR(1)=${H.verdbolga.ar1}) → réttlætir verðbólguvæntinga-lykkjuna; hærri vextir tengjast lægra húsnæðisverði (töf ~2 ár) á BÁÐUM mörkuðum; söguleg bil rúmast innan módel-marka; grunnferill = opinber spá.</p>`;
     }
 
+    // 🎯 Áfalla-viðbragðs-próf: raunveruleg söguleg áföll mötuð sem ytri sjokk (án stefnu-viðbragða) → spáð viðbragð
+    // (topp-frávik) borið við raun-breytingu. Prófar ÁTT+STÆRÐARGRÁÐU orsaka-rásanna — ekki nákvæmt spágildi.
+    function buildOOS() {
+      const host = document.getElementById('oos-scorecard'); const eps = OOS && OOS.episodes; if (!host || !eps || !eps.length) return;
+      let totDir = 0, totN = 0, epsHtml = '';
+      const vmark = { good: '<span style="color:#54d08a">✓ trúverðugt</span>', over: '<span style="color:#e8c14a">~ ofmetið</span>', under: '<span style="color:#e8c14a">~ vanmetið</span>', 'dir-miss': '<span style="color:#e78284">✗ röng átt</span>', na: '<span style="color:var(--faint)">–</span>' };
+      for (const ep of eps) {
+        const Q = ep.quarters || 12;
+        const r = simulate({ baseline: BASELINE, links: LINKS, shocks: ep.shocks, quarters: Q });
+        const predicted = {};
+        for (const k of Object.keys(ep.actual)) {
+          const o = r.outcomes[k]; if (!o) continue;
+          let peak = 0; for (let t = 0; t < o.mid.length; t++) { const d = o.mid[t] - o.baseline[t]; if (Math.abs(d) > Math.abs(peak)) peak = d; }
+          predicted[k] = Math.round(peak * 10) / 10;
+        }
+        const sc = scoreEpisode(predicted, ep.actual); totDir += sc.dirHits; totN += sc.total;
+        const rows = sc.rows.map((row) => {
+          const o = BASELINE.outcomes[row.kpi], us = o ? (o.unit === '% VLF' ? '%' : o.unit) : '';
+          const sgn = (v) => (v == null ? '–' : (v > 0 ? '+' : '') + num(v) + us);
+          return `<tr><td>${o ? o.label : row.kpi}</td><td style="font-variant-numeric:tabular-nums">${sgn(row.predicted)}</td><td style="font-variant-numeric:tabular-nums;color:var(--faint)">${sgn(row.actual)}</td><td style="text-align:center">${vmark[row.verdict]}</td></tr>`;
+        }).join('');
+        const shDesc = Object.entries(ep.shocks).map(([k, v]) => (BASELINE.shocks[k] ? (BASELINE.shocks[k].label || k).split(' (')[0] : k) + ' ' + (v > 0 ? '+' : '') + v + '%').join(', ');
+        epsHtml += `<div style="margin-top:12px"><b>${ep.icon || ''} ${ep.title}</b> <span style="color:var(--faint);font-size:11.5px">— mötuð sjokk: ${shDesc}</span>
+          <table class="lnk-tbl" style="margin-top:4px"><tr><th>Hagvísir</th><th>Spáð viðbragð</th><th>Raun-breyting</th><th style="text-align:center">Dómur</th></tr>${rows}</table>
+          ${ep.source ? `<p style="font-size:11px;color:var(--faint);margin:3px 0 0">Heimild: ${ep.source}</p>` : ''}</div>`;
+      }
+      host.innerHTML = `<div class="cm-title">🎯 Áfalla-viðbragðs-próf — bregst líkanið raunhæft við sögulegum áföllum? <span style="font-weight:400;color:var(--faint)">· átt rétt í ${totDir}/${totN}</span></div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 6px">Raunveruleg söguleg áföll eru mötuð í líkanið sem <b>ytri sjokk</b> (án stefnu-viðbragða) og spáð viðbragð orsaka-rásanna borið saman við það sem raunverulega gerðist. Prófar hvort líkanið hreyfist í <b>rétta átt og trúverðuga stærðargráðu</b>.</p>
+        <p style="font-size:11.5px;color:#e8c14a;margin:0 0 4px;background:rgba(232,193,74,.08);border-left:2px solid #e8c14a66;padding:6px 10px;border-radius:4px">⚠ <b>Þetta er raunsæis-próf — EKKI nákvæmt spágildi.</b> Líkanið er fráviks-líkan (viðbragð frá grunnlínu), svo hér er borin saman <b>átt og stærðargráða</b>, ekki nákvæm gildi. Sjokk-stærðirnar eru stílfærð nálgun sögulegra atburða. Trúverðugt = spáð stærð innan ⅓–3× af raun.</p>
+        ${epsHtml}`;
+    }
+
     // 🏛️ Fjármálaáætlun ríkisins: grunnferill afkomu/skulda (10 ár) tekinn úr henni. Sýnir markmið + skilaboð + öldrunar-kostnað.
     function buildFiscalPlan() {
       const host = document.getElementById('fiscalplan'); if (!host || !BASELINE.fiscalPlan) return;
@@ -934,6 +974,38 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         top.map((r) => { const col = pol === 0 ? '#6ea8fe' : (r.impact * pol > 0 ? '#54d08a' : '#e78284'); return `<div class="tor-row"><span>${r.label}</span><div class="tor-bar"><i style="left:0;width:${Math.abs(r.impact) / maxA * 100}%;background:${col}"></i></div><span class="tv">${r.impact > 0 ? '+' : ''}${num(r.impact)}${us}</span></div>`; }).join('');
     }
 
+    // 🧩 Framlags-niðurbrot (leave-one-out): af hverju er hagvísirinn þar sem hann er? Framlag hverrar VIRKRAR
+    // ákvörðunar/áfalls = breyting á lokagildi ef það EITT er fjarlægt. Ólínuleiki → summa ± „samspil". Engin engine-breyting.
+    function drawDecomp(outKey) {
+      const host = document.getElementById('decomp'); if (!host || !BASELINE.outcomes[outKey]) return;
+      const base = solveLevers(), sh = state.shocks;
+      const fullR = simulate({ baseline: BASELINE, links: LINKS, levers: base, shocks: sh, quarters: state.horizon });
+      const full = endVal(fullR, outKey), bau = fullR.outcomes[outKey].baseline[state.horizon - 1], totalDev = full - bau;
+      const rows = [];
+      for (const k in BASELINE.levers) {
+        const cur = base[k] ?? BASELINE.levers[k].base, b = BASELINE.levers[k].base;
+        if (Math.abs(cur - b) < 1e-9) continue;
+        const without = endVal(simulate({ baseline: BASELINE, links: LINKS, levers: { ...base, [k]: b }, shocks: sh, quarters: state.horizon }), outKey);
+        const contrib = full - without;
+        if (Math.abs(contrib) > 1e-3) rows.push({ label: BASELINE.levers[k].label, contrib, shock: false });
+      }
+      for (const k in sh) {
+        if (sh[k] == null || Math.abs(sh[k]) < 1e-9) continue;
+        const without = endVal(simulate({ baseline: BASELINE, links: LINKS, levers: base, shocks: { ...sh, [k]: 0 }, quarters: state.horizon }), outKey);
+        const contrib = full - without;
+        if (Math.abs(contrib) > 1e-3) rows.push({ label: (BASELINE.shocks[k].label || k).split(' (')[0], contrib, shock: true });
+      }
+      const us = BASELINE.outcomes[outKey].unit === '% VLF' ? '%' : BASELINE.outcomes[outKey].unit, pol = POLARITY[outKey] ?? 0;
+      if (!rows.length) { host.innerHTML = '<p style="color:var(--faint);font-size:12px">Engin virk ákvörðun eða áfall — færðu sleða eða sjokk til að sjá niðurbrot.</p>'; return; }
+      rows.sort((a, b) => Math.abs(b.contrib) - Math.abs(a.contrib));
+      const maxA = Math.max(...rows.map((r) => Math.abs(r.contrib))), resid = totalDev - rows.reduce((s, r) => s + r.contrib, 0);
+      const bar = (r) => { const col = pol === 0 ? '#6ea8fe' : (r.contrib * pol > 0 ? '#54d08a' : '#e78284'); return `<div class="tor-row"><span>${r.shock ? '⚡ ' : ''}${r.label}</span><div class="tor-bar"><i style="left:0;width:${Math.abs(r.contrib) / maxA * 100}%;background:${col}"></i></div><span class="tv">${r.contrib > 0 ? '+' : ''}${num(r.contrib)}${us}</span></div>`; };
+      host.innerHTML = `<p style="font-size:11.5px;color:var(--faint);margin:0 0 6px">«${BASELINE.outcomes[outKey].label}» víkur um <b>${totalDev > 0 ? '+' : ''}${num(totalDev)}${us}</b> frá grunnlínu. Framlag hverrar virkrar ákvörðunar/⚡áfalls (jaðar-framlag: breyting ef það EITT er fjarlægt). Grænt=jákvæð átt fyrir hagvísinn, rautt=neikvæð.</p>`
+        + rows.map(bar).join('')
+        + (Math.abs(resid) > 0.05 ? `<div class="tor-row" style="opacity:.65"><span style="font-style:italic">Samspil (ólínuleiki)</span><div class="tor-bar"></div><span class="tv">${resid > 0 ? '+' : ''}${num(resid)}${us}</span></div>` : '')
+        + `<p style="font-size:11px;color:var(--faint);margin-top:6px">Jaðar-framlög (leave-one-out): summa getur vikið lítillega frá heild vegna ólínuleika/samspils — birt sérstaklega sem „samspil".</p>`;
+    }
+
     function drawFrontier(levKey, xKey, yKey) {
       const host = document.getElementById('frontier'); if (!host) return; host.innerHTML = '<canvas></canvas>';
       _anBase = solveLevers();
@@ -969,11 +1041,12 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
       if (document.getElementById('tor-out').options.length) return;
       const outs = Object.keys(BASELINE.outcomes), levs = Object.keys(BASELINE.levers);
       const oopt = outs.map((k) => `<option value="${k}">${BASELINE.outcomes[k].label}</option>`).join(''), lopt = levs.map((k) => `<option value="${k}">${BASELINE.levers[k].label}</option>`).join('');
-      ['tor-out', 'fr-x', 'fr-y', 'inv-out'].forEach((id) => (document.getElementById(id).innerHTML = oopt));
+      ['tor-out', 'decomp-out', 'fr-x', 'fr-y', 'inv-out'].forEach((id) => (document.getElementById(id).innerHTML = oopt));
       ['fr-lev', 'inv-lev'].forEach((id) => (document.getElementById(id).innerHTML = lopt));
-      document.getElementById('tor-out').value = 'verdbolga'; document.getElementById('fr-lev').value = 'vextir'; document.getElementById('fr-x').value = 'atvinnuleysi'; document.getElementById('fr-y').value = 'verdbolga';
+      document.getElementById('tor-out').value = 'verdbolga'; document.getElementById('decomp-out').value = 'verdbolga'; document.getElementById('fr-lev').value = 'vextir'; document.getElementById('fr-x').value = 'atvinnuleysi'; document.getElementById('fr-y').value = 'verdbolga';
       document.getElementById('inv-out').value = 'verdbolga'; document.getElementById('inv-lev').value = 'vextir'; document.getElementById('inv-target').value = 2.5;
       document.getElementById('tor-out').addEventListener('change', (e) => drawTornado(e.target.value));
+      document.getElementById('decomp-out').addEventListener('change', (e) => drawDecomp(e.target.value));
       // inv-target sjálfgildi = núverandi lokagildi valinnar útkomu (2,5 á vísitölu skilaði alltaf „næst ekki") + eining í label
       const invSync = () => { const oK = document.getElementById('inv-out').value, o = BASELINE.outcomes[oK]; const cur = simFull({}).outcomes[oK]; const end = cur.mid[cur.mid.length - 1]; document.getElementById('inv-target').value = +end.toFixed(o.unit === '' ? 0 : 1); const u = document.getElementById('inv-unit'); if (u) u.textContent = o.unit === '% VLF' ? '%' : o.unit; };
       document.getElementById('inv-out').addEventListener('change', invSync);
@@ -1017,7 +1090,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
         ${rows.map((r) => { const col = r.h >= 70 ? '#54d08a' : r.h >= 45 ? '#f6b13b' : '#e78284'; return `<tr><td>${r.t}</td><td style="color:${col};font-weight:700">${r.h}/100</td><td style="color:${r.drop > 0 ? '#e78284' : 'var(--faint)'}">${r.drop > 0 ? '−' + r.drop : '0'}</td><td style="color:var(--faint)">${r.dmg}</td></tr>`; }).join('')}</table>
         <p style="font-size:11.5px;color:var(--faint);margin-top:6px">Versta áfallið fyrir þessa stefnu: <b style="color:#e78284">${worst.t}</b> → heilsufar ${worst.h}/100 (fall um ${worst.drop}).</p>`;
     }
-    function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); drawStress(); }
+    function runAnalysis() { buildAnalysisSelects(); drawTornado(document.getElementById('tor-out').value); drawDecomp(document.getElementById('decomp-out').value); drawFrontier(document.getElementById('fr-lev').value, document.getElementById('fr-x').value, document.getElementById('fr-y').value); drawStress(); }
 
     function reset() { state.levers = {}; state.shocks = {}; state.autoTay = false; state.autoPhi = false; state.compare = null; state.horizon = BASELINE.quarters; document.getElementById('auto-tay').checked = false; document.getElementById('auto-phi').checked = false; updateCmp(); applyHorizon(); document.getElementById('news').hidden = true; buildControls(); run(); }
 
@@ -1088,7 +1161,7 @@ const desc = 'RÁS Íslands — Reiknilíkan Áhrifa á Samfélagið. Gagnsær h
     function init() {
       const main = document.querySelector('main[data-pg="roads"]'); if (!main || main.dataset.done) return; main.dataset.done = '1';
       document.getElementById('disc').textContent = BASELINE.disclaimer + ' Óvissu-bönd = næmni fyrir stuðla-óvissu.';
-      buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildFiscalPlan(); buildCalibration(); buildSectorsReal();
+      buildRealNow(); buildLinkTable(); buildChainMap(); buildBacktest(); buildOOS(); buildFiscalPlan(); buildCalibration(); buildSectorsReal();
       const restored = deserialize(); // sviðsmynd + flipi úr hlekk (ef til)
       document.getElementById('auto-tay').checked = state.autoTay;
       document.getElementById('auto-phi').checked = state.autoPhi;

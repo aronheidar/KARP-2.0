@@ -1,0 +1,32 @@
+{
+  "note": "Áfalla-viðbragðs-próf: raunveruleg söguleg áföll mötuð sem ytri sjokk (án stefnu-viðbragða). `actual` = stílfærð, heimildatengd raun-breyting frá fyrir-áfalli að toppi. Prófar ÁTT+STÆRÐARGRÁÐU viðbragðs vélarinnar — EKKI nákvæmt spágildi. Sjokk-stærðir eru nálgun.",
+  "episodes": [
+    {
+      "id": "hrun2008",
+      "icon": "🏦",
+      "title": "Bankahrunið 2008–2010",
+      "quarters": 12,
+      "shocks": { "gengi": -40, "heimshagvoxtur": -5, "hravaruverd": -10 },
+      "actual": { "verdbolga": 7.7, "atvinnuleysi": 5.0, "hagvoxtur": -8.0 },
+      "source": "Hagstofa (VLF/atvinnuleysi), Seðlabanki (verðbólga/gengi) — 2007→2010 toppar"
+    },
+    {
+      "id": "covid2020",
+      "icon": "🦠",
+      "title": "Heimsfaraldur (COVID-19) 2020",
+      "quarters": 8,
+      "shocks": { "ferdamenn": -40, "heimshagvoxtur": -3 },
+      "actual": { "hagvoxtur": -11.7, "atvinnuleysi": 2.8 },
+      "source": "Hagstofa — VLF 2019 (4,9%) → 2020 (−6,8%); atvinnuleysi 3,6% → 6,4%"
+    },
+    {
+      "id": "verdbolga2022",
+      "icon": "🔥",
+      "title": "Verðbólgu-bylgjan 2021–2023",
+      "quarters": 10,
+      "shocks": { "olia": 30, "hravaruverd": 15 },
+      "actual": { "verdbolga": 4.3, "kaupmattur": -3.0 },
+      "source": "Seðlabanki/Hagstofa — verðbólga 4,4% (2021) → 8,7% (2023); kaupmáttur féll"
+    }
+  ]
+}
