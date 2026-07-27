@@ -53,9 +53,12 @@ function renderChain(chain) {
   let e = '';
   for (const ed of edges) {
     const a = pos[ed.from], b = pos[ed.to]; if (!a || !b) continue;
-    const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x - 7, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;   // enda 7px FYRIR hnút → örvaroddur sýnilegur í bilinu (ekki falinn undir kassa)
-    const col = ed.sign > 0 ? '#54d08a' : '#e78284', w = (1.4 + Math.min(3.6, ed.strength * 3)).toFixed(1);
-    e += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${w}" opacity="0.9" marker-end="url(#lk-ah-${ed.sign > 0 ? 'p' : 'n'})"/>`;
+    const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x - 8, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;   // enda 8px FYRIR hnút → örvaroddur sýnilegur í bilinu (ekki falinn undir kassa)
+    const col = ed.sign > 0 ? '#54d08a' : '#e78284', w = +(1.7 + Math.min(3.3, ed.strength * 2.3)).toFixed(1);
+    const d = `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    // dökkur hjúpur undir → leggur stendur út frá bakgrunni + öðrum leggjum; svo feit lituð lína m/stórum oddi
+    e += `<path d="${d}" fill="none" stroke="rgba(6,9,14,.7)" stroke-width="${(w + 2.4).toFixed(1)}" stroke-linecap="round"/>`
+      + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="0.96" marker-end="url(#lk-ah-${ed.sign > 0 ? 'p' : 'n'})"/>`;
   }
   let nd = '';
   for (const n of nodes) {
@@ -63,7 +66,7 @@ function renderChain(chain) {
     let la = n.label; if (la.length > 20) la = la.slice(0, 19) + '…';
     nd += `<g><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="7" fill="${COL[n.kind] || '#9fb0c8'}" opacity="0.92"/><text x="${p.x + 9}" y="${p.y + NH / 2 + 4}" font-size="12" fill="#12161f" font-weight="600">${esc(la)}</text></g>`;
   }
-  const defs = '<defs><marker id="lk-ah-p" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L10,5.5 L0,11 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L10,5.5 L0,11 Z" fill="#e78284"/></marker></defs>';
+  const defs = '<defs><marker id="lk-ah-p" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M0,0 L11,6 L0,12 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerUnits="userSpaceOnUse" markerWidth="15" markerHeight="12" refX="11" refY="6" orient="auto"><path d="M0,0 L11,6 L0,12 Z" fill="#e78284"/></marker></defs>';
   return `<div class="lk-chain"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}${e}${nd}</svg></div>`
     + '<p class="lk-muted" style="font-size:12px;margin-top:6px">🟦 ákvörðun · ⬜ milliliður · 🟨 markmið · <span style="color:#54d08a">grænt</span>=eykur · <span style="color:#e78284">rautt</span>=dregur úr'
     + (chain.clipped ? ' · <i>(sýni sterkustu tengslin)</i>' : '') + '</p>';
