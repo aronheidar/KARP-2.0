@@ -5,7 +5,7 @@ import { simulate } from '../roads/engine.mjs';
 import { buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { studioCatalog, defaultDials, changedLevers } from './studio.mjs';
-import { leverEffects, newsHeadlines, popularity, endTitle } from './flavor.mjs';
+import { leverEffects, newsHeadlines, popularity, endTitle, govtStability } from './flavor.mjs';
 import { explainRound } from './debrief.mjs';
 import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
@@ -434,8 +434,10 @@ export function mountLeikur(root) {
         const dcol = diff >= 0 ? '#54d08a' : '#e78284', dtxt = 'þú stóðst þig ' + num(Math.abs(diff)) + ' stigum ' + (diff >= 0 ? 'BETUR' : 'VERR') + ' en raunveruleg ríkisstjórn';
         extras += '<div class="lk-card"><h2 title="Þín stig þessa kjörtímabils borin saman við hvernig raunveruleg útkoma Íslands skoraði á sömu markmið (stílfært viðmið).">🕰️ Svona fór það</h2><div class="lk-vs"><div><div class="lk-muted" style="font-size:12px">Þú</div><div class="lk-vs-num" style="color:#6ea8fe">' + num(you) + '</div></div><div class="lk-muted">vs</div><div><div class="lk-muted" style="font-size:12px">Raunveruleikinn</div><div class="lk-vs-num" style="color:#b98cff">' + num(realComp) + '</div></div><div style="color:' + dcol + ';font-weight:700;flex:1;min-width:180px">' + dtxt + '</div></div></div>';
       }
-      const pop = popularity(kp), reElect = pop >= 50, pcol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
-      extras += '<div class="lk-card"><h2>🗳️ Kosningar</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + pop + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p></div>';
+      const stab = (mine.detail && mine.detail.stability) || govtStability(kp);
+      const reElect = stab.approval >= 50, pcol = stab.approval >= 55 ? '#54d08a' : stab.approval >= 35 ? '#e8c14a' : '#e78284';
+      const uprising = stab.level !== 'stable' ? '<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(' + (stab.level === 'revolt' ? '231,130,132,.16);border-left:3px solid #e78284' : '232,193,74,.12);border-left:3px solid #e8c14a') + '"><b>' + stab.icon + ' ' + esc(stab.title) + '</b> — ' + esc(stab.blurb) + '</div>' : '';
+      extras += '<div class="lk-card"><h2>🗳️ Kosningar &amp; fylgi</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + stab.approval + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p>' + uprising + '</div>';
     }
     root.innerHTML = teamBanner(st) + roleBanner(st) + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + extras
@@ -479,12 +481,12 @@ export function mountLeikur(root) {
     const sim = studioSim(st), endYear = YEAR_START + st.round * 4;
     const kpiVals = {}; for (const k of st.mandate.kpis) { const oc = sim.outcomes[k.key]; kpiVals[k.key] = oc ? oc.mid[oc.mid.length - 1] : 0; }
     const sc = scoreRound(kpiVals, st.mandate);
-    const pop = popularity(kpiVals), popCol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
+    const stab = govtStability(kpiVals), pop = stab.approval, popCol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
     // #2 Live fórnarskipti: gult borði þegar tvö umboðs-markmið toga á móti hvort öðru við núverandi stöðu.
     const conflicts = detectConflicts(kpiVals, st.mandate);
     let html = '';
     if (conflicts.length) html += '<div class="lk-conflict">' + conflicts.map((c) => '<div class="lk-conflict-row"><span class="lk-conflict-ic">⚠</span><span>' + esc(c.msg) + '</span></div>').join('') + '</div>';
-    html += '<div class="lk-card lk-gauge-card"><div class="lk-gauge" title="Samsett stig 0–100 úr umboðs-markmiðunum í lok kjörtímabilsins. Hærra = betri hagstjórn.">' + arcGauge(sc.composite) + '</div><div style="flex:1"><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 8px">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + '</p><div class="lk-pop" title="Fylgi ríkisstjórnarinnar — ræðst af verðbólgu, atvinnuleysi og hagvexti. Undir 50% og þú átt á hættu að falla í kosningum."><div class="lk-gm-top"><span>🗳️ Fylgi ríkisstjórnar</span><b style="color:' + popCol + '">' + pop + '%</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:' + pop + '%;background:' + popCol + '"></div></div></div></div></div>';
+    html += '<div class="lk-card lk-gauge-card"><div class="lk-gauge" title="Samsett stig 0–100 úr umboðs-markmiðunum í lok kjörtímabilsins. Hærra = betri hagstjórn.">' + arcGauge(sc.composite) + '</div><div style="flex:1"><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 8px">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + (stab.level !== 'stable' ? ' <span style="color:' + (stab.level === 'revolt' ? '#e78284' : '#e8c14a') + '">' + stab.icon + ' ' + esc(stab.title) + ' — stig ×' + stab.factor + '</span>' : '') + '</p><div class="lk-pop" title="Fylgi ríkisstjórnarinnar — ræðst af verðbólgu, atvinnuleysi og hagvexti. Undir 50% og þú átt á hættu að falla í kosningum."><div class="lk-gm-top"><span>🗳️ Fylgi ríkisstjórnar</span><b style="color:' + popCol + '">' + pop + '%</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:' + pop + '%;background:' + popCol + '"></div></div></div></div></div>';
     html += '<div class="lk-card"><h2 title="Hversu nálægt hverju umboðs-markmiði þú ert. Fyllri borði = betra.">🎯 Markmið</h2><div class="lk-goalmeters">';
     for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
     html += '</div></div>';

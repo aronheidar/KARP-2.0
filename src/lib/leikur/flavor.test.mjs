@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { leverEffects, newsHeadlines, popularity, endTitle } from './flavor.mjs';
+import { leverEffects, newsHeadlines, popularity, endTitle, govtStability } from './flavor.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rj = (f) => JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/' + f), 'utf8'));
 const baseline = rj('baseline.json'), links = rj('links.json');
@@ -25,6 +25,16 @@ ok('≤3 fyrirsagnir', newsHeadlines({ verdbolga: 12, hagvoxtur: -3, atvinnuleys
 ok('gott ástand → hátt fylgi', popularity({ verdbolga: 2.5, hagvoxtur: 4, atvinnuleysi: 3 }) > 55);
 ok('slæmt ástand → lágt fylgi', popularity({ verdbolga: 12, hagvoxtur: -4, atvinnuleysi: 10 }) < 40);
 ok('fylgi klippt 0–100', popularity({ verdbolga: 30, hagvoxtur: -10, atvinnuleysi: 20 }) >= 0 && popularity({ verdbolga: 2.5, hagvoxtur: 10, atvinnuleysi: 2 }) <= 100);
+
+// govtStability (Fasi B) — lágt fylgi → uppreisn með factor
+const good = govtStability({ verdbolga: 2.5, hagvoxtur: 3, atvinnuleysi: 3.5 });
+ok('gott ástand → stable, factor 1', good.level === 'stable' && good.factor === 1);
+const crash = govtStability({ verdbolga: 12, hagvoxtur: -7, atvinnuleysi: 8 }); // 2008-líkt
+ok('hrun → revolt (búsáhaldabyltingin)', crash.level === 'revolt' && crash.factor < 0.9);
+ok('revolt hefur icon+title', crash.icon === '🍳' && /Búsáhalda/.test(crash.title));
+const mid = govtStability({ verdbolga: 6, hagvoxtur: -1, atvinnuleysi: 6.5 }); // ~36% → unrest
+ok('miðlungs ólga → unrest, 0.9<factor<1', mid.level === 'unrest' && mid.factor > 0.9 && mid.factor < 1);
+ok('approval alltaf 0–100', good.approval >= 0 && good.approval <= 100 && crash.approval >= 0);
 
 // endTitle
 ok('hátt avg → Efnahags-undrið', endTitle(90).title.includes('Efnahags-undrið'));

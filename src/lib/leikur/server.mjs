@@ -7,6 +7,7 @@ import { buildChain, activeInputsFromInputs } from './chain.mjs';
 import { buildAnalytics } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
+import { govtStability } from './flavor.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -199,13 +200,16 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const roundMandate = mandateAt(cfg, game.current_round);
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis, tMandate);
+        // Fasi B: stjórnar-stöðugleiki — lágt fylgi margfaldar stigin niður (uppreisn/mótmæli).
+        const stab = govtStability(kpis);
+        const roundScore = Math.round(sc.composite * stab.factor * 10) / 10;
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
-        // uppsafnað = fyrri cumulative + þessi
+        // uppsafnað = fyrri cumulative + þessi (eftir stöðugleika-margfaldara)
         const prev = await env.TENGSL.prepare('SELECT cumulative FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
-        const cumulative = ((prev && prev.cumulative) || 0) + sc.composite;
+        const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis, perKpi: sc.perKpi, crisis: sc.crisis, chain }), sc.composite, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });
