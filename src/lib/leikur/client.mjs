@@ -159,14 +159,29 @@ export function mountLeikur(root) {
   // Endurheimt úr URL + localStorage (endurtenging)
   const u = new URL(location.href);
   const code = (u.searchParams.get('g') || '').toUpperCase();
+  const invToken = u.searchParams.get('t');
   if (code) {
-    const fac = localStorage.getItem(lsFac(code));
-    const team = localStorage.getItem(lsTeam(code));
-    if (fac) { S.code = code; S.role = 'fac'; S.token = fac; }
-    else if (team) { try { const t = JSON.parse(team); S.code = code; S.role = 'team'; S.token = t.token; S.teamId = t.teamId; } catch (e) {} }
-    else { S.code = code; S.role = 'watch'; }
+    if (invToken) {
+      // Boðs-hlekkur → ganga í BEFANDI lið (deilt lið-tákn); teamId úr tid eða síðar úr /state.you.
+      const tid = u.searchParams.get('tid');
+      localStorage.setItem(lsTeam(code), JSON.stringify({ token: invToken, teamId: tid ? +tid : null }));
+      S.code = code; S.role = 'team'; S.token = invToken; S.teamId = tid ? +tid : null;
+      history.replaceState(null, '', '/leikur/?g=' + code);
+    } else {
+      const fac = localStorage.getItem(lsFac(code));
+      const team = localStorage.getItem(lsTeam(code));
+      if (fac) { S.code = code; S.role = 'fac'; S.token = fac; }
+      else if (team) { try { const t = JSON.parse(team); S.code = code; S.role = 'team'; S.token = t.token; S.teamId = t.teamId; } catch (e) {} }
+      else { S.code = code; S.role = 'watch'; }
+    }
   }
 
+  // Boðs-hlekkur: afrita hlekk sem félagar opna til að ganga í SAMA lið (deilt lið-tákn). Event-delegation → lifir af endur-teikningar.
+  root.addEventListener('click', (e) => {
+    const inv = e.target && e.target.closest && e.target.closest('#lk-invite'); if (!inv || !S.code || !S.token) return;
+    const link = location.origin + '/leikur/?g=' + S.code + '&t=' + encodeURIComponent(S.token) + (S.teamId != null ? '&tid=' + S.teamId : '');
+    try { navigator.clipboard.writeText(link); inv.textContent = '✅ Hlekkur afritaður!'; setTimeout(() => { inv.textContent = '🔗 Bjóða í lið'; }, 2000); } catch (err) { inv.textContent = link; }
+  });
   function startPoll() { stopPoll(); refresh(); S.poll = setInterval(refresh, 2500); }
   function stopPoll() { if (S.poll) { clearInterval(S.poll); S.poll = null; } }
 
@@ -175,6 +190,10 @@ export function mountLeikur(root) {
     const { status, json } = await api('/' + S.code + '/state', { token: S.token });
     if (status === 404) { stopPoll(); root.innerHTML = card('Leikur fannst ekki', '<a class="lk-btn" href="/leikur/">Til baka</a>'); return; }
     S.state = json;
+    if (S.role === 'team' && S.teamId == null && json.you && json.you.teamId != null) {
+      S.teamId = json.you.teamId;
+      try { localStorage.setItem(lsTeam(S.code), JSON.stringify({ token: S.token, teamId: S.teamId })); } catch (e) {}
+    }
     render();
   }
 
@@ -216,7 +235,7 @@ export function mountLeikur(root) {
   function teamBanner(st) {
     if (!st.you || st.you.role !== 'team') return '';
     const me = (st.teams || []).find((t) => t.id === st.you.teamId);
-    return '<div class="lk-team-banner">🏛️ Þitt lið: <b>' + esc(me ? me.name : ('Lið ' + st.you.teamId)) + '</b></div>';
+    return '<div class="lk-team-banner"><span>🏛️ Þitt lið: <b>' + esc(me ? me.name : ('Lið ' + st.you.teamId)) + '</b></span> <button id="lk-invite" class="lk-invite-btn" title="Afrita hlekk sem félagar opna til að ganga í SAMA lið">🔗 Bjóða í lið</button></div>';
   }
   function roleMapCard(st) { if (!st.roleMap || !st.roleMap.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Hlutverk liða (leynileg)</h2>' + st.roleMap.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span>' + esc(r.label) + '</span></div>').join('') + '</div>'; }
   function revealCard(st) { if (!st.rolesReveal || !st.rolesReveal.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Umboð afhjúpuð</h2>' + st.rolesReveal.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span><b>' + esc(r.label) + '</b></span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px">' + esc(r.blurb) + '</div>').join('') + '</div>'; }
