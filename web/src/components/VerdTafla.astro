@@ -75,25 +75,33 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
 </style>
 <script>
   import { karpSubscribeTier, subGate, loadUser, loginHref } from '../lib/auth.js';
-  document.querySelectorAll('.vt-cta').forEach((b) => {
-    b.addEventListener('click', () => karpSubscribeTier({ slug: b.dataset.threp, nafn: b.dataset.nafn, btn: b }));
-  });
-  // Sérlausnir: opna áskriftar-gátt (subGate) beint í spjaldinu — sama Áskell-flæði og á tólasíðunum.
-  document.querySelectorAll('.vt-svc').forEach((card) => {
-    const btn = card.querySelector('.vt-svc-cta');
-    const gate = card.querySelector('.vt-svc-gate');
-    if (!btn || !gate) return;
-    btn.addEventListener('click', async () => {
-      const u = await loadUser().catch(() => null);
-      if (!u || !u.loggedIn) { location.href = loginHref(); return; }
-      btn.style.display = 'none';
-      subGate(gate, {
-        service: card.dataset.service,
-        price: Number(card.dataset.price),
-        trialDays: Number(card.dataset.trial),
-        title: card.dataset.title,
-        blurb: card.dataset.blurb,
+  // ⚠ View Transitions: module-scriptið keyrir aðeins EINU SINNI. Ef þessi binding er ekki
+  // endurkeyrð á astro:page-load þá eru hnapparnir án smell-handlers þegar komið er á síðuna
+  // með mjúku nav (SPA) → „ekkert gerist við smell". Bindum því á hverri síðuhleðslu (idempotent).
+  function wireVerdTafla() {
+    document.querySelectorAll('.vt-cta').forEach((b) => {
+      if (b.dataset.bound) return; b.dataset.bound = '1';
+      b.addEventListener('click', () => karpSubscribeTier({ slug: b.dataset.threp, nafn: b.dataset.nafn, btn: b }));
+    });
+    // Sérlausnir: opna áskriftar-gátt (subGate) beint í spjaldinu — sama Áskell-flæði og á tólasíðunum.
+    document.querySelectorAll('.vt-svc').forEach((card) => {
+      const btn = card.querySelector('.vt-svc-cta');
+      const gate = card.querySelector('.vt-svc-gate');
+      if (!btn || !gate || btn.dataset.bound) return; btn.dataset.bound = '1';
+      btn.addEventListener('click', async () => {
+        const u = await loadUser().catch(() => null);
+        if (!u || !u.loggedIn) { location.href = loginHref(); return; }
+        btn.style.display = 'none';
+        subGate(gate, {
+          service: card.dataset.service,
+          price: Number(card.dataset.price),
+          trialDays: Number(card.dataset.trial),
+          title: card.dataset.title,
+          blurb: card.dataset.blurb,
+        });
       });
     });
-  });
+  }
+  wireVerdTafla();
+  document.addEventListener('astro:page-load', wireVerdTafla);
 </script>
