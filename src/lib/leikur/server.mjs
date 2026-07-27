@@ -43,14 +43,15 @@ function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); 
 const LEVER_LABELS = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.label]));
 const LEVER_BASE = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.base]));
 
-export async function leikurHandler(request, env, ctx) {
+export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAdmin: false, nemandi: false }) {
   if (!env.TENGSL) return sjson({ error: 'no-d1' }, 503);
   const url = new URL(request.url);
   const parts = url.pathname.replace(/^\/api\/leikur\/?/, '').split('/').filter(Boolean); // [] | ['create'] | ['<code>','join'|'state'|'decisions'|'control']
   const method = request.method;
 
-  // POST /create
+  // POST /create — aðeins kerfisstjóri (leikstjóri) má stofna leik.
   if (parts[0] === 'create' && method === 'POST') {
+    if (!gameUser.isAdmin) return sjson({ error: 'kerfisstjori' }, 403);
     await ensureTables(env);
     const cb = await request.json().catch(() => ({}));
     let config = { rounds: ROUNDS, scenarioId: SCENARIO.id };
@@ -75,8 +76,9 @@ export async function leikurHandler(request, env, ctx) {
   if (!game) return sjson({ error: 'not-found' }, 404);
   const cfg = gameCfg(game);
 
-  // POST /<code>/join (aðeins í lobby)
+  // POST /<code>/join (aðeins í lobby) — nemandi eða kerfisstjóri, innskráð/ur.
   if (action === 'join' && method === 'POST') {
+    if (!(gameUser.isAdmin || gameUser.nemandi)) return sjson({ error: 'nemandi' }, 403);
     if (game.phase !== 'lobby') return sjson({ error: 'started' }, 409);
     const b = await request.json().catch(() => ({}));
     const name = String(b.name || '').trim().slice(0, 40) || 'Lið';

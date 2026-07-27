@@ -149,6 +149,7 @@ const updated = '2026-07-02';
 
       <a id="ms-kyc" class="ms-card" href="/areidanleikavaktin/" hidden>🛡️ Áreiðanleikavaktin — KYC-vöktun viðskiptavina</a>
       <a id="ms-lobbyvakt" class="ms-card" href="/lobbyvakt/" hidden>🏛️ Lobbývakt — reglur í pípunni sem snerta þína grein</a>
+      <a id="ms-leikur" class="ms-card" href="/leikur/" hidden>🎮 Leikurinn <span class="ms-leikur-sub w-sub"></span></a>
     </section>
 
     <!-- ── STILLINGAR ── -->
@@ -799,6 +800,11 @@ const updated = '2026-07-02';
         const gate = $g('gate-note');
         if (hasTier(3)) document.getElementById('ms-kyc')?.removeAttribute('hidden');
         if (hasTier(3)) document.getElementById('ms-lobbyvakt')?.removeAttribute('hidden');
+        // 🎮 Leikurinn — kerfisstjóri (hýsa+þátttaka) eða nemandi (aðeins þátttaka með kóða). Nemandi = ENGIN greidd réttindi.
+        if (u.isAdmin || u.nemandi) {
+          const lk = document.getElementById('ms-leikur');
+          if (lk) { lk.hidden = false; lk.querySelector('.ms-leikur-sub')?.replaceChildren(document.createTextNode(u.isAdmin ? 'Hýsa nýjan leik eða taka þátt' : 'Taka þátt í leik með kóða frá kennara')); }
+        }
         if (!u || !u.loggedIn) {
           gate.innerHTML = '';
           $g('acc').innerHTML = `Ekki innskráð(ur) — allt hér vistast í vafranum þínum. <a href="${loginHref()}">Innskráning</a> geymir það milli tækja og opnar vaktir í tölvupósti.`;

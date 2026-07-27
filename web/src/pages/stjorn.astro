@@ -95,11 +95,11 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     const REP = { fyrirtaeki: 'Fyrirtækjaskýrslur', eigendur: 'Eigendaskýrslur', areidanleiki: 'Áreiðanleikamat', fasteign: 'Fasteignamöt', thingmadur: 'Þingmannaskýrslur' };
 
     function card(n, l, s) { return `<div class="stj-card"><div class="n">${n}</div><div class="l">${l}</div>${s ? '<div class="s">' + s + '</div>' : ''}</div>`; }
-    // Tegund-veljari (admin/notandi (frítt)/notandi) — x.free kemur úr adminOverviewHandler (A6).
+    // Tegund-veljari (kerfisstjóri/notandi (frítt)/notandi/nemandi) — x.free/x.nemandi koma úr adminOverviewHandler (A6).
     function typeSelect(x) {
-      const t = x.admin ? 'admin' : (x.free ? 'free' : 'user');
+      const t = x.admin ? 'admin' : (x.free ? 'free' : (x.nemandi ? 'nemandi' : 'user'));
       const opt = (v, label) => `<option value="${v}"${t === v ? ' selected' : ''}>${label}</option>`;
-      return `<select class="stj-type" data-id="${x.id}" data-cur="${t}">${opt('admin', 'admin')}${opt('free', 'notandi (frítt)')}${opt('user', 'notandi')}</select>`;
+      return `<select class="stj-type" data-id="${x.id}" data-cur="${t}">${opt('admin', 'Kerfisstjóri')}${opt('free', 'notandi (frítt)')}${opt('user', 'notandi')}${opt('nemandi', 'Nemandi')}</select>`;
     }
 
     async function boot() {

@@ -13,6 +13,8 @@ import { teachingPrompts } from './analytics.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
+// ATH: þessi skrá býr í src/lib/leikur/ (EKKI web/src/lib/leikur/) — auth.js er undir web/src/lib/, því 3 stig upp.
+import { loadUser, loginHref } from '../../../web/src/lib/auth.js';
 const STUDIO_CAT = studioCatalog(BASELINE);
 const API = '/api/leikur';
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -161,7 +163,7 @@ function renderFacAnalytics(an) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -268,14 +270,21 @@ export function mountLeikur(root) {
     return renderWatch(st);
   }
 
+  // Aðgangsstýrt eftir notanda-tegund (SERVER er raun-gáttin á /create og /join — þetta er bara UX
+  // svo fólk sjái ekki takka sem 403-a). S.user er sótt EINU SINNI í ræsingu (sjá „Ræsing" neðst).
   function renderLanding() {
-    root.innerHTML =
-      '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>' +
-      '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-studio" checked style="vertical-align:middle;margin-right:6px"/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label><label style="display:block;margin-top:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label><label style="display:block;margin-top:6px;font-size:13.5px">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label></div>' +
-      '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
-    root.querySelector('#lk-create').onclick = () => createGame();
-    root.querySelector('#lk-createcustom').onclick = () => { S.view = 'editor'; render(); };
-    root.querySelector('#lk-join').onclick = () => {
+    const u = S.user;
+    const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>';
+    const createCard = '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-studio" checked style="vertical-align:middle;margin-right:6px"/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label><label style="display:block;margin-top:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label><label style="display:block;margin-top:6px;font-size:13.5px">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label></div>';
+    const joinCard = '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
+    const noticeCard = '<div class="lk-card"><p>🎮 Leikurinn er fyrir nemendur og kennara. Skráðu þig inn — kennarinn (leikstjóri) gefur þér leikkóða.</p><a class="lk-btn" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
+    if (u && u.isAdmin) root.innerHTML = intro + createCard + joinCard;
+    else if (u && u.nemandi) root.innerHTML = intro + joinCard;
+    else root.innerHTML = intro + noticeCard;
+    const create = root.querySelector('#lk-create'); if (create) create.onclick = () => createGame();
+    const createCustom = root.querySelector('#lk-createcustom'); if (createCustom) createCustom.onclick = () => { S.view = 'editor'; render(); };
+    const join = root.querySelector('#lk-join');
+    if (join) join.onclick = () => {
       const c = (root.querySelector('#lk-code').value || '').trim().toUpperCase();
       const n = (root.querySelector('#lk-name').value || '').trim();
       if (c.length >= 4 && n) joinGame(c, n); else alert('Sláðu inn kóða og nafn.');
@@ -691,5 +700,5 @@ export function mountLeikur(root) {
   // ── Ræsing ──
   if (S.code && S.token) startPoll();
   else if (S.code && S.role === 'watch') startPoll();
-  else render();
+  else loadUser().catch(() => null).then((u) => { S.user = u; render(); });   // lending: sækja notanda-tegund fyrir gátt (UX-hlið, sbr. renderLanding)
 }

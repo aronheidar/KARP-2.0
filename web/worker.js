@@ -3236,7 +3236,7 @@ function userPayload(u, owner, now) {
   const plus = _freeAll(u) || !!tf.effectiveTier;
   return {
     loggedIn: true, id: u.id, email: u.email, name: u.name || u.username || u.email,
-    isAdmin: u.is_admin === 1, freeAccess: u.free_access === 1, plus,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
+    isAdmin: u.is_admin === 1, freeAccess: u.free_access === 1, nemandi: u.nemandi === 1, plus,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
     tier: tf.tier, effectiveTier: tf.effectiveTier,
     emailVerified: u.email_verified === 1, kt: u.kt || null, ...base,
   };
@@ -4349,13 +4349,13 @@ async function adminOverviewHandler(request, env) {
   const bySecret = key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY;
   if (!bySecret && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
   const now = Math.floor(Date.now() / 1000);
-  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
+  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
   const byService = {}; for (const s of subs) byService[s.service] = (byService[s.service] || 0) + 1;
   const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
   const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
@@ -4418,16 +4418,17 @@ async function adminSyncHandler(request, env) {
   let data = null; if (r) { try { data = JSON.parse(r.v); } catch (e) {} }
   return _ajson({ ok: true, data, updated: r ? r.updated : 0 });
 }
-// Setja notanda-tegund (admin/free/user) — stjórnborð S1 „Tegund"-dálkur. Panel-gátt = is_admin ONLY (_isAdmin).
+// Setja notanda-tegund (admin/free/user/nemandi) — stjórnborð S1 „Tegund"-dálkur. Panel-gátt = is_admin ONLY (_isAdmin).
 async function adminSetTypeHandler(request, env) {
   const uid = await _isAdmin(env, request);           // panel gate = is_admin only
   if (!uid) return _ajson({ ok: false, error: 'admin' }, 403);
   const b = await request.json().catch(() => ({}));
   const targetId = parseInt(b && b.id, 10);
   const type = String((b && b.type) || '');
-  if (!targetId || !['admin', 'free', 'user'].includes(type)) return _ajson({ ok: false, error: 'bad-params' }, 400);
+  if (!targetId || !['admin', 'free', 'user', 'nemandi'].includes(type)) return _ajson({ ok: false, error: 'bad-params' }, 400);
   const isAdmin = type === 'admin' ? 1 : 0;
   const freeAccess = type === 'free' ? 1 : 0;
+  const nemandi = type === 'nemandi' ? 1 : 0;
   // öryggi: aldrei fjarlægja SÍÐASTA admin (self-lockout vörn)
   if (type !== 'admin') {
     const tgt = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(targetId).first().catch(() => null);
@@ -4436,8 +4437,8 @@ async function adminSetTypeHandler(request, env) {
       if ((n.c || 0) <= 1) return _ajson({ ok: false, error: 'last-admin' }, 409);
     }
   }
-  await env.TENGSL.prepare('UPDATE users SET is_admin=?, free_access=?, updated=? WHERE id=?')
-    .bind(isAdmin, freeAccess, Math.floor(Date.now() / 1000), targetId).run().catch(() => null);
+  await env.TENGSL.prepare('UPDATE users SET is_admin=?, free_access=?, nemandi=?, updated=? WHERE id=?')
+    .bind(isAdmin, freeAccess, nemandi, Math.floor(Date.now() / 1000), targetId).run().catch(() => null);
   return _ajson({ ok: true, id: targetId, type });
 }
 
@@ -4468,7 +4469,12 @@ export default {
     if (url.pathname === '/api/auth/verify') return authVerifyHandler(request, env);   // F5: staðfesta netfang (GET-hlekkur úr pósti)
     if (url.pathname === '/api/auth/resend-verify') return authResendVerifyHandler(request, env, ctx);
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
-    if (url.pathname.startsWith('/api/leikur')) return leikurHandler(request, env, ctx);   // RÁS-Leikurinn (kennsluleikur)
+    if (url.pathname.startsWith('/api/leikur')) {   // RÁS-Leikurinn (kennsluleikur)
+      const luid = await readSession(env, request);
+      const lu = luid ? await env.TENGSL.prepare('SELECT is_admin, nemandi FROM users WHERE id=?').bind(luid).first().catch(() => null) : null;
+      const gameUser = { uid: luid || 0, isAdmin: !!(lu && lu.is_admin === 1), nemandi: !!(lu && lu.nemandi === 1) };
+      return leikurHandler(request, env, ctx, gameUser);
+    }
     if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin
     if (url.pathname === '/api/lobbyvakt') return lobbyvaktHandler(request, env, ctx);   // Lobbývakt v1: reglur í pípunni (Fyrirtæki+)
     if (url.pathname === '/api/frettir') return frettirHandler(request, env);   // F7: gagna-endapunktar úr WP
@@ -4484,7 +4490,7 @@ export default {
     if (url.pathname === '/api/admin/overview') return adminOverviewHandler(request, env);   // stjórnborð S1
     if (url.pathname === '/api/admin/send') return adminSendHandler(request, env);   // stjórnborð S4: póstur um Gmail REST
     if (url.pathname === '/api/admin/sync') return adminSyncHandler(request, env);   // stjórnborð S2b: rekstrar-samantekt
-    if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user)
+    if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user/nemandi)
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

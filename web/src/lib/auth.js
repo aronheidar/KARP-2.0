@@ -177,6 +177,9 @@ export async function mountChip(el) {
 // fyrir launch; kveikt af Aroni þegar billing er tilbúið), reports (fylki lykla keyptra skýrslna).
 const _u = () => (typeof window !== 'undefined' && window.KARP_USER) || {};
 export function isAdmin() { return _u().isAdmin === true; }
+// isNemandi: EINGÖNGU til að opna leikinn (/leikur/) fyrir nemendur — VEITIR ENGIN greidd réttindi.
+// Route ALDREI í gegnum _free/isPlus/hasTier — nemandi borgar eins og venjulegur notandi.
+export function isNemandi() { return _u().nemandi === true; }
 // _free: CONTENT-gátt fyrir "notandi (frítt)" — admin (allt frítt + panel) EÐA freeAccess (allt frítt, ENGINN panel).
 // Notað AÐEINS í réttinda-gáttum hér að neðan — ALDREI fyrir /stjorn/ (sá gildir eingöngu isAdmin()).
 const _free = () => isAdmin() || _u().freeAccess === true;
