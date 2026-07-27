@@ -22,6 +22,12 @@ async function api(path, { method = 'GET', body, token } = {}) {
 }
 const lsFac = (code) => 'leikur_fac_' + code;
 const lsTeam = (code) => 'leikur_team_' + code;
+// Raun-gildi sleða (flutt úr hermir): 'mult' = realBase×(1+frávik%/100)+realUnit; annars realBase+frávik+unit; enginn realBase → frávikið sjálft. Vélin notar áfram frávikið.
+const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.realBase % 1 !== 0))) ? 2 : 0;
+function disp(cfg, v, d) {
+  if (cfg && cfg.realBase != null && cfg.realMode === 'mult') return num(cfg.realBase * (1 + v / 100), d != null ? d : (cfg.realDec != null ? cfg.realDec : 0)) + (cfg.realUnit || cfg.unit || '');
+  return num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? (cfg.unit || '') : '');
+}
 
 // Teiknar orsaka-keðju (SVG) úr {nodes:[{key,label,kind,depth}], edges:[{from,to,sign,strength}], clipped}.
 function renderChain(chain) {
@@ -147,7 +153,7 @@ function renderFacAnalytics(an) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -206,6 +212,12 @@ export function mountLeikur(root) {
   }
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
+  // Fastur liðs-borði — þátttakandi sér alltaf í hvaða liði hann er.
+  function teamBanner(st) {
+    if (!st.you || st.you.role !== 'team') return '';
+    const me = (st.teams || []).find((t) => t.id === st.you.teamId);
+    return '<div class="lk-team-banner">🏛️ Þitt lið: <b>' + esc(me ? me.name : ('Lið ' + st.you.teamId)) + '</b></div>';
+  }
   function roleMapCard(st) { if (!st.roleMap || !st.roleMap.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Hlutverk liða (leynileg)</h2>' + st.roleMap.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span>' + esc(r.label) + '</span></div>').join('') + '</div>'; }
   function revealCard(st) { if (!st.rolesReveal || !st.rolesReveal.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Umboð afhjúpuð</h2>' + st.rolesReveal.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span><b>' + esc(r.label) + '</b></span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px">' + esc(r.blurb) + '</div>').join('') + '</div>'; }
 
@@ -256,7 +268,7 @@ export function mountLeikur(root) {
   }
 
   function renderTeam(st) {
-    if (st.phase === 'lobby') { root.innerHTML = card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
+    if (st.phase === 'lobby') { root.innerHTML = teamBanner(st) + card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
     if (st.phase === 'ended') {
       const me = (st.teams || []).find((t) => t.id === S.teamId);
       const rounds = st.round || 8, cum = me ? (me.cumulative || 0) : 0, avg = rounds ? cum / rounds : 0, et = endTitle(avg);
@@ -264,16 +276,22 @@ export function mountLeikur(root) {
       const shareText = 'RÁS-Leikurinn — Ísland 2000–2032\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + '\nkarp.is/leikur/';
       root.innerHTML = card('🏁 Leik lokið — árið er 2032',
         '<div class="lk-title-card"><div class="lk-muted">Arfleifð ríkisstjórnarinnar 2000–2032</div><div class="lk-title-big">' + esc(et.title) + '</div><p>' + esc(et.blurb) + '</p><p><b>' + num(cum) + '</b> stig uppsafnað · meðal <b>' + num(avg) + '</b>/100' + (rank ? ' · sæti <b>' + rank + '/' + st.teams.length + '</b>' : '') + '</p><button class="lk-btn" id="lk-share" style="margin-top:8px">📋 Afrita niðurstöðu</button></div>')
-        + revealCard(st) + leaderboard(st);
+        + teamBanner(st) + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
       return;
     }
     if (st.phase === 'resolved') return renderTeamResults(st);
-    // Ný umferð → núlla „breyta"-stöðu
-    if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; }
+    // Ný umferð → núlla „breyta"-stöðu + studio-byggingu (carry-forward úr history)
+    if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; S.dials = null; S.studioBuiltSig = null; S.localTouched = new Set(); }
     // Læst-staða (A): eftir læsingu sýna staðfestingu + „Breyta" (aflæsa fram að resolve)
     if (st.you && st.you.locked && !S.unlocked) return renderLocked(st);
-    if (st.mode === 'studio') return renderStudio(st);
+    // Studio: byggja stjórnstöðina EINU SINNI per umferð; poll uppfærir Á STAÐNUM (án þess að clobber-a sleða).
+    if (st.mode === 'studio') {
+      const sig = 'studio|' + st.round;
+      if (S.studioBuiltSig === sig && root.querySelector('#lk-st-sliders')) return updateStudio(st);
+      S.studioBuiltSig = sig; S.localTouched = new Set();
+      return renderStudio(st);
+    }
 
     // decide-fasi (classic): atburður + 5 ákvarðanir
     const ev = st.event || { title: '', text: '', responses: [] };
@@ -284,7 +302,7 @@ export function mountLeikur(root) {
     }).join('');
     const ready = st.decisions.every((d) => S.draft[d.id] != null);
     root.innerHTML =
-      roleBanner(st) +
+      teamBanner(st) + roleBanner(st) +
       card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>') +
       '<div class="lk-card"><h2>Ákvarðanir liðsins</h2>' + decHtml +
       '<button class="lk-btn" id="lk-lock"' + (ready ? '' : ' disabled') + ' style="margin-top:10px">Læsa ákvörðunum</button>' +
@@ -324,7 +342,7 @@ export function mountLeikur(root) {
       const pop = popularity(kp), reElect = pop >= 50, pcol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
       extras += '<div class="lk-card"><h2>🗳️ Kosningar</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + pop + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p></div>';
     }
-    root.innerHTML = roleBanner(st) + card('📊 Skorkort — umferð ' + st.round, scorecard)
+    root.innerHTML = teamBanner(st) + roleBanner(st) + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + extras
       + (chainHtml ? card('🔗 Orsaka-keðja ákvarðana ykkar', chainHtml) : '')
       + leaderboard(st)
@@ -397,20 +415,23 @@ export function mountLeikur(root) {
   }
   function renderStudio(st) {
     if (!S.dials) S.dials = initDials(st);
+    // Seed deilanleg liðs-drög (nema það sem ÞÚ hefur breytt) → síð-innkominn félagi sér núverandi drög.
+    if (st.draft) for (const [k, v] of Object.entries(st.draft)) { if (BASELINE.levers[k] && !S.localTouched.has(k)) S.dials[k] = +v; }
     const tab = STUDIO_CAT.tabs[S.studioTab] || STUDIO_CAT.tabs[0];
     const tabBar = STUDIO_CAT.tabs.map((t, i) => `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="Stefnu-svið: ${esc(t.group)} (${t.levers.length} sleðar)">${esc(t.group)}</span>`).join('');
     const sliders = tab.levers.map((l) => {
+      const cfg = BASELINE.levers[l.key];
       const v = S.dials[l.key] != null ? S.dials[l.key] : l.base, moved = +v !== l.base;
       const eff = leverEffects(l.key, BASELINE, LINKS);
       const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
-      const tip = l.label + (l.unit ? ' (' + l.unit + ')' : '') + '.' + effTxt;
-      return `<div class="lk-slider-row" title="${esc(tip)}"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${num(v)}${l.unit ? ' ' + esc(l.unit) : ''}</span> <span class="lk-muted" style="font-size:11px">grunnur ${num(l.base)}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
+      const tip = l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt;
+      return `<div class="lk-slider-row" title="${esc(tip)}"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span> <span class="lk-muted" style="font-size:11px">nú ${esc(disp(cfg, l.base))}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
     }).join('');
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span><h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
-      roleBanner(st) +
+      teamBanner(st) + roleBanner(st) +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +
@@ -425,15 +446,42 @@ export function mountLeikur(root) {
   }
   function attachStudio(st) {
     root.querySelectorAll('.lk-tab').forEach((el) => { el.onclick = () => { S.studioTab = +el.dataset.tab; renderStudio(st); }; });
-    root.querySelectorAll('input[data-lev]').forEach((el) => el.oninput = () => {
-      const k = el.dataset.lev; S.dials[k] = +el.value;
-      const cfg = BASELINE.levers[k], vs = root.querySelector('.lk-val[data-val="' + k + '"]');
-      if (vs) { vs.textContent = num(+el.value) + (cfg && cfg.unit ? ' ' + cfg.unit : ''); vs.classList.toggle('moved', +el.value !== cfg.base); }
-      if (S.stTimer) return; S.stTimer = setTimeout(() => { S.stTimer = null; drawStudioPreview(st); }, 60);
+    const clearDrag = () => { S.dragging = null; };
+    root.querySelectorAll('input[data-lev]').forEach((el) => {
+      el.addEventListener('pointerdown', () => { S.dragging = el.dataset.lev; });
+      el.addEventListener('pointerup', clearDrag);
+      el.addEventListener('change', () => { clearDrag(); pushDraft(st); });
+      el.oninput = () => {
+        const k = el.dataset.lev; S.dials[k] = +el.value; S.dragging = k; S.localTouched.add(k);
+        const cfg = BASELINE.levers[k], vs = root.querySelector('.lk-val[data-val="' + k + '"]');
+        if (vs) { vs.textContent = disp(cfg, +el.value); vs.classList.toggle('moved', +el.value !== cfg.base); }
+        if (S.stTimer) clearTimeout(S.stTimer); S.stTimer = setTimeout(() => { S.stTimer = null; drawStudioPreview(st); }, 60);
+        pushDraft(st);
+      };
     });
     const lock = root.querySelector('#lk-lock'); if (lock) lock.onclick = () => submitStudio(st);
   }
-  function submitStudio(st) { return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials }, locked: true }, token: S.token }); S.unlocked = false; }); }
+  // Ýtir deilanlegum liðs-drögum á þjón (locked:false, debounce) → félagar samstilla.
+  function pushDraft(st) {
+    if (S.pushTimer) clearTimeout(S.pushTimer);
+    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials }, locked: false }, token: S.token }); }, 500);
+  }
+  // Poll-uppfærsla Á STAÐNUM: samstillir fjar-drög í sleða sem ÞÚ ert ekki að draga/hefur ekki breytt; endurteiknar gröf. ENGIN sleða-endurbygging.
+  function updateStudio(st) {
+    const rd = st.draft || {};
+    root.querySelectorAll('input[data-lev]').forEach((el) => {
+      const k = el.dataset.lev;
+      if (k === S.dragging || S.localTouched.has(k)) return;
+      if (rd[k] != null && +rd[k] !== +S.dials[k]) {
+        S.dials[k] = +rd[k];
+        const cfg = BASELINE.levers[k], vs = root.querySelector('.lk-val[data-val="' + k + '"]');
+        el.value = rd[k];
+        if (vs) { vs.textContent = disp(cfg, +rd[k]); vs.classList.toggle('moved', +rd[k] !== cfg.base); }
+      }
+    });
+    drawStudioPreview(st);
+  }
+  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials }, locked: true }, token: S.token }); S.unlocked = false; }); }
 
   // Læst-staða (A): staðfesting + samantekt + „Breyta" (aflæsa fram að resolve).
   function renderLocked(st) {
@@ -441,14 +489,14 @@ export function mountLeikur(root) {
     if (st.mode === 'studio') {
       const ch = S.dials ? changedLevers(S.dials, BASELINE) : [];
       summary = ch.length
-        ? '<h3 style="font-size:13px;margin:8px 0 2px">Þín stefna:</h3><ul style="margin:2px 0 0;padding-left:18px">' + ch.slice(0, 8).map((c) => '<li>' + esc(c.label) + ': <b>' + num(c.to) + (c.unit ? ' ' + esc(c.unit) : '') + '</b></li>').join('') + '</ul>'
+        ? '<h3 style="font-size:13px;margin:8px 0 2px">Þín stefna:</h3><ul style="margin:2px 0 0;padding-left:18px">' + ch.slice(0, 8).map((c) => '<li>' + esc(c.label) + ': <b>' + esc(disp(BASELINE.levers[c.key], c.to)) + '</b></li>').join('') + '</ul>'
         : '<p class="lk-muted">Engar breytingar frá grunnstefnu.</p>';
     } else {
       const rows = (st.decisions || []).map((d) => { const k = S.draft[d.id]; const opts = d.mode === 'response' ? ((st.event && st.event.responses) || []) : d.options; const o = (opts || []).find((x) => x.key === k); return o ? '<li>' + esc(d.label) + ': <b>' + esc(o.label) + '</b></li>' : ''; }).filter(Boolean).join('');
       summary = rows ? '<h3 style="font-size:13px;margin:8px 0 2px">Þínar ákvarðanir:</h3><ul style="margin:2px 0 0;padding-left:18px">' + rows + '</ul>' : '';
     }
     root.innerHTML =
-      roleBanner(st) +
+      teamBanner(st) + roleBanner(st) +
       '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + summary + '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button></div>' +
       leaderboard(st);
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };

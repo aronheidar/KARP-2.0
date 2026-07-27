@@ -151,6 +151,14 @@ const J = async (res) => JSON.parse(await res.text());
   ok('studio: history tómt í umferð 1', Array.isArray(sSt1.history) && sSt1.history.length === 0);
   ok('studio: scenarioSoFar 1 atburður', Array.isArray(sSt1.scenarioSoFar) && sSt1.scenarioSoFar.length === 1);
   ok('studio: you.locked false fyrir læsingu', sSt1.you && sSt1.you.locked === false);
+  // Deilanleg liðs-drög (locked:false) — samstilling + einangrun
+  const sDraft = (tok, lev) => leikurHandler(new Request('https://karp.is/api/leikur/' + sc.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: 1, locked: false, decisions: { levers: lev } }) }), env);
+  await sDraft(sj1.teamToken, { vextir: 9 });
+  const sDraftA = await J(await stG(sc.code, sj1.teamToken));
+  ok('studio: A /state.draft sýnir A-drög', sDraftA.draft && sDraftA.draft.vextir === 9);
+  ok('studio: draft locked:false → you.locked ennþá false', sDraftA.you && sDraftA.you.locked === false);
+  const sDraftB = await J(await stG(sc.code, sj2.teamToken));
+  ok('studio: B /state.draft TÓMT (einangrun milli liða)', sDraftB.draft && Object.keys(sDraftB.draft).length === 0);
   const sDec = (tok, lev) => leikurHandler(new Request('https://karp.is/api/leikur/' + sc.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: 1, locked: true, decisions: { levers: lev } }) }), env);
   await sDec(sj1.teamToken, { vextir: 9.5 });
   await sDec(sj2.teamToken, { vextir: 5 });

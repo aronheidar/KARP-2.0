@@ -117,6 +117,8 @@ export async function leikurHandler(request, env, ctx) {
         const byR = {}; for (const rr of myRows) { try { byR[rr.round] = JSON.parse(rr.decisions || '{}'); } catch (e) {} }
         out.history = []; for (let rr = 1; rr < game.current_round; rr++) out.history.push(byR[rr] || {});
         out.scenarioSoFar = (cfg.scenario.events || []).slice(0, game.current_round);
+        // Deilanleg liðs-drög núverandi umferðar (einangruð per team_id) → félagar samstilla sleða.
+        out.draft = (byR[game.current_round] || {}).levers || {};
       }
     }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
