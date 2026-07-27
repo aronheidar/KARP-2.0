@@ -141,12 +141,12 @@ function renderFacAnalytics(an) {
   const scoreCol = (v) => v == null ? '#9fb0c8' : v >= 80 ? '#54d08a' : v >= 40 ? '#e8c14a' : '#e78284';
   const hasRole = an.scorecard.some((r) => r.role);
   const kpiCols = an.scorecard[0].perKpi.map((p) => p.label);
-  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + (hasRole ? '<th>Hlutverk</th>' : '') + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th></tr>';
+  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + (hasRole ? '<th>Hlutverk</th>' : '') + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th><th title="Meðal-fylgi ríkisstjórnar yfir kjörtímabilin">🗳️ Fylgi</th></tr>';
   an.scorecard.forEach((row) => {
     sc += '<tr><td><span class="lk-swatch" style="background:' + colorOf(row.teamId) + '"></span>' + esc(row.name) + '</td>'
       + (hasRole ? '<td style="font-size:12px">' + esc(row.role || '–') + '</td>' : '')
       + row.perKpi.map((p) => '<td style="color:' + scoreCol(p.score) + ';font-weight:600">' + (p.score == null ? '–' : p.score) + '</td>').join('')
-      + '<td><b>' + num(row.cumulative) + '</b></td></tr>';
+      + '<td><b>' + num(row.cumulative) + '</b></td><td style="color:' + (row.avgApproval == null ? 'var(--faint)' : row.avgApproval >= 50 ? '#54d08a' : row.avgApproval >= 35 ? '#e8c14a' : '#e78284') + '">' + (row.avgApproval != null ? row.avgApproval + '%' : '–') + '</td></tr>';
   });
   sc += '</table>';
   // Studio-hamur: raðir hafa {studio,summary} (sleða-yfirlit), EKKI choices — sér-tafla (annars kastaði row.choices.map).
@@ -373,7 +373,7 @@ export function mountLeikur(root) {
     (st.history || []).forEach((h, i) => { if (h && h.levers) leversFull.push({ round: i + 1, levers: h.levers }); });
     if (st.mode === 'studio' && st.draft && Object.keys(st.draft).length) leversFull.push({ round: (st.history || []).length + 1, levers: st.draft });
     const events = ((st.scenarioSoFar && st.scenarioSoFar.length ? st.scenarioSoFar : SCENARIO.events) || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
-    const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp, finalPerKpi: st.finalPerKpi || [] });
+    const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp, finalPerKpi: st.finalPerKpi || [], avgApproval: st.avgApproval != null ? st.avgApproval : null });
     const polSum = (st.policySummary && st.policySummary.length)
       ? '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>🏛️ Stóru ákvarðanirnar ykkar á leiðinni:</b><ul style="margin:5px 0 0;padding-left:20px;line-height:1.6;font-size:13.5px">' + st.policySummary.map((p) => '<li>' + p.icon + ' ' + esc(p.label) + ': <b>' + esc(p.choice) + '</b></li>').join('') + '</ul></div>'
       : '';

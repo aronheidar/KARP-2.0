@@ -1,7 +1,7 @@
 // Leikslok-samantekt fyrir RÁS-Leikinn: dregur lærdóm úr öllum kjörtímabilunum 2000–2032. HREINT.
 // perRoundScores: [{round, score}] (composite per umferð, úr trajectory-Δ). realityPerTerm: [{round, score}]
 // (raun-composite á sömu markmið). leversFull: [{round, levers}] (studio; [] f. classic). events: [{round,icon,title}].
-export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFull = [], mandate, events = [], baseline, disp, finalPerKpi = [] } = {}) {
+export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFull = [], mandate, events = [], baseline, disp, finalPerKpi = [], avgApproval = null } = {}) {
   const n1 = (v) => (typeof v === 'number' ? (Math.round(v * 10) / 10).toString().replace('.', ',') : '–');
   const evTitle = (r) => { const e = events.find((x) => x.round === r); return e ? ((e.icon ? e.icon + ' ' : '') + e.title) : ('Kjörtímabil ' + r); };
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -54,6 +54,10 @@ export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFul
   if (avg != null) {
     const verdict = avg >= 80 ? 'framúrskarandi hagstjórn' : avg >= 65 ? 'traust hagstjórn' : avg >= 50 ? 'blönduð útkoma' : 'erfið kjörtímabil';
     lines.push('📊 Heildar-einkunn ferilsins 2000–2032: <b>' + n1(avg) + '/100</b> — ' + verdict + '.');
+  }
+  if (avgApproval != null) {
+    const av = avgApproval >= 55 ? 'vinsæl og traust stjórn' : avgApproval >= 45 ? 'hélt naumlega umboði' : avgApproval >= 32 ? 'óvinsæl og völt stjórn' : 'stjórn í stöðugum mótmælum';
+    lines.push('🗳️ Meðal-fylgi ríkisstjórnarinnar öll árin: <b>' + Math.round(avgApproval) + '%</b> — ' + av + '.');
   }
   if (bestTerm) lines.push('🌟 Besta kjörtímabilið: <b>' + bestTerm.title + '</b> (' + bestTerm.score + '/100).');
   if (worstTerm && (!bestTerm || worstTerm.round !== bestTerm.round)) lines.push('🌧️ Erfiðasta: <b>' + worstTerm.title + '</b> (' + worstTerm.score + '/100).');
