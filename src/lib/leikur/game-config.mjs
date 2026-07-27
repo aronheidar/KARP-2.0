@@ -8,25 +8,63 @@ export const YEAR_START = 2000;
 // Besta-nálgun á stefnu Íslands árið 2000 (studio-sjálfgefið). Fráviks-sleðar (base 0) bera 2000-frávik
 // frá núverandi raunstöðu; algerir sleðar (vextir/veðhlutfall/DSTI/verðtrygging) bera raun-2000-gildi. Klippt í [min,max].
 export const YEAR2000_DIALS = {
+  // Peningastefna & varúð
   vextir: 11,            // háir stýrivextir um aldamótin
   vedhlutfall: 65,       // fyrir 90–100% íbúðalánin (komu ~2004)
   dsti: 45,              // engin greiðslubyrðar-þök
   verdtrygging: 40,      // flest lán verðtryggð
-  veidigjald: -50,       // ekkert veiðigjald enn (kom 2004)
-  kolefnisgjald: -50,    // ekkert kolefnisgjald (kom ~2010)
-  ferdamannagjald: 0,    // ekkert ferðamannagjald
-  orkuskipti: -10,       // ekkert orkuskipta-átak
+  // Ríkisfjármál & skattar
+  skattar: 1,            // tekjuskattur ~38% (vs 37 nú)
   fjarmagnstekjuskattur: -10, // 10% (vs ~22% nú)
   tryggingagjald: -1,    // ~5,3% (vs 6,35% nú)
+  tilfaerslur: -2,       // lægri tilfærslur
+  veidigjald: -50,       // ekkert veiðigjald enn (kom 2004)
+  ivilnanir: -5,         // færri ívilnanir
+  menntun: -5,           // lægri menntaútgjöld
+  // Vinnumarkaður & mannauður
+  innflytjendastefna: -10, // strangari (fyrir EES-vinnuafl 2006)
+  // Auðlindir, orka & loftslag
+  fiskeldi: -20,         // fiskeldi nær ekkert (sprakk út ~2012+)
+  orka: -15,             // lægri stóriðju-orka (fyrir Kárahnjúka/Fjarðaál 2007)
+  orkuskipti: -10,       // ekkert orkuskipta-átak
+  kolefnisgjald: -50,    // ekkert kolefnisgjald (kom ~2010)
+  // Aðrir sleðar helst á grunni (base ≈ 2000-gildi): vsk 24,5%, útgjöld, framboð,
+  // laun (base 6% = raunhæft 2000), lífeyrisaldur 67, kvóti, byggðastefna o.fl.
 };
 
 // Söguleg raun-gildi 2000–2032 (best-effort nálgun; STÍLFÆRT viðmið, ekki nákvæm hagsaga).
 // 33 gildi per KPI (2000..2032). Notað í „Raunveruleikinn"-línu + „Svona fór það"-samanburð.
 export const REALITY = {
-  verdbolga:    [5.0, 6.7, 4.8, 2.1, 3.2, 4.0, 6.8, 5.0, 12.7, 12.0, 5.4, 4.0, 5.2, 3.9, 2.0, 1.6, 1.7, 1.8, 2.7, 3.0, 2.8, 4.4, 8.3, 8.7, 5.9, 4.0, 3.5, 3.0, 2.8, 2.6, 2.5, 2.5, 2.5],
-  atvinnuleysi: [2.3, 2.3, 3.3, 3.4, 3.1, 2.6, 2.9, 2.3, 3.0, 7.2, 7.6, 7.1, 6.0, 5.4, 5.0, 4.0, 3.0, 2.8, 2.7, 3.6, 6.4, 6.0, 3.8, 3.4, 3.5, 3.6, 3.7, 3.7, 3.6, 3.6, 3.6, 3.6, 3.6],
-  skuldir:      [41, 42, 41, 40, 35, 26, 28, 29, 68, 82, 88, 92, 90, 84, 80, 65, 52, 42, 37, 36, 48, 53, 52, 49, 47, 45, 43, 42, 41, 40, 39, 38, 38],
+  verdbolga:    [5.0, 6.7, 4.8, 2.1, 3.2, 4.0, 6.8, 5.0, 12.7, 12.0, 5.4, 4.0, 5.2, 3.9, 2.0, 1.6, 1.7, 1.8, 2.7, 3.0, 2.8, 4.4, 8.3, 8.7, 5.9, 4.0, 3.5, 3.8, 3.5, 3.6, 3.4, 3.7, 3.5],
+  atvinnuleysi: [2.3, 2.3, 3.3, 3.4, 3.1, 2.6, 2.9, 2.3, 3.0, 7.2, 7.6, 7.1, 6.0, 5.4, 5.0, 4.0, 3.0, 2.8, 2.7, 3.6, 6.4, 6.0, 3.8, 3.4, 3.5, 3.6, 3.7, 3.9, 3.8, 3.8, 3.7, 3.9, 3.8],
+  skuldir:      [41, 42, 41, 40, 35, 26, 28, 29, 68, 82, 88, 92, 90, 84, 80, 65, 52, 42, 37, 36, 48, 53, 52, 49, 47, 45, 43, 47, 46, 46, 45, 47, 46],
   hagvoxtur:    [4.3, 3.9, 0.1, 2.4, 7.8, 5.7, 4.2, 9.5, 1.5, -6.8, -3.4, 2.0, 1.2, 4.1, 2.1, 4.4, 6.3, 4.2, 4.9, 2.4, -6.8, 4.5, 8.9, 5.0, 0.5, 1.8, 2.2, 2.4, 2.4, 2.3, 2.3, 2.2, 2.2],
+};
+
+// Flipa-merki (studio): baseline.levers.group → {icon, stutt-heiti}. Aðeins BIRTING; hermir óáhrifaður.
+export const TAB_META = {
+  'Peningastefna & varúð': { icon: '🏦', label: 'Peningastefna' },
+  'Ríkisfjármál & skattar': { icon: '💰', label: 'Ríkisfjármál' },
+  'Húsnæði': { icon: '🏘️', label: 'Húsnæði' },
+  'Vinnumarkaður & mannauður': { icon: '👥', label: 'Vinnumarkaður' },
+  'Auðlindir, orka & loftslag': { icon: '🌱', label: 'Auðlindir & orka' },
+  'Byggð & ferðaþjónusta': { icon: '🧭', label: 'Byggð & ferðaþj.' },
+};
+
+// „Ný stjórntæki": sleði opnast (verður stillanlegur) í tiltekinni umferð (sögulega réttilega). Sjálfgefið 1.
+// Læstir sleðar halda dial-gildi (submittast áfram = 2000-stig) en þátttakandi getur ekki breytt þeim fyrr.
+export const LEVER_UNLOCK = {
+  innflytjendastefna: 2,     // EES-vinnuafl ~2006
+  fjarmagnstekjuskattur: 2,  // hækkanir eftir 2004
+  veidigjald: 2,             // veiðigjald 2004
+  kolefnisgjald: 3,          // kolefnisgjald ~2010
+  atvinnuthatttaka: 3,       // virk vinnumarkaðsstefna
+  ferdamannagjald: 4,        // gistináttagjald ~2011
+  orkuskipti: 4,             // orkuskipti-átak
+  fiskeldi: 4,               // fiskeldis-sprenging ~2012+
+  skograekt: 4,              // aukin skógrækt/kolefnisbinding
+  dsti: 5,                   // greiðslubyrðar-þök (lánþegaskilyrði 2017)
+  votlendi: 5,               // endurheimt votlendis
 };
 
 // #1-3: afstaða = Δ á hlaupandi sleða-stig. #4: eins-árs púls (fjárhags-kostnaður kemur SJÁLFKRAFA úr

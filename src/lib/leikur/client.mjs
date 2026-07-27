@@ -6,7 +6,7 @@ import { buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { studioCatalog, defaultDials, changedLevers } from './studio.mjs';
 import { leverEffects, newsHeadlines, popularity, endTitle } from './flavor.mjs';
-import { YEAR_START, REALITY, YEAR2000_DIALS } from './game-config.mjs';
+import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 const STUDIO_CAT = studioCatalog(BASELINE);
@@ -35,7 +35,7 @@ function renderChain(chain) {
   const nodes = chain.nodes, edges = chain.edges;
   const maxD = Math.max(1, ...nodes.map((n) => n.depth));
   const cols = {}; for (const n of nodes) (cols[n.depth] ||= []).push(n);
-  const NW = 128, NH = 24, COLW = 178, VG = 12, M = 12;
+  const NW = 146, NH = 30, COLW = 212, VG = 18, M = 14;
   const rows = Math.max(1, ...Object.values(cols).map((c) => c.length));
   const W = M * 2 + maxD * COLW + NW, H = M * 2 + rows * (NH + VG) - VG;
   const pos = {};
@@ -54,8 +54,8 @@ function renderChain(chain) {
   let nd = '';
   for (const n of nodes) {
     const p = pos[n.key]; if (!p) continue;
-    let la = n.label; if (la.length > 17) la = la.slice(0, 16) + '…';
-    nd += `<g><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="6" fill="${COL[n.kind] || '#9fb0c8'}" opacity="0.92"/><text x="${p.x + 8}" y="${p.y + NH / 2 + 4}" font-size="11" fill="#12161f" font-weight="600">${esc(la)}</text></g>`;
+    let la = n.label; if (la.length > 20) la = la.slice(0, 19) + '…';
+    nd += `<g><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="7" fill="${COL[n.kind] || '#9fb0c8'}" opacity="0.92"/><text x="${p.x + 9}" y="${p.y + NH / 2 + 4}" font-size="12" fill="#12161f" font-weight="600">${esc(la)}</text></g>`;
   }
   const defs = '<defs><marker id="lk-ah-p" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e78284"/></marker></defs>';
   return `<div class="lk-chain"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}${e}${nd}</svg></div>`
@@ -274,7 +274,7 @@ export function mountLeikur(root) {
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button>';
     const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
     root.innerHTML =
-      '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila:</p><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div></div>' +
+      '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila:</p><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>' +
       (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
       '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
       roleMapCard(st) +
@@ -284,6 +284,7 @@ export function mountLeikur(root) {
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
+    b('#lk-watchlink', () => { const el = root.querySelector('#lk-watchlink'); try { navigator.clipboard.writeText(location.origin + '/leikur/?g=' + S.code); if (el) el.textContent = '✅ Áhorfenda-hlekk afritaður'; } catch (e) { if (el) el.textContent = location.origin + '/leikur/?g=' + S.code; } });
   }
 
   function renderTeam(st) {
@@ -437,20 +438,25 @@ export function mountLeikur(root) {
     // Seed deilanleg liðs-drög (nema það sem ÞÚ hefur breytt) → síð-innkominn félagi sér núverandi drög.
     if (st.draft) for (const [k, v] of Object.entries(st.draft)) { if (BASELINE.levers[k] && !S.localTouched.has(k)) S.dials[k] = +v; }
     const tab = STUDIO_CAT.tabs[S.studioTab] || STUDIO_CAT.tabs[0];
-    const tabBar = STUDIO_CAT.tabs.map((t, i) => `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="Stefnu-svið: ${esc(t.group)} (${t.levers.length} sleðar)">${esc(t.group)}</span>`).join('');
-    const sliders = tab.levers.map((l) => {
+    const unlocked = (k) => (LEVER_UNLOCK[k] || 1) <= st.round;
+    const tabBar = STUDIO_CAT.tabs.map((t, i) => { const m = TAB_META[t.group] || { icon: '', label: t.group }; return `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="${esc(t.group)}"><span class="lk-tab-ic">${m.icon}</span> ${esc(m.label)}</span>`; }).join('');
+    const visLevers = tab.levers.filter((l) => unlocked(l.key)), lockedN = tab.levers.length - visLevers.length;
+    const sliders = visLevers.map((l) => {
       const cfg = BASELINE.levers[l.key];
       const v = S.dials[l.key] != null ? S.dials[l.key] : l.base, moved = +v !== l.base;
       const eff = leverEffects(l.key, BASELINE, LINKS);
       const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
       const tip = l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt;
       return `<div class="lk-slider-row" title="${esc(tip)}"><label>${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span> <span class="lk-muted" style="font-size:11px">nú ${esc(disp(cfg, l.base))}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
-    }).join('');
+    }).join('') + (lockedN ? '<p class="lk-muted" style="font-size:12px;margin-top:8px">🔒 ' + lockedN + ' stjórntæki opnast á síðari kjörtímabilum.</p>' : '');
+    // „Ný stjórntæki" sem opnuðust ÞETTA kjörtímabil
+    const newTools = STUDIO_CAT.tabs.flatMap((t) => t.levers).filter((l) => (LEVER_UNLOCK[l.key] || 1) === st.round).map((l) => l.label);
+    const newToolsBanner = (st.round > 1 && newTools.length) ? '<div class="lk-newtools">🆕 <b>Ný stjórntæki opnuðust:</b> ' + newTools.map(esc).join(', ') + '</div>' : '';
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span><h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
-      teamBanner(st) + roleBanner(st) +
+      teamBanner(st) + roleBanner(st) + newToolsBanner +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +
@@ -521,7 +527,25 @@ export function mountLeikur(root) {
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };
   }
 
-  function renderWatch(st) { root.innerHTML = card('👀 Áhorf — leikur ' + esc(st.code), '<p>Umferð ' + (st.round || 0) + ' · ' + esc(st.phase) + '</p>') + leaderboard(st) + revealCard(st); }
+  // S6 — áhorfenda-sýn (útsending fyrir skjávarpa): stór stigatafla + kjörtímabil + þróunar-graf.
+  function renderWatch(st) {
+    const phaseTxt = { lobby: 'Beðið eftir að leikur hefjist…', decide: 'Lið taka ákvarðanir', resolved: 'Umferð leyst — bíð eftir næsta kjörtímabili', ended: '🏁 Leik lokið — árið er 2032' }[st.phase] || st.phase;
+    const [y0, y1] = termYears(st.round || 1), ev = st.event;
+    const teams = [...(st.teams || [])].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0));
+    const maxCum = Math.max(1, ...teams.map((t) => t.cumulative || 0));
+    const board = teams.map((t, i) => {
+      const w = Math.max(3, Math.round(100 * (t.cumulative || 0) / maxCum));
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      const col = i === 0 ? '#f6b13b' : LK_PAL[i % LK_PAL.length];
+      return '<div class="lk-watch-row"><span class="lk-watch-rank">' + medal + '</span><span class="lk-watch-name">' + esc(t.name) + '</span><div class="lk-watch-bar"><div class="lk-watch-fill" style="width:' + w + '%;background:' + col + '"></div></div><b class="lk-watch-score">' + num(t.cumulative || 0) + '</b></div>';
+    }).join('') || '<p class="lk-muted">Engin lið gengin inn enn.</p>';
+    const chart = (st.trajectory && st.trajectory.some((s) => s.points && s.points.length))
+      ? '<div class="lk-card"><h2>📈 Þróun stiga</h2>' + lkLineChart('Uppsafnað stig', st.trajectory, {}) + '</div>' : '';
+    root.innerHTML =
+      '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span><h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
+      '<div class="lk-card"><h2>🏆 Stigatafla</h2><div class="lk-watch-board">' + board + '</div></div>' +
+      chart + revealCard(st);
+  }
 
   // ── Sviðsmynda-/umboðs-ritill (S4) ──
   function renderEditor() {

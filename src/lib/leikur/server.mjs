@@ -107,6 +107,8 @@ export async function leikurHandler(request, env, ctx) {
     if (cfg.roles && cfg.roleMap && game.phase === 'ended') out.rolesReveal = revealRoles(cfg.roleMap, ROLES);
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
+    // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
+    out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
     if (game.phase !== 'lobby') {
       const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const lockedOf = {}; for (const lr of lockRows) lockedOf[lr.team_id] = !!lr.locked;

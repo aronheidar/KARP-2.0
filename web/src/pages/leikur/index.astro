@@ -32,7 +32,8 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-opt.sel) { outline: 2px solid #f6b13b; background: rgba(246,177,59,.12); }
   main[data-pg="leikur"] :global(input) { background: #12161f; color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); border-radius: 8px; }
   main[data-pg="leikur"] :global(.lk-chain) { width: 100%; overflow-x: auto; }
-  main[data-pg="leikur"] :global(.lk-chain svg) { display: block; max-width: 100%; height: auto; }
+  main[data-pg="leikur"] :global(.lk-chain) { width: 100%; overflow-x: auto; }
+  main[data-pg="leikur"] :global(.lk-chain svg) { display: block; max-width: none; height: auto; }
   main[data-pg="leikur"] :global(.lk-muted) { color: var(--muted, #9fb0c8); }
   main[data-pg="leikur"] :global(.lk-tbl) { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 14px; }
   main[data-pg="leikur"] :global(.lk-tbl th), main[data-pg="leikur"] :global(.lk-tbl td) { border-bottom: 1px solid rgba(255,255,255,.08); padding: 5px 8px; text-align: left; }
@@ -45,9 +46,22 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-err) { color: #e78284; font-size: 13px; }
   main[data-pg="leikur"] :global(.lk-role-banner) { background: rgba(185,140,255,.12); border: 1px solid #b98cff55; border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
   main[data-pg="leikur"] :global(.lk-kpi-w) { display: inline-block; background: #b98cff33; color: #d9c6ff; border-radius: 5px; padding: 0 5px; font-size: 11px; font-weight: 700; margin-left: 4px; }
-  main[data-pg="leikur"] :global(.lk-tabs) { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 10px; }
-  main[data-pg="leikur"] :global(.lk-tab) { padding: 5px 10px; border: 1px solid var(--line, #2a2f3a); border-radius: 8px; cursor: pointer; font-size: 12.5px; }
-  main[data-pg="leikur"] :global(.lk-tab.sel) { outline: 2px solid #f6b13b; background: rgba(246,177,59,.12); }
+  main[data-pg="leikur"] :global(.lk-tabs) { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+  main[data-pg="leikur"] :global(.lk-tab) { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border: 1px solid var(--line, #2a2f3a); border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 600; background: rgba(255,255,255,.03); }
+  main[data-pg="leikur"] :global(.lk-tab:hover) { background: rgba(255,255,255,.07); }
+  main[data-pg="leikur"] :global(.lk-tab.sel) { border-color: #f6b13b; background: rgba(246,177,59,.16); color: #f6b13b; box-shadow: 0 0 0 1px #f6b13b inset; }
+  main[data-pg="leikur"] :global(.lk-tab-ic) { font-size: 17px; }
+  main[data-pg="leikur"] :global(.lk-newtools) { background: rgba(84,208,138,.12); border: 1px solid #54d08a55; border-radius: 10px; padding: 8px 14px; margin: 0 0 10px; font-size: 13.5px; color: #8fe3b3; }
+  /* S6 áhorfenda-sýn */
+  main[data-pg="leikur"] :global(.lk-watch-head) { margin: 0 0 14px; }
+  main[data-pg="leikur"] :global(.lk-watch-title) { font-size: 30px; margin: 8px 0 4px; }
+  main[data-pg="leikur"] :global(.lk-watch-board) { display: flex; flex-direction: column; gap: 9px; }
+  main[data-pg="leikur"] :global(.lk-watch-row) { display: flex; align-items: center; gap: 12px; }
+  main[data-pg="leikur"] :global(.lk-watch-rank) { font-size: 20px; width: 34px; text-align: center; flex: 0 0 auto; }
+  main[data-pg="leikur"] :global(.lk-watch-name) { flex: 0 0 170px; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  main[data-pg="leikur"] :global(.lk-watch-bar) { flex: 1; height: 22px; background: rgba(255,255,255,.06); border-radius: 6px; overflow: hidden; }
+  main[data-pg="leikur"] :global(.lk-watch-fill) { height: 100%; border-radius: 6px; transition: width .3s; }
+  main[data-pg="leikur"] :global(.lk-watch-score) { font-size: 18px; font-weight: 800; width: 64px; text-align: right; flex: 0 0 auto; }
   main[data-pg="leikur"] :global(.lk-slider-row) { margin: 8px 0; }
   main[data-pg="leikur"] :global(.lk-slider-row label) { display: block; font-size: 13px; margin-bottom: 2px; }
   main[data-pg="leikur"] :global(.lk-slider-row input[type=range]) { width: 100%; accent-color: #f6b13b; }

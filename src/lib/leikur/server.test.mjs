@@ -169,6 +169,7 @@ const J = async (res) => JSON.parse(await res.text());
   await sCtrl('resolve');
   const sResSt = await J(await stG(sc.code, sc.facToken));
   ok('studio: bæði lið skoruð', sResSt.teams.every((t) => typeof t.cumulative === 'number'));
+  ok('studio: /state trajectory per lið (áhorfenda-graf)', Array.isArray(sResSt.trajectory) && sResSt.trajectory.length === 2 && sResSt.trajectory.every((s) => Array.isArray(s.points)) && sResSt.trajectory.some((s) => s.points.length >= 1));
   ok('studio: analytics decisionsTable studio-samantekt', sResSt.analytics && sResSt.analytics.decisionsTable.every((r) => r.studio && typeof r.summary === 'string'));
   await sCtrl('next');
   const sSt2 = await J(await stG(sc.code, sj1.teamToken));
