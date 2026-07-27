@@ -2,6 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
+import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -2495,8 +2496,39 @@ async function _kycNames(env, kt) {
     "WHERE h.felag_kt=? AND h.seen_last IS NULL").bind(kt).all().catch(() => ({ results: [] }))).results || [];
   return { felag, owners, board };
 }
+// Obeint/endanlegt eignarhald (UBO): afmörkuð BFS UPP eign-netið (EIN D1-fyrirspurn á hnút), svo
+// hrein traceUbo (ubo-core.mjs) margfaldar keðjur og safnar á einstaklinga með virkt eignarhald ≥25%.
+// Þök (dýpt 8 / 200 hnútar) binda dagleg cron-kostnað; blindgötur/hringir → incompleteChain=true.
+// ⚠ eign.hlutur er geymt sem STRENGUR ('60%' o.fl.) → hlutFrac þáttar; eigandi_tegund/felog-aðild
+// skilgreinir félag vs einstakling (uncrawlað félag = félag, verður blindgata, EKKI ranglega einstaklingur).
+async function _kycUbo(env, kt) {
+  const NODE_CAP = 200, DEPTH_CAP = 8;
+  const ownersByKt = new Map();        // félags-kt -> [{ key, hlutur, isCompany, nafn }]
+  const seen = new Set([kt]);
+  const queue = [kt];
+  while (queue.length && ownersByKt.size < NODE_CAP) {
+    const cur = queue.shift();
+    const rows = (await env.TENGSL.prepare(
+      "SELECT e.eigandi_key AS key, e.hlutur AS hlutur, e.eigandi_tegund AS tegund, " +
+      "COALESCE(p.nafn,f.nafn,e.eigandi_key) AS nafn, f.kt AS felkt " +
+      "FROM eign e LEFT JOIN folk p ON p.person_key=e.eigandi_key LEFT JOIN felog f ON f.kt=e.eigandi_key " +
+      "WHERE e.felag_kt=? AND e.seen_last IS NULL").bind(cur).all().catch(() => ({ results: [] }))).results || [];
+    const owners = rows.map((r) => ({
+      key: r.key, hlutur: r.hlutur, nafn: r.nafn,
+      isCompany: (r.tegund === 'felag') || (r.felkt != null),   // eigandi_tegund EÐA félagaskrár-aðild
+    }));
+    ownersByKt.set(cur, owners);
+    for (const o of owners) {
+      if (o.isCompany && !seen.has(o.key) && seen.size < NODE_CAP) { seen.add(o.key); queue.push(o.key); }
+    }
+  }
+  const graph = { getOwners: (k) => ownersByKt.get(k) || [] };
+  const { beneficial, incompleteChain } = kycTraceUbo(graph, kt, { depthCap: DEPTH_CAP, nodeCap: NODE_CAP });
+  return { beneficial, incompleteChain };
+}
 async function kycScreenKt(env, kt) {
   const { felag, owners, board } = await _kycNames(env, kt);
+  const uboX = await _kycUbo(env, kt).catch(() => ({ beneficial: [], incompleteChain: false }));
   const nameList = [felag?.nafn, ...owners.map((o) => o.nafn), ...board.map((b) => b.nafn)].filter(Boolean);
   // sanctions — endurnýtir sanctionsIndex/sancNorm (L2438-2452): idx er { idx:Map, updated }, lykill er
   // fyrsta+síðasta-tóken (sama lyklun og sanctionsHandler L2453 notar), EKKI heil-sancNorm-strengur.
@@ -2536,7 +2568,7 @@ async function kycScreenKt(env, kt) {
     }
   }
   return {
-    ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })) },
+    ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })), beneficial: uboX.beneficial, incompleteChain: uboX.incompleteChain },
     board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
     sanctions: { hits: sHits },
     pep: { matches: pMatches },

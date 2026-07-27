@@ -27,8 +27,15 @@ export function signalEvents(signal, prev, cur) {
   } else if (signal === 'pep') {
     for (const m of _added(prev.matches, cur.matches, (x) => x.name)) ev.push({ kind: 'pep_change', severity: 'high', detail: m });
   } else if (signal === 'ubo') {
+    // Beinir eigendur (raunverulegir/hluthafar) — óbreytt hegðun.
     for (const o of _added(prev.owners, cur.owners, (x) => x.key)) ev.push({ kind: 'new_ubo', severity: 'high', detail: o });
     for (const o of _removed(prev.owners, cur.owners, (x) => x.key)) ev.push({ kind: 'removed_ubo', severity: 'high', detail: o });
+    // Endanlegir raunverulegir eigendur (≥25%, óbeint rakðir). Eldri snapshot ÁN 'beneficial'-lykils
+    // = grunnlína fyrir þetta undirmerki → engir falskir atburðir við fyrstu skimun eftir uppfærslu.
+    if (prev.beneficial !== undefined) {
+      for (const o of _added(prev.beneficial, cur.beneficial, (x) => x.key)) ev.push({ kind: 'new_beneficial', severity: 'high', detail: o });
+      for (const o of _removed(prev.beneficial, cur.beneficial, (x) => x.key)) ev.push({ kind: 'removed_beneficial', severity: 'high', detail: o });
+    }
   } else if (signal === 'board') {
     for (const b of _added(prev.members, cur.members, (x) => x.key + '|' + x.hlutverk)) ev.push({ kind: 'board_change', severity: 'info', detail: { ...b, breyting: 'baett_vid' } });
     for (const b of _removed(prev.members, cur.members, (x) => x.key + '|' + x.hlutverk)) ev.push({ kind: 'board_change', severity: 'info', detail: { ...b, breyting: 'horfid' } });
