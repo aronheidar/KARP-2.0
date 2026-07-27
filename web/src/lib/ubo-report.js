@@ -298,6 +298,35 @@ async function eigMount(rep, host, nav, kt) {
   if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
 }
 
+// Tómstöðu-skýrsla (engin:true) — hvorki hluthafalisti né raunverulegir eigendur fundust.
+// Í stað dauðrar endastöðvar: skýr útskýring (dreift/skráð eignarhald) + stjórnenda-/
+// fyrirsvarstengsl (úr /api/tengslanet — birtast þótt eignarhald sé óskráð) + dótturfélög
+// sem félagið sjálft á í (úr eigendur_reverse.json). Sömu paywall-forsendur og full skýrsla.
+function eigEmptyReport(rep, kt, ctx) {
+  const subs = eigSubsidiaries(rep || {}, ctx);
+  return '<div class="eig-report" id="eig-report">'
+    + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + '<div class="eig-empty">'
+    +   '<div class="eig-empty-h"><span class="eig-empty-ico">🔎</span><h4>Engir endanlegir eigendur skráðir</h4></div>'
+    +   '<p>Hvorki hluthafalisti í nýjasta ársreikningi félagsins né skráðir raunverulegir eigendur (yfir 25%) fundust hjá Skattinum. Þetta á oftast við um félög með <b>dreift eða skráð eignarhald</b> — t.d. félög skráð á markað eða í eigu margra smærri hluthafa — þar sem enginn einn aðili nær því 25% raunverulegu eignarhaldi sem skylt er að skrá.</p>'
+    +   '<p class="eig-empty-sub">Það þýðir <b>ekki</b> að engar upplýsingar séu til. Hér að neðan birtast stjórnenda- og fyrirsvarstengsl félagsins, og eignarhlutir sem félagið sjálft á í öðrum félögum — eftir því sem þau eru skráð í opinberum gögnum.</p>'
+    + '</div>'
+    + '<div id="eig-stjornir"></div>'
+    + subs
+    + eigSources(rep || {})
+    + '</div>';
+}
+async function eigMountEmpty(rep, host, nav, kt) {
+  const rootKt = kt || (rep && rep.kt) || null;
+  const reverse = await eigReverseData().catch(() => null);   // dótturfélög: félög sem RÓTIN á í
+  const ctx = { reverse, kt: rootKt };
+  host.innerHTML = eigEmptyReport(rep, rootKt, ctx);
+  eigStjornir(rootKt);   // fyllir #eig-stjornir async — stjórn/framkvæmdastjórn úr RSK-API (null-þolið, eigin fyrirsögn)
+  const pb = document.getElementById('eig-print');
+  if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 export function uboOwned(kt) { return isAdmin() || hasReport('eigendur:' + kt); }
 
@@ -352,7 +381,7 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
   const tick = async () => {
     const d = await eigData(kt, true);
     if (d && !d.pending && !d.engin) { eigMount(d, hostEl, nav, kt); return; }
-    if (d && d.engin) { hostEl.innerHTML = '<div class="eig-tom">Ekki tókst að byggja eignarhaldsnet fyrir félagið (hvorki hluthafalisti né raunverulegir eigendur fundust).</div>'; return; }
+    if (d && d.engin) { eigMountEmpty(d, hostEl, nav, kt); return; }
     if (!barSett) {   // sama hleðslustika og á fjárhagsmælaborðinu (deild úr report-nav.js)
       barSett = true;
       hostEl.innerHTML = pendingBarHtml({
@@ -395,7 +424,7 @@ export async function refreshUboReport({ kt, hostEl, navTo, btn }) {
     url: '/gogn/eigendur/' + kt + '.json', baseline, est: 120, sfx: '-eigr',
     onDone: (txt, stale) => {
       if (btn) { btn.textContent = '🔄 Sækja aftur'; btn.disabled = false; }
-      try { const d = JSON.parse(txt); if (d && !d.engin) { eigMount(d, hostEl, nav, kt); if (stale) setTimeout(() => { const h = document.getElementById('eig-report'); if (h) h.insertAdjacentHTML('afterbegin', '<p class="eig-cap">ⓘ Engin ný gögn hjá RSK — skýrslan er óbreytt.</p>'); }, 50); return; } } catch (e) {}
+      try { const d = JSON.parse(txt); if (d && d.engin) { eigMountEmpty(d, hostEl, nav, kt); return; } if (d && !d.engin) { eigMount(d, hostEl, nav, kt); if (stale) setTimeout(() => { const h = document.getElementById('eig-report'); if (h) h.insertAdjacentHTML('afterbegin', '<p class="eig-cap">ⓘ Engin ný gögn hjá RSK — skýrslan er óbreytt.</p>'); }, 50); return; } } catch (e) {}
       hostEl.innerHTML = '<div class="eig-tom">Endurbyggingin skilaði engu neti — endurhlaðið síðuna.</div>';
     },
   });

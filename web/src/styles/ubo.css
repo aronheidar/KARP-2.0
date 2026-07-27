@@ -61,6 +61,12 @@
 .eig-othekkt td{color:var(--muted);font-style:italic}
 .eig-direct{color:var(--muted)}
 .eig-tom{color:var(--muted);font-size:13px;margin:6px 0 14px}
+.eig-empty{background:rgba(90,169,230,.06);border:1px solid rgba(90,169,230,.22);border-radius:12px;padding:14px 16px;margin:8px 0 16px}
+.eig-empty-h{display:flex;align-items:center;gap:10px}
+.eig-empty-h h4{margin:0;font-size:16px;color:var(--ink)}
+.eig-empty-ico{font-size:22px;line-height:1}
+.eig-empty p{color:var(--ink);font-size:13px;line-height:1.6;margin:8px 0 0}
+.eig-empty .eig-empty-sub{color:var(--muted);font-size:12.5px}
 .eig-pie{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
 .eig-pie-leg{display:flex;flex-direction:column;gap:3px;font-size:12px}
 .eig-leg-i{display:inline-flex;align-items:center;gap:6px}.eig-leg-i i{width:11px;height:11px;border-radius:3px;display:inline-block}
