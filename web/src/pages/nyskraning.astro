@@ -79,6 +79,17 @@ const desc = 'Nýskráðu þig á Karp — ókeypis aðgangur að Karp+ vöktun,
           };
           if (btn) { btn.disabled = true; btn.textContent = 'Skrái…'; }
           const res = await window.karpAuth.karpRegister(data);
+          if (res && res.ok && res.verify) {
+            // F5: staðfestingar-póstur sendur → sýna leiðbeiningar í stað þess að skrá inn strax
+            const fw = document.getElementById('ka-form-wrap');
+            if (fw) fw.innerHTML = '<div style="text-align:center;padding:8px 0"><div style="font-size:34px">📧</div>'
+              + '<h2 style="margin:8px 0 6px">Staðfestu netfangið þitt</h2>'
+              + '<p style="color:var(--muted);line-height:1.6">Við sendum staðfestingar-póst á <b>' + ((res.email || data.email || '').replace(/[<>&]/g, '')) + '</b>. Smelltu á hlekkinn í póstinum til að virkja aðganginn — athugaðu líka ruslpóstinn.</p>'
+              + '<p style="font-size:13px;color:var(--faint);margin-top:14px">Fékkstu engan póst? <a href="#" id="ka-resend">Endursenda</a></p></div>';
+            const rs = document.getElementById('ka-resend');
+            if (rs) rs.addEventListener('click', async (ev) => { ev.preventDefault(); rs.textContent = 'Sendi…'; await fetch('/api/auth/resend-verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: res.email || data.email }) }).catch(() => {}); rs.textContent = 'Sent ✓'; });
+            return;
+          }
           if (res && res.ok) { location.href = 'https://karp.is/mitt-svaedi/'; return; }
           if (btn) { btn.disabled = false; btn.textContent = 'Nýskrá'; }
           if (eb) { eb.textContent = MSG[(res && res.error)] || MSG._; eb.hidden = false; }

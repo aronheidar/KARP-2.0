@@ -3232,9 +3232,11 @@ async function authRegisterHandler(request, env) {
   const dup = await env.TENGSL.prepare('SELECT id FROM users WHERE email=? OR (username IS NOT NULL AND username=?)').bind(email, username).first().catch(() => null);
   if (dup) return _ajson({ ok: false, error: 'exists' });
   const now = Math.floor(Date.now() / 1000);
-  const res = await env.TENGSL.prepare('INSERT INTO users (email, username, pass_hash, name, email_verified, terms_accepted, created) VALUES (?,?,?,?,1,?,?)')
+  const res = await env.TENGSL.prepare('INSERT INTO users (email, username, pass_hash, name, email_verified, terms_accepted, created) VALUES (?,?,?,?,0,?,?)')
     .bind(email, username, await hashPassword(pw), b.name || null, b.terms ? now : null, now).run();
-  return _ajson({ ok: true, id: res.meta.last_row_id }, { 'set-cookie': _sessCookie(await makeSession(env, res.meta.last_row_id), 60 * 86400) });
+  // F5: staðfesting netfangs — sendum staðfestingar-póst; login-hlið hafnar 'unverified' þar til smellt er á hlekkinn.
+  await _sendVerifyEmail(env, res.meta.last_row_id, email, now).catch(() => {});
+  return _ajson({ ok: true, verify: true, email });
 }
 async function authLoginHandler(request, env) {
   if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
@@ -3382,6 +3384,37 @@ async function authResetHandler(request, env) {
   await env.TENGSL.prepare('UPDATE users SET pass_hash=?, email_verified=1, updated=? WHERE id=?').bind(await hashPassword(pw), now, t.user_id).run().catch(() => {});
   await env.TENGSL.prepare('DELETE FROM auth_tokens WHERE token=?').bind(token).run().catch(() => {});
   return _ajson({ ok: true, id: t.user_id }, { 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) });
+}
+// F5: staðfesting netfangs. Sendir staðfestingar-póst (auth_tokens kind='verify', 24 klst). Endurnýtir sömu töflu og reset.
+async function _sendVerifyEmail(env, userId, email, now) {
+  const token = _tokenHex();
+  await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='verify'").bind(userId).run().catch(() => {});
+  await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, userId, 'verify', now + 86400).run().catch(() => {});
+  const link = 'https://karp.is/api/auth/verify?token=' + token;
+  const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Staðfestu netfangið þitt</h2><p>Velkomin í Karp! Smelltu á hnappinn til að virkja aðganginn þinn.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Staðfesta netfang</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í 24 klukkustundir. Nýskráðir þú þig ekki? Hunsaðu þennan póst.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
+  return sendGmail(env, { to: email, subject: 'Staðfestu netfangið þitt á Karp', html });
+}
+// GET-hlekkur úr staðfestingar-pósti → staðfestir netfang, skráir inn og sendir á Mitt svæði.
+async function authVerifyHandler(request, env) {
+  const url = new URL(request.url);
+  const token = String(url.searchParams.get('token') || '').trim().slice(0, 80);
+  if (!token || !env.TENGSL) return new Response(null, { status: 302, headers: { location: '/innskra/?verify=badtoken' } });
+  const now = Math.floor(Date.now() / 1000);
+  const t = await env.TENGSL.prepare("SELECT token, user_id FROM auth_tokens WHERE token=? AND kind='verify' AND expires>?").bind(token, now).first().catch(() => null);
+  if (!t) return new Response(null, { status: 302, headers: { location: '/innskra/?verify=expired' } });
+  await env.TENGSL.prepare('UPDATE users SET email_verified=1, updated=? WHERE id=?').bind(now, t.user_id).run().catch(() => {});
+  await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='verify'").bind(t.user_id).run().catch(() => {});
+  return new Response(null, { status: 302, headers: { location: '/mitt-svaedi/?verified=1', 'set-cookie': _sessCookie(await makeSession(env, t.user_id), 60 * 86400) } });
+}
+// Endursenda staðfestingar-póst fyrir óstaðfestan aðgang. Alltaf {ok:true} (engin notenda-upptalning).
+async function authResendVerifyHandler(request, env, ctx) {
+  if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: true });
+  const b = (await request.json().catch(() => null)) || {};
+  const login = String(b.login || b.email || '').trim().toLowerCase().slice(0, 120);
+  if (!login) return _ajson({ ok: true });
+  const u = await env.TENGSL.prepare('SELECT id, email, email_verified FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
+  if (u && u.email_verified !== 1) { ctx.waitUntil(_sendVerifyEmail(env, u.id, u.email, Math.floor(Date.now() / 1000))); }
+  return _ajson({ ok: true });
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -4299,6 +4332,8 @@ export default {
     if (url.pathname === '/api/auth/kt') return authSaveKtHandler(request, env);
     if (url.pathname === '/api/auth/forgot') return authForgotHandler(request, env, ctx);
     if (url.pathname === '/api/auth/reset') return authResetHandler(request, env);
+    if (url.pathname === '/api/auth/verify') return authVerifyHandler(request, env);   // F5: staðfesta netfang (GET-hlekkur úr pósti)
+    if (url.pathname === '/api/auth/resend-verify') return authResendVerifyHandler(request, env, ctx);
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
     if (url.pathname.startsWith('/api/leikur')) return leikurHandler(request, env, ctx);   // RÁS-Leikurinn (kennsluleikur)
     if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin
