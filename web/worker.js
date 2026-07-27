@@ -4,6 +4,7 @@ import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
+import { matchItem, filterFeed, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
@@ -2794,6 +2795,25 @@ async function leyfiHandler(request, env, ctx) {
   return res;
 }
 
+// ── Lobbývakt v1 — persónulegur straumur þingmála/samráðsmála eftir atvinnugrein (Fyrirtæki+ gátaður) ──
+// Tier-gátt speglar _kycGate (account-eigandi erfir þrep). greina-val er PER-NOTANDA pref (uid) eins og frettavakt;
+// gögnin (lobbyvakt.json) eru nætur-flokkuð í CI. Svör: HTTP 200 + {ok:false,error} skv. KARP-venjum.
+const _lobbyGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
+async function lobbyvaktHandler(request, env, ctx) {
+  const uid = await readSession(env, request);
+  const now = Math.floor(Date.now() / 1000);
+  if (!uid) return _ajson({ ok: false, error: 'login' });
+  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,free_access,tier,tier_until,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  const owner = await accountOwner(env, u);   // meðlimur erfir þrep eiganda → gátt er account-based
+  if (!_lobbyGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
+  // greina-val er persónuleg vakt-stilling (per uid, EKKI accountId) — hver meðlimur velur sínar greinar.
+  const greinar = await _prefGet(env, uid, 'lobbyvakt_greinar', []);
+  if (!Array.isArray(greinar) || !greinar.length) return _ajson({ ok: true, greinar: [], items: [], needsSetup: true });
+  const data = await augGet(env, 'lobbyvakt.json').catch(() => null);
+  const items = filterFeed((data && data.items) || [], greinar);
+  return _ajson({ ok: true, greinar, items, updated: (data && data.updated) || null });
+}
+
 // Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
 // build_loftfor.mjs → gogn/loftfor.json byKt (aðeins lögaðilar). Sjá memory/iceland-islandis-graphql-audit.md.
 async function loftforHandler(request, env, ctx) {
@@ -3542,6 +3562,16 @@ async function userDataHandler(request, env) {
     return _ajson({ on: cur.on, flokkar: cur.flokkar, cadence: cur.cadence });   // never echo seenIds/lastSent
   }
 
+  // ── Lobbývakt: greina-val (persónuleg vakt-stilling per uid, eins og frettavakt; gátt liggur á /api/lobbyvakt) ──
+  if (path === '/lobbyvakt-greinar') {
+    if (method === 'POST') {
+      const greinar = (Array.isArray(body.greinar) ? body.greinar : []).filter((g) => ALL_SECTORS.includes(g));
+      await _prefSet(env, uid, 'lobbyvakt_greinar', greinar);
+      return _ajson({ ok: true, greinar });
+    }
+    return _ajson({ greinar: await _prefGet(env, uid, 'lobbyvakt_greinar', []) });
+  }
+
   // ── Blobb-endapunktar (geymdu-og-echo) ──
   const bk = path.slice(1);
   if (_U_BLOBS.indexOf(bk) >= 0) {
@@ -3898,6 +3928,7 @@ async function digestShared(env) {
   const fvNews = ((fv && fv.items) || []).filter((x) => x && String(x.date || '') >= wkDate).map((x) => ({ title: String(x.title || ''), text: String(x.text || ''), url: String(x.url || ''), source: 'Karp fréttavél' }));
   sh.news = (Array.isArray(media) ? media.map((x) => ({ title: x.title, text: '', url: x.url, source: x.source })) : []).concat(fvNews);
   sh.vm = (vm && vm.byKt) || {};
+  sh.lobbyvakt = await augGet(env, 'lobbyvakt.json').catch(() => null);   // Lobbývakt: nætur-flokkuð þingmál/samráðsmál (kafli „Reglur í pípunni" hér að neðan)
   return sh;
 }
 function _newsHits(news, word, limit) {
@@ -3950,6 +3981,23 @@ function digestBuild(name, prefs, sh) {
     for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
     if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
   }
+  // ── Lobbývakt: „Reglur í pípunni" — ný þingmál/samráðsmál sem snerta valdar greinar (reiknað+capped í digestRun) ──
+  const lobbyNew = Array.isArray(prefs._lobbyNew) ? prefs._lobbyNew : [];
+  if (lobbyNew.length) {
+    const stigCol = (s) => ({ 'Mikil': '#ff6b6b', 'Miðlungs': '#f6b13b', 'Lítil': '#7fb2ff' }[s] || '#f6b13b');
+    let sec = '';
+    for (const it of lobbyNew) {
+      const badge = '<span style="display:inline-block;background:#141c2b;border:1px solid ' + stigCol(it.stig) + ';border-radius:7px;padding:1px 7px;margin-right:6px;color:' + stigCol(it.stig) + ';font-size:11px;font-weight:700">' + _esc(it.stig || 'Miðlungs') + '</span>';
+      const bits = [];
+      if (it.frestur) bits.push('Frestur ' + dIS(it.frestur));
+      if (it.stada) bits.push(_esc(it.stada));
+      const title = '<a href="' + _esc(_u(it.hlekkur)) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + (it.kind === 'samrad' ? '💬 ' : '📜 ') + _esc(it.titill) + '</a>';
+      sec += '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + title + '<br>' + badge + (bits.length ? '<span style="color:#8a93a8;font-size:12px">' + bits.join(' · ') + '</span>' : '') + (it.brief ? '<div style="color:#b6c0d4;font-size:12.5px;margin-top:5px;line-height:1.5">' + _esc(it.brief) + '</div>' : '') + '</td></tr>';
+    }
+    rows += H('🏛️', 'Reglur í pípunni') + sec;
+    rows += '<tr><td style="padding:0 20px 12px;color:#5c6678;font-size:11px;line-height:1.5">⚠ Sjálfvirk túlkun (gervigreind), ekki lögfræðiráðgjöf.</td></tr>';
+    personal = true;
+  }
   if (!personal && !sh.tolur.length) return '';
   if (!personal) rows += '<tr><td style="padding:14px 20px;color:#8a93a8;font-size:13px;line-height:1.6">Engin persónuleg treff í vikunni — settu upp <a href="https://karp.is/vaktir/" style="color:#f6b13b">leitarorða-, útboðs- eða fasteignavakt</a> eða fylgstu með fyrirtækjum og þingmönnum til að fá vikuna þína hér.</td></tr>';
   const nm = name ? _esc(name) : '';
@@ -3965,14 +4013,25 @@ async function digestRun(env) {
   for (const u of users) {
     if (!u.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email)) continue;
     const pr = {};
-    const pres = await env.TENGSL.prepare("SELECT k, v FROM user_prefs WHERE user_id=? AND k IN ('leitvakt','follows','fastvakt','utbodvakt','firmavakt')").bind(u.uid).all().catch(() => ({ results: [] }));
+    const pres = await env.TENGSL.prepare("SELECT k, v FROM user_prefs WHERE user_id=? AND k IN ('leitvakt','follows','fastvakt','utbodvakt','firmavakt','lobbyvakt_greinar','lobbyvakt_seen')").bind(u.uid).all().catch(() => ({ results: [] }));
     for (const row of (pres.results || [])) { try { pr[row.k] = JSON.parse(row.v); } catch (e) {} }
+    // Lobbývakt: reikna ný mál (sinceTs=0 + seen — dags er í MS en digest-tíð í sek; sjá lobbyvakt.mjs newSince); slice svo fyrsta digest flæði ekki yfir.
+    let lobbyNew = [];
+    if (sh.lobbyvakt && Array.isArray(pr.lobbyvakt_greinar) && pr.lobbyvakt_greinar.length) {
+      const lseen = Array.isArray(pr.lobbyvakt_seen) ? pr.lobbyvakt_seen : [];
+      lobbyNew = newSince((sh.lobbyvakt.items) || [], 0, lseen).filter((it) => matchItem(it, pr.lobbyvakt_greinar)).slice(0, 12);
+      pr._lobbyNew = lobbyNew;
+    }
     const html = digestBuild(u.name, pr, sh);
     if (!html) continue;
     built++;
     const r = await sendGmail(env, { to: u.email, subject: '🐟 Vikuyfirlitið þitt á Karp', html });
     gmail = r;
     if (r && r.ok) sent++;
+    if (r && r.ok && lobbyNew.length) {   // merkja aðeins birt mál sem seen (og aðeins ef pósturinn fór) — annars birtast þau aftur næst
+      const lseen = Array.isArray(pr.lobbyvakt_seen) ? pr.lobbyvakt_seen : [];
+      await _prefSet(env, u.uid, 'lobbyvakt_seen', [...lobbyNew.map((it) => it.id), ...lseen].slice(0, 500));
+    }
   }
   return { sent, users: users.length, built, tolur: sh.tolur.length, news: sh.news.length, gmail };
 }
@@ -4411,6 +4470,7 @@ export default {
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
     if (url.pathname.startsWith('/api/leikur')) return leikurHandler(request, env, ctx);   // RÁS-Leikurinn (kennsluleikur)
     if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin
+    if (url.pathname === '/api/lobbyvakt') return lobbyvaktHandler(request, env, ctx);   // Lobbývakt v1: reglur í pípunni (Fyrirtæki+)
     if (url.pathname === '/api/frettir') return frettirHandler(request, env);   // F7: gagna-endapunktar úr WP
     if (url.pathname === '/api/firma') return firmaHandler(request, env);
     if (url.pathname === '/api/markadir') return markadirHandler(request, env, ctx);
