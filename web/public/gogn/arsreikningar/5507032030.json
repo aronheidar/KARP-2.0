@@ -1,0 +1,80 @@
+{
+ "kt": "5507032030",
+ "nafn": "SPC Eignarhaldsfélag ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0202,
+    "veltufjarhlutfall": 0.0009,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -17900,
+    "tekjuskattur": 0,
+    "hagnadur": -17900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 877603,
+    "handbaert": 7020,
+    "veltufjarmunir": 884623,
+    "eignir": 884623,
+    "hlutafe": 1000000,
+    "eigid_fe": -996105358,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 996989981,
+    "skuldir": 996989981,
+    "efe_skuldir": 884623
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "veltufjarhlutfall": 0.0009,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 877603,
+    "handbaert": 7020,
+    "veltufjarmunir": 884623,
+    "eignir": 884623,
+    "hlutafe": 1000000,
+    "eigid_fe": -996105358,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 996989981,
+    "skuldir": 996989981,
+    "efe_skuldir": 884623
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5507032030.pdf",
+ "pdfAr": "2021"
+}

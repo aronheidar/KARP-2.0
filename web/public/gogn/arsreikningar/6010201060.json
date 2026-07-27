@@ -1,0 +1,84 @@
+{
+ "kt": "6010201060",
+ "nafn": "VGO ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0045,
+    "ROA": -0.0045,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1500,
+    "tekjuskattur": 0,
+    "hagnadur": -1500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 330600,
+    "eignir": 330600,
+    "hlutafe": 500000,
+    "eigid_fe": 330600,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 330600
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.5378,
+    "hagnadarhlutfall": -0.4459,
+    "ROA": -7.0916,
+    "veltufjarhlutfall": 0.0542,
+    "eignavelta": 15.9038
+   },
+   "rekstur": {
+    "sala": 32425783,
+    "ebit": -17437394,
+    "afskriftir": -209649,
+    "fjarmunatekjur": 16354,
+    "fjarmagnsgjold": -666085,
+    "hagn_f_skatt": -18296774,
+    "tekjuskattur": 3837934,
+    "hagnadur": -14458840
+   },
+   "efnahagur": {
+    "fastafjarmunir": 838596,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 483317,
+    "veltufjarmunir": 1200268,
+    "eignir": 2038864,
+    "hlutafe": 500000,
+    "eigid_fe": -14128240,
+    "langtimaskuldir": 7242066,
+    "skammtimaskuldir": 8925038,
+    "skuldir": 16167104,
+    "efe_skuldir": 2038864
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6010201060.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "6312194460",
+ "nafn": "KHK design ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9185,
+    "hagnadarhlutfall": -0.0647,
+    "ROA": -0.2833,
+    "eiginfjarhlutfall": -0.9238,
+    "veltufjarhlutfall": 0.1579,
+    "eignavelta": 4.3762
+   },
+   "rekstur": {
+    "sala": 12634985,
+    "kostnadarverd": -1029686,
+    "laun": -9333364,
+    "annar_rekstur": -2263584,
+    "afskriftir": -590515,
+    "fjarmunatekjur": 3636,
+    "fjarmagnsgjold": -239477,
+    "hagn_f_skatt": -818005,
+    "tekjuskattur": 0,
+    "hagnadur": -818005
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2009485,
+    "vidskiptakrofur": 228504,
+    "handbaert": 648439,
+    "veltufjarmunir": 877743,
+    "eignir": 2887228,
+    "hlutafe": 500000,
+    "eigid_fe": -2667282,
+    "skammtimaskuldir": 5554510,
+    "efe_skuldir": 2887228,
+    "skuldir": 5554510
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.95,
+    "hagnadarhlutfall": -0.0958,
+    "ROA": -0.8042,
+    "eiginfjarhlutfall": -1.3202,
+    "veltufjarhlutfall": 0.3005,
+    "eignavelta": 8.3954
+   },
+   "rekstur": {
+    "sala": 43395760,
+    "kostnadarverd": -2169964,
+    "laun": -32321193,
+    "annar_rekstur": -11251567,
+    "afskriftir": -451257,
+    "fjarmunatekjur": 36071,
+    "fjarmagnsgjold": -1394558,
+    "hagn_f_skatt": -4156708,
+    "tekjuskattur": 0,
+    "hagnadur": -4156708
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1558228,
+    "vidskiptakrofur": 1620825,
+    "handbaert": 1982521,
+    "veltufjarmunir": 3610768,
+    "eignir": 5168996,
+    "hlutafe": 500000,
+    "eigid_fe": -6823990,
+    "skammtimaskuldir": 11992986,
+    "efe_skuldir": 5168996,
+    "skuldir": 11992986
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/6312194460.pdf",
+ "pdfAr": "2024"
+}

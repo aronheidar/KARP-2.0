@@ -1,0 +1,100 @@
+{
+ "kt": "4612002060",
+ "nafn": "Ísgel ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6581,
+    "ebit_hlutfall": 0.1309,
+    "hagnadarhlutfall": 0.0192,
+    "ROE": 0.0817,
+    "ROA": 0.0182,
+    "eiginfjarhlutfall": 0.2224,
+    "veltufjarhlutfall": 1.7188,
+    "skuldahlutfall_DE": 3.4966,
+    "eignavelta": 0.9486
+   },
+   "rekstur": {
+    "sala": 102239087,
+    "adrar_tekjur": 3980000,
+    "kostnadarverd": 34955994,
+    "laun": 25712134,
+    "annar_rekstur": 23162271,
+    "afskriftir": 5020491,
+    "ebit": 13388197,
+    "fjarmunatekjur": 97197,
+    "fjarmagnsgjold": -11032873,
+    "hagn_f_skatt": 2452521,
+    "tekjuskattur": -494544,
+    "hagnadur": 1957977
+   },
+   "efnahagur": {
+    "fastafjarmunir": 55600680,
+    "birgdir": 32582775,
+    "vidskiptakrofur": 11997216,
+    "handbaert": 1962,
+    "veltufjarmunir": 52174119,
+    "eignir": 107774799,
+    "hlutafe": 1607101,
+    "eigid_fe": 23968069,
+    "langtimaskuldir": 57868427,
+    "skammtimaskuldir": 25938303,
+    "skuldir": 83806730,
+    "efe_skuldir": 107774799
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5705,
+    "ebit_hlutfall": 0.093,
+    "hagnadarhlutfall": 0.003,
+    "ROE": 0.0163,
+    "ROA": 0.0033,
+    "eiginfjarhlutfall": 0.2026,
+    "veltufjarhlutfall": 1.4942,
+    "skuldahlutfall_DE": 3.9351,
+    "eignavelta": 1.1097
+   },
+   "rekstur": {
+    "sala": 133428756,
+    "adrar_tekjur": 559936,
+    "kostnadarverd": 57309477,
+    "laun": 29289617,
+    "annar_rekstur": 27279888,
+    "afskriftir": 7136916,
+    "ebit": 12412858,
+    "fjarmunatekjur": 190832,
+    "fjarmagnsgjold": -12102616,
+    "hagn_f_skatt": 501074,
+    "tekjuskattur": -104395,
+    "hagnadur": 396679
+   },
+   "efnahagur": {
+    "fastafjarmunir": 66502749,
+    "birgdir": 35389263,
+    "vidskiptakrofur": 11792053,
+    "handbaert": 2467,
+    "veltufjarmunir": 53738631,
+    "eignir": 120241380,
+    "hlutafe": 1607101,
+    "eigid_fe": 24364748,
+    "langtimaskuldir": 64299325,
+    "skammtimaskuldir": 31577307,
+    "skuldir": 95876632,
+    "efe_skuldir": 120241380
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4612002060.pdf",
+ "pdfAr": "2024"
+}

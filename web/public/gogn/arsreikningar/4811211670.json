@@ -1,0 +1,44 @@
+{
+ "kt": "4811211670",
+ "nafn": "MA5 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "annar_rekstur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": null,
+    "veltufjarmunir": null,
+    "eignir": null
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0002
+   },
+   "rekstur": {
+    "annar_rekstur": 149800,
+    "hagnadur": -149800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 600000000,
+    "veltufjarmunir": 369000,
+    "eignir": 600369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4811211670.pdf",
+ "pdfAr": "2021"
+}

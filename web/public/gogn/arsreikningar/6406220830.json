@@ -1,0 +1,62 @@
+{
+ "kt": "6406220830",
+ "nafn": "Byggingaþjónustan Rás ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.67,
+    "eignavelta": 0.0953
+   },
+   "rekstur": {
+    "sala": 3799376,
+    "laun": null,
+    "afskriftir": 399354,
+    "fjarmagnsgjold": 2390683,
+    "fjarmunatekjur": 19403,
+    "ebit": 2545541,
+    "tekjuskattur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1365487,
+    "handbaert": 492609,
+    "eignir": 39871840,
+    "hlutafe": 500000,
+    "efe_skuldir": 39871840
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 1893122.5,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 2,
+    "laun": 8065500,
+    "afskriftir": 214951,
+    "fjarmagnsgjold": 4015421,
+    "fjarmunatekjur": 20826,
+    "ebit": 3786245,
+    "tekjuskattur": 260548
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11077159,
+    "handbaert": 844330,
+    "eignir": 45162971,
+    "hlutafe": 500000,
+    "efe_skuldir": 45162971
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6406220830.pdf",
+ "pdfAr": "2024"
+}

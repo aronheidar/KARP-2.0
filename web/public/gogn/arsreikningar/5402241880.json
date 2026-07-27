@@ -1,0 +1,80 @@
+{
+ "kt": "5402241880",
+ "nafn": "TH14 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "birgdir": null,
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5556,
+    "ebit_hlutfall": 0.1403,
+    "hagnadarhlutfall": 0.108,
+    "ROE": 0.8734,
+    "ROA": 0.4399,
+    "eiginfjarhlutfall": 0.5037,
+    "veltufjarhlutfall": 2.0149,
+    "skuldahlutfall_DE": 0.9853,
+    "eignavelta": 4.0747
+   },
+   "rekstur": {
+    "sala": 31947243,
+    "kostnadarverd": 14197028,
+    "laun": 8915094,
+    "annar_rekstur": 3180269,
+    "ebit": 4482436,
+    "fjarmunatekjur": 15548,
+    "fjarmagnsgjold": -126450,
+    "hagn_f_skatt": 4371534,
+    "tekjuskattur": -922411,
+    "hagnadur": 3449123
+   },
+   "efnahagur": {
+    "birgdir": 290000,
+    "vidskiptakrofur": 6777956,
+    "handbaert": 772363,
+    "eignir": 7840319,
+    "hlutafe": 500000,
+    "eigid_fe": 3949123,
+    "skuldir": 3891196,
+    "efe_skuldir": 7840319,
+    "skammtimaskuldir": 3891196
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5402241880.pdf",
+ "pdfAr": "2024"
+}

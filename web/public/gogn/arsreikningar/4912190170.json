@@ -1,0 +1,68 @@
+{
+ "kt": "4912190170",
+ "nafn": "101101 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.7464,
+    "ROA": 0.6907,
+    "eiginfjarhlutfall": 0.9253,
+    "veltufjarhlutfall": 0.0206,
+    "skuldahlutfall_DE": 0.0807
+   },
+   "rekstur": {
+    "ebit": -20200,
+    "fjarmunatekjur": 109,
+    "fjarmagnsgjold": -369,
+    "hagnadur": 3644506
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 24,
+    "handbaert": 8082,
+    "eignir": 5276814,
+    "hlutafe": 500000,
+    "eigid_fe": 4882814,
+    "efe_skuldir": 5276814,
+    "skuldir": 394000,
+    "skammtimaskuldir": 394000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.6432,
+    "ROA": 0.6243,
+    "eiginfjarhlutfall": 0.9706,
+    "veltufjarhlutfall": 1.7833,
+    "skuldahlutfall_DE": 0.0303
+   },
+   "rekstur": {
+    "ebit": 187498,
+    "fjarmunatekjur": 1074,
+    "fjarmagnsgjold": 0,
+    "hagnadur": 8801884
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 236,
+    "handbaert": 738044,
+    "eignir": 14098698,
+    "hlutafe": 500000,
+    "eigid_fe": 13684698,
+    "efe_skuldir": 14098698,
+    "skuldir": 414000,
+    "skammtimaskuldir": 414000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4912190170.pdf",
+ "pdfAr": "2024"
+}

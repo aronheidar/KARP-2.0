@@ -1,0 +1,90 @@
+{
+ "kt": "5003062110",
+ "nafn": "1984 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5263,
+    "ebit_hlutfall": -0.1099,
+    "hagnadarhlutfall": -0.1393,
+    "ROE": -5.8119,
+    "ROA": -0.3648,
+    "eiginfjarhlutfall": 0.0628,
+    "veltufjarhlutfall": 0.0386,
+    "skuldahlutfall_DE": 14.9306,
+    "eignavelta": 2.6188
+   },
+   "rekstur": {
+    "sala": 159849619,
+    "kostnadarverd": 75715648,
+    "laun": 59491811,
+    "annar_rekstur": 23050391,
+    "afskriftir": 19160335,
+    "ebit": -17568566,
+    "fjarmunatekjur": 61686,
+    "fjarmagnsgjold": -4762100,
+    "hagnadur": -22268980
+   },
+   "efnahagur": {
+    "fastafjarmunir": 58827581,
+    "vidskiptakrofur": 1174717,
+    "handbaert": 1031109,
+    "veltufjarmunir": 2212322,
+    "eignir": 61039903,
+    "hlutafe": 588235,
+    "eigid_fe": 3831620,
+    "skuldir": 57208283,
+    "efe_skuldir": 61039903,
+    "skammtimaskuldir": 57208283
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5509,
+    "ebit_hlutfall": 0.0327,
+    "hagnadarhlutfall": 0.0047,
+    "ROE": 0.2047,
+    "ROA": 0.0178,
+    "eiginfjarhlutfall": 0.0869,
+    "veltufjarhlutfall": 0.1526,
+    "skuldahlutfall_DE": 10.5012,
+    "eignavelta": 3.7896
+   },
+   "rekstur": {
+    "sala": 209981779,
+    "kostnadarverd": 94292585,
+    "laun": 67017863,
+    "annar_rekstur": 26337367,
+    "afskriftir": 15462993,
+    "ebit": 6870971,
+    "fjarmunatekjur": 45205,
+    "fjarmagnsgjold": -5930020,
+    "hagnadur": 986156
+   },
+   "efnahagur": {
+    "fastafjarmunir": 47678773,
+    "vidskiptakrofur": 6131715,
+    "handbaert": 1590063,
+    "veltufjarmunir": 7731347,
+    "eignir": 55410120,
+    "hlutafe": 588235,
+    "eigid_fe": 4817776,
+    "skuldir": 50592344,
+    "efe_skuldir": 55410120,
+    "skammtimaskuldir": 50592344
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/5003062110.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,56 @@
+{
+ "kt": "5402912259",
+ "nafn": "LBI ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0,
+    "eignavelta": -0.0045
+   },
+   "rekstur": {
+    "sala": -339,
+    "laun": -579,
+    "hagn_f_skatt": 0
+   },
+   "efnahagur": {
+    "eignir": 75807,
+    "skuldir": 75807,
+    "hlutafe": 15100,
+    "eigid_fe": 0,
+    "skammtimaskuldir": 75807
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0.0179
+   },
+   "rekstur": {
+    "sala": 971,
+    "laun": -640,
+    "hagn_f_skatt": 0
+   },
+   "efnahagur": {
+    "eignir": 54309,
+    "skuldir": 54309,
+    "hlutafe": 15100,
+    "eigid_fe": 0,
+    "skammtimaskuldir": 54309
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5402912259.pdf",
+ "pdfAr": "2025"
+}

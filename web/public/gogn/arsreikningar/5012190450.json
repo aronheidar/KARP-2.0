@@ -1,0 +1,84 @@
+{
+ "kt": "5012190450",
+ "nafn": "Bugningur ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7852,
+    "hagnadarhlutfall": 0.0489,
+    "ROE": 0.6976,
+    "ROA": 0.2129,
+    "eiginfjarhlutfall": 0.3052,
+    "veltufjarhlutfall": 2803.2227,
+    "skuldahlutfall_DE": 4.277,
+    "eignavelta": 4.3573
+   },
+   "rekstur": {
+    "sala": 104200469,
+    "kostnadarverd": 22384925,
+    "laun": 54765191,
+    "annar_rekstur": 18258446,
+    "afskriftir": 1316316,
+    "fjarmunatekjur": 32251,
+    "fjarmagnsgjold": 3523347,
+    "hagnadur": 5090895
+   },
+   "efnahagur": {
+    "birgdir": 14251168,
+    "vidskiptakrofur": 5011262,
+    "handbaert": 2008424,
+    "eignir": 23914070,
+    "hlutafe": 500000,
+    "eigid_fe": 7297601,
+    "skammtimaskuldir": 7588,
+    "skuldir": 31211671,
+    "efe_skuldir": 23914070
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8756,
+    "hagnadarhlutfall": -0.0927,
+    "ROE": -0.4577,
+    "ROA": -0.2138,
+    "eiginfjarhlutfall": 0.4672,
+    "veltufjarhlutfall": 22.7105,
+    "skuldahlutfall_DE": 3.1406,
+    "eignavelta": 2.3052
+   },
+   "rekstur": {
+    "sala": 66396882,
+    "kostnadarverd": 8261803,
+    "laun": 40237749,
+    "annar_rekstur": 18407127,
+    "afskriftir": 897318,
+    "fjarmunatekjur": 126474,
+    "fjarmagnsgjold": 4877299,
+    "hagnadur": -6157940
+   },
+   "efnahagur": {
+    "birgdir": 16849218,
+    "vidskiptakrofur": 10205946,
+    "handbaert": 1714,
+    "eignir": 28802776,
+    "hlutafe": 500000,
+    "eigid_fe": 13455541,
+    "skammtimaskuldir": 1191381,
+    "skuldir": 42258317,
+    "efe_skuldir": 28802776
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/5012190450.pdf",
+ "pdfAr": "2023"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "4806163240",
+ "nafn": "SB Málun ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8245,
+    "ebit_hlutfall": 0.0105,
+    "hagnadarhlutfall": -0.0099,
+    "ROE": -0.9184,
+    "ROA": -0.0364,
+    "eiginfjarhlutfall": 0.0396,
+    "veltufjarhlutfall": 0.2888,
+    "skuldahlutfall_DE": 24.24,
+    "eignavelta": 3.6665
+   },
+   "rekstur": {
+    "sala": 171631945,
+    "kostnadarverd": 30116841,
+    "laun": 117422282,
+    "annar_rekstur": 18200801,
+    "afskriftir": 4091813,
+    "ebit": 1800208,
+    "fjarmunatekjur": 254272,
+    "fjarmagnsgjold": -3757834,
+    "hagnadur": -1703354
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 8376961,
+    "handbaert": 4605833,
+    "eignir": 46810950,
+    "hlutafe": 500000,
+    "eigid_fe": 1854635,
+    "skuldir": 44956315,
+    "efe_skuldir": 46810950,
+    "skammtimaskuldir": 44956315
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8375,
+    "ebit_hlutfall": 0.0093,
+    "hagnadarhlutfall": -0.0101,
+    "ROA": -0.0443,
+    "eiginfjarhlutfall": -0.0005,
+    "veltufjarhlutfall": 0.2709,
+    "eignavelta": 4.3759
+   },
+   "rekstur": {
+    "sala": 185330825,
+    "kostnadarverd": 30121520,
+    "laun": 129036946,
+    "annar_rekstur": 20663891,
+    "afskriftir": 3788084,
+    "ebit": 1720384,
+    "fjarmunatekjur": 688207,
+    "fjarmagnsgjold": -4285656,
+    "hagnadur": -1877065
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 10210288,
+    "handbaert": 1269222,
+    "eignir": 42353047,
+    "hlutafe": 500000,
+    "eigid_fe": -22430,
+    "skuldir": 42375477,
+    "efe_skuldir": 42353047,
+    "skammtimaskuldir": 42375477
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4806163240.pdf",
+ "pdfAr": "2024"
+}

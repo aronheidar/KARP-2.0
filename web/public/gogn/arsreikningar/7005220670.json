@@ -1,0 +1,86 @@
+{
+ "kt": "7005220670",
+ "nafn": "Ísvíkingar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.8168,
+    "hagnadarhlutfall": -1.3735,
+    "ROA": -0.5605,
+    "eiginfjarhlutfall": -0.3878,
+    "veltufjarhlutfall": 0.0101,
+    "eignavelta": 0.4081
+   },
+   "rekstur": {
+    "sala": 1181022,
+    "ebit": -964645,
+    "afskriftir": -711612,
+    "fjarmunatekjur": 54108,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1622149,
+    "tekjuskattur": 0,
+    "hagnadur": -1622149
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2846450,
+    "birgdir": 0,
+    "vidskiptakrofur": 35720,
+    "handbaert": 5036,
+    "veltufjarmunir": 47462,
+    "eignir": 2893912,
+    "hlutafe": 500000,
+    "eigid_fe": -1122149,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4016061,
+    "skuldir": 4016061,
+    "efe_skuldir": 2893912
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.158,
+    "hagnadarhlutfall": 0.0758,
+    "ROA": 0.2042,
+    "eiginfjarhlutfall": -0.2326,
+    "veltufjarhlutfall": 0.0921,
+    "eignavelta": 2.6944
+   },
+   "rekstur": {
+    "sala": 6921760,
+    "ebit": 1093871,
+    "afskriftir": -569290,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 524581,
+    "tekjuskattur": 0,
+    "hagnadur": 524581
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2277160,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 291773,
+    "veltufjarmunir": 291773,
+    "eignir": 2568933,
+    "hlutafe": 500000,
+    "eigid_fe": -597568,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3166501,
+    "skuldir": 3166501,
+    "efe_skuldir": 2568933
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7005220670.pdf",
+ "pdfAr": "2023"
+}

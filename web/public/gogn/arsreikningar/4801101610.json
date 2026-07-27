@@ -1,0 +1,76 @@
+{
+ "kt": "4801101610",
+ "nafn": "300 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -93482,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 93482,
+    "skuldir": 93482,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -114882,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 114882,
+    "skuldir": 114882,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4801101610.pdf",
+ "pdfAr": "2025"
+}

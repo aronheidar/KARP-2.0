@@ -1,0 +1,76 @@
+{
+ "kt": "5505720449",
+ "nafn": "Straumur ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7896,
+    "ebit_hlutfall": 0.2444,
+    "hagnadarhlutfall": 0.1888,
+    "ROA": 0.6697,
+    "eignavelta": 3.5476
+   },
+   "rekstur": {
+    "sala": 38388042,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 8077670,
+    "laun": 11444683,
+    "annar_rekstur": 9484617,
+    "ebit": 9381072,
+    "afskriftir": -54608,
+    "fjarmunatekjur": 60344,
+    "fjarmagnsgjold": -323528,
+    "tekjuskattur": -1816836,
+    "hagnadur": 7246444
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2199584,
+    "vidskiptakrofur": 1901281,
+    "handbaert": 4506635,
+    "veltufjarmunir": 8621191,
+    "eignir": 10820775
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7774,
+    "ebit_hlutfall": 0.0369,
+    "hagnadarhlutfall": 0.0306,
+    "ROA": 0.0783,
+    "eignavelta": 2.5547
+   },
+   "rekstur": {
+    "sala": 34812618,
+    "adrar_tekjur": 179500,
+    "kostnadarverd": 7749595,
+    "laun": 12482586,
+    "annar_rekstur": 13296875,
+    "ebit": 1283562,
+    "afskriftir": -22730,
+    "fjarmunatekjur": 111095,
+    "fjarmagnsgjold": -15628,
+    "tekjuskattur": -289317,
+    "hagnadur": 1066982
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2176854,
+    "vidskiptakrofur": 3490702,
+    "handbaert": 5735227,
+    "veltufjarmunir": 11450235,
+    "eignir": 13627089
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/5505720449.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,80 @@
+{
+ "kt": "6302050850",
+ "nafn": "Hallgrímur ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.7008,
+    "ROA": 0.5911,
+    "eiginfjarhlutfall": 0.8434,
+    "veltufjarhlutfall": 0.267,
+    "skuldahlutfall_DE": 0.1857,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 60041,
+    "afskriftir": 0,
+    "ebit": -60041,
+    "fjarmunatekjur": 23333,
+    "hagn_f_skatt": 29943092,
+    "tekjuskattur": 0,
+    "hagnadur": 29943092
+   },
+   "efnahagur": {
+    "fastafjarmunir": 48541968,
+    "vidskiptakrofur": 5133,
+    "handbaert": 2113472,
+    "eignir": 50660573,
+    "hlutafe": 1500000,
+    "eigid_fe": 42725592,
+    "skuldir": 7934981,
+    "efe_skuldir": 50660573,
+    "skammtimaskuldir": 7934981
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1694,
+    "ROA": 0.1381,
+    "eiginfjarhlutfall": 0.8151,
+    "veltufjarhlutfall": 0.1661,
+    "skuldahlutfall_DE": 0.2268,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 64770,
+    "afskriftir": 2834184,
+    "ebit": -2898954,
+    "fjarmunatekjur": 25783,
+    "hagn_f_skatt": 5245281,
+    "tekjuskattur": 0,
+    "hagnadur": 5245281
+   },
+   "efnahagur": {
+    "fastafjarmunir": 36810374,
+    "vidskiptakrofur": 5673,
+    "handbaert": 1161015,
+    "eignir": 37977062,
+    "hlutafe": 1500000,
+    "eigid_fe": 30955011,
+    "skuldir": 7022051,
+    "efe_skuldir": 37977062,
+    "skammtimaskuldir": 7022051
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6302050850.pdf",
+ "pdfAr": "2024"
+}

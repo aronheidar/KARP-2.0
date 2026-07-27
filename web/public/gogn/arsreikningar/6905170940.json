@@ -1,0 +1,90 @@
+{
+ "kt": "6905170940",
+ "nafn": "STH pípulagnir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1461,
+    "hagnadarhlutfall": -0.0459,
+    "ROE": -0.5029,
+    "ROA": -0.0682,
+    "eiginfjarhlutfall": 0.1355,
+    "veltufjarhlutfall": 0.0976,
+    "skuldahlutfall_DE": 6.3787,
+    "eignavelta": 1.4851
+   },
+   "rekstur": {
+    "sala": 20904491,
+    "ebit": 3053672,
+    "afskriftir": -1210950,
+    "fjarmunatekjur": 3841,
+    "fjarmagnsgjold": -2805888,
+    "hagn_f_skatt": -959325,
+    "tekjuskattur": 0,
+    "hagnadur": -959325
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3444480,
+    "birgdir": 0,
+    "vidskiptakrofur": 1185326,
+    "handbaert": 2475,
+    "veltufjarmunir": 10632056,
+    "eignir": 14076536,
+    "hlutafe": 500000,
+    "eigid_fe": 1907733,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12168803,
+    "skuldir": 12168803,
+    "efe_skuldir": 14076536
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1281,
+    "hagnadarhlutfall": 0.0026,
+    "ROE": 0.0257,
+    "ROA": 0.0032,
+    "eiginfjarhlutfall": 0.1236,
+    "veltufjarhlutfall": 0.2621,
+    "skuldahlutfall_DE": 7.0886,
+    "eignavelta": 1.2217
+   },
+   "rekstur": {
+    "sala": 19349326,
+    "ebit": 2479269,
+    "afskriftir": -688896,
+    "fjarmunatekjur": 5619,
+    "fjarmagnsgjold": -1745712,
+    "hagn_f_skatt": 50280,
+    "tekjuskattur": 0,
+    "hagnadur": 50280
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2755584,
+    "birgdir": 3000000,
+    "vidskiptakrofur": 488233,
+    "handbaert": 149090,
+    "veltufjarmunir": 13081969,
+    "eignir": 15837553,
+    "hlutafe": 500000,
+    "eigid_fe": 1958013,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 13879540,
+    "skuldir": 13879540,
+    "efe_skuldir": 15837553
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6905170940.pdf",
+ "pdfAr": "2024"
+}

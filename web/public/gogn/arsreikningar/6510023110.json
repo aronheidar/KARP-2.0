@@ -1,0 +1,86 @@
+{
+ "kt": "6510023110",
+ "nafn": "Cafco ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0097,
+    "ROA": -0.0094,
+    "eiginfjarhlutfall": 0.9677,
+    "veltufjarhlutfall": 0.077,
+    "skuldahlutfall_DE": 0.0334,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1462000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5539,
+    "veltufjarmunir": 761039,
+    "eignir": 2223039,
+    "hlutafe": 500000,
+    "eigid_fe": 2151139,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 71899,
+    "skuldir": 71899,
+    "efe_skuldir": 2223038
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.01,
+    "ROA": -0.0039,
+    "eiginfjarhlutfall": 0.385,
+    "veltufjarhlutfall": 0.0016,
+    "skuldahlutfall_DE": 1.5971,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4770200,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5539,
+    "veltufjarmunir": 761039,
+    "eignir": 5531239,
+    "hlutafe": 500000,
+    "eigid_fe": 2129739,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3401499,
+    "skuldir": 3401499,
+    "efe_skuldir": 5531238
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6510023110.pdf",
+ "pdfAr": "2025"
+}

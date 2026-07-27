@@ -1,0 +1,90 @@
+{
+ "kt": "6002120790",
+ "nafn": "3H Travel ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0254,
+    "hagnadarhlutfall": 0.041,
+    "ROE": 0.1822,
+    "ROA": 0.1665,
+    "eiginfjarhlutfall": 0.9142,
+    "veltufjarhlutfall": 6.848,
+    "skuldahlutfall_DE": 0.0939,
+    "eignavelta": 4.0603
+   },
+   "rekstur": {
+    "sala": 700836400,
+    "laun": -109660143,
+    "annar_rekstur": -15308325,
+    "afskriftir": -7813897,
+    "ebit": 17801837,
+    "fjarmunatekjur": 13708785,
+    "fjarmagnsgjold": -135313,
+    "hagn_f_skatt": 31375309,
+    "tekjuskattur": -6609510,
+    "hagnadur": 28742779
+   },
+   "efnahagur": {
+    "fastafjarmunir": 71191918,
+    "vidskiptakrofur": 8616204,
+    "handbaert": 92797195,
+    "veltufjarmunir": 101413399,
+    "eignir": 172605317,
+    "hlutafe": 500000,
+    "eigid_fe": 157796078,
+    "skuldir": 14809239,
+    "efe_skuldir": 172605317,
+    "skammtimaskuldir": 14809239
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0325,
+    "hagnadarhlutfall": 0.045,
+    "ROE": 0.1698,
+    "ROA": 0.1477,
+    "eiginfjarhlutfall": 0.87,
+    "veltufjarhlutfall": 5.3442,
+    "skuldahlutfall_DE": 0.1494,
+    "eignavelta": 3.2833
+   },
+   "rekstur": {
+    "sala": 717295086,
+    "laun": -106916068,
+    "annar_rekstur": -16838922,
+    "afskriftir": -7124384,
+    "ebit": 23317651,
+    "fjarmunatekjur": 14133725,
+    "fjarmagnsgjold": -48173,
+    "hagn_f_skatt": 37403203,
+    "tekjuskattur": -7484921,
+    "hagnadur": 32277135
+   },
+   "efnahagur": {
+    "fastafjarmunir": 66714446,
+    "vidskiptakrofur": 5366296,
+    "handbaert": 146388649,
+    "veltufjarmunir": 151754945,
+    "eignir": 218469391,
+    "hlutafe": 500000,
+    "eigid_fe": 190073213,
+    "skuldir": 28396178,
+    "efe_skuldir": 218469391,
+    "skammtimaskuldir": 28396178
+   },
+   "starfsmenn": 15
+  }
+ },
+ "pdf": "pdf/6002120790.pdf",
+ "pdfAr": "2025"
+}

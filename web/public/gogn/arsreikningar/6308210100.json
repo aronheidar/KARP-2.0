@@ -1,0 +1,90 @@
+{
+ "kt": "6308210100",
+ "nafn": "J&G Hringhús ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9983,
+    "ebit_hlutfall": 0.4083,
+    "hagnadarhlutfall": 0.3264,
+    "ROE": 0.9677,
+    "ROA": 0.593,
+    "eiginfjarhlutfall": 0.6128,
+    "veltufjarhlutfall": 2.5369,
+    "skuldahlutfall_DE": 0.632,
+    "eignavelta": 1.8167
+   },
+   "rekstur": {
+    "sala": 32165398,
+    "adrar_tekjur": 369398,
+    "kostnadarverd": 53300,
+    "laun": 8908007,
+    "annar_rekstur": 1512057,
+    "afskriftir": 133500,
+    "ebit": 13132050,
+    "fjarmagnsgjold": -36236,
+    "tekjuskattur": -2597003,
+    "hagnadur": 10498811
+   },
+   "efnahagur": {
+    "fastafjarmunir": 311500,
+    "vidskiptakrofur": 9910080,
+    "handbaert": 7483802,
+    "veltufjarmunir": 17393882,
+    "eignir": 17705382,
+    "hlutafe": 500000,
+    "eigid_fe": 10849011,
+    "skuldir": 6856371,
+    "efe_skuldir": 17705382,
+    "skammtimaskuldir": 6856371
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9806,
+    "ebit_hlutfall": -0.1868,
+    "hagnadarhlutfall": -0.191,
+    "ROA": -1.7009,
+    "eiginfjarhlutfall": -0.3102,
+    "veltufjarhlutfall": 0.5743,
+    "eignavelta": 8.9072
+   },
+   "rekstur": {
+    "sala": 69488659,
+    "adrar_tekjur": 184699,
+    "kostnadarverd": 1349021,
+    "laun": 36403362,
+    "annar_rekstur": 3584487,
+    "afskriftir": 363450,
+    "ebit": -12979052,
+    "fjarmagnsgjold": -290171,
+    "tekjuskattur": 0,
+    "hagnadur": -13269223
+   },
+   "efnahagur": {
+    "fastafjarmunir": 848050,
+    "vidskiptakrofur": 0,
+    "handbaert": 5869863,
+    "veltufjarmunir": 6953391,
+    "eignir": 7801441,
+    "hlutafe": 500000,
+    "eigid_fe": -2420212,
+    "skuldir": 10221653,
+    "efe_skuldir": 7801441,
+    "skammtimaskuldir": 10221653
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6308210100.pdf",
+ "pdfAr": "2024"
+}

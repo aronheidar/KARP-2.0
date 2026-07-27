@@ -1,0 +1,90 @@
+{
+ "kt": "6209161100",
+ "nafn": "V Níu Fasteignir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.461,
+    "ebit_hlutfall": 0.2535,
+    "hagnadarhlutfall": 0.2417,
+    "ROE": 0.7385,
+    "ROA": 0.4397,
+    "eiginfjarhlutfall": 0.5954,
+    "veltufjarhlutfall": 0.0607,
+    "skuldahlutfall_DE": 0.6794,
+    "eignavelta": 1.819
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 588276936,
+    "kostnadarverd": 317100921,
+    "afskriftir": 120266998,
+    "ebit": 149107338,
+    "fjarmunatekjur": 22843,
+    "fjarmagnsgjold": -6923994,
+    "hagn_f_skatt": 142206187,
+    "tekjuskattur": 0,
+    "hagnadur": 142206187
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5025,
+    "handbaert": 7940789,
+    "eignir": 323401440,
+    "hlutafe": 500000,
+    "eigid_fe": 192565037,
+    "langtimaskuldir": null,
+    "skuldir": 130836403,
+    "efe_skuldir": 323401440,
+    "skammtimaskuldir": 130836403
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 1,
+    "ebit_hlutfall": 0.9398,
+    "hagnadarhlutfall": 0.6082,
+    "ROE": 0.9817,
+    "ROA": 0.1809,
+    "eiginfjarhlutfall": 0.1843,
+    "veltufjarhlutfall": 0.002,
+    "skuldahlutfall_DE": 4.4254,
+    "eignavelta": 0.2975
+   },
+   "rekstur": {
+    "adrar_tekjur": 54970455,
+    "sala": 54970455,
+    "kostnadarverd": 0,
+    "afskriftir": 0,
+    "ebit": 51661529,
+    "fjarmunatekjur": 35238,
+    "fjarmagnsgjold": -9897992,
+    "hagn_f_skatt": 41798775,
+    "tekjuskattur": -8363795,
+    "hagnadur": 33434980
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7752,
+    "handbaert": 298475,
+    "eignir": 184789425,
+    "hlutafe": 500000,
+    "eigid_fe": 34059980,
+    "langtimaskuldir": 10.14,
+    "skuldir": 150729445,
+    "efe_skuldir": 184789425,
+    "skammtimaskuldir": 150729434.86
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6209161100.pdf",
+ "pdfAr": "2023"
+}

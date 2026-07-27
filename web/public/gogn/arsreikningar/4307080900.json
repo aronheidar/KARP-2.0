@@ -1,0 +1,68 @@
+{
+ "kt": "4307080900",
+ "nafn": "101 Travel ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0033,
+    "ROA": -0.0025,
+    "eiginfjarhlutfall": 0.7582,
+    "veltufjarhlutfall": 0.0905,
+    "skuldahlutfall_DE": 0.3189
+   },
+   "rekstur": {
+    "ebit": -93546,
+    "fjarmunatekjur": 25412,
+    "fjarmagnsgjold": -7245,
+    "hagnadur": -77799
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5591,
+    "handbaert": 665265,
+    "eignir": 30670856,
+    "hlutafe": 31463186,
+    "eigid_fe": 23254403,
+    "skuldir": 7416453,
+    "efe_skuldir": 30670856,
+    "skammtimaskuldir": 7416453
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0012,
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": 0.7576,
+    "veltufjarhlutfall": 0.0885,
+    "skuldahlutfall_DE": 0.32
+   },
+   "rekstur": {
+    "ebit": -20900,
+    "fjarmunatekjur": 21480,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -28122
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4726,
+    "handbaert": 653317,
+    "eignir": 30658043,
+    "hlutafe": 31463186,
+    "eigid_fe": 23226281,
+    "skuldir": 7431762,
+    "efe_skuldir": 30658043,
+    "skammtimaskuldir": 7431762
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4307080900.pdf",
+ "pdfAr": "2024"
+}

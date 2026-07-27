@@ -1,0 +1,70 @@
+{
+ "kt": "6502090870",
+ "nafn": "Risk ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1777,
+    "ROA": -0.121,
+    "eiginfjarhlutfall": 0.6806,
+    "veltufjarhlutfall": 0.2658,
+    "skuldahlutfall_DE": 0.4692
+   },
+   "rekstur": {
+    "laun": -25625548,
+    "ebit": -40841744,
+    "fjarmunatekjur": 137303,
+    "fjarmagnsgjold": -5421885,
+    "hagnadur": -15886787
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 422930,
+    "handbaert": 10722218,
+    "eignir": 131316244,
+    "hlutafe": 1719857,
+    "eigid_fe": 89378404,
+    "efe_skuldir": 131316244,
+    "skuldir": 41937840,
+    "skammtimaskuldir": 41937840
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.168,
+    "ROA": -0.088,
+    "eiginfjarhlutfall": 0.5237,
+    "veltufjarhlutfall": 0.0288,
+    "skuldahlutfall_DE": 0.9095
+   },
+   "rekstur": {
+    "laun": -13852586,
+    "ebit": -28955739,
+    "fjarmunatekjur": 66613,
+    "fjarmagnsgjold": -7913965,
+    "hagnadur": -12854124
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 358804,
+    "handbaert": 1642147,
+    "eignir": 146121014,
+    "hlutafe": 1719857,
+    "eigid_fe": 76524280,
+    "efe_skuldir": 146121014,
+    "skuldir": 69596734,
+    "skammtimaskuldir": 69596734
+   },
+   "starfsmenn": 9
+  }
+ },
+ "pdf": "pdf/6502090870.pdf",
+ "pdfAr": "2024"
+}

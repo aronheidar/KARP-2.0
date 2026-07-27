@@ -1,0 +1,88 @@
+{
+ "kt": "6311210470",
+ "nafn": "QC ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0066,
+    "hagnadarhlutfall": 0.0293,
+    "ROE": 0.1087,
+    "ROA": 0.0753,
+    "eiginfjarhlutfall": 0.6922,
+    "veltufjarhlutfall": 3.2067,
+    "skuldahlutfall_DE": 0.4446,
+    "eignavelta": 2.5647
+   },
+   "rekstur": {
+    "sala": 4100830,
+    "ebit": 27216,
+    "afskriftir": 0,
+    "fjarmunatekjur": 100022,
+    "fjarmagnsgjold": -6898,
+    "hagn_f_skatt": 120340,
+    "tekjuskattur": 0,
+    "hagnadur": 120340
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1578101,
+    "veltufjarmunir": 1598951,
+    "eignir": 1598951,
+    "hlutafe": 555555,
+    "eigid_fe": 1106829,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 492122,
+    "skuldir": 492122,
+    "efe_skuldir": 1598951
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.7823,
+    "hagnadarhlutfall": -0.7677,
+    "ROA": -1.7302,
+    "eiginfjarhlutfall": -1.4837,
+    "veltufjarhlutfall": 3.8656,
+    "eignavelta": 2.2537
+   },
+   "rekstur": {
+    "sala": 10119868,
+    "ebit": -7917034,
+    "afskriftir": 0,
+    "fjarmunatekjur": 161891,
+    "fjarmagnsgjold": -14224,
+    "hagn_f_skatt": -7769367,
+    "tekjuskattur": 0,
+    "hagnadur": -7769367
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4456839,
+    "veltufjarmunir": 4490420,
+    "eignir": 4490420,
+    "hlutafe": 555555,
+    "eigid_fe": -6662538,
+    "langtimaskuldir": 10000000,
+    "skammtimaskuldir": 1152958,
+    "skuldir": 11152958,
+    "efe_skuldir": 4490420
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6311210470.pdf",
+ "pdfAr": "2025"
+}

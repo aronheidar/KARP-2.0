@@ -1,0 +1,84 @@
+{
+ "kt": "4402090250",
+ "nafn": "3B ehf",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3454,
+    "hagnadarhlutfall": -0.366,
+    "ROA": -0.9985,
+    "veltufjarhlutfall": 0.1009,
+    "eignavelta": 2.7281
+   },
+   "rekstur": {
+    "sala": 37023329,
+    "ebit": -12786039,
+    "afskriftir": -275311,
+    "fjarmunatekjur": 136741,
+    "fjarmagnsgjold": -605677,
+    "hagn_f_skatt": -13550486,
+    "tekjuskattur": 0,
+    "hagnadur": -13550486
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1329466,
+    "birgdir": 9500000,
+    "vidskiptakrofur": 2543757,
+    "handbaert": 192984,
+    "veltufjarmunir": 12241627,
+    "eignir": 13571093,
+    "hlutafe": 500000,
+    "eigid_fe": -107713637,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 121284730,
+    "skuldir": 121284730,
+    "efe_skuldir": 13571093
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3045,
+    "hagnadarhlutfall": -0.3292,
+    "ROA": -0.9325,
+    "veltufjarhlutfall": 0.0724,
+    "eignavelta": 2.8323
+   },
+   "rekstur": {
+    "sala": 39486350,
+    "ebit": -12023058,
+    "afskriftir": -220249,
+    "fjarmunatekjur": 2867,
+    "fjarmagnsgjold": -738650,
+    "hagn_f_skatt": -12999990,
+    "tekjuskattur": 0,
+    "hagnadur": -12999990
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1109217,
+    "birgdir": 9500000,
+    "vidskiptakrofur": 167858,
+    "handbaert": 76387,
+    "veltufjarmunir": 12832142,
+    "eignir": 13941359,
+    "hlutafe": 500000,
+    "eigid_fe": -120713627,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 134654986,
+    "skuldir": 134654986,
+    "efe_skuldir": 13941359
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4402090250.pdf",
+ "pdfAr": "2024"
+}

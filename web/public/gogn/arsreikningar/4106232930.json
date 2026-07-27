@@ -1,0 +1,57 @@
+{
+ "kt": "4106232930",
+ "nafn": "Pípur og gler 2025 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "fjarmunatekjur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "handbaert": 0,
+    "eignir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5815,
+    "hagnadarhlutfall": 0.0944,
+    "ROA": 0.2944,
+    "eignavelta": 3.1188
+   },
+   "rekstur": {
+    "sala": 23572405,
+    "kostnadarverd": 9864633,
+    "laun": 2137347,
+    "annar_rekstur": 6927378,
+    "afskriftir": 1469900,
+    "fjarmagnsgjold": -410706,
+    "fjarmunatekjur": -386576,
+    "hagnadur": 2225011
+   },
+   "efnahagur": {
+    "handbaert": 3,
+    "eignir": 7558167
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4106232930.pdf",
+ "pdfAr": "2023"
+}

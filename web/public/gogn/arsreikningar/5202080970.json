@@ -1,0 +1,64 @@
+{
+ "kt": "5202080970",
+ "nafn": "S.S.Á. 1 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2533,
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 88650,
+    "ebit": -88650,
+    "hagn_f_skatt": -88650,
+    "tekjuskattur": 0,
+    "hagnadur": -88650
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "eignir": 350000,
+    "hlutafe": 650000,
+    "eigid_fe": -35517252,
+    "skuldir": 35867252,
+    "efe_skuldir": 350000,
+    "skammtimaskuldir": 35867252
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.772,
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 620200,
+    "ebit": -620200,
+    "hagn_f_skatt": -620200,
+    "tekjuskattur": 0,
+    "hagnadur": -620200
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "eignir": 350000,
+    "hlutafe": 650000,
+    "eigid_fe": -36137452,
+    "skuldir": 36487452,
+    "efe_skuldir": 350000,
+    "skammtimaskuldir": 36487452
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5202080970.pdf",
+ "pdfAr": "2023"
+}

@@ -1,0 +1,85 @@
+{
+ "kt": "4207042240",
+ "nafn": "Scandinavia Travel North ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2498,
+    "ebit_hlutfall": -0.027,
+    "hagnadarhlutfall": -0.1495,
+    "ROA": -0.9001,
+    "eiginfjarhlutfall": -1.4873,
+    "veltufjarhlutfall": 0.1683,
+    "eignavelta": 6.0218
+   },
+   "rekstur": {
+    "sala": 162129662,
+    "kostnadarverd": 121629313,
+    "laun": 32255887,
+    "annar_rekstur": 12618415,
+    "ebit": -4373953,
+    "fjarmunatekjur": 8509,
+    "fjarmagnsgjold": -3359273,
+    "hagn_f_skatt": -24234746,
+    "tekjuskattur": 0,
+    "hagnadur": -24234746
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 11234849,
+    "handbaert": 35252,
+    "eignir": 26923723,
+    "hlutafe": 20730000,
+    "eigid_fe": -40044503,
+    "skuldir": 66968226,
+    "efe_skuldir": 26923723,
+    "skammtimaskuldir": 66968226
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2954,
+    "ebit_hlutfall": 0.0413,
+    "hagnadarhlutfall": -0.0501,
+    "ROA": -0.3718,
+    "veltufjarhlutfall": 0.0954,
+    "eignavelta": 7.4254
+   },
+   "rekstur": {
+    "sala": 209411626,
+    "kostnadarverd": 147542001,
+    "laun": 39529530,
+    "annar_rekstur": 13684329,
+    "ebit": 8655766,
+    "fjarmunatekjur": 14610,
+    "fjarmagnsgjold": -8479992,
+    "hagn_f_skatt": -10486520,
+    "tekjuskattur": 0,
+    "hagnadur": -10486520
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 6911852,
+    "handbaert": 596363,
+    "eignir": 28201914,
+    "hlutafe": 20730000,
+    "eigid_fe": -50531023,
+    "skuldir": 78732937,
+    "efe_skuldir": 28201914,
+    "skammtimaskuldir": 78732937
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/4207042240.pdf",
+ "pdfAr": "2024"
+}

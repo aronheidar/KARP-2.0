@@ -1,0 +1,71 @@
+{
+ "kt": "6605211860",
+ "nafn": "Arnar Kárason ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.8259,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.2108
+   },
+   "rekstur": {
+    "sala": null,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "tekjuskattur": 32457,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "eignir": 648743,
+    "hlutafe": 500000,
+    "eigid_fe": 535828,
+    "skuldir": 112928,
+    "efe_skuldir": 648756,
+    "skammtimaskuldir": 112928
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2032,
+    "hagnadarhlutfall": -0.052,
+    "ROE": -0.0449,
+    "ROA": -0.0343,
+    "eiginfjarhlutfall": 0.7655,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.3064,
+    "eignavelta": 0.6608
+   },
+   "rekstur": {
+    "sala": 411800,
+    "annar_rekstur": 328104,
+    "ebit": 83696,
+    "fjarmunatekjur": -1520,
+    "fjarmagnsgjold": 85034,
+    "tekjuskattur": -21400,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "eignir": 623225,
+    "hlutafe": 500000,
+    "eigid_fe": 477059,
+    "skuldir": 146166,
+    "efe_skuldir": 623225,
+    "skammtimaskuldir": 146166
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6605211860.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,82 @@
+{
+ "kt": "6209230600",
+ "nafn": "Byggingarfélag Vestmannaeyja eh",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3966,
+    "ROA": -0.3966,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 142000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -142000,
+    "tekjuskattur": 0,
+    "hagnadur": -142000
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 358000,
+    "handbaert": 0,
+    "eignir": 358000,
+    "hlutafe": 500000,
+    "eigid_fe": 358000,
+    "skuldir": 0,
+    "efe_skuldir": 358000,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 358000,
+    "handbaert": 0,
+    "eignir": 358000,
+    "hlutafe": 500000,
+    "eigid_fe": 358000,
+    "skuldir": 0,
+    "efe_skuldir": 358000,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6209230600.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "5304100720",
+ "nafn": "North Nature ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1285,
+    "ROA": -0.0637,
+    "eiginfjarhlutfall": 0.4957,
+    "veltufjarhlutfall": 1.4698,
+    "skuldahlutfall_DE": 1.0174,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18800,
+    "tekjuskattur": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 218858,
+    "veltufjarmunir": 295258,
+    "eignir": 295258,
+    "hlutafe": 500000,
+    "eigid_fe": 146358,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 148900,
+    "skuldir": 148900,
+    "efe_skuldir": 295258
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2948,
+    "ROA": -0.1129,
+    "eiginfjarhlutfall": 0.3828,
+    "veltufjarhlutfall": 1.201,
+    "skuldahlutfall_DE": 1.6121,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -33324,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -33324,
+    "tekjuskattur": 0,
+    "hagnadur": -33324
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 218858,
+    "veltufjarmunir": 295258,
+    "eignir": 295258,
+    "hlutafe": 500000,
+    "eigid_fe": 113034,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 182224,
+    "skuldir": 182224,
+    "efe_skuldir": 295258
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5304100720.pdf",
+ "pdfAr": "2022"
+}

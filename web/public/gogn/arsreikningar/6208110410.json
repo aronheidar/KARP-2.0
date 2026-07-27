@@ -1,0 +1,85 @@
+{
+ "kt": "6208110410",
+ "nafn": "Fannsker ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0449,
+    "hagnadarhlutfall": 0.0258,
+    "ROA": 0.0873,
+    "eiginfjarhlutfall": -0.0382,
+    "veltufjarhlutfall": 0.8661,
+    "eignavelta": 3.3858
+   },
+   "rekstur": {
+    "sala": 40388871,
+    "ebit": 1812376,
+    "afskriftir": 0,
+    "fjarmunatekjur": 27543,
+    "fjarmagnsgjold": -798630,
+    "hagn_f_skatt": 1041289,
+    "tekjuskattur": 0,
+    "hagnadur": 1041289
+   },
+   "efnahagur": {
+    "fastafjarmunir": 700000,
+    "birgdir": 0,
+    "vidskiptakrofur": 8700096,
+    "handbaert": 2026337,
+    "veltufjarmunir": 11228847,
+    "eignir": 11928847,
+    "hlutafe": 5600000,
+    "eigid_fe": -455933,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12384780,
+    "skuldir": 12384780,
+    "efe_skuldir": 11928847
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4385,
+    "hagnadarhlutfall": -0.4729,
+    "ROA": -4.5209,
+    "veltufjarhlutfall": 0.1444,
+    "eignavelta": 9.559
+   },
+   "rekstur": {
+    "sala": 36118312,
+    "ebit": -15838235,
+    "afskriftir": 0,
+    "fjarmunatekjur": 19163,
+    "fjarmagnsgjold": -1262871,
+    "hagn_f_skatt": -17081943,
+    "tekjuskattur": 0,
+    "hagnadur": -17081943
+   },
+   "efnahagur": {
+    "fastafjarmunir": 700000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2902405,
+    "handbaert": 176064,
+    "veltufjarmunir": 3078469,
+    "eignir": 3778469,
+    "hlutafe": 5600000,
+    "eigid_fe": -17537876,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 21316345,
+    "skuldir": 21316345,
+    "efe_skuldir": 3778469
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6208110410.pdf",
+ "pdfAr": "2024"
+}

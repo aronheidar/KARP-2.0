@@ -1,0 +1,55 @@
+{
+ "kt": "6604043680",
+ "nafn": "Ýma - Náttúrukönnun ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 1,
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 98496701,
+    "kostnadarverd": 390
+   },
+   "efnahagur": {
+    "eignir": null,
+    "hlutafe": 0,
+    "eigid_fe": null,
+    "skuldir": 407,
+    "efe_skuldir": null,
+    "skammtimaskuldir": 407
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 1,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0024
+   },
+   "rekstur": {
+    "sala": 52948805,
+    "kostnadarverd": 245
+   },
+   "efnahagur": {
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 250000,
+    "skuldir": 588,
+    "efe_skuldir": 36,
+    "skammtimaskuldir": 588
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/6604043680.pdf",
+ "pdfAr": "2025"
+}

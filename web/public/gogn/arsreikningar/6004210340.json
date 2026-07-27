@@ -1,0 +1,88 @@
+{
+ "kt": "6004210340",
+ "nafn": "72 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0342,
+    "hagnadarhlutfall": -0.0454,
+    "ROA": -0.0573,
+    "eiginfjarhlutfall": -0.0109,
+    "veltufjarhlutfall": 1.6575,
+    "eignavelta": 1.2632
+   },
+   "rekstur": {
+    "sala": 24154950,
+    "ebit": -826298,
+    "afskriftir": -198963,
+    "fjarmunatekjur": 101471,
+    "fjarmagnsgjold": -172633,
+    "hagn_f_skatt": -1096423,
+    "tekjuskattur": 0,
+    "hagnadur": -1096423
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4747158,
+    "birgdir": 7120040,
+    "vidskiptakrofur": 2443962,
+    "handbaert": 2421066,
+    "veltufjarmunir": 14375603,
+    "eignir": 19122761,
+    "hlutafe": 500000,
+    "eigid_fe": -207951,
+    "langtimaskuldir": 12100000,
+    "skammtimaskuldir": 7230712,
+    "skuldir": 19330712,
+    "efe_skuldir": 19122761
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0319,
+    "hagnadarhlutfall": 0.0263,
+    "ROE": 1.1519,
+    "ROA": 0.1058,
+    "eiginfjarhlutfall": 0.0919,
+    "veltufjarhlutfall": 1.7617,
+    "skuldahlutfall_DE": 9.8853,
+    "eignavelta": 4.0251
+   },
+   "rekstur": {
+    "sala": 59996794,
+    "ebit": 1914605,
+    "afskriftir": -139274,
+    "fjarmunatekjur": 62972,
+    "fjarmagnsgjold": -122286,
+    "hagn_f_skatt": 1716017,
+    "tekjuskattur": -138746,
+    "hagnadur": 1577271
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4607884,
+    "birgdir": 7486500,
+    "vidskiptakrofur": 383621,
+    "handbaert": 98574,
+    "veltufjarmunir": 10297621,
+    "eignir": 14905505,
+    "hlutafe": 500000,
+    "eigid_fe": 1369320,
+    "langtimaskuldir": 9012969,
+    "skammtimaskuldir": 4523216,
+    "skuldir": 13536185,
+    "efe_skuldir": 14905505
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6004210340.pdf",
+ "pdfAr": "2024"
+}

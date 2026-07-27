@@ -1,0 +1,82 @@
+{
+ "kt": "5202162430",
+ "nafn": "Verk V2-6 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0405,
+    "ebit_hlutfall": 0.0404,
+    "hagnadarhlutfall": 0.0411,
+    "ROA": 0.0105,
+    "eiginfjarhlutfall": -0.011,
+    "veltufjarhlutfall": 0.1425,
+    "eignavelta": 0.2556
+   },
+   "rekstur": {
+    "sala": 231000000,
+    "kostnadarverd": 221637747,
+    "annar_rekstur": 20200,
+    "afskriftir": 0,
+    "ebit": 9342053,
+    "fjarmunatekjur": 149712,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 9491765
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 128826813,
+    "handbaert": 1436877,
+    "eignir": 903840316,
+    "hlutafe": 500000,
+    "eigid_fe": -9980734,
+    "skuldir": 913821050,
+    "efe_skuldir": 903840316,
+    "skammtimaskuldir": 913821050
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.3955,
+    "ebit_hlutfall": -0.3955,
+    "hagnadarhlutfall": -0.3894,
+    "ROA": -0.2974,
+    "eiginfjarhlutfall": -0.3082,
+    "veltufjarhlutfall": 0.4264,
+    "eignavelta": 0.7637
+   },
+   "rekstur": {
+    "sala": 708930225,
+    "kostnadarverd": 989310399,
+    "annar_rekstur": 21400,
+    "afskriftir": 0,
+    "ebit": -280401574,
+    "fjarmunatekjur": 4316576,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -276084998
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 517640130,
+    "handbaert": 170450,
+    "eignir": 928283957,
+    "hlutafe": 500000,
+    "eigid_fe": -286065732,
+    "skuldir": 1214349689,
+    "efe_skuldir": 928283957,
+    "skammtimaskuldir": 1214349689
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5202162430.pdf",
+ "pdfAr": "2024"
+}

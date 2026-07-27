@@ -1,0 +1,86 @@
+{
+ "kt": "6012121290",
+ "nafn": "450 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2018": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 7.938,
+    "ROA": 3.068,
+    "eiginfjarhlutfall": 0.3865,
+    "veltufjarhlutfall": 0.8637,
+    "skuldahlutfall_DE": 1.5874,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 17385,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 42391570,
+    "tekjuskattur": 0,
+    "hagnadur": 42391570
+   },
+   "efnahagur": {
+    "fastafjarmunir": 500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 7322039,
+    "veltufjarmunir": 13317401,
+    "eignir": 13817401,
+    "hlutafe": 500000,
+    "eigid_fe": 5340344,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8477057,
+    "skuldir": 8477057,
+    "efe_skuldir": 13817401
+   },
+   "starfsmenn": null
+  },
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.771,
+    "ROA": 0.762,
+    "eiginfjarhlutfall": 0.9882,
+    "veltufjarhlutfall": 0.3964,
+    "skuldahlutfall_DE": 0.0119,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1476,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 17983576,
+    "tekjuskattur": 0,
+    "hagnadur": 17983576
+   },
+   "efnahagur": {
+    "fastafjarmunir": 500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 325,
+    "handbaert": 109857,
+    "veltufjarmunir": 23101867,
+    "eignir": 23601867,
+    "hlutafe": 500000,
+    "eigid_fe": 23323920,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 277947,
+    "skuldir": 277947,
+    "efe_skuldir": 23601867
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6012121290.pdf",
+ "pdfAr": "2019"
+}

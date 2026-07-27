@@ -1,0 +1,62 @@
+{
+ "kt": "6012730129",
+ "nafn": "Stoðir hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.0796,
+    "ROA": 0.0793,
+    "eiginfjarhlutfall": 0.997,
+    "veltufjarhlutfall": 19.0554,
+    "skuldahlutfall_DE": 0.003
+   },
+   "rekstur": {
+    "fjarmunatekjur": 265555,
+    "hagnadur": 4149579
+   },
+   "efnahagur": {
+    "handbaert": 3004908,
+    "eignir": 52312884,
+    "hlutafe": 12448307,
+    "eigid_fe": 52155191,
+    "skuldir": 157693,
+    "efe_skuldir": 52312884,
+    "skammtimaskuldir": 157693
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.1176,
+    "ROA": 0.1171,
+    "eiginfjarhlutfall": 0.9953,
+    "veltufjarhlutfall": 15.2999,
+    "skuldahlutfall_DE": 0.0048
+   },
+   "rekstur": {
+    "fjarmunatekjur": 321222,
+    "hagnadur": 6830186
+   },
+   "efnahagur": {
+    "handbaert": 4233943,
+    "eignir": 58338663,
+    "hlutafe": 12466208,
+    "eigid_fe": 58061933,
+    "skuldir": 276730,
+    "efe_skuldir": 58338663,
+    "skammtimaskuldir": 276730
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6012730129.pdf",
+ "pdfAr": "2025"
+}

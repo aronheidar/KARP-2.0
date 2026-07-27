@@ -1,0 +1,66 @@
+{
+ "kt": "5912120950",
+ "nafn": "S.S.Á. Eignarhaldsfélag ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1156,
+    "eiginfjarhlutfall": -0.3564,
+    "veltufjarhlutfall": 0.0849
+   },
+   "rekstur": {
+    "ebit": -84950,
+    "fjarmunatekjur": 0,
+    "hagn_f_skatt": -84950,
+    "tekjuskattur": 0,
+    "hagnadur": -84950
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 84550,
+    "handbaert": 0,
+    "eignir": 734550,
+    "hlutafe": 600000,
+    "eigid_fe": -261784,
+    "skuldir": 996334,
+    "efe_skuldir": 734550,
+    "skammtimaskuldir": 996334
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1207,
+    "eiginfjarhlutfall": -0.4771,
+    "veltufjarhlutfall": 0.0779
+   },
+   "rekstur": {
+    "ebit": -88650,
+    "fjarmunatekjur": 0,
+    "hagn_f_skatt": -88650,
+    "tekjuskattur": 0,
+    "hagnadur": -88650
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 84550,
+    "handbaert": 0,
+    "eignir": 734550,
+    "hlutafe": 600000,
+    "eigid_fe": -350434,
+    "skuldir": 1084984,
+    "efe_skuldir": 734550,
+    "skammtimaskuldir": 1084984
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5912120950.pdf",
+ "pdfAr": "2022"
+}

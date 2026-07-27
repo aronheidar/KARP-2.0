@@ -1,0 +1,81 @@
+{
+ "kt": "6808181340",
+ "nafn": "22. júní ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -68.4771,
+    "veltufjarhlutfall": 0.0412,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -161490,
+    "afskriftir": 0,
+    "fjarmunatekjur": 128,
+    "fjarmagnsgjold": -3,
+    "hagn_f_skatt": -10369140,
+    "tekjuskattur": 0,
+    "hagnadur": -10369140
+   },
+   "efnahagur": {
+    "fastafjarmunir": 79549,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 49323,
+    "veltufjarmunir": 71876,
+    "eignir": 151425,
+    "hlutafe": 500000,
+    "eigid_fe": -1044838,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1196263,
+    "skuldir": 1196263,
+    "efe_skuldir": 151425
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.8395,
+    "eiginfjarhlutfall": -0.6844,
+    "veltufjarhlutfall": 0.0087,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -24600,
+    "afskriftir": 0,
+    "fjarmunatekjur": 9538,
+    "fjarmagnsgjold": -3265,
+    "hagn_f_skatt": 575611,
+    "tekjuskattur": 0,
+    "hagnadur": 575611
+   },
+   "efnahagur": {
+    "fastafjarmunir": 673487,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10063,
+    "veltufjarmunir": 12161,
+    "eignir": 685648,
+    "hlutafe": 500000,
+    "eigid_fe": -469227,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1154875,
+    "skuldir": 1154875,
+    "efe_skuldir": 685648
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6808181340.pdf",
+ "pdfAr": "2024"
+}

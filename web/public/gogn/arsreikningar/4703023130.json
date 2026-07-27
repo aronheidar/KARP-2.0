@@ -1,0 +1,90 @@
+{
+ "kt": "4703023130",
+ "nafn": "1440 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.8425,
+    "hagnadarhlutfall": -0.9688,
+    "ROE": -0.1178,
+    "ROA": -0.1117,
+    "eiginfjarhlutfall": 0.9486,
+    "veltufjarhlutfall": 11.4322,
+    "skuldahlutfall_DE": 0.0542,
+    "eignavelta": 0.1153
+   },
+   "rekstur": {
+    "sala": 7139724,
+    "ebit": -6015399,
+    "afskriftir": -1073651,
+    "fjarmunatekjur": 176275,
+    "fjarmagnsgjold": -4198,
+    "hagn_f_skatt": -6916973,
+    "tekjuskattur": 0,
+    "hagnadur": -6916973
+   },
+   "efnahagur": {
+    "fastafjarmunir": 24878157,
+    "birgdir": 500000,
+    "vidskiptakrofur": 33440162,
+    "handbaert": 2450751,
+    "veltufjarmunir": 37021637,
+    "eignir": 61899794,
+    "hlutafe": 500000,
+    "eigid_fe": 58716612,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3183182,
+    "skuldir": 3183182,
+    "efe_skuldir": 61899794
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.5112,
+    "hagnadarhlutfall": -0.5978,
+    "ROE": -0.0747,
+    "ROA": -0.07,
+    "eiginfjarhlutfall": 0.9369,
+    "veltufjarhlutfall": 9.1869,
+    "skuldahlutfall_DE": 0.0673,
+    "eignavelta": 0.1171
+   },
+   "rekstur": {
+    "sala": 6826572,
+    "ebit": -3489454,
+    "afskriftir": -968773,
+    "fjarmunatekjur": 389635,
+    "fjarmagnsgjold": -12483,
+    "hagn_f_skatt": -4081075,
+    "tekjuskattur": 0,
+    "hagnadur": -4081075
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23909384,
+    "birgdir": 500000,
+    "vidskiptakrofur": 32287391,
+    "handbaert": 999860,
+    "veltufjarmunir": 34403909,
+    "eignir": 58313293,
+    "hlutafe": 500000,
+    "eigid_fe": 54635537,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3677756,
+    "skuldir": 3677756,
+    "efe_skuldir": 58313293
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4703023130.pdf",
+ "pdfAr": "2024"
+}

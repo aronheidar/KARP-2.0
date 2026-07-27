@@ -1,0 +1,88 @@
+{
+ "kt": "6405191180",
+ "nafn": "A&B Skel ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8748,
+    "ebit_hlutfall": -0.4154,
+    "hagnadarhlutfall": -0.6614,
+    "ROA": -0.0985,
+    "eiginfjarhlutfall": -0.109,
+    "veltufjarhlutfall": 0.0114,
+    "eignavelta": 0.149
+   },
+   "rekstur": {
+    "sala": 6506456,
+    "kostnadarverd": 814450,
+    "laun": 743455,
+    "annar_rekstur": 5785402,
+    "afskriftir": 1518395,
+    "ebit": -2702615,
+    "fjarmunatekjur": 2078,
+    "fjarmagnsgjold": -1603027,
+    "hagnadur": -4303564
+   },
+   "efnahagur": {
+    "fastafjarmunir": 42693148,
+    "vidskiptakrofur": 339545,
+    "handbaert": 40416,
+    "veltufjarmunir": 984172,
+    "eignir": 43677320,
+    "hlutafe": 500000,
+    "eigid_fe": -4759835,
+    "langtimaskuldir": 15010347,
+    "skammtimaskuldir": 33426808,
+    "skuldir": 48437155,
+    "efe_skuldir": 43677320
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.909,
+    "ebit_hlutfall": 0.1832,
+    "hagnadarhlutfall": 0.019,
+    "ROA": 0.0034,
+    "eiginfjarhlutfall": -0.0918,
+    "veltufjarhlutfall": 0.0098,
+    "eignavelta": 0.1803
+   },
+   "rekstur": {
+    "sala": 9006121,
+    "kostnadarverd": 819242,
+    "laun": 1469546,
+    "annar_rekstur": 3880136,
+    "afskriftir": 620790,
+    "ebit": 1650241,
+    "fjarmunatekjur": 7702,
+    "fjarmagnsgjold": -1486761,
+    "hagnadur": 171182
+   },
+   "efnahagur": {
+    "fastafjarmunir": 42072358,
+    "vidskiptakrofur": 0,
+    "handbaert": 350271,
+    "veltufjarmunir": 7887716,
+    "eignir": 49960074,
+    "hlutafe": 500000,
+    "eigid_fe": -4588653,
+    "langtimaskuldir": 18965380,
+    "skammtimaskuldir": 35583347,
+    "skuldir": 54548727,
+    "efe_skuldir": 49960074
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6405191180.pdf",
+ "pdfAr": "2022"
+}

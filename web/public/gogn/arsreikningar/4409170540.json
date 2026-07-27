@@ -1,0 +1,76 @@
+{
+ "kt": "4409170540",
+ "nafn": "100P ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0319,
+    "ROA": -0.0141,
+    "eiginfjarhlutfall": 0.4423,
+    "veltufjarhlutfall": 0.0057,
+    "skuldahlutfall_DE": 1.2608
+   },
+   "rekstur": {
+    "annar_rekstur": 20200,
+    "ebit": -20200,
+    "fjarmunatekjur": 3968,
+    "fjarmagnsgjold": -1335,
+    "hagn_f_skatt": -17567,
+    "tekjuskattur": 0,
+    "hagnadur": -17567
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 873,
+    "handbaert": 3095,
+    "veltufjarmunir": 3968,
+    "eignir": 1243055,
+    "hlutafe": 500000,
+    "eigid_fe": 549838,
+    "skammtimaskuldir": 693217,
+    "efe_skuldir": 1243055,
+    "skuldir": 693217
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.948,
+    "ROA": 0.8131,
+    "eiginfjarhlutfall": 0.8577,
+    "veltufjarhlutfall": 6.3209,
+    "skuldahlutfall_DE": 0.166
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "ebit": 9979100,
+    "fjarmunatekjur": 92664,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 10071764,
+    "tekjuskattur": -19459,
+    "hagnadur": 10052305
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 31482,
+    "handbaert": 11092702,
+    "veltufjarmunir": 11124184,
+    "eignir": 12363271,
+    "hlutafe": 500000,
+    "eigid_fe": 10603371,
+    "skammtimaskuldir": 1759900,
+    "efe_skuldir": 12363271,
+    "skuldir": 1759900
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4409170540.pdf",
+ "pdfAr": "2024"
+}

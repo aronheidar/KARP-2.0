@@ -1,0 +1,102 @@
+{
+ "kt": "5002693249",
+ "nafn": "Olís ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.1666,
+    "ebit_hlutfall": 0.0367,
+    "hagnadarhlutfall": 0.0256,
+    "ROE": 0.1088,
+    "ROA": 0.061,
+    "eiginfjarhlutfall": 0.5606,
+    "veltufjarhlutfall": 2.044,
+    "skuldahlutfall_DE": 0.7837,
+    "eignavelta": 2.3846
+   },
+   "rekstur": {
+    "sala": 52527205,
+    "kostnadarverd": -43775040,
+    "adrar_tekjur": 185227,
+    "laun": -3580822,
+    "annar_rekstur": -2150749,
+    "ebitda": 3205821,
+    "afskriftir": -1278152,
+    "matsbreyting": 0,
+    "ebit": 1927669,
+    "fjarmagnsgjold": -503097,
+    "hagn_f_skatt": 1629476,
+    "tekjuskattur": -285617,
+    "hagnadur": 1343859
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11610568,
+    "birgdir": 5134760,
+    "vidskiptakrofur": 4509729,
+    "handbaert": 349528,
+    "veltufjarmunir": 10417218,
+    "eignir": 22027786,
+    "hlutafe": 670000,
+    "eigid_fe": 12349324,
+    "langtimaskuldir": 4789036,
+    "skammtimaskuldir": 4889426,
+    "skuldir": 9678462,
+    "efe_skuldir": 22027786
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.1913,
+    "ebit_hlutfall": 0.0515,
+    "hagnadarhlutfall": 0.0374,
+    "ROE": 0.1394,
+    "ROA": 0.0816,
+    "eiginfjarhlutfall": 0.5858,
+    "veltufjarhlutfall": 1.919,
+    "skuldahlutfall_DE": 0.707,
+    "eignavelta": 2.1844
+   },
+   "rekstur": {
+    "sala": 50237925,
+    "kostnadarverd": -40626726,
+    "adrar_tekjur": 305572,
+    "laun": -3816419,
+    "annar_rekstur": -2254064,
+    "ebitda": 3846288,
+    "afskriftir": -1256917,
+    "matsbreyting": -869,
+    "ebit": 2588502,
+    "fjarmagnsgjold": -565499,
+    "hagn_f_skatt": 2305847,
+    "tekjuskattur": -428335,
+    "hagnadur": 1877512
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11661470,
+    "birgdir": 4176772,
+    "vidskiptakrofur": 4741762,
+    "handbaert": 773573,
+    "veltufjarmunir": 11336524,
+    "eignir": 22997994,
+    "hlutafe": 670000,
+    "eigid_fe": 13472495,
+    "langtimaskuldir": 4475001,
+    "skammtimaskuldir": 5050498,
+    "skuldir": 9525499,
+    "efe_skuldir": 22997994
+   },
+   "starfsmenn": 436
+  }
+ },
+ "pdf": "pdf/5002693249.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "4512231000",
+ "nafn": "5 Spice ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3908,
+    "ROA": -0.3908,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -140500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -140500,
+    "tekjuskattur": 0,
+    "hagnadur": -140500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 359500,
+    "veltufjarmunir": 359500,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 359500
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.236,
+    "ROA": -0.236,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -87174,
+    "afskriftir": 0,
+    "fjarmunatekjur": 21095,
+    "fjarmagnsgjold": -2562,
+    "hagn_f_skatt": -68641,
+    "tekjuskattur": 0,
+    "hagnadur": -68641
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 286218,
+    "veltufjarmunir": 290859,
+    "eignir": 290859,
+    "hlutafe": 500000,
+    "eigid_fe": 290859,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 290859
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4512231000.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "6604070570",
+ "nafn": "18 Rauðar Rósir ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5703,
+    "ebit_hlutfall": 0.0273,
+    "hagnadarhlutfall": 0.0266,
+    "ROE": 0.1856,
+    "ROA": 0.1043,
+    "eiginfjarhlutfall": 0.562,
+    "veltufjarhlutfall": 1.7443,
+    "skuldahlutfall_DE": 0.7793,
+    "eignavelta": 3.9212
+   },
+   "rekstur": {
+    "sala": 107865406,
+    "kostnadarverd": 46350067,
+    "laun": 43913731,
+    "afskriftir": 712000,
+    "fjarmagnsgjold": -20026,
+    "fjarmunatekjur": 48559,
+    "ebit": 2944472,
+    "tekjuskattur": -74849,
+    "hagnadur": 2869623
+   },
+   "efnahagur": {
+    "birgdir": 14329518,
+    "vidskiptakrofur": 3788181,
+    "handbaert": 2897012,
+    "eignir": 27507975,
+    "hlutafe": 2156807,
+    "eigid_fe": 15460319,
+    "efe_skuldir": 27507975,
+    "skuldir": 12047656,
+    "skammtimaskuldir": 12047656
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6001,
+    "ebit_hlutfall": 0.0159,
+    "hagnadarhlutfall": 0.0111,
+    "ROE": 0.077,
+    "ROA": 0.0439,
+    "eiginfjarhlutfall": 0.5701,
+    "veltufjarhlutfall": 1.8613,
+    "skuldahlutfall_DE": 0.754,
+    "eignavelta": 3.9478
+   },
+   "rekstur": {
+    "sala": 115995355,
+    "kostnadarverd": 46382746,
+    "laun": 51820489,
+    "afskriftir": 640800,
+    "fjarmagnsgjold": -54598,
+    "fjarmunatekjur": 134254,
+    "ebit": 1845308,
+    "tekjuskattur": -554715,
+    "hagnadur": 1290593
+   },
+   "efnahagur": {
+    "birgdir": 17788541,
+    "vidskiptakrofur": 2813254,
+    "handbaert": 2908805,
+    "eignir": 29381918,
+    "hlutafe": 2156807,
+    "eigid_fe": 16750912,
+    "efe_skuldir": 29381918,
+    "skuldir": 12631006,
+    "skammtimaskuldir": 12631006
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6604070570.pdf",
+ "pdfAr": "2024"
+}

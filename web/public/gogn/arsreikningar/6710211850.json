@@ -1,0 +1,70 @@
+{
+ "kt": "6710211850",
+ "nafn": "MA3 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6427,
+    "hagnadarhlutfall": 9.2629,
+    "ROA": 0.1899,
+    "eignavelta": 0.0205
+   },
+   "rekstur": {
+    "sala": 8745477,
+    "annar_rekstur": -3125093,
+    "ebit": 5620384,
+    "matsbreyting": 108000000,
+    "fjarmunatekjur": -129144,
+    "fjarmagnsgjold": -39225709,
+    "hagn_f_skatt": 74265531,
+    "tekjuskattur": 6743134,
+    "hagnadur": 81008665
+   },
+   "efnahagur": {
+    "fastafjarmunir": 425000000,
+    "vidskiptakrofur": 1180368,
+    "handbaert": 485876,
+    "veltufjarmunir": 1666298,
+    "eignir": 426666298
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4901,
+    "hagnadarhlutfall": -1.1543,
+    "ROA": -0.0602,
+    "eignavelta": 0.0521
+   },
+   "rekstur": {
+    "sala": 22597753,
+    "annar_rekstur": -11522705,
+    "ebit": 11075048,
+    "matsbreyting": 0,
+    "fjarmunatekjur": 83608,
+    "fjarmagnsgjold": -43758955,
+    "hagn_f_skatt": -32600299,
+    "tekjuskattur": 6516020,
+    "hagnadur": -26084279
+   },
+   "efnahagur": {
+    "fastafjarmunir": 425000000,
+    "vidskiptakrofur": 6571972,
+    "handbaert": 438509,
+    "veltufjarmunir": 8458476,
+    "eignir": 433458476
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/6710211850.pdf",
+ "pdfAr": "2023"
+}

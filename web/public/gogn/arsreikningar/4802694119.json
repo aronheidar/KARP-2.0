@@ -1,0 +1,94 @@
+{
+ "kt": "4802694119",
+ "nafn": "Ísfell ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3827,
+    "ebit_hlutfall": 0.0622,
+    "hagnadarhlutfall": 0.0367,
+    "ROE": 0.0953,
+    "ROA": 0.0486,
+    "eiginfjarhlutfall": 0.5104,
+    "veltufjarhlutfall": 1.5982,
+    "skuldahlutfall_DE": 0.9592,
+    "eignavelta": 1.3269
+   },
+   "rekstur": {
+    "sala": 3608299456,
+    "adrar_tekjur": 155613974,
+    "kostnadarverd": -2227318114,
+    "laun": -778918362,
+    "annar_rekstur": -434479045,
+    "ebitda": 323197909,
+    "afskriftir": -98756012,
+    "ebit": 224441897,
+    "fjarmagnsgjold": -44491197,
+    "hagn_f_skatt": 172544527,
+    "tekjuskattur": -40249909,
+    "hagnadur": 132294618
+   },
+   "efnahagur": {
+    "birgdir": 1338045217,
+    "vidskiptakrofur": 655809759,
+    "handbaert": 133895241,
+    "eignir": 2719398273,
+    "hlutafe": 3871442,
+    "eigid_fe": 1388025317,
+    "skuldir": 1331372956,
+    "efe_skuldir": 2719398273,
+    "skammtimaskuldir": 1331372956
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3778,
+    "ebit_hlutfall": 0.0398,
+    "hagnadarhlutfall": 0.0254,
+    "ROE": 0.0616,
+    "ROA": 0.0359,
+    "eiginfjarhlutfall": 0.5829,
+    "veltufjarhlutfall": 1.799,
+    "skuldahlutfall_DE": 0.7155,
+    "eignavelta": 1.4125
+   },
+   "rekstur": {
+    "sala": 3332192434,
+    "adrar_tekjur": 135733651,
+    "kostnadarverd": -2073370177,
+    "laun": -750973331,
+    "annar_rekstur": -405618148,
+    "ebitda": 237964429,
+    "afskriftir": -105205236,
+    "ebit": 132759193,
+    "fjarmagnsgjold": -43867993,
+    "hagn_f_skatt": 104816916,
+    "tekjuskattur": -20126128,
+    "hagnadur": 84690788
+   },
+   "efnahagur": {
+    "birgdir": 1018409634,
+    "vidskiptakrofur": 714751836,
+    "handbaert": 36928895,
+    "eignir": 2359143835,
+    "hlutafe": 3871442,
+    "eigid_fe": 1375210246,
+    "skuldir": 983933589,
+    "efe_skuldir": 2359143835,
+    "skammtimaskuldir": 983933589
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4802694119.pdf",
+ "pdfAr": "2025"
+}

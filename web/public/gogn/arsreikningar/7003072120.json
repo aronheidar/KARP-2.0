@@ -1,0 +1,84 @@
+{
+ "kt": "7003072120",
+ "nafn": "Casa Italia ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -13.9265,
+    "hagnadarhlutfall": -15.3082,
+    "ROA": -0.7587,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0.0496
+   },
+   "rekstur": {
+    "sala": 250000,
+    "ebit": -3481615,
+    "afskriftir": -239858,
+    "fjarmunatekjur": 1491,
+    "fjarmagnsgjold": -107069,
+    "hagn_f_skatt": -3827051,
+    "tekjuskattur": 0,
+    "hagnadur": -3827051
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2158724,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1170,
+    "veltufjarmunir": 2885738,
+    "eignir": 5044462,
+    "hlutafe": 500000,
+    "eigid_fe": -7650670,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12695132,
+    "skuldir": 12695132,
+    "efe_skuldir": 5044462
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1512,
+    "hagnadarhlutfall": -0.1512,
+    "ROA": -0.2813,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 1.861
+   },
+   "rekstur": {
+    "sala": 4017340,
+    "ebit": -607227,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -607227,
+    "tekjuskattur": 0,
+    "hagnadur": -607227
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2158724,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 2158724,
+    "hlutafe": 500000,
+    "eigid_fe": -8257897,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10416621,
+    "skuldir": 10416621,
+    "efe_skuldir": 2158724
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7003072120.pdf",
+ "pdfAr": "2024"
+}

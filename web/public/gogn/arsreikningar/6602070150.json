@@ -1,0 +1,86 @@
+{
+ "kt": "6602070150",
+ "nafn": "Vel gert ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.028,
+    "ROA": -0.0114,
+    "eiginfjarhlutfall": 0.4076,
+    "veltufjarhlutfall": 0.0433,
+    "skuldahlutfall_DE": 1.4533,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 836,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -19364,
+    "tekjuskattur": 0,
+    "hagnadur": -19364
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1150000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 43414,
+    "veltufjarmunir": 543643,
+    "eignir": 1693643,
+    "hlutafe": 500000,
+    "eigid_fe": 690365,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1003278,
+    "skuldir": 1003278,
+    "efe_skuldir": 1693643
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0911,
+    "ROA": -0.0349,
+    "eiginfjarhlutfall": 0.3832,
+    "veltufjarhlutfall": 0.0008,
+    "skuldahlutfall_DE": 1.6093,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 714,
+    "fjarmagnsgjold": -37444,
+    "hagn_f_skatt": -57630,
+    "tekjuskattur": 0,
+    "hagnadur": -57630
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1150000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 773,
+    "veltufjarmunir": 501002,
+    "eignir": 1651002,
+    "hlutafe": 500000,
+    "eigid_fe": 632735,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1018267,
+    "skuldir": 1018267,
+    "efe_skuldir": 1651002
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6602070150.pdf",
+ "pdfAr": "2024"
+}

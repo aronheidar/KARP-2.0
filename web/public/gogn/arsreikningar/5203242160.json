@@ -1,0 +1,80 @@
+{
+ "kt": "5203242160",
+ "nafn": "Eirfell ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "adrar_tekjur": null,
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": 0,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6273,
+    "ebit_hlutfall": -0.1364,
+    "hagnadarhlutfall": -0.1437,
+    "ROA": -0.8162,
+    "eiginfjarhlutfall": -0.794,
+    "veltufjarhlutfall": 0.5306,
+    "eignavelta": 5.6787
+   },
+   "rekstur": {
+    "sala": 127965500,
+    "adrar_tekjur": 2227539,
+    "kostnadarverd": 47690113,
+    "laun": 63452769,
+    "annar_rekstur": 15080466,
+    "afskriftir": 270000,
+    "ebit": -17456355,
+    "fjarmunatekjur": 11036,
+    "fjarmagnsgjold": -946937,
+    "hagn_f_skatt": -18392256,
+    "tekjuskattur": 4,
+    "hagnadur": -18392256
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 21382707,
+    "handbaert": 69158,
+    "eignir": 22534109,
+    "hlutafe": 500000,
+    "eigid_fe": -17892256,
+    "skuldir": 40426365,
+    "efe_skuldir": 22534109,
+    "skammtimaskuldir": 40426365
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/5203242160.pdf",
+ "pdfAr": "2024"
+}

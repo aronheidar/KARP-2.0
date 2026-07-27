@@ -1,0 +1,82 @@
+{
+ "kt": "4511012930",
+ "nafn": "Nepal hugbúnaður ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1277,
+    "eiginfjarhlutfall": -1.1927,
+    "veltufjarhlutfall": 0.2985,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -199903,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13961,
+    "fjarmagnsgjold": -3285,
+    "hagn_f_skatt": -209427,
+    "tekjuskattur": 0,
+    "hagnadur": -209427
+   },
+   "efnahagur": {
+    "fastafjarmunir": 563645,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1073290,
+    "veltufjarmunir": 1076361,
+    "eignir": 1640006,
+    "hlutafe": 468900,
+    "eigid_fe": -1956012,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3596018,
+    "skuldir": 3596018,
+    "efe_skuldir": 1640006
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0041,
+    "eiginfjarhlutfall": -1.1517,
+    "veltufjarhlutfall": 0.3102,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13834,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -7066,
+    "tekjuskattur": 0,
+    "hagnadur": -7066
+   },
+   "efnahagur": {
+    "fastafjarmunir": 563645,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1137866,
+    "veltufjarmunir": 1140909,
+    "eignir": 1704554,
+    "hlutafe": 468900,
+    "eigid_fe": -1963078,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3667630,
+    "skuldir": 3667630,
+    "efe_skuldir": 1704552
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4511012930.pdf",
+ "pdfAr": "2024"
+}

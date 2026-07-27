@@ -1,0 +1,61 @@
+{
+ "kt": "5311230690",
+ "nafn": "12 Fet ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "fjarmunatekjur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 359500,
+    "veltufjarmunir": 359500,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 359500
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "veltufjarhlutfall": 14.0441,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "fjarmunatekjur": 2412
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6832713000,
+    "vidskiptakrofur": 531,
+    "handbaert": 344955,
+    "veltufjarmunir": 345486,
+    "eignir": 6833058486,
+    "hlutafe": 3591500000,
+    "eigid_fe": 6833033886,
+    "skammtimaskuldir": 24600,
+    "skuldir": 24600,
+    "efe_skuldir": 6833058486
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5311230690.pdf",
+ "pdfAr": "2024"
+}

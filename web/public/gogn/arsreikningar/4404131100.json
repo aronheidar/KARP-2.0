@@ -1,0 +1,86 @@
+{
+ "kt": "4404131100",
+ "nafn": "Partýbær ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9125,
+    "hagnadarhlutfall": 0.6058,
+    "ROE": 0.8457,
+    "ROA": 0.3835,
+    "eiginfjarhlutfall": 0.4535,
+    "veltufjarhlutfall": 0.0148,
+    "skuldahlutfall_DE": 1.2052,
+    "eignavelta": 0.6331
+   },
+   "rekstur": {
+    "sala": 320347769,
+    "laun": 34804815,
+    "kostnadarverd": 28015362,
+    "annar_rekstur": 44204732,
+    "ebitda": 207606681,
+    "fjarmunatekjur": 6015319,
+    "fjarmagnsgjold": -1030129,
+    "hagnadur": 194061415
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3100000,
+    "vidskiptakrofur": 3890489,
+    "handbaert": 190893,
+    "veltufjarmunir": 502908873,
+    "eignir": 506008873,
+    "hlutafe": 500000,
+    "eigid_fe": 229462536,
+    "skuldir": 276546337,
+    "efe_skuldir": 506008873,
+    "skammtimaskuldir": 276546337
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.88,
+    "hagnadarhlutfall": 0.1591,
+    "ROE": 0.141,
+    "ROA": 0.0476,
+    "eiginfjarhlutfall": 0.3373,
+    "veltufjarhlutfall": 0.1111,
+    "skuldahlutfall_DE": 1.9647,
+    "eignavelta": 0.2989
+   },
+   "rekstur": {
+    "sala": 236706526,
+    "laun": 29496707,
+    "kostnadarverd": 28415637,
+    "annar_rekstur": 22604092,
+    "ebitda": 133152173,
+    "fjarmunatekjur": 108372,
+    "fjarmagnsgjold": -4271845,
+    "hagnadur": 37664852
+   },
+   "efnahagur": {
+    "fastafjarmunir": 441623124,
+    "vidskiptakrofur": 49665616,
+    "handbaert": 8627634,
+    "veltufjarmunir": 350320027,
+    "eignir": 791943151,
+    "hlutafe": 500000,
+    "eigid_fe": 267127388,
+    "skuldir": 524815763,
+    "efe_skuldir": 791943151,
+    "skammtimaskuldir": 524815763
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4404131100.pdf",
+ "pdfAr": "2024"
+}

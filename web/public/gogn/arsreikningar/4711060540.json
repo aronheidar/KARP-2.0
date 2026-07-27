@@ -1,0 +1,85 @@
+{
+ "kt": "4711060540",
+ "nafn": "Blue viking ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9849,
+    "ebit_hlutfall": -0.0281,
+    "eiginfjarhlutfall": -1.3989,
+    "veltufjarhlutfall": 0.0228,
+    "eignavelta": 5.3332
+   },
+   "rekstur": {
+    "sala": 111943004,
+    "kostnadarverd": 1687311,
+    "laun": 25029180,
+    "annar_rekstur": 85092523,
+    "afskriftir": 3274947,
+    "ebit": -3140957,
+    "fjarmunatekjur": -43093,
+    "fjarmagnsgjold": 1481021,
+    "hagn_f_skatt": -4578885,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": 13099794,
+    "vidskiptakrofur": 1145774,
+    "birgdir": null,
+    "eignir": 20989983,
+    "hlutafe": 500000,
+    "eigid_fe": -29361852,
+    "skuldir": 50351835,
+    "efe_skuldir": 20989983,
+    "skammtimaskuldir": 50351835
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9584,
+    "ebit_hlutfall": -0.3298,
+    "hagnadarhlutfall": -0.3482,
+    "ROA": -1.6442,
+    "veltufjarhlutfall": 0.2513,
+    "eignavelta": 4.7227
+   },
+   "rekstur": {
+    "sala": 207807453,
+    "kostnadarverd": 8647241,
+    "laun": 74003201,
+    "annar_rekstur": 191067530,
+    "afskriftir": 2619959,
+    "ebit": -68530478,
+    "fjarmunatekjur": -46832,
+    "fjarmagnsgjold": 3843391,
+    "hagn_f_skatt": -72327037,
+    "tekjuskattur": -21400,
+    "hagnadur": -72348437
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10479835,
+    "vidskiptakrofur": 32378779,
+    "birgdir": 4244271,
+    "eignir": 44001824,
+    "hlutafe": 500000,
+    "eigid_fe": -101710289,
+    "skuldir": 145712113,
+    "efe_skuldir": 44001824,
+    "skammtimaskuldir": 145712113
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4711060540.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,82 @@
+{
+ "kt": "6908061180",
+ "nafn": "Enox World Holdings ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0021,
+    "eiginfjarhlutfall": -0.0445,
+    "veltufjarhlutfall": 0.001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10674,
+    "veltufjarmunir": 10675,
+    "eignir": 10010675,
+    "hlutafe": 500000,
+    "eigid_fe": -445264,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10455939,
+    "skuldir": 10455939,
+    "efe_skuldir": 10010675
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0021,
+    "eiginfjarhlutfall": -0.0466,
+    "veltufjarhlutfall": 0.001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10674,
+    "veltufjarmunir": 10674,
+    "eignir": 10010674,
+    "hlutafe": 500000,
+    "eigid_fe": -466664,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10477338,
+    "skuldir": 10477338,
+    "efe_skuldir": 10010674
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6908061180.pdf",
+ "pdfAr": "2024"
+}

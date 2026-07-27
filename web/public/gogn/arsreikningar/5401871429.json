@@ -1,0 +1,84 @@
+{
+ "kt": "5401871429",
+ "nafn": "U6 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8068,
+    "hagnadarhlutfall": 0.3563,
+    "ROE": 0.2733,
+    "ROA": 0.0684,
+    "eiginfjarhlutfall": 0.2502,
+    "veltufjarhlutfall": 0.0062,
+    "skuldahlutfall_DE": 2.9966,
+    "eignavelta": 0.1919
+   },
+   "rekstur": {
+    "sala": 325509038,
+    "annar_rekstur": -1205247,
+    "afskriftir": -10150640,
+    "ebit": 262615107,
+    "fjarmunatekjur": 2167771,
+    "fjarmagnsgjold": -119803598,
+    "hagn_f_skatt": 144979280,
+    "tekjuskattur": -28999896,
+    "hagnadur": 115979384
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 475262,
+    "handbaert": 7452374,
+    "eignir": 1696126672,
+    "hlutafe": 10000000,
+    "eigid_fe": 424392782,
+    "skuldir": 1271733890,
+    "efe_skuldir": 1696126672,
+    "skammtimaskuldir": 1271733890
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8072,
+    "hagnadarhlutfall": 0.357,
+    "ROE": 0.2624,
+    "ROA": 0.0729,
+    "eiginfjarhlutfall": 0.2776,
+    "veltufjarhlutfall": 0.0033,
+    "skuldahlutfall_DE": 2.6024,
+    "eignavelta": 0.2041
+   },
+   "rekstur": {
+    "sala": 343241859,
+    "annar_rekstur": -1092106,
+    "afskriftir": -10150640,
+    "ebit": 277050254,
+    "fjarmunatekjur": 2597984,
+    "fjarmagnsgjold": -125114137,
+    "hagn_f_skatt": 154534101,
+    "tekjuskattur": -31992108,
+    "hagnadur": 122541993
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 569761,
+    "handbaert": 3484327,
+    "eignir": 1682102484,
+    "hlutafe": 10000000,
+    "eigid_fe": 466934775,
+    "skuldir": 1215167709,
+    "efe_skuldir": 1682102484,
+    "skammtimaskuldir": 1215167709
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5401871429.pdf",
+ "pdfAr": "2024"
+}

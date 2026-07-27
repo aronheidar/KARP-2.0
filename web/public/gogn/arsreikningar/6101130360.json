@@ -1,0 +1,82 @@
+{
+ "kt": "6101130360",
+ "nafn": "3 Spaðar ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": -0.0059,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 23000000,
+    "hlutafe": 500000,
+    "eigid_fe": -135362,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 23135362,
+    "skuldir": 23135362,
+    "efe_skuldir": 23000000
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": -0.0068,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 23000000,
+    "hlutafe": 500000,
+    "eigid_fe": -156762,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 23156762,
+    "skuldir": 23156762,
+    "efe_skuldir": 23000000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6101130360.pdf",
+ "pdfAr": "2025"
+}

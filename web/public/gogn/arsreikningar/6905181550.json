@@ -1,0 +1,84 @@
+{
+ "kt": "6905181550",
+ "nafn": "101 Productions ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2046,
+    "hagnadarhlutfall": -0.1675,
+    "ROE": -2.1277,
+    "ROA": -0.3247,
+    "eiginfjarhlutfall": 0.1526,
+    "veltufjarhlutfall": 0.1874,
+    "skuldahlutfall_DE": 5.5524,
+    "eignavelta": 1.9386
+   },
+   "rekstur": {
+    "sala": 58747502,
+    "laun": 3889731,
+    "annar_rekstur": 11859573,
+    "afskriftir": 809356,
+    "ebit": -12017041,
+    "fjarmunatekjur": 25001,
+    "fjarmagnsgjold": -303155,
+    "hagn_f_skatt": -12295195,
+    "tekjuskattur": 2455139,
+    "hagnadur": -9840056
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4810800,
+    "handbaert": 574,
+    "eignir": 30303329,
+    "hlutafe": 1000000,
+    "eigid_fe": 4624745,
+    "skuldir": 25678584,
+    "efe_skuldir": 30303329,
+    "skammtimaskuldir": 25678584
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.9403,
+    "hagnadarhlutfall": -2.3403,
+    "ROA": -1.0118,
+    "eiginfjarhlutfall": -0.0121,
+    "veltufjarhlutfall": 0.0813,
+    "eignavelta": 0.4323
+   },
+   "rekstur": {
+    "sala": 2000000,
+    "laun": 0,
+    "annar_rekstur": 2950096,
+    "afskriftir": 239360,
+    "ebit": -3880599,
+    "fjarmunatekjur": 6501,
+    "fjarmagnsgjold": -806602,
+    "hagn_f_skatt": -4680700,
+    "tekjuskattur": 0,
+    "hagnadur": -4680700
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 380543,
+    "eignir": 4626138,
+    "hlutafe": 1000000,
+    "eigid_fe": -55955,
+    "skuldir": 4682093,
+    "efe_skuldir": 4626138,
+    "skammtimaskuldir": 4682093
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/6905181550.pdf",
+ "pdfAr": "2024"
+}

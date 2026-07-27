@@ -1,0 +1,66 @@
+{
+ "kt": "6311220780",
+ "nafn": "Multi Market ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1012,
+    "hagnadarhlutfall": -0.075,
+    "ROA": -3.2866,
+    "eignavelta": 43.8448
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 149407190,
+    "kostnadarverd": 134293847,
+    "laun": 15618832,
+    "annar_rekstur": 10137870,
+    "fjarmunatekjur": 5038,
+    "hagn_f_skatt": -11199555,
+    "hagnadur": -11199555
+   },
+   "efnahagur": {
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 391047,
+    "eignir": 3407640
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1457,
+    "hagnadarhlutfall": -0.0113,
+    "ROA": -0.2158,
+    "eignavelta": 19.0513
+   },
+   "rekstur": {
+    "adrar_tekjur": 843925,
+    "sala": 95838416,
+    "kostnadarverd": 81878038,
+    "laun": 8239665,
+    "annar_rekstur": 6335312,
+    "fjarmunatekjur": 2856,
+    "hagn_f_skatt": -1085523,
+    "hagnadur": -1085523
+   },
+   "efnahagur": {
+    "birgdir": 2500000,
+    "vidskiptakrofur": 0,
+    "handbaert": 667309,
+    "eignir": 5030548
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6311220780.pdf",
+ "pdfAr": "2024"
+}

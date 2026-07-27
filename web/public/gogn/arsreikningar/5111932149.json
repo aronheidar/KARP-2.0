@@ -1,0 +1,90 @@
+{
+ "kt": "5111932149",
+ "nafn": "Klettar fjárfestingar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0145,
+    "hagnadarhlutfall": 45.1112,
+    "ROE": 0.6965,
+    "ROA": 0.4082,
+    "eiginfjarhlutfall": 0.5861,
+    "veltufjarhlutfall": 14.306,
+    "skuldahlutfall_DE": 0.7062,
+    "eignavelta": 0.009
+   },
+   "rekstur": {
+    "sala": 91847286,
+    "laun": 24894373,
+    "annar_rekstur": 13983693,
+    "afskriftir": 30438302,
+    "ebit": 1330112,
+    "fjarmunatekjur": 38445859,
+    "matsbreyting": 3652000411,
+    "fjarmagnsgjold": -39041471,
+    "hagnadur": 4143341364
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9880252059,
+    "vidskiptakrofur": 72711473,
+    "handbaert": 11987434,
+    "veltufjarmunir": 269990891,
+    "eignir": 10150242950,
+    "hlutafe": 2265000,
+    "eigid_fe": 5949154999,
+    "langtimaskuldir": 4195167420,
+    "skammtimaskuldir": 5920531,
+    "skuldir": 4201087951,
+    "efe_skuldir": 10150242950
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0477,
+    "hagnadarhlutfall": 23.8542,
+    "ROE": 0.2602,
+    "ROA": 0.1673,
+    "eiginfjarhlutfall": 0.6431,
+    "veltufjarhlutfall": 0.091,
+    "skuldahlutfall_DE": 0.5549,
+    "eignavelta": 0.007
+   },
+   "rekstur": {
+    "sala": 87699397,
+    "laun": 4145069,
+    "annar_rekstur": 24468497,
+    "afskriftir": 33716125,
+    "ebit": -4185012,
+    "fjarmunatekjur": 2623874,
+    "matsbreyting": 1262458670,
+    "fjarmagnsgjold": -81658499,
+    "hagnadur": 2091996308
+   },
+   "efnahagur": {
+    "fastafjarmunir": 12308859810,
+    "vidskiptakrofur": 25182240,
+    "handbaert": 2458001,
+    "veltufjarmunir": 194460195,
+    "eignir": 12503320005,
+    "hlutafe": 2265000,
+    "eigid_fe": 8041151307,
+    "langtimaskuldir": 4158485969,
+    "skammtimaskuldir": 303682729,
+    "skuldir": 4462168698,
+    "efe_skuldir": 12503320005
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5111932149.pdf",
+ "pdfAr": "2024"
+}

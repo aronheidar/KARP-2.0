@@ -1,0 +1,86 @@
+{
+ "kt": "4610050200",
+ "nafn": "T og G ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0951,
+    "ROA": -0.0871,
+    "eiginfjarhlutfall": 0.9159,
+    "veltufjarhlutfall": 11.7788,
+    "skuldahlutfall_DE": 0.0918,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -65200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 142042,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -256072,
+    "tekjuskattur": -22149,
+    "hagnadur": -278221
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 3163227,
+    "veltufjarmunir": 3194477,
+    "eignir": 3194477,
+    "hlutafe": 600000,
+    "eigid_fe": 2925924,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 268553,
+    "skuldir": 268553,
+    "efe_skuldir": 3194477
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0264,
+    "ROA": 0.0249,
+    "eiginfjarhlutfall": 0.9433,
+    "veltufjarhlutfall": 17.447,
+    "skuldahlutfall_DE": 0.0601,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -96100,
+    "afskriftir": 0,
+    "fjarmunatekjur": 141333,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 99037,
+    "tekjuskattur": -19544,
+    "hagnadur": 79493
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 3153231,
+    "veltufjarmunir": 3186149,
+    "eignir": 3186149,
+    "hlutafe": 600000,
+    "eigid_fe": 3005417,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 180732,
+    "skuldir": 180732,
+    "efe_skuldir": 3186149
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4610050200.pdf",
+ "pdfAr": "2024"
+}

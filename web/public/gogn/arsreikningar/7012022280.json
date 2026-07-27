@@ -1,0 +1,92 @@
+{
+ "kt": "7012022280",
+ "nafn": "Cabin ehf",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.9065,
+    "ebit_hlutfall": 0.0498,
+    "hagnadarhlutfall": 0.0536,
+    "ROE": 0.3457,
+    "ROA": 0.2098,
+    "eiginfjarhlutfall": 0.6068,
+    "veltufjarhlutfall": 0.8814,
+    "skuldahlutfall_DE": 0.648,
+    "eignavelta": 3.9145
+   },
+   "rekstur": {
+    "sala": 1237954,
+    "adrar_tekjur": 30348,
+    "kostnadarverd": 115743,
+    "laun": 436945,
+    "annar_rekstur": 602788,
+    "afskriftir": 20818,
+    "ebit": 61659,
+    "fjarmunatekjur": 412,
+    "fjarmagnsgjold": -6664,
+    "hagnadur": 66334
+   },
+   "efnahagur": {
+    "fastafjarmunir": 157887,
+    "birgdir": 451,
+    "vidskiptakrofur": 99434,
+    "handbaert": 9720,
+    "eignir": 316250,
+    "hlutafe": 500,
+    "eigid_fe": 191895,
+    "skuldir": 124355,
+    "efe_skuldir": 316250,
+    "skammtimaskuldir": 124355
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.8803,
+    "ebit_hlutfall": 0.0307,
+    "hagnadarhlutfall": -0.0065,
+    "ROE": -0.0794,
+    "ROA": -0.0292,
+    "eiginfjarhlutfall": 0.3671,
+    "veltufjarhlutfall": 0.51,
+    "skuldahlutfall_DE": 1.7243,
+    "eignavelta": 4.4943
+   },
+   "rekstur": {
+    "sala": 1348644,
+    "adrar_tekjur": 57259,
+    "kostnadarverd": 161402,
+    "laun": 465952,
+    "annar_rekstur": 655518,
+    "afskriftir": 24394,
+    "ebit": 41379,
+    "fjarmunatekjur": 523,
+    "fjarmagnsgjold": -2567,
+    "hagnadur": -8748
+   },
+   "efnahagur": {
+    "fastafjarmunir": 132264,
+    "birgdir": 451,
+    "vidskiptakrofur": 84572,
+    "handbaert": 11844,
+    "eignir": 300079,
+    "hlutafe": 500,
+    "eigid_fe": 110147,
+    "skuldir": 189931,
+    "efe_skuldir": 300079,
+    "skammtimaskuldir": 189931
+   },
+   "starfsmenn": 139
+  }
+ },
+ "pdf": "pdf/7012022280.pdf",
+ "pdfAr": "2024"
+}

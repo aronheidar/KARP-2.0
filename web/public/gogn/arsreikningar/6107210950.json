@@ -1,0 +1,80 @@
+{
+ "kt": "6107210950",
+ "nafn": "6878 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -16.5276,
+    "veltufjarhlutfall": 0.0455,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -5989040,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3376,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -5985664,
+    "tekjuskattur": 0,
+    "hagnadur": -5985664
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 361418,
+    "veltufjarmunir": 362161,
+    "eignir": 362161,
+    "hlutafe": 500000,
+    "eigid_fe": -7584509,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7946670,
+    "skuldir": 7946670,
+    "efe_skuldir": 362161
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -32.3022,
+    "veltufjarhlutfall": 0.0031,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -858562,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1476,
+    "fjarmagnsgjold": -7096,
+    "hagn_f_skatt": -864182,
+    "tekjuskattur": 0,
+    "hagnadur": -864182
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 26428,
+    "veltufjarmunir": 26753,
+    "eignir": 26753,
+    "hlutafe": 500000,
+    "eigid_fe": -8448691,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8475444,
+    "skuldir": 8475444,
+    "efe_skuldir": 26753
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6107210950.pdf",
+ "pdfAr": "2024"
+}

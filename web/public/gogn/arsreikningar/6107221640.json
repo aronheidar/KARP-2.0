@@ -1,0 +1,84 @@
+{
+ "kt": "6107221640",
+ "nafn": "22 22 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3813,
+    "hagnadarhlutfall": -0.4211,
+    "ROA": -2.1456,
+    "veltufjarhlutfall": 0.0538,
+    "eignavelta": 5.095
+   },
+   "rekstur": {
+    "sala": 3790698,
+    "ebit": -1445237,
+    "afskriftir": -90700,
+    "fjarmunatekjur": 10031,
+    "fjarmagnsgjold": -70452,
+    "hagn_f_skatt": -1596358,
+    "tekjuskattur": 0,
+    "hagnadur": -1596358
+   },
+   "efnahagur": {
+    "fastafjarmunir": 272101,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 321293,
+    "veltufjarmunir": 471902,
+    "eignir": 744003,
+    "hlutafe": 500000,
+    "eigid_fe": -5222479,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5966482,
+    "skuldir": 5966482,
+    "efe_skuldir": 744003
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4967,
+    "hagnadarhlutfall": -0.5172,
+    "ROA": -4.2169,
+    "veltufjarhlutfall": 0.0104,
+    "eignavelta": 8.153
+   },
+   "rekstur": {
+    "sala": 7749094,
+    "ebit": -3848962,
+    "afskriftir": -68025,
+    "fjarmunatekjur": 889,
+    "fjarmagnsgjold": -91938,
+    "hagn_f_skatt": -4008036,
+    "tekjuskattur": 0,
+    "hagnadur": -4008036
+   },
+   "efnahagur": {
+    "fastafjarmunir": 204076,
+    "birgdir": 0,
+    "vidskiptakrofur": 105778,
+    "handbaert": 0,
+    "veltufjarmunir": 746386,
+    "eignir": 950462,
+    "hlutafe": 500000,
+    "eigid_fe": -9230515,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10180977,
+    "skuldir": 10180977,
+    "efe_skuldir": 950462
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6107221640.pdf",
+ "pdfAr": "2025"
+}

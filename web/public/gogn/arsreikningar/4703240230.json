@@ -1,0 +1,59 @@
+{
+ "kt": "4703240230",
+ "nafn": "Mbar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebitda": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "ebit": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "hlutafe": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7147,
+    "ebit_hlutfall": 0.0151
+   },
+   "rekstur": {
+    "sala": 79331783,
+    "kostnadarverd": 22632961,
+    "laun": 43894627,
+    "annar_rekstur": 11605945,
+    "ebitda": 1198250,
+    "afskriftir": 5,
+    "fjarmunatekjur": 60659,
+    "fjarmagnsgjold": -1270147,
+    "tekjuskattur": 0,
+    "ebit": 1198245
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 27871250,
+    "hlutafe": 500000
+   },
+   "starfsmenn": 4
+  }
+ },
+ "pdf": "pdf/4703240230.pdf",
+ "pdfAr": "2024"
+}

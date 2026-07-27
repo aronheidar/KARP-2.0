@@ -1,0 +1,90 @@
+{
+ "kt": "6812902309",
+ "nafn": "Byggingarfélag Gylf/Gunnars hf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.1834,
+    "hagnadarhlutfall": 0.0974,
+    "ROE": 0.0869,
+    "ROA": 0.0451,
+    "eiginfjarhlutfall": 0.5195,
+    "veltufjarhlutfall": 0.5857,
+    "skuldahlutfall_DE": 0.9249,
+    "eignavelta": 0.4634
+   },
+   "rekstur": {
+    "sala": 10835419,
+    "annar_rekstur": 989291,
+    "afskriftir": 347937,
+    "ebit": 1986736,
+    "fjarmunatekjur": 13858,
+    "fjarmagnsgjold": -855154,
+    "hagn_f_skatt": 1357699,
+    "tekjuskattur": -228308,
+    "hagnadur": 1055137
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8944291,
+    "vidskiptakrofur": 2042920,
+    "handbaert": 35633,
+    "veltufjarmunir": 14435683,
+    "eignir": 23379974,
+    "hlutafe": 138500,
+    "eigid_fe": 12146358,
+    "langtimaskuldir": 7684555,
+    "skammtimaskuldir": 3549061,
+    "skuldir": 11233616,
+    "efe_skuldir": 23379974
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.0862,
+    "hagnadarhlutfall": 0.0501,
+    "ROE": 0.0306,
+    "ROA": 0.0133,
+    "eiginfjarhlutfall": 0.4348,
+    "veltufjarhlutfall": 0.3201,
+    "skuldahlutfall_DE": 1.2998,
+    "eignavelta": 0.2654
+   },
+   "rekstur": {
+    "sala": 7566588,
+    "annar_rekstur": 989426,
+    "afskriftir": 314521,
+    "ebit": 652555,
+    "fjarmunatekjur": 42523,
+    "fjarmagnsgjold": -503536,
+    "hagn_f_skatt": 478006,
+    "tekjuskattur": -57541,
+    "hagnadur": 379036
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9246894,
+    "vidskiptakrofur": 1764763,
+    "handbaert": 98502,
+    "veltufjarmunir": 19261857,
+    "eignir": 28508751,
+    "hlutafe": 138500,
+    "eigid_fe": 12396325,
+    "langtimaskuldir": 10290821,
+    "skammtimaskuldir": 5821606,
+    "skuldir": 16112426,
+    "efe_skuldir": 28508751
+   },
+   "starfsmenn": 165
+  }
+ },
+ "pdf": "pdf/6812902309.pdf",
+ "pdfAr": "2024"
+}

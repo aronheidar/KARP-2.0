@@ -1,0 +1,86 @@
+{
+ "kt": "5212050240",
+ "nafn": "ISLIT ehf",
+ "sott": "2026-07-24",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3284,
+    "ROA": -0.1281,
+    "eiginfjarhlutfall": 0.3902,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.563,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -47191,
+    "hagn_f_skatt": -67391,
+    "tekjuskattur": 0,
+    "hagnadur": -67391
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 525987,
+    "eignir": 525987,
+    "hlutafe": 500000,
+    "eigid_fe": 205226,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 320761,
+    "skuldir": 320761,
+    "efe_skuldir": 525987
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1134,
+    "ROA": -0.0397,
+    "eiginfjarhlutfall": 0.3504,
+    "veltufjarhlutfall": 1.5395,
+    "skuldahlutfall_DE": 1.8536,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 525987,
+    "handbaert": 0,
+    "veltufjarmunir": 525987,
+    "eignir": 525987,
+    "hlutafe": 500000,
+    "eigid_fe": 184326,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 341661,
+    "skuldir": 341661,
+    "efe_skuldir": 525987
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5212050240.pdf",
+ "pdfAr": "2024"
+}

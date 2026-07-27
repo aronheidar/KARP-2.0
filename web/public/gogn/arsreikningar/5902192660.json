@@ -1,0 +1,90 @@
+{
+ "kt": "5902192660",
+ "nafn": "Venture North ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5848,
+    "hagnadarhlutfall": 0.1433,
+    "ROE": 0.3242,
+    "ROA": 0.1031,
+    "eiginfjarhlutfall": 0.3181,
+    "veltufjarhlutfall": 0.6671,
+    "skuldahlutfall_DE": 2.1436,
+    "eignavelta": 0.7197
+   },
+   "rekstur": {
+    "sala": 1674000,
+    "ebit": 978986,
+    "afskriftir": -676913,
+    "fjarmunatekjur": 184,
+    "fjarmagnsgjold": -2419,
+    "hagn_f_skatt": 299838,
+    "tekjuskattur": -59968,
+    "hagnadur": 239870
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1257123,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1057988,
+    "veltufjarmunir": 1068715,
+    "eignir": 2325838,
+    "hlutafe": 500000,
+    "eigid_fe": 739870,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1585968,
+    "skuldir": 1585968,
+    "efe_skuldir": 2325838
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3738,
+    "hagnadarhlutfall": 0.0409,
+    "ROE": 0.1142,
+    "ROA": 0.0449,
+    "eiginfjarhlutfall": 0.3935,
+    "veltufjarhlutfall": 0.6285,
+    "skuldahlutfall_DE": 1.5413,
+    "eignavelta": 1.0987
+   },
+   "rekstur": {
+    "sala": 2332000,
+    "ebit": 871677,
+    "afskriftir": -707230,
+    "fjarmunatekjur": 599,
+    "fjarmagnsgjold": -26372,
+    "hagn_f_skatt": 138674,
+    "tekjuskattur": -43315,
+    "hagnadur": 95359
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1313428,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 809100,
+    "veltufjarmunir": 809100,
+    "eignir": 2122528,
+    "hlutafe": 500000,
+    "eigid_fe": 835229,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1287299,
+    "skuldir": 1287299,
+    "efe_skuldir": 2122528
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5902192660.pdf",
+ "pdfAr": "2020"
+}

@@ -1,0 +1,76 @@
+{
+ "kt": "4902693479",
+ "nafn": "Esjuberg ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1201,
+    "ROA": 0.1174,
+    "eiginfjarhlutfall": 0.9778,
+    "veltufjarhlutfall": 0.5792,
+    "skuldahlutfall_DE": 0.0227
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "laun": -10681222,
+    "annar_rekstur": -6105531,
+    "ebit": -16786753,
+    "fjarmunatekjur": 27991555,
+    "hagn_f_skatt": 379949412,
+    "tekjuskattur": -2357376,
+    "hagnadur": 377592036
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1146412,
+    "handbaert": 40222337,
+    "eignir": 3216647626,
+    "hlutafe": 105000000,
+    "eigid_fe": 3145224508,
+    "skuldir": 71423118,
+    "efe_skuldir": 3216647626,
+    "skammtimaskuldir": 71423118
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0493,
+    "ROA": 0.049,
+    "eiginfjarhlutfall": 0.9951,
+    "veltufjarhlutfall": 2.1713,
+    "skuldahlutfall_DE": 0.005
+   },
+   "rekstur": {
+    "adrar_tekjur": 50000000,
+    "laun": -5340611,
+    "annar_rekstur": -2515004,
+    "ebit": 42144385,
+    "fjarmunatekjur": 18994117,
+    "hagn_f_skatt": 157070462,
+    "tekjuskattur": -9555227,
+    "hagnadur": 147515235
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 100000,
+    "handbaert": 32112831,
+    "eignir": 3007575691,
+    "hlutafe": 105000000,
+    "eigid_fe": 2992739743,
+    "skuldir": 14835947,
+    "efe_skuldir": 3007575691,
+    "skammtimaskuldir": 14835947
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4902693479.pdf",
+ "pdfAr": "2025"
+}

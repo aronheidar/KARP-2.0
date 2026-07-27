@@ -1,0 +1,86 @@
+{
+ "kt": "6609170550",
+ "nafn": "Sólfell ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0108,
+    "hagnadarhlutfall": -1.3583,
+    "ROA": -0.0827,
+    "eiginfjarhlutfall": -0.4914,
+    "veltufjarhlutfall": 0.0031,
+    "eignavelta": 0.0609
+   },
+   "rekstur": {
+    "sala": 1954197,
+    "ebit": -21158,
+    "afskriftir": -351486,
+    "fjarmunatekjur": 623,
+    "fjarmagnsgjold": -2243409,
+    "hagn_f_skatt": -2654438,
+    "tekjuskattur": 0,
+    "hagnadur": -2654438
+   },
+   "efnahagur": {
+    "fastafjarmunir": 31954319,
+    "birgdir": 0,
+    "vidskiptakrofur": 101477,
+    "handbaert": 0,
+    "veltufjarmunir": 127708,
+    "eignir": 32082027,
+    "hlutafe": 500000,
+    "eigid_fe": -15765343,
+    "langtimaskuldir": 15343522,
+    "skammtimaskuldir": 32503848,
+    "skuldir": 47847370,
+    "efe_skuldir": 32082027
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.343,
+    "hagnadarhlutfall": 0.3534,
+    "ROA": 0.3383,
+    "eiginfjarhlutfall": -0.9314,
+    "veltufjarhlutfall": 0.5125,
+    "eignavelta": 0.9574
+   },
+   "rekstur": {
+    "sala": 11887451,
+    "ebit": 4077319,
+    "afskriftir": -5770,
+    "fjarmunatekjur": 399674,
+    "fjarmagnsgjold": -243469,
+    "hagn_f_skatt": 4200518,
+    "tekjuskattur": 0,
+    "hagnadur": 4200518
+   },
+   "efnahagur": {
+    "fastafjarmunir": 36000,
+    "birgdir": 0,
+    "vidskiptakrofur": 12000000,
+    "handbaert": 289729,
+    "veltufjarmunir": 12379977,
+    "eignir": 12415977,
+    "hlutafe": 500000,
+    "eigid_fe": -11564825,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 23980802,
+    "skuldir": 23980802,
+    "efe_skuldir": 12415977
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6609170550.pdf",
+ "pdfAr": "2024"
+}

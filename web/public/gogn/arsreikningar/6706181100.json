@@ -1,0 +1,64 @@
+{
+ "kt": "6706181100",
+ "nafn": "Kassetta ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3065,
+    "eiginfjarhlutfall": -0.7018,
+    "veltufjarhlutfall": 0.241
+   },
+   "rekstur": {
+    "ebit": -20900,
+    "fjarmunatekjur": 1095,
+    "fjarmagnsgjold": -980,
+    "hagnadur": -20785
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 241,
+    "handbaert": 27571,
+    "eignir": 67812,
+    "hlutafe": 500000,
+    "eigid_fe": -47588,
+    "efe_skuldir": 67812,
+    "skuldir": 115400,
+    "skammtimaskuldir": 115400
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.4688,
+    "eiginfjarhlutfall": -1.4996,
+    "veltufjarhlutfall": 0.0534
+   },
+   "rekstur": {
+    "ebit": -21400,
+    "fjarmunatekjur": 150,
+    "fjarmagnsgjold": -395,
+    "hagnadur": -21645
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 33,
+    "handbaert": 6134,
+    "eignir": 46167,
+    "hlutafe": 500000,
+    "eigid_fe": -69233,
+    "efe_skuldir": 46167,
+    "skuldir": 115400,
+    "skammtimaskuldir": 115400
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6706181100.pdf",
+ "pdfAr": "2025"
+}

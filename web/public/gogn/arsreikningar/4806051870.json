@@ -1,0 +1,90 @@
+{
+ "kt": "4806051870",
+ "nafn": "Laufás hótel ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8826,
+    "hagnadarhlutfall": 0.6803,
+    "ROE": 1.2391,
+    "ROA": 0.8353,
+    "eiginfjarhlutfall": 0.6741,
+    "veltufjarhlutfall": 0.0006,
+    "skuldahlutfall_DE": 0.4835,
+    "eignavelta": 1.2278
+   },
+   "rekstur": {
+    "adrar_tekjur": 3225806,
+    "sala": 739097497,
+    "laun": 0,
+    "annar_rekstur": 86761796,
+    "ebit": 652335701,
+    "fjarmunatekjur": 50962319,
+    "fjarmagnsgjold": -74769177,
+    "hagn_f_skatt": 628528843,
+    "tekjuskattur": -125709813,
+    "hagnadur": 502819030
+   },
+   "efnahagur": {
+    "fastafjarmunir": 598181726,
+    "vidskiptakrofur": 0,
+    "handbaert": 13338,
+    "veltufjarmunir": 3805065,
+    "eignir": 601986791,
+    "hlutafe": 70000000,
+    "eigid_fe": 405781395,
+    "langtimaskuldir": 174770065,
+    "skammtimaskuldir": 21435331,
+    "skuldir": 196205396,
+    "efe_skuldir": 601986791
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 6.4299,
+    "ROA": 2.3876,
+    "eiginfjarhlutfall": 0.3713,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.6931,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 0,
+    "laun": 2485191,
+    "annar_rekstur": 6186536,
+    "ebit": -8671727,
+    "fjarmunatekjur": 48736664,
+    "fjarmagnsgjold": -4931593,
+    "hagn_f_skatt": 35133344,
+    "tekjuskattur": -7063925,
+    "hagnadur": 1528069419
+   },
+   "efnahagur": {
+    "fastafjarmunir": 484950464,
+    "vidskiptakrofur": 0,
+    "handbaert": 9949,
+    "veltufjarmunir": 155052121,
+    "eignir": 640002585,
+    "hlutafe": 38000000,
+    "eigid_fe": 237649679,
+    "langtimaskuldir": 181139388,
+    "skammtimaskuldir": 221213518,
+    "skuldir": 402352906,
+    "efe_skuldir": 640002585
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4806051870.pdf",
+ "pdfAr": "2024"
+}

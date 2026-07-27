@@ -1,0 +1,82 @@
+{
+ "kt": "5312002250",
+ "nafn": "Cafe Margret ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0744,
+    "eiginfjarhlutfall": -0.6663,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -722025,
+    "afskriftir": 0,
+    "fjarmunatekjur": 247,
+    "fjarmagnsgjold": -45558,
+    "hagn_f_skatt": -767336,
+    "tekjuskattur": 0,
+    "hagnadur": -767336
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10310422,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1396,
+    "veltufjarmunir": 1396,
+    "eignir": 10311818,
+    "hlutafe": 500000,
+    "eigid_fe": -6871124,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 17182942,
+    "skuldir": 17182942,
+    "efe_skuldir": 10311818
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0775,
+    "eiginfjarhlutfall": -0.7431,
+    "veltufjarhlutfall": 0.0007,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -777467,
+    "afskriftir": 0,
+    "fjarmunatekjur": 72,
+    "fjarmagnsgjold": -22327,
+    "hagn_f_skatt": -799722,
+    "tekjuskattur": 0,
+    "hagnadur": -799722
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10310422,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 12289,
+    "veltufjarmunir": 12289,
+    "eignir": 10322711,
+    "hlutafe": 500000,
+    "eigid_fe": -7670846,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 17993557,
+    "skuldir": 17993557,
+    "efe_skuldir": 10322711
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5312002250.pdf",
+ "pdfAr": "2024"
+}

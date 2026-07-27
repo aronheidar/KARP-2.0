@@ -1,0 +1,85 @@
+{
+ "kt": "4202220250",
+ "nafn": "070707 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.3216,
+    "ROA": 0.0133,
+    "eiginfjarhlutfall": 0.0414,
+    "veltufjarhlutfall": 6.5679,
+    "skuldahlutfall_DE": 23.1709,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -202811,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1134572,
+    "fjarmagnsgjold": -651736,
+    "hagn_f_skatt": 280025,
+    "tekjuskattur": -56005,
+    "hagnadur": 224020
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 699308,
+    "handbaert": 1991,
+    "veltufjarmunir": 16835831,
+    "eignir": 16835831,
+    "hlutafe": 500000,
+    "eigid_fe": 696533,
+    "langtimaskuldir": 16032521,
+    "skammtimaskuldir": 106777,
+    "skuldir": 16139298,
+    "efe_skuldir": 16835831
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.253,
+    "ROA": -0.253,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -141107,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1264,
+    "fjarmagnsgjold": -792,
+    "hagn_f_skatt": -140635,
+    "tekjuskattur": 0,
+    "hagnadur": -140635
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 84923,
+    "veltufjarmunir": 555898,
+    "eignir": 555898,
+    "hlutafe": 500000,
+    "eigid_fe": 555898,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 555898
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4202220250.pdf",
+ "pdfAr": "2024"
+}

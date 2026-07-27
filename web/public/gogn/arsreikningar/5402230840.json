@@ -1,0 +1,90 @@
+{
+ "kt": "5402230840",
+ "nafn": "AJR smíðar ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.243,
+    "hagnadarhlutfall": 0.1766,
+    "ROE": 0.8485,
+    "ROA": 0.3949,
+    "eiginfjarhlutfall": 0.4654,
+    "veltufjarhlutfall": 1.0649,
+    "skuldahlutfall_DE": 1.1485,
+    "eignavelta": 2.2368
+   },
+   "rekstur": {
+    "sala": 15857959,
+    "ebit": 3853354,
+    "afskriftir": 0,
+    "fjarmunatekjur": 10245,
+    "fjarmagnsgjold": -363865,
+    "hagn_f_skatt": 3499734,
+    "tekjuskattur": -699947,
+    "hagnadur": 2799787
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 4028654,
+    "handbaert": 6971,
+    "veltufjarmunir": 7089519,
+    "eignir": 7089519,
+    "hlutafe": 500000,
+    "eigid_fe": 3299787,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3789732,
+    "skuldir": 3789732,
+    "efe_skuldir": 7089519
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0022,
+    "hagnadarhlutfall": -0.065,
+    "ROE": -0.3724,
+    "ROA": -0.0905,
+    "eiginfjarhlutfall": 0.2429,
+    "veltufjarhlutfall": 0.7785,
+    "skuldahlutfall_DE": 3.1176,
+    "eignavelta": 1.3914
+   },
+   "rekstur": {
+    "sala": 13774935,
+    "ebit": 30613,
+    "afskriftir": 0,
+    "fjarmunatekjur": 676,
+    "fjarmagnsgjold": -926758,
+    "hagn_f_skatt": -895469,
+    "tekjuskattur": 0,
+    "hagnadur": -895469
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 5835685,
+    "handbaert": 0,
+    "veltufjarmunir": 9900055,
+    "eignir": 9900055,
+    "hlutafe": 500000,
+    "eigid_fe": 2404318,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7495737,
+    "skuldir": 7495737,
+    "efe_skuldir": 9900055
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5402230840.pdf",
+ "pdfAr": "2024"
+}

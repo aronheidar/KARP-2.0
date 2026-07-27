@@ -1,0 +1,85 @@
+{
+ "kt": "5305240430",
+ "nafn": "354 Iceland Tiling ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2363,
+    "hagnadarhlutfall": -0.2351,
+    "ROA": -19.193,
+    "veltufjarhlutfall": 0.0666,
+    "eignavelta": 81.6432
+   },
+   "rekstur": {
+    "sala": 7420797,
+    "ebit": -1753296,
+    "afskriftir": 0,
+    "fjarmunatekjur": 8880,
+    "fjarmagnsgjold": -93,
+    "hagn_f_skatt": -1744509,
+    "tekjuskattur": 0,
+    "hagnadur": -1744509
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 88939,
+    "veltufjarmunir": 90893,
+    "eignir": 90893,
+    "hlutafe": 500000,
+    "eigid_fe": -1244509,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1335402,
+    "skuldir": 1335402,
+    "efe_skuldir": 90893
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0156,
+    "hagnadarhlutfall": 0.0125,
+    "ROA": 0.0768,
+    "eiginfjarhlutfall": -0.4088,
+    "veltufjarhlutfall": 0.6482,
+    "eignavelta": 6.1651
+   },
+   "rekstur": {
+    "sala": 15797546,
+    "ebit": 246790,
+    "afskriftir": -54032,
+    "fjarmunatekjur": 28300,
+    "fjarmagnsgjold": -24166,
+    "hagn_f_skatt": 196892,
+    "tekjuskattur": 0,
+    "hagnadur": 196892
+   },
+   "efnahagur": {
+    "fastafjarmunir": 216129,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2340174,
+    "veltufjarmunir": 2346298,
+    "eignir": 2562427,
+    "hlutafe": 500000,
+    "eigid_fe": -1047617,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3610044,
+    "skuldir": 3610044,
+    "efe_skuldir": 2562427
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5305240430.pdf",
+ "pdfAr": "2025"
+}

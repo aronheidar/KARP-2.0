@@ -1,0 +1,70 @@
+{
+ "kt": "5904051320",
+ "nafn": "Bifreiðaverkstæði Sigurstei ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.751,
+    "hagnadarhlutfall": 0.0906,
+    "ROA": 0.1274,
+    "eignavelta": 1.4059
+   },
+   "rekstur": {
+    "sala": 60393590,
+    "kostnadarverd": 15040978,
+    "laun": 16545416,
+    "annar_rekstur": 20819514,
+    "afskriftir": 6115249,
+    "fjarmunatekjur": 317713,
+    "fjarmagnsgjold": -3068050,
+    "hagn_f_skatt": 6931090,
+    "tekjuskattur": -1460023,
+    "hagnadur": 5471067
+   },
+   "efnahagur": {
+    "fastafjarmunir": 35419631,
+    "handbaert": 326779,
+    "veltufjarmunir": 7538757,
+    "eignir": 42958388
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7048,
+    "hagnadarhlutfall": -0.0523,
+    "ROA": -0.08,
+    "eignavelta": 1.529
+   },
+   "rekstur": {
+    "sala": 53398265,
+    "kostnadarverd": 15763472,
+    "laun": 16677774,
+    "annar_rekstur": 16160003,
+    "afskriftir": 5205190,
+    "fjarmunatekjur": 300266,
+    "fjarmagnsgjold": -2664613,
+    "hagn_f_skatt": 2794721,
+    "tekjuskattur": 0,
+    "hagnadur": -2794721
+   },
+   "efnahagur": {
+    "fastafjarmunir": 30214441,
+    "handbaert": 496934,
+    "veltufjarmunir": 4709525,
+    "eignir": 34923966
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5904051320.pdf",
+ "pdfAr": "2025"
+}

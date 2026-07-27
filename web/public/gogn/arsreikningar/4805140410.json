@@ -1,0 +1,88 @@
+{
+ "kt": "4805140410",
+ "nafn": "4 loppur ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.586,
+    "hagnadarhlutfall": 0.5054,
+    "ROE": 0.0333,
+    "ROA": 0.0274,
+    "eiginfjarhlutfall": 0.8217,
+    "veltufjarhlutfall": 5.6095,
+    "skuldahlutfall_DE": 0.2169,
+    "eignavelta": 0.0542
+   },
+   "rekstur": {
+    "sala": 124987,
+    "ebit": 73247,
+    "afskriftir": 0,
+    "fjarmunatekjur": 539,
+    "fjarmagnsgjold": -10615,
+    "hagn_f_skatt": 63171,
+    "tekjuskattur": 0,
+    "hagnadur": 63171
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2300000,
+    "vidskiptakrofur": 0,
+    "handbaert": 7560,
+    "veltufjarmunir": 2307679,
+    "eignir": 2307679,
+    "hlutafe": 500000,
+    "eigid_fe": 1896309,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 411369,
+    "skuldir": 411369,
+    "efe_skuldir": 2307678
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0111,
+    "ROA": -0.009,
+    "eiginfjarhlutfall": 0.8153,
+    "veltufjarhlutfall": 5.4142,
+    "skuldahlutfall_DE": 0.2265,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 83,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20817,
+    "tekjuskattur": 0,
+    "hagnadur": -20817
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2300000,
+    "vidskiptakrofur": 0,
+    "handbaert": 345,
+    "veltufjarmunir": 2300363,
+    "eignir": 2300363,
+    "hlutafe": 500000,
+    "eigid_fe": 1875492,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 424871,
+    "skuldir": 424871,
+    "efe_skuldir": 2300363
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4805140410.pdf",
+ "pdfAr": "2024"
+}

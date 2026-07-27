@@ -1,0 +1,86 @@
+{
+ "kt": "6604022760",
+ "nafn": "Gnógur - Masada ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0786,
+    "ROA": -0.077,
+    "eiginfjarhlutfall": 0.9796,
+    "veltufjarhlutfall": 24.6544,
+    "skuldahlutfall_DE": 0.0209,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -15397296,
+    "afskriftir": 0,
+    "fjarmunatekjur": 34066004,
+    "fjarmagnsgjold": -895007,
+    "hagn_f_skatt": -288744356,
+    "tekjuskattur": 0,
+    "hagnadur": -288744356
+   },
+   "efnahagur": {
+    "fastafjarmunir": 566055322,
+    "birgdir": 0,
+    "vidskiptakrofur": 686851378,
+    "handbaert": 1203309109,
+    "veltufjarmunir": 3184003309,
+    "eignir": 3750058631,
+    "hlutafe": 7028601,
+    "eigid_fe": 3673392360,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 76666271,
+    "skuldir": 76666271,
+    "efe_skuldir": 3750058631
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0163,
+    "ROA": 0.0159,
+    "eiginfjarhlutfall": 0.9751,
+    "veltufjarhlutfall": 14.2174,
+    "skuldahlutfall_DE": 0.0255,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -11775812,
+    "afskriftir": 0,
+    "fjarmunatekjur": 90269764,
+    "fjarmagnsgjold": -1733607,
+    "hagn_f_skatt": 60127034,
+    "tekjuskattur": 0,
+    "hagnadur": 60127034
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1166055322,
+    "birgdir": 0,
+    "vidskiptakrofur": 674257172,
+    "handbaert": 668181101,
+    "veltufjarmunir": 2626186420,
+    "eignir": 3792241742,
+    "hlutafe": 7028601,
+    "eigid_fe": 3697819394,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 94422348,
+    "skuldir": 94422348,
+    "efe_skuldir": 3792241742
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6604022760.pdf",
+ "pdfAr": "2025"
+}

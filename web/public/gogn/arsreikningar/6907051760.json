@@ -1,0 +1,82 @@
+{
+ "kt": "6907051760",
+ "nafn": "Rafprýði ehf",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2441,
+    "hagnadarhlutfall": 0.2441,
+    "ROA": 0.3231,
+    "veltufjarhlutfall": 0.2008,
+    "eignavelta": 1.3234
+   },
+   "rekstur": {
+    "sala": 365130,
+    "ebit": 89139,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 89139,
+    "tekjuskattur": 0,
+    "hagnadur": 89139
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 225350,
+    "vidskiptakrofur": 0,
+    "handbaert": 50556,
+    "veltufjarmunir": 275906,
+    "eignir": 275906,
+    "hlutafe": 500000,
+    "eigid_fe": -1098265,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1374171,
+    "skuldir": 1374171,
+    "efe_skuldir": 275906
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "veltufjarhlutfall": 0.1868,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 225350,
+    "vidskiptakrofur": 0,
+    "handbaert": 26960,
+    "veltufjarmunir": 252310,
+    "eignir": 252310,
+    "hlutafe": 500000,
+    "eigid_fe": -1098265,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1350575,
+    "skuldir": 1350575,
+    "efe_skuldir": 252310
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6907051760.pdf",
+ "pdfAr": "2022"
+}

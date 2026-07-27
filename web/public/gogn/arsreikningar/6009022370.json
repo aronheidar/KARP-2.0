@@ -1,0 +1,76 @@
+{
+ "kt": "6009022370",
+ "nafn": "Óri ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -69058,
+    "hagn_f_skatt": -704031,
+    "tekjuskattur": 0,
+    "hagnadur": -704031
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -997661,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 997661,
+    "skuldir": 997661,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -1018561,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1018561,
+    "skuldir": 1018561,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6009022370.pdf",
+ "pdfAr": "2024"
+}

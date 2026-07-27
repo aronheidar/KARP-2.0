@@ -1,0 +1,71 @@
+{
+ "kt": "4304240410",
+ "nafn": "580 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3908,
+    "ROA": -0.3908,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "ebit": -140500,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -140500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 120000,
+    "vidskiptakrofur": null,
+    "handbaert": 239500,
+    "veltufjarmunir": 239500,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 359500
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0633,
+    "ROA": -0.0595,
+    "eiginfjarhlutfall": 0.9405,
+    "veltufjarhlutfall": 11.1916,
+    "skuldahlutfall_DE": 0.0633
+   },
+   "rekstur": {
+    "ebit": -21400,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 120000,
+    "vidskiptakrofur": 0,
+    "handbaert": 239500,
+    "veltufjarmunir": 239500,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 338100,
+    "skammtimaskuldir": 21400,
+    "skuldir": 21400,
+    "efe_skuldir": 359500
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4304240410.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,76 @@
+{
+ "kt": "6005151950",
+ "nafn": "9XING ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -4279902,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4279902,
+    "skuldir": 4279902,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -4279902,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4279902,
+    "skuldir": 4279902,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6005151950.pdf",
+ "pdfAr": "2023"
+}

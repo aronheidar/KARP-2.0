@@ -1,0 +1,75 @@
+{
+ "kt": "4608130930",
+ "nafn": "Salvus ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1391,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 0,
+    "annar_rekstur": 239099,
+    "fjarmagnsgjold": -880993,
+    "hagn_f_skatt": -1120041,
+    "hagnadur": -1120041
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8050000,
+    "vidskiptakrofur": 11,
+    "handbaert": 1392,
+    "veltufjarmunir": 1403,
+    "eignir": 8051403,
+    "hlutafe": 600000,
+    "eigid_fe": -21489938,
+    "langtimaskuldir": 8468583,
+    "skammtimaskuldir": 21072758,
+    "efe_skuldir": 8051403,
+    "skuldir": 29541341
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -5.5053,
+    "ROA": -0.0927,
+    "veltufjarhlutfall": 0.0128,
+    "eignavelta": 0.0168
+   },
+   "rekstur": {
+    "adrar_tekjur": 140145,
+    "sala": 140145,
+    "annar_rekstur": 23300,
+    "fjarmagnsgjold": -888466,
+    "hagn_f_skatt": -771540,
+    "hagnadur": -771540
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8050000,
+    "vidskiptakrofur": 256056,
+    "handbaert": 20783,
+    "veltufjarmunir": 276839,
+    "eignir": 8326839,
+    "hlutafe": 600000,
+    "eigid_fe": -22261478,
+    "langtimaskuldir": 8927875,
+    "skammtimaskuldir": 21660442,
+    "efe_skuldir": 8326839,
+    "skuldir": 30588317
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4608130930.pdf",
+ "pdfAr": "2025"
+}

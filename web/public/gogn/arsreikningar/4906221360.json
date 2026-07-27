@@ -1,0 +1,84 @@
+{
+ "kt": "4906221360",
+ "nafn": "Brand Vín & Grill ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.612,
+    "hagnadarhlutfall": 0.0062,
+    "ROE": 0.1632,
+    "ROA": 0.0495,
+    "eiginfjarhlutfall": 0.3034,
+    "veltufjarhlutfall": 17.4923,
+    "skuldahlutfall_DE": 2.2956,
+    "eignavelta": 8.0132
+   },
+   "rekstur": {
+    "sala": 218520550,
+    "kostnadarverd": 84786102,
+    "laun": 81473872,
+    "annar_rekstur": 46360394,
+    "afskriftir": 3892576,
+    "fjarmunatekjur": 196585,
+    "fjarmagnsgjold": 510912,
+    "tekjuskattur": -342696,
+    "hagnadur": 1350583
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 12318016,
+    "handbaert": 7723090,
+    "eignir": 27270176,
+    "hlutafe": 500000,
+    "eigid_fe": 8274697,
+    "skammtimaskuldir": 1145710,
+    "skuldir": 18995479,
+    "efe_skuldir": 27270176
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5941,
+    "hagnadarhlutfall": -0.001,
+    "ROE": -0.0243,
+    "ROA": -0.0102,
+    "eiginfjarhlutfall": 0.4209,
+    "veltufjarhlutfall": 1.304,
+    "skuldahlutfall_DE": 1.3761,
+    "eignavelta": 10.1331
+   },
+   "rekstur": {
+    "sala": 194514232,
+    "kostnadarverd": 78959115,
+    "laun": 76902096,
+    "annar_rekstur": 34747957,
+    "afskriftir": 2530175,
+    "fjarmunatekjur": 31394,
+    "fjarmagnsgjold": 1602221,
+    "tekjuskattur": 0,
+    "hagnadur": -195938
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11055848,
+    "handbaert": 3441159,
+    "eignir": 19195902,
+    "hlutafe": 500000,
+    "eigid_fe": 8078759,
+    "skammtimaskuldir": 0,
+    "skuldir": 11117143,
+    "efe_skuldir": 19195902
+   },
+   "starfsmenn": 8
+  }
+ },
+ "pdf": "pdf/4906221360.pdf",
+ "pdfAr": "2024"
+}

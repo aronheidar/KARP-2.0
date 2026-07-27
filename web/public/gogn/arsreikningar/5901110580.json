@@ -1,0 +1,74 @@
+{
+ "kt": "5901110580",
+ "nafn": "b364 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.8073,
+    "ROA": 0.6687,
+    "eiginfjarhlutfall": 0.8283,
+    "veltufjarhlutfall": 4.9882,
+    "skuldahlutfall_DE": 0.2073
+   },
+   "rekstur": {
+    "laun": 18862074,
+    "annar_rekstur": 13496379,
+    "ebit": 59517582,
+    "fjarmunatekjur": 133145,
+    "fjarmagnsgjold": -234525,
+    "tekjuskattur": -11887280,
+    "hagnadur": 47528922
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 59827975,
+    "handbaert": 1047954,
+    "eignir": 71077072,
+    "hlutafe": 500000,
+    "skuldir": 12203983,
+    "efe_skuldir": 71077072,
+    "eigid_fe": 58873089,
+    "skammtimaskuldir": 12203983
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.8465,
+    "ROA": 0.2273,
+    "eiginfjarhlutfall": 0.2685,
+    "veltufjarhlutfall": 0.5751,
+    "skuldahlutfall_DE": 2.7248
+   },
+   "rekstur": {
+    "laun": 47371065,
+    "annar_rekstur": 17260702,
+    "ebit": 11737692,
+    "fjarmunatekjur": 136886,
+    "fjarmagnsgjold": -3027340,
+    "tekjuskattur": -1862309,
+    "hagnadur": 6984929
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11848547,
+    "handbaert": 1082443,
+    "eignir": 30735132,
+    "hlutafe": 500000,
+    "skuldir": 22483705,
+    "efe_skuldir": 30735132,
+    "eigid_fe": 8251427,
+    "skammtimaskuldir": 22483705
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/5901110580.pdf",
+ "pdfAr": "2024"
+}

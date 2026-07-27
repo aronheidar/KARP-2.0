@@ -1,0 +1,88 @@
+{
+ "kt": "5705210980",
+ "nafn": "W12 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2209,
+    "hagnadarhlutfall": 0.1025,
+    "ROE": 1.054,
+    "ROA": 0.0523,
+    "eiginfjarhlutfall": 0.0497,
+    "veltufjarhlutfall": 0.9153,
+    "skuldahlutfall_DE": 19.1344,
+    "eignavelta": 0.511
+   },
+   "rekstur": {
+    "sala": 8450678,
+    "ebit": 1866971,
+    "afskriftir": -951333,
+    "fjarmunatekjur": 18429,
+    "fjarmagnsgjold": -68284,
+    "hagn_f_skatt": 865783,
+    "tekjuskattur": 0,
+    "hagnadur": 865783
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5390887,
+    "birgdir": 9792178,
+    "vidskiptakrofur": 0,
+    "handbaert": 1351786,
+    "veltufjarmunir": 11148018,
+    "eignir": 16538905,
+    "hlutafe": 501000,
+    "eigid_fe": 821426,
+    "langtimaskuldir": 3542220,
+    "skammtimaskuldir": 12175259,
+    "skuldir": 15717479,
+    "efe_skuldir": 16538905
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0793,
+    "hagnadarhlutfall": -0.3908,
+    "ROA": -0.1221,
+    "eiginfjarhlutfall": -0.0631,
+    "veltufjarhlutfall": 0.8084,
+    "eignavelta": 0.3125
+   },
+   "rekstur": {
+    "sala": 4348272,
+    "ebit": -344609,
+    "afskriftir": -808633,
+    "fjarmunatekjur": 7353,
+    "fjarmagnsgjold": -460521,
+    "hagn_f_skatt": -1627310,
+    "tekjuskattur": -71885,
+    "hagnadur": -1699195
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4582254,
+    "birgdir": 9147178,
+    "vidskiptakrofur": 0,
+    "handbaert": 184322,
+    "veltufjarmunir": 9333118,
+    "eignir": 13915372,
+    "hlutafe": 501000,
+    "eigid_fe": -877769,
+    "langtimaskuldir": 3249730,
+    "skammtimaskuldir": 11543411,
+    "skuldir": 14793141,
+    "efe_skuldir": 13915372
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5705210980.pdf",
+ "pdfAr": "2024"
+}

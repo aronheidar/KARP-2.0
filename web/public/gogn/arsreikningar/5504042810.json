@@ -1,0 +1,72 @@
+{
+ "kt": "5504042810",
+ "nafn": "Málningarþjónustan J-R-J ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6823,
+    "ebit_hlutfall": 0.1391,
+    "hagnadarhlutfall": 0.1216,
+    "ROA": 0.2612,
+    "eignavelta": 2.1481
+   },
+   "rekstur": {
+    "sala": 337574022,
+    "kostnadarverd": 107242285,
+    "laun": 142268763,
+    "annar_rekstur": 37922456,
+    "afskriftir": 3187171,
+    "ebit": 46953347,
+    "fjarmunatekjur": 5151456,
+    "fjarmagnsgjold": -133266,
+    "hagn_f_skatt": 51971537,
+    "tekjuskattur": -10918412,
+    "hagnadur": 41053125
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 28366297,
+    "handbaert": 106176193,
+    "eignir": 157149575
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6713,
+    "ebit_hlutfall": 0.2102,
+    "hagnadarhlutfall": 0.1723,
+    "ROA": 0.489,
+    "eignavelta": 2.8371
+   },
+   "rekstur": {
+    "sala": 391277748,
+    "kostnadarverd": 128603444,
+    "laun": 145819428,
+    "annar_rekstur": 31626231,
+    "afskriftir": 2964736,
+    "ebit": 82263909,
+    "fjarmunatekjur": 2556043,
+    "fjarmagnsgjold": -219913,
+    "hagn_f_skatt": 84600039,
+    "tekjuskattur": -17166688,
+    "hagnadur": 67433351
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 39842675,
+    "handbaert": 77986888,
+    "eignir": 137912549
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5504042810.pdf",
+ "pdfAr": "2025"
+}

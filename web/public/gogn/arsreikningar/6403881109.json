@@ -1,0 +1,72 @@
+{
+ "kt": "6403881109",
+ "nafn": "Milestone ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2005": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 3.5219,
+    "ROE": 0.5705,
+    "ROA": 0.1747,
+    "eiginfjarhlutfall": 0.3062,
+    "veltufjarhlutfall": 0.0809,
+    "skuldahlutfall_DE": 2.2659,
+    "eignavelta": 0.0496
+   },
+   "rekstur": {
+    "sala": 4185,
+    "hagn_f_skatt": 17819,
+    "hagnadur": 14739
+   },
+   "efnahagur": {
+    "handbaert": 2246,
+    "vidskiptakrofur": 2489,
+    "birgdir": 0,
+    "eignir": 84369,
+    "hlutafe": 2714,
+    "eigid_fe": 25833,
+    "skuldir": 58536,
+    "efe_skuldir": 84369,
+    "skammtimaskuldir": 58536
+   },
+   "starfsmenn": null
+  },
+  "2006": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 1.7107,
+    "ROE": 0.4904,
+    "ROA": 0.1261,
+    "eiginfjarhlutfall": 0.2571,
+    "veltufjarhlutfall": 0.1213,
+    "skuldahlutfall_DE": 2.8895,
+    "eignavelta": 0.0737
+   },
+   "rekstur": {
+    "sala": 12535,
+    "hagn_f_skatt": 17916,
+    "hagnadur": 21444
+   },
+   "efnahagur": {
+    "handbaert": 5475,
+    "vidskiptakrofur": 9187,
+    "birgdir": 667,
+    "eignir": 170075,
+    "hlutafe": 2714,
+    "eigid_fe": 43727,
+    "skuldir": 126348,
+    "efe_skuldir": 170075,
+    "skammtimaskuldir": 126348
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6403881109.pdf",
+ "pdfAr": "2006"
+}

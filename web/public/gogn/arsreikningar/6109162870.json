@@ -1,0 +1,90 @@
+{
+ "kt": "6109162870",
+ "nafn": "Spanis ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2622,
+    "hagnadarhlutfall": 0.1547,
+    "ROE": 0.1937,
+    "ROA": 0.1828,
+    "eiginfjarhlutfall": 0.9433,
+    "veltufjarhlutfall": 6.1101,
+    "skuldahlutfall_DE": 0.0601,
+    "eignavelta": 1.1816
+   },
+   "rekstur": {
+    "sala": 5695396,
+    "ebit": 1493427,
+    "afskriftir": -600000,
+    "fjarmunatekjur": 672,
+    "fjarmagnsgjold": -13212,
+    "hagn_f_skatt": 880887,
+    "tekjuskattur": 0,
+    "hagnadur": 880887
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2400000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1417590,
+    "handbaert": 253041,
+    "veltufjarmunir": 2420109,
+    "eignir": 4820109,
+    "hlutafe": 500000,
+    "eigid_fe": 4546686,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 273423,
+    "skuldir": 273423,
+    "efe_skuldir": 4820109
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2195,
+    "hagnadarhlutfall": 0.1487,
+    "ROE": 0.3061,
+    "ROA": 0.234,
+    "eiginfjarhlutfall": 0.7644,
+    "veltufjarhlutfall": 4.5271,
+    "skuldahlutfall_DE": 0.3082,
+    "eignavelta": 1.5733
+   },
+   "rekstur": {
+    "sala": 13485886,
+    "ebit": 2959579,
+    "afskriftir": -820000,
+    "fjarmunatekjur": 897,
+    "fjarmagnsgjold": -134754,
+    "hagn_f_skatt": 2005722,
+    "tekjuskattur": 0,
+    "hagnadur": 2005722
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3280000,
+    "birgdir": 0,
+    "vidskiptakrofur": 3451920,
+    "handbaert": 0,
+    "veltufjarmunir": 5291676,
+    "eignir": 8571676,
+    "hlutafe": 500000,
+    "eigid_fe": 6552408,
+    "langtimaskuldir": 1256761,
+    "skammtimaskuldir": 762507,
+    "skuldir": 2019268,
+    "efe_skuldir": 8571676
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6109162870.pdf",
+ "pdfAr": "2023"
+}

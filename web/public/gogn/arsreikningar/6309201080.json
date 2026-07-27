@@ -1,0 +1,85 @@
+{
+ "kt": "6309201080",
+ "nafn": "Iðnaðurinn ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3425,
+    "hagnadarhlutfall": 0.2997,
+    "ROA": 1.653,
+    "veltufjarhlutfall": 0.1229,
+    "eignavelta": 5.5155
+   },
+   "rekstur": {
+    "sala": 9412403,
+    "ebit": 3224026,
+    "afskriftir": -228129,
+    "fjarmunatekjur": 11513,
+    "fjarmagnsgjold": -186432,
+    "hagn_f_skatt": 2820978,
+    "tekjuskattur": 0,
+    "hagnadur": 2820978
+   },
+   "efnahagur": {
+    "fastafjarmunir": 912516,
+    "birgdir": 0,
+    "vidskiptakrofur": 775800,
+    "handbaert": 15702,
+    "veltufjarmunir": 794030,
+    "eignir": 1706546,
+    "hlutafe": 500000,
+    "eigid_fe": -4733857,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6440403,
+    "skuldir": 6440403,
+    "efe_skuldir": 1706546
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.061,
+    "hagnadarhlutfall": -0.2672,
+    "ROA": -0.3316,
+    "eiginfjarhlutfall": -0.9289,
+    "veltufjarhlutfall": 0.089,
+    "eignavelta": 1.2412
+   },
+   "rekstur": {
+    "sala": 9837504,
+    "ebit": -599644,
+    "afskriftir": -1762503,
+    "fjarmunatekjur": 5975,
+    "fjarmagnsgjold": -272183,
+    "hagn_f_skatt": -2628355,
+    "tekjuskattur": 0,
+    "hagnadur": -2628355
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7050013,
+    "birgdir": 0,
+    "vidskiptakrofur": 443616,
+    "handbaert": 430852,
+    "veltufjarmunir": 875876,
+    "eignir": 7925889,
+    "hlutafe": 500000,
+    "eigid_fe": -7362212,
+    "langtimaskuldir": 5467210,
+    "skammtimaskuldir": 9820891,
+    "skuldir": 15288101,
+    "efe_skuldir": 7925889
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6309201080.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,44 @@
+{
+ "kt": "5101220700",
+ "nafn": "MIRZA Info-Tech operations ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "annar_rekstur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.406
+   },
+   "rekstur": {
+    "annar_rekstur": 149800,
+    "hagnadur": -149800
+   },
+   "efnahagur": {
+    "handbaert": 369000,
+    "veltufjarmunir": 369000,
+    "eignir": 369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5101220700.pdf",
+ "pdfAr": "2021"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "6304080240",
+ "nafn": "Hjólbarðaverkstæði Sigurjón ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0191,
+    "ROA": -0.0191,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18800,
+    "tekjuskattur": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 31006,
+    "veltufjarmunir": 981807,
+    "eignir": 981807,
+    "hlutafe": 8000000,
+    "eigid_fe": 981807,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 981807
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.021,
+    "ROA": -0.021,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 31006,
+    "veltufjarmunir": 961607,
+    "eignir": 961607,
+    "hlutafe": 8000000,
+    "eigid_fe": 961607,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 961607
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6304080240.pdf",
+ "pdfAr": "2023"
+}

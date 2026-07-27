@@ -1,0 +1,86 @@
+{
+ "kt": "5112200840",
+ "nafn": "966 ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0881,
+    "ROA": -0.0005,
+    "eiginfjarhlutfall": 0.0054,
+    "veltufjarhlutfall": 0.0002,
+    "skuldahlutfall_DE": 183.4776,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -27368,
+    "afskriftir": 0,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -25149,
+    "tekjuskattur": 0,
+    "hagnadur": -25149
+   },
+   "efnahagur": {
+    "fastafjarmunir": 52676211,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10788,
+    "veltufjarmunir": 10788,
+    "eignir": 52686999,
+    "hlutafe": 500000,
+    "eigid_fe": 285601,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 52401398,
+    "skuldir": 52401398,
+    "efe_skuldir": 52686999
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1335,
+    "ROA": -0.0006,
+    "eiginfjarhlutfall": 0.0048,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 208.0618,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -32777,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2219,
+    "fjarmagnsgjold": -880,
+    "hagn_f_skatt": -33629,
+    "tekjuskattur": 0,
+    "hagnadur": -33629
+   },
+   "efnahagur": {
+    "fastafjarmunir": 52676211,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1518,
+    "veltufjarmunir": 1518,
+    "eignir": 52677729,
+    "hlutafe": 500000,
+    "eigid_fe": 251972,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 52425757,
+    "skuldir": 52425757,
+    "efe_skuldir": 52677729
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5112200840.pdf",
+ "pdfAr": "2025"
+}

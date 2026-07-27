@@ -1,0 +1,84 @@
+{
+ "kt": "4210891839",
+ "nafn": "Náttúrulækningabúðin ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.014,
+    "ROA": -0.0139,
+    "eiginfjarhlutfall": 0.9959,
+    "veltufjarhlutfall": 1129.0544,
+    "skuldahlutfall_DE": 0.0041,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": -328380,
+    "afskriftir": -101304,
+    "ebit": -429684,
+    "fjarmunatekjur": 9655,
+    "fjarmagnsgjold": -2291,
+    "hagn_f_skatt": -422320,
+    "tekjuskattur": 80424,
+    "hagnadur": -341896
+   },
+   "efnahagur": {
+    "fastafjarmunir": 812642,
+    "vidskiptakrofur": 23358724,
+    "handbaert": 344645,
+    "veltufjarmunir": 23703369,
+    "eignir": 24516011,
+    "hlutafe": 25656649,
+    "eigid_fe": 24415018,
+    "skammtimaskuldir": 20994,
+    "skuldir": 100993,
+    "efe_skuldir": 24516011
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.168,
+    "ROA": -0.0421,
+    "eiginfjarhlutfall": 0.2506,
+    "veltufjarhlutfall": 1.2187,
+    "skuldahlutfall_DE": 2.9908,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": -365482,
+    "afskriftir": -81043,
+    "ebit": -446525,
+    "fjarmunatekjur": 4926,
+    "fjarmagnsgjold": -7053,
+    "hagn_f_skatt": -448652,
+    "tekjuskattur": 89150,
+    "hagnadur": -359502
+   },
+   "efnahagur": {
+    "fastafjarmunir": 740750,
+    "vidskiptakrofur": 7704431,
+    "handbaert": 97076,
+    "veltufjarmunir": 7801507,
+    "eignir": 8542257,
+    "hlutafe": 2000000,
+    "eigid_fe": 2140498,
+    "skammtimaskuldir": 6401759,
+    "skuldir": 6401759,
+    "efe_skuldir": 8542257
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4210891839.pdf",
+ "pdfAr": "2024"
+}

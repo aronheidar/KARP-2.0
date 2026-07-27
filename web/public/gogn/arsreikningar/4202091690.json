@@ -1,0 +1,82 @@
+{
+ "kt": "4202091690",
+ "nafn": "B. Sturluson ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5204,
+    "hagnadarhlutfall": -0.0779,
+    "ROA": -0.1241,
+    "eiginfjarhlutfall": -1.167,
+    "veltufjarhlutfall": 0.1417,
+    "eignavelta": 1.5941
+   },
+   "rekstur": {
+    "sala": 156420318,
+    "kostnadarverd": 75014309,
+    "laun": 70500318,
+    "annar_rekstur": 15600538,
+    "afskriftir": 7689937,
+    "fjarmunatekjur": 119601,
+    "fjarmagnsgjold": 1107582,
+    "hagnadur": -12178170
+   },
+   "efnahagur": {
+    "fastafjarmunir": 45076312,
+    "birgdir": 13500000,
+    "vidskiptakrofur": 15818254,
+    "handbaert": 802225,
+    "eignir": 98123431,
+    "hlutafe": 500000,
+    "eigid_fe": -114509321,
+    "skuldir": 212632752,
+    "efe_skuldir": 98123431,
+    "skammtimaskuldir": 212632752
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4215,
+    "hagnadarhlutfall": -0.2089,
+    "ROA": -0.3595,
+    "eiginfjarhlutfall": -1.1837,
+    "veltufjarhlutfall": 0.2113,
+    "eignavelta": 1.7208
+   },
+   "rekstur": {
+    "sala": 239076054,
+    "kostnadarverd": 138315105,
+    "laun": 108134603,
+    "annar_rekstur": 24250874,
+    "afskriftir": 9581393,
+    "fjarmunatekjur": 147626,
+    "fjarmagnsgjold": -8893594,
+    "hagnadur": -49951889
+   },
+   "efnahagur": {
+    "fastafjarmunir": 53732783,
+    "birgdir": 13500000,
+    "vidskiptakrofur": 50508160,
+    "handbaert": 85031,
+    "eignir": 138933440,
+    "hlutafe": 500000,
+    "eigid_fe": -164461210,
+    "skuldir": 303394650,
+    "efe_skuldir": 138933440,
+    "skammtimaskuldir": 303394650
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4202091690.pdf",
+ "pdfAr": "2022"
+}

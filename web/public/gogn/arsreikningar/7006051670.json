@@ -1,0 +1,98 @@
+{
+ "kt": "7006051670",
+ "nafn": "J Hlíðdal ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9344,
+    "ebit_hlutfall": -0.0666,
+    "hagnadarhlutfall": -0.044,
+    "ROE": -0.017,
+    "ROA": -0.0118,
+    "eiginfjarhlutfall": 0.6964,
+    "veltufjarhlutfall": 1.3174,
+    "skuldahlutfall_DE": 0.4359,
+    "eignavelta": 0.2681
+   },
+   "rekstur": {
+    "sala": 78458195,
+    "adrar_tekjur": 18305542,
+    "kostnadarverd": 5149188,
+    "laun": 6713290,
+    "annar_rekstur": 26004808,
+    "afskriftir": 45812751,
+    "ebit": -5221842,
+    "fjarmunatekjur": 2021481,
+    "fjarmagnsgjold": -61613,
+    "hagn_f_skatt": -4122773,
+    "tekjuskattur": 667102,
+    "hagnadur": -3455671
+   },
+   "efnahagur": {
+    "fastafjarmunir": 187550312,
+    "vidskiptakrofur": 28395583,
+    "handbaert": 75964873,
+    "veltufjarmunir": 105073571,
+    "eignir": 292623883,
+    "hlutafe": 4719786,
+    "eigid_fe": 203788410,
+    "langtimaskuldir": 9619262,
+    "skammtimaskuldir": 79216211,
+    "skuldir": 88835473,
+    "efe_skuldir": 292623883
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9249,
+    "ebit_hlutfall": -0.0684,
+    "hagnadarhlutfall": -0.023,
+    "ROE": -0.0059,
+    "ROA": -0.0047,
+    "eiginfjarhlutfall": 0.7942,
+    "veltufjarhlutfall": 0.8571,
+    "skuldahlutfall_DE": 0.2591,
+    "eignavelta": 0.2047
+   },
+   "rekstur": {
+    "sala": 52225642,
+    "adrar_tekjur": 4750000,
+    "kostnadarverd": 3921039,
+    "laun": 6188277,
+    "annar_rekstur": 18436331,
+    "afskriftir": 27253146,
+    "ebit": -3573151,
+    "fjarmunatekjur": 3450780,
+    "fjarmagnsgjold": -11383,
+    "hagn_f_skatt": -1364681,
+    "tekjuskattur": 160971,
+    "hagnadur": -1203710
+   },
+   "efnahagur": {
+    "fastafjarmunir": 217147166,
+    "vidskiptakrofur": 21027654,
+    "handbaert": 15857856,
+    "veltufjarmunir": 37930651,
+    "eignir": 255077817,
+    "hlutafe": 4719786,
+    "eigid_fe": 202584700,
+    "langtimaskuldir": 9458291,
+    "skammtimaskuldir": 43034826,
+    "skuldir": 52493117,
+    "efe_skuldir": 255077817
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/7006051670.pdf",
+ "pdfAr": "2024"
+}

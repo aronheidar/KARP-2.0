@@ -1,0 +1,73 @@
+{
+ "kt": "4606190330",
+ "nafn": "Íslandskróna ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4258,
+    "ROA": 0.4234,
+    "eiginfjarhlutfall": 0.9943,
+    "veltufjarhlutfall": 10.0212,
+    "skuldahlutfall_DE": 0.0057
+   },
+   "rekstur": {
+    "ebit": -20477,
+    "fjarmunatekjur": 506,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 1553497,
+    "hagnadur": 1553497
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3460171,
+    "vidskiptakrofur": 111,
+    "handbaert": 209242,
+    "veltufjarmunir": 209353,
+    "eignir": 3669524,
+    "hlutafe": 500000,
+    "eigid_fe": 3648633,
+    "skammtimaskuldir": 20891,
+    "skuldir": 20891,
+    "efe_skuldir": 3669524
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1921,
+    "ROA": 0.1921,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "ebit": -21400,
+    "fjarmunatekjur": 278,
+    "fjarmagnsgjold": -2493,
+    "hagn_f_skatt": 867607,
+    "hagnadur": 867607
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4351393,
+    "vidskiptakrofur": 172,
+    "handbaert": 164675,
+    "veltufjarmunir": 164847,
+    "eignir": 4516240,
+    "hlutafe": 500000,
+    "eigid_fe": 4516240,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 4516240
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4606190330.pdf",
+ "pdfAr": "2025"
+}

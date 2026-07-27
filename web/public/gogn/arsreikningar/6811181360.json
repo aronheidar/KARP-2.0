@@ -1,0 +1,90 @@
+{
+ "kt": "6811181360",
+ "nafn": "Quasar ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1586,
+    "hagnadarhlutfall": 0.1736,
+    "ROE": 1.9337,
+    "ROA": 0.0861,
+    "eiginfjarhlutfall": 0.0445,
+    "veltufjarhlutfall": 1.0397,
+    "skuldahlutfall_DE": 21.4521,
+    "eignavelta": 0.4962
+   },
+   "rekstur": {
+    "adrar_tekjur": 2032658,
+    "sala": 2032658,
+    "laun": 485611,
+    "annar_rekstur": 532307,
+    "ebit": 322328,
+    "fjarmagnsgjold": 71186,
+    "hagn_f_skatt": 373710,
+    "tekjuskattur": 0,
+    "hagnadur": 352810
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 961852,
+    "handbaert": 3107705,
+    "veltufjarmunir": 4096522,
+    "eignir": 4096522,
+    "hlutafe": 510000,
+    "eigid_fe": 182456,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3914066,
+    "skuldir": 3914066,
+    "efe_skuldir": 4096522
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1629,
+    "hagnadarhlutfall": 0.0905,
+    "ROE": 0.727,
+    "ROA": 0.0585,
+    "eiginfjarhlutfall": 0.0804,
+    "veltufjarhlutfall": 1.0813,
+    "skuldahlutfall_DE": 11.4345,
+    "eignavelta": 0.646
+   },
+   "rekstur": {
+    "adrar_tekjur": 5368385,
+    "sala": 5368385,
+    "laun": 1907747,
+    "annar_rekstur": 1758212,
+    "ebit": 874540,
+    "fjarmagnsgjold": 437376,
+    "hagn_f_skatt": 652472,
+    "tekjuskattur": 145198,
+    "hagnadur": 485874
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 1340016,
+    "handbaert": 6922958,
+    "veltufjarmunir": 8310341,
+    "eignir": 8310341,
+    "hlutafe": 510000,
+    "eigid_fe": 668330,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7642011,
+    "skuldir": 7642011,
+    "efe_skuldir": 8310341
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6811181360.pdf",
+ "pdfAr": "2024"
+}

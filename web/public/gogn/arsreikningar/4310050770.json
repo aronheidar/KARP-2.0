@@ -1,0 +1,70 @@
+{
+ "kt": "4310050770",
+ "nafn": "IBI & Art Invest ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0912,
+    "veltufjarhlutfall": 0.0015
+   },
+   "rekstur": {
+    "annar_rekstur": 1582,
+    "afskriftir": 43500,
+    "ebit": -50397,
+    "fjarmunatekjur": 27809,
+    "fjarmagnsgjold": -17263,
+    "hagn_f_skatt": -39851,
+    "tekjuskattur": 0,
+    "hagnadur": -39851
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3640,
+    "handbaert": 614,
+    "eignir": 437184,
+    "hlutafe": 839820,
+    "eigid_fe": -2466149,
+    "skuldir": 2903333,
+    "efe_skuldir": 437184,
+    "skammtimaskuldir": 2903333
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.0696,
+    "veltufjarhlutfall": 0.0027
+   },
+   "rekstur": {
+    "annar_rekstur": 1456,
+    "afskriftir": 0,
+    "ebit": -5625,
+    "fjarmunatekjur": 44805,
+    "fjarmagnsgjold": -8082,
+    "hagn_f_skatt": 31098,
+    "tekjuskattur": 0,
+    "hagnadur": 31098
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2455,
+    "handbaert": 5186,
+    "eignir": 446700,
+    "hlutafe": 839820,
+    "eigid_fe": -2435050,
+    "skuldir": 2881751,
+    "efe_skuldir": 446700,
+    "skammtimaskuldir": 2881751
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4310050770.pdf",
+ "pdfAr": "2024"
+}

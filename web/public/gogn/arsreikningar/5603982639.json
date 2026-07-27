@@ -1,0 +1,84 @@
+{
+ "kt": "5603982639",
+ "nafn": "1979 verk ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0209,
+    "hagnadarhlutfall": 0.0172,
+    "ROA": 784.8557,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 45623.9287
+   },
+   "rekstur": {
+    "sala": 133085000,
+    "ebit": 2776987,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1945,
+    "fjarmagnsgjold": -489508,
+    "hagn_f_skatt": 2289424,
+    "tekjuskattur": 0,
+    "hagnadur": 2289424
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2917,
+    "veltufjarmunir": 2917,
+    "eignir": 2917,
+    "hlutafe": 500000,
+    "eigid_fe": -19805860,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19808777,
+    "skuldir": 19808777,
+    "efe_skuldir": 2917
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0456,
+    "hagnadarhlutfall": 0.0432,
+    "ROA": 198.8357,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 4598.9305
+   },
+   "rekstur": {
+    "sala": 9460000,
+    "ebit": 430995,
+    "afskriftir": 0,
+    "fjarmunatekjur": 164,
+    "fjarmagnsgjold": -22154,
+    "hagn_f_skatt": 409005,
+    "tekjuskattur": 0,
+    "hagnadur": 409005
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2057,
+    "veltufjarmunir": 2057,
+    "eignir": 2057,
+    "hlutafe": 500000,
+    "eigid_fe": -19396855,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19398912,
+    "skuldir": 19398912,
+    "efe_skuldir": 2057
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5603982639.pdf",
+ "pdfAr": "2023"
+}

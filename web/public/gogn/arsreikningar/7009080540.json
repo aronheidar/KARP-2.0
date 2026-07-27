@@ -1,0 +1,86 @@
+{
+ "kt": "7009080540",
+ "nafn": "LOGOS eignarhaldsfélag ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0981,
+    "hagnadarhlutfall": 0.0827,
+    "ROE": 0.2387,
+    "ROA": 0.0955,
+    "eiginfjarhlutfall": 0.4003,
+    "veltufjarhlutfall": 1.5468,
+    "skuldahlutfall_DE": 1.4984,
+    "eignavelta": 1.1553
+   },
+   "rekstur": {
+    "sala": 9396896,
+    "laun": 2006784,
+    "annar_rekstur": 6468536,
+    "ebit": 921576,
+    "fjarmunatekjur": 88037,
+    "fjarmagnsgjold": -12455,
+    "hagn_f_skatt": 977120,
+    "tekjuskattur": -200046,
+    "hagnadur": 777074
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4793250,
+    "handbaert": 2752186,
+    "veltufjarmunir": 8133493,
+    "eignir": 8133493,
+    "hlutafe": 571428,
+    "eigid_fe": 3255498,
+    "skammtimaskuldir": 4877995,
+    "skuldir": 4877995,
+    "efe_skuldir": 8133493
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4962,
+    "hagnadarhlutfall": 6.7119,
+    "ROE": 0.9125,
+    "ROA": 0.0042,
+    "eiginfjarhlutfall": 0.0046,
+    "veltufjarhlutfall": 0.9995,
+    "skuldahlutfall_DE": 218.3235,
+    "eignavelta": 0.0006
+   },
+   "rekstur": {
+    "sala": 5060956,
+    "laun": 0,
+    "annar_rekstur": 2549596,
+    "ebit": 2511360,
+    "fjarmunatekjur": 40777102,
+    "fjarmagnsgjold": -45722,
+    "hagn_f_skatt": 43041464,
+    "tekjuskattur": -9072592,
+    "hagnadur": 33968872
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 588266,
+    "handbaert": 8122501515,
+    "veltufjarmunir": 8164178146,
+    "eignir": 8164178146,
+    "hlutafe": 571428,
+    "eigid_fe": 37224370,
+    "skammtimaskuldir": 8126953776,
+    "skuldir": 8126953776,
+    "efe_skuldir": 8164178146
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/7009080540.pdf",
+ "pdfAr": "2024"
+}

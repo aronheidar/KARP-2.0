@@ -1,0 +1,82 @@
+{
+ "kt": "6703171610",
+ "nafn": "Fimm ásar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3738,
+    "ebit_hlutfall": -0.0463,
+    "hagnadarhlutfall": -0.0638,
+    "ROA": -0.6647,
+    "veltufjarhlutfall": 0.0419,
+    "eignavelta": 10.4193
+   },
+   "rekstur": {
+    "sala": 362438288,
+    "adrar_tekjur": 468725,
+    "kostnadarverd": 226952157,
+    "laun": 112650438,
+    "annar_rekstur": 8255320,
+    "afskriftir": 1513302,
+    "ebit": -16766809,
+    "fjarmunatekjur": 344207,
+    "fjarmagnsgjold": -6698623,
+    "hagnadur": -23121225
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5312603,
+    "handbaert": 1446441,
+    "eignir": 34785138,
+    "hlutafe": 7000000,
+    "eigid_fe": -126675864,
+    "skuldir": 161461002,
+    "efe_skuldir": 34785138,
+    "skammtimaskuldir": 161461002
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4531,
+    "ebit_hlutfall": 0.0201,
+    "hagnadarhlutfall": 0.0061,
+    "ROA": 0.0696,
+    "veltufjarhlutfall": 0.0746,
+    "eignavelta": 11.4557
+   },
+   "rekstur": {
+    "sala": 436481849,
+    "adrar_tekjur": 48360,
+    "kostnadarverd": 238713386,
+    "laun": 135031726,
+    "annar_rekstur": 10404953,
+    "afskriftir": 1513302,
+    "ebit": 8773041,
+    "fjarmunatekjur": 162000,
+    "fjarmagnsgjold": -6282833,
+    "hagnadur": 2652208
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 10059898,
+    "handbaert": 2032119,
+    "eignir": 38101874,
+    "hlutafe": 7000000,
+    "eigid_fe": -124023656,
+    "skuldir": 162125530,
+    "efe_skuldir": 38101874,
+    "skammtimaskuldir": 162125530
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6703171610.pdf",
+ "pdfAr": "2024"
+}

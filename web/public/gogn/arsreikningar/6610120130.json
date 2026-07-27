@@ -1,0 +1,96 @@
+{
+ "kt": "6610120130",
+ "nafn": "3. september ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3811,
+    "ebit_hlutfall": -0.0265,
+    "hagnadarhlutfall": -0.0284,
+    "ROE": -1.3096,
+    "ROA": -0.1195,
+    "eiginfjarhlutfall": 0.0912,
+    "veltufjarhlutfall": 0.9371,
+    "skuldahlutfall_DE": 9.9633,
+    "eignavelta": 4.2055
+   },
+   "rekstur": {
+    "sala": 103776961,
+    "kostnadarverd": -64228362,
+    "adrar_tekjur": 52574,
+    "laun": -28547611,
+    "annar_rekstur": -4292127,
+    "afskriftir": -377687,
+    "ebit": -2745999,
+    "fjarmunatekjur": 13143,
+    "fjarmagnsgjold": -214781,
+    "hagn_f_skatt": -2947637,
+    "tekjuskattur": 0,
+    "hagnadur": -2947637
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3655652,
+    "birgdir": 13161159,
+    "vidskiptakrofur": 2734471,
+    "handbaert": 5118887,
+    "eignir": 24676433,
+    "hlutafe": 500000,
+    "eigid_fe": 2250828,
+    "skuldir": 22425605,
+    "efe_skuldir": 24676433,
+    "skammtimaskuldir": 22425605
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4799,
+    "ebit_hlutfall": -0.0514,
+    "hagnadarhlutfall": 0.0664,
+    "ROE": 1.1592,
+    "ROA": 0.2732,
+    "eiginfjarhlutfall": 0.2357,
+    "veltufjarhlutfall": 1.0894,
+    "skuldahlutfall_DE": 3.2423,
+    "eignavelta": 4.1167
+   },
+   "rekstur": {
+    "sala": 82185126,
+    "kostnadarverd": -42744746,
+    "adrar_tekjur": 474200,
+    "laun": -26582531,
+    "annar_rekstur": -4896376,
+    "afskriftir": -321034,
+    "ebit": -4221934,
+    "fjarmunatekjur": 34412,
+    "fjarmagnsgjold": -357386,
+    "hagn_f_skatt": 5455092,
+    "tekjuskattur": 0,
+    "hagnadur": 5455092
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3334618,
+    "birgdir": 14439772,
+    "vidskiptakrofur": 1218590,
+    "handbaert": 963227,
+    "eignir": 19963777,
+    "hlutafe": 500000,
+    "eigid_fe": 4705920,
+    "skuldir": 15257857,
+    "efe_skuldir": 19963777,
+    "skammtimaskuldir": 15257857
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6610120130.pdf",
+ "pdfAr": "2024"
+}

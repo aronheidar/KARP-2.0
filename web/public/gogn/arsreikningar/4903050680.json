@@ -1,0 +1,74 @@
+{
+ "kt": "4903050680",
+ "nafn": "Johnson ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1159,
+    "ROA": 0.1144,
+    "eiginfjarhlutfall": 0.9874,
+    "veltufjarhlutfall": 0.7767,
+    "skuldahlutfall_DE": 0.0127
+   },
+   "rekstur": {
+    "fjarmunatekjur": 179390,
+    "fjarmagnsgjold": -60796,
+    "annar_rekstur": -4052079,
+    "ebit": -6086800,
+    "hagn_f_skatt": 176541914,
+    "tekjuskattur": 0,
+    "hagnadur": 176541914
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 39465,
+    "handbaert": 15006304,
+    "eignir": 1543128706,
+    "hlutafe": 1500000,
+    "eigid_fe": 1523757309,
+    "skuldir": 19371398,
+    "efe_skuldir": 1543128707,
+    "skammtimaskuldir": 19371398
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0463,
+    "ROA": 0.0458,
+    "eiginfjarhlutfall": 0.9886,
+    "veltufjarhlutfall": 0.2813,
+    "skuldahlutfall_DE": 0.0116
+   },
+   "rekstur": {
+    "fjarmunatekjur": 688266,
+    "fjarmagnsgjold": -47039,
+    "annar_rekstur": -3403814,
+    "ebit": -8609283,
+    "hagn_f_skatt": 67074334,
+    "tekjuskattur": 0,
+    "hagnadur": 67074334
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 151421,
+    "handbaert": 4558127,
+    "eignir": 1464717610,
+    "hlutafe": 1500000,
+    "eigid_fe": 1447974499,
+    "skuldir": 16743110,
+    "efe_skuldir": 1464717609,
+    "skammtimaskuldir": 16743110
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4903050680.pdf",
+ "pdfAr": "2025"
+}

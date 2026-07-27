@@ -1,0 +1,96 @@
+{
+ "kt": "7002693299",
+ "nafn": "Vinnslustöðin hf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4712,
+    "ebit_hlutfall": 0.1347,
+    "hagnadarhlutfall": -0.0334,
+    "ROE": -0.0292,
+    "ROA": -0.0085,
+    "eiginfjarhlutfall": 0.2889,
+    "veltufjarhlutfall": 0.0806,
+    "skuldahlutfall_DE": 2.4613,
+    "eignavelta": 0.2526
+   },
+   "rekstur": {
+    "sala": 101890439,
+    "kostnadarverd": -53884538,
+    "adrar_tekjur": 1919657,
+    "laun": -24817896,
+    "annar_rekstur": -1781345,
+    "ebitda": 17740294,
+    "afskriftir": -4013773,
+    "ebit": 13726521,
+    "fjarmunatekjur": 1058691,
+    "fjarmagnsgjold": -17429449,
+    "hagn_f_skatt": -4556956,
+    "tekjuskattur": 1148825,
+    "hagnadur": -3408131
+   },
+   "efnahagur": {
+    "birgdir": 21480607,
+    "vidskiptakrofur": 520963,
+    "handbaert": 1103005,
+    "eignir": 403324864,
+    "hlutafe": 17766335,
+    "eigid_fe": 116524270,
+    "skuldir": 286800594,
+    "efe_skuldir": 403324864,
+    "skammtimaskuldir": 286800594
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.513,
+    "ebit_hlutfall": 0.1728,
+    "hagnadarhlutfall": 0.077,
+    "ROE": 0.0788,
+    "ROA": 0.0247,
+    "eiginfjarhlutfall": 0.3137,
+    "veltufjarhlutfall": 0.0901,
+    "skuldahlutfall_DE": 2.1875,
+    "eignavelta": 0.3209
+   },
+   "rekstur": {
+    "sala": 124837447,
+    "kostnadarverd": -60792213,
+    "adrar_tekjur": 895186,
+    "laun": -29888359,
+    "annar_rekstur": -1563269,
+    "ebitda": 30096633,
+    "afskriftir": -8520870,
+    "ebit": 21575763,
+    "fjarmunatekjur": 882961,
+    "fjarmagnsgjold": -17174840,
+    "hagn_f_skatt": 11020372,
+    "tekjuskattur": -1404636,
+    "hagnadur": 9615736
+   },
+   "efnahagur": {
+    "birgdir": 19799955,
+    "vidskiptakrofur": 785680,
+    "handbaert": 3476671,
+    "eignir": 388994568,
+    "hlutafe": 17766335,
+    "eigid_fe": 122039066,
+    "skuldir": 266955502,
+    "efe_skuldir": 388994568,
+    "skammtimaskuldir": 266955502
+   },
+   "starfsmenn": 383
+  }
+ },
+ "pdf": "pdf/7002693299.pdf",
+ "pdfAr": "2025"
+}

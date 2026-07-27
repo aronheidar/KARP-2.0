@@ -1,0 +1,84 @@
+{
+ "kt": "5504193350",
+ "nafn": "MG Furniture ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2231,
+    "hagnadarhlutfall": -0.2773,
+    "ROA": -3.0164,
+    "veltufjarhlutfall": 0.004,
+    "eignavelta": 10.8787
+   },
+   "rekstur": {
+    "sala": 33754258,
+    "ebit": -7530662,
+    "afskriftir": -774400,
+    "fjarmunatekjur": 117745,
+    "fjarmagnsgjold": -1171880,
+    "hagn_f_skatt": -9359197,
+    "tekjuskattur": 0,
+    "hagnadur": -9359197
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2997600,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 103104,
+    "veltufjarmunir": 105175,
+    "eignir": 3102775,
+    "hlutafe": 500000,
+    "eigid_fe": -25250241,
+    "langtimaskuldir": 2705063,
+    "skammtimaskuldir": 25647953,
+    "skuldir": 28353016,
+    "efe_skuldir": 3102775
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.304,
+    "hagnadarhlutfall": -0.3448,
+    "ROA": -4.225,
+    "veltufjarhlutfall": 0.0059,
+    "eignavelta": 12.2536
+   },
+   "rekstur": {
+    "sala": 33124878,
+    "ebit": -10068339,
+    "afskriftir": -519520,
+    "fjarmunatekjur": 18108,
+    "fjarmagnsgjold": -851683,
+    "hagn_f_skatt": -11421434,
+    "tekjuskattur": 0,
+    "hagnadur": -11421434
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2478080,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 221742,
+    "veltufjarmunir": 225194,
+    "eignir": 2703274,
+    "hlutafe": 500000,
+    "eigid_fe": -36671675,
+    "langtimaskuldir": 1996567,
+    "skammtimaskuldir": 37378382,
+    "skuldir": 39374949,
+    "efe_skuldir": 2703274
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5504193350.pdf",
+ "pdfAr": "2024"
+}

@@ -5,7 +5,7 @@ import Layout from '../layouts/Layout.astro';
   <main class="kv-wrap" data-pg="areidanleikavaktin">
     <p class="kicker">Karp+ · Fyrirtæki+</p>
     <h1>Áreiðanleikavaktin</h1>
-    <p class="lead">Vaktaðu viðskiptavini yfir 8 merki — eigendur, stjórn, refsilistar, PEP, gjaldþrot, staða, skattkröfur, fjölmiðla — með sjálf-viðhaldinni compliance-möppu og audit-slóð.</p>
+    <p class="lead">Vaktaðu viðskiptavini yfir 9 merki — eigendur, stjórn, refsilistar, PEP, gjaldþrot, staða, ársreikningaskil, skattkröfur, fjölmiðla — með sjálf-viðhaldinni compliance-möppu og audit-slóð.</p>
     <p class="pep-note">ⓘ Innlend PEP + opinberir refsilistar (OFAC/UN/EU). Erlendir PEP-ar takmarkaðir í þessari útgáfu.</p>
 
     <div id="kv-gate" hidden><p>Þessi vakt er hluti af <a href="/karp-pro/#verd">Fyrirtæki+</a> þrepinu.</p></div>
@@ -110,9 +110,14 @@ import Layout from '../layouts/Layout.astro';
         ? '<ol class="kf-ubo-list">' + ben.map((b) => `<li><span class="kf-ubo-nm">${esc(b.nafn||b.key)}${b.incomplete ? ' <span class="kf-ubo-inc" title="Eignakeðja þessa eiganda er að hluta órakin — virkt eignarhald er lágmarksmat">⚠</span>' : ''}</span><span class="kf-ubo-pct">${pctFmt(b.effPct)}</span></li>`).join('') + '</ol>'
         : '<p class="kf-ubo-empty">Enginn einstaklingur með ≥25% raunverulegt eignarhald fannst í rakinni keðju.</p>';
       const caveat = ubo.incompleteChain ? '<p class="kf-ubo-caveat">⚠ Eignakeðja ófullgerð — tengslagrunnur enn í uppbyggingu. Virk eignarhlutföll eru lágmarksmat og fleiri endanlegir eigendur kunna að vera órakðir.</p>' : '';
+      const skilYears = st.skil?.years || [];
+      const skilTxt = skilYears.length
+        ? `⚠ ${skilYears.length} ár í vanskilum (${skilYears.map((y) => esc((y.ar==null?'':y.ar) + ': ' + (y.vanskil||''))).join(', ')})`
+        : 'í skilum';
       $('#kf-states').innerHTML = `<ul><li>Refsilistar: <b>${(st.sanctions?.hits||[]).length}</b></li><li>PEP: <b>${(st.pep?.matches||[]).length}</b></li>`
         + `<li>Gjaldþrot: <b>${st.status?.gjaldthrot ? 'JÁ' : 'nei'}</b></li><li>Beinir eigendur: <b>${(ubo.owners||[]).length}</b></li>`
-        + `<li>Stjórn: <b>${(st.board?.members||[]).length}</b></li><li>Lögbirtingar: <b>${(st.legal?.notices||[]).length}</b></li></ul>`
+        + `<li>Stjórn: <b>${(st.board?.members||[]).length}</b></li><li>Lögbirtingar: <b>${(st.legal?.notices||[]).length}</b></li>`
+        + `<li>Ársreikningaskil: <b>${skilTxt}</b></li></ul>`
         + `<div class="kf-ubo"><h4>Endanlegir raunverulegir eigendur (≥25%)</h4>${benList}${caveat}</div>`;
       $('#kf-audit').innerHTML = (d.audit || []).map((a) => `<li>${new Date(a.ts*1000).toLocaleString('is-IS')} — <b>${a.action}</b>: ${a.summary || ''} <small>(${a.actor})</small></li>`).join('');
       $('#kf-print').onclick = () => window.print();

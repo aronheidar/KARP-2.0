@@ -1,0 +1,56 @@
+{
+ "kt": "4307081040",
+ "nafn": "101 Chalet ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "ebit": -20200,
+    "fjarmagnsgjold": -5686,
+    "hagnadur": -25886
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -219033,
+    "skuldir": 219033,
+    "efe_skuldir": 0,
+    "skammtimaskuldir": 219033
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "ebit": -20900,
+    "fjarmagnsgjold": -10098,
+    "hagnadur": -30998
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -250031,
+    "skuldir": 250031,
+    "efe_skuldir": 0,
+    "skammtimaskuldir": 250031
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4307081040.pdf",
+ "pdfAr": "2024"
+}

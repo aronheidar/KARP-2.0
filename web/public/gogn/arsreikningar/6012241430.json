@@ -1,0 +1,76 @@
+{
+ "kt": "6012241430",
+ "nafn": "3GM ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0046,
+    "ROA": -0.0046,
+    "eiginfjarhlutfall": 0.9994,
+    "veltufjarhlutfall": 17.2019,
+    "skuldahlutfall_DE": 0.0006
+   },
+   "rekstur": {
+    "annar_rekstur": 161400,
+    "afskriftir": 0,
+    "ebit": -161400,
+    "fjarmunatekjur": 20,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -161380,
+    "tekjuskattur": 0,
+    "hagnadur": -161380
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4,
+    "handbaert": 359516,
+    "eignir": 34765703,
+    "hlutafe": 34906183,
+    "eigid_fe": 34744803,
+    "skuldir": 20900,
+    "efe_skuldir": 34765703,
+    "skammtimaskuldir": 20900
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0028,
+    "ROA": -0.0028,
+    "eiginfjarhlutfall": 0.9965,
+    "veltufjarhlutfall": 2.9539,
+    "skuldahlutfall_DE": 0.0036
+   },
+   "rekstur": {
+    "annar_rekstur": 102226,
+    "afskriftir": 0,
+    "ebit": -102226,
+    "fjarmunatekjur": 4177,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -98049,
+    "tekjuskattur": 0,
+    "hagnadur": -98049
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 919,
+    "handbaert": 362774,
+    "eignir": 34769876,
+    "hlutafe": 34906183,
+    "eigid_fe": 34646754,
+    "skuldir": 123122,
+    "efe_skuldir": 34769876,
+    "skammtimaskuldir": 123122
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6012241430.pdf",
+ "pdfAr": "2025"
+}

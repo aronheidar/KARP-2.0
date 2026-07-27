@@ -1,0 +1,86 @@
+{
+ "kt": "6507002790",
+ "nafn": "Gilá ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9972,
+    "ROA": 0.9526,
+    "eiginfjarhlutfall": 0.9553,
+    "veltufjarhlutfall": 19.215,
+    "skuldahlutfall_DE": 0.0468,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -565478,
+    "afskriftir": 0,
+    "fjarmunatekjur": 158193,
+    "fjarmagnsgjold": -20118,
+    "hagn_f_skatt": 343447501,
+    "tekjuskattur": 0,
+    "hagnadur": 343447501
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4854168,
+    "birgdir": 0,
+    "vidskiptakrofur": 300000000,
+    "handbaert": 9758423,
+    "veltufjarmunir": 355674925,
+    "eignir": 360529093,
+    "hlutafe": 500000,
+    "eigid_fe": 344408459,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 16120634,
+    "skuldir": 16120634,
+    "efe_skuldir": 360529093
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0025,
+    "ROA": 0.0023,
+    "eiginfjarhlutfall": 0.9202,
+    "veltufjarhlutfall": 4.4653,
+    "skuldahlutfall_DE": 0.0867,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -906583,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1962491,
+    "fjarmagnsgjold": -406959,
+    "hagn_f_skatt": 648949,
+    "tekjuskattur": 0,
+    "hagnadur": 648949
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7704168,
+    "birgdir": 0,
+    "vidskiptakrofur": 57840000,
+    "handbaert": 42810593,
+    "veltufjarmunir": 274893884,
+    "eignir": 282598052,
+    "hlutafe": 500000,
+    "eigid_fe": 260057408,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 22540644,
+    "skuldir": 22540644,
+    "efe_skuldir": 282598052
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6507002790.pdf",
+ "pdfAr": "2024"
+}

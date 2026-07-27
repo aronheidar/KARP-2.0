@@ -1,0 +1,84 @@
+{
+ "kt": "5504050160",
+ "nafn": "Fagsýn ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0301,
+    "hagnadarhlutfall": -0.0366,
+    "ROA": -0.937,
+    "veltufjarhlutfall": 0.0574,
+    "eignavelta": 25.5745
+   },
+   "rekstur": {
+    "sala": 12092062,
+    "ebit": -363677,
+    "afskriftir": -59904,
+    "fjarmunatekjur": 11172,
+    "fjarmagnsgjold": -30608,
+    "hagn_f_skatt": -443017,
+    "tekjuskattur": 0,
+    "hagnadur": -443017
+   },
+   "efnahagur": {
+    "fastafjarmunir": 239616,
+    "birgdir": 0,
+    "vidskiptakrofur": 169000,
+    "handbaert": 62380,
+    "veltufjarmunir": 233201,
+    "eignir": 472817,
+    "hlutafe": 600000,
+    "eigid_fe": -3559297,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4032114,
+    "skuldir": 4032114,
+    "efe_skuldir": 472817
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1431,
+    "hagnadarhlutfall": 0.1119,
+    "ROA": 3.7033,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 33.0887
+   },
+   "rekstur": {
+    "sala": 6372917,
+    "ebit": 911689,
+    "afskriftir": -47923,
+    "fjarmunatekjur": 4133,
+    "fjarmagnsgjold": -154635,
+    "hagn_f_skatt": 713264,
+    "tekjuskattur": 0,
+    "hagnadur": 713264
+   },
+   "efnahagur": {
+    "fastafjarmunir": 191693,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 908,
+    "eignir": 192601,
+    "hlutafe": 600000,
+    "eigid_fe": -2846033,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3038634,
+    "skuldir": 3038634,
+    "efe_skuldir": 192601
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5504050160.pdf",
+ "pdfAr": "2024"
+}

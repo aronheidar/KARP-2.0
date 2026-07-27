@@ -1,0 +1,86 @@
+{
+ "kt": "6509232270",
+ "nafn": "22 Kaffi ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6291,
+    "ebit_hlutfall": -0.3297,
+    "hagnadarhlutfall": -0.3297,
+    "ROA": -0.8848,
+    "eiginfjarhlutfall": -0.7315,
+    "veltufjarhlutfall": 0.4153,
+    "eignavelta": 2.6838
+   },
+   "rekstur": {
+    "sala": 8750802,
+    "kostnadarverd": -3245476,
+    "laun": 5435017,
+    "annar_rekstur": 459376,
+    "ebitda": -2885171,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3641,
+    "fjarmagnsgjold": -3542,
+    "hagnadur": -2885072,
+    "ebit": -2885171
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1731796,
+    "handbaert": 613000,
+    "veltufjarmunir": 3260598,
+    "eignir": 3260598,
+    "hlutafe": 500000,
+    "eigid_fe": -2385072,
+    "skuldir": 5645670,
+    "efe_skuldir": 3260598,
+    "skammtimaskuldir": 5645670
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6758,
+    "ebit_hlutfall": -0.0183,
+    "hagnadarhlutfall": -0.0212,
+    "ROA": -0.4127,
+    "eiginfjarhlutfall": -0.729,
+    "veltufjarhlutfall": 0.4907,
+    "eignavelta": 19.5109
+   },
+   "rekstur": {
+    "sala": 147138054,
+    "kostnadarverd": -47696101,
+    "laun": 45364600,
+    "annar_rekstur": 3551643,
+    "ebitda": -2660477,
+    "afskriftir": -28710,
+    "fjarmunatekjur": 37264,
+    "fjarmagnsgjold": -460666,
+    "hagnadur": -3112589,
+    "ebit": -2689187
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2444742,
+    "handbaert": 3953635,
+    "veltufjarmunir": 6995850,
+    "eignir": 7541340,
+    "hlutafe": 500000,
+    "eigid_fe": -5497661,
+    "skuldir": 13039001,
+    "efe_skuldir": 7541340,
+    "skammtimaskuldir": 13039001
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6509232270.pdf",
+ "pdfAr": "2024"
+}

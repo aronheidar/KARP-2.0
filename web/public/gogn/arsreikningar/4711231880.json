@@ -1,0 +1,71 @@
+{
+ "kt": "4711231880",
+ "nafn": "460 Campers ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 386.3378,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 349951,
+    "ebit": -349951,
+    "fjarmunatekjur": 479605,
+    "fjarmagnsgjold": -18397,
+    "hagn_f_skatt": 111257,
+    "tekjuskattur": 26291
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 832558,
+    "veltufjarmunir": 4831932,
+    "eignir": 5781932,
+    "eigid_fe": null,
+    "hlutafe": 500000,
+    "skammtimaskuldir": 0,
+    "skuldir": 2155,
+    "efe_skuldir": 5781932
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1132,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 241.7174,
+    "skuldahlutfall_DE": 49810.5357,
+    "eignavelta": 0.0871
+   },
+   "rekstur": {
+    "sala": 525111,
+    "annar_rekstur": 584552,
+    "ebit": -59441,
+    "fjarmunatekjur": 52555,
+    "fjarmagnsgjold": -23850,
+    "hagn_f_skatt": -30736,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5920868,
+    "veltufjarmunir": 6027980,
+    "eignir": 6027980,
+    "eigid_fe": 5.6,
+    "hlutafe": 500000,
+    "skammtimaskuldir": 24495,
+    "skuldir": 278939,
+    "efe_skuldir": 6027980
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4711231880.pdf",
+ "pdfAr": "2024"
+}

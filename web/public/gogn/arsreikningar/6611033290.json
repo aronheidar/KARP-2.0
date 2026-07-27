@@ -1,0 +1,69 @@
+{
+ "kt": "6611033290",
+ "nafn": "65° Ubuntu ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 3411.4597,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": -1,
+    "eignavelta": 612.2308
+   },
+   "rekstur": {
+    "sala": 7959,
+    "laun": null,
+    "ebit": 27151808,
+    "fjarmunatekjur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "eignir": 13,
+    "hlutafe": 500000,
+    "eigid_fe": 22022489,
+    "langtimaskuldir": 66186930,
+    "efe_skuldir": null,
+    "skuldir": -22022476,
+    "skammtimaskuldir": -88209406
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 598300,
+    "hagnadarhlutfall": 47819,
+    "ROE": 0.0625,
+    "ROA": 1.298,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": -0.9518,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 41,
+    "laun": 79808546,
+    "ebit": 24530300,
+    "fjarmunatekjur": -1617885,
+    "hagnadur": 1960579
+   },
+   "efnahagur": {
+    "eignir": 1510501,
+    "hlutafe": 500000,
+    "eigid_fe": 31347806,
+    "langtimaskuldir": 63460598,
+    "efe_skuldir": 151050113,
+    "skuldir": -29837305,
+    "skammtimaskuldir": -93297903
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6611033290.pdf",
+ "pdfAr": "2024"
+}

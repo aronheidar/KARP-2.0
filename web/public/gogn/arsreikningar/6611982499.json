@@ -1,0 +1,90 @@
+{
+ "kt": "6611982499",
+ "nafn": "DK Hugbúnaður ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.893,
+    "hagnadarhlutfall": 0.3967,
+    "ROE": 1.1367,
+    "ROA": 0.6849,
+    "eiginfjarhlutfall": 0.6026,
+    "veltufjarhlutfall": 2.331,
+    "skuldahlutfall_DE": 0.6596,
+    "eignavelta": 1.7266
+   },
+   "rekstur": {
+    "sala": 3128274,
+    "kostnadarverd": -334870,
+    "laun": 1107441,
+    "annar_rekstur": 295364,
+    "afskriftir": 28078,
+    "hagnadur": 1240987,
+    "fjarmunatekjur": 136410,
+    "fjarmagnsgjold": -2237,
+    "hagn_f_skatt": 1373260,
+    "tekjuskattur": -288366
+   },
+   "efnahagur": {
+    "fastafjarmunir": 71052,
+    "vidskiptakrofur": 108225,
+    "handbaert": 1570323,
+    "veltufjarmunir": 1740761,
+    "eignir": 1811813,
+    "hlutafe": 1671,
+    "eigid_fe": 1091726,
+    "skammtimaskuldir": 720088,
+    "skuldir": 720088,
+    "efe_skuldir": 1811813
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.8906,
+    "hagnadarhlutfall": 0.4172,
+    "ROE": 1.156,
+    "ROA": 0.7322,
+    "eiginfjarhlutfall": 0.6334,
+    "veltufjarhlutfall": 2.4763,
+    "skuldahlutfall_DE": 0.5789,
+    "eignavelta": 1.7549
+   },
+   "rekstur": {
+    "sala": 3453667,
+    "kostnadarverd": -377820,
+    "laun": 1136952,
+    "annar_rekstur": 327412,
+    "afskriftir": 37469,
+    "hagnadur": 1440855,
+    "fjarmunatekjur": 117104,
+    "fjarmagnsgjold": -1499,
+    "hagn_f_skatt": 1554638,
+    "tekjuskattur": -310932
+   },
+   "efnahagur": {
+    "fastafjarmunir": 119607,
+    "vidskiptakrofur": 98711,
+    "handbaert": 1688046,
+    "veltufjarmunir": 1848364,
+    "eignir": 1967971,
+    "hlutafe": 1671,
+    "eigid_fe": 1246431,
+    "skammtimaskuldir": 721540,
+    "skuldir": 721540,
+    "efe_skuldir": 1967971
+   },
+   "starfsmenn": 53
+  }
+ },
+ "pdf": "pdf/6611982499.pdf",
+ "pdfAr": "2025"
+}

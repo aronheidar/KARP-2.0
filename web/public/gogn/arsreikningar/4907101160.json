@@ -1,0 +1,84 @@
+{
+ "kt": "4907101160",
+ "nafn": "TripGuide Iceland ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7101,
+    "hagnadarhlutfall": 0.7286,
+    "ROA": 7.5088,
+    "veltufjarhlutfall": 0.0122,
+    "eignavelta": 10.3053
+   },
+   "rekstur": {
+    "sala": 402544,
+    "ebit": 285834,
+    "afskriftir": 0,
+    "fjarmunatekjur": 7475,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 293309,
+    "tekjuskattur": 0,
+    "hagnadur": 293309
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 39062,
+    "veltufjarmunir": 39062,
+    "eignir": 39062,
+    "hlutafe": 500000,
+    "eigid_fe": -3156591,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3195653,
+    "skuldir": 3195653,
+    "efe_skuldir": 39062
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1158,
+    "hagnadarhlutfall": 0.0882,
+    "ROA": 0.21,
+    "veltufjarhlutfall": 0.0297,
+    "eignavelta": 2.3809
+   },
+   "rekstur": {
+    "sala": 228750,
+    "ebit": 26498,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2609,
+    "fjarmagnsgjold": -8930,
+    "hagn_f_skatt": 20177,
+    "tekjuskattur": 0,
+    "hagnadur": 20177
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 96079,
+    "veltufjarmunir": 96079,
+    "eignir": 96079,
+    "hlutafe": 500000,
+    "eigid_fe": -3136414,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3232493,
+    "skuldir": 3232493,
+    "efe_skuldir": 96079
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4907101160.pdf",
+ "pdfAr": "2024"
+}

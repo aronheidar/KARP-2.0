@@ -1,0 +1,88 @@
+{
+ "kt": "4109982629",
+ "nafn": "Útgerðarfélag Reykjavíkur hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0474,
+    "ebit_hlutfall": -0.0357,
+    "hagnadarhlutfall": 0.0352,
+    "ROE": 0.011,
+    "ROA": 0.0058,
+    "eiginfjarhlutfall": 0.5305,
+    "veltufjarhlutfall": 0.1666,
+    "skuldahlutfall_DE": 0.8852,
+    "eignavelta": 0.1661
+   },
+   "rekstur": {
+    "sala": 89254607,
+    "kostnadarverd": -85027127,
+    "adrar_tekjur": 566751,
+    "annar_rekstur": -7976759,
+    "ebit": -3182528,
+    "fjarmagnsgjold": -12815547,
+    "hagn_f_skatt": 1325819,
+    "tekjuskattur": 1817053,
+    "hagnadur": 3142871
+   },
+   "efnahagur": {
+    "birgdir": 1501882,
+    "vidskiptakrofur": 5345265,
+    "handbaert": 35194355,
+    "eignir": 537437237,
+    "hlutafe": 4973522,
+    "eigid_fe": 285087331,
+    "skuldir": 252349906,
+    "efe_skuldir": 537437237,
+    "skammtimaskuldir": 252349906
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.074,
+    "ebit_hlutfall": 0.0397,
+    "hagnadarhlutfall": 0.257,
+    "ROE": 0.0663,
+    "ROA": 0.0369,
+    "eiginfjarhlutfall": 0.557,
+    "veltufjarhlutfall": 0.0986,
+    "skuldahlutfall_DE": 0.7954,
+    "eignavelta": 0.1436
+   },
+   "rekstur": {
+    "sala": 77444072,
+    "kostnadarverd": -71710450,
+    "adrar_tekjur": 983151,
+    "annar_rekstur": -3645289,
+    "ebit": 3071484,
+    "fjarmagnsgjold": -10182792,
+    "hagn_f_skatt": 18485166,
+    "tekjuskattur": 1421498,
+    "hagnadur": 19906665
+   },
+   "efnahagur": {
+    "birgdir": 1317264,
+    "vidskiptakrofur": 12161530,
+    "handbaert": 10091936,
+    "eignir": 539420263,
+    "hlutafe": 4973522,
+    "eigid_fe": 300438919,
+    "skuldir": 238981345,
+    "efe_skuldir": 539420263,
+    "skammtimaskuldir": 238981345
+   },
+   "starfsmenn": 38
+  }
+ },
+ "pdf": "pdf/4109982629.pdf",
+ "pdfAr": "2025"
+}

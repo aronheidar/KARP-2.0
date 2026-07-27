@@ -1,0 +1,79 @@
+{
+ "kt": "6310232820",
+ "nafn": "Sangji Export ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.394,
+    "ROA": -0.2826,
+    "eiginfjarhlutfall": 0.7174,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.394,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -140500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -820,
+    "hagn_f_skatt": -141320,
+    "tekjuskattur": 0,
+    "hagnadur": -141320
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 500000,
+    "eignir": 500000,
+    "hlutafe": 500000,
+    "eigid_fe": 358680,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 141320,
+    "skuldir": 141320,
+    "efe_skuldir": 500000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6310232820.pdf",
+ "pdfAr": "2023"
+}

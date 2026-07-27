@@ -1,0 +1,84 @@
+{
+ "kt": "6901182890",
+ "nafn": "Biggborg ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1053,
+    "hagnadarhlutfall": -0.1806,
+    "ROA": -0.3831,
+    "veltufjarhlutfall": 0.241,
+    "eignavelta": 2.1214
+   },
+   "rekstur": {
+    "sala": 29882773,
+    "ebit": -3148074,
+    "afskriftir": -1311536,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -936759,
+    "hagn_f_skatt": -5396369,
+    "tekjuskattur": 0,
+    "hagnadur": -5396369
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3087114,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 9968233,
+    "veltufjarmunir": 10999368,
+    "eignir": 14086482,
+    "hlutafe": 500000,
+    "eigid_fe": -27272276,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 41358757,
+    "skuldir": 41358757,
+    "efe_skuldir": 14086481
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3637,
+    "hagnadarhlutfall": -0.5075,
+    "ROA": -1.4115,
+    "veltufjarhlutfall": 0.0003,
+    "eignavelta": 2.7815
+   },
+   "rekstur": {
+    "sala": 4089734,
+    "ebit": -1487372,
+    "afskriftir": -626377,
+    "fjarmunatekjur": 38399,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -2075350,
+    "tekjuskattur": 0,
+    "hagnadur": -2075350
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1461543,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8791,
+    "veltufjarmunir": 8791,
+    "eignir": 1470334,
+    "hlutafe": 500000,
+    "eigid_fe": -29347626,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 30817960,
+    "skuldir": 30817960,
+    "efe_skuldir": 1470334
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6901182890.pdf",
+ "pdfAr": "2023"
+}

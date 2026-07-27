@@ -1,0 +1,62 @@
+{
+ "kt": "4705191340",
+ "nafn": "Verktakar DG ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6103,
+    "ebit_hlutfall": 0.1492
+   },
+   "rekstur": {
+    "sala": 30034207,
+    "kostnadarverd": 11704260,
+    "laun": 10353533,
+    "annar_rekstur": 1193872,
+    "afskriftir": 473397,
+    "ebit": 4481062,
+    "fjarmunatekjur": 0,
+    "hagn_f_skatt": 4165067,
+    "tekjuskattur": 570372
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": 1733900,
+    "hlutafe": 500000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5538,
+    "ebit_hlutfall": -0.3121
+   },
+   "rekstur": {
+    "sala": 18894391,
+    "kostnadarverd": 8430623,
+    "laun": 14652692,
+    "annar_rekstur": 680634,
+    "afskriftir": 379337,
+    "ebit": -5896583,
+    "fjarmunatekjur": 0,
+    "hagn_f_skatt": -5975390,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3828414,
+    "handbaert": 11411,
+    "hlutafe": 500000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4705191340.pdf",
+ "pdfAr": "2024"
+}

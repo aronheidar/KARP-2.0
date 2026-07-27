@@ -1,0 +1,76 @@
+{
+ "kt": "4804050720",
+ "nafn": "Langanesbitinn ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 9500000,
+    "eigid_fe": -104380,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 104380,
+    "skuldir": 104380,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 477,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20423,
+    "tekjuskattur": 0,
+    "hagnadur": -20423
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 9500000,
+    "eigid_fe": -124803,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 124803,
+    "skuldir": 124803,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4804050720.pdf",
+ "pdfAr": "2024"
+}

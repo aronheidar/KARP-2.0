@@ -1,0 +1,98 @@
+{
+ "kt": "4602901559",
+ "nafn": "GC Rieber Minerals ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2586,
+    "ebit_hlutfall": 0.1108,
+    "hagnadarhlutfall": 0.087,
+    "ROE": 0.3975,
+    "ROA": 0.1899,
+    "eiginfjarhlutfall": 0.4776,
+    "veltufjarhlutfall": 1.6125,
+    "skuldahlutfall_DE": 1.0937,
+    "eignavelta": 2.1816
+   },
+   "rekstur": {
+    "sala": 1665634059,
+    "adrar_tekjur": 20527084,
+    "kostnadarverd": 1234878865,
+    "laun": 130001685,
+    "annar_rekstur": 102430668,
+    "afskriftir": 13844029,
+    "ebit": 184478812,
+    "fjarmunatekjur": 5207440,
+    "fjarmagnsgjold": -6234348,
+    "hagn_f_skatt": 181197552,
+    "tekjuskattur": -36243551,
+    "hagnadur": 144954001
+   },
+   "efnahagur": {
+    "fastafjarmunir": 129443614,
+    "birgdir": 100736971,
+    "vidskiptakrofur": 467185240,
+    "handbaert": 64343026,
+    "veltufjarmunir": 634064669,
+    "eignir": 763508283,
+    "hlutafe": 8500000,
+    "eigid_fe": 364662340,
+    "skammtimaskuldir": 392114328,
+    "skuldir": 398845943,
+    "efe_skuldir": 763508283
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3673,
+    "ebit_hlutfall": 0.2086,
+    "hagnadarhlutfall": 0.1693,
+    "ROE": 0.5373,
+    "ROA": 0.3314,
+    "eiginfjarhlutfall": 0.6169,
+    "veltufjarhlutfall": 2.343,
+    "skuldahlutfall_DE": 0.6211,
+    "eignavelta": 1.9571
+   },
+   "rekstur": {
+    "sala": 1987374839,
+    "adrar_tekjur": 2548616,
+    "kostnadarverd": 1257316562,
+    "laun": 150794806,
+    "annar_rekstur": 142875935,
+    "afskriftir": 21781654,
+    "ebit": 414605882,
+    "fjarmunatekjur": 17245051,
+    "fjarmagnsgjold": -2918775,
+    "hagn_f_skatt": 426074266,
+    "tekjuskattur": -89523508,
+    "hagnadur": 336550758
+   },
+   "efnahagur": {
+    "fastafjarmunir": 112654612,
+    "birgdir": 203260499,
+    "vidskiptakrofur": 407219249,
+    "handbaert": 287310362,
+    "veltufjarmunir": 902797254,
+    "eignir": 1015451866,
+    "hlutafe": 8500000,
+    "eigid_fe": 626413499,
+    "skammtimaskuldir": 383177226,
+    "skuldir": 389038367,
+    "efe_skuldir": 1015451866
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/4602901559.pdf",
+ "pdfAr": "2024"
+}

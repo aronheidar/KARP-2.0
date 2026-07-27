@@ -1,0 +1,98 @@
+{
+ "kt": "5801697839",
+ "nafn": "Kambar byggingavörur ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4737,
+    "ebit_hlutfall": -0.0077,
+    "hagnadarhlutfall": -0.0181,
+    "ROE": -0.2182,
+    "ROA": -0.0305,
+    "eiginfjarhlutfall": 0.1396,
+    "veltufjarhlutfall": 0.5017,
+    "skuldahlutfall_DE": 6.1657,
+    "eignavelta": 1.678
+   },
+   "rekstur": {
+    "sala": 2194974107,
+    "kostnadarverd": -1155191082,
+    "adrar_tekjur": 0,
+    "laun": -692882737,
+    "annar_rekstur": -318385699,
+    "ebitda": 28514589,
+    "afskriftir": -47261518,
+    "ebit": -16985954,
+    "fjarmunatekjur": 3013615,
+    "fjarmagnsgjold": -31287933,
+    "hagn_f_skatt": -45164609,
+    "tekjuskattur": 5329162,
+    "hagnadur": -39835447
+   },
+   "efnahagur": {
+    "fastafjarmunir": 674527294,
+    "birgdir": 276058176,
+    "hlutafe": 0,
+    "vidskiptakrofur": 278024589,
+    "handbaert": 10598843,
+    "eignir": 1308080914,
+    "eigid_fe": 182548379,
+    "skuldir": 1125532535,
+    "efe_skuldir": 1308080914,
+    "skammtimaskuldir": 1125532535
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5835,
+    "ebit_hlutfall": 0.2167,
+    "hagnadarhlutfall": -0.0391,
+    "ROE": -0.156,
+    "ROA": -0.0326,
+    "eiginfjarhlutfall": 0.2092,
+    "veltufjarhlutfall": 0.239,
+    "skuldahlutfall_DE": 3.7794,
+    "eignavelta": 0.8342
+   },
+   "rekstur": {
+    "sala": 1457265939,
+    "kostnadarverd": -607005384,
+    "adrar_tekjur": 2701756,
+    "laun": -591308887,
+    "annar_rekstur": -209447760,
+    "ebitda": 52205664,
+    "afskriftir": -49866153,
+    "ebit": 315758309,
+    "fjarmunatekjur": 3384505,
+    "fjarmagnsgjold": -97104224,
+    "hagn_f_skatt": 224556870,
+    "tekjuskattur": -45130754,
+    "hagnadur": -57033106
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1152520854,
+    "birgdir": 222980099,
+    "hlutafe": 140000000,
+    "vidskiptakrofur": 105713039,
+    "handbaert": 1396959,
+    "eignir": 1746935339,
+    "eigid_fe": 365517301,
+    "skuldir": 1381418038,
+    "efe_skuldir": 1746935339,
+    "skammtimaskuldir": 1381418038
+   },
+   "starfsmenn": 53
+  }
+ },
+ "pdf": "pdf/5801697839.pdf",
+ "pdfAr": "2023"
+}

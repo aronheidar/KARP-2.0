@@ -1,0 +1,88 @@
+{
+ "kt": "5901693079",
+ "nafn": "Hampiðjan hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.0759,
+    "hagnadarhlutfall": 0.0451,
+    "ROE": 0.0538,
+    "ROA": 0.0275,
+    "eiginfjarhlutfall": 0.5108,
+    "veltufjarhlutfall": 2.161,
+    "skuldahlutfall_DE": 0.9078,
+    "eignavelta": 0.6104
+   },
+   "rekstur": {
+    "sala": 311007,
+    "ebit": 23606,
+    "fjarmunatekjur": 4722,
+    "fjarmagnsgjold": -13469,
+    "hagn_f_skatt": 17205,
+    "tekjuskattur": -2934,
+    "ebitda": 37598,
+    "hagnadur": 14013,
+    "matsbreyting": -141
+   },
+   "efnahagur": {
+    "birgdir": 126735,
+    "vidskiptakrofur": 66620,
+    "handbaert": 41429,
+    "eignir": 509487,
+    "hlutafe": 6403,
+    "eigid_fe": 260260,
+    "langtimaskuldir": 127610,
+    "skuldir": 236257,
+    "efe_skuldir": 509487,
+    "skammtimaskuldir": 108647
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.0675,
+    "hagnadarhlutfall": 0.0166,
+    "ROE": 0.0235,
+    "ROA": 0.0109,
+    "eiginfjarhlutfall": 0.4646,
+    "veltufjarhlutfall": 1.7386,
+    "skuldahlutfall_DE": 1.0898,
+    "eignavelta": 0.6571
+   },
+   "rekstur": {
+    "sala": 359736,
+    "ebit": 24280,
+    "fjarmunatekjur": 1568,
+    "fjarmagnsgjold": -12710,
+    "hagn_f_skatt": 11326,
+    "tekjuskattur": -2494,
+    "ebitda": 39608,
+    "hagnadur": 5971,
+    "matsbreyting": 64
+   },
+   "efnahagur": {
+    "birgdir": 138418,
+    "vidskiptakrofur": 71937,
+    "handbaert": 26395,
+    "eignir": 547474,
+    "hlutafe": 6410,
+    "eigid_fe": 254351,
+    "langtimaskuldir": 141014,
+    "skuldir": 277186,
+    "efe_skuldir": 547474,
+    "skammtimaskuldir": 136172
+   },
+   "starfsmenn": 645
+  }
+ },
+ "pdf": "pdf/5901693079.pdf",
+ "pdfAr": "2025"
+}

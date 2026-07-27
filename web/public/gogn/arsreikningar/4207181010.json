@@ -1,0 +1,90 @@
+{
+ "kt": "4207181010",
+ "nafn": "G-Steins ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.103,
+    "hagnadarhlutfall": 0.031,
+    "ROE": 0.1185,
+    "ROA": 0.057,
+    "eiginfjarhlutfall": 0.4809,
+    "veltufjarhlutfall": 1.7341,
+    "skuldahlutfall_DE": 1.0795,
+    "eignavelta": 1.8401
+   },
+   "rekstur": {
+    "sala": 15914626,
+    "laun": 10009203,
+    "annar_rekstur": 2656775,
+    "afskriftir": 464760,
+    "ebit": 1639915,
+    "fjarmunatekjur": 6732,
+    "fjarmagnsgjold": -968799,
+    "hagn_f_skatt": 677848,
+    "tekjuskattur": -185178,
+    "hagnadur": 492670
+   },
+   "efnahagur": {
+    "fastafjarmunir": 863127,
+    "vidskiptakrofur": 7631371,
+    "handbaert": 154432,
+    "veltufjarmunir": 7785803,
+    "eignir": 8648930,
+    "hlutafe": 500000,
+    "eigid_fe": 4159221,
+    "skammtimaskuldir": 4489709,
+    "skuldir": 4489709,
+    "efe_skuldir": 8648930
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.123,
+    "hagnadarhlutfall": 0.0235,
+    "ROE": 0.318,
+    "ROA": 0.0864,
+    "eiginfjarhlutfall": 0.2717,
+    "veltufjarhlutfall": 1.1717,
+    "skuldahlutfall_DE": 2.681,
+    "eignavelta": 3.6706
+   },
+   "rekstur": {
+    "sala": 22964664,
+    "laun": 11858667,
+    "annar_rekstur": 3692218,
+    "afskriftir": 494008,
+    "ebit": 2823608,
+    "fjarmunatekjur": 11290,
+    "fjarmagnsgjold": -2116655,
+    "hagn_f_skatt": 718243,
+    "tekjuskattur": -177822,
+    "hagnadur": 540421
+   },
+   "efnahagur": {
+    "fastafjarmunir": 917444,
+    "vidskiptakrofur": 4632079,
+    "handbaert": 706900,
+    "veltufjarmunir": 5338979,
+    "eignir": 6256423,
+    "hlutafe": 500000,
+    "eigid_fe": 1699642,
+    "skammtimaskuldir": 4556781,
+    "skuldir": 4556781,
+    "efe_skuldir": 6256423
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4207181010.pdf",
+ "pdfAr": "2024"
+}

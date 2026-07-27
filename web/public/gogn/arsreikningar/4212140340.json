@@ -1,0 +1,90 @@
+{
+ "kt": "4212140340",
+ "nafn": "Vinnukarl ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6434,
+    "hagnadarhlutfall": 0.1531,
+    "ROE": 0.1059,
+    "ROA": 0.1053,
+    "eiginfjarhlutfall": 0.9942,
+    "veltufjarhlutfall": 60.1955,
+    "skuldahlutfall_DE": 0.0058,
+    "eignavelta": 0.6877
+   },
+   "rekstur": {
+    "sala": 4500000,
+    "ebit": 2895301,
+    "afskriftir": -2176378,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -30126,
+    "hagn_f_skatt": 688797,
+    "tekjuskattur": 0,
+    "hagnadur": 688797
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4060709,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2265458,
+    "veltufjarmunir": 2482488,
+    "eignir": 6543197,
+    "hlutafe": 500000,
+    "eigid_fe": 6505562,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 37635,
+    "skuldir": 37635,
+    "efe_skuldir": 6543197
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.596,
+    "hagnadarhlutfall": 0.2901,
+    "ROE": 0.3084,
+    "ROA": 0.2645,
+    "eiginfjarhlutfall": 0.8578,
+    "veltufjarhlutfall": 3.9812,
+    "skuldahlutfall_DE": 0.1658,
+    "eignavelta": 0.912
+   },
+   "rekstur": {
+    "sala": 10000000,
+    "ebit": 5959577,
+    "afskriftir": -2554825,
+    "fjarmunatekjur": 318,
+    "fjarmagnsgjold": -41160,
+    "hagn_f_skatt": 3363910,
+    "tekjuskattur": -463307,
+    "hagnadur": 2900603
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4757880,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 6207411,
+    "veltufjarmunir": 6207481,
+    "eignir": 10965361,
+    "hlutafe": 500000,
+    "eigid_fe": 9406165,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1559196,
+    "skuldir": 1559196,
+    "efe_skuldir": 10965361
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4212140340.pdf",
+ "pdfAr": "2022"
+}

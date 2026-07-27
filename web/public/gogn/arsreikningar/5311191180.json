@@ -1,0 +1,61 @@
+{
+ "kt": "5311191180",
+ "nafn": "PMB - North ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": -0.2447,
+    "veltufjarhlutfall": 0.7874
+   },
+   "rekstur": {
+    "laun": 118599400,
+    "annar_rekstur": 22809034,
+    "afskriftir": 187897,
+    "fjarmunatekjur": 24743
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 24858465,
+    "handbaert": 13149948,
+    "eignir": 38778503,
+    "hlutafe": 500000,
+    "eigid_fe": -9491001,
+    "efe_skuldir": 38778503,
+    "skuldir": 48269504,
+    "skammtimaskuldir": 48269504
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0.0034
+   },
+   "rekstur": {
+    "laun": 107019825,
+    "annar_rekstur": 26394459,
+    "afskriftir": 150317,
+    "fjarmunatekjur": 132988
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 128242,
+    "eignir": 749566,
+    "hlutafe": 500000,
+    "eigid_fe": -36510790,
+    "efe_skuldir": 749566,
+    "skuldir": 37260356,
+    "skammtimaskuldir": 37260356
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5311191180.pdf",
+ "pdfAr": "2024"
+}

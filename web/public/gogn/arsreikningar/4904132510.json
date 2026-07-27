@@ -1,0 +1,84 @@
+{
+ "kt": "4904132510",
+ "nafn": "1800 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0023,
+    "ROA": -0.0019,
+    "eiginfjarhlutfall": 0.8567,
+    "veltufjarhlutfall": 0.002,
+    "skuldahlutfall_DE": 0.1672,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20845,
+    "tekjuskattur": 0,
+    "hagnadur": -20845
+   },
+   "efnahagur": {
+    "fastafjarmunir": 578124,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4487,
+    "veltufjarmunir": 10152598,
+    "eignir": 10730722,
+    "hlutafe": 588235,
+    "eigid_fe": 9193179,
+    "langtimaskuldir": -723821,
+    "skammtimaskuldir": 2261364,
+    "skuldir": 1537543,
+    "efe_skuldir": 10730722
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0697,
+    "ROA": -0.059,
+    "eiginfjarhlutfall": 0.8465,
+    "veltufjarhlutfall": 0.002,
+    "skuldahlutfall_DE": 0.1814,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21200,
+    "afskriftir": -578124,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -599318,
+    "tekjuskattur": 0,
+    "hagnadur": -599318
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4492,
+    "veltufjarmunir": 10152592,
+    "eignir": 10152592,
+    "hlutafe": 588235,
+    "eigid_fe": 8593861,
+    "langtimaskuldir": -723821,
+    "skammtimaskuldir": 2282552,
+    "skuldir": 1558731,
+    "efe_skuldir": 10152592
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4904132510.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "6211120230",
+ "nafn": "Steinhaufen Holding ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1628,
+    "hagnadarhlutfall": -44.741,
+    "ROA": -0.1193,
+    "eiginfjarhlutfall": -0.2382,
+    "veltufjarhlutfall": 0.0863,
+    "eignavelta": 0.0027
+   },
+   "rekstur": {
+    "sala": 17884000,
+    "adrar_tekjur": 1030000,
+    "annar_rekstur": 3891605,
+    "afskriftir": 7199879,
+    "ebit": -2911148,
+    "fjarmunatekjur": 124957645,
+    "fjarmagnsgjold": -213862929,
+    "hagnadur": -800148778
+   },
+   "efnahagur": {
+    "fastafjarmunir": 441294063,
+    "vidskiptakrofur": 3764960,
+    "handbaert": 18116392,
+    "veltufjarmunir": 6265740311,
+    "eignir": 6707034374,
+    "hlutafe": 21000000,
+    "eigid_fe": -1597293994,
+    "langtimaskuldir": 8050712864,
+    "skammtimaskuldir": 253615504,
+    "skuldir": 8304328368,
+    "efe_skuldir": 6707034374
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1964,
+    "hagnadarhlutfall": -54.3285,
+    "ROA": -0.2521,
+    "eiginfjarhlutfall": -0.5916,
+    "veltufjarhlutfall": 1.7932,
+    "eignavelta": 0.0046
+   },
+   "rekstur": {
+    "sala": 21831500,
+    "adrar_tekjur": 0,
+    "annar_rekstur": 2496707,
+    "afskriftir": 7199879,
+    "ebit": 4287614,
+    "fjarmunatekjur": 219950078,
+    "fjarmagnsgjold": -303387675,
+    "hagnadur": -1186072280
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1173509272,
+    "vidskiptakrofur": 1076357,
+    "handbaert": 16077999,
+    "veltufjarmunir": 3530959477,
+    "eignir": 4704468749,
+    "hlutafe": 21000000,
+    "eigid_fe": -2783366274,
+    "langtimaskuldir": 7478268448,
+    "skammtimaskuldir": 9566575,
+    "skuldir": 7487835023,
+    "efe_skuldir": 4704468749
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6211120230.pdf",
+ "pdfAr": "2024"
+}

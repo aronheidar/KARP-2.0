@@ -1,0 +1,80 @@
+{
+ "kt": "4309070260",
+ "nafn": "100asa ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.017,
+    "veltufjarhlutfall": 0.1725,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 53687,
+    "birgdir": 1133108,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1133108,
+    "eignir": 1186795,
+    "hlutafe": 500000,
+    "eigid_fe": -15280746,
+    "langtimaskuldir": 9900000,
+    "skammtimaskuldir": 6567541,
+    "skuldir": 16467541,
+    "efe_skuldir": 1186795
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0658,
+    "veltufjarhlutfall": 0.172,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": -53687,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -74587,
+    "tekjuskattur": 0,
+    "hagnadur": -74587
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 1133108,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1133108,
+    "eignir": 1133108,
+    "hlutafe": 500000,
+    "eigid_fe": -15355333,
+    "langtimaskuldir": 9900000,
+    "skammtimaskuldir": 6588441,
+    "skuldir": 16488441,
+    "efe_skuldir": 1133108
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4309070260.pdf",
+ "pdfAr": "2024"
+}

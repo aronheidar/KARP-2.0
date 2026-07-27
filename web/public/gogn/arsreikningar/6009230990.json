@@ -1,0 +1,86 @@
+{
+ "kt": "6009230990",
+ "nafn": "PrentOn ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -1.0054,
+    "ROA": -0.5295,
+    "eiginfjarhlutfall": 0.5266,
+    "veltufjarhlutfall": 0.0055,
+    "skuldahlutfall_DE": 0.8989,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -43749,
+    "afskriftir": -200813,
+    "fjarmunatekjur": 206,
+    "fjarmagnsgjold": -6317,
+    "hagn_f_skatt": -250673,
+    "tekjuskattur": 0,
+    "hagnadur": -250673
+   },
+   "efnahagur": {
+    "fastafjarmunir": 468565,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1226,
+    "veltufjarmunir": 4872,
+    "eignir": 473437,
+    "hlutafe": 500000,
+    "eigid_fe": 249327,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 224110,
+    "skuldir": 224110,
+    "efe_skuldir": 473437
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1377,
+    "hagnadarhlutfall": -0.1471,
+    "ROA": -0.2168,
+    "eiginfjarhlutfall": -0.1131,
+    "veltufjarhlutfall": 0.1624,
+    "eignavelta": 1.474
+   },
+   "rekstur": {
+    "sala": 4292369,
+    "ebit": -591156,
+    "afskriftir": -140570,
+    "fjarmunatekjur": 151,
+    "fjarmagnsgjold": -56218,
+    "hagn_f_skatt": -787793,
+    "tekjuskattur": 156554,
+    "hagnadur": -631239
+   },
+   "efnahagur": {
+    "fastafjarmunir": 327995,
+    "birgdir": 0,
+    "vidskiptakrofur": 239948,
+    "handbaert": 320517,
+    "veltufjarmunir": 2584072,
+    "eignir": 2912067,
+    "hlutafe": 500000,
+    "eigid_fe": -329271,
+    "langtimaskuldir": -209195,
+    "skammtimaskuldir": 3450533,
+    "skuldir": 3241338,
+    "efe_skuldir": 2912067
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6009230990.pdf",
+ "pdfAr": "2024"
+}

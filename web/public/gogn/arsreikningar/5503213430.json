@@ -1,0 +1,66 @@
+{
+ "kt": "5503213430",
+ "nafn": "757 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7038,
+    "hagnadarhlutfall": 0.0972,
+    "ROA": 0.5258,
+    "eignavelta": 5.412
+   },
+   "rekstur": {
+    "sala": 102896366,
+    "kostnadarverd": 30478599,
+    "laun": 33698650,
+    "annar_rekstur": 26843243,
+    "afskriftir": -1718776,
+    "fjarmunatekjur": 26762,
+    "fjarmagnsgjold": -187049,
+    "hagnadur": 9996811,
+    "tekjuskattur": -2067425
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2810711,
+    "handbaert": 2415099,
+    "eignir": 19012495
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6985,
+    "hagnadarhlutfall": 0.0876,
+    "ROA": 0.7055,
+    "eignavelta": 8.0552
+   },
+   "rekstur": {
+    "sala": 123740159,
+    "kostnadarverd": 37306555,
+    "laun": 42839254,
+    "annar_rekstur": 31341233,
+    "afskriftir": -1375019,
+    "fjarmunatekjur": 7753,
+    "fjarmagnsgjold": -48639,
+    "hagnadur": 10837212,
+    "tekjuskattur": -2171722
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3053965,
+    "handbaert": 2566315,
+    "eignir": 15361447
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5503213430.pdf",
+ "pdfAr": "2025"
+}

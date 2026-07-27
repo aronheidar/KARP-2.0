@@ -1,0 +1,82 @@
+{
+ "kt": "5901151180",
+ "nafn": "Grandaverk ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0001,
+    "eiginfjarhlutfall": -0.0753,
+    "veltufjarhlutfall": 0.0048,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3919053,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1051393,
+    "veltufjarmunir": 201470260,
+    "eignir": 205389313,
+    "hlutafe": 500000,
+    "eigid_fe": -15470002,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 220859315,
+    "skuldir": 220859315,
+    "efe_skuldir": 205389313
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0058,
+    "eiginfjarhlutfall": -0.0813,
+    "veltufjarhlutfall": 0.0055,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -1160935,
+    "hagn_f_skatt": -1181835,
+    "tekjuskattur": 0,
+    "hagnadur": -1181835
+   },
+   "efnahagur": {
+    "fastafjarmunir": 80364765,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1051393,
+    "veltufjarmunir": 124490193,
+    "eignir": 204854958,
+    "hlutafe": 500000,
+    "eigid_fe": -16651837,
+    "langtimaskuldir": 31625061,
+    "skammtimaskuldir": 189881734,
+    "skuldir": 221506795,
+    "efe_skuldir": 204854958
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5901151180.pdf",
+ "pdfAr": "2024"
+}

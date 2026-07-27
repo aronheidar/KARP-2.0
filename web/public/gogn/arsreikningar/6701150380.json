@@ -1,0 +1,86 @@
+{
+ "kt": "6701150380",
+ "nafn": "ECC ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.8,
+    "veltufjarhlutfall": 5,
+    "skuldahlutfall_DE": 0.25,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 47810,
+    "veltufjarmunir": 47810,
+    "eignir": 47810,
+    "hlutafe": 500000,
+    "eigid_fe": 38248,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9562,
+    "skuldir": 9562,
+    "efe_skuldir": 47810
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.8,
+    "veltufjarhlutfall": 5,
+    "skuldahlutfall_DE": 0.25,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 47810,
+    "veltufjarmunir": 47810,
+    "eignir": 47810,
+    "hlutafe": 500000,
+    "eigid_fe": 38248,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9562,
+    "skuldir": 9562,
+    "efe_skuldir": 47810
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6701150380.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,78 @@
+{
+ "kt": "4609061640",
+ "nafn": "44 Ferningar ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -208.4369,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": -572,
+    "hagn_f_skatt": -21469,
+    "tekjuskattur": 0,
+    "hagnadur": -21469
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 103,
+    "veltufjarmunir": 103,
+    "eignir": 103,
+    "hlutafe": 500000,
+    "eigid_fe": -5647420,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5647523,
+    "skuldir": 5647523,
+    "efe_skuldir": 103
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -203.781,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21397,
+    "tekjuskattur": 0,
+    "hagnadur": -21397
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 105,
+    "veltufjarmunir": 105,
+    "eignir": 105,
+    "hlutafe": 500000,
+    "eigid_fe": -5668817,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5668922,
+    "skuldir": 5668922,
+    "efe_skuldir": 105
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4609061640.pdf",
+ "pdfAr": "2024"
+}

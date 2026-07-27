@@ -1,0 +1,62 @@
+{
+ "kt": "5108231330",
+ "nafn": "550lausnir ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -109.2105,
+    "ROA": 0.7301,
+    "eignavelta": -0.0067
+   },
+   "rekstur": {
+    "fjarmunatekjur": 158954,
+    "fjarmagnsgjold": -808,
+    "annar_rekstur": -33870,
+    "sala": -33870,
+    "tekjuskattur": -29188,
+    "hagnadur": 3698961
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3853873,
+    "vidskiptakrofur": 36765,
+    "handbaert": 775307,
+    "veltufjarmunir": 1212322,
+    "eignir": 5066195
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -64.6619,
+    "ROA": 0.2964,
+    "eignavelta": -0.0046
+   },
+   "rekstur": {
+    "fjarmunatekjur": 17555,
+    "fjarmagnsgjold": -916,
+    "annar_rekstur": -81094,
+    "sala": -81094,
+    "tekjuskattur": 8451,
+    "hagnadur": 5243689
+   },
+   "efnahagur": {
+    "fastafjarmunir": 16674517,
+    "vidskiptakrofur": 3864,
+    "handbaert": 464947,
+    "veltufjarmunir": 1019061,
+    "eignir": 17693578
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5108231330.pdf",
+ "pdfAr": "2025"
+}

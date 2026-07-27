@@ -1,0 +1,88 @@
+{
+ "kt": "5802191520",
+ "nafn": "300Brains ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2788,
+    "ebit_hlutfall": 0.0726,
+    "hagnadarhlutfall": 0.0644,
+    "ROE": 0.3514,
+    "ROA": 0.1932,
+    "eiginfjarhlutfall": 0.5498,
+    "veltufjarhlutfall": 2.2061,
+    "skuldahlutfall_DE": 0.8188,
+    "eignavelta": 2.9982
+   },
+   "rekstur": {
+    "sala": 71001430,
+    "kostnadarverd": 51208625,
+    "laun": 12460669,
+    "annar_rekstur": 717989,
+    "ebit": 5153851,
+    "fjarmunatekjur": 745569,
+    "fjarmagnsgjold": -175648,
+    "hagn_f_skatt": 5723772,
+    "tekjuskattur": -1148794,
+    "hagnadur": 4574978
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 10245169,
+    "handbaert": 13274039,
+    "eignir": 23681523,
+    "hlutafe": 7893110,
+    "eigid_fe": 13020664,
+    "skuldir": 10660859,
+    "efe_skuldir": 23681523,
+    "skammtimaskuldir": 10660859
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2523,
+    "ebit_hlutfall": 0.0498,
+    "hagnadarhlutfall": 0.047,
+    "ROE": 0.2625,
+    "ROA": 0.1936,
+    "eiginfjarhlutfall": 0.7374,
+    "veltufjarhlutfall": 3.7449,
+    "skuldahlutfall_DE": 0.3561,
+    "eignavelta": 4.1155
+   },
+   "rekstur": {
+    "sala": 74664450,
+    "kostnadarverd": 55830221,
+    "laun": 13429456,
+    "annar_rekstur": 826911,
+    "ebit": 3720174,
+    "fjarmunatekjur": 1157165,
+    "fjarmagnsgjold": -426620,
+    "hagn_f_skatt": 4450719,
+    "tekjuskattur": -939040,
+    "hagnadur": 3511679
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 8598167,
+    "handbaert": 9242289,
+    "eignir": 18142055,
+    "hlutafe": 7893110,
+    "eigid_fe": 13378067,
+    "skuldir": 4763988,
+    "efe_skuldir": 18142055,
+    "skammtimaskuldir": 4763988
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5802191520.pdf",
+ "pdfAr": "2024"
+}

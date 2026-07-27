@@ -1,0 +1,86 @@
+{
+ "kt": "4603150500",
+ "nafn": "GDS ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.063,
+    "hagnadarhlutfall": -0.2297,
+    "ROA": -0.1779,
+    "eiginfjarhlutfall": -0.5209,
+    "veltufjarhlutfall": 0.0856,
+    "eignavelta": 0.7745
+   },
+   "rekstur": {
+    "sala": 17039478,
+    "ebit": -1072711,
+    "afskriftir": -647425,
+    "fjarmunatekjur": 28204,
+    "fjarmagnsgjold": -2222591,
+    "hagn_f_skatt": -3914523,
+    "tekjuskattur": 0,
+    "hagnadur": -3914523
+   },
+   "efnahagur": {
+    "fastafjarmunir": 20314953,
+    "birgdir": 500000,
+    "vidskiptakrofur": 430000,
+    "handbaert": 750712,
+    "veltufjarmunir": 1685776,
+    "eignir": 22000729,
+    "hlutafe": 500000,
+    "eigid_fe": -11459306,
+    "langtimaskuldir": 13816859,
+    "skammtimaskuldir": 19643176,
+    "skuldir": 33460035,
+    "efe_skuldir": 22000729
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1805,
+    "hagnadarhlutfall": 0.006,
+    "ROA": 0.0043,
+    "eiginfjarhlutfall": -0.5281,
+    "veltufjarhlutfall": 0.0973,
+    "eignavelta": 0.7249
+   },
+   "rekstur": {
+    "sala": 15601225,
+    "ebit": 2816796,
+    "afskriftir": -647425,
+    "fjarmunatekjur": 19521,
+    "fjarmagnsgjold": -2095463,
+    "hagn_f_skatt": 93429,
+    "tekjuskattur": 0,
+    "hagnadur": 93429
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19667528,
+    "birgdir": 500000,
+    "vidskiptakrofur": 825180,
+    "handbaert": 524914,
+    "veltufjarmunir": 1854225,
+    "eignir": 21521753,
+    "hlutafe": 500000,
+    "eigid_fe": -11365877,
+    "langtimaskuldir": 13871158,
+    "skammtimaskuldir": 19016472,
+    "skuldir": 32887630,
+    "efe_skuldir": 21521753
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4603150500.pdf",
+ "pdfAr": "2024"
+}

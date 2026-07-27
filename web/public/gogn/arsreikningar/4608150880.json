@@ -1,0 +1,62 @@
+{
+ "kt": "4608150880",
+ "nafn": "Kentár ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0989,
+    "ROA": -0.0989,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "hagnadur": -17500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "handbaert": 176929,
+    "veltufjarmunir": 176929,
+    "eignir": 176929,
+    "hlutafe": 500000,
+    "eigid_fe": 176929,
+    "efe_skuldir": 176929,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1126,
+    "ROA": -0.1126,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "hagnadur": -17900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1,
+    "handbaert": 159028,
+    "veltufjarmunir": 159028,
+    "eignir": 159029,
+    "hlutafe": 500000,
+    "eigid_fe": 159029,
+    "efe_skuldir": 159029,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4608150880.pdf",
+ "pdfAr": "2020"
+}

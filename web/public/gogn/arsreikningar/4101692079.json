@@ -1,0 +1,98 @@
+{
+ "kt": "4101692079",
+ "nafn": "A. Wendel ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3226,
+    "ebit_hlutfall": 0.0062,
+    "hagnadarhlutfall": 0.0152,
+    "ROE": 0.08,
+    "ROA": 0.0307,
+    "eiginfjarhlutfall": 0.3838,
+    "veltufjarhlutfall": 1.2953,
+    "skuldahlutfall_DE": 1.6054,
+    "eignavelta": 2.0172
+   },
+   "rekstur": {
+    "sala": 551833902,
+    "adrar_tekjur": 6289463,
+    "kostnadarverd": -373835828,
+    "laun": -121810545,
+    "annar_rekstur": -52430571,
+    "afskriftir": -309328,
+    "ebit": 3447630,
+    "fjarmunatekjur": 4825880,
+    "fjarmagnsgjold": -244712,
+    "hagn_f_skatt": 10046723,
+    "tekjuskattur": -1650161,
+    "hagnadur": 8396562
+   },
+   "efnahagur": {
+    "fastafjarmunir": 57077664,
+    "birgdir": 73061000,
+    "vidskiptakrofur": 69665339,
+    "handbaert": 73757668,
+    "veltufjarmunir": 216484007,
+    "eignir": 273561671,
+    "hlutafe": 3559308,
+    "eigid_fe": 104997170,
+    "skammtimaskuldir": 167126008,
+    "skuldir": 168564501,
+    "efe_skuldir": 273561671
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4063,
+    "ebit_hlutfall": 0.0617,
+    "hagnadarhlutfall": 0.0592,
+    "ROE": 0.2681,
+    "ROA": 0.1314,
+    "eiginfjarhlutfall": 0.4901,
+    "veltufjarhlutfall": 1.5165,
+    "skuldahlutfall_DE": 1.0404,
+    "eignavelta": 2.2202
+   },
+   "rekstur": {
+    "sala": 535278416,
+    "adrar_tekjur": 2685341,
+    "kostnadarverd": -317808118,
+    "laun": -121563262,
+    "annar_rekstur": -62687533,
+    "afskriftir": -204209,
+    "ebit": 33015294,
+    "fjarmunatekjur": 3053512,
+    "fjarmagnsgjold": -516029,
+    "hagn_f_skatt": 38529531,
+    "tekjuskattur": -6853744,
+    "hagnadur": 31675787
+   },
+   "efnahagur": {
+    "fastafjarmunir": 56124703,
+    "birgdir": 76332000,
+    "vidskiptakrofur": 37389825,
+    "handbaert": 71244372,
+    "veltufjarmunir": 184966197,
+    "eignir": 241090900,
+    "hlutafe": 3559308,
+    "eigid_fe": 118156526,
+    "skammtimaskuldir": 121965544,
+    "skuldir": 122934374,
+    "efe_skuldir": 241090900
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4101692079.pdf",
+ "pdfAr": "2025"
+}

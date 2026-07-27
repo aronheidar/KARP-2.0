@@ -1,0 +1,83 @@
+{
+ "kt": "4505150940",
+ "nafn": "Zenac ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0896,
+    "ROA": -0.0896,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": -2958,
+    "hagn_f_skatt": -23849,
+    "tekjuskattur": 0,
+    "hagnadur": -23849
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 312,
+    "veltufjarmunir": 266317,
+    "eignir": 266317,
+    "hlutafe": 1000000,
+    "eigid_fe": 266317,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 266317
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0874,
+    "ROA": -0.0803,
+    "eiginfjarhlutfall": 0.9196,
+    "veltufjarhlutfall": 0.0147,
+    "skuldahlutfall_DE": 0.0874,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21396,
+    "tekjuskattur": 0,
+    "hagnadur": -21396
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 315,
+    "veltufjarmunir": 266321,
+    "eignir": 266321,
+    "hlutafe": 1000000,
+    "eigid_fe": 244921,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 21398,
+    "skuldir": 21398,
+    "efe_skuldir": 266319
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4505150940.pdf",
+ "pdfAr": "2025"
+}

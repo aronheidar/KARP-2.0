@@ -1,0 +1,85 @@
+{
+ "kt": "6709071120",
+ "nafn": "MÞ Fjárfesting ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0255,
+    "ROA": -0.0255,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -27694,
+    "afskriftir": 0,
+    "fjarmunatekjur": 85,
+    "fjarmagnsgjold": -2647,
+    "hagn_f_skatt": -50455,
+    "tekjuskattur": 0,
+    "hagnadur": -50455
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1980304,
+    "handbaert": 0,
+    "veltufjarmunir": 1980323,
+    "eignir": 1980323,
+    "hlutafe": 500000,
+    "eigid_fe": 1980324,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 1980324
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0186,
+    "ROA": -0.0182,
+    "eiginfjarhlutfall": 0.9784,
+    "veltufjarhlutfall": 46.3283,
+    "skuldahlutfall_DE": 0.0221,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -33094,
+    "afskriftir": 0,
+    "fjarmunatekjur": 105,
+    "fjarmagnsgjold": -3089,
+    "hagn_f_skatt": -36078,
+    "tekjuskattur": 0,
+    "hagnadur": -36078
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1979067,
+    "handbaert": 8048,
+    "veltufjarmunir": 1987138,
+    "eignir": 1987138,
+    "hlutafe": 500000,
+    "eigid_fe": 1944246,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 42892,
+    "skuldir": 42892,
+    "efe_skuldir": 1987138
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6709071120.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,67 @@
+{
+ "kt": "4506231210",
+ "nafn": "621 Kaldi ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3908,
+    "ROA": -0.3908,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 140500,
+    "ebit": -140500,
+    "fjarmunatekjur": 0,
+    "hagnadur": -140500
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 359500,
+    "handbaert": 0,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "skuldir": 0,
+    "efe_skuldir": 359500,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0617,
+    "ROA": -0.0581,
+    "eiginfjarhlutfall": 0.9419,
+    "veltufjarhlutfall": 17.201,
+    "skuldahlutfall_DE": 0.0617
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "ebit": -20900,
+    "fjarmunatekjur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 359500,
+    "handbaert": 0,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 338600,
+    "skuldir": 20900,
+    "efe_skuldir": 359500,
+    "skammtimaskuldir": 20900
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4506231210.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "5411192050",
+ "nafn": "Annapurna Pure ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.053,
+    "hagnadarhlutfall": 0.0425,
+    "ROE": 0.1931,
+    "ROA": 0.1579,
+    "eiginfjarhlutfall": 0.8176,
+    "veltufjarhlutfall": 5.4334,
+    "skuldahlutfall_DE": 0.223,
+    "eignavelta": 3.7152
+   },
+   "rekstur": {
+    "sala": 52100319,
+    "ebit": 2759963,
+    "afskriftir": 0,
+    "fjarmunatekjur": 40899,
+    "fjarmagnsgjold": -27283,
+    "hagn_f_skatt": 2773579,
+    "tekjuskattur": -558896,
+    "hagnadur": 2214683
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 11249670,
+    "handbaert": 2645953,
+    "veltufjarmunir": 14023688,
+    "eignir": 14023688,
+    "hlutafe": 500000,
+    "eigid_fe": 11466265,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2557423,
+    "skuldir": 2557423,
+    "efe_skuldir": 14023688
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.194,
+    "hagnadarhlutfall": -0.1932,
+    "ROE": -0.6888,
+    "ROA": -0.2423,
+    "eiginfjarhlutfall": 0.3518,
+    "veltufjarhlutfall": 1.5423,
+    "skuldahlutfall_DE": 1.8426,
+    "eignavelta": 1.2539
+   },
+   "rekstur": {
+    "sala": 24200941,
+    "ebit": -4693823,
+    "afskriftir": 0,
+    "fjarmunatekjur": 23911,
+    "fjarmagnsgjold": -6880,
+    "hagn_f_skatt": -4676792,
+    "tekjuskattur": 0,
+    "hagnadur": -4676792
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 18658118,
+    "handbaert": 636567,
+    "veltufjarmunir": 19299945,
+    "eignir": 19299945,
+    "hlutafe": 500000,
+    "eigid_fe": 6789473,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12510472,
+    "skuldir": 12510472,
+    "efe_skuldir": 19299945
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5411192050.pdf",
+ "pdfAr": "2024"
+}

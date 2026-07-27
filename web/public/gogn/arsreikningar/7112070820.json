@@ -1,0 +1,94 @@
+{
+ "kt": "7112070820",
+ "nafn": "Nes Capital ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -3.9892,
+    "hagnadarhlutfall": 386.3566,
+    "ROE": 0.466,
+    "ROA": 0.4221,
+    "eiginfjarhlutfall": 0.9059,
+    "veltufjarhlutfall": 0.0387,
+    "skuldahlutfall_DE": 0.1039,
+    "eignavelta": 0.0011
+   },
+   "rekstur": {
+    "sala": 7533511,
+    "laun": 17448221,
+    "annar_rekstur": 20138126,
+    "afskriftir": 0,
+    "ebit": -30052836,
+    "fjarmunatekjur": 26729566,
+    "fjarmagnsgjold": -10,
+    "matsbreyting": -8552007,
+    "hagn_f_skatt": 2910621364,
+    "tekjuskattur": 0,
+    "hagnadur": 2910621364
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5401640520,
+    "vidskiptakrofur": 0,
+    "handbaert": 25122796,
+    "veltufjarmunir": 1493603389,
+    "eignir": 6895243909,
+    "hlutafe": 1000000,
+    "eigid_fe": 6246269380,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 648974529,
+    "skuldir": 648974529,
+    "efe_skuldir": 6895243909
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -4.4922,
+    "hagnadarhlutfall": 56.272,
+    "ROE": 0.0652,
+    "ROA": 0.0636,
+    "eiginfjarhlutfall": 0.9752,
+    "veltufjarhlutfall": 0.9415,
+    "skuldahlutfall_DE": 0.0254,
+    "eignavelta": 0.0011
+   },
+   "rekstur": {
+    "sala": 6559054,
+    "laun": 18826809,
+    "annar_rekstur": 17196926,
+    "afskriftir": 0,
+    "ebit": -29464681,
+    "fjarmunatekjur": 133486550,
+    "fjarmagnsgjold": 0,
+    "matsbreyting": 41566793,
+    "hagn_f_skatt": 376828872,
+    "tekjuskattur": -7738016,
+    "hagnadur": 369090856
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2944792527,
+    "vidskiptakrofur": 0,
+    "handbaert": 133443793,
+    "veltufjarmunir": 2858281762,
+    "eignir": 5803074289,
+    "hlutafe": 1000000,
+    "eigid_fe": 5659081826,
+    "langtimaskuldir": 2251311,
+    "skammtimaskuldir": 141741152,
+    "skuldir": 143992463,
+    "efe_skuldir": 5803074289
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7112070820.pdf",
+ "pdfAr": "2024"
+}

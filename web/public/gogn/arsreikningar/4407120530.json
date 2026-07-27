@@ -1,0 +1,72 @@
+{
+ "kt": "4407120530",
+ "nafn": "Félagshús ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2013": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -6.3306,
+    "ROA": -0.1352,
+    "eiginfjarhlutfall": -0.1441,
+    "veltufjarhlutfall": 0.0006,
+    "eignavelta": 0.0214
+   },
+   "rekstur": {
+    "sala": 1501153,
+    "afskriftir": 3075395,
+    "fjarmunatekjur": 1638,
+    "fjarmagnsgjold": -5809069,
+    "hagnadur": -9503218
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 46130,
+    "eignir": 70272634,
+    "hlutafe": 500000,
+    "eigid_fe": -10123662,
+    "skuldir": 80376996,
+    "efe_skuldir": 70253334,
+    "skammtimaskuldir": 80376996
+   },
+   "starfsmenn": null
+  },
+  "2014": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.6476,
+    "ROE": 3.1647,
+    "ROA": 0.3189,
+    "eiginfjarhlutfall": 0.1008,
+    "veltufjarhlutfall": 0.5851,
+    "skuldahlutfall_DE": 8.9253,
+    "eignavelta": 0.4924
+   },
+   "rekstur": {
+    "sala": 22853790,
+    "afskriftir": 605105,
+    "fjarmunatekjur": 1465,
+    "fjarmagnsgjold": -3337402,
+    "hagnadur": 14800349
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 24421571,
+    "handbaert": 566,
+    "eignir": 46417619,
+    "hlutafe": 500000,
+    "eigid_fe": 4676687,
+    "skuldir": 41740932,
+    "efe_skuldir": 46417619,
+    "skammtimaskuldir": 41740932
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4407120530.pdf",
+ "pdfAr": "2014"
+}

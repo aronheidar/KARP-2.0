@@ -1,0 +1,76 @@
+{
+ "kt": "6007003590",
+ "nafn": "Café Amour ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 10000000,
+    "eigid_fe": -166998,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 166998,
+    "skuldir": 166998,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -22200,
+    "tekjuskattur": 0,
+    "hagnadur": -22200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 10000000,
+    "eigid_fe": -166998,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 166998,
+    "skuldir": 166998,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6007003590.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "6103220340",
+ "nafn": "Loki Foods ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0366,
+    "hagnadarhlutfall": 0,
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.0032,
+    "veltufjarhlutfall": 1.7136,
+    "skuldahlutfall_DE": 314.389,
+    "eignavelta": 0.1754
+   },
+   "rekstur": {
+    "sala": 15364467,
+    "ebit": -562250,
+    "afskriftir": 0,
+    "fjarmunatekjur": 562250,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 77568742,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5465391,
+    "veltufjarmunir": 10018580,
+    "eignir": 87587322,
+    "hlutafe": 500001,
+    "eigid_fe": 277712,
+    "langtimaskuldir": 84120101,
+    "skammtimaskuldir": 3189509,
+    "skuldir": 87309610,
+    "efe_skuldir": 87587322
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2222,
+    "hagnadarhlutfall": 0.1593,
+    "ROE": 0.9264,
+    "ROA": 0.0412,
+    "eiginfjarhlutfall": 0.0445,
+    "veltufjarhlutfall": 0.0056,
+    "skuldahlutfall_DE": 21.4937,
+    "eignavelta": 0.2585
+   },
+   "rekstur": {
+    "sala": 21083926,
+    "ebit": 4683992,
+    "afskriftir": -417280,
+    "fjarmunatekjur": 102514,
+    "fjarmagnsgjold": -303453,
+    "hagn_f_skatt": 4065773,
+    "tekjuskattur": -706227,
+    "hagnadur": 3359546
+   },
+   "efnahagur": {
+    "fastafjarmunir": 81117462,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 434263,
+    "veltufjarmunir": 456804,
+    "eignir": 81574266,
+    "hlutafe": 500000,
+    "eigid_fe": 3626537,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 77947729,
+    "skuldir": 77947729,
+    "efe_skuldir": 81574266
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6103220340.pdf",
+ "pdfAr": "2024"
+}

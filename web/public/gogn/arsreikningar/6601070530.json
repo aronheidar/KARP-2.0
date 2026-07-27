@@ -1,0 +1,86 @@
+{
+ "kt": "6601070530",
+ "nafn": "Gilsson ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1152,
+    "ROA": -0.0025,
+    "eiginfjarhlutfall": 0.0217,
+    "veltufjarhlutfall": 0.8425,
+    "skuldahlutfall_DE": 45.0291,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1467759,
+    "birgdir": 0,
+    "vidskiptakrofur": 6882787,
+    "handbaert": 0,
+    "veltufjarmunir": 6882787,
+    "eignir": 8350546,
+    "hlutafe": 500000,
+    "eigid_fe": 181419,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8169127,
+    "skuldir": 8169127,
+    "efe_skuldir": 8350546
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1337,
+    "ROA": -0.0026,
+    "eiginfjarhlutfall": 0.0192,
+    "veltufjarhlutfall": 0.8399,
+    "skuldahlutfall_DE": 51.051,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21400,
+    "tekjuskattur": 0,
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1467759,
+    "birgdir": 0,
+    "vidskiptakrofur": 6861387,
+    "handbaert": 0,
+    "veltufjarmunir": 6861387,
+    "eignir": 8329146,
+    "hlutafe": 500000,
+    "eigid_fe": 160019,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8169127,
+    "skuldir": 8169127,
+    "efe_skuldir": 8329146
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6601070530.pdf",
+ "pdfAr": "2025"
+}

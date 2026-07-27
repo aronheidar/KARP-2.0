@@ -1,0 +1,80 @@
+{
+ "kt": "6711061210",
+ "nafn": "Nordic Parts ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3584,
+    "veltufjarhlutfall": 0.2589,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -153766,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -69528,
+    "hagn_f_skatt": -223294,
+    "tekjuskattur": 0,
+    "hagnadur": -223294
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 617758,
+    "vidskiptakrofur": 0,
+    "handbaert": 5225,
+    "veltufjarmunir": 622983,
+    "eignir": 622983,
+    "hlutafe": 500000,
+    "eigid_fe": -1783457,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2406440,
+    "skuldir": 2406440,
+    "efe_skuldir": 622983
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2406,
+    "veltufjarhlutfall": 0.2444,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -139690,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -10836,
+    "hagn_f_skatt": -150526,
+    "tekjuskattur": 0,
+    "hagnadur": -150526
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 617758,
+    "vidskiptakrofur": 0,
+    "handbaert": 7826,
+    "veltufjarmunir": 625584,
+    "eignir": 625584,
+    "hlutafe": 500000,
+    "eigid_fe": -1933983,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2559567,
+    "skuldir": 2559567,
+    "efe_skuldir": 625584
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6711061210.pdf",
+ "pdfAr": "2024"
+}

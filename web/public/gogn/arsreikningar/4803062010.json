@@ -1,0 +1,100 @@
+{
+ "kt": "4803062010",
+ "nafn": "YES-EU ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9064,
+    "ebit_hlutfall": 0.0932,
+    "hagnadarhlutfall": 0,
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.1221,
+    "veltufjarhlutfall": 0.2956,
+    "skuldahlutfall_DE": 7.191,
+    "eignavelta": 0.3076
+   },
+   "rekstur": {
+    "hagnadur": 37.3,
+    "sala": 125275843,
+    "adrar_tekjur": 73515250,
+    "kostnadarverd": 11731074,
+    "laun": 31681103,
+    "annar_rekstur": 58022557,
+    "afskriftir": 12166518,
+    "ebit": 11674591,
+    "fjarmunatekjur": 41042,
+    "fjarmagnsgjold": -5062331,
+    "hagn_f_skatt": 3899569,
+    "tekjuskattur": -847600
+   },
+   "efnahagur": {
+    "fastafjarmunir": 67070329,
+    "birgdir": 68206004,
+    "vidskiptakrofur": 24542995,
+    "handbaert": 95635,
+    "veltufjarmunir": 340165701,
+    "eignir": 407236030,
+    "hlutafe": 20500000,
+    "eigid_fe": 49717564,
+    "langtimaskuldir": 43406445,
+    "skammtimaskuldir": 314112021,
+    "skuldir": 357518466,
+    "efe_skuldir": 407236030
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5307,
+    "ebit_hlutfall": 0.1587,
+    "hagnadarhlutfall": 0,
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.1498,
+    "veltufjarhlutfall": 0.5267,
+    "skuldahlutfall_DE": 5.6771,
+    "eignavelta": 0.5611
+   },
+   "rekstur": {
+    "hagnadur": 2025,
+    "sala": 326136200,
+    "adrar_tekjur": 50361750,
+    "kostnadarverd": 153049128,
+    "laun": 38724994,
+    "annar_rekstur": 37355443,
+    "afskriftir": 45250370,
+    "ebit": 51756265,
+    "fjarmunatekjur": 54344,
+    "fjarmagnsgjold": -5485281,
+    "hagn_f_skatt": 46678758,
+    "tekjuskattur": -9340032
+   },
+   "efnahagur": {
+    "fastafjarmunir": 21819959,
+    "birgdir": 211078340,
+    "vidskiptakrofur": 15315832,
+    "handbaert": 11337005,
+    "veltufjarmunir": 559463494,
+    "eignir": 581283453,
+    "hlutafe": 20500000,
+    "eigid_fe": 87056290,
+    "langtimaskuldir": 42899921,
+    "skammtimaskuldir": 451327242,
+    "skuldir": 494227163,
+    "efe_skuldir": 581283453
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4803062010.pdf",
+ "pdfAr": "2025"
+}

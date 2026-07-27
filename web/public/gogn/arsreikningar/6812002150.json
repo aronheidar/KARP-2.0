@@ -1,0 +1,80 @@
+{
+ "kt": "6812002150",
+ "nafn": "Ósæð ehf.",
+ "sott": "2026-07-24",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "veltufjarhlutfall": 2.4742,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 340818,
+    "birgdir": 1268310,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1268310,
+    "eignir": 1609128,
+    "hlutafe": 500000,
+    "eigid_fe": -3903479,
+    "langtimaskuldir": 5000000,
+    "skammtimaskuldir": 512607,
+    "skuldir": 5512607,
+    "efe_skuldir": 1609128
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "veltufjarhlutfall": 2.4742,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 340818,
+    "birgdir": 1268310,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1268310,
+    "eignir": 1609128,
+    "hlutafe": 500000,
+    "eigid_fe": -3903479,
+    "langtimaskuldir": 5000000,
+    "skammtimaskuldir": 512607,
+    "skuldir": 5512607,
+    "efe_skuldir": 1609128
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6812002150.pdf",
+ "pdfAr": "2024"
+}

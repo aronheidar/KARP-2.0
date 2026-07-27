@@ -1,0 +1,90 @@
+{
+ "kt": "4403130510",
+ "nafn": "SS3 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5687,
+    "hagnadarhlutfall": 0.5662,
+    "ROE": 0.6934,
+    "ROA": 0.5036,
+    "eiginfjarhlutfall": 0.7264,
+    "veltufjarhlutfall": 1.6561,
+    "skuldahlutfall_DE": 0.3767,
+    "eignavelta": 0.8895
+   },
+   "rekstur": {
+    "sala": 19095924,
+    "ebit": 10859856,
+    "afskriftir": 0,
+    "fjarmunatekjur": 17399,
+    "fjarmagnsgjold": -11542,
+    "hagn_f_skatt": 13094813,
+    "tekjuskattur": -2281800,
+    "hagnadur": 10813013
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 6079039,
+    "handbaert": 3650841,
+    "veltufjarmunir": 20469354,
+    "eignir": 21469354,
+    "hlutafe": 500000,
+    "eigid_fe": 15594332,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5875022,
+    "skuldir": 5875022,
+    "efe_skuldir": 21469354
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3585,
+    "hagnadarhlutfall": 0.3397,
+    "ROE": 0.2228,
+    "ROA": 0.2123,
+    "eiginfjarhlutfall": 0.953,
+    "veltufjarhlutfall": 3.7757,
+    "skuldahlutfall_DE": 0.0494,
+    "eignavelta": 0.6251
+   },
+   "rekstur": {
+    "sala": 13161000,
+    "ebit": 4717926,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13564,
+    "fjarmagnsgjold": -260945,
+    "hagn_f_skatt": 4470545,
+    "tekjuskattur": 0,
+    "hagnadur": 4470545
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2665375,
+    "handbaert": 1074009,
+    "veltufjarmunir": 20055251,
+    "eignir": 21055251,
+    "hlutafe": 500000,
+    "eigid_fe": 20064877,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 990374,
+    "skuldir": 990374,
+    "efe_skuldir": 21055251
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4403130510.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,76 @@
+{
+ "kt": "5506220760",
+ "nafn": "Yfirvigt ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.053,
+    "ROA": -0.0184,
+    "eiginfjarhlutfall": 0.347,
+    "veltufjarhlutfall": 0.0949,
+    "skuldahlutfall_DE": 1.882
+   },
+   "rekstur": {
+    "annar_rekstur": 94970,
+    "ebit": -94970,
+    "fjarmunatekjur": 757,
+    "fjarmagnsgjold": 63846,
+    "hagn_f_skatt": -31124,
+    "tekjuskattur": 0,
+    "hagnadur": -31124
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 167,
+    "handbaert": 104752,
+    "veltufjarmunir": 1693673,
+    "eignir": 1693673,
+    "hlutafe": 600000,
+    "eigid_fe": 587673,
+    "skammtimaskuldir": 1106000,
+    "skuldir": 1106000,
+    "efe_skuldir": 1693673
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2872,
+    "ROA": 0.076,
+    "eiginfjarhlutfall": 0.2646,
+    "veltufjarhlutfall": 0.2455,
+    "skuldahlutfall_DE": 2.78
+   },
+   "rekstur": {
+    "annar_rekstur": 120085,
+    "ebit": -120085,
+    "fjarmunatekjur": 4230,
+    "fjarmagnsgjold": 356877,
+    "hagn_f_skatt": 236792,
+    "tekjuskattur": 0,
+    "hagnadur": 236792
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 930,
+    "handbaert": 561701,
+    "veltufjarmunir": 3116465,
+    "eignir": 3116465,
+    "hlutafe": 600000,
+    "eigid_fe": 824465,
+    "skammtimaskuldir": 2292000,
+    "skuldir": 2292000,
+    "efe_skuldir": 3116465
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5506220760.pdf",
+ "pdfAr": "2024"
+}

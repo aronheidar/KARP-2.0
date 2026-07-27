@@ -1,0 +1,78 @@
+{
+ "kt": "5110221420",
+ "nafn": "MW verk ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9949,
+    "eiginfjarhlutfall": 0.4082,
+    "veltufjarhlutfall": 1.3006,
+    "skuldahlutfall_DE": 1.4498,
+    "eignavelta": 9.6027
+   },
+   "rekstur": {
+    "sala": 58523800,
+    "kostnadarverd": 299672,
+    "laun": 47432588,
+    "annar_rekstur": 7919076,
+    "afskriftir": 280000,
+    "fjarmunatekjur": 240020,
+    "fjarmagnsgjold": -3165,
+    "hagn_f_skatt": 2829319,
+    "tekjuskattur": -501980
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": 4690837,
+    "eignir": 6094504,
+    "hlutafe": 500000,
+    "eigid_fe": 2487719,
+    "skuldir": 3606785,
+    "efe_skuldir": 6094504,
+    "skammtimaskuldir": 3606785
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 1,
+    "eiginfjarhlutfall": 0.1616,
+    "veltufjarhlutfall": 0.4671,
+    "skuldahlutfall_DE": 5.1863,
+    "eignavelta": 5.49
+   },
+   "rekstur": {
+    "sala": 87833175,
+    "kostnadarverd": 0,
+    "laun": 64471110,
+    "annar_rekstur": 20989298,
+    "afskriftir": 1933871,
+    "fjarmunatekjur": 209589,
+    "fjarmagnsgjold": -518299,
+    "hagn_f_skatt": 130186,
+    "tekjuskattur": -31728
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 110862,
+    "handbaert": 6153593,
+    "eignir": 15998843,
+    "hlutafe": 500000,
+    "eigid_fe": 2586177,
+    "skuldir": 13412666,
+    "efe_skuldir": 15998843,
+    "skammtimaskuldir": 13412666
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/5110221420.pdf",
+ "pdfAr": "2024"
+}

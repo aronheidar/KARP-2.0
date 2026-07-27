@@ -1,0 +1,74 @@
+{
+ "kt": "6607962669",
+ "nafn": "Uggi ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0009,
+    "ROA": 0.0009,
+    "eiginfjarhlutfall": 0.9975,
+    "veltufjarhlutfall": 15.7687,
+    "skuldahlutfall_DE": 0.0025
+   },
+   "rekstur": {
+    "annar_rekstur": 405685,
+    "fjarmagnsgjold": -7584,
+    "fjarmunatekjur": 290159,
+    "hagn_f_skatt": 244978,
+    "tekjuskattur": 0,
+    "hagnadur": 244978
+   },
+   "efnahagur": {
+    "fastafjarmunir": 271115808,
+    "handbaert": 11231450,
+    "veltufjarmunir": 11295285,
+    "eignir": 282411093,
+    "hlutafe": 166500050,
+    "eigid_fe": 281698831,
+    "skammtimaskuldir": 712262,
+    "skuldir": 712262,
+    "efe_skuldir": 282411093
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0436,
+    "ROA": -0.0434,
+    "eiginfjarhlutfall": 0.9962,
+    "veltufjarhlutfall": 11.4248,
+    "skuldahlutfall_DE": 0.0038
+   },
+   "rekstur": {
+    "annar_rekstur": 350748,
+    "fjarmagnsgjold": 0,
+    "fjarmunatekjur": 282665,
+    "hagn_f_skatt": -11771701,
+    "tekjuskattur": 0,
+    "hagnadur": -11771701
+   },
+   "efnahagur": {
+    "fastafjarmunir": 259135724,
+    "handbaert": 11758426,
+    "veltufjarmunir": 11820612,
+    "eignir": 270956336,
+    "hlutafe": 166500050,
+    "eigid_fe": 269927130,
+    "skammtimaskuldir": 1029206,
+    "skuldir": 1029206,
+    "efe_skuldir": 270956336
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6607962669.pdf",
+ "pdfAr": "2024"
+}

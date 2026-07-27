@@ -1,0 +1,60 @@
+{
+ "kt": "4102101850",
+ "nafn": "21. júní ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.5367
+   },
+   "rekstur": {
+    "fjarmunatekjur": 286610,
+    "fjarmagnsgjold": -2520183,
+    "annar_rekstur": 134315,
+    "ebit": 747028037,
+    "hagn_f_skatt": 747028037,
+    "tekjuskattur": 469538,
+    "hagnadur": 747497575
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1237476611,
+    "vidskiptakrofur": 11767727,
+    "handbaert": 1842267,
+    "veltufjarmunir": 155161826,
+    "eignir": 1392638437
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.2147
+   },
+   "rekstur": {
+    "fjarmunatekjur": 1315117,
+    "fjarmagnsgjold": -39986253,
+    "annar_rekstur": 710379,
+    "ebit": 347193523,
+    "hagn_f_skatt": 347193523,
+    "tekjuskattur": 8102690,
+    "hagnadur": 355296213
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1249070085,
+    "vidskiptakrofur": 12087727,
+    "handbaert": 105678486,
+    "veltufjarmunir": 405843729,
+    "eignir": 1654913814
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4102101850.pdf",
+ "pdfAr": "2024"
+}

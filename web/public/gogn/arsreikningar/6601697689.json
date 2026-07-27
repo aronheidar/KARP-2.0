@@ -1,0 +1,94 @@
+{
+ "kt": "6601697689",
+ "nafn": "Ísól ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.396,
+    "ebit_hlutfall": 0.0148,
+    "hagnadarhlutfall": -0.0076,
+    "ROE": -0.1046,
+    "ROA": -0.0164,
+    "eiginfjarhlutfall": 0.1573,
+    "veltufjarhlutfall": 0.923,
+    "skuldahlutfall_DE": 5.3578,
+    "eignavelta": 2.1534
+   },
+   "rekstur": {
+    "sala": 752358452,
+    "adrar_tekjur": 2951200,
+    "kostnadarverd": -454450120,
+    "laun": -198920414,
+    "annar_rekstur": -38748500,
+    "afskriftir": -9170577,
+    "ebit": 11158518,
+    "fjarmunatekjur": 1578764,
+    "fjarmagnsgjold": -22211291,
+    "hagn_f_skatt": -7177427,
+    "tekjuskattur": 1431446,
+    "hagnadur": -5745981
+   },
+   "efnahagur": {
+    "birgdir": 208249542,
+    "vidskiptakrofur": 62628097,
+    "handbaert": 888574,
+    "eignir": 349384617,
+    "hlutafe": 10862600,
+    "eigid_fe": 54953698,
+    "skuldir": 294430919,
+    "efe_skuldir": 349384617,
+    "skammtimaskuldir": 294430919
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3923,
+    "ebit_hlutfall": 0.0105,
+    "hagnadarhlutfall": -0.0242,
+    "ROE": -0.5795,
+    "ROA": -0.0528,
+    "eiginfjarhlutfall": 0.0912,
+    "veltufjarhlutfall": 0.9325,
+    "skuldahlutfall_DE": 9.9649,
+    "eignavelta": 2.1807
+   },
+   "rekstur": {
+    "sala": 831914742,
+    "adrar_tekjur": 0,
+    "kostnadarverd": -505524239,
+    "laun": -213363677,
+    "annar_rekstur": -40696339,
+    "afskriftir": -12261063,
+    "ebit": 8699481,
+    "fjarmunatekjur": 1955894,
+    "fjarmagnsgjold": -34536318,
+    "hagn_f_skatt": -25196500,
+    "tekjuskattur": 5035120,
+    "hagnadur": -20161380
+   },
+   "efnahagur": {
+    "birgdir": 240571055,
+    "vidskiptakrofur": 80352597,
+    "handbaert": 2360981,
+    "eignir": 381495865,
+    "hlutafe": 10862600,
+    "eigid_fe": 34792318,
+    "skuldir": 346703547,
+    "efe_skuldir": 381495865,
+    "skammtimaskuldir": 346703547
+   },
+   "starfsmenn": 13
+  }
+ },
+ "pdf": "pdf/6601697689.pdf",
+ "pdfAr": "2024"
+}

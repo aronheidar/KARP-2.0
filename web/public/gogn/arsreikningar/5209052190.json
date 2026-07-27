@@ -1,0 +1,74 @@
+{
+ "kt": "5209052190",
+ "nafn": "Hamborgarab Tómasar Geirsg ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6581,
+    "ebit_hlutfall": 0.0686,
+    "hagnadarhlutfall": 0.0395,
+    "ROA": 0.0382,
+    "eignavelta": 0.9657
+   },
+   "rekstur": {
+    "sala": 241842436,
+    "kostnadarverd": 82690160,
+    "laun": 95635052,
+    "ebit": 16580697,
+    "afskriftir": 2360000,
+    "fjarmunatekjur": 76221,
+    "fjarmagnsgjold": -4739299,
+    "tekjuskattur": 0,
+    "hagnadur": 9557619
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11881274,
+    "birgdir": 0,
+    "vidskiptakrofur": 234973031,
+    "handbaert": 3556303,
+    "veltufjarmunir": 238546102,
+    "eignir": 250427376
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6848,
+    "ebit_hlutfall": 0.0309,
+    "hagnadarhlutfall": 0.0127,
+    "ROA": 0.0129,
+    "eignavelta": 1.0176
+   },
+   "rekstur": {
+    "sala": 257350139,
+    "kostnadarverd": 81109815,
+    "laun": 118741112,
+    "ebit": 7949822,
+    "afskriftir": 2104000,
+    "fjarmunatekjur": 1502390,
+    "fjarmagnsgjold": -4079202,
+    "tekjuskattur": 0,
+    "hagnadur": 3269010
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9777274,
+    "birgdir": 0,
+    "vidskiptakrofur": 204136191,
+    "handbaert": 38651557,
+    "veltufjarmunir": 243118273,
+    "eignir": 252895547
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5209052190.pdf",
+ "pdfAr": "2024"
+}

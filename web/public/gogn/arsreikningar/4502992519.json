@@ -1,0 +1,86 @@
+{
+ "kt": "4502992519",
+ "nafn": "220 Volt ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0307,
+    "hagnadarhlutfall": -0.0075,
+    "ROA": -0.0225,
+    "eiginfjarhlutfall": -0.2411,
+    "veltufjarhlutfall": 0.5239,
+    "eignavelta": 2.9925
+   },
+   "rekstur": {
+    "sala": 44992703,
+    "ebit": 1381847,
+    "afskriftir": -1582030,
+    "fjarmunatekjur": 19346,
+    "fjarmagnsgjold": -156812,
+    "hagn_f_skatt": -337649,
+    "tekjuskattur": 0,
+    "hagnadur": -337649
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6479829,
+    "birgdir": 7648121,
+    "vidskiptakrofur": 524389,
+    "handbaert": 378581,
+    "veltufjarmunir": 8555347,
+    "eignir": 15035176,
+    "hlutafe": 500000,
+    "eigid_fe": -3624381,
+    "langtimaskuldir": 2339025,
+    "skammtimaskuldir": 16320532,
+    "skuldir": 18659557,
+    "efe_skuldir": 15035176
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0171,
+    "hagnadarhlutfall": -0.0449,
+    "ROA": -0.1641,
+    "eiginfjarhlutfall": -0.4061,
+    "veltufjarhlutfall": 0.5058,
+    "eignavelta": 3.6526
+   },
+   "rekstur": {
+    "sala": 54705912,
+    "ebit": -932828,
+    "afskriftir": -1265625,
+    "fjarmunatekjur": 62379,
+    "fjarmagnsgjold": -322187,
+    "hagn_f_skatt": -2458261,
+    "tekjuskattur": 0,
+    "hagnadur": -2458261
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5214204,
+    "birgdir": 8542117,
+    "vidskiptakrofur": 558500,
+    "handbaert": 648742,
+    "veltufjarmunir": 9763082,
+    "eignir": 14977286,
+    "hlutafe": 500000,
+    "eigid_fe": -6082642,
+    "langtimaskuldir": 1783670,
+    "skammtimaskuldir": 19276258,
+    "skuldir": 21059928,
+    "efe_skuldir": 14977286
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4502992519.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "4701691419",
+ "nafn": "Coca-Cola Eur.Partn. Ísland ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.3067,
+    "ebit_hlutfall": -0.0352,
+    "hagnadarhlutfall": -0.0104,
+    "ROE": -0.0106,
+    "ROA": -0.0084,
+    "eiginfjarhlutfall": 0.787,
+    "veltufjarhlutfall": 2.3145,
+    "skuldahlutfall_DE": 0.2237,
+    "eignavelta": 0.8055
+   },
+   "rekstur": {
+    "sala": 7863147,
+    "tekjuskattur": 31932,
+    "kostnadarverd": -5451692,
+    "annar_rekstur": -621292,
+    "ebit": -276729,
+    "fjarmunatekjur": 163645,
+    "fjarmagnsgjold": -569,
+    "hagn_f_skatt": -113652,
+    "hagnadur": -81720
+   },
+   "efnahagur": {
+    "birgdir": 1557089,
+    "handbaert": 946582,
+    "eignir": 9761989,
+    "skuldir": 1718779,
+    "fastafjarmunir": 5300008,
+    "vidskiptakrofur": 1474473,
+    "veltufjarmunir": 4461981,
+    "hlutafe": 1937294,
+    "eigid_fe": 7682629,
+    "skammtimaskuldir": 1718779
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.3214,
+    "ebit_hlutfall": -0.015,
+    "hagnadarhlutfall": 0.0021,
+    "ROE": 0.0023,
+    "ROA": 0.0018,
+    "eiginfjarhlutfall": 0.7719,
+    "veltufjarhlutfall": 2.3598,
+    "skuldahlutfall_DE": 0.2495,
+    "eignavelta": 0.8384
+   },
+   "rekstur": {
+    "sala": 8364068,
+    "tekjuskattur": -72,
+    "kostnadarverd": -5676267,
+    "annar_rekstur": -664339,
+    "ebit": -125481,
+    "fjarmunatekjur": 143431,
+    "fjarmagnsgjold": -39,
+    "hagn_f_skatt": 17911,
+    "hagnadur": 17839
+   },
+   "efnahagur": {
+    "birgdir": 1018260,
+    "handbaert": 1794601,
+    "eignir": 9976550,
+    "skuldir": 1921202,
+    "fastafjarmunir": 5147242,
+    "vidskiptakrofur": 1720803,
+    "veltufjarmunir": 4829308,
+    "hlutafe": 1937294,
+    "eigid_fe": 7700436,
+    "skammtimaskuldir": 1921202
+   },
+   "starfsmenn": 148
+  }
+ },
+ "pdf": "pdf/4701691419.pdf",
+ "pdfAr": "2025"
+}

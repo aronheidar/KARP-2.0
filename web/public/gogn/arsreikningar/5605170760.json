@@ -1,0 +1,68 @@
+{
+ "kt": "5605170760",
+ "nafn": "Aurora-Villa ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.149,
+    "ROA": -0.149,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": 26160,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -44460
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 298400,
+    "eignir": 298400,
+    "langtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 298400,
+    "eigid_fe": 298400,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0672,
+    "ROA": -0.0672,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 279600,
+    "eignir": 279600,
+    "langtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 279600,
+    "eigid_fe": 279600,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5605170760.pdf",
+ "pdfAr": "2022"
+}

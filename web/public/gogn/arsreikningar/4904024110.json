@@ -1,0 +1,88 @@
+{
+ "kt": "4904024110",
+ "nafn": "50skills ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7342,
+    "ebit_hlutfall": -0.4688,
+    "hagnadarhlutfall": -0.4489,
+    "ROE": -1.3662,
+    "ROA": -0.4738,
+    "eiginfjarhlutfall": 0.3468,
+    "veltufjarhlutfall": 0.923,
+    "skuldahlutfall_DE": 1.8836,
+    "eignavelta": 1.0555
+   },
+   "rekstur": {
+    "sala": 239000560,
+    "kostnadarverd": 63518112,
+    "laun": 234008697,
+    "annar_rekstur": 51908350,
+    "afskriftir": 1602219,
+    "ebit": -112036818,
+    "fjarmunatekjur": 6853123,
+    "fjarmagnsgjold": -2157306,
+    "hagnadur": -107277663
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3214979,
+    "vidskiptakrofur": 992138,
+    "handbaert": 135528130,
+    "eignir": 226424439,
+    "hlutafe": 1963141,
+    "eigid_fe": 78521496,
+    "skuldir": 147902943,
+    "efe_skuldir": 226424439,
+    "skammtimaskuldir": 147902943
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6954,
+    "ebit_hlutfall": 0.1462,
+    "hagnadarhlutfall": 0.1203,
+    "ROE": 0.2264,
+    "ROA": 0.0495,
+    "eiginfjarhlutfall": 0.2188,
+    "veltufjarhlutfall": 0.5233,
+    "skuldahlutfall_DE": 3.5704,
+    "eignavelta": 0.4116
+   },
+   "rekstur": {
+    "sala": 190930198,
+    "kostnadarverd": 58152378,
+    "laun": 62414938,
+    "annar_rekstur": 41426219,
+    "afskriftir": 1019891,
+    "ebit": 27916772,
+    "fjarmunatekjur": 10133312,
+    "fjarmagnsgjold": -15228984,
+    "hagnadur": 22977248
+   },
+   "efnahagur": {
+    "fastafjarmunir": 264514975,
+    "vidskiptakrofur": 1784805,
+    "handbaert": 187853932,
+    "eignir": 463893532,
+    "hlutafe": 1963141,
+    "eigid_fe": 101498744,
+    "skuldir": 362394788,
+    "efe_skuldir": 463893532,
+    "skammtimaskuldir": 362394788
+   },
+   "starfsmenn": 9
+  }
+ },
+ "pdf": "pdf/4904024110.pdf",
+ "pdfAr": "2024"
+}

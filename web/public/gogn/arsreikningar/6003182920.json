@@ -1,0 +1,90 @@
+{
+ "kt": "6003182920",
+ "nafn": "5923 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0645,
+    "hagnadarhlutfall": -0.0399,
+    "ROE": -0.041,
+    "ROA": -0.0211,
+    "eiginfjarhlutfall": 0.5135,
+    "veltufjarhlutfall": 0.0414,
+    "skuldahlutfall_DE": 0.9476,
+    "eignavelta": 0.5273
+   },
+   "rekstur": {
+    "sala": 7292604,
+    "ebit": 470061,
+    "afskriftir": -872991,
+    "fjarmunatekjur": 117443,
+    "fjarmagnsgjold": -5795,
+    "hagn_f_skatt": -291282,
+    "tekjuskattur": 0,
+    "hagnadur": -291282
+   },
+   "efnahagur": {
+    "fastafjarmunir": 13494553,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 278535,
+    "veltufjarmunir": 334665,
+    "eignir": 13829218,
+    "hlutafe": 500000,
+    "eigid_fe": 7100684,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6728534,
+    "skuldir": 6728534,
+    "efe_skuldir": 13829218
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2382,
+    "hagnadarhlutfall": 0.132,
+    "ROE": 0.1826,
+    "ROA": 0.09,
+    "eiginfjarhlutfall": 0.4928,
+    "veltufjarhlutfall": 0.0008,
+    "skuldahlutfall_DE": 1.0293,
+    "eignavelta": 0.6821
+   },
+   "rekstur": {
+    "sala": 12024654,
+    "ebit": 2864364,
+    "afskriftir": -958269,
+    "fjarmunatekjur": 15055,
+    "fjarmagnsgjold": -35,
+    "hagn_f_skatt": 1921115,
+    "tekjuskattur": -334427,
+    "hagnadur": 1586688
+   },
+   "efnahagur": {
+    "fastafjarmunir": 17491984,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 7178,
+    "veltufjarmunir": 137523,
+    "eignir": 17629507,
+    "hlutafe": 500000,
+    "eigid_fe": 8687372,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8942135,
+    "skuldir": 8942135,
+    "efe_skuldir": 17629507
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6003182920.pdf",
+ "pdfAr": "2025"
+}

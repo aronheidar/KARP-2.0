@@ -1,0 +1,100 @@
+{
+ "kt": "4310972499",
+ "nafn": "ICE-GROUP ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6043,
+    "ebit_hlutfall": 0.1276,
+    "hagnadarhlutfall": 0.1084,
+    "ROE": 0.1993,
+    "ROA": 0.1503,
+    "eiginfjarhlutfall": 0.7542,
+    "veltufjarhlutfall": 3.5672,
+    "skuldahlutfall_DE": 0.3259,
+    "eignavelta": 1.387
+   },
+   "rekstur": {
+    "sala": 2395458793,
+    "adrar_tekjur": 42078702,
+    "kostnadarverd": 947790502,
+    "laun": 574246969,
+    "annar_rekstur": 462221282,
+    "ebitda": 411200040,
+    "afskriftir": -105625065,
+    "matsbreyting": 0,
+    "ebit": 305574975,
+    "fjarmagnsgjold": 12967494,
+    "hagn_f_skatt": 318223980,
+    "tekjuskattur": -58661341,
+    "hagnadur": 259562639
+   },
+   "efnahagur": {
+    "fastafjarmunir": 654428827,
+    "birgdir": 427562367,
+    "vidskiptakrofur": 126367506,
+    "handbaert": 425142642,
+    "eignir": 1727104764,
+    "hlutafe": 1000000,
+    "eigid_fe": 1302627252,
+    "langtimaskuldir": 150014688,
+    "skuldir": 424477512,
+    "efe_skuldir": 1727104764,
+    "skammtimaskuldir": 274462824
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4666,
+    "ebit_hlutfall": 0.0839,
+    "hagnadarhlutfall": 0.0659,
+    "ROE": 0.102,
+    "ROA": 0.0538,
+    "eiginfjarhlutfall": 0.5281,
+    "veltufjarhlutfall": 5.8122,
+    "skuldahlutfall_DE": 0.8938,
+    "eignavelta": 0.8171
+   },
+   "rekstur": {
+    "sala": 1896480286,
+    "adrar_tekjur": 51909816,
+    "kostnadarverd": 1011563058,
+    "laun": 357947027,
+    "annar_rekstur": 358055773,
+    "ebitda": 168914428,
+    "afskriftir": -66339511,
+    "matsbreyting": 56489497,
+    "ebit": 159064414,
+    "fjarmagnsgjold": 13010504,
+    "hagn_f_skatt": 172091677,
+    "tekjuskattur": -47116170,
+    "hagnadur": 124975507
+   },
+   "efnahagur": {
+    "fastafjarmunir": 646965338,
+    "birgdir": 93826372,
+    "vidskiptakrofur": 42645584,
+    "handbaert": 1465006344,
+    "eignir": 2320924140,
+    "hlutafe": 1000000,
+    "eigid_fe": 1225568844,
+    "langtimaskuldir": 819816134,
+    "skuldir": 1095355296,
+    "efe_skuldir": 2320924140,
+    "skammtimaskuldir": 275539162
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4310972499.pdf",
+ "pdfAr": "2024"
+}

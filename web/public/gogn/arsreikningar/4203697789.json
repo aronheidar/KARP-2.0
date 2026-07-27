@@ -1,0 +1,86 @@
+{
+ "kt": "4203697789",
+ "nafn": "Bera hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 1,
+    "ROE": 0.6547,
+    "ROA": 0.1077,
+    "eiginfjarhlutfall": 0.1646,
+    "veltufjarhlutfall": 0.7971,
+    "skuldahlutfall_DE": 3.0946,
+    "eignavelta": 0.1077
+   },
+   "rekstur": {
+    "sala": 3304155,
+    "adrar_tekjur": 48976,
+    "fjarmunatekjur": 105214,
+    "fjarmagnsgjold": -994048,
+    "hagn_f_skatt": 3980678,
+    "tekjuskattur": -676522,
+    "hagnadur": 3304155,
+    "kostnadarverd": 17996940,
+    "laun": 4931458,
+    "afskriftir": 1032371,
+    "annar_rekstur": 2369193
+   },
+   "efnahagur": {
+    "eigid_fe": 5047046,
+    "birgdir": 3418505,
+    "vidskiptakrofur": 3226991,
+    "handbaert": 119241,
+    "eignir": 30665403,
+    "skammtimaskuldir": 8487025,
+    "skuldir": 15618356,
+    "efe_skuldir": 30665403
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 1,
+    "ROE": 2433361,
+    "ROA": 0.0733,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0.8197,
+    "skuldahlutfall_DE": 16808436,
+    "eignavelta": 0.0733
+   },
+   "rekstur": {
+    "sala": 2433361,
+    "adrar_tekjur": 944,
+    "fjarmunatekjur": 152111,
+    "fjarmagnsgjold": -971132,
+    "hagn_f_skatt": 3140064,
+    "tekjuskattur": -706703,
+    "hagnadur": 2433361,
+    "kostnadarverd": 17784910,
+    "laun": 5270346,
+    "afskriftir": 1139081,
+    "annar_rekstur": 2476086
+   },
+   "efnahagur": {
+    "eigid_fe": 1,
+    "birgdir": 3600027,
+    "vidskiptakrofur": 3450185,
+    "handbaert": 95906,
+    "eignir": 33183643,
+    "skammtimaskuldir": 8717705,
+    "skuldir": 16808436,
+    "efe_skuldir": 33183643
+   },
+   "starfsmenn": 404
+  }
+ },
+ "pdf": "pdf/4203697789.pdf",
+ "pdfAr": "2025"
+}

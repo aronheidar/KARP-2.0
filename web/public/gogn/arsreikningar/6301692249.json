@@ -1,0 +1,92 @@
+{
+ "kt": "6301692249",
+ "nafn": "Hraðfrystihúsið - Gunnvör hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3119,
+    "ebit_hlutfall": 0.2099,
+    "hagnadarhlutfall": 0.6869,
+    "ROE": 0.4854,
+    "ROA": 0.1983,
+    "eiginfjarhlutfall": 0.4084,
+    "veltufjarhlutfall": 0.472,
+    "skuldahlutfall_DE": 1.4484,
+    "eignavelta": 0.2886
+   },
+   "rekstur": {
+    "sala": 47733796,
+    "kostnadarverd": -32846062,
+    "adrar_tekjur": 179927,
+    "annar_rekstur": -3049186,
+    "afskriftir": -1999132,
+    "ebit": 10019343,
+    "fjarmunatekjur": 22366677,
+    "fjarmagnsgjold": -3584249,
+    "hagn_f_skatt": 34157584,
+    "tekjuskattur": -1369000,
+    "hagnadur": 32788584
+   },
+   "efnahagur": {
+    "birgdir": 11703047,
+    "vidskiptakrofur": 5509461,
+    "handbaert": 28967317,
+    "eignir": 165380477,
+    "hlutafe": 990632,
+    "eigid_fe": 67547309,
+    "skuldir": 97833168,
+    "efe_skuldir": 165380477,
+    "skammtimaskuldir": 97833168
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.149,
+    "ebit_hlutfall": 0.0765,
+    "hagnadarhlutfall": 0.0264,
+    "ROE": 0.03,
+    "ROA": 0.0117,
+    "eiginfjarhlutfall": 0.3902,
+    "veltufjarhlutfall": 0.3672,
+    "skuldahlutfall_DE": 1.5626,
+    "eignavelta": 0.4423
+   },
+   "rekstur": {
+    "sala": 73290234,
+    "kostnadarverd": -62372949,
+    "adrar_tekjur": 396756,
+    "annar_rekstur": -3307890,
+    "afskriftir": -2400476,
+    "ebit": 5605675,
+    "fjarmunatekjur": 914861,
+    "fjarmagnsgjold": -4560129,
+    "hagn_f_skatt": 2542003,
+    "tekjuskattur": -603886,
+    "hagnadur": 1938117
+   },
+   "efnahagur": {
+    "birgdir": 11602606,
+    "vidskiptakrofur": 6479071,
+    "handbaert": 19013833,
+    "eignir": 165694074,
+    "hlutafe": 990632,
+    "eigid_fe": 64659681,
+    "skuldir": 101034393,
+    "efe_skuldir": 165694074,
+    "skammtimaskuldir": 101034393
+   },
+   "starfsmenn": 153
+  }
+ },
+ "pdf": "pdf/6301692249.pdf",
+ "pdfAr": "2024"
+}

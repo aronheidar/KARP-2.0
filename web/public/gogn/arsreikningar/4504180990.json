@@ -1,0 +1,86 @@
+{
+ "kt": "4504180990",
+ "nafn": "4afurniture ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1031,
+    "hagnadarhlutfall": -0.122,
+    "ROA": -0.2616,
+    "eiginfjarhlutfall": -0.3669,
+    "veltufjarhlutfall": 0.5583,
+    "eignavelta": 2.1448
+   },
+   "rekstur": {
+    "sala": 23339108,
+    "ebit": -2406227,
+    "afskriftir": -440000,
+    "fjarmunatekjur": 34873,
+    "fjarmagnsgjold": -35012,
+    "hagn_f_skatt": -2846366,
+    "tekjuskattur": 0,
+    "hagnadur": -2846366
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1760000,
+    "birgdir": 7000000,
+    "vidskiptakrofur": 0,
+    "handbaert": 1304129,
+    "veltufjarmunir": 9121792,
+    "eignir": 10881792,
+    "hlutafe": 500000,
+    "eigid_fe": -3992965,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 14874757,
+    "skuldir": 14874757,
+    "efe_skuldir": 10881792
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.028,
+    "hagnadarhlutfall": -0.0394,
+    "ROA": -0.1069,
+    "eiginfjarhlutfall": -0.4462,
+    "veltufjarhlutfall": 0.6083,
+    "eignavelta": 2.7115
+   },
+   "rekstur": {
+    "sala": 31905037,
+    "ebit": -894435,
+    "afskriftir": -352000,
+    "fjarmunatekjur": 30700,
+    "fjarmagnsgjold": -41900,
+    "hagn_f_skatt": -1257635,
+    "tekjuskattur": 0,
+    "hagnadur": -1257635
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1408000,
+    "birgdir": 9000000,
+    "vidskiptakrofur": 0,
+    "handbaert": 1351887,
+    "veltufjarmunir": 10358641,
+    "eignir": 11766641,
+    "hlutafe": 500000,
+    "eigid_fe": -5250600,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 17017241,
+    "skuldir": 17017241,
+    "efe_skuldir": 11766641
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4504180990.pdf",
+ "pdfAr": "2024"
+}

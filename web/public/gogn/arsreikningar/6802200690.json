@@ -1,0 +1,60 @@
+{
+ "kt": "6802200690",
+ "nafn": "Dacwulf ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "annar_rekstur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skammtimaskuldir": null,
+    "skuldir": null,
+    "efe_skuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.355,
+    "ROA": -0.355,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 131000,
+    "hagnadur": -131000
+   },
+   "efnahagur": {
+    "handbaert": 369000,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 369000,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6802200690.pdf",
+ "pdfAr": "2020"
+}

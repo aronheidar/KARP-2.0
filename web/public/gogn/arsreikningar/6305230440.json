@@ -1,0 +1,86 @@
+{
+ "kt": "6305230440",
+ "nafn": "3AS ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.5752,
+    "ROA": -0.568,
+    "eiginfjarhlutfall": 0.9876,
+    "veltufjarhlutfall": 0.2466,
+    "skuldahlutfall_DE": 0.0125,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -215990,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -3094,
+    "hagn_f_skatt": -219084,
+    "tekjuskattur": 0,
+    "hagnadur": -219084
+   },
+   "efnahagur": {
+    "fastafjarmunir": 384514,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1178,
+    "veltufjarmunir": 1178,
+    "eignir": 385692,
+    "hlutafe": 600000,
+    "eigid_fe": 380916,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4776,
+    "skuldir": 4776,
+    "efe_skuldir": 385692
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.5615,
+    "ROA": -0.3494,
+    "eiginfjarhlutfall": 0.6221,
+    "veltufjarhlutfall": 0.0511,
+    "skuldahlutfall_DE": 0.6073,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -134116,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -2862,
+    "hagn_f_skatt": -136978,
+    "tekjuskattur": 0,
+    "hagnadur": -136978
+   },
+   "efnahagur": {
+    "fastafjarmunir": 384514,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 7578,
+    "veltufjarmunir": 7578,
+    "eignir": 392092,
+    "hlutafe": 600000,
+    "eigid_fe": 243938,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 148154,
+    "skuldir": 148154,
+    "efe_skuldir": 392092
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6305230440.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,96 @@
+{
+ "kt": "4311952599",
+ "nafn": "i8 Gallerí ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1627,
+    "hagnadarhlutfall": 0.1367,
+    "ROE": 0.6065,
+    "ROA": 0.1362,
+    "eiginfjarhlutfall": 0.2246,
+    "veltufjarhlutfall": 1.1077,
+    "skuldahlutfall_DE": 3.4517,
+    "eignavelta": 0.9965
+   },
+   "rekstur": {
+    "adrar_tekjur": 7762133,
+    "sala": 266266862,
+    "laun": 72501646,
+    "annar_rekstur": 66576583,
+    "afskriftir": 7663962,
+    "ebit": 43313727,
+    "fjarmunatekjur": 4886997,
+    "fjarmagnsgjold": -4937071,
+    "hagn_f_skatt": 42402724,
+    "tekjuskattur": -6000988,
+    "hagnadur": 36401736
+   },
+   "efnahagur": {
+    "fastafjarmunir": 14606484,
+    "birgdir": 9264975,
+    "vidskiptakrofur": 78776134,
+    "handbaert": 134389915,
+    "veltufjarmunir": 252595806,
+    "eignir": 267202290,
+    "hlutafe": 1500000,
+    "eigid_fe": 60023157,
+    "langtimaskuldir": 6377735,
+    "skammtimaskuldir": 200801398,
+    "skuldir": 207179133,
+    "efe_skuldir": 267202290
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1715,
+    "hagnadarhlutfall": 0.1503,
+    "ROE": 0.4018,
+    "ROA": 0.1975,
+    "eiginfjarhlutfall": 0.4916,
+    "veltufjarhlutfall": 1.4939,
+    "skuldahlutfall_DE": 1.0341,
+    "eignavelta": 1.314
+   },
+   "rekstur": {
+    "adrar_tekjur": 8075631,
+    "sala": 268201239,
+    "laun": 78644008,
+    "annar_rekstur": 65948816,
+    "afskriftir": 9071172,
+    "ebit": 46008481,
+    "fjarmunatekjur": 6223709,
+    "fjarmagnsgjold": -1699740,
+    "hagn_f_skatt": 50388951,
+    "tekjuskattur": -10069598,
+    "hagnadur": 40319353
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19107408,
+    "birgdir": 3700519,
+    "vidskiptakrofur": 49595500,
+    "handbaert": 96489516,
+    "veltufjarmunir": 185002364,
+    "eignir": 204109772,
+    "hlutafe": 1500000,
+    "eigid_fe": 100342510,
+    "langtimaskuldir": 3500000,
+    "skammtimaskuldir": 100267262,
+    "skuldir": 103767262,
+    "efe_skuldir": 204109772
+   },
+   "starfsmenn": 8
+  }
+ },
+ "pdf": "pdf/4311952599.pdf",
+ "pdfAr": "2024"
+}

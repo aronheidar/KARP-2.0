@@ -1,0 +1,83 @@
+{
+ "kt": "4103060930",
+ "nafn": "Stóriðjan ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -7.156,
+    "veltufjarhlutfall": 0.0143,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -238763,
+    "afskriftir": 0,
+    "fjarmunatekjur": 294,
+    "fjarmagnsgjold": -3935,
+    "hagn_f_skatt": -242404,
+    "tekjuskattur": 44441,
+    "hagnadur": -197963
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 27599,
+    "veltufjarmunir": 27664,
+    "eignir": 27664,
+    "hlutafe": 500000,
+    "eigid_fe": -1570005,
+    "langtimaskuldir": -331459,
+    "skammtimaskuldir": 1929128,
+    "skuldir": 1597669,
+    "efe_skuldir": 27664
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1507,
+    "hagnadarhlutfall": 0.0161,
+    "ROA": 0.0111,
+    "eiginfjarhlutfall": -0.0896,
+    "veltufjarhlutfall": 0.0316,
+    "eignavelta": 0.6862
+   },
+   "rekstur": {
+    "sala": 10702953,
+    "ebit": 1613457,
+    "afskriftir": -1391666,
+    "fjarmunatekjur": 24278,
+    "fjarmagnsgjold": -25356,
+    "hagn_f_skatt": 220713,
+    "tekjuskattur": -48323,
+    "hagnadur": 172390
+   },
+   "efnahagur": {
+    "fastafjarmunir": 15308334,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 236985,
+    "veltufjarmunir": 288836,
+    "eignir": 15597170,
+    "hlutafe": 500000,
+    "eigid_fe": -1397615,
+    "langtimaskuldir": 9491864,
+    "skammtimaskuldir": 7502921,
+    "skuldir": 16994785,
+    "efe_skuldir": 15597170
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4103060930.pdf",
+ "pdfAr": "2024"
+}

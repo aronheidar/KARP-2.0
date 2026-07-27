@@ -1,0 +1,84 @@
+{
+ "kt": "5803110240",
+ "nafn": "4 All Fours ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0619,
+    "hagnadarhlutfall": 0.0268,
+    "ROA": 0.0693,
+    "veltufjarhlutfall": 0.18,
+    "eignavelta": 2.5871
+   },
+   "rekstur": {
+    "sala": 5541733,
+    "ebit": 342853,
+    "afskriftir": -186970,
+    "fjarmunatekjur": 8591,
+    "fjarmagnsgjold": -15936,
+    "hagn_f_skatt": 148538,
+    "tekjuskattur": 0,
+    "hagnadur": 148538
+   },
+   "efnahagur": {
+    "fastafjarmunir": 747880,
+    "birgdir": 109500,
+    "vidskiptakrofur": 1138450,
+    "handbaert": 144368,
+    "veltufjarmunir": 1394208,
+    "eignir": 2142088,
+    "hlutafe": 500000,
+    "eigid_fe": -5593972,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7736060,
+    "skuldir": 7736060,
+    "efe_skuldir": 2142088
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2327,
+    "hagnadarhlutfall": 0.1954,
+    "ROA": 0.365,
+    "veltufjarhlutfall": 0.2546,
+    "eignavelta": 1.8683
+   },
+   "rekstur": {
+    "sala": 4512048,
+    "ebit": 1049806,
+    "afskriftir": -149576,
+    "fjarmunatekjur": 21373,
+    "fjarmagnsgjold": -39983,
+    "hagn_f_skatt": 881620,
+    "tekjuskattur": 0,
+    "hagnadur": 881620
+   },
+   "efnahagur": {
+    "fastafjarmunir": 598304,
+    "birgdir": 109500,
+    "vidskiptakrofur": 1266344,
+    "handbaert": 438965,
+    "veltufjarmunir": 1816770,
+    "eignir": 2415074,
+    "hlutafe": 500000,
+    "eigid_fe": -4712352,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7127426,
+    "skuldir": 7127426,
+    "efe_skuldir": 2415074
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5803110240.pdf",
+ "pdfAr": "2024"
+}

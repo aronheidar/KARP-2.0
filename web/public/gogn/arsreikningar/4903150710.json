@@ -1,0 +1,86 @@
+{
+ "kt": "4903150710",
+ "nafn": "90°N ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -3.0982,
+    "hagnadarhlutfall": -3.0946,
+    "ROA": -0.0442,
+    "eiginfjarhlutfall": -0.1313,
+    "veltufjarhlutfall": 0.8836,
+    "eignavelta": 0.0143
+   },
+   "rekstur": {
+    "sala": 846576,
+    "ebit": -2622832,
+    "afskriftir": 0,
+    "fjarmunatekjur": 7062,
+    "fjarmagnsgjold": -4030,
+    "hagn_f_skatt": -2619800,
+    "tekjuskattur": 0,
+    "hagnadur": -2619800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 59030543,
+    "vidskiptakrofur": 147185,
+    "handbaert": 21131,
+    "veltufjarmunir": 59223129,
+    "eignir": 59223129,
+    "hlutafe": 500000,
+    "eigid_fe": -7773406,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 66996535,
+    "skuldir": 66996535,
+    "efe_skuldir": 59223129
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -2.141,
+    "hagnadarhlutfall": -2.1741,
+    "ROA": -0.0041,
+    "eiginfjarhlutfall": -0.1308,
+    "veltufjarhlutfall": 0.8841,
+    "eignavelta": 0.0019
+   },
+   "rekstur": {
+    "sala": 114535,
+    "ebit": -245216,
+    "afskriftir": 0,
+    "fjarmunatekjur": 10193,
+    "fjarmagnsgjold": -13986,
+    "hagn_f_skatt": -249009,
+    "tekjuskattur": 0,
+    "hagnadur": -249009
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 61167453,
+    "vidskiptakrofur": 141392,
+    "handbaert": 5819,
+    "veltufjarmunir": 61326688,
+    "eignir": 61326688,
+    "hlutafe": 500000,
+    "eigid_fe": -8022415,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 69349103,
+    "skuldir": 69349103,
+    "efe_skuldir": 61326688
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4903150710.pdf",
+ "pdfAr": "2025"
+}

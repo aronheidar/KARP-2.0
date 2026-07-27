@@ -1,0 +1,78 @@
+{
+ "kt": "5407051190",
+ "nafn": "Cassandra ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -163.7797,
+    "veltufjarhlutfall": 0.0002,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -22917,
+    "afskriftir": -173627,
+    "fjarmagnsgjold": -489,
+    "hagn_f_skatt": -197027,
+    "tekjuskattur": 0,
+    "hagnadur": -197027
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1203,
+    "veltufjarmunir": 1203,
+    "eignir": 1203,
+    "hlutafe": 500000,
+    "eigid_fe": -5026714,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5027917,
+    "skuldir": 5027917,
+    "efe_skuldir": 1203
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -15.6096,
+    "veltufjarhlutfall": 0.0002,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18794,
+    "tekjuskattur": 0,
+    "hagnadur": -18794
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1203,
+    "veltufjarmunir": 1204,
+    "eignir": 1204,
+    "hlutafe": 500000,
+    "eigid_fe": -5045508,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5046712,
+    "skuldir": 5046712,
+    "efe_skuldir": 1204
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5407051190.pdf",
+ "pdfAr": "2022"
+}

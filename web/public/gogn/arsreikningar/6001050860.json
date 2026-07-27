@@ -1,0 +1,86 @@
+{
+ "kt": "6001050860",
+ "nafn": "Keppingur ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 1.5167,
+    "hagnadarhlutfall": 1.26,
+    "ROE": 0.8757,
+    "ROA": 0.5877,
+    "eiginfjarhlutfall": 0.6711,
+    "veltufjarhlutfall": 0.0371,
+    "skuldahlutfall_DE": 0.4901,
+    "eignavelta": 0.4664
+   },
+   "rekstur": {
+    "sala": 8807489,
+    "adrar_tekjur": 11809951,
+    "laun": -751493,
+    "annar_rekstur": -1643595,
+    "afskriftir": -1353618,
+    "ebit": 13358049,
+    "fjarmunatekjur": 528941,
+    "fjarmagnsgjold": -9977,
+    "hagn_f_skatt": 13877013,
+    "tekjuskattur": -2779443,
+    "hagnadur": 11097570
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 230575,
+    "eignir": 18883412,
+    "hlutafe": 1043354,
+    "eigid_fe": 12672267,
+    "skuldir": 6211145,
+    "efe_skuldir": 18883412,
+    "skammtimaskuldir": 6211145
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3145,
+    "hagnadarhlutfall": 0.2975,
+    "ROE": 0.1953,
+    "ROA": 0.1673,
+    "eiginfjarhlutfall": 0.8565,
+    "veltufjarhlutfall": 0.0898,
+    "skuldahlutfall_DE": 0.1675,
+    "eignavelta": 0.5622
+   },
+   "rekstur": {
+    "sala": 10335889,
+    "adrar_tekjur": 0,
+    "laun": -1120491,
+    "annar_rekstur": -1264842,
+    "afskriftir": -1474496,
+    "ebit": 3250900,
+    "fjarmunatekjur": 676683,
+    "fjarmagnsgjold": -10808,
+    "hagn_f_skatt": 3916775,
+    "tekjuskattur": -841656,
+    "hagnadur": 3075119
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 236763,
+    "eignir": 18384827,
+    "hlutafe": 1043354,
+    "eigid_fe": 15747386,
+    "skuldir": 2637441,
+    "efe_skuldir": 18384827,
+    "skammtimaskuldir": 2637441
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/6001050860.pdf",
+ "pdfAr": "2024"
+}

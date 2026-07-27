@@ -1,0 +1,68 @@
+{
+ "kt": "6302071690",
+ "nafn": "73 ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2006": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "ebit": null,
+    "afskriftir": -3416667,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": 37583333,
+    "birgdir": null,
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2007": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2342,
+    "eiginfjarhlutfall": -0.2254,
+    "veltufjarhlutfall": 0.2757
+   },
+   "rekstur": {
+    "ebit": -4862944,
+    "afskriftir": 3.6,
+    "fjarmunatekjur": 105200,
+    "fjarmagnsgjold": -5439677,
+    "hagnadur": -13294658
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3.6,
+    "birgdir": 5254443,
+    "vidskiptakrofur": 6628139,
+    "handbaert": 7296778,
+    "veltufjarmunir": 13936275,
+    "eignir": 56774051,
+    "hlutafe": 500000,
+    "eigid_fe": -12794658,
+    "skuldir": 69568709,
+    "efe_skuldir": 56774051,
+    "skammtimaskuldir": 69568709
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6302071690.pdf",
+ "pdfAr": "2007"
+}

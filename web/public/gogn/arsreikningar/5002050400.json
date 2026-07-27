@@ -1,0 +1,82 @@
+{
+ "kt": "5002050400",
+ "nafn": "Café Nielsen ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.7788,
+    "ROA": -0.7788,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -80886,
+    "tekjuskattur": 0,
+    "hagnadur": -80886
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 922,
+    "veltufjarmunir": 103864,
+    "eignir": 103864,
+    "hlutafe": 2000000,
+    "eigid_fe": 103864,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 103864
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2595,
+    "ROA": -0.2595,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21398,
+    "tekjuskattur": 0,
+    "hagnadur": -21398
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 449,
+    "veltufjarmunir": 82466,
+    "eignir": 82466,
+    "hlutafe": 2000000,
+    "eigid_fe": 82466,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 82466
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5002050400.pdf",
+ "pdfAr": "2025"
+}

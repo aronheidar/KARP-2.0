@@ -1,0 +1,76 @@
+{
+ "kt": "5301120630",
+ "nafn": "KG eignarhald ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0395,
+    "ROA": -0.0369,
+    "eiginfjarhlutfall": 0.934,
+    "veltufjarhlutfall": 0.8335,
+    "skuldahlutfall_DE": 0.0707
+   },
+   "rekstur": {
+    "fjarmunatekjur": 16421076,
+    "fjarmagnsgjold": -243992,
+    "laun": -21517448,
+    "annar_rekstur": -15491730,
+    "afskriftir": -4857016,
+    "hagnadur": -57376876
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1470698469,
+    "vidskiptakrofur": 20747393,
+    "handbaert": 64890748,
+    "veltufjarmunir": 85638141,
+    "eignir": 1556336610,
+    "hlutafe": 500000,
+    "eigid_fe": 1453593557,
+    "skuldir": 102743053,
+    "efe_skuldir": 1556336610,
+    "skammtimaskuldir": 102743053
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0034,
+    "ROA": 0.0032,
+    "eiginfjarhlutfall": 0.9328,
+    "veltufjarhlutfall": 1.2716,
+    "skuldahlutfall_DE": 0.072
+   },
+   "rekstur": {
+    "fjarmunatekjur": 17144766,
+    "fjarmagnsgjold": -459854,
+    "laun": -21362448,
+    "annar_rekstur": -14592868,
+    "afskriftir": -4496090,
+    "hagnadur": 4847448
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1389703856,
+    "vidskiptakrofur": 20801831,
+    "handbaert": 108945736,
+    "veltufjarmunir": 129747567,
+    "eignir": 1519451423,
+    "hlutafe": 500000,
+    "eigid_fe": 1417415364,
+    "skuldir": 102036059,
+    "efe_skuldir": 1519451423,
+    "skammtimaskuldir": 102036059
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/5301120630.pdf",
+ "pdfAr": "2024"
+}

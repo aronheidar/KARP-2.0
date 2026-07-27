@@ -1,0 +1,60 @@
+{
+ "kt": "5609051220",
+ "nafn": "Rafvirkjar Reykjavíkur ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.012,
+    "ROA": -0.0119,
+    "eiginfjarhlutfall": 0.9881,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.012
+   },
+   "rekstur": {
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "veltufjarmunir": 1704340,
+    "eignir": 1704340,
+    "hlutafe": 1304348,
+    "eigid_fe": 1684088,
+    "skuldir": 20252,
+    "efe_skuldir": 1704340,
+    "skammtimaskuldir": 20252
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0126,
+    "ROA": -0.0123,
+    "eiginfjarhlutfall": 0.9759,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0247
+   },
+   "rekstur": {
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "veltufjarmunir": 1704340,
+    "eignir": 1704340,
+    "hlutafe": 1304348,
+    "eigid_fe": 1663188,
+    "skuldir": 41152,
+    "efe_skuldir": 1704340,
+    "skammtimaskuldir": 41152
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5609051220.pdf",
+ "pdfAr": "2024"
+}

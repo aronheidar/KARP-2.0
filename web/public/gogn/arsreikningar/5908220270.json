@@ -1,0 +1,88 @@
+{
+ "kt": "5908220270",
+ "nafn": "1001 Tindur ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0703,
+    "hagnadarhlutfall": -0.1182,
+    "ROA": -0.2637,
+    "eiginfjarhlutfall": -0.7939,
+    "veltufjarhlutfall": 0.2118,
+    "eignavelta": 2.2312
+   },
+   "rekstur": {
+    "sala": 6444530,
+    "ebit": -452752,
+    "afskriftir": -279000,
+    "fjarmunatekjur": 1737,
+    "fjarmagnsgjold": -31589,
+    "hagn_f_skatt": -761604,
+    "tekjuskattur": 0,
+    "hagnadur": -761604
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1791000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1097400,
+    "handbaert": 0,
+    "veltufjarmunir": 1097400,
+    "eignir": 2888400,
+    "hlutafe": 500000,
+    "eigid_fe": -2293140,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5181540,
+    "skuldir": 5181540,
+    "efe_skuldir": 2888400
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1882,
+    "hagnadarhlutfall": 0.1648,
+    "ROE": 6.7557,
+    "ROA": 0.7481,
+    "eiginfjarhlutfall": 0.1107,
+    "veltufjarhlutfall": 0.4087,
+    "skuldahlutfall_DE": 8.0308,
+    "eignavelta": 4.538
+   },
+   "rekstur": {
+    "sala": 12767614,
+    "ebit": 2403007,
+    "afskriftir": -236700,
+    "fjarmunatekjur": 198,
+    "fjarmagnsgjold": -61821,
+    "hagn_f_skatt": 2104684,
+    "tekjuskattur": 0,
+    "hagnadur": 2104684
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1791000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1022485,
+    "handbaert": 0,
+    "veltufjarmunir": 1022485,
+    "eignir": 2813485,
+    "hlutafe": 1000000,
+    "eigid_fe": 311544,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2501941,
+    "skuldir": 2501941,
+    "efe_skuldir": 2813485
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5908220270.pdf",
+ "pdfAr": "2024"
+}

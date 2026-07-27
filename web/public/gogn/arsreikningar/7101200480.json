@@ -1,0 +1,84 @@
+{
+ "kt": "7101200480",
+ "nafn": "800 Lagnir ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.024,
+    "hagnadarhlutfall": 0.0019,
+    "ROE": 0.0831,
+    "ROA": 0.0037,
+    "eiginfjarhlutfall": 0.0439,
+    "veltufjarhlutfall": 0.28,
+    "skuldahlutfall_DE": 21.7578,
+    "eignavelta": 1.9295
+   },
+   "rekstur": {
+    "sala": 172414112,
+    "laun": 50084012,
+    "annar_rekstur": 8739188,
+    "ebit": 4134925,
+    "fjarmunatekjur": 172525,
+    "fjarmagnsgjold": -3894315,
+    "tekjuskattur": -86667,
+    "hagnadur": 326468
+   },
+   "efnahagur": {
+    "birgdir": 2400000,
+    "vidskiptakrofur": 19336336,
+    "handbaert": 2181742,
+    "eignir": 89357694,
+    "hlutafe": 500000,
+    "skuldir": 85431226,
+    "efe_skuldir": 89357694,
+    "eigid_fe": 3926468,
+    "skammtimaskuldir": 85431226
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1566,
+    "hagnadarhlutfall": 0.1018,
+    "ROE": 0.9776,
+    "ROA": 0.2211,
+    "eiginfjarhlutfall": 0.2262,
+    "veltufjarhlutfall": 0.6024,
+    "skuldahlutfall_DE": 3.4212,
+    "eignavelta": 2.1719
+   },
+   "rekstur": {
+    "sala": 273166988,
+    "laun": 90157219,
+    "annar_rekstur": 10890546,
+    "ebit": 42789117,
+    "fjarmunatekjur": 321342,
+    "fjarmagnsgjold": -7901369,
+    "tekjuskattur": -7398298,
+    "hagnadur": 27810792
+   },
+   "efnahagur": {
+    "birgdir": 12230400,
+    "vidskiptakrofur": 30716592,
+    "handbaert": 15684385,
+    "eignir": 125771074,
+    "hlutafe": 500000,
+    "skuldir": 97323814,
+    "efe_skuldir": 125771074,
+    "eigid_fe": 28447260,
+    "skammtimaskuldir": 97323814
+   },
+   "starfsmenn": 9
+  }
+ },
+ "pdf": "pdf/7101200480.pdf",
+ "pdfAr": "2024"
+}

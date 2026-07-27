@@ -1,0 +1,76 @@
+{
+ "kt": "4502130470",
+ "nafn": "Kepler ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0229,
+    "ROA": 0.019,
+    "eiginfjarhlutfall": 0.8275,
+    "veltufjarhlutfall": 0.0578,
+    "skuldahlutfall_DE": 0.2085,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1075149,
+    "fjarmagnsgjold": null,
+    "fjarmunatekjur": 833496,
+    "hagn_f_skatt": 55387859,
+    "tekjuskattur": -1185888,
+    "hagnadur": 54201971
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 26025060,
+    "handbaert": 2506672,
+    "eignir": 2859175118,
+    "hlutafe": 500000,
+    "eigid_fe": 2365892968,
+    "skuldir": 493282150,
+    "efe_skuldir": 2859175118,
+    "skammtimaskuldir": 493282150
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1201,
+    "ROA": 0.1002,
+    "eiginfjarhlutfall": 0.834,
+    "veltufjarhlutfall": 0.0539,
+    "skuldahlutfall_DE": 0.199,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -861294,
+    "fjarmagnsgjold": 4.9,
+    "fjarmunatekjur": 140102,
+    "hagn_f_skatt": 322888595,
+    "tekjuskattur": 348429,
+    "hagnadur": 323237024
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 26025060,
+    "handbaert": 2822685,
+    "eignir": 3227090861,
+    "hlutafe": 500000,
+    "eigid_fe": 2691456257,
+    "skuldir": 535634604,
+    "efe_skuldir": 3227090861,
+    "skammtimaskuldir": 535634604
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4502130470.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,81 @@
+{
+ "kt": "5511241850",
+ "nafn": "632 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.694,
+    "hagnadarhlutfall": 0.5332,
+    "ROE": 0.7689,
+    "ROA": 0.4692,
+    "eiginfjarhlutfall": 0.6103,
+    "veltufjarhlutfall": 2.3847,
+    "skuldahlutfall_DE": 0.6386,
+    "eignavelta": 0.88
+   },
+   "rekstur": {
+    "sala": 3120000,
+    "ebit": 2165252,
+    "afskriftir": -60000,
+    "fjarmunatekjur": 1574,
+    "fjarmagnsgjold": -988,
+    "hagn_f_skatt": 2105838,
+    "tekjuskattur": -442226,
+    "hagnadur": 1663612
+   },
+   "efnahagur": {
+    "fastafjarmunir": 240000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1160640,
+    "handbaert": 2134298,
+    "veltufjarmunir": 3305284,
+    "eignir": 3545284,
+    "hlutafe": 500000,
+    "eigid_fe": 2163612,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1381672,
+    "skuldir": 1381672,
+    "efe_skuldir": 3545284
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5511241850.pdf",
+ "pdfAr": "2024"
+}

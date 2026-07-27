@@ -1,0 +1,90 @@
+{
+ "kt": "6903962039",
+ "nafn": "Þokkabót ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8732,
+    "hagnadarhlutfall": 0.6833,
+    "ROE": 0.2537,
+    "ROA": 0.2383,
+    "eiginfjarhlutfall": 0.939,
+    "veltufjarhlutfall": 0.7134,
+    "skuldahlutfall_DE": 0.0649,
+    "eignavelta": 0.3487
+   },
+   "rekstur": {
+    "sala": 1311290,
+    "ebit": 1144978,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1893,
+    "fjarmagnsgjold": -746,
+    "hagn_f_skatt": 1125225,
+    "tekjuskattur": -229225,
+    "hagnadur": 896000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 163535,
+    "veltufjarmunir": 3760399,
+    "eignir": 3760399,
+    "hlutafe": 500000,
+    "eigid_fe": 3531174,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 229225,
+    "skuldir": 229225,
+    "efe_skuldir": 3760399
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.937,
+    "hagnadarhlutfall": 0.7316,
+    "ROE": 0.3302,
+    "ROA": 0.3048,
+    "eiginfjarhlutfall": 0.9229,
+    "veltufjarhlutfall": 0.4676,
+    "skuldahlutfall_DE": 0.0836,
+    "eignavelta": 0.4166
+   },
+   "rekstur": {
+    "sala": 2380000,
+    "ebit": 2230000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 4568,
+    "fjarmagnsgjold": -32003,
+    "hagn_f_skatt": 2181665,
+    "tekjuskattur": -440513,
+    "hagnadur": 1741152
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3320000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 205983,
+    "veltufjarmunir": 2392839,
+    "eignir": 5712839,
+    "hlutafe": 500000,
+    "eigid_fe": 5272326,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 440513,
+    "skuldir": 440513,
+    "efe_skuldir": 5712839
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6903962039.pdf",
+ "pdfAr": "2024"
+}

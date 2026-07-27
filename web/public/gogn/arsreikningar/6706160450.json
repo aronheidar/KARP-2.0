@@ -1,0 +1,66 @@
+{
+ "kt": "6706160450",
+ "nafn": "Novo bygg ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2017": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.4082,
+    "ROA": -0.3809,
+    "eiginfjarhlutfall": 0.933,
+    "veltufjarhlutfall": 14.924,
+    "skuldahlutfall_DE": 0.0718
+   },
+   "rekstur": {
+    "fjarmagnsgjold": 60000,
+    "fjarmunatekjur": 0,
+    "hagnadur": -97200,
+    "afskriftir": 0
+   },
+   "efnahagur": {
+    "handbaert": 255200,
+    "eignir": 255200,
+    "hlutafe": 500000,
+    "eigid_fe": 238100,
+    "efe_skuldir": 255200,
+    "skuldir": 17100,
+    "skammtimaskuldir": 17100
+   },
+   "starfsmenn": null
+  },
+  "2018": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2449,
+    "ROA": -0.2229,
+    "eiginfjarhlutfall": 0.9101,
+    "veltufjarhlutfall": 11.1257,
+    "skuldahlutfall_DE": 0.0988
+   },
+   "rekstur": {
+    "fjarmagnsgjold": 0,
+    "fjarmunatekjur": 0,
+    "hagnadur": -43400,
+    "afskriftir": 0
+   },
+   "efnahagur": {
+    "handbaert": 194700,
+    "eignir": 194700,
+    "hlutafe": 500000,
+    "eigid_fe": 177200,
+    "efe_skuldir": 194700,
+    "skuldir": 17500,
+    "skammtimaskuldir": 17500
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6706160450.pdf",
+ "pdfAr": "2018"
+}

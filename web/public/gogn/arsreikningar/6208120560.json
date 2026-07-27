@@ -1,0 +1,84 @@
+{
+ "kt": "6208120560",
+ "nafn": "GILDI fasteignafélag ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1428,
+    "hagnadarhlutfall": -0.5959,
+    "ROE": -0.1338,
+    "ROA": -0.0232,
+    "eiginfjarhlutfall": 0.1731,
+    "veltufjarhlutfall": 0.0752,
+    "skuldahlutfall_DE": 4.776,
+    "eignavelta": 0.0389
+   },
+   "rekstur": {
+    "sala": 49002377,
+    "afskriftir": 12666339,
+    "ebit": 6997317,
+    "fjarmunatekjur": 3473831,
+    "fjarmagnsgjold": -32782044,
+    "hagn_f_skatt": -19233049,
+    "tekjuskattur": -9967524,
+    "hagnadur": -29200573
+   },
+   "efnahagur": {
+    "fastafjarmunir": 803672804,
+    "vidskiptakrofur": 75831023,
+    "handbaert": 2544906,
+    "eignir": 1260741187,
+    "hlutafe": 500000,
+    "eigid_fe": 218271300,
+    "skuldir": 1042469887,
+    "efe_skuldir": 1260741187,
+    "skammtimaskuldir": 1042469887
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.68,
+    "hagnadarhlutfall": 2.8192,
+    "ROE": 0.6313,
+    "ROA": 0.2536,
+    "eiginfjarhlutfall": 0.4016,
+    "veltufjarhlutfall": 0.0906,
+    "skuldahlutfall_DE": 1.4899,
+    "eignavelta": 0.0899
+   },
+   "rekstur": {
+    "sala": 132567362,
+    "afskriftir": 12702036,
+    "ebit": 90145509,
+    "fjarmunatekjur": 136083,
+    "fjarmagnsgjold": -26865796,
+    "hagn_f_skatt": 386723515,
+    "tekjuskattur": -12986707,
+    "hagnadur": 373736808
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1015389148,
+    "vidskiptakrofur": 78050372,
+    "handbaert": 1882117,
+    "eignir": 1474014091,
+    "hlutafe": 500000,
+    "eigid_fe": 592008108,
+    "skuldir": 882005983,
+    "efe_skuldir": 1474014091,
+    "skammtimaskuldir": 882005983
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6208120560.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,72 @@
+{
+ "kt": "4208131040",
+ "nafn": "Lemmy Rock Bar ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.64,
+    "ebit_hlutfall": 0.0033,
+    "hagnadarhlutfall": 0.0018,
+    "ROA": 0.0026,
+    "eignavelta": 1.437
+   },
+   "rekstur": {
+    "sala": 238598989,
+    "kostnadarverd": -85897751,
+    "laun": 55583227,
+    "annar_rekstur": 9415332,
+    "ebitda": 7144073,
+    "afskriftir": -6353855,
+    "fjarmunatekjur": 91949,
+    "fjarmagnsgjold": -443639,
+    "hagnadur": 438528,
+    "ebit": 790218
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7891711,
+    "handbaert": 122726,
+    "veltufjarmunir": 45316904,
+    "eignir": 166040144
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7352,
+    "ebit_hlutfall": 0.0206,
+    "hagnadarhlutfall": 0.019,
+    "ROA": 0.0268,
+    "eignavelta": 1.4142
+   },
+   "rekstur": {
+    "sala": 242758995,
+    "kostnadarverd": -64284562,
+    "laun": 61586091,
+    "annar_rekstur": 10090443,
+    "ebitda": 11090558,
+    "afskriftir": -6100832,
+    "fjarmunatekjur": 130299,
+    "fjarmagnsgjold": -512362,
+    "hagnadur": 4607663,
+    "ebit": 4989726
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5803247,
+    "handbaert": 5469229,
+    "veltufjarmunir": 53454849,
+    "eignir": 171657312
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4208131040.pdf",
+ "pdfAr": "2024"
+}

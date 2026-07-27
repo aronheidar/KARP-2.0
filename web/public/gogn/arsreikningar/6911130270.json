@@ -1,0 +1,79 @@
+{
+ "kt": "6911130270",
+ "nafn": "Toni ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1455,
+    "eiginfjarhlutfall": -0.8658,
+    "veltufjarhlutfall": 0.1481,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -135701,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2636,
+    "fjarmagnsgjold": -11199,
+    "hagn_f_skatt": -144264,
+    "tekjuskattur": 0,
+    "hagnadur": -144264
+   },
+   "efnahagur": {
+    "fastafjarmunir": 716800,
+    "birgdir": 0,
+    "vidskiptakrofur": 139779,
+    "handbaert": 134161,
+    "veltufjarmunir": 274520,
+    "eignir": 991320,
+    "hlutafe": 500000,
+    "eigid_fe": -858275,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1849595,
+    "skuldir": 1849595,
+    "efe_skuldir": 991320
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -879175,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 879175,
+    "skuldir": 879175,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6911130270.pdf",
+ "pdfAr": "2024"
+}

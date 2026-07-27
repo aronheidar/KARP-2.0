@@ -1,0 +1,81 @@
+{
+ "kt": "6910240240",
+ "nafn": "Vínvagninn ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.7131,
+    "hagnadarhlutfall": -1.6889,
+    "ROE": -0.1863,
+    "ROA": -0.1845,
+    "eiginfjarhlutfall": 0.9905,
+    "veltufjarhlutfall": 95.6421,
+    "skuldahlutfall_DE": 0.0096,
+    "eignavelta": 0.1092
+   },
+   "rekstur": {
+    "sala": 69730,
+    "ebit": -119457,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1688,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -117769,
+    "tekjuskattur": 0,
+    "hagnadur": -117769
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 77400,
+    "handbaert": 501713,
+    "veltufjarmunir": 638286,
+    "eignir": 638286,
+    "hlutafe": 750000,
+    "eigid_fe": 632231,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6055,
+    "skuldir": 6055,
+    "efe_skuldir": 638286
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6910240240.pdf",
+ "pdfAr": "2024"
+}

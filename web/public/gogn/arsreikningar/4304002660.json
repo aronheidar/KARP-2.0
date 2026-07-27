@@ -1,0 +1,86 @@
+{
+ "kt": "4304002660",
+ "nafn": "Þeysill ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -5.8546,
+    "hagnadarhlutfall": -4.7668,
+    "ROE": -0.1233,
+    "ROA": -0.0486,
+    "eiginfjarhlutfall": 0.3946,
+    "veltufjarhlutfall": 0.0007,
+    "skuldahlutfall_DE": 1.5344,
+    "eignavelta": 0.0102
+   },
+   "rekstur": {
+    "sala": 4405238,
+    "afskriftir": 9675000,
+    "ebit": -25790826,
+    "fjarmunatekjur": 75168,
+    "fjarmagnsgjold": -163566,
+    "hagn_f_skatt": -258792240,
+    "tekjuskattur": 4880287,
+    "hagnadur": -20998937
+   },
+   "efnahagur": {
+    "fastafjarmunir": 429175000,
+    "vidskiptakrofur": 16537,
+    "handbaert": 128464,
+    "veltufjarmunir": 2573622,
+    "eignir": 431748622,
+    "hlutafe": 5000000,
+    "eigid_fe": 170354380,
+    "skammtimaskuldir": 217924773,
+    "skuldir": 261394242,
+    "efe_skuldir": 431748622
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.6197,
+    "hagnadarhlutfall": -0.0229,
+    "ROE": -0.002,
+    "ROA": -0.0007,
+    "eiginfjarhlutfall": 0.3545,
+    "veltufjarhlutfall": 0.0078,
+    "skuldahlutfall_DE": 1.8211,
+    "eignavelta": 0.0314
+   },
+   "rekstur": {
+    "sala": 13312023,
+    "afskriftir": 9675000,
+    "ebit": -21562030,
+    "fjarmunatekjur": 17268,
+    "fjarmagnsgjold": -163400,
+    "hagn_f_skatt": -17081620,
+    "tekjuskattur": 1403384,
+    "hagnadur": -304778
+   },
+   "efnahagur": {
+    "fastafjarmunir": 419500000,
+    "vidskiptakrofur": 1206585,
+    "handbaert": 590988,
+    "veltufjarmunir": 3806603,
+    "eignir": 423306603,
+    "hlutafe": 5000000,
+    "eigid_fe": 150049602,
+    "skammtimaskuldir": 231190916,
+    "skuldir": 273257001,
+    "efe_skuldir": 423306603
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4304002660.pdf",
+ "pdfAr": "2024"
+}

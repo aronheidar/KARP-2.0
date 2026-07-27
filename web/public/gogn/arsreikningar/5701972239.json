@@ -1,0 +1,84 @@
+{
+ "kt": "5701972239",
+ "nafn": "C 11 ehf",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0132,
+    "ROA": -0.013,
+    "eiginfjarhlutfall": 0.9862,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1403,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -19497,
+    "tekjuskattur": 0,
+    "hagnadur": -19497
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 34104,
+    "veltufjarmunir": 1502304,
+    "eignir": 1502304,
+    "hlutafe": 500000,
+    "eigid_fe": 1481591,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": null,
+    "skuldir": null,
+    "efe_skuldir": 1502304
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0138,
+    "ROA": -0.0138,
+    "eiginfjarhlutfall": 0.9999,
+    "veltufjarhlutfall": 1.6818,
+    "skuldahlutfall_DE": 0.0142,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1247,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20153,
+    "tekjuskattur": -82,
+    "hagnadur": -20235
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 34836,
+    "veltufjarmunir": 1461438,
+    "eignir": 1461438,
+    "hlutafe": 500000,
+    "eigid_fe": 1461356,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20713,
+    "skuldir": 20713,
+    "efe_skuldir": 1461438
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5701972239.pdf",
+ "pdfAr": "2025"
+}

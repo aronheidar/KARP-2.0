@@ -1,0 +1,68 @@
+{
+ "kt": "6102050540",
+ "nafn": "B&B Guesthouse ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2628,
+    "hagnadarhlutfall": 0.2233,
+    "ROA": 0.7828,
+    "eignavelta": 3.5065
+   },
+   "rekstur": {
+    "sala": 100780629,
+    "laun": 35496675,
+    "annar_rekstur": 7199630,
+    "afskriftir": 1324474,
+    "ebit": 26484393,
+    "fjarmunatekjur": 27110,
+    "fjarmagnsgjold": -1336863,
+    "hagn_f_skatt": 25174640,
+    "tekjuskattur": -2674700,
+    "hagnadur": 22499940
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 18350050,
+    "handbaert": 1529654,
+    "eignir": 28741175
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1061,
+    "hagnadarhlutfall": 0.0779,
+    "ROA": 0.159,
+    "eignavelta": 2.0409
+   },
+   "rekstur": {
+    "sala": 96213518,
+    "laun": 38304390,
+    "annar_rekstur": 8152311,
+    "afskriftir": 2716837,
+    "ebit": 10205910,
+    "fjarmunatekjur": 34163,
+    "fjarmagnsgjold": -859044,
+    "hagn_f_skatt": 9381029,
+    "tekjuskattur": -1884286,
+    "hagnadur": 7496743
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 19893299,
+    "handbaert": 1085326,
+    "eignir": 47142069
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6102050540.pdf",
+ "pdfAr": "2023"
+}

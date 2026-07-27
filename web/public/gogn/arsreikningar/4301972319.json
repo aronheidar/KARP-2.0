@@ -1,0 +1,92 @@
+{
+ "kt": "4301972319",
+ "nafn": "Snerpa ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6898,
+    "ebit_hlutfall": 0.0926,
+    "hagnadarhlutfall": 0.0706,
+    "ROE": 0.0918,
+    "ROA": 0.0673,
+    "eiginfjarhlutfall": 0.7336,
+    "veltufjarhlutfall": 0.3891,
+    "skuldahlutfall_DE": 0.3631,
+    "eignavelta": 0.9537
+   },
+   "rekstur": {
+    "sala": 314677049,
+    "adrar_tekjur": 11347200,
+    "kostnadarverd": -97622086,
+    "laun": -158406359,
+    "annar_rekstur": -7444163,
+    "afskriftir": -17546340,
+    "ebit": 29154677,
+    "fjarmunatekjur": 2072651,
+    "fjarmagnsgjold": -3455884,
+    "hagn_f_skatt": 27771444,
+    "tekjuskattur": -5558330,
+    "hagnadur": 22213114
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 27168664,
+    "handbaert": 7034942,
+    "eignir": 329947345,
+    "hlutafe": 5299485,
+    "eigid_fe": 242052952,
+    "skuldir": 87894393,
+    "efe_skuldir": 329947345,
+    "skammtimaskuldir": 87894393
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7067,
+    "ebit_hlutfall": 0.0755,
+    "hagnadarhlutfall": 0.0559,
+    "ROE": 0.0566,
+    "ROA": 0.0431,
+    "eiginfjarhlutfall": 0.7612,
+    "veltufjarhlutfall": 0.3416,
+    "skuldahlutfall_DE": 0.3137,
+    "eignavelta": 0.7701
+   },
+   "rekstur": {
+    "sala": 308925153,
+    "adrar_tekjur": 8995608,
+    "kostnadarverd": -90613606,
+    "laun": -161872169,
+    "annar_rekstur": -7319488,
+    "afskriftir": -18397999,
+    "ebit": 23315656,
+    "fjarmunatekjur": 1209306,
+    "fjarmagnsgjold": -2835174,
+    "hagn_f_skatt": 21689788,
+    "tekjuskattur": -4417891,
+    "hagnadur": 17271897
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 28680478,
+    "handbaert": 4036308,
+    "eignir": 401130636,
+    "hlutafe": 5299485,
+    "eigid_fe": 305348849,
+    "skuldir": 95781787,
+    "efe_skuldir": 401130636,
+    "skammtimaskuldir": 95781787
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/4301972319.pdf",
+ "pdfAr": "2024"
+}

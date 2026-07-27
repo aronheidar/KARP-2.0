@@ -1,0 +1,86 @@
+{
+ "kt": "5009191670",
+ "nafn": "Symba Renewable Energy ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0406,
+    "ROA": 0.0011,
+    "eiginfjarhlutfall": 0.0265,
+    "veltufjarhlutfall": 0.0115,
+    "skuldahlutfall_DE": 36.7058,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 9878,
+    "ebit": -9878,
+    "fjarmunatekjur": 686,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 2919,
+    "tekjuskattur": 0,
+    "hagnadur": 2919
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2550144,
+    "vidskiptakrofur": 27084,
+    "handbaert": 3277,
+    "veltufjarmunir": 161619,
+    "eignir": 2711763,
+    "hlutafe": 500000,
+    "eigid_fe": 71919,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2639844,
+    "skuldir": 2639844,
+    "efe_skuldir": 2711763
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.316,
+    "hagnadarhlutfall": 0.6646,
+    "ROE": 0.9832,
+    "ROA": 0.0421,
+    "eiginfjarhlutfall": 0.0428,
+    "veltufjarhlutfall": 0.2195,
+    "skuldahlutfall_DE": 22.3551,
+    "eignavelta": 0.0633
+   },
+   "rekstur": {
+    "sala": 6315062,
+    "annar_rekstur": 4319407,
+    "ebit": 1995655,
+    "fjarmunatekjur": 6655,
+    "fjarmagnsgjold": -663,
+    "hagn_f_skatt": 5163614,
+    "tekjuskattur": -966377,
+    "hagnadur": 4197237
+   },
+   "efnahagur": {
+    "fastafjarmunir": 45076392,
+    "vidskiptakrofur": 50713,
+    "handbaert": 20728278,
+    "veltufjarmunir": 54630046,
+    "eignir": 99706438,
+    "hlutafe": 500000,
+    "eigid_fe": 4269156,
+    "langtimaskuldir": 759601,
+    "skammtimaskuldir": 94677681,
+    "skuldir": 95437282,
+    "efe_skuldir": 99706438
+   },
+   "starfsmenn": 237
+  }
+ },
+ "pdf": "pdf/5009191670.pdf",
+ "pdfAr": "2021"
+}

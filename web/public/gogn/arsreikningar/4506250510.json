@@ -1,0 +1,79 @@
+{
+ "kt": "4506250510",
+ "nafn": "88 mílur ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3908,
+    "ROA": -0.007,
+    "eiginfjarhlutfall": 0.018,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 54.6328,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -140500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -140500,
+    "tekjuskattur": 0,
+    "hagnadur": -140500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 20000000,
+    "eignir": 20000000,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19640500,
+    "skuldir": 19640500,
+    "efe_skuldir": 20000000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4506250510.pdf",
+ "pdfAr": "2025"
+}

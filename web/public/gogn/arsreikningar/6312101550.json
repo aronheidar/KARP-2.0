@@ -1,0 +1,86 @@
+{
+ "kt": "6312101550",
+ "nafn": "Giggs ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0007,
+    "ROA": -0.0002,
+    "eiginfjarhlutfall": 0.201,
+    "veltufjarhlutfall": 0.0002,
+    "skuldahlutfall_DE": 3.9748,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -101900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 41186,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -60714,
+    "tekjuskattur": 0,
+    "hagnadur": -60714
+   },
+   "efnahagur": {
+    "fastafjarmunir": 50939270,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 54780,
+    "veltufjarmunir": 352432272,
+    "eignir": 403371542,
+    "hlutafe": 500000,
+    "eigid_fe": 81083271,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 322288271,
+    "skuldir": 322288271,
+    "efe_skuldir": 403371542
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0515,
+    "ROA": 0.0083,
+    "eiginfjarhlutfall": 0.1617,
+    "veltufjarhlutfall": 0.0001,
+    "skuldahlutfall_DE": 5.1834,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -131648,
+    "afskriftir": 0,
+    "fjarmunatekjur": 25225,
+    "fjarmagnsgjold": -2224,
+    "hagn_f_skatt": 4389553,
+    "tekjuskattur": 0,
+    "hagnadur": 4389553
+   },
+   "efnahagur": {
+    "fastafjarmunir": 55437470,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 25776,
+    "veltufjarmunir": 471530440,
+    "eignir": 526967910,
+    "hlutafe": 500000,
+    "eigid_fe": 85222824,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 441745086,
+    "skuldir": 441745086,
+    "efe_skuldir": 526967910
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6312101550.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "4602170400",
+ "nafn": "545 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1234,
+    "hagnadarhlutfall": -0.0937,
+    "ROE": -0.4169,
+    "ROA": -0.1157,
+    "eiginfjarhlutfall": 0.2775,
+    "veltufjarhlutfall": 0.4535,
+    "skuldahlutfall_DE": 2.6039,
+    "eignavelta": 1.2347
+   },
+   "rekstur": {
+    "sala": 12423634,
+    "ebit": 1533047,
+    "afskriftir": -1770342,
+    "fjarmunatekjur": 5351,
+    "fjarmagnsgjold": -521501,
+    "hagn_f_skatt": -866699,
+    "tekjuskattur": -297297,
+    "hagnadur": -1163996
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4369012,
+    "birgdir": 0,
+    "vidskiptakrofur": 1302000,
+    "handbaert": 0,
+    "veltufjarmunir": 5693399,
+    "eignir": 10062411,
+    "hlutafe": 3000000,
+    "eigid_fe": 2792121,
+    "langtimaskuldir": 4399322,
+    "skammtimaskuldir": 2870968,
+    "skuldir": 7270290,
+    "efe_skuldir": 10062411
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0344,
+    "hagnadarhlutfall": -0.1385,
+    "ROE": -1.9097,
+    "ROA": -0.2086,
+    "eiginfjarhlutfall": 0.1092,
+    "veltufjarhlutfall": 0.4291,
+    "skuldahlutfall_DE": 8.1553,
+    "eignavelta": 1.5059
+   },
+   "rekstur": {
+    "sala": 13230000,
+    "ebit": 455613,
+    "afskriftir": -1376526,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -890224,
+    "hagn_f_skatt": -1832537,
+    "tekjuskattur": 0,
+    "hagnadur": -1832537
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3637639,
+    "birgdir": 0,
+    "vidskiptakrofur": 1674000,
+    "handbaert": 0,
+    "veltufjarmunir": 5147598,
+    "eignir": 8785237,
+    "hlutafe": 3000000,
+    "eigid_fe": 959584,
+    "langtimaskuldir": 3924444,
+    "skammtimaskuldir": 3901209,
+    "skuldir": 7825653,
+    "efe_skuldir": 8785237
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4602170400.pdf",
+ "pdfAr": "2025"
+}

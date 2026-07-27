@@ -21,7 +21,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
         <div class="stj-tablewrap">
           <table class="stj-table" id="stj-users">
-            <thead><tr><th>#</th><th>Netfang</th><th>Nafn</th><th>Þrep</th><th>Áskriftir</th><th>Skýrslur</th><th>Staðf.</th><th>Skráð</th></tr></thead>
+            <thead><tr><th>#</th><th>Netfang</th><th>Tegund</th><th>Nafn</th><th>Þrep</th><th>Áskriftir</th><th>Skýrslur</th><th>Staðf.</th><th>Skráð</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -74,6 +74,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-badge.tier { background: rgba(246,177,59,.16); color: var(--gold); }
     .stj-badge.ok { color: #46e08a; }
     .stj-badge.admin { background: rgba(246,177,59,.16); color: var(--gold); }
+    .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
+    .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
     .stj-kv-row b { color: var(--gold); font-variant-numeric: tabular-nums; }
     .stj-kv-empty { color: var(--faint); font-size: 13px; }
@@ -93,6 +95,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     const REP = { fyrirtaeki: 'Fyrirtækjaskýrslur', eigendur: 'Eigendaskýrslur', areidanleiki: 'Áreiðanleikamat', fasteign: 'Fasteignamöt', thingmadur: 'Þingmannaskýrslur' };
 
     function card(n, l, s) { return `<div class="stj-card"><div class="n">${n}</div><div class="l">${l}</div>${s ? '<div class="s">' + s + '</div>' : ''}</div>`; }
+    // Tegund-veljari (admin/notandi (frítt)/notandi) — x.free kemur úr adminOverviewHandler (A6).
+    function typeSelect(x) {
+      const t = x.admin ? 'admin' : (x.free ? 'free' : 'user');
+      const opt = (v, label) => `<option value="${v}"${t === v ? ' selected' : ''}>${label}</option>`;
+      return `<select class="stj-type" data-id="${x.id}" data-cur="${t}">${opt('admin', 'admin')}${opt('free', 'notandi (frítt)')}${opt('user', 'notandi')}</select>`;
+    }
 
     async function boot() {
       const main = document.querySelector('main[data-pg="stjorn"]'); if (!main) return;
@@ -119,11 +127,40 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // notendur
       $('stj-ucount').textContent = ov.users.length;
       $('stj-users').querySelector('tbody').innerHTML = ov.users.map((x) =>
-        `<tr><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}</td><td>${esc(x.name)}</td>`
+        `<tr><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
         + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
         + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
         + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td></tr>`
       ).join('');
+      // Tegund-veljari: POST /api/admin/set-type á breytingu. Wired EINU SINNI á sjálfa töfluna
+      // (tbody er endurgert í hverju boot() en <table>-hnúturinn lifir → varast tvöfalt viðhengi).
+      const utable = $('stj-users');
+      if (!utable.dataset.wired) {
+        utable.dataset.wired = '1';
+        utable.addEventListener('change', async (e) => {
+          const sel = e.target.closest('select.stj-type');
+          if (!sel) return;
+          const prev = sel.dataset.cur || sel.value;
+          const type = sel.value;
+          sel.disabled = true;
+          const r = await fetch('/api/admin/set-type', {
+            method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id: +sel.dataset.id, type }),
+          }).then((res) => res.json()).catch(() => null);
+          sel.disabled = false;
+          if (r && r.ok) {
+            sel.dataset.cur = type;
+            sel.classList.add('stj-type-flash');
+            setTimeout(() => sel.classList.remove('stj-type-flash'), 900);
+          } else if (r && r.error === 'last-admin') {
+            alert('Get ekki fjarlægt síðasta admin');
+            sel.value = prev;
+          } else {
+            alert('Villa kom upp — reyndu aftur.');
+            sel.value = prev;
+          }
+        });
+      }
       // áskriftir
       const subEntries = Object.entries(s.subsByService);
       $('stj-subs').innerHTML = subEntries.length ? subEntries.map(([k, v]) => `<div class="stj-kv-row"><span>${esc(SVC[k] || k)}</span><b>${v}</b></div>`).join('') : '<div class="stj-kv-empty">Engar virkar áskriftir enn.</div>';

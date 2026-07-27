@@ -1,0 +1,94 @@
+{
+ "kt": "4409730279",
+ "nafn": "Frosti ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0668,
+    "hagnadarhlutfall": 0.1011,
+    "ROE": 0.2029,
+    "ROA": 0.0588,
+    "eiginfjarhlutfall": 0.29,
+    "veltufjarhlutfall": 0.6792,
+    "skuldahlutfall_DE": 2.4485,
+    "eignavelta": 0.5819
+   },
+   "rekstur": {
+    "adrar_tekjur": 2500000,
+    "sala": 1387860060,
+    "annar_rekstur": 23802453,
+    "afskriftir": 57621064,
+    "ebit": -92775942,
+    "fjarmunatekjur": 34578236,
+    "fjarmagnsgjold": -113852827,
+    "hagn_f_skatt": 107069992,
+    "tekjuskattur": 33279757,
+    "hagnadur": 140349749
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1778741905,
+    "birgdir": 17446419,
+    "vidskiptakrofur": 13819974,
+    "handbaert": 347294151,
+    "veltufjarmunir": 606408791,
+    "eignir": 2385150696,
+    "hlutafe": 8100000,
+    "eigid_fe": 691638891,
+    "langtimaskuldir": 1136127204,
+    "skammtimaskuldir": 557384601,
+    "skuldir": 1693511805,
+    "efe_skuldir": 2385150696
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0255,
+    "hagnadarhlutfall": 0.1464,
+    "ROE": 0.3514,
+    "ROA": 0.1006,
+    "eiginfjarhlutfall": 0.2862,
+    "veltufjarhlutfall": 0.2321,
+    "skuldahlutfall_DE": 2.494,
+    "eignavelta": 0.6871
+   },
+   "rekstur": {
+    "adrar_tekjur": 7774189,
+    "sala": 1449732514,
+    "annar_rekstur": 27039797,
+    "afskriftir": 60718892,
+    "ebit": -37027701,
+    "fjarmunatekjur": 30374176,
+    "fjarmagnsgjold": -110289244,
+    "hagn_f_skatt": 193781483,
+    "tekjuskattur": 18437623,
+    "hagnadur": 212219106
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1758502520,
+    "birgdir": 21972106,
+    "vidskiptakrofur": 25518378,
+    "handbaert": 79079397,
+    "veltufjarmunir": 351392302,
+    "eignir": 2109894822,
+    "hlutafe": 8100000,
+    "eigid_fe": 603857997,
+    "langtimaskuldir": 960614629,
+    "skammtimaskuldir": 545422196,
+    "skuldir": 1506036825,
+    "efe_skuldir": 2109894822
+   },
+   "starfsmenn": 17
+  }
+ },
+ "pdf": "pdf/4409730279.pdf",
+ "pdfAr": "2024"
+}

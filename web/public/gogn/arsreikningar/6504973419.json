@@ -1,0 +1,86 @@
+{
+ "kt": "6504973419",
+ "nafn": "Ýlda ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4305,
+    "hagnadarhlutfall": 0.0087,
+    "ROA": 0.0185,
+    "eiginfjarhlutfall": -0.0474,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 2.1274
+   },
+   "rekstur": {
+    "sala": 8891107,
+    "ebit": 3827640,
+    "afskriftir": -3719020,
+    "fjarmunatekjur": 26244,
+    "fjarmagnsgjold": -57435,
+    "hagn_f_skatt": 77429,
+    "tekjuskattur": 0,
+    "hagnadur": 77429
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4173133,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 345,
+    "veltufjarmunir": 6119,
+    "eignir": 4179252,
+    "hlutafe": 1565000,
+    "eigid_fe": -198287,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4377539,
+    "skuldir": 4377539,
+    "efe_skuldir": 4179252
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0863,
+    "hagnadarhlutfall": -0.1073,
+    "ROA": -0.1679,
+    "eiginfjarhlutfall": -0.2213,
+    "veltufjarhlutfall": 0.0002,
+    "eignavelta": 1.5648
+   },
+   "rekstur": {
+    "sala": 5810648,
+    "ebit": 501724,
+    "afskriftir": -462623,
+    "fjarmunatekjur": 11442,
+    "fjarmagnsgjold": -674065,
+    "hagn_f_skatt": -623522,
+    "tekjuskattur": 0,
+    "hagnadur": -623522
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3710510,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 348,
+    "veltufjarmunir": 2865,
+    "eignir": 3713375,
+    "hlutafe": 1565000,
+    "eigid_fe": -821809,
+    "langtimaskuldir": 3000000,
+    "skammtimaskuldir": 1535184,
+    "skuldir": 4535184,
+    "efe_skuldir": 3713375
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6504973419.pdf",
+ "pdfAr": "2024"
+}

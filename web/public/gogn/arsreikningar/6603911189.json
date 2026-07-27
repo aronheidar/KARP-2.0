@@ -1,0 +1,90 @@
+{
+ "kt": "6603911189",
+ "nafn": "Ögurnes ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.9708,
+    "hagnadarhlutfall": 0.7913,
+    "ROE": 0.5083,
+    "ROA": 0.4509,
+    "eiginfjarhlutfall": 0.887,
+    "veltufjarhlutfall": 5.2088,
+    "skuldahlutfall_DE": 0.1274,
+    "eignavelta": 0.5698
+   },
+   "rekstur": {
+    "sala": 11366865,
+    "ebit": 11035343,
+    "afskriftir": 0,
+    "fjarmunatekjur": 222746,
+    "fjarmagnsgjold": -10370,
+    "hagn_f_skatt": 11247719,
+    "tekjuskattur": -2253584,
+    "hagnadur": 8994135
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8161350,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 11738366,
+    "veltufjarmunir": 11787371,
+    "eignir": 19948721,
+    "hlutafe": 2000000,
+    "eigid_fe": 17695137,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2253584,
+    "skuldir": 2253584,
+    "efe_skuldir": 19948721
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8292,
+    "hagnadarhlutfall": 0.7545,
+    "ROE": 0.2849,
+    "ROA": 0.2648,
+    "eiginfjarhlutfall": 0.9293,
+    "veltufjarhlutfall": 7.4408,
+    "skuldahlutfall_DE": 0.0761,
+    "eignavelta": 0.351
+   },
+   "rekstur": {
+    "sala": 6176838,
+    "ebit": 5121681,
+    "afskriftir": 0,
+    "fjarmunatekjur": 814534,
+    "fjarmagnsgjold": -31244,
+    "hagn_f_skatt": 5904971,
+    "tekjuskattur": -1244433,
+    "hagnadur": 4660538
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8161350,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 9259565,
+    "veltufjarmunir": 9438758,
+    "eignir": 17600108,
+    "hlutafe": 2000000,
+    "eigid_fe": 16355675,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1244433,
+    "skuldir": 1244433,
+    "efe_skuldir": 17600108
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6603911189.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "5705911429",
+ "nafn": "Oddur Pétursson ehf.,Reykjavík",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6087,
+    "hagnadarhlutfall": -0.0039,
+    "ROE": -0.0173,
+    "ROA": -0.0118,
+    "eiginfjarhlutfall": 0.6813,
+    "veltufjarhlutfall": 1.7841,
+    "skuldahlutfall_DE": 0.4678,
+    "eignavelta": 3.047
+   },
+   "rekstur": {
+    "sala": 305599605,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 119594383,
+    "laun": 108907847,
+    "annar_rekstur": 20209878,
+    "afskriftir": 1626516,
+    "fjarmagnsgjold": 513914,
+    "hagn_f_skatt": -1509832,
+    "tekjuskattur": 324721,
+    "hagnadur": -1185111
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10324895,
+    "vidskiptakrofur": 8796226,
+    "handbaert": 48231688,
+    "veltufjarmunir": 89969191,
+    "eignir": 100294086,
+    "hlutafe": 1069855,
+    "eigid_fe": 68329751,
+    "skammtimaskuldir": 31964335,
+    "skuldir": 31964335,
+    "efe_skuldir": 100294086
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6427,
+    "hagnadarhlutfall": -0.05,
+    "ROE": -0.2293,
+    "ROA": -0.1603,
+    "eiginfjarhlutfall": 0.6991,
+    "veltufjarhlutfall": 1.4671,
+    "skuldahlutfall_DE": 0.4305,
+    "eignavelta": 3.2083
+   },
+   "rekstur": {
+    "sala": 255089556,
+    "adrar_tekjur": 1602878,
+    "kostnadarverd": 91144147,
+    "laun": 96632100,
+    "annar_rekstur": 13382707,
+    "afskriftir": 1698147,
+    "fjarmagnsgjold": 754208,
+    "hagn_f_skatt": -12746912,
+    "tekjuskattur": 0,
+    "hagnadur": -12746912
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8626748,
+    "vidskiptakrofur": 208062,
+    "handbaert": 34894030,
+    "veltufjarmunir": 70882465,
+    "eignir": 79509213,
+    "hlutafe": 1069855,
+    "eigid_fe": 55582839,
+    "skammtimaskuldir": 23926374,
+    "skuldir": 23926374,
+    "efe_skuldir": 79509213
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5705911429.pdf",
+ "pdfAr": "2024"
+}

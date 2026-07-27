@@ -1,0 +1,84 @@
+{
+ "kt": "5710051150",
+ "nafn": "VA Vélar og viðgerðir ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2216,
+    "hagnadarhlutfall": -0.2327,
+    "ROA": -0.6081,
+    "veltufjarhlutfall": 0.1686,
+    "eignavelta": 2.6129
+   },
+   "rekstur": {
+    "sala": 6391645,
+    "ebit": -1416659,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2985,
+    "fjarmagnsgjold": -73824,
+    "hagn_f_skatt": -1487498,
+    "tekjuskattur": 0,
+    "hagnadur": -1487498
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 1100000,
+    "vidskiptakrofur": 1179302,
+    "handbaert": 166232,
+    "veltufjarmunir": 2446191,
+    "eignir": 2446191,
+    "hlutafe": 600000,
+    "eigid_fe": -12061951,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 14508142,
+    "skuldir": 14508142,
+    "efe_skuldir": 2446191
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1491,
+    "hagnadarhlutfall": -0.1641,
+    "ROA": -0.7122,
+    "veltufjarhlutfall": 0.1173,
+    "eignavelta": 4.3393
+   },
+   "rekstur": {
+    "sala": 7687670,
+    "ebit": -1146146,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2804,
+    "fjarmagnsgjold": -118439,
+    "hagn_f_skatt": -1261781,
+    "tekjuskattur": 0,
+    "hagnadur": -1261781
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 1100000,
+    "vidskiptakrofur": 420374,
+    "handbaert": 249689,
+    "veltufjarmunir": 1771655,
+    "eignir": 1771655,
+    "hlutafe": 600000,
+    "eigid_fe": -13323732,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 15095387,
+    "skuldir": 15095387,
+    "efe_skuldir": 1771655
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5710051150.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "5202211660",
+ "nafn": "Græna kompaníið ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0206,
+    "hagnadarhlutfall": -0.0578,
+    "ROA": -0.1435,
+    "eiginfjarhlutfall": -0.3792,
+    "veltufjarhlutfall": 0.6622,
+    "eignavelta": 2.4816
+   },
+   "rekstur": {
+    "sala": 23836000,
+    "ebit": 491251,
+    "afskriftir": -448400,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -1421590,
+    "hagn_f_skatt": -1378739,
+    "tekjuskattur": 0,
+    "hagnadur": -1378739
+   },
+   "efnahagur": {
+    "fastafjarmunir": 832743,
+    "birgdir": 2584991,
+    "vidskiptakrofur": 6187237,
+    "handbaert": 0,
+    "veltufjarmunir": 8772228,
+    "eignir": 9604971,
+    "hlutafe": 500000,
+    "eigid_fe": -3641754,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 13246725,
+    "skuldir": 13246725,
+    "efe_skuldir": 9604971
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.032,
+    "hagnadarhlutfall": -0.0444,
+    "ROA": -0.1709,
+    "eiginfjarhlutfall": -0.6061,
+    "veltufjarhlutfall": 0.5824,
+    "eignavelta": 3.8471
+   },
+   "rekstur": {
+    "sala": 32196518,
+    "ebit": 1031822,
+    "afskriftir": -291460,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -2170729,
+    "hagn_f_skatt": -1430367,
+    "tekjuskattur": 0,
+    "hagnadur": -1430367
+   },
+   "efnahagur": {
+    "fastafjarmunir": 541283,
+    "birgdir": 2794946,
+    "vidskiptakrofur": 5032890,
+    "handbaert": 0,
+    "veltufjarmunir": 7827836,
+    "eignir": 8369119,
+    "hlutafe": 500000,
+    "eigid_fe": -5072121,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 13441240,
+    "skuldir": 13441240,
+    "efe_skuldir": 8369119
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5202211660.pdf",
+ "pdfAr": "2023"
+}

@@ -1,0 +1,85 @@
+{
+ "kt": "4111210890",
+ "nafn": "First Shift verktakar ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.355,
+    "ROA": -0.355,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -131000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -131000,
+    "tekjuskattur": 0,
+    "hagnadur": -131000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 369000,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0635,
+    "ROA": -0.0597,
+    "eiginfjarhlutfall": 0.9403,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0635,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21990,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -54,
+    "hagn_f_skatt": -22044,
+    "tekjuskattur": 0,
+    "hagnadur": -22044
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 346956,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 22044,
+    "skuldir": 22044,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4111210890.pdf",
+ "pdfAr": "2022"
+}

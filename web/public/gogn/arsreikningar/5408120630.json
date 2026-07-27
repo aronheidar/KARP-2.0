@@ -1,0 +1,86 @@
+{
+ "kt": "5408120630",
+ "nafn": "Istanbul og Balkan ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.6832,
+    "ROA": -0.5639,
+    "eiginfjarhlutfall": 0.8254,
+    "veltufjarhlutfall": 4.4476,
+    "skuldahlutfall_DE": 0.2116,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1906523,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -104057,
+    "hagn_f_skatt": -2010580,
+    "tekjuskattur": 0,
+    "hagnadur": -2010580
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 2769320,
+    "handbaert": 0,
+    "veltufjarmunir": 3565552,
+    "eignir": 3565552,
+    "hlutafe": 500000,
+    "eigid_fe": 2942891,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 622661,
+    "skuldir": 622661,
+    "efe_skuldir": 3565552
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.249,
+    "ROA": -0.1858,
+    "eiginfjarhlutfall": 0.7463,
+    "veltufjarhlutfall": 3.0443,
+    "skuldahlutfall_DE": 0.34,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -450909,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -135761,
+    "hagn_f_skatt": -586670,
+    "tekjuskattur": 0,
+    "hagnadur": -586670
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 2438671,
+    "handbaert": 0,
+    "veltufjarmunir": 3157275,
+    "eignir": 3157275,
+    "hlutafe": 500000,
+    "eigid_fe": 2356221,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 801054,
+    "skuldir": 801054,
+    "efe_skuldir": 3157275
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5408120630.pdf",
+ "pdfAr": "2024"
+}

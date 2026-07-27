@@ -1,0 +1,66 @@
+{
+ "kt": "4607111690",
+ "nafn": "Smíðagalleríið Stílform ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.773,
+    "veltufjarhlutfall": 0.1329
+   },
+   "rekstur": {
+    "annar_rekstur": 464968,
+    "afskriftir": 199464,
+    "ebit": -664432,
+    "hagnadur": -2616432
+   },
+   "efnahagur": {
+    "fastafjarmunir": 797855,
+    "vidskiptakrofur": 1865885,
+    "handbaert": 335309,
+    "veltufjarmunir": 2586971,
+    "eignir": 3384826,
+    "hlutafe": 510000,
+    "eigid_fe": -13182265,
+    "skuldir": 16567091,
+    "efe_skuldir": 3384826,
+    "skammtimaskuldir": 16567091
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3801,
+    "veltufjarhlutfall": 0.1254
+   },
+   "rekstur": {
+    "annar_rekstur": 139506,
+    "afskriftir": 797855,
+    "ebit": -937361,
+    "hagnadur": -937361
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 1745179,
+    "handbaert": 335309,
+    "veltufjarmunir": 2466219,
+    "eignir": 2466219,
+    "hlutafe": 510000,
+    "eigid_fe": -14119626,
+    "skuldir": 16585845,
+    "efe_skuldir": 2466219,
+    "skammtimaskuldir": 16585845
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4607111690.pdf",
+ "pdfAr": "2022"
+}

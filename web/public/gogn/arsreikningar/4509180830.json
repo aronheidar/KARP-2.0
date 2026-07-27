@@ -1,0 +1,96 @@
+{
+ "kt": "4509180830",
+ "nafn": "Ægir sjávarfang ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2737,
+    "ebit_hlutfall": 0.067,
+    "hagnadarhlutfall": 0.0431,
+    "ROE": 0.1659,
+    "ROA": 0.0691,
+    "eiginfjarhlutfall": 0.4163,
+    "veltufjarhlutfall": 1.2742,
+    "skuldahlutfall_DE": 1.4021,
+    "eignavelta": 1.6034
+   },
+   "rekstur": {
+    "sala": 1465055501,
+    "kostnadarverd": 1064113114,
+    "laun": 164849227,
+    "annar_rekstur": 92434722,
+    "afskriftir": 45479181,
+    "ebit": 98179257,
+    "fjarmunatekjur": 2331987,
+    "fjarmagnsgjold": -31005534,
+    "hagn_f_skatt": 79720640,
+    "tekjuskattur": -16615269,
+    "hagnadur": 63105370
+   },
+   "efnahagur": {
+    "fastafjarmunir": 393393670,
+    "birgdir": 230644845,
+    "vidskiptakrofur": 109772464,
+    "handbaert": 77568449,
+    "eignir": 913709069,
+    "hlutafe": 134100000,
+    "eigid_fe": 380374591,
+    "langtimaskuldir": 205294845,
+    "skuldir": 533334477,
+    "efe_skuldir": 913709069,
+    "skammtimaskuldir": 328039632
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3295,
+    "ebit_hlutfall": 0.1192,
+    "hagnadarhlutfall": 0.0909,
+    "ROE": 0.2821,
+    "ROA": 0.1457,
+    "eiginfjarhlutfall": 0.5167,
+    "veltufjarhlutfall": 1.6026,
+    "skuldahlutfall_DE": 0.9354,
+    "eignavelta": 1.6026
+   },
+   "rekstur": {
+    "sala": 1643353902,
+    "kostnadarverd": 1101815916,
+    "laun": 169506898,
+    "annar_rekstur": 132824082,
+    "afskriftir": 43323846,
+    "ebit": 195883160,
+    "fjarmunatekjur": 5296975,
+    "fjarmagnsgjold": -15581020,
+    "hagn_f_skatt": 185651600,
+    "tekjuskattur": -36206956,
+    "hagnadur": 149444644
+   },
+   "efnahagur": {
+    "fastafjarmunir": 413088037,
+    "birgdir": 161586936,
+    "vidskiptakrofur": 52534302,
+    "handbaert": 283119530,
+    "eignir": 1025409822,
+    "hlutafe": 134100000,
+    "eigid_fe": 529819235,
+    "langtimaskuldir": 185323643,
+    "skuldir": 495590587,
+    "efe_skuldir": 1025409822,
+    "skammtimaskuldir": 310266944
+   },
+   "starfsmenn": 16
+  }
+ },
+ "pdf": "pdf/4509180830.pdf",
+ "pdfAr": "2025"
+}

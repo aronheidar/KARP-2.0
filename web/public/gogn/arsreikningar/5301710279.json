@@ -1,0 +1,98 @@
+{
+ "kt": "5301710279",
+ "nafn": "Toyota á Íslandi ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1833,
+    "ebit_hlutfall": 0.0773,
+    "hagnadarhlutfall": 0.0647,
+    "ROE": 0.2413,
+    "ROA": 0.0849,
+    "eiginfjarhlutfall": 0.3519,
+    "veltufjarhlutfall": 0.9838,
+    "skuldahlutfall_DE": 1.8416,
+    "eignavelta": 1.3134
+   },
+   "rekstur": {
+    "sala": 14990495,
+    "kostnadarverd": 12242017,
+    "laun": 658592,
+    "annar_rekstur": 367865,
+    "ebitda": 1314871,
+    "afskriftir": -156440,
+    "ebit": 1158431,
+    "fjarmunatekjur": 325499,
+    "fjarmagnsgjold": -230887,
+    "hagn_f_skatt": 1253043,
+    "tekjuskattur": -283628,
+    "hagnadur": 969415
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2360240,
+    "birgdir": 4653273,
+    "vidskiptakrofur": 1767510,
+    "handbaert": 8515,
+    "veltufjarmunir": 9053450,
+    "eignir": 11413690,
+    "hlutafe": 60200,
+    "eigid_fe": 4016696,
+    "skammtimaskuldir": 6534875,
+    "skuldir": 7396994,
+    "efe_skuldir": 11413690
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.166,
+    "ebit_hlutfall": 0.0585,
+    "hagnadarhlutfall": 0.0458,
+    "ROE": 0.1768,
+    "ROA": 0.1027,
+    "eiginfjarhlutfall": 0.5808,
+    "veltufjarhlutfall": 1.6828,
+    "skuldahlutfall_DE": 0.7218,
+    "eignavelta": 2.243
+   },
+   "rekstur": {
+    "sala": 16497848,
+    "kostnadarverd": 13759913,
+    "laun": 717868,
+    "annar_rekstur": 525247,
+    "ebitda": 1126668,
+    "afskriftir": -161517,
+    "ebit": 965151,
+    "fjarmunatekjur": 182879,
+    "fjarmagnsgjold": -178239,
+    "hagn_f_skatt": 969790,
+    "tekjuskattur": -214662,
+    "hagnadur": 755128
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2210865,
+    "birgdir": 2823334,
+    "vidskiptakrofur": 702303,
+    "handbaert": 372199,
+    "veltufjarmunir": 5144435,
+    "eignir": 7355300,
+    "hlutafe": 60200,
+    "eigid_fe": 4271824,
+    "skammtimaskuldir": 2316305,
+    "skuldir": 3083476,
+    "efe_skuldir": 7355300
+   },
+   "starfsmenn": 44
+  }
+ },
+ "pdf": "pdf/5301710279.pdf",
+ "pdfAr": "2025"
+}

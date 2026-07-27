@@ -1,0 +1,82 @@
+{
+ "kt": "6701882489",
+ "nafn": "Æður ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1222,
+    "hagnadarhlutfall": 0.1017,
+    "ROE": 0.9335,
+    "ROA": 0.2114,
+    "eiginfjarhlutfall": 0.2265,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 3.416,
+    "eignavelta": 2.0795
+   },
+   "rekstur": {
+    "adrar_tekjur": 6341670,
+    "sala": 52987825,
+    "laun": -19993233,
+    "annar_rekstur": -25808402,
+    "afskriftir": -710156,
+    "ebit": 6476034,
+    "fjarmagnsgjold": -1089730,
+    "hagnadur": 5386304
+   },
+   "efnahagur": {
+    "fastafjarmunir": 25480703,
+    "eignir": 25480742,
+    "hlutafe": 5700000,
+    "eigid_fe": 5770150,
+    "langtimaskuldir": 10625000,
+    "skammtimaskuldir": 9085592,
+    "skuldir": 19710592,
+    "efe_skuldir": 25480742
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0694,
+    "hagnadarhlutfall": 0.0311,
+    "ROE": 0.2006,
+    "ROA": 0.0583,
+    "eiginfjarhlutfall": 0.2905,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 2.442,
+    "eignavelta": 1.8718
+   },
+   "rekstur": {
+    "adrar_tekjur": 4718655,
+    "sala": 46502358,
+    "laun": -19753478,
+    "annar_rekstur": -22886029,
+    "afskriftir": -636811,
+    "ebit": 3226040,
+    "fjarmagnsgjold": -1778346,
+    "hagnadur": 1447694
+   },
+   "efnahagur": {
+    "fastafjarmunir": 24843892,
+    "eignir": 24843928,
+    "hlutafe": 5700000,
+    "eigid_fe": 7217844,
+    "langtimaskuldir": 9375000,
+    "skammtimaskuldir": 8251084,
+    "skuldir": 17626084,
+    "efe_skuldir": 24843928
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/6701882489.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,76 @@
+{
+ "kt": "5310140570",
+ "nafn": "140bpm ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.7561,
+    "ROA": -0.296,
+    "eiginfjarhlutfall": 0.3915,
+    "veltufjarhlutfall": 1.6326,
+    "skuldahlutfall_DE": 1.5543
+   },
+   "rekstur": {
+    "annar_rekstur": -65200,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -8207,
+    "hagn_f_skatt": -73407,
+    "tekjuskattur": 0,
+    "hagnadur": -73407
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1625,
+    "vidskiptakrofur": 0,
+    "handbaert": 246372,
+    "veltufjarmunir": 246372,
+    "eignir": 247997,
+    "hlutafe": 500004,
+    "eigid_fe": 97091,
+    "skammtimaskuldir": 150906,
+    "efe_skuldir": 247997,
+    "skuldir": 150906
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9998,
+    "ROA": 0.9996,
+    "eiginfjarhlutfall": 0.9998,
+    "veltufjarhlutfall": 1145.3313,
+    "skuldahlutfall_DE": 0.0002
+   },
+   "rekstur": {
+    "annar_rekstur": -330622,
+    "fjarmunatekjur": 468815463,
+    "fjarmagnsgjold": -413725,
+    "hagn_f_skatt": 468071116,
+    "tekjuskattur": 0,
+    "hagnadur": 468071116
+   },
+   "efnahagur": {
+    "fastafjarmunir": 344930597,
+    "vidskiptakrofur": 1141888,
+    "handbaert": 122203416,
+    "veltufjarmunir": 123345304,
+    "eignir": 468275901,
+    "hlutafe": 500004,
+    "eigid_fe": 468168207,
+    "skammtimaskuldir": 107694,
+    "efe_skuldir": 468275901,
+    "skuldir": 107694
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5310140570.pdf",
+ "pdfAr": "2024"
+}

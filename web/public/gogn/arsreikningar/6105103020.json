@@ -1,0 +1,94 @@
+{
+ "kt": "6105103020",
+ "nafn": "Austurtak ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7678,
+    "ebit_hlutfall": -0.0445,
+    "hagnadarhlutfall": -0.0464,
+    "ROE": -15.0682,
+    "ROA": -0.0431,
+    "eiginfjarhlutfall": 0.0029,
+    "veltufjarhlutfall": 0.3914,
+    "skuldahlutfall_DE": 348.7406,
+    "eignavelta": 0.929
+   },
+   "rekstur": {
+    "adrar_tekjur": 20056114,
+    "sala": 79798553,
+    "kostnadarverd": 18525537,
+    "laun": 40112228,
+    "annar_rekstur": 2587281,
+    "afskriftir": 8859453,
+    "ebit": -3554183,
+    "fjarmunatekjur": 9591,
+    "fjarmagnsgjold": -146594,
+    "hagn_f_skatt": -3700777,
+    "tekjuskattur": 0,
+    "hagnadur": -3700777
+   },
+   "efnahagur": {
+    "fastafjarmunir": 45470861,
+    "birgdir": 0,
+    "vidskiptakrofur": 30282320,
+    "handbaert": 3241689,
+    "veltufjarmunir": 40426119,
+    "eignir": 85896980,
+    "eigid_fe": 245602,
+    "skammtimaskuldir": 85651378,
+    "skuldir": 85651378,
+    "efe_skuldir": 85896980
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.906,
+    "ebit_hlutfall": -0.6824,
+    "hagnadarhlutfall": -0.7709,
+    "ROA": -0.3127,
+    "eiginfjarhlutfall": -0.3085,
+    "veltufjarhlutfall": 0.2536,
+    "eignavelta": 0.4057
+   },
+   "rekstur": {
+    "adrar_tekjur": 12751606,
+    "sala": 23284670,
+    "kostnadarverd": 2189850,
+    "laun": 27207353,
+    "annar_rekstur": 1133057,
+    "afskriftir": 7120243,
+    "ebit": -15888434,
+    "fjarmunatekjur": 8364,
+    "fjarmagnsgjold": -2062531,
+    "hagn_f_skatt": -17950965,
+    "tekjuskattur": 0,
+    "hagnadur": -17950965
+   },
+   "efnahagur": {
+    "fastafjarmunir": 38350618,
+    "birgdir": 3000000,
+    "vidskiptakrofur": 16000000,
+    "handbaert": 47582,
+    "veltufjarmunir": 19049422,
+    "eignir": 57400040,
+    "eigid_fe": -17705363,
+    "skammtimaskuldir": 75105403,
+    "skuldir": 75105403,
+    "efe_skuldir": 57400040
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/6105103020.pdf",
+ "pdfAr": "2024"
+}

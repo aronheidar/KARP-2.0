@@ -1,0 +1,84 @@
+{
+ "kt": "4512050130",
+ "nafn": "Athugandi ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -2.1198,
+    "hagnadarhlutfall": -2.487,
+    "ROA": -1.3337,
+    "veltufjarhlutfall": 0.0016,
+    "eignavelta": 0.5363
+   },
+   "rekstur": {
+    "sala": 540000,
+    "ebit": -1144696,
+    "afskriftir": -111283,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -87002,
+    "hagn_f_skatt": -1342981,
+    "tekjuskattur": 0,
+    "hagnadur": -1342981
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1001547,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5425,
+    "veltufjarmunir": 5425,
+    "eignir": 1006972,
+    "hlutafe": 510000,
+    "eigid_fe": -2444390,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3451362,
+    "skuldir": 3451362,
+    "efe_skuldir": 1006972
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0924,
+    "hagnadarhlutfall": 0.0816,
+    "ROA": 0.5283,
+    "veltufjarhlutfall": 0.108,
+    "eignavelta": 6.4725
+   },
+   "rekstur": {
+    "sala": 5295460,
+    "ebit": 489219,
+    "afskriftir": -56955,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 432264,
+    "tekjuskattur": 0,
+    "hagnadur": 432264
+   },
+   "efnahagur": {
+    "fastafjarmunir": 512592,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 305558,
+    "veltufjarmunir": 305558,
+    "eignir": 818150,
+    "hlutafe": 510000,
+    "eigid_fe": -2012126,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2830275,
+    "skuldir": 2830275,
+    "efe_skuldir": 818149
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4512050130.pdf",
+ "pdfAr": "2024"
+}

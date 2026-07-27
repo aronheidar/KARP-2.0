@@ -1,0 +1,98 @@
+{
+ "kt": "4912982199",
+ "nafn": "JE Vélaverkstæði ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.761,
+    "ebit_hlutfall": 0.1248,
+    "hagnadarhlutfall": 0.1126,
+    "ROE": 0.1697,
+    "ROA": 0.1452,
+    "eiginfjarhlutfall": 0.8553,
+    "veltufjarhlutfall": 4.1871,
+    "skuldahlutfall_DE": 0.1692,
+    "eignavelta": 1.2898
+   },
+   "rekstur": {
+    "sala": 308190693,
+    "kostnadarverd": 73672039,
+    "laun": 151187029,
+    "annar_rekstur": 35522477,
+    "afskriftir": 9344434,
+    "ebit": 38464714,
+    "fjarmunatekjur": 5426567,
+    "fjarmagnsgjold": -16,
+    "hagn_f_skatt": 43891265,
+    "tekjuskattur": -9204168,
+    "hagnadur": 34687097
+   },
+   "efnahagur": {
+    "fastafjarmunir": 97095172,
+    "birgdir": 20154778,
+    "vidskiptakrofur": 44572221,
+    "handbaert": 74013073,
+    "veltufjarmunir": 141848848,
+    "eignir": 238944020,
+    "hlutafe": 7199200,
+    "eigid_fe": 204358056,
+    "langtimaskuldir": 1450942,
+    "skammtimaskuldir": 33135022,
+    "skuldir": 34585964,
+    "efe_skuldir": 238944020
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8174,
+    "ebit_hlutfall": 0.1566,
+    "hagnadarhlutfall": 0.1335,
+    "ROE": 0.2037,
+    "ROA": 0.1737,
+    "eiginfjarhlutfall": 0.8528,
+    "veltufjarhlutfall": 4.3789,
+    "skuldahlutfall_DE": 0.1726,
+    "eignavelta": 1.3018
+   },
+   "rekstur": {
+    "sala": 330431553,
+    "kostnadarverd": 60337729,
+    "laun": 177210588,
+    "annar_rekstur": 31202943,
+    "afskriftir": 9943971,
+    "ebit": 51736322,
+    "fjarmunatekjur": 4006420,
+    "fjarmagnsgjold": -564174,
+    "hagn_f_skatt": 55137695,
+    "tekjuskattur": -11039994,
+    "hagnadur": 44097701
+   },
+   "efnahagur": {
+    "fastafjarmunir": 88561941,
+    "birgdir": 23273038,
+    "vidskiptakrofur": 60599072,
+    "handbaert": 72545615,
+    "veltufjarmunir": 165257420,
+    "eignir": 253819361,
+    "hlutafe": 8000000,
+    "eigid_fe": 216463757,
+    "langtimaskuldir": 1635166,
+    "skammtimaskuldir": 35720438,
+    "skuldir": 37355604,
+    "efe_skuldir": 253819361
+   },
+   "starfsmenn": 14
+  }
+ },
+ "pdf": "pdf/4912982199.pdf",
+ "pdfAr": "2025"
+}

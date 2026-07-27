@@ -1,0 +1,86 @@
+{
+ "kt": "4604012160",
+ "nafn": "Perlur Innkaupafélag ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1199,
+    "hagnadarhlutfall": 0.0006,
+    "ROA": 0.0004,
+    "eiginfjarhlutfall": -1.0549,
+    "veltufjarhlutfall": 0.5103,
+    "eignavelta": 0.6657
+   },
+   "rekstur": {
+    "sala": 24731338,
+    "ebit": 2965489,
+    "afskriftir": -1121430,
+    "fjarmunatekjur": 210539,
+    "fjarmagnsgjold": -1885712,
+    "hagn_f_skatt": 15268,
+    "tekjuskattur": 0,
+    "hagnadur": 15268
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8272001,
+    "birgdir": 17657259,
+    "vidskiptakrofur": 6256747,
+    "handbaert": 4919523,
+    "veltufjarmunir": 28880395,
+    "eignir": 37152396,
+    "hlutafe": 500000,
+    "eigid_fe": -39193250,
+    "langtimaskuldir": 19845764,
+    "skammtimaskuldir": 56499882,
+    "skuldir": 76345646,
+    "efe_skuldir": 37152396
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1214,
+    "hagnadarhlutfall": 0.0551,
+    "ROA": 0.0521,
+    "eiginfjarhlutfall": -1.253,
+    "veltufjarhlutfall": 0.452,
+    "eignavelta": 0.9449
+   },
+   "rekstur": {
+    "sala": 28377713,
+    "ebit": 3444920,
+    "afskriftir": -820387,
+    "fjarmunatekjur": 307847,
+    "fjarmagnsgjold": -1329493,
+    "hagn_f_skatt": 1564666,
+    "tekjuskattur": 0,
+    "hagnadur": 1564666
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6415484,
+    "birgdir": 15157259,
+    "vidskiptakrofur": 5369114,
+    "handbaert": 3024618,
+    "veltufjarmunir": 23615527,
+    "eignir": 30031011,
+    "hlutafe": 500000,
+    "eigid_fe": -37628584,
+    "langtimaskuldir": 15550575,
+    "skammtimaskuldir": 52109020,
+    "skuldir": 67659595,
+    "efe_skuldir": 30031011
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4604012160.pdf",
+ "pdfAr": "2024"
+}

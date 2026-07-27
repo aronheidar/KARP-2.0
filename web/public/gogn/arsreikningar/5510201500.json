@@ -1,0 +1,84 @@
+{
+ "kt": "5510201500",
+ "nafn": "9keys ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0423,
+    "ROA": -0.0356,
+    "eiginfjarhlutfall": 0.8434,
+    "veltufjarhlutfall": 6.0087,
+    "skuldahlutfall_DE": 0.1857,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -72934,
+    "afskriftir": 0,
+    "fjarmagnsgjold": -1059,
+    "hagn_f_skatt": -73949,
+    "tekjuskattur": 0,
+    "hagnadur": -73949
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1950000,
+    "handbaert": 2821,
+    "veltufjarmunir": 2074880,
+    "eignir": 2074880,
+    "hlutafe": 500000,
+    "eigid_fe": 1749880,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 325000,
+    "skuldir": 325000,
+    "efe_skuldir": 2074880
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0461,
+    "ROA": -0.0372,
+    "eiginfjarhlutfall": 0.807,
+    "veltufjarhlutfall": 4.8781,
+    "skuldahlutfall_DE": 0.2391,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -77084,
+    "tekjuskattur": 0,
+    "hagnadur": -77084
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1950000,
+    "handbaert": 1245,
+    "veltufjarmunir": 2072796,
+    "eignir": 2072796,
+    "hlutafe": 500000,
+    "eigid_fe": 1672796,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 400000,
+    "skuldir": 400000,
+    "efe_skuldir": 2072796
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5510201500.pdf",
+ "pdfAr": "2025"
+}

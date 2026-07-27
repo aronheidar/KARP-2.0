@@ -1,0 +1,87 @@
+{
+ "kt": "5308210210",
+ "nafn": "Zerobars ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0471,
+    "hagnadarhlutfall": 0.08,
+    "ROA": 2.9611,
+    "veltufjarhlutfall": 0.3003,
+    "eignavelta": 37.0074
+   },
+   "rekstur": {
+    "sala": 4300000,
+    "ebit": 202634,
+    "afskriftir": 0,
+    "fjarmunatekjur": 141422,
+    "fjarmagnsgjold": -2,
+    "hagn_f_skatt": 344054,
+    "tekjuskattur": 0,
+    "hagnadur": 344054
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 98188,
+    "veltufjarmunir": 116193,
+    "eignir": 116193,
+    "hlutafe": 501000,
+    "eigid_fe": -210745,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 326938,
+    "skuldir": 326938,
+    "efe_skuldir": 116193
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.67,
+    "hagnadarhlutfall": 0.63,
+    "ROE": 1.1909,
+    "ROA": 1.1772,
+    "eiginfjarhlutfall": 0.9885,
+    "veltufjarhlutfall": 16.1955,
+    "skuldahlutfall_DE": 0.0116,
+    "eignavelta": 1.8684
+   },
+   "rekstur": {
+    "sala": 2087049,
+    "ebit": 1398396,
+    "afskriftir": 0,
+    "fjarmunatekjur": 25108,
+    "fjarmagnsgjold": -112549,
+    "hagn_f_skatt": 1314943,
+    "tekjuskattur": 0,
+    "hagnadur": 1314943
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 207497,
+    "veltufjarmunir": 1117010,
+    "eignir": 1117010,
+    "hlutafe": 501000,
+    "eigid_fe": 1104198,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12812,
+    "skuldir": 12812,
+    "efe_skuldir": 1117010
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5308210210.pdf",
+ "pdfAr": "2025"
+}

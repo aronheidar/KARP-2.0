@@ -1,0 +1,84 @@
+{
+ "kt": "4903012590",
+ "nafn": "Lindey ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2857,
+    "hagnadarhlutfall": -0.3131,
+    "ROA": -1.8675,
+    "veltufjarhlutfall": 0.0478,
+    "eignavelta": 5.9652
+   },
+   "rekstur": {
+    "sala": 29918436,
+    "ebit": -8547647,
+    "afskriftir": 0,
+    "fjarmunatekjur": 130,
+    "fjarmagnsgjold": -819156,
+    "hagn_f_skatt": -9366673,
+    "tekjuskattur": 0,
+    "hagnadur": -9366673
+   },
+   "efnahagur": {
+    "fastafjarmunir": 47207,
+    "birgdir": 4318632,
+    "vidskiptakrofur": 310917,
+    "handbaert": 337731,
+    "veltufjarmunir": 4968293,
+    "eignir": 5015500,
+    "hlutafe": 500000,
+    "eigid_fe": -98955545,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 103971045,
+    "skuldir": 103971045,
+    "efe_skuldir": 5015500
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.252,
+    "hagnadarhlutfall": 0.2466,
+    "ROA": 0.7976,
+    "veltufjarhlutfall": 0.1075,
+    "eignavelta": 3.2342
+   },
+   "rekstur": {
+    "sala": 35173604,
+    "ebit": 8862348,
+    "afskriftir": -47207,
+    "fjarmunatekjur": 547,
+    "fjarmagnsgjold": -140931,
+    "hagn_f_skatt": 8674757,
+    "tekjuskattur": 0,
+    "hagnadur": 8674757
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 4318632,
+    "vidskiptakrofur": 0,
+    "handbaert": 6555901,
+    "veltufjarmunir": 10875545,
+    "eignir": 10875545,
+    "hlutafe": 500000,
+    "eigid_fe": -90280788,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 101156333,
+    "skuldir": 101156333,
+    "efe_skuldir": 10875545
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4903012590.pdf",
+ "pdfAr": "2021"
+}

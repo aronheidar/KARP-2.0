@@ -1,0 +1,90 @@
+{
+ "kt": "4902050550",
+ "nafn": "Lexía ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9392,
+    "ebit_hlutfall": 0.1344,
+    "eiginfjarhlutfall": 0.2312,
+    "veltufjarhlutfall": 0.3106,
+    "skuldahlutfall_DE": 3.3254,
+    "eignavelta": 0.3164
+   },
+   "rekstur": {
+    "sala": 2141588508,
+    "kostnadarverd": -130214505,
+    "laun": -1064292078,
+    "annar_rekstur": -513713969,
+    "afskriftir": -89093085,
+    "ebit": 287752486,
+    "fjarmunatekjur": 15593556,
+    "fjarmagnsgjold": -513281543,
+    "hagn_f_skatt": 117333000,
+    "tekjuskattur": -12592800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6465298272,
+    "birgdir": 93759542,
+    "vidskiptakrofur": 175158102,
+    "handbaert": 35164676,
+    "veltufjarmunir": 304082320,
+    "eignir": 6769380592,
+    "hlutafe": 500000,
+    "eigid_fe": 1565023615,
+    "langtimaskuldir": 3549264705,
+    "skammtimaskuldir": 978868483,
+    "skuldir": 5204356977,
+    "efe_skuldir": 6769380592
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9485,
+    "ebit_hlutfall": 0.1709,
+    "eiginfjarhlutfall": 0.233,
+    "veltufjarhlutfall": 0.2635,
+    "skuldahlutfall_DE": 3.291,
+    "eignavelta": 0.3203
+   },
+   "rekstur": {
+    "sala": 2282502860,
+    "kostnadarverd": -117458793,
+    "laun": -1065564719,
+    "annar_rekstur": -546692956,
+    "afskriftir": -83462990,
+    "ebit": 389991254,
+    "fjarmunatekjur": 12267401,
+    "fjarmagnsgjold": -445837515,
+    "hagn_f_skatt": 162586654,
+    "tekjuskattur": -44837471
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6835829746,
+    "birgdir": 30067926,
+    "vidskiptakrofur": 155298782,
+    "handbaert": 105511117,
+    "veltufjarmunir": 290877825,
+    "eignir": 7126707571,
+    "hlutafe": 500000,
+    "eigid_fe": 1660847724,
+    "langtimaskuldir": 3617311378,
+    "skammtimaskuldir": 1103715413,
+    "skuldir": 5465859847,
+    "efe_skuldir": 7126707571
+   },
+   "starfsmenn": 80
+  }
+ },
+ "pdf": "pdf/4902050550.pdf",
+ "pdfAr": "2024"
+}

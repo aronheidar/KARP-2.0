@@ -1,0 +1,62 @@
+{
+ "kt": "5312952189",
+ "nafn": "VHE ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0425
+   },
+   "rekstur": {
+    "laun": 3261201952,
+    "afskriftir": 258502842,
+    "ebit": 400339592,
+    "fjarmagnsgjold": -287930170,
+    "hagn_f_skatt": 112409422,
+    "tekjuskattur": -39387781,
+    "hagnadur": 73021641
+   },
+   "efnahagur": {
+    "birgdir": 212683601,
+    "vidskiptakrofur": 1067021602,
+    "handbaert": 20432812,
+    "hlutafe": 402000000,
+    "eigid_fe": 1717717333,
+    "langtimaskuldir": 1896318902
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0694
+   },
+   "rekstur": {
+    "laun": 3447331896,
+    "afskriftir": 207579419,
+    "ebit": 404219489,
+    "fjarmagnsgjold": -245293586,
+    "hagn_f_skatt": 158925903,
+    "tekjuskattur": -30773351,
+    "hagnadur": 128152552
+   },
+   "efnahagur": {
+    "birgdir": 308989936,
+    "vidskiptakrofur": 1500227450,
+    "handbaert": 19581149,
+    "hlutafe": 402000000,
+    "eigid_fe": 1845869885,
+    "langtimaskuldir": 1796581173
+   },
+   "starfsmenn": 234
+  }
+ },
+ "pdf": "pdf/5312952189.pdf",
+ "pdfAr": "2025"
+}

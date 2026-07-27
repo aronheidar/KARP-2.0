@@ -1,0 +1,80 @@
+{
+ "kt": "7105992709",
+ "nafn": "Pos ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0192,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -314167,
+    "afskriftir": 0,
+    "fjarmunatekjur": 14,
+    "fjarmagnsgjold": -43161,
+    "hagn_f_skatt": -357314,
+    "tekjuskattur": 0,
+    "hagnadur": -357314
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1201,
+    "veltufjarmunir": 18625066,
+    "eignir": 18625066,
+    "hlutafe": 1090000,
+    "eigid_fe": -62826202,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 81451268,
+    "skuldir": 81451268,
+    "efe_skuldir": 18625066
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0282,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -486651,
+    "afskriftir": 0,
+    "fjarmunatekjur": 199,
+    "fjarmagnsgjold": -38360,
+    "hagn_f_skatt": -524812,
+    "tekjuskattur": 0,
+    "hagnadur": -524812
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1999,
+    "veltufjarmunir": 18625894,
+    "eignir": 18625894,
+    "hlutafe": 1090000,
+    "eigid_fe": -63351014,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 81976908,
+    "skuldir": 81976908,
+    "efe_skuldir": 18625894
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7105992709.pdf",
+ "pdfAr": "2022"
+}

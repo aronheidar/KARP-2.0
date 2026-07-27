@@ -1,0 +1,79 @@
+{
+ "kt": "7101241160",
+ "nafn": "Þormar ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": null,
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 4387.539,
+    "hagnadarhlutfall": 3661.208,
+    "ROE": 0.9368,
+    "ROA": 0.4407,
+    "eiginfjarhlutfall": 0.4704,
+    "veltufjarhlutfall": 0.1515,
+    "skuldahlutfall_DE": 1.1258,
+    "eignavelta": 0.0001
+   },
+   "rekstur": {
+    "sala": 2024,
+    "laun": 4609927,
+    "annar_rekstur": 1683297,
+    "ebit": 8880379,
+    "fjarmunatekjur": 54065,
+    "fjarmagnsgjold": -3131,
+    "hagn_f_skatt": 9285861,
+    "tekjuskattur": -1875576,
+    "hagnadur": 7410285
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8832450,
+    "vidskiptakrofur": 11894,
+    "handbaert": 1336920,
+    "veltufjarmunir": 7983362,
+    "eignir": 16815812,
+    "hlutafe": 500000,
+    "eigid_fe": 7910285,
+    "skuldir": 8905527,
+    "efe_skuldir": 16815812,
+    "skammtimaskuldir": 8905527
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/7101241160.pdf",
+ "pdfAr": "2024"
+}

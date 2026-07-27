@@ -1,0 +1,90 @@
+{
+ "kt": "4202003580",
+ "nafn": "Atferlisgreining ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2562,
+    "hagnadarhlutfall": 0.056,
+    "ROE": 0.0182,
+    "ROA": 0.0142,
+    "eiginfjarhlutfall": 0.7788,
+    "veltufjarhlutfall": 0.0043,
+    "skuldahlutfall_DE": 0.284,
+    "eignavelta": 0.2536
+   },
+   "rekstur": {
+    "sala": 1453039,
+    "ebit": 372261,
+    "afskriftir": 0,
+    "fjarmunatekjur": 707,
+    "fjarmagnsgjold": -291598,
+    "hagn_f_skatt": 81370,
+    "tekjuskattur": 0,
+    "hagnadur": 81370
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5446,
+    "veltufjarmunir": 5728613,
+    "eignir": 5728613,
+    "hlutafe": 2700000,
+    "eigid_fe": 4461586,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1267027,
+    "skuldir": 1267027,
+    "efe_skuldir": 5728613
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3532,
+    "hagnadarhlutfall": 0.1903,
+    "ROE": 0.0663,
+    "ROA": 0.0522,
+    "eiginfjarhlutfall": 0.7879,
+    "veltufjarhlutfall": 0.1125,
+    "skuldahlutfall_DE": 0.2692,
+    "eignavelta": 0.2745
+   },
+   "rekstur": {
+    "sala": 1664924,
+    "ebit": 588057,
+    "afskriftir": 0,
+    "fjarmunatekjur": 461,
+    "fjarmagnsgjold": -271759,
+    "hagn_f_skatt": 316759,
+    "tekjuskattur": 0,
+    "hagnadur": 316759
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 144709,
+    "veltufjarmunir": 6064607,
+    "eignir": 6064607,
+    "hlutafe": 2700000,
+    "eigid_fe": 4778345,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1286262,
+    "skuldir": 1286262,
+    "efe_skuldir": 6064607
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4202003580.pdf",
+ "pdfAr": "2024"
+}

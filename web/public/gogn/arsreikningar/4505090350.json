@@ -1,0 +1,74 @@
+{
+ "kt": "4505090350",
+ "nafn": "0105 Holding ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2237,
+    "ROA": 0.0287,
+    "eiginfjarhlutfall": 0.1285,
+    "veltufjarhlutfall": 0.0056,
+    "skuldahlutfall_DE": 6.7835
+   },
+   "rekstur": {
+    "ebit": -1006695,
+    "fjarmunatekjur": 41820672,
+    "fjarmagnsgjold": -3371524,
+    "matsbreyting": 0,
+    "hagnadur": 37442453
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1256059147,
+    "vidskiptakrofur": 6292429,
+    "handbaert": 73573,
+    "veltufjarmunir": 46931858,
+    "eignir": 1302991005,
+    "hlutafe": 555000,
+    "eigid_fe": 167403550,
+    "skammtimaskuldir": 1135587455,
+    "skuldir": 1135587455,
+    "efe_skuldir": 1302991005
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1622,
+    "ROA": 0.0117,
+    "eiginfjarhlutfall": 0.072,
+    "veltufjarhlutfall": 0.0024,
+    "skuldahlutfall_DE": 12.8956
+   },
+   "rekstur": {
+    "ebit": -885438,
+    "fjarmunatekjur": 40064765,
+    "fjarmagnsgjold": -549447,
+    "matsbreyting": -6209999,
+    "hagnadur": 32419881
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2735719574,
+    "vidskiptakrofur": 6283638,
+    "handbaert": 24903,
+    "veltufjarmunir": 40941634,
+    "eignir": 2776661208,
+    "hlutafe": 555000,
+    "eigid_fe": 199823431,
+    "skammtimaskuldir": 2576837777,
+    "skuldir": 2576837777,
+    "efe_skuldir": 2776661208
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4505090350.pdf",
+ "pdfAr": "2024"
+}

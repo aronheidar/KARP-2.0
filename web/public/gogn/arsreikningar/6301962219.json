@@ -1,0 +1,83 @@
+{
+ "kt": "6301962219",
+ "nafn": "Veitingastofan Vör ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.288,
+    "ROA": -0.288,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 575310,
+    "afskriftir": 184144,
+    "ebit": -759.454,
+    "fjarmunatekjur": 67,
+    "fjarmagnsgjold": -565164,
+    "hagn_f_skatt": -1324551,
+    "hagnadur": -1324551
+   },
+   "efnahagur": {
+    "fastafjarmunir": 341983,
+    "vidskiptakrofur": 2371408,
+    "handbaert": 779556,
+    "veltufjarmunir": 4257106,
+    "eignir": 4599089,
+    "hlutafe": 5000000,
+    "eigid_fe": 4599089,
+    "skuldir": 0,
+    "efe_skuldir": 4599089,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2324,
+    "hagnadarhlutfall": 0.2339,
+    "ROE": 0.0655,
+    "ROA": 0.0652,
+    "eiginfjarhlutfall": 0.9962,
+    "veltufjarhlutfall": 262.9612,
+    "skuldahlutfall_DE": 0.0038,
+    "eignavelta": 0.2789
+   },
+   "rekstur": {
+    "sala": 1377917,
+    "annar_rekstur": 715659,
+    "afskriftir": 341983,
+    "ebit": 320275,
+    "fjarmunatekjur": 2040,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 322315,
+    "hagnadur": 322315
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 4873027,
+    "handbaert": 66699,
+    "veltufjarmunir": 4940189,
+    "eignir": 4940189,
+    "hlutafe": 5000000,
+    "eigid_fe": 4921404,
+    "skuldir": 18785,
+    "efe_skuldir": 4940189,
+    "skammtimaskuldir": 18785
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6301962219.pdf",
+ "pdfAr": "2022"
+}

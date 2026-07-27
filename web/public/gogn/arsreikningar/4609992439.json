@@ -1,0 +1,98 @@
+{
+ "kt": "4609992439",
+ "nafn": "Dagar hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.9596,
+    "ebit_hlutfall": 0.0525,
+    "hagnadarhlutfall": 0.027,
+    "ROE": 0.3147,
+    "ROA": 0.0699,
+    "eiginfjarhlutfall": 0.2221,
+    "veltufjarhlutfall": 0.4279,
+    "skuldahlutfall_DE": 3.502,
+    "eignavelta": 2.5904
+   },
+   "rekstur": {
+    "sala": 7009852,
+    "kostnadarverd": 283143,
+    "laun": 5838535,
+    "annar_rekstur": 361431,
+    "afskriftir": 158923,
+    "ebit": 367820,
+    "fjarmunatekjur": 17699,
+    "fjarmagnsgjold": -132727,
+    "hagn_f_skatt": 252792,
+    "tekjuskattur": -63644,
+    "hagnadur": 189149
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2233536,
+    "birgdir": 48612,
+    "vidskiptakrofur": 256598,
+    "handbaert": 151557,
+    "veltufjarmunir": 472524,
+    "eignir": 2706059,
+    "hlutafe": 4792,
+    "eigid_fe": 601081,
+    "langtimaskuldir": 1037448,
+    "skammtimaskuldir": 1067530,
+    "skuldir": 2104978,
+    "efe_skuldir": 2706059
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.9585,
+    "ebit_hlutfall": 0.0524,
+    "hagnadarhlutfall": 0.028,
+    "ROE": 0.234,
+    "ROA": 0.0677,
+    "eiginfjarhlutfall": 0.2893,
+    "veltufjarhlutfall": 0.4727,
+    "skuldahlutfall_DE": 2.4568,
+    "eignavelta": 2.4167
+   },
+   "rekstur": {
+    "sala": 6418092,
+    "kostnadarverd": 266255,
+    "laun": 5356315,
+    "annar_rekstur": 269299,
+    "afskriftir": 189815,
+    "ebit": 336408,
+    "fjarmunatekjur": 11363,
+    "fjarmagnsgjold": -114398,
+    "hagn_f_skatt": 233373,
+    "tekjuskattur": -53591,
+    "hagnadur": 179782
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2199311,
+    "birgdir": 33150,
+    "vidskiptakrofur": 280358,
+    "handbaert": 134306,
+    "veltufjarmunir": 456436,
+    "eignir": 2655747,
+    "hlutafe": 4756,
+    "eigid_fe": 768278,
+    "langtimaskuldir": 940119,
+    "skammtimaskuldir": 947350,
+    "skuldir": 1887469,
+    "efe_skuldir": 2655747
+   },
+   "starfsmenn": 521
+  }
+ },
+ "pdf": "pdf/4609992439.pdf",
+ "pdfAr": "2025"
+}

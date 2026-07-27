@@ -1,0 +1,88 @@
+{
+ "kt": "6302952039",
+ "nafn": "Birna ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8239,
+    "ebit_hlutfall": 0.0282,
+    "hagnadarhlutfall": 0.0227,
+    "ROE": 0.0101,
+    "ROA": 0.0098,
+    "eiginfjarhlutfall": 0.9671,
+    "veltufjarhlutfall": 30.4376,
+    "skuldahlutfall_DE": 0.034,
+    "eignavelta": 0.4315
+   },
+   "rekstur": {
+    "sala": 4019286,
+    "kostnadarverd": 707769,
+    "laun": 2625895,
+    "annar_rekstur": 389787,
+    "ebit": 113432,
+    "fjarmagnsgjold": -14864,
+    "hagn_f_skatt": 98568,
+    "tekjuskattur": -7370,
+    "hagnadur": 91198
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 9166834,
+    "handbaert": 146814,
+    "veltufjarmunir": 9313648,
+    "eignir": 9313648,
+    "hlutafe": 500000,
+    "eigid_fe": 9007656,
+    "skammtimaskuldir": 305992,
+    "skuldir": 305992,
+    "efe_skuldir": 9313648
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8785,
+    "ebit_hlutfall": 0.1854,
+    "hagnadarhlutfall": 0.1023,
+    "ROE": 0.0712,
+    "ROA": 0.0642,
+    "eiginfjarhlutfall": 0.9023,
+    "veltufjarhlutfall": 10.2392,
+    "skuldahlutfall_DE": 0.1082,
+    "eignavelta": 0.6282
+   },
+   "rekstur": {
+    "sala": 6751865,
+    "kostnadarverd": 820584,
+    "laun": 2607948,
+    "annar_rekstur": 1081254,
+    "ebit": 1251941,
+    "fjarmagnsgjold": -383730,
+    "hagn_f_skatt": 868211,
+    "tekjuskattur": -177822,
+    "hagnadur": 690388
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 10746169,
+    "handbaert": 1535,
+    "veltufjarmunir": 10747704,
+    "eignir": 10747704,
+    "hlutafe": 500000,
+    "eigid_fe": 9698044,
+    "skammtimaskuldir": 1049660,
+    "skuldir": 1049660,
+    "efe_skuldir": 10747704
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6302952039.pdf",
+ "pdfAr": "2024"
+}

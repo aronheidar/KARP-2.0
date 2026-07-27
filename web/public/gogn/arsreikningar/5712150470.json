@@ -1,0 +1,54 @@
+{
+ "kt": "5712150470",
+ "nafn": "Jubileum ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.444
+   },
+   "rekstur": {
+    "ebitda": -1653584,
+    "fjarmunatekjur": 758,
+    "fjarmagnsgjold": -2832060,
+    "hagnadur": -4484886
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3000000,
+    "vidskiptakrofur": 105230,
+    "handbaert": 742,
+    "veltufjarmunir": 105972,
+    "eignir": 3105972
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.6565
+   },
+   "rekstur": {
+    "ebitda": -776542,
+    "fjarmunatekjur": 53733,
+    "fjarmagnsgjold": -2187616,
+    "hagnadur": -2910425
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3000000,
+    "vidskiptakrofur": 91088,
+    "handbaert": 1341925,
+    "veltufjarmunir": 1433013,
+    "eignir": 4433013
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5712150470.pdf",
+ "pdfAr": "2024"
+}

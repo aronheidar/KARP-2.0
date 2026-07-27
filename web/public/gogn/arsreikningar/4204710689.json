@@ -1,0 +1,90 @@
+{
+ "kt": "4204710689",
+ "nafn": "Akkur finance ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6879,
+    "hagnadarhlutfall": 0.554,
+    "ROE": 0.9386,
+    "ROA": 0.537,
+    "eiginfjarhlutfall": 0.5722,
+    "veltufjarhlutfall": 3.3182,
+    "skuldahlutfall_DE": 0.7477,
+    "eignavelta": 0.9694
+   },
+   "rekstur": {
+    "sala": 22798100,
+    "ebit": 15682349,
+    "afskriftir": 0,
+    "fjarmunatekjur": 89625,
+    "fjarmagnsgjold": -546,
+    "hagn_f_skatt": 15771428,
+    "tekjuskattur": -3141634,
+    "hagnadur": 12629794
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 13498053,
+    "veltufjarmunir": 23517771,
+    "eignir": 23517771,
+    "hlutafe": 500000,
+    "eigid_fe": 13456687,
+    "langtimaskuldir": 5993190,
+    "skammtimaskuldir": 4067894,
+    "skuldir": 10061084,
+    "efe_skuldir": 23517771
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6764,
+    "hagnadarhlutfall": 0.5541,
+    "ROE": 0.6778,
+    "ROA": 0.5289,
+    "eiginfjarhlutfall": 0.7803,
+    "veltufjarhlutfall": 2.546,
+    "skuldahlutfall_DE": 0.2815,
+    "eignavelta": 0.9547
+   },
+   "rekstur": {
+    "sala": 51101223,
+    "ebit": 34567165,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1906691,
+    "fjarmagnsgjold": -97432,
+    "hagn_f_skatt": 35924786,
+    "tekjuskattur": -7611823,
+    "hagnadur": 28312963
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 29937317,
+    "veltufjarmunir": 53528412,
+    "eignir": 53528412,
+    "hlutafe": 500000,
+    "eigid_fe": 41769650,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 11758762,
+    "skuldir": 11758762,
+    "efe_skuldir": 53528412
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4204710689.pdf",
+ "pdfAr": "2024"
+}

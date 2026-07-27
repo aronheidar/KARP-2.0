@@ -1,0 +1,85 @@
+{
+ "kt": "5604210950",
+ "nafn": "Fjallakompaní ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.6324,
+    "hagnadarhlutfall": -1.0695,
+    "ROA": -1.4564,
+    "veltufjarhlutfall": 0.146,
+    "eignavelta": 1.3618
+   },
+   "rekstur": {
+    "sala": 3408121,
+    "laun": 4865892,
+    "annar_rekstur": 609089,
+    "afskriftir": 88386,
+    "ebit": -2155246,
+    "fjarmunatekjur": 10252,
+    "fjarmagnsgjold": -8933,
+    "hagn_f_skatt": -3457767,
+    "tekjuskattur": -187131,
+    "hagnadur": -3644898
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1541637,
+    "vidskiptakrofur": 50840,
+    "handbaert": 888441,
+    "veltufjarmunir": 961034,
+    "eignir": 2502671,
+    "hlutafe": 500000,
+    "eigid_fe": -3930520,
+    "skammtimaskuldir": 6433191,
+    "skuldir": 6433191,
+    "efe_skuldir": 2502671
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.1313,
+    "hagnadarhlutfall": -1.036,
+    "ROA": -0.1146,
+    "eiginfjarhlutfall": -0.4554,
+    "veltufjarhlutfall": 0.0255,
+    "eignavelta": 0.1106
+   },
+   "rekstur": {
+    "sala": 1275000,
+    "laun": 1780203,
+    "annar_rekstur": 760452,
+    "afskriftir": 176773,
+    "ebit": -1442428,
+    "fjarmunatekjur": 3929,
+    "fjarmagnsgjold": -68888,
+    "hagn_f_skatt": -1320855,
+    "tekjuskattur": 0,
+    "hagnadur": -1320855
+   },
+   "efnahagur": {
+    "fastafjarmunir": 633977,
+    "vidskiptakrofur": 50840,
+    "handbaert": 377450,
+    "veltufjarmunir": 10896573,
+    "eignir": 11530550,
+    "hlutafe": 500000,
+    "eigid_fe": -5251375,
+    "skammtimaskuldir": 16781925,
+    "skuldir": 16781925,
+    "efe_skuldir": 11530550
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/5604210950.pdf",
+ "pdfAr": "2024"
+}

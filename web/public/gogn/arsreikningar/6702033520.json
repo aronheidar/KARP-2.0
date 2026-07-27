@@ -1,0 +1,88 @@
+{
+ "kt": "6702033520",
+ "nafn": "18 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.8845,
+    "hagnadarhlutfall": -0.6688,
+    "ROE": -0.0882,
+    "ROA": -0.0786,
+    "eiginfjarhlutfall": 0.8902,
+    "veltufjarhlutfall": 2.2202,
+    "skuldahlutfall_DE": 0.1233,
+    "eignavelta": 0.1175
+   },
+   "rekstur": {
+    "sala": 7415974,
+    "ebit": -6559694,
+    "afskriftir": 0,
+    "fjarmunatekjur": 146018,
+    "fjarmagnsgjold": -34600,
+    "hagn_f_skatt": -6448276,
+    "tekjuskattur": 1488222,
+    "hagnadur": -4960054
+   },
+   "efnahagur": {
+    "fastafjarmunir": 43461248,
+    "birgdir": 0,
+    "vidskiptakrofur": 13222000,
+    "handbaert": 2163210,
+    "veltufjarmunir": 19674991,
+    "eignir": 63136239,
+    "hlutafe": 1000000,
+    "eigid_fe": 56206727,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6929512,
+    "skuldir": 6929512,
+    "efe_skuldir": 63136239
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0975,
+    "ROA": 0.0892,
+    "eiginfjarhlutfall": 0.9148,
+    "veltufjarhlutfall": 0.3172,
+    "skuldahlutfall_DE": 0.0931,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -12750658,
+    "afskriftir": 0,
+    "fjarmunatekjur": 91435,
+    "fjarmagnsgjold": -19056,
+    "hagn_f_skatt": 3740689,
+    "tekjuskattur": 2328628,
+    "hagnadur": 6069317
+   },
+   "efnahagur": {
+    "fastafjarmunir": 47130216,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1838788,
+    "veltufjarmunir": 20943665,
+    "eignir": 68073881,
+    "hlutafe": 1000000,
+    "eigid_fe": 62276044,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5797837,
+    "skuldir": 5797837,
+    "efe_skuldir": 68073881
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6702033520.pdf",
+ "pdfAr": "2025"
+}

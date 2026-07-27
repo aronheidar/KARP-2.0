@@ -1,0 +1,80 @@
+{
+ "kt": "6601692379",
+ "nafn": "Íslenskir aðalverktakar hf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": -0.6255,
+    "ROA": -0.1059,
+    "eiginfjarhlutfall": 0.1693,
+    "veltufjarhlutfall": 0.7045,
+    "skuldahlutfall_DE": 4.9075
+   },
+   "rekstur": {
+    "annar_rekstur": -277643,
+    "ebitda": -195080,
+    "afskriftir": -345950,
+    "ebit": -541030,
+    "fjarmunatekjur": 20513,
+    "fjarmagnsgjold": -126257,
+    "hagn_f_skatt": -659329,
+    "tekjuskattur": 131862,
+    "hagnadur": -527467
+   },
+   "efnahagur": {
+    "birgdir": 1188819,
+    "vidskiptakrofur": 1694616,
+    "handbaert": 31822,
+    "eignir": 4981234,
+    "hlutafe": 1300000,
+    "eigid_fe": 843208,
+    "skuldir": 4138025,
+    "efe_skuldir": 4981234,
+    "skammtimaskuldir": 4138025
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": -0.9078,
+    "ROA": -0.1847,
+    "eiginfjarhlutfall": 0.2034,
+    "veltufjarhlutfall": 0.6915,
+    "skuldahlutfall_DE": 3.916
+   },
+   "rekstur": {
+    "annar_rekstur": -354072,
+    "ebitda": -661794,
+    "afskriftir": -347826,
+    "ebit": -1009619,
+    "fjarmunatekjur": 59814,
+    "fjarmagnsgjold": -225936,
+    "hagn_f_skatt": -1170026,
+    "tekjuskattur": 234001,
+    "hagnadur": -936025
+   },
+   "efnahagur": {
+    "birgdir": 1343336,
+    "vidskiptakrofur": 1445702,
+    "handbaert": 2990,
+    "eignir": 5068899,
+    "hlutafe": 1300000,
+    "eigid_fe": 1031108,
+    "skuldir": 4037792,
+    "efe_skuldir": 5068899,
+    "skammtimaskuldir": 4037792
+   },
+   "starfsmenn": 248
+  }
+ },
+ "pdf": "pdf/6601692379.pdf",
+ "pdfAr": "2024"
+}

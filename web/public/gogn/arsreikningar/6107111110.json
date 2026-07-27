@@ -1,0 +1,80 @@
+{
+ "kt": "6107111110",
+ "nafn": "Austurblokkin ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.997,
+    "hagnadarhlutfall": 0.997,
+    "ROA": 6196.3863,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 6215.0644
+   },
+   "rekstur": {
+    "sala": 6177774,
+    "ebit": 6159208,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 6159208,
+    "tekjuskattur": 0,
+    "hagnadur": 6159208
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 994,
+    "veltufjarmunir": 994,
+    "eignir": 994,
+    "hlutafe": 500000,
+    "eigid_fe": -9882848,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9883842,
+    "skuldir": 9883842,
+    "efe_skuldir": 994
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18800,
+    "tekjuskattur": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -9901648,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9901648,
+    "skuldir": 9901648,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6107111110.pdf",
+ "pdfAr": "2022"
+}

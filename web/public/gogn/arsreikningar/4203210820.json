@@ -1,0 +1,85 @@
+{
+ "kt": "4203210820",
+ "nafn": "Miðbaugur Sveinsson ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4337,
+    "hagnadarhlutfall": -0.4337,
+    "ROA": -6.4866,
+    "veltufjarhlutfall": 0.2498,
+    "eignavelta": 14.9562
+   },
+   "rekstur": {
+    "sala": 2626386,
+    "ebit": -1138989,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -92,
+    "hagn_f_skatt": -1139081,
+    "tekjuskattur": 0,
+    "hagnadur": -1139081
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 105738,
+    "handbaert": 62785,
+    "veltufjarmunir": 175605,
+    "eignir": 175605,
+    "hlutafe": 500000,
+    "eigid_fe": -499081,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 674686,
+    "skuldir": 674686,
+    "efe_skuldir": 175605
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3839,
+    "hagnadarhlutfall": 0.2206,
+    "ROA": 0.3559,
+    "eiginfjarhlutfall": -0.1268,
+    "veltufjarhlutfall": 0.0998,
+    "eignavelta": 1.6135
+   },
+   "rekstur": {
+    "sala": 3807177,
+    "ebit": 1461732,
+    "afskriftir": -550000,
+    "fjarmunatekjur": 695,
+    "fjarmagnsgjold": -72727,
+    "hagn_f_skatt": 839700,
+    "tekjuskattur": 0,
+    "hagnadur": 839700
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2200000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 111334,
+    "veltufjarmunir": 159642,
+    "eignir": 2359642,
+    "hlutafe": 500000,
+    "eigid_fe": -299197,
+    "langtimaskuldir": 1543722,
+    "skammtimaskuldir": 1115117,
+    "skuldir": 2658839,
+    "efe_skuldir": 2359642
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4203210820.pdf",
+ "pdfAr": "2022"
+}

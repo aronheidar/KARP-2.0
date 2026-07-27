@@ -1,0 +1,88 @@
+{
+ "kt": "5111050210",
+ "nafn": "Dýraheilsa ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1551,
+    "hagnadarhlutfall": 0.0002,
+    "ROE": 0.0166,
+    "ROA": 0.0014,
+    "eiginfjarhlutfall": 0.0821,
+    "veltufjarhlutfall": 0.6142,
+    "skuldahlutfall_DE": 11.1817,
+    "eignavelta": 5.8438
+   },
+   "rekstur": {
+    "sala": 151437668,
+    "kostnadarverd": 127955514,
+    "laun": 13716000,
+    "afskriftir": 1300500,
+    "fjarmunatekjur": 422874,
+    "fjarmagnsgjold": -1026992,
+    "hagn_f_skatt": 49270,
+    "tekjuskattur": -13894,
+    "hagnadur": 35376
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11211500,
+    "vidskiptakrofur": 0,
+    "handbaert": 14609852,
+    "eignir": 25914384,
+    "hlutafe": 3370079,
+    "eigid_fe": 2127320,
+    "langtimaskuldir": null,
+    "skuldir": 23787064,
+    "efe_skuldir": 25914384,
+    "skammtimaskuldir": 23787064
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1702,
+    "hagnadarhlutfall": -0.0105,
+    "ROE": -7.4241,
+    "ROA": -0.1144,
+    "eiginfjarhlutfall": 0.0154,
+    "veltufjarhlutfall": 0.3854,
+    "skuldahlutfall_DE": 63.8903,
+    "eignavelta": 10.8952
+   },
+   "rekstur": {
+    "sala": 178534773,
+    "kostnadarverd": 148139514,
+    "laun": 19314786,
+    "afskriftir": 1300500,
+    "fjarmunatekjur": 373691,
+    "fjarmagnsgjold": -1796592,
+    "hagn_f_skatt": -2338266,
+    "tekjuskattur": 463473,
+    "hagnadur": -1874793
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10085652,
+    "vidskiptakrofur": 4186889,
+    "handbaert": 2031797,
+    "eignir": 16386550,
+    "hlutafe": 3370079,
+    "eigid_fe": 252527,
+    "langtimaskuldir": 11.17,
+    "skuldir": 16134023,
+    "efe_skuldir": 16386550,
+    "skammtimaskuldir": 16134011.83
+   },
+   "starfsmenn": 4
+  }
+ },
+ "pdf": "pdf/5111050210.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "6004110390",
+ "nafn": "3H ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.016,
+    "ROA": -0.0145,
+    "eiginfjarhlutfall": 0.9089,
+    "veltufjarhlutfall": 0.0204,
+    "skuldahlutfall_DE": 0.1003,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -259790,
+    "afskriftir": 0,
+    "fjarmunatekjur": 4906,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -254884,
+    "tekjuskattur": 0,
+    "hagnadur": -254884
+   },
+   "efnahagur": {
+    "fastafjarmunir": 17485335,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 32706,
+    "veltufjarmunir": 71129,
+    "eignir": 17556464,
+    "hlutafe": 10000000,
+    "eigid_fe": 15956315,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1600149,
+    "skuldir": 1600149,
+    "efe_skuldir": 17556464
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2152,
+    "ROA": 0.1587,
+    "eiginfjarhlutfall": 0.7377,
+    "veltufjarhlutfall": 0.0125,
+    "skuldahlutfall_DE": 0.3556,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -379000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 169,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 4374193,
+    "tekjuskattur": 0,
+    "hagnadur": 4374193
+   },
+   "efnahagur": {
+    "fastafjarmunir": 27470000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 90461,
+    "veltufjarmunir": 90461,
+    "eignir": 27560461,
+    "hlutafe": 10000000,
+    "eigid_fe": 20330508,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7229953,
+    "skuldir": 7229953,
+    "efe_skuldir": 27560461
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6004110390.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,73 @@
+{
+ "kt": "6212062300",
+ "nafn": "ADVL 01 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.5465,
+    "ROA": -0.5465,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 112385,
+    "ebit": -112385,
+    "fjarmunatekjur": 2757,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -109628,
+    "tekjuskattur": 0,
+    "hagnadur": -109628
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 607,
+    "handbaert": 200004,
+    "eignir": 200611,
+    "hlutafe": 500000,
+    "eigid_fe": 200611,
+    "skuldir": 0,
+    "efe_skuldir": 200611,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2026": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.6309,
+    "ROA": -0.5344,
+    "eiginfjarhlutfall": 0.8471,
+    "veltufjarhlutfall": 6.541,
+    "skuldahlutfall_DE": 0.1805
+   },
+   "rekstur": {
+    "annar_rekstur": 77037,
+    "ebit": -77037,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -564,
+    "hagn_f_skatt": -77601,
+    "tekjuskattur": 0,
+    "hagnadur": -77601
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 607,
+    "handbaert": 144603,
+    "eignir": 145210,
+    "hlutafe": 500000,
+    "eigid_fe": 123010,
+    "skuldir": 22200,
+    "efe_skuldir": 145210,
+    "skammtimaskuldir": 22200
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6212062300.pdf",
+ "pdfAr": "2026"
+}

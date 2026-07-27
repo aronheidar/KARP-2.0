@@ -1,0 +1,88 @@
+{
+ "kt": "5006050300",
+ "nafn": "Vasinn hgb ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7094,
+    "hagnadarhlutfall": -0.1443,
+    "ROE": -0.6935,
+    "ROA": -0.0237,
+    "eiginfjarhlutfall": 0.0341,
+    "veltufjarhlutfall": 0.0005,
+    "skuldahlutfall_DE": 28.3118,
+    "eignavelta": 0.1639
+   },
+   "rekstur": {
+    "sala": 12390859,
+    "ebit": 8789524,
+    "afskriftir": -5592252,
+    "fjarmunatekjur": 5775,
+    "fjarmagnsgjold": -4971047,
+    "hagn_f_skatt": -1788200,
+    "tekjuskattur": 0,
+    "hagnadur": -1788200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 75569008,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 11947,
+    "veltufjarmunir": 13217,
+    "eignir": 75582225,
+    "hlutafe": 5000000,
+    "eigid_fe": 2578557,
+    "langtimaskuldir": 47790680,
+    "skammtimaskuldir": 25212988,
+    "skuldir": 73003668,
+    "efe_skuldir": 75582225
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3218,
+    "hagnadarhlutfall": -2.6524,
+    "ROA": -0.1642,
+    "eiginfjarhlutfall": -0.1304,
+    "veltufjarhlutfall": 0.1455,
+    "eignavelta": 0.0619
+   },
+   "rekstur": {
+    "sala": 4730732,
+    "ebit": -1522318,
+    "afskriftir": -4863802,
+    "fjarmunatekjur": 8985,
+    "fjarmagnsgjold": -6149785,
+    "hagn_f_skatt": -12547820,
+    "tekjuskattur": 0,
+    "hagnadur": -12547820
+   },
+   "efnahagur": {
+    "fastafjarmunir": 70805206,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5624287,
+    "veltufjarmunir": 5626263,
+    "eignir": 76431469,
+    "hlutafe": 5000000,
+    "eigid_fe": -9969263,
+    "langtimaskuldir": 47755081,
+    "skammtimaskuldir": 38645651,
+    "skuldir": 86400732,
+    "efe_skuldir": 76431469
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5006050300.pdf",
+ "pdfAr": "2024"
+}

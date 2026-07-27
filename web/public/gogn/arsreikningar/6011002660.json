@@ -1,0 +1,82 @@
+{
+ "kt": "6011002660",
+ "nafn": "Eiðfaxi Net ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0087,
+    "ROA": -0.0077,
+    "eiginfjarhlutfall": 0.8848,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.1302,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2633738,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "eignir": 2633761,
+    "hlutafe": 15000000,
+    "eigid_fe": 2330296,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 303465,
+    "skuldir": 303465,
+    "efe_skuldir": 2633761
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.009,
+    "ROA": -0.0079,
+    "eiginfjarhlutfall": 0.8768,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.1405,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2633738,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "eignir": 2633761,
+    "hlutafe": 15000000,
+    "eigid_fe": 2309396,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 324365,
+    "skuldir": 324365,
+    "efe_skuldir": 2633761
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6011002660.pdf",
+ "pdfAr": "2024"
+}

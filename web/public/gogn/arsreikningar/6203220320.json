@@ -1,0 +1,86 @@
+{
+ "kt": "6203220320",
+ "nafn": "Króksafl ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.4331,
+    "ROA": -0.4094,
+    "eiginfjarhlutfall": 0.9453,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0579,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -130900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -151100,
+    "tekjuskattur": 0,
+    "hagnadur": -151100
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369100,
+    "eignir": 369100,
+    "hlutafe": 500000,
+    "eigid_fe": 348900,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20200,
+    "skuldir": 20200,
+    "efe_skuldir": 369100
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0544,
+    "hagnadarhlutfall": -0.0622,
+    "ROA": -0.3277,
+    "eiginfjarhlutfall": -0.312,
+    "veltufjarhlutfall": 0.5408,
+    "eignavelta": 5.2721
+   },
+   "rekstur": {
+    "sala": 117677733,
+    "ebit": -6397738,
+    "afskriftir": -850000,
+    "fjarmunatekjur": 149961,
+    "fjarmagnsgjold": -195219,
+    "hagn_f_skatt": -7313896,
+    "tekjuskattur": 0,
+    "hagnadur": -7313896
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6450000,
+    "birgdir": 0,
+    "vidskiptakrofur": 8550780,
+    "handbaert": 7287270,
+    "veltufjarmunir": 15871041,
+    "eignir": 22321041,
+    "hlutafe": 500000,
+    "eigid_fe": -6964996,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 29286037,
+    "skuldir": 29286037,
+    "efe_skuldir": 22321041
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6203220320.pdf",
+ "pdfAr": "2023"
+}

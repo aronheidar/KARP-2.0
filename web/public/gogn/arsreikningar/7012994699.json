@@ -1,0 +1,84 @@
+{
+ "kt": "7012994699",
+ "nafn": "Tannín ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.8238,
+    "ROE": 0.1779,
+    "ROA": 0.1725,
+    "eiginfjarhlutfall": 0.9695,
+    "veltufjarhlutfall": 9.4668,
+    "skuldahlutfall_DE": 0.0315,
+    "eignavelta": 0.2094
+   },
+   "rekstur": {
+    "fjarmunatekjur": 10692733,
+    "sala": 45358904,
+    "annar_rekstur": 5899865,
+    "fjarmagnsgjold": 756204,
+    "hagn_f_skatt": 38495457,
+    "tekjuskattur": -1127052,
+    "hagnadur": 37368405
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3000000,
+    "vidskiptakrofur": 62013789,
+    "handbaert": 608768,
+    "veltufjarmunir": 213655149,
+    "eignir": 216655149,
+    "hlutafe": 2219383,
+    "eigid_fe": 210040202,
+    "langtimaskuldir": 6614947,
+    "efe_skuldir": 216655149,
+    "skuldir": 6614947,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.6779,
+    "ROE": -0.0588,
+    "ROA": -0.0549,
+    "eiginfjarhlutfall": 0.9338,
+    "veltufjarhlutfall": 2.9459,
+    "skuldahlutfall_DE": 0.0709,
+    "eignavelta": 0.0809
+   },
+   "rekstur": {
+    "fjarmunatekjur": 1958873,
+    "sala": 14738867,
+    "annar_rekstur": 18791653,
+    "fjarmagnsgjold": 1089125,
+    "hagn_f_skatt": -9687448,
+    "tekjuskattur": -303542,
+    "hagnadur": -9990990
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3000000,
+    "vidskiptakrofur": 20097253,
+    "handbaert": 15438122,
+    "veltufjarmunir": 179111838,
+    "eignir": 182111838,
+    "hlutafe": 2219383,
+    "eigid_fe": 170049212,
+    "langtimaskuldir": 12062626,
+    "efe_skuldir": 182111838,
+    "skuldir": 12062626,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7012994699.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "7112973599",
+ "nafn": "Kemhydrosalan ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0082,
+    "ROA": -0.0079,
+    "eiginfjarhlutfall": 0.961,
+    "veltufjarhlutfall": 11.2667,
+    "skuldahlutfall_DE": 0.0406,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -24844,
+    "hagn_f_skatt": -45044,
+    "tekjuskattur": 0,
+    "hagnadur": -45044
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2500321,
+    "veltufjarmunir": 5688673,
+    "eignir": 5688673,
+    "hlutafe": 600000,
+    "eigid_fe": 5466751,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 221922,
+    "skuldir": 221922,
+    "efe_skuldir": 5688673
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0236,
+    "ROA": -0.0222,
+    "eiginfjarhlutfall": 0.9388,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0652,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -80900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -45217,
+    "hagn_f_skatt": -126117,
+    "tekjuskattur": 0,
+    "hagnadur": -126117
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 5688673,
+    "eignir": 5688673,
+    "hlutafe": 600000,
+    "eigid_fe": 5340634,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 348039,
+    "skuldir": 348039,
+    "efe_skuldir": 5688673
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7112973599.pdf",
+ "pdfAr": "2024"
+}

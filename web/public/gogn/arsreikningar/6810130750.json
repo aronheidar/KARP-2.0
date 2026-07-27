@@ -1,0 +1,87 @@
+{
+ "kt": "6810130750",
+ "nafn": "ROU Structura ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5101,
+    "hagnadarhlutfall": 0.0281,
+    "ROE": 0.006,
+    "ROA": 0.0042,
+    "eiginfjarhlutfall": 0.6999,
+    "veltufjarhlutfall": 0.9884,
+    "skuldahlutfall_DE": 0.4287,
+    "eignavelta": 0.149
+   },
+   "rekstur": {
+    "sala": 12306000,
+    "ebit": 6277557,
+    "afskriftir": -4770000,
+    "fjarmunatekjur": 39024,
+    "fjarmagnsgjold": -1191505,
+    "hagn_f_skatt": 420554,
+    "tekjuskattur": -74775,
+    "hagnadur": 345779
+   },
+   "efnahagur": {
+    "fastafjarmunir": 77539080,
+    "birgdir": 0,
+    "vidskiptakrofur": 80000,
+    "handbaert": 4964737,
+    "veltufjarmunir": 5053322,
+    "eignir": 82592402,
+    "hlutafe": 500000,
+    "eigid_fe": 57808700,
+    "langtimaskuldir": 19680000,
+    "skammtimaskuldir": 5103702,
+    "skuldir": 24783702,
+    "efe_skuldir": 82592402
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8318,
+    "hagnadarhlutfall": -0.829,
+    "ROA": -0.8164,
+    "veltufjarhlutfall": 0.1088,
+    "eignavelta": 0.9848
+   },
+   "rekstur": {
+    "sala": 30670000,
+    "ebit": 25510404,
+    "afskriftir": -52306335,
+    "fjarmunatekjur": 1080844,
+    "fjarmagnsgjold": -1676280,
+    "hagn_f_skatt": -30900250,
+    "tekjuskattur": 5474233,
+    "hagnadur": -25426017
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22693665,
+    "birgdir": 0,
+    "vidskiptakrofur": 510000,
+    "handbaert": 7701850,
+    "veltufjarmunir": 8449637,
+    "eignir": 31143302,
+    "hlutafe": 500000,
+    "eigid_fe": -50617317,
+    "langtimaskuldir": 6314000,
+    "skammtimaskuldir": 75446619,
+    "skuldir": 81760619,
+    "efe_skuldir": 31143302
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6810130750.pdf",
+ "pdfAr": "2023"
+}

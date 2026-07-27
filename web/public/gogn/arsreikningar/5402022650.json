@@ -1,0 +1,85 @@
+{
+ "kt": "5402022650",
+ "nafn": "Pétur Stefánsson ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0401,
+    "ROA": 0.04,
+    "eiginfjarhlutfall": 0.9997,
+    "veltufjarhlutfall": 860.3753,
+    "skuldahlutfall_DE": 0.0003,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -4852318,
+    "afskriftir": 0,
+    "fjarmunatekjur": 6101938,
+    "fjarmagnsgjold": -262680,
+    "hagn_f_skatt": 24070853,
+    "tekjuskattur": 652868,
+    "hagnadur": 24723721
+   },
+   "efnahagur": {
+    "fastafjarmunir": 203635931,
+    "birgdir": 0,
+    "vidskiptakrofur": 10440000,
+    "handbaert": 165539452,
+    "veltufjarmunir": 413742064,
+    "eignir": 617377995,
+    "hlutafe": 1080500,
+    "eigid_fe": 617173457,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 204538,
+    "skuldir": 204538,
+    "efe_skuldir": 617377995
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0061,
+    "ROA": 0.0061,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -3587698,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13449171,
+    "fjarmagnsgjold": -99301,
+    "hagn_f_skatt": 4501832,
+    "tekjuskattur": -720725,
+    "hagnadur": 3781107
+   },
+   "efnahagur": {
+    "fastafjarmunir": 203635931,
+    "birgdir": 0,
+    "vidskiptakrofur": 10440000,
+    "handbaert": 168931140,
+    "veltufjarmunir": 417318633,
+    "eignir": 620954564,
+    "hlutafe": 1080500,
+    "eigid_fe": 620954564,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 620954564
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5402022650.pdf",
+ "pdfAr": "2024"
+}

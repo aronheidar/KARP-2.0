@@ -1,0 +1,87 @@
+{
+ "kt": "7012211680",
+ "nafn": "LV1 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1198,
+    "hagnadarhlutfall": 0.0394,
+    "ROE": 0.6903,
+    "ROA": 0.0372,
+    "eiginfjarhlutfall": 0.0539,
+    "veltufjarhlutfall": 0.6045,
+    "skuldahlutfall_DE": 17.5514,
+    "eignavelta": 0.944
+   },
+   "rekstur": {
+    "sala": 20863205,
+    "ebit": 2500172,
+    "afskriftir": -1358575,
+    "fjarmunatekjur": 1259,
+    "fjarmagnsgjold": -143010,
+    "hagn_f_skatt": 999846,
+    "tekjuskattur": -177529,
+    "hagnadur": 822317
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4075727,
+    "birgdir": 0,
+    "vidskiptakrofur": 12639501,
+    "handbaert": 982,
+    "veltufjarmunir": 18024898,
+    "eignir": 22100625,
+    "hlutafe": 500000,
+    "eigid_fe": 1191317,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20909308,
+    "skuldir": 20909308,
+    "efe_skuldir": 22100625
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3831,
+    "hagnadarhlutfall": -0.4048,
+    "ROA": -6.4518,
+    "veltufjarhlutfall": 0.0017,
+    "eignavelta": 15.9379
+   },
+   "rekstur": {
+    "sala": 126667057,
+    "ebit": -48531001,
+    "afskriftir": -1018932,
+    "fjarmunatekjur": 1854,
+    "fjarmagnsgjold": -1728204,
+    "hagn_f_skatt": -51276283,
+    "tekjuskattur": 0,
+    "hagnadur": -51276283
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3056794,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 100982,
+    "veltufjarmunir": 4890760,
+    "eignir": 7947554,
+    "hlutafe": 500000,
+    "eigid_fe": -50084966,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 58032520,
+    "skuldir": 58032520,
+    "efe_skuldir": 7947554
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7012211680.pdf",
+ "pdfAr": "2023"
+}

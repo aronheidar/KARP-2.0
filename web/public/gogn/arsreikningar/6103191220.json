@@ -1,0 +1,84 @@
+{
+ "kt": "6103191220",
+ "nafn": "Nogi ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0463,
+    "hagnadarhlutfall": 0.0089,
+    "ROA": 0.1248,
+    "veltufjarhlutfall": 0.0457,
+    "eignavelta": 13.9487
+   },
+   "rekstur": {
+    "sala": 4787583,
+    "ebit": 221489,
+    "afskriftir": -8192,
+    "fjarmunatekjur": 13621,
+    "fjarmagnsgjold": -184088,
+    "hagn_f_skatt": 42830,
+    "tekjuskattur": 0,
+    "hagnadur": 42830
+   },
+   "efnahagur": {
+    "fastafjarmunir": 32768,
+    "birgdir": 0,
+    "vidskiptakrofur": 233501,
+    "handbaert": 42962,
+    "veltufjarmunir": 310460,
+    "eignir": 343228,
+    "hlutafe": 500000,
+    "eigid_fe": -5702632,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6045860,
+    "skuldir": 6045860,
+    "efe_skuldir": 343228
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.5857,
+    "hagnadarhlutfall": -0.6403,
+    "ROA": -56.9505,
+    "veltufjarhlutfall": 0.0018,
+    "eignavelta": 88.9489
+   },
+   "rekstur": {
+    "sala": 4581935,
+    "ebit": -2683548,
+    "afskriftir": -6554,
+    "fjarmunatekjur": 15314,
+    "fjarmagnsgjold": -258844,
+    "hagn_f_skatt": -2933632,
+    "tekjuskattur": 0,
+    "hagnadur": -2933632
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26214,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15965,
+    "veltufjarmunir": 25298,
+    "eignir": 51512,
+    "hlutafe": 500000,
+    "eigid_fe": -8636264,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8687776,
+    "skuldir": 8687776,
+    "efe_skuldir": 51512
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6103191220.pdf",
+ "pdfAr": "2024"
+}

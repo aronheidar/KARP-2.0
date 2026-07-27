@@ -1,0 +1,87 @@
+{
+ "kt": "5112230670",
+ "nafn": "Aþena Verk ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.5137,
+    "hagnadarhlutfall": -0.5142,
+    "ROE": -5.4928,
+    "ROA": -0.3738,
+    "eiginfjarhlutfall": 0.0681,
+    "veltufjarhlutfall": 0.6257,
+    "skuldahlutfall_DE": 13.6935,
+    "eignavelta": 0.727
+   },
+   "rekstur": {
+    "sala": 822580,
+    "ebit": -422576,
+    "afskriftir": 0,
+    "fjarmunatekjur": 411,
+    "fjarmagnsgjold": -1,
+    "hagn_f_skatt": -422992,
+    "tekjuskattur": 0,
+    "hagnadur": -422992
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 659832,
+    "veltufjarmunir": 1131517,
+    "eignir": 1131517,
+    "hlutafe": 500000,
+    "eigid_fe": 77008,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1054509,
+    "skuldir": 1054509,
+    "efe_skuldir": 1131517
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4049,
+    "hagnadarhlutfall": -0.4568,
+    "ROA": -50.222,
+    "veltufjarhlutfall": 0.0195,
+    "eignavelta": 109.9339
+   },
+   "rekstur": {
+    "sala": 15464186,
+    "ebit": -6260998,
+    "afskriftir": 0,
+    "fjarmunatekjur": 12417,
+    "fjarmagnsgjold": -864785,
+    "hagn_f_skatt": -7064623,
+    "tekjuskattur": 0,
+    "hagnadur": -7064623
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 138972,
+    "handbaert": 0,
+    "veltufjarmunir": 140668,
+    "eignir": 140668,
+    "hlutafe": 500000,
+    "eigid_fe": -6987615,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7128283,
+    "skuldir": 7128283,
+    "efe_skuldir": 140668
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5112230670.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "5509212510",
+ "nafn": "Bakrás ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1133,
+    "hagnadarhlutfall": 0.0264,
+    "ROA": 0.0667,
+    "eiginfjarhlutfall": -0.2127,
+    "veltufjarhlutfall": 0.3066,
+    "eignavelta": 2.5308
+   },
+   "rekstur": {
+    "sala": 6446005,
+    "ebit": 730245,
+    "afskriftir": -400000,
+    "fjarmunatekjur": 2834,
+    "fjarmagnsgjold": -163205,
+    "hagn_f_skatt": 169874,
+    "tekjuskattur": 0,
+    "hagnadur": 169874
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1600000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 947007,
+    "veltufjarmunir": 947007,
+    "eignir": 2547007,
+    "hlutafe": 500000,
+    "eigid_fe": -541756,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3088763,
+    "skuldir": 3088763,
+    "efe_skuldir": 2547007
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4329,
+    "hagnadarhlutfall": 0.2225,
+    "ROE": 2.7918,
+    "ROA": 0.6564,
+    "eiginfjarhlutfall": 0.2351,
+    "veltufjarhlutfall": 0.0061,
+    "skuldahlutfall_DE": 3.2532,
+    "eignavelta": 2.9502
+   },
+   "rekstur": {
+    "sala": 3793824,
+    "ebit": 1642164,
+    "afskriftir": -320000,
+    "fjarmunatekjur": 7548,
+    "fjarmagnsgjold": -485608,
+    "hagn_f_skatt": 844104,
+    "tekjuskattur": 0,
+    "hagnadur": 844104
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1280000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5952,
+    "veltufjarmunir": 5952,
+    "eignir": 1285952,
+    "hlutafe": 500000,
+    "eigid_fe": 302348,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 983604,
+    "skuldir": 983604,
+    "efe_skuldir": 1285952
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509212510.pdf",
+ "pdfAr": "2024"
+}

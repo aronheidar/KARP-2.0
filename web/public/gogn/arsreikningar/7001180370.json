@@ -1,0 +1,90 @@
+{
+ "kt": "7001180370",
+ "nafn": "101 Tactical ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0999,
+    "hagnadarhlutfall": 0.0653,
+    "ROE": 0.3985,
+    "ROA": 0.1839,
+    "eiginfjarhlutfall": 0.4614,
+    "veltufjarhlutfall": 2.2738,
+    "skuldahlutfall_DE": 1.1675,
+    "eignavelta": 2.8176
+   },
+   "rekstur": {
+    "sala": 43295622,
+    "ebit": 4325224,
+    "afskriftir": -121274,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -672330,
+    "hagn_f_skatt": 3531620,
+    "tekjuskattur": -706324,
+    "hagnadur": 2825296
+   },
+   "efnahagur": {
+    "fastafjarmunir": 426083,
+    "birgdir": 14940116,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 14940116,
+    "eignir": 15366199,
+    "hlutafe": 500000,
+    "eigid_fe": 7089405,
+    "langtimaskuldir": 1706324,
+    "skammtimaskuldir": 6570470,
+    "skuldir": 8276794,
+    "efe_skuldir": 15366199
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.13,
+    "hagnadarhlutfall": 0.07,
+    "ROE": 0.3477,
+    "ROA": 0.1659,
+    "eiginfjarhlutfall": 0.477,
+    "veltufjarhlutfall": 2.7198,
+    "skuldahlutfall_DE": 1.0962,
+    "eignavelta": 2.3703
+   },
+   "rekstur": {
+    "sala": 53998816,
+    "ebit": 7018079,
+    "afskriftir": -1484262,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -750839,
+    "hagn_f_skatt": 4782978,
+    "tekjuskattur": -1004425,
+    "hagnadur": 3778553
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5892784,
+    "birgdir": 15500719,
+    "vidskiptakrofur": 0,
+    "handbaert": 1388149,
+    "veltufjarmunir": 16888868,
+    "eignir": 22781652,
+    "hlutafe": 500000,
+    "eigid_fe": 10867958,
+    "langtimaskuldir": 5704201,
+    "skammtimaskuldir": 6209493,
+    "skuldir": 11913694,
+    "efe_skuldir": 22781652
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7001180370.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,72 @@
+{
+ "kt": "6110051210",
+ "nafn": "F32 ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 1.0125,
+    "ROA": -0.403,
+    "eiginfjarhlutfall": -1.2886,
+    "veltufjarhlutfall": 0.0006,
+    "eignavelta": -0.398
+   },
+   "rekstur": {
+    "fjarmunatekjur": 16642,
+    "fjarmagnsgjold": -7309,
+    "sala": -30637995,
+    "annar_rekstur": 384454,
+    "hagnadur": -31022449
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3658,
+    "handbaert": 99101,
+    "veltufjarmunir": 76972932,
+    "eignir": 76972932,
+    "hlutafe": 1500000,
+    "eigid_fe": -99186100,
+    "skuldir": 176159032,
+    "efe_skuldir": 76972932,
+    "skammtimaskuldir": 176159032
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -40.5766,
+    "ROA": -0.0014,
+    "eiginfjarhlutfall": -1.2892,
+    "veltufjarhlutfall": 0.0004,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "fjarmunatekjur": 4793,
+    "fjarmagnsgjold": -2214,
+    "sala": 2579,
+    "annar_rekstur": 107226,
+    "hagnadur": -104647
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1054,
+    "handbaert": 62058,
+    "veltufjarmunir": 77018285,
+    "eignir": 77018285,
+    "hlutafe": 1500000,
+    "eigid_fe": -99290747,
+    "skuldir": 176309032,
+    "efe_skuldir": 77018285,
+    "skammtimaskuldir": 176309032
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6110051210.pdf",
+ "pdfAr": "2024"
+}

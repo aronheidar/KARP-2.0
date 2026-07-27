@@ -1,0 +1,76 @@
+{
+ "kt": "4210022660",
+ "nafn": "Tandrasel ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7412,
+    "hagnadarhlutfall": -0.3958,
+    "ROA": -0.0548,
+    "eiginfjarhlutfall": -0.5671,
+    "veltufjarhlutfall": 0.0041,
+    "eignavelta": 0.1385
+   },
+   "rekstur": {
+    "sala": 2650000,
+    "afskriftir": 229000,
+    "ebit": 1964051,
+    "fjarmunatekjur": 3416,
+    "fjarmagnsgjold": -3016303,
+    "hagn_f_skatt": -1048836,
+    "tekjuskattur": 0,
+    "hagnadur": -1048836
+   },
+   "efnahagur": {
+    "handbaert": 121881,
+    "eignir": 19129631,
+    "hlutafe": 600000,
+    "eigid_fe": -10847713,
+    "skuldir": 29977344,
+    "efe_skuldir": 19129631,
+    "skammtimaskuldir": 29977344
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6044,
+    "hagnadarhlutfall": -0.2408,
+    "ROA": -0.0365,
+    "eiginfjarhlutfall": -0.611,
+    "veltufjarhlutfall": 0.0034,
+    "eignavelta": 0.1517
+   },
+   "rekstur": {
+    "sala": 2865000,
+    "afskriftir": 229000,
+    "ebit": 1731564,
+    "fjarmunatekjur": 7387,
+    "fjarmagnsgjold": -2428742,
+    "hagn_f_skatt": -689791,
+    "tekjuskattur": 0,
+    "hagnadur": -689791
+   },
+   "efnahagur": {
+    "handbaert": 103930,
+    "eignir": 18883531,
+    "hlutafe": 600000,
+    "eigid_fe": -11537504,
+    "skuldir": 30421035,
+    "efe_skuldir": 18883531,
+    "skammtimaskuldir": 30421035
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4210022660.pdf",
+ "pdfAr": "2024"
+}

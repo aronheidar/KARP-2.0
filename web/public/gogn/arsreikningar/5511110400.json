@@ -1,0 +1,86 @@
+{
+ "kt": "5511110400",
+ "nafn": "7 Vindstig ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0404,
+    "ROA": 0.0402,
+    "eiginfjarhlutfall": 0.9942,
+    "veltufjarhlutfall": 170.8931,
+    "skuldahlutfall_DE": 0.0058,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 87437,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 67237,
+    "tekjuskattur": -8451,
+    "hagnadur": 58786
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1444218,
+    "veltufjarmunir": 1463454,
+    "eignir": 1463454,
+    "hlutafe": 500000,
+    "eigid_fe": 1455003,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8451,
+    "skuldir": 8451,
+    "efe_skuldir": 1463454
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0548,
+    "ROA": 0.0016,
+    "eiginfjarhlutfall": 0.0288,
+    "veltufjarhlutfall": 0.0294,
+    "skuldahlutfall_DE": 33.6904,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 105212,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 84312,
+    "tekjuskattur": 0,
+    "hagnadur": 84312
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1526283,
+    "veltufjarmunir": 53399430,
+    "eignir": 53399430,
+    "hlutafe": 500000,
+    "eigid_fe": 1539315,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 51860115,
+    "skuldir": 51860115,
+    "efe_skuldir": 53399430
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5511110400.pdf",
+ "pdfAr": "2024"
+}

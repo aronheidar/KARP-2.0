@@ -1,0 +1,52 @@
+{
+ "kt": "4807191580",
+ "nafn": "7tekk ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "annar_rekstur": 152985,
+    "ebit": -152985,
+    "fjarmunatekjur": 1707,
+    "fjarmagnsgjold": -5754,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 31913,
+    "handbaert": 311432,
+    "veltufjarmunir": 343345,
+    "eignir": 343345
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2784
+   },
+   "rekstur": {
+    "annar_rekstur": 120350,
+    "ebit": -120350,
+    "fjarmunatekjur": 1577,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -57032
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 23559,
+    "handbaert": 181313,
+    "veltufjarmunir": 204872,
+    "eignir": 204872
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/4807191580.pdf",
+ "pdfAr": "2024"
+}

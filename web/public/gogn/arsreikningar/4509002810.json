@@ -1,0 +1,64 @@
+{
+ "kt": "4509002810",
+ "nafn": "Eignarhaldsfélagið ISP ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.0004,
+    "veltufjarhlutfall": 0.0096
+   },
+   "rekstur": {
+    "ebit": -20200,
+    "fjarmunatekjur": 30139,
+    "fjarmagnsgjold": -453,
+    "hagnadur": 9486
+   },
+   "efnahagur": {
+    "fastafjarmunir": 21878636,
+    "vidskiptakrofur": 6630,
+    "handbaert": 757614,
+    "eignir": 22642880,
+    "hlutafe": 25000000,
+    "eigid_fe": -56930306,
+    "skuldir": 79573186,
+    "efe_skuldir": 22642880,
+    "skammtimaskuldir": 79573186
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0034,
+    "veltufjarhlutfall": 0.0089
+   },
+   "rekstur": {
+    "ebit": -20900,
+    "fjarmunatekjur": 33354,
+    "fjarmagnsgjold": -88667,
+    "hagnadur": -76213
+   },
+   "efnahagur": {
+    "fastafjarmunir": 21878636,
+    "vidskiptakrofur": 7339,
+    "handbaert": 704833,
+    "eignir": 22590808,
+    "hlutafe": 25000000,
+    "eigid_fe": -57006519,
+    "skuldir": 79597327,
+    "efe_skuldir": 22590808,
+    "skammtimaskuldir": 79597327
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4509002810.pdf",
+ "pdfAr": "2024"
+}

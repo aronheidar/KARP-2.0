@@ -1,0 +1,72 @@
+{
+ "kt": "6106051330",
+ "nafn": "Danaher Iceland Company ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0007,
+    "ROA": -0.0007,
+    "eiginfjarhlutfall": 0.9264,
+    "veltufjarhlutfall": 0.1911,
+    "skuldahlutfall_DE": 0.0794
+   },
+   "rekstur": {
+    "fjarmunatekjur": 6003,
+    "annar_rekstur": -15527,
+    "hagn_f_skatt": -12380,
+    "tekjuskattur": 0,
+    "hagnadur": -12380
+   },
+   "efnahagur": {
+    "handbaert": 264488,
+    "eignir": 18806759,
+    "hlutafe": 11594,
+    "eigid_fe": 17422887,
+    "skuldir": 1383872,
+    "efe_skuldir": 18806759,
+    "fastafjarmunir": 18539620,
+    "veltufjarmunir": 267139,
+    "skammtimaskuldir": 1383872
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0013,
+    "ROA": 0.0012,
+    "eiginfjarhlutfall": 0.9262,
+    "veltufjarhlutfall": 0.2117,
+    "skuldahlutfall_DE": 0.0797
+   },
+   "rekstur": {
+    "fjarmunatekjur": 1594,
+    "annar_rekstur": -7185,
+    "hagn_f_skatt": 23159,
+    "tekjuskattur": 0,
+    "hagnadur": 23159
+   },
+   "efnahagur": {
+    "handbaert": 294481,
+    "eignir": 18837103,
+    "hlutafe": 11594,
+    "eigid_fe": 17446046,
+    "skuldir": 1391057,
+    "efe_skuldir": 18837103,
+    "fastafjarmunir": 18539620,
+    "veltufjarmunir": 297483,
+    "skammtimaskuldir": 1391057
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6106051330.pdf",
+ "pdfAr": "2025"
+}

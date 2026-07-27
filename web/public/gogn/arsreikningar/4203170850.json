@@ -1,0 +1,94 @@
+{
+ "kt": "4203170850",
+ "nafn": "1001 Verk ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6196,
+    "ebit_hlutfall": 0.126,
+    "hagnadarhlutfall": 0.094,
+    "ROE": 0.4278,
+    "ROA": 0.2442,
+    "eiginfjarhlutfall": 0.5709,
+    "veltufjarhlutfall": 0.1431,
+    "skuldahlutfall_DE": 0.7516,
+    "eignavelta": 2.5978
+   },
+   "rekstur": {
+    "sala": 92154811,
+    "adrar_tekjur": 417077,
+    "kostnadarverd": 35059305,
+    "laun": 23911486,
+    "annar_rekstur": 15972836,
+    "afskriftir": 5604092,
+    "ebit": 11607092,
+    "fjarmunatekjur": 344698,
+    "fjarmagnsgjold": -1116709,
+    "hagn_f_skatt": 10835081,
+    "tekjuskattur": -2171056,
+    "hagnadur": 8664025
+   },
+   "efnahagur": {
+    "fastafjarmunir": 31578127,
+    "vidskiptakrofur": 0,
+    "handbaert": 2177553,
+    "eignir": 35474072,
+    "hlutafe": 500000,
+    "eigid_fe": 20252294,
+    "skuldir": 15221778,
+    "efe_skuldir": 35474072,
+    "skammtimaskuldir": 15221778
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5634,
+    "ebit_hlutfall": 0.1074,
+    "hagnadarhlutfall": 0.0783,
+    "ROE": 0.3635,
+    "ROA": 0.226,
+    "eiginfjarhlutfall": 0.6216,
+    "veltufjarhlutfall": 0.714,
+    "skuldahlutfall_DE": 0.6087,
+    "eignavelta": 2.8873
+   },
+   "rekstur": {
+    "sala": 105691338,
+    "adrar_tekjur": 198880,
+    "kostnadarverd": 46146580,
+    "laun": 26421093,
+    "annar_rekstur": 17310715,
+    "afskriftir": 4464738,
+    "ebit": 11348212,
+    "fjarmunatekjur": 218948,
+    "fjarmagnsgjold": -1096830,
+    "hagn_f_skatt": 10470330,
+    "tekjuskattur": -2198675,
+    "hagnadur": 8271655
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26553388,
+    "vidskiptakrofur": 426982,
+    "handbaert": 9462986,
+    "eignir": 36605508,
+    "hlutafe": 500000,
+    "eigid_fe": 22754718,
+    "skuldir": 13850790,
+    "efe_skuldir": 36605508,
+    "skammtimaskuldir": 13850790
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4203170850.pdf",
+ "pdfAr": "2024"
+}

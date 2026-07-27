@@ -1,0 +1,87 @@
+{
+ "kt": "7006150570",
+ "nafn": "FellaKaffi ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0,
+    "hagnadarhlutfall": 0,
+    "ROA": 0,
+    "veltufjarhlutfall": 0.1516,
+    "eignavelta": 166.2851
+   },
+   "rekstur": {
+    "sala": 44363027,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 266789,
+    "veltufjarmunir": 266789,
+    "eignir": 266789,
+    "hlutafe": 600000,
+    "eigid_fe": -1704243,
+    "langtimaskuldir": 211600,
+    "skammtimaskuldir": 1759432,
+    "skuldir": 1971032,
+    "efe_skuldir": 266789
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0835,
+    "hagnadarhlutfall": 0.0618,
+    "ROE": 2.4992,
+    "ROA": 0.5617,
+    "eiginfjarhlutfall": 0.2247,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 3.4495,
+    "eignavelta": 9.0883
+   },
+   "rekstur": {
+    "sala": 45970325,
+    "ebit": 3840162,
+    "afskriftir": 0,
+    "fjarmunatekjur": 293,
+    "fjarmagnsgjold": -682453,
+    "hagn_f_skatt": 3158002,
+    "tekjuskattur": -316954,
+    "hagnadur": 2841048
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 5058175,
+    "eignir": 5058175,
+    "hlutafe": 600000,
+    "eigid_fe": 1136805,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3921369,
+    "skuldir": 3921369,
+    "efe_skuldir": 5058174
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7006150570.pdf",
+ "pdfAr": "2024"
+}

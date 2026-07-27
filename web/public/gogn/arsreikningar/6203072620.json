@@ -1,0 +1,80 @@
+{
+ "kt": "6203072620",
+ "nafn": "YI ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -4.9377,
+    "veltufjarhlutfall": 0.0015,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 904,
+    "veltufjarmunir": 4091,
+    "eignir": 4091,
+    "hlutafe": 1000000,
+    "eigid_fe": -609809,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 613900,
+    "skuldir": 613900,
+    "efe_skuldir": 4091
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -5.1088,
+    "veltufjarhlutfall": 0.0014,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 904,
+    "veltufjarmunir": 4091,
+    "eignir": 4091,
+    "hlutafe": 1000000,
+    "eigid_fe": -630709,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 634800,
+    "skuldir": 634800,
+    "efe_skuldir": 4091
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6203072620.pdf",
+ "pdfAr": "2024"
+}

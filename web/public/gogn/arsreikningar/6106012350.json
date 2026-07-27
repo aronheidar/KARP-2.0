@@ -1,0 +1,56 @@
+{
+ "kt": "6106012350",
+ "nafn": "Klakki ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "eiginfjarhlutfall": 0.9862,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.014,
+    "eignavelta": 0.0382
+   },
+   "rekstur": {
+    "sala": 6206032
+   },
+   "efnahagur": {
+    "eignir": 162455457,
+    "hlutafe": 28141576103,
+    "eigid_fe": 160215955,
+    "skuldir": 2239502,
+    "efe_skuldir": 162455457,
+    "skammtimaskuldir": 2239502
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "eiginfjarhlutfall": 0.9606,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.041,
+    "eignavelta": 0.0521
+   },
+   "rekstur": {
+    "sala": 5853876
+   },
+   "efnahagur": {
+    "eignir": 112276596,
+    "hlutafe": 28141576103,
+    "eigid_fe": 107849929,
+    "skuldir": 4426667,
+    "efe_skuldir": 112276596,
+    "skammtimaskuldir": 4426667
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6106012350.pdf",
+ "pdfAr": "2024"
+}

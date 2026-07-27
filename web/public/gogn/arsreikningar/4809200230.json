@@ -1,0 +1,90 @@
+{
+ "kt": "4809200230",
+ "nafn": "Prime Consult ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2779,
+    "hagnadarhlutfall": 0.2641,
+    "ROE": 0.6966,
+    "ROA": 0.1931,
+    "eiginfjarhlutfall": 0.2772,
+    "veltufjarhlutfall": 0.0691,
+    "skuldahlutfall_DE": 2.6069,
+    "eignavelta": 0.7312
+   },
+   "rekstur": {
+    "sala": 21800058,
+    "ebit": 6057975,
+    "afskriftir": -187922,
+    "fjarmunatekjur": 74684,
+    "fjarmagnsgjold": -186310,
+    "hagn_f_skatt": 5758427,
+    "tekjuskattur": 0,
+    "hagnadur": 5758427
+   },
+   "efnahagur": {
+    "fastafjarmunir": 28322503,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1489551,
+    "veltufjarmunir": 1492690,
+    "eignir": 29815193,
+    "hlutafe": 500000,
+    "eigid_fe": 8266051,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 21549142,
+    "skuldir": 21549142,
+    "efe_skuldir": 29815193
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5345,
+    "hagnadarhlutfall": 0.5123,
+    "ROE": 0.8123,
+    "ROA": 0.3978,
+    "eiginfjarhlutfall": 0.4896,
+    "veltufjarhlutfall": 0.0925,
+    "skuldahlutfall_DE": 1.0423,
+    "eignavelta": 0.7764
+   },
+   "rekstur": {
+    "sala": 69842153,
+    "ebit": 37330525,
+    "afskriftir": -882272,
+    "fjarmunatekjur": 13491,
+    "fjarmagnsgjold": -680778,
+    "hagn_f_skatt": 35780966,
+    "tekjuskattur": 0,
+    "hagnadur": 35780966
+   },
+   "efnahagur": {
+    "fastafjarmunir": 87504423,
+    "birgdir": 0,
+    "vidskiptakrofur": 2416400,
+    "handbaert": 0,
+    "veltufjarmunir": 2451860,
+    "eignir": 89956283,
+    "hlutafe": 500000,
+    "eigid_fe": 44047017,
+    "langtimaskuldir": 19800000,
+    "skammtimaskuldir": 26109266,
+    "skuldir": 45909266,
+    "efe_skuldir": 89956283
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4809200230.pdf",
+ "pdfAr": "2025"
+}

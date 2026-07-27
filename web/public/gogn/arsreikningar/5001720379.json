@@ -1,0 +1,86 @@
+{
+ "kt": "5001720379",
+ "nafn": "Meistarahús ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.32,
+    "hagnadarhlutfall": 0.2633,
+    "ROE": 0.9026,
+    "ROA": 0.6059,
+    "eiginfjarhlutfall": 0.6713,
+    "veltufjarhlutfall": 2.5227,
+    "skuldahlutfall_DE": 0.4897,
+    "eignavelta": 2.3015
+   },
+   "rekstur": {
+    "sala": 57111480,
+    "laun": -17968060,
+    "annar_rekstur": -2078074,
+    "afskriftir": -892075,
+    "ebit": 18275145,
+    "fjarmunatekjur": 514831,
+    "fjarmagnsgjold": -17240,
+    "hagn_f_skatt": 18772736,
+    "tekjuskattur": -3736719,
+    "hagnadur": 15036017
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5360205,
+    "handbaert": 15216740,
+    "eignir": 24814432,
+    "hlutafe": 1250000,
+    "eigid_fe": 16657671,
+    "skuldir": 8156761,
+    "efe_skuldir": 24814432,
+    "skammtimaskuldir": 8156761
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0631,
+    "hagnadarhlutfall": 0.0649,
+    "ROE": 0.6214,
+    "ROA": 0.2608,
+    "eiginfjarhlutfall": 0.4197,
+    "veltufjarhlutfall": 1.1524,
+    "skuldahlutfall_DE": 1.3827,
+    "eignavelta": 4.0163
+   },
+   "rekstur": {
+    "sala": 41900520,
+    "laun": -21243756,
+    "annar_rekstur": -2188741,
+    "afskriftir": -716002,
+    "ebit": 2644660,
+    "fjarmunatekjur": 864215,
+    "fjarmagnsgjold": -16822,
+    "hagn_f_skatt": 3492053,
+    "tekjuskattur": -771250,
+    "hagnadur": 2720803
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2166872,
+    "handbaert": 4810077,
+    "eignir": 10432658,
+    "hlutafe": 1250000,
+    "eigid_fe": 4378474,
+    "skuldir": 6054184,
+    "efe_skuldir": 10432658,
+    "skammtimaskuldir": 6054184
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/5001720379.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "5405071550",
+ "nafn": "Reddari ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2477,
+    "hagnadarhlutfall": -0.0842,
+    "ROE": -0.1362,
+    "ROA": -0.0143,
+    "eiginfjarhlutfall": 0.105,
+    "veltufjarhlutfall": 0.1652,
+    "skuldahlutfall_DE": 8.5206,
+    "eignavelta": 0.1699
+   },
+   "rekstur": {
+    "sala": 4790536,
+    "ebit": 1186702,
+    "afskriftir": -960000,
+    "fjarmunatekjur": 300,
+    "fjarmagnsgjold": -630335,
+    "hagn_f_skatt": -403333,
+    "tekjuskattur": 0,
+    "hagnadur": -403333
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26080000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1687052,
+    "handbaert": 241779,
+    "veltufjarmunir": 2115699,
+    "eignir": 28195699,
+    "hlutafe": 500000,
+    "eigid_fe": 2961534,
+    "langtimaskuldir": 13555558,
+    "skammtimaskuldir": 11678607,
+    "skuldir": 25234165,
+    "efe_skuldir": 28195699
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.4933,
+    "ROA": -0.0389,
+    "eiginfjarhlutfall": 0.079,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 11.6662,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18300,
+    "afskriftir": -960000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -978300,
+    "tekjuskattur": 0,
+    "hagnadur": -978300
+   },
+   "efnahagur": {
+    "fastafjarmunir": 25120000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 25120000,
+    "hlutafe": 500000,
+    "eigid_fe": 1983234,
+    "langtimaskuldir": 13154000,
+    "skammtimaskuldir": 9982766,
+    "skuldir": 23136766,
+    "efe_skuldir": 25120000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5405071550.pdf",
+ "pdfAr": "2021"
+}

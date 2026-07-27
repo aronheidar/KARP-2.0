@@ -1,0 +1,72 @@
+{
+ "kt": "4910240890",
+ "nafn": "1899 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2236,
+    "ROA": -0.0008,
+    "eiginfjarhlutfall": 0.0034,
+    "veltufjarhlutfall": 0.9507,
+    "skuldahlutfall_DE": 291.4445
+   },
+   "rekstur": {
+    "annar_rekstur": 140500,
+    "ebit": -140500,
+    "fjarmunatekjur": 49116,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -91384
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 112217719,
+    "handbaert": 1004953,
+    "eignir": 119497505,
+    "hlutafe": 500000,
+    "eigid_fe": 408616,
+    "skuldir": 119088889,
+    "efe_skuldir": 119497505,
+    "skammtimaskuldir": 119088889
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.3695,
+    "veltufjarhlutfall": 0.1044,
+    "skuldahlutfall_DE": 1.7065
+   },
+   "rekstur": {
+    "annar_rekstur": 371786,
+    "ebit": -371786,
+    "fjarmunatekjur": 369719,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -2067
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 41195692,
+    "eignir": 626042230,
+    "hlutafe": 510000,
+    "eigid_fe": 231306549,
+    "skuldir": 394735681,
+    "efe_skuldir": 626042230,
+    "skammtimaskuldir": 394735681
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4910240890.pdf",
+ "pdfAr": "2025"
+}

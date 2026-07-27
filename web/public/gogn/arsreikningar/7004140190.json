@@ -1,0 +1,84 @@
+{
+ "kt": "7004140190",
+ "nafn": "Zenter ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0804,
+    "hagnadarhlutfall": 0.064,
+    "ROA": 1.3335,
+    "veltufjarhlutfall": 0.0165,
+    "eignavelta": 20.8518
+   },
+   "rekstur": {
+    "sala": 29103708,
+    "ebit": 2338600,
+    "afskriftir": 0,
+    "fjarmunatekjur": 144133,
+    "fjarmagnsgjold": -541338,
+    "hagn_f_skatt": 1861195,
+    "tekjuskattur": 0,
+    "hagnadur": 1861195
+   },
+   "efnahagur": {
+    "fastafjarmunir": 800000,
+    "birgdir": 0,
+    "vidskiptakrofur": 58640,
+    "handbaert": 466740,
+    "veltufjarmunir": 595743,
+    "eignir": 1395743,
+    "hlutafe": 1000000,
+    "eigid_fe": -30475642,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 31871385,
+    "skuldir": 31871385,
+    "efe_skuldir": 1395743
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2525,
+    "hagnadarhlutfall": -0.2621,
+    "ROA": -1.4904,
+    "veltufjarhlutfall": 0.086,
+    "eignavelta": 5.6857
+   },
+   "rekstur": {
+    "sala": 24912545,
+    "ebit": -6290022,
+    "afskriftir": 0,
+    "fjarmunatekjur": 103070,
+    "fjarmagnsgjold": -322601,
+    "hagn_f_skatt": -6530453,
+    "tekjuskattur": 0,
+    "hagnadur": -6530453
+   },
+   "efnahagur": {
+    "fastafjarmunir": 800000,
+    "birgdir": 0,
+    "vidskiptakrofur": 3557102,
+    "handbaert": 1806,
+    "veltufjarmunir": 3581583,
+    "eignir": 4381583,
+    "hlutafe": 1000000,
+    "eigid_fe": -37006095,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 41387678,
+    "skuldir": 41387678,
+    "efe_skuldir": 4381583
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7004140190.pdf",
+ "pdfAr": "2023"
+}

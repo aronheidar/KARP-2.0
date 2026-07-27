@@ -1,0 +1,87 @@
+{
+ "kt": "4511210140",
+ "nafn": "HHS veitingar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -98.6759,
+    "ROA": -2.5403,
+    "eiginfjarhlutfall": 0.0257,
+    "veltufjarhlutfall": 0.2862,
+    "skuldahlutfall_DE": 37.8439,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebit": -171898,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -193400,
+    "hagn_f_skatt": -365298,
+    "tekjuskattur": 0,
+    "hagnadur": -365298
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 40100,
+    "veltufjarmunir": 143800,
+    "eignir": 143800,
+    "hlutafe": 500000,
+    "eigid_fe": 3702,
+    "skammtimaskuldir": 140098,
+    "skuldir": 140098,
+    "efe_skuldir": 143800
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.59,
+    "ebit_hlutfall": 0.0899,
+    "hagnadarhlutfall": 0.0438,
+    "ROE": 0.9979,
+    "ROA": 0.134,
+    "eiginfjarhlutfall": 0.1343,
+    "veltufjarhlutfall": 1.1547,
+    "skuldahlutfall_DE": 6.4485,
+    "eignavelta": 3.0564
+   },
+   "rekstur": {
+    "sala": 40805758,
+    "kostnadarverd": 16729566,
+    "laun": 12005995,
+    "annar_rekstur": 1738890,
+    "ebit": 3667160,
+    "fjarmunatekjur": 382,
+    "fjarmagnsgjold": -1545942,
+    "hagn_f_skatt": 2121600,
+    "tekjuskattur": -332860,
+    "hagnadur": 1788740
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 13290591,
+    "handbaert": 55794,
+    "veltufjarmunir": 13350989,
+    "eignir": 13350989,
+    "hlutafe": 500000,
+    "eigid_fe": 1792442,
+    "skammtimaskuldir": 11558547,
+    "skuldir": 11558547,
+    "efe_skuldir": 13350989
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4511210140.pdf",
+ "pdfAr": "2023"
+}

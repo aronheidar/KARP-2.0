@@ -1,0 +1,76 @@
+{
+ "kt": "4205170680",
+ "nafn": "BLÓM Í EGGI - HEILSUVÖRUR ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.7112,
+    "ebit_hlutfall": -0.8116,
+    "hagnadarhlutfall": -0.8171,
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 41594937,
+    "kostnadarverd": -71179304,
+    "laun": 0,
+    "annar_rekstur": -4176073,
+    "ebit": -33760440,
+    "fjarmunatekjur": 10639,
+    "fjarmagnsgjold": -237800,
+    "hagnadur": -33987601
+   },
+   "efnahagur": {
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -96892883,
+    "skammtimaskuldir": 96892883,
+    "skuldir": 96892883,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.743,
+    "ebit_hlutfall": -0.8755,
+    "hagnadarhlutfall": -0.878,
+    "ROA": -10.5686,
+    "veltufjarhlutfall": 0.0325,
+    "eignavelta": 12.0367
+   },
+   "rekstur": {
+    "sala": 60618717,
+    "kostnadarverd": -105657059,
+    "laun": -811056,
+    "annar_rekstur": -7225266,
+    "ebit": -53074664,
+    "fjarmunatekjur": 22718,
+    "fjarmagnsgjold": -173497,
+    "hagnadur": -53225443
+   },
+   "efnahagur": {
+    "handbaert": 5036172,
+    "veltufjarmunir": 5036172,
+    "eignir": 5036172,
+    "hlutafe": 500000,
+    "eigid_fe": -150118326,
+    "skammtimaskuldir": 155154498,
+    "skuldir": 155154498,
+    "efe_skuldir": 5036172
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4205170680.pdf",
+ "pdfAr": "2023"
+}

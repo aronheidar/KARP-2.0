@@ -1,0 +1,83 @@
+{
+ "kt": "6606012520",
+ "nafn": "Úríel ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0109,
+    "ROA": -0.0106,
+    "eiginfjarhlutfall": 0.966,
+    "veltufjarhlutfall": 29.3756,
+    "skuldahlutfall_DE": 0.0352,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20187,
+    "tekjuskattur": 0,
+    "hagnadur": -20187
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1909653,
+    "handbaert": 733,
+    "veltufjarmunir": 1910389,
+    "eignir": 1910389,
+    "hlutafe": 1000000,
+    "eigid_fe": 1845356,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 65033,
+    "skuldir": 65033,
+    "efe_skuldir": 1910389
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0114,
+    "ROA": -0.0114,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20884,
+    "tekjuskattur": 0,
+    "hagnadur": -20884
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1823723,
+    "handbaert": 745,
+    "veltufjarmunir": 1824472,
+    "eignir": 1824472,
+    "hlutafe": 1000000,
+    "eigid_fe": 1824472,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 1824472
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6606012520.pdf",
+ "pdfAr": "2024"
+}

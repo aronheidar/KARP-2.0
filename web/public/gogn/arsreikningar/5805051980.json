@@ -1,0 +1,66 @@
+{
+ "kt": "5805051980",
+ "nafn": "Hamar og saumur ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.0044,
+    "veltufjarhlutfall": 1.3208,
+    "skuldahlutfall_DE": 102.3658
+   },
+   "rekstur": {
+    "kostnadarverd": 4341516,
+    "laun": 33021159,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmagnsgjold": 115143,
+    "hagn_f_skatt": 2768840
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6123758,
+    "handbaert": 15970,
+    "eignir": 10393737,
+    "efe_skuldir": null,
+    "eigid_fe": 45409,
+    "skuldir": 4648328,
+    "skammtimaskuldir": 4648328
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.062,
+    "veltufjarhlutfall": 1.4628,
+    "skuldahlutfall_DE": 40272.7368
+   },
+   "rekstur": {
+    "kostnadarverd": 223637,
+    "laun": 8654975,
+    "annar_rekstur": 2416181,
+    "ebit": 2760804,
+    "fjarmagnsgjold": 366573,
+    "hagn_f_skatt": 187965
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3357549,
+    "handbaert": 362,
+    "eignir": 920,
+    "efe_skuldir": 2024,
+    "eigid_fe": 57,
+    "skuldir": 2295546,
+    "skammtimaskuldir": 2295546
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5805051980.pdf",
+ "pdfAr": "2025"
+}

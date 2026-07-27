@@ -1,0 +1,85 @@
+{
+ "kt": "4901201140",
+ "nafn": "Smart finance ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0084,
+    "hagnadarhlutfall": 0.0034,
+    "ROE": 0.6992,
+    "ROA": 0.6149,
+    "eiginfjarhlutfall": 0.8794,
+    "veltufjarhlutfall": 5.3967,
+    "skuldahlutfall_DE": 4.4033,
+    "eignavelta": 179.5755
+   },
+   "rekstur": {
+    "sala": 95735452,
+    "ebit": 800895,
+    "fjarmunatekjur": 222900,
+    "fjarmagnsgjold": -349577,
+    "hagn_f_skatt": 674219,
+    "tekjuskattur": -346418,
+    "hagnadur": 327801
+   },
+   "efnahagur": {
+    "fastafjarmunir": 86251,
+    "vidskiptakrofur": 7976348,
+    "handbaert": 2070522,
+    "veltufjarmunir": 46870,
+    "eignir": 533121,
+    "hlutafe": 0,
+    "eigid_fe": 468808,
+    "langtimaskuldir": 202638,
+    "skammtimaskuldir": 1861676,
+    "skuldir": 2064314,
+    "efe_skuldir": 40533121
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 634473,
+    "hagnadarhlutfall": 1,
+    "ROE": 0.125,
+    "ROA": 0.25,
+    "veltufjarhlutfall": 1,
+    "skuldahlutfall_DE": 0.375,
+    "eignavelta": 0.25
+   },
+   "rekstur": {
+    "sala": 1,
+    "ebit": 634473,
+    "fjarmunatekjur": 1,
+    "fjarmagnsgjold": -332496,
+    "hagn_f_skatt": 1,
+    "tekjuskattur": -311212,
+    "hagnadur": 1
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4,
+    "vidskiptakrofur": 2,
+    "handbaert": 1,
+    "veltufjarmunir": 4,
+    "eignir": 4,
+    "hlutafe": 5,
+    "eigid_fe": 8,
+    "langtimaskuldir": 328058,
+    "skammtimaskuldir": 3,
+    "skuldir": 3,
+    "efe_skuldir": 40810705
+   },
+   "starfsmenn": 10
+  }
+ },
+ "pdf": "pdf/4901201140.pdf",
+ "pdfAr": "2025"
+}

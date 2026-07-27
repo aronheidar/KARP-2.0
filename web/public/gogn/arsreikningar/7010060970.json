@@ -1,0 +1,86 @@
+{
+ "kt": "7010060970",
+ "nafn": "Þróunarfélag Keflavíkurflug ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -2.2586,
+    "hagnadarhlutfall": -1.1908,
+    "ROE": -0.1182,
+    "ROA": -0.0974,
+    "eiginfjarhlutfall": 0.8235,
+    "veltufjarhlutfall": 5.5512,
+    "skuldahlutfall_DE": 0.2144,
+    "eignavelta": 0.0818
+   },
+   "rekstur": {
+    "adrar_tekjur": 90944307,
+    "sala": 102195064,
+    "laun": 116874660,
+    "annar_rekstur": 216135994,
+    "ebit": -230815590,
+    "fjarmunatekjur": 109530147,
+    "fjarmagnsgjold": -497,
+    "hagnadur": -121693156
+   },
+   "efnahagur": {
+    "fastafjarmunir": 157621,
+    "vidskiptakrofur": 3028739,
+    "handbaert": 1221820425,
+    "veltufjarmunir": 1249613040,
+    "eignir": 1249770661,
+    "hlutafe": 20000000,
+    "eigid_fe": 1029124963,
+    "skammtimaskuldir": 220645698,
+    "skuldir": 220645698,
+    "efe_skuldir": 1249770661
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.9063,
+    "hagnadarhlutfall": -0.3586,
+    "ROE": -0.0555,
+    "ROA": -0.0471,
+    "eiginfjarhlutfall": 0.8495,
+    "veltufjarhlutfall": 6.5398,
+    "skuldahlutfall_DE": 0.1771,
+    "eignavelta": 0.1314
+   },
+   "rekstur": {
+    "adrar_tekjur": 55448000,
+    "sala": 150769584,
+    "laun": 114581105,
+    "annar_rekstur": 172835237,
+    "ebit": -136646758,
+    "fjarmunatekjur": 83026423,
+    "fjarmagnsgjold": -161965,
+    "hagnadur": -54069868
+   },
+   "efnahagur": {
+    "fastafjarmunir": 157621,
+    "vidskiptakrofur": 2434136,
+    "handbaert": 1127073632,
+    "veltufjarmunir": 1147609168,
+    "eignir": 1147766789,
+    "hlutafe": 20000000,
+    "eigid_fe": 975055095,
+    "skammtimaskuldir": 172711694,
+    "skuldir": 172711694,
+    "efe_skuldir": 1147766789
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/7010060970.pdf",
+ "pdfAr": "2025"
+}

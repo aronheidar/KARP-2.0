@@ -1,0 +1,72 @@
+{
+ "kt": "5303231020",
+ "nafn": "QN56 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9785,
+    "ROA": 0.9785,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "ebit": -144200,
+    "fjarmunatekjur": 8254,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 273179055,
+    "tekjuskattur": 0,
+    "hagnadur": 273179055
+   },
+   "efnahagur": {
+    "fastafjarmunir": 273915001,
+    "vidskiptakrofur": 1816,
+    "handbaert": 22238,
+    "eignir": 279179055,
+    "hlutafe": 6000000,
+    "eigid_fe": 279179055,
+    "skuldir": 0,
+    "efe_skuldir": 279179055,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2135,
+    "ROA": -0.2135,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "ebit": 0,
+    "fjarmunatekjur": 466,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -49111676,
+    "tekjuskattur": 0,
+    "hagnadur": -49111676
+   },
+   "efnahagur": {
+    "fastafjarmunir": 224802859,
+    "vidskiptakrofur": 1918,
+    "handbaert": 22602,
+    "eignir": 230067379,
+    "hlutafe": 6000000,
+    "eigid_fe": 230067379,
+    "skuldir": 0,
+    "efe_skuldir": 230067379,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5303231020.pdf",
+ "pdfAr": "2024"
+}

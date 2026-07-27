@@ -1,0 +1,89 @@
+{
+ "kt": "5611200800",
+ "nafn": "1512 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1813,
+    "hagnadarhlutfall": -0.1995,
+    "ROE": -2.0102,
+    "ROA": -2.0102,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 10.0783
+   },
+   "rekstur": {
+    "sala": 1193041,
+    "ebit": -216334,
+    "afskriftir": 0,
+    "fjarmunatekjur": 331,
+    "fjarmagnsgjold": -9691,
+    "hagn_f_skatt": -237960,
+    "tekjuskattur": 0,
+    "hagnadur": -237960
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 62586,
+    "handbaert": 1160,
+    "veltufjarmunir": 118377,
+    "eignir": 118377,
+    "hlutafe": 500000,
+    "eigid_fe": 118377,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 118377
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0825,
+    "hagnadarhlutfall": 0.0607,
+    "ROE": 0.4945,
+    "ROA": 0.4469,
+    "eiginfjarhlutfall": 0.9038,
+    "veltufjarhlutfall": 0.8007,
+    "skuldahlutfall_DE": 0.1064,
+    "eignavelta": 7.367
+   },
+   "rekstur": {
+    "sala": 1908883,
+    "ebit": 157517,
+    "afskriftir": 0,
+    "fjarmunatekjur": 903,
+    "fjarmagnsgjold": -42613,
+    "hagn_f_skatt": 115807,
+    "tekjuskattur": 0,
+    "hagnadur": 115807
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 19959,
+    "veltufjarmunir": 259111,
+    "eignir": 259111,
+    "hlutafe": 500000,
+    "eigid_fe": 234184,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 24927,
+    "skuldir": 24927,
+    "efe_skuldir": 259111
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5611200800.pdf",
+ "pdfAr": "2022"
+}

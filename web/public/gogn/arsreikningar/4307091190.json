@@ -1,0 +1,80 @@
+{
+ "kt": "4307091190",
+ "nafn": "VF 1 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.27,
+    "veltufjarhlutfall": 0.0219,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -22274,
+    "afskriftir": 0,
+    "fjarmunatekjur": 15318,
+    "fjarmagnsgjold": -1234068,
+    "hagn_f_skatt": -1241024,
+    "tekjuskattur": 0,
+    "hagnadur": -1241024
+   },
+   "efnahagur": {
+    "fastafjarmunir": 187512,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 400908,
+    "veltufjarmunir": 4409613,
+    "eignir": 4597125,
+    "hlutafe": 500000,
+    "eigid_fe": -13678577,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 18275702,
+    "skuldir": 18275702,
+    "efe_skuldir": 4597125
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2912,
+    "veltufjarhlutfall": 0.0196,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -23885,
+    "afskriftir": 0,
+    "fjarmunatekjur": 8047,
+    "fjarmagnsgjold": -1317770,
+    "hagn_f_skatt": -1333608,
+    "tekjuskattur": 0,
+    "hagnadur": -1333608
+   },
+   "efnahagur": {
+    "fastafjarmunir": 187512,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 384373,
+    "veltufjarmunir": 4391478,
+    "eignir": 4578990,
+    "hlutafe": 500000,
+    "eigid_fe": -15012185,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19591175,
+    "skuldir": 19591175,
+    "efe_skuldir": 4578990
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4307091190.pdf",
+ "pdfAr": "2024"
+}

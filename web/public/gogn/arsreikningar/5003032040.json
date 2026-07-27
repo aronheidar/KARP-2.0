@@ -1,0 +1,92 @@
+{
+ "kt": "5003032040",
+ "nafn": "Denim ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5565,
+    "ebit_hlutfall": 0.0267,
+    "hagnadarhlutfall": 0.0282,
+    "ROE": 0.2033,
+    "ROA": 0.0961,
+    "eiginfjarhlutfall": 0.4727,
+    "veltufjarhlutfall": 1.2131,
+    "skuldahlutfall_DE": 1.1157,
+    "eignavelta": 3.4135
+   },
+   "rekstur": {
+    "sala": 380905173,
+    "kostnadarverd": 168939154,
+    "laun": 119710851,
+    "annar_rekstur": 75557840,
+    "afskriftir": 6544346,
+    "ebit": 10152982,
+    "fjarmunatekjur": 510984,
+    "fjarmagnsgjold": -164601,
+    "hagn_f_skatt": 13075725,
+    "tekjuskattur": -2350392,
+    "hagnadur": 10725333
+   },
+   "efnahagur": {
+    "birgdir": 28961895,
+    "vidskiptakrofur": 3595853,
+    "handbaert": 38829130,
+    "eignir": 111589434,
+    "hlutafe": 3700000,
+    "eigid_fe": 52744011,
+    "skuldir": 58845423,
+    "efe_skuldir": 111589434,
+    "skammtimaskuldir": 58845423
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5351,
+    "ebit_hlutfall": 0.0491,
+    "hagnadarhlutfall": 0.0563,
+    "ROE": 0.3494,
+    "ROA": 0.1909,
+    "eiginfjarhlutfall": 0.5463,
+    "veltufjarhlutfall": 1.5602,
+    "skuldahlutfall_DE": 0.8306,
+    "eignavelta": 3.3924
+   },
+   "rekstur": {
+    "sala": 408010537,
+    "kostnadarverd": 189674893,
+    "laun": 123409854,
+    "annar_rekstur": 69656028,
+    "afskriftir": 5238042,
+    "ebit": 20031720,
+    "fjarmunatekjur": 1270565,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 28167957,
+    "tekjuskattur": -5209055,
+    "hagnadur": 22958902
+   },
+   "efnahagur": {
+    "birgdir": 29267484,
+    "vidskiptakrofur": 3610765,
+    "handbaert": 52262793,
+    "eignir": 120272648,
+    "hlutafe": 3700000,
+    "eigid_fe": 65702913,
+    "skuldir": 54569735,
+    "efe_skuldir": 120272648,
+    "skammtimaskuldir": 54569735
+   },
+   "starfsmenn": 15
+  }
+ },
+ "pdf": "pdf/5003032040.pdf",
+ "pdfAr": "2024"
+}

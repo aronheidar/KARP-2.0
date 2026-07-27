@@ -43,6 +43,10 @@ export function signalEvents(signal, prev, cur) {
     if (cur.gjaldthrot && !prev.gjaldthrot) ev.push({ kind: 'bankruptcy', severity: 'critical', detail: { stada: cur.stada } });
     if (cur.afskrad && !prev.afskrad) ev.push({ kind: 'status_change', severity: 'high', detail: { afskrad: 1, stada: cur.stada } });
     else if (cur.stada !== prev.stada) ev.push({ kind: 'status_change', severity: 'high', detail: { stada: cur.stada, adur: prev.stada } });
+  } else if (signal === 'skil') {
+    // ársreikningaskil (RSK "félög í vanskilum") — opið, óleyfisskylt: ný vanskilaár = high, komin í skil aftur = info.
+    for (const y of _added(prev.years, cur.years, (x) => x.ar)) ev.push({ kind: 'filing_default', severity: 'high', detail: y });
+    for (const y of _removed(prev.years, cur.years, (x) => x.ar)) ev.push({ kind: 'filing_resolved', severity: 'info', detail: y });
   } else if (signal === 'tax') {
     for (const c of _added(prev.claims, cur.claims, (x) => x.ref)) ev.push({ kind: 'tax_claim', severity: 'high', detail: c });
   } else if (signal === 'media') {
@@ -55,7 +59,7 @@ export function deriveRisk(s) {
   const L = (sig) => s[sig] || {};
   if ((L('sanctions').hits || []).length || L('status').gjaldthrot ||
       (L('legal').notices || []).some((n) => n.type === 'bankruptcy')) return 'Há';
-  if ((L('pep').matches || []).length || (L('tax').claims || []).length || L('status').afskrad ||
+  if ((L('pep').matches || []).length || (L('tax').claims || []).length || (L('skil').years || []).length || L('status').afskrad ||
       (L('legal').notices || []).length || (L('media').titles || []).length) return 'Venjuleg';
   return 'Lág';
 }

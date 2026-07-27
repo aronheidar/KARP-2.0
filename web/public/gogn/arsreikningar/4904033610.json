@@ -1,0 +1,75 @@
+{
+ "kt": "4904033610",
+ "nafn": "Montana ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0188,
+    "ROA": 0.0188,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "laun": 3758882,
+    "annar_rekstur": 446412,
+    "ebitda": 7794706,
+    "fjarmunatekjur": 10307,
+    "fjarmagnsgjold": -25901,
+    "hagnadur": 7779112
+   },
+   "efnahagur": {
+    "fastafjarmunir": 398604146,
+    "vidskiptakrofur": 12954954,
+    "handbaert": 1899068,
+    "veltufjarmunir": 14858045,
+    "eignir": 413462191,
+    "hlutafe": 500000,
+    "eigid_fe": 413462191,
+    "skuldir": 0,
+    "efe_skuldir": 413462191,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0258,
+    "ROA": 0.0254,
+    "eiginfjarhlutfall": 0.9836,
+    "veltufjarhlutfall": 3.9953,
+    "skuldahlutfall_DE": 0.0167
+   },
+   "rekstur": {
+    "laun": 6251976,
+    "annar_rekstur": 721334,
+    "ebitda": 11227502,
+    "fjarmunatekjur": 8829,
+    "fjarmagnsgjold": -276241,
+    "hagnadur": 10960090
+   },
+   "efnahagur": {
+    "fastafjarmunir": 398604146,
+    "vidskiptakrofur": 28082207,
+    "handbaert": 217244,
+    "veltufjarmunir": 32901393,
+    "eignir": 431505539,
+    "hlutafe": 500000,
+    "eigid_fe": 424422281,
+    "skuldir": 7083258,
+    "efe_skuldir": 431505539,
+    "skammtimaskuldir": 7083258
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4904033610.pdf",
+ "pdfAr": "2024"
+}

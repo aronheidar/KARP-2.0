@@ -1,0 +1,79 @@
+{
+ "kt": "7009220220",
+ "nafn": "KB22 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.05,
+    "hagnadarhlutfall": -0.2648,
+    "ROA": -0.37,
+    "eiginfjarhlutfall": -0.1283,
+    "veltufjarhlutfall": 0.399,
+    "eignavelta": 1.3972
+   },
+   "rekstur": {
+    "sala": 2890826,
+    "ebit": -144597,
+    "afskriftir": -612500,
+    "fjarmunatekjur": 630,
+    "fjarmagnsgjold": -8985,
+    "hagn_f_skatt": -765452,
+    "tekjuskattur": 0,
+    "hagnadur": -765452
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1137500,
+    "birgdir": 0,
+    "vidskiptakrofur": 625840,
+    "handbaert": 305655,
+    "veltufjarmunir": 931495,
+    "eignir": 2068995,
+    "hlutafe": 500000,
+    "eigid_fe": -265452,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2334447,
+    "skuldir": 2334447,
+    "efe_skuldir": 2068995
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7009220220.pdf",
+ "pdfAr": "2022"
+}

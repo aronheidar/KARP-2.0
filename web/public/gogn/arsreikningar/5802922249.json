@@ -1,0 +1,90 @@
+{
+ "kt": "5802922249",
+ "nafn": "19019 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.649,
+    "hagnadarhlutfall": 0.6073,
+    "ROE": 0.4592,
+    "ROA": 0.1682,
+    "eiginfjarhlutfall": 0.3663,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.7299,
+    "eignavelta": 0.2769
+   },
+   "rekstur": {
+    "sala": 2851211,
+    "ebit": 1850502,
+    "afskriftir": 0,
+    "fjarmunatekjur": 183519,
+    "fjarmagnsgjold": -354724,
+    "hagn_f_skatt": 2021065,
+    "tekjuskattur": -289396,
+    "hagnadur": 1731669
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9744293,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 551197,
+    "eignir": 10295490,
+    "hlutafe": 10000000,
+    "eigid_fe": 3771370,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6524120,
+    "skuldir": 6524120,
+    "efe_skuldir": 10295490
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7106,
+    "hagnadarhlutfall": 0.4719,
+    "ROE": 0.3702,
+    "ROA": 0.1676,
+    "eiginfjarhlutfall": 0.4528,
+    "veltufjarhlutfall": 0.041,
+    "skuldahlutfall_DE": 1.2085,
+    "eignavelta": 0.3552
+   },
+   "rekstur": {
+    "sala": 4697893,
+    "ebit": 3338138,
+    "afskriftir": 0,
+    "fjarmunatekjur": 10285,
+    "fjarmagnsgjold": -356692,
+    "hagn_f_skatt": 2819574,
+    "tekjuskattur": -602626,
+    "hagnadur": 2216948
+   },
+   "efnahagur": {
+    "fastafjarmunir": 12926769,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 296375,
+    "veltufjarmunir": 298637,
+    "eignir": 13225406,
+    "hlutafe": 10000000,
+    "eigid_fe": 5988318,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7237088,
+    "skuldir": 7237088,
+    "efe_skuldir": 13225406
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5802922249.pdf",
+ "pdfAr": "2025"
+}

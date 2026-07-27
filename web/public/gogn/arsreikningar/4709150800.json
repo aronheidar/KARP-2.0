@@ -1,0 +1,85 @@
+{
+ "kt": "4709150800",
+ "nafn": "Reign ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0551,
+    "hagnadarhlutfall": -0.0652,
+    "ROA": -0.3528,
+    "veltufjarhlutfall": 0.1599,
+    "eignavelta": 5.4149
+   },
+   "rekstur": {
+    "sala": 25226555,
+    "ebit": -1390028,
+    "afskriftir": 0,
+    "fjarmunatekjur": 5045,
+    "fjarmagnsgjold": -257586,
+    "hagn_f_skatt": -1643679,
+    "tekjuskattur": 0,
+    "hagnadur": -1643679
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2200000,
+    "vidskiptakrofur": 1800000,
+    "handbaert": 658730,
+    "veltufjarmunir": 4658730,
+    "eignir": 4658730,
+    "hlutafe": 500000,
+    "eigid_fe": -24473156,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 29131886,
+    "skuldir": 29131886,
+    "efe_skuldir": 4658730
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0155,
+    "hagnadarhlutfall": 0.0069,
+    "ROA": 0.0138,
+    "eiginfjarhlutfall": -1.0795,
+    "veltufjarhlutfall": 0.8244,
+    "eignavelta": 1.9854
+   },
+   "rekstur": {
+    "sala": 43535080,
+    "ebit": 674776,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -372524,
+    "hagn_f_skatt": 302252,
+    "tekjuskattur": 0,
+    "hagnadur": 302252
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6,
+    "birgdir": 14676862,
+    "vidskiptakrofur": 7250965,
+    "handbaert": 0,
+    "veltufjarmunir": 21927827,
+    "eignir": 21927833,
+    "hlutafe": 500000,
+    "eigid_fe": -23670904,
+    "langtimaskuldir": 19001396,
+    "skammtimaskuldir": 26597341,
+    "skuldir": 45598737,
+    "efe_skuldir": 21927833
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4709150800.pdf",
+ "pdfAr": "2023"
+}

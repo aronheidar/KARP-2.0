@@ -39,6 +39,23 @@ test('signalEvents: nýtt PEP-match = high', () => {
   const ev = signalEvents('pep', { matches: [] }, { matches: [{ name: 'Ráðherra' }] });
   assert.equal(ev[0].kind, 'pep_change'); assert.equal(ev[0].severity, 'high');
 });
+test('signalEvents: nýtt ársreikningaskil-vanskilaár = high (filing_default)', () => {
+  const ev = signalEvents('skil', { years: [] }, { years: [{ ar: 2024, vanskil: '6 mánuðir' }] });
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].kind, 'filing_default');
+  assert.equal(ev[0].severity, 'high');
+  assert.equal(ev[0].detail.ar, 2024);
+});
+test('signalEvents: ársreikningaskil komin í skil aftur = info (filing_resolved)', () => {
+  const ev = signalEvents('skil', { years: [{ ar: 2024, vanskil: '6 mánuðir' }] }, { years: [] });
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].kind, 'filing_resolved');
+  assert.equal(ev[0].severity, 'info');
+  assert.equal(ev[0].detail.ar, 2024);
+});
+test('signalEvents: skil — eldra snapshot án skil-lykils (prev=undefined) er grunnlína, engir falskir atburðir', () => {
+  assert.deepEqual(signalEvents('skil', undefined, { years: [{ ar: 2024, vanskil: '6 mánuðir' }] }), []);
+});
 test('SEVERITY_RANK raðar', () => {
   assert.ok(SEVERITY_RANK.critical > SEVERITY_RANK.high && SEVERITY_RANK.high > SEVERITY_RANK.info);
 });
@@ -50,6 +67,9 @@ test('deriveRisk: refsilisti eða gjaldþrot = Há', () => {
 test('deriveRisk: PEP eða neikvæð media = Venjuleg', () => {
   assert.equal(deriveRisk({ pep: { matches: [{ name: 'P' }] } }), 'Venjuleg');
   assert.equal(deriveRisk({ media: { titles: [{ h: '1' }] } }), 'Venjuleg');
+});
+test('deriveRisk: ársreikningaskil-vanskil = a.m.k. Venjuleg', () => {
+  assert.equal(deriveRisk({ skil: { years: [{ ar: 2024, vanskil: '6 mánuðir' }] } }), 'Venjuleg');
 });
 test('deriveRisk: ekkert = Lág', () => {
   assert.equal(deriveRisk({ status: { gjaldthrot: 0 } }), 'Lág');

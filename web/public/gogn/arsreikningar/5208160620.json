@@ -1,0 +1,66 @@
+{
+ "kt": "5208160620",
+ "nafn": "SoftwareIDM Iceland ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2139,
+    "veltufjarhlutfall": 0.3656
+   },
+   "rekstur": {
+    "annar_rekstur": 133329,
+    "ebit": -133329,
+    "fjarmunatekjur": 152,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -133177
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 33,
+    "handbaert": 622586,
+    "veltufjarmunir": 622619,
+    "eignir": 622619,
+    "hlutafe": 500000,
+    "eigid_fe": -1080417,
+    "skuldir": 1703036,
+    "efe_skuldir": 622619,
+    "skammtimaskuldir": 1703036
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2516,
+    "veltufjarhlutfall": 0.3351
+   },
+   "rekstur": {
+    "annar_rekstur": 155758,
+    "ebit": -155758,
+    "fjarmunatekjur": 904,
+    "fjarmagnsgjold": -2046,
+    "hagnadur": -156900
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 199,
+    "handbaert": 623291,
+    "veltufjarmunir": 623490,
+    "eignir": 623490,
+    "hlutafe": 500000,
+    "eigid_fe": -1237317,
+    "skuldir": 1860807,
+    "efe_skuldir": 623490,
+    "skammtimaskuldir": 1860807
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5208160620.pdf",
+ "pdfAr": "2022"
+}

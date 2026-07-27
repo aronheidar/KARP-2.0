@@ -1,0 +1,90 @@
+{
+ "kt": "4207972499",
+ "nafn": "Raftíðni ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5509,
+    "ebit_hlutfall": 0.0912,
+    "hagnadarhlutfall": 0.0807,
+    "ROE": 0.3053,
+    "ROA": 0.2101,
+    "eiginfjarhlutfall": 0.6882,
+    "veltufjarhlutfall": 2.4312,
+    "skuldahlutfall_DE": 0.4532,
+    "eignavelta": 2.6046
+   },
+   "rekstur": {
+    "sala": 555088922,
+    "adrar_tekjur": 62000,
+    "kostnadarverd": -249263029,
+    "laun": -203004549,
+    "afskriftir": -4403599,
+    "ebit": 50605841,
+    "fjarmunatekjur": 6519935,
+    "fjarmagnsgjold": -69707,
+    "hagn_f_skatt": 56970584,
+    "tekjuskattur": -12202198,
+    "hagnadur": 44768386
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 74169570,
+    "handbaert": 87405694,
+    "eignir": 213119176,
+    "hlutafe": 1800000,
+    "eigid_fe": 146658896,
+    "skuldir": 66460280,
+    "efe_skuldir": 213119176,
+    "skammtimaskuldir": 66460280
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5514,
+    "ebit_hlutfall": 0.1262,
+    "hagnadarhlutfall": 0.108,
+    "ROE": 0.4006,
+    "ROA": 0.2842,
+    "eiginfjarhlutfall": 0.7094,
+    "veltufjarhlutfall": 2.476,
+    "skuldahlutfall_DE": 0.4097,
+    "eignavelta": 2.632
+   },
+   "rekstur": {
+    "sala": 543469899,
+    "adrar_tekjur": 5502631,
+    "kostnadarverd": -243779933,
+    "laun": -175692491,
+    "afskriftir": -5585838,
+    "ebit": 68591862,
+    "fjarmunatekjur": 5824455,
+    "fjarmagnsgjold": -143580,
+    "hagn_f_skatt": 73714496,
+    "tekjuskattur": -15040346,
+    "hagnadur": 58674150
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 50720167,
+    "handbaert": 97857599,
+    "eignir": 206489011,
+    "hlutafe": 1440000,
+    "eigid_fe": 146481046,
+    "skuldir": 60007965,
+    "efe_skuldir": 206489011,
+    "skammtimaskuldir": 60007965
+   },
+   "starfsmenn": 13
+  }
+ },
+ "pdf": "pdf/4207972499.pdf",
+ "pdfAr": "2025"
+}

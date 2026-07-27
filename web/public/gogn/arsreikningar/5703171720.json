@@ -1,0 +1,86 @@
+{
+ "kt": "5703171720",
+ "nafn": "6x7 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0737,
+    "hagnadarhlutfall": -16.3738,
+    "ROE": -0.0473,
+    "ROA": -0.0473,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0.0029
+   },
+   "rekstur": {
+    "sala": 79957,
+    "ebit": -5892,
+    "afskriftir": -28568,
+    "fjarmunatekjur": 95948,
+    "fjarmagnsgjold": -31993,
+    "hagn_f_skatt": -1309202,
+    "tekjuskattur": 0,
+    "hagnadur": -1309202
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23549441,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4108366,
+    "veltufjarmunir": 4129475,
+    "eignir": 27678916,
+    "hlutafe": 500000,
+    "eigid_fe": 27678916,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 27678916
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0187,
+    "ROA": -0.0187,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -549620,
+    "afskriftir": -23054,
+    "fjarmunatekjur": 82829,
+    "fjarmagnsgjold": -18572,
+    "hagn_f_skatt": -508417,
+    "tekjuskattur": 0,
+    "hagnadur": -508417
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23528087,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 3604781,
+    "veltufjarmunir": 3642412,
+    "eignir": 27170499,
+    "hlutafe": 500000,
+    "eigid_fe": 27170499,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 27170499
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5703171720.pdf",
+ "pdfAr": "2024"
+}

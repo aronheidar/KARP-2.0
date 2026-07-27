@@ -1,0 +1,76 @@
+{
+ "kt": "5509090300",
+ "nafn": "Arnar Helgi Lárusson ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4301,
+    "ROA": 0.0672,
+    "eiginfjarhlutfall": 0.1563,
+    "veltufjarhlutfall": 0.8827,
+    "skuldahlutfall_DE": 5.3965
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "ebit": -20900,
+    "fjarmunatekjur": 1624191,
+    "hagn_f_skatt": 3757519,
+    "tekjuskattur": -319337,
+    "hagnadur": 3438182
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3368299,
+    "vidskiptakrofur": 357212,
+    "handbaert": 37717725,
+    "veltufjarmunir": 47761209,
+    "eignir": 51129508,
+    "hlutafe": 500000,
+    "eigid_fe": 7993328,
+    "skammtimaskuldir": 43136180,
+    "efe_skuldir": 51129508,
+    "skuldir": 43136180
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4856,
+    "ROA": 0.12,
+    "eiginfjarhlutfall": 0.247,
+    "veltufjarhlutfall": 0.9306,
+    "skuldahlutfall_DE": 3.048
+   },
+   "rekstur": {
+    "annar_rekstur": 21400,
+    "ebit": -21400,
+    "fjarmunatekjur": 2557299,
+    "hagn_f_skatt": 8058744,
+    "tekjuskattur": -511460,
+    "hagnadur": 7547284
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9141144,
+    "vidskiptakrofur": 562629,
+    "handbaert": 43518870,
+    "veltufjarmunir": 53767771,
+    "eignir": 62908915,
+    "hlutafe": 500000,
+    "eigid_fe": 15540612,
+    "skammtimaskuldir": 47368303,
+    "efe_skuldir": 62908915,
+    "skuldir": 47368303
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509090300.pdf",
+ "pdfAr": "2025"
+}

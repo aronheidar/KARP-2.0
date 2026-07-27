@@ -1,0 +1,85 @@
+{
+ "kt": "6701060550",
+ "nafn": "550 ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0475,
+    "ROA": -0.0453,
+    "eiginfjarhlutfall": 0.9547,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0475,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 445800,
+    "eignir": 445800,
+    "hlutafe": 500000,
+    "eigid_fe": 425600,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20200,
+    "skuldir": 20200,
+    "efe_skuldir": 445800
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0516,
+    "ROA": -0.0516,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 404700,
+    "handbaert": 0,
+    "veltufjarmunir": 404700,
+    "eignir": 404700,
+    "hlutafe": 500000,
+    "eigid_fe": 404700,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 404700
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6701060550.pdf",
+ "pdfAr": "2024"
+}

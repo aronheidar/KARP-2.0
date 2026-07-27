@@ -1,0 +1,80 @@
+{
+ "kt": "6812171180",
+ "nafn": "815 ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0193,
+    "ROA": 0.0192,
+    "eiginfjarhlutfall": 0.9944,
+    "veltufjarhlutfall": 157.3637,
+    "skuldahlutfall_DE": 0.0056,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 0,
+    "annar_rekstur": 324159,
+    "ebit": -324159,
+    "fjarmunatekjur": 521896,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 197737,
+    "tekjuskattur": 0,
+    "hagnadur": 197737
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 139123,
+    "handbaert": 8958700,
+    "eignir": 10294027,
+    "hlutafe": 500000,
+    "eigid_fe": 10236213,
+    "efe_skuldir": 10294027,
+    "skuldir": 57814,
+    "skammtimaskuldir": 57814
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.089,
+    "ROA": -0.0885,
+    "eiginfjarhlutfall": 0.9939,
+    "veltufjarhlutfall": 163.5832,
+    "skuldahlutfall_DE": 0.0062,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 0,
+    "annar_rekstur": 786354,
+    "ebit": -786354,
+    "fjarmunatekjur": 636881,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -836625,
+    "tekjuskattur": 0,
+    "hagnadur": -836625
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 139950,
+    "handbaert": 9317452,
+    "eignir": 9457402,
+    "hlutafe": 500000,
+    "eigid_fe": 9399588,
+    "efe_skuldir": 9457402,
+    "skuldir": 57814,
+    "skammtimaskuldir": 57814
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6812171180.pdf",
+ "pdfAr": "2024"
+}

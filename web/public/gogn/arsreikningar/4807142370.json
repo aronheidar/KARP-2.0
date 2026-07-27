@@ -1,0 +1,82 @@
+{
+ "kt": "4807142370",
+ "nafn": "2304 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3796,
+    "hagnadarhlutfall": -39.658,
+    "ROE": -0.0132,
+    "ROA": -0.0119,
+    "eiginfjarhlutfall": 0.9059,
+    "veltufjarhlutfall": 0.3713,
+    "skuldahlutfall_DE": 0.1039,
+    "eignavelta": 0.0003
+   },
+   "rekstur": {
+    "sala": 90000,
+    "annar_rekstur": 55840,
+    "ebit": 34160,
+    "fjarmunatekjur": 24828,
+    "fjarmagnsgjold": -5720,
+    "hagn_f_skatt": -3569224,
+    "tekjuskattur": 0,
+    "hagnadur": -3569224
+   },
+   "efnahagur": {
+    "fastafjarmunir": 200224277,
+    "vidskiptakrofur": 5462,
+    "handbaert": 10454403,
+    "eignir": 299260142,
+    "hlutafe": 500000,
+    "eigid_fe": 271087142,
+    "skuldir": 28173000,
+    "efe_skuldir": 299260142,
+    "skammtimaskuldir": 28173000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2656,
+    "ROA": -0.2386,
+    "eiginfjarhlutfall": 0.8982,
+    "veltufjarhlutfall": 0.2734,
+    "skuldahlutfall_DE": 0.1133,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 856350,
+    "ebit": -856350,
+    "fjarmunatekjur": 33751,
+    "fjarmagnsgjold": -505,
+    "hagn_f_skatt": -56888515,
+    "tekjuskattur": 0,
+    "hagnadur": -56888515
+   },
+   "efnahagur": {
+    "fastafjarmunir": 133258866,
+    "vidskiptakrofur": 7425,
+    "handbaert": 6629336,
+    "eignir": 238471627,
+    "hlutafe": 500000,
+    "eigid_fe": 214198627,
+    "skuldir": 24273000,
+    "efe_skuldir": 238471627,
+    "skammtimaskuldir": 24273000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4807142370.pdf",
+ "pdfAr": "2024"
+}

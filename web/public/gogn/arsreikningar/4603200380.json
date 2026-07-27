@@ -1,0 +1,78 @@
+{
+ "kt": "4603200380",
+ "nafn": "S og S veitingar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5083,
+    "ebit_hlutfall": -0.086,
+    "hagnadarhlutfall": -0.1092,
+    "ROA": -3.0999,
+    "veltufjarhlutfall": 0.004,
+    "eignavelta": 28.3974
+   },
+   "rekstur": {
+    "sala": 29571148,
+    "kostnadarverd": 14540134,
+    "laun": 8664013,
+    "annar_rekstur": 2764215,
+    "ebit": -2543668,
+    "fjarmagnsgjold": -684331,
+    "hagnadur": -3227999
+   },
+   "efnahagur": {
+    "handbaert": 40301,
+    "veltufjarmunir": 1041333,
+    "eignir": 1041333,
+    "hlutafe": 500000,
+    "eigid_fe": -10365563,
+    "langtimaskuldir": null,
+    "skammtimaskuldir": 10094396,
+    "skuldir": 11406896,
+    "efe_skuldir": 1041333
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6,
+    "ebit_hlutfall": 0.161,
+    "hagnadarhlutfall": 0.1226,
+    "ROA": 267.2136,
+    "veltufjarhlutfall": 0.0008,
+    "eignavelta": 2179.3166
+   },
+   "rekstur": {
+    "sala": 15255216,
+    "kostnadarverd": 6101801,
+    "laun": 1252502,
+    "annar_rekstur": 1335225,
+    "ebit": 2456527,
+    "fjarmagnsgjold": -586032,
+    "hagnadur": 1870495
+   },
+   "efnahagur": {
+    "handbaert": 6551,
+    "veltufjarmunir": 7000,
+    "eignir": 7000,
+    "hlutafe": 500000,
+    "eigid_fe": -8495068,
+    "langtimaskuldir": 45,
+    "skammtimaskuldir": 7729568,
+    "skuldir": 8502068,
+    "efe_skuldir": 7000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4603200380.pdf",
+ "pdfAr": "2023"
+}

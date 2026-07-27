@@ -1,0 +1,84 @@
+{
+ "kt": "4701034260",
+ "nafn": "Cactus veitingar ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1522,
+    "hagnadarhlutfall": -0.0182,
+    "ROA": -0.0544,
+    "veltufjarhlutfall": 0.0067,
+    "eignavelta": 2.9876
+   },
+   "rekstur": {
+    "sala": 10322176,
+    "ebit": 1570902,
+    "afskriftir": 0,
+    "fjarmunatekjur": 156457,
+    "fjarmagnsgjold": -1915242,
+    "hagn_f_skatt": -187883,
+    "tekjuskattur": 0,
+    "hagnadur": -187883
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 104858,
+    "veltufjarmunir": 3454983,
+    "eignir": 3454983,
+    "hlutafe": 500000,
+    "eigid_fe": -15087196,
+    "langtimaskuldir": 2928212,
+    "skammtimaskuldir": 15613967,
+    "skuldir": 18542179,
+    "efe_skuldir": 3454983
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.362,
+    "hagnadarhlutfall": -1.1896,
+    "ROA": -0.9706,
+    "veltufjarhlutfall": 0.0005,
+    "eignavelta": 0.8158
+   },
+   "rekstur": {
+    "sala": 1345091,
+    "ebit": -486927,
+    "afskriftir": 0,
+    "fjarmunatekjur": 12563,
+    "fjarmagnsgjold": -1125791,
+    "hagn_f_skatt": -1600155,
+    "tekjuskattur": 0,
+    "hagnadur": -1600155
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 7726,
+    "veltufjarmunir": 1648699,
+    "eignir": 1648699,
+    "hlutafe": 500000,
+    "eigid_fe": -16687351,
+    "langtimaskuldir": 1252015,
+    "skammtimaskuldir": 17084035,
+    "skuldir": 18336050,
+    "efe_skuldir": 1648699
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4701034260.pdf",
+ "pdfAr": "2025"
+}

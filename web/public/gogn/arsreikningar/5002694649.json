@@ -1,0 +1,62 @@
+{
+ "kt": "5002694649",
+ "nafn": "Ker ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -2.7133,
+    "veltufjarhlutfall": 0.013
+   },
+   "rekstur": {
+    "fjarmunatekjur": 6405,
+    "fjarmagnsgjold": -15544,
+    "annar_rekstur": -5281681,
+    "hagnadur": -5290820
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1398613,
+    "handbaert": 455692,
+    "eignir": 1949946,
+    "hlutafe": 19696867,
+    "eigid_fe": -140965660,
+    "skuldir": 142915606,
+    "efe_skuldir": 1949946,
+    "skammtimaskuldir": 142915606
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -3.2844,
+    "veltufjarhlutfall": 0.0108
+   },
+   "rekstur": {
+    "fjarmunatekjur": 4400,
+    "fjarmagnsgjold": -2395,
+    "annar_rekstur": -5558822,
+    "hagnadur": -5556817
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1398183,
+    "handbaert": 198057,
+    "eignir": 1691881,
+    "hlutafe": 19696867,
+    "eigid_fe": -146522477,
+    "skuldir": 148214358,
+    "efe_skuldir": 1691881,
+    "skammtimaskuldir": 148214358
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5002694649.pdf",
+ "pdfAr": "2024"
+}

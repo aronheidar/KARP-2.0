@@ -1,0 +1,75 @@
+{
+ "kt": "4408232110",
+ "nafn": "5+5 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.4192,
+    "ROA": -33.0315,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 78.7944
+   },
+   "rekstur": {
+    "sala": 3200000,
+    "laun": 4150309,
+    "annar_rekstur": 391165,
+    "afskriftir": 0,
+    "fjarmagnsgjold": null,
+    "fjarmunatekjur": 0,
+    "tekjuskattur": null,
+    "hagnadur": -1341474
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 0,
+    "eignir": 40612,
+    "hlutafe": 500000,
+    "skuldir": 40612,
+    "efe_skuldir": 40612,
+    "eigid_fe": 0,
+    "skammtimaskuldir": 40612
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "afskriftir": 0,
+    "fjarmagnsgjold": 0,
+    "fjarmunatekjur": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 0,
+    "eignir": 40612,
+    "hlutafe": 500000,
+    "skuldir": 40612,
+    "efe_skuldir": 40612,
+    "eigid_fe": 0,
+    "skammtimaskuldir": 40612
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4408232110.pdf",
+ "pdfAr": "2024"
+}

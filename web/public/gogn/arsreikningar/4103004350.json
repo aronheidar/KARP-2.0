@@ -1,0 +1,90 @@
+{
+ "kt": "4103004350",
+ "nafn": "Kirkjuvegur ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7739,
+    "hagnadarhlutfall": 0.5168,
+    "ROE": 0.072,
+    "ROA": 0.059,
+    "eiginfjarhlutfall": 0.8196,
+    "veltufjarhlutfall": 0.8108,
+    "skuldahlutfall_DE": 0.22,
+    "eignavelta": 0.1142
+   },
+   "rekstur": {
+    "sala": 5648228,
+    "ebit": 4370892,
+    "afskriftir": -453339,
+    "fjarmunatekjur": 8290,
+    "fjarmagnsgjold": -225555,
+    "hagn_f_skatt": 3700288,
+    "tekjuskattur": -781132,
+    "hagnadur": 2919156
+   },
+   "efnahagur": {
+    "fastafjarmunir": 48753309,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 676817,
+    "veltufjarmunir": 692395,
+    "eignir": 49445704,
+    "hlutafe": 1000000,
+    "eigid_fe": 40527636,
+    "langtimaskuldir": 8083308,
+    "skammtimaskuldir": 834760,
+    "skuldir": 8918068,
+    "efe_skuldir": 49445704
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.74,
+    "hagnadarhlutfall": 0.5544,
+    "ROE": 0.0745,
+    "ROA": 0.0618,
+    "eiginfjarhlutfall": 0.8295,
+    "veltufjarhlutfall": 4.8428,
+    "skuldahlutfall_DE": 0.2055,
+    "eignavelta": 0.1115
+   },
+   "rekstur": {
+    "sala": 5885368,
+    "ebit": 4355379,
+    "afskriftir": -453339,
+    "fjarmunatekjur": 183368,
+    "fjarmagnsgjold": -1488,
+    "hagn_f_skatt": 4083920,
+    "tekjuskattur": -821064,
+    "hagnadur": 3262856
+   },
+   "efnahagur": {
+    "fastafjarmunir": 48299970,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4435483,
+    "veltufjarmunir": 4489718,
+    "eignir": 52789688,
+    "hlutafe": 1000000,
+    "eigid_fe": 43790492,
+    "langtimaskuldir": 8083308,
+    "skammtimaskuldir": 915888,
+    "skuldir": 8999196,
+    "efe_skuldir": 52789688
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4103004350.pdf",
+ "pdfAr": "2025"
+}

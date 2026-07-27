@@ -1,0 +1,90 @@
+{
+ "kt": "7110130400",
+ "nafn": "888 ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7849,
+    "hagnadarhlutfall": 0.4831,
+    "ROE": 0.564,
+    "ROA": 0.4211,
+    "eiginfjarhlutfall": 0.7467,
+    "veltufjarhlutfall": 0.9662,
+    "skuldahlutfall_DE": 0.3392,
+    "eignavelta": 0.8717
+   },
+   "rekstur": {
+    "sala": 8328669,
+    "ebit": 6537050,
+    "afskriftir": -1804000,
+    "fjarmunatekjur": 1539,
+    "fjarmagnsgjold": -28868,
+    "hagn_f_skatt": 4705721,
+    "tekjuskattur": -682090,
+    "hagnadur": 4023631
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7216000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2097241,
+    "handbaert": 241361,
+    "veltufjarmunir": 2338941,
+    "eignir": 9554941,
+    "hlutafe": 500000,
+    "eigid_fe": 7134554,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2420387,
+    "skuldir": 2420387,
+    "efe_skuldir": 9554941
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6981,
+    "hagnadarhlutfall": 0.2966,
+    "ROE": 0.4145,
+    "ROA": 0.1859,
+    "eiginfjarhlutfall": 0.4484,
+    "veltufjarhlutfall": 0.3518,
+    "skuldahlutfall_DE": 1.2301,
+    "eignavelta": 0.6268
+   },
+   "rekstur": {
+    "sala": 17032733,
+    "ebit": 11890285,
+    "afskriftir": -5475458,
+    "fjarmunatekjur": 2049,
+    "fjarmagnsgjold": -17024,
+    "hagn_f_skatt": 6399852,
+    "tekjuskattur": -1348463,
+    "hagnadur": 5051389
+   },
+   "efnahagur": {
+    "fastafjarmunir": 21901832,
+    "birgdir": 0,
+    "vidskiptakrofur": 5240209,
+    "handbaert": 33266,
+    "veltufjarmunir": 5273926,
+    "eignir": 27175758,
+    "hlutafe": 500000,
+    "eigid_fe": 12185943,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 14989815,
+    "skuldir": 14989815,
+    "efe_skuldir": 27175758
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7110130400.pdf",
+ "pdfAr": "2024"
+}

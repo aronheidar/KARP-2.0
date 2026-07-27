@@ -1,0 +1,86 @@
+{
+ "kt": "6005992599",
+ "nafn": "Vitar ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0185,
+    "hagnadarhlutfall": -0.0533,
+    "ROA": -0.2043,
+    "eiginfjarhlutfall": -0.3579,
+    "veltufjarhlutfall": 0.7365,
+    "eignavelta": 3.831
+   },
+   "rekstur": {
+    "sala": 25077665,
+    "ebit": -464118,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -873366,
+    "hagn_f_skatt": -1337484,
+    "tekjuskattur": 0,
+    "hagnadur": -1337484
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 6545955,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 6545955,
+    "eignir": 6545955,
+    "hlutafe": 550000,
+    "eigid_fe": -2342473,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8888428,
+    "skuldir": 8888428,
+    "efe_skuldir": 6545955
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.045,
+    "hagnadarhlutfall": 0.022,
+    "ROA": 0.0412,
+    "eiginfjarhlutfall": -0.2348,
+    "veltufjarhlutfall": 0.6104,
+    "eignavelta": 1.8698
+   },
+   "rekstur": {
+    "sala": 15867883,
+    "ebit": 713808,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2346,
+    "fjarmagnsgjold": -366415,
+    "hagn_f_skatt": 349739,
+    "tekjuskattur": 0,
+    "hagnadur": 349739
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 5087244,
+    "vidskiptakrofur": 0,
+    "handbaert": 1308826,
+    "veltufjarmunir": 8486338,
+    "eignir": 8486338,
+    "hlutafe": 550000,
+    "eigid_fe": -1992734,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10479072,
+    "skuldir": 10479072,
+    "efe_skuldir": 8486338
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6005992599.pdf",
+ "pdfAr": "2024"
+}

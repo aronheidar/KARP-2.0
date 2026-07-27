@@ -1,0 +1,66 @@
+{
+ "kt": "4805241790",
+ "nafn": "100200 ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": 0,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skammtimaskuldir": null,
+    "skuldir": null,
+    "efe_skuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9515,
+    "ROA": 0.55,
+    "eiginfjarhlutfall": 0.578,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.7302
+   },
+   "rekstur": {
+    "annar_rekstur": 144200,
+    "ebit": -144200,
+    "fjarmagnsgjold": 9956230,
+    "hagn_f_skatt": 9812030,
+    "tekjuskattur": 6,
+    "hagnadur": 9812030
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10441488,
+    "veltufjarmunir": 7400000,
+    "eignir": 17841488,
+    "hlutafe": 500000,
+    "eigid_fe": 10312030,
+    "skammtimaskuldir": 7529458,
+    "skuldir": 7529458,
+    "efe_skuldir": 17841488
+   },
+   "starfsmenn": 8
+  }
+ },
+ "pdf": "pdf/4805241790.pdf",
+ "pdfAr": "2024"
+}

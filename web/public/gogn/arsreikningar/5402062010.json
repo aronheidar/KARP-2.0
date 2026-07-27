@@ -1,0 +1,104 @@
+{
+ "kt": "5402062010",
+ "nafn": "Festi hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2377,
+    "ebit_hlutfall": 0.05,
+    "hagnadarhlutfall": 0.026,
+    "ROE": 0.0924,
+    "ROA": 0.035,
+    "eiginfjarhlutfall": 0.3787,
+    "veltufjarhlutfall": 1.0464,
+    "skuldahlutfall_DE": 1.6403,
+    "eignavelta": 1.3451
+   },
+   "rekstur": {
+    "sala": 154462646,
+    "kostnadarverd": -117740819,
+    "adrar_tekjur": 2244546,
+    "laun": -18385130,
+    "annar_rekstur": -8070682,
+    "ebitda": 12510561,
+    "afskriftir": -5089807,
+    "matsbreyting": 302291,
+    "ebit": 7723045,
+    "fjarmunatekjur": 482994,
+    "fjarmagnsgjold": -3768437,
+    "hagn_f_skatt": 5111526,
+    "tekjuskattur": -1093291,
+    "hagnadur": 4018235
+   },
+   "efnahagur": {
+    "fastafjarmunir": 88292729,
+    "birgdir": 14117878,
+    "vidskiptakrofur": 7167970,
+    "handbaert": 4075358,
+    "veltufjarmunir": 26541911,
+    "eignir": 114834640,
+    "hlutafe": 311254,
+    "eigid_fe": 43493197,
+    "langtimaskuldir": 47105188,
+    "skammtimaskuldir": 24236255,
+    "skuldir": 71341443,
+    "efe_skuldir": 114834640
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.252,
+    "ebit_hlutfall": 0.0583,
+    "hagnadarhlutfall": 0.0359,
+    "ROE": 0.1304,
+    "ROA": 0.0537,
+    "eiginfjarhlutfall": 0.4119,
+    "veltufjarhlutfall": 0.9671,
+    "skuldahlutfall_DE": 1.4277,
+    "eignavelta": 1.498
+   },
+   "rekstur": {
+    "sala": 173413534,
+    "kostnadarverd": -129721869,
+    "adrar_tekjur": 2313355,
+    "laun": -21675531,
+    "annar_rekstur": -8328141,
+    "ebitda": 16001348,
+    "afskriftir": -6049106,
+    "matsbreyting": 158671,
+    "ebit": 10110913,
+    "fjarmunatekjur": 584639,
+    "fjarmagnsgjold": -3574811,
+    "hagn_f_skatt": 7602975,
+    "tekjuskattur": -1383395,
+    "hagnadur": 6219580
+   },
+   "efnahagur": {
+    "fastafjarmunir": 89095918,
+    "birgdir": 14178995,
+    "vidskiptakrofur": 5435100,
+    "handbaert": 5928914,
+    "veltufjarmunir": 26665173,
+    "eignir": 115761091,
+    "hlutafe": 309009,
+    "eigid_fe": 47683843,
+    "langtimaskuldir": 41665791,
+    "skammtimaskuldir": 26411457,
+    "skuldir": 68077248,
+    "efe_skuldir": 115761091
+   },
+   "starfsmenn": 686
+  }
+ },
+ "pdf": "pdf/5402062010.pdf",
+ "pdfAr": "2025"
+}

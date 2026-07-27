@@ -1,0 +1,82 @@
+{
+ "kt": "6104043320",
+ "nafn": "Northstreet ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8475,
+    "ebit_hlutfall": 0.0138,
+    "eiginfjarhlutfall": 0.9704,
+    "veltufjarhlutfall": 10.2404,
+    "skuldahlutfall_DE": 0.0305,
+    "eignavelta": 2.0727
+   },
+   "rekstur": {
+    "kostnadarverd": 26657735,
+    "laun": 35876033,
+    "annar_rekstur": 1142158,
+    "ebit": 2403443,
+    "fjarmagnsgjold": -540928,
+    "hagn_f_skatt": 1862515,
+    "tekjuskattur": 376543,
+    "sala": 174760485
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6121406,
+    "vidskiptakrofur": 14000000,
+    "handbaert": 11545519,
+    "veltufjarmunir": 78195553,
+    "eignir": 84316959,
+    "hlutafe": 500000,
+    "skuldir": 2494589,
+    "efe_skuldir": 84316959,
+    "eigid_fe": 81822370,
+    "skammtimaskuldir": 2494589
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9467,
+    "ebit_hlutfall": 0.0216,
+    "eiginfjarhlutfall": 0.9508,
+    "veltufjarhlutfall": 5.5902,
+    "skuldahlutfall_DE": 0.0517,
+    "eignavelta": 1.8116
+   },
+   "rekstur": {
+    "kostnadarverd": 8543968,
+    "laun": 30738802,
+    "annar_rekstur": 1468476,
+    "ebit": 3460771,
+    "fjarmagnsgjold": -618893,
+    "hagn_f_skatt": 2841878,
+    "tekjuskattur": 568376,
+    "sala": 160234765
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4591054,
+    "vidskiptakrofur": 13240000,
+    "handbaert": 11087690,
+    "veltufjarmunir": 83856702,
+    "eignir": 88447756,
+    "hlutafe": 500000,
+    "skuldir": 4351884,
+    "efe_skuldir": 88447756,
+    "eigid_fe": 84095872,
+    "skammtimaskuldir": 4351884
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6104043320.pdf",
+ "pdfAr": "2024"
+}

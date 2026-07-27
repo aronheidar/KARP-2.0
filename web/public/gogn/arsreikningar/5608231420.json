@@ -1,0 +1,90 @@
+{
+ "kt": "5608231420",
+ "nafn": "JL lausnir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0348,
+    "hagnadarhlutfall": 0.0219,
+    "ROE": 0.5683,
+    "ROA": 0.0488,
+    "eiginfjarhlutfall": 0.0859,
+    "veltufjarhlutfall": 0.9737,
+    "skuldahlutfall_DE": 10.6385,
+    "eignavelta": 2.2294
+   },
+   "rekstur": {
+    "sala": 30053319,
+    "ebit": 1044901,
+    "afskriftir": -230000,
+    "fjarmunatekjur": 12414,
+    "fjarmagnsgjold": -4510,
+    "hagn_f_skatt": 822805,
+    "tekjuskattur": -164561,
+    "hagnadur": 658244
+   },
+   "efnahagur": {
+    "fastafjarmunir": 920000,
+    "birgdir": 1500000,
+    "vidskiptakrofur": 0,
+    "handbaert": 10497526,
+    "veltufjarmunir": 12560257,
+    "eignir": 13480257,
+    "hlutafe": 500000,
+    "eigid_fe": 1158244,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12322013,
+    "skuldir": 12322013,
+    "efe_skuldir": 13480257
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0102,
+    "hagnadarhlutfall": 0.0054,
+    "ROE": 0.4034,
+    "ROA": 0.0838,
+    "eiginfjarhlutfall": 0.2078,
+    "veltufjarhlutfall": 0.3619,
+    "skuldahlutfall_DE": 3.8119,
+    "eignavelta": 15.6459
+   },
+   "rekstur": {
+    "sala": 146168592,
+    "ebit": 1497391,
+    "afskriftir": -392578,
+    "fjarmunatekjur": 38699,
+    "fjarmagnsgjold": -360260,
+    "hagn_f_skatt": 783252,
+    "tekjuskattur": 0,
+    "hagnadur": 783252
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1570312,
+    "birgdir": 1500000,
+    "vidskiptakrofur": 0,
+    "handbaert": 1178559,
+    "veltufjarmunir": 7771992,
+    "eignir": 9342304,
+    "hlutafe": 500000,
+    "eigid_fe": 1941496,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 7400808,
+    "skuldir": 7400808,
+    "efe_skuldir": 9342304
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5608231420.pdf",
+ "pdfAr": "2024"
+}

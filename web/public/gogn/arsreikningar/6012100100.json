@@ -1,0 +1,80 @@
+{
+ "kt": "6012100100",
+ "nafn": "63 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.9302,
+    "veltufjarhlutfall": 0.1416,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10465,
+    "veltufjarmunir": 10465,
+    "eignir": 10465,
+    "hlutafe": 500000,
+    "eigid_fe": -63435,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 73900,
+    "skuldir": 73900,
+    "efe_skuldir": 10465
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.9971,
+    "veltufjarhlutfall": 0.1104,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10465,
+    "veltufjarmunir": 10465,
+    "eignir": 10465,
+    "hlutafe": 500000,
+    "eigid_fe": -84335,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 94800,
+    "skuldir": 94800,
+    "efe_skuldir": 10465
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6012100100.pdf",
+ "pdfAr": "2024"
+}

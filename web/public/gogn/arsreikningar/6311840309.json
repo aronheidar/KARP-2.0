@@ -1,0 +1,72 @@
+{
+ "kt": "6311840309",
+ "nafn": "Haf ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0426,
+    "ROA": 0.0321,
+    "eiginfjarhlutfall": 0.7534,
+    "veltufjarhlutfall": 1.5931,
+    "skuldahlutfall_DE": 0.3273,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "fjarmunatekjur": 2587407,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 4028241,
+    "tekjuskattur": 0,
+    "hagnadur": 4028241
+   },
+   "efnahagur": {
+    "handbaert": 49289565,
+    "eignir": 125463686,
+    "hlutafe": 8000000,
+    "eigid_fe": 94523490,
+    "skuldir": 30940196,
+    "efe_skuldir": 125463686,
+    "skammtimaskuldir": 30940196
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0453,
+    "ROA": -0.0416,
+    "eiginfjarhlutfall": 0.9193,
+    "veltufjarhlutfall": 3.5354,
+    "skuldahlutfall_DE": 0.0878,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "fjarmunatekjur": 2035181,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -4094802,
+    "tekjuskattur": 0,
+    "hagnadur": -4094802
+   },
+   "efnahagur": {
+    "handbaert": 28071890,
+    "eignir": 98368884,
+    "hlutafe": 8000000,
+    "eigid_fe": 90428688,
+    "skuldir": 7940196,
+    "efe_skuldir": 98368884,
+    "skammtimaskuldir": 7940196
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6311840309.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,76 @@
+{
+ "kt": "6502032240",
+ "nafn": "4 Íslands ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0304,
+    "eiginfjarhlutfall": 0.3014,
+    "veltufjarhlutfall": 0.9567,
+    "skuldahlutfall_DE": 2.3175,
+    "eignavelta": 1.9827
+   },
+   "rekstur": {
+    "sala": 622573683,
+    "kostnadarverd": -603617355,
+    "laun": -7399442,
+    "annar_rekstur": -4422305,
+    "fjarmagnsgjold": 9140396,
+    "hagn_f_skatt": 16274977
+   },
+   "efnahagur": {
+    "fastafjarmunir": 81132814,
+    "vidskiptakrofur": 39400550,
+    "handbaert": 170467823,
+    "veltufjarmunir": 232876954,
+    "eignir": 314009768,
+    "hlutafe": 500000,
+    "eigid_fe": 94653592,
+    "skuldir": 219356176,
+    "efe_skuldir": 314009768,
+    "skammtimaskuldir": 219356176
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0208,
+    "eiginfjarhlutfall": 0.4382,
+    "veltufjarhlutfall": 0.9376,
+    "skuldahlutfall_DE": 1.282,
+    "eignavelta": 2.4515
+   },
+   "rekstur": {
+    "sala": 554646463,
+    "kostnadarverd": -543137436,
+    "laun": -7610856,
+    "annar_rekstur": -3936416,
+    "fjarmagnsgjold": 4968788,
+    "hagn_f_skatt": 4930543
+   },
+   "efnahagur": {
+    "fastafjarmunir": 81114721,
+    "vidskiptakrofur": 14547599,
+    "handbaert": 104621833,
+    "veltufjarmunir": 145133736,
+    "eignir": 226248457,
+    "hlutafe": 500000,
+    "eigid_fe": 99145109,
+    "skuldir": 127103348,
+    "efe_skuldir": 226248457,
+    "skammtimaskuldir": 127103348
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6502032240.pdf",
+ "pdfAr": "2025"
+}

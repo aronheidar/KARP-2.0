@@ -1,0 +1,100 @@
+{
+ "kt": "5511050590",
+ "nafn": "FERIA ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.6447,
+    "ebit_hlutfall": -0.1063,
+    "hagnadarhlutfall": 0.0715,
+    "ROE": 0.0372,
+    "ROA": 0.0185,
+    "eiginfjarhlutfall": 0.4983,
+    "veltufjarhlutfall": 5.0492,
+    "skuldahlutfall_DE": 1.0067,
+    "eignavelta": 0.2588
+   },
+   "rekstur": {
+    "adrar_tekjur": 5574,
+    "sala": 218999,
+    "kostnadarverd": 77814,
+    "laun": 97369,
+    "annar_rekstur": 55943,
+    "ebitda": -12127,
+    "afskriftir": -11149,
+    "ebit": -23276,
+    "fjarmunatekjur": 58998,
+    "fjarmagnsgjold": -15789,
+    "hagn_f_skatt": 19933,
+    "tekjuskattur": -4267,
+    "hagnadur": 15666
+   },
+   "efnahagur": {
+    "fastafjarmunir": 35238,
+    "vidskiptakrofur": 182952,
+    "handbaert": 614778,
+    "veltufjarmunir": 810988,
+    "eignir": 846226,
+    "hlutafe": 300000,
+    "eigid_fe": 421693,
+    "langtimaskuldir": 266542,
+    "skammtimaskuldir": 157991,
+    "skuldir": 424533,
+    "efe_skuldir": 846226
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.6525,
+    "ebit_hlutfall": 0.1165,
+    "hagnadarhlutfall": 0.1899,
+    "ROE": 0.1133,
+    "ROA": 0.0617,
+    "eiginfjarhlutfall": 0.5447,
+    "veltufjarhlutfall": 4.8302,
+    "skuldahlutfall_DE": 0.836,
+    "eignavelta": 0.3248
+   },
+   "rekstur": {
+    "adrar_tekjur": 5499,
+    "sala": 256727,
+    "kostnadarverd": 89215,
+    "laun": 91706,
+    "annar_rekstur": 33790,
+    "ebitda": 42016,
+    "afskriftir": -12104,
+    "ebit": 29912,
+    "fjarmunatekjur": 44602,
+    "fjarmagnsgjold": -13566,
+    "hagn_f_skatt": 60948,
+    "tekjuskattur": -12187,
+    "hagnadur": 48761
+   },
+   "efnahagur": {
+    "fastafjarmunir": 32710,
+    "vidskiptakrofur": 126156,
+    "handbaert": 630884,
+    "veltufjarmunir": 757603,
+    "eignir": 790313,
+    "hlutafe": 300000,
+    "eigid_fe": 430454,
+    "langtimaskuldir": 203127,
+    "skammtimaskuldir": 156732,
+    "skuldir": 359859,
+    "efe_skuldir": 790313
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/5511050590.pdf",
+ "pdfAr": "2025"
+}

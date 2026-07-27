@@ -1,0 +1,90 @@
+{
+ "kt": "7105230530",
+ "nafn": "Massamúr ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3147,
+    "hagnadarhlutfall": 0.2141,
+    "ROE": 0.8049,
+    "ROA": 0.417,
+    "eiginfjarhlutfall": 0.5181,
+    "veltufjarhlutfall": 4.3724,
+    "skuldahlutfall_DE": 0.9301,
+    "eignavelta": 1.9479
+   },
+   "rekstur": {
+    "sala": 9634644,
+    "ebit": 3031911,
+    "afskriftir": -400000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -53500,
+    "hagn_f_skatt": 2578411,
+    "tekjuskattur": -515682,
+    "hagnadur": 2062729
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1600000,
+    "birgdir": 0,
+    "vidskiptakrofur": 3191868,
+    "handbaert": 0,
+    "veltufjarmunir": 3346240,
+    "eignir": 4946240,
+    "hlutafe": 500000,
+    "eigid_fe": 2562729,
+    "langtimaskuldir": 1653500,
+    "skammtimaskuldir": 730009,
+    "skuldir": 2383509,
+    "efe_skuldir": 4946238
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2473,
+    "hagnadarhlutfall": 0.1602,
+    "ROE": 0.4085,
+    "ROA": 0.2685,
+    "eiginfjarhlutfall": 0.6573,
+    "veltufjarhlutfall": 4.4328,
+    "skuldahlutfall_DE": 0.5214,
+    "eignavelta": 1.6762
+   },
+   "rekstur": {
+    "sala": 11048614,
+    "ebit": 2732090,
+    "afskriftir": -320000,
+    "fjarmunatekjur": 31431,
+    "fjarmagnsgjold": -197775,
+    "hagn_f_skatt": 2245746,
+    "tekjuskattur": -475996,
+    "hagnadur": 1769750
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1280000,
+    "birgdir": 0,
+    "vidskiptakrofur": 4823936,
+    "handbaert": 480780,
+    "veltufjarmunir": 5311631,
+    "eignir": 6591631,
+    "hlutafe": 500000,
+    "eigid_fe": 4332479,
+    "langtimaskuldir": 1062468,
+    "skammtimaskuldir": 1196683,
+    "skuldir": 2259151,
+    "efe_skuldir": 6591630
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7105230530.pdf",
+ "pdfAr": "2024"
+}

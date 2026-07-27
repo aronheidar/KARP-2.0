@@ -1,0 +1,80 @@
+{
+ "kt": "5406120480",
+ "nafn": "Strontín ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2559,
+    "ROA": 0.1619,
+    "eiginfjarhlutfall": 0.6325,
+    "veltufjarhlutfall": 0.2006,
+    "skuldahlutfall_DE": 0.5812
+   },
+   "rekstur": {
+    "fjarmunatekjur": 898090,
+    "fjarmagnsgjold": -67748951,
+    "adrar_tekjur": 37870000,
+    "laun": -13648231,
+    "annar_rekstur": -22914905,
+    "afskriftir": -12286607,
+    "hagnadur": 434206385
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2627988881,
+    "vidskiptakrofur": 37036403,
+    "handbaert": 17485680,
+    "veltufjarmunir": 54522083,
+    "eignir": 2682510964,
+    "hlutafe": 500000,
+    "eigid_fe": 1696556444,
+    "langtimaskuldir": 714200545,
+    "skammtimaskuldir": 271753975,
+    "skuldir": 985954520,
+    "efe_skuldir": 2682510964
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4998,
+    "ROA": 0.3567,
+    "eiginfjarhlutfall": 0.7137,
+    "veltufjarhlutfall": 0.8367,
+    "skuldahlutfall_DE": 0.4012
+   },
+   "rekstur": {
+    "fjarmunatekjur": 9735000,
+    "fjarmagnsgjold": -173755383,
+    "adrar_tekjur": 20223000,
+    "laun": -8070256,
+    "annar_rekstur": -18776912,
+    "afskriftir": -5948268,
+    "hagnadur": 1723984725
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4636381024,
+    "vidskiptakrofur": 187929132,
+    "handbaert": 8381489,
+    "veltufjarmunir": 196310621,
+    "eignir": 4832691645,
+    "hlutafe": 500000,
+    "eigid_fe": 3449064372,
+    "langtimaskuldir": 1148997404,
+    "skammtimaskuldir": 234629869,
+    "skuldir": 1383627273,
+    "efe_skuldir": 4832691645
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/5406120480.pdf",
+ "pdfAr": "2024"
+}

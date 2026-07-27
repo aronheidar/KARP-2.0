@@ -1,0 +1,76 @@
+{
+ "kt": "6209062040",
+ "nafn": "Snella ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -19463,
+    "hagn_f_skatt": -37363,
+    "tekjuskattur": 0,
+    "hagnadur": -37363
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 450000,
+    "eigid_fe": -4596296,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4596296,
+    "skuldir": 4596296,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18300,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -21739,
+    "hagn_f_skatt": -40039,
+    "tekjuskattur": 0,
+    "hagnadur": -40039
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 450000,
+    "eigid_fe": -4636335,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4636335,
+    "skuldir": 4636335,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6209062040.pdf",
+ "pdfAr": "2021"
+}

@@ -1,0 +1,82 @@
+{
+ "kt": "6303210500",
+ "nafn": "IN OUT CATERING ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1059,
+    "eiginfjarhlutfall": 0.3973,
+    "veltufjarhlutfall": 0.8318,
+    "skuldahlutfall_DE": 1.5168,
+    "eignavelta": 15.0947
+   },
+   "rekstur": {
+    "sala": 18886970,
+    "laun": 9444738,
+    "annar_rekstur": 16620274,
+    "afskriftir": 267417,
+    "ebit": 1999279,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": null,
+    "tekjuskattur": -403896
+   },
+   "efnahagur": {
+    "fastafjarmunir": 623973,
+    "vidskiptakrofur": null,
+    "handbaert": 627257,
+    "veltufjarmunir": 627257,
+    "eignir": 1251230,
+    "hlutafe": 500000,
+    "eigid_fe": 497158,
+    "skuldir": 754072,
+    "efe_skuldir": 1251230,
+    "skammtimaskuldir": 754072
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1097,
+    "eiginfjarhlutfall": 0.3415,
+    "veltufjarhlutfall": 0.4561,
+    "skuldahlutfall_DE": 1.9287,
+    "eignavelta": 3.9954
+   },
+   "rekstur": {
+    "sala": 43457896,
+    "laun": 15,
+    "annar_rekstur": 27501077,
+    "afskriftir": 1745192,
+    "ebit": 4766889,
+    "fjarmunatekjur": 10101676,
+    "fjarmagnsgjold": 11,
+    "hagn_f_skatt": 48685651999279,
+    "tekjuskattur": -1026788
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6668781,
+    "vidskiptakrofur": 310985,
+    "handbaert": 2955692,
+    "veltufjarmunir": 4208104,
+    "eignir": 10876885,
+    "hlutafe": 500000,
+    "eigid_fe": 3713935,
+    "skuldir": 7162950,
+    "efe_skuldir": 10876885,
+    "skammtimaskuldir": 7162950
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6303210500.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "5403121090",
+ "nafn": "Bakkahlíð ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3238,
+    "hagnadarhlutfall": -0.0326,
+    "ROE": -0.0956,
+    "ROA": -0.0196,
+    "eiginfjarhlutfall": 0.2052,
+    "veltufjarhlutfall": 0.0029,
+    "skuldahlutfall_DE": 3.8739,
+    "eignavelta": 0.6011
+   },
+   "rekstur": {
+    "sala": 13736396,
+    "adrar_tekjur": 13736396,
+    "annar_rekstur": 5488025,
+    "afskriftir": 3799878,
+    "ebit": 4448493,
+    "fjarmunatekjur": 2225,
+    "fjarmagnsgjold": -4899086,
+    "hagnadur": -448368
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22799265,
+    "vidskiptakrofur": 0,
+    "handbaert": 52069,
+    "eignir": 22851334,
+    "hlutafe": 1000000,
+    "eigid_fe": 4688506,
+    "skuldir": 18162828,
+    "efe_skuldir": 22851334,
+    "skammtimaskuldir": 18162828
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2112,
+    "hagnadarhlutfall": -0.5307,
+    "ROE": -1.8244,
+    "ROA": -0.1391,
+    "eiginfjarhlutfall": 0.0763,
+    "veltufjarhlutfall": 0.1376,
+    "skuldahlutfall_DE": 12.1133,
+    "eignavelta": 0.2622
+   },
+   "rekstur": {
+    "sala": 5706527,
+    "adrar_tekjur": 4801727,
+    "annar_rekstur": 701574,
+    "afskriftir": 3799878,
+    "ebit": 1205075,
+    "fjarmunatekjur": 4106,
+    "fjarmagnsgjold": -4237686,
+    "hagnadur": -3028505
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18999387,
+    "vidskiptakrofur": 1956346,
+    "handbaert": 811513,
+    "eignir": 21768150,
+    "hlutafe": 1000000,
+    "eigid_fe": 1660001,
+    "skuldir": 20108149,
+    "efe_skuldir": 21768150,
+    "skammtimaskuldir": 20108149
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5403121090.pdf",
+ "pdfAr": "2024"
+}

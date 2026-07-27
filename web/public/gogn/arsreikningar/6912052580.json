@@ -1,0 +1,88 @@
+{
+ "kt": "6912052580",
+ "nafn": "GT Group ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8517,
+    "hagnadarhlutfall": 0.7776,
+    "ROE": 0.0248,
+    "ROA": 0.0192,
+    "eiginfjarhlutfall": 0.7753,
+    "veltufjarhlutfall": 0.0253,
+    "skuldahlutfall_DE": 0.2897,
+    "eignavelta": 0.0247
+   },
+   "rekstur": {
+    "sala": 24182400,
+    "annar_rekstur": 2515994,
+    "afskriftir": 1071000,
+    "ebit": 20595406,
+    "fjarmunatekjur": 10565,
+    "fjarmagnsgjold": -373027,
+    "hagn_f_skatt": 20232944,
+    "tekjuskattur": -1428367,
+    "hagnadur": 18804577
+   },
+   "efnahagur": {
+    "fastafjarmunir": 755004000,
+    "vidskiptakrofur": 5487593,
+    "handbaert": 65886,
+    "veltufjarmunir": 223195762,
+    "eignir": 978199762,
+    "hlutafe": 842875,
+    "eigid_fe": 758442797,
+    "skammtimaskuldir": 219756965,
+    "skuldir": 219756965,
+    "efe_skuldir": 978199762
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8248,
+    "hagnadarhlutfall": 0.5572,
+    "ROE": 0.0148,
+    "ROA": 0.0105,
+    "eiginfjarhlutfall": 0.709,
+    "veltufjarhlutfall": 0.0091,
+    "skuldahlutfall_DE": 0.4105,
+    "eignavelta": 0.0189
+   },
+   "rekstur": {
+    "sala": 20472530,
+    "annar_rekstur": 2516260,
+    "afskriftir": 1071000,
+    "ebit": 16885270,
+    "fjarmunatekjur": 76733,
+    "fjarmagnsgjold": -2517240,
+    "hagn_f_skatt": 14444763,
+    "tekjuskattur": -3037789,
+    "hagnadur": 11406974
+   },
+   "efnahagur": {
+    "fastafjarmunir": 767398738,
+    "vidskiptakrofur": 2711881,
+    "handbaert": 146694,
+    "veltufjarmunir": 316672699,
+    "eignir": 1084071437,
+    "hlutafe": 842875,
+    "eigid_fe": 768559040,
+    "skammtimaskuldir": 315512397,
+    "skuldir": 315512397,
+    "efe_skuldir": 1084071437
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6912052580.pdf",
+ "pdfAr": "2024"
+}

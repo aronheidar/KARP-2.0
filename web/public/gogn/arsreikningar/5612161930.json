@@ -1,0 +1,84 @@
+{
+ "kt": "5612161930",
+ "nafn": "Sér-Fag ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.003,
+    "hagnadarhlutfall": -0.0486,
+    "ROA": -0.2855,
+    "veltufjarhlutfall": 0.0103,
+    "eignavelta": 5.8708
+   },
+   "rekstur": {
+    "sala": 4167903,
+    "ebit": -12705,
+    "afskriftir": -159840,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -30116,
+    "hagn_f_skatt": -202661,
+    "tekjuskattur": 0,
+    "hagnadur": -202661
+   },
+   "efnahagur": {
+    "fastafjarmunir": 639360,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 70580,
+    "veltufjarmunir": 70580,
+    "eignir": 709940,
+    "hlutafe": 500000,
+    "eigid_fe": -6146867,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6856807,
+    "skuldir": 6856807,
+    "efe_skuldir": 709940
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3277,
+    "hagnadarhlutfall": 0.2934,
+    "ROA": 3.3912,
+    "veltufjarhlutfall": 0.0685,
+    "eignavelta": 11.5592
+   },
+   "rekstur": {
+    "sala": 9263394,
+    "ebit": 3035785,
+    "afskriftir": -127872,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -190215,
+    "hagn_f_skatt": 2717698,
+    "tekjuskattur": 0,
+    "hagnadur": 2717698
+   },
+   "efnahagur": {
+    "fastafjarmunir": 511488,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 289900,
+    "veltufjarmunir": 289900,
+    "eignir": 801388,
+    "hlutafe": 500000,
+    "eigid_fe": -3429169,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4230557,
+    "skuldir": 4230557,
+    "efe_skuldir": 801388
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5612161930.pdf",
+ "pdfAr": "2021"
+}

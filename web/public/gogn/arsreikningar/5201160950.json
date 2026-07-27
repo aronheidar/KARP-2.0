@@ -1,0 +1,64 @@
+{
+ "kt": "5201160950",
+ "nafn": "101 Kastrup-Veitingar ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.0219,
+    "eiginfjarhlutfall": -1.1056,
+    "veltufjarhlutfall": 0.0242
+   },
+   "rekstur": {
+    "fjarmunatekjur": 728829,
+    "fjarmagnsgjold": -119393,
+    "hagnadur": 589236
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 742989,
+    "handbaert": 629291,
+    "eignir": 26962186,
+    "hlutafe": 500000,
+    "eigid_fe": -29810254,
+    "skuldir": 56772440,
+    "efe_skuldir": 26962186,
+    "skammtimaskuldir": 56772440
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 66.0285,
+    "ROA": 37.5936,
+    "eiginfjarhlutfall": 0.5694,
+    "veltufjarhlutfall": 2.3088,
+    "skuldahlutfall_DE": 0.7564
+   },
+   "rekstur": {
+    "fjarmunatekjur": 20508,
+    "fjarmagnsgjold": 0,
+    "hagnadur": 29670375
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 784729,
+    "eignir": 789241,
+    "hlutafe": 500000,
+    "eigid_fe": 449357,
+    "skuldir": 339884,
+    "efe_skuldir": 789241,
+    "skammtimaskuldir": 339884
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5201160950.pdf",
+ "pdfAr": "2024"
+}

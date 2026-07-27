@@ -1,0 +1,87 @@
+{
+ "kt": "4303082030",
+ "nafn": "6a Kraftöl ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -110.602,
+    "hagnadarhlutfall": -88.8456,
+    "ROA": -0.2514,
+    "eiginfjarhlutfall": -0.4438,
+    "veltufjarhlutfall": 0.2193,
+    "eignavelta": 0.0028
+   },
+   "rekstur": {
+    "sala": 48649,
+    "kostnadarverd": 641956,
+    "annar_rekstur": 4391868,
+    "afskriftir": 395500,
+    "ebit": -5380675,
+    "fjarmunatekjur": 124325,
+    "fjarmagnsgjold": -141415,
+    "hagn_f_skatt": -5397765,
+    "tekjuskattur": 1075513,
+    "hagnadur": -4322252
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11748582,
+    "birgdir": 1500000,
+    "vidskiptakrofur": 263406,
+    "handbaert": 3680318,
+    "eignir": 17192306,
+    "hlutafe": 500000,
+    "eigid_fe": -7630382,
+    "skuldir": 24822688,
+    "efe_skuldir": 17192306,
+    "skammtimaskuldir": 24822688
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.281,
+    "ebit_hlutfall": -42.3658,
+    "hagnadarhlutfall": -33.7907,
+    "ROA": -0.6458,
+    "eiginfjarhlutfall": -1.0609,
+    "veltufjarhlutfall": 0.1287,
+    "eignavelta": 0.0191
+   },
+   "rekstur": {
+    "sala": 351352,
+    "kostnadarverd": 252625,
+    "annar_rekstur": 13778019,
+    "afskriftir": 1206000,
+    "ebit": -14885292,
+    "fjarmunatekjur": 73988,
+    "fjarmagnsgjold": -24024,
+    "hagn_f_skatt": -14835328,
+    "tekjuskattur": 2962886,
+    "hagnadur": -11872442
+   },
+   "efnahagur": {
+    "fastafjarmunir": 13505468,
+    "birgdir": 1500000,
+    "vidskiptakrofur": 799532,
+    "handbaert": 2577877,
+    "eignir": 18382877,
+    "hlutafe": 500000,
+    "eigid_fe": -19502825,
+    "skuldir": 37885702,
+    "efe_skuldir": 18382877,
+    "skammtimaskuldir": 37885702
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4303082030.pdf",
+ "pdfAr": "2024"
+}

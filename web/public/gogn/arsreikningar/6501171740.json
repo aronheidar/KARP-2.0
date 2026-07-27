@@ -1,0 +1,85 @@
+{
+ "kt": "6501171740",
+ "nafn": "Núpskollur ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0616,
+    "hagnadarhlutfall": -0.0064,
+    "ROA": -0.032,
+    "eiginfjarhlutfall": -0.674,
+    "veltufjarhlutfall": 0.2147,
+    "eignavelta": 5.0274
+   },
+   "rekstur": {
+    "sala": 59313679,
+    "ebit": 3655254,
+    "afskriftir": -2081920,
+    "fjarmunatekjur": 55669,
+    "fjarmagnsgjold": -2007003,
+    "hagn_f_skatt": -378000,
+    "tekjuskattur": 0,
+    "hagnadur": -378000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9127680,
+    "birgdir": 1100000,
+    "vidskiptakrofur": 1085179,
+    "handbaert": 472904,
+    "veltufjarmunir": 2670300,
+    "eignir": 11797980,
+    "hlutafe": 500000,
+    "eigid_fe": -7951599,
+    "langtimaskuldir": 7371263,
+    "skammtimaskuldir": 12378316,
+    "skuldir": 19749579,
+    "efe_skuldir": 11797980
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0679,
+    "hagnadarhlutfall": -0.1132,
+    "ROA": -0.7376,
+    "veltufjarhlutfall": 0.1129,
+    "eignavelta": 6.5173
+   },
+   "rekstur": {
+    "sala": 60895201,
+    "ebit": -4132477,
+    "afskriftir": -1425536,
+    "fjarmunatekjur": 155,
+    "fjarmagnsgjold": -1333882,
+    "hagn_f_skatt": -6891740,
+    "tekjuskattur": 0,
+    "hagnadur": -6891740
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7702144,
+    "birgdir": 1100000,
+    "vidskiptakrofur": 361444,
+    "handbaert": 180083,
+    "veltufjarmunir": 1641547,
+    "eignir": 9343691,
+    "hlutafe": 500000,
+    "eigid_fe": -14843339,
+    "langtimaskuldir": 9645589,
+    "skammtimaskuldir": 14541441,
+    "skuldir": 24187030,
+    "efe_skuldir": 9343691
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6501171740.pdf",
+ "pdfAr": "2021"
+}

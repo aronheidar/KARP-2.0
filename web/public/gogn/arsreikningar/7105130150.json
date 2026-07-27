@@ -1,0 +1,86 @@
+{
+ "kt": "7105130150",
+ "nafn": "Friðrik Friðrik Halldór ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1293,
+    "ROA": -0.1111,
+    "eiginfjarhlutfall": 0.8593,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.1637,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -551124,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -551124,
+    "tekjuskattur": 0,
+    "hagnadur": -551124
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4960116,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 4960116,
+    "hlutafe": 7576800,
+    "eigid_fe": 4262216,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 697900,
+    "skuldir": 697900,
+    "efe_skuldir": 4960116
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1317,
+    "ROA": -0.1111,
+    "eiginfjarhlutfall": 0.8437,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.1853,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -496012,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -496012,
+    "tekjuskattur": 0,
+    "hagnadur": -496012
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4464104,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 4464104,
+    "hlutafe": 7576800,
+    "eigid_fe": 3766204,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 697900,
+    "skuldir": 697900,
+    "efe_skuldir": 4464104
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7105130150.pdf",
+ "pdfAr": "2024"
+}

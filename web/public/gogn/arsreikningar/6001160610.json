@@ -1,0 +1,87 @@
+{
+ "kt": "6001160610",
+ "nafn": "APS Kjarnaborun og Steypu ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2037,
+    "hagnadarhlutfall": 0.1542,
+    "ROE": 0.5594,
+    "ROA": 0.3363,
+    "eiginfjarhlutfall": 0.6012,
+    "veltufjarhlutfall": 1.9108,
+    "skuldahlutfall_DE": 0.6632,
+    "eignavelta": 2.1813
+   },
+   "rekstur": {
+    "sala": 23519782,
+    "ebit": 4792118,
+    "afskriftir": -640000,
+    "fjarmunatekjur": 36806,
+    "fjarmagnsgjold": -562718,
+    "hagn_f_skatt": 3626206,
+    "tekjuskattur": 0,
+    "hagnadur": 3626206
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2560000,
+    "birgdir": 0,
+    "vidskiptakrofur": 7858083,
+    "handbaert": 357769,
+    "veltufjarmunir": 8222396,
+    "eignir": 10782396,
+    "hlutafe": 500000,
+    "eigid_fe": 6482772,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4299624,
+    "skuldir": 4299624,
+    "efe_skuldir": 10782396
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4249,
+    "hagnadarhlutfall": -0.4472,
+    "ROA": -6.6905,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 14.9608
+   },
+   "rekstur": {
+    "sala": 22441241,
+    "ebit": -9535677,
+    "afskriftir": -500000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -10035677,
+    "tekjuskattur": 0,
+    "hagnadur": -10035677
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 1500000,
+    "hlutafe": 500000,
+    "eigid_fe": -3552905,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5052905,
+    "skuldir": 5052905,
+    "efe_skuldir": 1500000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6001160610.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,74 @@
+{
+ "kt": "5410153530",
+ "nafn": "Ægir Brugghús ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9392,
+    "ebit_hlutfall": 0.0359,
+    "hagnadarhlutfall": 0.0051,
+    "ROA": 0.004,
+    "eignavelta": 0.7903
+   },
+   "rekstur": {
+    "sala": 97463800,
+    "adrar_tekjur": 24000000,
+    "laun": 13402171,
+    "kostnadarverd": 5922832,
+    "annar_rekstur": 14404658,
+    "ebitda": 8741314,
+    "afskriftir": -5243404,
+    "ebit": 3497910,
+    "fjarmunatekjur": 147615,
+    "fjarmagnsgjold": -3152034,
+    "hagnadur": 493491
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6989830,
+    "handbaert": 2095,
+    "veltufjarmunir": 26120304,
+    "eignir": 123332474
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9451,
+    "ebit_hlutfall": -0.0944,
+    "hagnadarhlutfall": -0.1383,
+    "ROA": -0.1176,
+    "eignavelta": 0.8501
+   },
+   "rekstur": {
+    "sala": 100985252,
+    "adrar_tekjur": 0,
+    "laun": 16013937,
+    "kostnadarverd": 5540070,
+    "annar_rekstur": 16253550,
+    "ebitda": -3828611,
+    "afskriftir": -5700174,
+    "ebit": -9528785,
+    "fjarmunatekjur": 52520,
+    "fjarmagnsgjold": -4489658,
+    "hagnadur": -13965923
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 460611,
+    "handbaert": 220928,
+    "veltufjarmunir": 24768172,
+    "eignir": 118797260
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5410153530.pdf",
+ "pdfAr": "2024"
+}

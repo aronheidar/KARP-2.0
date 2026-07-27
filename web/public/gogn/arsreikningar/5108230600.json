@@ -1,0 +1,76 @@
+{
+ "kt": "5108230600",
+ "nafn": "1013 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0407,
+    "eiginfjarhlutfall": -0.0158,
+    "veltufjarhlutfall": 0.0014,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "adrar_tekjur": 0,
+    "annar_rekstur": 0,
+    "afskriftir": 0,
+    "ebit": -806970,
+    "fjarmunatekjur": 283,
+    "fjarmagnsgjold": -10636,
+    "hagnadur": -817323
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 27253,
+    "handbaert": 1110,
+    "eignir": 20076877,
+    "hlutafe": 500000,
+    "eigid_fe": -317323,
+    "skuldir": 20394200,
+    "efe_skuldir": 20076877,
+    "skammtimaskuldir": 20394200
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -17.907,
+    "hagnadarhlutfall": -19.4667,
+    "ROA": -0.1573,
+    "eiginfjarhlutfall": -0.1691,
+    "veltufjarhlutfall": 0.011,
+    "eignavelta": 0.0081
+   },
+   "rekstur": {
+    "sala": 217499,
+    "adrar_tekjur": 708622,
+    "annar_rekstur": -74250,
+    "afskriftir": -1869118,
+    "ebit": -3894759,
+    "fjarmunatekjur": 2731,
+    "fjarmagnsgjold": -341950,
+    "hagnadur": -4233978
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 269784,
+    "handbaert": 77516,
+    "eignir": 26908099,
+    "hlutafe": 500000,
+    "eigid_fe": -4551301,
+    "skuldir": 31459400,
+    "efe_skuldir": 26908099,
+    "skammtimaskuldir": 31459400
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5108230600.pdf",
+ "pdfAr": "2024"
+}

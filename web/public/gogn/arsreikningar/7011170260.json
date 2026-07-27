@@ -1,0 +1,86 @@
+{
+ "kt": "7011170260",
+ "nafn": "Blue Island entertainment ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.5063,
+    "ROA": -0.0249,
+    "eiginfjarhlutfall": 0.0492,
+    "veltufjarhlutfall": 0.0001,
+    "skuldahlutfall_DE": 19.305,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -72406,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -72406,
+    "tekjuskattur": 0,
+    "hagnadur": -72406
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 194,
+    "veltufjarmunir": 2903761,
+    "eignir": 2903761,
+    "hlutafe": 500000,
+    "eigid_fe": 143007,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2760752,
+    "skuldir": 2760752,
+    "efe_skuldir": 2903759
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1712,
+    "ROA": -0.0072,
+    "eiginfjarhlutfall": 0.0424,
+    "veltufjarhlutfall": 0.0001,
+    "skuldahlutfall_DE": 22.6093,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20901,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 194,
+    "veltufjarmunir": 2882860,
+    "eignir": 2882860,
+    "hlutafe": 500000,
+    "eigid_fe": 122107,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2760752,
+    "skuldir": 2760752,
+    "efe_skuldir": 2882859
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7011170260.pdf",
+ "pdfAr": "2024"
+}

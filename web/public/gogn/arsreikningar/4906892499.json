@@ -1,0 +1,100 @@
+{
+ "kt": "4906892499",
+ "nafn": "Danco - Daníel Pétursson ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4627,
+    "ebit_hlutfall": 0.0652,
+    "hagnadarhlutfall": 0.0554,
+    "ROE": 0.2831,
+    "ROA": 0.1752,
+    "eiginfjarhlutfall": 0.6191,
+    "veltufjarhlutfall": 2.2634,
+    "skuldahlutfall_DE": 0.6152,
+    "eignavelta": 3.1619
+   },
+   "rekstur": {
+    "sala": 457196331,
+    "adrar_tekjur": 21046083,
+    "kostnadarverd": 245646890,
+    "laun": 107678530,
+    "annar_rekstur": 28464466,
+    "afskriftir": 2543625,
+    "ebit": 29829861,
+    "fjarmunatekjur": 3440440,
+    "fjarmagnsgjold": -1299032,
+    "hagn_f_skatt": 31971269,
+    "tekjuskattur": -6631905,
+    "hagnadur": 25339364
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11071747,
+    "birgdir": 25570173,
+    "vidskiptakrofur": 42012894,
+    "handbaert": 55776198,
+    "veltufjarmunir": 133523112,
+    "eignir": 144594859,
+    "hlutafe": 7750000,
+    "eigid_fe": 89518740,
+    "langtimaskuldir": 573780,
+    "skuldir": 55076119,
+    "efe_skuldir": 144594859,
+    "skammtimaskuldir": 54502339
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4514,
+    "ebit_hlutfall": 0.0484,
+    "hagnadarhlutfall": 0.0445,
+    "ROE": 0.2716,
+    "ROA": 0.1486,
+    "eiginfjarhlutfall": 0.5472,
+    "veltufjarhlutfall": 1.9402,
+    "skuldahlutfall_DE": 0.8275,
+    "eignavelta": 3.3364
+   },
+   "rekstur": {
+    "sala": 498214472,
+    "adrar_tekjur": 50491891,
+    "kostnadarverd": 273296696,
+    "laun": 113922404,
+    "annar_rekstur": 31125667,
+    "afskriftir": 2024642,
+    "ebit": 24109086,
+    "fjarmunatekjur": 4935889,
+    "fjarmagnsgjold": -1040351,
+    "hagn_f_skatt": 28004624,
+    "tekjuskattur": -5811885,
+    "hagnadur": 22192739
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8995815,
+    "birgdir": 25936121,
+    "vidskiptakrofur": 49010630,
+    "handbaert": 54892456,
+    "veltufjarmunir": 140332435,
+    "eignir": 149328250,
+    "hlutafe": 7750000,
+    "eigid_fe": 81711487,
+    "langtimaskuldir": 695989,
+    "skuldir": 67616763,
+    "efe_skuldir": 149328250,
+    "skammtimaskuldir": 66920774
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4906892499.pdf",
+ "pdfAr": "2024"
+}

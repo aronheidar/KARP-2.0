@@ -1,0 +1,88 @@
+{
+ "kt": "4203690429",
+ "nafn": "Thorfish ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1695,
+    "ebit_hlutfall": 0.1167,
+    "hagnadarhlutfall": 0.0237,
+    "ROE": 0.098,
+    "ROA": 0.0603,
+    "eiginfjarhlutfall": 0.6154,
+    "veltufjarhlutfall": 2.0827,
+    "skuldahlutfall_DE": 0.625,
+    "eignavelta": 2.5402
+   },
+   "rekstur": {
+    "sala": 33671840,
+    "kostnadarverd": -27963638,
+    "annar_rekstur": -1779520,
+    "ebit": 3928682,
+    "fjarmunatekjur": 257965,
+    "fjarmagnsgjold": -3458505,
+    "hagn_f_skatt": 993451,
+    "tekjuskattur": -193757,
+    "hagnadur": 799694
+   },
+   "efnahagur": {
+    "birgdir": 445073,
+    "vidskiptakrofur": 3273521,
+    "handbaert": 6900224,
+    "eignir": 13255600,
+    "hlutafe": 122098,
+    "eigid_fe": 8157050,
+    "skuldir": 5098550,
+    "efe_skuldir": 13255600,
+    "skammtimaskuldir": 5098550
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2392,
+    "ebit_hlutfall": -1.2317,
+    "hagnadarhlutfall": -2.9602,
+    "ROE": -2.9629,
+    "ROA": -1.4508,
+    "eiginfjarhlutfall": 0.4897,
+    "veltufjarhlutfall": 1.5943,
+    "skuldahlutfall_DE": 1.0422,
+    "eignavelta": 0.4901
+   },
+   "rekstur": {
+    "sala": 702483,
+    "kostnadarverd": -534478,
+    "annar_rekstur": -1033260,
+    "ebit": -865255,
+    "fjarmunatekjur": 317748,
+    "fjarmagnsgjold": -3154,
+    "hagn_f_skatt": -583674,
+    "tekjuskattur": 279903,
+    "hagnadur": -2079510
+   },
+   "efnahagur": {
+    "birgdir": 0,
+    "vidskiptakrofur": 237444,
+    "handbaert": 928834,
+    "eignir": 1433370,
+    "hlutafe": 122098,
+    "eigid_fe": 701859,
+    "skuldir": 731511,
+    "efe_skuldir": 1433370,
+    "skammtimaskuldir": 731511
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4203690429.pdf",
+ "pdfAr": "2025"
+}

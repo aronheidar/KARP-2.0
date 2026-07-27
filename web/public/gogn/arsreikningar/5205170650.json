@@ -1,0 +1,86 @@
+{
+ "kt": "5205170650",
+ "nafn": "3AM ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1266,
+    "ebit_hlutfall": 0.1012,
+    "hagnadarhlutfall": 0.0796,
+    "ROA": 0.129,
+    "eiginfjarhlutfall": -0.0398,
+    "veltufjarhlutfall": 0.1586,
+    "eignavelta": 1.621
+   },
+   "rekstur": {
+    "sala": 89270146,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 77972205,
+    "annar_rekstur": 1729947,
+    "afskriftir": 534625,
+    "ebit": 9033369,
+    "fjarmunatekjur": 2480,
+    "fjarmagnsgjold": -1986210,
+    "hagnadur": 7103807
+   },
+   "efnahagur": {
+    "fastafjarmunir": 992875,
+    "vidskiptakrofur": 8917977,
+    "veltufjarmunir": 54076473,
+    "eignir": 55069348,
+    "hlutafe": 500000,
+    "eigid_fe": -2189231,
+    "langtimaskuldir": 1016111,
+    "skammtimaskuldir": 56242468,
+    "skuldir": 57258579,
+    "efe_skuldir": 55069348
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0597,
+    "ebit_hlutfall": 0.0216,
+    "hagnadarhlutfall": 0.0088,
+    "ROA": 0.0134,
+    "eiginfjarhlutfall": -0.0202,
+    "veltufjarhlutfall": 0.3644,
+    "eignavelta": 1.5188
+   },
+   "rekstur": {
+    "sala": 99073209,
+    "adrar_tekjur": 1060660,
+    "kostnadarverd": 93153880,
+    "annar_rekstur": 3432860,
+    "afskriftir": 347524,
+    "ebit": 2138945,
+    "fjarmunatekjur": 50332,
+    "fjarmagnsgjold": -1318083,
+    "hagnadur": 871194
+   },
+   "efnahagur": {
+    "fastafjarmunir": 645351,
+    "vidskiptakrofur": 24029568,
+    "veltufjarmunir": 64585862,
+    "eignir": 65231213,
+    "hlutafe": 500000,
+    "eigid_fe": -1318037,
+    "langtimaskuldir": 601330,
+    "skammtimaskuldir": 65947920,
+    "skuldir": 66549250,
+    "efe_skuldir": 65231213
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5205170650.pdf",
+ "pdfAr": "2024"
+}

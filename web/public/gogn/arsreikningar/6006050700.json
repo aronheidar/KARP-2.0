@@ -1,0 +1,82 @@
+{
+ "kt": "6006050700",
+ "nafn": "14. júní ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0001,
+    "ROA": -0.0001,
+    "eiginfjarhlutfall": 0.7483,
+    "veltufjarhlutfall": 0.0012,
+    "skuldahlutfall_DE": 0.3363
+   },
+   "rekstur": {
+    "kostnadarverd": -11260001,
+    "adrar_tekjur": 7028460,
+    "annar_rekstur": -1897944,
+    "ebit": 67872590,
+    "matsbreyting": -67221861,
+    "fjarmunatekjur": 4091,
+    "hagn_f_skatt": 654820,
+    "tekjuskattur": -701620,
+    "hagnadur": -46800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 890420721,
+    "vidskiptakrofur": 383,
+    "handbaert": 124661,
+    "veltufjarmunir": 33587638,
+    "eignir": 924008359,
+    "hlutafe": 28000000,
+    "eigid_fe": 691470423,
+    "skammtimaskuldir": 102453791,
+    "skuldir": 232537936,
+    "efe_skuldir": 924008359
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0552,
+    "ROA": 0.0437,
+    "eiginfjarhlutfall": 0.7924,
+    "veltufjarhlutfall": 0.0028,
+    "skuldahlutfall_DE": 0.262
+   },
+   "rekstur": {
+    "kostnadarverd": -22582916,
+    "adrar_tekjur": 7028460,
+    "annar_rekstur": -1670664,
+    "ebit": 59883897,
+    "matsbreyting": -9415460,
+    "fjarmunatekjur": 302,
+    "hagn_f_skatt": 50468739,
+    "tekjuskattur": -10098028,
+    "hagnadur": 40370711
+   },
+   "efnahagur": {
+    "fastafjarmunir": 881005262,
+    "vidskiptakrofur": 66,
+    "handbaert": 168775,
+    "veltufjarmunir": 42551287,
+    "eignir": 923556549,
+    "hlutafe": 28000000,
+    "eigid_fe": 731841134,
+    "skammtimaskuldir": 61264362,
+    "skuldir": 191715415,
+    "efe_skuldir": 923556549
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6006050700.pdf",
+ "pdfAr": "2025"
+}

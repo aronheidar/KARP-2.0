@@ -1,0 +1,85 @@
+{
+ "kt": "6203210600",
+ "nafn": "Woffy Bites ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.355,
+    "ROA": -0.355,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -131000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -131000,
+    "tekjuskattur": 0,
+    "hagnadur": -131000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 369000,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 369000,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0537,
+    "ROA": -0.0509,
+    "eiginfjarhlutfall": 0.9491,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0537,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18800,
+    "tekjuskattur": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 350200,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 18800,
+    "skuldir": 18800,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6203210600.pdf",
+ "pdfAr": "2022"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "6411230210",
+ "nafn": "55105 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9079,
+    "ROA": 0.0171,
+    "eiginfjarhlutfall": 0.0189,
+    "veltufjarhlutfall": 0.0002,
+    "skuldahlutfall_DE": 51.9833,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -177767,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2568,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 3545747,
+    "tekjuskattur": 0,
+    "hagnadur": 3545747
+   },
+   "efnahagur": {
+    "fastafjarmunir": 206866977,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 45182,
+    "veltufjarmunir": 45747,
+    "eignir": 206912724,
+    "hlutafe": 500000,
+    "eigid_fe": 3905247,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 203007477,
+    "skuldir": 203007477,
+    "efe_skuldir": 206912724
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3657,
+    "hagnadarhlutfall": 1.888,
+    "ROE": 0.4585,
+    "ROA": 0.015,
+    "eiginfjarhlutfall": 0.0327,
+    "veltufjarhlutfall": 0.0007,
+    "skuldahlutfall_DE": 29.5512,
+    "eignavelta": 0.0079
+   },
+   "rekstur": {
+    "sala": 1751200,
+    "ebit": 640433,
+    "afskriftir": 0,
+    "fjarmunatekjur": 12033,
+    "fjarmagnsgjold": -2095,
+    "hagn_f_skatt": 3381731,
+    "tekjuskattur": -75394,
+    "hagnadur": 3306337
+   },
+   "efnahagur": {
+    "fastafjarmunir": 216866977,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 159135,
+    "veltufjarmunir": 3455782,
+    "eignir": 220322759,
+    "hlutafe": 500000,
+    "eigid_fe": 7211584,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 213111175,
+    "skuldir": 213111175,
+    "efe_skuldir": 220322759
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6411230210.pdf",
+ "pdfAr": "2025"
+}

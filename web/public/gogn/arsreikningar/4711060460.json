@@ -1,0 +1,84 @@
+{
+ "kt": "4711060460",
+ "nafn": "Malis ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0008,
+    "ROA": -0.0008,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -17500,
+    "tekjuskattur": 0,
+    "hagnadur": -17500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8585000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 12054072,
+    "veltufjarmunir": 12054072,
+    "eignir": 20639072,
+    "hlutafe": 500000,
+    "eigid_fe": 20639072,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 20639072
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0009,
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -17900,
+    "tekjuskattur": 0,
+    "hagnadur": -17900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8585000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 12036172,
+    "veltufjarmunir": 12036172,
+    "eignir": 20621172,
+    "hlutafe": 500000,
+    "eigid_fe": 20621172,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 20621172
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4711060460.pdf",
+ "pdfAr": "2020"
+}

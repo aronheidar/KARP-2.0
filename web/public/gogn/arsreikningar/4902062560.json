@@ -1,0 +1,72 @@
+{
+ "kt": "4902062560",
+ "nafn": "2020 ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1036,
+    "ROA": -0.0801,
+    "eiginfjarhlutfall": 0.7735,
+    "veltufjarhlutfall": 0.0786,
+    "skuldahlutfall_DE": 0.2929
+   },
+   "rekstur": {
+    "fjarmunatekjur": 77261,
+    "fjarmagnsgjold": -8965578,
+    "annar_rekstur": -1063215,
+    "afskriftir": -220000,
+    "tekjuskattur": 0,
+    "hagnadur": -10171532
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 16997,
+    "handbaert": 2242283,
+    "eignir": 126931594,
+    "hlutafe": 500000,
+    "eigid_fe": 98175324,
+    "skuldir": 28756270,
+    "efe_skuldir": 126931594,
+    "skammtimaskuldir": 28756270
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.007,
+    "ROA": 0.0056,
+    "eiginfjarhlutfall": 0.7944,
+    "veltufjarhlutfall": 0.1067,
+    "skuldahlutfall_DE": 0.2588
+   },
+   "rekstur": {
+    "fjarmunatekjur": 8161038,
+    "fjarmagnsgjold": -5767456,
+    "annar_rekstur": -173617,
+    "afskriftir": -220000,
+    "tekjuskattur": 0,
+    "hagnadur": 696909
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 50848,
+    "handbaert": 2679407,
+    "eignir": 124461009,
+    "hlutafe": 500000,
+    "eigid_fe": 98872233,
+    "skuldir": 25588776,
+    "efe_skuldir": 124461009,
+    "skammtimaskuldir": 25588776
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4902062560.pdf",
+ "pdfAr": "2024"
+}

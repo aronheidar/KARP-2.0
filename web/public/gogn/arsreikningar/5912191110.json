@@ -1,0 +1,85 @@
+{
+ "kt": "5912191110",
+ "nafn": "Explore Iceland now ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0003,
+    "hagnadarhlutfall": -0.0901,
+    "ROA": -0.672,
+    "veltufjarhlutfall": 0.0485,
+    "eignavelta": 7.4627
+   },
+   "rekstur": {
+    "sala": 47863865,
+    "ebit": 13458,
+    "afskriftir": -1336154,
+    "fjarmunatekjur": 38100,
+    "fjarmagnsgjold": -311887,
+    "hagn_f_skatt": -4310196,
+    "tekjuskattur": 0,
+    "hagnadur": -4310196
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5232531,
+    "birgdir": 0,
+    "vidskiptakrofur": 1181222,
+    "handbaert": 0,
+    "veltufjarmunir": 1181222,
+    "eignir": 6413753,
+    "hlutafe": 1200000,
+    "eigid_fe": -17960444,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 24374197,
+    "skuldir": 24374197,
+    "efe_skuldir": 6413753
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2327,
+    "hagnadarhlutfall": 0.182,
+    "ROA": 0.4895,
+    "eiginfjarhlutfall": -0.0337,
+    "veltufjarhlutfall": 0.3924,
+    "eignavelta": 2.6893
+   },
+   "rekstur": {
+    "sala": 69458759,
+    "ebit": 16163943,
+    "afskriftir": -3561441,
+    "fjarmunatekjur": 246397,
+    "fjarmagnsgjold": -207212,
+    "hagn_f_skatt": 12641687,
+    "tekjuskattur": 0,
+    "hagnadur": 12641687
+   },
+   "efnahagur": {
+    "fastafjarmunir": 14933852,
+    "birgdir": 0,
+    "vidskiptakrofur": 2807877,
+    "handbaert": 6268808,
+    "veltufjarmunir": 10894354,
+    "eignir": 25828206,
+    "hlutafe": 1200000,
+    "eigid_fe": -871431,
+    "langtimaskuldir": 3568874,
+    "skammtimaskuldir": 23130763,
+    "skuldir": 26699637,
+    "efe_skuldir": 25828206
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5912191110.pdf",
+ "pdfAr": "2024"
+}

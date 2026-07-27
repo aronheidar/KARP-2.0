@@ -1,0 +1,98 @@
+{
+ "kt": "5001023060",
+ "nafn": "Adesso ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.757,
+    "ebit_hlutfall": 0.1513,
+    "hagnadarhlutfall": 0.1096,
+    "ROE": 0.2882,
+    "ROA": 0.1101,
+    "eiginfjarhlutfall": 0.3819,
+    "veltufjarhlutfall": 2.4082,
+    "skuldahlutfall_DE": 1.6186,
+    "eignavelta": 1.0041
+   },
+   "rekstur": {
+    "sala": 76190718,
+    "adrar_tekjur": 6614596,
+    "kostnadarverd": 18511375,
+    "laun": 33345111,
+    "annar_rekstur": 6702449,
+    "ebit": 11526806,
+    "afskriftir": 1909000,
+    "fjarmunatekjur": 31887,
+    "fjarmagnsgjold": -2898499,
+    "hagn_f_skatt": 10465194,
+    "tekjuskattur": -2093039,
+    "hagnadur": 8351955
+   },
+   "efnahagur": {
+    "birgdir": 700000,
+    "vidskiptakrofur": 1979053,
+    "handbaert": 22817626,
+    "veltufjarmunir": 31659670,
+    "eignir": 75881018,
+    "hlutafe": 25000000,
+    "eigid_fe": 28978241,
+    "langtimaskuldir": 36315442,
+    "skammtimaskuldir": 10587335,
+    "skuldir": 46902777,
+    "efe_skuldir": 75881018
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7551,
+    "ebit_hlutfall": 0.1321,
+    "hagnadarhlutfall": 0.062,
+    "ROE": 0.1631,
+    "ROA": 0.0745,
+    "eiginfjarhlutfall": 0.4568,
+    "veltufjarhlutfall": 1.3502,
+    "skuldahlutfall_DE": 1.1893,
+    "eignavelta": 1.201
+   },
+   "rekstur": {
+    "sala": 91043368,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 22292908,
+    "laun": 35054017,
+    "annar_rekstur": 5690823,
+    "ebit": 12029877,
+    "afskriftir": 1400000,
+    "fjarmunatekjur": 31758,
+    "fjarmagnsgjold": -3046076,
+    "hagn_f_skatt": 7084559,
+    "tekjuskattur": -1416912,
+    "hagnadur": 5646747
+   },
+   "efnahagur": {
+    "birgdir": 700000,
+    "vidskiptakrofur": 11064822,
+    "handbaert": 21945362,
+    "veltufjarmunir": 58995971,
+    "eignir": 75804281,
+    "hlutafe": 25000000,
+    "eigid_fe": 34624988,
+    "langtimaskuldir": 16212018,
+    "skammtimaskuldir": 24967275,
+    "skuldir": 41179293,
+    "efe_skuldir": 75804281
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5001023060.pdf",
+ "pdfAr": "2023"
+}

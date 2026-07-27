@@ -1,0 +1,87 @@
+{
+ "kt": "6809221010",
+ "nafn": "225 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.8836,
+    "ROA": -0.7888,
+    "eiginfjarhlutfall": 0.8927,
+    "veltufjarhlutfall": 9.2388,
+    "skuldahlutfall_DE": 0.1202,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -143829,
+    "afskriftir": 0,
+    "fjarmunatekjur": 7909,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -157320,
+    "tekjuskattur": 0,
+    "hagnadur": -157320
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 197710,
+    "veltufjarmunir": 199450,
+    "eignir": 199450,
+    "hlutafe": 500000,
+    "eigid_fe": 178050,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 21400,
+    "skuldir": 21400,
+    "efe_skuldir": 199450
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0803,
+    "hagnadarhlutfall": 0.0803,
+    "ROE": 0.036,
+    "ROA": 0.036,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0.4484
+   },
+   "rekstur": {
+    "sala": 82822,
+    "ebit": 6653,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 6653,
+    "tekjuskattur": 0,
+    "hagnadur": 6653
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 110130,
+    "veltufjarmunir": 184703,
+    "eignir": 184703,
+    "hlutafe": 500000,
+    "eigid_fe": 184703,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 184703
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6809221010.pdf",
+ "pdfAr": "2025"
+}

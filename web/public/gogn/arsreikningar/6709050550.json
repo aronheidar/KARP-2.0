@@ -1,0 +1,84 @@
+{
+ "kt": "6709050550",
+ "nafn": "Kísildalur ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2702,
+    "hagnadarhlutfall": 0.0761,
+    "ROE": 0.2602,
+    "ROA": 0.2122,
+    "eiginfjarhlutfall": 0.8156,
+    "veltufjarhlutfall": 14.4255,
+    "skuldahlutfall_DE": 0.2262,
+    "eignavelta": 2.7876
+   },
+   "rekstur": {
+    "sala": 442578393,
+    "kostnadarverd": 322982971,
+    "laun": 63913734,
+    "annar_rekstur": 18115197,
+    "fjarmunatekjur": 4473640,
+    "fjarmagnsgjold": -56654,
+    "tekjuskattur": 8305711,
+    "hagnadur": 33688011
+   },
+   "efnahagur": {
+    "birgdir": 79733602,
+    "vidskiptakrofur": 8446321,
+    "handbaert": 70339318,
+    "eignir": 158769241,
+    "hlutafe": 2700000,
+    "eigid_fe": 129484530,
+    "skammtimaskuldir": 10988825,
+    "skuldir": 29284711,
+    "efe_skuldir": 158769241
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.296,
+    "hagnadarhlutfall": 0.07,
+    "ROE": 0.201,
+    "ROA": 0.1639,
+    "eiginfjarhlutfall": 0.8156,
+    "veltufjarhlutfall": 17.1803,
+    "skuldahlutfall_DE": 0.2261,
+    "eignavelta": 2.3431
+   },
+   "rekstur": {
+    "sala": 465599484,
+    "kostnadarverd": 327766564,
+    "laun": 77884074,
+    "annar_rekstur": 24752768,
+    "fjarmunatekjur": 5893769,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 8528768,
+    "hagnadur": 32574954
+   },
+   "efnahagur": {
+    "birgdir": 89544398,
+    "vidskiptakrofur": 17474053,
+    "handbaert": 91439900,
+    "eignir": 198708351,
+    "hlutafe": 2700000,
+    "eigid_fe": 162059484,
+    "skammtimaskuldir": 11551479,
+    "skuldir": 36648867,
+    "efe_skuldir": 198708351
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6709050550.pdf",
+ "pdfAr": "2024"
+}

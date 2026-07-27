@@ -1,0 +1,90 @@
+{
+ "kt": "6712171280",
+ "nafn": "101 Bistro ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.752,
+    "ebit_hlutfall": 0.0589,
+    "hagnadarhlutfall": 0.0496,
+    "ROA": 0.1383,
+    "eiginfjarhlutfall": -0.1636,
+    "veltufjarhlutfall": 0.8606,
+    "eignavelta": 2.7902
+   },
+   "rekstur": {
+    "sala": 230222824,
+    "kostnadarverd": 57105593,
+    "laun": 92124473,
+    "annar_rekstur": 4054040,
+    "afskriftir": 24032528,
+    "ebit": 13568505,
+    "fjarmunatekjur": 558698,
+    "fjarmagnsgjold": -2714028,
+    "hagn_f_skatt": 11413175,
+    "tekjuskattur": 0,
+    "hagnadur": 11413175
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2406549,
+    "handbaert": 4684123,
+    "eignir": 82510310,
+    "hlutafe": 500000,
+    "eigid_fe": -13500314,
+    "langtimaskuldir": 87771374,
+    "skuldir": 96010624,
+    "efe_skuldir": 82510310,
+    "skammtimaskuldir": 8239250
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7579,
+    "ebit_hlutfall": 0.092,
+    "hagnadarhlutfall": 0.0746,
+    "ROE": 4.9649,
+    "ROA": 0.239,
+    "eiginfjarhlutfall": 0.0481,
+    "veltufjarhlutfall": 1.2177,
+    "skuldahlutfall_DE": 19.7743,
+    "eignavelta": 3.2028
+   },
+   "rekstur": {
+    "sala": 226550454,
+    "kostnadarverd": 54858457,
+    "laun": 89708575,
+    "annar_rekstur": 5048999,
+    "afskriftir": 19483881,
+    "ebit": 20833912,
+    "fjarmunatekjur": 310766,
+    "fjarmagnsgjold": -3996770,
+    "hagn_f_skatt": 17147908,
+    "tekjuskattur": -242676,
+    "hagnadur": 16905232
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 457108,
+    "handbaert": 10769198,
+    "eignir": 70734761,
+    "hlutafe": 500000,
+    "eigid_fe": 3404918,
+    "langtimaskuldir": 58110699,
+    "skuldir": 67329841,
+    "efe_skuldir": 70734759,
+    "skammtimaskuldir": 9219142
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/6712171280.pdf",
+ "pdfAr": "2024"
+}

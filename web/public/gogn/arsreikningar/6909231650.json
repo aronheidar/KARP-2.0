@@ -1,0 +1,84 @@
+{
+ "kt": "6909231650",
+ "nafn": "360° smíði ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0925,
+    "hagnadarhlutfall": -0.1077,
+    "ROA": -2.2765,
+    "veltufjarhlutfall": 0.0778,
+    "eignavelta": 21.1401
+   },
+   "rekstur": {
+    "sala": 24016011,
+    "ebit": -2222576,
+    "afskriftir": -296371,
+    "fjarmunatekjur": 17636,
+    "fjarmagnsgjold": -84885,
+    "hagn_f_skatt": -2586196,
+    "tekjuskattur": 0,
+    "hagnadur": -2586196
+   },
+   "efnahagur": {
+    "fastafjarmunir": 691532,
+    "birgdir": 0,
+    "vidskiptakrofur": 352541,
+    "handbaert": 8091,
+    "veltufjarmunir": 444510,
+    "eignir": 1136042,
+    "hlutafe": 500000,
+    "eigid_fe": -3500500,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4636542,
+    "skuldir": 4636542,
+    "efe_skuldir": 1136042
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0178,
+    "hagnadarhlutfall": -0.0189,
+    "ROA": -0.693,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 36.7234
+   },
+   "rekstur": {
+    "sala": 17803694,
+    "ebit": 317769,
+    "afskriftir": -207460,
+    "fjarmunatekjur": 644,
+    "fjarmagnsgjold": -446909,
+    "hagn_f_skatt": -335956,
+    "tekjuskattur": 0,
+    "hagnadur": -335956
+   },
+   "efnahagur": {
+    "fastafjarmunir": 484072,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 592,
+    "veltufjarmunir": 733,
+    "eignir": 484805,
+    "hlutafe": 500000,
+    "eigid_fe": -3836456,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4321261,
+    "skuldir": 4321261,
+    "efe_skuldir": 484805
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6909231650.pdf",
+ "pdfAr": "2025"
+}

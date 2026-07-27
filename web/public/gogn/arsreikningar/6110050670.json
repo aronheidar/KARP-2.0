@@ -1,0 +1,90 @@
+{
+ "kt": "6110050670",
+ "nafn": "Felgan ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7311,
+    "hagnadarhlutfall": 0.5857,
+    "ROE": 4.4267,
+    "ROA": 0.1028,
+    "eiginfjarhlutfall": 0.0232,
+    "veltufjarhlutfall": 0.3667,
+    "skuldahlutfall_DE": 42.0507,
+    "eignavelta": 0.1756
+   },
+   "rekstur": {
+    "sala": 2780165,
+    "ebit": 2032473,
+    "afskriftir": -458989,
+    "fjarmunatekjur": 289205,
+    "fjarmagnsgjold": -51247,
+    "hagn_f_skatt": 1811442,
+    "tekjuskattur": -183117,
+    "hagnadur": 1628325
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10230608,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5605149,
+    "veltufjarmunir": 5605149,
+    "eignir": 15835757,
+    "hlutafe": 800000,
+    "eigid_fe": 367840,
+    "langtimaskuldir": 183117,
+    "skammtimaskuldir": 15284800,
+    "skuldir": 15467917,
+    "efe_skuldir": 15835757
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6791,
+    "hagnadarhlutfall": 0.6582,
+    "ROE": 0.841,
+    "ROA": 0.1092,
+    "eiginfjarhlutfall": 0.1298,
+    "veltufjarhlutfall": 0.5188,
+    "skuldahlutfall_DE": 6.7025,
+    "eignavelta": 0.1659
+   },
+   "rekstur": {
+    "sala": 2957147,
+    "ebit": 2008200,
+    "afskriftir": -453469,
+    "fjarmunatekjur": 498169,
+    "fjarmagnsgjold": -106589,
+    "hagn_f_skatt": 1946311,
+    "tekjuskattur": 0,
+    "hagnadur": 1946311
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9777139,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8047644,
+    "veltufjarmunir": 8047644,
+    "eignir": 17824783,
+    "hlutafe": 800000,
+    "eigid_fe": 2314151,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 15510632,
+    "skuldir": 15510632,
+    "efe_skuldir": 17824783
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6110050670.pdf",
+ "pdfAr": "2024"
+}

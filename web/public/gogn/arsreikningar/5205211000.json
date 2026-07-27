@@ -1,0 +1,87 @@
+{
+ "kt": "5205211000",
+ "nafn": "Instrumenta ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3506,
+    "hagnadarhlutfall": -0.3615,
+    "ROA": -2.5951,
+    "veltufjarhlutfall": 0.2082,
+    "eignavelta": 7.178
+   },
+   "rekstur": {
+    "sala": 4233871,
+    "ebit": -1484484,
+    "afskriftir": 0,
+    "fjarmunatekjur": 984,
+    "fjarmagnsgjold": -47170,
+    "hagn_f_skatt": -1530670,
+    "tekjuskattur": 0,
+    "hagnadur": -1530670
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 353406,
+    "vidskiptakrofur": 235000,
+    "handbaert": 1214,
+    "veltufjarmunir": 589836,
+    "eignir": 589836,
+    "hlutafe": 500000,
+    "eigid_fe": -2241636,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2831472,
+    "skuldir": 2831472,
+    "efe_skuldir": 589836
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8825,
+    "hagnadarhlutfall": 0.8828,
+    "ROE": 1.3607,
+    "ROA": 0.678,
+    "eiginfjarhlutfall": 0.4983,
+    "veltufjarhlutfall": 1.9932,
+    "skuldahlutfall_DE": 1.0068,
+    "eignavelta": 0.7681
+   },
+   "rekstur": {
+    "sala": 9580000,
+    "ebit": 8454605,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2346,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 8456951,
+    "tekjuskattur": 0,
+    "hagnadur": 8456951
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 353406,
+    "vidskiptakrofur": 12114200,
+    "handbaert": 4681,
+    "veltufjarmunir": 12472803,
+    "eignir": 12472803,
+    "hlutafe": 500000,
+    "eigid_fe": 6215315,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6257488,
+    "skuldir": 6257488,
+    "efe_skuldir": 12472803
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5205211000.pdf",
+ "pdfAr": "2024"
+}

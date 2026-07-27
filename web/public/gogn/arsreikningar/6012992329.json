@@ -1,0 +1,66 @@
+{
+ "kt": "6012992329",
+ "nafn": "Eignarhaldsfélag Suðurlands hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0533,
+    "ROA": -0.0522,
+    "eiginfjarhlutfall": 0.9801,
+    "veltufjarhlutfall": 24.9236,
+    "skuldahlutfall_DE": 0.0203
+   },
+   "rekstur": {
+    "fjarmunatekjur": 3157951,
+    "afskriftir": -3700000,
+    "annar_rekstur": 3817629,
+    "hagnadur": -6149353
+   },
+   "efnahagur": {
+    "handbaert": 58317718,
+    "eignir": 117709424,
+    "hlutafe": 272898621,
+    "eigid_fe": 115369565,
+    "efe_skuldir": 117709424,
+    "skuldir": 2339859,
+    "skammtimaskuldir": 2339859
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0232,
+    "ROA": -0.0227,
+    "eiginfjarhlutfall": 0.9767,
+    "veltufjarhlutfall": 20.3697,
+    "skuldahlutfall_DE": 0.0239
+   },
+   "rekstur": {
+    "fjarmunatekjur": 3198387,
+    "afskriftir": 0,
+    "annar_rekstur": 3584435,
+    "hagnadur": -2621136
+   },
+   "efnahagur": {
+    "handbaert": 54821390,
+    "eignir": 115439748,
+    "hlutafe": 272898621,
+    "eigid_fe": 112748429,
+    "efe_skuldir": 115439748,
+    "skuldir": 2691319,
+    "skammtimaskuldir": 2691319
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6012992329.pdf",
+ "pdfAr": "2025"
+}

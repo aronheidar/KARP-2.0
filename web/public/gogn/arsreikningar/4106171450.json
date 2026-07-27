@@ -1,0 +1,90 @@
+{
+ "kt": "4106171450",
+ "nafn": "201 Hótel ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1107,
+    "hagnadarhlutfall": 0.0955,
+    "ROE": 0.8347,
+    "ROA": 0.377,
+    "eiginfjarhlutfall": 0.4517,
+    "veltufjarhlutfall": 0.2633,
+    "skuldahlutfall_DE": 1.2138,
+    "eignavelta": 3.9463
+   },
+   "rekstur": {
+    "sala": 581691378,
+    "adrar_tekjur": 7595979,
+    "laun": 88065544,
+    "annar_rekstur": 328435924,
+    "afskriftir": 187494,
+    "ebit": 64394873,
+    "fjarmunatekjur": 6027620,
+    "fjarmagnsgjold": -154352,
+    "hagn_f_skatt": 69476992,
+    "tekjuskattur": -13899438,
+    "hagnadur": 55577554
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1125812,
+    "vidskiptakrofur": 6184528,
+    "handbaert": 15098532,
+    "eignir": 147403539,
+    "hlutafe": 5500000,
+    "eigid_fe": 66582951,
+    "skuldir": 80820588,
+    "efe_skuldir": 147403539,
+    "skammtimaskuldir": 80820588
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.068,
+    "hagnadarhlutfall": 0.0664,
+    "ROE": 0.7595,
+    "ROA": 0.4054,
+    "eiginfjarhlutfall": 0.5338,
+    "veltufjarhlutfall": 0.5416,
+    "skuldahlutfall_DE": 0.8733,
+    "eignavelta": 6.1103
+   },
+   "rekstur": {
+    "sala": 551260900,
+    "adrar_tekjur": 633449,
+    "laun": 86899339,
+    "annar_rekstur": 326141992,
+    "afskriftir": 451589,
+    "ebit": 37499056,
+    "fjarmunatekjur": 9093003,
+    "fjarmagnsgjold": -45589,
+    "hagn_f_skatt": 46301094,
+    "tekjuskattur": -9723091,
+    "hagnadur": 36578003
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2494285,
+    "vidskiptakrofur": 8171462,
+    "handbaert": 14604962,
+    "eignir": 90218561,
+    "hlutafe": 5500000,
+    "eigid_fe": 48160954,
+    "skuldir": 42057607,
+    "efe_skuldir": 90218561,
+    "skammtimaskuldir": 42057607
+   },
+   "starfsmenn": 9
+  }
+ },
+ "pdf": "pdf/4106171450.pdf",
+ "pdfAr": "2024"
+}

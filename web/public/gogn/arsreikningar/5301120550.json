@@ -1,0 +1,80 @@
+{
+ "kt": "5301120550",
+ "nafn": "FÓ eignarhald ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0706,
+    "ROA": 0.0527,
+    "eiginfjarhlutfall": 0.7466,
+    "veltufjarhlutfall": 0.3029,
+    "skuldahlutfall_DE": 0.3395
+   },
+   "rekstur": {
+    "fjarmunatekjur": 12752584,
+    "fjarmagnsgjold": -25977196,
+    "adrar_tekjur": 18840587,
+    "laun": -10496081,
+    "annar_rekstur": -25268096,
+    "afskriftir": 0,
+    "hagnadur": 59427320
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1079300834,
+    "vidskiptakrofur": 36727944,
+    "handbaert": 11356809,
+    "veltufjarmunir": 48084753,
+    "eignir": 1127385587,
+    "hlutafe": 500000,
+    "eigid_fe": 841672635,
+    "langtimaskuldir": 126947117,
+    "skammtimaskuldir": 158765835,
+    "skuldir": 285712952,
+    "efe_skuldir": 1127385587
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1679,
+    "ROA": 0.1241,
+    "eiginfjarhlutfall": 0.7392,
+    "veltufjarhlutfall": 0.2706,
+    "skuldahlutfall_DE": 0.3528
+   },
+   "rekstur": {
+    "fjarmunatekjur": 1182160,
+    "fjarmagnsgjold": -44804062,
+    "adrar_tekjur": 5237810,
+    "laun": -12333252,
+    "annar_rekstur": -22313912,
+    "afskriftir": -1184931,
+    "hagnadur": 156959024
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1215031205,
+    "vidskiptakrofur": 47265183,
+    "handbaert": 2317629,
+    "veltufjarmunir": 49582812,
+    "eignir": 1264614017,
+    "hlutafe": 500000,
+    "eigid_fe": 934787260,
+    "langtimaskuldir": 146616058,
+    "skammtimaskuldir": 183210699,
+    "skuldir": 329826757,
+    "efe_skuldir": 1264614017
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5301120550.pdf",
+ "pdfAr": "2024"
+}

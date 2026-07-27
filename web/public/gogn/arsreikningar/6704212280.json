@@ -1,0 +1,79 @@
+{
+ "kt": "6704212280",
+ "nafn": "6ix6ix ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4157,
+    "hagnadarhlutfall": -0.5048,
+    "ROA": -0.5969,
+    "eiginfjarhlutfall": -0.3924,
+    "veltufjarhlutfall": 0.0342,
+    "eignavelta": 1.1826
+   },
+   "rekstur": {
+    "sala": 2890705,
+    "ebit": -1201767,
+    "afskriftir": -250000,
+    "fjarmunatekjur": 66,
+    "fjarmagnsgjold": -7432,
+    "hagn_f_skatt": -1459133,
+    "tekjuskattur": 0,
+    "hagnadur": -1459133
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2250000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 116363,
+    "veltufjarmunir": 194398,
+    "eignir": 2444398,
+    "hlutafe": 500000,
+    "eigid_fe": -959133,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3403531,
+    "skuldir": 3403531,
+    "efe_skuldir": 2444398
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6704212280.pdf",
+ "pdfAr": "2021"
+}

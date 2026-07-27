@@ -1,0 +1,86 @@
+{
+ "kt": "5502171200",
+ "nafn": "4x4 Luxury Travel ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 1.015,
+    "ROA": 0.8031,
+    "eiginfjarhlutfall": 0.7913,
+    "veltufjarhlutfall": 0.0192,
+    "skuldahlutfall_DE": 0.2638,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -91408,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3106,
+    "fjarmagnsgjold": -2380,
+    "hagn_f_skatt": 21614314,
+    "tekjuskattur": 0,
+    "hagnadur": 21614314
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26804996,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 107857,
+    "veltufjarmunir": 108540,
+    "eignir": 26913536,
+    "hlutafe": 1000000,
+    "eigid_fe": 21295410,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5618126,
+    "skuldir": 5618126,
+    "efe_skuldir": 26913536
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3018,
+    "ROA": -0.2956,
+    "eiginfjarhlutfall": 0.9796,
+    "veltufjarhlutfall": 10.7277,
+    "skuldahlutfall_DE": 0.0208,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -68372,
+    "afskriftir": 0,
+    "fjarmunatekjur": 8845,
+    "fjarmagnsgjold": -374,
+    "hagn_f_skatt": -4630402,
+    "tekjuskattur": 0,
+    "hagnadur": -4630402
+   },
+   "efnahagur": {
+    "fastafjarmunir": 12234495,
+    "birgdir": 0,
+    "vidskiptakrofur": 2933959,
+    "handbaert": 494165,
+    "veltufjarmunir": 3430070,
+    "eignir": 15664565,
+    "hlutafe": 1000000,
+    "eigid_fe": 15345008,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 319557,
+    "skuldir": 319557,
+    "efe_skuldir": 15664565
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5502171200.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,74 @@
+{
+ "kt": "7012101150",
+ "nafn": "Treysta ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0153,
+    "ROA": 0.0041,
+    "eiginfjarhlutfall": 0.271,
+    "veltufjarhlutfall": 1.2936,
+    "skuldahlutfall_DE": 2.6898
+   },
+   "rekstur": {
+    "annar_rekstur": -20200,
+    "ebit": -20200,
+    "fjarmunatekjur": 100160,
+    "fjarmagnsgjold": 100160,
+    "hagnadur": 79960
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1100000,
+    "vidskiptakrofur": 18202604,
+    "handbaert": 8172,
+    "veltufjarmunir": 18210776,
+    "eignir": 19310776,
+    "hlutafe": 500000,
+    "eigid_fe": 5233606,
+    "skuldir": 14077170,
+    "efe_skuldir": 19310776,
+    "skammtimaskuldir": 14077170
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0832,
+    "ROA": -0.0125,
+    "eiginfjarhlutfall": 0.1502,
+    "veltufjarhlutfall": 0.6656,
+    "skuldahlutfall_DE": 5.6566
+   },
+   "rekstur": {
+    "annar_rekstur": -406525,
+    "ebit": -406525,
+    "fjarmunatekjur": 4567,
+    "fjarmagnsgjold": 4567,
+    "hagnadur": -401958
+   },
+   "efnahagur": {
+    "fastafjarmunir": 13970244,
+    "vidskiptakrofur": 18181635,
+    "handbaert": 10448,
+    "veltufjarmunir": 18192083,
+    "eignir": 32162327,
+    "hlutafe": 500000,
+    "eigid_fe": 4831648,
+    "skuldir": 27330679,
+    "efe_skuldir": 32162327,
+    "skammtimaskuldir": 27330679
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7012101150.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,70 @@
+{
+ "kt": "6201070690",
+ "nafn": "Netumsjón og bókhald ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1822.614,
+    "hagnadarhlutfall": -1819.84,
+    "ROE": -0.0291,
+    "ROA": -0.0291,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 500,
+    "ebit": -911307,
+    "fjarmagnsgjold": 387,
+    "hagnadur": -909920
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 31276277,
+    "eignir": 31276277,
+    "hlutafe": 500000,
+    "eigid_fe": 31276277,
+    "skuldir": 0,
+    "efe_skuldir": 31276277,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -25820.8889,
+    "hagnadarhlutfall": -92487.5556,
+    "ROE": -0.0273,
+    "ROA": -0.0273,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 9,
+    "ebit": -232388,
+    "fjarmagnsgjold": 1,
+    "hagnadur": -832388
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 30443889,
+    "eignir": 30443889,
+    "hlutafe": 500000,
+    "eigid_fe": 30443889,
+    "skuldir": 0,
+    "efe_skuldir": 30443889,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6201070690.pdf",
+ "pdfAr": "2024"
+}

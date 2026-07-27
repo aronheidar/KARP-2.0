@@ -1,0 +1,62 @@
+{
+ "kt": "5210171120",
+ "nafn": "365 Invest ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.0703,
+    "veltufjarhlutfall": 0.0203
+   },
+   "rekstur": {
+    "ebit": -20200,
+    "fjarmunatekjur": 1693,
+    "fjarmagnsgjold": -43667,
+    "hagnadur": -62174
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 367,
+    "handbaert": 57725,
+    "eignir": 58092,
+    "hlutafe": 500000,
+    "eigid_fe": -2801125,
+    "efe_skuldir": 58092,
+    "skuldir": 2859217,
+    "skammtimaskuldir": 2859217
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0178,
+    "veltufjarhlutfall": 0.0154
+   },
+   "rekstur": {
+    "ebit": -20900,
+    "fjarmunatekjur": 2056,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -18844
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 445,
+    "handbaert": 59336,
+    "eignir": 1059781,
+    "hlutafe": 500000,
+    "eigid_fe": -2819969,
+    "efe_skuldir": 1059781,
+    "skuldir": 3879750,
+    "skammtimaskuldir": 3879750
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5210171120.pdf",
+ "pdfAr": "2024"
+}

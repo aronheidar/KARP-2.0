@@ -1,0 +1,78 @@
+{
+ "kt": "4303983269",
+ "nafn": "Matthías ehf",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -5.071,
+    "ROA": -0.4088,
+    "eiginfjarhlutfall": 0.0806,
+    "veltufjarhlutfall": 0.611,
+    "skuldahlutfall_DE": 11.4036
+   },
+   "rekstur": {
+    "kostnadarverd": 32197461,
+    "laun": 61402772,
+    "annar_rekstur": 11528309,
+    "afskriftir": 13784569,
+    "ebit": -72645590,
+    "fjarmagnsgjold": -15430409,
+    "hagn_f_skatt": -88075999,
+    "tekjuskattur": 13468516,
+    "hagnadur": -74607483
+   },
+   "efnahagur": {
+    "fastafjarmunir": 79971281,
+    "birgdir": 12358900,
+    "vidskiptakrofur": 90158912,
+    "eignir": 182489093,
+    "hlutafe": 500000,
+    "eigid_fe": 14712611,
+    "skuldir": 167776481,
+    "efe_skuldir": 182489093,
+    "skammtimaskuldir": 167776481
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2093,
+    "eiginfjarhlutfall": -0.1125,
+    "veltufjarhlutfall": 0.5496
+   },
+   "rekstur": {
+    "kostnadarverd": 14656610,
+    "laun": 65592984,
+    "annar_rekstur": 24530799,
+    "afskriftir": 11912691,
+    "ebit": -9735430,
+    "fjarmagnsgjold": -22079154,
+    "hagn_f_skatt": -31814584,
+    "tekjuskattur": 0,
+    "hagnadur": -31814584
+   },
+   "efnahagur": {
+    "fastafjarmunir": 52378590,
+    "birgdir": 13809502,
+    "vidskiptakrofur": 79132670,
+    "eignir": 152014031,
+    "hlutafe": 500000,
+    "eigid_fe": -17101973,
+    "skuldir": 169116003,
+    "efe_skuldir": 152014031,
+    "skammtimaskuldir": 169116003
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4303983269.pdf",
+ "pdfAr": "2023"
+}

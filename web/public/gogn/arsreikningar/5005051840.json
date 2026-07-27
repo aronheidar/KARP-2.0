@@ -1,0 +1,86 @@
+{
+ "kt": "5005051840",
+ "nafn": "Viet Thai ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.5892,
+    "hagnadarhlutfall": -0.7181,
+    "ROA": -0.3395,
+    "eiginfjarhlutfall": -0.7404,
+    "veltufjarhlutfall": 0.0397,
+    "eignavelta": 0.4728
+   },
+   "rekstur": {
+    "sala": 12883482,
+    "ebit": -7590330,
+    "afskriftir": -761844,
+    "fjarmunatekjur": 4704,
+    "fjarmagnsgjold": -904033,
+    "hagn_f_skatt": -9251503,
+    "tekjuskattur": 0,
+    "hagnadur": -9251503
+   },
+   "efnahagur": {
+    "fastafjarmunir": 24704154,
+    "birgdir": 270369,
+    "vidskiptakrofur": 0,
+    "handbaert": 1316043,
+    "veltufjarmunir": 2545512,
+    "eignir": 27249666,
+    "hlutafe": 500000,
+    "eigid_fe": -20174379,
+    "langtimaskuldir": 7453550,
+    "skammtimaskuldir": 39970495,
+    "skuldir": 47424045,
+    "efe_skuldir": 27249666
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1411,
+    "hagnadarhlutfall": -0.0042,
+    "ROA": -0.0051,
+    "eiginfjarhlutfall": -0.7657,
+    "veltufjarhlutfall": 0.0374,
+    "eignavelta": 1.2061
+   },
+   "rekstur": {
+    "sala": 31990320,
+    "ebit": 4513817,
+    "afskriftir": -717475,
+    "fjarmunatekjur": 10911,
+    "fjarmagnsgjold": -3942786,
+    "hagn_f_skatt": -135533,
+    "tekjuskattur": 0,
+    "hagnadur": -135533
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23986679,
+    "birgdir": 215852,
+    "vidskiptakrofur": 0,
+    "handbaert": 1283072,
+    "veltufjarmunir": 2536324,
+    "eignir": 26523003,
+    "hlutafe": 500000,
+    "eigid_fe": -20309912,
+    "langtimaskuldir": 6708195,
+    "skammtimaskuldir": 40124720,
+    "skuldir": 46832915,
+    "efe_skuldir": 26523003
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5005051840.pdf",
+ "pdfAr": "2023"
+}

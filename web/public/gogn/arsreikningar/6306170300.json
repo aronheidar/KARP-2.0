@@ -1,0 +1,86 @@
+{
+ "kt": "6306170300",
+ "nafn": "Coolerboxes ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0446,
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": 0.0198,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 49.418,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22844479,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 22844479,
+    "hlutafe": 500000,
+    "eigid_fe": 453102,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 22391377,
+    "skuldir": 22391377,
+    "efe_skuldir": 22844479
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0484,
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": 0.0189,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 51.856,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20900,
+    "tekjuskattur": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22844479,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 22844479,
+    "hlutafe": 500000,
+    "eigid_fe": 432202,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 22412277,
+    "skuldir": 22412277,
+    "efe_skuldir": 22844479
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6306170300.pdf",
+ "pdfAr": "2024"
+}

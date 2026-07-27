@@ -1,0 +1,94 @@
+{
+ "kt": "6511023080",
+ "nafn": "Vista Expo ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9632,
+    "ebit_hlutfall": 0.0978,
+    "hagnadarhlutfall": 0.093,
+    "ROE": 1.5787,
+    "ROA": 0.1305,
+    "eiginfjarhlutfall": 0.0826,
+    "veltufjarhlutfall": 0.8175,
+    "skuldahlutfall_DE": 11.0995,
+    "eignavelta": 1.4033
+   },
+   "rekstur": {
+    "sala": 20270851,
+    "kostnadarverd": -745229,
+    "laun": -6935174,
+    "annar_rekstur": -10014482,
+    "afskriftir": -593848,
+    "ebit": 1982118,
+    "fjarmunatekjur": 95192,
+    "fjarmagnsgjold": -192500,
+    "hagnadur": 1884810
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6490528,
+    "birgdir": 3450000,
+    "vidskiptakrofur": 3256188,
+    "handbaert": 1248796,
+    "veltufjarmunir": 7954984,
+    "eignir": 14445512,
+    "hlutafe": 1400000,
+    "eigid_fe": 1193898,
+    "langtimaskuldir": 3520253,
+    "skammtimaskuldir": 9731361,
+    "skuldir": 13251614,
+    "efe_skuldir": 14445512
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.871,
+    "ebit_hlutfall": 0.1453,
+    "hagnadarhlutfall": -0.0176,
+    "ROE": -0.1015,
+    "ROA": -0.0054,
+    "eiginfjarhlutfall": 0.0534,
+    "veltufjarhlutfall": 0.823,
+    "skuldahlutfall_DE": 17.739,
+    "eignavelta": 0.3075
+   },
+   "rekstur": {
+    "sala": 6246458,
+    "kostnadarverd": -805757,
+    "laun": -1210576,
+    "annar_rekstur": -2847650,
+    "afskriftir": -475079,
+    "ebit": 907396,
+    "fjarmunatekjur": 2936,
+    "fjarmagnsgjold": -1020357,
+    "hagnadur": -110025
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6015449,
+    "birgdir": 3450000,
+    "vidskiptakrofur": 10811814,
+    "handbaert": 33428,
+    "veltufjarmunir": 14295242,
+    "eignir": 20310691,
+    "hlutafe": 1400000,
+    "eigid_fe": 1083873,
+    "langtimaskuldir": 1856813,
+    "skammtimaskuldir": 17370005,
+    "skuldir": 19226818,
+    "efe_skuldir": 20310691
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/6511023080.pdf",
+ "pdfAr": "2024"
+}

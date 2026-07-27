@@ -1,0 +1,80 @@
+{
+ "kt": "5307161390",
+ "nafn": "S24 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.798,
+    "hagnadarhlutfall": 0.798,
+    "ROE": 0.1242,
+    "ROA": 0.0793,
+    "eiginfjarhlutfall": 0.6389,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.5651,
+    "eignavelta": 0.0994
+   },
+   "rekstur": {
+    "sala": 100000,
+    "annar_rekstur": -20200,
+    "ebit": 79800,
+    "fjarmunatekjur": 0,
+    "hagnadur": 79800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1005720,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 1005720,
+    "hlutafe": 500000,
+    "eigid_fe": 642600,
+    "skuldir": 363120,
+    "efe_skuldir": 1005720,
+    "skammtimaskuldir": 363120
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.791,
+    "hagnadarhlutfall": 0.8102,
+    "ROE": 0.112,
+    "ROA": 0.0683,
+    "eiginfjarhlutfall": 0.6098,
+    "veltufjarhlutfall": 0.1749,
+    "skuldahlutfall_DE": 0.64,
+    "eignavelta": 0.0843
+   },
+   "rekstur": {
+    "sala": 100000,
+    "annar_rekstur": -20900,
+    "ebit": 79100,
+    "fjarmunatekjur": 1920,
+    "hagnadur": 81020
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1105720,
+    "vidskiptakrofur": 422,
+    "handbaert": 80598,
+    "veltufjarmunir": 81020,
+    "eignir": 1186740,
+    "hlutafe": 500000,
+    "eigid_fe": 723620,
+    "skuldir": 463120,
+    "efe_skuldir": 1186740,
+    "skammtimaskuldir": 463120
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5307161390.pdf",
+ "pdfAr": "2024"
+}

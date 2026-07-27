@@ -1,0 +1,72 @@
+{
+ "kt": "5401112000",
+ "nafn": "107 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2353,
+    "ROA": -0.1215,
+    "eiginfjarhlutfall": 0.5162,
+    "veltufjarhlutfall": 2.067,
+    "skuldahlutfall_DE": 0.9372
+   },
+   "rekstur": {
+    "ebitda": -130640,
+    "fjarmunatekjur": 20533,
+    "fjarmagnsgjold": -1839,
+    "hagnadur": -111946
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 4518,
+    "handbaert": 917181,
+    "veltufjarmunir": 921699,
+    "eignir": 921699,
+    "hlutafe": 500000,
+    "eigid_fe": 475787,
+    "skuldir": 445912,
+    "efe_skuldir": 921699,
+    "skammtimaskuldir": 445912
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0929,
+    "ROA": -0.0419,
+    "eiginfjarhlutfall": 0.451,
+    "veltufjarhlutfall": 1.6705,
+    "skuldahlutfall_DE": 1.2174
+   },
+   "rekstur": {
+    "ebitda": -65792,
+    "fjarmunatekjur": 25355,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -40437
+   },
+   "efnahagur": {
+    "fastafjarmunir": 80000,
+    "vidskiptakrofur": 5580,
+    "handbaert": 879774,
+    "veltufjarmunir": 885354,
+    "eignir": 965354,
+    "hlutafe": 500000,
+    "eigid_fe": 435350,
+    "skuldir": 530004,
+    "efe_skuldir": 965354,
+    "skammtimaskuldir": 530004
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5401112000.pdf",
+ "pdfAr": "2025"
+}

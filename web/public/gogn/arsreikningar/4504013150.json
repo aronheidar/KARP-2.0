@@ -1,0 +1,80 @@
+{
+ "kt": "4504013150",
+ "nafn": "Annað veldi ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0388,
+    "veltufjarhlutfall": 0.0777,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -217459,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3824,
+    "fjarmagnsgjold": -19523,
+    "hagn_f_skatt": -233158,
+    "tekjuskattur": 0,
+    "hagnadur": -233158
+   },
+   "efnahagur": {
+    "fastafjarmunir": 405170,
+    "birgdir": 0,
+    "vidskiptakrofur": 5026481,
+    "handbaert": 128231,
+    "veltufjarmunir": 5605269,
+    "eignir": 6010439,
+    "hlutafe": 2222222,
+    "eigid_fe": -60335993,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 66346432,
+    "skuldir": 66346432,
+    "efe_skuldir": 6010439
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0646,
+    "veltufjarhlutfall": 0.0755,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -344228,
+    "afskriftir": 0,
+    "fjarmunatekjur": 889,
+    "fjarmagnsgjold": -36761,
+    "hagn_f_skatt": -380100,
+    "tekjuskattur": 0,
+    "hagnadur": -380100
+   },
+   "efnahagur": {
+    "fastafjarmunir": 405170,
+    "birgdir": 0,
+    "vidskiptakrofur": 5026481,
+    "handbaert": 1951,
+    "veltufjarmunir": 5478343,
+    "eignir": 5883513,
+    "hlutafe": 2222222,
+    "eigid_fe": -60716093,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 66599606,
+    "skuldir": 66599606,
+    "efe_skuldir": 5883513
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4504013150.pdf",
+ "pdfAr": "2024"
+}

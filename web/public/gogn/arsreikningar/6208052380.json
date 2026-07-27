@@ -1,0 +1,72 @@
+{
+ "kt": "6208052380",
+ "nafn": "Taramar SEEDS ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8652,
+    "ebit_hlutfall": -0.3734,
+    "hagnadarhlutfall": -0.4169,
+    "ROA": -0.0481,
+    "eignavelta": 0.1155
+   },
+   "rekstur": {
+    "sala": 14411731,
+    "adrar_tekjur": 9294274,
+    "kostnadarverd": 1942386,
+    "laun": 2956246,
+    "annar_rekstur": 14894411,
+    "ebit": -5381312,
+    "fjarmunatekjur": 214900,
+    "fjarmagnsgjold": -839939,
+    "hagnadur": -6007748
+   },
+   "efnahagur": {
+    "fastafjarmunir": 36073863,
+    "vidskiptakrofur": 1948698,
+    "handbaert": 9336832,
+    "veltufjarmunir": 88714188,
+    "eignir": 124788051
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7685,
+    "ebit_hlutfall": -2.6217,
+    "hagnadarhlutfall": -2.6396,
+    "ROA": -1.9566,
+    "eignavelta": 0.7413
+   },
+   "rekstur": {
+    "sala": 39485321,
+    "adrar_tekjur": 7293955,
+    "kostnadarverd": 9140719,
+    "laun": 4906117,
+    "annar_rekstur": 26329215,
+    "ebit": -103517611,
+    "fjarmunatekjur": 92770,
+    "fjarmagnsgjold": -733954,
+    "hagnadur": -104224183
+   },
+   "efnahagur": {
+    "fastafjarmunir": 48086631,
+    "vidskiptakrofur": 2189051,
+    "handbaert": 1240707,
+    "veltufjarmunir": 5180795,
+    "eignir": 53267426
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6208052380.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,54 @@
+{
+ "kt": "6006051940",
+ "nafn": "KEA eignir ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "veltufjarhlutfall": 11.432,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {},
+   "efnahagur": {
+    "vidskiptakrofur": 135371,
+    "handbaert": 237895,
+    "eignir": 4893800610,
+    "hlutafe": 2811865299,
+    "eigid_fe": 4893767959,
+    "efe_skuldir": 4893800610,
+    "skuldir": 32651,
+    "skammtimaskuldir": 32651
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "veltufjarhlutfall": 377.879,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {},
+   "efnahagur": {
+    "vidskiptakrofur": 184669,
+    "handbaert": 193210,
+    "eignir": 5351035676,
+    "hlutafe": 2811865299,
+    "eigid_fe": 5351034676,
+    "efe_skuldir": 5351035676,
+    "skuldir": 1000,
+    "skammtimaskuldir": 1000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6006051940.pdf",
+ "pdfAr": "2025"
+}

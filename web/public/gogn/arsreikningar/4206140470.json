@@ -1,0 +1,98 @@
+{
+ "kt": "4206140470",
+ "nafn": "JS Reykjavík ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3914,
+    "ebit_hlutfall": 0.0127,
+    "hagnadarhlutfall": 0.0016,
+    "ROE": 0.0177,
+    "ROA": 0.0047,
+    "eiginfjarhlutfall": 0.2667,
+    "veltufjarhlutfall": 1.3171,
+    "skuldahlutfall_DE": 2.7497,
+    "eignavelta": 2.9952
+   },
+   "rekstur": {
+    "sala": 429742996,
+    "kostnadarverd": -261547044,
+    "laun": -94711014,
+    "annar_rekstur": -68006649,
+    "ebit": 5478289,
+    "afskriftir": -2443494,
+    "fjarmunatekjur": 88720,
+    "fjarmagnsgjold": -2242783,
+    "hagn_f_skatt": 850988,
+    "tekjuskattur": -174238,
+    "hagnadur": 676750
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7764184,
+    "birgdir": 113516810,
+    "vidskiptakrofur": 20648508,
+    "handbaert": 1526486,
+    "veltufjarmunir": 135711323,
+    "eignir": 143475508,
+    "hlutafe": 500000,
+    "eigid_fe": 38263575,
+    "langtimaskuldir": 2189413,
+    "skammtimaskuldir": 103022519,
+    "skuldir": 105211932,
+    "efe_skuldir": 143475508
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3784,
+    "ebit_hlutfall": -0.0186,
+    "hagnadarhlutfall": -0.0357,
+    "ROE": -0.7414,
+    "ROA": -0.086,
+    "eiginfjarhlutfall": 0.116,
+    "veltufjarhlutfall": 1.0485,
+    "skuldahlutfall_DE": 7.6178,
+    "eignavelta": 2.4091
+   },
+   "rekstur": {
+    "sala": 456187822,
+    "kostnadarverd": -283575218,
+    "laun": -97283868,
+    "annar_rekstur": -83823135,
+    "ebit": -8494399,
+    "afskriftir": -6339701,
+    "fjarmunatekjur": 107270,
+    "fjarmagnsgjold": -6257877,
+    "hagn_f_skatt": -20357981,
+    "tekjuskattur": 4067416,
+    "hagnadur": -16290565
+   },
+   "efnahagur": {
+    "fastafjarmunir": 29834287,
+    "birgdir": 139903422,
+    "vidskiptakrofur": 8928572,
+    "handbaert": 7822643,
+    "veltufjarmunir": 159525518,
+    "eignir": 189359805,
+    "hlutafe": 500000,
+    "eigid_fe": 21973011,
+    "langtimaskuldir": 17977855,
+    "skammtimaskuldir": 149408939,
+    "skuldir": 167386794,
+    "efe_skuldir": 189359805
+   },
+   "starfsmenn": 12
+  }
+ },
+ "pdf": "pdf/4206140470.pdf",
+ "pdfAr": "2024"
+}

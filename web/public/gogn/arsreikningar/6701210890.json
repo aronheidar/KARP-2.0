@@ -1,0 +1,90 @@
+{
+ "kt": "6701210890",
+ "nafn": "NordX Import ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7944,
+    "hagnadarhlutfall": 0.6338,
+    "ROE": 0.7284,
+    "ROA": 0.3845,
+    "eiginfjarhlutfall": 0.5279,
+    "veltufjarhlutfall": 0.1088,
+    "skuldahlutfall_DE": 0.8942,
+    "eignavelta": 0.6068
+   },
+   "rekstur": {
+    "sala": 7470657,
+    "ebit": 5934957,
+    "afskriftir": 0,
+    "fjarmunatekjur": 7924,
+    "fjarmagnsgjold": -19562,
+    "hagn_f_skatt": 5923319,
+    "tekjuskattur": -1188704,
+    "hagnadur": 4734615
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11679658,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 632600,
+    "veltufjarmunir": 632600,
+    "eignir": 12312258,
+    "hlutafe": 500000,
+    "eigid_fe": 6500137,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5812121,
+    "skuldir": 5812121,
+    "efe_skuldir": 12312258
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.9479,
+    "hagnadarhlutfall": 2.374,
+    "ROE": 0.5996,
+    "ROA": 0.4367,
+    "eiginfjarhlutfall": 0.7284,
+    "veltufjarhlutfall": 0.7402,
+    "skuldahlutfall_DE": 0.3729,
+    "eignavelta": 0.184
+   },
+   "rekstur": {
+    "sala": 4100000,
+    "ebit": 3886355,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2987,
+    "fjarmagnsgjold": -130204,
+    "hagn_f_skatt": 12326197,
+    "tekjuskattur": -2592890,
+    "hagnadur": 9733307
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10523273,
+    "birgdir": 0,
+    "vidskiptakrofur": 4414900,
+    "handbaert": 65808,
+    "veltufjarmunir": 11763364,
+    "eignir": 22286637,
+    "hlutafe": 500000,
+    "eigid_fe": 16233444,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6053193,
+    "skuldir": 6053193,
+    "efe_skuldir": 22286637
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6701210890.pdf",
+ "pdfAr": "2024"
+}

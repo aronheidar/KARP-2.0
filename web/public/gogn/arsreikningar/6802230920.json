@@ -1,0 +1,89 @@
+{
+ "kt": "6802230920",
+ "nafn": "Group 88 Iceland ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4616,
+    "ebit_hlutfall": -0.945,
+    "hagnadarhlutfall": -0.9756,
+    "ROA": -0.2204,
+    "eiginfjarhlutfall": -0.2148,
+    "veltufjarhlutfall": 0.7392,
+    "eignavelta": 0.2259
+   },
+   "rekstur": {
+    "sala": 20157058,
+    "kostnadarverd": 10853487,
+    "laun": 6623379,
+    "annar_rekstur": 21606694,
+    "ebitda": -18926502,
+    "afskriftir": 121748,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -821768,
+    "hagn_f_skatt": -19665787,
+    "tekjuskattur": 0,
+    "hagnadur": -19665787,
+    "ebit": -19048250
+   },
+   "efnahagur": {
+    "birgdir": 80072330,
+    "vidskiptakrofur": 0,
+    "handbaert": 44722,
+    "eignir": 89219284,
+    "hlutafe": 500000,
+    "eigid_fe": -19165787,
+    "skuldir": 108385071,
+    "efe_skuldir": 89219284,
+    "skammtimaskuldir": 108385071
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2127,
+    "ebit_hlutfall": -0.5646,
+    "hagnadarhlutfall": -0.6757,
+    "ROA": -1.136,
+    "veltufjarhlutfall": 0.3929,
+    "eignavelta": 1.6813
+   },
+   "rekstur": {
+    "sala": 78757655,
+    "kostnadarverd": 62002273,
+    "laun": 25361207,
+    "annar_rekstur": 26494531,
+    "ebitda": -35100356,
+    "afskriftir": 9364904,
+    "fjarmunatekjur": 67930,
+    "fjarmagnsgjold": -8135162,
+    "hagn_f_skatt": -53216053,
+    "tekjuskattur": 0,
+    "hagnadur": -53216053,
+    "ebit": -44465260
+   },
+   "efnahagur": {
+    "birgdir": 45204378,
+    "vidskiptakrofur": 106724,
+    "handbaert": 1533051,
+    "eignir": 46844153,
+    "hlutafe": 500000,
+    "eigid_fe": -72381840,
+    "skuldir": 119225993,
+    "efe_skuldir": 46844153,
+    "skammtimaskuldir": 119225993
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6802230920.pdf",
+ "pdfAr": "2024"
+}

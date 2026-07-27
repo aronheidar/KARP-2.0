@@ -1,0 +1,86 @@
+{
+ "kt": "4908160970",
+ "nafn": "Miðgil ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8104,
+    "hagnadarhlutfall": -0.1329,
+    "ROA": -0.0136,
+    "eiginfjarhlutfall": -0.0485,
+    "veltufjarhlutfall": 0.0041,
+    "eignavelta": 0.1023
+   },
+   "rekstur": {
+    "sala": 5895587,
+    "ebit": 4777945,
+    "afskriftir": -609000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -4952625,
+    "hagn_f_skatt": -783680,
+    "tekjuskattur": 0,
+    "hagnadur": -783680
+   },
+   "efnahagur": {
+    "fastafjarmunir": 57550500,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 61742,
+    "veltufjarmunir": 61742,
+    "eignir": 57612242,
+    "hlutafe": 500000,
+    "eigid_fe": -2795326,
+    "langtimaskuldir": 45419423,
+    "skammtimaskuldir": 14988145,
+    "skuldir": 60407568,
+    "efe_skuldir": 57612242
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.917,
+    "hagnadarhlutfall": 0.0406,
+    "ROA": 0.0045,
+    "eiginfjarhlutfall": -0.0442,
+    "veltufjarhlutfall": 0.0042,
+    "eignavelta": 0.1122
+   },
+   "rekstur": {
+    "sala": 6427683,
+    "ebit": 5894108,
+    "afskriftir": -609000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -5024396,
+    "hagn_f_skatt": 260712,
+    "tekjuskattur": 0,
+    "hagnadur": 260712
+   },
+   "efnahagur": {
+    "fastafjarmunir": 57246000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 61742,
+    "veltufjarmunir": 61742,
+    "eignir": 57307742,
+    "hlutafe": 500000,
+    "eigid_fe": -2534614,
+    "langtimaskuldir": 44965804,
+    "skammtimaskuldir": 14876552,
+    "skuldir": 59842356,
+    "efe_skuldir": 57307742
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4908160970.pdf",
+ "pdfAr": "2022"
+}

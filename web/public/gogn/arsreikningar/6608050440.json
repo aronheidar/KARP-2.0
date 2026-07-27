@@ -1,0 +1,61 @@
+{
+ "kt": "6608050440",
+ "nafn": "Rafstöðin ehf. rafverktakar",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7413
+   },
+   "rekstur": {
+    "sala": 285937039,
+    "kostnadarverd": 73959147,
+    "laun": null,
+    "annar_rekstur": 18147915,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": 606953,
+    "hagn_f_skatt": 31392124
+   },
+   "efnahagur": {
+    "birgdir": 750000,
+    "vidskiptakrofur": 50834456,
+    "handbaert": 24809572,
+    "hlutafe": 510000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8004,
+    "ebit_hlutfall": 0.1187
+   },
+   "rekstur": {
+    "sala": 292171448,
+    "kostnadarverd": 58304917,
+    "laun": 152604866,
+    "annar_rekstur": 22608140,
+    "afskriftir": 6546347,
+    "ebit": 34678764,
+    "fjarmunatekjur": 996767,
+    "hagn_f_skatt": 32751614
+   },
+   "efnahagur": {
+    "birgdir": 750000,
+    "vidskiptakrofur": 40156514,
+    "handbaert": 23341897,
+    "hlutafe": 510000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6608050440.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,78 @@
+{
+ "kt": "4202693159",
+ "nafn": "Landvélar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4,
+    "ebit_hlutfall": 0.112,
+    "hagnadarhlutfall": 0.0598,
+    "ROA": 0.1016,
+    "eignavelta": 1.7004
+   },
+   "rekstur": {
+    "sala": 1860691872,
+    "adrar_tekjur": 11968151,
+    "kostnadarverd": 1116364810,
+    "laun": 419845309,
+    "annar_rekstur": 116131646,
+    "ebit": 208350108,
+    "afskriftir": -17849524,
+    "fjarmunatekjur": 3490791,
+    "fjarmagnsgjold": -65622394,
+    "tekjuskattur": -25116930,
+    "hagnadur": 111205824
+   },
+   "efnahagur": {
+    "fastafjarmunir": 327119932,
+    "birgdir": 544171689,
+    "vidskiptakrofur": 151454696,
+    "handbaert": 67105158,
+    "veltufjarmunir": 767124018,
+    "eignir": 1094243950
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3992,
+    "ebit_hlutfall": 0.085,
+    "hagnadarhlutfall": 0.0356,
+    "ROA": 0.0606,
+    "eignavelta": 1.7
+   },
+   "rekstur": {
+    "sala": 1889395317,
+    "adrar_tekjur": 8897216,
+    "kostnadarverd": 1135181058,
+    "laun": 468383932,
+    "annar_rekstur": 125275781,
+    "ebit": 160554545,
+    "afskriftir": -20017185,
+    "fjarmunatekjur": 3341837,
+    "fjarmagnsgjold": -66828000,
+    "tekjuskattur": -16306062,
+    "hagnadur": 67318459
+   },
+   "efnahagur": {
+    "fastafjarmunir": 358564588,
+    "birgdir": 584324224,
+    "vidskiptakrofur": 161409552,
+    "handbaert": 890982,
+    "veltufjarmunir": 752865649,
+    "eignir": 1111430237
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4202693159.pdf",
+ "pdfAr": "2024"
+}

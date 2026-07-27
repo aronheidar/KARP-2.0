@@ -1,0 +1,90 @@
+{
+ "kt": "4405012730",
+ "nafn": "4health ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1336,
+    "hagnadarhlutfall": 0.1261,
+    "ROE": 0.1766,
+    "ROA": 0.1675,
+    "eiginfjarhlutfall": 0.9488,
+    "veltufjarhlutfall": 17.4964,
+    "skuldahlutfall_DE": 0.054,
+    "eignavelta": 1.3286
+   },
+   "rekstur": {
+    "sala": 17234299,
+    "ebit": 2302208,
+    "afskriftir": 0,
+    "fjarmunatekjur": 481125,
+    "fjarmagnsgjold": -868,
+    "hagn_f_skatt": 2782465,
+    "tekjuskattur": -608996,
+    "hagnadur": 2173469
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 7586344,
+    "vidskiptakrofur": 0,
+    "handbaert": 4041904,
+    "veltufjarmunir": 12972136,
+    "eignir": 12972136,
+    "hlutafe": 3575000,
+    "eigid_fe": 12307529,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 664607,
+    "skuldir": 664607,
+    "efe_skuldir": 12972136
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0136,
+    "hagnadarhlutfall": 0.0536,
+    "ROE": 0.0441,
+    "ROA": 0.0428,
+    "eiginfjarhlutfall": 0.9723,
+    "veltufjarhlutfall": 35.5039,
+    "skuldahlutfall_DE": 0.0285,
+    "eignavelta": 0.799
+   },
+   "rekstur": {
+    "sala": 6282279,
+    "ebit": 85220,
+    "afskriftir": 0,
+    "fjarmunatekjur": 341130,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 426350,
+    "tekjuskattur": -89550,
+    "hagnadur": 336800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 3205516,
+    "vidskiptakrofur": 0,
+    "handbaert": 4529299,
+    "veltufjarmunir": 7862187,
+    "eignir": 7862187,
+    "hlutafe": 3575000,
+    "eigid_fe": 7644329,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 217858,
+    "skuldir": 217858,
+    "efe_skuldir": 7862187
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4405012730.pdf",
+ "pdfAr": "2025"
+}

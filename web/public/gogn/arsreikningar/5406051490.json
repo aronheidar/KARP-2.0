@@ -1,0 +1,98 @@
+{
+ "kt": "5406051490",
+ "nafn": "701 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7816,
+    "ebit_hlutfall": 0.0771,
+    "hagnadarhlutfall": -0.0843,
+    "ROE": -0.2015,
+    "ROA": -0.0408,
+    "eiginfjarhlutfall": 0.2025,
+    "veltufjarhlutfall": 0.135,
+    "skuldahlutfall_DE": 3.9387,
+    "eignavelta": 0.4841
+   },
+   "rekstur": {
+    "sala": 787807090,
+    "adrar_tekjur": 5651600,
+    "kostnadarverd": 172077389,
+    "laun": 317503090,
+    "annar_rekstur": 161401443,
+    "afskriftir": 76069869,
+    "ebit": 60755299,
+    "fjarmunatekjur": 567142,
+    "fjarmagnsgjold": -131677550,
+    "hagn_f_skatt": -65741215,
+    "tekjuskattur": -647398,
+    "hagnadur": -66388613
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1563747911,
+    "vidskiptakrofur": 41425399,
+    "handbaert": 10473343,
+    "veltufjarmunir": 63722473,
+    "eignir": 1627470384,
+    "hlutafe": 500000,
+    "eigid_fe": 329533926,
+    "langtimaskuldir": 913458140,
+    "skammtimaskuldir": 384478318,
+    "skuldir": 1297936458,
+    "efe_skuldir": 1627470384
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9056,
+    "ebit_hlutfall": -0.3926,
+    "hagnadarhlutfall": -0.3067,
+    "ROE": -0.0479,
+    "ROA": -0.0354,
+    "eiginfjarhlutfall": 0.7407,
+    "veltufjarhlutfall": 0.5884,
+    "skuldahlutfall_DE": 0.35,
+    "eignavelta": 0.1156
+   },
+   "rekstur": {
+    "sala": 49069623,
+    "adrar_tekjur": 33135769,
+    "kostnadarverd": 4630088,
+    "laun": 0,
+    "annar_rekstur": 50361539,
+    "afskriftir": 13343364,
+    "ebit": -19265368,
+    "fjarmunatekjur": 20477852,
+    "fjarmagnsgjold": -19961719,
+    "hagn_f_skatt": -18807181,
+    "tekjuskattur": 3757256,
+    "hagnadur": -15049925
+   },
+   "efnahagur": {
+    "fastafjarmunir": 310720059,
+    "vidskiptakrofur": 3192445,
+    "handbaert": 16136378,
+    "veltufjarmunir": 113846202,
+    "eignir": 424566261,
+    "hlutafe": 500000,
+    "eigid_fe": 314484001,
+    "langtimaskuldir": 77232305,
+    "skammtimaskuldir": 32849955,
+    "skuldir": 110082260,
+    "efe_skuldir": 424566261
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/5406051490.pdf",
+ "pdfAr": "2024"
+}

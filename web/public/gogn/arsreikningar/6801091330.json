@@ -1,0 +1,88 @@
+{
+ "kt": "6801091330",
+ "nafn": "R. Sigmundsson ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1021,
+    "ROA": -0.0859,
+    "eiginfjarhlutfall": 0.8409,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.1891,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17500,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -2557,
+    "hagn_f_skatt": -20057,
+    "tekjuskattur": 0,
+    "hagnadur": -20057
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 233600,
+    "eignir": 233600,
+    "hlutafe": 500000,
+    "eigid_fe": 196443,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 37157,
+    "skuldir": 37157,
+    "efe_skuldir": 233600
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.6286,
+    "hagnadarhlutfall": -1.6311,
+    "ROE": -4.893,
+    "ROA": -0.0741,
+    "eiginfjarhlutfall": 0.0152,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 64.9967,
+    "eignavelta": 0.0455
+   },
+   "rekstur": {
+    "sala": 100000,
+    "ebit": -62858,
+    "afskriftir": -100000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -250,
+    "hagn_f_skatt": -163108,
+    "tekjuskattur": 0,
+    "hagnadur": -163108
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2200000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 2200000,
+    "hlutafe": 500000,
+    "eigid_fe": 33335,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2166665,
+    "skuldir": 2166665,
+    "efe_skuldir": 2200000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6801091330.pdf",
+ "pdfAr": "2020"
+}

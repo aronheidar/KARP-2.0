@@ -1,0 +1,76 @@
+{
+ "kt": "6112932409",
+ "nafn": "Víkurfang hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1342,
+    "ROA": 0.1112,
+    "eiginfjarhlutfall": 0.8281,
+    "veltufjarhlutfall": 0.146,
+    "skuldahlutfall_DE": 0.2076,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": -148754,
+    "ebit": -168954,
+    "fjarmunatekjur": 5799,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 5991782,
+    "hagnadur": 6020373
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 493988,
+    "handbaert": 865559,
+    "eignir": 54161298,
+    "hlutafe": 17524671,
+    "eigid_fe": 44850310,
+    "skuldir": 9310988,
+    "efe_skuldir": 54161298,
+    "skammtimaskuldir": 9310988
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2278,
+    "ROA": -0.1816,
+    "eiginfjarhlutfall": 0.7972,
+    "veltufjarhlutfall": 0.1214,
+    "skuldahlutfall_DE": 0.2543,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": -206986,
+    "ebit": -227886,
+    "fjarmunatekjur": 17011,
+    "fjarmagnsgjold": -657,
+    "hagn_f_skatt": -8360267,
+    "hagnadur": -8322141
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 496395,
+    "handbaert": 631385,
+    "eignir": 45818922,
+    "hlutafe": 17524671,
+    "eigid_fe": 36528169,
+    "skuldir": 9290753,
+    "efe_skuldir": 45818922,
+    "skammtimaskuldir": 9290753
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6112932409.pdf",
+ "pdfAr": "2024"
+}

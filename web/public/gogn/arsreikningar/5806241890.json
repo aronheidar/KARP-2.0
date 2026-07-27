@@ -1,0 +1,79 @@
+{
+ "kt": "5806241890",
+ "nafn": "Eilala ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0002,
+    "ROA": -0.0002,
+    "eiginfjarhlutfall": 0.9998,
+    "veltufjarhlutfall": 0.001,
+    "skuldahlutfall_DE": 0.0002,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -15626,
+    "afskriftir": 0,
+    "fjarmunatekjur": 19,
+    "fjarmagnsgjold": -4,
+    "hagn_f_skatt": -15611,
+    "tekjuskattur": 0,
+    "hagnadur": -15611
+   },
+   "efnahagur": {
+    "fastafjarmunir": 79739200,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15,
+    "veltufjarmunir": 15,
+    "eignir": 79739215,
+    "hlutafe": 79739200,
+    "eigid_fe": 79723589,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 15626,
+    "skuldir": 15626,
+    "efe_skuldir": 79739215
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5806241890.pdf",
+ "pdfAr": "2024"
+}

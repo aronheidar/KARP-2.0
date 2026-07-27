@@ -1,0 +1,86 @@
+{
+ "kt": "6505943049",
+ "nafn": "Jörgen ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.7919,
+    "veltufjarhlutfall": 0.0247,
+    "skuldahlutfall_DE": 0.2628,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1936460,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10000,
+    "veltufjarmunir": 10000,
+    "eignir": 1946460,
+    "hlutafe": 1000000,
+    "eigid_fe": 1541414,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 405046,
+    "skuldir": 405046,
+    "efe_skuldir": 1946460
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0986,
+    "ROA": -0.0754,
+    "eiginfjarhlutfall": 0.7647,
+    "veltufjarhlutfall": 0.0235,
+    "skuldahlutfall_DE": 0.3077,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -136460,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -136460,
+    "tekjuskattur": 0,
+    "hagnadur": -136460
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1800000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10000,
+    "veltufjarmunir": 10000,
+    "eignir": 1810000,
+    "hlutafe": 1000000,
+    "eigid_fe": 1384154,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 425846,
+    "skuldir": 425846,
+    "efe_skuldir": 1810000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6505943049.pdf",
+ "pdfAr": "2025"
+}

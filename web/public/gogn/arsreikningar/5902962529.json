@@ -1,0 +1,72 @@
+{
+ "kt": "5902962529",
+ "nafn": "Ultima Thule ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": -0.2221,
+    "veltufjarhlutfall": 0.1671,
+    "eignavelta": 3.3473
+   },
+   "rekstur": {
+    "sala": 165636224,
+    "laun": -46268138,
+    "annar_rekstur": -3137332,
+    "afskriftir": -2639288,
+    "fjarmunatekjur": 101366,
+    "fjarmagnsgjold": -3954697,
+    "hagn_f_skatt": -12981384,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 9824321,
+    "handbaert": 279494,
+    "eignir": 49482838,
+    "hlutafe": 2500000,
+    "eigid_fe": -10990593,
+    "skuldir": 60473431,
+    "efe_skuldir": 49482838,
+    "skammtimaskuldir": 60473431
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": -0.2423,
+    "veltufjarhlutfall": 0.21,
+    "eignavelta": 2.6632
+   },
+   "rekstur": {
+    "sala": 124094493,
+    "laun": -22215293,
+    "annar_rekstur": -2315405,
+    "afskriftir": -1777958,
+    "fjarmunatekjur": 135027,
+    "fjarmagnsgjold": -5136448,
+    "hagn_f_skatt": -298360,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 9271486,
+    "handbaert": 2886063,
+    "eignir": 46595623,
+    "hlutafe": 2500000,
+    "eigid_fe": -11288953,
+    "skuldir": 57884576,
+    "efe_skuldir": 46595623,
+    "skammtimaskuldir": 57884576
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/5902962529.pdf",
+ "pdfAr": "2024"
+}

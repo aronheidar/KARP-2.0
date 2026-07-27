@@ -1,0 +1,88 @@
+{
+ "kt": "5302230190",
+ "nafn": "3 Fossar ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7832,
+    "hagnadarhlutfall": 0.6742,
+    "ROE": 0.9791,
+    "ROA": 0.7775,
+    "eiginfjarhlutfall": 0.7941,
+    "veltufjarhlutfall": 2.9545,
+    "skuldahlutfall_DE": 0.2593,
+    "eignavelta": 1.1533
+   },
+   "rekstur": {
+    "sala": 54750135,
+    "laun": 0,
+    "annar_rekstur": 4001411,
+    "afskriftir": 1741003,
+    "ebit": 42879763,
+    "fjarmagnsgjold": -1138,
+    "fjarmunatekjur": 276296,
+    "hagn_f_skatt": 43154921,
+    "tekjuskattur": -6242493,
+    "hagnadur": 36912428
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18535875,
+    "vidskiptakrofur": 302092,
+    "handbaert": 28575716,
+    "eignir": 47474468,
+    "hlutafe": 500000,
+    "eigid_fe": 37700412,
+    "skuldir": 9774056,
+    "efe_skuldir": 47474468,
+    "skammtimaskuldir": 9774056
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.716,
+    "hagnadarhlutfall": 0.585,
+    "ROE": 0.966,
+    "ROA": 0.7618,
+    "eiginfjarhlutfall": 0.7887,
+    "veltufjarhlutfall": 3.2434,
+    "skuldahlutfall_DE": 0.2679,
+    "eignavelta": 1.3023
+   },
+   "rekstur": {
+    "sala": 82520096,
+    "laun": 9011337,
+    "annar_rekstur": 5616137,
+    "afskriftir": 3281703,
+    "ebit": 59083431,
+    "fjarmagnsgjold": -3682,
+    "fjarmunatekjur": 1267072,
+    "hagn_f_skatt": 60346821,
+    "tekjuskattur": -12073644,
+    "hagnadur": 48273177
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19656172,
+    "vidskiptakrofur": 3735221,
+    "handbaert": 39693047,
+    "eignir": 63363196,
+    "hlutafe": 500000,
+    "eigid_fe": 49973589,
+    "skuldir": 13389607,
+    "efe_skuldir": 63363196,
+    "skammtimaskuldir": 13389607
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5302230190.pdf",
+ "pdfAr": "2025"
+}

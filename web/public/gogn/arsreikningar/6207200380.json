@@ -1,0 +1,78 @@
+{
+ "kt": "6207200380",
+ "nafn": "GEG Geoneer ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1302,
+    "eiginfjarhlutfall": -0.1061,
+    "veltufjarhlutfall": 0.058,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 18185,
+    "ebit": -18185,
+    "fjarmunatekjur": 1,
+    "fjarmagnsgjold": -201,
+    "hagn_f_skatt": -18631,
+    "tekjuskattur": 3754,
+    "hagnadur": -14877
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6187,
+    "vidskiptakrofur": 1,
+    "handbaert": 7327,
+    "eignir": 114270,
+    "hlutafe": 3931,
+    "eigid_fe": -12127,
+    "skuldir": 126397,
+    "efe_skuldir": 114270,
+    "skammtimaskuldir": 126397
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -1.3672,
+    "ROA": -0.5068,
+    "eiginfjarhlutfall": 0.3707,
+    "veltufjarhlutfall": 0.001,
+    "skuldahlutfall_DE": 1.6979,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 351175,
+    "ebit": -351175,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -4,
+    "hagn_f_skatt": -349836,
+    "tekjuskattur": 68061,
+    "hagnadur": -281775
+   },
+   "efnahagur": {
+    "fastafjarmunir": 74249,
+    "vidskiptakrofur": 0,
+    "handbaert": 345,
+    "eignir": 556037,
+    "hlutafe": 503931,
+    "eigid_fe": 206098,
+    "skuldir": 349939,
+    "efe_skuldir": 556037,
+    "skammtimaskuldir": 349939
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6207200380.pdf",
+ "pdfAr": "2021"
+}

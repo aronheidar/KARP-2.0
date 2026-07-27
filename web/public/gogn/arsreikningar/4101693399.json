@@ -1,0 +1,78 @@
+{
+ "kt": "4101693399",
+ "nafn": "Akur ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1771.5333,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -26589,
+    "afskriftir": 0,
+    "fjarmunatekjur": 16,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -26573,
+    "tekjuskattur": 0,
+    "hagnadur": -26573
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 11,
+    "veltufjarmunir": 15,
+    "eignir": 15,
+    "hlutafe": 600,
+    "eigid_fe": -94989,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 95004,
+    "skuldir": 95004,
+    "efe_skuldir": 15
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -21396,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -21396,
+    "tekjuskattur": 0,
+    "hagnadur": -21396
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 600,
+    "eigid_fe": -116385,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 116385,
+    "skuldir": 116385,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4101693399.pdf",
+ "pdfAr": "2025"
+}

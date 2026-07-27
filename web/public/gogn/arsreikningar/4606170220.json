@@ -1,0 +1,86 @@
+{
+ "kt": "4606170220",
+ "nafn": "Askja Capital ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0453,
+    "ROA": -0.0388,
+    "eiginfjarhlutfall": 0.858,
+    "veltufjarhlutfall": 0.0205,
+    "skuldahlutfall_DE": 0.1656,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -74840,
+    "afskriftir": 0,
+    "fjarmunatekjur": 137,
+    "fjarmagnsgjold": -3218,
+    "hagn_f_skatt": -77921,
+    "tekjuskattur": 0,
+    "hagnadur": -77921
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5831,
+    "veltufjarmunir": 5861,
+    "eignir": 2005861,
+    "hlutafe": 2500000,
+    "eigid_fe": 1720931,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 284930,
+    "skuldir": 284930,
+    "efe_skuldir": 2005861
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0443,
+    "ROA": -0.0017,
+    "eiginfjarhlutfall": 0.0384,
+    "veltufjarhlutfall": 0.0001,
+    "skuldahlutfall_DE": 25.0253,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -72457,
+    "afskriftir": 0,
+    "fjarmunatekjur": 19,
+    "fjarmagnsgjold": -540,
+    "hagn_f_skatt": -72978,
+    "tekjuskattur": 0,
+    "hagnadur": -72978
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 3349,
+    "veltufjarmunir": 40888405,
+    "eignir": 42888405,
+    "hlutafe": 2500000,
+    "eigid_fe": 1647953,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 41240452,
+    "skuldir": 41240452,
+    "efe_skuldir": 42888405
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4606170220.pdf",
+ "pdfAr": "2025"
+}

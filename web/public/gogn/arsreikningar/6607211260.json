@@ -1,0 +1,86 @@
+{
+ "kt": "6607211260",
+ "nafn": "Bigwig ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.9593,
+    "ROA": -0.6634,
+    "eiginfjarhlutfall": 0.6916,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.4459,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -244803,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -244803,
+    "tekjuskattur": 0,
+    "hagnadur": -244803
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 255197,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 113803,
+    "skuldir": 113803,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.086,
+    "ROA": -0.0547,
+    "eiginfjarhlutfall": 0.6368,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.5702,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 234997,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 134003,
+    "skuldir": 134003,
+    "efe_skuldir": 369000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6607211260.pdf",
+ "pdfAr": "2022"
+}

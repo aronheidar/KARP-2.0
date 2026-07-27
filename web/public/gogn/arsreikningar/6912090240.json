@@ -1,0 +1,84 @@
+{
+ "kt": "6912090240",
+ "nafn": "Agatha's yard ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.32,
+    "hagnadarhlutfall": -1.3401,
+    "ROA": -0.0253,
+    "veltufjarhlutfall": 0.009,
+    "eignavelta": 0.0188
+   },
+   "rekstur": {
+    "sala": 1634914,
+    "ebit": -2158104,
+    "afskriftir": 0,
+    "fjarmunatekjur": 4774,
+    "fjarmagnsgjold": -37548,
+    "hagn_f_skatt": -2190878,
+    "tekjuskattur": 0,
+    "hagnadur": -2190878
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8548365,
+    "birgdir": 0,
+    "vidskiptakrofur": 2798948,
+    "handbaert": 27242,
+    "veltufjarmunir": 78202049,
+    "eignir": 86750414,
+    "hlutafe": 500000,
+    "eigid_fe": -228884287,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 315634701,
+    "skuldir": 315634701,
+    "efe_skuldir": 86750414
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -5.7507,
+    "hagnadarhlutfall": -5.8932,
+    "ROA": -0.0622,
+    "veltufjarhlutfall": 0.0103,
+    "eignavelta": 0.0106
+   },
+   "rekstur": {
+    "sala": 926950,
+    "ebit": -5330615,
+    "afskriftir": 0,
+    "fjarmunatekjur": 4173,
+    "fjarmagnsgjold": -136294,
+    "hagn_f_skatt": -5462736,
+    "tekjuskattur": 0,
+    "hagnadur": -5462736
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8548365,
+    "birgdir": 0,
+    "vidskiptakrofur": 3076448,
+    "handbaert": 237879,
+    "veltufjarmunir": 79294282,
+    "eignir": 87842647,
+    "hlutafe": 500000,
+    "eigid_fe": -234270023,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 322112670,
+    "skuldir": 322112670,
+    "efe_skuldir": 87842647
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6912090240.pdf",
+ "pdfAr": "2024"
+}

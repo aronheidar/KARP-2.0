@@ -1,0 +1,86 @@
+{
+ "kt": "5211201340",
+ "nafn": "Almenna Múrþjónustan ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0817,
+    "hagnadarhlutfall": -0.0055,
+    "ROA": -0.0132,
+    "eiginfjarhlutfall": -0.012,
+    "veltufjarhlutfall": 0.6746,
+    "eignavelta": 2.3936
+   },
+   "rekstur": {
+    "sala": 47753194,
+    "ebit": 3900413,
+    "afskriftir": -3561887,
+    "fjarmunatekjur": 24106,
+    "fjarmagnsgjold": -625383,
+    "hagn_f_skatt": -262751,
+    "tekjuskattur": 0,
+    "hagnadur": -262751
+   },
+   "efnahagur": {
+    "fastafjarmunir": 14247547,
+    "birgdir": 0,
+    "vidskiptakrofur": 4652656,
+    "handbaert": 1050227,
+    "veltufjarmunir": 5702883,
+    "eignir": 19950430,
+    "hlutafe": 500000,
+    "eigid_fe": -238860,
+    "langtimaskuldir": 11734984,
+    "skammtimaskuldir": 8454306,
+    "skuldir": 20189290,
+    "efe_skuldir": 19950430
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0041,
+    "hagnadarhlutfall": -0.0361,
+    "ROA": -0.3791,
+    "eiginfjarhlutfall": -0.3964,
+    "veltufjarhlutfall": 0.8234,
+    "eignavelta": 10.5112
+   },
+   "rekstur": {
+    "sala": 145249374,
+    "ebit": 595362,
+    "afskriftir": -2849510,
+    "fjarmunatekjur": 137938,
+    "fjarmagnsgjold": -3122767,
+    "hagn_f_skatt": -5238977,
+    "tekjuskattur": 0,
+    "hagnadur": -5238977
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11398037,
+    "birgdir": 0,
+    "vidskiptakrofur": 1144630,
+    "handbaert": 1275882,
+    "veltufjarmunir": 2420512,
+    "eignir": 13818549,
+    "hlutafe": 500000,
+    "eigid_fe": -5477837,
+    "langtimaskuldir": 16356713,
+    "skammtimaskuldir": 2939673,
+    "skuldir": 19296386,
+    "efe_skuldir": 13818549
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5211201340.pdf",
+ "pdfAr": "2023"
+}

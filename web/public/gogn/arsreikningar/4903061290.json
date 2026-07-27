@@ -1,0 +1,92 @@
+{
+ "kt": "4903061290",
+ "nafn": "Kjarnabyggð ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7232,
+    "ebit_hlutfall": -0.1726,
+    "hagnadarhlutfall": -0.1858,
+    "ROA": -0.3477,
+    "eiginfjarhlutfall": -0.5582,
+    "veltufjarhlutfall": 0.0356,
+    "eignavelta": 1.8707
+   },
+   "rekstur": {
+    "sala": 183782184,
+    "kostnadarverd": 50879233,
+    "laun": 131476043,
+    "annar_rekstur": 28254303,
+    "afskriftir": 4894121,
+    "ebit": -31721516,
+    "fjarmunatekjur": 406859,
+    "fjarmagnsgjold": -11373448,
+    "hagn_f_skatt": -42688105,
+    "tekjuskattur": 8533581,
+    "hagnadur": -34154524
+   },
+   "efnahagur": {
+    "fastafjarmunir": 76058916,
+    "birgdir": 2156304,
+    "vidskiptakrofur": 3246206,
+    "handbaert": 49773,
+    "veltufjarmunir": 5452616,
+    "eignir": 98242509,
+    "hlutafe": 500000,
+    "eigid_fe": -54837406,
+    "skuldir": 153079915,
+    "efe_skuldir": 98242509,
+    "skammtimaskuldir": 153079915
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6567,
+    "ebit_hlutfall": -0.0183,
+    "hagnadarhlutfall": -0.0645,
+    "ROA": -0.1289,
+    "eiginfjarhlutfall": -0.5837,
+    "veltufjarhlutfall": 0.1476,
+    "eignavelta": 1.9987
+   },
+   "rekstur": {
+    "sala": 240986330,
+    "kostnadarverd": 82735055,
+    "laun": 130400666,
+    "annar_rekstur": 26051968,
+    "afskriftir": 6213387,
+    "ebit": -4414746,
+    "fjarmunatekjur": 457186,
+    "fjarmagnsgjold": -11584226,
+    "hagn_f_skatt": -15541786,
+    "tekjuskattur": 0,
+    "hagnadur": -15541786
+   },
+   "efnahagur": {
+    "fastafjarmunir": 75560024,
+    "birgdir": 2156304,
+    "vidskiptakrofur": 26027601,
+    "handbaert": 2391,
+    "veltufjarmunir": 28282832,
+    "eignir": 120573833,
+    "hlutafe": 500000,
+    "eigid_fe": -70379192,
+    "skuldir": 190953025,
+    "efe_skuldir": 120573833,
+    "skammtimaskuldir": 190953025
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4903061290.pdf",
+ "pdfAr": "2024"
+}

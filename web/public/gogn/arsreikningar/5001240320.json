@@ -1,0 +1,75 @@
+{
+ "kt": "5001240320",
+ "nafn": "701 Hotels ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0035,
+    "hagnadarhlutfall": -0.0052,
+    "ROA": -0.0304,
+    "eiginfjarhlutfall": -0.0266,
+    "veltufjarhlutfall": 0.6679,
+    "eignavelta": 5.7951
+   },
+   "rekstur": {
+    "sala": 767976166,
+    "laun": -374483537,
+    "annar_rekstur": -12110539,
+    "afskriftir": -821371,
+    "ebit": -2724532,
+    "fjarmunatekjur": 669091,
+    "fjarmagnsgjold": -1043988,
+    "hagn_f_skatt": -5031237,
+    "tekjuskattur": 1006247,
+    "hagnadur": -4024990
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 38993967,
+    "handbaert": 51876446,
+    "eignir": 132521449,
+    "hlutafe": 500000,
+    "eigid_fe": -3524990,
+    "skuldir": 136046439,
+    "efe_skuldir": 132521449,
+    "skammtimaskuldir": 136046439
+   },
+   "starfsmenn": 37
+  }
+ },
+ "pdf": "pdf/5001240320.pdf",
+ "pdfAr": "2024"
+}

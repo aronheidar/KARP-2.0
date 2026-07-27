@@ -1,0 +1,85 @@
+{
+ "kt": "5802210330",
+ "nafn": "2040 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.2263,
+    "hagnadarhlutfall": -1.2263,
+    "ROA": -1.277,
+    "veltufjarhlutfall": 0.2764,
+    "eignavelta": 1.0414
+   },
+   "rekstur": {
+    "sala": 456137,
+    "ebit": -559342,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -559342,
+    "tekjuskattur": 0,
+    "hagnadur": -559342
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 348500,
+    "vidskiptakrofur": 0,
+    "handbaert": 30771,
+    "veltufjarmunir": 437997,
+    "eignir": 437997,
+    "hlutafe": 500000,
+    "eigid_fe": -934156,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1372153,
+    "skuldir": 1372153,
+    "efe_skuldir": 437997
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7297,
+    "hagnadarhlutfall": 0.7297,
+    "ROA": 1.2955,
+    "eiginfjarhlutfall": -1.1284,
+    "veltufjarhlutfall": 0.4698,
+    "eignavelta": 1.7754
+   },
+   "rekstur": {
+    "sala": 684233,
+    "ebit": 499270,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 499270,
+    "tekjuskattur": 0,
+    "hagnadur": 499270
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 348500,
+    "vidskiptakrofur": 0,
+    "handbaert": 36888,
+    "veltufjarmunir": 385388,
+    "eignir": 385388,
+    "hlutafe": 500000,
+    "eigid_fe": -434886,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 820274,
+    "skuldir": 820274,
+    "efe_skuldir": 385388
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5802210330.pdf",
+ "pdfAr": "2024"
+}

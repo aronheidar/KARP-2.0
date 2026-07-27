@@ -1,0 +1,85 @@
+{
+ "kt": "6907191260",
+ "nafn": "9T ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.9901,
+    "ROA": 0.9901,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18720,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3644,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 29984924,
+    "tekjuskattur": 0,
+    "hagnadur": 29984924
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 30000000,
+    "handbaert": 285936,
+    "veltufjarmunir": 30285936,
+    "eignir": 30285936,
+    "hlutafe": 500000,
+    "eigid_fe": 30285936,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 30285936
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0327,
+    "ROA": -0.0158,
+    "eiginfjarhlutfall": 0.482,
+    "veltufjarhlutfall": 1.9306,
+    "skuldahlutfall_DE": 1.0745,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -284650,
+    "afskriftir": 0,
+    "fjarmunatekjur": 117157,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -167493,
+    "tekjuskattur": 0,
+    "hagnadur": -167493
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 10618443,
+    "veltufjarmunir": 10618443,
+    "eignir": 10618443,
+    "hlutafe": 500000,
+    "eigid_fe": 5118443,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5500000,
+    "skuldir": 5500000,
+    "efe_skuldir": 10618443
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6907191260.pdf",
+ "pdfAr": "2024"
+}

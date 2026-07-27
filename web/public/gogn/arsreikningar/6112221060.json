@@ -1,0 +1,88 @@
+{
+ "kt": "6112221060",
+ "nafn": "La Chingona ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6328,
+    "ebit_hlutfall": 0.0076,
+    "hagnadarhlutfall": -0.0122,
+    "ROA": -0.0292,
+    "eiginfjarhlutfall": -0.0238,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 2.388
+   },
+   "rekstur": {
+    "sala": 174006071,
+    "kostnadarverd": 63893776,
+    "laun": 74399610,
+    "annar_rekstur": 9298767,
+    "afskriftir": -8120998,
+    "ebit": 1320421,
+    "fjarmagnsgjold": -3450114,
+    "hagn_f_skatt": -2129693,
+    "tekjuskattur": 0,
+    "hagnadur": -2129693
+   },
+   "efnahagur": {
+    "fastafjarmunir": 72308683,
+    "vidskiptakrofur": 0,
+    "veltufjarmunir": 557793,
+    "eignir": 72866476,
+    "hlutafe": 500000,
+    "eigid_fe": -1735117,
+    "langtimaskuldir": null,
+    "skuldir": 34000000,
+    "efe_skuldir": 72866476,
+    "skammtimaskuldir": 34000000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6516,
+    "ebit_hlutfall": -0.0661,
+    "hagnadarhlutfall": -0.0925,
+    "ROA": -0.2388,
+    "eiginfjarhlutfall": -0.2653,
+    "veltufjarhlutfall": 0.0163,
+    "eignavelta": 2.5806
+   },
+   "rekstur": {
+    "sala": 168763626,
+    "kostnadarverd": 58789892,
+    "laun": 75228828,
+    "annar_rekstur": 12625633,
+    "afskriftir": -8084698,
+    "ebit": -11154738,
+    "fjarmagnsgjold": -4460524,
+    "hagn_f_skatt": -15615262,
+    "tekjuskattur": 0,
+    "hagnadur": -15615262
+   },
+   "efnahagur": {
+    "fastafjarmunir": 64197629,
+    "vidskiptakrofur": 500000,
+    "veltufjarmunir": 1198282,
+    "eignir": 65395911,
+    "hlutafe": 500000,
+    "eigid_fe": -17350379,
+    "langtimaskuldir": 5.6,
+    "skuldir": 30758696,
+    "efe_skuldir": 65395911,
+    "skammtimaskuldir": 30758690.4
+   },
+   "starfsmenn": 20
+  }
+ },
+ "pdf": "pdf/6112221060.pdf",
+ "pdfAr": "2024"
+}

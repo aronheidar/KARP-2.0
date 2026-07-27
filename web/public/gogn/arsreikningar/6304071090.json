@@ -1,0 +1,76 @@
+{
+ "kt": "6304071090",
+ "nafn": "Strokkur Energy ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.1253,
+    "ROA": 0.0539,
+    "eiginfjarhlutfall": 0.4299,
+    "veltufjarhlutfall": 0.0019,
+    "skuldahlutfall_DE": 1.326
+   },
+   "rekstur": {
+    "annar_rekstur": 459,
+    "ebit": -459,
+    "fjarmagnsgjold": -28426,
+    "hagn_f_skatt": 295749,
+    "tekjuskattur": -18368,
+    "hagnadur": 277382
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4926220,
+    "handbaert": 190,
+    "veltufjarmunir": 224770,
+    "eignir": 5150991,
+    "hlutafe": 43614,
+    "eigid_fe": 2214549,
+    "langtimaskuldir": 2835812,
+    "skammtimaskuldir": 100630,
+    "skuldir": 2936442,
+    "efe_skuldir": 5150991
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.1637,
+    "ROA": 0.0766,
+    "eiginfjarhlutfall": 0.4682,
+    "veltufjarhlutfall": 0.0018,
+    "skuldahlutfall_DE": 1.1356
+   },
+   "rekstur": {
+    "annar_rekstur": 293,
+    "ebit": -293,
+    "fjarmagnsgjold": -28785,
+    "hagn_f_skatt": 437285,
+    "tekjuskattur": -3846,
+    "hagnadur": 433439
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5430413,
+    "handbaert": 180,
+    "veltufjarmunir": 224758,
+    "eignir": 5655171,
+    "hlutafe": 43614,
+    "eigid_fe": 2647988,
+    "langtimaskuldir": 2906274,
+    "skammtimaskuldir": 100909,
+    "skuldir": 3007183,
+    "efe_skuldir": 5655171
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6304071090.pdf",
+ "pdfAr": "2024"
+}

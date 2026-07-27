@@ -1,0 +1,82 @@
+{
+ "kt": "4302170380",
+ "nafn": "Skelkur ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.4055,
+    "hagnadarhlutfall": -2.6015,
+    "ROA": -0.5343,
+    "veltufjarhlutfall": 0.195,
+    "eignavelta": 0.2054
+   },
+   "rekstur": {
+    "sala": 210000,
+    "ebit": -295147,
+    "afskriftir": -150000,
+    "fjarmunatekjur": 713,
+    "fjarmagnsgjold": -101877,
+    "hagn_f_skatt": -546311,
+    "tekjuskattur": 0,
+    "hagnadur": -546311
+   },
+   "efnahagur": {
+    "fastafjarmunir": 300000,
+    "birgdir": 250000,
+    "vidskiptakrofur": 375000,
+    "handbaert": 25607,
+    "veltufjarmunir": 722564,
+    "eignir": 1022564,
+    "hlutafe": 500000,
+    "eigid_fe": -2314203,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3336767,
+    "skuldir": 3336767,
+    "efe_skuldir": 1022564
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.5711,
+    "veltufjarhlutfall": 0.0992,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -629558,
+    "afskriftir": -150000,
+    "fjarmunatekjur": 721,
+    "fjarmagnsgjold": -48889,
+    "hagn_f_skatt": -827726,
+    "tekjuskattur": 0,
+    "hagnadur": -827726
+   },
+   "efnahagur": {
+    "fastafjarmunir": 150000,
+    "birgdir": 250000,
+    "vidskiptakrofur": 100000,
+    "handbaert": 14012,
+    "veltufjarmunir": 376838,
+    "eignir": 526838,
+    "hlutafe": 500000,
+    "eigid_fe": -3141929,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3668767,
+    "skuldir": 3668767,
+    "efe_skuldir": 526838
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4302170380.pdf",
+ "pdfAr": "2024"
+}

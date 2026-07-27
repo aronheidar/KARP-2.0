@@ -1,0 +1,88 @@
+{
+ "kt": "6610052030",
+ "nafn": "Bifreiðaþjónusta Harðar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -81.9335,
+    "hagnadarhlutfall": -82.2935,
+    "ROE": -19.7649,
+    "ROA": -8.6504,
+    "eiginfjarhlutfall": 0.4377,
+    "veltufjarhlutfall": 0.8289,
+    "skuldahlutfall_DE": 1.2849,
+    "eignavelta": 0.1051
+   },
+   "rekstur": {
+    "sala": 621014,
+    "ebit": -50881834,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3002,
+    "fjarmagnsgjold": -226583,
+    "hagn_f_skatt": -51105415,
+    "tekjuskattur": 0,
+    "hagnadur": -51105415
+   },
+   "efnahagur": {
+    "fastafjarmunir": 700276,
+    "birgdir": 0,
+    "vidskiptakrofur": 2639473,
+    "handbaert": 114186,
+    "veltufjarmunir": 5207614,
+    "eignir": 5907890,
+    "hlutafe": 6000000,
+    "eigid_fe": 2585669,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3322221,
+    "skuldir": 3322221,
+    "efe_skuldir": 5907890
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1307,
+    "ROA": -0.0533,
+    "eiginfjarhlutfall": 0.4077,
+    "veltufjarhlutfall": 0.8292,
+    "skuldahlutfall_DE": 1.4528,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -300277,
+    "fjarmunatekjur": 1409,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -298868,
+    "tekjuskattur": 0,
+    "hagnadur": -298868
+   },
+   "efnahagur": {
+    "fastafjarmunir": 400000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2639473,
+    "handbaert": 115286,
+    "veltufjarmunir": 5209023,
+    "eignir": 5609023,
+    "hlutafe": 6000000,
+    "eigid_fe": 2286801,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3322222,
+    "skuldir": 3322222,
+    "efe_skuldir": 5609023
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6610052030.pdf",
+ "pdfAr": "2024"
+}

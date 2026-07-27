@@ -1,0 +1,86 @@
+{
+ "kt": "7003060380",
+ "nafn": "Skjólsteinn ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2017": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -1.3324,
+    "ROA": -0.0268,
+    "eiginfjarhlutfall": 0.0201,
+    "veltufjarhlutfall": 1.0206,
+    "skuldahlutfall_DE": 48.6296,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -17100,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -17100,
+    "tekjuskattur": 0,
+    "hagnadur": -17100
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 636946,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 636946,
+    "eignir": 636946,
+    "hlutafe": 600000,
+    "eigid_fe": 12834,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 624112,
+    "skuldir": 624112,
+    "efe_skuldir": 636946
+   },
+   "starfsmenn": null
+  },
+  "2018": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.9621,
+    "veltufjarhlutfall": 26.4161,
+    "skuldahlutfall_DE": 0.0393,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 636946,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 636946,
+    "eignir": 636946,
+    "hlutafe": 600000,
+    "eigid_fe": 612834,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 24112,
+    "skuldir": 24112,
+    "efe_skuldir": 636946
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7003060380.pdf",
+ "pdfAr": "2018"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "5705230580",
+ "nafn": "Málari Lika ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2208,
+    "hagnadarhlutfall": 0.167,
+    "ROE": 0.6416,
+    "ROA": 0.2516,
+    "eiginfjarhlutfall": 0.3921,
+    "veltufjarhlutfall": 1.5068,
+    "skuldahlutfall_DE": 1.5501,
+    "eignavelta": 1.5065
+   },
+   "rekstur": {
+    "sala": 5358645,
+    "ebit": 1183289,
+    "afskriftir": -70000,
+    "fjarmunatekjur": 5361,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 1118650,
+    "tekjuskattur": -223730,
+    "hagnadur": 894920
+   },
+   "efnahagur": {
+    "fastafjarmunir": 130000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2001360,
+    "handbaert": 1256648,
+    "veltufjarmunir": 3427127,
+    "eignir": 3557127,
+    "hlutafe": 500000,
+    "eigid_fe": 1394920,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2162207,
+    "skuldir": 2162207,
+    "efe_skuldir": 3557127
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3975,
+    "hagnadarhlutfall": 0.3807,
+    "ROE": 0.9103,
+    "ROA": 0.8046,
+    "eiginfjarhlutfall": 0.8838,
+    "veltufjarhlutfall": 7.6705,
+    "skuldahlutfall_DE": 0.1314,
+    "eignavelta": 2.1134
+   },
+   "rekstur": {
+    "sala": 37190837,
+    "ebit": 14783665,
+    "afskriftir": -685161,
+    "fjarmunatekjur": 100647,
+    "fjarmagnsgjold": -19674,
+    "hagn_f_skatt": 14158577,
+    "tekjuskattur": 0,
+    "hagnadur": 14158577
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1893871,
+    "birgdir": 0,
+    "vidskiptakrofur": 9672900,
+    "handbaert": 6009050,
+    "veltufjarmunir": 15704084,
+    "eignir": 17597955,
+    "hlutafe": 500000,
+    "eigid_fe": 15553497,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2044458,
+    "skuldir": 2044458,
+    "efe_skuldir": 17597955
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5705230580.pdf",
+ "pdfAr": "2024"
+}

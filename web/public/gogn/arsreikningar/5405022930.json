@@ -1,0 +1,78 @@
+{
+ "kt": "5405022930",
+ "nafn": "Kvika banki hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.2729,
+    "ROE": 0.0524,
+    "ROA": 0.0132,
+    "eiginfjarhlutfall": 0.2524,
+    "veltufjarhlutfall": 0.0482,
+    "skuldahlutfall_DE": 2.9612,
+    "eignavelta": 0.0485
+   },
+   "rekstur": {
+    "fjarmunatekjur": 28865,
+    "fjarmagnsgjold": -19184,
+    "adrar_tekjur": 271,
+    "sala": 17184,
+    "annar_rekstur": -10608,
+    "hagn_f_skatt": 5817,
+    "tekjuskattur": -1127,
+    "hagnadur": 4690
+   },
+   "efnahagur": {
+    "eignir": 354594,
+    "skuldir": 265077,
+    "hlutafe": 4660,
+    "eigid_fe": 89517,
+    "handbaert": 12774,
+    "efe_skuldir": 354594,
+    "skammtimaskuldir": 265077
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000000,
+   "kpi": {
+    "hagnadarhlutfall": 0.2248,
+    "ROE": 0.0633,
+    "ROA": 0.0127,
+    "eiginfjarhlutfall": 0.2009,
+    "veltufjarhlutfall": 0.0508,
+    "skuldahlutfall_DE": 3.9773,
+    "eignavelta": 0.0566
+   },
+   "rekstur": {
+    "fjarmunatekjur": 29895,
+    "fjarmagnsgjold": -17999,
+    "adrar_tekjur": 261,
+    "sala": 19411,
+    "annar_rekstur": -12074,
+    "hagn_f_skatt": 6217,
+    "tekjuskattur": -1855,
+    "hagnadur": 4363
+   },
+   "efnahagur": {
+    "eignir": 343112,
+    "skuldir": 274177,
+    "hlutafe": 4417,
+    "eigid_fe": 68935,
+    "handbaert": 13941,
+    "efe_skuldir": 343112,
+    "skammtimaskuldir": 274177
+   },
+   "starfsmenn": 250
+  }
+ },
+ "pdf": "pdf/5405022930.pdf",
+ "pdfAr": "2025"
+}

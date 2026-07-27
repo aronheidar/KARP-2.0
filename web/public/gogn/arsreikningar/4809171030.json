@@ -1,0 +1,70 @@
+{
+ "kt": "4809171030",
+ "nafn": "4M ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0779,
+    "ROA": -0.0032,
+    "eiginfjarhlutfall": 0.0412,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 23.2441
+   },
+   "rekstur": {
+    "annar_rekstur": 20200,
+    "ebit": -20200,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6288916,
+    "handbaert": 0,
+    "eignir": 6288916,
+    "hlutafe": 500000,
+    "eigid_fe": 259400,
+    "skuldir": 6029516,
+    "efe_skuldir": 6288916,
+    "skammtimaskuldir": 6029516
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0876,
+    "ROA": -0.0033,
+    "eiginfjarhlutfall": 0.0379,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 25.3686
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "ebit": -20900,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6288916,
+    "handbaert": 0,
+    "eignir": 6288916,
+    "hlutafe": 500000,
+    "eigid_fe": 238500,
+    "skuldir": 6050416,
+    "efe_skuldir": 6288916,
+    "skammtimaskuldir": 6050416
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4809171030.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,60 @@
+{
+ "kt": "4412201620",
+ "nafn": "2118 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0052,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 44070,
+    "ebit": -44070,
+    "fjarmunatekjur": 21,
+    "fjarmagnsgjold": -7808,
+    "hagnadur": -51857
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10000000,
+    "vidskiptakrofur": 4,
+    "handbaert": 185,
+    "veltufjarmunir": 189,
+    "eignir": 10000189
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0014,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 21400,
+    "ebit": -21400,
+    "fjarmunatekjur": 7808,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -13592
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10000000,
+    "vidskiptakrofur": 66850,
+    "handbaert": 185,
+    "veltufjarmunir": 67035,
+    "eignir": 10067035
+   },
+   "starfsmenn": 2118
+  }
+ },
+ "pdf": "pdf/4412201620.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "4405042990",
+ "nafn": "Centaur fjárfesting ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0004,
+    "ROA": 0.0003,
+    "eiginfjarhlutfall": 0.7039,
+    "veltufjarhlutfall": 0.0144,
+    "skuldahlutfall_DE": 0.4206,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -972323,
+    "afskriftir": 0,
+    "fjarmunatekjur": 576413,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 851443,
+    "tekjuskattur": 0,
+    "hagnadur": 851443
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1947293773,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 12573425,
+    "veltufjarmunir": 1005071929,
+    "eignir": 2952365702,
+    "hlutafe": 500000,
+    "eigid_fe": 2078211537,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 874154165,
+    "skuldir": 874154165,
+    "efe_skuldir": 2952365702
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0008,
+    "ROA": -0.0006,
+    "eiginfjarhlutfall": 0.7042,
+    "veltufjarhlutfall": 0.0105,
+    "skuldahlutfall_DE": 0.4201,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -2130329,
+    "afskriftir": 0,
+    "fjarmunatekjur": 384996,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1721399,
+    "tekjuskattur": 0,
+    "hagnadur": -1721399
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1947293773,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 9152359,
+    "veltufjarmunir": 1001608751,
+    "eignir": 2948902524,
+    "hlutafe": 500000,
+    "eigid_fe": 2076490138,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 872412386,
+    "skuldir": 872412386,
+    "efe_skuldir": 2948902524
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4405042990.pdf",
+ "pdfAr": "2024"
+}

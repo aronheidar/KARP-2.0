@@ -1,0 +1,88 @@
+{
+ "kt": "6510042090",
+ "nafn": "K32 22 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7866,
+    "ebit_hlutfall": -0.0692,
+    "hagnadarhlutfall": -0.1101,
+    "ROA": -0.0908,
+    "eiginfjarhlutfall": -0.2837,
+    "veltufjarhlutfall": 0.2292,
+    "eignavelta": 0.8242
+   },
+   "rekstur": {
+    "sala": 807051601,
+    "kostnadarverd": 172265009,
+    "laun": 170082339,
+    "annar_rekstur": 60713215,
+    "afskriftir": 96409833,
+    "ebit": -55843853,
+    "fjarmunatekjur": 1571461,
+    "fjarmagnsgjold": -34599567,
+    "hagn_f_skatt": -88871959,
+    "tekjuskattur": 0,
+    "hagnadur": -88871959
+   },
+   "efnahagur": {
+    "fastafjarmunir": 616042468,
+    "vidskiptakrofur": 280081202,
+    "handbaert": 7965326,
+    "eignir": 979166771,
+    "hlutafe": 500000,
+    "eigid_fe": -277774125,
+    "skuldir": 1256940896,
+    "efe_skuldir": 979166771,
+    "skammtimaskuldir": 1256940896
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7573,
+    "ebit_hlutfall": -0.0284,
+    "hagnadarhlutfall": -0.0611,
+    "ROA": -0.0553,
+    "eiginfjarhlutfall": -0.3573,
+    "veltufjarhlutfall": 0.2626,
+    "eignavelta": 0.9042
+   },
+   "rekstur": {
+    "sala": 831569299,
+    "kostnadarverd": 201839704,
+    "laun": 180701551,
+    "annar_rekstur": 122707834,
+    "afskriftir": 93160246,
+    "ebit": -23595423,
+    "fjarmunatekjur": 1258656,
+    "fjarmagnsgjold": -28490193,
+    "hagn_f_skatt": -50826960,
+    "tekjuskattur": 0,
+    "hagnadur": -50826960
+   },
+   "efnahagur": {
+    "fastafjarmunir": 516512329,
+    "vidskiptakrofur": 296795561,
+    "handbaert": 31071917,
+    "eignir": 919721988,
+    "hlutafe": 500000,
+    "eigid_fe": -328601085,
+    "skuldir": 1248323073,
+    "efe_skuldir": 919721988,
+    "skammtimaskuldir": 1248323073
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6510042090.pdf",
+ "pdfAr": "2023"
+}

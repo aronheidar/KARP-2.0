@@ -1,0 +1,82 @@
+{
+ "kt": "5012130980",
+ "nafn": "1001 Nótt ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1341,
+    "eiginfjarhlutfall": 0.0541,
+    "veltufjarhlutfall": 0.0176,
+    "skuldahlutfall_DE": 17.4759,
+    "eignavelta": 0.6828
+   },
+   "rekstur": {
+    "sala": 129512470,
+    "laun": 47584142,
+    "annar_rekstur": 53866394,
+    "ebitda": 28061934,
+    "afskriftir": 10699203,
+    "ebit": 17362731,
+    "fjarmagnsgjold": 9370541,
+    "hagn_f_skatt": 8349972,
+    "tekjuskattur": 416738
+   },
+   "efnahagur": {
+    "birgdir": 400000,
+    "vidskiptakrofur": 199718,
+    "handbaert": 2559841,
+    "veltufjarmunir": 9353040,
+    "eignir": 189687622,
+    "hlutafe": 4000000,
+    "eigid_fe": 10266768,
+    "skuldir": 179420854,
+    "efe_skuldir": 189687622,
+    "skammtimaskuldir": 179420854
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1666,
+    "eiginfjarhlutfall": 0.1872,
+    "veltufjarhlutfall": 0.0503,
+    "skuldahlutfall_DE": 4.3419,
+    "eignavelta": 0.3618
+   },
+   "rekstur": {
+    "sala": 130298828,
+    "laun": 43844772,
+    "annar_rekstur": 54302763,
+    "ebitda": 32151293,
+    "afskriftir": 10442144,
+    "ebit": 21709149,
+    "fjarmagnsgjold": 8886545,
+    "hagn_f_skatt": 13946107,
+    "tekjuskattur": 843418
+   },
+   "efnahagur": {
+    "birgdir": 400000,
+    "vidskiptakrofur": 1164632,
+    "handbaert": 13154121,
+    "veltufjarmunir": 15050800,
+    "eignir": 360147118,
+    "hlutafe": 50000000,
+    "eigid_fe": 67419087,
+    "skuldir": 292728031,
+    "efe_skuldir": 360147118,
+    "skammtimaskuldir": 292728031
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/5012130980.pdf",
+ "pdfAr": "2024"
+}

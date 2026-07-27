@@ -1,0 +1,96 @@
+{
+ "kt": "7011810779",
+ "nafn": "Vísir ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.524,
+    "ebit_hlutfall": 0.0916,
+    "hagnadarhlutfall": 0.0295,
+    "ROE": 0.0333,
+    "ROA": 0.014,
+    "eiginfjarhlutfall": 0.422,
+    "veltufjarhlutfall": 0.0926,
+    "skuldahlutfall_DE": 1.3696,
+    "eignavelta": 0.4755
+   },
+   "rekstur": {
+    "sala": 67784561,
+    "kostnadarverd": 32267901,
+    "laun": 23473867,
+    "annar_rekstur": 2134645,
+    "ebitda": 9705879,
+    "afskriftir": 3497638,
+    "ebit": 6208241,
+    "fjarmunatekjur": 1177269,
+    "fjarmagnsgjold": -4840042,
+    "hagn_f_skatt": 2650638,
+    "tekjuskattur": -649456,
+    "hagnadur": 2001182
+   },
+   "efnahagur": {
+    "fastafjarmunir": 118946802,
+    "birgdir": 4224920,
+    "vidskiptakrofur": 953043,
+    "handbaert": 2455305,
+    "eignir": 142561616,
+    "hlutafe": 90113,
+    "eigid_fe": 60163393,
+    "skuldir": 82398223,
+    "efe_skuldir": 142561616,
+    "skammtimaskuldir": 82398223
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5762,
+    "ebit_hlutfall": 0.2066,
+    "hagnadarhlutfall": 0.1647,
+    "ROE": 0.2017,
+    "ROA": 0.1042,
+    "eiginfjarhlutfall": 0.5166,
+    "veltufjarhlutfall": 0.1496,
+    "skuldahlutfall_DE": 0.9356,
+    "eignavelta": 0.633
+   },
+   "rekstur": {
+    "sala": 92005260,
+    "kostnadarverd": 38991924,
+    "laun": 28354301,
+    "annar_rekstur": 1982384,
+    "ebitda": 22676651,
+    "afskriftir": 3670157,
+    "ebit": 19006494,
+    "fjarmunatekjur": 579889,
+    "fjarmagnsgjold": -3201156,
+    "hagn_f_skatt": 18424046,
+    "tekjuskattur": -3275345,
+    "hagnadur": 15148701
+   },
+   "efnahagur": {
+    "fastafjarmunir": 122344609,
+    "birgdir": 4108503,
+    "vidskiptakrofur": 2537735,
+    "handbaert": 3864617,
+    "eignir": 145339912,
+    "hlutafe": 90113,
+    "eigid_fe": 75088086,
+    "skuldir": 70251826,
+    "efe_skuldir": 145339912,
+    "skammtimaskuldir": 70251826
+   },
+   "starfsmenn": 262
+  }
+ },
+ "pdf": "pdf/7011810779.pdf",
+ "pdfAr": "2025"
+}

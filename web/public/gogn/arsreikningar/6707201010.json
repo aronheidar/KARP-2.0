@@ -1,0 +1,90 @@
+{
+ "kt": "6707201010",
+ "nafn": "Grandi Götubiti ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0114,
+    "hagnadarhlutfall": 0.0064,
+    "ROE": 0.1167,
+    "ROA": 0.0291,
+    "eiginfjarhlutfall": 0.2491,
+    "veltufjarhlutfall": 1.3221,
+    "skuldahlutfall_DE": 3.0141,
+    "eignavelta": 4.5111
+   },
+   "rekstur": {
+    "sala": 10250679,
+    "ebit": 117203,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3443,
+    "fjarmagnsgjold": -38040,
+    "hagn_f_skatt": 82606,
+    "tekjuskattur": -16521,
+    "hagnadur": 66085
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1587200,
+    "handbaert": 668671,
+    "veltufjarmunir": 2272333,
+    "eignir": 2272333,
+    "hlutafe": 500004,
+    "eigid_fe": 566089,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1706244,
+    "skuldir": 1706244,
+    "efe_skuldir": 2272333
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0033,
+    "hagnadarhlutfall": 0.0021,
+    "ROE": 0.0484,
+    "ROA": 0.0439,
+    "eiginfjarhlutfall": 0.9088,
+    "veltufjarhlutfall": 9.2703,
+    "skuldahlutfall_DE": 0.1004,
+    "eignavelta": 20.4624
+   },
+   "rekstur": {
+    "sala": 13394186,
+    "ebit": 43894,
+    "afskriftir": 0,
+    "fjarmunatekjur": 10905,
+    "fjarmagnsgjold": -14267,
+    "hagn_f_skatt": 40532,
+    "tekjuskattur": -11766,
+    "hagnadur": 28766
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 553640,
+    "veltufjarmunir": 654577,
+    "eignir": 654577,
+    "hlutafe": 500004,
+    "eigid_fe": 594855,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 59722,
+    "skuldir": 59722,
+    "efe_skuldir": 654577
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6707201010.pdf",
+ "pdfAr": "2021"
+}

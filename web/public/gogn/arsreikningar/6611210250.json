@@ -1,0 +1,85 @@
+{
+ "kt": "6611210250",
+ "nafn": "4E ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.6408,
+    "hagnadarhlutfall": -1.6501,
+    "ROA": -3.4723,
+    "veltufjarhlutfall": 0.0359,
+    "eignavelta": 2.1043
+   },
+   "rekstur": {
+    "sala": 1286204,
+    "ebit": -2110447,
+    "afskriftir": 0,
+    "fjarmunatekjur": 715,
+    "fjarmagnsgjold": -12614,
+    "hagn_f_skatt": -2122346,
+    "tekjuskattur": 0,
+    "hagnadur": -2122346
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 84995,
+    "veltufjarmunir": 611228,
+    "eignir": 611228,
+    "hlutafe": 500000,
+    "eigid_fe": -1753346,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2364574,
+    "skuldir": 2364574,
+    "efe_skuldir": 611228
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1866,
+    "hagnadarhlutfall": 0.0785,
+    "ROA": 0.107,
+    "eiginfjarhlutfall": -0.5028,
+    "veltufjarhlutfall": 0.6437,
+    "eignavelta": 1.3625
+   },
+   "rekstur": {
+    "sala": 3917501,
+    "ebit": 730844,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1800,
+    "fjarmagnsgjold": -425085,
+    "hagn_f_skatt": 307559,
+    "tekjuskattur": 0,
+    "hagnadur": 307559
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2772613,
+    "vidskiptakrofur": 8995,
+    "handbaert": 0,
+    "veltufjarmunir": 2875266,
+    "eignir": 2875266,
+    "hlutafe": 500000,
+    "eigid_fe": -1445787,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4321053,
+    "skuldir": 4321053,
+    "efe_skuldir": 2875266
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6611210250.pdf",
+ "pdfAr": "2023"
+}

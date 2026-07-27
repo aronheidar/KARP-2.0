@@ -1,0 +1,72 @@
+{
+ "kt": "4504022490",
+ "nafn": "Viðskiptastofan ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -2.7581,
+    "hagnadarhlutfall": -2.9868,
+    "ROA": -0.0964,
+    "eignavelta": 0.0323
+   },
+   "rekstur": {
+    "adrar_tekjur": 30397,
+    "sala": 2952081,
+    "laun": 4037442,
+    "annar_rekstur": 4596677,
+    "afskriftir": 2460070,
+    "ebit": -8142108,
+    "fjarmunatekjur": 14430,
+    "fjarmagnsgjold": -453228,
+    "hagnadur": -8817223
+   },
+   "efnahagur": {
+    "hlutafe": 19505797,
+    "fastafjarmunir": 73448815,
+    "handbaert": 1994191,
+    "vidskiptakrofur": 0,
+    "veltufjarmunir": 18056652,
+    "eignir": 91505467
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.4995,
+    "hagnadarhlutfall": 0.4211,
+    "ROA": 0.0248,
+    "eignavelta": 0.0588
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "sala": 5679275,
+    "laun": 2563326,
+    "annar_rekstur": 4168311,
+    "afskriftir": 1784551,
+    "ebit": -2836913,
+    "fjarmunatekjur": 205133,
+    "fjarmagnsgjold": -398735,
+    "hagnadur": 2391438
+   },
+   "efnahagur": {
+    "hlutafe": 19472490,
+    "fastafjarmunir": 69061291,
+    "handbaert": 6228774,
+    "vidskiptakrofur": 249643,
+    "veltufjarmunir": 27482530,
+    "eignir": 96543821
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4504022490.pdf",
+ "pdfAr": "2024"
+}

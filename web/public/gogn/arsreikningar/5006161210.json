@@ -1,0 +1,72 @@
+{
+ "kt": "5006161210",
+ "nafn": "1994 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.2558,
+    "ROA": 0.2374,
+    "eiginfjarhlutfall": 0.9282,
+    "veltufjarhlutfall": 3.9511,
+    "skuldahlutfall_DE": 0.0773
+   },
+   "rekstur": {
+    "fjarmunatekjur": 27864,
+    "fjarmagnsgjold": -3,
+    "annar_rekstur": 1237,
+    "hagn_f_skatt": 254913,
+    "tekjuskattur": -9263,
+    "hagnadur": 245650
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 211393,
+    "handbaert": 82029,
+    "eignir": 1034569,
+    "hlutafe": 45155,
+    "eigid_fe": 960305,
+    "efe_skuldir": 1034569,
+    "skuldir": 74264,
+    "skammtimaskuldir": 74264
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": 0.1573,
+    "ROA": 0.146,
+    "eiginfjarhlutfall": 0.9283,
+    "veltufjarhlutfall": 5.1458,
+    "skuldahlutfall_DE": 0.0773
+   },
+   "rekstur": {
+    "fjarmunatekjur": 36318,
+    "fjarmagnsgjold": -6,
+    "annar_rekstur": 3129,
+    "hagn_f_skatt": 156298,
+    "tekjuskattur": -9024,
+    "hagnadur": 147274
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 113841,
+    "handbaert": 258465,
+    "eignir": 1008648,
+    "hlutafe": 45155,
+    "eigid_fe": 936297,
+    "efe_skuldir": 1008648,
+    "skuldir": 72351,
+    "skammtimaskuldir": 72351
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5006161210.pdf",
+ "pdfAr": "2024"
+}

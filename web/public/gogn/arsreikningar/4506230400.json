@@ -1,0 +1,88 @@
+{
+ "kt": "4506230400",
+ "nafn": "DAD ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1212,
+    "hagnadarhlutfall": 0.0904,
+    "ROE": 0.8404,
+    "ROA": 0.2309,
+    "eiginfjarhlutfall": 0.2747,
+    "veltufjarhlutfall": 0.6558,
+    "skuldahlutfall_DE": 2.6402,
+    "eignavelta": 2.5545
+   },
+   "rekstur": {
+    "sala": 29137100,
+    "ebit": 3532532,
+    "afskriftir": -200000,
+    "fjarmunatekjur": 5066,
+    "fjarmagnsgjold": -45906,
+    "hagn_f_skatt": 3291692,
+    "tekjuskattur": -658338,
+    "hagnadur": 2633354
+   },
+   "efnahagur": {
+    "fastafjarmunir": 800000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4993215,
+    "veltufjarmunir": 10606184,
+    "eignir": 11406184,
+    "hlutafe": 500000,
+    "eigid_fe": 3133354,
+    "langtimaskuldir": 658338,
+    "skammtimaskuldir": 7614492,
+    "skuldir": 8272830,
+    "efe_skuldir": 11406184
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0454,
+    "hagnadarhlutfall": -0.06,
+    "ROA": -0.195,
+    "eiginfjarhlutfall": -0.0792,
+    "veltufjarhlutfall": 0.3031,
+    "eignavelta": 3.2473
+   },
+   "rekstur": {
+    "sala": 87897668,
+    "ebit": -3993108,
+    "afskriftir": -160000,
+    "fjarmunatekjur": 11780,
+    "fjarmagnsgjold": -1136372,
+    "hagn_f_skatt": -5277700,
+    "tekjuskattur": 0,
+    "hagnadur": -5277700
+   },
+   "efnahagur": {
+    "fastafjarmunir": 640000,
+    "birgdir": 0,
+    "vidskiptakrofur": 8366448,
+    "handbaert": 488520,
+    "veltufjarmunir": 26428052,
+    "eignir": 27068052,
+    "hlutafe": 500000,
+    "eigid_fe": -2144346,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 29212398,
+    "skuldir": 29212398,
+    "efe_skuldir": 27068052
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4506230400.pdf",
+ "pdfAr": "2024"
+}

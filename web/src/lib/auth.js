@@ -177,22 +177,25 @@ export async function mountChip(el) {
 // fyrir launch; kveikt af Aroni þegar billing er tilbúið), reports (fylki lykla keyptra skýrslna).
 const _u = () => (typeof window !== 'undefined' && window.KARP_USER) || {};
 export function isAdmin() { return _u().isAdmin === true; }
-export function isPlus() { const u = _u(); return u.isAdmin === true || u.plus === true; }
+// _free: CONTENT-gátt fyrir "notandi (frítt)" — admin (allt frítt + panel) EÐA freeAccess (allt frítt, ENGINN panel).
+// Notað AÐEINS í réttinda-gáttum hér að neðan — ALDREI fyrir /stjorn/ (sá gildir eingöngu isAdmin()).
+const _free = () => isAdmin() || _u().freeAccess === true;
+export function isPlus() { const u = _u(); return _free() || u.plus === true; }
 // Er efni læst fyrir ÞENNAN notanda? AÐEINS ef greiðsluveggir eru virkir OG notandi er ekki áskrifandi/admin.
 export function locked() { return _u().paywall === true && !isPlus(); }
 // Hefur notandinn keypt (eða admin) þessa skýrslu? key = t.d. 'fasteign:<pn>' eða 'fyrirtaeki:<kt>'.
-export function hasReport(key) { const u = _u(); return isAdmin() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
+export function hasReport(key) { const u = _u(); return _free() || (Array.isArray(u.reports) && u.reports.indexOf(key) !== -1); }
 
 // Þrep-áskrift (Verk B): eitt þrep per notandi (u.tier ∈ grunnur|fyrirtaeki|fyrirtaeki_plus), stigveldi.
 // hasTier(min) = notandi (eða admin) hefur a.m.k. þrep-stig `min` (1|2|3). lockedTier = veggur virkur OG ekki nógu hátt þrep.
 // tierLevel notar VIRKT þrep (effectiveTier úr /me) svo teymis-meðlimir erfi þrep eiganda.
-export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.effectiveTier || u.tier, u.isAdmin === true); }
+export function tierLevel(u) { u = u || _u(); return tierLevelOf(u.effectiveTier || u.tier, u.isAdmin === true || u.freeAccess === true); }
 export function hasTier(min) { return tierLevel() >= min; }
 export function lockedTier(min) { return _u().paywall === true && !hasTier(min); }
 
 // Sér þjónustu-áskrift (t.d. 'utbod' = Útboðsvaktin 1.900 kr./mán.) — óháð þrepunum.
 // karp-user.php skilar u.subs = ['utbod',…] þegar karp_sub_<svc>_until er í framtíð.
-export function hasSub(svc) { const u = _u(); return isAdmin() || (Array.isArray(u.subs) && u.subs.indexOf(svc) !== -1); }
+export function hasSub(svc) { const u = _u(); return _free() || (Array.isArray(u.subs) && u.subs.indexOf(svc) !== -1); }
 
 // ── Mörk, kvóti, teymi (LOTA: áskriftar-enforcement) ────────────────────────
 // limits() = mörk virka þrepsins (reportsMonth/follows/ktWatch/seats/fjolmidlavakt). Server sendir

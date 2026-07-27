@@ -1,0 +1,84 @@
+{
+ "kt": "6209211060",
+ "nafn": "Þakeyri ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3511,
+    "ROA": -0.015,
+    "eiginfjarhlutfall": 0.0428,
+    "veltufjarhlutfall": 1.0001,
+    "skuldahlutfall_DE": 22.3741,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -131000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1070,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -129930,
+    "tekjuskattur": 0,
+    "hagnadur": -129930
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8280835,
+    "veltufjarmunir": 8650070,
+    "eignir": 8650070,
+    "hlutafe": 500000,
+    "eigid_fe": 370070,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8280000,
+    "skuldir": 8280000,
+    "efe_skuldir": 8650070
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0687,
+    "eiginfjarhlutfall": -0.0598,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1292476,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2263,
+    "fjarmagnsgjold": -2324092,
+    "hagn_f_skatt": -3614305,
+    "tekjuskattur": 745087,
+    "hagnadur": -2869218
+   },
+   "efnahagur": {
+    "fastafjarmunir": 41400000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1765,
+    "veltufjarmunir": 371263,
+    "eignir": 41771263,
+    "hlutafe": 500000,
+    "eigid_fe": -2499148,
+    "langtimaskuldir": 25717412,
+    "skammtimaskuldir": 18552999,
+    "skuldir": 44270411,
+    "efe_skuldir": 41771263
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6209211060.pdf",
+ "pdfAr": "2022"
+}

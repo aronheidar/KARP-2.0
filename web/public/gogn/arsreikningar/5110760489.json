@@ -1,0 +1,88 @@
+{
+ "kt": "5110760489",
+ "nafn": "Máni ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1558,
+    "hagnadarhlutfall": 0.1163,
+    "ROE": 0.681,
+    "ROA": 0.1382,
+    "eiginfjarhlutfall": 0.203,
+    "veltufjarhlutfall": 0.7817,
+    "skuldahlutfall_DE": 3.9265,
+    "eignavelta": 1.1884
+   },
+   "rekstur": {
+    "sala": 3366000,
+    "ebit": 524547,
+    "afskriftir": 0,
+    "fjarmunatekjur": 6977,
+    "fjarmagnsgjold": -41470,
+    "hagn_f_skatt": 490054,
+    "tekjuskattur": -98538,
+    "hagnadur": 391516
+   },
+   "efnahagur": {
+    "fastafjarmunir": 380000,
+    "birgdir": 0,
+    "vidskiptakrofur": 999425,
+    "handbaert": 765153,
+    "veltufjarmunir": 2452278,
+    "eignir": 2832278,
+    "hlutafe": 500000,
+    "eigid_fe": 574909,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2257369,
+    "skuldir": 2257369,
+    "efe_skuldir": 2832278
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0164,
+    "hagnadarhlutfall": -0.1195,
+    "ROA": -0.0486,
+    "eiginfjarhlutfall": -0.0353,
+    "veltufjarhlutfall": 11.4617,
+    "eignavelta": 0.4069
+   },
+   "rekstur": {
+    "sala": 17602518,
+    "ebit": 289141,
+    "afskriftir": 0,
+    "fjarmunatekjur": 28708,
+    "fjarmagnsgjold": -2420918,
+    "hagn_f_skatt": -2103069,
+    "tekjuskattur": 0,
+    "hagnadur": -2103069
+   },
+   "efnahagur": {
+    "fastafjarmunir": 380000,
+    "birgdir": 41653010,
+    "vidskiptakrofur": 1116000,
+    "handbaert": 107363,
+    "veltufjarmunir": 42882689,
+    "eignir": 43262689,
+    "hlutafe": 500000,
+    "eigid_fe": -1528160,
+    "langtimaskuldir": 41050000,
+    "skammtimaskuldir": 3740849,
+    "skuldir": 44790849,
+    "efe_skuldir": 43262689
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5110760489.pdf",
+ "pdfAr": "2024"
+}

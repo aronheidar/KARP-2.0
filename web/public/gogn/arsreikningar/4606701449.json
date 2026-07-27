@@ -1,0 +1,96 @@
+{
+ "kt": "4606701449",
+ "nafn": "K. Richter hf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3739,
+    "ebit_hlutfall": 0.029,
+    "hagnadarhlutfall": 0.0157,
+    "ROE": 0.0692,
+    "ROA": 0.0379,
+    "eiginfjarhlutfall": 0.5474,
+    "veltufjarhlutfall": 2.1417,
+    "skuldahlutfall_DE": 0.8267,
+    "eignavelta": 2.4093
+   },
+   "rekstur": {
+    "sala": 275169492,
+    "adrar_tekjur": 4016624,
+    "kostnadarverd": 172272533,
+    "laun": 76548203,
+    "annar_rekstur": 6677222,
+    "afskriftir": 789901,
+    "ebit": 7967475,
+    "fjarmunatekjur": 55696,
+    "fjarmagnsgjold": -2486538,
+    "hagn_f_skatt": 5414321,
+    "tekjuskattur": -1086904,
+    "hagnadur": 4327417
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3503441,
+    "birgdir": 59075606,
+    "vidskiptakrofur": 48331858,
+    "handbaert": 3292074,
+    "eignir": 114209280,
+    "hlutafe": 13629190,
+    "eigid_fe": 62520849,
+    "skuldir": 51688431,
+    "efe_skuldir": 114209280,
+    "skammtimaskuldir": 51688431
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4352,
+    "ebit_hlutfall": 0.01,
+    "hagnadarhlutfall": 0.0001,
+    "ROE": 0.0008,
+    "ROA": 0.0003,
+    "eiginfjarhlutfall": 0.3959,
+    "veltufjarhlutfall": 1.5199,
+    "skuldahlutfall_DE": 1.5259,
+    "eignavelta": 2.296
+   },
+   "rekstur": {
+    "sala": 246807793,
+    "adrar_tekjur": 4727164,
+    "kostnadarverd": 139400792,
+    "laun": 78894832,
+    "annar_rekstur": 6451467,
+    "afskriftir": 2196263,
+    "ebit": 2459530,
+    "fjarmunatekjur": 133278,
+    "fjarmagnsgjold": -2739317,
+    "hagn_f_skatt": 50216,
+    "tekjuskattur": -14223,
+    "hagnadur": 35993
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8785052,
+    "birgdir": 68440951,
+    "vidskiptakrofur": 30222487,
+    "handbaert": 34782,
+    "eignir": 107493347,
+    "hlutafe": 13629190,
+    "eigid_fe": 42556842,
+    "skuldir": 64936505,
+    "efe_skuldir": 107493347,
+    "skammtimaskuldir": 64936505
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/4606701449.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,100 @@
+{
+ "kt": "5710180390",
+ "nafn": "101 Seafood ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.119,
+    "ebit_hlutfall": 0.093,
+    "hagnadarhlutfall": 0.0707,
+    "ROE": 0.293,
+    "ROA": 0.1322,
+    "eiginfjarhlutfall": 0.4511,
+    "veltufjarhlutfall": 1.799,
+    "skuldahlutfall_DE": 1.217,
+    "eignavelta": 1.8694
+   },
+   "rekstur": {
+    "sala": 436974818,
+    "kostnadarverd": 384970356,
+    "laun": 4539478,
+    "annar_rekstur": 2591398,
+    "ebitda": 40721525,
+    "afskriftir": -78944,
+    "ebit": 40642581,
+    "fjarmunatekjur": 410841,
+    "fjarmagnsgjold": -3661028,
+    "hagn_f_skatt": 38618689,
+    "tekjuskattur": -7727918,
+    "hagnadur": 30890771
+   },
+   "efnahagur": {
+    "fastafjarmunir": 710491,
+    "birgdir": 203935098,
+    "vidskiptakrofur": 15587505,
+    "handbaert": 7019360,
+    "veltufjarmunir": 233043700,
+    "eignir": 233754191,
+    "hlutafe": 500000,
+    "eigid_fe": 105436235,
+    "langtimaskuldir": 2390309,
+    "skammtimaskuldir": 125927647,
+    "skuldir": 128317956,
+    "efe_skuldir": 233754191
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0971,
+    "ebit_hlutfall": 0.0522,
+    "hagnadarhlutfall": 0.0393,
+    "ROE": 0.1754,
+    "ROA": 0.0728,
+    "eiginfjarhlutfall": 0.4153,
+    "veltufjarhlutfall": 1.7162,
+    "skuldahlutfall_DE": 1.4077,
+    "eignavelta": 1.8526
+   },
+   "rekstur": {
+    "sala": 570328073,
+    "kostnadarverd": 514931411,
+    "laun": 11256836,
+    "annar_rekstur": 2727625,
+    "ebitda": 29919684,
+    "afskriftir": -157887,
+    "ebit": 29761797,
+    "fjarmunatekjur": 206571,
+    "fjarmagnsgjold": -1935043,
+    "hagn_f_skatt": 28331344,
+    "tekjuskattur": -5911030,
+    "hagnadur": 22420314
+   },
+   "efnahagur": {
+    "fastafjarmunir": 552604,
+    "birgdir": 217275175,
+    "vidskiptakrofur": 82871407,
+    "handbaert": 3175380,
+    "veltufjarmunir": 307291995,
+    "eignir": 307844599,
+    "hlutafe": 500000,
+    "eigid_fe": 127856549,
+    "langtimaskuldir": 3249129,
+    "skammtimaskuldir": 176738921,
+    "skuldir": 179988050,
+    "efe_skuldir": 307844599
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/5710180390.pdf",
+ "pdfAr": "2024"
+}

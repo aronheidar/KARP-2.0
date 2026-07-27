@@ -1,0 +1,76 @@
+{
+ "kt": "6601942909",
+ "nafn": "G.V. grúbb ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1454,
+    "ROA": 0.1369,
+    "eiginfjarhlutfall": 0.9416,
+    "veltufjarhlutfall": 3.0017,
+    "skuldahlutfall_DE": 0.062
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "ebit": -20900,
+    "fjarmunatekjur": 192959,
+    "fjarmagnsgjold": -73096,
+    "hagn_f_skatt": 113003087,
+    "tekjuskattur": -25171,
+    "hagnadur": 112977916
+   },
+   "efnahagur": {
+    "fastafjarmunir": 680601132,
+    "vidskiptakrofur": 115947561,
+    "handbaert": 28769529,
+    "eignir": 825318222,
+    "hlutafe": 2000000,
+    "eigid_fe": 777106558,
+    "skuldir": 48211663,
+    "efe_skuldir": 825318222,
+    "skammtimaskuldir": 48211663
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2273,
+    "ROA": 0.1988,
+    "eiginfjarhlutfall": 0.8746,
+    "veltufjarhlutfall": 6.6177,
+    "skuldahlutfall_DE": 0.1434
+   },
+   "rekstur": {
+    "annar_rekstur": 1253398,
+    "ebit": -1253398,
+    "fjarmunatekjur": 8238115,
+    "fjarmagnsgjold": -21898,
+    "hagn_f_skatt": 91159099,
+    "tekjuskattur": -1396844,
+    "hagnadur": 89762255
+   },
+   "efnahagur": {
+    "fastafjarmunir": 76699396,
+    "vidskiptakrofur": 331845340,
+    "handbaert": 42961004,
+    "eignir": 451505740,
+    "hlutafe": 1000000,
+    "eigid_fe": 394868813,
+    "skuldir": 56636926,
+    "efe_skuldir": 451505740,
+    "skammtimaskuldir": 56636926
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6601942909.pdf",
+ "pdfAr": "2025"
+}

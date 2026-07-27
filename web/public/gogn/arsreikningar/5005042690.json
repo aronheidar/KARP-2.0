@@ -1,0 +1,86 @@
+{
+ "kt": "5005042690",
+ "nafn": "icelandsafari ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4272,
+    "ROA": 0.3881,
+    "eiginfjarhlutfall": 0.9086,
+    "veltufjarhlutfall": 0.1006,
+    "skuldahlutfall_DE": 0.1006,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -273362,
+    "afskriftir": -135978,
+    "fjarmunatekjur": 35433,
+    "fjarmagnsgjold": -24045,
+    "hagn_f_skatt": 102018146,
+    "tekjuskattur": 75550,
+    "hagnadur": 102093696
+   },
+   "efnahagur": {
+    "fastafjarmunir": 209936176,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1417705,
+    "veltufjarmunir": 53093950,
+    "eignir": 263030126,
+    "hlutafe": 3500000,
+    "eigid_fe": 238978884,
+    "langtimaskuldir": 9963548,
+    "skammtimaskuldir": 14087692,
+    "skuldir": 24051240,
+    "efe_skuldir": 263030124
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.001,
+    "ROA": -0.0009,
+    "eiginfjarhlutfall": 0.9459,
+    "veltufjarhlutfall": 2.031,
+    "skuldahlutfall_DE": 0.0572,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -229887,
+    "afskriftir": 0,
+    "fjarmunatekjur": 35883,
+    "fjarmagnsgjold": -43575,
+    "hagn_f_skatt": -237579,
+    "tekjuskattur": 0,
+    "hagnadur": -237579
+   },
+   "efnahagur": {
+    "fastafjarmunir": 209876666,
+    "birgdir": 0,
+    "vidskiptakrofur": 21999565,
+    "handbaert": 5793836,
+    "veltufjarmunir": 42513088,
+    "eignir": 252389754,
+    "hlutafe": 3500000,
+    "eigid_fe": 238741305,
+    "langtimaskuldir": -36452,
+    "skammtimaskuldir": 13684899,
+    "skuldir": 13648447,
+    "efe_skuldir": 252389752
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5005042690.pdf",
+ "pdfAr": "2024"
+}

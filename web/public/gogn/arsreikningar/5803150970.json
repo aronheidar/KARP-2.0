@@ -1,0 +1,86 @@
+{
+ "kt": "5803150970",
+ "nafn": "5komma5 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0297,
+    "ROA": -0.0181,
+    "eiginfjarhlutfall": 0.611,
+    "veltufjarhlutfall": 0.4868,
+    "skuldahlutfall_DE": 0.6367,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -78585,
+    "afskriftir": 0,
+    "fjarmunatekjur": 27017,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -51568,
+    "tekjuskattur": 0,
+    "hagnadur": -51568
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2300000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 538770,
+    "veltufjarmunir": 544714,
+    "eignir": 2844714,
+    "hlutafe": 1200000,
+    "eigid_fe": 1738057,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1106657,
+    "skuldir": 1106657,
+    "efe_skuldir": 2844714
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0078,
+    "ROA": 0.0048,
+    "eiginfjarhlutfall": 0.6128,
+    "veltufjarhlutfall": 0.497,
+    "skuldahlutfall_DE": 0.6318,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -24100,
+    "afskriftir": 0,
+    "fjarmunatekjur": 37746,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 13646,
+    "tekjuskattur": 0,
+    "hagnadur": 13646
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2300000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 550056,
+    "veltufjarmunir": 558360,
+    "eignir": 2858360,
+    "hlutafe": 1200000,
+    "eigid_fe": 1751703,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1106657,
+    "skuldir": 1106657,
+    "efe_skuldir": 2858360
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5803150970.pdf",
+ "pdfAr": "2024"
+}

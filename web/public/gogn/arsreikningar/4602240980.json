@@ -1,0 +1,76 @@
+{
+ "kt": "4602240980",
+ "nafn": "The War Tour ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -3.2187,
+    "hagnadarhlutfall": -3.2302,
+    "ROA": -25.9732,
+    "veltufjarhlutfall": 0.1068,
+    "eignavelta": 8.0408
+   },
+   "rekstur": {
+    "sala": 211971,
+    "annar_rekstur": 609268,
+    "ebit": -682279,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -2427,
+    "hagn_f_skatt": -684706,
+    "tekjuskattur": 0,
+    "hagnadur": -684706
+   },
+   "efnahagur": {
+    "handbaert": 22536,
+    "veltufjarmunir": 26362,
+    "eignir": 26362,
+    "hlutafe": 500000,
+    "eigid_fe": -184706,
+    "skammtimaskuldir": 211068,
+    "skuldir": 211068,
+    "efe_skuldir": 26362
+   },
+   "starfsmenn": null
+  },
+  "2026": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.6385,
+    "hagnadarhlutfall": -0.6295,
+    "ROA": -4.3166,
+    "veltufjarhlutfall": 0.1106,
+    "eignavelta": 6.8575
+   },
+   "rekstur": {
+    "sala": 341979,
+    "annar_rekstur": 429913,
+    "ebit": -218363,
+    "fjarmunatekjur": 4209,
+    "fjarmagnsgjold": -1113,
+    "hagn_f_skatt": -215267,
+    "tekjuskattur": 0,
+    "hagnadur": -215267
+   },
+   "efnahagur": {
+    "handbaert": 49735,
+    "veltufjarmunir": 49869,
+    "eignir": 49869,
+    "hlutafe": 500000,
+    "eigid_fe": -399973,
+    "skammtimaskuldir": 449842,
+    "skuldir": 449842,
+    "efe_skuldir": 49869
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4602240980.pdf",
+ "pdfAr": "2026"
+}

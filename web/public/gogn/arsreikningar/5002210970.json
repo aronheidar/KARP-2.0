@@ -1,0 +1,89 @@
+{
+ "kt": "5002210970",
+ "nafn": "Eignir & Skip ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -9.2494,
+    "hagnadarhlutfall": 1.8716,
+    "ROE": 0.0597,
+    "ROA": 0.0575,
+    "eiginfjarhlutfall": 0.9632,
+    "veltufjarhlutfall": 21.5728,
+    "skuldahlutfall_DE": 0.0382,
+    "eignavelta": 0.0307
+   },
+   "rekstur": {
+    "sala": 96774,
+    "ebit": -895098,
+    "afskriftir": 0,
+    "fjarmunatekjur": 26222,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 181124,
+    "tekjuskattur": 0,
+    "hagnadur": 181124
+   },
+   "efnahagur": {
+    "fastafjarmunir": 500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2109626,
+    "handbaert": 391049,
+    "veltufjarmunir": 2648070,
+    "eignir": 3148070,
+    "hlutafe": 500000,
+    "eigid_fe": 3032152,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 115918,
+    "skuldir": 115918,
+    "efe_skuldir": 3148070
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.239,
+    "hagnadarhlutfall": 0.0775,
+    "ROE": 0.0638,
+    "ROA": 0.0638,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0.8234
+   },
+   "rekstur": {
+    "sala": 2666667,
+    "ebit": -637412,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13629,
+    "fjarmagnsgjold": -19667,
+    "hagn_f_skatt": 206550,
+    "tekjuskattur": 0,
+    "hagnadur": 206550
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 2034326,
+    "handbaert": 927864,
+    "veltufjarmunir": 3238702,
+    "eignir": 3238702,
+    "hlutafe": 500000,
+    "eigid_fe": 3238702,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 3238702
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5002210970.pdf",
+ "pdfAr": "2024"
+}

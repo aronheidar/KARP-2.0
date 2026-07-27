@@ -1,0 +1,82 @@
+{
+ "kt": "4707211890",
+ "nafn": "3-BBB ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1683,
+    "eiginfjarhlutfall": -0.2969,
+    "veltufjarhlutfall": 1.9363,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -199611,
+    "afskriftir": 0,
+    "fjarmunatekjur": 94903,
+    "fjarmagnsgjold": -12176364,
+    "hagn_f_skatt": -12281072,
+    "tekjuskattur": 0,
+    "hagnadur": -12281072
+   },
+   "efnahagur": {
+    "fastafjarmunir": 70222900,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1738496,
+    "veltufjarmunir": 2759375,
+    "eignir": 72982275,
+    "hlutafe": 500000,
+    "eigid_fe": -21665408,
+    "langtimaskuldir": 93749854,
+    "skammtimaskuldir": 897829,
+    "skuldir": 94647683,
+    "efe_skuldir": 72982275
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2881,
+    "eiginfjarhlutfall": -0.5893,
+    "veltufjarhlutfall": 0.0008,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -161014,
+    "afskriftir": 0,
+    "fjarmunatekjur": 15352,
+    "fjarmagnsgjold": -20582599,
+    "hagn_f_skatt": -20728261,
+    "tekjuskattur": 0,
+    "hagnadur": -20728261
+   },
+   "efnahagur": {
+    "fastafjarmunir": 70222900,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 92479,
+    "veltufjarmunir": 1714835,
+    "eignir": 71937735,
+    "hlutafe": 500000,
+    "eigid_fe": -42393669,
+    "langtimaskuldir": 114331404,
+    "skammtimaskuldir": 0,
+    "skuldir": 114331404,
+    "efe_skuldir": 71937735
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4707211890.pdf",
+ "pdfAr": "2024"
+}

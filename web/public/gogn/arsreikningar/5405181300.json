@@ -1,0 +1,84 @@
+{
+ "kt": "5405181300",
+ "nafn": "ICE ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2792,
+    "hagnadarhlutfall": -0.2909,
+    "ROA": -5.4601,
+    "veltufjarhlutfall": 0.0248,
+    "eignavelta": 18.7706
+   },
+   "rekstur": {
+    "sala": 75528096,
+    "ebit": -21086346,
+    "afskriftir": -845140,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -38615,
+    "hagn_f_skatt": -21970101,
+    "tekjuskattur": 0,
+    "hagnadur": -21970101
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3380559,
+    "birgdir": 0,
+    "vidskiptakrofur": 518396,
+    "handbaert": 124791,
+    "veltufjarmunir": 643187,
+    "eignir": 4023746,
+    "hlutafe": 500000,
+    "eigid_fe": -21942978,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 25966724,
+    "skuldir": 25966724,
+    "efe_skuldir": 4023746
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1578,
+    "hagnadarhlutfall": -0.1628,
+    "ROA": -7.3492,
+    "veltufjarhlutfall": 0.0005,
+    "eignavelta": 45.1486
+   },
+   "rekstur": {
+    "sala": 140181007,
+    "ebit": -22117638,
+    "afskriftir": -676111,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -24626,
+    "hagn_f_skatt": -22818375,
+    "tekjuskattur": 0,
+    "hagnadur": -22818375
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2704448,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 26036,
+    "veltufjarmunir": 400435,
+    "eignir": 3104883,
+    "hlutafe": 500000,
+    "eigid_fe": -44761353,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 47866236,
+    "skuldir": 47866236,
+    "efe_skuldir": 3104883
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5405181300.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,62 @@
+{
+ "kt": "4902162270",
+ "nafn": "5S ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9985,
+    "ebit_hlutfall": 0.2777
+   },
+   "rekstur": {
+    "sala": 46707677,
+    "kostnadarverd": 69963,
+    "laun": 0,
+    "annar_rekstur": 28536066,
+    "ebitda": 18101648,
+    "afskriftir": 5130083,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -17320648,
+    "tekjuskattur": 0,
+    "ebit": 12971565
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 35591353,
+    "hlutafe": 500000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.757,
+    "ebit_hlutfall": 0.3809
+   },
+   "rekstur": {
+    "sala": 51032021,
+    "kostnadarverd": 12398752,
+    "laun": 5741445,
+    "annar_rekstur": 8439181,
+    "ebitda": 24452643,
+    "afskriftir": 5015202,
+    "fjarmunatekjur": 18898,
+    "fjarmagnsgjold": -15126227,
+    "tekjuskattur": 0,
+    "ebit": 19437441
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "hlutafe": 500000
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4902162270.pdf",
+ "pdfAr": "2024"
+}

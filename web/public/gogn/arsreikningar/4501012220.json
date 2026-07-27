@@ -1,0 +1,90 @@
+{
+ "kt": "4501012220",
+ "nafn": "Tvídrangi ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3301,
+    "hagnadarhlutfall": 2.42,
+    "ROE": 0.2858,
+    "ROA": 0.023,
+    "eiginfjarhlutfall": 0.0804,
+    "veltufjarhlutfall": 0.0107,
+    "skuldahlutfall_DE": 11.4325,
+    "eignavelta": 0.0095
+   },
+   "rekstur": {
+    "sala": 761580,
+    "ebit": 251380,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2057417,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 2308797,
+    "tekjuskattur": -465799,
+    "hagnadur": 1842998
+   },
+   "efnahagur": {
+    "fastafjarmunir": 541816,
+    "birgdir": 655740,
+    "vidskiptakrofur": 0,
+    "handbaert": 142027,
+    "veltufjarmunir": 79625926,
+    "eignir": 80167742,
+    "hlutafe": 1000000,
+    "eigid_fe": 6448243,
+    "langtimaskuldir": -1088479,
+    "skammtimaskuldir": 74807978,
+    "skuldir": 73719499,
+    "efe_skuldir": 80167742
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3748,
+    "hagnadarhlutfall": 3.1857,
+    "ROE": 0.1714,
+    "ROA": 0.0106,
+    "eiginfjarhlutfall": 0.0618,
+    "veltufjarhlutfall": 0.0073,
+    "skuldahlutfall_DE": 15.1926,
+    "eignavelta": 0.0033
+   },
+   "rekstur": {
+    "sala": 418780,
+    "ebit": -156948,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1829791,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 1672843,
+    "tekjuskattur": -338749,
+    "hagnadur": 1334094
+   },
+   "efnahagur": {
+    "fastafjarmunir": 944703,
+    "birgdir": 655740,
+    "vidskiptakrofur": 0,
+    "handbaert": 209193,
+    "veltufjarmunir": 125071767,
+    "eignir": 126016470,
+    "hlutafe": 1000000,
+    "eigid_fe": 7782337,
+    "langtimaskuldir": -749730,
+    "skammtimaskuldir": 118983863,
+    "skuldir": 118234133,
+    "efe_skuldir": 126016470
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4501012220.pdf",
+ "pdfAr": "2024"
+}

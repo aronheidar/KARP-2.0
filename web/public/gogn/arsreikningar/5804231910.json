@@ -1,0 +1,88 @@
+{
+ "kt": "5804231910",
+ "nafn": "311 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.2681,
+    "hagnadarhlutfall": -1.27,
+    "ROE": -0.2869,
+    "ROA": -0.2564,
+    "eiginfjarhlutfall": 0.8937,
+    "veltufjarhlutfall": 0.0573,
+    "skuldahlutfall_DE": 0.1189,
+    "eignavelta": 0.2019
+   },
+   "rekstur": {
+    "sala": 225225,
+    "ebit": -285609,
+    "afskriftir": 0,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": -2636,
+    "hagn_f_skatt": -286031,
+    "tekjuskattur": 0,
+    "hagnadur": -286031
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 6794,
+    "veltufjarmunir": 1115512,
+    "eignir": 1115512,
+    "hlutafe": 500000,
+    "eigid_fe": 996986,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 118526,
+    "skuldir": 118526,
+    "efe_skuldir": 1115512
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0268,
+    "ROA": -0.0234,
+    "eiginfjarhlutfall": 0.8712,
+    "veltufjarhlutfall": 0.0408,
+    "skuldahlutfall_DE": 0.1478,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -26050,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2214,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -26041,
+    "tekjuskattur": 0,
+    "hagnadur": -26041
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5851,
+    "veltufjarmunir": 1114460,
+    "eignir": 1114460,
+    "hlutafe": 500000,
+    "eigid_fe": 970945,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 143515,
+    "skuldir": 143515,
+    "efe_skuldir": 1114460
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5804231910.pdf",
+ "pdfAr": "2025"
+}

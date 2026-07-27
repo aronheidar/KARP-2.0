@@ -1,0 +1,86 @@
+{
+ "kt": "7105180250",
+ "nafn": "K-69 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7146,
+    "hagnadarhlutfall": 0.5244,
+    "ROA": 0.1986,
+    "eiginfjarhlutfall": -1.0224,
+    "veltufjarhlutfall": 0.0007,
+    "eignavelta": 0.3788
+   },
+   "rekstur": {
+    "sala": 558780,
+    "ebit": 399304,
+    "afskriftir": -104762,
+    "fjarmunatekjur": 254,
+    "fjarmagnsgjold": -1775,
+    "hagn_f_skatt": 293021,
+    "tekjuskattur": 0,
+    "hagnadur": 293021
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1222236,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 2198,
+    "veltufjarmunir": 253073,
+    "eignir": 1475309,
+    "hlutafe": 500000,
+    "eigid_fe": -1508360,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2983669,
+    "skuldir": 2983669,
+    "efe_skuldir": 1475309
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2109,
+    "hagnadarhlutfall": 0.1646,
+    "ROA": 0.3335,
+    "eiginfjarhlutfall": -1.0163,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 2.0259
+   },
+   "rekstur": {
+    "sala": 2263865,
+    "ebit": 477429,
+    "afskriftir": -104762,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 372667,
+    "tekjuskattur": 0,
+    "hagnadur": 372667
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1117474,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 1117474,
+    "hlutafe": 500000,
+    "eigid_fe": -1135693,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2253167,
+    "skuldir": 2253167,
+    "efe_skuldir": 1117474
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7105180250.pdf",
+ "pdfAr": "2024"
+}

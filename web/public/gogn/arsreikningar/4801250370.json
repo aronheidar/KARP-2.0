@@ -1,0 +1,60 @@
+{
+ "kt": "4801250370",
+ "nafn": "600North ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "annar_rekstur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "efe_skuldir": null,
+    "skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3947,
+    "ROA": -0.3947,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 141500,
+    "hagnadur": -141500
+   },
+   "efnahagur": {
+    "handbaert": 358500,
+    "veltufjarmunir": 358500,
+    "eignir": 358500,
+    "hlutafe": 500000,
+    "eigid_fe": 358500,
+    "efe_skuldir": 358500,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4801250370.pdf",
+ "pdfAr": "2024"
+}

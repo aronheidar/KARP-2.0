@@ -1,0 +1,79 @@
+{
+ "kt": "6106241700",
+ "nafn": "Flísa- og húsasmiðir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.6326,
+    "ROA": -0.6308,
+    "eiginfjarhlutfall": 0.9973,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0027,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -192890,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -841,
+    "hagn_f_skatt": -193731,
+    "tekjuskattur": 0,
+    "hagnadur": -193731
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 307110,
+    "eignir": 307110,
+    "hlutafe": 500000,
+    "eigid_fe": 306269,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 841,
+    "skuldir": 841,
+    "efe_skuldir": 307110
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6106241700.pdf",
+ "pdfAr": "2024"
+}

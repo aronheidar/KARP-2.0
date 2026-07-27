@@ -1,0 +1,54 @@
+{
+ "kt": "6802130540",
+ "nafn": "Hulda Hildibrands ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": null
+   },
+   "efnahagur": {
+    "eignir": 21843735,
+    "hlutafe": 16600000,
+    "eigid_fe": null,
+    "langtimaskuldir": 603,
+    "skammtimaskuldir": null,
+    "efe_skuldir": null,
+    "skuldir": 21843735
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": -0.5012,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0.3595
+   },
+   "rekstur": {
+    "sala": 6875100
+   },
+   "efnahagur": {
+    "eignir": 19123583,
+    "hlutafe": 16600000,
+    "eigid_fe": -9584799,
+    "langtimaskuldir": 777,
+    "skammtimaskuldir": 23013418,
+    "efe_skuldir": 19123583,
+    "skuldir": 28708382
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6802130540.pdf",
+ "pdfAr": "2024"
+}

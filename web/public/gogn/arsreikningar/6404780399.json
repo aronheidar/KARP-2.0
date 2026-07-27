@@ -1,0 +1,100 @@
+{
+ "kt": "6404780399",
+ "nafn": "Z-brautir og gluggatjöld ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.761,
+    "ebit_hlutfall": -0.0475,
+    "hagnadarhlutfall": -0.0564,
+    "ROE": -0.7649,
+    "ROA": -0.1352,
+    "eiginfjarhlutfall": 0.1767,
+    "veltufjarhlutfall": 1.5208,
+    "skuldahlutfall_DE": 4.6593,
+    "eignavelta": 2.396
+   },
+   "rekstur": {
+    "sala": 285042536,
+    "adrar_tekjur": 1172089,
+    "kostnadarverd": 68138316,
+    "laun": 172089081,
+    "annar_rekstur": 56173730,
+    "afskriftir": 2178414,
+    "ebit": -13537005,
+    "fjarmunatekjur": 126342,
+    "fjarmagnsgjold": -7090912,
+    "hagn_f_skatt": -19982015,
+    "tekjuskattur": 3902963,
+    "hagnadur": -16079052
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19851425,
+    "birgdir": 94322478,
+    "vidskiptakrofur": 4286919,
+    "handbaert": 404754,
+    "veltufjarmunir": 99112504,
+    "eignir": 118963929,
+    "hlutafe": 4000000,
+    "eigid_fe": 21020997,
+    "langtimaskuldir": 32838358,
+    "skammtimaskuldir": 65104575,
+    "skuldir": 97942933,
+    "efe_skuldir": 118963929
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7659,
+    "ebit_hlutfall": -0.0618,
+    "hagnadarhlutfall": -0.1138,
+    "ROE": -4.4231,
+    "ROA": -0.2241,
+    "eiginfjarhlutfall": 0.0507,
+    "veltufjarhlutfall": 1.2198,
+    "skuldahlutfall_DE": 18.7354,
+    "eignavelta": 1.9696
+   },
+   "rekstur": {
+    "sala": 258193991,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 60435161,
+    "laun": 163130654,
+    "annar_rekstur": 48453348,
+    "afskriftir": 2133335,
+    "ebit": -15958507,
+    "fjarmunatekjur": 86849,
+    "fjarmagnsgjold": -13831210,
+    "hagn_f_skatt": -29378799,
+    "tekjuskattur": 0,
+    "hagnadur": -29378799
+   },
+   "efnahagur": {
+    "fastafjarmunir": 17718090,
+    "birgdir": 98594738,
+    "vidskiptakrofur": 14575236,
+    "handbaert": 41209,
+    "veltufjarmunir": 113368626,
+    "eignir": 131086716,
+    "hlutafe": 19000000,
+    "eigid_fe": 6642198,
+    "langtimaskuldir": 31630859,
+    "skammtimaskuldir": 92813659,
+    "skuldir": 124444518,
+    "efe_skuldir": 131086716
+   },
+   "starfsmenn": 15
+  }
+ },
+ "pdf": "pdf/6404780399.pdf",
+ "pdfAr": "2024"
+}

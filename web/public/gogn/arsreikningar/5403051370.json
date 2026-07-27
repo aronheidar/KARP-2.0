@@ -1,0 +1,80 @@
+{
+ "kt": "5403051370",
+ "nafn": "AB Capital ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.0012,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 35479,
+    "fjarmagnsgjold": -6796,
+    "hagn_f_skatt": 7783,
+    "tekjuskattur": 0,
+    "hagnadur": 7783
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1411200,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 719489,
+    "veltufjarmunir": 5000886,
+    "eignir": 6412086,
+    "hlutafe": 235613000,
+    "eigid_fe": -19162208744,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19168620830,
+    "skuldir": 19168620830,
+    "efe_skuldir": 6412086
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0031,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -24637,
+    "afskriftir": 0,
+    "fjarmunatekjur": 7778,
+    "fjarmagnsgjold": -1181,
+    "hagn_f_skatt": -18040,
+    "tekjuskattur": 0,
+    "hagnadur": -18040
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1411200,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 207543,
+    "veltufjarmunir": 4482846,
+    "eignir": 5894046,
+    "hlutafe": 235613000,
+    "eigid_fe": -19162226784,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 19168120830,
+    "skuldir": 19168120830,
+    "efe_skuldir": 5894046
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5403051370.pdf",
+ "pdfAr": "2025"
+}

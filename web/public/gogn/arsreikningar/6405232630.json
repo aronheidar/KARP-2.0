@@ -1,0 +1,70 @@
+{
+ "kt": "6405232630",
+ "nafn": "Warm heart ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0097,
+    "ROA": 0.0034,
+    "eiginfjarhlutfall": 0.3446,
+    "veltufjarhlutfall": 1.0444,
+    "skuldahlutfall_DE": 1.9015
+   },
+   "rekstur": {
+    "ebit": -25661,
+    "fjarmunatekjur": 53859,
+    "hagn_f_skatt": -1136643,
+    "tekjuskattur": 0,
+    "hagnadur": 28198
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11849,
+    "handbaert": 5732247,
+    "eignir": 8392391,
+    "hlutafe": 3000000,
+    "eigid_fe": 2892391,
+    "skuldir": 5500000,
+    "efe_skuldir": 8392391,
+    "skammtimaskuldir": 5500000
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.652,
+    "ROA": 0.5613,
+    "eiginfjarhlutfall": 0.8609,
+    "veltufjarhlutfall": 1.2585,
+    "skuldahlutfall_DE": 0.1615
+   },
+   "rekstur": {
+    "ebit": 8971200,
+    "fjarmunatekjur": 129292,
+    "hagn_f_skatt": 9100492,
+    "tekjuskattur": -1807037,
+    "hagnadur": 7293455
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 28443,
+    "handbaert": 2245669,
+    "eignir": 12992883,
+    "hlutafe": 3100000,
+    "eigid_fe": 11185846,
+    "skuldir": 1807037,
+    "efe_skuldir": 12992883,
+    "skammtimaskuldir": 1807037
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6405232630.pdf",
+ "pdfAr": "2025"
+}

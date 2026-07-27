@@ -1,0 +1,86 @@
+{
+ "kt": "5703210130",
+ "nafn": "Kaffi 1932 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5277,
+    "ebit_hlutfall": -0.1565,
+    "hagnadarhlutfall": -0.1585,
+    "ROA": -0.2571,
+    "eiginfjarhlutfall": -0.3479,
+    "veltufjarhlutfall": 0.1269,
+    "eignavelta": 1.6224
+   },
+   "rekstur": {
+    "sala": 142036133,
+    "kostnadarverd": -67086790,
+    "laun": 61499151,
+    "annar_rekstur": 2764738,
+    "ebitda": -19094426,
+    "afskriftir": -3127176,
+    "fjarmunatekjur": 5708,
+    "fjarmagnsgjold": -293043,
+    "hagnadur": -22508937,
+    "ebit": -22221602
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 14973154,
+    "handbaert": 7354,
+    "veltufjarmunir": 28129814,
+    "eignir": 87546166,
+    "hlutafe": 500000,
+    "eigid_fe": -30457526,
+    "skuldir": 118003692,
+    "efe_skuldir": 87546166,
+    "skammtimaskuldir": 118003692
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5335,
+    "ebit_hlutfall": -0.3701,
+    "hagnadarhlutfall": -0.3763,
+    "ROA": -0.8452,
+    "eiginfjarhlutfall": -1.3287,
+    "veltufjarhlutfall": 0.0446,
+    "eignavelta": 2.2462
+   },
+   "rekstur": {
+    "sala": 141499133,
+    "kostnadarverd": -66003052,
+    "laun": 74734307,
+    "annar_rekstur": 3678495,
+    "ebitda": -49403893,
+    "afskriftir": -2970818,
+    "fjarmunatekjur": 31748,
+    "fjarmagnsgjold": -903288,
+    "hagnadur": -53246251,
+    "ebit": -52374711
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5856486,
+    "handbaert": 687664,
+    "veltufjarmunir": 6549788,
+    "eignir": 62995322,
+    "hlutafe": 500000,
+    "eigid_fe": -83703777,
+    "skuldir": 146699099,
+    "efe_skuldir": 62995322,
+    "skammtimaskuldir": 146699099
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5703210130.pdf",
+ "pdfAr": "2023"
+}

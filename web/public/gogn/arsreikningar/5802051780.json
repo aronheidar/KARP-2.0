@@ -1,0 +1,86 @@
+{
+ "kt": "5802051780",
+ "nafn": "Ferðir ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0778,
+    "hagnadarhlutfall": 0.0562,
+    "ROA": 0.1329,
+    "eiginfjarhlutfall": -0.0642,
+    "veltufjarhlutfall": 0.31,
+    "eignavelta": 2.3652
+   },
+   "rekstur": {
+    "adrar_tekjur": 4101870,
+    "sala": 60895098,
+    "laun": 20997366,
+    "annar_rekstur": 12393634,
+    "afskriftir": 137626,
+    "ebit": 4739077,
+    "fjarmunatekjur": 16831,
+    "fjarmagnsgjold": -1214238,
+    "hagnadur": 3420818
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2392892,
+    "vidskiptakrofur": 7987365,
+    "handbaert": 284900,
+    "veltufjarmunir": 23353930,
+    "eignir": 25746822,
+    "hlutafe": 3500000,
+    "eigid_fe": -1653634,
+    "skammtimaskuldir": 26684523,
+    "skuldir": 27400456,
+    "efe_skuldir": 25746822
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1554,
+    "hagnadarhlutfall": 0.1351,
+    "ROE": 1.2387,
+    "ROA": 0.2409,
+    "eiginfjarhlutfall": 0.1945,
+    "veltufjarhlutfall": 0.2832,
+    "skuldahlutfall_DE": 4.1411,
+    "eignavelta": 1.784
+   },
+   "rekstur": {
+    "adrar_tekjur": 4605513,
+    "sala": 63533064,
+    "laun": 22427712,
+    "annar_rekstur": 11418146,
+    "afskriftir": 259600,
+    "ebit": 9875485,
+    "fjarmunatekjur": 10022,
+    "fjarmagnsgjold": -1108616,
+    "hagnadur": 8580718
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1838292,
+    "vidskiptakrofur": 6531967,
+    "handbaert": 1590554,
+    "veltufjarmunir": 33774476,
+    "eignir": 35612768,
+    "hlutafe": 3500000,
+    "eigid_fe": 6927084,
+    "skammtimaskuldir": 28685684,
+    "skuldir": 28685684,
+    "efe_skuldir": 35612768
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/5802051780.pdf",
+ "pdfAr": "2025"
+}

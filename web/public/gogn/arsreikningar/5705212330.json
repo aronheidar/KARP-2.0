@@ -1,0 +1,86 @@
+{
+ "kt": "5705212330",
+ "nafn": "Hafgustur ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2051,
+    "hagnadarhlutfall": -0.6737,
+    "ROA": -0.1675,
+    "eiginfjarhlutfall": -0.1071,
+    "veltufjarhlutfall": 0.65,
+    "eignavelta": 0.2486
+   },
+   "rekstur": {
+    "sala": 2058434,
+    "ebit": -422116,
+    "afskriftir": -800000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -164630,
+    "hagn_f_skatt": -1386746,
+    "tekjuskattur": 0,
+    "hagnadur": -1386746
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7200000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1002315,
+    "veltufjarmunir": 1080255,
+    "eignir": 8280255,
+    "hlutafe": 500000,
+    "eigid_fe": -886746,
+    "langtimaskuldir": 7625000,
+    "skammtimaskuldir": 1542001,
+    "skuldir": 9167001,
+    "efe_skuldir": 8280255
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1842,
+    "hagnadarhlutfall": -0.0066,
+    "ROA": -0.0067,
+    "eiginfjarhlutfall": -0.1221,
+    "veltufjarhlutfall": 0.3296,
+    "eignavelta": 1.0103
+   },
+   "rekstur": {
+    "sala": 7766229,
+    "ebit": 1430309,
+    "afskriftir": -990000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -491770,
+    "hagn_f_skatt": -51461,
+    "tekjuskattur": 0,
+    "hagnadur": -51461
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7110000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 576819,
+    "veltufjarmunir": 576819,
+    "eignir": 7686819,
+    "hlutafe": 500000,
+    "eigid_fe": -938207,
+    "langtimaskuldir": 6875000,
+    "skammtimaskuldir": 1750026,
+    "skuldir": 8625026,
+    "efe_skuldir": 7686819
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5705212330.pdf",
+ "pdfAr": "2022"
+}

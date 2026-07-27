@@ -1,0 +1,84 @@
+{
+ "kt": "7108100280",
+ "nafn": "D.P veitingar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.7171,
+    "hagnadarhlutfall": -1.7159,
+    "ROA": -2.0334,
+    "veltufjarhlutfall": 0.0694,
+    "eignavelta": 1.185
+   },
+   "rekstur": {
+    "sala": 11167380,
+    "ebit": -19175851,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13803,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -19162048,
+    "tekjuskattur": 0,
+    "hagnadur": -19162048
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5747642,
+    "birgdir": 1500000,
+    "vidskiptakrofur": 690051,
+    "handbaert": 1483044,
+    "veltufjarmunir": 3676132,
+    "eignir": 9423774,
+    "hlutafe": 500000,
+    "eigid_fe": -43508958,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 52932732,
+    "skuldir": 52932732,
+    "efe_skuldir": 9423774
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.8907,
+    "hagnadarhlutfall": -1.8891,
+    "ROA": -2.6715,
+    "veltufjarhlutfall": 0.0018,
+    "eignavelta": 1.4141
+   },
+   "rekstur": {
+    "sala": 8298625,
+    "ebit": -15690597,
+    "afskriftir": 0,
+    "fjarmunatekjur": 13318,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -15677279,
+    "tekjuskattur": 0,
+    "hagnadur": -15677279
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5747642,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 117774,
+    "veltufjarmunir": 120700,
+    "eignir": 5868342,
+    "hlutafe": 500000,
+    "eigid_fe": -59186237,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 65054580,
+    "skuldir": 65054580,
+    "efe_skuldir": 5868343
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7108100280.pdf",
+ "pdfAr": "2024"
+}

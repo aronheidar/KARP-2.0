@@ -1,0 +1,94 @@
+{
+ "kt": "7108901459",
+ "nafn": "Fjallalamb hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3338,
+    "ebit_hlutfall": 0.0351,
+    "hagnadarhlutfall": -0.0039,
+    "ROE": -0.0563,
+    "ROA": -0.0075,
+    "eiginfjarhlutfall": 0.1338,
+    "veltufjarhlutfall": 0.4487,
+    "skuldahlutfall_DE": 3.7292,
+    "eignavelta": 1.9117
+   },
+   "rekstur": {
+    "sala": 552353597,
+    "kostnadarverd": 367974930,
+    "laun": 87801647,
+    "afskriftir": 12253181,
+    "ebit": 19377335,
+    "fjarmunatekjur": 337450,
+    "fjarmagnsgjold": -21889300,
+    "hagn_f_skatt": -2174515,
+    "tekjuskattur": 0,
+    "hagnadur": -2174515
+   },
+   "efnahagur": {
+    "fastafjarmunir": 221841600,
+    "birgdir": 24506415,
+    "vidskiptakrofur": 21716107,
+    "handbaert": 18449752,
+    "eignir": 288936423,
+    "hlutafe": 96461228,
+    "eigid_fe": 38653931,
+    "langtimaskuldir": null,
+    "skuldir": 144146661,
+    "efe_skuldir": 288936423,
+    "skammtimaskuldir": 144146661
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3568,
+    "ebit_hlutfall": 0.0397,
+    "hagnadarhlutfall": 0.0157,
+    "ROE": 0.1282,
+    "ROA": 0.0301,
+    "eiginfjarhlutfall": 0.2351,
+    "veltufjarhlutfall": 0.4975,
+    "skuldahlutfall_DE": 1.8443,
+    "eignavelta": 1.9185
+   },
+   "rekstur": {
+    "sala": 611695839,
+    "kostnadarverd": 393425616,
+    "laun": 111815856,
+    "afskriftir": 6350234,
+    "ebit": 24304804,
+    "fjarmunatekjur": 121787,
+    "fjarmagnsgjold": -18689323,
+    "hagn_f_skatt": 5737268,
+    "tekjuskattur": 3871147,
+    "hagnadur": 9608415
+   },
+   "efnahagur": {
+    "fastafjarmunir": 243903122,
+    "birgdir": 28564605,
+    "vidskiptakrofur": 32659997,
+    "handbaert": 7558459,
+    "eignir": 318839712,
+    "hlutafe": 100017795,
+    "eigid_fe": 74957155,
+    "langtimaskuldir": 11.18,
+    "skuldir": 138243828,
+    "efe_skuldir": 318839712,
+    "skammtimaskuldir": 138243816.82
+   },
+   "starfsmenn": 11
+  }
+ },
+ "pdf": "pdf/7108901459.pdf",
+ "pdfAr": "2025"
+}

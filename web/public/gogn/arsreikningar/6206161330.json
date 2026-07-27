@@ -1,0 +1,78 @@
+{
+ "kt": "6206161330",
+ "nafn": "Lómur fjárfestingar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1755,
+    "ROA": 0.1683,
+    "eiginfjarhlutfall": 0.9591,
+    "veltufjarhlutfall": 5.5538,
+    "skuldahlutfall_DE": 0.0427
+   },
+   "rekstur": {
+    "ebit": -436514,
+    "fjarmunatekjur": 12282279,
+    "fjarmagnsgjold": -526148,
+    "matsbreyting": 70674790,
+    "hagn_f_skatt": 81914278,
+    "tekjuskattur": -2362523,
+    "hagnadur": 79551755
+   },
+   "efnahagur": {
+    "fastafjarmunir": 308170162,
+    "vidskiptakrofur": 2513970,
+    "handbaert": 104905725,
+    "veltufjarmunir": 164533710,
+    "eignir": 472703872,
+    "hlutafe": 500000,
+    "eigid_fe": 453362074,
+    "skuldir": 19341798,
+    "efe_skuldir": 472703872,
+    "skammtimaskuldir": 19341798
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0011,
+    "ROA": 0.001,
+    "eiginfjarhlutfall": 0.9905,
+    "veltufjarhlutfall": 13.0095,
+    "skuldahlutfall_DE": 0.0096
+   },
+   "rekstur": {
+    "ebit": -573206,
+    "fjarmunatekjur": 5491933,
+    "fjarmagnsgjold": -181736,
+    "matsbreyting": -3400823,
+    "hagn_f_skatt": 1386293,
+    "tekjuskattur": -949678,
+    "hagnadur": 436615
+   },
+   "efnahagur": {
+    "fastafjarmunir": 315728753,
+    "vidskiptakrofur": 1058051,
+    "handbaert": 50656285,
+    "veltufjarmunir": 102814286,
+    "eignir": 418543039,
+    "hlutafe": 500000,
+    "eigid_fe": 414567921,
+    "skuldir": 3975118,
+    "efe_skuldir": 418543040,
+    "skammtimaskuldir": 3975118
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6206161330.pdf",
+ "pdfAr": "2025"
+}

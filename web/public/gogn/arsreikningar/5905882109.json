@@ -1,0 +1,48 @@
+{
+ "kt": "5905882109",
+ "nafn": "Æco bílar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.023
+   },
+   "rekstur": {
+    "laun": 103081319,
+    "annar_rekstur": 19366869,
+    "hagn_f_skatt": 26278886,
+    "tekjuskattur": -5518565,
+    "hagnadur": 20760320
+   },
+   "efnahagur": {
+    "eignir": 903100046
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0.0446
+   },
+   "rekstur": {
+    "laun": 103598270,
+    "annar_rekstur": 19201371,
+    "hagn_f_skatt": 36481516,
+    "tekjuskattur": -7296303,
+    "hagnadur": 29185213
+   },
+   "efnahagur": {
+    "eignir": 654906950
+   },
+   "starfsmenn": 29
+  }
+ },
+ "pdf": "pdf/5905882109.pdf",
+ "pdfAr": "2025"
+}

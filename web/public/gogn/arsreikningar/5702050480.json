@@ -1,0 +1,78 @@
+{
+ "kt": "5702050480",
+ "nafn": "M-500 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -654150,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -654150,
+    "tekjuskattur": 0,
+    "hagnadur": -654150
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 76289322,
+    "eigid_fe": -16535982,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 16535982,
+    "skuldir": 16535982,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 1,
+    "hagnadarhlutfall": 1,
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 900000,
+    "ebit": 900000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 900000,
+    "tekjuskattur": 0,
+    "hagnadur": 900000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 76289322,
+    "eigid_fe": -15635982,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 15635982,
+    "skuldir": 15635982,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5702050480.pdf",
+ "pdfAr": "2023"
+}

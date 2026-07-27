@@ -1,0 +1,86 @@
+{
+ "kt": "6010983429",
+ "nafn": "Quintet ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0038,
+    "ROA": -0.0038,
+    "eiginfjarhlutfall": 0.9981,
+    "veltufjarhlutfall": 0.6498,
+    "skuldahlutfall_DE": 0.0019,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20614,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -41514,
+    "tekjuskattur": 0,
+    "hagnadur": -41514
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 13580,
+    "veltufjarmunir": 11042441,
+    "eignir": 11042441,
+    "hlutafe": 1000000,
+    "eigid_fe": 11021541,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20900,
+    "skuldir": 20900,
+    "efe_skuldir": 11042441
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.004,
+    "ROA": -0.004,
+    "eiginfjarhlutfall": 0.9981,
+    "veltufjarhlutfall": 0.3916,
+    "skuldahlutfall_DE": 0.0019,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -23040,
+    "afskriftir": 0,
+    "fjarmunatekjur": 127,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -43813,
+    "tekjuskattur": 0,
+    "hagnadur": -43813
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8184,
+    "veltufjarmunir": 10998628,
+    "eignir": 10998628,
+    "hlutafe": 1000000,
+    "eigid_fe": 10977728,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 20900,
+    "skuldir": 20900,
+    "efe_skuldir": 10998628
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6010983429.pdf",
+ "pdfAr": "2024"
+}

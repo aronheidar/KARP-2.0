@@ -1,0 +1,94 @@
+{
+ "kt": "6302871119",
+ "nafn": "Stál og stansar ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.565,
+    "ebit_hlutfall": 0.0989,
+    "hagnadarhlutfall": 0.0925,
+    "ROE": 0.2087,
+    "ROA": 0.1689,
+    "eiginfjarhlutfall": 0.8095,
+    "veltufjarhlutfall": 5.084,
+    "skuldahlutfall_DE": 0.2353,
+    "eignavelta": 1.8271
+   },
+   "rekstur": {
+    "sala": 330593460,
+    "kostnadarverd": 143814017,
+    "laun": 122150674,
+    "annar_rekstur": 18003834,
+    "afskriftir": 1029974,
+    "ebit": 32710806,
+    "fjarmunatekjur": 5741811,
+    "hagn_f_skatt": 38452617,
+    "tekjuskattur": -7888475,
+    "hagnadur": 30564142
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4573253,
+    "birgdir": 85944420,
+    "vidskiptakrofur": 10130638,
+    "handbaert": 79158998,
+    "veltufjarmunir": 176364988,
+    "eignir": 180938241,
+    "hlutafe": 1260000,
+    "eigid_fe": 146470653,
+    "skammtimaskuldir": 34467588,
+    "skuldir": 34467588,
+    "efe_skuldir": 180938241
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5745,
+    "ebit_hlutfall": 0.0476,
+    "hagnadarhlutfall": 0.0545,
+    "ROE": 0.1153,
+    "ROA": 0.0951,
+    "eiginfjarhlutfall": 0.8248,
+    "veltufjarhlutfall": 5.5651,
+    "skuldahlutfall_DE": 0.2124,
+    "eignavelta": 1.744
+   },
+   "rekstur": {
+    "sala": 322140770,
+    "kostnadarverd": 137058678,
+    "laun": 137510652,
+    "annar_rekstur": 17687540,
+    "afskriftir": 1305841,
+    "ebit": 15319821,
+    "fjarmunatekjur": 6666693,
+    "hagn_f_skatt": 21986514,
+    "tekjuskattur": -4418773,
+    "hagnadur": 17567741
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3267412,
+    "birgdir": 103015262,
+    "vidskiptakrofur": 12372526,
+    "handbaert": 64710463,
+    "veltufjarmunir": 181446732,
+    "eignir": 184714144,
+    "hlutafe": 1260000,
+    "eigid_fe": 152352304,
+    "skammtimaskuldir": 32361840,
+    "skuldir": 32361840,
+    "efe_skuldir": 184714144
+   },
+   "starfsmenn": 149
+  }
+ },
+ "pdf": "pdf/6302871119.pdf",
+ "pdfAr": "2024"
+}

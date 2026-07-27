@@ -1,0 +1,84 @@
+{
+ "kt": "6005150710",
+ "nafn": "GM ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.3939,
+    "hagnadarhlutfall": -1.7216,
+    "ROA": -0.0091,
+    "eiginfjarhlutfall": -0.2696,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0.0053
+   },
+   "rekstur": {
+    "sala": 437838,
+    "ebit": -610320,
+    "afskriftir": -131534,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -11910,
+    "hagn_f_skatt": -753764,
+    "tekjuskattur": 0,
+    "hagnadur": -753764
+   },
+   "efnahagur": {
+    "fastafjarmunir": 82326136,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 83,
+    "veltufjarmunir": 70577,
+    "eignir": 82396713,
+    "hlutafe": 500000,
+    "eigid_fe": -22217968,
+    "langtimaskuldir": 94839139,
+    "skammtimaskuldir": 9775542,
+    "skuldir": 104614681,
+    "efe_skuldir": 82396713
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0015,
+    "eiginfjarhlutfall": -0.2713,
+    "veltufjarhlutfall": 0.0016,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": -105227,
+    "fjarmunatekjur": 159,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -123868,
+    "tekjuskattur": 0,
+    "hagnadur": -123868
+   },
+   "efnahagur": {
+    "fastafjarmunir": 82326136,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15281,
+    "veltufjarmunir": 15281,
+    "eignir": 82341417,
+    "hlutafe": 500000,
+    "eigid_fe": -22341836,
+    "langtimaskuldir": 94839139,
+    "skammtimaskuldir": 9844114,
+    "skuldir": 104683253,
+    "efe_skuldir": 82341417
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6005150710.pdf",
+ "pdfAr": "2022"
+}

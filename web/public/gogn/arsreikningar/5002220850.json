@@ -1,0 +1,90 @@
+{
+ "kt": "5002220850",
+ "nafn": "FHS Málun ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5638,
+    "hagnadarhlutfall": 0.5638,
+    "ROE": 0.8652,
+    "ROA": 0.5699,
+    "eiginfjarhlutfall": 0.6587,
+    "veltufjarhlutfall": 2.9303,
+    "skuldahlutfall_DE": 0.5181,
+    "eignavelta": 1.0108
+   },
+   "rekstur": {
+    "sala": 5690520,
+    "ebit": 3208351,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 3208351,
+    "tekjuskattur": 0,
+    "hagnadur": 3208351
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 5518682,
+    "handbaert": 110835,
+    "veltufjarmunir": 5629517,
+    "eignir": 5629517,
+    "hlutafe": 500000,
+    "eigid_fe": 3708351,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1921166,
+    "skuldir": 1921166,
+    "efe_skuldir": 5629517
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1245,
+    "hagnadarhlutfall": 0.1233,
+    "ROE": 0.3289,
+    "ROA": 0.3108,
+    "eiginfjarhlutfall": 0.9449,
+    "veltufjarhlutfall": 4.4826,
+    "skuldahlutfall_DE": 0.0583,
+    "eignavelta": 2.5204
+   },
+   "rekstur": {
+    "sala": 14740135,
+    "ebit": 1835461,
+    "afskriftir": 0,
+    "fjarmunatekjur": 11147,
+    "fjarmagnsgjold": -28870,
+    "hagn_f_skatt": 1817738,
+    "tekjuskattur": 0,
+    "hagnadur": 1817738
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 230447,
+    "handbaert": 1213755,
+    "veltufjarmunir": 5848266,
+    "eignir": 5848266,
+    "hlutafe": 500000,
+    "eigid_fe": 5526089,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 322177,
+    "skuldir": 322177,
+    "efe_skuldir": 5848266
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5002220850.pdf",
+ "pdfAr": "2024"
+}

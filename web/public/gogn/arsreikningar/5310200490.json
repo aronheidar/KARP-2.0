@@ -1,0 +1,92 @@
+{
+ "kt": "5310200490",
+ "nafn": "Kokksi ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4902,
+    "ebit_hlutfall": 0.0425,
+    "hagnadarhlutfall": 0.0355,
+    "ROE": 1.0837,
+    "ROA": 0.2277,
+    "eiginfjarhlutfall": 0.2101,
+    "veltufjarhlutfall": 0.8521,
+    "skuldahlutfall_DE": 3.7599,
+    "eignavelta": 6.4071
+   },
+   "rekstur": {
+    "sala": 95250102,
+    "laun": 0,
+    "kostnadarverd": 48559873,
+    "annar_rekstur": 17273010,
+    "afskriftir": 1070359,
+    "ebit": 4048304,
+    "fjarmunatekjur": 223684,
+    "fjarmagnsgjold": -380433,
+    "hagn_f_skatt": 3891555,
+    "tekjuskattur": -507037,
+    "hagnadur": 3384518
+   },
+   "efnahagur": {
+    "birgdir": 258125,
+    "vidskiptakrofur": 8488986,
+    "handbaert": 1259613,
+    "eignir": 14866313,
+    "hlutafe": 500000,
+    "eigid_fe": 3123220,
+    "skuldir": 11743093,
+    "efe_skuldir": 14866313,
+    "skammtimaskuldir": 11743093
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6128,
+    "ebit_hlutfall": 0.0843,
+    "hagnadarhlutfall": 0.0652,
+    "ROE": 0.7104,
+    "ROA": 0.3839,
+    "eiginfjarhlutfall": 0.5404,
+    "veltufjarhlutfall": 1.0244,
+    "skuldahlutfall_DE": 0.8506,
+    "eignavelta": 5.8894
+   },
+   "rekstur": {
+    "sala": 117532590,
+    "laun": 16468148,
+    "kostnadarverd": 45502959,
+    "annar_rekstur": 18482647,
+    "afskriftir": 1462060,
+    "ebit": 9907577,
+    "fjarmunatekjur": 297298,
+    "fjarmagnsgjold": -465165,
+    "hagn_f_skatt": 9739710,
+    "tekjuskattur": -2079301,
+    "hagnadur": 7660409
+   },
+   "efnahagur": {
+    "birgdir": 258125,
+    "vidskiptakrofur": 8074806,
+    "handbaert": 1064325,
+    "eignir": 19956650,
+    "hlutafe": 500000,
+    "eigid_fe": 10783629,
+    "skuldir": 9173021,
+    "efe_skuldir": 19956650,
+    "skammtimaskuldir": 9173021
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5310200490.pdf",
+ "pdfAr": "2024"
+}

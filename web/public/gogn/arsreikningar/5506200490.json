@@ -1,0 +1,85 @@
+{
+ "kt": "5506200490",
+ "nafn": "SDJ veitingar ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.0702,
+    "hagnadarhlutfall": -1.2745,
+    "ROA": -0.749,
+    "eiginfjarhlutfall": -0.1784,
+    "veltufjarhlutfall": 0.377,
+    "eignavelta": 0.5877
+   },
+   "rekstur": {
+    "sala": 1030000,
+    "ebit": -1102315,
+    "afskriftir": -193548,
+    "fjarmunatekjur": 139,
+    "fjarmagnsgjold": -16981,
+    "hagn_f_skatt": -1312705,
+    "tekjuskattur": 0,
+    "hagnadur": -1312705
+   },
+   "efnahagur": {
+    "fastafjarmunir": 774194,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 433491,
+    "veltufjarmunir": 978405,
+    "eignir": 1752599,
+    "hlutafe": 1000000,
+    "eigid_fe": -312705,
+    "langtimaskuldir": 915604,
+    "skammtimaskuldir": 1149700,
+    "skuldir": 2065304,
+    "efe_skuldir": 1752599
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.6792,
+    "hagnadarhlutfall": -0.7323,
+    "ROA": -8.5903,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 11.7299
+   },
+   "rekstur": {
+    "sala": 7264970,
+    "ebit": -4934128,
+    "afskriftir": -154839,
+    "fjarmunatekjur": 38,
+    "fjarmagnsgjold": -231538,
+    "hagn_f_skatt": -5320467,
+    "tekjuskattur": 0,
+    "hagnadur": -5320467
+   },
+   "efnahagur": {
+    "fastafjarmunir": 619355,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 619355,
+    "hlutafe": 1000000,
+    "eigid_fe": -5633172,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6252527,
+    "skuldir": 6252527,
+    "efe_skuldir": 619355
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5506200490.pdf",
+ "pdfAr": "2021"
+}

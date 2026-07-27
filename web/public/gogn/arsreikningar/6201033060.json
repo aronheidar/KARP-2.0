@@ -1,0 +1,78 @@
+{
+ "kt": "6201033060",
+ "nafn": "Urðun ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -50.2173,
+    "veltufjarhlutfall": 0.0013,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -80900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -80900,
+    "tekjuskattur": 0,
+    "hagnadur": -80900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1611,
+    "veltufjarmunir": 1611,
+    "eignir": 1611,
+    "hlutafe": 666667,
+    "eigid_fe": -1239610,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1241221,
+    "skuldir": 1241221,
+    "efe_skuldir": 1611
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -2831400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -2831400,
+    "tekjuskattur": 0,
+    "hagnadur": -2831400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 666667,
+    "eigid_fe": -4071010,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4071010,
+    "skuldir": 4071010,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6201033060.pdf",
+ "pdfAr": "2025"
+}

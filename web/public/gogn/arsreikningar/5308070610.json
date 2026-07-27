@@ -1,0 +1,62 @@
+{
+ "kt": "5308070610",
+ "nafn": "3 Stikur ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0.0055
+   },
+   "rekstur": {
+    "fjarmunatekjur": 445939,
+    "fjarmagnsgjold": -162606026
+   },
+   "efnahagur": {
+    "fastafjarmunir": 543301000,
+    "vidskiptakrofur": 98106,
+    "handbaert": 8049831,
+    "veltufjarmunir": 8147937,
+    "eignir": 551448937,
+    "hlutafe": 500000,
+    "eigid_fe": -918509772,
+    "skammtimaskuldir": 1469958709,
+    "efe_skuldir": 551448937,
+    "skuldir": 1469958709
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.5785,
+    "veltufjarhlutfall": 0.0017,
+    "skuldahlutfall_DE": 0.7285
+   },
+   "rekstur": {
+    "fjarmunatekjur": 1553001,
+    "fjarmagnsgjold": -12681537
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4905826551,
+    "vidskiptakrofur": 341660,
+    "handbaert": 3249457,
+    "veltufjarmunir": 3591117,
+    "eignir": 4909417668,
+    "hlutafe": 1187601312,
+    "eigid_fe": 2840277822,
+    "skammtimaskuldir": 2069139846,
+    "efe_skuldir": 4909417668,
+    "skuldir": 2069139846
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5308070610.pdf",
+ "pdfAr": "2024"
+}

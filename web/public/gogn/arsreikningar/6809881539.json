@@ -1,0 +1,79 @@
+{
+ "kt": "6809881539",
+ "nafn": "Eignarhaldsfélagið ITB hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20200,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20200,
+    "tekjuskattur": 0,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 16108834,
+    "eigid_fe": -57300,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 57300,
+    "skuldir": 57300,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3268,
+    "eiginfjarhlutfall": -0.357,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -620900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -620900,
+    "tekjuskattur": 0,
+    "hagnadur": -620900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1899930,
+    "eignir": 1899930,
+    "hlutafe": 16108834,
+    "eigid_fe": -678200,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2578130,
+    "skuldir": 2578130,
+    "efe_skuldir": 1899930
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6809881539.pdf",
+ "pdfAr": "2024"
+}

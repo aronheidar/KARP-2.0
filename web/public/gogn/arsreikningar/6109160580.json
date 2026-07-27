@@ -1,0 +1,87 @@
+{
+ "kt": "6109160580",
+ "nafn": "3D3 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0059,
+    "ROA": 0.0059,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -4071571,
+    "afskriftir": -48420,
+    "fjarmunatekjur": 1006564,
+    "fjarmagnsgjold": -17403,
+    "hagn_f_skatt": 132003,
+    "tekjuskattur": 0,
+    "hagnadur": 132003
+   },
+   "efnahagur": {
+    "fastafjarmunir": 485382,
+    "birgdir": 0,
+    "vidskiptakrofur": 14353391,
+    "handbaert": 7433779,
+    "veltufjarmunir": 21787170,
+    "eignir": 22272552,
+    "hlutafe": 500000,
+    "eigid_fe": 22272552,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 22272552
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.8845,
+    "hagnadarhlutfall": -5.9576,
+    "ROE": -0.4155,
+    "ROA": -0.3798,
+    "eiginfjarhlutfall": 0.9141,
+    "veltufjarhlutfall": 8.2739,
+    "skuldahlutfall_DE": 0.0939,
+    "eignavelta": 0.0638
+   },
+   "rekstur": {
+    "sala": 1097356,
+    "ebit": -970561,
+    "afskriftir": -48420,
+    "fjarmunatekjur": 431071,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -6537648,
+    "tekjuskattur": 0,
+    "hagnadur": -6537648
+   },
+   "efnahagur": {
+    "fastafjarmunir": 435782,
+    "birgdir": 0,
+    "vidskiptakrofur": 6102986,
+    "handbaert": 6123912,
+    "veltufjarmunir": 16776898,
+    "eignir": 17212680,
+    "hlutafe": 500000,
+    "eigid_fe": 15734904,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1477776,
+    "skuldir": 1477776,
+    "efe_skuldir": 17212680
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6109160580.pdf",
+ "pdfAr": "2024"
+}

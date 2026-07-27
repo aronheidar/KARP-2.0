@@ -1,0 +1,86 @@
+{
+ "kt": "5411050500",
+ "nafn": "100 bílar ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2429,
+    "hagnadarhlutfall": 0.2026,
+    "ROE": 0.2427,
+    "ROA": 0.2114,
+    "eiginfjarhlutfall": 0.8709,
+    "veltufjarhlutfall": 2.1719,
+    "skuldahlutfall_DE": 0.1482,
+    "eignavelta": 1.0433
+   },
+   "rekstur": {
+    "sala": 133178333,
+    "laun": 60743475,
+    "annar_rekstur": 29742247,
+    "afskriftir": 0,
+    "ebit": 32345880,
+    "fjarmunatekjur": 1429716,
+    "fjarmagnsgjold": -43101,
+    "hagn_f_skatt": 33732495,
+    "tekjuskattur": -6750539,
+    "hagnadur": 26981956
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 979990,
+    "handbaert": 34806082,
+    "eignir": 127654881,
+    "hlutafe": 500000,
+    "eigid_fe": 111178009,
+    "skuldir": 16476872,
+    "efe_skuldir": 127654881,
+    "skammtimaskuldir": 16476872
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1998,
+    "hagnadarhlutfall": 0.1789,
+    "ROE": 0.1967,
+    "ROA": 0.1751,
+    "eiginfjarhlutfall": 0.8904,
+    "veltufjarhlutfall": 3.6581,
+    "skuldahlutfall_DE": 0.1231,
+    "eignavelta": 0.9787
+   },
+   "rekstur": {
+    "sala": 152129522,
+    "laun": 66345680,
+    "annar_rekstur": 44935151,
+    "afskriftir": 0,
+    "ebit": 30392810,
+    "fjarmunatekjur": 4142576,
+    "fjarmagnsgjold": -79811,
+    "hagn_f_skatt": 34455575,
+    "tekjuskattur": -7240550,
+    "hagnadur": 27215025
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4693344,
+    "handbaert": 57640231,
+    "eignir": 155433103,
+    "hlutafe": 500000,
+    "eigid_fe": 138393034,
+    "skuldir": 17040069,
+    "efe_skuldir": 155433103,
+    "skammtimaskuldir": 17040069
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/5411050500.pdf",
+ "pdfAr": "2024"
+}

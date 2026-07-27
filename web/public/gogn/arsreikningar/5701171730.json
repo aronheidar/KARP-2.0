@@ -1,0 +1,75 @@
+{
+ "kt": "5701171730",
+ "nafn": "240 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.0565,
+    "veltufjarhlutfall": 0.2009,
+    "skuldahlutfall_DE": 16.7007,
+    "eignavelta": 1.2829
+   },
+   "rekstur": {
+    "adrar_tekjur": 5451614,
+    "sala": 90189684,
+    "laun": 45613917,
+    "annar_rekstur": 25323642,
+    "afskriftir": 6718358,
+    "fjarmagnsgjold": -10922448,
+    "fjarmunatekjur": 79743,
+    "hagn_f_skatt": -6266921,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 13323015,
+    "handbaert": 0,
+    "eignir": 70303696,
+    "hlutafe": 500100,
+    "eigid_fe": 3971796,
+    "skuldir": 66331900,
+    "efe_skuldir": 70303696,
+    "skammtimaskuldir": 66331900
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": -0.2893,
+    "veltufjarhlutfall": 0.1574,
+    "eignavelta": 0.3511
+   },
+   "rekstur": {
+    "adrar_tekjur": 22584532,
+    "sala": 22159540,
+    "laun": 16096348,
+    "annar_rekstur": 3527383,
+    "afskriftir": 6177947,
+    "fjarmagnsgjold": -15092685,
+    "fjarmunatekjur": 1797,
+    "hagn_f_skatt": -22230547,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 12803708,
+    "handbaert": 0,
+    "eignir": 63108539,
+    "hlutafe": 500100,
+    "eigid_fe": -18258751,
+    "skuldir": 81367290,
+    "efe_skuldir": 63108539,
+    "skammtimaskuldir": 81367290
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5701171730.pdf",
+ "pdfAr": "2024"
+}

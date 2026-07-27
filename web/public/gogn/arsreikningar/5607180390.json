@@ -1,0 +1,86 @@
+{
+ "kt": "5607180390",
+ "nafn": "44 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6265,
+    "hagnadarhlutfall": 0.018,
+    "ROA": 0.0021,
+    "eiginfjarhlutfall": -0.0362,
+    "veltufjarhlutfall": 0.0042,
+    "eignavelta": 0.1189
+   },
+   "rekstur": {
+    "sala": 2279900,
+    "ebit": 1428470,
+    "afskriftir": -232768,
+    "fjarmunatekjur": 1299,
+    "fjarmagnsgjold": -1155872,
+    "hagn_f_skatt": 41129,
+    "tekjuskattur": 0,
+    "hagnadur": 41129
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19131072,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 48130,
+    "veltufjarmunir": 48416,
+    "eignir": 19179488,
+    "hlutafe": 500000,
+    "eigid_fe": -694856,
+    "langtimaskuldir": 8498008,
+    "skammtimaskuldir": 11376336,
+    "skuldir": 19874344,
+    "efe_skuldir": 19179488
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2294,
+    "hagnadarhlutfall": -1.0391,
+    "ROA": -0.123,
+    "eiginfjarhlutfall": -0.1596,
+    "veltufjarhlutfall": 0.0064,
+    "eignavelta": 0.1183
+   },
+   "rekstur": {
+    "sala": 2244705,
+    "ebit": -514828,
+    "afskriftir": -226214,
+    "fjarmunatekjur": 13324,
+    "fjarmagnsgjold": -1604680,
+    "hagn_f_skatt": -2332398,
+    "tekjuskattur": 0,
+    "hagnadur": -2332398
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18904858,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 61779,
+    "veltufjarmunir": 64710,
+    "eignir": 18969568,
+    "hlutafe": 500000,
+    "eigid_fe": -3027254,
+    "langtimaskuldir": 12310925,
+    "skammtimaskuldir": 9685897,
+    "skuldir": 21996822,
+    "efe_skuldir": 18969568
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5607180390.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "5902090310",
+ "nafn": "6ixty6ix ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0251,
+    "hagnadarhlutfall": 0.0106,
+    "ROE": 0.0083,
+    "ROA": 0.0077,
+    "eiginfjarhlutfall": 0.928,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.0776,
+    "eignavelta": 0.7247
+   },
+   "rekstur": {
+    "sala": 378229,
+    "ebit": 9483,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 9483,
+    "tekjuskattur": -5477,
+    "hagnadur": 4006
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": null,
+    "veltufjarmunir": 521931,
+    "eignir": 521931,
+    "hlutafe": 500000,
+    "eigid_fe": 484355,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 37576,
+    "skuldir": 37576,
+    "efe_skuldir": 521931
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1809,
+    "hagnadarhlutfall": 0.1599,
+    "ROE": 0.7006,
+    "ROA": 0.6449,
+    "eiginfjarhlutfall": 0.9205,
+    "veltufjarhlutfall": 9.5847,
+    "skuldahlutfall_DE": 0.0863,
+    "eignavelta": 4.0327
+   },
+   "rekstur": {
+    "sala": 7087173,
+    "ebit": 1282191,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1161,
+    "fjarmagnsgjold": -10302,
+    "hagn_f_skatt": 1273050,
+    "tekjuskattur": -139651,
+    "hagnadur": 1133399
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 816577,
+    "handbaert": 521931,
+    "veltufjarmunir": 1757405,
+    "eignir": 1757405,
+    "hlutafe": 500000,
+    "eigid_fe": 1617754,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 139651,
+    "skuldir": 139651,
+    "efe_skuldir": 1757405
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5902090310.pdf",
+ "pdfAr": "2021"
+}

@@ -1,0 +1,80 @@
+{
+ "kt": "6308181170",
+ "nafn": "Woodwork construction ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 1.5215,
+    "hagnadarhlutfall": 1.2436,
+    "ROE": 1.6731,
+    "ROA": 1.5223,
+    "eiginfjarhlutfall": 0.9099,
+    "veltufjarhlutfall": 2.1393,
+    "skuldahlutfall_DE": 0.0991,
+    "eignavelta": 1.2241
+   },
+   "rekstur": {
+    "sala": 836959,
+    "ebit": 1273460,
+    "fjarmunatekjur": 1871,
+    "fjarmagnsgjold": -195122,
+    "hagn_f_skatt": 1080209,
+    "tekjuskattur": -39376,
+    "hagnadur": 1040833
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": 131848,
+    "veltufjarmunir": 683736,
+    "eignir": 683736,
+    "hlutafe": 500000,
+    "eigid_fe": 622105,
+    "skammtimaskuldir": 61631,
+    "skuldir": 61631,
+    "efe_skuldir": 683736
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1511,
+    "ROA": -0.1458,
+    "eiginfjarhlutfall": 0.9649,
+    "veltufjarhlutfall": 17.3306,
+    "skuldahlutfall_DE": 0.0364,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -85524,
+    "fjarmunatekjur": 4167,
+    "fjarmagnsgjold": -291,
+    "hagn_f_skatt": -81648,
+    "tekjuskattur": 0,
+    "hagnadur": -81648
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 156882,
+    "handbaert": 184323,
+    "veltufjarmunir": 560145,
+    "eignir": 560145,
+    "hlutafe": 500000,
+    "eigid_fe": 540457,
+    "skammtimaskuldir": 19688,
+    "skuldir": 19688,
+    "efe_skuldir": 560145
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6308181170.pdf",
+ "pdfAr": "2021"
+}

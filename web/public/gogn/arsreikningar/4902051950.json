@@ -1,0 +1,56 @@
+{
+ "kt": "4902051950",
+ "nafn": "Sér ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1783
+   },
+   "rekstur": {
+    "kostnadarverd": 42495157,
+    "laun": 34601637,
+    "fjarmagnsgjold": 3532813,
+    "fjarmunatekjur": -93274,
+    "hagnadur": -6678166,
+    "tekjuskattur": null,
+    "afskriftir": 0
+   },
+   "efnahagur": {
+    "handbaert": 8731375,
+    "birgdir": 6311703,
+    "eignir": 37463574
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0905
+   },
+   "rekstur": {
+    "kostnadarverd": 33323158,
+    "laun": 36412428,
+    "fjarmagnsgjold": 1738191,
+    "fjarmunatekjur": -99747,
+    "hagnadur": -2942560,
+    "tekjuskattur": 0,
+    "afskriftir": 0
+   },
+   "efnahagur": {
+    "handbaert": 1547182,
+    "birgdir": 9829717,
+    "eignir": 32530429
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4902051950.pdf",
+ "pdfAr": "2025"
+}

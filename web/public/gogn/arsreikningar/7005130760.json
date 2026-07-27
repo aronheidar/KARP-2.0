@@ -1,0 +1,87 @@
+{
+ "kt": "7005130760",
+ "nafn": "1337 ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -2.0471,
+    "ROA": -0.7543,
+    "eiginfjarhlutfall": 0.3685,
+    "veltufjarhlutfall": 0.051,
+    "skuldahlutfall_DE": 1.7138,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 339,
+    "fjarmagnsgjold": -75,
+    "hagn_f_skatt": -286671,
+    "tekjuskattur": 0,
+    "hagnadur": -286671
+   },
+   "efnahagur": {
+    "fastafjarmunir": 367805,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 12236,
+    "veltufjarmunir": 12236,
+    "eignir": 380041,
+    "hlutafe": 531915,
+    "eigid_fe": 140041,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 240000,
+    "skuldir": 240000,
+    "efe_skuldir": 380041
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 1,
+    "hagnadarhlutfall": 1.0019,
+    "ROE": 0.692,
+    "ROA": 0.692,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0.6906
+   },
+   "rekstur": {
+    "sala": 313967,
+    "ebit": 313967,
+    "afskriftir": 0,
+    "fjarmunatekjur": 772,
+    "fjarmagnsgjold": -170,
+    "hagn_f_skatt": 314569,
+    "tekjuskattur": 0,
+    "hagnadur": 314569
+   },
+   "efnahagur": {
+    "fastafjarmunir": 367805,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 86805,
+    "veltufjarmunir": 86805,
+    "eignir": 454610,
+    "hlutafe": 531915,
+    "eigid_fe": 454610,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 454610
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7005130760.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "6606090750",
+ "nafn": "Dom ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.3935,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.5414,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 51596600,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 51596600,
+    "hlutafe": 600000,
+    "eigid_fe": 20302668,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 31293932,
+    "skuldir": 31293932,
+    "efe_skuldir": 51596600
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0673,
+    "ROA": -0.0248,
+    "eiginfjarhlutfall": 0.3687,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.7125,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1280664,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1280664,
+    "tekjuskattur": 0,
+    "hagnadur": -1280664
+   },
+   "efnahagur": {
+    "fastafjarmunir": 51596600,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 51596600,
+    "hlutafe": 600000,
+    "eigid_fe": 19022004,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 32574596,
+    "skuldir": 32574596,
+    "efe_skuldir": 51596600
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6606090750.pdf",
+ "pdfAr": "2023"
+}

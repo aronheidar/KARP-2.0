@@ -1,0 +1,77 @@
+{
+ "kt": "6405070630",
+ "nafn": "Flateyrarfiskur ehf",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2018": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1459,
+    "eiginfjarhlutfall": 0.5382,
+    "veltufjarhlutfall": 0.0965,
+    "skuldahlutfall_DE": 0.8582,
+    "eignavelta": 0.0745
+   },
+   "rekstur": {
+    "sala": 758151,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebit": 110634,
+    "fjarmagnsgjold": -426759,
+    "hagn_f_skatt": -316125,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1337275,
+    "vidskiptakrofur": 452422,
+    "handbaert": 788,
+    "veltufjarmunir": 8834812,
+    "eignir": 10172087,
+    "hlutafe": 500000,
+    "eigid_fe": 5474243,
+    "skuldir": 4697844,
+    "efe_skuldir": 10172087,
+    "skammtimaskuldir": 4697844
+   },
+   "starfsmenn": null
+  },
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.5109,
+    "veltufjarhlutfall": 0.0911,
+    "skuldahlutfall_DE": 0.9574,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebit": -277388,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -277388,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1337275,
+    "vidskiptakrofur": 452422,
+    "handbaert": 788,
+    "veltufjarmunir": 8834799,
+    "eignir": 10172074,
+    "hlutafe": 500000,
+    "eigid_fe": 5196855,
+    "skuldir": 4975219,
+    "efe_skuldir": 10172074,
+    "skammtimaskuldir": 4975219
+   },
+   "starfsmenn": 388
+  }
+ },
+ "pdf": "pdf/6405070630.pdf",
+ "pdfAr": "2019"
+}

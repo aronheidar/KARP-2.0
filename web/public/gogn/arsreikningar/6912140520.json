@@ -1,0 +1,68 @@
+{
+ "kt": "6912140520",
+ "nafn": "LTBR ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9485,
+    "hagnadarhlutfall": 2.0136,
+    "ROA": 0.039,
+    "eignavelta": 0.0194
+   },
+   "rekstur": {
+    "sala": 37927060,
+    "laun": 34429948,
+    "kostnadarverd": 1954747,
+    "annar_rekstur": 5204999,
+    "ebitda": -23921526,
+    "fjarmunatekjur": 215089,
+    "fjarmagnsgjold": -992494,
+    "hagnadur": 76369890
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1192722655,
+    "vidskiptakrofur": 4330144,
+    "handbaert": 3253662,
+    "veltufjarmunir": 765672278,
+    "eignir": 1958394933
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9996,
+    "hagnadarhlutfall": 0.959,
+    "ROA": 0.0478,
+    "eignavelta": 0.0498
+   },
+   "rekstur": {
+    "sala": 71238019,
+    "laun": 26538987,
+    "kostnadarverd": 27375,
+    "annar_rekstur": 5577333,
+    "ebitda": 21700575,
+    "fjarmunatekjur": 621804,
+    "fjarmagnsgjold": -868911,
+    "hagnadur": 68314984
+   },
+   "efnahagur": {
+    "fastafjarmunir": 597091877,
+    "vidskiptakrofur": 0,
+    "handbaert": 7769200,
+    "veltufjarmunir": 833186493,
+    "eignir": 1430278370
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6912140520.pdf",
+ "pdfAr": "2024"
+}

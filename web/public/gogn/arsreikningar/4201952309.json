@@ -1,0 +1,86 @@
+{
+ "kt": "4201952309",
+ "nafn": "Mandróna ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.7295,
+    "ROA": 0.0496,
+    "eiginfjarhlutfall": 0.068,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 13.7066,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 12901465,
+    "tekjuskattur": 0,
+    "hagnadur": 12901465
+   },
+   "efnahagur": {
+    "fastafjarmunir": 260077980,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 260077980,
+    "hlutafe": 5000000,
+    "eigid_fe": 17684491,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 242393489,
+    "skuldir": 242393489,
+    "efe_skuldir": 260077980
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.8989,
+    "ROA": 0.3111,
+    "eiginfjarhlutfall": 0.3461,
+    "veltufjarhlutfall": 0.0116,
+    "skuldahlutfall_DE": 1.8889,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1274966,
+    "afskriftir": 0,
+    "fjarmunatekjur": 5571319,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 157977510,
+    "tekjuskattur": -793239,
+    "hagnadur": 157184271
+   },
+   "efnahagur": {
+    "fastafjarmunir": 312111466,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 3829180,
+    "veltufjarmunir": 193073557,
+    "eignir": 505185023,
+    "hlutafe": 5000000,
+    "eigid_fe": 174868762,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 330316261,
+    "skuldir": 330316261,
+    "efe_skuldir": 505185023
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4201952309.pdf",
+ "pdfAr": "2025"
+}

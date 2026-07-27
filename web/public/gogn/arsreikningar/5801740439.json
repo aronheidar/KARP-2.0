@@ -1,0 +1,88 @@
+{
+ "kt": "5801740439",
+ "nafn": "Netbókhald ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1524,
+    "hagnadarhlutfall": 0.1319,
+    "ROE": 0.1679,
+    "ROA": 0.1336,
+    "eiginfjarhlutfall": 0.7957,
+    "veltufjarhlutfall": 1.5528,
+    "skuldahlutfall_DE": 0.2568,
+    "eignavelta": 1.0128
+   },
+   "rekstur": {
+    "sala": 60330928,
+    "laun": -17330369,
+    "annar_rekstur": -25712324,
+    "ebitda": 29410910,
+    "afskriftir": -20217629,
+    "ebit": 9193281,
+    "fjarmunatekjur": 910486,
+    "fjarmagnsgjold": -41945,
+    "hagn_f_skatt": 10061822,
+    "tekjuskattur": -2102999,
+    "hagnadur": 7958823
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7556672,
+    "handbaert": 11343562,
+    "eignir": 59570631,
+    "hlutafe": 10800000,
+    "eigid_fe": 47399214,
+    "skuldir": 12171417,
+    "efe_skuldir": 59570631,
+    "skammtimaskuldir": 12171417
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1893,
+    "hagnadarhlutfall": 0.1587,
+    "ROE": 0.1773,
+    "ROA": 0.1605,
+    "eiginfjarhlutfall": 0.9056,
+    "veltufjarhlutfall": 2.245,
+    "skuldahlutfall_DE": 0.1043,
+    "eignavelta": 1.0114
+   },
+   "rekstur": {
+    "sala": 64346936,
+    "laun": -19741913,
+    "annar_rekstur": -25438579,
+    "ebitda": 32367400,
+    "afskriftir": -20184649,
+    "ebit": 12182751,
+    "fjarmunatekjur": 842708,
+    "fjarmagnsgjold": -234160,
+    "hagn_f_skatt": 12791299,
+    "tekjuskattur": -2576702,
+    "hagnadur": 10214597
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7997805,
+    "handbaert": 5491947,
+    "eignir": 63622713,
+    "hlutafe": 10800000,
+    "eigid_fe": 57613811,
+    "skuldir": 6008902,
+    "efe_skuldir": 63622713,
+    "skammtimaskuldir": 6008902
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5801740439.pdf",
+ "pdfAr": "2025"
+}

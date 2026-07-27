@@ -1,0 +1,86 @@
+{
+ "kt": "5504193270",
+ "nafn": "IAM húsasmiður ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3419,
+    "ROA": -0.1053,
+    "eiginfjarhlutfall": 0.3079,
+    "veltufjarhlutfall": 0.0294,
+    "skuldahlutfall_DE": 2.248,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18300,
+    "afskriftir": -64000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -82300,
+    "tekjuskattur": 0,
+    "hagnadur": -82300
+   },
+   "efnahagur": {
+    "fastafjarmunir": 256000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15902,
+    "veltufjarmunir": 525942,
+    "eignir": 781942,
+    "hlutafe": 500000,
+    "eigid_fe": 240742,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 541200,
+    "skuldir": 541200,
+    "efe_skuldir": 781942
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2701,
+    "ROA": -0.101,
+    "eiginfjarhlutfall": 0.374,
+    "veltufjarhlutfall": 0.0501,
+    "skuldahlutfall_DE": 1.6735,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -51200,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -51200,
+    "tekjuskattur": 0,
+    "hagnadur": -51200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 204800,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15902,
+    "veltufjarmunir": 301942,
+    "eignir": 506742,
+    "hlutafe": 500000,
+    "eigid_fe": 189542,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 317200,
+    "skuldir": 317200,
+    "efe_skuldir": 506742
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5504193270.pdf",
+ "pdfAr": "2022"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "5003101030",
+ "nafn": "221 ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0853,
+    "hagnadarhlutfall": -0.1446,
+    "ROA": -0.7563,
+    "veltufjarhlutfall": 0.184,
+    "eignavelta": 5.2288
+   },
+   "rekstur": {
+    "sala": 39828947,
+    "ebit": -3398794,
+    "afskriftir": -961463,
+    "fjarmunatekjur": 378225,
+    "fjarmagnsgjold": -1778874,
+    "hagn_f_skatt": -5760906,
+    "tekjuskattur": 0,
+    "hagnadur": -5760906
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4463553,
+    "birgdir": 1200000,
+    "vidskiptakrofur": 0,
+    "handbaert": 1586108,
+    "veltufjarmunir": 3153669,
+    "eignir": 7617222,
+    "hlutafe": 500000,
+    "eigid_fe": -16026916,
+    "langtimaskuldir": 8503907,
+    "skammtimaskuldir": 15140231,
+    "skuldir": 23644138,
+    "efe_skuldir": 7617222
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1572,
+    "hagnadarhlutfall": 0.1162,
+    "ROA": 0.9608,
+    "veltufjarhlutfall": 0.2738,
+    "eignavelta": 8.2667
+   },
+   "rekstur": {
+    "sala": 52282659,
+    "ebit": 8216771,
+    "afskriftir": -747328,
+    "fjarmunatekjur": 3267,
+    "fjarmagnsgjold": -1396349,
+    "hagn_f_skatt": 6076361,
+    "tekjuskattur": 0,
+    "hagnadur": 6076361
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3716225,
+    "birgdir": 1200000,
+    "vidskiptakrofur": 832263,
+    "handbaert": 575308,
+    "veltufjarmunir": 2608290,
+    "eignir": 6324515,
+    "hlutafe": 500000,
+    "eigid_fe": -9950555,
+    "langtimaskuldir": 6752669,
+    "skammtimaskuldir": 9522401,
+    "skuldir": 16275070,
+    "efe_skuldir": 6324515
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5003101030.pdf",
+ "pdfAr": "2025"
+}

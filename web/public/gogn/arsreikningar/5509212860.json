@@ -1,0 +1,88 @@
+{
+ "kt": "5509212860",
+ "nafn": "Talays ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0942,
+    "hagnadarhlutfall": -0.072,
+    "ROA": -0.0623,
+    "eiginfjarhlutfall": -0.0102,
+    "veltufjarhlutfall": 0.2559,
+    "eignavelta": 0.8644
+   },
+   "rekstur": {
+    "sala": 8307621,
+    "ebit": 782169,
+    "afskriftir": -1200000,
+    "fjarmunatekjur": 290,
+    "fjarmagnsgjold": -104841,
+    "hagn_f_skatt": -522382,
+    "tekjuskattur": -76004,
+    "hagnadur": -598386
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4800000,
+    "birgdir": 0,
+    "vidskiptakrofur": 2402181,
+    "handbaert": 82197,
+    "veltufjarmunir": 4810620,
+    "eignir": 9610620,
+    "hlutafe": 500000,
+    "eigid_fe": -98386,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9709006,
+    "skuldir": 9709006,
+    "efe_skuldir": 9610620
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3085,
+    "hagnadarhlutfall": 0.1981,
+    "ROE": 1.0063,
+    "ROA": 0.6095,
+    "eiginfjarhlutfall": 0.6057,
+    "veltufjarhlutfall": 0.6258,
+    "skuldahlutfall_DE": 0.6511,
+    "eignavelta": 3.0769
+   },
+   "rekstur": {
+    "sala": 79139750,
+    "ebit": 24413489,
+    "afskriftir": -3010000,
+    "fjarmunatekjur": 6839,
+    "fjarmagnsgjold": -2036127,
+    "hagn_f_skatt": 19374201,
+    "tekjuskattur": -3698120,
+    "hagnadur": 15676081
+   },
+   "efnahagur": {
+    "fastafjarmunir": 10840000,
+    "birgdir": 0,
+    "vidskiptakrofur": 3628876,
+    "handbaert": 522597,
+    "veltufjarmunir": 14880570,
+    "eignir": 25720570,
+    "hlutafe": 500000,
+    "eigid_fe": 15577695,
+    "langtimaskuldir": 3508742,
+    "skammtimaskuldir": 6634133,
+    "skuldir": 10142875,
+    "efe_skuldir": 25720570
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509212860.pdf",
+ "pdfAr": "2022"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "6107170630",
+ "nafn": "300C ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3067,
+    "hagnadarhlutfall": 0.2538,
+    "ROE": 0.1555,
+    "ROA": 0.1502,
+    "eiginfjarhlutfall": 0.9661,
+    "veltufjarhlutfall": 5.2185,
+    "skuldahlutfall_DE": 0.0351,
+    "eignavelta": 0.5918
+   },
+   "rekstur": {
+    "sala": 17038976,
+    "ebit": 5225654,
+    "afskriftir": -87688,
+    "fjarmunatekjur": 26322,
+    "fjarmagnsgjold": -39855,
+    "hagn_f_skatt": 5124433,
+    "tekjuskattur": -799959,
+    "hagnadur": 4324474
+   },
+   "efnahagur": {
+    "fastafjarmunir": 789189,
+    "birgdir": 0,
+    "vidskiptakrofur": 3877226,
+    "handbaert": 1222260,
+    "veltufjarmunir": 28004263,
+    "eignir": 28793452,
+    "hlutafe": 500000,
+    "eigid_fe": 27816253,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 977199,
+    "skuldir": 977199,
+    "efe_skuldir": 28793452
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3198,
+    "hagnadarhlutfall": 0.2649,
+    "ROE": 0.1614,
+    "ROA": 0.1525,
+    "eiginfjarhlutfall": 0.9449,
+    "veltufjarhlutfall": 4.5442,
+    "skuldahlutfall_DE": 0.0583,
+    "eignavelta": 0.5758
+   },
+   "rekstur": {
+    "sala": 20213700,
+    "ebit": 6463332,
+    "afskriftir": -78919,
+    "fjarmunatekjur": 29546,
+    "fjarmagnsgjold": -29960,
+    "hagn_f_skatt": 6383999,
+    "tekjuskattur": -1028927,
+    "hagnadur": 5355072
+   },
+   "efnahagur": {
+    "fastafjarmunir": 710270,
+    "birgdir": 0,
+    "vidskiptakrofur": 3905070,
+    "handbaert": 4879409,
+    "veltufjarmunir": 34394158,
+    "eignir": 35104428,
+    "hlutafe": 500000,
+    "eigid_fe": 33171325,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1933103,
+    "skuldir": 1933103,
+    "efe_skuldir": 35104428
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6107170630.pdf",
+ "pdfAr": "2024"
+}

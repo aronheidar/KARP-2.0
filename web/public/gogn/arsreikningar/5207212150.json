@@ -1,0 +1,78 @@
+{
+ "kt": "5207212150",
+ "nafn": "GRAZIE Trattoria ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7261,
+    "ebit_hlutfall": 0.0452,
+    "hagnadarhlutfall": 0.0188,
+    "ROA": 0.0723,
+    "eignavelta": 3.8436
+   },
+   "rekstur": {
+    "sala": 270586449,
+    "kostnadarverd": 74126282,
+    "laun": 122047120,
+    "annar_rekstur": 56873419,
+    "ebitda": 17539628,
+    "afskriftir": 5297880,
+    "ebit": 12241748,
+    "fjarmunatekjur": 12511,
+    "fjarmagnsgjold": -5889204,
+    "hagn_f_skatt": 6365055,
+    "tekjuskattur": -1277051,
+    "hagnadur": 5088004
+   },
+   "efnahagur": {
+    "fastafjarmunir": 23494190,
+    "vidskiptakrofur": 9377316,
+    "handbaert": 4275887,
+    "veltufjarmunir": 46904276,
+    "eignir": 70398466
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6937,
+    "ebit_hlutfall": 0.064,
+    "hagnadarhlutfall": 0.0006,
+    "ROA": 0.0026,
+    "eignavelta": 4.3581
+   },
+   "rekstur": {
+    "sala": 317924301,
+    "kostnadarverd": 97377938,
+    "laun": 129886647,
+    "annar_rekstur": 66084096,
+    "ebitda": 24575620,
+    "afskriftir": 4238304,
+    "ebit": 20337316,
+    "fjarmunatekjur": 83896,
+    "fjarmagnsgjold": -20181553,
+    "hagn_f_skatt": 239659,
+    "tekjuskattur": -52112,
+    "hagnadur": 187547
+   },
+   "efnahagur": {
+    "fastafjarmunir": 19203774,
+    "vidskiptakrofur": 11441637,
+    "handbaert": 11140596,
+    "veltufjarmunir": 53746014,
+    "eignir": 72949788
+   },
+   "starfsmenn": 13
+  }
+ },
+ "pdf": "pdf/5207212150.pdf",
+ "pdfAr": "2024"
+}

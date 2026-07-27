@@ -1,0 +1,96 @@
+{
+ "kt": "6310022180",
+ "nafn": "Rafholt ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.1051,
+    "hagnadarhlutfall": 0.0881,
+    "ROE": 0.556,
+    "ROA": 0.3593,
+    "eiginfjarhlutfall": 0.6462,
+    "veltufjarhlutfall": 2.1988,
+    "skuldahlutfall_DE": 0.5475,
+    "eignavelta": 4.0793
+   },
+   "rekstur": {
+    "sala": 3981862,
+    "adrar_tekjur": 19217,
+    "laun": 1551786,
+    "annar_rekstur": 288308,
+    "afskriftir": 45287,
+    "ebit": 418548,
+    "fjarmunatekjur": 15035,
+    "fjarmagnsgjold": -581,
+    "hagn_f_skatt": 437387,
+    "tekjuskattur": -86657,
+    "hagnadur": 350730
+   },
+   "efnahagur": {
+    "fastafjarmunir": 223497,
+    "birgdir": 51846,
+    "vidskiptakrofur": 392647,
+    "handbaert": 302850,
+    "veltufjarmunir": 752629,
+    "eignir": 976126,
+    "hlutafe": 2000,
+    "eigid_fe": 630781,
+    "langtimaskuldir": 5461,
+    "skammtimaskuldir": 339884,
+    "skuldir": 345345,
+    "efe_skuldir": 976126
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.0944,
+    "hagnadarhlutfall": 0.0791,
+    "ROE": 0.5307,
+    "ROA": 0.3359,
+    "eiginfjarhlutfall": 0.633,
+    "veltufjarhlutfall": 2.2532,
+    "skuldahlutfall_DE": 0.5798,
+    "eignavelta": 4.2471
+   },
+   "rekstur": {
+    "sala": 4228324,
+    "adrar_tekjur": 12710,
+    "laun": 1790011,
+    "annar_rekstur": 308768,
+    "afskriftir": 43461,
+    "ebit": 399177,
+    "fjarmunatekjur": 20858,
+    "fjarmagnsgjold": -338,
+    "hagn_f_skatt": 422879,
+    "tekjuskattur": -88448,
+    "hagnadur": 334432
+   },
+   "efnahagur": {
+    "fastafjarmunir": 152500,
+    "birgdir": 83397,
+    "vidskiptakrofur": 432289,
+    "handbaert": 299733,
+    "veltufjarmunir": 843082,
+    "eignir": 995583,
+    "hlutafe": 2000,
+    "eigid_fe": 630213,
+    "langtimaskuldir": 3471,
+    "skammtimaskuldir": 361899,
+    "skuldir": 365369,
+    "efe_skuldir": 995583
+   },
+   "starfsmenn": 93
+  }
+ },
+ "pdf": "pdf/6310022180.pdf",
+ "pdfAr": "2024"
+}

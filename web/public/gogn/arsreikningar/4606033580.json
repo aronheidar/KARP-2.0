@@ -1,0 +1,80 @@
+{
+ "kt": "4606033580",
+ "nafn": "Ýting ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2509,
+    "eiginfjarhlutfall": 0.4115,
+    "veltufjarhlutfall": 0.3529,
+    "skuldahlutfall_DE": 1.43,
+    "eignavelta": 0.659
+   },
+   "rekstur": {
+    "sala": 59798311,
+    "laun": 22386215,
+    "annar_rekstur": 14015952,
+    "ebitda": 23396144,
+    "afskriftir": 8396144,
+    "ebit": 15003952,
+    "fjarmagnsgjold": 4290458,
+    "hagn_f_skatt": 11844644,
+    "tekjuskattur": 1401836
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 13449200,
+    "handbaert": 5395188,
+    "veltufjarmunir": 18853131,
+    "eignir": 90745706,
+    "hlutafe": 501754,
+    "eigid_fe": 37343480,
+    "skuldir": 53402226,
+    "efe_skuldir": 90745706,
+    "skammtimaskuldir": 53402226
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4447,
+    "eiginfjarhlutfall": 0.4572,
+    "veltufjarhlutfall": 0.4256,
+    "skuldahlutfall_DE": 1.1871,
+    "eignavelta": 0.593
+   },
+   "rekstur": {
+    "sala": 82392097,
+    "laun": 24911793,
+    "annar_rekstur": 10123648,
+    "ebitda": 47356656,
+    "afskriftir": 10715819,
+    "ebit": 36640837,
+    "fjarmagnsgjold": 4341266,
+    "hagn_f_skatt": 32239567,
+    "tekjuskattur": 4250464
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 19801358,
+    "handbaert": 12292508,
+    "veltufjarmunir": 35676397,
+    "eignir": 138940904,
+    "hlutafe": 501754,
+    "eigid_fe": 63526925,
+    "skuldir": 75413979,
+    "efe_skuldir": 138940904,
+    "skammtimaskuldir": 75413979
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4606033580.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "5006050730",
+ "nafn": "Samvirkni ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1435,
+    "hagnadarhlutfall": 0.1265,
+    "ROE": 0.362,
+    "ROA": 0.2244,
+    "eiginfjarhlutfall": 0.6198,
+    "veltufjarhlutfall": 1.4482,
+    "skuldahlutfall_DE": 0.6135,
+    "eignavelta": 1.7732
+   },
+   "rekstur": {
+    "sala": 323227287,
+    "laun": 151885524,
+    "annar_rekstur": 57182006,
+    "afskriftir": 2228808,
+    "ebit": 46376301,
+    "fjarmunatekjur": 5572380,
+    "fjarmagnsgjold": -1058515,
+    "hagn_f_skatt": 51236360,
+    "tekjuskattur": -10336584,
+    "hagnadur": 40899776
+   },
+   "efnahagur": {
+    "fastafjarmunir": 80684662,
+    "vidskiptakrofur": 44587094,
+    "handbaert": 55793491,
+    "eignir": 182289429,
+    "hlutafe": 510000,
+    "eigid_fe": 112977721,
+    "skuldir": 69311708,
+    "efe_skuldir": 182289429,
+    "skammtimaskuldir": 69311708
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1346,
+    "hagnadarhlutfall": 0.119,
+    "ROE": 0.3546,
+    "ROA": 0.2336,
+    "eiginfjarhlutfall": 0.6586,
+    "veltufjarhlutfall": 1.5487,
+    "skuldahlutfall_DE": 0.5184,
+    "eignavelta": 1.9627
+   },
+   "rekstur": {
+    "sala": 336971226,
+    "laun": 156557490,
+    "annar_rekstur": 61760216,
+    "afskriftir": 2089311,
+    "ebit": 45357859,
+    "fjarmunatekjur": 5528932,
+    "fjarmagnsgjold": -806231,
+    "hagn_f_skatt": 50120352,
+    "tekjuskattur": -10020392,
+    "hagnadur": 40099960
+   },
+   "efnahagur": {
+    "fastafjarmunir": 79771420,
+    "vidskiptakrofur": 49179296,
+    "handbaert": 41598644,
+    "eignir": 171691516,
+    "hlutafe": 510000,
+    "eigid_fe": 113077681,
+    "skuldir": 58613835,
+    "efe_skuldir": 171691516,
+    "skammtimaskuldir": 58613835
+   },
+   "starfsmenn": 10
+  }
+ },
+ "pdf": "pdf/5006050730.pdf",
+ "pdfAr": "2025"
+}

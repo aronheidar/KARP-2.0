@@ -1,0 +1,92 @@
+{
+ "kt": "4804161040",
+ "nafn": "Hrífunesskógar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1442,
+    "hagnadarhlutfall": 0.0764,
+    "ROE": 12.9338,
+    "ROA": 0.0605,
+    "eiginfjarhlutfall": 0.0047,
+    "veltufjarhlutfall": 0.0109,
+    "skuldahlutfall_DE": 212.8383,
+    "eignavelta": 0.7912
+   },
+   "rekstur": {
+    "sala": 442879633,
+    "adrar_tekjur": 1559262,
+    "matsbreyting": 15400000,
+    "laun": 4360360,
+    "annar_rekstur": 7959649,
+    "ebit": 63844667,
+    "fjarmunatekjur": 2722,
+    "fjarmagnsgjold": -27476905,
+    "hagn_f_skatt": 42325303,
+    "tekjuskattur": -8468821,
+    "hagnadur": 33856482
+   },
+   "efnahagur": {
+    "fastafjarmunir": 161516751,
+    "vidskiptakrofur": 1104227,
+    "handbaert": 2915975,
+    "veltufjarmunir": 398242596,
+    "eignir": 559759347,
+    "hlutafe": 500000,
+    "eigid_fe": 2617676,
+    "langtimaskuldir": 188237301,
+    "skammtimaskuldir": 368904370,
+    "skuldir": 557141671,
+    "efe_skuldir": 559759347
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0996,
+    "hagnadarhlutfall": -0.1254,
+    "ROA": -0.0685,
+    "eiginfjarhlutfall": -0.0636,
+    "veltufjarhlutfall": 0.0393,
+    "eignavelta": 0.5465
+   },
+   "rekstur": {
+    "sala": 288120725,
+    "adrar_tekjur": 130000,
+    "matsbreyting": 24450000,
+    "laun": 20250798,
+    "annar_rekstur": 9339832,
+    "ebit": -28698728,
+    "fjarmunatekjur": 15235,
+    "fjarmagnsgjold": -16652191,
+    "hagn_f_skatt": -45171713,
+    "tekjuskattur": 9030303,
+    "hagnadur": -36141410
+   },
+   "efnahagur": {
+    "fastafjarmunir": 194997054,
+    "vidskiptakrofur": 11816206,
+    "handbaert": 1901996,
+    "veltufjarmunir": 332250897,
+    "eignir": 527247951,
+    "hlutafe": 500000,
+    "eigid_fe": -33523734,
+    "langtimaskuldir": 211892395,
+    "skammtimaskuldir": 348879290,
+    "skuldir": 560771685,
+    "efe_skuldir": 527247951
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4804161040.pdf",
+ "pdfAr": "2023"
+}

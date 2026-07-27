@@ -1,0 +1,88 @@
+{
+ "kt": "6306150380",
+ "nafn": "Bindir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9604,
+    "ebit_hlutfall": -0.0176,
+    "hagnadarhlutfall": -0.0205,
+    "ROE": -0.5469,
+    "ROA": -0.1203,
+    "eiginfjarhlutfall": 0.22,
+    "veltufjarhlutfall": 1.1416,
+    "skuldahlutfall_DE": 3.5459,
+    "eignavelta": 5.8815
+   },
+   "rekstur": {
+    "sala": 135334430,
+    "kostnadarverd": 5359492,
+    "laun": 114012581,
+    "annar_rekstur": 17301523,
+    "afskriftir": 1040323,
+    "ebit": -2379489,
+    "fjarmunatekjur": 396271,
+    "fjarmagnsgjold": -784876,
+    "hagn_f_skatt": -2768094,
+    "hagnadur": -2768094
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7905000,
+    "handbaert": 12585840,
+    "eignir": 23010202,
+    "hlutafe": 500000,
+    "eigid_fe": 5061702,
+    "skuldir": 17948500,
+    "efe_skuldir": 23010202,
+    "skammtimaskuldir": 17948500
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9652,
+    "ebit_hlutfall": -0.0108,
+    "hagnadarhlutfall": -0.0145,
+    "ROE": -1.2069,
+    "ROA": -0.1265,
+    "eiginfjarhlutfall": 0.1048,
+    "veltufjarhlutfall": 0.9578,
+    "skuldahlutfall_DE": 8.5412,
+    "eignavelta": 8.7215
+   },
+   "rekstur": {
+    "sala": 162714665,
+    "kostnadarverd": 5661933,
+    "laun": 140414387,
+    "annar_rekstur": 17440293,
+    "afskriftir": 958226,
+    "ebit": -1760174,
+    "fjarmunatekjur": 188455,
+    "fjarmagnsgjold": -788342,
+    "hagn_f_skatt": -2360061,
+    "hagnadur": -2360061
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5280000,
+    "handbaert": 10716071,
+    "eignir": 18656724,
+    "hlutafe": 500000,
+    "eigid_fe": 1955393,
+    "skuldir": 16701331,
+    "efe_skuldir": 18656724,
+    "skammtimaskuldir": 16701331
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6306150380.pdf",
+ "pdfAr": "2024"
+}

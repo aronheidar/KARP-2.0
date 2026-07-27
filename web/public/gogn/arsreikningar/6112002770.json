@@ -1,0 +1,92 @@
+{
+ "kt": "6112002770",
+ "nafn": "Ó. Johnson & Kaaber - ÍSAM ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2552,
+    "ebit_hlutfall": 0.0462,
+    "hagnadarhlutfall": 0.0334,
+    "ROE": 0.1573,
+    "ROA": 0.0826,
+    "eiginfjarhlutfall": 0.5249,
+    "veltufjarhlutfall": 1.5752,
+    "skuldahlutfall_DE": 0.9053,
+    "eignavelta": 2.4711
+   },
+   "rekstur": {
+    "sala": 15409209512,
+    "adrar_tekjur": 30223815,
+    "kostnadarverd": -11476655736,
+    "laun": -1736766784,
+    "afskriftir": -309038353,
+    "ebit": 711758026,
+    "fjarmunatekjur": 22489133,
+    "fjarmagnsgjold": -119527265,
+    "hagn_f_skatt": 653601825,
+    "tekjuskattur": -138677410,
+    "hagnadur": 514924415
+   },
+   "efnahagur": {
+    "birgdir": 2376376271,
+    "vidskiptakrofur": 1750315890,
+    "handbaert": 540478229,
+    "eignir": 6235675953,
+    "hlutafe": 391048436,
+    "eigid_fe": 3272858087,
+    "skuldir": 2962817865,
+    "efe_skuldir": 6235675952,
+    "skammtimaskuldir": 2962817865
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2713,
+    "ebit_hlutfall": 0.0498,
+    "hagnadarhlutfall": 0.0367,
+    "ROE": 0.1652,
+    "ROA": 0.0923,
+    "eiginfjarhlutfall": 0.5587,
+    "veltufjarhlutfall": 1.6796,
+    "skuldahlutfall_DE": 0.79,
+    "eignavelta": 2.5115
+   },
+   "rekstur": {
+    "sala": 15470488479,
+    "adrar_tekjur": 41266655,
+    "kostnadarverd": -11273348158,
+    "laun": -1807701487,
+    "afskriftir": -349556671,
+    "ebit": 770551984,
+    "fjarmunatekjur": 45608783,
+    "fjarmagnsgjold": -109121846,
+    "hagn_f_skatt": 712383173,
+    "tekjuskattur": -144034400,
+    "hagnadur": 568348773
+   },
+   "efnahagur": {
+    "birgdir": 2324143174,
+    "vidskiptakrofur": 1792123321,
+    "handbaert": 450009109,
+    "eignir": 6159794657,
+    "hlutafe": 391048436,
+    "eigid_fe": 3441206860,
+    "skuldir": 2718587797,
+    "efe_skuldir": 6159794657,
+    "skammtimaskuldir": 2718587797
+   },
+   "starfsmenn": 142
+  }
+ },
+ "pdf": "pdf/6112002770.pdf",
+ "pdfAr": "2025"
+}

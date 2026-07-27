@@ -1,0 +1,84 @@
+{
+ "kt": "5105060570",
+ "nafn": "EB heilsa ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2636,
+    "hagnadarhlutfall": 0.2598,
+    "ROA": 0.8913,
+    "veltufjarhlutfall": 0.1434,
+    "eignavelta": 3.4303
+   },
+   "rekstur": {
+    "sala": 1522598,
+    "ebit": 401331,
+    "afskriftir": 0,
+    "fjarmunatekjur": 933,
+    "fjarmagnsgjold": -6635,
+    "hagn_f_skatt": 395629,
+    "tekjuskattur": 0,
+    "hagnadur": 395629
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 255000,
+    "vidskiptakrofur": 0,
+    "handbaert": 93108,
+    "veltufjarmunir": 443873,
+    "eignir": 443873,
+    "hlutafe": 585318,
+    "eigid_fe": -1983920,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2427793,
+    "skuldir": 2427793,
+    "efe_skuldir": 443873
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4135,
+    "hagnadarhlutfall": 0.3961,
+    "ROA": 0.7465,
+    "veltufjarhlutfall": 0.3173,
+    "eignavelta": 1.8848
+   },
+   "rekstur": {
+    "sala": 1478776,
+    "ebit": 611490,
+    "afskriftir": 0,
+    "fjarmunatekjur": 154,
+    "fjarmagnsgjold": -25921,
+    "hagn_f_skatt": 585723,
+    "tekjuskattur": 0,
+    "hagnadur": 585723
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 565000,
+    "vidskiptakrofur": 0,
+    "handbaert": 127682,
+    "veltufjarmunir": 784577,
+    "eignir": 784577,
+    "hlutafe": 585318,
+    "eigid_fe": -1398197,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2182774,
+    "skuldir": 2182774,
+    "efe_skuldir": 784577
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5105060570.pdf",
+ "pdfAr": "2025"
+}

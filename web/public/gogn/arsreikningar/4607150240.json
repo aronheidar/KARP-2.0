@@ -1,0 +1,96 @@
+{
+ "kt": "4607150240",
+ "nafn": "Jökulá ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7039,
+    "ebit_hlutfall": -0.005,
+    "hagnadarhlutfall": -0.0077,
+    "ROE": -0.1044,
+    "ROA": -0.0326,
+    "eiginfjarhlutfall": 0.3124,
+    "veltufjarhlutfall": 1.4057,
+    "skuldahlutfall_DE": 2.2007,
+    "eignavelta": 4.2184
+   },
+   "rekstur": {
+    "sala": 222842353,
+    "kostnadarverd": 65979743,
+    "laun": 119912734,
+    "annar_rekstur": 36350145,
+    "afskriftir": 1723091,
+    "ebit": -1123360,
+    "fjarmunatekjur": 280278,
+    "fjarmagnsgjold": -1156670,
+    "hagn_f_skatt": -2138958,
+    "tekjuskattur": 415466,
+    "hagnadur": -1723492
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9143000,
+    "vidskiptakrofur": 42630395,
+    "handbaert": 0,
+    "veltufjarmunir": 43683854,
+    "eignir": 52826854,
+    "hlutafe": 750000,
+    "eigid_fe": 16504738,
+    "langtimaskuldir": 5994510,
+    "skammtimaskuldir": 30327606,
+    "skuldir": 36322116,
+    "efe_skuldir": 52826854
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6762,
+    "ebit_hlutfall": 0.0025,
+    "hagnadarhlutfall": -0.0065,
+    "ROE": -0.0908,
+    "ROA": -0.0113,
+    "eiginfjarhlutfall": 0.1241,
+    "veltufjarhlutfall": 1.3932,
+    "skuldahlutfall_DE": 7.0566,
+    "eignavelta": 1.729
+   },
+   "rekstur": {
+    "sala": 210777463,
+    "kostnadarverd": 68257942,
+    "laun": 106410251,
+    "annar_rekstur": 32559248,
+    "afskriftir": 3031521,
+    "ebit": 518501,
+    "fjarmunatekjur": 1138500,
+    "fjarmagnsgjold": -3086862,
+    "hagn_f_skatt": -1722129,
+    "tekjuskattur": 348531,
+    "hagnadur": -1373598
+   },
+   "efnahagur": {
+    "fastafjarmunir": 87390840,
+    "vidskiptakrofur": 28267398,
+    "handbaert": 5002731,
+    "veltufjarmunir": 34514520,
+    "eignir": 121905360,
+    "hlutafe": 750000,
+    "eigid_fe": 15131140,
+    "langtimaskuldir": 82893808,
+    "skammtimaskuldir": 23880412,
+    "skuldir": 106774220,
+    "efe_skuldir": 121905360
+   },
+   "starfsmenn": 10
+  }
+ },
+ "pdf": "pdf/4607150240.pdf",
+ "pdfAr": "2024"
+}

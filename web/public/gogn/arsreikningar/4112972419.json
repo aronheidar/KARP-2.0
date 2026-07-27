@@ -1,0 +1,96 @@
+{
+ "kt": "4112972419",
+ "nafn": "Rafmenn ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7221,
+    "ebit_hlutfall": 0.0586,
+    "hagnadarhlutfall": 0.0404,
+    "ROE": 0.3267,
+    "ROA": 0.0941,
+    "eiginfjarhlutfall": 0.288,
+    "veltufjarhlutfall": 0.6568,
+    "skuldahlutfall_DE": 2.4723,
+    "eignavelta": 2.3266
+   },
+   "rekstur": {
+    "sala": 590806514,
+    "adrar_tekjur": 1071179,
+    "kostnadarverd": 164202336,
+    "laun": 336515720,
+    "annar_rekstur": 9040435,
+    "afskriftir": 8267395,
+    "ebit": 34644590,
+    "fjarmunatekjur": 3338399,
+    "fjarmagnsgjold": -8114728,
+    "hagn_f_skatt": 29868261,
+    "tekjuskattur": -5977692,
+    "hagnadur": 23890569
+   },
+   "efnahagur": {
+    "fastafjarmunir": 134215083,
+    "birgdir": 11728950,
+    "vidskiptakrofur": 45688869,
+    "handbaert": 61327188,
+    "eignir": 253931974,
+    "hlutafe": 833256,
+    "eigid_fe": 73131610,
+    "skuldir": 180800364,
+    "efe_skuldir": 253931974,
+    "skammtimaskuldir": 180800364
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7597,
+    "ebit_hlutfall": 0.1231,
+    "hagnadarhlutfall": 0.0885,
+    "ROE": 0.6267,
+    "ROA": 0.2049,
+    "eiginfjarhlutfall": 0.3269,
+    "veltufjarhlutfall": 0.7492,
+    "skuldahlutfall_DE": 2.059,
+    "eignavelta": 2.3162
+   },
+   "rekstur": {
+    "sala": 735206775,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 176701664,
+    "laun": 398510171,
+    "annar_rekstur": 9493933,
+    "afskriftir": 11485460,
+    "ebit": 90525620,
+    "fjarmunatekjur": 3789029,
+    "fjarmagnsgjold": -12010654,
+    "hagn_f_skatt": 82303995,
+    "tekjuskattur": -17270713,
+    "hagnadur": 65033282
+   },
+   "efnahagur": {
+    "fastafjarmunir": 154714996,
+    "birgdir": 12909114,
+    "vidskiptakrofur": 90516255,
+    "handbaert": 56639933,
+    "eignir": 317412665,
+    "hlutafe": 833256,
+    "eigid_fe": 103764893,
+    "skuldir": 213647772,
+    "efe_skuldir": 317412665,
+    "skammtimaskuldir": 213647772
+   },
+   "starfsmenn": 35
+  }
+ },
+ "pdf": "pdf/4112972419.pdf",
+ "pdfAr": "2024"
+}

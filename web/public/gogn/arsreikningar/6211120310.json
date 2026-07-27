@@ -1,0 +1,68 @@
+{
+ "kt": "6211120310",
+ "nafn": "ICE work ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3267,
+    "hagnadarhlutfall": -0.2897,
+    "ROA": -0.7403,
+    "eignavelta": 2.5549
+   },
+   "rekstur": {
+    "sala": 395174377,
+    "laun": 166740207,
+    "annar_rekstur": 253571373,
+    "afskriftir": 7320999,
+    "ebit": -129109125,
+    "fjarmunatekjur": 198738,
+    "fjarmagnsgjold": -14209640,
+    "hagnadur": -114500202
+   },
+   "efnahagur": {
+    "fastafjarmunir": 29283998,
+    "vidskiptakrofur": 56017203,
+    "handbaert": 21965244,
+    "veltufjarmunir": 125386298,
+    "eignir": 154670296
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0933,
+    "hagnadarhlutfall": -0.1114,
+    "ROA": -0.2823,
+    "eignavelta": 2.5344
+   },
+   "rekstur": {
+    "sala": 324605241,
+    "laun": 96572418,
+    "annar_rekstur": 191511686,
+    "afskriftir": 6153743,
+    "ebit": -30286667,
+    "fjarmunatekjur": 1697,
+    "fjarmagnsgjold": -5866005,
+    "hagnadur": -36150975
+   },
+   "efnahagur": {
+    "fastafjarmunir": 24615027,
+    "vidskiptakrofur": 55610551,
+    "handbaert": 1495420,
+    "veltufjarmunir": 103466191,
+    "eignir": 128081218
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6211120310.pdf",
+ "pdfAr": "2024"
+}

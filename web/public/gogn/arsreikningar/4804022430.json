@@ -1,0 +1,86 @@
+{
+ "kt": "4804022430",
+ "nafn": "Stay ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8041,
+    "hagnadarhlutfall": 0.4688,
+    "ROE": 0.7107,
+    "ROA": 0.1304,
+    "eiginfjarhlutfall": 0.1834,
+    "veltufjarhlutfall": 12.1138,
+    "skuldahlutfall_DE": 4.4521,
+    "eignavelta": 0.2781
+   },
+   "rekstur": {
+    "sala": 408225522,
+    "adrar_tekjur": 7238078,
+    "kostnadarverd": 79960437,
+    "laun": 37429255,
+    "annar_rekstur": 172032119,
+    "afskriftir": 40416982,
+    "fjarmunatekjur": 55134675,
+    "fjarmagnsgjold": -91437757,
+    "tekjuskattur": 0,
+    "hagnadur": 191384792
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 71785516,
+    "handbaert": 23927997,
+    "eignir": 1468134748,
+    "hlutafe": 1129859,
+    "eigid_fe": 269278256,
+    "skammtimaskuldir": 7901175,
+    "skuldir": 1198856492,
+    "efe_skuldir": 1468134748
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8217,
+    "hagnadarhlutfall": 0.1199,
+    "ROE": 0.2297,
+    "ROA": 0.0358,
+    "eiginfjarhlutfall": 0.1558,
+    "veltufjarhlutfall": 1.7526,
+    "skuldahlutfall_DE": 5.4196,
+    "eignavelta": 0.2983
+   },
+   "rekstur": {
+    "sala": 463163939,
+    "adrar_tekjur": 8965910,
+    "kostnadarverd": 82599866,
+    "laun": 50003975,
+    "annar_rekstur": 145635107,
+    "afskriftir": 41245937,
+    "fjarmunatekjur": 16877416,
+    "fjarmagnsgjold": -94822092,
+    "tekjuskattur": -15658238,
+    "hagnadur": 55556167
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 73110257,
+    "handbaert": 644250,
+    "eignir": 1552535957,
+    "hlutafe": 1129859,
+    "eigid_fe": 241844031,
+    "skammtimaskuldir": 42083419,
+    "skuldir": 1310691926,
+    "efe_skuldir": 1552535957
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4804022430.pdf",
+ "pdfAr": "2025"
+}

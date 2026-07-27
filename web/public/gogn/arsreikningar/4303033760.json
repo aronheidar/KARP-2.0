@@ -1,0 +1,76 @@
+{
+ "kt": "4303033760",
+ "nafn": "Mosi ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1597,
+    "ebit_hlutfall": -0.2077,
+    "hagnadarhlutfall": -0.2127,
+    "ROA": -0.1821,
+    "eignavelta": 0.856
+   },
+   "rekstur": {
+    "sala": 68585497,
+    "kostnadarverd": 57630691,
+    "laun": 19762329,
+    "annar_rekstur": 4149876,
+    "afskriftir": 1287663,
+    "ebit": -14245062,
+    "fjarmunatekjur": 46566,
+    "fjarmagnsgjold": -4030995,
+    "hagn_f_skatt": -18229491,
+    "tekjuskattur": 3641858,
+    "hagnadur": -14587633
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22317477,
+    "vidskiptakrofur": 16771537,
+    "handbaert": 2387822,
+    "veltufjarmunir": 57804732,
+    "eignir": 80122209
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3669,
+    "ebit_hlutfall": -1.2374,
+    "hagnadarhlutfall": -1.1369,
+    "ROA": -0.2631,
+    "eignavelta": 0.2314
+   },
+   "rekstur": {
+    "sala": 18867643,
+    "kostnadarverd": 11945788,
+    "laun": 21785754,
+    "annar_rekstur": 7452914,
+    "afskriftir": 1030129,
+    "ebit": -23346942,
+    "fjarmunatekjur": 105443,
+    "fjarmagnsgjold": -3565560,
+    "hagn_f_skatt": -26807059,
+    "tekjuskattur": 5357232,
+    "hagnadur": -21449827
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26644580,
+    "vidskiptakrofur": 16228480,
+    "handbaert": 1691052,
+    "veltufjarmunir": 54875930,
+    "eignir": 81520510
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4303033760.pdf",
+ "pdfAr": "2024"
+}

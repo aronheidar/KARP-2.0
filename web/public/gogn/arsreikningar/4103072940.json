@@ -1,0 +1,58 @@
+{
+ "kt": "4103072940",
+ "nafn": "9. S ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.6015
+   },
+   "rekstur": {
+    "laun": 7120815,
+    "annar_rekstur": 2207624,
+    "afskriftir": 103356,
+    "ebit": -12298995,
+    "fjarmunatekjur": 99503056,
+    "fjarmagnsgjold": -186873683,
+    "hagnadur": -599395303
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 30370546,
+    "handbaert": 146619671,
+    "veltufjarmunir": 176990217,
+    "eignir": 996509532
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.6202
+   },
+   "rekstur": {
+    "laun": 7120815,
+    "annar_rekstur": 2368205,
+    "afskriftir": 67181,
+    "ebit": -12563825,
+    "fjarmunatekjur": 51701321,
+    "fjarmagnsgjold": -99739275,
+    "hagnadur": -351542422
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 18875189,
+    "handbaert": 39779202,
+    "veltufjarmunir": 58654391,
+    "eignir": 566794652
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4103072940.pdf",
+ "pdfAr": "2025"
+}

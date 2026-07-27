@@ -1,0 +1,86 @@
+{
+ "kt": "4404002210",
+ "nafn": "Calisto ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0161,
+    "ROA": -0.0115,
+    "eiginfjarhlutfall": 0.7131,
+    "veltufjarhlutfall": 3.4853,
+    "skuldahlutfall_DE": 0.4023,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -114462,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3870,
+    "fjarmagnsgjold": -6114,
+    "hagn_f_skatt": -116706,
+    "tekjuskattur": 0,
+    "hagnadur": -116706
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2350000,
+    "vidskiptakrofur": 7611900,
+    "handbaert": 183778,
+    "veltufjarmunir": 10146529,
+    "eignir": 10146529,
+    "hlutafe": 500000,
+    "eigid_fe": 7235514,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2911015,
+    "skuldir": 2911015,
+    "efe_skuldir": 10146529
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0025,
+    "ROA": -0.0018,
+    "eiginfjarhlutfall": 0.7126,
+    "veltufjarhlutfall": 3.4791,
+    "skuldahlutfall_DE": 0.4033,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3522,
+    "fjarmagnsgjold": -795,
+    "hagn_f_skatt": -18173,
+    "tekjuskattur": 0,
+    "hagnadur": -18173
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 2350000,
+    "vidskiptakrofur": 7611900,
+    "handbaert": 165681,
+    "veltufjarmunir": 10128356,
+    "eignir": 10128356,
+    "hlutafe": 500000,
+    "eigid_fe": 7217341,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2911015,
+    "skuldir": 2911015,
+    "efe_skuldir": 10128356
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4404002210.pdf",
+ "pdfAr": "2024"
+}

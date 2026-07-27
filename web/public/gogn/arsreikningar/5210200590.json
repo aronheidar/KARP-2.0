@@ -1,0 +1,88 @@
+{
+ "kt": "5210200590",
+ "nafn": "Skúli bónari ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2955,
+    "hagnadarhlutfall": 0.2931,
+    "ROA": 0.4686,
+    "eiginfjarhlutfall": -0.4924,
+    "veltufjarhlutfall": 0.67,
+    "eignavelta": 1.5986
+   },
+   "rekstur": {
+    "sala": 1627651,
+    "ebit": 480970,
+    "afskriftir": 0,
+    "fjarmunatekjur": 410,
+    "fjarmagnsgjold": -4296,
+    "hagn_f_skatt": 477084,
+    "tekjuskattur": 0,
+    "hagnadur": 477084
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 892304,
+    "handbaert": 125778,
+    "veltufjarmunir": 1018188,
+    "eignir": 1018188,
+    "hlutafe": 500000,
+    "eigid_fe": -501373,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1519560,
+    "skuldir": 1519560,
+    "efe_skuldir": 1018187
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1611,
+    "hagnadarhlutfall": 0.1299,
+    "ROE": 1.2811,
+    "ROA": 0.4727,
+    "eiginfjarhlutfall": 0.3689,
+    "veltufjarhlutfall": 0.7694,
+    "skuldahlutfall_DE": 1.7104,
+    "eignavelta": 3.6395
+   },
+   "rekstur": {
+    "sala": 17592206,
+    "ebit": 2833247,
+    "afskriftir": 0,
+    "fjarmunatekjur": 8984,
+    "fjarmagnsgjold": -195252,
+    "hagn_f_skatt": 2646979,
+    "tekjuskattur": -362251,
+    "hagnadur": 2284728
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1749516,
+    "handbaert": 597446,
+    "veltufjarmunir": 4833664,
+    "eignir": 4833664,
+    "hlutafe": 500000,
+    "eigid_fe": 1783355,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3050309,
+    "skuldir": 3050309,
+    "efe_skuldir": 4833664
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5210200590.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "4112660289",
+ "nafn": "Útboð og samningar ehf",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0951,
+    "ROA": 0.0286,
+    "eiginfjarhlutfall": 0.3011,
+    "veltufjarhlutfall": 0.0382,
+    "skuldahlutfall_DE": 2.3207,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -4078759,
+    "afskriftir": 0,
+    "fjarmunatekjur": 14745391,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 10876482,
+    "tekjuskattur": -1729835,
+    "hagnadur": 9146647
+   },
+   "efnahagur": {
+    "fastafjarmunir": 72556390,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8575683,
+    "veltufjarmunir": 246880876,
+    "eignir": 319437266,
+    "hlutafe": 35000000,
+    "eigid_fe": 96194407,
+    "langtimaskuldir": -1357694,
+    "skammtimaskuldir": 224600552,
+    "skuldir": 223242858,
+    "efe_skuldir": 319437265
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1073,
+    "ROA": -0.0352,
+    "eiginfjarhlutfall": 0.3284,
+    "veltufjarhlutfall": 0.3966,
+    "skuldahlutfall_DE": 2.0452,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -4407515,
+    "afskriftir": 0,
+    "fjarmunatekjur": 22757601,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -10152760,
+    "tekjuskattur": 829330,
+    "hagnadur": -9323430
+   },
+   "efnahagur": {
+    "fastafjarmunir": 46690346,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 71336609,
+    "veltufjarmunir": 217847582,
+    "eignir": 264537928,
+    "hlutafe": 35000000,
+    "eigid_fe": 86870977,
+    "langtimaskuldir": -2187024,
+    "skammtimaskuldir": 179853974,
+    "skuldir": 177666950,
+    "efe_skuldir": 264537927
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4112660289.pdf",
+ "pdfAr": "2025"
+}

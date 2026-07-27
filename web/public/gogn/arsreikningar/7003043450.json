@@ -1,0 +1,92 @@
+{
+ "kt": "7003043450",
+ "nafn": "Iceland Spring ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2811,
+    "ebit_hlutfall": 0.1277,
+    "hagnadarhlutfall": 0.0569,
+    "ROE": 0.0634,
+    "ROA": 0.0447,
+    "eiginfjarhlutfall": 0.7055,
+    "veltufjarhlutfall": 0.6885,
+    "skuldahlutfall_DE": 0.4174,
+    "eignavelta": 0.7851
+   },
+   "rekstur": {
+    "sala": 18388879,
+    "kostnadarverd": 13219001,
+    "laun": 662530,
+    "annar_rekstur": 2159886,
+    "ebit": 2347462,
+    "afskriftir": 567388,
+    "fjarmunatekjur": 14333,
+    "fjarmagnsgjold": -665901,
+    "hagn_f_skatt": 1065661,
+    "tekjuskattur": -18639,
+    "hagnadur": 1047021
+   },
+   "efnahagur": {
+    "birgdir": 2989330,
+    "vidskiptakrofur": 1239943,
+    "handbaert": 519929,
+    "eignir": 23422156,
+    "hlutafe": 8300000,
+    "eigid_fe": 16524169,
+    "skuldir": 6897987,
+    "efe_skuldir": 23422156,
+    "skammtimaskuldir": 6897987
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "USD",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2704,
+    "ebit_hlutfall": 0.1333,
+    "hagnadarhlutfall": 0.0683,
+    "ROE": 0.0699,
+    "ROA": 0.0526,
+    "eiginfjarhlutfall": 0.7527,
+    "veltufjarhlutfall": 0.928,
+    "skuldahlutfall_DE": 0.3285,
+    "eignavelta": 0.7701
+   },
+   "rekstur": {
+    "sala": 18177539,
+    "kostnadarverd": 13263158,
+    "laun": 729340,
+    "annar_rekstur": 1762643,
+    "ebit": 2422398,
+    "afskriftir": 547387,
+    "fjarmunatekjur": 15184,
+    "fjarmagnsgjold": -325666,
+    "hagn_f_skatt": 1567748,
+    "tekjuskattur": -325447,
+    "hagnadur": 1242301
+   },
+   "efnahagur": {
+    "birgdir": 3323226,
+    "vidskiptakrofur": 1654656,
+    "handbaert": 438839,
+    "eignir": 23603402,
+    "hlutafe": 8300000,
+    "eigid_fe": 17766470,
+    "skuldir": 5836932,
+    "efe_skuldir": 23603402,
+    "skammtimaskuldir": 5836932
+   },
+   "starfsmenn": 11
+  }
+ },
+ "pdf": "pdf/7003043450.pdf",
+ "pdfAr": "2024"
+}

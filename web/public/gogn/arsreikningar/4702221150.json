@@ -1,0 +1,88 @@
+{
+ "kt": "4702221150",
+ "nafn": "5 vinstri ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2973,
+    "hagnadarhlutfall": -0.1574,
+    "ROE": -0.2766,
+    "ROA": -0.0645,
+    "eiginfjarhlutfall": 0.2331,
+    "veltufjarhlutfall": 0.3026,
+    "skuldahlutfall_DE": 3.2909,
+    "eignavelta": 0.4095
+   },
+   "rekstur": {
+    "sala": 3600000,
+    "laun": 237361,
+    "annar_rekstur": 2292329,
+    "ebit": 1070310,
+    "fjarmunatekjur": 18940,
+    "fjarmagnsgjold": -942,
+    "hagn_f_skatt": -344960,
+    "tekjuskattur": -221702,
+    "hagnadur": -566662
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6751308,
+    "vidskiptakrofur": 4906,
+    "handbaert": 2035193,
+    "veltufjarmunir": 2040099,
+    "eignir": 8791407,
+    "hlutafe": 500000,
+    "eigid_fe": 2048854,
+    "skammtimaskuldir": 6742553,
+    "skuldir": 6742553,
+    "efe_skuldir": 8791407
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2848,
+    "hagnadarhlutfall": 0.1534,
+    "ROE": 0.3256,
+    "ROA": 0.0724,
+    "eiginfjarhlutfall": 0.2224,
+    "veltufjarhlutfall": 0.173,
+    "skuldahlutfall_DE": 3.4962,
+    "eignavelta": 0.4722
+   },
+   "rekstur": {
+    "sala": 6450000,
+    "laun": 237361,
+    "annar_rekstur": 4375636,
+    "ebit": 1837003,
+    "fjarmunatekjur": 35757,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 1367773,
+    "tekjuskattur": -378592,
+    "hagnadur": 989181
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11822002,
+    "vidskiptakrofur": 7867,
+    "handbaert": 1829628,
+    "veltufjarmunir": 1837495,
+    "eignir": 13659497,
+    "hlutafe": 500000,
+    "eigid_fe": 3038035,
+    "skammtimaskuldir": 10621462,
+    "skuldir": 10621462,
+    "efe_skuldir": 13659497
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/4702221150.pdf",
+ "pdfAr": "2024"
+}

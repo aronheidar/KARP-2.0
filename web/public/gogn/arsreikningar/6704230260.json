@@ -1,0 +1,87 @@
+{
+ "kt": "6704230260",
+ "nafn": "Grábrók ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3801,
+    "hagnadarhlutfall": -0.3922,
+    "ROA": -21.3881,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 54.5285
+   },
+   "rekstur": {
+    "sala": 2746110,
+    "ebit": -1043777,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3295,
+    "fjarmagnsgjold": -36643,
+    "hagn_f_skatt": -1077125,
+    "tekjuskattur": 0,
+    "hagnadur": -1077125
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 50361,
+    "eignir": 50361,
+    "hlutafe": 500000,
+    "eigid_fe": -577125,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 627486,
+    "skuldir": 627486,
+    "efe_skuldir": 50361
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8089,
+    "hagnadarhlutfall": 0.744,
+    "ROE": 2.7266,
+    "ROA": 0.0974,
+    "eiginfjarhlutfall": 0.0357,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 27.007,
+    "eignavelta": 0.1309
+   },
+   "rekstur": {
+    "sala": 1225000,
+    "ebit": 990894,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -79522,
+    "hagn_f_skatt": 911372,
+    "tekjuskattur": 0,
+    "hagnadur": 911372
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9311617,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 49635,
+    "eignir": 9361252,
+    "hlutafe": 500000,
+    "eigid_fe": 334247,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 9027005,
+    "skuldir": 9027005,
+    "efe_skuldir": 9361252
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6704230260.pdf",
+ "pdfAr": "2024"
+}

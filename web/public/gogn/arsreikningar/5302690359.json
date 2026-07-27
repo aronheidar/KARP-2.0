@@ -1,0 +1,94 @@
+{
+ "kt": "5302690359",
+ "nafn": "Rammagerðin ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5656,
+    "ebit_hlutfall": 0.046,
+    "hagnadarhlutfall": 0.0355,
+    "ROE": 0.353,
+    "ROA": 0.0855,
+    "eiginfjarhlutfall": 0.2421,
+    "veltufjarhlutfall": 0.6617,
+    "skuldahlutfall_DE": 3.13,
+    "eignavelta": 2.4056
+   },
+   "rekstur": {
+    "sala": 2155940949,
+    "adrar_tekjur": 35460866,
+    "kostnadarverd": -936502486,
+    "laun": -555179666,
+    "annar_rekstur": -96707689,
+    "afskriftir": -15996261,
+    "ebit": 99231219,
+    "fjarmunatekjur": 2670041,
+    "fjarmagnsgjold": -5512954,
+    "hagn_f_skatt": 95761453,
+    "tekjuskattur": -19156331,
+    "hagnadur": 76605122
+   },
+   "efnahagur": {
+    "birgdir": 388306817,
+    "vidskiptakrofur": 50503738,
+    "handbaert": 10632532,
+    "eignir": 896203215,
+    "hlutafe": 3000000,
+    "eigid_fe": 217000004,
+    "skuldir": 679203211,
+    "efe_skuldir": 896203215,
+    "skammtimaskuldir": 679203211
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5987,
+    "ebit_hlutfall": 0.0044,
+    "hagnadarhlutfall": -0.0163,
+    "ROE": -0.1716,
+    "ROA": -0.0311,
+    "eiginfjarhlutfall": 0.1814,
+    "veltufjarhlutfall": 0.5592,
+    "skuldahlutfall_DE": 4.5121,
+    "eignavelta": 1.9138
+   },
+   "rekstur": {
+    "sala": 1953773495,
+    "adrar_tekjur": 16957130,
+    "kostnadarverd": -783975302,
+    "laun": -444048596,
+    "annar_rekstur": -92935825,
+    "afskriftir": -38984178,
+    "ebit": 8574411,
+    "fjarmunatekjur": 2991497,
+    "fjarmagnsgjold": -47243414,
+    "hagn_f_skatt": -36337030,
+    "tekjuskattur": 4548762,
+    "hagnadur": -31788268
+   },
+   "efnahagur": {
+    "birgdir": 404852289,
+    "vidskiptakrofur": 47363752,
+    "handbaert": 15084087,
+    "eignir": 1020909303,
+    "hlutafe": 3000000,
+    "eigid_fe": 185211736,
+    "skuldir": 835697567,
+    "efe_skuldir": 1020909303,
+    "skammtimaskuldir": 835697567
+   },
+   "starfsmenn": 49
+  }
+ },
+ "pdf": "pdf/5302690359.pdf",
+ "pdfAr": "2024"
+}

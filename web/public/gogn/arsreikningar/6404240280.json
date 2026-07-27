@@ -1,0 +1,81 @@
+{
+ "kt": "6404240280",
+ "nafn": "2010 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1349,
+    "hagnadarhlutfall": 0.1066,
+    "ROE": 0.3497,
+    "ROA": 0.086,
+    "eiginfjarhlutfall": 0.2458,
+    "veltufjarhlutfall": 1.326,
+    "skuldahlutfall_DE": 3.0676,
+    "eignavelta": 0.8065
+   },
+   "rekstur": {
+    "sala": 2522161,
+    "ebit": 340361,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 340361,
+    "tekjuskattur": -71476,
+    "hagnadur": 268885
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 3127480,
+    "handbaert": 0,
+    "veltufjarmunir": 3127480,
+    "eignir": 3127480,
+    "hlutafe": 500000,
+    "eigid_fe": 768885,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2358595,
+    "skuldir": 2358595,
+    "efe_skuldir": 3127480
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6404240280.pdf",
+ "pdfAr": "2024"
+}

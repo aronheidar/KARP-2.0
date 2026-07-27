@@ -1,0 +1,67 @@
+{
+ "kt": "4802050810",
+ "nafn": "Magnhús ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.967,
+    "ebit_hlutfall": 0.9597,
+    "hagnadarhlutfall": 0.5485,
+    "ROA": 3.3239,
+    "eignavelta": 6.0596
+   },
+   "rekstur": {
+    "sala": 111489482,
+    "kostnadarverd": 3674519,
+    "annar_rekstur": 815339,
+    "ebit": 106999624,
+    "fjarmunatekjur": 151513,
+    "fjarmagnsgjold": -43662715,
+    "tekjuskattur": -2333156,
+    "hagnadur": 61155266
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 202995,
+    "handbaert": 18162511,
+    "veltufjarmunir": 18398839,
+    "eignir": 18398839
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -22.4153,
+    "hagnadarhlutfall": -17.8198,
+    "ROA": -0.9562,
+    "eignavelta": 0.0537
+   },
+   "rekstur": {
+    "sala": 384191,
+    "kostnadarverd": 7714530,
+    "annar_rekstur": 1281432,
+    "ebit": -8611771,
+    "fjarmunatekjur": 124090,
+    "fjarmagnsgjold": -64720,
+    "tekjuskattur": 1706200,
+    "hagnadur": -6846201
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 7132674,
+    "veltufjarmunir": 7159974,
+    "eignir": 7159974
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4802050810.pdf",
+ "pdfAr": "2024"
+}

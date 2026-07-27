@@ -1,0 +1,86 @@
+{
+ "kt": "5911130380",
+ "nafn": "Fimm 19 ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1658,
+    "ROA": -0.0217,
+    "eiginfjarhlutfall": 0.1309,
+    "veltufjarhlutfall": 0.0315,
+    "skuldahlutfall_DE": 6.6366,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -6739980,
+    "afskriftir": -57056,
+    "fjarmunatekjur": 27482,
+    "fjarmagnsgjold": -252262,
+    "hagn_f_skatt": -7021816,
+    "tekjuskattur": 1400323,
+    "hagnadur": -5621493
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 866097,
+    "handbaert": 6283700,
+    "veltufjarmunir": 258875183,
+    "eignir": 258875183,
+    "hlutafe": 37500000,
+    "eigid_fe": 33899098,
+    "langtimaskuldir": -1776678,
+    "skammtimaskuldir": 226752763,
+    "skuldir": 224976085,
+    "efe_skuldir": 258875183
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0906,
+    "ROA": -0.0129,
+    "eiginfjarhlutfall": 0.1419,
+    "veltufjarhlutfall": 0.0124,
+    "skuldahlutfall_DE": 6.0452,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -3450766,
+    "afskriftir": 0,
+    "fjarmunatekjur": 51258,
+    "fjarmagnsgjold": -115668,
+    "hagn_f_skatt": -3515176,
+    "tekjuskattur": 698855,
+    "hagnadur": -2816321
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 1796097,
+    "handbaert": 560188,
+    "veltufjarmunir": 218983055,
+    "eignir": 218983055,
+    "hlutafe": 37500000,
+    "eigid_fe": 31082777,
+    "langtimaskuldir": -2475533,
+    "skammtimaskuldir": 190375811,
+    "skuldir": 187900278,
+    "efe_skuldir": 218983055
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5911130380.pdf",
+ "pdfAr": "2024"
+}

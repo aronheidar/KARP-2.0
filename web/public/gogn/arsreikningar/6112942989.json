@@ -1,0 +1,90 @@
+{
+ "kt": "6112942989",
+ "nafn": "Gamli Nói ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2258,
+    "hagnadarhlutfall": 0.1946,
+    "ROE": 0.34,
+    "ROA": 0.1835,
+    "eiginfjarhlutfall": 0.5397,
+    "veltufjarhlutfall": 0.5578,
+    "skuldahlutfall_DE": 0.853,
+    "eignavelta": 0.9431
+   },
+   "rekstur": {
+    "sala": 28335951,
+    "ebit": 6399062,
+    "afskriftir": -722080,
+    "fjarmunatekjur": 55651,
+    "fjarmagnsgjold": -219162,
+    "hagn_f_skatt": 5513471,
+    "tekjuskattur": 0,
+    "hagnadur": 5513471
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3138333,
+    "birgdir": 0,
+    "vidskiptakrofur": 5868955,
+    "handbaert": 1846289,
+    "veltufjarmunir": 26908493,
+    "eignir": 30046826,
+    "hlutafe": 500000,
+    "eigid_fe": 16215558,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 13831267,
+    "skuldir": 13831267,
+    "efe_skuldir": 30046825
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.32,
+    "hagnadarhlutfall": -0.4021,
+    "ROE": -0.375,
+    "ROA": -0.3747,
+    "eiginfjarhlutfall": 0.9993,
+    "veltufjarhlutfall": 33.9512,
+    "skuldahlutfall_DE": 0.0007,
+    "eignavelta": 0.9319
+   },
+   "rekstur": {
+    "sala": 10997986,
+    "ebit": -3519746,
+    "afskriftir": -653381,
+    "fjarmunatekjur": 21443,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -4422311,
+    "tekjuskattur": 0,
+    "hagnadur": -4422311
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2484952,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 280980,
+    "veltufjarmunir": 9316571,
+    "eignir": 11801523,
+    "hlutafe": 500000,
+    "eigid_fe": 11793247,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8276,
+    "skuldir": 8276,
+    "efe_skuldir": 11801523
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6112942989.pdf",
+ "pdfAr": "2024"
+}

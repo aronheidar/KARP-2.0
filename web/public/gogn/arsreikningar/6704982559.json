@@ -1,0 +1,87 @@
+{
+ "kt": "6704982559",
+ "nafn": "Pan Arctica ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0791,
+    "hagnadarhlutfall": 0.0787,
+    "ROA": 0.0071,
+    "veltufjarhlutfall": 0.0015,
+    "eignavelta": 0.0906
+   },
+   "rekstur": {
+    "sala": 1850000,
+    "ebit": 146352,
+    "afskriftir": 0,
+    "fjarmunatekjur": 845,
+    "fjarmagnsgjold": -1589,
+    "hagn_f_skatt": 145608,
+    "tekjuskattur": 0,
+    "hagnadur": 145608
+   },
+   "efnahagur": {
+    "fastafjarmunir": 20328026,
+    "birgdir": 0,
+    "vidskiptakrofur": 186,
+    "handbaert": 96497,
+    "veltufjarmunir": 96683,
+    "eignir": 20424709,
+    "hlutafe": 500000,
+    "eigid_fe": -44706527,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 65131236,
+    "skuldir": 65131236,
+    "efe_skuldir": 20424709
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0092,
+    "hagnadarhlutfall": -0.0092,
+    "ROE": -0.0092,
+    "ROA": -0.0066,
+    "eiginfjarhlutfall": 0.7187,
+    "veltufjarhlutfall": 0.0008,
+    "skuldahlutfall_DE": 0.3914,
+    "eignavelta": 0.7229
+   },
+   "rekstur": {
+    "sala": 14744868,
+    "ebit": -136120,
+    "afskriftir": 0,
+    "fjarmunatekjur": 748,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -135372,
+    "tekjuskattur": 0,
+    "hagnadur": -135372
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5750000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 4629,
+    "veltufjarmunir": 14645748,
+    "eignir": 20395748,
+    "hlutafe": 20000000,
+    "eigid_fe": 14658101,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5737647,
+    "skuldir": 5737647,
+    "efe_skuldir": 20395748
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6704982559.pdf",
+ "pdfAr": "2024"
+}

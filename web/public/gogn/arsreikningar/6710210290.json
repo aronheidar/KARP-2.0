@@ -1,0 +1,58 @@
+{
+ "kt": "6710210290",
+ "nafn": "REMIS verktakar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "efe_skuldir": null,
+    "skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.355,
+    "ROA": -0.355,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "hagnadur": -131000
+   },
+   "efnahagur": {
+    "handbaert": 369000,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 369000,
+    "efe_skuldir": 369000,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6710210290.pdf",
+ "pdfAr": "2021"
+}

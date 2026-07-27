@@ -1,0 +1,88 @@
+{
+ "kt": "6112222110",
+ "nafn": "The filling station ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0015,
+    "ROA": -0.0015,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": -790,
+    "afskriftir": 0,
+    "ebit": -790,
+    "fjarmunatekjur": 28,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -762,
+    "tekjuskattur": 0,
+    "hagnadur": -762
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 166232,
+    "eignir": 500238,
+    "hlutafe": 501000,
+    "eigid_fe": 500238,
+    "skuldir": 0,
+    "efe_skuldir": 500238,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4532,
+    "ebit_hlutfall": 0.0397,
+    "hagnadarhlutfall": 0.0322,
+    "ROE": 0.8827,
+    "ROA": 0.4203,
+    "eiginfjarhlutfall": 0.4762,
+    "veltufjarhlutfall": 1.2706,
+    "skuldahlutfall_DE": 1.1,
+    "eignavelta": 13.0568
+   },
+   "rekstur": {
+    "sala": 116915605,
+    "adrar_tekjur": 806452,
+    "kostnadarverd": -63930397,
+    "laun": -40251814,
+    "annar_rekstur": -1858222,
+    "afskriftir": -774594,
+    "ebit": 4640836,
+    "fjarmunatekjur": 38082,
+    "fjarmagnsgjold": -37359,
+    "hagn_f_skatt": 4641559,
+    "tekjuskattur": -877797,
+    "hagnadur": 3763762
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5036290,
+    "handbaert": 923216,
+    "eignir": 8954381,
+    "hlutafe": 501000,
+    "eigid_fe": 4264000,
+    "skuldir": 4690381,
+    "efe_skuldir": 8954381,
+    "skammtimaskuldir": 4690381
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/6112222110.pdf",
+ "pdfAr": "2023"
+}

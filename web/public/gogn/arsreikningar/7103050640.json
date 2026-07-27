@@ -1,0 +1,88 @@
+{
+ "kt": "7103050640",
+ "nafn": "Norðar ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.5386,
+    "hagnadarhlutfall": 0.4198,
+    "ROE": 0.6112,
+    "ROA": 0.4512,
+    "eiginfjarhlutfall": 0.7381,
+    "veltufjarhlutfall": 3.1747,
+    "skuldahlutfall_DE": 0.3548,
+    "eignavelta": 1.0746
+   },
+   "rekstur": {
+    "sala": 34869338,
+    "laun": -4153812,
+    "annar_rekstur": -4153553,
+    "ebit": 18781213,
+    "afskriftir": -993242,
+    "fjarmunatekjur": 70823,
+    "fjarmagnsgjold": -54659,
+    "hagn_f_skatt": 17804135,
+    "tekjuskattur": null,
+    "hagnadur": 14638891
+   },
+   "efnahagur": {
+    "birgdir": 6245574,
+    "vidskiptakrofur": 3722225,
+    "handbaert": 17009117,
+    "eignir": 32447652,
+    "hlutafe": 500000,
+    "eigid_fe": 23950190,
+    "skuldir": 8497462,
+    "efe_skuldir": 32447652,
+    "skammtimaskuldir": 8497462
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0403,
+    "hagnadarhlutfall": 0.0122,
+    "ROE": 0.0169,
+    "ROA": 0.015,
+    "eiginfjarhlutfall": 0.8901,
+    "veltufjarhlutfall": 7.1554,
+    "skuldahlutfall_DE": 0.1235,
+    "eignavelta": 1.2322
+   },
+   "rekstur": {
+    "sala": 33723152,
+    "laun": -8893594,
+    "annar_rekstur": -7001667,
+    "ebit": 1357436,
+    "afskriftir": -1300966,
+    "fjarmunatekjur": 390159,
+    "fjarmagnsgjold": -59085,
+    "hagn_f_skatt": 410933,
+    "tekjuskattur": -3165244,
+    "hagnadur": 410933
+   },
+   "efnahagur": {
+    "birgdir": 6627708,
+    "vidskiptakrofur": 13070763,
+    "handbaert": 1821085,
+    "eignir": 27368580,
+    "hlutafe": 500000,
+    "eigid_fe": 24361123,
+    "skuldir": 3007457,
+    "efe_skuldir": 27368580,
+    "skammtimaskuldir": 3007457
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7103050640.pdf",
+ "pdfAr": "2025"
+}

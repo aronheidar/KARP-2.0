@@ -1,0 +1,94 @@
+{
+ "kt": "7006051080",
+ "nafn": "B. Hreiðarsson ehf",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5499,
+    "ebit_hlutfall": 0.1638,
+    "hagnadarhlutfall": 0.1398,
+    "ROE": 0.2538,
+    "ROA": 0.1998,
+    "eiginfjarhlutfall": 0.7872,
+    "veltufjarhlutfall": 2.5065,
+    "skuldahlutfall_DE": 0.2704,
+    "eignavelta": 1.4297
+   },
+   "rekstur": {
+    "sala": 626534414,
+    "adrar_tekjur": 1174400,
+    "kostnadarverd": 282028779,
+    "laun": 196445728,
+    "annar_rekstur": 5028022,
+    "afskriftir": 12135862,
+    "ebit": 102598752,
+    "fjarmunatekjur": 8112939,
+    "fjarmagnsgjold": -6531,
+    "hagn_f_skatt": 110705160,
+    "tekjuskattur": -23137907,
+    "hagnadur": 87567253
+   },
+   "efnahagur": {
+    "fastafjarmunir": 106946027,
+    "vidskiptakrofur": 55081402,
+    "handbaert": 178695739,
+    "eignir": 438228212,
+    "hlutafe": 985239,
+    "eigid_fe": 344959938,
+    "skuldir": 93268275,
+    "efe_skuldir": 438228212,
+    "skammtimaskuldir": 93268275
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5619,
+    "ebit_hlutfall": 0.1519,
+    "hagnadarhlutfall": 0.1331,
+    "ROE": 0.1865,
+    "ROA": 0.1576,
+    "eiginfjarhlutfall": 0.8455,
+    "veltufjarhlutfall": 3.4115,
+    "skuldahlutfall_DE": 0.1828,
+    "eignavelta": 1.1846
+   },
+   "rekstur": {
+    "sala": 573425236,
+    "adrar_tekjur": 6460723,
+    "kostnadarverd": 251228203,
+    "laun": 196029297,
+    "annar_rekstur": 3592599,
+    "afskriftir": 14009528,
+    "ebit": 87094821,
+    "fjarmunatekjur": 9277280,
+    "fjarmagnsgjold": -976406,
+    "hagn_f_skatt": 95395695,
+    "tekjuskattur": -19083419,
+    "hagnadur": 76312276
+   },
+   "efnahagur": {
+    "fastafjarmunir": 127283449,
+    "vidskiptakrofur": 100618273,
+    "handbaert": 154549600,
+    "eignir": 484068014,
+    "hlutafe": 985239,
+    "eigid_fe": 409272214,
+    "skuldir": 74795800,
+    "efe_skuldir": 484068014,
+    "skammtimaskuldir": 74795800
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/7006051080.pdf",
+ "pdfAr": "2025"
+}

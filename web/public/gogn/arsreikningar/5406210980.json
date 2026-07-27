@@ -1,0 +1,100 @@
+{
+ "kt": "5406210980",
+ "nafn": "3D Verk ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2348,
+    "ebit_hlutfall": 0.0673,
+    "hagnadarhlutfall": 0.0474,
+    "ROE": 0.6918,
+    "ROA": 0.2041,
+    "eiginfjarhlutfall": 0.295,
+    "veltufjarhlutfall": 1.4178,
+    "skuldahlutfall_DE": 2.3895,
+    "eignavelta": 4.3076
+   },
+   "rekstur": {
+    "sala": 92813651,
+    "kostnadarverd": 71018802,
+    "laun": 3084408,
+    "annar_rekstur": 12466086,
+    "ebitda": 6244355,
+    "afskriftir": 0,
+    "ebit": 6244355,
+    "fjarmunatekjur": 92172,
+    "fjarmagnsgjold": -1028228,
+    "hagn_f_skatt": 5308299,
+    "tekjuskattur": -910766,
+    "hagnadur": 4397533
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 10137668,
+    "vidskiptakrofur": 4963218,
+    "handbaert": 6435529,
+    "veltufjarmunir": 21546622,
+    "eignir": 21546622,
+    "hlutafe": 500000,
+    "eigid_fe": 6356936,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 15189686,
+    "skuldir": 15189686,
+    "efe_skuldir": 21546622
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2192,
+    "ebit_hlutfall": 0.0611,
+    "hagnadarhlutfall": 0.0405,
+    "ROE": 0.5007,
+    "ROA": 0.2103,
+    "eiginfjarhlutfall": 0.42,
+    "veltufjarhlutfall": 1.681,
+    "skuldahlutfall_DE": 1.3811,
+    "eignavelta": 5.1974
+   },
+   "rekstur": {
+    "sala": 157562065,
+    "kostnadarverd": 123016831,
+    "laun": 8479569,
+    "annar_rekstur": 15435429,
+    "ebitda": 10630236,
+    "afskriftir": 1000000,
+    "ebit": 9630236,
+    "fjarmunatekjur": 281280,
+    "fjarmagnsgjold": -1871266,
+    "hagn_f_skatt": 8040250,
+    "tekjuskattur": -1665206,
+    "hagnadur": 6375044
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4000000,
+    "birgdir": 10200000,
+    "vidskiptakrofur": 7532880,
+    "handbaert": 8520726,
+    "veltufjarmunir": 26315488,
+    "eignir": 30315488,
+    "hlutafe": 500000,
+    "eigid_fe": 12731980,
+    "langtimaskuldir": 1965995,
+    "skammtimaskuldir": 15617513,
+    "skuldir": 17583508,
+    "efe_skuldir": 30315488
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5406210980.pdf",
+ "pdfAr": "2024"
+}

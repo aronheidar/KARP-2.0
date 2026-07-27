@@ -1,0 +1,86 @@
+{
+ "kt": "5102881819",
+ "nafn": "Íkon ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1938,
+    "hagnadarhlutfall": -0.1702,
+    "ROA": -0.1527,
+    "eiginfjarhlutfall": -0.4637,
+    "veltufjarhlutfall": 0.2137,
+    "eignavelta": 0.8972
+   },
+   "rekstur": {
+    "sala": 2058726,
+    "ebit": -399038,
+    "afskriftir": 0,
+    "fjarmunatekjur": 56509,
+    "fjarmagnsgjold": -25765,
+    "hagn_f_skatt": -350399,
+    "tekjuskattur": 0,
+    "hagnadur": -350399
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 414866,
+    "handbaert": 302840,
+    "veltufjarmunir": 1294629,
+    "eignir": 2294629,
+    "hlutafe": 1600000,
+    "eigid_fe": -1064032,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3358661,
+    "skuldir": 3358661,
+    "efe_skuldir": 2294629
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.9071,
+    "hagnadarhlutfall": -0.9123,
+    "ROA": -0.3128,
+    "eiginfjarhlutfall": -0.6709,
+    "veltufjarhlutfall": 0.4039,
+    "eignavelta": 0.3429
+   },
+   "rekstur": {
+    "sala": 1018754,
+    "ebit": -1942849,
+    "afskriftir": 0,
+    "fjarmunatekjur": 91484,
+    "fjarmagnsgjold": -42557,
+    "hagn_f_skatt": -929371,
+    "tekjuskattur": 0,
+    "hagnadur": -929371
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1000000,
+    "birgdir": 0,
+    "vidskiptakrofur": 281325,
+    "handbaert": 1334277,
+    "veltufjarmunir": 1971125,
+    "eignir": 2971125,
+    "hlutafe": 1600000,
+    "eigid_fe": -1993403,
+    "langtimaskuldir": 964790,
+    "skammtimaskuldir": 3999738,
+    "skuldir": 4964528,
+    "efe_skuldir": 2971125
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5102881819.pdf",
+ "pdfAr": "2025"
+}

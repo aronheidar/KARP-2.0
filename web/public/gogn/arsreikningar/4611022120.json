@@ -1,0 +1,86 @@
+{
+ "kt": "4611022120",
+ "nafn": "Obsidian ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0478,
+    "ROA": -0.0229,
+    "eiginfjarhlutfall": 0.479,
+    "veltufjarhlutfall": 1.2582,
+    "skuldahlutfall_DE": 1.0875,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 61,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20139,
+    "tekjuskattur": -12,
+    "hagnadur": -20151
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 71924,
+    "handbaert": 505460,
+    "veltufjarmunir": 880854,
+    "eignir": 880854,
+    "hlutafe": 1000000,
+    "eigid_fe": 421968,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 458886,
+    "skuldir": 458886,
+    "efe_skuldir": 880854
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0535,
+    "ROA": -0.0252,
+    "eiginfjarhlutfall": 0.4701,
+    "veltufjarhlutfall": 1.8867,
+    "skuldahlutfall_DE": 1.1274,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 591,
+    "fjarmagnsgjold": -1133,
+    "hagn_f_skatt": -21442,
+    "tekjuskattur": 0,
+    "hagnadur": -21442
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 375381,
+    "handbaert": 476548,
+    "veltufjarmunir": 852063,
+    "eignir": 852063,
+    "hlutafe": 1000000,
+    "eigid_fe": 400526,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 451537,
+    "skuldir": 451537,
+    "efe_skuldir": 852063
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4611022120.pdf",
+ "pdfAr": "2024"
+}

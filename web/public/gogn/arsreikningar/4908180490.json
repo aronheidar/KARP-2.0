@@ -1,0 +1,68 @@
+{
+ "kt": "4908180490",
+ "nafn": "Markis ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1956,
+    "hagnadarhlutfall": 0.1178,
+    "ROA": 0.1939,
+    "eignavelta": 1.6456
+   },
+   "rekstur": {
+    "sala": 5717342,
+    "annar_rekstur": 4598854,
+    "ebit": 1118488,
+    "afskriftir": 290711,
+    "fjarmunatekjur": 20218,
+    "fjarmagnsgjold": -540,
+    "hagn_f_skatt": 847455,
+    "tekjuskattur": -173671,
+    "hagnadur": 673784
+   },
+   "efnahagur": {
+    "fastafjarmunir": 581421,
+    "vidskiptakrofur": 2409500,
+    "handbaert": 478604,
+    "veltufjarmunir": 2892985,
+    "eignir": 3474406
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3103,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 494091,
+    "ebit": -494091,
+    "afskriftir": 290711,
+    "fjarmunatekjur": 5461,
+    "fjarmagnsgjold": -4395,
+    "hagn_f_skatt": -783736,
+    "tekjuskattur": 0,
+    "hagnadur": -783736
+   },
+   "efnahagur": {
+    "fastafjarmunir": 290710,
+    "vidskiptakrofur": 2202500,
+    "handbaert": 31659,
+    "veltufjarmunir": 2235360,
+    "eignir": 2526070
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4908180490.pdf",
+ "pdfAr": "2024"
+}

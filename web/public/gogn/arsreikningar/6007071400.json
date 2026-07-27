@@ -1,0 +1,78 @@
+{
+ "kt": "6007071400",
+ "nafn": "GT Plast ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2936,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18300,
+    "afskriftir": -104858,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -123158,
+    "tekjuskattur": 0,
+    "hagnadur": -123158
+   },
+   "efnahagur": {
+    "fastafjarmunir": 419430,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 419430,
+    "hlutafe": 500000,
+    "eigid_fe": -4481580,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4901010,
+    "skuldir": 4901010,
+    "efe_skuldir": 419430
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -18800,
+    "afskriftir": -419430,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -438230,
+    "tekjuskattur": 0,
+    "hagnadur": -438230
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -4919810,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4919810,
+    "skuldir": 4919810,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6007071400.pdf",
+ "pdfAr": "2022"
+}

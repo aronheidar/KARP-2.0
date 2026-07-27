@@ -1,0 +1,85 @@
+{
+ "kt": "5001251010",
+ "nafn": "999 ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3908,
+    "ROA": -0.3908,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -140500,
+    "tekjuskattur": 0,
+    "hagnadur": -140500
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 359500,
+    "veltufjarmunir": 359500,
+    "eignir": 359500,
+    "hlutafe": 500000,
+    "eigid_fe": 359500,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 359500
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -3.7285,
+    "hagnadarhlutfall": -3.7781,
+    "ROA": -2.967,
+    "eiginfjarhlutfall": -0.1018,
+    "veltufjarhlutfall": 0.8837,
+    "eignavelta": 0.7853
+   },
+   "rekstur": {
+    "sala": 98533,
+    "ebit": -367379,
+    "afskriftir": 0,
+    "fjarmunatekjur": 145,
+    "fjarmagnsgjold": -5037,
+    "hagn_f_skatt": -372271,
+    "tekjuskattur": 0,
+    "hagnadur": -372271
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 122158,
+    "veltufjarmunir": 125471,
+    "eignir": 125471,
+    "hlutafe": 500000,
+    "eigid_fe": -12771,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 138242,
+    "skuldir": 138242,
+    "efe_skuldir": 125471
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5001251010.pdf",
+ "pdfAr": "2025"
+}

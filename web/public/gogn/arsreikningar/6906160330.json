@@ -1,0 +1,72 @@
+{
+ "kt": "6906160330",
+ "nafn": "Dvergahraun ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.4215,
+    "eiginfjarhlutfall": -0.3967,
+    "veltufjarhlutfall": 0.1283
+   },
+   "rekstur": {
+    "fjarmunatekjur": 4147,
+    "fjarmagnsgjold": 0,
+    "annar_rekstur": 36997,
+    "ebit": -7325280,
+    "tekjuskattur": 0,
+    "hagnadur": -7325280
+   },
+   "efnahagur": {
+    "fastafjarmunir": 14264951,
+    "vidskiptakrofur": 1393,
+    "handbaert": 3113230,
+    "eignir": 17379573,
+    "hlutafe": 500000,
+    "eigid_fe": -6894557,
+    "skuldir": 24274130,
+    "efe_skuldir": 17379573,
+    "skammtimaskuldir": 24274130
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 1.0882,
+    "ROA": 0.2111,
+    "eiginfjarhlutfall": 0.194,
+    "veltufjarhlutfall": 0.0994,
+    "skuldahlutfall_DE": 4.1541
+   },
+   "rekstur": {
+    "fjarmunatekjur": 4597,
+    "fjarmagnsgjold": -2136567,
+    "annar_rekstur": 23147,
+    "ebit": 85032556,
+    "tekjuskattur": 0,
+    "hagnadur": 85032556
+   },
+   "efnahagur": {
+    "fastafjarmunir": 370475205,
+    "vidskiptakrofur": 32242112,
+    "handbaert": 12271,
+    "eignir": 402729588,
+    "hlutafe": 500000,
+    "eigid_fe": 78137999,
+    "skuldir": 324591589,
+    "efe_skuldir": 402729588,
+    "skammtimaskuldir": 324591589
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6906160330.pdf",
+ "pdfAr": "2021"
+}

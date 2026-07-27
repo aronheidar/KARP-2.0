@@ -1,0 +1,100 @@
+{
+ "kt": "5804052310",
+ "nafn": "Þelamörk ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4415,
+    "ebit_hlutfall": 0.1448,
+    "hagnadarhlutfall": 0.0982,
+    "ROE": 0.5277,
+    "ROA": 0.3147,
+    "eiginfjarhlutfall": 0.5964,
+    "veltufjarhlutfall": 1.2323,
+    "skuldahlutfall_DE": 0.6769,
+    "eignavelta": 3.2057
+   },
+   "rekstur": {
+    "sala": 722705144,
+    "adrar_tekjur": 1343608,
+    "kostnadarverd": -403628328,
+    "laun": -144183127,
+    "annar_rekstur": -57400888,
+    "afskriftir": -11021935,
+    "ebit": 104670866,
+    "fjarmunatekjur": 2845002,
+    "fjarmagnsgjold": -18829327,
+    "hagn_f_skatt": 88686541,
+    "tekjuskattur": -17741348,
+    "hagnadur": 70945193
+   },
+   "efnahagur": {
+    "fastafjarmunir": 128302740,
+    "birgdir": 7940000,
+    "vidskiptakrofur": 74256930,
+    "handbaert": 14945123,
+    "veltufjarmunir": 97142053,
+    "eignir": 225444793,
+    "hlutafe": 8000000,
+    "eigid_fe": 134444319,
+    "langtimaskuldir": 13702952,
+    "skammtimaskuldir": 78828264,
+    "skuldir": 91000474,
+    "efe_skuldir": 225444793
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4814,
+    "ebit_hlutfall": 0.1877,
+    "hagnadarhlutfall": 0.1595,
+    "ROE": 0.5813,
+    "ROA": 0.3764,
+    "eiginfjarhlutfall": 0.6474,
+    "veltufjarhlutfall": 1.9866,
+    "skuldahlutfall_DE": 0.5446,
+    "eignavelta": 2.359
+   },
+   "rekstur": {
+    "sala": 1170170530,
+    "adrar_tekjur": 0,
+    "kostnadarverd": -606865612,
+    "laun": -193374170,
+    "annar_rekstur": -129768336,
+    "afskriftir": -17311486,
+    "ebit": 219650926,
+    "fjarmunatekjur": 16387609,
+    "fjarmagnsgjold": -2213945,
+    "hagn_f_skatt": 233824590,
+    "tekjuskattur": -47132462,
+    "hagnadur": 186692128
+   },
+   "efnahagur": {
+    "fastafjarmunir": 157580655,
+    "birgdir": 4150000,
+    "vidskiptakrofur": 321461499,
+    "handbaert": 12846729,
+    "veltufjarmunir": 338458228,
+    "eignir": 496038883,
+    "hlutafe": 8000000,
+    "eigid_fe": 321136447,
+    "langtimaskuldir": 5740920,
+    "skammtimaskuldir": 170370131,
+    "skuldir": 174902436,
+    "efe_skuldir": 496038883
+   },
+   "starfsmenn": 18
+  }
+ },
+ "pdf": "pdf/5804052310.pdf",
+ "pdfAr": "2024"
+}

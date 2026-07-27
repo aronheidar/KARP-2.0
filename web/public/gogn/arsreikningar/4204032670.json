@@ -1,0 +1,71 @@
+{
+ "kt": "4204032670",
+ "nafn": "Greið leið ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -2.0595,
+    "ROA": -1.9343,
+    "eiginfjarhlutfall": 0.9392,
+    "veltufjarhlutfall": 0.646,
+    "skuldahlutfall_DE": 0.0647
+   },
+   "rekstur": {
+    "ebit": -231660,
+    "fjarmunatekjur": 8387,
+    "fjarmagnsgjold": -9932,
+    "hagnadur": -41767329
+   },
+   "efnahagur": {
+    "fastafjarmunir": 20745188,
+    "vidskiptakrofur": 1845,
+    "handbaert": 845878,
+    "veltufjarmunir": 847723,
+    "eignir": 21592911,
+    "hlutafe": 373656587,
+    "eigid_fe": 20280702,
+    "skammtimaskuldir": 1312209,
+    "skuldir": 1312209,
+    "efe_skuldir": 21592911
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0183,
+    "ROA": -0.0183,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "ebit": -398458,
+    "fjarmunatekjur": 4102,
+    "fjarmagnsgjold": -1485,
+    "hagnadur": -395841
+   },
+   "efnahagur": {
+    "fastafjarmunir": 20745188,
+    "vidskiptakrofur": 29929,
+    "handbaert": 857235,
+    "veltufjarmunir": 887164,
+    "eignir": 21632352,
+    "hlutafe": 375404078,
+    "eigid_fe": 21632352,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 21632352
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4204032670.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,81 @@
+{
+ "kt": "4607222250",
+ "nafn": "PJ Múr ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4723,
+    "hagnadarhlutfall": 0.322,
+    "ROE": 0.8804,
+    "ROA": 0.5251,
+    "eiginfjarhlutfall": 0.5965,
+    "veltufjarhlutfall": 1.6827,
+    "skuldahlutfall_DE": 0.6765,
+    "eignavelta": 1.6308
+   },
+   "rekstur": {
+    "sala": 11431342,
+    "ebit": 5398924,
+    "afskriftir": -750000,
+    "fjarmunatekjur": 2764,
+    "fjarmagnsgjold": -50350,
+    "hagn_f_skatt": 4601338,
+    "tekjuskattur": -920268,
+    "hagnadur": 3681070
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2250000,
+    "birgdir": 0,
+    "vidskiptakrofur": 4259581,
+    "handbaert": 500000,
+    "veltufjarmunir": 4759581,
+    "eignir": 7009581,
+    "hlutafe": 500000,
+    "eigid_fe": 4181070,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2828511,
+    "skuldir": 2828511,
+    "efe_skuldir": 7009581
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4607222250.pdf",
+ "pdfAr": "2022"
+}

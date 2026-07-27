@@ -1,0 +1,86 @@
+{
+ "kt": "5509200690",
+ "nafn": "Innviðir ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.3691,
+    "hagnadarhlutfall": 0.0144,
+    "ROA": 0.0301,
+    "veltufjarhlutfall": 1.0813,
+    "eignavelta": 2.0857
+   },
+   "rekstur": {
+    "sala": 4278677,
+    "kostnadarverd": 5857744,
+    "afskriftir": 0,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": -5801046,
+    "hagn_f_skatt": 61743,
+    "tekjuskattur": null,
+    "hagnadur": 61743
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 7277248,
+    "vidskiptakrofur": 324181,
+    "handbaert": null,
+    "veltufjarmunir": 8051450,
+    "eignir": 2051450,
+    "hlutafe": 0,
+    "eigid_fe": -3100158,
+    "langtimaskuldir": 8121878,
+    "skammtimaskuldir": 7029730,
+    "skuldir": 5151608,
+    "efe_skuldir": 72051450
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5556,
+    "hagnadarhlutfall": 0.6667,
+    "ROE": 0,
+    "ROA": 0.8571,
+    "veltufjarhlutfall": 10424,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 1.2857
+   },
+   "rekstur": {
+    "sala": 9,
+    "kostnadarverd": 4,
+    "afskriftir": 2,
+    "fjarmunatekjur": 7022,
+    "fjarmagnsgjold": -4195208,
+    "hagn_f_skatt": 6,
+    "tekjuskattur": -2684086,
+    "hagnadur": 6
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4,
+    "birgdir": 5,
+    "vidskiptakrofur": 5,
+    "handbaert": 31262,
+    "veltufjarmunir": 6,
+    "eignir": 7,
+    "hlutafe": 5,
+    "eigid_fe": 14036692,
+    "langtimaskuldir": 3,
+    "skammtimaskuldir": 3,
+    "skuldir": 7,
+    "efe_skuldir": 105344275
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/5509200690.pdf",
+ "pdfAr": "2023"
+}

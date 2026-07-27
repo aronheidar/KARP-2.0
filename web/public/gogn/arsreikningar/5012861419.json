@@ -1,0 +1,88 @@
+{
+ "kt": "5012861419",
+ "nafn": "Framkvæmdafélagið Eskiás ehf.",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2426,
+    "ebit_hlutfall": 0.1811,
+    "hagnadarhlutfall": 0.2586,
+    "ROE": 0.4215,
+    "ROA": 0.2284,
+    "eiginfjarhlutfall": 0.5419,
+    "veltufjarhlutfall": 0.0315,
+    "skuldahlutfall_DE": 0.8453,
+    "eignavelta": 0.8834
+   },
+   "rekstur": {
+    "sala": 4268817906,
+    "kostnadarverd": 3233037210,
+    "ebit": 773245616,
+    "fjarmunatekjur": 10038922,
+    "fjarmagnsgjold": 495647966,
+    "hagn_f_skatt": 1268754448,
+    "tekjuskattur": -165009600,
+    "hagnadur": 1103744848
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 17398137,
+    "handbaert": 51872100,
+    "veltufjarmunir": 4831788079,
+    "eignir": 4832148945,
+    "hlutafe": 4000000,
+    "eigid_fe": 2618582471,
+    "langtimaskuldir": 16760343,
+    "skammtimaskuldir": 2196806131,
+    "skuldir": 2213566474,
+    "efe_skuldir": 4832148945
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3657,
+    "ebit_hlutfall": 0.2332,
+    "hagnadarhlutfall": 0.4134,
+    "ROE": 2.0716,
+    "ROA": 0.3788,
+    "eiginfjarhlutfall": 0.1828,
+    "veltufjarhlutfall": 0.2562,
+    "skuldahlutfall_DE": 4.4691,
+    "eignavelta": 0.9162
+   },
+   "rekstur": {
+    "sala": 2669742148,
+    "kostnadarverd": 1693540547,
+    "ebit": 622575314,
+    "fjarmunatekjur": 13250954,
+    "fjarmagnsgjold": 580803298,
+    "hagn_f_skatt": 1203378612,
+    "tekjuskattur": -99654262,
+    "hagnadur": 1103724350
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 41177332,
+    "handbaert": 568835660,
+    "veltufjarmunir": 2913820440,
+    "eignir": 2913820440,
+    "hlutafe": 2000000,
+    "eigid_fe": 532776913,
+    "langtimaskuldir": 386218,
+    "skammtimaskuldir": 2380657309,
+    "skuldir": 2381043527,
+    "efe_skuldir": 2913820440
+   },
+   "starfsmenn": 500
+  }
+ },
+ "pdf": "pdf/5012861419.pdf",
+ "pdfAr": "2025"
+}

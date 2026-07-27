@@ -1,0 +1,84 @@
+{
+ "kt": "5408120550",
+ "nafn": "Lónsleira ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3499,
+    "hagnadarhlutfall": 0.0717,
+    "ROA": 0.0357,
+    "eiginfjarhlutfall": -0.1316,
+    "veltufjarhlutfall": 0.0102,
+    "eignavelta": 0.4982
+   },
+   "rekstur": {
+    "sala": 25484214,
+    "adrar_tekjur": 659000,
+    "laun": -3160393,
+    "annar_rekstur": -1998414,
+    "afskriftir": -1977724,
+    "ebit": 8916690,
+    "fjarmunatekjur": 70,
+    "fjarmagnsgjold": -7089199,
+    "hagn_f_skatt": 1827561,
+    "tekjuskattur": 0,
+    "hagnadur": 1827561
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 427963,
+    "handbaert": 164725,
+    "eignir": 51152051,
+    "hlutafe": 500000,
+    "eigid_fe": -6733369,
+    "skuldir": 57885420,
+    "efe_skuldir": 51152051,
+    "skammtimaskuldir": 57885420
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0513,
+    "hagnadarhlutfall": -0.217,
+    "ROA": -0.1189,
+    "eiginfjarhlutfall": -0.2422,
+    "veltufjarhlutfall": 0.0105,
+    "eignavelta": 0.5479
+   },
+   "rekstur": {
+    "sala": 29920226,
+    "adrar_tekjur": 83852,
+    "laun": -12490604,
+    "annar_rekstur": -2045691,
+    "afskriftir": -2791293,
+    "ebit": 1535535,
+    "fjarmunatekjur": 1968,
+    "fjarmagnsgjold": -8031243,
+    "hagn_f_skatt": -6493740,
+    "tekjuskattur": 0,
+    "hagnadur": -6493740
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 708857,
+    "handbaert": 1833,
+    "eignir": 54605019,
+    "hlutafe": 500000,
+    "eigid_fe": -13227109,
+    "skuldir": 67832128,
+    "efe_skuldir": 54605019,
+    "skammtimaskuldir": 67832128
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5408120550.pdf",
+ "pdfAr": "2023"
+}

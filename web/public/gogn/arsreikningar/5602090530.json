@@ -1,0 +1,84 @@
+{
+ "kt": "5602090530",
+ "nafn": "Centra Fyrirtækjaráðgjöf hf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.3292,
+    "ROE": 0.6186,
+    "ROA": 0.5454,
+    "eiginfjarhlutfall": 0.8817,
+    "veltufjarhlutfall": 1.3382,
+    "skuldahlutfall_DE": 0.1341,
+    "eignavelta": 1.6569
+   },
+   "rekstur": {
+    "fjarmunatekjur": 21172091,
+    "adrar_tekjur": 7175521,
+    "fjarmagnsgjold": -178202,
+    "sala": 118548497,
+    "laun": 57554357,
+    "annar_rekstur": 15019607,
+    "afskriftir": 561527,
+    "hagn_f_skatt": 45413006,
+    "tekjuskattur": -6388747,
+    "hagnadur": 39024259
+   },
+   "efnahagur": {
+    "handbaert": 9602417,
+    "vidskiptakrofur": 1720791,
+    "eignir": 71547093,
+    "hlutafe": 25000000,
+    "eigid_fe": 63085368,
+    "skuldir": 8461725,
+    "efe_skuldir": 71547093,
+    "skammtimaskuldir": 8461725
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": -0.2653,
+    "ROE": -0.2193,
+    "ROA": -0.1652,
+    "eiginfjarhlutfall": 0.7536,
+    "veltufjarhlutfall": 0.9954,
+    "skuldahlutfall_DE": 0.3269,
+    "eignavelta": 0.623
+   },
+   "rekstur": {
+    "fjarmunatekjur": 3384631,
+    "adrar_tekjur": 12779190,
+    "fjarmagnsgjold": -697381,
+    "sala": 42768520,
+    "laun": 41399485,
+    "annar_rekstur": 16292332,
+    "afskriftir": 364994,
+    "hagn_f_skatt": -15288291,
+    "tekjuskattur": 3943381,
+    "hagnadur": -11344910
+   },
+   "efnahagur": {
+    "handbaert": 11769780,
+    "vidskiptakrofur": 5065551,
+    "eignir": 68654157,
+    "hlutafe": 25000000,
+    "eigid_fe": 51740458,
+    "skuldir": 16913699,
+    "efe_skuldir": 68654157,
+    "skammtimaskuldir": 16913699
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5602090530.pdf",
+ "pdfAr": "2024"
+}

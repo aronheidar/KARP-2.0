@@ -1,0 +1,74 @@
+{
+ "kt": "4211090360",
+ "nafn": "Kaptura Eignarhald og Reks ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.9995,
+    "veltufjarhlutfall": 0.1628,
+    "skuldahlutfall_DE": 0.0005,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20.2,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20.2,
+    "hagnadur": -20.2
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18751315,
+    "vidskiptakrofur": 0,
+    "handbaert": 6350,
+    "eignir": 72796221,
+    "hlutafe": 515000,
+    "eigid_fe": 72757221,
+    "skammtimaskuldir": 39000,
+    "skuldir": 39000
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.9992,
+    "veltufjarhlutfall": 0.106,
+    "skuldahlutfall_DE": 0.0008,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20.9,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -20.9,
+    "hagnadur": -20.9
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18751315,
+    "vidskiptakrofur": 0,
+    "handbaert": 6350,
+    "eignir": 72796221,
+    "hlutafe": 515000,
+    "eigid_fe": 72736321,
+    "skammtimaskuldir": 59900,
+    "skuldir": 59900
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4211090360.pdf",
+ "pdfAr": "2024"
+}

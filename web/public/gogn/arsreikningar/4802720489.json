@@ -1,0 +1,86 @@
+{
+ "kt": "4802720489",
+ "nafn": "Icecraft ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -3.8585,
+    "hagnadarhlutfall": 78.6864,
+    "ROE": 0.1574,
+    "ROA": 0.1095,
+    "eiginfjarhlutfall": 0.6958,
+    "veltufjarhlutfall": 0.0017,
+    "skuldahlutfall_DE": 0.4373,
+    "eignavelta": 0.0014
+   },
+   "rekstur": {
+    "adrar_tekjur": 2000000,
+    "sala": 2000000,
+    "laun": 362422,
+    "annar_rekstur": 9354547,
+    "ebit": -7716969,
+    "fjarmunatekjur": 423012352,
+    "fjarmagnsgjold": -49794162,
+    "hagn_f_skatt": 166162639,
+    "tekjuskattur": -8789902,
+    "hagnadur": 157372737
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 732488,
+    "handbaert": 5428,
+    "eignir": 1437311651,
+    "hlutafe": 875000,
+    "eigid_fe": 1000039844,
+    "skuldir": 437271807,
+    "efe_skuldir": 1437311651,
+    "skammtimaskuldir": 437271807
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -12.8952,
+    "hagnadarhlutfall": 90.8852,
+    "ROE": 0.1538,
+    "ROA": 0.129,
+    "eiginfjarhlutfall": 0.8384,
+    "veltufjarhlutfall": 0.0137,
+    "skuldahlutfall_DE": 0.1927,
+    "eignavelta": 0.0014
+   },
+   "rekstur": {
+    "adrar_tekjur": 2000000,
+    "sala": 2000000,
+    "laun": 574290,
+    "annar_rekstur": 27216209,
+    "ebit": -25790499,
+    "fjarmunatekjur": 62739473,
+    "fjarmagnsgjold": -13487078,
+    "hagn_f_skatt": 177295648,
+    "tekjuskattur": 4474664,
+    "hagnadur": 181770312
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2911609,
+    "handbaert": 204314,
+    "eignir": 1409587926,
+    "hlutafe": 875000,
+    "eigid_fe": 1181810156,
+    "skuldir": 227777770,
+    "efe_skuldir": 1409587926,
+    "skammtimaskuldir": 227777770
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4802720489.pdf",
+ "pdfAr": "2024"
+}

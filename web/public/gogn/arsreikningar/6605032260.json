@@ -1,0 +1,85 @@
+{
+ "kt": "6605032260",
+ "nafn": "4439.is ehf",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -39.4872,
+    "veltufjarhlutfall": 0.0079,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 63,
+    "fjarmagnsgjold": -10042,
+    "hagn_f_skatt": -30879,
+    "tekjuskattur": 0,
+    "hagnadur": -30879
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 768,
+    "veltufjarmunir": 782,
+    "eignir": 782,
+    "hlutafe": 500000,
+    "eigid_fe": -96883,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 97665,
+    "skuldir": 97665,
+    "efe_skuldir": 782
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1267,
+    "hagnadarhlutfall": 0.0942,
+    "ROE": 5.8709,
+    "ROA": 0.2868,
+    "eiginfjarhlutfall": 0.0489,
+    "veltufjarhlutfall": 1.045,
+    "skuldahlutfall_DE": 19.4703,
+    "eignavelta": 3.046
+   },
+   "rekstur": {
+    "sala": 1240190,
+    "ebit": 157186,
+    "afskriftir": 0,
+    "fjarmunatekjur": 11502,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 147288,
+    "tekjuskattur": -30515,
+    "hagnadur": 116773
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 404679,
+    "veltufjarmunir": 407155,
+    "eignir": 407155,
+    "hlutafe": 500000,
+    "eigid_fe": 19890,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 387265,
+    "skuldir": 387265,
+    "efe_skuldir": 407155
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6605032260.pdf",
+ "pdfAr": "2025"
+}

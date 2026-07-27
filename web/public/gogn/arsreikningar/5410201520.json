@@ -1,0 +1,82 @@
+{
+ "kt": "5410201520",
+ "nafn": "Bumbuborgarar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -1.6184,
+    "eiginfjarhlutfall": -1.3272,
+    "veltufjarhlutfall": 0.0969
+   },
+   "rekstur": {
+    "kostnadarverd": 9463918,
+    "laun": 3321255,
+    "annar_rekstur": 3741567,
+    "afskriftir": 17000,
+    "ebit": -1220651,
+    "fjarmunatekjur": 490,
+    "fjarmagnsgjold": -105076,
+    "hagn_f_skatt": -1325237,
+    "tekjuskattur": 325404,
+    "hagnadur": -999833
+   },
+   "efnahagur": {
+    "fastafjarmunir": 478404,
+    "vidskiptakrofur": 47270,
+    "handbaert": 92100,
+    "veltufjarmunir": 139370,
+    "eignir": 617774,
+    "hlutafe": 500000,
+    "eigid_fe": -819918,
+    "skammtimaskuldir": 1437692,
+    "skuldir": 1437692,
+    "efe_skuldir": 617774
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 35.0201,
+    "ROA": 1.5724,
+    "eiginfjarhlutfall": 0.0449,
+    "veltufjarhlutfall": 0.7784,
+    "skuldahlutfall_DE": 21.2721
+   },
+   "rekstur": {
+    "kostnadarverd": 5771784,
+    "laun": 1817130,
+    "annar_rekstur": 3088631,
+    "afskriftir": 15300,
+    "ebit": 1229555,
+    "fjarmunatekjur": 7533,
+    "fjarmagnsgjold": -67665,
+    "hagn_f_skatt": 1169423,
+    "tekjuskattur": -325404,
+    "hagnadur": 844019
+   },
+   "efnahagur": {
+    "fastafjarmunir": 137700,
+    "vidskiptakrofur": 397850,
+    "handbaert": 1231,
+    "veltufjarmunir": 399081,
+    "eignir": 536781,
+    "hlutafe": 500000,
+    "eigid_fe": 24101,
+    "skammtimaskuldir": 512680,
+    "skuldir": 512680,
+    "efe_skuldir": 536781
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5410201520.pdf",
+ "pdfAr": "2022"
+}

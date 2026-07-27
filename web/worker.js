@@ -2567,6 +2567,12 @@ async function kycScreenKt(env, kt) {
       if ((a.sent ?? a.sentiment ?? 0) < 0 && t.includes(felagNafn)) titles.push({ h: kycHash(t), title: t.slice(0, 200) });
     }
   }
+  // skil (ársreikningaskil) — endurnýtir vanskilHandler (opinn RSK-vanskilalisti, 24h caches.default).
+  // kycScreenKt hefur engan ctx (ólíkt handler-um sem eru kallaðir beint úr fetch()) → stubbur sem
+  // hendir waitUntil-cache-put-inu (skaðlaust: cache.put keyrir samt, bara óbeðið). .catch() ver
+  // alla skimunina ef upstream-sæki mistekst — aldrei brotin heild vegna eins merkis.
+  const skilD = await vanskilHandler(new Request('https://k.internal/api/vanskil?kt=' + kt), { waitUntil() {} })
+    .then((r) => r.json()).catch(() => ({ ar: [] }));
   return {
     ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })), beneficial: uboX.beneficial, incompleteChain: uboX.incompleteChain },
     board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
@@ -2574,15 +2580,16 @@ async function kycScreenKt(env, kt) {
     pep: { matches: pMatches },
     status: { stada: felag?.stada || '', gjaldthrot: felag?.gjaldthrot || 0, afskrad: felag?.afskrad || 0, gjaldthol: felag?.gjaldthol || 0 },
     legal: { notices },
+    skil: { years: (skilD.ar || []).map((x) => ({ ar: x.ar, vanskil: x.vanskil })) }, // ársreikningaskil-vanskil (opið, óleyfisskylt) — sjá vanskilHandler
     tax: { claims: [] }, // v1: engin áreiðanleg vanskilaskrá (bíður leyfis #36) — stubbur, engin atburðamyndun.
     media: { titles },
   };
 }
 
 // ── KYC v1 (Áreiðanleikavaktin) — vöktunarlisti per eiganda, tier-gátaður, upphafs-CDD við skráningu ──
-const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'tax', 'media'];
-const _kycGate = (u, now) => !!(u && (u.is_admin === 1 || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
-const _kycWatchCap = (u, now) => (u.is_admin === 1 ? -1 : (u.tier === 'fyrirtaeki_plus' && u.tier_until > now ? 100 : 0));
+const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'skil', 'tax', 'media'];
+const _kycGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
+const _kycWatchCap = (u, now) => (_freeAll(u) ? -1 : (u.tier === 'fyrirtaeki_plus' && u.tier_until > now ? 100 : 0));
 
 async function _kycSnapshotWrite(env, kt, states, ts) {
   const stmts = [];
@@ -2596,7 +2603,7 @@ async function kycHandler(request, env, ctx) {
   const uid = await readSession(env, request);
   const now = Math.floor(Date.now() / 1000);
   if (!uid) return _ajson({ ok: false, error: 'login' });
-  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,tier,tier_until,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,tier,tier_until,parent_account_id,free_access FROM users WHERE id=?').bind(uid).first().catch(() => null);
   const owner = await accountOwner(env, u);   // meðlimur erfir þrep/þak eiganda (audit-actor helst u.email)
   if (!_kycGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
   const acct = accountId(u);   // Task 5: deild KYC-gögn (kyc_watch/kyc_audit/kyc_ack) á account-eigandanum; actor helst u.email
@@ -2996,9 +3003,11 @@ export async function tengslGrunnurEnrich(env, out, rotKt) {
 export function topplistaBody(rows, entitled, total) {
   return entitled ? { radir: rows, total, locked: false } : { radir: rows.slice(0, 3), total, locked: true };
 }
+// _freeAll: notandi fær ALLT frítt — admin (panel+frítt) EÐA free_access (frítt en ekki admin). Aðeins réttinda-gátt, EKKI panel.
+const _freeAll = (u) => !!(u && (u.is_admin === 1 || u.free_access === 1));
 // pure: réttindi = admin EÐA virk Karp+-áskrift (tier og ekki útrunnið). nowSec = Unix-sekúndur.
 export function topplistaEntitled(urow, nowSec) {
-  return !!(urow && (urow.is_admin || (urow.tier && urow.tier_until > nowSec)));
+  return !!(urow && (_freeAll(urow) || (urow.tier && urow.tier_until > nowSec)));
 }
 const TOPP_RADAD = { sala: 'sala', hagnadur: 'hagnadur', eignir: 'eignir', efe: 'eigid_fe' };
 async function topplistarHandler(request, env, ctx) {
@@ -3013,7 +3022,7 @@ async function topplistarHandler(request, env, ctx) {
   const uid = await karpUserId(request, env);
   let entitled = false;
   if (uid) {
-    const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const urow = await env.TENGSL.prepare('SELECT tier, tier_until, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null);
     const now = Math.floor(Date.now() / 1000);
     entitled = topplistaEntitled(await accountOwner(env, urow), now);   // meðlimur erfir þrep eiganda
   }
@@ -3203,10 +3212,10 @@ function userPayload(u, owner, now) {
   if (!u) return { loggedIn: false, ...base };
   now = now || Math.floor(Date.now() / 1000);
   const tf = tierFields(u, owner || u, now);   // tier = eigin virkt þrep; effectiveTier = hærra af eigin/account
-  const plus = u.is_admin === 1 || !!tf.effectiveTier;
+  const plus = _freeAll(u) || !!tf.effectiveTier;
   return {
     loggedIn: true, id: u.id, email: u.email, name: u.name || u.username || u.email,
-    isAdmin: u.is_admin === 1, plus,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
+    isAdmin: u.is_admin === 1, freeAccess: u.free_access === 1, plus,   // (F4 gerir nákvæmt: þrep + þjónustur + kvóti)
     tier: tf.tier, effectiveTier: tf.effectiveTier,
     emailVerified: u.email_verified === 1, kt: u.kt || null, ...base,
   };
@@ -3221,8 +3230,8 @@ async function authMeHandler(request, env) {
   // afskráning: hreinsa tengingu ef ekki lengur á team-lista virks eiganda
   if (u.parent_account_id) {
     const ot = await _prefGet(env, u.parent_account_id, 'team', []);
-    const ow = await env.TENGSL.prepare('SELECT is_admin,tier,tier_until FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null);
-    const oActive = ow && (ow.is_admin === 1 || (ow.tier && ow.tier_until > now));
+    const ow = await env.TENGSL.prepare('SELECT is_admin,tier,tier_until,free_access FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null);
+    const oActive = ow && (_freeAll(ow) || (ow.tier && ow.tier_until > now));
     if (!Array.isArray(ot) || ot.indexOf((u.email || '').toLowerCase()) < 0 || !oActive) {
       await env.TENGSL.prepare('UPDATE users SET parent_account_id=NULL WHERE id=?').bind(u.id).run().catch(() => {});
       u.parent_account_id = null;
@@ -3238,7 +3247,7 @@ async function authMeHandler(request, env) {
   p.reports = (repsR.results || []).map((r) => r.report_key);
   const ym = new Date(now * 1000).toISOString().slice(0, 7);
   const used = (owner.reports_month === ym) ? (owner.reports_used || 0) : 0;   // kvóta-teljari á account-eigandanum
-  const quota = u.is_admin === 1 ? 9999 : (p.effectiveTier ? (REPORT_QUOTA[p.effectiveTier] || 0) : 0);   // þak skv. account-þrepi
+  const quota = _freeAll(u) ? 9999 : (p.effectiveTier ? (REPORT_QUOTA[p.effectiveTier] || 0) : 0);   // þak skv. account-þrepi
   p.reportsRemaining = Math.max(0, quota - used);
   p.plus = p.plus || p.subs.length > 0;   // Karp+ ef þrep EÐA einhver virk þjónustu-áskrift
   p.membership = u.parent_account_id ? { owner: owner.email } : null;   // UI-borði fyrir meðlimi
@@ -3458,8 +3467,8 @@ const _U_BLOBS = ['leitvakt', 'fastvakt', 'firmavakt', 'utbodvakt', 'verkprofil'
 const _monthStr = (now) => new Date(now * 1000).toISOString().slice(0, 7);
 const _nextMonth = (now) => { const d = new Date(now * 1000); return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) / 1000); };
 const _uTier = (u, now) => (u.tier && u.tier_until && u.tier_until > now) ? u.tier : null;
-const _ktwatchCap = (u, now) => u.is_admin === 1 ? -1 : ({ fyrirtaeki: 25, fyrirtaeki_plus: 100 }[_uTier(u, now)] || 0);
-const _seatsCap = (u, now) => u.is_admin === 1 ? -1 : ({ fyrirtaeki: 5, fyrirtaeki_plus: 10 }[_uTier(u, now)] || 1);
+const _ktwatchCap = (u, now) => _freeAll(u) ? -1 : ({ fyrirtaeki: 25, fyrirtaeki_plus: 100 }[_uTier(u, now)] || 0);
+const _seatsCap = (u, now) => _freeAll(u) ? -1 : ({ fyrirtaeki: 5, fyrirtaeki_plus: 10 }[_uTier(u, now)] || 1);
 async function _prefGet(env, uid, k, dflt) {
   if (!uid) return dflt;
   const r = await env.TENGSL.prepare('SELECT v FROM user_prefs WHERE user_id=? AND k=?').bind(uid, k).first().catch(() => null);
@@ -3473,9 +3482,9 @@ async function accountOwner(env, u) {
 }
 // Er u boðið af ownerId (email á team-lista + eigandi virkur + laust sæti)? Skilar owner-röð eða null.
 async function _inviteEligible(env, u, ownerId, now) {
-  const owner = await env.TENGSL.prepare('SELECT id,email,name,is_admin,tier,tier_until FROM users WHERE id=?').bind(ownerId).first().catch(() => null);
+  const owner = await env.TENGSL.prepare('SELECT id,email,name,is_admin,tier,tier_until,free_access FROM users WHERE id=?').bind(ownerId).first().catch(() => null);
   if (!owner || owner.id === u.id) return null;
-  const ownerActive = owner.is_admin === 1 || (owner.tier && owner.tier_until > now);
+  const ownerActive = _freeAll(owner) || (owner.tier && owner.tier_until > now);
   if (!ownerActive) return null;
   const team = await _prefGet(env, owner.id, 'team', []);
   if (!Array.isArray(team) || team.indexOf((u.email || '').toLowerCase()) < 0) return null;
@@ -3568,7 +3577,7 @@ async function userDataHandler(request, env) {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
     const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
-    if (u.is_admin === 1) return _ajson({ owned: true });
+    if (_freeAll(u)) return _ajson({ owned: true });
     const acct = accountId(u);                       // grant + kvóta-teljari á account-eiganda (revenue-leak vörn)
     const owner = await accountOwner(env, u);
     if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(acct, key).first().catch(() => null)) return _ajson({ owned: true });
@@ -3585,9 +3594,9 @@ async function userDataHandler(request, env) {
   // ── Þingmannaskýrslu-kvóti (thingskyrslur-áskrift, 20/mán): /thing/open ──
   if (path === '/thing/open' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
-    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
-    if (u.is_admin === 1) return _ajson({ owned: true });
+    if (_freeAll(u)) return _ajson({ owned: true });
     const acct = accountId(u);                       // áskrift + grant + kvóti á account-eiganda
     if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(acct, key).first().catch(() => null)) return _ajson({ owned: true });
     const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(acct, 'thingskyrslur', now).first().catch(() => null);
@@ -3604,11 +3613,11 @@ async function userDataHandler(request, env) {
   // ── Fasteignamats-kvóti (fasteign-áskrift, 20/mán; endurmat sama fangs frítt): /fasteign/meta ──
   if (path === '/fasteign/meta' && method === 'POST') {
     const key = String(body.key || ''); if (!key) return _ajson({ error: true });
-    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+    const u = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null);
     if (!u) return _ajson({ error: true });
     const acct = accountId(u);                       // fasteign-áskrift + kvóti á account-eiganda (fasteign_done-pref = Task 5)
     const done = await _prefGet(env, acct, 'fasteign_done', []);
-    if (u.is_admin === 1) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, acct, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }
+    if (_freeAll(u)) { if (done.indexOf(key) < 0) { done.push(key); await _prefSet(env, acct, 'fasteign_done', done); } return _ajson({ granted: true, owned: false, remaining: -1 }); }
     const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(acct, 'fasteign', now).first().catch(() => null);
     const used = (s && s.used_month === _monthStr(now)) ? (s.used || 0) : 0;
     if (done.indexOf(key) >= 0) return _ajson({ granted: true, owned: true, remaining: s ? Math.max(0, 20 - used) : 0 });
@@ -3623,7 +3632,7 @@ async function userDataHandler(request, env) {
 
   // ── Viðskiptamannavakt (kt-listi) + Teymi (sæti) ──
   if (path === '/ktwatch') {
-    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
     const cap = u ? _ktwatchCap(await accountOwner(env, u), now) : 0;   // þak skv. account-eiganda (ktwatch-listi = Task 5)
     const acct = u ? accountId(u) : uid;                                // deildur kt-listi á account-eigandanum (Task 5)
     let list = await _prefGet(env, acct, 'ktwatch', []);
@@ -3656,7 +3665,7 @@ async function userDataHandler(request, env) {
     return _ajson({ ok: true });
   }
   if (path === '/team') {
-    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
+    const u = uid ? await env.TENGSL.prepare('SELECT is_admin, tier, tier_until, parent_account_id, free_access FROM users WHERE id=?').bind(uid).first().catch(() => null) : null;
     const cap = u ? _seatsCap(u, now) : 1;
     let members = await _prefGet(env, uid, 'team', []);
     if (method === 'POST') {
@@ -4270,13 +4279,13 @@ async function adminOverviewHandler(request, env) {
   const bySecret = key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY;
   if (!bySecret && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
   const now = Math.floor(Date.now() / 1000);
-  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
+  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
   const byService = {}; for (const s of subs) byService[s.service] = (byService[s.service] || 0) + 1;
   const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
   const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
@@ -4339,6 +4348,28 @@ async function adminSyncHandler(request, env) {
   let data = null; if (r) { try { data = JSON.parse(r.v); } catch (e) {} }
   return _ajson({ ok: true, data, updated: r ? r.updated : 0 });
 }
+// Setja notanda-tegund (admin/free/user) — stjórnborð S1 „Tegund"-dálkur. Panel-gátt = is_admin ONLY (_isAdmin).
+async function adminSetTypeHandler(request, env) {
+  const uid = await _isAdmin(env, request);           // panel gate = is_admin only
+  if (!uid) return _ajson({ ok: false, error: 'admin' }, 403);
+  const b = await request.json().catch(() => ({}));
+  const targetId = parseInt(b && b.id, 10);
+  const type = String((b && b.type) || '');
+  if (!targetId || !['admin', 'free', 'user'].includes(type)) return _ajson({ ok: false, error: 'bad-params' }, 400);
+  const isAdmin = type === 'admin' ? 1 : 0;
+  const freeAccess = type === 'free' ? 1 : 0;
+  // öryggi: aldrei fjarlægja SÍÐASTA admin (self-lockout vörn)
+  if (type !== 'admin') {
+    const tgt = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(targetId).first().catch(() => null);
+    if (tgt && tgt.is_admin === 1) {
+      const n = await env.TENGSL.prepare('SELECT COUNT(*) c FROM users WHERE is_admin=1').first().catch(() => ({ c: 0 }));
+      if ((n.c || 0) <= 1) return _ajson({ ok: false, error: 'last-admin' }, 409);
+    }
+  }
+  await env.TENGSL.prepare('UPDATE users SET is_admin=?, free_access=?, updated=? WHERE id=?')
+    .bind(isAdmin, freeAccess, Math.floor(Date.now() / 1000), targetId).run().catch(() => null);
+  return _ajson({ ok: true, id: targetId, type });
+}
 
 export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
@@ -4382,6 +4413,7 @@ export default {
     if (url.pathname === '/api/admin/overview') return adminOverviewHandler(request, env);   // stjórnborð S1
     if (url.pathname === '/api/admin/send') return adminSendHandler(request, env);   // stjórnborð S4: póstur um Gmail REST
     if (url.pathname === '/api/admin/sync') return adminSyncHandler(request, env);   // stjórnborð S2b: rekstrar-samantekt
+    if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user)
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
@@ -4466,8 +4498,8 @@ export default {
         const guid = await readSession(env, request);
         let gok = false;
         if (guid && env.TENGSL) {
-          const gu = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id FROM users WHERE id=?').bind(guid).first().catch(() => null);
-          if (gu && gu.is_admin === 1) gok = true;
+          const gu = await env.TENGSL.prepare('SELECT id, is_admin, parent_account_id, free_access FROM users WHERE id=?').bind(guid).first().catch(() => null);
+          if (_freeAll(gu)) gok = true;
           else if (await env.TENGSL.prepare('SELECT 1 FROM reports_granted WHERE user_id=? AND report_key=?').bind(accountId(gu) || guid, gkey).first().catch(() => null)) gok = true;   // account-heimild (accountId eiganda)
         }
         if (!gok) return new Response(JSON.stringify({ error: 'locked', key: gkey }), { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'private, no-store' } });

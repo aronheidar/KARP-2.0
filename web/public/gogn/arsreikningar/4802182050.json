@@ -1,0 +1,76 @@
+{
+ "kt": "4802182050",
+ "nafn": "Hótel Dalir ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2221,
+    "veltufjarhlutfall": 0.0765,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 785119,
+    "afskriftir": 54000,
+    "ebit": -839119,
+    "fjarmunatekjur": 13430,
+    "fjarmagnsgjold": -55200,
+    "hagn_f_skatt": -880889,
+    "tekjuskattur": 172678,
+    "hagnadur": -708211
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2360882,
+    "vidskiptakrofur": 403702,
+    "handbaert": 424303,
+    "eignir": 3188887,
+    "hlutafe": 500000,
+    "eigid_fe": -7631025,
+    "skuldir": 10819912,
+    "efe_skuldir": 3188887,
+    "skammtimaskuldir": 10819912
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.929,
+    "veltufjarhlutfall": 0.0028,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 2941984,
+    "afskriftir": 54000,
+    "ebit": -2995984,
+    "fjarmunatekjur": 29826,
+    "fjarmagnsgjold": -143697,
+    "hagn_f_skatt": -3109855,
+    "tekjuskattur": 483391,
+    "hagnadur": -2626464
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2790273,
+    "vidskiptakrofur": 6542,
+    "handbaert": 30281,
+    "eignir": 2827096,
+    "hlutafe": 500000,
+    "eigid_fe": -10257489,
+    "skuldir": 13084585,
+    "efe_skuldir": 2827096,
+    "skammtimaskuldir": 13084585
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4802182050.pdf",
+ "pdfAr": "2020"
+}

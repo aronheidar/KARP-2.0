@@ -1,0 +1,80 @@
+{
+ "kt": "4703082060",
+ "nafn": "Þrumutún ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0366,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -18300,
+    "tekjuskattur": 0,
+    "hagnadur": -18300
+   },
+   "efnahagur": {
+    "fastafjarmunir": 500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 500000,
+    "hlutafe": 500000,
+    "eigid_fe": -5248441,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5748441,
+    "skuldir": 5748441,
+    "efe_skuldir": 500000
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0759,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -19153,
+    "hagn_f_skatt": -37953,
+    "tekjuskattur": 0,
+    "hagnadur": -37953
+   },
+   "efnahagur": {
+    "fastafjarmunir": 500000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 500000,
+    "hlutafe": 500000,
+    "eigid_fe": -5286394,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5786394,
+    "skuldir": 5786394,
+    "efe_skuldir": 500000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4703082060.pdf",
+ "pdfAr": "2022"
+}

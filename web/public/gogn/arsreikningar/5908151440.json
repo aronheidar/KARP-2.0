@@ -1,0 +1,72 @@
+{
+ "kt": "5908151440",
+ "nafn": "Digital health ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.115,
+    "ROA": -0.0954,
+    "eiginfjarhlutfall": 0.83,
+    "veltufjarhlutfall": 2.1849,
+    "skuldahlutfall_DE": 0.2048
+   },
+   "rekstur": {
+    "annar_rekstur": 42372,
+    "ebit": -42372,
+    "fjarmunatekjur": 41,
+    "fjarmagnsgjold": -1090,
+    "hagnadur": -29378
+   },
+   "efnahagur": {
+    "fastafjarmunir": 193555,
+    "vidskiptakrofur": 112467,
+    "handbaert": 1870,
+    "eignir": 307892,
+    "hlutafe": 500000,
+    "eigid_fe": 255562,
+    "skuldir": 52330,
+    "efe_skuldir": 307892,
+    "skammtimaskuldir": 52330
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.4459,
+    "ROA": -0.3297,
+    "eiginfjarhlutfall": 0.7393,
+    "veltufjarhlutfall": 0.7303,
+    "skuldahlutfall_DE": 0.3527
+   },
+   "rekstur": {
+    "annar_rekstur": 52423,
+    "ebit": -52423,
+    "fjarmunatekjur": 224,
+    "fjarmagnsgjold": -550,
+    "hagnadur": -78818
+   },
+   "efnahagur": {
+    "fastafjarmunir": 193555,
+    "vidskiptakrofur": 35350,
+    "handbaert": 10169,
+    "eignir": 239074,
+    "hlutafe": 500000,
+    "eigid_fe": 176744,
+    "skuldir": 62330,
+    "efe_skuldir": 239074,
+    "skammtimaskuldir": 62330
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5908151440.pdf",
+ "pdfAr": "2023"
+}

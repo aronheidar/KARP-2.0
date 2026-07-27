@@ -1,0 +1,84 @@
+{
+ "kt": "4107024440",
+ "nafn": "Námfús ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3387,
+    "hagnadarhlutfall": -0.3845,
+    "ROE": -0.0677,
+    "ROA": -0.009,
+    "eiginfjarhlutfall": 0.1334,
+    "veltufjarhlutfall": 0.2332,
+    "skuldahlutfall_DE": 6.4962,
+    "eignavelta": 0.0235
+   },
+   "rekstur": {
+    "sala": 2559503,
+    "adrar_tekjur": 22467,
+    "annar_rekstur": -1692574,
+    "ebit": 866929,
+    "fjarmunatekjur": 259260,
+    "fjarmagnsgjold": -3006841,
+    "hagnadur": -984027
+   },
+   "efnahagur": {
+    "fastafjarmunir": 88013782,
+    "vidskiptakrofur": 17873260,
+    "handbaert": 3086369,
+    "veltufjarmunir": 20959629,
+    "eignir": 108973411,
+    "hlutafe": 4183691,
+    "eigid_fe": 14537231,
+    "skammtimaskuldir": 89885848,
+    "skuldir": 94436180,
+    "efe_skuldir": 108973411
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8129,
+    "hagnadarhlutfall": 0.4021,
+    "ROE": 0.2694,
+    "ROA": 0.0472,
+    "eiginfjarhlutfall": 0.1753,
+    "veltufjarhlutfall": 0.1619,
+    "skuldahlutfall_DE": 4.7054,
+    "eignavelta": 0.1174
+   },
+   "rekstur": {
+    "sala": 13753755,
+    "adrar_tekjur": 10535000,
+    "annar_rekstur": -2572786,
+    "ebit": 11180969,
+    "fjarmunatekjur": 1637115,
+    "fjarmagnsgjold": -124894,
+    "hagnadur": 5531043
+   },
+   "efnahagur": {
+    "fastafjarmunir": 103296653,
+    "vidskiptakrofur": 13819527,
+    "handbaert": 0,
+    "veltufjarmunir": 13819527,
+    "eignir": 117116180,
+    "hlutafe": 4183691,
+    "eigid_fe": 20527299,
+    "skammtimaskuldir": 85335427,
+    "skuldir": 96588881,
+    "efe_skuldir": 117116180
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4107024440.pdf",
+ "pdfAr": "2024"
+}

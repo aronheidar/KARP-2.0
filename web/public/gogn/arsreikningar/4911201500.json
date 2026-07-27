@@ -1,0 +1,90 @@
+{
+ "kt": "4911201500",
+ "nafn": "Merkjaklöpp ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4624,
+    "ebit_hlutfall": 0.2543,
+    "hagnadarhlutfall": 0.1741,
+    "ROE": 0.9803,
+    "ROA": 0.0707,
+    "eiginfjarhlutfall": 0.0721,
+    "veltufjarhlutfall": 0.3795,
+    "skuldahlutfall_DE": 12.8603,
+    "eignavelta": 0.4062
+   },
+   "rekstur": {
+    "sala": 60250121,
+    "kostnadarverd": 32392239,
+    "laun": 7850973,
+    "annar_rekstur": 3500548,
+    "ebit": 15318849,
+    "fjarmagnsgjold": -3586087,
+    "hagn_f_skatt": 11732762,
+    "tekjuskattur": -1243040,
+    "hagnadur": 10489722
+   },
+   "efnahagur": {
+    "fastafjarmunir": 73952023,
+    "vidskiptakrofur": 52010538,
+    "veltufjarmunir": 74365891,
+    "eignir": 148317914,
+    "efe_skuldir": null,
+    "hlutafe": 500000,
+    "eigid_fe": 10700955,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 137041553,
+    "skuldir": 137616959
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4682,
+    "ebit_hlutfall": 0.1115,
+    "hagnadarhlutfall": 0.0462,
+    "ROE": 0.2228,
+    "ROA": 0.0197,
+    "eiginfjarhlutfall": 0.0884,
+    "veltufjarhlutfall": 0.0007,
+    "skuldahlutfall_DE": 10.3137,
+    "eignavelta": 0.4262
+   },
+   "rekstur": {
+    "sala": 66389031,
+    "kostnadarverd": 35302857,
+    "laun": 17028273,
+    "annar_rekstur": 5427462,
+    "ebit": 7399081,
+    "fjarmagnsgjold": -3220753,
+    "hagn_f_skatt": 4178328,
+    "tekjuskattur": -1111128,
+    "hagnadur": 3067200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22039797,
+    "vidskiptakrofur": 88164,
+    "veltufjarmunir": 133729641,
+    "eignir": 155769438,
+    "efe_skuldir": 2024,
+    "hlutafe": 500000,
+    "eigid_fe": 13768155,
+    "langtimaskuldir": 17480000,
+    "skammtimaskuldir": 124521283,
+    "skuldir": 142001283
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4911201500.pdf",
+ "pdfAr": "2024"
+}

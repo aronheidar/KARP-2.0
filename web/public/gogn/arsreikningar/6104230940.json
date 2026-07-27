@@ -1,0 +1,90 @@
+{
+ "kt": "6104230940",
+ "nafn": "Öryggispallar ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.296,
+    "hagnadarhlutfall": 0.2562,
+    "ROE": 0.8659,
+    "ROA": 0.5885,
+    "eiginfjarhlutfall": 0.6797,
+    "veltufjarhlutfall": 0.9363,
+    "skuldahlutfall_DE": 0.4713,
+    "eignavelta": 2.2968
+   },
+   "rekstur": {
+    "sala": 12595152,
+    "ebit": 3728037,
+    "afskriftir": -426700,
+    "fjarmunatekjur": 5768,
+    "fjarmagnsgjold": -79923,
+    "hagn_f_skatt": 3227182,
+    "tekjuskattur": 0,
+    "hagnadur": 3227182
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1706800,
+    "birgdir": 0,
+    "vidskiptakrofur": 1281508,
+    "handbaert": 363193,
+    "veltufjarmunir": 3777025,
+    "eignir": 5483825,
+    "hlutafe": 500000,
+    "eigid_fe": 3727182,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1756643,
+    "skuldir": 1756643,
+    "efe_skuldir": 5483825
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1874,
+    "hagnadarhlutfall": 0.1041,
+    "ROE": 0.4479,
+    "ROA": 0.1781,
+    "eiginfjarhlutfall": 0.3976,
+    "veltufjarhlutfall": 1.0579,
+    "skuldahlutfall_DE": 1.5149,
+    "eignavelta": 1.7115
+   },
+   "rekstur": {
+    "sala": 27894820,
+    "ebit": 5228626,
+    "afskriftir": -1398000,
+    "fjarmunatekjur": 461,
+    "fjarmagnsgjold": -151021,
+    "hagn_f_skatt": 3680066,
+    "tekjuskattur": -777203,
+    "hagnadur": 2902863
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5592000,
+    "birgdir": 0,
+    "vidskiptakrofur": 3673360,
+    "handbaert": 1313360,
+    "veltufjarmunir": 10706083,
+    "eignir": 16298083,
+    "hlutafe": 500000,
+    "eigid_fe": 6480545,
+    "langtimaskuldir": 5103649,
+    "skammtimaskuldir": 4713889,
+    "skuldir": 9817538,
+    "efe_skuldir": 16298083
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6104230940.pdf",
+ "pdfAr": "2024"
+}

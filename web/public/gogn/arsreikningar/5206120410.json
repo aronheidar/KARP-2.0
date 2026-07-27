@@ -1,0 +1,84 @@
+{
+ "kt": "5206120410",
+ "nafn": "5S ráðgjöf ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3335,
+    "hagnadarhlutfall": 0.3385,
+    "ROE": 0.7079,
+    "ROA": 0.5917,
+    "eiginfjarhlutfall": 0.8359,
+    "veltufjarhlutfall": 6.0921,
+    "skuldahlutfall_DE": 0.1964,
+    "eignavelta": 1.7478
+   },
+   "rekstur": {
+    "sala": 22984216,
+    "laun": -11748769,
+    "annar_rekstur": -3571143,
+    "ebit": 7664304,
+    "fjarmunatekjur": 117361,
+    "fjarmagnsgjold": -1061,
+    "hagnadur": 7780604
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "vidskiptakrofur": 3884177,
+    "handbaert": 9266202,
+    "veltufjarmunir": 13150379,
+    "eignir": 13150379,
+    "hlutafe": 2000000,
+    "eigid_fe": 10991795,
+    "skuldir": 2158584,
+    "efe_skuldir": 13150379,
+    "skammtimaskuldir": 2158584
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1628,
+    "hagnadarhlutfall": -0.1413,
+    "ROE": -0.2486,
+    "ROA": -0.2405,
+    "eiginfjarhlutfall": 0.9675,
+    "veltufjarhlutfall": 22.6856,
+    "skuldahlutfall_DE": 0.0335,
+    "eignavelta": 1.7023
+   },
+   "rekstur": {
+    "sala": 15488530,
+    "laun": -9491319,
+    "annar_rekstur": -8519463,
+    "ebit": -2522252,
+    "fjarmunatekjur": 339465,
+    "fjarmagnsgjold": -5807,
+    "hagnadur": -2188594
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2400000,
+    "vidskiptakrofur": 2756128,
+    "handbaert": 3942348,
+    "veltufjarmunir": 6698476,
+    "eignir": 9098476,
+    "hlutafe": 2000000,
+    "eigid_fe": 8803201,
+    "skuldir": 295275,
+    "efe_skuldir": 9098476,
+    "skammtimaskuldir": 295275
+   },
+   "starfsmenn": 75
+  }
+ },
+ "pdf": "pdf/5206120410.pdf",
+ "pdfAr": "2024"
+}

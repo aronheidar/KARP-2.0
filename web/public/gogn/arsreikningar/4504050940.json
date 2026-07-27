@@ -1,0 +1,82 @@
+{
+ "kt": "4504050940",
+ "nafn": "BBH ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.007,
+    "eiginfjarhlutfall": -0.652,
+    "veltufjarhlutfall": 0.5839,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -22514,
+    "fjarmunatekjur": 20,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -42694,
+    "tekjuskattur": 0,
+    "hagnadur": -42694
+   },
+   "efnahagur": {
+    "fastafjarmunir": 217148,
+    "birgdir": 4531511,
+    "vidskiptakrofur": 1386693,
+    "handbaert": 0,
+    "veltufjarmunir": 5918204,
+    "eignir": 6135352,
+    "hlutafe": 5277954,
+    "eigid_fe": -4000159,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10135513,
+    "skuldir": 10135513,
+    "efe_skuldir": 6135354
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0419,
+    "eiginfjarhlutfall": -0.5853,
+    "veltufjarhlutfall": 0.6139,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": -20263,
+    "fjarmunatekjur": 267,
+    "fjarmagnsgjold": -207152,
+    "hagn_f_skatt": -308048,
+    "tekjuskattur": 0,
+    "hagnadur": -308048
+   },
+   "efnahagur": {
+    "fastafjarmunir": 196885,
+    "birgdir": 5775804,
+    "vidskiptakrofur": 1386693,
+    "handbaert": 992,
+    "veltufjarmunir": 7163548,
+    "eignir": 7360433,
+    "hlutafe": 5277954,
+    "eigid_fe": -4308207,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 11668640,
+    "skuldir": 11668640,
+    "efe_skuldir": 7360433
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4504050940.pdf",
+ "pdfAr": "2024"
+}

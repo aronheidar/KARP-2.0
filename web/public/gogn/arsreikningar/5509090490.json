@@ -1,0 +1,60 @@
+{
+ "kt": "5509090490",
+ "nafn": "Gylfaflöt 3 ehf",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0188,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": 0,
+    "ebit": -119400,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -119400
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6360000,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 6360000
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0207,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "afskriftir": 0,
+    "ebit": -131800,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -131800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6360000,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 6360000
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509090490.pdf",
+ "pdfAr": "2023"
+}

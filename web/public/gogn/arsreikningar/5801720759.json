@@ -1,0 +1,88 @@
+{
+ "kt": "5801720759",
+ "nafn": "Björn ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6014,
+    "hagnadarhlutfall": -0.0229,
+    "ROE": -0.006,
+    "ROA": -0.0016,
+    "eiginfjarhlutfall": 0.2715,
+    "veltufjarhlutfall": 0.0507,
+    "skuldahlutfall_DE": 2.6832,
+    "eignavelta": 0.0705
+   },
+   "rekstur": {
+    "sala": 206700865,
+    "laun": 11576813,
+    "annar_rekstur": 67540383,
+    "afskriftir": 89964954,
+    "ebit": 124310152,
+    "fjarmunatekjur": 10536712,
+    "fjarmagnsgjold": -140790109,
+    "hagn_f_skatt": -5943245,
+    "tekjuskattur": 1202007,
+    "hagnadur": -4741238
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2272254325,
+    "vidskiptakrofur": 23024582,
+    "handbaert": 85261904,
+    "eignir": 2933566773,
+    "hlutafe": 5000000,
+    "eigid_fe": 796464021,
+    "skuldir": 2137102752,
+    "efe_skuldir": 2933566773,
+    "skammtimaskuldir": 2137102752
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7605,
+    "hagnadarhlutfall": -0.0837,
+    "ROE": -0.0165,
+    "ROA": -0.0038,
+    "eiginfjarhlutfall": 0.2293,
+    "veltufjarhlutfall": 0.0128,
+    "skuldahlutfall_DE": 3.361,
+    "eignavelta": 0.0451
+   },
+   "rekstur": {
+    "sala": 121031028,
+    "laun": 11124638,
+    "annar_rekstur": 29998527,
+    "afskriftir": 93492785,
+    "ebit": 92042403,
+    "fjarmunatekjur": 2333978,
+    "fjarmagnsgjold": -107055675,
+    "hagn_f_skatt": -12679294,
+    "tekjuskattur": 2554186,
+    "hagnadur": -10125108
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2489538295,
+    "vidskiptakrofur": 19948111,
+    "handbaert": 6477952,
+    "eignir": 2683507168,
+    "hlutafe": 5000000,
+    "eigid_fe": 615338913,
+    "skuldir": 2068168255,
+    "efe_skuldir": 2683507168,
+    "skammtimaskuldir": 2068168255
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/5801720759.pdf",
+ "pdfAr": "2025"
+}

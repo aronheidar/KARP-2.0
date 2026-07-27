@@ -1,0 +1,86 @@
+{
+ "kt": "4508160510",
+ "nafn": "Steinlist ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.3787,
+    "ROA": -0.2918,
+    "eiginfjarhlutfall": 0.7706,
+    "veltufjarhlutfall": 1.6076,
+    "skuldahlutfall_DE": 0.2977,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -219932,
+    "afskriftir": -283824,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -48358,
+    "hagn_f_skatt": -569614,
+    "tekjuskattur": 0,
+    "hagnadur": -569614
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1135296,
+    "birgdir": 0,
+    "vidskiptakrofur": 718815,
+    "handbaert": 1113,
+    "veltufjarmunir": 816636,
+    "eignir": 1951932,
+    "hlutafe": 500000,
+    "eigid_fe": 1504118,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 447814,
+    "skuldir": 447814,
+    "efe_skuldir": 1951932
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.012,
+    "ROA": -0.0092,
+    "eiginfjarhlutfall": 0.7614,
+    "veltufjarhlutfall": 0.0024,
+    "skuldahlutfall_DE": 0.3134,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -17900,
+    "tekjuskattur": 0,
+    "hagnadur": -17900
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1135296,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1113,
+    "veltufjarmunir": 816636,
+    "eignir": 1951932,
+    "hlutafe": 500000,
+    "eigid_fe": 1486218,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 465714,
+    "skuldir": 465714,
+    "efe_skuldir": 1951932
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4508160510.pdf",
+ "pdfAr": "2020"
+}

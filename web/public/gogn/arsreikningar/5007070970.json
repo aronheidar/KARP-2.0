@@ -1,0 +1,78 @@
+{
+ "kt": "5007070970",
+ "nafn": "Konkord ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 5.7447,
+    "veltufjarhlutfall": 0.1958,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -20900,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -32300,
+    "hagn_f_skatt": 3446800,
+    "tekjuskattur": 0,
+    "hagnadur": 3446800
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 600000,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 600000,
+    "eignir": 600000,
+    "hlutafe": 500000,
+    "eigid_fe": -2464627,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3064627,
+    "skuldir": 3064627,
+    "efe_skuldir": 600000
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "veltufjarhlutfall": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -621400,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -43868,
+    "hagn_f_skatt": -665268,
+    "tekjuskattur": 0,
+    "hagnadur": -665268
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 500000,
+    "eigid_fe": -3129895,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3129895,
+    "skuldir": 3129895,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5007070970.pdf",
+ "pdfAr": "2025"
+}

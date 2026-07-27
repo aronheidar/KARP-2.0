@@ -1,0 +1,84 @@
+{
+ "kt": "6808201470",
+ "nafn": "Stálfag ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1174,
+    "hagnadarhlutfall": -0.1396,
+    "ROA": -0.8721,
+    "eiginfjarhlutfall": -0.7838,
+    "veltufjarhlutfall": 0.2227,
+    "eignavelta": 6.2463
+   },
+   "rekstur": {
+    "sala": 91874342,
+    "laun": 12180090,
+    "annar_rekstur": 1705908,
+    "afskriftir": 767040,
+    "ebit": -10783650,
+    "fjarmunatekjur": 516,
+    "fjarmagnsgjold": -2023607,
+    "hagn_f_skatt": -12806741,
+    "tekjuskattur": 0,
+    "hagnadur": -12827641
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 5841900,
+    "handbaert": 528,
+    "veltufjarmunir": 13560558,
+    "eignir": 14708718,
+    "hlutafe": 500000,
+    "eigid_fe": -11528964,
+    "skammtimaskuldir": 26237682,
+    "efe_skuldir": 14708718,
+    "skuldir": 26237682
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0094,
+    "hagnadarhlutfall": -0.026,
+    "ROA": -0.1281,
+    "eiginfjarhlutfall": -0.8073,
+    "veltufjarhlutfall": 0.2718,
+    "eignavelta": 4.9313
+   },
+   "rekstur": {
+    "sala": 83705800,
+    "laun": 17249896,
+    "annar_rekstur": 2330334,
+    "afskriftir": 229632,
+    "ebit": -786319,
+    "fjarmunatekjur": 3567,
+    "fjarmagnsgjold": -1370648,
+    "hagn_f_skatt": -2153400,
+    "tekjuskattur": 0,
+    "hagnadur": -2174800
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 8336283,
+    "handbaert": 559,
+    "veltufjarmunir": 16055846,
+    "eignir": 16974374,
+    "hlutafe": 500000,
+    "eigid_fe": -13703764,
+    "skammtimaskuldir": 30678138,
+    "efe_skuldir": 16974374,
+    "skuldir": 30678138
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6808201470.pdf",
+ "pdfAr": "2024"
+}

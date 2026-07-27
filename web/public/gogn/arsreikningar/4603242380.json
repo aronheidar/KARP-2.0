@@ -1,0 +1,79 @@
+{
+ "kt": "4603242380",
+ "nafn": "10 B-11 ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3602,
+    "hagnadarhlutfall": -0.3596,
+    "ROA": -2.2308,
+    "eiginfjarhlutfall": -1.1613,
+    "veltufjarhlutfall": 0.4016,
+    "eignavelta": 6.2037
+   },
+   "rekstur": {
+    "sala": 2900500,
+    "ebit": -1044678,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2284,
+    "fjarmagnsgjold": -589,
+    "hagn_f_skatt": -1042983,
+    "tekjuskattur": 0,
+    "hagnadur": -1042983
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 310000,
+    "handbaert": 95782,
+    "veltufjarmunir": 467545,
+    "eignir": 467545,
+    "hlutafe": 500000,
+    "eigid_fe": -542983,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1010528,
+    "skuldir": 1010528,
+    "efe_skuldir": 467545
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4603242380.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "5702050800",
+ "nafn": "Nafarfoss ehf",
+ "sott": "2026-07-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.7158,
+    "ROA": -0.2559,
+    "eiginfjarhlutfall": 0.3574,
+    "veltufjarhlutfall": 0.247,
+    "skuldahlutfall_DE": 1.7976,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1021247,
+    "afskriftir": 0,
+    "fjarmunatekjur": 42831,
+    "fjarmagnsgjold": -1468,
+    "hagn_f_skatt": -979884,
+    "tekjuskattur": 0,
+    "hagnadur": -979884
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2216321,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 607745,
+    "veltufjarmunir": 1613533,
+    "eignir": 3829854,
+    "hlutafe": 2000000,
+    "eigid_fe": 1368954,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2460900,
+    "skuldir": 2460900,
+    "efe_skuldir": 3829854
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3415,
+    "hagnadarhlutfall": 0.6228,
+    "ROE": 0.0902,
+    "ROA": 0.0385,
+    "eiginfjarhlutfall": 0.4267,
+    "veltufjarhlutfall": 0.1461,
+    "skuldahlutfall_DE": 1.3435,
+    "eignavelta": 0.0618
+   },
+   "rekstur": {
+    "sala": 217846,
+    "ebit": 74388,
+    "afskriftir": 0,
+    "fjarmunatekjur": 21282,
+    "fjarmagnsgjold": -4598,
+    "hagn_f_skatt": 135672,
+    "tekjuskattur": 0,
+    "hagnadur": 135672
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2216321,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 295248,
+    "veltufjarmunir": 1309705,
+    "eignir": 3526026,
+    "hlutafe": 2000000,
+    "eigid_fe": 1504626,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 2021400,
+    "skuldir": 2021400,
+    "efe_skuldir": 3526026
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5702050800.pdf",
+ "pdfAr": "2024"
+}

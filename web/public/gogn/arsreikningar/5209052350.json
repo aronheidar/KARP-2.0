@@ -1,0 +1,56 @@
+{
+ "kt": "5209052350",
+ "nafn": "222 Málari ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 18800,
+    "laun": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": 0,
+    "hagnadur": -18800
+   },
+   "efnahagur": {
+    "handbaert": 0,
+    "eignir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.5073,
+    "ROA": 0.5981,
+    "eignavelta": 1.1789
+   },
+   "rekstur": {
+    "sala": 5755622,
+    "annar_rekstur": 558214,
+    "laun": 1053712,
+    "afskriftir": 494000,
+    "fjarmunatekjur": 5240,
+    "fjarmagnsgjold": 0,
+    "tekjuskattur": -735027,
+    "hagnadur": 2919909
+   },
+   "efnahagur": {
+    "handbaert": 4039,
+    "eignir": 4882257
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5209052350.pdf",
+ "pdfAr": "2023"
+}

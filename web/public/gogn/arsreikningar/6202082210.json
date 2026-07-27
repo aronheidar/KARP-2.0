@@ -1,0 +1,90 @@
+{
+ "kt": "6202082210",
+ "nafn": "Appland ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.396,
+    "hagnadarhlutfall": 0.3139,
+    "ROE": 1.0477,
+    "ROA": 0.6909,
+    "eiginfjarhlutfall": 0.6595,
+    "veltufjarhlutfall": 2.9152,
+    "skuldahlutfall_DE": 0.5164,
+    "eignavelta": 2.2007
+   },
+   "rekstur": {
+    "sala": 42267813,
+    "ebit": 16736362,
+    "afskriftir": 0,
+    "fjarmunatekjur": 95259,
+    "fjarmagnsgjold": -239262,
+    "hagn_f_skatt": 16592359,
+    "tekjuskattur": -3322512,
+    "hagnadur": 13269847
+   },
+   "efnahagur": {
+    "fastafjarmunir": 102417,
+    "birgdir": 0,
+    "vidskiptakrofur": 6647200,
+    "handbaert": 12419015,
+    "veltufjarmunir": 19103963,
+    "eignir": 19206380,
+    "hlutafe": 500000,
+    "eigid_fe": 12666091,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6540289,
+    "skuldir": 6540289,
+    "efe_skuldir": 19206380
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2531,
+    "hagnadarhlutfall": 0.2111,
+    "ROE": 0.7371,
+    "ROA": 0.4704,
+    "eiginfjarhlutfall": 0.6381,
+    "veltufjarhlutfall": 2.7146,
+    "skuldahlutfall_DE": 0.5671,
+    "eignavelta": 2.2286
+   },
+   "rekstur": {
+    "sala": 54954250,
+    "ebit": 13906409,
+    "afskriftir": 0,
+    "fjarmunatekjur": 1008802,
+    "fjarmagnsgjold": -411643,
+    "hagn_f_skatt": 14503568,
+    "tekjuskattur": -2904754,
+    "hagnadur": 11598814
+   },
+   "efnahagur": {
+    "fastafjarmunir": 233466,
+    "birgdir": 0,
+    "vidskiptakrofur": 9248983,
+    "handbaert": 14974874,
+    "veltufjarmunir": 24424893,
+    "eignir": 24658359,
+    "hlutafe": 500000,
+    "eigid_fe": 15734905,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8923454,
+    "skuldir": 8923454,
+    "efe_skuldir": 24658359
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6202082210.pdf",
+ "pdfAr": "2023"
+}

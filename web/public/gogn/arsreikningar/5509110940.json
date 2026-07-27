@@ -1,0 +1,90 @@
+{
+ "kt": "5509110940",
+ "nafn": "Slæging ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.103,
+    "hagnadarhlutfall": 0.0805,
+    "ROE": 0.6536,
+    "ROA": 0.4483,
+    "eiginfjarhlutfall": 0.686,
+    "veltufjarhlutfall": 3.106,
+    "skuldahlutfall_DE": 0.4577,
+    "eignavelta": 5.5698
+   },
+   "rekstur": {
+    "sala": 93573300,
+    "ebit": 9636966,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -198824,
+    "hagn_f_skatt": 9419842,
+    "tekjuskattur": -1887628,
+    "hagnadur": 7532214
+   },
+   "efnahagur": {
+    "fastafjarmunir": 415000,
+    "birgdir": 0,
+    "vidskiptakrofur": 13691981,
+    "handbaert": 2693235,
+    "veltufjarmunir": 16385216,
+    "eignir": 16800216,
+    "hlutafe": 500000,
+    "eigid_fe": 11524934,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5275282,
+    "skuldir": 5275282,
+    "efe_skuldir": 16800216
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0834,
+    "hagnadarhlutfall": 0.0642,
+    "ROE": 0.3048,
+    "ROA": 0.2392,
+    "eiginfjarhlutfall": 0.7847,
+    "veltufjarhlutfall": 4.5543,
+    "skuldahlutfall_DE": 0.2743,
+    "eignavelta": 3.7262
+   },
+   "rekstur": {
+    "sala": 78718015,
+    "ebit": 6561496,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -221274,
+    "hagn_f_skatt": 6321422,
+    "tekjuskattur": -1268044,
+    "hagnadur": 5053378
+   },
+   "efnahagur": {
+    "fastafjarmunir": 415000,
+    "birgdir": 0,
+    "vidskiptakrofur": 19662966,
+    "handbaert": 1047823,
+    "veltufjarmunir": 20710789,
+    "eignir": 21125789,
+    "hlutafe": 500000,
+    "eigid_fe": 16578312,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4547477,
+    "skuldir": 4547477,
+    "efe_skuldir": 21125789
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509110940.pdf",
+ "pdfAr": "2022"
+}

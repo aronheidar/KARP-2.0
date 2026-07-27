@@ -1,0 +1,94 @@
+{
+ "kt": "4802694549",
+ "nafn": "Hampiðjan Ísland ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4452,
+    "ebit_hlutfall": 0.0564,
+    "hagnadarhlutfall": 0.0377,
+    "ROE": 0.177,
+    "ROA": 0.0398,
+    "eiginfjarhlutfall": 0.2246,
+    "veltufjarhlutfall": 0.9825,
+    "skuldahlutfall_DE": 3.4518,
+    "eignavelta": 1.0546
+   },
+   "rekstur": {
+    "sala": 28805950,
+    "kostnadarverd": 15981601,
+    "laun": 7497935,
+    "annar_rekstur": 3275587,
+    "afskriftir": 427003,
+    "ebit": 1623824,
+    "fjarmunatekjur": 48702,
+    "fjarmagnsgjold": -350613,
+    "hagn_f_skatt": 1354584,
+    "tekjuskattur": -268390,
+    "hagnadur": 1086194
+   },
+   "efnahagur": {
+    "fastafjarmunir": 5543325,
+    "birgdir": 11234563,
+    "vidskiptakrofur": 8258170,
+    "handbaert": 1314588,
+    "eignir": 27313432,
+    "hlutafe": 666841,
+    "eigid_fe": 6135352,
+    "skuldir": 21178080,
+    "efe_skuldir": 27313432,
+    "skammtimaskuldir": 21178080
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4398,
+    "ebit_hlutfall": 0.0371,
+    "hagnadarhlutfall": 0.0211,
+    "ROE": 0.1017,
+    "ROA": 0.0239,
+    "eiginfjarhlutfall": 0.2351,
+    "veltufjarhlutfall": 0.8975,
+    "skuldahlutfall_DE": 3.2534,
+    "eignavelta": 1.1339
+   },
+   "rekstur": {
+    "sala": 32494818,
+    "kostnadarverd": 18202552,
+    "laun": 8839161,
+    "annar_rekstur": 3756239,
+    "afskriftir": 491384,
+    "ebit": 1205482,
+    "fjarmunatekjur": 40133,
+    "fjarmagnsgjold": -387707,
+    "hagn_f_skatt": 817304,
+    "tekjuskattur": -132108,
+    "hagnadur": 685196
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8224741,
+    "birgdir": 11389633,
+    "vidskiptakrofur": 5966647,
+    "handbaert": 2317240,
+    "eignir": 28657919,
+    "hlutafe": 666841,
+    "eigid_fe": 6737675,
+    "skuldir": 21920244,
+    "efe_skuldir": 28657919,
+    "skammtimaskuldir": 21920244
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4802694549.pdf",
+ "pdfAr": "2025"
+}

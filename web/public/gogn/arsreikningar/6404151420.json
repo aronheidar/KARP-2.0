@@ -1,0 +1,81 @@
+{
+ "kt": "6404151420",
+ "nafn": "Cubus ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.9317,
+    "ROA": -0.1894,
+    "eiginfjarhlutfall": 0.2033,
+    "veltufjarhlutfall": 0.6651,
+    "skuldahlutfall_DE": 3.9181
+   },
+   "rekstur": {
+    "sala": null,
+    "laun": -149380868,
+    "annar_rekstur": -17656409,
+    "afskriftir": -137652,
+    "ebit": -12915249,
+    "fjarmunatekjur": 32804,
+    "fjarmagnsgjold": -2685293,
+    "hagn_f_skatt": -15782079,
+    "tekjuskattur": 0,
+    "hagnadur": -15782079
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 44140068,
+    "eignir": 83309339,
+    "hlutafe": 555556,
+    "eigid_fe": 16939174,
+    "skuldir": 66370166,
+    "efe_skuldir": 83309340,
+    "skammtimaskuldir": 66370166
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0,
+    "hagnadarhlutfall": -0.0107,
+    "ROE": -0.1363,
+    "ROA": -0.0247,
+    "eiginfjarhlutfall": 0.1809,
+    "veltufjarhlutfall": 0.6696,
+    "skuldahlutfall_DE": 4.5271,
+    "eignavelta": 2.3142
+   },
+   "rekstur": {
+    "sala": 196114456,
+    "laun": -115805079,
+    "annar_rekstur": -18820256,
+    "afskriftir": -62954,
+    "ebit": 1220,
+    "fjarmunatekjur": 73672,
+    "fjarmagnsgjold": -2309306,
+    "hagn_f_skatt": -2089662,
+    "tekjuskattur": 0,
+    "hagnadur": -2089662
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 46476256,
+    "eignir": 84744444,
+    "hlutafe": 555556,
+    "eigid_fe": 15332511,
+    "skuldir": 69411933,
+    "efe_skuldir": 84744444,
+    "skammtimaskuldir": 69411933
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6404151420.pdf",
+ "pdfAr": "2024"
+}

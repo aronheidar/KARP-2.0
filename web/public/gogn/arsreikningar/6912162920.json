@@ -1,0 +1,90 @@
+{
+ "kt": "6912162920",
+ "nafn": "Vidcom ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0295,
+    "hagnadarhlutfall": 0.0234,
+    "ROE": 1.6462,
+    "ROA": 0.0197,
+    "eiginfjarhlutfall": 0.0119,
+    "veltufjarhlutfall": 1.0001,
+    "skuldahlutfall_DE": 82.7142,
+    "eignavelta": 0.84
+   },
+   "rekstur": {
+    "sala": 13776342,
+    "ebit": 406324,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2037,
+    "fjarmagnsgjold": -85852,
+    "hagn_f_skatt": 322509,
+    "tekjuskattur": 0,
+    "hagnadur": 322509
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 8474157,
+    "vidskiptakrofur": 7732533,
+    "handbaert": 0,
+    "veltufjarmunir": 16400365,
+    "eignir": 16400365,
+    "hlutafe": 500000,
+    "eigid_fe": 195909,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 16204456,
+    "skuldir": 16204456,
+    "efe_skuldir": 16400365
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.227,
+    "hagnadarhlutfall": 0.1793,
+    "ROE": 0.9694,
+    "ROA": 0.3738,
+    "eiginfjarhlutfall": 0.3856,
+    "veltufjarhlutfall": 1.6273,
+    "skuldahlutfall_DE": 1.5936,
+    "eignavelta": 2.0843
+   },
+   "rekstur": {
+    "sala": 34629304,
+    "ebit": 7859875,
+    "afskriftir": 0,
+    "fjarmunatekjur": 6425,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 7866300,
+    "tekjuskattur": -1656312,
+    "hagnadur": 6209988
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 10437729,
+    "vidskiptakrofur": 5991867,
+    "handbaert": 182680,
+    "veltufjarmunir": 16614138,
+    "eignir": 16614138,
+    "hlutafe": 500000,
+    "eigid_fe": 6405897,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 10208241,
+    "skuldir": 10208241,
+    "efe_skuldir": 16614138
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6912162920.pdf",
+ "pdfAr": "2024"
+}

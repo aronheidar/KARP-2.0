@@ -1,0 +1,84 @@
+{
+ "kt": "5406120720",
+ "nafn": "360° ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3201,
+    "eiginfjarhlutfall": -0.0539,
+    "veltufjarhlutfall": 0.355,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -1274903,
+    "afskriftir": -439622,
+    "fjarmunatekjur": 56352,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1658173,
+    "tekjuskattur": 0,
+    "hagnadur": -1658173
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3026494,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1938033,
+    "veltufjarmunir": 2153597,
+    "eignir": 5180091,
+    "hlutafe": 531915,
+    "eigid_fe": -279443,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5459533,
+    "skuldir": 5459533,
+    "efe_skuldir": 5180090
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7028,
+    "hagnadarhlutfall": -0.5191,
+    "ROA": -0.042,
+    "eiginfjarhlutfall": -0.0982,
+    "veltufjarhlutfall": 0.315,
+    "eignavelta": 0.081
+   },
+   "rekstur": {
+    "sala": 402500,
+    "ebit": 282885,
+    "afskriftir": -520509,
+    "fjarmunatekjur": 28670,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -208954,
+    "tekjuskattur": 0,
+    "hagnadur": -208954
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3176715,
+    "birgdir": 0,
+    "vidskiptakrofur": 499100,
+    "handbaert": 1220474,
+    "veltufjarmunir": 1794422,
+    "eignir": 4971137,
+    "hlutafe": 531915,
+    "eigid_fe": -488397,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5459533,
+    "skuldir": 5459533,
+    "efe_skuldir": 4971136
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5406120720.pdf",
+ "pdfAr": "2024"
+}

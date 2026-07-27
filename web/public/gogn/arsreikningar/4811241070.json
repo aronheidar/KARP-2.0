@@ -1,0 +1,90 @@
+{
+ "kt": "4811241070",
+ "nafn": "75 Sunnvor ehf.",
+ "sott": "2026-07-26",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1324,
+    "hagnadarhlutfall": 0.1091,
+    "ROE": 0.3139,
+    "ROA": 0.0903,
+    "eiginfjarhlutfall": 0.2877,
+    "veltufjarhlutfall": 1.1807,
+    "skuldahlutfall_DE": 2.4755,
+    "eignavelta": 0.828
+   },
+   "rekstur": {
+    "sala": 2096966,
+    "ebit": 277738,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2085,
+    "fjarmagnsgjold": -738,
+    "hagn_f_skatt": 279085,
+    "tekjuskattur": -50355,
+    "hagnadur": 228730
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 786000,
+    "vidskiptakrofur": 0,
+    "handbaert": 1343991,
+    "veltufjarmunir": 2532702,
+    "eignir": 2532702,
+    "hlutafe": 500000,
+    "eigid_fe": 728730,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1803972,
+    "skuldir": 1803972,
+    "efe_skuldir": 2532702
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3056,
+    "hagnadarhlutfall": 0.2462,
+    "ROE": 0.9192,
+    "ROA": 0.5924,
+    "eiginfjarhlutfall": 0.6445,
+    "veltufjarhlutfall": 2.8027,
+    "skuldahlutfall_DE": 0.5517,
+    "eignavelta": 2.4057
+   },
+   "rekstur": {
+    "sala": 33664353,
+    "ebit": 10289083,
+    "afskriftir": 0,
+    "fjarmunatekjur": 101735,
+    "fjarmagnsgjold": -13986,
+    "hagn_f_skatt": 10376832,
+    "tekjuskattur": -2087506,
+    "hagnadur": 8289326
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 13943987,
+    "veltufjarmunir": 13993296,
+    "eignir": 13993296,
+    "hlutafe": 500000,
+    "eigid_fe": 9018056,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4975240,
+    "skuldir": 4975240,
+    "efe_skuldir": 13993296
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4811241070.pdf",
+ "pdfAr": "2025"
+}

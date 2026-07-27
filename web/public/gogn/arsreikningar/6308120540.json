@@ -1,0 +1,74 @@
+{
+ "kt": "6308120540",
+ "nafn": "100 Iceland ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.4642,
+    "hagnadarhlutfall": 0.3317,
+    "ROE": 0.5514,
+    "ROA": 0.1274,
+    "eiginfjarhlutfall": 0.231,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 3.3297,
+    "eignavelta": 0.3839
+   },
+   "rekstur": {
+    "sala": 90619038,
+    "ebit": 42067824,
+    "hagnadur": 30058859
+   },
+   "efnahagur": {
+    "fastafjarmunir": 222083195,
+    "veltufjarmunir": 13939992,
+    "eignir": 236023187,
+    "hlutafe": null,
+    "eigid_fe": 54512350,
+    "langtimaskuldir": 65014104,
+    "skammtimaskuldir": 116496733,
+    "efe_skuldir": 236023187,
+    "skuldir": 181510837
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.457,
+    "hagnadarhlutfall": 0.3473,
+    "ROE": 0.3965,
+    "ROA": 0.1407,
+    "eiginfjarhlutfall": 0.355,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.8168,
+    "eignavelta": 0.4052
+   },
+   "rekstur": {
+    "sala": 91116773,
+    "ebit": 41639411,
+    "hagnadur": 31648127
+   },
+   "efnahagur": {
+    "fastafjarmunir": 212163026,
+    "veltufjarmunir": 12691394,
+    "eignir": 224854420,
+    "hlutafe": 500000,
+    "eigid_fe": 79826572,
+    "langtimaskuldir": 40723986,
+    "skammtimaskuldir": 104303862,
+    "efe_skuldir": 224854420,
+    "skuldir": 145027848
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/6308120540.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,86 @@
+{
+ "kt": "5209191200",
+ "nafn": "he10 ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7379,
+    "hagnadarhlutfall": 0.7612,
+    "ROE": 3.0475,
+    "ROA": 0.6876,
+    "eiginfjarhlutfall": 0.2256,
+    "veltufjarhlutfall": 1.2877,
+    "skuldahlutfall_DE": 3.4322,
+    "eignavelta": 0.9033
+   },
+   "rekstur": {
+    "sala": 460000,
+    "ebit": 339441,
+    "afskriftir": 0,
+    "fjarmunatekjur": 11251,
+    "fjarmagnsgjold": -552,
+    "hagn_f_skatt": 350140,
+    "tekjuskattur": 0,
+    "hagnadur": 350140
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 194816,
+    "handbaert": 312991,
+    "veltufjarmunir": 509237,
+    "eignir": 509237,
+    "hlutafe": 500000,
+    "eigid_fe": 114896,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 394341,
+    "skuldir": 394341,
+    "efe_skuldir": 509237
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.2367,
+    "eiginfjarhlutfall": -0.1669,
+    "veltufjarhlutfall": 0.063,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -60,
+    "afskriftir": -1000000,
+    "fjarmunatekjur": 2834,
+    "fjarmagnsgjold": -76322,
+    "hagn_f_skatt": -1073548,
+    "tekjuskattur": 0,
+    "hagnadur": -1073548
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4201493,
+    "birgdir": 0,
+    "vidskiptakrofur": 194816,
+    "handbaert": 138679,
+    "veltufjarmunir": 334118,
+    "eignir": 4535611,
+    "hlutafe": 500000,
+    "eigid_fe": -757159,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5292770,
+    "skuldir": 5292770,
+    "efe_skuldir": 4535611
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5209191200.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,90 @@
+{
+ "kt": "4807190850",
+ "nafn": "K. Haraldsson ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8375,
+    "ebit_hlutfall": 0.1335,
+    "hagnadarhlutfall": 0.1062,
+    "ROE": 1.0607,
+    "ROA": 0.3202,
+    "eiginfjarhlutfall": 0.3018,
+    "veltufjarhlutfall": 1.1676,
+    "skuldahlutfall_DE": 2.3132,
+    "eignavelta": 3.0135
+   },
+   "rekstur": {
+    "sala": 105856850,
+    "kostnadarverd": 17204161,
+    "laun": 29682871,
+    "annar_rekstur": 14041256,
+    "afskriftir": 1620272,
+    "ebit": 14130666,
+    "fjarmunatekjur": 54246,
+    "fjarmagnsgjold": -394313,
+    "hagn_f_skatt": 13790599,
+    "tekjuskattur": -2544359,
+    "hagnadur": 11246240
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 17175018,
+    "handbaert": 11459614,
+    "eignir": 35126965,
+    "hlutafe": 500000,
+    "eigid_fe": 10602235,
+    "efe_skuldir": 35126965,
+    "skuldir": 24524730,
+    "skammtimaskuldir": 24524730
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7774,
+    "ebit_hlutfall": -0.0362,
+    "hagnadarhlutfall": -0.0429,
+    "ROE": -0.3358,
+    "ROA": -0.1137,
+    "eiginfjarhlutfall": 0.3386,
+    "veltufjarhlutfall": 1.1769,
+    "skuldahlutfall_DE": 1.953,
+    "eignavelta": 2.6519
+   },
+   "rekstur": {
+    "sala": 62157974,
+    "kostnadarverd": 13835786,
+    "laun": 21148520,
+    "annar_rekstur": 10391717,
+    "afskriftir": 1296218,
+    "ebit": -2252267,
+    "fjarmunatekjur": 47862,
+    "fjarmagnsgjold": -460577,
+    "hagn_f_skatt": -2664982,
+    "tekjuskattur": 0,
+    "hagnadur": -2664982
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 18243584,
+    "handbaert": 0,
+    "eignir": 23438924,
+    "hlutafe": 500000,
+    "eigid_fe": 7937253,
+    "efe_skuldir": 23438924,
+    "skuldir": 15501671,
+    "skammtimaskuldir": 15501671
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4807190850.pdf",
+ "pdfAr": "2024"
+}

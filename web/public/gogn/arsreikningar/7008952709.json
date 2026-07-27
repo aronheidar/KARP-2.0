@@ -1,0 +1,84 @@
+{
+ "kt": "7008952709",
+ "nafn": "Ýlfur ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.1565,
+    "hagnadarhlutfall": -0.3031,
+    "ROA": -0.5131,
+    "veltufjarhlutfall": 0.0025,
+    "eignavelta": 1.6927
+   },
+   "rekstur": {
+    "sala": 3500000,
+    "ebit": -547839,
+    "afskriftir": -513176,
+    "fjarmunatekjur": 45,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -1060970,
+    "tekjuskattur": 0,
+    "hagnadur": -1060970
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2052702,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 15017,
+    "veltufjarmunir": 15027,
+    "eignir": 2067729,
+    "hlutafe": 504000,
+    "eigid_fe": -4039036,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6106765,
+    "skuldir": 6106765,
+    "efe_skuldir": 2067729
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1506,
+    "hagnadarhlutfall": 0.0947,
+    "ROA": 0.7701,
+    "veltufjarhlutfall": 0.0012,
+    "eignavelta": 8.1316
+   },
+   "rekstur": {
+    "sala": 13684952,
+    "ebit": 2061060,
+    "afskriftir": -718446,
+    "fjarmunatekjur": 281,
+    "fjarmagnsgjold": -46788,
+    "hagn_f_skatt": 1296107,
+    "tekjuskattur": 0,
+    "hagnadur": 1296107
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1334256,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 5114,
+    "veltufjarmunir": 348676,
+    "eignir": 1682932,
+    "hlutafe": 504000,
+    "eigid_fe": -2742929,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 4425861,
+    "skuldir": 4425861,
+    "efe_skuldir": 1682932
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7008952709.pdf",
+ "pdfAr": "2024"
+}

@@ -1,0 +1,88 @@
+{
+ "kt": "5301171030",
+ "nafn": "Gaflfell ehf.",
+ "sott": "2026-07-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2487,
+    "hagnadarhlutfall": 0.0784,
+    "ROE": 1.4141,
+    "ROA": 0.0673,
+    "eiginfjarhlutfall": 0.0476,
+    "veltufjarhlutfall": 0.0588,
+    "skuldahlutfall_DE": 19.9996,
+    "eignavelta": 0.8588
+   },
+   "rekstur": {
+    "sala": 28501993,
+    "ebit": 7089822,
+    "afskriftir": -1464146,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": -3396873,
+    "hagn_f_skatt": 2235009,
+    "tekjuskattur": 0,
+    "hagnadur": 2235009
+   },
+   "efnahagur": {
+    "fastafjarmunir": 26290347,
+    "birgdir": 0,
+    "vidskiptakrofur": 820094,
+    "handbaert": 73984,
+    "veltufjarmunir": 6898727,
+    "eignir": 33189074,
+    "hlutafe": 500000,
+    "eigid_fe": 1580465,
+    "langtimaskuldir": 16413757,
+    "skammtimaskuldir": 15194852,
+    "skuldir": 31608609,
+    "efe_skuldir": 33189074
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0695,
+    "hagnadarhlutfall": -0.2529,
+    "ROA": -0.1394,
+    "eiginfjarhlutfall": -0.077,
+    "veltufjarhlutfall": 0.0016,
+    "eignavelta": 0.551
+   },
+   "rekstur": {
+    "sala": 13970933,
+    "ebit": -971280,
+    "afskriftir": -962275,
+    "fjarmunatekjur": 6206,
+    "fjarmagnsgjold": -1594971,
+    "hagn_f_skatt": -3533354,
+    "tekjuskattur": 0,
+    "hagnadur": -3533354
+   },
+   "efnahagur": {
+    "fastafjarmunir": 25328072,
+    "birgdir": 0,
+    "vidskiptakrofur": 6317,
+    "handbaert": 15618,
+    "veltufjarmunir": 26595,
+    "eignir": 25354667,
+    "hlutafe": 500000,
+    "eigid_fe": -1952889,
+    "langtimaskuldir": 13622168,
+    "skammtimaskuldir": 13685388,
+    "skuldir": 27307556,
+    "efe_skuldir": 25354667
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5301171030.pdf",
+ "pdfAr": "2020"
+}

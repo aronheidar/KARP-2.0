@@ -1,0 +1,67 @@
+{
+ "kt": "6206050340",
+ "nafn": "Ísagn ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0027,
+    "ROA": -0.0021,
+    "eiginfjarhlutfall": 0.7877,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.2695,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 80200,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9611497,
+    "eignir": 9611497,
+    "hlutafe": 501000,
+    "eigid_fe": 7570804,
+    "skammtimaskuldir": 2040693,
+    "skuldir": 2040693,
+    "efe_skuldir": 9611497
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.9807,
+    "ROE": 0.8067,
+    "ROA": 0.7553,
+    "eiginfjarhlutfall": 0.9364,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.068,
+    "eignavelta": 0.7702
+   },
+   "rekstur": {
+    "sala": 32209057,
+    "annar_rekstur": 620900,
+    "hagnadur": 31588157
+   },
+   "efnahagur": {
+    "fastafjarmunir": 41820554,
+    "eignir": 41820554,
+    "hlutafe": 501000,
+    "eigid_fe": 39158961,
+    "skammtimaskuldir": 2661593,
+    "skuldir": 2661593,
+    "efe_skuldir": 41820554
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6206050340.pdf",
+ "pdfAr": "2024"
+}

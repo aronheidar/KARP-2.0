@@ -1,0 +1,96 @@
+{
+ "kt": "5712150390",
+ "nafn": "PPV ehf.",
+ "sott": "2026-07-25",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9933,
+    "ebit_hlutfall": 0.5323,
+    "hagnadarhlutfall": 0.3943,
+    "ROE": 0.6984,
+    "ROA": 0.5107,
+    "eiginfjarhlutfall": 0.7312,
+    "veltufjarhlutfall": 1.4873,
+    "skuldahlutfall_DE": 0.3675,
+    "eignavelta": 1.295
+   },
+   "rekstur": {
+    "sala": 25717380,
+    "kostnadarverd": 171058,
+    "laun": 7480208,
+    "annar_rekstur": 3138466,
+    "afskriftir": 1239000,
+    "ebit": 13688648,
+    "fjarmunatekjur": 1135,
+    "fjarmagnsgjold": -1008496,
+    "hagn_f_skatt": 12681287,
+    "tekjuskattur": -2539837,
+    "hagnadur": 10141450
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1700000,
+    "vidskiptakrofur": 4761418,
+    "handbaert": 2770191,
+    "veltufjarmunir": 18159235,
+    "eignir": 19859235,
+    "hlutafe": 500000,
+    "eigid_fe": 14521920,
+    "langtimaskuldir": 273326,
+    "skammtimaskuldir": 5063989,
+    "skuldir": 5337315,
+    "efe_skuldir": 19859235
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9867,
+    "ebit_hlutfall": 0.3582,
+    "hagnadarhlutfall": 0.2695,
+    "ROE": 0.7877,
+    "ROA": 0.4064,
+    "eiginfjarhlutfall": 0.516,
+    "veltufjarhlutfall": 0.7429,
+    "skuldahlutfall_DE": 0.938,
+    "eignavelta": 1.508
+   },
+   "rekstur": {
+    "sala": 20949540,
+    "kostnadarverd": 277830,
+    "laun": 8034960,
+    "annar_rekstur": 4792465,
+    "afskriftir": 340000,
+    "ebit": 7504285,
+    "fjarmunatekjur": 3270,
+    "fjarmagnsgjold": -444838,
+    "hagn_f_skatt": 7062717,
+    "tekjuskattur": -1416205,
+    "hagnadur": 5646512
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1360000,
+    "vidskiptakrofur": 3408460,
+    "handbaert": 1418707,
+    "veltufjarmunir": 12532390,
+    "eignir": 13892390,
+    "hlutafe": 500000,
+    "eigid_fe": 7168432,
+    "langtimaskuldir": 226084,
+    "skammtimaskuldir": 6497874,
+    "skuldir": 6723958,
+    "efe_skuldir": 13892390
+   },
+   "starfsmenn": 20
+  }
+ },
+ "pdf": "pdf/5712150390.pdf",
+ "pdfAr": "2021"
+}

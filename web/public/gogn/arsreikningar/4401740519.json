@@ -1,0 +1,86 @@
+{
+ "kt": "4401740519",
+ "nafn": "Vaki ehf.",
+ "sott": "2026-07-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8329,
+    "hagnadarhlutfall": 0.6871,
+    "ROE": 0.4244,
+    "ROA": 0.2432,
+    "eiginfjarhlutfall": 0.5731,
+    "veltufjarhlutfall": 0.1773,
+    "skuldahlutfall_DE": 0.745,
+    "eignavelta": 0.354
+   },
+   "rekstur": {
+    "sala": 116395928,
+    "laun": 2304136,
+    "afskriftir": 7815831,
+    "ebit": 96943845,
+    "fjarmunatekjur": 8014768,
+    "fjarmagnsgjold": -3989893,
+    "hagn_f_skatt": 100968719,
+    "tekjuskattur": -20994338,
+    "hagnadur": 79974381
+   },
+   "efnahagur": {
+    "fastafjarmunir": 222029065,
+    "vidskiptakrofur": 1569748,
+    "handbaert": 23321349,
+    "eignir": 328844499,
+    "hlutafe": 4000000,
+    "eigid_fe": 188445376,
+    "skuldir": 140399122,
+    "efe_skuldir": 328844499,
+    "skammtimaskuldir": 140399122
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8706,
+    "hagnadarhlutfall": 0.7003,
+    "ROE": 0.3285,
+    "ROA": 0.2541,
+    "eiginfjarhlutfall": 0.7736,
+    "veltufjarhlutfall": 0.1162,
+    "skuldahlutfall_DE": 0.2927,
+    "eignavelta": 0.3629
+   },
+   "rekstur": {
+    "sala": 131631858,
+    "laun": 3586752,
+    "afskriftir": 1571228,
+    "ebit": 114598981,
+    "fjarmunatekjur": 3094611,
+    "fjarmagnsgjold": -3535280,
+    "hagn_f_skatt": 114158312,
+    "tekjuskattur": -21970571,
+    "hagnadur": 92187741
+   },
+   "efnahagur": {
+    "fastafjarmunir": 170797837,
+    "vidskiptakrofur": 1605525,
+    "handbaert": 7936029,
+    "eignir": 362760549,
+    "hlutafe": 4000000,
+    "eigid_fe": 280633117,
+    "skuldir": 82127432,
+    "efe_skuldir": 362760549,
+    "skammtimaskuldir": 82127432
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4401740519.pdf",
+ "pdfAr": "2025"
+}

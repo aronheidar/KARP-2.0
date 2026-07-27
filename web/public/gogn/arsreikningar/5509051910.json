@@ -1,0 +1,80 @@
+{
+ "kt": "5509051910",
+ "nafn": "F 41 Holding ehf.",
+ "sott": "2026-07-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.3698,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -47663,
+    "afskriftir": 0,
+    "fjarmunatekjur": 3676,
+    "fjarmagnsgjold": -5141,
+    "hagn_f_skatt": -49128,
+    "tekjuskattur": 0,
+    "hagnadur": -49128
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 132040,
+    "veltufjarmunir": 132849,
+    "eignir": 132849,
+    "hlutafe": 600000,
+    "eigid_fe": -1454962662,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1455095511,
+    "skuldir": 1455095511,
+    "efe_skuldir": 132849
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.6464,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -90133,
+    "afskriftir": 0,
+    "fjarmunatekjur": 39754,
+    "fjarmagnsgjold": -1778,
+    "hagn_f_skatt": -52157,
+    "tekjuskattur": 0,
+    "hagnadur": -52157
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 80385,
+    "veltufjarmunir": 80692,
+    "eignir": 80692,
+    "hlutafe": 600000,
+    "eigid_fe": -1455014819,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1455095511,
+    "skuldir": 1455095511,
+    "efe_skuldir": 80692
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5509051910.pdf",
+ "pdfAr": "2025"
+}
