@@ -41,7 +41,7 @@ function renderChain(chain) {
   const nodes = chain.nodes, edges = chain.edges;
   const maxD = Math.max(1, ...nodes.map((n) => n.depth));
   const cols = {}; for (const n of nodes) (cols[n.depth] ||= []).push(n);
-  const NW = 146, NH = 30, COLW = 212, VG = 18, M = 14;
+  const NW = 146, NH = 30, COLW = 212, VG = 26, M = 14;
   const rows = Math.max(1, ...Object.values(cols).map((c) => c.length));
   const W = M * 2 + maxD * COLW + NW, H = M * 2 + rows * (NH + VG) - VG;
   const pos = {};
@@ -53,9 +53,9 @@ function renderChain(chain) {
   let e = '';
   for (const ed of edges) {
     const a = pos[ed.from], b = pos[ed.to]; if (!a || !b) continue;
-    const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;
-    const col = ed.sign > 0 ? '#54d08a' : '#e78284', w = (1 + Math.min(4, ed.strength * 3)).toFixed(1);
-    e += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${w}" opacity="0.75" marker-end="url(#lk-ah-${ed.sign > 0 ? 'p' : 'n'})"/>`;
+    const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x - 7, y2 = b.y + NH / 2, mx = (x1 + x2) / 2;   // enda 7px FYRIR hnút → örvaroddur sýnilegur í bilinu (ekki falinn undir kassa)
+    const col = ed.sign > 0 ? '#54d08a' : '#e78284', w = (1.4 + Math.min(3.6, ed.strength * 3)).toFixed(1);
+    e += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="${w}" opacity="0.9" marker-end="url(#lk-ah-${ed.sign > 0 ? 'p' : 'n'})"/>`;
   }
   let nd = '';
   for (const n of nodes) {
@@ -63,7 +63,7 @@ function renderChain(chain) {
     let la = n.label; if (la.length > 20) la = la.slice(0, 19) + '…';
     nd += `<g><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="7" fill="${COL[n.kind] || '#9fb0c8'}" opacity="0.92"/><text x="${p.x + 9}" y="${p.y + NH / 2 + 4}" font-size="12" fill="#12161f" font-weight="600">${esc(la)}</text></g>`;
   }
-  const defs = '<defs><marker id="lk-ah-p" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e78284"/></marker></defs>';
+  const defs = '<defs><marker id="lk-ah-p" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L10,5.5 L0,11 Z" fill="#54d08a"/></marker><marker id="lk-ah-n" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L10,5.5 L0,11 Z" fill="#e78284"/></marker></defs>';
   return `<div class="lk-chain"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${defs}${e}${nd}</svg></div>`
     + '<p class="lk-muted" style="font-size:12px;margin-top:6px">🟦 ákvörðun · ⬜ milliliður · 🟨 markmið · <span style="color:#54d08a">grænt</span>=eykur · <span style="color:#e78284">rautt</span>=dregur úr'
     + (chain.clipped ? ' · <i>(sýni sterkustu tengslin)</i>' : '') + '</p>';
@@ -298,8 +298,8 @@ export function mountLeikur(root) {
     else if (st.phase === 'decide') {
       const rl = st.lockRoster || [], ready = rl.filter((r) => r.locked).length;
       const rosterList = rl.map((r) => '<span style="margin-right:12px">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + '</span>').join('');
-      controls = '<p>Umferð ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa umferð ' + st.round + '</button>' + stopBtn;
-    } else if (st.phase === 'resolved') controls = '<p>Umferð ' + st.round + ' leyst.</p><button class="lk-btn" id="lk-next">' + (st.round >= 8 ? 'Ljúka leik' : 'Næsta umferð') + '</button>' + stopBtn;
+      controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
+    } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= 8 ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button>';
     const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
     root.innerHTML =
@@ -309,7 +309,7 @@ export function mountLeikur(root) {
       roleMapCard(st) +
       '<div class="lk-card">' + controls + '</div>' +
       leaderboard(st) +
-      (st.analytics ? card('📈 Greining (leikstjóri)', renderFacAnalytics(st.analytics)) : '');
+      (st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '');
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
