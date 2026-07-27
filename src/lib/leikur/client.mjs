@@ -358,7 +358,7 @@ export function mountLeikur(root) {
     (st.history || []).forEach((h, i) => { if (h && h.levers) leversFull.push({ round: i + 1, levers: h.levers }); });
     if (st.mode === 'studio' && st.draft && Object.keys(st.draft).length) leversFull.push({ round: (st.history || []).length + 1, levers: st.draft });
     const events = ((st.scenarioSoFar && st.scenarioSoFar.length ? st.scenarioSoFar : SCENARIO.events) || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
-    const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp });
+    const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp, finalPerKpi: st.finalPerKpi || [] });
     if (!rc.lines.length) return '';
     return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + '</div>';
   }
@@ -550,7 +550,7 @@ export function mountLeikur(root) {
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
-      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
+      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev && ev.scene ? '<p class="lk-term-scene" style="font-style:italic;color:#c9b98a;border-left:2px solid #6a5c3a;padding-left:10px;margin:8px 0">' + esc(ev.scene) + '</p>' : ''}${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +

@@ -171,3 +171,16 @@ export const SCENARIO = {
       { key: 'kosningar', label: 'Örva fyrir kosningar', effect: { lever: { utgjold: 8 } } } ] },
   ],
 };
+
+// Fasi D — Innlifunar-„senur": stutt, nútíðar-drifin sviðsetning per kjörtímabil (þú-ert-þarna). Birt efst í lotu.
+// Aðeins fyrir sjálfgefna sviðsmynd (island2000); sérsniðnir leikir fá enga senu.
+export const SCENES = [
+  'Það er nýársnótt árið 2000. Flugeldar lýsa upp Reykjavík og bjartsýnin er áþreifanleg — nýtt árþúsund, nýtt Ísland. En úti í heimi eru fyrstu sprungurnar að myndast í netbólunni.',
+  'Þú flettir Mogganum og forsíðan er þakin fréttum af íslenskum bönkum að kaupa fyrirtæki í London. Nýir jeppar fylla bílastæðin og allir þekkja einhvern sem varð ríkur í gær.',
+  'Það er mánudagskvöld í október. Þú situr agndofa fyrir framan sjónvarpið þegar forsætisráðherra biður Guð að blessa Ísland. Raðir myndast við hraðbankana. Þetta er í alvöru að gerast.',
+  'Reiðin á Austurvelli er hljóðnuð. Fyrstu rúturnar fullar af ferðamönnum renna hjá — fólk kemur að sjá eldgos og norðurljós. Hægt og bítandi kviknar von á ný.',
+  'Miðbærinn er varla þekkjanlegur: lundabúð á hverju horni, byggingarkranar úti um allt, og ung hjón sem finna enga íbúð sem þau ráða við. Landið er á fullri ferð — en hvert?',
+  'Keflavíkurflugvöllur er tómur og þögnin óhugnanleg. Á blaðamannafundi kynnir þríeykið næstu aðgerðir meðan þú reiknar út hvað auð hótel kosta þjóðina.',
+  'Verðmiðarnir í búðinni hækka viku frá viku. Fólk talar um fátt annað en vexti og verðtryggingu við eldhúsborðið. Seðlabankastjóri hækkar stýrivexti — enn og aftur.',
+  'Kosningar nálgast og skoðanakannanir birtast daglega. Arfleifð þín er til umræðu í hverjum þætti — sagan mun dæma það sem þú gerir þessi síðustu fjögur ár.',
+];

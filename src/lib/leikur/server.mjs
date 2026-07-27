@@ -1,6 +1,6 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
-import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor } from './game-config.mjs';
+import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor, SCENES } from './game-config.mjs';
 import { resolveTeam, buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildChain, activeInputsFromInputs } from './chain.mjs';
@@ -99,7 +99,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     const resultsRaw = (await env.TENGSL.prepare('SELECT round, team_id, kpis, round_score, cumulative FROM leikur_results WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results || [];
     // uppsafnað per lið (nýjasta cumulative)
     const cum = {}; for (const r of resultsRaw) cum[r.team_id] = Math.max(cum[r.team_id] ?? -1, r.cumulative);
-    const ev = cfg.scenario.events[(game.current_round || 1) - 1] || null;
+    let ev = cfg.scenario.events[(game.current_round || 1) - 1] || null;
+    // Fasi D: innlifunar-sena (aðeins sjálfgefin sviðsmynd) fest á atburðinn.
+    if (ev && cfg.scenario.id === 'island2000' && SCENES[game.current_round - 1]) ev = { ...ev, scene: SCENES[game.current_round - 1] };
     const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0 }));
     const roundResults = resultsRaw.filter((r) => r.round === game.current_round).map((r) => ({ teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, detail: JSON.parse(r.kpis || '{}') }));
     // Umboð per áhorfanda: lið sér SITT hlutverks-umboð; leynd á hlutverkum hinna.
@@ -118,6 +120,8 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (game.phase === 'decide' && cfg.deadline) out.secondsLeft = Math.max(0, Math.round((cfg.deadline - now()) / 1000));
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
+    // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
+    if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) { try { out.finalPerKpi = JSON.parse(mr[0].kpis || '{}').perKpi || []; } catch (e) {} } }
     if (game.phase !== 'lobby') {
       const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const lockedOf = {}; for (const lr of lockRows) lockedOf[lr.team_id] = !!lr.locked;

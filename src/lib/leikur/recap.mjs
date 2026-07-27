@@ -1,9 +1,10 @@
 // Leikslok-samantekt fyrir RÁS-Leikinn: dregur lærdóm úr öllum kjörtímabilunum 2000–2032. HREINT.
 // perRoundScores: [{round, score}] (composite per umferð, úr trajectory-Δ). realityPerTerm: [{round, score}]
 // (raun-composite á sömu markmið). leversFull: [{round, levers}] (studio; [] f. classic). events: [{round,icon,title}].
-export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFull = [], mandate, events = [], baseline, disp } = {}) {
+export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFull = [], mandate, events = [], baseline, disp, finalPerKpi = [] } = {}) {
   const n1 = (v) => (typeof v === 'number' ? (Math.round(v * 10) / 10).toString().replace('.', ',') : '–');
   const evTitle = (r) => { const e = events.find((x) => x.round === r); return e ? ((e.icon ? e.icon + ' ' : '') + e.title) : ('Kjörtímabil ' + r); };
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   // Besta / erfiðasta kjörtímabil
   let bestTerm = null, worstTerm = null;
@@ -35,9 +36,31 @@ export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFul
     if (best) defining = { key: best.key, label: best.label, value: best.value, disp: (disp && baseline.levers[best.key]) ? disp(baseline.levers[best.key], best.value) : String(best.value) };
   }
 
+  // Heildar-ferill: meðaltal, sveiflur (spönn), stefna (fyrri vs seinni helmingur), vendipunktur (stærsta stökk milli lota)
+  const scored = perRoundScores.filter((p) => p.score != null);
+  const avg = scored.length ? scored.reduce((a, p) => a + p.score, 0) / scored.length : null;
+  const spread = scored.length ? Math.max(...scored.map((p) => p.score)) - Math.min(...scored.map((p) => p.score)) : 0;
+  const half = Math.ceil(scored.length / 2);
+  const firstAvg = scored.slice(0, half).reduce((a, p) => a + p.score, 0) / (half || 1);
+  const lastAvg = scored.slice(half).reduce((a, p) => a + p.score, 0) / ((scored.length - half) || 1);
+  const trend = scored.length >= 4 ? (lastAvg - firstAvg) : 0;
+  let turningPoint = null;
+  for (let i = 1; i < scored.length; i++) { const d = scored[i].score - scored[i - 1].score; if (!turningPoint || Math.abs(d) > Math.abs(turningPoint.diff)) turningPoint = { round: scored[i].round, diff: Math.round(d * 10) / 10, title: evTitle(scored[i].round) }; }
+  // Sterkasta / veikasta svið í leikslok (úr lokaumferðar perKpi)
+  let strongest = null, weakest = null;
+  for (const p of finalPerKpi) { if (p == null || p.score == null) continue; if (!strongest || p.score > strongest.score) strongest = p; if (!weakest || p.score < weakest.score) weakest = p; }
+
   const lines = [];
+  if (avg != null) {
+    const verdict = avg >= 80 ? 'framúrskarandi hagstjórn' : avg >= 65 ? 'traust hagstjórn' : avg >= 50 ? 'blönduð útkoma' : 'erfið kjörtímabil';
+    lines.push('📊 Heildar-einkunn ferilsins 2000–2032: <b>' + n1(avg) + '/100</b> — ' + verdict + '.');
+  }
   if (bestTerm) lines.push('🌟 Besta kjörtímabilið: <b>' + bestTerm.title + '</b> (' + bestTerm.score + '/100).');
   if (worstTerm && (!bestTerm || worstTerm.round !== bestTerm.round)) lines.push('🌧️ Erfiðasta: <b>' + worstTerm.title + '</b> (' + worstTerm.score + '/100).');
+  if (strongest && weakest && strongest.key !== weakest.key) lines.push('✅ Sterkasta sviðið í lokin: <b>' + esc(strongest.label) + '</b> (' + strongest.score + '/100). ❌ Veikasta: <b>' + esc(weakest.label) + '</b> (' + weakest.score + '/100).');
+  if (scored.length >= 4 && Math.abs(trend) >= 5) lines.push((trend > 0 ? '📈 Þið sóttuð í ykkur veðrið' : '📉 Ykkur fór aftur') + ' þegar á leið — seinni helmingurinn var ' + n1(Math.abs(trend)) + ' stigum ' + (trend > 0 ? 'betri' : 'lakari') + ' en sá fyrri.');
+  if (turningPoint && Math.abs(turningPoint.diff) >= 10) lines.push('⚡ Mesti viðsnúningurinn varð í <b>' + turningPoint.title + '</b> (' + (turningPoint.diff >= 0 ? '+' : '') + n1(turningPoint.diff) + ' stig frá fyrri umferð).');
+  if (spread >= 40) lines.push('🎢 Sveiflukennd hagstjórn — bilið milli besta og versta kjörtímabils var ' + n1(spread) + ' stig. Stöðugleiki er líka verðmæti.');
   if (beat + trailed > 0) {
     let s = '🕰️ Þið stóðuð ykkur betur en raunveruleikinn í <b>' + beat + '</b> af ' + (beat + trailed) + ' kjörtímabilum';
     if (biggest) s += ' (mest í ' + biggest.title + ': ' + (biggest.diff >= 0 ? '+' : '') + n1(biggest.diff) + ' stig)';
@@ -45,5 +68,5 @@ export function buildRecap({ perRoundScores = [], realityPerTerm = [], leversFul
   }
   if (defining) lines.push('🎯 Afdrifaríkasta ákvörðunin: <b>' + defining.label + '</b> stillt í ' + defining.disp + (/\.$/.test(defining.disp) ? '' : '.'));
 
-  return { bestTerm, worstTerm, vsReality: { beat, trailed, biggest }, defining, lines };
+  return { bestTerm, worstTerm, vsReality: { beat, trailed, biggest }, defining, avg, trend, turningPoint, strongest, weakest, lines };
 }
