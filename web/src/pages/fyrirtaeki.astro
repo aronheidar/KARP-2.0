@@ -914,7 +914,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${fsSkilaSaga(f)}
           ${vsk ? '<div class="fs-sub">VSK-númer</div><div class="fs-chips">' + vsk + '</div>' : ''}
           ${ars ? '<div class="fs-sub">Ársreikningar (skil)</div><div class="fs-chips">' + ars + '</div>' : ''}
-          <div id="fs-kpi-holf">${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin() : fsKpiSoon()))}</div>
+          <div id="fs-kpi-holf">${(f.fjarhagur && f.fjarhagur.length) ? fsKpiHtml(f.fjarhagur) : (f.fjarhagurPending ? fsKpiPending() : (f.fjarhagurEngin ? fsKpiEngin(f.fjarhagurEngin) : fsKpiSoon()))}</div>
           <div id="fs-vanskil" class="fs-vanskil" hidden></div>
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           <div id="fs-kvoti" class="fs-kvoti" hidden></div>
@@ -1013,12 +1013,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const r = await fetch('/gogn/arsreikningar/' + id + '.json?t=' + Date.now(), { cache: 'no-store' });   // cache-bust: nýtt scrape (eða gamalt cache-að 404) má EKKI festast → annars „reiknast…" að eilífu
         if (r.ok) {
           const j = await r.json();
-          if (j && j.engin) {   // félag án ársreiknings (nýskráð/undanþegið/óskilað) → loka-ástand, EKKI eilífur spinner
+          if (j && j.engin) {   // félag án nothæfs ársreiknings → loka-ástand, EKKI eilífur spinner. `flokkur` stýrir skilaboðum.
             if (owned && j.sott && (Date.now() - new Date(j.sott).getTime()) > 45 * 864e5) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // ~45 daga gamalt merki → reyna aftur í bakgrunni (gæti hafa skilað síðan)
-            return { engin: true };
+            return { engin: true, flokkur: j.flokkur || null, astaeda: j.astaeda || null };
           }
           if (owned && !j.pdf) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // JSON án PDF (byggt fyrir PDF-vistun, verk 2) → endurbyggja í bakgrunni svo PDF-tengill birtist við næstu uppflettingu
-          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; } return rows;   // beri PDF-slóð með í KPI-render
+          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; rows.ocr = !!j.ocr; } return rows;   // beri PDF-slóð (+ OCR-merki) með í KPI-render
         }
         missing = true;
       } catch (e) { return null; }
@@ -1097,9 +1097,20 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     function fsKpiSoon() {
       return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
-    // Loka-ástand: félagið á engan skráðan ársreikning (nýskráð, undanþegið eða óskilað). Sýnt í stað eilífs spinner.
-    function fsKpiEngin() {
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Engir ársreikningar skráðir hjá félaginu</b><span>Ársreikningaskrá RSK geymir engan ársreikning fyrir þetta félag — það getur verið nýskráð, undanþegið skilaskyldu eða hefur ekki enn skilað. Um leið og ársreikningur berst reiknast lykiltölurnar sjálfkrafa. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
+    // Loka-ástand í stað eilífs spinner. `flokkur` (úr build_arsreikningar) stýrir nákvæmum skilaboðum:
+    // ekki_skilad = ekkert uppgjör til · skannad = mynd-PDF (OCR) · ovirkt = núll-uppgjör · oskyranlegt = óstaðlað.
+    // Eldri merki-JSON án `flokkur` → heuristik af astaeda-texta (annars ekki_skilad).
+    function fsKpiEngin(j) {
+      const F = {
+        skannad: ['Ársreikningur aðeins til sem skönnuð mynd', 'Nýjasti ársreikningur félagsins liggur fyrir hjá RSK en aðeins sem skönnuð mynd (án textalags), svo ekki var hægt að lesa lykiltölur vélrænt. Hægt er að sækja PDF-skjalið sjálft að neðan.'],
+        ovirkt: ['Núll-uppgjör — engin starfsemi', 'Félagið skilaði ársreikningi með engri starfsemi eða hreyfingu á tímabilinu (núll-uppgjör), svo lykiltölur eiga ekki við.'],
+        oskyranlegt: ['Ársreikningur á óstöðluðu sniði', 'Ársreikningur félagsins fannst hjá RSK en er á óstöðluðu sniði sem ekki tókst að lesa lykiltölur úr vélrænt.'],
+        ekki_skilad: ['Engir ársreikningar skráðir hjá félaginu', 'Ársreikningaskrá RSK geymir engan ársreikning fyrir þetta félag — það getur verið nýskráð, undanþegið skilaskyldu eða hefur ekki enn skilað. Um leið og ársreikningur berst reiknast lykiltölurnar sjálfkrafa.'],
+      };
+      let key = (j && j.flokkur && F[j.flokkur]) ? j.flokkur : null;
+      if (!key) key = (j && j.astaeda && /reikna|reiknu|fannst|óstað|skönn|núll/i.test(j.astaeda)) ? 'oskyranlegt' : 'ekki_skilad';
+      const t = F[key];
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>' + t[0] + '</b><span>' + t[1] + ' <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
     function fsKpiHtml(rows) {
       if (!rows || !rows.length) return fsKpiSoon();
@@ -1119,7 +1130,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       };
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
       const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">📄 Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>'
+      const ocrNote = rows.ocr ? '<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px;line-height:1.5">🔍 Lesið með myndgreiningu (OCR) úr skönnuðum ársreikningi — tölur gætu innihaldið ónákvæmni. Efnahagsreikningur var sannreyndur (Eignir ≈ Eigið fé + Skuldir), en berðu saman við PDF-skjalið ef nákvæmni skiptir máli.</div>' : '';
+      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>' + ocrNote
         + '<div class="kpi-top">' + fsHealthBars(hs) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
@@ -1560,7 +1572,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               const fj = await fsFjarhagur(f.kt, true);   // raun-KPI úr scrapuðum ársreikningi; 404 → dispatch scraping + "reiknast"
               f.fjarhagur = Array.isArray(fj) ? fj : null;
               f.fjarhagurPending = !!(fj && fj.pending);
-              f.fjarhagurEngin = !!(fj && fj.engin);   // félag án skráðs ársreiknings → loka-spjald í stað spinner
+              f.fjarhagurEngin = (fj && fj.engin) ? fj : null;   // heldur { flokkur, astaeda } fyrir nákvæm skilaboð (fsKpiEngin)
               const stj = await fsStjorn(f.kt, true);   // full stjórn úr byggðu RSK-yfirliti; 404 → dispatch + "birtist í keyptri skýrslu"
               f.stjorn = stj && stj.stjorn ? stj.stjorn : null;
               f.stjornFirmaritun = stj && stj.firmaritun ? stj.firmaritun : null;

@@ -42,7 +42,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fetchItemids, addToCart, downloadPdf, parsePdf, TYPE } from './lib/rsk.mjs';
+import { fetchItemids, addToCart, downloadPdf, parsePdf, ocrPdf, TYPE } from './lib/rsk.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -55,7 +55,7 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
     // Félag án ársreiknings (nýskráð, undanþegið skilaskyldu eða óskilað). Skrifum MERKI-JSON svo að
     // GH-Action framleiði alltaf skrá → framendinn hættir að poll-a og sýnir loka-ástand (ekki eilífan spinner).
     console.log(`  ${kt} ${info.nafn || ''}: engir ársreikningar skráðir — skrifa merki-JSON (engin:true)`);
-    fs.writeFileSync(path.join(OUTDIR, `${kt}.json`), JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Engir ársreikningar skráðir í ársreikningaskrá RSK (t.d. nýskráð, undanþegið eða óskilað félag).' }, null, 1));
+    fs.writeFileSync(path.join(OUTDIR, `${kt}.json`), JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, flokkur: 'ekki_skilad', astaeda: 'Engir ársreikningar skráðir í ársreikningaskrá RSK (t.d. nýskráð, undanþegið eða óskilað félag).' }, null, 1));
     return null;
   }
   // Fyrir hvert ár: veljum SAMSTÆÐU (typeid 2 — sýnir raunhagkerfi samstæðunnar, staðlað fyrir
@@ -71,13 +71,28 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
   const tmp = path.join(OUTDIR, `_tmp_${kt}.pdf`);
   const pdfDir = path.join(OUTDIR, 'pdf'); fs.mkdirSync(pdfDir, { recursive: true });   // vista opinbert PDF (verk 2, lög 3/2006)
   const out = { kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), heimild: 'RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst', ar: {} };
+  let firstParsed = null;   // nýjasta árs parse-útkoma → flokkun ef ekkert þáttast (skannað/óvirkt/óstaðlað)
   for (const r of nyjust) {
     console.log(`  ${kt} ${info.nafn}: sæki ${r.teg} ${r.ar} (nr ${r.nr})`);
     const kid = await addToCart(kt, r.nr, r.typeid);
     const pdf = await downloadPdf(kid);
     fs.writeFileSync(tmp, pdf);
     if (r === nyjust[0]) { fs.copyFileSync(tmp, path.join(pdfDir, `${kt}.pdf`)); out.pdf = `pdf/${kt}.pdf`; out.pdfAr = r.ar; }   // nýjasta árs PDF → niðurhals-tengill (opinbert skjal)
-    const parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
+    let parsed = parsePdf(tmp, r.ar);   // r.ar = RSK-þekkt ár skýrslunnar (varaleið f. árs-greiningu)
+    if (parsed.skannad) {   // mynd-PDF án textalags → OCR-varaleið (ocrmypdf/tesseract) og þátta aftur
+      const ocr = ocrPdf(tmp);
+      if (ocr) {
+        try {
+          const p2 = parsePdf(ocr, r.ar);
+          // ⚠ FJÁRHAGSGÖGN: samþykkjum OCR AÐEINS ef efnahagsreikningurinn stemmir innbyrðis (Eignir ≈
+          //   Eigið fé + Skuldir, ≤2%) — hafnar OCR-tölustafavillum svo aldrei séu birtar rangar lykiltölur.
+          if (p2 && !p2.skannad && reconcilesOk(p2)) { parsed = p2; out.ocr = true; console.log(`  ${kt}: OCR tókst (${r.ar}) — efnahagur stemmir`); }
+          else console.log(`  ${kt}: OCR ${p2 && !p2.skannad ? 'stemmdi ekki (hafnað)' : 'skilaði engum texta'} (${r.ar})`);
+        } catch (e) { console.error(`  ${kt}: OCR-þáttun brást — ${e.message}`); }
+        finally { try { fs.unlinkSync(ocr); } catch {} }
+      }
+    }
+    if (r === nyjust[0]) firstParsed = parsed;
     // parsed.ar = [líðandi, fyrra]; skráum fjárhæðir BEGGJA dálka svo HVERT ár fái tölur → fjölárs-
     // þróunarrit + tekju-/hagnaðarvöxtur reiknist í framenda. KJÓSUM þó idx0 (ár úr SÍNU EIGIN skjali)
     // ef sama ár berst bæði sem líðandi (eldra PDF) og fyrra (yngra PDF) — eigin-skjals dálkur er canonical.
@@ -98,8 +113,9 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
   // „reiknast…" að eilífu (tóm ar:{} = óaðgreinanlegt frá bið). Loka-ástand = fsKpiEngin.
   const nothaeft = Object.values(out.ar).some((r) => r && r.kpi && Object.keys(r.kpi).length);
   if (!nothaeft) {
-    console.log(`  ${kt} ${info.nafn}: reikningar fundust en engar nothæfar lykiltölur þáttuðust — skrifa merki-JSON`);
-    fs.writeFileSync(dest, JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, astaeda: 'Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör).' }, null, 1));
+    const { flokkur, astaeda } = flokkaEngin(firstParsed);
+    console.log(`  ${kt} ${info.nafn}: reikningar fundust en engar nothæfar lykiltölur (${flokkur}) — skrifa merki-JSON`);
+    fs.writeFileSync(dest, JSON.stringify({ kt, nafn: info.nafn, sott: new Date().toISOString().slice(0, 10), engin: true, flokkur, astaeda }, null, 1));
     return null;
   }
   for (const y of Object.keys(out.ar)) delete out.ar[y]._idx;   // innra val-merki, ekki í skrá
@@ -108,6 +124,35 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
   return out;
 }
 const colOf = (obj, idx) => Object.fromEntries(Object.entries(obj).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [k, v[idx]]));
+
+// OCR-öryggishlið: samþykkjum OCR-lesinn ársreikning AÐEINS ef efnahagsreikningurinn stemmir innbyrðis.
+// Sterkasta prófið: „Eignir samtals" ≈ „Eignir og skuldir samtals" (báðar lesnar sjálfstætt). Annars
+// reikningsjafnan Eignir ≈ Eigið fé + Skuldir. Vikmörk 2%. Ef ekkert er sannreynanlegt → HÖFNUM (varúð).
+function reconcilesOk(p) {
+  const c = (o, k) => (o && Array.isArray(o[k]) && o[k][0] != null ? o[k][0] : null);
+  const ef = p.efnahagur || {};
+  const eignir = c(ef, 'eignir'), efeSk = c(ef, 'efe_skuldir'), efe = c(ef, 'eigid_fe'), skuldir = c(ef, 'skuldir');
+  const near = (a, b) => Math.abs(a - b) <= Math.max(1, Math.abs(a)) * 0.02;
+  if (eignir && efeSk) return near(eignir, efeSk);
+  if (eignir && efe != null && skuldir != null) return near(eignir, efe + skuldir);
+  return false;
+}
+
+// Greinir HVERS VEGNA ekkert nothæft þáttaðist → nákvæm skilaboð á fyrirtækjasíðunni (fsKpiEngin les `flokkur`).
+//  skannad      = mynd-PDF án textalags (þarf OCR)     ·  ovirkt = núll-uppgjör (engin starfsemi)
+//  oskyranlegt  = reikningur fannst en óstaðlað/ólæsilegt snið
+function flokkaEngin(p) {
+  if (!p) return { flokkur: 'oskyranlegt', astaeda: 'Ársreikningur fannst hjá félaginu en ekki tókst að lesa lykiltölur úr honum.' };
+  if (p.skannad) return { flokkur: 'skannad', astaeda: 'Nýjasti ársreikningur félagsins liggur aðeins fyrir sem skönnuð mynd (án textalags) svo ekki var hægt að lesa lykiltölur vélrænt. Hægt er að sækja PDF-skjalið sjálft.' };
+  const col0 = (o, k) => (o && Array.isArray(o[k]) ? o[k][0] : (o && o[k] != null ? o[k] : null));
+  const rk = p.rekstur || {}, ef = p.efnahagur || {};
+  if (Object.keys(rk).length + Object.keys(ef).length === 0)
+    return { flokkur: 'oskyranlegt', astaeda: 'Ársreikningur fannst hjá félaginu en er á óstöðluðu sniði sem ekki tókst að lesa vélrænt.' };
+  const eignir = col0(ef, 'eignir'), sala = col0(rk, 'sala');
+  if ((eignir === 0 || eignir == null) && (sala === 0 || sala == null))
+    return { flokkur: 'ovirkt', astaeda: 'Félagið skilaði núll-uppgjöri (engin starfsemi eða hreyfing á tímabilinu) svo lykiltölur eiga ekki við.' };
+  return { flokkur: 'oskyranlegt', astaeda: 'Lykiltölur reiknuðust ekki úr ársreikningi félagsins (t.d. óstaðlað uppgjör).' };
+}
 
 // ---- CLI --------------------------------------------------------------------
 const argv = process.argv.slice(2);

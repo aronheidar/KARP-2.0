@@ -35,10 +35,14 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Uppsetning (puppeteer-core + pdfplumber)
+      - name: Uppsetning (puppeteer-core + pdfplumber + OCR)
         run: |
           npm install puppeteer-core --no-save
           python -m pip install --quiet pdfplumber
+          # OCR-varaleið fyrir skönnuð (mynd-)PDF: ocrmypdf dregur inn tesseract + ghostscript;
+          # tesseract-ocr-isl bætir við íslensku máli. Notað aðeins þegar PDF hefur ekkert textalag.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ocrmypdf tesseract-ocr-isl
       - name: Sækja + þátta ársreikning
         env:
           CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest
