@@ -1,0 +1,142 @@
+{
+ "kt": "4612891269",
+ "nafn": "FISK-Seafood ehf.",
+ "sott": "2026-07-27",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2987,
+    "ebit_hlutfall": 0.2252,
+    "hagnadarhlutfall": 0.3036,
+    "ROE": 0.0839,
+    "ROA": 0.0721,
+    "eiginfjarhlutfall": 0.859,
+    "veltufjarhlutfall": 0.9782,
+    "skuldahlutfall_DE": 0.1641,
+    "eignavelta": 0.2374
+   },
+   "rekstur": {
+    "sala": 10374579,
+    "kostnadarverd": -7276098,
+    "adrar_tekjur": 1416339,
+    "ebitda": 2818201,
+    "afskriftir": -481974,
+    "ebit": 2336226,
+    "fjarmunatekjur": 42870,
+    "fjarmagnsgjold": -255919,
+    "hagn_f_skatt": 3578227,
+    "tekjuskattur": -428641,
+    "hagnadur": 3149586
+   },
+   "efnahagur": {
+    "fastafjarmunir": 39391215,
+    "birgdir": 945174,
+    "vidskiptakrofur": 1694062,
+    "handbaert": 119818,
+    "veltufjarmunir": 4315685,
+    "eignir": 43706900,
+    "hlutafe": 1055628,
+    "eigid_fe": 37544697,
+    "langtimaskuldir": 2474878,
+    "skammtimaskuldir": 2820629,
+    "skuldir": 6162203,
+    "efe_skuldir": 43706900
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.2681,
+    "ebit_hlutfall": 0.1031,
+    "hagnadarhlutfall": 0.0659,
+    "ROE": 0.0184,
+    "ROA": 0.016,
+    "eiginfjarhlutfall": 0.8665,
+    "veltufjarhlutfall": 0.768,
+    "skuldahlutfall_DE": 0.1541,
+    "eignavelta": 0.2421
+   },
+   "rekstur": {
+    "sala": 10425000,
+    "kostnadarverd": -7629717,
+    "adrar_tekjur": 881437,
+    "ebitda": 1584617,
+    "afskriftir": -510034,
+    "ebit": 1074584,
+    "fjarmunatekjur": 41948,
+    "fjarmagnsgjold": -273327,
+    "hagn_f_skatt": 869654,
+    "tekjuskattur": -182198,
+    "hagnadur": 687455
+   },
+   "efnahagur": {
+    "fastafjarmunir": 39484105,
+    "birgdir": 750955,
+    "vidskiptakrofur": 1094514,
+    "handbaert": 216318,
+    "veltufjarmunir": 3581338,
+    "eignir": 43065443,
+    "hlutafe": 1055628,
+    "eigid_fe": 37315691,
+    "langtimaskuldir": 2192406,
+    "skammtimaskuldir": 2684612,
+    "skuldir": 5749752,
+    "efe_skuldir": 43065443
+   },
+   "starfsmenn": 72
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 0.3005,
+    "ebit_hlutfall": 0.1714,
+    "hagnadarhlutfall": 0.1444,
+    "ROE": 0.0495,
+    "ROA": 0.0429,
+    "eiginfjarhlutfall": 0.8681,
+    "veltufjarhlutfall": 1.9963,
+    "skuldahlutfall_DE": 0.152,
+    "eignavelta": 0.2972
+   },
+   "rekstur": {
+    "sala": 13291543,
+    "kostnadarverd": -9297189,
+    "adrar_tekjur": 869023,
+    "ebitda": 2837576,
+    "afskriftir": -559335,
+    "ebit": 2278241,
+    "fjarmunatekjur": 35046,
+    "fjarmagnsgjold": -252862,
+    "hagn_f_skatt": 2317002,
+    "tekjuskattur": -397103,
+    "hagnadur": 1919899
+   },
+   "efnahagur": {
+    "fastafjarmunir": 39742722,
+    "birgdir": 685193,
+    "vidskiptakrofur": 1605927,
+    "handbaert": 1094435,
+    "veltufjarmunir": 4974526,
+    "eignir": 44717248,
+    "hlutafe": 1055628,
+    "eigid_fe": 38817722,
+    "langtimaskuldir": 3494127,
+    "skammtimaskuldir": 1695940,
+    "skuldir": 5899526,
+    "efe_skuldir": 44717248
+   },
+   "starfsmenn": 4
+  }
+ },
+ "pdf": "pdf/4612891269.pdf",
+ "pdfAr": "2025"
+}
