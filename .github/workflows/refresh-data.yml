@@ -150,6 +150,11 @@ jobs:
           node skriptur/build_apotek.mjs           || true   # Lyfjastofnun apótek/lyfjasölur (leyfisskyld starfsemi) → apotek.json (áfangi 1 leyfaskrár)
           node skriptur/build_stjornartidindi.mjs  || true   # Stjórnartíðindi: nýjustu lög/reglugerðir/auglýsingar → stjornartidindi.json (island.is officialJournalOfIcelandAdverts)
 
+      - name: Lobbývakt — flokka þingmál + samráðsmál eftir atvinnugrein (AI-brief ef lykill, annars heuristík)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node skriptur/build_lobbyvakt.mjs || true   # frumvorp.json (þingmál) + samráðsgátt → lobbyvakt.json + cache (Lobbývakt v1)
+
       - name: Kvótavaktin — aflamark flotans per útgerð (VIKULEGA á mánudögum; þungt flotasveip ~2500 skip á island.is, ~10-15 mín)
         run: |
           if [ "$(date -u +%u)" = "1" ]; then node skriptur/build_kvoti.mjs || true; fi
