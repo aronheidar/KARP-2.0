@@ -236,6 +236,7 @@ export function mountLeikur(root) {
     const studio = !!(root.querySelector('#lk-studio') && root.querySelector('#lk-studio').checked);
     const timerMin = +((root.querySelector('#lk-timer-min') || {}).value || 0);
     const body = {}; if (roles) body.roles = true; if (studio) body.mode = 'studio'; if (timerMin > 0) body.timerSec = Math.round(timerMin * 60);
+    const diff = (root.querySelector('#lk-difficulty') || {}).value; if (diff === 'easy' || diff === 'hard') body.difficulty = diff; // Fasi E
     const { json } = await api('/create', { method: 'POST', body });
     if (!json.code) return;
     localStorage.setItem(lsFac(json.code), json.facToken);
@@ -269,13 +270,20 @@ export function mountLeikur(root) {
     const intro = (st.event && st.event.focus) ? '<p style="font-size:13px;line-height:1.5">' + esc(st.event.focus) + '</p>' : '';
     return '<div class="lk-card"><h2>🎯 Umboð — kjörtímabil ' + st.round + '</h2>' + intro + rows + '</div>';
   }
-  // Fasi C — Gjaldeyrishöft: virk frá 2008-hruni; frá KT5 má afnema (gátreitur). Aðeins sýnt þegar höft virk.
-  function hoftCard(st) {
-    const h = st.hoft; if (!h || !h.active) return '';
-    const liftUI = h.canLift
-      ? '<label style="display:flex;align-items:flex-start;gap:8px;margin-top:8px;cursor:pointer;font-size:13px"><input type="checkbox" id="lk-hoft-lift"' + (S.hoftLift ? ' checked' : '') + ' style="margin-top:2px"/><span>🔓 <b>Afnema höftin þetta kjörtímabil</b> — opnar hagkerfið (meiri fjárfesting/vöxtur) en gengið flýtur á ný.</span></label>'
-      : '<p class="lk-muted" style="font-size:12px;margin-top:4px">Afnemanleg frá kjörtímabili 5 (2016).</p>';
-    return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🔒 Gjaldeyrishöft (virk)</h2><p style="font-size:12.5px;color:var(--muted);margin:0">Sett í hruninu 2008 til að stöðva fjármagnsflótta. Veita <b>stöðugleika</b> (verja gengi &amp; verðbólgu í kreppu) EN eru <b>drag á hagvöxt</b> (fæla frá fjárfestingu).</p>' + liftUI + '</div>';
+  // Fasi E — Stefnu-rofar: stórar tvíkosta-ákvarðanir í boði þetta kjörtímabil (rofar á/af + varanleg val).
+  function policiesCard(st) {
+    const P = st.policies; if (!P || !P.available || !P.available.length) return '';
+    const body = P.available.map((p) => {
+      const draft = S.policyDraft ? S.policyDraft[p.id] : undefined;
+      if (p.kind === 'toggle') {
+        const on = draft != null ? draft : (P.states[p.id] === true);
+        return '<div style="margin:10px 0"><label style="cursor:pointer;font-size:13.5px;display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-pol="' + p.id + '"' + (on ? ' checked' : '') + ' style="margin-top:2px"/><b>' + p.icon + ' ' + esc(p.onLabel || p.label) + '</b></label><p style="font-size:12px;color:var(--muted);margin:3px 0 0 24px">' + esc(p.desc) + '</p></div>';
+      }
+      const cur = draft != null ? draft : (P.states[p.id] || null);
+      const opts = (p.options || []).map((o) => '<span class="lk-opt' + (cur === o.key ? ' sel' : '') + '" data-polc="' + p.id + '" data-polk="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + '</span>').join(' ');
+      return '<div style="margin:10px 0"><b>' + p.icon + ' ' + esc(p.label) + '</b><p style="font-size:12px;color:var(--muted);margin:3px 0 6px">' + esc(p.desc) + '</p><div>' + opts + '</div></div>';
+    }).join('');
+    return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + body + '</div>';
   }
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
@@ -301,7 +309,7 @@ export function mountLeikur(root) {
   function renderLanding() {
     const u = S.user;
     const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>';
-    const createCard = '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-studio" checked style="vertical-align:middle;margin-right:6px"/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label><label style="display:block;margin-top:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label><label style="display:block;margin-top:6px;font-size:13.5px">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label></div>';
+    const createCard = '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-studio" checked style="vertical-align:middle;margin-right:6px"/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label><label style="display:block;margin-top:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label><label style="display:block;margin-top:6px;font-size:13.5px">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label><label style="display:block;margin-top:8px;font-size:13.5px">🎚️ Erfiðleikastig: <select id="lk-difficulty" style="padding:4px 6px;margin-left:4px"><option value="easy">Létt</option><option value="medium" selected>Miðlungs</option><option value="hard">Erfitt</option></select> <span class="lk-muted">(skalar markmið, áföll og refsingar)</span></label></div>';
     const joinCard = '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
     const noticeCard = '<div class="lk-card"><p>🎮 Leikurinn er fyrir nemendur og kennara. Skráðu þig inn — kennarinn (leikstjóri) gefur þér leikkóða.</p><a class="lk-btn" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
     if (u && u.isAdmin) root.innerHTML = intro + createCard + joinCard;
@@ -551,14 +559,14 @@ export function mountLeikur(root) {
     const [y0, y1] = termYears(st.round), ev = st.event;
     root.innerHTML =
       ribbonHtml(st) +
-      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
+      `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +
           '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + '<div id="lk-st-sliders">' + sliders + '</div></div>' +
           mandateCard(st) +
-          hoftCard(st) +
+          policiesCard(st) +
           '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
         '</div>' +
       '</div>' +
@@ -567,8 +575,10 @@ export function mountLeikur(root) {
     drawStudioPreview(st);
   }
   function attachStudio(st) {
-    if (S.hoftRound !== st.round) { S.hoftRound = st.round; S.hoftLift = !!(st.hoft && st.hoft.lifting); }  // Fasi C: höft-val endursett per kjörtímabil
-    const hl = root.querySelector('#lk-hoft-lift'); if (hl) hl.onchange = () => { S.hoftLift = hl.checked; pushDraft(st); };
+    if (S.polRound !== st.round) { S.polRound = st.round; S.policyDraft = { ...((st.policies && st.policies.draft) || {}) }; }  // Fasi E: stefnu-rofa-drög endursett per kjörtímabil
+    if (!S.policyDraft) S.policyDraft = {};
+    root.querySelectorAll('input[data-pol]').forEach((el) => { el.onchange = () => { S.policyDraft[el.dataset.pol] = el.checked; pushDraft(st); }; });
+    root.querySelectorAll('[data-polc]').forEach((el) => { el.onclick = () => { S.policyDraft[el.dataset.polc] = el.dataset.polk; pushDraft(st); renderStudio(st); }; });
     root.querySelectorAll('.lk-tab').forEach((el) => { el.onclick = () => { S.studioTab = +el.dataset.tab; renderStudio(st); }; });
     const clearDrag = () => { S.dragging = null; };
     root.querySelectorAll('input[data-lev]').forEach((el) => {
@@ -588,7 +598,7 @@ export function mountLeikur(root) {
   // Ýtir deilanlegum liðs-drögum á þjón (locked:false, debounce) → félagar samstilla.
   function pushDraft(st) {
     if (S.pushTimer) clearTimeout(S.pushTimer);
-    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, hoftLift: !!S.hoftLift }, locked: false }, token: S.token }); }, 500);
+    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {} }, locked: false }, token: S.token }); }, 500);
   }
   // Poll-uppfærsla Á STAÐNUM: samstillir fjar-drög í sleða sem ÞÚ ert ekki að draga/hefur ekki breytt; endurteiknar gröf. ENGIN sleða-endurbygging.
   function updateStudio(st) {
@@ -605,7 +615,7 @@ export function mountLeikur(root) {
     });
     drawStudioPreview(st);
   }
-  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, hoftLift: !!S.hoftLift }, locked: true }, token: S.token }); S.unlocked = false; }); }
+  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {} }, locked: true }, token: S.token }); S.unlocked = false; }); }
 
   // Læst-staða (A): staðfesting + samantekt + „Breyta" (aflæsa fram að resolve).
   function renderLocked(st) {

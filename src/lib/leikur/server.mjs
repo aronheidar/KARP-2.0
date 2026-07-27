@@ -1,6 +1,6 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
-import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor } from './game-config.mjs';
+import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor, difficultyOf, scaleMandate } from './game-config.mjs';
 import { resolveTeam, buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildChain, activeInputsFromInputs } from './chain.mjs';
@@ -8,7 +8,7 @@ import { buildAnalytics } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
-import { HOFT, hoftActive, liftedAtRound, applyHoft } from './hoft.mjs';
+import { POLICIES, policyAvailable, policyStates, applyPolicies } from './policies.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -41,7 +41,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null) }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium' }; }
 // Fasi A: markmið per kjörtímabil f. sjálfgefna leiki; sérsniðnir leikir halda föstu mandate úr config.
 function mandateAt(cfg, round) { return cfg.perRound ? mandateFor(round) : cfg.mandate; }
 const LEVER_LABELS = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.label]));
@@ -67,6 +67,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cb && cb.roles) config.roles = true;
     if (cb && cb.mode === 'studio') config.mode = 'studio';
     if (cb && +cb.timerSec > 0) config.timerSec = Math.max(30, Math.min(3600, Math.round(+cb.timerSec))); // #3 valfrjáls umferðar-klukka (sek)
+    if (cb && ['easy', 'hard'].includes(cb.difficulty)) config.difficulty = cb.difficulty; // Fasi E: erfiðleikastig (medium=sjálfgefið)
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -103,7 +104,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0 }));
     const roundResults = resultsRaw.filter((r) => r.round === game.current_round).map((r) => ({ teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, detail: JSON.parse(r.kpis || '{}') }));
     // Umboð per áhorfanda: lið sér SITT hlutverks-umboð; leynd á hlutverkum hinna.
-    let outMandate = mandateAt(cfg, game.current_round), youRole = null;
+    let outMandate = scaleMandate(mandateAt(cfg, game.current_round), difficultyOf(cfg.difficulty).band), youRole = null;
     if (cfg.roles && cfg.roleMap && you && you.role === 'team' && you.code === code) {
       const rl = roleById(cfg.roleMap[you.teamId]);
       if (rl) { outMandate = mandateForRole(cfg.mandate, rl); youRole = { id: rl.id, label: rl.label, blurb: rl.blurb }; }
@@ -114,6 +115,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cfg.roles && cfg.roleMap && game.phase === 'ended') out.rolesReveal = revealRoles(cfg.roleMap, ROLES);
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
+    out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
     if (game.phase === 'decide' && cfg.deadline) out.secondsLeft = Math.max(0, Math.round((cfg.deadline - now()) / 1000));
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
@@ -132,8 +134,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         out.scenarioSoFar = (cfg.scenario.events || []).slice(0, game.current_round);
         // Deilanleg liðs-drög núverandi umferðar (einangruð per team_id) → félagar samstilla sleða.
         out.draft = (byR[game.current_round] || {}).levers || {};
-        // Fasi C: gjaldeyrishöft — virk (frá KT3 skv. fyrri ákvörðunum) + hvort megi afnema núna + hvort valið sé að afnema.
-        out.hoft = { active: hoftActive(game.current_round, liftedAtRound(out.history)), canLift: game.current_round >= HOFT.liftableFrom, lifting: !!(byR[game.current_round] || {}).hoftLift };
+        // Fasi E: stefnu-rofar — núverandi staða (úr fyrri ákvörðunum), drög þessarar umferðar, og hvað er í boði núna.
+        const polStates = policyStates(out.history);
+        out.policies = { states: polStates, draft: (byR[game.current_round] || {}).policies || {},
+          available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options })) };
       }
     }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
@@ -201,24 +205,28 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const rows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, tm.id).all().catch(() => ({ results: [] }))).results) || [];
         const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
         const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
-        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode });
-        // Fasi C: gjaldeyrishöft (leik-lag) — virk frá KT3, afnemanleg frá KT5. Stöðugleiki + vaxtar-drag á kpis.
-        const hoftOn = hoftActive(game.current_round, liftedAtRound(history)), qL = quarters - 1;
-        const bl = (k) => (BASELINE.outcomes[k] ? BASELINE.outcomes[k].path[qL] : null);
-        const kpis2 = hoftOn ? applyHoft(kpis, { gengi: bl('gengi'), gengi_endo: bl('gengi_endo'), verdbolga: bl('verdbolga'), hagvoxtur: bl('hagvoxtur') }) : kpis;
-        const roundMandate = mandateAt(cfg, game.current_round);
+        const diff = difficultyOf(cfg.difficulty);
+        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
+        // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
+        const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
+        const polStates = policyStates(history);
+        const kpis2 = applyPolicies(kpis, polStates, bl2);
+        // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
+        const penFactor = (f) => 1 - (1 - f) * diff.penalty;
+        const raw = mandateAt(cfg, game.current_round);
+        const roundMandate = { ...scaleMandate(raw, diff.band), crisisFactor: penFactor(raw.crisisFactor) };
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis2, tMandate);
-        // Fasi B: stjórnar-stöðugleiki — lágt fylgi margfaldar stigin niður (uppreisn/mótmæli).
+        // Fasi B: stjórnar-stöðugleiki — lágt fylgi margfaldar stigin niður (uppreisn/mótmæli), skalað eftir erfiðleika.
         const stab = govtStability(kpis2);
-        const roundScore = Math.round(sc.composite * stab.factor * 10) / 10;
-        const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode });
+        const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
+        const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
         // uppsafnað = fyrri cumulative + þessi (eftir stöðugleika-margfaldara)
         const prev = await env.TENGSL.prepare('SELECT cumulative FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, hoft: { active: hoftOn } }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, policies: polStates }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });

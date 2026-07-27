@@ -133,6 +133,19 @@ export function mandateFor(round) {
   return { kpis: keys.map((k) => GOAL_SPECS[k]).filter(Boolean), crisis: MANDATE.crisis, crisisFactor: MANDATE.crisisFactor };
 }
 
+// Fasi E — ERFIÐLEIKASTIG (leikstjóra-stilling): skalar markmiða-bönd (þrengd), sjokk-stærðir og kreppu/uppreisnar-refsingu.
+export const DIFFICULTY = {
+  easy: { key: 'easy', label: 'Létt', band: 1.6, shock: 0.65, penalty: 0.6, blurb: 'Fyrirgefandi markmið, mild áföll — gott fyrir yngri hópa og fyrstu spilun.' },
+  medium: { key: 'medium', label: 'Miðlungs', band: 1.0, shock: 1.0, penalty: 1.0, blurb: 'Sögulega raunsætt jafnvægi — sjálfgefið.' },
+  hard: { key: 'hard', label: 'Erfitt', band: 0.7, shock: 1.35, penalty: 1.3, blurb: 'Kröfuhörð markmið, hörð áföll — fyrir lengra komna.' },
+};
+export function difficultyOf(key) { return DIFFICULTY[key] || DIFFICULTY.medium; }
+// Víkkar (létt) eða þrengir (erfitt) markmiða-bönd + zeroAt svo hallinn haldist hlutfallslegur.
+export function scaleMandate(mandate, bandMult) {
+  if (!bandMult || bandMult === 1 || !mandate || !mandate.kpis) return mandate;
+  return { ...mandate, kpis: mandate.kpis.map((k) => ({ ...k, band: (k.band || 0) * bandMult, zeroAt: (k.zeroAt || 1) * bandMult })) };
+}
+
 // Söguleg sjálfgefin sviðsmynd: ÍSLAND 2000–2032, hvert kjörtímabil (4 ár) fær raun-atburð + sjokk.
 // `year` = upphafsár kjörtímabils, `icon` = tákn f. tímalínu. shocks = exogen (sömu f. öll lið).
 // responses (≥2, gild effect) haldast f. classic-samhæfi; studio-hamur hunsar þau (svarað með sleðum).

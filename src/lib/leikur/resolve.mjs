@@ -7,8 +7,8 @@ import { DECISIONS, SCENARIO as DEFAULT_SCENARIO, QUARTERS_PER_ROUND } from './g
 const DEC = Object.fromEntries(DECISIONS.map((d) => [d.id, d]));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-export function buildInputs(history, { baseline, scenario = DEFAULT_SCENARIO, mode = 'classic' }) {
-  if (mode === 'studio') return buildInputsStudio(history, { baseline, scenario });
+export function buildInputs(history, { baseline, scenario = DEFAULT_SCENARIO, mode = 'classic', shockScale = 1 }) {
+  if (mode === 'studio') return buildInputsStudio(history, { baseline, scenario, shockScale });
   const Q = history.length * QUARTERS_PER_ROUND;
   const levers = {}, shocks = {};
   const ensureLever = (k) => { if (!levers[k]) levers[k] = { value: new Array(Q).fill(baseline.levers[k].base), base: baseline.levers[k].base }; return levers[k]; };
@@ -38,7 +38,7 @@ export function buildInputs(history, { baseline, scenario = DEFAULT_SCENARIO, mo
     // sviðsmynd: sjokk umferðar (haldið yfir fjórðunga umferðar)
     const ev = scenario.events[r];
     if (ev) {
-      for (const [k, v] of Object.entries(ev.shocks || {})) { const s = ensureShock(k); for (let q = q0; q < q1; q++) s.value[q] = v; }
+      for (const [k, v] of Object.entries(ev.shocks || {})) { const s = ensureShock(k); for (let q = q0; q < q1; q++) s.value[q] = v * shockScale; }
       // #5: viðbragð → effect{lever?,shock?} (púls yfir umferð)
       const resp = (ev.responses || []).find((x) => x.key === set.vidbragd);
       if (resp && resp.effect) {
@@ -52,7 +52,7 @@ export function buildInputs(history, { baseline, scenario = DEFAULT_SCENARIO, mo
 
 // Studio-hamur: ákvörðun umferðar = { levers:{k:algert gildi} }. Sleðar bera á milli umferða (running),
 // klippt í [min,max]; sviðsmyndar-sjokk ofan á. Discrete-viðbrögð eiga ekki við (þátttakandi svarar með sleðum).
-function buildInputsStudio(history, { baseline, scenario = DEFAULT_SCENARIO }) {
+function buildInputsStudio(history, { baseline, scenario = DEFAULT_SCENARIO, shockScale = 1 }) {
   const Q = history.length * QUARTERS_PER_ROUND, levers = {}, shocks = {}, running = {};
   const clampL = (k, v) => { const c = baseline.levers[k]; return Math.max(c.min, Math.min(c.max, +v)); };
   history.forEach((set, r) => {
@@ -64,13 +64,13 @@ function buildInputsStudio(history, { baseline, scenario = DEFAULT_SCENARIO }) {
       for (let q = q0; q < q1; q++) lev.value[q] = val;
     }
     const ev = scenario.events[r];
-    if (ev) for (const [k, v] of Object.entries(ev.shocks || {})) { const s = shocks[k] || (shocks[k] = { value: new Array(Q).fill(0), base: 0 }); for (let q = q0; q < q1; q++) s.value[q] = v; }
+    if (ev) for (const [k, v] of Object.entries(ev.shocks || {})) { const s = shocks[k] || (shocks[k] = { value: new Array(Q).fill(0), base: 0 }); for (let q = q0; q < q1; q++) s.value[q] = v * shockScale; }
   });
   return { levers, shocks, quarters: Q };
 }
 
-export function resolveTeam({ baseline, links, history, scenario = DEFAULT_SCENARIO, mode = 'classic' }) {
-  const { levers, shocks, quarters } = buildInputs(history, { baseline, scenario, mode });
+export function resolveTeam({ baseline, links, history, scenario = DEFAULT_SCENARIO, mode = 'classic', shockScale = 1 }) {
+  const { levers, shocks, quarters } = buildInputs(history, { baseline, scenario, mode, shockScale });
   // simulate tekur levers sem {k: value} þar sem value má vera fylki; base kemur úr baseline.
   const levOv = {}; for (const k in levers) levOv[k] = levers[k].value;
   const shkOv = {}; for (const k in shocks) shkOv[k] = shocks[k].value;
