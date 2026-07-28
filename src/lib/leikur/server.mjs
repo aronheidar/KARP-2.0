@@ -128,7 +128,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         dilemma: se.dilemma ? { q: se.dilemma.q, options: (se.dilemma.options || []).map((o) => ({ key: o.key, label: o.label })) } : null };
     }
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
-    if (game.phase === 'decide' && cfg.deadline) out.secondsLeft = Math.max(0, Math.round((cfg.deadline - now()) / 1000));
+    if (game.phase === 'decide' && cfg.deadline) { out.secondsLeft = Math.max(0, cfg.deadline - now()); out.deadlineTs = cfg.deadline; } // deadline = epoch-sekúndur (algild → stöðug klukka óháð poll/reload)
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
@@ -239,7 +239,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const teamRows = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
         cobj.roleMap = assignRoles(teamRows.map((t) => t.id), ROLES);
       }
-      if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec * 1000; // #3 umferðar-klukka
+      if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec; // #3 umferðar-klukka
       await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', 1, code).run().catch(() => null);
       return sjson({ ok: true, phase: 'decide', round: 1 });
     }
@@ -249,7 +249,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       if (nr > cfg.rounds) { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
       if (cfg.timerSec) { // #3 endursetja klukku fyrir nýtt kjörtímabil
         let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
-        cobj.deadline = now() + cfg.timerSec * 1000;
+        cobj.deadline = now() + cfg.timerSec;
         await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', nr, code).run().catch(() => null);
       } else {
         await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', nr, code).run().catch(() => null);

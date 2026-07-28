@@ -250,7 +250,7 @@ export function mountLeikur(root) {
   function stopPoll() { if (S.poll) { clearInterval(S.poll); S.poll = null; } if (S.timerInt) { clearInterval(S.timerInt); S.timerInt = null; } }
   // #3 Umferðar-klukka (bara sjónræn): tikkar staðbundið úr S.timerDeadline; við 0 → „útrunninn" (engin auto-læsing).
   const fmtTimer = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
-  function timerBadge(st) { return st.secondsLeft == null ? '' : '<span class="lk-timer" id="lk-timer">⏱️ ' + fmtTimer(Math.max(0, st.secondsLeft)) + '</span>'; }
+  function timerBadge(st) { if (S.timerDeadline == null && st.secondsLeft == null) return ''; const rem = S.timerDeadline != null ? Math.max(0, Math.round((S.timerDeadline - Date.now()) / 1000)) : Math.max(0, st.secondsLeft); return '<span class="lk-timer" id="lk-timer">⏱️ ' + fmtTimer(rem) + '</span>'; }
   function tickTimer() {
     const el = root.querySelector('#lk-timer'); if (!el) return;
     if (S.timerDeadline == null) { el.style.display = 'none'; return; }
@@ -264,7 +264,8 @@ export function mountLeikur(root) {
     const { status, json } = await api('/' + S.code + '/state', { token: S.token });
     if (status === 404) { stopPoll(); root.innerHTML = card('Leikur fannst ekki', '<a class="lk-btn" href="/leikur/">Til baka</a>'); return; }
     S.state = json;
-    S.timerDeadline = (json.secondsLeft != null && json.phase === 'decide') ? Date.now() + json.secondsLeft * 1000 : null;
+    // Klukka: festa á ALGILD tímamörk (epoch) → stöðug milli poll-a og reload-a (engin endur-ræsing). Fallback á secondsLeft f. eldri þjón.
+    S.timerDeadline = (json.phase === 'decide' && json.deadlineTs) ? json.deadlineTs * 1000 : ((json.phase === 'decide' && json.secondsLeft != null) ? Date.now() + json.secondsLeft * 1000 : null);
     if (S.role === 'team' && S.teamId == null && json.you && json.you.teamId != null) {
       S.teamId = json.you.teamId;
       try { localStorage.setItem(lsTeam(S.code), JSON.stringify({ token: S.token, teamId: S.teamId })); } catch (e) {}

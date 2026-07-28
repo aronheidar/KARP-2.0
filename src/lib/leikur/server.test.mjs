@@ -192,6 +192,8 @@ const J = async (res) => JSON.parse(await res.text());
   await LH(new Request('https://karp.is/api/leikur/' + tg.code + '/control', { method: 'POST', headers: tFacHdr, body: JSON.stringify({ action: 'start' }) }), env);
   const tSt = await J(await LH(new Request('https://karp.is/api/leikur/' + tg.code + '/state', { headers: { authorization: 'Bearer ' + tg.facToken } }), env));
   ok('klukka: secondsLeft sett í decide (~120)', typeof tSt.secondsLeft === 'number' && tSt.secondsLeft > 100 && tSt.secondsLeft <= 120);
+  // Vörn gegn einingavillu: deadlineTs = epoch-SEKÚNDUR (algild), ~120s frá núna (EKKI 120000).
+  ok('klukka: deadlineTs epoch-sek, ~120s eftir (ekki ms-eining)', typeof tSt.deadlineTs === 'number' && tSt.deadlineTs > 1e9 && (tSt.deadlineTs - Math.floor(Date.now() / 1000)) > 100 && (tSt.deadlineTs - Math.floor(Date.now() / 1000)) <= 121);
   ok('engin klukka: secondsLeft undefined', cgSt.secondsLeft === undefined);
   // Klukka klippt í [30,3600]
   const tg2 = await J(await LH(req('/api/leikur/create', { timerSec: 5 }), env));
