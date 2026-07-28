@@ -170,10 +170,15 @@ function renderFacAnalytics(an) {
   const polHtml = (an.policiesByTeam && an.policiesByTeam.length)
     ? '<h3 style="font-size:14px;margin:12px 0 4px">🏛️ Stórar ákvarðanir liða</h3><table class="lk-tbl"><tr><th>Lið</th><th>Ákvarðanir</th></tr>' + an.policiesByTeam.map((t) => '<tr><td>' + esc(t.name) + '</td><td style="font-size:12.5px">' + t.policies.map((p) => p.icon + ' ' + esc(p.label) + ': <b>' + esc(p.choice) + '</b>').join(' · ') + '</td></tr>').join('') + '</table>'
     : '';
+  // Fasi „skemmtun 3": klemmu-viðbrögð liða við óvæntum atvikum (leikstjóra-samantekt).
+  const dilHtml = (an.dilemmasByTeam && an.dilemmasByTeam.length)
+    ? '<h3 style="font-size:14px;margin:12px 0 4px">🎲 Óvænt atvik — viðbrögð liða</h3><table class="lk-tbl"><tr><th>Lið</th><th>Klemmu-val</th></tr>' + an.dilemmasByTeam.map((t) => '<tr><td>' + esc(t.name) + '</td><td style="font-size:12.5px">' + t.items.map((it) => (it.icon || '🎲') + ' ' + esc(it.title) + ': <b>' + esc(it.choice || '— ekkert valið') + '</b>').join(' · ') + '</td></tr>').join('') + '</table>'
+    : '';
   return promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
     + '<h3 style="font-size:14px;margin:12px 0 4px">Ákvarðanir umferðar</h3>' + dt
     + polHtml
+    + dilHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Þróun yfir umferðir</h3>' + charts;
 }
 

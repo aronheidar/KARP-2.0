@@ -232,6 +232,10 @@ const J = async (res) => JSON.parse(await res.text());
     await xCtrl('resolve');
     const xRes = await J(await xStG(xg.facToken));
     ok('surprise: bæði lið skoruð eftir atvik+klemmu', xRes.teams.every((t) => typeof t.cumulative === 'number'));
+    // Leikstjóra-samantekt: klemmu-viðbrögð beggja liða
+    const dbt = xRes.analytics && xRes.analytics.dilemmasByTeam;
+    ok('surprise: leikstjóra-samantekt með klemmu-viðbrögð beggja liða', Array.isArray(dbt) && dbt.length === 2 && dbt.every((t) => t.items.some((it) => it.round === 2 && it.title === xEv.title)));
+    ok('surprise: samantekt sýnir rétt val liðs A', dbt && dbt.some((t) => t.items.find((it) => it.round === 2).choice === opts[0].label));
     // classic/án surprise → aldrei out.surprise
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
   }

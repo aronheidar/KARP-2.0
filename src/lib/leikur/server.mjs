@@ -10,7 +10,7 @@ import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './rol
 import { govtStability } from './flavor.mjs';
 import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import { awardMedals } from './medals.mjs';
-import { rollSurprise, applySurprise } from './surprise.mjs';
+import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -176,7 +176,16 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const latest = {}, appr = {}; for (const r of resultsRaw) { if (!latest[r.team_id] || r.round > latest[r.team_id].round) latest[r.team_id] = r; try { const a = (JSON.parse(r.kpis || '{}').stability || {}).approval; if (typeof a === 'number') (appr[r.team_id] || (appr[r.team_id] = [])).push(a); } catch (e) {} }
         out.analytics.policiesByTeam = Object.values(latest).map((r) => { let pol = {}; try { pol = JSON.parse(r.kpis || '{}').policies || {}; } catch (e) {} return { teamId: r.team_id, name: nm[r.team_id] || ('Lið ' + r.team_id), policies: describePolicies(pol) }; }).filter((x) => x.policies.length);
         out.analytics.scorecard.forEach((row) => { const arr = appr[row.teamId]; row.avgApproval = (arr && arr.length) ? Math.round(arr.reduce((x, y) => x + y, 0) / arr.length) : null; }); // heildar-fylgi per lið
-
+        // Fasi „skemmtun 3": klemmu-viðbrögð liða yfir kjörtímabilin → leikstjóra-samantekt í leikslok.
+        if (cfg.surprise) {
+          const dilByTR = {}; for (const d of decRaw) { let dd = {}; try { dd = JSON.parse(d.decisions || '{}'); } catch (e) {} (dilByTR[d.team_id] || (dilByTR[d.team_id] = {}))[d.round] = dd.dilemma; }
+          out.analytics.dilemmasByTeam = teamsRaw.map((t) => {
+            const items = [];
+            for (let rr = 2; rr <= game.current_round; rr++) { const ev = rollSurprise(code, rr); if (!ev || !ev.dilemma) continue;
+              items.push({ round: rr, icon: ev.icon, title: ev.title, choice: dilemmaChoiceLabel(ev, (dilByTR[t.id] || {})[rr]) }); }
+            return { teamId: t.id, name: nm[t.id] || ('Lið ' + t.id), items };
+          }).filter((x) => x.items.length);
+        }
       }
     }
     return sjson(out);

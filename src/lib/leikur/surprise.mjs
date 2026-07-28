@@ -19,6 +19,13 @@ export const SURPRISE_EVENTS = [
 const byId = Object.fromEntries(SURPRISE_EVENTS.map((e) => [e.id, e]));
 export function surpriseById(id) { return byId[id] || null; }
 
+// Merki valins klemmu-kosts (fyrir leikstjóra-samantekt). Skilar null ef atvik/klemma/val vantar.
+export function dilemmaChoiceLabel(event, choiceKey) {
+  if (!event || !event.dilemma) return null;
+  const o = (event.dilemma.options || []).find((x) => x.key === choiceKey);
+  return o ? o.label : null;
+}
+
 // Deterministískt atvik fyrir (kóða, umferð). ~55% líkur; ekki í KT1 (kynning). Sama f. öll lið.
 export function rollSurprise(code, round) {
   if (!code || round < 2) return null;
