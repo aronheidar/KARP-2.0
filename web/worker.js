@@ -5,7 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
-import { sectorsFromMap, herfindahl, toppNShare } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N)
+import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
@@ -3127,6 +3127,47 @@ async function atvinnugreinHandler(request, env, ctx) {
   return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=300' } });
 }
 
+// ── 🏭 Grein-rank: röðun félags í atvinnugrein sinni (OPIÐ, úr opinberum ársreikningum) ──
+// GET /api/grein-rank?kt= → { rank, total, slug, label, sala }. Nýjasta ár per kt (dedup), engin gátt.
+async function greinRankHandler(request, env, ctx) {
+  const url = new URL(request.url);
+  const kt = (url.searchParams.get('kt') || '').replace(/\D/g, '');
+  if (!kt) return _ajson({ ok: false, error: 'kt' });
+  if (!env.TENGSL) return _ajson({ ok: false, error: 'unconfigured' });
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/grein-rank?kt=' + kt);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  // grein félagsins úr bökuðum viðmiðum
+  const felag = await env.TENGSL.prepare('SELECT isat_primary FROM felog WHERE kt=?').bind(kt).first().catch(() => null);
+  const sk = await augGet(env, 'sector_kpi.json').catch(() => null);
+  const sec = (felag && felag.isat_primary && sk && sk.map) ? sectorForIsat(sectorsFromMap(sk.map), felag.isat_primary) : null;
+  if (!sec) return _ajson({ ok: true, kt, slug: null, label: null, rank: null, total: null, sala: null });
+  // greinar-sía (eins og atvinnugreinHandler): mis-löng forskeyti + útilokun, kóðar bundnir (?), aðeins c.length í streng
+  const binds = [];
+  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+  let where = '(' + isatClause + ')';
+  if (sec.excl && sec.excl.length) {
+    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+    where += ' AND NOT (' + exClause + ')';
+  }
+  // efnis-félagsins velta (nýjasta ár); getur verið null → rank verður null
+  const me = await env.TENGSL.prepare('SELECT sala FROM fjarhagur WHERE kt=? AND sala IS NOT NULL ORDER BY ar DESC LIMIT 1').bind(kt).first().catch(() => null);
+  const sala = (me && me.sala != null) ? me.sala : null;
+  // talning yfir grein — nýjasta ár PER kt (dedup, eins og roadsSectorsHandler; annars tvítelur fjölár)
+  const cnt = await env.TENGSL.prepare(
+    `SELECT COUNT(*) total, SUM(CASE WHEN fj.sala > ? THEN 1 ELSE 0 END) higher
+     FROM felog f JOIN (SELECT kt, sala, MAX(ar) ar FROM fjarhagur WHERE sala IS NOT NULL GROUP BY kt) fj ON fj.kt=f.kt
+     WHERE ${where}`
+  ).bind(sala == null ? -1 : sala, ...binds).first().catch(() => null);
+  const total = (cnt && cnt.total != null) ? cnt.total : null;
+  const rank = (sala != null && cnt && cnt.higher != null) ? cnt.higher + 1 : null;
+  const payload = JSON.stringify({ ok: true, kt, slug: sec.slug, label: sec.label, rank, total, sala });
+  const resp = new Response(payload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=300' } });
+  ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+  return resp;
+}
+
 // ── 🏭 ROADS: raunveruleg samsetning atvinnuvega úr ársreikningum (D1) ─────────────────────────
 // GET /api/roads/atvinnuvegir → grundar þjóðhags-herminn í raun-fyrirtækjagögnum: fyrir hverja ÍSAT-grein
 // heildarvelta, hlutur af heild, framlegð (hagnaður/velta), fjöldi greindra félaga. Nýjasta ár PER kt
@@ -4585,6 +4626,7 @@ export default {
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
     if (url.pathname === '/api/topplistar') return topplistarHandler(request, env, ctx);
     if (url.pathname === '/api/atvinnugrein') return atvinnugreinHandler(request, env, ctx);   // Atvinnugreinar v1: gátuð djúp-skýrsla per deild (Fyrirtæki+)
+    if (url.pathname === '/api/grein-rank') return greinRankHandler(request, env, ctx);   // grein-rank: röðun félags í grein (opið)
     if (url.pathname === '/api/roads/atvinnuvegir') return roadsSectorsHandler(request, env, ctx);
     if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
     if (url.pathname === '/api/tengsl-stats') return tengslStatsHandler(request, env);
