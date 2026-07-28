@@ -1,7 +1,75 @@
 {
  "kt": "6302230160",
  "nafn": "Sveitakaffi ehf.",
- "sott": "2026-07-23",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "kostnadarverd": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebit": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5558,
+    "ebit_hlutfall": 0.0192,
+    "hagnadarhlutfall": 0.0158,
+    "ROE": 0.5897,
+    "ROA": 0.2934,
+    "eiginfjarhlutfall": 0.4975,
+    "veltufjarhlutfall": 1.2599,
+    "skuldahlutfall_DE": 1.0099,
+    "eignavelta": 18.5674
+   },
+   "rekstur": {
+    "sala": 45482845,
+    "kostnadarverd": 20203289,
+    "laun": 16789381,
+    "annar_rekstur": 3726935,
+    "ebit": 871159,
+    "fjarmagnsgjold": 53398,
+    "hagn_f_skatt": 924557,
+    "hagnadur": 718746
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 532123,
+    "handbaert": 1018665,
+    "eignir": 2449607,
+    "hlutafe": 500000,
+    "eigid_fe": 1218746,
+    "skuldir": 1230861,
+    "efe_skuldir": 2449607,
+    "skammtimaskuldir": 1230861
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6302230160.pdf",
+ "pdfAr": "2023",
+ "ocr": true
 }

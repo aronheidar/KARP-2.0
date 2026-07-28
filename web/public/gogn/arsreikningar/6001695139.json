@@ -1,7 +1,113 @@
 {
  "kt": "6001695139",
  "nafn": "Hekla hf.",
- "sott": "2026-07-21",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0551,
+    "hagnadarhlutfall": -0.0394,
+    "ROE": 0.2315,
+    "ROA": 0.1075,
+    "eiginfjarhlutfall": 0.4644,
+    "veltufjarhlutfall": 1.486,
+    "skuldahlutfall_DE": 1.1531,
+    "eignavelta": -2.7299
+   },
+   "rekstur": {
+    "sala": -15119908,
+    "afskriftir": null,
+    "ebit": 832975,
+    "fjarmagnsgjold": -88519,
+    "tekjuskattur": null,
+    "hagnadur": 595539
+   },
+   "efnahagur": {
+    "birgdir": 3952378,
+    "vidskiptakrofur": 455361,
+    "eignir": 5538583,
+    "hlutafe": 450450,
+    "eigid_fe": 2572391,
+    "skuldir": 2966192,
+    "efe_skuldir": 5538583,
+    "skammtimaskuldir": 2966192
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0165,
+    "hagnadarhlutfall": -0.0075,
+    "ROE": 0.0282,
+    "ROA": 0.018,
+    "eiginfjarhlutfall": 0.6373,
+    "veltufjarhlutfall": 1.6639,
+    "skuldahlutfall_DE": 0.5692,
+    "eignavelta": -2.4094
+   },
+   "rekstur": {
+    "sala": -9325345,
+    "afskriftir": 17.18,
+    "ebit": 154191,
+    "fjarmagnsgjold": -66023,
+    "tekjuskattur": 6.16,
+    "hagnadur": 69649
+   },
+   "efnahagur": {
+    "birgdir": 1974777,
+    "vidskiptakrofur": 361212,
+    "eignir": 3870345,
+    "hlutafe": 450450,
+    "eigid_fe": 2466409,
+    "skuldir": 1403936,
+    "efe_skuldir": 3870345,
+    "skammtimaskuldir": 1403936
+   },
+   "starfsmenn": 118
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0627,
+    "hagnadarhlutfall": -0.0363,
+    "ROE": 0.2607,
+    "ROA": 0.0653,
+    "eiginfjarhlutfall": 0.2504,
+    "veltufjarhlutfall": 0.9633,
+    "skuldahlutfall_DE": 2.9938,
+    "eignavelta": -1.799
+   },
+   "rekstur": {
+    "sala": -13747966,
+    "ebitda": 886833,
+    "afskriftir": 17.18,
+    "ebit": 861701,
+    "fjarmagnsgjold": -53344,
+    "hagnadur": 498818
+   },
+   "efnahagur": {
+    "birgdir": 4022913,
+    "vidskiptakrofur": 491970,
+    "handbaert": 1003361,
+    "eignir": 7641800,
+    "eigid_fe": 1913418,
+    "skuldir": 5728381,
+    "efe_skuldir": 7641800,
+    "skammtimaskuldir": 5728381
+   },
+   "starfsmenn": 108
+  }
+ },
+ "pdf": "pdf/6001695139.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

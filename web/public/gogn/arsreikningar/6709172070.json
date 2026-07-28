@@ -1,7 +1,113 @@
 {
  "kt": "6709172070",
  "nafn": "Iceland tire ehf.",
- "sott": "2026-07-25",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3389,
+    "eiginfjarhlutfall": 0.8502,
+    "veltufjarhlutfall": 0.0009,
+    "skuldahlutfall_DE": 0.1762,
+    "eignavelta": 1.2703
+   },
+   "rekstur": {
+    "sala": 51384914,
+    "laun": 5050954,
+    "annar_rekstur": 4618212,
+    "ebit": 17412748,
+    "fjarmagnsgjold": 14980,
+    "hagn_f_skatt": 17427728,
+    "tekjuskattur": -3476123
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1864258,
+    "vidskiptakrofur": 5690,
+    "handbaert": null,
+    "veltufjarmunir": 38586797,
+    "eignir": 40451055,
+    "eigid_fe": 34390407,
+    "skuldir": 6060648,
+    "efe_skuldir": 40451055,
+    "skammtimaskuldir": 6060648
+   },
+   "starfsmenn": null
+  },
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0481,
+    "eiginfjarhlutfall": 0.7148,
+    "veltufjarhlutfall": 2.6749,
+    "skuldahlutfall_DE": 0.399,
+    "eignavelta": 0.9338
+   },
+   "rekstur": {
+    "sala": 47240224,
+    "laun": 7359703,
+    "annar_rekstur": 5084515,
+    "ebit": 2273905,
+    "fjarmagnsgjold": 25036,
+    "hagn_f_skatt": 2298941,
+    "tekjuskattur": -463448
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2129487,
+    "vidskiptakrofur": 11198,
+    "handbaert": 38581107,
+    "veltufjarmunir": 48458782,
+    "eignir": 50588269,
+    "eigid_fe": 36160886,
+    "skuldir": 14427383,
+    "efe_skuldir": 50588269,
+    "skammtimaskuldir": 14427383
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6795,
+    "ebit_hlutfall": 0.5269,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 3.4163,
+    "skuldahlutfall_DE": 6733336.9643,
+    "eignavelta": 1.0708
+   },
+   "rekstur": {
+    "sala": 144524241,
+    "kostnadarverd": 46321581,
+    "laun": 15626143,
+    "annar_rekstur": 4270776,
+    "ebit": 76149488,
+    "fjarmunatekjur": 234553,
+    "fjarmagnsgjold": 234553,
+    "hagn_f_skatt": 7638404
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6092751,
+    "birgdir": 2526079,
+    "vidskiptakrofur": 45781611,
+    "handbaert": 80507805,
+    "veltufjarmunir": 128878295,
+    "eignir": 134971046,
+    "eigid_fe": 5.6,
+    "skuldir": 37706687,
+    "efe_skuldir": 134971046,
+    "skammtimaskuldir": 37706687
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6709172070.pdf",
+ "pdfAr": "2022",
+ "ocr": true
 }

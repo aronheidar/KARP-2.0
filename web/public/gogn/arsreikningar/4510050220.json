@@ -1,7 +1,112 @@
 {
  "kt": "4510050220",
  "nafn": "Novator ehf",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "hagnadarhlutfall": 6.6912,
+    "ROE": 0.011,
+    "ROA": 0.0109,
+    "eiginfjarhlutfall": 0.9976,
+    "veltufjarhlutfall": 20.8571,
+    "skuldahlutfall_DE": 0.0024,
+    "eignavelta": 0.0016
+   },
+   "rekstur": {
+    "fjarmunatekjur": 90463,
+    "fjarmagnsgjold": -1,
+    "sala": 6240,
+    "laun": 47133,
+    "annar_rekstur": 98242,
+    "afskriftir": 18951,
+    "hagnadur": 41753
+   },
+   "efnahagur": {
+    "fastafjarmunir": 237150,
+    "vidskiptakrofur": 2040,
+    "handbaert": 186821,
+    "veltufjarmunir": 3583101,
+    "eignir": 3820251,
+    "hlutafe": 265700,
+    "eigid_fe": 3811196,
+    "skammtimaskuldir": 9055,
+    "efe_skuldir": 3820251,
+    "skuldir": 9055
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ROE": -0.1705,
+    "ROA": -0.1697,
+    "eiginfjarhlutfall": 0.9955,
+    "veltufjarhlutfall": 11.1774,
+    "skuldahlutfall_DE": 0.0045,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "fjarmunatekjur": 21967,
+    "fjarmagnsgjold": -37,
+    "sala": 0,
+    "laun": 55008,
+    "annar_rekstur": 59539,
+    "afskriftir": 19306,
+    "hagnadur": -168237
+   },
+   "efnahagur": {
+    "fastafjarmunir": 257982,
+    "vidskiptakrofur": 1838,
+    "handbaert": 47555,
+    "veltufjarmunir": 733330,
+    "eignir": 991312,
+    "hlutafe": 50000,
+    "eigid_fe": 986893,
+    "skammtimaskuldir": 4419,
+    "efe_skuldir": 991312,
+    "skuldir": 4419
+   },
+   "starfsmenn": 2
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "hagnadarhlutfall": -3.6977,
+    "ROA": -0.2424,
+    "veltufjarhlutfall": 0.2405,
+    "eignavelta": 0.0656
+   },
+   "rekstur": {
+    "fjarmunatekjur": 7701,
+    "fjarmagnsgjold": -410,
+    "sala": 42517,
+    "laun": 43382,
+    "annar_rekstur": 52011,
+    "hagnadur": -157217
+   },
+   "efnahagur": {
+    "fastafjarmunir": 149523,
+    "vidskiptakrofur": 1107,
+    "handbaert": 3809,
+    "veltufjarmunir": 498936,
+    "eignir": 648459,
+    "hlutafe": 50000,
+    "skammtimaskuldir": 20442,
+    "efe_skuldir": 648459
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4510050220.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }

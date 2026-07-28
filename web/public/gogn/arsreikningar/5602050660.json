@@ -1,7 +1,60 @@
 {
  "kt": "5602050660",
  "nafn": "Karski ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1021,
+    "eiginfjarhlutfall": 0.2559,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 2.9071,
+    "eignavelta": 0.0278
+   },
+   "rekstur": {
+    "sala": 9005533,
+    "annar_rekstur": 6639294,
+    "afskriftir": 1446921,
+    "ebit": 919318,
+    "matsbreyting": 0,
+    "fjarmunatekjur": 4511993,
+    "fjarmagnsgjold": -6637,
+    "hagn_f_skatt": 5791361
+   },
+   "efnahagur": {
+    "veltufjarmunir": 52487,
+    "eignir": 324225435,
+    "hlutafe": 1295415,
+    "skuldir": 241242606,
+    "eigid_fe": 82982829,
+    "skammtimaskuldir": 241242606
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5602050660.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }

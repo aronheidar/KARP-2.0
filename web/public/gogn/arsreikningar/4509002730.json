@@ -1,7 +1,62 @@
 {
  "kt": "4509002730",
  "nafn": "Dexter Fjárfestingar ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 0.9505,
+    "veltufjarhlutfall": 0.0047,
+    "skuldahlutfall_DE": 0.0521
+   },
+   "rekstur": {
+    "fjarmunatekjur": 786146057,
+    "fjarmagnsgjold": -39689168,
+    "laun": -56430152,
+    "annar_rekstur": -90506008,
+    "afskriftir": 312,
+    "hagn_f_skatt": -160825589,
+    "tekjuskattur": 915,
+    "hagnadur": 100
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6247.074,
+    "handbaert": 9465694.41,
+    "eignir": 40911494795,
+    "hlutafe": 582038046,
+    "skuldir": 2025035033,
+    "efe_skuldir": 40911494795,
+    "eigid_fe": 38886459762,
+    "skammtimaskuldir": 2025035033
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4509002730.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

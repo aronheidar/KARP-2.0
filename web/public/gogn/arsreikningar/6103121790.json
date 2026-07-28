@@ -1,7 +1,97 @@
 {
  "kt": "6103121790",
  "nafn": "Ýmir fasteignir ehf.",
- "sott": "2026-07-22",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5378,
+    "ebit_hlutfall": 0.4983,
+    "hagnadarhlutfall": 0.4983,
+    "ROE": 0.0502,
+    "ROA": 0.0195,
+    "eiginfjarhlutfall": 0.3893,
+    "veltufjarhlutfall": 0.0124,
+    "skuldahlutfall_DE": 1.5686,
+    "eignavelta": 0.0392
+   },
+   "rekstur": {
+    "sala": 39521968,
+    "kostnadarverd": 18268113,
+    "annar_rekstur": 1560645,
+    "hagnadur": 19693210,
+    "matsbreyting": 0,
+    "ebit": 19693210,
+    "fjarmunatekjur": 100751,
+    "fjarmagnsgjold": -19741156,
+    "hagn_f_skatt": 52805,
+    "tekjuskattur": -14321
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1235404,
+    "handbaert": 6423881,
+    "eignir": 1007971213,
+    "hlutafe": 750000,
+    "eigid_fe": 392413657,
+    "skuldir": 615557557,
+    "efe_skuldir": 1007971213,
+    "skammtimaskuldir": 615557557
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.621,
+    "ebit_hlutfall": 2.4713,
+    "hagnadarhlutfall": 0.6158,
+    "ROE": 0.0995,
+    "ROA": 0.0462,
+    "eiginfjarhlutfall": 0.4646,
+    "veltufjarhlutfall": 0.0032,
+    "skuldahlutfall_DE": 1.1523,
+    "eignavelta": 0.075
+   },
+   "rekstur": {
+    "sala": 87982858,
+    "kostnadarverd": 33344890,
+    "annar_rekstur": 456450,
+    "hagnadur": 54181518,
+    "matsbreyting": 163250000,
+    "ebit": 217431518,
+    "fjarmunatekjur": 429968,
+    "fjarmagnsgjold": -27457194,
+    "hagn_f_skatt": 190404292,
+    "tekjuskattur": -38084898
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 998318,
+    "handbaert": 999305,
+    "eignir": 1172411023,
+    "hlutafe": 750000,
+    "eigid_fe": 544733051,
+    "skuldir": 627677972,
+    "efe_skuldir": 1172411023,
+    "skammtimaskuldir": 627677972
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6103121790.pdf",
+ "pdfAr": "2024"
 }

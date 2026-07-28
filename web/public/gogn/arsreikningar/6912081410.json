@@ -1,7 +1,61 @@
 {
  "kt": "6912081410",
  "nafn": "2008 ehf",
- "sott": "2026-07-22",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3651,
+    "eiginfjarhlutfall": -0.0749,
+    "veltufjarhlutfall": 7.6702,
+    "eignavelta": 0.0485
+   },
+   "rekstur": {
+    "sala": 553393,
+    "kostnadarverd": 351345,
+    "laun": 243929,
+    "annar_rekstur": 524509,
+    "afskriftir": 337182,
+    "fjarmunatekjur": 897,
+    "fjarmagnsgjold": 1053071
+   },
+   "efnahagur": {
+    "birgdir": 500000,
+    "vidskiptakrofur": 197,
+    "handbaert": 1471,
+    "eignir": 11420649,
+    "hlutafe": 600000,
+    "eigid_fe": -855957,
+    "skammtimaskuldir": 65405,
+    "skuldir": 13585493,
+    "efe_skuldir": 11420649
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6912081410.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }

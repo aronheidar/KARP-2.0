@@ -1,7 +1,54 @@
 {
  "kt": "4911051270",
  "nafn": "Eignarhaldsfélagið Hof ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0002,
+    "veltufjarhlutfall": 0.7729
+   },
+   "rekstur": {
+    "fjarmunatekjur": -344663,
+    "fjarmagnsgjold": -1287426,
+    "tekjuskattur": 8.16,
+    "hagnadur": -1384.005
+   },
+   "efnahagur": {
+    "eignir": 6091213,
+    "vidskiptakrofur": 69065,
+    "handbaert": 27843929,
+    "hlutafe": 1350450,
+    "skuldir": 36112749,
+    "eigid_fe": -30021536,
+    "skammtimaskuldir": 36112749
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4911051270.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

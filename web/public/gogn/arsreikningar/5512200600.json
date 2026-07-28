@@ -1,7 +1,95 @@
 {
  "kt": "5512200600",
  "nafn": "2022 ehf.",
- "sott": "2026-07-26",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1282,
+    "hagnadarhlutfall": 0.0564,
+    "ROA": 0.084,
+    "eiginfjarhlutfall": -0.0578,
+    "veltufjarhlutfall": 0.0308,
+    "eignavelta": 1.4895
+   },
+   "rekstur": {
+    "sala": 20369024,
+    "ebit": 2611844,
+    "afskriftir": -466355,
+    "fjarmunatekjur": 9592,
+    "fjarmagnsgjold": -1005709,
+    "hagn_f_skatt": 1149372,
+    "tekjuskattur": 0,
+    "hagnadur": 1149372
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11477515,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 223892,
+    "veltufjarmunir": 2197737,
+    "eignir": 13675252,
+    "hlutafe": 500000,
+    "eigid_fe": -790465,
+    "langtimaskuldir": 7200000,
+    "skammtimaskuldir": 7265717,
+    "skuldir": 14465717,
+    "efe_skuldir": 13675252
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0348,
+    "hagnadarhlutfall": -0.0568,
+    "ROA": -0.1745,
+    "eiginfjarhlutfall": -0.2325,
+    "veltufjarhlutfall": 0.1257,
+    "eignavelta": 3.0738
+   },
+   "rekstur": {
+    "sala": 41867401,
+    "ebit": -1455120,
+    "afskriftir": -429130,
+    "fjarmunatekjur": 679,
+    "fjarmagnsgjold": -493006,
+    "hagn_f_skatt": -2376577,
+    "tekjuskattur": 0,
+    "hagnadur": -2376577
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11048385,
+    "birgdir": 0,
+    "vidskiptakrofur": 672041,
+    "handbaert": 749923,
+    "veltufjarmunir": 2572560,
+    "eignir": 13620945,
+    "hlutafe": 500000,
+    "eigid_fe": -3167042,
+    "langtimaskuldir": 5475000,
+    "skammtimaskuldir": 11312987,
+    "skuldir": 16787987,
+    "efe_skuldir": 13620945
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5512200600.pdf",
+ "pdfAr": "2024"
 }

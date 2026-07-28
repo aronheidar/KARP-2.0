@@ -1,7 +1,90 @@
 {
  "kt": "4410160260",
  "nafn": "Skuggaborgir ehf.",
- "sott": "2026-07-25",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2018": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1201,
+    "hagnadarhlutfall": 0.0812,
+    "ROE": 0.1568,
+    "ROA": 0.1097,
+    "eiginfjarhlutfall": 0.6997,
+    "veltufjarhlutfall": 0.1062,
+    "skuldahlutfall_DE": 0.4293,
+    "eignavelta": 1.351
+   },
+   "rekstur": {
+    "sala": 10796700,
+    "laun": 6005896,
+    "ebit": 1296619,
+    "fjarmunatekjur": 768,
+    "fjarmagnsgjold": -82772,
+    "hagnadur": 876608,
+    "afskriftir": 336420
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 180,
+    "handbaert": 254743,
+    "eignir": 7991792,
+    "hlutafe": 500000,
+    "eigid_fe": 5591505,
+    "skuldir": 2400287,
+    "efe_skuldir": 7991792,
+    "skammtimaskuldir": 2400287
+   },
+   "starfsmenn": null
+  },
+  "2019": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2285,
+    "hagnadarhlutfall": 0.1594,
+    "ROE": 0.7388,
+    "ROA": 0.2274,
+    "eiginfjarhlutfall": 0.3078,
+    "veltufjarhlutfall": 0.0171,
+    "skuldahlutfall_DE": 2.2491,
+    "eignavelta": 1.427
+   },
+   "rekstur": {
+    "sala": 10500900,
+    "laun": 4148208,
+    "ebit": 2399101,
+    "fjarmunatekjur": 1003,
+    "fjarmagnsgjold": -257372,
+    "hagnadur": 1673356,
+    "afskriftir": 235494
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 221,
+    "handbaert": 87037,
+    "eignir": 7358664,
+    "hlutafe": 500000,
+    "eigid_fe": 2264861,
+    "skuldir": 5093803,
+    "efe_skuldir": 7358664,
+    "skammtimaskuldir": 5093803
+   },
+   "starfsmenn": null
+  },
+  "2020": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4410160260.pdf",
+ "pdfAr": "2020",
+ "ocr": true
 }

@@ -1,7 +1,112 @@
 {
  "kt": "4509002650",
  "nafn": "Fari ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.1994,
+    "ROA": 0.1967,
+    "eiginfjarhlutfall": 0.9867,
+    "veltufjarhlutfall": 4.6317,
+    "skuldahlutfall_DE": 0.0135
+   },
+   "rekstur": {
+    "adrar_tekjur": 0,
+    "laun": -41325167,
+    "annar_rekstur": -43828664,
+    "afskriftir": -6391401,
+    "hagnadur": 2631998626
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 30237656,
+    "handbaert": 794018079,
+    "eignir": 13378647298,
+    "hlutafe": 224739600,
+    "eigid_fe": 13200689305,
+    "skuldir": 177957993,
+    "efe_skuldir": 13378647298,
+    "skammtimaskuldir": 177957993
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.2484,
+    "ROA": 0.2364,
+    "eiginfjarhlutfall": 0.9518,
+    "veltufjarhlutfall": 6.1048,
+    "skuldahlutfall_DE": 0.0122
+   },
+   "rekstur": {
+    "adrar_tekjur": 2000000,
+    "laun": -42360688,
+    "annar_rekstur": -44354063,
+    "afskriftir": -5608995,
+    "hagnadur": 3881650676
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 28203843,
+    "handbaert": 1137472144,
+    "eignir": 16417580367,
+    "hlutafe": 224739600,
+    "eigid_fe": 15626635531,
+    "skuldir": 190944836,
+    "efe_skuldir": 16417580367,
+    "skammtimaskuldir": 190944836
+   },
+   "starfsmenn": 2
+  },
+  "2025": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "framlegd": 1,
+    "ebit_hlutfall": -8.0468,
+    "hagnadarhlutfall": 1717.5612,
+    "ROE": 0.6028,
+    "ROA": 0.6,
+    "eiginfjarhlutfall": 0.9954,
+    "veltufjarhlutfall": 76.4298,
+    "skuldahlutfall_DE": 0.0046,
+    "eignavelta": 0.0003
+   },
+   "rekstur": {
+    "sala": 13279,
+    "adrar_tekjur": 2028,
+    "kostnadarverd": 0,
+    "annar_rekstur": 57599,
+    "afskriftir": 6948,
+    "ebit": -106853,
+    "fjarmagnsgjold": 11057947,
+    "hagn_f_skatt": 22693063,
+    "tekjuskattur": 114432,
+    "hagnadur": 22807495
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 43242,
+    "handbaert": 13397778,
+    "veltufjarmunir": 16834256,
+    "eignir": 38009992,
+    "hlutafe": 224740,
+    "eigid_fe": 37834131,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 175861,
+    "skuldir": 175861,
+    "efe_skuldir": 38009992
+   },
+   "starfsmenn": 357
+  }
+ },
+ "pdf": "pdf/4509002650.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

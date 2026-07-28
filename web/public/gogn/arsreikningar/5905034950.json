@@ -1,7 +1,89 @@
 {
  "kt": "5905034950",
  "nafn": "Iðnver ehf.",
- "sott": "2026-07-22",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.353,
+    "ebit_hlutfall": 0.106,
+    "hagnadarhlutfall": 0.0819,
+    "ROA": 0.1716,
+    "eignavelta": 2.0955
+   },
+   "rekstur": {
+    "sala": 584318358,
+    "kostnadarverd": -378035423,
+    "laun": 52458649,
+    "annar_rekstur": 82735443,
+    "ebitda": 71088843,
+    "afskriftir": 9132365,
+    "ebit": 61956478,
+    "fjarmunatekjur": 655824,
+    "fjarmagnsgjold": -1034950,
+    "hagn_f_skatt": 59821872,
+    "tekjuskattur": -11968134,
+    "hagnadur": 47853738
+   },
+   "efnahagur": {
+    "fastafjarmunir": 31999528,
+    "birgdir": 122877241,
+    "vidskiptakrofur": 48788338,
+    "handbaert": 64001365,
+    "veltufjarmunir": 246845662,
+    "eignir": 278845190
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3595,
+    "ebit_hlutfall": 0.0784,
+    "hagnadarhlutfall": 0.0652,
+    "ROA": 0.1382,
+    "eignavelta": 2.1192
+   },
+   "rekstur": {
+    "sala": 727948909,
+    "kostnadarverd": -466271617,
+    "laun": 71665812,
+    "annar_rekstur": 117304265,
+    "ebitda": 72707215,
+    "afskriftir": 15655823,
+    "ebit": 57051392,
+    "fjarmunatekjur": 2849259,
+    "fjarmagnsgjold": -986909,
+    "hagn_f_skatt": 59346190,
+    "tekjuskattur": -11873278,
+    "hagnadur": 47472912
+   },
+   "efnahagur": {
+    "fastafjarmunir": 75068241,
+    "birgdir": 133130529,
+    "vidskiptakrofur": 57637733,
+    "handbaert": 40683818,
+    "veltufjarmunir": 268432789,
+    "eignir": 343501030
+   },
+   "starfsmenn": 5
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5905034950.pdf",
+ "pdfAr": "2024"
 }

@@ -1,7 +1,75 @@
 {
  "kt": "5806241380",
  "nafn": "Bergfag ehf.",
- "sott": "2026-07-23",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.5683,
+    "ROA": -0.0157,
+    "eiginfjarhlutfall": 0.0277,
+    "veltufjarhlutfall": 0.1912,
+    "skuldahlutfall_DE": 35.0953
+   },
+   "rekstur": {
+    "kostnadarverd": 17939347,
+    "laun": 16240362,
+    "annar_rekstur": 7055919,
+    "afskriftir": 0,
+    "ebit": -30616,
+    "fjarmunatekjur": 14996,
+    "fjarmagnsgjold": -165571,
+    "hagn_f_skatt": 181191,
+    "tekjuskattur": 0,
+    "hagnadur": -181191
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2138848,
+    "veltufjarmunir": 11507498,
+    "eignir": 11507498,
+    "hlutafe": 500000,
+    "eigid_fe": 318809,
+    "skuldir": 11188689,
+    "efe_skuldir": 11507498,
+    "skammtimaskuldir": 11188689
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5806241380.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }

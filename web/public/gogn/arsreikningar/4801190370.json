@@ -1,7 +1,94 @@
 {
  "kt": "4801190370",
  "nafn": "4S ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebitda": -134966,
+    "afskriftir": 0,
+    "hagn_f_skatt": 12588553,
+    "ebit": -134966
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7899198,
+    "hlutafe": 2620000,
+    "eigid_fe": 40070392,
+    "efe_skuldir": 40070392,
+    "eignir": 40070392,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "laun": 0,
+    "annar_rekstur": 0,
+    "ebitda": -98480,
+    "afskriftir": 0,
+    "hagn_f_skatt": 811327,
+    "ebit": -98480
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "hlutafe": 2620000,
+    "eigid_fe": 40846968,
+    "efe_skuldir": 40846968,
+    "eignir": 40846968,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "laun": 0,
+    "annar_rekstur": 81839
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "hlutafe": 2620000,
+    "eigid_fe": 61689124,
+    "efe_skuldir": 61689124,
+    "eignir": 61689124,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4801190370.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

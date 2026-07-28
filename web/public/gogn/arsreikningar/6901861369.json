@@ -1,7 +1,128 @@
 {
  "kt": "6901861369",
  "nafn": "Hótel Keflavík ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0567,
+    "hagnadarhlutfall": 0.0417,
+    "ROE": 0.3354,
+    "ROA": 0.1131,
+    "eiginfjarhlutfall": 0.3372,
+    "veltufjarhlutfall": 0.4636,
+    "skuldahlutfall_DE": 1.9659,
+    "eignavelta": 2.7148
+   },
+   "rekstur": {
+    "sala": 1388818631,
+    "laun": -553449077,
+    "annar_rekstur": -333865898,
+    "afskriftir": -48061295,
+    "ebit": 78727825,
+    "fjarmunatekjur": 556422,
+    "fjarmagnsgjold": -7370289,
+    "hagn_f_skatt": 72310081,
+    "tekjuskattur": -14465776,
+    "hagnadur": 57844305
+   },
+   "efnahagur": {
+    "birgdir": 1569861,
+    "vidskiptakrofur": 137114108,
+    "handbaert": 18509137,
+    "eignir": 511567383,
+    "hlutafe": 143402549,
+    "eigid_fe": 172482418,
+    "skuldir": 339084965,
+    "efe_skuldir": 511567383,
+    "skammtimaskuldir": 339084965
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.049,
+    "hagnadarhlutfall": 0.0395,
+    "ROE": 0.291,
+    "ROA": 0.1105,
+    "eiginfjarhlutfall": 0.3798,
+    "veltufjarhlutfall": 0.2355,
+    "skuldahlutfall_DE": 1.633,
+    "eignavelta": 2.7945
+   },
+   "rekstur": {
+    "sala": 1815899543,
+    "laun": -701873539,
+    "annar_rekstur": -508941433,
+    "afskriftir": -95898907,
+    "ebit": 89008427,
+    "fjarmunatekjur": 2476534,
+    "fjarmagnsgjold": -6309990,
+    "hagn_f_skatt": 89767270,
+    "tekjuskattur": -17957494,
+    "hagnadur": 71809776
+   },
+   "efnahagur": {
+    "birgdir": 13957147,
+    "vidskiptakrofur": 80107506,
+    "handbaert": 832070,
+    "eignir": 649807729,
+    "hlutafe": 145902549,
+    "eigid_fe": 246792195,
+    "skuldir": 403015534,
+    "efe_skuldir": 649807729,
+    "skammtimaskuldir": 403015534
+   },
+   "starfsmenn": 49
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.048,
+    "hagnadarhlutfall": 0.0218,
+    "ROE": 0.1488,
+    "ROA": 0.0482,
+    "eiginfjarhlutfall": 0.3238,
+    "veltufjarhlutfall": 0.254,
+    "skuldahlutfall_DE": 2.0879,
+    "eignavelta": 2.2124
+   },
+   "rekstur": {
+    "sala": 1980868119,
+    "laun": -789733784,
+    "annar_rekstur": -461301651,
+    "afskriftir": -162917169,
+    "ebit": 95179848,
+    "fjarmunatekjur": 1187550,
+    "fjarmagnsgjold": -45938810,
+    "hagn_f_skatt": 54635568,
+    "tekjuskattur": -17957494,
+    "hagnadur": 43157710
+   },
+   "efnahagur": {
+    "birgdir": 10822380,
+    "vidskiptakrofur": 138393823,
+    "handbaert": 4537557,
+    "eignir": 895330925,
+    "hlutafe": 145902549,
+    "eigid_fe": 289949905,
+    "skuldir": 605381020,
+    "efe_skuldir": 895330925,
+    "skammtimaskuldir": 605381020
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6901861369.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }

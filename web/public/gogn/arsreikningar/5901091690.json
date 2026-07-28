@@ -1,7 +1,93 @@
 {
  "kt": "5901091690",
  "nafn": "Vogaland ehf.",
- "sott": "2026-07-25",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.146,
+    "ROA": -0.146,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -2060630,
+    "afskriftir": 0,
+    "fjarmunatekjur": 191284,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -15702771,
+    "tekjuskattur": 0,
+    "hagnadur": -15702771
+   },
+   "efnahagur": {
+    "fastafjarmunir": 27736277,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 79853217,
+    "veltufjarmunir": 79853217,
+    "eignir": 107589494,
+    "hlutafe": 500000,
+    "eigid_fe": 107589494,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 107589494
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0264,
+    "ROA": 0.0264,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -70000,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2107372,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 2037372,
+    "tekjuskattur": 0,
+    "hagnadur": 2037372
+   },
+   "efnahagur": {
+    "fastafjarmunir": 27736277,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 13076967,
+    "veltufjarmunir": 49390589,
+    "eignir": 77126866,
+    "hlutafe": 500000,
+    "eigid_fe": 77126866,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 77126866
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5901091690.pdf",
+ "pdfAr": "2024"
 }

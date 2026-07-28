@@ -1,7 +1,81 @@
 {
  "kt": "5401190230",
  "nafn": "Struere ehf.",
- "sott": "2026-07-25",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0.3613
+   },
+   "rekstur": {
+    "adrar_tekjur": null,
+    "laun": 33736315,
+    "ebit": -19808516,
+    "fjarmunatekjur": 429553,
+    "fjarmagnsgjold": null,
+    "tekjuskattur": 4608217,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "fastafjarmunir": 59329366,
+    "vidskiptakrofur": 13893424,
+    "handbaert": 969756,
+    "eignir": 94035754,
+    "langtimaskuldir": 28659125,
+    "skammtimaskuldir": 41137799,
+    "skuldir": 94035754,
+    "eigid_fe": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0615,
+    "ROA": -0.0461,
+    "eiginfjarhlutfall": 0.7489,
+    "veltufjarhlutfall": 0.6471,
+    "skuldahlutfall_DE": 0.3352
+   },
+   "rekstur": {
+    "adrar_tekjur": 50117,
+    "laun": 36138825,
+    "ebit": -1268917,
+    "fjarmunatekjur": 80257,
+    "fjarmagnsgjold": -5044398,
+    "tekjuskattur": 1718320,
+    "hagnadur": -18453065
+   },
+   "efnahagur": {
+    "fastafjarmunir": 66775436,
+    "vidskiptakrofur": 33696946,
+    "handbaert": 35417,
+    "eignir": 400573306,
+    "langtimaskuldir": 31081648,
+    "skammtimaskuldir": 52126106,
+    "skuldir": 100573306,
+    "eigid_fe": 300000000
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5401190230.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

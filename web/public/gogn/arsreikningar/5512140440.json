@@ -1,7 +1,82 @@
 {
  "kt": "5512140440",
  "nafn": "105 Miðborg GP ehf.",
- "sott": "2026-07-26",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.0968,
+    "ROA": -0.0968,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 20200,
+    "hagnadur": -20200
+   },
+   "efnahagur": {
+    "eignir": 208700,
+    "hlutafe": 500000,
+    "eigid_fe": 208700,
+    "efe_skuldir": 208700,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1113,
+    "ROA": -0.1113,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "annar_rekstur": 20900,
+    "hagnadur": -20900
+   },
+   "efnahagur": {
+    "eignir": 187800,
+    "hlutafe": 500000,
+    "eigid_fe": 187800,
+    "efe_skuldir": 187800,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.1286,
+    "ROA": -0.1286,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "hagnadur": -21400
+   },
+   "efnahagur": {
+    "eignir": 166400,
+    "hlutafe": 500000,
+    "eigid_fe": 166400,
+    "efe_skuldir": 166400,
+    "skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5512140440.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

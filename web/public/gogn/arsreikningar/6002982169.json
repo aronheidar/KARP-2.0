@@ -1,7 +1,110 @@
 {
  "kt": "6002982169",
  "nafn": "12 tónar ehf.",
- "sott": "2026-07-22",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6148,
+    "ebit_hlutfall": 0.1445,
+    "hagnadarhlutfall": -0.0116,
+    "ROA": -0.0113,
+    "eiginfjarhlutfall": -0.3887,
+    "veltufjarhlutfall": 0.1638,
+    "eignavelta": 0.971
+   },
+   "rekstur": {
+    "sala": 93932113,
+    "adrar_tekjur": 7167223,
+    "kostnadarverd": 36186996,
+    "laun": 25742657,
+    "annar_rekstur": 18056168,
+    "afskriftir": 376425,
+    "ebit": 13569867,
+    "fjarmunatekjur": 522,
+    "fjarmagnsgjold": -15122692,
+    "hagnadur": -1089101
+   },
+   "efnahagur": {
+    "birgdir": 12000000,
+    "vidskiptakrofur": 9975219,
+    "handbaert": 29333,
+    "eignir": 96736710,
+    "hlutafe": 1000000,
+    "eigid_fe": -37597967,
+    "skuldir": 134334677,
+    "efe_skuldir": 96736710,
+    "skammtimaskuldir": 134334677
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6018,
+    "ebit_hlutfall": 0.1161,
+    "hagnadarhlutfall": -0.0635,
+    "ROA": -0.0567,
+    "eiginfjarhlutfall": -0.438,
+    "veltufjarhlutfall": 0.168,
+    "eignavelta": 0.8935
+   },
+   "rekstur": {
+    "sala": 88121143,
+    "adrar_tekjur": 4879477,
+    "kostnadarverd": 35090461,
+    "laun": 28115149,
+    "annar_rekstur": 14418982,
+    "afskriftir": 266111,
+    "ebit": 10230440,
+    "fjarmunatekjur": 313,
+    "fjarmagnsgjold": -16160548,
+    "hagnadur": -5595301
+   },
+   "efnahagur": {
+    "birgdir": 12000000,
+    "vidskiptakrofur": 11819247,
+    "handbaert": 3524,
+    "eignir": 98623266,
+    "hlutafe": 1000000,
+    "eigid_fe": -43193268,
+    "skuldir": 141816534,
+    "efe_skuldir": 98623266,
+    "skammtimaskuldir": 141816534
+   },
+   "starfsmenn": 3
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0.0935,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 15.8304,
+    "eignavelta": -0.3876
+   },
+   "rekstur": {
+    "sala": -37310239
+   },
+   "efnahagur": {
+    "hlutafe": 1000000,
+    "eigid_fe": 9000000,
+    "skuldir": 142473900,
+    "efe_skuldir": 96248886,
+    "eignir": 96248886,
+    "skammtimaskuldir": 142473900
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/6002982169.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }

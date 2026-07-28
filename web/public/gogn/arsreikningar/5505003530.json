@@ -1,7 +1,83 @@
 {
  "kt": "5505003530",
  "nafn": "Glitnir HoldCo ehf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 1.0031
+   },
+   "rekstur": {
+    "fjarmagnsgjold": 196777,
+    "annar_rekstur": -262230,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "handbaert": 5355243,
+    "eignir": 5355348,
+    "skuldir": 5338600,
+    "eigid_fe": 0,
+    "efe_skuldir": 5355348,
+    "hlutafe": 47270112,
+    "skammtimaskuldir": 5338600
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": 0,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 0.9947
+   },
+   "rekstur": {
+    "fjarmagnsgjold": 216230,
+    "annar_rekstur": -220670,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "handbaert": 5399072,
+    "eignir": 5435672,
+    "skuldir": 5427931,
+    "eigid_fe": 0,
+    "efe_skuldir": 5435672,
+    "hlutafe": 47270112,
+    "skammtimaskuldir": 5427931
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1,
+   "kpi": {
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 1.0679
+   },
+   "rekstur": {
+    "fjarmagnsgjold": 90174
+   },
+   "efnahagur": {
+    "handbaert": 1198121,
+    "eignir": 1198159,
+    "skuldir": 1121924,
+    "eigid_fe": 0,
+    "efe_skuldir": 1198159,
+    "hlutafe": 47267500,
+    "skammtimaskuldir": 1121924
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5505003530.pdf",
+ "pdfAr": "2025",
+ "ocr": true
 }
