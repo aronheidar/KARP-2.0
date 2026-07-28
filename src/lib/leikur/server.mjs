@@ -4,7 +4,7 @@ import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor, difficultyOf, scaleMa
 import { resolveTeam, buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildChain, activeInputsFromInputs } from './chain.mjs';
-import { buildAnalytics } from './analytics.mjs';
+import { buildAnalytics, teamReview } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
@@ -184,6 +184,22 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const latest = {}, appr = {}; for (const r of resultsRaw) { if (!latest[r.team_id] || r.round > latest[r.team_id].round) latest[r.team_id] = r; try { const a = (JSON.parse(r.kpis || '{}').stability || {}).approval; if (typeof a === 'number') (appr[r.team_id] || (appr[r.team_id] = [])).push(a); } catch (e) {} }
         out.analytics.policiesByTeam = Object.values(latest).map((r) => { let pol = {}; try { pol = JSON.parse(r.kpis || '{}').policies || {}; } catch (e) {} return { teamId: r.team_id, name: nm[r.team_id] || ('Lið ' + r.team_id), policies: describePolicies(pol) }; }).filter((x) => x.policies.length);
         out.analytics.scorecard.forEach((row) => { const arr = appr[row.teamId]; row.avgApproval = (arr && arr.length) ? Math.round(arr.reduce((x, y) => x + y, 0) / arr.length) : null; }); // heildar-fylgi per lið
+        // Frammistöðu-yfirlit per lið (leikslok-umræða): sterk/veik svið + fylgi + föll → „gerðu vel / mátti bæta".
+        const byTeam = {}; for (const r of resultsRaw) { let d = {}; try { d = JSON.parse(r.kpis || '{}'); } catch (e) {} (byTeam[r.team_id] || (byTeam[r.team_id] = [])).push({ round: r.round, perKpi: d.perKpi || [], approval: (d.stability || {}).approval, fell: (d.stability || {}).level === 'revolt' }); }
+        out.analytics.teamReview = teamReview(teamsRaw.map((t) => ({ teamId: t.id, name: nm[t.id] || ('Lið ' + t.id), rounds: (byTeam[t.id] || []).sort((a, b) => a.round - b.round) })));
+        // Ákvarðanaferill (studio): per lið, per kjörtímabil — breyttir sleðar + klemmu-val, með atburða-heiti.
+        if (cfg.mode === 'studio') {
+          const decByTR = {}; for (const d of decRaw) { let dd = {}; try { dd = JSON.parse(d.decisions || '{}'); } catch (e) {} (decByTR[d.team_id] || (decByTR[d.team_id] = {}))[d.round] = dd; }
+          out.analytics.decisionArc = teamsRaw.map((t) => {
+            const rows = [];
+            for (let rr = 1; rr <= game.current_round; rr++) { const dd = (decByTR[t.id] || {})[rr]; if (!dd) continue;
+              const lv = dd.levers || {}; const changed = Object.keys(lv).filter((k) => LEVER_BASE[k] != null && +lv[k] !== LEVER_BASE[k]).map((k) => LEVER_LABELS[k] || k);
+              const parts = []; if (changed.length) parts.push(changed.slice(0, 5).join(', ') + (changed.length > 5 ? ' +' + (changed.length - 5) : ''));
+              if (dd.dilemma) parts.push('🎲 ' + dd.dilemma);
+              rows.push({ round: rr, event: (cfg.scenario.events[rr - 1] || {}).title || ('Kjörtímabil ' + rr), summary: parts.join(' · ') || 'engin breyting' }); }
+            return { teamId: t.id, name: nm[t.id] || ('Lið ' + t.id), rows };
+          }).filter((x) => x.rows.length);
+        }
         // Fasi „skemmtun 3": klemmu-viðbrögð liða yfir kjörtímabilin → leikstjóra-samantekt í leikslok.
         if (cfg.surprise) {
           const dilByTR = {}; for (const d of decRaw) { let dd = {}; try { dd = JSON.parse(d.decisions || '{}'); } catch (e) {} (dilByTR[d.team_id] || (dilByTR[d.team_id] = {}))[d.round] = dd.dilemma; }

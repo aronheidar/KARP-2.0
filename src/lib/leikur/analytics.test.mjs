@@ -1,4 +1,4 @@
-import { buildAnalytics, teachingPrompts } from './analytics.mjs';
+import { buildAnalytics, teachingPrompts, teamReview } from './analytics.mjs';
 import { MANDATE, DECISIONS, SCENARIO } from './game-config.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
@@ -54,6 +54,21 @@ const lowA = buildAnalytics({ history: lowHist, decisions: [], teams, mandate: M
 ok('teachingPrompts greinir sameiginlegan veikleika', teachingPrompts(lowA, { scenarioEvents: scEv }).some((p) => p.includes('erfitt með')));
 // Tóm greining → tómt
 ok('teachingPrompts tóm greining → tómt', teachingPrompts(null).length === 0);
+
+// teamReview: sterk/veik svið + fylgi + föll
+{
+  const rounds = [
+    { perKpi: [{ key: 'verdbolga', label: 'Verðbólga', score: 95 }, { key: 'losun', label: 'Losun', score: 40 }], approval: 60, fell: false },
+    { perKpi: [{ key: 'verdbolga', label: 'Verðbólga', score: 90 }, { key: 'losun', label: 'Losun', score: 30 }], approval: 20, fell: true },
+  ];
+  const rev = teamReview([{ teamId: 1, name: 'A', rounds }]);
+  ok('teamReview skilar liði', rev.length === 1 && rev[0].name === 'A');
+  ok('teamReview: sterkt svið (verðbólga ~92)', rev[0].strong.some((d) => d.key === 'verdbolga' && d.avg >= 80));
+  ok('teamReview: veikt svið (losun ~35)', rev[0].weak.some((d) => d.key === 'losun' && d.avg < 65));
+  ok('teamReview: meðal-fylgi (60+20)/2=40', rev[0].avgApproval === 40);
+  ok('teamReview: taldi 1 fall', rev[0].fell === 1);
+  ok('teamReview: tómt lið án hruns/veikra', (() => { const r = teamReview([{ teamId: 2, name: 'B', rounds: [{ perKpi: [{ key: 'verdbolga', label: 'V', score: 100 }], approval: 70, fell: false }] }])[0]; return r.fell === 0 && r.weak.length === 0 && r.strong.length === 1; })());
+}
 
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

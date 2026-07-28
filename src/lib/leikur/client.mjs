@@ -174,11 +174,41 @@ function renderFacAnalytics(an) {
   const dilHtml = (an.dilemmasByTeam && an.dilemmasByTeam.length)
     ? '<h3 style="font-size:14px;margin:12px 0 4px">🎲 Óvænt atvik — viðbrögð liða</h3><table class="lk-tbl"><tr><th>Lið</th><th>Klemmu-val</th></tr>' + an.dilemmasByTeam.map((t) => '<tr><td>' + esc(t.name) + '</td><td style="font-size:12.5px">' + t.items.map((it) => (it.icon || '🎲') + ' ' + esc(it.title) + ': <b>' + esc(it.choice || '— ekkert valið') + '</b>').join(' · ') + '</td></tr>').join('') + '</table>'
     : '';
-  return promptsHtml
+  // Frammistöðu-yfirlit per lið: hvað gerðu vel (sterk svið) / hvað mátti bæta (veik svið) + fylgi + föll.
+  const reviewHtml = (an.teamReview && an.teamReview.length)
+    ? '<h3 style="font-size:14px;margin:12px 0 4px">🏅 Frammistaða liða — hvað gekk vel, hvað mátti bæta</h3>' + an.teamReview.map((t) => {
+        const strong = t.strong.length ? t.strong.map((d) => esc(d.label) + ' <span class="lk-muted">(' + d.avg + ')</span>').join(', ') : '—';
+        const weak = t.weak.length ? t.weak.map((d) => esc(d.label) + ' <span class="lk-muted">(' + d.avg + ')</span>').join(', ') : 'engin veik svið — sterk heildar-frammistaða';
+        const meta = '· fylgi ' + (t.avgApproval != null ? t.avgApproval + '%' : '–') + (t.fell ? ' · 🚨 stjórnin féll ' + t.fell + '×' : '');
+        return '<div style="border:1px solid #2a3040;border-left:3px solid ' + colorOf(t.teamId) + ';border-radius:8px;padding:9px 12px;margin:6px 0">'
+          + '<b>' + esc(t.name) + '</b> <span class="lk-muted" style="font-size:12px">' + meta + '</span>'
+          + '<div style="font-size:12.5px;margin-top:4px">✅ <b>Gerðu vel:</b> ' + strong + '</div>'
+          + '<div style="font-size:12.5px;margin-top:2px">⚠ <b>Mátti bæta:</b> ' + weak + '</div></div>';
+      }).join('')
+    : '';
+  // Ákvarðanaferill liða yfir kjörtímabilin (samanbrjótanlegt per lið).
+  const arcHtml = (an.decisionArc && an.decisionArc.length)
+    ? '<h3 style="font-size:14px;margin:12px 0 4px">📋 Ákvarðanaferill liða (kjörtímabil fyrir kjörtímabil)</h3>' + an.decisionArc.map((t) =>
+        '<details style="margin:4px 0"><summary style="cursor:pointer;font-weight:600;font-size:13px"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span> ' + esc(t.name) + '</summary>'
+        + '<table class="lk-tbl" style="margin-top:4px"><tr><th>Kjörtímabil</th><th>Það sem liðið breytti</th></tr>'
+        + t.rows.map((r) => '<tr><td style="font-size:12px;white-space:nowrap">' + esc(r.event) + '</td><td style="font-size:12px">' + esc(r.summary) + '</td></tr>').join('')
+        + '</table></details>').join('')
+    : '';
+  // Leiðbeiningar fyrir 1–2 klst umræðu (föst kennslu-uppbygging).
+  const guideHtml = '<details style="margin:4px 0 8px;border:1px solid #2a3040;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎓 Leiðbeiningar fyrir umræðu (1–2 klst)</summary><ol class="lk-prompts" style="font-size:12.8px;margin-top:6px">'
+    + '<li><b>Yfirferð niðurstaðna (15 mín):</b> Farið yfir lokastöðu og þróunar-gröfin — hvaða lið náði bestum árangri og hvers vegna?</li>'
+    + '<li><b>Stefna hvers liðs (20 mín):</b> Látið hvert lið kynna sína leið út frá ákvarðanaferlinum — hver var stóra hugmyndin, og breyttist hún með áföllum?</li>'
+    + '<li><b>Stóru ákvarðanirnar (20 mín):</b> Berið saman Icesave/ESB/stóriðju o.fl. — rökin, fylgið og afleiðingarnar umfram þjóðhags-tölurnar.</li>'
+    + '<li><b>Fórnarskipti & það sem mátti bæta (20 mín):</b> Notið „gerðu vel / mátti bæta" — af hverju var erfitt að ná öllum markmiðum í einu?</li>'
+    + '<li><b>Tenging við raunveruleikann (15 mín):</b> Berið saman við „svona fór það" — hvað segir þetta um raunverulega hagstjórn Íslands 2000–2032?</li>'
+    + '</ol></details>';
+  return guideHtml + promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
-    + '<h3 style="font-size:14px;margin:12px 0 4px">Ákvarðanir umferðar</h3>' + dt
+    + reviewHtml
+    + arcHtml
     + polHtml
     + dilHtml
+    + '<h3 style="font-size:14px;margin:12px 0 4px">Ákvarðanir umferðar</h3>' + dt
     + '<h3 style="font-size:14px;margin:12px 0 4px">Þróun yfir umferðir</h3>' + charts;
 }
 
@@ -372,7 +402,7 @@ export function mountLeikur(root) {
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button>';
     const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
     root.innerHTML =
-      '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila:</p><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>' +
+      '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila (nemendur slá hann inn):</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div><button class="lk-btn" id="lk-copycode" style="background:#f6b13b;color:#0e1116;font-weight:700">📋 Afrita kóða</button></div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>' +
       (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
       '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
       roleMapCard(st) +
@@ -382,6 +412,7 @@ export function mountLeikur(root) {
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
+    b('#lk-copycode', () => { const el = root.querySelector('#lk-copycode'); try { navigator.clipboard.writeText(S.code); if (el) { el.textContent = '✅ Kóði afritaður'; setTimeout(() => { if (root.querySelector('#lk-copycode') === el) el.textContent = '📋 Afrita kóða'; }, 2000); } } catch (e) { if (el) el.textContent = S.code; } });
     b('#lk-watchlink', () => { const el = root.querySelector('#lk-watchlink'); try { navigator.clipboard.writeText(location.origin + '/leikur/?g=' + S.code); if (el) el.textContent = '✅ Áhorfenda-hlekk afritaður'; } catch (e) { if (el) el.textContent = location.origin + '/leikur/?g=' + S.code; } });
   }
 
@@ -721,10 +752,15 @@ export function mountLeikur(root) {
     }).join('') || '<p class="lk-muted">Engin lið gengin inn enn.</p>';
     const chart = (st.trajectory && st.trajectory.some((s) => s.points && s.points.length))
       ? '<div class="lk-card"><h2>📈 Þróun stiga</h2>' + lkLineChart('Uppsafnað stig', st.trajectory, {}) + '</div>' : '';
+    // Sigurvegari í leikslok (efst raðað).
+    const winner = (st.phase === 'ended' && teams.length) ? '<div class="lk-card" style="text-align:center;border:2px solid #f6b13b;background:linear-gradient(180deg,#2a2312,#181c24)"><div style="font-size:24px;font-weight:800;color:#f6b13b">🏆 ' + esc(teams[0].name) + ' sigraði!</div><p class="lk-muted" style="margin:4px 0 0">Hæsta uppsafnaða skor eftir 8 kjörtímabil · Ísland 2000–2032</p></div>' : '';
+    // Samhengi kjörtímabils (fyrir áhorfendur/kennslustofu): atburður + hvað þarf að huga að.
+    const context = (ev && (st.phase === 'decide' || st.phase === 'resolved')) ? '<div class="lk-card"><h2>' + (ev.icon ? ev.icon + ' ' : '') + esc(ev.title) + '</h2>' + (ev.text ? '<p style="font-size:15.5px;line-height:1.6">' + esc(ev.text) + '</p>' : '') + (ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : '') + '</div>' : '';
     root.innerHTML =
-      '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span><h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
+      '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
+      winner +
       '<div class="lk-card"><h2>🏆 Stigatafla</h2><div class="lk-watch-board">' + board + '</div></div>' +
-      chart + revealCard(st);
+      context + chart + revealCard(st);
   }
 
   // ── Sviðsmynda-/umboðs-ritill (S4) ──

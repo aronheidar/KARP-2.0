@@ -93,6 +93,30 @@ export function teachingPrompts(an, { scenarioEvents = [] } = {}) {
     if (split) out.push('Liðin tóku ólíka stóra ákvörðun um <b>' + esc(split.label) + '</b> — berðu saman rökin og hvernig valið mótaði fylgi og útkomu.');
     else out.push('Ræðið stóru pólitísku ákvarðanirnar sem liðin tóku (t.d. Icesave, verðtryggingu, gjaldeyrishöft) — hvaða áhrif höfðu þær á fylgi og traust, umfram þjóðhags-tölurnar?');
   }
+  // 7) Veikasta svið liðs (úr teamReview) — beina umræðu að því sem mátti bæta
+  if (an.teamReview) {
+    const withWeak = an.teamReview.filter((t) => t.weak && t.weak.length);
+    if (withWeak.length) { const t = withWeak[0]; out.push('Spyrðu <b>' + esc(t.name) + '</b> út í <b>' + esc(t.weak[0].label) + '</b> — veikasta sviðið þeirra. Hvaða fórnarskipti lágu að baki og hvað hefðu þau getað gert öðruvísi?'); }
+  }
+  // 8) Fall ríkisstjórnar
+  if (an.teamReview && an.teamReview.some((t) => t.fell)) out.push('Að minnsta kosti eitt lið missti stjórnina í fjöldamótmælum — ræðið hvað gerist þegar fylgi hrynur, og hvernig hagstjórn og fylgi haldast í hendur.');
 
-  return out.slice(0, 6);
+  return out.slice(0, 8);
+}
+
+// Frammistöðu-yfirlit per lið f. leikslok-umræðu: sterk/veik svið (meðal-stig yfir kjörtímabilin) + fylgi + föll. HREINT.
+// teamsData = [{ teamId, name, rounds:[{ perKpi:[{key,label,score}], approval, fell:bool }] }]
+export function teamReview(teamsData = []) {
+  return teamsData.map((t) => {
+    const agg = {}; let apprSum = 0, apprN = 0, fell = 0;
+    for (const r of (t.rounds || [])) {
+      for (const p of (r.perKpi || [])) { if (p == null || typeof p.score !== 'number') continue; const a = agg[p.key] || (agg[p.key] = { label: p.label, sum: 0, n: 0 }); a.sum += p.score; a.n++; }
+      if (typeof r.approval === 'number') { apprSum += r.approval; apprN++; }
+      if (r.fell) fell++;
+    }
+    const dims = Object.entries(agg).map(([key, a]) => ({ key, label: a.label, avg: Math.round(a.sum / a.n) })).sort((a, b) => b.avg - a.avg);
+    const strong = dims.filter((d) => d.avg >= 80).slice(0, 3);
+    const weak = dims.filter((d) => d.avg < 65).sort((a, b) => a.avg - b.avg).slice(0, 3);
+    return { teamId: t.teamId, name: t.name, strong, weak, avgApproval: apprN ? Math.round(apprSum / apprN) : null, fell };
+  });
 }
