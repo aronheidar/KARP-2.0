@@ -128,7 +128,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         dilemma: se.dilemma ? { q: se.dilemma.q, options: (se.dilemma.options || []).map((o) => ({ key: o.key, label: o.label })) } : null };
     }
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
-    if (game.phase === 'decide' && cfg.deadline) { out.secondsLeft = Math.max(0, cfg.deadline - now()); out.deadlineTs = cfg.deadline; } // deadline = epoch-sekúndur (algild → stöðug klukka óháð poll/reload)
+    if (game.phase === 'decide' && cfg.deadline) { const nowS = now(); out.secondsLeft = Math.max(0, Math.min(cfg.timerSec || 3600, cfg.deadline - nowS)); out.deadlineTs = nowS + out.secondsLeft; } // deadline=epoch-sek (algilt→stöðug klukka); klemma f. eldri leiki með gölluð ms-tímamörk
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
