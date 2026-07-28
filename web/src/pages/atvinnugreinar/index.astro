@@ -1,0 +1,79 @@
+---
+// atvinnugreinar/index.astro — Atvinnugreina-skýrslur v1, Verk 3: SEO-nafla/hub. Listar allar 65
+// atvinnugreinar (úr sectorsFromMap — 82 ÍSAT-lyklar hópast í 65 einkvæm label) með einu lykil-viðmiði
+// (framlegð) + hlekk á hverja grein-síðu. Hreint SSG úr bökuðu sector_kpi.json — engin gátt hér, allur
+// hub-urinn er frír. Sjá docs/superpowers/plans/2026-07-27-atvinnugreinar.md (Verk 3).
+import Layout from '../../layouts/Layout.astro';
+import SK from '../../../public/gogn/sector_kpi.json';
+import { sectorsFromMap, fmtPct } from '../../lib/atvinnugrein.mjs';
+
+const sectors = sectorsFromMap(SK.map)
+  .map((s) => {
+    const m = String(s.label || '').match(/\(([^)]*)\)\s*$/);
+    const isatSub = m ? m[1] : ('ÍSAT ' + s.isats.join(', '));
+    const displayName = String(s.label || '').replace(/\s*\([^)]*\)\s*$/, '') || s.label;
+    return { ...s, displayName, isatSub, framlegd: s.kpi ? s.kpi.framlegd : undefined };
+  })
+  .sort((a, b) => a.displayName.localeCompare(b.displayName, 'is'));
+
+const nf = (n) => n.toLocaleString('is-IS');
+const desc = `Fjárhagur og afkoma ${nf(sectors.length)} íslenskra atvinnugreina — framlegð, hagnaðarhlutfall, eiginfjárhlutfall og fleiri viðmið úr ársreikningum, borið saman við hagkerfið í heild. Heimild: Hagstofa Íslands (FYR08010) og ársreikningaskrá RSK.`;
+---
+<Layout
+  title="Atvinnugreinar — fjárhagur og afkoma eftir grein | Karp"
+  description={desc}
+  canonical="https://karp.is/atvinnugreinar/"
+  ogTitle="Atvinnugreinar — fjárhagur og afkoma eftir ÍSAT-grein"
+>
+  <main data-pg="atvinnugreinar-hub">
+    <p class="kicker">Hagvísir Íslands · Efnahagur</p>
+    <h1>Atvinnugreinar 🏭</h1>
+    <p class="lead">Fjárhagsform <strong>{nf(sectors.length)}</strong> íslenskra atvinnugreina — framlegð, hagnaðarhlutfall, eiginfjárhlutfall, skuldsetning og fleiri viðmið úr opinberum ársreikningum, borin saman við íslenska viðskiptahagkerfið í heild. Veldu grein til að sjá öll 8 viðmiðin — og, fyrir <a href="/karp-pro/#verd">Fyrirtæki+</a> áskrifendur, röðuðu stærstu félögin og samþjöppun greinarinnar.</p>
+    <p class="fyrirvari">⚠ Leiðbeinandi úr opinberum ársreikningum og Hagstofu (FYR08010); ekki fjárfestingar- eða lánshæfisráðgjöf.</p>
+
+    <h2>Allar greinar</h2>
+    <p class="sub">Raðað í stafrófsröð. Framlegð er sýnd sem eitt lykil-viðmið — smelltu á grein til að sjá öll 8 viðmiðin, túlkun og (Fyrirtæki+) stærstu félögin.</p>
+    <div class="atv-grid">
+      {sectors.map((s) => (
+        <a class="atv-card" href={`/atvinnugreinar/${s.slug}/`}>
+          <div class="atv-card-t">
+            <span class="atv-card-n">{s.displayName}</span>
+            <span class="atv-card-i">{s.isatSub}</span>
+          </div>
+          <div class="atv-card-fl">
+            <span class="atv-card-fl-v">{fmtPct(s.framlegd)}</span>
+            <span class="atv-card-fl-l">framlegð</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Hagstofa Íslands</b> (FYR08010 Rekstrar- og efnahagsyfirlit, {SK.ar}) og <b>ársreikningaskrá RSK</b> (stærstu félög + samþjöppun, Fyrirtæki+). Uppfært {SK.updated}.</p>
+  </main>
+
+  <style>
+    main[data-pg="atvinnugreinar-hub"] { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    .lead { font-size: 15px; line-height: 1.6; color: var(--ink); }
+    .lead strong { color: var(--ink); }
+    .lead a { color: #f6b13b; font-weight: 700; text-decoration: none; }
+    .fyrirvari { font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 12px 0 4px; line-height: 1.5; }
+    h2 { font-size: 17px; color: var(--ink); margin: 34px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+
+    .atv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .atv-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 12px 14px; text-decoration: none; }
+    .atv-card:hover { border-color: rgba(246,177,59,.5); }
+    .atv-card-t { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .atv-card-n { font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+    .atv-card:hover .atv-card-n { color: #f6b13b; }
+    .atv-card-i { font-size: 11px; color: var(--faint); }
+    .atv-card-fl { flex: 0 0 auto; text-align: right; }
+    .atv-card-fl-v { display: block; font-size: 16px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .atv-card-fl-l { display: block; font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
+  </style>
+</Layout>

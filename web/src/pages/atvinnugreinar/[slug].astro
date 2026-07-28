@@ -1,0 +1,257 @@
+---
+// atvinnugreinar/[slug].astro — Atvinnugreina-skýrslur v1, Verk 3: frí SEO-yfirlit (SSG, per grein) +
+// gátuð Fyrirtæki+ djúp-skýrsla (röðuð félaga-tafla + samþjöppun), sótt LIFANDI úr /api/atvinnugrein.
+// Sjá docs/superpowers/plans/2026-07-27-atvinnugreinar.md (Verk 3) + specs/2026-07-27-atvinnugreinar-design.md §4.1.
+// Rökvél: ../../lib/atvinnugrein.mjs (Verk 1 — ÓSNERT hér). Endapunktur: worker.js atvinnugreinHandler
+// (Verk 2 — ÓSNERT hér), samningur: GET /api/atvinnugrein?slug=<slug> →
+// {ok,slug,label,isats,vidmid,heild,topFelog[],samthjoppun:{HHI,toppN_hlutdeild},staerd_heild,n,coverage}
+// eða {ok:false,error:'login'|'tier'|'notfound'}.
+// ⚠ RAUNVERULEGT paywall: félagaröðun+samþjöppun eru AÐEINS í gátaða API-svarinu — aldrei bökuð í þetta SSG-HTML.
+import Layout from '../../layouts/Layout.astro';
+import SK from '../../../public/gogn/sector_kpi.json';
+import { sectorsFromMap, vsHeild, RATIO_META, RATIO_ORDER, fmtPct, fmtRatio } from '../../lib/atvinnugrein.mjs';
+
+export function getStaticPaths() {
+  return sectorsFromMap(SK.map).map((s) => ({ params: { slug: s.slug }, props: { sector: s, heild: SK.heild } }));
+}
+
+const { sector, heild } = Astro.props;
+
+// Birtingarheiti: strípa "(ÍSAT nr. …)"-svigann aftast fyrir H1 — AÐEINS birting (ekki einkvæmnis-lykill,
+// sjá slugify() í atvinnugrein.mjs). Upprunalegi sviginn stendur eftir sem lítill undirtexti (heldur
+// upprunalegu röðunarorðalagi, t.d. "13-15" / "10, án 102" / "031, 102").
+const parenM = String(sector.label || '').match(/\(([^)]*)\)\s*$/);
+const isatSub = parenM ? parenM[1] : ('ÍSAT ' + sector.isats.join(', '));
+const displayName = String(sector.label || '').replace(/\s*\([^)]*\)\s*$/, '') || sector.label;
+
+const canonical = `https://karp.is/atvinnugreinar/${sector.slug}/`;
+const title = `${displayName} — fjárhagur & afkoma greinarinnar | Karp`;
+const desc = `${displayName} (${isatSub}): framlegð, hagnaðarhlutfall, eiginfjárhlutfall og fleiri fjárhags-viðmið borin saman við íslenska hagkerfið — byggt á ársreikningum og Hagstofu Íslands.`.slice(0, 300);
+
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'Dataset', name: `Fjárhags-viðmið — ${displayName}`,
+  description: desc, creator: { '@type': 'Organization', name: 'Karp', url: 'https://www.karp.is' },
+  dateModified: SK.updated || '', spatialCoverage: 'Ísland',
+  variableMeasured: RATIO_ORDER.map((k) => RATIO_META[k].heiti).join(', '),
+};
+
+// Litun samanburðar: RATIO_META[key].betra segir hvor átt er æskileg fyrir ÞETTA viðmið.
+// 'haerra' (hærra=betra) → 'yfir' grænt / 'undir' gult. 'laegra' (lægra=betra) → 'yfir' gult / 'undir' grænt.
+// 'jafnt' (±2% dead-band úr vsHeild) er alltaf hlutlaust.
+function ratioCls(dir, betra) {
+  if (dir === 'jafnt') return 'jafnt';
+  const gott = (betra === 'haerra' && dir === 'yfir') || (betra === 'laegra' && dir === 'undir');
+  return gott ? 'gott' : 'vart';
+}
+// Snið skv. RATIO_META[key].fmt. ATH 'kr_mkr' er ÞEGAR í milljónum króna (Hagstofu-eining) —
+// EKKI fmtKr (sem tekur hráar krónur) — birt beint skv. samningi verks 3.
+function fmtVal(fmt, val) {
+  if (val == null || typeof val !== 'number' || !Number.isFinite(val)) return '–';
+  if (fmt === 'pct') return fmtPct(val);
+  if (fmt === 'num') return fmtRatio(val);
+  if (fmt === 'kr_mkr') return Math.round(val).toLocaleString('is-IS') + ' m.kr';
+  return String(val);
+}
+const rows = RATIO_ORDER.map((key) => {
+  const meta = RATIO_META[key];
+  const secVal = sector.kpi ? sector.kpi[key] : undefined;
+  const heildVal = heild ? heild[key] : undefined;
+  const { pct, dir } = vsHeild(secVal, heildVal);
+  return {
+    key,
+    heiti: meta.heiti,
+    secTxt: fmtVal(meta.fmt, secVal),
+    heildTxt: fmtVal(meta.fmt, heildVal),
+    dirTxt: dir === 'jafnt' ? 'álíka og hagkerfið að jafnaði' : `${Math.abs(pct)}% ${dir} meðaltali hagkerfisins`,
+    cls: ratioCls(dir, meta.betra),
+  };
+});
+---
+<Layout title={title} description={desc} canonical={canonical} jsonLd={jsonLd} ogTitle={`${displayName} — Karp`}>
+  <main data-pg="atvinnugrein" data-slug={sector.slug}>
+    <p class="kicker"><a href="/atvinnugreinar/">Atvinnugreinar</a> · {isatSub}</p>
+    <h1>{displayName}</h1>
+    <p class="lead">Fjárhagsform greinarinnar — framlegð, arðsemi, skuldsetning og fleiri viðmið — borin saman við <strong>íslenska viðskiptahagkerfið</strong> í heild, unnið úr opinberum ársreikningum og Hagstofu Íslands (FYR08010, {heild ? heild.ar : ''}).</p>
+    <p class="fyrirvari">⚠ Leiðbeinandi úr opinberum ársreikningum og Hagstofu (FYR08010); ekki fjárfestingar- eða lánshæfisráðgjöf.</p>
+
+    <h2>8 lykilviðmið vs. hagkerfið</h2>
+    <div class="atv-tbl-wrap">
+      <table class="atv-tbl">
+        <thead><tr><th>Viðmið</th><th>{displayName}</th><th>Hagkerfið</th><th>Samanburður</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td class="atv-lab">{r.heiti}</td>
+              <td class="atv-num">{r.secTxt}</td>
+              <td class="atv-num atv-muted">{r.heildTxt}</td>
+              <td><span class={`atv-badge atv-${r.cls}`}>{r.dirTxt}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="atv-gate" class="atv-gate">
+      <p class="atv-gate-h">🔒 Stærstu félög greinarinnar + samþjöppun</p>
+      <p id="atv-gate-tier">Full röðuð félagatafla (velta, hagnaður og eignir stærstu félaganna), samþjöppunarmæling (HHI og topp-5 hlutdeild) og PDF-útgáfa þessarar greinar er hluti af <a href="/karp-pro/#verd">Fyrirtæki+</a> áskriftinni.</p>
+      <p id="atv-gate-login" hidden>Skráðu þig inn til að sjá djúp-skýrslu greinarinnar. <a id="atv-gate-login-a" href="/innskra/">Skráðu þig inn →</a></p>
+      <p id="atv-gate-err" hidden>Djúp-skýrsla ófáanleg núna — reyndu aftur síðar.</p>
+      <a class="atv-cta" href="/karp-pro/#verd">Sjá stærstu félög greinarinnar + samþjöppun → Fyrirtæki+</a>
+    </div>
+
+    <section id="atv-deep" class="atv-deep" hidden>
+      <div class="atv-deep-h"><h2>Stærstu félög greinarinnar</h2><button id="rnav-pdf" type="button" class="atv-pdf">🖨️ Sækja PDF</button></div>
+      <p id="atv-cov" class="atv-cov"></p>
+      <div class="atv-tbl-wrap">
+        <table class="atv-dtbl">
+          <thead><tr><th>#</th><th>Félag</th><th>Sala</th><th>Hagnaður</th><th>Eignir</th></tr></thead>
+          <tbody id="atv-tbl-body"><tr><td colspan="5" class="atv-empty">Hleð…</td></tr></tbody>
+        </table>
+      </div>
+      <h3>Samþjöppun greinarinnar</h3>
+      <div class="atv-conc">
+        <div class="atv-conc-box"><div class="atv-conc-l">HHI-stuðull</div><div class="atv-conc-v" id="atv-hhi">–</div><div class="atv-conc-s" id="atv-hhi-read"></div></div>
+        <div class="atv-conc-box"><div class="atv-conc-l">Topp-5 hlutdeild</div><div class="atv-conc-v" id="atv-topn">–</div><div class="atv-conc-s">af samanlagðri veltu úrtaksins</div></div>
+      </div>
+      <p class="fyrirvari">⚠ Leiðbeinandi úr opinberum ársreikningum; ekki fjárfestingar- eða lánshæfisráðgjöf. Aðeins félög með skráða veltu í nýjasta ársreikningi eru talin með.</p>
+    </section>
+  </main>
+
+  <style>
+    /* Frí SSG-hlutar — venjulegt Astro-scoped CSS (byggingartíma-mörkuð) dugar, engin innerHTML hér. */
+    main[data-pg="atvinnugrein"] { max-width: 900px; margin: 0 auto; padding: 44px 20px 70px; }
+    .kicker { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 0 0 6px; }
+    .kicker a { color: var(--faint); text-decoration: none; }
+    .kicker a:hover { color: #f6b13b; }
+    h1 { font-size: 30px; margin: 0 0 10px; }
+    .lead { color: var(--ink); font-size: 15px; line-height: 1.6; margin: 0 0 10px; }
+    .lead strong { color: var(--ink); }
+    .fyrirvari { font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.04); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 8px 8px 0; margin: 10px 0 22px; line-height: 1.5; }
+    h2 { font-size: 19px; color: var(--ink); margin: 30px 0 10px; }
+
+    .atv-tbl-wrap { overflow-x: auto; }
+    .atv-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .atv-tbl th, .atv-tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+    .atv-tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); font-weight: 700; }
+    .atv-lab { color: var(--ink); font-weight: 600; }
+    .atv-num { font-variant-numeric: tabular-nums; }
+    .atv-muted { color: var(--muted); }
+    .atv-badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+    .atv-badge.atv-gott { background: rgba(70,224,138,.14); color: #46e08a; }
+    .atv-badge.atv-vart { background: rgba(246,177,59,.14); color: #f6b13b; }
+    .atv-badge.atv-jafnt { background: rgba(255,255,255,.06); color: var(--muted); }
+
+    .atv-gate { margin-top: 26px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); border-radius: 14px; padding: 18px 20px; }
+    .atv-gate-h { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 6px; }
+    .atv-gate p { font-size: 13.5px; color: var(--muted); line-height: 1.55; margin: 0 0 10px; }
+    .atv-gate p a { color: #f6b13b; font-weight: 700; }
+    .atv-cta { display: inline-block; margin-top: 4px; background: #f6b13b; color: #1a1205; font-weight: 700; font-size: 13.5px; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+    .atv-cta:hover { filter: brightness(1.06); }
+
+    @media (max-width: 560px) {
+      .atv-tbl th, .atv-tbl td { padding: 7px 6px; font-size: 12.5px; }
+    }
+  </style>
+
+  <!-- ⚠ Djúp-kaflinn (félagatafla+samþjöppun) er rendraður með runtime innerHTML (client-fetch úr
+       /api/atvinnugrein) → Astro scoped-CSS nær EKKI yfir hann (sama gildra og lobbyvakt.astro/
+       leyfi.astro) → is:global hér, njörvað við main[data-pg="atvinnugrein"] .atv- svo ekkert leki
+       á aðrar síður. Deild töflu-klassi (.atv-dtbl, ekki .atv-tbl) svo engin tvíræðni verði milli
+       fríu (scoped) töflunnar að ofan og djúpu (global, runtime-innihaldi) töflunnar hér. -->
+  <style is:global>
+    main[data-pg="atvinnugrein"] .atv-deep-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 34px; flex-wrap: wrap; }
+    main[data-pg="atvinnugrein"] .atv-deep-h h2 { margin: 0; }
+    main[data-pg="atvinnugrein"] .atv-pdf { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+    main[data-pg="atvinnugrein"] .atv-pdf:hover { border-color: rgba(246,177,59,.5); color: #f6b13b; }
+    main[data-pg="atvinnugrein"] .atv-cov { font-size: 12.5px; color: var(--faint); margin: 4px 0 12px; }
+
+    main[data-pg="atvinnugrein"] .atv-dtbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    main[data-pg="atvinnugrein"] .atv-dtbl th, main[data-pg="atvinnugrein"] .atv-dtbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+    main[data-pg="atvinnugrein"] .atv-dtbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); font-weight: 700; }
+    main[data-pg="atvinnugrein"] .atv-dtbl td { font-variant-numeric: tabular-nums; }
+    main[data-pg="atvinnugrein"] .atv-rk { color: var(--faint); }
+    main[data-pg="atvinnugrein"] .atv-dtbl a { color: var(--ink); text-decoration: none; font-weight: 600; }
+    main[data-pg="atvinnugrein"] .atv-dtbl a:hover { color: #f6b13b; }
+    main[data-pg="atvinnugrein"] .atv-empty { color: var(--faint); text-align: center; padding: 16px 0 !important; font-variant-numeric: normal; }
+
+    main[data-pg="atvinnugrein"] .atv-conc { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 10px 0 18px; }
+    main[data-pg="atvinnugrein"] .atv-conc-box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    main[data-pg="atvinnugrein"] .atv-conc-l { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
+    main[data-pg="atvinnugrein"] .atv-conc-v { font-size: 25px; font-weight: 800; color: #f6b13b; margin: 3px 0; font-variant-numeric: tabular-nums; }
+    main[data-pg="atvinnugrein"] .atv-conc-s { font-size: 12px; color: var(--muted); }
+
+    /* Prentun (PDF-hnappur): felur síðuskel (Layout-eign, önnur cid-umfjöllun → verður að vera global)
+       + gáttarkassann + PDF-hnappinn sjálfan, svo aðeins skýrslu-innihaldið prentist. */
+    @media print {
+      .topbar, .nav, .news, .site-foot, #karp-fab, .kc { display: none !important; }
+      main[data-pg="atvinnugrein"] .kicker,
+      main[data-pg="atvinnugrein"] #atv-gate,
+      main[data-pg="atvinnugrein"] .atv-pdf { display: none !important; }
+    }
+  </style>
+
+  <script>
+    // Djúp-skýrsla (Fyrirtæki+): client-hlið hasTier(3)-forgátt EINS OG áreiðanleikavaktin.astro —
+    // aðeins reynt að sækja ef notandi lítur (staðbundið) út fyrir að eiga rétt á efninu; svar
+    // workersins er samt endanlega heimildin ({ok:false,error:'login'|'tier'|'notfound'} → fellur
+    // aftur á SSG-gáttina sem stendur ÞEGAR bökuð í síðunni).
+    import { hasTier, loginHref } from '../../lib/auth.js';
+    import { wireReportNav } from '../../lib/report-nav.js';
+    import { fmtKr } from '../../lib/atvinnugrein.mjs';
+
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    // samthjoppun.toppN_hlutdeild er ÞEGAR 0–100 (toppNShare skilar %) — EKKI fmtPct (sem margfaldar aftur ×100).
+    const fmtPctRaw = (x) => (typeof x === 'number' && Number.isFinite(x) ? x.toFixed(1).replace('.', ',') + '%' : '–');
+
+    function hhiReading(h) {
+      if (!(h > 0)) return 'engin gögn';
+      if (h >= 2500) return 'mjög samþjöppuð grein — fá félög ráða miklu af veltunni.';
+      if (h >= 1500) return 'miðlungs samþjöppuð grein.';
+      return 'dreifð grein — samkeppni milli margra félaga.';
+    }
+
+    function showGate(which) {
+      ['tier', 'login', 'err'].forEach((k) => { const el = $('#atv-gate-' + k); if (el) el.hidden = k !== which; });
+    }
+
+    function renderDeep(d) {
+      $('#atv-gate').hidden = true;
+      $('#atv-deep').hidden = false;
+      const rows = (d.topFelog || []).map((f, i) => '<tr><td class="atv-rk">' + (i + 1) + '</td>'
+        + '<td><a href="/fyrirtaeki/?q=' + encodeURIComponent(f.kt || '') + '">' + esc(f.nafn || f.kt || '') + '</a></td>'
+        + '<td>' + esc(fmtKr(f.sala)) + '</td>'
+        + '<td>' + esc(fmtKr(f.hagnadur)) + '</td>'
+        + '<td>' + esc(fmtKr(f.eignir)) + '</td></tr>').join('');
+      $('#atv-tbl-body').innerHTML = rows || '<tr><td colspan="5" class="atv-empty">Engin félög með skráða veltu fundust í þessari grein.</td></tr>';
+      const sam = d.samthjoppun || {};
+      const hhi = typeof sam.HHI === 'number' ? sam.HHI : 0;
+      $('#atv-hhi').textContent = Math.round(hhi).toLocaleString('is-IS');
+      $('#atv-hhi-read').textContent = hhiReading(hhi);
+      $('#atv-topn').textContent = fmtPctRaw(sam.toppN_hlutdeild);
+      $('#atv-cov').textContent = 'Byggt á ' + Number(d.n || 0).toLocaleString('is-IS') + ' félögum með skráða veltu'
+        + (d.staerd_heild ? ' — samanlögð velta ' + fmtKr(d.staerd_heild) + '.' : '.');
+      wireReportNav({ onPdf: () => window.print() });
+    }
+
+    async function bootDeep(slug) {
+      if (!hasTier(3)) return;   // ekki (þekkt) réttindahafi — SSG-gáttin sem þegar er bökuð í síðuna stendur óbreytt
+      let d = null;
+      try {
+        const r = await fetch('/api/atvinnugrein?slug=' + encodeURIComponent(slug), { credentials: 'include' });
+        d = await r.json();
+      } catch (e) { showGate('err'); return; }
+      if (!d || !d.ok) { showGate(d && d.error === 'login' ? 'login' : d && d.error === 'tier' ? 'tier' : 'err'); return; }
+      renderDeep(d);
+    }
+
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="atvinnugrein"]');
+      if (!m || m.dataset.init) return;
+      m.dataset.init = '1';
+      const loginA = $('#atv-gate-login-a');
+      if (loginA) loginA.href = loginHref();
+      bootDeep(m.dataset.slug || '');
+    });
+  </script>
+</Layout>
