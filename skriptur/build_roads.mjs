@@ -309,7 +309,7 @@ const links = [
   { id: 'fridun_exp', from: 'fridun', to: 'utflutningur', coef: -0.03, lag: 1, unit: '%/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Minni veiðisvæði → minni afli til skamms tíma' },
   { id: 'skipti_emis', from: 'orkuskipti', to: 'losun', coef: -0.15, lag: 2, unit: 'vísit/%', ci_lo: -0.28, ci_hi: -0.06, source: 'Rafvæðing samgangna → minni losun' },
   { id: 'skipti_bal', from: 'orkuskipti', to: 'afkoma', coef: -0.02, lag: 1, unit: '%VLF/%', ci_lo: -0.04, ci_hi: -0.005, source: 'Ívilnanir/innviðir orkuskipta kosta' },
-  { id: 'skog_emis', from: 'skograekt', to: 'losun', coef: -0.10, lag: 4, unit: 'vísit/%', ci_lo: -0.20, ci_hi: -0.03, source: 'Kolefnisbinding skóga (löng töf)' },
+  { id: 'skog_emis', from: 'skograekt', to: 'losun', coef: -0.18, lag: 3, unit: 'vísit/%', ci_lo: -0.30, ci_hi: -0.08, source: 'Kolefnisbinding skóga (raunhæfara vægi; töf stytt í ~ár)' },
   { id: 'skog_bal', from: 'skograekt', to: 'afkoma', coef: -0.015, lag: 1, unit: '%VLF/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Kostnaður við skógrækt' },
   { id: 'tourfee_bal', from: 'ferdamannagjald', to: 'afkoma', coef: 0.02, lag: 1, unit: '%VLF/%', ci_lo: 0.008, ci_hi: 0.04, source: 'Komugjald/gistináttagjald → tekjur ríkissjóðs' },
   { id: 'tourfee_gdp', from: 'ferdamannagjald', to: 'hagvoxtur', coef: -0.008, lag: 1, unit: 'pp/%', ci_lo: -0.02, ci_hi: -0.002, source: 'Hærra gjald dregur lítillega úr ferðaþjónustu' },
@@ -454,7 +454,7 @@ const links = [
   { id: 'eldi_byggd', from: 'fiskeldi', to: 'byggdajofnudur', coef: 0.05, lag: 2, unit: 'vísit/%', ci_lo: 0.02, ci_hi: 0.10, source: 'Fiskeldi (Vestfirðir/Austfirðir) → störf á landsbyggð → byggðajöfnuður' },
   { id: 'eldi_fisk', from: 'fiskeldi', to: 'fiskistofn', coef: -0.02, lag: 4, unit: 'vísit/%', ci_lo: -0.05, ci_hi: -0.005, source: 'Sjókvíaeldi → erfðablöndun/laxalús → álag á VILLTAN stofn (sjálfbærni-togstreita)' },
   // Votlendi: framræst votlendi ≈ 57% heildarlosunar Íslands (LULUCF) — stærsta einstaka loftslags-vogaraflið:
-  { id: 'votl_emis', from: 'votlendi', to: 'losun', coef: -0.12, lag: 6, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.05, source: 'Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%); löng töf' },
+  { id: 'votl_emis', from: 'votlendi', to: 'losun', coef: -0.32, lag: 2, unit: 'vísit/%', ci_lo: -0.45, ci_hi: -0.15, source: 'Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%) — sterkasta loftslags-vogaraflið; rewetting stöðvar oxun tiltölulega hratt' },
   // B11: vaxtabyrði heimila BEINT í kaupmátt (skuldir ~150% ráðstöfunartekna) — nettó BÆTTI vaxtahækkun áður kaupmátt:
   { id: 'rate_kaup', from: 'vextir', to: 'kaupmattur', coef: -0.08, lag: 2, unit: 'pp/pp', ci_lo: -0.14, ci_hi: -0.03, source: 'Vaxtabyrði skuldsettra heimila étur ráðstöfunartekjur (til viðbótar við óbeinu greiðslubyrðar-rásina) → togstreita verðbólguvörn vs kjör' },
   // B19: framsýn eignaverð (UIP/afvöxtun eru framsýnar) — bregðast við BOÐAÐRI vaxtaleið, ekki bara töf. 0 á fastri leið (bíta í dýnamískri KARP):

@@ -1,7 +1,7 @@
 // KENNSLUHANDBÓK LEIKSTJÓRA — ýtarleg leiðsögn fyrir hvert kjörtímabil (2000–2032).
 // Aðeins fyrir leikstjóra (inniheldur „svörin"). Ráð eru GRUNDUÐ í herminum (besta-spils-greining á miðlungs)
 // + sögulegu samhengi sviðsmyndarinnar. `settings` = ráðlagðar sleða-hreyfingar með stefnu + rökum.
-// Á ERFITT: sömu áherslur en böndin þrengri + pólitískt vald-þak (mest 6 virk svið) → forgangsraðaðu efstu ráðunum.
+// Á ERFITT: sömu áherslur en böndin þrengri, áföllin harðari og refsing við falli þyngri → minna svigrúm fyrir mistök.
 export const HANDBOOK = [
   { round: 1,
     situation: '2000. Góðæri og jafnvægi: lágt atvinnuleysi, myndarlegur vöxtur, bankar nýlega einkavæddir. Úti í heimi springur netbólan (vægt heimshagvaxtar-áfall).',

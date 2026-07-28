@@ -418,7 +418,7 @@ export function mountLeikur(root) {
         + '<div style="margin:4px 0"><b>🎚️ Ráðlagðar stillingar:</b><ul style="margin:3px 0 0;padding-left:18px">' + h.settings.map((s) => '<li style="margin:2px 0">' + esc(s) + '</li>').join('') + '</ul></div>'
         + '</div></details>';
     };
-    return card('📖 Kennsluhandbók leikstjóra', '<p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt: sömu áherslur, forgangsraðaðu efstu ráðunum (vald-þak).</p>' + HANDBOOK.map(entry).join(''));
+    return card('📖 Kennsluhandbók leikstjóra', '<p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + HANDBOOK.map(entry).join(''));
   }
   function renderFacilitator(st) {
     let controls = '';

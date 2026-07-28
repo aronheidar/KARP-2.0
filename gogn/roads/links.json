@@ -293,29 +293,6 @@
   "source": "Verð↔leiga samhreyfing (HMS)"
  },
  {
-  "id": "rent_cpi",
-  "from": "leiga",
-  "to": "verdbolga",
-  "coef": 0.03,
-  "lag": 1,
-  "unit": "pp/%",
-  "ci_lo": 0.01,
-  "ci_hi": 0.05,
-  "source": "Greidd húsaleiga er beinn CPI-liður (Hagstofa) — aðgreint frá reiknaðri húsaleigu sem kemur um husnaedi→verdbolga",
-  "note": "Lítill stuðull: greidd leiga er minni CPI-vigt en eigin húsnæði; forðast tvítalningu við húsnæðis-verð."
- },
- {
-  "id": "rent_realwage",
-  "from": "leiga",
-  "to": "kaupmattur",
-  "coef": -0.03,
-  "lag": 1,
-  "unit": "pp/%",
-  "ci_lo": -0.05,
-  "ci_hi": -0.01,
-  "source": "Leiga er stór útgjaldaliður leigjenda → hærri leiga rýrir ráðstöfunartekjur/kaupmátt (HMS/Hagstofa)"
- },
- {
   "id": "fr_rent",
   "from": "frambod",
   "to": "leiga",
@@ -687,11 +664,11 @@
   "id": "arrears_gdp",
   "from": "vanskil",
   "to": "hagvoxtur",
-  "coef": -0.06,
+  "coef": -0.02,
   "lag": 2,
   "unit": "pp/vísit",
-  "ci_lo": -0.09,
-  "ci_hi": -0.02,
+  "ci_lo": -0.04,
+  "ci_hi": -0.005,
   "nl": {
    "type": "accel",
    "at": 0.3,
@@ -1506,12 +1483,12 @@
   "id": "skog_emis",
   "from": "skograekt",
   "to": "losun",
-  "coef": -0.1,
-  "lag": 4,
+  "coef": -0.18,
+  "lag": 3,
   "unit": "vísit/%",
-  "ci_lo": -0.2,
-  "ci_hi": -0.03,
-  "source": "Kolefnisbinding skóga (löng töf)"
+  "ci_lo": -0.3,
+  "ci_hi": -0.08,
+  "source": "Kolefnisbinding skóga (raunhæfara vægi; töf stytt í ~ár)"
  },
  {
   "id": "skog_bal",
@@ -1902,18 +1879,6 @@
   "ci_lo": 0.06,
   "ci_hi": 0.28,
   "source": "Útlánaþensla drífur húsnæðisverð"
- },
- {
-  "id": "credit_gdp",
-  "from": "utlanavoxtur",
-  "to": "hagvoxtur",
-  "coef": 0.04,
-  "lag": 2,
-  "unit": "pp/%",
-  "ci_lo": 0.02,
-  "ci_hi": 0.06,
-  "source": "Útlánaframboð → fjárfesting/neysla (credit-crunch rás, BIS/SÍ FSR)",
-  "note": "Klárar fjármála-hraðalinn: vanskil→utlanavoxtur (samdráttur)→hagvöxtur. Í venjulegu árferði lítil; bítur í skuldakreppu þegar útlán dragast saman."
  },
  {
   "id": "hdebt_carry",
@@ -2917,12 +2882,12 @@
   "id": "votl_emis",
   "from": "votlendi",
   "to": "losun",
-  "coef": -0.12,
-  "lag": 6,
+  "coef": -0.32,
+  "lag": 2,
   "unit": "vísit/%",
-  "ci_lo": -0.22,
-  "ci_hi": -0.05,
-  "source": "Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%); löng töf"
+  "ci_lo": -0.45,
+  "ci_hi": -0.15,
+  "source": "Endurheimt framræsts votlendis stöðvar stærstu einstöku losunaruppsprettu landsins (LULUCF ~57%) — sterkasta loftslags-vogaraflið; rewetting stöðvar oxun tiltölulega hratt"
  },
  {
   "id": "rate_kaup",
