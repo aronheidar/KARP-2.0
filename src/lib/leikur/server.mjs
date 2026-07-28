@@ -120,6 +120,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
+    out.leverCap = difficultyOf(cfg.difficulty).leverCap || null; // Pólitískt vald: hámark virkra sleða (Erfitt)
     // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt). Áhrifa-tölur EKKI sendar (upplifun, ekki uppskrift).
     if (cfg.surprise && game.phase !== 'lobby') {
       const se = rollSurprise(code, game.current_round);
@@ -250,7 +251,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
         const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
         const diff = difficultyOf(cfg.difficulty);
-        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
+        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
         // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
         const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
         const polStates = policyStates(history);
@@ -277,7 +278,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
         const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -8 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
-        const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
+        const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')

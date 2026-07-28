@@ -535,7 +535,7 @@ export function mountLeikur(root) {
   function studioSim(st) {
     const history = [...(st.history || []), { levers: S.dials }];
     const scenario = { events: st.scenarioSoFar || [] };
-    const inp = buildInputs(history, { baseline: BASELINE, scenario, mode: 'studio' });
+    const inp = buildInputs(history, { baseline: BASELINE, scenario, mode: 'studio', leverCap: st.leverCap || null });
     const levOv = {}, shkOv = {};
     for (const k in inp.levers) levOv[k] = inp.levers[k].value;
     for (const k in inp.shocks) shkOv[k] = inp.shocks[k].value;
@@ -605,14 +605,21 @@ export function mountLeikur(root) {
     const tabBar = STUDIO_CAT.tabs.map((t, i) => { const m = TAB_META[t.group] || { icon: '', label: t.group }; return `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="${esc(t.group)}"><span class="lk-tab-ic">${m.icon}</span> ${esc(m.label)}</span>`; }).join('');
     const visLevers = tab.levers.filter((l) => unlocked(l.key)), lockedN = tab.levers.length - visLevers.length;
     const isCore = (k) => st.round === 1 && CORE_LEVERS.includes(k);
+    // Pólitískt vald (Erfitt): hámark VIRKRA sleða (frá grunni) → læsa sleða sem eru á grunni þegar þakið er náð.
+    const cap = st.leverCap || 0;
+    const activeKeys = cap ? Object.keys(S.dials || {}).filter((k) => BASELINE.levers[k] && unlocked(k) && S.dials[k] !== BASELINE.levers[k].base) : [];
+    const capReached = cap && activeKeys.length >= cap;
     const sliders = visLevers.map((l) => {
       const cfg = BASELINE.levers[l.key];
       const v = S.dials[l.key] != null ? S.dials[l.key] : l.base, moved = +v !== l.base, core = isCore(l.key);
+      const capLock = capReached && +v === l.base;   // á grunni + vald fullnýtt → læst
       const eff = leverEffects(l.key, BASELINE, LINKS);
       const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
-      const tip = l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt + (core ? ' ⭐ Kjarna-stjórntæki — góður staður að byrja.' : '');
-      return `<div class="lk-slider-row${core ? ' lk-core' : ''}" title="${esc(tip)}"><label>${core ? '⭐ ' : ''}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span>${st.difficulty === 'easy' ? ' <span class="lk-muted" style="font-size:11px">nú ' + esc(disp(cfg, l.base)) + '</span>' : ''}</label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
+      const tip = capLock ? 'Pólitískt vald fullnýtt — endursettu annan sleða til að opna þennan.' : l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt + (core ? ' ⭐ Kjarna-stjórntæki — góður staður að byrja.' : '');
+      return `<div class="lk-slider-row${core ? ' lk-core' : ''}"${capLock ? ' style="opacity:.45"' : ''} title="${esc(tip)}"><label>${capLock ? '🔒 ' : (core ? '⭐ ' : '')}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span>${st.difficulty === 'easy' ? ' <span class="lk-muted" style="font-size:11px">nú ' + esc(disp(cfg, l.base)) + '</span>' : ''}</label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}"${capLock ? ' disabled' : ''} aria-label="${esc(l.label)}"></div>`;
     }).join('') + (lockedN ? '<p class="lk-muted" style="font-size:12px;margin-top:8px">🔒 ' + lockedN + ' stjórntæki opnast á síðari kjörtímabilum.</p>' : '');
+    // Vald-mælir (Erfitt): sýnir hversu mörg svið eru virk af leyfðum.
+    const capHtml = cap ? '<div style="margin:6px 0 2px;padding:7px 10px;border-radius:8px;font-size:12.5px;background:' + (capReached ? 'rgba(231,130,132,.15);border:1px solid #e78284' : 'rgba(140,160,200,.12);border:1px solid #3a4152') + '">🏛️ <b>Pólitískt vald:</b> ' + activeKeys.length + '/' + cap + ' virk svið' + (capReached ? ' — fullnýtt. Endursettu sleða (á grunn) til að opna annað.' : '') + '</div>' : '';
     // „Ný stjórntæki" sem opnuðust ÞETTA kjörtímabil
     const newTools = STUDIO_CAT.tabs.flatMap((t) => t.levers).filter((l) => (LEVER_UNLOCK[l.key] || 1) === st.round).map((l) => l.label);
     const newToolsBanner = (st.round > 1 && newTools.length) ? '<div class="lk-newtools">🆕 <b>Ný stjórntæki opnuðust:</b> ' + newTools.map(esc).join(', ') + '</div>' : '';
@@ -627,7 +634,7 @@ export function mountLeikur(root) {
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +
-          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + '<div id="lk-st-sliders">' + sliders + '</div></div>' +
+          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + capHtml + '<div id="lk-st-sliders">' + sliders + '</div></div>' +
           mandateCard(st) +
           policiesCard(st) +
           '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
@@ -648,7 +655,7 @@ export function mountLeikur(root) {
     root.querySelectorAll('input[data-lev]').forEach((el) => {
       el.addEventListener('pointerdown', () => { S.dragging = el.dataset.lev; });
       el.addEventListener('pointerup', clearDrag);
-      el.addEventListener('change', () => { clearDrag(); pushDraft(st); });
+      el.addEventListener('change', () => { clearDrag(); pushDraft(st); if (st.leverCap) renderStudio(st); });  // vald-þak: uppfæra læsingar þegar sleði fer á/af grunn
       el.oninput = () => {
         const k = el.dataset.lev; S.dials[k] = +el.value; S.dragging = k; S.localTouched.add(k);
         const cfg = BASELINE.levers[k], vs = root.querySelector('.lk-val[data-val="' + k + '"]');

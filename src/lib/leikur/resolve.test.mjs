@@ -58,5 +58,15 @@ const setAll = (o) => ({ peningastefna: 'obreytt', utgjold: 'obreytt', skattar: 
   const { levers } = buildInputs([{ levers: { vextir: 999 } }], { baseline, scenario: SCENARIO, mode: 'studio' });
   ok('studio clamp í max', levers.vextir.value[0] === baseline.levers.vextir.max);
 }
+// 9) PÓLITÍSKT VALD (leverCap): aðeins N sterkustu virku sleðar teljast, restin hlutlaus
+{
+  const moved = { vextir: 9, skattar: 8, vsk: 26, utgjold: 5, tilfaerslur: 6, menntun: 5, orka: 5, bindiskylda: 6 };
+  const countOff = (inp) => Object.keys(inp.levers).filter((k) => inp.levers[k].value.some((v) => v !== baseline.levers[k].base)).length;
+  const noCap = buildInputs([{ levers: moved }], { baseline, scenario: SCENARIO, mode: 'studio' });
+  const cap6 = buildInputs([{ levers: moved }], { baseline, scenario: SCENARIO, mode: 'studio', leverCap: 6 });
+  ok('án þaks: allir 8 sleðar virkir', countOff(noCap) === 8);
+  ok('leverCap 6: aðeins 6 virkir', countOff(cap6) === 6);
+  ok('leverCap 3: aðeins 3 virkir', countOff(buildInputs([{ levers: moved }], { baseline, scenario: SCENARIO, mode: 'studio', leverCap: 3 })) === 3);
+}
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
