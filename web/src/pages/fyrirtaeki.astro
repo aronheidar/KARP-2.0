@@ -298,6 +298,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .kpi-chart-leg span::before { content: '▮ '; }
     /* 🏭 Samanburður við atvinnugrein (F2) */
     .fs-sector { margin-top: 8px; }
+    .fs-sec-rank { font-size: 13px; color: #eaf1fb; margin: 5px 0 3px; }
+    .fs-sec-rank b { color: #f6b13b; }
+    .fs-sec-h { display: block; color: #8595ad; font-size: 11px; margin-top: 1px; }
+    .fs-sec-link { display: inline-block; margin-top: 7px; color: #f6b13b; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .fs-sec-link:hover { text-decoration: underline; }
     .fs-sec-grid { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
     .fs-sec-r { display: grid; grid-template-columns: minmax(84px,108px) minmax(46px,1fr) auto auto; align-items: center; gap: 10px; padding: 6px 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; font-size: 13px; }
     .fs-sec-bar { position: relative; height: 8px; background: rgba(255,255,255,.06); border-radius: 5px; }
@@ -492,6 +497,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { renderUboSample } from '../lib/ubo-report.js';
     import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
     import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
+    import { slugify } from '../lib/atvinnugrein.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1406,6 +1412,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     async function fsWireSector(f) {
       const host = document.getElementById('fs-sector');
       if (!host || !f || !f.fjarhagur || !f.fjarhagur.length) return;
+      const rankP = fetch('/api/grein-rank?kt=' + encodeURIComponent(f.kt || '')).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       const digits = (f.isat && f.isat[0]) ? String(f.isat[0]).replace(/\D/g, '') : '';
       if (!digits) return;
       const sec = await fsSectorData();
@@ -1417,27 +1424,36 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const k = f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]);
       const r0 = f.fjarhagur[0], tps = (r0 && r0.starfsmenn && r0.tekjur) ? r0.tekjur / r0.starfsmenn : null;
       const mkrPer = (x) => fsThou(Math.round(x)) + ' m.kr';
+      const H = sec.heild || {};
       const defs = [
-        ['Framlegð', k.framlegd, S.framlegd, fsPct1, true],
-        ['Hagnaðarhlutfall', k.hagnhlutf, S.hagnadarhlutfall, fsPct1, true],
-        ['Eiginfjárhlutfall', k.eiginfjarhlutf, S.eiginfjarhlutfall, fsPct1, true],
-        ['Eignavelta', k.eignavelta, S.eignavelta, fsRat, true],
-        ['Tekjur á starfsmann', tps, S.tekjur_pr_starfsm_mkr, mkrPer, true],
-        ['Skuldir / eigið fé', k.de, S.skuldahlutfall_DE, fsRat, false],
+        ['Framlegð', k.framlegd, S.framlegd, H.framlegd, fsPct1, true],
+        ['Hagnaðarhlutfall', k.hagnhlutf, S.hagnadarhlutfall, H.hagnadarhlutfall, fsPct1, true],
+        ['EBIT-hlutfall', k.rekstrarhlutf, S.ebit_hlutfall, H.ebit_hlutfall, fsPct1, true],
+        ['Eiginfjárhlutfall', k.eiginfjarhlutf, S.eiginfjarhlutfall, H.eiginfjarhlutfall, fsPct1, true],
+        ['Eignavelta', k.eignavelta, S.eignavelta, H.eignavelta, fsRat, true],
+        ['Tekjur á starfsmann', tps, S.tekjur_pr_starfsm_mkr, H.tekjur_pr_starfsm_mkr, mkrPer, true],
+        ['Skuldir / eigið fé', k.de, S.skuldahlutfall_DE, H.skuldahlutfall_DE, fsRat, false],
       ].filter((d) => d[1] != null && d[2] != null);
       if (!defs.length) return;
       const body = defs.map((d) => {
-        const cv = d[1], sv = d[2], fmt = d[3], hi = d[4], better = hi ? cv >= sv : cv <= sv;
+        const cv = d[1], sv = d[2], hv = d[3], fmt = d[4], hi = d[5], better = hi ? cv >= sv : cv <= sv;
         const mx = Math.max(Math.abs(cv), Math.abs(sv)) || 1;
         const cw = Math.max(2, Math.min(100, Math.abs(cv) / mx * 100)), tick = Math.max(0, Math.min(100, Math.abs(sv) / mx * 100));
+        const hcell = (hv != null) ? '<span class="fs-sec-h">hagkerfi ' + fmt(hv) + '</span>' : '';
         return '<div class="fs-sec-r"><span class="fs-sec-l">' + d[0] + '</span>'
           + '<span class="fs-sec-bar"><i class="fs-sec-fill ' + (better ? 'up' : 'dn') + '" style="width:' + cw.toFixed(0) + '%"></i><i class="fs-sec-tick" style="left:' + tick.toFixed(0) + '%" title="Greinar-viðmið"></i></span>'
           + '<span class="fs-sec-c ' + (better ? 'up' : 'dn') + '">' + fmt(cv) + '</span>'
-          + '<span class="fs-sec-s">grein ' + fmt(sv) + '</span></div>';
+          + '<span class="fs-sec-s">grein ' + fmt(sv) + hcell + '</span></div>';
       }).join('');
+      const rk = await rankP;
+      const rankLine = (rk && rk.ok && rk.rank) ? '<div class="fs-sec-rank">Þitt félag er <b>#' + rk.rank + '</b> stærst af ' + rk.total + ' í greininni (velta)</div>' : '';
+      const rslug = (rk && rk.ok && rk.slug) ? rk.slug : (S.label ? slugify(S.label) : '');
+      const linkLine = '<a class="fs-sec-link" href="/atvinnugreinar/' + (rslug ? rslug + '/' : '') + '">→ Sjá alla greinina (stærstu félög + samþjöppun)</a>';
       host.hidden = false;
       host.innerHTML = '<div class="fs-sub">🏭 Samanburður við atvinnugrein <i class="tip" tabindex="0" data-tip="Leiðbeinandi viðmið úr heild atvinnugreinarinnar (Hagstofa FYR08010, ' + (S.ar || sec.ar || '') + '). Grein: ' + escF(S.label || '') + '. Grænt = betra en greinin. Ekki fjárfestingarráðgjöf.">ⓘ</i></div>'
+        + rankLine
         + '<div class="fs-sec-grid">' + body + '</div>'
+        + linkLine
         + '<div class="fs-sec-note">Viðmið: ' + escF(S.label || '') + ' · Hagstofa ' + (S.ar || sec.ar || '') + ' — leiðbeinandi, ekki nákvæmt jafngildi lykiltalna félagsins.</div>';
     }
     // 🏛️ Reglur í pípunni (fast-follow B) — opinn reglu-teaser úr Lobbývaktinni (build_lobbyvakt.mjs →
