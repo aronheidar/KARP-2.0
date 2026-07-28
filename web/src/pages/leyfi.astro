@@ -9,9 +9,11 @@ import Layout from '../layouts/Layout.astro';
 // Vite leysir þessa JSON-innflutninga á byggingartíma (path-óháð) fyrir SSR-tölurnar.
 import REK from '../../public/gogn/rekstrarleyfi.json';
 import FER from '../../public/gogn/ferdaleyfi.json';
+import APO from '../../public/gogn/apotek.json';
 
 const rekBy = REK.byKt || {};
 const ferBy = FER.byKt || {};
+const apoBy = APO.byKt || {};
 
 // ── SSR-tölur ─────────────────────────────────────────────────────────────
 let rekLeyfi = 0, gist = 0, veit = 0, afengi = 0;
@@ -60,8 +62,19 @@ for (const kt in ferBy) {
 }
 const ferFelog = Object.keys(ferBy).length;
 
-const totalHafar = rekFelog + ferFelog; // leyfishafar (kt) samtals — smá skörun möguleg milli skránna
-const totalLeyfi = rekLeyfi + ferLeyfi;
+let apoLeyfi = 0;
+const apoRegion = {}; // póstsvæði úr stadur-streng → fjöldi (sama fall og ferðaleyfi)
+for (const kt in apoBy) {
+  for (const l of apoBy[kt]) {
+    apoLeyfi++;
+    const r = regFromStadur(l.stadur);
+    apoRegion[r] = (apoRegion[r] || 0) + 1;
+  }
+}
+const apoFelog = Object.keys(apoBy).length;
+
+const totalHafar = rekFelog + ferFelog + apoFelog; // leyfishafar (kt) samtals — smá skörun möguleg milli skránna
+const totalLeyfi = rekLeyfi + ferLeyfi + apoLeyfi;
 
 // Dreifing eftir leyfistegund (fyrir súlurit + töflu)
 const typeRows = [
@@ -69,6 +82,7 @@ const typeRows = [
   { key: 'veit', label: 'Veitingaleyfi', n: veit, emoji: '🍽️', col: '#3fb950' },
   { key: 'dags', label: 'Dagsferðasalar', n: dags, emoji: '🧭', col: '#f6b13b' },
   { key: 'ferskr', label: 'Ferðaskrifstofur', n: ferskr, emoji: '✈️', col: '#bc8cff' },
+  { key: 'apotek', label: 'Apótek & lyfjasölur', n: apoLeyfi, emoji: '💊', col: '#ff8fb0' },
 ].sort((a, b) => b.n - a.n);
 const maxType = Math.max(...typeRows.map((r) => r.n), 1);
 
@@ -76,6 +90,7 @@ const maxType = Math.max(...typeRows.map((r) => r.n), 1);
 const regionAll = {};
 for (const k in rekRegion) regionAll[k] = (regionAll[k] || 0) + rekRegion[k];
 for (const k in ferRegion) regionAll[k] = (regionAll[k] || 0) + ferRegion[k];
+for (const k in apoRegion) regionAll[k] = (regionAll[k] || 0) + apoRegion[k];
 const regionRows = Object.entries(regionAll)
   .filter(([k]) => k !== 'Óskráð' && k !== 'Rafræn þjónusta')
   .sort((a, b) => b[1] - a[1]);
@@ -84,7 +99,7 @@ const maxRegion = Math.max(...regionRows.map((r) => r[1]), 1);
 const updated = ((REK.updated || FER.updated || '') + '').slice(0, 10);
 const nf = (n) => n.toLocaleString('is-IS');
 
-const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rekstrar-, gisti- og veitingaleyfa Sýslumanna og ferðaþjónustuleyfa Ferðamálastofu á Íslandi (${nf(totalLeyfi)} leyfi). ${nf(gist)} gististaðir, ${nf(veit)} veitingaleyfi, ${nf(afengi)} með vínveitingaleyfi, ${nf(ferskr)} ferðaskrifstofur, ${nf(dags)} dagsferðasalar. Leitanlegt eftir nafni, tegund og svæði.`;
+const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rekstrar-, gisti- og veitingaleyfa Sýslumanna, ferðaþjónustuleyfa Ferðamálastofu og apótekaleyfa Lyfjastofnunar á Íslandi (${nf(totalLeyfi)} leyfi). ${nf(gist)} gististaðir, ${nf(veit)} veitingaleyfi, ${nf(afengi)} með vínveitingaleyfi, ${nf(ferskr)} ferðaskrifstofur, ${nf(dags)} dagsferðasalar, ${nf(apoLeyfi)} apótek og lyfjasölur. Leitanlegt eftir nafni, tegund og svæði.`;
 ---
 <Layout
   title="Leyfaskrá — rekstrar-, gisti-, veitinga- og ferðaþjónustuleyfi | Karp"
@@ -95,8 +110,8 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
   <main data-pg="leyfi">
     <p class="kicker">Hagvísir Íslands · Atvinnuleyfi</p>
     <h1>Leyfaskrá 📋</h1>
-    <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong> ásamt <strong>ferðaþjónustuleyfum Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
-    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi tilgreina nafn og hjáheiti. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
+    <p class="lead">Vafrað yfirlit yfir <strong>{nf(totalHafar)}</strong> handhafa opinberra rekstrarleyfa — gisti-, veitinga- og vínveitingaleyfa <strong>Sýslumanna</strong>, <strong>ferðaþjónustuleyfa Ferðamálastofu</strong> (ferðaskrifstofur og dagsferðasalar) og <strong>apótekaleyfa Lyfjastofnunar</strong> (apótek og lyfjasölur). Samtals <strong>{nf(totalLeyfi)}</strong> útgefin leyfi. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a> þar sem leyfin birtast einnig per-kennitölu.</p>
+    <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimildir: Rekstrarleyfi veitinga- og gististaða + vínveitingaleyfi frá Sýslumönnum (island.is). Ferðaskrifstofu- og dagsferðasalaleyfi frá Ferðamálastofu. Apóteka- og lyfjasöluleyfi frá Lyfjastofnun. Rekstrarleyfi tilgreina rekstrarstað (heimilisfang) en ekki nafn leyfishafa; ferðaþjónustuleyfi og apótek tilgreina nafn. Aðeins gild/útgefin leyfi.">ⓘ</i> Um gögnin og heimildir</p>
 
     <div class="kpis">
       <div class="kpi"><div class="k-l">🏢 Leyfishafar</div><div class="k-v">{nf(totalHafar)}</div><div class="k-s">kennitölur með leyfi</div></div>
@@ -105,6 +120,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
       <div class="kpi"><div class="k-l">🍷 Vínveitingaleyfi</div><div class="k-v" style="color:#bc8cff">{nf(afengi)}</div><div class="k-s">af rekstrarleyfum</div></div>
       <div class="kpi"><div class="k-l">✈️ Ferðaskrifstofur</div><div class="k-v">{nf(ferskr)}</div><div class="k-s">Ferðamálastofa</div></div>
       <div class="kpi"><div class="k-l">🧭 Dagsferðasalar</div><div class="k-v">{nf(dags)}</div><div class="k-s">Ferðamálastofa</div></div>
+      <div class="kpi"><div class="k-l">💊 Apótek</div><div class="k-v">{nf(apoLeyfi)}</div><div class="k-s">Lyfjastofnun</div></div>
     </div>
 
     <h2>Dreifing eftir leyfistegund</h2>
@@ -142,13 +158,14 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
         <button class="ly-fb" data-t="afengi">🍷 Vín</button>
         <button class="ly-fb" data-t="ferskr">✈️ Ferðaskrifst.</button>
         <button class="ly-fb" data-t="dags">🧭 Dagsferðir</button>
+        <button class="ly-fb" data-t="apotek">💊 Apótek</button>
       </div>
     </div>
     <div id="ly-count" class="ly-cnt"></div>
     <div id="ly-list" class="ly-grid"><div class="ly-load">Hleð skránni…</div></div>
     <button id="ly-more" class="ly-more" hidden>Sýna fleiri</button>
 
-    <p class="foot">Forþjónað (SSG). Heimildir: <b>Sýslumenn</b> (rekstrar-, gisti- og vínveitingaleyfi um island.is) og <b>Ferðamálastofa</b> (ferðaskrifstofur + dagsferðasalar), uppfært {updated}. Rekstrarleyfi tilgreina rekstrarstað en ekki nafn leyfishafa; smelltu á fyrirtækjaprófíl til að sjá nafn og kennitölu. Aðeins gild/útgefin leyfi — lögaðila-rekstrarleyfi eru opinberar upplýsingar.</p>
+    <p class="foot">Forþjónað (SSG). Heimildir: <b>Sýslumenn</b> (rekstrar-, gisti- og vínveitingaleyfi um island.is), <b>Ferðamálastofa</b> (ferðaskrifstofur + dagsferðasalar) og <b>Lyfjastofnun</b> (apótek og lyfjasölur), uppfært {updated}. Rekstrarleyfi tilgreina rekstrarstað en ekki nafn leyfishafa; smelltu á fyrirtækjaprófíl til að sjá nafn og kennitölu. Aðeins gild/útgefin leyfi — lögaðila-rekstrarleyfi eru opinberar upplýsingar.</p>
   </main>
 
   <style is:global>
@@ -215,8 +232,8 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
       const listEl = document.getElementById('ly-list'), cntEl = document.getElementById('ly-count'), moreEl = document.getElementById('ly-more'), qEl = document.getElementById('ly-q');
       let DATA = null, filtered = [], shown = 0, curT = 'all', PAGE = 60;
 
-      // Flatur listi úr báðum byKt-skrám → { kt, name, place, cat, catLabel, emoji, wine, sub }
-      const build = (rek, fer) => {
+      // Flatur listi úr öllum þremur byKt-skrám → { kt, name, place, cat, catLabel, emoji, wine, sub }
+      const build = (rek, fer, apo) => {
         const out = [];
         const rb = (rek && rek.byKt) || {};
         for (const kt in rb) {
@@ -243,6 +260,17 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
               place: l.stadur || '', cat, catLabel: isFer ? 'Ferðaskrifstofa' : 'Dagsferðasali',
               emoji: isFer ? '✈️' : '🧭', wine: false,
               sub: [l.hjaheiti && l.nafn ? l.hjaheiti : '', l.leyfisnr ? 'Leyfi ' + l.leyfisnr : ''].filter(Boolean).join(' · '),
+            });
+          }
+        }
+        const ab = (apo && apo.byKt) || {};
+        for (const kt in ab) {
+          for (const l of ab[kt]) {
+            out.push({
+              kt, name: l.nafn || 'Apótek',
+              place: l.stadur || '', cat: 'apotek', catLabel: 'Apótek',
+              emoji: '💊', wine: false,
+              sub: l.svaedi || '',
             });
           }
         }
@@ -283,8 +311,9 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
       Promise.all([
         fetch('/gogn/rekstrarleyfi.json').then((r) => r.json()).catch(() => null),
         fetch('/gogn/ferdaleyfi.json').then((r) => r.json()).catch(() => null),
-      ]).then(([rek, fer]) => {
-        DATA = build(rek, fer).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'is'));
+        fetch('/gogn/apotek.json').then((r) => r.json()).catch(() => null),
+      ]).then(([rek, fer, apo]) => {
+        DATA = build(rek, fer, apo).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'is'));
         apply();
       }).catch(() => { listEl.innerHTML = '<div class="ly-load">Ekki tókst að hlaða skránni.</div>'; });
 
