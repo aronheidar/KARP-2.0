@@ -1,7 +1,128 @@
 {
  "kt": "6407070540",
  "nafn": "Marel Iceland ehf.",
- "sott": "2026-07-08",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "hagnadarhlutfall": 0.0049,
+    "ROE": 0.0119,
+    "ROA": 0.0048,
+    "eiginfjarhlutfall": 0.3994,
+    "veltufjarhlutfall": 0.8295,
+    "skuldahlutfall_DE": 1.504,
+    "eignavelta": 0.9721
+   },
+   "rekstur": {
+    "sala": 167924,
+    "annar_rekstur": -8369,
+    "fjarmunatekjur": 17,
+    "fjarmagnsgjold": -69,
+    "hagn_f_skatt": 3239,
+    "tekjuskattur": -2416,
+    "hagnadur": 823,
+    "laun": 59944
+   },
+   "efnahagur": {
+    "fastafjarmunir": 88528,
+    "birgdir": 15851,
+    "vidskiptakrofur": 44866,
+    "handbaert": 16309,
+    "veltufjarmunir": 84220,
+    "eignir": 172748,
+    "hlutafe": 15005,
+    "eigid_fe": 68988,
+    "langtimaskuldir": 10907,
+    "skammtimaskuldir": 92853,
+    "skuldir": 103760,
+    "efe_skuldir": 172748
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "hagnadarhlutfall": -0.1181,
+    "ROE": -0.3385,
+    "ROA": -0.1225,
+    "eiginfjarhlutfall": 0.3618,
+    "veltufjarhlutfall": 0.625,
+    "skuldahlutfall_DE": 1.7637,
+    "eignavelta": 1.0368
+   },
+   "rekstur": {
+    "sala": 149060,
+    "annar_rekstur": -8377,
+    "fjarmunatekjur": 878,
+    "fjarmagnsgjold": -675,
+    "hagn_f_skatt": -16544,
+    "tekjuskattur": -1067,
+    "hagnadur": -17611,
+    "laun": 60753
+   },
+   "efnahagur": {
+    "fastafjarmunir": 80748,
+    "birgdir": 12053,
+    "vidskiptakrofur": 35897,
+    "handbaert": 908,
+    "veltufjarmunir": 63024,
+    "eignir": 143772,
+    "hlutafe": 15005,
+    "eigid_fe": 52022,
+    "langtimaskuldir": 13574,
+    "skammtimaskuldir": 78176,
+    "skuldir": 91750,
+    "efe_skuldir": 143772
+   },
+   "starfsmenn": 682
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "EUR",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.032,
+    "hagnadarhlutfall": -0.0633,
+    "ROE": -0.2291,
+    "ROA": -0.0839,
+    "eiginfjarhlutfall": 0.366,
+    "veltufjarhlutfall": 0.3109,
+    "skuldahlutfall_DE": 1.732,
+    "eignavelta": 1.3243
+   },
+   "rekstur": {
+    "sala": 153137,
+    "annar_rekstur": -13924,
+    "ebit": 4894,
+    "fjarmunatekjur": 107,
+    "fjarmagnsgjold": -835,
+    "hagn_f_skatt": -13230,
+    "tekjuskattur": 3533,
+    "hagnadur": -9697
+   },
+   "efnahagur": {
+    "fastafjarmunir": 62770,
+    "birgdir": 13620,
+    "vidskiptakrofur": 3510,
+    "handbaert": 2435,
+    "veltufjarmunir": 52862,
+    "eignir": 115632,
+    "hlutafe": 15005,
+    "eigid_fe": 42325,
+    "langtimaskuldir": 10374,
+    "skammtimaskuldir": 62933,
+    "skuldir": 73306,
+    "efe_skuldir": 115632
+   },
+   "starfsmenn": 612
+  }
+ },
+ "pdf": "pdf/6407070540.pdf",
+ "pdfAr": "2025"
 }

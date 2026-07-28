@@ -1,7 +1,104 @@
 {
  "kt": "4711943019",
  "nafn": "Danfoss hf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.781,
+    "ebit_hlutfall": 0.5985,
+    "hagnadarhlutfall": 1.0243,
+    "ROE": 1.2493
+   },
+   "rekstur": {
+    "sala": 411,
+    "adrar_tekjur": 669,
+    "kostnadarverd": 732,
+    "laun": 805,
+    "ebitda": 246,
+    "afskriftir": 0,
+    "ebit": 246,
+    "fjarmunatekjur": 280,
+    "fjarmagnsgjold": -800,
+    "hagn_f_skatt": 941,
+    "tekjuskattur": -520,
+    "hagnadur": 421
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 330,
+    "vidskiptakrofur": 375,
+    "handbaert": 550,
+    "veltufjarmunir": 336,
+    "eigid_fe": 337
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.067,
+    "ebit_hlutfall": 0.769,
+    "hagnadarhlutfall": 0.7511,
+    "ROE": 1.346
+   },
+   "rekstur": {
+    "sala": 896,
+    "adrar_tekjur": 790,
+    "kostnadarverd": 956,
+    "laun": 853,
+    "ebitda": 689,
+    "afskriftir": 279,
+    "ebit": 689,
+    "fjarmunatekjur": 764,
+    "fjarmagnsgjold": 463,
+    "hagn_f_skatt": 114,
+    "tekjuskattur": 441,
+    "hagnadur": 673
+   },
+   "efnahagur": {
+    "fastafjarmunir": 476,
+    "birgdir": 879,
+    "vidskiptakrofur": 67,
+    "handbaert": 21,
+    "veltufjarmunir": 193,
+    "eigid_fe": 500
+   },
+   "starfsmenn": 10
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4385,
+    "ROA": 0.1742,
+    "eiginfjarhlutfall": 0.3974,
+    "veltufjarhlutfall": 0.3958,
+    "skuldahlutfall_DE": 1.5163
+   },
+   "rekstur": {
+    "laun": 180809067,
+    "afskriftir": -1081820,
+    "hagnadur": 88775536
+   },
+   "efnahagur": {
+    "birgdir": 121518547,
+    "eignir": 509480686,
+    "eigid_fe": 202469032,
+    "efe_skuldir": 509480686,
+    "skuldir": 307011654,
+    "skammtimaskuldir": 307011654
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4711943019.pdf",
+ "pdfAr": "2025"
 }
