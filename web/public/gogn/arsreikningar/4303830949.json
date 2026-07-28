@@ -1,7 +1,118 @@
 {
  "kt": "4303830949",
  "nafn": "Papco hf.",
- "sott": "2026-07-20",
- "engin": true,
- "astaeda": "Ársreikningur fannst hjá félaginu en lykiltölur reiknuðust ekki (t.d. mjög gamalt eða óstaðlað uppgjör)."
+ "sott": "2026-07-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0989,
+    "hagnadarhlutfall": -0.1222,
+    "ROE": -0.752,
+    "ROA": -0.2948,
+    "eiginfjarhlutfall": 0.392,
+    "veltufjarhlutfall": 0.2905,
+    "skuldahlutfall_DE": 2.2546,
+    "eignavelta": 2.4125
+   },
+   "rekstur": {
+    "sala": 254160716,
+    "adrar_tekjur": 158984,
+    "laun": -52135767,
+    "annar_rekstur": -5146955,
+    "ebit": -25124213,
+    "fjarmunatekjur": 51411,
+    "hagn_f_skatt": -31057116,
+    "hagnadur": -31057116
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 27053589,
+    "eignir": 105350897,
+    "eigid_fe": 41300000,
+    "skuldir": 93114161,
+    "efe_skuldir": 105350897,
+    "skammtimaskuldir": 93114161
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0039,
+    "hagnadarhlutfall": -0.0232,
+    "ROE": -0.2041,
+    "ROA": -0.0886,
+    "eiginfjarhlutfall": 0.4343,
+    "veltufjarhlutfall": 0.3787,
+    "skuldahlutfall_DE": 2.2106,
+    "eignavelta": 3.8224
+   },
+   "rekstur": {
+    "sala": 363534003,
+    "adrar_tekjur": 429887,
+    "laun": -3332530,
+    "annar_rekstur": -6286277,
+    "ebit": -1428017,
+    "fjarmunatekjur": 70655,
+    "hagn_f_skatt": -3961343,
+    "hagnadur": -8429643
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 34576941,
+    "eignir": 95105814,
+    "eigid_fe": 41300000,
+    "skuldir": 91298721,
+    "efe_skuldir": 95105814,
+    "skammtimaskuldir": 91298721
+   },
+   "starfsmenn": 8
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.081,
+    "hagnadarhlutfall": 0.0566,
+    "ROE": 0.3192,
+    "ROA": 0.1301,
+    "eiginfjarhlutfall": 0.4077,
+    "veltufjarhlutfall": 0.3655,
+    "skuldahlutfall_DE": 1.453,
+    "eignavelta": 2.2999
+   },
+   "rekstur": {
+    "sala": 925411036,
+    "adrar_tekjur": 15752643,
+    "laun": -255582816,
+    "annar_rekstur": -55916942,
+    "ebitda": 96956916,
+    "afskriftir": -22022588,
+    "ebit": 74934328,
+    "fjarmagnsgjold": -16246332,
+    "hagn_f_skatt": 61407351,
+    "tekjuskattur": -9049685,
+    "hagnadur": 52357666
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 85926357,
+    "handbaert": 1177619,
+    "eignir": 402363104,
+    "hlutafe": 41300000,
+    "eigid_fe": 164029082,
+    "skuldir": 238334022,
+    "efe_skuldir": 402363104,
+    "skammtimaskuldir": 238334022
+   },
+   "starfsmenn": 27
+  }
+ },
+ "pdf": "pdf/4303830949.pdf",
+ "pdfAr": "2024",
+ "ocr": true
 }
