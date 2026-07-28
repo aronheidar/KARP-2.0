@@ -10,6 +10,7 @@ import { explainRound } from './debrief.mjs';
 import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
 import { teachingPrompts } from './analytics.mjs';
+import { HANDBOOK } from './handbook.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
@@ -395,6 +396,23 @@ export function mountLeikur(root) {
     };
   }
 
+  // 📖 Kennsluhandbók leikstjóra: ýtarleg leiðsögn per kjörtímabil (aðeins fac). Núverandi lota opin+auðkennd.
+  function handbookCard(st) {
+    const cur = st.round || 0;
+    const evOf = (r) => SCENARIO.events.find((e) => e.round === r) || {};
+    const entry = (h) => {
+      const e = evOf(h.round), isCur = h.round === cur;
+      return '<details' + (isCur ? ' open' : '') + ' style="margin:5px 0;border:1px solid ' + (isCur ? '#f6b13b' : '#2a3040') + ';border-radius:8px;padding:8px 12px' + (isCur ? ';background:rgba(246,177,59,.06)' : '') + '">'
+        + '<summary style="cursor:pointer;font-weight:700;font-size:13.5px">' + (e.icon ? e.icon + ' ' : '') + 'KT' + h.round + ' · ' + (e.year || '') + ' — ' + esc(e.title || '') + (isCur ? ' <span style="color:#f6b13b">◀ núna</span>' : '') + '</summary>'
+        + '<div style="font-size:12.8px;line-height:1.55;margin-top:6px">'
+        + '<p style="margin:2px 0"><b>Staðan:</b> ' + esc(h.situation) + '</p>'
+        + '<p style="margin:4px 0"><b>⚠ Varastu:</b> ' + esc(h.varast) + '</p>'
+        + '<p style="margin:4px 0"><b>✅ Besta leiðin:</b> ' + esc(h.strategy) + '</p>'
+        + '<div style="margin:4px 0"><b>🎚️ Ráðlagðar stillingar:</b><ul style="margin:3px 0 0;padding-left:18px">' + h.settings.map((s) => '<li style="margin:2px 0">' + esc(s) + '</li>').join('') + '</ul></div>'
+        + '</div></details>';
+    };
+    return card('📖 Kennsluhandbók leikstjóra', '<p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt: sömu áherslur, forgangsraðaðu efstu ráðunum (vald-þak).</p>' + HANDBOOK.map(entry).join(''));
+  }
   function renderFacilitator(st) {
     let controls = '';
     const stopBtn = ' <button class="lk-btn" id="lk-stop" style="background:#e78284">⏹️ Stöðva leik</button>';
@@ -409,6 +427,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila (nemendur slá hann inn):</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div><button class="lk-btn" id="lk-copycode" style="background:#f6b13b;color:#0e1116;font-weight:700">📋 Afrita kóða</button></div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>' +
       (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
+      handbookCard(st) +
       '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
       roleMapCard(st) +
       '<div class="lk-card">' + controls + '</div>' +
