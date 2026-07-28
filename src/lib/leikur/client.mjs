@@ -221,7 +221,11 @@ export function mountLeikur(root) {
   const code = (u.searchParams.get('g') || '').toUpperCase();
   const invToken = u.searchParams.get('t');
   if (code) {
-    if (invToken) {
+    const wantWatch = u.searchParams.get('watch') === '1';
+    if (wantWatch) {
+      // Áhorfenda-/skjávarpa-hlekkur → ALLTAF útsendingar-sýn, óháð geymdum liðs-/leikstjóra-táknum í vafranum.
+      S.code = code; S.role = 'watch';
+    } else if (invToken) {
       // Boðs-hlekkur → ganga í BEFANDI lið (deilt lið-tákn); teamId úr tid eða síðar úr /state.you.
       const tid = u.searchParams.get('tid');
       localStorage.setItem(lsTeam(code), JSON.stringify({ token: invToken, teamId: tid ? +tid : null }));
@@ -413,7 +417,7 @@ export function mountLeikur(root) {
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
     b('#lk-copycode', () => { const el = root.querySelector('#lk-copycode'); try { navigator.clipboard.writeText(S.code); if (el) { el.textContent = '✅ Kóði afritaður'; setTimeout(() => { if (root.querySelector('#lk-copycode') === el) el.textContent = '📋 Afrita kóða'; }, 2000); } } catch (e) { if (el) el.textContent = S.code; } });
-    b('#lk-watchlink', () => { const el = root.querySelector('#lk-watchlink'); try { navigator.clipboard.writeText(location.origin + '/leikur/?g=' + S.code); if (el) el.textContent = '✅ Áhorfenda-hlekk afritaður'; } catch (e) { if (el) el.textContent = location.origin + '/leikur/?g=' + S.code; } });
+    b('#lk-watchlink', () => { const el = root.querySelector('#lk-watchlink'); const link = location.origin + '/leikur/?g=' + S.code + '&watch=1'; try { navigator.clipboard.writeText(link); if (el) el.textContent = '✅ Áhorfenda-hlekk afritaður'; } catch (e) { if (el) el.textContent = link; } });
   }
 
   // #5 Leikslok-samantekt: dregur lærdóm úr öllum kjörtímabilunum (eigin trajectory + raun + sleða-saga).
