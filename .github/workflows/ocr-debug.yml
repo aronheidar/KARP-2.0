@@ -1,0 +1,52 @@
+name: OCR debug (temp — dump OCR text)
+
+# Bráðabirgða-greiningarflæði: OCR-ar vistað PDF eins skönnuðs félags og prentar
+# efnahags-síðurnar (label + tölur) svo sjá megi hvernig OCR bjagar íslensku merkin.
+# EKKERT committað — aðeins log. Fjarlægt eftir greiningu.
+
+on:
+  workflow_dispatch:
+    inputs:
+      kt:
+        description: '10-stafa kennitala (vistað PDF verður að vera í repo)'
+        required: true
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Setup OCR + pdfplumber
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ocrmypdf tesseract-ocr-isl unpaper
+          python -m pip install --quiet pdfplumber
+      - name: OCR + dump balance-sheet rows
+        env:
+          RAW_KT: ${{ github.event.inputs.kt }}
+        run: |
+          KT="$(echo "$RAW_KT" | grep -oE '[0-9]{10}' | head -1)"
+          PDF="web/public/gogn/arsreikningar/pdf/$KT.pdf"
+          echo "KT=$KT  PDF=$PDF"
+          ls -la "$PDF" || { echo "NO SAVED PDF"; exit 0; }
+          ocrmypdf --language isl+eng --force-ocr --output-type pdf --optimize 0 \
+            --rotate-pages --deskew --clean --oversample 400 --quiet "$PDF" /tmp/ocr.pdf
+          cat > /tmp/dump.py <<'PY'
+          import sys
+          sys.path.insert(0, 'skriptur')
+          import pdfplumber, parse_arsreikningur as P
+          pdf = pdfplumber.open('/tmp/ocr.pdf')
+          for pi, pg in enumerate(pdf.pages):
+              low = (pg.extract_text() or '').lower()
+              if any(k in low for k in ('efnahag', 'eignir', 'eigi', 'eigin', 'skuldir')):
+                  head = ' '.join(l.strip() for l in low.split('\n')[:4])
+                  print('=== page %d  head: %s' % (pi, head[:90]))
+                  for label, nums in P.rows_of_page(pg):
+                      if label or nums:
+                          fe = P.match(label, P.EFNAHAGUR_MAP) if label else None
+                          print('   %-8s L=%r N=%s' % (('['+fe+']') if fe else '', label[:48], nums))
+          PY
+          python /tmp/dump.py
