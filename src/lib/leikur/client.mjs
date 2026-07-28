@@ -508,8 +508,9 @@ export function mountLeikur(root) {
   // ── Studio-stjórnstöð (fullur hermir sem ákvörðunar-yfirborð; forskoðun keyrir vélina á eigin drögum) ──
   function initDials(st) {
     const d = defaultDials(BASELINE);
-    // Byrjunar-staða = besta-nálgun á 2000-stefnu (klippt); læstar umferðir bera svo á milli.
-    for (const [k, v] of Object.entries(YEAR2000_DIALS)) { const c = BASELINE.levers[k]; if (c) d[k] = Math.max(c.min, Math.min(c.max, v)); }
+    // Byrjunar-staða = besta-nálgun á 2000-stefnu (klippt) — EN aðeins fyrir tól sem eru til strax (KT1).
+    // Tól sem opnast síðar (LEVER_UNLOCK>1) byrja HLUTLAUS (á grunni) svo spilarinn stilli þau sjálfur (t.d. ferðamannagjald).
+    for (const [k, v] of Object.entries(YEAR2000_DIALS)) { if ((LEVER_UNLOCK[k] || 1) > 1) continue; const c = BASELINE.levers[k]; if (c) d[k] = Math.max(c.min, Math.min(c.max, v)); }
     for (const set of (st.history || [])) if (set && set.levers) for (const [k, v] of Object.entries(set.levers)) d[k] = v;
     return d;
   }
@@ -592,7 +593,7 @@ export function mountLeikur(root) {
       const eff = leverEffects(l.key, BASELINE, LINKS);
       const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
       const tip = l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt + (core ? ' ⭐ Kjarna-stjórntæki — góður staður að byrja.' : '');
-      return `<div class="lk-slider-row${core ? ' lk-core' : ''}" title="${esc(tip)}"><label>${core ? '⭐ ' : ''}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span> <span class="lk-muted" style="font-size:11px">nú ${esc(disp(cfg, l.base))}</span></label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
+      return `<div class="lk-slider-row${core ? ' lk-core' : ''}" title="${esc(tip)}"><label>${core ? '⭐ ' : ''}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span>${st.difficulty === 'easy' ? ' <span class="lk-muted" style="font-size:11px">nú ' + esc(disp(cfg, l.base)) + '</span>' : ''}</label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}" aria-label="${esc(l.label)}"></div>`;
     }).join('') + (lockedN ? '<p class="lk-muted" style="font-size:12px;margin-top:8px">🔒 ' + lockedN + ' stjórntæki opnast á síðari kjörtímabilum.</p>' : '');
     // „Ný stjórntæki" sem opnuðust ÞETTA kjörtímabil
     const newTools = STUDIO_CAT.tabs.flatMap((t) => t.levers).filter((l) => (LEVER_UNLOCK[l.key] || 1) === st.round).map((l) => l.label);

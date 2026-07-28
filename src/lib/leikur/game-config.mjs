@@ -116,14 +116,16 @@ export const GOAL_SPECS = {
   losun: { key: 'losun', label: 'CO₂-losun (loftslag)', max: 106, band: 4, zeroAt: 60, dir: 'max', weight: 1, icon: '🌱' },
   jofnudur: { key: 'jofnudur', label: 'Tekjujöfnuður', min: 98, band: 3, zeroAt: 15, dir: 'min', weight: 1, icon: '⚖️' },
 };
-const CORE_GOALS = ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur'];
+// KJARNI: þjóðhagur + HAGUR FÓLKS (kaupmáttur launa) er ALLTAF metinn — annars má besta ríkiskassann á kostnað
+// heimilanna án afleiðinga. Kaupmáttur er í hverju kjörtímabili svo aðhald/skattar sem kremja lífskjör kosti stig.
+const CORE_GOALS = ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur', 'kaupmattur'];
 // Markmið per kjörtímabil (KT1..KT8): kjarni + þema. Þemu magnast: lífskjör→fiskur→(hrun)→byggð→ferðamenn→loftslag→jöfnuður→allt.
 export const ROUND_GOALS = [
-  [...CORE_GOALS, 'kaupmattur'],                                         // KT1 2000 netbóla: lífskjör
+  [...CORE_GOALS],                                                       // KT1 2000 netbóla: lífskjör (kaupmáttur í kjarna)
   [...CORE_GOALS, 'fiskistofn'],                                         // KT2 2004 útrás: sjálfbær sjávarútvegur
-  [...CORE_GOALS],                                                       // KT3 2008 hrun: lifa af (þjóðhagur ræður)
+  [...CORE_GOALS],                                                       // KT3 2008 hrun: lifa af — verja heimili í kreppu
   [...CORE_GOALS, 'byggdajofnudur'],                                     // KT4 2012 endurreisn: byggðir
-  [...CORE_GOALS, 'fiskistofn', 'kaupmattur'],                           // KT5 2016 ferðamenn: án ofþenslu
+  [...CORE_GOALS, 'fiskistofn'],                                         // KT5 2016 ferðamenn: án ofþenslu
   [...CORE_GOALS, 'losun'],                                              // KT6 2020 COVID+Paris: græn viðreisn
   [...CORE_GOALS, 'losun', 'jofnudur'],                                  // KT7 2024 verðbólga: loftslag+jöfnuður
   [...CORE_GOALS, 'losun', 'fiskistofn', 'byggdajofnudur', 'jofnudur'],  // KT8 2028 framtíð: allt
