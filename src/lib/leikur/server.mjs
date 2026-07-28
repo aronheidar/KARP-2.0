@@ -10,6 +10,7 @@ import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './rol
 import { govtStability } from './flavor.mjs';
 import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import { awardMedals } from './medals.mjs';
+import { rollSurprise, applySurprise } from './surprise.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -42,7 +43,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium' }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise }; }
 // Fasi A: markmið per kjörtímabil f. sjálfgefna leiki; sérsniðnir leikir halda föstu mandate úr config.
 function mandateAt(cfg, round) { return cfg.perRound ? mandateFor(round) : cfg.mandate; }
 const LEVER_LABELS = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.label]));
@@ -69,6 +70,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cb && cb.mode === 'studio') config.mode = 'studio';
     if (cb && +cb.timerSec > 0) config.timerSec = Math.max(30, Math.min(3600, Math.round(+cb.timerSec))); // #3 valfrjáls umferðar-klukka (sek)
     if (cb && ['easy', 'hard'].includes(cb.difficulty)) config.difficulty = cb.difficulty; // Fasi E: erfiðleikastig (medium=sjálfgefið)
+    if (cb && cb.surprise) config.surprise = true; // Fasi „skemmtun 3": óvænt atvik + klemmu-spjöld (valfrjálst)
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -117,6 +119,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
+    // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt). Áhrifa-tölur EKKI sendar (upplifun, ekki uppskrift).
+    if (cfg.surprise && game.phase !== 'lobby') {
+      const se = rollSurprise(code, game.current_round);
+      if (se) out.surprise = { id: se.id, icon: se.icon, title: se.title, text: se.text,
+        dilemma: se.dilemma ? { q: se.dilemma.q, options: (se.dilemma.options || []).map((o) => ({ key: o.key, label: o.label })) } : null };
+    }
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
     if (game.phase === 'decide' && cfg.deadline) out.secondsLeft = Math.max(0, Math.round((cfg.deadline - now()) / 1000));
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
@@ -146,6 +154,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const polStates = policyStates(out.history);
         out.policies = { states: polStates, draft: (byR[game.current_round] || {}).policies || {},
           available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options, pop: POLICY_POP[p.id] || null })) };
+        out.dilemmaDraft = (byR[game.current_round] || {}).dilemma || null; // Fasi „skemmtun 3": deilanlegt klemmu-val liðs
         // Fasi „fylgi" B2: stjórnarkreppa — féll stjórnin síðasta kjörtímabil? (birt sem borði + dýpri byrjun þessa lotu).
         const prevRes = resultsRaw.find((r) => r.team_id === you.teamId && r.round === game.current_round - 1);
         if (prevRes) { try { out.stjornarkreppa = ((JSON.parse(prevRes.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
@@ -232,8 +241,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Fasi „fylgi" B2: féll stjórnin síðasta kjörtímabil? → stjórnarkreppa berst yfir (hagvaxtar-drag + lægra byrjunar-fylgi).
         const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
-        const kpis2 = applyPolicies(kpis, polStates, bl2);
+        let kpis2 = applyPolicies(kpis, polStates, bl2);
         if (prevFell && kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.4;   // stjórnarmyndun/lömun eftir fall
+        // Fasi „skemmtun 3": óvænt atvik (valfrjálst) + liðs-val í klemmu → áhrif á KPI + bein fylgis-breyting.
+        const surprise = cfg.surprise ? rollSurprise(code, game.current_round) : null;
+        let surprisePop = 0;
+        if (surprise) { const sr = applySurprise(kpis2, surprise, (history[game.current_round - 1] || {}).dilemma); kpis2 = sr.kpis; surprisePop = sr.pop; }
         // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
         const penFactor = (f) => 1 - (1 - f) * diff.penalty;
         const raw = mandateAt(cfg, game.current_round);
@@ -241,7 +254,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis2, tMandate);
         // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
-        const stab = govtStability(kpis2, policyApproval(polStates) + (prevFell ? -6 : 0));
+        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -6 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });

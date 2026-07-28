@@ -200,6 +200,42 @@ const J = async (res) => JSON.parse(await res.text());
   const tSt2 = await J(await LH(new Request('https://karp.is/api/leikur/' + tg2.code + '/state', { headers: { authorization: 'Bearer ' + tg2.facToken } }), env));
   ok('klukka: 5s klippt upp í ≥30', tSt2.secondsLeft >= 29);
 
+  // Fasi „skemmtun 3": óvænt atvik + klemmu-val. Búum til studio-leik með surprise þar til kóði fær atvik í umferð 2.
+  const { rollSurprise } = await import('./surprise.mjs');
+  let xg = null, xEv = null;
+  for (let i = 0; i < 40 && !xEv; i++) { const g = await J(await LH(req('/api/leikur/create', { mode: 'studio', surprise: true }), env)); const e = rollSurprise(g.code, 2); if (e && e.dilemma) { xg = g; xEv = e; } }
+  ok('fann surprise-leik með klemmu í umferð 2', !!xEv);
+  if (xEv) {
+    const xHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + xg.facToken };
+    const xj1 = await J(await LH(req('/api/leikur/' + xg.code + '/join', { name: 'X-Alfa' }), env));
+    const xj2 = await J(await LH(req('/api/leikur/' + xg.code + '/join', { name: 'X-Beta' }), env));
+    const xCtrl = (a) => LH(new Request('https://karp.is/api/leikur/' + xg.code + '/control', { method: 'POST', headers: xHdr, body: JSON.stringify({ action: a }) }), env);
+    const xStG = (tok) => LH(new Request('https://karp.is/api/leikur/' + xg.code + '/state', { headers: { authorization: 'Bearer ' + tok } }), env);
+    const xDec = (tok, dec) => LH(new Request('https://karp.is/api/leikur/' + xg.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: (dec.round || 1), locked: true, decisions: dec }) }), env);
+    // Umferð 1: engin surprise (round<2 skilar null)
+    await xCtrl('start');
+    const x1 = await J(await xStG(xj1.teamToken));
+    ok('surprise: engin atvik í umferð 1', x1.surprise === undefined);
+    await xDec(xj1.teamToken, { round: 1, levers: { vextir: 8 } }); await xDec(xj2.teamToken, { round: 1, levers: { vextir: 6 } });
+    await xCtrl('resolve'); await xCtrl('next');
+    // Umferð 2: atvik birtist í /state með klemmu; áhrifa-tölur EKKI sendar
+    const x2 = await J(await xStG(xj1.teamToken));
+    ok('surprise: atvik birtist í umferð 2', x2.surprise && x2.surprise.id === xEv.id && x2.surprise.title === xEv.title);
+    ok('surprise: klemma með valkostum, EN engar áhrifa-tölur', x2.surprise.dilemma && Array.isArray(x2.surprise.dilemma.options) && x2.surprise.dilemma.options.every((o) => o.effect === undefined));
+    // Lið velja SITT hvorn klemmu-kost → ólík fylgis-/KPI-áhrif → ólík stig
+    const opts = xEv.dilemma.options;
+    await xDec(xj1.teamToken, { round: 2, levers: { vextir: 8 }, dilemma: opts[0].key });
+    await xDec(xj2.teamToken, { round: 2, levers: { vextir: 8 }, dilemma: (opts[1] || opts[0]).key });
+    // klemmu-drög samstillast innan liðs (out.dilemmaDraft)
+    const xd = await J(await xStG(xj1.teamToken));
+    ok('surprise: klemmu-drög liðs samstillt (dilemmaDraft)', xd.dilemmaDraft === opts[0].key);
+    await xCtrl('resolve');
+    const xRes = await J(await xStG(xg.facToken));
+    ok('surprise: bæði lið skoruð eftir atvik+klemmu', xRes.teams.every((t) => typeof t.cumulative === 'number'));
+    // classic/án surprise → aldrei out.surprise
+    ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
+  }
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();
