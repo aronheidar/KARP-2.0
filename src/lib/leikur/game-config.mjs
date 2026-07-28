@@ -105,16 +105,20 @@ export const MANDATE = {
 // Fasi A — MARKMIÐ BREYTAST EFTIR KJÖRTÍMABILI. Þjóðhagslegur kjarni (verðb/atvl/skuldir/hagv) ALLTAF með,
 // þemu lögð á smám saman svo umhverfis-/sjálfbærni-/byggða-/jöfnuðar-sleðar skipti máli í stiginu (annars 0 áhrif).
 // Aðeins fyrir sjálfgefna leiki; sérsniðnir leikir nota fast mandate úr config. Hagvísar 100-vísitala (2000).
+// Böndun hert (jafnvægis-lota 28.7): áður skoraði „ekkert gert" ~100 í 7/8 lotum og aðeins stýrivextir/verðbólga
+// skiptu máli. Nú BINDA böndin — kjarni krefst virkrar hagstjórnar HVERJA lotu og þema-KPI (sjálfbærni/byggð/loftslag/
+// jöfnuður) sitja við grunngildi svo þema-sleðarnir (orka/orkuskipti/veiðigjald/byggðastefna/tilfærslur...) skipti máli í
+// sinni lotu. Sannreynt í hermi: ~16 sleðar fá vægi, „ekkert gert" ~63–95, fært lið nær samt ~90–100. difficulty skalar bönd.
 export const GOAL_SPECS = {
-  verdbolga: { key: 'verdbolga', label: 'Verðbólga', target: 2.5, band: 1.0, zeroAt: 4.0, dir: 'target', weight: 1, icon: '💵' },
-  atvinnuleysi: { key: 'atvinnuleysi', label: 'Atvinnuleysi', max: 4.5, band: 1.0, zeroAt: 4.0, dir: 'max', weight: 1, icon: '👥' },
-  skuldir: { key: 'skuldir', label: 'Skuldir ríkis', max: 40, band: 5, zeroAt: 30, dir: 'max', weight: 1, icon: '🏛️' },
-  hagvoxtur: { key: 'hagvoxtur', label: 'Hagvöxtur', min: 2.0, band: 1.0, zeroAt: 3.0, dir: 'min', weight: 1, icon: '📈' },
-  kaupmattur: { key: 'kaupmattur', label: 'Kaupmáttur launa', min: 0.5, band: 1.5, zeroAt: 6, dir: 'min', weight: 1, icon: '🛒' },
-  fiskistofn: { key: 'fiskistofn', label: 'Fiskistofn (sjálfbærni)', min: 96, band: 4, zeroAt: 25, dir: 'min', weight: 1, icon: '🐟' },
-  byggdajofnudur: { key: 'byggdajofnudur', label: 'Byggðajöfnuður', min: 98, band: 3, zeroAt: 15, dir: 'min', weight: 1, icon: '🗺️' },
-  losun: { key: 'losun', label: 'CO₂-losun (loftslag)', max: 106, band: 4, zeroAt: 60, dir: 'max', weight: 1, icon: '🌱' },
-  jofnudur: { key: 'jofnudur', label: 'Tekjujöfnuður', min: 98, band: 3, zeroAt: 15, dir: 'min', weight: 1, icon: '⚖️' },
+  verdbolga: { key: 'verdbolga', label: 'Verðbólga', target: 2.5, band: 0.8, zeroAt: 3.5, dir: 'target', weight: 1, icon: '💵' },
+  atvinnuleysi: { key: 'atvinnuleysi', label: 'Atvinnuleysi', max: 4.0, band: 0.6, zeroAt: 3.5, dir: 'max', weight: 1, icon: '👥' },
+  skuldir: { key: 'skuldir', label: 'Skuldir ríkis', max: 35, band: 2, zeroAt: 22, dir: 'max', weight: 1, icon: '🏛️' },
+  hagvoxtur: { key: 'hagvoxtur', label: 'Hagvöxtur', min: 2.2, band: 0.6, zeroAt: 3.0, dir: 'min', weight: 1, icon: '📈' },
+  kaupmattur: { key: 'kaupmattur', label: 'Kaupmáttur launa', min: 1.5, band: 1.0, zeroAt: 6, dir: 'min', weight: 1.3, icon: '🛒' },
+  fiskistofn: { key: 'fiskistofn', label: 'Fiskistofn (sjálfbærni)', min: 101, band: 1, zeroAt: 25, dir: 'min', weight: 1, icon: '🐟' },
+  byggdajofnudur: { key: 'byggdajofnudur', label: 'Byggðajöfnuður', min: 100, band: 1, zeroAt: 15, dir: 'min', weight: 1, icon: '🗺️' },
+  losun: { key: 'losun', label: 'CO₂-losun (loftslag)', max: 94, band: 2, zeroAt: 40, dir: 'max', weight: 1, icon: '🌱' },
+  jofnudur: { key: 'jofnudur', label: 'Tekjujöfnuður', min: 101, band: 1, zeroAt: 15, dir: 'min', weight: 1, icon: '⚖️' },
 };
 // KJARNI: þjóðhagur + HAGUR FÓLKS (kaupmáttur launa) er ALLTAF metinn — annars má besta ríkiskassann á kostnað
 // heimilanna án afleiðinga. Kaupmáttur er í hverju kjörtímabili svo aðhald/skattar sem kremja lífskjör kosti stig.

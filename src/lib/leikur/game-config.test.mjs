@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ROUNDS, QUARTERS_PER_ROUND, DECISIONS, MANDATE, SCENARIO, mandateFor } from './game-config.mjs';
+import { resolveTeam } from './resolve.mjs';
+import { scoreRound } from './scoring.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const baseline = JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/baseline.json'), 'utf8'));
 const LEV = new Set(Object.keys(baseline.levers)), SHK = new Set(Object.keys(baseline.shocks)), OUT = new Set(Object.keys(baseline.outcomes));
@@ -23,6 +25,12 @@ for (let r = 1; r <= ROUNDS; r++) {
   ok('þjóðhags-kjarni metinn í KT' + r, ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur'].every((k) => keys.includes(k)));
   ok('mandateFor KT' + r + ' allar KPI gildar', keys.every((k) => OUT.has(k)));
 }
+// Jafnvægi: „ekkert gert" má EKKI skora 100 út í gegn (böndin binda → sleðar skipta máli). Vörn gegn of-auðveldu.
+const LINKS = JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/links.json'), 'utf8'));
+const allBase = Object.fromEntries(Object.keys(baseline.levers).map((k) => [k, baseline.levers[k].base]));
+const doNothing = (r) => { const h = []; for (let j = 0; j < r; j++) h.push({ levers: allBase }); const { kpis } = resolveTeam({ baseline, links: LINKS, history: h, scenario: SCENARIO, mode: 'studio', shockScale: 1 }); return scoreRound(kpis, mandateFor(r)).composite; };
+ok('KT3 (hrun) er raunveruleg áskorun — ekkert-gert <85', doNothing(3) < 85);
+ok('meirihluti lota krefst aðgerða — ekkert-gert <99 í ≥4 lotum', [1, 2, 3, 4, 5, 6, 7, 8].filter((r) => doNothing(r) < 99).length >= 4);
 ok('scenario = ROUNDS atburðir', SCENARIO.events.length === ROUNDS);
 for (const e of SCENARIO.events) {
   ok('atburður shocks gild: r' + e.round, Object.keys(e.shocks || {}).every((k) => SHK.has(k) || LEV.has(k)));
