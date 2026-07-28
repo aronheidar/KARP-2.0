@@ -258,7 +258,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
         let kpis2 = applyPolicies(kpis, polStates, bl2);
-        if (prevFell && kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.4;   // stjórnarmyndun/lömun eftir fall
+        // Stjórnarkreppa eftir fall: stjórnarmyndun/lömun → dýpra vaxtar-drag + atvinnuleysi↑ + skuldir↑ (glatað traust/tekjur).
+        if (prevFell) {
+          if (kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.6;
+          if (kpis2.atvinnuleysi != null) kpis2.atvinnuleysi += 0.4;
+          if (kpis2.skuldir != null) kpis2.skuldir += 3;
+        }
         // Fasi „skemmtun 3": óvænt atvik (valfrjálst) + liðs-val í klemmu → áhrif á KPI + bein fylgis-breyting.
         const surprise = cfg.surprise ? rollSurprise(code, game.current_round) : null;
         let surprisePop = 0;
@@ -270,7 +275,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis2, tMandate);
         // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
-        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -6 : 0));
+        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -8 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
         const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock });
         const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });

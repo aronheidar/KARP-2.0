@@ -469,6 +469,13 @@ export function mountLeikur(root) {
 
   function renderTeamResults(st) {
     const mine = (st.results || []).find((r) => r.teamId === S.teamId);
+    // Áberandi melding EF ríkisstjórnin féll (revolt) þetta kjörtímabil — efst svo hún fari ekki framhjá neinum.
+    const myStab = mine && mine.detail && mine.detail.stability;
+    const fellBanner = (myStab && myStab.level === 'revolt')
+      ? '<div style="background:linear-gradient(90deg,#5a1a1a,#3a1520);border:2px solid #e78284;border-radius:12px;padding:14px 16px;margin:10px 0;text-align:center">' +
+        '<div style="font-size:19px;font-weight:800;color:#ff9d9d;letter-spacing:.5px">🚨 RÍKISSTJÓRNIN ÞÍN FÉLL</div>' +
+        '<p style="margin:6px 0 0;font-size:13.5px;line-height:1.5">🍳 Búsáhaldabyltingin — fylgið hrundi í <b>' + myStab.approval + '%</b> og fjöldamótmæli felldu stjórnina. Stig þessa kjörtímabils skerðast (×' + myStab.factor + '), og <b>stjórnarkreppa</b> berst yfir á næsta kjörtímabil: minni hagvöxtur, hærra atvinnuleysi, hærri skuldir og lægra byrjunar-fylgi.</p></div>'
+      : '';
     // #1 „Af hverju?"-debrief: mannamáls-útskýring efst. finalLevers úr st.draft (reload-öruggt) → S.dials.
     let debriefHtml = '';
     if (mine && mine.detail && mine.detail.perKpi) {
@@ -509,7 +516,7 @@ export function mountLeikur(root) {
       const uprising = stab.level !== 'stable' ? '<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(' + (stab.level === 'revolt' ? '231,130,132,.16);border-left:3px solid #e78284' : '232,193,74,.12);border-left:3px solid #e8c14a') + '"><b>' + stab.icon + ' ' + esc(stab.title) + '</b> — ' + esc(stab.blurb) + '</div>' : '';
       extras += '<div class="lk-card"><h2>🗳️ Kosningar &amp; fylgi</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + stab.approval + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p>' + uprising + '</div>';
     }
-    root.innerHTML = teamBanner(st) + roleBanner(st) + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
+    root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st) + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + extras
       + (chainHtml ? card('🔗 Orsaka-keðja ákvarðana ykkar', chainHtml) : '')
       + leaderboard(st)
@@ -616,7 +623,7 @@ export function mountLeikur(root) {
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) +
-      (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">⚠</span><span><b>Stjórnarkreppa.</b> Ríkisstjórnin féll í mótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu umboði. Stjórnarmyndun og lömun draga úr hagvexti, og fylgi byrjar lægra.</span></div></div>' : '') +
+      (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">🚨</span><span><b>Stjórnarkreppa eftir fall stjórnarinnar.</b> Ríkisstjórnin féll í fjöldamótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu búi. Stjórnarmyndun og lömun draga úr hagvexti, atvinnuleysi eykst, skuldir hækka og fylgi byrjar mun lægra. Það þarf sterka hagstjórn til að ná vopnum sínum á ný.</span></div></div>' : '') +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
         '<div class="lk-studio-controls">' +

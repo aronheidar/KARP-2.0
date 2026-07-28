@@ -30,7 +30,7 @@ ok('fylgi klippt 0–100', popularity({ verdbolga: 30, hagvoxtur: -10, atvinnule
 const good = govtStability({ verdbolga: 2.5, hagvoxtur: 3, atvinnuleysi: 3.5 });
 ok('gott ástand → stable, factor 1', good.level === 'stable' && good.factor === 1);
 const crash = govtStability({ verdbolga: 12, hagvoxtur: -7, atvinnuleysi: 8 }); // 2008-líkt
-ok('hrun → revolt (búsáhaldabyltingin)', crash.level === 'revolt' && crash.factor < 0.9);
+ok('hrun → revolt (búsáhaldabyltingin), hörð stig-refsing', crash.level === 'revolt' && crash.factor <= 0.72);
 ok('revolt hefur icon+title', crash.icon === '🍳' && /Búsáhalda/.test(crash.title));
 const mid = govtStability({ verdbolga: 6, hagvoxtur: -1, atvinnuleysi: 6.5 }); // ~36% → unrest
 ok('miðlungs ólga → unrest, 0.9<factor<1', mid.level === 'unrest' && mid.factor > 0.9 && mid.factor < 1);
