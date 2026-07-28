@@ -387,10 +387,22 @@ export function mountLeikur(root) {
       const me = (st.teams || []).find((t) => t.id === S.teamId);
       const rounds = st.round || 8, cum = me ? (me.cumulative || 0) : 0, avg = rounds ? cum / rounds : 0, et = endTitle(avg);
       const rank = me ? ([...st.teams].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0)).findIndex((t) => t.id === S.teamId) + 1) : 0;
-      const shareText = 'RÁS-Leikurinn — Ísland 2000–2032\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + '\nkarp.is/leikur/';
-      root.innerHTML = card('🏁 Leik lokið — árið er 2032',
-        '<div class="lk-title-card"><div class="lk-muted">Arfleifð ríkisstjórnarinnar 2000–2032</div><div class="lk-title-big">' + esc(et.title) + '</div><p>' + esc(et.blurb) + '</p><p><b>' + num(cum) + '</b> stig uppsafnað · meðal <b>' + num(avg) + '</b>/100' + (rank ? ' · sæti <b>' + rank + '/' + st.teams.length + '</b>' : '') + '</p><button class="lk-btn" id="lk-share" style="margin-top:8px">📋 Afrita niðurstöðu</button></div>')
-        + teamBanner(st) + teamRecap(st) + revealCard(st) + leaderboard(st);
+      const medals = st.medals || [];
+      const shareText = '📰 RÁS-TÍÐINDI 2032 — Ísland 2000–2032\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + (medals.length ? '\nTitlar: ' + medals.map((m) => m.icon + ' ' + m.title).join(', ') : '') + '\nkarp.is/leikur/';
+      const medalHtml = medals.length
+        ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' + medals.map((m) => '<span title="' + esc(m.desc) + '" style="display:inline-flex;align-items:center;gap:5px;background:rgba(246,177,59,.13);border:1px solid #f6b13b55;border-radius:20px;padding:4px 11px;font-size:12.5px"><span style="font-size:15px">' + m.icon + '</span> <b>' + esc(m.title) + '</b></span>').join('') + '</div>'
+        : '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">Engir sérstakir verðlaunatitlar að þessu sinni — reyndu aftur og náðu markmiðunum!</p>';
+      const frontPage = '<div class="lk-card" style="padding:0;overflow:hidden;border:1px solid var(--line)">'
+        + '<div style="border-bottom:3px double var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><b style="font-size:21px;letter-spacing:1.5px">📰 RÁS-TÍÐINDI</b><span class="lk-muted" style="font-size:12px">Reykjavík · 2032 · lokafrétt</span></div>'
+        + '<div style="padding:16px">'
+        + '<div class="lk-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Arfleifð ríkisstjórnarinnar 2000–2032</div>'
+        + '<div class="lk-title-big" style="margin:4px 0 6px">' + esc(et.title) + '</div>'
+        + '<p style="margin:0 0 8px;font-size:14px;line-height:1.5">' + esc(et.blurb) + '</p>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0;margin:8px 0"><span>📊 <b>' + num(cum) + '</b> stig</span><span>📈 meðal <b>' + num(avg) + '</b>/100</span>' + (rank ? '<span>🏅 sæti <b>' + rank + '/' + st.teams.length + '</b></span>' : '') + (st.avgApproval != null ? '<span>🗳️ fylgi <b>' + st.avgApproval + '%</b></span>' : '') + '</div>'
+        + '<b style="font-size:13px">🏅 Verðlaunatitlar ríkisstjórnarinnar:</b>' + medalHtml
+        + '<button class="lk-btn" id="lk-share" style="margin-top:12px">📋 Afrita forsíðuna</button>'
+        + '</div></div>';
+      root.innerHTML = frontPage + teamBanner(st) + teamRecap(st) + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
       return;
     }

@@ -9,6 +9,7 @@ import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
 import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
+import { awardMedals } from './medals.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -125,6 +126,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       try { const d = JSON.parse(mr[0].kpis || '{}'); out.finalPerKpi = d.perKpi || []; out.policySummary = describePolicies(d.policies || {}); } catch (e) {}
       let asum = 0, an = 0; for (const r of mr) { try { const a = (JSON.parse(r.kpis || '{}').stability || {}).approval; if (typeof a === 'number') { asum += a; an++; } } catch (e) {} }
       if (an) out.avgApproval = Math.round(asum / an); // heildar-fylgi = meðaltal yfir kjörtímabilin
+      // Verðlaunapeningar/titlar úr allri sögu liðsins (leikslok).
+      const mrounds = mr.map((rr) => { let d = {}; try { d = JSON.parse(rr.kpis || '{}'); } catch (e) {} return { round: rr.round, kpis: d.kpis || {}, roundScore: rr.round_score, stability: d.stability, policies: d.policies, crisis: d.crisis }; });
+      out.medals = awardMedals(mrounds);
     } }
     if (game.phase !== 'lobby') {
       const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
