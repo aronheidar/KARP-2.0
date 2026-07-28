@@ -87,7 +87,7 @@ async function buildForKt(kt, { arFjoldi = 1 } = {}) {
           // ⚠ FJÁRHAGSGÖGN: samþykkjum OCR AÐEINS ef efnahagsreikningurinn stemmir innbyrðis (Eignir ≈
           //   Eigið fé + Skuldir, ≤2%) — hafnar OCR-tölustafavillum svo aldrei séu birtar rangar lykiltölur.
           if (p2 && !p2.skannad && reconcilesOk(p2)) { parsed = p2; out.ocr = true; console.log(`  ${kt}: OCR tókst (${r.ar}) — efnahagur stemmir`); }
-          else console.log(`  ${kt}: OCR ${p2 && !p2.skannad ? 'stemmdi ekki (hafnað)' : 'skilaði engum texta'} (${r.ar})`);
+          else console.log(`  ${kt}: OCR hafnað (${r.ar}) — ${(p2 && !p2.skannad) ? reconcileDelta(p2) : 'skilaði engum texta'}`);
         } catch (e) { console.error(`  ${kt}: OCR-þáttun brást — ${e.message}`); }
         finally { try { fs.unlinkSync(ocr); } catch {} }
       }
@@ -136,6 +136,17 @@ function reconcilesOk(p) {
   if (eignir && efeSk) return near(eignir, efeSk);
   if (eignir && efe != null && skuldir != null) return near(eignir, efe + skuldir);
   return false;
+}
+// Greiningar-lína þegar OCR er hafnað: hversu langt frá stemmir efnahagurinn? (fylgjast með hvort betri
+// OCR-stillingar minnki frávikið → nálgast 2%-þröskuldinn).
+function reconcileDelta(p) {
+  const c = (o, k) => (o && Array.isArray(o[k]) && o[k][0] != null ? o[k][0] : null);
+  const ef = p.efnahagur || {};
+  const eignir = c(ef, 'eignir'), efeSk = c(ef, 'efe_skuldir'), efe = c(ef, 'eigid_fe'), skuldir = c(ef, 'skuldir');
+  const b = (efeSk != null) ? efeSk : ((efe != null && skuldir != null) ? efe + skuldir : null);
+  if (eignir == null || b == null) return `ófullnægjandi (eignir=${eignir} efe_skuldir=${efeSk} efe=${efe} skuldir=${skuldir})`;
+  const pct = Math.abs(eignir - b) / Math.max(1, Math.abs(eignir)) * 100;
+  return `eignir=${eignir} vs ${b} (${pct.toFixed(1)}% frávik)`;
 }
 
 // Greinir HVERS VEGNA ekkert nothæft þáttaðist → nákvæm skilaboð á fyrirtækjasíðunni (fsKpiEngin les `flokkur`).

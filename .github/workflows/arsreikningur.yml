@@ -42,7 +42,8 @@ jobs:
           # OCR-varaleið fyrir skönnuð (mynd-)PDF: ocrmypdf dregur inn tesseract + ghostscript;
           # tesseract-ocr-isl bætir við íslensku máli. Notað aðeins þegar PDF hefur ekkert textalag.
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ocrmypdf tesseract-ocr-isl
+          # unpaper = mynd-hreinsun fyrir ocrmypdf --clean (betri tölu-nákvæmni úr skönnuðum reikningum)
+          sudo apt-get install -y -qq ocrmypdf tesseract-ocr-isl unpaper
       - name: Sækja + þátta ársreikning
         env:
           CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest

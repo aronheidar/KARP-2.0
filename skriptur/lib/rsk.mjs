@@ -94,8 +94,16 @@ export function parsePdf(pdfPath, knownYr, { PYTHON = process.env.PYTHON || 'pyt
 // Keyrt AÐEINS í GH-Action (ocrmypdf er ekki í Cloudflare-worker né sjálfgefið á dev-vél).
 export function ocrPdf(pdfPath, { OCRMYPDF = process.env.OCRMYPDF || 'ocrmypdf' } = {}) {
   const outPath = pdfPath.replace(/\.pdf$/i, '') + '.ocr.pdf';
-  const r = spawnSync(OCRMYPDF, ['--language', 'isl+eng', '--force-ocr', '--output-type', 'pdf', '--optimize', '0', '--quiet', pdfPath, outPath], { encoding: 'utf-8', maxBuffer: 1 << 26 });
-  if (r.status !== 0 || r.error) return null;
+  const base = ['--language', 'isl+eng', '--force-ocr', '--output-type', 'pdf', '--optimize', '0', '--quiet'];
+  // Betri tölu-nákvæmni úr skönnuðum efnahagsreikningum: rétta halla (--deskew) + snúning
+  // (--rotate-pages) + hreinsa mynd fyrir OCR (--clean, unpaper) + yfirsýnataka í hærri DPI
+  // (--oversample 400). Reconcile-gáttin hafnar samt ef tölur stemma ekki → engin röng gögn birt.
+  const enhanced = ['--rotate-pages', '--deskew', '--clean', '--oversample', '400'];
+  let r = spawnSync(OCRMYPDF, [...base, ...enhanced, pdfPath, outPath], { encoding: 'utf-8', maxBuffer: 1 << 26 });
+  if (r.status !== 0 || r.error) {   // t.d. unpaper vantar / forvinnsla fellur → grunn-OCR án forvinnslu
+    r = spawnSync(OCRMYPDF, [...base, pdfPath, outPath], { encoding: 'utf-8', maxBuffer: 1 << 26 });
+    if (r.status !== 0 || r.error) return null;
+  }
   return outPath;
 }
 
