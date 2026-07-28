@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import {
-  slugify, sectorsFromMap, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
+  slugify, sectorsFromMap, sectorForIsat, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
 } from './atvinnugrein.mjs';
 
 // ── herfindahl ──────────────────────────────────────────────────────────────
@@ -249,4 +249,30 @@ test('RATIO_META: spot-check specific entries (fmt + betra direction)', () => {
   assert.deepEqual(RATIO_META.eignavelta, { heiti: 'Eignavelta', fmt: 'num', betra: 'haerra' });
   assert.deepEqual(RATIO_META.launahlutfall, { heiti: 'Launahlutfall', fmt: 'pct', betra: 'laegra' });
   assert.deepEqual(RATIO_META.tekjur_pr_starfsm_mkr, { heiti: 'Tekjur á starfsmann', fmt: 'kr_mkr', betra: 'haerra' });
+});
+
+// ── sectorForIsat ────────────────────────────────────────────────────────────
+const _SF = [
+  { slug: 'sjavarutvegur', label: 'Sjávarútvegur', isats: ['031', '102'], excl: [] },
+  { slug: 'matvaeli-an-fisk', label: 'Matvælaframleiðsla, án fiskvinnslu', isats: ['10'], excl: ['102'] },
+  { slug: 'fjarskipti', label: 'Fjarskipti', isats: ['61'], excl: [] },
+];
+test('sectorForIsat: lengsta forskeyti — 10.20.0 → sjávarútvegur (um 102)', () => {
+  assert.equal(sectorForIsat(_SF, '10.20.0').slug, 'sjavarutvegur');
+});
+test('sectorForIsat: 10.11.0 → matvæli (10, ekki útilokað)', () => {
+  assert.equal(sectorForIsat(_SF, '10.11.0').slug, 'matvaeli-an-fisk');
+});
+test('sectorForIsat: útilokun — 10.29.0 (undir 102) → sjávarútvegur, EKKI matvæli', () => {
+  assert.equal(sectorForIsat(_SF, '10.29.0').slug, 'sjavarutvegur');
+});
+test('sectorForIsat: einfalt match 61.10.0 → fjarskipti', () => {
+  assert.equal(sectorForIsat(_SF, '61.10.0').slug, 'fjarskipti');
+});
+test('sectorForIsat: óþekkt → null', () => {
+  assert.equal(sectorForIsat(_SF, '99.99'), null);
+});
+test('sectorForIsat: tómt/nullish → null', () => {
+  assert.equal(sectorForIsat(_SF, ''), null);
+  assert.equal(sectorForIsat(_SF, null), null);
 });

@@ -62,6 +62,22 @@ export function sectorsFromMap(map) {
   });
 }
 
+// ── sectorForIsat ─────────────────────────────────────────────────────────
+// Finnur grein (úr sectorsFromMap-úttaki) sem á ÍSAT-kóða félagsins. Lengsta-forskeyti-match á
+// s.isats; virðir s.excl ("án X" → félag útilokað úr þeirri grein). Skilar grein-hlut eða null.
+export function sectorForIsat(sectors, isat) {
+  const digits = String(isat == null ? '' : isat).replace(/\D/g, '');
+  if (!digits || !Array.isArray(sectors)) return null;
+  let best = null, bestLen = -1;
+  for (const s of sectors) {
+    if (s.excl && s.excl.some((e) => digits.startsWith(e))) continue;   // útilokað úr þessari grein
+    for (const c of (s.isats || [])) {
+      if (digits.startsWith(c) && c.length > bestLen) { best = s; bestLen = c.length; }
+    }
+  }
+  return best;
+}
+
 // ── vsHeild ───────────────────────────────────────────────────────────────
 // Hlutfallslegt frávik viðmiðs félags/greinar (val) frá hagkerfisviðmiði (heildVal).
 // pct: heiltala (námunduð) % frávik. dir: 'yfir' (>2%), 'undir' (<-2%), annars 'jafnt' (±2% dead-band).
