@@ -299,7 +299,7 @@ const links = [
   { id: 'veidi_byggd', from: 'veidigjald', to: 'byggdajofnudur', coef: -0.03, lag: 2, unit: 'vísit/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Íþyngir sjávarbyggðum' },
   { id: 'leigu_rent', from: 'leiguhusnaedi', to: 'leiga', coef: -0.20, lag: 3, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Aukið félagslegt/leiguframboð → lægri leiga' },
   { id: 'leigu_bal', from: 'leiguhusnaedi', to: 'afkoma', coef: -0.02, lag: 1, unit: '%VLF/%', ci_lo: -0.04, ci_hi: -0.005, source: 'Uppbygging leiguíbúða kostar' },
-  { id: 'loda_house', from: 'lodaframbod', to: 'husnaedi', coef: -0.15, lag: 4, unit: '%/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → meira byggingarland → lægra verð (löng töf)' },
+  { id: 'loda_house', from: 'lodaframbod', to: 'husnaedi', coef: -0.15, lag: 3, unit: '%/%', ci_lo: -0.30, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → meira byggingarland → lægra verð (löng töf)' },
   { id: 'part_labor', from: 'atvinnuthatttaka', to: 'vinnuafl', coef: 0.08, lag: 2, unit: 'pp/%', ci_lo: 0.03, ci_hi: 0.15, nl: { type: 'sat', k: 0.9 }, source: 'Þátttökuhvatar → aukið vinnuaflsframboð (B10: mettun — þátttaka þegar ~82%, takmarkað svigrúm; stigsáhrif ekki ótakmörkuð)' },
   { id: 'part_dep', from: 'atvinnuthatttaka', to: 'framfaersla', coef: -0.05, lag: 2, unit: 'vísit/%', ci_lo: -0.10, ci_hi: -0.02, source: 'Fleiri á vinnumarkaði → lægra framfærsluhlutfall' },
   { id: 'immig_labor', from: 'innflytjendastefna', to: 'vinnuafl', coef: 0.02, lag: 2, unit: 'pp/%', ci_lo: 0.01, ci_hi: 0.035, source: 'Atvinnuleyfi/atgervis-innflutningur → vinnuafl' },
@@ -314,7 +314,7 @@ const links = [
   { id: 'tourfee_bal', from: 'ferdamannagjald', to: 'afkoma', coef: 0.02, lag: 1, unit: '%VLF/%', ci_lo: 0.008, ci_hi: 0.04, source: 'Komugjald/gistináttagjald → tekjur ríkissjóðs' },
   { id: 'tourfee_gdp', from: 'ferdamannagjald', to: 'hagvoxtur', coef: -0.008, lag: 1, unit: 'pp/%', ci_lo: -0.02, ci_hi: -0.002, source: 'Hærra gjald dregur lítillega úr ferðaþjónustu' },
   // ── Framhald (module 11): mannauðs-framleiðni, loftslags-tjón, svæðaskipt húsnæði ──
-  { id: 'mennt_gdp', from: 'menntun', to: 'hagvoxtur', coef: 0.02, lag: 4, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Menntun → vinnuaflsgæði → framleiðni (mjög löng töf, óháð nýsköpun)' },
+  { id: 'mennt_gdp', from: 'menntun', to: 'hagvoxtur', coef: 0.02, lag: 3, unit: 'pp/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Menntun → vinnuaflsgæði → framleiðni (mjög löng töf, óháð nýsköpun)' },
   { id: 'clim_gdp', from: 'losun', to: 'hagvoxtur', coef: -0.004, lag: 4, unit: 'pp/vísit', ci_lo: -0.009, ci_hi: -0.001, source: 'Loftslagshlýnun → tjón á ferðaþjónustu/landbúnaði/innviðum (langtíma; grænir sleðar fá vaxtar-ávinning)' },
   // Höfuðborg — eftirspurnar-drifið (vextir/laun/aðflutningur ráða)
   { id: 'r_hbs', from: 'vextir', to: 'husnaedi_hbs', coef: -0.9, lag: 2, unit: '%/pp', ci_lo: -1.5, ci_hi: -0.4, source: 'Höfuðborgar-húsnæði vaxta-næmt (bakprófað: fylgni −0,36 við vexti töf 2ár, 2010–2026)' },
@@ -323,12 +323,12 @@ const links = [
   { id: 'dsti_hbs', from: 'dsti', to: 'husnaedi_hbs', coef: 0.20, lag: 2, unit: '%/pp', ci_lo: 0.08, ci_hi: 0.35, source: 'Rýmra greiðslubyrðisþak → hærra höfuðborgarverð' },
   { id: 'mig_hbs', from: 'adflutningur', to: 'husnaedi_hbs', coef: 0.10, lag: 2, unit: '%/%', ci_lo: 0.04, ci_hi: 0.16, source: 'Aðflutningur sest einkum á höfuðborgarsvæðið' },
   { id: 'fr_hbs', from: 'frambod', to: 'husnaedi_hbs', coef: -0.28, lag: 3, unit: '%/%', ci_lo: -0.45, ci_hi: -0.12, source: 'Nýbygginga-framboð (~70% á höfuðborgarsvæði) → lægra höfuðborgarverð — VANTAÐI (frambod snerti aðeins landsbyggð/þjóðar); vigtað samræmi 0,64·(−0,28)+0,36·(−0,35)≈−0,30=fr_house' },
-  { id: 'loda_hbs', from: 'lodaframbod', to: 'husnaedi_hbs', coef: -0.13, lag: 4, unit: '%/%', ci_lo: -0.25, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → byggingarland á höfuðborgarsvæði → lægra verð (löng töf); vigtað samræmi við loda_house' },
+  { id: 'loda_hbs', from: 'lodaframbod', to: 'husnaedi_hbs', coef: -0.13, lag: 3, unit: '%/%', ci_lo: -0.25, ci_hi: -0.05, source: 'Lóðaframboð/skipulag → byggingarland á höfuðborgarsvæði → lægra verð (löng töf); vigtað samræmi við loda_house' },
   { id: 'immig_hbs', from: 'innflytjendastefna', to: 'husnaedi_hbs', coef: 0.05, lag: 2, unit: '%/%', ci_lo: 0.02, ci_hi: 0.09, source: 'Stýrður innflutningur → höfuðborgar-eftirspurn' },
   // Landsbyggð — framboðs-/byggða-drifið (framboð/byggðastefna/innviðir ráða)
   { id: 'r_land', from: 'vextir', to: 'husnaedi_land', coef: -0.9, lag: 2, unit: '%/pp', ci_lo: -1.5, ci_hi: -0.4, source: 'Landsbyggð A.M.K. jafn vaxta-næm og höfuðborg (eigin OLS −1,62, ci [−2,43;−0,81] hafnaði fyrra −0,7 gildi; sett jafnt hbs −0,9)' },
   { id: 'fr_land', from: 'frambod', to: 'husnaedi_land', coef: -0.35, lag: 3, unit: '%/%', ci_lo: -0.55, ci_hi: -0.15, source: 'Framboð ræður meiru um verð úti á landi' },
-  { id: 'loda_land', from: 'lodaframbod', to: 'husnaedi_land', coef: -0.20, lag: 4, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Lóðaframboð → lægra verð (löng töf)' },
+  { id: 'loda_land', from: 'lodaframbod', to: 'husnaedi_land', coef: -0.20, lag: 3, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Lóðaframboð → lægra verð (löng töf)' },
   { id: 'byggd_land', from: 'byggdastefna', to: 'husnaedi_land', coef: 0.10, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.18, source: 'Byggðaefling → hærra fasteignaverð á landsbyggð (vitnisburður um vöxt)' },
   { id: 'innv_land', from: 'innvidir', to: 'husnaedi_land', coef: 0.08, lag: 3, unit: '%/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Innviðir → aðgengi → hærra verð úti á landi' },
   { id: 'orka_land', from: 'orka', to: 'husnaedi_land', coef: 0.06, lag: 3, unit: '%/%', ci_lo: 0.02, ci_hi: 0.12, source: 'Stóriðju-verkefni → húsnæðiseftirspurn í nágrenni' },
@@ -397,7 +397,7 @@ const links = [
   // ── Yfirferð orsakasambanda (viðbót — göt sem fundust í úttekt: dauðir kraftar sleða + vantandi lykil-rásir) ──
   { id: 'carbon_innov', from: 'kolefnisgjald', to: 'nyskopun', coef: 0.04, lag: 4, unit: 'vísit/%', ci_lo: 0.01, ci_hi: 0.08, source: 'Porter-tilgáta: kolefnisverð hvetur græna/hreintækni-nýsköpun (áður snerti kolefnisgjald ekki nýsköpun)' },
   { id: 'retire_labor', from: 'lifeyrisaldur', to: 'vinnuafl', coef: 0.15, lag: 2, unit: 'pp/ár', ci_lo: 0.06, ci_hi: 0.28, source: 'Hærri lífeyrisaldur → eldri kynslóðir vinna lengur → meira vinnuafl (áður snerti lífeyrisaldur aðeins framfærsluhlutfall)' },
-  { id: 'edu_unem', from: 'menntun', to: 'atvinnuleysi', coef: -0.015, lag: 4, unit: 'pp/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Menntun/þjálfun → betri samsvörun starfa → minna skipulags-atvinnuleysi (hæg áhrif)' },
+  { id: 'edu_unem', from: 'menntun', to: 'atvinnuleysi', coef: -0.015, lag: 3, unit: 'pp/%', ci_lo: -0.03, ci_hi: -0.004, source: 'Menntun/þjálfun → betri samsvörun starfa → minna skipulags-atvinnuleysi (hæg áhrif)' },
   { id: 'spread_fx', from: 'vaxtaalag', to: 'gengi_endo', coef: -0.5, lag: 1, unit: '%/pp', ci_lo: -1.0, ci_hi: -0.15, source: 'Hærra áhættuálag ríkis → fjármagns-útflæði → veikari króna (risk-off; fullkomnar áhættuálags-lykkjuna)' },
   // ── Nýjar íslenskar ákvarðanir: verðtrygging + fjármagnstekjuskattur + tryggingagjald ──
   { id: 'vt_burden', from: 'verdtrygging', to: 'greidslubyrdi', coef: -0.12, lag: 1, unit: 'vísit/%', ci_lo: -0.22, ci_hi: -0.04, source: 'Verðtryggð lán hafa lægri NAFN-greiðslubyrði (verðbætur leggjast á höfuðstól) → lægri greiðslubyrði skammtíma' },
