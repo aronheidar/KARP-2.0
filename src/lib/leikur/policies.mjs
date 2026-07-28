@@ -16,6 +16,14 @@ export const POLICIES = [
   { id: 'bankar', icon: '🏦', label: 'Bankarnir eftir hrun', kind: 'choice', from: 3, to: 4,
     options: [{ key: 'thjod', label: 'Þjóðnýta / ríkiseign' }, { key: 'einka', label: 'Einkavæða á ný' }],
     desc: 'Halda bönkunum í ríkiseigu eða einkavæða? Ríkiseign → stöðugleiki en fjárhagsáhætta. Einkavæðing → fjárhags-léttir og kraftur en endurtekningar-áhætta.' },
+  { id: 'stjoridja', icon: '🏭', label: 'Stóriðja (Kárahnjúkar/álver)', kind: 'choice', from: 2, to: 3,
+    options: [{ key: 'reisa', label: 'Reisa stórver' }, { key: 'hafna', label: 'Hafna — vernda náttúru' }],
+    desc: 'Virkja og reisa álver? Reisa → kröftugur hagvöxtur, störf og byggð úti á landi, EN stóraukin losun og óafturkræf náttúruspjöll. Hafna → grænni ferill en minni vöxtur. Kárahnjúkar/Fjarðaál-deilan 2003–07.' },
+  { id: 'fjarmalaregluverk', icon: '📊', label: 'Regluverk fjármálakerfis (útrás)', kind: 'choice', from: 2, to: 3,
+    options: [{ key: 'losa', label: 'Losa um höftin (útrás)' }, { key: 'adhald', label: 'Strangt fjármálaeftirlit' }],
+    desc: 'Leyfa bönkunum að þenjast út erlendis eða halda þeim í skefjum? Losa → mikill uppgangur og kaupmáttur strax, EN kerfisáhætta hleðst upp. Aðhald → hægari vöxtur en traustara kerfi. Útrásin 2004–08.' },
+  { id: 'audlindasjodur', icon: '🪙', label: 'Þjóðarsjóður auðlinda', kind: 'toggle', from: 5,
+    onLabel: 'Stofna þjóðarsjóð', offLabel: 'Leggja sjóðinn niður', desc: 'Leggja auðlindaarð (orka/sjávarútvegur/ferðamenn) í varasjóð í stað þess að eyða jafnóðum. Lækkar skuldir og styrkir viðnám gegn áföllum — en minna til skiptanna núna. Norska leiðin.' },
 ];
 const byId = Object.fromEntries(POLICIES.map((p) => [p.id, p]));
 
@@ -48,25 +56,35 @@ export function applyPolicies(kpis, states = {}, baselineLevels = {}) {
   const infl = k.verdbolga == null ? 2.5 : k.verdbolga;
   // 🔒 Höft: stöðugleiki (dregur gengi/verðbólgu að grunni) + vaxtar-drag.
   if (states.hoft === true) k = applyHoft(k, baselineLevels);
-  // 🏠 Verðtrygging afnumin: verndar heimilin þegar verðbólga er há (kaupmáttur↑, vanskil↓) en smá vaxtar-drag alltaf.
+  // 🏠 Verðtrygging afnumin: léttir alltaf á heimilum (kaupmáttur↑, vanskil↓), MEIRA í hárri verðbólgu — en dýrara lánsfé (nafnvextir↑) dregur úr vexti.
   if (states.verdtrygging === true) {
     const prot = Math.max(0, infl - 4);
-    if (k.kaupmattur != null) k.kaupmattur += prot * 0.2;
-    if (k.vanskil != null) k.vanskil -= prot * 2;
-    if (k.hagvoxtur != null) k.hagvoxtur -= 0.2;
+    if (k.kaupmattur != null) k.kaupmattur += 0.3 + prot * 0.25;
+    if (k.vanskil != null) k.vanskil -= 3 + prot * 2;
+    if (k.hagvoxtur != null) k.hagvoxtur -= 0.3;
+    if (k.verdbolga != null) k.verdbolga += 0.2;
   }
-  // 🇪🇺 ESB/evru-stefna: stöðugleiki verðbólgu/gengis — en skammtíma vaxtar-drag (sterkari króna/aðlögun).
+  // 🇪🇺 ESB/evru-stefna: stöðugleiki verðbólgu/gengis + lægra áhættuálag (skuldir−) — en skammtíma vaxtar-drag (sterkari króna/aðlögun).
   if (states.esb === true) {
     const stab = (key) => { if (k[key] != null && baselineLevels[key] != null) k[key] += 0.25 * (baselineLevels[key] - k[key]); };
     stab('verdbolga'); stab('gengi'); stab('gengi_endo');
     if (k.hagvoxtur != null) k.hagvoxtur -= 0.2;
+    if (k.skuldir != null) k.skuldir -= 2;
   }
-  // 💷 Icesave: greiða → skuldir+ en traust/vöxtur+; hafna → engar skuldir en skammtíma vaxtar-högg + gengisþrýstingur.
+  // 💷 Icesave: greiða → skuldir+ en traust/vöxtur+; hafna → engar nýjar skuldir (skuldir−) en skammtíma vaxtar-högg + gengisþrýstingur.
   if (states.icesave === 'pay') { if (k.skuldir != null) k.skuldir += 7; if (k.hagvoxtur != null) k.hagvoxtur += 0.4; }
-  else if (states.icesave === 'reject') { if (k.hagvoxtur != null) k.hagvoxtur -= 0.5; if (k.verdbolga != null) k.verdbolga += 0.3; }
+  else if (states.icesave === 'reject') { if (k.skuldir != null) k.skuldir -= 3; if (k.hagvoxtur != null) k.hagvoxtur -= 0.5; if (k.verdbolga != null) k.verdbolga += 0.3; }
   // 🏦 Bankar: þjóðnýta → skuldir+ og minni kraftur en meiri atvinnu-stöðugleiki; einkavæða → skuldir− og vöxtur+ en endurnýjuð vanskil-áhætta.
   if (states.bankar === 'thjod') { if (k.skuldir != null) k.skuldir += 5; if (k.hagvoxtur != null) k.hagvoxtur -= 0.3; if (k.atvinnuleysi != null) k.atvinnuleysi -= 0.3; }
   else if (states.bankar === 'einka') { if (k.skuldir != null) k.skuldir -= 4; if (k.hagvoxtur != null) k.hagvoxtur += 0.3; if (k.vanskil != null) k.vanskil += 3; }
+  // 🏭 Stóriðja: reisa → kröftugur vöxtur + byggð + störf EN mikil losun; hafna → grænni ferill en minni vöxtur.
+  if (states.stjoridja === 'reisa') { if (k.hagvoxtur != null) k.hagvoxtur += 0.6; if (k.byggdajofnudur != null) k.byggdajofnudur += 4; if (k.atvinnuleysi != null) k.atvinnuleysi -= 0.3; if (k.losun != null) k.losun += 6; }
+  else if (states.stjoridja === 'hafna') { if (k.hagvoxtur != null) k.hagvoxtur -= 0.3; if (k.byggdajofnudur != null) k.byggdajofnudur -= 2; if (k.losun != null) k.losun -= 4; }
+  // 📊 Fjármálaregluverk: losa → uppgangur + kaupmáttur strax EN kerfisáhætta (vanskil↑, skuldir↑, verðbólga↑); aðhald → hægari en traustara (vanskil↓).
+  if (states.fjarmalaregluverk === 'losa') { if (k.hagvoxtur != null) k.hagvoxtur += 0.7; if (k.kaupmattur != null) k.kaupmattur += 0.4; if (k.vanskil != null) k.vanskil += 6; if (k.skuldir != null) k.skuldir += 2; if (k.verdbolga != null) k.verdbolga += 0.3; }
+  else if (states.fjarmalaregluverk === 'adhald') { if (k.hagvoxtur != null) k.hagvoxtur -= 0.3; if (k.vanskil != null) k.vanskil -= 4; if (k.verdbolga != null) k.verdbolga -= 0.2; }
+  // 🪙 Þjóðarsjóður: leggja arð til hliðar → lægri skuldir + viðnám, en minna til skiptanna núna (vöxtur/kaupmáttur örlítið lægri).
+  if (states.audlindasjodur === true) { if (k.skuldir != null) k.skuldir -= 6; if (k.hagvoxtur != null) k.hagvoxtur -= 0.15; if (k.kaupmattur != null) k.kaupmattur -= 0.2; }
   return k;
 }
 
@@ -77,6 +95,9 @@ export const POLICY_POP = {
   esb: { on: -2 },               // ESB/evra klofin þjóð, örlítið neikvætt í heild
   icesave: { pay: -8, reject: 8 }, // þjóðin hafnaði tvisvar — höfnun mjög vinsæl, greiðsla óvinsæl
   bankar: { thjod: 4, einka: -5 }, // þjóðnýting vinsæl (ábyrgð), endur-einkavæðing óvinsæl
+  stjoridja: { reisa: 2, hafna: -1 },      // störf/vöxtur vinsæl á sínum tíma, en klofin þjóð (umhverfi)
+  fjarmalaregluverk: { losa: 4, adhald: -3 }, // góðærið var vinsælt; aðhald óvinsælt í uppsveiflu
+  audlindasjodur: { on: -1 },              // ábyrgt en „af hverju ekki nota arðinn núna?"
 };
 // Nettó fylgis-breyting af virkum rofum/völum.
 export function policyApproval(states = {}) {

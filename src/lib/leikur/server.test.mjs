@@ -216,7 +216,7 @@ const J = async (res) => JSON.parse(await res.text());
     await xCtrl('start');
     const x1 = await J(await xStG(xj1.teamToken));
     ok('surprise: engin atvik í umferð 1', x1.surprise === undefined);
-    await xDec(xj1.teamToken, { round: 1, levers: { vextir: 8 } }); await xDec(xj2.teamToken, { round: 1, levers: { vextir: 6 } });
+    await xDec(xj1.teamToken, { round: 1, levers: { vextir: 8 }, policies: { verdtrygging: true } }); await xDec(xj2.teamToken, { round: 1, levers: { vextir: 6 } });
     await xCtrl('resolve'); await xCtrl('next');
     // Umferð 2: atvik birtist í /state með klemmu; áhrifa-tölur EKKI sendar
     const x2 = await J(await xStG(xj1.teamToken));
@@ -236,6 +236,12 @@ const J = async (res) => JSON.parse(await res.text());
     const dbt = xRes.analytics && xRes.analytics.dilemmasByTeam;
     ok('surprise: leikstjóra-samantekt með klemmu-viðbrögð beggja liða', Array.isArray(dbt) && dbt.length === 2 && dbt.every((t) => t.items.some((it) => it.round === 2 && it.title === xEv.title)));
     ok('surprise: samantekt sýnir rétt val liðs A', dbt && dbt.some((t) => t.items.find((it) => it.round === 2).choice === opts[0].label));
+    // Arfleifð: í umferð 3 sér liðið hvernig fyrri ákvarðanir (verðtrygging) + atvik umferðar 2 lita lotuna
+    await xCtrl('next');
+    const x3 = await J(await xStG(xj1.teamToken));
+    ok('arfleifð: carryover sent í umferð 3', !!x3.carryover);
+    ok('arfleifð: standandi ákvörðun (verðtrygging) með', x3.carryover.policies.some((p) => p.id === 'verdtrygging' && p.text.length > 10));
+    ok('arfleifð: fyrra atvik (umferð 2) tilgreint með texta', x3.carryover.event && x3.carryover.event.id === xEv.id && x3.carryover.event.text.length > 10);
     // classic/án surprise → aldrei out.surprise
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
   }

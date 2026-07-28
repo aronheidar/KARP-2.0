@@ -11,6 +11,7 @@ import { govtStability } from './flavor.mjs';
 import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import { awardMedals } from './medals.mjs';
 import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
+import { carryover } from './aftermath.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -155,6 +156,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         out.policies = { states: polStates, draft: (byR[game.current_round] || {}).policies || {},
           available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options, pop: POLICY_POP[p.id] || null })) };
         out.dilemmaDraft = (byR[game.current_round] || {}).dilemma || null; // Fasi „skemmtun 3": deilanlegt klemmu-val liðs
+        // Arfleifð: hvernig standandi stórar ákvarðanir + óvænt atvik SÍÐUSTU lotu lita þessa lotu (birt í byrjun lotu ≥2).
+        if (game.current_round >= 2) {
+          const prevEvent = cfg.surprise ? rollSurprise(code, game.current_round - 1) : null;
+          const co = carryover({ policyStates: polStates, prevEvent, prevChoiceKey: (byR[game.current_round - 1] || {}).dilemma });
+          if (co) out.carryover = co;
+        }
         // Fasi „fylgi" B2: stjórnarkreppa — féll stjórnin síðasta kjörtímabil? (birt sem borði + dýpri byrjun þessa lotu).
         const prevRes = resultsRaw.find((r) => r.team_id === you.teamId && r.round === game.current_round - 1);
         if (prevRes) { try { out.stjornarkreppa = ((JSON.parse(prevRes.kpis).stability || {}).level === 'revolt'); } catch (e) {} }

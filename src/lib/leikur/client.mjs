@@ -297,6 +297,17 @@ export function mountLeikur(root) {
     }).join('');
     return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + body + '</div>';
   }
+  // Arfleifð: hvernig standandi stórar ákvarðanir + óvænt atvik síðustu lotu lita ÞESSA lotu (byrjun lotu).
+  function carryoverCard(st) {
+    const c = st.carryover; if (!c) return '';
+    const rows = [];
+    if (c.event && c.event.text) rows.push('<div style="margin:3px 0">' + (c.event.icon || '🎲') + ' <b>' + esc(c.event.title) + '</b>' + (c.event.choice ? ' <span class="lk-muted">(þið völduð: ' + esc(c.event.choice) + ')</span>' : '') + ' — ' + esc(c.event.text) + '</div>');
+    for (const p of (c.policies || [])) rows.push('<div style="margin:3px 0">' + (p.icon || '🏛️') + ' <b>' + esc(p.label) + '</b> — ' + esc(p.text) + '</div>');
+    if (!rows.length) return '';
+    return '<div style="background:#20242e;border:1px solid #3a4152;border-left:4px solid #8ca0c8;border-radius:10px;padding:11px 14px;margin:10px 0">' +
+      '<div style="font-size:13.5px;font-weight:700;margin-bottom:5px">📋 Arfleifð síðasta kjörtímabils — hvað mótar þessa lotu</div>' +
+      '<div style="font-size:12.8px;line-height:1.55">' + rows.join('') + '</div></div>';
+  }
   // Fasi „skemmtun 3": óvænt atvik + klemmu-spjald. Fréttaborði efst; ef klemma → viðbragðs-val (part af ákvörðun).
   function surpriseCard(st) {
     const s = st.surprise; if (!s) return '';
@@ -604,7 +615,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
-      teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + surpriseCard(st) +
+      teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) +
       (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">⚠</span><span><b>Stjórnarkreppa.</b> Ríkisstjórnin féll í mótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu umboði. Stjórnarmyndun og lömun draga úr hagvexti, og fylgi byrjar lægra.</span></div></div>' : '') +
       '<div class="lk-studio-main">' +
         '<div class="lk-studio-charts" id="lk-st-chart"></div>' +
