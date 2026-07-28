@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import {
-  slugify, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
+  slugify, sectorsFromMap, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
 } from './atvinnugrein.mjs';
 
 // ── herfindahl ──────────────────────────────────────────────────────────────
@@ -119,6 +119,73 @@ test('slugify: guards null/empty input', () => {
   assert.equal(slugify(''), '');
   assert.equal(slugify(null), '');
   assert.equal(slugify(undefined), '');
+});
+
+// ── sectorsFromMap ────────────────────────────────────────────────────────────
+// Fake map: 3-key group (shared label) + an "án 102" exclusion label + a "102" that is its own
+// sector + an "án <orð>" (no-digit) label. Mirrors the confirmed real shape (82 keys → 65 labels).
+const FAKE_MAP = {
+  '05': { label: 'Námugröftur (ÍSAT nr. 05-07)', framlegd: 0.11 },
+  '06': { label: 'Námugröftur (ÍSAT nr. 05-07)', framlegd: 0.11 },
+  '07': { label: 'Námugröftur (ÍSAT nr. 05-07)', framlegd: 0.11 },
+  '10': { label: 'Matvælaframleiðsla, án fiskvinnslu (ÍSAT nr. 10, án 102)', framlegd: 0.42 },
+  '102': { label: 'Fiskvinnsla (ÍSAT nr. 102)', framlegd: 0.20 },
+  '88': { label: 'Félagsþjónusta, án búsetu (ÍSAT nr. 88)', framlegd: 0.05 },
+};
+
+test('sectorsFromMap: one sector per unique label (65-of-82 collapse in miniature)', () => {
+  const secs = sectorsFromMap(FAKE_MAP);
+  assert.equal(secs.length, 4); // Námugröftur (3 keys) + Matvæla + Fiskvinnsla + Félagsþjónusta
+});
+
+test('sectorsFromMap: a 3-key group collapses to 1 sector with 3 sorted isats + shared kpi', () => {
+  const secs = sectorsFromMap(FAKE_MAP);
+  const nam = secs.find((s) => s.slug === 'namugroftur');
+  assert.ok(nam, 'namugroftur sector missing');
+  assert.deepEqual(nam.isats, ['05', '06', '07']);
+  assert.equal(nam.kpi, FAKE_MAP['05']); // shared entry (identity — any member, they are identical)
+  assert.deepEqual(nam.excl, []);
+});
+
+test('sectorsFromMap: "án 102" label → excl ["102"]; "án fiskvinnslu" (no digits) is ignored', () => {
+  const secs = sectorsFromMap(FAKE_MAP);
+  const mat = secs.find((s) => s.isats[0] === '10');
+  assert.deepEqual(mat.excl, ['102']);
+  assert.equal(mat.slug, 'matvaelaframleidsla-an-fiskvinnslu');
+});
+
+test('sectorsFromMap: "án <orð>" with no digit → excl []', () => {
+  const secs = sectorsFromMap(FAKE_MAP);
+  const fel = secs.find((s) => s.isats[0] === '88');
+  assert.deepEqual(fel.excl, []); // "án búsetu" has no digits
+  const fisk = secs.find((s) => s.isats[0] === '102'); // "102" inside ÍSAT paren, but no "án" → no excl
+  assert.deepEqual(fisk.excl, []);
+});
+
+test('sectorsFromMap: slugs are unique and result is sorted by isats[0]', () => {
+  const secs = sectorsFromMap(FAKE_MAP);
+  const slugs = secs.map((s) => s.slug);
+  assert.equal(new Set(slugs).size, slugs.length, 'slugs must be unique');
+  const firsts = secs.map((s) => s.isats[0]);
+  assert.deepEqual(firsts, firsts.slice().sort(), 'sectors sorted by isats[0]');
+});
+
+test('sectorsFromMap: collision disambiguation appends "-" + isats[0]', () => {
+  // Two distinct labels that slugify to the SAME base (parenthetical stripped) → second gets suffixed.
+  const m = {
+    '41': { label: 'Byggingarstarfsemi (ÍSAT nr. 41)' },
+    '42': { label: 'Byggingarstarfsemi (ÍSAT nr. 42)' },
+  };
+  const secs = sectorsFromMap(m);
+  assert.equal(secs.length, 2);
+  assert.equal(secs[0].slug, 'byggingarstarfsemi'); // isats[0]='41' sorts first, keeps base
+  assert.equal(secs[1].slug, 'byggingarstarfsemi-42'); // collision → disambiguated
+});
+
+test('sectorsFromMap: empty/nullish map → []', () => {
+  assert.deepEqual(sectorsFromMap({}), []);
+  assert.deepEqual(sectorsFromMap(null), []);
+  assert.deepEqual(sectorsFromMap(undefined), []);
 });
 
 // ── fmtKr / fmtRatio / fmtPct ───────────────────────────────────────────────

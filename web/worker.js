@@ -5,6 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
+import { sectorsFromMap, herfindahl, toppNShare } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
@@ -3073,6 +3074,59 @@ async function topplistarHandler(request, env, ctx) {
   return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=300' } });
 }
 
+// ── 🏢 Atvinnugreinar v1 — gátuð djúp-skýrsla per ÍSAT-deild (Fyrirtæki+) ─────────────────────
+// GET /api/atvinnugrein?slug=<grein> → röðuð stærstu félög + samþjöppun LIFANDI úr D1 (felog⋈fjarhagur),
+// grunduð í bökuðu sector_kpi.json viðmiðunum. Grein = eitt einkvæmt label (sjá sectorsFromMap): nær yfir
+// LISTA ÍSAT-kóða (mis-langir: 2/3/4 stafir) mínus „án X"-undanskilningar. Tier-gátt speglar _kycGate/_lobbyGate
+// (account-eigandi erfir þrep). Svör: HTTP 200 + {ok:false,error} skv. KARP-venjum; D1 tómt/óvirkt → tóm skýrsla.
+const _atvinnuGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
+async function atvinnugreinHandler(request, env, ctx) {
+  const url = new URL(request.url);
+  const slug = url.searchParams.get('slug') || '';
+  const uid = await readSession(env, request);
+  const now = Math.floor(Date.now() / 1000);
+  if (!uid) return _ajson({ ok: false, error: 'login' });
+  const u = await env.TENGSL.prepare('SELECT id,email,is_admin,free_access,tier,tier_until,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  const owner = await accountOwner(env, u);   // meðlimur erfir þrep eiganda → gátt er account-based
+  if (!_atvinnuGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
+  // grein úr bökuðum viðmiðum (slug validerað gegn sectorsFromMap — enginn frjáls-texti í SQL)
+  const sk = await augGet(env, 'sector_kpi.json').catch(() => null);
+  const sec = sk && sk.map ? sectorsFromMap(sk.map).find((s) => s.slug === slug) : null;
+  if (!sec) return _ajson({ ok: false, error: 'notfound' });
+  // cache: aðeins réttindahafar komast hingað → lykill ber e=1 (engin leki til ó-réttindahafa)
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/api/atvinnugrein?slug=' + encodeURIComponent(slug) + '&e=1');
+  const hit = await cache.match(cacheKey);
+  if (hit) { const h = new Response(hit.body, hit); h.headers.set('cache-control', 'private, max-age=300'); return h; }
+  // D1-sía: mis-löng forskeyti per ÍSAT-kóða (substr 1..LEN); undanskilningar → AND NOT. Kóðar bundnir (?)
+  // — aðeins heiltölu-lengdin (c.length) fer inn í SQL-strenginn, og hún kemur úr okkar eigin JSON.
+  const binds = [];
+  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+  let where = '(' + isatClause + ')';
+  if (sec.excl && sec.excl.length) {
+    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+    where += ' AND NOT (' + exClause + ')';
+  }
+  const rows = (env.TENGSL ? (await env.TENGSL.prepare(
+    `SELECT f.kt, f.nafn, fj.sala, fj.hagnadur, fj.eignir, fj.eigid_fe
+     FROM felog f JOIN fjarhagur fj ON fj.kt=f.kt
+     WHERE ${where} AND fj.sala IS NOT NULL
+     ORDER BY fj.sala DESC LIMIT 100`
+  ).bind(...binds).all().catch(() => ({ results: [] }))).results : []) || [];
+  const staerd_heild = rows.reduce((a, r) => a + (r.sala || 0), 0);
+  const body = {
+    ok: true, slug, label: sec.label, isats: sec.isats, vidmid: sec.kpi, heild: sk.heild,
+    topFelog: rows.slice(0, 25),
+    samthjoppun: { HHI: herfindahl(rows.map((r) => r.sala)), toppN_hlutdeild: toppNShare(rows, 5) },
+    staerd_heild, n: rows.length, coverage: rows.length,
+  };
+  const payload = JSON.stringify(body);
+  const baseHdr = { 'content-type': 'application/json; charset=utf-8' };
+  const cached = new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'public, max-age=300' } });
+  ctx.waitUntil(cache.put(cacheKey, cached.clone()));
+  return new Response(payload, { status: 200, headers: { ...baseHdr, 'cache-control': 'private, max-age=300' } });
+}
+
 // ── 🏭 ROADS: raunveruleg samsetning atvinnuvega úr ársreikningum (D1) ─────────────────────────
 // GET /api/roads/atvinnuvegir → grundar þjóðhags-herminn í raun-fyrirtækjagögnum: fyrir hverja ÍSAT-grein
 // heildarvelta, hlutur af heild, framlegð (hagnaður/velta), fjöldi greindra félaga. Nýjasta ár PER kt
@@ -4530,6 +4584,7 @@ export default {
     if (url.pathname === '/api/rsk') return rskHandler(request, env, ctx);
     if (url.pathname === '/api/tengslanet') return tengslanetHandler(request, env, ctx);
     if (url.pathname === '/api/topplistar') return topplistarHandler(request, env, ctx);
+    if (url.pathname === '/api/atvinnugrein') return atvinnugreinHandler(request, env, ctx);   // Atvinnugreinar v1: gátuð djúp-skýrsla per deild (Fyrirtæki+)
     if (url.pathname === '/api/roads/atvinnuvegir') return roadsSectorsHandler(request, env, ctx);
     if (url.pathname === '/api/rskproxy') return rskProxyHandler(request, env);
     if (url.pathname === '/api/tengsl-stats') return tengslStatsHandler(request, env);

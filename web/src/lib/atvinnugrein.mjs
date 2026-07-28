@@ -1,7 +1,7 @@
 // atvinnugrein.mjs — hrein rökvél Atvinnugreina-skýrslna (engin I/O; einingaprófuð). Sjá spec 2026-07-27.
 // Deilt af SSG-síðum (/atvinnugreinar/[slug].astro), worker.js (/api/atvinnugrein) og index.astro hub.
-// Samningur (breyta EKKI án þess að uppfæra báða neytendur): slugify/vsHeild/herfindahl/toppNShare/
-// fmtKr/fmtRatio/fmtPct/RATIO_META/RATIO_ORDER.
+// Samningur (breyta EKKI án þess að uppfæra báða neytendur): slugify/sectorsFromMap/vsHeild/herfindahl/
+// toppNShare/fmtKr/fmtRatio/fmtPct/RATIO_META/RATIO_ORDER.
 
 // ── slugify ─────────────────────────────────────────────────────────────────
 // Label (úr sector_kpi.json .map[isat].label) → URL-öruggt slug. Röð: strípa "(ÍSAT nr. …)"-svigann
@@ -23,6 +23,43 @@ export function slugify(label) {
   s = s.replace(/[^a-z0-9]+/g, '-');
   s = s.replace(/^-+|-+$/g, '');
   return s;
+}
+
+// ── sectorsFromMap ────────────────────────────────────────────────────────────
+// sector_kpi.json .map lyklar (2/3/4-stafa ÍSAT-kóðar) → listi EINKVÆMRA atvinnugreina, ein per einkvæmt
+// label. Raungögn (staðfest): 82 lyklar → 65 label, því 10 label-hópar sameina marga ÍSAT-kóða í eina
+// grein (t.d. 05,06,07,08,09 = „ÍSAT nr. 05-09"; 031,102 = Sjávarútvegur). Hver grein:
+//   { slug, label, kpi, isats, excl }
+//   • kpi   = (sameiginlega) map-færslan fyrir hópinn (allir meðlimir eins — tökum þann fyrsta).
+//   • isats = raðað fylki lykla hópsins (ÍSAT-kóðarnir sem greinin nær yfir).
+//   • excl  = tölu-kóðar úr „án X[, Y]"-orðalagi í label (t.d. „Matvælaframleiðsla, án fiskvinnslu
+//             (ÍSAT nr. 10, án 102)" → ['102']). ATH: hitt „án <orð>" (t.d. „án fiskvinnslu") hefur enga
+//             tölustafi og er RÉTTILEGA hunsað — regexið krefst tölustafs strax á eftir „án ".
+// slug = slugify(label); rekist slug á áður-útgefið slug er það aðgreint með '-' + isats[0]. Raðað eftir
+// isats[0] (aðgreining ákveðin í þeirri röð svo hún sé óháð innsetningarröð map-lykla).
+const SECTOR_EXCL_RX = /án\s+([\d][\d,\s]*)/i;
+export function sectorsFromMap(map) {
+  const groups = new Map();   // label -> [lyklar]
+  for (const k of Object.keys(map || {})) {
+    const lab = map[k] && map[k].label != null ? map[k].label : '';
+    if (!groups.has(lab)) groups.set(lab, []);
+    groups.get(lab).push(k);
+  }
+  const pre = [];
+  for (const [label, keys] of groups) {
+    const isats = keys.slice().sort();
+    const m = String(label).match(SECTOR_EXCL_RX);
+    const excl = m ? m[1].split(/[,\s]+/).filter((x) => /^\d+$/.test(x)) : [];
+    pre.push({ label, kpi: map[keys[0]], isats, excl });
+  }
+  pre.sort((a, b) => (a.isats[0] < b.isats[0] ? -1 : a.isats[0] > b.isats[0] ? 1 : 0));
+  const used = new Set();
+  return pre.map((s) => {
+    let slug = slugify(s.label);
+    if (used.has(slug)) slug = slug + '-' + s.isats[0];
+    used.add(slug);
+    return { slug, label: s.label, kpi: s.kpi, isats: s.isats, excl: s.excl };
+  });
 }
 
 // ── vsHeild ───────────────────────────────────────────────────────────────
