@@ -190,13 +190,13 @@ function renderFacAnalytics(an) {
   // Ákvarðanaferill liða yfir kjörtímabilin (samanbrjótanlegt per lið).
   const arcHtml = (an.decisionArc && an.decisionArc.length)
     ? '<h3 style="font-size:14px;margin:12px 0 4px">📋 Ákvarðanaferill liða (kjörtímabil fyrir kjörtímabil)</h3>' + an.decisionArc.map((t) =>
-        '<details style="margin:4px 0"><summary style="cursor:pointer;font-weight:600;font-size:13px"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span> ' + esc(t.name) + '</summary>'
+        '<details data-keep="arc-' + t.teamId + '"' + (S.openDetails.has('arc-' + t.teamId) ? ' open' : '') + ' style="margin:4px 0"><summary style="cursor:pointer;font-weight:600;font-size:13px"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span> ' + esc(t.name) + '</summary>'
         + '<table class="lk-tbl" style="margin-top:4px"><tr><th>Kjörtímabil</th><th>Það sem liðið breytti</th></tr>'
         + t.rows.map((r) => '<tr><td style="font-size:12px;white-space:nowrap">' + esc(r.event) + '</td><td style="font-size:12px">' + esc(r.summary) + '</td></tr>').join('')
         + '</table></details>').join('')
     : '';
   // Leiðbeiningar fyrir 1–2 klst umræðu (föst kennslu-uppbygging).
-  const guideHtml = '<details style="margin:4px 0 8px;border:1px solid #2a3040;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎓 Leiðbeiningar fyrir umræðu (1–2 klst)</summary><ol class="lk-prompts" style="font-size:12.8px;margin-top:6px">'
+  const guideHtml = '<details data-keep="guide"' + (S.openDetails.has('guide') ? ' open' : '') + ' style="margin:4px 0 8px;border:1px solid #2a3040;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎓 Leiðbeiningar fyrir umræðu (1–2 klst)</summary><ol class="lk-prompts" style="font-size:12.8px;margin-top:6px">'
     + '<li><b>Yfirferð niðurstaðna (15 mín):</b> Farið yfir lokastöðu og þróunar-gröfin — hvaða lið náði bestum árangri og hvers vegna?</li>'
     + '<li><b>Stefna hvers liðs (20 mín):</b> Látið hvert lið kynna sína leið út frá ákvarðanaferlinum — hver var stóra hugmyndin, og breyttist hún með áföllum?</li>'
     + '<li><b>Stóru ákvarðanirnar (20 mín):</b> Berið saman Icesave/ESB/stóriðju o.fl. — rökin, fylgið og afleiðingarnar umfram þjóðhags-tölurnar.</li>'
@@ -214,7 +214,7 @@ function renderFacAnalytics(an) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -241,6 +241,12 @@ export function mountLeikur(root) {
     }
   }
 
+  // Samanbrjótanleg <details data-keep="ID"> halda opnu/lokuðu stöðu yfir endur-teikningar (poll rebygg-ir innerHTML).
+  // toggle bólar EKKI → nota capture-fasa á root. Stjórnar handbók + ákvarðanaferil o.fl.
+  root.addEventListener('toggle', (e) => {
+    const d = e.target; if (!d || d.tagName !== 'DETAILS' || !d.dataset || !d.dataset.keep) return;
+    if (d.open) S.openDetails.add(d.dataset.keep); else S.openDetails.delete(d.dataset.keep);
+  }, true);
   // Boðs-hlekkur: afrita hlekk sem félagar opna til að ganga í SAMA lið (deilt lið-tákn). Event-delegation → lifir af endur-teikningar.
   root.addEventListener('click', (e) => {
     const inv = e.target && e.target.closest && e.target.closest('#lk-invite'); if (!inv || !S.code || !S.token) return;
@@ -399,10 +405,11 @@ export function mountLeikur(root) {
   // 📖 Kennsluhandbók leikstjóra: ýtarleg leiðsögn per kjörtímabil (aðeins fac). Núverandi lota opin+auðkennd.
   function handbookCard(st) {
     const cur = st.round || 0;
+    if (S.hbRound !== cur) { S.hbRound = cur; if (cur) S.openDetails.add('hb-' + cur); } // opna núverandi lotu sjálfkrafa við skipti
     const evOf = (r) => SCENARIO.events.find((e) => e.round === r) || {};
     const entry = (h) => {
-      const e = evOf(h.round), isCur = h.round === cur;
-      return '<details' + (isCur ? ' open' : '') + ' style="margin:5px 0;border:1px solid ' + (isCur ? '#f6b13b' : '#2a3040') + ';border-radius:8px;padding:8px 12px' + (isCur ? ';background:rgba(246,177,59,.06)' : '') + '">'
+      const e = evOf(h.round), isCur = h.round === cur, isOpen = S.openDetails.has('hb-' + h.round);
+      return '<details data-keep="hb-' + h.round + '"' + (isOpen ? ' open' : '') + ' style="margin:5px 0;border:1px solid ' + (isCur ? '#f6b13b' : '#2a3040') + ';border-radius:8px;padding:8px 12px' + (isCur ? ';background:rgba(246,177,59,.06)' : '') + '">'
         + '<summary style="cursor:pointer;font-weight:700;font-size:13.5px">' + (e.icon ? e.icon + ' ' : '') + 'KT' + h.round + ' · ' + (e.year || '') + ' — ' + esc(e.title || '') + (isCur ? ' <span style="color:#f6b13b">◀ núna</span>' : '') + '</summary>'
         + '<div style="font-size:12.8px;line-height:1.55;margin-top:6px">'
         + '<p style="margin:2px 0"><b>Staðan:</b> ' + esc(h.situation) + '</p>'
