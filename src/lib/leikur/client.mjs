@@ -5,7 +5,7 @@ import { simulate } from '../roads/engine.mjs';
 import { buildInputs } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { studioCatalog, defaultDials, changedLevers } from './studio.mjs';
-import { leverEffects, newsHeadlines, popularity, endTitle, govtStability } from './flavor.mjs';
+import { leverEffects, newsHeadlines, popularity, endTitle, govtStability, advisors } from './flavor.mjs';
 import { explainRound } from './debrief.mjs';
 import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
@@ -519,6 +519,9 @@ export function mountLeikur(root) {
     html += '<div class="lk-card"><h2 title="Hversu nálægt hverju umboðs-markmiði þú ert. Fyllri borði = betra.">🎯 Markmið</h2><div class="lk-goalmeters">';
     for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
     html += '</div></div>';
+    // 🗣️ Ráðgjafar: andstæð hagsmuna-ráð sem uppfærast með drögunum (ráðgefandi, engin bein áhrif).
+    const adv = advisors(kpiVals, st.round);
+    html += '<div class="lk-card"><h2 title="Hagsmuna-raddir gefa ólík ráð eftir stöðunni — þau uppfærast þegar þú færir sleða.">🗣️ Ráðgjafar</h2>' + adv.map((a) => '<div style="display:flex;gap:9px;margin:7px 0"><span style="font-size:19px;flex:none">' + a.icon + '</span><div><b style="font-size:12.5px">' + esc(a.who) + '</b><div style="font-size:12.5px;color:var(--muted);line-height:1.45">' + esc(a.advice) + '</div></div></div>').join('') + '</div>';
     let charts = '<div class="lk-card"><h2 title="Þróun frá 2000: þín braut (heil lína), grunnlína (punktar), raunveruleikinn (fjólublár) og markmið (gult).">📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
     for (const k of st.mandate.kpis) {
       const oc = sim.outcomes[k.key]; if (!oc) continue;

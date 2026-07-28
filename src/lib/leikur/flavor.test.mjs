@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { leverEffects, newsHeadlines, popularity, endTitle, govtStability } from './flavor.mjs';
+import { leverEffects, newsHeadlines, popularity, endTitle, govtStability, advisors } from './flavor.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rj = (f) => JSON.parse(readFileSync(join(__dirname, '../../../gogn/roads/' + f), 'utf8'));
 const baseline = rj('baseline.json'), links = rj('links.json');
@@ -35,6 +35,14 @@ ok('revolt hefur icon+title', crash.icon === '🍳' && /Búsáhalda/.test(crash.
 const mid = govtStability({ verdbolga: 6, hagvoxtur: -1, atvinnuleysi: 6.5 }); // ~36% → unrest
 ok('miðlungs ólga → unrest, 0.9<factor<1', mid.level === 'unrest' && mid.factor > 0.9 && mid.factor < 1);
 ok('approval alltaf 0–100', good.approval >= 0 && good.approval <= 100 && crash.approval >= 0);
+
+// advisors — andstæð ráð eftir stöðu
+const adv = advisors({ verdbolga: 6, hagvoxtur: 0.5, atvinnuleysi: 6 }, 1);
+ok('3+ ráðgjafar', adv.length >= 3);
+ok('Seðlabanki vill aðhald í hárri verðbólgu', /her[ðr]|vext/i.test(adv.find((x) => x.who === 'Seðlabankinn').advice));
+ok('verkalýður vill verja störf í atvinnuleysi', /störf|atvinnu/i.test(adv.find((x) => x.who === 'Verkalýðshreyfingin').advice));
+ok('KT6+ fær umhverfis-ráðgjafa', advisors({ losun: 120 }, 6).some((x) => x.who === 'Umhverfissinnar'));
+ok('lág verðbólga → Seðlabanki vill slaka', /slak|hjöðnun/i.test(advisors({ verdbolga: 1 }, 1).find((x) => x.who === 'Seðlabankinn').advice));
 
 // endTitle
 ok('hátt avg → Efnahags-undrið', endTitle(90).title.includes('Efnahags-undrið'));

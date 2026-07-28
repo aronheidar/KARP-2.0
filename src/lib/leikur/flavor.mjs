@@ -42,6 +42,25 @@ export function govtStability(kpis, approvalAdj = 0) {
   return { approval, level: 'stable', factor: 1, icon: '🗳️', title: 'Starfhæf stjórn', blurb: 'Fylgi ' + approval + '% — stjórnin heldur umboði sínu.' };
 }
 
+// Ráðgjafar: 3–4 hagsmuna-raddir sem gefa ANDSTÆÐ ráð eftir núverandi stöðu (bregst live við drögum).
+// Hrein — aðeins úr kpis (+ valfrjáls round f. þemu). Ráðgefandi, engin vélræn áhrif; sýnir togstreitu.
+export function advisors(kpis = {}, round = 1) {
+  const v = kpis.verdbolga == null ? 2.5 : kpis.verdbolga, g = kpis.hagvoxtur == null ? 2 : kpis.hagvoxtur;
+  const a = kpis.atvinnuleysi == null ? 4 : kpis.atvinnuleysi, km = kpis.kaupmattur == null ? 1 : kpis.kaupmattur;
+  const sk = kpis.skuldir == null ? 40 : kpis.skuldir, lo = kpis.losun == null ? 100 : kpis.losun;
+  const out = [];
+  // 🏦 Seðlabankinn — verðstöðugleiki
+  out.push({ icon: '🏦', who: 'Seðlabankinn', advice: v > 3.5 ? 'Verðbólgan er of há — herðið tökin: hærri vextir og aðhald, annars festist hún í sessi.' : v < 1.5 ? 'Verðhjöðnun vofir yfir — slakið á peningastefnunni og örvið eftirspurn.' : 'Verðbólga nálægt markmiði — haldið stöðugleikanum, ekki ofhitnun.' });
+  // ✊ Verkalýðshreyfingin — störf & kaupmáttur
+  out.push({ icon: '✊', who: 'Verkalýðshreyfingin', advice: a > 5 ? 'Atvinnuleysi bítur á fólk — verjið störf og heimili með tilfærslum og fjárfestingu.' : km < 0 ? 'Kaupmáttur rýrnar — tryggið að fólk haldi í við verðlagið með launum og bótum.' : 'Uppsveiflan verður að skila sér í launaumslögin — ekki bara til fyrirtækjanna.' });
+  // 💼 Atvinnulífið — vöxtur & samkeppnishæfni
+  out.push({ icon: '💼', who: 'Atvinnulífið', advice: g < 1.5 ? 'Hjólin hægja á sér — lækkið skatta og örvið fjárfestingu áður en það harðnar.' : sk > 55 ? 'Skuldir ríkisins fæla frá — sýnið aðhald svo lánsfé haldist ódýrt.' : 'Fyrirsjáanleiki er allt — haldið stöðugu umhverfi svo fyrirtæki þori að fjárfesta.' });
+  // þema-ráðgjafi eftir tímabili
+  if (round >= 6) out.push({ icon: '🌱', who: 'Umhverfissinnar', advice: lo > 105 ? 'Losunin stefnir í ranga átt — kolefnisgjald og orkuskipti STRAX, framtíðin er í húfi.' : 'Þið eruð á réttri leið í loftslagsmálum — haldið kúrsinum, ekki hvika við fyrsta mótlæti.' });
+  else if (round === 2 || round === 5) out.push({ icon: '🐟', who: 'Sjávarútvegurinn', advice: 'Ekki drepa gullgæsina með of háu veiðigjaldi — en gætið að stofninum, hann er sameign þjóðarinnar.' });
+  return out;
+}
+
 // Leikslok-titill eftir meðal-composite (0–100).
 export function endTitle(avg) {
   if (avg >= 85) return { title: '🏆 Efnahags-undrið', blurb: 'Framúrskarandi hagstjórn — Ísland blómstraði undir ykkar forystu.' };
