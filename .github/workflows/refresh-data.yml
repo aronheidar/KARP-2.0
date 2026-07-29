@@ -204,11 +204,14 @@ jobs:
             git config user.email "karp-bot@users.noreply.github.com"
             git add -A gogn/ web/public/gogn/       || { echo "✗ git add brást"; exit 1; }
             git commit -m "data: sjálfvirk gagnauppfærsla ($(date -u +%F))" || { echo "✗ git commit brást"; exit 1; }
-            # race-vörn: eitthvað gæti hafa lent á main á meðan skripturnar keyrðu
-            git pull --rebase origin main            || echo "⚠ rebase brást — reyni push samt"
+            # race-vörn: eitthvað gæti hafa lent á main á meðan skripturnar keyrðu.
+            # ⚠ --autostash NAUÐSYNLEGT: skriftur skilja stundum eftir ÓSVIÐSETTAR breytingar UTAN
+            #   gogn/ (aðeins gogn/+web/public/gogn/ eru add-að) → „cannot pull with rebase: You have
+            #   unstaged changes" felldi rebase OG push → 52 ferskar gagnaskrár töpuðust (27.-29.7).
+            git pull --rebase --autostash origin main || echo "⚠ rebase brást — reyni push samt"
             if ! git push origin HEAD:main; then
               echo "⚠ push hafnað — sæki aftur og reyni einu sinni enn…"
-              git pull --rebase origin main
+              git pull --rebase --autostash origin main
               git push origin HEAD:main || { echo "✗ push brást endanlega — athugaðu branch protection á main (leyfa github-actions að ýta) og Settings→Actions→Workflow permissions (Read and write)."; exit 1; }
             fi
             echo "✔ Gögn breyttust → ýtt. Cloudflare endurbyggir bæði verkefnin."

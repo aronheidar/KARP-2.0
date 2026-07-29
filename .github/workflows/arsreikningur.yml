@@ -72,7 +72,7 @@ jobs:
           for i in 1 2 3 4 5; do
             if git push; then echo "Push tókst (tilraun $i)"; exit 0; fi
             echo "Push hafnað (tilraun $i) — sæki + rebasa á origin/main..."
-            git fetch origin main && git rebase origin/main || git rebase --abort 2>/dev/null || true
+            git fetch origin main && git -c rebase.autoStash=true rebase origin/main || git rebase --abort 2>/dev/null || true
             sleep $((i * 3))
           done
           echo "❌ Push mistókst eftir 5 tilraunir"; exit 1

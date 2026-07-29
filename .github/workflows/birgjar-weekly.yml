@@ -48,8 +48,10 @@ jobs:
             git config user.email "karp-bot@users.noreply.github.com"
             git add gogn/birgjar.json gogn/ytras.json web/public/gogn/hnit/ web/public/gogn/sanctions.json web/public/gogn/skip_owners.json web/public/gogn/loftfor.json
             git commit -m "data: vikuleg birgja-, YouTube-, hnita-, refsilista-, flotavísis- og loftfara-uppfærsla ($(date -u +%F))"
-            git pull --rebase origin main || true
-            git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
+            # --autostash: skriftur skilja stundum eftir ósviðsettar breytingar utan add-uðu mappanna
+            # → „cannot pull with rebase: You have unstaged changes" felldi annars rebase OG push.
+            git pull --rebase --autostash origin main || true
+            git push origin HEAD:main || { git pull --rebase --autostash origin main && git push origin HEAD:main; } || { echo "✗ push brást — athugaðu branch protection/Workflow permissions."; exit 1; }
           else
             echo "• Engin breyting á birgjagögnum."
           fi
