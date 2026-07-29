@@ -1,10 +1,10 @@
 {
- "builtAt": "2026-07-29T13:20:59.026Z",
+ "builtAt": "2026-07-29T15:42:58.079Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-07-29T09:36:15.318Z",
+   "iso": "2026-07-29T15:33:58.156Z",
    "maxAge": 158400000
   },
   {
@@ -16,7 +16,7 @@
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-07-29T08:27:55.001Z",
+   "iso": "2026-07-29T14:24:48.240Z",
    "maxAge": 158400000
   },
   {
@@ -28,7 +28,7 @@
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-07-29T09:13:17.383Z",
+   "iso": "2026-07-29T15:11:40.462Z",
    "maxAge": 158400000
   },
   {
@@ -52,7 +52,7 @@
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-07-29T09:11:33.012Z",
+   "iso": "2026-07-29T15:09:55.217Z",
    "maxAge": 158400000
   },
   {
@@ -64,7 +64,7 @@
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-07-29T09:35:41.836Z",
+   "iso": "2026-07-29T15:33:37.318Z",
    "maxAge": 158400000
   },
   {
@@ -88,7 +88,7 @@
   {
    "label": "Kvótavaktin",
    "file": "kvoti.json",
-   "iso": "2026-07-13T19:47:15.093Z",
+   "iso": "2026-07-29T15:42:35.995Z",
    "maxAge": 777600000
   },
   {
