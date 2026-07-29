@@ -5,7 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
-import { eftNylegt, byggMatch, rankMovement } from './src/lib/vaktir-signals.mjs';   // Eftirlits-/byggingar-vöktun + greina-vöktun (digest-pörun)
+import { byggMatch, rankMovement, ratingMovement } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt (digest-pörun)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -4064,6 +4064,18 @@ async function digestShared(env) {
   for (const row of (((await env.TENGSL.prepare("SELECT v FROM user_prefs WHERE k='firmavakt'").all().catch(() => ({ results: [] }))).results) || [])) {
     try { const fv = JSON.parse(row.v); if (fv && Array.isArray(fv.felog)) for (const co of fv.felog) { if (co && co.kt) _watchKts.add(String(co.kt).replace(/\D/g, '')); } } catch (e) {}
   }
+  // Einkunn-átt: heilbrigðiseftirlit vöktaðra félaga — geymd einkunn per starfsstöð (uuid) → hækkaði/lækkaði.
+  sh.eftMoves = {};
+  await env.TENGSL.prepare('CREATE TABLE IF NOT EXISTS eftirlit_last (uuid TEXT PRIMARY KEY, kt TEXT, rating INTEGER, ts INTEGER)').run().catch(() => {});
+  for (const kt of _watchKts) {
+    for (const s of (sh.eftByKt[kt] || [])) {
+      if (!s || !s.uuid || !Number.isFinite(s.rating)) continue;
+      const prevR = await env.TENGSL.prepare('SELECT rating FROM eftirlit_last WHERE uuid=?').bind(s.uuid).first().catch(() => null);
+      const mv = ratingMovement(prevR && Number.isFinite(prevR.rating) ? prevR.rating : null, s.rating);
+      if (mv) (sh.eftMoves[kt] || (sh.eftMoves[kt] = [])).push({ ...mv, name: s.name, street: s.street, ratingLabel: s.ratingLabel, reportUrl: s.reportUrl });
+      await env.TENGSL.prepare('INSERT INTO eftirlit_last (uuid,kt,rating,ts) VALUES (?,?,?,?) ON CONFLICT(uuid) DO UPDATE SET kt=excluded.kt,rating=excluded.rating,ts=excluded.ts').bind(s.uuid, kt, s.rating, now).run().catch(() => {});
+    }
+  }
   for (const kt of _watchKts) {
     const cur = await computeGreinRank(env, kt);
     if (cur.rank == null) continue;
@@ -4119,22 +4131,22 @@ function digestBuild(name, prefs, sh) {
     for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
     if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
   }
-  // ── 🍽️ Heilbrigðiseftirlit — nýjar skoðanir hjá vökuðum félögum (firmavakt → eftirlit eftir kt) ──
+  // ── 🍽️ Heilbrigðiseftirlit — ÁTTAVÍS einkunna-breyting hjá vökuðum félögum (firmavakt → eftirlit_last díff) ──
+  // Kveikja = einkunnin BREYTTIST (hækkaði/lækkaði), ekki „ný skoðun" — endur-skoðun með sömu einkunn þegir.
   const fmvE = prefs.firmavakt;
-  if (fmvE && fmvE.on && Array.isArray(fmvE.felog) && fmvE.felog.length && sh.eftByKt) {
+  if (fmvE && fmvE.on && Array.isArray(fmvE.felog) && fmvE.felog.length && sh.eftMoves && Object.keys(sh.eftMoves).length) {
     let sec = '', n = 0;
     for (const co of fmvE.felog) {
       if (!co || !co.kt) continue;
       const kt = String(co.kt).replace(/\D/g, '');
-      for (const s of (sh.eftByKt[kt] || [])) {
-        if (!eftNylegt(s.lastInspectionISO, sh.wkDate)) continue;
+      for (const mv of (sh.eftMoves[kt] || [])) {
         n++; if (n > 10) break;
-        const bad = (s.rating != null && s.rating <= 1);
-        sec += li((bad ? '⚠️ ' : '') + (s.name || co.nafn || kt) + ' — einkunn ' + (s.rating != null ? s.rating : '?') + (s.ratingLabel ? ' (' + s.ratingLabel + ')' : ''), (co.nafn || '') + (s.street ? ' · ' + s.street : ''), s.reportUrl || '');
+        const bad = (mv.to != null && mv.to <= 1);
+        sec += li((bad ? '⚠️ ' : '') + (mv.name || co.nafn || kt) + ' — ' + mv.badge + (mv.ratingLabel ? ' (' + mv.ratingLabel + ')' : ''), (co.nafn || '') + (mv.street ? ' · ' + mv.street : ''), mv.reportUrl || '');
       }
       if (n > 10) break;
     }
-    if (sec) { rows += H('🍽️', 'Nýtt heilbrigðiseftirlit hjá félögum á vaktinni') + sec; personal = true; }
+    if (sec) { rows += H('🍽️', 'Heilbrigðiseftirlit — einkunn breyttist hjá félögum á vaktinni') + sec; personal = true; }
   }
   // ── 🏗️ Byggingarleyfi — ný mál á vökuðum svæðum (fastvakt → bygg eftir póstnr/götu) ──
   const fvB = prefs.fastvakt;
