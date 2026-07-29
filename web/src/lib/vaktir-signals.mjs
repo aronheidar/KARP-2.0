@@ -55,3 +55,28 @@ export function criticalDrop(prev, cur) {
   const mv = ratingMovement(prev, cur);
   return (mv && mv.dir === 'down' && mv.to <= 1) ? mv : null;
 }
+
+// ── Lögbirtingar-tilkynningar (gjaldþrot o.fl.) ────────────────────────────
+// Kritísk tilkynning: alvarleiki >= 2 skv. severity-korti gagnanna (build_logbirting.py:
+// gjaldthrot_beidni=2, skiptabeidni=2; innkollun/skiptalok/skiptafundur/felagsslit=1)
+// OG birt á/eftir sinceISO. Dagsetningar-glugginn ver gegn sprengingu af GÖMLUM málum
+// ef dedup-taflan er tóm (nýtt umhverfi/hreinsun). Skilar tilkynningunni eða null.
+export function criticalNotice(notice, severity, sinceISO) {
+  if (!notice || !notice.type) return null;
+  const sev = (severity && Number.isFinite(severity[notice.type])) ? severity[notice.type] : 0;
+  if (sev < 2) return null;
+  const d = String(notice.date == null ? '' : notice.date).slice(0, 10);
+  if (!d || !sinceISO || d < String(sinceISO)) return null;
+  return notice;
+}
+
+// Stöðugur dedup-lykill tilkynningar (Lögbirting hefur engin auðkenni per auglýsingu):
+// kt|tegund|dagsetning|tölublað. Sama tilkynning → sami lykill milli keyrslna.
+export function noticeRef(kt, notice) {
+  return [
+    String(kt == null ? '' : kt).replace(/\D/g, ''),
+    String((notice && notice.type) || ''),
+    String((notice && notice.date) || '').slice(0, 10),
+    String((notice && notice.issue) != null ? (notice && notice.issue) : ''),
+  ].join('|');
+}

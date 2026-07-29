@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { eftNylegt, byggMatch, rankMovement, ratingMovement, criticalDrop } from './vaktir-signals.mjs';
+import { eftNylegt, byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './vaktir-signals.mjs';
 
 test('eftNylegt: nýleg dagsetning (>=wk) → true', () => { assert.equal(eftNylegt('2026-07-25', '2026-07-22'), true); });
 test('eftNylegt: full ISO slice → true', () => { assert.equal(eftNylegt('2026-07-25T10:00:00Z', '2026-07-22'), true); });
@@ -32,3 +32,30 @@ test('criticalDrop: fall EN ekki í 0-1 (4→2) → null', () => { assert.equal(
 test('criticalDrop: hækkun úr 0 (0→3) → null', () => { assert.equal(criticalDrop(0, 3), null); });
 test('criticalDrop: engin saga (null→0) → null (sáning þegir)', () => { assert.equal(criticalDrop(null, 0), null); });
 test('criticalDrop: óbreytt lágt (1→1) → null (endurtekur ekki)', () => { assert.equal(criticalDrop(1, 1), null); });
+
+// ── criticalNotice / noticeRef (Lögbirting) ─────────────────────────────────
+const _SEV = { gjaldthrot_beidni: 2, skiptabeidni: 2, innkollun: 1, skiptafundur: 1, skiptalok: 1, felagsslit: 1 };
+test('criticalNotice: gjaldþrotaskiptabeiðni innan glugga → kritískt', () => {
+  assert.ok(criticalNotice({ type: 'gjaldthrot_beidni', date: '2026-07-25' }, _SEV, '2026-07-15'));
+});
+test('criticalNotice: skiptabeiðni (sev 2) → kritískt', () => {
+  assert.ok(criticalNotice({ type: 'skiptabeidni', date: '2026-07-20' }, _SEV, '2026-07-15'));
+});
+test('criticalNotice: innköllun (sev 1) → null', () => {
+  assert.equal(criticalNotice({ type: 'innkollun', date: '2026-07-25' }, _SEV, '2026-07-15'), null);
+});
+test('criticalNotice: gamalt gjaldþrot utan glugga → null', () => {
+  assert.equal(criticalNotice({ type: 'gjaldthrot_beidni', date: '2026-06-01' }, _SEV, '2026-07-15'), null);
+});
+test('criticalNotice: óþekkt tegund / engin dags → null', () => {
+  assert.equal(criticalNotice({ type: 'nytt', date: '2026-07-25' }, _SEV, '2026-07-15'), null);
+  assert.equal(criticalNotice({ type: 'gjaldthrot_beidni', date: '' }, _SEV, '2026-07-15'), null);
+  assert.equal(criticalNotice(null, _SEV, '2026-07-15'), null);
+});
+test('noticeRef: stöðugur lykill kt|tegund|dags|tölublað', () => {
+  assert.equal(noticeRef('550101-2130', { type: 'gjaldthrot_beidni', date: '2026-07-25T00:00:00Z', issue: 132 }), '5501012130|gjaldthrot_beidni|2026-07-25|132');
+});
+test('noticeRef: sama tilkynning → sami lykill (dedup virkar)', () => {
+  const n = { type: 'skiptabeidni', date: '2026-07-20', issue: 130 };
+  assert.equal(noticeRef('5501012130', n), noticeRef('550101-2130', { ...n }));
+});
