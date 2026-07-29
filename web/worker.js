@@ -5,7 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
-import { byggMatch, rankMovement, ratingMovement, criticalDrop } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvörun (digest/cron-pörun)
+import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -2803,6 +2803,66 @@ async function eftirlitCriticalCron(env) {
   return { sent, drops: Object.keys(drops).length };
 }
 
+// ── ⚖️ Lögbirting: STRAX-viðvörun við GJALDÞROTI á vöktuðu félagi — 3-tíma rásin ──
+// Kveikja = tilkynning með alvarleika >=2 skv. severity-korti GAGNANNA sjálfra (build_logbirting.py:
+// gjaldthrot_beidni=2, skiptabeidni=2) OG birt síðustu 14 daga. Dagsetningar-glugginn ver gegn
+// sprengingu af gömlum málum ef dedup-taflan er tóm; dedup per tilkynningar-lykil (noticeRef).
+// ⚠ „Árangurslaust fjárnám" er EKKI í þessum gögnum — það birtist ekki í Lögbirtingablaðinu heldur
+// í vanskilaskrá, sem er leyfisskyld starfsemi (fjárhagsupplýsingastofa, Persónuvernd — todo #36).
+// /api/vanskil er ANNAÐ: vanskil á ársreikningaskilum hjá RSK.
+async function logbirtingCriticalCron(env) {
+  if (!env.TENGSL) return { sent: 0, reason: 'no-d1' };
+  const lb = await augGet(env, 'logbirting.json').catch(() => null);
+  const byKtData = (lb && lb.byKt) || null;
+  if (!byKtData) return { sent: 0, reason: 'no-data' };
+  const sev = (lb && lb.severity) || {}, labels = (lb && lb.typeLabels) || {};
+  const rows = ((await env.TENGSL.prepare("SELECT p.v AS v, u.email AS email FROM user_prefs p JOIN users u ON u.id=p.user_id WHERE p.k='firmavakt'").all().catch(() => ({ results: [] }))).results) || [];
+  const watchers = {};
+  for (const r of rows) {
+    if (!r.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)) continue;
+    try {
+      const fv = JSON.parse(r.v);
+      if (!fv || !fv.on || !Array.isArray(fv.felog)) continue;
+      for (const co of fv.felog) { if (co && co.kt) { const k = String(co.kt).replace(/\D/g, ''); (watchers[k] || (watchers[k] = new Set())).add(r.email); } }
+    } catch (e) {}
+  }
+  const watched = Object.keys(watchers);
+  if (!watched.length) return { sent: 0, users: 0 };
+  const now = Math.floor(Date.now() / 1000);
+  const since = new Date((now - 14 * 86400) * 1000).toISOString().slice(0, 10);
+  await env.TENGSL.prepare('CREATE TABLE IF NOT EXISTS logbirting_crit (ref TEXT PRIMARY KEY, kt TEXT, ts INTEGER)').run().catch(() => {});
+  // 1) greina EINU SINNI (global per tilkynningar-lykil) — svo enginn notandi „steli" viðvörun frá öðrum
+  const hits = {}, seen = [];
+  for (const kt of watched) {
+    const ent = byKtData[kt];
+    for (const n of ((ent && ent.notices) || [])) {
+      if (!criticalNotice(n, sev, since)) continue;
+      const ref = noticeRef(kt, n);
+      seen.push({ ref, kt });
+      const prev = await env.TENGSL.prepare('SELECT ref FROM logbirting_crit WHERE ref=?').bind(ref).first().catch(() => null);
+      if (prev) continue;
+      (hits[kt] || (hits[kt] = [])).push({ kt, nafn: (ent && ent.name) || kt, teg: labels[n.type] || n.type, dags: String(n.date || '').slice(0, 10), domstoll: n.court || '' });
+    }
+  }
+  // 2) fan-out: einn póstur per notanda með ÖLLUM hans málum
+  let sent = 0;
+  const perEmail = {};
+  for (const kt of Object.keys(hits)) for (const email of (watchers[kt] || [])) (perEmail[email] || (perEmail[email] = [])).push(...hits[kt]);
+  for (const email of Object.keys(perEmail)) {
+    const list = perEmail[email];
+    const lines = list.map((h) => '• ' + h.nafn + ' — ' + h.teg + (h.dags ? ' (' + h.dags + ')' : '') + (h.domstoll ? ' · ' + h.domstoll : '')).join('\n');
+    const subject = '🚨 Lögbirting: ' + (list.length === 1 ? 'gjaldþrotamál á félagi á vaktinni' : list.length + ' gjaldþrotamál á félögum á vaktinni');
+    const text = 'Ný tilkynning í Lögbirtingablaðinu um félag á vaktinni þinni:\n\n' + lines
+      + '\n\nFerill málsins er á fyrirtækjaprófílnum: https://karp.is/fyrirtaeki/' + ((list[0] && list[0].kt) ? list[0].kt + '/' : '')
+      + '\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/';
+    const r = await sendGmail(env, { to: email, subject, text });
+    if (r && r.ok) sent++;
+  }
+  // 3) merkja LOKS (eftir fan-out)
+  for (const s of seen) await env.TENGSL.prepare('INSERT OR IGNORE INTO logbirting_crit (ref,kt,ts) VALUES (?,?,?)').bind(s.ref, s.kt, now).run().catch(() => {});
+  return { sent, hits: Object.keys(hits).length };
+}
+
 // LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni eftir kt (registeredAs). 5.500+ íslensk félög.
 async function leiHandler(request, ctx) {
   const kt = (new URL(request.url).searchParams.get('kt') || '').replace(/\D/g, '');
@@ -4847,7 +4907,7 @@ export default {
   async scheduled(event, env, ctx) {
     if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env));
     else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env));
-    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)));
+    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env)));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
