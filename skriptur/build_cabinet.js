@@ -1,7 +1,8 @@
 // Áfangi 3 (Alþingi): ríkisstjórnar-skipunarit. Fetches current cabinet from the
 // Althingi ráðherralisti (authoritative, CORS *) → embætti + flokkur + photo per minister.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
 const PC = { 'Samfylkingin': 'S', 'Sjálfstæðisflokkur': 'D', 'Framsóknarflokkur': 'B', 'Viðreisn': 'C', 'Miðflokkurinn': 'M', 'Flokkur fólksins': 'F', 'Píratar': 'P', 'Vinstrihreyfingin - grænt framboð': 'V' };
 async function getText(u) { const r = await fetch(u.replace('http://', 'https://'), { headers: { 'User-Agent': 'Mozilla/5.0' } }); return r.text(); }

@@ -1,7 +1,8 @@
 // Áfangi 1 (Alþingi): frumvörp + atkvæði flokka. Fetches þingmál + every vote,
 // aggregates per-party support/opposition per bill + status → frumvorp.json (baked).
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const party = {}, ids = new Set(); mps.forEach(m => { party[m.id] = m.flokkur; ids.add(m.id); });
 // short party codes to keep the JSON small

@@ -2,7 +2,8 @@
 // All prices forced to ISK via ?displayCurrency=ISK. Purchasing-power + other
 // indices come from one rankings_current.jsp fetch. Writes numbeo.json.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 
 // Reykjavík is always home (first). Others are the comparison set.

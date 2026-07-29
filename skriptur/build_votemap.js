@@ -3,7 +3,8 @@
 // MP-MP Gram matrix + power iteration) to 2D, and bakes per-MP {mx,my} into althingi.json.
 // Proximity on the map = voting similarity. Editorial axis labels are NOT claimed.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const ids = mps.map(m => m.id);
 const N = ids.length;

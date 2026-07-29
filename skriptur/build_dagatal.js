@@ -1,7 +1,8 @@
 // Áfangi 7: þingdagatal. Fetches plenary sittings (þingfundir) + committee meetings
 // (nefndarfundir) for term 157 and aggregates by date → dagatal.json (baked).
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const g = async u => (await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
 const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 

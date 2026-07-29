@@ -85,6 +85,8 @@ async function resolvePhoto(id) {
   console.log('LONGEST serving:', bySen.slice(0, 3).map(m => m.nafn + ' (' + m.fyrstInn + ')'));
   console.log('SHORTEST serving:', bySen.slice(-3).map(m => m.nafn + ' (' + m.fyrstInn + ')'));
 
-  fs.writeFileSync('C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/althingi.json', JSON.stringify(adal, null, 0));
+  // __dirname-afstæð slóð á KANÓNÍSKA gogn/ (build_ragcopy afritar svo í web/public/gogn/).
+  // Harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu → althingi.json fraus 2026-07-20.
+  fs.writeFileSync(require('path').join(__dirname, '..', 'gogn', 'althingi.json'), JSON.stringify(adal, null, 0));
   console.log('Wrote althingi.json with', adal.length, 'MPs. Sample:', JSON.stringify(adal[0]));
 })().catch(e => console.log('ERR', e.message));

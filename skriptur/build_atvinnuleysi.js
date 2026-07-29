@@ -3,7 +3,9 @@
 // Keyra: node skriptur/build_atvinnuleysi.js  (síðan build_embed.js). Uppfæra þegar nýtt xlsm berst.
 const XLSX = require('xlsx');
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/';
+// __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'). ⚠ Þetta skript les STAÐBUNDIÐ
+// xlsm-skjal sem er EKKI í repoinu → keyrist aðeins handvirkt þegar nýtt Talnagögn-xlsm er sett í gogn/.
+const DIR = require('path').join(__dirname, '..') + '/';
 const wb = XLSX.readFile(DIR + 'gogn/Talnagogn_atvinnuleysi.xlsm', { cellDates: true });
 const sheet = n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, blankrows: false });
 // "YYYYMmm" eins og Hagstofu-gögnin svo lblF/lbl/tagUpd-formatararnir virki óbreyttir

@@ -3,7 +3,9 @@
 // Keyra: node skriptur/build_glaepir.js  (síðan build_embed.js).
 const XLSX = require('xlsx');
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/';
+// __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'). ⚠ Þetta skript les STAÐBUNDIÐ
+// FJOLDI_BROTA-xlsx sem er EKKI í repoinu → keyrist aðeins handvirkt þegar nýtt skjal er sett í gogn/.
+const DIR = require('path').join(__dirname, '..') + '/';
 const fname = fs.readdirSync(DIR + 'gogn').find(x => /FJOLDI_BROTA/i.test(x) && !/^~\$/.test(x));
 const wb = XLSX.readFile(DIR + 'gogn/' + fname);
 const rows = XLSX.utils.sheet_to_json(wb.Sheets['Landid_brotá íbúa_P.inhab'], { header: 1, blankrows: false });

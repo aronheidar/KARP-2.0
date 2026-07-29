@@ -1,7 +1,8 @@
 // Phase 2: fetches every þing-157 vote, computes per-MP party loyalty, rebellion
 // (cross-party votes) and absence ("skróp"), and merges them into althingi.json.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const party = {}; const ids157 = new Set();
 mps.forEach(m => { party[m.id] = m.flokkur; ids157.add(m.id); });

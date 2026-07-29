@@ -1,7 +1,8 @@
 // Sendiráð: scrapes Wikipedia's maintained lists (sourced to the Icelandic MFA diplomatic list)
 // → sendirad.json (baked). Abroad: Iceland's resident embassies. In Iceland: foreign embassies.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 async function wt(page) { const u = 'https://en.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&redirects=1&page=' + encodeURIComponent(page); const r = await fetch(u, { headers: { 'User-Agent': 'KarpDashboard/1.0 (aronheidars@gmail.com)' } }); const j = await r.json(); return j.parse.wikitext['*']; }
 const clean = s => s.replace(/\{\{[^}]*\}\}/g, '').replace(/\[\[([^|\]]*\|)?([^\]]*)\]\]/g, '$2').replace(/<ref[\s\S]*?<\/ref>/g, '').replace(/<ref[^>]*\/>/g, '').replace(/<[^>]*>/g, '').replace(/'''?/g, '').trim();
 

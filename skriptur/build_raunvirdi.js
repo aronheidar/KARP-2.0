@@ -5,7 +5,8 @@
 // með staðfestu eigin fé úr uppgjörum. Build-time (Yahoo CORS-læst í vafra).
 // Keyra: node skriptur/build_raunvirdi.js  →  svo node build_embed.js
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/';
+// __dirname-afstætt á rót repos (kóðinn bætir sjálfur við 'gogn/'); OneDrive-slóðin braust á ubuntu eftir CF-flutning
+const DIR = require('path').join(__dirname, '..') + '/';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 
 // Skráð félög á aðalmarkaði (ticker → nafn). OLGERD sleppt í bili (Yahoo 404 eftir nafnabreytingu í Bera hf.).

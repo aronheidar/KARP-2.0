@@ -1,7 +1,8 @@
 // Phase 2b: speaking time. Fetches the þing-157 speech list (~15MB), sums debate
 // speaking seconds per MP (excludes Speaker/President chairing), merges into althingi.json.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const ids = new Set(mps.map(m => m.id));
 

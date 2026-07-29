@@ -1,7 +1,8 @@
 // Phase 2b: committees. Per-MP committee count, opposition weight of committee
 // seats, and total committee meetings (þing 157). Merges into althingi.json + althingi_meta.json.
 const fs = require('fs');
-const DIR = 'C:/Users/aronh/OneDrive/Documents/KARP/hagvisir/gogn/';
+// __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
+const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const party = {}; mps.forEach(m => party[m.id] = m.flokkur);
 const GOV = new Set(['Samfylkingin', 'Viðreisn', 'Flokkur fólksins']); // 2024 coalition
