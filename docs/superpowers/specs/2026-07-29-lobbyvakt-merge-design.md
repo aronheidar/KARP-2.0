@@ -51,9 +51,11 @@ Route `/api/lobbyvakt` óbreytt (2802-lína `_lobbyGate` skilgreining stendur �
 - **Reglur (aðeins entitled):** núverandi `_lobbyNew`-listi (reiknaður í `digestRun`) — EN nú **aðeins ef notandi er Fyrirtæki+**. `digestRun` (4120-lykkja) reiknar `entitled` per notanda (`_lobbyGate(accountOwner)`), sleppir reglu-reikningi ef ekki.
 - Fyrirvari „⚠ Sjálfvirk túlkun, ekki lögfræðiráðgjöf" stendur á reglu-hlutanum.
 
-### 4.5 Vaktir-síða (`web/src/pages/vaktir.astro`) — fella leitvakt inn
+### 4.5 Vaktir-síða (`web/src/pages/vaktir.astro`) — kynning + tengsl (EKKI redirect)
 
-Standalone leitarorðavakt-kaflann → skipta út fyrir stutta vísun/hlekk á `/lobbyvakt/` („Leitarorðavaktin er nú hluti af Lobbývaktinni →"). Gömul `leitvakt`-gögn haldast (lesin í digest + endapunkti). Engin ný `leitvakt`-skrif úr þessari síðu.
+⚠ **Raunveruleiki (staðfest):** vaktir.astro er BREIÐ vöktunarmiðstöð — leitarorða-kassi (`#lv-q`→`leitvakt.ord`) sem lýsir upp treff í LIFANDI veitum (dómar/samráð/greiðslur) á SÖMU síðu, + vikupóst-toggle (`#dg-on`) + follows. EKKI hægt að redirect-a án þess að brjóta þær aðgerðir.
+
+Því: **áberandi borði/hlekkur** efst („🏛️ Leitarorðin þín birtast nú líka í Lobbývaktinni — með þingmálum og samráðsmálum → `/lobbyvakt/`"). Leitarorða-kassinn HELDST (drífur highlight þar áfram); `leitvakt.ord` flæðir í sameinaða digest-kaflann + lobbývakt-endapunktinn um **union**. Engin eyðandi breyting á vaktir.astro-virkni. **Sameinuð AFHENDING** (lobbývakt-síða + einn digest-kafli dekka bæði) næst þótt tvö stillingar-inngöng séu til á meðan.
 
 ## 5. Gating & persónuvernd
 
