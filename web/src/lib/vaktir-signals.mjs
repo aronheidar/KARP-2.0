@@ -48,3 +48,10 @@ export function ratingMovement(prev, cur) {
   const badge = dir === 'down' ? ('↓ féll úr ' + p + ' í ' + c) : ('↑ hækkaði úr ' + p + ' í ' + c);
   return { dir, from: p, to: c, badge };
 }
+
+// Kritískt fall: einkunn fór NIÐUR í 0 eða 1 (stöðvun/takmörkun) → strax-viðvörun.
+// Skilar ratingMovement-hlutnum ef kritískt, annars null (engin saga → null, þ.e. sáning þegir).
+export function criticalDrop(prev, cur) {
+  const mv = ratingMovement(prev, cur);
+  return (mv && mv.dir === 'down' && mv.to <= 1) ? mv : null;
+}

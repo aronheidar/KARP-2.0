@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { eftNylegt, byggMatch, rankMovement, ratingMovement } from './vaktir-signals.mjs';
+import { eftNylegt, byggMatch, rankMovement, ratingMovement, criticalDrop } from './vaktir-signals.mjs';
 
 test('eftNylegt: nýleg dagsetning (>=wk) → true', () => { assert.equal(eftNylegt('2026-07-25', '2026-07-22'), true); });
 test('eftNylegt: full ISO slice → true', () => { assert.equal(eftNylegt('2026-07-25T10:00:00Z', '2026-07-22'), true); });
@@ -25,3 +25,10 @@ test('ratingMovement: fall í 0 (1→0) telst fall', () => { assert.equal(rating
 test('ratingMovement: óbreytt (3→3) → null', () => { assert.equal(ratingMovement(3, 3), null); });
 test('ratingMovement: engin saga (null→3) → null', () => { assert.equal(ratingMovement(null, 3), null); });
 test('ratingMovement: ógilt cur → null', () => { assert.equal(ratingMovement(3, null), null); assert.equal(ratingMovement(3, undefined), null); });
+
+test('criticalDrop: fall í 1 (4→1) → kritískt', () => { const m = criticalDrop(4, 1); assert.ok(m); assert.equal(m.to, 1); assert.equal(m.dir, 'down'); });
+test('criticalDrop: fall í 0 (1→0) → kritískt', () => { assert.ok(criticalDrop(1, 0)); });
+test('criticalDrop: fall EN ekki í 0-1 (4→2) → null', () => { assert.equal(criticalDrop(4, 2), null); });
+test('criticalDrop: hækkun úr 0 (0→3) → null', () => { assert.equal(criticalDrop(0, 3), null); });
+test('criticalDrop: engin saga (null→0) → null (sáning þegir)', () => { assert.equal(criticalDrop(null, 0), null); });
+test('criticalDrop: óbreytt lágt (1→1) → null (endurtekur ekki)', () => { assert.equal(criticalDrop(1, 1), null); });
