@@ -74,6 +74,9 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-badge.tier { background: rgba(246,177,59,.16); color: var(--gold); }
     .stj-badge.ok { color: #46e08a; }
     .stj-badge.admin { background: rgba(246,177,59,.16); color: var(--gold); }
+    .stj-badge.test { background: rgba(150,160,175,.18); color: var(--faint); }
+    .stj-test td { opacity: .5; }
+    .stj-test:hover td { opacity: .8; }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
@@ -118,7 +121,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // spjöld
       const kr = (n) => (n || 0).toLocaleString('is-IS') + ' kr';
       $('stj-cards').innerHTML =
-        card(s.total, 'Notendur', '+' + s.new7 + ' síðustu 7 daga') +
+        card(s.total, 'Notendur', '+' + s.new7 + ' síðustu 7 daga' + (s.excludedTest ? ' · ' + s.excludedTest + ' prufa ekki talin' : '')) +
         card(kr(s.mrr), 'Áætl. mánaðartekjur', s.tierUsers + ' þrep · ' + s.activeSubs + ' þjónustur') +
         card(kr(s.reportRevenue), 'Skýrslutekjur (alls)', s.reportsTotal + ' seldar (990 kr)') +
         card(s.watchers + ' / ' + s.digestSubs, 'Virkir notendur', 'með vakt / vikuyfirlit') +
@@ -127,7 +130,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       // notendur
       $('stj-ucount').textContent = ov.users.length;
       $('stj-users').querySelector('tbody').innerHTML = ov.users.map((x) =>
-        `<tr><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
+        `<tr${x.test ? ' class="stj-test"' : ''}><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}${x.test ? ' <span class="stj-badge test">prufa · ekki talin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
         + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
         + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
         + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td></tr>`

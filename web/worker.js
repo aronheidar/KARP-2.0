@@ -4474,19 +4474,27 @@ async function adminOverviewHandler(request, env) {
   const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
+  // Prufu-aðgangar Arons eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
+  const TEST_EMAILS = new Set(['aronheidars@gmail.com']);
+  const testIds = new Set(users.filter((u) => TEST_EMAILS.has(String(u.email || '').toLowerCase())).map((u) => u.id));
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created }));
-  const byService = {}; for (const s of subs) byService[s.service] = (byService[s.service] || 0) + 1;
-  const byReport = {}; for (const r of reps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
-  const day = 86400, recent = (n) => users.filter((u) => u.created > now - n * day).length;
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id) }));
+  // Síuð sett fyrir samantektina (án prufu-aðganga) — notendalistinn `uList` er ósíaður.
+  const sUsers = users.filter((u) => !testIds.has(u.id));
+  const sUList = uList.filter((u) => !u.test);
+  const sSubs = subs.filter((x) => !testIds.has(x.user_id));
+  const sReps = reps.filter((x) => !testIds.has(x.user_id));
+  const byService = {}; for (const s of sSubs) byService[s.service] = (byService[s.service] || 0) + 1;
+  const byReport = {}; for (const r of sReps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
+  const day = 86400, recent = (n) => sUsers.filter((u) => u.created > now - n * day).length;
   // Tekjur (áætlaðar): virkar þjónustu-áskriftir + þrep (mán) + keyptar skýrslur (einskiptis 990).
   const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3900, fasteign: 3900, thingskyrslur: 3900 };
   const PRICE_TIER = { grunnur: 2900, fyrirtaeki: 6900, fyrirtaeki_plus: 12900 };
   let mrr = 0;
-  for (const s of subs) mrr += PRICE_SVC[s.service] || 0;
-  for (const u of uList) if (u.tier) mrr += PRICE_TIER[u.tier] || 0;
+  for (const s of sSubs) mrr += PRICE_SVC[s.service] || 0;
+  for (const u of sUList) if (u.tier) mrr += PRICE_TIER[u.tier] || 0;
   // Virkni: notendur með einhverja vakt / digest á (úr user_prefs).
   const watchRows = (await env.TENGSL.prepare("SELECT DISTINCT user_id FROM user_prefs WHERE k IN ('leitvakt','firmavakt','fastvakt','follows','ktwatch')").all().catch(() => ({ results: [] }))).results || [];
   const digestRows = (await env.TENGSL.prepare("SELECT user_id FROM user_prefs WHERE k='digest' AND v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }))).results || [];
@@ -4500,12 +4508,13 @@ async function adminOverviewHandler(request, env) {
     ok: true, now,
     users: uList,
     stats: {
-      total: users.length, verified: users.filter((u) => u.email_verified === 1).length, admins: users.filter((u) => u.is_admin === 1).length,
+      total: sUsers.length, verified: sUsers.filter((u) => u.email_verified === 1).length, admins: sUsers.filter((u) => u.is_admin === 1).length,
       new7: recent(7), new30: recent(30),
-      tierUsers: uList.filter((u) => u.tier).length, activeSubs: subs.length, subsByService: byService,
-      reportsTotal: reps.length, reportsByType: byReport,
-      mrr, reportRevenue: reps.length * 990,
-      watchers: watchRows.length, digestSubs: digestRows.length,
+      tierUsers: sUList.filter((u) => u.tier).length, activeSubs: sSubs.length, subsByService: byService,
+      reportsTotal: sReps.length, reportsByType: byReport,
+      mrr, reportRevenue: sReps.length * 990,
+      watchers: watchRows.filter((r) => !testIds.has(r.user_id)).length, digestSubs: digestRows.filter((r) => !testIds.has(r.user_id)).length,
+      excludedTest: testIds.size,
     },
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
   });
