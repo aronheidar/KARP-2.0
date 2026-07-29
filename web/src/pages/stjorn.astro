@@ -17,6 +17,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
 
       <section class="stj-cards" id="stj-cards"></section>
 
+      <section class="stj-block" id="stj-heilsa-wrap" hidden>
+        <h2>🩺 Gagnaheilsa <span id="stj-heilsa-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
+        <div id="stj-heilsa-cov" class="stj-heilsa-cov"></div>
+        <div id="stj-heilsa" class="stj-heilsa"></div>
+      </section>
+
       <section class="stj-block">
         <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
         <div class="stj-toolbar">
@@ -111,6 +117,15 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-mng .act.done { border-color: #46e08a; color: #46e08a; }
     .stj-mng select, .stj-mng input[type=number] { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; color: var(--ink); font: inherit; font-size: 13px; }
     .stj-empty-row td { color: var(--faint); text-align: center; padding: 20px; }
+    .stj-heilsa { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 2px 18px; }
+    .stj-h-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 0; }
+    .stj-h-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+    .stj-h-dot.ok { background: #46e08a; } .stj-h-dot.warn { background: #f6b13b; } .stj-h-dot.bad { background: #ef6a6a; } .stj-h-dot.unk { background: var(--faint); }
+    .stj-h-row .l { color: var(--ink); flex: 1; }
+    .stj-h-row .a { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+    .stj-h-row.bad .a { color: #ef6a6a; }
+    .stj-heilsa-cov { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+    .stj-heilsa-cov b { color: var(--gold); }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
@@ -145,9 +160,10 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       const gate = $('stj-gate');
       if (!u || !u.loggedIn) { gate.innerHTML = '<div class="stj-denied"><h1>Innskráning</h1><p>Skráðu þig inn til að opna stjórnborðið.</p><p><a href="/innskra/?redirect_to=' + encodeURIComponent(location.href) + '">Skrá inn →</a></p></div>'; return; }
       if (!u.isAdmin) { gate.innerHTML = '<div class="stj-denied"><h1>Aðgangur bannaður</h1><p>Stjórnborðið er aðeins fyrir stjórnendur.</p><p><a href="/mitt-svaedi/">Fara á Mitt svæði →</a></p></div>'; return; }
-      const [ov, burst] = await Promise.all([
+      const [ov, burst, heilsa] = await Promise.all([
         fetch('/api/admin/overview', { credentials: 'include' }).then((r) => r.json()).catch(() => null),
         fetch('/api/u/burst', { credentials: 'include' }).then((r) => r.json()).catch(() => null),
+        fetch('/gogn/heilsa.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
       ]);
       if (!ov || !ov.ok) { gate.innerHTML = '<div class="stj-denied"><h1>Villa</h1><p>Náði ekki í yfirlit.</p></div>'; return; }
       gate.hidden = true; $('stj-body').hidden = false;
@@ -162,6 +178,31 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         (s.expiring ? card(s.expiring.d30 || 0, 'Rennur út (30d)', (s.expiring.d7 || 0) + ' innan 7 daga' + (s.churn && s.churn.renewalRate != null ? ' · ' + s.churn.renewalRate + '% endurnýjun' : '')) : '') +
         card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
         (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Jaðar-beiðnir (7d)', '⚠ öll umferð m/vélmennum — ekki manntalning') : '');
+      // 🩺 Gagnaheilsa — ferskleiki lykil-veita + þekja (úr /gogn/heilsa.json; stale = pípa brotin)
+      (function () {
+        const H = heilsa, wrap = $('stj-heilsa-wrap');
+        if (!wrap) return;
+        if (!H || !Array.isArray(H.freshness)) { wrap.hidden = true; return; }
+        wrap.hidden = false;
+        const nowMs = Date.now();
+        const bucket = (iso, maxAge) => {
+          if (!iso) return { cls: 'unk', txt: 'óþekkt' };
+          const t = Date.parse(iso); if (isNaN(t)) return { cls: 'unk', txt: 'óþekkt' };
+          const age = nowMs - t, h = age / 3600000;
+          return { cls: age > maxAge ? 'bad' : (age > maxAge * 0.6 ? 'warn' : 'ok'), txt: h < 1 ? 'nýtt' : h < 36 ? Math.round(h) + ' klst' : Math.round(h / 24) + ' d' };
+        };
+        const bad = H.freshness.filter((f) => bucket(f.iso, f.maxAge).cls === 'bad').length;
+        $('stj-heilsa-fresh').textContent = bad ? '· ⚠ ' + bad + ' veitu' + (bad > 1 ? 'r' : '') + ' úreltar' : '· allt ferskt ✓';
+        $('stj-heilsa').innerHTML = H.freshness.map((f) => {
+          const b = bucket(f.iso, f.maxAge);
+          return `<div class="stj-h-row ${b.cls}"><span class="stj-h-dot ${b.cls}"></span><span class="l">${esc(f.label)}</span><span class="a">${b.txt}</span></div>`;
+        }).join('');
+        const cov = H.coverage || {}, parts = [];
+        if (cov.arsreikningar) parts.push('Ársreikningar: <b>' + cov.arsreikningar.pct + '%</b> með lykiltölur (' + cov.arsreikningar.withKpi + '/' + cov.arsreikningar.total + ')' + (cov.arsreikningar.scanned ? ' · ' + cov.arsreikningar.scanned + ' skönnuð' : ''));
+        if (cov.eigendur) parts.push('Eigendaskýrslur byggðar: <b>' + cov.eigendur.total + '</b>');
+        if (H.builtAt) { const bm = Math.round((nowMs - Date.parse(H.builtAt)) / 60000); parts.push('<span style="color:var(--faint)">mælt fyrir ' + (bm < 60 ? Math.max(0, bm) + ' mín' : Math.round(bm / 60) + ' klst') + '</span>'); }
+        $('stj-heilsa-cov').innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
+      })();
       // ── notendur: leit + síun + röðun + stjórn-spjald per notanda ──
       const utable = $('stj-users'), utbody = utable.querySelector('tbody');
       const SVC_LIST = ['kvoti', 'utbod', 'frettir', 'fasteign', 'thingskyrslur'];

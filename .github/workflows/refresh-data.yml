@@ -184,6 +184,9 @@ jobs:
           node skriptur/backtest_history.mjs   || true   # söguleg bakprófun 2010–2026 → gogn/roads/history.json
           node skriptur/calibrate_roads.mjs    || true   # econometrísk kvörðun (OLS) → gogn/roads/calibration.json
 
+      - name: Gagnaheilsa (ferskleiki lykil-veita + þekja → heilsa.json fyrir stjórnborð)
+        run: node skriptur/build_heilsa.mjs || true   # LES nýuppfærðar veitur → web/public/gogn/heilsa.json (á UNDAN commit svo hún fylgi með)
+
       - name: Committa ef breyting — annars þvinga endurbyggingu
         env:
           CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
