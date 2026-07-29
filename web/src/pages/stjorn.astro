@@ -228,7 +228,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       (function () {
         const btn = $('stj-refresh'); if (!btn || btn.dataset.wired) return; btn.dataset.wired = '1';
         btn.addEventListener('click', async () => {
-          if (!confirm('Ræsa gagna-uppfærslu núna? Tekur ~15–30 mín; veiturnar ferskast jafnóðum.')) return;
+          if (!confirm('Ræsa gagna-uppfærslu núna? Keyrslan tekur ~60–80 mín og ALLAR breytingar birtast Í EINU þegar hún klárast (pípan committar í lokin + Cloudflare endurbyggir).')) return;
           const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Ræsi…';
           const r = await fetch('/api/admin/refresh', { method: 'POST', credentials: 'include' }).then((x) => x.json()).catch(() => null);
           if (r && r.ok) { btn.textContent = '✓ Keyrsla hafin'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 10000); }
