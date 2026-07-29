@@ -65,6 +65,11 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-recent" class="stj-kv"></div>
       </section>
 
+      <section class="stj-block">
+        <h2>🧾 Aðgerðaskrá <span style="color:var(--faint);font-size:12px;font-weight:400">— síðustu admin-aðgerðir</span></h2>
+        <div id="stj-audit" class="stj-kv"></div>
+      </section>
+
       <section class="stj-block" id="stj-ops-wrap" hidden>
         <h2>🤖 Rekstur stjórnborðsins <span class="w-sub" id="stj-ops-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
         <div class="stj-cards" id="stj-ops-cards" style="margin-bottom:16px"></div>
@@ -252,6 +257,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       const passQuery = (x) => !ust.q || (String(x.email || '') + ' ' + String(x.name || '') + ' ' + String(x.kt || '')).toLowerCase().includes(ust.q);
       const sortUsers = (list) => list.slice().sort((a, b) => { const k = ust.sort.key, d = ust.sort.dir; let va = a[k], vb = b[k]; if (k === 'tier') { va = va || ''; vb = vb || ''; } return typeof va === 'string' ? d * va.localeCompare(vb || '') : d * ((va || 0) - (vb || 0)); });
       function mngPanel(x) {
+        const uAudit = (ov.audit || []).filter((a) => a.target === x.id).slice(0, 5);
         const tierOpts = TIERS.map(([v, l]) => `<option value="${v}"${(x.tier || '') === v ? ' selected' : ''}>${l}</option>`).join('');
         const svcBoxes = SVC_LIST.map((sv) => `<label class="svc"><input type="checkbox" data-svc="${sv}"${(x.subs || []).indexOf(sv) >= 0 ? ' checked' : ''}> ${esc(SVC[sv] || sv)}</label>`).join('');
         const supportBtns = (x.verified ? '' : '<button type="button" class="act" data-act="verify">Staðfesta netfang</button><button type="button" class="act" data-act="resend_verify">Endursenda staðf.</button>')
@@ -262,6 +268,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           + `<div><h4>Skýrslu-kvóti</h4><div class="row"><button type="button" class="act" data-act="reset_reports">Núllstilla mánaðar-kvóta</button></div></div>`
           + `<div><h4>Stuðningur</h4><div class="row">${supportBtns}</div></div>`
           + `<div><h4>Prufu-aðgangur</h4><div class="row"><label class="svc"><input type="checkbox" data-act="test"${x.test ? ' checked' : ''}> Ekki talinn með í samantekt</label></div></div>`
+          + `<div style="grid-column:1/-1"><h4>Innri nóta</h4><textarea data-note rows="2" placeholder="Innri athugasemd (sést aðeins stjórnendum)…" style="width:100%;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--ink);font:inherit;font-size:13px;padding:6px 8px">${esc((ov.notes || {})[x.id] || '')}</textarea><div class="row" style="margin-top:6px"><button type="button" class="act" data-act="note">Vista nótu</button></div></div>`
+          + (uAudit.length ? `<div style="grid-column:1/-1"><h4>Nýlegar aðgerðir á þessum notanda</h4><div style="font-size:12px;color:var(--muted);line-height:1.7">${uAudit.map((a) => '<b style="color:var(--ink);font-weight:600">' + esc(a.action) + '</b>' + (a.detail ? ' ' + esc(a.detail) : '') + ' · ' + esc(a.by) + ' · ' + dIS(a.ts)).join('<br>')}</div></div>` : '')
           + `</div></td></tr>`;
       }
       function renderUsers() {
@@ -295,8 +303,10 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
           const act = e.target.closest('.act[data-act]');
           if (!act) return;
           const mng = act.closest('.stj-mng-row'); const id = +mng.dataset.mng;
+          const body = { id, action: act.dataset.act };
+          if (act.dataset.act === 'note') { const ta = mng.querySelector('textarea[data-note]'); body.note = ta ? ta.value : ''; }
           const orig = act.textContent; act.disabled = true; act.textContent = '…';
-          const r = await post({ id, action: act.dataset.act });
+          const r = await post(body);
           act.disabled = false; act.textContent = orig; okFlash(act, r);
         });
         // breytingar: tegund-veljari (set-type) + þrep + þjónustu-reitir + prufu-reitur
@@ -341,6 +351,14 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const what = e.kind === 'tier' ? ('Þrep: ' + esc(e.what || '')) : esc(SVC[e.what] || e.what);
         return `<div class="stj-kv-row"><span>${what} <span style="color:var(--faint)">· ${esc(e.email || '—')}</span></span><b style="font-weight:600;color:${days <= 7 ? '#f6b13b' : 'var(--muted)'}">eftir ${days} d</b></div>`;
       }).join('') : '<div class="stj-kv-empty">Ekkert rennur út næstu 30 daga. 🎉</div>';
+
+      // 🧾 Aðgerðaskrá — síðustu admin-aðgerðir (audit)
+      const aud = ov.audit || [];
+      const emailById = (id) => { const uu = (ov.users || []).find((x) => x.id === id); return uu ? uu.email : ('#' + id); };
+      $('stj-audit').innerHTML = aud.length ? aud.slice(0, 30).map((a) => {
+        const tgt = a.target ? esc(emailById(a.target)) : '';
+        return `<div class="stj-kv-row"><span><b style="font-weight:600;color:var(--ink)">${esc(a.action)}</b>${a.detail ? ' <span style="color:var(--faint)">' + esc(a.detail) + '</span>' : ''}${tgt ? ' → ' + tgt : ''} <span style="color:var(--faint)">· ${esc(a.by)}</span></span><b style="font-weight:600;color:var(--muted)">${dIS(a.ts)}</b></div>`;
+      }).join('') : '<div class="stj-kv-empty">Engar skráðar aðgerðir enn.</div>';
 
       // 🤖 Rekstur stjórnborðsins (synced úr Node-appinu)
       const st = ov.stjorn;

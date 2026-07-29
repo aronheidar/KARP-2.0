@@ -4533,6 +4533,19 @@ async function _isAdmin(env, request) {
   const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
   return (u && u.is_admin === 1) ? uid : 0;
 }
+// Stjórnborð audit-skrá: geymir síðustu ~200 admin-aðgerðir í stjorn_sync k='audit' (hver: ts/by/target/action/detail).
+async function _audit(env, byUid, target, action, detail) {
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    let by = byUid || '?';
+    if (byUid) { const a = await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(byUid).first().catch(() => null); if (a && a.email) by = a.email; }
+    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='audit'").first().catch(() => null);
+    let log = []; try { log = JSON.parse((row && row.v) || '[]'); if (!Array.isArray(log)) log = []; } catch (e) { log = []; }
+    log.push({ ts: now, by, target: target || null, action: String(action || '').slice(0, 40), detail: String(detail == null ? '' : detail).slice(0, 100) });
+    if (log.length > 200) log = log.slice(-200);
+    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('audit',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(log), now).run().catch(() => {});
+  } catch (e) {}
+}
 async function adminOverviewHandler(request, env) {
   // Aðgangur: annaðhvort innskráður admin (vafri) EÐA X-Admin-Key leyndarmál (Node-stjórnborð, server-til-server).
   const key = request.headers.get('X-Admin-Key');
@@ -4598,6 +4611,12 @@ async function adminOverviewHandler(request, env) {
   }
   // Umbreytingar-trekt (án prufu): nýskráning → staðfest → virkjað (skýrsla/áskrift/þrep) → borgandi.
   const funnel = { signups: sUsers.length, verified: sUsers.filter((u) => u.email_verified === 1).length, activated: sUList.filter((u) => u.reports > 0 || (u.subs && u.subs.length) || u.tier).length, paying };
+  // Innri nótur (per notanda-id) + audit-skrá (síðustu admin-aðgerðir) úr stjorn_sync.
+  const _notesRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='notes'").first().catch(() => null);
+  let notes = {}; try { notes = JSON.parse((_notesRow && _notesRow.v) || '{}'); if (typeof notes !== 'object' || Array.isArray(notes)) notes = {}; } catch (e) { notes = {}; }
+  const _auditRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='audit'").first().catch(() => null);
+  let audit = []; try { audit = JSON.parse((_auditRow && _auditRow.v) || '[]'); if (!Array.isArray(audit)) audit = []; } catch (e) { audit = []; }
+  audit = audit.slice(-50).reverse();
   return _ajson({
     stjorn,
     ok: true, now,
@@ -4614,13 +4633,16 @@ async function adminOverviewHandler(request, env) {
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
     expiringList,
     mrrHistory,
+    notes,
+    audit,
   });
 }
 // Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.
 // body: { id, action, ...}. action ∈ tier | service | reset_reports | verify | resend_verify | reset_pw | test.
 async function adminUserHandler(request, env, ctx) {
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
-  if (!(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
+  const byUid = await _isAdmin(env, request);
+  if (!byUid) return _ajson({ ok: false, error: 'admin' });
   const b = (await request.json().catch(() => null)) || {};
   const id = +b.id, action = String(b.action || '');
   if (!id || !action) return _ajson({ ok: false, error: 'input' });
@@ -4628,6 +4650,8 @@ async function adminUserHandler(request, env, ctx) {
   const u = await env.TENGSL.prepare('SELECT id,email,name,is_admin,email_verified FROM users WHERE id=?').bind(id).first().catch(() => null);
   if (!u) return _ajson({ ok: false, error: 'nouser' });
   const DUR = Math.min(60, Math.max(1, +b.months || 12)) * 30 * 86400;   // grant-lengd (mán → sek), sjálfgefið 1 ár
+  const _det = action === 'tier' ? ('tier=' + (b.tier || 'clear')) : action === 'service' ? (b.service + '=' + (b.on ? 'on' : 'off')) : action === 'test' ? (b.on ? 'on' : 'off') : '';
+  ctx.waitUntil(_audit(env, byUid, id, action, _det));   // audit-skrá (aðgerð + hver + á hvern)
 
   if (action === 'tier') {
     const tier = b.tier ? String(b.tier) : null;
@@ -4670,6 +4694,14 @@ async function adminUserHandler(request, env, ctx) {
     ids = ids.filter((x) => +x !== id); if (on) ids.push(id);
     await env.TENGSL.prepare('INSERT INTO stjorn_sync (k,v,updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind('test_ids', JSON.stringify(ids), now).run().catch(() => {});
     return _ajson({ ok: true, test: on });
+  }
+  if (action === 'note') {
+    const note = String(b.note || '').slice(0, 500);
+    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='notes'").first().catch(() => null);
+    let notes = {}; try { notes = JSON.parse((row && row.v) || '{}'); if (typeof notes !== 'object' || Array.isArray(notes)) notes = {}; } catch (e) { notes = {}; }
+    if (note) notes[id] = note; else delete notes[id];
+    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('notes',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(notes), now).run().catch(() => {});
+    return _ajson({ ok: true });
   }
   return _ajson({ ok: false, error: 'action' });
 }
@@ -4724,6 +4756,7 @@ async function adminSetTypeHandler(request, env) {
   }
   await env.TENGSL.prepare('UPDATE users SET is_admin=?, free_access=?, nemandi=?, updated=? WHERE id=?')
     .bind(isAdmin, freeAccess, nemandi, Math.floor(Date.now() / 1000), targetId).run().catch(() => null);
+  await _audit(env, uid, targetId, 'set-type', type);
   return _ajson({ ok: true, id: targetId, type });
 }
 
