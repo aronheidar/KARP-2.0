@@ -15,3 +15,25 @@ export function byggMatch(item, q) {
   if (/^\d{3}$/.test(s)) return String(item.pn || '') === s;
   return String(item.a || '').toLowerCase().startsWith(s);
 }
+
+// Merkingarbær röð-hreyfing (áfangar + stór stökk) fyrir greina-vöktun. prev/cur = {rank} (eða null).
+// Áfangar: fer inn/út úr topp-1/3/5/10. Stökk: |Δ|>=3. Smá-rek (±1-2) → null.
+// Skilar { dir:'up'|'down', kind:'milestone'|'jump', badge, fromRank, toRank } eða null.
+const _RANK_TIERS = [1, 3, 5, 10];
+function _rankTier(r) { for (const t of _RANK_TIERS) if (r <= t) return t; return Infinity; }
+export function rankMovement(prev, cur) {
+  const p = (prev && Number.isFinite(prev.rank)) ? prev.rank : null;
+  const c = (cur && Number.isFinite(cur.rank)) ? cur.rank : null;
+  if (p == null || c == null || p === c) return null;
+  const dir = c < p ? 'up' : 'down';
+  const tp = _rankTier(p), tc = _rankTier(c);
+  const delta = Math.abs(c - p);
+  const milestone = tp !== tc;
+  if (!milestone && delta < 3) return null;
+  let badge;
+  if (c === 1 && p > 1) badge = '🥇 nýtt #1 í greininni';
+  else if (milestone && dir === 'up') badge = '↑ í topp ' + tc;
+  else if (milestone && dir === 'down') badge = '↓ úr topp ' + tp;
+  else badge = (dir === 'up' ? '↑ ' : '↓ ') + delta + ' sæti';
+  return { dir, kind: milestone ? 'milestone' : 'jump', badge, fromRank: p, toRank: c };
+}
