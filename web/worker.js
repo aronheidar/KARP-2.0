@@ -4586,6 +4586,18 @@ async function adminOverviewHandler(request, env) {
   const lapsed90 = ((_lapsSub && _lapsSub.c) || 0) + ((_lapsTier && _lapsTier.c) || 0);
   const _active = sSubs.length + sUList.filter((u) => u.tier).length;
   const churn = { lapsed90, renewalRate: (_active + lapsed90) > 0 ? Math.round(_active / (_active + lapsed90) * 100) : null };
+  // ── MRR-þróun: daglegt snapshot í stjorn_sync k='mrr_history' (idempotent per dagur; safnast við admin-heimsóknir). ──
+  const paying = sUList.filter((u) => u.tier || (u.subs && u.subs.length)).length;
+  const _today = new Date(now * 1000).toISOString().slice(0, 10);
+  const _mhRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='mrr_history'").first().catch(() => null);
+  let mrrHistory = []; try { mrrHistory = JSON.parse((_mhRow && _mhRow.v) || '[]'); if (!Array.isArray(mrrHistory)) mrrHistory = []; } catch (e) { mrrHistory = []; }
+  if (!mrrHistory.some((p) => p.d === _today)) {
+    mrrHistory.push({ d: _today, mrr, paying, users: sUsers.length, reports: sReps.length });
+    if (mrrHistory.length > 180) mrrHistory = mrrHistory.slice(-180);
+    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k,v,updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind('mrr_history', JSON.stringify(mrrHistory), now).run().catch(() => {});
+  }
+  // Umbreytingar-trekt (án prufu): nýskráning → staðfest → virkjað (skýrsla/áskrift/þrep) → borgandi.
+  const funnel = { signups: sUsers.length, verified: sUsers.filter((u) => u.email_verified === 1).length, activated: sUList.filter((u) => u.reports > 0 || (u.subs && u.subs.length) || u.tier).length, paying };
   return _ajson({
     stjorn,
     ok: true, now,
@@ -4597,10 +4609,11 @@ async function adminOverviewHandler(request, env) {
       reportsTotal: sReps.length, reportsByType: byReport,
       mrr, reportRevenue: sReps.length * 990,
       watchers: watchRows.filter((r) => !testIds.has(r.user_id)).length, digestSubs: digestRows.filter((r) => !testIds.has(r.user_id)).length,
-      excludedTest: testIds.size, expiring, churn,
+      excludedTest: testIds.size, expiring, churn, funnel,
     },
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
     expiringList,
+    mrrHistory,
   });
 }
 // Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.

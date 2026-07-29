@@ -23,6 +23,13 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-heilsa" class="stj-heilsa"></div>
       </section>
 
+      <section class="stj-block" id="stj-voxtur-wrap" hidden>
+        <div class="stj-grid2">
+          <div><h2>📈 MRR-þróun</h2><div id="stj-mrr-chart"></div></div>
+          <div><h2>🫧 Umbreytingar-trekt</h2><div id="stj-funnel"></div></div>
+        </div>
+      </section>
+
       <section class="stj-block">
         <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
         <div class="stj-toolbar">
@@ -126,6 +133,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-h-row.bad .a { color: #ef6a6a; }
     .stj-heilsa-cov { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
     .stj-heilsa-cov b { color: var(--gold); }
+    .stj-fn-row { display: flex; align-items: center; gap: 10px; margin: 7px 0; font-size: 13px; }
+    .stj-fn-l { width: 84px; color: var(--muted); flex: none; }
+    .stj-fn-bar { flex: 1; height: 14px; background: var(--panel); border-radius: 7px; overflow: hidden; }
+    .stj-fn-bar i { display: block; height: 100%; background: var(--gold); border-radius: 7px; }
+    .stj-fn-n { width: 78px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; }
+    .stj-fn-n small { color: var(--faint); }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
@@ -202,6 +215,31 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         if (cov.eigendur) parts.push('Eigendaskýrslur byggðar: <b>' + cov.eigendur.total + '</b>');
         if (H.builtAt) { const bm = Math.round((nowMs - Date.parse(H.builtAt)) / 60000); parts.push('<span style="color:var(--faint)">mælt fyrir ' + (bm < 60 ? Math.max(0, bm) + ' mín' : Math.round(bm / 60) + ' klst') + '</span>'); }
         $('stj-heilsa-cov').innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
+      })();
+      // 📈 Vöxtur — MRR-þróun (sparkline; safnast daglega) + umbreytingar-trekt
+      (function () {
+        const wrap = $('stj-voxtur-wrap'); if (!wrap) return;
+        const hist = ov.mrrHistory || [], f = s.funnel;
+        wrap.hidden = false;
+        const el = $('stj-mrr-chart');
+        if (hist.length >= 2) {
+          const vals = hist.map((p) => p.mrr || 0), mx = Math.max.apply(null, vals.concat(1)), mn = Math.min.apply(null, vals.concat(0)), rng = (mx - mn) || 1;
+          const W = 260, Hh = 56;
+          const pts = vals.map((v, i) => (i / (vals.length - 1) * W).toFixed(1) + ',' + (Hh - (v - mn) / rng * Hh).toFixed(1)).join(' ');
+          const first = vals[0], last = vals[vals.length - 1], chg = first ? Math.round((last - first) / first * 100) : 0;
+          el.innerHTML = '<div style="font-size:24px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums">' + last.toLocaleString('is-IS') + ' kr</div>'
+            + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">' + hist.length + ' daga saga · ' + (chg >= 0 ? '+' : '') + chg + '%</div>'
+            + '<svg viewBox="0 0 ' + W + ' ' + Hh + '" width="100%" height="56" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="#f6b13b" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>';
+        } else {
+          el.innerHTML = '<div style="font-size:24px;font-weight:800;color:var(--gold)">' + (s.mrr || 0).toLocaleString('is-IS') + ' kr</div><div style="font-size:12px;color:var(--faint);margin-top:4px">Þróun byrjar að safnast — eitt gildi á dag við hverja heimsókn.</div>';
+        }
+        if (f) {
+          const top = f.signups || 1;
+          $('stj-funnel').innerHTML = [['Nýskráðir', f.signups], ['Staðfestir', f.verified], ['Virkjaðir', f.activated], ['Borgandi', f.paying]].map((r) => {
+            const pct = Math.round((r[1] || 0) / top * 100);
+            return '<div class="stj-fn-row"><span class="stj-fn-l">' + r[0] + '</span><span class="stj-fn-bar"><i style="width:' + pct + '%"></i></span><span class="stj-fn-n">' + (r[1] || 0) + ' <small>' + pct + '%</small></span></div>';
+          }).join('');
+        }
       })();
       // ── notendur: leit + síun + röðun + stjórn-spjald per notanda ──
       const utable = $('stj-users'), utbody = utable.querySelector('tbody');
