@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import {
   SECTORS, ALL_SECTORS, SECTOR_HINTS,
-  matchItem, matchKeyword, filterFeed, feedFor, newSince, classifyHeuristic, stigRank, isatToSector,
+  matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, classifyHeuristic, stigRank, isatToSector,
 } from './lobbyvakt.mjs';
 
 // ── fixtures ──────────────────────────────────────────────────────────────
@@ -173,4 +173,21 @@ test('feedFor: mutar ekki inntak og skilar nýju fylki', () => {
 });
 test('feedFor: default-args (aðeins items) → aðeins almennt-mál', () => {
   assert.deepEqual(feedFor(ITEMS).map((x) => x.id), ['a3']);
+});
+
+// ── matchNews ─────────────────────────────────────────────────────────────
+test('matchNews: leitarorð í titli → true', () => {
+  assert.equal(matchNews({ title: 'Veiðigjald hækkar', body: '' }, ['veiðigjald']), true);
+});
+test('matchNews: leitarorð í body, case-insensitive → true', () => {
+  assert.equal(matchNews({ title: 'Frétt', body: 'Um LAXELDI í firði' }, ['laxeldi']), true);
+});
+test('matchNews: les text-reit (sh.news-form) → true', () => {
+  assert.equal(matchNews({ title: 'X', text: 'kvótinn seldur' }, ['kvóti']), true);
+});
+test('matchNews: ekkert match → false', () => {
+  assert.equal(matchNews({ title: 'Óskylt', body: 'ekkert hér' }, ['veiðigjald']), false);
+});
+test('matchNews: tómt ord → false', () => {
+  assert.equal(matchNews({ title: 'Veiðigjald', body: '' }, []), false);
 });

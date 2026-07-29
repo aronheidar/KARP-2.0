@@ -85,6 +85,15 @@ export function matchKeyword(item, ord) {
   return words.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.includes(s); });
 }
 
+// Frétta-hliðstæða matchKeyword: fréttir bera title/body (endapunktur) eða title/text (digest sh.news),
+// EKKI titill/brief/efni. true ef eitthvert ord (lágstafað) er hlutstrengur af (title + ' ' + (body||text)).
+export function matchNews(item, ord) {
+  const words = Array.isArray(ord) ? ord : [];
+  if (!words.length) return false;
+  const hay = `${(item && item.title) || ''} ${(item && (item.body || item.text)) || ''}`.toLowerCase();
+  return words.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.includes(s); });
+}
+
 // Straumur með BÆÐI greina-samsvörun OG leitarorðum: item er með ef matchItem(greinar) EÐA matchKeyword(ord).
 // Raðað eins og filterFeed (deilt _sortFeed). Mutar ekki inntak.
 export function feedFor(items, { greinar = [], ord = [] } = {}) {
