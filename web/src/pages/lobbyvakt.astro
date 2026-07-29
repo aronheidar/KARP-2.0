@@ -8,13 +8,13 @@
 import Layout from '../layouts/Layout.astro';
 import { SECTORS } from '../lib/lobbyvakt.mjs';
 
-const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta þína atvinnugrein, með AI-áhrifa-brief, relevans-stigi og fresti. Fyrir Fyrirtæki+ áskrifendur.';
+const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem nefna þau eru frjálsar fyrir alla innskráða, þingmál og samráðsmál í pípunni með AI-áhrifa-brief, relevans-stigi og fresti eru fyrir Fyrirtæki+ áskrifendur.';
 ---
 <Layout title="Lobbývakt — reglur í pípunni | Karp+" description={desc} canonical="https://karp.is/lobbyvakt/">
   <main class="lv-wrap" data-pg="lobbyvakt">
-    <p class="kicker">Karp+ · Fyrirtæki+</p>
+    <p class="kicker">Karp+ · Vöktun</p>
     <h1>Lobbývakt</h1>
-    <p class="lead">Frumvörp og samráðsmál í pípunni sem snerta þína grein — með áhrifa-briefi og fresti.</p>
+    <p class="lead">Vaktaðu leitarorð og atvinnugreinar — fáðu fréttir, þingmál og samráðsmál sem snerta þig. Fréttir eru frjálsar; þingmál + samráð + áhrifa-brief eru Fyrirtæki+.</p>
     <p class="lv-note">⚠ Sjálfvirk túlkun með gervigreind — til glöggvunar, ekki lögfræðiráðgjöf. Staðfestu í frumtextanum.</p>
 
     <div id="lv-gate" hidden>
@@ -46,9 +46,14 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
       </div>
       <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar og/eða bættu við leitarorðum að ofan og ýttu á „Vista" til að byrja.</p>
 
-      <h2>Straumurinn þinn</h2>
-      <div id="lv-feed"></div>
-      <p id="lv-empty" class="lv-empty" hidden>Engin mál passa við valdar greinar eins og er — mál merkt „Þvert á greinar" birtast sjálfkrafa þegar þau koma fram.</p>
+      <h2>📰 Fréttir sem passa</h2>
+      <p class="sub">Fréttir vikunnar sem nefna leitarorðin þín — frjálst, fyrir alla innskráða.</p>
+      <div id="lv-frettir"></div>
+      <p id="lv-frettir-empty" class="lv-empty" hidden>Engar fréttir nefna orðin þín eins og er.</p>
+
+      <h2>🏛️ Þingmál &amp; samráð <span class="lv-plus">Fyrirtæki+</span></h2>
+      <div id="lv-reglur"></div>
+      <p id="lv-empty" class="lv-empty" hidden>Engin þingmál/samráð passa við valið eins og er — „Þvert á greinar"-mál birtast sjálfkrafa.</p>
     </section>
   </main>
 
@@ -93,6 +98,7 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
     .lv-kw-chip button:hover { color: #ff6d7a; }
 
     .lv-empty { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
+    .lv-plus { font-size: 11px; font-weight: 700; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
 
     @media print {
       .lv-pills, .lv-save-row, .lv-kw-row, .lv-sub-h, #lv-gate, .lv-note { display: none !important; }
@@ -120,6 +126,8 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
     main[data-pg="lobbyvakt"] .lv-deadline { color: #f6b13b; font-weight: 700; }
     main[data-pg="lobbyvakt"] .lv-stada { color: var(--muted); }
     main[data-pg="lobbyvakt"] .lv-card-note { font-size: 11px; color: var(--faint); margin-top: 8px; line-height: 1.4; }
+    main[data-pg="lobbyvakt"] .lv-lock { border-style: dashed; }
+    main[data-pg="lobbyvakt"] .lv-upsell { display: inline-block; margin-top: 6px; color: #f6b13b; font-weight: 700; text-decoration: none; }
   </style>
 
   <script>
@@ -185,6 +193,28 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
 
     function renderFeed(items) { $('#lv-feed').innerHTML = (items || []).map(itemCard).join(''); }
 
+    function newsCard(n) {
+      const t = esc((n && n.title) || '');
+      const href = esc((n && n.url) || '#');
+      const meta = [esc((n && n.source) || ''), esc((n && n.date) || '')].filter(Boolean).join(' · ');
+      return '<article class="lv-card"><h3 class="lv-title"><a href="' + href + '" target="_blank" rel="noopener">' + t + '</a></h3>'
+        + (meta ? '<div class="lv-meta">' + meta + '</div>' : '') + '</article>';
+    }
+    function renderNews(frettir) {
+      $('#lv-frettir').innerHTML = (frettir || []).map(newsCard).join('');
+      $('#lv-frettir-empty').hidden = (frettir || []).length > 0;
+    }
+    function renderReg(reglur, entitled) {
+      const host = $('#lv-reglur'); const empty = $('#lv-empty');
+      if (!entitled) {
+        empty.hidden = true;
+        host.innerHTML = '<div class="lv-card lv-lock"><p class="lv-brief">🔒 Þingmál og samráðsmál sem snerta greinarnar þínar — með áhrifa-briefi, relevans-stigi og fresti — eru hluti af <b>Fyrirtæki+</b>.</p><a class="lv-upsell" href="/karp-pro/#verd">Sjá Fyrirtæki+ →</a></div>';
+        return;
+      }
+      host.innerHTML = (reglur || []).map(itemCard).join('');
+      empty.hidden = (reglur || []).length > 0;
+    }
+
     function selectedSectors() {
       return [...document.querySelectorAll('#lv-sectors .lv-pill-on')].map((b) => b.dataset.sector);
     }
@@ -211,15 +241,15 @@ const desc = 'Lobbývakt — frumvörp og samráðsmál í pípunni sem snerta �
 
     async function load() {
       const d = await fetchFeed();
-      if (!d || !d.ok) { showGate(d && d.error === 'login' ? 'login' : d && d.error === 'tier' ? 'tier' : 'err'); return; }
+      if (!d || !d.ok) { showGate(d && d.error === 'login' ? 'login' : 'err'); return; }
       $('#lv-gate').hidden = true;
       $('#lv-app').hidden = false;
       applySelection(d.greinar);
       keywords = Array.isArray(d.ord) ? d.ord.slice() : [];
       renderChips();
       $('#lv-setup-msg').hidden = !d.needsSetup;
-      $('#lv-empty').hidden = !!d.needsSetup || (d.items || []).length > 0;
-      renderFeed(d.items);
+      renderNews(d.frettir || []);
+      renderReg(d.reglur || [], !!d.entitled);
     }
 
     document.addEventListener('astro:page-load', () => {
