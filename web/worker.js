@@ -5,6 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
+import { eftNylegt, byggMatch } from './src/lib/vaktir-signals.mjs';   // Eftirlits-/byggingar-vöktun (digest-pörun)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -4045,6 +4046,14 @@ async function digestShared(env) {
   sh.news = (Array.isArray(media) ? media.map((x) => ({ title: x.title, text: '', url: x.url, source: x.source })) : []).concat(fvNews);
   sh.vm = (vm && vm.byKt) || {};
   sh.lobbyvakt = await augGet(env, 'lobbyvakt.json').catch(() => null);   // Lobbývakt: nætur-flokkuð þingmál/samráðsmál (kafli „Reglur í pípunni" hér að neðan)
+  sh.wkDate = wkDate;
+  // Eftirlit (heilbrigðiseftirlit RVK) — byKt fyrir firmavakt-pörun.
+  const _eft = await _dget(env, '/gogn/eftirlit.json');
+  sh.eftByKt = {};
+  for (const s of ((_eft && _eft.stadir) || [])) { if (s && s.kt) { const k = String(s.kt).replace(/\D/g, ''); (sh.eftByKt[k] || (sh.eftByKt[k] = [])).push(s); } }
+  // Byggingarleyfi RVK — nýleg mál (7 dagar) fyrir fastvakt-pörun; a/pn samnefni svo byggMatch+li virki.
+  const _bygg = await _dget(env, '/gogn/byggingarleyfi_vakt.json');
+  sh.bygg7 = (((_bygg && _bygg.recent) || []).filter((x) => x && String(x.date || '').slice(0, 10) >= wkDate).map((x) => ({ ...x, a: x.addr, pn: x.postnr })));
   return sh;
 }
 function _newsHits(news, word, limit) {
@@ -4091,6 +4100,35 @@ function digestBuild(name, prefs, sh) {
     let sec = '', nvm = 0;
     for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
     if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
+  }
+  // ── 🍽️ Heilbrigðiseftirlit — nýjar skoðanir hjá vökuðum félögum (firmavakt → eftirlit eftir kt) ──
+  const fmvE = prefs.firmavakt;
+  if (fmvE && fmvE.on && Array.isArray(fmvE.felog) && fmvE.felog.length && sh.eftByKt) {
+    let sec = '', n = 0;
+    for (const co of fmvE.felog) {
+      if (!co || !co.kt) continue;
+      const kt = String(co.kt).replace(/\D/g, '');
+      for (const s of (sh.eftByKt[kt] || [])) {
+        if (!eftNylegt(s.lastInspectionISO, sh.wkDate)) continue;
+        n++; if (n > 10) break;
+        const bad = (s.rating != null && s.rating <= 1);
+        sec += li((bad ? '⚠️ ' : '') + (s.name || co.nafn || kt) + ' — einkunn ' + (s.rating != null ? s.rating : '?') + (s.ratingLabel ? ' (' + s.ratingLabel + ')' : ''), (co.nafn || '') + (s.street ? ' · ' + s.street : ''), s.reportUrl || '');
+      }
+      if (n > 10) break;
+    }
+    if (sec) { rows += H('🍽️', 'Nýtt heilbrigðiseftirlit hjá félögum á vaktinni') + sec; personal = true; }
+  }
+  // ── 🏗️ Byggingarleyfi — ný mál á vökuðum svæðum (fastvakt → bygg eftir póstnr/götu) ──
+  const fvB = prefs.fastvakt;
+  if (fvB && fvB.on && Array.isArray(fvB.vaktir) && fvB.vaktir.length && Array.isArray(sh.bygg7) && sh.bygg7.length) {
+    let sec = '', n = 0; const seen = new Set();
+    for (const x of sh.bygg7) {
+      if (!(fvB.vaktir.some((w) => w && byggMatch(x, w.q)))) continue;
+      const key = x.caseNo || (String(x.a || '') + x.date);
+      if (seen.has(key)) continue; seen.add(key);
+      n++; if (n <= 8) sec += li((x.a || x.addr || '') + (x.desc ? ' — ' + String(x.desc).slice(0, 70) : ''), (dIS(x.date) + (x.hverfi ? ' · ' + x.hverfi : '') + (x.decisionCode ? ' · ' + x.decisionCode : '')).trim(), 'https://karp.is/byggingarvakt/');
+    }
+    if (n) { rows += H('🏗️', 'Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/byggingarvakt/'); personal = true; }
   }
   // ── 🏛️ Lobbývaktin þín (sameinuð efnisvakt): fréttir (öllum) + reglur (Fyrirtæki+, reiknað+gátað í digestRun) ──
   const efniOrd = [...new Set([
