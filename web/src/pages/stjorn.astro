@@ -19,9 +19,19 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
 
       <section class="stj-block">
         <h2>👥 Notendur (<span id="stj-ucount">0</span>)</h2>
+        <div class="stj-toolbar">
+          <input type="search" id="stj-search" class="stj-search" placeholder="Leita — netfang, nafn eða kt…" autocomplete="off" />
+          <div class="stj-filters" id="stj-filters">
+            <button type="button" class="stj-chip on" data-f="all">Allir</button>
+            <button type="button" class="stj-chip" data-f="paying">Borgandi</button>
+            <button type="button" class="stj-chip" data-f="unverified">Óstaðfest</button>
+            <button type="button" class="stj-chip" data-f="sub">Með áskrift</button>
+            <button type="button" class="stj-chip" data-f="admin">Stjórnendur</button>
+          </div>
+        </div>
         <div class="stj-tablewrap">
           <table class="stj-table" id="stj-users">
-            <thead><tr><th>#</th><th>Netfang</th><th>Tegund</th><th>Nafn</th><th>Þrep</th><th>Áskriftir</th><th>Skýrslur</th><th>Staðf.</th><th>Skráð</th></tr></thead>
+            <thead><tr><th data-sort="id">#</th><th data-sort="email">Netfang</th><th>Tegund</th><th data-sort="name">Nafn</th><th data-sort="tier">Þrep</th><th>Áskriftir</th><th data-sort="reports">Skýrslur</th><th data-sort="verified">Staðf.</th><th data-sort="created">Skráð</th><th></th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -77,6 +87,25 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-badge.test { background: rgba(150,160,175,.18); color: var(--faint); }
     .stj-test td { opacity: .5; }
     .stj-test:hover td { opacity: .8; }
+    .stj-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .stj-search { flex: 1; min-width: 200px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--ink); font: inherit; font-size: 13px; }
+    .stj-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .stj-chip { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+    .stj-chip.on { background: rgba(246,177,59,.16); border-color: rgba(246,177,59,.4); color: var(--gold); }
+    .stj-table th[data-sort] { cursor: pointer; user-select: none; }
+    .stj-table th[data-sort]:hover { color: var(--ink); }
+    .stj-mng-btn { background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 3px 9px; cursor: pointer; color: var(--muted); font-size: 13px; }
+    .stj-mng-btn:hover { color: var(--ink); border-color: var(--gold); }
+    .stj-mng-row td { background: var(--panel); padding: 0; }
+    .stj-mng { padding: 14px 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .stj-mng h4 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
+    .stj-mng .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .stj-mng label.svc { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); white-space: nowrap; }
+    .stj-mng .act { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 6px 11px; cursor: pointer; color: var(--ink); font: inherit; font-size: 12.5px; }
+    .stj-mng .act:hover { border-color: var(--gold); }
+    .stj-mng .act.done { border-color: #46e08a; color: #46e08a; }
+    .stj-mng select, .stj-mng input[type=number] { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; color: var(--ink); font: inherit; font-size: 13px; }
+    .stj-empty-row td { color: var(--faint); text-align: center; padding: 20px; }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
@@ -127,41 +156,84 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         card(s.watchers + ' / ' + s.digestSubs, 'Virkir notendur', 'með vakt / vikuyfirlit') +
         card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
         (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Jaðar-beiðnir (7d)', '⚠ öll umferð m/vélmennum — ekki manntalning') : '');
-      // notendur
-      $('stj-ucount').textContent = ov.users.length;
-      $('stj-users').querySelector('tbody').innerHTML = ov.users.map((x) =>
-        `<tr${x.test ? ' class="stj-test"' : ''}><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}${x.test ? ' <span class="stj-badge test">prufa · ekki talin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
-        + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
-        + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
-        + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td></tr>`
-      ).join('');
-      // Tegund-veljari: POST /api/admin/set-type á breytingu. Wired EINU SINNI á sjálfa töfluna
-      // (tbody er endurgert í hverju boot() en <table>-hnúturinn lifir → varast tvöfalt viðhengi).
-      const utable = $('stj-users');
+      // ── notendur: leit + síun + röðun + stjórn-spjald per notanda ──
+      const utable = $('stj-users'), utbody = utable.querySelector('tbody');
+      const SVC_LIST = ['kvoti', 'utbod', 'frettir', 'fasteign', 'thingskyrslur'];
+      const TIERS = [['', '— ekkert —'], ['grunnur', 'Grunnur'], ['fyrirtaeki', 'Fyrirtæki'], ['fyrirtaeki_plus', 'Fyrirtæki+']];
+      const ust = utable.__st = utable.__st || { sort: { key: 'id', dir: 1 }, filter: 'all', q: '' };
+      ust.all = ov.users;
+      $('stj-ucount').textContent = ust.all.length;
+      const passFilter = (x) => ust.filter === 'paying' ? (!!x.tier || (x.subs && x.subs.length)) : ust.filter === 'unverified' ? !x.verified : ust.filter === 'sub' ? (x.subs && x.subs.length > 0) : ust.filter === 'admin' ? x.admin : true;
+      const passQuery = (x) => !ust.q || (String(x.email || '') + ' ' + String(x.name || '') + ' ' + String(x.kt || '')).toLowerCase().includes(ust.q);
+      const sortUsers = (list) => list.slice().sort((a, b) => { const k = ust.sort.key, d = ust.sort.dir; let va = a[k], vb = b[k]; if (k === 'tier') { va = va || ''; vb = vb || ''; } return typeof va === 'string' ? d * va.localeCompare(vb || '') : d * ((va || 0) - (vb || 0)); });
+      function mngPanel(x) {
+        const tierOpts = TIERS.map(([v, l]) => `<option value="${v}"${(x.tier || '') === v ? ' selected' : ''}>${l}</option>`).join('');
+        const svcBoxes = SVC_LIST.map((sv) => `<label class="svc"><input type="checkbox" data-svc="${sv}"${(x.subs || []).indexOf(sv) >= 0 ? ' checked' : ''}> ${esc(SVC[sv] || sv)}</label>`).join('');
+        const supportBtns = (x.verified ? '' : '<button type="button" class="act" data-act="verify">Staðfesta netfang</button><button type="button" class="act" data-act="resend_verify">Endursenda staðf.</button>')
+          + '<button type="button" class="act" data-act="reset_pw">Senda endurstillingu</button>';
+        return `<tr class="stj-mng-row" data-mng="${x.id}" hidden><td colspan="10"><div class="stj-mng">`
+          + `<div><h4>Þrep</h4><div class="row"><select data-act="tier">${tierOpts}</select><input type="number" data-months min="1" max="60" value="12" style="width:58px" title="mánuðir"><span style="color:var(--faint);font-size:12px">mán</span></div></div>`
+          + `<div><h4>Þjónustu-áskriftir</h4><div class="row">${svcBoxes}</div></div>`
+          + `<div><h4>Skýrslu-kvóti</h4><div class="row"><button type="button" class="act" data-act="reset_reports">Núllstilla mánaðar-kvóta</button></div></div>`
+          + `<div><h4>Stuðningur</h4><div class="row">${supportBtns}</div></div>`
+          + `<div><h4>Prufu-aðgangur</h4><div class="row"><label class="svc"><input type="checkbox" data-act="test"${x.test ? ' checked' : ''}> Ekki talinn með í samantekt</label></div></div>`
+          + `</div></td></tr>`;
+      }
+      function renderUsers() {
+        const list = sortUsers(ust.all.filter((x) => passFilter(x) && passQuery(x)));
+        if (!list.length) { utbody.innerHTML = '<tr class="stj-empty-row"><td colspan="10">Enginn notandi passar við leit/síu.</td></tr>'; return; }
+        utbody.innerHTML = list.map((x) =>
+          `<tr${x.test ? ' class="stj-test"' : ''} data-uid="${x.id}"><td>${x.id}</td><td>${esc(x.email)}${x.admin ? ' <span class="stj-badge admin">admin</span>' : ''}${x.test ? ' <span class="stj-badge test">prufa · ekki talin</span>' : ''}</td><td>${typeSelect(x)}</td><td>${esc(x.name)}</td>`
+          + `<td>${x.tier ? '<span class="stj-badge tier">' + esc(x.tier) + '</span>' : '—'}</td>`
+          + `<td>${x.subs.length ? x.subs.map((sv) => '<span class="stj-badge">' + esc(SVC[sv] || sv) + '</span>').join('') : '—'}</td>`
+          + `<td>${x.reports || '—'}</td><td>${x.verified ? '<span class="stj-badge ok">✓</span>' : '—'}</td><td>${dIS(x.created)}</td>`
+          + `<td><button type="button" class="stj-mng-btn" data-toggle="${x.id}" title="Stjórna notanda">⚙</button></td></tr>`
+          + mngPanel(x)
+        ).join('');
+      }
+      ust.render = renderUsers;
+      renderUsers();
+
+      // Víra EINU SINNI (tbody endurgerist í boot(), en <table>-hnúturinn + st lifa → forðast tvöfalt viðhengi).
       if (!utable.dataset.wired) {
         utable.dataset.wired = '1';
+        const S = () => utable.__st;
+        const post = (body) => fetch('/api/admin/user', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()).catch(() => null);
+        const okFlash = (el, r) => { if (!r || !r.ok) { alert('Villa kom upp — reyndu aftur.'); return false; } el.classList.add('done'); setTimeout(() => el.classList.remove('done'), 1100); return true; };
+        $('stj-search').addEventListener('input', (e) => { S().q = e.target.value.trim().toLowerCase(); S().render(); });
+        $('stj-filters').addEventListener('click', (e) => { const b = e.target.closest('.stj-chip'); if (!b) return; S().filter = b.dataset.f; $('stj-filters').querySelectorAll('.stj-chip').forEach((c) => c.classList.toggle('on', c === b)); S().render(); });
+        utable.querySelectorAll('th[data-sort]').forEach((th) => th.addEventListener('click', () => { const k = th.dataset.sort, s = S(); s.sort = { key: k, dir: s.sort.key === k ? -s.sort.dir : 1 }; s.render(); }));
+        // smellir: opna/loka stjórn-spjaldi + hnappa-aðgerðir (verify/resend/reset_pw/reset_reports)
+        utable.addEventListener('click', async (e) => {
+          const tg = e.target.closest('[data-toggle]');
+          if (tg) { const row = utable.querySelector('tr[data-mng="' + tg.dataset.toggle + '"]'); if (row) row.hidden = !row.hidden; return; }
+          const act = e.target.closest('.act[data-act]');
+          if (!act) return;
+          const mng = act.closest('.stj-mng-row'); const id = +mng.dataset.mng;
+          const orig = act.textContent; act.disabled = true; act.textContent = '…';
+          const r = await post({ id, action: act.dataset.act });
+          act.disabled = false; act.textContent = orig; okFlash(act, r);
+        });
+        // breytingar: tegund-veljari (set-type) + þrep + þjónustu-reitir + prufu-reitur
         utable.addEventListener('change', async (e) => {
-          const sel = e.target.closest('select.stj-type');
-          if (!sel) return;
-          const prev = sel.dataset.cur || sel.value;
-          const type = sel.value;
-          sel.disabled = true;
-          const r = await fetch('/api/admin/set-type', {
-            method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ id: +sel.dataset.id, type }),
-          }).then((res) => res.json()).catch(() => null);
-          sel.disabled = false;
-          if (r && r.ok) {
-            sel.dataset.cur = type;
-            sel.classList.add('stj-type-flash');
-            setTimeout(() => sel.classList.remove('stj-type-flash'), 900);
-          } else if (r && r.error === 'last-admin') {
-            alert('Get ekki fjarlægt síðasta admin');
-            sel.value = prev;
-          } else {
-            alert('Villa kom upp — reyndu aftur.');
-            sel.value = prev;
+          const type = e.target.closest('select.stj-type');
+          if (type) {
+            const prev = type.dataset.cur || type.value; type.disabled = true;
+            const r = await fetch('/api/admin/set-type', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: +type.dataset.id, type: type.value }) }).then((res) => res.json()).catch(() => null);
+            type.disabled = false;
+            if (r && r.ok) { type.dataset.cur = type.value; type.classList.add('stj-type-flash'); setTimeout(() => type.classList.remove('stj-type-flash'), 900); }
+            else if (r && r.error === 'last-admin') { alert('Get ekki fjarlægt síðasta admin'); type.value = prev; }
+            else { alert('Villa kom upp — reyndu aftur.'); type.value = prev; }
+            return;
           }
+          const mng = e.target.closest('.stj-mng-row'); if (!mng) return;
+          const id = +mng.dataset.mng, months = +mng.querySelector('[data-months]').value || 12;
+          const tierSel = e.target.closest('select[data-act="tier"]');
+          if (tierSel) { okFlash(tierSel, await post({ id, action: 'tier', tier: tierSel.value, months })); return; }
+          const svc = e.target.closest('input[data-svc]');
+          if (svc) { const r = await post({ id, action: 'service', service: svc.dataset.svc, on: svc.checked, months }); if (!r || !r.ok) { alert('Villa kom upp — reyndu aftur.'); svc.checked = !svc.checked; } return; }
+          const test = e.target.closest('input[data-act="test"]');
+          if (test) { const r = await post({ id, action: 'test', on: test.checked }); if (!r || !r.ok) { alert('Villa kom upp — reyndu aftur.'); test.checked = !test.checked; } return; }
         });
       }
       // áskriftir

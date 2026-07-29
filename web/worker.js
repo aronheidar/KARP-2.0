@@ -4474,9 +4474,13 @@ async function adminOverviewHandler(request, env) {
   const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
-  // Prufu-aðgangar Arons eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
+  // Prufu-aðgangar eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
+  // Hardkóðaður Arons-aðgangur + KVIKUR listi (stjorn_sync k='test_ids') sem admin stýrir í stjórnborði.
   const TEST_EMAILS = new Set(['aronheidars@gmail.com']);
-  const testIds = new Set(users.filter((u) => TEST_EMAILS.has(String(u.email || '').toLowerCase())).map((u) => u.id));
+  const _testRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
+  let _dynTest = []; try { _dynTest = JSON.parse((_testRow && _testRow.v) || '[]'); if (!Array.isArray(_dynTest)) _dynTest = []; } catch (e) { _dynTest = []; }
+  const _dynTestSet = new Set(_dynTest.map(Number));
+  const testIds = new Set(users.filter((u) => TEST_EMAILS.has(String(u.email || '').toLowerCase()) || _dynTestSet.has(u.id)).map((u) => u.id));
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
@@ -4518,6 +4522,63 @@ async function adminOverviewHandler(request, env) {
     },
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
   });
+}
+// Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.
+// body: { id, action, ...}. action ∈ tier | service | reset_reports | verify | resend_verify | reset_pw | test.
+async function adminUserHandler(request, env, ctx) {
+  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  if (!(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
+  const b = (await request.json().catch(() => null)) || {};
+  const id = +b.id, action = String(b.action || '');
+  if (!id || !action) return _ajson({ ok: false, error: 'input' });
+  const now = Math.floor(Date.now() / 1000);
+  const u = await env.TENGSL.prepare('SELECT id,email,name,is_admin,email_verified FROM users WHERE id=?').bind(id).first().catch(() => null);
+  if (!u) return _ajson({ ok: false, error: 'nouser' });
+  const DUR = Math.min(60, Math.max(1, +b.months || 12)) * 30 * 86400;   // grant-lengd (mán → sek), sjálfgefið 1 ár
+
+  if (action === 'tier') {
+    const tier = b.tier ? String(b.tier) : null;
+    if (tier && !['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].includes(tier)) return _ajson({ ok: false, error: 'tier' });
+    await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, updated=? WHERE id=?').bind(tier, tier ? now + DUR : 0, now, id).run().catch(() => {});
+    return _ajson({ ok: true, tier, until: tier ? now + DUR : 0 });
+  }
+  if (action === 'service') {
+    const service = String(b.service || ''); const on = !!b.on;
+    if (!service) return _ajson({ ok: false, error: 'service' });
+    if (on) await env.TENGSL.prepare('INSERT INTO sub_service (user_id,service,until,askell_id) VALUES (?,?,?,?) ON CONFLICT(user_id,service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id').bind(id, service, now + DUR, 'admin-grant').run().catch(() => {});
+    else await env.TENGSL.prepare('DELETE FROM sub_service WHERE user_id=? AND service=?').bind(id, service).run().catch(() => {});
+    return _ajson({ ok: true, service, on });
+  }
+  if (action === 'reset_reports') {
+    await env.TENGSL.prepare('UPDATE users SET reports_used=0, reports_month=?, updated=? WHERE id=?').bind(_monthStr(now), now, id).run().catch(() => {});
+    return _ajson({ ok: true });
+  }
+  if (action === 'verify') {
+    await env.TENGSL.prepare('UPDATE users SET email_verified=1, updated=? WHERE id=?').bind(now, id).run().catch(() => {});
+    return _ajson({ ok: true });
+  }
+  if (action === 'resend_verify') {
+    if (u.email_verified === 1) return _ajson({ ok: true, already: true });
+    ctx.waitUntil(_sendVerifyEmail(env, u.id, u.email, now));
+    return _ajson({ ok: true });
+  }
+  if (action === 'reset_pw') {
+    const token = _tokenHex();
+    await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
+    const link = 'https://karp.is/endurstilla/?token=' + token;
+    const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Endurstilla lykilorð</h2><p>Stjórnandi Karp bjó til hlekk til að endurstilla lykilorðið á aðgangi þínum.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Velja nýtt lykilorð</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í eina klukkustund.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
+    ctx.waitUntil(sendGmail(env, { to: u.email, subject: 'Endurstilla lykilorð á Karp', html }));
+    return _ajson({ ok: true });
+  }
+  if (action === 'test') {
+    const on = !!b.on;
+    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
+    let ids = []; try { ids = JSON.parse((row && row.v) || '[]'); if (!Array.isArray(ids)) ids = []; } catch (e) { ids = []; }
+    ids = ids.filter((x) => +x !== id); if (on) ids.push(id);
+    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k,v,updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind('test_ids', JSON.stringify(ids), now).run().catch(() => {});
+    return _ajson({ ok: true, test: on });
+  }
+  return _ajson({ ok: false, error: 'action' });
 }
 // Póstsending fyrir Node-stjórnborðið gegnum worker Gmail REST (S4 — sameinar á OAuth, ekkert app-lykilorð).
 // Aðgangur: X-Admin-Key EÐA innskráður admin. Body: {to, subject, html|text, replyTo?, inReplyTo?}.
@@ -4622,6 +4683,7 @@ export default {
     if (url.pathname === '/api/admin/send') return adminSendHandler(request, env);   // stjórnborð S4: póstur um Gmail REST
     if (url.pathname === '/api/admin/sync') return adminSyncHandler(request, env);   // stjórnborð S2b: rekstrar-samantekt
     if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user/nemandi)
+    if (url.pathname === '/api/admin/user') return adminUserHandler(request, env, ctx);   // stjórnborð: aðgangs-veiting + stuðningur + prufu-flagg per notanda
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
