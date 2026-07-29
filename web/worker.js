@@ -4513,12 +4513,10 @@ async function adminOverviewHandler(request, env) {
   const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
   const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
   // Prufu-aðgangar eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
-  // Hardkóðaður Arons-aðgangur + KVIKUR listi (stjorn_sync k='test_ids') sem admin stýrir í stjórnborði.
-  const TEST_EMAILS = new Set(['aronheidars@gmail.com']);
+  // Stýrt EINGÖNGU úr stjórnborði: kvikur listi notanda-id í stjorn_sync k='test_ids' (⚙-reitur per notanda).
   const _testRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
   let _dynTest = []; try { _dynTest = JSON.parse((_testRow && _testRow.v) || '[]'); if (!Array.isArray(_dynTest)) _dynTest = []; } catch (e) { _dynTest = []; }
-  const _dynTestSet = new Set(_dynTest.map(Number));
-  const testIds = new Set(users.filter((u) => TEST_EMAILS.has(String(u.email || '').toLowerCase()) || _dynTestSet.has(u.id)).map((u) => u.id));
+  const testIds = new Set(_dynTest.map(Number).filter(Boolean));
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
