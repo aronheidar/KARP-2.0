@@ -5,7 +5,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
-import { eftNylegt, byggMatch } from './src/lib/vaktir-signals.mjs';   // Eftirlits-/byggingar-vöktun (digest-pörun)
+import { eftNylegt, byggMatch, rankMovement } from './src/lib/vaktir-signals.mjs';   // Eftirlits-/byggingar-vöktun + greina-vöktun (digest-pörun)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -3139,6 +3139,32 @@ async function atvinnugreinHandler(request, env, ctx) {
 
 // ── 🏭 Grein-rank: röðun félags í atvinnugrein sinni (OPIÐ, úr opinberum ársreikningum) ──
 // GET /api/grein-rank?kt= → { rank, total, slug, label, sala }. Nýjasta ár per kt (dedup), engin gátt.
+// Reiknar röð félags í atvinnugrein sinni (deilt af greinRankHandler + digest greina-vöktun).
+async function computeGreinRank(env, kt) {
+  if (!env || !env.TENGSL || !kt) return { slug: null, label: null, rank: null, total: null, sala: null };
+  const felag = await env.TENGSL.prepare('SELECT isat_primary FROM felog WHERE kt=?').bind(kt).first().catch(() => null);
+  const sk = await augGet(env, 'sector_kpi.json').catch(() => null);
+  const sec = (felag && felag.isat_primary && sk && sk.map) ? sectorForIsat(sectorsFromMap(sk.map), felag.isat_primary) : null;
+  if (!sec) return { slug: null, label: null, rank: null, total: null, sala: null };
+  // greinar-sía (eins og atvinnugreinHandler): mis-löng forskeyti + útilokun, kóðar bundnir (?), aðeins c.length í streng
+  const binds = [];
+  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+  let where = '(' + isatClause + ')';
+  if (sec.excl && sec.excl.length) {
+    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+    where += ' AND NOT (' + exClause + ')';
+  }
+  const me = await env.TENGSL.prepare('SELECT sala FROM fjarhagur WHERE kt=? AND sala IS NOT NULL ORDER BY ar DESC LIMIT 1').bind(kt).first().catch(() => null);
+  const sala = (me && me.sala != null) ? me.sala : null;
+  const cnt = await env.TENGSL.prepare(
+    `SELECT COUNT(*) total, SUM(CASE WHEN fj.sala > ? THEN 1 ELSE 0 END) higher
+     FROM felog f JOIN (SELECT kt, sala, MAX(ar) ar FROM fjarhagur WHERE sala IS NOT NULL GROUP BY kt) fj ON fj.kt=f.kt
+     WHERE ${where}`
+  ).bind(sala == null ? -1 : sala, ...binds).first().catch(() => null);
+  const total = (cnt && cnt.total != null) ? cnt.total : null;
+  const rank = (sala != null && cnt && cnt.higher != null) ? cnt.higher + 1 : null;
+  return { slug: sec.slug, label: sec.label, rank, total, sala };
+}
 async function greinRankHandler(request, env, ctx) {
   const url = new URL(request.url);
   const kt = (url.searchParams.get('kt') || '').replace(/\D/g, '');
@@ -3148,31 +3174,8 @@ async function greinRankHandler(request, env, ctx) {
   const cacheKey = new Request('https://cache.karp.internal/api/grein-rank?kt=' + kt);
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
-  // grein félagsins úr bökuðum viðmiðum
-  const felag = await env.TENGSL.prepare('SELECT isat_primary FROM felog WHERE kt=?').bind(kt).first().catch(() => null);
-  const sk = await augGet(env, 'sector_kpi.json').catch(() => null);
-  const sec = (felag && felag.isat_primary && sk && sk.map) ? sectorForIsat(sectorsFromMap(sk.map), felag.isat_primary) : null;
-  if (!sec) return _ajson({ ok: true, kt, slug: null, label: null, rank: null, total: null, sala: null });
-  // greinar-sía (eins og atvinnugreinHandler): mis-löng forskeyti + útilokun, kóðar bundnir (?), aðeins c.length í streng
-  const binds = [];
-  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
-  let where = '(' + isatClause + ')';
-  if (sec.excl && sec.excl.length) {
-    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
-    where += ' AND NOT (' + exClause + ')';
-  }
-  // efnis-félagsins velta (nýjasta ár); getur verið null → rank verður null
-  const me = await env.TENGSL.prepare('SELECT sala FROM fjarhagur WHERE kt=? AND sala IS NOT NULL ORDER BY ar DESC LIMIT 1').bind(kt).first().catch(() => null);
-  const sala = (me && me.sala != null) ? me.sala : null;
-  // talning yfir grein — nýjasta ár PER kt (dedup, eins og roadsSectorsHandler; annars tvítelur fjölár)
-  const cnt = await env.TENGSL.prepare(
-    `SELECT COUNT(*) total, SUM(CASE WHEN fj.sala > ? THEN 1 ELSE 0 END) higher
-     FROM felog f JOIN (SELECT kt, sala, MAX(ar) ar FROM fjarhagur WHERE sala IS NOT NULL GROUP BY kt) fj ON fj.kt=f.kt
-     WHERE ${where}`
-  ).bind(sala == null ? -1 : sala, ...binds).first().catch(() => null);
-  const total = (cnt && cnt.total != null) ? cnt.total : null;
-  const rank = (sala != null && cnt && cnt.higher != null) ? cnt.higher + 1 : null;
-  const payload = JSON.stringify({ ok: true, kt, slug: sec.slug, label: sec.label, rank, total, sala });
+  const r = await computeGreinRank(env, kt);
+  const payload = JSON.stringify({ ok: true, kt, slug: r.slug, label: r.label, rank: r.rank, total: r.total, sala: r.sala });
   const resp = new Response(payload, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=300' } });
   ctx.waitUntil(cache.put(cacheKey, resp.clone()));
   return resp;
@@ -4054,6 +4057,21 @@ async function digestShared(env) {
   // Byggingarleyfi RVK — nýleg mál (7 dagar) fyrir fastvakt-pörun; a/pn samnefni svo byggMatch+li virki.
   const _bygg = await _dget(env, '/gogn/byggingarleyfi_vakt.json');
   sh.bygg7 = (((_bygg && _bygg.recent) || []).filter((x) => x && String(x.date || '').slice(0, 10) >= wkDate).map((x) => ({ ...x, a: x.addr, pn: x.postnr })));
+  // Greina-vöktun: röð-hreyfing vöktaðra félaga (firmavakt) í grein sinni (grein_rank_last viku-díff).
+  sh.rankMoves = {};
+  await env.TENGSL.prepare('CREATE TABLE IF NOT EXISTS grein_rank_last (kt TEXT PRIMARY KEY, slug TEXT, label TEXT, rank INTEGER, total INTEGER, sala INTEGER, ts INTEGER)').run().catch(() => {});
+  const _watchKts = new Set();
+  for (const row of (((await env.TENGSL.prepare("SELECT v FROM user_prefs WHERE k='firmavakt'").all().catch(() => ({ results: [] }))).results) || [])) {
+    try { const fv = JSON.parse(row.v); if (fv && Array.isArray(fv.felog)) for (const co of fv.felog) { if (co && co.kt) _watchKts.add(String(co.kt).replace(/\D/g, '')); } } catch (e) {}
+  }
+  for (const kt of _watchKts) {
+    const cur = await computeGreinRank(env, kt);
+    if (cur.rank == null) continue;
+    const prev = await env.TENGSL.prepare('SELECT rank, total FROM grein_rank_last WHERE kt=?').bind(kt).first().catch(() => null);
+    const mv = rankMovement(prev, cur);
+    if (mv) sh.rankMoves[kt] = { ...mv, slug: cur.slug, label: cur.label, total: cur.total };
+    await env.TENGSL.prepare('INSERT INTO grein_rank_last (kt,slug,label,rank,total,sala,ts) VALUES (?,?,?,?,?,?,?) ON CONFLICT(kt) DO UPDATE SET slug=excluded.slug,label=excluded.label,rank=excluded.rank,total=excluded.total,sala=excluded.sala,ts=excluded.ts').bind(kt, cur.slug, cur.label, cur.rank, cur.total, cur.sala, now).run().catch(() => {});
+  }
   return sh;
 }
 function _newsHits(news, word, limit) {
@@ -4129,6 +4147,18 @@ function digestBuild(name, prefs, sh) {
       n++; if (n <= 8) sec += li((x.a || x.addr || '') + (x.desc ? ' — ' + String(x.desc).slice(0, 70) : ''), (dIS(x.date) + (x.hverfi ? ' · ' + x.hverfi : '') + (x.decisionCode ? ' · ' + x.decisionCode : '')).trim(), 'https://karp.is/byggingarvakt/');
     }
     if (n) { rows += H('🏗️', 'Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/byggingarvakt/'); personal = true; }
+  }
+  // ── 🏭 Röð í atvinnugrein — vöktað félag færðist til (firmavakt → grein_rank_last díff) ──
+  const fmvR = prefs.firmavakt;
+  if (fmvR && fmvR.on && Array.isArray(fmvR.felog) && fmvR.felog.length && sh.rankMoves && Object.keys(sh.rankMoves).length) {
+    let sec = '';
+    for (const co of fmvR.felog) {
+      if (!co || !co.kt) continue;
+      const mv = sh.rankMoves[String(co.kt).replace(/\D/g, '')];
+      if (!mv) continue;
+      sec += li('🏭 ' + (co.nafn || co.kt) + ' — ' + mv.badge, 'færðist úr #' + mv.fromRank + ' í #' + mv.toRank + ' af ' + mv.total + ' í ' + (mv.label || 'greininni'), 'https://karp.is/atvinnugreinar/' + (mv.slug ? mv.slug + '/' : ''));
+    }
+    if (sec) { rows += H('🏭', 'Röð í atvinnugrein breyttist') + sec; personal = true; }
   }
   // ── 🏛️ Lobbývaktin þín (sameinuð efnisvakt): fréttir (öllum) + reglur (Fyrirtæki+, reiknað+gátað í digestRun) ──
   const efniOrd = [...new Set([
