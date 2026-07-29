@@ -134,6 +134,14 @@ const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykj
     .foot b { color: var(--muted); }
   </style>
 
+  <style is:global>
+    /* runtime-innerHTML → global (Astro-gildran): .bv-vakta byggt í card()-JS, aldrei í static template */
+    main[data-pg="byggingarvakt"] .bv-vakta { display: block; width: 100%; margin-top: 8px; font: inherit; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(246,177,59,.5); background: none; color: #f6b13b; cursor: pointer; text-align: center; }
+    main[data-pg="byggingarvakt"] .bv-vakta:hover { background: rgba(246,177,59,.1); }
+    main[data-pg="byggingarvakt"] .bv-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
+    main[data-pg="byggingarvakt"] .bv-vakta:disabled { opacity: .6; cursor: default; }
+  </style>
+
   <script define:vars={{ distRows, LABELS, DCOL }}>
     function initBygg() {
       if (!document.querySelector('main[data-pg="byggingarvakt"]')) return;
@@ -167,11 +175,15 @@ const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykj
       const card = (e) => {
         const u = fundUrl(e.fund);
         const sz = e.sizeM2 ? ' · ' + String(e.sizeM2).replace('.', ',') + ' m²' : '';
+        const pn = e.postnr != null ? String(e.postnr) : '';
         return '<div class="bv-card"><div class="bv-top">' + badge(e)
           + '<a class="bv-a" href="/fasteignavakt/?q=' + encodeURIComponent(e.addr) + '" title="Verðmat og byggingarsaga">' + esc(e.addr) + '</a></div>'
           + '<div class="bv-desc">' + esc(e.desc || 'Byggingarleyfi') + '</div>'
           + '<div class="bv-meta"><span>' + esc([e.hverfi, e.date].filter(Boolean).join(' · ')) + sz + '</span>'
-          + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div></div>';
+          + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div>'
+          // 🔔 Vakta þetta svæði → fastvakt (q=póstnúmer). Aðeins ef postnr er þekkt.
+          + (pn ? '<button type="button" class="bv-vakta" data-pn="' + esc(pn) + '" data-addr="' + esc(e.addr || '') + '">🔔 Vakta þetta svæði</button>' : '')
+          + '</div>';
       };
       const apply = () => {
         const q = (qEl.value || '').toLowerCase().trim();
@@ -234,5 +246,48 @@ const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykj
       moreEl.addEventListener('click', more);
     }
     document.addEventListener('astro:page-load', initBygg);
+  </script>
+
+  <script>
+    import { karpGet, karpPost, loginHref } from '../lib/auth.js';
+    // 🔔 Vakta þetta svæði → fastvakt (q=póstnúmer x.postnr, virkar strax með digest-byggMatch).
+    // Sér skriftu-blokk (ekki define:vars) því hún þarf import — spannar #bv-list með event-delegation.
+    // ADD-ONLY (speglar fasteignavakt.astro fv-add-mynstrið: bætir við ef ekki þegar til, cap 6) —
+    // ekki full toggle eins og firmavakt (engin fjarlægingar-leið gegnum þennan hnapp).
+    // Login-aware: karpGet('/fastvakt') skilar ekki gildu formi (engin lota) → sendir á loginHref().
+    function initBvVakta() {
+      if (!document.querySelector('main[data-pg="byggingarvakt"]')) return;
+      const list = document.getElementById('bv-list');
+      if (!list || list.dataset.vaktaWired) return;
+      list.dataset.vaktaWired = '1';
+      list.addEventListener('click', async (e) => {
+        const b = e.target.closest('.bv-vakta');
+        if (!b || b.disabled) return;
+        const q = b.dataset.pn || '';
+        if (!q) return;
+        b.disabled = true;
+        const t0 = b.textContent;
+        try {
+          const cur = await karpGet('/fastvakt');
+          if (!cur || !Array.isArray(cur.vaktir)) { location.href = loginHref(); return; }
+          const has = cur.vaktir.some((v) => v && v.q === q);
+          if (has) { b.classList.add('on'); b.textContent = '✓ Á vaktinni'; return; }
+          if (cur.vaktir.length >= 6) {
+            b.textContent = 'Hámark 6 vaktir náð';
+            setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+            return;
+          }
+          const vaktir = cur.vaktir.concat([{ q }]).slice(0, 6);
+          const r = await karpPost('/fastvakt', { on: true, vaktir });
+          if (!r || r.ok !== true) throw new Error('save');
+          b.classList.add('on');
+          b.textContent = '✓ Á vaktinni';
+        } catch (err) {
+          b.textContent = '⚠ Villa — reyndu aftur';
+          setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+        }
+      });
+    }
+    document.addEventListener('astro:page-load', initBvVakta);
   </script>
 </Layout>

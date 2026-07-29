@@ -135,6 +135,14 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
     .foot b { color: var(--muted); }
   </style>
 
+  <style is:global>
+    /* runtime-innerHTML → global (Astro-gildran): .ef-vakta byggt í card()-JS, aldrei í static template */
+    main[data-pg="eftirlit"] .ef-vakta { display: block; width: 100%; margin-top: 7px; font: inherit; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(246,177,59,.5); background: none; color: #f6b13b; cursor: pointer; text-align: center; }
+    main[data-pg="eftirlit"] .ef-vakta:hover { background: rgba(246,177,59,.1); }
+    main[data-pg="eftirlit"] .ef-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
+    main[data-pg="eftirlit"] .ef-vakta:disabled { opacity: .6; cursor: default; }
+  </style>
+
   <script define:vars={{ dist, RLAB }}>
     function initEft() {
       if (!document.querySelector('main[data-pg="eftirlit"]')) return;
@@ -167,7 +175,10 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
         + '<div class="ef-meta">' + esc([s.street, s.postnr, s.city].filter(Boolean).join(' · ')) + '</div>'
         + '<div class="ef-lab">' + esc(s.ratingLabel || '') + '</div></div>'
         + '<div class="ef-r"><div class="ef-d">' + esc(s.lastInspection || '') + '</div>'
-        + (s.reportUrl ? '<a class="ef-rep" href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : '') + '</div></div>';
+        + (s.reportUrl ? '<a class="ef-rep" href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : '')
+        // 🔔 Vakta félagið → firmavakt (LOTA: eftirlit/bygg-vaktir). Aðeins ef kt er þekkt (nauðsynlegt fyrir firmavakt).
+        + (s.kt ? '<button type="button" class="ef-vakta" data-kt="' + esc(s.kt) + '" data-nafn="' + esc(s.name || '') + '">🔔 Vakta félagið</button>' : '')
+        + '</div></div>';
       const apply = () => {
         const q = (qEl.value || '').toLowerCase().trim();
         filtered = DATA.filter((s) => (curR === 'all' || s.rating === +curR)
@@ -228,5 +239,41 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
       load();
     }
     document.addEventListener('astro:page-load', initEft);
+  </script>
+
+  <script>
+    import { karpGet, karpPost, loginHref } from '../lib/auth.js';
+    // 🔔 Vakta félagið → firmavakt (LOTA: eftirlit/bygg-vaktir). Sér skriftu-blokk (ekki define:vars) því
+    // hún þarf import — spannar #ef-list með event-delegation (lifir í gegnum leit/síu-endurteikningu).
+    // Login-aware: karpGet('/firmavakt') skilar ekki gildu formi (engin lota) → sendir á loginHref().
+    function initEfVakta() {
+      if (!document.querySelector('main[data-pg="eftirlit"]')) return;
+      const list = document.getElementById('ef-list');
+      if (!list || list.dataset.vaktaWired) return;
+      list.dataset.vaktaWired = '1';
+      list.addEventListener('click', async (e) => {
+        const b = e.target.closest('.ef-vakta');
+        if (!b || b.disabled) return;
+        const kt = b.dataset.kt || '', nafn = b.dataset.nafn || '';
+        if (!kt) return;
+        b.disabled = true;
+        const t0 = b.textContent;
+        try {
+          const cur = await karpGet('/firmavakt');
+          if (!cur || !Array.isArray(cur.felog)) { location.href = loginHref(); return; }
+          const has = cur.felog.some((x) => x && x.kt === kt);
+          const felog = has ? cur.felog.filter((x) => !(x && x.kt === kt)) : cur.felog.concat([{ kt, nafn }]);
+          const r = await karpPost('/firmavakt', { on: true, felog });
+          if (!r || r.ok !== true) throw new Error('save');
+          b.classList.toggle('on', !has);
+          b.textContent = !has ? '✓ Á vaktinni · 🔕 hætta' : '🔔 Vakta félagið';
+        } catch (err) {
+          b.textContent = '⚠ Villa — reyndu aftur';
+          setTimeout(() => { b.textContent = t0; }, 2400);
+        }
+        b.disabled = false;
+      });
+    }
+    document.addEventListener('astro:page-load', initEfVakta);
   </script>
 </Layout>
