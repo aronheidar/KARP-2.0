@@ -4,7 +4,7 @@ import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
-import { matchItem, matchKeyword, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy)
+import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -2805,17 +2805,26 @@ async function lobbyvaktHandler(request, env, ctx) {
   const now = Math.floor(Date.now() / 1000);
   if (!uid) return _ajson({ ok: false, error: 'login' });
   const u = await env.TENGSL.prepare('SELECT id,email,is_admin,free_access,tier,tier_until,parent_account_id FROM users WHERE id=?').bind(uid).first().catch(() => null);
-  const owner = await accountOwner(env, u);   // meðlimur erfir þrep eiganda → gátt er account-based
-  if (!_lobbyGate(owner, now)) return _ajson({ ok: false, error: 'tier' });
-  // greina-val er persónuleg vakt-stilling (per uid, EKKI accountId) — hver meðlimur velur sínar greinar.
+  const owner = await accountOwner(env, u);   // reglu-lag er account-based (meðlimur erfir þrep eiganda)
+  const entitled = _lobbyGate(owner, now);
+  // Sameinuð efnisvakt: lobbyvakt_ord + gömlu leitvakt.ord (union) → fréttir (frí) OG þingmál/samráð (Fyrirtæki+).
   const greinar = await _prefGet(env, uid, 'lobbyvakt_greinar', []);
-  const ord = await _prefGet(env, uid, 'lobbyvakt_ord', []);
+  const lobbyOrd = await _prefGet(env, uid, 'lobbyvakt_ord', []);
+  const lv = await _prefGet(env, uid, 'leitvakt', {});
   const gArr = Array.isArray(greinar) ? greinar : [];
-  const oArr = Array.isArray(ord) ? ord : [];
-  if (!gArr.length && !oArr.length) return _ajson({ ok: true, greinar: [], ord: [], items: [], needsSetup: true });
-  const data = await augGet(env, 'lobbyvakt.json').catch(() => null);
-  const items = feedFor((data && data.items) || [], { greinar: gArr, ord: oArr });
-  return _ajson({ ok: true, greinar: gArr, ord: oArr, items, updated: (data && data.updated) || null });
+  const oArr = [...new Set([...(Array.isArray(lobbyOrd) ? lobbyOrd : []), ...((lv && Array.isArray(lv.ord)) ? lv.ord : [])].map((w) => String(w == null ? '' : w).toLowerCase().trim()).filter(Boolean))];
+  if (!gArr.length && !oArr.length) return _ajson({ ok: true, entitled, greinar: [], ord: [], frettir: [], reglur: [], needsSetup: true });
+  // Fréttir (frí): leitarorð → nýlegar fréttir úr D1.
+  const news = await newsSince(env, 30, 500).catch(() => []);
+  const frettir = news.filter((n) => matchNews(n, oArr)).slice(0, 30).map((n) => ({ title: n.title, url: n.url, source: n.source, date: n.date }));
+  // Reglur (Fyrirtæki+): þingmál/samráð eftir greinum + orðum.
+  let reglur = [], updated = null;
+  if (entitled) {
+    const data = await augGet(env, 'lobbyvakt.json').catch(() => null);
+    reglur = feedFor((data && data.items) || [], { greinar: gArr, ord: oArr });
+    updated = (data && data.updated) || null;
+  }
+  return _ajson({ ok: true, entitled, greinar: gArr, ord: oArr, frettir, reglur, updated, needsSetup: false });
 }
 
 // Loftför (Loftfaraskrá Samgöngustofu um OPNU island.is-gáttina) — kt → loftför sem félagið á/rekur.
@@ -4056,12 +4065,7 @@ function digestBuild(name, prefs, sh) {
     for (const line of sh.tolur) { const p = line.split(':'); const head = p.shift(); chips += '<span style="display:inline-block;background:#141c2b;border:1px solid #263349;border-radius:9px;padding:6px 10px;margin:3px 4px 3px 0;color:#cdd6e6;font-size:12px"><b style="color:#f6b13b">' + _esc(head.trim()) + '</b> ' + _esc(p.join(':').trim()) + '</span>'; }
     rows += '<tr><td style="padding:6px 20px 10px">' + chips + '</td></tr>';
   }
-  const ord = (prefs.leitvakt && Array.isArray(prefs.leitvakt.ord)) ? prefs.leitvakt.ord : [];
-  if (ord.length) {
-    let sec = '';
-    for (const w of ord.slice(0, 12)) { const hit = _newsHits(sh.news, w, 3); if (!hit.n) continue; sec += li('„' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), r.source || '', _u(r.url)); }
-    if (sec) { rows += H('🔎', 'Leitarorðin þín í fréttum vikunnar') + sec; personal = true; }
-  }
+  // (Leitarorð → fréttir færð í sameinaða „🏛️ Lobbývaktin þín"-kaflann að neðan — Lobbývakt 2.0.)
   const fl = Array.isArray(prefs.follows) ? prefs.follows : [];
   if (fl.length) {
     let sec = '', done = 0;
@@ -4088,11 +4092,16 @@ function digestBuild(name, prefs, sh) {
     for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
     if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
   }
-  // ── Lobbývakt: „Reglur í pípunni" — ný þingmál/samráðsmál sem snerta valdar greinar (reiknað+capped í digestRun) ──
-  const lobbyNew = Array.isArray(prefs._lobbyNew) ? prefs._lobbyNew : [];
-  if (lobbyNew.length) {
-    const stigCol = (s) => ({ 'Mikil': '#ff6b6b', 'Miðlungs': '#f6b13b', 'Lítil': '#7fb2ff' }[s] || '#f6b13b');
+  // ── 🏛️ Lobbývaktin þín (sameinuð efnisvakt): fréttir (öllum) + reglur (Fyrirtæki+, reiknað+gátað í digestRun) ──
+  const efniOrd = [...new Set([
+    ...((prefs.leitvakt && Array.isArray(prefs.leitvakt.ord)) ? prefs.leitvakt.ord : []),
+    ...(Array.isArray(prefs.lobbyvakt_ord) ? prefs.lobbyvakt_ord : []),
+  ].map((w) => String(w == null ? '' : w).toLowerCase().trim()).filter(Boolean))];
+  const lobbyNew = Array.isArray(prefs._lobbyNew) ? prefs._lobbyNew : [];   // aðeins Fyrirtæki+ (digestRun gátar)
+  {
     let sec = '';
+    for (const w of efniOrd.slice(0, 12)) { const hit = _newsHits(sh.news, w, 2); if (!hit.n) continue; sec += li('🔎 „' + w + '" — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir') + ' í vikunni', '', 'https://karp.is/frettir/'); for (const r of hit.rows) sec += li('· ' + r.title.slice(0, 90), r.source || '', _u(r.url)); }
+    const stigCol = (s) => ({ 'Mikil': '#ff6b6b', 'Miðlungs': '#f6b13b', 'Lítil': '#7fb2ff' }[s] || '#f6b13b');
     for (const it of lobbyNew) {
       const badge = '<span style="display:inline-block;background:#141c2b;border:1px solid ' + stigCol(it.stig) + ';border-radius:7px;padding:1px 7px;margin-right:6px;color:' + stigCol(it.stig) + ';font-size:11px;font-weight:700">' + _esc(it.stig || 'Miðlungs') + '</span>';
       const bits = [];
@@ -4101,9 +4110,11 @@ function digestBuild(name, prefs, sh) {
       const title = '<a href="' + _esc(_u(it.hlekkur)) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + (it.kind === 'samrad' ? '💬 ' : '📜 ') + _esc(it.titill) + '</a>';
       sec += '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + title + '<br>' + badge + (bits.length ? '<span style="color:#8a93a8;font-size:12px">' + bits.join(' · ') + '</span>' : '') + (it.brief ? '<div style="color:#b6c0d4;font-size:12.5px;margin-top:5px;line-height:1.5">' + _esc(it.brief) + '</div>' : '') + '</td></tr>';
     }
-    rows += H('🏛️', 'Reglur í pípunni') + sec;
-    rows += '<tr><td style="padding:0 20px 12px;color:#5c6678;font-size:11px;line-height:1.5">⚠ Sjálfvirk túlkun (gervigreind), ekki lögfræðiráðgjöf.</td></tr>';
-    personal = true;
+    if (sec) {
+      rows += H('🏛️', 'Lobbývaktin þín') + sec;
+      if (lobbyNew.length) rows += '<tr><td style="padding:0 20px 12px;color:#5c6678;font-size:11px;line-height:1.5">⚠ Sjálfvirk túlkun (gervigreind) á reglum, ekki lögfræðiráðgjöf.</td></tr>';
+      personal = true;
+    }
   }
   if (!personal && !sh.tolur.length) return '';
   if (!personal) rows += '<tr><td style="padding:14px 20px;color:#8a93a8;font-size:13px;line-height:1.6">Engin persónuleg treff í vikunni — settu upp <a href="https://karp.is/vaktir/" style="color:#f6b13b">leitarorða-, útboðs- eða fasteignavakt</a> eða fylgstu með fyrirtækjum og þingmönnum til að fá vikuna þína hér.</td></tr>';
@@ -4112,9 +4123,10 @@ function digestBuild(name, prefs, sh) {
 }
 async function digestRun(env) {
   if (!env.TENGSL) return { sent: 0, reason: 'no-d1' };
-  const rows = await env.TENGSL.prepare("SELECT DISTINCT p.user_id AS uid, u.email, u.name FROM user_prefs p JOIN users u ON u.id=p.user_id WHERE p.k='digest' AND p.v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }));
+  const rows = await env.TENGSL.prepare("SELECT DISTINCT p.user_id AS uid, u.email, u.name, u.is_admin, u.free_access, u.tier, u.tier_until, u.parent_account_id FROM user_prefs p JOIN users u ON u.id=p.user_id WHERE p.k='digest' AND p.v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }));
   const users = rows.results || [];
   if (!users.length) return { sent: 0, users: 0 };
+  const now = Math.floor(Date.now() / 1000);
   const sh = await digestShared(env);
   let sent = 0, built = 0, gmail = null;
   for (const u of users) {
@@ -4124,9 +4136,10 @@ async function digestRun(env) {
     for (const row of (pres.results || [])) { try { pr[row.k] = JSON.parse(row.v); } catch (e) {} }
     // Lobbývakt: reikna ný mál (sinceTs=0 + seen — dags er í MS en digest-tíð í sek; sjá lobbyvakt.mjs newSince); slice svo fyrsta digest flæði ekki yfir. Leitarorð (ord) ofan á greinar.
     let lobbyNew = [];
+    const entitled = _lobbyGate(await accountOwner(env, { id: u.uid, is_admin: u.is_admin, free_access: u.free_access, tier: u.tier, tier_until: u.tier_until, parent_account_id: u.parent_account_id }), now);
     const lgrein = Array.isArray(pr.lobbyvakt_greinar) ? pr.lobbyvakt_greinar : [];
     const lord = Array.isArray(pr.lobbyvakt_ord) ? pr.lobbyvakt_ord : [];
-    if (sh.lobbyvakt && (lgrein.length || lord.length)) {
+    if (entitled && sh.lobbyvakt && (lgrein.length || lord.length)) {
       const lseen = Array.isArray(pr.lobbyvakt_seen) ? pr.lobbyvakt_seen : [];
       lobbyNew = newSince((sh.lobbyvakt.items) || [], 0, lseen).filter((it) => matchItem(it, lgrein) || matchKeyword(it, lord)).slice(0, 12);
       pr._lobbyNew = lobbyNew;
