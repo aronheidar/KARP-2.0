@@ -37,3 +37,14 @@ export function rankMovement(prev, cur) {
   else badge = (dir === 'up' ? '↑ ' : '↓ ') + delta + ' sæti';
   return { dir, kind: milestone ? 'milestone' : 'jump', badge, fromRank: p, toRank: c };
 }
+
+// Áttavís einkunna-breyting (heilbrigðiseftirlit 0-5). prev/cur = tölur eða null.
+// Skilar { dir:'up'|'down', from, to, badge } eða null (óbreytt / engin saga / ógilt).
+export function ratingMovement(prev, cur) {
+  const p = Number.isFinite(prev) ? prev : null;
+  const c = Number.isFinite(cur) ? cur : null;
+  if (p == null || c == null || p === c) return null;
+  const dir = c > p ? 'up' : 'down';
+  const badge = dir === 'down' ? ('↓ féll úr ' + p + ' í ' + c) : ('↑ hækkaði úr ' + p + ' í ' + c);
+  return { dir, from: p, to: c, badge };
+}

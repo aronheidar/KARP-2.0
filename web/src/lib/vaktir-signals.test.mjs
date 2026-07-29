@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { eftNylegt, byggMatch, rankMovement } from './vaktir-signals.mjs';
+import { eftNylegt, byggMatch, rankMovement, ratingMovement } from './vaktir-signals.mjs';
 
 test('eftNylegt: nýleg dagsetning (>=wk) → true', () => { assert.equal(eftNylegt('2026-07-25', '2026-07-22'), true); });
 test('eftNylegt: full ISO slice → true', () => { assert.equal(eftNylegt('2026-07-25T10:00:00Z', '2026-07-22'), true); });
@@ -18,3 +18,10 @@ test('rankMovement: út úr topp-5 (4→7) → milestone down', () => { assert.e
 test('rankMovement: stökk niður (40→36) → jump up 4', () => { const m = rankMovement({ rank: 40 }, { rank: 36 }); assert.equal(m.kind, 'jump'); assert.equal(m.badge, '↑ 4 sæti'); });
 test('rankMovement: smá-rek (40→41) → null', () => { assert.equal(rankMovement({ rank: 40 }, { rank: 41 }), null); });
 test('rankMovement: óbreytt/null → null', () => { assert.equal(rankMovement({ rank: 3 }, { rank: 3 }), null); assert.equal(rankMovement(null, { rank: 3 }), null); assert.equal(rankMovement({ rank: 3 }, { rank: null }), null); });
+
+test('ratingMovement: fall (4→2) → down + badge', () => { const m = ratingMovement(4, 2); assert.equal(m.dir, 'down'); assert.equal(m.badge, '↓ féll úr 4 í 2'); assert.equal(m.from, 4); assert.equal(m.to, 2); });
+test('ratingMovement: hækkun (2→4) → up + badge', () => { const m = ratingMovement(2, 4); assert.equal(m.dir, 'up'); assert.equal(m.badge, '↑ hækkaði úr 2 í 4'); });
+test('ratingMovement: fall í 0 (1→0) telst fall', () => { assert.equal(ratingMovement(1, 0).dir, 'down'); });
+test('ratingMovement: óbreytt (3→3) → null', () => { assert.equal(ratingMovement(3, 3), null); });
+test('ratingMovement: engin saga (null→3) → null', () => { assert.equal(ratingMovement(null, 3), null); });
+test('ratingMovement: ógilt cur → null', () => { assert.equal(ratingMovement(3, null), null); assert.equal(ratingMovement(3, undefined), null); });
