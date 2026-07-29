@@ -18,7 +18,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       <section class="stj-cards" id="stj-cards"></section>
 
       <section class="stj-block" id="stj-heilsa-wrap" hidden>
-        <h2>🩺 Gagnaheilsa <span id="stj-heilsa-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
+        <h2 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">🩺 Gagnaheilsa <span id="stj-heilsa-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span><button type="button" id="stj-refresh" class="stj-refresh" style="margin-left:auto">🔄 Sækja fersk gögn</button></h2>
         <div id="stj-heilsa-cov" class="stj-heilsa-cov"></div>
         <div id="stj-heilsa" class="stj-heilsa"></div>
       </section>
@@ -134,19 +134,22 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-h-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
     .stj-h-dot.ok { background: #46e08a; } .stj-h-dot.warn { background: #f6b13b; } .stj-h-dot.bad { background: #ef6a6a; } .stj-h-dot.unk { background: var(--faint); }
     .stj-h-row .l { color: var(--ink); flex: 1; }
-    .stj-h-row .a { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+    .stj-h-row .a { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; margin-left: auto; padding-left: 14px; white-space: nowrap; }
+    .stj-refresh { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+    .stj-refresh:hover { border-color: var(--gold); color: var(--gold); }
+    .stj-refresh:disabled { opacity: .6; cursor: default; }
     .stj-h-row.bad .a { color: #ef6a6a; }
     .stj-heilsa-cov { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
     .stj-heilsa-cov b { color: var(--gold); }
-    .stj-fn-row { display: flex; align-items: center; gap: 10px; margin: 7px 0; font-size: 13px; }
+    .stj-fn-row { display: flex; align-items: center; gap: 14px; margin: 7px 0; font-size: 13px; }
     .stj-fn-l { width: 84px; color: var(--muted); flex: none; }
     .stj-fn-bar { flex: 1; height: 14px; background: var(--panel); border-radius: 7px; overflow: hidden; }
     .stj-fn-bar i { display: block; height: 100%; background: var(--gold); border-radius: 7px; }
-    .stj-fn-n { width: 78px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; }
+    .stj-fn-n { width: 86px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; padding-left: 10px; }
     .stj-fn-n small { color: var(--faint); }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
-    .stj-kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
+    .stj-kv-row { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
     .stj-kv-row b { color: var(--gold); font-variant-numeric: tabular-nums; }
     .stj-kv-empty { color: var(--faint); font-size: 13px; }
     .stj-note { color: var(--faint); font-size: 12.5px; line-height: 1.6; margin-top: 8px; }
@@ -220,6 +223,17 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         if (cov.eigendur) parts.push('Eigendaskýrslur byggðar: <b>' + cov.eigendur.total + '</b>');
         if (H.builtAt) { const bm = Math.round((nowMs - Date.parse(H.builtAt)) / 60000); parts.push('<span style="color:var(--faint)">mælt fyrir ' + (bm < 60 ? Math.max(0, bm) + ' mín' : Math.round(bm / 60) + ' klst') + '</span>'); }
         $('stj-heilsa-cov').innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
+      })();
+      // 🔄 „Sækja fersk gögn" — ræsir refresh-data pípuna (worker → GitHub repository_dispatch)
+      (function () {
+        const btn = $('stj-refresh'); if (!btn || btn.dataset.wired) return; btn.dataset.wired = '1';
+        btn.addEventListener('click', async () => {
+          if (!confirm('Ræsa gagna-uppfærslu núna? Tekur ~15–30 mín; veiturnar ferskast jafnóðum.')) return;
+          const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Ræsi…';
+          const r = await fetch('/api/admin/refresh', { method: 'POST', credentials: 'include' }).then((x) => x.json()).catch(() => null);
+          if (r && r.ok) { btn.textContent = '✓ Keyrsla hafin'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 10000); }
+          else { btn.textContent = (r && r.error === 'unconfigured') ? 'Vantar GitHub-token' : 'Villa — reyndu aftur'; setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000); }
+        });
       })();
       // 📈 Vöxtur — MRR-þróun (sparkline; safnast daglega) + umbreytingar-trekt
       (function () {

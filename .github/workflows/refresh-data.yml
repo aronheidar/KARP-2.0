@@ -18,6 +18,8 @@ on:
   schedule:
     - cron: '0 6 * * *'      # daglega kl. 06:00 UTC
   workflow_dispatch: {}       # + handvirkt í Actions-flipanum
+  repository_dispatch:        # + „🔄 Sækja fersk gögn"-hnappur í /stjorn/ (worker → event_type: refresh)
+    types: [refresh]
 
 permissions:
   contents: write             # svo botninn geti committað fersk gögn
@@ -155,9 +157,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node skriptur/build_lobbyvakt.mjs || true   # frumvorp.json (þingmál) + samráðsgátt → lobbyvakt.json + cache (Lobbývakt v1)
 
-      - name: Kvótavaktin — aflamark flotans per útgerð (VIKULEGA á mánudögum; þungt flotasveip ~2500 skip á island.is, ~10-15 mín)
+      - name: Kvótavaktin — aflamark flotans per útgerð (VIKULEGA á mánudögum; ELLA þvingað við handræsingu úr stjórnborði)
+        env:
+          FORCE_WEEKLY: ${{ github.event_name != 'schedule' }}   # handræst (workflow_dispatch/repository_dispatch) → keyra óháð vikudegi
         run: |
-          if [ "$(date -u +%u)" = "1" ]; then node skriptur/build_kvoti.mjs || true; fi
+          if [ "$(date -u +%u)" = "1" ] || [ "$FORCE_WEEKLY" = "true" ]; then node skriptur/build_kvoti.mjs || true; fi
 
       - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)
         run: |

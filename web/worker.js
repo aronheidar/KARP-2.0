@@ -4705,6 +4705,23 @@ async function adminUserHandler(request, env, ctx) {
   }
   return _ajson({ ok: false, error: 'action' });
 }
+// Stjórnborð: ræsir daglegu gagna-uppfærslu-pípuna (refresh-data.yml) á EFTIRSPURN — repository_dispatch
+// (sama mynstur og on-demand ársreikningar). event_name != schedule → þvingar líka vikulegu veiturnar (kvóti).
+async function adminRefreshHandler(request, env, ctx) {
+  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const byUid = await _isAdmin(env, request);
+  if (!byUid) return _ajson({ ok: false, error: 'admin' });
+  if (!env.GITHUB_DISPATCH_TOKEN) return _ajson({ ok: false, error: 'unconfigured' });
+  try {
+    const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'refresh' }),
+    });
+    if (r.status === 204) { ctx.waitUntil(_audit(env, byUid, null, 'refresh-data', 'handræst')); return _ajson({ ok: true }); }
+    return _ajson({ ok: false, error: 'dispatch', status: r.status });
+  } catch (e) { return _ajson({ ok: false, error: 'net' }); }
+}
 // Póstsending fyrir Node-stjórnborðið gegnum worker Gmail REST (S4 — sameinar á OAuth, ekkert app-lykilorð).
 // Aðgangur: X-Admin-Key EÐA innskráður admin. Body: {to, subject, html|text, replyTo?, inReplyTo?}.
 async function adminSendHandler(request, env) {
@@ -4810,6 +4827,7 @@ export default {
     if (url.pathname === '/api/admin/sync') return adminSyncHandler(request, env);   // stjórnborð S2b: rekstrar-samantekt
     if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user/nemandi)
     if (url.pathname === '/api/admin/user') return adminUserHandler(request, env, ctx);   // stjórnborð: aðgangs-veiting + stuðningur + prufu-flagg per notanda
+    if (url.pathname === '/api/admin/refresh') return adminRefreshHandler(request, env, ctx);   // stjórnborð: ræsa gagna-uppfærslu (refresh-data.yml)
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

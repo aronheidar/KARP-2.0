@@ -34,7 +34,7 @@ const SOURCES = [
   ['styrkir.json', 'Styrkir', WEEKLY],
   ['pep.json', 'PEP-listi', WEEKLY],
   ['kvoti.json', 'Kvótavaktin', WEEKLY],
-  ['birgjar.json', 'Birgjar', WEEKLY],
+  ['birgjar.json', 'Birgjar', MONTHLY],   // Fjársýslan birtir mánaðarlega → `updated` lækkar ekki þótt vikuleg keyrsla sé í lagi
   ['sanctions.json', 'Refsilistar', MONTHLY],
   ['skip_owners.json', 'Skipaskrá / eigendur', MONTHLY],
 ];

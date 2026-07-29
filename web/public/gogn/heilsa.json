@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-07-29T11:39:16.826Z",
+ "builtAt": "2026-07-29T12:14:42.052Z",
  "freshness": [
   {
    "label": "Fréttavélin",
@@ -95,7 +95,7 @@
    "label": "Birgjar",
    "file": "birgjar.json",
    "iso": "2026-07-03",
-   "maxAge": 777600000
+   "maxAge": 3456000000
   },
   {
    "label": "Refsilistar",
