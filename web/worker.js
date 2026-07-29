@@ -4520,7 +4520,7 @@ async function adminOverviewHandler(request, env) {
   const subByUser = {}, repByUser = {};
   for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
   for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id) }));
+  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, tierUntil: u.tier_until || 0, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id) }));
   // Síuð sett fyrir samantektina (án prufu-aðganga) — notendalistinn `uList` er ósíaður.
   const sUsers = users.filter((u) => !testIds.has(u.id));
   const sUList = uList.filter((u) => !u.test);
@@ -4543,6 +4543,19 @@ async function adminOverviewHandler(request, env) {
   // S2b: rekstrar-samantekt Node-stjórnborðsins (samþykktir/tickets/herferðir/ledger) ef ýtt hefur verið.
   const syncRow = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
   let stjorn = null; if (syncRow) { try { stjorn = Object.assign(JSON.parse(syncRow.v), { syncedAt: syncRow.updated }); } catch (e) {} }
+  // ── Endurnýjunarvakt: áskriftir/þrep sem renna út næstu 7/30 daga (án prufu) + brottfall (nýlega útrunnið). ──
+  const soon7 = now + 7 * day, soon30 = now + 30 * day;
+  const expSubList = sSubs.filter((s) => s.until <= soon30).map((s) => ({ kind: 'service', id: s.user_id, what: s.service, until: s.until }));
+  const expTierList = sUList.filter((u) => u.tier && u.tierUntil && u.tierUntil <= soon30).map((u) => ({ kind: 'tier', id: u.id, what: u.tier, until: u.tierUntil }));
+  const _emailById = new Map(sUsers.map((u) => [u.id, u.email]));
+  const expiringList = [...expSubList, ...expTierList].sort((a, b) => a.until - b.until).slice(0, 40).map((x) => ({ kind: x.kind, what: x.what, until: x.until, email: _emailById.get(x.id) || '' }));
+  const expiring = { d7: [...expSubList, ...expTierList].filter((x) => x.until <= soon7).length, d30: expSubList.length + expTierList.length };
+  // Brottfall: nýlega útrunnin áskriftar-ígildi (síðustu 90 daga) → gróft endurnýjunarhlutfall.
+  const _lapsSub = await env.TENGSL.prepare('SELECT COUNT(*) AS c FROM sub_service WHERE until < ? AND until > ?').bind(now, now - 90 * day).first().catch(() => null);
+  const _lapsTier = await env.TENGSL.prepare('SELECT COUNT(*) AS c FROM users WHERE tier IS NOT NULL AND tier_until < ? AND tier_until > ?').bind(now, now - 90 * day).first().catch(() => null);
+  const lapsed90 = ((_lapsSub && _lapsSub.c) || 0) + ((_lapsTier && _lapsTier.c) || 0);
+  const _active = sSubs.length + sUList.filter((u) => u.tier).length;
+  const churn = { lapsed90, renewalRate: (_active + lapsed90) > 0 ? Math.round(_active / (_active + lapsed90) * 100) : null };
   return _ajson({
     stjorn,
     ok: true, now,
@@ -4554,9 +4567,10 @@ async function adminOverviewHandler(request, env) {
       reportsTotal: sReps.length, reportsByType: byReport,
       mrr, reportRevenue: sReps.length * 990,
       watchers: watchRows.filter((r) => !testIds.has(r.user_id)).length, digestSubs: digestRows.filter((r) => !testIds.has(r.user_id)).length,
-      excludedTest: testIds.size,
+      excludedTest: testIds.size, expiring, churn,
     },
     recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
+    expiringList,
   });
 }
 // Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.

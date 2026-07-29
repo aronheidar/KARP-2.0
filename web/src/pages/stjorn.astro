@@ -43,6 +43,11 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       </section>
 
       <section class="stj-block">
+        <h2>⏳ Rennur út — endurnýjunarvakt</h2>
+        <div id="stj-expiring" class="stj-kv"></div>
+      </section>
+
+      <section class="stj-block">
         <h2>🕐 Nýjustu skýrslukaup</h2>
         <div id="stj-recent" class="stj-kv"></div>
       </section>
@@ -154,6 +159,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         card(kr(s.mrr), 'Áætl. mánaðartekjur', s.tierUsers + ' þrep · ' + s.activeSubs + ' þjónustur') +
         card(kr(s.reportRevenue), 'Skýrslutekjur (alls)', s.reportsTotal + ' seldar (990 kr)') +
         card(s.watchers + ' / ' + s.digestSubs, 'Virkir notendur', 'með vakt / vikuyfirlit') +
+        (s.expiring ? card(s.expiring.d30 || 0, 'Rennur út (30d)', (s.expiring.d7 || 0) + ' innan 7 daga' + (s.churn && s.churn.renewalRate != null ? ' · ' + s.churn.renewalRate + '% endurnýjun' : '')) : '') +
         card(s.verified, 'Staðfest netföng', s.admins + ' stjórnendur') +
         (burst && burst.available ? card((burst.week.pageviews || 0).toLocaleString('is-IS'), 'Jaðar-beiðnir (7d)', '⚠ öll umferð m/vélmennum — ekki manntalning') : '');
       // ── notendur: leit + síun + röðun + stjórn-spjald per notanda ──
@@ -248,6 +254,14 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const t = String(r.key || '').split(':')[0];
         return `<div class="stj-kv-row"><span>${esc(REP[t] || t)} <span style="color:var(--faint)">· ${esc(r.email || '—')}</span></span><b style="font-weight:600;color:var(--muted)">${dIS(r.granted)}</b></div>`;
       }).join('') : '<div class="stj-kv-empty">Engin skýrslukaup enn.</div>';
+
+      // ⏳ Endurnýjunarvakt — áskriftir/þrep sem renna út næstu 30 daga (rautt ≤7 daga)
+      const exp = ov.expiringList || [];
+      $('stj-expiring').innerHTML = exp.length ? exp.map((e) => {
+        const days = Math.max(0, Math.round((e.until - ov.now) / 86400));
+        const what = e.kind === 'tier' ? ('Þrep: ' + esc(e.what || '')) : esc(SVC[e.what] || e.what);
+        return `<div class="stj-kv-row"><span>${what} <span style="color:var(--faint)">· ${esc(e.email || '—')}</span></span><b style="font-weight:600;color:${days <= 7 ? '#f6b13b' : 'var(--muted)'}">eftir ${days} d</b></div>`;
+      }).join('') : '<div class="stj-kv-empty">Ekkert rennur út næstu 30 daga. 🎉</div>';
 
       // 🤖 Rekstur stjórnborðsins (synced úr Node-appinu)
       const st = ov.stjorn;
