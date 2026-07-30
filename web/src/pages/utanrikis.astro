@@ -7,6 +7,7 @@ import Layout from '../layouts/Layout.astro';
     <h1 style="font-size:26px;">Efnið er flutt 🚚</h1>
     <p style="color:#cdd6e6;">Þessi síða heitir nú <a href="/nato/" style="color:#f6b13b;">/nato/</a> — þú ert send(ur) þangað sjálfkrafa.</p>
   </main>
-  <script>{ window.location.replace('/nato/'); }</script>
+  <!-- is:inline → tilvísunin keyrir STRAX; annars búntar Astro scriptið (defer) og stubbinn blikkar. -->
+  <script is:inline>{ window.location.replace('/nato/'); }</script>
   <noscript><meta http-equiv="refresh" content={`0;url=/nato/`} /></noscript>
 </Layout>
