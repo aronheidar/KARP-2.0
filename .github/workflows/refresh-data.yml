@@ -189,6 +189,16 @@ jobs:
           node skriptur/backtest_history.mjs   || true   # söguleg bakprófun 2010–2026 → gogn/roads/history.json
           node skriptur/calibrate_roads.mjs    || true   # econometrísk kvörðun (OLS) → gogn/roads/calibration.json
 
+      # Nýjar fréttir fá lexíkon-tón strax við innlestur (worker newsIngest → sent), en AI-matið
+      # (sent_ai) er NULL þar til hér. Skriptan er ENDURRÆSANLEG og tekur aðeins `sent_ai IS NULL`
+      # → daglega skorast bara nýja efnið (~200-500 fréttir, <1 mín). Þakið bindur versta tilfelli.
+      - name: Viðhorfsgreining nýrra frétta (Claude Haiku → news.sent_ai)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node skriptur/build_sentiment_ai.mjs --limit 3000 || true   # sleppir sjálft ef lyklar vantar
+
       - name: Gagnaheilsa (ferskleiki lykil-veita + þekja → heilsa.json fyrir stjórnborð)
         run: node skriptur/build_heilsa.mjs || true   # LES nýuppfærðar veitur → web/public/gogn/heilsa.json (á UNDAN commit svo hún fylgi með)
 
