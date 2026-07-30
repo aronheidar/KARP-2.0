@@ -4462,9 +4462,10 @@ async function newsSearch(env, terms, days, limit) {
   const vars = [...new Set(terms.flatMap(_searchVariants))].slice(0, 60);
   if (!vars.length) return [];
   const clauses = vars.map(() => 'body LIKE ?').join(' OR ');
-  const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body FROM news WHERE ts>=? AND (' + clauses + ') ORDER BY ts DESC LIMIT ?')
+  // sent_ai = AI-mat (Claude Haiku, build_sentiment_ai.mjs); sent = lexíkon-tónn við innlestur.
+  const r = await env.TENGSL.prepare('SELECT title, url, source, ts, body, sent, sent_ai FROM news WHERE ts>=? AND (' + clauses + ') ORDER BY ts DESC LIMIT ?')
     .bind(since, ...vars, Math.min(limit || 500, 4000)).all().catch(() => ({ results: [] }));
-  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title }));
+  return (r.results || []).map((x) => ({ title: x.title, url: x.url, source: x.source, date: new Date(x.ts * 1000).toISOString().slice(0, 10), ts: x.ts, body: x.body || x.title, sent: x.sent, sent_ai: x.sent_ai }));
 }
 // /api/frettir?efni=&q=&fjoldi= → { efni, items:[{title,link,date,source}] } (frétta-stika + /frettir/)
 async function frettirHandler(request, env) {
@@ -4489,7 +4490,12 @@ async function firmaHandler(request, env) {
   const terms = q.split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
   const LIMIT = 800;
   const items = await newsSearch(env, terms, days, LIMIT);   // SQL-leit í öllu safninu
-  for (const it of items) { it._t = _tone(it.title); }
+  // ⚠ Áður: `_tone(it.title)` reiknað UPP Á NÝTT við hverja fyrirspurn — og AÐEINS úr fyrirsögn,
+  //   sem er lakara en geymda gildið (lexíkon á titil+lýsingu) og hunsaði AI-matið alveg.
+  //   Nú: AI-mat ef til (sent_ai), annars geymdur lexíkon-tónn, annars reiknað í neyð.
+  for (const it of items) {
+    it._t = (it.sent_ai != null) ? it.sent_ai : (it.sent != null ? it.sent : _tone(it.body || it.title));
+  }
   // ⚠ `total` var áður items.length = AFSKORIN lengd → sýndi „800" þótt raunfjöldi væri 1142.
   //   Sækjum RAUNTÖLUNA sér þegar þakið næst svo KPI-talan sé sönn.
   const capped = items.length >= LIMIT;

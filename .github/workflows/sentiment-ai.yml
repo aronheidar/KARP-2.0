@@ -1,0 +1,51 @@
+name: Viðhorfsgreining frétta (Claude Haiku → news.sent_ai)
+
+# Skorar tón frétta í D1-safninu með Claude Haiku og skrifar í news.sent_ai.
+# ENDURRÆSANLEG: velur alltaf `WHERE sent_ai IS NULL` → má keyra aftur og aftur;
+# hver keyrsla heldur áfram þar sem frá var horfið. Engin frétt skoruð tvisvar.
+#
+# Handvirkt: Actions → þessi workflow → Run workflow → (valfrjálst) limit.
+#   limit tómt/0 = allt safnið. Byrjaðu á litlu úrtaki (t.d. 200) til að meta gæði.
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Hámarksfjöldi frétta í þessari keyrslu (tómt = allt safnið)'
+        required: false
+        default: '200'
+      dry:
+        description: 'Þurr-keyrsla (skorar en SKRIFAR EKKI) — true/false'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sentiment-ai        # aldrei tvær keyrslur samtímis á sama dálk
+  cancel-in-progress: false
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350      # 58k fréttir ~1-2 klst; rúmt þak
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Skora tón
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          RAW_LIMIT: ${{ github.event.inputs.limit }}
+          RAW_DRY: ${{ github.event.inputs.dry }}
+        run: |
+          ARGS=""
+          LIM="$(echo "$RAW_LIMIT" | grep -oE '^[0-9]+' || true)"
+          if [ -n "$LIM" ] && [ "$LIM" != "0" ]; then ARGS="--limit $LIM"; fi
+          if [ "$RAW_DRY" = "true" ]; then ARGS="$ARGS --dry"; fi
+          echo "Keyri: node skriptur/build_sentiment_ai.mjs $ARGS"
+          node skriptur/build_sentiment_ai.mjs $ARGS
