@@ -5,13 +5,16 @@
 // ⚠ ENGIN PERSÓNUGÖGN í úttaki — AÐEINS heildartölur. Því er úttakið hættulaust (má committa) og ENGIN
 //   nafnbirting á sér stað. (Aron valdi „opinbert en nafnlaust" 2026-07-19 eftir að yfirferð sýndi að
 //   ~85% ein-gjaldþrota tilvika væru saklaus → engin einstaklings-birting.)
-// ⚠ Þarf CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID (eins og tengslagrunnur.yml). Vantar → sleppir hljóðlega.
-// Keyrt í refresh-data.yml Á UNDAN build_frettavel.js. Aldrei banvænt.
+// ⚠ Þarf CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID (eins og tengslagrunnur.yml). Vantar → SKÝR villa
+//   + exit 1 (CI-skrefið er bak við || true svo workflow heldur áfram — en loggurinn þegir ekki lengur).
+// D1 um REST/database_id (lib/d1_rest.mjs) — EKKI `wrangler d1 execute tengsl`: nafna-uppflettingin
+//   krefst list-heimildar sem CI-tokenið hefur ekki (féll þögult). Fyrirspurnarvilla áfram ekki banvæn (exit 0).
+// Keyrt í refresh-data.yml Á UNDAN build_frettavel.js.
 
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { makeD1 } from './lib/d1_rest.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(__dirname, '..', 'gogn', 'tengsl_fonix.json');
@@ -19,9 +22,10 @@ const MONTHS_BACK = 24;
 const cutoff = new Date(Date.now() - MONTHS_BACK * 30 * 86400000).toISOString().slice(0, 10);
 
 if (!process.env.CLOUDFLARE_API_TOKEN || !process.env.CLOUDFLARE_ACCOUNT_ID) {
-  console.log('• export_tengsl_fonix: engir Cloudflare-leyndarlyklar — sleppi (D1-útflutningur óvirkur).');
-  process.exit(0);
+  console.error('✗ export_tengsl_fonix: CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID vantar — get ekki lesið D1.');
+  process.exit(1);
 }
+const d1 = makeD1(path.join(__dirname, '..', 'web'));
 
 // Aggregate: heildarfjöldi einstaklinga + hversu margir með 2+ gjaldþrot (raðmynstur). ENGIN nöfn.
 const SQL =
@@ -34,10 +38,7 @@ const SQL =
   "GROUP BY hb.person_key)";
 
 try {
-  const out = execFileSync('npx', ['wrangler', 'd1', 'execute', 'tengsl', '--remote', '--json', '--command', SQL],
-    { cwd: 'web', encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, env: process.env });
-  const j = JSON.parse(out);
-  const r = ((j[0] && j[0].results) || j.results || [])[0] || {};
+  const r = (await d1.query(SQL))[0] || {};
   const total = +r.total || 0, radmynstur = +r.radmynstur || 0;
   fs.writeFileSync(OUT, JSON.stringify({ updated: new Date().toISOString(), cutoff, total, radmynstur }));
   console.log(`• export_tengsl_fonix: ${total} einstaklingar (þar af ${radmynstur} með 2+ gjaldþrot), gjaldþrot ≥ ${cutoff}. Aggregate — engin nöfn.`);

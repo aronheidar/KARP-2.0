@@ -2,12 +2,14 @@
 // crawl_tengsl.mjs — næturlegur snjóbolta-crawler. Les batch úr crawl_queue,
 // kallar RSK-API (stjórn, með persónu-kt) + frítt eigenda-skrap, keyrir nafnaleitar-
 // sweep (landsdekkandi upptalning), skrifar EITT night.sql og beitir því á D1 um
-// wrangler. Metrað API-þak = TENGSL_BUDGET; frí nafnaleit = SWEEP_BUDGET.
-import { execFileSync } from 'node:child_process';
+// REST API (lib/d1_rest.mjs). Metrað API-þak = TENGSL_BUDGET; frí nafnaleit = SWEEP_BUDGET.
+// ⚠ EKKI `wrangler d1 execute tengsl`: nafna-uppflettingin krefst list-heimildar sem CI-tokenið
+//   hefur ekki (féll þögult í CI) — database_id úr web/wrangler.toml er notað beint í d1_rest.mjs.
 import fs from 'node:fs';
 import { parseLegalEntity, parseEigendur, personKey } from './lib/rsk_parse.mjs';
 import { buildNightSql, buildSeenLastSql } from './lib/tengsl_sql.mjs';
 import { extractKts, nextPrefixes } from './lib/sweep.mjs';
+import { makeD1 } from './lib/d1_rest.mjs';
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
@@ -35,6 +37,12 @@ const RSK_ROT = 'https://www.skatturinn.is';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til secret kemur).'); process.exit(0); }
+// Sömu env-nöfn og build_sentiment_ai.mjs / tengslagrunnur.yml. Vantar → SKÝR villa + exit≠0 (ekki þegja).
+if (!process.env.CLOUDFLARE_API_TOKEN || !process.env.CLOUDFLARE_ACCOUNT_ID) {
+  console.error('✗ CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID vantar — enginn D1-aðgangur. Hætti.');
+  process.exit(1);
+}
+const d1 = makeD1('web');
 
 // www.skatturinn.is (frítt skrap) er hraðatakmarkað (throttlar við magn — sannreynt 13.7). Því
 // höldum við utan um samfelldar bilanir og HÆTTUM skrapi þegar þjónninn fer að hafna okkur, í stað
@@ -43,23 +51,17 @@ const SCRAPE_MAXFAIL = 5;
 let scrapeFails = 0, scrapeStop = false;
 const noteScrape = (okHtml) => { if (okHtml === null) { if (++scrapeFails >= SCRAPE_MAXFAIL) { scrapeStop = true; console.error(`⚠ ${SCRAPE_MAXFAIL} samfelldar www.skatturinn.is-bilanir (throttla) — hætti skrapi þessa nótt (API heldur áfram).`); } } else scrapeFails = 0; };
 
-function wrangler(args) {
-  return execFileSync('npx', ['wrangler', ...args], { cwd: 'web', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: process.env });
-}
-function d1Query(sql) {
-  const out = wrangler(['d1', 'execute', 'tengsl', '--remote', '--json', '--command', sql]);
-  try { const j = JSON.parse(out); return (j[0] && j[0].results) || j.results || []; }
-  catch (e) { console.error('D1-fyrirspurn brást:', e.message); return []; }
-}
+// D1-fyrirspurnir um d1.query (REST): endurreynir tímabundnar villur sjálf; endanleg villa KASTAR
+// → nóttin fellur SÝNILEGA (sama og wrangler-spawn-villa gerði áður, en án list-heimildar-kröfunnar).
 // Biðröð: pending fyrst (forgangur), svo done-félög eldri en 90 daga (endurnýjun). Aldrei 'error'/'notfound'.
-function queueBatch(n) {
-  return d1Query(
+async function queueBatch(n) {
+  return (await d1.query(
     "SELECT kt FROM crawl_queue WHERE status='pending' OR (status='done' AND (crawled_at IS NULL OR crawled_at <= date('now','-90 days')))"
     + " ORDER BY (status='pending') DESC, priority, added_at LIMIT " + n
-  ).map((r) => r.kt);
+  )).map((r) => r.kt);
 }
-function sweepBatch(n) {
-  return d1Query("SELECT prefix FROM sweep_state WHERE done=0 ORDER BY length(prefix), prefix LIMIT " + n).map((r) => r.prefix);
+async function sweepBatch(n) {
+  return (await d1.query("SELECT prefix FROM sweep_state WHERE done=0 ORDER BY length(prefix), prefix LIMIT " + n)).map((r) => r.prefix);
 }
 
 // fetchApi: sjálf-grípur net-villur → { retry } (EKKI banvænt). AÐEINS 401/403 kasta (banvænt).
@@ -100,7 +102,7 @@ const errBy = {};   // sundurliðun villna eftir HTTP-stöðu (t.d. {"retry:429"
 // www.skatturinn.is (frítt skrap) throttlar við ~30 köll/keyrslu og skilar þá HTTP 200 með
 // TÓMRI niðurstöðusíðu (ekki 429). Sweepið keyrir því á undan félaga-lykkjunni til að fá ferskt
 // aðgengi; 0 treff = throttla (eins stafs forskeyti eiga ALLTAF treff) → EKKI merkt done, reynt aftur.
-const prefixes = sweepBatch(SWEEP_BUDGET);
+const prefixes = await sweepBatch(SWEEP_BUDGET);
 console.error(`Sweep-batch: ${prefixes.length} forskeyti (budget ${SWEEP_BUDGET}).`);
 let sweepFound = 0;
 for (const pfx of prefixes) {
@@ -117,7 +119,7 @@ for (const pfx of prefixes) {
 }
 
 // ── 2) Félaga-crawl (metrað API + eigenda-skrap) ──────────────────────────────
-const batch = queueBatch(BUDGET);
+const batch = await queueBatch(BUDGET);
 console.error(`Félaga-batch: ${batch.length} kt (budget ${BUDGET}).`);
 for (const kt of batch) {
   if (used >= BUDGET) break;
@@ -170,9 +172,32 @@ fs.writeFileSync('web/night.sql', body + '\n' + isatPrimarySql + '\n');
 console.error(`Rita ${(body.length / 1024).toFixed(0)} KiB í web/night.sql.`);
 
 if (DRY) { console.error('--dry-run: beiti EKKI á D1.'); process.exit(0); }
-wrangler(['d1', 'execute', 'tengsl', '--remote', '--file', 'night.sql']);
+// night-SQL → stakar setningar: buildNightSql/buildSeenLastSql skila einni setningu per línu (endar á ';').
+// Lína sem endar EKKI á ';' væri línuskil inni í streng-literal → límd við næstu (öryggisnet, gerist vart).
+function sqlStatements(text) {
+  const out = [];
+  let cur = '';
+  for (const line of text.split('\n')) {
+    cur = cur ? cur + '\n' + line : line;
+    if (cur.trimEnd().endsWith(';')) { out.push(cur); cur = ''; }
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+}
+// Beitt í bútum um REST /query (wrangler-`--file` notaði import-flæði fyrir stórar skrár — /query þolir
+// ekki marga-MB body). Setningarnar eru idempotent upserts → öruggt að bútur sé endurreyndur (d1_rest
+// endurreynir tímabundnar villur). Villa KASTAR → exit≠0 og web/night.sql stendur eftir til skoðunar.
+const stmts = sqlStatements(body + '\n' + isatPrimarySql);
+for (let i = 0; i < stmts.length; ) {
+  const chunk = [];
+  let size = 0;
+  while (i < stmts.length && (chunk.length === 0 || (chunk.length < 500 && size + stmts[i].length <= 400 * 1024))) {
+    size += stmts[i].length + 1; chunk.push(stmts[i++]);
+  }
+  await d1.query(chunk.join('\n'));
+}
 fs.unlinkSync('web/night.sql');
-console.error('✓ Beitt á D1.');
+console.error(`✓ Beitt á D1 (${stmts.length} setningar).`);
 
 // GH-summary
 if (process.env.GITHUB_STEP_SUMMARY) {
