@@ -55,27 +55,26 @@ jobs:
         if: env.SKIP != '1'
         run: npm ci
         working-directory: web
+      # Úttekt 30.7 (C8): nafna-byggt `wrangler d1 execute tengsl` krefst „list"-heimildar sem CI-tokenið
+      # hefur EKKI → öll fjögur skrefin portuð á d1_apply.mjs (database_id beint um REST, sama og crawl).
       - name: Migrate schema (idempotent)
         # ⚠ VERÐUR að standa Á UNDAN seed — seed-SQL er aðeins INSERT (engin CREATE TABLE),
         # svo á ferskum D1 (áður en töflur eru til) fellur seed með 'no such table'.
         if: env.SKIP != '1'
-        run: npx wrangler d1 execute tengsl --remote --file migrations/0001_tengsl.sql
-        working-directory: web
+        run: node skriptur/d1_apply.mjs --file web/migrations/0001_tengsl.sql
       - name: Sá biðröð (valfrjálst)
         if: env.SKIP != '1' && github.event.inputs.seed == 'true'
         run: |
           node skriptur/seed_tengsl.mjs --out web/seed.sql
-          cd web && npx wrangler d1 execute tengsl --remote --file seed.sql
+          node skriptur/d1_apply.mjs --file web/seed.sql
       - name: Endursetja sweep (valfrjálst)
         if: env.SKIP != '1' && github.event.inputs.reset_sweep == 'true'
-        run: npx wrangler d1 execute tengsl --remote --command "UPDATE sweep_state SET done=0, hit_count=NULL"
-        working-directory: web
+        run: node skriptur/d1_apply.mjs --command "UPDATE sweep_state SET done=0, hit_count=NULL"
       - name: Endursetja attempts (valfrjálst)
         # Notað eftir hraðatakmarks-atvikið 14.–15.7: 429-villur hækkuðu attempts á ~1.200 félögum
         # sem hefðu annars orðið varanlega 'error' við MAX_ATTEMPTS. Skilar þeim í hreint pending.
         if: env.SKIP != '1' && github.event.inputs.reset_attempts == 'true'
-        run: npx wrangler d1 execute tengsl --remote --command "UPDATE crawl_queue SET attempts=0 WHERE status='pending'; UPDATE crawl_queue SET status='pending', attempts=0 WHERE status='error'"
-        working-directory: web
+        run: node skriptur/d1_apply.mjs --command "UPDATE crawl_queue SET attempts=0 WHERE status='pending'; UPDATE crawl_queue SET status='pending', attempts=0 WHERE status='error'"
       - name: Crawl
         if: env.SKIP != '1'
         run: node skriptur/crawl_tengsl.mjs
