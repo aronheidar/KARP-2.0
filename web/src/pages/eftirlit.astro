@@ -107,8 +107,8 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
 
     .ef-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
     .ef-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
-    .ef-b { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #10151f; }
-    .ef-b.r5 { background: #3fb950; } .ef-b.r4 { background: #6fd39b; } .ef-b.r3 { background: #f6b13b; } .ef-b.r2 { background: #f0883e; } .ef-b.r1 { background: #f85149; color: #fff; } .ef-b.r0 { background: #d1242f; color: #fff; }
+    /* ⚠ .ef-b (einkunnar-reitur) er byggður með innerHTML í card()-JS → færður í is:global neðar. */
+    /* (einkunnar-litirnir .ef-b.r0–r5 eru sömuleiðis í is:global-blokkinni neðar) */
     .ef-t { flex: 1 1 auto; min-width: 0; }
     .ef-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; }
     .ef-n:hover { color: #f6b13b; }
@@ -141,6 +141,14 @@ const desc = `Eftirlitsvaktin — opinber matvæla- og heilbrigðiseftirlitseink
     main[data-pg="eftirlit"] .ef-vakta:hover { background: rgba(246,177,59,.1); }
     main[data-pg="eftirlit"] .ef-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
     main[data-pg="eftirlit"] .ef-vakta:disabled { opacity: .6; cursor: default; }
+    /* Einkunnar-reiturinn sjálfur (byggður í card()-JS eins og .ef-vakta) */
+    main[data-pg="eftirlit"] .ef-b { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #10151f; }
+    main[data-pg="eftirlit"] .ef-b.r5 { background: #3fb950; }
+    main[data-pg="eftirlit"] .ef-b.r4 { background: #6fd39b; }
+    main[data-pg="eftirlit"] .ef-b.r3 { background: #f6b13b; }
+    main[data-pg="eftirlit"] .ef-b.r2 { background: #f0883e; }
+    main[data-pg="eftirlit"] .ef-b.r1 { background: #f85149; color: #fff; }
+    main[data-pg="eftirlit"] .ef-b.r0 { background: #d1242f; color: #fff; }
   </style>
 
   <script define:vars={{ dist, RLAB }}>

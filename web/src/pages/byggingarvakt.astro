@@ -109,14 +109,8 @@ const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykj
     #bv-mapn { color: var(--faint); font-size: 12px; }
 
     .bv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; margin-top: 4px; }
-    .bv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
-    .bv-top { display: flex; align-items: baseline; gap: 8px; }
-    .bv-badge { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #0a0e14; white-space: nowrap; }
-    .bv-a { font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
-    .bv-a:hover { color: #f6b13b; }
-    .bv-desc { font-size: 12.5px; color: var(--ink); margin: 5px 0 3px; line-height: 1.45; }
-    .bv-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--faint); }
-    .bv-meta a { color: #f6b13b; text-decoration: none; } .bv-meta a:hover { text-decoration: underline; }
+    /* ⚠ .bv-kortin eru byggð með innerHTML í card()-JS → reglurnar færðar í is:global-blokkina
+       neðar (main[data-pg]-forskeyti). Scoped hér hefðu þær ekki gilt á keyrslutíma-hnútana. */
 
     .bv-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
     #bv-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
@@ -140,6 +134,16 @@ const desc = `Byggingarvaktin — nýjustu afgreiðslur byggingarfulltrúa Reykj
     main[data-pg="byggingarvakt"] .bv-vakta:hover { background: rgba(246,177,59,.1); }
     main[data-pg="byggingarvakt"] .bv-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
     main[data-pg="byggingarvakt"] .bv-vakta:disabled { opacity: .6; cursor: default; }
+    /* Kort-reglurnar sjálfar (byggðar í card()-JS eins og .bv-vakta) */
+    main[data-pg="byggingarvakt"] .bv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    main[data-pg="byggingarvakt"] .bv-top { display: flex; align-items: baseline; gap: 8px; }
+    main[data-pg="byggingarvakt"] .bv-badge { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #0a0e14; white-space: nowrap; }
+    main[data-pg="byggingarvakt"] .bv-a { font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
+    main[data-pg="byggingarvakt"] .bv-a:hover { color: #f6b13b; }
+    main[data-pg="byggingarvakt"] .bv-desc { font-size: 12.5px; color: var(--ink); margin: 5px 0 3px; line-height: 1.45; }
+    main[data-pg="byggingarvakt"] .bv-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--faint); }
+    main[data-pg="byggingarvakt"] .bv-meta a { color: #f6b13b; text-decoration: none; }
+    main[data-pg="byggingarvakt"] .bv-meta a:hover { text-decoration: underline; }
   </style>
 
   <script define:vars={{ distRows, LABELS, DCOL }}>

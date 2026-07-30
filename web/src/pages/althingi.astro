@@ -181,7 +181,9 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
     </p>
   </main>
 
-  <style>
+  <!-- ⚠ is:global: dagatals-smáatriði (dg-*) eru byggð með innerHTML við smell
+       → Astro-scoped stílar giltu ekki á þá hnúta. Sjá [[karp-dev-verify]]. -->
+  <style is:global>
     main { max-width: 1020px; margin: 0 auto; padding: 44px 20px 64px; }
     /* ── Ríkisstjórnin ── */
     .cab { margin: 4px 0 8px; }

@@ -152,7 +152,9 @@ const MODEGROUPS = [
   <script type="application/json" id="d-zoom" set:html={JSON.stringify(REGZOOM)}></script>
   <script type="application/json" id="d-jofncats" set:html={JSON.stringify({ ar: JOFNYEAR, cats: JOFNCATS })}></script>
 
-  <style>
+  <!-- ⚠ is:global: korta-viðmótið byggir hluta sinn með innerHTML á keyrslutíma
+       → Astro-scoped stílar giltu ekki á þá hnúta. Sjá [[karp-dev-verify]]. -->
+  <style is:global>
     main { max-width: 980px; margin: 0 auto; padding: 40px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; line-height: 1.15; margin: 0 0 8px; }
