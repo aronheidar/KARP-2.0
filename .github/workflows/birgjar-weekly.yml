@@ -19,7 +19,9 @@ concurrency:
 jobs:
   birgjar:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 30 mín dugði ekki lengur: Flotavísir-crawlið óx og var drepið á 30-mín markinu 13.7/20.7/27.7 —
+    # og þar með keyrði loka-commit-skrefið ALDREI (öll gögn keyrslunnar töpuðust þótt skrefin tækjust).
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
         with:
