@@ -42,7 +42,10 @@ if (!CF_TOKEN || !CF_ACCT) { console.error('✗ CLOUDFLARE_API_TOKEN/ACCOUNT_ID 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── D1 REST ────────────────────────────────────────────────────────────────
-let DBID = null;
+// ⚠ Ekki fletta upp eftir NAFNI: `GET /d1/database` krefst list-heimildar sem CI-táknið hefur
+//   ekki (fyrsta keyrsla féll á „D1-gagnagrunnur tengsl fannst ekki"). database_id er opinbert
+//   og stendur í web/wrangler.toml → notum það beint, með umhverfis-yfirskrift.
+const DB_ID = process.env.CLOUDFLARE_D1_ID || '6b1672e6-13da-4d14-b45a-0d83a15ccef4';
 async function cf(pathq, init) {
   const r = await fetch('https://api.cloudflare.com/client/v4/accounts/' + CF_ACCT + pathq, {
     ...init, headers: { Authorization: 'Bearer ' + CF_TOKEN, 'Content-Type': 'application/json', ...(init && init.headers) },
@@ -51,17 +54,8 @@ async function cf(pathq, init) {
   if (!j || !j.success) throw new Error('D1 ' + pathq + ' → ' + r.status + ' ' + JSON.stringify(j && j.errors).slice(0, 200));
   return j.result;
 }
-async function dbId() {
-  if (DBID) return DBID;
-  const list = await cf('/d1/database');
-  const hit = (list || []).find((d) => d.name === DB);
-  if (!hit) throw new Error('D1-gagnagrunnur „' + DB + '" fannst ekki');
-  DBID = hit.uuid;
-  return DBID;
-}
 async function q(sql, params = []) {
-  const id = await dbId();
-  const res = await cf('/d1/database/' + id + '/query', { method: 'POST', body: JSON.stringify({ sql, params }) });
+  const res = await cf('/d1/database/' + DB_ID + '/query', { method: 'POST', body: JSON.stringify({ sql, params }) });
   return (res && res[0] && res[0].results) || [];
 }
 
