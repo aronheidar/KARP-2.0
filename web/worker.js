@@ -1288,12 +1288,7 @@ async function payCallbackHandler(request, env, ctx) {
       await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)').bind(auid, key, Math.floor(Date.now() / 1000)).run().catch(() => {});
     })());
   }
-  if (uid && key && env.KARP_GRANT_SECRET) {   // WP-varaleið meðan hún tórir
-    ctx.waitUntil(fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ userid: +uid, key, orderid, secret: env.KARP_GRANT_SECRET }),
-    }).catch(() => {}));
-  }
+  // (WP-varaleiðin fjarlægð 30.7.2026 — wp.karp.is er farið; D1-grantið að ofan er eina skráningin.)
   return new Response('ok', { status: 200 });
 }
 
@@ -1378,10 +1373,10 @@ async function askellWebhookHandler(request, env, ctx) {
 }
 
 // ── Uppsögn áskriftar: POST /api/sub/cancel {service?} — innskráður notandi segir upp sinni áskrift ──
-// Flæði: karpUserId → WP /sub/cancelinfo (askellId, varið KARP_GRANT_SECRET) → Áskell cancel
+// Flæði: karpUserId → askell_id + kt + vara úr D1 → Áskell cancel
 // (v2 contract cancel_at_period_end, fallback legacy) → áskrift lifir út greitt tímabil (until óbreytt).
 async function subCancelHandler(request, env, ctx) {
-  if (!env.ASKELL_PRIVATE_KEY || !env.KARP_GRANT_SECRET) return sjson({ error: 'unconfigured' });
+  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'unconfigured' });
   const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   let body = {}; try { body = await request.json(); } catch (e) {}
@@ -1433,43 +1428,6 @@ async function subCancelHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
-// ⚠ TÍMABUNDIÐ debug — skilar síðasta Áskell-vefkróks-payloadi (varið ASKELL_WEBHOOK_SECRET). Fjarlægist eftir prófun.
-async function askellLastHandler(request, env) {
-  const url = new URL(request.url);
-  const t = url.searchParams.get('t') || '';
-  const secretSet = !!(env.ASKELL_WEBHOOK_SECRET && String(env.ASKELL_WEBHOOK_SECRET).length);
-  const cap = await caches.default.match(new Request('https://cap.karp.internal/askell-last'));
-  const capTxt = cap ? await cap.text() : '';
-  let last = null; try { last = capTxt ? JSON.parse(capTxt) : null; } catch (e) {}
-  // ?diag=1 → greining ÁN leyndarmáls: secret sett? + vefkrókur barst? + STRÚKTÚR síðasta payloads
-  // (maskað — engin PII): sést hvort undirritun gengur upp OG hvort grant-sviðin (kt/metadata/state) finnast.
-  if (url.searchParams.get('diag') === '1') {
-    const out = { secret_sett: secretSet, secret_lengd: secretSet ? String(env.ASKELL_WEBHOOK_SECRET).length : 0, upptaka_til: !!capTxt, sidasta_sigOk: last ? last.sigOk : null, sidasti_event: last ? last.event : null, sidast: last ? last.at : null };
-    if (last && last.body) {
-      try {
-        const p = JSON.parse(last.body);
-        const d = p.data || p;
-        const sub = d.subscription || d.contract || d.subscription_contract || {};
-        let meta = d.metadata || d.meta || sub.metadata || sub.meta || {};
-        if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (e) { meta = {}; } }
-        const ktRaw = String(d.customer_reference || (d.customer && d.customer.reference) || sub.customer_reference || (sub.customer && sub.customer.customer_reference) || '');
-        out.struktur = {
-          topp_lyklar: Object.keys(p).slice(0, 12),
-          gogn_lyklar: Object.keys(d).slice(0, 20),
-          hefur_customer_reference: !!ktRaw,
-          kt_maskad: ktRaw ? ktRaw.replace(/^\d{6}/, '……') : null,
-          metadata: { service: meta.service || null, tier: meta.tier || null, key_present: !!meta.key },
-          state: d.state || d.status || sub.state || null,
-          reference: String(d.reference || '').replace(/\d{6}(\d{4})/g, '……$1') || null,
-        };
-      } catch (e) { out.struktur_villa = String((e && e.message) || e); }
-    }
-    return sjson(out);
-  }
-  if (!secretSet || t !== env.ASKELL_WEBHOOK_SECRET) return sjson({ error: 'nope', hint: 'nota ?diag=1 til greiningar (án leyndarmáls), annars ?t=<ASKELL_WEBHOOK_SECRET>' });
-  if (!capTxt) return sjson({ empty: true, note: 'engin webhook-upptaka enn — gerðu test-greiðslu fyrst' });
-  return new Response(capTxt, { headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' } });
-}
 
 // ── Áskell v2 embedded checkout — stofna checkout-session (LOTA 110d) ──
 // Framendinn kallar hér þegar notandi vill gerast áskrifandi → worker stofnar v2 checkout-session
@@ -1671,11 +1629,6 @@ async function stakConfirmHandler(request, env, ctx) {
   const refStr = key + '|' + kt;
   const granted = async (uuid) => {   // F7: grant→D1 (leysir WP af hólmi) á INNSKRÁÐA kaupandann (uid) — account-resolved (Task 5), idempotent á user+key.
     if (env.TENGSL && uid) { const auid = await _acctOfUid(env, uid); await env.TENGSL.prepare('INSERT OR IGNORE INTO reports_granted (user_id, report_key, granted) VALUES (?,?,?)').bind(auid, key, Math.floor(Date.now() / 1000)).run().catch(() => {}); }
-    if (!env.KARP_GRANT_SECRET) return;   // WP-varaleið meðan hún tórir (fellur út þegar WP fer)
-    await fetch('https://wp.karp.is/wp-json/karp/v1/reports/grant', {
-      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-      body: JSON.stringify({ userid: +uid, kt, key, orderid: 'askv1_' + uuid, secret: env.KARP_GRANT_SECRET }),
-    }).catch(() => null);
   };
   // BLOCKER-vörn (rýni-atriði #1): grant-lykillinn er lesinn úr GREIÐSLUNNI sjálfri (reference) og
   // verður að passa við key/kt beiðninnar — annars gæti ein greidd skýrsla „opnað" allar hinar.
@@ -1806,11 +1759,6 @@ async function sub2ConfirmHandler(request, env, ctx) {
       if (isTier) await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, tier_askell=?, tier_trial_used=1, updated=? WHERE id=?').bind(slug, until, String(cid), now, +uid).run().catch(() => {});
       else await env.TENGSL.prepare('INSERT INTO sub_service (user_id, service, until, askell_id, trial_used) VALUES (?,?,?,?,1) ON CONFLICT(user_id, service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id, trial_used=1').bind(+uid, slug, until, String(cid)).run().catch(() => {});
     }
-    if (!env.KARP_GRANT_SECRET) return;   // WP-varaleið meðan hún tórir
-    await fetch('https://wp.karp.is/wp-json/karp/v1/sub/grant', {
-      method: 'POST', headers: { 'content-type': 'application/json', 'X-Karp-Secret': env.KARP_GRANT_SECRET },
-      body: JSON.stringify({ userid: +uid, kt, ...(isTier ? { tier: slug } : { service: slug }), until, askellId: String(cid), ref: 'sub2_' + String(cid) + '_' + until, secret: env.KARP_GRANT_SECRET }),
-    }).catch(() => null);
   };
   const contractGet = async (cid) => { const g = await fetch('https://askell.is/api/v2/subscription-contracts/' + cid + '/', { headers: H }); return g.json().catch(() => null); };
   try {
@@ -1851,160 +1799,6 @@ async function sub2ConfirmHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
-// ⚠ TÍMABUNDINN greiningar-endapunktur (LOTA 110i) — les Áskell-uppsetningu m/private-lykli til að greina
-// „Payment processor configuration could not be loaded". Skilar AÐEINS fjölda + eligibility + display_names
-// (engin leyndarmál/viðkvæmt) → óhætt án ?t=. EYÐA eftir að webhook er staðfestur.
-async function askellConfigHandler(request, env) {
-  if (!env.ASKELL_PRIVATE_KEY) return sjson({ error: 'no-key' });
-  const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
-  // ?cs=1: krufning á checkout-session m/initial_items — hvers vegna „Ekkert tilboð er tiltækt"?
-  // (?chan=rás, ?price=verd-id) → OPTIONS-svið + stofnun + lesa til baka + widget-endapunktar m/token
-  const uq = new URL(request.url).searchParams;
-  // ?contracts=1: LESA áskriftarsamninga (aðeins lestur — engin stofnun/afskráning) til greiningar
-  if (uq.get('contracts')) {
-    const out = {};
-    const det = uq.get('detail');
-    if (det) {   // LESA einn samning í heild (vara/metadata/dags) — staðfesta að sub2-flæðið hafi rétt
-      try {
-        const g = await fetch('https://askell.is/api/v2/subscription-contracts/' + det + '/', { headers: H });
-        const c = await g.json().catch(() => null);
-        out.detail = c ? { id: c.id, state: c.state, kt: String(c.customer_reference || '').replace(/^\d{6}/, '……'), items: (c.items || []).map((i) => ({ ref: i.product_reference, nafn: i.product_name, verd: i.unit_amount })), metadata: c.metadata, trial_end_at: c.trial_end_at, billing_anchor_at: c.billing_anchor_at, next_billing_at: c.next_billing_at, created: c.created_at } : null;
-      } catch (e) { out.detail_err = String((e && e.message) || e); }
-    }
-    try {
-      const r = await fetch('https://askell.is/api/v2/subscription-contracts/?page_size=15', { headers: H });
-      const b = await r.json().catch(() => null);
-      const list = Array.isArray(b) ? b : ((b && b.results) || []);
-      out.contracts = list.map((x) => ({ id: x.id, state: x.state, kt: String(x.customer_reference || '').replace(/^\d{6}/, '……'), created: x.created_at || x.created, vara: (x.items || []).map((i) => i.product_reference || i.product_name).join(',') }));
-    } catch (e) { out.err = String((e && e.message) || e); }
-    return sjson(out);
-  }
-  // ?wh=1: skráðir vefkrókar í Áskell — er einn skráður og bendir hann á karp.is/api/askell/webhook?
-  //   (áskriftir reiða sig ALGJÖRLEGA á vefkrókinn — engin poll-varaleið eins og stakar)
-  if (uq.get('wh')) {
-    const out = {};
-    for (const p of ['/api/webhooks/', '/api/v2/webhooks/']) {
-      try {
-        const r = await fetch('https://askell.is' + p, { headers: H });
-        const b = await r.json().catch(() => null);
-        const list = Array.isArray(b) ? b : ((b && b.results) || []);
-        out[p] = { s: r.status, n: list.length, hooks: list.map((x) => ({ id: x.id || x.pk, url: x.url || x.endpoint || x.target_url, events: x.events || x.event_types || x.subscribed_events, active: x.active != null ? x.active : x.is_active, has_secret: !!(x.secret || x.signing_secret) })) };
-      } catch (e) { out[p] = { e: String((e && e.message) || e) }; }
-    }
-    return sjson(out);
-  }
-  // ?fixgrant=1: viðgerð — endurkeyra grant f. SETTLED V1-greiðslur (lykill+kaupanda-kt úr reference).
-  // Örugg: veitir aðeins það sem sannanlega var greitt; WP-grant er idempotent á lykli. Skilar WP-svörum.
-  if (uq.get('fixgrant')) {
-    const r = await fetch('https://askell.is/api/payments/?page_size=15', { headers: H });
-    const d = await r.json().catch(() => null);
-    const list = Array.isArray(d) ? d : ((d && d.results) || []);
-    const ut = [];
-    for (const x of list) {
-      if (String(x.state || '') !== 'settled') continue;
-      const [lykill, ktRaw] = String(x.reference || '').split('|');
-      const kt = String(ktRaw || '').replace(/\D/g, '');
-      if (!/^(fyrirtaeki|eigendur|areidanleiki|fasteign):.+/.test(lykill || '') || kt.length !== 10) continue;
-      await grantReportD1(env, kt, lykill);   // F7: grant→D1 (um kt→uid)
-      ut.push({ uuid: String(x.uuid || '').slice(0, 8), lykill: lykill.replace(/\d{6}(\d{4})/, '……$1'), d1: 'grantað' });
-    }
-    return sjson({ n: ut.length, grants: ut });
-  }
-  // ?pay=1: nýjustu V1-greiðslur (staða/upphæð/reference m/maskaðri kt) — greina prófkaup
-  if (uq.get('pay')) {
-    try {
-      const r = await fetch('https://askell.is/api/payments/?page_size=15', { headers: H });
-      const d = await r.json().catch(() => null);
-      const list = Array.isArray(d) ? d : ((d && d.results) || []);
-      return sjson({
-        status: r.status, n: list.length,
-        greidslur: list.map((x) => ({
-          uuid: String(x.uuid || x.id || '').slice(0, 8),
-          state: x.state, amount: x.amount, currency: x.currency,
-          reference: String(x.reference || '').replace(/\d{6}(\d{4})/g, '……$1'),   // kt möskuð
-          kt_maskad: String(x.customer_reference || '').replace(/^\d{6}/, '……'),
-          descr: String(x.description || '').slice(0, 40),
-          created: x.created_at || x.created || null,
-          villa: x.error || x.failure_reason || x.decline_reason || undefined,
-        })),
-        lyklar_fyrstu: list[0] ? Object.keys(list[0]) : [],
-      });
-    } catch (e) { return sjson({ error: String((e && e.message) || e) }); }
-  }
-  // ?v1=1: V1 stak-greiðsluleiðin — styður Teya-færsluhirðirinn hosted checkout (iframe)?
-  // + stofna capture_only prufu-checkout og skoða frameability-hausa á checkout_url
-  if (uq.get('v1')) {
-    const out = {};
-    try { const r = await fetch('https://askell.is/api/checkouts/paymentprocessors/', { headers: H }); out.pp_status = r.status; out.pp = await r.json().catch(() => null); } catch (e) { out.pp_err = String((e && e.message) || e); }
-    const list = (out.pp && (out.pp.payment_processors || out.pp.results)) || (Array.isArray(out.pp) ? out.pp : []);
-    const proc = list.find((x) => x.supports_checkout) || list[0];
-    if (proc && uq.get('mk')) {
-      try {
-        const r = await fetch('https://askell.is/api/checkouts/', { method: 'POST', headers: H, body: JSON.stringify({ payment_processor: proc.id, currency: 'ISK', capture_only: true, allowed_origin: 'https://karp.is' }) });
-        out.create_status = r.status;
-        const cd = await r.json().catch(() => null);
-        out.create = cd;
-        if (cd && cd.checkout_url) {
-          const h = await fetch(cd.checkout_url, { method: 'GET', redirect: 'manual' });
-          out.frame = { status: h.status, xfo: h.headers.get('x-frame-options'), csp: h.headers.get('content-security-policy') };
-        }
-        if (cd && cd.token) { const g = await fetch('https://askell.is/api/checkouts/' + cd.token + '/', { headers: H }); out.chk_status = g.status; out.chk = await g.json().catch(() => null); }
-      } catch (e) { out.create_err = String((e && e.message) || e); }
-    }
-    return sjson(out);
-  }
-  // ?sc=1: sölurásirnar sjálfar — hafa þær „tilboð" (offers/plans/prices) tengd Áskell-megin?
-  if (uq.get('sc')) {
-    const out = {};
-    for (const p of ['/api/v2/sales-channels/?active=all', '/api/v2/sales-channels/', '/api/v2/saleschannels/', '/api/v2/catalog/sales-channels/']) {
-      try {
-        const r = await fetch('https://askell.is' + p, { headers: H });
-        out[p] = { s: r.status };
-        if (r.status === 200) { out[p].b = await r.json().catch(() => null); break; }
-      } catch (e) { out[p] = { e: String((e && e.message) || e) }; }
-    }
-    return sjson(out);
-  }
-  const get = async (p) => { try { const r = await fetch('https://askell.is' + p, { headers: H }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
-  const post = async (p, body) => { try { const r = await fetch('https://askell.is' + p, { method: 'POST', headers: H, body: JSON.stringify(body) }); return { s: r.status, b: await r.json().catch(() => null) }; } catch (e) { return { s: 0, e: String((e && e.message) || e) }; } };
-  const arr = (x) => Array.isArray(x) ? x : (x && Array.isArray(x.results) ? x.results : []);
-  const prod = await get('/api/v2/catalog/products/?active=all');
-  const price = await get('/api/v2/catalog/prices/?active=all');
-  const products = arr(prod.b), prices = arr(price.b);
-  const iskRec = prices.find((p) => p.currency === 'ISK' && (p.billing_type === 'recurring' || p.recurrence_type)) || prices.find((p) => p.currency === 'ISK') || prices[0];
-  const out = {
-    products_status: prod.s, prices_status: price.s,
-    n_products: products.length,
-    n_active_products: products.filter((p) => p.active || p.is_active).length,
-    n_prices: prices.length,
-    isk_prices: prices.filter((p) => p.currency === 'ISK').map((p) => ({ id: p.id || p.pk, amount: p.amount, active: p.active != null ? p.active : p.is_active, billing: p.billing_type, rec: p.recurrence_type })),
-    picked_price: iskRec ? (iskRec.id || iskRec.pk) : null,
-    // Linkage-sýni (vörukatalógur Karp sjálfs — engin viðskiptavina-gögn): hvernig tengist verð vöru?
-    product_samples: products.map((p) => ({ id: p.id != null ? p.id : p.pk, reference: p.reference || p.ref || p.sku || null, name: String(p.name || '').slice(0, 40) })),
-    price_link_samples: prices.map((p) => ({ id: p.id != null ? p.id : p.pk, product: p.product != null ? (typeof p.product === 'object' ? { id: p.product.id, reference: p.product.reference } : p.product) : null, reference: p.reference || null, billing: p.billing_type, amount: p.amount, currency: p.currency })),
-    price_keys: prices[0] ? Object.keys(prices[0]) : [],
-    product_keys: products[0] ? Object.keys(products[0]) : [],
-  };
-  if (iskRec) {
-    const pid = iskRec.id || iskRec.pk;
-    const base = { customer_reference: '1234567890', currency: 'ISK', collection_method: 'card' };
-    let r = await post('/api/v2/payment-processor-options/', { ...base, items: [{ price: pid, quantity: 1 }] });
-    if (r.s >= 400) { const r2 = await post('/api/v2/payment-processor-options/', { ...base, initial_items: [{ price: pid, quantity: 1 }] }); if (r2.s < r.s) r = r2; }
-    out.pp_status = r.s;
-    out.pp_raw = r.b;   // fullt hrátt svar → sést hvers vegna results er tómt þrátt fyrir single_eligible
-  }
-  // Finna account payment processors (nr. 254) → sést tegund + hvort hann styður innfellt checkout
-  out.processor_probe = {};
-  let processors = null;
-  for (const p of ['/api/v2/account-payment-processors/?active=all', '/api/v2/payment-processors/?active=all', '/api/paymentprocessors/', '/api/v2/account-payment-processors/']) {
-    const g = await get(p);
-    const list = Array.isArray(g.b) ? g.b : ((g.b && g.b.results) || null);
-    out.processor_probe[p] = g.s + (list ? (' n=' + list.length) : '');
-    if (g.s === 200 && list && !processors) processors = list;
-  }
-  if (processors) out.processors = processors.map((x) => ({ id: x.id || x.pk, name: x.display_name || x.name, type: x.payment_processor || x.processor_type || x.type, active: x.active != null ? x.active : x.is_active, checkout: x.supports_checkout, card_frontend: x.card_collection_in_frontend, render: x.render_mode }));
-  return sjson(out);
-}
 
 // ── Götumynd af eign (LOTA 111): Google Street View milliliður ──
 // Framendinn (fasteignaskýrsla) kallar /api/streetview?lat=&lng=. Workerinn geymir Google-lykilinn sem
@@ -5081,7 +4875,6 @@ export default {
     if (url.pathname === '/api/stak/confirm') return stakConfirmHandler(request, env, ctx);
     if (url.pathname === '/api/sub2/checkout') return sub2CheckoutHandler(request, env, ctx);
     if (url.pathname === '/api/sub2/confirm') return sub2ConfirmHandler(request, env, ctx);
-    if (url.pathname === '/api/askell/config') return askellConfigHandler(request, env);
     if (url.pathname === '/api/streetview') return streetviewHandler(request, env, ctx);
     if (url.pathname === '/api/arsreikningur/request') return arsreikningurRequestHandler(request, env, ctx);
     if (url.pathname === '/api/stjorn/request') return stjornRequestHandler(request, env, ctx);
