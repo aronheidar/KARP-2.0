@@ -30,6 +30,10 @@ jobs:
         working-directory: web
       - name: Einingapróf (skriptur)
         run: node --test skriptur/*.test.mjs
+      # Klofningsvörn (C10): worker.js + src/worker/*.mjs mega ekki nota nafn sem hvergi er lýst yfir
+      # né flutt inn — hvorki node --check né esbuild grípa það (fannst 19× við klofninginn 30.7).
+      - name: Worker-tengingar heilar
+        run: node skriptur/ci_worker_bindings.mjs
       - name: Astro-bygging
         run: npx astro build
         working-directory: web
