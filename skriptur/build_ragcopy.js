@@ -43,9 +43,16 @@ const RAG_FILES = [
   'logbirting.json',// LOTA 95: Lögbirtingablaðið (kt→lögform. tilkynningar; /api/logbirting + #fs-logbirting)
 ];
 
-// web/public/gogn er UPPSPRETTAN — rótar-eintakið er stöðnuð afleiða; aldrei speglað rót→web.
+// ALDREI speglað rót→web. Tvær ástæður geta átt við: (a) web/public/gogn er UPPSPRETTAN og
+// rótar-eintakið stöðnuð afleiða, eða (b) tréin geyma VILJANDI ólík snið af sömu gögnum.
 const VEF_KANONISKT = new Set([
-  'domar_ai.json', // build_domar_ai.js skrifar AÐEINS í web (l.74); vaktir.astro fetch-ar /gogn/domar_ai.json
+  // (b) — ATH: build_domar_ai.js skrifar BÆÐI tréin í sömu keyrslu, á ólíkum sniðum:
+  //   rót = bert skyndiminni {lykill:{einfalt,svid,t,d}} → domar.astro (@gogn, SSG) + build_frettavel.js
+  //   web = {updated,n,note,byNr}                       → vaktir.astro (fetch) + build_heilsa.mjs (les `updated`)
+  // Speglun rót→web myndi svipta web-eintakið byNr/updated og brjóta BÁÐA web-lesendur.
+  // Rótin sýnist „á eftir" í git því aðeins web-eintakið ber `updated`-tímastimpil sem breytist
+  // í hverri keyrslu; rótin breytist aðeins þegar NÝR dómur bætist við. Það er rétt hegðun.
+  'domar_ai.json',
 ]);
 
 // Þekktar INNRI rótar-skrár (byggingarinntak/state/AI-efni) sem eiga EKKI að birtast í web —

@@ -5,6 +5,12 @@
 // KEYRSLA: node skriptur/build_domar_ai.js   (þarf ANTHROPIC_API_KEY fyrir NÝ mál;
 //   án lykils haldast eldri samantektir og nýjum er sleppt — sama mynstur og build_summaries.js)
 // SKYNDIMINNI: gogn/domar_ai.json { "hr:3/2026": {einfalt, svid, t, d} } — aðeins ný mál kalla á API.
+// ÚTTAK — TVÖ TRÉ, TVÖ ÓLÍK SNIÐ. Hvorugt er afleiða hins og HVORUGT MÁ SPEGLA yfir hitt
+// (domar_ai.json er því á VEF_KANONISKT-lista build_ragcopy.js — ekki fjarlægja þaðan):
+//   gogn/domar_ai.json            = bert skyndiminni {lykill:{...}}  → domar.astro (@gogn, SSG) + build_frettavel.js
+//   web/public/gogn/domar_ai.json = {updated, n, note, byNr}         → vaktir.astro (fetch) + build_heilsa.mjs
+// Aðeins web-eintakið ber `updated`, svo það breytist í HVERRI keyrslu meðan rótin breytist
+// aðeins þegar nýr dómur bætist við — rótin á því að sýnast „á eftir" í git-sögunni.
 // MODEL: KARP_SUMMARY_MODEL eða claude-opus-4-8 (örfá mál/dag → kostar nær ekkert).
 
 const fs = require('fs');
