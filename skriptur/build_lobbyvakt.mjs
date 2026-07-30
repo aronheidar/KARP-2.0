@@ -125,7 +125,10 @@ async function main() {
   let cache = {};
   if (existsSync(CACHE_PATH)) { try { cache = rj(CACHE_PATH); } catch (e) { console.log('  cache-lestrarvilla, byrja tómt:', e.message); } }
 
-  const todo = allRaw.filter((it) => !cache[it.id]);
+  // ⚠ Tómt brief telst ÓFLOKKAÐ: keyrslur án ANTHROPIC_API_KEY skrifa heuristík-fallback með brief:''
+  // í cache-ið (sjá fallback að neðan) — án þessa yrði cache-ið „eitrað" og Claude aldrei kallaður
+  // aftur þótt lykillinn komi (gerðist 27.-30.7.2026: 108/108 mál með tómt brief á síðunni).
+  const todo = allRaw.filter((it) => { const c = cache[it.id]; return !c || !c.brief; });
   console.log(`Lobbyvakt: ${todo.length} ný mál til flokkunar (af ${allRaw.length} alls).`);
 
   const HAS_KEY = !!process.env.ANTHROPIC_API_KEY;
