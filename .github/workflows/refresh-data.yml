@@ -169,6 +169,19 @@ jobs:
         run: |
           if [ "$(date -u +%u)" = "1" ] || [ "$FORCE_WEEKLY" = "true" ]; then node skriptur/build_kvoti.mjs || true; fi
 
+      # Úttekt 30.7 (C6): tvær skriptur með lifandi úttak voru HVERGI í CI (sveitarfelog_adm2 20d,
+      # sitemap-fyrirtaeki aldrei endurbyggð). Vikulega á mánudögum nægir (breytast hægt).
+      # ⚠ HANDVIRKAR VEITUR (viljandi, enginn framleiðandi í repo): ivilnanir.json, skattar.json,
+      #   utgjold.json, landshlutar.json — uppfærast með höndunum þegar tilefni er til.
+      - name: Sveitarfélaga-fjölhyrningar + fyrirtækja-sitemap (VIKULEGA á mánudögum)
+        env:
+          FORCE_WEEKLY: ${{ github.event_name != 'schedule' }}
+        run: |
+          if [ "$(date -u +%u)" = "1" ] || [ "$FORCE_WEEKLY" = "true" ]; then
+            node skriptur/build_sveitarfelog_geo.js   || true   # geoBoundaries ADM2 → sveitarfelog_adm2.json (choropleth)
+            node skriptur/build_sitemap_fyrirtaeki.mjs || true  # kt-lykluð gögn → web/public/sitemap-fyrirtaeki.xml
+          fi
+
       - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)
         run: |
           node skriptur/build_hagvoxtur.mjs   || true   # VLF ársfj + VLF-Sankey + Norðurlönd (WB) + IMF-hagvaxtarspá → hagvoxtur.json

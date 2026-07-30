@@ -8,6 +8,7 @@
   Strict-Transport-Security: max-age=31536000
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.askell.is; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: blob: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://askell.is https://px.hagstofa.is https://api.ust.is https://ourworldindata.org https://www.imf.org https://search.gleif.org; frame-src https://askell.is https://vod.althingi.is https://www.althingi.is; frame-ancestors 'self'; object-src 'none'; base-uri 'self'
 
 # Hashuð eign (Astro) — langt cache, óbreytanleg
 /_astro/*
