@@ -217,6 +217,10 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     /* LOTA 20: spjaldið í tvo dálka á breiðum skjá — LOTA 35: ÞRJÁ á mjög breiðum */
     @media (min-width: 900px) {
       .d-more { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+      /* ⚠ Tómarúm: staðgengla-divin (#d-rik/#d-tilk/#d-yt/#d-gl) eru RISTAR-HÓLF. Þegar
+         hleðslan finnur ekkert setur hún innerHTML='' — en hólfið sat eftir og skildi
+         eftir sig auð svæði. :empty fjarlægir þau úr ristinni. */
+      .d-more > div:empty { display: none; }
       .d-more .se-card { margin: 0; }
       .d-more .fy-health, .d-more .se-vidhorf, .d-more .pro-tease { grid-column: 1 / -1; }
     }
@@ -921,7 +925,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       document.getElementById('fg-src-h').textContent = 'Miðlar sem fjalla um ' + c.n;
       const se = f.sentiment || {}, st = f.stats || {};
       kp.innerHTML = `<div class="kpis">
-        <div class="kpi"><div class="k-l">🗞️ Fréttir sl. 6 mán</div><div class="k-v">${thF(f.total)}</div><div class="k-s">${st.perDay != null ? String(st.perDay).replace('.', ',') + ' á dag' : ''}</div></div>
+        <div class="kpi"><div class="k-l">🗞️ Fréttir sl. 6 mán</div><div class="k-v">${thF(f.total)}</div><div class="k-s">${st.perDay != null ? String(st.perDay).replace('.', ',') + ' á dag' : ''}${f.capped ? (st.perDay != null ? ' · ' : '') + 'tónn af ' + thF(f.sample) + ' nýjustu' : ''}</div></div>
         <div class="kpi"><div class="k-l">🤖 Tónn umfjöllunar</div><div class="k-v" style="color:${se.idx > 15 ? '#46e08a' : se.idx < -15 ? '#ff6d7a' : '#9fb0c8'}">${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</div><div class="k-s">${se.scored || 0} tón-greindar</div></div>
         <div class="kpi"><div class="k-l">📰 Miðlar</div><div class="k-v">${(st.sources || []).length}</div><div class="k-s">fjalla um aðilann</div></div>
       </div>`;

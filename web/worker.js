@@ -1,6 +1,7 @@
 import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
+import { aggregateFirma } from './src/lib/firma-greining.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
@@ -4486,15 +4487,37 @@ async function firmaHandler(request, env) {
   const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);
   if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 300);
   const terms = q.split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
-  const items = await newsSearch(env, terms, days, 800);   // SQL-leit í öllu safninu (heilt ár)
-  let pos = 0, neg = 0;
-  for (const it of items) { it._t = _tone(it.title); if (it._t > 0) pos++; else if (it._t < 0) neg++; }
-  const scored = items.length > 0;
-  const idx = scored ? Math.max(-100, Math.min(100, Math.round((pos - neg) / items.length * 100))) : 0;
+  const LIMIT = 800;
+  const items = await newsSearch(env, terms, days, LIMIT);   // SQL-leit í öllu safninu
+  for (const it of items) { it._t = _tone(it.title); }
+  // ⚠ `total` var áður items.length = AFSKORIN lengd → sýndi „800" þótt raunfjöldi væri 1142.
+  //   Sækjum RAUNTÖLUNA sér þegar þakið næst svo KPI-talan sé sönn.
+  const capped = items.length >= LIMIT;
+  const heild = capped ? await newsCount(env, terms, days) : items.length;
+  // Samantektin (scored-talning, miðlar, tónn per miðil, perDay) er hrein + prófuð eining.
+  const agg = aggregateFirma(items, { days, capped });
+  const { sentiment, stats } = agg;
   const wk = {};
   for (const it of items) { const d = new Date(it.ts * 1000); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const key = mon.toISOString().slice(0, 10); const b = (wk[key] = wk[key] || { d: key, n: 0, tone: 0 }); b.n++; b.tone += it._t || 0; }
   const timeline = Object.values(wk).sort((a, b) => a.d < b.d ? -1 : 1).map((w) => ({ d: w.d, n: w.n, idx: w.n ? Math.round(w.tone / w.n * 20) : 0 }));
-  return _fjson({ ready: true, total: items.length, items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })), timeline, sentiment: { idx, scored, pos, neg } }, 300);
+  return _fjson({
+    ready: true,
+    total: heild,                 // RAUNFJÖLDI (ekki afskorinn); `capped` segir hvort sýnið var takmarkað
+    capped, sample: items.length, // sýnið sem tónn/miðla-dreifing byggir á
+    items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })),
+    timeline, sentiment, stats,   // sentiment: {idx,scored,pos,neg,bySource} · stats: {sources,perDay,days,sourceCount}
+  }, 300);
+}
+// Raunfjöldi frétta sem passa við leitina (án LIMIT) — svo KPI sýni ekki þakið sem heildartölu.
+async function newsCount(env, terms, days) {
+  if (!env.TENGSL || !terms || !terms.length) return 0;
+  const since = Math.floor(Date.now() / 1000) - days * 86400;
+  const vars = [...new Set(terms.flatMap(_searchVariants))].slice(0, 60);
+  if (!vars.length) return 0;
+  const clauses = vars.map(() => 'body LIKE ?').join(' OR ');
+  const r = await env.TENGSL.prepare('SELECT COUNT(*) AS c FROM news WHERE ts>=? AND (' + clauses + ')')
+    .bind(since, ...vars).first().catch(() => null);
+  return (r && r.c) || 0;
 }
 // ── Premium-greining úr D1-frétta-safni (port úr karp-frettir.php). Sparsara en WP meðan safnið vex. ──
 function _entCos(list) {   // [{n,a:[...]}] → [{name, al:[lágstafir≥3]}]
