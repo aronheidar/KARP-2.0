@@ -1,7 +1,13 @@
-# Cloudflare Pages hausar fyrir app.karp.is (Astro static)
+# Cloudflare hausar (Astro static um ASSETS) — öryggisherðing úr úttekt 30.7.2026.
+# HSTS ÁN includeSubDomains (viljandi: þvingar ekki HTTPS-stefnu á óþekkt undirlén).
+# X-Frame SAMEORIGIN (gamla WP-embed-ið sem rammaði inn efni er dautt).
+# CSP vísvitandi EKKI hér — þarf uppruna-vörulista (ECharts/Leaflet/Áskell/letur) + report-only fasa fyrst.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
 
 # Hashuð eign (Astro) — langt cache, óbreytanleg
 /_astro/*
