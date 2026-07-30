@@ -1,10 +1,9 @@
 {
-  "name": "karp-dashboard",
+  "name": "karp-skriptur",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node build_app.js",
-    "build:embed": "node build_embed.js"
+    "test": "node --test skriptur/*.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",

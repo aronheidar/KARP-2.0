@@ -2,9 +2,9 @@
 # ---------------------------------------------------------------------------
 # Keyrir CI-öruggu gagnaskriftina build_polls.js reglulega (aðeins fetch á
 # Wikipedia — engir lyklar, engin staðbundin skjöl, engar npm-deps).
-#   • Breytist polls.json → commit + push → Cloudflare endurbyggir BÆÐI verkefnin
-#     (karp21 = Astro SSG-síður, git-repository-hagvisir = karp-app.js) → fersk
-#     sætaspá (althingi) OG fersk karp-data (mælaborð).
+#   • Breytist polls.json → commit + push → Cloudflare endurbyggir karp21
+#     (Astro SSG-síður) → fersk sætaspá. (Gamla WP-mælaborðið/karp-app.js var
+#     kvatt 30.7.2026 — sjá docs/uttekt/2026-07-30-heildaruttekt.md B-lið.)
 #   • Engin breyting → (valfrjálst) deploy hook þvingar endurbyggingu svo
 #     efnahagur sæki ferska verðbólgu frá Hagstofu á byggingartíma.
 #     Án hook ferskast efnahagur hvort eð er við næstu polls-ýtingu (~vikulega).
