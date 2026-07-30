@@ -24,6 +24,12 @@ jobs:
       - name: Deps (vefur)
         run: npm ci
         working-directory: web
+      # Úttekt 30.7: 16 prófaskrár (246 próf) keyrðu HVERGI í CI — rotnuðu óséð. ENGIN || true hér: rauð próf fella keyrsluna.
+      - name: Einingapróf (web lib + web/test)
+        run: node --test src/lib/*.test.mjs test/*.test.mjs
+        working-directory: web
+      - name: Einingapróf (skriptur)
+        run: node --test skriptur/*.test.mjs
       - name: Astro-bygging
         run: npx astro build
         working-directory: web
