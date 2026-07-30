@@ -498,6 +498,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
     import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
     import { slugify } from '../lib/atvinnugrein.mjs';
+    import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -980,58 +981,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     // Kaupa-gátt: full skýrsla læst — sýnir auðkenni (nafn+kt) + hvað fæst + kaupa/sýnishorn.
     // ── Fjárhags-KPI mælaborð (LOTA 99) — reiknað úr ársreikningi (f.fjarhagur = fylki ára, nýjast fyrst; tölur í m.kr) ──
-    const fsThou = (n) => String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    const fsMkr = (v, c) => (v == null ? '–' : (v < 0 ? '−' : '') + fsThou(v) + ' ' + (c || 'm.kr'));
-    const fsPct1 = (v) => (v == null ? '–' : (v < 0 ? '−' : '') + (Math.abs(v) * 100).toFixed(1).replace('.', ',') + '%');
-    const fsRat = (v) => (v == null ? '–' : v.toFixed(2).replace('.', ','));
-    function fsKpiCalc(y, p) {
-      p = p || {};
-      const framlegd = y.tekjur - (y.kostnadarverd || 0);
-      const ebitda = framlegd - (y.rekstrargjold || 0);
-      const ebit = ebitda - (y.afskriftir || 0);
-      const d = (a, b) => (b ? a / b : null);
-      return {
-        framlegd: d(framlegd, y.tekjur), rekstrarhlutf: d(ebit, y.tekjur), hagnhlutf: d(y.hagnadur, y.tekjur),
-        roe: d(y.hagnadur, y.eigidfe), roa: d(y.hagnadur, y.eignir),
-        veltufjar: d(y.veltufjarmunir, y.skammtimaskuldir), lausafjar: d(y.veltufjarmunir - (y.birgdir || 0), y.skammtimaskuldir),
-        eiginfjarhlutf: d(y.eigidfe, y.eignir), de: d(y.skuldir, y.eigidfe), vaxtathekja: d(ebit, Math.abs(y.fjarmagn || 0)),
-        eignavelta: d(y.tekjur, y.eignir),
-        tekjuvoxtur: p.tekjur ? y.tekjur / p.tekjur - 1 : null, hagnvoxtur: p.hagnadur ? y.hagnadur / p.hagnadur - 1 : null,
-        _ebitda: ebitda, _ebit: ebit,
-      };
-    }
-    // Raun-KPI (LOTA 99R): sækir scrapaðan ársreikning (RSK-PDF → JSON) og kortleggur á fjarhagur-snið (m.kr).
-    function fsMapArs(j) {
-      if (!j || !j.ar) return null;
-      const years = Object.keys(j.ar).sort().reverse();   // nýjast fyrst
-      if (!years.length) return null;
-      const rows = years.map((yr) => {
-        const a = j.ar[yr], kv = (a.kvardi || 1) / 1e6, r = a.rekstur, e = a.efnahagur;   // kv → milljónir myntar
-        const row = { ar: yr, _cur: (!a.mynt || a.mynt === 'ISK') ? 'm.kr' : ('m. ' + a.mynt), starfsmenn: (a.starfsmenn != null ? a.starfsmenn : null) };
-        // FORREIKNUÐ KPI úr þáttaranum (myntóháð hlutföll, réttar þrátt fyrir formerki/IFRS) — sitt hvor lyklanöfn
-        if (a.kpi) row._kpi = { framlegd: a.kpi.framlegd, rekstrarhlutf: a.kpi.ebit_hlutfall, hagnhlutf: a.kpi.hagnadarhlutfall,
-          roe: a.kpi.ROE, roa: a.kpi.ROA, eiginfjarhlutf: a.kpi.eiginfjarhlutfall, veltufjar: a.kpi.veltufjarhlutfall,
-          de: a.kpi.skuldahlutfall_DE, eignavelta: a.kpi.eignavelta, vaxtathekja: null, lausafjar: null, tekjuvoxtur: null, hagnvoxtur: null, _ebitda: null };
-        if (r) { row.tekjur = ((r.sala || 0) + (r.adrar_tekjur || 0)) * kv; row.hagnadur = (r.hagnadur || 0) * kv;
-          row.kostnadarverd = Math.abs(r.kostnadarverd || 0) * kv; row.rekstrargjold = Math.abs((r.annar_rekstur || 0) + (r.laun || 0)) * kv;
-          row.afskriftir = Math.abs(r.afskriftir || 0) * kv; row.fjarmagn = Math.abs(r.fjarmagnsgjold || 0) * kv; row.matsbreyting = (r.matsbreyting || 0) * kv; }
-        if (e) { row.eignir = (e.eignir || 0) * kv; row.eigidfe = (e.eigid_fe || 0) * kv; row.skuldir = (e.skuldir || 0) * kv;
-          row.veltufjarmunir = ((e.birgdir || 0) + (e.vidskiptakrofur || 0) + (e.handbaert || 0)) * kv;
-          row.birgdir = (e.birgdir || 0) * kv; row.vidskiptakrofur = (e.vidskiptakrofur || 0) * kv; row.handbaert = (e.handbaert || 0) * kv;
-          row.skammtimaskuldir = (e.skammtimaskuldir || 0) * kv; }
-        return row;
-      });
-      // Vöxtur (tekju-/hagnaðar-) reiknast úr fjölærs-gögnunum — þáttarinn skilar honum ekki (per-ár KPI úr einu PDF).
-      rows.forEach((row, i) => {
-        const p = rows[i + 1];   // fyrra ár (raðað nýjast-fyrst)
-        if (row._kpi && p) {
-          // aðeins marktækt frá JÁKVÆÐUM grunni (banka-rekstrarreikn. þáttast stundum í rusl/neikvæðar tekjur)
-          if (p.tekjur > 0 && row.tekjur > 0) row._kpi.tekjuvoxtur = row.tekjur / p.tekjur - 1;
-          if (p.hagnadur > 0) row._kpi.hagnvoxtur = row.hagnadur / p.hagnadur - 1;
-        }
-      });
-      return rows;
-    }
     async function fsFjarhagur(kt, owned) {
       const id = String(kt).replace(/\D/g, '');
       let missing = false;
@@ -1204,20 +1153,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       };
     }
     // Fjárhagsheilsa: vegin einkunn (0-100 + A-E) úr 4 stoðum (arðsemi/skuldsetning/lausafé/vöxtur)
-    function fsHealthScore(k) {
-      const nz = (v, lo, hi) => (v == null ? null : Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)));
-      const avg = (arr) => { const f = arr.filter((x) => x != null); return f.length ? f.reduce((a, b) => a + b, 0) / f.length : null; };
-      const ard = avg([nz(k.hagnhlutf, -0.02, 0.12), nz(k.roe, 0, 0.2)]);
-      const skuld = avg([nz(k.eiginfjarhlutf, 0.1, 0.55), nz(3 - Math.min(k.de == null ? 3 : k.de, 4), 0, 2.5)]);
-      const laus = nz(k.veltufjar, 0.7, 1.8);
-      const voxt = nz(k.tekjuvoxtur, -0.05, 0.15);
-      let t = 0, w = 0;
-      [[ard, 0.3], [skuld, 0.3], [laus, 0.2], [voxt, 0.2]].forEach((p) => { if (p[0] != null) { t += p[0] * p[1]; w += p[1]; } });
-      const score = w ? Math.round(t / w) : null;
-      const grade = score == null ? '–' : score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : score >= 35 ? 'D' : 'E';
-      const color = score == null ? '#6b7688' : score >= 65 ? '#42d086' : score >= 50 ? '#e8b84b' : '#ef6a6a';
-      return { score, grade, color, pillars: { ard, skuld, laus, voxt } };
-    }
     // 💪 Heilsu-stoðir: 4 míni-súlur á bak við hringinn (arðsemi/skuldsetning/lausafé/vöxtur, 0-100)
     function fsHealthBars(hs) {
       const p = (hs && hs.pillars) || {};
@@ -1233,8 +1168,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // Ein einkunn per skýrsla — kemur í stað gömlu „Fjárhagsheilsa"-hringsins (fsKpiHtml) og -raðar (KYC).
     let _lh = null;
     const FS_LH_ORDER = ['fjarhagur', 'aldur', 'skil', 'stada', 'vanskil', 'logbirting', 'sector', 'flakk', 'sanction'];
-    const FS_LH_SKALI = 'Einkunnaskali 0–100: A 80–100 mjög sterk · B 65–79 sterk · C 50–64 í meðallagi · D 35–49 veik · E 0–34 mjög veik. Grunnurinn er fjárhagsheilsa úr ársreikningi (arðsemi, skuldsetning, lausafé, vöxtur); áhættuþættir hnika henni upp eða niður.';
-    function fsLhGrade(s) { return s == null ? '–' : s >= 80 ? 'A' : s >= 65 ? 'B' : s >= 50 ? 'C' : s >= 35 ? 'D' : 'E'; }
     function fsLhColor(s) { return s == null ? '#6b7688' : s >= 65 ? '#42d086' : s >= 50 ? '#e8b84b' : '#ef6a6a'; }
     function fsLhScore() {
       if (!_lh || _lh.base == null) return null;
@@ -1259,7 +1192,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       _lh = { base: hs && hs.score != null ? hs.score : null, factors: {} };
       fsLhSet('fjarhagur', hs && hs.score != null
         ? { icon: '📊', label: 'Fjárhagsheilsa', txt: hs.score + '/100 · ' + hs.grade, base: true, status: hs.score >= 65 ? 'g' : hs.score >= 50 ? 'o' : 'b', tip: 'Grunnur matsins: vegin einkunn úr ársreikningi — arðsemi (30%), skuldsetning (30%), lausafé (20%), vöxtur (20%). ' + FS_LH_SKALI }
-        : { icon: '📊', label: 'Fjárhagsheilsa', txt: 'Enginn ársreikningur', base: true, status: 'n', tip: 'Enginn ársreikningur skráður — ekki hægt að reikna fjárhagslega einkunn; áhættuþættir birtast eftir sem áður. ' + FS_LH_SKALI });
+        // Tvær ólíkar ástæður fyrir engri einkunn — félagið á rétt á að vita hvor á við
+        : { icon: '📊', label: 'Fjárhagsheilsa', txt: k0 ? 'Efnahagsreikning vantar' : 'Enginn ársreikningur', base: true, status: 'n',
+          tip: (k0 ? 'Ársreikningur fannst en efnahagsreikningurinn (eignir, skuldir, eigið fé) þáttaðist ekki úr skjalinu — einkunn er ekki gefin út á rekstrartölum einum saman.'
+            : 'Enginn ársreikningur skráður — ekki hægt að reikna fjárhagslega einkunn; áhættuþættir birtast eftir sem áður.') + ' ' + FS_LH_SKALI });
       const yrs = fsLhAldur(f.skrad);
       if (yrs != null) fsLhSet('aldur', { icon: '🏛️', label: 'Starfsaldur', txt: yrs + ' ára' + (yrs >= 10 ? ' · rótgróið' : yrs < 2 ? ' · nýtt félag' : ''), delta: yrs >= 10 ? 4 : yrs >= 3 ? 2 : yrs < 2 ? -4 : 0, status: yrs >= 3 ? 'g' : yrs < 2 ? 'o' : 'n', tip: 'Starfsaldur frá skráningu í fyrirtækjaskrá. Rótgróin félög (10+ ára) +4, meðal (3–10) +2, ný (<2 ára) −4 — eldri rekstur er að jafnaði stöðugri.' });
       const late = fsLhSkilLate(f);
