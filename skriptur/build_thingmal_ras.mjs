@@ -68,21 +68,24 @@ async function main() {
   console.log(`RÁS-þingmál: ${todo.length} ný mál til flokkunar (af ${bills.length}).`);
 
   let client = null;
-  if (!DRY && todo.length) {
+  if (!DRY && todo.length && process.env.ANTHROPIC_API_KEY) {
     const p = await import('@anthropic-ai/sdk'); const Anthropic = p.Anthropic || p.default || p;
     client = new Anthropic();
+  } else if (!DRY && todo.length) {
+    console.log('  ANTHROPIC_API_KEY vantar — sleppi flokkun (EKKERT cache-að svo lyklalaus keyrsla eitri ekki cache-ið).');
   }
   for (const b of todo) {
-    let cls = null;
-    if (client) {
-      try {
-        const user = 'Titill: ' + (b.titill || '') + '\nTegund: ' + (b.teg || '') + '\nSamantekt: ' + (b.sam || '—');
-        const msg = await client.messages.create({ model: MODEL, max_tokens: 160, system: SYSTEM, messages: [{ role: 'user', content: user }] });
-        const blk = (msg.content || []).find((x) => x.type === 'text');
-        cls = blk ? parseRas(blk.text) : null;
-      } catch (e) { console.log('  villa', b.nr, e.message); }
-    }
-    cache[LTHING + '_' + b.nr] = cls || { none: true };
+    if (!client) break;   // lyklalaust/dry → ekkert skrifað í cache; bakað áfram úr því sem er til
+    let cls = null, villa = false;
+    try {
+      const user = 'Titill: ' + (b.titill || '') + '\nTegund: ' + (b.teg || '') + '\nSamantekt: ' + (b.sam || '—');
+      const msg = await client.messages.create({ model: MODEL, max_tokens: 160, system: SYSTEM, messages: [{ role: 'user', content: user }] });
+      const blk = (msg.content || []).find((x) => x.type === 'text');
+      cls = blk ? parseRas(blk.text) : null;
+    } catch (e) { villa = true; console.log('  villa', b.nr, e.message); }
+    if (cls) cache[LTHING + '_' + b.nr] = cls;
+    else if (!villa) cache[LTHING + '_' + b.nr] = { none: true };   // líkanið SVARAÐI en ekkert gilt = ekki-efnahagslegt
+    // API-villa → EKKI cache-að → reynt aftur næstu keyrslu (sama eitrunar-mynstur og lobbyvakt 27.7 annars)
   }
 
   // Baka projection inn í bills úr cache (öll mál, líka áður cache-uð).
