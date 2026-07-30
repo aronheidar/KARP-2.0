@@ -39,6 +39,14 @@ test('tónvísitala byggir á GREINDUM fréttum (hlutlausar þynna hana ekki)', 
   assert.equal(aggregateFirma(arr).sentiment.idx, 100);
 });
 
+test('neu fylgir og pos+neu+neg = stærð sýnisins („undefined hlutlausar" + NaN-súlur)', () => {
+  const r = aggregateFirma([it('A', 1), it('A', -1), it('A', 0), it('A', 0)]);
+  assert.equal(r.sentiment.neu, 2);
+  const tot = r.sentiment.pos + r.sentiment.neu + r.sentiment.neg;
+  assert.equal(tot, 4);                       // framendinn deilir með þessu
+  assert.ok(Number.isFinite(tot) && tot > 0); // aldrei NaN → súlubreiddir réttar
+});
+
 test('perDay reiknast af raunverulegum daga-glugga', () => {
   const arr = Array.from({ length: 90 }, () => it('A', 0));
   assert.equal(aggregateFirma(arr, { days: 180 }).stats.perDay, 0.5);

@@ -44,10 +44,14 @@ export function aggregateFirma(items, opts = {}) {
     .sort((a, b) => b.n - a.n)
     .map((b) => ({ s: b.s, n: b.n, scored: b.scored, idx: Math.max(-100, Math.min(100, Math.round((b.pos - b.neg) / b.scored * 100))) }));
   const perDay = days > 0 ? Math.round((list.length / days) * 10) / 10 : null;
+  // ⚠ `neu` VERÐUR að fylgja: framendinn reiknar tot = pos + neu + neg. Vantaði það varð
+  //   tot = NaN → féll í `|| 1` → súlubreiddir margfalt of stórar OG „undefined hlutlausar".
+  //   pos + neu + neg = STÆRÐ SÝNISINS (ekki `total`, sem getur verið hærra við þak).
+  const neu = list.length - pos - neg;
   return {
     total: list.length,
     capped: !!opts.capped,
-    sentiment: { idx, scored, pos, neg, bySource },
+    sentiment: { idx, scored, pos, neg, neu, bySource },
     stats: { sources, perDay, days, sourceCount: sources.length },
   };
 }
