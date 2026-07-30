@@ -1,7 +1,7 @@
 ---
 // /hjalp/ — „Þarftu aðstoð?" ticket-form. POST-ar á /api/hjalp (worker) sem
-// áframsendir á WP REST /karp/v1/hjalp → wp_mail á hjalp@karp.is (sama sendileið
-// og vaktirnar). Innskráðir fá nafn+netfang sjálffyllt úr loadUser() (netfang
+// sendir tölvupóst á hjalp@karp.is um sendGmail (F5 — WP-leiðin farin 30.7.2026).
+// Innskráðir fá nafn+netfang sjálffyllt úr loadUser() (netfang
 // aðeins ef /me-farmurinn skilar því — formið virkar líka án þess).
 // Fylgigögn með beiðninni: ?fra= (eða referrer), innskráningarstaða og vafri.
 // Spam-vörn framenda-megin: honeypot-reitur (#hj-hp) + lágmarkslengd lýsingar.

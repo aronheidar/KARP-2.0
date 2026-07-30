@@ -18,7 +18,6 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
     <p class="lv-note">⚠ Sjálfvirk túlkun með gervigreind — til glöggvunar, ekki lögfræðiráðgjöf. Staðfestu í frumtextanum.</p>
 
     <div id="lv-gate" hidden>
-      <p id="lv-gate-tier" hidden>Þessi vakt er hluti af <a href="/karp-pro/#verd">Fyrirtæki+</a> þrepinu.</p>
       <p id="lv-gate-login" hidden>Skráðu þig inn til að nota Lobbývaktina. <a id="lv-gate-login-a" href="/innskra/">Skráðu þig inn →</a></p>
       <p id="lv-gate-err" hidden>Náði ekki í Lobbývaktina — reyndu aftur síðar.</p>
     </div>
@@ -133,8 +132,8 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
   </style>
 
   <script>
-    // 🏛️ Lobbývakt — client-eyja: GET /api/lobbyvakt (Fyrirtæki+ gátt í workernum sjálfum — engin
-    // client-hlið hasTier()-forgátt hér, API-svarið (ok:false,error:'tier'|'login') er heimildin).
+    // 🏛️ Lobbývakt 2.0 — client-eyja: GET /api/lobbyvakt (login-only; þrepun kemur í SVARINU:
+    // {entitled, frettir, reglur} — óinnskráð fær {ok:false,error:'login'}, ALDREI 'tier' framar).
     // Greina-val vistast um POST /api/u/lobbyvakt-greinar (karpPost → /api/u + nonce sjálfkrafa).
     import { karpPost, loginHref } from '../lib/auth.js';
 
@@ -193,8 +192,6 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
         + '</article>';
     }
 
-    function renderFeed(items) { $('#lv-feed').innerHTML = (items || []).map(itemCard).join(''); }
-
     function newsCard(n) {
       const t = esc((n && n.title) || '');
       const href = esc((n && n.url) || '#');
@@ -238,7 +235,7 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
     function showGate(which) {
       $('#lv-gate').hidden = false;
       $('#lv-app').hidden = true;
-      ['tier', 'login', 'err'].forEach((k) => { const el = $('#lv-gate-' + k); if (el) el.hidden = k !== which; });
+      ['login', 'err'].forEach((k) => { const el = $('#lv-gate-' + k); if (el) el.hidden = k !== which; });
     }
 
     async function load() {

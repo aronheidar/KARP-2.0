@@ -2,11 +2,11 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
-import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
+import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib/emails.mjs';   // póst-sniðmát: skrá + yfirskriftir stjórnanda
-import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
+import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
@@ -423,14 +423,10 @@ async function spyrduHandler(request, env, ctx) {
   }
 }
 
-// 🆘 Hjálparbeiðnir (/hjalp/ ticket-formið) → tölvupóstur á hjalp@karp.is.
-// Workerinn getur ekki sent SMTP sjálfur → áframsendir á WP REST /karp/v1/hjalp
-// (karp-user.php) sem wp_mail-ar um FluentSMTP/Gmail — SAMA sendileið og vaktirnar.
-// Vörn hér (fyrsta lag): honeypot, gild gögn, 1 beiðni/mín + 8/dag per IP
-// (cache-byggt eins og spyrdu-dagskvótinn — gróft per-gagnaver en nóg gegn rusli).
-// WP-hlið (annað lag): X-Karp-Secret (KARP_GRANT_SECRET, sé það stillt) + eigin
-// honeypot/lengdar/transient-vörn. Sé WP-endapunkturinn ekki límdur enn → 'send'-villa
-// og formið bendir fólki á að senda beint á hjalp@karp.is (ekkert týnist hljóðlaust).
+// 🆘 Hjálparbeiðnir (/hjalp/ ticket-formið) → tölvupóstur á hjalp@karp.is um sendGmail
+// (Gmail API, F5 — WP-leiðin er farin). Vörn: honeypot, gild gögn, 1 beiðni/mín + 8/dag
+// per IP (cache-byggt eins og spyrdu-dagskvótinn — gróft per-gagnaver en nóg gegn rusli).
+// Bregðist sending → 'send'-villa og formið bendir á að senda beint á hjalp@karp.is.
 const HJALP_FLOKKAR = ['Greiðslur & áskrift', 'Innskráning & aðgangur', 'Villa í gögnum', 'Leiðrétting', 'Annað'];
 async function hjalpHandler(request, env, ctx) {
   if (request.method !== 'POST') return sjson({ error: 'post' }, 405);

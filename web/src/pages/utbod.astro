@@ -503,8 +503,8 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
         }).catch(() => { body.innerHTML = '<span class="dim">Náði ekki í vaktarstillingar.</span>'; });
       }).catch(() => {});
     }
-    // 🎯 Verktaka-prófíll (fit): velta, mannafli, vottorð/leyfi, tæki/sérhæfing → /verkprofil (karp-vaktpro.php).
-    // Skilar sjálfgildum þegar endapunkturinn er lifandi; null (404) = WPCode-líming ókomin → sleppa hljóðlega.
+    // 🎯 Verktaka-prófíll (fit): velta, mannafli, vottorð/leyfi, tæki/sérhæfing → /api/u/verkprofil
+    // (worker+D1, _U_BLOBS — WP-leiðin farin 30.7.2026). null → sleppa hljóðlega.
     function initVerkprofil(body) {
       karpGet('/verkprofil').then((pr) => {
         if (!pr || typeof pr.velta === 'undefined' || document.getElementById('uv-profil')) return;

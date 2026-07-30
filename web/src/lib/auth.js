@@ -1,12 +1,8 @@
-// auth.js — client-side auth fyrir Astro-appið (karp.is). #2 Á5.
+// auth.js — client-side auth fyrir Astro-appið (karp.is).
 // ---------------------------------------------------------------------------
-// Leysir af wp_head-sprautun mælaborðsins: sækir innskráningarstöðu frá WordPress
-// GET /me (kross-undirléns með credentials), setur window.KARP_USER (SAMA lögun og
-// á karp.is), og býður karpGet/karpPost með X-WP-Nonce.
-//
-// FORSENDA (þín infra, sjá Deploy-runbook): (1) deploya karp-user.php (GET /me + CORS),
-// (2) define('COOKIE_DOMAIN','.karp.is') í wp-config, (3) karp.is undirlén.
-// Þar til þetta er komið → /me skilar 404/engri lotu → allt sýnir „útskráð" (brotnar ekki).
+// 100% á Cloudflare-native auðkenningunni (F2): sækir innskráningarstöðu frá workernum
+// GET /api/auth/me (karp_session-kaka, D1), setur window.KARP_USER, og býður
+// karpGet/karpPost á /api/u/*. (WordPress-leiðin var kvödd 30.7.2026 — engin wp-json-slóð eftir.)
 
 // ATH: karp.is (apex, EKKI www) — WP-canonical hýsillinn þar sem innskráningar-kakan lifir.
 // Að sækja www hér skilar „útskráð" því kakan (host-only karp.is) berst ekki til www.
@@ -96,8 +92,7 @@ export async function freshMe() {
 
 function authHeaders(extra) {
   const h = Object.assign({ 'Content-Type': 'application/json' }, extra || {});
-  const n = window.KARP_USER && window.KARP_USER.nonce;
-  if (n) h['X-WP-Nonce'] = n; // WP REST cookie-auth CSRF
+  // (X-WP-Nonce fjarlægt 30.7.2026 — workerinn skilar aldrei nonce; CSRF-vörnin er karp_session-kakan sjálf.)
   return h;
 }
 
