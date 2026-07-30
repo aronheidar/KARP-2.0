@@ -10,6 +10,7 @@ import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS } fr
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
+import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -80,18 +81,6 @@ function extractVerdicts(html) {
 // Lykill er CF-secret (ANTHROPIC_API_KEY) — sé hann ósettur svarar veitan
 // {error:'unconfigured'} og framendinn birtir „í gangsetningu". 20 svör/dag/IP.
 let SPYRDU_CTX = null;
-const sjson = (obj, status) => new Response(JSON.stringify(obj), {
-  status: status || 200,
-  headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://karp.is' },
-});
-// ── Mini-RAG (LOTA 51): efnisorð spurningar → viðeigandi gogn-JSON úr ASSETS ──
-// (sama gagnaver, ekkert net — kostar ekkert). Hám. 2 blokkir per spurningu.
-const AUG_CACHE = {};
-async function augGet(env, file) {
-  if (AUG_CACHE[file] !== undefined) return AUG_CACHE[file];
-  try { AUG_CACHE[file] = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/' + file))).json(); } catch (e) { AUG_CACHE[file] = null; }
-  return AUG_CACHE[file];
-}
 // Fuzzy nafna-samsvörun sem þolir íslenskar beygingar — ber saman FORSKEYTI orða (6 stafir)
 // svo „Guðlaugi Þór Þórðarsyni" (þáguf.) passi við „Guðlaugur Þór Þórðarson" (nefnif.).
 function nmScore(ql, nafn) {
@@ -485,7 +474,6 @@ function dtQuery(fra, til) {
   P.set('timabil_fra', fra); P.set('timabil_til', til);
   return P.toString();
 }
-const ddmmyyyy = (d) => `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${d.getUTCFullYear()}`;
 async function greidslurHandler(ctx) {
   const cache = caches.default;
   const cacheKey = new Request('https://cache.karp.internal/api/greidslur');
@@ -1885,11 +1873,6 @@ async function stjornRequestHandler(request, env, ctx) {
 // ── /fyrirtaeki/<kt>/ — indexeranleg opinber félagssíða (worker-SSR, SEO) ──
 // Sækir byggða Astro-skel (skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
 // tókum út fyrir per-félag efni. Öll gögn koma úr fyrirtaekiHandler (RSK).
-const htmlEsc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const ktSep = (kt) => (/^\d{10}$/.test(kt) ? kt.slice(0, 6) + '-' + kt.slice(6) : String(kt || ''));
-const erLogadili = (kt) => /^\d{10}$/.test(kt) && +String(kt).slice(0, 2) >= 41 && +String(kt).slice(0, 2) <= 71;
-const isoDate = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : undefined; };
-const repAll = (h, t, v) => h.split(t).join(v);
 
 function orgJsonLd(f, kt, canonical) {
   const ld = { '@context': 'https://schema.org', '@type': 'Organization', name: f.nafn, identifier: kt, taxID: kt, url: canonical };
@@ -3200,9 +3183,6 @@ async function tengslanetHandler(request, env, ctx) {
 // Notendur/réttindi í D1 (env.TENGSL); lotur = undirritaðar HttpOnly-kökur (SESSION_SECRET).
 // F1: lykilorðs-auth ÁN póst-staðfestingar (email_verified=1 við nýskráningu). F5 bætir póst-verify.
 // ══════════════════════════════════════════════════════════════════════════
-const _te = new TextEncoder();
-const _b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const _fromB64 = (s) => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
 async function hashPassword(pw) {
   const salt = crypto.getRandomValues(new Uint8Array(16)), iter = 100000;
   const key = await crypto.subtle.importKey('raw', _te.encode(pw), 'PBKDF2', false, ['deriveBits']);
@@ -3217,11 +3197,6 @@ async function verifyPassword(pw, stored) {
     const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: _fromB64(saltS), iterations: +iterS, hash: 'SHA-256' }, key, 256);
     return _b64u(bits) === hashS;
   } catch (e) { return false; }
-}
-async function _hmac(env, msg) {
-  if (!env.SESSION_SECRET) throw new Error('SESSION_SECRET missing');   // fail-closed: ekkert giskanlegt fallback (annars mætti falsa lotu-köku)
-  const key = await crypto.subtle.importKey('raw', _te.encode(env.SESSION_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  return _b64u(await crypto.subtle.sign('HMAC', key, _te.encode(msg)));
 }
 async function makeSession(env, uid) {
   const body = uid + '.' + (Math.floor(Date.now() / 1000) + 60 * 86400);   // 60 daga gildi
@@ -3238,7 +3213,6 @@ async function readSession(env, request) {
   } catch (e) { return 0; }   // t.d. SESSION_SECRET vantar → engin lota (fail-closed)
 }
 const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
-const _ajson = (obj, extra = {}) => new Response(JSON.stringify(obj), { status: 200, headers: { 'content-type': 'application/json', ...extra } });
 // D1 notandi → KARP_USER-lögun (sama snið og WP /me skilaði svo auth.js þurfi engar breytingar á lögun).
 function userPayload(u, owner, now) {
   const base = { loginUrl: 'https://karp.is/innskra/', registerUrl: 'https://karp.is/nyskraning/', paywall: false };
@@ -3396,53 +3370,9 @@ async function authSaveKtHandler(request, env) {
 // Secret-gated: án GMAIL_CLIENT_ID/SECRET/REFRESH_TOKEN skilar sendGmail {unconfigured:true}
 // og kallendur falla mjúkt. Notað fyrir: gleymt-lykilorð (/api/auth/forgot+reset) og /api/hjalp.
 // ══════════════════════════════════════════════════════════════════════════
-const _esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const _tokenHex = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), (x) => x.toString(16).padStart(2, '0')).join('');
-const _b64std = (u8) => btoa(String.fromCharCode(...new Uint8Array(u8)));   // stöðluð base64 (encoded-word/MIME-body)
-async function _gmailToken(env) {
-  const r = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: env.GMAIL_CLIENT_ID, client_secret: env.GMAIL_CLIENT_SECRET, refresh_token: env.GMAIL_REFRESH_TOKEN, grant_type: 'refresh_token' }).toString(),
-  }).catch(() => null);
-  const d = r && (await r.json().catch(() => null));
-  return (d && d.access_token) || null;
-}
 // Póst-sniðmát: les yfirskriftir stjórnanda (stjorn_sync k='email_templates') og bræðir við sjálfgefið.
 // 60s minni-cache svo fan-out (digest/vaktir á marga notendur) valdi ekki D1-lestri per póst.
 // NULL-ÞOLIÐ: villa/vöntun → sjálfgefið sniðmát úr emails.mjs (hegðun ÓBREYTT).
-let _emailOv = null, _emailOvAt = 0;
-async function _emailTpl(env, id) {
-  const nowMs = Date.now();
-  if (!_emailOv || nowMs - _emailOvAt > 60000) {
-    try {
-      const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first();
-      const parsed = row && row.v ? JSON.parse(row.v) : {};
-      _emailOv = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
-    } catch (e) { _emailOv = _emailOv || {}; }
-    _emailOvAt = nowMs;
-  }
-  return resolveEmail(id, _emailOv) || resolveEmail(id, {});
-}
-async function sendGmail(env, { to, subject, html, text, replyTo, inReplyTo }) {
-  if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) return { ok: false, unconfigured: true };
-  const tok = await _gmailToken(env);
-  if (!tok) return { ok: false, error: 'token' };
-  const from = env.GMAIL_FROM || 'Karp <hjalp@karp.is>';
-  const bodyHtml = html || (text != null ? _esc(text).replace(/\n/g, '<br>') : '');
-  const lines = ['From: ' + from, 'To: ' + to];
-  if (replyTo) lines.push('Reply-To: ' + replyTo);
-  if (inReplyTo) { lines.push('In-Reply-To: ' + inReplyTo); lines.push('References: ' + inReplyTo); }   // þráður (hjalp-svör)
-  lines.push(
-    'Subject: =?UTF-8?B?' + _b64std(_te.encode(subject)) + '?=',
-    'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '',
-    _b64std(_te.encode(bodyHtml)).replace(/(.{76})/g, '$1\r\n'),
-  );
-  const raw = _b64u(_te.encode(lines.join('\r\n')));
-  const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-    method: 'POST', headers: { authorization: 'Bearer ' + tok, 'content-type': 'application/json' }, body: JSON.stringify({ raw }),
-  }).catch(() => null);
-  return (r && r.ok) ? { ok: true } : { ok: false, error: 'send', status: r ? r.status : 0 };
-}
 // Gleymt lykilorð — biður um endurstillingar-hlekk. Alltaf {ok:true} (engin notenda-upptalning).
 async function authForgotHandler(request, env, ctx) {
   if (request.method !== 'POST' || !env.TENGSL) return _ajson({ ok: true });
@@ -3832,13 +3762,6 @@ async function userDataHandler(request, env) {
 // ══════════════════════════════════════════════════════════════════════════
 // Les eigin static-eign (gogn/*.json) gegnum ASSETS-binding — EKKI HTTP self-subrequest
 // (sama-svæðis fetch endur-kallar workerinn og skilar tómu). Fellur á global fetch ef ASSETS vantar.
-async function _dget(env, path) {
-  try {
-    const req = new Request('https://karp.is' + path);
-    const r = (env && env.ASSETS) ? await env.ASSETS.fetch(req) : await fetch(req);
-    return r.ok ? await r.json() : null;
-  } catch (e) { return null; }
-}
 // Íslenskir fjölmiðla-RSS (port úr karp-frettir.php) — fullt fréttasafn f. digest-orðaleit.
 const NEWS_FEEDS = [
   ['https://www.mbl.is/feeds/fp/', 'mbl.is'], ['https://www.mbl.is/feeds/innlent/', 'mbl.is'], ['https://www.mbl.is/feeds/vidskipti/', 'mbl.is'],
@@ -3846,7 +3769,6 @@ const NEWS_FEEDS = [
   ['https://www.visir.is/rss/frettir', 'Vísir'], ['https://www.visir.is/rss/vidskipti', 'Vísir'],
   ['https://heimildin.is/rss/', 'Heimildin'], ['https://vb.is/rss/', 'Viðskiptablaðið'],
 ];
-const _cdata = (s) => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").trim();
 function _rssItems(xml, source) {
   const out = [];
   for (const b of String(xml).split(/<item[\s>]/i).slice(1)) {
@@ -4187,7 +4109,6 @@ async function burstStats(env) {
 // markaðir (Yahoo), orka (Landsnet), umferð (Vegagerðin). Leysir karp-frettir/
 // markadir/orka/umferd.php af hólmi svo síðurnar virki eftir WP-eyðingu.
 // ══════════════════════════════════════════════════════════════════════════
-const _fjson = (o, ttl) => new Response(JSON.stringify(o), { headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=' + (ttl || 600) } });
 // Frétta-safn: cron les RSS → D1 (dedup á slóð), grisjar > 90 daga.
 async function newsIngest(env) {
   if (!env.TENGSL) return { kept: 0 };
@@ -4694,7 +4615,7 @@ async function adminEmailHandler(request, env, ctx) {
     all[id] = Object.assign({}, all[id], patch);
   }
   await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('email_templates',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(all), now).run().catch(() => {});
-  _emailOv = all; _emailOvAt = Date.now();   // uppfæra cache STRAX svo næsti póstur noti nýja sniðmátið
+  _emailOvSet(all);   // uppfæra cache STRAX svo næsti póstur noti nýja sniðmátið
   ctx.waitUntil(_audit(env, byUid, null, b.reset ? 'email-reset' : 'email-edit', id));
   return _ajson({ ok: true, tpl: resolveEmail(id, all) });
 }
