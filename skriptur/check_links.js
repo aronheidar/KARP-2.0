@@ -29,6 +29,7 @@ for (const f of htmls) {
   const t = fs.readFileSync(f, 'utf8');
   const urls = [...new Set([...t.matchAll(/(?:href|src)="(\/[^"]*)"/g)].map((m) => m[1]))]
     .filter((u) => !u.startsWith('//') && !/^\/(api|wp-json)\//.test(u)) // worker-rútur ekki í dist
+    .filter((u) => !/^\/fyrirtaeki\/\d{6,10}[/-]?[\d-]*\/?(\?|#|$)/.test(u)) // fyrirtækjaprófílar eru worker-SSR fyrir HVAÐA kt sem er — aðeins hluti er í dist (falskt-jákvætt á ný þrotloka-kt, CI 30.7)
     .filter((u) => !u.includes('${')); // template-strengir í inline-JS = runtime-hlekkir
   for (const u of urls) {
     checked++;
