@@ -9,6 +9,11 @@ wordpress/karp-embed.html
 gogn/backfill*
 gogn/*.xlsx
 gogn/*.xlsm
+# UNDANÞÁGA: heimildaskjöl build_glaepir/build_atvinnuleysi ERU rakin svo CI geti keyrt þau
+# (án þeirra frjósa afbrot+atvinnuleysi — sjá karp-dev-verify). ~1 MB alls. Uppfærsla: hlaða
+# niður nýju skjali frá Ríkislögreglustjóra/Vinnumálastofnun yfir það gamla og pusha.
+!gogn/FJOLDI_BROTA*.xlsx
+!gogn/Talnagogn_atvinnuleysi.xlsm
 gogn/~$*
 gogn/Vaktarinn/
 gogn/*_cache.json
