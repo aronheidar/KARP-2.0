@@ -65,6 +65,12 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-recent" class="stj-kv"></div>
       </section>
 
+      <section class="stj-block" id="stj-emails-wrap" hidden>
+        <h2>✉️ Póstar sem kerfið sendir <span id="stj-emails-n" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
+        <p class="stj-note" style="margin:0 0 12px">Smelltu á póst til að skoða og breyta. Breytingar taka gildi strax á næsta pósti. <b>Sjálfgefinn texti helst</b> þar til þú vistar.</p>
+        <div id="stj-emails"></div>
+      </section>
+
       <section class="stj-block">
         <h2>🧾 Aðgerðaskrá <span style="color:var(--faint);font-size:12px;font-weight:400">— síðustu admin-aðgerðir</span></h2>
         <div id="stj-audit" class="stj-kv"></div>
@@ -147,6 +153,24 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-fn-bar i { display: block; height: 100%; background: var(--gold); border-radius: 7px; }
     .stj-fn-n { width: 86px; text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; padding-left: 10px; }
     .stj-fn-n small { color: var(--faint); }
+    .stj-em-grp { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin: 14px 0 6px; }
+    .stj-em { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+    .stj-em-hd { display: flex; align-items: center; gap: 10px; padding: 10px 13px; cursor: pointer; }
+    .stj-em-hd:hover { background: var(--panel); }
+    .stj-em-nm { font-weight: 600; color: var(--ink); font-size: 13.5px; }
+    .stj-em-sub { color: var(--muted); font-size: 12px; }
+    .stj-em-tag { margin-left: auto; font-size: 10.5px; padding: 2px 8px; border-radius: 999px; background: var(--panel); color: var(--faint); white-space: nowrap; }
+    .stj-em-tag.on { background: rgba(246,177,59,.16); color: var(--gold); }
+    .stj-em-body { padding: 0 13px 14px; border-top: 1px solid var(--line); }
+    .stj-em-body label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin: 12px 0 4px; }
+    .stj-em-body input[type=text], .stj-em-body textarea { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; color: var(--ink); font: inherit; font-size: 13px; padding: 7px 9px; resize: vertical; }
+    .stj-em-body textarea { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5; }
+    .stj-em-meta { font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 10px; }
+    .stj-em-meta code { background: var(--panel); padding: 1px 5px; border-radius: 4px; color: var(--gold); font-size: 11.5px; }
+    .stj-em-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+    .stj-em-err { color: #ef6a6a; font-size: 12.5px; }
+    .stj-em-prev { background: #fff; color: #222; border-radius: 8px; padding: 10px; margin-top: 8px; max-height: 260px; overflow: auto; }
+    .stj-em-prev pre { white-space: pre-wrap; font-family: inherit; margin: 0; font-size: 13px; }
     .stj-type { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; font: inherit; font-size: 12.5px; }
     .stj-type.stj-type-flash { outline: 2px solid #46e08a; }
     .stj-kv-row { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); }
@@ -365,6 +389,77 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         const what = e.kind === 'tier' ? ('Þrep: ' + esc(e.what || '')) : esc(SVC[e.what] || e.what);
         return `<div class="stj-kv-row"><span>${what} <span style="color:var(--faint)">· ${esc(e.email || '—')}</span></span><b style="font-weight:600;color:${days <= 7 ? '#f6b13b' : 'var(--muted)'}">eftir ${days} d</b></div>`;
       }).join('') : '<div class="stj-kv-empty">Ekkert rennur út næstu 30 daga. 🎉</div>';
+
+      // ✉️ Póst-skrá — allar tegundir sem kerfið sendir + ritill (yfirskriftir vistast í D1)
+      (function () {
+        const wrap = $('stj-emails-wrap'), host = $('stj-emails');
+        const list = ov.emails || [];
+        if (!wrap || !host || !list.length) { if (wrap) wrap.hidden = true; return; }
+        wrap.hidden = false;
+        const nBreytt = list.filter((e) => e.breytt).length;
+        $('stj-emails-n').textContent = '— ' + list.length + ' tegundir' + (nBreytt ? ' · ' + nBreytt + ' með eigin texta' : ' · allar sjálfgefnar');
+        const FIELD = { subject: 'Efnislína', html: 'Meginmál (HTML)', intro: 'Inngangur (á undan listanum)', footer: 'Fótur (á eftir listanum)' };
+        let html = '';
+        for (const grp of ['Auðkenning', 'Vaktir & yfirlit', 'Innri']) {
+          const items = list.filter((e) => e.hopur === grp);
+          if (!items.length) continue;
+          html += '<div class="stj-em-grp">' + esc(grp) + '</div>';
+          for (const e of items) {
+            const fields = (e.ritanlegt || ['subject']).map((f) => {
+              const val = e[f] == null ? '' : e[f];
+              const big = f !== 'subject';
+              return '<label>' + FIELD[f] + '</label>'
+                + (big ? '<textarea data-f="' + f + '" rows="' + (f === 'html' ? 9 : 3) + '">' + esc(val) + '</textarea>'
+                       : '<input type="text" data-f="' + f + '" value="' + esc(val) + '">');
+            }).join('');
+            const vars = (e.breytur || []).map((v) => '<code>{{' + esc(v) + '}}</code>').join(' ');
+            const krafist = (e.krafist || []).length ? '<div style="color:#f6b13b">⚠ Verður að innihalda ' + e.krafist.map((k) => '<code>{{' + esc(k) + '}}</code>').join(', ') + ' — annars virkar pósturinn ekki.</div>' : '';
+            const ekkiRit = e.flokkur === 'kvikur' && !(e.ritanlegt || []).includes('intro')
+              ? '<div>ⓘ Meginmálið er byggt sjálfkrafa úr gögnum — aðeins efnislínan er ritanleg.</div>' : '';
+            html += '<div class="stj-em" data-em="' + e.id + '">'
+              + '<div class="stj-em-hd" data-emtoggle="' + e.id + '"><span><span class="stj-em-nm">' + esc(e.label) + '</span><br><span class="stj-em-sub">' + esc(e.subject) + '</span></span>'
+              + '<span class="stj-em-tag' + (e.breytt ? ' on' : '') + '">' + (e.breytt ? '✎ eigin texti' : 'sjálfgefið') + '</span></div>'
+              + '<div class="stj-em-body" hidden>'
+              + '<div class="stj-em-meta"><b>Sendist:</b> ' + esc(e.hvenaer) + '<br><b>Viðtakandi:</b> ' + esc(e.vidtakandi)
+              + (vars ? '<br><b>Breytur:</b> ' + vars : '') + (e.ath ? '<br>ⓘ ' + esc(e.ath) : '') + krafist + ekkiRit + '</div>'
+              + fields
+              + '<div class="stj-em-actions"><button type="button" class="act" data-emsave="' + e.id + '">Vista</button>'
+              + '<button type="button" class="act" data-emprev="' + e.id + '">Forskoða</button>'
+              + (e.breytt ? '<button type="button" class="act" data-emreset="' + e.id + '">Endurstilla á sjálfgefið</button>' : '')
+              + '<span class="stj-em-err" data-emerr="' + e.id + '"></span></div>'
+              + '<div class="stj-em-prev" data-empv="' + e.id + '" hidden></div>'
+              + '</div></div>';
+          }
+        }
+        host.innerHTML = html;
+        if (host.dataset.wired) return; host.dataset.wired = '1';
+        const patchOf = (id) => { const o = {}; host.querySelectorAll('[data-em="' + id + '"] [data-f]').forEach((el) => { o[el.dataset.f] = el.value; }); return o; };
+        host.addEventListener('click', async (ev) => {
+          const tg = ev.target.closest('[data-emtoggle]');
+          if (tg) { const b = host.querySelector('[data-em="' + tg.dataset.emtoggle + '"] .stj-em-body'); if (b) b.hidden = !b.hidden; return; }
+          const pv = ev.target.closest('[data-emprev]');
+          if (pv) {   // forskoðun: fyllir breytur með sýnigildum svo textinn sjáist eins og hann fer út
+            const id = pv.dataset.emprev, p = patchOf(id), box = host.querySelector('[data-empv="' + id + '"]');
+            const demo = { hlekkur: 'https://karp.is/…', kt: '5411850389', nafn: 'Jón Jónsson', fjoldi: '3', lysing: '3 ný mál', flokkur: 'Reikningar' };
+            const fill = (s) => String(s || '').replace(/\{\{(\w+)\}\}/g, (m, k) => (demo[k] != null ? demo[k] : m));
+            box.hidden = false;
+            box.innerHTML = '<div style="font-weight:600;margin-bottom:6px">' + esc(fill(p.subject)) + '</div>'
+              + (p.html ? fill(p.html) : '<pre>' + esc([fill(p.intro), '• (dæmi um færslu úr gögnum)', fill(p.footer)].filter(Boolean).join('\n\n')) + '</pre>');
+            return;
+          }
+          const sv = ev.target.closest('[data-emsave]'), rs = ev.target.closest('[data-emreset]');
+          if (!sv && !rs) return;
+          const id = (sv || rs).dataset.emsave || (sv || rs).dataset.emreset;
+          const btn = sv || rs, errEl = host.querySelector('[data-emerr="' + id + '"]');
+          if (rs && !confirm('Endurstilla þennan póst á sjálfgefinn texta?')) return;
+          errEl.textContent = ''; const orig = btn.textContent; btn.disabled = true; btn.textContent = '…';
+          const body = rs ? { id, reset: true } : { id, patch: patchOf(id) };
+          const r = await fetch('/api/admin/email', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((x) => x.json()).catch(() => null);
+          btn.disabled = false; btn.textContent = orig;
+          if (r && r.ok) { btn.classList.add('done'); setTimeout(() => { btn.classList.remove('done'); boot(); }, 700); }
+          else errEl.textContent = (r && r.villa) ? r.villa : 'Villa — reyndu aftur.';
+        });
+      })();
 
       // 🧾 Aðgerðaskrá — síðustu admin-aðgerðir (audit)
       const aud = ov.audit || [];

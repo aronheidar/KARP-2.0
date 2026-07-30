@@ -4,6 +4,7 @@ import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk, SEVERITY_RANK as KYC_SEV } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
+import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib/emails.mjs';   // póst-sniðmát: skrá + yfirskriftir stjórnanda
 import { matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
@@ -460,7 +461,8 @@ async function hjalpHandler(request, env, ctx) {
     + '<p style="margin:4px 0"><b>Nafn:</b> ' + _esc(nafn) + '<br><b>Netfang:</b> ' + _esc(netfang) + '</p>'
     + '<p style="white-space:pre-wrap;border-left:3px solid #8a5e00;padding-left:12px;margin:14px 0">' + _esc(lysing) + '</p>'
     + '<p style="color:#999;font-size:12px">Frá: ' + _esc(fra || '—') + ' · innskráð: ' + (b.innskraning === true ? 'já' : 'nei') + ' · IP: ' + _esc(ip) + '</p></div>';
-  const r = await sendGmail(env, { to: env.HJALP_TO || 'hjalp@karp.is', replyTo: netfang, subject: '[Hjálp] ' + flokkur + ' — ' + nafn, html });
+  const htpl = await _emailTpl(env, 'hjalp');
+  const r = await sendGmail(env, { to: env.HJALP_TO || 'hjalp@karp.is', replyTo: netfang, subject: renderEmail(htpl.subject, { flokkur, nafn }), html });
   return r.ok ? sjson({ ok: true }) : sjson({ error: 'send' }, 502);
 }
 
@@ -2745,8 +2747,9 @@ async function kycCriticalCron(env) {
 }
 async function kycSendAlert(env, email, kt, crit) {
   const lines = crit.map((e) => '• ' + e.kind + (e.detail?.name ? ' — ' + e.detail.name : '')).join('\n');
-  const subject = 'Áreiðanleikavaktin: kritísk breyting (' + kt + ')';
-  const text = 'Kritísk vöktunar-breyting á vöktuðu félagi ' + kt + ':\n\n' + lines + '\n\nSkoðaðu möppuna: https://karp.is/areidanleikavaktin/?kt=' + kt;
+  const tpl = await _emailTpl(env, 'kyc_alert');
+  const subject = renderEmail(tpl.subject, { kt });
+  const text = renderEmail(tpl.intro, { kt }) + '\n\n' + lines + '\n\n' + renderEmail(tpl.footer, { kt });
   await sendGmail(env, { to: email, subject, text }); // sendGmail (worker.js:3247) er secret-gated: skilar {unconfigured:true} án Gmail-secrets, brotnar ekki.
 }
 
@@ -2792,9 +2795,10 @@ async function eftirlitCriticalCron(env) {
   for (const email of Object.keys(perEmail)) {
     const list = perEmail[email];
     const lines = list.map((d) => '• ' + (d.name || d.kt) + (d.street ? ' (' + d.street + ')' : '') + ' — féll úr ' + d.from + ' í ' + d.to + (d.ratingLabel ? ' (' + d.ratingLabel + ')' : '')).join('\n');
-    const subject = '🚨 Heilbrigðiseftirlit: ' + (list.length === 1 ? 'félag á vaktinni féll' : list.length + ' staðir á vaktinni féllu') + ' í einkunn 0-1';
-    const text = 'Eftirfarandi staðir á vaktinni þinni fengu einkunn 0-1 (stöðvun/takmörkun) í nýjasta heilbrigðiseftirliti Reykjavíkur:\n\n' + lines
-      + '\n\nSjá nánar: https://karp.is/eftirlit/\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/';
+    const tpl = await _emailTpl(env, 'eftirlit_crit');
+    const vars = { fjoldi: list.length, lysing: (list.length === 1 ? 'félag á vaktinni féll' : list.length + ' staðir á vaktinni féllu') };
+    const subject = renderEmail(tpl.subject, vars);
+    const text = renderEmail(tpl.intro, vars) + '\n\n' + lines + '\n\n' + renderEmail(tpl.footer, vars);
     const r = await sendGmail(env, { to: email, subject, text });
     if (r && r.ok) sent++;
   }
@@ -2851,10 +2855,10 @@ async function logbirtingCriticalCron(env) {
   for (const email of Object.keys(perEmail)) {
     const list = perEmail[email];
     const lines = list.map((h) => '• ' + h.nafn + ' — ' + h.teg + (h.dags ? ' (' + h.dags + ')' : '') + (h.domstoll ? ' · ' + h.domstoll : '')).join('\n');
-    const subject = '🚨 Lögbirting: ' + (list.length === 1 ? 'gjaldþrotamál á félagi á vaktinni' : list.length + ' gjaldþrotamál á félögum á vaktinni');
-    const text = 'Ný tilkynning í Lögbirtingablaðinu um félag á vaktinni þinni:\n\n' + lines
-      + '\n\nFerill málsins er á fyrirtækjaprófílnum: https://karp.is/fyrirtaeki/' + ((list[0] && list[0].kt) ? list[0].kt + '/' : '')
-      + '\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/';
+    const tpl = await _emailTpl(env, 'logbirting_crit');
+    const vars = { lysing: (list.length === 1 ? 'gjaldþrotamál á félagi á vaktinni' : list.length + ' gjaldþrotamál á félögum á vaktinni'), kt: ((list[0] && list[0].kt) ? list[0].kt : '') };
+    const subject = renderEmail(tpl.subject, vars);
+    const text = renderEmail(tpl.intro, vars) + '\n\n' + lines + '\n\n' + renderEmail(tpl.footer, vars);
     const r = await sendGmail(env, { to: email, subject, text });
     if (r && r.ok) sent++;
   }
@@ -3619,6 +3623,22 @@ async function _gmailToken(env) {
   const d = r && (await r.json().catch(() => null));
   return (d && d.access_token) || null;
 }
+// Póst-sniðmát: les yfirskriftir stjórnanda (stjorn_sync k='email_templates') og bræðir við sjálfgefið.
+// 60s minni-cache svo fan-out (digest/vaktir á marga notendur) valdi ekki D1-lestri per póst.
+// NULL-ÞOLIÐ: villa/vöntun → sjálfgefið sniðmát úr emails.mjs (hegðun ÓBREYTT).
+let _emailOv = null, _emailOvAt = 0;
+async function _emailTpl(env, id) {
+  const nowMs = Date.now();
+  if (!_emailOv || nowMs - _emailOvAt > 60000) {
+    try {
+      const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first();
+      const parsed = row && row.v ? JSON.parse(row.v) : {};
+      _emailOv = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+    } catch (e) { _emailOv = _emailOv || {}; }
+    _emailOvAt = nowMs;
+  }
+  return resolveEmail(id, _emailOv) || resolveEmail(id, {});
+}
 async function sendGmail(env, { to, subject, html, text, replyTo, inReplyTo }) {
   if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) return { ok: false, unconfigured: true };
   const tok = await _gmailToken(env);
@@ -3651,8 +3671,8 @@ async function authForgotHandler(request, env, ctx) {
     const token = _tokenHex();
     await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
     const link = 'https://karp.is/endurstilla/?token=' + token;
-    const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Endurstilla lykilorð</h2><p>Þú (eða einhver) baðst um að endurstilla lykilorðið á Karp-aðgangi þínum.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Velja nýtt lykilorð</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í eina klukkustund. Baðstu ekki um þetta? Hunsaðu póstinn — lykilorðið breytist ekki.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
-    ctx.waitUntil(sendGmail(env, { to: u.email, subject: 'Endurstilla lykilorð á Karp', html }));
+    const t = await _emailTpl(env, 'reset');
+    ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) }));
   }
   return _ajson({ ok: true });
 }
@@ -3677,8 +3697,8 @@ async function _sendVerifyEmail(env, userId, email, now) {
   await env.TENGSL.prepare("DELETE FROM auth_tokens WHERE user_id=? AND kind='verify'").bind(userId).run().catch(() => {});
   await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, userId, 'verify', now + 86400).run().catch(() => {});
   const link = 'https://karp.is/api/auth/verify?token=' + token;
-  const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Staðfestu netfangið þitt</h2><p>Velkomin í Karp! Smelltu á hnappinn til að virkja aðganginn þinn.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Staðfesta netfang</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í 24 klukkustundir. Nýskráðir þú þig ekki? Hunsaðu þennan póst.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
-  return sendGmail(env, { to: email, subject: 'Staðfestu netfangið þitt á Karp', html });
+  const t = await _emailTpl(env, 'verify');   // sniðmát stjórnanda (eða sjálfgefið); {{hlekkur}} er skyldu-varin
+  return sendGmail(env, { to: email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) });
 }
 // GET-hlekkur úr staðfestingar-pósti → staðfestir netfang, skráir inn og sendir á Mitt svæði.
 async function authVerifyHandler(request, env) {
@@ -4136,7 +4156,9 @@ export async function frettavaktCron(env) {
       if (!matches.length) continue;
       const u = await env.TENGSL.prepare('SELECT email, name FROM users WHERE id=?').bind(row.user_id).first().catch(() => null);
       if (!u || !u.email) continue;
-      const r = await sendGmail(env, { to: u.email, subject: `🔔 Fréttavakt: ${matches.length === 1 ? '1 nýtt mál' : matches.length + ' ný mál'}`, html: frettavaktEmail(matches) });
+      const ftpl = await _emailTpl(env, 'frettavakt');
+      const fvars = { fjoldi: matches.length, lysing: (matches.length === 1 ? '1 nýtt mál' : matches.length + ' ný mál') };
+      const r = await sendGmail(env, { to: u.email, subject: renderEmail(ftpl.subject, fvars), html: frettavaktEmail(matches) });
       if (!r.ok) continue;                                       // óstillt/villa → reyna aftur næst (ekki uppfæra stöðu)
       const seen = [...matches.map((m) => m.id), ...(sub.seenIds || [])].slice(0, SEEN_CAP);
       await _prefSet(env, row.user_id, 'frettavakt', Object.assign({}, sub, { seenIds: seen, lastSent: now }));
@@ -4340,7 +4362,8 @@ async function digestRun(env) {
     const html = digestBuild(u.name, pr, sh);
     if (!html) continue;
     built++;
-    const r = await sendGmail(env, { to: u.email, subject: '🐟 Vikuyfirlitið þitt á Karp', html });
+    const dtpl = await _emailTpl(env, 'digest');
+    const r = await sendGmail(env, { to: u.email, subject: renderEmail(dtpl.subject, { nafn: u.name || '' }), html });
     gmail = r;
     if (r && r.ok) sent++;
     if (r && r.ok && lobbyNew.length) {   // merkja aðeins birt mál sem seen (og aðeins ef pósturinn fór) — annars birtast þau aftur næst
@@ -4739,6 +4762,8 @@ async function adminOverviewHandler(request, env) {
   // Innri nótur (per notanda-id) + audit-skrá (síðustu admin-aðgerðir) úr stjorn_sync.
   const _notesRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='notes'").first().catch(() => null);
   let notes = {}; try { notes = JSON.parse((_notesRow && _notesRow.v) || '{}'); if (typeof notes !== 'object' || Array.isArray(notes)) notes = {}; } catch (e) { notes = {}; }
+  const _emailRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first().catch(() => null);
+  let emailOv = {}; try { emailOv = JSON.parse((_emailRow && _emailRow.v) || '{}'); if (!emailOv || typeof emailOv !== 'object' || Array.isArray(emailOv)) emailOv = {}; } catch (e) { emailOv = {}; }
   const _auditRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='audit'").first().catch(() => null);
   let audit = []; try { audit = JSON.parse((_auditRow && _auditRow.v) || '[]'); if (!Array.isArray(audit)) audit = []; } catch (e) { audit = []; }
   audit = audit.slice(-50).reverse();
@@ -4760,6 +4785,11 @@ async function adminOverviewHandler(request, env) {
     mrrHistory,
     notes,
     audit,
+    // Póst-skrá: skilgreining hverrar tegundar + NÚGILDANDI sniðmát (sjálfgefið eða yfirskrifað).
+    emails: EMAIL_TYPES.map((t) => Object.assign(
+      { id: t.id, label: t.label, hopur: t.hopur, flokkur: t.flokkur, hvenaer: t.hvenaer, vidtakandi: t.vidtakandi, ritanlegt: t.ritanlegt, breytur: t.breytur, krafist: t.krafist, ath: t.ath || '' },
+      resolveEmail(t.id, emailOv),
+    )),
   });
 }
 // Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.
@@ -4808,8 +4838,8 @@ async function adminUserHandler(request, env, ctx) {
     const token = _tokenHex();
     await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
     const link = 'https://karp.is/endurstilla/?token=' + token;
-    const html = '<div style="font-family:system-ui,Arial,sans-serif;max-width:480px;margin:auto;color:#222"><h2 style="color:#8a5e00;margin:0 0 12px">Endurstilla lykilorð</h2><p>Stjórnandi Karp bjó til hlekk til að endurstilla lykilorðið á aðgangi þínum.</p><p style="margin:22px 0"><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Velja nýtt lykilorð</a></p><p style="color:#666;font-size:13px">Hlekkurinn gildir í eina klukkustund.</p><p style="color:#999;font-size:12px;margin-top:24px">karp.is</p></div>';
-    ctx.waitUntil(sendGmail(env, { to: u.email, subject: 'Endurstilla lykilorð á Karp', html }));
+    const t = await _emailTpl(env, 'reset_admin');
+    ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) }));
     return _ajson({ ok: true });
   }
   if (action === 'test') {
@@ -4829,6 +4859,32 @@ async function adminUserHandler(request, env, ctx) {
     return _ajson({ ok: true });
   }
   return _ajson({ ok: false, error: 'action' });
+}
+// Stjórnborð: póst-sniðmát. GET-hlutinn kemur í /api/admin/overview; hér er VISTUN/ENDURSTILLING.
+// body: { id, patch:{subject?,html?,intro?,footer?} } eða { id, reset:true }. Gátað með validateEmail
+// (m.a. skyldu-breytur eins og {{hlekkur}}) svo ritvilla brjóti ekki nýskráningu/lykilorðs-endurheimt.
+async function adminEmailHandler(request, env, ctx) {
+  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
+  const byUid = await _isAdmin(env, request);
+  if (!byUid) return _ajson({ ok: false, error: 'admin' });
+  const b = (await request.json().catch(() => null)) || {};
+  const id = String(b.id || '');
+  if (!id) return _ajson({ ok: false, error: 'input' });
+  const now = Math.floor(Date.now() / 1000);
+  const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first().catch(() => null);
+  let all = {}; try { all = JSON.parse((row && row.v) || '{}'); if (!all || typeof all !== 'object' || Array.isArray(all)) all = {}; } catch (e) { all = {}; }
+  if (b.reset) { delete all[id]; }
+  else {
+    const patch = (b.patch && typeof b.patch === 'object') ? b.patch : null;
+    if (!patch) return _ajson({ ok: false, error: 'input' });
+    const v = validateEmail(id, patch);
+    if (!v.ok) return _ajson({ ok: false, error: 'validation', villa: v.villa });
+    all[id] = Object.assign({}, all[id], patch);
+  }
+  await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('email_templates',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(all), now).run().catch(() => {});
+  _emailOv = all; _emailOvAt = Date.now();   // uppfæra cache STRAX svo næsti póstur noti nýja sniðmátið
+  ctx.waitUntil(_audit(env, byUid, null, b.reset ? 'email-reset' : 'email-edit', id));
+  return _ajson({ ok: true, tpl: resolveEmail(id, all) });
 }
 // Stjórnborð: ræsir daglegu gagna-uppfærslu-pípuna (refresh-data.yml) á EFTIRSPURN — repository_dispatch
 // (sama mynstur og on-demand ársreikningar). event_name != schedule → þvingar líka vikulegu veiturnar (kvóti).
@@ -4953,6 +5009,7 @@ export default {
     if (url.pathname === '/api/admin/set-type') return adminSetTypeHandler(request, env);   // stjórnborð S1: setja notanda-tegund (admin/free/user/nemandi)
     if (url.pathname === '/api/admin/user') return adminUserHandler(request, env, ctx);   // stjórnborð: aðgangs-veiting + stuðningur + prufu-flagg per notanda
     if (url.pathname === '/api/admin/refresh') return adminRefreshHandler(request, env, ctx);   // stjórnborð: ræsa gagna-uppfærslu (refresh-data.yml)
+    if (url.pathname === '/api/admin/email') return adminEmailHandler(request, env, ctx);   // stjórnborð: vista/endurstilla póst-sniðmát
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
