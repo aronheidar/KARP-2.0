@@ -4,6 +4,13 @@
 import { _prefSet, accountOwner } from './auth.mjs';
 import { _cdata, _dget, _emailTpl, _esc, _fjson, sendGmail } from './felag.mjs';
 import { _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, computeGreinRank, newsSince } from './veitur.mjs';
+import { renderEmail } from '../lib/emails.mjs';
+import { aggregateFirma } from '../lib/firma-greining.mjs';
+import { CAT } from '../lib/frettavel-cat.mjs';
+import { matchItem, matchKeyword, newSince } from '../lib/lobbyvakt.mjs';
+import { byggMatch, criticalDrop, criticalNotice, noticeRef, rankMovement, ratingMovement } from '../lib/vaktir-signals.mjs';
+import { augGet } from './felag.mjs';
+import { _searchVariants } from './veitur.mjs';
 
 export async function kycDiffCron(env) {
   const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);
@@ -406,7 +413,7 @@ const _SENT_NEG = ['tap', 'gjaldþrot', 'uppsögn', 'uppsagn', 'samdrátt', 'læ
 
 function _tone(title) { const t = String(title).toLowerCase(); let p = 0, n = 0; for (const w of _SENT_POS) if (t.includes(w)) p++; for (const w of _SENT_NEG) if (t.includes(w)) n++; return p - n; }
 // /api/firma?q=nafn[,samheiti]&days= → { ready, total, items, timeline:[{d,n,idx}], sentiment:{idx,scored,pos,neg} }
-async function firmaHandler(request, env) {
+export async function firmaHandler(request, env) {
   const url = new URL(request.url);
   const q = String(url.searchParams.get('q') || '').trim();
   const days = Math.min(+(url.searchParams.get('days') || 365) || 365, 365);

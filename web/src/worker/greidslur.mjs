@@ -3,6 +3,7 @@
 
 import { _acctOfUid, grantReportD1, grantSubD1, readSession, trialUsedD1 } from './auth.mjs';
 import { sjson } from './felag.mjs';
+import { karpUserId } from './auth.mjs';
 
 async function teyaHmacHex(secret, msg) {
   const enc = new TextEncoder();
@@ -22,9 +23,6 @@ function teyaConfigured(env) { return !!(env.TEYA_MERCHANT_ID && env.TEYA_GATEWA
 // Auðkennir kaupanda: framsendir innskráningar-kökuna á WP /me → WP userid (0 ef óinnskráð/villa).
 // Kakan lifir á .karp.is (COOKIE_DOMAIN) svo hún berst til worker-sins með credentials:'include'.
 // F4: notanda-auðkenni úr WORKER-lotu (karp_session, D1) — leysir WP /me af hólmi.
-async function karpUserId(request, env) {
-  return await readSession(env, request);
-}
 
 async function trialUsedFor(env, uid, kind, slug) {   // F4: prufuvörn úr D1 (ekki WP)
   return await trialUsedD1(env, uid, kind, slug);

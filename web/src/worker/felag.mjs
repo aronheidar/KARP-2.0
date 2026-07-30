@@ -1,6 +1,7 @@
 // felag.mjs — klofið úr worker.js 30.7.2026 (úttekt C10). Föllin eru ÓBREYTT;
 // aðeins flutt milli skráa + import/export bætt við. Sjá docs/uttekt/2026-07-30-worker-klofningur-aaetlun.md
 
+import { resolveEmail } from '../lib/emails.mjs';
 export const sjson = (obj, status) => new Response(JSON.stringify(obj), {
   status: status || 200,
   headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': 'https://karp.is' },
@@ -8,7 +9,7 @@ export const sjson = (obj, status) => new Response(JSON.stringify(obj), {
 // ── Mini-RAG (LOTA 51): efnisorð spurningar → viðeigandi gogn-JSON úr ASSETS ──
 // (sama gagnaver, ekkert net — kostar ekkert). Hám. 2 blokkir per spurningu.
 const AUG_CACHE = {};
-async function augGet(env, file) {
+export async function augGet(env, file) {
   if (AUG_CACHE[file] !== undefined) return AUG_CACHE[file];
   try { AUG_CACHE[file] = await (await env.ASSETS.fetch(new Request('https://karp.internal/gogn/' + file))).json(); } catch (e) { AUG_CACHE[file] = null; }
   return AUG_CACHE[file];

@@ -2,6 +2,8 @@
 // aðeins flutt milli skráa + import/export bætt við. Sjá docs/uttekt/2026-07-30-worker-klofningur-aaetlun.md
 
 import { _ajson, _b64u, _emailTpl, _fromB64, _hmac, _te, _tokenHex, sendGmail } from './felag.mjs';
+import { accountId, tierFields } from '../lib/account.mjs';
+import { renderEmail } from '../lib/emails.mjs';
 
 export const _freeAll = (u) => !!(u && (u.is_admin === 1 || u.free_access === 1));
 
@@ -55,7 +57,7 @@ export function userPayload(u, owner, now) {
 }
 
 export const REPORT_QUOTA = { grunnur: 4, fyrirtaeki: 10, fyrirtaeki_plus: 20 };   // stakar skýrslur/mán per þrep
-async function authMeHandler(request, env) {
+export async function authMeHandler(request, env) {
   const uid = await readSession(env, request);
   if (!uid || !env.TENGSL) return _ajson(userPayload(null));
   const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
@@ -311,4 +313,8 @@ async function _pendingInvite(env, u, now) {
 export async function _prefSet(env, uid, k, obj) {
   await env.TENGSL.prepare('INSERT INTO user_prefs (user_id,k,v,updated) VALUES (?,?,?,?) ON CONFLICT(user_id,k) DO UPDATE SET v=excluded.v, updated=excluded.updated')
     .bind(uid, k, JSON.stringify(obj), Math.floor(Date.now() / 1000)).run().catch(() => {});
+}
+
+export async function karpUserId(request, env) {
+  return await readSession(env, request);
 }

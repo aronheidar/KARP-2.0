@@ -3,6 +3,15 @@
 
 import { _freeAll, _prefGet, accountOwner, readSession, userPayload } from './auth.mjs';
 import { _ajson, _emailTpl, sendGmail, sjson } from './felag.mjs';
+import { accountId } from '../lib/account.mjs';
+import { herfindahl, sectorForIsat, sectorsFromMap, toppNShare } from '../lib/atvinnugrein.mjs';
+import { renderEmail } from '../lib/emails.mjs';
+import { GREINAR, greinaSql } from '../lib/greinar.mjs';
+import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
+import { feedFor, matchNews } from '../lib/lobbyvakt.mjs';
+import { traceUbo as kycTraceUbo } from '../lib/ubo-core.mjs';
+import { augGet } from './felag.mjs';
+import { karpUserId } from './auth.mjs';
 
 export const RSK_ROT = 'https://www.skatturinn.is';
 
@@ -179,7 +188,7 @@ async function kycScreenKt(env, kt) {
 
 const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'skil', 'tax', 'media'];
 
-const _kycGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
+export const _kycGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
 
 const _kycWatchCap = (u, now) => (_freeAll(u) ? -1 : (u.tier === 'fyrirtaeki_plus' && u.tier_until > now ? 100 : 0));
 
@@ -425,7 +434,7 @@ export async function loftforHandler(request, env, ctx) {
 
 export function rskErFyrirtaeki(kt) { const dd = parseInt(String(kt).slice(0, 2), 10); return dd >= 41 && dd <= 71; }
 // ⚠ APIð skilar PascalCase ("NationalId","Deregistration"…) þótt skjölin sýni camelCase → case-óháð lesning.
-function rg(o, name) {
+export function rg(o, name) {
   if (!o || typeof o !== 'object') return undefined;
   if (name in o) return o[name];
   const lo = name.toLowerCase();
@@ -803,7 +812,7 @@ export async function newsSince(env, days, limit) {
 const _ISUF = ['innar', 'arnir', 'irnir', 'inum', 'anum', 'anna', 'unum', 'inni', 'ana', 'ins', 'ans', 'nir', 'nar', 'num', 'inn', 'in', 'ið', 'ur', 'ns', 'na', 'um', 's', 'i', 'a'];
 
 export function _isStem(lc) { if (/\s/.test(lc) || lc.length < 7) return null; for (const suf of _ISUF) { if (lc.endsWith(suf) && lc.length - suf.length >= 5) return lc.slice(0, -suf.length); } return null; }
-function _searchVariants(t) {
+export function _searchVariants(t) {
   const lc = String(t).toLowerCase().trim();
   if (lc.length < 3) return [];
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -812,4 +821,41 @@ function _searchVariants(t) {
   const st = _isStem(lc);
   if (st && st.length >= 5 && st !== lc) for (const s of (cap(st) !== st ? [st, cap(st)] : [st])) { pats.add('% ' + s + '%'); pats.add(s + '%'); }
   return [...pats];
+}
+
+export function maskaKortSvar(out) {
+  if (!out || !out.holdur) return out;
+  const krossar = (out.krossar || []).map((p, i) => ({ token: 'E' + (i + 1), maskad: true, felog: p.felog || [] }));
+  return { ...out, krossar, kort: true };
+}
+
+export async function tengslGrunnurEnrich(env, out, rotKt) {
+  if (!env || !env.TENGSL || !out || !out.holdur) { if (out && out.stjornendur) for (const p of out.stjornendur) delete p._kt; return out; }
+  const rkt = String(rotKt || '').replace(/\D/g, '');
+  for (const p of (out.stjornendur || [])) {
+    const pkt = p._kt; delete p._kt;
+    if (!pkt) continue;
+    try {
+      const q = await env.TENGSL.prepare(
+        "SELECT h.felag_kt AS kt, f.nafn AS nafn, h.hlutverk AS hlutverk FROM hlutverk h JOIN felog f ON f.kt=h.felag_kt WHERE h.person_key=? AND h.seen_last IS NULL AND h.felag_kt<>? LIMIT 40"
+      ).bind(pkt, rkt).all();
+      const rows = (q && q.results) || [];
+      const have = new Set((p.onnur || []).map((o) => o.kt));
+      for (const r of rows) {
+        if (have.has(r.kt)) { const ex = p.onnur.find((o) => o.kt === r.kt); if (ex) ex.grunnur = true; continue; }
+        (p.onnur = p.onnur || []).push({ kt: r.kt, nafn: r.nafn, hlutverk: r.hlutverk || '', grunnur: true });
+        have.add(r.kt);
+      }
+      p.onnur = (p.onnur || []).slice(0, 30);
+    } catch (e) {}
+  }
+  return out;
+}
+
+export function topplistaBody(rows, entitled, total) {
+  return entitled ? { radir: rows, total, locked: false } : { radir: rows.slice(0, 3), total, locked: true };
+}
+
+export function topplistaEntitled(urow, nowSec) {
+  return !!(urow && (_freeAll(urow) || (urow.tier && urow.tier_until > nowSec)));
 }

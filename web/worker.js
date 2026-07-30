@@ -15,6 +15,13 @@ import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatch
 import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payCheckoutHandler, payReturnHandler, stakCheckoutHandler, stakConfirmHandler, sub2CheckoutHandler, sub2ConfirmHandler, subCancelHandler } from './src/worker/greidslur.mjs';
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
+import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
+import { augGet } from './src/worker/felag.mjs';
+import { _kycGate, _searchVariants, rg } from './src/worker/veitur.mjs';
+import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
+import { firmaHandler } from './src/worker/cron.mjs';
+import { _isAdmin } from './src/worker/stjornbord.mjs';
+export { maskaKortSvar, tengslGrunnurEnrich, topplistaBody, topplistaEntitled } from './src/worker/veitur.mjs';   // endur-export: prófin flytja inn úr worker.js
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
 // fyrir lifandi gögn sem hafa ekki CORS fyrir karp.is. Skyndiminni í caches.default.
 const PROXIES = {
@@ -1681,11 +1688,6 @@ async function logbirtingHandler(request, env, ctx) {
 // hlutverk í ≥2 net-félögum EN EKKI í rótinni → fjarlægir aðilar. Nöfn þeirra eru
 // KLIPPT ÚR svarinu (fara aldrei í vafrann); þeir bera aðeins stöðugt token 'E'+n.
 // Félög (lögaðilar) og rót-fyrirsvar (stjornendur) halda nöfnum — sama KYC-gildi og listinn.
-export function maskaKortSvar(out) {
-  if (!out || !out.holdur) return out;
-  const krossar = (out.krossar || []).map((p, i) => ({ token: 'E' + (i + 1), maskad: true, felog: p.felog || [] }));
-  return { ...out, krossar, kort: true };
-}
 
 // 🔀 RSK-proxy (LOTA — tengslagrunnur): Cloudflare-worker-egress er EKKI throttlað af
 // www.skatturinn.is við magn (sannreynt: 32/40 köll m/≥100 treff, ekkert cutoff — öfugt við
@@ -1699,38 +1701,10 @@ export function maskaKortSvar(out) {
 // 🕸️ Landsdekkandi auðgun úr tengslagrunni (D1). Null-þolið: án env.TENGSL → óbreytt.
 // Bætir landsvísu-félögum rót-tengds fólks í onnur[]. Persónu-kt (out.stjornendur[]._kt,
 // server-hlið eingöngu) er notað sem D1-lykill og STRIPPAÐ hér áður en svarið fer út.
-export async function tengslGrunnurEnrich(env, out, rotKt) {
-  if (!env || !env.TENGSL || !out || !out.holdur) { if (out && out.stjornendur) for (const p of out.stjornendur) delete p._kt; return out; }
-  const rkt = String(rotKt || '').replace(/\D/g, '');
-  for (const p of (out.stjornendur || [])) {
-    const pkt = p._kt; delete p._kt;
-    if (!pkt) continue;
-    try {
-      const q = await env.TENGSL.prepare(
-        "SELECT h.felag_kt AS kt, f.nafn AS nafn, h.hlutverk AS hlutverk FROM hlutverk h JOIN felog f ON f.kt=h.felag_kt WHERE h.person_key=? AND h.seen_last IS NULL AND h.felag_kt<>? LIMIT 40"
-      ).bind(pkt, rkt).all();
-      const rows = (q && q.results) || [];
-      const have = new Set((p.onnur || []).map((o) => o.kt));
-      for (const r of rows) {
-        if (have.has(r.kt)) { const ex = p.onnur.find((o) => o.kt === r.kt); if (ex) ex.grunnur = true; continue; }
-        (p.onnur = p.onnur || []).push({ kt: r.kt, nafn: r.nafn, hlutverk: r.hlutverk || '', grunnur: true });
-        have.add(r.kt);
-      }
-      p.onnur = (p.onnur || []).slice(0, 30);
-    } catch (e) {}
-  }
-  return out;
-}
 
 // 📊 Topplistar fyrirtækja (Karp+-læst). Pure gátun: entitled → fullt; annars topp-3 agn.
-export function topplistaBody(rows, entitled, total) {
-  return entitled ? { radir: rows, total, locked: false } : { radir: rows.slice(0, 3), total, locked: true };
-}
 // _freeAll: notandi fær ALLT frítt — admin (panel+frítt) EÐA free_access (frítt en ekki admin). Aðeins réttinda-gátt, EKKI panel.
 // pure: réttindi = admin EÐA virk Karp+-áskrift (tier og ekki útrunnið). nowSec = Unix-sekúndur.
-export function topplistaEntitled(urow, nowSec) {
-  return !!(urow && (_freeAll(urow) || (urow.tier && urow.tier_until > nowSec)));
-}
 
 // ── 🏢 Atvinnugreinar v1 — gátuð djúp-skýrsla per ÍSAT-deild (Fyrirtæki+) ─────────────────────
 // GET /api/atvinnugrein?slug=<grein> → röðuð stærstu félög + samþjöppun LIFANDI úr D1 (felog⋈fjarhagur),
@@ -2375,288 +2349,18 @@ async function umferdHandler(request, env, ctx) {
 // STJÓRNBORÐ (admin-bakendi karp.is) — S1: yfirlit notenda/áskrifta/skýrslna/tekna.
 // Admin-gátað (users.is_admin). Hýbríð: agentarnir keyra á Node en lesa sömu D1.
 // ══════════════════════════════════════════════════════════════════════════
-async function _isAdmin(env, request) {
-  const uid = await readSession(env, request);
-  if (!uid || !env.TENGSL) return 0;
-  const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
-  return (u && u.is_admin === 1) ? uid : 0;
-}
 // Stjórnborð audit-skrá: geymir síðustu ~200 admin-aðgerðir í stjorn_sync k='audit' (hver: ts/by/target/action/detail).
-async function _audit(env, byUid, target, action, detail) {
-  try {
-    const now = Math.floor(Date.now() / 1000);
-    let by = byUid || '?';
-    if (byUid) { const a = await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(byUid).first().catch(() => null); if (a && a.email) by = a.email; }
-    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='audit'").first().catch(() => null);
-    let log = []; try { log = JSON.parse((row && row.v) || '[]'); if (!Array.isArray(log)) log = []; } catch (e) { log = []; }
-    log.push({ ts: now, by, target: target || null, action: String(action || '').slice(0, 40), detail: String(detail == null ? '' : detail).slice(0, 100) });
-    if (log.length > 200) log = log.slice(-200);
-    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('audit',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(log), now).run().catch(() => {});
-  } catch (e) {}
-}
-async function adminOverviewHandler(request, env) {
-  // Aðgangur: annaðhvort innskráður admin (vafri) EÐA X-Admin-Key leyndarmál (Node-stjórnborð, server-til-server).
-  const key = request.headers.get('X-Admin-Key');
-  const bySecret = key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY;
-  if (!bySecret && !(await _isAdmin(env, request))) return _ajson({ ok: false, error: 'admin' });
-  const now = Math.floor(Date.now() / 1000);
-  const users = (await env.TENGSL.prepare('SELECT id,email,username,name,is_admin,email_verified,kt,tier,tier_until,created,free_access,nemandi FROM users ORDER BY created DESC LIMIT 1000').all().catch(() => ({ results: [] }))).results || [];
-  const subs = (await env.TENGSL.prepare('SELECT user_id,service,until,askell_id FROM sub_service WHERE until>?').bind(now).all().catch(() => ({ results: [] }))).results || [];
-  const reps = (await env.TENGSL.prepare('SELECT user_id,report_key,granted FROM reports_granted').all().catch(() => ({ results: [] }))).results || [];
-  // Prufu-aðgangar eru TEKNIR ÚR samantektinni (stats) — birtast samt í notendalistanum (merktir).
-  // Stýrt EINGÖNGU úr stjórnborði: kvikur listi notanda-id í stjorn_sync k='test_ids' (⚙-reitur per notanda).
-  const _testRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
-  let _dynTest = []; try { _dynTest = JSON.parse((_testRow && _testRow.v) || '[]'); if (!Array.isArray(_dynTest)) _dynTest = []; } catch (e) { _dynTest = []; }
-  const testIds = new Set(_dynTest.map(Number).filter(Boolean));
-  const subByUser = {}, repByUser = {};
-  for (const s of subs) (subByUser[s.user_id] = subByUser[s.user_id] || []).push(s.service);
-  for (const r of reps) repByUser[r.user_id] = (repByUser[r.user_id] || 0) + 1;
-  const uList = users.map((u) => ({ id: u.id, email: u.email, name: u.name || u.username || '', admin: u.is_admin === 1, free: u.free_access === 1, nemandi: u.nemandi === 1, verified: u.email_verified === 1, kt: u.kt || null, tier: (u.tier && u.tier_until > now) ? u.tier : null, tierUntil: u.tier_until || 0, subs: subByUser[u.id] || [], reports: repByUser[u.id] || 0, created: u.created, test: testIds.has(u.id) }));
-  // Síuð sett fyrir samantektina (án prufu-aðganga) — notendalistinn `uList` er ósíaður.
-  const sUsers = users.filter((u) => !testIds.has(u.id));
-  const sUList = uList.filter((u) => !u.test);
-  const sSubs = subs.filter((x) => !testIds.has(x.user_id));
-  const sReps = reps.filter((x) => !testIds.has(x.user_id));
-  const byService = {}; for (const s of sSubs) byService[s.service] = (byService[s.service] || 0) + 1;
-  const byReport = {}; for (const r of sReps) { const t = String(r.report_key).split(':')[0]; byReport[t] = (byReport[t] || 0) + 1; }
-  const day = 86400, recent = (n) => sUsers.filter((u) => u.created > now - n * day).length;
-  // Tekjur (áætlaðar): virkar þjónustu-áskriftir + þrep (mán) + keyptar skýrslur (einskiptis 990).
-  const PRICE_SVC = { kvoti: 9900, utbod: 1900, frettir: 3900, fasteign: 3900, thingskyrslur: 3900 };
-  const PRICE_TIER = { grunnur: 2900, fyrirtaeki: 6900, fyrirtaeki_plus: 12900 };
-  let mrr = 0;
-  for (const s of sSubs) mrr += PRICE_SVC[s.service] || 0;
-  for (const u of sUList) if (u.tier) mrr += PRICE_TIER[u.tier] || 0;
-  // Virkni: notendur með einhverja vakt / digest á (úr user_prefs).
-  const watchRows = (await env.TENGSL.prepare("SELECT DISTINCT user_id FROM user_prefs WHERE k IN ('leitvakt','firmavakt','fastvakt','follows','ktwatch')").all().catch(() => ({ results: [] }))).results || [];
-  const digestRows = (await env.TENGSL.prepare("SELECT user_id FROM user_prefs WHERE k='digest' AND v LIKE '%\"on\":true%'").all().catch(() => ({ results: [] }))).results || [];
-  // Nýleg umsvif: síðustu skýrslukaup (með netfangi).
-  const recentReps = (await env.TENGSL.prepare('SELECT rg.report_key, rg.granted, u.email FROM reports_granted rg LEFT JOIN users u ON u.id=rg.user_id ORDER BY rg.granted DESC LIMIT 12').all().catch(() => ({ results: [] }))).results || [];
-  // S2b: rekstrar-samantekt Node-stjórnborðsins (samþykktir/tickets/herferðir/ledger) ef ýtt hefur verið.
-  const syncRow = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
-  let stjorn = null; if (syncRow) { try { stjorn = Object.assign(JSON.parse(syncRow.v), { syncedAt: syncRow.updated }); } catch (e) {} }
-  // ── Endurnýjunarvakt: áskriftir/þrep sem renna út næstu 7/30 daga (án prufu) + brottfall (nýlega útrunnið). ──
-  const soon7 = now + 7 * day, soon30 = now + 30 * day;
-  const expSubList = sSubs.filter((s) => s.until <= soon30).map((s) => ({ kind: 'service', id: s.user_id, what: s.service, until: s.until }));
-  const expTierList = sUList.filter((u) => u.tier && u.tierUntil && u.tierUntil <= soon30).map((u) => ({ kind: 'tier', id: u.id, what: u.tier, until: u.tierUntil }));
-  const _emailById = new Map(sUsers.map((u) => [u.id, u.email]));
-  const expiringList = [...expSubList, ...expTierList].sort((a, b) => a.until - b.until).slice(0, 40).map((x) => ({ kind: x.kind, what: x.what, until: x.until, email: _emailById.get(x.id) || '' }));
-  const expiring = { d7: [...expSubList, ...expTierList].filter((x) => x.until <= soon7).length, d30: expSubList.length + expTierList.length };
-  // Brottfall: nýlega útrunnin áskriftar-ígildi (síðustu 90 daga) → gróft endurnýjunarhlutfall.
-  const _lapsSub = await env.TENGSL.prepare('SELECT COUNT(*) AS c FROM sub_service WHERE until < ? AND until > ?').bind(now, now - 90 * day).first().catch(() => null);
-  const _lapsTier = await env.TENGSL.prepare('SELECT COUNT(*) AS c FROM users WHERE tier IS NOT NULL AND tier_until < ? AND tier_until > ?').bind(now, now - 90 * day).first().catch(() => null);
-  const lapsed90 = ((_lapsSub && _lapsSub.c) || 0) + ((_lapsTier && _lapsTier.c) || 0);
-  const _active = sSubs.length + sUList.filter((u) => u.tier).length;
-  const churn = { lapsed90, renewalRate: (_active + lapsed90) > 0 ? Math.round(_active / (_active + lapsed90) * 100) : null };
-  // ── MRR-þróun: daglegt snapshot í stjorn_sync k='mrr_history' (idempotent per dagur; safnast við admin-heimsóknir). ──
-  const paying = sUList.filter((u) => u.tier || (u.subs && u.subs.length)).length;
-  const _today = new Date(now * 1000).toISOString().slice(0, 10);
-  const _mhRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='mrr_history'").first().catch(() => null);
-  let mrrHistory = []; try { mrrHistory = JSON.parse((_mhRow && _mhRow.v) || '[]'); if (!Array.isArray(mrrHistory)) mrrHistory = []; } catch (e) { mrrHistory = []; }
-  if (!mrrHistory.some((p) => p.d === _today)) {
-    mrrHistory.push({ d: _today, mrr, paying, users: sUsers.length, reports: sReps.length });
-    if (mrrHistory.length > 180) mrrHistory = mrrHistory.slice(-180);
-    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k,v,updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind('mrr_history', JSON.stringify(mrrHistory), now).run().catch(() => {});
-  }
-  // Umbreytingar-trekt (án prufu): nýskráning → staðfest → virkjað (skýrsla/áskrift/þrep) → borgandi.
-  const funnel = { signups: sUsers.length, verified: sUsers.filter((u) => u.email_verified === 1).length, activated: sUList.filter((u) => u.reports > 0 || (u.subs && u.subs.length) || u.tier).length, paying };
-  // Innri nótur (per notanda-id) + audit-skrá (síðustu admin-aðgerðir) úr stjorn_sync.
-  const _notesRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='notes'").first().catch(() => null);
-  let notes = {}; try { notes = JSON.parse((_notesRow && _notesRow.v) || '{}'); if (typeof notes !== 'object' || Array.isArray(notes)) notes = {}; } catch (e) { notes = {}; }
-  const _emailRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first().catch(() => null);
-  let emailOv = {}; try { emailOv = JSON.parse((_emailRow && _emailRow.v) || '{}'); if (!emailOv || typeof emailOv !== 'object' || Array.isArray(emailOv)) emailOv = {}; } catch (e) { emailOv = {}; }
-  const _auditRow = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='audit'").first().catch(() => null);
-  let audit = []; try { audit = JSON.parse((_auditRow && _auditRow.v) || '[]'); if (!Array.isArray(audit)) audit = []; } catch (e) { audit = []; }
-  audit = audit.slice(-50).reverse();
-  return _ajson({
-    stjorn,
-    ok: true, now,
-    users: uList,
-    stats: {
-      total: sUsers.length, verified: sUsers.filter((u) => u.email_verified === 1).length, admins: sUsers.filter((u) => u.is_admin === 1).length,
-      new7: recent(7), new30: recent(30),
-      tierUsers: sUList.filter((u) => u.tier).length, activeSubs: sSubs.length, subsByService: byService,
-      reportsTotal: sReps.length, reportsByType: byReport,
-      mrr, reportRevenue: sReps.length * 990,
-      watchers: watchRows.filter((r) => !testIds.has(r.user_id)).length, digestSubs: digestRows.filter((r) => !testIds.has(r.user_id)).length,
-      excludedTest: testIds.size, expiring, churn, funnel,
-    },
-    recentReports: recentReps.map((r) => ({ key: r.report_key, email: r.email || '', granted: r.granted })),
-    expiringList,
-    mrrHistory,
-    notes,
-    audit,
-    // Póst-skrá: skilgreining hverrar tegundar + NÚGILDANDI sniðmát (sjálfgefið eða yfirskrifað).
-    emails: EMAIL_TYPES.map((t) => Object.assign(
-      { id: t.id, label: t.label, hopur: t.hopur, flokkur: t.flokkur, hvenaer: t.hvenaer, vidtakandi: t.vidtakandi, ritanlegt: t.ritanlegt, breytur: t.breytur, krafist: t.krafist, ath: t.ath || '' },
-      resolveEmail(t.id, emailOv),
-    )),
-  });
-}
 // Stjórnborð: aðgerðir á STÖKUM notanda (aðgangs-veiting + stuðningur + prufu-flagg). Aðeins innskráður admin.
 // body: { id, action, ...}. action ∈ tier | service | reset_reports | verify | resend_verify | reset_pw | test.
-async function adminUserHandler(request, env, ctx) {
-  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
-  const byUid = await _isAdmin(env, request);
-  if (!byUid) return _ajson({ ok: false, error: 'admin' });
-  const b = (await request.json().catch(() => null)) || {};
-  const id = +b.id, action = String(b.action || '');
-  if (!id || !action) return _ajson({ ok: false, error: 'input' });
-  const now = Math.floor(Date.now() / 1000);
-  const u = await env.TENGSL.prepare('SELECT id,email,name,is_admin,email_verified FROM users WHERE id=?').bind(id).first().catch(() => null);
-  if (!u) return _ajson({ ok: false, error: 'nouser' });
-  const DUR = Math.min(60, Math.max(1, +b.months || 12)) * 30 * 86400;   // grant-lengd (mán → sek), sjálfgefið 1 ár
-  const _det = action === 'tier' ? ('tier=' + (b.tier || 'clear')) : action === 'service' ? (b.service + '=' + (b.on ? 'on' : 'off')) : action === 'test' ? (b.on ? 'on' : 'off') : '';
-  ctx.waitUntil(_audit(env, byUid, id, action, _det));   // audit-skrá (aðgerð + hver + á hvern)
-
-  if (action === 'tier') {
-    const tier = b.tier ? String(b.tier) : null;
-    if (tier && !['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].includes(tier)) return _ajson({ ok: false, error: 'tier' });
-    await env.TENGSL.prepare('UPDATE users SET tier=?, tier_until=?, updated=? WHERE id=?').bind(tier, tier ? now + DUR : 0, now, id).run().catch(() => {});
-    return _ajson({ ok: true, tier, until: tier ? now + DUR : 0 });
-  }
-  if (action === 'service') {
-    const service = String(b.service || ''); const on = !!b.on;
-    if (!service) return _ajson({ ok: false, error: 'service' });
-    if (on) await env.TENGSL.prepare('INSERT INTO sub_service (user_id,service,until,askell_id) VALUES (?,?,?,?) ON CONFLICT(user_id,service) DO UPDATE SET until=excluded.until, askell_id=excluded.askell_id').bind(id, service, now + DUR, 'admin-grant').run().catch(() => {});
-    else await env.TENGSL.prepare('DELETE FROM sub_service WHERE user_id=? AND service=?').bind(id, service).run().catch(() => {});
-    return _ajson({ ok: true, service, on });
-  }
-  if (action === 'reset_reports') {
-    await env.TENGSL.prepare('UPDATE users SET reports_used=0, reports_month=?, updated=? WHERE id=?').bind(_monthStr(now), now, id).run().catch(() => {});
-    return _ajson({ ok: true });
-  }
-  if (action === 'verify') {
-    await env.TENGSL.prepare('UPDATE users SET email_verified=1, updated=? WHERE id=?').bind(now, id).run().catch(() => {});
-    return _ajson({ ok: true });
-  }
-  if (action === 'resend_verify') {
-    if (u.email_verified === 1) return _ajson({ ok: true, already: true });
-    ctx.waitUntil(_sendVerifyEmail(env, u.id, u.email, now));
-    return _ajson({ ok: true });
-  }
-  if (action === 'reset_pw') {
-    const token = _tokenHex();
-    await env.TENGSL.prepare('INSERT INTO auth_tokens (token, user_id, kind, expires) VALUES (?,?,?,?)').bind(token, u.id, 'reset', now + 3600).run().catch(() => {});
-    const link = 'https://karp.is/endurstilla/?token=' + token;
-    const t = await _emailTpl(env, 'reset_admin');
-    ctx.waitUntil(sendGmail(env, { to: u.email, subject: renderEmail(t.subject, { hlekkur: link }), html: renderEmail(t.html, { hlekkur: link }) }));
-    return _ajson({ ok: true });
-  }
-  if (action === 'test') {
-    const on = !!b.on;
-    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='test_ids'").first().catch(() => null);
-    let ids = []; try { ids = JSON.parse((row && row.v) || '[]'); if (!Array.isArray(ids)) ids = []; } catch (e) { ids = []; }
-    ids = ids.filter((x) => +x !== id); if (on) ids.push(id);
-    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k,v,updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind('test_ids', JSON.stringify(ids), now).run().catch(() => {});
-    return _ajson({ ok: true, test: on });
-  }
-  if (action === 'note') {
-    const note = String(b.note || '').slice(0, 500);
-    const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='notes'").first().catch(() => null);
-    let notes = {}; try { notes = JSON.parse((row && row.v) || '{}'); if (typeof notes !== 'object' || Array.isArray(notes)) notes = {}; } catch (e) { notes = {}; }
-    if (note) notes[id] = note; else delete notes[id];
-    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('notes',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(notes), now).run().catch(() => {});
-    return _ajson({ ok: true });
-  }
-  return _ajson({ ok: false, error: 'action' });
-}
 // Stjórnborð: póst-sniðmát. GET-hlutinn kemur í /api/admin/overview; hér er VISTUN/ENDURSTILLING.
 // body: { id, patch:{subject?,html?,intro?,footer?} } eða { id, reset:true }. Gátað með validateEmail
 // (m.a. skyldu-breytur eins og {{hlekkur}}) svo ritvilla brjóti ekki nýskráningu/lykilorðs-endurheimt.
-async function adminEmailHandler(request, env, ctx) {
-  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
-  const byUid = await _isAdmin(env, request);
-  if (!byUid) return _ajson({ ok: false, error: 'admin' });
-  const b = (await request.json().catch(() => null)) || {};
-  const id = String(b.id || '');
-  if (!id) return _ajson({ ok: false, error: 'input' });
-  const now = Math.floor(Date.now() / 1000);
-  const row = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='email_templates'").first().catch(() => null);
-  let all = {}; try { all = JSON.parse((row && row.v) || '{}'); if (!all || typeof all !== 'object' || Array.isArray(all)) all = {}; } catch (e) { all = {}; }
-  if (b.reset) { delete all[id]; }
-  else {
-    const patch = (b.patch && typeof b.patch === 'object') ? b.patch : null;
-    if (!patch) return _ajson({ ok: false, error: 'input' });
-    const v = validateEmail(id, patch);
-    if (!v.ok) return _ajson({ ok: false, error: 'validation', villa: v.villa });
-    all[id] = Object.assign({}, all[id], patch);
-  }
-  await env.TENGSL.prepare("INSERT INTO stjorn_sync (k,v,updated) VALUES ('email_templates',?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(JSON.stringify(all), now).run().catch(() => {});
-  _emailOvSet(all);   // uppfæra cache STRAX svo næsti póstur noti nýja sniðmátið
-  ctx.waitUntil(_audit(env, byUid, null, b.reset ? 'email-reset' : 'email-edit', id));
-  return _ajson({ ok: true, tpl: resolveEmail(id, all) });
-}
 // Stjórnborð: ræsir daglegu gagna-uppfærslu-pípuna (refresh-data.yml) á EFTIRSPURN — repository_dispatch
 // (sama mynstur og on-demand ársreikningar). event_name != schedule → þvingar líka vikulegu veiturnar (kvóti).
-async function adminRefreshHandler(request, env, ctx) {
-  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
-  const byUid = await _isAdmin(env, request);
-  if (!byUid) return _ajson({ ok: false, error: 'admin' });
-  if (!env.GITHUB_DISPATCH_TOKEN) return _ajson({ ok: false, error: 'unconfigured' });
-  try {
-    const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_type: 'refresh' }),
-    });
-    if (r.status === 204) { ctx.waitUntil(_audit(env, byUid, null, 'refresh-data', 'handræst')); return _ajson({ ok: true }); }
-    return _ajson({ ok: false, error: 'dispatch', status: r.status });
-  } catch (e) { return _ajson({ ok: false, error: 'net' }); }
-}
 // Póstsending fyrir Node-stjórnborðið gegnum worker Gmail REST (S4 — sameinar á OAuth, ekkert app-lykilorð).
 // Aðgangur: X-Admin-Key EÐA innskráður admin. Body: {to, subject, html|text, replyTo?, inReplyTo?}.
-async function adminSendHandler(request, env) {
-  if (request.method !== 'POST') return _ajson({ ok: false, error: 'post' });
-  const key = request.headers.get('X-Admin-Key');
-  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
-  if (!okAuth) return _ajson({ ok: false, error: 'admin' });
-  const b = (await request.json().catch(() => null)) || {};
-  const to = String(b.to || '').trim();
-  const subject = String(b.subject || '').trim();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) || !subject) return _ajson({ ok: false, error: 'input' });
-  const r = await sendGmail(env, { to, subject, html: b.html, text: b.text, replyTo: b.replyTo, inReplyTo: b.inReplyTo });
-  return _ajson({ ok: !!r.ok, error: r.ok ? undefined : (r.unconfigured ? 'unconfigured' : (r.error || 'send')) });
-}
 // S2b: Node-stjórnborðið ýtir rekstrar-samantekt í D1 (X-Admin-Key). Body: {k, v}. GET les.
-async function adminSyncHandler(request, env) {
-  const key = request.headers.get('X-Admin-Key');
-  const okAuth = (key && env.ADMIN_API_KEY && key === env.ADMIN_API_KEY) || (await _isAdmin(env, request));
-  if (!okAuth) return _ajson({ ok: false, error: 'admin' });
-  if (request.method === 'POST') {
-    const b = (await request.json().catch(() => null)) || {};
-    const k = String(b.k || '').slice(0, 40); const v = String(b.v || '');
-    if (!k || v.length > 200000) return _ajson({ ok: false, error: 'input' });
-    await env.TENGSL.prepare('INSERT INTO stjorn_sync (k, v, updated) VALUES (?,?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated').bind(k, v, Math.floor(Date.now() / 1000)).run().catch(() => {});
-    return _ajson({ ok: true });
-  }
-  const r = await env.TENGSL.prepare("SELECT v, updated FROM stjorn_sync WHERE k='summary'").first().catch(() => null);
-  let data = null; if (r) { try { data = JSON.parse(r.v); } catch (e) {} }
-  return _ajson({ ok: true, data, updated: r ? r.updated : 0 });
-}
 // Setja notanda-tegund (admin/free/user/nemandi) — stjórnborð S1 „Tegund"-dálkur. Panel-gátt = is_admin ONLY (_isAdmin).
-async function adminSetTypeHandler(request, env) {
-  const uid = await _isAdmin(env, request);           // panel gate = is_admin only
-  if (!uid) return _ajson({ ok: false, error: 'admin' }, 403);
-  const b = await request.json().catch(() => ({}));
-  const targetId = parseInt(b && b.id, 10);
-  const type = String((b && b.type) || '');
-  if (!targetId || !['admin', 'free', 'user', 'nemandi'].includes(type)) return _ajson({ ok: false, error: 'bad-params' }, 400);
-  const isAdmin = type === 'admin' ? 1 : 0;
-  const freeAccess = type === 'free' ? 1 : 0;
-  const nemandi = type === 'nemandi' ? 1 : 0;
-  // öryggi: aldrei fjarlægja SÍÐASTA admin (self-lockout vörn)
-  if (type !== 'admin') {
-    const tgt = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(targetId).first().catch(() => null);
-    if (tgt && tgt.is_admin === 1) {
-      const n = await env.TENGSL.prepare('SELECT COUNT(*) c FROM users WHERE is_admin=1').first().catch(() => ({ c: 0 }));
-      if ((n.c || 0) <= 1) return _ajson({ ok: false, error: 'last-admin' }, 409);
-    }
-  }
-  await env.TENGSL.prepare('UPDATE users SET is_admin=?, free_access=?, nemandi=?, updated=? WHERE id=?')
-    .bind(isAdmin, freeAccess, nemandi, Math.floor(Date.now() / 1000), targetId).run().catch(() => null);
-  await _audit(env, uid, targetId, 'set-type', type);
-  return _ajson({ ok: true, id: targetId, type });
-}
 
 export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
