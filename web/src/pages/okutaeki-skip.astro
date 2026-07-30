@@ -30,7 +30,11 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
     <p class="foot" id="os-foot">Heimild: Samgöngustofa um opna ökutækjaleit island.is (<code>publicVehicleSearch</code>). Grunnupplýsingar ökutækis, engar persónuupplýsingar. Uppfletting takmörkuð (öryggisnet gegn fjöldaflettingu).</p>
   </main>
 
-  <style>
+  <!-- ⚠ is:global NAUÐSYNLEGT: leitarniðurstöður (ok-/sk-/os-kort) eru byggðar með innerHTML
+       á keyrslutíma. Astro-scoped stílar verða `.ok-card[data-astro-cid-…]` og keyrslutíma-
+       hnútar fá ALDREI þá eigind → niðurstöðurnar birtust ÓSTÍLAÐAR. Skráin hleðst aðeins
+       með þessari síðu og engin heitanna rekst á Layout → óhætt. Sjá [[karp-dev-verify]]. -->
+  <style is:global>
     main { max-width: 680px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 32px; margin: 0 0 10px; }

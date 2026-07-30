@@ -31,7 +31,11 @@ import Layout from '../layouts/Layout.astro';
     </section>
   </main>
 
-  <style>
+  <!-- ⚠ is:global NAUÐSYNLEGT: compliance-mappan (kf-/kv-raðir, atburðir, UBO-listi) er byggð
+       með innerHTML á keyrslutíma. Astro-scoped stílar verða `.kf-ev[data-astro-cid-…]` og
+       keyrslutíma-hnútar fá ALDREI þá eigind → möppu-innihaldið birtist ÓSTÍLAÐ (seld vara).
+       Skráin hleðst aðeins með þessari síðu og engin heitanna rekst á Layout → óhætt. -->
+  <style is:global>
     .kv-wrap { max-width: 900px; margin: 0 auto; padding: 44px 20px 64px; }
     .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
     h1 { font-size: 30px; margin: 0 0 10px; }
