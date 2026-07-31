@@ -122,6 +122,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       </div>
       <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
 
+      <h3 class="fg-sh">📐 Fjölmiðlavogin — hlutdrægni leiðrétt fyrir efnisvali <i class="tip" tabindex="0" data-tip="Hrár meðaltónn mælir EKKI hlutdrægni heldur hvað miðill fjallar um: íþróttamiðill lítur jákvæður út, sakamálamiðill neikvæður. Hér er borið saman EPLI VIÐ EPLI — frávik hvers miðils frá meðaltóni allra um SAMA efni.">ⓘ</i></h3>
+      <div id="fg-mvog">Sæki fjölmiðlavogina…</div>
+
       <h3 class="fg-sh">⚖️ Samanburður aðila — hlutdeild umfjöllunar <i class="tip" tabindex="0" data-tip="Share of voice: veldu tvo aðila og sjáðu hvor á meira af umfjölluninni (sl. 12 mánuði), tón hvors um sig og þróunina viku fyrir viku á sama grafi. Klassísk PR-greining.">ⓘ</i></h3>
       <div class="sov-row">
         <input id="sov-a" list="sov-list" placeholder="Aðili A — t.d. Icelandair" autocomplete="off" />
@@ -263,6 +266,18 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .rv-l span { color: var(--faint); font-size: 10px; }
     .fy-srcrows, .fy-dist { margin-top: 10px; }
     .fy-srcrow { display: grid; grid-template-columns: 110px 1fr 44px 52px; gap: 8px; align-items: center; padding: 3px 0; }
+    /* 📐 Fjölmiðlavogin: miðlægur ás (0 = meðaltal allra um sama efni), stikur til beggja handa */
+    .mv-wrap { margin: 8px 0 4px; }
+    .mv-row { display: grid; grid-template-columns: 116px 1fr 46px 74px; gap: 10px; align-items: center; padding: 4px 0; font-size: 13px; }
+    .mv-n { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mv-track { position: relative; height: 15px; background: rgba(255,255,255,.045); border-radius: 8px; }
+    .mv-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: rgba(255,255,255,.28); }
+    .mv-bar { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; }
+    .mv-bar.st-pos { background: #46e08a; } .mv-bar.st-neg { background: #ff6d7a; } .mv-bar.st-neu { background: #7e8ca6; }
+    .mv-v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .mv-v.st-pos { color: #46e08a; } .mv-v.st-neg { color: #ff6d7a; } .mv-v.st-neu { color: var(--muted); }
+    .mv-raw { text-align: right; font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    @media (max-width: 560px) { .mv-row { grid-template-columns: 92px 1fr 40px; } .mv-raw { display: none; } }
     .fy-srcn { font-size: 11.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .fy-srcbar { height: 9px; background: rgba(255,255,255,.05); border-radius: 5px; overflow: hidden; }
     .fy-srcbar i { display: block; height: 100%; border-radius: 5px; }
@@ -1092,7 +1107,43 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       if (sgo) sgo.onclick = sovRun;
       ['sov-a', 'sov-b'].forEach((id) => { const el = document.getElementById(id); if (el) el.onkeydown = (e) => { if (e.key === 'Enter') sovRun(); }; });
       fgGlobal();
+      mvogLoad();
       tnLoad('stofnanir');
+    }
+
+    // 📐 Fjölmiðlavogin — leiðrétt hlutdrægni (byggð í build_midlavog.mjs → gogn/midlavog.json).
+    // Sýnir BÆÐI leiðrétta vog og hráan tón, því munurinn þeirra á milli ER punkturinn:
+    // hrár tónn mælir efnisval miðilsins, leiðrétta vogin mælir afstöðu hans til SAMA efnis.
+    function mvogLoad() {
+      const el = document.getElementById('fg-mvog');
+      if (!el || el.dataset.done) return;
+      el.dataset.done = '1';
+      fetch('/gogn/midlavog.json?t=' + Date.now(), { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!d || !Array.isArray(d.outlets) || d.outlets.length < 2) {
+            el.innerHTML = '<div class="empty">Fjölmiðlavogin er í byggingu — hún krefst nægrar sameiginlegrar umfjöllunar milli miðla.</div>';
+            return;
+          }
+          const mx = Math.max(...d.outlets.map((o) => Math.abs(o.bias)), 10);
+          const cl = (b) => (b > 4 ? 'pos' : b < -4 ? 'neg' : 'neu');
+          const rows = d.outlets.map((o) => {
+            const w = (Math.abs(o.bias) / mx) * 50;                       // 50% = hálf breidd (miðjan er 0)
+            const vinstri = o.bias < 0 ? (50 - w) : 50;
+            return '<div class="mv-row" title="' + esc9(o.s) + ': ' + o.entities + ' sameiginleg efni, ' + o.n + ' fréttir">'
+              + '<span class="mv-n">' + esc9(o.s) + '</span>'
+              + '<span class="mv-track"><i class="mv-mid"></i>'
+              + '<i class="mv-bar st-' + cl(o.bias) + '" style="left:' + vinstri.toFixed(1) + '%;width:' + w.toFixed(1) + '%"></i></span>'
+              + '<span class="mv-v st-' + cl(o.bias) + '">' + (o.bias > 0 ? '+' : '') + o.bias + '</span>'
+              + '<span class="mv-raw">hrár ' + (o.rawTone > 0 ? '+' : '') + o.rawTone + '</span></div>';
+          }).join('');
+          el.innerHTML = '<div class="mv-wrap">' + rows + '</div>'
+            + '<div class="vog-note">Leiðrétt vog: frávik miðilsins frá meðaltóni <b>allra um sama efni</b> (−100…+100). '
+            + 'Dálkurinn „hrár" er óleiðréttur meðaltónn — munurinn sýnir hversu mikið <b>efnisval</b> skekkir hráa tóninn. '
+            + 'Byggt á ' + d.entities + ' efnum sem ≥2 miðlar fjalla um, sl. ' + d.days + ' daga. '
+            + 'Vélrænt tónmat — ekki ritstjórnardómur um hlutdrægni.</div>';
+        })
+        .catch(() => { el.innerHTML = '<div class="empty">Fjölmiðlavogin birtist á karp.is.</div>'; });
     }
     window.__fgSetSel = fgSetSel;
     document.addEventListener('astro:page-load', () => { if (document.querySelector('main[data-pg="frettir"]')) { initFrettir(); initFjolmidlagreining(); } });
