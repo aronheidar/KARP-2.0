@@ -55,6 +55,43 @@ export function flakkMatches(byKt, minKt, nafn) {
 // • tvítekningum eytt (sami maður er oft bæði eigandi og ráðamaður) svo þakið fari ekki til spillis.
 // Skilar {names, alls, skorid} — `skorid` > 0 ÞÝÐIR að hluti var EKKI skimaður og það verður að sjást
 // í skýrslunni; þögul stytting í skimun er verri en engin skimun.
+// ── PEP: stjórnmálalega tengdir aðilar ────────────────────────────────────────
+// Nöfn eigenda/forráðamanna gegn /gogn/pep.json (þingmenn, ráðherrar, sveitarstjórar).
+// Fornafn+eftirnafn samsvörun → MÖGULEG tengsl, aldrei fullyrðing (sama nafn ≠ sami maður).
+export function pepNorm(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function pepMatch(nafn, folk) {
+  const t = pepNorm(nafn).split(' ').filter(Boolean);
+  if (t.length < 2) return null;                 // eitt nafn er of veikt til samsvörunar
+  const first = t[0], last = t[t.length - 1];
+  for (const p of (folk || [])) {
+    const pt = String(p && p.n || '').split(' ').filter(Boolean);
+    if (pt.length >= 2 && pt[0] === first && pt[pt.length - 1] === last) return p;
+  }
+  return null;
+}
+
+// null = listinn er EKKI tiltækur (sókn brást eða hann er tómur) — má ALDREI birtast sem „engin tengsl".
+// Annars { hits, skimad } þar sem `skimad` er fjöldi nafna sem raunverulega fóru í gegnum skimun;
+// skimad === 0 þýðir að ekkert var til að skima, sem er heldur ekki hrein niðurstaða.
+export function pepScreen(folk, eigendur, radamenn) {
+  if (!Array.isArray(folk) || !folk.length) return null;
+  const hits = [], seen = new Set();
+  let skimad = 0;
+  const chk = (raw, hlutverk) => {
+    const nm = String(raw || '').split(' - ')[0].trim();   // „Nafn - hlutverk" → nafn
+    if (!nm) return;
+    skimad++;
+    const p = pepMatch(nm, folk);
+    if (p && !seen.has(p.n)) { seen.add(p.n); hits.push({ nafn: nm, felagshlutverk: hlutverk, pep: p }); }
+  };
+  for (const e of (eigendur || [])) chk(e && e.nafn, 'raunv. eigandi' + (e && e.hlutur ? ' ' + e.hlutur : ''));
+  for (const r of (radamenn || [])) { const parts = String(r).split(' - '); chk(parts[0], (parts[1] || 'forráðamaður').toLowerCase()); }
+  return { hits, skimad };
+}
+
 // Samantektarmerki áreiðanleikamatsins (KYC): eitt yfirlit yfir stöðu allra athugana.
 // `stodur` = stöðustafur hvers reits — 'u' BÍÐUR svars, 'n' niðurstaða án merkis (t.d. „Engir aðilar“),
 // 'g'/'o'/'b' raunmerki. `uppgefid` = hætt að bíða (tímamörk runnin út).

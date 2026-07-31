@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { coreName, nameMatch, flakkMatches, sanctionNames, areidStig, FLAKK_TYPES } from '../src/lib/fyrirtaeki-ahaetta.mjs';
+import { coreName, nameMatch, flakkMatches, sanctionNames, areidStig, pepNorm, pepMatch, pepScreen, FLAKK_TYPES } from '../src/lib/fyrirtaeki-ahaetta.mjs';
 
 // ── Kjarnanafn ────────────────────────────────────────────────────────────────
 test('coreName: félagsform, hljóðmerki og greinarmerki hverfa', () => {
@@ -215,4 +215,65 @@ test('areidStig: óþekktur stöðustafur telst BÍÐA (varlegast)', () => {
   const s = areidStig(['g', 'x']);
   assert.equal(s.bidur, 1);
   assert.equal(s.lvl, null);
+});
+
+// ── PEP-skimun ────────────────────────────────────────────────────────────────
+const FOLK = [
+  { n: 'jon jonsson', hlutverk: 'alþingismaður' },
+  { n: 'anna d ansdottir', hlutverk: 'ráðherra' },
+  { n: 'sigurdur thorsson', hlutverk: 'sveitarstjóri' },
+];
+
+test('pepNorm: lágstafað, hljóðmerki burt, en ð/þ/æ haldast', () => {
+  assert.equal(pepNorm('Jón Jónsson'), 'jon jonsson');
+  assert.equal(pepNorm('Sigurður Þórsson'), 'sigurður þorsson');
+  assert.equal(pepNorm('Anna D. Ansdóttir'), 'anna d ansdottir');
+  assert.equal(pepNorm(null), '');
+});
+
+test('pepMatch: fornafn + eftirnafn ráða, millinafn skiptir ekki máli', () => {
+  assert.equal(pepMatch('Jón Jónsson', FOLK).hlutverk, 'alþingismaður');
+  assert.equal(pepMatch('Anna Dóra Ansdóttir', FOLK).hlutverk, 'ráðherra');
+  assert.equal(pepMatch('Jón Sigurðsson', FOLK), null);
+});
+
+test('pepMatch: eitt nafn samsvarar aldrei (of veikt)', () => {
+  assert.equal(pepMatch('Jón', FOLK), null);
+  assert.equal(pepMatch('', FOLK), null);
+});
+
+test('pepScreen: LISTI EKKI TILTÆKUR skilar null, ekki „hreinu“', () => {
+  // Kjarninn: fsPep() skilaði [] bæði þegar sóknin brást OG þegar hún tókst, og reiturinn
+  // fór í grænt „Engin þekkt“ — hrein PEP-niðurstaða út á gögn sem aldrei hlóðust.
+  assert.equal(pepScreen(null, [{ nafn: 'Jón Jónsson' }], []), null);
+  assert.equal(pepScreen([], [{ nafn: 'Jón Jónsson' }], []), null);
+  assert.equal(pepScreen(undefined, [], []), null);
+});
+
+test('pepScreen: ekkert til að skima er ekki hrein niðurstaða heldur', () => {
+  const r = pepScreen(FOLK, [], []);
+  assert.equal(r.skimad, 0);
+  assert.deepEqual(r.hits, []);
+});
+
+test('pepScreen: finnur eigendur og ráðamenn með hlutverki', () => {
+  const r = pepScreen(FOLK, [{ nafn: 'Jón Jónsson - 60%', hlutur: '60%' }], ['Anna Dóra Ansdóttir - Stjórnarformaður']);
+  assert.equal(r.skimad, 2);
+  assert.equal(r.hits.length, 2);
+  assert.equal(r.hits[0].nafn, 'Jón Jónsson');
+  assert.ok(r.hits[0].felagshlutverk.includes('eigandi'));
+  assert.equal(r.hits[1].felagshlutverk, 'stjórnarformaður');
+  assert.equal(r.hits[1].pep.hlutverk, 'ráðherra');
+});
+
+test('pepScreen: sami PEP tvisvar telst einu sinni', () => {
+  const r = pepScreen(FOLK, [{ nafn: 'Jón Jónsson' }], ['Jón Jónsson - framkvæmdastjóri']);
+  assert.equal(r.skimad, 2);
+  assert.equal(r.hits.length, 1);
+});
+
+test('pepScreen: engin samsvörun með raunverulegri skimun er hrein niðurstaða', () => {
+  const r = pepScreen(FOLK, [{ nafn: 'Ólafur Ólafsson' }], ['Björk Björnsdóttir - stjórn']);
+  assert.equal(r.skimad, 2);
+  assert.deepEqual(r.hits, []);
 });

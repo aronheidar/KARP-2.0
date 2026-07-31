@@ -500,7 +500,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { slugify } from '../lib/atvinnugrein.mjs';
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate, skilSaga } from '../lib/fyrirtaeki-lanshaefi.mjs';
-    import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig } from '../lib/fyrirtaeki-ahaetta.mjs';
+    import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig, pepScreen } from '../lib/fyrirtaeki-ahaetta.mjs';
     import { veljaGrein, betriEnGrein, greinStig } from '../lib/fyrirtaeki-grein.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
@@ -531,38 +531,28 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // /gogn/pep.json (þingmenn + ráðherrar + sveitarstjórar). Fornafn+eftirnafn samsvörun →
     // „MÖGULEG tengsl" (EKKI fullyrðing: sama nafn ≠ sami einstaklingur → notandi staðfestir).
     let _pepP = null;
-    function fsPep() { if (!_pepP) _pepP = fetch('/gogn/pep.json').then((r) => (r.ok ? r.json() : null)).then((j) => (j && j.folk) || []).catch(() => []); return _pepP; }
-    function pepNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim(); }
-    function pepMatch(name, folk) {
-      const t = pepNorm(name).split(' ').filter(Boolean);
-      if (t.length < 2) return null;
-      const first = t[0], last = t[t.length - 1];
-      for (const p of folk) { const pt = (p.n || '').split(' ').filter(Boolean); if (pt.length >= 2 && pt[0] === first && pt[pt.length - 1] === last) return p; }
-      return null;
+    // ⚠ BILUN ER EKKI MEMO-UÐ: annars situr misheppnuð sókn út alla setuna. null = listi ekki
+    // tiltækur, sem er allt annað en tómur listi og má ekki birtast sem hrein PEP-niðurstaða.
+    function fsPep() {
+      if (!_pepP) _pepP = fetch('/gogn/pep.json').then((r) => (r.ok ? r.json() : null))
+        .then((j) => (j && Array.isArray(j.folk) ? j.folk : null)).catch(() => null)
+        .then((v) => { if (v == null) _pepP = null; return v; });
+      return _pepP;
     }
-    async function fsPepScreen(f) {
-      const folk = await fsPep();
-      if (!folk.length) return [];
-      const hits = [], seen = new Set();
-      const chk = (rawName, role) => {
-        const nm = String(rawName || '').split(' - ')[0].trim();   // "Nafn - hlutverk" → nafn
-        if (!nm) return; const p = pepMatch(nm, folk);
-        if (p && !seen.has(p.n)) { seen.add(p.n); hits.push({ nafn: nm, felagshlutverk: role, pep: p }); }
-      };
-      for (const e of (f.eigendur || [])) chk(e.nafn, 'raunv. eigandi' + (e.hlutur ? ' ' + e.hlutur : ''));
-      for (const r of (f.radamenn || [])) { const parts = String(r).split(' - '); chk(parts[0], (parts[1] || 'forráðamaður').toLowerCase()); }
-      return hits;
-    }
+    async function fsPepScreen(f) { return pepScreen(await fsPep(), f.eigendur, f.radamenn); }
     async function fsWirePep(f) {
       const chip = document.getElementById('fs-ar-pep'); if (!chip) return;
       const v = chip.querySelector('.fs-ar-v');
-      const hits = await fsPepScreen(f);
-      if (!hits.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin þekkt'; return; }
+      const r = await fsPepScreen(f);
+      // Þrjár aðgreindar stöður — aðeins sú síðasta er hrein niðurstaða.
+      if (!r) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }                        // listi náðist ekki
+      if (!r.skimad) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Engir aðilar'; return; }      // ekkert til að skima
+      if (!r.hits.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin þekkt'; return; }
       chip.className = 'fs-ar o';
-      if (v) v.textContent = hits.length + ' möguleg';
+      if (v) v.textContent = r.hits.length + ' möguleg';
       const d = document.getElementById('fs-ar-pep-detail');
       if (d) d.innerHTML = '⚠️ <b>Möguleg stjórnmálatengsl (PEP)</b> — nafnasamsvörun, staðfestu auðkenni: '
-        + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">' + escF(h.felagshlutverk) + ' → ' + escF(h.pep.hlutverk) + '</span>').join('; ');
+        + r.hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">' + escF(h.felagshlutverk) + ' → ' + escF(h.pep.hlutverk) + '</span>').join('; ');
     }
     // Áreiðanleika-samantekt (KYC) — opinber stöðumerki, EKKI lánshæfismat.
     function fsAr(icon, l, v, st) { return '<div class="fs-ar ' + (st || 'n') + '"><span class="fs-ar-i">' + icon + '</span><div class="fs-ar-tx"><span class="fs-ar-l">' + l + '</span><span class="fs-ar-v">' + v + '</span></div></div>'; }
@@ -846,7 +836,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!wrap.dataset.animated) { wrap.classList.add('tk-anim'); wrap.dataset.animated = '1'; setTimeout(() => { if (wrap) wrap.classList.remove('tk-anim'); }, 950); }
       paint(true);
       // PEP-skimun (endurnýtir fsPepScreen) → merkir eigenda-hnúta ⚖️ og teiknar aftur
-      fsPepScreen(f).then((hits) => {
+      fsPepScreen(f).then((r) => {
+        const hits = r && r.hits;
         if (!hits || !hits.length) return;
         const set = new Set(hits.map((h) => tkNorm(h.nafn)));
         let ch = false;
