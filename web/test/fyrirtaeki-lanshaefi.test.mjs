@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../src/lib/fyrirtaeki-lanshaefi.mjs';
+import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate, skilSaga } from '../src/lib/fyrirtaeki-lanshaefi.mjs';
 
 const lh = (base, factors) => ({ base, factors: factors || {} });
 
@@ -103,6 +103,50 @@ test('lhSkilLate: eitt seint ár nægir; engin skil → null', () => {
   assert.equal(lhSkilLate({ arsreikningar: [{ ar: '2024', skil: '10.05.2025' }, { ar: '2023', skil: '20.11.2024' }] }), true);
   assert.equal(lhSkilLate({ arsreikningar: [] }), null);
   assert.equal(lhSkilLate({ arsreikningar: [{ ar: '2024' }] }), null);                        // ár án skiladags
+  assert.equal(lhSkilLate({}), null);
+  assert.equal(lhSkilLate(null), null);
+});
+
+// ── Skila-saga (ein uppspretta fyrir bæði rönd og mat) ────────────────────────
+test('skilSaga: staða per ár — skilað fyrir frest / seint / óskráð', () => {
+  const s = skilSaga([{ ar: '2024', skil: '15.05.2025' }, { ar: '2023', skil: '01.09.2024' }, { ar: '2022' }]);
+  assert.deepEqual(s.map((x) => x.stada), ['g', 'o', 'n']);
+  assert.deepEqual(s.map((x) => x.seint), [false, true, false]);
+  assert.equal(s[2].skil, null);
+});
+
+test('skilSaga: 31.8 er síðasti dagur innan frests', () => {
+  assert.equal(skilSaga([{ ar: '2024', skil: '31.08.2025' }])[0].seint, false);
+  assert.equal(skilSaga([{ ar: '2024', skil: '01.09.2025' }])[0].seint, true);
+});
+
+test('skilSaga: glugginn er 6 ár og ártalslaus ár falla út', () => {
+  const ar = Array.from({ length: 9 }, (_, i) => ({ ar: String(2024 - i), skil: '01.05.' + (2025 - i) }));
+  assert.equal(skilSaga(ar).length, 6);
+  assert.deepEqual(skilSaga(ar).map((x) => x.ar), ['2024', '2023', '2022', '2021', '2020', '2019']);
+  assert.equal(skilSaga([{ skil: '01.05.2025' }, { ar: '2023', skil: '01.05.2024' }]).length, 1);
+  assert.deepEqual(skilSaga(null), []);
+});
+
+test('lhSkilLate og röndin dæma NÁKVÆMLEGA sama árasettið', () => {
+  // Félag þar sem nýjustu tvö ár eru óskráð og sjöunda árið (utan gluggans) var skilað seint.
+  // Áður leit matið framhjá óskráðu árunum, náði því í sjöunda árið og refsaði fyrir sein skil
+  // sem hvergi sáust í röndinni.
+  const f = { arsreikningar: [
+    { ar: '2025' }, { ar: '2024' },
+    { ar: '2023', skil: '01.05.2024' }, { ar: '2022', skil: '01.05.2023' },
+    { ar: '2021', skil: '01.05.2022' }, { ar: '2020', skil: '01.05.2021' },
+    { ar: '2019', skil: '01.10.2020' },                     // seint — utan 6-ára gluggans
+  ] };
+  const saga = skilSaga(f.arsreikningar);
+  assert.equal(saga.length, 6);
+  assert.ok(!saga.some((x) => x.ar === '2019'), '2019 er utan gluggans');
+  assert.equal(lhSkilLate(f), false, 'matið má ekki sjá ár sem röndin sýnir ekki');
+});
+
+test('lhSkilLate: null þegar ekkert skráð skil er í glugganum', () => {
+  assert.equal(lhSkilLate({ arsreikningar: [{ ar: '2025' }, { ar: '2024' }] }), null);
+  assert.equal(lhSkilLate({ arsreikningar: [] }), null);
   assert.equal(lhSkilLate({}), null);
   assert.equal(lhSkilLate(null), null);
 });

@@ -43,10 +43,24 @@ export function lhAldur(skrad, nu) {
   return m ? Math.floor(((nu == null ? Date.now() : nu) - new Date(+m[3], +m[2] - 1, +m[1]).getTime()) / (365.25 * 864e5)) : null;
 }
 
-// Sein ársreikningaskil? (sami 31.8-frestur og fsSkilaSaga) — null ef engin skil skráð.
-export function lhSkilLate(f) {
-  const ars = ((f && f.arsreikningar) || []).filter((a) => a.ar && a.skil).slice(0, 6);
-  if (!ars.length) return null;
+export const SKIL_GLUGGI = 6;   // ár sem bæði birtast í tímanleika-röndinni og eru metin
+
+// Ársreikningaskila-saga fyrir nýjustu árin: 'g' skilað fyrir frest · 'o' sein skil · 'n' óskráð.
+// Fresturinn er áætlaður 31.8 árið eftir reikningsár, þ.e. seint ef skiladagur er 1.9 eða síðar.
+// ⚠ Þessi gluggi er sá SAMI og röndin sýnir. Áður var reglan afrituð í fsSkilaSaga (birting) og
+// lhSkilLate (mat) með ÓLÍKUM síum — birtingin tók 6 nýjustu ár, matið 6 nýjustu SKILUÐU ár —
+// svo matið gat refsað fyrir sein skil á ári sem hvergi sást í skýrslunni.
+export function skilSaga(arsreikningar, gluggi) {
   const pd = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
-  return ars.some((a) => { const yr = parseInt(a.ar, 10), d = pd(a.skil); return d && d >= new Date(yr + 1, 8, 1); });
+  return (arsreikningar || []).filter((a) => a && a.ar).slice(0, gluggi == null ? SKIL_GLUGGI : gluggi).map((a) => {
+    const yr = parseInt(a.ar, 10), d = pd(a.skil);
+    const seint = !!(d && d >= new Date(yr + 1, 8, 1));
+    return { ar: a.ar, skil: a.skil || null, seint, stada: !a.skil ? 'n' : seint ? 'o' : 'g' };
+  });
+}
+
+// Sein skil í glugganum? null ef ekkert skráð skil — þá er ekkert hægt að álykta.
+export function lhSkilLate(f) {
+  const medSkil = skilSaga(f && f.arsreikningar).filter((x) => x.skil);
+  return medSkil.length ? medSkil.some((x) => x.seint) : null;
 }

@@ -499,7 +499,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
     import { slugify } from '../lib/atvinnugrein.mjs';
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
-    import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../lib/fyrirtaeki-lanshaefi.mjs';
+    import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate, skilSaga } from '../lib/fyrirtaeki-lanshaefi.mjs';
     import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig } from '../lib/fyrirtaeki-ahaetta.mjs';
     import { veljaGrein, betriEnGrein, greinStig } from '../lib/fyrirtaeki-grein.mjs';
     let FS_USER = null;
@@ -575,16 +575,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     }
     // 📅 Ársreikningaskila-fylgni: skilaði félagið á réttum tíma? (áætluð skiladagsetn. 31.8 árið eftir).
     function fsSkilaSaga(f) {
-      const ars = (f.arsreikningar || []).filter((a) => a.ar).slice(0, 6);
-      if (!ars.length) return '';
-      const parseD = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
-      let anyLate = false;
-      const cells = ars.map((a) => {
-        const yr = parseInt(a.ar, 10), d = parseD(a.skil), late = d && d >= new Date(yr + 1, 8, 1);   // 1.9 = eftir 31.8-fresti
-        if (late) anyLate = true;
-        const st = !a.skil ? 'n' : late ? 'o' : 'g';
-        return '<span class="fs-skil ' + st + '"><b>' + escF(a.ar) + '</b><span>' + (a.skil ? escF(a.skil) + (late ? ' · seint' : ' ✓') : 'óskráð') + '</span></span>';
-      }).join('');
+      const saga = skilSaga(f.arsreikningar);   // sami gluggi og lánshæfismatið notar
+      if (!saga.length) return '';
+      const anyLate = saga.some((x) => x.seint);
+      const cells = saga.map((x) => '<span class="fs-skil ' + x.stada + '"><b>' + escF(x.ar) + '</b><span>'
+        + (x.skil ? escF(x.skil) + (x.seint ? ' · seint' : ' ✓') : 'óskráð') + '</span></span>').join('');
       return '<div class="fs-sub">📅 Ársreikningaskil — tímanleiki' + (anyLate ? ' <span class="fs-skil-warn">⚠ sein skil</span>' : '') + '</div><div class="fs-skil-row">' + cells + '</div>'
         + '<div class="fs-ph-src">Grænt = skilað fyrir áætlaðan frest (31. ágúst árið eftir reikningsár, 8 mán.); gult = eftir fresti. Byggt á skráðum skiladögum RSK.</div>';
     }
