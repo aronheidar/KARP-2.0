@@ -218,3 +218,26 @@ test('skammvinn bilun: tómt eigenda-svar hefði myndað removed_ubo fyrir hvern
   assert.equal(st.length, 1);
   assert.equal(st[0].kind, 'status_change');
 });
+
+// ── Vörn: veikar refsilista-samsvaranir mega ALDREI hegða sér eins og hits ──
+// Eins-orðs nafnasamsvörun (Nova, Saga, Fox …) er óstaðfest og fer í sér-svið.
+// Ef þessi próf falla er söluvaran farin að senda falskar krítískar viðvaranir.
+test('veikar refsilista-samsvaranir framkalla engan atburð', () => {
+  const prev = { hits: [], veikar: [] };
+  const cur = { hits: [], veikar: [{ name: 'Nova hf.' }, { name: 'Saga ehf.' }] };
+  assert.deepEqual(signalEvents('sanctions', prev, cur), []);
+});
+
+test('veikar refsilista-samsvaranir hækka ekki áhættueinkunn', () => {
+  const s = { sanctions: { hits: [], veikar: [{ name: 'Nova hf.' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  assert.equal(deriveRisk(s), 'Lág');
+});
+
+test('sterk samsvörun heldur áfram að vera critical og Há', () => {
+  const evs = signalEvents('sanctions', { hits: [] }, { hits: [{ name: 'Saddam Hussein' }], veikar: [] });
+  assert.equal(evs.length, 1);
+  assert.equal(evs[0].kind, 'sanctions_hit');
+  assert.equal(evs[0].severity, 'critical');
+  const s = { sanctions: { hits: [{ name: 'Saddam Hussein' }], veikar: [] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  assert.equal(deriveRisk(s), 'Há');
+});

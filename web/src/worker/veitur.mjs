@@ -10,6 +10,7 @@ import { GREINAR, greinaSql } from '../lib/greinar.mjs';
 import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
 import { feedFor, matchNews } from '../lib/lobbyvakt.mjs';
 import { traceUbo as kycTraceUbo } from '../lib/ubo-core.mjs';
+import { byggjaVisitolu, flokkaNofn, sancNorm, skimunarNidurstada } from '../lib/refsilistar.mjs';
 import { augGet } from './felag.mjs';
 import { karpUserId } from './auth.mjs';
 
@@ -42,35 +43,22 @@ export async function vanskilHandler(request, ctx) {
 
 let SANCTIONS_IDX = null;
 
-const sancNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
-
 async function sanctionsIndex(env) {
   if (SANCTIONS_IDX) return SANCTIONS_IDX;
   const j = await augGet(env, 'sanctions.json');
-  if (!j || !j.names) return { idx: new Map(), updated: null };   // ekki memo-a bilun → reynir aftur síðar
-  const idx = new Map();
-  for (const x of j.names) {
-    const t = (x.n || '').split(' ').filter(Boolean);
-    if (t.length < 2) continue;
-    const key = t[0] + '|' + t[t.length - 1];
-    if (!idx.has(key)) idx.set(key, { nafn: x.nafn, listar: x.listar });
-  }
-  SANCTIONS_IDX = { idx, updated: j.updated || null };
+  if (!j || !j.names) return { sterk: new Map(), veik: new Map(), updated: null };   // ekki memo-a bilun → reynir aftur síðar
+  const { sterk, veik } = byggjaVisitolu(j.names);
+  SANCTIONS_IDX = { sterk, veik, updated: j.updated || null };
   return SANCTIONS_IDX;
 }
 
 export async function sanctionsHandler(request, env, ctx) {
   const names = (new URL(request.url).searchParams.get('names') || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 40);
-  const { idx, updated } = await sanctionsIndex(env);
-  const hits = [], seen = new Set();
-  for (const raw of names) {
-    const t = sancNorm(raw).split(' ').filter(Boolean);
-    if (t.length < 2) continue;
-    const key = t[0] + '|' + t[t.length - 1];
-    const m = idx.get(key);
-    if (m && !seen.has(key)) { seen.add(key); hits.push({ nafn: raw, listi: m.nafn, listar: m.listar }); }
-  }
-  return sjson({ hits, updated, n: idx.size });
+  const { sterk, veik, updated } = await sanctionsIndex(env);
+  // flokkaNofn (refsilistar.mjs) — ein prófuð leið fyrir sterk/veik skiptingu, sjá kommenta þar.
+  // ALDREI sameina: hits keyrir critical-atburð, 'Há'-áhættu, póst og lánshæfis-þak.
+  const { sterkar, veikar } = flokkaNofn({ sterk, veik }, names, { dedup: true });
+  return sjson({ hits: sterkar, veikar, updated, n: sterk.size, nVeik: veik.size });
 }
 
 let KYC_PEP_IDX = null;
@@ -140,18 +128,13 @@ async function kycScreenKt(env, kt) {
   if (!ok.felag) na.status = true;
   const uboX = await _kycUbo(env, kt).catch(() => { na.ubo = true; return { beneficial: [], incompleteChain: false }; });
   const nameList = [felag?.nafn, ...owners.map((o) => o.nafn), ...board.map((b) => b.nafn)].filter(Boolean);
-  // sanctions — endurnýtir sanctionsIndex/sancNorm (L2438-2452): idx er { idx:Map, updated }, lykill er
-  // fyrsta+síðasta-tóken (sama lyklun og sanctionsHandler L2453 notar), EKKI heil-sancNorm-strengur.
-  const { idx: sIdx } = await sanctionsIndex(env);
-  if (!sIdx || !sIdx.size) na.sanctions = true;   // tóm vísitala = ónothæf skimun, ekki „engar samsvaranir"
-  const sHits = [];
-  for (const nm of nameList) {
-    const t = sancNorm(nm).split(' ').filter(Boolean);
-    if (t.length < 2) continue;
-    const key = t[0] + '|' + t[t.length - 1];
-    const m = sIdx.get(key);
-    if (m) sHits.push({ name: nm });
-  }
+  // sanctions — tvö lög um refsilistar.mjs. hits = fjöl-orða samsvörun (critical-atburður,
+  // 'Há'-áhætta, tafarlaus póstur). veikar = eins-orðs, óstaðfest — sér-svið sem kyc.mjs
+  // les EKKI, því eins-orðs nafnasamsvörun á íslenskum félagsnöfnum er nær alltaf fölsk
+  // (mæling 31.7.2026: 17 af 17 falskar). Ekki sameina þessi tvö.
+  const { sterk: sSterk, veik: sVeik } = await sanctionsIndex(env);
+  if (!sSterk || !sSterk.size) na.sanctions = true;   // tóm vísitala = ónothæf skimun, ekki „engar samsvaranir"
+  const sanctions = skimunarNidurstada({ sterk: sSterk, veik: sVeik }, nameList);
   // pep
   const pIdx = await kycPepIndex(env);
   if (!pIdx || !pIdx.size) na.pep = true;
@@ -190,7 +173,7 @@ async function kycScreenKt(env, kt) {
   return { na, states: {
     ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })), beneficial: uboX.beneficial, incompleteChain: uboX.incompleteChain },
     board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
-    sanctions: { hits: sHits },
+    sanctions,
     pep: { matches: pMatches },
     status: { stada: felag?.stada || '', gjaldthrot: felag?.gjaldthrot || 0, afskrad: felag?.afskrad || 0, gjaldthol: felag?.gjaldthol || 0 },
     legal: { notices },

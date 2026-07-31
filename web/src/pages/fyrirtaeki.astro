@@ -217,6 +217,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ar-l { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .3px; }
     .fs-ar-v { font-size: 13px; color: var(--ink); font-weight: 700; }
     .fs-ar-detail { font-size: 12px; color: #f0c674; margin: 4px 0 0; line-height: 1.5; }
+    .fs-ar-veik { margin-top: .4rem; opacity: .85; font-size: .92em; }
     .fs-ar-detail:empty { display: none; }
     .fs-ar-role { color: var(--muted); font-weight: 400; }
     .fs-ar-more { margin-top: 5px; } .fs-ar-more a { color: #f6b13b; text-decoration: none; font-size: 12px; } .fs-ar-more a:hover { text-decoration: underline; }
@@ -668,13 +669,23 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const res = await fsSanctionHits(f);   // deilt með lánshæfismatinu (F9)
       if (res == null) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; return; }
       if (!res.names) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Engir aðilar'; return; }
-      const hits = res.hits;
-      if (!hits.length) { chip.className = 'fs-ar g'; if (v) v.textContent = 'Engin samsvörun'; return; }
+      const hits = res.hits, veikar = res.veikar || [];
+      const d = document.getElementById('fs-ar-sanction-detail');
+      // Veika línan: eins-orðs nafnasamsvörun. Sérstök lína, hlutlaus, og hún ræður
+      // ALDREI lit flísarinnar — rautt (fs-ar b) er eingöngu drifið af hits.
+      const veikTxt = !veikar.length ? '' :
+        '<div class="fs-ar-veik">ℹ️ <b>' + veikar.length + ' eins-orðs samsvörun</b> — nafnið er eitt orð og samsvörunin því veik. Krefst auðkennis-staðfestingar: '
+        + veikar.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ') + '</div>';
+      if (!hits.length) {
+        chip.className = 'fs-ar g';
+        if (v) v.textContent = veikar.length ? 'Engin staðfest' : 'Engin samsvörun';
+        if (d) d.innerHTML = veikTxt;
+        return;
+      }
       chip.className = 'fs-ar b';
       if (v) v.textContent = hits.length + ' möguleg';
-      const d = document.getElementById('fs-ar-sanction-detail');
       if (d) d.innerHTML = '⚠️ <b>Möguleg samsvörun við refsilista</b> (ESB/SÞ/OFAC) — nafnasamsvörun, <b>EKKI staðfesting</b>, staðfestu auðkenni: '
-        + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ');
+        + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ') + veikTxt;
     }
     // Auðgun 14 — samsett áreiðanleika-yfirlit: telur opinber stöðumerki (grænt/gult/rautt). EKKI lánshæfismat.
     function fsWireAreidStig() {
@@ -1217,11 +1228,13 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const data = await fsLogbirtingAll();
       return flakkMatches(data && data.byKt, f.kt, f.nafn);
     }
-    // F9-hjálpari: eigenda-/forráðamanna-/félags-nöfn gegn worker /api/sanctions. null = villa; annars {hits,names}.
+    // F9-hjálpari: eigenda-/forráðamanna-/félags-nöfn gegn worker /api/sanctions.
+    // null = villa; annars {hits,veikar,names,skorid}. hits = staðfestanleg fjöl-orða
+    // samsvörun (drífur lánshæfis-þak); veikar = eins-orðs, óstaðfest (drífur EKKERT mat).
     async function fsSanctionHits(f) {
       const n = sanctionNames(f.nafn ? fsStutt(f.nafn) : '', f.eigendur, f.radamenn);
-      if (!n.names.length) return { hits: [], names: 0, skorid: 0 };
-      try { const res = await fetch('/api/sanctions?names=' + encodeURIComponent(n.names.join(','))).then((r) => (r.ok ? r.json() : null)); return res ? { hits: res.hits || [], names: n.alls, skorid: n.skorid } : null; } catch (e) { return null; }
+      if (!n.names.length) return { hits: [], veikar: [], names: 0, skorid: 0 };
+      try { const res = await fetch('/api/sanctions?names=' + encodeURIComponent(n.names.join(','))).then((r) => (r.ok ? r.json() : null)); return res ? { hits: res.hits || [], veikar: res.veikar || [], names: n.alls, skorid: n.skorid } : null; } catch (e) { return null; }
     }
     // F2-merki: hlutfall lykiltalna yfir greinar-viðmiði (Hagstofa FYR08010), sama uppspretta og fsWireSector.
     async function fsLhSectorFactor(f) {
