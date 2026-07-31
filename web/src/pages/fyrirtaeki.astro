@@ -500,6 +500,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { slugify } from '../lib/atvinnugrein.mjs';
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../lib/fyrirtaeki-lanshaefi.mjs';
+    import { coreName as fsCoreName, flakkMatches, sanctionNames } from '../lib/fyrirtaeki-ahaetta.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -663,7 +664,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // nýlega slitið/gjaldþrota í Lögbirtingablaðinu. VÍSBENDING, ekki staðfesting.
     let _lbAll = null;
     function fsLogbirtingAll() { if (!_lbAll) _lbAll = fetch('/gogn/logbirting.json').then((r) => (r.ok ? r.json() : null)).catch(() => null); return _lbAll; }
-    function fsCoreName(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\b(ehf|hf|slhf|ohf|sf|slf|svf|bs)\b\.?/g, '').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim(); }
     async function fsWireFlakk(f) {
       const chip = document.getElementById('fs-ar-flakk'); if (!chip) return;
       const v = chip.querySelector('.fs-ar-v');
@@ -1222,31 +1222,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // F8-hjálpari: félög með sama kjarna-nafn en aðra kt, nýlega tekin til skipta/slitin.
     // null = gögn ekki tiltæk; [] = engin samsvörun. (Deilt með fsWireFlakk.)
     async function fsFlakkMatches(f) {
-      const core = fsCoreName(f.nafn);
-      if (core.length < 4) return [];
+      if (fsCoreName(f.nafn).length < 4) return [];   // of stutt nafn → engin uppfletting, engin sókn
       const data = await fsLogbirtingAll();
-      if (!data || !data.byKt) return null;
-      const myKt = String(f.kt).replace(/\D/g, ''), disk = { felagsslit: 1, gjaldthrot_beidni: 1, skiptabeidni: 1, skiptalok: 1 }, matches = [];
-      const nameMatch = (a) => { if (!a) return false; if (a === core) return true; const s = a.length < core.length ? a : core, l = a.length < core.length ? core : a; return s.length >= 7 && l.startsWith(s + ' '); };
-      for (const kt in data.byKt) {
-        if (kt === myKt) continue;
-        const ent = data.byKt[kt];
-        if (!nameMatch(fsCoreName(ent.name))) continue;
-        const notices = (ent.notices || []).filter((n) => disk[n.type]);
-        if (!notices.length) continue;
-        const latest = notices.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0];
-        matches.push({ kt, name: ent.name, date: latest.date });
-      }
-      return matches;
+      return flakkMatches(data && data.byKt, f.kt, f.nafn);
     }
     // F9-hjálpari: eigenda-/forráðamanna-/félags-nöfn gegn worker /api/sanctions. null = villa; annars {hits,names}.
     async function fsSanctionHits(f) {
-      const names = [];
-      if (f.nafn) names.push(fsStutt(f.nafn));
-      for (const e of (f.eigendur || [])) { const nm = String(e.nafn || '').split(' - ')[0].trim(); if (nm) names.push(nm); }
-      for (const r of (f.radamenn || [])) { const nm = String(r).split(' - ')[0].trim(); if (nm) names.push(nm); }
-      if (!names.length) return { hits: [], names: 0 };
-      try { const res = await fetch('/api/sanctions?names=' + encodeURIComponent(names.slice(0, 20).join(','))).then((r) => (r.ok ? r.json() : null)); return res ? { hits: res.hits || [], names: names.length } : null; } catch (e) { return null; }
+      const n = sanctionNames(f.nafn ? fsStutt(f.nafn) : '', f.eigendur, f.radamenn);
+      if (!n.names.length) return { hits: [], names: 0, skorid: 0 };
+      try { const res = await fetch('/api/sanctions?names=' + encodeURIComponent(n.names.join(','))).then((r) => (r.ok ? r.json() : null)); return res ? { hits: res.hits || [], names: n.alls, skorid: n.skorid } : null; } catch (e) { return null; }
     }
     // F2-merki: hlutfall lykiltalna yfir greinar-viðmiði (Hagstofa FYR08010), sama uppspretta og fsWireSector.
     async function fsLhSectorFactor(f) {
@@ -1285,7 +1269,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         if (v && Array.isArray(v.ar) && v.ar.length) { fsLhSet('vanskil', { icon: '⚠️', label: 'Ársreikningur í vanskilum', txt: v.ar.map((x) => x.ar).join(', '), delta: -12, status: 'b', tip: 'Félagið er á opinberum vanskilalista ársreikningaskrár Skattsins (hefur ekki skilað ársreikningi tiltekinna ára) — lækkar matið um 12.' }); fsLhRender(); }
       }).catch(() => {});
       fsFlakkMatches(f).then((m) => { if (m && m.length) { fsLhSet('flakk', { icon: '🔁', label: 'Möguleg gjaldþrota-tengsl', txt: m.length + ' vísbending' + (m.length > 1 ? 'ar' : ''), delta: -8, status: 'o', tip: 'Annað félag með sama kjarna-nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið (kennitöluflakks-vísbending). Vísbending, ekki staðfesting — lækkar um 8.' }); fsLhRender(); } }).catch(() => {});
-      fsSanctionHits(f).then((s) => { if (s && s.hits && s.hits.length) { fsLhSet('sanction', { icon: '🌐', label: 'Refsilista-samsvörun', txt: s.hits.length + ' möguleg', delta: -50, cap: 20, status: 'b', tip: 'Möguleg nafnasamsvörun félags eða eigenda við þvingunarlista (ESB/SÞ/OFAC). Setur matið í lægsta flokk (E). Nafnasamsvörun, EKKI staðfesting — staðfestu auðkenni.' }); fsLhRender(); } }).catch(() => {});
+      fsSanctionHits(f).then((s) => {
+        if (s && s.hits && s.hits.length) { fsLhSet('sanction', { icon: '🌐', label: 'Refsilista-samsvörun', txt: s.hits.length + ' möguleg', delta: -50, cap: 20, status: 'b', tip: 'Möguleg nafnasamsvörun félags eða eigenda við þvingunarlista (ESB/SÞ/OFAC). Setur matið í lægsta flokk (E). Nafnasamsvörun, EKKI staðfesting — staðfestu auðkenni.' }); fsLhRender(); }
+        // Skimun sem náði ekki yfir alla verður að SJÁST — „engin samsvörun“ á ófullri skimun er villandi.
+        else if (s && s.skorid > 0) { fsLhSet('sanction', { icon: '🌐', label: 'Refsilista-skimun', txt: 'að hluta — ' + (s.names - s.skorid) + ' af ' + s.names + ' nöfnum', delta: 0, status: 'n', tip: 'Félagið hefur fleiri skráða eigendur/ráðamenn en komast í eina skimunar-fyrirspurn. Engin samsvörun fannst meðal þeirra sem skimaðir voru; afgangurinn var EKKI skimaður.' }); fsLhRender(); }
+      }).catch(() => {});
     }
     // 🏦 Efnahags-stöplasúla: samsetning fjármögnunar (eigið fé + langtíma- + skammtímaskuldir)
     function fsBalanceBar(y) {
