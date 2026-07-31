@@ -55,6 +55,26 @@ export function flakkMatches(byKt, minKt, nafn) {
 // • tvítekningum eytt (sami maður er oft bæði eigandi og ráðamaður) svo þakið fari ekki til spillis.
 // Skilar {names, alls, skorid} — `skorid` > 0 ÞÝÐIR að hluti var EKKI skimaður og það verður að sjást
 // í skýrslunni; þögul stytting í skimun er verri en engin skimun.
+// Samantektarmerki áreiðanleikamatsins (KYC): eitt yfirlit yfir stöðu allra athugana.
+// `stodur` = stöðustafur hvers reits — 'u' BÍÐUR svars, 'n' niðurstaða án merkis (t.d. „Engir aðilar“),
+// 'g'/'o'/'b' raunmerki. `uppgefid` = hætt að bíða (tímamörk runnin út).
+//
+// ⚠ Tvennt sem má ALDREI rugla saman: reitur sem bíður svars og reitur sem svaraði án merkis.
+// Eldri útgáfan taldi hvort tveggja sem „óklárað“ OG kvað samt upp úrskurð úr því sem komið var —
+// græna „Engin neikvæð stöðumerki“ birtist því áður en refsilista- og PEP-skimun höfðu skilað sér.
+// Hér er enginn úrskurður (lvl = null) fyrr en engir reitir bíða.
+export function areidStig(stodur, uppgefid) {
+  const listi = stodur || [];
+  if (!listi.length) return null;
+  const c = { g: 0, o: 0, b: 0, n: 0, u: 0 };
+  for (const k of listi) { if (c[k] == null) c.u++; else c[k]++; }
+  const grunnur = { skilad: c.g + c.o + c.b, tomar: c.n, bidur: c.u, alls: listi.length, merki: { g: c.g, o: c.o, b: c.b } };
+  if (c.u && !uppgefid) return { ...grunnur, lvl: null, lokid: false, label: 'Athuganir í vinnslu…' };
+  if (c.u) return { ...grunnur, lvl: 'o', lokid: false, label: 'Athuganir kláruðust ekki' };
+  const label = c.b ? 'Alvarleg stöðumerki' : c.o >= 2 ? 'Nokkur athugunarefni' : c.o ? 'Minniháttar athugunarefni' : 'Engin neikvæð stöðumerki';
+  return { ...grunnur, lvl: c.b ? 'b' : c.o ? 'o' : 'g', lokid: true, label };
+}
+
 export function sanctionNames(felagsNafn, eigendur, radamenn, max) {
   const cap = max == null ? 40 : max;    // sama þak og sanctionsHandler í worker notar
   const hreinsa = (s) => String(s || '').split(' - ')[0].split(',')[0].trim();

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { coreName, nameMatch, flakkMatches, sanctionNames, FLAKK_TYPES } from '../src/lib/fyrirtaeki-ahaetta.mjs';
+import { coreName, nameMatch, flakkMatches, sanctionNames, areidStig, FLAKK_TYPES } from '../src/lib/fyrirtaeki-ahaetta.mjs';
 
 // ── Kjarnanafn ────────────────────────────────────────────────────────────────
 test('coreName: félagsform, hljóðmerki og greinarmerki hverfa', () => {
@@ -158,4 +158,61 @@ test('sanctionNames: tóm/vantandi gögn skila engu án þess að falla', () => 
   assert.equal(r.alls, 0);
   assert.equal(r.skorid, 0);
   assert.deepEqual(sanctionNames('Brim', [{}, { nafn: '' }, null], [null, '']).names, ['Brim']);
+});
+
+// ── KYC-samantektarmerki ──────────────────────────────────────────────────────
+test('areidStig: ENGINN úrskurður meðan reitir bíða svars', () => {
+  // Kjarninn: græn „engin neikvæð stöðumerki“ mátti ekki birtast áður en refsilista-
+  // og PEP-skimun skiluðu sér. lvl === null þýðir að merkið er falið (.fs-ar-stig.n).
+  const s = areidStig(['g', 'g', 'u', 'u', 'u']);
+  assert.equal(s.lvl, null);
+  assert.equal(s.lokid, false);
+  assert.equal(s.label, 'Athuganir í vinnslu…');
+  assert.equal(s.bidur, 3);
+});
+
+test('areidStig: reitur sem svaraði ÁN merkis er kláraður, ekki „bíður“', () => {
+  // „Engir aðilar“ / „Í fullri fyrirtækjaskýrslu →“ eru niðurstöður. Eldri útgáfan taldi þær
+  // sem óklárað, svo merkið sat fast í „(í vinnslu…)“ að eilífu — lánshæfis-reiturinn er ALLTAF 'n'.
+  const s = areidStig(['g', 'g', 'n', 'n']);
+  assert.equal(s.lokid, true);
+  assert.equal(s.bidur, 0);
+  assert.equal(s.tomar, 2);
+  assert.equal(s.skilad, 2);
+  assert.equal(s.lvl, 'g');
+});
+
+test('areidStig: úrskurður fylgir alvarlegasta merkinu', () => {
+  assert.equal(areidStig(['g', 'g', 'g']).label, 'Engin neikvæð stöðumerki');
+  assert.equal(areidStig(['g', 'o']).label, 'Minniháttar athugunarefni');
+  assert.equal(areidStig(['g', 'o', 'o']).label, 'Nokkur athugunarefni');
+  assert.equal(areidStig(['g', 'o', 'o', 'b']).label, 'Alvarleg stöðumerki');
+  assert.equal(areidStig(['g', 'o', 'o', 'b']).lvl, 'b');
+});
+
+test('areidStig: tímamörk með ósvöruðum reitum segja það BEINT (ekki grænt)', () => {
+  const s = areidStig(['g', 'g', 'u'], true);
+  assert.equal(s.label, 'Athuganir kláruðust ekki');
+  assert.equal(s.lvl, 'o');
+  assert.notEqual(s.lvl, 'g');
+  assert.equal(s.bidur, 1);
+});
+
+test('areidStig: talning skilar sér til framsetningar', () => {
+  const s = areidStig(['g', 'g', 'o', 'b', 'n']);
+  assert.equal(s.alls, 5);
+  assert.equal(s.skilad, 4);
+  assert.equal(s.tomar, 1);
+  assert.deepEqual(s.merki, { g: 2, o: 1, b: 1 });
+});
+
+test('areidStig: engir reitir → ekkert merki', () => {
+  assert.equal(areidStig([]), null);
+  assert.equal(areidStig(null), null);
+});
+
+test('areidStig: óþekktur stöðustafur telst BÍÐA (varlegast)', () => {
+  const s = areidStig(['g', 'x']);
+  assert.equal(s.bidur, 1);
+  assert.equal(s.lvl, null);
 });

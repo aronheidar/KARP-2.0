@@ -500,7 +500,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { slugify } from '../lib/atvinnugrein.mjs';
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../lib/fyrirtaeki-lanshaefi.mjs';
-    import { coreName as fsCoreName, flakkMatches, sanctionNames } from '../lib/fyrirtaeki-ahaetta.mjs';
+    import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig } from '../lib/fyrirtaeki-ahaetta.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -598,11 +598,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       return '<div class="fs-sub">🛡️ Áreiðanleiki — yfirlit (KYC)</div>'
         + '<div id="fs-ar-stig" class="fs-ar-stig n"></div>'
         + '<div class="fs-argrid">' + skra + skil + heilsa + eign
-        + '<div id="fs-ar-pep" class="fs-ar n"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
-        + '<div id="fs-ar-log" class="fs-ar n"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-media" class="fs-ar n"><span class="fs-ar-i">📰</span><div class="fs-ar-tx"><span class="fs-ar-l">Fjölmiðlaumfjöllun</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-flakk" class="fs-ar n"><span class="fs-ar-i">🔁</span><div class="fs-ar-tx"><span class="fs-ar-l">Gjaldþrota-tengsl</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-sanction" class="fs-ar n"><span class="fs-ar-i">🌐</span><div class="fs-ar-tx"><span class="fs-ar-l">Þvingunaraðgerðir</span><span class="fs-ar-v">skima…</span></div></div>'
+        + '<div id="fs-ar-pep" class="fs-ar u"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
+        + '<div id="fs-ar-log" class="fs-ar u"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-media" class="fs-ar u"><span class="fs-ar-i">📰</span><div class="fs-ar-tx"><span class="fs-ar-l">Fjölmiðlaumfjöllun</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-flakk" class="fs-ar u"><span class="fs-ar-i">🔁</span><div class="fs-ar-tx"><span class="fs-ar-l">Gjaldþrota-tengsl</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-sanction" class="fs-ar u"><span class="fs-ar-i">🌐</span><div class="fs-ar-tx"><span class="fs-ar-l">Þvingunaraðgerðir</span><span class="fs-ar-v">skima…</span></div></div>'
         + '</div>'
         + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
         + '<div id="fs-ar-media-detail" class="fs-ar-detail"></div>'
@@ -699,16 +699,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const tick = () => {
         const chips = [].slice.call(document.querySelectorAll('.fs-argrid .fs-ar'));
         if (!chips.length) return true;
-        const c = { g: 0, o: 0, b: 0, u: 0 };
-        chips.forEach((el) => { const m = String(el.className).match(/fs-ar (g|o|b)\b/); c[m ? m[1] : 'u']++; });
-        const done = c.u === 0, lvl = c.b ? 'b' : c.o ? 'o' : 'g';
-        const lbl = c.b ? 'Alvarleg stöðumerki' : c.o >= 2 ? 'Nokkur athugunarefni' : c.o ? 'Minniháttar athugunarefni' : 'Engin neikvæð stöðumerki';
-        host.className = 'fs-ar-stig ' + lvl;
-        host.innerHTML = '<div class="fs-ar-stig-b">' + (c.b ? '🔴' : c.o ? '🟡' : '🟢') + '</div>'
-          + '<div class="fs-ar-stig-tx"><b>' + lbl + '</b>'
-          + '<span>' + (chips.length - c.u) + '/' + chips.length + ' opinberar athuganir' + (done ? '' : ' (í vinnslu…)') + ' · ' + '🟢'.repeat(c.g) + '🟡'.repeat(c.o) + '🔴'.repeat(c.b) + '</span>'
-          + '<span class="fs-ar-stig-n">Samantekt á opinberum stöðumerkjum — <b>ekki lánshæfismat</b>.</span></div>';
-        return done || n++ > 24;
+        const stodur = chips.map((el) => (String(el.className).match(/fs-ar (g|o|b|n|u)\b/) || [])[1] || 'u');
+        const uppgefid = n++ > 24;
+        const s = areidStig(stodur, uppgefid);
+        if (!s) return true;
+        // lvl === null → 'fs-ar-stig n' er FALIÐ í CSS: enginn úrskurður fyrr en allar athuganir hafa svarað.
+        host.className = 'fs-ar-stig ' + (s.lvl || 'n');
+        if (s.lvl) {
+          const m = s.merki;
+          host.innerHTML = '<div class="fs-ar-stig-b">' + (s.lokid ? (m.b ? '🔴' : m.o ? '🟡' : '🟢') : '⏳') + '</div>'
+            + '<div class="fs-ar-stig-tx"><b>' + s.label + '</b>'
+            + '<span>' + s.skilad + '/' + s.alls + ' opinberar athuganir skiluðu merki'
+            + (s.tomar ? ' · ' + s.tomar + ' án niðurstöðu' : '') + (s.bidur ? ' · ' + s.bidur + ' svöruðu ekki' : '')
+            + ' · ' + '🟢'.repeat(m.g) + '🟡'.repeat(m.o) + '🔴'.repeat(m.b) + '</span>'
+            + '<span class="fs-ar-stig-n">Samantekt á opinberum stöðumerkjum — <b>ekki lánshæfismat</b>.</span></div>';
+        }
+        return s.lokid || uppgefid;
       };
       const iv = setInterval(() => { if (tick()) clearInterval(iv); }, 700);
       tick();
