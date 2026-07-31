@@ -40,6 +40,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
   import { mountUboReport, renderUboSample, refreshUboReport, uboOwned } from '../lib/ubo-report.js';
   import { loadUser, loginHref, karpWarmReports } from '../lib/auth.js';
   import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
+  import { escF, ktFmt } from '../lib/snid.mjs';
 
   function initEig() {
     const form = document.getElementById('fs-form');
@@ -48,8 +49,6 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
     const main = document.querySelector('main[data-pg="eigendur"]');
     if (!form || form.dataset.done) return;
     form.dataset.done = '1';
-    const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
     const skila = (html) => { out.innerHTML = html; };
 
     // Val á félagi → sýna eigendaskýrslu (net + töflur + gátt/kaup) fyrir kt.

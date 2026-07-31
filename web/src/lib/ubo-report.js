@@ -3,9 +3,8 @@
 // sömu vél. Engin tvítekin rökvísi. Public API neðst.
 import { isAdmin, hasReport, karpCheckout, helpNote, loginHref } from './auth.js';
 import { pendingBarHtml, pollUntilChanged } from './report-nav.js';
+import { escF, ktFmt } from './snid.mjs';
 
-const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
 const eigPctFmt = (n) => (n == null ? '—' : Number(n).toFixed(2).replace('.', ',') + '%');
 const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
 const eigMkr = (v, cur) => (v == null ? '—' : Math.round(v).toLocaleString('is-IS') + ' ' + (cur || 'm.kr'));

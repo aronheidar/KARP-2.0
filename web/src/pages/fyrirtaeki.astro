@@ -502,11 +502,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate, skilSaga } from '../lib/fyrirtaeki-lanshaefi.mjs';
     import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig, pepScreen } from '../lib/fyrirtaeki-ahaetta.mjs';
     import { veljaGrein, betriEnGrein, greinStig } from '../lib/fyrirtaeki-grein.mjs';
+    import { escF, ktFmt, mkrF } from '../lib/snid.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
-    const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt.slice(6) : kt || '');
-    const mkrF = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     // birgjar.json ber 200 stærstu birgja ríkisins — nöfn þar eru STYTT (~30 stafir)
     // svo samsvörunin er normaliseruð forskeytis-samsvörun, ekki jafngildi.
     let FS_BIRGJAR = null;
