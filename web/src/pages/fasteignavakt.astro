@@ -896,7 +896,7 @@ const jsonLd = {
                   + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div></div></div>';
               }).join('');
               byggHtml = '<div class="fv-head" style="margin-top:14px">🏗️ Byggingarsaga heimilisfangs</div>'
-                + '<div class="byg-note">Afgreiðslur byggingarfulltrúa Reykjavíkur á <b>' + esc(rec.addr) + '</b> — ' + rec.cases.length + ' byggingarmál (leyfi, breytingar, stækkanir). <a href="/byggingarvakt/">Byggingarvaktin ↗</a></div>'
+                + '<div class="byg-note">Afgreiðslur byggingarfulltrúa Reykjavíkur á <b>' + esc(rec.addr) + '</b> — ' + rec.cases.length + ' byggingarmál (leyfi, breytingar, stækkanir). <a href="/eftirlit-byggingar/?t=bygging">Byggingarleyfi ↗</a></div>'
                 + '<div class="byg-list">' + rows + '</div>'
                 + (rec.cases.length > 30 ? '<div class="fvm-note" style="margin-top:4px">Sýni 30 nýjustu af ' + rec.cases.length + ' málum — sjá öll á Byggingarvaktinni.</div>' : '');
             }

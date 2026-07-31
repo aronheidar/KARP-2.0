@@ -355,9 +355,9 @@ function digestBuild(name, prefs, sh) {
       if (!(fvB.vaktir.some((w) => w && byggMatch(x, w.q)))) continue;
       const key = x.caseNo || (String(x.a || '') + x.date);
       if (seen.has(key)) continue; seen.add(key);
-      n++; if (n <= 8) sec += li((x.a || x.addr || '') + (x.desc ? ' — ' + String(x.desc).slice(0, 70) : ''), (dIS(x.date) + (x.hverfi ? ' · ' + x.hverfi : '') + (x.decisionCode ? ' · ' + x.decisionCode : '')).trim(), 'https://karp.is/byggingarvakt/');
+      n++; if (n <= 8) sec += li((x.a || x.addr || '') + (x.desc ? ' — ' + String(x.desc).slice(0, 70) : ''), (dIS(x.date) + (x.hverfi ? ' · ' + x.hverfi : '') + (x.decisionCode ? ' · ' + x.decisionCode : '')).trim(), 'https://karp.is/eftirlit-byggingar/?t=bygging');
     }
-    if (n) { rows += H('🏗️', 'Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/byggingarvakt/'); personal = true; }
+    if (n) { rows += H('🏗️', 'Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/eftirlit-byggingar/?t=bygging'); personal = true; }
   }
   // ── 🏭 Röð í atvinnugrein — vöktað félag færðist til (firmavakt → grein_rank_last díff) ──
   const fmvR = prefs.firmavakt;

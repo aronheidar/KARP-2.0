@@ -103,7 +103,7 @@ export const EMAIL_TYPES = [
     breytur: ['fjoldi', 'lysing'], krafist: [],
     subject: '🚨 Heilbrigðiseftirlit: {{lysing}} í einkunn 0-1',
     intro: 'Eftirfarandi staðir á vaktinni þinni fengu einkunn 0-1 (stöðvun/takmörkun) í nýjasta heilbrigðiseftirliti Reykjavíkur:',
-    footer: 'Sjá nánar: https://karp.is/eftirlit/\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/',
+    footer: 'Sjá nánar: https://karp.is/eftirlit-byggingar/?t=eftirlit\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/',
   },
   {
     id: 'logbirting_crit', label: '🚨 Gjaldþrota-viðvörun', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',

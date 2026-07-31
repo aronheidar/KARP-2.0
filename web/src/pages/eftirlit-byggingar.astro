@@ -1,0 +1,584 @@
+---
+// Eftirlit & byggingarleyfi — SAMEINUÐ síða (áður /eftirlit/ + /byggingarvakt/).
+// Bæði eru opin Reykjavíkur-gögn um staði og hús; hvorugt er persónusniðin „vakt".
+// Flipar: ?t=eftirlit (sjálfgefið) · ?t=bygging — sama mynstur og /okutaeki-skip/?t=oku.
+//
+// ⚠ Flipa-tæknin: báðir hlutar eru RENDERAÐIR og frumstilltir strax (eins og áður);
+// falinn flipi = hidden. ECharts/Leaflet frumstillast því í 0px-íláti → flipa-rofinn
+// sendir 'resize' (ECharts hlustar) og kallar el._map.invalidateSize() (Leaflet).
+// Þess vegna geymir kort-kóðinn `el._map = map`.
+//
+// data-pg situr á HLUTUNUM (ekki <main>) svo skrifturnar og is:global-reglurnar úr
+// upprunasíðunum haldist óbreyttar — valdararnir eru [data-pg="…"] í stað main[data-pg="…"].
+import Layout from '../layouts/Layout.astro';
+import EF from '@gogn/eftirlit.json';
+import VAKT from '@gogn/byggingarleyfi_vakt.json';
+
+/* ---- Eftirlit (HER) ---- */
+const stadir = EF.stadir || [];
+const dist = EF.dist || [0, 0, 0, 0, 0, 0];
+const count = EF.count || stadir.length;
+const avg = EF.avg;
+const worst = stadir.filter((s) => s.rating <= 1).sort((a, b) => (a.rating - b.rating) || (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
+const nStopped = dist[0] + dist[1];
+const efUpdated = (EF.updated || '').slice(0, 10);
+const RLAB = EF.labels || {};
+const cIS = (v) => (v == null ? '–' : String(v).replace('.', ','));
+
+/* ---- Byggingarleyfi (byggingarfulltrúi RVK) ---- */
+const LABELS = VAKT.decisionLabels || {};
+const byDec = VAKT.byDecision || {};
+const byHv = VAKT.byHverfi || {};
+const counts = VAKT.counts || {};
+const bvUpdated = (VAKT.generated || '').slice(0, 10);
+const latestDate = VAKT.latestDate || '';
+const DCOL = {
+  samthykkt: '#3fb950', jakvaett: '#6fd39b', frestad: '#f6b13b', afgreitt: '#58a6ff',
+  synjad: '#d1242f', neikvaett: '#f85149', visad_fra: '#f0883e', afturkallad: '#8b98ac', annad: '#9fb0c8',
+};
+const ORDER = ['samthykkt', 'jakvaett', 'frestad', 'afgreitt', 'synjad', 'neikvaett', 'visad_fra', 'afturkallad', 'annad'];
+const distRows = ORDER.filter((c) => byDec[c]).map((c) => ({ code: c, label: LABELS[c] || c, n: byDec[c], col: DCOL[c] }));
+const nIS = (v) => (v == null ? '–' : Number(v).toLocaleString('is-IS'));
+const samth = (byDec.samthykkt || 0) + (byDec.jakvaett || 0);
+const synj = (byDec.synjad || 0) + (byDec.neikvaett || 0);
+const topHv = Object.entries(byHv).slice(0, 8);
+
+const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og heilbrigðiseftirlitseinkunn ${count} veitinga- og matvælastaða (kvarði 0–5) og ${nIS(counts.permits)} afgreiðslur byggingarfulltrúa á ${nIS(counts.addresses)} heimilisföngum. Kort, leit og skýrslur.`;
+---
+<Layout title="Eftirlit & byggingarleyfi í Reykjavík — hreinlætiseinkunnir og afgreiðslur byggingarfulltrúa | Karp" description={desc} canonical="https://karp.is/eftirlit-byggingar/" ogTitle="Eftirlit & byggingarleyfi í Reykjavík">
+  <main class="eb">
+    <p class="kicker">Hagvísir Íslands · Reykjavík</p>
+    <h1>Eftirlit &amp; byggingarleyfi 🏙️</h1>
+    <p class="lead">Tvær opinberar skrár Reykjavíkurborgar um staði og hús, á einum stað: <strong>hreinlætiseinkunn</strong> veitinga- og matvælastaða úr heilbrigðiseftirliti, og <strong>afgreiðslur byggingarfulltrúa</strong> á byggingarleyfum. Hvort tveggja er opið og uppfært daglega.</p>
+    <p class="datainfo">⚠ Aðeins Reykjavík — önnur sveitarfélög birta hvorugt á sambærilegu formi.</p>
+
+    <div class="eb-tabs" role="tablist" aria-label="Veldu gagnaskrá">
+      <button class="eb-tab" data-t="eftirlit" type="button" role="tab" aria-controls="tab-eftirlit">🍽️ Heilbrigðiseftirlit <span>{count} staðir</span></button>
+      <button class="eb-tab" data-t="bygging" type="button" role="tab" aria-controls="tab-bygging">🏗️ Byggingarleyfi <span>{nIS(counts.permits)} afgreiðslur</span></button>
+    </div>
+
+    {/* ============================ FLIPI 1 — EFTIRLIT ============================ */}
+    <section id="tab-eftirlit" data-tab="eftirlit" data-pg="eftirlit" role="tabpanel">
+      <p class="lead">Opinber niðurstaða matvæla- og heilbrigðiseftirlits fyrir <strong>{count}</strong> veitinga-, kaffihúsa- og matvælastaði í Reykjavík — einkunn <strong>0–5</strong> (0 verst) úr nýjasta eftirliti. Enginn annar birtir þetta á einum stað: Matvælastofnun gefur engar per-stað einkunnir og fjölmiðlar halda ekki skrá. Fletta má upp einstöku fyrirtæki á <a href="/fyrirtaeki/">fyrirtækjaprófílum</a>.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Heilbrigðiseftirlit Reykjavíkur (her.reykjavik.is). Kvarði 0–5: 5 kröfur uppfylltar · 4 fáein frávik · 3 frávik/ábendingar · 2 aðkallandi frávik · 1 starfsemi takmörkuð/stöðvuð að hluta · 0 starfsemi stöðvuð. ⚠ Aðeins Reykjavík — önnur heilbrigðiseftirlitssvæði birta ekki per-stað einkunnir.">ⓘ</i> Um kvarðann og gögnin</p>
+
+      <div class="kpis">
+        <div class="kpi"><div class="k-l">🏢 Metnir staðir</div><div class="k-v">{count}</div><div class="k-s">m/ birta einkunn</div></div>
+        <div class="kpi"><div class="k-l">📊 Meðaleinkunn</div><div class="k-v">{cIS(avg)}</div><div class="k-s">af 5 (hærra betra)</div></div>
+        <div class="kpi"><div class="k-l">⛔ Stöðvuð / takmörkuð</div><div class="k-v" style="color:#f85149">{nStopped}</div><div class="k-s">einkunn 0–1</div></div>
+        <div class="kpi"><div class="k-l">⭐ Til fyrirmyndar</div><div class="k-v" style="color:#3fb950">{dist[5]}</div><div class="k-s">einkunn 5</div></div>
+      </div>
+
+      <h2>Dreifing einkunna</h2>
+      <p class="sub">Fjöldi staða eftir einkunn. Flestir eru í 3 („frávik / ábendingar"); {nStopped} staðir í 0–1.</p>
+      <div class="cwrap"><div id="ef-dist" class="ch"></div></div>
+
+      <div id="ef-mapwrap" hidden>
+        <h2>Kort — hreinlæti eftir stað</h2>
+        <p class="sub">Litur eftir einkunn (grænt best, rautt verst). Smelltu á punkt fyrir stað og skýrslu. <span id="ef-mapn"></span></p>
+        <div id="ef-map"></div>
+      </div>
+
+      {worst.length > 0 && <>
+        <h2>⚠ Alvarlegustu frávikin</h2>
+        <p class="sub">Staðir með stöðvaða eða að hluta takmarkaða/stöðvaða starfsemi (einkunn 0–1) í nýjasta eftirliti.</p>
+        <div class="ef-grid">
+          {worst.map((s) => (
+            <div class="ef-card">
+              <span class={'ef-b r' + s.rating} title={'Einkunn ' + s.rating + '/5'}>{s.rating}</span>
+              <div class="ef-t">
+                <a class="ef-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name)}>{s.name}</a>
+                <div class="ef-meta">{[s.street, s.postnr, s.city].filter(Boolean).join(' · ')}</div>
+                <div class="ef-lab">{s.ratingLabel}</div>
+              </div>
+              <div class="ef-r">
+                <div class="ef-d">{s.lastInspection || ''}</div>
+                {s.reportUrl && <a class="ef-rep" href={s.reportUrl} target="_blank" rel="noopener">skýrsla ↗</a>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>}
+
+      <h2>Leitaðu í skránni</h2>
+      <p class="sub">Sláðu inn nafn eða götu, eða síaðu eftir einkunn. Smelltu á nafn til að sjá fyrirtækjaprófíl, eða „skýrsla" fyrir fulla eftirlitsskýrslu HER.</p>
+      <div class="ef-controls">
+        <input id="ef-q" type="search" placeholder="🔎 Leita að stað eða götu…" autocomplete="off" aria-label="Leita að stað eða götu" />
+        <div class="ef-filt" id="ef-filt">
+          <button class="ef-fb active" data-r="all">Allar</button>
+          <button class="ef-fb" data-r="5">5</button>
+          <button class="ef-fb" data-r="4">4</button>
+          <button class="ef-fb" data-r="3">3</button>
+          <button class="ef-fb" data-r="2">2</button>
+          <button class="ef-fb" data-r="1">1</button>
+          <button class="ef-fb" data-r="0">0</button>
+        </div>
+      </div>
+      <div id="ef-count" class="ef-cnt"></div>
+      <div id="ef-list" class="ef-grid"><div class="ef-load">Hleð skránni…</div></div>
+      <button id="ef-more" class="ef-more" hidden>Sýna fleiri</button>
+
+      <p class="foot">Forþjónað (SSG). Heimild: <b>Heilbrigðiseftirlit Reykjavíkur</b> (her.reykjavik.is), uppfært {efUpdated}. Einkunn 0–5 úr nýjasta eftirliti hvers staðar; full skýrsla (Hollustuhættir / Matvæli / Mengunarvarnir) á HER. ⚠ Aðeins Reykjavík — Matvælastofnun og önnur heilbrigðiseftirlitssvæði birta ekki per-stað einkunnir.</p>
+    </section>
+
+    {/* ============================ FLIPI 2 — BYGGINGARLEYFI ============================ */}
+    <section id="tab-bygging" data-tab="bygging" data-pg="byggingarvakt" role="tabpanel" hidden>
+      <p class="lead">Opinberar afgreiðslur <strong>byggingarfulltrúa Reykjavíkur</strong> á byggingarleyfum — <strong>{nIS(counts.permits)}</strong> afgreiðslur (samþykkt · synjað · frestað) á <strong>{nIS(counts.addresses)}</strong> heimilisföngum, úr fundargerðum frá 2020. Sjáðu hvað er verið að byggja, breyta og stækka í hverju hverfi. Byggingarsögu hvers heimilisfangs má fletta upp í <a href="/fasteignavakt/">verðmatsskýrslunni</a>.</p>
+      <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Afgreiðslufundir byggingarfulltrúa Reykjavíkur (reykjavik.is). Lyklað á heimilisfang — engar kennitölur, nöfn eða persónuupplýsingar umsækjenda. Samþykkt = leyfi veitt · Synjað = hafnað · Frestað = beðið umsagnar/athugasemda · Afgreitt/Jákvæð/Neikvæð = fyrirspurn afgreidd. ⚠ Aðeins Reykjavík — önnur sveitarfélög birta byggingarleyfi á öðru formi.">ⓘ</i> Um gögnin og ákvarðanir</p>
+
+      <div class="kpis">
+        <div class="kpi"><div class="k-l">🏗️ Afgreiðslur</div><div class="k-v">{nIS(counts.permits)}</div><div class="k-s">frá 2020 ({nIS(counts.meetings)} fundir)</div></div>
+        <div class="kpi"><div class="k-l">🏠 Heimilisföng</div><div class="k-v">{nIS(counts.addresses)}</div><div class="k-s">í Reykjavík</div></div>
+        <div class="kpi"><div class="k-l">✅ Samþykkt</div><div class="k-v" style="color:#3fb950">{nIS(samth)}</div><div class="k-s">{synj} synjað / hafnað</div></div>
+        <div class="kpi"><div class="k-l">📅 Nýjasti fundur</div><div class="k-v" style="font-size:19px">{latestDate}</div><div class="k-s">uppfært {bvUpdated}</div></div>
+      </div>
+
+      <h2>Dreifing ákvarðana</h2>
+      <p class="sub">Fjöldi afgreiðslna eftir niðurstöðu. „Frestað" er algengast enda fresta fundir málum til umsagnar áður en þau eru samþykkt.</p>
+      <div class="cwrap"><div id="bv-dist" class="ch"></div></div>
+
+      {topHv.length > 0 && <>
+        <h2>Flest byggingarmál eftir hverfi</h2>
+        <p class="sub">Hverfi með flestar afgreiðslur byggingarfulltrúa (öll ár).</p>
+        <div class="hv-grid">
+          {topHv.map(([hv, n]) => (
+            <div class="hv-card"><span class="hv-n">{nIS(n)}</span><span class="hv-h">{hv}</span></div>
+          ))}
+        </div>
+      </>}
+
+      <div id="bv-mapwrap" hidden>
+        <h2>Kort — nýjustu leyfi</h2>
+        <p class="sub">Nýjustu afgreiðslur, litaðar eftir niðurstöðu (grænt samþykkt, rautt synjað, gult frestað). Smelltu á punkt fyrir mál og fundargerð. <span id="bv-mapn"></span></p>
+        <div id="bv-map"></div>
+      </div>
+
+      <h2>Nýjustu afgreiðslur</h2>
+      <p class="sub">Sláðu inn heimilisfang eða hverfi, eða síaðu eftir niðurstöðu. Smelltu á heimilisfang fyrir verðmat og byggingarsögu, eða „fundargerð" fyrir opinberu bókunina.</p>
+      <div class="bv-controls">
+        <input id="bv-q" type="search" placeholder="🔎 Leita að heimilisfangi eða hverfi…" autocomplete="off" aria-label="Leita að heimilisfangi eða hverfi" />
+        <div class="bv-filt" id="bv-filt">
+          <button class="bv-fb active" data-g="all">Allar</button>
+          <button class="bv-fb" data-g="samth">✅ Samþykkt</button>
+          <button class="bv-fb" data-g="synj">⛔ Synjað</button>
+          <button class="bv-fb" data-g="frest">⏸ Frestað</button>
+          <button class="bv-fb" data-g="annad">Annað</button>
+        </div>
+      </div>
+      <div id="bv-count" class="bv-cnt"></div>
+      <div id="bv-list" class="bv-grid"><div class="bv-load">Hleð skránni…</div></div>
+      <button id="bv-more" class="bv-more" hidden>Sýna fleiri</button>
+
+      <p class="foot">Forþjónað (SSG). Heimild: <b>Afgreiðslufundir byggingarfulltrúa Reykjavíkur</b> (reykjavik.is), afgreiðslur skv. mannvirkjalögum nr. 160/2010, uppfært {bvUpdated}. Lyklað á heimilisfang — engar persónuupplýsingar umsækjenda. ⚠ Aðeins Reykjavík; önnur sveitarfélög (Kópavogur, Hafnarfjörður o.fl.) birta byggingarleyfi á öðru formi.</p>
+    </section>
+  </main>
+
+  <style>
+    main { max-width: 1000px; margin: 0 auto; padding: 44px 20px 64px; }
+    .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+    h1 { font-size: 32px; margin: 0 0 10px; }
+    p { color: var(--ink); } p a { color: #f6b13b; }
+    .lead { font-size: 15px; line-height: 1.6; } .lead strong { color: var(--ink); }
+    h2 { font-size: 17px; color: var(--ink); margin: 38px 0 4px; }
+    .sub { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55; }
+    .datainfo { font-size: 12.5px; color: var(--faint); margin: 6px 0 4px; }
+    .tip { font-style: normal; cursor: help; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 50%; padding: 0 5px; font-size: 11px; }
+
+    /* Flipar */
+    .eb-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 6px; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 10px; }
+    .eb-tab { font: inherit; font-size: 14px; font-weight: 700; padding: 9px 16px; border-radius: 10px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: var(--muted); }
+    .eb-tab span { font-weight: 400; font-size: 12px; color: var(--faint); margin-left: 4px; }
+    .eb-tab:hover { color: var(--ink); border-color: rgba(246,177,59,.5); }
+    .eb-tab.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .eb-tab.active span { color: rgba(16,21,31,.7); }
+    section > .lead { margin-top: 18px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+    .kpi { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px 14px; }
+    .k-l { font-size: 12px; color: var(--muted); }
+    .k-v { font-size: 26px; font-weight: 800; color: #f6b13b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .k-s { font-size: 11px; color: var(--faint); }
+    .cwrap { background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 12px 10px 8px; }
+    .ch { width: 100%; height: 300px; }
+
+    #ef-map, #bv-map { width: 100%; height: 440px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); overflow: hidden; z-index: 0; }
+    #ef-map :global(.leaflet-popup-content), #bv-map :global(.leaflet-popup-content) { font-size: 13px; }
+    #ef-mapn, #bv-mapn { color: var(--faint); font-size: 12px; }
+
+    /* — eftirlit — */
+    .ef-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-top: 4px; }
+    .ef-card { display: flex; align-items: flex-start; gap: 11px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    /* ⚠ .ef-b (einkunnar-reitur) er byggður með innerHTML í card()-JS → færður í is:global neðar. */
+    .ef-t { flex: 1 1 auto; min-width: 0; }
+    .ef-n { font-size: 13.5px; font-weight: 700; color: var(--ink); text-decoration: none; display: block; }
+    .ef-n:hover { color: #f6b13b; }
+    .ef-meta { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+    .ef-lab { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+    .ef-r { flex: 0 0 auto; text-align: right; }
+    .ef-d { font-size: 11px; color: var(--faint); white-space: nowrap; }
+    .ef-rep { font-size: 11px; color: #f6b13b; text-decoration: none; }
+    .ef-rep:hover { text-decoration: underline; }
+    .ef-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #ef-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
+    #ef-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .ef-filt { display: flex; gap: 5px; }
+    .ef-fb { font: inherit; font-size: 13px; min-width: 34px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: var(--muted); cursor: pointer; font-weight: 700; }
+    .ef-fb:hover { color: var(--ink); border-color: rgba(246,177,59,.5); }
+    .ef-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .ef-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .ef-load { color: var(--faint); font-size: 13px; padding: 20px; }
+    .ef-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .ef-more:hover { border-color: rgba(246,177,59,.5); color: var(--ink); }
+
+    /* — byggingarleyfi — */
+    .hv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .hv-card { display: flex; align-items: baseline; gap: 8px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 9px 12px; }
+    .hv-n { font-size: 18px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .hv-h { font-size: 12.5px; color: var(--ink); }
+    .bv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; margin-top: 4px; }
+    /* ⚠ .bv-kortin eru byggð með innerHTML í card()-JS → reglurnar í is:global neðar. */
+    .bv-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 10px; }
+    #bv-q { flex: 1 1 260px; font: inherit; font-size: 14px; padding: 9px 13px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); }
+    #bv-q:focus { outline: none; border-color: rgba(246,177,59,.55); }
+    .bv-filt { display: flex; flex-wrap: wrap; gap: 5px; }
+    .bv-fb { font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); color: var(--muted); cursor: pointer; font-weight: 700; }
+    .bv-fb:hover { color: var(--ink); border-color: rgba(246,177,59,.5); }
+    .bv-fb.active { background: #f6b13b; border-color: #f6b13b; color: #10151f; }
+    .bv-cnt { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+    .bv-load { color: var(--faint); font-size: 13px; padding: 20px; }
+    .bv-more { display: block; margin: 14px auto 0; font: inherit; font-size: 13px; padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: var(--ink); cursor: pointer; }
+    .bv-more:hover { border-color: rgba(246,177,59,.5); color: var(--ink); }
+
+    .foot { font-size: 12px; color: var(--faint); margin-top: 30px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+    .foot b { color: var(--muted); }
+  </style>
+
+  <style is:global>
+    /* runtime-innerHTML → global (Astro-gildran): byggt í card()-JS, aldrei í static template.
+       [data-pg] (ekki main[data-pg]) því hlutarnir bera merkið hér, ekki <main>. */
+    [data-pg="eftirlit"] .ef-vakta { display: block; width: 100%; margin-top: 7px; font: inherit; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(246,177,59,.5); background: none; color: #f6b13b; cursor: pointer; text-align: center; }
+    [data-pg="eftirlit"] .ef-vakta:hover { background: rgba(246,177,59,.1); }
+    [data-pg="eftirlit"] .ef-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
+    [data-pg="eftirlit"] .ef-vakta:disabled { opacity: .6; cursor: default; }
+    [data-pg="eftirlit"] .ef-b { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #10151f; }
+    [data-pg="eftirlit"] .ef-b.r5 { background: #3fb950; }
+    [data-pg="eftirlit"] .ef-b.r4 { background: #6fd39b; }
+    [data-pg="eftirlit"] .ef-b.r3 { background: #f6b13b; }
+    [data-pg="eftirlit"] .ef-b.r2 { background: #f0883e; }
+    [data-pg="eftirlit"] .ef-b.r1 { background: #f85149; color: #fff; }
+    [data-pg="eftirlit"] .ef-b.r0 { background: #d1242f; color: #fff; }
+
+    [data-pg="byggingarvakt"] .bv-vakta { display: block; width: 100%; margin-top: 8px; font: inherit; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(246,177,59,.5); background: none; color: #f6b13b; cursor: pointer; text-align: center; }
+    [data-pg="byggingarvakt"] .bv-vakta:hover { background: rgba(246,177,59,.1); }
+    [data-pg="byggingarvakt"] .bv-vakta.on { background: rgba(66,208,134,.12); border-color: rgba(66,208,134,.5); color: #42d086; }
+    [data-pg="byggingarvakt"] .bv-vakta:disabled { opacity: .6; cursor: default; }
+    [data-pg="byggingarvakt"] .bv-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 11px 13px; }
+    [data-pg="byggingarvakt"] .bv-top { display: flex; align-items: baseline; gap: 8px; }
+    [data-pg="byggingarvakt"] .bv-badge { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; color: #0a0e14; white-space: nowrap; }
+    [data-pg="byggingarvakt"] .bv-a { font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; }
+    [data-pg="byggingarvakt"] .bv-a:hover { color: #f6b13b; }
+    [data-pg="byggingarvakt"] .bv-desc { font-size: 12.5px; color: var(--ink); margin: 5px 0 3px; line-height: 1.45; }
+    [data-pg="byggingarvakt"] .bv-meta { display: flex; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--faint); }
+    [data-pg="byggingarvakt"] .bv-meta a { color: #f6b13b; text-decoration: none; }
+    [data-pg="byggingarvakt"] .bv-meta a:hover { text-decoration: underline; }
+  </style>
+
+  {/* ---- Flipa-rofi. Skilgreindur ÁÐUR en hluta-skrifturnar keyra sinn astro:page-load,
+         en show() er kallað í page-load svo báðar hafa þegar frumstillt sig. ---- */}
+  <script>
+    function ebTabs() {
+      const main = document.querySelector('main.eb');
+      if (!main) return;
+      const secs = main.querySelectorAll('[data-tab]');
+      const btns = main.querySelectorAll('.eb-tab');
+      const show = (t, push) => {
+        secs.forEach((s) => { s.hidden = s.dataset.tab !== t; });
+        btns.forEach((b) => { const on = b.dataset.t === t; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+        if (push) { const u = new URL(location.href); u.searchParams.set('t', t); history.replaceState(null, '', u); }
+        // Bæði ECharts og Leaflet frumstillast í földu íláti (0px) → vekja þau við skipti.
+        window.dispatchEvent(new Event('resize'));
+        main.querySelectorAll('#ef-map, #bv-map').forEach((el) => {
+          if (el._map) [0, 120, 400].forEach((d) => setTimeout(() => el._map.invalidateSize(), d));
+        });
+      };
+      btns.forEach((b) => b.addEventListener('click', () => show(b.dataset.t, true)));
+      const t0 = new URLSearchParams(location.search).get('t');
+      show(t0 === 'bygging' ? 'bygging' : 'eftirlit', false);
+    }
+    document.addEventListener('astro:page-load', ebTabs);
+  </script>
+
+  {/* ---- Eftirlit: graf + leitanleg skrá + kort (óbreytt frá /eftirlit/, utan ef-dist + el._map) ---- */}
+  <script define:vars={{ dist, RLAB }}>
+    function initEft() {
+      if (!document.querySelector('[data-pg="eftirlit"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const RCOL = ['#d1242f', '#f85149', '#f0883e', '#f6b13b', '#6fd39b', '#3fb950'];
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      const drawDist = () => {
+        const el = document.getElementById('ef-dist');
+        if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return;
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 44, right: 16, top: 14, bottom: 40 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => 'Einkunn ' + p[0].name + '<br/><b>' + p[0].value + '</b> staðir<br/>' + (RLAB[p[0].name] || '') },
+          xAxis: { type: 'category', data: [0, 1, 2, 3, 4, 5], name: 'einkunn', nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: AX, fontSize: 11 }, axisLabel: { color: AX, fontSize: 13, fontWeight: 700 }, axisLine: { lineStyle: { color: LINE } } },
+          yAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+          series: [{ type: 'bar', data: dist.map((v, i) => ({ value: v, itemStyle: { color: RCOL[i], borderRadius: [4, 4, 0, 0] } })), barMaxWidth: 60, label: { show: true, position: 'top', color: '#9fb0c8', fontSize: 12, fontWeight: 700 } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts) drawDist();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawDist, { once: true }); }
+
+      const listEl = document.getElementById('ef-list'), cntEl = document.getElementById('ef-count'), moreEl = document.getElementById('ef-more'), qEl = document.getElementById('ef-q');
+      if (!listEl || listEl.dataset.wired) return;
+      listEl.dataset.wired = '1';
+      let DATA = null, filtered = [], shown = 0, curR = 'all', PAGE = 60;
+      const card = (s) => '<div class="ef-card"><span class="ef-b r' + s.rating + '" title="Einkunn ' + s.rating + '/5">' + s.rating + '</span>'
+        + '<div class="ef-t"><a class="ef-n" href="/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name) + '">' + esc(s.name) + '</a>'
+        + '<div class="ef-meta">' + esc([s.street, s.postnr, s.city].filter(Boolean).join(' · ')) + '</div>'
+        + '<div class="ef-lab">' + esc(s.ratingLabel || '') + '</div></div>'
+        + '<div class="ef-r"><div class="ef-d">' + esc(s.lastInspection || '') + '</div>'
+        + (s.reportUrl ? '<a class="ef-rep" href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : '')
+        + (s.kt ? '<button type="button" class="ef-vakta" data-kt="' + esc(s.kt) + '" data-nafn="' + esc(s.name || '') + '">🔔 Vakta félagið</button>' : '')
+        + '</div></div>';
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        filtered = DATA.filter((s) => (curR === 'all' || s.rating === +curR)
+          && (!q || (s.name || '').toLowerCase().includes(q) || (s.street || '').toLowerCase().includes(q)));
+        shown = 0;
+        cntEl.textContent = filtered.length + ' staðir' + (q || curR !== 'all' ? ' (síað)' : '');
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="ef-load">Engir staðir fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const withLeaflet = (cb) => {
+        if (window.L) return cb();
+        if (!document.getElementById('leaflet-css')) { const l = document.createElement('link'); l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l); }
+        if (!document.getElementById('leaflet-js')) { const s = document.createElement('script'); s.id = 'leaflet-js'; s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; document.head.appendChild(s); }
+        const iv = setInterval(() => { if (window.L) { clearInterval(iv); cb(); } }, 60);
+        setTimeout(() => clearInterval(iv), 10000);
+      };
+      const drawMap = (rows) => {
+        const pts = rows.filter((s) => typeof s.lat === 'number' && typeof s.lng === 'number');
+        if (!pts.length) return;
+        const wrap = document.getElementById('ef-mapwrap'); if (!wrap) return;
+        wrap.hidden = false;
+        document.getElementById('ef-mapn').textContent = '· ' + pts.length + ' af ' + rows.length + ' staðsett';
+        withLeaflet(() => {
+          const el = document.getElementById('ef-map'); if (!el || el.dataset.done) return;
+          el.dataset.done = '1';
+          const map = window.L.map(el, { scrollWheelZoom: false }).setView([64.13, -21.90], 12);
+          el._map = map;                                        // flipa-rofinn þarf hann (invalidateSize)
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+          const bounds = [];
+          pts.forEach((s) => {
+            window.L.circleMarker([s.lat, s.lng], { radius: 7, fillColor: RCOL[s.rating], color: '#0a0e14', weight: 1, fillOpacity: 0.92 })
+              .bindPopup('<b>' + esc(s.name) + '</b><br>Einkunn ' + s.rating + '/5 · ' + esc(s.ratingLabel || '') + (s.reportUrl ? '<br><a href="' + esc(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : ''))
+              .addTo(map);
+            bounds.push([s.lat, s.lng]);
+          });
+          if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+          [120, 500, 1200].forEach((d) => setTimeout(() => map.invalidateSize(), d));
+        });
+      };
+      const load = () => fetch('/gogn/eftirlit.json').then((r) => r.json()).then((j) => {
+        DATA = (j.stadir || []).slice().sort((a, b) => (a.rating - b.rating) || (b.lastInspectionISO || '').localeCompare(a.lastInspectionISO || ''));
+        apply();
+        drawMap(DATA);
+      }).catch(() => { listEl.innerHTML = '<div class="ef-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      document.getElementById('ef-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.ef-fb'); if (!b) return;
+        document.querySelectorAll('.ef-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curR = b.dataset.r; if (DATA) apply();
+      });
+      moreEl.addEventListener('click', more);
+      load();
+    }
+    document.addEventListener('astro:page-load', initEft);
+  </script>
+
+  {/* ---- Byggingarleyfi: graf + leitanleg skrá + kort (óbreytt frá /byggingarvakt/, utan bv-dist + el._map) ---- */}
+  <script define:vars={{ distRows, LABELS, DCOL }}>
+    function initBygg() {
+      if (!document.querySelector('[data-pg="byggingarvakt"]')) return;
+      const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const GROUPS = { samth: ['samthykkt', 'jakvaett'], synj: ['synjad', 'neikvaett'], frest: ['frestad'], annad: ['afgreitt', 'visad_fra', 'afturkallad', 'annad'] };
+
+      const drawDist = () => {
+        const el = document.getElementById('bv-dist');
+        if (!el || !window.echarts || window.echarts.getInstanceByDom(el)) return;
+        const rows = distRows.slice().reverse();
+        const c = window.echarts.init(el);
+        c.setOption({
+          backgroundColor: 'transparent', grid: { left: 118, right: 40, top: 8, bottom: 28 },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => p[0].name + '<br/><b>' + Number(p[0].value).toLocaleString('is-IS') + '</b> afgreiðslur' },
+          xAxis: { type: 'value', axisLabel: { color: AX }, splitLine: { lineStyle: { color: GRID } } },
+          yAxis: { type: 'category', data: rows.map((r) => r.label), axisLabel: { color: '#cdd6e6', fontSize: 12 }, axisLine: { lineStyle: { color: LINE } } },
+          series: [{ type: 'bar', data: rows.map((r) => ({ value: r.n, itemStyle: { color: r.col, borderRadius: [0, 4, 4, 0] } })), barMaxWidth: 22, label: { show: true, position: 'right', color: '#9fb0c8', fontSize: 11.5, fontWeight: 700, formatter: (o) => Number(o.value).toLocaleString('is-IS') } }],
+        });
+        window.addEventListener('resize', () => c.resize());
+      };
+      if (window.echarts) drawDist();
+      else { let s = document.getElementById('echarts-cdn'); if (!s) { s = document.createElement('script'); s.id = 'echarts-cdn'; s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'; document.head.appendChild(s); } s.addEventListener('load', drawDist, { once: true }); }
+
+      const listEl = document.getElementById('bv-list'), cntEl = document.getElementById('bv-count'), moreEl = document.getElementById('bv-more'), qEl = document.getElementById('bv-q');
+      if (!listEl || listEl.dataset.wired) return;
+      listEl.dataset.wired = '1';
+      let MEET = {}, DATA = [], filtered = [], shown = 0, curG = 'all', PAGE = 40;
+      const fundUrl = (f) => (MEET[f] && MEET[f].url) || null;
+      const badge = (e) => '<span class="bv-badge" style="background:' + (DCOL[e.decisionCode] || '#9fb0c8') + '">' + esc(LABELS[e.decisionCode] || e.decisionCode) + '</span>';
+      const card = (e) => {
+        const u = fundUrl(e.fund);
+        const sz = e.sizeM2 ? ' · ' + String(e.sizeM2).replace('.', ',') + ' m²' : '';
+        const pn = e.postnr != null ? String(e.postnr) : '';
+        return '<div class="bv-card"><div class="bv-top">' + badge(e)
+          + '<a class="bv-a" href="/fasteignavakt/?q=' + encodeURIComponent(e.addr) + '" title="Verðmat og byggingarsaga">' + esc(e.addr) + '</a></div>'
+          + '<div class="bv-desc">' + esc(e.desc || 'Byggingarleyfi') + '</div>'
+          + '<div class="bv-meta"><span>' + esc([e.hverfi, e.date].filter(Boolean).join(' · ')) + sz + '</span>'
+          + (u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : '') + '</div>'
+          + (pn ? '<button type="button" class="bv-vakta" data-pn="' + esc(pn) + '" data-addr="' + esc(e.addr || '') + '">🔔 Vakta þetta svæði</button>' : '')
+          + '</div>';
+      };
+      const apply = () => {
+        const q = (qEl.value || '').toLowerCase().trim();
+        const codes = curG === 'all' ? null : GROUPS[curG];
+        filtered = DATA.filter((e) => (!codes || codes.includes(e.decisionCode))
+          && (!q || (e.addr || '').toLowerCase().includes(q) || (e.hverfi || '').toLowerCase().includes(q)));
+        shown = 0;
+        cntEl.textContent = filtered.length.toLocaleString('is-IS') + ' afgreiðslur' + (q || codes ? ' (síað)' : '') + ' · nýjustu fyrst';
+        listEl.innerHTML = '';
+        more();
+      };
+      const more = () => {
+        const next = filtered.slice(shown, shown + PAGE);
+        listEl.insertAdjacentHTML('beforeend', next.map(card).join('') || (shown === 0 ? '<div class="bv-load">Engar afgreiðslur fundust.</div>' : ''));
+        shown += next.length;
+        moreEl.hidden = shown >= filtered.length;
+      };
+      const withLeaflet = (cb) => {
+        if (window.L) return cb();
+        if (!document.getElementById('leaflet-css')) { const l = document.createElement('link'); l.id = 'leaflet-css'; l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l); }
+        if (!document.getElementById('leaflet-js')) { const s = document.createElement('script'); s.id = 'leaflet-js'; s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; document.head.appendChild(s); }
+        const iv = setInterval(() => { if (window.L) { clearInterval(iv); cb(); } }, 60);
+        setTimeout(() => clearInterval(iv), 10000);
+      };
+      const drawMap = () => {
+        const pts = DATA.filter((e) => typeof e.lat === 'number' && typeof e.lng === 'number');
+        if (!pts.length) return;
+        const wrap = document.getElementById('bv-mapwrap'); if (!wrap) return;
+        wrap.hidden = false;
+        document.getElementById('bv-mapn').textContent = '· ' + pts.length + ' af ' + DATA.length + ' staðsett';
+        withLeaflet(() => {
+          const el = document.getElementById('bv-map'); if (!el || el.dataset.done) return;
+          el.dataset.done = '1';
+          const map = window.L.map(el, { scrollWheelZoom: false }).setView([64.13, -21.90], 12);
+          el._map = map;                                        // flipa-rofinn þarf hann (invalidateSize)
+          window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+          const bounds = [];
+          pts.forEach((e) => {
+            const u = fundUrl(e.fund);
+            window.L.circleMarker([e.lat, e.lng], { radius: 6, fillColor: DCOL[e.decisionCode] || '#9fb0c8', color: '#0a0e14', weight: 1, fillOpacity: 0.9 })
+              .bindPopup('<b>' + esc(e.addr) + '</b><br>' + esc(LABELS[e.decisionCode] || '') + ' · ' + esc(e.date || '') + '<br>' + esc((e.desc || '').slice(0, 90)) + (u ? '<br><a href="' + esc(u) + '" target="_blank" rel="noopener">fundargerð ↗</a>' : ''))
+              .addTo(map);
+            bounds.push([e.lat, e.lng]);
+          });
+          if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+          [120, 500, 1200].forEach((d) => setTimeout(() => map.invalidateSize(), d));
+        });
+      };
+      fetch('/gogn/byggingarleyfi_vakt.json').then((r) => r.json()).then((j) => {
+        MEET = j.meetings || {};
+        DATA = j.recent || [];
+        apply();
+        drawMap();
+      }).catch(() => { listEl.innerHTML = '<div class="bv-load">Ekki tókst að hlaða skránni.</div>'; });
+      let t; qEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(apply, 180); });
+      document.getElementById('bv-filt').addEventListener('click', (e) => {
+        const b = e.target.closest('.bv-fb'); if (!b) return;
+        document.querySelectorAll('.bv-fb').forEach((x) => x.classList.remove('active'));
+        b.classList.add('active'); curG = b.dataset.g; if (DATA.length) apply();
+      });
+      moreEl.addEventListener('click', more);
+    }
+    document.addEventListener('astro:page-load', initBygg);
+  </script>
+
+  {/* ---- Vakta-hnappar (þurfa import → sér blokk, event-delegation á listana) ---- */}
+  <script>
+    import { karpGet, karpPost, loginHref } from '../lib/auth.js';
+    function initEbVakta() {
+      // 🔔 Vakta félagið → firmavakt (eftirlit). Toggle.
+      const efList = document.getElementById('ef-list');
+      if (efList && !efList.dataset.vaktaWired) {
+        efList.dataset.vaktaWired = '1';
+        efList.addEventListener('click', async (e) => {
+          const b = e.target.closest('.ef-vakta');
+          if (!b || b.disabled) return;
+          const kt = b.dataset.kt || '', nafn = b.dataset.nafn || '';
+          if (!kt) return;
+          b.disabled = true;
+          const t0 = b.textContent;
+          try {
+            const cur = await karpGet('/firmavakt');
+            if (!cur || !Array.isArray(cur.felog)) { location.href = loginHref(); return; }
+            const has = cur.felog.some((x) => x && x.kt === kt);
+            const felog = has ? cur.felog.filter((x) => !(x && x.kt === kt)) : cur.felog.concat([{ kt, nafn }]);
+            const r = await karpPost('/firmavakt', { on: true, felog });
+            if (!r || r.ok !== true) throw new Error('save');
+            b.classList.toggle('on', !has);
+            b.textContent = !has ? '✓ Á vaktinni · 🔕 hætta' : '🔔 Vakta félagið';
+          } catch (err) {
+            b.textContent = '⚠ Villa — reyndu aftur';
+            setTimeout(() => { b.textContent = t0; }, 2400);
+          }
+          b.disabled = false;
+        });
+      }
+
+      // 🔔 Vakta þetta svæði → fastvakt (q=póstnúmer). ADD-ONLY, cap 6.
+      const bvList = document.getElementById('bv-list');
+      if (bvList && !bvList.dataset.vaktaWired) {
+        bvList.dataset.vaktaWired = '1';
+        bvList.addEventListener('click', async (e) => {
+          const b = e.target.closest('.bv-vakta');
+          if (!b || b.disabled) return;
+          const q = b.dataset.pn || '';
+          if (!q) return;
+          b.disabled = true;
+          const t0 = b.textContent;
+          try {
+            const cur = await karpGet('/fastvakt');
+            if (!cur || !Array.isArray(cur.vaktir)) { location.href = loginHref(); return; }
+            const has = cur.vaktir.some((v) => v && v.q === q);
+            if (has) { b.classList.add('on'); b.textContent = '✓ Á vaktinni'; return; }
+            if (cur.vaktir.length >= 6) {
+              b.textContent = 'Hámark 6 vaktir náð';
+              setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+              return;
+            }
+            const vaktir = cur.vaktir.concat([{ q }]).slice(0, 6);
+            const r = await karpPost('/fastvakt', { on: true, vaktir });
+            if (!r || r.ok !== true) throw new Error('save');
+            b.classList.add('on');
+            b.textContent = '✓ Á vaktinni';
+          } catch (err) {
+            b.textContent = '⚠ Villa — reyndu aftur';
+            setTimeout(() => { b.textContent = t0; b.disabled = false; }, 2600);
+          }
+        });
+      }
+    }
+    document.addEventListener('astro:page-load', initEbVakta);
+  </script>
+</Layout>

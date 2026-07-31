@@ -46,7 +46,7 @@ test('kvikur póstur skilar intro/footer en ekki html', () => {
   const r = resolveEmail('eftirlit_crit', {});
   assert.equal(r.html, undefined);
   assert.ok(r.intro.includes('einkunn 0-1'));
-  assert.ok(r.footer.includes('karp.is/eftirlit/'));
+  assert.ok(r.footer.includes('karp.is/eftirlit-byggingar/'));
 });
 
 test('validateEmail HAFNAR þegar skyldu-breyta hverfur', () => {
