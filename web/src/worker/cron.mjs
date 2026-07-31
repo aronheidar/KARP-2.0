@@ -52,9 +52,15 @@ export async function ordsporCron(env) {
 
   // 1) meta hvert félag EINU SINNI
   const vidv = {}, sedir = [];
+  let mistokst = 0;
   for (const kt of kts) {
     const nafn = nafnAf[kt];
-    const items = await newsSearch(env, [nafn], 21, 400).catch(() => []);   // 3 vikur dugar f. 7-daga glugga + samanburð
+    // ⚠ BILUÐ LEIT ER EKKI „ENGAR FRÉTTIR". Áður varð hvort tveggja að [] og félagið datt þegjandi úr
+    // vöktun þá keyrslu — og skilagildi cron-sins er hvergi lesið, svo enginn gat séð það. Ein
+    // endurtilraun (D1 er þekkt fyrir skammvinnar 7403/7429), annars talið og skráð í Live Logs.
+    let items = await newsSearch(env, [nafn], 21, 400).catch(() => null);   // 3 vikur dugar f. 7-daga glugga + samanburð
+    if (items == null) items = await newsSearch(env, [nafn], 21, 400).catch(() => null);
+    if (items == null) { mistokst++; continue; }
     if (!items.length) continue;
     const scored = items.map((x) => ({ ts: x.ts, sent: (x.sent_ai != null ? x.sent_ai : (x.sent != null ? x.sent : _tone(x.body || x.title))) }));
     const a = toneAlert(scored, { now, windowDays: 7 });
@@ -65,9 +71,11 @@ export async function ordsporCron(env) {
     if (fyrra && Number.isFinite(fyrra.score) && a.now.score >= fyrra.score - 5) continue;
     vidv[kt] = { kt, nafn, score: a.now.score, fyrri: a.prev.score, drop: a.drop, n: a.now.n, neg: a.now.neg, reason: a.reason };
   }
+  // Þögul vakt er verri en engin vakt: systematísk leitar-bilun á að sjást (worker.js:542-rásin).
+  if (mistokst) console.error('[karp-villa]', JSON.stringify({ m: 'ordsporCron: fréttaleit brást', felog: mistokst, af: kts.length }));
   if (!Object.keys(vidv).length) {
     for (const s of sedir) if (s.score != null) await env.TENGSL.prepare('INSERT INTO ordspor_vakt (kt,score,ts) VALUES (?,?,?) ON CONFLICT(kt) DO UPDATE SET score=excluded.score, ts=excluded.ts').bind(s.kt, s.score, now).run().catch(() => {});
-    return { sent: 0, alerts: 0 };
+    return { sent: 0, alerts: 0, mistokst };
   }
 
   // 2) fan-out — einn póstur per notanda
@@ -89,7 +97,7 @@ export async function ordsporCron(env) {
   }
   // 3) merkja LOKS
   for (const s of sedir) if (s.score != null) await env.TENGSL.prepare('INSERT INTO ordspor_vakt (kt,score,ts) VALUES (?,?,?) ON CONFLICT(kt) DO UPDATE SET score=excluded.score, ts=excluded.ts').bind(s.kt, s.score, now).run().catch(() => {});
-  return { sent, alerts: Object.keys(vidv).length };
+  return { sent, alerts: Object.keys(vidv).length, mistokst };
 }
 
 export async function eftirlitCriticalCron(env) {
