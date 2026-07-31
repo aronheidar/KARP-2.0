@@ -501,6 +501,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../lib/fyrirtaeki-lanshaefi.mjs';
     import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig } from '../lib/fyrirtaeki-ahaetta.mjs';
+    import { veljaGrein, betriEnGrein, greinStig } from '../lib/fyrirtaeki-grein.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1241,21 +1242,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // F2-merki: hlutfall lykiltalna yfir greinar-viðmiði (Hagstofa FYR08010), sama uppspretta og fsWireSector.
     async function fsLhSectorFactor(f) {
       if (!f.fjarhagur || !f.fjarhagur.length) return null;
-      const digits = (f.isat && f.isat[0]) ? String(f.isat[0]).replace(/\D/g, '') : '';
-      if (!digits) return null;
       const sec = await fsSectorData();
-      if (!sec || !sec.map) return null;
-      let S = null, bl = -1;
-      for (const p in sec.map) { if (digits.indexOf(p) === 0 && p.length > bl) { S = sec.map[p]; bl = p.length; } }
-      S = S || sec.heild;
+      const S = veljaGrein(sec && sec.map, sec && sec.heild, (f.isat && f.isat[0]) || '');
       if (!S) return null;
-      const k = f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]);
-      const cmp = [[k.framlegd, S.framlegd, true], [k.hagnhlutf, S.hagnadarhlutfall, true], [k.eiginfjarhlutf, S.eiginfjarhlutfall, true], [k.eignavelta, S.eignavelta, true], [k.de, S.skuldahlutfall_DE, false]].filter((x) => x[0] != null && x[1] != null);
-      if (cmp.length < 3) return null;
-      let better = 0;
-      cmp.forEach((x) => { if (x[2] ? x[0] >= x[1] : x[0] <= x[1]) better++; });
-      const ratio = better / cmp.length, delta = ratio >= 0.6 ? 4 : ratio <= 0.34 ? -5 : 0;
-      return { icon: '🏭', label: 'Atvinnugreinar-viðmið', txt: better + ' af ' + cmp.length + (delta > 0 ? ' yfir meðaltali' : delta < 0 ? ' undir meðaltali' : ' um meðaltal'), delta, status: delta > 0 ? 'g' : delta < 0 ? 'o' : 'n', tip: 'Lykiltölur félagsins bornar saman við meðaltal atvinnugreinarinnar (Hagstofa FYR08010): framlegð, hagnaður, eiginfjárhlutfall, eignavelta, skuldir/eigið fé. Meirihluti yfir meðaltali +4, undir −5.' };
+      const st = greinStig(f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]), S);
+      if (!st) return null;
+      return { icon: '🏭', label: 'Atvinnugreinar-viðmið', txt: st.better + ' af ' + st.alls + (st.delta > 0 ? ' yfir meðaltali' : st.delta < 0 ? ' undir meðaltali' : ' um meðaltal'), delta: st.delta, status: st.status, tip: 'Lykiltölur félagsins bornar saman við meðaltal atvinnugreinarinnar (Hagstofa FYR08010): framlegð, hagnaður, eiginfjárhlutfall, eignavelta, skuldir/eigið fé. Meirihluti yfir meðaltali +4, undir −5.' };
     }
     // Vefun matsins: kveikir á-hnikandi áhættuþáttum og endurteiknar kortið jafnóðum (null-varið; no-op ef kort vantar).
     function fsWireLanshaefi(f) {
@@ -1325,13 +1317,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const host = document.getElementById('fs-sector');
       if (!host || !f || !f.fjarhagur || !f.fjarhagur.length) return;
       const rankP = fetch('/api/grein-rank?kt=' + encodeURIComponent(f.kt || '')).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-      const digits = (f.isat && f.isat[0]) ? String(f.isat[0]).replace(/\D/g, '') : '';
-      if (!digits) return;
       const sec = await fsSectorData();
-      if (!sec || !sec.map) return;
-      let S = null, bl = -1;
-      for (const p in sec.map) { if (digits.indexOf(p) === 0 && p.length > bl) { S = sec.map[p]; bl = p.length; } }
-      S = S || sec.heild;
+      const S = veljaGrein(sec && sec.map, sec && sec.heild, (f.isat && f.isat[0]) || '');
       if (!S) return;
       const k = f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]);
       const r0 = f.fjarhagur[0], tps = (r0 && r0.starfsmenn && r0.tekjur) ? r0.tekjur / r0.starfsmenn : null;
@@ -1348,7 +1335,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       ].filter((d) => d[1] != null && d[2] != null);
       if (!defs.length) return;
       const body = defs.map((d) => {
-        const cv = d[1], sv = d[2], hv = d[3], fmt = d[4], hi = d[5], better = hi ? cv >= sv : cv <= sv;
+        const cv = d[1], sv = d[2], hv = d[3], fmt = d[4], hi = d[5], better = betriEnGrein(cv, sv, hi);
         const mx = Math.max(Math.abs(cv), Math.abs(sv)) || 1;
         const cw = Math.max(2, Math.min(100, Math.abs(cv) / mx * 100)), tick = Math.max(0, Math.min(100, Math.abs(sv) / mx * 100));
         const hcell = (hv != null) ? '<span class="fs-sec-h">hagkerfi ' + fmt(hv) + '</span>' : '';
