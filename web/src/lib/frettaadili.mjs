@@ -7,6 +7,30 @@ import { reputationScore } from './ordspor.mjs';
 export const adiliSlug = (nafn) => asciiId(String(nafn || ''));
 
 /**
+ * Þolfallsmyndir fyrir fyrirsögnina „Umfjöllun um X" — nöfn með viðskeyttum greini
+ * beygjast („um Seðlabankinn" er rangt, „um Seðlabankann" rétt).
+ *
+ * ⚠ FÖST TAFLA, ENGIN sjálfvirk endinga-regla: nöfn með greini (Síminn, Vegagerðin) og
+ * mannanöfn (Katrín, Kristín) hafa sömu endingu, svo regla myndi beygja ráðherranöfnin
+ * ranglega. Ný nöfn falla sjálfkrafa aftur á nefnifall — óbeygt en aldrei rangbeygt.
+ * Málefnin (verðbólga, ESB …) bera sína mynd sjálf í web/src/data/malefni.json.
+ */
+export const UM_MYNDIR = {
+  'Síminn': 'Símann',
+  'Ölgerðin': 'Ölgerðina',
+  'Seðlabankinn': 'Seðlabankann',
+  'Landspítalinn': 'Landspítalann',
+  'Skatturinn': 'Skattinn',
+  'Vegagerðin': 'Vegagerðina',
+};
+
+/** Þolfallsmynd nafns; `skyrt` (t.d. `um` úr malefni.json) gengur alltaf framar töflunni. */
+export function umMynd(nafn, skyrt) {
+  const n = String(nafn || '').trim();
+  return String(skyrt || '').trim() || UM_MYNDIR[n] || n;
+}
+
+/**
  * Finnur aðila út frá slug. Skilar null ef enginn passar — worker svarar þá 404
  * (mikilvægt: ALDREI búa til síðu fyrir ókunnan slug, það býr til ruslsíður fyrir leitarvélar).
  */

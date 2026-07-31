@@ -50,7 +50,8 @@
     "Síminn Sport",
     "Síminn Pay"
    ],
-   "slug": "siminn"
+   "slug": "siminn",
+   "um": "Símann"
   },
   {
    "n": "Sýn",
@@ -103,7 +104,8 @@
     "Ölgerðin",
     "Egils"
    ],
-   "slug": "olgerdin"
+   "slug": "olgerdin",
+   "um": "Ölgerðina"
   },
   {
    "n": "Brim",
@@ -288,7 +290,8 @@
     "Ríkisstjórnina",
     "Ríkisstjórnar"
    ],
-   "slug": "rikisstjornin"
+   "slug": "rikisstjornin",
+   "um": "ríkisstjórnina"
   },
   {
    "n": "Alþingi",
@@ -307,7 +310,8 @@
     "Seðlabanka",
     "Seðlabanki Íslands"
    ],
-   "slug": "sedlabankinn"
+   "slug": "sedlabankinn",
+   "um": "Seðlabankann"
   },
   {
    "n": "Háskóli Íslands",
@@ -327,7 +331,8 @@
     "Landspítala",
     "Landspítali"
    ],
-   "slug": "landspitalinn"
+   "slug": "landspitalinn",
+   "um": "Landspítalann"
   },
   {
    "n": "RÚV",
@@ -364,7 +369,8 @@
     "Skattinum",
     "Ríkisskattstjóri"
    ],
-   "slug": "skatturinn"
+   "slug": "skatturinn",
+   "um": "Skattinn"
   },
   {
    "n": "Vinnumálastofnun",
@@ -397,7 +403,8 @@
     "Vegagerðar",
     "Vegagerðina"
    ],
-   "slug": "vegagerdin"
+   "slug": "vegagerdin",
+   "um": "Vegagerðina"
   },
   {
    "n": "Landhelgisgæslan",
@@ -590,8 +597,7 @@
     "Evrópusambandinu",
     "ESB"
    ],
-   "slug": "evropusambandid",
-   "um": "Evrópusambandið"
+   "slug": "evropusambandid"
   },
   {
    "n": "Loftslagsmál",

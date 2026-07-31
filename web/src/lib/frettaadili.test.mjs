@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { adiliSlug, findAdili, adiliTerms, adiliPageData, adiliDesc } from './frettaadili.mjs';
+import { adiliSlug, findAdili, adiliTerms, adiliPageData, adiliDesc, umMynd } from './frettaadili.mjs';
 
 const NOW = 1800000000;
 const it = (title, source, sent, daysAgo = 5) => ({ title, url: 'https://x/' + title, source, sent, ts: NOW - daysAgo * 86400, date: '2026-07-01' });
@@ -64,4 +64,33 @@ test('lýsingin er UPPLÝSANDI (inniheldur tölur), ekki almennt orðalag', () =
 
 test('lýsing án gagna er samt gild', () => {
   assert.match(adiliDesc('X', adiliPageData([], { now: NOW })), /Fréttaumfjöllun um X/);
+});
+
+test('nöfn með greini beygjast í þolfall — „um Seðlabankinn" er rangt mál', () => {
+  assert.equal(umMynd('Seðlabankinn'), 'Seðlabankann');
+  assert.equal(umMynd('Landspítalinn'), 'Landspítalann');
+  assert.equal(umMynd('Skatturinn'), 'Skattinn');
+  assert.equal(umMynd('Vegagerðin'), 'Vegagerðina');
+  assert.equal(umMynd('Síminn'), 'Símann');
+  assert.equal(umMynd('Ölgerðin'), 'Ölgerðina');
+});
+
+test('skýr mynd (t.d. úr malefni.json) gengur framar töflunni', () => {
+  assert.equal(umMynd('Verðbólga', 'verðbólgu'), 'verðbólgu');
+  assert.equal(umMynd('Síminn', 'Símann sjálfan'), 'Símann sjálfan');
+});
+
+test('ÓÞEKKT nöfn haldast ÓBREYTT — mannanöfn mega ALDREI rangbeygjast', () => {
+  // Katrín/Kristín enda eins og nöfn með greini (Vegagerðin) — sjálfvirk endinga-regla
+  // myndi búa til „um Katrína". Þess vegna er tafla, ekki regla.
+  assert.equal(umMynd('Katrín Jakobsdóttir'), 'Katrín Jakobsdóttir');
+  assert.equal(umMynd('Kristín'), 'Kristín');
+  assert.equal(umMynd('Marel'), 'Marel');
+  assert.equal(umMynd('Samkeppniseftirlitið'), 'Samkeppniseftirlitið');  // hvorugkyn: nf. = þf.
+});
+
+test('umMynd þolir tómt/ógilt inntak', () => {
+  assert.equal(umMynd(''), '');
+  assert.equal(umMynd(null), '');
+  assert.equal(umMynd('Síminn', '   '), 'Símann');
 });
