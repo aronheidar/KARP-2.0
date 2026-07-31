@@ -9,6 +9,7 @@ import RAUNVIRDI from '@gogn/raunvirdi.json';
 import PSTANCE from '../data/pstance.json';
 import CABINET from '@gogn/cabinet.json';
 import STOFNANIR from '../data/stofnanir_umf.json';
+import MALEFNI from '../data/malefni.json';   // málefna-flísar + /frettir/<slug>/ málefnasíður (ein uppspretta)
 
 // Fleiri aðila-hópar (LOTA 13b): stjórnmálaflokkar + ráðherrar — sama /firma-greining.
 const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
@@ -112,13 +113,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <div id="tn-pairs"></div>
 
       <h3 class="fg-sh">📊 Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
+      {/* Flísarnar OG /frettir/<slug>/-síðurnar lesa SÖMU skrá (malefni.json) → ekkert misræmi. */}
       <div class="chips" id="fg-vogchips">
-        <button class="chip" data-q="verðbólga,verðbólgu">Verðbólga</button>
-        <button class="chip" data-q="vextir,vaxta,stýrivextir,stýrivaxta">Vextir</button>
-        <button class="chip" data-q="Ríkisstjórnin,Ríkisstjórnarinnar,Ríkisstjórn">Ríkisstjórnin</button>
-        <button class="chip" data-q="húsnæði,húsnæðis,fasteigna,leigumarkað">Húsnæðismál</button>
-        <button class="chip" data-q="útlendinga,hælisleitend,innflytjend">Útlendingamál</button>
-        <button class="chip" data-q="kjarasamning,verkfall,kjaradeil">Kjaramál</button>
+        {MALEFNI.map((m) => <button class="chip" data-q={m.a.join(',')}>{m.n}</button>)}
       </div>
       <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
 

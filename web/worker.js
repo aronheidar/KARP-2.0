@@ -1333,22 +1333,25 @@ async function frettaAdiliHandler(request, env, ctx, slug) {
   const items = raw.map((x) => ({ title: x.title, url: x.url, source: x.source, ts: x.ts, date: x.date, sent: (x.sent_ai != null ? x.sent_ai : (x.sent != null ? x.sent : 0)) }));
   const d = adiliPageData(items, { days: 90 });
   const canonical = 'https://karp.is/frettir/' + slug + '/';
-  const title = htmlEsc('Umfjöllun um ' + adili.n + ' — fréttir og tónn | Karp');
-  const desc = htmlEsc(adiliDesc(adili.n, d).slice(0, 280));
+  // `um` = þolfallsmynd (málefni): „Umfjöllun um verðbólgu", ekki „um Verðbólga".
+  // Aðilar (sérnöfn) hafa hana ekki → fallið aftur á nafnið sjálft.
+  const um = adili.um || adili.n;
+  const title = htmlEsc('Umfjöllun um ' + um + ' — fréttir og tónn | Karp');
+  const desc = htmlEsc(adiliDesc(um, d).slice(0, 280));
   const ld = JSON.stringify({
-    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Umfjöllun um ' + adili.n,
-    url: canonical, description: adiliDesc(adili.n, d),
-    about: { '@type': 'Thing', name: adili.n },
+    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Umfjöllun um ' + um,
+    url: canonical, description: adiliDesc(um, d),
+    about: { '@type': 'Thing', name: adili.n },   // `about` heldur RÉTTU nafnmyndinni (nefnifall)
     isPartOf: { '@type': 'WebSite', name: 'Karp', url: 'https://karp.is' },
   }).replace(/</g, '\\u003c');
   let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/skel-frettaadili/'))).text();
   html = html.replace(/<meta name="robots"[^>]*>\s*/i, '');   // gera indexeranlegt
   html = repAll(html, '%%KARP_TITLE%%', title);
-  html = repAll(html, '%%KARP_OGTITLE%%', htmlEsc('Umfjöllun um ' + adili.n));
+  html = repAll(html, '%%KARP_OGTITLE%%', htmlEsc('Umfjöllun um ' + um));
   html = repAll(html, '%%KARP_DESC%%', desc);
   html = repAll(html, '%%KARP_CANON%%', canonical);
   html = repAll(html, '"%%KARP_JSONLD%%"', ld);
-  html = repAll(html, '%%KARP_MAIN%%', frettaAdiliMainHtml(adili.n, d, slug));
+  html = repAll(html, '%%KARP_MAIN%%', frettaAdiliMainHtml(um, d, slug));
   const res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;

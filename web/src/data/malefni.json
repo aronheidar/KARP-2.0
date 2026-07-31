@@ -1,0 +1,12 @@
+[
+  { "n": "Verðbólga", "um": "verðbólgu", "a": ["verðbólga", "verðbólgu"] },
+  { "n": "Vextir", "um": "vexti", "a": ["vextir", "vaxta", "stýrivextir", "stýrivaxta"] },
+  { "n": "Ríkisstjórnin", "um": "ríkisstjórnina", "a": ["Ríkisstjórnin", "Ríkisstjórnarinnar", "Ríkisstjórn"] },
+  { "n": "Húsnæðismál", "um": "húsnæðismál", "a": ["húsnæði", "húsnæðis", "fasteigna", "leigumarkað"] },
+  { "n": "Útlendingamál", "um": "útlendingamál", "a": ["útlendinga", "hælisleitend", "innflytjend"] },
+  { "n": "Kjaramál", "um": "kjaramál", "a": ["kjarasamning", "verkfall", "kjaradeil"] },
+  { "n": "Evrópusambandið", "um": "Evrópusambandið", "a": ["Evrópusambandið", "Evrópusambandsins", "Evrópusambandinu", "ESB"] },
+  { "n": "Loftslagsmál", "um": "loftslagsmál", "a": ["loftslag", "loftslags", "kolefni", "orkuskipti"] },
+  { "n": "Heilbrigðismál", "um": "heilbrigðismál", "a": ["Landspítal", "heilbrigðiskerf", "heilsugæsl", "biðlist"] },
+  { "n": "Ferðaþjónusta", "um": "ferðaþjónustuna", "a": ["ferðaþjónust", "ferðamenn", "ferðamanna"] }
+]

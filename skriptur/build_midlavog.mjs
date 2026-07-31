@@ -49,13 +49,18 @@ try {
 try {
   for (const c of rd('gogn/cabinet.json')) if (c && c.nafn) efni.push({ n: c.nafn, a: [c.nafn] });
 } catch (e) {}
+// Málefni (verðbólga, vextir, ESB…) — sama skrá og flísarnar á /frettir/ nota.
+// `um` = þolfallsmynd fyrir fyrirsögnina („Umfjöllun um verðbólgu", ekki „um Verðbólga").
+try {
+  for (const m of rd('web/src/data/malefni.json')) if (m && m.n) efni.push({ n: m.n, a: (m.a && m.a.length ? m.a : [m.n]), um: m.um });
+} catch (e) {}
 if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); process.exit(0); }
 
 // Aðila-skrá fyrir /frettir/<slug>/ (worker les hana úr ASSETS með _dget). Gefin út HÉR því
 // þetta skript les hvort sem er sömu lista → hún helst sjálfkrafa í takt við þá.
 {
   const { adiliSlug } = await import('../web/src/lib/frettaadili.mjs');
-  const skra = efni.map((e) => ({ n: e.n, a: e.a, slug: adiliSlug(e.n) })).filter((x) => x.slug);
+  const skra = efni.map((e) => ({ n: e.n, a: e.a, slug: adiliSlug(e.n), ...(e.um ? { um: e.um } : {}) })).filter((x) => x.slug);
   const seen = new Set();
   const einkvaem = skra.filter((x) => (seen.has(x.slug) ? false : (seen.add(x.slug), true)));   // slug VERÐUR einkvæmt
   fs.writeFileSync(path.join(ROOT, 'web', 'public', 'gogn', 'frettaadilar.json'),

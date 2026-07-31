@@ -530,6 +530,100 @@
     "Ragnar Þór Ingólfsson"
    ],
    "slug": "ragnar-thor-ingolfsson"
+  },
+  {
+   "n": "Verðbólga",
+   "a": [
+    "verðbólga",
+    "verðbólgu"
+   ],
+   "slug": "verdbolga",
+   "um": "verðbólgu"
+  },
+  {
+   "n": "Vextir",
+   "a": [
+    "vextir",
+    "vaxta",
+    "stýrivextir",
+    "stýrivaxta"
+   ],
+   "slug": "vextir",
+   "um": "vexti"
+  },
+  {
+   "n": "Húsnæðismál",
+   "a": [
+    "húsnæði",
+    "húsnæðis",
+    "fasteigna",
+    "leigumarkað"
+   ],
+   "slug": "husnaedismal",
+   "um": "húsnæðismál"
+  },
+  {
+   "n": "Útlendingamál",
+   "a": [
+    "útlendinga",
+    "hælisleitend",
+    "innflytjend"
+   ],
+   "slug": "utlendingamal",
+   "um": "útlendingamál"
+  },
+  {
+   "n": "Kjaramál",
+   "a": [
+    "kjarasamning",
+    "verkfall",
+    "kjaradeil"
+   ],
+   "slug": "kjaramal",
+   "um": "kjaramál"
+  },
+  {
+   "n": "Evrópusambandið",
+   "a": [
+    "Evrópusambandið",
+    "Evrópusambandsins",
+    "Evrópusambandinu",
+    "ESB"
+   ],
+   "slug": "evropusambandid",
+   "um": "Evrópusambandið"
+  },
+  {
+   "n": "Loftslagsmál",
+   "a": [
+    "loftslag",
+    "loftslags",
+    "kolefni",
+    "orkuskipti"
+   ],
+   "slug": "loftslagsmal",
+   "um": "loftslagsmál"
+  },
+  {
+   "n": "Heilbrigðismál",
+   "a": [
+    "Landspítal",
+    "heilbrigðiskerf",
+    "heilsugæsl",
+    "biðlist"
+   ],
+   "slug": "heilbrigdismal",
+   "um": "heilbrigðismál"
+  },
+  {
+   "n": "Ferðaþjónusta",
+   "a": [
+    "ferðaþjónust",
+    "ferðamenn",
+    "ferðamanna"
+   ],
+   "slug": "ferdathjonusta",
+   "um": "ferðaþjónustuna"
   }
  ]
 }
