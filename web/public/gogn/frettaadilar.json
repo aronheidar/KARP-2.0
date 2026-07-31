@@ -630,6 +630,320 @@
    ],
    "slug": "ferdathjonusta",
    "um": "ferðaþjónustuna"
+  },
+  {
+   "n": "Sjávarútvegur",
+   "a": [
+    "sjávarútveg",
+    "veiðigjald",
+    "fiskveiði",
+    "kvótakerf",
+    "aflamark"
+   ],
+   "slug": "sjavarutvegur",
+   "um": "sjávarútveg"
+  },
+  {
+   "n": "Orkumál",
+   "a": [
+    "orkumál",
+    "raforku",
+    "virkjun",
+    "orkuskort"
+   ],
+   "slug": "orkumal",
+   "um": "orkumál"
+  },
+  {
+   "n": "Löggæsla og afbrot",
+   "a": [
+    "lögregl",
+    "afbrot",
+    "fíkniefn",
+    "ofbeldisbrot"
+   ],
+   "slug": "loggaesla-og-afbrot",
+   "um": "löggæslu og afbrot"
+  },
+  {
+   "n": "Bandaríkin",
+   "a": [
+    "Bandaríkin",
+    "Bandaríkja",
+    "Trump"
+   ],
+   "slug": "bandarikin"
+  },
+  {
+   "n": "Sveitarfélögin",
+   "a": [
+    "sveitarfélag",
+    "sveitarstjórn",
+    "borgarstjórn",
+    "bæjarstjórn"
+   ],
+   "slug": "sveitarfelogin",
+   "um": "sveitarfélögin"
+  },
+  {
+   "n": "Menntamál",
+   "a": [
+    "menntamál",
+    "framhaldsskól",
+    "háskól",
+    "grunnskól",
+    "kennaraskort"
+   ],
+   "slug": "menntamal",
+   "um": "menntamál"
+  },
+  {
+   "n": "Kosningar",
+   "a": [
+    "kosningar",
+    "framboðslist",
+    "kjörsókn"
+   ],
+   "slug": "kosningar",
+   "um": "kosningar"
+  },
+  {
+   "n": "Úkraína",
+   "a": [
+    "Úkraín",
+    "Selenskí"
+   ],
+   "slug": "ukraina",
+   "um": "Úkraínu"
+  },
+  {
+   "n": "Verslun",
+   "a": [
+    "verslun",
+    "smásölu",
+    "matvöruverð"
+   ],
+   "slug": "verslun",
+   "um": "verslun"
+  },
+  {
+   "n": "Samgöngur",
+   "a": [
+    "samgöngu",
+    "vegakerf",
+    "Borgarlín",
+    "flugvöll"
+   ],
+   "slug": "samgongur",
+   "um": "samgöngur"
+  },
+  {
+   "n": "Eldgos",
+   "a": [
+    "eldgos",
+    "kvikuhlaup",
+    "jarðhræring",
+    "Grindavík"
+   ],
+   "slug": "eldgos",
+   "um": "eldgos"
+  },
+  {
+   "n": "Gervigreind",
+   "a": [
+    "gervigreind",
+    "máltækni"
+   ],
+   "slug": "gervigreind",
+   "um": "gervigreind"
+  },
+  {
+   "n": "Varnarmál",
+   "a": [
+    "varnarmál",
+    "NATO",
+    "Atlantshafsbandalag",
+    "þjóðaröryggi"
+   ],
+   "slug": "varnarmal",
+   "um": "varnarmál"
+  },
+  {
+   "n": "Hvalveiðar",
+   "a": [
+    "hvalveið",
+    "Hvalur hf"
+   ],
+   "slug": "hvalveidar",
+   "um": "hvalveiðar"
+  },
+  {
+   "n": "Skattamál",
+   "a": [
+    "skatta",
+    "skattur",
+    "skattlagning",
+    "skattkerf"
+   ],
+   "slug": "skattamal",
+   "um": "skattamál"
+  },
+  {
+   "n": "Atvinnuleysi",
+   "a": [
+    "atvinnuleysi",
+    "hópuppsögn",
+    "uppsagnir"
+   ],
+   "slug": "atvinnuleysi",
+   "um": "atvinnuleysi"
+  },
+  {
+   "n": "Hlutabréfamarkaður",
+   "a": [
+    "hlutabréf",
+    "Kauphöll",
+    "skráning á markað",
+    "hlutafjárútboð"
+   ],
+   "slug": "hlutabrefamarkadur",
+   "um": "hlutabréfamarkaðinn"
+  },
+  {
+   "n": "Vinnumarkaður",
+   "a": [
+    "vinnumarkað",
+    "launafólk",
+    "vinnuafl"
+   ],
+   "slug": "vinnumarkadur",
+   "um": "vinnumarkaðinn"
+  },
+  {
+   "n": "Landbúnaður",
+   "a": [
+    "landbúnað",
+    "bændur",
+    "sauðfjár",
+    "mjólkurfram"
+   ],
+   "slug": "landbunadur",
+   "um": "landbúnað"
+  },
+  {
+   "n": "Krónan",
+   "a": [
+    "krónunnar",
+    "gengi krónunnar",
+    "gjaldmiðil"
+   ],
+   "slug": "kronan",
+   "um": "krónuna"
+  },
+  {
+   "n": "Nýsköpun",
+   "a": [
+    "nýsköpun",
+    "sprotafyrirtæk",
+    "frumkvöðl"
+   ],
+   "slug": "nyskopun",
+   "um": "nýsköpun"
+  },
+  {
+   "n": "Netöryggi",
+   "a": [
+    "netöryggi",
+    "netárás",
+    "gagnaleki",
+    "tölvuárás"
+   ],
+   "slug": "netoryggi",
+   "um": "netöryggi"
+  },
+  {
+   "n": "Lífeyrismál",
+   "a": [
+    "lífeyrissjóð",
+    "eftirlaun",
+    "lífeyrisgreiðsl"
+   ],
+   "slug": "lifeyrismal",
+   "um": "lífeyrismál"
+  },
+  {
+   "n": "Gjaldþrot",
+   "a": [
+    "gjaldþrot",
+    "nauðasamning",
+    "þrotabú",
+    "greiðslustöðvun"
+   ],
+   "slug": "gjaldthrot",
+   "um": "gjaldþrot"
+  },
+  {
+   "n": "Tollar",
+   "a": [
+    "tolla",
+    "tollur",
+    "viðskiptastríð",
+    "tollskrá"
+   ],
+   "slug": "tollar",
+   "um": "tolla"
+  },
+  {
+   "n": "Byggingariðnaður",
+   "a": [
+    "byggingariðnað",
+    "verktak",
+    "íbúðabygging"
+   ],
+   "slug": "byggingaridnadur",
+   "um": "byggingariðnaðinn"
+  },
+  {
+   "n": "Jafnréttismál",
+   "a": [
+    "jafnrétt",
+    "kynbundinn",
+    "launamun"
+   ],
+   "slug": "jafnrettismal",
+   "um": "jafnréttismál"
+  },
+  {
+   "n": "Samkeppnismál",
+   "a": [
+    "samkeppnismál",
+    "markaðsráðandi",
+    "samkeppnislög",
+    "samruna"
+   ],
+   "slug": "samkeppnismal",
+   "um": "samkeppnismál"
+  },
+  {
+   "n": "Velferðarmál",
+   "a": [
+    "velferðarmál",
+    "örorku",
+    "bótakerf",
+    "félagsþjónust"
+   ],
+   "slug": "velferdarmal",
+   "um": "velferðarmál"
+  },
+  {
+   "n": "Fiskeldi",
+   "a": [
+    "fiskeldi",
+    "laxeldi",
+    "sjókvía"
+   ],
+   "slug": "fiskeldi",
+   "um": "fiskeldi"
   }
  ]
 }
