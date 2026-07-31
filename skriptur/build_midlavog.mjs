@@ -51,6 +51,22 @@ try {
 } catch (e) {}
 if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); process.exit(0); }
 
+// Aðila-skrá fyrir /frettir/<slug>/ (worker les hana úr ASSETS með _dget). Gefin út HÉR því
+// þetta skript les hvort sem er sömu lista → hún helst sjálfkrafa í takt við þá.
+{
+  const { adiliSlug } = await import('../web/src/lib/frettaadili.mjs');
+  const skra = efni.map((e) => ({ n: e.n, a: e.a, slug: adiliSlug(e.n) })).filter((x) => x.slug);
+  const seen = new Set();
+  const einkvaem = skra.filter((x) => (seen.has(x.slug) ? false : (seen.add(x.slug), true)));   // slug VERÐUR einkvæmt
+  fs.writeFileSync(path.join(ROOT, 'web', 'public', 'gogn', 'frettaadilar.json'),
+    JSON.stringify({ updated: new Date().toISOString().slice(0, 10), adilar: einkvaem }, null, 1));
+  // Sitemap fyrir SSR-síðurnar (Astro-sitemap sér þær ekki — þær eru ekki til á byggingartíma).
+  const urls = einkvaem.map((a) => `  <url><loc>https://karp.is/frettir/${a.slug}/</loc><changefreq>daily</changefreq></url>`).join('\n');
+  fs.writeFileSync(path.join(ROOT, 'web', 'public', 'sitemap-frettaadilar.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
+  console.log(`  frettaadilar.json + sitemap → ${einkvaem.length} aðilar${skra.length !== einkvaem.length ? ' (' + (skra.length - einkvaem.length) + ' tvítekin slug felld)' : ''}`);
+}
+
 const since = Math.floor(Date.now() / 1000) - DAYS * 86400;
 const cells = [];
 let skodud = 0;

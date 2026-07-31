@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /skel-fyrirtaeki/
+Disallow: /skel-frettaadili/
 
 Sitemap: https://karp.is/sitemap-index.xml
 Sitemap: https://karp.is/sitemap-fyrirtaeki.xml
+Sitemap: https://karp.is/sitemap-frettaadilar.xml

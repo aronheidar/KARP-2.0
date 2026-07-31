@@ -9,7 +9,8 @@ export default defineConfig({
   output: 'static',
   build: { format: 'directory' },
   // Sitemap: sleppa auth-/utility-/redirect-/noindex-síðum (#4) — annars misvísandi crawl-merki.
-  integrations: [sitemap({ filter: (page) => !/\/(mitt-svaedi|skel-fyrirtaeki|innskra|nyskraning|endurstilla|kaup|greining|areidanleiki|atvinnuleysi|efnahagur|okutaeki|skip|eftirlit|byggingarvakt)\/?$/.test(page) })],
+  // ⚠ skel-* eru worker-SSR sniðmát (aldrei borin fram beint) → mega ALDREI í sitemap.
+  integrations: [sitemap({ filter: (page) => !/\/(mitt-svaedi|skel-fyrirtaeki|skel-frettaadili|innskra|nyskraning|endurstilla|kaup|greining|areidanleiki|atvinnuleysi|efnahagur|okutaeki|skip|eftirlit|byggingarvakt)\/?$/.test(page) })],
   vite: {
     resolve: {
       alias: {

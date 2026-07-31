@@ -2,6 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
+import { findAdili, adiliTerms, adiliPageData, adiliDesc } from './src/lib/frettaadili.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
@@ -1287,6 +1288,72 @@ async function stjornRequestHandler(request, env, ctx) {
   } catch (e) { return sjson({ error: 'upstream' }); }
 }
 
+// ── /frettir/<slug>/ — indexeranleg fréttasíða aðila (worker-SSR, SEO) ──
+// Langi halinn: ein síða per aðila með tón, tímalínu, miðlum og nýjustu fréttum.
+// Sama skel-mynstur og /fyrirtaeki/<kt>/ (skel-frettaadili + %%KARP_*%%).
+function frettaAdiliMainHtml(nafn, d, slug) {
+  const e = htmlEsc;
+  const os = d.ordspor;
+  const toneCl = (v) => (v > 0 ? 'p' : v < 0 ? 'n' : 'h');
+  const kpi = (l, v, s) => `<div class="fa-kpi"><div class="l">${e(l)}</div><div class="v">${e(String(v))}</div><div class="s">${e(s || '')}</div></div>`;
+  const kpis = [
+    kpi('Fréttir', d.n, 'síðustu 90 daga'),
+    os.score != null ? kpi('Orðspors-einkunn', os.score + '/100', os.label) : kpi('Orðspors-einkunn', '—', 'of lítil umfjöllun'),
+    kpi('Miðlar', d.sources.length, 'fjalla um aðilann'),
+  ].join('');
+  const mxS = Math.max(...d.sources.map((s) => s.n), 1);
+  const srcRows = d.sources.map((s) =>
+    `<div class="fa-row"><span>${e(s.s)}</span><span class="b"><i style="width:${Math.max(4, (s.n / mxS) * 100).toFixed(0)}%"></i></span><span class="n">${s.n}</span></div>`).join('');
+  const mxT = Math.max(...d.timeline.map((t) => t.n), 1);
+  const tlRows = d.timeline.slice(-6).map((t) =>
+    `<div class="fa-row"><span>${e(t.m)}</span><span class="b"><i style="width:${Math.max(4, (t.n / mxT) * 100).toFixed(0)}%"></i></span><span class="n">${t.n}</span></div>`).join('');
+  const news = d.nyjast.map((x) =>
+    `<li><span class="fa-t ${toneCl(x.sent)}"></span><a href="${e(x.url)}" rel="nofollow noopener" target="_blank">${e(x.title)}</a>`
+    + `<span class="m">${e(x.source || '')}${x.date ? ' · ' + e(x.date) : ''}</span></li>`).join('');
+  return `<p class="fa-kicker">Fjölmiðlavakt Karp</p><h1>Umfjöllun um ${e(nafn)}</h1>`
+    + `<p class="fa-lead">Sjálfvirk greining á íslenskri fréttaumfjöllun um ${e(nafn)} — fjöldi frétta, tónn umfjöllunar, hvaða miðlar fjalla um aðilann og nýjustu fréttirnar. Uppfært daglega.</p>`
+    + `<div class="fa-kpis">${kpis}</div>`
+    + (srcRows ? `<h2>Miðlar sem fjalla um ${e(nafn)}</h2><p class="fa-sub">Fjöldi frétta per miðli síðustu 90 daga.</p>${srcRows}` : '')
+    + (tlRows ? `<h2>Umfjöllun eftir mánuðum</h2><p class="fa-sub">Fjöldi frétta per mánuði.</p>${tlRows}` : '')
+    + (news ? `<h2>Nýjustu fréttir</h2><ul class="fa-news">${news}</ul>` : '<h2>Nýjustu fréttir</h2><p class="fa-sub">Engin nýleg umfjöllun fannst.</p>')
+    + `<a class="fa-cta" href="/frettir/">← Öll fjölmiðlavaktin, samanburður aðila og fjölmiðlavogin</a>`
+    + `<p class="fa-note">Tónn er metinn vélrænt með gervigreind fyrir hverja frétt (jákvæð / hlutlaus / neikvæð) og orðspors-einkunnin (0–100) byggir á honum ásamt þróun. Þetta er vöktunartæki, ekki ritstjórnardómur — og fá gögn gefa óvissari einkunn. Fréttir eru hlekkjaðar á upprunalega miðla.</p>`;
+}
+
+async function frettaAdiliHandler(request, env, ctx, slug) {
+  const cache = caches.default;
+  const cacheKey = new Request('https://cache.karp.internal/frettir-adili/' + slug);
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  const skra = await _dget(env, '/gogn/frettaadilar.json').catch(() => null);
+  const adili = findAdili(slug, (skra && skra.adilar) || []);
+  if (!adili) return null;   // óþekktur slug → 404 (engar ruslsíður fyrir leitarvélar)
+  const terms = adiliTerms(adili);
+  const raw = await newsSearch(env, terms, 90, 400).catch(() => []);
+  const items = raw.map((x) => ({ title: x.title, url: x.url, source: x.source, ts: x.ts, date: x.date, sent: (x.sent_ai != null ? x.sent_ai : (x.sent != null ? x.sent : 0)) }));
+  const d = adiliPageData(items, { days: 90 });
+  const canonical = 'https://karp.is/frettir/' + slug + '/';
+  const title = htmlEsc('Umfjöllun um ' + adili.n + ' — fréttir og tónn | Karp');
+  const desc = htmlEsc(adiliDesc(adili.n, d).slice(0, 280));
+  const ld = JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Umfjöllun um ' + adili.n,
+    url: canonical, description: adiliDesc(adili.n, d),
+    about: { '@type': 'Thing', name: adili.n },
+    isPartOf: { '@type': 'WebSite', name: 'Karp', url: 'https://karp.is' },
+  }).replace(/</g, '\\u003c');
+  let html = await (await env.ASSETS.fetch(new Request('https://karp.internal/skel-frettaadili/'))).text();
+  html = html.replace(/<meta name="robots"[^>]*>\s*/i, '');   // gera indexeranlegt
+  html = repAll(html, '%%KARP_TITLE%%', title);
+  html = repAll(html, '%%KARP_OGTITLE%%', htmlEsc('Umfjöllun um ' + adili.n));
+  html = repAll(html, '%%KARP_DESC%%', desc);
+  html = repAll(html, '%%KARP_CANON%%', canonical);
+  html = repAll(html, '"%%KARP_JSONLD%%"', ld);
+  html = repAll(html, '%%KARP_MAIN%%', frettaAdiliMainHtml(adili.n, d, slug));
+  const res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
+  ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  return res;
+}
+
 // ── /fyrirtaeki/<kt>/ — indexeranleg opinber félagssíða (worker-SSR, SEO) ──
 // Sækir byggða Astro-skel (skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
 // tókum út fyrir per-félag efni. Öll gögn koma úr fyrirtaekiHandler (RSK).
@@ -2491,6 +2558,13 @@ export default {
       return res;
     }
     if (/^\/fyrirtaeki\/\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
+    // /frettir/<slug>/ — aðila-fréttasíða (SEO). ⚠ Mynstrið krefst a.m.k. 3 stafa slug og
+    //   leyfir EKKI skástrik → tekur ALDREI /frettir/ sjálfa (Astro-síðan heldur sér).
+    //   Óþekktur slug → handler skilar null → fellur í gegn í venjulegt 404, engin ruslsíða.
+    {
+      const m = url.pathname.match(/^\/frettir\/([a-z0-9][a-z0-9-]{2,60})\/?$/);
+      if (m) { const r = await frettaAdiliHandler(request, env, ctx, m[1]); if (r) return r; }
+    }
     // GÁTT: greidd skýrslu-gögn (/gogn/{eigendur,arsreikningar,stjorn}/<kt>.json) = persónuupplýsingar + 990 kr vara.
     // Aðeins admin eða notandi með reports_granted fyrir viðkomandi skýrslu (nákvæm spegilmynd client-paywall/hasReport).
     // Sýnishorn (_synishorn.json + ?syni hardkóðað) og SSR-forskoðun (karp.internal-undirbeiðnir) fara EKKI hér um.

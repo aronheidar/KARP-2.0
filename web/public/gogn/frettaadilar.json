@@ -1,0 +1,535 @@
+{
+ "updated": "2026-07-31",
+ "adilar": [
+  {
+   "n": "Arion banki",
+   "a": [
+    "Arion banki",
+    "Arion"
+   ],
+   "slug": "arion-banki"
+  },
+  {
+   "n": "Íslandsbanki",
+   "a": [
+    "Íslandsbanki",
+    "Islandsbanki"
+   ],
+   "slug": "islandsbanki"
+  },
+  {
+   "n": "Kvika banki",
+   "a": [
+    "Kvika"
+   ],
+   "slug": "kvika-banki"
+  },
+  {
+   "n": "Sjóvá",
+   "a": [
+    "Sjóvá",
+    "Sjova"
+   ],
+   "slug": "sjova"
+  },
+  {
+   "n": "Skagi (VÍS)",
+   "a": [
+    "Skagi hf",
+    "VÍS",
+    "Vátryggingafélag Íslands"
+   ],
+   "slug": "skagi-vis"
+  },
+  {
+   "n": "Síminn",
+   "a": [
+    "Síminn hf",
+    "Símans hf",
+    "Sjónvarp Símans",
+    "Síminn Sport",
+    "Síminn Pay"
+   ],
+   "slug": "siminn"
+  },
+  {
+   "n": "Sýn",
+   "a": [
+    "Sýn hf",
+    "Vodafone",
+    "Stöð 2"
+   ],
+   "slug": "syn"
+  },
+  {
+   "n": "Nova",
+   "a": [
+    "Nova"
+   ],
+   "slug": "nova"
+  },
+  {
+   "n": "Hagar",
+   "a": [
+    "Hagar hf",
+    "Bónus",
+    "Hagkaup"
+   ],
+   "slug": "hagar"
+  },
+  {
+   "n": "Festi",
+   "a": [
+    "Festi hf",
+    "Elko",
+    "Krónunni"
+   ],
+   "slug": "festi"
+  },
+  {
+   "n": "Skel",
+   "a": [
+    "Skel fjárfesting",
+    "Skeljungur",
+    "Orkan",
+    "Olís",
+    "Heimkaup"
+   ],
+   "slug": "skel"
+  },
+  {
+   "n": "Ölgerðin",
+   "a": [
+    "Ölgerðin",
+    "Egils"
+   ],
+   "slug": "olgerdin"
+  },
+  {
+   "n": "Brim",
+   "a": [
+    "Brim hf",
+    "Brim í"
+   ],
+   "slug": "brim"
+  },
+  {
+   "n": "Síldarvinnslan",
+   "a": [
+    "Síldarvinnslan"
+   ],
+   "slug": "sildarvinnslan"
+  },
+  {
+   "n": "Hampiðjan",
+   "a": [
+    "Hampiðjan"
+   ],
+   "slug": "hampidjan"
+  },
+  {
+   "n": "Icelandair",
+   "a": [
+    "Icelandair",
+    "Flugleiðir"
+   ],
+   "slug": "icelandair"
+  },
+  {
+   "n": "Eimskip",
+   "a": [
+    "Eimskip"
+   ],
+   "slug": "eimskip"
+  },
+  {
+   "n": "JBT Marel",
+   "a": [
+    "Marel"
+   ],
+   "slug": "jbt-marel"
+  },
+  {
+   "n": "Reitir",
+   "a": [
+    "Reitir fasteigna"
+   ],
+   "slug": "reitir"
+  },
+  {
+   "n": "Eik",
+   "a": [
+    "Eik fasteigna"
+   ],
+   "slug": "eik"
+  },
+  {
+   "n": "Alvotech",
+   "a": [
+    "Alvotech"
+   ],
+   "slug": "alvotech"
+  },
+  {
+   "n": "Amaroq",
+   "a": [
+    "Amaroq"
+   ],
+   "slug": "amaroq"
+  },
+  {
+   "n": "Landsvirkjun",
+   "a": [
+    "Landsvirkjun",
+    "Landsvirkjunar"
+   ],
+   "slug": "landsvirkjun"
+  },
+  {
+   "n": "Isavia",
+   "a": [
+    "Isavia"
+   ],
+   "slug": "isavia"
+  },
+  {
+   "n": "Orkuveita Reykjavíkur",
+   "a": [
+    "Orkuveit",
+    "Veitur",
+    "Orka náttúrunnar"
+   ],
+   "slug": "orkuveita-reykjavikur"
+  },
+  {
+   "n": "Landsnet",
+   "a": [
+    "Landsnet"
+   ],
+   "slug": "landsnet"
+  },
+  {
+   "n": "Samkaup",
+   "a": [
+    "Samkaup",
+    "Nettó",
+    "Kjörbúðin"
+   ],
+   "slug": "samkaup"
+  },
+  {
+   "n": "Costco",
+   "a": [
+    "Costco"
+   ],
+   "slug": "costco"
+  },
+  {
+   "n": "IKEA",
+   "a": [
+    "IKEA"
+   ],
+   "slug": "ikea"
+  },
+  {
+   "n": "Norðurál",
+   "a": [
+    "Norðurál",
+    "Nordural"
+   ],
+   "slug": "nordural"
+  },
+  {
+   "n": "Rio Tinto (ISAL)",
+   "a": [
+    "Rio Tinto",
+    "álverið í Straumsvík",
+    "ISAL"
+   ],
+   "slug": "rio-tinto-isal"
+  },
+  {
+   "n": "Play",
+   "a": [
+    "Fly Play",
+    "PLAY flug"
+   ],
+   "slug": "play"
+  },
+  {
+   "n": "CCP Games",
+   "a": [
+    "CCP Games",
+    "EVE Online"
+   ],
+   "slug": "ccp-games"
+  },
+  {
+   "n": "Össur",
+   "a": [
+    "Össur"
+   ],
+   "slug": "ossur"
+  },
+  {
+   "n": "Indó",
+   "a": [
+    "Indó banki",
+    "Indó"
+   ],
+   "slug": "indo"
+  },
+  {
+   "n": "Ríkisstjórnin",
+   "a": [
+    "Ríkisstjórnin",
+    "Ríkisstjórnarinnar",
+    "Ríkisstjórn",
+    "Ríkisstjórnina",
+    "Ríkisstjórnar"
+   ],
+   "slug": "rikisstjornin"
+  },
+  {
+   "n": "Alþingi",
+   "a": [
+    "Alþingi",
+    "Alþingis",
+    "Alþingið"
+   ],
+   "slug": "althingi"
+  },
+  {
+   "n": "Seðlabankinn",
+   "a": [
+    "Seðlabankinn",
+    "Seðlabankans",
+    "Seðlabanka",
+    "Seðlabanki Íslands"
+   ],
+   "slug": "sedlabankinn"
+  },
+  {
+   "n": "Háskóli Íslands",
+   "a": [
+    "Háskóli Íslands",
+    "Háskóla Íslands",
+    "Háskólans",
+    "HÍ"
+   ],
+   "slug": "haskoli-islands"
+  },
+  {
+   "n": "Landspítalinn",
+   "a": [
+    "Landspítalinn",
+    "Landspítalans",
+    "Landspítala",
+    "Landspítali"
+   ],
+   "slug": "landspitalinn"
+  },
+  {
+   "n": "RÚV",
+   "a": [
+    "RÚV",
+    "Ríkisútvarpið",
+    "Ríkisútvarpsins"
+   ],
+   "slug": "ruv"
+  },
+  {
+   "n": "Hæstiréttur",
+   "a": [
+    "Hæstiréttur",
+    "Hæstaréttar",
+    "Hæstarétti"
+   ],
+   "slug": "haestirettur"
+  },
+  {
+   "n": "Landsréttur",
+   "a": [
+    "Landsréttur",
+    "Landsréttar",
+    "Landsrétti"
+   ],
+   "slug": "landsrettur"
+  },
+  {
+   "n": "Skatturinn",
+   "a": [
+    "Skatturinn",
+    "Skattsins",
+    "Skattinum",
+    "Ríkisskattstjóri"
+   ],
+   "slug": "skatturinn"
+  },
+  {
+   "n": "Vinnumálastofnun",
+   "a": [
+    "Vinnumálastofnun",
+    "Vinnumálastofnunar"
+   ],
+   "slug": "vinnumalastofnun"
+  },
+  {
+   "n": "HMS",
+   "a": [
+    "Húsnæðis- og mannvirkjastofnun",
+    "HMS"
+   ],
+   "slug": "hms"
+  },
+  {
+   "n": "Samkeppniseftirlitið",
+   "a": [
+    "Samkeppniseftirlitið",
+    "Samkeppniseftirlitsins"
+   ],
+   "slug": "samkeppniseftirlitid"
+  },
+  {
+   "n": "Vegagerðin",
+   "a": [
+    "Vegagerðin",
+    "Vegagerðar",
+    "Vegagerðina"
+   ],
+   "slug": "vegagerdin"
+  },
+  {
+   "n": "Landhelgisgæslan",
+   "a": [
+    "Landhelgisgæslan",
+    "Landhelgisgæslunnar",
+    "Landhelgisgæslu"
+   ],
+   "slug": "landhelgisgaeslan"
+  },
+  {
+   "n": "Ríkislögreglustjóri",
+   "a": [
+    "Ríkislögreglustjóri",
+    "Ríkislögreglustjóra",
+    "Lögreglan",
+    "Lögreglu"
+   ],
+   "slug": "rikislogreglustjori"
+  },
+  {
+   "n": "Sjúkratryggingar",
+   "a": [
+    "Sjúkratryggingar Íslands",
+    "Sjúkratrygginga",
+    "Sjúkratryggingar"
+   ],
+   "slug": "sjukratryggingar"
+  },
+  {
+   "n": "Tryggingastofnun",
+   "a": [
+    "Tryggingastofnun",
+    "Tryggingastofnunar",
+    "TR"
+   ],
+   "slug": "tryggingastofnun"
+  },
+  {
+   "n": "Matvælastofnun",
+   "a": [
+    "Matvælastofnun",
+    "Matvælastofnunar",
+    "MAST"
+   ],
+   "slug": "matvaelastofnun"
+  },
+  {
+   "n": "Þjóðkirkjan",
+   "a": [
+    "Þjóðkirkjan",
+    "Þjóðkirkjunnar",
+    "Þjóðkirkju"
+   ],
+   "slug": "thjodkirkjan"
+  },
+  {
+   "n": "Kristrún Frostadóttir",
+   "a": [
+    "Kristrún Frostadóttir"
+   ],
+   "slug": "kristrun-frostadottir"
+  },
+  {
+   "n": "Daði Már Kristófersson",
+   "a": [
+    "Daði Már Kristófersson"
+   ],
+   "slug": "dadi-mar-kristofersson"
+  },
+  {
+   "n": "Þorgerður Katrín Gunnarsdóttir",
+   "a": [
+    "Þorgerður Katrín Gunnarsdóttir"
+   ],
+   "slug": "thorgerdur-katrin-gunnarsdottir"
+  },
+  {
+   "n": "Þorbjörg Sigríður Gunnlaugsdóttir",
+   "a": [
+    "Þorbjörg Sigríður Gunnlaugsdóttir"
+   ],
+   "slug": "thorbjorg-sigridur-gunnlaugsdottir"
+  },
+  {
+   "n": "Alma D. Möller",
+   "a": [
+    "Alma D. Möller"
+   ],
+   "slug": "alma-d-moller"
+  },
+  {
+   "n": "Eyjólfur Ármannsson",
+   "a": [
+    "Eyjólfur Ármannsson"
+   ],
+   "slug": "eyjolfur-armannsson"
+  },
+  {
+   "n": "Hanna Katrín Friðriksson",
+   "a": [
+    "Hanna Katrín Friðriksson"
+   ],
+   "slug": "hanna-katrin-fridriksson"
+  },
+  {
+   "n": "Inga Sæland",
+   "a": [
+    "Inga Sæland"
+   ],
+   "slug": "inga-saeland"
+  },
+  {
+   "n": "Jóhann Páll Jóhannsson",
+   "a": [
+    "Jóhann Páll Jóhannsson"
+   ],
+   "slug": "johann-pall-johannsson"
+  },
+  {
+   "n": "Logi Einarsson",
+   "a": [
+    "Logi Einarsson"
+   ],
+   "slug": "logi-einarsson"
+  },
+  {
+   "n": "Ragnar Þór Ingólfsson",
+   "a": [
+    "Ragnar Þór Ingólfsson"
+   ],
+   "slug": "ragnar-thor-ingolfsson"
+  }
+ ]
+}
