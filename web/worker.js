@@ -19,7 +19,7 @@ import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSend
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
-import { firmaHandler } from './src/worker/cron.mjs';
+import { firmaHandler, ordsporCron } from './src/worker/cron.mjs';
 import { _isAdmin } from './src/worker/stjornbord.mjs';
 export { maskaKortSvar, tengslGrunnurEnrich, topplistaBody, topplistaEntitled } from './src/worker/veitur.mjs';   // endur-export: prófin flytja inn úr worker.js
 // karp21 Worker (LOTA 13): þjónar static-assets ÁFRAM en bætir við smá-proxy-um
@@ -2366,7 +2366,9 @@ export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
     if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env));
-    else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env));
+    // Orðsporsvaktin fylgir DAGLEGA cron-inum (ekki 3-tíma): tón-þróun er dagamælikvarði,
+    // og daglegt þak ver bæði gegn hávaða í pósthólfi og D1-álagi (ein fréttaleit per vaktað félag).
+    else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env).then(() => ordsporCron(env)));
     else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env)));
   },
   async fetch(request, env, ctx) {

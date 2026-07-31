@@ -6,7 +6,7 @@ import { _cdata, _dget, _emailTpl, _esc, _fjson, sendGmail } from './felag.mjs';
 import { _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, computeGreinRank, newsSince } from './veitur.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { aggregateFirma } from '../lib/firma-greining.mjs';
-import { reputationScore } from '../lib/ordspor.mjs';
+import { reputationScore, toneAlert } from '../lib/ordspor.mjs';
 import { CAT } from '../lib/frettavel-cat.mjs';
 import { matchItem, matchKeyword, newSince } from '../lib/lobbyvakt.mjs';
 import { byggMatch, criticalDrop, criticalNotice, noticeRef, rankMovement, ratingMovement } from '../lib/vaktir-signals.mjs';
@@ -21,6 +21,75 @@ export async function kycDiffCron(env) {
 export async function kycCriticalCron(env) {
   const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);
   for (const kt of kts) { const res = await _kycRunDiff(env, kt, ['sanctions', 'legal']).catch(() => ({ newEvents: [] })); await _kycAfterEvents(env, kt, res, true).catch(() => {}); }
+}
+
+// 📉 ORÐSPORSVAKT — varar við þegar tónn fréttaumfjöllunar um vaktað félag snarversnar.
+// Sama mynstur og eftirlitCriticalCron: (1) meta EINU SINNI per félag, (2) einn póstur per
+// notanda með ÖLLUM hans viðvörunum, (3) merkja stöðuna SÍÐAST svo fyrsti notandi loki ekki
+// á hina sem vakta sama félag. Einkunnin kemur úr lib/ordspor.mjs — SAMA og skýrslan sýnir.
+export async function ordsporCron(env) {
+  if (!env.TENGSL) return { sent: 0, reason: 'no-d1' };
+  // vaktendur: félag (kt+nafn) → netföng. Fréttaleit er NAFNA-byggð, því þarf nafnið.
+  const rows = ((await env.TENGSL.prepare("SELECT p.v AS v, u.email AS email FROM user_prefs p JOIN users u ON u.id=p.user_id WHERE p.k='firmavakt'").all().catch(() => ({ results: [] }))).results) || [];
+  const byKt = {}, nafnAf = {};
+  for (const r of rows) {
+    if (!r.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)) continue;
+    try {
+      const fv = JSON.parse(r.v);
+      if (!fv || !fv.on || !Array.isArray(fv.felog)) continue;
+      for (const co of fv.felog) {
+        if (!co || !co.kt || !co.nafn) continue;               // án nafns er ekkert hægt að leita
+        const k = String(co.kt).replace(/\D/g, '');
+        (byKt[k] || (byKt[k] = new Set())).add(r.email);
+        nafnAf[k] = co.nafn;
+      }
+    } catch (e) {}
+  }
+  const kts = Object.keys(byKt).slice(0, 250);                  // þak: verndar gegn D1-sprengingu
+  if (!kts.length) return { sent: 0, users: 0 };
+  const now = Math.floor(Date.now() / 1000);
+  await env.TENGSL.prepare('CREATE TABLE IF NOT EXISTS ordspor_vakt (kt TEXT PRIMARY KEY, score INTEGER, ts INTEGER)').run().catch(() => {});
+
+  // 1) meta hvert félag EINU SINNI
+  const vidv = {}, sedir = [];
+  for (const kt of kts) {
+    const nafn = nafnAf[kt];
+    const items = await newsSearch(env, [nafn], 21, 400).catch(() => []);   // 3 vikur dugar f. 7-daga glugga + samanburð
+    if (!items.length) continue;
+    const scored = items.map((x) => ({ ts: x.ts, sent: (x.sent_ai != null ? x.sent_ai : (x.sent != null ? x.sent : _tone(x.body || x.title))) }));
+    const a = toneAlert(scored, { now, windowDays: 7 });
+    sedir.push({ kt, score: a.now.score });
+    if (!a.alert || a.now.score == null) continue;
+    // ⚠ ekki senda sömu viðvörun aftur: aðeins ef einkunnin hefur FALLIÐ frá síðustu sendingu.
+    const fyrra = await env.TENGSL.prepare('SELECT score FROM ordspor_vakt WHERE kt=?').bind(kt).first().catch(() => null);
+    if (fyrra && Number.isFinite(fyrra.score) && a.now.score >= fyrra.score - 5) continue;
+    vidv[kt] = { kt, nafn, score: a.now.score, fyrri: a.prev.score, drop: a.drop, n: a.now.n, neg: a.now.neg, reason: a.reason };
+  }
+  if (!Object.keys(vidv).length) {
+    for (const s of sedir) if (s.score != null) await env.TENGSL.prepare('INSERT INTO ordspor_vakt (kt,score,ts) VALUES (?,?,?) ON CONFLICT(kt) DO UPDATE SET score=excluded.score, ts=excluded.ts').bind(s.kt, s.score, now).run().catch(() => {});
+    return { sent: 0, alerts: 0 };
+  }
+
+  // 2) fan-out — einn póstur per notanda
+  const perEmail = {};
+  for (const kt of Object.keys(vidv)) for (const email of (byKt[kt] || [])) (perEmail[email] || (perEmail[email] = [])).push(vidv[kt]);
+  let sent = 0;
+  for (const email of Object.keys(perEmail)) {
+    const list = perEmail[email];
+    const lines = list.map((d) => '• ' + d.nafn + ' — orðspors-einkunn ' + d.score + (d.fyrri != null ? ' (var ' + d.fyrri + ')' : '')
+      + ' · ' + d.n + ' fréttir sl. viku, þar af ' + d.neg + ' neikvæðar').join('\n');
+    const tpl = await _emailTpl(env, 'ordspor_vakt');
+    const vars = { fjoldi: list.length, lysing: list.length === 1 ? 'umfjöllun um ' + list[0].nafn + ' hefur versnað' : list.length + ' félög á vaktinni með versnandi umfjöllun' };
+    const r = await sendGmail(env, {
+      to: email,
+      subject: renderEmail(tpl.subject, vars),
+      text: renderEmail(tpl.intro, vars) + '\n\n' + lines + '\n\n' + renderEmail(tpl.footer, vars),
+    });
+    if (r && r.ok) sent++;
+  }
+  // 3) merkja LOKS
+  for (const s of sedir) if (s.score != null) await env.TENGSL.prepare('INSERT INTO ordspor_vakt (kt,score,ts) VALUES (?,?,?) ON CONFLICT(kt) DO UPDATE SET score=excluded.score, ts=excluded.ts').bind(s.kt, s.score, now).run().catch(() => {});
+  return { sent, alerts: Object.keys(vidv).length };
 }
 
 export async function eftirlitCriticalCron(env) {

@@ -87,6 +87,16 @@ export const EMAIL_TYPES = [
     footer: 'Skoðaðu möppuna: https://karp.is/areidanleikavaktin/?kt={{kt}}',
   },
   {
+    id: 'ordspor_vakt', label: '📉 Orðsporsvakt (umfjöllun snarversnar)', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
+    ritanlegt: ['subject', 'intro', 'footer'],
+    hvenaer: 'Daglegur cron — orðspors-einkunn vaktaðs félags fellur skarpt eða verður mjög lág',
+    vidtakandi: 'Notandi sem vaktar félagið',
+    breytur: ['fjoldi', 'lysing'], krafist: [],
+    subject: '📉 Orðsporsvakt: {{lysing}}',
+    intro: 'Umfjöllun um eftirfarandi félög á vaktinni þinni hefur versnað marktækt. Einkunnin (0–100) byggir á tón fréttaumfjöllunar síðustu daga:',
+    footer: 'Sjá nánar: https://karp.is/frettir/\n\nEinkunnin er vélrænt mat á tón umfjöllunar — ekki ritstjórnardómur. Þú færð þennan póst því þú vaktar félagið; stjórnaðu vöktun á https://karp.is/vaktir/',
+  },
+  {
     id: 'eftirlit_crit', label: '🚨 Eftirlits-viðvörun (einkunn fellur)', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
     ritanlegt: ['subject','intro','footer'],
     hvenaer: '3-tíma cron — vaktaður staður fær einkunn 0-1', vidtakandi: 'Notandi sem vaktar staðinn',
