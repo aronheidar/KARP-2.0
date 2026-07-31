@@ -224,7 +224,7 @@ Hegðun eftir samsetningu:
 | `hits` | `veikar` | Flís | Texti |
 |---|---|---|---|
 | 0 | 0 | `fs-ar g` grænt | „Engin samsvörun" (óbreytt) |
-| 0 | >0 | `fs-ar g` grænt | „Engin staðfest samsvörun" + veika línan |
+| 0 | >0 | `fs-ar g` grænt | „Engin staðfest" + veika línan |
 | >0 | hvað sem er | `fs-ar b` rautt | núverandi texti + veika línan fyrir neðan |
 
 Veika línan birtist alltaf þegar `veikar` er ekki tóm — líka samhliða sterkum samsvörunum, sem sérstök lína, ekki samtvinnuð.

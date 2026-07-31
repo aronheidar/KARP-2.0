@@ -10,11 +10,14 @@
 // Mæling 31.7.2026: nákvæm eins-orðs samsvörun gaf 17 samsvaranir á 8.240 íslenskum
 // nöfnum — allar falskar (Nova, Saga, Orion, Titan, Fox …). Þess vegna veikt lag.
 
+// ⚠ sancNorm er EKKI eingöngu F9-rök: worker/veitur.mjs notar hana líka til að byggja
+// og fletta upp í PEP-vísitölunni (kycPepIndex + PEP-samsvörunarlínan í kycScreenKt).
+// Breyting hér hefur því þögul áhrif á PEP-samsvörun líka, ekki bara sanctions-skimun.
 export const sancNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
 // Eins og sancNorm en heldur TÖLUSTÖFUM og hendir bilum — til að bera fyrirspurn
 // saman við birtingarnafn færslunnar. Greinarmerki og broddstafir hunsuð.
-const alnum = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ðþæ]/g, '');
+const alnum = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ðþæ]/g, '');
 
 export function byggjaVisitolu(names) {
   const sterk = new Map(), veik = new Map();

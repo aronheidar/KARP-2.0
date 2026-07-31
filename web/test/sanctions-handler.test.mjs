@@ -28,8 +28,8 @@ import { sanctionsHandler } from '../src/worker/veitur.mjs';
 const FIXTURE = {
   updated: '2026-07-30',
   names: [
-    { n: 'saddam hussein', nafn: 'SADDAM HUSSEIN AL-TIKRITI', listar: ['OFAC SDN'] },
-    { n: 'rosneft', nafn: 'Rosneft', listar: ['EU 269/2014'] },
+    { n: 'saddam hussein', nafn: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC' },
+    { n: 'rosneft', nafn: 'Rosneft', listar: 'ESB' },
   ],
 };
 
@@ -50,20 +50,20 @@ async function call(namesCsv) {
 
 test('fjöl-orða (sterk) samsvörun lendir í hits — EKKI í veikar', async () => {
   const j = await call('Saddam Hussein');
-  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: ['OFAC SDN'] }]);
+  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC' }]);
   assert.deepEqual(j.veikar, []);
 });
 
 test('eins-orðs (veik) samsvörun lendir í veikar — EKKI í hits, og hits er tómt', async () => {
   const j = await call('Rosneft');
-  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: ['EU 269/2014'] }]);
+  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB' }]);
   assert.deepEqual(j.hits, []);
 });
 
 test('bæði í sömu fyrirspurn: hvor samsvörun lendir í sínu fylki, hvorug lekur yfir í hina', async () => {
   const j = await call('Saddam Hussein,Rosneft');
-  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: ['OFAC SDN'] }]);
-  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: ['EU 269/2014'] }]);
+  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC' }]);
+  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB' }]);
 });
 
 test('nafn sem samsvarar engu er hvorki í hits né veikar', async () => {

@@ -81,6 +81,24 @@ test('stafrétt fyrirspurn með tölu-viðskeyti samsvarar sinni færslu', () =>
   assert.equal(skima(VT, 'NETEX24').listi, 'NETEX24');
 });
 
+test('alnum (um skima): há-/lágstafir, broddstafir og greinarmerki hunsuð — en ð/þ/æ varðveitast', () => {
+  // alnum er óflutt (unexported) hjálparfall — sjá regex-samræmingu 31.7.2026 (alnum skrifaði
+  // broddstafa-bilið á annan hátt en sancNorm; hér er lykillinn 'þorðarbær' HANDSKRIFAÐUR
+  // (ekki reiknaður með sancNorm/alnum sjálfum), svo prófið grípi raunverulega stökkbreytingu
+  // í hvorri fallinu sem er — nafnið ber öll þrjú séríslensku stafina (ð/þ/æ) auk broddstafs.
+  const vt = byggjaVisitolu([{ n: 'þorðarbær', nafn: 'Þórðarbær', listar: 'ESB' }]);
+  for (const q of ['Þórðarbær', 'ÞÓRÐARBÆR', 'þórðarbær.', 'þorðarbær']) {
+    const m = skima(vt, q);
+    assert.ok(m, q + ' átti að samsvara Þórðarbær');
+    assert.equal(m.flokkur, 'veik');
+    assert.equal(m.listi, 'Þórðarbær');
+  }
+  // ef æ félli brott í normaliseringunni (í stað þess að varðveitast) yrði "þorðarbr"
+  // sama tóken og lykillinn — staðfestum að svo er EKKI: séríslensku stafirnir eru
+  // merkingarbærir stafir í samanburðinum, ekki skraut sem hverfur.
+  assert.equal(skima(vt, 'þorðarbr'), null, 'orð sem vantar æ er annað orð — á ekki að samsvara');
+});
+
 test('hver færsla í veiku vísitölunni samsvarar sínu eigin birtingarnafni', () => {
   for (const [, gildi] of VT.veik) {
     const m = skima(VT, gildi.nafn);
