@@ -499,6 +499,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
     import { slugify } from '../lib/atvinnugrein.mjs';
     import { fsThou, fsMkr, fsPct1, fsRat, fsKpiCalc, fsMapArs, fsHealthScore, fsLhGrade, FS_LH_SKALI } from '../lib/fyrirtaeki-kpi.mjs';
+    import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate } from '../lib/fyrirtaeki-lanshaefi.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     const escF = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1167,24 +1168,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // gjaldþrota-tengsl F8, refsilista-skimun F9). EKKI formlegt lánshæfismat skv. lögum nr. 33/2005.
     // Ein einkunn per skýrsla — kemur í stað gömlu „Fjárhagsheilsa"-hringsins (fsKpiHtml) og -raðar (KYC).
     let _lh = null;
-    const FS_LH_ORDER = ['fjarhagur', 'aldur', 'skil', 'stada', 'vanskil', 'logbirting', 'sector', 'flakk', 'sanction'];
-    function fsLhColor(s) { return s == null ? '#6b7688' : s >= 65 ? '#42d086' : s >= 50 ? '#e8b84b' : '#ef6a6a'; }
-    function fsLhScore() {
-      if (!_lh || _lh.base == null) return null;
-      let s = _lh.base, cap = 100;
-      for (const k in _lh.factors) { const f = _lh.factors[k]; s += (f.delta || 0); if (f.cap != null) cap = Math.min(cap, f.cap); }
-      return Math.max(0, Math.min(cap, Math.round(s)));   // þak: alvarleg merki (þrot/refsilistar) tryggja lágan flokk óháð sterkum fjárhag
-    }
     function fsLhSet(key, o) { if (_lh) _lh.factors[key] = o; }
-    // Aldur félags í árum úr skráningardegi (dd.mm.yyyy) — null ef óþekkt.
-    function fsLhAldur(skrad) { const m = String(skrad || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? Math.floor((Date.now() - new Date(+m[3], +m[2] - 1, +m[1]).getTime()) / (365.25 * 864e5)) : null; }
-    // Sein ársreikningaskil? (sama 31.8-frestur og fsSkilaSaga) — null ef engin skil skráð.
-    function fsLhSkilLate(f) {
-      const ars = (f.arsreikningar || []).filter((a) => a.ar && a.skil).slice(0, 6);
-      if (!ars.length) return null;
-      const pd = (s) => { const m = String(s || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
-      return ars.some((a) => { const yr = parseInt(a.ar, 10), d = pd(a.skil); return d && d >= new Date(yr + 1, 8, 1); });
-    }
     // Grunnstilling matsins úr félaginu (samstundis: fjárhagsheilsa + aldur + skil).
     function fsLhReset(f) {
       const k0 = f.fjarhagur && f.fjarhagur.length ? (f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1])) : null;
@@ -1196,9 +1180,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         : { icon: '📊', label: 'Fjárhagsheilsa', txt: k0 ? 'Efnahagsreikning vantar' : 'Enginn ársreikningur', base: true, status: 'n',
           tip: (k0 ? 'Ársreikningur fannst en efnahagsreikningurinn (eignir, skuldir, eigið fé) þáttaðist ekki úr skjalinu — einkunn er ekki gefin út á rekstrartölum einum saman.'
             : 'Enginn ársreikningur skráður — ekki hægt að reikna fjárhagslega einkunn; áhættuþættir birtast eftir sem áður.') + ' ' + FS_LH_SKALI });
-      const yrs = fsLhAldur(f.skrad);
+      const yrs = lhAldur(f.skrad);
       if (yrs != null) fsLhSet('aldur', { icon: '🏛️', label: 'Starfsaldur', txt: yrs + ' ára' + (yrs >= 10 ? ' · rótgróið' : yrs < 2 ? ' · nýtt félag' : ''), delta: yrs >= 10 ? 4 : yrs >= 3 ? 2 : yrs < 2 ? -4 : 0, status: yrs >= 3 ? 'g' : yrs < 2 ? 'o' : 'n', tip: 'Starfsaldur frá skráningu í fyrirtækjaskrá. Rótgróin félög (10+ ára) +4, meðal (3–10) +2, ný (<2 ára) −4 — eldri rekstur er að jafnaði stöðugri.' });
-      const late = fsLhSkilLate(f);
+      const late = lhSkilLate(f);
       if (late != null) fsLhSet('skil', { icon: '📅', label: 'Ársreikningaskil', txt: late ? 'Sein skil' : 'Skilað á réttum tíma', delta: late ? -5 : 2, status: late ? 'o' : 'g', tip: 'Voru ársreikningar skilaðir fyrir lögbundinn frest (31. ágúst árið eftir reikningsár)? Í tíma +2, sein skil −5 — mælikvarði á rekstrar-aga.' });
       // Skráningarstaða beint úr opinbera RSK-API-inu (f.afskraning) — áreiðanlegasta þrota-/afskráningarmerkið.
       // Aðeins lækkandi: gjaldþrot → þak 20 (E) óháð fjárhag; slit/skipti → þak 25; afskráð −10; virkt hlutlaust.
@@ -1212,8 +1196,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // Innmatur kortsins (hrein fall af _lh): hringur + einkunn + þátta-listi + fyrirvari.
     function fsLhBody() {
       if (!_lh) return '';
-      const s = fsLhScore(), grade = fsLhGrade(s), color = fsLhColor(s);
-      const band = s == null ? 'Ófullnægjandi fjárhagsgögn' : s >= 65 ? 'Sterk staða' : s >= 50 ? 'Í meðallagi' : 'Veik staða';
+      const s = lhScore(_lh), grade = fsLhGrade(s), color = lhColor(s), band = lhBand(s);
       const c = 163.4, off = s == null ? c : c * (1 - s / 100);
       const ring = '<svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true">'
         + '<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="7"/>'
@@ -1221,8 +1204,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<text x="32" y="30" text-anchor="middle" font-size="20" font-weight="800" fill="' + color + '">' + grade + '</text>'
         + '<text x="32" y="45" text-anchor="middle" font-size="9.5" fill="#9fb0c8">' + (s == null ? '—' : s + '/100') + '</text></svg>';
       const rows = FS_LH_ORDER.filter((k) => _lh.factors[k]).map((k) => {
-        const fc = _lh.factors[k], d = fc.delta;
-        const eff = fc.base ? 'grunnur' : fc.cap != null ? '→ ' + fsLhGrade(fc.cap) : (d > 0 ? '+' + d : d < 0 ? '−' + Math.abs(d) : fc.status === 'g' ? '✓' : fc.status === 'n' ? '·' : '⚑');
+        const fc = _lh.factors[k], eff = lhEffect(fc);
         return '<div class="fs-lh-f s-' + (fc.status || 'n') + '"' + (fc.tip ? ' data-tip="' + escF(fc.tip) + '"' : '') + '><span class="fs-lh-fi">' + fc.icon + '</span>'
           + '<span class="fs-lh-fl">' + escF(fc.label) + '<b>' + escF(fc.txt) + '</b></span>'
           + '<span class="fs-lh-fd">' + eff + '</span></div>';
