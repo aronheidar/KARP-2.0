@@ -59,21 +59,56 @@ test('signalEvents: skil — eldra snapshot án skil-lykils (prev=undefined) er 
 test('SEVERITY_RANK raðar', () => {
   assert.ok(SEVERITY_RANK.critical > SEVERITY_RANK.high && SEVERITY_RANK.high > SEVERITY_RANK.info);
 });
-import { deriveRisk } from './kyc.mjs';
+import { deriveRisk, RISK_SIGNALS } from './kyc.mjs';
+// Fullskimað félag án nokkurra merkja — grunnurinn sem „Lág" krefst.
+const HREINT = { sanctions: { hits: [] }, pep: { matches: [] }, legal: { notices: [] },
+  status: { stada: 'Virkt', gjaldthrot: 0, afskrad: 0 }, skil: { years: [] }, tax: { claims: [] }, media: { titles: [] } };
+const med = (o) => Object.assign({}, HREINT, o);
+
 test('deriveRisk: refsilisti eða gjaldþrot = Há', () => {
-  assert.equal(deriveRisk({ sanctions: { hits: [{ name: 'X' }] } }), 'Há');
-  assert.equal(deriveRisk({ status: { gjaldthrot: 1 } }), 'Há');
+  assert.equal(deriveRisk(med({ sanctions: { hits: [{ name: 'X' }] } })), 'Há');
+  assert.equal(deriveRisk(med({ status: { gjaldthrot: 1 } })), 'Há');
 });
 test('deriveRisk: PEP eða neikvæð media = Venjuleg', () => {
-  assert.equal(deriveRisk({ pep: { matches: [{ name: 'P' }] } }), 'Venjuleg');
-  assert.equal(deriveRisk({ media: { titles: [{ h: '1' }] } }), 'Venjuleg');
+  assert.equal(deriveRisk(med({ pep: { matches: [{ name: 'P' }] } })), 'Venjuleg');
+  assert.equal(deriveRisk(med({ media: { titles: [{ h: '1' }] } })), 'Venjuleg');
 });
 test('deriveRisk: ársreikningaskil-vanskil = a.m.k. Venjuleg', () => {
-  assert.equal(deriveRisk({ skil: { years: [{ ar: 2024, vanskil: '6 mánuðir' }] } }), 'Venjuleg');
+  assert.equal(deriveRisk(med({ skil: { years: [{ ar: 2024, vanskil: '6 mánuðir' }] } })), 'Venjuleg');
 });
-test('deriveRisk: ekkert = Lág', () => {
-  assert.equal(deriveRisk({ status: { gjaldthrot: 0 } }), 'Lág');
-  assert.equal(deriveRisk({}), 'Lág');
+test('deriveRisk: fullskimað án merkja = Lág', () => {
+  assert.equal(deriveRisk(med({})), 'Lág');
+});
+
+// ── Ófáanlegar heimildir ──────────────────────────────────────────────────────
+test('deriveRisk: heimild sem SVARAÐI EKKI má ekki gefa „Lág"', () => {
+  // Kjarninn: refsilista-vísitala sem hlóðst ekki skilar tómum hits — áður varð það að „Lág áhætta"
+  // á sjálfvirkri regluvörðu-vöku. Nú er niðurstaðan null = ekki vitað, og kallandi skrifar ekkert stig.
+  assert.equal(deriveRisk(med({}), { sanctions: true }), null);
+  assert.equal(deriveRisk(med({}), { pep: true }), null);
+  assert.equal(deriveRisk(med({}), { legal: true }), null);
+});
+
+test('deriveRisk: ófullkomið ástand (merki vantar alveg) er líka óvissa', () => {
+  assert.equal(deriveRisk({}), null);
+  assert.equal(deriveRisk({ status: { gjaldthrot: 0 } }), null);
+  assert.equal(deriveRisk(null), null);
+});
+
+test('deriveRisk: „Há" stendur þótt aðrar heimildir vanti (jákvæð sönnun)', () => {
+  // Ósamhverfan: gögn sem FUNDUST standa ein og sér; fullyrðing um FJARVERU gerir það ekki.
+  assert.equal(deriveRisk({ sanctions: { hits: [{ name: 'X' }] } }, { pep: true, legal: true }), 'Há');
+  assert.equal(deriveRisk({ status: { gjaldthrot: 1 } }, { sanctions: true }), 'Há');
+});
+
+test('deriveRisk: „Venjuleg" krefst þess líka að allar heimildir hafi svarað', () => {
+  // PEP-samsvörun ein og sér segir „a.m.k. Venjuleg" — en með refsilistann ófáanlegan gæti rétta
+  // svarið verið „Há", svo ekkert er fullyrt.
+  assert.equal(deriveRisk(med({ pep: { matches: [{ name: 'P' }] } }), { sanctions: true }), null);
+});
+
+test('RISK_SIGNALS: öll merkin sem stigið byggir á eru talin upp', () => {
+  for (const sig of ['sanctions', 'pep', 'legal', 'status', 'skil', 'tax', 'media']) assert.ok(RISK_SIGNALS.includes(sig), sig);
 });
 
 // ── Endanlegt/óbeint UBO (ubo-core.mjs + ubo-undirmerki í signalEvents) ──────────
@@ -155,4 +190,31 @@ test('hlutFrac: þáttar strengi/tölur/rusl í brot (eign.hlutur er strengur ei
   assert.equal(hlutFrac('-'), 0);
   assert.equal(hlutFrac(null), 0);
   assert.equal(hlutFrac(undefined), 0);
+});
+
+// ── Sviðsmynd: skammvinn bilun og endurheimt ─────────────────────────────────
+test('skammvinn bilun: gamla hegðunin bjó til falskan critical-atburð við endurheimt', () => {
+  const hit = { name: 'Félagið ehf' };
+  // Keyrsla 1 — heimildin svarar ekki. GAMLA leiðin skrifaði tóma stöðu yfir grunnlínuna.
+  const grunnlina = { hits: [hit] };
+  const tomtSvar = { hits: [] };
+  assert.deepEqual(signalEvents('sanctions', grunnlina, tomtSvar), [], 'bilunin sjálf gaf engan atburð — hún var þögul');
+  // Keyrsla 2 — heimildin svarar aftur. Grunnlínan er nú tóm, svo samsvörunin sem var alltaf til
+  // staðar birtist sem SPLUNKUNÝ og critical: viðvörun til viðskiptavinar um breytingu sem varð aldrei.
+  const eftirYfirskrift = signalEvents('sanctions', tomtSvar, { hits: [hit] });
+  assert.equal(eftirYfirskrift.length, 1);
+  assert.equal(eftirYfirskrift[0].severity, 'critical');
+  // NÝJA leiðin sleppir merkinu meðan heimildin er niðri → grunnlínan helst → enginn atburður.
+  assert.deepEqual(signalEvents('sanctions', grunnlina, { hits: [hit] }), [], 'óbreytt staða á að vera þögul');
+});
+
+test('skammvinn bilun: tómt eigenda-svar hefði myndað removed_ubo fyrir hvern eiganda', () => {
+  const eigendur = { owners: [{ key: 'a', nafn: 'A' }, { key: 'b', nafn: 'B' }] };
+  const ev = signalEvents('ubo', eigendur, { owners: [] });
+  assert.equal(ev.length, 2);
+  assert.ok(ev.every((e) => e.kind === 'removed_ubo' && e.severity === 'high'));
+  // …og status-merkið hefði sagt að staðan breyttist í tómt.
+  const st = signalEvents('status', { stada: 'Virkt', gjaldthrot: 0, afskrad: 0 }, { stada: '', gjaldthrot: 0, afskrad: 0 });
+  assert.equal(st.length, 1);
+  assert.equal(st[0].kind, 'status_change');
 });

@@ -88,16 +88,20 @@ async function kycPepIndex(env) {
 
 async function _kycNames(env, kt) {
   // Nöfn sem eru skimuð: félagið sjálft + virkir eigendur + virk stjórn (RCA v1 = beinir tengdir).
-  const felag = await env.TENGSL.prepare('SELECT nafn,stada,gjaldthrot,afskrad,gjaldthol FROM felog WHERE kt=?').bind(kt).first().catch(() => null);
+  // ⚠ D1-bilun má EKKI líta eins út og „engir eigendur": þá myndar diff-vélin removed_ubo fyrir hvern
+  // einasta eiganda og status_change fyrir félagið — falskar háviðvaranir úr skammvinnri 7403/7429-villu.
+  // Hver fyrirspurn ber því sitt ok-flagg. `felag === null` án villu er hins vegar gild niðurstaða.
+  const ok = { felag: true, owners: true, board: true };
+  const felag = await env.TENGSL.prepare('SELECT nafn,stada,gjaldthrot,afskrad,gjaldthol FROM felog WHERE kt=?').bind(kt).first().catch(() => { ok.felag = false; return null; });
   const owners = (await env.TENGSL.prepare(
     "SELECT e.eigandi_key AS key, e.hlutur AS hlutur, COALESCE(p.nafn,f.nafn,e.eigandi_key) AS nafn " +
     "FROM eign e LEFT JOIN folk p ON p.person_key=e.eigandi_key LEFT JOIN felog f ON f.kt=e.eigandi_key " +
-    "WHERE e.felag_kt=? AND e.seen_last IS NULL").bind(kt).all().catch(() => ({ results: [] }))).results || [];
+    "WHERE e.felag_kt=? AND e.seen_last IS NULL").bind(kt).all().catch(() => { ok.owners = false; return { results: [] }; })).results || [];
   const board = (await env.TENGSL.prepare(
     "SELECT h.person_key AS key, h.hlutverk AS hlutverk, COALESCE(p.nafn,h.person_key) AS nafn " +
     "FROM hlutverk h LEFT JOIN folk p ON p.person_key=h.person_key " +
-    "WHERE h.felag_kt=? AND h.seen_last IS NULL").bind(kt).all().catch(() => ({ results: [] }))).results || [];
-  return { felag, owners, board };
+    "WHERE h.felag_kt=? AND h.seen_last IS NULL").bind(kt).all().catch(() => { ok.board = false; return { results: [] }; })).results || [];
+  return { felag, owners, board, ok };
 }
 
 async function _kycUbo(env, kt) {
@@ -127,12 +131,19 @@ async function _kycUbo(env, kt) {
 }
 
 async function kycScreenKt(env, kt) {
-  const { felag, owners, board } = await _kycNames(env, kt);
-  const uboX = await _kycUbo(env, kt).catch(() => ({ beneficial: [], incompleteChain: false }));
+  // `na` merkir heimildir sem SVÖRUÐU EKKI. Þær eru sleppt í diff-inu og lækka ekki áhættustigið —
+  // tóm niðurstaða úr bilaðri heimild er ekki „hreint", hún er „ekki vitað".
+  const na = {};
+  const { felag, owners, board, ok } = await _kycNames(env, kt);
+  if (!ok.owners) na.ubo = true;
+  if (!ok.board) na.board = true;
+  if (!ok.felag) na.status = true;
+  const uboX = await _kycUbo(env, kt).catch(() => { na.ubo = true; return { beneficial: [], incompleteChain: false }; });
   const nameList = [felag?.nafn, ...owners.map((o) => o.nafn), ...board.map((b) => b.nafn)].filter(Boolean);
   // sanctions — endurnýtir sanctionsIndex/sancNorm (L2438-2452): idx er { idx:Map, updated }, lykill er
   // fyrsta+síðasta-tóken (sama lyklun og sanctionsHandler L2453 notar), EKKI heil-sancNorm-strengur.
   const { idx: sIdx } = await sanctionsIndex(env);
+  if (!sIdx || !sIdx.size) na.sanctions = true;   // tóm vísitala = ónothæf skimun, ekki „engar samsvaranir"
   const sHits = [];
   for (const nm of nameList) {
     const t = sancNorm(nm).split(' ').filter(Boolean);
@@ -143,10 +154,12 @@ async function kycScreenKt(env, kt) {
   }
   // pep
   const pIdx = await kycPepIndex(env);
+  if (!pIdx || !pIdx.size) na.pep = true;
   const pMatches = [];
   for (const nm of nameList) { const m = pIdx.get(sancNorm(nm)); if (m) pMatches.push({ name: nm, tegund: m.tegund }); }
   // legal (Lögbirting) — bökuð, kt-lyklað
   const lb = await augGet(env, 'logbirting.json').catch(() => null);
+  if (!lb) na.legal = true;
   const notices = [];
   const lbRows = Array.isArray(lb) ? lb : (lb?.faerslur || lb?.results || []);
   for (const r of lbRows) {
@@ -159,6 +172,7 @@ async function kycScreenKt(env, kt) {
   // media (íhaldssamt: nákvæmt nafn-token match í sentiment.json titlum; info-only)
   const titles = [];
   const sent = await augGet(env, 'sentiment.json').catch(() => null);
+  if (!sent) na.media = true;
   const felagNafn = (felag?.nafn || '').trim();
   if (felagNafn.length >= 4) {
     const rows = Array.isArray(sent) ? sent : (sent?.results || sent?.greinar || []);
@@ -172,8 +186,8 @@ async function kycScreenKt(env, kt) {
   // hendir waitUntil-cache-put-inu (skaðlaust: cache.put keyrir samt, bara óbeðið). .catch() ver
   // alla skimunina ef upstream-sæki mistekst — aldrei brotin heild vegna eins merkis.
   const skilD = await vanskilHandler(new Request('https://k.internal/api/vanskil?kt=' + kt), { waitUntil() {} })
-    .then((r) => r.json()).catch(() => ({ ar: [] }));
-  return {
+    .then((r) => r.json()).catch(() => { na.skil = true; return { ar: [] }; });
+  return { na, states: {
     ubo: { owners: owners.map((o) => ({ key: o.key, nafn: o.nafn, hlutur: o.hlutur })), beneficial: uboX.beneficial, incompleteChain: uboX.incompleteChain },
     board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
     sanctions: { hits: sHits },
@@ -183,7 +197,7 @@ async function kycScreenKt(env, kt) {
     skil: { years: (skilD.ar || []).map((x) => ({ ar: x.ar, vanskil: x.vanskil })) }, // ársreikningaskil-vanskil (opið, óleyfisskylt) — sjá vanskilHandler
     tax: { claims: [] }, // v1: engin áreiðanleg vanskilaskrá (bíður leyfis #36) — stubbur, engin atburðamyndun.
     media: { titles },
-  };
+  } };
 }
 
 const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'skil', 'tax', 'media'];
@@ -192,10 +206,12 @@ export const _kycGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirta
 
 const _kycWatchCap = (u, now) => (_freeAll(u) ? -1 : (u.tier === 'fyrirtaeki_plus' && u.tier_until > now ? 100 : 0));
 
-async function _kycSnapshotWrite(env, kt, states, ts) {
+async function _kycSnapshotWrite(env, kt, states, ts, na) {
   const stmts = [];
   const p = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO NOTHING');
-  for (const sig of KYC_SIGNALS) { const st = states[sig] || {}; const j = kycCanon(st); stmts.push(p.bind(kt, sig, kycHash(j), j, ts)); }
+  // Heimild sem svaraði ekki fær ENGA grunnlínu — annars yrði tómið að viðmiðinu og fyrsta heppnaða
+  // skimun á eftir kastaði hverri fyrirliggjandi samsvörun fram sem splunkunýrri.
+  for (const sig of KYC_SIGNALS) { if (na && na[sig]) continue; const st = states[sig] || {}; const j = kycCanon(st); stmts.push(p.bind(kt, sig, kycHash(j), j, ts)); }
   for (let i = 0; i < stmts.length; i += 40) await env.TENGSL.batch(stmts.slice(i, i + 40)).catch(() => {});
 }
 
@@ -226,13 +242,14 @@ export async function kycHandler(request, env, ctx) {
       const exists = await env.TENGSL.prepare('SELECT id,status FROM kyc_watch WHERE owner_id=? AND kt=?').bind(acct, kt).first().catch(() => null);
       if (!exists && cap >= 0 && cnt >= cap) return _ajson({ ok: false, error: 'cap', cap });
       // Upphafs-CDD: skima strax, geyma grunnlínu-snapshot, skrá initial_cdd.
-      const states = await kycScreenKt(env, kt);
-      const risk = kycDeriveRisk(states);
+      const { states, na } = await kycScreenKt(env, kt);
+      const risk = kycDeriveRisk(states, na);   // null = ófullnægjandi skimun → ekkert stig skráð
       const felagNafn = (await env.TENGSL.prepare('SELECT nafn FROM felog WHERE kt=?').bind(kt).first().catch(() => null))?.nafn || kt;
       await env.TENGSL.prepare('INSERT INTO kyc_watch (owner_id,kt,nafn,risk,status,added_at,reviewed_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(owner_id,kt) DO UPDATE SET status=\'active\', reviewed_at=excluded.reviewed_at')
         .bind(acct, kt, felagNafn, risk, 'active', now, now).run().catch(() => {});
-      await _kycSnapshotWrite(env, kt, states, now);
-      const findings = { sanctions: (states.sanctions.hits || []).length, pep: (states.pep.matches || []).length, gjaldthrot: states.status.gjaldthrot ? 1 : 0, risk };
+      await _kycSnapshotWrite(env, kt, states, now, na);
+      // Ófáanlegar heimildir eru SKRÁÐAR í úttektarslóðina — annars sæist ekki að CDD-in var ófullnægjandi.
+      const findings = { sanctions: (states.sanctions.hits || []).length, pep: (states.pep.matches || []).length, gjaldthrot: states.status.gjaldthrot ? 1 : 0, risk, ofaanlegt: Object.keys(na) };
       await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)')
         .bind(acct, kt, now, u.email || String(uid), 'initial_cdd', 'Upphafleg áreiðanleikakönnun', JSON.stringify(findings)).run().catch(() => {});
       return _ajson({ ok: true, kt, nafn: felagNafn, risk });
@@ -260,10 +277,10 @@ export async function kycHandler(request, env, ctx) {
   }
   if (request.method === 'POST' && path === '/risk') {
     const kt = String(body.kt || '').replace(/\D/g, ''); const risk = String(body.risk || ''); const reason = String(body.reason || '').slice(0, 500);
-    if (!['Lág', 'Venjuleg', 'Há'].includes(risk)) return _ajson({ ok: false, error: 'risk' });
+    if (risk !== '' && !['Lág', 'Venjuleg', 'Há'].includes(risk)) return _ajson({ ok: false, error: 'risk' });   // '' = hreinsa mat
     const w = await env.TENGSL.prepare("SELECT 1 FROM kyc_watch WHERE owner_id=? AND kt=? AND status='active'").bind(acct, kt).first().catch(() => null);
     if (!w) return _ajson({ ok: false, error: 'notwatched' });
-    await env.TENGSL.prepare('UPDATE kyc_watch SET risk=?, risk_reason=?, reviewed_at=? WHERE owner_id=? AND kt=?').bind(risk, reason, now, acct, kt).run().catch(() => {});
+    await env.TENGSL.prepare('UPDATE kyc_watch SET risk=?, risk_reason=?, reviewed_at=? WHERE owner_id=? AND kt=?').bind(risk || null, reason, now, acct, kt).run().catch(() => {});
     await env.TENGSL.prepare('INSERT INTO kyc_audit (owner_id,kt,ts,actor,action,summary,detail_json) VALUES (?,?,?,?,?,?,?)').bind(acct, kt, now, u.email || String(uid), 'risk_set', 'Áhætturating: ' + risk, JSON.stringify({ risk, reason })).run().catch(() => {});
     return _ajson({ ok: true });
   }
@@ -299,21 +316,26 @@ export async function kycHandler(request, env, ctx) {
 
 export async function _kycRunDiff(env, kt, onlySignals) {
   const now = Math.floor(Date.now() / 1000);
-  const states = await kycScreenKt(env, kt);
+  const { states, na } = await kycScreenKt(env, kt);
   const prevRows = (await env.TENGSL.prepare('SELECT signal,state_json FROM kyc_snapshot WHERE kt=?').bind(kt).all().catch(() => ({ results: [] }))).results || [];
   const prev = {}; for (const r of prevRows) { try { prev[r.signal] = JSON.parse(r.state_json); } catch (e) {} }
   const sigs = onlySignals || KYC_SIGNALS;
   const evStmt = env.TENGSL.prepare('INSERT INTO kyc_event (kt,signal,kind,severity,detail_json,detected_at) VALUES (?,?,?,?,?,?)');
   const snapStmt = env.TENGSL.prepare('INSERT INTO kyc_snapshot (kt,signal,state_hash,state_json,computed_at) VALUES (?,?,?,?,?) ON CONFLICT(kt,signal) DO UPDATE SET state_hash=excluded.state_hash, state_json=excluded.state_json, computed_at=excluded.computed_at');
   const writes = []; const newEvents = [];
+  const sleppt = [];
   for (const sig of sigs) {
+    // Heimild sem svaraði ekki er SLEPPT — hvorki atburðir né snapshot-yfirskrift. Annars myndi tóma
+    // svarið (a) mynda falskar „horfið/breyttist"-viðvaranir og (b) þurrka grunnlínuna, svo NÆSTA
+    // heppnaða keyrsla endurtæki hverja fyrirliggjandi samsvörun sem splunkunýjan critical-atburð.
+    if (na[sig]) { sleppt.push(sig); continue; }
     const cur = states[sig] || {};
     const evs = kycSignalEvents(sig, Object.prototype.hasOwnProperty.call(prev, sig) ? prev[sig] : null, cur);
     for (const e of evs) { writes.push(evStmt.bind(kt, sig, e.kind, e.severity, JSON.stringify(e.detail || {}), now)); newEvents.push(e); }
     const j = kycCanon(cur); writes.push(snapStmt.bind(kt, sig, kycHash(j), j, now));
   }
   for (let i = 0; i < writes.length; i += 40) await env.TENGSL.batch(writes.slice(i, i + 40)).catch(() => {});
-  return { newEvents, risk: kycDeriveRisk(states) };
+  return { newEvents, risk: kycDeriveRisk(states, na), sleppt };
 }
 
 async function _kycOwnersOf(env, kt) {
@@ -821,7 +843,7 @@ export function _searchVariants(t) {
   const st = _isStem(lc);
   if (st && st.length >= 5 && st !== lc) for (const s of (cap(st) !== st ? [st, cap(st)] : [st])) { pats.add('% ' + s + '%'); pats.add(s + '%'); }
   return [...pats];
-}
+}
 
 export function maskaKortSvar(out) {
   if (!out || !out.holdur) return out;

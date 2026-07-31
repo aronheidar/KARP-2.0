@@ -54,11 +54,21 @@ export function signalEvents(signal, prev, cur) {
   }
   return ev;
 }
-export function deriveRisk(s) {
+// Merkin sem áhættustigið er dregið af. Vanti eitthvert þeirra er ekki hægt að fullyrða neitt undir „Há".
+export const RISK_SIGNALS = ['sanctions', 'pep', 'legal', 'status', 'skil', 'tax', 'media'];
+
+// `na` = { merki: true } fyrir heimildir sem SVÖRUÐU EKKI (ólíkt heimild sem svaraði engu).
+// Skilar null þegar ekki er hægt að álykta — kallandi má þá EKKI skrifa yfir fyrra stig.
+//
+// ⚠ Ósamhverfan er viljandi: „Há" er fullyrðing um gögn sem FUNDUST og stendur því þótt aðrar
+// heimildir vanti. „Venjuleg" og „Lág" eru fullyrðingar um FJARVERU og krefjast þess að allar
+// heimildir hafi svarað — annars var refsilista-bilun einfaldlega lesin sem „engar samsvaranir".
+export function deriveRisk(s, na) {
   s = s || {};
   const L = (sig) => s[sig] || {};
   if ((L('sanctions').hits || []).length || L('status').gjaldthrot ||
       (L('legal').notices || []).some((n) => n.type === 'bankruptcy')) return 'Há';
+  if (RISK_SIGNALS.some((sig) => (na && na[sig]) || !s[sig])) return null;
   if ((L('pep').matches || []).length || (L('tax').claims || []).length || (L('skil').years || []).length || L('status').afskrad ||
       (L('legal').notices || []).length || (L('media').titles || []).length) return 'Venjuleg';
   return 'Lág';

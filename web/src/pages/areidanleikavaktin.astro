@@ -21,7 +21,7 @@ import Layout from '../layouts/Layout.astro';
       <p><a href="/areidanleikavaktin/">← Til baka í yfirlit</a></p>
       <div class="kv-file-h"><div><h2 id="kf-nafn"></h2><small id="kf-kt" style="color:var(--faint)"></small></div>
         <div class="kf-actions"><button id="kf-rescreen">Skima aftur</button><button id="kf-print">Prenta / PDF</button></div></div>
-      <div class="kf-risk">Áhætta: <select id="kf-risk"><option>Lág</option><option>Venjuleg</option><option>Há</option></select>
+      <div class="kf-risk">Áhætta: <select id="kf-risk"><option value="">— ekki metið</option><option>Lág</option><option>Venjuleg</option><option>Há</option></select>
         <input id="kf-reason" placeholder="rökstuðningur (valfrjálst)" /><button id="kf-risk-save">Vista</button></div>
       <h3>Opnar viðvaranir</h3><div id="kf-events"></div>
       <h3>Núverandi skimun</h3><div id="kf-states"></div>
@@ -49,7 +49,7 @@ import Layout from '../layouts/Layout.astro';
     .kv-tbl { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
     .kv-tbl th, .kv-tbl td { text-align: left; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
     .kv-tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
-    .risk-Há { color: #ff6d7a; font-weight: 700; } .risk-Venjuleg { color: #f6b13b; } .risk-Lág { color: #46e08a; }
+    .risk-Há { color: #ff6d7a; font-weight: 700; } .risk-Venjuleg { color: #f6b13b; } .risk-Lág { color: #46e08a; } .risk-— { color: var(--faint); }
     .kv-empty { color: var(--muted); margin-top: 14px; }
     .kv-rm { background: none; border: 0; color: var(--faint); cursor: pointer; }
     .kv-open { background: #ff6d7a; color: #1a1205; border-radius: 999px; padding: 1px 8px; font-weight: 700; font-size: 12px; }
@@ -83,7 +83,8 @@ import Layout from '../layouts/Layout.astro';
     const $ = (s) => document.querySelector(s);
     async function api(path, opts) { const r = await fetch('/api/kyc' + path, { credentials: 'include', headers: { 'content-type': 'application/json' }, ...opts }); return r.json().catch(() => ({})); }
     function row(w) {
-      const kt = w.kt; const risk = w.risk || 'Lág';
+      // Ekkert stig = ófullnægjandi skimun. Það MÁ ekki birtast sem „Lág" — sjá deriveRisk í kyc.mjs.
+      const kt = w.kt; const risk = w.risk || '—';
       return `<tr data-kt="${kt}"><td><a href="/areidanleikavaktin/?kt=${kt}">${w.nafn || kt}</a><br><small style="color:var(--faint)">${kt}</small></td>`
         + `<td class="risk-${risk}">${risk}</td>`
         + `<td>${w.opnar ? `<span class="kv-open">${w.opnar}</span>` : '0'}</td>`
@@ -103,7 +104,7 @@ import Layout from '../layouts/Layout.astro';
       $('#kv-app').hidden = true; $('#kv-file').hidden = false;
       const d = await api('/file?kt=' + kt); if (!d.ok) { $('#kv-file').innerHTML = '<p>Fannst ekki.</p>'; return; }
       $('#kf-nafn').textContent = d.watch.nafn || kt; $('#kf-kt').textContent = kt;
-      $('#kf-risk').value = d.watch.risk || 'Lág'; $('#kf-reason').value = d.watch.risk_reason || '';
+      $('#kf-risk').value = d.watch.risk || ''; $('#kf-reason').value = d.watch.risk_reason || '';
       const open = (d.events || []).filter((e) => e.ack === 'open');
       $('#kf-events').innerHTML = open.length ? open.map((e) => `<div class="kf-ev ${kSev(e.severity)}"><b>${e.kind}</b> — ${new Date(e.detected_at*1000).toLocaleDateString('is-IS')} <button class="kf-ack" data-id="${e.id}">✓ Ljúka</button></div>`).join('') : '<p style="color:var(--muted)">Engar opnar viðvaranir.</p>';
       const st = d.states || {};
