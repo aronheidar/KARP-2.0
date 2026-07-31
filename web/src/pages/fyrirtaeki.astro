@@ -1608,10 +1608,23 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 const el = document.getElementById('fs-umfj');
                 if (!el) return;
                 const se = fj && fj.ready && fj.sentiment;
+                const os = fj && fj.ordspor;   // 🏅 orðspors-einkunn (lib/ordspor.mjs) — sama tala og orðsporsvaktin notar
                 el.querySelector('.s').textContent = se && se.scored
                   ? se.scored + ' fyrirsagnir sl. 180 daga · viðhorf ' + (se.idx > 0 ? '+' : '') + se.idx + ' (' + (se.idx > 15 ? 'jákvætt' : se.idx < -15 ? 'neikvætt' : 'hlutlaust') + ')'
                   : 'engin nýleg umfjöllun í fjölmiðlavaktinni';
                 if (se && se.scored) el.classList.add('on');
+                // Einkunnin birtist AÐEINS þegar hún er marktæk (score!=null). Fá gögn ⇒ ordspor.mjs
+                // dregur hana að 50 og merkir conf lágt → sýnum þá óvissuna berum orðum.
+                if (os && os.score != null) {
+                  const lit = os.score >= 57 ? '#46e08a' : os.score <= 43 ? '#ff6d7a' : '#9fb0c8';
+                  const ovisst = os.conf < 0.34;
+                  el.insertAdjacentHTML('beforeend',
+                    '<div class="fs-ordspor" style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+                    + '<span style="font-size:26px;font-weight:800;color:' + lit + ';font-variant-numeric:tabular-nums">' + os.score + '</span>'
+                    + '<span style="font-size:12px;color:var(--muted);line-height:1.4">🏅 Orðspors-einkunn (0–100)<br>'
+                    + '<span style="color:var(--faint)">' + os.label + ' · ' + os.n + ' fréttir'
+                    + (ovisst ? ' · ⚠ fá gögn' : '') + '</span></span></div>');
+                }
               }).catch(() => { const el = document.getElementById('fs-umfj'); if (el) el.querySelector('.s').textContent = 'fréttir, tónn og tímalínur í fjölmiðlavaktinni →'; });
               // 🌐 LEI (GLEIF opið API) — alþjóðlegt lögaðila-auðkenni + gildi (ISSUED/LAPSED)
               fetch('/api/lei?kt=' + encodeURIComponent(String(d.felag.kt).replace(/\D/g, ''))).then((r) => (r.ok ? r.json() : null)).then((le) => {

@@ -6,6 +6,7 @@ import { _cdata, _dget, _emailTpl, _esc, _fjson, sendGmail } from './felag.mjs';
 import { _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, computeGreinRank, newsSince } from './veitur.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { aggregateFirma } from '../lib/firma-greining.mjs';
+import { reputationScore } from '../lib/ordspor.mjs';
 import { CAT } from '../lib/frettavel-cat.mjs';
 import { matchItem, matchKeyword, newSince } from '../lib/lobbyvakt.mjs';
 import { byggMatch, criticalDrop, criticalNotice, noticeRef, rankMovement, ratingMovement } from '../lib/vaktir-signals.mjs';
@@ -434,6 +435,9 @@ export async function firmaHandler(request, env) {
   // Samantektin (scored-talning, miðlar, tónn per miðil, perDay) er hrein + prófuð eining.
   const agg = aggregateFirma(items, { days, capped });
   const { sentiment, stats } = agg;
+  // 🏅 Orðspors-einkunn (0-100) úr AI-tóninum. SAMA eining og orðsporsvaktin notar → talan
+  //    verður aldrei önnur milli fyrirtækjaskýrslu og viðvörunar. Fá gögn ⇒ dregst að 50.
+  const ordspor = reputationScore(items.map((x) => ({ ts: x.ts, sent: x._t })), { days: Math.min(days, 90) });
   const wk = {};
   for (const it of items) { const d = new Date(it.ts * 1000); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); const key = mon.toISOString().slice(0, 10); const b = (wk[key] = wk[key] || { d: key, n: 0, tone: 0 }); b.n++; b.tone += it._t || 0; }
   const timeline = Object.values(wk).sort((a, b) => a.d < b.d ? -1 : 1).map((w) => ({ d: w.d, n: w.n, idx: w.n ? Math.round(w.tone / w.n * 20) : 0 }));
@@ -443,6 +447,7 @@ export async function firmaHandler(request, env) {
     capped, sample: items.length, // sýnið sem tónn/miðla-dreifing byggir á
     items: items.slice(0, 20).map((n) => ({ title: n.title, link: n.url, source: n.source, date: n.date })),
     timeline, sentiment, stats,   // sentiment: {idx,scored,pos,neg,bySource} · stats: {sources,perDay,days,sourceCount}
+    ordspor,                      // {score 0-100|null, tone, trend, n, conf, label} — sjá lib/ordspor.mjs
   }, 300);
 }
 
