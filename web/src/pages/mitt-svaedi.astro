@@ -113,7 +113,7 @@ const updated = '2026-07-02';
       </div>
 
       <div class="w" data-w="vaktir">
-        <div class="w-h">🔔 Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/vaktir/">Allar vaktir →</a></div>
+        <div class="w-h">🔔 Vaktirnar — nýjast <span class="w-sub">dómar · samráð · útboð · greiðslur</span> <a class="w-more" href="/lobbyvakt/">Allar vaktir →</a></div>
         <div id="w-vaktir" class="wv-grid">Sæki vaktir…</div>
       </div>
 
@@ -173,7 +173,7 @@ const updated = '2026-07-02';
       </div>
 
       <div class="w">
-        <div class="w-h">📋 Vaktirnar mínar <a class="w-more" href="/vaktir/">Stjórna vöktum →</a></div>
+        <div class="w-h">📋 Vaktirnar mínar <a class="w-more" href="/lobbyvakt/">Stjórna vöktum →</a></div>
         <p class="w-p">Yfirlit yfir allt sem þú vaktar. Virkar vaktir senda þér tölvupóst þegar eitthvað nýtt gerist.</p>
         <div id="vakt-yfirlit"><span class="dim">Sæki vaktirnar þínar…</span></div>
       </div>
@@ -619,13 +619,13 @@ const updated = '2026-07-02';
       // 📋 Vakta-samantekt (öll vaktakerfi) — í Stillingum
       async function paintVaktYfirlit(loggedIn) {
         const el = $g('vakt-yfirlit'); if (!el) return;
-        if (!loggedIn) { el.innerHTML = '<div class="vy-out">🔎 <a href="/vaktir/">Leitarorðavaktin</a> og fasteignavaktin virka án innskráningar (vistast í vafra). <a href="' + loginHref() + '">Skráðu þig inn</a> til að fá vaktir í tölvupóst og sjá þær á öllum tækjum.</div>'; return; }
+        if (!loggedIn) { el.innerHTML = '<div class="vy-out">🔎 <a href="/lobbyvakt/">Leitarorðavaktin</a> og fasteignavaktin virka án innskráningar (vistast í vafra). <a href="' + loginHref() + '">Skráðu þig inn</a> til að fá vaktir í tölvupóst og sjá þær á öllum tækjum.</div>'; return; }
         const [lv, fv, fm, hv] = await Promise.all([karpGet('/leitvakt').catch(() => null), karpGet('/fastvakt').catch(() => null), karpGet('/firmavakt').catch(() => null), karpGet('/vaktir').catch(() => null)]);
         const nOrd = ((lv && lv.ord) || []).length, nFast = ((fv && fv.vaktir) || []).length, nFelog = ((fm && fm.felog) || []).length;
         const nHag = (Array.isArray(hv) ? hv : ((hv && hv.vaktir) || [])).length;
         const nFylgt = ((window.KARP_USER && window.KARP_USER.follows) || []).length;
         const row = (e, n, l, href) => `<a class="vy-row" href="${href}"><span class="vy-n">${n}</span><span class="vy-l">${e} ${l}</span></a>`;
-        el.innerHTML = '<div class="vy-grid">' + row('🔎', nOrd, 'leitarorð', '/vaktir/') + row('🏠', nFast, 'götuvaktir', '/vaktir/') + row('🏢', nFelog, 'félög vöktuð', '/fyrirtaeki/') + row('📈', nHag, 'hagvísa-vaktir', '/vaktir/') + row('🔖', nFylgt, 'fylgt', '/mitt-svaedi/') + '</div>' + ((nOrd + nFast + nFelog + nHag + nFylgt) ? '' : '<div class="vy-empty">Engar vaktir enn — settu upp vaktir á <a href="/vaktir/">Vaktir</a> eða fylgstu með félagi/þingmanni.</div>');
+        el.innerHTML = '<div class="vy-grid">' + row('🔎', nOrd, 'leitarorð', '/lobbyvakt/') + row('🏠', nFast, 'götuvaktir', '/lobbyvakt/') + row('🏢', nFelog, 'félög vöktuð', '/fyrirtaeki/') + row('📈', nHag, 'hagvísa-vaktir', '/lobbyvakt/') + row('🔖', nFylgt, 'fylgt', '/mitt-svaedi/') + '</div>' + ((nOrd + nFast + nFelog + nHag + nFylgt) ? '' : '<div class="vy-empty">Engar vaktir enn — settu upp vaktir á <a href="/lobbyvakt/">Vaktir</a> eða fylgstu með félagi/þingmanni.</div>');
       }
       // 📬 Vikupóstur (og tölvupóst-yfirlit)
       function wireDigest(loggedIn) {
@@ -768,14 +768,14 @@ const updated = '2026-07-02';
         ]).then(([dm, sm, ub, gr]) => {
           const out = [];
           const d = dm.value;
-          if (d && (d.hr || []).length) out.push(box('⚖️ Nýjustu dómar', d.hr.slice(0, 2).map((v) => [esc('Mál ' + v.nr + ' · Hæstiréttur'), dIS2(v.dags) + esc((v.efnisord || [])[0] || '')]), '/vaktir/'));
+          if (d && (d.hr || []).length) out.push(box('⚖️ Nýjustu dómar', d.hr.slice(0, 2).map((v) => [esc('Mál ' + v.nr + ' · Hæstiréttur'), dIS2(v.dags) + esc((v.efnisord || [])[0] || '')]), '/lobbyvakt/'));
           const cs = ((((sm.value || {}).data || {}).consultationPortalGetCases || {}).cases || []);
-          if (cs.length) out.push(box('💬 Í samráði', cs.slice(0, 2).map((c) => [esc(String(c.name).slice(0, 54)), esc(c.institutionName || '') + ' · ' + esc(c.statusName || '')]), '/vaktir/'));
+          if (cs.length) out.push(box('💬 Í samráði', cs.slice(0, 2).map((c) => [esc(String(c.name).slice(0, 54)), esc(c.institutionName || '') + ' · ' + esc(c.statusName || '')]), '/lobbyvakt/'));
           const ps = ub.value;
-          if (Array.isArray(ps) && ps.length) out.push(box('📋 Ný útboð', ps.slice(0, 2).map((p) => [esc(((p.title || {}).rendered || '').slice(0, 54)), dIS2(p.date)]), '/vaktir/'));
+          if (Array.isArray(ps) && ps.length) out.push(box('📋 Ný útboð', ps.slice(0, 2).map((p) => [esc(((p.title || {}).rendered || '').slice(0, 54)), dIS2(p.date)]), '/lobbyvakt/'));
           const g = gr.value;
-          if (g && (g.rows || []).length) out.push(box('💸 Greiðslur ríkisins', g.rows.slice(0, 2).map((r) => [esc(r.stofnun + ' → ' + r.birgir).slice(0, 60), dIS2(r.dags) + Math.round(r.upph / 1000).toLocaleString('de-DE') + ' þ.kr']), '/vaktir/'));
-          el.innerHTML = out.length ? out.join('') : '<span class="dim">Vaktirnar svara ekki í augnablikinu — kíktu á <a href="/vaktir/">Vaktir</a>.</span>';
+          if (g && (g.rows || []).length) out.push(box('💸 Greiðslur ríkisins', g.rows.slice(0, 2).map((r) => [esc(r.stofnun + ' → ' + r.birgir).slice(0, 60), dIS2(r.dags) + Math.round(r.upph / 1000).toLocaleString('de-DE') + ' þ.kr']), '/lobbyvakt/'));
+          el.innerHTML = out.length ? out.join('') : '<span class="dim">Vaktirnar svara ekki í augnablikinu — kíktu á <a href="/lobbyvakt/">Vaktir</a>.</span>';
         });
       })();
 

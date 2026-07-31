@@ -8,18 +8,18 @@
 import Layout from '../layouts/Layout.astro';
 import { SECTORS } from '../lib/lobbyvakt.mjs';
 
-const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem nefna þau eru frjálsar fyrir alla innskráða, þingmál og samráðsmál í pípunni með AI-áhrifa-brief, relevans-stigi og fresti eru fyrir Fyrirtæki+ áskrifendur.';
+const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og Landsréttar, samráðsgátt stjórnvalda og greiðslur ríkisins eru opin öllum; vaktaðu leitarorð og atvinnugreinar fyrir fréttir, og þingmál með AI-áhrifa-brief, relevans-stigi og fresti fyrir Fyrirtæki+.';
 ---
-<Layout title="Lobbývakt — reglur í pípunni | Karp+" description={desc} canonical="https://karp.is/lobbyvakt/">
+<Layout title="Lobbývakt — dómar, samráð, greiðslur & reglur í pípunni | Karp" description={desc} canonical="https://karp.is/lobbyvakt/">
   <main class="lv-wrap" data-pg="lobbyvakt">
-    <p class="kicker">Karp+ · Vöktun</p>
+    <p class="kicker">Karp · Vöktun</p>
     <h1>Lobbývakt</h1>
-    <p class="lead">Vaktaðu leitarorð og atvinnugreinar — fáðu fréttir, þingmál og samráðsmál sem snerta þig. Fréttir eru frjálsar; þingmál + samráð + áhrifa-brief eru Fyrirtæki+.</p>
+    <p class="lead">Vöktunarmiðstöð Karp. Dómar, samráðsgátt og greiðslur ríkisins eru <b>opin öllum</b> neðst á síðunni. Skráðu þig inn til að vakta leitarorð og fá fréttir sem nefna þau; þingmál og samráðsmál með áhrifa-briefi eru Fyrirtæki+.</p>
     <p class="lv-note">⚠ Sjálfvirk túlkun með gervigreind — til glöggvunar, ekki lögfræðiráðgjöf. Staðfestu í frumtextanum.</p>
 
     <div id="lv-gate" hidden>
-      <p id="lv-gate-login" hidden>Skráðu þig inn til að nota Lobbývaktina. <a id="lv-gate-login-a" href="/innskra/">Skráðu þig inn →</a></p>
-      <p id="lv-gate-err" hidden>Náði ekki í Lobbývaktina — reyndu aftur síðar.</p>
+      <p id="lv-gate-login" hidden>Skráðu þig inn til að vakta leitarorð og atvinnugreinar — dómar, samráðsgátt og greiðslur ríkisins hér að neðan eru opin öllum. <a id="lv-gate-login-a" href="/innskra/">Skráðu þig inn →</a></p>
+      <p id="lv-gate-err" hidden>Náði ekki í vöktunina — reyndu aftur síðar. Opnu veiturnar að neðan virka óháð því.</p>
     </div>
 
     <section id="lv-app" hidden>
@@ -50,9 +50,32 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
       <div id="lv-frettir"></div>
       <p id="lv-frettir-empty" class="lv-empty" hidden>Engar fréttir nefna orðin þín eins og er.</p>
 
-      <h2>🏛️ Þingmál &amp; samráð <span class="lv-plus">Fyrirtæki+</span></h2>
+      <h2>🏛️ Þingmál &amp; samráð sem snerta greinina þína <span class="lv-plus">Fyrirtæki+</span></h2>
+      <p class="sub">Síað eftir greinum og leitarorðum, með áhrifa-briefi, relevans-stigi og fresti.</p>
       <div id="lv-reglur"></div>
       <p id="lv-empty" class="lv-empty" hidden>Engin þingmál/samráð passa við valið eins og er — „Þvert á greinar"-mál birtast sjálfkrafa.</p>
+    </section>
+
+    <!-- ── OPNU VEITURNAR (áður /vaktir/) — utan gáttar: opin gögn, engin innskráning ──
+         Leitarorðin lýsa upp treff hér eins og á gömlu Leitarorðavaktinni. -->
+    <section id="lv-open">
+      <h2>⚖️ Dómavaktin</h2>
+      <p class="sub">Nýjustu dómar Hæstaréttar og Landsréttar. Opið öllum — leitarorðin þín lýsast upp þegar þú ert innskráð(ur).</p>
+      <div class="ppair">
+        <div><h3>Hæstiréttur</h3><div id="domar-hr" class="feed">Sæki dóma…</div></div>
+        <div><h3>Landsréttur</h3><div id="domar-lr" class="feed">Sæki dóma…</div></div>
+      </div>
+
+      <h2>💬 Nýtt í samráðsgátt</h2>
+      <p class="sub">Öll ný samráðsmál stjórnvalda — óháð grein. Síað og með áhrifa-briefi birtast þau í Fyrirtæki+ hlutanum að ofan.</p>
+      <div id="samrad-pills"></div>
+      <div id="samrad-list" class="feed">Sæki samráðsmál…</div>
+
+      <h2>💸 Greiðsluvaktin</h2>
+      <p class="sub">Nýjustu greiðslur ríkisins úr opnirreikningar.is (Fjársýslan).</p>
+      <div id="greidslur-list" class="feed">Sæki greiðslur ríkisins…</div>
+
+      <p class="lv-foot">Lindir um skyndiminnis-proxy Karp: haestirettur.is, landsrettur.is, samráðsgátt island.is og opnirreikningar.is. Dómavaktin nær til Hæstaréttar og Landsréttar.</p>
     </section>
   </main>
 
@@ -101,9 +124,37 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
     .lv-empty { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
     .lv-plus { font-size: 11px; font-weight: 700; color: #f6b13b; border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
 
+    /* ── Opnu veiturnar (fluttar af /vaktir/) ── */
+    #lv-open h3 { font-size: 13px; color: var(--ink); margin: 0 0 6px; }
+    .ppair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 760px) { .ppair { grid-template-columns: 1fr; } }
+    .feed { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 11px; padding: 8px 12px; min-height: 80px; font-size: 13px; color: var(--muted); }
+    .lv-foot { font-size: 12px; color: var(--faint); margin-top: 28px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; line-height: 1.6; }
+
     @media print {
       .lv-pills, .lv-save-row, .lv-kw-row, .lv-sub-h, #lv-gate, .lv-note { display: none !important; }
     }
+  </style>
+
+  <!-- ⚠ Feed-línurnar eru byggðar með innerHTML á keyrslutíma → is:global (sama gildra og lv-kw-chip). -->
+  <style is:global>
+    main[data-pg="lobbyvakt"] #domar-hr .fi, main[data-pg="lobbyvakt"] #domar-lr .fi,
+    main[data-pg="lobbyvakt"] #samrad-list .fi, main[data-pg="lobbyvakt"] #greidslur-list .fi { display: block; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.07); text-decoration: none; }
+    main[data-pg="lobbyvakt"] #greidslur-list .pos { color: #42d086; }
+    main[data-pg="lobbyvakt"] #greidslur-list .neg { color: #e0655f; }
+    main[data-pg="lobbyvakt"] #greidslur-list b { color: #f6b13b; font-weight: 600; }
+    main[data-pg="lobbyvakt"] .fi.hit { border-left: 3px solid #f6b13b; padding-left: 8px; background: rgba(246,177,59,.06); border-radius: 6px; }
+    main[data-pg="lobbyvakt"] .fi .t { display: block; font-size: 13px; color: var(--ink); line-height: 1.35; }
+    main[data-pg="lobbyvakt"] .fi:hover .t { color: #f6b13b; }
+    main[data-pg="lobbyvakt"] .fi .s { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
+    main[data-pg="lobbyvakt"] .dom-ai { color: #b9c6da !important; font-size: 12px !important; margin-top: 3px; line-height: 1.4; }
+    main[data-pg="lobbyvakt"] #samrad-list .pill, main[data-pg="lobbyvakt"] #domar-hr .pill, main[data-pg="lobbyvakt"] #domar-lr .pill { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; background: rgba(255,255,255,.08); color: var(--muted); }
+    main[data-pg="lobbyvakt"] #samrad-list .pill.op { background: rgba(66,208,134,.16); color: #42d086; }
+    main[data-pg="lobbyvakt"] #samrad-list .pill.gr { background: rgba(246,177,59,.13); color: #f6b13b; }
+    main[data-pg="lobbyvakt"] #samrad-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+    main[data-pg="lobbyvakt"] #samrad-pills .spill { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); color: var(--muted); border-radius: 999px; padding: 3px 11px; font-size: 11.5px; cursor: pointer; }
+    main[data-pg="lobbyvakt"] #samrad-pills .spill:hover { border-color: rgba(246,177,59,.45); color: #f6b13b; }
+    main[data-pg="lobbyvakt"] #samrad-pills .spill.on { background: rgba(246,177,59,.14); border-color: rgba(246,177,59,.5); color: #f6b13b; font-weight: 600; }
   </style>
 
   <!-- ⚠ Runtime-innerHTML (straumur-kortin) → Astro scoped-CSS nær EKKI yfir → is:global með
@@ -249,12 +300,129 @@ const desc = 'Lobbývakt — vaktaðu leitarorð og atvinnugreinar: fréttir sem
       $('#lv-setup-msg').hidden = !d.needsSetup;
       renderNews(d.frettir || []);
       renderReg(d.reglur || [], !!d.entitled);
+      lvHi();   // orðin komin → lýsa upp treff í opnu veitunum að neðan
+    }
+
+    // ───────── OPNU VEITURNAR (fluttar af /vaktir/, LOTA: vaktir-samruni) ─────────
+    // Þessar þrjár veitur eru OPIN gögn og keyra ÓHÁÐ innskráningargáttinni — /vaktir/ var
+    // opin öllum og það má ekki tapast við samrunann. Aðeins upplýsing treffa er persónuleg.
+    const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+
+    // Orðin sem lýsa upp: sameinuð leitarorð úr API (innskráð) + gamli localStorage-lykillinn
+    // af /vaktir/ svo orð eldri notenda haldist eftir flutninginn.
+    function hiWords() {
+      let local = [];
+      try { local = JSON.parse(localStorage.getItem('karp-leitvakt') || '[]').filter((x) => typeof x === 'string'); } catch (e) {}
+      return [...new Set([...keywords, ...local])].map((w) => String(w || '').toLowerCase()).filter(Boolean);
+    }
+    function lvHi() {
+      const words = hiWords();
+      document.querySelectorAll('main[data-pg="lobbyvakt"] .feed .fi').forEach((el) => {
+        const t = (el.textContent || '').toLowerCase();
+        el.classList.toggle('hit', words.some((w) => t.includes(w)));
+      });
+    }
+
+    const SAMRAD_GREINAR = [
+      ['Sjávarútvegur', /sjávar|fisk|veiði|kvót|eldi|hafi\b/i],
+      ['Landbúnaður & matvæli', /landbún|bænd|búfé|matvæl|jarðrækt/i],
+      ['Orka', /orku|raforku|virkj|jarðvarm|vindork|eldsneyt/i],
+      ['Byggingar & húsnæði', /skipulag|bygging|mannvirki|húsnæð|lóð/i],
+      ['Fjármál & skattar', /fjármál|skatt|gjald(?!frjáls)|banka|trygging|lífeyri|fjárlög/i],
+      ['Heilbrigði', /heilbrigð|heilsu|lyf|sjúkra|lækn/i],
+      ['Menntun', /mennt|skóla|háskól|leikskól|nám/i],
+      ['Samgöngur', /samgöng|veg(?:a|i|ur)|flug|höfn|umferð|ökutæk/i],
+      ['Umhverfi & loftslag', /umhverfi|loftslag|náttúr|mengun|úrgang|friðlýs/i],
+      ['Ferðaþjónusta', /ferðaþjónust|ferðamann/i],
+      ['Fjarskipti & tækni', /fjarskipt|netörygg|stafræn|gervigreind|upplýsingatækn/i],
+      ['Vinnumarkaður', /vinnumark|kjaramál|starfsm|atvinnuleys|réttind.*starf/i],
+    ];
+    const samradGrein = (c) => {
+      const hay = (c.name || '') + ' ' + (c.typeName || '') + ' ' + (c.institutionName || '');
+      const g = SAMRAD_GREINAR.find(([, rx]) => rx.test(hay));
+      return g ? g[0] : null;
+    };
+
+    function initOpenFeeds() {
+      const host = document.getElementById('lv-open');
+      if (!host || host.dataset.done) return;
+      host.dataset.done = '1';
+
+      // ⚖️ Dómavaktin (HR + LR um /api/domar) + AI-endursögn reifunar (domar_ai.json)
+      Promise.all([
+        fetch('/api/domar').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+        fetch('/gogn/domar_ai.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      ]).then(([d, ai]) => {
+        const AI = (ai && ai.byNr) || {};
+        const SITES = { hr: 'https://www.haestirettur.is/domar/', lr: 'https://www.landsrettur.is/domar-og-urskurdir/' };
+        for (const key of ['hr', 'lr']) {
+          const el = document.getElementById('domar-' + key);
+          if (!el) continue;
+          const list = d && Array.isArray(d[key]) ? d[key] : [];
+          if (!list.length) { el.textContent = 'Dómarnir birtast þegar veitan svarar (proxy í dreifingu).'; continue; }
+          el.innerHTML = list.slice(0, 8).map((v) => {
+            const a = AI[key + ':' + v.nr];
+            const skyring = a && a.einfalt ? a.einfalt : (v.um ? String(v.um).trim().slice(0, 150) + (String(v.um).trim().length > 150 ? '…' : '') : '');
+            return `<a class="fi" href="${SITES[key]}" target="_blank" rel="noopener" title="${esc(v.um || '')}"><span class="t">Mál ${esc(v.nr)}: ${esc(String(v.titill || '').split(' gegn ')[0].slice(0, 60))}${String(v.titill || '').includes(' gegn ') ? ' gegn …' : ''}</span>${skyring ? `<span class="s dom-ai">${a && a.einfalt ? '💡 ' : ''}${esc(skyring)}${a && a.svid ? ` <span class="pill">${esc(a.svid)}</span>` : ''}</span>` : ''}<span class="s">${dIS(v.dags)}${(v.efnisord || []).length ? ' · ' + v.efnisord.slice(0, 3).map(esc).join(' · ') : ''}</span></a>`;
+          }).join('');
+        }
+        lvHi();
+      }).catch(() => {});
+
+      // 💬 Samráðsgáttin (island.is GraphQL um /api/samrad) + atvinnugreina-flokkun
+      fetch('/api/samrad')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const el = document.getElementById('samrad-list');
+          if (!el) return;
+          const cs = ((((d || {}).data || {}).consultationPortalGetCases || {}).cases || []).map((c) => ({ ...c, grein: samradGrein(c) }));
+          if (!cs.length) { el.textContent = 'Samráðsmálin birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          const render = (filter) => {
+            const list = filter ? cs.filter((c) => c.grein === filter) : cs;
+            el.innerHTML = (list.length ? list : cs).slice(0, 12).map((c) => {
+              const open = /umsagnar/i.test(c.statusName || '');
+              const frest = open && c.processEnds ? ` · frestur til ${dIS(c.processEnds)}` : '';
+              return `<a class="fi" href="https://island.is/samradsgatt/mal/${esc(c.id)}" target="_blank" rel="noopener"><span class="t">${esc(c.name)}</span><span class="s"><span class="pill ${open ? 'op' : ''}">${esc(c.statusName || '')}</span>${c.grein ? ` <span class="pill gr">${esc(c.grein)}</span>` : ''} ${esc(c.institutionName || '')} · mál ${esc(c.caseNumber)}${frest}${c.adviceCount ? ` · ${c.adviceCount} umsagnir` : ''}</span></a>`;
+            }).join('');
+            lvHi();
+          };
+          const pillsEl = document.getElementById('samrad-pills');
+          const greinar = [...new Set(cs.map((c) => c.grein).filter(Boolean))];
+          if (pillsEl && greinar.length) {
+            pillsEl.innerHTML = `<button class="spill on" data-g="">Allt (${cs.length})</button>` + greinar.map((g) => `<button class="spill" data-g="${esc(g)}">${esc(g)} (${cs.filter((c) => c.grein === g).length})</button>`).join('');
+            pillsEl.querySelectorAll('.spill').forEach((b) => b.addEventListener('click', () => {
+              pillsEl.querySelectorAll('.spill').forEach((x) => x.classList.toggle('on', x === b));
+              render(b.dataset.g || null);
+            }));
+          }
+          render(null);
+        })
+        .catch(() => {});
+
+      // 💸 Greiðsluvaktin (opnirreikningar.is um /api/greidslur)
+      fetch('/api/greidslur')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          const el = document.getElementById('greidslur-list');
+          if (!el) return;
+          const rows = (d && Array.isArray(d.rows)) ? d.rows : [];
+          if (!rows.length) { el.textContent = 'Greiðslurnar birtast þegar veitan svarar (proxy í dreifingu).'; return; }
+          const kr = (v) => (v == null ? '' : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' kr');
+          el.innerHTML = rows.slice(0, 12).map((g) => `<a class="fi" href="https://opnirreikningar.is/" target="_blank" rel="noopener" title="${esc(g.lysing || '')}"><span class="t">${esc(g.stofnun)} → <b>${esc(g.birgir)}</b> · <span class="${(g.upph || 0) < 0 ? 'neg' : 'pos'}">${kr(g.upph)}</span></span><span class="s">${dIS(g.dags)}${g.lysing ? ' · ' + esc(g.lysing.slice(0, 60)) : ''}</span></a>`).join('');
+          lvHi();
+        })
+        .catch(() => {});
+
+      // veiturnar hlaðast ósamstillt → endurmerkja í nokkrum umferðum (eins og á /vaktir/)
+      [1800, 4000, 8000].forEach((t) => setTimeout(lvHi, t));
     }
 
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="lobbyvakt"]');
       if (!m || m.dataset.init) return;
       m.dataset.init = '1';
+
+      initOpenFeeds();   // opin — keyrir óháð gátt/innskráningu
 
       const loginA = $('#lv-gate-login-a');
       if (loginA) loginA.href = loginHref();

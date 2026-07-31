@@ -94,7 +94,7 @@ export const EMAIL_TYPES = [
     breytur: ['fjoldi', 'lysing'], krafist: [],
     subject: '📉 Orðsporsvakt: {{lysing}}',
     intro: 'Umfjöllun um eftirfarandi félög á vaktinni þinni hefur versnað marktækt. Einkunnin (0–100) byggir á tón fréttaumfjöllunar síðustu daga:',
-    footer: 'Sjá nánar: https://karp.is/frettir/\n\nEinkunnin er vélrænt mat á tón umfjöllunar — ekki ritstjórnardómur. Þú færð þennan póst því þú vaktar félagið; stjórnaðu vöktun á https://karp.is/vaktir/',
+    footer: 'Sjá nánar: https://karp.is/frettir/\n\nEinkunnin er vélrænt mat á tón umfjöllunar — ekki ritstjórnardómur. Þú færð þennan póst því þú vaktar félagið; stjórnaðu vöktun á https://karp.is/lobbyvakt/',
   },
   {
     id: 'eftirlit_crit', label: '🚨 Eftirlits-viðvörun (einkunn fellur)', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
@@ -103,7 +103,7 @@ export const EMAIL_TYPES = [
     breytur: ['fjoldi', 'lysing'], krafist: [],
     subject: '🚨 Heilbrigðiseftirlit: {{lysing}} í einkunn 0-1',
     intro: 'Eftirfarandi staðir á vaktinni þinni fengu einkunn 0-1 (stöðvun/takmörkun) í nýjasta heilbrigðiseftirliti Reykjavíkur:',
-    footer: 'Sjá nánar: https://karp.is/eftirlit-byggingar/?t=eftirlit\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/',
+    footer: 'Sjá nánar: https://karp.is/eftirlit-byggingar/?t=eftirlit\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/lobbyvakt/',
   },
   {
     id: 'logbirting_crit', label: '🚨 Gjaldþrota-viðvörun', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
@@ -112,7 +112,7 @@ export const EMAIL_TYPES = [
     breytur: ['lysing', 'kt'], krafist: [],
     subject: '🚨 Lögbirting: {{lysing}}',
     intro: 'Ný tilkynning í Lögbirtingablaðinu um félag á vaktinni þinni:',
-    footer: 'Ferill málsins er á fyrirtækjaprófílnum: https://karp.is/fyrirtaeki/{{kt}}/\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/vaktir/',
+    footer: 'Ferill málsins er á fyrirtækjaprófílnum: https://karp.is/fyrirtaeki/{{kt}}/\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/lobbyvakt/',
   },
 
   // ── Innri ──────────────────────────────────────────────────────────────────
