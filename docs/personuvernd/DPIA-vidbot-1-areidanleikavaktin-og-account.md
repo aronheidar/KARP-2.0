@@ -236,3 +236,30 @@ Til yfirferðar lögfræðings; ekki tæmandi.
 - Er **ekki** ábyrgðaraðili viðskiptavina-listans — **stofan** er ábyrgðaraðili; Karp er vinnsluaðili.
 - Gefur **ekki** út CDD-úrskurð — veitir vísbendingar; ákvörðun er stofunnar.
 - Vinnur **engar** viðkvæmar upplýsingar skv. 9. gr. sem slíkar; PEP = opinbert embætti, ekki stjórnmálaskoðun (sbr. v1.0).
+
+---
+
+## Viðbót 2 (DRÖG, 2026-08-01) — FATF-flokkað adverse media (10. merkið)
+**⚠ DRÖG TIL YFIRFERÐAR LÖGFRÆÐINGS — ekki hluti samþykktu viðbótar 1 fyrr en staðfest.**
+
+Áreiðanleikavaktin fær nýtt merki: sjálfvirk AI-flokkun fréttaumfjöllunar um **vöktuð félög** í
+FATF-samhæfða adverse media-flokka (fjársvik, peningaþvætti, skattalagabrot, mútur/spilling,
+brot á þvingunaraðgerðum, önnur refsiverð háttsemi) með máls-stöðu (umfjöllun → ásökun →
+ákæra/rannsókn → dómur). Tilgangur: styðja aukna áreiðanleikakönnun (EDD) tilkynningarskyldra
+aðila skv. lögum 140/2018 — adverse media-skimun er þar viðurkenndur þáttur.
+
+**Persónuverndar-hönnun (sama lína og viðbót 1):**
+1. Flokkunin er **eingöngu lykluð á kennitölu LÖGAÐILA** — nafn félagsins eitt er notað í
+   samsvörun. Engin AI-flokkun, prófílering eða ályktun um **einstaklinga**, þótt þeir séu
+   nafngreindir í fréttunum sjálfum (fréttin er hlekkjað frumrit, ekki endursögð).
+2. Birting **aðeins í gáttaðri KYC-möppu** áskrifanda undir DPA — aldrei á opinberum síðum.
+3. Flokkunin er **vísbending, ekki úrskurður**: föst áminning í möppu og viku-pósti um að
+   endanlegt mat sé hjá tilkynningarskylda aðilanum (styður líka 22. gr. GDPR-línu viðbótar 1).
+4. AI-merki **hækkar aldrei** sjálfvirkt tillögu-áhættustig upp fyrir „Venjuleg" — „Há" er
+   frátekið fyrir staðreyndir (refsilistar, gjaldþrot).
+5. Frosin varðveisla flokkana (kyc_adverse) styðst við sömu rök og audit-slóðin: samfelld
+   vöktunarsaga er inntak þjónustunnar og AML-varðveisluskylda ábyrgðaraðilans.
+
+**Spurningar til lögfræðings:** (a) Dugar AML-stoð viðbótar 1 fyrir þetta merki eða þarf
+sér-umfjöllun í DPA-texta? (b) Er varðveislutími frosnu töflunnar í lagi ótímabundinn, eða á
+að miða við 5 ár frá lokum viðskiptasambands (sbr. 140/2018)?
