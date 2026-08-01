@@ -152,7 +152,9 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       /* Topbar — global fyrirtækjaleit + Verð + Innskrá sýnileg á öllum síðum (B2B) */
       .topbar { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:16px; height:52px; padding:0 18px; background:var(--bg); border-bottom:1px solid var(--line); }
       .tb-logo { font-weight:800; letter-spacing:.2em; color:var(--gold); text-decoration:none; font-size:16px; flex-shrink:0; }
-      .tb-search { flex:1; max-width:440px; display:flex; }
+      /* min-width:0 er skylda: annars gólfar sjálfvirka flex-lágmarkið (min-content
+         inputsins ≈252px) leitina og ýtir Innskrá-hnappnum út fyrir 375px skjái. */
+      .tb-search { flex:1; min-width:0; max-width:440px; display:flex; }
       .tb-search input { flex:1; min-width:0; font:inherit; font-size:16px; padding:7px 12px; border-radius:8px 0 0 8px; border:1px solid var(--line); border-right:0; background:var(--panel); color:var(--ink); }
       .tb-search button { font-size:14px; border:1px solid var(--line); border-left:0; border-radius:0 8px 8px 0; padding:0 13px; background:var(--panel); color:var(--ink); cursor:pointer; }
       .tb-links { display:flex; align-items:center; gap:16px; margin-left:auto; flex-shrink:0; }
