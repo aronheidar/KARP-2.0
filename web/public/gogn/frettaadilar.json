@@ -1219,6 +1219,268 @@
    ],
    "slug": "gagnaver",
    "um": "gagnaver"
+  },
+  {
+   "n": "Suðurland",
+   "a": [
+    "Suðurlandi",
+    "Selfossi",
+    "Vestmannaeyj"
+   ],
+   "slug": "sudurland"
+  },
+  {
+   "n": "Reykjanes",
+   "a": [
+    "Reykjanes",
+    "Suðurnesj"
+   ],
+   "slug": "reykjanes"
+  },
+  {
+   "n": "Akureyri",
+   "a": [
+    "Akureyri",
+    "Akureyrar"
+   ],
+   "slug": "akureyri"
+  },
+  {
+   "n": "Kópavogur",
+   "a": [
+    "Kópavog"
+   ],
+   "slug": "kopavogur",
+   "um": "Kópavog"
+  },
+  {
+   "n": "Hafnarfjörður",
+   "a": [
+    "Hafnarfjarðar",
+    "Hafnarfirði",
+    "Hafnarfjörður"
+   ],
+   "slug": "hafnarfjordur",
+   "um": "Hafnarfjörð"
+  },
+  {
+   "n": "Austurland",
+   "a": [
+    "Austurlandi",
+    "Egilsstöð",
+    "Fjarðabyggð"
+   ],
+   "slug": "austurland"
+  },
+  {
+   "n": "Norðurland",
+   "a": [
+    "Norðurlandi",
+    "Skagafirði",
+    "Húsavík"
+   ],
+   "slug": "nordurland"
+  },
+  {
+   "n": "Vestfirðir",
+   "a": [
+    "Vestfjörðum",
+    "Vestfirðir",
+    "Ísafirði"
+   ],
+   "slug": "vestfirdir",
+   "um": "Vestfirði"
+  },
+  {
+   "n": "Rússland",
+   "a": [
+    "Rússland",
+    "Rússa",
+    "Pútín"
+   ],
+   "slug": "russland"
+  },
+  {
+   "n": "Frakkland",
+   "a": [
+    "Frakkland",
+    "Frakklandi",
+    "Frakka"
+   ],
+   "slug": "frakkland"
+  },
+  {
+   "n": "Þýskaland",
+   "a": [
+    "Þýskaland",
+    "Þýskalandi",
+    "Þjóðverj"
+   ],
+   "slug": "thyskaland"
+  },
+  {
+   "n": "Uppgjör og afkoma",
+   "a": [
+    "uppgjör",
+    "afkoma",
+    "hagnaður",
+    "rekstrartap"
+   ],
+   "slug": "uppgjor-og-afkoma",
+   "um": "uppgjör og afkomu"
+  },
+  {
+   "n": "Flugsamgöngur",
+   "a": [
+    "flugfélag",
+    "flugvél",
+    "flugferð",
+    "flugsæti"
+   ],
+   "slug": "flugsamgongur",
+   "um": "flugsamgöngur"
+  },
+  {
+   "n": "Þingstörf",
+   "a": [
+    "þingfund",
+    "frumvarp",
+    "þingmál",
+    "þingsályktun"
+   ],
+   "slug": "thingstorf",
+   "um": "þingstörf"
+  },
+  {
+   "n": "Jarðskjálftar",
+   "a": [
+    "jarðskjálft",
+    "skjálftavirkni",
+    "skjálfti"
+   ],
+   "slug": "jardskjalftar",
+   "um": "jarðskjálfta"
+  },
+  {
+   "n": "Fjárfestingar",
+   "a": [
+    "fjárfesting",
+    "fjárfestar",
+    "fjárfest í"
+   ],
+   "slug": "fjarfestingar",
+   "um": "fjárfestingar"
+  },
+  {
+   "n": "Leikskólar",
+   "a": [
+    "leikskól",
+    "dagvistun",
+    "dagforeldr"
+   ],
+   "slug": "leikskolar",
+   "um": "leikskóla"
+  },
+  {
+   "n": "Stjórnsýsla",
+   "a": [
+    "stjórnsýsl",
+    "ríkisstofnun",
+    "umboðsmaður Alþingis"
+   ],
+   "slug": "stjornsysla",
+   "um": "stjórnsýsluna"
+  },
+  {
+   "n": "Skógareldar",
+   "a": [
+    "skógareld",
+    "gróðureld"
+   ],
+   "slug": "skogareldar",
+   "um": "skógarelda"
+  },
+  {
+   "n": "Eldsneytisverð",
+   "a": [
+    "olíuverð",
+    "eldsneytisverð",
+    "bensínverð",
+    "olíuverðs"
+   ],
+   "slug": "eldsneytisverd",
+   "um": "eldsneytisverð"
+  },
+  {
+   "n": "Verkalýðshreyfingin",
+   "a": [
+    "verkalýðs",
+    "stéttarfélag",
+    "kjaraviðræð"
+   ],
+   "slug": "verkalydshreyfingin",
+   "um": "verkalýðshreyfinguna"
+  },
+  {
+   "n": "Alþjóðastofnanir",
+   "a": [
+    "Sameinuðu þjóð",
+    "Alþjóðabankinn",
+    "Alþjóðagjaldeyrissjóð"
+   ],
+   "slug": "althjodastofnanir",
+   "um": "alþjóðastofnanir"
+  },
+  {
+   "n": "Tækni og hugbúnaður",
+   "a": [
+    "hugbúnað",
+    "tæknifyrirtæk",
+    "forritun"
+   ],
+   "slug": "taekni-og-hugbunadur",
+   "um": "tækni og hugbúnað"
+  },
+  {
+   "n": "Hagræðing",
+   "a": [
+    "hagræðing",
+    "endurskipulagn",
+    "sparnaðaraðgerð"
+   ],
+   "slug": "hagraeding",
+   "um": "hagræðingu"
+  },
+  {
+   "n": "Skipulagsmál",
+   "a": [
+    "skipulagsmál",
+    "deiliskipulag",
+    "byggingarleyf",
+    "aðalskipulag"
+   ],
+   "slug": "skipulagsmal",
+   "um": "skipulagsmál"
+  },
+  {
+   "n": "Dýravelferð",
+   "a": [
+    "dýravelferð",
+    "dýralækn",
+    "dýraníð"
+   ],
+   "slug": "dyravelferd",
+   "um": "dýravelferð"
+  },
+  {
+   "n": "Heilbrigðisstarfsfólk",
+   "a": [
+    "hjúkrunarfræðing",
+    "læknaskort",
+    "heilbrigðisstarfsfólk"
+   ],
+   "slug": "heilbrigdisstarfsfolk",
+   "um": "heilbrigðisstarfsfólk"
   }
  ]
 }
