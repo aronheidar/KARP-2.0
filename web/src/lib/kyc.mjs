@@ -22,6 +22,17 @@ export function signalEvents(signal, prev, cur) {
   const ev = [];
   if (signal === 'sanctions') {
     for (const h of _added(prev.hits, cur.hits, (x) => x.name)) ev.push({ kind: 'sanctions_hit', severity: 'critical', detail: h });
+    // Samsvörun sem hvílir EINGÖNGU á fyrsta+síðasta tókeni er lækkuð úr sterka laginu
+    // (refsilistar.mjs, spec 2026-08-01). Hún má ekki hverfa þögult — 'info' ratar í
+    // kyc_event og audit-slóðina, en _kycAfterEvents (veitur.mjs:339) sendir aðeins póst
+    // fyrir 'critical'. Eins-orðs lagið ('einsords') er ÓBREYTT og gefur enga atburði.
+    // Eldra snapshot án veikar-lykils = grunnlína fyrir þetta undirmerki, eins og
+    // 'beneficial' hér að neðan — annars yrði hver fyrirliggjandi samsvörun að nýjum atburði.
+    if (prev.veikar !== undefined) {
+      for (const w of _added(prev.veikar, cur.veikar, (x) => x.name)) {
+        if (w && w.tegund === 'jadar') ev.push({ kind: 'sanctions_weak', severity: 'info', detail: w });
+      }
+    }
   } else if (signal === 'legal') {
     for (const n of _added(prev.notices, cur.notices, (x) => x.ref)) ev.push({ kind: (n.type || 'legal'), severity: 'critical', detail: n });
   } else if (signal === 'pep') {

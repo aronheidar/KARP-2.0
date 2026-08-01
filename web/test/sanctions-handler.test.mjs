@@ -50,20 +50,20 @@ async function call(namesCsv) {
 
 test('fjöl-orða (sterk) samsvörun lendir í hits — EKKI í veikar', async () => {
   const j = await call('Saddam Hussein');
-  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC' }]);
+  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC', tegund: 'fjolords' }]);
   assert.deepEqual(j.veikar, []);
 });
 
 test('eins-orðs (veik) samsvörun lendir í veikar — EKKI í hits, og hits er tómt', async () => {
   const j = await call('Rosneft');
-  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB' }]);
+  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB', tegund: 'einsords' }]);
   assert.deepEqual(j.hits, []);
 });
 
 test('bæði í sömu fyrirspurn: hvor samsvörun lendir í sínu fylki, hvorug lekur yfir í hina', async () => {
   const j = await call('Saddam Hussein,Rosneft');
-  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC' }]);
-  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB' }]);
+  assert.deepEqual(j.hits, [{ nafn: 'Saddam Hussein', listi: 'SADDAM HUSSEIN AL-TIKRITI', listar: 'OFAC', tegund: 'fjolords' }]);
+  assert.deepEqual(j.veikar, [{ nafn: 'Rosneft', listi: 'Rosneft', listar: 'ESB', tegund: 'einsords' }]);
 });
 
 test('nafn sem samsvarar engu er hvorki í hits né veikar', async () => {
@@ -80,8 +80,9 @@ test('svarið ber hits, veikar, updated, n og nVeik', async () => {
   assert.equal(j.nVeik, 1);
 });
 
-test('hits-færslur hafa lögunina { nafn, listi, listar }', async () => {
+test('hits-færslur hafa lögunina { nafn, listi, listar, tegund }', async () => {
   const j = await call('Saddam Hussein');
   assert.equal(j.hits.length, 1);
-  assert.deepEqual(Object.keys(j.hits[0]).sort(), ['listar', 'listi', 'nafn']);
+  // tegund bættist við 2026-08-01 svo F9 geti greint 'einsords' frá 'jadar' í veiku línunni.
+  assert.deepEqual(Object.keys(j.hits[0]).sort(), ['listar', 'listi', 'nafn', 'tegund']);
 });

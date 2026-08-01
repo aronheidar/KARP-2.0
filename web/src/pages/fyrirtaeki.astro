@@ -671,11 +671,18 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!res.names) { chip.className = 'fs-ar n'; if (v) v.textContent = 'Engir aðilar'; return; }
       const hits = res.hits, veikar = res.veikar || [];
       const d = document.getElementById('fs-ar-sanction-detail');
-      // Veika línan: eins-orðs nafnasamsvörun. Sérstök lína, hlutlaus, og hún ræður
-      // ALDREI lit flísarinnar — rautt (fs-ar b) er eingöngu drifið af hits.
-      const veikTxt = !veikar.length ? '' :
-        '<div class="fs-ar-veik">ℹ️ <b>' + veikar.length + ' eins-orðs samsvörun</b> — nafnið er eitt orð og samsvörunin því veik. Krefst auðkennis-staðfestingar: '
-        + veikar.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ') + '</div>';
+      // Veiku línurnar: tvær tegundir, hvor með sínu orðalagi (spec 2026-08-01).
+      //   einsords — nafnið er eitt orð.
+      //   jadar    — fjöl-orða samsvörun sem hvílir eingöngu á fyrsta og síðasta orði,
+      //              lækkuð úr sterka laginu. Mæling 1.8.2026: 3 af 3 slíkum voru falskar.
+      // Hvorug ræður ALDREI lit flísarinnar — rautt (fs-ar b) er eingöngu drifið af hits.
+      const veikRad = (h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>';
+      const veikLina = (arr, heiti, skyring) => !arr.length ? '' :
+        '<div class="fs-ar-veik">ℹ️ <b>' + arr.length + ' ' + heiti + '</b> — ' + skyring + ' Krefst auðkennis-staðfestingar: '
+        + arr.map(veikRad).join('; ') + '</div>';
+      const veikTxt =
+        veikLina(veikar.filter((h) => h.tegund !== 'jadar'), 'eins-orðs samsvörun', 'nafnið er eitt orð og samsvörunin því veik.')
+        + veikLina(veikar.filter((h) => h.tegund === 'jadar'), 'samsvörun á jaðarorðum', 'aðeins fyrsta og síðasta orð nafnsins stemma; millinöfnin stangast á.');
       if (!hits.length) {
         chip.className = 'fs-ar g';
         if (v) v.textContent = veikar.length ? 'Engin staðfest' : 'Engin samsvörun';

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { byggjaVisitolu, flokkaNofn, sancNorm, skima, skimunarNidurstada } from './refsilistar.mjs';
+import { byggjaVisitolu, flokkaNofn, samraemi, sancNorm, skima, skimunarNidurstada } from './refsilistar.mjs';
 
 // Raunveruleg sýnishorn úr web/public/gogn/sanctions.json (2026-07-31).
 const NAMES = [
@@ -33,7 +33,8 @@ test('sancNorm: lágstafar, fjarlægir broddstafi, heldur ð/þ/æ', () => {
 });
 
 test('sterka lagið: fjöl-orða lyklun óbreytt (fyrsta|síðasta)', () => {
-  assert.equal(VT.sterk.get('saddam|tikriti').nafn, 'Saddam Hussein Al-Tikriti');
+  // vísitalan er fjölgild frá 2026-08-01 — fylki per lykli, ekki stök færsla
+  assert.equal(VT.sterk.get('saddam|tikriti')[0].nafn, 'Saddam Hussein Al-Tikriti');
   const m = skima(VT, 'Saddam Hussein Al-Tikriti');
   assert.equal(m.flokkur, 'sterk');
   assert.equal(m.listar, 'ESB,SÞ,OFAC');
@@ -130,8 +131,11 @@ test('fyrsta færsla vinnur við árekstur — bæði lögin', () => {
     { n: 'jon jonsson', nafn: 'Jón Jónsson', listar: 'ESB' },
     { n: 'jon jonsson', nafn: 'Jon Jonsson', listar: 'OFAC' },
   ]);
-  assert.equal(vt.veik.get('alfa').listar, 'ESB');
-  assert.equal(vt.sterk.get('jon|jonsson').listar, 'ESB', 'sterka lagið heldur sömu fyrsta-vinnur reglu');
+  assert.equal(vt.veik.get('alfa').listar, 'ESB', 'veika lagið heldur fyrsta-vinnur reglunni');
+  // Sterka lagið hendir ENGU lengur (spec 2026-08-01) — báðar færslurnar varðveitast.
+  assert.equal(vt.sterk.get('jon|jonsson').length, 2);
+  // Séu frambjóðendur jafngóðir vinnur sá fyrsti, svo birt niðurstaða helst óbreytt.
+  assert.equal(skima(vt, 'Jón Jónsson').listar, 'ESB');
 });
 
 // flokkaNofn — sameiginlega leiðin sem sanctionsHandler og kycScreenKt (worker/veitur.mjs)
@@ -143,14 +147,14 @@ test('flokkaNofn: sterk samsvörun lendir í sterkar, aldrei í veikar', () => {
   const { sterkar, veikar } = flokkaNofn(VT, ['Saddam Hussein Al-Tikriti']);
   assert.equal(sterkar.length, 1);
   assert.equal(veikar.length, 0);
-  assert.deepEqual(sterkar[0], { nafn: 'Saddam Hussein Al-Tikriti', listi: 'Saddam Hussein Al-Tikriti', listar: 'ESB,SÞ,OFAC' });
+  assert.deepEqual(sterkar[0], { nafn: 'Saddam Hussein Al-Tikriti', listi: 'Saddam Hussein Al-Tikriti', listar: 'ESB,SÞ,OFAC', tegund: 'fjolords' });
 });
 
 test('flokkaNofn: veik samsvörun lendir í veikar, aldrei í sterkar', () => {
   const { sterkar, veikar } = flokkaNofn(VT, ['Hamas']);
   assert.equal(veikar.length, 1);
   assert.equal(sterkar.length, 0);
-  assert.deepEqual(veikar[0], { nafn: 'Hamas', listi: 'Hamas', listar: 'ESB,OFAC' });
+  assert.deepEqual(veikar[0], { nafn: 'Hamas', listi: 'Hamas', listar: 'ESB,OFAC', tegund: 'einsords' });
 });
 
 test('flokkaNofn: bæði lögin í einu kalli — hvort lendir á sínum stað, engin lekur yfir', () => {
@@ -174,7 +178,7 @@ test('flokkaNofn: dedup:true fellir saman endurtekningar — sjálfgefið heldur
 test('flokkaNofn: færslu-lögunin er { nafn, listi, listar } og nafn er upprunalegi kallstrengurinn', () => {
   const { veikar } = flokkaNofn(VT, ['HAMAS']);
   assert.equal(veikar.length, 1);
-  assert.deepEqual(Object.keys(veikar[0]).sort(), ['listar', 'listi', 'nafn']);
+  assert.deepEqual(Object.keys(veikar[0]).sort(), ['listar', 'listi', 'nafn', 'tegund']);
   assert.equal(veikar[0].nafn, 'HAMAS', 'nafn á að vera kallstrengurinn nákvæmlega eins og hann kom inn, ekki normaliseraður');
   assert.equal(veikar[0].listi, 'Hamas', 'listi er birtingarnafn skráarfærslunnar, ekki kallstrengurinn');
 });
@@ -198,7 +202,7 @@ test('skimunarNidurstada: sterk samsvörun lendir í hits sem { name }, aldrei �
 test('skimunarNidurstada: veik samsvörun lendir í veikar sem { name, listi, listar }, aldrei í hits', () => {
   const { hits, veikar } = skimunarNidurstada(VT, ['Hamas']);
   assert.equal(hits.length, 0, 'VÖRN: veik samsvörun má ALDREI leka í hits (critical-atburður, Há-áhætta, póstur)');
-  assert.deepEqual(veikar, [{ name: 'Hamas', listi: 'Hamas', listar: 'ESB,OFAC' }]);
+  assert.deepEqual(veikar, [{ name: 'Hamas', listi: 'Hamas', listar: 'ESB,OFAC', tegund: 'einsords' }]);
 });
 
 test('skimunarNidurstada: bæði lögin í einu kalli — hvort í sínu sviði, engin lekur yfir', () => {
@@ -219,4 +223,101 @@ test('skimunarNidurstada: engin samruni á endurtekningum — kycScreenKt-leiði
 test('skimunarNidurstada: tómt/null nofn skilar tveimur tómum fylkjum', () => {
   assert.deepEqual(skimunarNidurstada(VT, []), { hits: [], veikar: [] });
   assert.deepEqual(skimunarNidurstada(VT, null), { hits: [], veikar: [] });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SAMRÆMIS-PRÓFIÐ Á STERKA LAGINU (spec 2026-08-01)
+//
+// Sterki lykillinn er 'fyrsta|síðasta' og hunsar allt þar á milli. Mæling 1.8.2026
+// á 6.803 raun-íslenskum nöfnum gaf 3 sterkar samsvaranir — allar 3 falskar.
+// samraemi() ákveður hvort samsvörunin er efnislega samrýmanleg; sé hún það ekki
+// er hún LÆKKUÐ í veika lagið (tegund:'jadar'), ekki hent.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Raunveruleg sýnishorn — þau þrjú sem mælingin fann, auk árekstra-lykils.
+const NAMES2 = [
+  // falsjákvæðurnar þrjár úr mælingunni
+  { n: 'the niru battery company', nafn: 'The Niru Battery Company', listar: 'ESB,OFAC' },
+  { n: 'alejandra salazar hernandez', nafn: 'Alejandra SALAZAR HERNANDEZ', listar: 'OFAC' },
+  { n: 'the earth eye co', nafn: 'THE EARTH EYE CO', listar: 'OFAC' },
+  // umritunar-tilfelli: mið-tóken með 1 stafs mun
+  { n: 'mohammad abdul rahman', nafn: 'Mohammad Abdul Rahman', listar: 'OFAC' },
+  // árekstra-lykill 'joint|plant' — tvær AÐGREINDAR færslur undir sama lykli.
+  // Í dag heldur byggjaVisitolu aðeins þeirri fyrstu; 9.728 færslur (16,5%) falla
+  // þannig í skuggann og worker birtir nafn ANNARS aðila sem samsvörunina.
+  { n: 'joint stock company alpha plant', nafn: 'JSC Alpha Plant', listar: 'ESB' },
+  { n: 'joint stock company beta plant', nafn: 'JSC Beta Plant', listar: 'OFAC' },
+];
+const VT2 = byggjaVisitolu(NAMES2);
+
+test('samraemi: eins tóken-runa → nakvaemt', () => {
+  assert.equal(samraemi(['a', 'b', 'c'], ['a', 'b', 'c']), 'nakvaemt');
+});
+
+test('samraemi: sleppt/aukið millinafn → innihald', () => {
+  assert.equal(samraemi(['jon', 'jonsson'], ['jon', 'gunnar', 'jonsson']), 'innihald');
+  assert.equal(samraemi(['jon', 'gunnar', 'jonsson'], ['jon', 'jonsson']), 'innihald');
+});
+
+test('samraemi: víxluð millinöfn → innihald (mengja-samanburður, ekki röð-heldur)', () => {
+  assert.equal(samraemi(['a', 'x', 'y', 'z'], ['a', 'y', 'x', 'z']), 'innihald');
+});
+
+test('samraemi: umritað mið-tóken (lev<=2) → namunda', () => {
+  assert.equal(samraemi(['mohammad', 'abdel', 'rahman'], ['mohammad', 'abdul', 'rahman']), 'namunda');
+});
+
+test('samraemi: ótengd mið-tóken → null (lækkun)', () => {
+  assert.equal(samraemi(['the', 'basic', 'cookbook', 'company'], ['the', 'niru', 'battery', 'company']), null);
+  assert.equal(samraemi(['mohammad', 'reza', 'rahman'], ['mohammad', 'abdul', 'rahman']), null);
+});
+
+test('mældu falsjákvæðurnar þrjár LÆKKA í veika lagið', () => {
+  for (const q of ['The Basic Cookbook Company', 'Alejandra Gabriela Soto Hernandez', 'The Iceland Tour Co. / Tour Co.']) {
+    const m = skima(VT2, q);
+    assert.ok(m, q + ' á enn að finnast — engu er hent');
+    assert.equal(m.flokkur, 'veik', q + ' má ALDREI vera sterk (critical, Há-áhætta, póstur, E-þak)');
+    assert.equal(m.tegund, 'jadar');
+  }
+});
+
+test('raunhæf nafna-afbrigði haldast STERK — engin endurheimtar-fórn', () => {
+  // sleppt millinafn, aukið millinafn, víxluð röð, umritun
+  for (const q of ['Joint Company Alpha Plant', 'Joint Stock Trading Company Alpha Plant',
+    'Joint Company Stock Alpha Plant', 'Mohammad Abdel Rahman']) {
+    const m = skima(VT2, q);
+    assert.ok(m, q + ' átti að finnast');
+    assert.equal(m.flokkur, 'sterk', q + ' á að haldast sterk');
+  }
+});
+
+test('EIGNUN: fjöl-færslu lykill skilar RÉTTA aðilanum, ekki þeim fyrsta', () => {
+  // Báðar færslurnar liggja undir 'joint|plant'. Fyrirspurnin er stafrétt seinni færslan.
+  const m = skima(VT2, 'Joint Stock Company Beta Plant');
+  assert.equal(m.flokkur, 'sterk');
+  assert.equal(m.listi, 'JSC Beta Plant', 'á að birta þann aðila sem raunverulega passar');
+  assert.equal(m.listar, 'OFAC', 'listarnir eiga að fylgja RÉTTU færslunni');
+});
+
+test('vísitalan heldur ÖLLUM færslum undir sama lykli (9.728 földu færslurnar)', () => {
+  assert.equal(VT2.sterk.get('joint|plant').length, 2, 'báðar færslurnar eiga að varðveitast');
+});
+
+test('VÖRN: lækkuð samsvörun (jadar) lendir í veikar — ALDREI í hits', () => {
+  const { hits, veikar } = skimunarNidurstada(VT2, ['The Basic Cookbook Company']);
+  assert.equal(hits.length, 0, 'VÖRN: jadar má ALDREI drífa critical-atburð/póst/E-þak');
+  assert.equal(veikar.length, 1);
+  assert.equal(veikar[0].name, 'The Basic Cookbook Company');
+});
+
+test('VÖRN: flokkaNofn setur jadar í veikar, aldrei í sterkar', () => {
+  const { sterkar, veikar } = flokkaNofn(VT2, ['The Basic Cookbook Company']);
+  assert.equal(sterkar.length, 0);
+  assert.equal(veikar.length, 1);
+});
+
+test('tegund fylgir hverri samsvörun svo F9 geti birt rétt orðalag', () => {
+  assert.equal(skima(VT2, 'Joint Stock Company Beta Plant').tegund, 'fjolords');
+  assert.equal(skima(VT2, 'The Basic Cookbook Company').tegund, 'jadar');
+  assert.equal(skima(VT, 'Hamas').tegund, 'einsords');
 });

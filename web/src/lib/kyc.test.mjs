@@ -241,3 +241,34 @@ test('sterk samsvörun heldur áfram að vera critical og Há', () => {
   const s = { sanctions: { hits: [{ name: 'Saddam Hussein' }], veikar: [] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
   assert.equal(deriveRisk(s), 'Há');
 });
+
+// ── LÆKKAÐAR samsvaranir (tegund:'jadar') fá sýnilegan flöt (spec 2026-08-01) ──
+// Samsvörun sem hvílir eingöngu á fyrsta+síðasta tókeni er lækkuð úr sterka laginu.
+// Hún má ekki hverfa þögult — hún fær info-atburð sem ratar í audit-slóðina, en
+// _kycAfterEvents (veitur.mjs:339) sendir aðeins póst fyrir severity==='critical'.
+test('lækkuð samsvörun (jadar) gefur info-atburð, ekki critical', () => {
+  const prev = { hits: [], veikar: [] };
+  const cur = { hits: [], veikar: [{ name: 'The Basic Cookbook Company', listi: 'The Niru Battery Company', tegund: 'jadar' }] };
+  const evs = signalEvents('sanctions', prev, cur);
+  assert.equal(evs.length, 1);
+  assert.equal(evs[0].kind, 'sanctions_weak');
+  assert.equal(evs[0].severity, 'info', 'VÖRN: má ALDREI vera critical — það sendir póst');
+});
+
+test('lækkuð samsvörun hækkar EKKI áhættueinkunn', () => {
+  const s = { sanctions: { hits: [], veikar: [{ name: 'The Basic Cookbook Company', tegund: 'jadar' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  assert.equal(deriveRisk(s), 'Lág');
+});
+
+test('eins-orðs lagið er ÓBREYTT — engir atburðir', () => {
+  const cur = { hits: [], veikar: [{ name: 'Nova hf.', tegund: 'einsords' }] };
+  assert.deepEqual(signalEvents('sanctions', { hits: [], veikar: [] }, cur), []);
+});
+
+test('GRUNNLÍNA: eldra snapshot án veikar-lykils gefur enga atburða-skriðu', () => {
+  // Fyrsta keyrsla eftir útgáfu: prev.veikar er undefined. Án varnar yrði HVER
+  // fyrirliggjandi lækkuð samsvörun að splunkunýjum atburði hjá öllum vöktuðum kt.
+  const prev = { hits: [] };
+  const cur = { hits: [], veikar: [{ name: 'The Basic Cookbook Company', tegund: 'jadar' }] };
+  assert.deepEqual(signalEvents('sanctions', prev, cur), []);
+});
