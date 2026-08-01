@@ -1,5 +1,5 @@
 {
- "updated": "2026-07-31",
+ "updated": "2026-08-01",
  "adilar": [
   {
    "n": "Arion banki",
@@ -944,6 +944,281 @@
    ],
    "slug": "fiskeldi",
    "um": "fiskeldi"
+  },
+  {
+   "n": "Íþróttir",
+   "a": [
+    "landsliðið",
+    "knattspyrn",
+    "handbolt",
+    "Bestu deild"
+   ],
+   "slug": "ithrottir",
+   "um": "íþróttir"
+  },
+  {
+   "n": "Dómsmál",
+   "a": [
+    "Hæstiréttur",
+    "Landsréttur",
+    "héraðsdóm",
+    "ákæra",
+    "dæmdur"
+   ],
+   "slug": "domsmal",
+   "um": "dómsmál"
+  },
+  {
+   "n": "Norðurlöndin",
+   "a": [
+    "Noregi",
+    "Danmörk",
+    "Svíþjóð",
+    "Finnland"
+   ],
+   "slug": "nordurlondin"
+  },
+  {
+   "n": "Bretland",
+   "a": [
+    "Bretland",
+    "Breta",
+    "London"
+   ],
+   "slug": "bretland"
+  },
+  {
+   "n": "Menning og listir",
+   "a": [
+    "tónleik",
+    "kvikmynd",
+    "listasafn",
+    "leikhús"
+   ],
+   "slug": "menning-og-listir",
+   "um": "menningu og listir"
+  },
+  {
+   "n": "Miðausturlönd",
+   "a": [
+    "Ísrael",
+    "Palestín",
+    "Gaza"
+   ],
+   "slug": "midausturlond"
+  },
+  {
+   "n": "Fjölmiðlar",
+   "a": [
+    "fjölmiðla",
+    "ritstjórn",
+    "blaðamenn"
+   ],
+   "slug": "fjolmidlar",
+   "um": "fjölmiðla"
+  },
+  {
+   "n": "Innviðir",
+   "a": [
+    "innviði",
+    "vatnsveit",
+    "fráveit"
+   ],
+   "slug": "innvidir",
+   "um": "innviði"
+  },
+  {
+   "n": "Kína",
+   "a": [
+    "Kína",
+    "Kínverj"
+   ],
+   "slug": "kina"
+  },
+  {
+   "n": "Lyfjamál",
+   "a": [
+    "lyfja",
+    "lyfjaskort",
+    "apótek",
+    "Lyfjastofnun"
+   ],
+   "slug": "lyfjamal",
+   "um": "lyfjamál"
+  },
+  {
+   "n": "Umhverfisvernd",
+   "a": [
+    "náttúruvernd",
+    "friðlýsing",
+    "mengun",
+    "umhverfismat"
+   ],
+   "slug": "umhverfisvernd",
+   "um": "umhverfisvernd"
+  },
+  {
+   "n": "Umferðaröryggi",
+   "a": [
+    "umferðarslys",
+    "banaslys",
+    "umferðaröryggi"
+   ],
+   "slug": "umferdaroryggi",
+   "um": "umferðaröryggi"
+  },
+  {
+   "n": "Öldrunarþjónusta",
+   "a": [
+    "hjúkrunarheimil",
+    "öldrunar",
+    "eldri borgar"
+   ],
+   "slug": "oldrunarthjonusta",
+   "um": "öldrunarþjónustu"
+  },
+  {
+   "n": "Utanríkisviðskipti",
+   "a": [
+    "útflutning",
+    "innflutning",
+    "vöruskipti"
+   ],
+   "slug": "utanrikisvidskipti",
+   "um": "utanríkisviðskipti"
+  },
+  {
+   "n": "Matvælaframleiðsla",
+   "a": [
+    "matvælaframleiðsl",
+    "Matvælastofnun",
+    "matvælaöryggi"
+   ],
+   "slug": "matvaelaframleidsla",
+   "um": "matvælaframleiðslu"
+  },
+  {
+   "n": "Veður",
+   "a": [
+    "veðurviðvörun",
+    "óveður",
+    "stormur",
+    "snjókom"
+   ],
+   "slug": "vedur",
+   "um": "veðrið"
+  },
+  {
+   "n": "Neytendamál",
+   "a": [
+    "neytend",
+    "Neytendasamtök",
+    "verðsamanburð"
+   ],
+   "slug": "neytendamal",
+   "um": "neytendamál"
+  },
+  {
+   "n": "Fjarskipti",
+   "a": [
+    "fjarskipti",
+    "ljósleiðar",
+    "farsímakerf"
+   ],
+   "slug": "fjarskipti",
+   "um": "fjarskipti"
+  },
+  {
+   "n": "Trúmál",
+   "a": [
+    "þjóðkirkj",
+    "biskup",
+    "kirkjunnar",
+    "trúfélag"
+   ],
+   "slug": "trumal",
+   "um": "trúmál"
+  },
+  {
+   "n": "Spilling",
+   "a": [
+    "spilling",
+    "hagsmunaárekst",
+    "vanhæf",
+    "siðareglur"
+   ],
+   "slug": "spilling",
+   "um": "spillingu"
+  },
+  {
+   "n": "Opinber innkaup",
+   "a": [
+    "útboð",
+    "opinber innkaup",
+    "Ríkiskaup",
+    "rammasamning"
+   ],
+   "slug": "opinber-innkaup",
+   "um": "opinber innkaup"
+  },
+  {
+   "n": "Barnavernd",
+   "a": [
+    "barnavernd",
+    "fósturbörn",
+    "Barna- og fjölskyldustofa"
+   ],
+   "slug": "barnavernd",
+   "um": "barnavernd"
+  },
+  {
+   "n": "Netverslun",
+   "a": [
+    "netverslun",
+    "netverslana",
+    "Temu"
+   ],
+   "slug": "netverslun",
+   "um": "netverslun"
+  },
+  {
+   "n": "Sjálfbærni",
+   "a": [
+    "sjálfbærni",
+    "sjálfbær",
+    "ESG-"
+   ],
+   "slug": "sjalfbaerni",
+   "um": "sjálfbærni"
+  },
+  {
+   "n": "Vindorka",
+   "a": [
+    "vindorku",
+    "vindmyll",
+    "vindorkuver"
+   ],
+   "slug": "vindorka",
+   "um": "vindorku"
+  },
+  {
+   "n": "Byggðamál",
+   "a": [
+    "byggðamál",
+    "landsbyggð",
+    "brothætt"
+   ],
+   "slug": "byggdamal",
+   "um": "byggðamál"
+  },
+  {
+   "n": "Gagnaver",
+   "a": [
+    "gagnaver",
+    "gagnavera"
+   ],
+   "slug": "gagnaver",
+   "um": "gagnaver"
   }
  ]
 }
