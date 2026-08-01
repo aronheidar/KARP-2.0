@@ -31,16 +31,19 @@ const EVENT_LEGACY = {
   jafnretti: 'Jafnréttis-viðurkenningin heldur áfram að styrkja ímynd og samheldni þjóðarinnar.',
 };
 
-// Byggir arfleifðar-samantekt. Skilar { policies:[{icon,label,text}], event:{icon,title,choice,text}|null }
+// Byggir arfleifðar-samantekt. Skilar { policies:[{icon,label,text,deltas?}], event:{icon,title,choice,text}|null }
 // eða null ef ekkert er að segja (engar virkar ákvarðanir og ekkert fyrra atvik).
-export function carryover({ policyStates = {}, prevEvent = null, prevChoiceKey = null } = {}) {
+// deltas (valfrjálst, F1-V2): {id:{kpi:delta}} úr policyDeltas síðustu lotu → berst áfram sem `deltas` á policy-röð (óbreytt annars).
+export function carryover({ policyStates = {}, prevEvent = null, prevChoiceKey = null, deltas = null } = {}) {
   const policies = [];
   for (const id in policyStates) {
     const v = policyStates[id]; if (v == null || v === false) continue;
     const p = policyById[id]; if (!p) continue;
     const leg = POLICY_LEGACY[id];
     const text = (leg && typeof leg === 'object') ? (leg[v] || '') : (leg || p.desc || '');
-    policies.push({ id, icon: p.icon, label: p.label, text });
+    const row = { id, icon: p.icon, label: p.label, text };
+    if (deltas && deltas[id] != null) row.deltas = deltas[id];
+    policies.push(row);
   }
   let event = null;
   if (prevEvent && prevEvent.id) {

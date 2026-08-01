@@ -50,8 +50,40 @@ export function policyStates(history = []) {
   return st;
 }
 
+// F1-V2: eins og policyStates() en skilar líka `since` = {id: lotan þar sem NÚVERANDI staða var FYRST sett}.
+// Toggle sem er slökkt og kveikt aftur → since = seinni kveikjan; endurtekin SAMA stilling færir since ekki.
+// history-item án .round → vísitala í fylkinu + 1 (history er byggt umferð 1..N í server.mjs).
+export function policyStatesMeta(history = []) {
+  const states = {}, since = {};
+  history.forEach((h, i) => {
+    const round = (h && h.round != null) ? h.round : i + 1;
+    const pol = (h && h.policies) || {};
+    for (const p of POLICIES) {
+      if (!(p.id in pol)) continue;
+      const v = pol[p.id];
+      if (p.kind === 'toggle') { const nv = !!v; if (states[p.id] !== nv) { states[p.id] = nv; since[p.id] = round; } }
+      else if (states[p.id] == null && v != null) { states[p.id] = v; since[p.id] = round; }
+    }
+  });
+  return { states, since };
+}
+
+// F1-V2: stig ákvörðunar í tiltekinni lotu. ESB-lífsferill: 'umsokn' (lotan sem sótt er um) → 'adild' (upp frá því);
+// 'ursogn' = lotan sem slökkt var (esb false og since===round — toggle fór true→false í þeirri lotu).
+// Aðrar virkar ákvarðanir → 'virk'; óvirkar → null (ekkert stig).
+export function policyStage(id, states = {}, since = {}, round) {
+  const v = states[id];
+  if (id === 'esb') {
+    if (v === true) return round === since.esb ? 'umsokn' : 'adild';
+    if (v === false && since.esb === round) return 'ursogn';
+    return null;
+  }
+  return (v == null || v === false) ? null : 'virk';
+}
+
 // Beitir áhrifum allra virkra rofa á uppgjörs-KPI (levels). baselineLevels: grunn-gildi (path í lok umferðar).
-export function applyPolicies(kpis, states = {}, baselineLevels = {}) {
+// stages (valfrjálst, F1-V2): {id:stig} úr policyStage — stýrir ESB-lífsferli; vantar → óbreytt hegðun.
+export function applyPolicies(kpis, states = {}, baselineLevels = {}, stages = null) {
   let k = { ...kpis };
   const infl = k.verdbolga == null ? 2.5 : k.verdbolga;
   // 🔒 Höft: stöðugleiki (dregur gengi/verðbólgu að grunni) + vaxtar-drag.
@@ -64,8 +96,13 @@ export function applyPolicies(kpis, states = {}, baselineLevels = {}) {
     if (k.hagvoxtur != null) k.hagvoxtur -= 0.3;
     if (k.verdbolga != null) k.verdbolga += 0.2;
   }
-  // 🇪🇺 ESB/evru-stefna: stöðugleiki verðbólgu/gengis + lægra áhættuálag (skuldir−) — en skammtíma vaxtar-drag (sterkari króna/aðlögun).
-  if (states.esb === true) {
+  // 🇪🇺 ESB-lífsferill (stages.esb): 'umsokn' → AÐEINS vægt drag (aðildarferlið kostar en skilar engu enn);
+  // 'ursogn' → úrsagnar-högg í eina lotu og ENGIN ESB-áhrif; 'adild'/stages vantar → full áhrif ef virkt:
+  // stöðugleiki verðbólgu/gengis + lægra áhættuálag (skuldir−) — en skammtíma vaxtar-drag (sterkari króna/aðlögun).
+  const esbStage = stages ? stages.esb : null;
+  if (esbStage === 'umsokn') { if (k.hagvoxtur != null) k.hagvoxtur -= 0.1; }
+  else if (esbStage === 'ursogn') { if (k.hagvoxtur != null) k.hagvoxtur -= 0.4; if (k.verdbolga != null) k.verdbolga += 0.3; }
+  else if (states.esb === true) {
     const stab = (key) => { if (k[key] != null && baselineLevels[key] != null) k[key] += 0.25 * (baselineLevels[key] - k[key]); };
     stab('verdbolga'); stab('gengi'); stab('gengi_endo');
     if (k.hagvoxtur != null) k.hagvoxtur -= 0.2;
@@ -86,6 +123,28 @@ export function applyPolicies(kpis, states = {}, baselineLevels = {}) {
   // 🪙 Þjóðarsjóður: leggja arð til hliðar → lægri skuldir + viðnám, en minna til skiptanna núna (vöxtur/kaupmáttur örlítið lægri).
   if (states.audlindasjodur === true) { if (k.skuldir != null) k.skuldir -= 6; if (k.hagvoxtur != null) k.hagvoxtur -= 0.15; if (k.kaupmattur != null) k.kaupmattur -= 0.2; }
   return k;
+}
+
+// F1-V2: framlag hverrar VIRKRAR ákvörðunar á þessa lotu, reiknað með diffi (applyPolicies með öllum vs. öllum
+// NEMA þessari) → nákvæmt líka fyrir skilyrt/víxlverkandi áhrif (verðtrygging×verðbólga, höft×gengi …).
+// Skilar {id:{kpi:delta}}; deltas rúnnuð á 2 aukastafi, |delta|<0.005 sleppt; virk ákvörðun með engin áhrif → {} (EKKI sleppt — badge birtist samt).
+export function policyDeltas(kpis, states = {}, baselineLevels = {}, stages = null) {
+  const out = {};
+  const full = applyPolicies(kpis, states, baselineLevels, stages);
+  for (const p of POLICIES) {
+    const v = states[p.id]; if (v == null || v === false) continue;
+    const stW = { ...states }; delete stW[p.id];
+    const sgW = stages ? { ...stages } : null; if (sgW) delete sgW[p.id];
+    const without = applyPolicies(kpis, stW, baselineLevels, sgW);
+    const d = {};
+    for (const key in full) {
+      if (typeof full[key] !== 'number' || typeof without[key] !== 'number') continue;
+      const delta = Math.round((full[key] - without[key]) * 100) / 100;
+      if (Math.abs(delta) >= 0.005) d[key] = delta;
+    }
+    out[p.id] = d;
+  }
+  return out;
 }
 
 // Pólitísk vigt hvers rofa/vals — BEIN áhrif á fylgi (óháð þjóðhags-útkomu). +vinsælt / −óvinsælt.

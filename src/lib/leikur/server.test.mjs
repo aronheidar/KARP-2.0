@@ -216,22 +216,32 @@ const J = async (res) => JSON.parse(await res.text());
     await xCtrl('start');
     const x1 = await J(await xStG(xj1.teamToken));
     ok('surprise: engin atvik í umferð 1', x1.surprise === undefined);
+    ok('badges: tómt fylki í lotu 1 (engin staðfest ákvörðun)', Array.isArray(x1.policyBadges) && x1.policyBadges.length === 0);
     await xDec(xj1.teamToken, { round: 1, levers: { vextir: 8 }, policies: { verdtrygging: true } }); await xDec(xj2.teamToken, { round: 1, levers: { vextir: 6 } });
     await xCtrl('resolve'); await xCtrl('next');
-    // Umferð 2: atvik birtist í /state með klemmu; áhrifa-tölur EKKI sendar
+    // Umferð 2: atvik birtist í /state með klemmu; F1-V2: áhrifa-tölur (effect) SENDAR MEÐ — meðvituð stefnubreyting
     const x2 = await J(await xStG(xj1.teamToken));
     ok('surprise: atvik birtist í umferð 2', x2.surprise && x2.surprise.id === xEv.id && x2.surprise.title === xEv.title);
-    ok('surprise: klemma með valkostum, EN engar áhrifa-tölur', x2.surprise.dilemma && Array.isArray(x2.surprise.dilemma.options) && x2.surprise.dilemma.options.every((o) => o.effect === undefined));
-    // Lið velja SITT hvorn klemmu-kost → ólík fylgis-/KPI-áhrif → ólík stig
+    ok('surprise: effect atviksins fylgir payload (F1-V2)', JSON.stringify(x2.surprise.effect) === JSON.stringify(xEv.effect));
+    ok('surprise: klemmu-kostir bera effect-tölur (F1-V2)', x2.surprise.dilemma && Array.isArray(x2.surprise.dilemma.options) && x2.surprise.dilemma.options.every((o) => o.effect && typeof o.effect === 'object') && JSON.stringify(x2.surprise.dilemma.options[0].effect) === JSON.stringify(xEv.dilemma.options[0].effect));
+    ok('badges: staðfest verðtrygging með stage+sinceRound+deltas úr lotu 1', (() => { const b = (x2.policyBadges || []).find((x) => x.id === 'verdtrygging'); return b && b.stage === 'virk' && b.sinceRound === 1 && b.deltas && b.deltas.kaupmattur >= 0.3; })());
+    // Lið velja SITT hvorn klemmu-kost → ólík fylgis-/KPI-áhrif → ólík stig. Lið A sækir líka um ESB (F1-V2 lífsferill;
+    // gluggasía from:4 er client-hlið — server les söguna beint, dugar til að prófa umsokn→adild).
     const opts = xEv.dilemma.options;
-    await xDec(xj1.teamToken, { round: 2, levers: { vextir: 8 }, dilemma: opts[0].key });
+    await xDec(xj1.teamToken, { round: 2, levers: { vextir: 8 }, dilemma: opts[0].key, policies: { esb: true } });
     await xDec(xj2.teamToken, { round: 2, levers: { vextir: 8 }, dilemma: (opts[1] || opts[0]).key });
     // klemmu-drög samstillast innan liðs (out.dilemmaDraft)
     const xd = await J(await xStG(xj1.teamToken));
     ok('surprise: klemmu-drög liðs samstillt (dilemmaDraft)', xd.dilemmaDraft === opts[0].key);
+    ok('badges: drög ÞESSARAR decide-lotu (esb) birtast EKKI — aðeins staðfestar', xd.policyBadges.some((b) => b.id === 'verdtrygging') && !xd.policyBadges.some((b) => b.id === 'esb'));
     await xCtrl('resolve');
     const xRes = await J(await xStG(xg.facToken));
     ok('surprise: bæði lið skoruð eftir atvik+klemmu', xRes.teams.every((t) => typeof t.cumulative === 'number'));
+    // F1-V2: resolve vistar policyDeltas + policyStages í results-detail; esb tekin í lotu 2 → stage umsokn (vægt drag eitt)
+    const xr1 = (xRes.results || []).find((r) => r.teamId === xj1.teamId);
+    ok('resolve vistar policyDeltas (verðtrygging með tölur)', xr1 && xr1.detail.policyDeltas && xr1.detail.policyDeltas.verdtrygging && typeof xr1.detail.policyDeltas.verdtrygging.kaupmattur === 'number');
+    ok('resolve vistar policyStages: esb=umsokn í töku-lotu, verðtrygging=virk', xr1.detail.policyStages && xr1.detail.policyStages.esb === 'umsokn' && xr1.detail.policyStages.verdtrygging === 'virk');
+    ok('umsokn-lota: esb-delta AÐEINS vægt drag {hagvoxtur:-0.1}', JSON.stringify(xr1.detail.policyDeltas.esb) === JSON.stringify({ hagvoxtur: -0.1 }));
     // Leikstjóra-samantekt: klemmu-viðbrögð beggja liða
     const dbt = xRes.analytics && xRes.analytics.dilemmasByTeam;
     ok('surprise: leikstjóra-samantekt með klemmu-viðbrögð beggja liða', Array.isArray(dbt) && dbt.length === 2 && dbt.every((t) => t.items.some((it) => it.round === 2 && it.title === xEv.title)));
@@ -242,6 +252,16 @@ const J = async (res) => JSON.parse(await res.text());
     ok('arfleifð: carryover sent í umferð 3', !!x3.carryover);
     ok('arfleifð: standandi ákvörðun (verðtrygging) með', x3.carryover.policies.some((p) => p.id === 'verdtrygging' && p.text.length > 10));
     ok('arfleifð: fyrra atvik (umferð 2) tilgreint með texta', x3.carryover.event && x3.carryover.event.id === xEv.id && x3.carryover.event.text.length > 10);
+    // F1-V2: badge-lífsferill + arfleifðar-tölur í lotu 3
+    ok('badges: esb stage=adild lotuna EFTIR umsókn, sinceRound=2', (() => { const b = x3.policyBadges.find((x) => x.id === 'esb'); return b && b.stage === 'adild' && b.sinceRound === 2; })());
+    ok('badges: deltas úr síðustu geymdu lotu (esb: umsóknar-dragið −0.1)', (() => { const b = x3.policyBadges.find((x) => x.id === 'esb'); return b && b.deltas && b.deltas.hagvoxtur === -0.1; })());
+    ok('arfleifð ber deltas á policy-röð (F1-V2)', (() => { const p = x3.carryover.policies.find((x) => x.id === 'verdtrygging'); return p && p.deltas && typeof p.deltas.kaupmattur === 'number'; })());
+    // Lota 3 leyst → esb nú á adild-stigi í geymslu með FULL áhrif (skuldir −2)
+    await xDec(xj1.teamToken, { round: 3, levers: { vextir: 8 } }); await xDec(xj2.teamToken, { round: 3, levers: { vextir: 8 } });
+    await xCtrl('resolve');
+    const xRes3 = await J(await xStG(xg.facToken));
+    const xr3 = (xRes3.results || []).find((r) => r.teamId === xj1.teamId);
+    ok('adild-lota: policyStages esb=adild og delta ber skuldir −2', xr3 && xr3.detail.policyStages.esb === 'adild' && xr3.detail.policyDeltas.esb && xr3.detail.policyDeltas.esb.skuldir === -2);
     // classic/án surprise → aldrei out.surprise
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
   }

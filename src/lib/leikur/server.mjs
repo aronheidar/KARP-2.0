@@ -7,7 +7,7 @@ import { buildAnalytics, teamReview } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
 import { govtStability } from './flavor.mjs';
-import { POLICIES, policyAvailable, policyStates, applyPolicies, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
+import { POLICIES, policyAvailable, policyStatesMeta, policyStage, applyPolicies, policyDeltas, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import { awardMedals } from './medals.mjs';
 import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
 import { carryover } from './aftermath.mjs';
@@ -120,11 +120,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
     out.leverCap = difficultyOf(cfg.difficulty).leverCap || null; // Pólitískt vald: hámark virkra sleða (Erfitt)
-    // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt). Áhrifa-tölur EKKI sendar (upplifun, ekki uppskrift).
+    // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt).
+    // F1-V2: áhrifa-tölur (effect á atviki + klemmu-kostum) SENDAR MEÐ — meðvituð stefnubreyting frá „engar tölur", endurgjöfin 31.7 bað um þær.
     if (cfg.surprise && game.phase !== 'lobby') {
       const se = rollSurprise(code, game.current_round);
-      if (se) out.surprise = { id: se.id, icon: se.icon, title: se.title, text: se.text,
-        dilemma: se.dilemma ? { q: se.dilemma.q, options: (se.dilemma.options || []).map((o) => ({ key: o.key, label: o.label })) } : null };
+      if (se) out.surprise = { id: se.id, icon: se.icon, title: se.title, text: se.text, effect: se.effect || null,
+        dilemma: se.dilemma ? { q: se.dilemma.q, options: (se.dilemma.options || []).map((o) => ({ key: o.key, label: o.label, effect: o.effect || null })) } : null };
     }
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
     if (game.phase === 'decide' && cfg.deadline) { const nowS = now(); out.secondsLeft = Math.max(0, Math.min(cfg.timerSec || 3600, cfg.deadline - nowS)); out.deadlineTs = nowS + out.secondsLeft; } // deadline=epoch-sek (algilt→stöðug klukka); klemma f. eldri leiki með gölluð ms-tímamörk
@@ -152,14 +153,26 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Deilanleg liðs-drög núverandi umferðar (einangruð per team_id) → félagar samstilla sleða.
         out.draft = (byR[game.current_round] || {}).levers || {};
         // Fasi E: stefnu-rofar — núverandi staða (úr fyrri ákvörðunum), drög þessarar umferðar, og hvað er í boði núna.
-        const polStates = policyStates(out.history);
+        const { states: polStates, since: polSince } = policyStatesMeta(out.history);
         out.policies = { states: polStates, draft: (byR[game.current_round] || {}).policies || {},
           available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options, pop: POLICY_POP[p.id] || null })) };
         out.dilemmaDraft = (byR[game.current_round] || {}).dilemma || null; // Fasi „skemmtun 3": deilanlegt klemmu-val liðs
+        // F1-V2: deltas úr SÍÐUSTU geymdu lotu-niðurstöðu liðsins (knýja badge-tooltips + arfleifðar-tölur; engin fyrri lota/eldri leikir → null).
+        let lastDeltas = null;
+        const lastRes = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round)[0];
+        if (lastRes) { try { lastDeltas = JSON.parse(lastRes.kpis || '{}').policyDeltas || null; } catch (e) {} }
+        // F1-V2: stefnu-badges — AÐEINS staðfestar ákvarðanir (úr policyStates-sögu); drög ÞESSARAR decide-lotu birtast ekki fyrr en næst.
+        out.policyBadges = [];
+        for (const p of POLICIES) {
+          const v = polStates[p.id]; if (v == null || v === false) continue;
+          const b = { id: p.id, icon: p.icon, label: p.label, stage: policyStage(p.id, polStates, polSince, game.current_round), sinceRound: polSince[p.id] ?? null, deltas: (lastDeltas && lastDeltas[p.id]) || null };
+          if (p.kind === 'choice') { const o = (p.options || []).find((x) => x.key === v); b.choice = o ? o.label : String(v); }
+          out.policyBadges.push(b);
+        }
         // Arfleifð: hvernig standandi stórar ákvarðanir + óvænt atvik SÍÐUSTU lotu lita þessa lotu (birt í byrjun lotu ≥2).
         if (game.current_round >= 2) {
           const prevEvent = cfg.surprise ? rollSurprise(code, game.current_round - 1) : null;
-          const co = carryover({ policyStates: polStates, prevEvent, prevChoiceKey: (byR[game.current_round - 1] || {}).dilemma });
+          const co = carryover({ policyStates: polStates, prevEvent, prevChoiceKey: (byR[game.current_round - 1] || {}).dilemma, deltas: lastDeltas });
           if (co) out.carryover = co;
         }
         // Fasi „fylgi" B2: stjórnarkreppa — féll stjórnin síðasta kjörtímabil? (birt sem borði + dýpri byrjun þessa lotu).
@@ -269,11 +282,15 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
         // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
         const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
-        const polStates = policyStates(history);
+        const { states: polStates, since: polSince } = policyStatesMeta(history);
+        // F1-V2: stig hverrar ákvörðunar í ÞESSARI lotu (ESB-lífsferill: umsokn→adild, ursogn lotuna sem slökkt er).
+        const stages = {}; for (const pid in polStates) { const sg = policyStage(pid, polStates, polSince, game.current_round); if (sg) stages[pid] = sg; }
         // Fasi „fylgi" B2: féll stjórnin síðasta kjörtímabil? → stjórnarkreppa berst yfir (hagvaxtar-drag + lægra byrjunar-fylgi).
         const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
         let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
-        let kpis2 = applyPolicies(kpis, polStates, bl2);
+        let kpis2 = applyPolicies(kpis, polStates, bl2, stages);
+        // F1-V2: framlag hverrar virkrar ákvörðunar á lotuna (diff-aðferð) — vistað → badges/arfleifðar-tölur/graf-pinnar.
+        const polDeltas = policyDeltas(kpis, polStates, bl2, stages);
         // Stjórnarkreppa eftir fall: stjórnarmyndun/lömun → dýpra vaxtar-drag + atvinnuleysi↑ + skuldir↑ (glatað traust/tekjur).
         if (prevFell) {
           if (kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.6;
@@ -295,7 +312,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell, policyDeltas: polDeltas, policyStages: stages }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });
