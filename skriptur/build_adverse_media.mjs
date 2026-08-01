@@ -20,6 +20,7 @@
 //      node skriptur/build_adverse_media.mjs [--limit N] [--dry]
 // =============================================================================
 import { adverseMatch, advPrompt, parseAdv, advSeverity, ADV_SYSTEM } from '../web/src/lib/adverse-media.mjs';
+import { erLogadili } from '../web/src/lib/kyc-greinargerd.mjs';
 
 const AKEY = process.env.ANTHROPIC_API_KEY || '';
 const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '';
@@ -77,6 +78,9 @@ async function classifyChunk(nafn, rows) {
     const kt = String(w.kt).replace(/\D/g, '');
     const nafn = String(w.nafn).trim();
     if (!kt || nafn.length < 4) continue;
+    // ⚠ LÖGAÐILA-VÖRÐUR (DPIA leið A): vaktaðir EINSTAKLINGAR fara ALDREI í AI-flokkun —
+    // adverse media-flokkun á einstaklingi væri prófílering án lagastoðar.
+    if (!erLogadili(kt)) continue;
     // Kandídatar: sama LIKE-mynstur og newsSearch (lág- og hástafamynd) — JS-samsvörunin sker svo.
     const vars = [...new Set(['%' + nafn.toLowerCase() + '%', '%' + nafn + '%'])];
     const rows = await q(

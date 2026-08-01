@@ -25,6 +25,7 @@ import Layout from '../layouts/Layout.astro';
         <input id="kf-reason" placeholder="rökstuðningur (valfrjálst)" /><button id="kf-risk-save">Vista</button></div>
       <h3>Opnar viðvaranir</h3><div id="kf-events"></div>
       <h3>Núverandi skimun</h3><div id="kf-states"></div>
+      <div id="kf-grein" class="kf-grein" hidden></div>
       <h3>Atburðaskrá (audit)</h3><div class="kf-note"><input id="kf-note" placeholder="Bæta athugasemd…" /><button id="kf-note-save">Skrá</button></div>
       <ol id="kf-audit" class="kf-audit"></ol>
       <p class="pep-note">ⓘ Innlend PEP + opinberir refsilistar (OFAC/UN/EU). Erlendir PEP-ar takmarkaðir.</p>
@@ -68,6 +69,14 @@ import Layout from '../layouts/Layout.astro';
     .kf-fatf-fl { font-weight: 700; }
     .kf-fatf-crit .kf-fatf-fl { color: #ff6d7a; }
     .kf-fatf-note { font-size: 12px; color: var(--faint); margin: 6px 0 0; line-height: 1.5; }
+    /* Áhættumats-greinargerðin (drög) — innerHTML úr kyc-greinargerd.mjs, style er is:global */
+    .kf-grein { margin: 18px 0 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .kf-grein h3 { margin: 0 0 2px; font-size: 16px; }
+    .kf-grein h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin: 14px 0 4px; }
+    .kf-grein p, .kf-grein li { font-size: 13.5px; line-height: 1.55; }
+    .kg-meta { color: var(--faint); font-size: 12.5px !important; margin: 0 0 4px; }
+    .kg-tonn { color: var(--muted); font-size: 12.5px !important; }
+    .kg-fyrirvari { font-size: 12px !important; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 12px; }
     .kf-ubo h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin: 0 0 6px; }
     .kf-ubo-list { list-style: none; padding: 0; margin: 0; }
     .kf-ubo-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 11px; margin: 4px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
@@ -86,6 +95,7 @@ import Layout from '../layouts/Layout.astro';
 
   <script>
     import { hasTier } from '../lib/auth.js';
+    import { greinargerdHtml } from '../lib/kyc-greinargerd.mjs';   // SAMA sniðmát og CI — einn sannleikur
     const $ = (s) => document.querySelector(s);
     async function api(path, opts) { const r = await fetch('/api/kyc' + path, { credentials: 'include', headers: { 'content-type': 'application/json' }, ...opts }); return r.json().catch(() => ({})); }
     function row(w) {
@@ -139,6 +149,13 @@ import Layout from '../layouts/Layout.astro';
         + `<li>Ársreikningaskil: <b>${skilTxt}</b></li><li>Adverse media (FATF): <b>${fatf.length}</b></li></ul>`
         + `<div class="kf-ubo"><h4>Endanlegir raunverulegir eigendur (≥25%)</h4>${benList}${caveat}</div>`
         + `<div class="kf-ubo"><h4>Adverse media — FATF-flokkuð umfjöllun</h4>${fatfList}</div>`;
+      // Áhættumats-greinargerðin (drög): deterministic HTML úr sömu einingu og CI byggir á;
+      // túlkunin (LLM, talna-gátuð) er eini frjálsi textinn og escape-ast inni í einingunni.
+      const gr = d.grein;
+      if (gr && gr.samhengi_json) {
+        try { $('#kf-grein').innerHTML = greinargerdHtml(JSON.parse(gr.samhengi_json), gr.tulkun, gr.generated_at); $('#kf-grein').hidden = false; }
+        catch (e) { $('#kf-grein').hidden = true; }
+      } else $('#kf-grein').hidden = true;
       $('#kf-audit').innerHTML = (d.audit || []).map((a) => `<li>${new Date(a.ts*1000).toLocaleString('is-IS')} — <b>${a.action}</b>: ${a.summary || ''} <small>(${a.actor})</small></li>`).join('');
       $('#kf-print').onclick = () => window.print();
       $('#kf-rescreen').onclick = async () => { await api('/rescreen', { method: 'POST', body: JSON.stringify({ kt }) }); openFile(kt); };

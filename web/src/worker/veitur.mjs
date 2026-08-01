@@ -266,7 +266,10 @@ export async function kycHandler(request, env, ctx) {
       "SELECT e.id,e.signal,e.kind,e.severity,e.detail_json,e.detected_at, COALESCE(a.status,'open') AS ack " +
       "FROM kyc_event e LEFT JOIN kyc_ack a ON a.event_id=e.id AND a.owner_id=? " +
       "WHERE e.kt=? ORDER BY e.detected_at DESC LIMIT 100").bind(acct, kt).all().catch(() => ({ results: [] }))).results || [];
-    return _ajson({ ok: true, watch: w, states, audit, events });
+    // Nýjasta áhættumats-greinargerðin (drög) — samhengi+túlkun; HTML-ið er smíðað client-megin
+    // úr SÖMU hreinu einingu (kyc-greinargerd.mjs) og CI notar → einn sannleikur um sniðmátið.
+    const grein = await env.TENGSL.prepare('SELECT state_hash,samhengi_json,tulkun,generated_at FROM kyc_greinargerd WHERE kt=? ORDER BY generated_at DESC LIMIT 1').bind(kt).first().catch(() => null);
+    return _ajson({ ok: true, watch: w, states, audit, events, grein: grein || null });
   }
   if (request.method === 'POST' && path === '/risk') {
     const kt = String(body.kt || '').replace(/\D/g, ''); const risk = String(body.risk || ''); const reason = String(body.reason || '').slice(0, 500);

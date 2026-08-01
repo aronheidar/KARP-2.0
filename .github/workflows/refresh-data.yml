@@ -227,6 +227,15 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node skriptur/build_adverse_media.mjs --limit 300 || true   # sleppir sjálft ef lyklar vantar
 
+      # Áhættumats-greinargerð (drög) per vaktað félag — endurmyndast AÐEINS við breytt samhengi
+      # (hash-gát = núll tóken á óbreyttum félögum). Keyrir Á EFTIR adverse (les kyc_adverse/kyc_tonn).
+      - name: Áhættumats-greinargerðir vaktaðra félaga (→ kyc_greinargerd)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node skriptur/build_kyc_greinargerd.mjs || true   # sleppir sjálft ef lyklar vantar
+
       # Fjölmiðlavogin BYGGIR Á sent_ai → keyrir Á EFTIR viðhorfsgreiningunni hér að ofan.
       - name: Fjölmiðlavog (tón-hlutdrægni leiðrétt fyrir efnisvali → midlavog.json)
         env:
