@@ -105,5 +105,17 @@
   { "n": "Endurskoðun og reikningsskil", "um": "endurskoðun og reikningsskil", "a": ["ársreikning", "reikningsskil", "endurskoðanda"] },
   { "n": "Uppsjávarveiðar", "um": "uppsjávarveiðar", "a": ["loðnu", "uppsjávar", "makríl"] },
   { "n": "Kaupmáttur", "um": "kaupmátt", "a": ["kaupmátt", "ráðstöfunartekj", "framfærslukostnað"] },
-  { "n": "Áfengismál", "um": "áfengismál", "a": ["áfengissala", "vínbúð", "ÁTVR", "áfengislög"] }
+  { "n": "Áfengismál", "um": "áfengismál", "a": ["áfengissala", "vínbúð", "ÁTVR", "áfengislög"] },
+  { "n": "Spánn", "um": "Spán", "a": ["Spáni", "Spánn"] },
+  { "n": "Asía", "um": "Asíu", "a": ["Japan", "Indland", "Suður-Kóre", "asísk"] },
+  { "n": "Bráðaþjónusta", "um": "bráðaþjónustu", "a": ["bráðamóttök", "sjúkraflutning", "sjúkrabíl"] },
+  { "n": "Kanada", "um": "Kanada", "a": ["Kanada", "kanadísk"] },
+  { "n": "Grænland", "um": "Grænland", "a": ["Grænland", "Grænlandi", "Grænlend"] },
+  { "n": "Hátíðir og viðburðir", "um": "hátíðir og viðburði", "a": ["þjóðhátíð", "menningarnótt", "útihátíð"] },
+  { "n": "Pólland", "um": "Pólland", "a": ["Póllandi", "Pólverj", "pólsk"] },
+  { "n": "Færeyjar", "um": "Færeyjar", "a": ["Færeyj", "færeysk"] },
+  { "n": "Mygla og byggingargallar", "um": "myglu og byggingargalla", "a": ["mygla", "myglu", "rakaskemmd", "byggingargall"] },
+  { "n": "Norðurslóðir", "um": "norðurslóðir", "a": ["norðurslóð", "heimskaut", "Íshaf"] },
+  { "n": "Ferðamannastaðir", "um": "ferðamannastaði", "a": ["náttúruperl", "ferðamannastað", "Gullfoss"] },
+  { "n": "Fólksfjölgun", "um": "fólksfjölgun", "a": ["fólksfjölgun", "íbúaþróun", "mannfjöld"] }
 ]

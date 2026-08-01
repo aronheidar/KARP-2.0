@@ -1618,6 +1618,121 @@
    ],
    "slug": "afengismal",
    "um": "áfengismál"
+  },
+  {
+   "n": "Spánn",
+   "a": [
+    "Spáni",
+    "Spánn"
+   ],
+   "slug": "spann",
+   "um": "Spán"
+  },
+  {
+   "n": "Asía",
+   "a": [
+    "Japan",
+    "Indland",
+    "Suður-Kóre",
+    "asísk"
+   ],
+   "slug": "asia",
+   "um": "Asíu"
+  },
+  {
+   "n": "Bráðaþjónusta",
+   "a": [
+    "bráðamóttök",
+    "sjúkraflutning",
+    "sjúkrabíl"
+   ],
+   "slug": "bradathjonusta",
+   "um": "bráðaþjónustu"
+  },
+  {
+   "n": "Kanada",
+   "a": [
+    "Kanada",
+    "kanadísk"
+   ],
+   "slug": "kanada"
+  },
+  {
+   "n": "Grænland",
+   "a": [
+    "Grænland",
+    "Grænlandi",
+    "Grænlend"
+   ],
+   "slug": "graenland"
+  },
+  {
+   "n": "Hátíðir og viðburðir",
+   "a": [
+    "þjóðhátíð",
+    "menningarnótt",
+    "útihátíð"
+   ],
+   "slug": "hatidir-og-vidburdir",
+   "um": "hátíðir og viðburði"
+  },
+  {
+   "n": "Pólland",
+   "a": [
+    "Póllandi",
+    "Pólverj",
+    "pólsk"
+   ],
+   "slug": "polland"
+  },
+  {
+   "n": "Færeyjar",
+   "a": [
+    "Færeyj",
+    "færeysk"
+   ],
+   "slug": "faereyjar"
+  },
+  {
+   "n": "Mygla og byggingargallar",
+   "a": [
+    "mygla",
+    "myglu",
+    "rakaskemmd",
+    "byggingargall"
+   ],
+   "slug": "mygla-og-byggingargallar",
+   "um": "myglu og byggingargalla"
+  },
+  {
+   "n": "Norðurslóðir",
+   "a": [
+    "norðurslóð",
+    "heimskaut",
+    "Íshaf"
+   ],
+   "slug": "nordurslodir",
+   "um": "norðurslóðir"
+  },
+  {
+   "n": "Ferðamannastaðir",
+   "a": [
+    "náttúruperl",
+    "ferðamannastað",
+    "Gullfoss"
+   ],
+   "slug": "ferdamannastadir",
+   "um": "ferðamannastaði"
+  },
+  {
+   "n": "Fólksfjölgun",
+   "a": [
+    "fólksfjölgun",
+    "íbúaþróun",
+    "mannfjöld"
+   ],
+   "slug": "folksfjolgun",
+   "um": "fólksfjölgun"
   }
  ]
 }
