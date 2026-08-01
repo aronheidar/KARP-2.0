@@ -34,6 +34,10 @@ for (const posi of ['bjartsynn', 'hlutlaus', 'ahyggjufullur', 'kreppa']) {
   ok(`PM-pósi „${posi}" með pm-blikk augnlok`, (PM_MYNDIR[posi] || '').includes('class="pm-blikk"'));
   ok(`PM-pósi „${posi}" með viewBox 0 0 120 120`, (PM_MYNDIR[posi] || '').includes('viewBox="0 0 120 120"'));
   ok(`PM-pósi „${posi}" með gull-bindisnælu`, (PM_MYNDIR[posi] || '').includes('#f6b13b'));
+  // PM-endurteiknun 2026-08-01: hlý húð, dökkblá jakkaföt og lithimnu-augu í ÖLLUM pósum
+  ok(`PM-pósi „${posi}" með hlýjum húðlit`, (PM_MYNDIR[posi] || '').includes('#e8bc95'));
+  ok(`PM-pósi „${posi}" með dökkbláum jakkafötum`, (PM_MYNDIR[posi] || '').includes('#2a3550'));
+  ok(`PM-pósi „${posi}" með lithimnu í augum`, (PM_MYNDIR[posi] || '').includes('#3f6fae'));
 }
 ok('PM hefur nákvæmlega 4 pósa', Object.keys(PM_MYNDIR).length === 4);
 ok('kreppa sker sig frá grunninum (svitadropi/úfið hár = lengri strengur)', PM_MYNDIR.kreppa.length > PM_MYNDIR.hlutlaus.length);
@@ -44,7 +48,13 @@ ok("myndFyrirAtvik('bull') skilar null", myndFyrirAtvik('bull') === null);
 ok('myndFyrirAtvik ver gegn prototype-lyklum', myndFyrirAtvik('constructor') === null && myndFyrirAtvik('__proto__') === null && myndFyrirAtvik(undefined) === null);
 
 // 6) fast litaspjald — aðeins leyfðir litir í fill/stroke
-const leyfdir = new Set(['#1a2130', '#cdd6e6', '#f6b13b', '#e78284', '#8ca0c8', '#42d086', '#5d6b85', 'none']);
+// PM-endurteiknun 2026-08-01: hvítlistinn stækkaður MEÐVITAÐ um nákvæmlega 6 nýja liti
+// (hámark skv. verkbeiðni): húð, húð-skuggi/varir, hár, skyrta/tennur/augnhvíta,
+// jakkalitur, lithimna/fánanæla. Ekki bæta við fleirum án hönnunarákvörðunar.
+const leyfdir = new Set([
+  '#1a2130', '#cdd6e6', '#f6b13b', '#e78284', '#8ca0c8', '#42d086', '#5d6b85', 'none',
+  '#e8bc95', '#b5714f', '#3a2f2b', '#f7f9fc', '#2a3550', '#3f6fae',
+]);
 for (const [nafn, s] of allar) {
   const litir = [...s.matchAll(/(?:^|[\s"])(?:fill|stroke)="([^"]+)"/g)].map((m) => m[1]);
   ok(`${nafn}: aðeins fast litaspjald í fill/stroke`, litir.length > 0 && litir.every((v) => leyfdir.has(v)));
