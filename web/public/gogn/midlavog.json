@@ -1,38 +1,38 @@
 {
  "updated": "2026-08-01",
  "days": 180,
- "efniSkodud": 105,
+ "efniSkodud": 184,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 8,
-   "rawTone": -17,
-   "n": 241,
-   "entities": 26,
+   "bias": 6,
+   "rawTone": -13,
+   "n": 352,
+   "entities": 41,
    "sample": [
     {
+     "entity": "Norðurlöndin",
+     "dev": 90.6,
+     "n": 5
+    },
+    {
      "entity": "Orkumál",
-     "dev": 69.12,
+     "dev": 68.73,
      "n": 7
     },
     {
-     "entity": "Verslun",
-     "dev": 61.37,
-     "n": 7
+     "entity": "Utanríkisviðskipti",
+     "dev": 62.22,
+     "n": 6
     },
     {
      "entity": "Tollar",
-     "dev": 59.2,
+     "dev": 61.5,
      "n": 9
     },
     {
-     "entity": "Landsvirkjun",
-     "dev": 58.21,
-     "n": 4
-    },
-    {
-     "entity": "Seðlabankinn",
-     "dev": -34.65,
+     "entity": "Verslun",
+     "dev": 61.01,
      "n": 7
     }
    ]
@@ -40,78 +40,83 @@
   {
    "s": "Vísir",
    "bias": 3,
-   "rawTone": -29,
-   "n": 17074,
-   "entities": 88,
+   "rawTone": -23,
+   "n": 27926,
+   "entities": 166,
    "sample": [
+    {
+     "entity": "Bílamarkaður",
+     "dev": 43.97,
+     "n": 18
+    },
+    {
+     "entity": "Áfengismál",
+     "dev": -30.75,
+     "n": 14
+    },
+    {
+     "entity": "Krónan",
+     "dev": 27.27,
+     "n": 22
+    },
     {
      "entity": "Landsnet",
      "dev": 25.44,
      "n": 19
     },
     {
-     "entity": "Krónan",
-     "dev": 25.1,
-     "n": 22
-    },
-    {
-     "entity": "Velferðarmál",
-     "dev": 20.42,
-     "n": 47
-    },
-    {
-     "entity": "Nova",
-     "dev": -19.19,
-     "n": 19
-    },
-    {
-     "entity": "IKEA",
-     "dev": 17.69,
-     "n": 10
+     "entity": "Pólland",
+     "dev": 22.19,
+     "n": 71
     }
    ]
   },
   {
    "s": "RÚV",
    "bias": 1,
-   "rawTone": -36,
-   "n": 5447,
-   "entities": 80,
+   "rawTone": -35,
+   "n": 8953,
+   "entities": 157,
    "sample": [
+    {
+     "entity": "Tækni og hugbúnaður",
+     "dev": -112.62,
+     "n": 6
+    },
     {
      "entity": "Samkaup",
      "dev": -83.91,
      "n": 3
     },
     {
+     "entity": "Kaupmáttur",
+     "dev": 75,
+     "n": 4
+    },
+    {
      "entity": "Hagar",
-     "dev": -61.23,
+     "dev": -61,
      "n": 4
     },
     {
-     "entity": "Krónan",
-     "dev": -52.17,
-     "n": 4
-    },
-    {
-     "entity": "Skel",
-     "dev": -44.19,
-     "n": 5
-    },
-    {
-     "entity": "Jafnréttismál",
-     "dev": -41.29,
-     "n": 7
+     "entity": "Bílamarkaður",
+     "dev": -50.48,
+     "n": 3
     }
    ]
   },
   {
    "s": "mbl.is",
-   "bias": -1,
-   "rawTone": -40,
-   "n": 7464,
-   "entities": 84,
+   "bias": -2,
+   "rawTone": -39,
+   "n": 11533,
+   "entities": 162,
    "sample": [
+    {
+     "entity": "Uppgjör og afkoma",
+     "dev": -93.12,
+     "n": 12
+    },
     {
      "entity": "Samkeppnismál",
      "dev": -73.33,
@@ -119,7 +124,7 @@
     },
     {
      "entity": "Skel",
-     "dev": -71.46,
+     "dev": -71.2,
      "n": 11
     },
     {
@@ -128,77 +133,72 @@
      "n": 6
     },
     {
-     "entity": "IKEA",
-     "dev": -58.97,
-     "n": 3
-    },
-    {
-     "entity": "Indó",
-     "dev": -57.86,
-     "n": 8
+     "entity": "Áfengismál",
+     "dev": 67.83,
+     "n": 5
     }
    ]
   },
   {
    "s": "dv.is",
-   "bias": -14,
-   "rawTone": -52,
-   "n": 2953,
-   "entities": 72,
+   "bias": -17,
+   "rawTone": -55,
+   "n": 4424,
+   "entities": 140,
    "sample": [
+    {
+     "entity": "Fjárlög",
+     "dev": 123.19,
+     "n": 3
+    },
     {
      "entity": "Landsnet",
      "dev": -116.67,
      "n": 3
     },
     {
-     "entity": "Landsvirkjun",
-     "dev": -81.79,
-     "n": 5
+     "entity": "Hátíðir og viðburðir",
+     "dev": -104.9,
+     "n": 6
     },
     {
-     "entity": "Lífeyrismál",
-     "dev": -60.75,
-     "n": 8
-    },
-    {
-     "entity": "Netöryggi",
-     "dev": 59.52,
+     "entity": "Uppgjör og afkoma",
+     "dev": -94.31,
      "n": 7
     },
     {
-     "entity": "Ölgerðin",
-     "dev": -55.79,
-     "n": 14
+     "entity": "Landsvirkjun",
+     "dev": -81.79,
+     "n": 5
     }
    ]
   },
   {
    "s": "Mannlíf",
-   "bias": -26,
-   "rawTone": -76,
-   "n": 126,
-   "entities": 17,
+   "bias": -22,
+   "rawTone": -71,
+   "n": 200,
+   "entities": 32,
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.21,
+     "dev": -94.41,
      "n": 3
     },
     {
-     "entity": "Menntamál",
-     "dev": -67.79,
+     "entity": "Akureyri",
+     "dev": -74.61,
      "n": 6
     },
     {
-     "entity": "Ríkisstjórnin",
-     "dev": -62.03,
-     "n": 3
+     "entity": "Norðurlöndin",
+     "dev": -69.4,
+     "n": 4
     },
     {
-     "entity": "Ríkisstjórnin",
-     "dev": -62.03,
-     "n": 3
+     "entity": "Menntamál",
+     "dev": -68.07,
+     "n": 6
     },
     {
      "entity": "Gjaldþrot",
@@ -208,6 +208,6 @@
    ]
   }
  ],
- "entities": 87,
+ "entities": 165,
  "method": "Frávik frá meðaltóni allra miðla um SAMA efni, vegið með fjölda frétta. Leiðréttir fyrir ólíku efnisvali miðla."
 }
