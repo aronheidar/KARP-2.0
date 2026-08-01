@@ -77,3 +77,10 @@ test('túlkunin er HTML-escapeuð — LLM-texti getur aldrei sprautað markup', 
   const h = greinargerdHtml(c, 'Túlkun & mat: allt "eðlilegt" að sjá.', 1754000000);
   assert.match(h, /Túlkun &amp; mat/);
 });
+
+test('tón-sviðin heita ÓTVÍRÆTT — fyrsta raun-greinargerðin las `tonn` sem tonnatölu afla', () => {
+  const c = greinargerdSamhengi(W, STATES, [], [{ man: '2026-02', n: 3, tonn: -0.5 }], []);
+  assert.deepEqual(c.tonn[0], { man: '2026-02', frettir: 3, medaltonn_fjolmidla: -0.5 });
+  const h = greinargerdHtml(c, null, 1754000000);
+  assert.match(h, /fjöldi frétta.*2026-02 \(3\)/);
+});

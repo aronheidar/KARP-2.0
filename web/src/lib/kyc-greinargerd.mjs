@@ -36,7 +36,10 @@ export function greinargerdSamhengi(watch, states, adverse, tonn, events) {
     flokkur: a.flokkur, heiti: FATF_FLOKKAR[a.flokkur] || a.flokkur,
     stada: MALS_STODUR[a.stada] || a.stada || '', dags: a.dags || '', titill: String(a.title || '').slice(0, 120), source: a.source || '',
   }));
-  const ton = (tonn || []).slice(-12).map((t) => ({ man: t.man, n: t.n, tonn: t.tonn }));
+  // ⚠ Sviðsheitin verða að vera ÓTVÍRÆÐ fyrir líkanið: fyrsta raun-greinargerðin las `tonn`
+  //   sem „tonnaskráningar" (magn afla!) — heitið `medaltonn_fjolmidla` + skýring í system-
+  //   prompti loka þeirri mislesningu. Talna-gátin ver tölurnar, ekki merkinguna.
+  const ton = (tonn || []).slice(-12).map((t) => ({ man: t.man, frettir: t.n, medaltonn_fjolmidla: t.tonn }));
   return {
     nafn: watch?.nafn || '', kt: watch?.kt || '',
     stada: L('status') ? { stada: L('status').stada || '', gjaldthrot: !!L('status').gjaldthrot, afskrad: !!L('status').afskrad } : null,
@@ -65,7 +68,9 @@ export const GREINARGERD_SYSTEM = 'Þú aðstoðar tilkynningarskyldan aðila vi
   + 'á íslensku (3-6 setningar) sem dregur saman það sem skiptir máli fyrir áhættumat — staðreyndir úr '
   + 'samhenginu eingöngu, engin ályktun um einstaklinga, engin áhættuflokkun (það er ákvörðun lesandans), '
   + 'engar tölur sem ekki standa í samhenginu. Ef gögn vantar (null) skaltu nefna það sem fyrirvara, '
-  + 'ekki lesa það sem hreina niðurstöðu. Svaraðu AÐEINS með málsgreininni sjálfri, engu öðru.';
+  + 'ekki lesa það sem hreina niðurstöðu. ATH: í `tonn`-fylkinu er `medaltonn_fjolmidla` meðal-TÓNN '
+  + 'fjölmiðlaumfjöllunar á bilinu -1 (neikvæð) til +1 (jákvæð) og `frettir` fjöldi frétta í mánuðinum '
+  + '— þetta er EKKI magn, afli eða tonnatala. Svaraðu AÐEINS með málsgreininni sjálfri, engu öðru.';
 
 /**
  * Talna-gátin: hafnar túlkun sem nefnir tölu sem hvergi stendur í samhenginu.
@@ -125,7 +130,7 @@ export function greinargerdHtml(samhengi, tulkun, generatedAt) {
   p.push((c.adverse || []).length
     ? '<ul>' + c.adverse.map((a) => '<li><b>' + esc(a.heiti) + '</b> (' + esc(a.stada) + (a.dags ? ', ' + esc(a.dags) : '') + '): „' + esc(a.titill) + '" — ' + esc(a.source) + '</li>').join('') + '</ul>'
     : '<p>Engin FATF-flokkuð adverse media-umfjöllun á skrá.</p>');
-  if ((c.tonn || []).length) p.push('<p class="kg-tonn">Umfjöllunar-mánuðir á skrá: ' + c.tonn.map((t) => esc(t.man) + ' (' + t.n + ')').join(', ') + '.</p>');
+  if ((c.tonn || []).length) p.push('<p class="kg-tonn">Umfjöllunar-mánuðir á skrá (fjöldi frétta): ' + c.tonn.map((t) => esc(t.man) + ' (' + t.frettir + ')').join(', ') + '.</p>');
   // 5. Samantekt (LLM, gátuð) — EINI kaflinn sem líkanið skrifar
   p.push('<h4>5. Samantekt</h4>');
   p.push(tulkun ? '<p>' + esc(tulkun) + '</p>' : '<p><i>Sjálfvirk samantekt ekki tiltæk — kaflar 1–4 standa sjálfstætt.</i></p>');
