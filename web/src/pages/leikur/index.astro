@@ -261,4 +261,46 @@ const MODEL = {
     main[data-pg="leikur"] .lk-ticker-st.s1 { animation-delay: 8s; }
     main[data-pg="leikur"] .lk-ticker-st:only-child { animation: none; opacity: 1; }
   }
+  /* VERK 3: Prentanleg kennsluskýrsla — LJÓST skjal (öfugt við leik-þemað; prent-litir skilgreindir
+     sérstaklega hér, aldrei erfðir úr dökka þemanu). #lk-print-root er runtime-SYSTKINI #leikur-root
+     (sama mynstur og sepop/pm) → is:global eins og hinir runtime-innerHTML hlutarnir.
+     body.lk-print = forskoðun á skjá (skýrslan í stað leiksins); @media print felur allt nema skýrsluna. */
+  main[data-pg="leikur"] #lk-print-root { display: none; }
+  body.lk-print main[data-pg="leikur"] #lk-print-root { display: block; }
+  body.lk-print main[data-pg="leikur"] #leikur-root { display: none; }
+  main[data-pg="leikur"] .lkp-bar { display: flex; gap: 10px; max-width: 860px; margin: 0 auto 12px; }
+  main[data-pg="leikur"] .lkp-doc { max-width: 860px; margin: 0 auto; background: #fff; color: #1a2230; border-radius: 12px; padding: 28px 32px; font-size: 13px; line-height: 1.55; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  main[data-pg="leikur"] .lkp-doc h1 { font-size: 22px; margin: 0 0 2px; color: #101828; }
+  main[data-pg="leikur"] .lkp-doc h2 { font-size: 16px; margin: 18px 0 6px; color: #101828; border-bottom: 2px solid #d7dce6; padding-bottom: 3px; }
+  main[data-pg="leikur"] .lkp-doc h3 { font-size: 13.5px; margin: 12px 0 4px; color: #24324a; }
+  main[data-pg="leikur"] .lkp-doc a { color: #24548f; }
+  main[data-pg="leikur"] .lkp-meta { color: #55617a; margin: 0 0 6px; font-size: 12.5px; }
+  main[data-pg="leikur"] .lkp-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0 10px; }
+  main[data-pg="leikur"] .lkp-tbl th, main[data-pg="leikur"] .lkp-tbl td { border-bottom: 1px solid #d7dce6; padding: 4px 7px; text-align: left; color: #1a2230; }
+  main[data-pg="leikur"] .lkp-tbl th { color: #55617a; font-weight: 700; }
+  main[data-pg="leikur"] .lkp-mini { max-width: 560px; }
+  main[data-pg="leikur"] .lkp-best { color: #157a45; font-weight: 700; }
+  main[data-pg="leikur"] .lkp-team { border: 1px solid #d7dce6; border-radius: 10px; padding: 10px 14px; margin: 10px 0; page-break-inside: avoid; break-inside: avoid; }
+  main[data-pg="leikur"] .lkp-team h3 { margin: 0 0 6px; }
+  main[data-pg="leikur"] .lkp-kv { margin: 4px 0; font-size: 12.5px; }
+  main[data-pg="leikur"] .lkp-chart svg { max-width: 100%; height: auto; }
+  main[data-pg="leikur"] .lkp-polband { display: inline-flex; gap: 2px; vertical-align: middle; margin: 0 6px 0 2px; }
+  main[data-pg="leikur"] .lkp-polseg { display: inline-block; min-width: 18px; text-align: center; font-size: 10px; font-weight: 700; color: #fff; border-radius: 3px; padding: 2px 0; }
+  main[data-pg="leikur"] .lkp-list { margin: 4px 0; padding-left: 20px; }
+  main[data-pg="leikur"] .lkp-list li { margin: 5px 0; }
+  main[data-pg="leikur"] .lkp-fine { font-size: 11px; color: #55617a; margin: 4px 0; }
+  main[data-pg="leikur"] .lkp-foot { margin-top: 18px; border-top: 1px solid #d7dce6; padding-top: 8px; font-size: 11px; color: #55617a; }
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    /* visibility-uppskriftin nær yfir ALLT síðu-króm (nav/haus/fót úr Layout) án þess að þekkja það;
+       display:none á háu app-hlutana að auki svo falinn-en-pláss-frekur leikur búi ekki til auðar síður. */
+    body.lk-print * { visibility: hidden; }
+    body.lk-print #lk-print-root, body.lk-print #lk-print-root * { visibility: visible; }
+    body.lk-print #lk-print-root { position: absolute; left: 0; top: 0; width: 100%; }
+    body.lk-print #leikur-root, body.lk-print .lk-ticker, body.lk-print .lk-pm-card, body.lk-print .lk-pm-fab, body.lk-print .lk-sepop-overlay { display: none !important; }
+    body.lk-print .lkp-noprint { display: none !important; }
+    body.lk-print main[data-pg="leikur"] { padding: 0; }
+    body.lk-print main[data-pg="leikur"] .lkp-doc { max-width: none; border-radius: 0; padding: 0; }
+    body.lk-print .lkp-break { page-break-before: always; break-before: page; }
+  }
 </style>
