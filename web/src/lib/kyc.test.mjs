@@ -62,7 +62,7 @@ test('SEVERITY_RANK raðar', () => {
 import { deriveRisk, RISK_SIGNALS } from './kyc.mjs';
 // Fullskimað félag án nokkurra merkja — grunnurinn sem „Lág" krefst.
 const HREINT = { sanctions: { hits: [] }, pep: { matches: [] }, legal: { notices: [] },
-  status: { stada: 'Virkt', gjaldthrot: 0, afskrad: 0 }, skil: { years: [] }, tax: { claims: [] }, media: { titles: [] } };
+  status: { stada: 'Virkt', gjaldthrot: 0, afskrad: 0 }, skil: { years: [] }, tax: { claims: [] }, media: { titles: [] }, fatf: { hits: [] } };
 const med = (o) => Object.assign({}, HREINT, o);
 
 test('deriveRisk: refsilisti eða gjaldþrot = Há', () => {
@@ -229,7 +229,7 @@ test('veikar refsilista-samsvaranir framkalla engan atburð', () => {
 });
 
 test('veikar refsilista-samsvaranir hækka ekki áhættueinkunn', () => {
-  const s = { sanctions: { hits: [], veikar: [{ name: 'Nova hf.' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  const s = { sanctions: { hits: [], veikar: [{ name: 'Nova hf.' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {}, fatf: {} };
   assert.equal(deriveRisk(s), 'Lág');
 });
 
@@ -238,7 +238,7 @@ test('sterk samsvörun heldur áfram að vera critical og Há', () => {
   assert.equal(evs.length, 1);
   assert.equal(evs[0].kind, 'sanctions_hit');
   assert.equal(evs[0].severity, 'critical');
-  const s = { sanctions: { hits: [{ name: 'Saddam Hussein' }], veikar: [] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  const s = { sanctions: { hits: [{ name: 'Saddam Hussein' }], veikar: [] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {}, fatf: {} };
   assert.equal(deriveRisk(s), 'Há');
 });
 
@@ -256,7 +256,7 @@ test('lækkuð samsvörun (jadar) gefur info-atburð, ekki critical', () => {
 });
 
 test('lækkuð samsvörun hækkar EKKI áhættueinkunn', () => {
-  const s = { sanctions: { hits: [], veikar: [{ name: 'The Basic Cookbook Company', tegund: 'jadar' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {} };
+  const s = { sanctions: { hits: [], veikar: [{ name: 'The Basic Cookbook Company', tegund: 'jadar' }] }, status: {}, legal: {}, pep: {}, tax: {}, skil: {}, media: {}, fatf: {} };
   assert.equal(deriveRisk(s), 'Lág');
 });
 
@@ -271,4 +271,37 @@ test('GRUNNLÍNA: eldra snapshot án veikar-lykils gefur enga atburða-skriðu',
   const prev = { hits: [] };
   const cur = { hits: [], veikar: [{ name: 'The Basic Cookbook Company', tegund: 'jadar' }] };
   assert.deepEqual(signalEvents('sanctions', prev, cur), []);
+});
+
+// ── fatf-merkið (FATF-flokkað adverse media, 10. merkið) ─────────────────────
+test('fatf: ný flokkun gefur atburð með alvarleika flokksins — þvætti er critical', () => {
+  const prev = { hits: [{ h: 'a1', flokkur: 'fjarsvik' }] };
+  const cur = { hits: [{ h: 'a1', flokkur: 'fjarsvik' }, { h: 'b2', flokkur: 'peningathvaetti', title: 'X' }] };
+  const ev = signalEvents('fatf', prev, cur);
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].kind, 'adverse_fatf');
+  assert.equal(ev[0].severity, 'critical');
+});
+
+test('fatf: fjársvik/skattalagabrot eru high, ekki critical', () => {
+  const ev = signalEvents('fatf', { hits: [] }, { hits: [{ h: 'x', flokkur: 'fjarsvik' }, { h: 'y', flokkur: 'skattalagabrot' }] });
+  assert.deepEqual(ev.map((e) => e.severity), ['high', 'high']);
+});
+
+test('fatf: grunnlína (prev=null) gefur ENGA atburði — fyrsta skimun má ekki sturta sögunni sem nýjum viðvörunum', () => {
+  assert.deepEqual(signalEvents('fatf', null, { hits: [{ h: 'x', flokkur: 'peningathvaetti' }] }), []);
+});
+
+test('deriveRisk: fatf-flokkun ein og sér gefur „Venjuleg", ALDREI „Há" — AI hækkar ekki tillögustigið', () => {
+  const oll = {};
+  for (const sig of RISK_SIGNALS) oll[sig] = {};
+  oll.fatf = { hits: [{ h: 'x', flokkur: 'peningathvaetti' }] };
+  assert.equal(deriveRisk(oll, null), 'Venjuleg');
+});
+
+test('deriveRisk: fatf-heimild sem svaraði ekki hindrar „Lág" (fjarveru-fullyrðing krefst allra heimilda)', () => {
+  const oll = {};
+  for (const sig of RISK_SIGNALS) oll[sig] = {};
+  assert.equal(deriveRisk(oll, { fatf: true }), null);
+  assert.equal(deriveRisk(oll, null), 'Lág');
 });

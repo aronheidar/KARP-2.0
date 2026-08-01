@@ -1,4 +1,6 @@
 // kyc.mjs — hrein diff-vél Áreiðanleikavaktarinnar (engin I/O; einingaprófuð). Sjá spec 2026-07-26.
+import { advSeverity } from './adverse-media.mjs';
+
 export const SEVERITY_RANK = { critical: 3, high: 2, info: 1 };
 
 export function canon(v) {
@@ -62,11 +64,16 @@ export function signalEvents(signal, prev, cur) {
     for (const c of _added(prev.claims, cur.claims, (x) => x.ref)) ev.push({ kind: 'tax_claim', severity: 'high', detail: c });
   } else if (signal === 'media') {
     for (const t of _added(prev.titles, cur.titles, (x) => x.h)) ev.push({ kind: 'adverse_media', severity: 'info', detail: t });
+  } else if (signal === 'fatf') {
+    // FATF-flokkað adverse media (10. merkið, spec 2026-08-01): frosnar flokkanir úr kyc_adverse.
+    // Alvarleiki ræðst af flokknum (þvætti/þvinganir → critical → strax-póstur um _kycAfterEvents).
+    // Færslur hverfa aldrei úr frosnu töflunni → aðeins _added, engin „horfið"-atburðamyndun.
+    for (const m of _added(prev.hits, cur.hits, (x) => x.h)) ev.push({ kind: 'adverse_fatf', severity: advSeverity(m.flokkur), detail: m });
   }
   return ev;
 }
 // Merkin sem áhættustigið er dregið af. Vanti eitthvert þeirra er ekki hægt að fullyrða neitt undir „Há".
-export const RISK_SIGNALS = ['sanctions', 'pep', 'legal', 'status', 'skil', 'tax', 'media'];
+export const RISK_SIGNALS = ['sanctions', 'pep', 'legal', 'status', 'skil', 'tax', 'media', 'fatf'];
 
 // `na` = { merki: true } fyrir heimildir sem SVÖRUÐU EKKI (ólíkt heimild sem svaraði engu).
 // Skilar null þegar ekki er hægt að álykta — kallandi má þá EKKI skrifa yfir fyrra stig.
@@ -80,7 +87,10 @@ export function deriveRisk(s, na) {
   if ((L('sanctions').hits || []).length || L('status').gjaldthrot ||
       (L('legal').notices || []).some((n) => n.type === 'bankruptcy')) return 'Há';
   if (RISK_SIGNALS.some((sig) => (na && na[sig]) || !s[sig])) return null;
+  // ⚠ AI-flokkað adverse media (fatf) hækkar tillögu-stigið aldrei upp fyrir „Venjuleg" eitt og
+  //   sér — „Há" er frátekið fyrir deterministic staðreyndir (refsilistar, gjaldþrot). Röng
+  //   AI-flokkun má aldrei ein og sér stimpla félag „Há"; critical-ATBURÐURINN sér um hraðboðin.
   if ((L('pep').matches || []).length || (L('tax').claims || []).length || (L('skil').years || []).length || L('status').afskrad ||
-      (L('legal').notices || []).length || (L('media').titles || []).length) return 'Venjuleg';
+      (L('legal').notices || []).length || (L('media').titles || []).length || (L('fatf').hits || []).length) return 'Venjuleg';
   return 'Lág';
 }

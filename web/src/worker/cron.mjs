@@ -20,7 +20,9 @@ export async function kycDiffCron(env) {
 
 export async function kycCriticalCron(env) {
   const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);
-  for (const kt of kts) { const res = await _kycRunDiff(env, kt, ['sanctions', 'legal']).catch(() => ({ newEvents: [] })); await _kycAfterEvents(env, kt, res, true).catch(() => {}); }
+  // 'fatf' er með: CI skrifar nýjar FATF-flokkanir á nóttunni → critical-flokkarnir
+  // (þvætti/þvinganir) berast vaktara innan ≤3 klst í stað næsta dags.
+  for (const kt of kts) { const res = await _kycRunDiff(env, kt, ['sanctions', 'legal', 'fatf']).catch(() => ({ newEvents: [] })); await _kycAfterEvents(env, kt, res, true).catch(() => {}); }
 }
 
 // 📉 ORÐSPORSVAKT — varar við þegar tónn fréttaumfjöllunar um vaktað félag snarversnar.

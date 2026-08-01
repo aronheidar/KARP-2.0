@@ -164,6 +164,14 @@ async function kycScreenKt(env, kt) {
       if ((a.sent ?? a.sentiment ?? 0) < 0 && t.includes(felagNafn)) titles.push({ h: kycHash(t), title: t.slice(0, 200) });
     }
   }
+  // fatf — FATF-flokkað adverse media (10. merkið). CI-skriptið build_adverse_media.mjs flokkar
+  // og skrifar í FROSNU töfluna kyc_adverse; hér er hún AÐEINS lesin (ekkert LLM í worker).
+  // Lestrarbilun = na.fatf (heimild svaraði ekki), aldrei lesin sem „engar flokkanir".
+  let fatfHits = [];
+  try {
+    const r = await env.TENGSL.prepare('SELECT url,title,source,dags,flokkur,stada,alvarleiki FROM kyc_adverse WHERE kt=? ORDER BY dags DESC LIMIT 200').bind(kt).all();
+    fatfHits = (r.results || []).map((x) => ({ h: kycHash(String(x.url || '')), url: x.url, title: x.title, source: x.source, dags: x.dags, flokkur: x.flokkur, stada: x.stada, alvarleiki: x.alvarleiki }));
+  } catch (e) { na.fatf = true; }
   // skil (ársreikningaskil) — endurnýtir vanskilHandler (opinn RSK-vanskilalisti, 24h caches.default).
   // kycScreenKt hefur engan ctx (ólíkt handler-um sem eru kallaðir beint úr fetch()) → stubbur sem
   // hendir waitUntil-cache-put-inu (skaðlaust: cache.put keyrir samt, bara óbeðið). .catch() ver
@@ -180,10 +188,11 @@ async function kycScreenKt(env, kt) {
     skil: { years: (skilD.ar || []).map((x) => ({ ar: x.ar, vanskil: x.vanskil })) }, // ársreikningaskil-vanskil (opið, óleyfisskylt) — sjá vanskilHandler
     tax: { claims: [] }, // v1: engin áreiðanleg vanskilaskrá (bíður leyfis #36) — stubbur, engin atburðamyndun.
     media: { titles },
+    fatf: { hits: fatfHits },
   } };
 }
 
-const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'skil', 'tax', 'media'];
+const KYC_SIGNALS = ['ubo', 'board', 'sanctions', 'pep', 'status', 'legal', 'skil', 'tax', 'media', 'fatf'];
 
 export const _kycGate = (u, now) => !!(u && (_freeAll(u) || (u.tier === 'fyrirtaeki_plus' && u.tier_until > now)));
 
