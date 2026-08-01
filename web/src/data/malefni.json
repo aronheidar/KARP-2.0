@@ -92,5 +92,18 @@
   { "n": "Hagræðing", "um": "hagræðingu", "a": ["hagræðing", "endurskipulagn", "sparnaðaraðgerð"] },
   { "n": "Skipulagsmál", "um": "skipulagsmál", "a": ["skipulagsmál", "deiliskipulag", "byggingarleyf", "aðalskipulag"] },
   { "n": "Dýravelferð", "um": "dýravelferð", "a": ["dýravelferð", "dýralækn", "dýraníð"] },
-  { "n": "Heilbrigðisstarfsfólk", "um": "heilbrigðisstarfsfólk", "a": ["hjúkrunarfræðing", "læknaskort", "heilbrigðisstarfsfólk"] }
+  { "n": "Heilbrigðisstarfsfólk", "um": "heilbrigðisstarfsfólk", "a": ["hjúkrunarfræðing", "læknaskort", "heilbrigðisstarfsfólk"] },
+  { "n": "Svik og fjársvik", "um": "svik og fjársvik", "a": ["netsvik", "svikapóst", "fjársvik", "svindlað"] },
+  { "n": "Þvingunaraðgerðir", "um": "þvingunaraðgerðir", "a": ["þvingunaraðgerð", "refsiaðgerð", "viðskiptaþvingan"] },
+  { "n": "Bílamarkaður", "um": "bílamarkaðinn", "a": ["bílasölu", "rafbíla", "nýskráning bíla", "bílaframleið"] },
+  { "n": "Peningaþvætti", "um": "peningaþvætti", "a": ["peningaþvætti", "þvættis", "varnir gegn peningaþvætti"] },
+  { "n": "Almannavarnir", "um": "almannavarnir", "a": ["almannavarn", "hættustig", "rýming", "viðbragðsstig"] },
+  { "n": "Vörumerki og hugverk", "um": "vörumerki og hugverk", "a": ["vörumerki", "einkaleyfi", "hugverkarétt"] },
+  { "n": "Vísindi og rannsóknir", "um": "vísindi og rannsóknir", "a": ["vísindamenn", "vísindarannsókn", "Vísindasjóð", "háskólarannsókn"] },
+  { "n": "Fjárlög", "um": "fjárlög", "a": ["fjárlög", "ríkisfjármál", "fjárlagafrumvarp", "halli ríkissjóðs"] },
+  { "n": "Geðheilbrigði", "um": "geðheilbrigði", "a": ["geðheilbrigð", "geðheilsu", "geðdeild", "andleg heilsa"] },
+  { "n": "Endurskoðun og reikningsskil", "um": "endurskoðun og reikningsskil", "a": ["ársreikning", "reikningsskil", "endurskoðanda"] },
+  { "n": "Uppsjávarveiðar", "um": "uppsjávarveiðar", "a": ["loðnu", "uppsjávar", "makríl"] },
+  { "n": "Kaupmáttur", "um": "kaupmátt", "a": ["kaupmátt", "ráðstöfunartekj", "framfærslukostnað"] },
+  { "n": "Áfengismál", "um": "áfengismál", "a": ["áfengissala", "vínbúð", "ÁTVR", "áfengislög"] }
 ]

@@ -1481,6 +1481,143 @@
    ],
    "slug": "heilbrigdisstarfsfolk",
    "um": "heilbrigðisstarfsfólk"
+  },
+  {
+   "n": "Svik og fjársvik",
+   "a": [
+    "netsvik",
+    "svikapóst",
+    "fjársvik",
+    "svindlað"
+   ],
+   "slug": "svik-og-fjarsvik",
+   "um": "svik og fjársvik"
+  },
+  {
+   "n": "Þvingunaraðgerðir",
+   "a": [
+    "þvingunaraðgerð",
+    "refsiaðgerð",
+    "viðskiptaþvingan"
+   ],
+   "slug": "thvingunaradgerdir",
+   "um": "þvingunaraðgerðir"
+  },
+  {
+   "n": "Bílamarkaður",
+   "a": [
+    "bílasölu",
+    "rafbíla",
+    "nýskráning bíla",
+    "bílaframleið"
+   ],
+   "slug": "bilamarkadur",
+   "um": "bílamarkaðinn"
+  },
+  {
+   "n": "Peningaþvætti",
+   "a": [
+    "peningaþvætti",
+    "þvættis",
+    "varnir gegn peningaþvætti"
+   ],
+   "slug": "peningathvaetti",
+   "um": "peningaþvætti"
+  },
+  {
+   "n": "Almannavarnir",
+   "a": [
+    "almannavarn",
+    "hættustig",
+    "rýming",
+    "viðbragðsstig"
+   ],
+   "slug": "almannavarnir",
+   "um": "almannavarnir"
+  },
+  {
+   "n": "Vörumerki og hugverk",
+   "a": [
+    "vörumerki",
+    "einkaleyfi",
+    "hugverkarétt"
+   ],
+   "slug": "vorumerki-og-hugverk",
+   "um": "vörumerki og hugverk"
+  },
+  {
+   "n": "Vísindi og rannsóknir",
+   "a": [
+    "vísindamenn",
+    "vísindarannsókn",
+    "Vísindasjóð",
+    "háskólarannsókn"
+   ],
+   "slug": "visindi-og-rannsoknir",
+   "um": "vísindi og rannsóknir"
+  },
+  {
+   "n": "Fjárlög",
+   "a": [
+    "fjárlög",
+    "ríkisfjármál",
+    "fjárlagafrumvarp",
+    "halli ríkissjóðs"
+   ],
+   "slug": "fjarlog",
+   "um": "fjárlög"
+  },
+  {
+   "n": "Geðheilbrigði",
+   "a": [
+    "geðheilbrigð",
+    "geðheilsu",
+    "geðdeild",
+    "andleg heilsa"
+   ],
+   "slug": "gedheilbrigdi",
+   "um": "geðheilbrigði"
+  },
+  {
+   "n": "Endurskoðun og reikningsskil",
+   "a": [
+    "ársreikning",
+    "reikningsskil",
+    "endurskoðanda"
+   ],
+   "slug": "endurskodun-og-reikningsskil",
+   "um": "endurskoðun og reikningsskil"
+  },
+  {
+   "n": "Uppsjávarveiðar",
+   "a": [
+    "loðnu",
+    "uppsjávar",
+    "makríl"
+   ],
+   "slug": "uppsjavarveidar",
+   "um": "uppsjávarveiðar"
+  },
+  {
+   "n": "Kaupmáttur",
+   "a": [
+    "kaupmátt",
+    "ráðstöfunartekj",
+    "framfærslukostnað"
+   ],
+   "slug": "kaupmattur",
+   "um": "kaupmátt"
+  },
+  {
+   "n": "Áfengismál",
+   "a": [
+    "áfengissala",
+    "vínbúð",
+    "ÁTVR",
+    "áfengislög"
+   ],
+   "slug": "afengismal",
+   "um": "áfengismál"
   }
  ]
 }
