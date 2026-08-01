@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { escF, ktFmt, mkrF } from './snid.mjs';
+import { escF, ktFmt, mkrF, krFmt } from './snid.mjs';
 
 // ── escF ─────────────────────────────────────────────────────────────────────
 
@@ -101,4 +101,17 @@ test('mkrF heldur mínusmerki', () => {
 
 test('mkrF skilar "0" fyrir núll', () => {
   assert.equal(mkrF(0), '0');
+});
+
+test('krFmt: íslenskur þúsundapunktur án toLocaleString', () => {
+  assert.equal(krFmt(1900), '1.900');
+  assert.equal(krFmt(3900), '3.900');
+  assert.equal(krFmt(9900), '9.900');
+  assert.equal(krFmt(12900), '12.900');
+  assert.equal(krFmt(990), '990');
+  assert.equal(krFmt(1234567), '1.234.567');
+  assert.equal(krFmt(0), '0');
+  assert.equal(krFmt(null), '0');
+  assert.equal(krFmt(undefined), '0');
+  assert.equal(krFmt('2900'), '2.900');
 });

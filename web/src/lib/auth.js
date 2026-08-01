@@ -11,6 +11,8 @@ const TIER_NAME = { 1: 'Grunnur', 2: 'Fyrirtæki', 3: 'Fyrirtæki+' };
 
 // WP→Cloudflare (F6): períferu notenda-gögn (vaktir/kvóti/samfélag) flutt í karp21-worker + D1
 // undir /api/u/*. Sama-uppruna → lotu-kaka berst sjálfkrafa. (Áður: wp.karp.is/wp-json/karp/v1.)
+import { krFmt } from './snid.mjs';
+
 export const KARP_API = '/api/u';
 
 // Undirbýr ALLAR 3 skýrslu-gagnaheimildir í bakgrunni (ársreikningar + eigendur + stjórn) svo
@@ -463,7 +465,7 @@ export function tierGate(el, opts) {
 export function subGate(el, opts) {
   if (!el) return; injectGateCss(); opts = opts || {};
   const u = _u();
-  const verd = (opts.price || 0).toLocaleString('is-IS') + ' kr./mán.';
+  const verd = krFmt(opts.price) + ' kr./mán.';   // ⚠ EKKI toLocaleString('is-IS') — vafrar hafa oft enga íslenska staðfærslu
   const trial = opts.trialDays > 0;
   const cta = trial ? 'Prófa frítt í ' + opts.trialDays + ' daga' : 'Gerast áskrifandi — ' + verd;
   const badge = trial ? '🎁 ' + opts.trialDays + ' daga frítt' : '⭐ ' + (opts.title || 'Karp+');
@@ -473,7 +475,7 @@ export function subGate(el, opts) {
     + '<div class="pg-btns">'
     + (u.loggedIn ? '<button class="pg-main" id="sg-sub" type="button">' + esc(cta) + '</button>' : '<a class="pg-main" href="' + esc(loginHref()) + '">Skrá inn til að ' + (trial ? 'prófa frítt' : 'gerast áskrifandi') + '</a>')
     + '</div>'
-    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Áskrift á ' + esc(verd)) + '. Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
+    + '<div class="pg-note">' + (trial ? '<b style="color:#6ee7b7">Fyrstu ' + opts.trialDays + ' dagana fría</b>, svo ' + esc(verd) : 'Áskrift á ' + esc(verd)) + ' Engin binding, segðu upp hvenær sem er. · ' + helpA('Þarftu aðstoð?') + '</div></div>';
   const b = el.querySelector('#sg-sub');
   if (b) b.onclick = () => karpAskellSubscribe(opts.service, el.querySelector('.plus-gate') || el);
 }

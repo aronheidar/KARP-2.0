@@ -12,3 +12,11 @@ export const ktFmt = (kt) => (kt && kt.length === 10 ? kt.slice(0, 6) + '-' + kt
 
 // Krónur → heilar milljónir með íslenskum þúsundapunkti (1234000000 → '1.234').
 export const mkrF = (v) => String(Math.round(v / 1e6)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+// Heil tala með íslenskum þúsundapunkti (1900 → '1.900').
+// ⚠ NOTIÐ ÞETTA Í VAFRA-KÓÐA, EKKI toLocaleString('is-IS'): margir vafrar hafa enga íslenska
+// staðfærslu og falla þá ÞEGJANDI í enskt snið. Mælt á karp.is 1.8.2026 —
+// Intl.NumberFormat.supportedLocalesOf(['is-IS']) skilaði [] og greiðslugáttin birti
+// „1,900 kr./mán." á Útboðsvaktinni. Node við byggingu ræður við is-IS (Astro-sniðmát eru
+// því í lagi), svo villan sést AÐEINS í client-kóða.
+export const krFmt = (v) => String(Math.round(Number(v) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
