@@ -1,9 +1,8 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
 import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor, difficultyOf, scaleMandate } from './game-config.mjs';
-import { resolveTeam, buildInputs } from './resolve.mjs';
+import { resolveTeam } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
-import { buildChain, activeInputsFromInputs } from './chain.mjs';
 import { buildAnalytics, teamReview } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
@@ -294,11 +293,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
         const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -8 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
-        const inp = buildInputs(history, { baseline: BASELINE, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
-        const chain = buildChain({ baseline: BASELINE, links: LINKS, activeInputs: activeInputsFromInputs(inp, BASELINE), kpiKeys: roundMandate.kpis.map((k) => k.key) });
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, chain, stability: stab, policies: polStates, stjornarkreppa: prevFell }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell }), roundScore, cumulative).run().catch(() => null);
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });
