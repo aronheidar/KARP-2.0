@@ -13,6 +13,8 @@ import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
 import { myndFyrirAtvik, PM_MYNDIR } from './myndir.mjs';
+import { kortThrep } from './kort-throp.mjs';
+import { renderIslandKort } from './kort-svg.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
@@ -271,7 +273,7 @@ function renderFacAnalytics(an, st, openDetails = new Set()) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {} };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -738,6 +740,80 @@ export function mountLeikur(root) {
     return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + polSum + '</div>';
   }
 
+  // ── F3-V3: Lifandi Íslandskortið (hönnunarskjal E) ────────────────────────
+  // Þrep reiknuð client-megin með kortThrep úr SETTLUÐUM uppgjörs-gögnum og teiknuð með
+  // renderIslandKort — traust prófuð eining, SVG-strengurinn fer ÓESCAPAÐUR inn (sama regla
+  // og sepop-/PM-myndir). Gögn: results-sýn = mine.detail; watch/leikslok = st.kort (nýjasta
+  // uppgjör per lið, opinbert eins og stigatafla); atviks-val = st.eventChoices (server-viðbót).
+  const kortCompact = () => { try { return window.innerWidth < 700; } catch (e) { return false; } };   // farsími → compact + engin animation
+  // Menntunar-lag kortsins les SLEÐANN (menntun er ekki engine-útkoma): nýjasta gildi úr draft
+  // (læsta gildi lotunnar) eða sögunni, normað á -1..1 sem kort-throp túlkar sem sleða-frávik
+  // (jákvætt frávik deilt með (max-base), neikvætt með (base-min)). Aðeins til fyrir EIGIÐ lið.
+  function kortMenntun(st) {
+    const cfg = BASELINE.levers.menntun; if (!cfg) return null;
+    let v = null;
+    if (st.draft && st.draft.menntun != null) v = +st.draft.menntun;
+    else { const hs = st.history || []; for (let i = hs.length - 1; i >= 0; i--) { const h = hs[i]; if (h && h.levers && h.levers.menntun != null) { v = +h.levers.menntun; break; } } }
+    if (v == null || !isFinite(v)) return null;
+    const base = cfg.base || 0, dev = v - base;
+    const skali = dev >= 0 ? ((cfg.max - base) || 1) : ((base - cfg.min) || 1);
+    return Math.max(-1, Math.min(1, dev / skali));
+  }
+  function kortThrepUr(st, teamId, kpis, policies) {
+    const kk = { ...(kpis || {}) };
+    if (teamId === S.teamId) { const m = kortMenntun(st); if (m != null) kk.menntun = m; }
+    return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {} });
+  }
+  const kortDot = (n) => '●●●'.slice(0, n) + '○○○'.slice(0, 3 - n);
+  function kortSkyring(threp) {
+    return '<p class="lk-kort-skyr" title="Þrep 0–3 laganna á kortinu — fleiri fylltir punktar = meira af laginu (losun: fleiri punktar = meiri mengun).">'
+      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur) + ' · 🏭 Losun ' + kortDot(threp.losun) + '</p>';
+  }
+  // Þrep-animation: síðasta teiknaða threp geymt í S.kortPrev (per lið+lota). Klasarnir fara AÐEINS
+  // á fyrstu teiknun NÝRRAR lotu (prev.round !== round) — poll-endurteiknanir innan sömu lotu fá þá
+  // ekki (annars spilaðist poppið á 2,5s fresti). String-injection á class-attribút SVG-hópanna
+  // (einkvæm per kort → replace snertir réttan hóp). Farsími/prefers-reduced-motion → engin animation.
+  function kortMedAnim(svg, threp, teamId, round) {
+    const prev = S.kortPrev[teamId];
+    S.kortPrev[teamId] = { round, threp };
+    if (kortCompact() || pmReduced() || !prev || prev.round === round) return svg;
+    let ut = svg;
+    const LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun' };
+    for (const k in LOG) if (prev.threp[k] !== threp[k]) ut = ut.replace('class="kt-lag ' + LOG[k] + '"', 'class="kt-lag ' + LOG[k] + ' kt-breytt"');
+    const adur = new Set(prev.threp.taknmyndir || []);
+    for (const t of (threp.taknmyndir || [])) if (!adur.has(t)) ut = ut.replace('class="kt-takn kt-takn-' + t + '"', 'class="kt-takn kt-takn-' + t + ' kt-nytt"');
+    return ut;
+  }
+  // Kort MÍNS liðs: results-sýn (uppgjör lotunnar) + leikslok (lokastaða). mine.detail fyrst,
+  // annars st.kort (leikslok/reload — results er null í ended-fasa).
+  function kortCardMitt(st) {
+    const mine = (st.results || []).find((r) => r.teamId === S.teamId);
+    let kpis = null, policies = null, round = st.round;
+    if (mine && mine.detail && mine.detail.kpis) { kpis = mine.detail.kpis; policies = mine.detail.policies || {}; }
+    else { const k = (st.kort || []).find((x) => x.teamId === S.teamId); if (k) { kpis = k.kpis || {}; policies = k.policies || {}; round = k.round; } }
+    if (!kpis) return '';
+    const threp = kortThrepUr(st, S.teamId, kpis, policies);
+    const svg = kortMedAnim(renderIslandKort(threp, { compact: kortCompact() }), threp, S.teamId, round);
+    return '<div class="lk-card"><h2>🇮🇸 Ísland ykkar</h2><div class="lk-kort">' + svg + '</div>' + kortSkyring(threp) + '</div>';
+  }
+  // Watch (skjávarpi): STÓRT kort efsta liðsins — eða tvö hlið við hlið þegar liðin eru nákvæmlega 2.
+  // Gögn = st.kort (nýjasta UPPGJÖR per lið) → í decide-fasa sést síðasta uppgjör ef til (ekkert
+  // kort fyrr en fyrsta uppgjör — engin drög lotu í gangi sjást á korti). compact aðeins undir 700px.
+  function kortWatch(st, teams) {
+    const kd = st.kort; if (!kd || !kd.length) return '';
+    const byId = {}; for (const k of kd) byId[k.teamId] = k;
+    const med = teams.filter((t) => byId[t.id]);
+    if (!med.length) return '';
+    const pick = med.length === 2 ? med : [med[0]];
+    const one = (t) => {
+      const k = byId[t.id];
+      const threp = kortThrepUr(st, t.id, k.kpis, k.policies);
+      const svg = kortMedAnim(renderIslandKort(threp, { compact: kortCompact() }), threp, t.id, k.round);
+      return '<div><div class="lk-kort-nafn">' + esc(t.name) + '</div><div class="lk-kort">' + svg + '</div>' + kortSkyring(threp) + '</div>';
+    };
+    return '<div class="lk-card lk-kort-watch"><h2>🇮🇸 ' + (pick.length === 2 ? 'Ísland liðanna' : 'Ísland efsta liðsins') + '</h2><div class="lk-kort-grid' + (pick.length === 2 ? ' two' : '') + '">' + pick.map(one).join('') + '</div></div>';
+  }
+
   function renderTeam(st) {
     if (st.phase === 'lobby') { root.innerHTML = teamBanner(st) + card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
     if (st.phase === 'ended') {
@@ -759,7 +835,10 @@ export function mountLeikur(root) {
         + '<b style="font-size:13px">🏅 Verðlaunatitlar ríkisstjórnarinnar:</b>' + medalHtml
         + '<button class="lk-btn" id="lk-share" style="margin-top:12px">📋 Afrita forsíðuna</button>'
         + '</div></div>';
-      root.innerHTML = frontPage + teamBanner(st) + uppsafnadRecap(st, S.teamId) + teamRecap(st) + revealCard(st) + leaderboard(st);
+      // F3-V3: lokastaða kortsins við hlið „Ísland ykkar 2032"-blokkarinnar (grid 2 dálkar á breiðum skjá).
+      const kortH = kortCardMitt(st), recapH = uppsafnadRecap(st, S.teamId);
+      const lokaBlokk = (kortH && recapH) ? '<div class="lk-kort-loka">' + kortH + recapH + '</div>' : kortH + recapH;
+      root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + teamRecap(st) + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
       return;
     }
@@ -844,7 +923,9 @@ export function mountLeikur(root) {
       const uprising = stab.level !== 'stable' ? '<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(' + (stab.level === 'revolt' ? '231,130,132,.16);border-left:3px solid #e78284' : '232,193,74,.12);border-left:3px solid #e8c14a') + '"><b>' + stab.icon + ' ' + esc(stab.title) + '</b> — ' + esc(stab.blurb) + '</div>' : '';
       extras += '<div class="lk-card"><h2>🗳️ Kosningar &amp; fylgi</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + stab.approval + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p>' + uprising + '</div>';
     }
-    root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st) + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
+    root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st)
+      + kortCardMitt(st)   // F3-V3: „🇮🇸 Ísland ykkar" efst í results (plássið sem orsaka-keðjan hafði)
+      + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + extras
       + leaderboard(st)
       + uppsafnadCard(st, S.teamId)   // F1-V4: uppsafnað yfir allan leikinn + samanburður liða + ákvarðana-pinnar
@@ -1059,6 +1140,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
       winner +
+      kortWatch(st, teams) +   // F3-V3: stórt Íslandskort efsta liðs (eða 2 hlið við hlið) — síðasta uppgjör
       '<div class="lk-card"><h2>🏆 Stigatafla</h2><div class="lk-watch-board">' + board + '</div></div>' +
       context + chart + revealCard(st);
   }

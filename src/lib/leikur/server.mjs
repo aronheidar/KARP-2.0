@@ -162,6 +162,35 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
           prevPol = pol;
         }
       }
+      // F3-V3: Íslandskortið — opinbert eins og stigatafla/kpiHistory (kortið birtist á skjávarpa).
+      // kort: nýjasta UPPGJÖR per lið (kpis-undirmengi kortsins + policyStates) → results-/watch-/leikslok-
+      // sýnir teikna alltaf SETTLAÐA stöðu; drög lotu í gangi sjást aldrei á korti.
+      out.kort = [];
+      for (const t of teamsRaw) {
+        const rows = byTeamRes[t.id] || []; if (!rows.length) continue;
+        const last = rows.reduce((a, b) => (b.round > a.round ? b : a));
+        const k = last.d.kpis || {};
+        out.kort.push({ teamId: t.id, round: last.round, kpis: { byggdajofnudur: k.byggdajofnudur ?? null, fiskistofn: k.fiskistofn ?? null, losun: k.losun ?? null }, policies: last.d.policies || {} });
+      }
+      // eventChoices: klemmu-val per lið úr LEYSTUM lotum (dilemma úr decisions-sögu × rollSurprise per
+      // lotu — atviks-id fæst aðeins hér, determinískt af (code, round)). Í decide-fasa telur lotan í gangi
+      // EKKI (óuppgert val sést ekki á korti). 'ja' límist: „valdi liðið ja EINHVERN TÍMA" (gagnaver-táknið).
+      if (cfg.surprise) {
+        const decAll = ((await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+        const dilByTR = {};
+        for (const d of decAll) { try { const dd = JSON.parse(d.decisions || '{}'); if (dd.dilemma != null) (dilByTR[d.team_id] || (dilByTR[d.team_id] = {}))[d.round] = dd.dilemma; } catch (e) {} }
+        const maxR = game.phase === 'decide' ? game.current_round - 1 : game.current_round;
+        out.eventChoices = {};
+        for (const t of teamsRaw) {
+          const ch = {};
+          for (let rr = 1; rr <= maxR; rr++) {
+            const sev = rollSurprise(code, rr); if (!sev || !sev.dilemma) continue;
+            const c = (dilByTR[t.id] || {})[rr];
+            if (c != null && ch[sev.id] !== 'ja') ch[sev.id] = c;
+          }
+          out.eventChoices[t.id] = ch;
+        }
+      }
     }
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
     if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) {

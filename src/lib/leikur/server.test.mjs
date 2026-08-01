@@ -246,9 +246,18 @@ const J = async (res) => JSON.parse(await res.text());
     const dbt = xRes.analytics && xRes.analytics.dilemmasByTeam;
     ok('surprise: leikstjóra-samantekt með klemmu-viðbrögð beggja liða', Array.isArray(dbt) && dbt.length === 2 && dbt.every((t) => t.items.some((it) => it.round === 2 && it.title === xEv.title)));
     ok('surprise: samantekt sýnir rétt val liðs A', dbt && dbt.some((t) => t.items.find((it) => it.round === 2).choice === opts[0].label));
+    // F3-V3: kort + eventChoices — opinbert (án tákns) strax eftir uppgjör lotu 2
+    const xPub = await J(await LH(new Request('https://karp.is/api/leikur/' + xg.code + '/state'), env));
+    ok('kort: opinbert án tákns, 2 lið, nýjasta uppgjör (lota 2)', Array.isArray(xPub.kort) && xPub.kort.length === 2 && xPub.kort.every((k) => k.round === 2));
+    ok('kort: ber kpis-undirmengið (byggd/fiskur/losun tölur) + policies', xPub.kort.every((k) => typeof k.kpis.byggdajofnudur === 'number' && typeof k.kpis.fiskistofn === 'number' && typeof k.kpis.losun === 'number' && k.policies && typeof k.policies === 'object'));
+    ok('kort: verðtrygging liðs A í policies (kortThrep-inntak)', (() => { const k = xPub.kort.find((x) => x.teamId === xj1.teamId); return k && k.policies.verdtrygging === true; })());
+    ok('eventChoices: val beggja liða úr leystu lotunni 2', xPub.eventChoices && xPub.eventChoices[xj1.teamId] && xPub.eventChoices[xj1.teamId][xEv.id] === opts[0].key && xPub.eventChoices[xj2.teamId][xEv.id] === (opts[1] || opts[0]).key);
     // Arfleifð: í umferð 3 sér liðið hvernig fyrri ákvarðanir (verðtrygging) + atvik umferðar 2 lita lotuna
     await xCtrl('next');
     const x3 = await J(await xStG(xj1.teamToken));
+    // F3-V3: í decide-fasa lotu 3 sýnir kortið áfram SÍÐASTA uppgjör (lotu 2) — lotan í gangi telur ekki
+    ok('kort: decide-fasi sýnir síðasta uppgjör (round=2)', Array.isArray(x3.kort) && x3.kort.length === 2 && x3.kort.every((k) => k.round === 2));
+    ok('eventChoices: decide-fasi telur EKKI lotuna í gangi (val lotu 2 stendur)', x3.eventChoices && x3.eventChoices[xj1.teamId][xEv.id] === opts[0].key);
     ok('arfleifð: carryover sent í umferð 3', !!x3.carryover);
     ok('arfleifð: standandi ákvörðun (verðtrygging) með', x3.carryover.policies.some((p) => p.id === 'verdtrygging' && p.text.length > 10));
     ok('arfleifð: fyrra atvik (umferð 2) tilgreint með texta', x3.carryover.event && x3.carryover.event.id === xEv.id && x3.carryover.event.text.length > 10);
@@ -262,6 +271,8 @@ const J = async (res) => JSON.parse(await res.text());
     const xRes3 = await J(await xStG(xg.facToken));
     const xr3 = (xRes3.results || []).find((r) => r.teamId === xj1.teamId);
     ok('adild-lota: policyStages esb=adild og delta ber skuldir −2', xr3 && xr3.detail.policyStages.esb === 'adild' && xr3.detail.policyDeltas.esb && xr3.detail.policyDeltas.esb.skuldir === -2);
+    // F3-V3: kort fylgir nýjasta uppgjöri (lota 3) og esb-staða liðs A komin í kort-policies
+    ok('kort: uppfærist í lotu 3 eftir resolve', Array.isArray(xRes3.kort) && xRes3.kort.every((k) => k.round === 3) && (() => { const k = xRes3.kort.find((x) => x.teamId === xj1.teamId); return k && !!k.policies.esb; })());
     // classic/án surprise → aldrei out.surprise
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
   }
@@ -291,6 +302,12 @@ const J = async (res) => JSON.parse(await res.text());
   ok('decisionMarks: EKKERT tvítekið mark í lotu 2 (adild=óbreytt val) og B markalaust', !uMarksA.some((m) => m.round === 2) && !(uSt.decisionMarks || []).some((m) => m.teamId === uj2.teamId));
   const uTeamSt = await J(await uStG(uj1.teamToken));
   ok('kpiHistory: lið sér líka öll lið (opinbert eins og stigatafla)', Array.isArray(uTeamSt.kpiHistory) && uTeamSt.kpiHistory.length === 2 && Array.isArray(uTeamSt.decisionMarks));
+  // F3-V3: kort sent líka ÁN surprise-flaggs; eventChoices AÐEINS með surprise (engin atvik → ekkert svið)
+  ok('kort: sent í leik án surprise (2 lið, lota 2)', Array.isArray(uTeamSt.kort) && uTeamSt.kort.length === 2 && uTeamSt.kort.every((k) => k.round === 2));
+  ok('eventChoices: EKKI sent án surprise-flaggs', uTeamSt.eventChoices === undefined);
+  const lg = await J(await LH(req('/api/leikur/create', {}), env));
+  const lgSt = await J(await LH(new Request('https://karp.is/api/leikur/' + lg.code + '/state', { headers: { authorization: 'Bearer ' + lg.facToken } }), env));
+  ok('kort/eventChoices: EKKI sent í lobby', lgSt.kort === undefined && lgSt.eventChoices === undefined);
 
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

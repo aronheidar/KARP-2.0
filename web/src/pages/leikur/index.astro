@@ -209,4 +209,20 @@ const MODEL = {
     main[data-pg="leikur"] .lk-pm-card .pm-blikk, main[data-pg="leikur"] .lk-pm-fab .pm-blikk,
     main[data-pg="leikur"] .lk-pm-avatar, main[data-pg="leikur"] .lk-pm-fab { animation: none; }
   }
+  /* F3-V3: Lifandi Íslandskortið — is:global af sömu ástæðu og sepop/pm (@keyframes + runtime-innerHTML). */
+  main[data-pg="leikur"] .lk-kort { max-width: 620px; margin: 0 auto; }
+  main[data-pg="leikur"] .lk-kort svg.kt-kort { width: 100%; height: auto; display: block; border-radius: 10px; }
+  main[data-pg="leikur"] .lk-kort-skyr { text-align: center; font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 8px 0 0; letter-spacing: .4px; cursor: help; }
+  main[data-pg="leikur"] .lk-kort-watch .lk-kort { max-width: 980px; }   /* skjávarpi: stórt */
+  main[data-pg="leikur"] .lk-kort-grid.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  main[data-pg="leikur"] .lk-kort-nafn { font-weight: 800; font-size: 16px; margin: 0 0 6px; text-align: center; }
+  main[data-pg="leikur"] .lk-kort-loka { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }   /* leikslok: kort + „Ísland ykkar 2032" hlið við hlið */
+  /* Þrep-breyting: pop/glow á lagið (lag-hópar bera ENGA transform-attribúta → CSS-scale óhætt);
+     nýtt tákn: fade+glow — VILJANDI ekkert CSS-transform á .kt-takn, translate-attribútið myndi klobbast. */
+  main[data-pg="leikur"] .kt-lag.kt-breytt { animation: lk-kt-breytt .6s ease; transform-box: fill-box; transform-origin: center; }
+  main[data-pg="leikur"] .kt-takn.kt-nytt { animation: lk-kt-nytt .7s ease-out; }
+  @keyframes lk-kt-breytt { 0% { opacity: .3; transform: scale(.97); } 55% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 7px rgba(246,177,59,.85)); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes lk-kt-nytt { 0% { opacity: 0; } 55% { opacity: 1; filter: drop-shadow(0 0 9px rgba(246,177,59,.9)); } 100% { opacity: 1; } }
+  @media (max-width: 900px) { main[data-pg="leikur"] .lk-kort-grid.two, main[data-pg="leikur"] .lk-kort-loka { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .kt-lag.kt-breytt, main[data-pg="leikur"] .kt-takn.kt-nytt { animation: none; } }
 </style>
