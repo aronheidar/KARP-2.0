@@ -1,0 +1,310 @@
+---
+// /leikur/demo/ — „Lifðu af 2008": opinn demo-hamur RÁS-Leiksins. ENGIN innskráning, engin D1 —
+// allt kjörtímabilið 2008–2012 leyst Í VAFRANUM með sömu prófuðu einingunum og fulli leikurinn
+// (resolve/scoring/policies/flavor/kort). Markaðssíða: indexanleg, SSR-aður inngangur + stjórnborð.
+import Layout from '../../layouts/Layout.astro';
+import BASELINE from '@gogn/roads/baseline.json';
+import { DEMO_EVENT, DEMO_LEVERS, DEMO_POLICIES, DEMO_YEAR_FROM, DEMO_YEAR_TO } from '@lib/leikur/demo-logic.mjs';
+import { ALTHINGI_MYND } from '@lib/leikur/myndir.mjs';
+
+// Kennslu-vísbending per sleði (aðeins birting — áhrifin koma úr hermi-tengslunum).
+const HINTS = {
+  vextir: 'Verja krónuna og hemja verðbólguna — en háir vextir kæfa hagvöxt og heimili.',
+  utgjold: 'Skera niður eða örva? Útgjöld halda hjólunum gangandi en auka skuldir ríkissjóðs.',
+  skattar: 'Afla ríkinu tekna í neyð — en hærri skattar bíta í kaupmátt heimilanna.',
+  tilfaerslur: 'Barnabætur og stuðningur: verja þau sem verst verða úti í hruninu.',
+  innvidir: 'Fjárfesta út úr kreppunni: störf strax, framleiðslugeta til framtíðar.',
+  menntun: 'Menntun og rannsóknir — hægvirk en varanleg viðspyrna.',
+  laun: 'Kjarasamningar: launahækkanir verja kaupmátt en geta fest verðbólguna í sessi.',
+};
+const LEVERS = DEMO_LEVERS.map((k) => {
+  const c = BASELINE.levers[k];
+  return { key: k, label: c.label, base: c.base, min: c.min, max: c.max, unit: c.unit || '',
+    step: k === 'vextir' ? 0.25 : k === 'laun' ? 0.5 : 1, hint: HINTS[k] || '' };
+});
+
+const TITLE = 'Lifðu af 2008 — RÁS-Leikurinn (ókeypis demo)';
+const DESC = 'Október 2008: bankarnir eru fallnir og þú ert ríkisstjórn Íslands. Stilltu stýrivexti, útgjöld og skatta, taktu stóru ákvarðanirnar um bankana og höftin — og berðu útkomuna saman við hvernig fór í alvöru. Ókeypis, engin innskráning.';
+const JSONLD = {
+  '@context': 'https://schema.org', '@type': 'VideoGame',
+  name: 'RÁS-Leikurinn — Lifðu af 2008 (demo)', inLanguage: 'is',
+  description: DESC, gamePlatform: 'Vefur', applicationCategory: 'Game',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'ISK' },
+  url: 'https://karp.is/leikur/demo/',
+};
+---
+<Layout title={TITLE} description={DESC} ogTitle="Lifðu af 2008 — geturðu stýrt Íslandi gegnum hrunið?" jsonLd={JSONLD} bare={true}>
+  <main data-pg="leikur-demo">
+    <header class="dm-hero">
+      <div class="dm-hero-img" aria-hidden="true" set:html={ALTHINGI_MYND} />
+      <div class="dm-hero-txt">
+        <span class="dm-badge">Ókeypis demo · engin innskráning</span>
+        <h1>Lifðu af 2008</h1>
+        <p class="dm-lead">Október 2008. Bankarnir eru fallnir. Þú ert ríkisstjórn Íslands.</p>
+      </div>
+    </header>
+
+    <section class="dm-card dm-intro">
+      <h2>{DEMO_EVENT.icon} {DEMO_EVENT.title}</h2>
+      <p class="dm-intro-txt">{DEMO_EVENT.text}</p>
+      <p class="dm-watch">{DEMO_EVENT.focus}</p>
+    </section>
+
+    <section class="dm-card" id="dm-stjornbord">
+      <h2>🎛️ Stjórnborðið þitt — kjörtímabilið {DEMO_YEAR_FROM}–{DEMO_YEAR_TO}</h2>
+      <p class="dm-muted">Stilltu hagstjórnina fyrir öll fjögur árin og læstu svo kjörtímabilið. Hermirinn — sama vél og í fulla RÁS-Leiknum — reiknar hvernig Ísland kemur undan hruninu.</p>
+      <div class="dm-sliders">
+        {LEVERS.map((l) => (
+          <div class="dm-slider">
+            <label for={'dm-in-' + l.key}>{l.label} <span class="dm-val" id={'dm-val-' + l.key}>{l.base}{l.unit}</span></label>
+            <input type="range" id={'dm-in-' + l.key} data-lever={l.key} data-base={l.base} data-unit={l.unit} min={l.min} max={l.max} step={l.step} value={l.base} />
+            <small class="dm-hint">{l.hint}</small>
+          </div>
+        ))}
+      </div>
+      <h3 class="dm-h3">⚖️ Stóru ákvarðanirnar</h3>
+      <div class="dm-policies">
+        {DEMO_POLICIES.map((p) => (
+          <div class="dm-policy">
+            <div class="dm-pol-head">{p.icon} <b>{p.label}</b></div>
+            <p class="dm-pol-desc">{p.desc}</p>
+            <div class="dm-pol-opts">
+              {p.kind === 'toggle'
+                ? <button type="button" class="dm-opt" data-pol={p.id} data-val="on">{p.onLabel}</button>
+                : (p.options || []).map((o) => <button type="button" class="dm-opt" data-pol={p.id} data-val={o.key}>{o.label}</button>)}
+            </div>
+          </div>
+        ))}
+      </div>
+      <button type="button" id="dm-laesa" class="dm-btn dm-btn-big">🗳️ Læsa kjörtímabilið {DEMO_YEAR_FROM}–{DEMO_YEAR_TO}</button>
+      <p id="dm-hiscore" class="dm-muted dm-hiscore" hidden></p>
+    </section>
+
+    <section id="dm-nidurstada" aria-live="polite" hidden></section>
+
+    <section class="dm-card dm-cta">
+      <h2>Þetta var eitt kjörtímabil af átta</h2>
+      <p>Fulli RÁS-Leikurinn spannar Ísland 2000–2032: lið keppa sín á milli, leikstjóri stýrir umferðum, ný stjórntæki opnast með tímanum og hver einasta ákvörðun bergmálar áfram — frá netbólu gegnum hrun, ferðamannasprengju og heimsfaraldur til framtíðarinnar.</p>
+      <p class="dm-cta-row">
+        <a class="dm-btn" href="/leikur/">🎮 Skoða fulla leikinn</a>
+        <a class="dm-btn dm-btn-ghost" href="mailto:aron@karp.is?subject=RÁS-Leikurinn">✉️ Hafðu samband — aron@karp.is</a>
+      </p>
+      <p class="dm-muted">Fyrir skóla, vinnustaði og alla sem vilja finna á eigin skinni hvers vegna hagstjórn er erfið.</p>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  import BASELINE from '@gogn/roads/baseline.json';
+  import LINKS from '@gogn/roads/links.json';
+  import { resolveDemo, vsReality } from '@lib/leikur/demo-logic.mjs';
+  import { renderIslandKort } from '@lib/leikur/kort-svg.mjs';
+
+  const $ = (s: string, r?: Element | Document) => (r || document).querySelector(s);
+  const esc = (s: unknown) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string));
+  const fmt = (n: number, d = 1) => Number(n).toLocaleString('is-IS', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const HI_KEY = 'karp-leikur-demo-hiscore';
+
+  // — UI-ástand stóru ákvarðananna: { hoft: boolean, bankar: 'thjod'|'einka'|null }
+  const pol: { hoft: boolean; bankar: string | null } = { hoft: false, bankar: null };
+
+  // Sleðar: lifandi gildis-birting + „moved"-auðkenning.
+  document.querySelectorAll<HTMLInputElement>('input[data-lever]').forEach((el) => {
+    el.addEventListener('input', () => {
+      const out = $('#dm-val-' + el.dataset.lever) as HTMLElement | null;
+      if (!out) return;
+      out.textContent = fmt(+el.value, el.step && +el.step < 1 ? 2 : 0) + (el.dataset.unit || '');
+      out.classList.toggle('moved', +el.value !== +(el.dataset.base || 0));
+    });
+  });
+
+  // Stefnu-hnappar: toggle (hoft) kveikir/slekkur; choice (bankar) velur einn — smellur aftur afvelur.
+  document.querySelectorAll<HTMLButtonElement>('.dm-opt[data-pol]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.pol as 'hoft' | 'bankar', val = btn.dataset.val || '';
+      if (id === 'hoft') {
+        pol.hoft = !pol.hoft;
+        btn.classList.toggle('sel', pol.hoft);
+      } else {
+        pol.bankar = pol.bankar === val ? null : val;
+        document.querySelectorAll('.dm-opt[data-pol="' + id + '"]').forEach((b) => b.classList.toggle('sel', (b as HTMLElement).dataset.val === pol.bankar));
+      }
+    });
+  });
+
+  function collectLevers() {
+    const levers: Record<string, number> = {};
+    document.querySelectorAll<HTMLInputElement>('input[data-lever]').forEach((el) => { levers[el.dataset.lever as string] = +el.value; });
+    return levers;
+  }
+
+  // KPI-birting: eining + „hvora áttina er gott" (f. lit á delta-flísum).
+  const UNIT: Record<string, string> = { verdbolga: '%', atvinnuleysi: '%', skuldir: '% af VLF', hagvoxtur: '%' };
+  const GOOD_DIR: Record<string, number> = { verdbolga: -1, atvinnuleysi: -1, skuldir: -1, hagvoxtur: 1 };
+  const chip = (key: string, delta: number, label: string) => {
+    const cls = delta * (GOOD_DIR[key] || 1) > 0 ? 'g' : delta === 0 ? '' : 'r';
+    return '<span class="dm-chip ' + cls + '">' + esc(label) + ': ' + (delta > 0 ? '+' : '') + esc(fmt(delta)) + '</span>';
+  };
+
+  let neutral: any = null; // „óbreytt stefna" — reiknað einu sinni, notað í delta-flísar
+  function renderResults(res: any) {
+    const kp = res.kpis;
+    const tiles = ['verdbolga', 'atvinnuleysi', 'skuldir', 'hagvoxtur'].map((k) => {
+      const spec = res.perKpi.find((p: any) => p.key === k);
+      const d = neutral ? Math.round((kp[k] - neutral.kpis[k]) * 10) / 10 : 0;
+      return '<div class="dm-tile"><span class="dm-tile-l">' + esc(spec ? spec.label : k) + '</span>' +
+        '<b>' + esc(fmt(kp[k])) + '<small> ' + esc(UNIT[k] || '') + '</small></b>' +
+        chip(k, d, 'vs óbreytt stefna') + '</div>';
+    }).join('');
+    const st = res.stability;
+    const popCol = st.approval >= 55 ? '#54d08a' : st.approval >= 35 ? '#e8c14a' : '#e78284';
+    const rows = vsReality(kp).map((r: any) =>
+      '<tr><td>' + esc(r.icon) + ' ' + esc(r.label) + '</td><td>' + esc(fmt(r.you)) + '%</td>' +
+      '<td>' + esc(fmt(r.real)) + '%</td>' +
+      '<td class="' + (r.delta * (GOOD_DIR[r.key] || 1) > 0 ? 'dm-g' : r.delta === 0 ? '' : 'dm-r') + '">' + (r.delta > 0 ? '+' : '') + esc(fmt(r.delta)) + '</td></tr>').join('');
+    const html =
+      '<div class="dm-card dm-res-head">' +
+        '<div class="dm-score-row"><div class="dm-score-big">' + esc(fmt(res.score)) + '</div>' +
+        '<div><div class="dm-score-sub">stig af 100 fyrir kjörtímabilið</div>' +
+        '<div class="dm-stab">' + esc(st.icon) + ' ' + esc(st.title) + '</div></div></div>' +
+        (res.crisis ? '<p class="dm-crisis">🚨 Efnahagskreppa: eitt eða fleiri hættumörk rofin — stigin hrynja.</p>' : '') +
+        '<p class="dm-stab-blurb">' + esc(st.blurb) + '</p>' +
+        '<div class="dm-pop-bar"><div class="dm-pop-fill" style="width:' + Math.max(2, Math.min(100, st.approval)) + '%;background:' + popCol + '"></div></div>' +
+        '<p class="dm-muted">Fylgi í lok kjörtímabils: <b>' + esc(st.approval) + '%</b> · Kaupmáttur launa: <b>' + esc(fmt(kp.kaupmattur)) + '%/ári</b>' +
+        (res.survived ? '' : ' · <b>Stjórnin féll.</b>') + '</p>' +
+      '</div>' +
+      '<div class="dm-card"><h2>📊 Staðan 2012 — lykiltölur</h2><div class="dm-tiles">' + tiles + '</div></div>' +
+      '<div class="dm-card"><h2>🗺️ Ísland ykkar 2012</h2><div class="dm-kort">' +
+        renderIslandKort(res.threp, { compact: window.innerWidth < 700 }) + // traust prófuð eining — SVG-strengurinn fer óescapaður inn (sama regla og client.mjs)
+        '<p class="dm-kort-skyr">Byggð · menntun · fiskistofn · losun — kortið endurspeglar stöðu landsins</p></div></div>' +
+      '<div class="dm-card"><h2>📰 Fyrirsagnir kjörtímabilsins</h2><ul class="dm-news">' +
+        res.headlines.map((h: string) => '<li>' + esc(h) + '</li>').join('') + '</ul></div>' +
+      '<div class="dm-card"><h2>📜 Svona fór það í alvöru</h2>' +
+        '<table class="dm-tbl"><thead><tr><th>Lykiltala 2012</th><th>Þín stjórn</th><th>Raunin</th><th>Munur</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<p class="dm-muted">Raun-gildin eru stílfært viðmið úr hagsögunni og hermirinn byrjar á einfölduðum grunni — samanburðurinn er til fróðleiks, ekki nákvæm hagsaga. Skuldir eru % af VLF.</p></div>' +
+      '<div class="dm-actions"><button type="button" id="dm-aftur" class="dm-btn dm-btn-ghost">🔄 Spila aftur</button></div>';
+    const host = $('#dm-nidurstada') as HTMLElement;
+    host.innerHTML = html;
+    host.hidden = false;
+    ($('#dm-aftur') as HTMLButtonElement).addEventListener('click', resetDemo);
+    host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function showHiscore() {
+    try {
+      const v = +(localStorage.getItem(HI_KEY) || 0);
+      const el = $('#dm-hiscore') as HTMLElement;
+      if (v > 0) { el.textContent = '🏅 Besta tilraun þín hingað til: ' + fmt(v) + ' stig'; el.hidden = false; }
+    } catch (e) { /* localStorage læst — demo virkar samt */ }
+  }
+
+  function resetDemo() {
+    document.querySelectorAll<HTMLInputElement>('input[data-lever]').forEach((el) => {
+      el.value = String(el.dataset.base || 0);
+      el.dispatchEvent(new Event('input'));
+    });
+    pol.hoft = false; pol.bankar = null;
+    document.querySelectorAll('.dm-opt[data-pol]').forEach((b) => b.classList.remove('sel'));
+    const host = $('#dm-nidurstada') as HTMLElement;
+    host.hidden = true; host.innerHTML = '';
+    ($('#dm-stjornbord') as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  ($('#dm-laesa') as HTMLButtonElement).addEventListener('click', () => {
+    if (!neutral) neutral = resolveDemo({ baseline: BASELINE, links: LINKS }); // viðmið reiknað einu sinni
+    const res = resolveDemo({ baseline: BASELINE, links: LINKS, levers: collectLevers(), policies: { hoft: pol.hoft, bankar: pol.bankar } });
+    try {
+      const prev = +(localStorage.getItem(HI_KEY) || 0);
+      if (res.score > prev) localStorage.setItem(HI_KEY, String(res.score));
+    } catch (e) { /* einka-vafur o.þ.h. */ }
+    renderResults(res);
+    showHiscore();
+  });
+
+  showHiscore();
+</script>
+
+<style>
+  /* Endurnýtir útlits-mynstur leiksins (index.astro) en allt AFRITAÐ hingað með dm-forskeyti —
+     :global-mynstrið undir main[data-pg] því niðurstöðu-HTML kemur úr runtime-innerHTML
+     (scoped-CSS næði ekki í það, sama gildra og skjalfest í leiknum). */
+  main[data-pg="leikur-demo"] { max-width: 860px; margin: 0 auto; padding: 20px 20px 80px; color: var(--ink, #e8ecf3); }
+  main[data-pg="leikur-demo"] :global(h1) { font-size: 34px; margin: 6px 0 4px; }
+  main[data-pg="leikur-demo"] :global(h2) { font-size: 19px; margin: 0 0 10px; }
+  main[data-pg="leikur-demo"] :global(.dm-card) { border: 1px solid var(--line, #2a2f3a); border-radius: 12px; padding: 16px; margin: 12px 0; background: rgba(255,255,255,.03); }
+  main[data-pg="leikur-demo"] :global(.dm-muted) { color: var(--muted, #9fb0c8); font-size: 13.5px; }
+  main[data-pg="leikur-demo"] :global(.dm-btn) { display: inline-block; background: #f6b13b; color: #12161f; border: 0; border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 15px; text-decoration: none; }
+  main[data-pg="leikur-demo"] :global(.dm-btn:hover) { filter: brightness(1.07); }
+  main[data-pg="leikur-demo"] :global(.dm-btn-ghost) { background: rgba(255,255,255,.06); color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); }
+  main[data-pg="leikur-demo"] :global(.dm-btn-big) { width: 100%; font-size: 17px; padding: 14px; margin-top: 14px; }
+  /* Hero */
+  main[data-pg="leikur-demo"] :global(.dm-hero) { display: flex; gap: 18px; align-items: center; margin: 8px 0 4px; }
+  main[data-pg="leikur-demo"] :global(.dm-hero-img) { flex: 0 0 180px; max-width: 180px; line-height: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line, #2a2f3a); }
+  main[data-pg="leikur-demo"] :global(.dm-hero-img svg) { width: 100%; height: auto; display: block; }
+  main[data-pg="leikur-demo"] :global(.dm-badge) { display: inline-block; font-size: 12px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.12); border-radius: 999px; padding: 3px 12px; }
+  main[data-pg="leikur-demo"] :global(.dm-lead) { font-size: 16.5px; color: var(--muted, #9fb0c8); margin: 2px 0 0; }
+  /* Inngangur */
+  main[data-pg="leikur-demo"] :global(.dm-intro) { border-color: #e7828466; background: linear-gradient(180deg, rgba(231,130,132,.08), rgba(231,130,132,.02)); }
+  main[data-pg="leikur-demo"] :global(.dm-intro-txt) { font-size: 14.5px; line-height: 1.6; margin: 6px 0; }
+  main[data-pg="leikur-demo"] :global(.dm-watch) { font-size: 13px; color: #f0c674; background: rgba(240,177,59,.08); border-left: 3px solid #f6b13b; padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 10px 0 0; }
+  /* Sleðar */
+  main[data-pg="leikur-demo"] :global(.dm-sliders) { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px 22px; margin: 12px 0 4px; }
+  main[data-pg="leikur-demo"] :global(.dm-slider) { padding: 6px 8px; border-left: 2px solid #f6b13b44; border-radius: 6px; background: rgba(246,177,59,.04); }
+  main[data-pg="leikur-demo"] :global(.dm-slider label) { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  main[data-pg="leikur-demo"] :global(.dm-val) { font-weight: 700; color: #cbd3e1; font-variant-numeric: tabular-nums; }
+  main[data-pg="leikur-demo"] :global(.dm-val.moved) { color: #f6b13b; }
+  main[data-pg="leikur-demo"] :global(.dm-slider input[type=range]) { width: 100%; accent-color: #f6b13b; height: 26px; touch-action: pan-y; }
+  main[data-pg="leikur-demo"] :global(.dm-hint) { display: block; font-size: 11.5px; color: var(--muted, #9fb0c8); line-height: 1.4; }
+  /* Stóru ákvarðanirnar */
+  main[data-pg="leikur-demo"] :global(.dm-h3) { font-size: 15.5px; margin: 18px 0 8px; }
+  main[data-pg="leikur-demo"] :global(.dm-policies) { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  main[data-pg="leikur-demo"] :global(.dm-policy) { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #e8c14a; border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
+  main[data-pg="leikur-demo"] :global(.dm-pol-head) { font-size: 14.5px; }
+  main[data-pg="leikur-demo"] :global(.dm-pol-desc) { font-size: 12.5px; color: var(--muted, #9fb0c8); line-height: 1.45; margin: 5px 0 8px; }
+  main[data-pg="leikur-demo"] :global(.dm-opt) { display: inline-block; padding: 7px 12px; margin: 2px 4px 2px 0; border: 1px solid var(--line, #2a2f3a); border-radius: 8px; cursor: pointer; font-size: 13.5px; background: rgba(255,255,255,.03); color: var(--ink, #e8ecf3); font-family: inherit; }
+  main[data-pg="leikur-demo"] :global(.dm-opt:hover) { border-color: #f6b13b88; }
+  main[data-pg="leikur-demo"] :global(.dm-opt.sel) { outline: 2px solid #f6b13b; background: rgba(246,177,59,.12); }
+  main[data-pg="leikur-demo"] :global(.dm-hiscore) { margin: 10px 0 0; text-align: center; }
+  /* Niðurstöður (runtime-innerHTML → verður að ná gegnum :global) */
+  main[data-pg="leikur-demo"] :global(.dm-res-head) { border-color: #f6b13b66; background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(246,177,59,.02)); }
+  main[data-pg="leikur-demo"] :global(.dm-score-row) { display: flex; align-items: center; gap: 16px; }
+  main[data-pg="leikur-demo"] :global(.dm-score-big) { font-size: 52px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; line-height: 1; }
+  main[data-pg="leikur-demo"] :global(.dm-score-sub) { font-size: 13px; color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur-demo"] :global(.dm-stab) { font-size: 17px; font-weight: 700; margin-top: 2px; }
+  main[data-pg="leikur-demo"] :global(.dm-stab-blurb) { font-size: 13.5px; line-height: 1.5; margin: 10px 0 8px; }
+  main[data-pg="leikur-demo"] :global(.dm-crisis) { color: #f2a6a8; background: rgba(231,130,132,.12); border: 1px solid #e7828455; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; margin: 10px 0 0; }
+  main[data-pg="leikur-demo"] :global(.dm-pop-bar) { height: 10px; background: rgba(255,255,255,.08); border-radius: 6px; overflow: hidden; margin: 4px 0 6px; }
+  main[data-pg="leikur-demo"] :global(.dm-pop-fill) { height: 100%; border-radius: 6px; transition: width .3s; }
+  main[data-pg="leikur-demo"] :global(.dm-tiles) { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  main[data-pg="leikur-demo"] :global(.dm-tile) { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line, #2a2f3a); background: rgba(255,255,255,.02); }
+  main[data-pg="leikur-demo"] :global(.dm-tile-l) { font-size: 12px; color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur-demo"] :global(.dm-tile b) { font-size: 22px; font-variant-numeric: tabular-nums; }
+  main[data-pg="leikur-demo"] :global(.dm-tile b small) { font-size: 11px; color: var(--muted, #9fb0c8); font-weight: 400; }
+  main[data-pg="leikur-demo"] :global(.dm-chip) { align-self: flex-start; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-variant-numeric: tabular-nums; background: rgba(140,160,200,.14); border: 1px solid #3a4152; color: #b8c4d8; }
+  main[data-pg="leikur-demo"] :global(.dm-chip.g) { background: rgba(66,208,134,.13); border-color: #42d08655; color: #7fe0ab; }
+  main[data-pg="leikur-demo"] :global(.dm-chip.r) { background: rgba(231,130,132,.13); border-color: #e7828455; color: #f0a3a5; }
+  main[data-pg="leikur-demo"] :global(.dm-kort) { max-width: 620px; margin: 0 auto; }
+  main[data-pg="leikur-demo"] :global(.dm-kort svg.kt-kort) { width: 100%; height: auto; display: block; border-radius: 10px; }
+  main[data-pg="leikur-demo"] :global(.dm-kort-skyr) { text-align: center; font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 8px 0 0; letter-spacing: .4px; }
+  main[data-pg="leikur-demo"] :global(.dm-news) { margin: 4px 0; padding-left: 22px; }
+  main[data-pg="leikur-demo"] :global(.dm-news li) { padding: 4px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  main[data-pg="leikur-demo"] :global(.dm-tbl) { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0 10px; }
+  main[data-pg="leikur-demo"] :global(.dm-tbl th), main[data-pg="leikur-demo"] :global(.dm-tbl td) { border-bottom: 1px solid rgba(255,255,255,.08); padding: 6px 8px; text-align: left; font-variant-numeric: tabular-nums; }
+  main[data-pg="leikur-demo"] :global(.dm-tbl th) { color: var(--muted, #9fb0c8); font-weight: 600; }
+  main[data-pg="leikur-demo"] :global(.dm-g) { color: #7fe0ab; font-weight: 700; }
+  main[data-pg="leikur-demo"] :global(.dm-r) { color: #f0a3a5; font-weight: 700; }
+  main[data-pg="leikur-demo"] :global(.dm-actions) { text-align: center; margin: 14px 0; }
+  /* CTA */
+  main[data-pg="leikur-demo"] :global(.dm-cta) { border-color: #6ea8fe66; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  main[data-pg="leikur-demo"] :global(.dm-cta p) { font-size: 14px; line-height: 1.55; }
+  main[data-pg="leikur-demo"] :global(.dm-cta-row) { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  /* Farsími */
+  @media (max-width: 700px) {
+    main[data-pg="leikur-demo"] { padding: 12px 12px 60px; }
+    main[data-pg="leikur-demo"] :global(h1) { font-size: 27px; }
+    main[data-pg="leikur-demo"] :global(.dm-hero) { flex-direction: column; align-items: flex-start; gap: 10px; }
+    main[data-pg="leikur-demo"] :global(.dm-hero-img) { flex: 0 0 auto; max-width: 140px; }
+    main[data-pg="leikur-demo"] :global(.dm-score-big) { font-size: 40px; }
+    main[data-pg="leikur-demo"] :global(.dm-slider input[type=range]) { height: 34px; }
+  }
+</style>
