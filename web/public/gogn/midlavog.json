@@ -1,15 +1,30 @@
 {
- "updated": "2026-07-31",
+ "updated": "2026-08-01",
  "days": 180,
- "efniSkodud": 65,
+ "efniSkodud": 105,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 6,
-   "rawTone": -8,
-   "n": 50,
-   "entities": 9,
+   "bias": 8,
+   "rawTone": -17,
+   "n": 241,
+   "entities": 26,
    "sample": [
+    {
+     "entity": "Orkumál",
+     "dev": 69.12,
+     "n": 7
+    },
+    {
+     "entity": "Verslun",
+     "dev": 61.37,
+     "n": 7
+    },
+    {
+     "entity": "Tollar",
+     "dev": 59.2,
+     "n": 9
+    },
     {
      "entity": "Landsvirkjun",
      "dev": 58.21,
@@ -19,35 +34,30 @@
      "entity": "Seðlabankinn",
      "dev": -34.65,
      "n": 7
-    },
-    {
-     "entity": "Amaroq",
-     "dev": 29.17,
-     "n": 6
-    },
-    {
-     "entity": "Icelandair",
-     "dev": 28.54,
-     "n": 7
-    },
-    {
-     "entity": "Ríkisstjórnin",
-     "dev": -22.03,
-     "n": 5
     }
    ]
   },
   {
    "s": "Vísir",
    "bias": 3,
-   "rawTone": -28,
-   "n": 6643,
-   "entities": 48,
+   "rawTone": -29,
+   "n": 17074,
+   "entities": 88,
    "sample": [
     {
      "entity": "Landsnet",
      "dev": 25.44,
      "n": 19
+    },
+    {
+     "entity": "Krónan",
+     "dev": 25.1,
+     "n": 22
+    },
+    {
+     "entity": "Velferðarmál",
+     "dev": 20.42,
+     "n": 47
     },
     {
      "entity": "Nova",
@@ -58,25 +68,15 @@
      "entity": "IKEA",
      "dev": 17.69,
      "n": 10
-    },
-    {
-     "entity": "Amaroq",
-     "dev": -17.5,
-     "n": 10
-    },
-    {
-     "entity": "Alma D. Möller",
-     "dev": -16.67,
-     "n": 9
     }
    ]
   },
   {
    "s": "RÚV",
-   "bias": 2,
-   "rawTone": -40,
-   "n": 1675,
-   "entities": 40,
+   "bias": 1,
+   "rawTone": -36,
+   "n": 5447,
+   "entities": 80,
    "sample": [
     {
      "entity": "Samkaup",
@@ -89,29 +89,34 @@
      "n": 4
     },
     {
+     "entity": "Krónan",
+     "dev": -52.17,
+     "n": 4
+    },
+    {
      "entity": "Skel",
      "dev": -44.19,
      "n": 5
     },
     {
-     "entity": "Sjúkratryggingar",
-     "dev": -38.66,
+     "entity": "Jafnréttismál",
+     "dev": -41.29,
      "n": 7
-    },
-    {
-     "entity": "Alvotech",
-     "dev": 35.51,
-     "n": 6
     }
    ]
   },
   {
    "s": "mbl.is",
-   "bias": -2,
-   "rawTone": -45,
-   "n": 2573,
-   "entities": 44,
+   "bias": -1,
+   "rawTone": -40,
+   "n": 7464,
+   "entities": 84,
    "sample": [
+    {
+     "entity": "Samkeppnismál",
+     "dev": -73.33,
+     "n": 5
+    },
     {
      "entity": "Skel",
      "dev": -71.46,
@@ -131,20 +136,15 @@
      "entity": "Indó",
      "dev": -57.86,
      "n": 8
-    },
-    {
-     "entity": "Festi",
-     "dev": -54.29,
-     "n": 7
     }
    ]
   },
   {
    "s": "dv.is",
-   "bias": -15,
-   "rawTone": -57,
-   "n": 1162,
-   "entities": 34,
+   "bias": -14,
+   "rawTone": -52,
+   "n": 2953,
+   "entities": 72,
    "sample": [
     {
      "entity": "Landsnet",
@@ -157,57 +157,57 @@
      "n": 5
     },
     {
+     "entity": "Lífeyrismál",
+     "dev": -60.75,
+     "n": 8
+    },
+    {
+     "entity": "Netöryggi",
+     "dev": 59.52,
+     "n": 7
+    },
+    {
      "entity": "Ölgerðin",
-     "dev": -55.1,
+     "dev": -55.79,
      "n": 14
-    },
-    {
-     "entity": "Festi",
-     "dev": 43.12,
-     "n": 11
-    },
-    {
-     "entity": "Sjóvá",
-     "dev": 40.91,
-     "n": 4
     }
    ]
   },
   {
    "s": "Mannlíf",
-   "bias": -18,
-   "rawTone": -72,
-   "n": 46,
-   "entities": 5,
+   "bias": -26,
+   "rawTone": -76,
+   "n": 126,
+   "entities": 17,
    "sample": [
+    {
+     "entity": "Sveitarfélögin",
+     "dev": -94.21,
+     "n": 3
+    },
+    {
+     "entity": "Menntamál",
+     "dev": -67.79,
+     "n": 6
+    },
     {
      "entity": "Ríkisstjórnin",
      "dev": -62.03,
      "n": 3
     },
     {
-     "entity": "Festi",
-     "dev": 55.24,
+     "entity": "Ríkisstjórnin",
+     "dev": -62.03,
      "n": 3
     },
     {
-     "entity": "Skagi (VÍS)",
-     "dev": -48.51,
-     "n": 4
-    },
-    {
-     "entity": "Matvælastofnun",
-     "dev": -25.3,
-     "n": 11
-    },
-    {
-     "entity": "Ríkislögreglustjóri",
-     "dev": -13.56,
-     "n": 25
+     "entity": "Gjaldþrot",
+     "dev": -57.14,
+     "n": 3
     }
    ]
   }
  ],
- "entities": 48,
+ "entities": 87,
  "method": "Frávik frá meðaltóni allra miðla um SAMA efni, vegið með fjölda frétta. Leiðréttir fyrir ólíku efnisvali miðla."
 }
