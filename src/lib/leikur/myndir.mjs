@@ -21,6 +21,9 @@ const HAR = '#3a2f2b'; // snyrtilegt dökkt hár
 const SKYRTA = '#f7f9fc'; // hvít skyrta, tennur, augnhvíta, vasaklútur
 const JAKKI = '#2a3550'; // dökkblá jakkaföt
 const IRIS = '#3f6fae'; // lithimna + fánanælu-blár
+// KONA-settið (2026-08-01, hönnunarskjal leikur-upplifun-2): NÁKVÆMLEGA 1 nýr litur í
+// hvítlistann (hámark skv. verkbeiðni var 1-2) — kastaníubrúnt axlarsítt hár ráðherrans:
+const HARK = '#5a3825'; // kastaníubrúnt hár (kona) — brúnir + augnhár nota hann líka
 
 const svg180 = (inner) =>
   `<svg viewBox="0 0 320 180" role="img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">` +
@@ -284,6 +287,12 @@ export const EVENT_MYNDIR = { eldgos, makrill, verkfall, gagnaver, spilling, tsu
 const BRUN = `stroke="${HAR}" stroke-width="2.3" fill="none" stroke-linecap="round"`;
 const MUNN = `stroke="${SKUGGI}" stroke-width="2.1" fill="none" stroke-linecap="round"`;
 
+// Einfölduð íslensk fánanæla á boðungnum — EKKI nákvæmur fáni í 6px. Sama næla í báðum settum.
+const NAELA =
+  `<circle cx="69.5" cy="84" r="2.4" fill="${IRIS}" stroke="${GULL}" stroke-width=".5" stroke-opacity=".8"/>` +
+  `<path d="M67.3,84 h4.4 M68.7,81.9 v4.2" stroke="${SKYRTA}" stroke-width=".95" fill="none"/>` +
+  `<path d="M67.3,84 h4.4 M68.7,81.9 v4.2" stroke="${RAUTT}" stroke-width=".4" fill="none"/>`;
+
 function pmMynd({ brunir, munnur, kinnaOp = 0.2, harAuka = '', andlitAuka = '', bindiSkakkt = false }) {
   const bindi =
     `<g${bindiSkakkt ? ' transform="rotate(10 60 81) translate(0,1.5)"' : ''}>` +
@@ -291,10 +300,6 @@ function pmMynd({ brunir, munnur, kinnaOp = 0.2, harAuka = '', andlitAuka = '', 
     `<polygon points="58.2,84.5 61.8,84.5 63.8,98 60,103 56.2,98" fill="${GULL}"/>` +
     `<rect x="57.6" y="90.5" width="4.8" height="1.9" rx="0.7" fill="${INK}"/>` +
     '</g>';
-  const naela = // einfölduð íslensk fánanæla — EKKI nákvæmur fáni í 6px
-    `<circle cx="69.5" cy="84" r="2.4" fill="${IRIS}" stroke="${GULL}" stroke-width=".5" stroke-opacity=".8"/>` +
-    `<path d="M67.3,84 h4.4 M68.7,81.9 v4.2" stroke="${SKYRTA}" stroke-width=".95" fill="none"/>` +
-    `<path d="M67.3,84 h4.4 M68.7,81.9 v4.2" stroke="${RAUTT}" stroke-width=".4" fill="none"/>`;
   return svg120(
     // portrett-medalía: dökkur hringur með þunnri gull-brún
     `<circle cx="60" cy="60" r="58" fill="${BG}"/>` +
@@ -318,7 +323,7 @@ function pmMynd({ brunir, munnur, kinnaOp = 0.2, harAuka = '', andlitAuka = '', 
     // skyrtukragi
     `<polygon points="54,73.8 60.5,79.6 51.8,79" fill="${SKYRTA}"/>` +
     `<polygon points="66,73.8 59.5,79.6 68.2,79" fill="${SKYRTA}"/>` +
-    bindi + naela +
+    bindi + NAELA +
     // höfuð hátt: eyru, andlit
     `<circle cx="43.5" cy="47" r="3.4" fill="${HUD}"/>` +
     `<circle cx="76.5" cy="47" r="3.4" fill="${HUD}"/>` +
@@ -343,9 +348,9 @@ function pmMynd({ brunir, munnur, kinnaOp = 0.2, harAuka = '', andlitAuka = '', 
     `<rect class="pm-blikk" x="48.7" y="41.8" width="7.6" height="6.4" rx="3" fill="${HUD}" opacity="0"/>` +
     `<rect class="pm-blikk" x="63.7" y="41.8" width="7.6" height="6.4" rx="3" fill="${HUD}" opacity="0"/>` +
     // nef + örlítill kinnalitur (styrkur eftir pósa)
-    `<path d="M60,47 q2.6,5 -.6,7.8" stroke="${SKUGGI}" stroke-width="1.7" stroke-opacity=".85" fill="none" stroke-linecap="round"/>` +
-    `<circle cx="48.5" cy="53" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
-    `<circle cx="71.5" cy="53" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
+    `<path d="M60,46.5 q2.6,4.4 -.6,6.6" stroke="${SKUGGI}" stroke-width="1.7" stroke-opacity=".85" fill="none" stroke-linecap="round"/>` +
+    `<circle cx="48.5" cy="50" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
+    `<circle cx="71.5" cy="50" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
     brunir + munnur + andlitAuka
   );
 }
@@ -356,8 +361,8 @@ export const PM_MYNDIR = {
     kinnaOp: 0.32,
     brunir: `<path d="M46,37.2 q5.5,-3 10.8,-1.6" ${BRUN}/><path d="M63.2,35.6 q5.3,-1.4 10.8,1.6" ${BRUN}/>`,
     munnur:
-      `<path d="M50.5,59.5 Q60,62.5 69.5,59.5 Q60,70.5 50.5,59.5 Z" fill="${SKUGGI}"/>` +
-      `<path d="M52,60.3 Q60,62.8 68,60.3 Q60,66.8 52,60.3 Z" fill="${SKYRTA}"/>`,
+      `<path d="M50.5,54.5 Q60,57.5 69.5,54.5 Q60,65.5 50.5,54.5 Z" fill="${SKUGGI}"/>` +
+      `<path d="M52,55.3 Q60,57.8 68,55.3 Q60,61.8 52,55.3 Z" fill="${SKYRTA}"/>`,
     // gleði-kiprun: húðlituð neðri-augnlok þrengja augun örlítið
     andlitAuka:
       `<rect x="48.9" y="46.6" width="7.2" height="2.2" rx="1.1" fill="${HUD}"/>` +
@@ -367,8 +372,8 @@ export const PM_MYNDIR = {
   hlutlaus: pmMynd({
     brunir: `<path d="M46.3,38.8 q5.4,-1.8 10.6,-1" ${BRUN}/><path d="M63.1,37.8 q5.2,-.8 10.6,1" ${BRUN}/>`,
     munnur:
-      `<path d="M52,60.5 q8,5.2 16,0" ${MUNN}/>` +
-      `<path d="M56,66.4 q4,1.5 8,0" stroke="${SKUGGI}" stroke-width="1.1" stroke-opacity=".35" fill="none" stroke-linecap="round"/>`,
+      `<path d="M52,55.5 q8,5.2 16,0" ${MUNN}/>` +
+      `<path d="M56,61.4 q4,1.5 8,0" stroke="${SKUGGI}" stroke-width="1.1" stroke-opacity=".35" fill="none" stroke-linecap="round"/>`,
   }),
   // áhyggjufullur: samandregnar brúnir + hrukkur á milli, munnvik niður EN yfirvegaður
   ahyggjufullur: pmMynd({
@@ -376,20 +381,140 @@ export const PM_MYNDIR = {
     brunir:
       `<path d="M46.5,40.2 q5.5,.3 10.4,-2.6" ${BRUN}/><path d="M63.1,37.6 q4.9,-.3 10.4,2.6" ${BRUN}/>` +
       `<path d="M58,35.8 l.9,2.8 M62,35.8 l-.9,2.8" stroke="${SKUGGI}" stroke-width="1" stroke-opacity=".55" fill="none" stroke-linecap="round"/>`,
-    munnur: `<path d="M52,65 q8,-4 16,0" ${MUNN}/>`,
+    munnur: `<path d="M52,60 q8,-4 16,0" ${MUNN}/>`,
   }),
   // kreppa: úfið hár, skakkar brúnir, opinn munnur, losað/skakkt bindi, svitadropi — dramatík má hér
   kreppa: pmMynd({
     kinnaOp: 0.18, bindiSkakkt: true,
     brunir: `<path d="M45.8,35.4 q5.6,-2.4 11,-.4" ${BRUN}/><path d="M63,39.4 q5.4,-2.6 10.8,-1" ${BRUN}/>`,
     munnur:
-      `<ellipse cx="60" cy="63.5" rx="4.4" ry="5" fill="${SKUGGI}"/>` +
-      `<rect x="56.8" y="59.4" width="6.4" height="2" rx="1" fill="${SKYRTA}"/>`,
+      `<ellipse cx="60" cy="58.5" rx="4.4" ry="5" fill="${SKUGGI}"/>` +
+      `<rect x="56.8" y="54.4" width="6.4" height="2" rx="1" fill="${SKYRTA}"/>`,
     harAuka:
       `<polygon points="45,31 37,23 47,27" fill="${HAR}"/>` +
       `<polygon points="56.5,26.5 54,16.5 62,24" fill="${HAR}"/>` +
       `<polygon points="70,27 79.5,20.5 74.5,30" fill="${HAR}"/>` +
       `<path d="M50,29 q3,6 -1,10" stroke="${HAR}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+    andlitAuka: `<path d="M83.5,37 q5,8 0,11 q-5,-3 0,-11" fill="${BLATT}"/>`,
+  }),
+};
+
+// ---------- Forsætisráðherrann KONA (SKÁLDUÐ persóna) — sömu 4 pósar á SAMA grunni ----------
+// Systur-sett PM_MYNDIR (2026-08-01): sami portrett-medalíu-grunnur, stíll og gæðaflokkur —
+// beinar axlir og höfuð hátt, hlý húð, augu með lithimnu+ljósglampa og pm-blikk-lokum,
+// dökkblá dragt með sýnilegum boðungum, hvít blússa með mjúkri hálslínu, GULL-hálsmen með
+// festi og hengi í stað bindis (gull #f6b13b áfram einkennisliturinn) og sama fánanæla.
+// Snyrtilegt AXLARSÍTT kastaníubrúnt hár (HARK — eini nýi liturinn, skjalfest í hvítlistanum
+// í myndir.test.mjs): heil hár-skel aftan við andlitið sem fellur fram yfir axlirnar báðum
+// megin + toppur með hliðarskiptingu yfir enninu. Fíngerð augnhár og léttur varalitar-vottur
+// (RAUTT með gagnsæi — enginn nýr litur). Pósinn stýrir aðeins augabrúnum, munni, kinnalit
+// og auka-lögum (kreppa: úfið hár, skakkt hálsmen, svitadropi, opinn munnur).
+// ⚠ GENERÍSK persóna — alls EKKI líking af neinni raunverulegri stjórnmálakonu.
+const BRUNK = `stroke="${HARK}" stroke-width="2" fill="none" stroke-linecap="round"`;
+
+function pmKonaMynd({ brunir, munnur, kinnaOp = 0.24, harAuka = '', andlitAuka = '', menSkakkt = false }) {
+  const halsmen =
+    `<g${menSkakkt ? ' transform="rotate(8 60 80) translate(0,1)"' : ''}>` +
+    `<path d="M52.8,75.8 Q60,83.2 67.2,75.8" stroke="${GULL}" stroke-width="1.2" fill="none"/>` +
+    `<circle cx="60" cy="83.6" r="2.2" fill="${GULL}"/>` +
+    `<circle cx="60" cy="83.6" r=".85" fill="${INK}" opacity=".6"/>` +
+    '</g>';
+  return svg120(
+    // portrett-medalía: dökkur hringur með þunnri gull-brún (óbreytt frá karlinum)
+    `<circle cx="60" cy="60" r="58" fill="${BG}"/>` +
+    `<circle cx="60" cy="60" r="58" fill="${BLATT}" opacity=".06"/>` +
+    `<circle cx="60" cy="60" r="57" fill="none" stroke="${GULL}" stroke-width=".8" opacity=".35"/>` +
+    `<circle cx="60" cy="60" r="55.3" fill="none" stroke="${GULL}" stroke-width="1.6" opacity=".9"/>` +
+    // háls (skuggi undir höku lífgar)
+    `<rect x="53.5" y="52" width="13" height="26" rx="4" fill="${HUD}"/>` +
+    `<ellipse cx="60" cy="63" rx="5.6" ry="3.4" fill="${SKUGGI}" opacity=".45"/>` +
+    // hvít blússa + dökkblá dragt með BEINUM öxlum (sami búkur og karlinn)
+    `<polygon points="47.5,75.3 72.5,75.3 60,92" fill="${SKYRTA}"/>` +
+    `<path d="M60,114 Q45,114 37,109 Q26,103 25,94 Q25,85 34,80 L48,75.5 L60,90 L72,75.5 L86,80 Q95,85 95,94 Q94,103 83,109 Q75,114 60,114 Z" fill="${JAKKI}" stroke="${BLATT}" stroke-width="1" stroke-opacity=".3"/>` +
+    // sýnilegir boðungar (ljós-brún + kant-línur) + dragtarsaumur og hnappur
+    `<polygon points="48,75.5 60,90 55,92.8 44.5,79.7" fill="${INK}" opacity=".1"/>` +
+    `<polygon points="72,75.5 60,90 65,92.8 75.5,79.7" fill="${INK}" opacity=".1"/>` +
+    `<path d="M48,75.5 L60,90 M72,75.5 L60,90" stroke="${INK}" stroke-width="1" stroke-opacity=".3" fill="none"/>` +
+    `<path d="M60,90.5 L59.4,113" stroke="${BG}" stroke-width="1" stroke-opacity=".35" fill="none"/>` +
+    `<circle cx="59.4" cy="110.5" r="1.2" fill="${GULL}" opacity=".85"/>` +
+    // mjúk blússu-hálslína (engin kragahorn) + gull-hálsmen + fánanæla
+    `<path d="M53.5,75.4 Q60,80.8 66.5,75.4" stroke="${INK}" stroke-width=".9" stroke-opacity=".28" fill="none"/>` +
+    halsmen + NAELA +
+    // axlarsítt hár: heil skel aftan við andlitið, fellur fram YFIR axlirnar báðum megin
+    `<path d="M60,23 Q40,25 38.5,46 Q37.5,62 40,76 Q41.5,84 38,89.5 Q45.5,92.5 51,89.5 Q48.5,78 48.5,56 Q48.5,40 54,34.5 Q57,31.5 60,31.5 Q63,31.5 66,34.5 Q71.5,40 71.5,56 Q71.5,78 69,89.5 Q74.5,92.5 82,89.5 Q78.5,84 80,76 Q82.5,62 81.5,46 Q80,25 60,23 Z" fill="${HARK}"/>` +
+    // andlit
+    `<ellipse cx="60" cy="45" rx="16" ry="18" fill="${HUD}"/>` +
+    // toppur með hliðarskiptingu yfir enninu + greiðslu-glans
+    `<path d="M44,47 Q42.5,27.5 60,26 Q77.5,27.5 76,47 Q74,33.5 63,31.5 Q56.5,30.5 50,35.5 Q45.2,39.5 44,47 Z" fill="${HARK}"/>` +
+    `<path d="M53,31.5 q9,-3 16.5,1.2" stroke="${INK}" stroke-width="1.1" stroke-opacity=".22" fill="none"/>` +
+    harAuka +
+    // skýr augu: augnhvíta + lithimna + sjáaldur + ljósglampi (+ pm-blikk augnlok)
+    `<ellipse cx="52.5" cy="45" rx="3.3" ry="2.7" fill="${SKYRTA}"/>` +
+    `<ellipse cx="67.5" cy="45" rx="3.3" ry="2.7" fill="${SKYRTA}"/>` +
+    `<circle cx="52.7" cy="45.3" r="2" fill="${IRIS}"/>` +
+    `<circle cx="67.3" cy="45.3" r="2" fill="${IRIS}"/>` +
+    `<circle cx="52.7" cy="45.3" r=".95" fill="${BG}"/>` +
+    `<circle cx="67.3" cy="45.3" r=".95" fill="${BG}"/>` +
+    `<circle cx="52" cy="44.5" r=".6" fill="${SKYRTA}"/>` +
+    `<circle cx="66.6" cy="44.5" r=".6" fill="${SKYRTA}"/>` +
+    // fíngerð augnhár út frá ytri augnkrókum
+    `<path d="M49.3,43.6 q-1.4,-.8 -2.5,-.7 M70.7,43.6 q1.4,-.8 2.5,-.7" stroke="${HARK}" stroke-width=".9" fill="none" stroke-linecap="round"/>` +
+    `<rect class="pm-blikk" x="48.7" y="41.8" width="7.6" height="6.4" rx="3" fill="${HUD}" opacity="0"/>` +
+    `<rect class="pm-blikk" x="63.7" y="41.8" width="7.6" height="6.4" rx="3" fill="${HUD}" opacity="0"/>` +
+    // nef + örlítill kinnalitur (styrkur eftir pósa)
+    `<path d="M60,46.5 q2.6,4.4 -.6,6.6" stroke="${SKUGGI}" stroke-width="1.7" stroke-opacity=".85" fill="none" stroke-linecap="round"/>` +
+    `<circle cx="48.5" cy="50" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
+    `<circle cx="71.5" cy="50" r="2.6" fill="${RAUTT}" opacity="${kinnaOp}"/>` +
+    brunir + munnur + andlitAuka
+  );
+}
+
+export const PM_MYNDIR_KONA = {
+  // bjartsýn: lyftar brúnir, breitt bros með tönnum, gleði-kiprun, meiri kinnalitur + varalitar-vottur
+  bjartsynn: pmKonaMynd({
+    kinnaOp: 0.34,
+    brunir: `<path d="M46,37.2 q5.5,-3 10.8,-1.6" ${BRUNK}/><path d="M63.2,35.6 q5.3,-1.4 10.8,1.6" ${BRUNK}/>`,
+    munnur:
+      `<path d="M50.5,54.5 Q60,57.5 69.5,54.5 Q60,65.5 50.5,54.5 Z" fill="${SKUGGI}"/>` +
+      `<path d="M52,55.3 Q60,57.8 68,55.3 Q60,61.8 52,55.3 Z" fill="${SKYRTA}"/>` +
+      `<path d="M51.5,54.9 Q60,58 68.5,54.9" stroke="${RAUTT}" stroke-width="1.2" stroke-opacity=".5" fill="none" stroke-linecap="round"/>`,
+    // gleði-kiprun: húðlituð neðri-augnlok þrengja augun örlítið
+    andlitAuka:
+      `<rect x="48.9" y="46.6" width="7.2" height="2.2" rx="1.1" fill="${HUD}"/>` +
+      `<rect x="63.9" y="46.6" width="7.2" height="2.2" rx="1.1" fill="${HUD}"/>`,
+  }),
+  // hlutlaus: rólegt hálf-bros (VINGJARNLEGT sjálfgefið — sést mest), mjúkar beinar brúnir
+  hlutlaus: pmKonaMynd({
+    brunir: `<path d="M46.3,38.8 q5.4,-1.8 10.6,-1" ${BRUNK}/><path d="M63.1,37.8 q5.2,-.8 10.6,1" ${BRUNK}/>`,
+    munnur:
+      `<path d="M52,55.5 q8,5.2 16,0" ${MUNN}/>` +
+      `<path d="M52,55.5 q8,5.2 16,0" stroke="${RAUTT}" stroke-width="1.2" stroke-opacity=".4" fill="none" stroke-linecap="round"/>` +
+      `<path d="M56,61.4 q4,1.5 8,0" stroke="${SKUGGI}" stroke-width="1.1" stroke-opacity=".35" fill="none" stroke-linecap="round"/>`,
+  }),
+  // áhyggjufull: samandregnar brúnir + hrukkur á milli, munnvik niður EN yfirveguð
+  ahyggjufullur: pmKonaMynd({
+    kinnaOp: 0.16,
+    brunir:
+      `<path d="M46.5,40.2 q5.5,.3 10.4,-2.6" ${BRUNK}/><path d="M63.1,37.6 q4.9,-.3 10.4,2.6" ${BRUNK}/>` +
+      `<path d="M58,35.8 l.9,2.8 M62,35.8 l-.9,2.8" stroke="${SKUGGI}" stroke-width="1" stroke-opacity=".55" fill="none" stroke-linecap="round"/>`,
+    munnur:
+      `<path d="M52,60 q8,-4 16,0" ${MUNN}/>` +
+      `<path d="M52,60 q8,-4 16,0" stroke="${RAUTT}" stroke-width="1.1" stroke-opacity=".35" fill="none" stroke-linecap="round"/>`,
+  }),
+  // kreppa: úfið hár, skakkar brúnir, opinn munnur, skakkt hálsmen, svitadropi — dramatík má hér
+  kreppa: pmKonaMynd({
+    kinnaOp: 0.2, menSkakkt: true,
+    brunir: `<path d="M45.8,35.4 q5.6,-2.4 11,-.4" ${BRUNK}/><path d="M63,39.4 q5.4,-2.6 10.8,-1" ${BRUNK}/>`,
+    munnur:
+      `<ellipse cx="60" cy="58.5" rx="4.4" ry="5" fill="${SKUGGI}"/>` +
+      `<rect x="56.8" y="54.4" width="6.4" height="2" rx="1" fill="${SKYRTA}"/>` +
+      `<ellipse cx="60" cy="58.5" rx="4.4" ry="5" fill="none" stroke="${RAUTT}" stroke-width="1" stroke-opacity=".4"/>`,
+    harAuka:
+      `<polygon points="43,32 34,24 44,28" fill="${HARK}"/>` +
+      `<polygon points="56.5,26 54,16 62,23.5" fill="${HARK}"/>` +
+      `<polygon points="70.5,27.5 80,21 75,30.5" fill="${HARK}"/>` +
+      `<path d="M40,58 q-5,4 -4.5,10" stroke="${HARK}" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+      `<path d="M80,58 q5,4 4.5,10" stroke="${HARK}" stroke-width="2" fill="none" stroke-linecap="round"/>`,
     andlitAuka: `<path d="M83.5,37 q5,8 0,11 q-5,-3 0,-11" fill="${BLATT}"/>`,
   }),
 };
