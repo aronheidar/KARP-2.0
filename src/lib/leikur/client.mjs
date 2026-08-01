@@ -12,6 +12,7 @@ import { buildRecap } from './recap.mjs';
 import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
+import { myndFyrirAtvik } from './myndir.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
@@ -438,6 +439,84 @@ export function mountLeikur(root) {
         (S.dilemmaDraft == null ? '<p class="lk-muted" style="font-size:11.5px;margin:6px 0 0">Veljið viðbragð — það hefur áhrif á hagkerfið og fylgi ríkisstjórnarinnar.</p>' : '') + '</div>' : '') +
       '</div>';
   }
+  // ── F2-V2: atviks-popup með mynd ──────────────────────────────────────────
+  // Modal-hýsillinn er SYSTKINI #leikur-root (inni í main[data-pg=leikur] svo leik-CSS nái til hans).
+  // render()/poll skrifar AÐEINS root.innerHTML og snertir hýsilinn því aldrei — popup lifir öll poll af.
+  // Einu sinni per (kóði, lota) per vafra: seen-lykill settur við FYRSTU birtingu (ekki lokun) svo
+  // poll-endurteiknun endurveki hann aldrei; localStorage-brestur → in-memory fallback (sama session).
+  let sepopHost = null;
+  const sepopSeenMem = new Set();
+  const sepopKey = (round, watch) => 'lk-sepop-' + S.code + '-' + round + (watch ? '-watch' : '');
+  const sepopSeen = (k) => { try { if (localStorage.getItem(k)) return true; } catch (e) {} return sepopSeenMem.has(k); };
+  const sepopMark = (k) => { sepopSeenMem.add(k); try { localStorage.setItem(k, '1'); } catch (e) {} };
+  function sepopClose() {
+    if (S.sepopTimer) { clearTimeout(S.sepopTimer); S.sepopTimer = null; }
+    if (sepopHost && sepopHost.firstChild) sepopHost.innerHTML = '';
+  }
+  function sepopEnsureHost() {
+    if (sepopHost) return sepopHost;
+    sepopHost = document.createElement('div');
+    (root.parentNode || document.body).appendChild(sepopHost);
+    // Event-delegation Á HÝSLINUM: attachStudio bindur data-dil aðeins innan root, svo modalið þarf
+    // eigin delegation. Val hér fer NÁKVÆMLEGA sömu leið og inline-spjaldið: S.dilemmaDraft + pushDraft
+    // (POST /decisions locked:false) + renderStudio → inline surpriseCard sýnir valið áfram.
+    sepopHost.addEventListener('click', (e) => {
+      const t = e.target;
+      const dil = t.closest && t.closest('[data-dil]');
+      if (dil && sepopHost.contains(dil)) {
+        S.dilemmaDraft = dil.dataset.dil;
+        if (S.state) pushDraft(S.state);
+        sepopClose();   // sjálfkrafa lokun við val á klemmu-kosti
+        if (S.state && S.state.mode === 'studio' && S.role === 'team') renderStudio(S.state); else render();
+        return;
+      }
+      if (t.closest && t.closest('.lk-sepop-x')) { sepopClose(); return; }
+      if (t.classList && t.classList.contains('lk-sepop-overlay')) sepopClose();   // klikk á slæðuna sjálfa
+    });
+    return sepopHost;
+  }
+  // withDil: klemmu-hnappar AÐEINS í studio (inline surpriseCard + dilemma-POST-leiðin er studio-flæði).
+  function sepopOpen(s, { watch = false, withDil = false } = {}) {
+    const mynd = myndFyrirAtvik(s.id);   // traust innbyggt SVG-safn → fer ÓESCAPAÐ inn; null → ekkert mynd-svæði
+    const fx0 = deltaChips(s.effect);
+    const dil = withDil && !watch ? s.dilemma : null;
+    const opts = dil ? (dil.options || []).map((o) => {
+      const fx = deltaChips(o.effect);
+      return '<button type="button" class="lk-sepop-opt" data-dil="' + esc(o.key) + '">' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : '') + '</button>';
+    }).join('') : '';
+    sepopEnsureHost().innerHTML =
+      '<div class="lk-sepop-overlay"><div class="lk-sepop-card' + (watch ? ' lk-sepop-watch' : '') + '" role="dialog" aria-modal="true" aria-label="Óvænt atvik">' +
+      '<button type="button" class="lk-sepop-x" aria-label="Loka">×</button>' +
+      (mynd ? '<div class="lk-sepop-img">' + mynd + '</div>' : '') +
+      '<div class="lk-sepop-body">' +
+      '<div class="lk-sepop-title">📰 ' + (s.icon || '🎲') + ' Óvænt atvik: ' + esc(s.title) + '</div>' +
+      '<p class="lk-sepop-text">' + esc(s.text) + '</p>' +
+      (fx0 ? '<div class="lk-sepop-fx"><span class="lk-muted">Bein áhrif:</span> ' + fx0 + '</div>' : '') +
+      (dil ? '<div class="lk-sepop-q">' + esc(dil.q) + '</div>' + opts : '') +
+      '</div></div></div>';
+  }
+  // Liðs-popup: aðeins í decide-fasa (kallað úr renderTeam á undan studio/classic-greinum). Klukkan tikkar
+  // áfram á bak við; hindrar aldrei læsingu — lokanlegt (×/ESC/slæða) og birtist bara einu sinni per lotu.
+  function maybeSepop(st) {
+    const s = st.surprise; if (!s || st.phase !== 'decide') return;
+    const k = sepopKey(st.round, false); if (sepopSeen(k)) return;
+    sepopMark(k);   // við FYRSTU birtingu — poll-endurteiknun endurvekur aldrei
+    sepopOpen(s, { withDil: st.mode === 'studio' });
+  }
+  // Watch-sýn (skjávarpi): sama spjald ÁN klemmu-hnappa (áhorfendur velja ekki), stærri mynd,
+  // sjálf-lokun eftir 8 sek með fade-út. Sami seen-lykill með -watch viðskeyti.
+  function maybeSepopWatch(st) {
+    const s = st.surprise; if (!s || st.phase !== 'decide') return;
+    const k = sepopKey(st.round, true); if (sepopSeen(k)) return;
+    sepopMark(k);
+    sepopOpen(s, { watch: true });
+    S.sepopTimer = setTimeout(() => {
+      const ov = sepopHost && sepopHost.querySelector('.lk-sepop-overlay');
+      if (ov) { ov.classList.add('out'); setTimeout(sepopClose, 450); } else sepopClose();
+    }, 8000);
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') sepopClose(); });
+
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
   // Fastur liðs-borði — þátttakandi sér alltaf í hvaða liði hann er.
@@ -452,6 +531,7 @@ export function mountLeikur(root) {
   function render() {
     if (!S.code) { if (S.view === 'editor') return renderEditor(); return renderLanding(); }
     const st = S.state; if (!st) { root.innerHTML = '<p>Hleð…</p>'; return; }
+    if (st.phase !== 'decide') sepopClose();   // F2-V2: ekkert modal í control/results/ended-fasa — má aldrei hindra uppgjör
     if (S.role === 'fac') return renderFacilitator(st);
     if (S.role === 'team') return renderTeam(st);
     return renderWatch(st);
@@ -578,6 +658,7 @@ export function mountLeikur(root) {
     if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; S.dials = null; S.studioBuiltSig = null; S.localTouched = new Set(); }
     // Læst-staða (A): eftir læsingu sýna staðfestingu + „Breyta" (aflæsa fram að resolve)
     if (st.you && st.you.locked && !S.unlocked) return renderLocked(st);
+    maybeSepop(st);   // F2-V2: atviks-popup — fyrir bæði studio og classic decide-sýn (einu sinni per lotu)
     // Studio: byggja stjórnstöðina EINU SINNI per umferð; poll uppfærir Á STAÐNUM (án þess að clobber-a sleða).
     if (st.mode === 'studio') {
       const sig = 'studio|' + st.round;
@@ -847,6 +928,7 @@ export function mountLeikur(root) {
 
   // S6 — áhorfenda-sýn (útsending fyrir skjávarpa): stór stigatafla + kjörtímabil + þróunar-graf.
   function renderWatch(st) {
+    maybeSepopWatch(st);   // F2-V2: atviks-spjald á skjávarpa í 8 sek við nýja lotu (sjálf-lokun, engir valkostir)
     const phaseTxt = { lobby: 'Beðið eftir að leikur hefjist…', decide: 'Lið taka ákvarðanir', resolved: 'Umferð leyst — bíð eftir næsta kjörtímabili', ended: '🏁 Leik lokið — árið er 2032' }[st.phase] || st.phase;
     const [y0, y1] = termYears(st.round || 1), ev = st.event;
     const teams = [...(st.teams || [])].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0));
