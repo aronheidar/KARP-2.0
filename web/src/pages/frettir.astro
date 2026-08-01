@@ -10,7 +10,9 @@ import PSTANCE from '../data/pstance.json';
 import CABINET from '@gogn/cabinet.json';
 import STOFNANIR from '../data/stofnanir_umf.json';
 import MALEFNI from '../data/malefni.json';   // málefna-flísar + /frettir/<slug>/ málefnasíður (ein uppspretta)
-const MALEFNI_SYNILEG = 12;   // flísar sem birtast strax; restin á bak við „+N málefni"-hnapp
+// Flokkaröðin er röð fyrstu birtingar í malefni.json — skráin er þegar flokka-röðuð,
+// svo hún er EIN uppspretta bæði fyrir flokkana og flísarnar.
+const MALEFNI_FLOKKAR = [...new Set(MALEFNI.map((m) => m.f))];
 
 // Fleiri aðila-hópar (LOTA 13b): stjórnmálaflokkar + ráðherrar — sama /firma-greining.
 const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
@@ -115,10 +117,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
       <h3 class="fg-sh">📊 Fjölmiðlavogin <i class="tip" tabindex="0" data-tip="Tónn PER MIÐIL um valið málefni eða aðila — veldu flís, sláðu inn eigið efni, eða veldu aðila að ofan og vogin keyrir sjálfkrafa.">ⓘ</i></h3>
       {/* Flísarnar OG /frettir/<slug>/-síðurnar lesa SÖMU skrá (malefni.json) → ekkert misræmi.
-          Fyrstu MALEFNI_SYNILEG birtast strax; restin á bak við hnapp svo röðin verði ekki veggur. */}
-      <div class="chips fg-collapsed" id="fg-vogchips">
-        {MALEFNI.map((m, i) => <button class={'chip' + (i >= MALEFNI_SYNILEG ? ' chip-extra' : '')} data-q={m.a.join(',')}>{m.n}</button>)}
-        <button type="button" id="fg-vogmore" class="chip fg-more">+{MALEFNI.length - MALEFNI_SYNILEG} málefni ▾</button>
+          FLOKKAR: 119 flísar í einni röð voru ólæsilegar → flokkur valinn efst, flísar hans birtast.
+          Flokkaröðin kemur úr skránni sjálfri (fyrsta-birting ræður) — engin röð harðkóðuð hér. */}
+      <div class="chips mal-cats" id="fg-vogcats">
+        {MALEFNI_FLOKKAR.map((f, i) => (
+          <button type="button" class={'chip mal-cat' + (i === 0 ? ' on' : '')} data-f={f}>{f}
+            <span class="mal-n">{MALEFNI.filter((m) => m.f === f).length}</span>
+          </button>
+        ))}
+      </div>
+      <div class="chips" id="fg-vogchips">
+        {MALEFNI.map((m) => <button class="chip" data-q={m.a.join(',')} data-f={m.f} hidden={m.f !== MALEFNI_FLOKKAR[0]}>{m.n}</button>)}
       </div>
       <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
 
@@ -210,9 +219,12 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--muted); border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
     .chip:hover { color: #f6b13b; border-color: #f6b13b; }
     .chip.on { color: var(--bg); background: #f6b13b; border-color: #f6b13b; }
-    /* Málefna-flísar: 40 stykki í einni röð er veggur → falin þar til smellt er á „+N málefni". */
-    #fg-vogchips.fg-collapsed .chip-extra { display: none; }
-    .fg-more { color: #f6b13b; border-style: dashed; }
+    /* Málefna-flokkar: 119 flísar í einni röð eru ólæsilegar → flokkur valinn, flísar hans birtast. */
+    .mal-cats { margin-bottom: 2px; }
+    .mal-cat { border-style: dashed; }
+    .mal-cat.on { border-style: solid; }
+    .mal-n { opacity: .55; font-weight: 500; margin-left: 5px; font-size: 11px; }
+    #fg-vogchips { min-height: 30px; }
     #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
     #co-detail #d-tl { width: 100%; height: 190px; }
     #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
@@ -1103,12 +1115,18 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const sec = document.getElementById('greining');
       if (!sec || sec.dataset.done) return;
       sec.dataset.done = '1';
-      // [data-q] — sleppir „+N málefni"-hnappnum, sem er líka .chip en ber ekkert málefni.
+      // [data-q] aðgreinir málefna-flísar frá flokka-hnöppunum, sem eru líka .chip.
       document.querySelectorAll('#fg-vogchips .chip[data-q]').forEach((ch) => {
         ch.onclick = () => { document.querySelectorAll('#fg-vogchips .chip[data-q]').forEach((x) => x.classList.toggle('on', x === ch)); runFgVog(ch.dataset.q, ch.textContent); };
       });
-      const vmore = document.getElementById('fg-vogmore');
-      if (vmore) vmore.onclick = () => { document.getElementById('fg-vogchips').classList.remove('fg-collapsed'); vmore.remove(); };
+      // Flokkaval: sýnir flísar flokksins. Valin flís helst valin þótt hún feli sig — vogin
+      // að neðan á að halda sér þegar notandi flettir milli flokka.
+      document.querySelectorAll('#fg-vogcats .mal-cat').forEach((cat) => {
+        cat.onclick = () => {
+          document.querySelectorAll('#fg-vogcats .mal-cat').forEach((x) => x.classList.toggle('on', x === cat));
+          document.querySelectorAll('#fg-vogchips .chip[data-f]').forEach((ch) => { ch.hidden = ch.dataset.f !== cat.dataset.f; });
+        };
+      });
       const sgo = document.getElementById('sov-go');
       if (sgo) sgo.onclick = sovRun;
       ['sov-a', 'sov-b'].forEach((id) => { const el = document.getElementById(id); if (el) el.onkeydown = (e) => { if (e.key === 'Enter') sovRun(); }; });
