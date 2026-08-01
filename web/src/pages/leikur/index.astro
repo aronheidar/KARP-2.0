@@ -178,8 +178,35 @@ const MODEL = {
   main[data-pg="leikur"] .lk-sepop-x:hover { border-color: #e78284; color: #f5b0b0; }
   @keyframes lk-sepop-fade { from { opacity: 0; } }
   @keyframes lk-sepop-pop { from { opacity: 0; transform: scale(.94); } }
+  /* F2-V3: Forsætisráðherra-hornið — fast spjald neðst t.h. hjá liðs-spilara í decide-fasa.
+     is:global af sömu ástæðu og sepop (runtime-systkini #leikur-root + @keyframes); z-index 70 = undir sepop-modal (80). */
+  main[data-pg="leikur"] .lk-pm-card { position: fixed; right: 14px; bottom: 14px; z-index: 70; display: flex; align-items: flex-end; gap: 8px; max-width: min(330px, calc(100vw - 28px)); cursor: pointer; }
+  main[data-pg="leikur"] .lk-pm-bubble { position: relative; flex: 1 1 auto; min-width: 150px; background: #171b24; border: 1px solid #3a4152; border-radius: 12px 12px 4px 12px; padding: 10px 26px 9px 12px; font-size: 12.8px; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+  main[data-pg="leikur"] .lk-pm-bubble::after { content: ''; position: absolute; right: -7px; bottom: 14px; border: 6px solid transparent; border-right: 0; border-left: 8px solid #3a4152; }
+  main[data-pg="leikur"] .lk-pm-card:hover .lk-pm-bubble { border-color: #5d6b85; }
+  main[data-pg="leikur"] .lk-pm-text { display: block; min-height: 19px; white-space: pre-wrap; }
+  main[data-pg="leikur"] .lk-pm-count { display: block; margin-top: 5px; font-size: 10.5px; color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur"] .lk-pm-x { position: absolute; top: 3px; right: 5px; width: 18px; height: 18px; padding: 0; background: none; border: 0; color: var(--muted, #9fb0c8); font-size: 14px; line-height: 1; cursor: pointer; }
+  main[data-pg="leikur"] .lk-pm-x:hover { color: var(--ink, #e8ecf3); }
+  main[data-pg="leikur"] .lk-pm-avatar { flex: 0 0 72px; width: 72px; height: 72px; line-height: 0; animation: lk-pm-anda 4.2s ease-in-out infinite; }
+  main[data-pg="leikur"] .lk-pm-avatar svg, main[data-pg="leikur"] .lk-pm-fab svg { width: 100%; height: 100%; display: block; }
+  main[data-pg="leikur"] .lk-pm-fab { position: fixed; right: 14px; bottom: 14px; z-index: 70; width: 52px; height: 52px; padding: 0; overflow: hidden; background: #171b24; border: 1px solid #3a4152; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.45); cursor: pointer; line-height: 0; animation: lk-pm-anda 4.2s ease-in-out infinite; }
+  main[data-pg="leikur"] .lk-pm-fab:hover { border-color: #5d6b85; }
+  /* blikk: augnlokin (.pm-blikk, opacity=0 í SVG-inu) sjást ~130ms á ~4,9s fresti; fasa-slembni um --pm-bd (JS setur slembna neikvæða töf) */
+  main[data-pg="leikur"] .lk-pm-card .pm-blikk, main[data-pg="leikur"] .lk-pm-fab .pm-blikk { animation: lk-pm-blikk 4.9s linear infinite; animation-delay: var(--pm-bd, 0s); }
+  @keyframes lk-pm-blikk { 0%, 95.8% { opacity: 0; } 96.6%, 98.2% { opacity: 1; } 99.4%, 100% { opacity: 0; } }
+  @keyframes lk-pm-anda { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+  @media (max-width: 700px) {
+    /* má ekki skyggja á Læsa-hnapp/sleða: sjálfgefið samanfellt (client) + allt minna */
+    main[data-pg="leikur"] .lk-pm-card { right: 10px; bottom: 10px; max-width: min(250px, calc(100vw - 20px)); }
+    main[data-pg="leikur"] .lk-pm-avatar { flex: 0 0 54px; width: 54px; height: 54px; }
+    main[data-pg="leikur"] .lk-pm-fab { width: 44px; height: 44px; right: 10px; bottom: 10px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     main[data-pg="leikur"] .lk-sepop-overlay, main[data-pg="leikur"] .lk-sepop-card { animation: none; }
     main[data-pg="leikur"] .lk-sepop-overlay.out { transition: none; }
+    /* F2-V3: ekkert blikk, engin öndun (vélritunin er slökkt JS-megin um sömu media query) */
+    main[data-pg="leikur"] .lk-pm-card .pm-blikk, main[data-pg="leikur"] .lk-pm-fab .pm-blikk,
+    main[data-pg="leikur"] .lk-pm-avatar, main[data-pg="leikur"] .lk-pm-fab { animation: none; }
   }
 </style>

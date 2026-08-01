@@ -12,7 +12,7 @@ import { buildRecap } from './recap.mjs';
 import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
-import { myndFyrirAtvik } from './myndir.mjs';
+import { myndFyrirAtvik, PM_MYNDIR } from './myndir.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
@@ -517,6 +517,115 @@ export function mountLeikur(root) {
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') sepopClose(); });
 
+  // ── F2-V3: Forsætisráðherra-hornið ────────────────────────────────────────
+  // Fast spjald neðst t.h. hjá LIÐS-spilara í decide-fasa: PM-portrett (pósi eftir fylgi/
+  // stjórnarkreppu) + talblaðra sem raðar saman því sem ÞEGAR er til (arfleifð, atvik, ráðgjafar).
+  // Hýsillinn er SYSTKINI #leikur-root (sama mynstur og sepop) svo poll-innerHTML klobbar hann aldrei.
+  // Typewriter = JS-interval á textContent; pmUpdate endurbyggir AÐEINS ef útlits-undirskriftin
+  // (pósi|samanfellt|vísitala|skilaboð) breytist — poll með óbreytta stöðu snertir því ekki vélritunina,
+  // og „þegar-vélritað"-settið (S.pmTypedSet, núllað per lotu) tryggir að hvert skilaboð vélritast bara einu sinni.
+  let pmHost = null;
+  const PM_LS = 'lk-pm-collapsed';
+  const pmReduced = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+  function pmIsCollapsed() {
+    if (S.pmCollapsed != null) return S.pmCollapsed;
+    let v = null; try { v = localStorage.getItem(PM_LS); } catch (e) {}
+    S.pmCollapsed = v != null ? v === '1' : window.innerWidth < 700;   // sjálfgefið: opið á breiðum skjá, samanfellt undir 700px
+    return S.pmCollapsed;
+  }
+  function pmSetCollapsed(c) {
+    S.pmCollapsed = c; try { localStorage.setItem(PM_LS, c ? '1' : '0'); } catch (e) {}
+    S.pmSig = null; if (S.state) pmUpdate(S.state);
+  }
+  function pmEnsureHost() {
+    if (pmHost) return pmHost;
+    pmHost = document.createElement('div');
+    (root.parentNode || document.body).appendChild(pmHost);
+    pmHost.addEventListener('click', (e) => {   // engir inline handlers — delegation eins og sepop
+      const t = e.target;
+      if (t.closest && t.closest('.lk-pm-x')) { pmSetCollapsed(true); return; }
+      if (t.closest && t.closest('.lk-pm-fab')) { pmSetCollapsed(false); return; }
+      if (t.closest && t.closest('.lk-pm-card')) pmNext();   // smellt á blöðru/spjald → næsta skilaboð
+    });
+    return pmHost;
+  }
+  function pmNext() {
+    const n = (S.pmMsgs || []).length; if (n < 2) return;
+    S.pmIdx = ((S.pmIdx || 0) + 1) % n; S.pmSig = null;
+    if (S.state) pmUpdate(S.state);
+  }
+  // Pósi: stjórnarkreppa → kreppa; annars fylgi — studio: lifandi úr forskoðun (drawStudioPreview
+  // geymir S.pmApproval), classic: popularity() á KPI síðasta uppgjörs; ekkert til → hlutlaus.
+  function pmPose(st) {
+    if (st.stjornarkreppa) return 'kreppa';
+    let ap = null;
+    if (S.pmApprovalRound === st.round && S.pmApproval != null) ap = S.pmApproval;
+    else if (S.debriefPrevRound === st.round - 1 && S.debriefPrevKpis) ap = popularity(S.debriefPrevKpis);
+    if (ap == null) return 'hlutlaus';
+    return ap > 55 ? 'bjartsynn' : ap < 35 ? 'ahyggjufullur' : 'hlutlaus';
+  }
+  // 2–4 skilaboð per lotu: a) sterkasta arfleifðar-áhrifið (stærsta |delta|) b) atviks-áminning
+  // c) 1–2 ráðgjafa-línur (ráðgjafa-kortið í studio-forskoðuninni var fellt út — býr nú alfarið hér).
+  // d) handbók er VILJANDI sleppt: hún er leikstjóra-efni („Aðeins sýnilegt þér"; „Besta leiðin" spillir leiknum).
+  function pmMessages(st) {
+    const msgs = [];
+    let top = null;
+    for (const p of ((st.carryover && st.carryover.policies) || [])) {
+      for (const k in (p.deltas || {})) {
+        const v = +p.deltas[k];
+        if (isFinite(v) && Math.abs(v) >= 0.005 && (!top || Math.abs(v) > Math.abs(top.v))) top = { label: p.label, k, v };
+      }
+    }
+    if (top) {
+      const spec = GOAL_SPECS[top.k];
+      msgs.push((top.label || '') + ': ' + (top.k === 'pop' ? 'fylgi' : (spec ? spec.label : top.k)) + ' ' + deltaFmt(top.v) + ' í síðustu lotu.');
+    }
+    if (st.surprise) msgs.push((st.surprise.icon || '🎲') + ' ' + (st.surprise.title || 'Óvænt atvik') + ' — skoðið áhrifin áður en þið læsið.');
+    const kpis = (S.pmKpisRound === st.round && S.pmKpis) || (S.debriefPrevRound === st.round - 1 && S.debriefPrevKpis) || {};
+    for (const a of advisors(kpis, st.round).slice(0, 2)) msgs.push(a.icon + ' ' + a.who + ': ' + a.advice);
+    return msgs.slice(0, 4);
+  }
+  function pmUpdate(st) {
+    if (!st || S.role !== 'team' || st.phase !== 'decide') {
+      if (S.pmTimer) { clearInterval(S.pmTimer); S.pmTimer = null; }
+      if (pmHost && pmHost.firstChild) pmHost.innerHTML = '';
+      S.pmSig = null; return;
+    }
+    if (S.pmRound !== st.round) { S.pmRound = st.round; S.pmIdx = 0; S.pmTypedSet = new Set(); S.pmSig = null; }
+    const msgs = pmMessages(st); S.pmMsgs = msgs;
+    S.pmIdx = (S.pmIdx || 0) >= msgs.length ? 0 : (S.pmIdx || 0);
+    const pose = pmPose(st), collapsed = pmIsCollapsed(), msg = msgs[S.pmIdx] || '';
+    const sig = pose + '|' + (collapsed ? 1 : 0) + '|' + S.pmIdx + '|' + msgs.join('¦');
+    if (sig === S.pmSig && pmHost && pmHost.firstChild) return;   // óbreytt staða → EKKI klobba typewriter-inn
+    S.pmSig = sig;
+    if (S.pmTimer) { clearInterval(S.pmTimer); S.pmTimer = null; }
+    const svgP = PM_MYNDIR[pose] || PM_MYNDIR.hlutlaus;   // traust innbyggt SVG-safn → fer ÓESCAPAÐ inn (sama regla og sepop-myndir)
+    const host = pmEnsureHost();
+    const bd = '--pm-bd:-' + (Math.random() * 4.9).toFixed(2) + 's';   // slembinn blikk-fasi (CSS les í animation-delay)
+    if (collapsed) {
+      host.innerHTML = '<button type="button" class="lk-pm-fab" style="' + bd + '" title="Forsætisráðherrann" aria-label="Opna forsætisráðherra-hornið">' + svgP + '</button>';
+      return;
+    }
+    if (!S.pmTypedSet) S.pmTypedSet = new Set();
+    const msgKey = S.pmIdx + '·' + msg;
+    const instant = pmReduced() || S.pmTypedSet.has(msgKey);   // reduced-motion → engin vélritun (texti birtist strax)
+    const count = msgs.length > 1 ? '<span class="lk-pm-count">' + (S.pmIdx + 1) + '/' + msgs.length + ' · smelltu til að fletta</span>' : '';
+    host.innerHTML =
+      '<div class="lk-pm-card" style="' + bd + '" role="complementary" aria-label="Forsætisráðherrann">' +
+      '<div class="lk-pm-bubble"><button type="button" class="lk-pm-x" aria-label="Fella saman">×</button>' +
+      '<span class="lk-pm-text">' + (instant ? esc(msg) : '') + '</span>' + count + '</div>' +
+      '<div class="lk-pm-avatar">' + svgP + '</div></div>';
+    if (instant) { S.pmTypedSet.add(msgKey); return; }
+    const el = host.querySelector('.lk-pm-text');
+    const chars = Array.from(msg);   // code-points, ekki UTF-16 einingar — klýfur aldrei emoji í tvennt
+    let i = 0;
+    S.pmTimer = setInterval(() => {   // textContent → engin HTML-túlkun meðan vélritað er
+      if (!el.isConnected) { clearInterval(S.pmTimer); S.pmTimer = null; return; }
+      i += 2; el.textContent = chars.slice(0, i).join('');
+      if (i >= chars.length) { clearInterval(S.pmTimer); S.pmTimer = null; S.pmTypedSet.add(msgKey); }
+    }, 24);
+  }
+
   // S5 — hlutverk (roles): borði fyrir eigið hlutverk, roleMap-tafla (fac), afhjúpun í leikslok.
   function roleBanner(st) { return st.role ? '<div class="lk-role-banner">🎭 Þitt umboð: <b>' + esc(st.role.label) + '</b> — ' + esc(st.role.blurb) + '</div>' : ''; }
   // Fastur liðs-borði — þátttakandi sér alltaf í hvaða liði hann er.
@@ -529,9 +638,10 @@ export function mountLeikur(root) {
   function revealCard(st) { if (!st.rolesReveal || !st.rolesReveal.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Umboð afhjúpuð</h2>' + st.rolesReveal.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span><b>' + esc(r.label) + '</b></span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px">' + esc(r.blurb) + '</div>').join('') + '</div>'; }
 
   function render() {
-    if (!S.code) { if (S.view === 'editor') return renderEditor(); return renderLanding(); }
+    if (!S.code) { pmUpdate(null); if (S.view === 'editor') return renderEditor(); return renderLanding(); }
     const st = S.state; if (!st) { root.innerHTML = '<p>Hleð…</p>'; return; }
     if (st.phase !== 'decide') sepopClose();   // F2-V2: ekkert modal í control/results/ended-fasa — má aldrei hindra uppgjör
+    pmUpdate(st);   // F2-V3: PM-hornið sýnir/felur sig eftir hlutverki+fasa (hýsill utan root → render klobbar aldrei)
     if (S.role === 'fac') return renderFacilitator(st);
     if (S.role === 'team') return renderTeam(st);
     return renderWatch(st);
@@ -786,9 +896,9 @@ export function mountLeikur(root) {
     html += '<div class="lk-card"><h2 title="Hversu nálægt hverju umboðs-markmiði þú ert. Fyllri borði = betra.">🎯 Markmið</h2><div class="lk-goalmeters">';
     for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
     html += '</div></div>';
-    // 🗣️ Ráðgjafar: andstæð hagsmuna-ráð sem uppfærast með drögunum (ráðgefandi, engin bein áhrif).
-    const adv = advisors(kpiVals, st.round);
-    html += '<div class="lk-card"><h2 title="Hagsmuna-raddir gefa ólík ráð eftir stöðunni — þau uppfærast þegar þú færir sleða.">🗣️ Ráðgjafar</h2>' + adv.map((a) => '<div style="display:flex;gap:9px;margin:7px 0"><span style="font-size:19px;flex:none">' + a.icon + '</span><div><b style="font-size:12.5px">' + esc(a.who) + '</b><div style="font-size:12.5px;color:var(--muted);line-height:1.45">' + esc(a.advice) + '</div></div></div>').join('') + '</div>';
+    // F2-V3: Ráðgjafa-kortið flutt ALFARIÐ í PM-blöðruna (var tvítekning) — hér geymast bara lifandi
+    // forskoðunar-gildin svo pósi + ráðgjafa-línur hornsins bregðist við sleða-drögunum (pmUpdate neðst).
+    S.pmApproval = pop; S.pmApprovalRound = st.round; S.pmKpis = kpiVals; S.pmKpisRound = st.round;
     let charts = '<div class="lk-card"><h2 title="Þróun frá 2000: þín braut (heil lína), grunnlína (punktar), raunveruleikinn (fjólublár) og markmið (gult).">📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
     for (const k of st.mandate.kpis) {
       const oc = sim.outcomes[k.key]; if (!oc) continue;
@@ -812,6 +922,7 @@ export function mountLeikur(root) {
     grid += '</div></div>';
     html += grid;
     el.innerHTML = html;
+    pmUpdate(st);   // F2-V3: pósi/ráðgjafar hornsins fylgja nýjustu forskoðuninni (no-op ef undirskrift óbreytt)
   }
   function renderStudio(st) {
     if (!S.dials) S.dials = initDials(st);
