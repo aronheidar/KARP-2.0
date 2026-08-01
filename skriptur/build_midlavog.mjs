@@ -52,7 +52,7 @@ try {
 // Málefni (verðbólga, vextir, ESB…) — sama skrá og flísarnar á /frettir/ nota.
 // `um` = þolfallsmynd fyrir fyrirsögnina („Umfjöllun um verðbólgu", ekki „um Verðbólga").
 try {
-  for (const m of rd('web/src/data/malefni.json')) if (m && m.n) efni.push({ n: m.n, a: (m.a && m.a.length ? m.a : [m.n]), um: m.um });
+  for (const m of rd('web/src/data/malefni.json')) if (m && m.n) efni.push({ n: m.n, a: (m.a && m.a.length ? m.a : [m.n]), um: m.um, f: m.f });
 } catch (e) {}
 if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); process.exit(0); }
 
@@ -62,7 +62,8 @@ if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); proc
   const { adiliSlug, umMynd } = await import('../web/src/lib/frettaadili.mjs');
   const skra = efni.map((e) => {
     const um = umMynd(e.n, e.um);
-    return { n: e.n, a: e.a, slug: adiliSlug(e.n), ...(um !== e.n ? { um } : {}) };
+    // `f` (flokkur málefnis) fer með svo aðila-síðan geti tengt á SKYLD málefni.
+    return { n: e.n, a: e.a, slug: adiliSlug(e.n), ...(um !== e.n ? { um } : {}), ...(e.f ? { f: e.f } : {}) };
   }).filter((x) => x.slug);
   // Slug VERÐUR einkvæmt. Tvítekningar SAMEINAST — fyrsta færslan hélst áður og
   // henti `um`-mynd og samheitum þeirrar seinni (t.d. „Ríkisstjórnin" úr tveimur listum
@@ -72,6 +73,7 @@ if (!efni.length) { console.error('✗ engir aðilar fundust — sleppi.'); proc
     const fyrri = byslug.get(x.slug);
     if (!fyrri) { byslug.set(x.slug, x); continue; }
     if (!fyrri.um && x.um) fyrri.um = x.um;
+    if (!fyrri.f && x.f) fyrri.f = x.f;
     fyrri.a = [...new Set([...(fyrri.a || []), ...(x.a || [])])];
   }
   const einkvaem = [...byslug.values()];

@@ -2,7 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
-import { findAdili, adiliTerms, adiliPageData, adiliDesc } from './src/lib/frettaadili.mjs';
+import { findAdili, adiliTerms, adiliPageData, adiliDesc, skyldirAdilar } from './src/lib/frettaadili.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
@@ -1291,7 +1291,7 @@ async function stjornRequestHandler(request, env, ctx) {
 // ── /frettir/<slug>/ — indexeranleg fréttasíða aðila (worker-SSR, SEO) ──
 // Langi halinn: ein síða per aðila með tón, tímalínu, miðlum og nýjustu fréttum.
 // Sama skel-mynstur og /fyrirtaeki/<kt>/ (skel-frettaadili + %%KARP_*%%).
-function frettaAdiliMainHtml(nafn, d, slug) {
+function frettaAdiliMainHtml(nafn, d, slug, skyld) {
   const e = htmlEsc;
   const os = d.ordspor;
   const toneCl = (v) => (v > 0 ? 'p' : v < 0 ? 'n' : 'h');
@@ -1316,6 +1316,12 @@ function frettaAdiliMainHtml(nafn, d, slug) {
     + (srcRows ? `<h2>Miðlar sem fjalla um ${e(nafn)}</h2><p class="fa-sub">Fjöldi frétta per miðli síðustu 90 daga.</p>${srcRows}` : '')
     + (tlRows ? `<h2>Umfjöllun eftir mánuðum</h2><p class="fa-sub">Fjöldi frétta per mánuði.</p>${tlRows}` : '')
     + (news ? `<h2>Nýjustu fréttir</h2><ul class="fa-news">${news}</ul>` : '<h2>Nýjustu fréttir</h2><p class="fa-sub">Engin nýleg umfjöllun fannst.</p>')
+    // Skyld umfjöllun = INNRI TENGING. Án hennar voru þessar síður munaðarlausar: ekkert á
+    // vefnum tengdi inn á þær og leitarvélar fundu þær aðeins um sitemap. Sjá skyldirAdilar().
+    + ((skyld && skyld.length)
+      ? `<h2>Skyld umfjöllun</h2><p class="fa-sub">Aðrar vaktir í fjölmiðlavakt Karp.</p>`
+        + `<div class="fa-rel">${skyld.map((x) => `<a href="/frettir/${e(x.slug)}/">${e(x.n)}</a>`).join('')}</div>`
+      : '')
     + `<a class="fa-cta" href="/frettir/">← Öll fjölmiðlavaktin, samanburður aðila og fjölmiðlavogin</a>`
     + `<p class="fa-note">Tónn er metinn vélrænt með gervigreind fyrir hverja frétt (jákvæð / hlutlaus / neikvæð) og orðspors-einkunnin (0–100) byggir á honum ásamt þróun. Þetta er vöktunartæki, ekki ritstjórnardómur — og fá gögn gefa óvissari einkunn. Fréttir eru hlekkjaðar á upprunalega miðla.</p>`;
 }
@@ -1351,7 +1357,7 @@ async function frettaAdiliHandler(request, env, ctx, slug) {
   html = repAll(html, '%%KARP_DESC%%', desc);
   html = repAll(html, '%%KARP_CANON%%', canonical);
   html = repAll(html, '"%%KARP_JSONLD%%"', ld);
-  html = repAll(html, '%%KARP_MAIN%%', frettaAdiliMainHtml(um, d, slug));
+  html = repAll(html, '%%KARP_MAIN%%', frettaAdiliMainHtml(um, d, slug, skyldirAdilar(adili, (skra && skra.adilar) || [], 8)));
   const res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;

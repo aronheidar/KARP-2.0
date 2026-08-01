@@ -82,6 +82,34 @@ export function adiliPageData(items, opts = {}) {
   return { n: list.length, ordspor, sources, timeline, nyjast, tone: ordspor.tone };
 }
 
+/**
+ * Skyldir aðilar til að tengja á neðst á aðila-síðu.
+ *
+ * ⚠ TILGANGURINN ER TENGSLANET, EKKI SKREYTING: síðurnar voru MUNAÐARLAUSAR — ekkert á
+ * vefnum tengdi inn á þær, svo leitarvélar fundu þær aðeins um sitemap. Þess vegna er
+ * NÁGRANNA-HRINGURINN skylda: hann tryggir að hver einasta síða fái bæði út- og inn-hlekki,
+ * líka þær sem eiga engan flokk (fyrirtæki, stofnanir, ráðherrar). Flokks-systkini koma
+ * fyrst því þau eru gagnlegri lesanda, en þau ein og sér myndu skilja marga eftir án
+ * inn-hlekkja — flokkslausir aðilar eru meirihluti listans.
+ */
+export function skyldirAdilar(adili, list, n = 8) {
+  if (!adili || !Array.isArray(list) || !list.length) return [];
+  const i = list.findIndex((x) => x && x.slug === adili.slug);
+  if (i < 0) return [];
+  const systkini = adili.f ? list.filter((x) => x && x.f === adili.f && x.slug !== adili.slug) : [];
+  const nagrannar = [];
+  for (let k = 1; k < list.length; k++) nagrannar.push(list[(i + k) % list.length]);
+  const ut = [];
+  const sedd = new Set([adili.slug]);
+  for (const x of [...systkini, ...nagrannar]) {
+    if (!x || !x.slug || sedd.has(x.slug)) continue;
+    sedd.add(x.slug);
+    ut.push(x);
+    if (ut.length >= n) break;
+  }
+  return ut;
+}
+
 /** Lýsing fyrir <meta description> — verður að vera upplýsandi, ekki almenn. */
 export function adiliDesc(nafn, d) {
   if (!d || !d.n) return `Fréttaumfjöllun um ${nafn} á Karp — tónn, tímalína og miðlar sem fjalla um aðilann.`;

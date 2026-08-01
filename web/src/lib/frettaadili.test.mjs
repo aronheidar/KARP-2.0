@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { adiliSlug, findAdili, adiliTerms, adiliPageData, adiliDesc, umMynd } from './frettaadili.mjs';
+import { adiliSlug, findAdili, adiliTerms, adiliPageData, adiliDesc, umMynd, skyldirAdilar } from './frettaadili.mjs';
 
 const NOW = 1800000000;
 const it = (title, source, sent, daysAgo = 5) => ({ title, url: 'https://x/' + title, source, sent, ts: NOW - daysAgo * 86400, date: '2026-07-01' });
@@ -93,4 +93,37 @@ test('umMynd þolir tómt/ógilt inntak', () => {
   assert.equal(umMynd(''), '');
   assert.equal(umMynd(null), '');
   assert.equal(umMynd('Síminn', '   '), 'Símann');
+});
+
+// ── skyldirAdilar: innri tenging (síðurnar voru munaðarlausar) ───────────────
+const LISTI = [
+  { n: 'A', slug: 'a', f: 'X' }, { n: 'B', slug: 'b', f: 'X' }, { n: 'C', slug: 'c', f: 'Y' },
+  { n: 'D', slug: 'd' }, { n: 'E', slug: 'e' }, { n: 'F', slug: 'f' },
+];
+
+test('flokks-systkini koma fyrst — gagnlegra lesanda', () => {
+  const s = skyldirAdilar(LISTI[0], LISTI, 3).map((x) => x.slug);
+  assert.equal(s[0], 'b', 'sami flokkur (X) á að vera fremst');
+  assert.equal(s.length, 3);
+});
+
+test('HVER aðili fær tengla — líka flokkslausir (annars héldust þeir munaðarlausir)', () => {
+  for (const a of LISTI) {
+    const s = skyldirAdilar(a, LISTI, 4);
+    assert.ok(s.length > 0, a.slug + ' fékk enga tengla');
+    assert.ok(!s.some((x) => x.slug === a.slug), a.slug + ' tengir á sjálfan sig');
+    assert.equal(new Set(s.map((x) => x.slug)).size, s.length, 'tvítekið í ' + a.slug);
+  }
+});
+
+test('HVER aðili fær líka INN-hlekk — nágrannahringurinn lokar netinu', () => {
+  const innhlekkir = new Map(LISTI.map((a) => [a.slug, 0]));
+  for (const a of LISTI) for (const x of skyldirAdilar(a, LISTI, 4)) innhlekkir.set(x.slug, innhlekkir.get(x.slug) + 1);
+  for (const [slug, n] of innhlekkir) assert.ok(n > 0, slug + ' fær engan inn-hlekk — er enn munaðarlaus');
+});
+
+test('ókunnur aðili og tómur listi hrynja ekki', () => {
+  assert.deepEqual(skyldirAdilar({ slug: 'zzz' }, LISTI), []);
+  assert.deepEqual(skyldirAdilar(LISTI[0], []), []);
+  assert.deepEqual(skyldirAdilar(null, LISTI), []);
 });

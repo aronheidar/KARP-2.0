@@ -14,6 +14,16 @@ import MALEFNI from '../data/malefni.json';   // málefna-flísar + /frettir/<sl
 // svo hún er EIN uppspretta bæði fyrir flokkana og flísarnar.
 const MALEFNI_FLOKKAR = [...new Set(MALEFNI.map((m) => m.f))];
 
+// Tengla-hub: lesinn úr SÖMU skrá og workerinn þjónar /frettir/<slug>/ úr (byggð af
+// build_midlavog.mjs) → listinn getur ekki misst af síðu né tengt á 404. Málefni bera
+// flokk (`f`); aðrir aðilar (fyrirtæki/stofnanir/ráðherrar) lenda í sameiginlegum hóp.
+import ADILAR from '../../public/gogn/frettaadilar.json';
+import { adiliSlug } from '../lib/frettaadili.mjs';   // sama slug-regla og workerinn — engir 404-hlekkir
+const HUB = [
+  ...MALEFNI_FLOKKAR.map((f) => ({ f, adilar: ADILAR.adilar.filter((a) => a.f === f) })),
+  { f: 'Fyrirtæki, stofnanir og fólk', adilar: ADILAR.adilar.filter((a) => !a.f) },
+].filter((g) => g.adilar.length);
+
 // Fleiri aðila-hópar (LOTA 13b): stjórnmálaflokkar + ráðherrar — sama /firma-greining.
 const PARTIES = Object.keys(PSTANCE).map((n) => ({ n, a: [n] }));
 const MINS = CABINET.map((c) => ({ n: c.nafn, a: [c.nafn], sub: (c.emb || [])[0] || 'ráðherra' }));
@@ -127,8 +137,9 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
         ))}
       </div>
       <div class="chips" id="fg-vogchips">
-        {MALEFNI.map((m) => <button class="chip" data-q={m.a.join(',')} data-f={m.f} hidden={m.f !== MALEFNI_FLOKKAR[0]}>{m.n}</button>)}
+        {MALEFNI.map((m) => <button class="chip" data-q={m.a.join(',')} data-f={m.f} data-s={adiliSlug(m.n)} hidden={m.f !== MALEFNI_FLOKKAR[0]}>{m.n}</button>)}
       </div>
+      <a id="fg-vogsida" href="#" hidden></a>
       <div id="fg-vog">Veldu málefni — eða aðila að ofan — til að vega miðlana.</div>
 
       <h3 class="fg-sh">📐 Fjölmiðlavogin — hlutdrægni leiðrétt fyrir efnisvali <i class="tip" tabindex="0" data-tip="Hrár meðaltónn mælir EKKI hlutdrægni heldur hvað miðill fjallar um: íþróttamiðill lítur jákvæður út, sakamálamiðill neikvæður. Hér er borið saman EPLI VIÐ EPLI — frávik hvers miðils frá meðaltóni allra um SAMA efni.">ⓘ</i></h3>
@@ -151,6 +162,21 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       <div class="d-sec" id="btm-sec">Nýjasta umfjöllunin</div>
       <div class="d-list" id="btm-list"></div>
     </div>
+
+    {/* 🗂️ TENGLA-HUB. Aðila-síðurnar (/frettir/<slug>/) voru MUNAÐARLAUSAR: ekkert á vefnum
+        tengdi inn á þær, svo leitarvélar fundu þær aðeins um sitemap og notandi alls ekki
+        (flísarnar að ofan eru hnappar sem keyra vogina, ekki hlekkir). Listinn er lesinn úr
+        SÖMU skrá og workerinn þjónar síðurnar úr → aldrei hlekkur á 404. */}
+    <section class="hub">
+      <h2 class="fg-sh">🗂️ Allar umfjöllunar-síður <span class="hub-n">{ADILAR.adilar.length}</span></h2>
+      <p class="hub-sub">Hver aðili og hvert málefni á sína síðu með tón, tímalínu og miðlum — uppfært daglega.</p>
+      {HUB.map((g) => (
+        <div class="hub-g">
+          <h3>{g.f}</h3>
+          <div class="hub-l">{g.adilar.map((a) => <a href={`/frettir/${a.slug}/`}>{a.n}</a>)}</div>
+        </div>
+      ))}
+    </section>
 
     <p class="foot">Forþjónað (SSG) {updated}. Fyrirsagnir gegnum <code>/frettir</code>-endapunkt karp.is (birtast á karp.is); viðhorf = vélrænt mat (Claude) á fyrirsögnum, ekki dómur. Greiningarnar keyra á fréttasafninu (/yearreview + /firma + /firmagraph). #2 + LOTA 34.</p>
   </main>
@@ -225,6 +251,17 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
     .mal-cat.on { border-style: solid; }
     .mal-n { opacity: .55; font-weight: 500; margin-left: 5px; font-size: 11px; }
     #fg-vogchips { min-height: 30px; }
+    #fg-vogsida { display: block; margin: 2px 0 10px; font-size: 13px; color: #f6b13b; font-weight: 700; }
+
+    /* Tengla-hub: innri tenging á aðila-síðurnar (voru munaðarlausar). */
+    .hub { margin: 34px 0 6px; border-top: 1px solid var(--line); padding-top: 18px; }
+    .hub-n { font-weight: 500; color: var(--faint); font-size: 13px; }
+    .hub-sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+    .hub-g { margin-bottom: 14px; }
+    .hub-g h3 { font-size: 13px; color: var(--ink); margin: 0 0 6px; font-weight: 700; }
+    .hub-l { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+    .hub-l a { font-size: 12.5px; color: var(--muted); text-decoration: none; }
+    .hub-l a:hover { color: #f6b13b; text-decoration: underline; }
     #co-detail .d-sec { font-size: 11px; font-weight: 800; color: #19d3c5; text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 4px; }
     #co-detail #d-tl { width: 100%; height: 190px; }
     #co-detail .d-cloud { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 4px 0; }
@@ -1117,7 +1154,13 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       sec.dataset.done = '1';
       // [data-q] aðgreinir málefna-flísar frá flokka-hnöppunum, sem eru líka .chip.
       document.querySelectorAll('#fg-vogchips .chip[data-q]').forEach((ch) => {
-        ch.onclick = () => { document.querySelectorAll('#fg-vogchips .chip[data-q]').forEach((x) => x.classList.toggle('on', x === ch)); runFgVog(ch.dataset.q, ch.textContent); };
+        ch.onclick = () => {
+          document.querySelectorAll('#fg-vogchips .chip[data-q]').forEach((x) => x.classList.toggle('on', x === ch));
+          runFgVog(ch.dataset.q, ch.textContent);
+          // Flísin keyrir vogina en fer ekki á síðuna — hlekkurinn er leiðin þangað.
+          const sida = document.getElementById('fg-vogsida');
+          if (sida && ch.dataset.s) { sida.href = '/frettir/' + ch.dataset.s + '/'; sida.textContent = 'Sjá alla umfjöllun um ' + ch.textContent.trim() + ' →'; sida.hidden = false; }
+        };
       });
       // Flokkaval: sýnir flísar flokksins. Valin flís helst valin þótt hún feli sig — vogin
       // að neðan á að halda sér þegar notandi flettir milli flokka.
