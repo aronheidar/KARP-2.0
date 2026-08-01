@@ -135,4 +135,17 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-prompts) { margin: 2px 0 4px; padding-left: 20px; }
   main[data-pg="leikur"] :global(.lk-prompts li) { margin: 5px 0; font-size: 13.5px; line-height: 1.5; color: #d6def0; }
   main[data-pg="leikur"] :global(.lk-prompts li b) { color: #cfe0ff; }
+  /* F1-V3: stefnu-badge-röð + hreint CSS-tooltip + KPI-delta-flísar */
+  main[data-pg="leikur"] :global(.lk-pb-row) { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  main[data-pg="leikur"] :global(.lk-pb) { position: relative; display: inline-flex; align-items: center; gap: 5px; background: #20242e; border: 1px solid #3a4152; border-left: 3px solid #e8c14a; border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: default; }
+  main[data-pg="leikur"] :global(.lk-pb-stage) { color: var(--muted, #9fb0c8); font-size: 11.5px; white-space: nowrap; }
+  main[data-pg="leikur"] :global(.lk-pb-esb) { border-left-color: #6ea8fe; }
+  main[data-pg="leikur"] :global(.lk-pb-esb .lk-pb-stage) { color: #9cc3ff; font-weight: 700; }
+  main[data-pg="leikur"] :global(.lk-pb-tip) { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: max-content; max-width: 300px; background: #171b24; border: 1px solid #3a4152; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; font-weight: 400; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,.45); white-space: normal; }
+  main[data-pg="leikur"] :global(.lk-pb:hover .lk-pb-tip), main[data-pg="leikur"] :global(.lk-pb:focus-within .lk-pb-tip) { display: block; }
+  main[data-pg="leikur"] :global(.lk-pb-tip-h) { display: block; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted, #9fb0c8); margin: 8px 0 3px; }
+  main[data-pg="leikur"] :global(.lk-chip) { display: inline-block; padding: 1px 7px; margin: 1px 3px 1px 0; border-radius: 999px; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; background: rgba(140,160,200,.14); border: 1px solid #3a4152; color: #b8c4d8; }
+  main[data-pg="leikur"] :global(.lk-chip.g) { background: rgba(66,208,134,.13); border-color: #42d08655; color: #7fe0ab; }
+  main[data-pg="leikur"] :global(.lk-chip.r) { background: rgba(231,130,132,.13); border-color: #e7828455; color: #f0a3a5; }
+  main[data-pg="leikur"] :global(.lk-opt-fx) { display: block; margin-top: 3px; }
 </style>

@@ -11,7 +11,7 @@ import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
-import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO } from './game-config.mjs';
+import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 // ATH: þessi skrá býr í src/lib/leikur/ (EKKI web/src/lib/leikur/) — auth.js er undir web/src/lib/, því 3 stig upp.
@@ -34,6 +34,25 @@ const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.rea
 function disp(cfg, v, d) {
   if (cfg && cfg.realBase != null && cfg.realMode === 'mult') return num(cfg.realBase * (1 + v / 100), d != null ? d : (cfg.realDec != null ? cfg.realDec : 0)) + (cfg.realUnit || cfg.unit || '');
   return num((cfg && cfg.realBase != null ? cfg.realBase + v : v), d != null ? d : decOf(cfg)) + (cfg ? (cfg.unit || '') : '');
+}
+
+// F1-V3: KPI-delta-flísar — litlar pill-flísar („Verðbólga −0,4") með lit eftir því hvort breytingin er GÓÐ.
+// GOAL_SPECS.dir: 'max' (haltu undir marki) → lækkun græn; 'min' (haltu yfir) → hækkun græn;
+// 'target' (verdbolga) → einfaldað: lækkun græn. 'pop' = fylgi (hærra betra). KPI utan korts → hlutlaus grá (.n).
+// Íslenskt tölusnið (komma), + fyrir jákvætt og − (U+2212) fyrir neikvætt; 1-2 aukastafir eftir stærð, núll-halar klipptir.
+const deltaFmt = (v) => { const a = Math.abs(v); const s = num(a, a >= 1 ? 1 : 2).replace(/(,\d*?)0+$/, '$1').replace(/,$/, ''); return (v > 0 ? '+' : '−') + s; };
+function deltaChips(deltas) {
+  if (!deltas || typeof deltas !== 'object') return '';
+  return Object.keys(deltas).map((k) => {
+    const v = +deltas[k];
+    if (!isFinite(v) || Math.abs(v) < 0.005) return '';
+    const spec = GOAL_SPECS[k];
+    let cls = 'n';
+    if (k === 'pop') cls = v > 0 ? 'g' : 'r';
+    else if (spec) cls = ((v < 0) === (spec.dir === 'max' || spec.dir === 'target')) ? 'g' : 'r';
+    const label = k === 'pop' ? 'fylgi' : (spec ? spec.label : k);
+    return '<span class="lk-chip ' + cls + '">' + esc(label) + ' ' + deltaFmt(v) + '</span>';
+  }).join('');
 }
 
 // Leikstjóra-greiningarmælaborð: skorkort-tafla + ákvarðanir + ferla-gröf. Lit per lið (samræmt).
@@ -302,12 +321,29 @@ export function mountLeikur(root) {
     }).join('');
     return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + body + '</div>';
   }
+  // F1-V3: stefnu-badge-röð undir kjörtímabils-hausnum — flís per STAÐFESTA stóra ákvörðun (st.policyBadges).
+  // Tooltip er HREINT CSS (:hover/:focus-within, flís tabindex=0) — poll endurteiknar innerHTML svo ekkert JS-ástand má bera það.
+  function policyBadgesRow(st) {
+    const bs = st.policyBadges; if (!bs || !bs.length) return '';
+    const legacyOf = (id) => { const p = ((st.carryover && st.carryover.policies) || []).find((x) => x.id === id); return (p && p.text) || ''; };
+    const stageTxt = (b) => b.stage === 'umsokn' ? 'umsókn í ferli' : b.stage === 'adild' ? 'aðild' : b.stage === 'ursogn' ? 'úrsögn í ferli' : 'frá KT' + (b.sinceRound != null ? b.sinceRound : '?');
+    return '<div class="lk-pb-row">' + bs.map((b) => {
+      const name = esc(b.label) + (b.choice ? ': ' + esc(b.choice) : '');   // choice-ákvarðanir sýna valið („Icesave: Greiða")
+      const leg = legacyOf(b.id), chips = deltaChips(b.deltas);
+      const tip = '<span class="lk-pb-tip"><b>' + (b.icon || '🏛️') + ' ' + name + '</b>' +
+        (leg ? '<span style="display:block;margin-top:4px">' + esc(leg) + '</span>' : '') +
+        (chips ? '<span class="lk-pb-tip-h">Áhrif í síðustu lotu</span><span style="display:block">' + chips + '</span>'
+               : '<span style="display:block;margin-top:4px;color:var(--muted)">Áhrifin mælast frá næstu lotu.</span>') +
+        '</span>';
+      return '<span class="lk-pb' + (b.id === 'esb' ? ' lk-pb-esb' : '') + '" tabindex="0">' + (b.icon || '🏛️') + ' <b>' + name + '</b> <span class="lk-pb-stage">' + esc(stageTxt(b)) + '</span>' + tip + '</span>';
+    }).join('') + '</div>';
+  }
   // Arfleifð: hvernig standandi stórar ákvarðanir + óvænt atvik síðustu lotu lita ÞESSA lotu (byrjun lotu).
   function carryoverCard(st) {
     const c = st.carryover; if (!c) return '';
     const rows = [];
     if (c.event && c.event.text) rows.push('<div style="margin:3px 0">' + (c.event.icon || '🎲') + ' <b>' + esc(c.event.title) + '</b>' + (c.event.choice ? ' <span class="lk-muted">(þið völduð: ' + esc(c.event.choice) + ')</span>' : '') + ' — ' + esc(c.event.text) + '</div>');
-    for (const p of (c.policies || [])) rows.push('<div style="margin:3px 0">' + (p.icon || '🏛️') + ' <b>' + esc(p.label) + '</b> — ' + esc(p.text) + '</div>');
+    for (const p of (c.policies || [])) { const ch = deltaChips(p.deltas); rows.push('<div style="margin:3px 0">' + (p.icon || '🏛️') + ' <b>' + esc(p.label) + '</b> — ' + esc(p.text) + (ch ? '<div style="margin-top:3px">' + ch + '</div>' : '') + '</div>'); }
     if (!rows.length) return '';
     return '<div style="background:#20242e;border:1px solid #3a4152;border-left:4px solid #8ca0c8;border-radius:10px;padding:11px 14px;margin:10px 0">' +
       '<div style="font-size:13.5px;font-weight:700;margin-bottom:5px">📋 Arfleifð síðasta kjörtímabils — hvað mótar þessa lotu</div>' +
@@ -317,10 +353,13 @@ export function mountLeikur(root) {
   function surpriseCard(st) {
     const s = st.surprise; if (!s) return '';
     const dil = s.dilemma;
-    const opts = dil ? (dil.options || []).map((o) => '<span class="lk-opt' + (S.dilemmaDraft === o.key ? ' sel' : '') + '" data-dil="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + '</span>').join(' ') : '';
+    // F1-V3: klemmu-kostir bera áhrifa-flísar (o.effect, þ.m.t. 'pop'=fylgi) — valið verður upplýstara.
+    const opts = dil ? (dil.options || []).map((o) => { const fx = deltaChips(o.effect); return '<span class="lk-opt' + (S.dilemmaDraft === o.key ? ' sel' : '') + '" data-dil="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : '') + '</span>'; }).join(' ') : '';
+    const fx0 = deltaChips(s.effect);
     return '<div style="background:linear-gradient(90deg,#3a1f1f,#2a2320);border:1px solid #e78284;border-left:4px solid #e78284;border-radius:10px;padding:12px 14px;margin:10px 0">' +
       '<div style="font-size:15px;font-weight:700;color:#f5b0b0">📰 ' + (s.icon || '🎲') + ' Óvænt atvik: ' + esc(s.title) + '</div>' +
       '<p style="margin:6px 0 0;font-size:13.5px;line-height:1.55">' + esc(s.text) + '</p>' +
+      (fx0 ? '<div style="margin-top:6px;font-size:12.5px"><span class="lk-muted">Bein áhrif:</span> ' + fx0 + '</div>' : '') +
       (dil ? '<div style="margin-top:10px"><span style="font-weight:600;font-size:13px">' + esc(dil.q) + '</span><div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">' + opts + '</div>' +
         (S.dilemmaDraft == null ? '<p class="lk-muted" style="font-size:11.5px;margin:6px 0 0">Veljið viðbragð — það hefur áhrif á hagkerfið og fylgi ríkisstjórnarinnar.</p>' : '') + '</div>' : '') +
       '</div>';
@@ -652,6 +691,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       ribbonHtml(st) +
       `<div class="lk-term-head"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}${ev && ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : ''}</div>` +
+      policyBadgesRow(st) +   // F1-V3: badge-röð STRAX undir kjörtímabils-hausnum, á undan arfleifðar-spjaldi
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) +
       (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">🚨</span><span><b>Stjórnarkreppa eftir fall stjórnarinnar.</b> Ríkisstjórnin féll í fjöldamótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu búi. Stjórnarmyndun og lömun draga úr hagvexti, atvinnuleysi eykst, skuldir hækka og fylgi byrjar mun lægra. Það þarf sterka hagstjórn til að ná vopnum sínum á ný.</span></div></div>' : '') +
       '<div class="lk-studio-main">' +
