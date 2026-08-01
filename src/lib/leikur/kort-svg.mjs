@@ -3,7 +3,7 @@
 // Hrein strengja-eining: ekkert DOM, engir event-handlerar, engin <text>-element,
 // ekkert random — sama threp gefur ALLTAF nákvæmlega sama streng (client endurteiknar
 // við sleða-drög). Inntakið er þrep-hluturinn frá kort-throp.mjs:
-// { byggd, menntun, fiskur, losun, taknmyndir }.
+// { byggd, menntun, fiskur, losun, ljos, atvik, taknmyndir }.
 //
 // STRANDLÍNAN er unnin úr RAUN-GÖGNUM: web/public/gogn/sveitarfelog_adm2.json
 // (geoBoundaries ADM2, CC-BY 4.0 — sama grunn og choropleth-kortin nota).
@@ -122,6 +122,23 @@ const TAKN_HNIT = {
   hoft: [206, 320],     // lás suðvestanlands
 };
 
+// — NÆTURLJÓSA-VÍDDIN (threp.ljos 0-3): byggða-glóðin hefur TVÆR AÐSKILDAR víddir:
+//   · byggd ræður ÁFRAM stærð og fjölda punktanna (jöfnuður/dreifing byggðar),
+//   · ljos ræður AÐEINS birtu og hita ljósanna (hagsveiflan).
+//   [kjarna-litur, RVK-kjarna-litur, opacity-stuðull, glóðar-gradient-viðskeyti, glóðar-op-stuðull]
+const LJOS_STILL = [
+  ['#8fa3c4', '#b9c8de', 0.55, '-baer-kalt', 0.5],  // 0: kreppa-dimma — daufir kaldir punktar
+  [GULL, '#ffe9b8', 1, '-baer', 1],                 // 1: hlutlaust (óbreytt grunn-útlit)
+  ['#ffc25c', '#fff1cd', 1, '-baer-hlytt', 1.15],   // 2: hlýrri gull-glóð
+  ['#ffd27f', '#fff7e0', 1, '-baer-hlytt', 1.35],   // 3: björt hlý halo + úthverfa-ljós
+];
+
+// Úthverfa-punktar kringum Reykjavík og Akureyri — kvikna aðeins í góðæris-glóð (ljos=3).
+const UTHVERFI = [
+  [180, 300], [192, 288], [195, 297],  // kringum Reykjavík (Hafnarfj./Mosó/Árbær-átt)
+  [357, 133], [366, 131],              // kringum Akureyri (beggja vegna fjarðar)
+];
+
 function klemma03(v, sjalfgefid) {
   const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : sjalfgefid;
   return Math.max(0, Math.min(3, n));
@@ -234,9 +251,12 @@ const TAKN_TEIKNARAR = {
 
 // — Lögin ————————————————————————————————————————————————————————
 
-/** Byggða-lag: gull-punktar með radial-glóð; stærð, birta og glóð vaxa með þrepi. */
-function lagByggd(th, p) {
-  // Stillingar per þrep: [radíus-stuðull, kjarna-opacity, glóðar-stuðull, glóðar-opacity]
+/** Byggða-lag: punktar með radial-glóð. TVÆR AÐSKILDAR víddir (sjá LJOS_STILL):
+ *  byggð-ÞREPIÐ ræður stærð og fjölda punktanna (jöfnuður), NÆTURLJÓSIN (lj 0-3)
+ *  ræða birtu og hita — ljos=0 daufir kaldir punktar (kreppan slökkti á landinu),
+ *  1 hlutlaust, 2 hlýrri gull-glóð, 3 björt hlý halo + úthverfa-ljós við RVK/Akureyri. */
+function lagByggd(th, p, lj) {
+  // Stillingar per byggða-þrep: [radíus-stuðull, kjarna-opacity, glóðar-stuðull, glóðar-opacity]
   const still = [
     [0.8, 0.5, 0, 0],       // 0: aðeins RVK, dauf, engin glóð
     [0.9, 0.68, 2.6, 0.5],  // 1: allir bæir, daufir, lítil glóð
@@ -244,22 +264,33 @@ function lagByggd(th, p) {
     [1.12, 1, 4.2, 1],      // 3: allir bjartir, full glóð + geislabaugur
   ][th];
   const [rk, op, gm, gop] = still;
+  const [kjarni, ljosKjarni, opStudull, glodVidskeyti, glodStudull] = LJOS_STILL[lj];
+  const kjOp = Math.min(1, op * opStudull).toFixed(2);
+  const glOp = Math.min(1, gop * glodStudull).toFixed(2);
   let inni = '';
   for (const b of BAEIR) {
-    if (th === 0 && b.tier > 0) continue; // þrep 0 → aðeins Reykjavík
+    if (th === 0 && b.tier > 0) continue; // byggða-þrep 0 → aðeins Reykjavík
     const r = (b.r * rk).toFixed(2);
+    if (lj === 3) { // björt hlý halo utan um hvert ljós (birtu-vídd, óháð byggða-glóðinni)
+      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * 5).toFixed(2)}" fill="url(#${p}-baer-hlytt)" opacity="0.55"/>`;
+    }
     if (gm > 0) {
-      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * gm).toFixed(2)}" fill="url(#${p}-baer)" opacity="${gop}"/>`;
+      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * gm).toFixed(2)}" fill="url(#${p}${glodVidskeyti})" opacity="${glOp}"/>`;
     }
-    if (th === 3) { // geislabaugur: mjór ytri hringur
-      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * rk * 1.9).toFixed(2)}" fill="none" stroke="${GULL}" stroke-width="0.7" opacity="0.35"/>`;
+    if (th === 3) { // geislabaugur: mjór ytri hringur (fylgir byggða-þrepinu)
+      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * rk * 1.9).toFixed(2)}" fill="none" stroke="${kjarni}" stroke-width="0.7" opacity="0.35"/>`;
     }
-    inni += `<circle cx="${b.x}" cy="${b.y}" r="${r}" fill="${GULL}" opacity="${op}"/>`;
+    inni += `<circle cx="${b.x}" cy="${b.y}" r="${r}" fill="${kjarni}" opacity="${kjOp}"/>`;
     if (b.tier === 0) { // Reykjavík fær ljósan kjarna
-      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * rk * 0.42).toFixed(2)}" fill="#ffe9b8" opacity="${op}"/>`;
+      inni += `<circle cx="${b.x}" cy="${b.y}" r="${(b.r * rk * 0.42).toFixed(2)}" fill="${ljosKjarni}" opacity="${kjOp}"/>`;
     }
   }
-  return `<g class="kt-lag kt-byggd" data-throp="${th}">${inni}</g>`;
+  if (lj === 3) { // örfá auka-ljós í úthverfum RVK/Akureyrar — aðeins í góðæris-glóð
+    for (const [x, y] of UTHVERFI) {
+      inni += `<circle cx="${x}" cy="${y}" r="1.3" fill="${kjarni}" opacity="0.8"/>`;
+    }
+  }
+  return `<g class="kt-lag kt-byggd" data-throp="${th}" data-ljos="${lj}">${inni}</g>`;
 }
 
 /** Menntunar-lag: 0-3 skólahús við RVK/Akureyri/Egilsstaði. */
@@ -306,6 +337,139 @@ function lagTakn(taknmyndir) {
   return ut;
 }
 
+// — Atviks-lagið ————————————————————————————————————————————————————
+// Eitt sjónrænt lag per líðandi atvik (threp.atvik frá kort-throp.mjs). Öll hnit
+// eru fastar tölur (deterministic), engin <text>-element, engir handlerar; defs-
+// tilvísanir nota idPrefix. compact:true → aðeins AÐAL-FORMIÐ (engir auka-neistar,
+// vind-strik, geislar eða auka-hringir).
+
+/** Eldgos: rauðglóandi sprunga á Reykjanesskaga + öskumökkur + 4 neista-punktar. */
+function atvikEldgos(p, compact) {
+  const SPRUNGA = 'M148 318 L155 314 L161 317 L168 313 L175 316';
+  const sprunga =
+    `<path d="${SPRUNGA}" fill="none" stroke="#ff5a36" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"${compact ? '' : ` filter="url(#${p}-glow)"`}/>` +
+    `<path d="${SPRUNGA}" fill="none" stroke="#ffd0a0" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (compact) return sprunga;
+  return sprunga +
+    `<ellipse cx="162" cy="296" rx="14" ry="8" fill="#6b6474" opacity="0.5"/>` +
+    `<ellipse cx="170" cy="285" rx="9" ry="5.5" fill="#6b6474" opacity="0.32"/>` +
+    `<circle cx="152" cy="309" r="1.1" fill="#ffb36b"/>` +
+    `<circle cx="158" cy="306" r="0.9" fill="#ff8a4d"/>` +
+    `<circle cx="165" cy="308" r="1.2" fill="#ffcf78"/>` +
+    `<circle cx="171" cy="305" r="0.7" fill="#ffb36b"/>`;
+}
+
+/** Tsunami: hvít-blá storm-slæða yfir norðurströndina + 3 vind-strik. */
+function atvikTsunami(p, compact) {
+  const slaeda =
+    `<path d="M120 30 Q250 8 370 24 Q480 38 600 22 L600 58 Q470 74 350 58 Q230 44 120 62 Z" fill="#bcd9f2" opacity="0.26"/>`;
+  if (compact) return slaeda;
+  return slaeda +
+    `<g fill="none" stroke="#dfeefb" stroke-width="1.4" stroke-linecap="round" opacity="0.7">` +
+    `<path d="M170 46 Q210 38 250 46 Q290 54 330 46"/>` +
+    `<path d="M320 32 Q360 24 400 32 Q440 40 480 32"/>` +
+    `<path d="M430 54 Q470 46 510 54 Q550 62 590 54"/>` +
+    `</g>`;
+}
+
+/** Verkfall: kröfuspjöld (rect á priki) við Reykjavík — 3 í fullri útgáfu, 1 í compact. */
+function atvikVerkfall(p, compact) {
+  const spjald = (x, y, halli) => `<g transform="translate(${x} ${y}) rotate(${halli})">` +
+    `<rect x="-0.7" y="-4" width="1.4" height="12" rx="0.7" fill="${DEMPAD}"/>` +
+    `<rect x="-6" y="-12" width="12" height="8" rx="1" fill="${INK}" stroke="${SJOR}" stroke-width="0.8"/>` +
+    `<rect x="-4" y="-10" width="8" height="1.2" fill="${DEMPAD}"/>` +
+    `<rect x="-4" y="-7.6" width="5.5" height="1.2" fill="${DEMPAD}"/>` +
+    `</g>`;
+  if (compact) return spjald(206, 292, 0);
+  return spjald(198, 297, -8) + spjald(206, 292, 0) + spjald(214, 297, 7);
+}
+
+// Makríl-torfan: föst hnit í sjónum SA/A af landinu — [x, y, kvarði, spegla].
+const MAKRILL_TORFA = [
+  [560, 318, 0.8, 0], [574, 308, 0.9, 1], [588, 318, 0.85, 0],
+  [568, 330, 0.75, 1], [583, 296, 0.8, 0], [598, 308, 0.9, 1],
+  [552, 302, 0.7, 0], [594, 330, 0.75, 0], [608, 320, 0.8, 1],
+];
+
+/** Makríll: þétt auka-torfa af SILFRUÐUM fiskum SA/A — greinileg viðbót við
+ *  venjulegu INK-fiskana (bjartari fylling, hærri opacity). compact: 4 fiskar. */
+function atvikMakrill(p, compact) {
+  const n = compact ? 4 : MAKRILL_TORFA.length;
+  let ut = '';
+  for (let i = 0; i < n; i++) {
+    const [x, y, s, spegla] = MAKRILL_TORFA[i];
+    const sx = spegla ? -s : s;
+    ut += `<g transform="translate(${x} ${y}) scale(${sx} ${s})" opacity="0.9">` +
+      `<path d="M-7 0 Q0 -4.6 6 0 Q0 4.6 -7 0 Z" fill="#e6edf7"/>` +
+      `<path d="M6 0 L10.5 -3.4 L9.2 0 L10.5 3.4 Z" fill="#e6edf7"/>` +
+      `<circle cx="-3.6" cy="-0.9" r="0.7" fill="${SJOR}"/>` +
+      `</g>`;
+  }
+  return ut;
+}
+
+/** Nýsköpun: gull-stjörnublossi yfir Reykjavík (+ geislar og glit í fullri útgáfu). */
+function atvikNyskopun(p, compact) {
+  const stjarna =
+    `<path d="M0 -10 L2.2 -2.8 L9.5 -2.8 L3.6 1.6 L5.9 8.6 L0 4.2 L-5.9 8.6 L-3.6 1.6 L-9.5 -2.8 L-2.2 -2.8 Z" fill="${GULL}" stroke="#ffe9b8" stroke-width="0.6" stroke-linejoin="round"/>`;
+  const geislar =
+    `<g stroke="${GULL}" stroke-width="1" stroke-linecap="round" opacity="0.6">` +
+    `<path d="M0 -13 L0 -17"/><path d="M9 -9 L12 -12"/><path d="M13 0 L17 0"/>` +
+    `<path d="M-9 -9 L-12 -12"/><path d="M-13 0 L-17 0"/>` +
+    `</g>` +
+    `<circle cx="12" cy="7" r="1" fill="#ffe9b8"/><circle cx="-11" cy="8" r="0.8" fill="#ffe9b8"/>`;
+  return `<g transform="translate(190 268)">${stjarna}${compact ? '' : geislar}</g>`;
+}
+
+/** Spilling: dökkt ský yfir Reykjavík (+ 3 súldar-strik í fullri útgáfu). */
+function atvikSpilling(p, compact) {
+  const sky =
+    `<path d="M172 272 Q170 264 178 262 Q180 254 190 255 Q198 250 205 256 Q214 256 213 265 Q219 270 211 274 Q206 279 197 276 Q188 281 181 276 Q173 278 172 272 Z" fill="#171c26" opacity="0.85" stroke="#0d111a" stroke-width="0.8"/>`;
+  if (compact) return sky;
+  return sky +
+    `<g stroke="#39445c" stroke-width="1" stroke-linecap="round" opacity="0.7">` +
+    `<path d="M184 281 L181 287"/><path d="M193 282 L190 288"/><path d="M202 279 L199 285"/>` +
+    `</g>`;
+}
+
+/** Gagnaver: púls-hringir um gagnavers-punktinn við Blönduós — táknið sjálft
+ *  kemur áfram AÐEINS úr taknmyndir (þ.e. ef valið var 'ja'). compact: 1 hringur. */
+function atvikGagnaver(p, compact) {
+  const [x, y] = TAKN_HNIT.gagnaver;
+  let ut = `<circle cx="${x}" cy="${y}" r="16" fill="none" stroke="${GRAENT}" stroke-width="1.4" opacity="0.55"/>`;
+  if (!compact) {
+    ut += `<circle cx="${x}" cy="${y}" r="23" fill="none" stroke="${GRAENT}" stroke-width="1" opacity="0.3"/>` +
+      `<circle cx="${x}" cy="${y}" r="30" fill="none" stroke="${GRAENT}" stroke-width="0.7" opacity="0.15"/>`;
+  }
+  return ut;
+}
+
+/** Jafnrétti: fíngerður gull-hringbogi yfir landinu miðju (lágstemmt). */
+function atvikJafnretti(p, compact) {
+  const bogi =
+    `<path d="M210 200 Q320 128 440 196" fill="none" stroke="${GULL}" stroke-width="1.6" opacity="0.35" stroke-linecap="round"/>`;
+  if (compact) return bogi;
+  return bogi +
+    `<path d="M222 208 Q320 146 428 204" fill="none" stroke="#ffe9b8" stroke-width="0.9" opacity="0.22" stroke-linecap="round"/>`;
+}
+
+const ATVIK_TEIKNARAR = {
+  eldgos: atvikEldgos,
+  tsunami: atvikTsunami,
+  verkfall: atvikVerkfall,
+  makrill: atvikMakrill,
+  nyskopun: atvikNyskopun,
+  spilling: atvikSpilling,
+  gagnaver: atvikGagnaver,
+  jafnretti: atvikJafnretti,
+};
+
+/** Atviks-lag: <g class="kt-atvik kt-atvik-<id>"> aðeins þegar atvik er þekkt id. */
+function lagAtvik(atvik, p, compact) {
+  if (typeof atvik !== 'string' || !Object.hasOwn(ATVIK_TEIKNARAR, atvik)) return '';
+  return `<g class="kt-atvik kt-atvik-${atvik}">${ATVIK_TEIKNARAR[atvik](p, compact)}</g>`;
+}
+
 // — Fastir grunn-hlutar ——————————————————————————————————————————
 
 /** Defs: öll id fá prefix p og eru þrep-óháð (tvö kort á síðu deila skaðlaust). */
@@ -326,6 +490,14 @@ function defs(p, compact) {
     // Byggða-glóð: gull sem fjarar út.
     `<radialGradient id="${p}-baer">` +
     `<stop offset="0" stop-color="${GULL}" stop-opacity="0.5"/><stop offset="0.5" stop-color="${GULL}" stop-opacity="0.18"/><stop offset="1" stop-color="${GULL}" stop-opacity="0"/>` +
+    `</radialGradient>` +
+    // Næturljósa-afbrigði byggða-glóðarinnar (alltaf skilgreind — defs haldast þrep-óháð):
+    // kalt (ljos=0, kreppa-dimma) og hlýtt (ljos>=2, góðæris-glóð).
+    `<radialGradient id="${p}-baer-kalt">` +
+    `<stop offset="0" stop-color="#9fb3d4" stop-opacity="0.35"/><stop offset="0.5" stop-color="#9fb3d4" stop-opacity="0.1"/><stop offset="1" stop-color="#9fb3d4" stop-opacity="0"/>` +
+    `</radialGradient>` +
+    `<radialGradient id="${p}-baer-hlytt">` +
+    `<stop offset="0" stop-color="#ffcf78" stop-opacity="0.6"/><stop offset="0.5" stop-color="#ffb54d" stop-opacity="0.22"/><stop offset="1" stop-color="#ffb54d" stop-opacity="0"/>` +
     `</radialGradient>`;
   if (!compact) {
     d +=
@@ -383,10 +555,13 @@ function joklar(p) {
 /**
  * renderIslandKort — skilar Íslandskortinu sem SVG-streng.
  *
- * @param {{ byggd?: number, menntun?: number, fiskur?: number, losun?: number, taknmyndir?: string[] }} threp
- *        Þrep-hlutur frá kortThrep() í kort-throp.mjs. Vantandi/ógild þrep fá sjálfgefin gildi (1/1/1/2).
+ * @param {{ byggd?: number, menntun?: number, fiskur?: number, losun?: number, ljos?: number,
+ *           atvik?: string|null, taknmyndir?: string[] }} threp
+ *        Þrep-hlutur frá kortThrep() í kort-throp.mjs. Vantandi/ógild þrep fá sjálfgefin gildi
+ *        (byggd 1, menntun 1, fiskur 1, losun 2, ljos 1 = hlutlaus birta, atvik null).
  * @param {{ compact?: boolean, idPrefix?: string }} [opts]
- *        compact:true → farsíma-útgáfa (mest 4 fiskar, ekkert mistur, engin norðurljós, einfaldara glow).
+ *        compact:true → farsíma-útgáfa (mest 4 fiskar, ekkert mistur, engin norðurljós,
+ *        einfaldara glow, atviks-lagið aðeins aðal-formið).
  *        idPrefix → forskeyti á öll defs-id (sjálfgefið 'kt'); id-in eru þrep-óháð.
  * @returns {string} SVG-strengur, viewBox="0 0 640 400". Engin <text>-element, engir event-handlerar.
  */
@@ -396,6 +571,7 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
   const menntun = klemma03(t.menntun, 1);
   const fisk = klemma03(t.fiskur, 1);
   const losun = klemma03(t.losun, 2);
+  const ljos = klemma03(t.ljos, 1);
   const taknmyndir = Array.isArray(t.taknmyndir) ? t.taknmyndir : [];
   const p = String(idPrefix || 'kt').replace(/[^A-Za-z0-9_-]/g, '') || 'kt';
 
@@ -412,10 +588,12 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
     // Jöklarnir fimm
     joklar(p) +
     // Lög ofan á landinu
-    lagByggd(byggd, p) +
+    lagByggd(byggd, p, ljos) +
     lagMenntun(menntun) +
     lagTakn(taknmyndir) +
     // Mistur/tré efst (hálfgagnsætt yfir öllu)
     lagLosun(losun, compact, p) +
+    // Atviks-lagið efst (dramatíkin sést yfir öllu öðru)
+    lagAtvik(t.atvik, p, compact) +
     `</svg>`;
 }

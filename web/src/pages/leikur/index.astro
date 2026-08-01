@@ -252,6 +252,18 @@ const MODEL = {
   @keyframes lk-kt-nytt { 0% { opacity: 0; } 55% { opacity: 1; filter: drop-shadow(0 0 9px rgba(246,177,59,.9)); } 100% { opacity: 1; } }
   @media (max-width: 900px) { main[data-pg="leikur"] .lk-kort-grid.two, main[data-pg="leikur"] .lk-kort-loka { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .kt-lag.kt-breytt, main[data-pg="leikur"] .kt-takn.kt-nytt { animation: none; } }
+  /* Atviks-lagið (kt-atvik): lifandi en lágstemmt. BÁÐAR lúppurnar eru á OPACITY með hvíldarstöðu
+     (opacity 1) á 0%/100% — VILJANDI restart-þolnar: results-/watch-sýnin endurbyggja root.innerHTML
+     á hverju polli (2,5s) svo lúppan ENDURRÆSIST þar í sífellu (hún lifir aðeins í sig-gáttaða
+     decide-hýslinum #lk-st-kort). Transform-drift (t.d. translateX) myndi því HÖKTA sýnilega til
+     baka á hverju polli — bannað hér. EKKI CSS-filter heldur: sprungan ber filter="url(#…-glow)"
+     attribút sem CSS-filter myndi klobba. Önnur atvik: kyrr — engin animation.
+     Truflar ekki kt-breytt/kt-nytt (þau sitja á .kt-lag/.kt-takn, öðrum elementum). */
+  main[data-pg="leikur"] .kt-atvik-eldgos { animation: lk-kt-eldgos 2.5s ease-in-out infinite; }
+  main[data-pg="leikur"] .kt-atvik-tsunami { animation: lk-kt-tsunami 5.5s ease-in-out infinite; }
+  @keyframes lk-kt-eldgos { 0%, 100% { opacity: 1; } 45% { opacity: .72; } 62% { opacity: .95; } 78% { opacity: .82; } }
+  @keyframes lk-kt-tsunami { 0%, 100% { opacity: 1; } 50% { opacity: .68; } }
+  @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .kt-atvik { animation: none; } }
   /* VERK 1: lifandi Íslandskort í decide-sýn studio — fastur hýsill (#lk-st-kort) efst í graf-
      dálknum, HÆGRA megin við Þjóðarhags-/pólitíkur-mælana (2-dálka rist .lk-st-row) svo kortið
      sjáist ÁN skruns á 1440px. :empty felur spjaldið þar til fyrsta teiknun (kortDecideDraw) fyllir. */

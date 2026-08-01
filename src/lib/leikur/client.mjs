@@ -1030,12 +1030,16 @@ export function mountLeikur(root) {
   function kortThrepUr(st, teamId, kpis, policies) {
     const kk = { ...(kpis || {}) };
     if (teamId === S.teamId) { const m = kortMenntun(st); if (m != null) kk.menntun = m; }
-    return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {} });
+    // Atvik lotunnar (sama fyrir öll lið, sjá surprise.mjs): í resolved-fasa er st.surprise atvikið
+    // sem var að leysast → eldgosið o.fl. sést á landinu í results (kortCardMitt) OG á skjávarpanum
+    // (kortWatch). kortThrep validerar id-ið sjálft (óþekkt → null → ekkert atviks-lag).
+    return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {}, atvik: (st.surprise && st.surprise.id) || null });
   }
   const kortDot = (n) => '●●●'.slice(0, n) + '○○○'.slice(0, 3 - n);
   function kortSkyring(threp) {
     return '<p class="lk-kort-skyr" title="Þrep 0–3 laganna á kortinu — fleiri fylltir punktar = meira af laginu (losun: fleiri punktar = meiri mengun).">'
-      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur) + ' · 🏭 Losun ' + kortDot(threp.losun) + '</p>';
+      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur) + ' · 🏭 Losun ' + kortDot(threp.losun)
+      + ' · <span title="Næturljós landsins — glóa í góðæri, dofna í kreppu">💡 Ljós ' + kortDot(threp.ljos) + '</span></p>';
   }
   // Þrep-animation: síðasta teiknaða threp geymt í S.kortPrev (per lið+lota). Klasarnir fara AÐEINS
   // á fyrstu teiknun NÝRRAR lotu (prev.round !== round) — poll-endurteiknanir innan sömu lotu fá þá
@@ -1046,6 +1050,10 @@ export function mountLeikur(root) {
     S.kortPrev[teamId] = { round, threp };
     if (kortCompact() || pmReduced() || !prev || prev.round === round) return svg;
     let ut = svg;
+    // VILJANDI aðeins lögin 4 + taknmyndir í anim-diffinu: atvik og ljos fá ALDREI kt-breytt/kt-nytt
+    // (atviks-lagið hefur eigin CSS-lúppu, ljos býr í byggða-laginu) — ekkert popp á hverjum polli.
+    // ATH: results/watch endurbyggja innerHTML á hverju polli → kt-atvik-lúppan ENDURRÆSIST þar;
+    // keyframes hennar eru því restart-þolnar (opacity-hvíldarstaða á 0%/100%, ekkert transform-drift).
     const LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun' };
     for (const k in LOG) if (prev.threp[k] !== threp[k]) ut = ut.replace('class="kt-lag ' + LOG[k] + '"', 'class="kt-lag ' + LOG[k] + ' kt-breytt"');
     const adur = new Set(prev.threp.taknmyndir || []);
@@ -1098,8 +1106,12 @@ export function mountLeikur(root) {
       kpis: kk,
       policyStates: { ...((st.policies && st.policies.states) || {}), ...(S.policyDraft || {}) },
       eventChoices: (st.eventChoices || {})[S.teamId] || {},
+      // Atvik lotunnar sést á landinu um leið og lotan opnast — parast við atviks-popupið (sepop).
+      atvik: (st.surprise && st.surprise.id) || null,
     });
-    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + (threp.taknmyndir || []).join(',');
+    // ljos og atvik VERÐA að vera í undirskriftinni: ljos-þrepaskipti og atviks-koma triggera þá
+    // nákvæmlega EINA endurteiknun (næstu poll með sömu sig sleppa — CSS-lúppan á kt-atvik lifir).
+    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + threp.ljos + '|' + (threp.atvik || '') + '|' + (threp.taknmyndir || []).join(',');
     const changed = sig !== S.ktdSig;
     if (!changed && holder.firstChild) return;   // ódýra undirskriftar-tékkið — EKKI endurteikna á hverju draggi
     const prev = changed ? S.ktdPrev : null;     // óbreytt sig en tómur hýsill (renderStudio endurbyggði) → teikna ÁN glows

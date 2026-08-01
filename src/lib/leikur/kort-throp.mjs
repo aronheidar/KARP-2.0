@@ -28,6 +28,13 @@ function tala(v) {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+// Þekkt atviks-id sem kort-svg.mjs kann að teikna sem sér-lag (kt-atvik-<id>).
+// Óþekkt/ógild gildi verða null — kortið teiknar þá ekkert atviks-lag.
+const GILD_ATVIK = new Set([
+  'eldgos', 'makrill', 'verkfall', 'gagnaver',
+  'spilling', 'tsunami', 'nyskopun', 'jafnretti',
+]);
+
 /**
  * kortThrep — varpar stöðu leiksins í kort-þrep.
  *
@@ -36,10 +43,13 @@ function tala(v) {
  * @param {object} [inp.policyStates] Ástand stóru ákvarðananna, sbr. policyStates() í policies.mjs:
  *                                    { esb: true, stjoridja: 'reisa'|'hafna', audlindasjodur: true, hoft: true, ... }
  * @param {object} [inp.eventChoices] Atviks-val liðsins, t.d. { gagnaver: 'ja' }
- * @returns {{ byggd: number, menntun: number, fiskur: number, losun: number, taknmyndir: string[] }}
- *          byggd/menntun/fiskur/losun eru heiltölu-þrep 0-3; taknmyndir er listi fastra tákn-nafna.
+ * @param {string|null} [inp.atvik]   Id líðandi atviks (t.d. 'eldgos') — fer ÓBREYTT í gegn í
+ *                                    úttakið ef það er þekkt (sjá GILD_ATVIK), annars null.
+ * @returns {{ byggd: number, menntun: number, fiskur: number, losun: number, ljos: number,
+ *             atvik: string|null, taknmyndir: string[] }}
+ *          byggd/menntun/fiskur/losun/ljos eru heiltölu-þrep 0-3; taknmyndir er listi fastra tákn-nafna.
  */
-export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {} } = {}) {
+export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {}, atvik = null } = {}) {
   // — Byggð: úr byggdajofnudur-vísitölunni.
   //   Mörk: <92 -> 0 · 92-99 -> 1 · 99-106 -> 2 · >=106 -> 3 · vantar/ógilt -> 1
   const byggdV = tala(kpis.byggdajofnudur);
@@ -75,6 +85,25 @@ export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {} } = 
     menntun = threpUr(menntV, 92, 99, 106);
   }
 
+  // — Næturljós: BIRTA byggða-ljósanna á kortinu, reiknuð úr hagsveiflunni
+  //   (kpis.hagvoxtur + kpis.kaupmattur, báðar prósentu-stærðir, dæmigert ~-3..+6).
+  //   Mörk á SUMMU beggja (hálf-opin bil, neðra markið telst með efra þrepi):
+  //     summa <  0        -> 0  (kreppa-dimma — kreppan slökkti á landinu)
+  //     0    <= summa < 2,5 -> 1  (hlutlaust)
+  //     2,5  <= summa < 5   -> 2  (hlýrri gull-glóð)
+  //     summa >= 5          -> 3  (góðæris-glóð)
+  //   Annað gildið vantar/ógilt -> hitt notað EITT með helmings-mörkum (0 / 1,25 / 2,5).
+  //   Bæði vantar -> 2 (hlutlaus-björt sjálfgefin staða).
+  const hagV = tala(kpis.hagvoxtur);
+  const kaupV = tala(kpis.kaupmattur);
+  let ljos;
+  if (hagV === null && kaupV === null) ljos = 2;
+  else if (hagV === null || kaupV === null) ljos = threpUr(hagV ?? kaupV, 0, 1.25, 2.5);
+  else ljos = threpUr(hagV + kaupV, 0, 2.5, 5);
+
+  // — Atvik: strengja-id líðandi atviks fer óbreytt í gegn ef það er þekkt, annars null.
+  const atvikUt = typeof atvik === 'string' && GILD_ATVIK.has(atvik) ? atvik : null;
+
   // — Táknmyndir: stórar ákvarðanir og atviks-val birtast sem föst tákn á kortinu.
   //   Föst röð svo úttakið sé alltaf eins fyrir sama inntak (deterministic).
   const taknmyndir = [];
@@ -84,5 +113,5 @@ export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {} } = 
   if (policyStates.audlindasjodur === true) taknmyndir.push('sjodur');    // gull-kista við miðju (strangt true)
   if (policyStates.hoft === true) taknmyndir.push('hoft');                // lás við RVK (strangt true)
 
-  return { byggd, menntun, fiskur, losun, taknmyndir };
+  return { byggd, menntun, fiskur, losun, ljos, atvik: atvikUt, taknmyndir };
 }
