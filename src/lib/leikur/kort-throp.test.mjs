@@ -149,6 +149,21 @@ test('compact-útgáfan er styttri en full (færri fiskar, ekkert mistur)', () =
   assert.ok(compact.includes('kt-losun'), 'losunar-lagið er samt til staðar');
 });
 
+test('idPrefix: öll defs-id bera forskeytið og strengurinn er deterministic', () => {
+  const th = { byggd: 2, menntun: 1, fiskur: 2, losun: 1, taknmyndir: ['sjodur'] };
+  // sjálfgefið forskeyti 'kt' á öll id og allar url(#...)-tilvísanir leysast innan skjalsins
+  const svg = renderIslandKort(th);
+  const ids = [...svg.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids.length > 0 && ids.every((id) => id.startsWith('kt-')), 'öll id byrja á kt-');
+  for (const [, ref] of svg.matchAll(/url\(#([^)]+)\)/g)) assert.ok(ids.includes(ref), `url(#${ref}) leysist`);
+  // sér-forskeyti (tvö kort á sömu síðu) — engin kt-id eftir
+  const svg2 = renderIslandKort(th, { idPrefix: 'x9' });
+  assert.ok([...svg2.matchAll(/ id="([^"]+)"/g)].every((m) => m[1].startsWith('x9-')));
+  assert.ok(!svg2.includes('#kt-'), 'engin kt-tilvísun með idPrefix=x9');
+  // deterministic: sama threp → nákvæmlega sami strengur (client endurteiknar við sleða-drög)
+  assert.equal(renderIslandKort(th), svg);
+});
+
 test('renderIslandKort þolir tóm/ógild þrep', () => {
   for (const svg of [renderIslandKort(), renderIslandKort({}), renderIslandKort(null), renderIslandKort({ byggd: 99, fiskur: -2 })]) {
     assert.ok(svg.startsWith('<svg') && svg.endsWith('</svg>'));
