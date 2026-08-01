@@ -10,6 +10,7 @@ import { explainRound } from './debrief.mjs';
 import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
 import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
+import { politikStada } from './politik.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
 import { myndFyrirAtvik, PM_MYNDIR } from './myndir.mjs';
@@ -187,19 +188,41 @@ function uppsafnadRecap(st, myTeamId) {
   }
   return '<div class="lk-card lk-upp-lines"><h2>🇮🇸 Ísland ykkar 2032</h2>' + lines.map((l) => '<p>' + l + '</p>').join('') + bestHtml + '</div>';
 }
+// ── VERK 1: Pólitíski mælirinn — HLUTLAUS vörpun stefnublöndu á vinstri-hægri ás (politik.mjs). ──
+// Litirnir eru merkingar, ekki dómar: rautt=vinstri, blátt=hægri (íslensk hefð); ⓘ-textinn fylgir alls staðar.
+const POL_INFO = 'Einföld vörpun stefnublöndu á vinstri-hægri ás — kennslutæki, ekki dómur.';
+const POL_STUTT = { vinstri: 'Vinstri', midja: 'Miðja', haegri: 'Hægri' };
+const polColor = (flokkur) => flokkur === 'vinstri' ? '#e78284' : flokkur === 'haegri' ? '#6ea8fe' : '#cbd3e1';
+const polStig = (stig) => (stig > 0 ? '+' : '') + stig;
+// Lárétt braut: gradient rauður↔grár↔blár + nál á stig-staðsetningu (-100..100 → 0..100% frá vinstri).
+function politikBraut(stig, nalId) {
+  return '<div class="lk-pol-track"><div class="lk-pol-nal"' + (nalId ? ' id="' + nalId + '"' : '') + ' style="left:' + (50 + stig / 2).toFixed(1) + '%"></div></div>'
+    + '<div class="lk-pol-labels"><span>Vinstri</span><span>Miðja</span><span>Hægri</span></div>';
+}
+// „Togar"-listarnir: stærstu framlögin hvora átt („Til vinstri: Veiðigjald ↑ (+2,1) …").
+function politikTogar(p) {
+  const list = (arr, heiti) => (arr && arr.length)
+    ? '<div class="lk-pol-tog"><b>' + heiti + ':</b> ' + arr.map((t) => esc(t.label) + ' (+' + num(t.framlag) + ')').join(' · ') + '</div>' : '';
+  return list(p.togar && p.togar.vinstri, 'Til vinstri') + list(p.togar && p.togar.haegri, 'Til hægri');
+}
 function renderFacAnalytics(an, st, openDetails = new Set()) {
   if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
   const order = an.trajectories.cumulative.map((s) => s.teamId);
   const colorOf = (teamId) => LK_PAL[((order.indexOf(teamId) % LK_PAL.length) + LK_PAL.length) % LK_PAL.length];
   const scoreCol = (v) => v == null ? '#9fb0c8' : v >= 80 ? '#54d08a' : v >= 40 ? '#e8c14a' : '#e78284';
   const hasRole = an.scorecard.some((r) => r.role);
+  // VERK 1c: pólitíski ásinn í leikslok — lokastaða per lið (dálkur í skorkorti) + ferill-graf (debrief-fóður).
+  const polBy = {};
+  for (const t of ((st && st.politikFerill) || [])) { const last = (t.ferill || [])[(t.ferill || []).length - 1]; if (last) polBy[t.teamId] = last; }
+  const hasPol = Object.keys(polBy).length > 0;
   const kpiCols = an.scorecard[0].perKpi.map((p) => p.label);
-  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + (hasRole ? '<th>Hlutverk</th>' : '') + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th><th title="Meðal-fylgi ríkisstjórnar yfir kjörtímabilin">🗳️ Fylgi</th></tr>';
+  let sc = '<table class="lk-tbl"><tr><th>Lið</th>' + (hasRole ? '<th>Hlutverk</th>' : '') + kpiCols.map((l) => '<th>' + esc(l) + '</th>').join('') + '<th>Uppsafnað</th><th title="Meðal-fylgi ríkisstjórnar yfir kjörtímabilin">🗳️ Fylgi</th>' + (hasPol ? '<th title="' + esc(POL_INFO) + '">🧭 Ás</th>' : '') + '</tr>';
   an.scorecard.forEach((row) => {
     sc += '<tr><td><span class="lk-swatch" style="background:' + colorOf(row.teamId) + '"></span>' + esc(row.name) + '</td>'
       + (hasRole ? '<td style="font-size:12px">' + esc(row.role || '–') + '</td>' : '')
       + row.perKpi.map((p) => '<td style="color:' + scoreCol(p.score) + ';font-weight:600">' + (p.score == null ? '–' : p.score) + '</td>').join('')
-      + '<td><b>' + num(row.cumulative) + '</b></td><td style="color:' + (row.avgApproval == null ? 'var(--faint)' : row.avgApproval >= 50 ? '#54d08a' : row.avgApproval >= 35 ? '#e8c14a' : '#e78284') + '">' + (row.avgApproval != null ? row.avgApproval + '%' : '–') + '</td></tr>';
+      + '<td><b>' + num(row.cumulative) + '</b></td><td style="color:' + (row.avgApproval == null ? 'var(--faint)' : row.avgApproval >= 50 ? '#54d08a' : row.avgApproval >= 35 ? '#e8c14a' : '#e78284') + '">' + (row.avgApproval != null ? row.avgApproval + '%' : '–') + '</td>'
+      + (hasPol ? '<td style="color:' + polColor((polBy[row.teamId] || {}).flokkur) + ';font-weight:600">' + (polBy[row.teamId] ? esc(POL_STUTT[polBy[row.teamId].flokkur] || polBy[row.teamId].flokkur) + ' (' + polStig(polBy[row.teamId].stig) + ')' : '–') + '</td>' : '') + '</tr>';
   });
   sc += '</table>';
   // Studio-hamur: raðir hafa {studio,summary} (sleða-yfirlit), EKKI choices — sér-tafla (annars kastaði row.choices.map).
@@ -266,9 +289,18 @@ function renderFacAnalytics(an, st, openDetails = new Set()) {
       + rowsU.map((r) => '<tr><td><span class="lk-swatch" style="background:' + colorOf(r.teamId) + '"></span>' + esc(r.name) + '</td>' + UPP_SPECS.map((c) => { const v = r.loka[c.key]; const best = v != null && bestOf[c.key] != null && v === bestOf[c.key]; return '<td' + (best ? ' class="lk-upp-best" title="Besta gildi súlunnar"' : '') + '>' + (v == null ? '–' : num(v, c.key === 'losun' ? 0 : 1)) + '</td>'; }).join('') + '</tr>').join('')
       + '</table>';
   }
+  // VERK 1c: ferill pólitíska ássins yfir lotur (aðeins þegar st.politikFerill fylgir — leikslok).
+  let polChart = '';
+  if (hasPol) {
+    const series = (st.politikFerill || []).map((t) => ({ teamId: t.teamId, points: (t.ferill || []).map((f) => ({ round: f.round, value: f.stig })) }));
+    polChart = '<h3 style="font-size:14px;margin:12px 0 4px" title="' + esc(POL_INFO) + '">🧭 Pólitíska litrófið yfir kjörtímabilin (vinstri −100 ↔ hægri +100)</h3>'
+      + lkLineChart('Vinstri ↔ Hægri', series, { min: -100, max: 100, colorOf })
+      + '<p class="lk-muted" style="font-size:11px;margin:2px 0 0">ⓘ ' + esc(POL_INFO) + '</p>';
+  }
   return guideHtml + promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
     + uppHtml
+    + polChart
     + reviewHtml
     + arcHtml
     + polHtml
@@ -278,7 +310,7 @@ function renderFacAnalytics(an, st, openDetails = new Set()) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {} };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {}, polPrevStig: null, tickerSig: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -667,11 +699,12 @@ export function mountLeikur(root) {
   function revealCard(st) { if (!st.rolesReveal || !st.rolesReveal.length) return ''; const nm = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name])); return '<div class="lk-card"><h2>🎭 Umboð afhjúpuð</h2>' + st.rolesReveal.map((r) => '<div class="lk-lb-row"><span>' + esc(nm[r.teamId] || ('Lið ' + r.teamId)) + '</span><span><b>' + esc(r.label) + '</b></span></div><div style="font-size:12px;color:var(--muted);margin:-2px 0 6px">' + esc(r.blurb) + '</div>').join('') + '</div>'; }
 
   function render() {
-    if (!S.code) { pmUpdate(null); if (S.view === 'editor') return renderEditor(); return renderLanding(); }
+    if (!S.code) { pmUpdate(null); tickerHide(); if (S.view === 'editor') return renderEditor(); return renderLanding(); }
     const st = S.state; if (!st) { root.innerHTML = '<p>Hleð…</p>'; return; }
     if (st.phase !== 'decide') sepopClose();   // F2-V2: ekkert modal í control/results/ended-fasa — má aldrei hindra uppgjör
     if (st.you && st.you.locked && !S.unlocked) sepopClose();   // GALLI B: liðsfélagi læsti → modalið má ekki lifa læsinguna af (klemmu-smellur í því myndi aflæsa)
     pmUpdate(st);   // F2-V3: PM-hornið sýnir/felur sig eftir hlutverki+fasa (hýsill utan root → render klobbar aldrei)
+    if (S.role !== 'watch') tickerHide();   // VERK 2: RÁS-TÍÐINDI-ræman er aðeins á áhorfenda-sýninni
     if (S.role === 'fac') return renderFacilitator(st);
     if (S.role === 'team') return renderTeam(st);
     return renderWatch(st);
@@ -766,6 +799,22 @@ export function mountLeikur(root) {
       : '';
     if (!rc.lines.length && !polSum) return '';
     return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + polSum + '</div>';
+  }
+
+  // VERK 1c: pólitíski ásinn í leikslok liðs-sýnar — lína per lið (mitt lið þykkast), lokastaða í legend.
+  // Gögn = st.politikFerill (server reiknar með politikFerill úr ákvörðunum + geymdri policy-stöðu í ended-fasa).
+  function politikFerillCard(st) {
+    const pf = st.politikFerill; if (!pf || !pf.length) return '';
+    const series = pf.map((t) => ({ teamId: t.teamId, points: (t.ferill || []).map((f) => ({ round: f.round, value: f.stig })) }));
+    if (!series.some((s) => s.points.length)) return '';
+    const colorOf = (id) => { const i = pf.findIndex((t) => t.teamId === id); return LK_PAL[((i % LK_PAL.length) + LK_PAL.length) % LK_PAL.length]; };
+    const legend = pf.map((t) => {
+      const last = (t.ferill || [])[(t.ferill || []).length - 1];
+      return '<span class="lk-upp-leg' + (t.teamId === S.teamId ? ' me' : '') + '"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span>' + esc(t.name) + (t.teamId === S.teamId ? ' (þið)' : '') + (last ? ' — <b style="color:' + polColor(last.flokkur) + '">' + esc(POL_STUTT[last.flokkur] || last.flokkur) + ' (' + polStig(last.stig) + ')</b>' : '') + '</span>';
+    }).join('');
+    return '<div class="lk-card"><h2 title="' + esc(POL_INFO) + '">🧭 Pólitíska litrófið 2000–2032</h2><div class="lk-upp-legend">' + legend + '</div>'
+      + lkLineChart('Vinstri (−100) ↔ Hægri (+100)', series, { min: -100, max: 100, colorOf, widthOf: (id) => (id === S.teamId ? 3.4 : 1.3) })
+      + '<p class="lk-muted lk-pol-info">ⓘ ' + esc(POL_INFO) + '</p></div>';
   }
 
   // ── F3-V3: Lifandi Íslandskortið (hönnunarskjal E) ────────────────────────
@@ -866,7 +915,7 @@ export function mountLeikur(root) {
       // F3-V3: lokastaða kortsins við hlið „Ísland ykkar 2032"-blokkarinnar (grid 2 dálkar á breiðum skjá).
       const kortH = kortCardMitt(st), recapH = uppsafnadRecap(st, S.teamId);
       const lokaBlokk = (kortH && recapH) ? '<div class="lk-kort-loka">' + kortH + recapH + '</div>' : kortH + recapH;
-      root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + teamRecap(st) + revealCard(st) + leaderboard(st);
+      root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + politikFerillCard(st) + teamRecap(st) + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
       return;
     }
@@ -950,6 +999,25 @@ export function mountLeikur(root) {
       const reElect = stab.approval >= 50, pcol = stab.approval >= 55 ? '#54d08a' : stab.approval >= 35 ? '#e8c14a' : '#e78284';
       const uprising = stab.level !== 'stable' ? '<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:rgba(' + (stab.level === 'revolt' ? '231,130,132,.16);border-left:3px solid #e78284' : '232,193,74,.12);border-left:3px solid #e8c14a') + '"><b>' + stab.icon + ' ' + esc(stab.title) + '</b> — ' + esc(stab.blurb) + '</div>' : '';
       extras += '<div class="lk-card"><h2>🗳️ Kosningar &amp; fylgi</h2><p>Fylgi ríkisstjórnar: <b style="color:' + pcol + '">' + stab.approval + '%</b> → <b>' + (reElect ? 'Endurkjörin ✅' : 'Féll í kosningum ❌') + '</b></p>' + uprising + '</div>';
+      // VERK 1b: pólitísk staða lotunnar + breyting frá síðustu lotu — hlutlaus lýsing (politik.mjs).
+      // Levers = læst gildi lotunnar (st.draft, reload-öruggt eins og í debrief); policy-staða = staðfest+drög lotunnar.
+      if (st.mode === 'studio') {
+        const polLevers = (st.draft && Object.keys(st.draft).length) ? st.draft : (S.dials || {});
+        const polStates = (st.policies && st.policies.states) || {};
+        const polNow = politikStada(polLevers, { ...polStates, ...((st.policies && st.policies.draft) || {}) });
+        const hist = st.history || [], prevSet = hist.length ? hist[hist.length - 1] : null;
+        let br = '';
+        if (prevSet && prevSet.levers) {
+          const polPrev = politikStada(prevSet.levers, polStates);
+          const d = polNow.stig - polPrev.stig;
+          br = d > 4 ? 'hallar til hægri frá síðustu lotu' : d < -4 ? 'hallar til vinstri frá síðustu lotu' : 'svipuð staða og síðustu lotu';
+          if (polPrev.flokkur !== polNow.flokkur) br = esc(polPrev.lysing) + ' → ' + esc(polNow.lysing) + ' — ' + br;
+        }
+        extras += '<div class="lk-card"><div class="lk-pol-head"><h2 style="margin:0" title="' + esc(POL_INFO) + '">🧭 Pólitíska litrófið</h2><b style="color:' + polColor(polNow.flokkur) + '">' + esc(polNow.lysing) + ' (' + polStig(polNow.stig) + ')</b></div>'
+          + politikBraut(polNow.stig)
+          + (br ? '<p style="font-size:13px;margin:8px 0 0">↔ ' + br + '</p>' : '')
+          + '<p class="lk-muted lk-pol-info">ⓘ ' + esc(POL_INFO) + '</p></div>';
+      }
     }
     root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st)
       + kortCardMitt(st)   // F3-V3: „🇮🇸 Ísland ykkar" efst í results (plássið sem orsaka-keðjan hafði)
@@ -1002,6 +1070,15 @@ export function mountLeikur(root) {
     let html = '';
     if (conflicts.length) html += '<div class="lk-conflict">' + conflicts.map((c) => '<div class="lk-conflict-row"><span class="lk-conflict-ic">⚠</span><span>' + esc(c.msg) + '</span></div>').join('') + '</div>';
     html += '<div class="lk-card lk-gauge-card"><div class="lk-gauge" title="Samsett stig 0–100 úr umboðs-markmiðunum í lok kjörtímabilsins. Hærra = betri hagstjórn.">' + arcGauge(sc.composite) + '</div><div style="flex:1"><h2 style="margin:0">Þjóðarhagur</h2><p class="lk-muted" style="font-size:12px;margin:4px 0 8px">Samsett staða m.v. umboðið í lok kjörtímabilsins (' + endYear + '). Hærra = betra.' + (sc.crisis ? ' <span style="color:#e78284">⚠ Kreppa!</span>' : '') + (stab.level !== 'stable' ? ' <span style="color:' + (stab.level === 'revolt' ? '#e78284' : '#e8c14a') + '">' + stab.icon + ' ' + esc(stab.title) + ' — stig ×' + stab.factor + '</span>' : '') + '</p><div class="lk-pop" title="Fylgi ríkisstjórnarinnar — ræðst af verðbólgu, atvinnuleysi og hagvexti. Undir 50% og þú átt á hættu að falla í kosningum."><div class="lk-gm-top"><span>🗳️ Fylgi ríkisstjórnar</span><b style="color:' + popCol + '">' + pop + '%</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:' + pop + '%;background:' + popCol + '"></div></div></div></div></div>';
+    // VERK 1a: pólitíski mælirinn — lifandi úr sleða-drögum (S.dials) + stefnu-stöðu (staðfest+drög þessarar
+    // lotu). HLUTLAUST kennslutæki (politik.mjs): braut + nál + „togar"-listar í <details data-keep>
+    // (opið/lokað lifir endurteiknun af um S.openDetails, sama mynstur og handbókin). Situr við Þjóðarhags-mælinn.
+    const pol = politikStada(S.dials || {}, { ...((st.policies && st.policies.states) || {}), ...(S.policyDraft || {}) });
+    const polTog = politikTogar(pol);
+    html += '<div class="lk-card" title="' + esc(POL_INFO) + '"><div class="lk-pol-head"><h2 style="margin:0">🧭 Pólitíska litrófið</h2><b style="color:' + polColor(pol.flokkur) + '">' + esc(pol.lysing) + ' (' + polStig(pol.stig) + ')</b></div>'
+      + politikBraut(pol.stig, 'lk-pol-nal')
+      + '<details data-keep="pol-togar" class="lk-pol-details"' + (S.openDetails.has('pol-togar') ? ' open' : '') + '><summary>Hvað togar?</summary>' + (polTog || '<p class="lk-muted" style="font-size:12px;margin:4px 0 0">Ekkert togar enn — stefnan er öll á grunni.</p>') + '</details>'
+      + '<p class="lk-muted lk-pol-info">ⓘ ' + esc(POL_INFO) + '</p></div>';
     html += '<div class="lk-card"><h2 title="Hversu nálægt hverju umboðs-markmiði þú ert. Fyllri borði = betra.">🎯 Markmið</h2><div class="lk-goalmeters">';
     for (const k of st.mandate.kpis) { const p = sc.perKpi.find((x) => x.key === k.key); html += goalMeter(k, kpiVals[k.key], p ? p.score : 0); }
     html += '</div></div>';
@@ -1031,6 +1108,15 @@ export function mountLeikur(root) {
     grid += '</div></div>';
     html += grid;
     el.innerHTML = html;
+    // VERK 1a: nálin hreyfist MJÚKT þótt innerHTML sé endurbyggt við hvert sleða-drag: byrja nýja nál á
+    // FYRRI stöðu → þvinga reflow → færa á nýju stöðuna (CSS transition á left tekur við). pmReduced → sleppt.
+    const polNal = el.querySelector('#lk-pol-nal');
+    if (polNal && !pmReduced() && S.polPrevStig != null && S.polPrevStig !== pol.stig) {
+      polNal.style.left = (50 + S.polPrevStig / 2).toFixed(1) + '%';
+      void polNal.offsetWidth;
+      polNal.style.left = (50 + pol.stig / 2).toFixed(1) + '%';
+    }
+    S.polPrevStig = pol.stig;
     pmUpdate(st);   // F2-V3: pósi/ráðgjafar hornsins fylgja nýjustu forskoðuninni (no-op ef undirskrift óbreytt)
   }
   function renderStudio(st) {
@@ -1150,6 +1236,48 @@ export function mountLeikur(root) {
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };
   }
 
+  // ── VERK 2: „RÁS-TÍÐINDI"-ticker á watch-sýninni (lower-third fyrir skjávarpa) ──────────────
+  // Hýsillinn er SYSTKINI #leikur-root (sama mynstur og sepop/pm) svo poll-endurteiknun root.innerHTML
+  // slökkvi ekki á marquee-animationinni; innihaldið er AÐEINS endurbyggt þegar undirskriftin breytist
+  // (lotu-skipti/nýtt uppgjör). Uppsprettur — allt þegar í watch-state: atviks-titill lotunnar (st.event),
+  // stórar ákvarðanir nýjustu lotu (st.decisionMarks) og newsHeadlines á nýjasta uppgjör hvers liðs
+  // (st.kpiHistory — server sendir nú líka atvinnuleysi svo atvinnu-fyrirsagnirnar virki).
+  // esc() á ÖLL liðsheiti+fyrirsagnir við samsetningu; engir inline handlers (pása-á-hover er hreint CSS).
+  let tickerHost = null;
+  function tickerItems(st) {
+    const items = [];
+    if (!st || st.phase === 'lobby') return items;
+    const nameOf = Object.fromEntries((st.teams || []).map((t) => [t.id, t.name]));
+    if (st.event && st.event.title) items.push((st.event.icon ? st.event.icon + ' ' : '') + st.event.title);
+    const marks = st.decisionMarks || [];
+    if (marks.length) {
+      const maxR = Math.max(...marks.map((m) => m.round));
+      for (const m of marks) if (m.round === maxR) items.push((m.icon || '🏛️') + ' ' + (nameOf[m.teamId] || ('Lið ' + m.teamId)) + ': ' + m.label + '!');
+    }
+    for (const t of (st.kpiHistory || [])) {
+      const rs = t.rounds || []; if (!rs.length) continue;
+      for (const h of newsHeadlines(rs[rs.length - 1]).slice(0, 2)) items.push('[' + t.name + '] ' + h);
+    }
+    return items;
+  }
+  function tickerHide() { if (tickerHost) tickerHost.style.display = 'none'; const m = root.closest('main'); if (m) m.classList.remove('lk-ticker-on'); }
+  function tickerUpdate(st) {
+    const items = tickerItems(st);
+    if (!items.length) return tickerHide();
+    const sig = st.phase + '|' + st.round + '|' + items.join('~');
+    const m = root.closest('main'); if (m) m.classList.add('lk-ticker-on');   // pláss neðst svo ræman skyggi ekki á kort/stigatöflu
+    if (tickerHost && S.tickerSig === sig) { tickerHost.style.display = ''; return; }
+    S.tickerSig = sig;
+    if (!tickerHost) { tickerHost = document.createElement('div'); tickerHost.className = 'lk-ticker'; (root.parentNode || document.body).appendChild(tickerHost); }
+    tickerHost.style.display = '';
+    const line = items.map((x) => esc(x)).join(' <span class="lk-ticker-sep">·•·</span> ');
+    // Textinn TVÍTEKINN → translateX(-50%) er nákvæmlega ein umferð = saumlaus hringur (~60s, pása á hover).
+    // prefers-reduced-motion: CSS felur skrunið og sýnir .lk-ticker-static (2 fyrirsagnir skiptast á með fade).
+    tickerHost.innerHTML = '<span class="lk-ticker-brand">📰 RÁS-TÍÐINDI</span>'
+      + '<div class="lk-ticker-vp"><div class="lk-ticker-scroll"><span class="lk-ticker-txt">' + line + '</span><span class="lk-ticker-txt" aria-hidden="true">' + line + '</span></div>'
+      + '<div class="lk-ticker-static">' + items.slice(0, 2).map((x, i) => '<span class="lk-ticker-st s' + i + '">' + esc(x) + '</span>').join('') + '</div></div>';
+  }
+
   // S6 — áhorfenda-sýn (útsending fyrir skjávarpa): stór stigatafla + kjörtímabil + þróunar-graf.
   function renderWatch(st) {
     maybeSepopWatch(st);   // F2-V2: atviks-spjald á skjávarpa í 8 sek við nýja lotu (sjálf-lokun, engir valkostir)
@@ -1175,6 +1303,7 @@ export function mountLeikur(root) {
       kortWatch(st, teams) +   // F3-V3: stórt Íslandskort efsta liðs (eða 2 hlið við hlið) — síðasta uppgjör
       '<div class="lk-card"><h2>🏆 Stigatafla</h2><div class="lk-watch-board">' + board + '</div></div>' +
       context + chart + revealCard(st);
+    tickerUpdate(st);   // VERK 2: RÁS-TÍÐINDI lower-third (hýsill utan root → marquee lifir poll-endurteiknanir af)
   }
 
   // ── Sviðsmynda-/umboðs-ritill (S4) ──

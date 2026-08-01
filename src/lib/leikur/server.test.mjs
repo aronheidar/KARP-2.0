@@ -336,7 +336,7 @@ const J = async (res) => JSON.parse(await res.text());
   await uCtrl('resolve');
   const uSt = await J(await uStG(ug.facToken));
   ok('kpiHistory: 2 lið × 2 lotur eftir 2 leystar', Array.isArray(uSt.kpiHistory) && uSt.kpiHistory.length === 2 && uSt.kpiHistory.every((t) => t.rounds.length === 2 && t.name));
-  ok('kpiHistory: hver lota ber AÐEINS KPI-in 5 (þjappað)', uSt.kpiHistory.every((t) => t.rounds.every((r) => ['verdbolga', 'hagvoxtur', 'kaupmattur', 'skuldir', 'losun'].every((k) => typeof r[k] === 'number') && Object.keys(r).length === 6)));
+  ok('kpiHistory: hver lota ber AÐEINS KPI-in 6 (þjappað; atvinnuleysi f. ticker-fyrirsagnir)', uSt.kpiHistory.every((t) => t.rounds.every((r) => ['verdbolga', 'hagvoxtur', 'kaupmattur', 'skuldir', 'losun', 'atvinnuleysi'].every((k) => typeof r[k] === 'number') && Object.keys(r).length === 7)));
   const uMarksA = (uSt.decisionMarks || []).filter((m) => m.teamId === uj1.teamId);
   ok('decisionMarks: esb-markið í lotu 1 með „ESB: umsókn"+stage', uMarksA.length === 1 && uMarksA[0].id === 'esb' && uMarksA[0].round === 1 && uMarksA[0].label === 'ESB: umsókn' && uMarksA[0].stage === 'umsokn' && uMarksA[0].icon === '🇪🇺');
   ok('decisionMarks: EKKERT tvítekið mark í lotu 2 (adild=óbreytt val) og B markalaust', !uMarksA.some((m) => m.round === 2) && !(uSt.decisionMarks || []).some((m) => m.teamId === uj2.teamId));
@@ -348,6 +348,27 @@ const J = async (res) => JSON.parse(await res.text());
   const lg = await J(await LH(req('/api/leikur/create', {}), env));
   const lgSt = await J(await LH(new Request('https://karp.is/api/leikur/' + lg.code + '/state', { headers: { authorization: 'Bearer ' + lg.facToken } }), env));
   ok('kort/eventChoices: EKKI sent í lobby', lgSt.kort === undefined && lgSt.eventChoices === undefined);
+
+  // VERK 1c: politikFerill í leikslok (studio) — reiknað þjóns-megin úr ákvörðunum + geymdri policy-stöðu.
+  // Opinbert (án tákns) eins og stigatafla, AÐEINS í ended-fasa og AÐEINS í studio-ham.
+  const pgame = await J(await LH(req('/api/leikur/create', { mode: 'studio' }), env));
+  const pj1 = await J(await LH(req('/api/leikur/' + pgame.code + '/join', { name: 'P-Vinstri' }), env));
+  const pj2 = await J(await LH(req('/api/leikur/' + pgame.code + '/join', { name: 'P-Hægri' }), env));
+  const pHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + pgame.facToken };
+  const pCtrl = (a) => LH(new Request('https://karp.is/api/leikur/' + pgame.code + '/control', { method: 'POST', headers: pHdr, body: JSON.stringify({ action: a }) }), env);
+  const pDec = (tok, lev) => LH(new Request('https://karp.is/api/leikur/' + pgame.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round: 1, locked: true, decisions: { levers: lev } }) }), env);
+  await pCtrl('start');
+  await pDec(pj1.teamToken, { skattar: 15, fjarmagnstekjuskattur: 15 });    // skýr vinstri-blanda (vigtir −2/−3 fullnýttar)
+  await pDec(pj2.teamToken, { skattar: -15, fjarmagnstekjuskattur: -10 });  // skýr hægri-blanda (skattalækkanir í botn)
+  const pMid = await J(await LH(new Request('https://karp.is/api/leikur/' + pgame.code + '/state', { headers: { authorization: 'Bearer ' + pgame.facToken } }), env));
+  ok('politikFerill: EKKI sent fyrir leikslok', pMid.politikFerill === undefined);
+  await pCtrl('resolve'); await pCtrl('stop');
+  const pEnd = await J(await LH(new Request('https://karp.is/api/leikur/' + pgame.code + '/state'), env));   // án tákns — opinbert í leikslok
+  ok('politikFerill: sent í leikslok, 2 lið með nafn+ferill (1 leyst lota)', Array.isArray(pEnd.politikFerill) && pEnd.politikFerill.length === 2 && pEnd.politikFerill.every((t) => t.name && Array.isArray(t.ferill) && t.ferill.length === 1));
+  const pfA = (pEnd.politikFerill || []).find((t) => t.teamId === pj1.teamId), pfB = (pEnd.politikFerill || []).find((t) => t.teamId === pj2.teamId);
+  ok('politikFerill: skattahækkanir → vinstri (stig ≤ −25, round 1)', !!pfA && pfA.ferill[0].round === 1 && pfA.ferill[0].flokkur === 'vinstri' && pfA.ferill[0].stig <= -25);
+  ok('politikFerill: skattalækkanir → hægri (stig ≥ 25)', !!pfB && pfB.ferill[0].flokkur === 'haegri' && pfB.ferill[0].stig >= 25);
+  ok('politikFerill: EKKI í klassískum ended-leik', (await J(await rState(rc.facToken))).politikFerill === undefined);
 
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

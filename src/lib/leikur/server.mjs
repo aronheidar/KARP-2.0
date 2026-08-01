@@ -11,6 +11,7 @@ import { POLICIES, policyAvailable, policyStatesMeta, policyStage, applyPolicies
 import { awardMedals } from './medals.mjs';
 import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
 import { carryover } from './aftermath.mjs';
+import { politikFerill } from './politik.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -140,7 +141,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       out.kpiHistory = []; out.decisionMarks = [];
       for (const t of teamsRaw) {
         const rows = (byTeamRes[t.id] || []).sort((a, b) => a.round - b.round);
-        out.kpiHistory.push({ teamId: t.id, name: t.name, rounds: rows.map((r) => { const k = r.d.kpis || {}; return { round: r.round, verdbolga: k.verdbolga ?? null, hagvoxtur: k.hagvoxtur ?? null, kaupmattur: k.kaupmattur ?? null, skuldir: k.skuldir ?? null, losun: k.losun ?? null }; }) });
+        // VERK 2: atvinnuleysi bætt við (áður aðeins 5 uppsafnað-KPI) svo newsHeadlines á watch-ticker
+        // fái allt sem hún les (verdbolga/hagvoxtur/atvinnuleysi/skuldir) — áfram þjappað undirmengi.
+        out.kpiHistory.push({ teamId: t.id, name: t.name, rounds: rows.map((r) => { const k = r.d.kpis || {}; return { round: r.round, verdbolga: k.verdbolga ?? null, hagvoxtur: k.hagvoxtur ?? null, kaupmattur: k.kaupmattur ?? null, skuldir: k.skuldir ?? null, losun: k.losun ?? null, atvinnuleysi: k.atvinnuleysi ?? null }; }) });
         let prevPol = {};
         for (const r of rows) {
           const pol = r.d.policies || {}, rStages = r.d.policyStages || {};
@@ -192,6 +195,21 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
           }
           out.eventChoices[t.id] = ch;
         }
+      }
+      // VERK 1c: pólitíski ásinn í leikslok (studio) — ferill per lið úr politikFerill (politik.mjs).
+      // Levers úr ákvörðunum liðsins, policy-staða úr GEYMDU uppgjöri lotunnar (d.policies = uppsafnað
+      // polStates við resolve — ratchet-inn helst, öfugt við hráar per-lotu decisions.policies).
+      // Aðeins LEYSTAR lotur (byTeamRes — 'stop' í miðri decide telur ekki, sbr. GALLA E á korti).
+      // Opinbert eins og stigatafla/rolesReveal: leikslok er afhjúpunar-stundin (debrief).
+      if (game.phase === 'ended' && cfg.mode === 'studio') {
+        const decP = ((await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+        const levByTR = {};
+        for (const d of decP) { try { const dd = JSON.parse(d.decisions || '{}'); (levByTR[d.team_id] || (levByTR[d.team_id] = {}))[d.round] = dd.levers || {}; } catch (e) {} }
+        out.politikFerill = teamsRaw.map((t) => {
+          const items = (byTeamRes[t.id] || []).slice().sort((a, b) => a.round - b.round)
+            .map((r) => ({ round: r.round, levers: (levByTR[t.id] || {})[r.round] || {}, policies: r.d.policies || {} }));
+          return { teamId: t.id, name: t.name, ferill: politikFerill(items) };
+        }).filter((x) => x.ferill.length);
       }
     }
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".

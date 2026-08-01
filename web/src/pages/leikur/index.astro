@@ -154,6 +154,17 @@ const MODEL = {
   main[data-pg="leikur"] :global(.lk-upp-best) { color: #54d08a; font-weight: 700; }
   main[data-pg="leikur"] :global(.lk-upp-lines p) { margin: 5px 0; font-size: 13.5px; line-height: 1.55; }
   main[data-pg="leikur"] :global(.lk-upp-lines p b) { color: #f8d79a; }
+  /* VERK 1: pólitíski mælirinn — hlutlaus braut (rautt=vinstri, blátt=hægri skv. íslenskri hefð) + nál.
+     Litirnir eru merkingar, ekki dómar; ⓘ-textinn (.lk-pol-info) fylgir mælinum alls staðar. */
+  main[data-pg="leikur"] :global(.lk-pol-head) { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
+  main[data-pg="leikur"] :global(.lk-pol-track) { position: relative; height: 10px; border-radius: 6px; background: linear-gradient(90deg, #e78284 0%, #8a8f9c 50%, #6ea8fe 100%); }
+  main[data-pg="leikur"] :global(.lk-pol-nal) { position: absolute; top: -4px; width: 4px; height: 18px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.55), 0 0 8px rgba(255,255,255,.45); transition: left .35s ease; }
+  main[data-pg="leikur"] :global(.lk-pol-labels) { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted, #9fb0c8); margin-top: 4px; }
+  main[data-pg="leikur"] :global(.lk-pol-details) { margin-top: 8px; font-size: 12.5px; }
+  main[data-pg="leikur"] :global(.lk-pol-details summary) { cursor: pointer; color: var(--muted, #9fb0c8); font-size: 12px; }
+  main[data-pg="leikur"] :global(.lk-pol-tog) { margin: 5px 0 0; line-height: 1.5; }
+  main[data-pg="leikur"] :global(.lk-pol-info) { font-size: 11px; margin: 8px 0 0; }
+  @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] :global(.lk-pol-nal) { transition: none; } }
 </style>
 <style is:global>
   /* F2-V2: atviks-popup — is:global því @keyframes í scoped-blokk fá hash-nafn sem :global-reglurnar næðu ekki í.
@@ -228,4 +239,26 @@ const MODEL = {
   @keyframes lk-kt-nytt { 0% { opacity: 0; } 55% { opacity: 1; filter: drop-shadow(0 0 9px rgba(246,177,59,.9)); } 100% { opacity: 1; } }
   @media (max-width: 900px) { main[data-pg="leikur"] .lk-kort-grid.two, main[data-pg="leikur"] .lk-kort-loka { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .kt-lag.kt-breytt, main[data-pg="leikur"] .kt-takn.kt-nytt { animation: none; } }
+  /* VERK 2: „RÁS-TÍÐINDI"-ticker á watch-sýn — lower-third, fixed neðst með smá gegnsæi. is:global af sömu
+     ástæðu og sepop/pm (runtime-systkini #leikur-root + @keyframes). Skyggir ekki á kort/stigatöflu:
+     main fær .lk-ticker-on → auka padding-bottom (80px grunn + ~50px ræma). Pása á hover er hreint CSS.
+     prefers-reduced-motion: skrunið falið, 2 statískar fyrirsagnir skiptast á með fade (skv. hönnunarkröfu). */
+  main[data-pg="leikur"].lk-ticker-on { padding-bottom: 130px; }
+  main[data-pg="leikur"] .lk-ticker { position: fixed; left: 0; right: 0; bottom: 0; z-index: 66; display: flex; align-items: stretch; background: rgba(10,13,20,.86); backdrop-filter: blur(4px); border-top: 2px solid #f6b13b; }
+  main[data-pg="leikur"] .lk-ticker-brand { flex: 0 0 auto; display: flex; align-items: center; padding: 9px 16px; background: #f6b13b; color: #12161f; font-weight: 800; font-size: 14px; letter-spacing: 1.5px; white-space: nowrap; }
+  main[data-pg="leikur"] .lk-ticker-vp { position: relative; flex: 1 1 auto; overflow: hidden; display: flex; align-items: center; }
+  main[data-pg="leikur"] .lk-ticker-scroll { display: inline-flex; white-space: nowrap; animation: lk-ticker-run 60s linear infinite; will-change: transform; }
+  main[data-pg="leikur"] .lk-ticker:hover .lk-ticker-scroll { animation-play-state: paused; }
+  main[data-pg="leikur"] .lk-ticker-txt { display: inline-block; padding: 9px 0 9px 48px; font-size: 14.5px; color: var(--ink, #e8ecf3); }
+  main[data-pg="leikur"] .lk-ticker-sep { color: #f6b13b; margin: 0 14px; }
+  main[data-pg="leikur"] .lk-ticker-static { display: none; }
+  @keyframes lk-ticker-run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes lk-ticker-fade { 0%, 44% { opacity: 1; } 50%, 94% { opacity: 0; } 100% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    main[data-pg="leikur"] .lk-ticker-scroll { display: none; }
+    main[data-pg="leikur"] .lk-ticker-static { display: block; position: relative; width: 100%; min-height: 21px; padding: 9px 16px; font-size: 14.5px; }
+    main[data-pg="leikur"] .lk-ticker-st { position: absolute; top: 9px; left: 16px; right: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0; animation: lk-ticker-fade 16s ease-in-out infinite; }
+    main[data-pg="leikur"] .lk-ticker-st.s1 { animation-delay: 8s; }
+    main[data-pg="leikur"] .lk-ticker-st:only-child { animation: none; opacity: 1; }
+  }
 </style>
