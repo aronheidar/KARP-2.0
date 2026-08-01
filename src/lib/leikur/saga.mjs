@@ -172,3 +172,93 @@ export function berSamanAkvardanir(round, policyStates = {}) {
     };
   });
 }
+
+// ---------- Raun-forsætisráðherrar per lotu ----------
+// RADHERRAR[8] — ein færsla per lotu 1..8 (2000–04 … 2028–32):
+//   rod     = forsætisráðherrar í tímaröð INNAN lotunnar: { nafn, flokkur, fra, til }.
+//             fra/til eru ISO-strengir 'ÁÁÁÁ-MM-DD' þegar skiptin urðu innan lotunnar,
+//             annars null (= sat þegar við upphaf lotu / sat enn við lok hennar).
+//   radandi = sá sem sat LENGST innan lotunnar + kyn ('karl'|'kona') svo client geti valið
+//             rétt PM-sett (PM_MYNDIR / PM_MYNDIR_KONA í myndir.mjs). Lota 8 er óskrifuð
+//             framtíð → rod tómt og kyn null.
+// ATH lotu-mörkin 2024: Bjarni Benediktsson sat apr–des 2024, sem skarast við mörk L6/L7 —
+// hann er í rod BEGGJA (L6 sem arftaki Katrínar, L7 sem forveri Kristrúnar), sbr. verkbeiðni.
+export const RADHERRAR = [
+  // L1 2000–2004: Davíð allt tímabilið
+  {
+    rod: [{ nafn: 'Davíð Oddsson', flokkur: 'Sjálfstæðisflokkur', fra: null, til: null }],
+    radandi: { nafn: 'Davíð Oddsson', kyn: 'karl' },
+  },
+  // L2 2004–2008: Davíð → Halldór (15.9.2004) → Geir (15.6.2006); Geir sat lengst (~26 mán)
+  {
+    rod: [
+      { nafn: 'Davíð Oddsson', flokkur: 'Sjálfstæðisflokkur', fra: null, til: '2004-09-15' },
+      { nafn: 'Halldór Ásgrímsson', flokkur: 'Framsóknarflokkur', fra: '2004-09-15', til: '2006-06-15' },
+      { nafn: 'Geir H. Haarde', flokkur: 'Sjálfstæðisflokkur', fra: '2006-06-15', til: null },
+    ],
+    radandi: { nafn: 'Geir H. Haarde', kyn: 'karl' },
+  },
+  // L3 2008–2012: Geir féll með hruninu (1.2.2009) → Jóhanna
+  {
+    rod: [
+      { nafn: 'Geir H. Haarde', flokkur: 'Sjálfstæðisflokkur', fra: null, til: '2009-02-01' },
+      { nafn: 'Jóhanna Sigurðardóttir', flokkur: 'Samfylking', fra: '2009-02-01', til: null },
+    ],
+    radandi: { nafn: 'Jóhanna Sigurðardóttir', kyn: 'kona' },
+  },
+  // L4 2012–2016: Jóhanna → Sigmundur Davíð (23.5.2013, féll á Panama-skjölunum 7.4.2016) → Sigurður Ingi
+  {
+    rod: [
+      { nafn: 'Jóhanna Sigurðardóttir', flokkur: 'Samfylking', fra: null, til: '2013-05-23' },
+      { nafn: 'Sigmundur Davíð Gunnlaugsson', flokkur: 'Framsóknarflokkur', fra: '2013-05-23', til: '2016-04-07' },
+      { nafn: 'Sigurður Ingi Jóhannsson', flokkur: 'Framsóknarflokkur', fra: '2016-04-07', til: null },
+    ],
+    radandi: { nafn: 'Sigmundur Davíð Gunnlaugsson', kyn: 'karl' },
+  },
+  // L5 2016–2020: Sigurður Ingi → Bjarni (11.1.2017) → Katrín (30.11.2017)
+  {
+    rod: [
+      { nafn: 'Sigurður Ingi Jóhannsson', flokkur: 'Framsóknarflokkur', fra: null, til: '2017-01-11' },
+      { nafn: 'Bjarni Benediktsson', flokkur: 'Sjálfstæðisflokkur', fra: '2017-01-11', til: '2017-11-30' },
+      { nafn: 'Katrín Jakobsdóttir', flokkur: 'Vinstri græn', fra: '2017-11-30', til: null },
+    ],
+    radandi: { nafn: 'Katrín Jakobsdóttir', kyn: 'kona' },
+  },
+  // L6 2020–2024: Katrín (til 9.4.2024, bauð sig fram til forseta) → Bjarni (til 21.12.2024)
+  {
+    rod: [
+      { nafn: 'Katrín Jakobsdóttir', flokkur: 'Vinstri græn', fra: null, til: '2024-04-09' },
+      { nafn: 'Bjarni Benediktsson', flokkur: 'Sjálfstæðisflokkur', fra: '2024-04-09', til: '2024-12-21' },
+    ],
+    radandi: { nafn: 'Katrín Jakobsdóttir', kyn: 'kona' },
+  },
+  // L7 2024–2028: Bjarni (skarast við lotu-mörkin, sjá ATH efst) → Kristrún (21.12.2024)
+  {
+    rod: [
+      { nafn: 'Bjarni Benediktsson', flokkur: 'Sjálfstæðisflokkur', fra: '2024-04-09', til: '2024-12-21' },
+      { nafn: 'Kristrún Frostadóttir', flokkur: 'Samfylking', fra: '2024-12-21', til: null },
+    ],
+    radandi: { nafn: 'Kristrún Frostadóttir', kyn: 'kona' },
+  },
+  // L8 2028–2032: óskrifuð framtíð
+  {
+    rod: [],
+    radandi: { nafn: 'Framtíðin — óskrifað', kyn: null },
+  },
+];
+
+// Ráðherra-færsla tiltekinnar lotu (1..8) eða null utan marka.
+export function radherraFyrirLotu(round) {
+  const r = Number(round);
+  if (!Number.isInteger(r) || r < 1 || r > RADHERRAR.length) return null;
+  return RADHERRAR[r - 1];
+}
+
+// Birtingarstrengur lotu: eitt nafn ef einn sat alla lotuna, annars „A → B → C" (tímaröð,
+// ör U+2192 með bilum). Tóm rod (lota 8) fellur á nafn radandi. Utan marka → null.
+export function radherraTexti(round) {
+  const e = radherraFyrirLotu(round);
+  if (!e) return null;
+  if (!e.rod.length) return e.radandi.nafn;
+  return e.rod.map((m) => m.nafn).join(' → ');
+}

@@ -1,4 +1,4 @@
-import { SAGA, sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir } from './saga.mjs';
+import { SAGA, sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, RADHERRAR, radherraFyrirLotu, radherraTexti } from './saga.mjs';
 import { REALITY, ROUNDS, YEAR_START } from './game-config.mjs';
 import { POLICIES } from './policies.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
@@ -95,6 +95,48 @@ ok('hoft: lið afnam líka → eins:true í lotu 5', finna(berSamanAkvardanir(5,
 // Verðtrygging: ekkert raun-val → eins alltaf null, jafnvel þó lið hafi ákveðið.
 const vt = finna(berSamanAkvardanir(8, { verdtrygging: true }), 'verdtrygging');
 ok('verdtrygging: raun null + eins null þrátt fyrir ákvörðun liðs', vt.thitt === true && vt.raun === null && vt.eins === null);
+
+// ── RADHERRAR: raun-forsætisráðherrar per lotu ──────────────────────────────
+ok('RADHERRAR.length === 8 (== ROUNDS)', RADHERRAR.length === 8 && RADHERRAR.length === ROUNDS);
+RADHERRAR.forEach((e, i) => {
+  ok(`RADHERRAR lota ${i + 1}: rod fylki + radandi með nafni`,
+    Array.isArray(e.rod) && !!e.radandi && typeof e.radandi.nafn === 'string' && e.radandi.nafn.length > 3);
+  ok(`RADHERRAR lota ${i + 1}: kyn gilt ('karl'|'kona'; null aðeins L8)`,
+    e.radandi.kyn === 'karl' || e.radandi.kyn === 'kona' || (i === 7 && e.radandi.kyn === null));
+  const lStart = YEAR_START + i * 4, lEnd = YEAR_START + (i + 1) * 4;
+  for (const m of e.rod) {
+    ok(`RADHERRAR lota ${i + 1} ${m.nafn}: nafn+flokkur strengir`,
+      typeof m.nafn === 'string' && m.nafn.length > 3 && typeof m.flokkur === 'string' && m.flokkur.length > 3);
+    for (const d of [m.fra, m.til]) {
+      ok(`RADHERRAR lota ${i + 1} ${m.nafn}: dagsetning ${d} = null eða ISO innan lotu-marka`,
+        d === null || (/^\d{4}-\d{2}-\d{2}$/.test(d) && Number(d.slice(0, 4)) >= lStart && Number(d.slice(0, 4)) <= lEnd));
+    }
+  }
+  if (i < 7) ok(`RADHERRAR lota ${i + 1}: radandi finnst í rod`, e.rod.some((m) => m.nafn === e.radandi.nafn));
+});
+ok('kvenkyns raðandi í L3/L5/L6/L7', [3, 5, 6, 7].every((r) => RADHERRAR[r - 1].radandi.kyn === 'kona'));
+ok('karlkyns raðandi í L1/L2/L4', [1, 2, 4].every((r) => RADHERRAR[r - 1].radandi.kyn === 'karl'));
+ok('L8: rod tómt + kyn null', RADHERRAR[7].rod.length === 0 && RADHERRAR[7].radandi.kyn === null);
+ok('L2 raðandi = Geir H. Haarde (sat lengst innan lotu)', RADHERRAR[1].radandi.nafn === 'Geir H. Haarde');
+ok('L3 raðandi = Jóhanna Sigurðardóttir', RADHERRAR[2].radandi.nafn === 'Jóhanna Sigurðardóttir');
+ok('L4 raðandi = Sigmundur Davíð Gunnlaugsson', RADHERRAR[3].radandi.nafn === 'Sigmundur Davíð Gunnlaugsson');
+ok('L5+L6 raðandi = Katrín Jakobsdóttir', RADHERRAR[4].radandi.nafn === 'Katrín Jakobsdóttir' && RADHERRAR[5].radandi.nafn === 'Katrín Jakobsdóttir');
+ok('L7 raðandi = Kristrún Frostadóttir', RADHERRAR[6].radandi.nafn === 'Kristrún Frostadóttir');
+ok('L6: Bjarni í rod (9.4–21.12.2024) og L7 líka (skarast við lotu-mörkin)',
+  RADHERRAR[5].rod.some((m) => m.nafn === 'Bjarni Benediktsson' && m.fra === '2024-04-09' && m.til === '2024-12-21')
+  && RADHERRAR[6].rod.some((m) => m.nafn === 'Bjarni Benediktsson' && m.til === '2024-12-21'));
+
+// radherraFyrirLotu + radherraTexti
+ok('radherraFyrirLotu(1) === RADHERRAR[0] og (8) === RADHERRAR[7]',
+  radherraFyrirLotu(1) === RADHERRAR[0] && radherraFyrirLotu(8) === RADHERRAR[7]);
+ok('radherraFyrirLotu utan marka → null',
+  radherraFyrirLotu(0) === null && radherraFyrirLotu(9) === null && radherraFyrirLotu(null) === null && radherraFyrirLotu('x') === null);
+ok("L1 texti = 'Davíð Oddsson' (einn = eitt nafn)", radherraTexti(1) === 'Davíð Oddsson');
+ok('L2 texti = allir þrír í réttri röð með „ → "',
+  radherraTexti(2) === 'Davíð Oddsson → Halldór Ásgrímsson → Geir H. Haarde');
+ok('L3 texti = Geir → Jóhanna', radherraTexti(3) === 'Geir H. Haarde → Jóhanna Sigurðardóttir');
+ok('L8 texti fellur á radandi-nafnið (rod tómt)', radherraTexti(8) === 'Framtíðin — óskrifað');
+ok('radherraTexti utan marka → null', radherraTexti(0) === null && radherraTexti(9) === null);
 
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);
