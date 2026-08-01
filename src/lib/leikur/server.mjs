@@ -131,6 +131,38 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (game.phase === 'decide' && cfg.deadline) { const nowS = now(); out.secondsLeft = Math.max(0, Math.min(cfg.timerSec || 3600, cfg.deadline - nowS)); out.deadlineTs = nowS + out.secondsLeft; } // deadline=epoch-sek (algilt→stöðug klukka); klemma f. eldri leiki með gölluð ms-tímamörk
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
+    // F1-V4: uppsafnaðar KPI-slóðir (þjappað: aðeins 5 KPI) + ákvarðana-mörk fyrir gröf — öll lið, opinbert
+    // eins og stigatafla; EKKI í lobby. Mörk = lotan þar sem stór ákvörðun BREYTTIST (diff á geymdum policies
+    // milli lota); ESB-stigin umsokn/ursogn (úr geymdum policyStages) fá eigin label.
+    if (game.phase !== 'lobby' && resultsRaw.length) {
+      const byTeamRes = {};
+      for (const r of resultsRaw) { let d = {}; try { d = JSON.parse(r.kpis || '{}'); } catch (e) {} (byTeamRes[r.team_id] || (byTeamRes[r.team_id] = [])).push({ round: r.round, d }); }
+      out.kpiHistory = []; out.decisionMarks = [];
+      for (const t of teamsRaw) {
+        const rows = (byTeamRes[t.id] || []).sort((a, b) => a.round - b.round);
+        out.kpiHistory.push({ teamId: t.id, name: t.name, rounds: rows.map((r) => { const k = r.d.kpis || {}; return { round: r.round, verdbolga: k.verdbolga ?? null, hagvoxtur: k.hagvoxtur ?? null, kaupmattur: k.kaupmattur ?? null, skuldir: k.skuldir ?? null, losun: k.losun ?? null }; }) });
+        let prevPol = {};
+        for (const r of rows) {
+          const pol = r.d.policies || {}, rStages = r.d.policyStages || {};
+          for (const id of Object.keys(pol)) {
+            const v = pol[id];
+            if (v === prevPol[id]) continue;                                       // óbreytt frá síðustu lotu
+            if (prevPol[id] === undefined && (v == null || v === false)) continue; // aldrei virkjað → ekkert mark
+            const p = POLICIES.find((x) => x.id === id) || {};
+            const stage = rStages[id] || null;
+            let label = p.label || id;
+            if (id === 'esb' && stage === 'umsokn') label = 'ESB: umsókn';
+            else if (id === 'esb' && stage === 'ursogn') label = 'ESB: úrsögn';
+            else if (typeof v === 'string') { const o = (p.options || []).find((x) => x.key === v); if (o) label += ': ' + o.label; } // choice sýnir valið
+            else if (v === false) label += ' — afnumið';                            // toggle slökkt = líka ákvörðun
+            const mark = { teamId: t.id, round: r.round, id, icon: p.icon || '🏛️', label };
+            if (stage) mark.stage = stage;
+            out.decisionMarks.push(mark);
+          }
+          prevPol = pol;
+        }
+      }
+    }
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
     if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) {
       try { const d = JSON.parse(mr[0].kpis || '{}'); out.finalPerKpi = d.perKpi || []; out.policySummary = describePolicies(d.policies || {}); } catch (e) {}

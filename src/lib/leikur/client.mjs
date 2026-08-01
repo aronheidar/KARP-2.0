@@ -9,6 +9,7 @@ import { leverEffects, newsHeadlines, popularity, endTitle, govtStability, advis
 import { explainRound } from './debrief.mjs';
 import { detectConflicts } from './tradeoffs.mjs';
 import { buildRecap } from './recap.mjs';
+import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
@@ -73,10 +74,21 @@ function lkLineChart(title, series, opts = {}) {
   for (let i = 0; i <= 2; i++) { const v = ymin + (ymax - ymin) * i / 2, y = Y(v); g += `<line x1="${pl}" y1="${y.toFixed(1)}" x2="${W - pr}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.07)"/><text x="${pl - 4}" y="${(y + 3).toFixed(1)}" font-size="9" fill="#7b879c" text-anchor="end">${num(v, 0)}</text>`; }
   series.forEach((s, i) => {
     const c = col(s, i), pts = s.points.slice().sort((a, b) => a.round - b.round);
+    const sw = opts.widthOf ? opts.widthOf(s.teamId) : 2;   // F1-V4: mitt lið þykkast í uppsafnað-gröfum
     const d = pts.map((p, j) => (j ? 'L' : 'M') + X(p.round).toFixed(1) + ',' + Y(p.value).toFixed(1)).join(' ');
-    g += `<path d="${d}" fill="none" stroke="${c}" stroke-width="2"/>`;
-    for (const p of pts) g += `<circle cx="${X(p.round).toFixed(1)}" cy="${Y(p.value).toFixed(1)}" r="2.5" fill="${c}"/>`;
+    g += `<path d="${d}" fill="none" stroke="${c}" stroke-width="${sw}"/>`;
+    for (const p of pts) g += `<circle cx="${X(p.round).toFixed(1)}" cy="${Y(p.value).toFixed(1)}" r="${sw >= 3 ? 3 : 2.5}" fill="${c}"/>`;
   });
+  // F1-V4: ákvarðana-pinnar — lóðrétt strikalína + íkon á lotu-x; <title> = label (native SVG-tooltip).
+  if (opts.marks && opts.marks.length) {
+    const byRound = {};
+    for (const m of opts.marks) (byRound[m.round] || (byRound[m.round] = [])).push(m);
+    for (const rd of Object.keys(byRound)) {
+      const x = X(+rd);
+      g += `<line x1="${x.toFixed(1)}" y1="${pt}" x2="${x.toFixed(1)}" y2="${H - pb}" stroke="#e8c14a" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/>`;
+      byRound[rd].forEach((m, j) => { g += `<g><title>${esc(m.label)}</title><text x="${(x + (j - (byRound[rd].length - 1) / 2) * 13).toFixed(1)}" y="${pt + 9}" font-size="10" text-anchor="middle">${m.icon || '🏛️'}</text></g>`; });
+    }
+  }
   for (const r of rounds) g += `<text x="${X(r).toFixed(1)}" y="${H - 7}" font-size="9" fill="#7b879c" text-anchor="middle">${r}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;
 }
@@ -117,7 +129,57 @@ function goalMeter(kpi, value, scoreVal) {
   const tip = kpi.label + ' — markmiðið er ' + aim + '. Stig 100 = innan marka; lækkar eftir því sem fjær dregur.' + (kpi.weight > 1 ? ' (vegur ×' + kpi.weight + ' í þínu umboði.)' : '');
   return `<div class="lk-goalmeter" title="${esc(tip)}"><div class="lk-gm-top"><span>${esc(kpi.label)}${kpi.weight > 1 ? ' <span class="lk-kpi-w">×' + kpi.weight + '</span>' : ''}</span><b style="color:${col}">${num(value)}</b></div><div class="lk-gm-bar"><div class="lk-gm-fill" style="width:${Math.max(2, Math.min(100, scoreVal))}%;background:${col}"></div></div><div class="lk-gm-sub"><span class="lk-muted">markmið ${dir === 'max' ? '≤ ' : dir === 'min' ? '≥ ' : ''}${num(tgt)}</span><span style="color:${col}">${scoreVal}/100</span></div></div>`;
 }
-function renderFacAnalytics(an) {
+// F1-V4: uppsafnaðar stærðir — sameiginlegar skilgreiningar fyrir results-kort, fac-töflu og leikslok-blokk.
+const UPP_SPECS = [
+  { key: 'verdlag', label: 'Verðlag (vísitala, 2000=100)', short: 'Verðlag', best: 'min' },
+  { key: 'vlf', label: 'VLF (vísitala, 2000=100)', short: 'VLF-vísitala', best: 'max' },
+  { key: 'kaupmattur', label: 'Kaupmáttur (vísitala, 2000=100)', short: 'Kaupmáttarvísitala', best: 'max' },
+  { key: 'skuldir', label: 'Skuldir ríkis (% af VLF)', short: 'Skuldir %', best: 'min' },
+  { key: 'losun', label: 'Uppsöfnuð losun (vísitölu-ár)', short: 'Losun-summa', best: 'min' },
+];
+const uppColorOf = (kh) => (id) => { const i = kh.findIndex((t) => t.teamId === id); return LK_PAL[((i % LK_PAL.length) + LK_PAL.length) % LK_PAL.length]; };
+// Results-kort: 5 smá-gröf, ÖLL lið saman (lína per lið, mitt lið þykkast) + ákvarðana-pinnar MÍNS liðs.
+function uppsafnadCard(st, myTeamId) {
+  const kh = st.kpiHistory; if (!kh || !kh.length || !kh.some((t) => t.rounds && t.rounds.length)) return '';
+  const per = kh.map((t) => ({ teamId: t.teamId, name: t.name, s: uppsafnadSeries(t.rounds) }));
+  const colorOf = uppColorOf(kh);
+  const marks = (st.decisionMarks || []).filter((m) => m.teamId === myTeamId).map((m) => ({ round: m.round, icon: m.icon, label: m.label }));
+  let charts = '';
+  for (const spec of UPP_SPECS) charts += lkLineChart(spec.label, per.map((p) => ({ teamId: p.teamId, points: p.s[spec.key] || [] })), { colorOf, widthOf: (id) => (id === myTeamId ? 3.4 : 1.3), marks });
+  if (!charts) return '';
+  const legend = per.map((p) => '<span class="lk-upp-leg' + (p.teamId === myTeamId ? ' me' : '') + '"><span class="lk-swatch" style="background:' + colorOf(p.teamId) + '"></span>' + esc(p.name) + (p.teamId === myTeamId ? ' (þið)' : '') + '</span>').join('');
+  return '<div class="lk-card"><h2>🏦 Uppsafnað — Ísland ykkar</h2>'
+    + '<p class="lk-muted" style="font-size:12px;margin:0 0 6px">Uppsafnað frá 2000: vísitölur byrja í 100 og vaxa með verðbólgu/hagvexti/kaupmætti (4 ár per kjörtímabil); skuldir eru staða; losun er summa.' + (marks.length ? ' Gular strikalínur = stóru ákvarðanirnar ykkar.' : '') + '</p>'
+    + '<div class="lk-upp-legend">' + legend + '</div>'
+    + '<div class="lk-charts">' + charts + '</div></div>';
+}
+// Leikslok-blokk: „Ísland ykkar 2032" — lokastöðurnar 5 í mannamáli + best-í-leik samanburður.
+function uppsafnadRecap(st, myTeamId) {
+  const kh = st.kpiHistory; if (!kh || !kh.length) return '';
+  const mine = kh.find((t) => t.teamId === myTeamId); if (!mine || !mine.rounds || !mine.rounds.length) return '';
+  const loka = uppsafnadLoka(uppsafnadSeries(mine.rounds));
+  const ratio = (v) => num(Math.round(v / 100 * 10) / 10);
+  const lines = [];
+  if (loka.verdlag != null) lines.push('💵 Verðlag er <b>' + ratio(loka.verdlag) + '×</b> hærra en árið 2000.');
+  if (loka.vlf != null) lines.push('📈 Landsframleiðslan er <b>' + ratio(loka.vlf) + '×</b> af stærð ársins 2000' + (loka.vlf < 100 ? ' — hagkerfið dróst saman.' : '.'));
+  if (loka.kaupmattur != null) lines.push('🛒 Kaupmáttur launa er <b>' + ratio(loka.kaupmattur) + '×</b> á við árið 2000.');
+  if (loka.skuldir != null) lines.push('🏛️ Skuldir ríkisins enda í <b>' + num(loka.skuldir) + '%</b> af VLF.');
+  if (loka.losun != null) lines.push('🌱 Uppsöfnuð losun 2000–2032: <b>' + num(loka.losun, 0) + '</b> vísitölu-ár.');
+  if (!lines.length) return '';
+  // Besta lið leiksins per stærð (aðeins ef fleiri en eitt lið hafa gögn).
+  const all = kh.filter((t) => t.rounds && t.rounds.length).map((t) => ({ name: t.name, loka: uppsafnadLoka(uppsafnadSeries(t.rounds)) }));
+  let bestHtml = '';
+  if (all.length > 1) {
+    const bits = UPP_SPECS.map((c) => {
+      const cand = all.filter((a) => a.loka[c.key] != null); if (!cand.length) return '';
+      const b = cand.reduce((x, y) => ((c.best === 'max' ? y.loka[c.key] > x.loka[c.key] : y.loka[c.key] < x.loka[c.key]) ? y : x));
+      return esc(c.short.toLowerCase()) + ' <b>' + esc(b.name) + '</b>';
+    }).filter(Boolean);
+    if (bits.length) bestHtml = '<p class="lk-muted" style="font-size:12.5px;margin:8px 0 0;border-top:1px solid var(--line);padding-top:7px">🏅 Besta lið leiksins: ' + bits.join(' · ') + '</p>';
+  }
+  return '<div class="lk-card lk-upp-lines"><h2>🇮🇸 Ísland ykkar 2032</h2>' + lines.map((l) => '<p>' + l + '</p>').join('') + bestHtml + '</div>';
+}
+function renderFacAnalytics(an, st, openDetails = new Set()) {
   if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
   const order = an.trajectories.cumulative.map((s) => s.teamId);
   const colorOf = (teamId) => LK_PAL[((order.indexOf(teamId) % LK_PAL.length) + LK_PAL.length) % LK_PAL.length];
@@ -172,21 +234,33 @@ function renderFacAnalytics(an) {
   // Ákvarðanaferill liða yfir kjörtímabilin (samanbrjótanlegt per lið).
   const arcHtml = (an.decisionArc && an.decisionArc.length)
     ? '<h3 style="font-size:14px;margin:12px 0 4px">📋 Ákvarðanaferill liða (kjörtímabil fyrir kjörtímabil)</h3>' + an.decisionArc.map((t) =>
-        '<details data-keep="arc-' + t.teamId + '"' + (S.openDetails.has('arc-' + t.teamId) ? ' open' : '') + ' style="margin:4px 0"><summary style="cursor:pointer;font-weight:600;font-size:13px"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span> ' + esc(t.name) + '</summary>'
+        '<details data-keep="arc-' + t.teamId + '"' + (openDetails.has('arc-' + t.teamId) ? ' open' : '') + ' style="margin:4px 0"><summary style="cursor:pointer;font-weight:600;font-size:13px"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span> ' + esc(t.name) + '</summary>'
         + '<table class="lk-tbl" style="margin-top:4px"><tr><th>Kjörtímabil</th><th>Það sem liðið breytti</th></tr>'
         + t.rows.map((r) => '<tr><td style="font-size:12px;white-space:nowrap">' + esc(r.event) + '</td><td style="font-size:12px">' + esc(r.summary) + '</td></tr>').join('')
         + '</table></details>').join('')
     : '';
   // Leiðbeiningar fyrir 1–2 klst umræðu (föst kennslu-uppbygging).
-  const guideHtml = '<details data-keep="guide"' + (S.openDetails.has('guide') ? ' open' : '') + ' style="margin:4px 0 8px;border:1px solid #2a3040;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎓 Leiðbeiningar fyrir umræðu (1–2 klst)</summary><ol class="lk-prompts" style="font-size:12.8px;margin-top:6px">'
+  const guideHtml = '<details data-keep="guide"' + (openDetails.has('guide') ? ' open' : '') + ' style="margin:4px 0 8px;border:1px solid #2a3040;border-radius:8px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎓 Leiðbeiningar fyrir umræðu (1–2 klst)</summary><ol class="lk-prompts" style="font-size:12.8px;margin-top:6px">'
     + '<li><b>Yfirferð niðurstaðna (15 mín):</b> Farið yfir lokastöðu og þróunar-gröfin — hvaða lið náði bestum árangri og hvers vegna?</li>'
     + '<li><b>Stefna hvers liðs (20 mín):</b> Látið hvert lið kynna sína leið út frá ákvarðanaferlinum — hver var stóra hugmyndin, og breyttist hún með áföllum?</li>'
     + '<li><b>Stóru ákvarðanirnar (20 mín):</b> Berið saman Icesave/ESB/stóriðju o.fl. — rökin, fylgið og afleiðingarnar umfram þjóðhags-tölurnar.</li>'
     + '<li><b>Fórnarskipti & það sem mátti bæta (20 mín):</b> Notið „gerðu vel / mátti bæta" — af hverju var erfitt að ná öllum markmiðum í einu?</li>'
     + '<li><b>Tenging við raunveruleikann (15 mín):</b> Berið saman við „svona fór það" — hvað segir þetta um raunverulega hagstjórn Íslands 2000–2032?</li>'
     + '</ol></details>';
+  // F1-V4: uppsafnað eftir liðum — lokastöður 5 uppsafnaðra stærða, besta gildi hverrar súlu grænt.
+  let uppHtml = '';
+  const kh = st && st.kpiHistory;
+  if (kh && kh.some((t) => t.rounds && t.rounds.length)) {
+    const rowsU = kh.map((t) => ({ teamId: t.teamId, name: t.name, loka: uppsafnadLoka(uppsafnadSeries(t.rounds)) }));
+    const bestOf = {};
+    for (const c of UPP_SPECS) { const vals = rowsU.map((r) => r.loka[c.key]).filter((v) => v != null); bestOf[c.key] = vals.length ? (c.best === 'max' ? Math.max(...vals) : Math.min(...vals)) : null; }
+    uppHtml = '<h3 style="font-size:14px;margin:12px 0 4px">🏦 Uppsafnað eftir liðum (lokastöður, 2000=100)</h3><table class="lk-tbl"><tr><th>Lið</th>' + UPP_SPECS.map((c) => '<th>' + esc(c.short) + '</th>').join('') + '</tr>'
+      + rowsU.map((r) => '<tr><td><span class="lk-swatch" style="background:' + colorOf(r.teamId) + '"></span>' + esc(r.name) + '</td>' + UPP_SPECS.map((c) => { const v = r.loka[c.key]; const best = v != null && bestOf[c.key] != null && v === bestOf[c.key]; return '<td' + (best ? ' class="lk-upp-best" title="Besta gildi súlunnar"' : '') + '>' + (v == null ? '–' : num(v, c.key === 'losun' ? 0 : 1)) + '</td>'; }).join('') + '</tr>').join('')
+      + '</table>';
+  }
   return guideHtml + promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
+    + uppHtml
     + reviewHtml
     + arcHtml
     + polHtml
@@ -441,7 +515,7 @@ export function mountLeikur(root) {
       roleMapCard(st) +
       '<div class="lk-card">' + controls + '</div>' +
       leaderboard(st) +
-      (st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '');
+      (st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics, st, S.openDetails); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '');
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
@@ -495,7 +569,7 @@ export function mountLeikur(root) {
         + '<b style="font-size:13px">🏅 Verðlaunatitlar ríkisstjórnarinnar:</b>' + medalHtml
         + '<button class="lk-btn" id="lk-share" style="margin-top:12px">📋 Afrita forsíðuna</button>'
         + '</div></div>';
-      root.innerHTML = frontPage + teamBanner(st) + teamRecap(st) + revealCard(st) + leaderboard(st);
+      root.innerHTML = frontPage + teamBanner(st) + uppsafnadRecap(st, S.teamId) + teamRecap(st) + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
       return;
     }
@@ -582,6 +656,7 @@ export function mountLeikur(root) {
     root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st) + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
       + extras
       + leaderboard(st)
+      + uppsafnadCard(st, S.teamId)   // F1-V4: uppsafnað yfir allan leikinn + samanburður liða + ákvarðana-pinnar
       + '<div class="lk-card"><p style="color:var(--muted)">Beðið eftir að leikstjóri opni næsta kjörtímabil…</p></div>';
   }
 

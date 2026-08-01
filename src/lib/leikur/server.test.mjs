@@ -266,6 +266,32 @@ const J = async (res) => JSON.parse(await res.text());
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
   }
 
+  // F1-V4: kpiHistory + decisionMarks — 2 lotur, esb tekin í lotu 1 → mark „ESB: umsókn" í réttri lotu.
+  const ug = await J(await LH(req('/api/leikur/create', { mode: 'studio' }), env));
+  const uj1 = await J(await LH(req('/api/leikur/' + ug.code + '/join', { name: 'U-Alfa' }), env));
+  const uj2 = await J(await LH(req('/api/leikur/' + ug.code + '/join', { name: 'U-Beta' }), env));
+  const uHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + ug.facToken };
+  const uCtrl = (a) => LH(new Request('https://karp.is/api/leikur/' + ug.code + '/control', { method: 'POST', headers: uHdr, body: JSON.stringify({ action: a }) }), env);
+  const uStG = (tok) => LH(new Request('https://karp.is/api/leikur/' + ug.code + '/state', { headers: { authorization: 'Bearer ' + tok } }), env);
+  const uDec = (tok, round, dec) => LH(new Request('https://karp.is/api/leikur/' + ug.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round, locked: true, decisions: dec }) }), env);
+  ok('kpiHistory: EKKI sent í lobby', (await J(await uStG(ug.facToken))).kpiHistory === undefined);
+  await uCtrl('start');
+  // lota 1: lið A tekur esb (server les söguna beint — gluggasían from:4 er client-hlið, sbr. surprise-prófið)
+  await uDec(uj1.teamToken, 1, { levers: { vextir: 8 }, policies: { esb: true } });
+  await uDec(uj2.teamToken, 1, { levers: { vextir: 6 } });
+  await uCtrl('resolve'); await uCtrl('next');
+  await uDec(uj1.teamToken, 2, { levers: { vextir: 8 } });
+  await uDec(uj2.teamToken, 2, { levers: { vextir: 6 } });
+  await uCtrl('resolve');
+  const uSt = await J(await uStG(ug.facToken));
+  ok('kpiHistory: 2 lið × 2 lotur eftir 2 leystar', Array.isArray(uSt.kpiHistory) && uSt.kpiHistory.length === 2 && uSt.kpiHistory.every((t) => t.rounds.length === 2 && t.name));
+  ok('kpiHistory: hver lota ber AÐEINS KPI-in 5 (þjappað)', uSt.kpiHistory.every((t) => t.rounds.every((r) => ['verdbolga', 'hagvoxtur', 'kaupmattur', 'skuldir', 'losun'].every((k) => typeof r[k] === 'number') && Object.keys(r).length === 6)));
+  const uMarksA = (uSt.decisionMarks || []).filter((m) => m.teamId === uj1.teamId);
+  ok('decisionMarks: esb-markið í lotu 1 með „ESB: umsókn"+stage', uMarksA.length === 1 && uMarksA[0].id === 'esb' && uMarksA[0].round === 1 && uMarksA[0].label === 'ESB: umsókn' && uMarksA[0].stage === 'umsokn' && uMarksA[0].icon === '🇪🇺');
+  ok('decisionMarks: EKKERT tvítekið mark í lotu 2 (adild=óbreytt val) og B markalaust', !uMarksA.some((m) => m.round === 2) && !(uSt.decisionMarks || []).some((m) => m.teamId === uj2.teamId));
+  const uTeamSt = await J(await uStG(uj1.teamToken));
+  ok('kpiHistory: lið sér líka öll lið (opinbert eins og stigatafla)', Array.isArray(uTeamSt.kpiHistory) && uTeamSt.kpiHistory.length === 2 && Array.isArray(uTeamSt.decisionMarks));
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();
