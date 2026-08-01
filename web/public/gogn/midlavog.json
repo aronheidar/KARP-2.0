@@ -6,13 +6,13 @@
   {
    "s": "Viðskiptablaðið",
    "bias": 6,
-   "rawTone": -13,
-   "n": 352,
-   "entities": 41,
+   "rawTone": -12,
+   "n": 361,
+   "entities": 43,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": 90.6,
+     "dev": 90.68,
      "n": 5
     },
     {
@@ -27,12 +27,12 @@
     },
     {
      "entity": "Tollar",
-     "dev": 61.5,
+     "dev": 61.88,
      "n": 9
     },
     {
      "entity": "Verslun",
-     "dev": 61.01,
+     "dev": 60.76,
      "n": 7
     }
    ]
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -23,
-   "n": 27926,
+   "n": 27932,
    "entities": 166,
    "sample": [
     {
@@ -75,7 +75,7 @@
    "s": "RÚV",
    "bias": 1,
    "rawTone": -35,
-   "n": 8953,
+   "n": 8993,
    "entities": 157,
    "sample": [
     {
@@ -85,7 +85,7 @@
     },
     {
      "entity": "Samkaup",
-     "dev": -83.91,
+     "dev": -83.33,
      "n": 3
     },
     {
@@ -109,12 +109,12 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -39,
-   "n": 11533,
+   "n": 11538,
    "entities": 162,
    "sample": [
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -93.12,
+     "dev": -93.03,
      "n": 12
     },
     {
@@ -163,7 +163,7 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -94.31,
+     "dev": -94.22,
      "n": 7
     },
     {
@@ -192,7 +192,7 @@
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.4,
+     "dev": -69.32,
      "n": 4
     },
     {
