@@ -36,7 +36,32 @@ function _lev(a, b) {
   }
   return prev[n];
 }
-const _hlutmengi = (a, b) => { const B = new Set(b); return a.every((x) => B.has(x)); };
+// Fjöldi-næmt hlutmengi: hver tóken verður að koma a.m.k. jafn oft fyrir í b og í a.
+// ⚠ Set-byggða útgáfan felldi ENDURTEKNA tókena saman, svo ['s','s','a'] taldist innihaldið í
+// {'s','m','a'} — nöfnin deildu aðeins TVEIMUR aðgreindum tókenum af þremur sætum. Mæling
+// 1.8.2026 á 2.776 raun-íslenskum félagsnöfnum, skimuðum eins og fyrirtækjaskýrslan gerir það
+// (eftir að félagsform er strípað), gaf eina STERKA falska samsvörun úr þessu: „S.S.Á. 1 ehf"
+// → sancNorm 's s a' → OFAC-færslan „S M A". Sterk samsvörun keyrir critical-atburð,
+// 'Há'-áhættu, póst og lánshæfis-þak 20/E.
+const _hlutmengi = (a, b) => {
+  const talning = new Map();
+  for (const x of b) talning.set(x, (talning.get(x) || 0) + 1);
+  for (const x of a) { const c = talning.get(x) || 0; if (!c) return false; talning.set(x, c - 1); }
+  return true;
+};
+
+// Leyfð ritvillu-fjarlægð er KVÖRÐUÐ EFTIR TÓKENLENGD. Fast lev<=2 er merkingarlaust á stysta
+// enda: 's' vs 'm' er fjarlægð 1 en einfaldlega annar stafur, og 'al' vs 'xy' er fjarlægð 2 en
+// ekkert sameiginlegt. Sama „S M A"-mæling og að ofan komst líka í gegn HÉR — báðar greinar
+// hleyptu henni í gegn óháð hvor annarri, mengja-greinin faldi bara hina því hún er metin fyrst.
+//   1 stafur   → verður að vera stafréttur eins (engin ritvilla „innan" eins stafs)
+//   2-3 stafir → mest 1 (heldur umritunar-ögnum: „al"/„el", „bin"/„ben")
+//   4+ stafir  → mest 2 (heldur „Abdel"/„Abdul", „Aleksandr"/„Alexandr")
+const _namundaOk = (a, b) => {
+  const n = Math.min(a.length, b.length);
+  if (n < 2) return false;
+  return _lev(a, b) <= (n >= 4 ? 2 : 1);
+};
 
 // samraemi — er fyrirspurnin efnislega SAMA nafn og færslan, eða deila þær aðeins
 // fyrsta og síðasta tókeni? Sterki lykillinn ('fyrsta|síðasta') hunsar allt þar á milli,
@@ -55,7 +80,7 @@ export function samraemi(q, e) {
   // mengja-innihald í hvora átt: sleppt millinafn, aukið millinafn, víxluð röð
   if (_hlutmengi(q, e) || _hlutmengi(e, q)) return 'innihald';
   // jafnað námunda: umritun ("Abdul"/"Abdel", "Aleksandr"/"Alexandr")
-  if (q.length === e.length && q.every((x, i) => x === e[i] || _lev(x, e[i]) <= 2)) return 'namunda';
+  if (q.length === e.length && q.every((x, i) => x === e[i] || _namundaOk(x, e[i]))) return 'namunda';
   return null;
 }
 const _RODUN = { nakvaemt: 3, innihald: 2, namunda: 1 };

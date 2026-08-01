@@ -321,3 +321,33 @@ test('tegund fylgir hverri samsvörun svo F9 geti birt rétt orðalag', () => {
   assert.equal(skima(VT2, 'The Basic Cookbook Company').tegund, 'jadar');
   assert.equal(skima(VT, 'Hamas').tegund, 'einsords');
 });
+
+// ── Fjöldi-næmt hlutmengi (mæling 1.8.2026) ──────────────────────────────────
+test('samraemi: ENDURTEKINN tóken má ekki fyllast af öðrum tóken', () => {
+  // Set-byggða hlutmengið felldi ['s','s','a'] inn í {'s','m','a'} — nöfnin deildu aðeins
+  // tveimur aðgreindum tókenum af þremur sætum. Á raungögnum gaf það eina STERKA falska
+  // samsvörun: „S.S.Á. 1 ehf" → 's s a' → OFAC-færslan „S M A" (critical + Há + póstur + þak E).
+  assert.equal(samraemi(['s', 's', 'a'], ['s', 'm', 'a']), null);
+  assert.equal(samraemi(['jon', 'jon', 'jonsson'], ['jon', 'a', 'jonsson']), null);
+});
+
+test('samraemi: öll fimm afbrigðin halda sér eftir fjöldi-næmnina', () => {
+  assert.equal(samraemi(['jon', 'jonsson'], ['jon', 'jonsson']), 'nakvaemt');
+  assert.equal(samraemi(['jon', 'jonsson'], ['jon', 'a', 'jonsson']), 'innihald');   // sleppt millinafn
+  assert.equal(samraemi(['jon', 'a', 'jonsson'], ['jon', 'jonsson']), 'innihald');   // aukið millinafn
+  assert.equal(samraemi(['a', 'b', 'c'], ['c', 'b', 'a']), 'innihald');              // víxluð röð
+  assert.equal(samraemi(['mohammad', 'abdel', 'rahman'], ['mohammad', 'abdul', 'rahman']), 'namunda');
+});
+
+test('samraemi: raunveruleg endurtekning í BÁÐUM heldur áfram að samsvara', () => {
+  assert.equal(samraemi(['ali', 'ali', 'hassan'], ['ali', 'ali', 'hassan']), 'nakvaemt');
+  assert.equal(samraemi(['ali', 'ali'], ['ali', 'ali', 'hassan']), 'innihald');
+});
+
+test('samraemi: ritvillu-þol kvarðast eftir tókenlengd', () => {
+  assert.equal(samraemi(['a', 'b'], ['a', 'c']), null);                       // 1 stafur: annar stafur ≠ ritvilla
+  assert.equal(samraemi(['al', 'rahman'], ['el', 'rahman']), 'namunda');      // 2 stafir, fjarlægð 1 → umritun
+  assert.equal(samraemi(['al', 'rahman'], ['xy', 'rahman']), null);           // 2 stafir, fjarlægð 2 → ekkert sameiginlegt
+  assert.equal(samraemi(['bin', 'salem'], ['ben', 'salem']), 'namunda');      // 3 stafir, fjarlægð 1
+  assert.equal(samraemi(['aleksandr', 'ivanov'], ['alexandr', 'ivanov']), 'namunda');
+});
