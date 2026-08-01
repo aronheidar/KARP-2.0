@@ -273,8 +273,48 @@ const J = async (res) => JSON.parse(await res.text());
     ok('adild-lota: policyStages esb=adild og delta ber skuldir −2', xr3 && xr3.detail.policyStages.esb === 'adild' && xr3.detail.policyDeltas.esb && xr3.detail.policyDeltas.esb.skuldir === -2);
     // F3-V3: kort fylgir nýjasta uppgjöri (lota 3) og esb-staða liðs A komin í kort-policies
     ok('kort: uppfærist í lotu 3 eftir resolve', Array.isArray(xRes3.kort) && xRes3.kort.every((k) => k.round === 3) && (() => { const k = xRes3.kort.find((x) => x.teamId === xj1.teamId); return k && !!k.policies.esb; })());
+    // GALLI H: raunveruleg úrsögn — lið A dregur umsóknina til baka í lotu 4 → uppgjör vistar stage 'ursogn'
+    // + deltas höggsins, og lotan á eftir sýnir badge „úrsögn í ferli" + arfleifðar-röð (var ósýnilegt alls staðar).
+    await xCtrl('next');
+    await xDec(xj1.teamToken, { round: 4, levers: { vextir: 8 }, policies: { esb: false } });
+    await xDec(xj2.teamToken, { round: 4, levers: { vextir: 8 } });
+    await xCtrl('resolve');
+    const xRes4 = await J(await xStG(xg.facToken));
+    const xr4 = (xRes4.results || []).find((r) => r.teamId === xj1.teamId);
+    ok('H: ursogn-lota vistar policyStages.esb=ursogn', xr4 && xr4.detail.policyStages.esb === 'ursogn');
+    ok('H: ursogn-lota vistar deltas höggsins {hagvoxtur:-0.4, verdbolga:0.3}', xr4 && xr4.detail.policyDeltas.esb && xr4.detail.policyDeltas.esb.hagvoxtur === -0.4 && xr4.detail.policyDeltas.esb.verdbolga === 0.3);
+    await xCtrl('next');
+    const x5 = await J(await xStG(xj1.teamToken));
+    ok('H: badge stage=ursogn m. deltas lotuna EFTIR úrsögnina', (() => { const b = (x5.policyBadges || []).find((x) => x.id === 'esb'); return b && b.stage === 'ursogn' && b.deltas && b.deltas.hagvoxtur === -0.4; })());
+    ok('H: carryover fær röð um úrsögnina m. texta+deltas', (() => { const p = x5.carryover && x5.carryover.policies.find((x) => x.id === 'esb'); return p && p.text.length > 10 && p.deltas && p.deltas.verdbolga === 0.3; })());
+    // ... og lotu SÍÐAR er úrsagnar-badge horfinn (höggið er einskiptis)
+    await xDec(xj1.teamToken, { round: 5, levers: { vextir: 8 } }); await xDec(xj2.teamToken, { round: 5, levers: { vextir: 8 } });
+    await xCtrl('resolve'); await xCtrl('next');
+    const x6 = await J(await xStG(xj1.teamToken));
+    ok('H: enginn esb-badge tveimur lotum eftir úrsögn', !(x6.policyBadges || []).some((b) => b.id === 'esb'));
     // classic/án surprise → aldrei out.surprise
     ok('án surprise-flaggs: engin surprise í state', cgSt.surprise === undefined);
+  }
+
+  // GALLI E: leikstjóri stöðvar leik í MIÐRI decide-lotu ('stop' setur phase=ended ÁN resolve) →
+  // klemmu-val óuppgerðu lotunnar má EKKI teljast í eventChoices (kortið sýndi annars tákn fyrir val sem aldrei var beitt).
+  let eg = null, eEv = null;
+  for (let i = 0; i < 60 && !eEv; i++) { const g = await J(await LH(req('/api/leikur/create', { mode: 'studio', surprise: true }), env)); const e = rollSurprise(g.code, 2); if (e && e.dilemma) { eg = g; eEv = e; } }
+  ok('E: fann surprise-leik með klemmu í umferð 2', !!eEv);
+  if (eEv) {
+    const eHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + eg.facToken };
+    const ej = await J(await LH(req('/api/leikur/' + eg.code + '/join', { name: 'E-lið' }), env));
+    const eCtrl = (a) => LH(new Request('https://karp.is/api/leikur/' + eg.code + '/control', { method: 'POST', headers: eHdr, body: JSON.stringify({ action: a }) }), env);
+    const eDec = (round, dec) => LH(new Request('https://karp.is/api/leikur/' + eg.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + ej.teamToken }, body: JSON.stringify({ round, locked: true, decisions: dec }) }), env);
+    await eCtrl('start');
+    await eDec(1, { levers: { vextir: 8 } });
+    await eCtrl('resolve'); await eCtrl('next');
+    await eDec(2, { levers: { vextir: 8 }, dilemma: eEv.dilemma.options[0].key });   // val skráð í lotu 2 — EN lotan verður aldrei leyst
+    await eCtrl('stop');   // ended án resolve
+    const eSt = await J(await LH(new Request('https://karp.is/api/leikur/' + eg.code + '/state'), env));
+    ok('E: phase ended eftir stop í miðri lotu', eSt.phase === 'ended');
+    ok('E: eventChoices telur EKKI val úr óuppgerðri stöðvunar-lotu', eSt.eventChoices && eSt.eventChoices[ej.teamId] && eSt.eventChoices[ej.teamId][eEv.id] === undefined);
+    ok('E: kort stendur á síðasta UPPGJÖRI (lota 1)', Array.isArray(eSt.kort) && eSt.kort.every((k) => k.round === 1));
   }
 
   // F1-V4: kpiHistory + decisionMarks — 2 lotur, esb tekin í lotu 1 → mark „ESB: umsókn" í réttri lotu.

@@ -53,6 +53,18 @@ ok('meta: choice fyrsta varanleg + since = 1', m3.states.icesave === 'pay' && m3
 ok('meta: history-item með .round notar hann', policyStatesMeta([{ round: 3, policies: { esb: true } }]).since.esb === 3);
 ok('meta: states ≡ policyStates (bakvirkni)', (() => { const h = [{ policies: { hoft: true, icesave: 'pay' } }, { policies: { hoft: false } }]; return JSON.stringify(policyStatesMeta(h).states) === JSON.stringify(policyStates(h)); })());
 
+// GALLI F — draugaúrsögn: esb ALDREI true í neinni uppgerðri lotu; lotan ber esb:false (hakað+afhakað
+// innan sömu decide-lotu → aðeins loka-drögin geymast) → má EKKI gefa 'ursogn'-stig né úrsagnarhögg.
+const gf = policyStatesMeta([{}, {}, {}, { policies: { esb: false } }]);
+ok('F: toggle-false án fyrri true skráist EKKI (states/since tóm)', gf.states.esb === undefined && gf.since.esb === undefined);
+ok('F: ekkert ursogn-stig án fyrri true', policyStage('esb', gf.states, gf.since, 4) === null);
+ok('F: policyStates sömuleiðis — false án fyrri true = ósett', policyStates([{ policies: { hoft: false } }]).hoft === undefined);
+ok('F: RAUNVERULEG úrsögn heldur sér (true í uppgerðri lotu → false næst = ursogn)', (() => {
+  const m = policyStatesMeta([{}, { policies: { esb: true } }, { policies: { esb: false } }]);
+  return m.states.esb === false && m.since.esb === 3 && policyStage('esb', m.states, m.since, 3) === 'ursogn';
+})());
+ok('F: ≡-samhengi líka f. false-án-true sögu', (() => { const h = [{ policies: { hoft: false } }, { policies: { esb: false } }]; return JSON.stringify(policyStatesMeta(h).states) === JSON.stringify(policyStates(h)); })());
+
 // policyStage — ESB-lífsferill (F1-V2)
 ok('stage: esb umsokn í töku-lotunni', policyStage('esb', { esb: true }, { esb: 4 }, 4) === 'umsokn');
 ok('stage: esb adild næstu lotu og áfram', policyStage('esb', { esb: true }, { esb: 4 }, 5) === 'adild' && policyStage('esb', { esb: true }, { esb: 4 }, 7) === 'adild');
@@ -75,6 +87,9 @@ ok('deltas: virk ákvörðun með engin áhrif → {} (EKKI sleppt)', (() => { c
 ok('deltas: óvirk (false/ósett) ákvörðun ekki með', (() => { const d = policyDeltas(base, { hoft: false, icesave: 'pay' }, bl); return !('hoft' in d) && ('icesave' in d); })());
 ok('deltas: margar virkar → framlag hverrar aðgreint', (() => { const d = policyDeltas(base, { icesave: 'pay', bankar: 'einka' }, bl); return d.icesave.skuldir === 7 && d.bankar.skuldir === -4 && d.bankar.vanskil === 3; })());
 ok('deltas: ~0-framlag síað út (gengi við grunn)', (() => { const d = policyDeltas(base8, { esb: true }, bl); return !('gengi' in d.esb); })());
+// GALLI H: úrsagnarhöggið á að MÆLAST í policyDeltas þótt esb sé false (stage ber ákvörðunina)
+ok('H: ursogn-lota → esb-delta = höggið {hagvoxtur:-0.4, verdbolga:0.3}', (() => { const d = policyDeltas(base8, { esb: false }, bl, { esb: 'ursogn' }); return d.esb && d.esb.hagvoxtur === -0.4 && d.esb.verdbolga === 0.3 && Object.keys(d.esb).length === 2; })());
+ok('H: false ÁN stigs telst áfram ekki með', (() => { const d = policyDeltas(base8, { esb: false }, bl, {}); return !('esb' in d); })());
 
 // policyApproval — bein fylgis-áhrif
 ok('Icesave hafna → jákvætt fylgi', policyApproval({ icesave: 'reject' }) > 0);

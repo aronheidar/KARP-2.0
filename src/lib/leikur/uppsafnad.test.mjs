@@ -36,6 +36,17 @@ ok('vantar skuldir L2 → síðasta level endurtekið (30)', sm.skuldir[1].value
 ok('vantar losun L2 → summa stendur (380)', sm.losun[1].value === 380);
 ok('engin NaN í neinni seríu', Object.values(sm).every((a) => a.every((p) => typeof p.value === 'number' && isFinite(p.value))));
 
+// GALLI A: FLATA server-formið — NÁKVÆMLEGA eins og server.mjs kpiHistory sendir rounds
+// ({round, verdbolga, hagvoxtur, kaupmattur, skuldir, losun} — ekkert .kpis-hreiður; sbr. server.test.mjs
+// „hver lota ber AÐEINS KPI-in 5"). Samningurinn læsist hér: verdlag VERÐUR að hreyfast (ekki fast 100).
+const sflat = uppsafnadSeries([
+  { round: 1, verdbolga: 10, hagvoxtur: 2, kaupmattur: 0, skuldir: 30, losun: 95 },
+  { round: 2, verdbolga: 0, hagvoxtur: 2, kaupmattur: 1.5, skuldir: 45, losun: 90 },
+]);
+ok('flatt server-form: verdlag HREYFIST (146.4, ekki fast 100)', sflat.verdlag[0].value === 146.4 && sflat.verdlag[1].value === 146.4);
+ok('flatt server-form: allar seríur ≡ nested forminu', JSON.stringify(sflat) === JSON.stringify(s2));
+ok('flatt form m. null-KPI (server sendir ?? null) → engin NaN', (() => { const s = uppsafnadSeries([{ round: 1, verdbolga: null, hagvoxtur: null, kaupmattur: null, skuldir: null, losun: null }]); return Object.values(s).every((a) => a.every((p) => typeof p.value === 'number' && isFinite(p.value))); })());
+
 // Lokagildi
 const lk = uppsafnadLoka(s2);
 ok('lokagildi rétt (verdlag/vlf/kaupmattur/skuldir/losun)', lk.verdlag === 146.4 && lk.vlf === 117.2 && lk.kaupmattur === 106.1 && lk.skuldir === 45 && lk.losun === 740);

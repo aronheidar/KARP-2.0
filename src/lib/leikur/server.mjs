@@ -173,17 +173,19 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         out.kort.push({ teamId: t.id, round: last.round, kpis: { byggdajofnudur: k.byggdajofnudur ?? null, fiskistofn: k.fiskistofn ?? null, losun: k.losun ?? null }, policies: last.d.policies || {} });
       }
       // eventChoices: klemmu-val per lið úr LEYSTUM lotum (dilemma úr decisions-sögu × rollSurprise per
-      // lotu — atviks-id fæst aðeins hér, determinískt af (code, round)). Í decide-fasa telur lotan í gangi
-      // EKKI (óuppgert val sést ekki á korti). 'ja' límist: „valdi liðið ja EINHVERN TÍMA" (gagnaver-táknið).
+      // lotu — atviks-id fæst aðeins hér, determinískt af (code, round)). GALLI E: lota telur AÐEINS ef
+      // uppgjör er til í resultsRaw (leikstjóri getur 'stop'-að í miðjum decide → phase=ended ÁN resolve,
+      // og óuppgert val má aldrei sjást á korti). 'ja' límist: „valdi liðið ja EINHVERN TÍMA" (gagnaver-táknið).
       if (cfg.surprise) {
         const decAll = ((await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results) || [];
         const dilByTR = {};
         for (const d of decAll) { try { const dd = JSON.parse(d.decisions || '{}'); if (dd.dilemma != null) (dilByTR[d.team_id] || (dilByTR[d.team_id] = {}))[d.round] = dd.dilemma; } catch (e) {} }
-        const maxR = game.phase === 'decide' ? game.current_round - 1 : game.current_round;
+        const resolvedRounds = new Set(resultsRaw.map((r) => r.round));
         out.eventChoices = {};
         for (const t of teamsRaw) {
           const ch = {};
-          for (let rr = 1; rr <= maxR; rr++) {
+          for (let rr = 1; rr <= game.current_round; rr++) {
+            if (!resolvedRounds.has(rr)) continue;   // uppgjör ekki til → valið var aldrei beitt
             const sev = rollSurprise(code, rr); if (!sev || !sev.dilemma) continue;
             const c = (dilByTR[t.id] || {})[rr];
             if (c != null && ch[sev.id] !== 'ja') ch[sev.id] = c;
@@ -219,9 +221,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
           available: POLICIES.filter((p) => policyAvailable(p, game.current_round, polStates)).map((p) => ({ id: p.id, icon: p.icon, label: p.label, kind: p.kind, desc: p.desc, onLabel: p.onLabel, offLabel: p.offLabel, options: p.options, pop: POLICY_POP[p.id] || null })) };
         out.dilemmaDraft = (byR[game.current_round] || {}).dilemma || null; // Fasi „skemmtun 3": deilanlegt klemmu-val liðs
         // F1-V2: deltas úr SÍÐUSTU geymdu lotu-niðurstöðu liðsins (knýja badge-tooltips + arfleifðar-tölur; engin fyrri lota/eldri leikir → null).
-        let lastDeltas = null;
+        let lastDeltas = null, lastStages = null;
         const lastRes = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round)[0];
-        if (lastRes) { try { lastDeltas = JSON.parse(lastRes.kpis || '{}').policyDeltas || null; } catch (e) {} }
+        if (lastRes) { try { const ld = JSON.parse(lastRes.kpis || '{}'); lastDeltas = ld.policyDeltas || null; lastStages = ld.policyStages || null; } catch (e) {} }
         // F1-V2: stefnu-badges — AÐEINS staðfestar ákvarðanir (úr policyStates-sögu); drög ÞESSARAR decide-lotu birtast ekki fyrr en næst.
         out.policyBadges = [];
         for (const p of POLICIES) {
@@ -230,10 +232,23 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
           if (p.kind === 'choice') { const o = (p.options || []).find((x) => x.key === v); b.choice = o ? o.label : String(v); }
           out.policyBadges.push(b);
         }
+        // GALLI H: úrsagnarhöggið var beitt í uppgjöri SÍÐUSTU lotu (geymt stage 'ursogn') en esb=false
+        // slapp gegnum badge-lykkjuna → gera það sýnilegt lotuna á eftir („úrsögn í ferli" + deltas höggsins).
+        if (lastStages && lastStages.esb === 'ursogn' && polStates.esb === false) {
+          const pe = POLICIES.find((x) => x.id === 'esb');
+          out.policyBadges.push({ id: 'esb', icon: pe.icon, label: pe.label, stage: 'ursogn', sinceRound: polSince.esb ?? null, deltas: (lastDeltas && lastDeltas.esb) || null });
+        }
         // Arfleifð: hvernig standandi stórar ákvarðanir + óvænt atvik SÍÐUSTU lotu lita þessa lotu (birt í byrjun lotu ≥2).
         if (game.current_round >= 2) {
           const prevEvent = cfg.surprise ? rollSurprise(code, game.current_round - 1) : null;
-          const co = carryover({ policyStates: polStates, prevEvent, prevChoiceKey: (byR[game.current_round - 1] || {}).dilemma, deltas: lastDeltas });
+          let co = carryover({ policyStates: polStates, prevEvent, prevChoiceKey: (byR[game.current_round - 1] || {}).dilemma, deltas: lastDeltas });
+          // GALLI H: carryover sleppir esb þegar states.esb===false — bæta röð um úrsögnina sjálfa.
+          if (lastStages && lastStages.esb === 'ursogn' && polStates.esb === false) {
+            const pe = POLICIES.find((x) => x.id === 'esb');
+            const row = { id: 'esb', icon: pe.icon, label: pe.label, text: 'Úrsögnin úr ESB-ferlinu kostaði skammtíma-högg í síðustu lotu (hagvöxtur niður, verðbólga upp) — áhrifin fjara út þetta kjörtímabil.' };
+            if (lastDeltas && lastDeltas.esb) row.deltas = lastDeltas.esb;
+            if (co) co.policies.push(row); else co = { policies: [row], event: null };
+          }
           if (co) out.carryover = co;
         }
         // Fasi „fylgi" B2: stjórnarkreppa — féll stjórnin síðasta kjörtímabil? (birt sem borði + dýpri byrjun þessa lotu).

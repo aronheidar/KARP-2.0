@@ -45,17 +45,22 @@ function disp(cfg, v, d) {
 // 'target' (verdbolga) → einfaldað: lækkun græn. 'pop' = fylgi (hærra betra). KPI utan korts → hlutlaus grá (.n).
 // Íslenskt tölusnið (komma), + fyrir jákvætt og − (U+2212) fyrir neikvætt; 1-2 aukastafir eftir stærð, núll-halar klipptir.
 const deltaFmt = (v) => { const a = Math.abs(v); const s = num(a, a >= 1 ? 1 : 2).replace(/(,\d*?)0+$/, '$1').replace(/,$/, ''); return (v > 0 ? '+' : '−') + s; };
+// GALLI G: policyDeltas ber innri KPI-lykla úr vélinni (gengi_endo = innri tvífari gengis → tvítalning;
+// gengi/vanskil vantar í GOAL_SPECS). Sía + label-fallback DEILD milli deltaChips og PM-blöðrunnar.
+const deltaSkip = (k) => /_endo$/.test(k);   // innri tvífarar — aldrei birtir
+const DELTA_LABELS = { gengi: 'gengi', vanskil: 'vanskil' };   // þekktir auka-lyklar utan GOAL_SPECS (íslensk lágstafaheiti)
+const deltaLabel = (k) => k === 'pop' ? 'fylgi' : (GOAL_SPECS[k] ? GOAL_SPECS[k].label : (DELTA_LABELS[k] || k));
 function deltaChips(deltas) {
   if (!deltas || typeof deltas !== 'object') return '';
   return Object.keys(deltas).map((k) => {
+    if (deltaSkip(k)) return '';
     const v = +deltas[k];
     if (!isFinite(v) || Math.abs(v) < 0.005) return '';
     const spec = GOAL_SPECS[k];
     let cls = 'n';
     if (k === 'pop') cls = v > 0 ? 'g' : 'r';
     else if (spec) cls = ((v < 0) === (spec.dir === 'max' || spec.dir === 'target')) ? 'g' : 'r';
-    const label = k === 'pop' ? 'fylgi' : (spec ? spec.label : k);
-    return '<span class="lk-chip ' + cls + '">' + esc(label) + ' ' + deltaFmt(v) + '</span>';
+    return '<span class="lk-chip ' + cls + '">' + esc(deltaLabel(k)) + ' ' + deltaFmt(v) + '</span>';
   }).join('');
 }
 
@@ -450,7 +455,19 @@ export function mountLeikur(root) {
   const sepopSeenMem = new Set();
   const sepopKey = (round, watch) => 'lk-sepop-' + S.code + '-' + round + (watch ? '-watch' : '');
   const sepopSeen = (k) => { try { if (localStorage.getItem(k)) return true; } catch (e) {} return sepopSeenMem.has(k); };
-  const sepopMark = (k) => { sepopSeenMem.add(k); try { localStorage.setItem(k, '1'); } catch (e) {} };
+  // GALLI D: hreinsa lk-sepop-* lykla ANNARRA leikja um leið og þessi leikur markar sinn fyrsta —
+  // annars safnast lyklarnir endalaust milli leikja. Afturábak-ítrun (removeItem hliðrar vísitölum).
+  const sepopMark = (k) => {
+    sepopSeenMem.add(k);
+    try {
+      localStorage.setItem(k, '1');
+      const keep = 'lk-sepop-' + S.code + '-';
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.indexOf('lk-sepop-') === 0 && key.indexOf(keep) !== 0) localStorage.removeItem(key);
+      }
+    } catch (e) {}
+  };
   function sepopClose() {
     if (S.sepopTimer) { clearTimeout(S.sepopTimer); S.sepopTimer = null; }
     if (sepopHost && sepopHost.firstChild) sepopHost.innerHTML = '';
@@ -466,6 +483,9 @@ export function mountLeikur(root) {
       const t = e.target;
       const dil = t.closest && t.closest('[data-dil]');
       if (dil && sepopHost.contains(dil)) {
+        // GALLI B: liðið er LÆST (og ekki í „Breyta ákvörðun"-flæði, S.unlocked=false) → smellur má
+        // EKKI pushDraft-a (locked:false myndi aflæsa liðið þegjandi og klobba læst drög). Bara loka.
+        if (S.state && S.state.you && S.state.you.locked && !S.unlocked) { sepopClose(); return; }
         S.dilemmaDraft = dil.dataset.dil;
         if (S.state) pushDraft(S.state);
         sepopClose();   // sjálfkrafa lokun við val á klemmu-kosti
@@ -479,12 +499,21 @@ export function mountLeikur(root) {
   }
   // withDil: klemmu-hnappar AÐEINS í studio (inline surpriseCard + dilemma-POST-leiðin er studio-flæði).
   function sepopOpen(s, { watch = false, withDil = false } = {}) {
+    if (S.sepopTimer) { clearTimeout(S.sepopTimer); S.sepopTimer = null; }   // GALLI C: munaðarlaus 8s-timer fyrri watch-lotu má ekki loka nýja popup-inu
     const mynd = myndFyrirAtvik(s.id);   // traust innbyggt SVG-safn → fer ÓESCAPAÐ inn; null → ekkert mynd-svæði
     const fx0 = deltaChips(s.effect);
     const dil = withDil && !watch ? s.dilemma : null;
+    // GALLI I: liðsfélagi gæti ÞEGAR hafa valið (server-samstillt st.dilemmaDraft; nýtt tæki hefur ekkert
+    // localStorage/S.dilemmaDraft) → merkja valinn kost 'sel' + lína svo smellur yfirskrifi ekki þegjandi.
+    // S.dilemmaDraft er aðeins marktækt ef það tilheyrir ÞESSARI lotu (renderStudio samstillir eftir á).
+    const st0 = S.state || {};
+    const srvDil = st0.dilemmaDraft != null ? st0.dilemmaDraft : null;
+    const localDil = (S.dilRound === st0.round && S.dilemmaDraft != null) ? S.dilemmaDraft : null;
+    const selDil = localDil != null ? localDil : srvDil;
+    const mateChose = dil && srvDil != null && localDil == null;
     const opts = dil ? (dil.options || []).map((o) => {
       const fx = deltaChips(o.effect);
-      return '<button type="button" class="lk-sepop-opt" data-dil="' + esc(o.key) + '">' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : '') + '</button>';
+      return '<button type="button" class="lk-sepop-opt' + (selDil === o.key ? ' sel' : '') + '" data-dil="' + esc(o.key) + '">' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : '') + '</button>';
     }).join('') : '';
     sepopEnsureHost().innerHTML =
       '<div class="lk-sepop-overlay"><div class="lk-sepop-card' + (watch ? ' lk-sepop-watch' : '') + '" role="dialog" aria-modal="true" aria-label="Óvænt atvik">' +
@@ -494,7 +523,7 @@ export function mountLeikur(root) {
       '<div class="lk-sepop-title">📰 ' + (s.icon || '🎲') + ' Óvænt atvik: ' + esc(s.title) + '</div>' +
       '<p class="lk-sepop-text">' + esc(s.text) + '</p>' +
       (fx0 ? '<div class="lk-sepop-fx"><span class="lk-muted">Bein áhrif:</span> ' + fx0 + '</div>' : '') +
-      (dil ? '<div class="lk-sepop-q">' + esc(dil.q) + '</div>' + opts : '') +
+      (dil ? '<div class="lk-sepop-q">' + esc(dil.q) + '</div>' + (mateChose ? '<p class="lk-muted" style="font-size:12px;margin:2px 0 6px">👥 Liðsfélagi hefur þegar valið — smellur breytir vali liðsins.</p>' : '') + opts : '') +
       '</div></div></div>';
   }
   // Liðs-popup: aðeins í decide-fasa (kallað úr renderTeam á undan studio/classic-greinum). Klukkan tikkar
@@ -574,14 +603,12 @@ export function mountLeikur(root) {
     let top = null;
     for (const p of ((st.carryover && st.carryover.policies) || [])) {
       for (const k in (p.deltas || {})) {
+        if (deltaSkip(k)) continue;   // GALLI G: sama sía og deltaChips — PM vélritar aldrei „gengi_endo"
         const v = +p.deltas[k];
         if (isFinite(v) && Math.abs(v) >= 0.005 && (!top || Math.abs(v) > Math.abs(top.v))) top = { label: p.label, k, v };
       }
     }
-    if (top) {
-      const spec = GOAL_SPECS[top.k];
-      msgs.push((top.label || '') + ': ' + (top.k === 'pop' ? 'fylgi' : (spec ? spec.label : top.k)) + ' ' + deltaFmt(top.v) + ' í síðustu lotu.');
-    }
+    if (top) msgs.push((top.label || '') + ': ' + deltaLabel(top.k) + ' ' + deltaFmt(top.v) + ' í síðustu lotu.');
     if (st.surprise) msgs.push((st.surprise.icon || '🎲') + ' ' + (st.surprise.title || 'Óvænt atvik') + ' — skoðið áhrifin áður en þið læsið.');
     const kpis = (S.pmKpisRound === st.round && S.pmKpis) || (S.debriefPrevRound === st.round - 1 && S.debriefPrevKpis) || {};
     for (const a of advisors(kpis, st.round).slice(0, 2)) msgs.push(a.icon + ' ' + a.who + ': ' + a.advice);
@@ -643,6 +670,7 @@ export function mountLeikur(root) {
     if (!S.code) { pmUpdate(null); if (S.view === 'editor') return renderEditor(); return renderLanding(); }
     const st = S.state; if (!st) { root.innerHTML = '<p>Hleð…</p>'; return; }
     if (st.phase !== 'decide') sepopClose();   // F2-V2: ekkert modal í control/results/ended-fasa — má aldrei hindra uppgjör
+    if (st.you && st.you.locked && !S.unlocked) sepopClose();   // GALLI B: liðsfélagi læsti → modalið má ekki lifa læsinguna af (klemmu-smellur í því myndi aflæsa)
     pmUpdate(st);   // F2-V3: PM-hornið sýnir/felur sig eftir hlutverki+fasa (hýsill utan root → render klobbar aldrei)
     if (S.role === 'fac') return renderFacilitator(st);
     if (S.role === 'team') return renderTeam(st);
@@ -1078,7 +1106,11 @@ export function mountLeikur(root) {
     const lock = root.querySelector('#lk-lock'); if (lock) lock.onclick = () => submitStudio(st);
   }
   // Ýtir deilanlegum liðs-drögum á þjón (locked:false, debounce) → félagar samstilla.
+  // GALLI B: læst lið (og EKKI í „Breyta ákvörðun"-flæðinu — S.unlocked táknar viljandi aflæsingu
+  // um #lk-unlock) má ALDREI pushDraft-a: locked:false myndi aflæsa liðið þegjandi.
   function pushDraft(st) {
+    const you = (S.state && S.state.you) || (st && st.you);
+    if (you && you.locked && !S.unlocked) return;
     if (S.pushTimer) clearTimeout(S.pushTimer);
     S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null }, locked: false }, token: S.token }); }, 500);
   }

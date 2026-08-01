@@ -1,5 +1,6 @@
 // F1-V4: Uppsafnaðar KPI-seríur yfir allan leikinn — hrein eining (engin háð).
-// Inntak: rounds = [{round, kpis}] í röð fyrir EITT lið (kpis = per-lotu gildi úr leikur_results).
+// Inntak: rounds = [{round, kpis}] EÐA flata server-formið {round, verdbolga, hagvoxtur, ...} (kpiHistory
+// úr server.mjs sendir FLATT) — báðar myndir studdar svo samningurinn brotni ekki aftur (GALLI A).
 // Vísitölur (verdlag/vlf/kaupmattur) byrja í 100 árið 2000 og vaxa ×(1+X/100)^4 per lotu (4 ár per kjörtímabil).
 // skuldir = beint stöðu-gildi per lotu (engin umbreyting); losun = hlaupandi summa losun×4 („vísitölu-ár").
 // Vantar KPI í lotu → 0% breyting / síðasta level endurtekið (aldrei NaN); tómt inntak → tómar seríur.
@@ -12,7 +13,7 @@ export function uppsafnadSeries(rounds = []) {
   let verdlag = 100, vlf = 100, kaup = 100, skuldir = 0, losun = 0;
   const grow = (cur, pct) => fin(pct) ? cur * Math.pow(1 + pct / 100, 4) : cur;
   for (const r of (rounds || [])) {
-    const k = (r && r.kpis) || {};
+    const k = (r && (r.kpis || r)) || {};   // form-þolið: nested {kpis:{...}} eða flatt server-form
     verdlag = grow(verdlag, k.verdbolga);
     vlf = grow(vlf, k.hagvoxtur);
     kaup = grow(kaup, k.kaupmattur);

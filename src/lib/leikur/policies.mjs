@@ -36,6 +36,9 @@ export function policyAvailable(p, round, states) {
 }
 
 // Leysir núverandi stöðu allra rofa úr ákvörðunasögu. history = [{...decision, policies?}] í röð (umferð 1..N).
+// GALLI F: rofi settur á FALSE án þess að hafa NOKKURN TÍMA verið true (hakað+afhakað innan sömu decide-lotu
+// → aðeins loka-drögin geymast) er EKKI ákvörðun — skráist ekki (annars „draugaúrsögn": ESB-úrsagnarhögg
+// á lið sem aldrei sótti um).
 export function policyStates(history = []) {
   const st = {};
   for (const h of history) {
@@ -43,7 +46,7 @@ export function policyStates(history = []) {
     for (const p of POLICIES) {
       if (!(p.id in pol)) continue;
       const v = pol[p.id];
-      if (p.kind === 'toggle') st[p.id] = !!v;                 // rofi: síðasta stilling gildir
+      if (p.kind === 'toggle') { const nv = !!v; if (!nv && st[p.id] === undefined) continue; st[p.id] = nv; } // rofi: síðasta stilling gildir — en false án fyrri true = engin ákvörðun
       else if (st[p.id] == null && v != null) st[p.id] = v;    // val: fyrsta ákvörðun varanleg
     }
   }
@@ -61,7 +64,7 @@ export function policyStatesMeta(history = []) {
     for (const p of POLICIES) {
       if (!(p.id in pol)) continue;
       const v = pol[p.id];
-      if (p.kind === 'toggle') { const nv = !!v; if (states[p.id] !== nv) { states[p.id] = nv; since[p.id] = round; } }
+      if (p.kind === 'toggle') { const nv = !!v; if (!nv && states[p.id] === undefined) continue; if (states[p.id] !== nv) { states[p.id] = nv; since[p.id] = round; } } // GALLI F: false án fyrri true skráist ekki (sbr. policyStates)
       else if (states[p.id] == null && v != null) { states[p.id] = v; since[p.id] = round; }
     }
   });
@@ -128,11 +131,13 @@ export function applyPolicies(kpis, states = {}, baselineLevels = {}, stages = n
 // F1-V2: framlag hverrar VIRKRAR ákvörðunar á þessa lotu, reiknað með diffi (applyPolicies með öllum vs. öllum
 // NEMA þessari) → nákvæmt líka fyrir skilyrt/víxlverkandi áhrif (verðtrygging×verðbólga, höft×gengi …).
 // Skilar {id:{kpi:delta}}; deltas rúnnuð á 2 aukastafi, |delta|<0.005 sleppt; virk ákvörðun með engin áhrif → {} (EKKI sleppt — badge birtist samt).
+// GALLI H: ákvörðun með STIG telur líka þótt staðan sé false — 'ursogn' beitir höggi í applyPolicies þótt
+// esb sé slökkt, og framlagið á að mælast/vistast (badge + arfleifð) eins og önnur áhrif.
 export function policyDeltas(kpis, states = {}, baselineLevels = {}, stages = null) {
   const out = {};
   const full = applyPolicies(kpis, states, baselineLevels, stages);
   for (const p of POLICIES) {
-    const v = states[p.id]; if (v == null || v === false) continue;
+    const v = states[p.id]; if ((v == null || v === false) && !(stages && stages[p.id])) continue;
     const stW = { ...states }; delete stW[p.id];
     const sgW = stages ? { ...stages } : null; if (sgW) delete sgW[p.id];
     const without = applyPolicies(kpis, stW, baselineLevels, sgW);
