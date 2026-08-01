@@ -43,7 +43,11 @@ export async function readSession(env, request) {
 const _sessCookie = (val, maxAge) => `karp_session=${encodeURIComponent(val)}; Domain=.karp.is; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 
 export function userPayload(u, owner, now) {
-  const base = { loginUrl: 'https://karp.is/innskra/', registerUrl: 'https://karp.is/nyskraning/', paywall: false };
+  // paywall: KVEIKT 1.8.2026 að beiðni Arons. Gætir NÁKVÆMLEGA þriggja áskriftarvara —
+  // /frettir/ (Fjölmiðlavakt, þrep 2 eða svc 'frettir'), /utbod/ ('utbod') og /kvotavaktin/ ('kvoti').
+  // Allt annað (990-skýrslur, KYC, Lobbývakt) hefur sína eigin gátun og er óháð þessu flaggi.
+  // Kerfisstjórar og free_access-notendur sleppa við gáttina um `tierLevel` (isAdmin||freeAccess).
+  const base = { loginUrl: 'https://karp.is/innskra/', registerUrl: 'https://karp.is/nyskraning/', paywall: true };
   if (!u) return { loggedIn: false, ...base };
   now = now || Math.floor(Date.now() / 1000);
   const tf = tierFields(u, owner || u, now);   // tier = eigin virkt þrep; effectiveTier = hærra af eigin/account
