@@ -16,9 +16,21 @@ const htmls = [];
   }
 })(DIST);
 
+// Aðila-síður /frettir/<slug>/ eru worker-SSR (skel-frettaadili) — ekki í dist. Gildir slugs
+// lesnir úr SÖMU skrá og workerinn þjónar úr (frettaadilar.json) svo tékkið missir hvorki af
+// raunverulegu 404 (slug ekki í skránni fellur áfram) né fellir lifandi síður (CI 1.8).
+const FRETTA_SLUGS = (() => {
+  try {
+    const d = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'web', 'public', 'gogn', 'frettaadilar.json'), 'utf8'));
+    return new Set((d.adilar || []).map((a) => a.slug).filter(Boolean));
+  } catch (e) { return new Set(); }
+})();
+
 const exists = (url) => {
   const clean = url.split('#')[0].split('?')[0];
   if (!clean || clean === '/') return true;
+  const fm = clean.match(/^\/frettir\/([a-z0-9-]+)\/?$/);
+  if (fm && FRETTA_SLUGS.has(fm[1])) return true;
   const p = path.join(DIST, clean);
   return fs.existsSync(p) || fs.existsSync(path.join(p, 'index.html')) || fs.existsSync(p + '.html');
 };
