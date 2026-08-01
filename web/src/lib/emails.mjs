@@ -87,6 +87,17 @@ export const EMAIL_TYPES = [
     footer: 'Skoðaðu möppuna: https://karp.is/areidanleikavaktin/?kt={{kt}}',
   },
   {
+    id: 'kyc_digest', label: '🗂️ Compliance-morgunfundurinn (viku-forgangsröðun)', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
+    ritanlegt: ['subject', 'intro', 'footer'],
+    hvenaer: 'Mánudags-cron — viku-forgangsröðun allra vaktaðra félaga áskrifandans',
+    vidtakandi: 'Fyrirtæki+ áskrifandi með virka KYC-vöktun',
+    breytur: ['fjoldi', 'obreytt'], krafist: [],
+    subject: '🗂️ Morgunfundurinn: {{fjoldi}} félög þurfa athygli · {{obreytt}} án breytinga',
+    intro: 'Viku-forgangsröðun Áreiðanleikavaktarinnar — alvarlegast efst:',
+    footer: 'Mappan: https://karp.is/areidanleikavaktin/ · Forgangsröðunin er sjálfvirk ábending Karp — endanlegt mat er alltaf hjá tilkynningarskylda aðilanum.',
+    ath: 'Meginmálið (félög + atburðir + fastar aðgerðatillögur) er deterministic úr kyc-digest.mjs — ekkert AI-skrifað.',
+  },
+  {
     id: 'ordspor_vakt', label: '📉 Orðsporsvakt (umfjöllun snarversnar)', flokkur: 'kvikur', hopur: 'Vaktir & yfirlit',
     ritanlegt: ['subject', 'intro', 'footer'],
     hvenaer: 'Daglegur cron — orðspors-einkunn vaktaðs félags fellur skarpt eða verður mjög lág',

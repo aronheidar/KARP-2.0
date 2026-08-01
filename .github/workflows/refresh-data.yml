@@ -217,6 +217,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node skriptur/build_sentiment_ai.mjs --limit 3000 || true   # sleppir sjálft ef lyklar vantar
 
+      # FATF adverse media (10. KYC-merkið): match-fyrst (aðeins fréttir VAKTAÐRA félaga),
+      # Sonnet-flokkun, skrifar í FROSNU töflurnar kyc_adverse/kyc_adverse_sed/kyc_tonn.
+      # Keyrir Á EFTIR sentiment (kyc_tonn frystir sent_ai-meðaltöl). Worker les aðeins.
+      - name: Adverse media-flokkun vaktaðra KYC-félaga (FATF → kyc_adverse)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node skriptur/build_adverse_media.mjs --limit 300 || true   # sleppir sjálft ef lyklar vantar
+
       # Fjölmiðlavogin BYGGIR Á sent_ai → keyrir Á EFTIR viðhorfsgreiningunni hér að ofan.
       - name: Fjölmiðlavog (tón-hlutdrægni leiðrétt fyrir efnisvali → midlavog.json)
         env:

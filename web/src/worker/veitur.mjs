@@ -2,12 +2,13 @@
 // aðeins flutt milli skráa + import/export bætt við. Sjá docs/uttekt/2026-07-30-worker-klofningur-aaetlun.md
 
 import { _freeAll, _prefGet, accountOwner, readSession, userPayload } from './auth.mjs';
-import { _ajson, _emailTpl, sendGmail, sjson } from './felag.mjs';
+import { _ajson, _emailTpl, htmlEsc, sendGmail, sjson } from './felag.mjs';
 import { accountId } from '../lib/account.mjs';
 import { herfindahl, sectorForIsat, sectorsFromMap, toppNShare } from '../lib/atvinnugrein.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { GREINAR, greinaSql } from '../lib/greinar.mjs';
 import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
+import { vikuForgangur as kycVikuForgangur } from '../lib/kyc-digest.mjs';
 import { feedFor, matchNews } from '../lib/lobbyvakt.mjs';
 import { traceUbo as kycTraceUbo } from '../lib/ubo-core.mjs';
 import { byggjaVisitolu, flokkaNofn, sancNorm, skimunarNidurstada } from '../lib/refsilistar.mjs';
@@ -356,6 +357,46 @@ async function kycSendAlert(env, email, kt, crit) {
   const subject = renderEmail(tpl.subject, { kt });
   const text = renderEmail(tpl.intro, { kt }) + '\n\n' + lines + '\n\n' + renderEmail(tpl.footer, { kt });
   await sendGmail(env, { to: email, subject, text }); // sendGmail (worker.js:3247) er secret-gated: skilar {unconfigured:true} án Gmail-secrets, brotnar ekki.
+}
+
+// 🗂️ COMPLIANCE-MORGUNFUNDURINN — mánudags-cron: viku-forgangsröðun vaktaðra félaga per eiganda.
+// VILJANDI EKKERT LLM (rýni 2026-08-01): röðun og aðgerðatillögur eru deterministic úr
+// lib/kyc-digest.mjs — ekkert hallucination-rými, enginn API-kostnaður, alltaf rekjanlegt.
+// „N án breytinga"-línan er ekki uppfylling: hún er skjalfesting samfelldrar vöktunar (FME).
+export async function kycVikuDigest(env) {
+  if (!env.TENGSL) return { sent: 0 };
+  const now = Math.floor(Date.now() / 1000);
+  const owners = ((await env.TENGSL.prepare("SELECT DISTINCT owner_id FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.owner_id);
+  let sent = 0;
+  for (const oid of owners) {
+    const watches = ((await env.TENGSL.prepare("SELECT kt,nafn FROM kyc_watch WHERE owner_id=? AND status='active'").bind(oid).all().catch(() => ({ results: [] }))).results || []);
+    if (!watches.length) continue;
+    const marks = watches.map(() => '?').join(',');
+    const events = ((await env.TENGSL.prepare(
+      "SELECT e.kt,e.kind,e.severity,e.detail_json,e.detected_at, COALESCE(a.status,'open') AS ack " +
+      'FROM kyc_event e LEFT JOIN kyc_ack a ON a.event_id=e.id AND a.owner_id=? ' +
+      'WHERE e.kt IN (' + marks + ') AND e.detected_at >= ?')
+      .bind(oid, ...watches.map((w) => w.kt), now - 7 * 86400).all().catch(() => ({ results: [] }))).results || []);
+    const vf = kycVikuForgangur(watches, events);
+    if (!vf.radad.length && !vf.obreytt) continue;
+    const em = (await env.TENGSL.prepare('SELECT email FROM users WHERE id=?').bind(oid).first().catch(() => null))?.email;
+    if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) continue;
+    const SEV = { critical: '🔴', high: '🟠', info: '🔵' };
+    const blokkir = vf.radad.map((f, i) =>
+      `<div style="margin:0 0 14px;padding:10px 12px;border-left:3px solid ${f.severity === 'critical' ? '#d33' : f.severity === 'high' ? '#e90' : '#69c'};background:#f7f8fa">` +
+      `<b>${i + 1}. ${htmlEsc(f.nafn)}</b> <span style="color:#777">(${htmlEsc(f.kt)})</span><br>` +
+      f.atburdir.map((a) => `${SEV[a.severity] || '·'} ${htmlEsc(a.lina)}<br><span style="color:#555;font-size:13px">→ ${htmlEsc(a.adgerd)}</span>`).join('<br>') +
+      (f.fleiri ? `<br><span style="color:#777;font-size:13px">… og ${f.fleiri} atburðir til viðbótar í möppunni</span>` : '') +
+      '</div>').join('');
+    const tpl = await _emailTpl(env, 'kyc_digest');
+    const vars = { fjoldi: String(vf.radad.length), obreytt: String(vf.obreytt) };
+    const html = '<p>' + htmlEsc(renderEmail(tpl.intro, vars)) + '</p>' + blokkir +
+      `<p style="color:#555">✅ ${vf.obreytt} af ${vf.n} vöktuðum félögum: engar breytingar í vikunni.</p>` +
+      '<p style="color:#777;font-size:13px">' + htmlEsc(renderEmail(tpl.footer, vars)) + '</p>';
+    const r = await sendGmail(env, { to: em, subject: renderEmail(tpl.subject, vars), html }).catch(() => null);
+    if (r && r.ok) sent++;
+  }
+  return { sent, owners: owners.length };
 }
 
 export async function leiHandler(request, ctx) {
