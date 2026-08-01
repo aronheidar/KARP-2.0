@@ -177,19 +177,12 @@ a.rnav-v:hover { color: var(--ink); background: rgba(255,255,255,.06); }
   body.fs-printing #fs-report .eig-kr { color: #0a6b2f !important; }
 }
 
-/* 🕸️ Listi ↔ Tengslakort flipar (LOTA — tengslakort) */
-.eig-tabs { display: flex; gap: 6px; margin: 8px 0 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
-.eig-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); font: inherit; font-weight: 600; font-size: 14px; padding: 8px 13px; cursor: pointer; margin-bottom: -1px; }
-.eig-tab:hover { color: var(--ink); }
-.eig-tab.on { color: #f6b13b; border-bottom-color: #f6b13b; }
-.eig-panel { display: none; }
-.eig-panel.on { display: block; }
+/* 🕸️ Tengslakortið — eina myndræna netið (Listi/Kort-fliparnir fjarlægðir; kortið er sjálfgefið) */
 .eig-kort-host { margin-top: 6px; }
 .eig-kort-load { padding: 46px 0; text-align: center; color: var(--muted); font-size: 13.5px; }
-/* prentun (fs-printing hamur): fela flipa, þvinga Lista fram, sleppa korti */
-body.fs-printing .eig-tabs { display: none !important; }
-body.fs-printing #eig-panel-listi { display: block !important; }
-body.fs-printing #eig-panel-kort { display: none !important; }
+/* prentun: kortið er canvas — leyfum því að prentast í fullri breidd án ytri ramma/skugga */
+body.fs-printing .eig-kort-host .tk-wrap { height: 460px !important; border-color: #ccc !important; }
+body.fs-printing .eig-kort-host .tk-panel { display: none !important; }
 
 /* 📊 Topplistar fyrirtækja */
 .tf-intro { color: var(--muted); font-size: 13.5px; margin: 4px 0 12px; }

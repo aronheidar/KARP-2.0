@@ -83,18 +83,6 @@ function eigPie(rep) {
   const leg = hs.map((h, i) => `<span class="eig-leg-i"><i style="background:${cols[i % cols.length]}"></i>${escF(h.nafn)} (${eigPctFmt(h.hlutur)})</span>`).join('');
   return `<div class="eig-pie"><svg viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Skipting hluthafa">${seg}</svg><div class="eig-pie-leg">${leg}</div></div>`;
 }
-function eigLegend(ctx) {
-  return '<div class="eig-legend">'
-    + '<span class="eig-lg"><i class="nd root"></i>Fyrirtækið</span>'
-    + '<span class="eig-lg"><i class="nd einst yfir"></i>Eign einstaklings umfram 25%</span>'
-    + '<span class="eig-lg"><i class="nd einst"></i>Eign einstaklings minni en 25%</span>'
-    + '<span class="eig-lg"><i class="nd felag yfir"></i>Eign fyrirtækis umfram 25%</span>'
-    + '<span class="eig-lg"><i class="nd felag"></i>Eign fyrirtækis minni en 25%</span>'
-    + (ctx && ctx.hasPep ? '<span class="eig-lg"><i class="nd einst pep"></i>Stjórnmálaleg tengsl (PEP)</span>' : '')
-    + '<span class="eig-lg"><i class="ed b51"></i>Eign 51% eða meiri</span>'
-    + '<span class="eig-lg"><i class="ed b25"></i>Eign á bilinu 25% til 51%</span>'
-    + '<span class="eig-lg"><i class="ed blt"></i>Eign minni en 25%</span></div>';
-}
 // F4 — öfugt eignarhaldsnet: önnur félög sem eigendur ÞESSA félags eiga einnig (úr eigendur_reverse.json).
 function eigReverse(rep, ctx) {
   if (!ctx || !ctx.reverse || !ctx.reverse.byOwner) return '';
@@ -120,63 +108,6 @@ function eigReverse(rep, ctx) {
 }
 function eigSources(rep) {
   return `<div class="eig-src">ⓘ Skýrslan byggir á opinberum gögnum: hlutafélagaskrá og ársreikningaskrá RSK, skráðum raunverulegum eigendum frá Skattinum${rep.afmarkad ? ', og er afmörkuð við ' + (rep.dypt || 0) + ' þrep eignarhalds' : ''}. Eignatengsl eru skráð eða möguleg — án kennitölu einstaklinga er sömu-manneskju-tenging milli félaga ekki tæmandi. Karp birtir hvorki lánshæfismat né vanskilaskrá. Sótt: ${escF(rep.sott || '—')}.</div>`;
-}
-function eigNet(rep) {
-  return '<div class="eig-net-wrap" id="eig-net" role="group" aria-label="Eignarhaldsnet: endanlegir eigendur"></div>';
-}
-// Lagskipt útlit: rótin (félagið) EFST í lagi 0; eigendur neðar eftir dýpt keðjunnar. Leggir = inline SVG.
-function eigWireNet(rep, nav, pepSet) {
-  const wrap = document.getElementById('eig-net');
-  if (!wrap || wrap.dataset.done) return;
-  wrap.dataset.done = '1';
-  const nodes = rep.net.nodes, edges = rep.net.edges;
-  const byId = new Map(nodes.map((n) => [n.id, n]));
-  const rootId = (nodes.find((n) => n.er_rot) || nodes[0]).id;
-  // dýpt hvers hnúts = fjarlægð frá rót eftir "á"-leggjum (fra -> til). Rót = 0, eigendur hennar = 1 …
-  const depth = new Map([[rootId, 0]]);
-  let changed = true, guard = 0;
-  while (changed && guard++ < 40) { changed = false; for (const e of edges) { if (depth.has(e.til) && (!depth.has(e.fra) || depth.get(e.fra) < depth.get(e.til) + 1)) { depth.set(e.fra, depth.get(e.til) + 1); changed = true; } } }
-  const maxD = Math.max(0, ...[...depth.values()]);
-  const stakeOf = new Map();                          // hnútur -> stærsti eignarhlutur hans (fyrir yfir/undir 25%)
-  for (const e of edges) stakeOf.set(e.fra, Math.max(stakeOf.get(e.fra) || 0, e.hlutur || 0));
-
-  function paint() {
-    const W = Math.max(280, wrap.clientWidth || 680), mob = W < 520;
-    const NW = mob ? 116 : 150, NH = 46, ROWH = mob ? 92 : 108, PAD = 10;
-    const layers = [];
-    for (const [id, d] of depth) { (layers[d] = layers[d] || []).push(id); }
-    const H = PAD * 2 + (maxD + 1) * ROWH;
-    const pos = new Map();
-    layers.forEach((ids, d) => {
-      const yTop = PAD + d * ROWH;                     // rót (d=0) efst, dýpri eigendur neðar
-      const n = ids.length, span = W - PAD * 2;
-      ids.forEach((id, k) => { const x = n === 1 ? W / 2 : PAD + NW / 2 + k * ((span - NW) / (n - 1)); pos.set(id, { x, y: yTop + NH / 2 }); });
-    });
-    let sedges = '', snodes = '', chips = '';
-    for (const e of edges) {
-      const a = pos.get(e.fra), b = pos.get(e.til); if (!a || !b) continue;
-      const sw = e.hlutur == null ? 1.4 : (1.3 + Math.min(e.hlutur, 100) / 100 * 3).toFixed(2);
-      sedges += `<path class="eig-edge b${e.band}" d="M${a.x.toFixed(1)} ${a.y.toFixed(1)} C${a.x.toFixed(1)} ${((a.y + b.y) / 2).toFixed(1)},${b.x.toFixed(1)} ${((a.y + b.y) / 2).toFixed(1)},${b.x.toFixed(1)} ${b.y.toFixed(1)}" style="stroke-width:${sw}px"${e.hlutur == null ? ' stroke-dasharray="4 5"' : ''}/>`;
-      if (e.hlutur != null) chips += `<span class="eig-echip" style="left:${((a.x + b.x) / 2).toFixed(1)}px;top:${((a.y + b.y) / 2).toFixed(1)}px">${eigPctFmt(e.hlutur)}</span>`;
-    }
-    for (const nd of nodes) {
-      const p = pos.get(nd.id); if (!p) continue;
-      const stake = nd.er_rot ? 100 : (stakeOf.get(nd.id) || 0);
-      const pepRole = (!nd.er_rot && nd.tegund !== 'felag' && pepSet) ? pepSet.get(eigNorm(nd.nafn)) : null;   // F5: PEP-samsvörun (nafnasamsvörun)
-      const cls = (nd.er_rot ? 'root' : (nd.tegund === 'felag' ? 'felag' : 'einst') + (stake >= 25 ? ' yfir' : '')) + (pepRole ? ' pep' : '');
-      const clickable = !nd.er_rot && nd.kt;
-      const meta = nd.er_rot ? 'kt. ' + escF(ktFmt(nd.kt)) : (nd.kt ? 'kt. ' + escF(ktFmt(nd.kt)) + ' ↗' : (nd.faeding ? 'f. ' + escF(nd.faeding) : ''));
-      snodes += `<${clickable ? 'button type="button"' : 'div'} class="eig-node ${cls}${clickable ? ' klik' : ''}" ${clickable ? 'data-kt="' + escF(nd.kt) + '"' : ''} style="left:${(p.x - NW / 2).toFixed(1)}px;top:${(p.y - NH / 2).toFixed(1)}px;width:${NW}px;height:${NH}px" title="${escF(nd.nafn)}${pepRole ? ' — PEP: ' + escF(pepRole) : ''}">`
-        + `<span class="eig-node-nm">${nd.er_rot ? '🏢 ' : (pepRole ? '🏛️ ' : '')}${escF(nd.nafn)}</span><span class="eig-node-mt">${meta}</span></${clickable ? 'button' : 'div'}>`;
-    }
-    wrap.style.height = H + 'px';
-    wrap.innerHTML = `<svg class="eig-edges" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${sedges}</svg>${snodes}${chips}`;
-  }
-  paint();
-  let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(paint, 90); };
-  if (window.ResizeObserver) { try { new ResizeObserver(relayout).observe(wrap); } catch (e) {} }
-  window.addEventListener('resize', relayout);
-  wrap.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('.eig-node.klik'); if (b && b.dataset.kt) nav(b.dataset.kt); });
 }
 async function eigData(kt, owned) {
   let missing = false;
@@ -210,26 +141,18 @@ function eigSubsidiaries(rep, ctx) {
 function eigReport(rep, kt, ctx) {
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + '<div class="eig-tabs" role="tablist">'
-    +   '<button type="button" class="eig-tab on" id="eig-tab-listi" role="tab" aria-selected="true" data-tab="listi">📋 Listi</button>'
-    +   '<button type="button" class="eig-tab" id="eig-tab-kort" role="tab" aria-selected="false" data-tab="kort">🕸️ Tengslakort</button>'
-    + '</div>'
-    + '<div class="eig-panel on" id="eig-panel-listi" role="tabpanel" aria-labelledby="eig-tab-listi">'
-    +   (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
-    +   '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
-    +   '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
-    +   '<p class="eig-cap">Myndin sýnir alla endanlega eigendur sem eiga 10% eða meira í félaginu en þó alltaf þrjá stærstu.</p>'
-    +   eigNet(rep) + eigLegend(ctx)
-    +   eigTable(rep, ctx)
-    +   eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
-    +   '<div id="eig-stjornir"></div>'
-    +   '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
-    +   '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
-    +   eigSources(rep)
-    + '</div>'
-    + '<div class="eig-panel" id="eig-panel-kort" role="tabpanel" aria-labelledby="eig-tab-kort" hidden>'
-    +   '<p class="eig-cap">Myndrænt net eignarhalds (heil lína, %) og stjórnar/fyrirsvars (brotalína) þvert á félög. Fjarlægari einstaklingar eru grímuklæddir skv. persónuverndarstefnu — nöfn þeirra fara ekki í vafrann.</p>'
-    +   '<div class="eig-kort-host" id="eig-kort-host"></div>'
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
+    + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
+    // 🕸️ Tengslakortið er nú EINA myndræna netið (fliparnir Listi/Kort fjarlægðir — kortið er sjálfgefið).
+    + '<p class="eig-cap">Myndrænt net eignarhalds (heil lína, %) og stjórnar/fyrirsvars (brotalína) þvert á félög. Fjarlægari einstaklingar eru grímuklæddir skv. persónuverndarstefnu — nöfn þeirra fara ekki í vafrann.</p>'
+    + '<div class="eig-kort-host" id="eig-kort-host"></div>'
+    + eigTable(rep, ctx)
+    + eigReverse(rep, ctx) + eigSubsidiaries(rep, ctx)
+    + '<div id="eig-stjornir"></div>'
+    + '<h4 class="eig-sec">Raunverulegir eigendur samkvæmt fyrirtækjaskrá</h4>' + eigErlent(rep) + eigRaunv(rep, ctx)
+    + '<h4 class="eig-sec">Yfirlit yfir hluthafa</h4>' + eigPie(rep) + eigHluthafar(rep)
+    + eigSources(rep)
     + '</div>';
 }
 // 🪑 Stjórnendatengsl (F10) — lifandi úr /api/tengslanet (RSK opinbert API): stjórn/framkvæmdastjórn/
@@ -255,21 +178,9 @@ async function eigStjornir(rootKt) {
       + '<div class="eig-stj">' + rows + '</div>' + krossar;
   } catch (e) {}
 }
-// 🕸️ Flipar: Listi (sjálfgefið) ↔ Tengslakort. Kortið er byggt LAZY við fyrsta smell
-// (dynamic import af tengslakort.mjs + cytoscape af CDN → engin þyngd fyrr en beðið er um).
-function eigWireTabs(rep, rootKt) {
-  const tabs = Array.prototype.slice.call(document.querySelectorAll('.eig-tab'));
-  if (!tabs.length) return;
-  const panels = { listi: document.getElementById('eig-panel-listi'), kort: document.getElementById('eig-panel-kort') };
-  let kortByggt = false;
-  tabs.forEach((t) => t.addEventListener('click', () => {
-    const which = t.dataset.tab;
-    tabs.forEach((x) => { const on = x.dataset.tab === which; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
-    for (const k in panels) { if (!panels[k]) continue; const on = k === which; panels[k].classList.toggle('on', on); panels[k].hidden = !on; }
-    if (which === 'kort' && !kortByggt) { kortByggt = true; eigMountKort(rep, rootKt); }
-  }));
-}
-async function eigMountKort(rep, rootKt) {
+// 🕸️ Tengslakortið — eina myndræna netið (engir flipar). Einingin sjálf er áfram lazy-import
+// (tengslakort.mjs + cytoscape af CDN) svo hún þyngir ekki fyrstu hleðslu skýrslunnar.
+async function eigMountKort(rep, rootKt, pepSet) {
   const host = document.getElementById('eig-kort-host');
   if (!host || host.dataset.done) return;
   host.dataset.done = '1';
@@ -279,7 +190,9 @@ async function eigMountKort(rep, rootKt) {
   try {
     const { renderTengslakort } = await import('./tengslakort.mjs');
     host.innerHTML = '';
-    await renderTengslakort(host, { rotKt: rootKt, eignData: rep, stjornData });
+    // F5: PEP-samsvörun flyst inn í kortið (sama nafna-norm og listinn notaði) → 🏛️-merki + gullhringur.
+    const pepLookup = pepSet ? (nafn) => pepSet.get(eigNorm(nafn)) || null : null;
+    await renderTengslakort(host, { rotKt: rootKt, eignData: rep, stjornData, pepLookup });
   } catch (e) { host.innerHTML = '<div class="eig-tom">Ekki tókst að hlaða tengslakorti.</div>'; }
 }
 // Setur skýrsluna í gám, teiknar netið, tengir prentun.
@@ -290,9 +203,8 @@ async function eigMount(rep, host, nav, kt) {
   const hasPep = !!(pepSet && (rep.net && rep.net.nodes || []).some((n) => !n.er_rot && n.tegund !== 'felag' && pepSet.get(eigNorm(n.nafn))));
   const ctx = { pepSet, eigidfe, reverse, kt: rootKt, hasPep };
   host.innerHTML = eigReport(rep, kt, ctx);
-  eigWireNet(rep, nav, pepSet);
   eigStjornir(rootKt);   // 🪑 F10 fyllist async — brýtur ekkert þótt endapunktur svari ekki
-  eigWireTabs(rep, rootKt);   // 🕸️ Listi/Kort-flipar; kort lazy við fyrsta smell
+  eigMountKort(rep, rootKt, pepSet);   // 🕸️ Tengslakortið strax (sjálfgefið, engir flipar)
   const pb = document.getElementById('eig-print');
   if (pb) pb.onclick = () => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => document.body.classList.remove('fs-printing'), 600); };
 }

@@ -26,7 +26,9 @@ const maskPersonId = (token) => 'p:tok:' + token;
  * Byggir cytoscape-element-fylki úr eignarhaldi (eignData) + stjórn (stjornData).
  * HREIN fall (engin DOM) — prófanleg. Skilar [{data:{...}}] (hnútar + leggir).
  */
-export function buildElements({ rotKt, eignData, stjornData } = {}) {
+export function buildElements({ rotKt, eignData, stjornData, pepLookup } = {}) {
+  // pepLookup (valfrjálst): (nafn) => PEP-hlutverk|null — F5-samsvörun kemur frá ubo-report (sama norm og pepSet).
+  const pepOf = (nafn, maskad) => (!maskad && nafn && typeof pepLookup === 'function' ? (pepLookup(nafn) || null) : null);
   const nodes = new Map();   // id -> data
   const edges = new Map();   // id -> data
   const rkt = String(rotKt || (eignData && eignData.kt) || '').replace(/\D/g, '');
@@ -38,6 +40,7 @@ export function buildElements({ rotKt, eignData, stjornData } = {}) {
     if (d.rot) ex.rot = true;
     if (d.maskad) ex.maskad = true;
     if (d.hlutverk_rot && !ex.hlutverk_rot) ex.hlutverk_rot = d.hlutverk_rot;
+    if (d.pep && !ex.pep) { ex.pep = d.pep; if (ex.label && ex.label.indexOf('🏛️') !== 0) ex.label = '🏛️ ' + ex.label; }
   };
   const putEdge = (d) => { if (!edges.has(d.id)) edges.set(d.id, d); };
 
@@ -52,7 +55,8 @@ export function buildElements({ rotKt, eignData, stjornData } = {}) {
     } else {
       const id = nafnPersonId(n.nafn, n.kt);
       local.set(n.id, id);
-      put({ id, tegund: 'einst', kt: (n.kt ? String(n.kt).replace(/\D/g, '') : null), nafn: n.nafn || null, maskad: false, faeding: n.faeding || null, label: n.nafn || '' });
+      const pep = pepOf(n.nafn, false);
+      put({ id, tegund: 'einst', kt: (n.kt ? String(n.kt).replace(/\D/g, '') : null), nafn: n.nafn || null, maskad: false, faeding: n.faeding || null, label: (pep ? '🏛️ ' : '') + (n.nafn || ''), pep });
     }
   }
   for (const e of (net.edges || [])) {
@@ -71,7 +75,8 @@ export function buildElements({ rotKt, eignData, stjornData } = {}) {
     for (const p of (stjornData.stjornendur || [])) {
       const pid = nafnPersonId(p.nafn, null);
       const hr = (p.hlutverk_rot || []).join(' · ');
-      put({ id: pid, tegund: 'einst', kt: null, nafn: p.nafn || null, maskad: false, label: p.nafn || '', hlutverk_rot: hr });
+      const pep = pepOf(p.nafn, false);
+      put({ id: pid, tegund: 'einst', kt: null, nafn: p.nafn || null, maskad: false, label: (pep ? '🏛️ ' : '') + (p.nafn || ''), hlutverk_rot: hr, pep });
       if (rkt) putEdge({ id: 'stjorn:' + pid + '>' + rootCid, source: pid, target: rootCid, tegund: 'stjorn', hlutverk: hr || 'fyrirsvar', label: hr || 'fyrirsvar' });
       for (const o of (p.onnur || [])) {
         const cid = felagNode(o.kt, o.nafn); if (!cid) continue;
@@ -112,8 +117,8 @@ function injectCss() {
   const st = document.createElement('style');
   st.id = 'tk-styles';
   st.textContent = `
-  .tk-wrap{position:relative;height:560px;border-radius:12px;border:1px solid rgba(255,255,255,.08);overflow:hidden;background:#0b0f17}
-  @media (max-width:560px){.tk-wrap{height:440px}}
+  .tk-wrap{position:relative;height:660px;border-radius:12px;border:1px solid rgba(255,255,255,.08);overflow:hidden;background:#0b0f17}
+  @media (max-width:560px){.tk-wrap{height:500px}}
   .tk-cy{position:absolute;inset:0}
   .tk-legend{position:absolute;left:12px;top:12px;z-index:6;background:rgba(9,14,26,.86);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 11px;font-size:11.5px;color:#cdd6e6;max-width:240px;pointer-events:none}
   .tk-legend .tk-lt{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#7e8ca6;font-weight:700;margin-bottom:6px}
@@ -138,8 +143,11 @@ const CY_STYLE = [
   { selector: 'node', style: { 'label': 'data(label)', 'color': '#dfe8f5', 'font-size': '11px', 'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap', 'text-max-width': '92px', 'min-zoomed-font-size': 7 } },
   { selector: 'node[tegund = "felag"]', style: { 'shape': 'round-rectangle', 'background-color': COFELAG, 'border-color': 'rgba(255,255,255,.25)', 'border-width': 1, 'width': 'label', 'height': 26, 'padding': '8px', 'color': '#eaf1fb' } },
   { selector: 'node[tegund = "felag"][?rot]', style: { 'background-color': GOLD, 'color': '#1a1205', 'font-weight': 'bold', 'border-color': '#ffd479', 'border-width': 2, 'height': 34, 'font-size': '13px' } },
-  { selector: 'node[tegund = "einst"]', style: { 'shape': 'ellipse', 'background-color': PERSON, 'width': 30, 'height': 30, 'color': '#eaf1fb', 'font-size': '10px', 'font-weight': 'normal', 'text-valign': 'bottom', 'text-halign': 'center', 'text-margin-y': 4, 'text-outline-color': '#0b0f17', 'text-outline-width': 2.5, 'text-max-width': '120px' } },
+  // text-background-pilla: brotalínu-leggir (stjórn) skáru annars í gegnum nöfnin fyrir neðan hnútinn
+  // og litu út eins og einkennileg punkta-undirstrikun — þéttur bakgrunnur stöðvar það.
+  { selector: 'node[tegund = "einst"]', style: { 'shape': 'ellipse', 'background-color': PERSON, 'width': 30, 'height': 30, 'color': '#eaf1fb', 'font-size': '10px', 'font-weight': 'normal', 'text-valign': 'bottom', 'text-halign': 'center', 'text-margin-y': 6, 'text-outline-color': '#0b0f17', 'text-outline-width': 2, 'text-max-width': '120px', 'text-background-color': '#0b0f17', 'text-background-opacity': 0.92, 'text-background-padding': '3px', 'text-background-shape': 'round-rectangle' } },
   { selector: 'node[tegund = "einst"][?maskad]', style: { 'background-color': '#0b0f17', 'border-color': MASK, 'border-width': 2, 'border-style': 'dashed', 'color': '#9fb0c8' } },
+  { selector: 'node[?pep]', style: { 'border-color': '#ffd479', 'border-width': 3 } },   // F5: PEP-hringur (stjórnmálaleg tengsl)
   { selector: 'edge', style: { 'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'arrow-scale': 0.9, 'font-size': '10px', 'color': '#cdd6e6', 'text-background-color': '#0b0f17', 'text-background-opacity': 0.75, 'text-background-padding': '2px', 'min-zoomed-font-size': 8 } },
   { selector: 'edge[tegund = "eign"]', style: { 'line-color': '#8fb7e8', 'target-arrow-color': '#8fb7e8', 'width': 'mapData(hlutfall, 0, 100, 1.4, 4.5)', 'label': 'data(label)' } },
   { selector: 'edge[tegund = "stjorn"]', style: { 'line-color': '#b48ad6', 'target-arrow-color': '#b48ad6', 'line-style': 'dashed', 'width': 1.6, 'label': 'data(label)' } },
@@ -169,7 +177,9 @@ export function renderTengslakort(hostEl, opts) {
       + '<div class="tk-row"><span class="tk-sw" style="background:' + PERSON + '"></span>Nafngreindur einstaklingur</div>'
       + '<div class="tk-row"><span class="tk-sw" style="background:#0b0f17;border:2px dashed ' + MASK + '"></span>Grímuklæddur (fjarlægur)</div>'
       + '<div class="tk-row"><span class="tk-ln"></span>Eignarhald (%)</div>'
-      + '<div class="tk-row"><span class="tk-ln dash"></span>Stjórn / fyrirsvar</div></div>');
+      + '<div class="tk-row"><span class="tk-ln dash"></span>Stjórn / fyrirsvar</div>'
+      + (elements.some((e) => e.data && e.data.pep) ? '<div class="tk-row"><span class="tk-sw" style="background:' + PERSON + ';border:3px solid #ffd479"></span>Stjórnmálaleg tengsl (PEP)</div>' : '')
+      + '</div>');
     wrap.insertAdjacentHTML('beforeend', '<div class="tk-src">heimild: Fyrirtækjaskrá Skattsins (opinbert API)</div>');
     const panel = document.createElement('div');
     panel.className = 'tk-panel';
@@ -182,7 +192,8 @@ export function renderTengslakort(hostEl, opts) {
       if (!cytoscape) { cyEl.insertAdjacentHTML('beforeend', '<div class="tk-err">Ekki tókst að hlaða kort-einingu (cytoscape).</div>'); return resolve(null); }
       const cy = cytoscape({
         container: cyEl, elements, style: CY_STYLE,
-        layout: { name: 'cose', animate: false, padding: 30, nodeRepulsion: 9000, idealEdgeLength: 95, gravity: 0.3, nestingFactor: 0.9 },
+        // rúmt layout: hærri fráhrinding + lengri leggir + minna aðdráttarafl → netið dreifist (var klest)
+        layout: { name: 'cose', animate: false, padding: 36, nodeRepulsion: 80000, idealEdgeLength: 150, gravity: 0.12, nestingFactor: 0.9, componentSpacing: 80, nodeOverlap: 16 },
         wheelSensitivity: 0.2, minZoom: 0.2, maxZoom: 2.5,
       });
       const showPanel = (n) => {
@@ -207,7 +218,15 @@ export function renderTengslakort(hostEl, opts) {
       };
       cy.on('tap', 'node', (evt) => showPanel(evt.target));
       cy.on('tap', (evt) => { if (evt.target === cy) panel.classList.remove('on'); });
-      setTimeout(() => { try { cy.resize(); cy.fit(undefined, 40); } catch (e) {} }, 60);
+      // ⚠ Kortið er nú byggt STRAX (ekki við flipa-smell) → gámurinn getur verið 0px breiður við mount
+      // (eyju-tímasetning/falinn gámur). Án þessa situr kortið rangt stillt. Endur-fittum við hverja
+      // stærðarbreytingu (ResizeObserver + window.resize), aðeins þegar gámurinn hefur raunstærð.
+      const refit = () => { try { if (!wrap.clientWidth || !wrap.clientHeight) return; cy.resize(); cy.fit(undefined, 40); } catch (e) {} };
+      setTimeout(refit, 60);
+      let rt = 0;
+      const relayout = () => { clearTimeout(rt); rt = setTimeout(refit, 120); };
+      if (window.ResizeObserver) { try { new ResizeObserver(relayout).observe(wrap); } catch (e) {} }
+      window.addEventListener('resize', relayout);
       resolve(cy);
     });
   });
