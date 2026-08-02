@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-01",
+ "updated": "2026-08-02",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
@@ -7,17 +7,17 @@
    "s": "Viðskiptablaðið",
    "bias": 6,
    "rawTone": -12,
-   "n": 361,
+   "n": 363,
    "entities": 43,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": 90.68,
+     "dev": 90.65,
      "n": 5
     },
     {
      "entity": "Orkumál",
-     "dev": 68.73,
+     "dev": 68.35,
      "n": 7
     },
     {
@@ -32,7 +32,7 @@
     },
     {
      "entity": "Verslun",
-     "dev": 60.76,
+     "dev": 60.73,
      "n": 7
     }
    ]
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -23,
-   "n": 27932,
+   "n": 27940,
    "entities": 166,
    "sample": [
     {
@@ -74,8 +74,8 @@
   {
    "s": "RÚV",
    "bias": 1,
-   "rawTone": -35,
-   "n": 8993,
+   "rawTone": -36,
+   "n": 9036,
    "entities": 157,
    "sample": [
     {
@@ -99,9 +99,9 @@
      "n": 4
     },
     {
-     "entity": "Bílamarkaður",
-     "dev": -50.48,
-     "n": 3
+     "entity": "Hátíðir og viðburðir",
+     "dev": 51.92,
+     "n": 4
     }
    ]
   },
@@ -109,7 +109,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -39,
-   "n": 11538,
+   "n": 11563,
    "entities": 162,
    "sample": [
     {
@@ -158,7 +158,7 @@
     },
     {
      "entity": "Hátíðir og viðburðir",
-     "dev": -104.9,
+     "dev": -106.41,
      "n": 6
     },
     {
@@ -187,17 +187,17 @@
     },
     {
      "entity": "Akureyri",
-     "dev": -74.61,
+     "dev": -74.67,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.32,
+     "dev": -69.35,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -68.07,
+     "dev": -68.17,
      "n": 6
     },
     {
