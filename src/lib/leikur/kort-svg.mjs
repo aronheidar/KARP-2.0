@@ -3,7 +3,7 @@
 // Hrein strengja-eining: ekkert DOM, engir event-handlerar, engin <text>-element,
 // ekkert random — sama threp gefur ALLTAF nákvæmlega sama streng (client endurteiknar
 // við sleða-drög). Inntakið er þrep-hluturinn frá kort-throp.mjs:
-// { byggd, menntun, fiskur, losun, ljos, atvik, taknmyndir }.
+// { byggd, menntun, fiskur, losun, ljos, togarar, kranar, atvik, taknmyndir }.
 //
 // STRANDLÍNAN er unnin úr RAUN-GÖGNUM: web/public/gogn/sveitarfelog_adm2.json
 // (geoBoundaries ADM2, CC-BY 4.0 — sama grunn og choropleth-kortin nota).
@@ -80,6 +80,32 @@ const FISKAR = [
   [170, 352, 0.9, 1],   // suðvestan Reykjaness
 ];
 const FISKAFJOLDI = [2, 4, 7, 10]; // per þrep
+
+// Togara-hnit á RAUN-MIÐUNUM umhverfis landið, í birtingarröð (þrep 1/2/3 → 2/4/7).
+// [x, y, kvarði, spegla] — speglun/stærð eftir vísitölu gefa fasta fjölbreytni (ekkert random).
+const TOGARAMID = [
+  [60, 78, 1, 0],       // Vestfjarðamið (NV-sjór, út af Ísafjarðardjúpi)
+  [614, 200, 0.95, 1],  // Austfjarðamið (austur af Gerpi)
+  [112, 351, 0.9, 0],   // SV-mið út af Reykjanesi
+  [90, 44, 0.85, 1],    // Vestfjarðamið ytri (norðvestur-hornið)
+  [608, 252, 1.05, 0],  // Austfjarðamið syðri
+  [72, 330, 1, 1],      // SV-mið vestari (Eldeyjar-slóð)
+  [36, 96, 0.9, 0],     // Vestfjarðamið dýpri (djúpkanturinn)
+];
+const TOGARAR_FJOLDI = [0, 2, 4, 7]; // per þrep — þrep 0 → höfn-skipið eitt (sjá TOGARI_HOFN)
+// Þrep 0: EITT kyrrstætt skip við bryggju í Reykjavík — flotinn í höfn (hert aflaregla).
+const TOGARI_HOFN = [166, 289, 0.9, 0];
+
+// Krana-staðir í birtingarröð (þrep 1 → RVK · 2 → 2×RVK + Akureyri · 3 → 3×RVK + Akureyri + Selfoss).
+// [x, y, kvarði, snua] — RVK-kranarnir þrír eru MIS-HÁIR (kvarði) og snúa mis-átt (snua speglar bómuna).
+const KRANASTADIR = [
+  [196, 288, 1, 0],     // Reykjavík miðbær (hæstur)
+  [216, 299, 0.85, 1],  // Reykjavík austur (ofan Elliðaáa) — snýr í hina áttina; austan skólans á [202,302] svo mastur skeri ekki skóla-fánann
+  [370, 128, 0.9, 0],   // Akureyri (austan fjarðar)
+  [190, 281, 0.72, 1],  // Reykjavík vestur (lægstur)
+  [233, 308, 0.8, 0],   // Selfoss
+];
+const KRANAR_FJOLDI = [0, 1, 3, 5]; // per þrep
 
 // Mistur-opacity per losunar-þrep (0 = ekkert mistur → græn tré í staðinn).
 const MISTUR_OP = [0, 0.1, 0.2, 0.32];
@@ -168,6 +194,39 @@ function fiskur([x, y, s, spegla]) {
     `<path d="M6 0 L10.5 -3.4 L9.2 0 L10.5 3.4 Z" fill="${INK}"/>` +
     `<circle cx="-3.6" cy="-0.9" r="0.7" fill="${SJOR}"/>` +
     `</g>`;
+}
+
+/** Togari: skrokkur með boga-stefni, stýrishús og mastur með fín-línu aftur (troll-vír).
+ *  ~16×8 einingar, ljósgrá INK-ætt (EKKI silfruð eins og makríl-torfan, sbr. atvikMakrill).
+ *  vir:false → enginn troll-vír (compact eða kyrrstætt hafnar-skip sem togar ekki). */
+function togari([x, y, s, spegla], vir) {
+  const sx = spegla ? -s : s;
+  return `<g transform="translate(${x} ${y}) scale(${sx} ${s})" opacity="0.78">` +
+    // skrokkur: flatur kjölur, bogadregið stefni sem rís fram
+    `<path d="M-8 -1.6 L-8 0.3 Q-8 1.8 -6.3 1.8 L5.6 1.8 Q7.4 1.8 7.9 0.1 L8.5 -3.1 Q8.6 -3.7 8.1 -3.5 Q7.1 -2.1 5.9 -1.6 Z" fill="${INK}"/>` +
+    `<rect x="-6" y="-5" width="4.4" height="3.4" rx="0.5" fill="#aab6cc"/>` + // stýrishús aftantil
+    `<rect x="0.7" y="-7.4" width="0.9" height="5.8" fill="${INK}"/>` +        // mastur miðskips
+    (vir ? `<path d="M1.15 -7.2 L-10 1.4" fill="none" stroke="${INK}" stroke-width="0.35" opacity="0.6"/>` : '') + // troll-vír aftur í sjó
+    `</g>`;
+}
+
+/** Byggingakrani: lóðrétt mastur + lárétt bóma + mótvægi + krókvír með hangandi einingu.
+ *  ~10×14 einingar, gull-tónn með ljósum topp-punkti eins og alvöru kranaljós.
+ *  vir:false → engir vírar (topp-strengir + krókvír + hangandi eining sleppt í compact). */
+function krani([x, y, s, snua], vir) {
+  const sx = snua ? -s : s;
+  let inni =
+    `<rect x="-0.6" y="-12" width="1.2" height="12" fill="${GULL}"/>` +      // mastur
+    `<rect x="-0.6" y="-12.7" width="7.6" height="0.9" fill="${GULL}"/>` +   // bóma
+    `<rect x="-3.6" y="-13" width="3" height="1.5" fill="#b8842c"/>`;        // mótvægi
+  if (vir) {
+    inni +=
+      `<path d="M0 -14.2 L6.2 -12.4 M0 -14.2 L-2.9 -12.7" fill="none" stroke="${GULL}" stroke-width="0.3" opacity="0.8"/>` + // topp-strengir
+      `<path d="M5.3 -11.8 L5.3 -7.4" fill="none" stroke="${GULL}" stroke-width="0.35" opacity="0.9"/>` +                    // krókvír
+      `<rect x="4.3" y="-7.4" width="2" height="1.9" fill="${DEMPAD}" stroke="${GULL}" stroke-width="0.3"/>`;                // hangandi eining
+  }
+  inni += `<circle cx="0" cy="-13.9" r="0.8" fill="#ffe9b8"/>`; // kranaljósið á toppnum
+  return `<g transform="translate(${x} ${y}) scale(${sx} ${s})">${inni}</g>`;
 }
 
 /** Grænt tré: stofn + tvöföld þríhyrnings-króna. */
@@ -308,6 +367,31 @@ function lagFiskur(th, compact) {
   let inni = '';
   for (let i = 0; i < n; i++) inni += fiskur(FISKAR[i]);
   return `<g class="kt-lag kt-fiskur" data-throp="${th}">${inni}</g>`;
+}
+
+/** Togara-lag: 2/4/7 togarar á raun-miðunum eftir þrepi (compact: helmingi færri,
+ *  engir troll-vírar). Þrep 0 = EITT kyrrstætt skip við bryggju í Reykjavík —
+ *  flotinn í höfn, sjónræn saga hertrar aflareglu (kyrrstætt skip togar ekki og
+ *  fær því ALDREI vír). ATH: lagið mælir SÓKNINA (kvóta-stefnu), fiski-lagið
+ *  mælir STOFNINN — tvær aðskildar sögur á sama korti. */
+function lagTogarar(th, compact) {
+  let inni = '';
+  if (th === 0) {
+    inni = `<g class="kt-togari-hofn">${togari(TOGARI_HOFN, false)}</g>`;
+  } else {
+    const n = compact ? Math.ceil(TOGARAR_FJOLDI[th] / 2) : TOGARAR_FJOLDI[th];
+    for (let i = 0; i < n; i++) inni += togari(TOGARAMID[i], !compact);
+  }
+  return `<g class="kt-lag kt-togarar" data-throp="${th}">${inni}</g>`;
+}
+
+/** Krana-lag: 0/1/3/5 byggingakranar (RVK → +Akureyri → +Selfoss) eftir þrepi
+ *  (compact: helmingi færri, engir vírar). Þrep 0 = enginn krani. */
+function lagKranar(th, compact) {
+  const n = compact ? Math.ceil(KRANAR_FJOLDI[th] / 2) : KRANAR_FJOLDI[th];
+  let inni = '';
+  for (let i = 0; i < n; i++) inni += krani(KRANASTADIR[i], !compact);
+  return `<g class="kt-lag kt-kranar" data-throp="${th}">${inni}</g>`;
 }
 
 /** Losunar-lag: mjúkt brúnleitt mistur yfir iðnaðarsvæðum (opacity eftir þrepi);
@@ -556,9 +640,10 @@ function joklar(p) {
  * renderIslandKort — skilar Íslandskortinu sem SVG-streng.
  *
  * @param {{ byggd?: number, menntun?: number, fiskur?: number, losun?: number, ljos?: number,
- *           atvik?: string|null, taknmyndir?: string[] }} threp
+ *           togarar?: number, kranar?: number, atvik?: string|null, taknmyndir?: string[] }} threp
  *        Þrep-hlutur frá kortThrep() í kort-throp.mjs. Vantandi/ógild þrep fá sjálfgefin gildi
- *        (byggd 1, menntun 1, fiskur 1, losun 2, ljos 1 = hlutlaus birta, atvik null).
+ *        (byggd 1, menntun 1, fiskur 1, losun 2, ljos 1 = hlutlaus birta,
+ *        togarar 1 = grunnfloti, kranar 1 = einn krani við RVK, atvik null).
  * @param {{ compact?: boolean, idPrefix?: string }} [opts]
  *        compact:true → farsíma-útgáfa (mest 4 fiskar, ekkert mistur, engin norðurljós,
  *        einfaldara glow, atviks-lagið aðeins aðal-formið).
@@ -572,6 +657,8 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
   const fisk = klemma03(t.fiskur, 1);
   const losun = klemma03(t.losun, 2);
   const ljos = klemma03(t.ljos, 1);
+  const togarar = klemma03(t.togarar, 1);
+  const kranar = klemma03(t.kranar, 1);
   const taknmyndir = Array.isArray(t.taknmyndir) ? t.taknmyndir : [];
   const p = String(idPrefix || 'kt').replace(/[^A-Za-z0-9_-]/g, '') || 'kt';
 
@@ -589,6 +676,9 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
     joklar(p) +
     // Lög ofan á landinu
     lagByggd(byggd, p, ljos) +
+    // Togarar á miðunum + byggingakranar — YFIR byggða-glóðinni, UNDIR atviks-laginu
+    lagTogarar(togarar, compact) +
+    lagKranar(kranar, compact) +
     lagMenntun(menntun) +
     lagTakn(taknmyndir) +
     // Mistur/tré efst (hálfgagnsætt yfir öllu)

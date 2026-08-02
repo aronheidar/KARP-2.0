@@ -1010,52 +1010,70 @@ export function mountLeikur(root) {
   // og sepop-/PM-myndir). Gögn: results-sýn = mine.detail; watch/leikslok = st.kort (nýjasta
   // uppgjör per lið, opinbert eins og stigatafla); atviks-val = st.eventChoices (server-viðbót).
   const kortCompact = () => { try { return window.innerWidth < 700; } catch (e) { return false; } };   // farsími → compact + engin animation
-  // Menntunar-lag kortsins les SLEÐANN (menntun er ekki engine-útkoma): nýjasta gildi úr draft
-  // (læsta gildi lotunnar) eða sögunni, normað á -1..1 sem kort-throp túlkar sem sleða-frávik
-  // (jákvætt frávik deilt með (max-base), neikvætt með (base-min)). Aðeins til fyrir EIGIÐ lið.
-  // Deild normalisering menntunar-sleðans á -1..1 (kort-throp túlkar sem sleða-frávik) — notuð bæði
-  // af kortMenntun (settluð gögn) og lifandi decide-kortinu (S.dials, VERK 1).
-  function menntunNorm(v) {
-    const cfg = BASELINE.levers.menntun; if (!cfg || v == null || !isFinite(+v)) return null;
+  // Sleða-lög kortsins lesa SLEÐANA (menntun/kvoti/lodaframbod eru ekki engine-útkomur): nýjasta
+  // gildi úr draft (læsta gildi lotunnar) eða sögunni, normað á -1..1 sem kort-throp túlkar sem
+  // sleða-frávik (jákvætt frávik deilt með (max-base), neikvætt með (base-min)). Aðeins EIGIÐ lið.
+  // Deild normalisering sleða á -1..1 — notuð bæði af kortLever (settluð gögn) og lifandi
+  // decide-kortinu (S.dials, VERK 1). SAMA fallið fyrir öll þrjú sleða-lög kortsins:
+  // menntun (kt-menntun), kvoti (kt-togarar) og lodaframbod (kt-kranar).
+  function leverNorm(id, v) {
+    const cfg = BASELINE.levers[id]; if (!cfg || v == null || !isFinite(+v)) return null;
     const base = cfg.base || 0, dev = +v - base;
     const skali = dev >= 0 ? ((cfg.max - base) || 1) : ((base - cfg.min) || 1);
     return Math.max(-1, Math.min(1, dev / skali));
   }
-  function kortMenntun(st) {
+  // Læst/settlað sleða-gildi EIGIN liðs, normað: draft (læsta gildi lotunnar) fyrst, annars
+  // síðasta lota sögunnar sem hreyfði sleðann — sama uppspretta fyrir menntun/kvoti/lodaframbod.
+  function kortLever(st, id) {
     let v = null;
-    if (st.draft && st.draft.menntun != null) v = +st.draft.menntun;
-    else { const hs = st.history || []; for (let i = hs.length - 1; i >= 0; i--) { const h = hs[i]; if (h && h.levers && h.levers.menntun != null) { v = +h.levers.menntun; break; } } }
-    return menntunNorm(v);
+    if (st.draft && st.draft[id] != null) v = +st.draft[id];
+    else { const hs = st.history || []; for (let i = hs.length - 1; i >= 0; i--) { const h = hs[i]; if (h && h.levers && h.levers[id] != null) { v = +h.levers[id]; break; } } }
+    return leverNorm(id, v);
   }
   function kortThrepUr(st, teamId, kpis, policies) {
     const kk = { ...(kpis || {}) };
-    if (teamId === S.teamId) { const m = kortMenntun(st); if (m != null) kk.menntun = m; }
+    let levers;
+    if (teamId === S.teamId) {
+      const m = kortLever(st, 'menntun'); if (m != null) kk.menntun = m;
+      // Togarar/kranar (results/leikslok): læst gildi lotunnar úr draft/sögu — sama uppspretta
+      // og menntunar-lagið (kortLever). kortLever skilar null ef sleðinn var aldrei hreyfður
+      // → sledaThrep gefur grunnstöðu 1.
+      levers = { kvoti: kortLever(st, 'kvoti'), lodaframbod: kortLever(st, 'lodaframbod') };
+    }
+    // ÖNNUR lið (watch/skjávarpi): engin lever-gögn annarra liða berast client → levers SLEPPT
+    // (kortThrep gefur þá grunnstöðu 1 á bæði lög) — sama takmörkun og menntunar-lagið hefur þar.
     // Atvik lotunnar (sama fyrir öll lið, sjá surprise.mjs): í resolved-fasa er st.surprise atvikið
     // sem var að leysast → eldgosið o.fl. sést á landinu í results (kortCardMitt) OG á skjávarpanum
     // (kortWatch). kortThrep validerar id-ið sjálft (óþekkt → null → ekkert atviks-lag).
-    return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {}, atvik: (st.surprise && st.surprise.id) || null });
+    return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {}, levers, atvik: (st.surprise && st.surprise.id) || null });
   }
   const kortDot = (n) => '●●●'.slice(0, n) + '○○○'.slice(0, 3 - n);
   function kortSkyring(threp) {
     return '<p class="lk-kort-skyr" title="Þrep 0–3 laganna á kortinu — fleiri fylltir punktar = meira af laginu (losun: fleiri punktar = meiri mengun).">'
-      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur) + ' · 🏭 Losun ' + kortDot(threp.losun)
+      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur)
+      + ' · <span title="Togaraflotinn — fylgir kvóta-stefnunni; stofninn er sér vídd">🚢 Sókn ' + kortDot(threp.togarar) + '</span>'
+      + ' · 🏭 Losun ' + kortDot(threp.losun)
+      + ' · <span title="Byggingakranar — fylgja lóðaframboði">🏗️ Uppbygging ' + kortDot(threp.kranar) + '</span>'
       + ' · <span title="Næturljós landsins — glóa í góðæri, dofna í kreppu">💡 Ljós ' + kortDot(threp.ljos) + '</span></p>';
   }
   // Þrep-animation: síðasta teiknaða threp geymt í S.kortPrev (per lið+lota). Klasarnir fara AÐEINS
   // á fyrstu teiknun NÝRRAR lotu (prev.round !== round) — poll-endurteiknanir innan sömu lotu fá þá
   // ekki (annars spilaðist poppið á 2,5s fresti). String-injection á class-attribút SVG-hópanna
   // (einkvæm per kort → replace snertir réttan hóp). Farsími/prefers-reduced-motion → engin animation.
+  // Lögin sem fá kt-breytt glow við þrepbreytingu — deilt af kortMedAnim (results/watch) og
+  // kortDecideDraw (lifandi). togarar/kranar eru VENJULEG lög og fá glowið eins og hin fjögur;
+  // atvik og ljos eru VILJANDI EKKI hér (atviks-lagið hefur eigin CSS-lúppu, ljos býr í byggða-laginu).
+  const KORT_ANIM_LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun', togarar: 'kt-togarar', kranar: 'kt-kranar' };
   function kortMedAnim(svg, threp, teamId, round) {
     const prev = S.kortPrev[teamId];
     S.kortPrev[teamId] = { round, threp };
     if (kortCompact() || pmReduced() || !prev || prev.round === round) return svg;
     let ut = svg;
-    // VILJANDI aðeins lögin 4 + taknmyndir í anim-diffinu: atvik og ljos fá ALDREI kt-breytt/kt-nytt
-    // (atviks-lagið hefur eigin CSS-lúppu, ljos býr í byggða-laginu) — ekkert popp á hverjum polli.
+    // VILJANDI aðeins lögin 6 (KORT_ANIM_LOG) + taknmyndir í anim-diffinu: atvik og ljos fá ALDREI
+    // kt-breytt/kt-nytt — ekkert popp á hverjum polli.
     // ATH: results/watch endurbyggja innerHTML á hverju polli → kt-atvik-lúppan ENDURRÆSIST þar;
     // keyframes hennar eru því restart-þolnar (opacity-hvíldarstaða á 0%/100%, ekkert transform-drift).
-    const LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun' };
-    for (const k in LOG) if (prev.threp[k] !== threp[k]) ut = ut.replace('class="kt-lag ' + LOG[k] + '"', 'class="kt-lag ' + LOG[k] + ' kt-breytt"');
+    for (const k in KORT_ANIM_LOG) if (prev.threp[k] !== threp[k]) ut = ut.replace('class="kt-lag ' + KORT_ANIM_LOG[k] + '"', 'class="kt-lag ' + KORT_ANIM_LOG[k] + ' kt-breytt"');
     const adur = new Set(prev.threp.taknmyndir || []);
     for (const t of (threp.taknmyndir || [])) if (!adur.has(t)) ut = ut.replace('class="kt-takn kt-takn-' + t + '"', 'class="kt-takn kt-takn-' + t + ' kt-nytt"');
     return ut;
@@ -1096,30 +1114,33 @@ export function mountLeikur(root) {
   // skiptum. idPrefix 'ktd' svo defs-id rekist ekki á results-kortið ('kt') ef bæði enda á síðu.
   // Hýsillinn #lk-st-kort er FASTUR í renderStudio-grindinni (ekki hluti af forskoðunar-innerHTML)
   // → .kt-breytt-glowið (600ms, sama og í results) klippist ekki þó dregið sé áfram.
-  // Inntak: kpis = forskoðunar-KPI + kort-lags-útkomur úr herminum; menntun úr LIFANDI S.dials;
+  // Inntak: kpis = forskoðunar-KPI + kort-lags-útkomur úr herminum; menntun/kvoti/lodaframbod úr LIFANDI S.dials;
   // policyStates = staðfest + drög lotunnar; eventChoices = val MÍNS liðs.
   function kortDecideDraw(st, kpis) {
     const holder = root.querySelector('#lk-st-kort'); if (!holder) return;
     const kk = { ...(kpis || {}) };
-    const m = menntunNorm(S.dials ? S.dials.menntun : null); if (m != null) kk.menntun = m;
+    const m = leverNorm('menntun', S.dials ? S.dials.menntun : null); if (m != null) kk.menntun = m;
     const threp = kortThrep({
       kpis: kk,
       policyStates: { ...((st.policies && st.policies.states) || {}), ...(S.policyDraft || {}) },
       eventChoices: (st.eventChoices || {})[S.teamId] || {},
+      // Togarar/kranar bregðast LIFANDI við sleða-drögum: normuð frávik beint úr S.dials
+      // (sama leverNorm og menntun) — leverNorm skilar null á óhreyfðum/vantandi sleða → þrep 1.
+      levers: { kvoti: leverNorm('kvoti', S.dials ? S.dials.kvoti : null), lodaframbod: leverNorm('lodaframbod', S.dials ? S.dials.lodaframbod : null) },
       // Atvik lotunnar sést á landinu um leið og lotan opnast — parast við atviks-popupið (sepop).
       atvik: (st.surprise && st.surprise.id) || null,
     });
     // ljos og atvik VERÐA að vera í undirskriftinni: ljos-þrepaskipti og atviks-koma triggera þá
     // nákvæmlega EINA endurteiknun (næstu poll með sömu sig sleppa — CSS-lúppan á kt-atvik lifir).
-    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + threp.ljos + '|' + (threp.atvik || '') + '|' + (threp.taknmyndir || []).join(',');
+    // togarar/kranar SÖMULEIÐIS — annars endurteiknaðist kortið aldrei við kvóta-/lóða-drög.
+    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + threp.ljos + '|' + threp.togarar + '|' + threp.kranar + '|' + (threp.atvik || '') + '|' + (threp.taknmyndir || []).join(',');
     const changed = sig !== S.ktdSig;
     if (!changed && holder.firstChild) return;   // ódýra undirskriftar-tékkið — EKKI endurteikna á hverju draggi
     const prev = changed ? S.ktdPrev : null;     // óbreytt sig en tómur hýsill (renderStudio endurbyggði) → teikna ÁN glows
     S.ktdSig = sig; S.ktdPrev = threp;
     let svg = renderIslandKort(threp, { compact: kortCompact(), idPrefix: 'ktd' });
     if (prev && !kortCompact() && !pmReduced()) {   // .kt-breytt á lagið sem breyttist (600ms glow eins og í results)
-      const LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun' };
-      for (const k in LOG) if (prev[k] !== threp[k]) svg = svg.replace('class="kt-lag ' + LOG[k] + '"', 'class="kt-lag ' + LOG[k] + ' kt-breytt"');
+      for (const k in KORT_ANIM_LOG) if (prev[k] !== threp[k]) svg = svg.replace('class="kt-lag ' + KORT_ANIM_LOG[k] + '"', 'class="kt-lag ' + KORT_ANIM_LOG[k] + ' kt-breytt"');
       const adur = new Set(prev.taknmyndir || []);
       for (const t of (threp.taknmyndir || [])) if (!adur.has(t)) svg = svg.replace('class="kt-takn kt-takn-' + t + '"', 'class="kt-takn kt-takn-' + t + ' kt-nytt"');
     }

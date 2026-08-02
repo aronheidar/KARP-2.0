@@ -28,6 +28,23 @@ function tala(v) {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+/**
+ * Sleða-þrep: varpar NORMUÐU sleða-fráviki (-1..1, sama norm og menntunar-
+ * sleðinn notar) í þrep 0-3. Hálf-opin bil að ofan (markið telst með neðra þrepi):
+ *   v <= -0,35        -> 0
+ *   -0,35 < v <= 0,15 -> 1   (grunnstaða)
+ *   0,15  < v <= 0,55 -> 2
+ *   v > 0,55          -> 3
+ * null/vantar/ógilt -> 1 (grunnstaða).
+ */
+function sledaThrep(v) {
+  if (v === null) return 1;
+  if (v <= -0.35) return 0;
+  if (v <= 0.15) return 1;
+  if (v <= 0.55) return 2;
+  return 3;
+}
+
 // Þekkt atviks-id sem kort-svg.mjs kann að teikna sem sér-lag (kt-atvik-<id>).
 // Óþekkt/ógild gildi verða null — kortið teiknar þá ekkert atviks-lag.
 const GILD_ATVIK = new Set([
@@ -43,13 +60,16 @@ const GILD_ATVIK = new Set([
  * @param {object} [inp.policyStates] Ástand stóru ákvarðananna, sbr. policyStates() í policies.mjs:
  *                                    { esb: true, stjoridja: 'reisa'|'hafna', audlindasjodur: true, hoft: true, ... }
  * @param {object} [inp.eventChoices] Atviks-val liðsins, t.d. { gagnaver: 'ja' }
+ * @param {object} [inp.levers]       NORMUÐ sleða-frávik -1..1 (sama norm og menntun notar):
+ *                                    { kvoti?: number|null, lodaframbod?: number|null }
  * @param {string|null} [inp.atvik]   Id líðandi atviks (t.d. 'eldgos') — fer ÓBREYTT í gegn í
  *                                    úttakið ef það er þekkt (sjá GILD_ATVIK), annars null.
  * @returns {{ byggd: number, menntun: number, fiskur: number, losun: number, ljos: number,
- *             atvik: string|null, taknmyndir: string[] }}
- *          byggd/menntun/fiskur/losun/ljos eru heiltölu-þrep 0-3; taknmyndir er listi fastra tákn-nafna.
+ *             togarar: number, kranar: number, atvik: string|null, taknmyndir: string[] }}
+ *          byggd/menntun/fiskur/losun/ljos/togarar/kranar eru heiltölu-þrep 0-3;
+ *          taknmyndir er listi fastra tákn-nafna.
  */
-export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {}, atvik = null } = {}) {
+export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {}, levers = {}, atvik = null } = {}) {
   // — Byggð: úr byggdajofnudur-vísitölunni.
   //   Mörk: <92 -> 0 · 92-99 -> 1 · 99-106 -> 2 · >=106 -> 3 · vantar/ógilt -> 1
   const byggdV = tala(kpis.byggdajofnudur);
@@ -101,6 +121,18 @@ export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {}, atv
   else if (hagV === null || kaupV === null) ljos = threpUr(hagV ?? kaupV, 0, 1.25, 2.5);
   else ljos = threpUr(hagV + kaupV, 0, 2.5, 5);
 
+  // — Togarar & kranar: úr NORMUÐUM sleða-frávikum (levers, -1..1) um sledaThrep():
+  //     v <= -0,35 -> 0 · (-0,35, 0,15] -> 1 · (0,15, 0,55] -> 2 · > 0,55 -> 3 · null/vantar -> 1
+  //   ATH: togararnir mæla SÓKNINA (kvóta-STEFNU liðsins — hve fast er róið) en
+  //   kt-fiskur mælir STOFNINN (kpis.fiskistofn). Þetta eru TVÆR AÐSKILDAR sögur
+  //   af ásettu ráði — mikil sókn + hnignandi stofn á sama korti er kennslu-
+  //   punkturinn (ofveiðin sést sem margir togarar innan um fáa fiska).
+  //     togarar: 0 = hert aflaregla, fáir á sjó (flotinn í höfn) · 1 = grunnfloti · 3 = stórsókn
+  //     kranar:  byggingar-umsvif úr lóðaframboðs-sleðanum (0 = enginn krani)
+  const lev = levers || {};
+  const togarar = sledaThrep(tala(lev.kvoti));
+  const kranar = sledaThrep(tala(lev.lodaframbod));
+
   // — Atvik: strengja-id líðandi atviks fer óbreytt í gegn ef það er þekkt, annars null.
   const atvikUt = typeof atvik === 'string' && GILD_ATVIK.has(atvik) ? atvik : null;
 
@@ -113,5 +145,5 @@ export function kortThrep({ kpis = {}, policyStates = {}, eventChoices = {}, atv
   if (policyStates.audlindasjodur === true) taknmyndir.push('sjodur');    // gull-kista við miðju (strangt true)
   if (policyStates.hoft === true) taknmyndir.push('hoft');                // lás við RVK (strangt true)
 
-  return { byggd, menntun, fiskur, losun, ljos, atvik: atvikUt, taknmyndir };
+  return { byggd, menntun, fiskur, losun, ljos, togarar, kranar, atvik: atvikUt, taknmyndir };
 }

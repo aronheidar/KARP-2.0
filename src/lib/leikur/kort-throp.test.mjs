@@ -75,8 +75,9 @@ test('null/vantandi KPI fá sjálfgefin þrep (byggd 1, fiskur 1, losun 2, mennt
 
 test('tóm inntök hrynja ekki og skila gildu formi', () => {
   for (const t of [kortThrep(), kortThrep({}), kortThrep(undefined)]) {
-    assert.deepEqual(Object.keys(t).sort(), ['atvik', 'byggd', 'fiskur', 'ljos', 'losun', 'menntun', 'taknmyndir']);
-    for (const k of ['byggd', 'menntun', 'fiskur', 'losun', 'ljos']) {
+    assert.deepEqual(Object.keys(t).sort(),
+      ['atvik', 'byggd', 'fiskur', 'kranar', 'ljos', 'losun', 'menntun', 'taknmyndir', 'togarar']);
+    for (const k of ['byggd', 'menntun', 'fiskur', 'losun', 'ljos', 'togarar', 'kranar']) {
       assert.ok(Number.isInteger(t[k]) && t[k] >= 0 && t[k] <= 3, `${k} er heiltölu-þrep 0-3`);
     }
     assert.equal(t.atvik, null);
@@ -122,6 +123,61 @@ test('ljos: bæði null → 2 (hlutlaus-björt sjálfgefin staða)', () => {
   assert.equal(kortThrep({ kpis: {} }).ljos, 2);
   assert.equal(kortThrep().ljos, 2);
   assert.equal(kortThrep({ kpis: { hagvoxtur: null, kaupmattur: NaN } }).ljos, 2);
+});
+
+// — kortThrep: togarar & kranar (levers) ————————————————————————————
+
+test('togarar: þrepamörk á levers.kvoti (báðar brúnir)', () => {
+  const tog = (kvoti) => kortThrep({ levers: { kvoti } }).togarar;
+  assert.equal(tog(-1), 0);          // hert aflaregla — flotinn í höfn
+  assert.equal(tog(-0.35), 0);       // markið sjálft telst með þrepi 0
+  assert.equal(tog(-0.349), 1);
+  assert.equal(tog(0), 1);           // grunnfloti
+  assert.equal(tog(0.15), 1);        // markið telst með þrepi 1
+  assert.equal(tog(0.151), 2);
+  assert.equal(tog(0.55), 2);        // markið telst með þrepi 2
+  assert.equal(tog(0.551), 3);
+  assert.equal(tog(1), 3);           // stórsókn
+});
+
+test('kranar: þrepamörk á levers.lodaframbod (báðar brúnir)', () => {
+  const kr = (lodaframbod) => kortThrep({ levers: { lodaframbod } }).kranar;
+  assert.equal(kr(-1), 0);
+  assert.equal(kr(-0.35), 0);
+  assert.equal(kr(-0.349), 1);
+  assert.equal(kr(0), 1);
+  assert.equal(kr(0.15), 1);
+  assert.equal(kr(0.151), 2);
+  assert.equal(kr(0.55), 2);
+  assert.equal(kr(0.551), 3);
+  assert.equal(kr(1), 3);
+});
+
+test('togarar/kranar: null, vantandi levers og rusl → 1 (grunnstaða)', () => {
+  const nulls = kortThrep({ levers: { kvoti: null, lodaframbod: null } });
+  assert.equal(nulls.togarar, 1);
+  assert.equal(nulls.kranar, 1);
+  // levers vantar alveg
+  assert.equal(kortThrep({}).togarar, 1);
+  assert.equal(kortThrep({}).kranar, 1);
+  assert.equal(kortThrep().togarar, 1);
+  assert.equal(kortThrep().kranar, 1);
+  // tómt levers-object og ótölu-rusl
+  assert.equal(kortThrep({ levers: {} }).togarar, 1);
+  assert.equal(kortThrep({ levers: {} }).kranar, 1);
+  const rusl = kortThrep({ levers: { kvoti: NaN, lodaframbod: 'x' } });
+  assert.equal(rusl.togarar, 1);
+  assert.equal(rusl.kranar, 1);
+  // levers=null hrynur ekki
+  assert.equal(kortThrep({ levers: null }).togarar, 1);
+  assert.equal(kortThrep({ levers: null }).kranar, 1);
+});
+
+test('togarar (sókn) og fiskur (stofn) eru aðskildar víddir — kennslupunkturinn', () => {
+  // stórsókn ofan í hruninn stofn: margir togarar, fáir fiskar á sama korti
+  const t = kortThrep({ kpis: { fiskistofn: 82 }, levers: { kvoti: 0.9 } });
+  assert.equal(t.togarar, 3);
+  assert.equal(t.fiskur, 0);
 });
 
 // — kortThrep: atvik ————————————————————————————————————————————————
@@ -289,6 +345,73 @@ test('compact-atvik er einfaldað (eldgos: engir neistar, sprungan ein)', () => 
   const lagUr = (svg) => svg.match(/<g class="kt-atvik kt-atvik-eldgos">.*?<\/g>/s)[0];
   assert.ok(lagUr(compact).length < lagUr(full).length, 'compact-lagið er styttra');
   assert.ok(!lagUr(compact).includes('<ellipse'), 'enginn öskumökkur í compact');
+});
+
+// — renderIslandKort: togarar & kranar ——————————————————————————————
+
+// Talningar-nálar: opacity="0.78" er sér-kenni togara-hópsins, #b8842c mótvægis
+// kranans, 'M1.15 -7.2' troll-vírsins og 'M5.3 -11.8' krókvírsins.
+const telja = (svg, nal) => svg.split(nal).length - 1;
+
+test('kt-togarar og kt-kranar birtast með réttum data-throp (vantandi → 1)', () => {
+  const svg = renderIslandKort({ byggd: 1, menntun: 0, fiskur: 1, losun: 1, togarar: 2, kranar: 3, taknmyndir: [] });
+  assert.ok(svg.includes('<g class="kt-lag kt-togarar" data-throp="2">'), 'kt-togarar með data-throp=2');
+  assert.ok(svg.includes('<g class="kt-lag kt-kranar" data-throp="3">'), 'kt-kranar með data-throp=3');
+  const sjalfgefid = renderIslandKort({});
+  assert.ok(sjalfgefid.includes('<g class="kt-lag kt-togarar" data-throp="1">'), 'vantandi togarar → 1');
+  assert.ok(sjalfgefid.includes('<g class="kt-lag kt-kranar" data-throp="1">'), 'vantandi kranar → 1');
+});
+
+test('togarar: þrep 0 → höfn-skipið eitt (kyrrstætt, án vírs); 1/2/3 → 2/4/7 skip', () => {
+  const grunn = { byggd: 1, menntun: 0, fiskur: 0, losun: 1, kranar: 0, taknmyndir: [] };
+  const hofn = renderIslandKort({ ...grunn, togarar: 0 });
+  assert.ok(hofn.includes('kt-togari-hofn'), 'höfn-skipið ber class kt-togari-hofn');
+  assert.equal(telja(hofn, 'opacity="0.78"'), 1, 'eitt skip á þrepi 0');
+  assert.ok(!hofn.includes('M1.15 -7.2'), 'kyrrstætt skip togar ekki — enginn troll-vír');
+  assert.equal(telja(renderIslandKort({ ...grunn, togarar: 1 }), 'opacity="0.78"'), 2);
+  assert.equal(telja(renderIslandKort({ ...grunn, togarar: 2 }), 'opacity="0.78"'), 4);
+  const stor = renderIslandKort({ ...grunn, togarar: 3 });
+  assert.ok(!stor.includes('kt-togari-hofn'), 'ekkert höfn-skip í stórsókn');
+  assert.equal(telja(stor, 'opacity="0.78"'), 7, 'sjö skip á þrepi 3');
+  assert.equal(telja(stor, 'M1.15 -7.2'), 7, 'troll-vír á hverju skipi í fullri útgáfu');
+});
+
+test('kranar: fjöldi per þrep (0/1/3/5) og kranaljós á toppi hvers', () => {
+  const grunn = { byggd: 1, menntun: 0, fiskur: 0, losun: 1, togarar: 0, taknmyndir: [] };
+  assert.equal(telja(renderIslandKort({ ...grunn, kranar: 0 }), '#b8842c'), 0, 'þrep 0 = enginn krani');
+  assert.equal(telja(renderIslandKort({ ...grunn, kranar: 1 }), '#b8842c'), 1);
+  assert.equal(telja(renderIslandKort({ ...grunn, kranar: 2 }), '#b8842c'), 3);
+  const bola = renderIslandKort({ ...grunn, kranar: 3 });
+  assert.equal(telja(bola, '#b8842c'), 5);
+  assert.equal(telja(bola, 'cy="-13.9"'), 5, 'kranaljós á hverjum krana');
+  assert.equal(telja(bola, 'M5.3 -11.8'), 5, 'krókvír á hverjum krana í fullri útgáfu');
+});
+
+test('togarar/kranar compact: helmingi færri einingar og engir vírar', () => {
+  const threp = { byggd: 1, menntun: 0, fiskur: 0, losun: 1, togarar: 3, kranar: 3, taknmyndir: [] };
+  const c = renderIslandKort(threp, { compact: true });
+  assert.equal(telja(c, 'opacity="0.78"'), 4, 'togarar: ceil(7/2)=4 í compact');
+  assert.equal(telja(c, '#b8842c'), 3, 'kranar: ceil(5/2)=3 í compact');
+  assert.ok(!c.includes('M1.15 -7.2'), 'engir troll-vírar í compact');
+  assert.ok(!c.includes('M5.3 -11.8'), 'enginn krókvír í compact');
+  // höfn-skipið birtist líka á þrepi 0 í compact
+  const c0 = renderIslandKort({ ...threp, togarar: 0 }, { compact: true });
+  assert.ok(c0.includes('kt-togari-hofn'), 'höfn-skipið líka í compact');
+});
+
+test('togarar/kranar: determinismi gegnum kortThrep og engin defs-id án prefix', () => {
+  const inntak = { kpis: { fiskistofn: 85 }, levers: { kvoti: 0.9, lodaframbod: 0.6 } };
+  const th = kortThrep(inntak);
+  assert.equal(th.togarar, 3);
+  assert.equal(th.kranar, 3);
+  assert.equal(th.fiskur, 0); // sókn og stofn segja sitt hvora söguna
+  const svg = renderIslandKort(th);
+  assert.equal(renderIslandKort(kortThrep(inntak)), svg, 'sama inntak → nákvæmlega sami strengur');
+  const ids = [...svg.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids.length > 0 && ids.every((id) => id.startsWith('kt-')), 'engin defs-id án prefix');
+  for (const [, ref] of svg.matchAll(/url\(#([^)]+)\)/g)) assert.ok(ids.includes(ref), `url(#${ref}) leysist`);
+  assert.ok(!svg.includes('<text'), 'engin <text>-element');
+  assert.ok(!/\son[a-z]+=/i.test(svg), 'engir event-handlerar');
 });
 
 test('determinismi helst með ljos + atvik saman', () => {
