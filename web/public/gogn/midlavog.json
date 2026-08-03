@@ -1,38 +1,38 @@
 {
- "updated": "2026-08-02",
+ "updated": "2026-08-03",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 6,
+   "bias": 7,
    "rawTone": -12,
-   "n": 363,
-   "entities": 43,
+   "n": 371,
+   "entities": 44,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": 90.65,
+     "dev": 90.66,
      "n": 5
     },
     {
      "entity": "Orkumál",
-     "dev": 68.35,
+     "dev": 68.73,
      "n": 7
     },
     {
      "entity": "Utanríkisviðskipti",
-     "dev": 62.22,
+     "dev": 62.92,
      "n": 6
     },
     {
      "entity": "Tollar",
-     "dev": 61.88,
+     "dev": 62.67,
      "n": 9
     },
     {
      "entity": "Verslun",
-     "dev": 60.73,
+     "dev": 60.55,
      "n": 7
     }
    ]
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -23,
-   "n": 27940,
+   "n": 27621,
    "entities": 166,
    "sample": [
     {
@@ -55,19 +55,19 @@
      "n": 14
     },
     {
-     "entity": "Krónan",
-     "dev": 27.27,
-     "n": 22
-    },
-    {
      "entity": "Landsnet",
-     "dev": 25.44,
-     "n": 19
+     "dev": 26.55,
+     "n": 17
     },
     {
-     "entity": "Pólland",
-     "dev": 22.19,
-     "n": 71
+     "entity": "Krónan",
+     "dev": 26.09,
+     "n": 23
+    },
+    {
+     "entity": "Indó",
+     "dev": 24.71,
+     "n": 19
     }
    ]
   },
@@ -75,7 +75,7 @@
    "s": "RÚV",
    "bias": 1,
    "rawTone": -36,
-   "n": 9036,
+   "n": 9038,
    "entities": 157,
    "sample": [
     {
@@ -85,7 +85,7 @@
     },
     {
      "entity": "Samkaup",
-     "dev": -83.33,
+     "dev": -77.38,
      "n": 3
     },
     {
@@ -95,7 +95,7 @@
     },
     {
      "entity": "Hagar",
-     "dev": -61,
+     "dev": -61.29,
      "n": 4
     },
     {
@@ -109,12 +109,12 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -39,
-   "n": 11563,
+   "n": 11505,
    "entities": 162,
    "sample": [
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -93.03,
+     "dev": -92.78,
      "n": 12
     },
     {
@@ -143,17 +143,17 @@
    "s": "dv.is",
    "bias": -17,
    "rawTone": -55,
-   "n": 4424,
+   "n": 4373,
    "entities": 140,
    "sample": [
     {
      "entity": "Fjárlög",
-     "dev": 123.19,
+     "dev": 128.79,
      "n": 3
     },
     {
      "entity": "Landsnet",
-     "dev": -116.67,
+     "dev": -120.51,
      "n": 3
     },
     {
@@ -163,7 +163,7 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -94.22,
+     "dev": -93.97,
      "n": 7
     },
     {
@@ -175,35 +175,35 @@
   },
   {
    "s": "Mannlíf",
-   "bias": -22,
+   "bias": -21,
    "rawTone": -71,
-   "n": 200,
-   "entities": 32,
+   "n": 187,
+   "entities": 31,
    "sample": [
     {
+     "entity": "Bretland",
+     "dev": 95.97,
+     "n": 3
+    },
+    {
      "entity": "Sveitarfélögin",
-     "dev": -94.41,
+     "dev": -94.19,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -74.67,
+     "dev": -72.99,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.35,
+     "dev": -69.34,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -68.17,
-     "n": 6
-    },
-    {
-     "entity": "Gjaldþrot",
-     "dev": -57.14,
-     "n": 3
+     "dev": -64.49,
+     "n": 5
     }
    ]
   }
