@@ -1,11 +1,11 @@
 {
- "updated": "2026-07-30T16:40:11.020Z",
- "n": 28,
+ "updated": "2026-08-03T08:15:30.518Z",
+ "n": 32,
  "byCat": {
-  "midlar": 15,
+  "midlar": 14,
   "stofnanir": 1,
   "fyrirtaeki": 11,
-  "thingmenn": 1
+  "thingmenn": 6
  },
  "chans": [
   {
@@ -135,14 +135,6 @@
    "seed": true
   },
   {
-   "id": "UCLo2BIGJUE3ewygUF7K7W5Q",
-   "n": "RÚV fréttir",
-   "q": "RÚV",
-   "cat": "midlar",
-   "newest": "2026-07-30",
-   "vids": 15
-  },
-  {
    "id": "UCDae8lfIFbueLLLmZVNm96w",
    "n": "Heimildin",
    "q": "Heimildin",
@@ -245,6 +237,46 @@
    "cat": "thingmenn",
    "newest": "2020-07-07",
    "vids": 15
+  },
+  {
+   "id": "UCFaBhzozsu_H4oBQ9CK63cQ",
+   "n": "Guðlaugur Þór Þórðarson",
+   "q": "Guðlaugur Þór Þórðarson",
+   "cat": "thingmenn",
+   "newest": "2025-08-28",
+   "vids": 2
+  },
+  {
+   "id": "UC_pFELbG9ubYaSa88MF7-zg",
+   "n": "Guðmundur Ari Sigurjónsson",
+   "q": "Guðmundur Ari Sigurjónsson",
+   "cat": "thingmenn",
+   "newest": "2025-11-12",
+   "vids": 5
+  },
+  {
+   "id": "UC8e0vjR9Pz5UB-mvKEwbvYQ",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2016-11-02",
+   "vids": 3
+  },
+  {
+   "id": "UCJ19xgl9Qu-T60LBhdtYHWg",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2026-07-27",
+   "vids": 15
+  },
+  {
+   "id": "UCZMfBrppPlU1QL5kFIbueTQ",
+   "n": "Ingvar Þóroddsson",
+   "q": "Ingvar Þóroddsson",
+   "cat": "thingmenn",
+   "newest": "2011-07-27",
+   "vids": 2
   }
  ]
 }
