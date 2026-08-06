@@ -1,39 +1,39 @@
 {
- "updated": "2026-08-05",
+ "updated": "2026-08-06",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 9,
-   "rawTone": -8,
-   "n": 426,
-   "entities": 47,
+   "bias": 11,
+   "rawTone": -7,
+   "n": 451,
+   "entities": 48,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": 97.68,
+     "dev": 97.63,
      "n": 6
     },
     {
      "entity": "Orkumál",
-     "dev": 68.73,
+     "dev": 68.35,
      "n": 7
+    },
+    {
+     "entity": "Utanríkisviðskipti",
+     "dev": 61.33,
+     "n": 8
+    },
+    {
+     "entity": "Tollar",
+     "dev": 60.61,
+     "n": 11
     },
     {
      "entity": "Landsvirkjun",
      "dev": 58.21,
      "n": 4
-    },
-    {
-     "entity": "Verslun",
-     "dev": 54.76,
-     "n": 8
-    },
-    {
-     "entity": "Tollar",
-     "dev": 52.31,
-     "n": 10
     }
    ]
   },
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -23,
-   "n": 27234,
+   "n": 27110,
    "entities": 166,
    "sample": [
     {
@@ -61,7 +61,7 @@
     },
     {
      "entity": "Krónan",
-     "dev": 24.85,
+     "dev": 24.81,
      "n": 22
     },
     {
@@ -73,15 +73,15 @@
   },
   {
    "s": "RÚV",
-   "bias": 1,
+   "bias": 0,
    "rawTone": -36,
-   "n": 9083,
+   "n": 9110,
    "entities": 156,
    "sample": [
     {
      "entity": "Tækni og hugbúnaður",
-     "dev": -114.56,
-     "n": 6
+     "dev": -86.81,
+     "n": 7
     },
     {
      "entity": "Kaupmáttur",
@@ -90,12 +90,12 @@
     },
     {
      "entity": "Hagar",
-     "dev": -61.8,
+     "dev": -62.33,
      "n": 4
     },
     {
      "entity": "Hátíðir og viðburðir",
-     "dev": 52.36,
+     "dev": 52.78,
      "n": 4
     },
     {
@@ -109,23 +109,18 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -38,
-   "n": 11412,
+   "n": 11393,
    "entities": 162,
    "sample": [
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -87.57,
+     "dev": -87.65,
      "n": 11
     },
     {
      "entity": "Samkeppnismál",
      "dev": -73.77,
      "n": 5
-    },
-    {
-     "entity": "Skel",
-     "dev": -69.14,
-     "n": 11
     },
     {
      "entity": "Áfengismál",
@@ -136,6 +131,11 @@
      "entity": "Vinnumálastofnun",
      "dev": 65.12,
      "n": 6
+    },
+    {
+     "entity": "Bílamarkaður",
+     "dev": -62.6,
+     "n": 11
     }
    ]
   },
@@ -143,12 +143,12 @@
    "s": "dv.is",
    "bias": -17,
    "rawTone": -55,
-   "n": 4296,
+   "n": 4265,
    "entities": 140,
    "sample": [
     {
      "entity": "Fjárlög",
-     "dev": 128.79,
+     "dev": 130.77,
      "n": 3
     },
     {
@@ -158,12 +158,12 @@
     },
     {
      "entity": "Hátíðir og viðburðir",
-     "dev": -105.97,
+     "dev": -105.56,
      "n": 6
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -94.06,
+     "dev": -94.15,
      "n": 7
     },
     {
@@ -175,35 +175,35 @@
   },
   {
    "s": "Heimildin",
-   "bias": -19,
-   "rawTone": -55,
-   "n": 33,
+   "bias": -17,
+   "rawTone": -51,
+   "n": 35,
    "entities": 5,
    "sample": [
     {
      "entity": "Gervigreind",
-     "dev": -41.91,
+     "dev": -42.12,
      "n": 5
     },
     {
      "entity": "Rússland",
-     "dev": -39.12,
+     "dev": -38.94,
      "n": 3
     },
     {
      "entity": "Bandaríkin",
-     "dev": -18.62,
-     "n": 11
-    },
-    {
-     "entity": "Evrópusambandið",
-     "dev": -10.04,
+     "dev": -18.88,
      "n": 11
     },
     {
      "entity": "Vextir",
-     "dev": 0.88,
-     "n": 3
+     "dev": -16.96,
+     "n": 4
+    },
+    {
+     "entity": "Evrópusambandið",
+     "dev": 1.14,
+     "n": 12
     }
    ]
   },
@@ -216,27 +216,27 @@
    "sample": [
     {
      "entity": "Bretland",
-     "dev": 94.89,
+     "dev": 95,
      "n": 3
     },
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.16,
+     "dev": -94.57,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -72.82,
+     "dev": -72.88,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -68.98,
+     "dev": -69.04,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -59.5,
+     "dev": -59.7,
      "n": 4
     }
    ]
