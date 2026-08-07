@@ -1,39 +1,39 @@
 {
- "updated": "2026-08-06",
+ "updated": "2026-08-07",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 11,
-   "rawTone": -7,
-   "n": 451,
-   "entities": 48,
+   "bias": 12,
+   "rawTone": -5,
+   "n": 471,
+   "entities": 50,
    "sample": [
     {
+     "entity": "Ferðaþjónusta",
+     "dev": 125.73,
+     "n": 3
+    },
+    {
      "entity": "Norðurlöndin",
-     "dev": 97.63,
+     "dev": 97.55,
      "n": 6
+    },
+    {
+     "entity": "Íþróttir",
+     "dev": 74.92,
+     "n": 3
+    },
+    {
+     "entity": "Utanríkisviðskipti",
+     "dev": 69.71,
+     "n": 9
     },
     {
      "entity": "Orkumál",
      "dev": 68.35,
      "n": 7
-    },
-    {
-     "entity": "Utanríkisviðskipti",
-     "dev": 61.33,
-     "n": 8
-    },
-    {
-     "entity": "Tollar",
-     "dev": 60.61,
-     "n": 11
-    },
-    {
-     "entity": "Landsvirkjun",
-     "dev": 58.21,
-     "n": 4
     }
    ]
   },
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -23,
-   "n": 27110,
+   "n": 27047,
    "entities": 166,
    "sample": [
     {
@@ -60,14 +60,14 @@
      "n": 17
     },
     {
-     "entity": "Krónan",
-     "dev": 24.81,
-     "n": 22
+     "entity": "Indó",
+     "dev": 25,
+     "n": 18
     },
     {
-     "entity": "Pólland",
-     "dev": 22.95,
-     "n": 70
+     "entity": "Krónan",
+     "dev": 24.77,
+     "n": 22
     }
    ]
   },
@@ -75,7 +75,7 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -36,
-   "n": 9110,
+   "n": 9156,
    "entities": 156,
    "sample": [
     {
@@ -89,11 +89,6 @@
      "n": 4
     },
     {
-     "entity": "Hagar",
-     "dev": -62.33,
-     "n": 4
-    },
-    {
      "entity": "Hátíðir og viðburðir",
      "dev": 52.78,
      "n": 4
@@ -102,6 +97,11 @@
      "entity": "Bílamarkaður",
      "dev": -50.48,
      "n": 3
+    },
+    {
+     "entity": "Kristrún Frostadóttir",
+     "dev": 49.7,
+     "n": 16
     }
    ]
   },
@@ -109,7 +109,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -38,
-   "n": 11393,
+   "n": 11394,
    "entities": 162,
    "sample": [
     {
@@ -143,12 +143,12 @@
    "s": "dv.is",
    "bias": -17,
    "rawTone": -55,
-   "n": 4265,
+   "n": 4260,
    "entities": 140,
    "sample": [
     {
      "entity": "Fjárlög",
-     "dev": 130.77,
+     "dev": 130.16,
      "n": 3
     },
     {
@@ -175,25 +175,25 @@
   },
   {
    "s": "Heimildin",
-   "bias": -17,
-   "rawTone": -51,
-   "n": 35,
+   "bias": -18,
+   "rawTone": -53,
+   "n": 36,
    "entities": 5,
    "sample": [
     {
      "entity": "Gervigreind",
-     "dev": -42.12,
+     "dev": -42.47,
      "n": 5
     },
     {
      "entity": "Rússland",
-     "dev": -38.94,
+     "dev": -39.27,
      "n": 3
     },
     {
      "entity": "Bandaríkin",
-     "dev": -18.88,
-     "n": 11
+     "dev": -22.1,
+     "n": 12
     },
     {
      "entity": "Vextir",
@@ -202,7 +202,7 @@
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 1.14,
+     "dev": 0.95,
      "n": 12
     }
    ]
@@ -216,27 +216,27 @@
    "sample": [
     {
      "entity": "Bretland",
-     "dev": 95,
+     "dev": 94.72,
      "n": 3
     },
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.57,
+     "dev": -94.13,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -72.88,
+     "dev": -72.53,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.04,
+     "dev": -69.12,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -59.7,
+     "dev": -59.99,
      "n": 4
     }
    ]
