@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-07",
+ "updated": "2026-08-08",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
@@ -7,18 +7,23 @@
    "s": "Viðskiptablaðið",
    "bias": 12,
    "rawTone": -5,
-   "n": 471,
-   "entities": 50,
+   "n": 502,
+   "entities": 53,
    "sample": [
     {
      "entity": "Ferðaþjónusta",
-     "dev": 125.73,
-     "n": 3
+     "dev": 124.54,
+     "n": 4
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 97.55,
+     "dev": 97.13,
      "n": 6
+    },
+    {
+     "entity": "Utanríkisviðskipti",
+     "dev": 83.89,
+     "n": 11
     },
     {
      "entity": "Íþróttir",
@@ -26,13 +31,8 @@
      "n": 3
     },
     {
-     "entity": "Utanríkisviðskipti",
-     "dev": 69.71,
-     "n": 9
-    },
-    {
      "entity": "Orkumál",
-     "dev": 68.35,
+     "dev": 67.63,
      "n": 7
     }
    ]
@@ -40,8 +40,8 @@
   {
    "s": "Vísir",
    "bias": 3,
-   "rawTone": -23,
-   "n": 27047,
+   "rawTone": -22,
+   "n": 26976,
    "entities": 166,
    "sample": [
     {
@@ -56,18 +56,18 @@
     },
     {
      "entity": "Landsnet",
-     "dev": 26.55,
+     "dev": 26.01,
+     "n": 17
+    },
+    {
+     "entity": "Vísindi og rannsóknir",
+     "dev": 25.91,
      "n": 17
     },
     {
      "entity": "Indó",
      "dev": 25,
      "n": 18
-    },
-    {
-     "entity": "Krónan",
-     "dev": 24.77,
-     "n": 22
     }
    ]
   },
@@ -75,18 +75,23 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -36,
-   "n": 9156,
+   "n": 9210,
    "entities": 156,
    "sample": [
     {
      "entity": "Tækni og hugbúnaður",
-     "dev": -86.81,
+     "dev": -86.24,
      "n": 7
     },
     {
      "entity": "Kaupmáttur",
      "dev": 75,
      "n": 4
+    },
+    {
+     "entity": "Ferðamannastaðir",
+     "dev": 53.85,
+     "n": 7
     },
     {
      "entity": "Hátíðir og viðburðir",
@@ -97,11 +102,6 @@
      "entity": "Bílamarkaður",
      "dev": -50.48,
      "n": 3
-    },
-    {
-     "entity": "Kristrún Frostadóttir",
-     "dev": 49.7,
-     "n": 16
     }
    ]
   },
@@ -109,12 +109,12 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -38,
-   "n": 11394,
+   "n": 11413,
    "entities": 162,
    "sample": [
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -87.65,
+     "dev": -87.32,
      "n": 11
     },
     {
@@ -143,17 +143,17 @@
    "s": "dv.is",
    "bias": -17,
    "rawTone": -55,
-   "n": 4260,
+   "n": 4242,
    "entities": 140,
    "sample": [
     {
      "entity": "Fjárlög",
-     "dev": 130.16,
+     "dev": 134.43,
      "n": 3
     },
     {
      "entity": "Landsnet",
-     "dev": -120.51,
+     "dev": -121.05,
      "n": 3
     },
     {
@@ -163,7 +163,7 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -94.15,
+     "dev": -93.81,
      "n": 7
     },
     {
@@ -175,35 +175,35 @@
   },
   {
    "s": "Heimildin",
-   "bias": -18,
-   "rawTone": -53,
-   "n": 36,
+   "bias": -20,
+   "rawTone": -54,
+   "n": 37,
    "entities": 5,
    "sample": [
     {
      "entity": "Gervigreind",
-     "dev": -42.47,
+     "dev": -44.18,
      "n": 5
     },
     {
      "entity": "Rússland",
-     "dev": -39.27,
+     "dev": -39.15,
      "n": 3
     },
     {
      "entity": "Bandaríkin",
-     "dev": -22.1,
+     "dev": -22.12,
      "n": 12
     },
     {
      "entity": "Vextir",
-     "dev": -16.96,
+     "dev": -16.57,
      "n": 4
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 0.95,
-     "n": 12
+     "dev": -4.47,
+     "n": 13
     }
    ]
   },
@@ -215,28 +215,28 @@
    "entities": 30,
    "sample": [
     {
-     "entity": "Bretland",
-     "dev": 94.72,
+     "entity": "Sveitarfélögin",
+     "dev": -94.29,
      "n": 3
     },
     {
-     "entity": "Sveitarfélögin",
-     "dev": -94.13,
+     "entity": "Bretland",
+     "dev": 92.69,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -72.53,
+     "dev": -72.43,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.12,
+     "dev": -69.54,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -59.99,
+     "dev": -59.93,
      "n": 4
     }
    ]
