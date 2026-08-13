@@ -57,7 +57,7 @@
  },
  "rateHouseCorr": -0.36,
  "corrHbs": -0.36,
- "corrLand": -0.43,
+ "corrLand": -0.42,
  "rateN": 145,
  "forecast": {
   "infl_bau": 2.6,
