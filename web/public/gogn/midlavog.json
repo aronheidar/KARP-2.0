@@ -1,13 +1,13 @@
 {
- "updated": "2026-08-15",
+ "updated": "2026-08-16",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Viðskiptablaðið",
-   "bias": 13,
-   "rawTone": -4,
-   "n": 640,
+   "bias": 12,
+   "rawTone": -5,
+   "n": 649,
    "entities": 62,
    "sample": [
     {
@@ -17,22 +17,22 @@
     },
     {
      "entity": "Ferðaþjónusta",
-     "dev": 121.58,
+     "dev": 121.77,
      "n": 4
     },
     {
      "entity": "Reykjanes",
-     "dev": 104.36,
+     "dev": 104.51,
      "n": 3
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 97.3,
+     "dev": 96.77,
      "n": 6
     },
     {
      "entity": "Utanríkisviðskipti",
-     "dev": 81.97,
+     "dev": 81.46,
      "n": 11
     }
    ]
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 26060,
+   "n": 25903,
    "entities": 166,
    "sample": [
     {
@@ -60,9 +60,9 @@
      "n": 14
     },
     {
-     "entity": "Krónan",
-     "dev": 26.57,
-     "n": 22
+     "entity": "Indó",
+     "dev": 27.91,
+     "n": 18
     },
     {
      "entity": "Tækni og hugbúnaður",
@@ -75,8 +75,8 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -36,
-   "n": 9538,
-   "entities": 157,
+   "n": 9572,
+   "entities": 158,
    "sample": [
     {
      "entity": "Samkaup",
@@ -90,7 +90,7 @@
     },
     {
      "entity": "Hagar",
-     "dev": -53.58,
+     "dev": -54.42,
      "n": 6
     },
     {
@@ -108,8 +108,8 @@
   {
    "s": "mbl.is",
    "bias": -2,
-   "rawTone": -38,
-   "n": 11354,
+   "rawTone": -37,
+   "n": 11355,
    "entities": 161,
    "sample": [
     {
@@ -141,24 +141,24 @@
   },
   {
    "s": "Heimildin",
-   "bias": -13,
+   "bias": -12,
    "rawTone": -48,
-   "n": 60,
+   "n": 61,
    "entities": 9,
    "sample": [
     {
      "entity": "Grænland",
-     "dev": -46.07,
+     "dev": -45.98,
      "n": 4
     },
     {
      "entity": "Rússland",
-     "dev": -40.72,
+     "dev": -40.47,
      "n": 3
     },
     {
      "entity": "Gervigreind",
-     "dev": -34.84,
+     "dev": -34.88,
      "n": 6
     },
     {
@@ -168,7 +168,7 @@
     },
     {
      "entity": "Kjaramál",
-     "dev": 31.08,
+     "dev": 31.21,
      "n": 3
     }
    ]
@@ -177,7 +177,7 @@
    "s": "dv.is",
    "bias": -19,
    "rawTone": -56,
-   "n": 4055,
+   "n": 4011,
    "entities": 139,
    "sample": [
     {
@@ -187,7 +187,7 @@
     },
     {
      "entity": "Hátíðir og viðburðir",
-     "dev": -105.97,
+     "dev": -107.41,
      "n": 6
     },
     {
@@ -201,9 +201,9 @@
      "n": 5
     },
     {
-     "entity": "Lífeyrismál",
-     "dev": -72.35,
-     "n": 7
+     "entity": "Jóhann Páll Jóhannsson",
+     "dev": -75,
+     "n": 4
     }
    ]
   },
@@ -216,22 +216,22 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.15,
+     "dev": -93.77,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 92.6,
+     "dev": 92.68,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -71.45,
+     "dev": -71.78,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -69.37,
+     "dev": -69.9,
      "n": 4
     },
     {
