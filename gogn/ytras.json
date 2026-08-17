@@ -1,10 +1,11 @@
 {
- "updated": "2026-08-10T06:13:28.260Z",
- "n": 14,
+ "updated": "2026-08-17T05:27:41.533Z",
+ "n": 27,
  "byCat": {
-  "midlar": 2,
+  "midlar": 14,
   "stofnanir": 1,
-  "fyrirtaeki": 11
+  "fyrirtaeki": 11,
+  "thingmenn": 1
  },
  "chans": [
   {
@@ -132,6 +133,110 @@
    "newest": "",
    "vids": null,
    "seed": true
+  },
+  {
+   "id": "UCDae8lfIFbueLLLmZVNm96w",
+   "n": "Heimildin",
+   "q": "Heimildin",
+   "cat": "midlar",
+   "newest": "2026-05-01",
+   "vids": 15
+  },
+  {
+   "id": "UC1OWbSL9KQvExPR8XIZwG-A",
+   "n": "Viðskiptablaðið",
+   "q": "Viðskiptablaðið",
+   "cat": "midlar",
+   "newest": "2026-02-08",
+   "vids": 4
+  },
+  {
+   "id": "UCLskUp_NF8-QERMYRDGp_VA",
+   "n": "Viðskiptablaðið Ritstjórn",
+   "q": "Viðskiptablaðið",
+   "cat": "midlar",
+   "newest": "2013-11-06",
+   "vids": 3
+  },
+  {
+   "id": "UC6Do04DwAPTvQ53FJN1q7zA",
+   "n": "DV Films",
+   "q": "DV Ísland",
+   "cat": "midlar",
+   "newest": "2026-07-20",
+   "vids": 15
+  },
+  {
+   "id": "UCnMTy_Mb2cjJ_mNrSoPIp2Q",
+   "n": "Mannlíf",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2021-11-18",
+   "vids": 15
+  },
+  {
+   "id": "UCkuS-5rTvwPg0LTvXn2cd8g",
+   "n": "Mannlíf",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2022-06-07",
+   "vids": 15
+  },
+  {
+   "id": "UCu6T6RgRz6jxiHJlxanwwJA",
+   "n": "Mannlíf tímarit",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2018-11-29",
+   "vids": 15
+  },
+  {
+   "id": "UCCigVZza6dnZfE3nOIZuTIQ",
+   "n": "Hringbraut",
+   "q": "Hringbraut",
+   "cat": "midlar",
+   "newest": "2023-03-20",
+   "vids": 15
+  },
+  {
+   "id": "UCe5dzlT9wEabzfPqBfN3Cgg",
+   "n": "Hringbraut miðlun",
+   "q": "Hringbraut",
+   "cat": "midlar",
+   "newest": "2019-02-15",
+   "vids": 4
+  },
+  {
+   "id": "UCA-XGqVmrjQN5T24XGYjXyg",
+   "n": "Útvarp Saga",
+   "q": "Útvarp Saga",
+   "cat": "midlar",
+   "newest": "2016-07-11",
+   "vids": 15
+  },
+  {
+   "id": "UClOgfJg84SaZhj3XAZwcQKw",
+   "n": "N4",
+   "q": "N4 sjónvarp",
+   "cat": "midlar",
+   "newest": "2023-02-03",
+   "vids": 15
+  },
+  {
+   "id": "UCWJPg5KCkgBpAfIE0ojjDxQ",
+   "n": "Kjarninn",
+   "q": "Kjarninn",
+   "cat": "midlar",
+   "newest": "2022-06-18",
+   "vids": 15
+  },
+  {
+   "id": "UCa5poP4CJHjc80a4uwBxj_A",
+   "n": "Ása Berglind Hjálmarsdóttir",
+   "q": "Ása Berglind Hjálmarsdóttir",
+   "cat": "thingmenn",
+   "newest": "2020-07-07",
+   "vids": 15
   }
  ]
 }
