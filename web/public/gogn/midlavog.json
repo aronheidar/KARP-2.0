@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-17",
+ "updated": "2026-08-18",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
@@ -7,8 +7,8 @@
    "s": "Viðskiptablaðið",
    "bias": 12,
    "rawTone": -5,
-   "n": 657,
-   "entities": 62,
+   "n": 675,
+   "entities": 63,
    "sample": [
     {
      "entity": "JBT Marel",
@@ -17,23 +17,23 @@
     },
     {
      "entity": "Ferðaþjónusta",
-     "dev": 122.09,
+     "dev": 122.12,
      "n": 4
     },
     {
+     "entity": "Hæstiréttur",
+     "dev": 112.52,
+     "n": 3
+    },
+    {
      "entity": "Reykjanes",
-     "dev": 104.42,
+     "dev": 104.32,
      "n": 3
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 96.4,
+     "dev": 95.96,
      "n": 6
-    },
-    {
-     "entity": "Utanríkisviðskipti",
-     "dev": 81.46,
-     "n": 11
     }
    ]
   },
@@ -41,7 +41,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 25745,
+   "n": 25600,
    "entities": 166,
    "sample": [
     {
@@ -51,7 +51,7 @@
     },
     {
      "entity": "Bílamarkaður",
-     "dev": 40.52,
+     "dev": 38.25,
      "n": 18
     },
     {
@@ -60,14 +60,14 @@
      "n": 17
     },
     {
-     "entity": "Áfengismál",
-     "dev": -28.02,
-     "n": 14
+     "entity": "Tækni og hugbúnaður",
+     "dev": 24.77,
+     "n": 54
     },
     {
-     "entity": "Tækni og hugbúnaður",
-     "dev": 25.59,
-     "n": 54
+     "entity": "Áfengismál",
+     "dev": -24.44,
+     "n": 15
     }
    ]
   },
@@ -75,7 +75,7 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -36,
-   "n": 9571,
+   "n": 9630,
    "entities": 158,
    "sample": [
     {
@@ -85,22 +85,22 @@
     },
     {
      "entity": "Tækni og hugbúnaður",
-     "dev": -88.43,
-     "n": 7
-    },
-    {
-     "entity": "Hagar",
-     "dev": -54.45,
-     "n": 6
+     "dev": -67.82,
+     "n": 8
     },
     {
      "entity": "Bílamarkaður",
-     "dev": -53.92,
+     "dev": -56.19,
      "n": 3
     },
     {
+     "entity": "Hagar",
+     "dev": -54.97,
+     "n": 6
+    },
+    {
      "entity": "Kaupmáttur",
-     "dev": 47.14,
+     "dev": 50,
      "n": 6
     }
    ]
@@ -109,12 +109,12 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -37,
-   "n": 11308,
-   "entities": 161,
+   "n": 11311,
+   "entities": 162,
    "sample": [
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -80.63,
+     "dev": -80.18,
      "n": 10
     },
     {
@@ -124,51 +124,51 @@
     },
     {
      "entity": "Vinnumálastofnun",
-     "dev": 66.67,
+     "dev": 65,
      "n": 6
     },
     {
-     "entity": "Pólland",
-     "dev": -62.29,
-     "n": 11
+     "entity": "Bílamarkaður",
+     "dev": -62.86,
+     "n": 10
     },
     {
-     "entity": "Bílamarkaður",
-     "dev": -60.59,
-     "n": 10
+     "entity": "Pólland",
+     "dev": -62.38,
+     "n": 11
     }
    ]
   },
   {
    "s": "Heimildin",
-   "bias": -11,
-   "rawTone": -47,
-   "n": 64,
-   "entities": 10,
+   "bias": -8,
+   "rawTone": -44,
+   "n": 73,
+   "entities": 12,
    "sample": [
     {
+     "entity": "Verðbólga",
+     "dev": 49.23,
+     "n": 3
+    },
+    {
      "entity": "Grænland",
-     "dev": -46.96,
+     "dev": -46.82,
      "n": 4
     },
     {
      "entity": "Rússland",
-     "dev": -39.68,
+     "dev": -39.33,
      "n": 3
     },
     {
      "entity": "Gervigreind",
-     "dev": -35.15,
+     "dev": -35.71,
      "n": 6
     },
     {
      "entity": "Atvinnuleysi",
      "dev": -33.33,
-     "n": 3
-    },
-    {
-     "entity": "Kjaramál",
-     "dev": 31.33,
      "n": 3
     }
    ]
@@ -177,7 +177,7 @@
    "s": "dv.is",
    "bias": -19,
    "rawTone": -56,
-   "n": 3981,
+   "n": 3946,
    "entities": 139,
    "sample": [
     {
@@ -191,18 +191,18 @@
      "n": 6
     },
     {
-     "entity": "Uppgjör og afkoma",
-     "dev": -83.96,
-     "n": 6
-    },
-    {
      "entity": "Landsvirkjun",
-     "dev": -83.94,
+     "dev": -83.55,
      "n": 5
     },
     {
+     "entity": "Uppgjör og afkoma",
+     "dev": -83.51,
+     "n": 6
+    },
+    {
      "entity": "Lífeyrismál",
-     "dev": -72.36,
+     "dev": -75.24,
      "n": 7
     }
    ]
@@ -216,27 +216,27 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -93.67,
+     "dev": -93.93,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 92.76,
+     "dev": 93.18,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -71.36,
+     "dev": -71.49,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -70.27,
+     "dev": -70.71,
      "n": 4
     },
     {
      "entity": "Festi",
-     "dev": 61.19,
+     "dev": 62.5,
      "n": 3
     }
    ]
