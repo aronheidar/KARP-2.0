@@ -1,0 +1,136 @@
+{
+ "kt": "5503213190",
+ "nafn": "M&G Fjárfestingar ehf.",
+ "sott": "2026-08-19",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.4239,
+    "hagnadarhlutfall": 0.266,
+    "ROE": 0.9955,
+    "ROA": 0.1417,
+    "eiginfjarhlutfall": 0.1423,
+    "veltufjarhlutfall": 0.4933,
+    "skuldahlutfall_DE": 5.8598,
+    "eignavelta": 0.5327
+   },
+   "rekstur": {
+    "adrar_tekjur": 496019,
+    "sala": 5658877,
+    "laun": 871114,
+    "annar_rekstur": 571174,
+    "afskriftir": 1058463,
+    "ebit": 2398797,
+    "fjarmunatekjur": 69745,
+    "fjarmagnsgjold": -333545,
+    "hagn_f_skatt": 1921142,
+    "tekjuskattur": -415814,
+    "hagnadur": 1505328
+   },
+   "efnahagur": {
+    "fastafjarmunir": 9642051,
+    "birgdir": 19272,
+    "vidskiptakrofur": 53017,
+    "handbaert": 827929,
+    "veltufjarmunir": 981540,
+    "eignir": 10623591,
+    "hlutafe": 500,
+    "eigid_fe": 1512160,
+    "langtimaskuldir": 7036134,
+    "skammtimaskuldir": 1824874,
+    "skuldir": 8861008
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.3198,
+    "hagnadarhlutfall": 0.1458,
+    "ROE": 0.3814,
+    "ROA": 0.0694,
+    "eiginfjarhlutfall": 0.182,
+    "veltufjarhlutfall": 0.6503,
+    "skuldahlutfall_DE": 4.3872,
+    "eignavelta": 0.4762
+   },
+   "rekstur": {
+    "adrar_tekjur": 719891,
+    "sala": 6394446,
+    "laun": 1175805,
+    "annar_rekstur": 926355,
+    "afskriftir": 1546105,
+    "ebit": 2045171,
+    "fjarmunatekjur": 60082,
+    "fjarmagnsgjold": -856596,
+    "hagn_f_skatt": 1193813,
+    "tekjuskattur": -261511,
+    "hagnadur": 932302
+   },
+   "efnahagur": {
+    "fastafjarmunir": 11582654,
+    "birgdir": 77147,
+    "vidskiptakrofur": 62776,
+    "handbaert": 1412338,
+    "veltufjarmunir": 1845481,
+    "eignir": 13428135,
+    "hlutafe": 500,
+    "eigid_fe": 2444462,
+    "langtimaskuldir": 8337354,
+    "skammtimaskuldir": 2387088,
+    "skuldir": 10724442
+   },
+   "starfsmenn": 92
+  },
+  "2024": {
+   "teg": "Samstæðureikningur",
+   "mynt": "ISK",
+   "kvardi": 1000,
+   "kpi": {
+    "ebit_hlutfall": 0.2052,
+    "hagnadarhlutfall": 0.1077,
+    "ROE": 0.2324,
+    "ROA": 0.0511,
+    "eiginfjarhlutfall": 0.2199,
+    "veltufjarhlutfall": 0.5359,
+    "skuldahlutfall_DE": 3.4627,
+    "eignavelta": 0.4748
+   },
+   "rekstur": {
+    "adrar_tekjur": 1032247,
+    "sala": 6874593,
+    "laun": 1449232,
+    "annar_rekstur": 1196786,
+    "afskriftir": 1707656,
+    "ebit": 1410446,
+    "fjarmunatekjur": 153103,
+    "fjarmagnsgjold": -850726,
+    "hagn_f_skatt": 904900,
+    "tekjuskattur": -164802,
+    "hagnadur": 740097
+   },
+   "efnahagur": {
+    "fastafjarmunir": 12670438,
+    "birgdir": 108381,
+    "vidskiptakrofur": 151293,
+    "handbaert": 1284178,
+    "veltufjarmunir": 1808209,
+    "eignir": 14478648,
+    "hlutafe": 500,
+    "eigid_fe": 3184559,
+    "langtimaskuldir": 8146142,
+    "skammtimaskuldir": 2881038,
+    "skuldir": 11027180
+   },
+   "starfsmenn": 109
+  }
+ },
+ "pdf": "pdf/5503213190.pdf",
+ "pdfAr": "2024"
+}
