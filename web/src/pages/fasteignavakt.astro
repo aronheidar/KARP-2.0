@@ -31,6 +31,7 @@ const jsonLd = {
     <div class="row fvm-row">
       <input id="fvm-addr" type="text" maxlength="60" placeholder="Heimilisfang MEÐ póstnúmeri — t.d. „Laugavegur 10, 101“" autocomplete="off" list="fv-addr-list" />
       <datalist id="fv-addr-list"></datalist>
+      <input id="fvm-ibud" type="text" maxlength="12" placeholder="Íbúð (t.d. 201)" autocomplete="off" title="Valfrjálst: íbúðarnúmer/merking. Kaupskrá HMS og staðfangaskrá bera ekki íbúðarnúmer, svo það er ekki sótt sjálfkrafa — en það fer í skýrsluhausinn, skráarheiti PDF-sins og vaktina." />
       <input id="fvm-fm" type="number" min="15" max="1200" placeholder="m²" />
       <select id="fvm-teg" aria-label="Tegund"><option value="Fjölbýli">Fjölbýli</option><option value="Sérbýli">Sérbýli</option><option value="Einbýli">Einbýli</option></select>
       <button id="fvm-go" class="cta">Meta</button>
@@ -139,6 +140,7 @@ const jsonLd = {
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-fsk { border-left: 3px solid #5a6678; padding-left: 8px; }
+    main[data-pg="fastvakt"] #fvm-ibud { flex: 0 0 118px; min-width: 0; }
     .fv-hn { border-left: 3px solid #f6b13b; padding-left: 8px; cursor: pointer; }
     .fv-hn:hover, .fv-hn:focus-visible { background: rgba(246,177,59,.06); outline: none; }
     /* Markaðsvísir efst (LOTA 66) */
@@ -535,10 +537,10 @@ const jsonLd = {
         if (!el) return;
         const vaktir = fvLoad();
         el.innerHTML = vaktir.length
-          ? '<div class="fvc-lbl">🔔 Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">🏠 ${esc(v.q || v.sv)}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
+          ? '<div class="fvc-lbl">🔔 Vaktir þínar — smelltu til að opna skýrslu:</div>' + vaktir.map((v, i) => `<span class="lvc" data-i="${i}" role="button" tabindex="0" title="Opna verðmatsskýrslu">🏠 ${esc(v.q || v.sv)}${v.ibud ? ' · íb. ' + esc(v.ibud) : ''}${v.q && v.sv ? ' · ' + esc(v.sv) : ''} <b></b><button class="lvc-x" title="Fjarlægja vakt" aria-label="Fjarlægja vakt">✕</button></span>`).join('')
           : '<span class="fv-sv">Engin vakt enn — flettu upp eign, smelltu á Meta og svo 🔔 Vakta.</span>';
         // smellur á vakt → opnar verðmatsskýrslu beint (flýtir á Meta fyrir þá eign)
-        const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; FVM_DEMO = false; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+        const openVakt = (i) => { const v = fvLoad()[i]; if (!v) return; const aEl = document.getElementById('fvm-addr'); if (!aEl) return; FVM_DEMO = false; aEl.value = v.q + (v.pn ? ', ' + v.pn : ''); const ibEl = document.getElementById('fvm-ibud'); if (ibEl) ibEl.value = v.ibud || ''; fvAutofill(aEl.value).then(() => fvmGo()); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
         el.querySelectorAll('.lvc').forEach((c) => {
           const i = +c.dataset.i;
           c.addEventListener('click', (e) => { if (!e.target.closest('.lvc-x')) openVakt(i); });
@@ -758,6 +760,7 @@ const jsonLd = {
         const raw = (document.getElementById('fvm-addr').value || '').trim();
         const fm = +(document.getElementById('fvm-fm').value || 0);
         const teg = document.getElementById('fvm-teg').value;
+        const ibud = (document.getElementById('fvm-ibud')?.value || '').trim().slice(0, 12);   // valfrjáls merking frá notanda
         if (raw.length < 3 || !(fm >= 15)) { fvmOut.hidden = false; fvmOut.innerHTML = '<div class="fvm-note">Sláðu inn heimilisfang og stærð í m² — eða veldu heimilisfang úr fléttilistanum að ofan.</div>'; return; }
         fvmOut.hidden = false;
         const u = await loadUser().catch(() => null);
@@ -981,7 +984,7 @@ const jsonLd = {
         }
 
         await fvmLoaderHold(fvmLoad0);   // vörumerkt lágmarks-hleðsla búin → birta matið sjálft
-        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)}${ibud ? ' · íbúð ' + esc(ibud) : ''} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${dIS(new Date().toISOString().slice(0, 10))} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
           + barHtml + leigaHtml + matHtml + bodyHtml + byggHtml
@@ -1068,7 +1071,7 @@ const jsonLd = {
         const a = fvLoad();
         const idx = a.findIndex((v) => v.q === q && (v.pn || '') === pn);
         if (idx >= 0) a.splice(idx, 1);                    // toggle af vakt
-        else if (a.length < 6) a.push({ q, sv: '', pn });
+        else if (a.length < 6) { const ibud = (document.getElementById('fvm-ibud')?.value || '').trim().slice(0, 12); a.push(ibud ? { q, sv: '', pn, ibud } : { q, sv: '', pn }); }
         else { const vb = document.getElementById('fvm-vakta'); if (vb) { vb.textContent = 'Hámark 6 vaktir'; setTimeout(paintVaktaBtn, 1800); } return; }
         fvSave(a); fvRender(); paintVaktaBtn();
       }
@@ -1084,7 +1087,11 @@ const jsonLd = {
         const addr = (document.getElementById('fvm-addr').value || '').trim();
         const rkey = 'fasteign:' + addr;
         const t0 = fvmBuyBtn.textContent; fvmBuyBtn.disabled = true; fvmBuyBtn.textContent = '…';
-        const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
+        // Skráarheiti PDF-sins: vafrinn notar document.title sem sjálfgefið heiti í „Vista sem PDF". Án þessa hét
+        // hver einasta skýrsla „🏠 Fasteignavaktin — gata, verðmat & uppboð | Karp". Nú: heimilisfang (+ íbúð) + dagsetning.
+        const ibudF = (document.getElementById('fvm-ibud')?.value || '').trim().slice(0, 12);
+        const pdfTitle = 'Verðmat ' + (fvmBuyBtn.dataset.demo === '1' ? 'Sólbrekka 7, 200 (sýnishorn)' : addr) + (ibudF ? ' íbúð ' + ibudF : '') + ' ' + dIS(new Date().toISOString().slice(0, 10)) + ' - karp.is';
+        const doPrint = () => { fvmBuyBtn.textContent = '✓ Útbý PDF…'; setTimeout(() => { const t0title = document.title; document.title = pdfTitle.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim(); document.body.classList.add('fvm-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fvm-printing'); document.title = t0title; fvmBuyBtn.textContent = t0; fvmBuyBtn.disabled = false; }, 600); }, 200); };
         if (fvmBuyBtn.dataset.demo === '1' || isAdmin() || hasReport(rkey) || hasSub('fasteign')) { doPrint(); return; }   // áskrifandi fær PDF án 990-gjalds
         let askHolf = document.getElementById('fvm-askell');
         if (!askHolf) { askHolf = document.createElement('div'); askHolf.id = 'fvm-askell'; const row = fvmBuyBtn.closest('.fvm-row'); if (row) row.after(askHolf); else fvmBuyBtn.after(askHolf); }
