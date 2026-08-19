@@ -168,3 +168,45 @@ test('metaUrSolusogu: sama stærð → engin breyting þótt teygni sé á', () 
 test('MAT: teygnin er hluti af deildu stillingunum', () => {
   assert.equal(MAT.teygni, -0.31);
 });
+
+// ── Fasteignamats-leiðin ──
+import { veljaMatHlutfall, metaUrFasteignamati, matDomur, tegLykill, MATHL } from '../src/lib/fasteignamat.mjs';
+const HL = {
+  byZone: { 2040: { g: { a: [1.011, 0.972, 1.057, 208], f: [1.011, 0.972, 1.056, 152], s: [1.01, 0.974, 1.066, 56] }, n: { a: [1.004, 0.965, 1.054, 208], f: [1.001, 0.964, 1.047, 152], s: [1.007, 0.97, 1.063, 56] } },
+    7: { g: { a: [1.2, 1.1, 1.3, 12], f: [1.25, 1.2, 1.3, 4], s: null }, n: { a: null, f: null, s: null } } },
+  byPn: { 260: { g: { a: [1.02, 0.98, 1.06, 300], f: [1.02, 0.98, 1.06, 220], s: [1.03, 0.99, 1.07, 80] }, n: { a: [1.01, 0.97, 1.05, 300], f: null, s: null } } },
+  land: { g: { a: [1.037, 0.978, 1.108, 8862], f: [1.04, 0.98, 1.1, 6000], s: [1.03, 0.97, 1.1, 2800] }, n: { a: [1.027, 0.971, 1.094, 8863], f: [1.03, 0.97, 1.09, 6000], s: [1.02, 0.96, 1.09, 2800] } },
+};
+test('tegLykill: fjölbýli→f, sérbýlis-tegundir→s, annað→null', () => {
+  assert.equal(tegLykill('Fjölbýli'), 'f'); assert.equal(tegLykill('Einbýli'), 's'); assert.equal(tegLykill('Raðhús'), 's'); assert.equal(tegLykill('Atvinnuhúsnæði'), null);
+});
+test('veljaMatHlutfall: svæði+tegund fyrst; þunn tegund (n<10) → svæði allt; ekkert svæði → pn → land; argerd n', () => {
+  const a = veljaMatHlutfall(HL, { zone: 2040, pn: '260', teg: 'Fjölbýli' });
+  assert.deepEqual([a.stig, a.teg, a.h[0]], ['svaedi', true, 1.011]);
+  const b = veljaMatHlutfall(HL, { zone: 7, pn: '260', teg: 'Fjölbýli' });          // f n=4 <10 → svæði allt (n=12)
+  assert.deepEqual([b.stig, b.teg, b.h[0]], ['svaedi', false, 1.2]);
+  const c = veljaMatHlutfall(HL, { zone: 999, pn: '260', teg: 'Einbýli' });         // ekkert svæði → pn+s
+  assert.deepEqual([c.stig, c.teg, c.h[0]], ['pn', true, 1.03]);
+  const d = veljaMatHlutfall(HL, { zone: null, pn: '999', teg: 'Einbýli' });        // ekkert pn → land+s
+  assert.deepEqual([d.stig, d.teg, d.h[0]], ['land', true, 1.03]);
+  const e = veljaMatHlutfall(HL, { zone: 7, pn: '260', teg: 'Fjölbýli', argerd: 'n' });   // svæði 7 hefur ekkert n → pn n.a (f null)
+  assert.deepEqual([e.stig, e.teg, e.h[0]], ['pn', false, 1.01]);
+  assert.equal(veljaMatHlutfall(null, { zone: 2040 }), null);
+  assert.equal(veljaMatHlutfall({ byZone: {}, byPn: {}, land: null }, { zone: 2040, pn: '260', teg: 'Fjölbýli' }), null);
+});
+test('metaUrFasteignamati: mat × miðgildi, bil q25..q75, null án mats/hlutfalls', () => {
+  const r = metaUrFasteignamati(47000, [1.011, 0.972, 1.057, 208]);
+  assert.ok(Math.abs(r.m - 47517) < 1 && Math.abs(r.lo - 45684) < 1 && Math.abs(r.hi - 49679) < 1 && r.n === 208);
+  assert.equal(metaUrFasteignamati(0, [1, 1, 1, 5]), null); assert.equal(metaUrFasteignamati(47000, null), null);
+});
+test('matDomur: frávik = (mat×hlutfall)/est − 1 með þröskuldum ±10%/±20%; matVaent = est/hlutfall', () => {
+  const h = [1.05, 1.0, 1.1, 100];
+  const a = matDomur(100, 90, h);      // est 100, mat 90 → est2 94,5 → −5,5% → í takt
+  assert.equal(a.domur, 'i_takt'); assert.ok(Math.abs(a.fravik + 0.055) < 1e-9); assert.ok(Math.abs(a.matVaent - 100 / 1.05) < 1e-9);
+  assert.equal(matDomur(100, 110, h).domur, 'hatt');        // 115,5 → +15,5%
+  assert.equal(matDomur(100, 120, h).domur, 'mjog_hatt');   // 126 → +26%
+  assert.equal(matDomur(100, 82, h).domur, 'lagt');         // 86,1 → −13,9%
+  assert.equal(matDomur(100, 70, h).domur, 'mjog_lagt');    // 73,5 → −26,5%
+  assert.equal(matDomur(0, 90, h), null); assert.equal(matDomur(100, 0, h), null);
+  assert.deepEqual(Object.keys(MATHL).sort(), ['hatt', 'min', 'mjog']);
+});

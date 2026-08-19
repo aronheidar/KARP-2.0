@@ -7,6 +7,7 @@
 import Layout from '../../layouts/Layout.astro';
 import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
 import ZS from '@gogn/matssvaedi_solur.json';
+import HL from '../../../public/gogn/hms/mat_hlutfall.json';   // kaupverð/fasteignamat sl. 12 mán per svæði (build_fasteignaskra.js)
 import { slugify, groupThousands } from '@lib/format.mjs';
 
 export function getStaticPaths() {
@@ -21,14 +22,31 @@ const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/);
 const mkr = (thk) => (thk >= 1000 ? (thk / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(thk) + ' þ.kr');
 const solur = (z && z.solur) || [];
 const canonical = `https://karp.is/fasteignaverd/${slugify(heiti)}/`;
-const title = `Fasteignaverð í ${heiti} — verð á fermetra, sölur og mat 2027 | Karp`;
-const desc = `Fasteignaverð í ${heiti}: ${z && z.medFjol ? 'miðgildi ' + groupThousands(z.medFjol) + ' þ.kr/m² í fjölbýli' : ''}${z && z.medSer ? (z && z.medFjol ? ', ' : 'miðgildi ') + groupThousands(z.medSer) + ' þ.kr/m² í sérbýli' : ''} sl. 12 mánuði úr þinglýstum kaupum (${z ? z.n12 : 0} sölur) · opinbert meðalverð HMS 2027 ${sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'}/${sv.m2_ser ? groupThousands(sv.m2_ser) : '–'} þ.kr/m² · fasteignamat 2027 breytist ${pcS(sv.br_fjol)} / ${pcS(sv.br_ser)}.`;
+const title = `Fasteignaverð — ${heiti}: verð á fermetra, sölur og mat 2027 | Karp`;   // heiti í nefnifalli → engin forsetning (Akranes ≠ „í Akranes")
+const desc = `${heiti} — fasteignaverð: ${z && z.medFjol ? 'miðgildi ' + groupThousands(z.medFjol) + ' þ.kr/m² í fjölbýli' : ''}${z && z.medSer ? (z && z.medFjol ? ', ' : 'miðgildi ') + groupThousands(z.medSer) + ' þ.kr/m² í sérbýli' : ''} sl. 12 mánuði úr þinglýstum kaupum (${z ? z.n12 : 0} sölur) · opinbert meðalverð HMS 2027 ${sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'}/${sv.m2_ser ? groupThousands(sv.m2_ser) : '–'} þ.kr/m² · fasteignamat 2027 breytist ${pcS(sv.br_fjol)} / ${pcS(sv.br_ser)}.`;
 const updated = (ZS.updated || '').slice(0, 10);
+// Fasteignamat vs kaupverð í svæðinu: [miðgildi, q25, q75, n] fyrir gildandi (g) og fyrirhugað (n) mat, allar íbúðir (a).
+const hl = (HL.byZone || {})[String(nr)] || null;
+const hlG = hl && hl.g && hl.g.a && hl.g.a[3] >= 10 ? hl.g.a : null, hlN = hl && hl.n && hl.n.a && hl.n.a[3] >= 10 ? hl.n.a : null;
+const pcH = (r) => (r >= 1 ? '+' : '−') + Math.abs((r - 1) * 100).toFixed(1).replace('.', ',') + '%';
+// Sparkline: 24 mánaða miðgildi þ.kr/m² (allar íbúðir; null = <3 sölur í mánuði → brúað)
+const man = (z && z.man) || null;
+let spark = null;
+if (man && man.med && man.med.filter((v) => v != null).length >= 8) {
+  const W = 320, Hh = 64, pad = 4;
+  const vals = man.med.slice(); let last = null; for (let i = 0; i < vals.length; i++) { if (vals[i] == null) vals[i] = last; else last = vals[i]; } for (let i = vals.length - 1; i >= 0; i--) { if (vals[i] == null) vals[i] = last; else last = vals[i]; }
+  const ok = vals.filter((v) => v != null);
+  const lo = Math.min(...ok), hi = Math.max(...ok), sp = (hi - lo) || 1;
+  const pts = vals.map((v, i) => v == null ? null : [pad + (i / (vals.length - 1)) * (W - 2 * pad), pad + (1 - (v - lo) / sp) * (Hh - 2 * pad)]).filter(Boolean);
+  const fra = man.fra, til = (() => { const [y, m] = fra.split('-').map(Number); const d = new Date(Date.UTC(y, m - 1 + man.med.length - 1, 1)); return d.toISOString().slice(0, 7); })();
+  spark = { W, H: Hh, d: pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '), lo, hi, fra, til, first: ok[0], last: ok[ok.length - 1], n: man.n.reduce((a, b) => a + b, 0) };
+}
+const manIS = (ym) => { const [y, m] = String(ym).split('-').map(Number); return ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'][m - 1] + ' ' + y; };
 ---
 <Layout title={title} description={desc} canonical={canonical}>
   <main data-pg="fasteignaverd">
     <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · <a href="/fasteignaverd/">Matssvæði HMS</a> · svæði {nr}</p>
-    <h1>Fasteignaverð í {heiti}</h1>
+    <h1>Fasteignaverð — {heiti}</h1>
     <p>Þinglýst kaup íbúðarhúsnæðis í matssvæðinu <strong>{heiti}</strong> (matssvæði HMS nr. {nr}) úr kaupskrá HMS, ásamt opinberu meðalverði og breytingu fasteignamats 2027. Vilt þú <a href="/fasteignavakt/">verðmeta eign í svæðinu</a>? Fasteignavaktin notar sömu sölur, stærðarleiðréttar, og sýnir matssvæðið á hverri eign.</p>
 
     <div class="kpis">
@@ -37,9 +55,22 @@ const updated = (ZS.updated || '').slice(0, 10);
       <div class="kpi"><div class="k-l">🏛️ HMS — meðalverð 2027</div><div class="k-v">{sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'} <small>/ {sv.m2_ser ? groupThousands(sv.m2_ser) : '–'}</small></div><div class="k-s">þús.kr/m² fjölbýli / sérbýli · fasteignamat 2027 <span class={(sv.br_fjol || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_fjol)}</span> / <span class={(sv.br_ser || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_ser)}</span></div></div>
     </div>
 
+    {spark && (
+      <div class="spark">
+        <div class="spark-l">Verð á fermetra í svæðinu, 24 mánuðir <small>({manIS(spark.fra)} – {manIS(spark.til)}, miðgildi hvers mánaðar, allar íbúðir, {groupThousands(spark.n)} kaup)</small></div>
+        <div class="spark-row">
+          <svg viewBox={`0 0 ${spark.W} ${spark.H}`} width={spark.W} height={spark.H} role="img" aria-label={`Miðgildi verðs á fermetra í svæðinu ${heiti} eftir mánuðum`}><path d={spark.d} fill="none" stroke="#f6b13b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" /></svg>
+          <div class="spark-s"><b>{groupThousands(spark.first)}</b> → <b>{groupThousands(spark.last)}</b> þús.kr/m² · lægst {groupThousands(spark.lo)} · hæst {groupThousands(spark.hi)}</div>
+        </div>
+      </div>
+    )}
+    {hlG && (
+      <p class="hl">🏛️ <strong>Fasteignamat vs. söluverð:</strong> íbúðir í svæðinu seldust að miðgildi <strong>{pcH(hlG[0])}</strong> {hlG[0] >= 1 ? 'yfir' : 'undir'} gildandi fasteignamati 2026 síðustu 12 mánuði (fjórðungsbil {pcH(hlG[1])} til {pcH(hlG[2])}, {groupThousands(hlG[3])} kaup){hlN ? <> og <strong>{pcH(hlN[0])}</strong> {hlN[0] >= 1 ? 'yfir' : 'undir'} fyrirhuguðu mati 2027</> : ''}. Í <a href="/fasteignavakt/">verðmati Karp</a> er matið á hverri eign borið saman við þetta hlutfall — „er fasteignamatið þitt rétt?".</p>
+    )}
+
     {solur.length > 0 ? (
       <>
-        <h2>Nýjustu þinglýstu kaupin í {heiti}</h2>
+        <h2>Nýjustu þinglýstu kaupin — {heiti}</h2>
         <div class="tw">
           <table>
             <thead><tr><th class="l">Heimilisfang</th><th>Þinglýst</th><th>Tegund</th><th>m²</th><th>Byggt</th><th>Kaupverð</th><th>þús.kr/m²</th></tr></thead>
@@ -67,7 +98,7 @@ const updated = (ZS.updated || '').slice(0, 10);
     <h2>Um matssvæðið</h2>
     <p>Matssvæði eru landfræðileg svæði sem HMS notar við ákvörðun fasteignamats; innan hvers þeirra er verðlag talið tiltölulega einsleitt. Fyrir fasteignamat 2027 gefur HMS upp meðalverð á fermetra í svæðinu — <strong>{sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'} þús.kr</strong> í fjölbýli og <strong>{sv.m2_ser ? groupThousands(sv.m2_ser) : '–'} þús.kr</strong> í sérbýli — og að matið breytist um <strong>{pcS(sv.br_fjol)}</strong> (fjölbýli) og <strong>{pcS(sv.br_ser)}</strong> (sérbýli) frá 2026. Svæðisstuðlar: fjölbýli {sv.st_fjol != null ? String(sv.st_fjol).replace('.', ',') : '–'} · sérbýli {sv.st_ser != null ? String(sv.st_ser).replace('.', ',') : '–'}.</p>
     <p class="note">⚠ Svæðamörk HMS eru ekki gefin út sem opin landupplýsingagögn. Karp varpar hverju heimilisfangi á svæði út frá staðsetningu næstu sala í opnu sölu-úrtaki HMS; heimilisföng við svæðamörk geta lent röngum megin. Heimildir: HMS — kaupskrá, fasteignamat 2027 (matssvæði, tölfræði og sölu-úrtak), staðfangaskrá.</p>
-    <p><a class="cta" href="/fasteignavakt/">🏠 Verðmeta eign í {heiti} →</a> &nbsp; <a href="/fasteignaverd/">Öll matssvæði →</a> &nbsp; <a href="/fasteignir/">Fasteignaverð á landinu →</a></p>
+    <p><a class="cta" href="/fasteignavakt/">🏠 Verðmeta eign í svæðinu →</a> &nbsp; <a href="/fasteignaverd/">Öll matssvæði →</a> &nbsp; <a href="/fasteignir/">Fasteignaverð á landinu →</a></p>
   </main>
 </Layout>
 
@@ -83,6 +114,12 @@ const updated = (ZS.updated || '').slice(0, 10);
   main[data-pg="fasteignaverd"] .k-v { font-size: 26px; font-weight: 800; margin: 2px 0; } main[data-pg="fasteignaverd"] .k-v small { font-size: 16px; color: var(--muted); font-weight: 600; }
   main[data-pg="fasteignaverd"] .k-s { font-size: 12px; color: var(--muted); }
   main[data-pg="fasteignaverd"] .up { color: #46e08a; } main[data-pg="fasteignaverd"] .dn { color: #ff6d7a; }
+  main[data-pg="fasteignaverd"] .spark { margin: 12px 0 4px; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); }
+  main[data-pg="fasteignaverd"] .spark-l { font-size: 12.5px; color: var(--muted); } main[data-pg="fasteignaverd"] .spark-l small { color: var(--faint); }
+  main[data-pg="fasteignaverd"] .spark-row { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 6px; }
+  main[data-pg="fasteignaverd"] .spark svg { max-width: 100%; height: auto; }
+  main[data-pg="fasteignaverd"] .spark-s { font-size: 13px; color: var(--muted); }
+  main[data-pg="fasteignaverd"] .hl { font-size: 13.5px; line-height: 1.55; padding: 8px 12px; border-radius: 10px; background: rgba(58,141,255,.08); border: 1px solid rgba(58,141,255,.25); }
   main[data-pg="fasteignaverd"] .tw { overflow-x: auto; }
   main[data-pg="fasteignaverd"] table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   main[data-pg="fasteignaverd"] th, main[data-pg="fasteignaverd"] td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: right; white-space: nowrap; }

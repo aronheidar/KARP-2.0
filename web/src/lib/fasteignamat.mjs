@@ -84,3 +84,49 @@ export function bakprof(sales, opts) {
     innan20: errs.filter((e) => e <= 0.20).length / errs.length,
   };
 }
+
+// ── FASTEIGNAMATS-LEIÐIN (19.8.2026) — annað, óháð mat úr gildandi fasteignamati × svæðis-hlutfalli ──
+// Kaupskrá HMS ber NÚGILDANDI fasteignamat hverrar seldrar eignar (2026) og fyrirhugað (2027) — snapshot við
+// útdrátt, ekki matið við söluna (mælt: matN/mat ≈ 1,01 í öllum sölumánuðum; kv/mat 0,98→1,056 2024-06→2026-08).
+// build_fasteignaskra.js reiknar miðgildi kaupverð/mat sl. 12 mán per matssvæði, póstnúmer og land
+// (web/public/gogn/hms/mat_hlutfall.json: [miðgildi, q25, q75, n] × g/n × a/f/s). Mælt á HMS-úrtaki (7.700 sölur
+// 2025-03→2026-02, strangt á undan): fasteignamat × svæðis-hlutfall 5,5% miðgildisskekkja / 75% innan ±10% —
+// sambærilegar sölur 6,5% / 67% á sama úrtaki; blanda bætir EKKI (5,7%). Tvö óháð möt → sýnd hlið við hlið.
+export const MATHL = { min: 10, hatt: 0.10, mjog: 0.20 };   // lágmarks-n per þrep · frávik „hátt/lágt" · „mjög"
+export const tegLykill = (teg) => (teg === 'Fjölbýli' ? 'f' : ['Sérbýli', 'Einbýli', 'Raðhús', 'Parhús'].includes(teg) ? 's' : null);
+
+// Velur hlutfall eftir þrepum: svæði+tegund → svæði allt → pn+tegund → pn allt → land+tegund → land allt.
+// H = mat_hlutfall.json; argerd 'g' (gildandi) | 'n' (fyrirhugað). Skilar { h:[med,q25,q75,n], stig, teg } eða null.
+export function veljaMatHlutfall(H, subj, opts) {
+  const o = Object.assign({}, MATHL, opts || {});
+  if (!H || !subj) return null;
+  const ag = subj.argerd === 'n' ? 'n' : 'g', tk = tegLykill(subj.teg);
+  const pick = (bag, stig) => {
+    if (!bag || !bag[ag]) return null;
+    if (tk && bag[ag][tk] && bag[ag][tk][3] >= o.min) return { h: bag[ag][tk], stig, teg: true };
+    if (bag[ag].a && bag[ag].a[3] >= o.min) return { h: bag[ag].a, stig, teg: false };
+    return null;
+  };
+  return pick(subj.zone != null && H.byZone ? H.byZone[String(subj.zone)] : null, 'svaedi')
+    || pick(subj.pn && H.byPn ? H.byPn[String(subj.pn)] : null, 'pn')
+    || pick(H.land, 'land');
+}
+
+// Mat út frá fasteignamati: mat × miðgildi hlutfalls; bil = mat × q25..q75. mat og niðurstaða í SÖMU einingu.
+export function metaUrFasteignamati(mat, h) {
+  if (!(mat > 0) || !h || !(h[0] > 0)) return null;
+  return { m: mat * h[0], lo: mat * h[1], hi: mat * h[2], n: h[3], hlutfall: h[0] };
+}
+
+// „Er fasteignamatið rétt?" — ber saman matið sem fasteignamatið gefur (mat × hlutfall) við mat sambærilegra (est).
+// fravik = est2/est − 1: jákvætt → fasteignamatið er HÁTT miðað við markaðsverð sambærilegra (m.v. hvernig svæðið
+// selst yfir/undir mati), neikvætt → lágt. est og mat í SÖMU einingu. Þröskuldar úr MATHL (±10% / ±20%) — báðar
+// aðferðir hafa ~6% miðgildisskekkju, svo minni munur er hávaði.
+export function matDomur(est, mat, h, opts) {
+  const o = Object.assign({}, MATHL, opts || {});
+  const r = metaUrFasteignamati(mat, h);
+  if (!r || !(est > 0)) return null;
+  const fravik = r.m / est - 1;
+  const domur = fravik > o.mjog ? 'mjog_hatt' : fravik > o.hatt ? 'hatt' : fravik < -o.mjog ? 'mjog_lagt' : fravik < -o.hatt ? 'lagt' : 'i_takt';
+  return { est2: r.m, lo: r.lo, hi: r.hi, hlutfall: r.hlutfall, n: r.n, fravik, domur, matVaent: est / r.hlutfall };   // matVaent = matið sem markaðsverðið gæfi
+}
