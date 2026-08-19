@@ -135,7 +135,8 @@ export async function authLoginHandler(request, env) {
 
 export const authLogoutHandler = () => _ajson({ ok: true }, { 'set-cookie': _sessCookie('', 0) });
 
-export const _svcOk = (s) => ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(s) >= 0;
+// 'leikur' = leikstjóra-leyfi — RÁS-leikurinn; Áskell service-vara (sama sub_service-mynstur og kvoti). Sjá leikstjoriOf().
+export const _svcOk = (s) => ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti', 'leikur'].indexOf(s) >= 0;
 
 const _tierOk = (t) => ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(t) >= 0;
 
@@ -287,6 +288,22 @@ export async function _prefGet(env, uid, k, dflt) {
 export async function accountOwner(env, u) {
   if (!u || !u.parent_account_id) return u;   // eigandi/sjálfstæður → sjálfur sig
   return (await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(u.parent_account_id).first().catch(() => null)) || u;
+}
+
+// Leikstjóra-leyfi (RÁS-leikurinn, /api/leikur/create): kerfisstjóri eða frí-aðgangur (_freeAll) EÐA virk
+// 'leikur'-þjónustu-áskrift á ACCOUNT-EIGANDANUM (sæta-sameign: meðlimir erfa leyfi eigandans — sama
+// SELECT og kvótavaktin/þingskýrslur/fasteign nota). Skilar { leikstjori, source:'admin'|'free'|'service'|null,
+// until: epoch-sek úr sub_service eða null }. `u` þarf id, is_admin, free_access, parent_account_id.
+export async function leikstjoriOf(env, u, now) {
+  const nei = { leikstjori: false, source: null, until: null };
+  if (!u) return nei;
+  if (u.is_admin === 1) return { leikstjori: true, source: 'admin', until: null };
+  if (u.free_access === 1) return { leikstjori: true, source: 'free', until: null };
+  if (!env || !env.TENGSL) return nei;
+  now = now || Math.floor(Date.now() / 1000);
+  const owner = await accountOwner(env, u);
+  const s = await env.TENGSL.prepare('SELECT * FROM sub_service WHERE user_id=? AND service=? AND until>?').bind(owner.id, 'leikur', now).first().catch(() => null);
+  return s ? { leikstjori: true, source: 'service', until: s.until || null } : nei;
 }
 
 export async function _inviteEligible(env, u, ownerId, now) {

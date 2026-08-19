@@ -12,7 +12,7 @@ import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, 
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
-import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatchCap, _monthStr, _nextMonth, _prefGet, _prefSet, _seatsCap, _sendVerifyEmail, _svcOk, accountOwner, authForgotHandler, authLoginHandler, authLogoutHandler, authRegisterHandler, authResendVerifyHandler, authResetHandler, authSaveKtHandler, authVerifyHandler, grantReportD1, grantSubD1, readSession, trialUsedD1, userPayload } from './src/worker/auth.mjs';
+import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatchCap, _monthStr, _nextMonth, _prefGet, _prefSet, _seatsCap, _sendVerifyEmail, _svcOk, accountOwner, authForgotHandler, authLoginHandler, authLogoutHandler, authRegisterHandler, authResendVerifyHandler, authResetHandler, authSaveKtHandler, authVerifyHandler, grantReportD1, grantSubD1, leikstjoriOf, readSession, trialUsedD1, userPayload } from './src/worker/auth.mjs';
 import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payCheckoutHandler, payReturnHandler, stakCheckoutHandler, stakConfirmHandler, sub2CheckoutHandler, sub2ConfirmHandler, subCancelHandler } from './src/worker/greidslur.mjs';
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
@@ -2470,8 +2470,10 @@ export default {
     if (url.pathname.startsWith('/api/u/')) return userDataHandler(request, env);   // F6: períferu notenda-gögn
     if (url.pathname.startsWith('/api/leikur')) {   // RÁS-Leikurinn (kennsluleikur)
       const luid = await readSession(env, request);
-      const lu = luid ? await env.TENGSL.prepare('SELECT is_admin, nemandi FROM users WHERE id=?').bind(luid).first().catch(() => null) : null;
-      const gameUser = { uid: luid || 0, isAdmin: !!(lu && lu.is_admin === 1), nemandi: !!(lu && lu.nemandi === 1) };
+      const lu = luid ? await env.TENGSL.prepare('SELECT id, is_admin, nemandi, free_access, parent_account_id FROM users WHERE id=?').bind(luid).first().catch(() => null) : null;
+      // leikstjóra-leyfi (create): kerfisstjóri/frí (_freeAll) EÐA virk 'leikur'-þjónustu-áskrift á account-eigandanum (sæta-sameign) — ein auka D1-fyrirspurn, leikur-köll eru fá. Sjá leikstjoriOf() í auth.mjs.
+      const lk = await leikstjoriOf(env, lu);
+      const gameUser = { uid: luid || 0, isAdmin: !!(lu && lu.is_admin === 1), nemandi: !!(lu && lu.nemandi === 1), leikstjori: lk.leikstjori, leikstjoriSource: lk.source, leikstjoriUntil: lk.until };
       return leikurHandler(request, env, ctx, gameUser);
     }
     if (url.pathname.startsWith('/api/kyc/')) return kycHandler(request, env, ctx);   // KYC v1: Áreiðanleikavaktin

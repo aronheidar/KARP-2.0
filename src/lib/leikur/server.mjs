@@ -44,21 +44,43 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
+// Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
+// sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
+// svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
+async function lockBots(env, code, round, botIds) {
+  for (const tid of botIds || []) {
+    const row = await env.TENGSL.prepare('SELECT decisions, locked FROM leikur_decisions WHERE game_code=? AND round=? AND team_id=?').bind(code, round, tid).first().catch(() => null);
+    if (row && row.locked) continue;
+    await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)')
+      .bind(code, round, tid, (row && row.decisions) || '{}', 1, now()).run().catch(() => null);
+  }
+}
 // Fasi A: markmið per kjörtímabil f. sjálfgefna leiki; sérsniðnir leikir halda föstu mandate úr config.
 function mandateAt(cfg, round) { return cfg.perRound ? mandateFor(round) : cfg.mandate; }
 const LEVER_LABELS = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.label]));
 const LEVER_BASE = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.base]));
 
-export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAdmin: false, nemandi: false }) {
+export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAdmin: false, nemandi: false, leikstjori: false }) {
   if (!env.TENGSL) return sjson({ error: 'no-d1' }, 503);
   const url = new URL(request.url);
   const parts = url.pathname.replace(/^\/api\/leikur\/?/, '').split('/').filter(Boolean); // [] | ['create'] | ['<code>','join'|'state'|'decisions'|'control']
   const method = request.method;
 
-  // POST /create — aðeins kerfisstjóri (leikstjóri) má stofna leik.
+  // GET /me — leikstjóra-staða innskráðs notanda f. onboarding-vísi + sölusíðu (client). uid=0 → leikstjori:false.
+  // gameUser.leikstjori/leikstjoriSource/leikstjoriUntil eru leidd í worker-dispatch (leikstjoriOf í auth.mjs):
+  // source 'admin' (is_admin) | 'free' (free_access) | 'service' (virk 'leikur'-áskrift á account-eiganda, until=epoch-sek).
+  if (parts[0] === 'me' && method === 'GET') {
+    if (!(gameUser.uid > 0)) return sjson({ leikstjori: false, isAdmin: false, nemandi: false, until: null, source: null, loggedIn: false });
+    const lk = !!gameUser.leikstjori;
+    return sjson({ leikstjori: lk, isAdmin: !!gameUser.isAdmin, nemandi: !!gameUser.nemandi,
+      until: (lk && gameUser.leikstjoriUntil > 0) ? new Date(gameUser.leikstjoriUntil * 1000).toISOString() : null,
+      source: lk ? (gameUser.leikstjoriSource || null) : null, loggedIn: true });
+  }
+
+  // POST /create — aðeins leikstjóri (kerfisstjóri/frí-aðgangur EÐA virk 'leikur'-þjónustu-áskrift; sjá leikstjoriOf) má stofna leik.
   if (parts[0] === 'create' && method === 'POST') {
-    if (!gameUser.isAdmin) return sjson({ error: 'kerfisstjori' }, 403);
+    if (!gameUser.leikstjori) return sjson({ error: 'leikstjori' }, 403);
     await ensureTables(env);
     const cb = await request.json().catch(() => ({}));
     let config = { rounds: ROUNDS, scenarioId: SCENARIO.id };
@@ -85,9 +107,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
   if (!game) return sjson({ error: 'not-found' }, 404);
   const cfg = gameCfg(game);
 
-  // POST /<code>/join (aðeins í lobby) — nemandi eða kerfisstjóri, innskráð/ur.
+  // POST /<code>/join (aðeins í lobby) — nemandi, kerfisstjóri eða leikstjóri (má prófa eigin leik), innskráð/ur.
   if (action === 'join' && method === 'POST') {
-    if (!(gameUser.isAdmin || gameUser.nemandi)) return sjson({ error: 'nemandi' }, 403);
+    if (!(gameUser.isAdmin || gameUser.nemandi || gameUser.leikstjori)) return sjson({ error: 'nemandi' }, 403);
     if (game.phase !== 'lobby') return sjson({ error: 'started' }, 409);
     const b = await request.json().catch(() => ({}));
     const name = String(b.name || '').trim().slice(0, 40) || 'Lið';
@@ -95,6 +117,26 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     const teamId = res && res.meta ? res.meta.last_row_id : null;
     if (!teamId) return sjson({ error: 'join-failed' }, 500);
     return sjson({ teamId, teamToken: await signToken(env, { code, role: 'team', teamId }) });
+  }
+
+  // POST /<code>/bot-team (fac-tákn, aðeins í lobby) — æfingalið leikstjóra: stofnar EITT lið merkt bot (id geymt í config.bots),
+  // svo leikstjóri geti prófað hringrásina ein/n. Þjónninn læsir hlutlausum ákvörðunum sjálfkrafa (lockBots). Idempotent: til → sama teamId.
+  // Skilar ENGU liðs-tákni (bot-ið á enga lotu; uppgjörið gefur því óbreytt Ísland).
+  if (action === 'bot-team' && method === 'POST') {
+    const you = await verifyToken(env, bearer(request));
+    if (!you || you.role !== 'fac' || you.code !== code) return sjson({ error: 'auth' }, 401);
+    if (game.phase !== 'lobby') return sjson({ error: 'started' }, 409);
+    let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
+    const existing = (cfg.bots || [])[0];
+    if (existing) return sjson({ teamId: existing, bot: true, existing: true });
+    const b = await request.json().catch(() => ({}));
+    const name = String(b.name || '').trim().slice(0, 40) || 'Æfingalið (sjálfvirkt)';
+    const res = await env.TENGSL.prepare('INSERT INTO leikur_teams (game_code, name, joined) VALUES (?,?,?)').bind(code, name, now()).run().catch(() => null);
+    const teamId = res && res.meta ? res.meta.last_row_id : null;
+    if (!teamId) return sjson({ error: 'join-failed' }, 500);
+    cobj.bots = [teamId];
+    await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
+    return sjson({ teamId, bot: true });
   }
 
   // GET /<code>/state
@@ -105,7 +147,8 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     // uppsafnað per lið (nýjasta cumulative)
     const cum = {}; for (const r of resultsRaw) cum[r.team_id] = Math.max(cum[r.team_id] ?? -1, r.cumulative);
     const ev = cfg.scenario.events[(game.current_round || 1) - 1] || null;
-    const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0 }));
+    const botSet = new Set(cfg.bots || []);
+    const teams = teamsRaw.map((t) => ({ id: t.id, name: t.name, cumulative: cum[t.id] ?? 0, ...(botSet.has(t.id) ? { bot: true } : {}) }));
     const roundResults = resultsRaw.filter((r) => r.round === game.current_round).map((r) => ({ teamId: r.team_id, roundScore: r.round_score, cumulative: r.cumulative, detail: JSON.parse(r.kpis || '{}') }));
     // Umboð per áhorfanda: lið sér SITT hlutverks-umboð; leynd á hlutverkum hinna.
     let outMandate = scaleMandate(mandateAt(cfg, game.current_round), difficultyOf(cfg.difficulty).band), youRole = null;
@@ -225,7 +268,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const lockedOf = {}; for (const lr of lockRows) lockedOf[lr.team_id] = !!lr.locked;
       if (out.you && out.you.role === 'team') out.you.locked = !!lockedOf[out.you.teamId];
-      if (you && you.role === 'fac' && you.code === code) out.lockRoster = teamsRaw.map((t) => ({ teamId: t.id, name: t.name, locked: !!lockedOf[t.id] }));
+      if (you && you.role === 'fac' && you.code === code) out.lockRoster = teamsRaw.map((t) => ({ teamId: t.id, name: t.name, locked: !!lockedOf[t.id], ...(botSet.has(t.id) ? { bot: true } : {}) }));
       if (cfg.mode === 'studio' && you && you.role === 'team' && you.code === code) {
         const myRows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, you.teamId).all().catch(() => ({ results: [] }))).results) || [];
         const byR = {}; for (const rr of myRows) { try { byR[rr.round] = JSON.parse(rr.decisions || '{}'); } catch (e) {} }
@@ -347,6 +390,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       }
       if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec; // #3 umferðar-klukka
       await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', 1, code).run().catch(() => null);
+      await lockBots(env, code, 1, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
       return sjson({ ok: true, phase: 'decide', round: 1 });
     }
     if (act === 'stop') { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
@@ -360,12 +404,14 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       } else {
         await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', nr, code).run().catch(() => null);
       }
+      await lockBots(env, code, nr, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
       return sjson({ ok: true, phase: 'decide', round: nr });
     }
     if (act === 'resolve') {
       // idempotent: sleppa ef þegar leyst fyrir þessa umferð
       const done = await env.TENGSL.prepare('SELECT team_id FROM leikur_results WHERE game_code=? AND round=? LIMIT 1').bind(code, game.current_round).first().catch(() => null);
       if (done || game.phase === 'resolved') return sjson({ ok: true, phase: 'resolved' });
+      await lockBots(env, code, game.current_round, cfg.bots);   // öryggisnet: bot-lið án læstrar raðar → óbreytt drög + locked
       const teams = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
       for (const tm of teams) {
         // öll ákvörðunasaga liðs, umferð 1..current

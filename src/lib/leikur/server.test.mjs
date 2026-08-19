@@ -1,6 +1,7 @@
 import { signToken, verifyToken, leikurHandler } from './server.mjs';
-// Prófin keyra öll sem kerfisstjóri (má stofna+ganga inn) — gátt á create/join er ný (sjá worker-dispatch).
-const GU = { uid: 1, isAdmin: true, nemandi: true };
+// Prófin keyra öll sem kerfisstjóri+leikstjóri (má stofna+ganga inn) — gátt á create/join er leidd í worker-dispatch
+// (leikstjoriOf í auth.mjs setur leikstjori/leikstjoriSource/leikstjoriUntil); create krefst leikstjori, join nemandi|isAdmin|leikstjori.
+const GU = { uid: 1, isAdmin: true, nemandi: true, leikstjori: true, leikstjoriSource: 'admin', leikstjoriUntil: null };
 const LH = (r, e, c, g) => leikurHandler(r, e, c, g || GU);
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 
@@ -13,6 +14,7 @@ function mockD1() {
     if (s.startsWith('CREATE TABLE') || s.startsWith('CREATE INDEX')) return { meta: {} };
     if (s.startsWith('INSERT INTO leikur_games')) { t.leikur_games.push({ code: args[0], config: args[1], phase: args[2], current_round: args[3], created: args[4] }); return { meta: {} }; }
     if (s.startsWith('INSERT INTO leikur_teams')) { const id = auto++; t.leikur_teams.push({ id, game_code: args[0], name: args[1], joined: args[2] }); return { meta: { last_row_id: id } }; }
+    if (s.startsWith('UPDATE leikur_games SET config=? WHERE')) { const g = t.leikur_games.find((x) => x.code === args[1]); if (g) g.config = args[0]; return { meta: {} }; }   // bot-team: config eitt sér
     if (s.startsWith('UPDATE leikur_games SET config')) { const g = t.leikur_games.find((x) => x.code === args[3]); if (g) { g.config = args[0]; g.phase = args[1]; g.current_round = args[2]; } return { meta: {} }; }
     if (s.startsWith('UPDATE leikur_games SET phase')) { const g = t.leikur_games.find((x) => x.code === args[args.length - 1]); if (g) { g.phase = args[0]; if (args.length === 3) g.current_round = args[1]; } return { meta: {} }; }
     if (s.startsWith('INSERT INTO leikur_decisions') || s.startsWith('INSERT OR REPLACE INTO leikur_decisions')) {
@@ -29,6 +31,7 @@ function mockD1() {
     if (s.startsWith('SELECT') && s.includes('FROM leikur_games')) return t.leikur_games.find((x) => x.code === args[0]) || null;
     if (s.includes('FROM leikur_results') && s.includes('team_id=?') && s.includes('round=?')) { const r = t.leikur_results.find((x) => x.game_code === args[0] && x.team_id === args[1] && x.round === args[2]); return r || null; }
     if (s.includes('FROM leikur_results') && s.includes('round=?')) return t.leikur_results.find((x) => x.game_code === args[0] && x.round === args[1]) || null;
+    if (s.includes('FROM leikur_decisions') && s.includes('round=?') && s.includes('team_id=?')) return t.leikur_decisions.find((x) => x.game_code === args[0] && x.round === args[1] && x.team_id === args[2]) || null;   // lockBots
     return null; };
   const all = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
     if (s.includes('FROM leikur_teams')) return { results: t.leikur_teams.filter((x) => x.game_code === args[0]) };
@@ -369,6 +372,89 @@ const J = async (res) => JSON.parse(await res.text());
   ok('politikFerill: skattahækkanir → vinstri (stig ≤ −25, round 1)', !!pfA && pfA.ferill[0].round === 1 && pfA.ferill[0].flokkur === 'vinstri' && pfA.ferill[0].stig <= -25);
   ok('politikFerill: skattalækkanir → hægri (stig ≥ 25)', !!pfB && pfB.ferill[0].flokkur === 'haegri' && pfB.ferill[0].stig >= 25);
   ok('politikFerill: EKKI í klassískum ended-leik', (await J(await rState(rc.facToken))).politikFerill === undefined);
+
+  // ── Leikstjóra-entitlement (Verk A): create krefst leikstjori (ekki lengur isAdmin), join leyfir leikstjóra, GET /me ──
+  const UNTIL = Math.floor(Date.now() / 1000) + 30 * 86400;
+  const svcUser = { uid: 42, isAdmin: false, nemandi: false, leikstjori: true, leikstjoriSource: 'service', leikstjoriUntil: UNTIL };   // keypt 'leikur'-áskrift
+  const plainUser = { uid: 43, isAdmin: false, nemandi: false, leikstjori: false, leikstjoriSource: null, leikstjoriUntil: null };
+  const nemUser = { uid: 44, isAdmin: false, nemandi: true, leikstjori: false, leikstjoriSource: null, leikstjoriUntil: null };
+  const anon = { uid: 0, isAdmin: false, nemandi: false, leikstjori: false };
+  const eCreate = await LH(req('/api/leikur/create', {}), env, null, svcUser);
+  const eCr = await J(eCreate);
+  ok('entitlement: create m/ leikstjori:true (ekki admin) → 200 + code+facToken', eCreate.status === 200 && !!eCr.code && !!eCr.facToken);
+  const eDeny = await LH(req('/api/leikur/create', {}), env, null, plainUser);
+  ok('entitlement: create m/ leikstjori:false → 403 leikstjori', eDeny.status === 403 && (await J(eDeny)).error === 'leikstjori');
+  const eDenyNem = await LH(req('/api/leikur/create', {}), env, null, nemUser);
+  ok('entitlement: nemandi án leikstjóra-leyfis má EKKI stofna (403 leikstjori)', eDenyNem.status === 403 && (await J(eDenyNem)).error === 'leikstjori');
+  const eDenyAdminless = await LH(req('/api/leikur/create', {}), env, null, { uid: 1, isAdmin: true, nemandi: true, leikstjori: false });
+  ok('entitlement: gáttin les leikstjori-sviðið (isAdmin án leikstjori → 403)', eDenyAdminless.status === 403);
+  const eJoin = await LH(req('/api/leikur/' + eCr.code + '/join', { name: 'Leikstjóra-lið' }), env, null, svcUser);
+  ok('entitlement: leikstjóri (ekki admin/nemandi) má join-a eigin leik', eJoin.status === 200 && !!(await J(eJoin)).teamToken);
+  const eJoinNem = await LH(req('/api/leikur/' + eCr.code + '/join', { name: 'Nemandi' }), env, null, nemUser);
+  ok('entitlement: nemandi má join-a leik leikstjóra', eJoinNem.status === 200 && !!(await J(eJoinNem)).teamId);
+  const eJoinPlain = await LH(req('/api/leikur/' + eCr.code + '/join', { name: 'X' }), env, null, plainUser);
+  ok('entitlement: venjulegur notandi má EKKI join-a (403 nemandi)', eJoinPlain.status === 403 && (await J(eJoinPlain)).error === 'nemandi');
+  const eJoinAnon = await LH(req('/api/leikur/' + eCr.code + '/join', { name: 'X' }), env, null, anon);
+  ok('entitlement: óinnskráður má EKKI join-a (403)', eJoinAnon.status === 403);
+  const meReq = () => new Request('https://karp.is/api/leikur/me');
+  const meSvc = await J(await LH(meReq(), env, null, svcUser));
+  ok('/me (service-leikstjóri): leikstjori:true, source service, until=ISO úr sub_service', meSvc.leikstjori === true && meSvc.source === 'service' && meSvc.until === new Date(UNTIL * 1000).toISOString() && meSvc.isAdmin === false && meSvc.nemandi === false && meSvc.loggedIn === true);
+  const meAdm = await J(await LH(meReq(), env, null, GU));
+  ok('/me (kerfisstjóri): leikstjori:true, source admin, until null, isAdmin+nemandi', meAdm.leikstjori === true && meAdm.source === 'admin' && meAdm.until === null && meAdm.isAdmin === true && meAdm.nemandi === true);
+  const meFree = await J(await LH(meReq(), env, null, { uid: 7, isAdmin: false, nemandi: false, leikstjori: true, leikstjoriSource: 'free', leikstjoriUntil: null }));
+  ok('/me (frí-aðgangur): source free', meFree.leikstjori === true && meFree.source === 'free' && meFree.until === null);
+  const mePlain = await J(await LH(meReq(), env, null, plainUser));
+  ok('/me (innskráður án leyfis): leikstjori:false, source null, until null, loggedIn true', mePlain.leikstjori === false && mePlain.source === null && mePlain.until === null && mePlain.loggedIn === true);
+  const meNem = await J(await LH(meReq(), env, null, nemUser));
+  ok('/me (nemandi): leikstjori:false en nemandi:true', meNem.leikstjori === false && meNem.nemandi === true);
+  const meAnonRes = await LH(meReq(), env, null, anon);
+  const meAnon = await J(meAnonRes);
+  ok('/me (uid=0): 200 + leikstjori:false, allt null/false', meAnonRes.status === 200 && meAnon.leikstjori === false && meAnon.isAdmin === false && meAnon.nemandi === false && meAnon.until === null && meAnon.source === null && meAnon.loggedIn === false);
+  ok('/me (sjálfgefinn gameUser): leikstjori:false', (await J(await leikurHandler(meReq(), env, null))).leikstjori === false);
+  ok('/me er GET-aðeins: POST /me → EKKI me-svar (fellur á not-found)', (await LH(new Request('https://karp.is/api/leikur/me', { method: 'POST' }), env, null, svcUser)).status === 404);
+
+  // ── Æfingalið (bot-team, server-hluti verks B): fac-tákn-gætt, aðeins lobby, idempotent, þjónninn læsir {} sjálfkrafa ──
+  {
+    const bc = await J(await LH(req('/api/leikur/create', {}), env, null, svcUser));
+    const bfac = { 'content-type': 'application/json', authorization: 'Bearer ' + bc.facToken };
+    const bpost = (path, body, hdr) => LH(new Request('https://karp.is/api/leikur/' + bc.code + path, { method: 'POST', headers: hdr || bfac, body: JSON.stringify(body || {}) }), env, null, plainUser);
+    const bstate = async (tok) => J(await LH(new Request('https://karp.is/api/leikur/' + bc.code + '/state', { headers: { authorization: 'Bearer ' + tok } }), env, null, plainUser));
+    const noTok = await bpost('/bot-team', { name: 'X' }, { 'content-type': 'application/json' });
+    ok('bot-team: án fac-tákns → 401 auth', noTok.status === 401 && (await J(noTok)).error === 'auth');
+    const tmTok = (await J(await LH(req('/api/leikur/' + bc.code + '/join', { name: 'Raun-lið' }), env, null, nemUser))).teamToken;
+    const teamTry = await bpost('/bot-team', {}, { 'content-type': 'application/json', authorization: 'Bearer ' + tmTok });
+    ok('bot-team: liðs-tákn dugar EKKI (401)', teamTry.status === 401);
+    const otherFac = await signToken(env, { code: 'ZZZZZ', role: 'fac' });
+    ok('bot-team: fac-tákn ANNARS leiks → 401', (await bpost('/bot-team', {}, { 'content-type': 'application/json', authorization: 'Bearer ' + otherFac })).status === 401);
+    const b1r = await bpost('/bot-team', { name: 'Æfingalið (sjálfvirkt)' });
+    const b1 = await J(b1r);
+    ok('bot-team: fac-tákn → 200 + teamId + bot:true, EKKERT teamToken', b1r.status === 200 && b1.teamId > 0 && b1.bot === true && b1.teamToken === undefined);
+    const b2 = await J(await bpost('/bot-team', { name: 'Annað' }));
+    ok('bot-team: idempotent — annað kall skilar sama teamId (existing)', b2.teamId === b1.teamId && b2.existing === true);
+    const stL = await bstate(bc.facToken);
+    ok('state: bot-lið merkt bot:true, raun-lið ekki', stL.teams.length === 2 && stL.teams.find((t) => t.id === b1.teamId).bot === true && stL.teams.find((t) => t.id !== b1.teamId).bot === undefined);
+    ok('start → phase decide', (await J(await bpost('/control', { action: 'start' }))).phase === 'decide');
+    const stD = await bstate(bc.facToken);
+    const rosterBot = stD.lockRoster.find((r) => r.teamId === b1.teamId), rosterReal = stD.lockRoster.find((r) => r.teamId !== b1.teamId);
+    ok('lockRoster: bot ✅ locked + bot:true, raun-lið ⏳', rosterBot && rosterBot.locked === true && rosterBot.bot === true && rosterReal && rosterReal.locked === false);
+    const botRow = env.TENGSL._t.leikur_decisions.find((d) => d.game_code === bc.code && d.round === 1 && d.team_id === b1.teamId);
+    ok('bot-ákvörðun í D1 = {} + locked=1 (óbreytt drög)', botRow && botRow.decisions === '{}' && botRow.locked === 1);
+    ok('bot-team eftir start → 409 started', (await bpost('/bot-team', {})).status === 409);
+    ok('resolve með bot-lið → resolved', (await J(await bpost('/control', { action: 'resolve' }))).phase === 'resolved');
+    const stR = await bstate(bc.facToken);
+    ok('bot-lið fær niðurstöðu (óbreytt Ísland) + raun-lið líka', stR.results && stR.results.length === 2 && stR.results.some((r) => r.teamId === b1.teamId));
+    ok('next → lota 2', (await J(await bpost('/control', { action: 'next' }))).round === 2);
+    const r2 = env.TENGSL._t.leikur_decisions.find((d) => d.game_code === bc.code && d.round === 2 && d.team_id === b1.teamId);
+    ok('lota 2: bot læst strax við next', r2 && r2.locked === 1 && r2.decisions === '{}');
+    // handvirk ÓLÆST drög bot-liðs í lotu 3 (áður en next keyrir lockBots) → haldast en læsast
+    env.TENGSL._t.leikur_decisions.push({ game_code: bc.code, round: 3, team_id: b1.teamId, decisions: '{"levers":{"styrivextir":1}}', locked: 0, submitted_at: 1 });
+    await bpost('/control', { action: 'resolve' });
+    await bpost('/control', { action: 'next' });
+    const r3 = env.TENGSL._t.leikur_decisions.find((d) => d.game_code === bc.code && d.round === 3 && d.team_id === b1.teamId);
+    ok('lockBots varðveitir fyrirliggjandi drög bot-liðs en læsir þau', r3 && r3.locked === 1 && r3.decisions === '{"levers":{"styrivextir":1}}');
+    const plainSt = await J(await LH(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + cr.facToken } }), env));
+    ok('bakvirkni: eldri leikur án config.bots → engin bot-merki á liðum', plainSt.teams.every((t) => t.bot === undefined));
+  }
 
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

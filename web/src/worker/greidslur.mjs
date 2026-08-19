@@ -141,10 +141,13 @@ export async function askellWebhookHandler(request, env, ctx) {
     // Sér þjónustu-áskrift (Útboðsvaktin o.fl.): metadata.service áreiðanlegt (VIÐ setjum í session);
     // vöru-nafn til vara. Slík áskrift veitir karp_sub_<svc>_until í WP — EKKI þrep.
     const ms = String(meta.service || '');
-    const service = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(ms) >= 0 ? ms
+    // 'leikur' (leikstjóra-leyfi RÁS-leiksins, sjá leikstjoriOf í auth.mjs): á hvítlistanum svo Áskell-vara merkt
+    // metadata.service='leikur' EÐA nefnd „Leikstjóra-leyfi" falli ALDREI niður í þreps-grant (grunnur) — rýni 19.8.
+    const service = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti', 'leikur'].indexOf(ms) >= 0 ? ms
       : (nameBlob.indexOf('útboð') >= 0 || nameBlob.indexOf('utbod') >= 0 ? 'utbod'
         : (nameBlob.indexOf('thingskyrsl') >= 0 || nameBlob.indexOf('þingmannaskýrsl') >= 0 ? 'thingskyrslur'
-          : (nameBlob.indexOf('kvótavakt') >= 0 || nameBlob.indexOf('kvotavakt') >= 0 ? 'kvoti' : '')));
+          : (nameBlob.indexOf('kvótavakt') >= 0 || nameBlob.indexOf('kvotavakt') >= 0 ? 'kvoti'
+            : (nameBlob.indexOf('leikstjór') >= 0 || nameBlob.indexOf('leikstjor') >= 0 ? 'leikur' : ''))));
     const mt = String(meta.tier || '');
     const tier = ['grunnur', 'fyrirtaeki', 'fyrirtaeki_plus'].indexOf(mt) >= 0 ? mt
       : (nameBlob.indexOf('plus') >= 0 ? 'fyrirtaeki_plus' : (nameBlob.indexOf('fyrirt') >= 0 ? 'fyrirtaeki' : 'grunnur'));   // metadata.tier áreiðanlegt; nafn til vara
@@ -192,7 +195,7 @@ export async function subCancelHandler(request, env, ctx) {
   const uid = await karpUserId(request, env);
   if (!uid) return sjson({ error: 'login' });
   let body = {}; try { body = await request.json(); } catch (e) {}
-  const svc = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';
+  const svc = ['utbod', 'frettir', 'fasteign', 'thingskyrslur', 'kvoti', 'leikur'].indexOf(String(body.service || '')) >= 0 ? String(body.service) : '';   // 'leikur' = leikstjóra-leyfi (uppsögn um sama samningsfarveg)
   const H = { 'Authorization': 'Api-Key ' + env.ASKELL_PRIVATE_KEY, 'Content-Type': 'application/json' };
   // Segir upp EINUM Áskell-samningi: v2 cancel_at_period_end (aðgangur helst út greitt tímabil), legacy til vara.
   const cancelById = async (id) => {
