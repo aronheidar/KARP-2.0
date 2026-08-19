@@ -17,6 +17,9 @@ name: refresh-data
 on:
   schedule:
     - cron: '0 6 * * *'      # daglega kl. 06:00 UTC
+    # ⚠ Vaxtaákvarðanir Seðlabankans birtast kl. 08:30 (miðvikud.) — EFTIR 06:00-keyrsluna, svo
+    # stýrivextir (og vaxta-frétt fréttavélarinnar) duttu annars út um heilan sólarhring.
+    - cron: '0 10 * * 3'     # miðvikudaga kl. 10:00 UTC — nær vaxtaákvörðun samdægurs
   workflow_dispatch: {}       # + handvirkt í Actions-flipanum
   repository_dispatch:        # + „🔄 Sækja fersk gögn"-hnappur í /stjorn/ (worker → event_type: refresh)
     types: [refresh]
