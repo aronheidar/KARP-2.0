@@ -174,9 +174,27 @@ fs.mkdirSync(OUTDIR, { recursive: true });
 console.log(`Ársreikningar RSK -> gogn/arsreikningar/  (${kts.length} félög, ${arFjoldi} ár hvert)`);
 // Villa á FÉLAGI fellir ekki hin, en keyrslan skilar non-zero ef EKKERT tókst — annars endar
 // t.d. hálf uppsetning (vantar pakka) sem „Engin ný ársreikningsgögn" + grænt CI (mælt 19.8).
-let tokst = 0, villur = 0;
-for (const kt of kts) {
-  try { await buildForKt(kt, { arFjoldi }); tokst++; }
-  catch (e) { villur++; console.error(`  ${kt}: VILLA — ${e.message}`); }
+// RUNU-KURTEISI (mælt 19.8.2026): í 5-félaga forbyggingu throttlaði RSK eftir 2 félög
+// („síða án fyrirtækjahauss") og skriptið plægði áfram á 0,3 s millibili í gegnum hin þrjú.
+// Töf MILLI FÉLAGA (RSK_GAP_MS, sjálfgefið 2,5 s) + veldisvaxandi bakslag við throttlu með
+// EINNI endurtilraun — félag sem fellur aftur er skilið eftir fyrir næstu nótt.
+const GAP = +(process.env.RSK_GAP_MS || 2500);
+const erThrottla = (e) => /throttla|HTTP 429|HTTP 5\d\d|án fyrirtækjahauss/i.test(String(e && e.message));
+let tokst = 0, villur = 0, bakslag = 0;
+for (let i = 0; i < kts.length; i++) {
+  const kt = kts[i];
+  if (i > 0) await new Promise((x) => setTimeout(x, GAP));
+  try { await buildForKt(kt, { arFjoldi }); tokst++; bakslag = 0; }
+  catch (e) {
+    if (erThrottla(e)) {
+      bakslag = Math.min(bakslag + 1, 4);
+      const bid = 8000 * Math.pow(2, bakslag - 1);   // 8 s, 16 s, 32 s, 64 s
+      console.error(`  ${kt}: throttla (${e.message}) — bíð ${bid / 1000} s og reyni EINU sinni aftur`);
+      await new Promise((x) => setTimeout(x, bid));
+      try { await buildForKt(kt, { arFjoldi }); tokst++; continue; }
+      catch (e2) { villur++; console.error(`  ${kt}: VILLA eftir bakslag — ${e2.message} (tekið næstu nótt)`); continue; }
+    }
+    villur++; console.error(`  ${kt}: VILLA — ${e.message}`);
+  }
 }
 if (kts.length && !tokst && villur) { console.error(`✗ Ekkert félag tókst (${villur} villur) — líklega umhverfisvilla, ekki gagnavilla.`); process.exit(1); }
