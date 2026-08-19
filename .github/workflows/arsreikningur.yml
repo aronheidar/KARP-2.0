@@ -28,7 +28,11 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth 1: checkout MÆLDIST 2 mín 14 s með sjálfgefnum stillingum (350 MB pakki, 990 JSON).
+      # Skriptið þarf enga sögu; commit-skrefið sækir origin/main sjálft ef push hafnar.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -79,7 +83,7 @@ jobs:
           for i in 1 2 3 4 5; do
             if git push; then echo "Push tókst (tilraun $i)"; exit 0; fi
             echo "Push hafnað (tilraun $i) — sæki + rebasa á origin/main..."
-            git fetch origin main && git -c rebase.autoStash=true rebase origin/main || git rebase --abort 2>/dev/null || true
+            git fetch --unshallow origin main 2>/dev/null || git fetch origin main; git -c rebase.autoStash=true rebase origin/main || git rebase --abort 2>/dev/null || true
             sleep $((i * 3))
           done
           echo "❌ Push mistókst eftir 5 tilraunir"; exit 1
