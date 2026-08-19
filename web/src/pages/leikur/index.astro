@@ -239,7 +239,8 @@ const MODEL = {
   /* F3-V3: Lifandi Íslandskortið — is:global af sömu ástæðu og sepop/pm (@keyframes + runtime-innerHTML). */
   main[data-pg="leikur"] .lk-kort { max-width: 620px; margin: 0 auto; }
   main[data-pg="leikur"] .lk-kort svg.kt-kort { width: 100%; height: auto; display: block; border-radius: 10px; }
-  main[data-pg="leikur"] .lk-kort-skyr { text-align: center; font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 8px 0 0; letter-spacing: .4px; cursor: help; }
+  main[data-pg="leikur"] .lk-kort-skyr { text-align: center; font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 8px 0 0; letter-spacing: .4px; cursor: help; line-height: 1.7; }
+  main[data-pg="leikur"] .lk-kort-skyr .lk-ks { white-space: nowrap; }   /* liður (tákn+heiti+punktar) slitnar aldrei þegar röð brotnar; tvær raðir (<br>) = land / atvinnuvegir */
   main[data-pg="leikur"] .lk-kort-watch .lk-kort { max-width: 980px; }   /* skjávarpi: stórt */
   main[data-pg="leikur"] .lk-kort-grid.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
   main[data-pg="leikur"] .lk-kort-nafn { font-weight: 800; font-size: 16px; margin: 0 0 6px; text-align: center; }

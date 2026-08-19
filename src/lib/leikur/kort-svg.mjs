@@ -3,7 +3,8 @@
 // Hrein strengja-eining: ekkert DOM, engir event-handlerar, engin <text>-element,
 // ekkert random — sama threp gefur ALLTAF nákvæmlega sama streng (client endurteiknar
 // við sleða-drög). Inntakið er þrep-hluturinn frá kort-throp.mjs:
-// { byggd, menntun, fiskur, losun, ljos, togarar, kranar, atvik, taknmyndir }.
+// { byggd, menntun, fiskur, losun, ljos, togarar, kranar, kviar, vindmyllur, ferdamenn,
+//   gamaskip, atvik, taknmyndir }.
 //
 // STRANDLÍNAN er unnin úr RAUN-GÖGNUM: web/public/gogn/sveitarfelog_adm2.json
 // (geoBoundaries ADM2, CC-BY 4.0 — sama grunn og choropleth-kortin nota).
@@ -106,6 +107,78 @@ const KRANASTADIR = [
   [233, 308, 0.8, 0],   // Selfoss
 ];
 const KRANAR_FJOLDI = [0, 1, 3, 5]; // per þrep
+
+// — ATVINNUVEGA-LÖGIN FJÖGUR (kviar/vindmyllur/ferdamenn/gamaskip) ——————————————
+// Engin vörpunarfall er í skránni (strandlínan var vörpuð einu sinni utan hennar), svo hnitin
+// hér eru HANDREIKNUÐ úr raun-hnitum með sömu vörpun og BAEIR: línuleg aðhvarfs-nálgun á 14
+// bæjunum gefur x ≈ 46,10·lon + 1196,96 og y ≈ 7321,36 − 109,60·lat (±3 px), þ.e. 1 km ≈ 1 px.
+// ÖLL hnit voru síðan sannprófuð með point-in-polygon gegn ISLAND_PATH (kvíar/skip/flugvélar í
+// SJÓ, myllur/ferðamenn/stífla á LANDI) og hliðruð þar sem þröngu firðirnir (2-5 px á þessum
+// kvarða) eða þyrpingin við RVK kölluðu á það — sjá athugasemdir við einstök hnit.
+
+// Sjókvíar í raun-fjörðum, í birtingarröð (þrep 0/1/2/3 → 0/2/4/6 kvíar). [x, y]
+// Vestfirðir og Austfirðir skiptast á svo fyrstu tvær kvíarnar séu sín á hvoru landshorni.
+// Firðirnir eru 2-5 px breiðir á þessum kvarða (DP-einföldun) → kvíarnar sitja í FJARÐAR-MYNNUNUM
+// þar sem ≥4,3 px eru í næsta strandlínu-segment (hringurinn r 2,6 + strok 1,2 sker þá ekki land).
+const KVIAR = [
+  [92.5, 106.5], // Arnarfjörður (mynni, 65,75N 23,95V — breiðasti Vestfjarða-fjörðurinn; 4,8 px í strönd)
+  [575, 200.5],  // Reyðarfjörður (mynni, 65,0N 13,6V — austan álversins á [548,197]; 5,2 px)
+  [79, 124.5],   // Patreksfjörður (mynni, 65,6N 24,15V — fjörðurinn sjálfur ~1 px á kortinu; 4,3 px)
+  [551, 236.5],  // Berufjörður (mynni, 64,68N 14,1V; 7,0 px)
+  [86, 100],     // Dýrafjörður (mynni, 65,87N 23,95V; 7,1 px)
+  [572, 211],    // Fáskrúðsfjörður (mynni, 64,92N 13,65V; 5,8 px)
+];
+const KVIAR_FJOLDI = [0, 2, 4, 6]; // per þrep — þrep 3 bætir líka við fóðurpramma
+const FODURPRAMMI = [582, 203];    // lítill fóðurprammi í Reyðarfjarðar-mynni (aðeins þrep 3; 12 px í strönd, 7 px frá kvínni)
+
+// Vindmyllur á heiðum/hálendisbrún, í birtingarröð (þrep 0/1/2/3 → 0/2/4/7).
+// [x, y, kvarði, horn] — horn = FAST snúnings-horn spaðanna per myllu (0-119°) svo myllurnar
+// líti ekki út eins og stimpill; kvarði gefur fjarvídd (fjær = minni).
+const VINDMYLLUR = [
+  [290, 292, 1, 14],     // Búrfellslundur #1 (64,1N 19,8V — SV af Hofsjökli, ofan Þjórsár; háspennulínan fer NV við spaðana)
+  [226, 302, 0.9, 105],  // Hellisheiði-svæði — hliðrað ~16 px austur úr RVK-þyrpingunni (skóli/kranar/tákn) í átt að Ingólfsfjalli; horn 105 svo enginn spaði vísi inn í verkfalls-spjöldin á [214,297] (fjölhyrnings-fjarlægð ≥2,6 px í spjald/Selfoss-krana — var 0 með [225,303,58])
+  [452, 130, 0.95, 101], // Grímsstaðir á Fjöllum #1 (65,64N 16,12V — NA-heiðin)
+  [302, 297, 0.85, 75],  // Búrfellslundur #2 — 3 px austar en fyrst: spaðar #2/#3 SKÁRUST (fjölhyrnings-fjarlægð 0) og #1/#2 1,5 px; nú ≥3,7 px milli allra þriggja
+  [448, 50, 0.85, 33],   // Melrakkaslétta (66,35N 16,25V)
+  [294, 306, 0.8, 30],   // Búrfellslundur #3 — horn 30 (var 110: spaðaoddur stóð í mastursfót #2)
+  [462, 137, 0.8, 65],   // Grímsstaðir #2 — horn 65 (var 49 → 2,7 px í spaða #1; nú 4,3 px)
+];
+const VINDMYLLUR_FJOLDI = [0, 2, 4, 7]; // per þrep
+const STIFLA = [276, 300];              // vatnsafls-tákn við Þjórsá/Búrfell (Búrfellsvirkjun, 64,1N 19,83V) — þrep >= 1
+// Háspennulína (aðeins þrep 3): frá Búrfellsvirkjun (stíflunni) norður fyrir myllu-þyrpinguna og
+// NORÐAN Vatnajökuls/sunnan Hofsjökuls til álversins við Reyðarfjörð þegar 'alver' er í
+// taknmyndir — annars vestur til Reykjavíkur (endar NA við bæinn, undir spillingar-skýinu, utan krana).
+const HASPENNA_ALVER = 'M276 297 L277 281 L302 266 L345 254 L392 243 L440 226 L490 215 L548 197';
+// RVK-leiðin beygir NORÐAN Þingvalla-depilsins [223,279] (fyrri leið L222 282 L200 283 strauk hringinn
+// og endaði 0,4 px frá hangandi einingu miðbæjar-kranans [196,288]) og endar NA við kranaþyrpinguna.
+const HASPENNA_RVK = 'M276 297 L277 281 L252 280 L232 271 L210 276';
+
+// Ferðamanna-deplar við náttúruperlurnar, í birtingarröð (þrep 0/1/2/3 → 0/2/4/7). [x, y, spegla]
+// spegla = fólks-táknið hinum megin við hringinn (fjölbreytni án random).
+const FERDASTADIR = [
+  [265, 272, 0],   // Gullfoss/Geysir (64,32N 20,2V)
+  [157, 322, 1],   // Bláa lónið (63,88N 22,45V — SV af ESB-fánanum á [166,316], ofan Reykjanestáar; 4,4 px í strönd; 3 px vestar svo fólks-táknið lendi ekki í eldgoss-sprungunni M148 318…L175 316)
+  [223, 279, 0],   // Þingvellir (64,26N 21,12V)
+  [447, 301, 1],   // Jökulsárlón (64,05N 16,18V — á hringveginum sunnan Vatnajökuls; 4,5 px í strönd)
+  [413, 133, 0],   // Mývatn (65,6N 17,0V)
+  [275, 349, 1],   // Seljalandsfoss (63,62N 19,99V — milli Fljótshlíðar- og Mýrdals-trjánna; Skógafoss [289,357] snerti Mýrdals-tréð [294,349] og strönd (3,7 px); hér 10 px í strönd, ≥4 px í tré)
+  [442, 109, 0],   // Dettifoss (65,81N 16,38V)
+];
+const FERDAMENN_FJOLDI = [0, 2, 4, 7]; // per þrep
+// Flugvélar við Keflavík (í lofti yfir sjónum vestan flugvallarins, stefna NV): [x, y, kvarði-per-þrep]
+const FLUGVEL_KEF = [134, 310];        // aðal-vélin — stækkar með þrepi (sjá FLUGVEL_KVARDI)
+const FLUGVEL_KEF2 = [122, 300];       // önnur vél utar — aðeins þrep 3
+const FLUGVEL_KVARDI = [0.7, 0.85, 1, 1.15]; // per þrep
+
+// Gámaskip á siglingu, í birtingarröð (þrep 0/1/2/3 → 0/1/2/4). [x, y, kvarði, spegla]
+// spegla=1 → stefnið vísar vestur. Öll hnit í sjó (PIP-sannprófað), utan togara-miðanna.
+const GAMASKIP = [
+  [143, 279, 1, 0],     // Sundahöfn/Reykjavíkurhöfn — Faxaflói vestan RVK, stefnir inn (vestan hafnar-togarans á [166,289])
+  [592, 218, 0.95, 1],  // Reyðarfjörður — austan fjarðar-mynnisins, stefnir inn; sunnan Austfjarðamiða-togarans [614,200]
+  [158, 261, 0.9, 0],   // Grundartangi — Faxaflói vestan Akraness (stefnið 11 px frá bænum), stefnir inn í Hvalfjörð (fjörðurinn ~2 px á kortinu)
+  [126, 268, 0.85, 0],  // Faxaflói ytri — fjórða skipið á þrepi 3
+];
+const GAMASKIP_FJOLDI = [0, 1, 2, 4]; // per þrep — þrep 3 bætir kjölvatns-línu við öll skip
 
 // Mistur-opacity per losunar-þrep (0 = ekkert mistur → græn tré í staðinn).
 const MISTUR_OP = [0, 0.1, 0.2, 0.32];
@@ -235,6 +308,89 @@ function tre(x, y) {
     `<rect x="-1" y="3.5" width="2" height="4.5" fill="${DEMPAD}"/>` +
     `<path d="M-5 4.5 L0 -3.5 L5 4.5 Z" fill="${GRAENT}" opacity="0.85"/>` +
     `<path d="M-3.8 0.5 L0 -7 L3.8 0.5 Z" fill="${GRAENT}"/>` +
+    `</g>`;
+}
+
+/** Sjókví: tvöfaldur INK-hringur (ytri 1,2 / innri 0,7) + 4 flot-punktar á ytri hringnum.
+ *  ~6×6 einingar — viljandi smá, firðirnir eru 2-5 px breiðir á þessum kvarða.
+ *  flot:false → engir flot-punktar (compact). */
+function kvi([x, y], flot) {
+  return `<g transform="translate(${x} ${y})" opacity="0.85">` +
+    `<circle r="2.6" fill="none" stroke="${INK}" stroke-width="1.2"/>` +
+    `<circle r="1.3" fill="none" stroke="${INK}" stroke-width="0.7" opacity="0.75"/>` +
+    (flot ? `<circle cx="2.6" cy="0" r="0.5" fill="${INK}"/><circle cx="-2.6" cy="0" r="0.5" fill="${INK}"/>` +
+            `<circle cx="0" cy="2.6" r="0.5" fill="${INK}"/><circle cx="0" cy="-2.6" r="0.5" fill="${INK}"/>` : '') +
+    `</g>`;
+}
+
+/** Fóðurprammi: lítill flatur prammi með stýrishúsi (aðeins kvíar-þrep 3). */
+function fodurprammi([x, y]) {
+  return `<g transform="translate(${x} ${y})" opacity="0.85">` +
+    `<path d="M-3.4 -0.8 L3.4 -0.8 L2.6 1.6 L-2.6 1.6 Z" fill="${INK}"/>` +
+    `<rect x="0.6" y="-2.6" width="1.9" height="1.8" rx="0.3" fill="#aab6cc"/>` +
+    `</g>`;
+}
+
+/** Vindmylla: mastur + nöf + 3 spaðar í 120° um <g transform="rotate(horn)"> með FÖSTU horni per
+ *  myllu (úr VINDMYLLUR — engin tvö eins). ~14×18 einingar, INK-ætt með ljósri nöf. */
+function vindmylla([x, y, s, horn]) {
+  const spadi = `<path d="M-0.75 -0.4 L0 -6.8 L0.75 -0.4 Z" fill="${INK}"/>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})" opacity="0.9">` +
+    `<path d="M-1.6 0.6 L1.6 0.6 L0.55 -11 L-0.55 -11 Z" fill="${INK}"/>` +          // mastur (mjókkar upp)
+    `<g transform="translate(0 -11) rotate(${horn})">` +
+    `<g transform="rotate(0)">${spadi}</g>` +
+    `<g transform="rotate(120)">${spadi}</g>` +
+    `<g transform="rotate(240)">${spadi}</g>` +
+    `</g>` +
+    `<circle cx="0" cy="-11" r="0.9" fill="#ffe9b8"/>` +                           // nöfin
+    `</g>`;
+}
+
+/** Vatnsafls-tákn: lítill stíflu-bogi (INK 1,2) yfir blárri vatns-rönd + vatnsdropi neðan við. */
+function stifla([x, y]) {
+  return `<g transform="translate(${x} ${y})" opacity="0.9">` +
+    `<path d="M-5 -1 L5 -1 L5 1.6 L-5 1.6 Z" fill="#4d8fd1" opacity="0.55"/>` +      // vatnið ofan stíflu
+    `<path d="M-5.5 1.2 Q0 -4.6 5.5 1.2" fill="none" stroke="${INK}" stroke-width="1.2" stroke-linecap="round"/>` + // stíflu-boginn
+    `<path d="M0 2.8 Q1.7 5.2 0 6.4 Q-1.7 5.2 0 2.8 Z" fill="#7fb8ea"/>` +          // vatnsdropinn
+    `</g>`;
+}
+
+/** Ferðamanna-depill: lítill gull-hringur (áfangastaður) + smá fólks-tákn (höfuð + bolur ~3 px)
+ *  við hliðina; spegla=1 setur fólkið vinstra megin. folk:false → aðeins hringurinn (compact). */
+function ferdadepill([x, y, spegla], folk) {
+  const fx = spegla ? -3.6 : 3.6;
+  return `<g transform="translate(${x} ${y})">` +
+    `<circle r="2.4" fill="none" stroke="${GULL}" stroke-width="1.2" opacity="0.9"/>` +
+    `<circle r="0.8" fill="${GULL}"/>` +
+    (folk ? `<circle cx="${fx}" cy="-3.2" r="1" fill="${INK}"/>` +                                        // höfuð
+            `<path d="M${fx} -2 L${fx} 1.2" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>` : '') + // bolur
+    `</g>`;
+}
+
+/** Flugvél: einfalt tákn — skrokkur, tvær vængjur og stél, stefna NV (rotate -28). Kvarði úr þrepi. */
+function flugvel([x, y], s) {
+  return `<g transform="translate(${x} ${y}) rotate(-28) scale(${s})" opacity="0.9">` +
+    `<path d="M-6 -0.7 L5.5 -0.7 L7.5 0 L5.5 0.7 L-6 0.7 Z" fill="${INK}"/>` +      // skrokkur
+    `<path d="M-0.2 -0.7 L-3.4 -5.2 L-1.6 -5.2 L2.4 -0.7 Z" fill="${INK}"/>` +      // vængur
+    `<path d="M-0.2 0.7 L-3.4 5.2 L-1.6 5.2 L2.4 0.7 Z" fill="${INK}"/>` +          // vængur
+    `<path d="M-6 -0.7 L-7.6 -3 L-6.4 -3 L-4.6 -0.7 Z" fill="${INK}"/>` +           // stél
+    `</g>`;
+}
+
+/** Gámaskip: lengri skrokkur en togari (~24×8), brú aftast, 3-5 gámar (litlir rect) á dekki,
+ *  ENGINN troll-vír. gamar = fjöldi gáma; kjolvatn:true → tvær fín-línur aftur úr skutnum. */
+function gamaskip([x, y, s, spegla], gamar, kjolvatn) {
+  const sx = spegla ? -s : s;
+  const litir = [GULL, '#aab6cc', GRAENT, '#aab6cc', GULL];
+  let deck = '';
+  for (let i = 0; i < gamar; i++) {
+    deck += `<rect x="${(-4.6 + i * 3).toFixed(1)}" y="-3.9" width="2.6" height="1.9" fill="${litir[i]}"/>`;
+  }
+  return `<g transform="translate(${x} ${y}) scale(${sx} ${s})" opacity="0.82">` +
+    `<path d="M-11.5 -2 L12.4 -2 L10.6 2.2 L-10.4 2.2 Z" fill="${INK}"/>` +          // skrokkur með hallandi stefni
+    `<rect x="-10.6" y="-6.2" width="3.6" height="4.2" rx="0.4" fill="#aab6cc"/>` + // brúin aftast
+    deck +
+    (kjolvatn ? `<path d="M-11.5 0.2 L-19 -0.4 M-11.5 1.6 L-16.5 2.2" fill="none" stroke="${INK}" stroke-width="0.4" opacity="0.55"/>` : '') +
     `</g>`;
 }
 
@@ -409,6 +565,62 @@ function lagLosun(th, compact, p) {
       `</g>`;
   }
   return `<g class="kt-lag kt-losun" data-throp="${th}">${inni}</g>`;
+}
+
+// — Atvinnuvega-lögin fjögur ————————————————————————————————————————
+// Sama mynstur og togarar/kranar: fastir hnitalistar í birtingarröð, fjöldi per þrep úr
+// töflu, compact = helmingi færri einingar (ceil) og einfaldari tákn. Þrep 0 = tómt lag
+// (<g> er samt alltaf til staðar með data-throp svo client geti sett .kt-breytt á það).
+
+/** Kvía-lag: 0/2/4/6 sjókvíar í raun-fjörðum (Vestfirðir ↔ Austfirðir til skiptis);
+ *  þrep 3 bætir fóðurpramma við í Reyðarfjarðar-mynni. compact: helmingi færri, engir flot-punktar. */
+function lagKviar(th, compact) {
+  const n = compact ? Math.ceil(KVIAR_FJOLDI[th] / 2) : KVIAR_FJOLDI[th];
+  let inni = '';
+  for (let i = 0; i < n; i++) inni += kvi(KVIAR[i], !compact);
+  if (th === 3 && !compact) inni += fodurprammi(FODURPRAMMI);
+  return `<g class="kt-lag kt-kviar" data-throp="${th}">${inni}</g>`;
+}
+
+/** Vindmyllu-lag: 0/2/4/7 vindmyllur á heiðunum (Búrfell → Hellisheiði → Grímsstaðir →
+ *  Melrakkaslétta) + vatnsafls-tákn við Búrfell frá þrepi 1; þrep 3 bætir háspennulínu við
+ *  frá Búrfelli — til álversins við Reyðarfjörð ef 'alver' er í taknmyndir, annars til RVK.
+ *  compact: helmingi færri myllur, engin háspennulína (stíflan helst). */
+function lagVindmyllur(th, compact, taknmyndir) {
+  const n = compact ? Math.ceil(VINDMYLLUR_FJOLDI[th] / 2) : VINDMYLLUR_FJOLDI[th];
+  let inni = '';
+  if (th >= 1) inni += stifla(STIFLA);
+  if (th === 3 && !compact) {
+    const d = taknmyndir.includes('alver') ? HASPENNA_ALVER : HASPENNA_RVK;
+    inni += `<path class="kt-haspenna" d="${d}" fill="none" stroke="${GULL}" stroke-width="0.8" ` +
+      `stroke-dasharray="2.2 2.2" stroke-linejoin="round" stroke-linecap="round" opacity="0.6"/>`;
+  }
+  for (let i = 0; i < n; i++) inni += vindmylla(VINDMYLLUR[i]);
+  return `<g class="kt-lag kt-vindmyllur" data-throp="${th}">${inni}</g>`;
+}
+
+/** Ferðamanna-lag: 0/2/4/7 deplar við náttúruperlurnar (Gullfoss/Geysir → Bláa lónið →
+ *  Þingvellir → Jökulsárlón → Mývatn → Seljalandsfoss → Dettifoss) + flugvél við Keflavík sem
+ *  stækkar með þrepi (alltaf til staðar — flugvöllurinn er fasti); þrep 3 = tvær vélar.
+ *  compact: helmingi færri deplar, engin fólks-tákn, aðal-vélin ein. */
+function lagFerdamenn(th, compact) {
+  const n = compact ? Math.ceil(FERDAMENN_FJOLDI[th] / 2) : FERDAMENN_FJOLDI[th];
+  let inni = '';
+  for (let i = 0; i < n; i++) inni += ferdadepill(FERDASTADIR[i], !compact);
+  inni += flugvel(FLUGVEL_KEF, FLUGVEL_KVARDI[th]);
+  if (th === 3 && !compact) inni += flugvel(FLUGVEL_KEF2, 0.8);
+  return `<g class="kt-lag kt-ferdamenn" data-throp="${th}">${inni}</g>`;
+}
+
+/** Gámaskipa-lag: 0/1/2/4 gámaskip á siglingu (Sundahöfn → Reyðarfjörður → Grundartangi →
+ *  Faxaflói ytri); gámafjöldi 4/5/3/4 per skip (föst fjölbreytni); þrep 3 = kjölvatns-lína.
+ *  compact: helmingi færri skip, 3 gámar, ekkert kjölvatn. */
+const GAMAR_PER_SKIP = [4, 5, 3, 4];
+function lagGamaskip(th, compact) {
+  const n = compact ? Math.ceil(GAMASKIP_FJOLDI[th] / 2) : GAMASKIP_FJOLDI[th];
+  let inni = '';
+  for (let i = 0; i < n; i++) inni += gamaskip(GAMASKIP[i], compact ? 3 : GAMAR_PER_SKIP[i], th === 3 && !compact);
+  return `<g class="kt-lag kt-gamaskip" data-throp="${th}">${inni}</g>`;
 }
 
 /** Tákn-lag: föst tákn á föstum hnitum, aðeins þau sem eru í listanum. */
@@ -640,13 +852,17 @@ function joklar(p) {
  * renderIslandKort — skilar Íslandskortinu sem SVG-streng.
  *
  * @param {{ byggd?: number, menntun?: number, fiskur?: number, losun?: number, ljos?: number,
- *           togarar?: number, kranar?: number, atvik?: string|null, taknmyndir?: string[] }} threp
+ *           togarar?: number, kranar?: number, kviar?: number, vindmyllur?: number,
+ *           ferdamenn?: number, gamaskip?: number, atvik?: string|null, taknmyndir?: string[] }} threp
  *        Þrep-hlutur frá kortThrep() í kort-throp.mjs. Vantandi/ógild þrep fá sjálfgefin gildi
  *        (byggd 1, menntun 1, fiskur 1, losun 2, ljos 1 = hlutlaus birta,
- *        togarar 1 = grunnfloti, kranar 1 = einn krani við RVK, atvik null).
+ *        togarar 1 = grunnfloti, kranar 1 = einn krani við RVK, kviar 1 = tvær kvíar,
+ *        vindmyllur 1 = tvær myllur + stífla, ferdamenn 2 = fjórir deplar (grunn-straumur),
+ *        gamaskip 1 = eitt skip, atvik null).
  * @param {{ compact?: boolean, idPrefix?: string }} [opts]
  *        compact:true → farsíma-útgáfa (mest 4 fiskar, ekkert mistur, engin norðurljós,
- *        einfaldara glow, atviks-lagið aðeins aðal-formið).
+ *        einfaldara glow, atviks-lagið aðeins aðal-formið, atvinnuvega-lögin helmingi færri
+ *        einingar án smáatriða: engir flot-punktar/fólks-tákn/kjölvatn/háspennulína).
  *        idPrefix → forskeyti á öll defs-id (sjálfgefið 'kt'); id-in eru þrep-óháð.
  * @returns {string} SVG-strengur, viewBox="0 0 640 400". Engin <text>-element, engir event-handlerar.
  */
@@ -659,6 +875,10 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
   const ljos = klemma03(t.ljos, 1);
   const togarar = klemma03(t.togarar, 1);
   const kranar = klemma03(t.kranar, 1);
+  const kviar = klemma03(t.kviar, 1);
+  const vindmyllur = klemma03(t.vindmyllur, 1);
+  const ferdamenn = klemma03(t.ferdamenn, 2);
+  const gamaskip = klemma03(t.gamaskip, 1);
   const taknmyndir = Array.isArray(t.taknmyndir) ? t.taknmyndir : [];
   const p = String(idPrefix || 'kt').replace(/[^A-Za-z0-9_-]/g, '') || 'kt';
 
@@ -678,7 +898,13 @@ export function renderIslandKort(threp = {}, { compact = false, idPrefix = 'kt' 
     lagByggd(byggd, p, ljos) +
     // Togarar á miðunum + byggingakranar — YFIR byggða-glóðinni, UNDIR atviks-laginu
     lagTogarar(togarar, compact) +
+    // Atvinnuvega-lögin: sjávar-lögin (gámaskip, kvíar) fyrst, svo land-lögin (vindmyllur með
+    // háspennulínu UNDIR álvers-tákninu, ferðamenn) — öll undir menntun/táknum/atviki
+    lagGamaskip(gamaskip, compact) +
+    lagKviar(kviar, compact) +
     lagKranar(kranar, compact) +
+    lagVindmyllur(vindmyllur, compact, taknmyndir) +
+    lagFerdamenn(ferdamenn, compact) +
     lagMenntun(menntun) +
     lagTakn(taknmyndir) +
     // Mistur/tré efst (hálfgagnsætt yfir öllu)

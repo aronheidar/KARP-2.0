@@ -15,7 +15,7 @@ import { teachingPrompts } from './analytics.mjs';
 import { HANDBOOK } from './handbook.mjs';
 import { myndFyrirAtvik, PM_MYNDIR, PM_MYNDIR_KONA } from './myndir.mjs';
 import { sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, radherraFyrirLotu, radherraTexti } from './saga.mjs';
-import { kortThrep } from './kort-throp.mjs';
+import { kortThrep, KORT_LEVER_ID } from './kort-throp.mjs';
 import { renderIslandKort } from './kort-svg.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
@@ -1014,8 +1014,8 @@ export function mountLeikur(root) {
   // gildi úr draft (læsta gildi lotunnar) eða sögunni, normað á -1..1 sem kort-throp túlkar sem
   // sleða-frávik (jákvætt frávik deilt með (max-base), neikvætt með (base-min)). Aðeins EIGIÐ lið.
   // Deild normalisering sleða á -1..1 — notuð bæði af kortLever (settluð gögn) og lifandi
-  // decide-kortinu (S.dials, VERK 1). SAMA fallið fyrir öll þrjú sleða-lög kortsins:
-  // menntun (kt-menntun), kvoti (kt-togarar) og lodaframbod (kt-kranar).
+  // decide-kortinu (S.dials, VERK 1). SAMA fallið fyrir ÖLL sleða-lög kortsins: menntun (kt-menntun)
+  // + sleðarnir í KORT_SLEDAR hér fyrir neðan (togarar/kranar/kvíar/vindmyllur/ferðamenn).
   function leverNorm(id, v) {
     const cfg = BASELINE.levers[id]; if (!cfg || v == null || !isFinite(+v)) return null;
     const base = cfg.base || 0, dev = +v - base;
@@ -1023,53 +1023,79 @@ export function mountLeikur(root) {
     return Math.max(-1, Math.min(1, dev / skali));
   }
   // Læst/settlað sleða-gildi EIGIN liðs, normað: draft (læsta gildi lotunnar) fyrst, annars
-  // síðasta lota sögunnar sem hreyfði sleðann — sama uppspretta fyrir menntun/kvoti/lodaframbod.
+  // síðasta lota sögunnar sem hreyfði sleðann — sama uppspretta fyrir menntun og alla KORT_SLEDAR.
   function kortLever(st, id) {
     let v = null;
     if (st.draft && st.draft[id] != null) v = +st.draft[id];
     else { const hs = st.history || []; for (let i = hs.length - 1; i >= 0; i--) { const h = hs[i]; if (h && h.levers && h.levers[id] != null) { v = +h.levers[id]; break; } } }
     return leverNorm(id, v);
   }
+  // Sleðarnir sem kortThrep les úr inp.levers — EIN uppspretta (KORT_LEVER_ID í kort-throp.mjs,
+  // prófið þar staðfestir hvert id gegn baseline.levers): kvoti (kt-togarar) · lodaframbod (kt-kranar)
+  // · fiskeldi (kt-kviar) · orka + orkuskipti (kt-vindmyllur, orkuskipti=+1 bónus) · ferdamannagjald
+  // (kt-ferdamenn). Lyklarnir í levers-hlutnum eru lever-id-in SJÁLF (ekki lags-nöfnin).
+  const KORT_SLEDAR = [...new Set(Object.values(KORT_LEVER_ID))];
+  // Normaður levers-hlutur fyrir kortThrep úr gildis-lesara (id → hrátt sleða-gildi eða null):
+  // results/watch lesa um kortLever (draft/saga), decide um leverNorm(S.dials) — sama lykla-mengi.
+  const kortLevers = (les) => { const o = {}; for (const id of KORT_SLEDAR) o[id] = les(id); return o; };
   function kortThrepUr(st, teamId, kpis, policies) {
     const kk = { ...(kpis || {}) };
     let levers;
     if (teamId === S.teamId) {
       const m = kortLever(st, 'menntun'); if (m != null) kk.menntun = m;
-      // Togarar/kranar (results/leikslok): læst gildi lotunnar úr draft/sögu — sama uppspretta
-      // og menntunar-lagið (kortLever). kortLever skilar null ef sleðinn var aldrei hreyfður
-      // → sledaThrep gefur grunnstöðu 1.
-      levers = { kvoti: kortLever(st, 'kvoti'), lodaframbod: kortLever(st, 'lodaframbod') };
+      // Sleða-lögin (results/leikslok): togarar/kranar/kvíar/vindmyllur/ferðamenn úr læstu gildi
+      // lotunnar í draft/sögu — sama uppspretta og menntunar-lagið (kortLever). kortLever skilar
+      // null ef sleðinn var aldrei hreyfður → kortThrep gefur grunnstöðu (1, ferðamenn 2).
+      levers = kortLevers((id) => kortLever(st, id));
     }
     // ÖNNUR lið (watch/skjávarpi): engin lever-gögn annarra liða berast client → levers SLEPPT
-    // (kortThrep gefur þá grunnstöðu 1 á bæði lög) — sama takmörkun og menntunar-lagið hefur þar.
+    // (kortThrep gefur þá grunnstöðu á ÖLL sleða-lögin: togarar/kranar/kvíar/vindmyllur 1, ferðamenn 2)
+    // — sama takmörkun og menntunar-lagið hefur þar. gamaskip er KPI-lag (hagvoxtur+gengi) og ferdamenn
+    // les vlf_ferda: bæði fylgja kpis-undirmenginu sem server sendir í st.kort (án hagvoxtur/vlf_ferda →
+    // grunnstaða 1 / 2 á skjávarpa; results les mine.detail.kpis = allar útkomur).
     // Atvik lotunnar (sama fyrir öll lið, sjá surprise.mjs): í resolved-fasa er st.surprise atvikið
     // sem var að leysast → eldgosið o.fl. sést á landinu í results (kortCardMitt) OG á skjávarpanum
     // (kortWatch). kortThrep validerar id-ið sjálft (óþekkt → null → ekkert atviks-lag).
     return kortThrep({ kpis: kk, policyStates: policies || {}, eventChoices: (st.eventChoices || {})[teamId] || {}, levers, atvik: (st.surprise && st.surprise.id) || null });
   }
   const kortDot = (n) => '●●●'.slice(0, n) + '○○○'.slice(0, 3 - n);
+  // Einn liður skýringalínunnar: .lk-ks er nowrap (index.astro) svo tákn+heiti+punktar slitni aldrei
+  // í sundur þegar línan brotnar (decide-hýsillinn er ~490px á 1440px, watch-ristin ~690px).
+  const kortLidur = (takn, heiti, n, title) => '<span class="lk-ks"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + takn + ' ' + heiti + ' ' + kortDot(n) + '</span>';
+  // Tvær raðir (<br>): LAND (byggð/menntun/fiskistofn/sókn/losun/uppbygging/ljós) og ATVINNUVEGIR
+  // (eldi/orka/ferðamenn/útflutningur). Mælt á 1440px: ein röð með 11 liðum er ~1170px — kæmist fyrir
+  // á results-spjaldinu (~1366px) en brotnar ÓFYRIRSJÁANLEGA í decide-hýslinum (~460px) og watch-
+  // ristinni (~680px); raðaskiptingin gefur fast brot (land 1–2 línur, atvinnuvegir alltaf 1 lína).
+  // Tákn VILJANDI ólík þeim sem fyrir eru: 🐠 eldi (ekki 🐟=stofninn), 📦 útflutningur (ekki 🚢=sókn).
   function kortSkyring(threp) {
     return '<p class="lk-kort-skyr" title="Þrep 0–3 laganna á kortinu — fleiri fylltir punktar = meira af laginu (losun: fleiri punktar = meiri mengun).">'
-      + '🏘️ Byggð ' + kortDot(threp.byggd) + ' · 🎓 Menntun ' + kortDot(threp.menntun) + ' · 🐟 Fiskistofn ' + kortDot(threp.fiskur)
-      + ' · <span title="Togaraflotinn — fylgir kvóta-stefnunni; stofninn er sér vídd">🚢 Sókn ' + kortDot(threp.togarar) + '</span>'
-      + ' · 🏭 Losun ' + kortDot(threp.losun)
-      + ' · <span title="Byggingakranar — fylgja lóðaframboði">🏗️ Uppbygging ' + kortDot(threp.kranar) + '</span>'
-      + ' · <span title="Næturljós landsins — glóa í góðæri, dofna í kreppu">💡 Ljós ' + kortDot(threp.ljos) + '</span></p>';
+      + kortLidur('🏘️', 'Byggð', threp.byggd) + ' · ' + kortLidur('🎓', 'Menntun', threp.menntun) + ' · ' + kortLidur('🐟', 'Fiskistofn', threp.fiskur)
+      + ' · ' + kortLidur('🚢', 'Sókn', threp.togarar, 'Togaraflotinn — fylgir kvóta-stefnunni; stofninn er sér vídd')
+      + ' · ' + kortLidur('🏭', 'Losun', threp.losun)
+      + ' · ' + kortLidur('🏗️', 'Uppbygging', threp.kranar, 'Byggingakranar — fylgja lóðaframboði')
+      + ' · ' + kortLidur('💡', 'Ljós', threp.ljos, 'Næturljós landsins — glóa í góðæri, dofna í kreppu')
+      + '<br>'
+      + kortLidur('🐠', 'Eldi', threp.kviar, 'Sjókvíaeldi í fjörðunum — fylgir fiskeldis-sleðanum; villti stofninn er sér vídd')
+      + ' · ' + kortLidur('💨', 'Orka', threp.vindmyllur, 'Vindmyllur á heiðunum — fylgja orku-sleðanum (+1 við orkuskipta-hvata)')
+      + ' · ' + kortLidur('✈️', 'Ferðamenn', threp.ferdamenn, 'Ferðamannastraumur við náttúruperlurnar — fylgir ferðaþjónustu-vísitölunni (sprengja fyllir, faraldur tæmir); hærra gistináttagjald þynnir hann (grunnstaða 2)')
+      + ' · ' + kortLidur('📦', 'Útflutningur', threp.gamaskip, 'Gámaskip í höfnunum — hagvöxtur + gengi (fullar hafnir í uppsveiflu, tómar í kreppu)')
+      + '</p>';
   }
   // Þrep-animation: síðasta teiknaða threp geymt í S.kortPrev (per lið+lota). Klasarnir fara AÐEINS
   // á fyrstu teiknun NÝRRAR lotu (prev.round !== round) — poll-endurteiknanir innan sömu lotu fá þá
   // ekki (annars spilaðist poppið á 2,5s fresti). String-injection á class-attribút SVG-hópanna
   // (einkvæm per kort → replace snertir réttan hóp). Farsími/prefers-reduced-motion → engin animation.
   // Lögin sem fá kt-breytt glow við þrepbreytingu — deilt af kortMedAnim (results/watch) og
-  // kortDecideDraw (lifandi). togarar/kranar eru VENJULEG lög og fá glowið eins og hin fjögur;
+  // kortDecideDraw (lifandi). togarar/kranar og atvinnuvega-lögin fjögur (kviar/vindmyllur/
+  // ferdamenn/gamaskip) eru VENJULEG lög og fá glowið eins og hin fjögur;
   // atvik og ljos eru VILJANDI EKKI hér (atviks-lagið hefur eigin CSS-lúppu, ljos býr í byggða-laginu).
-  const KORT_ANIM_LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun', togarar: 'kt-togarar', kranar: 'kt-kranar' };
+  const KORT_ANIM_LOG = { byggd: 'kt-byggd', menntun: 'kt-menntun', fiskur: 'kt-fiskur', losun: 'kt-losun', togarar: 'kt-togarar', kranar: 'kt-kranar', kviar: 'kt-kviar', vindmyllur: 'kt-vindmyllur', ferdamenn: 'kt-ferdamenn', gamaskip: 'kt-gamaskip' };
   function kortMedAnim(svg, threp, teamId, round) {
     const prev = S.kortPrev[teamId];
     S.kortPrev[teamId] = { round, threp };
     if (kortCompact() || pmReduced() || !prev || prev.round === round) return svg;
     let ut = svg;
-    // VILJANDI aðeins lögin 6 (KORT_ANIM_LOG) + taknmyndir í anim-diffinu: atvik og ljos fá ALDREI
+    // VILJANDI aðeins lögin 10 (KORT_ANIM_LOG) + taknmyndir í anim-diffinu: atvik og ljos fá ALDREI
     // kt-breytt/kt-nytt — ekkert popp á hverjum polli.
     // ATH: results/watch endurbyggja innerHTML á hverju polli → kt-atvik-lúppan ENDURRÆSIST þar;
     // keyframes hennar eru því restart-þolnar (opacity-hvíldarstaða á 0%/100%, ekkert transform-drift).
@@ -1114,7 +1140,8 @@ export function mountLeikur(root) {
   // skiptum. idPrefix 'ktd' svo defs-id rekist ekki á results-kortið ('kt') ef bæði enda á síðu.
   // Hýsillinn #lk-st-kort er FASTUR í renderStudio-grindinni (ekki hluti af forskoðunar-innerHTML)
   // → .kt-breytt-glowið (600ms, sama og í results) klippist ekki þó dregið sé áfram.
-  // Inntak: kpis = forskoðunar-KPI + kort-lags-útkomur úr herminum; menntun/kvoti/lodaframbod úr LIFANDI S.dials;
+  // Inntak: kpis = forskoðunar-KPI + kort-lags-útkomur úr herminum; menntun + KORT_SLEDAR (kvoti/
+  // lodaframbod/fiskeldi/orka/orkuskipti/ferdamannagjald) úr LIFANDI S.dials;
   // policyStates = staðfest + drög lotunnar; eventChoices = val MÍNS liðs.
   function kortDecideDraw(st, kpis) {
     const holder = root.querySelector('#lk-st-kort'); if (!holder) return;
@@ -1124,16 +1151,20 @@ export function mountLeikur(root) {
       kpis: kk,
       policyStates: { ...((st.policies && st.policies.states) || {}), ...(S.policyDraft || {}) },
       eventChoices: (st.eventChoices || {})[S.teamId] || {},
-      // Togarar/kranar bregðast LIFANDI við sleða-drögum: normuð frávik beint úr S.dials
-      // (sama leverNorm og menntun) — leverNorm skilar null á óhreyfðum/vantandi sleða → þrep 1.
-      levers: { kvoti: leverNorm('kvoti', S.dials ? S.dials.kvoti : null), lodaframbod: leverNorm('lodaframbod', S.dials ? S.dials.lodaframbod : null) },
+      // Sleða-lögin (togarar/kranar/kvíar/vindmyllur/ferðamenn) bregðast LIFANDI við sleða-drögum:
+      // normuð frávik beint úr S.dials (sama leverNorm og menntun) — leverNorm skilar null á
+      // óhreyfðum/vantandi sleða → grunnstaða (1, ferðamenn 2). Lyklar = lever-id úr KORT_LEVER_ID.
+      levers: kortLevers((id) => leverNorm(id, S.dials ? S.dials[id] : null)),
       // Atvik lotunnar sést á landinu um leið og lotan opnast — parast við atviks-popupið (sepop).
       atvik: (st.surprise && st.surprise.id) || null,
     });
     // ljos og atvik VERÐA að vera í undirskriftinni: ljos-þrepaskipti og atviks-koma triggera þá
     // nákvæmlega EINA endurteiknun (næstu poll með sömu sig sleppa — CSS-lúppan á kt-atvik lifir).
-    // togarar/kranar SÖMULEIÐIS — annars endurteiknaðist kortið aldrei við kvóta-/lóða-drög.
-    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + threp.ljos + '|' + threp.togarar + '|' + threp.kranar + '|' + (threp.atvik || '') + '|' + (threp.taknmyndir || []).join(',');
+    // togarar/kranar/kviar/vindmyllur/ferdamenn/gamaskip SÖMULEIÐIS — annars endurteiknaðist kortið
+    // aldrei við kvóta-/lóða-/fiskeldis-/orku-/ferðamanna-drög (né gámaskipin við hagvaxtar-/gengis-skipti).
+    const sig = threp.byggd + '|' + threp.menntun + '|' + threp.fiskur + '|' + threp.losun + '|' + threp.ljos + '|' + threp.togarar + '|' + threp.kranar
+      + '|' + threp.kviar + '|' + threp.vindmyllur + '|' + threp.ferdamenn + '|' + threp.gamaskip
+      + '|' + (threp.atvik || '') + '|' + (threp.taknmyndir || []).join(',');
     const changed = sig !== S.ktdSig;
     if (!changed && holder.firstChild) return;   // ódýra undirskriftar-tékkið — EKKI endurteikna á hverju draggi
     const prev = changed ? S.ktdPrev : null;     // óbreytt sig en tómur hýsill (renderStudio endurbyggði) → teikna ÁN glows
@@ -1422,9 +1453,13 @@ export function mountLeikur(root) {
     }
     S.polPrevStig = pol.stig;
     // VERK 1: lifandi Íslandskortið — kort-lags-KPI beint úr forskoðunar-herminum (allar útkomur til,
-    // óháð umboði lotunnar) svo byggð/fiskur/losun bregðist alltaf við sleða-drögum.
+    // óháð umboði lotunnar) svo byggð/fiskur/losun bregðist alltaf við sleða-drögum. hagvoxtur +
+    // gengi_endo SÖMULEIÐIS fyrir gámaskipa-lagið (kortThrep: hagvoxtur + gengi??gengi_endo) — annars
+    // stæði höfnin í grunnstöðu 1 í lifandi forskoðun nema hagvöxtur væri í umboði lotunnar. vlf_ferda
+    // (ferðaþjónustu-vísitalan) fyrir ferðamanna-lagið — straumurinn (sviðsmyndar-áföll/gengi) sést lifandi,
+    // gjald-sleðinn þynnir hann.
     const mapK = { ...kpiVals };
-    for (const mk of ['byggdajofnudur', 'fiskistofn', 'losun']) { const oc = sim.outcomes[mk]; if (oc && oc.mid.length) mapK[mk] = oc.mid[oc.mid.length - 1]; }
+    for (const mk of ['byggdajofnudur', 'fiskistofn', 'losun', 'hagvoxtur', 'gengi_endo', 'vlf_ferda']) { const oc = sim.outcomes[mk]; if (oc && oc.mid.length) mapK[mk] = oc.mid[oc.mid.length - 1]; }
     kortDecideDraw(st, mapK);
     pmUpdate(st);   // VERK 2: pósi/ráðgjafar haussins fylgja nýjustu forskoðuninni (no-op ef undirskrift óbreytt)
   }
