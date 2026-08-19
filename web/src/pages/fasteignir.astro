@@ -7,6 +7,15 @@ import Layout from '../layouts/Layout.astro';
 import { fmtNum, groupThousands, slugify } from '@lib/format.mjs';
 import FASTEIGNIR from '@gogn/fasteignir.json';
 import LEIGARAW from '@gogn/leiga.json';
+import HMS27 from '@gogn/hms_fasteignamat_2027.json';   // opinbert fasteignamat 2027 (HMS-samantektir, build_hms_2027.py)
+
+// Fasteignamat 2027 (HMS): íbúðareignir per sveitarfélag + landið í heild. Mat í kr → ma.kr.
+const H27_IB = (HMS27.byTeg || []).find((x) => /^Íbúðareignir/i.test(x.teg)) || null;
+const H27_ALLS = HMS27.samtals || null;   // reiknað í build_hms_2027.py (xlsx-Samtals er formúla án gildis)
+const H27_SV = (HMS27.bySvTeg || []).filter((x) => /^Íbúðareignir/i.test(x.teg) && x.fjoldi > 0 && !/^Samtals/i.test(x.sv))
+  .sort((a, b) => (b.mat2027 || 0) - (a.mat2027 || 0));
+const maKr = (v) => (v == null ? '–' : groupThousands(Math.round(v / 1e9)));
+const pcS = (v) => (v == null ? '–' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ',') + '%');
 
 // Leigumarkaðurinn (LOTA 13i): fjórðungar með 100+ samningum + muni-tafla
 const lq = (LEIGARAW.quarters || []).filter((x) => x.n >= 100);
@@ -78,6 +87,34 @@ const jsonLd = {
     <p class="mapcap">Miðgildi verð/m² (þús.kr) eftir sveitarfélagi, {mapWindow}. Smelltu á sveitarfélag fyrir nánari síðu.</p>
 
     <p class="note">ⓘ Miðgildi (robust gegn útlögum) verð/m² úr þinglýstum kaupum íbúðarhúsnæðis. Höfuðborgarsvæði = 7 sveitarfélög; landsbyggð = önnur. Per-sveitarfélag verðmat er í <a href="/reiknivelar/">Reiknivélum</a>.</p>
+
+    {H27_IB && (
+      <>
+        <h2>Fasteignamat 2027 — opinbert mat HMS <i class="tip" tabindex="0" data-tip="Fasteignamat 2027 tók gildi 31. desember 2026 og er metið af HMS á verðlagi febrúar 2026. Tölurnar hér eru opinberar samantektir HMS (fjöldi eigna og heildarmat eftir tegund og sveitarfélagi). Verðmat Karp á einstakar eignir er sjálfstætt, byggt á þinglýstum kaupum.">ⓘ</i></h2>
+        <div class="kpis">
+          <div class="kpi"><div class="k-l">🏠 Íbúðareignir á landinu</div><div class="k-v">{groupThousands(H27_IB.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_IB.mat2027)} ma.kr · <span class={H27_IB.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_IB.breyting)}</span> frá 2026</div></div>
+          {H27_ALLS && <div class="kpi"><div class="k-l">🏗️ Allar fasteignir</div><div class="k-v">{groupThousands(H27_ALLS.fjoldi)}</div><div class="k-s">eignir · heildarmat {maKr(H27_ALLS.mat2027)} ma.kr · <span class={H27_ALLS.breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_ALLS.breyting)}</span></div></div>}
+          {H27_SV[0] && <div class="kpi"><div class="k-l">🏙️ {H27_SV[0].sv}</div><div class="k-v">{maKr(H27_SV[0].mat2027)}</div><div class="k-s">ma.kr íbúðareignir · {groupThousands(H27_SV[0].fjoldi)} eignir · <span class={H27_SV[0].breyting >= 0 ? 'up' : 'dn'}>{pcS(H27_SV[0].breyting)}</span></div></div>}
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th class="l">Sveitarfélag</th><th>Íbúðareignir</th><th>Fasteignamat 2027 (ma.kr)</th><th>Breyting frá 2026</th></tr></thead>
+            <tbody>
+              {H27_SV.map((m) => (
+                <tr>
+                  <td class="l">{m.sv}</td>
+                  <td class="num">{groupThousands(m.fjoldi)}</td>
+                  <td class="num">{maKr(m.mat2027)}</td>
+                  <td class={'num ' + (m.breyting >= 0 ? 'up' : 'dn')}>{pcS(m.breyting)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {(HMS27.athugasemdir || []).map((a) => <p class="note">⚠ HMS: {a}</p>)}
+        <p class="note">ⓘ Heimild: HMS — Fasteignamat 2027, samantektir eftir sveitarfélögum og tegundum eigna. Íbúðareignir í Karp-fasteignavaktinni fá auk þess <strong>matssvæði HMS</strong> (197 svæði) með opinberu meðalverði á m² og 2027-breytingu í verðmatsskýrslunni.</p>
+      </>
+    )}
 
     {LEIGA && (
       <>

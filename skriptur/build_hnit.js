@@ -9,6 +9,10 @@
 //       → fasteignavaktin tengir beint á opinbera eininga-listann (íbúðarmerkingar, stærð, fasteignamat) fyrir
 //       HVERT heimilisfang landsins — líka þau 59% sem kaupskráin þekkir ekki. Þeirra API er bot-/CORS-varið,
 //       svo tengill er leiðin, ekki sókn.
+//       ➕ 6. stak = MATSSVÆÐI HMS (Nr, 0 = óþekkt): k-NN úr sölu-úrtaki HMS fyrir fasteignamat 2027
+//       (gogn/hms/matssvaedi_punktar.json, [x,y,nr] í ISN93, byggt af build_hms_2027.py). Heimilisfangið er
+//       varpað WGS84→ISN93 (lib/isn93.mjs), 5 næstu sölupunktar innan 1,5 km kjósa vegið með 1/d. Leiðbeinandi —
+//       svæðamörk eru ekki til sem opin landupplýsingagögn, svo jaðar-heimilisföng geta lent röngum megin.
 //       + hnit/gotur.json = { "leirdalur": ["190","260"], … } — FULLUR götuvísir (allar götur
 //         landsins, ekki aðeins þær sem hafa selst). fasteignaskra/gotur.json er byggður úr
 //         kaupskránni og sleppir götum án sölu síðan 2006 → fasteignavaktin fann þá ekki einu sinni
@@ -58,15 +62,50 @@ function goturUr(byPn) {
   return out;
 }
 
-if (process.argv.includes('--from-disk')) {
-  const byPn = {};
-  for (const f of fs.readdirSync(OUT)) { const m = f.match(/^(\d{3})\.json$/); if (m) byPn[m[1]] = JSON.parse(fs.readFileSync(path.join(OUT, f), 'utf8')); }
-  const gotur = goturUr(byPn);
-  fs.writeFileSync(path.join(OUT, 'gotur.json'), JSON.stringify(gotur));
-  console.log('gotur.json (from-disk):', Object.keys(gotur).length, 'götur úr', Object.keys(byPn).length, 'póstnúmerum');
-  process.exit(0);
+// ── Matssvæði HMS: k-NN vörpun heimilisfangs (WGS84) → matssvæðis-Nr úr sölu-úrtaki (ISN93) ──
+const PUNKTAR = path.join(__dirname, '..', 'gogn', 'hms', 'matssvaedi_punktar.json');
+async function matssvaediVorpun() {
+  if (!fs.existsSync(PUNKTAR)) { console.warn('⚠ matssvaedi_punktar.json vantar — matssvæði verða 0 (keyrðu build_hms_2027.py)'); return () => 0; }
+  const { isn93 } = await import(require('url').pathToFileURL(path.join(__dirname, '..', 'web', 'src', 'lib', 'isn93.mjs')).href);
+  const pts = JSON.parse(fs.readFileSync(PUNKTAR, 'utf8')).punktar;
+  const CELL = 500, R = 1500, K = 5;
+  const grid = new Map();
+  for (const p of pts) { const k = Math.floor(p[0] / CELL) + ':' + Math.floor(p[1] / CELL); const a = grid.get(k); if (a) a.push(p); else grid.set(k, [p]); }
+  const reach = Math.ceil(R / CELL);
+  return (lat, lng) => {
+    const xy = isn93(lat, lng); if (!xy) return 0;
+    const cx = Math.floor(xy[0] / CELL), cy = Math.floor(xy[1] / CELL);
+    const near = [];
+    for (let i = -reach; i <= reach; i++) for (let j = -reach; j <= reach; j++) {
+      const a = grid.get((cx + i) + ':' + (cy + j)); if (!a) continue;
+      for (const p of a) { const d = Math.hypot(p[0] - xy[0], p[1] - xy[1]); if (d <= R) near.push([d, p[2]]); }
+    }
+    if (!near.length) return 0;
+    near.sort((a, b) => a[0] - b[0]);
+    const atkv = {};
+    for (const [d, nr] of near.slice(0, K)) atkv[nr] = (atkv[nr] || 0) + 1 / Math.max(d, 25);
+    return +Object.entries(atkv).sort((a, b) => b[1] - a[1])[0][0];
+  };
 }
 
+if (process.argv.includes('--from-disk')) {
+  (async () => {
+    const byPn = {};
+    for (const f of fs.readdirSync(OUT)) { const m = f.match(/^(\d{3})\.json$/); if (m) byPn[m[1]] = JSON.parse(fs.readFileSync(path.join(OUT, f), 'utf8')); }
+    const gotur = goturUr(byPn);
+    fs.writeFileSync(path.join(OUT, 'gotur.json'), JSON.stringify(gotur));
+    console.log('gotur.json (from-disk):', Object.keys(gotur).length, 'götur úr', Object.keys(byPn).length, 'póstnúmerum');
+    // matssvæði endurreiknuð og pn-skrár endurskrifaðar (lat/lng eru í skránum)
+    const svaedi = await matssvaediVorpun();
+    let med = 0, alls = 0;
+    for (const pn of Object.keys(byPn)) {
+      const d = byPn[pn];
+      for (const key of Object.keys(d)) { const v = d[key]; while (v.length < 5) v.push(v.length === 2 ? '' : 0); v[5] = svaedi(v[0], v[1]); alls++; if (v[5]) med++; }
+      fs.writeFileSync(path.join(OUT, pn + '.json'), JSON.stringify(d));
+    }
+    console.log('matssvæði (from-disk):', med, 'af', alls, 'heimilisföngum fengu svæði (' + Math.round(med / alls * 100) + '%)');
+  })().catch((e) => { console.error('ERR', e); process.exit(1); });
+} else
 (async () => {
   console.log('sæki staðfangaskrá (~8MB)…');
   const r = await fetch(URL, { headers: { 'User-Agent': 'KARP dashboard build (karp.is)' } });
@@ -94,9 +133,13 @@ if (process.argv.includes('--from-disk')) {
     if (d[key]) continue;                                   // fyrsta staðfang gildir (fleiri matshlutar → sama hús)
     const hverfi = (c[i.hverfi] || '').trim();
     const landnr = +(c[i.landnr] || 0) || 0, heinum = +(c[i.heinum] || 0) || 0;
-    d[key] = [+lat.toFixed(5), +lng.toFixed(5), hverfi, landnr, heinum];
+    d[key] = [+lat.toFixed(5), +lng.toFixed(5), hverfi, landnr, heinum, 0];   // [5] = matssvæði, sett að neðan
     n++;
   }
+  const svaedi = await matssvaediVorpun();
+  let medSv = 0;
+  for (const pn of Object.keys(byPn)) for (const key of Object.keys(byPn[pn])) { const v = byPn[pn][key]; v[5] = svaedi(v[0], v[1]); if (v[5]) medSv++; }
+  console.log('matssvæði:', medSv, 'af', n, 'heimilisföngum fengu svæði (' + Math.round(medSv / n * 100) + '%)');
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
   const index = {};

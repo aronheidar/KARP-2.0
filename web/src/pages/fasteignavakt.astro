@@ -143,6 +143,8 @@ const jsonLd = {
     main[data-pg="fastvakt"] .fvm-nakv { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); font-size: 12.5px; line-height: 1.5; }
     main[data-pg="fastvakt"] .fvm-nakv-b { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; }
     main[data-pg="fastvakt"] .fvm-nakv span { color: var(--muted); }
+    main[data-pg="fastvakt"] .fvm-nakv-hms { display: block; margin-top: 3px; font-size: 12px; }
+    main[data-pg="fastvakt"] .fvm-svaedi { margin-top: 8px; }
     main[data-pg="fastvakt"] .ec-hms { color: #f6b13b; text-decoration: none; font-weight: 600; }
     main[data-pg="fastvakt"] .ec-hms:hover { text-decoration: underline; }
     main[data-pg="fastvakt"] .ec-r-hms { grid-column: 1 / -1; justify-content: flex-start; }
@@ -346,6 +348,9 @@ const jsonLd = {
       const leiFetch = () => LEI || (LEI = fetch('/gogn/leiga.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));  // LOTA 75: leiguverðmat
       // LOTA 64: full fasteignaskrá (nánast allar seldar eignir frá 2006 m/gildandi mati), per póstnúmer
       let FSK_IDX = null, FSK_GOTUR = null; const FSK = {};
+      // Matssvæði HMS (fasteignamat 2027): 197 svæði m/meðalverði á m² + breytingu, og nákvæmni gildandi mats
+      let HMS_MS = null;
+      const hmsMs = () => HMS_MS || (HMS_MS = fetch('/gogn/hms/matssvaedi_2027.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const fskIdx = () => FSK_IDX || (FSK_IDX = fetch('/gogn/fasteignaskra/index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const fskGotur = () => FSK_GOTUR || (FSK_GOTUR = fetch('/gogn/fasteignaskra/gotur.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       // Staðfangaskrá (LOTA 68-gögnin) sem LEITARGRUNNUR, ekki bara hnit: fasteignaskra/*.json er byggð úr
@@ -936,6 +941,29 @@ const jsonLd = {
           }
         }
 
+        // ── 🏘️ Matssvæði HMS (fasteignamat 2027): opinbert meðalverð á m² í svæðinu + 2027-breyting ──
+        // Svæðið kemur úr hnit/<pn>.json [5] (k-NN úr sölu-úrtaki HMS, build_hnit.js) — leiðbeinandi, jaðarföng
+        // geta lent röngum megin. Borið saman við OKKAR mat á m² svo notandinn sjái hvar það stendur.
+        let svaediHtml = '';
+        const msNr = subjC && subjC[5] ? String(subjC[5]) : '';
+        const MS = await hmsMs();
+        const sv2027 = (MS && MS.svaedi && msNr && MS.svaedi[msNr]) || null;
+        if (sv2027) {
+          const fj = teg === 'Fjölbýli';
+          const m2sv = fj ? sv2027.m2_fjol : sv2027.m2_ser, brsv = fj ? sv2027.br_fjol : sv2027.br_ser;
+          const okkar = est ? Math.round(est.m) : null;   // þ.kr/m²
+          const fr = (okkar && m2sv) ? Math.round((okkar / m2sv - 1) * 100) : null;
+          const pcs = (x) => (x == null ? '–' : (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1).replace('.', ',') + '%');
+          svaediHtml = `<div class="fvm-nakv fvm-svaedi"><span class="fvm-nakv-b" style="background:#8ab4f8"></span><div><b>🏘️ Matssvæði HMS: ${esc(sv2027.heiti)}</b> <i class="tip" tabindex="0" data-tip="Matssvæði fasteignamats 2027 (HMS). Meðalverð á m² og % breyting matsins 2026→2027 eru opinberar tölur HMS fyrir svæðið í heild — ekki mat á þessari eign. Svæðið er fundið út frá staðsetningu (næstu sölur í úrtaki HMS); heimilisföng við svæðamörk geta lent röngum megin.">ⓘ</i><br>`
+            + `<span>Opinbert meðalverð í svæðinu: <b>${thouIS(m2sv)} þ.kr/m²</b> (${fj ? 'fjölbýli' : 'sérbýli'}) · fasteignamat 2027 breytist um <b>${pcs(brsv)}</b>`
+            + (fr != null ? ` · matið hér að ofan (${thouIS(okkar)} þ.kr/m²) er <b>${Math.abs(fr)}% ${fr >= 0 ? 'yfir' : 'undir'}</b> svæðismeðaltali` : '') + `.</span></div></div>`;
+        }
+        // HMS-samanburður inn í nákvæmnis-línuna: hvernig stendur opinbera matið sig á sama mælikvarða?
+        if (nakvHtml && MS && MS.fmat_nakvaemni) {
+          const fn = MS.fmat_nakvaemni, pc = (x) => Math.round(x * 100) + '%';
+          nakvHtml = nakvHtml.replace('</span></div></div>', ` <span class="fvm-nakv-hms">Til samanburðar víkur gildandi fasteignamat HMS að miðgildi <b>${pc(fn.midgildi)}</b> frá söluverði (${pc(fn.innan10)} innan ±10%; sölu-úrtak HMS ${esc(fn.timabil)}, n=${thouIS(fn.n)}) <i class="tip" tabindex="0" data-tip="${esc(fn.lysing)}">ⓘ</i></span></span></div></div>`);
+        }
+
         // ── Leiga og ávöxtun (LOTA 75) — áætluð leiga + brúttó leiguávöxtun úr leiguskrá HMS ──
         // Einstakt: hvorki Keldan né Creditinfo birta leiguverðmat. Miðgildisleiga/m² í
         // sveitarfélaginu × stærð → mánaðarleiga; ×12 ÷ kaupvirði → brúttó ávöxtun.
@@ -1020,7 +1048,7 @@ const jsonLd = {
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)}${ibud ? ' · íbúð ' + esc(ibud) : ''} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${dIS(new Date().toISOString().slice(0, 10))} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
-          + barHtml + nakvHtml + leigaHtml + matHtml + bodyHtml + byggHtml
+          + barHtml + nakvHtml + svaediHtml + leigaHtml + matHtml + bodyHtml + byggHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`;
 
         // eignaspjald flipar
