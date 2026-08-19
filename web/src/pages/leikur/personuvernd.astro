@@ -1,0 +1,248 @@
+---
+// /leikur/personuvernd/ — PERSÓNUVERND Í RÁS-LEIKNUM, FYRIR SKÓLA. Markhópur: skólastjórnendur, persónuverndar-
+// fulltrúar skóla og kennarar sem þurfa að svara „má þetta?" á þremur mínútum. Statísk, SEO-indexanleg (title/
+// description/canonical + JSON-LD WebPage+Breadcrumb), engin innskráning, engin D1, ekkert runtime-JS.
+// Útlit endurnýtt úr leikstjori.astro (dökkt, KARP-gull) með pv-forskeyti.
+//
+// ALLT EFNI BYGGIR Á SANNREYNDUM STAÐREYNDUM ÚR KÓÐA (sjá ath. í skilum): töflur í web/migrations/0009_leikur.sql
+// (leikur_games/teams/decisions/results — ENGIN user_id/netfang/nafn), join krefst innskráðs nemanda (users-taflan =
+// Karp-reikningurinn), leikstjóri = HMAC-undirritað fac-tákn, áhorfenda-sýn ?watch=1 án innskráningar.
+// Hugtök og orðalag spegla docs/personuvernd/DPIA-fyrirtaekjaskyrslur-KYC.md + 01-DPA-vinnslusamningur (samþykkt 26.7)
+// + web/src/data/skilmalar.json. STAÐA: DRÖG — lögfræðiyfirferð í gangi (ágúst 2026); merkt á þremur stöðum.
+import Layout from '../../layouts/Layout.astro';
+
+const DROG = 'Drög — lögfræðiyfirferð í gangi (ágúst 2026)';
+const PAGE_URL = 'https://karp.is/leikur/personuvernd/';
+const TITLE = 'Persónuvernd í RÁS-leiknum — fyrir skóla';
+const DESC = 'Hvað geymir RÁS-Leikurinn, hver sér hvað og hvernig er gögnum eytt? Svör fyrir skólastjórnendur, persónuverndarfulltrúa og kennara: engin netföng eða notanda-auðkenni í leik-gögnunum (liðsheiti er eina frjálsa sviðið), sjálfvirk eyðing eftir 90 daga, skólinn ábyrgðaraðili og Karp vinnsluaðili.';
+const DPA_URL = '/skilmalar/#ras-leikurinn';
+const HJALP = 'mailto:hjalp@karp.is';
+const PV = 'mailto:personuvernd@karp.is';
+
+// 1. Þrjár staðreynda-flísar.
+const FLISAR = [
+  { icon: '🙈', heiti: 'Engin netföng eða notanda-auðkenni í leiknum', txt: 'Leik-töflurnar geyma leikkóða, liðsheiti, ákvarðanir, uppgjör og stillingar — ekkert notanda-auðkenni, netfang eða skráð nafn. Liðsheiti er eina frjálsa sviðið (veljið hlutlaus heiti).' },
+  { icon: '🗑️', heiti: 'Gögnum eytt sjálfkrafa eftir 90 daga', txt: 'Leikur, lið, ákvarðanir og uppgjör grisjast sjálfkrafa — og leikstjóri getur eytt leik strax í leikslok.' },
+  { icon: '🏫', heiti: 'Skólinn ræður — Karp vinnur', txt: 'Skólinn er ábyrgðaraðili að kennslunni, Karp vinnsluaðili skv. 28. gr. GDPR. Vinnslusamningur fyrir skóla í drögum.' },
+];
+
+// 2. Hvað geymir leikurinn? — reitirnir NÁKVÆMLEGA eins og þeir eru í D1 (0009_leikur.sql).
+const GEYMT = [
+  { reitur: 'Leikkóði', hvad: '5 stafa handahófskóði sem auðkennir leikinn (t.d. „K7M2P"). Leikstjóri deilir honum á skjávarpa.', pg: 'nei', pgTxt: 'Nei' },
+  { reitur: 'Liðsheiti', hvad: 'Frjáls texti sem liðið slær sjálft inn við inngöngu, mest 40 stafir. Birtist á stigatöflu og skjávarpa.', pg: 'nei-star', pgTxt: 'Nei*' },
+  { reitur: 'Ákvarðanir', hvad: 'Stillingar liðsins per kjörtímabil: stýrivextir, skattar, útgjöld og stóru ákvarðanirnar (t.d. álver, gagnaver, ESB-umsókn). Lyklað á leikkóða + lið-númer.', pg: 'nei', pgTxt: 'Nei' },
+  { reitur: 'Uppgjör', hvad: 'KPI-tölur (verðlag, VLF, kaupmáttur, skuldir, losun …) og stig hvers liðs per kjörtímabil — reiknað í RÁS-herminum á þjóni.', pg: 'nei', pgTxt: 'Nei' },
+  { reitur: 'Stillingar', hvad: 'Val leikstjóra við stofnun leiks: erfiðleikastig, umferðar-klukka, leikháttur (einfalt/stjórnstöð), leynileg hlutverk, óvænt atvik, æfingalið.', pg: 'nei', pgTxt: 'Nei' },
+];
+
+// 3. Hver sér hvað? — þrír dálkar. Byggt á GET /api/leikur/<kóði>/state: opinbert = lið+stig+KPI-ferlar+kort+atvik;
+// lið-tákn = eigið umboð/hlutverk+eigin ákvarðanir; fac-tákn = roster+greining (ALLRA ákvarðanir)+hlutverk allra.
+const SER = [
+  { icon: '🧑‍🎓', heiti: 'Þátttakandi (lið)', ser: ['Eigin sleða og ákvarðanir liðsins', 'Eigið umboð og leynilegt hlutverk (ef á við)', 'Stigatöflu allra liða: liðsheiti + stig', 'Uppgjör og KPI-ferla allra liða, Ísland liðanna, óvænt atvik', 'Stóru ákvarðanir og klemmu-val allra liða (merki á ferlum og korti)'], serEkki: ['Sleðastillingar annarra liða (hrá gildi)', 'Umboð og hlutverk annarra liða (hlutverk afhjúpuð í leikslok)', 'Nöfn eða netföng nokkurs — eru ekki til í leik-gögnunum'] },
+  { icon: '🧑‍🏫', heiti: 'Leikstjóri', ser: ['Allt sem þátttakandi sér', 'Lista liða með læsingar-stöðu', 'Greiningu liða: skorkort, allar ákvarðanir, ferlar', 'Hlutverk allra liða og kennsluhandbók', 'Stjórntæki: byrja, gera upp, stöðva/ljúka — og „🗑️ Eyða leik núna"'], serEkki: ['Nöfn, netföng eða Karp-reikninga þátttakenda — leikurinn geymir þau ekki', 'Aðra leiki en sína eigin (leikstjóra-tákn er bundið leikkóða)'] },
+  { icon: '📺', heiti: 'Skjávarpi (áhorfenda-sýn)', ser: ['Stigatöflu í rauntíma: liðsheiti + stig', 'Ísland liðanna (kort), KPI-ferla, atvika-popup, RÁS-tíðindi', 'Stóru ákvarðanir og klemmu-val liðanna (merki) — og í leikslok pólitíska ásinn (stjórnstöð)'], serEkki: ['Sleðastillingar (hrá gildi) eða ósend drög nokkurs liðs', 'Umboð og hlutverk liða fyrir leikslok', 'Neitt sem krefst liðs- eða leikstjóra-tákns (greining, roster)'], ath: 'Áhorfenda-hlekkurinn krefst engrar innskráningar — allir sem hafa leikkóðann geta opnað hann (kóðinn er 5 stafa slembikóði). Liðsheitin birtast því á skjá: veljið nafnlaus heiti og eyðið leiknum eftir kennslu.' },
+];
+
+// 6. Fyrir persónuverndarfulltrúann — stuttur listi.
+const PVF = [
+  { h: 'Mat á áhrifum á persónuvernd (DPIA)', t: 'DPIA-grunnur til í drögum (ekki enn yfirfarinn af lögfræðingi) — afhentur skólum á beiðni til personuvernd@karp.is svo þeir geti tekið hann upp í eigið mat. Niðurstaða draga: eftirstæð áhætta lág, enda engin tenging leik-gagna við notandareikninga, stutt varðveisla og engin prófílgerð eða einkunnagjöf; opin lögfræðileg álitaefni (hlutverk, lagastoð skóla, börn 13–17 ára) eru talin í viðauka matsins.' },
+  { h: 'Forsamráð við Persónuvernd', t: 'Ekki talið skylt (36. gr. GDPR) — vinnslan er ekki talin hafa í för með sér mikla áhættu. Endurmetið ef umfang breytist.' },
+  { h: 'Undirvinnsluaðilar', t: 'Cloudflare, Inc. — hýsing, keyrsla (Workers) og gagnagrunnur (D1) þar sem leik-gögnin eru vistuð og unnin. Google LLC / Google Ireland Ltd. (Gmail) — móttaka þátttakendalistans sem kennari sendir á hjalp@karp.is og staðfestingar-/lykilorðspóstur Karp-reikningsins; Gmail fær engin leik-gögn (leikurinn sjálfur sendir engan póst). Engin utanaðkomandi gervigreindarveita kemur að uppgjöri leiksins.' },
+  { h: 'Staðsetning gagna', t: 'Hjá Cloudflare — sjá vinnslusamning (DPA). Undirvinnsluaðilar kunna að vinna gögn utan EES; slíkur flutningur styðst við viðeigandi verndarráðstafanir skv. V. kafla GDPR (stöðluð samningsákvæði og/eða gildandi fullnægjandiákvörðun).' },
+  { h: 'Öryggisbrestur', t: 'Tilkynntur skólanum innan 48 klst. frá því að Karp verður hans var, með þeim upplýsingum sem skólinn þarf skv. 33.–34. gr. GDPR.' },
+  { h: 'Öryggisráðstafanir', t: 'Dulkóðun í flutningi (TLS); Karp-innskráning með PBKDF2-vörðu lykilorði og undirritaðri lotuköku; liðs- og leikstjóra-tákn HMAC-undirrituð og bundin einum leikkóða; uppgjör reiknað á þjóni (ófölsuð stig).' },
+  { h: 'Aldur þátttakenda', t: 'Karp er ekki ætlað börnum yngri en 13 ára (persónuverndarstefna Karp, 11. liður, sbr. ákvæði laga nr. 90/2018 um aldursmörk barna í tengslum við þjónustu í upplýsingasamfélaginu). Leikurinn er ætlaður framhaldsskóla-, háskóla- og símenntunarstigi; nemendur 13–17 ára eru börn í skilningi laganna og vinnslan fer fram undir ábyrgð skólans — ekki á grundvelli samþykkis nemenda.' },
+  { h: 'Þátttakendalisti frá kennara', t: 'Til að virkja nemanda-aðgang sendir kennari lista þátttakenda (netföng) á hjalp@karp.is. Listinn er notaður eingöngu til að merkja reikningana sem nemanda-aðgang — mælt er með skóla-netföngum.' },
+  { h: 'Réttindi skráðra', t: 'Um leik-gögnin: réttindi nemenda (aðgangur, leiðrétting, eyðing, andmæli) eru gagnvart skólanum sem ábyrgðaraðila; Karp aðstoðar og framsendir beiðnir sem berast beint. Leik-gögn eru ekki lykluð á einstakling — beiðni er afgreidd með leikkóða og liði (að jafnaði með atbeina kennara): leik eytt eða liðsheiti nafnleyst. Um Karp-reikninginn: beiðnir á hjalp@karp.is, afgreiddar innan lögbundins frests (að jafnaði mánaðar). Rétt er að kvarta til Persónuverndar.' },
+];
+
+const JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebPage', '@id': PAGE_URL, url: PAGE_URL, name: TITLE, inLanguage: 'is', description: DESC, isPartOf: { '@type': 'WebSite', name: 'Karp', url: 'https://karp.is/' },
+      about: { '@type': 'Thing', name: 'RÁS-Leikurinn — persónuvernd og gagnavinnsla í skólum' }, publisher: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/' } },
+    { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'RÁS-Leikurinn', item: 'https://karp.is/leikur/' },
+      { '@type': 'ListItem', position: 2, name: 'Fyrir kennara', item: 'https://karp.is/leikur/leikstjori/' },
+      { '@type': 'ListItem', position: 3, name: 'Persónuvernd fyrir skóla', item: PAGE_URL } ] },
+  ],
+};
+---
+<Layout title={TITLE + ' | Karp'} description={DESC} canonical={PAGE_URL} ogTitle={TITLE} jsonLd={JSONLD} bare={true}>
+  <main data-pg="leikur-personuvernd">
+
+    <!-- 1. HERO -->
+    <header class="pv-hero">
+      <p class="pv-crumb"><a href="/leikur/">RÁS-Leikurinn</a> · <a href="/leikur/leikstjori/">Fyrir kennara</a> · Persónuvernd</p>
+      <span class="pv-drog" title="Staða skjalsins">⚠ {DROG}</span>
+      <h1>Persónuvernd í RÁS-leiknum — fyrir skóla</h1>
+      <p class="pv-lead">Síðan er fyrir skólastjórnendur, persónuverndarfulltrúa og kennara sem þurfa að svara „má þetta?" á þremur mínútum. Hún lýsir nákvæmlega hvað leikurinn geymir, hver sér hvað og hvernig gögnum er eytt — og hvaða hlutverk skóli og Karp hafa samkvæmt persónuverndarlögum.</p>
+      <div class="pv-flisar" aria-label="Þrjár staðreyndir">
+        {FLISAR.map((f) => (
+          <div class="pv-flis"><span class="pv-flis-ic" aria-hidden="true">{f.icon}</span><b>{f.heiti}</b><p>{f.txt}</p></div>
+        ))}
+      </div>
+    </header>
+
+    <!-- 2. HVAÐ GEYMIR LEIKURINN? -->
+    <section class="pv-card" id="geymt">
+      <h2>🗄️ Hvað geymir leikurinn?</h2>
+      <p class="pv-muted">Leikurinn keyrir á þjóni Karp og geymir fimm flokka upplýsinga um hvern leik (fjórar töflur: leikur, lið, ákvarðanir, uppgjör). Ekkert þeirra er notanda-auðkenni, netfang eða skráð nafn — leik-töflurnar hafa enga tengingu við Karp-reikning þátttakanda.</p>
+      <div class="pv-tbl-wrap">
+        <table class="pv-tbl">
+          <thead><tr><th>Reitur</th><th>Hvað er geymt</th><th>Persónugögn?</th></tr></thead>
+          <tbody>
+            {GEYMT.map((r) => (
+              <tr><td class="pv-reitur">{r.reitur}</td><td>{r.hvad}</td><td><span class={'pv-pg pv-pg-' + r.pg}>{r.pgTxt}</span></td></tr>
+            ))}
+            <tr class="pv-row-acct">
+              <td class="pv-reitur">Karp-innskráning nemanda</td>
+              <td>Til að ganga í lið þarf þátttakandi innskráðan Karp-reikning sem merktur er sem nemanda-aðgangur: netfang, lykilorð (geymt sem PBKDF2-hash) og nemanda-merki. Þetta er vistað í notendaskrá Karp — <b>það er Karp-reikningurinn, ekki leikurinn.</b> Eitt tæki per lið dugar, svo aðeins einn í hverju liði þarf aðgang. <b>Mælt er með skóla-netfangi.</b></td>
+              <td><span class="pv-pg pv-pg-ja">Já — reikningurinn</span></td>
+            </tr>
+            <tr>
+              <td class="pv-reitur">Í vafra þátttakanda</td>
+              <td>Liðs- eða leikstjóra-tákn leiksins og „séð"-flögg (t.d. að atvika-popup hafi birst) í localStorage vafrans. Ekkert af þessu er sent til þjóns nema táknið sjálft, sem auðkennir lið eða leikstjóra í einum leik.</td>
+              <td><span class="pv-pg pv-pg-nei">Nei</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pv-fn"><b>* Liðsheiti er frjáls texti.</b> Kerfið síar ekki nöfn úr því — ef lið skrifar „Jón og Gunna" er það eina leiðin sem persónuupplýsingar komast í leik-gögnin. Inngönguskjárinn biður um hlutlaust heiti; biðjið liðin um nafnlaus heiti („Rauða liðið", „Ríkisstjórn 3") — leikstjóri sér heitin í lobby áður en leikur hefst og getur eytt leiknum og stofnað nýjan ef þörf krefur.</p>
+    </section>
+
+    <!-- 3. HVER SÉR HVAÐ? -->
+    <section class="pv-card" id="ser">
+      <h2>👀 Hver sér hvað?</h2>
+      <p class="pv-muted">Þrjár sýnir á sama leik. Stigatafla, KPI-ferlar og kortið eru sameiginleg öllum sem hafa leikkóðann; ákvarðanir liða í smáatriðum sér aðeins leikstjóri.</p>
+      <div class="pv-ser-grid">
+        {SER.map((s) => (
+          <div class="pv-ser">
+            <div class="pv-ser-h"><span aria-hidden="true">{s.icon}</span> <b>{s.heiti}</b></div>
+            <p class="pv-ser-lbl">Sér</p>
+            <ul>{s.ser.map((x) => <li>{x}</li>)}</ul>
+            <p class="pv-ser-lbl pv-ser-lbl-ekki">Sér ekki</p>
+            <ul class="pv-ekki">{s.serEkki.map((x) => <li>{x}</li>)}</ul>
+            {s.ath && <p class="pv-ser-ath">{s.ath}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 4. HVERNIG EYÐUM VIÐ? -->
+    <section class="pv-card" id="eyding">
+      <h2>🗑️ Hvernig eyðum við?</h2>
+      <div class="pv-grid3">
+        <div class="pv-block">
+          <div class="pv-block-h">⏳ Sjálfkrafa eftir 90 daga</div>
+          <p>Loknir leikir eru grisjaðir sjálfkrafa 90 dögum eftir stofnun (vikuleg keyrsla): leikurinn, lið hans, ákvarðanir og uppgjör hverfa úr gagnagrunninum. Leikir sem aldrei var lokið hverfa eigi síðar en eftir 180 daga. Engin leik-gögn eru varðveitt lengur en kennslan þarf.</p>
+        </div>
+        <div class="pv-block">
+          <div class="pv-block-h">🧑‍🏫 „Eyða leik núna" — leikstjóri</div>
+          <p>Í leikslok (og í biðstöðu áður en leikur hefst) hefur leikstjóri hnappinn „🗑️ Eyða leik núna" sem eyðir leiknum, liðsheitum, ákvörðunum og uppgjöri strax og endanlega, án þess að bíða grisjunarinnar (leikur í gangi er fyrst stöðvaður). Mælt með því þegar kennslustund er lokið og debrief-skýrslan hefur verið prentuð.</p>
+        </div>
+        <div class="pv-block">
+          <div class="pv-block-h">✉️ Karp-reikningur nemanda</div>
+          <p>Karp er ábyrgðaraðili reikningsins: beiðni um eyðingu hans (netfangs) sendir nemandinn sjálfur á <a href={HJALP}>hjalp@karp.is</a> — afgreitt handvirkt innan lögbundins frests, að jafnaði mánaðar. Skólinn getur óskað þess að nemanda-merking sé afturkölluð af reikningum þátttakenda og að þátttakendalistanum sé eytt.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. HLUTVERK OG SAMNINGUR -->
+    <section class="pv-card pv-dpa" id="samningur">
+      <h2>📜 Hlutverk og samningur</h2>
+      <span class="pv-drog">⚠ {DROG}</span>
+      <p>Þegar skóli notar RÁS-Leikinn í kennslu er <b>skólinn ábyrgðaraðili</b> að vinnslu persónuupplýsinga nemenda sinna — hann ákveður hverjir taka þátt, hvaða netföng eru notuð og hvernig lið eru nefnd. <b>Karp (Steinsson Greykdal ehf., kt. 490522-0500) er vinnsluaðili</b> í skilningi 28. gr. reglugerðar (ESB) 2016/679 (GDPR) og laga nr. 90/2018: Karp vinnur leik-gögnin aðeins til að reka leikinn fyrir skólann — ekki í eigin þágu, hvorki í aðrar vörur Karp né til markaðssetningar — og eyðir þeim samkvæmt ofangreindu. Karp-reikningur nemandans sjálfs (netfang og lykilorð) fellur undir persónuverndarstefnu Karp sem ábyrgðaraðila að eigin notendagögnum.</p>
+      <p class="pv-cta-row">
+        <a class="pv-btn" href={DPA_URL}>📄 Skóla-DPA (drög) — sækja</a>
+        <a class="pv-btn pv-btn-ghost" href={PV + '?subject=' + encodeURIComponent('Skóla-DPA — RÁS-Leikurinn')}>✉️ Hafa samband til að undirrita</a>
+      </p>
+      <p class="pv-muted">Skóla-samningurinn fylgir sama sniði og gagnavinnslusamningur Karp fyrir compliance-vörur (það sniðmát var yfirfarið af persónuverndarlögfræðingi 26. júlí 2026 — skóla-útgáfan sjálf er enn í drögum og bíður yfirferðar): efni og tilgangur, tegundir upplýsinga, skyldur vinnsluaðila, öryggisráðstafanir, undirvinnsluaðilar, öryggisbrestur, varðveisla og eyðing. Þar til skóli hefur undirritað hann gildir almenni gagnavinnslusamningurinn á skilmálasíðunni. Skólinn fær afrit til undirritunar — ekkert gjald fylgir samningnum.</p>
+    </section>
+
+    <!-- 6. FYRIR PERSÓNUVERNDARFULLTRÚANN -->
+    <section class="pv-card" id="pvf">
+      <h2>🛡️ Fyrir persónuverndarfulltrúann</h2>
+      <dl class="pv-dl">
+        {PVF.map((p) => (<div class="pv-dl-row"><dt>{p.h}</dt><dd>{p.t}</dd></div>))}
+      </dl>
+      <p class="pv-muted">Fyrirspurnir persónuverndarfulltrúa: <a href={PV}>personuvernd@karp.is</a> — við svörum með DPIA-drögum, vinnsluskrár-færslu og DPA-eintaki.</p>
+    </section>
+
+    <!-- 7. FÓTUR -->
+    <footer class="pv-card pv-fotur" id="tenglar">
+      <span class="pv-drog">⚠ {DROG}</span>
+      <p>Sjá líka: <a href="/leikur/leikstjori/">🧑‍🏫 RÁS-Leikurinn fyrir kennara</a> · <a href="/skilmalar/">📜 Skilmálar &amp; persónuvernd Karp</a> · <a href={HJALP}>✉️ hjalp@karp.is</a></p>
+      <p class="pv-muted">Þessi síða er upplýsingasíða og kemur ekki í stað vinnslusamnings eða lögfræðiráðgjafar. Orðalag getur breyst við lögfræðiyfirferð; dagsetning stöðu er í merkinu hér að ofan.</p>
+    </footer>
+  </main>
+</Layout>
+
+<style>
+  /* Sama dökka KARP-gull útlit og leikstjori.astro (pv-forskeyti). Statísk síða → scoped CSS nægir. */
+  main[data-pg="leikur-personuvernd"] { max-width: 960px; margin: 0 auto; padding: 20px 20px 80px; color: var(--ink, #e8ecf3); }
+  h1 { font-size: 32px; line-height: 1.15; margin: 8px 0 10px; }
+  h2 { font-size: 20px; margin: 0 0 10px; }
+  .pv-card { border: 1px solid var(--line, #2a2f3a); border-radius: 12px; padding: 18px; margin: 14px 0; background: rgba(255,255,255,.03); }
+  .pv-muted { color: var(--muted, #9fb0c8); font-size: 13.5px; line-height: 1.55; }
+  .pv-muted a, .pv-fotur a, .pv-block a { color: #f6b13b; }
+  .pv-crumb { font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 0 0 6px; }
+  .pv-crumb a { color: var(--muted, #9fb0c8); }
+  .pv-drog { display: inline-block; font-size: 12px; font-weight: 700; color: #f0c674; background: rgba(240,177,59,.1); border: 1px dashed #f6b13b88; border-radius: 999px; padding: 3px 12px; margin: 0 0 8px; }
+  .pv-lead { font-size: 16px; color: var(--muted, #9fb0c8); line-height: 1.55; margin: 0 0 14px; }
+  /* Flísar */
+  .pv-flisar { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .pv-flis { border: 1px solid #f6b13b55; border-radius: 10px; padding: 12px 14px; background: linear-gradient(180deg, rgba(246,177,59,.14), rgba(246,177,59,.04)); }
+  .pv-flis-ic { font-size: 22px; display: block; margin-bottom: 4px; }
+  .pv-flis b { font-size: 15px; display: block; }
+  .pv-flis p { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.5; margin: 4px 0 0; }
+  /* Tafla */
+  .pv-tbl-wrap { overflow-x: auto; margin: 12px 0 8px; }
+  .pv-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.5; }
+  .pv-tbl th, .pv-tbl td { border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 10px; text-align: left; vertical-align: top; }
+  .pv-tbl th { color: var(--muted, #9fb0c8); font-weight: 600; font-size: 12.5px; }
+  .pv-reitur { font-weight: 700; white-space: nowrap; }
+  .pv-row-acct td { background: rgba(110,168,254,.06); }
+  .pv-pg { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  .pv-pg-nei { background: rgba(127,224,171,.14); color: #7fe0ab; }
+  .pv-pg-nei-star { background: rgba(240,198,116,.14); color: #f0c674; }
+  .pv-pg-ja { background: rgba(110,168,254,.16); color: #9cc4ff; }
+  .pv-fn { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.55; margin: 6px 0 0; }
+  /* Hver sér hvað */
+  .pv-ser-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
+  .pv-ser { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #f6b13b; border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
+  .pv-ser-h { font-size: 15px; margin-bottom: 4px; }
+  .pv-ser-lbl { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #7fe0ab; margin: 8px 0 2px; }
+  .pv-ser-lbl-ekki { color: #ff9c9c; }
+  .pv-ser ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+  .pv-ekki li { color: var(--muted, #9fb0c8); }
+  .pv-ser-ath { font-size: 12.5px; color: #f0c674; line-height: 1.5; margin: 8px 0 0; border-top: 1px dashed #f6b13b55; padding-top: 6px; }
+  /* Eyðing */
+  .pv-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 12px; }
+  .pv-block { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #f6b13b; border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
+  .pv-block-h { font-size: 14.5px; font-weight: 700; }
+  .pv-block p { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.5; margin: 5px 0 0; }
+  /* Samningur */
+  .pv-dpa { border-color: #f6b13b66; background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(246,177,59,.02)); }
+  .pv-dpa > p { font-size: 14px; line-height: 1.6; }
+  .pv-btn { display: inline-block; background: #f6b13b; color: #12161f; border: 0; border-radius: 8px; padding: 11px 20px; font-weight: 700; cursor: pointer; font-size: 15px; text-decoration: none; }
+  .pv-btn:hover { filter: brightness(1.07); }
+  .pv-btn-ghost { background: rgba(255,255,255,.06); color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); }
+  .pv-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 10px; }
+  /* PVF-listi */
+  .pv-dl { margin: 10px 0 8px; display: flex; flex-direction: column; gap: 0; }
+  .pv-dl-row { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 12px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .pv-dl-row:first-child { border-top: 0; }
+  .pv-dl dt { font-weight: 700; font-size: 13.5px; }
+  .pv-dl dd { margin: 0; font-size: 13.5px; color: var(--muted, #9fb0c8); line-height: 1.55; }
+  /* Fótur */
+  .pv-fotur { border-color: #6ea8fe66; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  .pv-fotur p { font-size: 14px; line-height: 1.55; margin: 6px 0; }
+  /* Farsími */
+  @media (max-width: 760px) {
+    main[data-pg="leikur-personuvernd"] { padding: 12px 12px 60px; }
+    h1 { font-size: 25px; }
+    .pv-reitur { white-space: normal; }
+    .pv-dl-row { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>

@@ -6,7 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import SK from '../data/skilmalar.json';
 
-const updated = '2026-07-26';
+const updated = '2026-08-02';
 const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarskilmálar, gagnaheimildir, kökur, réttindi notenda og gagnavinnslusamningur (DPA) fyrir compliance-vörur.';
 ---
 
@@ -34,7 +34,7 @@ const desc = 'Skilmálar og persónuverndarstefna Karp (karp.is) — notkunarski
     <h2>Gagnavinnslusamningur (Karp sem vinnsluaðili)</h2>
     <p class="dpa-intro">Þessi gagnavinnslusamningur (DPA) á við þegar áskrifandi að compliance-vörum Karp (Áreiðanleikavaktin, Firma-account) vinnur persónuupplýsingar um eigin viðskiptavini — þá er áskrifandinn ábyrgðaraðili og Karp vinnsluaðili skv. 28. gr. GDPR. Hann er hluti af Fyrirtæki+ skilmálum. Fyrirspurnir: <a href="mailto:personuvernd@karp.is">personuvernd@karp.is</a>.</p>
     {SK.dpa.map((s) => (
-      <div class="sec">
+      <div class="sec" id={s.id}>
         <h3>{s.n}. {s.t}</h3>
         <div set:html={s.b} />
       </div>

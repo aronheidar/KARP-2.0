@@ -64,7 +64,7 @@ const kr = (n) => n.toLocaleString('is-IS') + ' kr';
 
 const FAQ = [
   { q: 'Þarf einhverja tækni?', a: 'Nei. Leikurinn keyrir í vafra — þátttakendur nota síma, spjaldtölvu eða fartölvu og leikstjórinn tengir skjávarpa við áhorfenda-sýnina. Ekkert þarf að setja upp.' },
-  { q: 'Hvað með persónugögn nemenda?', a: 'Lágmörkuð. Leikurinn sjálfur geymir aðeins liðsheiti, leikkóða og ákvarðanir liðanna — engin nöfn, kennitölur eða einkunnir. Þátttakendur ganga í lið með frírri Karp-innskráningu (netfang) sem merkt er sem nemanda-aðgangur; eitt tæki per lið dugar, svo aðeins einn í hverju liði þarf aðgang. Sérstakur skólapakki með vinnslusamningi er í undirbúningi.' },
+  { q: 'Hvað með persónugögn nemenda?', a: 'Lágmörkuð. Leikurinn sjálfur geymir aðeins liðsheiti, leikkóða, ákvarðanir og uppgjör liðanna — engin skráð nöfn, kennitölur, netföng eða einkunnir (liðsheiti er frjáls texti: biðjið um hlutlaus heiti). Leikjum er eytt sjálfkrafa eftir 90 daga og leikstjóri getur eytt leik strax í leikslok. Þátttakendur ganga í lið með frírri Karp-innskráningu (netfang) sem merkt er sem nemanda-aðgangur; eitt tæki per lið dugar, svo aðeins einn í hverju liði þarf aðgang. Nánar fyrir skólastjórnendur og persónuverndarfulltrúa — hvað er geymt, hver sér hvað, eyðing og skóla-DPA (drög) — á síðunni Persónuvernd í RÁS-leiknum fyrir skóla.', href: '/leikur/personuvernd/', hrefTxt: 'Persónuvernd í RÁS-leiknum — fyrir skóla →' },
   { q: 'Hve margir geta spilað?', a: 'Við mælum með 2–8 liðum í leik og 1–6 manns í liði (engin hörð mörk í kerfinu). Stærri hópar fylgjast með á skjávarpanum sem áhorfendur og taka þátt í umræðunni — margir kennarar láta salinn „ráðleggja" liðunum.' },
   { q: 'Virkar leikurinn án nettengingar?', a: 'Nei. Uppgjör hvers kjörtímabils er reiknað á þjóni svo stigin séu ófölsuð og öll lið sjái sömu stöðu — venjuleg nettenging í kennslustofu eða fundarsal nægir.' },
   { q: 'Má sníða sviðsmyndina?', a: `Sviðsmyndin í dag er Ísland ${YEAR_START}–${YEAR_END}: netbóla, útrás, hrun, höft, ferðamannasprengja, heimsfaraldur, verðbólgubylgja og framtíðin. Leikstjórinn velur erfiðleikastig, umferðar-klukku, hlutverk og atvik — sér-sviðsmyndir eru í þróun.` },
@@ -175,7 +175,7 @@ const JSONLD = {
       <h2>❓ Algengar spurningar</h2>
       <div class="lst-faq">
         {FAQ.map((f) => (
-          <details class="lst-q"><summary>{f.q}</summary><p>{f.a}</p></details>
+          <details class="lst-q"><summary>{f.q}</summary><p>{f.a}{f.href && <> <a href={f.href} style="color:#f6b13b">{f.hrefTxt}</a></>}</p></details>
         ))}
       </div>
     </section>
