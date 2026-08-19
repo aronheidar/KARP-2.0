@@ -986,8 +986,11 @@ async function main() {
   // svo HVER frétt á forsíðunni eigi sér article-síðu (ekkert 404), og eldri fréttir haldist sem permalink.
   const archById = new Map();
   for (const e of published) archById.set(e.id, { id: e.id, date: TODAY, type: e.type, title: e.title, text: e.text, url: e.url, ai: !!e.ai, spark: (e.spark && e.spark.length >= 4) ? e.spark : undefined, samhengi: e.samhengi || undefined, facts: e.facts || undefined });
-  for (const it of items) if (!archById.has(it.id)) archById.set(it.id, it);
+  // ⚠ SAFNIÐ Á UNDAN STRAUMNUM: `items` er hvítlistuð (ENGIN facts, sjá l. ~949) en `arch0` geymir
+  // facts — þ.m.t. RÁS-kassann. Öfug röð þurrkaði facts út daginn eftir birtingu, svo `facts.ras`
+  // komst ALDREI á permalink-síðu (0 af 222 færslum höfðu kassa þegar þetta fannst).
   for (const a of arch0) if (!archById.has(a.id)) archById.set(a.id, a);
+  for (const it of items) if (!archById.has(it.id)) archById.set(it.id, it);
   const archItems = [...archById.values()].slice(0, 500);
   archItems.forEach((it) => { if (URLFIX[it.url]) it.url = URLFIX[it.url]; });
   const archive = JSON.stringify({ updated: new Date().toISOString(), n: archItems.length, items: archItems });
