@@ -1,0 +1,84 @@
+name: Ársreikningar — nætur-forbygging
+
+# HRAÐA-LOTA 2026-08-01: fyrirtækjaskýrsla félags sem ekki er á lager kostaði ~80-100 s bið
+# (dispatch → CI → hauslaus vafri → þáttun). Þetta starf forbyggir EFTIRSPURNAR-MENGIÐ á nóttunni
+# (KYC-vöktuð + fylgd + stærstu eftir sölu, að frádregnum lager) svo langflestar uppflettingar
+# hitti á lagerinn og bíði ekkert. Sjá skriptur/velja_forbyggingu.mjs.
+#
+# ⚠ SÉR concurrency-hópur (EKKI 'arsreikningur'): on-demand beiðni kaupanda má ALDREI lenda í
+#   biðröð á eftir 10-mín forbyggingu. Þau deila sama skripti og sömu möppu — commit-skrefið
+#   rebasar á main svo samtímis-keyrslur skrifi ekki yfir hvor aðra.
+# ⚠ RSK-kurteisi: --max 60 per nótt + innbyggð töf build_arsreikningar milli félaga.
+
+on:
+  schedule:
+    - cron: '20 3 * * *'   # 03:20 UTC — eftir refresh-data (sem uppfærir felog/fjarhagur), fyrir morgunumferð
+  workflow_dispatch:
+    inputs:
+      max:
+        description: 'Hámark félaga í þessari keyrslu'
+        required: false
+        default: '60'
+      top:
+        description: 'Stærðar-gluggi (N stærstu eftir sölu)'
+        required: false
+        default: '400'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: arsreikningar-forbygging
+  cancel-in-progress: false
+
+jobs:
+  forbyggja:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: .github/workflows/arsreikningur.yml
+      - uses: actions/cache@v4
+        id: npmcache
+        with:
+          path: node_modules/puppeteer-core
+          key: puppeteer-core-${{ runner.os }}-${{ hashFiles('.github/workflows/arsreikningur.yml') }}
+      - name: Uppsetning (puppeteer-core + pdfplumber — OCR löt)
+        run: |
+          if [ "${{ steps.npmcache.outputs.cache-hit }}" != "true" ]; then npm install puppeteer-core --no-save; fi
+          python -m pip install --quiet pdfplumber
+      - name: Velja eftirspurnar-mengið (D1) og forbyggja
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CHROME_PATH: /usr/bin/google-chrome
+          PYTHON: python
+          OCR_LAZY_INSTALL: '1'
+          MAX: ${{ github.event.inputs.max || '60' }}
+          TOP: ${{ github.event.inputs.top || '400' }}
+        run: |
+          KTS="$(node skriptur/velja_forbyggingu.mjs --max "$MAX" --top "$TOP")"
+          if [ -z "$KTS" ]; then echo "Ekkert vantar á lager í eftirspurnar-menginu — ekkert að gera."; exit 0; fi
+          echo "Forbyggi: $KTS"
+          node skriptur/build_arsreikningar.mjs $KTS --ar 2
+      - name: Commit JSON (ef ný gögn)
+        run: |
+          git config user.name "karp-arsreikningar[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/public/gogn/arsreikningar/ 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Engin ný ársreikningsgögn."; exit 0; fi
+          git commit -m "Ársreikningar forbyggðir (nætur-forbygging)"
+          for i in 1 2 3 4 5; do
+            if git push; then echo "Push tókst (tilraun $i)"; exit 0; fi
+            echo "Push hafnað (tilraun $i) — rebasa á origin/main..."
+            git fetch origin main && git -c rebase.autoStash=true rebase origin/main || git rebase --abort 2>/dev/null || true
+            sleep $((i * 3))
+          done
+          echo "❌ Push mistókst eftir 5 tilraunir"; exit 1

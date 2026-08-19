@@ -92,7 +92,24 @@ export function parsePdf(pdfPath, knownYr, { PYTHON = process.env.PYTHON || 'pyt
 // (isl+eng) → parse_arsreikningur les svo textann eins og venjulega. Skilar slóð á OCR-að PDF, eða
 // null ef ocrmypdf vantar / OCR mistekst (þá fellur bygging aftur á skannad-merkið — ENGIN spilling).
 // Keyrt AÐEINS í GH-Action (ocrmypdf er ekki í Cloudflare-worker né sjálfgefið á dev-vél).
+// LÖT UPPSETNING (hraða-lota 2026-08-01): OCR-pakkarnir (ocrmypdf+tesseract-isl+unpaper) kostuðu
+// ~30-40 s af apt-get í HVERRI CI-keyrslu en þarf aðeins í ~1% tilfella (skönnuð PDF). Séu þeir
+// ekki til staðar og OCR_LAZY_INSTALL=1 er sett, eru þeir settir upp HÉR við fyrstu þörf — annars
+// fellur OCR eins og áður (null → skannad-merki, engin spilling). Keyrt einu sinni per ferli.
+let _ocrReynt = false;
+function _tryggjaOcr(OCRMYPDF) {
+  if (_ocrReynt) return;
+  _ocrReynt = true;
+  const til = spawnSync(OCRMYPDF, ['--version'], { encoding: 'utf-8' });
+  if (!til.error && til.status === 0) return;
+  if (process.env.OCR_LAZY_INSTALL !== '1') return;
+  console.log('  ↻ skannað PDF — set upp OCR-pakka (leti-uppsetning, ~30 s)…');
+  spawnSync('sudo', ['apt-get', 'update', '-qq'], { encoding: 'utf-8', stdio: 'ignore' });
+  spawnSync('sudo', ['apt-get', 'install', '-y', '-qq', 'ocrmypdf', 'tesseract-ocr-isl', 'unpaper'], { encoding: 'utf-8', stdio: 'ignore' });
+}
+
 export function ocrPdf(pdfPath, { OCRMYPDF = process.env.OCRMYPDF || 'ocrmypdf' } = {}) {
+  _tryggjaOcr(OCRMYPDF);
   const outPath = pdfPath.replace(/\.pdf$/i, '') + '.ocr.pdf';
   const base = ['--language', 'isl+eng', '--force-ocr', '--output-type', 'pdf', '--optimize', '0', '--quiet'];
   // Betri tölu-nákvæmni úr skönnuðum efnahagsreikningum: rétta halla (--deskew) + snúning

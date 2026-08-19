@@ -1026,7 +1026,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const id = String(kt).replace(/\D/g, '');
       const bar = () => document.getElementById('kpi-pend-bar');
       const sec = () => document.getElementById('kpi-pend-sec');
-      let el = 0; const EST = 150;   // ~2,5 mín áætlun (framvinda; raun-reload ræðst af poll-inu)
+      // EST = áætlaður heildartími (sek) fyrir framvindustikuna. Var 150 þegar CI setti upp OCR-pakka í hverri
+      // keyrslu (~80-100 s raun); eftir hraða-lotuna 1.8 (puppeteer-cache + löt OCR) er raun-keyrsla ~45-60 s.
+      // Haldið ögn yfir raun-tíma svo stikan ljúgi ekki 'næstum tilbúið' á meðan commit+deploy-bylgja rúllar.
+      let el = 0; const EST = 75;
       const tick = setInterval(() => {
         el++;
         const b = bar(); if (b) b.style.width = Math.min(96, el / EST * 100).toFixed(1) + '%';

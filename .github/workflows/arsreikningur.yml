@@ -35,19 +35,26 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Uppsetning (puppeteer-core + pdfplumber + OCR)
+          cache: 'pip'
+          cache-dependency-path: .github/workflows/arsreikningur.yml
+      # HRAÐA-LOTA 2026-08-01: uppsetningin var >50% af ~80-100 s keyrslu. Þrennt:
+      #  (1) puppeteer-core cache-að á lykil úr þessari skrá (breytist sjaldan) → ~2 s í stað ~15 s
+      #  (2) pip-cache á pdfplumber
+      #  (3) OCR-pakkarnir (apt, ~30-40 s) settir upp LÖT — aðeins þegar skannað PDF finnst (~1%)
+      - uses: actions/cache@v4
+        id: npmcache
+        with:
+          path: node_modules/puppeteer-core
+          key: puppeteer-core-${{ runner.os }}-${{ hashFiles('.github/workflows/arsreikningur.yml') }}
+      - name: Uppsetning (puppeteer-core + pdfplumber — OCR löt)
         run: |
-          npm install puppeteer-core --no-save
+          if [ "${{ steps.npmcache.outputs.cache-hit }}" != "true" ]; then npm install puppeteer-core --no-save; fi
           python -m pip install --quiet pdfplumber
-          # OCR-varaleið fyrir skönnuð (mynd-)PDF: ocrmypdf dregur inn tesseract + ghostscript;
-          # tesseract-ocr-isl bætir við íslensku máli. Notað aðeins þegar PDF hefur ekkert textalag.
-          sudo apt-get update -qq
-          # unpaper = mynd-hreinsun fyrir ocrmypdf --clean (betri tölu-nákvæmni úr skönnuðum reikningum)
-          sudo apt-get install -y -qq ocrmypdf tesseract-ocr-isl unpaper
       - name: Sækja + þátta ársreikning
         env:
           CHROME_PATH: /usr/bin/google-chrome   # foruppsett á ubuntu-latest
           PYTHON: python
+          OCR_LAZY_INSTALL: '1'   # ocrPdf() setur ocrmypdf+tesseract-isl+unpaper upp við FYRSTU þörf (sjá lib/rsk.mjs)
           RAW_PAYLOAD: ${{ github.event.client_payload.kt }}   # untrusted → um env (ekki bein innskeyting) gegn shell-injection
           RAW_KT: ${{ github.event.inputs.kt }}
           RAW_KTS: ${{ github.event.inputs.kts }}
