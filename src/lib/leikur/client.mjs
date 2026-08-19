@@ -17,7 +17,7 @@ import { myndFyrirAtvik, PM_MYNDIR, PM_MYNDIR_KONA } from './myndir.mjs';
 import { sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, radherraFyrirLotu, radherraTexti } from './saga.mjs';
 import { kortThrep, KORT_LEVER_ID } from './kort-throp.mjs';
 import { renderIslandKort } from './kort-svg.mjs';
-import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS } from './game-config.mjs';
+import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS, DIFFICULTY } from './game-config.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 // ATH: þessi skrá býr í src/lib/leikur/ (EKKI web/src/lib/leikur/) — auth.js er undir web/src/lib/, því 3 stig upp.
@@ -35,6 +35,29 @@ async function api(path, { method = 'GET', body, token } = {}) {
 }
 const lsFac = (code) => 'leikur_fac_' + code;
 const lsTeam = (code) => 'leikur_team_' + code;
+// VERK B (leikstjóra-onboarding): stillingar sem leikstjóri valdi við stofnun (þjónninn sýnir ekki klukku/óvænt/hlutverk
+// í lobby-state → vafrinn man þær), æfingalið (bot) og „vísir séður"-flaggið.
+const lsFacCfg = (code) => 'leikur_faccfg_' + code;
+const LS_FACCFG_LAST = 'leikur_faccfg_last';
+const lsBot = (code) => 'leikur_bot_' + code;
+const LS_ONB = 'lk-fac-onboarded';
+const BOT_NAME = 'Æfingalið (sjálfvirkt)';
+const ONB_STEPS = 4;
+// Textar erfiðleikastiga (ein setning hvert) úr game-config — sama uppspretta og þjónninn notar.
+const DIFF_LABEL = (k) => (DIFFICULTY[k] || DIFFICULTY.medium).label;
+// GET /api/leikur/me (verk A) → { leikstjori, isAdmin, nemandi, until, source }. 404/villa (verk A ekki merge-að) → { leikstjori:false, _missing:true }.
+async function fetchLeikurMe() {
+  try { const { status, json } = await api('/me'); if (status === 200 && json && typeof json === 'object') return json; return { leikstjori: false, _missing: status === 404 }; } catch (e) { return { leikstjori: false, _missing: true }; }
+}
+// until úr /me: ISO-strengur eða epoch (sek/ms) → „d.m.yyyy"; ógilt → ''.
+function fmtUntil(v) { if (v == null || v === '') return ''; const d = typeof v === 'number' ? new Date(v < 1e12 ? v * 1000 : v) : new Date(v); return isNaN(d.getTime()) ? '' : d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear(); }   // handvirkt d.m.yyyy (is-IS locale-gögn vantar í sumum vöfrum)
+// Afrita í klippiborð með sjónrænni staðfestingu; fallback = sýna textann sjálfan í hnappinum (t.d. utan https).
+function copyText(text, el, ok) {
+  const orig = el ? el.textContent : '';
+  const done = () => { if (el) { el.textContent = ok; setTimeout(() => { if (el.isConnected) el.textContent = orig; }, 2000); } };
+  const fail = () => { if (el) el.textContent = text; };
+  try { const p = navigator.clipboard && navigator.clipboard.writeText(text); if (p && typeof p.then === 'function') p.then(done, fail); else done(); } catch (e) { fail(); }
+}
 // Raun-gildi sleða (flutt úr hermir): 'mult' = realBase×(1+frávik%/100)+realUnit; annars realBase+frávik+unit; enginn realBase → frávikið sjálft. Vélin notar áfram frávikið.
 const decOf = (cfg) => (cfg && (cfg.step < 1 || (cfg.realBase != null && cfg.realBase % 1 !== 0))) ? 2 : 0;
 function disp(cfg, v, d) {
@@ -468,7 +491,9 @@ function lkPrintReport(st) {
 }
 
 export function mountLeikur(root) {
-  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {}, polPrevStig: null, tickerSig: null, ktdSig: null, ktdPrev: null, sagaSeeded: false };
+  const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {}, polPrevStig: null, tickerSig: null, ktdSig: null, ktdPrev: null, sagaSeeded: false,
+    // VERK B: me=/api/leikur/me (leikstjóra-leyfi), onb={step} þegar uppsetningar-vísirinn er opinn, onbSig/onbScrolled = endurteiknunar-/skrun-vörn, onbSeen = lotu-fallback ef localStorage er læst, bot-læsing f. æfingalið (varaleið).
+    me: null, onb: null, onbSig: null, onbScrolled: null, onbSeen: false, botLocking: false, botLockedRound: null, joinPrefill: '' };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -494,6 +519,8 @@ export function mountLeikur(root) {
       else { S.code = code; S.role = 'watch'; }
     }
   }
+  // VERK B: inngöngu-hlekkur leikstjóra (?join=KÓÐI) → lending með kóðann forfylltan (enginn leikur opnaður, engin tákn).
+  S.joinPrefill = (u.searchParams.get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 
   // Samanbrjótanleg <details data-keep="ID"> halda opnu/lokuðu stöðu yfir endur-teikningar (poll rebygg-ir innerHTML).
   // toggle bólar EKKI → nota capture-fasa á root. Stjórnar handbók + ákvarðanaferil o.fl.
@@ -537,28 +564,73 @@ export function mountLeikur(root) {
       try { localStorage.setItem(lsTeam(S.code), JSON.stringify({ token: S.token, teamId: S.teamId })); } catch (e) {}
     }
     render();
+    if (S.role === 'fac') botAutoLock(json);   // VERK B: æfingalið (varaleið án /bot-team) læsir hlutlausum ákvörðunum úr vafra leikstjóra
   }
 
   async function act(fn) { if (S.busy) return; S.busy = true; try { await fn(); } finally { S.busy = false; } await refresh(); }
 
   // ── Aðgerðir ──
+  // VERK B: villutexti /create — 'leikstjori' (verk A) ÁSAMT eldra 'kerfisstjori' → sama skilaboð + hlekkur á sölusíðu/demo.
+  function createErrHtml(err, status) {
+    if (err === 'leikstjori' || err === 'kerfisstjori') return 'Aðeins leikstjórar geta stofnað leik. <a href="/leikur/leikstjori/">Sækja um leikstjóra-aðgang</a> — eða <a href="/leikur/demo/">prófa demo-ið</a> á meðan.';
+    if (err === 'no-d1') return 'Þjónninn svarar ekki (gagnagrunnur). Reyndu aftur eftir andartak.';
+    if (err === 'invalid') return 'Stillingar leiksins stóðust ekki villuprófun.';
+    return 'Villa við að stofna leik' + (err ? ' (' + esc(err) + ')' : status ? ' (' + status + ')' : '') + '.';
+  }
+  // Stillingar sem valdar voru við stofnun → vafrinn man þær per leik (lobby-spjald + vísir) og „síðast notað" (forfylling lendingar).
+  function rememberFacCfg(code, cfg) { try { localStorage.setItem(lsFacCfg(code), JSON.stringify(cfg)); if (!cfg.custom) localStorage.setItem(LS_FACCFG_LAST, JSON.stringify(cfg)); } catch (e) {} }
+  function lastFacCfg() { try { return JSON.parse(localStorage.getItem(LS_FACCFG_LAST) || 'null'); } catch (e) { return null; } }
   async function createGame() {
     const roles = !!(root.querySelector('#lk-roles') && root.querySelector('#lk-roles').checked);
     const studio = !!(root.querySelector('#lk-studio') && root.querySelector('#lk-studio').checked);
     const timerMin = +((root.querySelector('#lk-timer-min') || {}).value || 0);
     const body = {}; if (roles) body.roles = true; if (studio) body.mode = 'studio'; if (timerMin > 0) body.timerSec = Math.round(timerMin * 60);
     const diff = (root.querySelector('#lk-difficulty') || {}).value; if (diff === 'easy' || diff === 'hard') body.difficulty = diff; // Fasi E
-    if (root.querySelector('#lk-surprise') && root.querySelector('#lk-surprise').checked) body.surprise = true; // Fasi „skemmtun 3"
-    const { json } = await api('/create', { method: 'POST', body });
-    if (!json.code) return;
+    const surprise = !!(root.querySelector('#lk-surprise') && root.querySelector('#lk-surprise').checked); if (surprise) body.surprise = true; // Fasi „skemmtun 3"
+    const errEl = root.querySelector('#lk-create-err'); if (errEl) errEl.textContent = 'Stofna leik…';
+    const { status, json } = await api('/create', { method: 'POST', body });
+    if (!json.code) { if (errEl) errEl.innerHTML = createErrHtml(json.error, status); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
+    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles });
     location.href = '/leikur/?g=' + json.code;
   }
   async function joinGame(joinCode, name) {
     const { status, json } = await api('/' + joinCode + '/join', { method: 'POST', body: { name } });
-    if (status !== 200 || !json.teamToken) { alert(json.error === 'started' ? 'Leikur er þegar byrjaður.' : json.error === 'not-found' ? 'Kóði fannst ekki.' : 'Villa við inngöngu.'); return; }
+    if (status !== 200 || !json.teamToken) { alert(json.error === 'started' ? 'Leikur er þegar byrjaður.' : json.error === 'not-found' ? 'Kóði fannst ekki.' : json.error === 'nemandi' ? 'Aðeins nemendur (og leikstjórar) geta gengið í lið — Karp virkjar nemanda-aðgang (kennarinn sendir þátttakendalista á hjalp@karp.is).' : 'Villa við inngöngu.'); return; }
     localStorage.setItem(lsTeam(joinCode), JSON.stringify({ token: json.teamToken, teamId: json.teamId }));
     location.href = '/leikur/?g=' + joinCode;
+  }
+  // ── VERK B: æfingalið (bot) — leikstjóri prófar hringrásina ein/n ──
+  // Þjóns-leiðin: POST /<code>/bot-team (fac-tákn) → þjónninn stofnar bot-lið (config.bots) og auto-læsir hlutlausar ákvarðanir ({})
+  // við start/next/resolve (ÚTFÆRT í server.mjs, lockBots). VARALEIÐ ef þjónn er eldri (400 bad-request): venjuleg innganga um eigin
+  // lotu (þjónninn hleypir nemanda/kerfisstjóra/leikstjóra inn) — vafrinn geymir liðs-táknið og botAutoLock læsir {} í hverri decide-lotu.
+  // Uppgjörið sjálft þarf HVORUGT: „ósend = tómt" í resolve → sleðar óbreyttir; læsingin er aðeins svo ✅ sjáist í roster.
+  function botLocal() { try { return JSON.parse(localStorage.getItem(lsBot(S.code)) || 'null'); } catch (e) { return null; } }
+  // bot-merki: þjóns-flaggið (state.teams[].bot, config.bots) er sannleikurinn; localStorage = varaleið (join-fallback). EKKI nafna-heuristík — raun-lið mætti heita „Æfingalið“.
+  function isBotTeam(t) { if (!t) return false; if (t.bot === true) return true; const b = botLocal(); return !!(b && b.teamId === t.id); }
+  async function addBotTeam() {
+    const errEl = root.querySelector('#lk-bot-err'), btn = root.querySelector('#lk-bot');
+    if (btn) btn.disabled = true; if (errEl) errEl.textContent = 'Bæti við æfingaliði…';
+    const r = await api('/' + S.code + '/bot-team', { method: 'POST', body: { name: BOT_NAME }, token: S.token });
+    if (r.status === 200 && r.json && r.json.teamId) { try { localStorage.setItem(lsBot(S.code), JSON.stringify({ teamId: r.json.teamId, token: null })); } catch (e) {} await refresh(); return; }
+    let msg;
+    if (r.status === 400 || r.status === 404 || r.status === 405) {
+      const j = await api('/' + S.code + '/join', { method: 'POST', body: { name: BOT_NAME } });
+      if (j.status === 200 && j.json && j.json.teamToken) { try { localStorage.setItem(lsBot(S.code), JSON.stringify({ teamId: j.json.teamId, token: j.json.teamToken })); } catch (e) {} await refresh(); return; }
+      const e2 = j.json && j.json.error;
+      msg = e2 === 'nemandi' ? 'Skráðu þig inn sem leikstjóri (sama reikning og stofnaði leikinn) til að bæta við æfingaliði — eða bíddu þjóns-viðbótar /bot-team.' : e2 === 'started' ? 'Leikurinn er þegar byrjaður.' : 'Tókst ekki að bæta við æfingaliði' + (e2 ? ' (' + e2 + ')' : '') + '.';
+    } else {
+      const e1 = r.json && r.json.error;
+      msg = e1 === 'auth' ? 'Leikstjóra-táknið gildir ekki fyrir þennan leik.' : e1 === 'started' ? 'Leikurinn er þegar byrjaður.' : 'Tókst ekki að bæta við æfingaliði' + (e1 ? ' (' + e1 + ')' : '') + '.';
+    }
+    if (errEl) errEl.textContent = msg; if (btn) btn.disabled = false;
+  }
+  async function botAutoLock(st) {
+    if (S.role !== 'fac' || !st || st.phase !== 'decide' || S.botLocking) return;
+    const b = botLocal(); if (!b || !b.token) return;   // þjóns-bot (token:null) læsir þjónninn sjálfur
+    const row = (st.lockRoster || []).find((r) => r.teamId === b.teamId); if (!row || row.locked || S.botLockedRound === st.round) return;
+    S.botLocking = true;
+    try { const r = await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: {}, locked: true }, token: b.token }); if (r.status === 200) S.botLockedRound = st.round; } catch (e) {} finally { S.botLocking = false; }
   }
   const control = (action) => act(() => api('/' + S.code + '/control', { method: 'POST', body: { action }, token: S.token }));
   const submitDecisions = () => act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: S.draft, locked: true }, token: S.token }); S.unlocked = false; });
@@ -898,23 +970,45 @@ export function mountLeikur(root) {
 
   // Aðgangsstýrt eftir notanda-tegund (SERVER er raun-gáttin á /create og /join — þetta er bara UX
   // svo fólk sjái ekki takka sem 403-a). S.user er sótt EINU SINNI í ræsingu (sjá „Ræsing" neðst).
+  // VERK B: þrjú ástönd — (a) leikstjóri (me.leikstjori úr /api/leikur/me; fallback á isAdmin meðan verk A er ómerge-að
+  // og /me svarar 404) → stór „Stofna"-hnappur + vísir; (b) innskráð án leyfis → inngöngu-kóði (nemandi) + kynning fyrir
+  // kennara; (c) óinnskráð → kynning + innskráningar-hvatning.
   function renderLanding() {
-    const u = S.user;
-    const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 umferðir.</p></div>';
-    const createCard = '<div class="lk-card"><h2>Leikstjóri</h2><button class="lk-btn" id="lk-create">Búa til nýjan leik</button> <button class="lk-btn" id="lk-createcustom" style="background:#5ac8e0">Sérsníða leik…</button><label style="display:block;margin-top:10px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-studio" checked style="vertical-align:middle;margin-right:6px"/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label><label style="display:block;margin-top:6px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-roles" style="vertical-align:middle;margin-right:6px"/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label><label style="display:block;margin-top:6px;font-size:13.5px">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label><label style="display:block;margin-top:8px;font-size:13.5px">🎚️ Erfiðleikastig: <select id="lk-difficulty" style="padding:4px 6px;margin-left:4px"><option value="easy">Létt</option><option value="medium" selected>Miðlungs</option><option value="hard">Erfitt</option></select> <span class="lk-muted">(skalar markmið, áföll og refsingar)</span></label><label style="display:block;margin-top:8px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="lk-surprise" style="vertical-align:middle;margin-right:6px"/>🎲 Óvænt atvik — eldgos, verkföll, hneyksli o.fl. dúkka upp með klemmu-vali <span class="lk-muted">(sama fyrir öll lið)</span></label></div>';
-    const joinCard = '<div class="lk-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button></div>';
-    const noticeCard = '<div class="lk-card"><p>🎮 Leikurinn er fyrir nemendur og kennara. Skráðu þig inn — kennarinn (leikstjóri) gefur þér leikkóða.</p><a class="lk-btn" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
-    if (u && u.isAdmin) root.innerHTML = intro + createCard + joinCard;
-    else if (u && u.nemandi) root.innerHTML = intro + joinCard;
-    else root.innerHTML = intro + noticeCard;
+    const u = S.user || {}, me = S.me || {};
+    const leikstjori = me.leikstjori === true || (me._missing === true && u.isAdmin === true);
+    const isAdmin = me.isAdmin === true || u.isAdmin === true;
+    const nemandi = me.nemandi === true || u.nemandi === true;
+    const loggedIn = u.loggedIn === true || me.loggedIn === true || leikstjori || nemandi || isAdmin;
+    const canJoin = nemandi || isAdmin || leikstjori;   // þjóns-gáttin á /join er nemandi|kerfisstjóri|leikstjóri (má prófa eigin leik)
+    const last = lastFacCfg() || {};
+    const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 kjörtímabil (2000–2032) — með lifandi Íslandskorti og stigatöflu á skjávarpa.</p></div>';
+    const untilTxt = fmtUntil(me.until);
+    const settings = '<div id="lk-settings" class="lk-onb-settings"><div class="lk-onb-settings-h">⚙️ Stillingar leiksins <span class="lk-muted">(veljast hér — læsast við stofnun)</span></div>'
+      + '<label id="lk-set-studio"><input type="checkbox" id="lk-studio"' + (last.mode === 'classic' ? '' : ' checked') + '/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label>'
+      + '<label id="lk-set-roles"><input type="checkbox" id="lk-roles"' + (last.roles ? ' checked' : '') + '/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label>'
+      + '<label id="lk-set-timer">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" value="' + (last.timerMin > 0 ? +last.timerMin : '') + '" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label>'
+      + '<label id="lk-set-difficulty">🎚️ Erfiðleikastig: <select id="lk-difficulty" style="padding:4px 6px;margin-left:4px">' + ['easy', 'medium', 'hard'].map((k) => '<option value="' + k + '"' + ((last.difficulty || 'medium') === k ? ' selected' : '') + '>' + esc(DIFF_LABEL(k)) + '</option>').join('') + '</select> <span class="lk-muted">(skalar markmið, áföll og refsingar)</span></label>'
+      + '<label id="lk-set-surprise"><input type="checkbox" id="lk-surprise"' + (last.surprise ? ' checked' : '') + '/>🎲 Óvænt atvik — eldgos, verkföll, hneyksli o.fl. dúkka upp með klemmu-vali <span class="lk-muted">(sama fyrir öll lið)</span></label></div>';
+    const createCard = '<div class="lk-card" id="lk-create-card"><h2>🎓 Leikstjóri</h2><div class="lk-onb-cta"><button class="lk-btn lk-onb-big" id="lk-create">🎓 Stofna nýjan leik</button><a href="#" id="lk-guide" class="lk-onb-guide">📖 Svona keyrirðu vinnustofu (5 mín)</a></div><div id="lk-create-err" class="lk-err" aria-live="polite"></div>' + settings
+      + '<p class="lk-muted" style="font-size:12.5px;margin:10px 0 0">🛠️ <a href="#" id="lk-createcustom">Sérsníða leik…</a> — eigin sviðsmynd, umboð og fjöldi umferða.' + (untilTxt ? ' · Leikstjóra-aðgangur gildir til <b>' + esc(untilTxt) + '</b>.' : '') + '</p></div>';
+    const joinCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" value="' + esc(S.joinPrefill) + '" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button><p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Kennarinn (leikstjóri) gefur þér 5 stafa kóða. Eitt tæki per lið dugar — félagar ganga í sama lið með boðs-hlekk.</p></div>';
+    const noNemandiCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><p>Þú ert innskráð/ur en reikningurinn er ekki merktur sem <b>nemandi</b>. Karp virkjar nemanda-aðgang (kennarinn sendir þátttakendalista á <a href="mailto:hjalp@karp.is">hjalp@karp.is</a>) — þá slærðu inn leikkóðann hér.</p></div>';
+    const promo = '<div class="lk-card lk-onb-promo"><h2>🎓 Ertu kennari eða stjórnandi vinnustofu?</h2><p>RÁS-Leikurinn er 60–90 mín vinnustofa í þjóðhagfræði: lið stýra hvert sínu Íslandi gegnum kjörtímabilin, taka stóru ákvarðanirnar (höft, ESB, bankar…) og sjá afleiðingarnar á lifandi Íslandskorti. Þú færð leikstjóra-sýn með kennsluhandbók, uppsetningar-vísi, áhorfenda-sýn fyrir skjávarpa og prentanlega kennsluskýrslu.</p><div class="lk-onb-row"><a class="lk-btn" href="/leikur/leikstjori/">Leikstjóra-aðgangur →</a><a class="lk-btn lk-onb-ghost" href="/leikur/demo/">🕹️ Prófa demo (Lifðu af 2008)</a></div></div>';
+    const loginCard = '<div class="lk-card"><p>🎮 Ertu nemandi? Skráðu þig inn — kennarinn gefur þér leikkóða.</p><a class="lk-btn" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
+    if (leikstjori) root.innerHTML = intro + createCard + joinCard;
+    else if (loggedIn) root.innerHTML = intro + (canJoin ? joinCard : noNemandiCard) + promo;
+    else root.innerHTML = intro + promo + loginCard;
     const create = root.querySelector('#lk-create'); if (create) create.onclick = () => createGame();
-    const createCustom = root.querySelector('#lk-createcustom'); if (createCustom) createCustom.onclick = () => { S.view = 'editor'; render(); };
+    const guide = root.querySelector('#lk-guide'); if (guide) guide.onclick = (e) => { e.preventDefault(); onbStart(); };
+    const createCustom = root.querySelector('#lk-createcustom'); if (createCustom) createCustom.onclick = (e) => { e.preventDefault(); onbClose(false); S.view = 'editor'; render(); };
     const join = root.querySelector('#lk-join');
     if (join) join.onclick = () => {
       const c = (root.querySelector('#lk-code').value || '').trim().toUpperCase();
       const n = (root.querySelector('#lk-name').value || '').trim();
       if (c.length >= 4 && n) joinGame(c, n); else alert('Sláðu inn kóða og nafn.');
     };
+    if (S.joinPrefill) { const nm = root.querySelector('#lk-name'); if (nm) nm.focus(); }
+    onbUpdate();   // vísir í „leiðsögu-ham" (enginn leikur) ef hann er opinn — highlight á stillingarnar hér
   }
 
   // 📖 Kennsluhandbók leikstjóra: ýtarleg leiðsögn per kjörtímabil (aðeins fac). Núverandi lota opin+auðkennd.
@@ -933,34 +1027,155 @@ export function mountLeikur(root) {
         + '<div style="margin:4px 0"><b>🎚️ Ráðlagðar stillingar:</b><ul style="margin:3px 0 0;padding-left:18px">' + h.settings.map((s) => '<li style="margin:2px 0">' + esc(s) + '</li>').join('') + '</ul></div>'
         + '</div></details>';
     };
-    return card('📖 Kennsluhandbók leikstjóra', '<p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + HANDBOOK.map(entry).join(''));
+    // VERK B: „?"-hnappur við hlið handbókar opnar uppsetningar-vísinn aftur (eftir lok/sleppingu).
+    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + HANDBOOK.map(entry).join('') + '</div>';
   }
+  // VERK B: stillingar leiksins eins og leikstjóri sér þær í lobby. Þjóns-sannleikur þar sem hann er til (mode/difficulty;
+  // timerSec/surpriseOn/rolesOn EF þjónninn bætir þeim í lobby-state), annars það sem vafrinn man frá stofnun; annar vafri → „óþekkt".
+  function facCfg(st) {
+    let loc = null; try { loc = JSON.parse(localStorage.getItem(lsFacCfg(S.code)) || 'null'); } catch (e) {}
+    const unk = 'óþekkt (stofnað í öðrum vafra)';
+    const mode = st.mode || (loc && loc.mode) || 'classic';
+    const difficulty = st.difficulty || (loc && loc.difficulty) || 'medium';
+    const timerMin = st.timerSec != null ? Math.round(st.timerSec / 60) : (loc ? (+loc.timerMin || 0) : null);
+    const surprise = typeof st.surpriseOn === 'boolean' ? st.surpriseOn : (loc ? !!loc.surprise : null);
+    const roles = typeof st.rolesOn === 'boolean' ? st.rolesOn : (st.roleMap ? true : (loc ? !!loc.roles : null));
+    return { mode, modeTxt: mode === 'studio' ? '🎛️ Stjórnstöð (sleðar + lifandi gröf)' : 'Einföld val', difficulty, difficultyTxt: DIFF_LABEL(difficulty),
+      timerMin, timerTxt: timerMin == null ? unk : (timerMin > 0 ? timerMin + ' mín per lotu' : 'engin'),
+      surprise, surpriseTxt: surprise == null ? unk : (surprise ? 'kveikt' : 'slökkt'), roles, rolesTxt: roles == null ? unk : (roles ? 'kveikt' : 'slökkt') };
+  }
+  function settingsCard(st) {
+    const c = facCfg(st), real = (st.teams || []).filter((t) => !isBotTeam(t));
+    const row = (id, k, v) => '<div class="lk-lb-row"' + (id ? ' id="' + id + '"' : '') + '><span>' + k + '</span><span><b>' + esc(v) + '</b></span></div>';
+    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
+      + '<p class="lk-muted" style="font-size:12px;margin:8px 0 0">Stillingar veljast þegar leikur er stofnaður' + (st.phase === 'lobby' && !real.length ? ' — <a href="/leikur/">stofna nýjan leik með öðrum stillingum</a> (ekkert lið komið enn)' : '') + '.</p></div>';
+  }
+  const joinLink = () => location.origin + '/leikur/?join=' + encodeURIComponent(S.code || '');
+  const watchLink = () => location.origin + '/leikur/?g=' + encodeURIComponent(S.code || '') + '&watch=1';
   function renderFacilitator(st) {
     let controls = '';
     const stopBtn = ' <button class="lk-btn" id="lk-stop" style="background:#e78284">⏹️ Stöðva leik</button>';
-    if (st.phase === 'lobby') controls = '<button class="lk-btn" id="lk-start"' + (st.teams.length ? '' : ' disabled') + '>Byrja leik (' + st.teams.length + ' lið)</button>';
+    const realTeams = (st.teams || []).filter((t) => !isBotTeam(t)), hasBot = (st.teams || []).some(isBotTeam);
+    if (st.phase === 'lobby') controls = '<button class="lk-btn" id="lk-start"' + (st.teams.length ? '' : ' disabled') + '>▶ Byrja leik (' + st.teams.length + ' lið)</button>' + (st.teams.length ? '' : '<p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Hnappurinn opnast þegar a.m.k. eitt lið er komið inn.</p>');
     else if (st.phase === 'decide') {
       const rl = st.lockRoster || [], ready = rl.filter((r) => r.locked).length;
       const rosterList = rl.map((r) => '<span style="margin-right:12px">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + '</span>').join('');
       controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
     } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= 8 ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button><p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
-    const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
-    root.innerHTML =
-      '<div class="lk-card"><h1>Leikstjóri</h1><p>Kóði til að deila (nemendur slá hann inn):</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:38px;font-weight:800;letter-spacing:6px;color:#f6b13b">' + esc(st.code) + '</div><button class="lk-btn" id="lk-copycode" style="background:#f6b13b;color:#0e1116;font-weight:700">📋 Afrita kóða</button></div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>' +
-      (st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '') +
-      handbookCard(st) +
-      '<div class="lk-card"><h2>Lið</h2>' + teamList + '</div>' +
-      roleMapCard(st) +
-      '<div class="lk-card">' + controls + '</div>' +
-      leaderboard(st) +
-      (st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics, st, S.openDetails); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '');
+    const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + (isBotTeam(t) ? '🤖 ' : '') + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
+    // VERK B: æfingalið — aðeins í lobby og aðeins þegar ekkert raun-lið er komið (prófa uppgjörið ein/n).
+    const botUi = (st.phase === 'lobby' && !realTeams.length)
+      ? (hasBot
+        ? '<p class="lk-onb-bot-note">🤖 Æfingalið er í leiknum — það tekur <b>hlutlausar ákvarðanir sjálfkrafa</b> (sleðar óbreyttir), svo þú getur ýtt á „Byrja leik" og „Leysa" strax til að sjá uppgjörið keyra. Raun-lið geta samt gengið inn á meðan leikurinn er í lobby.</p>'
+        : '<div class="lk-onb-bot"><button class="lk-btn lk-onb-ghost" id="lk-bot">🤖 Bæta við æfingaliði</button><span class="lk-muted">Prófaðu hringrásina ein/n: æfingalið tekur hlutlausar ákvarðanir sjálfkrafa svo þú sjáir uppgjörið keyra.</span><div id="lk-bot-err" class="lk-err" aria-live="polite"></div></div>')
+      : '';
+    const header = '<div class="lk-card" id="lk-code-card"><h1>Leikstjóri</h1><p>Kóði til að deila (nemendur slá hann inn á <b>karp.is/leikur/</b>):</p><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div class="lk-onb-bigcode">' + esc(st.code) + '</div><button class="lk-btn" id="lk-copycode" style="background:#f6b13b;color:#0e1116;font-weight:700">📋 Afrita kóða</button><button class="lk-btn lk-onb-ghost" id="lk-joinlink">🔗 Afrita inngöngu-hlekk</button></div><button class="lk-btn" id="lk-watchlink" style="margin-top:10px;background:#5ac8e0">📺 Afrita áhorfenda-hlekk (skjávarpi)</button></div>';
+    const teamsCard = '<div class="lk-card" id="lk-teams-card"><h2>Lið</h2>' + teamList + botUi + '</div>';
+    const controlsCard = '<div class="lk-card" id="lk-controls-card">' + controls + '</div>';
+    const eventCard = st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '';
+    const analyticsCard = st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics, st, S.openDetails); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '';
+    // Lobby: uppsetningar-röð (stillingar → lið → ræsa) ofar handbókinni; aðrir fasar: óbreytt röð (+ stillingaspjald aðeins meðan vísir er opinn).
+    root.innerHTML = st.phase === 'lobby'
+      ? header + settingsCard(st) + teamsCard + controlsCard + handbookCard(st) + roleMapCard(st) + leaderboard(st) + analyticsCard
+      : header + eventCard + (S.onb ? settingsCard(st) : '') + handbookCard(st) + teamsCard + roleMapCard(st) + controlsCard + leaderboard(st) + analyticsCard;
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
-    b('#lk-start', () => control('start')); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
+    b('#lk-start', () => { if (S.onb) onbClose(true); control('start'); }); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
     b('#lk-print', () => printOpen(st));   // VERK 3: prentanleg kennsluskýrsla (leikslok)
-    b('#lk-copycode', () => { const el = root.querySelector('#lk-copycode'); try { navigator.clipboard.writeText(S.code); if (el) { el.textContent = '✅ Kóði afritaður'; setTimeout(() => { if (root.querySelector('#lk-copycode') === el) el.textContent = '📋 Afrita kóða'; }, 2000); } } catch (e) { if (el) el.textContent = S.code; } });
-    b('#lk-watchlink', () => { const el = root.querySelector('#lk-watchlink'); const link = location.origin + '/leikur/?g=' + S.code + '&watch=1'; try { navigator.clipboard.writeText(link); if (el) el.textContent = '✅ Áhorfenda-hlekk afritaður'; } catch (e) { if (el) el.textContent = link; } });
+    b('#lk-copycode', () => copyText(S.code, root.querySelector('#lk-copycode'), '✅ Kóði afritaður'));
+    b('#lk-joinlink', () => copyText(joinLink(), root.querySelector('#lk-joinlink'), '✅ Hlekkur afritaður'));
+    b('#lk-watchlink', () => copyText(watchLink(), root.querySelector('#lk-watchlink'), '✅ Áhorfenda-hlekk afritaður'));
+    b('#lk-bot', () => addBotTeam());
+    b('#lk-onb-open', () => onbStart());
+    // VERK B: vísirinn opnast sjálfkrafa í FYRSTA lobby þessa vafra (localStorage-flagg vantar); annars aðeins um „?".
+    if (st.phase === 'lobby' && !S.onb && !S.onbSeen && !onbDone()) { S.onb = { step: 0 }; S.onbScrolled = null; S.onbSig = null; }
+    onbUpdate();
+  }
+
+  // ── VERK B: uppsetningar-vísir leikstjóra (4 skref) ──
+  // Spjaldið býr í EIGIN hýsli (systkini #leikur-root, fast neðst t.h.) svo 2,5 s poll-endurteiknun root-sins hreyfi það ekki;
+  // endurteiknast aðeins þegar undirskrift (skref/fasi/liðafjöldi) breytist. Highlight-ramminn (.lk-onb-hl) er settur á
+  // viðkomandi stillingu í root eftir HVERJA teikningu (DOM-ið er nýtt) með animation-delay-fasa svo púlsinn hökti ekki.
+  // Tvö hlutverk: „lifandi" í leikstjóra-sýn (raun-kóði, Ræsa-hnappur) og „leiðsögu-hamur" á lendingu (engin leikur;
+  // skref 2–3 lýsa upp stillingar lendingar sem þar MÁ breyta; skref 4 býður „Stofna leik núna").
+  let onbHost = null;
+  function onbDone() { try { return !!localStorage.getItem(LS_ONB); } catch (e) { return S.onbSeen === true; } }
+  function onbEnsureHost() {
+    if (onbHost) return onbHost;
+    onbHost = document.createElement('div'); onbHost.id = 'lk-onb-host';
+    (root.parentNode || document.body).appendChild(onbHost);
+    onbHost.addEventListener('click', (e) => {
+      const b = e.target && e.target.closest && e.target.closest('[data-onb]'); if (!b || !onbHost.contains(b)) return;
+      if (b.tagName === 'A' && b.getAttribute('href') === '#') e.preventDefault();
+      const a = b.dataset.onb;
+      if (a === 'next') { if (S.onb) { S.onb.step = Math.min(ONB_STEPS - 1, S.onb.step + 1); onbUpdate(); } }
+      else if (a === 'prev') { if (S.onb) { S.onb.step = Math.max(0, S.onb.step - 1); onbUpdate(); } }
+      else if (a === 'skip' || a === 'done') onbClose(true);
+      else if (a === 'copycode') copyText(S.code || '', b, '✅ Afritað');
+      else if (a === 'copylink') copyText(joinLink(), b, '✅ Afritað');
+      else if (a === 'copywatch') copyText(watchLink(), b, '✅ Afritað');
+      else if (a === 'start') { onbClose(true); control('start'); }
+      else if (a === 'create') { onbClose(false); createGame(); }
+    });
+    return onbHost;
+  }
+  function onbStart() { S.onb = { step: 0 }; S.onbScrolled = null; S.onbSig = null; if (S.code && S.state && S.role === 'fac') render(); else onbUpdate(); }   // fac utan lobby: render() svo stillingaspjaldið birtist strax
+  function onbClose(markDone) {
+    S.onb = null; S.onbSig = null; S.onbScrolled = null;
+    if (markDone) { S.onbSeen = true; try { localStorage.setItem(LS_ONB, String(Date.now())); } catch (e) {} }
+    if (onbHost && onbHost.firstChild) onbHost.innerHTML = '';
+    onbClearHl();
+  }
+  function onbClearHl() { root.querySelectorAll('.lk-onb-hl').forEach((el) => { el.classList.remove('lk-onb-hl'); el.style.animationDelay = ''; }); }
+  // Skotmörk per skref: 1 kóða-spjaldið · 2 stillingar · 3 óvænt-atvik-röðin · 4 áhorfenda-hlekkur + Ræsa-hnappur.
+  const ONB_TARGETS = [['#lk-code-card', '#lk-create-card'], ['#lk-settings'], ['#lk-set-surprise'], ['#lk-watchlink', '#lk-start']];
+  function onbApplyHl() {
+    onbClearHl(); if (!S.onb) return;
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const els = (ONB_TARGETS[S.onb.step] || []).map((sel) => root.querySelector(sel)).filter(Boolean);
+    els.forEach((el) => { el.classList.add('lk-onb-hl'); el.style.animationDelay = '-' + (Date.now() % 1800) + 'ms'; });
+    if (els.length && S.onbScrolled !== S.onb.step) { S.onbScrolled = S.onb.step; try { els[0].scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' }); } catch (e) {} }
+  }
+  function onbUpdate() {
+    if (!S.onb) { if (onbHost && onbHost.firstChild) onbHost.innerHTML = ''; onbClearHl(); return; }
+    const st = (S.code && S.role === 'fac') ? S.state : null, live = !!st;
+    const teams = live ? (st.teams || []) : [], real = live ? teams.filter((t) => !isBotTeam(t)) : [];
+    const sig = [S.onb.step, live ? 1 : 0, st ? st.phase : '-', teams.length, real.length, S.code || ''].join('|');
+    if (sig !== S.onbSig) { S.onbSig = sig; onbEnsureHost().innerHTML = onbPanel(S.onb.step, { live, st, teams, real }); }
+    onbApplyHl();
+  }
+  function onbPanel(step, { live, st, teams, real }) {
+    const cfg = live ? facCfg(st) : null;
+    const dots = Array.from({ length: ONB_STEPS }, (_, i) => '<span class="lk-onb-dot' + (i === step ? ' on' : i < step ? ' done' : '') + '"></span>').join('');
+    let title = '', body = '';
+    if (step === 0) {
+      title = '1 · Deildu kóðanum';
+      body = live
+        ? '<div class="lk-onb-code">' + esc(st.code) + '</div><div class="lk-onb-row"><button class="lk-btn" data-onb="copycode">📋 Afrita kóða</button><button class="lk-btn lk-onb-ghost" data-onb="copylink">🔗 Afrita inngöngu-hlekk</button></div><p>Nemendur fara á <b>karp.is/leikur/</b>, slá kóðann inn og velja liðsheiti — eða opna hlekkinn (kóðinn fyllist inn). Eitt tæki per lið dugar; félagar ganga í sama lið með „Bjóða í lið". Kóðinn er líka stór efst á síðunni.</p>'
+        : '<p>Um leið og þú stofnar leik færðu <b>5 stafa kóða</b> (birtist stórt efst) ásamt <b>📋 Afrita</b>-hnappi og inngöngu-hlekk. Nemendur fara á <b>karp.is/leikur/</b>, slá kóðann inn og velja liðsheiti — eitt tæki per lið dugar, félagar ganga í sama lið með boðs-hlekk.</p>';
+    } else if (step === 1) {
+      title = '2 · Veldu erfiðleika og tíma';
+      body = '<ul class="lk-onb-list">' + ['easy', 'medium', 'hard'].map((k) => '<li><b>' + esc(DIFFICULTY[k].label) + '</b> — ' + esc(DIFFICULTY[k].blurb) + '</li>').join('') + '</ul>'
+        + '<p><b>⏱️ Umferðar-klukka:</b> 15–20 mín per lota fyrir 90 mín vinnustofu. Klukkan er sjónræn ýting — hún læsir engu; þú leysir lotuna þegar þér hentar og mátt stöðva leikinn hvenær sem er.</p>'
+        + (live
+          ? '<p class="lk-onb-now">Þessi leikur: <b>' + esc(cfg.difficultyTxt) + '</b> · klukka <b>' + esc(cfg.timerTxt) + '</b>.' + (st.phase === 'lobby' && !real.length ? ' Stillingar veljast við stofnun — <a href="/leikur/">stofnaðu nýjan leik</a> ef þú vilt breyta (ekkert lið er komið enn).' : '') + '</p>'
+          : '<p class="lk-onb-now">Veldu í stillingunum (auðkenndar) áður en þú stofnar leikinn.</p>');
+    } else if (step === 2) {
+      title = '3 · Kveiktu á óvæntum atvikum?';
+      body = '<p>Frá 2. kjörtímabili getur óvænt atvik dúkkað upp (um helmings líkur per lotu): 🌋 eldgos, ✊ verkföll, 🐟 makríll, 📰 spillingarmál, 🏭 gagnaver… Sama atvik fyrir öll lið; sum bjóða <b>klemmu-val</b> sem liðið þarf að taka afstöðu til — og valið sést á Íslandskortinu.</p><p><b>Ráðlegging:</b> slökkt í fyrstu keyrslu (lærið grunn-hringrásina), <b>kveikt eftir það</b> — atvikin gera umræðuna líflegri.</p>'
+        + (live ? '<p class="lk-onb-now">Í þessum leik: <b>' + esc(cfg.surpriseTxt) + '</b>.</p>' : '');
+    } else {
+      title = '4 · Opnaðu skjávarpann';
+      body = '<p>Áhorfenda-sýnin er fyrir skjávarpann: stigatafla, Íslandskortið og RÁS-tíðindi uppfærast sjálfkrafa. Opnaðu hana í nýjum glugga og dragðu yfir á skjávarpann — svo ræsirðu leikinn hér.</p>'
+        + (live ? '<div class="lk-onb-row"><button class="lk-btn" data-onb="copywatch">📺 Afrita áhorfenda-hlekk</button><a class="lk-btn lk-onb-ghost" href="' + esc(watchLink()) + '" target="_blank" rel="noopener">↗ Opna skjávarpa</a></div>' : '')
+        + (live && st.phase === 'lobby'
+          ? '<p class="lk-onb-now">' + (real.length ? '<b>' + real.length + ' lið</b> komin — þú getur ræst.' : teams.length ? '<b>🤖 Æfingalið</b> er inni — þú getur ræst og prófað uppgjörið.' : 'Bíddu þar til a.m.k. 1 lið er komið inn. Vantar lið? <b>🤖 Æfingalið</b> (í Lið-spjaldinu) lætur þig prófa uppgjörið ein/n.') + '</p><div class="lk-onb-row"><button class="lk-btn" data-onb="start"' + (teams.length ? '' : ' disabled') + '>▶ Ræsa leik (' + teams.length + ' lið)</button></div>'
+          : live ? '<p class="lk-onb-now">Leikurinn er í gangi ✅</p>'
+            : '<div class="lk-onb-row"><button class="lk-btn" data-onb="create">🎓 Stofna leik núna</button></div>');
+    }
+    const nav = '<div class="lk-onb-nav">' + (step > 0 ? '<button class="lk-btn lk-onb-ghost" data-onb="prev">‹ Til baka</button>' : '<span></span>') + (step < ONB_STEPS - 1 ? '<button class="lk-btn" data-onb="next">Næsta ›</button>' : '<button class="lk-btn" data-onb="done">✅ Ljúka vísi</button>') + '</div>';
+    return '<div class="lk-onb" role="dialog" aria-label="Uppsetningar-vísir leikstjóra"><div class="lk-onb-head"><span class="lk-onb-kicker">Uppsetningar-vísir · ' + (step + 1) + '/' + ONB_STEPS + '</span><span class="lk-onb-dots" aria-hidden="true">' + dots + '</span><button type="button" class="lk-onb-x" data-onb="skip" title="Sleppa vísi" aria-label="Sleppa vísi">✕</button></div><h3 class="lk-onb-title">' + esc(title) + '</h3><div class="lk-onb-body">' + body + '</div>' + nav + '<a href="#" class="lk-onb-skip" data-onb="skip">Sleppa vísi — sést ekki aftur (opna með „?" við handbókina)</a></div>';
   }
 
   // #5 Leikslok-samantekt: dregur lærdóm úr öllum kjörtímabilunum (eigin trajectory + raun + sleða-saga).
@@ -1744,13 +1959,14 @@ export function mountLeikur(root) {
     if (errs.length) { errEl.innerHTML = errs.map(esc).join('<br>'); return; }
     errEl.textContent = 'Bý til leik…';
     const { status, json } = await api('/create', { method: 'POST', body: { scenario: d.scenario, mandate: d.mandate, rounds: d.rounds, ...(S.editRoles ? { roles: true } : {}), ...(S.editStudio ? { mode: 'studio' } : {}), ...(S.editTimerMin > 0 ? { timerSec: Math.round(S.editTimerMin * 60) } : {}) } });
-    if (status !== 200 || !json.code) { errEl.innerHTML = (json.errors ? json.errors.map(esc).join('<br>') : 'Villa við að búa til leik.'); return; }
+    if (status !== 200 || !json.code) { errEl.innerHTML = (json.errors ? json.errors.map(esc).join('<br>') : createErrHtml(json.error, status)); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
+    rememberFacCfg(json.code, { mode: S.editStudio ? 'studio' : 'classic', difficulty: 'medium', timerMin: S.editTimerMin > 0 ? Math.round(S.editTimerMin) : 0, surprise: false, roles: !!S.editRoles, custom: true });
     location.href = '/leikur/?g=' + json.code;
   }
 
   // ── Ræsing ──
   if (S.code && S.token) startPoll();
   else if (S.code && S.role === 'watch') startPoll();
-  else loadUser().catch(() => null).then((u) => { S.user = u; render(); });   // lending: sækja notanda-tegund fyrir gátt (UX-hlið, sbr. renderLanding)
+  else Promise.all([loadUser().catch(() => null), fetchLeikurMe()]).then(([u, me]) => { S.user = u; S.me = me; render(); });   // lending: notanda-tegund + leikstjóra-leyfi (/api/leikur/me, verk A) fyrir gátt (UX-hlið, sbr. renderLanding)
 }

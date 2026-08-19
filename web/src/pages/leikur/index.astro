@@ -349,5 +349,61 @@ const MODEL = {
     body.lk-print main[data-pg="leikur"] { padding: 0; }
     body.lk-print main[data-pg="leikur"] .lkp-doc { max-width: none; border-radius: 0; padding: 0; }
     body.lk-print .lkp-break { page-break-before: always; break-before: page; }
+    body.lk-print #lk-onb-host { display: none !important; }
+  }
+  /* VERK B: leikstjóra-onboarding — lending (stór Stofna-hnappur, stillingar, kynningarspjald), uppsetningar-vísir
+     (#lk-onb-host = runtime-systkini #leikur-root, fast neðst t.h.; sama mynstur og sepop/pm/ticker → is:global) og
+     highlight-ramminn .lk-onb-hl með mjúkum púls (reduced-motion: kyrr rammi). */
+  main[data-pg="leikur"] .lk-onb-cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 4px 0 10px; }
+  main[data-pg="leikur"] .lk-btn.lk-onb-big { font-size: 18px; padding: 14px 26px; border-radius: 12px; box-shadow: 0 6px 20px rgba(246,177,59,.25); }
+  main[data-pg="leikur"] .lk-onb-guide { color: #5ac8e0; font-weight: 600; font-size: 14px; text-decoration: none; border-bottom: 1px dotted #5ac8e0; }
+  main[data-pg="leikur"] .lk-onb-guide:hover { color: #8fdcee; }
+  main[data-pg="leikur"] .lk-btn.lk-onb-ghost { background: transparent; color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); text-decoration: none; display: inline-block; }
+  main[data-pg="leikur"] .lk-btn.lk-onb-ghost:hover { border-color: #f6b13b; color: #f6b13b; }
+  main[data-pg="leikur"] .lk-onb-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  main[data-pg="leikur"] .lk-onb-settings { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line, #2a2f3a); border-radius: 10px; background: rgba(255,255,255,.02); }
+  main[data-pg="leikur"] .lk-onb-settings-h { font-weight: 700; font-size: 13.5px; margin: 0 0 6px; }
+  main[data-pg="leikur"] .lk-onb-settings label { display: block; margin: 6px 0 0; font-size: 13.5px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+  main[data-pg="leikur"] .lk-onb-settings input[type="checkbox"] { vertical-align: middle; margin-right: 6px; }
+  main[data-pg="leikur"] .lk-onb-promo { border-color: #5ac8e055; background: linear-gradient(180deg, rgba(90,200,224,.08), rgba(255,255,255,.02)); }
+  main[data-pg="leikur"] .lk-onb-promo p { line-height: 1.55; }
+  main[data-pg="leikur"] .lk-onb-bigcode { font-size: 38px; font-weight: 800; letter-spacing: 6px; color: #f6b13b; }
+  main[data-pg="leikur"] .lk-onb-h2 { display: flex; align-items: center; gap: 8px; }
+  main[data-pg="leikur"] .lk-onb-help { width: 24px; height: 24px; border-radius: 999px; border: 1px solid #5ac8e0; background: rgba(90,200,224,.12); color: #5ac8e0; font-weight: 800; font-size: 13px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; }
+  main[data-pg="leikur"] .lk-onb-help:hover { background: rgba(90,200,224,.28); }
+  main[data-pg="leikur"] .lk-onb-bot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.1); font-size: 12.5px; }
+  main[data-pg="leikur"] .lk-onb-bot .lk-muted { flex: 1 1 260px; }
+  main[data-pg="leikur"] .lk-onb-bot-note { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: rgba(90,200,224,.10); border: 1px solid #5ac8e055; font-size: 12.8px; line-height: 1.5; }
+  /* vísis-spjaldið */
+  main[data-pg="leikur"] #lk-onb-host .lk-onb { position: fixed; right: 18px; bottom: 18px; z-index: 60; width: 370px; max-width: calc(100vw - 24px); max-height: min(72vh, 640px); overflow-y: auto; background: #191e29; border: 1px solid #f6b13b; border-left: 4px solid #f6b13b; border-radius: 14px; box-shadow: 0 18px 48px rgba(0,0,0,.55); padding: 12px 16px 12px; font-size: 13.5px; line-height: 1.5; color: var(--ink, #e8ecf3); animation: lk-onb-inn .22s ease-out; }
+  main[data-pg="leikur"] .lk-onb-head { display: flex; align-items: center; gap: 10px; }
+  main[data-pg="leikur"] .lk-onb-kicker { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #f6b13b; flex: 1 1 auto; }
+  main[data-pg="leikur"] .lk-onb-dots { display: inline-flex; gap: 5px; }
+  main[data-pg="leikur"] .lk-onb-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.18); }
+  main[data-pg="leikur"] .lk-onb-dot.done { background: #f6b13b88; }
+  main[data-pg="leikur"] .lk-onb-dot.on { background: #f6b13b; box-shadow: 0 0 0 3px rgba(246,177,59,.22); }
+  main[data-pg="leikur"] .lk-onb-x { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--line, #2a2f3a); background: rgba(18,22,31,.82); color: var(--ink, #e8ecf3); font-size: 14px; line-height: 1; cursor: pointer; padding: 0; }
+  main[data-pg="leikur"] .lk-onb-x:hover { border-color: #f6b13b; color: #f6b13b; }
+  main[data-pg="leikur"] .lk-onb-title { font-size: 16px; font-weight: 800; margin: 8px 0 6px; }
+  main[data-pg="leikur"] .lk-onb-body p { margin: 6px 0; }
+  main[data-pg="leikur"] .lk-onb-list { margin: 4px 0; padding-left: 18px; }
+  main[data-pg="leikur"] .lk-onb-list li { margin: 3px 0; }
+  main[data-pg="leikur"] .lk-onb-code { font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #f6b13b; text-align: center; padding: 6px 0 2px; }
+  main[data-pg="leikur"] .lk-onb-now { margin: 8px 0 0; padding: 7px 10px; border-radius: 8px; background: rgba(246,177,59,.10); border: 1px solid #f6b13b55; font-size: 12.8px; }
+  main[data-pg="leikur"] .lk-onb-now a { color: #f6b13b; }
+  main[data-pg="leikur"] .lk-onb-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; }
+  main[data-pg="leikur"] .lk-onb-skip { display: block; margin-top: 8px; font-size: 11.5px; color: var(--muted, #9fb0c8); text-decoration: none; border-bottom: 1px dotted currentColor; width: max-content; max-width: 100%; }
+  main[data-pg="leikur"] .lk-onb-skip:hover { color: var(--ink, #e8ecf3); }
+  /* highlight-ramminn: gull-rammi + mjúkur púls á viðkomandi stillingu/hnapp (animation-delay sett í JS svo fasinn haldist yfir endurteiknanir) */
+  main[data-pg="leikur"] .lk-onb-hl { outline: 2px solid #f6b13b; outline-offset: 3px; animation: lk-onb-puls 1.8s ease-in-out infinite; }
+  @keyframes lk-onb-puls { 0%, 100% { box-shadow: 0 0 0 0 rgba(246,177,59,.55); } 50% { box-shadow: 0 0 0 10px rgba(246,177,59,0); } }
+  @keyframes lk-onb-inn { from { opacity: 0; transform: translateY(8px); } }
+  @media (max-width: 700px) {
+    main[data-pg="leikur"] #lk-onb-host .lk-onb { left: 10px; right: 10px; bottom: 10px; width: auto; max-height: 60vh; }
+    main[data-pg="leikur"] .lk-onb-bigcode { font-size: 30px; letter-spacing: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    main[data-pg="leikur"] .lk-onb-hl { animation: none; box-shadow: 0 0 0 4px rgba(246,177,59,.28); }
+    main[data-pg="leikur"] #lk-onb-host .lk-onb { animation: none; }
   }
 </style>

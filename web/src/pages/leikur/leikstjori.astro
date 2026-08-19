@@ -1,0 +1,278 @@
+---
+// /leikur/leikstjori/ — SÖLUSÍÐA LEIKSTJÓRA: markaðssíða RÁS-Leiksins fyrir kennara (MBA/HR/framhaldsskólar),
+// stjórnendur vinnustofa og HR-deildir. Statísk, SEO-indexanleg (title/description/OG + JSON-LD Course+FAQ).
+// Engin innskráning, engin D1, ekkert runtime-JS — allt bakað í HTML. Útlit endurnýtt úr demo.astro
+// (dökkt, KARP-gull) með lst-forskeyti. Verð er TILLAGA („í kynningu") — Áskell-vörur eru ekki stofnaðar
+// enn, svo enginn kaup-hnappur heldur mailto:aron@karp.is með subject „Leikstjóra-leyfi".
+import Layout from '../../layouts/Layout.astro';
+import { ALTHINGI_MYND } from '@lib/leikur/myndir.mjs';
+import { renderIslandKort } from '@lib/leikur/kort-svg.mjs';
+import { ROUNDS, YEAR_START, QUARTERS_PER_ROUND } from '@lib/leikur/game-config.mjs';
+
+const YEAR_END = YEAR_START + ROUNDS * QUARTERS_PER_ROUND; // 2032
+const MAILTO = 'mailto:aron@karp.is?subject=' + encodeURIComponent('Leikstjóra-leyfi');   // RFC 6068: ekki-ASCII percent-kóðað
+
+// Statískt skraut-kort: þrep byggð 2 / menntun 2 / fiskur 2 / losun 1 + þrjú stefnu-tákn
+// (álver, gagnaver, ESB-fáni). Sér idPrefix svo defs rekist ekki á önnur kort á síðunni.
+const KORT_SVG = renderIslandKort(
+  { byggd: 2, menntun: 2, fiskur: 2, losun: 1, ljos: 2, ferdamenn: 2, taknmyndir: ['alver', 'gagnaver', 'esb'] },
+  { compact: false, idPrefix: 'lst' },
+);
+
+// 90-mín vinnustofan — þrír fasar (mínútur knýja breidd tímalínunnar).
+const TIMALINA = [
+  { icon: '🧑‍🏫', heiti: 'Uppsetning', min: 10, txt: 'Leikstjóri stofnar leik, deilir kóða á skjávarpa, lið skrá sig inn með liðsheiti. Stutt kynning á markmiðum og stjórntækjum.' },
+  { icon: '🗳️', heiti: `${ROUNDS} kjörtímabil × ~8 mín`, min: 64, txt: `Hvert lið stillir stýrivexti, skatta, útgjöld og stóru ákvarðanirnar fyrir fjögurra ára kjörtímabil — ${YEAR_START} til ${YEAR_END}. Umferðar-klukkan heldur takti, hermirinn gerir upp.` },
+  { icon: '🧭', heiti: 'Debrief', min: 20, txt: 'Stigatafla, Ísland liðanna hlið við hlið, „svona fór það í alvöru" og umræðuspurningar sem leikurinn reiknar úr því sem gerðist í salnum.' },
+];
+const MIN_SAMTALS = TIMALINA.reduce((s, t) => s + t.min, 0);
+const KJORTIMABIL = Array.from({ length: ROUNDS }, (_, i) => ({ n: i + 1, fra: YEAR_START + i * QUARTERS_PER_ROUND, til: YEAR_START + (i + 1) * QUARTERS_PER_ROUND }));
+
+// Það sem þátttakendur fá — hvert í einni setningu.
+const THATTTAKENDUR = [
+  { icon: '🗺️', heiti: 'Lifandi Íslandskort', txt: 'Landið lifnar við eftir stefnunni: byggðaljós, skólar, fiskistofn, mistur losunar — og álver, gagnaver eða ESB-fáni birtast þegar stóru ákvarðanirnar eru teknar.' },
+  { icon: '🎩', heiti: 'Forsætisráðherra-ráðgjafinn', txt: 'Skálduð persóna í horninu sem varar við, hrósar og minnir á hvað lotan snýst um — skapið fylgir fylginu.' },
+  { icon: '🎲', heiti: 'Óvænt atvik', txt: 'Eldgos, verkföll, makríll, hneyksli: klemmu-val með tölusettum áhrifum sem dúkka upp hjá öllum liðum í einu.' },
+  { icon: '📜', heiti: 'Svona fór það í alvöru', txt: 'Eftir hverja lotu: raun-hagsaga tímabilsins og hvernig ríkisstjórnin sem sat í alvöru tókst á við sama vanda — borið saman við ykkar tölur.' },
+  { icon: '🧭', heiti: 'Pólitíski mælirinn', txt: 'Hlutlaus vörpun stefnublöndunnar á vinstri–hægri ás — sýnir að gjörólíkar leiðir geta skilað svipuðum árangri.' },
+  { icon: '📈', heiti: 'Uppsafnaðir KPI', txt: `Verðlag, VLF, kaupmáttur, skuldir og losun frá ${YEAR_START} — öll lið á sama grafi með pinna þar sem stóru ákvarðanirnar voru teknar.` },
+];
+
+// Fyrir leikstjórann — stutt blokk hvert.
+const LEIKSTJORI = [
+  { icon: '🧙', heiti: 'Uppsetningar-vísir', txt: 'Einn smellur stofnar leik: erfiðleikastig, umferðar-klukka, stjórnstöð með sleðum eða einföld val, leynileg hlutverk, óvænt atvik — og kóði til að deila.' },
+  { icon: '📖', heiti: 'Kennsluhandbók per lotu', txt: 'Aðeins sýnileg þér: staðan, gildran, stefnan og ráðlagðar stillingar fyrir hvert kjörtímabil — grunduð í herminum og hagsögunni.' },
+  { icon: '📺', heiti: 'Skjávarpa-sýn', txt: 'Áhorfenda-hlekkur fyrir salinn: stigatafla í rauntíma, Ísland efsta liðsins, atvika-popup og RÁS-tíðindi — engin innskráning.' },
+  { icon: '🖨️', heiti: 'Prentanleg debrief-skýrsla', txt: 'Í leikslok: stigatafla, hvert lið fyrir sig, samanburðartafla og umræðukafli — prentvæn, vistast sem PDF.' },
+  { icon: '📊', heiti: 'Greining liða', txt: 'Skorkort, ákvarðanir og ferla-gröf liðanna meðan á leik stendur, ásamt umræðu-kveikjum sem eru reiknaðar úr leiknum sjálfum.' },
+];
+
+// VERÐ-TILLAGA (í kynningu). Rök: Alþjóðlegir viðskipta-hermar (Capsim, Cesim) rukka 50–150 USD PER ÞÁTTTAKANDA
+// (~7–20 þús kr) → 25 manna hópur kostar 175–500 þús kr á námskeið; MBA-námskeiðsgjöld hér heima eru á
+// bilinu 100–300 þús kr per námskeið. Við verðleggjum PER LEIKSTJÓRA með ótakmörkuðum leikjum — Vinnustofa
+// (29.900) er brot af einu Capsim-námskeiði, Kennari (89.000 ≈ 3 vinnustofur fyrir heilt skólaár) og
+// Skóli/fyrirtæki (290.000 ≈ 3,3× Kennari fyrir 5 sæti + debrief-stuðningur = magnafsláttur + þjónusta).
+const VERD = [
+  { id: 'vinnustofa', heiti: 'Vinnustofa', verd: 29900, eining: 'eitt leyfi · 30 dagar',
+    punktar: ['Eitt leikstjóra-leyfi', 'Ótakmarkaðir leikir í 30 daga', 'Allir leikhættir: stjórnstöð, hlutverk, atvik', 'Kennsluhandbók + prentanleg skýrsla', 'Skjávarpa-sýn og greining liða'] },
+  { id: 'kennari', heiti: 'Kennari', verd: 89000, eining: 'eitt leyfi · skólaár (10 mán)', best: true,
+    punktar: ['Eitt leikstjóra-leyfi', 'Ótakmarkaðir leikir allt skólaárið', 'Allir leikhættir + sér-sviðsmyndir þegar þær koma', 'Kennsluhandbók + prentanleg skýrsla', 'Forgangur að nýjum kennslu-eiginleikum'] },
+  { id: 'skoli', heiti: 'Skóli / fyrirtæki', verd: 290000, eining: '5 leikstjórar · 12 mán', tilbod: true,
+    punktar: ['Fimm leikstjóra-leyfi (deild, svið, HR-teymi) — sett upp af Karp', 'Ótakmarkaðir leikir í 12 mánuði', 'Debrief-stuðningur: undirbúningsfundur + aðstoð í fyrstu vinnustofu', 'Sameiginlegt yfirlit leikja (í þróun)', 'Reikningur á stofnun — eða tilboð eftir umfangi'] },
+];
+const kr = (n) => n.toLocaleString('is-IS') + ' kr';
+
+const FAQ = [
+  { q: 'Þarf einhverja tækni?', a: 'Nei. Leikurinn keyrir í vafra — þátttakendur nota síma, spjaldtölvu eða fartölvu og leikstjórinn tengir skjávarpa við áhorfenda-sýnina. Ekkert þarf að setja upp.' },
+  { q: 'Hvað með persónugögn nemenda?', a: 'Lágmörkuð. Leikurinn sjálfur geymir aðeins liðsheiti, leikkóða og ákvarðanir liðanna — engin nöfn, kennitölur eða einkunnir. Þátttakendur ganga í lið með frírri Karp-innskráningu (netfang) sem merkt er sem nemanda-aðgangur; eitt tæki per lið dugar, svo aðeins einn í hverju liði þarf aðgang. Sérstakur skólapakki með vinnslusamningi er í undirbúningi.' },
+  { q: 'Hve margir geta spilað?', a: 'Við mælum með 2–8 liðum í leik og 1–6 manns í liði (engin hörð mörk í kerfinu). Stærri hópar fylgjast með á skjávarpanum sem áhorfendur og taka þátt í umræðunni — margir kennarar láta salinn „ráðleggja" liðunum.' },
+  { q: 'Virkar leikurinn án nettengingar?', a: 'Nei. Uppgjör hvers kjörtímabils er reiknað á þjóni svo stigin séu ófölsuð og öll lið sjái sömu stöðu — venjuleg nettenging í kennslustofu eða fundarsal nægir.' },
+  { q: 'Má sníða sviðsmyndina?', a: `Sviðsmyndin í dag er Ísland ${YEAR_START}–${YEAR_END}: netbóla, útrás, hrun, höft, ferðamannasprengja, heimsfaraldur, verðbólgubylgja og framtíðin. Leikstjórinn velur erfiðleikastig, umferðar-klukku, hlutverk og atvik — sér-sviðsmyndir eru í þróun.` },
+  { q: 'Hvað er RÁS?', a: 'RÁS er þjóðhags-hermir Karp — kerfislíkan af íslenska hagkerfinu með 30 stjórntækjum og 36 útkomum, opið á karp.is/hermir/. Leikurinn notar sömu vél: það sem liðin gera við sleðana er reiknað af sama líkani og hermirinn.' },
+];
+
+const TITLE = 'RÁS-Leikurinn fyrir kennara og vinnustofur — leikstjóra-leyfi';
+const DESC = 'Kenndu hagstjórn með því að láta fólk stjórna landinu: 90 mínútna vinnustofa þar sem lið stýra Íslandi 2000–2032 í þjóðhags-herminum RÁS. Leikstjóra-leyfi fyrir kennara, vinnustofur og HR-deildir — frítt fyrir þátttakendur.';
+const PAGE_URL = 'https://karp.is/leikur/leikstjori/';
+const JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Course', '@id': PAGE_URL + '#course', name: 'RÁS-Leikurinn — vinnustofa í hagstjórn', inLanguage: 'is', url: PAGE_URL, description: DESC,
+      provider: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/' },
+      educationalLevel: 'Framhaldsskóli, háskóli, símenntun', teaches: ['Þjóðhagfræði', 'Hagstjórn', 'Ákvarðanataka undir óvissu'],
+      hasCourseInstance: { '@type': 'CourseInstance', courseMode: 'Onsite', courseWorkload: 'PT1H30M', location: { '@type': 'Place', name: 'Kennslustofa eða fundarsalur með skjávarpa' } },
+      offers: { '@type': 'Offer', category: 'Leikstjóra-leyfi', availability: 'https://schema.org/PreOrder', priceCurrency: 'ISK', url: PAGE_URL + '#verd', description: 'Verð í kynningu — hafðu samband' },
+    },
+    { '@type': 'FAQPage', '@id': PAGE_URL + '#faq', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  ],
+};
+---
+<Layout title={TITLE} description={DESC} canonical={PAGE_URL} ogTitle="Kenndu hagstjórn með því að láta fólk stjórna landinu" jsonLd={JSONLD} bare={true}>
+  <main data-pg="leikur-leikstjori">
+
+    <!-- 1. HERO -->
+    <header class="lst-hero">
+      <div class="lst-hero-img" aria-hidden="true" set:html={ALTHINGI_MYND} />
+      <div class="lst-hero-txt">
+        <span class="lst-badge">Fyrir kennara · vinnustofur · HR-deildir</span>
+        <h1>Kenndu hagstjórn með því að láta fólk stjórna landinu</h1>
+        <p class="lst-lead">RÁS-Leikurinn er 90 mínútna vinnustofa þar sem lið taka við ríkisstjórn Íslands árið {YEAR_START} og stýra landinu í átta kjörtímabil — gegnum netbólu, hrun, ferðamannasprengju og heimsfaraldur — með sömu vél og þjóðhags-hermirinn RÁS. Þú ert leikstjórinn.</p>
+        <p class="lst-cta-row">
+          <a class="lst-btn" href="/leikur/demo/">▶ Prófa demo (2 mín)</a>
+          <a class="lst-btn lst-btn-ghost" href="#verd">Fá leikstjóra-leyfi</a>
+        </p>
+        <p class="lst-hero-fine">Ókeypis fyrir alla þátttakendur (frí Karp-innskráning, eitt tæki per lið) · engin innskráning í demo · ekkert að setja upp</p>
+      </div>
+    </header>
+
+    <!-- 2. VINNUSTOFAN -->
+    <section class="lst-card" id="vinnustofa">
+      <h2>⏱️ Svona lítur vinnustofa út — ~{MIN_SAMTALS} mínútur</h2>
+      <p class="lst-muted">Ein kennslustund, einn fundarsalur: uppsetning, {ROUNDS} kjörtímabil og debrief. Klukkan er valfrjáls — leikstjóri ræður takti.</p>
+      <ol class="lst-timalina" aria-label="Tímalína vinnustofu">
+        {TIMALINA.map((t) => (
+          <li class="lst-tl-fasi" style={`flex-grow:${t.min}`}>
+            <div class="lst-tl-bar"><span class="lst-tl-ic" aria-hidden="true">{t.icon}</span><b>{t.heiti}</b><span class="lst-tl-min">{t.min} mín</span></div>
+            <p>{t.txt}</p>
+          </li>
+        ))}
+      </ol>
+      <div class="lst-kt-row" aria-label="Kjörtímabilin átta">
+        {KJORTIMABIL.map((k) => <span class="lst-kt">KT{k.n} <small>{k.fra}–{k.til}</small></span>)}
+      </div>
+    </section>
+
+    <section class="lst-card" id="thatttakendur">
+      <h2>🎮 Það sem þátttakendur fá</h2>
+      <div class="lst-split">
+        <ul class="lst-feats">
+          {THATTTAKENDUR.map((f) => (
+            <li class="lst-feat"><span class="lst-feat-ic" aria-hidden="true">{f.icon}</span><div><b>{f.heiti}</b><p>{f.txt}</p></div></li>
+          ))}
+        </ul>
+        <figure class="lst-kort">
+          <div class="lst-kort-svg" set:html={KORT_SVG} />
+          <figcaption>Lifandi Íslandskortið — hér með byggð, skólum, fiskistofni, álveri, gagnaveri og ESB-fána. Hvert lið fær sitt eigið Ísland.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 3. FYRIR LEIKSTJÓRANN -->
+    <section class="lst-card" id="leikstjori">
+      <h2>🧑‍🏫 Fyrir leikstjórann</h2>
+      <p class="lst-muted">Leikurinn er hannaður til að kennarinn þurfi ekki að vera hagfræðingur — handbókin, skjávarpinn og skýrslan vinna vinnuna með þér.</p>
+      <div class="lst-grid">
+        {LEIKSTJORI.map((f) => (
+          <div class="lst-block"><div class="lst-block-h"><span aria-hidden="true">{f.icon}</span> <b>{f.heiti}</b></div><p>{f.txt}</p></div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 4. VERÐ -->
+    <section class="lst-card lst-verd" id="verd">
+      <h2>💳 Leikstjóra-leyfi</h2>
+      <p class="lst-kynning">Verð í kynningu — hafðu samband</p>
+      <p class="lst-fritt">Allt frítt fyrir nemendur og þátttakendur.</p>
+      <p class="lst-muted">Þú borgar fyrir leikstjórann, ekki hausana í salnum. Alþjóðlegir viðskipta-hermar á borð við Capsim og Cesim rukka 50–150 USD á hvern þátttakanda — 25 manna hópur kostar þar 175–500 þúsund krónur á námskeið. RÁS-Leikurinn er verðlagður <b>per leikstjóra með ótakmörkuðum leikjum</b>: hópstærðin breytir engu um reikninginn.</p>
+      <div class="lst-verd-grid">
+        {VERD.map((v) => (
+          <div class={'lst-tier' + (v.best ? ' lst-tier-best' : '')}>
+            {v.best && <span class="lst-tier-tag">Vinsælast</span>}
+            <h3>{v.heiti}</h3>
+            <div class="lst-tier-verd">{kr(v.verd)}{v.tilbod && <small> eða tilboð</small>}</div>
+            <div class="lst-tier-ein">{v.eining}</div>
+            <ul>{v.punktar.map((p) => <li>{p}</li>)}</ul>
+            <a class={'lst-btn' + (v.best ? '' : ' lst-btn-ghost')} href={MAILTO + '&body=' + encodeURIComponent('Þrep: ' + v.heiti + '\n\n')}>✉️ Hafa samband</a>
+          </div>
+        ))}
+      </div>
+      <p class="lst-muted lst-verd-fine">Verðin eru tillögur í kynningu og geta breyst við opnun sölu — engin sjálfsafgreiðslu-kaup eru opin enn, leyfið er sett upp handvirkt. Sendu línu á <a href={MAILTO}>aron@karp.is</a> með efnisorðinu „Leikstjóra-leyfi" — við svörum með tilboði og aðgangi. Þátttakendur þurfa aldrei að borga neitt.</p>
+    </section>
+
+    <!-- 5. ALGENGAR SPURNINGAR -->
+    <section class="lst-card" id="spurningar">
+      <h2>❓ Algengar spurningar</h2>
+      <div class="lst-faq">
+        {FAQ.map((f) => (
+          <details class="lst-q"><summary>{f.q}</summary><p>{f.a}</p></details>
+        ))}
+      </div>
+    </section>
+
+    <!-- 6. FÓTUR-CTA -->
+    <section class="lst-card lst-cta" id="byrja">
+      <h2>Tilbúin/n að láta hópinn stjórna landinu?</h2>
+      <p>Prófaðu demoið sjálf/ur á tveimur mínútum — eða sendu línu og við setjum upp leikstjóra-leyfi fyrir næstu vinnustofu.</p>
+      <p class="lst-cta-row">
+        <a class="lst-btn" href="/leikur/demo/">▶ Prófa demo (2 mín)</a>
+        <a class="lst-btn lst-btn-ghost" href={MAILTO}>✉️ Fá leikstjóra-leyfi — aron@karp.is</a>
+      </p>
+      <p class="lst-muted">Sjá líka: <a href="/leikur/">🎮 RÁS-Leikurinn</a> · <a href="/hermir/">📊 RÁS þjóðhags-hermirinn</a></p>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  /* Sama dökka KARP-gull útlit og demo.astro (lst-forskeyti). Síðan er statísk → scoped CSS nægir;
+     :global aðeins á SVG-strengina (set:html) sem scoped-hash nær ekki í. */
+  main[data-pg="leikur-leikstjori"] { max-width: 960px; margin: 0 auto; padding: 20px 20px 80px; color: var(--ink, #e8ecf3); }
+  h1 { font-size: 34px; line-height: 1.15; margin: 8px 0 10px; }
+  h2 { font-size: 20px; margin: 0 0 10px; }
+  h3 { font-size: 17px; margin: 0 0 4px; }
+  .lst-card { border: 1px solid var(--line, #2a2f3a); border-radius: 12px; padding: 18px; margin: 14px 0; background: rgba(255,255,255,.03); }
+  .lst-muted { color: var(--muted, #9fb0c8); font-size: 13.5px; line-height: 1.55; }
+  .lst-muted a { color: #f6b13b; }
+  .lst-btn { display: inline-block; background: #f6b13b; color: #12161f; border: 0; border-radius: 8px; padding: 11px 20px; font-weight: 700; cursor: pointer; font-size: 15px; text-decoration: none; }
+  .lst-btn:hover { filter: brightness(1.07); }
+  .lst-btn-ghost { background: rgba(255,255,255,.06); color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); }
+  .lst-cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 6px; }
+  /* Hero */
+  .lst-hero { display: flex; gap: 22px; align-items: center; margin: 8px 0 6px; }
+  .lst-hero-img { flex: 0 0 200px; max-width: 200px; line-height: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line, #2a2f3a); }
+  .lst-hero-img :global(svg) { width: 100%; height: auto; display: block; }
+  .lst-badge { display: inline-block; font-size: 12px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.12); border-radius: 999px; padding: 3px 12px; }
+  .lst-lead { font-size: 16px; color: var(--muted, #9fb0c8); line-height: 1.55; margin: 0; }
+  .lst-hero-fine { font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 0; }
+  /* Tímalína */
+  .lst-timalina { list-style: none; display: flex; gap: 8px; margin: 14px 0 10px; padding: 0; }
+  .lst-tl-fasi { flex-basis: 0; min-width: 0; }
+  .lst-tl-bar { display: flex; align-items: center; gap: 8px; background: linear-gradient(180deg, rgba(246,177,59,.22), rgba(246,177,59,.08)); border: 1px solid #f6b13b55; border-radius: 8px; padding: 8px 10px; font-size: 14px; white-space: nowrap; overflow: hidden; }
+  .lst-tl-bar b { overflow: hidden; text-overflow: ellipsis; }
+  .lst-tl-ic { font-size: 18px; }
+  .lst-tl-min { margin-left: auto; font-size: 12px; color: #f6b13b; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lst-tl-fasi p { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.5; margin: 8px 2px 0; }
+  .lst-kt-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .lst-kt { font-size: 12px; font-weight: 700; border: 1px solid var(--line, #2a2f3a); border-radius: 999px; padding: 3px 10px; background: rgba(255,255,255,.03); }
+  .lst-kt small { font-weight: 400; color: var(--muted, #9fb0c8); }
+  /* Þátttakendur + kort */
+  .lst-split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .lst-feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .lst-feat { display: flex; gap: 10px; align-items: flex-start; }
+  .lst-feat-ic { font-size: 22px; line-height: 1.2; flex: 0 0 30px; text-align: center; }
+  .lst-feat b { font-size: 14.5px; }
+  .lst-feat p { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.5; margin: 2px 0 0; }
+  .lst-kort { margin: 0; position: sticky; top: 16px; }
+  .lst-kort-svg { line-height: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line, #2a2f3a); }
+  .lst-kort-svg :global(svg.kt-kort) { width: 100%; height: auto; display: block; }
+  .lst-kort figcaption { font-size: 12.5px; color: var(--muted, #9fb0c8); text-align: center; margin: 8px 0 0; line-height: 1.45; }
+  /* Leikstjóri */
+  .lst-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
+  .lst-block { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #f6b13b; border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.02); }
+  .lst-block-h { font-size: 14.5px; }
+  .lst-block p { font-size: 13px; color: var(--muted, #9fb0c8); line-height: 1.5; margin: 5px 0 0; }
+  /* Verð */
+  .lst-verd { border-color: #f6b13b66; background: linear-gradient(180deg, rgba(246,177,59,.09), rgba(246,177,59,.02)); }
+  .lst-kynning { display: inline-block; font-size: 12.5px; font-weight: 700; color: #f0c674; background: rgba(240,177,59,.1); border: 1px dashed #f6b13b88; border-radius: 999px; padding: 3px 12px; margin: 0 0 8px; }
+  .lst-fritt { font-size: 22px; font-weight: 800; color: #7fe0ab; margin: 4px 0 8px; }
+  .lst-verd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 14px 0 10px; }
+  .lst-tier { position: relative; border: 1px solid var(--line, #2a2f3a); border-radius: 12px; padding: 16px; background: rgba(18,22,31,.55); display: flex; flex-direction: column; gap: 4px; }
+  .lst-tier-best { border-color: #f6b13b; box-shadow: 0 0 0 1px #f6b13b inset; }
+  .lst-tier-tag { position: absolute; top: -10px; right: 14px; font-size: 11px; font-weight: 800; background: #f6b13b; color: #12161f; border-radius: 999px; padding: 2px 10px; }
+  .lst-tier-verd { font-size: 26px; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+  .lst-tier-verd small { font-size: 13px; color: var(--muted, #9fb0c8); font-weight: 600; }
+  .lst-tier-ein { font-size: 12.5px; color: var(--muted, #9fb0c8); }
+  .lst-tier ul { margin: 8px 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.55; flex: 1; }
+  .lst-tier .lst-btn { text-align: center; }
+  .lst-verd-fine { margin: 6px 0 0; }
+  /* FAQ */
+  .lst-faq { display: flex; flex-direction: column; gap: 6px; }
+  .lst-q { border: 1px solid var(--line, #2a2f3a); border-radius: 8px; padding: 8px 12px; background: rgba(255,255,255,.02); }
+  .lst-q summary { cursor: pointer; font-weight: 600; font-size: 14.5px; }
+  .lst-q p { font-size: 13.5px; color: var(--muted, #9fb0c8); line-height: 1.55; margin: 8px 0 2px; }
+  /* CTA */
+  .lst-cta { border-color: #6ea8fe66; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  .lst-cta p { font-size: 14px; line-height: 1.55; }
+  /* Farsími */
+  @media (max-width: 760px) {
+    main[data-pg="leikur-leikstjori"] { padding: 12px 12px 60px; }
+    h1 { font-size: 26px; }
+    .lst-hero { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .lst-hero-img { flex: 0 0 auto; max-width: 150px; }
+    .lst-timalina { flex-direction: column; }
+    .lst-tl-fasi { flex-grow: 0 !important; flex-basis: auto; }
+    .lst-split { grid-template-columns: 1fr; }
+    .lst-kort { position: static; }
+    .lst-tier-verd { font-size: 23px; }
+  }
+</style>
