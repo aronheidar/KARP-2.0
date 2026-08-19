@@ -43,6 +43,8 @@ const LETTER = { S: 'Samfylkingin', C: 'Viðreisn', F: 'Flokkur fólksins', D: '
 const NAME2LETTER = { 'Samfylkingin': 'S', 'Viðreisn': 'C', 'Flokkur fólksins': 'F', 'Sjálfstæðisflokkur': 'D', 'Sjálfstæðisflokkurinn': 'D', 'Miðflokkurinn': 'M', 'Framsóknarflokkur': 'B', 'Framsóknarflokkurinn': 'B', 'Sósíalistaflokkurinn': 'J', 'Píratar': 'P', 'Vinstri græn': 'V', 'Vinstrihreyfingin – grænt framboð': 'V' };
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9á-öþæð]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40);
 const pct1 = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
+// Vextir eru alltaf margfeldi af 0,25 → TVEIR aukastafir (7,75%/8,00%). pct1 námundaði 7,75 í 7,8.
+const pct2 = (v) => Number(v).toFixed(2).replace('.', ',');
 const kr = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 const MAN = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
 const manIS = (ym) => { const m = String(ym).match(/(\d{4})-(\d{2})/); return m ? MAN[+m[2] - 1] + ' ' + m[1] : ym; };
@@ -512,9 +514,9 @@ function detect(state) {
       const [dNu, vNu] = meg.points[meg.points.length - 1], vFyrri = meg.points[meg.points.length - 2][1];
       if (typeof vNu === 'number' && typeof vFyrri === 'number' && vNu !== vFyrri) {
         ev.push({ id: `vextir-${dNu}`, type: 'vextir', spark: downsample(meg.points.map((p) => p[1]), 24), facts: { nyir: vNu, fyrri: vFyrri, breyting: +(vNu - vFyrri).toFixed(2), dags: dNu }, url: '/vextir/',
-          samhengi: typeof vbLatest === 'number' ? `Raunstýrivextir eru um ${pct1(vNu - vbLatest)}% — meginvextir að frádreginni ${pct1(vbLatest)}% ársverðbólgu.` : undefined,
-          title: `Seðlabankinn ${vNu > vFyrri ? 'hækkar' : 'lækkar'} meginvexti í ${pct1(vNu)}%`,
-          text: `Meginvextir Seðlabanka Íslands eru nú ${pct1(vNu)}% og ${vNu > vFyrri ? 'hækkuðu' : 'lækkuðu'} úr ${pct1(vFyrri)}% (${dNu}).` });
+          samhengi: typeof vbLatest === 'number' ? `Raunstýrivextir eru um ${pct2(vNu - vbLatest)}% — meginvextir að frádreginni ${pct1(vbLatest)}% ársverðbólgu.` : undefined,
+          title: `Seðlabankinn ${vNu > vFyrri ? 'hækkar' : 'lækkar'} meginvexti í ${pct2(vNu)}%`,
+          text: `Meginvextir Seðlabanka Íslands eru nú ${pct2(vNu)}% og ${vNu > vFyrri ? 'hækkuðu' : 'lækkuðu'} úr ${pct2(vFyrri)}% (${dNu}).` });
       }
     }
     const vb = ((sb.datasets.verdbolga || {}).series || []).find((s) => s.name === 'Vísitala neysluverðs' && (s.points || []).some((p) => typeof p[1] === 'number' && p[1] < 50));
@@ -611,7 +613,7 @@ function detect(state) {
     const at = J('atvinnuleysi.json'); const atv = at && Array.isArray(at.monthly) && at.monthly.length ? at.monthly[at.monthly.length - 1].v : null;
     const parts = [];
     if (vb != null) parts.push(`verðbólga ${pct1(vb)}%`);
-    if (meg != null) parts.push(`meginvextir ${pct1(meg)}%`);
+    if (meg != null) parts.push(`meginvextir ${pct2(meg)}%`);
     if (atv != null) parts.push(`atvinnuleysi ${pct1(atv)}%`);
     if (g != null) parts.push(`gengisvísitala ${pct1(g)}`);
     if (parts.length >= 3) {
@@ -795,11 +797,11 @@ function detect(state) {
     if (sbT && sbT.datasets) {
       const meg = lastPtN(sbT.datasets.vextir_si, /megin/i), vbv = lastPtN(sbT.datasets.verdbolga, 'Vísitala neysluverðs', (v) => typeof v === 'number' && v < 50), ge = lastPtN(sbT.datasets.gengisvisit, 'Gengisvísitala');
       if (typeof meg === 'number' && typeof vbv === 'number') {
-        const raun = +(meg - vbv).toFixed(1);
+        const raun = +(meg - vbv).toFixed(2);
         themas.push({ key: 'peningastefna', url: '/vextir/', facts: { meginvextir: meg, arsverdbolga: vbv, raunvextir: raun, verdbolgumarkmid: 2.5, gengisvisitala: ge == null ? null : +ge.toFixed(1) },
           samhengi: `Raunstýrivextir ≈ ${pct1(raun)}%; verðbólga ${pct1(Math.abs(vbv - 2.5))} pp ${vbv >= 2.5 ? 'yfir' : 'undir'} 2,5% markmiði.`,
-          title: `Peningastefnan: ${pct1(meg)}% meginvextir, ${pct1(vbv)}% verðbólga`,
-          text: `Peningastefna Seðlabanka Íslands í hnotskurn: meginvextir standa í ${pct1(meg)}% og ársverðbólga mælist ${pct1(vbv)}% — ${pct1(Math.abs(vbv - 2.5))} prósentustigum ${vbv >= 2.5 ? 'yfir' : 'undir'} 2,5% verðbólgumarkmiðinu. Raunstýrivextir (meginvextir að frádreginni verðbólgu) eru því um ${pct1(raun)}%.${ge != null ? ` Gengisvísitala krónunnar stendur í ${pct1(ge)}.` : ''} Tölurnar eru teknar saman úr opinberum gögnum Seðlabankans.` });
+          title: `Peningastefnan: ${pct2(meg)}% meginvextir, ${pct1(vbv)}% verðbólga`,
+          text: `Peningastefna Seðlabanka Íslands í hnotskurn: meginvextir standa í ${pct2(meg)}% og ársverðbólga mælist ${pct1(vbv)}% — ${pct1(Math.abs(vbv - 2.5))} prósentustigum ${vbv >= 2.5 ? 'yfir' : 'undir'} 2,5% verðbólgumarkmiðinu. Raunstýrivextir (meginvextir að frádreginni verðbólgu) eru því um ${pct2(raun)}%.${ge != null ? ` Gengisvísitala krónunnar stendur í ${pct1(ge)}.` : ''} Tölurnar eru teknar saman úr opinberum gögnum Seðlabankans.` });
       }
     }
     // Þema 2: Hvert fer ríkisféð — ríkisgreiðslur × útboð × styrkir
