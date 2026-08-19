@@ -1,0 +1,92 @@
+---
+// fasteignaverd/[slug].astro — SSG-síða per MATSSVÆÐI HMS (197 svæði íbúðarhúsnæðis): opinbert meðalverð á m²
+// og 2027-breyting (HMS, fasteignamat 2027) + LIFANDI miðgildi úr kaupskránni (sölur sl. 12 mán, varpaðar á svæði
+// um hnit/<pn>.json [5]) + nýjustu sölur. Programmatísk SEO-síða („fasteignaverð í Njarðvík") — sjá karp-seo.
+// Gögn: web/public/gogn/hms/matssvaedi_2027.json (build_hms_2027.py, árlegt) + gogn/matssvaedi_solur.json
+// (build_fasteignaskra.js, nætur-keyrsla). Svæðið á hverju heimilisfangi er k-NN úr sölu-úrtaki HMS — leiðbeinandi.
+import Layout from '../../layouts/Layout.astro';
+import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
+import ZS from '@gogn/matssvaedi_solur.json';
+import { slugify, groupThousands } from '@lib/format.mjs';
+
+export function getStaticPaths() {
+  return Object.entries(MS.svaedi).filter(([, v]) => v && v.heiti).map(([nr, v]) => ({ params: { slug: slugify(v.heiti) }, props: { nr, sv: v, z: (ZS.byZone || {})[nr] || null } }));
+}
+const { nr, sv, z } = Astro.props;
+
+const heiti = sv.heiti;
+const pcS = (v, d = 1) => (v == null ? '–' : (v >= 0 ? '+' : '−') + (Math.abs(v) * 100).toFixed(d).replace('.', ',') + '%');
+const brey = (nu, fyrr) => (nu && fyrr ? (nu / fyrr - 1) : null);
+const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+const mkr = (thk) => (thk >= 1000 ? (thk / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(thk) + ' þ.kr');
+const solur = (z && z.solur) || [];
+const canonical = `https://karp.is/fasteignaverd/${slugify(heiti)}/`;
+const title = `Fasteignaverð í ${heiti} — verð á fermetra, sölur og mat 2027 | Karp`;
+const desc = `Fasteignaverð í ${heiti}: ${z && z.medFjol ? 'miðgildi ' + groupThousands(z.medFjol) + ' þ.kr/m² í fjölbýli' : ''}${z && z.medSer ? (z && z.medFjol ? ', ' : 'miðgildi ') + groupThousands(z.medSer) + ' þ.kr/m² í sérbýli' : ''} sl. 12 mánuði úr þinglýstum kaupum (${z ? z.n12 : 0} sölur) · opinbert meðalverð HMS 2027 ${sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'}/${sv.m2_ser ? groupThousands(sv.m2_ser) : '–'} þ.kr/m² · fasteignamat 2027 breytist ${pcS(sv.br_fjol)} / ${pcS(sv.br_ser)}.`;
+const updated = (ZS.updated || '').slice(0, 10);
+---
+<Layout title={title} description={desc} canonical={canonical}>
+  <main data-pg="fasteignaverd">
+    <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · <a href="/fasteignaverd/">Matssvæði HMS</a> · svæði {nr}</p>
+    <h1>Fasteignaverð í {heiti}</h1>
+    <p>Þinglýst kaup íbúðarhúsnæðis í matssvæðinu <strong>{heiti}</strong> (matssvæði HMS nr. {nr}) úr kaupskrá HMS, ásamt opinberu meðalverði og breytingu fasteignamats 2027. Vilt þú <a href="/fasteignavakt/">verðmeta eign í svæðinu</a>? Fasteignavaktin notar sömu sölur, stærðarleiðréttar, og sýnir matssvæðið á hverri eign.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k-l">🏢 Fjölbýli — Karp, sl. 12 mán</div><div class="k-v">{z && z.medFjol ? groupThousands(z.medFjol) : '–'}</div><div class="k-s">þús.kr/m² miðgildi · {z ? z.nFjol : 0} sölur{z && z.prevFjol && z.medFjol ? <> · <span class={brey(z.medFjol, z.prevFjol) >= 0 ? 'up' : 'dn'}>{pcS(brey(z.medFjol, z.prevFjol))}</span> frá fyrra ári</> : ''}</div></div>
+      <div class="kpi"><div class="k-l">🏠 Sérbýli — Karp, sl. 12 mán</div><div class="k-v">{z && z.medSer ? groupThousands(z.medSer) : '–'}</div><div class="k-s">þús.kr/m² miðgildi · {z ? z.nSer : 0} sölur{z && z.prevSer && z.medSer ? <> · <span class={brey(z.medSer, z.prevSer) >= 0 ? 'up' : 'dn'}>{pcS(brey(z.medSer, z.prevSer))}</span> frá fyrra ári</> : ''}</div></div>
+      <div class="kpi"><div class="k-l">🏛️ HMS — meðalverð 2027</div><div class="k-v">{sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'} <small>/ {sv.m2_ser ? groupThousands(sv.m2_ser) : '–'}</small></div><div class="k-s">þús.kr/m² fjölbýli / sérbýli · fasteignamat 2027 <span class={(sv.br_fjol || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_fjol)}</span> / <span class={(sv.br_ser || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_ser)}</span></div></div>
+    </div>
+
+    {solur.length > 0 ? (
+      <>
+        <h2>Nýjustu þinglýstu kaupin í {heiti}</h2>
+        <div class="tw">
+          <table>
+            <thead><tr><th class="l">Heimilisfang</th><th>Þinglýst</th><th>Tegund</th><th>m²</th><th>Byggt</th><th>Kaupverð</th><th>þús.kr/m²</th></tr></thead>
+            <tbody>
+              {solur.map((s) => (
+                <tr>
+                  <td class="l">{s.a}, {s.pn}</td>
+                  <td class="num">{dIS(s.d)}</td>
+                  <td>{s.teg}</td>
+                  <td class="num">{String(s.fm).replace('.', ',')}</td>
+                  <td class="num">{s.ar || '–'}</td>
+                  <td class="num">{mkr(s.kv)}</td>
+                  <td class="num">{groupThousands(Math.round(s.ppm / 1000))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="note">ⓘ Sýnir allt að 40 nýjustu þinglýst kaup íbúðarhúsnæðis í svæðinu (kaupskrá HMS, uppfært {updated}). Kaupverð í m.kr; verð á fermetra út frá skráðri stærð. Ónothæfir samningar (innbyrðis tengdir aðilar, hlutasölur) eru síaðir burt í kaupskránni.</p>
+      </>
+    ) : (
+      <p class="note">ⓘ Engin þinglýst kaup íbúðarhúsnæðis með hnit í þessu svæði síðustu 12 mánuði í kaupskrá HMS.</p>
+    )}
+
+    <h2>Um matssvæðið</h2>
+    <p>Matssvæði eru landfræðileg svæði sem HMS notar við ákvörðun fasteignamats; innan hvers þeirra er verðlag talið tiltölulega einsleitt. Fyrir fasteignamat 2027 gefur HMS upp meðalverð á fermetra í svæðinu — <strong>{sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'} þús.kr</strong> í fjölbýli og <strong>{sv.m2_ser ? groupThousands(sv.m2_ser) : '–'} þús.kr</strong> í sérbýli — og að matið breytist um <strong>{pcS(sv.br_fjol)}</strong> (fjölbýli) og <strong>{pcS(sv.br_ser)}</strong> (sérbýli) frá 2026. Svæðisstuðlar: fjölbýli {sv.st_fjol != null ? String(sv.st_fjol).replace('.', ',') : '–'} · sérbýli {sv.st_ser != null ? String(sv.st_ser).replace('.', ',') : '–'}.</p>
+    <p class="note">⚠ Svæðamörk HMS eru ekki gefin út sem opin landupplýsingagögn. Karp varpar hverju heimilisfangi á svæði út frá staðsetningu næstu sala í opnu sölu-úrtaki HMS; heimilisföng við svæðamörk geta lent röngum megin. Heimildir: HMS — kaupskrá, fasteignamat 2027 (matssvæði, tölfræði og sölu-úrtak), staðfangaskrá.</p>
+    <p><a class="cta" href="/fasteignavakt/">🏠 Verðmeta eign í {heiti} →</a> &nbsp; <a href="/fasteignaverd/">Öll matssvæði →</a> &nbsp; <a href="/fasteignir/">Fasteignaverð á landinu →</a></p>
+  </main>
+</Layout>
+
+<style>
+  main[data-pg="fasteignaverd"] { max-width: 1080px; margin: 0 auto; padding: 18px 16px 48px; }
+  main[data-pg="fasteignaverd"] .kicker { color: var(--faint); font-size: 12px; letter-spacing: .4px; text-transform: uppercase; }
+  main[data-pg="fasteignaverd"] .kicker a { color: inherit; }
+  main[data-pg="fasteignaverd"] h1 { margin: 6px 0 8px; }
+  main[data-pg="fasteignaverd"] h2 { margin-top: 26px; }
+  main[data-pg="fasteignaverd"] .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 14px 0 6px; }
+  main[data-pg="fasteignaverd"] .kpi { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); }
+  main[data-pg="fasteignaverd"] .k-l { font-size: 12px; color: var(--faint); }
+  main[data-pg="fasteignaverd"] .k-v { font-size: 26px; font-weight: 800; margin: 2px 0; } main[data-pg="fasteignaverd"] .k-v small { font-size: 16px; color: var(--muted); font-weight: 600; }
+  main[data-pg="fasteignaverd"] .k-s { font-size: 12px; color: var(--muted); }
+  main[data-pg="fasteignaverd"] .up { color: #46e08a; } main[data-pg="fasteignaverd"] .dn { color: #ff6d7a; }
+  main[data-pg="fasteignaverd"] .tw { overflow-x: auto; }
+  main[data-pg="fasteignaverd"] table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  main[data-pg="fasteignaverd"] th, main[data-pg="fasteignaverd"] td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: right; white-space: nowrap; }
+  main[data-pg="fasteignaverd"] th.l, main[data-pg="fasteignaverd"] td.l { text-align: left; }
+  main[data-pg="fasteignaverd"] .note { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  main[data-pg="fasteignaverd"] .cta { display: inline-block; padding: 8px 14px; border-radius: 9px; background: rgba(246,177,59,.14); border: 1px solid rgba(246,177,59,.5); color: #f6b13b; text-decoration: none; font-weight: 700; }
+</style>

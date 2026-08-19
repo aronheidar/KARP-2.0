@@ -332,6 +332,7 @@ const jsonLd = {
   <script>
     import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
     import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof } from '../lib/fasteignamat.mjs';
+    import { slugify as slugSvaedi } from '@lib/format.mjs';   // sama slug og /fasteignaverd/[slug].astro notar
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -888,6 +889,14 @@ const jsonLd = {
         if (self) {
           const eign = [['Fasteignanúmer', self.fnr ? 'F' + self.fnr : '–'], ['Tegund', self.teg || teg], ['Stærð', self.fm ? String(self.fm).replace('.', ',') + ' m²' : fm + ' m²'], ['Byggingarár', self.ar || '–'], ['Herbergi', self.herb || '–']];
           if (self.heimild === 'leiga') eign.push(['Heimild', 'Leiguskrá HMS — engin þinglýst sala síðan 2006, ekkert skráð fasteignamat']);
+          if (Array.isArray(self.hms)) {
+            // HMS-eignarlýsing (sölu-úrtak matslíkans, nýjasta sala eignarinnar): [hæð, hæðir EIGNAR, lyftuhús, svalir m², bílskúr m², baðkör, sturtur]
+            const [hd, fh, ly, sv, bs, bk, st] = self.hms;
+            if (hd > 0 || fh > 1 || ly) eign.push(['Hæð', (hd > 0 ? hd + '. hæð' : 'jarðhæð/kjallari') + (fh > 1 ? ' · eign á ' + fh + ' hæðum' : '') + (ly ? ' · lyftuhús' : '')]);
+            if (sv > 0) eign.push(['Svalir', String(sv).replace('.', ',') + ' m²']);
+            if (bs > 0) eign.push(['Bílskúr', String(bs).replace('.', ',') + ' m²']);
+            if (bk > 0 || st > 0) eign.push(['Baðkar/sturta', [bk > 0 ? bk + (bk > 1 ? ' baðkör' : ' baðkar') : '', st > 0 ? st + (st > 1 ? ' sturtur' : ' sturta') : ''].filter(Boolean).join(' · ')]);
+          }
           if (hverfi) eign.push(['Hverfi', hverfi]);
           const gogn = [['Fasteignamat', self.mat ? mkr(self.mat) : '–'], ['Fyrirhugað mat', self.matN ? mkr(self.matN) : '–'], ['Brunabótamat', self.bruna ? mkr(self.bruna) : '–'], ['Lóð', self.lod ? self.lod + ' m²' : '–'], ['Byggingastig', self.full ? 'Fullgert' : '–']];
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
@@ -956,7 +965,7 @@ const jsonLd = {
           const pcs = (x) => (x == null ? '–' : (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1).replace('.', ',') + '%');
           svaediHtml = `<div class="fvm-nakv fvm-svaedi"><span class="fvm-nakv-b" style="background:#8ab4f8"></span><div><b>🏘️ Matssvæði HMS: ${esc(sv2027.heiti)}</b> <i class="tip" tabindex="0" data-tip="Matssvæði fasteignamats 2027 (HMS). Meðalverð á m² og % breyting matsins 2026→2027 eru opinberar tölur HMS fyrir svæðið í heild — ekki mat á þessari eign. Svæðið er fundið út frá staðsetningu (næstu sölur í úrtaki HMS); heimilisföng við svæðamörk geta lent röngum megin.">ⓘ</i><br>`
             + `<span>Opinbert meðalverð í svæðinu: <b>${thouIS(m2sv)} þ.kr/m²</b> (${fj ? 'fjölbýli' : 'sérbýli'}) · fasteignamat 2027 breytist um <b>${pcs(brsv)}</b>`
-            + (fr != null ? ` · matið hér að ofan (${thouIS(okkar)} þ.kr/m²) er <b>${Math.abs(fr)}% ${fr >= 0 ? 'yfir' : 'undir'}</b> svæðismeðaltali` : '') + `.</span></div></div>`;
+            + (fr != null ? ` · matið hér að ofan (${thouIS(okkar)} þ.kr/m²) er <b>${Math.abs(fr)}% ${fr >= 0 ? 'yfir' : 'undir'}</b> svæðismeðaltali` : '') + `. <a class="ec-hms" href="/fasteignaverd/${slugSvaedi(sv2027.heiti)}/">Sjá svæðið — nýjustu sölur →</a></span></div></div>`;
         }
         // HMS-samanburður inn í nákvæmnis-línuna: hvernig stendur opinbera matið sig á sama mælikvarða?
         if (nakvHtml && MS && MS.fmat_nakvaemni) {

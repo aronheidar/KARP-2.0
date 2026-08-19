@@ -102,6 +102,17 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     // Leiguskráin er viðbót — bili hún stendur kaupskrár-grunnurinn óskertur, en það á að SJÁST í keyrslu-loggnum.
     console.error('⚠ leiguskrá brást, haldið áfram án hennar:', String(e).slice(0, 200));
   }
+  // ── HMS-eignarlýsing (hæð/lyfta/svalir/bílskúr/baðherb.) úr sölu-úrtaki fasteignamats 2027, per FASTNUM ──
+  // gogn/hms/einingar.json (build_hms_2027.py, árlegt). Birtist á eignaspjaldi; breytir EKKI matinu (mælt: ±1%).
+  try {
+    const EP = path.join(__dirname, '..', 'gogn', 'hms', 'einingar.json');
+    if (fs.existsSync(EP)) {
+      const E = JSON.parse(fs.readFileSync(EP, 'utf8')).e || {};
+      let hit = 0;
+      for (const p of props.values()) { if (p.fnr && E[p.fnr]) { p.hms = E[p.fnr]; hit++; } }
+      console.log('HMS-eignarlýsing:', hit, 'eignir fengu hæð/lyftuhús/svalir/bílskúr/baðkör-sturtur (af', Object.keys(E).length, 'í einingar.json)');
+    } else console.warn('⚠ gogn/hms/einingar.json vantar — engin HMS-eignarlýsing (keyrðu build_hms_2027.py)');
+  } catch (e) { console.error('⚠ HMS-eignarlýsing brást, haldið áfram án hennar:', String(e).slice(0, 160)); }
   // hópa eftir póstnúmeri
   const byPn = {};
   for (const p of props.values()) (byPn[p.pn] = byPn[p.pn] || []).push(p);
@@ -147,4 +158,38 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
   }
   fs.writeFileSync(path.join(SOL, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), fra: SOLU_FRA, n: solN, byPn: solIdx }));
   console.log('solusaga:', solN, 'sölur (frá ' + SOLU_FRA + ') í', Object.keys(salesByPn).length, 'póstnúmerum |', (solBytes / 1024 / 1024).toFixed(1), 'MB');
+
+  // ── MATSSVÆÐI HMS: sölur síðustu 12 mán per svæði (fyrir /fasteignaverd/<svæði>/ SSG-síðurnar) ──
+  // Svæðið á hverju heimilisfangi kemur úr hnit/<pn>.json [5] (build_hnit.js, k-NN úr sölu-úrtaki HMS).
+  // Skrifað í gogn/matssvaedi_solur.json: per svæði miðgildi þ.kr/m² (fjölbýli / sérbýli+einbýli) sl. 12 mán
+  // og 12 mán þar á undan (þróun), fjöldi, og 40 nýjustu sölur. Engin svæðaskrá → sleppt með viðvörun.
+  try {
+    const HNIT = path.join(__dirname, '..', 'web', 'public', 'gogn', 'hnit');
+    const norm = (x) => String(x || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const NU = Date.now(), AR = 365 * 864e5;
+    const zs = {};
+    let med = 0, an = 0;
+    for (const pn of Object.keys(salesByPn)) {
+      const hp = path.join(HNIT, pn + '.json'); if (!fs.existsSync(hp)) continue;
+      const hn = JSON.parse(fs.readFileSync(hp, 'utf8'));
+      for (const sv of salesByPn[pn]) {
+        const c = hn[norm(sv.a)]; const z = c && c[5]; if (!z) { an++; continue; }
+        med++;
+        const t = new Date(sv.d + 'T00:00:00').getTime(); const age = NU - t;
+        const Z = (zs[z] = zs[z] || { n12: 0, f12: [], s12: [], fPrev: [], sPrev: [], solur: [] });
+        const fj = sv.teg === 'Fjölbýli';
+        if (age <= AR) { Z.n12++; (fj ? Z.f12 : Z.s12).push(sv.ppm); if (Z.solur.length < 40) Z.solur.push({ a: sv.a, pn, d: sv.d, kv: sv.kv, fm: sv.fm, teg: sv.teg, ar: sv.ar, ppm: sv.ppm }); }
+        else if (age <= 2 * AR) (fj ? Z.fPrev : Z.sPrev).push(sv.ppm);
+      }
+    }
+    const mid = (arr) => { if (!arr.length) return null; const s2 = arr.slice().sort((x, y) => x - y); const m = s2.length >> 1; return Math.round((s2.length % 2 ? s2[m] : (s2[m - 1] + s2[m]) / 2) / 1000); };
+    const out = {};
+    for (const z of Object.keys(zs)) {
+      const Z = zs[z];
+      Z.solur.sort((x, y) => y.d.localeCompare(x.d));
+      out[z] = { n12: Z.n12, nFjol: Z.f12.length, nSer: Z.s12.length, medFjol: mid(Z.f12), medSer: mid(Z.s12), prevFjol: mid(Z.fPrev), prevSer: mid(Z.sPrev), nPrev: Z.fPrev.length + Z.sPrev.length, solur: Z.solur };
+    }
+    fs.writeFileSync(path.join(__dirname, '..', 'gogn', 'matssvaedi_solur.json'), JSON.stringify({ updated: new Date().toISOString(), note: 'Sölur úr kaupskrá HMS varpaðar á matssvæði HMS (hnit/<pn>.json [5]). þ.kr/m² miðgildi sl. 12 mán + 12 mán á undan.', byZone: out }));
+    console.log('matssvæði-sölur:', Object.keys(out).length, 'svæði |', med, 'sölur með svæði,', an, 'án');
+  } catch (e) { console.error('⚠ matssvæði-sölur brugðust, haldið áfram:', String(e).slice(0, 160)); }
 })().catch((e) => { console.error('ERR', e); process.exit(1); });

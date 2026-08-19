@@ -10,6 +10,12 @@ hráskrár í gogn/hms/raw/) í þrjú létt JSON:
                                                k-NN vörpun heimilisfangs → matssvæði í build_hnit.js (EKKI shippað)
   gogn/hms_fasteignamat_2027.json            ← samantektir: fjöldi + fasteignamat 2026/2027 per tegund og per
                                                sveitarfélag×tegund (fyrir /fasteignir/, SSG um @gogn)
+  gogn/hms/einingar.json                     ← eignar-lýsing per FASTNUM úr sölu-úrtakinu (hæð, hæðir eignar, lyftuhús,
+                                               svalir m², bílskúr m², baðkör, sturtur) fyrir ~42k einingar → build_fasteignaskra.js
+                                               sameinar inn í fasteignaskra/<pn>.json (eignaspjald). Breytir EKKI matinu —
+                                               mælt 19.8.2026: þessir þættir bera ±1% umfram svæði+stærð+aldur.
+  web/public/gogn/hms/sumarhus_2027.json     ← sumarhús: 142 matssvæði (stuðull, % breyting, meðalverð m²) + 2.799 sölur
+                                               (svæði, kaupverð, m², byggár, lóð, við vatn, hitaveita) fyrir sumarhúsamat
 
 Sölu-úrtakið (2027_gagnasafn_ibudir2.xlsx, 49.656 sölur 2021-01→2026-02, 81 dálkar) er matslíkans-gagnasafn
 HMS — ekki eignagrunnur. ⚠ est/aest eru EKKI verðmöt í kr (32–41% frávik á 2026-sölum, óþekkt eining) og eru
@@ -59,7 +65,7 @@ ws = openpyxl.load_workbook(finna('gagnasafn_ibudir'), read_only=True)['Sheet1']
 it = ws.iter_rows(values_only=True); H = list(next(it)); ix = {h: i for i, h in enumerate(H)}
 g = lambda r, k: r[ix[k]]
 GRID = 100  # m — ein sala per 100 m reit per svæði dugar fyrir k-NN, þynnir 49.656 → ~fjórðung
-sed = set(); punktar = []
+sed = set(); punktar = []; einingar = {}
 fmat_err = []; n_alls = 0; hverfi_ekki = collections.Counter()
 FRA = datetime.datetime(2025, 3, 1)
 for r in it:
@@ -70,6 +76,14 @@ for r in it:
         if key not in sed:
             sed.add(key); punktar.append([round(x), round(y), int(hv)])
     elif hv: hverfi_ekki[hv] += 1
+    # eignar-lýsing per fastanúmer (nýjasta sala vinnur — lykkjan er í tímaröð? treystum ekki: geymum með dagsetningu)
+    fn = g(r, 'fastnum'); dd = g(r, 'utgdag')
+    if fn and dd:
+        prev = einingar.get(int(fn))
+        if not prev or prev[0] < dd:
+            # haednr = hæð eignarinnar · fjhaed = fjöldi hæða EIGNARINNAR (ekki hússins — 47,6% sala hafa haednr>fjhaed) ·
+            # lyftuhus 0/1 (lyfta = FJÖLDI lyfta 0–5) · fjbkar/fjsturt = baðkör/sturtur (summan er EKKI fjöldi baðherbergja)
+            einingar[int(fn)] = [dd, [int(num(g(r,'haednr')) or 0), int(num(g(r,'fjhaed')) or 0), 1 if (num(g(r,'lyftuhus')) or num(g(r,'lyfta'))) else 0, round(num(g(r,'svalm2')) or 0, 1), round(num(g(r,'bilskurm2')) or 0, 1), int(num(g(r,'fjbkar')) or 0), int(num(g(r,'fjsturt')) or 0)]]
     # nákvæmni gildandi fasteignamats: sölur sl. 12 mán fyrir matsdag, án nýbygginga
     d, kv, fm, ny = g(r, 'utgdag'), num(g(r, 'kaupverd')), num(g(r, 'fmat')), g(r, 'nybygging')
     if d and d >= FRA and kv and kv > 0 and fm and not ny:
@@ -84,8 +98,34 @@ print('fmat vs kaupverð:', nakv)
 
 with open(os.path.join(OUT_WEB, 'matssvaedi_2027.json'), 'w', encoding='utf-8') as f:
     json.dump({'updated': NU, 'heimild': 'HMS — Fasteignamat 2027: Matssvæði vefsjá, tölfræði (hms.is), handsótt 19.8.2026', 'svaedi': svaedi, 'undir': undir, 'fmat_nakvaemni': nakv}, f, ensure_ascii=False, separators=(',', ':'))
+with open(os.path.join(ROOT, 'gogn', 'hms', 'einingar.json'), 'w', encoding='utf-8') as f:
+    json.dump({'updated': NU, 'svid': ['haed', 'fjhaed_eignar', 'lyftuhus', 'svalir_m2', 'bilskur_m2', 'badkor', 'sturtur'], 'n': len(einingar), 'heimild': 'HMS — 2027_gagnasafn_ibudir2.xlsx (sölu-úrtak matslíkans), nýjasta sala per FASTNUM', 'e': {str(k): v[1] for k, v in einingar.items()}}, f, separators=(',', ':'))
+print('einingar.json:', len(einingar), 'fastanúmer með eignar-lýsingu')
 with open(os.path.join(ROOT, 'gogn', 'hms', 'matssvaedi_punktar.json'), 'w', encoding='utf-8') as f:
     json.dump({'updated': NU, 'crs': 'EPSG:3057 (ISN93 / Lambert 1993)', 'grid_m': GRID, 'n': len(punktar), 'heimild': 'HMS — 2027_gagnasafn_ibudir2.xlsx (sölu-úrtak matslíkans), x/y/hverfi', 'punktar': punktar}, f, separators=(',', ':'))
+
+# ── 2b) SUMARHÚS: 142 matssvæði + 2.799 sölur (2021-02→2026-02) fyrir sumarhúsamat ─────────
+shz = {}
+for r in list(wb['Sumarhús'].iter_rows(values_only=True))[1:]:
+    if r[0] is None: continue
+    shz[s(r[0])] = {'heiti': s(r[1]), 'studull': num(r[2]), 'br': num(r[3]), 'm2': num(r[4])}
+wsh = openpyxl.load_workbook(finna('sumarh'), read_only=True); wsh = wsh[wsh.sheetnames[0]]
+sit = wsh.iter_rows(values_only=True); SH = list(next(sit)); six = {h: i for i, h in enumerate(SH)}
+gs = lambda r, k: r[six[k]]
+solur = []; shz_ekki = collections.Counter()
+for r in sit:
+    if r[0] is None: continue
+    d, kv, m2, hv = gs(r, 'utgdag'), num(gs(r, 'kaupverd')), num(gs(r, 'sumarhus_m2')), s(gs(r, 'hverfi'))
+    if not (d and kv and kv > 0 and m2 and m2 > 8): continue
+    if gs(r, 'nybygging') or gs(r, 'seldadhluta') or gs(r, 'milli_skyldra'): continue
+    if hv not in shz: shz_ekki[hv] += 1; continue
+    solur.append({'d': d.strftime('%Y-%m-%d'), 'hv': int(hv), 'kv': int(kv), 'm2': round(m2, 1), 'ar': int(num(gs(r, 'byggar')) or 0) or None,
+                  'lod': int(num(gs(r, 'lodpflm')) or 0) or None, 'eign': 1 if gs(r, 'eignarlod') else 0, 'vatn': 1 if gs(r, 'vid_vatn') else 0,
+                  'hiti': 1 if gs(r, 'hitaveita') else 0, 'raf': 1 if gs(r, 'rafveita') else 0, 'ppm': round(kv * 1000 / m2)})
+solur.sort(key=lambda x: x['d'], reverse=True)
+with open(os.path.join(OUT_WEB, 'sumarhus_2027.json'), 'w', encoding='utf-8') as f:
+    json.dump({'updated': NU, 'heimild': 'HMS — Fasteignamat 2027: matssvæði sumarhúsa + gagnasafn sumarhúsamats (2.799 sölur 2021-02→2026-02). Kaupverð í þ.kr, ppm í kr/m².', 'svaedi': shz, 'solur': solur}, f, ensure_ascii=False, separators=(',', ':'))
+print('sumarhús: svæði', len(shz), '· sölur nothæfar', len(solur), '· svæði utan töflu:', dict(shz_ekki) or 'engin')
 
 # ── 3) Samantektir: fjöldi + fasteignamat 2026/2027 ──────────────────────────
 def lesa(mynstur, lyklar):
