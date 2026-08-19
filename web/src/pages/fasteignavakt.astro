@@ -139,6 +139,8 @@ const jsonLd = {
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-fsk { border-left: 3px solid #5a6678; padding-left: 8px; }
+    .fv-hn { border-left: 3px solid #f6b13b; padding-left: 8px; cursor: pointer; }
+    .fv-hn:hover, .fv-hn:focus-visible { background: rgba(246,177,59,.06); outline: none; }
     /* Markaðsvísir efst (LOTA 66) */
     .fv-market { margin: 14px 0 6px; }
     .fvm-dir { display: flex; align-items: center; gap: 14px; border-radius: 12px; padding: 13px 16px; border: 1px solid; }
@@ -337,6 +339,18 @@ const jsonLd = {
       let FSK_IDX = null, FSK_GOTUR = null; const FSK = {};
       const fskIdx = () => FSK_IDX || (FSK_IDX = fetch('/gogn/fasteignaskra/index.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       const fskGotur = () => FSK_GOTUR || (FSK_GOTUR = fetch('/gogn/fasteignaskra/gotur.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      // Staðfangaskrá (LOTA 68-gögnin) sem LEITARGRUNNUR, ekki bara hnit: fasteignaskra/*.json er byggð úr
+      // KAUPSKRÁNNI og nær aðeins yfir eignir sem hafa selst síðan 2006 — 59% heimilisfanga landsins
+      // (63.678 af 107.177, mælt 19.8.2026; 45% í 260) fundust því ekki, fléttilistinn þagði og leitin
+      // sagði „Ekkert fannst" um hús sem standa. hnit/gotur.json er fullur götuvísir, hnit/<pn>.json öll götuföng.
+      let HN_GOTUR = null, PN_SV = null;
+      const hnGotur = () => HN_GOTUR || (HN_GOTUR = fetch('/gogn/hnit/gotur.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      const pnSv = async (pn) => {   // póstnúmer → sveitarfélagsheiti (snúið bySv úr fasteignaskrár-vísinum)
+        if (!PN_SV) { PN_SV = {}; const idx = await fskIdx(); if (idx && idx.bySv) for (const sv in idx.bySv) for (const p of idx.bySv[sv]) PN_SV[p] = sv; }
+        return PN_SV[pn] || '';
+      };
+      // „leirdalur 36a" → „Leirdalur 36A" — lyklar staðfangaskrár eru lágstafaðir
+      const hnDisp = (key) => String(key || '').replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase()).replace(/(\d)([a-zæöðáéíóúýþ])$/i, (m, d, ch) => d + ch.toUpperCase());
       const fskPn = (pn) => FSK[pn] || (FSK[pn] = fetch('/gogn/fasteignaskra/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));
       // LOTA 67: sölusaga per póstnúmer (allar þinglýstar sölur sl. ~5 ár) → sölugraf + sambærilegar
       const SOL = {};
@@ -372,10 +386,41 @@ const jsonLd = {
           if (street.length >= 3) {
             const g = await fskGotur();
             if (g) { const hit = new Set(); for (const name in g) { if (name.startsWith(street)) { g[name].forEach((p) => hit.add(p)); if (hit.size > 8) break; } } pns = [...hit]; }
+            // gata sem aldrei hefur selst er ekki í kaupskrár-vísinum → fullur götuvísir staðfangaskrár
+            if (!pns.length) { const hg = await hnGotur(); if (hg) { const hit = new Set(); for (const name in hg) { if (name.startsWith(street)) { hg[name].forEach((p) => hit.add(p)); if (hit.size > 8) break; } } pns = [...hit]; } }
           }
         }
         if (!pns.length || pns.length > 8) return [];   // of margar skrár → krefjast póstnúmers/sveitarfélags
         return (await Promise.all(pns.map(fskPn))).filter(Boolean).flat();
+      }
+      // Sömu póstnúmer og fskRows leysir, án þess að hlaða fasteignaskránni — fyrir staðfangaskrár-uppflettingu.
+      async function pnsFor(sv, raw) {
+        const idx = await fskIdx();
+        const pnInQ = (String(raw || '').match(/\b(\d{3})\b/) || [])[1];
+        let pns = pnInQ ? [pnInQ] : (idx && sv && idx.bySv[sv] ? idx.bySv[sv] : []);
+        if (!pns.length) {
+          const street = fvNorm(String(raw || '').replace(/,?\s*\d{3}\s*$/, '').replace(/\s+\d+[a-zæöðáéíóúý]?\s*$/i, ''));
+          if (street.length >= 3) {
+            const hit = new Set();
+            for (const g of [await fskGotur(), await hnGotur()]) { if (!g) continue; for (const name in g) { if (name.startsWith(street)) { g[name].forEach((p) => hit.add(p)); if (hit.size > 8) break; } } }
+            pns = [...hit];
+          }
+        }
+        return pns.length > 8 ? [] : pns;
+      }
+      // Götuföng úr staðfangaskrá sem byrja á q — skilað á sama sniði og fasteignaskrár-raðir (a, pn, sv) með
+      // hn:true + hnitum, svo fléttilisti/leit/sjálffylling geti meðhöndlað þau í sömu lykkju.
+      async function hnRows(sv, raw, q) {
+        const pns = await pnsFor(sv, raw);
+        if (!pns.length) return [];
+        const out = [];
+        for (const pn of pns) {
+          const svN = await pnSv(pn);
+          if (sv && svN && svN !== sv) continue;
+          const h = await hnitPn(pn); if (!h) continue;
+          for (const key in h) { if (!q || key.startsWith(q)) { out.push({ a: hnDisp(key), pn, sv: svN, hn: true, lat: h[key][0], lng: h[key][1] }); if (out.length >= 400) return out; } }
+        }
+        return out;
       }
       const fvLoad = () => { try { return JSON.parse(localStorage.getItem(fvKey) || '[]').filter((v) => v && typeof v.q === 'string'); } catch (e) { return []; } };
       const fvSave = (a) => { localStorage.setItem(fvKey, JSON.stringify(a.slice(0, 6))); try { karpPost('/fastvakt', { on: true, vaktir: a.slice(0, 6) }).catch(() => {}); } catch (e) {} };
@@ -404,10 +449,12 @@ const jsonLd = {
           const t = r.t || r.teg; const key = fvNorm(r.a) + '|' + r.pn;
           if (seen.has(key) || (sv && r.sv !== sv) || !fvNorm(r.a).startsWith(q)) return;
           seen.add(key);
-          opts.push(`<option value="${esc(r.a)}, ${esc(r.pn)}">${esc(r.sv)}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${t ? ' ' + esc(t) : ''}</option>`);
+          opts.push(`<option value="${esc(r.a)}, ${esc(r.pn)}">${esc(r.sv)}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${t ? ' ' + esc(t) : ''}${r.hn ? ' · skráð heimilisfang (engin sala síðan 2006)' : ''}</option>`);
         };
         (d && d.rows || []).forEach(add);              // nýlegar sölur fyrst
-        reg.forEach((r) => { if (opts.length < 16) add(r); }); // svo öll fasteignaskráin
+        reg.forEach((r) => { if (opts.length < 16) add(r); }); // svo kaupskrár-byggða fasteignaskráin
+        // svo ÖLL götuföng úr staðfangaskrá — hús sem hafa ekki selst síðan 2006 birtast líka
+        if (opts.length < 16) { const hn = await hnRows(sv, raw, q); hn.forEach((r) => { if (opts.length < 16) add(r); }); }
         dl.innerHTML = opts.slice(0, 16).join('');
       }
       // valið heimilisfang → sjálfvirk stærð + tegund inn í verðmatið (kaupskrá fyrst, svo fasteignaskrá)
@@ -420,7 +467,16 @@ const jsonLd = {
         // mats) — veljum LIFANDI eignina (m/mati), stærstu ef fleiri, EKKI bara fyrstu röð (L68c)
         const all = (d && d.rows || []).filter((r) => r.a === addr && r.pn === pn)
           .concat((reg || []).filter((r) => r.a === addr && r.pn === pn));
-        if (!all.length) return false;
+        if (!all.length) {
+          // ekki í kaupskrá → er þetta samt skráð heimilisfang (staðfangaskrá)? Þá fyllum við fangið og
+          // biðjum um stærð+tegund — verðmatið byggir á götu/póstnúmeri og virkar án eignarinnar sjálfrar.
+          const h = await hnitPn(pn);
+          if (!h || !h[fvNorm(addr)]) return false;
+          const aEl = document.getElementById('fvm-addr'), note = document.getElementById('fvm-fill');
+          if (aEl) aEl.value = addr + ', ' + pn;
+          if (note) { note.hidden = false; note.textContent = '📍 Skráð heimilisfang í staðfangaskrá — engin þinglýst sala síðan 2006, svo stærð og tegund finnast ekki sjálfkrafa. Sláðu þær inn og smelltu á Meta: matið byggir á sambærilegum eignum í götunni/póstnúmerinu.'; }
+          return true;
+        }
         const hit = all.slice().sort((a, b) => ((a.mat > 0 ? 0 : 1) - (b.mat > 0 ? 0 : 1)) || ((b.fm || 0) - (a.fm || 0)))[0];
         const teg = hit.t || hit.teg;
         const aEl = document.getElementById('fvm-addr'), fmEl = document.getElementById('fvm-fm'), tegEl = document.getElementById('fvm-teg');
@@ -456,11 +512,23 @@ const jsonLd = {
         const reg = await fskRows(sv, fvQ.value);
         const recentKeys = new Set(rows.map((r) => fvNorm(r.a) + '|' + r.pn));
         const regRows = reg.filter((r) => (!sv || r.sv === sv) && (qq ? fvNorm(r.a).startsWith(qq) : true) && !recentKeys.has(fvNorm(r.a) + '|' + r.pn));
-        const regHtml = regRows.length ? `<div class="fv-head" style="margin-top:10px">📋 Úr fasteignaskrá — ${regRows.length} eign${regRows.length === 1 ? '' : 'ir'} með gildandi mati (engin nýleg sala)</div>` + regRows.slice(0, 20).map(fskRow).join('') + (regRows.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${regRows.length - 20} til viðbótar.</div>` : '') : '';
-        if (!rows.length && !uppRows.length && !regRows.length) { res.innerHTML = '<div class="fi"><span class="t">Ekkert fannst.</span><span class="s">Sláðu inn heimilisfang með póstnúmeri (t.d. „Laugavegur 10, 101“) eða veldu sveitarfélag — þá leitum við í allri fasteignaskránni, ekki bara nýlegum sölum.</span></div>'; return; }
+        const regHtml = regRows.length ? `<div class="fv-head" style="margin-top:10px">📋 Úr kaupskrá — ${regRows.length} eign${regRows.length === 1 ? '' : 'ir'} með gildandi mati (seldist síðast fyrir meira en 6 mánuðum)</div>` + regRows.slice(0, 20).map(fskRow).join('') + (regRows.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${regRows.length - 20} til viðbótar.</div>` : '') : '';
+        // Staðfangaskrá: götuföng sem hafa EKKI selst síðan 2006 — hús sem standa en kaupskráin þekkir ekki.
+        // Aðeins þegar leitað er að götu/fangi (ekki tómu sveitarfélagi — þá væru það þúsundir).
+        let hnHtml = '';
+        if (qq && !/^\d{3}$/.test(qq)) {
+          const known = new Set([...recentKeys, ...regRows.map((r) => fvNorm(r.a) + '|' + r.pn)]);
+          const hn = (await hnRows(sv, fvQ.value, qq)).filter((r) => !known.has(fvNorm(r.a) + '|' + r.pn));
+          if (hn.length) hnHtml = `<div class="fv-head" style="margin-top:10px">📍 Skráð heimilisföng án þinglýstrar sölu síðan 2006 — ${hn.length}</div>`
+            + hn.slice(0, 20).map((r) => `<div class="fi fv-hn" role="button" tabindex="0" data-addr="${esc(r.a)}, ${esc(r.pn)}" title="Opna verðmat"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">ekkert skráð mat úr kaupskrá</b></span><span class="s">Húsið er í staðfangaskrá HMS en hefur ekki selst síðan kaupskráin hófst 2006 → hvorki fasteignamat né stærð tiltæk hér. Smelltu til að meta út frá sambærilegum eignum í götunni.</span></div>`).join('')
+            + (hn.length > 20 ? `<div class="s" style="padding:7px 2px">… og ${hn.length - 20} til viðbótar — þrengdu leitina.</div>` : '');
+        }
+        if (!rows.length && !uppRows.length && !regRows.length && !hnHtml) { res.innerHTML = '<div class="fi"><span class="t">Ekkert fannst.</span><span class="s">Heimilisfangið er hvorki í kaupskrá HMS (sölur frá 2006) né staðfangaskrá. Athugaðu stafsetningu götunnar, eða sláðu inn með póstnúmeri (t.d. „Laugavegur 10, 101“).</span></div>'; return; }
         res.innerHTML = uppHtml
           + (rows.length ? `<div class="fv-head">${rows.length} þinglýst kaup síðustu 6 mánuði${sv ? ' · ' + esc(sv) : ''}${qq ? ' · „' + esc(qq) + '“' : ''}</div>` + rows.slice(0, 25).map(fvRow).join('') + (rows.length > 25 ? `<div class="s" style="padding:7px 2px">… og ${rows.length - 25} til viðbótar — þrengdu leitina.</div>` : '') : '')
-          + regHtml;
+          + regHtml + hnHtml;
+        // smellur á staðfangaskrár-röð → heimilisfangið í verðmatið
+        res.querySelectorAll('.fv-hn').forEach((el) => { const go = () => { const aEl = document.getElementById('fvm-addr'); if (!aEl) return; FVM_PICK = null; FVM_DEMO = false; aEl.value = el.dataset.addr; fvAutofill(aEl.value).then(() => { const fmEl = document.getElementById('fvm-fm'); document.getElementById('fvm-out')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); if (fmEl && !fmEl.value) fmEl.focus(); }); }; el.addEventListener('click', go); el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } }); });
       }
       async function fvRender() {
         const el = document.getElementById('fv-chips');
@@ -799,6 +867,15 @@ const jsonLd = {
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
           const unitPick = selfN > 1 ? `<div class="ec-pick"><div class="ec-pick-l">ⓘ ${selfN} eignarhlutar á heimilisfanginu — veldu þann sem á við:</div>${selfUnits.map((r) => `<button type="button" class="ec-unit${(r.fnr || '') === (self.fnr || '') ? ' on' : ''}" data-fnr="${esc(r.fnr || '')}" data-fm="${r.fm || ''}" data-teg="${esc(r.teg || '')}">${esc(r.teg || 'Eign')}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.mat ? ' · fasteignamat ' + mkr(r.mat) : ' · ekkert gildandi mat'}</button>`).join('')}</div>` : '';
           cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div>${unitPick}</div>`;
+        } else if (selfAddr && subjC) {
+          // Húsið er til (staðfangaskrá HMS, hnit staðfest) en kaupskráin þekkir það ekki: engin þinglýst sala
+          // síðan 2006 → hvorki fasteignamat, brunabótamat né skráð stærð hér. Segjum það BEINT í stað þess
+          // að sleppa spjaldinu þegjandi — annars les notandinn þögnina sem „ekkert til".
+          const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
+          const eign = [['Heimilisfang', hnDisp(selfAddr) + (pn ? ', ' + pn : '')], ['Staða', 'Skráð í staðfangaskrá HMS'], ['Þinglýst sala', 'Engin síðan 2006'], ['Tegund', teg + ' (slegið inn)'], ['Stærð', fm + ' m² (slegið inn)']];
+          if (hverfi) eign.push(['Hverfi', hverfi]);
+          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">📍 SKRÁÐ HEIMILISFANG</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div>`
+            + `<div class="ec-pick"><div class="ec-pick-l">ⓘ Kaupskrá HMS ber fasteignamat og stærð aðeins fyrir eignir sem hafa selst síðan 2006 — þetta hús hefur ekki gert það, svo matið hér að ofan byggir á sambærilegum eignum í götunni og póstnúmerinu, ekki á eigninni sjálfri. Opinbert fasteignamat má fletta upp hjá HMS (fasteignaskra.is) með fastanúmeri.</div></div></div>`;
         }
         // ── Sjónræn verðstika: neðri-/efrimörk + áætlað verð (neðri röð), fasteignamat + brunabótamat (efri röð) ──
         let barHtml = '';

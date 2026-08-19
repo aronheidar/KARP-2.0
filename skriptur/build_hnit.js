@@ -4,6 +4,15 @@
 // https://github.com/rvkdata/stadfangaskra_extra (7,8MB CSV, uppfærð sunnudagskvöld)
 //
 // Úttak: web/public/gogn/hnit/<pn>.json = { "skeiðarvogur 1": [lat, lng, "Vogar"?], … }
+//       + hnit/gotur.json = { "leirdalur": ["190","260"], … } — FULLUR götuvísir (allar götur
+//         landsins, ekki aðeins þær sem hafa selst). fasteignaskra/gotur.json er byggður úr
+//         kaupskránni og sleppir götum án sölu síðan 2006 → fasteignavaktin fann þá ekki einu sinni
+//         póstnúmerið. 59% heimilisfanga landsins (63.678 af 107.177, mælt 19.8.2026) finnast
+//         aðeins hér. Lyklar eru lágstafaðir eins og í <pn>.json.
+//
+// KEYRSLA: node skriptur/build_hnit.js [--from-disk]
+//   --from-disk = sleppa niðurhali; endurbyggja AÐEINS gotur.json úr <pn>.json sem þegar eru á diski
+//   (sama regla, svo úttakið er eins og úr fullri keyrslu).
 // → fasteignavaktin: kort í verðmatsskýrslu, fjarlægð á sambærilegar, hverfi á eignaspjald.
 //
 // KEYRSLA: node skriptur/build_hnit.js  (vikulega nægir — hnit breytast nánast aldrei)
@@ -25,6 +34,32 @@ function parseLine(line) {
   }
   out.push(cur);
   return out;
+}
+
+// Götuvísir úr heimilisfangs-lyklunum: „leirdalur 36a" → „leirdalur". Húsnúmer = síðasta
+// bil-aðskilda tókenið þegar það byrjar á tölustaf; götur með tölu í nafni („hverfisgata 1")
+// missa aðeins húsnúmerið, ekki nafnið.
+function goturUr(byPn) {
+  const g = {};
+  for (const pn of Object.keys(byPn)) {
+    for (const key of Object.keys(byPn[pn])) {
+      const gata = key.replace(/\s+\d+[a-zæöðáéíóúýþ]*$/i, '').trim();
+      if (!gata) continue;
+      (g[gata] = g[gata] || new Set()).add(pn);
+    }
+  }
+  const out = {};
+  for (const k of Object.keys(g).sort()) out[k] = [...g[k]].sort();
+  return out;
+}
+
+if (process.argv.includes('--from-disk')) {
+  const byPn = {};
+  for (const f of fs.readdirSync(OUT)) { const m = f.match(/^(\d{3})\.json$/); if (m) byPn[m[1]] = JSON.parse(fs.readFileSync(path.join(OUT, f), 'utf8')); }
+  const gotur = goturUr(byPn);
+  fs.writeFileSync(path.join(OUT, 'gotur.json'), JSON.stringify(gotur));
+  console.log('gotur.json (from-disk):', Object.keys(gotur).length, 'götur úr', Object.keys(byPn).length, 'póstnúmerum');
+  process.exit(0);
 }
 
 (async () => {
@@ -64,6 +99,9 @@ function parseLine(line) {
     fs.writeFileSync(path.join(OUT, pn + '.json'), s);
     index[pn] = Object.keys(byPn[pn]).length; bytes += s.length;
   }
+  const gotur = goturUr(byPn);
+  fs.writeFileSync(path.join(OUT, 'gotur.json'), JSON.stringify(gotur));
+  console.log('gotur.json:', Object.keys(gotur).length, 'götur');
   fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), n, note: 'WGS84-hnit (+ hverfi í Rvk) per heimilisfang úr staðfangaskrá HMS um stadfangaskra_extra (Gagnaþjónusta Rvk).', byPn: index }));
   console.log('hnit:', n, 'heimilisföng í', Object.keys(byPn).length, 'póstnúmerum |', (bytes / 1024 / 1024).toFixed(1), 'MB | sleppt:', skipped);
 })().catch((e) => { console.error('ERR', e); process.exit(1); });
