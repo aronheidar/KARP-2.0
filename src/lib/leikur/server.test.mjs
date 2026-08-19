@@ -1,4 +1,4 @@
-import { signToken, verifyToken, leikurHandler } from './server.mjs';
+import { signToken, verifyToken, leikurHandler, leikurPruneOld, leikurEraseGame } from './server.mjs';
 // Prófin keyra öll sem kerfisstjóri+leikstjóri (má stofna+ganga inn) — gátt á create/join er leidd í worker-dispatch
 // (leikstjoriOf í auth.mjs setur leikstjori/leikstjoriSource/leikstjoriUntil); create krefst leikstjori, join nemandi|isAdmin|leikstjori.
 const GU = { uid: 1, isAdmin: true, nemandi: true, leikstjori: true, leikstjoriSource: 'admin', leikstjoriUntil: null };
@@ -25,6 +25,9 @@ function mockD1() {
       const key = args[0] + '|' + args[1] + '|' + args[2]; const i = t.leikur_results.findIndex((x) => x.game_code + '|' + x.round + '|' + x.team_id === key);
       const row = { game_code: args[0], round: args[1], team_id: args[2], kpis: args[3], round_score: args[4], cumulative: args[5] };
       if (i >= 0) t.leikur_results[i] = row; else t.leikur_results.push(row); return { meta: {} }; }
+    if (s.startsWith('DELETE FROM leikur_')) { // varðveislutakmörkun (leikurEraseGame/leikurPruneOld): skilar meta.changes eins og D1
+      const tb = s.match(/^DELETE FROM (leikur_\w+)/)[1], col = tb === 'leikur_games' ? 'code' : 'game_code';
+      const before = t[tb].length; t[tb] = t[tb].filter((x) => x[col] !== args[0]); return { meta: { changes: before - t[tb].length } }; }
     return { meta: {} };
   };
   const first = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
@@ -34,6 +37,10 @@ function mockD1() {
     if (s.includes('FROM leikur_decisions') && s.includes('round=?') && s.includes('team_id=?')) return t.leikur_decisions.find((x) => x.game_code === args[0] && x.round === args[1] && x.team_id === args[2]) || null;   // lockBots
     return null; };
   const all = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
+    if (s.includes('FROM leikur_games')) { // leikurPruneOld: (ended AND created<?) OR (!ended AND created<?) ORDER BY created LIMIT ?
+      let rows = t.leikur_games.filter((g) => (g.phase === 'ended' && g.created < args[0]) || (g.phase !== 'ended' && g.created < args[1])).slice().sort((a, b) => a.created - b.created);
+      if (/LIMIT \?/.test(s)) rows = rows.slice(0, args[2]);
+      return { results: rows.map((g) => ({ code: g.code })) }; }
     if (s.includes('FROM leikur_teams')) return { results: t.leikur_teams.filter((x) => x.game_code === args[0]) };
     if (s.includes('FROM leikur_results')) return { results: t.leikur_results.filter((x) => x.game_code === args[0]) };
     if (s.includes('FROM leikur_decisions')) {
@@ -44,7 +51,9 @@ function mockD1() {
     }
     return { results: [] }; };
   const prep = (sql) => ({ bind: (...args) => ({ run: async () => run(sql, args), first: async () => first(sql, args), all: async () => all(sql, args) }), run: async () => run(sql, []), first: async () => first(sql, []), all: async () => all(sql, []) });
-  return { prepare: prep, _t: t };
+  // D1 batch: keyrir undirbúnar setningar í röð (færsla) og skilar fylki af niðurstöðum — leikurEraseGame notar þetta.
+  const batch = async (stmts) => { const r = []; for (const st of stmts) r.push(await st.run()); return r; };
+  return { prepare: prep, batch, _t: t };
 }
 const env = { SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() };
 const req = (path, body) => new Request('https://karp.is' + path, { method: body ? 'POST' : 'GET', headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
@@ -454,6 +463,91 @@ const J = async (res) => JSON.parse(await res.text());
     ok('lockBots varðveitir fyrirliggjandi drög bot-liðs en læsir þau', r3 && r3.locked === 1 && r3.decisions === '{"levers":{"styrivextir":1}}');
     const plainSt = await J(await LH(new Request('https://karp.is/api/leikur/' + code + '/state', { headers: { authorization: 'Bearer ' + cr.facToken } }), env));
     ok('bakvirkni: eldri leikur án config.bots → engin bot-merki á liðum', plainSt.teams.every((t) => t.bot === undefined));
+  }
+
+  // ── VERK A: varðveislutakmörkun — leikurPruneOld (vikul. grisjun) + leikurEraseGame / POST /<code>/erase ──
+  {
+    const DAY = 86400, T = 1_800_000_000; // fast „núna" (epoch-sek) svo prófið sé óháð klukku
+    const penv = { SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() };
+    const tt = penv.TENGSL._t;
+    // Beinar raðir (án handler) — 6 leikir með ólíka fasa/aldur, hver með 2 lið, 2 ákvarðanir, 1 uppgjör.
+    const seed = (code, phase, ageDays) => {
+      tt.leikur_games.push({ code, config: '{}', phase, current_round: phase === 'lobby' ? 0 : 1, created: T - ageDays * DAY });
+      const t1 = tt.leikur_teams.length + 1; tt.leikur_teams.push({ id: t1, game_code: code, name: 'Jón og Gunna', joined: 1 }, { id: t1 + 1, game_code: code, name: 'Lið 2', joined: 1 });
+      tt.leikur_decisions.push({ game_code: code, round: 1, team_id: t1, decisions: '{}', locked: 1, submitted_at: 1 }, { game_code: code, round: 1, team_id: t1 + 1, decisions: '{}', locked: 1, submitted_at: 1 });
+      tt.leikur_results.push({ game_code: code, round: 1, team_id: t1, kpis: '{}', round_score: 1, cumulative: 1 });
+    };
+    seed('OLDEN', 'ended', 91);     // lokið, >90 d  → eytt
+    seed('NEWEN', 'ended', 10);     // lokið, <90 d  → haldið
+    seed('OLDRN', 'decide', 181);   // í gangi, >180 d (yfirgefinn) → eytt
+    seed('MIDRN', 'decide', 100);   // í gangi, 90<d<180 → HALDIÐ (aldrei snert yngri en 2×days)
+    seed('OLDLB', 'lobby', 181);    // aldrei byrjaður, >180 d → eytt
+    seed('MIDRS', 'resolved', 179); // í gangi, <180 d → haldið
+    const rowsOf = (code) => ({ g: tt.leikur_games.filter((x) => x.code === code).length, t: tt.leikur_teams.filter((x) => x.game_code === code).length, d: tt.leikur_decisions.filter((x) => x.game_code === code).length, r: tt.leikur_results.filter((x) => x.game_code === code).length });
+    const p1 = await leikurPruneOld(penv, { days: 90, now: T });
+    ok('prune: talning {games:3, teams:6, decisions:6, results:3}', p1.games === 3 && p1.teams === 6 && p1.decisions === 6 && p1.results === 3);
+    ok('prune: ended+gamall (91 d) → eytt (allar 4 töflur)', JSON.stringify(rowsOf('OLDEN')) === JSON.stringify({ g: 0, t: 0, d: 0, r: 0 }));
+    ok('prune: ended+nýr (10 d) → haldið', JSON.stringify(rowsOf('NEWEN')) === JSON.stringify({ g: 1, t: 2, d: 2, r: 1 }));
+    ok('prune: í gangi + >2×days (181 d) → eytt (yfirgefinn)', JSON.stringify(rowsOf('OLDRN')) === JSON.stringify({ g: 0, t: 0, d: 0, r: 0 }));
+    ok('prune: í gangi + <2×days (100 d) → haldið', JSON.stringify(rowsOf('MIDRN')) === JSON.stringify({ g: 1, t: 2, d: 2, r: 1 }));
+    ok('prune: lobby aldrei byrjaður + >2×days → eytt', rowsOf('OLDLB').g === 0 && rowsOf('OLDLB').t === 0);
+    ok('prune: resolved 179 d → haldið (mörkin eru ströng <)', rowsOf('MIDRS').g === 1 && rowsOf('MIDRS').t === 2);
+    ok('prune: engar munaðarlausar raðir eftir (teams/decisions/results vísa allar á lifandi leik)', [...tt.leikur_teams, ...tt.leikur_decisions, ...tt.leikur_results].every((x) => tt.leikur_games.some((g) => g.code === x.game_code)));
+    const p2 = await leikurPruneOld(penv, { days: 90, now: T });
+    ok('prune: idempotent — önnur keyrsla eyðir engu', p2.games === 0 && p2.teams === 0 && p2.decisions === 0 && p2.results === 0 && tt.leikur_games.length === 3);
+    // days-stikinn virkar: days=5 → NEWEN (10 d, ended) fellur líka; MIDRN (100 d, í gangi) > 2×5 → fellur; MIDRS (179) líka
+    const p3 = await leikurPruneOld(penv, { days: 5, now: T });
+    ok('prune: days=5 → ended 10 d + yfirgefnir >10 d eyðast', p3.games === 3 && tt.leikur_games.length === 0);
+    // sjálfgefið now (klukkan) + days=90: nýr leikur (created=núna) helst; án TENGSL → 0
+    tt.leikur_games.push({ code: 'FRESH', config: '{}', phase: 'ended', current_round: 1, created: Math.floor(Date.now() / 1000) });
+    const p4 = await leikurPruneOld(penv);
+    ok('prune: sjálfgefið now+days=90 → nýlokinn leikur helst', p4.games === 0 && tt.leikur_games.length === 1);
+    ok('prune: án D1 → allt 0 (engin villa)', JSON.stringify(await leikurPruneOld({})) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0 }));
+    // >BATCH (50) leikir í einni keyrslu → lotast þar til allt er farið (FRESH fjarlægður fyrst: T er fast framtíðar-„núna")
+    tt.leikur_games.length = 0;
+    for (let i = 0; i < 120; i++) tt.leikur_games.push({ code: 'B' + String(i).padStart(4, '0'), config: '{}', phase: 'ended', current_round: 1, created: T - 200 * DAY });
+    const p5 = await leikurPruneOld(penv, { days: 90, now: T });
+    ok('prune: 120 gamlir leikir → allir eyddir í lotum (>50)', p5.games === 120 && tt.leikur_games.length === 0);
+    // varaleið án batch (D1-mock án batch-falls) gefur sömu niðurstöðu
+    const nb = { SESSION_SECRET: 'x', TENGSL: { prepare: penv.TENGSL.prepare, _t: tt } };
+    tt.leikur_games.push({ code: 'NOBAT', config: '{}', phase: 'ended', current_round: 1, created: T - 200 * DAY });
+    tt.leikur_teams.push({ id: 999, game_code: 'NOBAT', name: 'X', joined: 1 });
+    const eNb = await leikurEraseGame(nb, 'NOBAT');
+    ok('erase: varaleið án batch → sama talning', eNb.games === 1 && eNb.teams === 1 && !tt.leikur_games.some((g) => g.code === 'NOBAT'));
+    ok('erase: óþekktur kóði → allt 0 (idempotent)', JSON.stringify(await leikurEraseGame(penv, 'NOPE1')) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0 }));
+
+    // ── POST /<code>/erase um handler: fac-gátt + fasa-gátt ──
+    const eenv = { SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() };
+    const et = eenv.TENGSL._t;
+    const mk = async () => { const c = await J(await LH(req('/api/leikur/create', {}), eenv)); const j = await J(await LH(req('/api/leikur/' + c.code + '/join', { name: 'Lið Jóns' }), eenv)); return { ...c, teamToken: j.teamToken }; };
+    const epost = (code, hdrTok, body) => LH(new Request('https://karp.is/api/leikur/' + code + '/erase', { method: 'POST', headers: hdrTok ? { authorization: 'Bearer ' + hdrTok } : {}, body: JSON.stringify(body || {}) }), eenv);
+    const ectrl = (g, a) => LH(new Request('https://karp.is/api/leikur/' + g.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + g.facToken }, body: JSON.stringify({ action: a }) }), eenv);
+    const g1 = await mk();
+    ok('erase: án tákns → 401 auth', (await epost(g1.code, null)).status === 401);
+    ok('erase: liðs-tákn → 401', (await epost(g1.code, g1.teamToken)).status === 401);
+    ok('erase: fac-tákn ANNARS leiks → 401', (await epost(g1.code, await signToken(eenv, { code: 'ZZZZZ', role: 'fac' }))).status === 401);
+    const r1 = await epost(g1.code, g1.facToken);
+    const r1b = await J(r1);
+    ok('erase: lobby + fac → 200 + talning', r1.status === 200 && r1b.ok === true && r1b.erased.games === 1 && r1b.erased.teams === 1);
+    ok('erase: leikurinn horfinn úr D1 (games+teams)', !et.leikur_games.some((g) => g.code === g1.code) && !et.leikur_teams.some((x) => x.game_code === g1.code));
+    ok('erase: /state eftir eyðingu → 404', (await LH(new Request('https://karp.is/api/leikur/' + g1.code + '/state'), eenv)).status === 404);
+    ok('erase: annað erase-kall á sama kóða → 404 (idempotent)', (await epost(g1.code, g1.facToken)).status === 404);
+    // leikur í gangi (decide) → 409; resolved → 409; ended → 200 og ÖLL tengd gögn (ákvarðanir+uppgjör) fara
+    const g2 = await mk();
+    await ectrl(g2, 'start');
+    const r2 = await epost(g2.code, g2.facToken);
+    ok('erase: í gangi (decide) → 409 running', r2.status === 409 && (await J(r2)).error === 'running');
+    await LH(new Request('https://karp.is/api/leikur/' + g2.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + g2.teamToken }, body: JSON.stringify({ round: 1, locked: true, decisions: { levers: { vextir: 9 } } }) }), eenv);
+    await ectrl(g2, 'resolve');
+    ok('erase: resolved → 409 running', (await epost(g2.code, g2.facToken)).status === 409);
+    ok('erase: 409 snerti ekkert (leikur+lið+ákvörðun+uppgjör enn til)', et.leikur_games.some((g) => g.code === g2.code) && et.leikur_decisions.some((d) => d.game_code === g2.code) && et.leikur_results.some((d) => d.game_code === g2.code));
+    const g3 = await mk(); // annar leikur í lobby — má EKKI hverfa þegar g2 er eytt
+    await ectrl(g2, 'stop');
+    const r3 = await epost(g2.code, g2.facToken);
+    const r3b = await J(r3);
+    ok('erase: ended → 200, talning {games:1,teams:1,decisions:1,results:1}', r3.status === 200 && r3b.erased.games === 1 && r3b.erased.teams === 1 && r3b.erased.decisions === 1 && r3b.erased.results === 1);
+    ok('erase: ákvarðanir+uppgjör g2 horfin, g3 ósnertur', !et.leikur_decisions.some((d) => d.game_code === g2.code) && !et.leikur_results.some((d) => d.game_code === g2.code) && et.leikur_games.some((g) => g.code === g3.code) && et.leikur_teams.some((x) => x.game_code === g3.code));
+    ok('erase: GET /<code>/erase → ekki meðhöndlað (400 bad-request)', (await LH(new Request('https://karp.is/api/leikur/' + g3.code + '/erase', { headers: { authorization: 'Bearer ' + g3.facToken } }), eenv)).status === 400);
   }
 
   console.log(`\n${pass} pass, ${fail} fail`);

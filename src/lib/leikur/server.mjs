@@ -112,6 +112,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (!(gameUser.isAdmin || gameUser.nemandi || gameUser.leikstjori)) return sjson({ error: 'nemandi' }, 403);
     if (game.phase !== 'lobby') return sjson({ error: 'started' }, 409);
     const b = await request.json().catch(() => ({}));
+    // PERSÓNUVERND: liðsheitið er FRJÁLS TEXTI þátttakenda (≤40 stafir) og EINA sviðið í leikur_*-töflunum sem
+    // getur borið persónuupplýsingar (t.d. „Jón og Gunna"). Engin nafna-sía af ásettu ráði — hún væri brothætt og
+    // falskt öryggi. Mótvægið er varðveislutakmörkun (leikurPruneOld, vikul. cron) + eyðing á beiðni (leikurEraseGame,
+    // POST /<code>/erase) + leiðbeining til leikstjóra um hlutlaus liðsheiti. uid/netfang er ALDREI skrifað hér.
     const name = String(b.name || '').trim().slice(0, 40) || 'Lið';
     const res = await env.TENGSL.prepare('INSERT INTO leikur_teams (game_code, name, joined) VALUES (?,?,?)').bind(code, name, now()).run().catch(() => null);
     const teamId = res && res.meta ? res.meta.last_row_id : null;
@@ -137,6 +141,17 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     cobj.bots = [teamId];
     await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
     return sjson({ teamId, bot: true });
+  }
+
+  // POST /<code>/erase (fac-tákn) — „eyða leik núna": leikstjóri (eða DSR-afgreiðsla f.h. þátttakanda) eyðir EINUM leik
+  // + öllu tengdu (lið/ákvarðanir/uppgjör) strax, án þess að bíða vikulegu grisjunarinnar. Aðeins lobby eða ended;
+  // leikur í gangi (decide/resolved) → 409 running. Annað kall á sama kóða → 404 (leikurinn er horfinn) = idempotent.
+  if (action === 'erase' && method === 'POST') {
+    const you = await verifyToken(env, bearer(request));
+    if (!you || you.role !== 'fac' || you.code !== code) return sjson({ error: 'auth' }, 401);
+    if (game.phase !== 'lobby' && game.phase !== 'ended') return sjson({ error: 'running', phase: game.phase }, 409);
+    const erased = await leikurEraseGame(env, code);
+    return sjson({ ok: true, code, erased });
   }
 
   // GET /<code>/state
@@ -460,4 +475,59 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     return sjson({ error: 'bad-action' }, 400);
   }
   return sjson({ error: 'bad-request' }, 400);
+}
+
+// ── Varðveislutakmörkun (gagnalágmörkun, 5. gr. 1. mgr. e-liður GDPR) ──────────────────────────────────────────
+// Leikur-gögnin (leikur_games/teams/decisions/results) bera engin notanda-auðkenni (ekkert uid/netfang/nafn) —
+// EINA persónugagna-leiðin er frjálst liðsheiti (sjá /join). Þar til þessar reglur komu lifðu leikir að eilífu í D1.
+// Tvö tól: (1) leikurPruneOld — vikuleg sjálfvirk grisjun (cron), (2) leikurEraseGame — eyðing eins leiks á beiðni.
+// Eyðingarröð per leik (börn fyrst → foreldri síðast, engir FK í D1): results → decisions → teams → games, eitt
+// D1-batch (færsla) per leik svo leikur standi aldrei eftir hálf-eyddur ef keyrslan rofnar.
+const _changes = (r) => (r && r.meta && typeof r.meta.changes === 'number') ? r.meta.changes : 0;
+
+/** Eyðir EINUM leik (kóða) + öllum tengdum röðum. Skilar {games, teams, decisions, results} = eyddar raðir.
+ *  Idempotent: óþekktur kóði → allt 0. Engin fasa-athugun hér — hún er í /erase-endapunktinum (sjá leikurHandler). */
+export async function leikurEraseGame(env, code) {
+  const c = String(code || '').toUpperCase();
+  const out = { games: 0, teams: 0, decisions: 0, results: 0 };
+  if (!env || !env.TENGSL || !c) return out;
+  const stmts = [
+    env.TENGSL.prepare('DELETE FROM leikur_results WHERE game_code=?').bind(c),
+    env.TENGSL.prepare('DELETE FROM leikur_decisions WHERE game_code=?').bind(c),
+    env.TENGSL.prepare('DELETE FROM leikur_teams WHERE game_code=?').bind(c),
+    env.TENGSL.prepare('DELETE FROM leikur_games WHERE code=?').bind(c),
+  ];
+  let res = null;
+  if (typeof env.TENGSL.batch === 'function') res = await env.TENGSL.batch(stmts).catch(() => null);
+  if (!res) { res = []; for (const s of stmts) res.push(await s.run().catch(() => null)); } // varaleið án batch (sömu röð)
+  out.results = _changes(res[0]); out.decisions = _changes(res[1]); out.teams = _changes(res[2]); out.games = _changes(res[3]);
+  return out;
+}
+
+/** Vikuleg grisjun: eyðir (a) LOKNUM leikjum (phase='ended') eldri en `days` daga og (b) YFIRGEFNUM leikjum — ekki-ended
+ *  (lobby/decide/resolved) en stofnaðir fyrir meira en 2×`days` dögum. Leikur í gangi yngri en 2×days er ALDREI snertur.
+ *  `now` = epoch-SEKÚNDUR (sama eining og leikur_games.created); sjálfgefið núna. Keyrir í lotum (≤50 leikir per SELECT)
+ *  þar til ekkert finnst; hættir ef lota eyðir engu (ver gegn eilífri lykkju ef D1 hafnar DELETE). Idempotent.
+ *  Skilar {games, teams, decisions, results} = samanlagður fjöldi eyddra raða. */
+export async function leikurPruneOld(env, { days = 90, now: nowSec } = {}) {
+  const out = { games: 0, teams: 0, decisions: 0, results: 0 };
+  if (!env || !env.TENGSL) return out;
+  const d = Math.max(1, +days || 90);
+  const t = (nowSec != null && isFinite(+nowSec)) ? Math.floor(+nowSec) : now();
+  const cutEnded = t - d * 86400, cutAbandoned = t - 2 * d * 86400;
+  const BATCH = 50;
+  for (let guard = 0; guard < 200; guard++) { // ≤10.000 leikir per keyrslu
+    const rows = ((await env.TENGSL.prepare("SELECT code FROM leikur_games WHERE (phase='ended' AND created < ?) OR (phase!='ended' AND created < ?) ORDER BY created LIMIT ?")
+      .bind(cutEnded, cutAbandoned, BATCH).all().catch(() => ({ results: [] }))).results) || [];
+    if (!rows.length) break;
+    let gamesThisBatch = 0;
+    for (const r of rows) {
+      const e = await leikurEraseGame(env, r.code);
+      out.games += e.games; out.teams += e.teams; out.decisions += e.decisions; out.results += e.results;
+      gamesThisBatch += e.games;
+    }
+    if (!gamesThisBatch) break; // ekkert eyddist (D1-villa) → ekki snúast í hring
+    if (rows.length < BATCH) break;
+  }
+  return out;
 }

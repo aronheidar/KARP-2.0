@@ -12,6 +12,23 @@ import { matchItem, matchKeyword, newSince } from '../lib/lobbyvakt.mjs';
 import { byggMatch, criticalDrop, criticalNotice, noticeRef, rankMovement, ratingMovement } from '../lib/vaktir-signals.mjs';
 import { augGet } from './felag.mjs';
 import { _searchVariants } from './veitur.mjs';
+import { leikurPruneOld } from '../../../src/lib/leikur/server.mjs';   // RÁS-Leikurinn: varðveislutakmörkun (sama eining og /api/leikur)
+
+// 🎮 RÁS-LEIKURINN — varðveislutakmörkun (vikul., mánud. 08:10 UTC með digestinu). Leikur-töflurnar bera engin
+// notanda-auðkenni, en liðsheiti er frjáls texti (getur borið nöfn) og fram að þessu lifði allt að eilífu í D1.
+// Reglan (leikurPruneOld í src/lib/leikur/server.mjs): LOKNIR leikir (phase='ended') stofnaðir fyrir >90 dögum +
+// YFIRGEFNIR leikir (ekki-ended, stofnaðir fyrir >180 dögum) eyðast með öllu tengdu (lið/ákvarðanir/uppgjör).
+// (Mælt frá `created` — leikur_games hefur engan loka-tímastimpil; leikur stendur að jafnaði innan einnar kennslustundar.)
+// Skjöl sem LÝSA þessari reglu og verða að haldast samræmd: docs/personuvernd/DPA-skolar-RAS-leikurinn.md (11. gr.),
+// DPIA-RAS-leikurinn-skolar.md (2.4), web/src/data/skilmalar.json (#15) og web/src/pages/leikur/personuvernd.astro.
+// Leikur í gangi yngri en 180 daga er aldrei snertur. Idempotent; talning logguð svo keyrslan sjáist í wrangler tail.
+export const LEIKUR_RETENTION_DAYS = 90;
+export async function leikurPruneCron(env) {
+  if (!env || !env.TENGSL) return null;
+  const n = await leikurPruneOld(env, { days: LEIKUR_RETENTION_DAYS }).catch((e) => { console.log('[leikur-prune] villa: ' + (e && e.message)); return null; });
+  if (n) console.log(`[leikur-prune] days=${LEIKUR_RETENTION_DAYS} eytt: leikir=${n.games} lið=${n.teams} ákvarðanir=${n.decisions} uppgjör=${n.results}`);
+  return n;
+}
 
 export async function kycDiffCron(env) {
   const kts = ((await env.TENGSL.prepare("SELECT DISTINCT kt FROM kyc_watch WHERE status='active'").all().catch(() => ({ results: [] }))).results || []).map((r) => r.kt);

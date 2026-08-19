@@ -633,6 +633,26 @@ export function mountLeikur(root) {
     try { const r = await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: {}, locked: true }, token: b.token }); if (r.status === 200) S.botLockedRound = st.round; } catch (e) {} finally { S.botLocking = false; }
   }
   const control = (action) => act(() => api('/' + S.code + '/control', { method: 'POST', body: { action }, token: S.token }));
+  // PERSÓNUVERND: eyða leik strax (leikstjóri). Staðfesting → POST /<code>/erase → hreinsa vafra-lykla leiksins → lending.
+  // Þjónninn svarar 409 'running' ef leikur er í gangi (stöðva fyrst), 401 ef táknið gildir ekki, 404 ef þegar eytt (idempotent).
+  async function eraseGame() {
+    if (S.busy) return;
+    const ok = typeof confirm === 'function' ? confirm('Eyða leiknum ' + S.code + ' núna?\n\nLeikurinn, öll lið (liðsheiti), ákvarðanir og uppgjör hverfa endanlega úr gagnagrunninum. Þetta er ekki hægt að afturkalla.') : true;
+    if (!ok) return;
+    const errEl = root.querySelector('#lk-erase-err'), btn = root.querySelector('#lk-erase');
+    if (btn) btn.disabled = true; if (errEl) errEl.textContent = 'Eyði leik…';
+    S.busy = true;
+    let r; try { r = await api('/' + S.code + '/erase', { method: 'POST', token: S.token }); } catch (e) { r = { status: 0, json: null }; } finally { S.busy = false; }
+    if (r.status === 200 || r.status === 404) {
+      stopPoll();
+      try { localStorage.removeItem(lsFac(S.code)); localStorage.removeItem(lsFacCfg(S.code)); localStorage.removeItem(lsBot(S.code)); localStorage.removeItem(lsTeam(S.code)); } catch (e) {}
+      root.innerHTML = card('🗑️ Leik eytt', '<p>Leiknum <b>' + esc(S.code) + '</b> og öllu sem honum tilheyrði (lið, ákvarðanir, uppgjör) hefur verið eytt úr gagnagrunninum.</p><a class="lk-btn" href="/leikur/">Til baka</a>');
+      return;
+    }
+    const e = r.json && r.json.error;
+    if (errEl) errEl.textContent = e === 'running' ? 'Leikurinn er í gangi — stöðvaðu hann fyrst (⏹️ Stöðva leik) og eyddu svo.' : e === 'auth' ? 'Leikstjóra-táknið gildir ekki fyrir þennan leik.' : 'Tókst ekki að eyða leik' + (e ? ' (' + e + ')' : '') + ' — reyndu aftur.';
+    if (btn) btn.disabled = false;
+  }
   const submitDecisions = () => act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: S.draft, locked: true }, token: S.token }); S.unlocked = false; });
 
   // ── Teikning ──
@@ -991,7 +1011,7 @@ export function mountLeikur(root) {
       + '<label id="lk-set-surprise"><input type="checkbox" id="lk-surprise"' + (last.surprise ? ' checked' : '') + '/>🎲 Óvænt atvik — eldgos, verkföll, hneyksli o.fl. dúkka upp með klemmu-vali <span class="lk-muted">(sama fyrir öll lið)</span></label></div>';
     const createCard = '<div class="lk-card" id="lk-create-card"><h2>🎓 Leikstjóri</h2><div class="lk-onb-cta"><button class="lk-btn lk-onb-big" id="lk-create">🎓 Stofna nýjan leik</button><a href="#" id="lk-guide" class="lk-onb-guide">📖 Svona keyrirðu vinnustofu (5 mín)</a></div><div id="lk-create-err" class="lk-err" aria-live="polite"></div>' + settings
       + '<p class="lk-muted" style="font-size:12.5px;margin:10px 0 0">🛠️ <a href="#" id="lk-createcustom">Sérsníða leik…</a> — eigin sviðsmynd, umboð og fjöldi umferða.' + (untilTxt ? ' · Leikstjóra-aðgangur gildir til <b>' + esc(untilTxt) + '</b>.' : '') + '</p></div>';
-    const joinCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" value="' + esc(S.joinPrefill) + '" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Nafn liðs" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button><p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Kennarinn (leikstjóri) gefur þér 5 stafa kóða. Eitt tæki per lið dugar — félagar ganga í sama lið með boðs-hlekk.</p></div>';
+    const joinCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" value="' + esc(S.joinPrefill) + '" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Liðsheiti (t.d. Rauða liðið)" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button><p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Kennarinn (leikstjóri) gefur þér 5 stafa kóða. Eitt tæki per lið dugar — félagar ganga í sama lið með boðs-hlekk.</p><p class="lk-muted" style="font-size:12px;margin:4px 0 0">🙈 Liðsheitið birtist á stigatöflu og skjávarpa — veljið hlutlaust heiti, ekki nöfn ykkar. Leiknum er eytt sjálfkrafa eftir 90 daga. <a href="/leikur/personuvernd/">Persónuvernd í leiknum</a></p></div>';
     const noNemandiCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><p>Þú ert innskráð/ur en reikningurinn er ekki merktur sem <b>nemandi</b>. Karp virkjar nemanda-aðgang (kennarinn sendir þátttakendalista á <a href="mailto:hjalp@karp.is">hjalp@karp.is</a>) — þá slærðu inn leikkóðann hér.</p></div>';
     const promo = '<div class="lk-card lk-onb-promo"><h2>🎓 Ertu kennari eða stjórnandi vinnustofu?</h2><p>RÁS-Leikurinn er 60–90 mín vinnustofa í þjóðhagfræði: lið stýra hvert sínu Íslandi gegnum kjörtímabilin, taka stóru ákvarðanirnar (höft, ESB, bankar…) og sjá afleiðingarnar á lifandi Íslandskorti. Þú færð leikstjóra-sýn með kennsluhandbók, uppsetningar-vísi, áhorfenda-sýn fyrir skjávarpa og prentanlega kennsluskýrslu.</p><div class="lk-onb-row"><a class="lk-btn" href="/leikur/leikstjori/">Leikstjóra-aðgangur →</a><a class="lk-btn lk-onb-ghost" href="/leikur/demo/">🕹️ Prófa demo (Lifðu af 2008)</a></div></div>';
     const loginCard = '<div class="lk-card"><p>🎮 Ertu nemandi? Skráðu þig inn — kennarinn gefur þér leikkóða.</p><a class="lk-btn" href="' + esc(loginHref()) + '">Skrá inn</a></div>';
@@ -1063,6 +1083,9 @@ export function mountLeikur(root) {
       controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
     } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= 8 ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button><p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
+    // PERSÓNUVERND: „Eyða leik núna" (POST /<code>/erase, fac-tákn) — aðeins í lobby og að leik loknum (þjónninn svarar 409 í gangi).
+    // Eyðir leik + liðum + ákvörðunum + uppgjöri strax án þess að bíða vikulegu grisjunarinnar (sjá /leikur/personuvernd/).
+    if (st.phase === 'lobby' || st.phase === 'ended') controls += '<div class="lk-erase-row" style="margin-top:12px;border-top:1px dashed var(--line,#2a2f3a);padding-top:8px"><button class="lk-btn lk-onb-ghost" id="lk-erase" style="color:#e78284;border-color:#e7828455">🗑️ Eyða leik núna</button><span class="lk-muted" style="font-size:12px;margin-left:8px">Eyðir leiknum, liðsheitum, ákvörðunum og uppgjöri strax og endanlega (annars sjálfkrafa eftir 90 daga).' + (st.phase === 'ended' ? ' Prentaðu skýrsluna fyrst ef þú vilt halda henni.' : '') + '</span><div id="lk-erase-err" class="lk-err" aria-live="polite"></div></div>';
     const teamList = st.teams.map((t) => '<div class="lk-lb-row"><span>' + (isBotTeam(t) ? '🤖 ' : '') + esc(t.name) + '</span><span>' + num(t.cumulative || 0) + ' stig</span></div>').join('') || '<p>Bíð eftir liðum…</p>';
     // VERK B: æfingalið — aðeins í lobby og aðeins þegar ekkert raun-lið er komið (prófa uppgjörið ein/n).
     const botUi = (st.phase === 'lobby' && !realTeams.length)
@@ -1082,6 +1105,7 @@ export function mountLeikur(root) {
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => { if (S.onb) onbClose(true); control('start'); }); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
+    b('#lk-erase', () => eraseGame());
     b('#lk-print', () => printOpen(st));   // VERK 3: prentanleg kennsluskýrsla (leikslok)
     b('#lk-copycode', () => copyText(S.code, root.querySelector('#lk-copycode'), '✅ Kóði afritaður'));
     b('#lk-joinlink', () => copyText(joinLink(), root.querySelector('#lk-joinlink'), '✅ Hlekkur afritaður'));

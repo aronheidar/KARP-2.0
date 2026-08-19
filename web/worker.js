@@ -15,7 +15,7 @@ import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fr
 import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatchCap, _monthStr, _nextMonth, _prefGet, _prefSet, _seatsCap, _sendVerifyEmail, _svcOk, accountOwner, authForgotHandler, authLoginHandler, authLogoutHandler, authRegisterHandler, authResendVerifyHandler, authResetHandler, authSaveKtHandler, authVerifyHandler, grantReportD1, grantSubD1, leikstjoriOf, readSession, trialUsedD1, userPayload } from './src/worker/auth.mjs';
 import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payCheckoutHandler, payReturnHandler, stakCheckoutHandler, stakConfirmHandler, sub2CheckoutHandler, sub2ConfirmHandler, subCancelHandler } from './src/worker/greidslur.mjs';
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
-import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
+import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
@@ -2442,7 +2442,8 @@ export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
     // Morgunfundurinn (KYC viku-forgangsröðun) fylgir mánudags-digestinu — sami taktur, sér póstur.
-    if (event.cron === '10 8 * * 1') ctx.waitUntil(digestRun(env).then(() => kycVikuDigest(env)));
+    // RÁS-Leikurinn: vikuleg varðveislutakmörkun (leikurPruneCron) á sama takti — SÉR waitUntil svo digest-villa stöðvi hana aldrei (og öfugt).
+    if (event.cron === '10 8 * * 1') { ctx.waitUntil(digestRun(env).then(() => kycVikuDigest(env))); ctx.waitUntil(leikurPruneCron(env)); }
     // Orðsporsvaktin fylgir DAGLEGA cron-inum (ekki 3-tíma): tón-þróun er dagamælikvarði,
     // og daglegt þak ver bæði gegn hávaða í pósthólfi og D1-álagi (ein fréttaleit per vaktað félag).
     else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env).then(() => ordsporCron(env)));
