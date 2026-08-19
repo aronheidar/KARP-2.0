@@ -8,6 +8,7 @@ import Layout from '../../layouts/Layout.astro';
 import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
 import ZS from '@gogn/matssvaedi_solur.json';
 import HL from '../../../public/gogn/hms/mat_hlutfall.json';   // kaupverð/fasteignamat sl. 12 mán per svæði (build_fasteignaskra.js)
+import LV from '../../../public/gogn/hms/leiguverd.json';      // leiguverð per svæði: þinglýstir samningar framreiknaðir m/vísitölu HMS (build_leiga.js)
 import { slugify, groupThousands } from '@lib/format.mjs';
 
 export function getStaticPaths() {
@@ -42,6 +43,11 @@ if (man && man.med && man.med.filter((v) => v != null).length >= 8) {
   spark = { W, H: Hh, d: pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '), lo, hi, fra, til, first: ok[0], last: ok[ok.length - 1], n: man.n.reduce((a, b) => a + b, 0) };
 }
 const manIS = (ym) => { const [y, m] = String(ym).split('-').map(Number); return ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'][m - 1] + ' ' + y; };
+// Leiga: miðgildi framreiknaðs leiguverðs/m² í svæðinu (≥6 samningar) og brúttó leiguávöxtun vs Karp-miðgildi fjölbýlis
+const lv = (LV.byZone || {})[String(nr)] || null;
+const lvTil = LV.visitala ? LV.visitala.til : null;
+const avox = (lv && z && z.medFjol) ? (lv.med * 12) / (z.medFjol * 1000) : null;   // kr/m²/mán ×12 ÷ kr/m²
+const pc1 = (x) => (x * 100).toFixed(1).replace('.', ',') + '%';
 ---
 <Layout title={title} description={desc} canonical={canonical}>
   <main data-pg="fasteignaverd">
@@ -52,6 +58,7 @@ const manIS = (ym) => { const [y, m] = String(ym).split('-').map(Number); return
     <div class="kpis">
       <div class="kpi"><div class="k-l">🏢 Fjölbýli — Karp, sl. 12 mán</div><div class="k-v">{z && z.medFjol ? groupThousands(z.medFjol) : '–'}</div><div class="k-s">þús.kr/m² miðgildi · {z ? z.nFjol : 0} sölur{z && z.prevFjol && z.medFjol ? <> · <span class={brey(z.medFjol, z.prevFjol) >= 0 ? 'up' : 'dn'}>{pcS(brey(z.medFjol, z.prevFjol))}</span> frá fyrra ári</> : ''}</div></div>
       <div class="kpi"><div class="k-l">🏠 Sérbýli — Karp, sl. 12 mán</div><div class="k-v">{z && z.medSer ? groupThousands(z.medSer) : '–'}</div><div class="k-s">þús.kr/m² miðgildi · {z ? z.nSer : 0} sölur{z && z.prevSer && z.medSer ? <> · <span class={brey(z.medSer, z.prevSer) >= 0 ? 'up' : 'dn'}>{pcS(brey(z.medSer, z.prevSer))}</span> frá fyrra ári</> : ''}</div></div>
+      {lv && <div class="kpi"><div class="k-l">🔑 Leiga — framreiknað til {lvTil ? manIS(lvTil) : ''}</div><div class="k-v">{groupThousands(lv.med)}</div><div class="k-s">kr/m² á mánuði miðgildi · {lv.n} þinglýstir samningar 2022–23 · miðgildi {groupThousands(lv.medLeiga)} kr/mán{avox ? <> · brúttó ávöxtun <b>{pc1(avox)}</b></> : ''}</div></div>}
       <div class="kpi"><div class="k-l">🏛️ HMS — meðalverð 2027</div><div class="k-v">{sv.m2_fjol ? groupThousands(sv.m2_fjol) : '–'} <small>/ {sv.m2_ser ? groupThousands(sv.m2_ser) : '–'}</small></div><div class="k-s">þús.kr/m² fjölbýli / sérbýli · fasteignamat 2027 <span class={(sv.br_fjol || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_fjol)}</span> / <span class={(sv.br_ser || 0) >= 0 ? 'up' : 'dn'}>{pcS(sv.br_ser)}</span></div></div>
     </div>
 
@@ -93,6 +100,10 @@ const manIS = (ym) => { const [y, m] = String(ym).split('-').map(Number); return
       </>
     ) : (
       <p class="note">ⓘ Engin þinglýst kaup íbúðarhúsnæðis með hnit í þessu svæði síðustu 12 mánuði í kaupskrá HMS.</p>
+    )}
+
+    {lv && (
+      <p class="note">🔑 <strong>Leiguverð í svæðinu:</strong> miðgildi {groupThousands(lv.med)} kr/m² á mánuði (fjórðungsbil {groupThousands(lv.q25)}–{groupThousands(lv.q75)}) úr {lv.n} þinglýstum leigusamningum 2022–23 (leiguskrá HMS, miðgildi stærðar {lv.medSt} m²), hver framreiknaður með vísitölu leiguverðs HMS úr nýju leiguskránni til {lvTil ? manIS(lvTil) : ''} ({LV.visitala ? String(LV.visitala.stig).replace('.', ',') : ''}; maí 2023 = 100){avox ? <> — brúttó leiguávöxtun m.v. Karp-miðgildi fjölbýlis <strong>{pc1(avox)}</strong> á ári (fyrir kostnað)</> : ''}. Opna leiguskráin nær aðeins til 2023 (þinglýsingarskyldan féll) og inniheldur líka óhagnaðardrifna leigusala — leiðbeinandi. Leiguverðmat á einstakar eignir er í <a href="/fasteignavakt/">fasteignavaktinni</a>.</p>
     )}
 
     <h2>Um matssvæðið</h2>

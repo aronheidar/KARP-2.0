@@ -26,6 +26,23 @@ const LEIGA = lq.length > 8 ? {
   total: LEIGARAW.total, muniYear: LEIGARAW.muniYear,
   munis: Object.entries(LEIGARAW.byMuni).map(([n, v]) => ({ n, ...v })).sort((a, b) => b.medM2 - a.medM2),
 } : null;
+// ➕ 19.8.2026: opna leiguskráin fraus 2024F1 — HMS birtir mánaðarlega vísitölu leiguverðs úr NÝJU leiguskránni
+// (leiguvisitala.csv, 2023-05=100). build_leiga.js framreiknar þinglýsta samninga 2022–23 með henni → `nu`
+// (landsmiðgildi kr/m² á verðlagi nýjasta mánaðar) og `visitala`. Grafið fær strikalínu „framreiknað" frá 2023F2.
+const VIS = LEIGARAW.visitala || null;
+const LNU = LEIGARAW.nu || null;
+const manIS = (ym) => { const [y, m] = String(ym || '').split('-').map(Number); return m ? ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'][m - 1] + ' ' + y : String(ym || ''); };
+let LEIGA_EXT = [];
+if (LEIGA && VIS && VIS.stig) {
+  const baseQ = VIS.fra.slice(0, 4) + 'F' + Math.ceil(+VIS.fra.slice(5, 7) / 3);   // fjórðungur grunnmánaðar vísitölunnar (2023F2)
+  const base = lq.find((x) => x.q === baseQ);
+  if (base) {
+    const byQ = {};
+    for (const [m, v] of Object.entries(VIS.stig)) { const q = m.slice(0, 4) + 'F' + Math.ceil(+m.slice(5, 7) / 3); (byQ[q] = byQ[q] || []).push(v); }
+    const baseIdx = byQ[baseQ].reduce((a2, b2) => a2 + b2, 0) / byQ[baseQ].length;
+    LEIGA_EXT = Object.keys(byQ).sort().filter((q) => q >= baseQ).map((q) => ({ q, medM2: Math.round(base.medM2 * (byQ[q].reduce((a2, b2) => a2 + b2, 0) / byQ[q].length) / baseIdx), n: byQ[q].length }));
+  }
+}
 
 const months = FASTEIGNIR.months || [];
 const latest = months[months.length - 1] || {};
@@ -118,22 +135,24 @@ const jsonLd = {
 
     {LEIGA && (
       <>
-        <h2>Leigumarkaðurinn — þróun leiguverðs {LEIGA.q0} til {LEIGA.q1}</h2>
+        <h2>Leigumarkaðurinn — þróun leiguverðs {LEIGA.q0} til {LNU ? manIS(LNU.m) : LEIGA.q1} <i class="tip" tabindex="0" data-tip="Opna leiguskrá HMS (þinglýstir samningar) nær til 2023 — þinglýsingarskyldan féll með nýju húsaleigulögunum. HMS birtir hins vegar mánaðarlega vísitölu leiguverðs úr nýju leiguskránni (markaðsleiga, 2023-05 = 100). Karp framreiknar þinglýsta samninga 2022–23 með þeirri vísitölu: „nú" = miðgildi leigu á m² á verðlagi nýjasta vísitölumánaðar. Vísitalan er höfuðborgarsvæðis-vísitala og er notuð fyrir landið allt.">?</i></h2>
         <div class="kpis">
-          <div class="kpi"><div class="k-l">🔑 Miðgildi leiguverðs</div><div class="k-v">{groupThousands(LEIGA.last.medM2)}</div><div class="k-s">kr/m² á mán · {LEIGA.last.q}</div></div>
-          <div class="kpi"><div class="k-l">📈 Hækkun frá {LEIGA.first.q.slice(0, 4)}</div><div class="k-v">{LEIGA.rise}%</div><div class="k-s">miðgildi kr/m²</div></div>
+          {LNU && <div class="kpi"><div class="k-l">🔑 Miðgildi leiguverðs nú</div><div class="k-v">{groupThousands(LNU.medM2)}</div><div class="k-s">kr/m² á mán · framreiknað til {manIS(LNU.m)} · {groupThousands(LNU.n)} samningar 2022–23</div></div>}
+          {VIS && <div class="kpi"><div class="k-l">📈 Vísitala leiguverðs HMS</div><div class="k-v">{String(VIS.stig[VIS.til]).replace('.', ',')}</div><div class="k-s">{manIS(VIS.til)} · maí 2023 = 100{VIS.yoy != null ? <> · <span class={VIS.yoy >= 0 ? 'up' : 'dn'}>{(VIS.yoy >= 0 ? '+' : '−') + String(Math.abs(VIS.yoy)).replace('.', ',')}%</span> á 12 mán</> : ''}</div></div>}
+          <div class="kpi"><div class="k-l">🧾 Síðasti fjórðungur skrár</div><div class="k-v">{groupThousands(LEIGA.last.medM2)}</div><div class="k-s">kr/m² á mán · {LEIGA.last.q} · {LEIGA.rise}% hækkun frá {LEIGA.first.q.slice(0, 4)}</div></div>
           <div class="kpi"><div class="k-l">🧾 Samningar alls</div><div class="k-v">{groupThousands(LEIGA.total)}</div><div class="k-s">þinglýstir 2011–2024</div></div>
         </div>
         <div id="chart-leiga"></div>
         <h2>Leiguverð eftir sveitarfélögum ({LEIGA.muniYear})</h2>
         <div class="tw">
           <table>
-            <thead><tr><th class="l">Sveitarfélag</th><th>Miðgildi kr/m²</th><th>Miðgildi leigu</th><th>Samningar</th></tr></thead>
+            <thead><tr><th class="l">Sveitarfélag</th><th>Miðgildi kr/m²<br><small>{LEIGA.muniYear}</small></th><th>Nú<br><small>framreiknað kr/m²</small></th><th>Miðgildi leigu<br><small>{LEIGA.muniYear}</small></th><th>Samningar</th></tr></thead>
             <tbody>
               {LEIGA.munis.map((m) => (
                 <tr>
                   <td class="l">{m.n}</td>
                   <td class="num">{groupThousands(m.medM2)}</td>
+                  <td class="num">{m.medM2Nu ? groupThousands(m.medM2Nu) : '–'}</td>
                   <td class="num">{groupThousands(m.medRent)} kr</td>
                   <td class="num">{groupThousands(m.n12)}</td>
                 </tr>
@@ -141,7 +160,7 @@ const jsonLd = {
             </tbody>
           </table>
         </div>
-        <p class="note">ⓘ Leiguskrá HMS byggir á <strong>þinglýstum</strong> leigusamningum — þinglýsingarskyldan féll niður með nýju húsaleigulögunum og skráin nær því fram í ársbyrjun 2024. Sveitarfélagatölur miða við {LEIGA.muniYear} (síðasta heila árið). Nýja rafræna leiguskráin verður tengd þegar opin gögn hennar birtast.</p>
+        <p class="note">ⓘ <strong>Nú (framreiknað)</strong> = þinglýstir samningar 2022–23 framreiknaðir hver og einn með mánaðarlegri vísitölu leiguverðs HMS úr nýju leiguskránni (markaðsleiga; maí 2023 = 100) til nýjasta vísitölumánaðar — strikalínan í grafinu sýnir sömu framreikningu á landsmiðgildinu. Leiguverðmat á einstakar eignir, með sambærilegum samningum í sama matssvæði, er í <a href="/fasteignavakt/">fasteignavaktinni</a>, og leiguverð per matssvæði á <a href="/fasteignaverd/">síðum matssvæðanna</a>. Leiguskrá HMS byggir á <strong>þinglýstum</strong> leigusamningum — þinglýsingarskyldan féll niður með nýju húsaleigulögunum og skráin nær því fram í ársbyrjun 2024. Sveitarfélagatölur miða við {LEIGA.muniYear} (síðasta heila árið). Nýja rafræna leiguskráin verður tengd þegar opin gögn hennar birtast.</p>
       </>
     )}
 
@@ -190,7 +209,7 @@ const jsonLd = {
   </style>
 
   <!-- Eyja: verð/m² þróun (2 línur), astro:page-load. #2 -->
-  <script define:vars={{ chartMonths, hbSeries, landSeries, LEIGAQ: LEIGA ? LEIGA.quarters : null, PR, prAvg }}>
+  <script define:vars={{ chartMonths, hbSeries, landSeries, LEIGAQ: LEIGA ? LEIGA.quarters : null, LEIGAX: LEIGA_EXT, PR, prAvg }}>
     function initChart() {
       const el = document.getElementById('chart');
       if (!el) return;
@@ -227,20 +246,23 @@ const jsonLd = {
       }
       if (window.echarts.getInstanceByDom(el)) return;
       const c = window.echarts.init(el);
+      // x-ás = fjórðungar skrárinnar ∪ framreiknaðir fjórðungar (vísitala HMS); raunlína null þar sem skráin þagnar
+      const QX = [...new Set([...LEIGAQ.map((x) => x.q), ...((LEIGAX || []).map((x) => x.q))])].sort();
+      const realBy = Object.fromEntries(LEIGAQ.map((x) => [x.q, x])), extBy = Object.fromEntries((LEIGAX || []).map((x) => [x.q, x]));
       c.setOption({
         backgroundColor: 'transparent',
         grid: { left: 52, right: 46, top: 30, bottom: 26 },
-        legend: { data: ['Miðgildi kr/m²', 'Fjöldi samninga'], textStyle: { color: '#9fb0c8' }, top: 0 },
+        legend: { data: ['Miðgildi kr/m²', 'Fjöldi samninga'].concat(LEIGAX && LEIGAX.length ? ['Framreiknað m/vísitölu HMS'] : []), textStyle: { color: '#9fb0c8' }, top: 0 },
         tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: LEIGAQ.map((x) => x.q), axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => (v.endsWith('F1') ? v.slice(0, 4) : '') }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
+        xAxis: { type: 'category', data: QX, axisLabel: { color: '#7e8ca6', fontSize: 10, formatter: (v) => (v.endsWith('F1') ? v.slice(0, 4) : '') }, axisLine: { lineStyle: { color: 'rgba(255,255,255,.14)' } } },
         yAxis: [
           { type: 'value', scale: true, axisLabel: { color: '#7e8ca6', fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.06)' } } },
           { type: 'value', axisLabel: { color: '7e8ca6', show: false }, splitLine: { show: false } },
         ],
         series: [
-          { name: 'Fjöldi samninga', type: 'bar', yAxisIndex: 1, data: LEIGAQ.map((x) => x.n), itemStyle: { color: 'rgba(58,141,255,.25)' }, barMaxWidth: 10 },
-          { name: 'Miðgildi kr/m²', type: 'line', data: LEIGAQ.map((x) => x.medM2), smooth: true, symbol: 'none', lineStyle: { color: '#19d3c5', width: 3 }, itemStyle: { color: '#19d3c5' } },
-        ],
+          { name: 'Fjöldi samninga', type: 'bar', yAxisIndex: 1, data: QX.map((q) => (realBy[q] ? realBy[q].n : null)), itemStyle: { color: 'rgba(58,141,255,.25)' }, barMaxWidth: 10 },
+          { name: 'Miðgildi kr/m²', type: 'line', data: QX.map((q) => (realBy[q] ? realBy[q].medM2 : null)), smooth: true, symbol: 'none', lineStyle: { color: '#19d3c5', width: 3 }, itemStyle: { color: '#19d3c5' } },
+        ].concat(LEIGAX && LEIGAX.length ? [{ name: 'Framreiknað m/vísitölu HMS', type: 'line', data: QX.map((q) => (extBy[q] ? extBy[q].medM2 : null)), smooth: true, symbol: 'none', lineStyle: { color: '#f6b13b', width: 2, type: 'dashed' }, itemStyle: { color: '#f6b13b' } }] : []),
       });
       window.addEventListener('resize', () => c.resize());
     }

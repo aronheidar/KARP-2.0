@@ -348,6 +348,7 @@ const jsonLd = {
     import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
     import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof, veljaMatHlutfall, matDomur } from '../lib/fasteignamat.mjs';
     import { slugify as slugSvaedi } from '@lib/format.mjs';   // sama slug og /fasteignaverd/[slug].astro notar
+    import { metaLeigu, avoxtun as leiguAvoxtun, bakprofLeiga } from '../lib/leiguverd.mjs';   // leiguverðmat (framreiknaðir þinglýstir samningar)
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -364,6 +365,8 @@ const jsonLd = {
       const leiFetch = () => LEI || (LEI = fetch('/gogn/leiga.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));  // LOTA 75: leiguverðmat
       let HLJ = null;
       const hlFetch = () => HLJ || (HLJ = fetch('/gogn/hms/mat_hlutfall.json').then((r) => (r.ok ? r.json() : null)).catch(() => null));  // fasteignamats-leiðin: kaupverð/mat per svæði
+      const LSG = {};
+      const lsFetch = (pn) => (pn && /^\d{3}$/.test(pn)) ? (LSG[pn] || (LSG[pn] = fetch('/gogn/leigusaga/' + pn + '.json').then((r) => (r.ok ? r.json() : null)).catch(() => null))) : Promise.resolve(null);  // leiguverðmat: samningar per pn
       // LOTA 64: full fasteignaskrá (nánast allar seldar eignir frá 2006 m/gildandi mati), per póstnúmer
       let FSK_IDX = null, FSK_GOTUR = null; const FSK = {};
       // Matssvæði HMS (fasteignamat 2027): 197 svæði m/meðalverði á m² + breytingu, og nákvæmni gildandi mats
@@ -1049,20 +1052,47 @@ const jsonLd = {
         // ── Leiga og ávöxtun (LOTA 75) — áætluð leiga + brúttó leiguávöxtun úr leiguskrá HMS ──
         // Einstakt: hvorki Keldan né Creditinfo birta leiguverðmat. Miðgildisleiga/m² í
         // sveitarfélaginu × stærð → mánaðarleiga; ×12 ÷ kaupvirði → brúttó ávöxtun.
+        // 19.8.2026: LEIGUVERÐMAT úr sambærilegum þinglýstum samningum í SAMA MATSSVÆÐI (→ pn), ±30% stærð, stærðar-
+        // leiðrétt (teygni −0,52), hver samningur FRAMREIKNAÐUR með vísitölu leiguverðs HMS (leigusaga/<pn>.json,
+        // build_leiga.js) — áður var miðgildi sveitarfélags 2023 × m² (óframreiknað, −24% í dag). Varaleið: byMuni.medM2Nu.
         let leigaHtml = '';
         try {
+          const LS = await lsFetch(pn);
           const lg = await leiFetch();
-          const lm = lg && lg.byMuni && lg.byMuni[svN];
-          if (lm && lm.medM2 && fm > 0) {
-            const leigaMan = Math.round(lm.medM2 * fm);
-            const arleg = leigaMan * 12, kaupKr = verd * 1000;
-            const avoxt = Math.round((arleg / kaupKr) * 1000) / 10;
-            const pr = Math.round((kaupKr / arleg) * 10) / 10;
-            leigaHtml = `<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — áætlað</div>`
-              + `<div class="lei-grid"><div class="lei-c"><div class="lei-v">${thouIS(leigaMan)} kr</div><div class="lei-l">áætluð leiga á mánuði</div></div>`
-              + `<div class="lei-c"><div class="lei-v gold">${String(avoxt).replace('.', ',')}%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div>`
-              + `<div class="lei-c"><div class="lei-v">${String(pr).replace('.', ',')} ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div></div>`
-              + `<div class="fvm-note" style="margin-top:6px">Áætluð leiga = miðgildisleiga á m² í ${esc(svN)} (${esc(String(lg.muniYear))}, leiguskrá HMS) × ${fm} m². Brúttó ávöxtun er FYRIR rekstrarkostnað, fasteignagjöld, viðhald og afskriftir. Leiguskráin nær fram á ${esc(String(lg.muniYear))} (þinglýsingarskyldan féll niður) svo leigan er söguleg viðmiðun.</div>`;
+          const manIS = (ym) => { const [y, m] = String(ym || '').split('-').map(Number); return m ? ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'][m - 1] + ' ' + y : String(ym || ''); };
+          const kaupKr = verd * 1000;
+          const pc1 = (x) => String(Math.round(x * 10) / 10).replace('.', ',');
+          const renderLeiga = (leigaMan, lo, hi, grunnur, adferd, nakv) => {
+            const av = leiguAvoxtun(leigaMan, kaupKr);
+            return `<div class="fv-head" style="margin-top:14px">Leiga og ávöxtun — leiguverðmat <i class="tip" tabindex="0" data-tip="${esc('Leiguverðmat Karp: sambærilegir þinglýstir leigusamningar (leiguskrá HMS) í sama matssvæði eða póstnúmeri, ±30% stærð, stærðarleiðréttir (leiga á m² fellur með stærð), hver samningur framreiknaður með mánaðarlegri vísitölu leiguverðs HMS úr nýju leiguskránni (2023-05=100). Bakpróf: hver samningur metinn eingöngu úr eldri samningum — miðgildisskekkja ~11–12%, 45% innan ±10%, 73% innan ±20%. Leiga er breytilegri en kaupverð (húsgögn, hiti/rafmagn, óhagnaðardrifnir leigusalar í skránni) — notaðu bilið.')}">?</i></div>`
+              + `<div class="lei-grid"><div class="lei-c"><div class="lei-v">${thouIS(leigaMan)} kr</div><div class="lei-l">áætluð leiga á mánuði${lo && hi ? ' · bil ' + thouIS(lo) + '–' + thouIS(hi) : ''}</div></div>`
+              + (av ? `<div class="lei-c"><div class="lei-v gold">${pc1(av.brutto * 100)}%</div><div class="lei-l">brúttó leiguávöxtun á ári</div></div>`
+              + `<div class="lei-c"><div class="lei-v">${pc1(av.pr)} ár</div><div class="lei-l">kaupverð ÷ ársleiga</div></div>` : '') + `</div>`
+              + `<div class="fvm-note" style="margin-top:6px">${grunnur} ${adferd}${nakv ? ' ' + nakv : ''} Brúttó ávöxtun er FYRIR rekstrarkostnað, fasteignagjöld, viðhald og afskriftir.</div>`;
+          };
+          let done = false;
+          if (LS && Array.isArray(LS.s) && fm > 0) {
+            const zoneNr = msNr ? +msNr : 0;
+            const r = metaLeigu(LS.s, { fm, zone: zoneNr });
+            if (r && r.leiga > 0) {
+              const stadL = r.stig === 'svaedi' && sv2027 ? 'í matssvæðinu ' + esc(sv2027.heiti) : r.stig === 'svaedi' ? 'í matssvæðinu' : 'í póstnúmeri ' + esc(pn);
+              const bk = bakprofLeiga(LS.s, { manudir: 12 });
+              const nakv = bk ? `Bakpróf í póstnúmerinu (${bk.n} samningar metnir úr eldri samningum): miðgildisskekkja ${Math.round(bk.midgildi * 100)}%, ${Math.round(bk.innan20 * 100)}% innan ±20%.` : '';
+              const pcV = LS.stig ? ' (+' + Math.round(LS.stig - 100) + '% frá maí 2023)' : '';
+              leigaHtml = renderLeiga(Math.round(r.leiga / 1000) * 1000, Math.round(r.leigaLo / 1000) * 1000, Math.round(r.leigaHi / 1000) * 1000,
+                `Byggt á <b>${r.n}</b> þinglýstum leigusamningum um sambærilegar íbúðir (±30% stærð) ${stadL} frá ${esc(String(LS.fra || '').slice(0, 4))} (leiguskrá HMS), hver framreiknaður með vísitölu leiguverðs HMS til ${esc(manIS(LS.til))}${pcV}, stærðarleiðréttir að ${fm} m².`,
+                'Miðgildi = áætluð leiga, fjórðungsbil = bil.', nakv);
+              done = true;
+            }
+          }
+          if (!done) {
+            const lm = lg && lg.byMuni && lg.byMuni[svN];
+            const m2 = lm && (lm.medM2Nu || lm.medM2);
+            if (m2 && fm > 0) {
+              const leigaMan = Math.round(m2 * fm / 1000) * 1000;
+              const fram = lm.medM2Nu && lg.nu ? `framreiknað með vísitölu leiguverðs HMS til ${esc(manIS(lg.nu.m))}` : `${esc(String(lg.muniYear))}, ÓFRAMREIKNAÐ — söguleg viðmiðun`;
+              leigaHtml = renderLeiga(leigaMan, null, null, `Áætluð leiga = miðgildisleiga á m² í ${esc(svN)} (þinglýstir samningar, leiguskrá HMS, ${fram}) × ${fm} m² — of fáir sambærilegir samningar í svæðinu/póstnúmerinu fyrir nákvæmara mat.`, '', '');
+            }
           }
         } catch (e) {}
 
@@ -1071,7 +1101,7 @@ const jsonLd = {
         try {
           const ratioOf = (rows) => rows.map((r) => r.v / r.mat).filter((x) => x > 0.2 && x < 5);
           const levels = [
-            ['götunni ' + street, ratioOf(d.rows.filter((r) => r.mat > 0 && fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn))), 3],
+            ['götunni ' + (street ? street.charAt(0).toUpperCase() + street.slice(1) : ''), ratioOf(d.rows.filter((r) => r.mat > 0 && fvNorm(r.a).startsWith(street) && (!pn || r.pn === pn))), 3],
             ['póstnúmeri ' + pn, pn ? ratioOf(d.rows.filter((r) => r.mat > 0 && r.pn === pn)) : [], 5],
             [svN, svN ? ratioOf(d.rows.filter((r) => r.mat > 0 && r.sv === svN)) : [], 8],
           ];

@@ -4,13 +4,17 @@
 import Layout from '../../layouts/Layout.astro';
 import MS from '../../../public/gogn/hms/matssvaedi_2027.json';
 import ZS from '@gogn/matssvaedi_solur.json';
+import LV from '../../../public/gogn/hms/leiguverd.json';   // leiguverð per svæði (framreiknað)
 import { slugify, groupThousands } from '@lib/format.mjs';
 
 const Z = ZS.byZone || {};
-const rows = Object.entries(MS.svaedi).filter(([, v]) => v && v.heiti).map(([nr, v]) => ({ nr, heiti: v.heiti, slug: slugify(v.heiti), m2f: v.m2_fjol, m2s: v.m2_ser, brf: v.br_fjol, brs: v.br_ser, z: Z[nr] || null }))
+const LVZ = LV.byZone || {};
+const rows = Object.entries(MS.svaedi).filter(([, v]) => v && v.heiti).map(([nr, v]) => ({ nr, heiti: v.heiti, slug: slugify(v.heiti), m2f: v.m2_fjol, m2s: v.m2_ser, brf: v.br_fjol, brs: v.br_ser, z: Z[nr] || null, lv: LVZ[nr] || null }))
   .sort((a, b) => ((b.z ? b.z.n12 : 0) - (a.z ? a.z.n12 : 0)) || a.heiti.localeCompare(b.heiti, 'is'));
 const medSolum = rows.filter((r) => r.z && r.z.n12 > 0).length;
 const pcS = (v) => (v == null ? '–' : (v >= 0 ? '+' : '−') + (Math.abs(v) * 100).toFixed(1).replace('.', ',') + '%');
+const avox = (r) => (r.lv && r.z && r.z.medFjol ? ((r.lv.med * 12) / (r.z.medFjol * 1000) * 100).toFixed(1).replace('.', ',') + '%' : '–');
+const lvTil = LV.visitala ? LV.visitala.til : '';
 const title = 'Fasteignaverð eftir matssvæðum HMS — 197 svæði | Karp';
 const desc = `Fasteignaverð í öllum ${rows.length} matssvæðum HMS: miðgildi verðs á fermetra úr þinglýstum kaupum síðustu 12 mánaða (kaupskrá HMS), opinbert meðalverð og breyting fasteignamats 2027 per svæði.`;
 ---
@@ -21,7 +25,7 @@ const desc = `Fasteignaverð í öllum ${rows.length} matssvæðum HMS: miðgild
     <p>HMS skiptir landinu í <strong>{rows.length} matssvæði íbúðarhúsnæðis</strong> þar sem verðlag er talið einsleitt. Hér er hvert svæði með <strong>lifandi miðgildi</strong> verðs á fermetra úr þinglýstum kaupum síðustu 12 mánaða (kaupskrá HMS, {medSolum} svæði með sölur) og <strong>opinberu meðalverði og breytingu fasteignamats 2027</strong>. Smelltu á svæði fyrir nýjustu sölur.</p>
     <div class="tw">
       <table>
-        <thead><tr><th class="l">Matssvæði</th><th>Karp fjölbýli<br><small>þús/m² · 12 mán</small></th><th>Karp sérbýli<br><small>þús/m² · 12 mán</small></th><th>Sölur<br><small>12 mán</small></th><th>HMS 2027<br><small>fjölb. / sérb. þús/m²</small></th><th>Mat 2027<br><small>fjölb. / sérb.</small></th></tr></thead>
+        <thead><tr><th class="l">Matssvæði</th><th>Karp fjölbýli<br><small>þús/m² · 12 mán</small></th><th>Karp sérbýli<br><small>þús/m² · 12 mán</small></th><th>Sölur<br><small>12 mán</small></th><th>HMS 2027<br><small>fjölb. / sérb. þús/m²</small></th><th>Mat 2027<br><small>fjölb. / sérb.</small></th><th>Leiga<br><small>kr/m² · mán</small></th><th>Ávöxtun<br><small>brúttó</small></th></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr>
@@ -31,12 +35,14 @@ const desc = `Fasteignaverð í öllum ${rows.length} matssvæðum HMS: miðgild
               <td class="num">{r.z ? groupThousands(r.z.n12) : 0}</td>
               <td class="num">{r.m2f ? groupThousands(r.m2f) : '–'} / {r.m2s ? groupThousands(r.m2s) : '–'}</td>
               <td class="num"><span class={(r.brf || 0) >= 0 ? 'up' : 'dn'}>{pcS(r.brf)}</span> / <span class={(r.brs || 0) >= 0 ? 'up' : 'dn'}>{pcS(r.brs)}</span></td>
+              <td class="num">{r.lv ? groupThousands(r.lv.med) : '–'}</td>
+              <td class="num">{avox(r)}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-    <p class="note">ⓘ Karp-miðgildi = miðgildi kaupverðs á m² í þinglýstum kaupum sl. 12 mán, varpað á matssvæði út frá staðsetningu (heimilisföng við svæðamörk geta lent röngum megin). HMS-tölur = opinbert meðalverð á m² og breyting fasteignamats 2026→2027 úr útgáfu HMS um fasteignamat 2027. Raðað eftir fjölda sala. Sumarhús eru í sérstökum matssvæðum — sjá <a href="/sumarhus/">sumarhúsamat og verð sumarhúsa eftir svæðum</a>.</p>
+    <p class="note">ⓘ Karp-miðgildi = miðgildi kaupverðs á m² í þinglýstum kaupum sl. 12 mán, varpað á matssvæði út frá staðsetningu (heimilisföng við svæðamörk geta lent röngum megin). HMS-tölur = opinbert meðalverð á m² og breyting fasteignamats 2026→2027 úr útgáfu HMS um fasteignamat 2027. Leiga = miðgildi leiguverðs á m² úr þinglýstum leigusamningum 2022–23 í svæðinu (leiguskrá HMS, ≥6 samningar), hver framreiknaður með vísitölu leiguverðs HMS til {lvTil}; ávöxtun = ársleiga ÷ Karp-miðgildi fjölbýlis (brúttó, fyrir kostnað). Raðað eftir fjölda sala. Sumarhús eru í sérstökum matssvæðum — sjá <a href="/sumarhus/">sumarhúsamat og verð sumarhúsa eftir svæðum</a>.</p>
   </main>
 </Layout>
 
