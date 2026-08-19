@@ -3,7 +3,12 @@
 // útgáfa af staðfangaskrá HMS m/WGS84-hnitum + LUKR-hverfaheitum fyrir Reykjavík).
 // https://github.com/rvkdata/stadfangaskra_extra (7,8MB CSV, uppfærð sunnudagskvöld)
 //
-// Úttak: web/public/gogn/hnit/<pn>.json = { "skeiðarvogur 1": [lat, lng, "Vogar"?], … }
+// Úttak: web/public/gogn/hnit/<pn>.json = { "skeiðarvogur 1": [lat, lng, hverfi|'', LANDNR, HEINUM], … }
+//       ⚠ ALLTAF 5 stök (hverfi = '' utan Rvk) svo vísitölur séu stöðugar. LANDNR+HEINUM (100% staðfanga hafa
+//       bæði) eru sömu tölur og í slóð fasteignaskrár HMS: https://hms.is/fasteignaskra/<LANDNR>/<HEINUM>[/<FASTNUM>]
+//       → fasteignavaktin tengir beint á opinbera eininga-listann (íbúðarmerkingar, stærð, fasteignamat) fyrir
+//       HVERT heimilisfang landsins — líka þau 59% sem kaupskráin þekkir ekki. Þeirra API er bot-/CORS-varið,
+//       svo tengill er leiðin, ekki sókn.
 //       + hnit/gotur.json = { "leirdalur": ["190","260"], … } — FULLUR götuvísir (allar götur
 //         landsins, ekki aðeins þær sem hafa selst). fasteignaskra/gotur.json er byggður úr
 //         kaupskránni og sleppir götum án sölu síðan 2006 → fasteignavaktin fann þá ekki einu sinni
@@ -72,6 +77,7 @@ if (process.argv.includes('--from-disk')) {
   const i = {
     pn: H.indexOf('POSTNR'), heiti: H.indexOf('HEITI_NF'), husnr: H.indexOf('HUSNR'), bokst: H.indexOf('BOKST'),
     lat: H.indexOf('N_HNIT_WGS84'), lng: H.indexOf('E_HNIT_WGS84'), hverfi: H.indexOf('LUKR_HVERFAHEITI_HEITI'),
+    landnr: H.indexOf('LANDNR'), heinum: H.indexOf('HEINUM'),
   };
   if (i.lat < 0 || i.heiti < 0) throw new Error('dálkar fundust ekki — hausinn breyttist? ' + H.slice(0, 8).join(','));
   const byPn = {};
@@ -87,7 +93,8 @@ if (process.argv.includes('--from-disk')) {
     const d = (byPn[pn] = byPn[pn] || {});
     if (d[key]) continue;                                   // fyrsta staðfang gildir (fleiri matshlutar → sama hús)
     const hverfi = (c[i.hverfi] || '').trim();
-    d[key] = hverfi ? [+lat.toFixed(5), +lng.toFixed(5), hverfi] : [+lat.toFixed(5), +lng.toFixed(5)];
+    const landnr = +(c[i.landnr] || 0) || 0, heinum = +(c[i.heinum] || 0) || 0;
+    d[key] = [+lat.toFixed(5), +lng.toFixed(5), hverfi, landnr, heinum];
     n++;
   }
   fs.rmSync(OUT, { recursive: true, force: true });

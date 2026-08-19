@@ -140,6 +140,12 @@ const jsonLd = {
     .fv-upph { color: #e0655f; }
     .fv-upp { border-left: 3px solid #e0655f; padding-left: 8px; background: rgba(224,101,95,.06); border-radius: 6px; }
     .fv-fsk { border-left: 3px solid #5a6678; padding-left: 8px; }
+    main[data-pg="fastvakt"] .fvm-nakv { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); font-size: 12.5px; line-height: 1.5; }
+    main[data-pg="fastvakt"] .fvm-nakv-b { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; }
+    main[data-pg="fastvakt"] .fvm-nakv span { color: var(--muted); }
+    main[data-pg="fastvakt"] .ec-hms { color: #f6b13b; text-decoration: none; font-weight: 600; }
+    main[data-pg="fastvakt"] .ec-hms:hover { text-decoration: underline; }
+    main[data-pg="fastvakt"] .ec-r-hms { grid-column: 1 / -1; justify-content: flex-start; }
     main[data-pg="fastvakt"] #fvm-ibud { flex: 0 0 118px; min-width: 0; }
     .fv-hn { border-left: 3px solid #f6b13b; padding-left: 8px; cursor: pointer; }
     .fv-hn:hover, .fv-hn:focus-visible { background: rgba(246,177,59,.06); outline: none; }
@@ -323,6 +329,7 @@ const jsonLd = {
 
   <script>
     import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
+    import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof } from '../lib/fasteignamat.mjs';
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
     const thouIS = (n) => String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');  // íslenskur þúsundaskiljari (punktur)
@@ -601,10 +608,8 @@ const jsonLd = {
 
       // ── Sölugraf + sambærilegar (LOTA 67) ──
       const TEG_COL = { 'Fjölbýli': '#3a6ea5', 'Sérbýli': '#19c3b2', 'Einbýli': '#e8952f', 'Parhús': '#c792ff', 'Raðhús': '#e8952f' };
-      const qMed = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-      const qPct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
-      const tsOf = (d) => new Date(d + 'T00:00:00').getTime();
-      const OUTLO = 180000, OUTHI = 2600000;                 // sía burt bílskúra/hlutasölur/útlaga
+      // tölfræði + þröskuldar úr lib/fasteignamat.mjs (ein uppspretta fyrir mat OG bakpróf)
+      const qMed = midgildi, qPct = hundradsmark, tsOf = fmTsOf, OUTLO = FM_OUTLO, OUTHI = FM_OUTHI;
       // rúllandi 3ja mánaða miðgildi + fjórðungabil → matslína + öryggisbil
       function soluAgg(sales) {
         const byM = {};
@@ -698,8 +703,7 @@ const jsonLd = {
       const fvmOut = document.getElementById('fvm-out');
       let FVM_PICK = null;   // LOTA 79: handvalinn eignarhluti (fasteignanúmer) þegar fleiri á heimilisfangi
       let FVM_DEMO = false;  // sýnishorns-hamur (?syni=1): sýnir TILBÚIÐ mat af gervi-eign án innskráningar
-      const med = (a) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-      const pct = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
+      const med = midgildi, pct = hundradsmark;   // sömu föll og qMed/qPct — voru afrituð orðrétt hér áður
       const mkr = (v) => (v >= 1000 ? (v / 1000).toFixed(1).replace('.', ',') + ' m.kr' : Math.round(v) + ' þ.kr');
       // Teljari við Meta-takkann: fjöldi innifalinna verðmata eftir í mánuðinum (aðeins fasteign-áskrifendur).
       function paintQuota() {
@@ -815,13 +819,32 @@ const jsonLd = {
         { const g = pn ? d.rows.find((r) => r.pn === pn) : d.rows.find((r) => fvNorm(r.a).startsWith(street)); if (g) { svN = g.sv; if (!pn) pn = g.pn; } }
         if (!pn && street.length >= 3) { const gt = await fskGotur(); if (gt) { for (const nm in gt) { if (nm.startsWith(street)) { pn = gt[nm][0]; break; } } } }
         // sölusaga póstnúmers (sl. 5 ár) — knýr sölugraf, sambærilegar OG stærðarnæmt mat
+        // ── Nákvæm eign úr fasteignaskrá → eignaspjald + BYGGINGARÁR inn í matið (fasteignanúmer, mat, brunabótamat, byggingastig …) ──
+        const selfAddr = houseNum ? fvNorm(street + ' ' + houseNum) : null;
+        let self = null, selfUnits = [];
+        if (selfAddr) {
+          const reg = pn ? await fskPn(pn) : await fskRows('', raw);
+          // fleiri eignarhlutar á sama heimilisfangi (t.d. sameinaðir hlutar) — sýnum ÞÁ ALLA og
+          // leyfum notanda að velja (LOTA 79). FVM_PICK = handvalinn; annars lifandi eign m/mati
+          // sem passar best í m². Röðum: lifandi (mat>0) fyrst, svo eftir stærð.
+          selfUnits = (reg || []).filter((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn))
+            .sort((a, b) => ((b.mat > 0) - (a.mat > 0)) || ((b.fm || 0) - (a.fm || 0)));
+          if (selfUnits.length) {
+            if (FVM_PICK) self = selfUnits.find((r) => (r.fnr || '') === FVM_PICK);
+            if (!self) { const score = (r) => (r.mat > 0 ? 0 : 1000) + Math.abs((r.fm || 0) - fm); self = selfUnits.slice().sort((a, b) => score(a) - score(b))[0]; }
+          }
+        }
+        const selfN = selfUnits.length;
         const sales = pn ? await solPn(pn) : null;
         const ppm = (r) => (r.fm > 15 ? r.v / r.fm : null);
         let est = null, comps = [];
         // 1) STÆRÐARNÆMT mat úr sölusögu: sama tegund, ±30% stærð, sl. 18 mán
+        // Sama vél og bakprófið (lib/fasteignamat.mjs). Byggingarár eignarinnar (úr kaupskrá) þrengir
+        // sambærilegar í ±15 ár þegar nóg er eftir — mælt 8,3% → 6,7% miðgildisskekkja á 12 pn.
+        let r1 = null;
         if (sales && sales.length) {
-          const near = sales.filter((s) => s.teg === teg && s.fm >= fm * 0.7 && s.fm <= fm * 1.3 && s.ppm >= OUTLO && s.ppm <= OUTHI && tsOf(s.d) >= Date.now() - 560 * 864e5);
-          if (near.length >= 6) { const vals = near.map((s) => s.ppm / 1000); est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð, sl. 18 mán)', n: near.length, m: qMed(vals), lo: qPct(vals, 0.25), hi: qPct(vals, 0.75) }; }
+          r1 = metaUrSolusogu(sales, { teg, fm, ar: self && self.ar ? +self.ar : null }, { now: Date.now() });
+          if (r1) est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð' + (r1.arSia ? ', byggingarár ±15 ár' : '') + ', sl. 18 mán)', n: r1.n, m: r1.m / 1000, lo: r1.lo / 1000, hi: r1.hi / 1000 };
         }
         // 2) fallback: 180-daga kaupskrá (gata → póstnúmer)
         if (!est) {
@@ -841,25 +864,14 @@ const jsonLd = {
         const verd = est.m * fm, lo = (est.lo || est.m) * fm, hi = (est.hi || est.m) * fm;
         const subj = { teg, fm, ppm: est.m * 1000 };
 
-        // ── Nákvæm eign úr fasteignaskrá → eignaspjald (fasteignanúmer, mat, brunabótamat, byggingastig …) ──
-        const selfAddr = houseNum ? fvNorm(street + ' ' + houseNum) : null;
-        let self = null, selfUnits = [];
-        if (selfAddr) {
-          const reg = pn ? await fskPn(pn) : await fskRows('', raw);
-          // fleiri eignarhlutar á sama heimilisfangi (t.d. sameinaðir hlutar) — sýnum ÞÁ ALLA og
-          // leyfum notanda að velja (LOTA 79). FVM_PICK = handvalinn; annars lifandi eign m/mati
-          // sem passar best í m². Röðum: lifandi (mat>0) fyrst, svo eftir stærð.
-          selfUnits = (reg || []).filter((r) => fvNorm(r.a) === selfAddr && (!pn || r.pn === pn))
-            .sort((a, b) => ((b.mat > 0) - (a.mat > 0)) || ((b.fm || 0) - (a.fm || 0)));
-          if (selfUnits.length) {
-            if (FVM_PICK) self = selfUnits.find((r) => (r.fnr || '') === FVM_PICK);
-            if (!self) { const score = (r) => (r.mat > 0 ? 0 : 1000) + Math.abs((r.fm || 0) - fm); self = selfUnits.slice().sort((a, b) => score(a) - score(b))[0]; }
-          }
-        }
-        const selfN = selfUnits.length;
         // GPS-hnit + hverfi úr staðfangaskrá (LOTA 68) — kort + fjarlægð á sambærilegar
         const hn = pn ? await hnitPn(pn) : null;
-        const subjC = (hn && selfAddr && hn[selfAddr]) || null;      // [lat, lng, hverfi?]
+        const subjC = (hn && selfAddr && hn[selfAddr]) || null;      // [lat, lng, hverfi|'', landnr, heinum]
+        // 🏛️ Fasteignaskrá HMS: opinber eininga-listi per heimilisfang — ÍBÚÐARMERKINGAR (merking „010201" = hæð 2,
+        // íbúð 1 → íbúð 201), skráð stærð, fasteignamat, brunabótamat. Sama fyrir hús sem kaupskráin þekkir ekki.
+        // Slóðin er landnr/heinum[/fastnum]; API þeirra er bot- og CORS-varið svo við TENGJUM, sækjum ekki.
+        const hmsUrl = (c, fnr) => (c && c[3] && c[4]) ? 'https://hms.is/fasteignaskra/' + c[3] + '/' + c[4] + (fnr ? '/' + String(fnr).replace(/\D/g, '') : '') : '';
+        const hmsLink = (c, fnr, txt) => { const u = hmsUrl(c, fnr); return u ? `<a class="ec-hms" href="${u}" target="_blank" rel="noopener">🏛️ ${txt || 'Skoða í fasteignaskrá HMS'} →</a>` : ''; };
         const hverfi = (subjC && subjC[2]) || '';
         // eignaspjald EIGN / GÖGN (tveir flipar)
         let cardHtml = '';
@@ -868,8 +880,9 @@ const jsonLd = {
           if (hverfi) eign.push(['Hverfi', hverfi]);
           const gogn = [['Fasteignamat', self.mat ? mkr(self.mat) : '–'], ['Fyrirhugað mat', self.matN ? mkr(self.matN) : '–'], ['Brunabótamat', self.bruna ? mkr(self.bruna) : '–'], ['Lóð', self.lod ? self.lod + ' m²' : '–'], ['Byggingastig', self.full ? 'Fullgert' : '–']];
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
-          const unitPick = selfN > 1 ? `<div class="ec-pick"><div class="ec-pick-l">ⓘ ${selfN} eignarhlutar á heimilisfanginu — veldu þann sem á við:</div>${selfUnits.map((r) => `<button type="button" class="ec-unit${(r.fnr || '') === (self.fnr || '') ? ' on' : ''}" data-fnr="${esc(r.fnr || '')}" data-fm="${r.fm || ''}" data-teg="${esc(r.teg || '')}">${esc(r.teg || 'Eign')}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.mat ? ' · fasteignamat ' + mkr(r.mat) : ' · ekkert gildandi mat'}</button>`).join('')}</div>` : '';
-          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div>${unitPick}</div>`;
+          const unitPick = selfN > 1 ? `<div class="ec-pick"><div class="ec-pick-l">ⓘ ${selfN} eignarhlutar á heimilisfanginu — veldu þann sem á við. ${hmsLink(subjC, null, 'Íbúðarmerkingar allra eininga hjá HMS')}</div>${selfUnits.map((r) => `<button type="button" class="ec-unit${(r.fnr || '') === (self.fnr || '') ? ' on' : ''}" data-fnr="${esc(r.fnr || '')}" data-fm="${r.fm || ''}" data-teg="${esc(r.teg || '')}">${esc(r.teg || 'Eign')}${r.fm ? ' · ' + String(r.fm).replace('.', ',') + ' m²' : ''}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.mat ? ' · fasteignamat ' + mkr(r.mat) : ' · ekkert gildandi mat'}</button>`).join('')}</div>` : '';
+          const hmsRow = hmsLink(subjC, self.fnr, 'Þessi eining í fasteignaskrá HMS — merking, skráð stærð, gildandi mat');
+          cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}${hmsRow ? '<div class="ec-r ec-r-hms">' + hmsRow + '</div>' : ''}</div><div class="ec-panel" data-panel="gogn" hidden>${rows2(gogn)}</div>${unitPick}</div>`;
         } else if (selfAddr && subjC) {
           // Húsið er til (staðfangaskrá HMS, hnit staðfest) en kaupskráin þekkir það ekki: engin þinglýst sala
           // síðan 2006 → hvorki fasteignamat, brunabótamat né skráð stærð hér. Segjum það BEINT í stað þess
@@ -878,7 +891,7 @@ const jsonLd = {
           const eign = [['Heimilisfang', hnDisp(selfAddr) + (pn ? ', ' + pn : '')], ['Staða', 'Skráð í staðfangaskrá HMS'], ['Þinglýst sala', 'Engin síðan 2006'], ['Tegund', teg + ' (slegið inn)'], ['Stærð', fm + ' m² (slegið inn)']];
           if (hverfi) eign.push(['Hverfi', hverfi]);
           cardHtml = `<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">📍 SKRÁÐ HEIMILISFANG</button></div><div class="ec-panel" data-panel="eign">${rows2(eign)}</div>`
-            + `<div class="ec-pick"><div class="ec-pick-l">ⓘ Kaupskrá HMS ber fasteignamat og stærð aðeins fyrir eignir sem hafa selst síðan 2006 — þetta hús hefur ekki gert það, svo matið hér að ofan byggir á sambærilegum eignum í götunni og póstnúmerinu, ekki á eigninni sjálfri. Opinbert fasteignamat má fletta upp hjá HMS (fasteignaskra.is) með fastanúmeri.</div></div></div>`;
+            + `<div class="ec-pick"><div class="ec-pick-l">ⓘ Kaupskrá HMS ber fasteignamat og stærð aðeins fyrir eignir sem hafa selst síðan 2006 — þetta hús hefur ekki gert það, svo matið hér að ofan byggir á sambærilegum eignum í götunni og póstnúmerinu, ekki á eigninni sjálfri. ${hmsLink(subjC, null, 'Skráð stærð, fasteignamat og einingar hjá HMS')}</div></div></div>`;
         }
         // ── Sjónræn verðstika: neðri-/efrimörk + áætlað verð (neðri röð), fasteignamat + brunabótamat (efri röð) ──
         let barHtml = '';
@@ -901,6 +914,20 @@ const jsonLd = {
             + (top.length ? `<div class="vb-row vb-top"${topAlt ? ' style="height:54px"' : ''}>${top.map(lbl).join('')}</div>` : '')
             + `<div class="vb-track"><div class="vb-band" style="left:${P(lo).toFixed(1)}%;width:${(P(hi) - P(lo)).toFixed(1)}%"></div>${pts.map(tick).join('')}<div class="vb-dot" style="left:${P(verd).toFixed(1)}%"></div></div>`
             + `<div class="vb-row vb-bot"${botAlt ? ' style="height:56px"' : ''}>${bot.map(lbl).join('')}</div></div>`;
+        }
+
+        // ── 🎯 Nákvæmni matsins á svæðinu: SAMA vél keyrð á hverja sölu sl. 6 mán út frá sölum á undan henni ──
+        // Enginn keppinautur birtir þetta. Sýnt aðeins þegar matið kom úr sölusögunni (r1) og ≥20 sölur voru
+        // metanlegar — nákvæmnis-tala úr 8 sölum er ekki tala. Engin fegrun: ef svæðið er erfitt sést það.
+        let nakvHtml = '';
+        if (r1 && sales && sales.length) {
+          const bk = bakprof(sales, { now: Date.now() });
+          if (bk) {
+            const pc = (x) => Math.round(x * 100) + '%';
+            const litur = bk.midgildi <= 0.08 ? '#42d086' : bk.midgildi <= 0.12 ? '#e8b84b' : '#ef6a6a';
+            nakvHtml = `<div class="fvm-nakv"><span class="fvm-nakv-b" style="background:${litur}"></span><div><b>🎯 Nákvæmni matsaðferðarinnar í póstnúmeri ${esc(pn)}</b> <i class="tip" tabindex="0" data-tip="Bakpróf: hver þinglýst sala síðustu 6 mánaða í póstnúmerinu er metin með NÁKVÆMLEGA sömu aðferð og matið hér að ofan — sambærilegar eignir sem seldust Á UNDAN henni — og borin saman við raunverulegt kaupverð. Talan lýsir því hvernig aðferðin stóð sig á þessu svæði nýlega, ekki hversu rétt þetta tiltekna mat er.">ⓘ</i><br>`
+              + `<span>Bakprófað á ${bk.n} sölum sl. 6 mán: miðgildisfrávik <b>${pc(bk.midgildi)}</b> frá raunverði · <b>${pc(bk.innan10)}</b> mata innan ±10% · ${pc(bk.innan20)} innan ±20%.</span></div></div>`;
+          }
         }
 
         // ── Leiga og ávöxtun (LOTA 75) — áætluð leiga + brúttó leiguávöxtun úr leiguskrá HMS ──
@@ -987,7 +1014,7 @@ const jsonLd = {
         fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)}${ibud ? ' · íbúð ' + esc(ibud) : ''} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${dIS(new Date().toISOString().slice(0, 10))} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
-          + barHtml + leigaHtml + matHtml + bodyHtml + byggHtml
+          + barHtml + nakvHtml + leigaHtml + matHtml + bodyHtml + byggHtml
           + `<div class="fvm-note">Áætlað markaðsvirði og verðbil byggir á opinberri kaupskrá HMS (þinglýst kaup) með tölfræðilegri nálgun — ekki fasteignamat og ekki verðmat löggilts fasteignasala. Ástand, hæð, útsýni, bílastæði og sérstaða eignar geta hliðrað verði verulega. Við hvetjum kaupendur og seljendur til að leita til fagaðila fyrir nákvæmara mat.</div></div>`;
 
         // eignaspjald flipar
