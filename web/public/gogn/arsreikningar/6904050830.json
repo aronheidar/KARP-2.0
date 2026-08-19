@@ -1,0 +1,129 @@
+{
+ "kt": "6904050830",
+ "nafn": "Selhóll byggingafélag ehf.",
+ "sott": "2026-08-19",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.1248,
+    "ebit_hlutfall": -0.0027,
+    "hagnadarhlutfall": -0.0261,
+    "ROE": -5.3642,
+    "ROA": -0.0125,
+    "eiginfjarhlutfall": 0.0023,
+    "veltufjarhlutfall": 0.0284,
+    "skuldahlutfall_DE": 428.9892,
+    "eignavelta": 0.4782
+   },
+   "rekstur": {
+    "sala": 404863395,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 354324529,
+    "laun": 148608129,
+    "annar_rekstur": 22794852,
+    "afskriftir": 8259262,
+    "ebit": -1093447,
+    "fjarmagnsgjold": -9468755,
+    "hagnadur": -10562202
+   },
+   "efnahagur": {
+    "fastafjarmunir": 28037053,
+    "vidskiptakrofur": 23781795,
+    "handbaert": 97740,
+    "veltufjarmunir": 818621071,
+    "eignir": 846658124,
+    "hlutafe": 500000,
+    "eigid_fe": 1969022,
+    "langtimaskuldir": 2645946,
+    "skammtimaskuldir": 842043156,
+    "skuldir": 844689102,
+    "efe_skuldir": 846658124
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.0538,
+    "ebit_hlutfall": -0.0088,
+    "hagnadarhlutfall": -0.0873,
+    "ROA": -0.0416,
+    "eiginfjarhlutfall": -0.0395,
+    "veltufjarhlutfall": 0.0725,
+    "eignavelta": 0.4764
+   },
+   "rekstur": {
+    "sala": 456970612,
+    "adrar_tekjur": 51264,
+    "kostnadarverd": 432374267,
+    "laun": 59296622,
+    "annar_rekstur": 10288920,
+    "afskriftir": 5976145,
+    "ebit": -4027601,
+    "fjarmagnsgjold": -35846819,
+    "hagnadur": -39874420
+   },
+   "efnahagur": {
+    "fastafjarmunir": 14617289,
+    "vidskiptakrofur": 43682375,
+    "handbaert": 28613926,
+    "veltufjarmunir": 944573274,
+    "eignir": 959190563,
+    "hlutafe": 500000,
+    "eigid_fe": -37905398,
+    "langtimaskuldir": 523275,
+    "skammtimaskuldir": 996572686,
+    "skuldir": 997095961,
+    "efe_skuldir": 959190563
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.019,
+    "ebit_hlutfall": -0.0086,
+    "hagnadarhlutfall": -0.0384,
+    "ROA": -0.4759,
+    "eiginfjarhlutfall": -0.9752,
+    "veltufjarhlutfall": 0.4909,
+    "eignavelta": 12.3983
+   },
+   "rekstur": {
+    "sala": 941312837,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 923401878,
+    "laun": 2490069,
+    "annar_rekstur": 6289396,
+    "afskriftir": 10565599,
+    "ebit": -8057082,
+    "fjarmagnsgjold": -28075957,
+    "hagnadur": -36133039
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1868522,
+    "vidskiptakrofur": 70916667,
+    "handbaert": 2693384,
+    "veltufjarmunir": 74054164,
+    "eignir": 75922686,
+    "hlutafe": 500000,
+    "eigid_fe": -74038437,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 149961123,
+    "skuldir": 149961123,
+    "efe_skuldir": 75922686
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6904050830.pdf",
+ "pdfAr": "2024"
+}

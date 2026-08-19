@@ -1,0 +1,72 @@
+{
+ "kt": "6211770289",
+ "nafn": "Handprjónasamband Íslands svf.",
+ "sott": "2026-08-19",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {},
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3749,
+    "ebit_hlutfall": 0.0307,
+    "hagnadarhlutfall": 0.0265,
+    "ROE": 0.0746,
+    "ROA": 0.057,
+    "eiginfjarhlutfall": 0.7644,
+    "veltufjarhlutfall": 3.7411,
+    "skuldahlutfall_DE": 0.3082,
+    "eignavelta": 2.1486
+   },
+   "rekstur": {
+    "sala": 825133633,
+    "adrar_tekjur": 17264387,
+    "kostnadarverd": 515769108,
+    "laun": 218528317,
+    "annar_rekstur": 62490517,
+    "afskriftir": 3000318,
+    "ebit": 25345373,
+    "fjarmunatekjur": 2163131,
+    "fjarmagnsgjold": -12469,
+    "hagn_f_skatt": 27289548,
+    "tekjuskattur": -5383349,
+    "hagnadur": 21906199
+   },
+   "efnahagur": {
+    "fastafjarmunir": 55766830,
+    "birgdir": 306894271,
+    "vidskiptakrofur": 10271945,
+    "handbaert": 10605596,
+    "veltufjarmunir": 328265019,
+    "eignir": 384031849,
+    "eigid_fe": 293557643,
+    "langtimaskuldir": 2860835,
+    "skammtimaskuldir": 87613371,
+    "skuldir": 90474206,
+    "efe_skuldir": 384031849
+   },
+   "starfsmenn": 4
+  }
+ },
+ "pdf": "pdf/6211770289.pdf",
+ "pdfAr": "2025"
+}

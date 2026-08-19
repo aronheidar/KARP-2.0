@@ -1,0 +1,112 @@
+{
+ "kt": "4807032350",
+ "nafn": "Dansport ehf.",
+ "sott": "2026-08-19",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4602,
+    "ebit_hlutfall": 0.0382,
+    "hagnadarhlutfall": 0.0256,
+    "ROE": 0.1049,
+    "ROA": 0.0616,
+    "eiginfjarhlutfall": 0.5874,
+    "veltufjarhlutfall": 0.0925,
+    "skuldahlutfall_DE": 0.7025,
+    "eignavelta": 2.4088
+   },
+   "rekstur": {
+    "sala": 751894613,
+    "kostnadarverd": 405843826,
+    "laun": 178870622,
+    "annar_rekstur": 134516037,
+    "ebit": 28737992,
+    "hagn_f_skatt": 21916104,
+    "hagnadur": 19230222
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11916093,
+    "eignir": 312150219,
+    "eigid_fe": 183350751,
+    "efe_skuldir": 312150219,
+    "skuldir": 128799468,
+    "skammtimaskuldir": 128799468
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4225,
+    "ebit_hlutfall": -0.0231,
+    "hagnadarhlutfall": -0.0387,
+    "ROE": -0.1813,
+    "ROA": -0.095,
+    "eiginfjarhlutfall": 0.5237,
+    "veltufjarhlutfall": 0.0594,
+    "skuldahlutfall_DE": 0.9095,
+    "eignavelta": 2.455
+   },
+   "rekstur": {
+    "sala": 727577035,
+    "kostnadarverd": 420191244,
+    "laun": 167622915,
+    "annar_rekstur": 153903883,
+    "ebit": -16823835,
+    "hagn_f_skatt": -28144851,
+    "hagnadur": -28144851
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 8384733,
+    "eignir": 296367862,
+    "eigid_fe": 155205900,
+    "efe_skuldir": 296367862,
+    "skuldir": 141161962,
+    "skammtimaskuldir": 141161962
+   },
+   "starfsmenn": 19
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4105,
+    "ebit_hlutfall": -0.0106,
+    "hagnadarhlutfall": -0.0187,
+    "ROE": -0.1644,
+    "ROA": -0.0505,
+    "eiginfjarhlutfall": 0.3071,
+    "veltufjarhlutfall": 0.0327,
+    "skuldahlutfall_DE": 2.2558,
+    "eignavelta": 2.7045
+   },
+   "rekstur": {
+    "sala": 741865069,
+    "kostnadarverd": 437343528,
+    "annar_rekstur": 159373006,
+    "afskriftir": 1382939,
+    "ebit": -7884007,
+    "hagnadur": -13853367
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6218974,
+    "eignir": 274306451,
+    "eigid_fe": 84252533,
+    "efe_skuldir": 274306451,
+    "skuldir": 190053918,
+    "skammtimaskuldir": 190053918
+   },
+   "starfsmenn": 17
+  }
+ },
+ "pdf": "pdf/4807032350.pdf",
+ "pdfAr": "2025",
+ "ocr": true
+}
