@@ -149,6 +149,15 @@ export const DIFFICULTY = {
   hard: { key: 'hard', label: 'Erfitt', band: 0.7, shock: 1.5, penalty: 1.4, leverCap: null, blurb: 'Kröfuhörð markmið, harðari áföll og þyngri refsing ef stjórnin fellur — fyrir lengra komna og aðra umferð.' },
 };
 export function difficultyOf(key) { return DIFFICULTY[key] || DIFFICULTY.medium; }
+
+// GAGNATÖF — „hagstjórn í þoku" (config.thoka): LEIKSTILLING, EKKI erfiðleikastig — valfrjáls rofi í fac-lobby eins og
+// surprise (sjálfgefið false, má sameina hvaða erfiðleikastigi sem er). Í þoku sér LIÐ í decide-fasa harðar KPI-tölur með
+// EINS KJÖRTÍMABILS TÖF (lota N-2) og enga framtíðarspá; um lotu N-1 aðeins fyrirsagnir, fylgi, stig og ÁTT per KPI.
+// Síunin sjálf er ÞJÓNS-MEGIN (server.mjs: thokaSia/thokaAttir) — hér aðeins merki + þröskuldar „stöðugt" fyrir áttina:
+//   %-stærðir (unit '%', '% VLF', 'pp' í baseline.outcomes: verðbólga/atvinnuleysi/hagvöxtur/kaupmáttur/skuldir …) |Δ| < 0,15
+//   vísitölur (unit '' — 100-grunnur: losun/fiskistofn/byggðajöfnuður/jöfnuður …)                                    |Δ| < 1
+// Minna en þröskuldur milli lotu N-2 og N-1 = „stöðugt", annars „upp"/„niður". Blurb rofans býr í handbook.mjs (THOKA_HANDBOOK).
+export const THOKA = { key: 'thoka', label: 'Gagnatöf — hagstjórn í þoku', icon: '🌫️', stodugtProsent: 0.15, stodugtVisitala: 1 };
 // Víkkar (létt) eða þrengir (erfitt) markmiða-bönd + zeroAt svo hallinn haldist hlutfallslegur.
 export function scaleMandate(mandate, bandMult) {
   if (!bandMult || bandMult === 1 || !mandate || !mandate.kpis) return mandate;

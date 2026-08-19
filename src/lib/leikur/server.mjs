@@ -1,12 +1,12 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
-import { DECISIONS, MANDATE, SCENARIO, ROUNDS, mandateFor, difficultyOf, scaleMandate } from './game-config.mjs';
+import { DECISIONS, MANDATE, SCENARIO, ROUNDS, YEAR_START, THOKA, mandateFor, difficultyOf, scaleMandate } from './game-config.mjs';
 import { resolveTeam } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildAnalytics, teamReview } from './analytics.mjs';
 import { validateGameConfig } from './game-validate.mjs';
 import { ROLES, mandateForRole, assignRoles, roleById, revealRoles } from './roles.mjs';
-import { govtStability } from './flavor.mjs';
+import { govtStability, newsHeadlines } from './flavor.mjs';
 import { POLICIES, policyAvailable, policyStatesMeta, policyStage, applyPolicies, policyDeltas, policyApproval, POLICY_POP, describePolicies } from './policies.mjs';
 import { awardMedals } from './medals.mjs';
 import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
@@ -44,7 +44,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
 // Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
 // sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
 // svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
@@ -60,6 +60,100 @@ async function lockBots(env, code, round, botIds) {
 function mandateAt(cfg, round) { return cfg.perRound ? mandateFor(round) : cfg.mandate; }
 const LEVER_LABELS = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.label]));
 const LEVER_BASE = Object.fromEntries(Object.entries(BASELINE.levers).map(([k, v]) => [k, v.base]));
+
+// ── GAGNATÖF — „hagstjórn í þoku" (config.thoka) ─────────────────────────────────────────────────────────────────
+// Leikstilling (EKKI erfiðleikastig): LIÐ í decide-fasa lotu N sér harðar KPI-tölur með EINS KJÖRTÍMABILS TÖF — nýjasta
+// „birta" lotan er N-2 („Hagstofan birtir með töf") — og enga framtíðarspá. Um lotu N-1 fær liðið AÐEINS: fyrirsagnir
+// (newsHeadlines), fylgi/stjórnarstöðugleika, stig lotunnar (stigataflan helst — keppnin þarf hana) og ÁTT per KPI.
+// ÖRYGGISREGLA: síunin er ÞJÓNS-MEGIN (hér, á /state-svarinu) — client fær ALDREI N-1 tölurnar til að „fela" þær
+// (annars lækju þær í devtools). Allt sem client þarf til að teikna þoku-sýn er sent ÚTREIKNAÐ (áttir, merki, fyrirsagnir).
+// AFMÖRKUN (meðvituð): lifandi FORSKOÐUN í decide (simulate úr sleðum) keyrir í vafranum úr BASELINE/LINKS sem eru
+// client-megin hvort eð er — snjall notandi getur reiknað spágildin í console. Það er ÁSÆTTANLEGT: það er æfing fyrir
+// hann, ekki leki á leyndum gögnum (engin uppgjörs-tala liggur þar). Client birtir forskoðunina sem „ráðgjafar-mat"
+// (átt+styrkur) án talna. Leikstjóri (fac-tákn) sér ALLT alltaf; results-/ended-fasi ALLRA (lið+watch) er ÓSÍAÐUR — hörðu
+// tölurnar koma í ljós VIÐ UPPGJÖR (afhjúpunin/kennslustundin). Stigagjöf + engine ÓSNERT: þetta er síun á sendingu.
+// WATCH (tákn-laust /state, skjávarpa-sýn) er í decide-fasa þoku-leiks SÍAÐ EINS OG LIÐ (teamId:null → ÖLL lið adeinsStig
+// í kpiHistory, kort N-2 allra, surprise.effect falið, thoka-blokk AÐEINS {on, birtLota, birtAr} — engar áttir/fyrirsagnir/
+// stig per lið). Ástæða: lið sem þekkir leikkóðann gat opnað watch-sýnina í öðrum flipa og séð N-1 tölurnar (rýni-gat,
+// LOKAÐ) — nú sér hópurinn á skjávarpanum NÁKVÆMLEGA það sama og liðin meðan ákveðið er, tölurnar birtast við uppgjör.
+// ANDSTÆÐINGS-RÝNI (leka-leit, sjá server.test.mjs „ANDSTÆÐINGS-RÝNI"): ÖLL óheil talnagildi úr FULLU uppgjöri N-1
+// (kpis/perKpi/policyDeltas/crisis, beggja liða) leituð í JSON liðs- OG watch-state decide lotu 2/3/4 (studio/classic/roles)
+// → 0 fundin; þoku-laus tvíburi: fac-state í öllum fösum + results-state liðs/watch IDENTICAL (utan code/thokaOn).
+// ÞEKKT AFMÖRKUN (hönnunar-ákvörðun, EKKI lagað):
+//  · Results-fasi lotu N-1 SÝNDI liðinu N-1 tölurnar (afhjúpunin) — þokan í decide N felur það sem liðið sá lotu fyrr
+//    (skjáskot/minni); hún kemur í veg fyrir að tölurnar séu Á SKJÁNUM meðan ákveðið er, ekki að liðið hafi séð þær.
+// Vísitölu-KPI (unit '' í baseline.outcomes) fá þröskuld THOKA.stodugtVisitala (1), aðrar (%, % VLF, pp) THOKA.stodugtProsent (0,15).
+const THOKA_VISITOLUR = new Set(Object.entries(BASELINE.outcomes).filter(([, v]) => !v.unit).map(([k]) => k));
+
+/** ÁTT per KPI milli lotu N-2 (prevPrevKpis) og N-1 (prevKpis) + staða gagnvart markmiði lotu N-1 — án talna.
+ *  Skilar { kpi: { att: 'upp'|'nidur'|'stodugt'|null, vs_markmid: 'yfir'|'undir'|'innan'|null } } fyrir hvern tölu-KPI í
+ *  prevKpis; att=null ef N-2 vantar fyrir þann KPI, vs_markmid=null ef KPI er ekki í goalSpecs. „stöðugt" = |Δ| < 0,15
+ *  fyrir %-stærðir, < 1 fyrir vísitölur (opts.visitolur = Set af vísitölu-lyklum; sjálfgefið úr baseline.outcomes.unit).
+ *  goalSpecs = mandate.kpis-fylki (eða {key: spec}-kort): target/band, max/band eða min/band — „innan" = innan bands. */
+export function thokaAttir(prevKpis, prevPrevKpis, goalSpecs, opts = {}) {
+  if (!prevKpis || typeof prevKpis !== 'object') return null;
+  const specs = Array.isArray(goalSpecs) ? goalSpecs : Object.values(goalSpecs || {});
+  const specOf = {}; for (const sp of specs) if (sp && sp.key) specOf[sp.key] = sp;
+  const visit = opts.visitolur instanceof Set ? opts.visitolur : THOKA_VISITOLUR;
+  const fin = (x) => typeof x === 'number' && Number.isFinite(x);
+  const out = {};
+  for (const k of Object.keys(prevKpis)) {
+    const v = prevKpis[k]; if (!fin(v)) continue;
+    const pv = (prevPrevKpis && fin(prevPrevKpis[k])) ? prevPrevKpis[k] : null;
+    let att = null;
+    if (pv != null) { const d = v - pv, thr = visit.has(k) ? THOKA.stodugtVisitala : THOKA.stodugtProsent; att = Math.abs(d) < thr ? 'stodugt' : (d > 0 ? 'upp' : 'nidur'); }
+    let vs = null; const sp = specOf[k];
+    if (sp) { const band = sp.band || 0;
+      if (sp.dir === 'target' && fin(sp.target)) vs = Math.abs(v - sp.target) <= band ? 'innan' : (v > sp.target ? 'yfir' : 'undir');
+      else if (sp.dir === 'max' && fin(sp.max)) vs = v <= sp.max + band ? 'innan' : 'yfir';
+      else if (sp.dir === 'min' && fin(sp.min)) vs = v >= sp.min - band ? 'innan' : 'undir'; }
+    out[k] = { att, vs_markmid: vs };
+  }
+  return out;
+}
+
+/** Síar /state-svar LIÐS (eða WATCH, teamId:null) í decide-fasa lotu N skv. þoku-hönnun; skilar SÍUÐU AFRITI (out ósnert).
+ *  ctx = { teamId (null = watch/tákn-laust), round: N, rows: [{round, teamId, d: <uppgjörs-detail>, roundScore, cumulative}]
+ *         (ÖLL lið, úr leikur_results), goalSpecs: mandate.kpis lotu N-1 (f. vs_markmid), arLotu?: (lota) => upphafsár kjörtímabils }.
+ *  Síað (N-1 harðar tölur fara ALDREI út):
+ *   · kpiHistory: eigið lið klippt við N-2 (tof:true, birtLota); önnur lið AÐEINS {round, score, cumulative} (engin KPI)
+ *   · kort: ÖLL lið → uppgjör N-2 (tof:true); lið án N-2 sleppt (kortið er „opinbert" — í þoku er það birta kortið)
+ *   · policyBadges[].deltas → deltas N-2 (eða null) + tof:true/deltaLota · carryover.policies[].deltas → null + carryover.thoka
+ *   · surprise.effect + dilemma.options[].effect → null + surprise.thoka (atvikið sést, áhrifin ekki)
+ *   · finalPerKpi → perKpi N-2 (eða []) · medals → reiknuð á lotum ≤ N-2 (leikslok-svið sem server reiknar í öllum fösum)
+ *   · out.thoka = { on, birtLota, birtAr, attir, fyrirsagnir, stodugleiki, stig } (lota 1–2: birtLota/attir null → „Engar hagtölur birtar enn")
+ *  WATCH (teamId null): „eigið lið" er ekkert → ÖLL lið adeinsStig, kort N-2 allra, thoka-blokk = {on, birtLota, birtAr} + attir/
+ *  fyrirsagnir/stodugleiki/stig null (engin per-liðs þoku-gögn á skjávarpa — client sýnir aðeins borðann). Sama sía, ekkert sér-tilvik.
+ *  ÓSNERT: teams/trajectory (stig), decisionMarks/eventChoices/policies/history/draft (ákvarðanir), stjornarkreppa/avgApproval (fylgi). */
+export function thokaSia(out, ctx = {}) {
+  const N = +ctx.round || 0, teamId = ctx.teamId ?? null, rows = Array.isArray(ctx.rows) ? ctx.rows : [];
+  const birt = N - 2 >= 1 ? N - 2 : null;                                    // nýjasta „birta" lotan (Hagstofu-töf)
+  const rowOf = (tid, r) => (tid == null) ? null : (rows.find((x) => x.teamId === tid && x.round === r) || null);
+  const my1 = rowOf(teamId, N - 1), my2 = birt ? rowOf(teamId, birt) : null; // watch (teamId null) → engin „eigin" röð
+  const d1 = my1 ? (my1.d || {}) : null, d2 = my2 ? (my2.d || {}) : null;
+  const o = { ...out };                                                     // grunnt afrit; síuð svið endursmíðuð, aldrei in-place
+  if (Array.isArray(out.kpiHistory)) o.kpiHistory = out.kpiHistory.map((t) => (teamId != null && t.teamId === teamId)
+    ? { teamId: t.teamId, name: t.name, tof: true, birtLota: birt, rounds: (t.rounds || []).filter((r) => birt != null && r.round <= birt) }
+    : { teamId: t.teamId, name: t.name, adeinsStig: true, rounds: rows.filter((x) => x.teamId === t.teamId).sort((a, b) => a.round - b.round).map((x) => ({ round: x.round, score: x.roundScore, cumulative: x.cumulative })) });
+  if (Array.isArray(out.kort)) o.kort = out.kort.map((k) => {
+    const r = birt ? rowOf(k.teamId, birt) : null; if (!r) return null;
+    const kk = (r.d || {}).kpis || {};
+    return { teamId: k.teamId, round: birt, tof: true, kpis: { byggdajofnudur: kk.byggdajofnudur ?? null, fiskistofn: kk.fiskistofn ?? null, losun: kk.losun ?? null }, policies: (r.d || {}).policies || {} };
+  }).filter(Boolean);
+  if (Array.isArray(out.policyBadges)) { const dl = (d2 && d2.policyDeltas) || null; o.policyBadges = out.policyBadges.map((b) => { const dd = (dl && dl[b.id]) || null; return { ...b, tof: true, deltas: dd, deltaLota: dd ? birt : null }; }); }
+  if (out.carryover) o.carryover = { ...out.carryover, thoka: true, policies: (out.carryover.policies || []).map((p) => ({ ...p, deltas: null })) };
+  if (out.surprise) o.surprise = { ...out.surprise, thoka: true, effect: null, dilemma: out.surprise.dilemma ? { ...out.surprise.dilemma, options: (out.surprise.dilemma.options || []).map((op) => ({ ...op, effect: null })) } : null };
+  if (out.finalPerKpi !== undefined) o.finalPerKpi = (d2 && Array.isArray(d2.perKpi)) ? d2.perKpi : [];
+  if (out.medals !== undefined) o.medals = awardMedals(rows.filter((x) => x.teamId === teamId && birt != null && x.round <= birt).map((x) => ({ round: x.round, kpis: (x.d || {}).kpis || {}, roundScore: x.roundScore, stability: (x.d || {}).stability, policies: (x.d || {}).policies, crisis: (x.d || {}).crisis })));
+  const k1 = (d1 && d1.kpis) || null, k2 = (d2 && d2.kpis) || null, st1 = (d1 && d1.stability) || null;
+  const ar = typeof ctx.arLotu === 'function' ? ctx.arLotu : ((r) => YEAR_START + (r - 1) * 4);
+  o.thoka = { on: true, birtLota: birt, birtAr: birt ? ar(birt) : null,
+    attir: (k1 && k2) ? thokaAttir(k1, k2, ctx.goalSpecs) : null,
+    fyrirsagnir: k1 ? newsHeadlines(k1) : null,
+    stodugleiki: st1 ? { approval: (typeof st1.approval === 'number') ? st1.approval : null, level: st1.level || null, fell: st1.level === 'revolt' } : null,
+    stig: my1 ? { lota: N - 1, roundScore: my1.roundScore, cumulative: my1.cumulative } : null };
+  return o;
+}
 
 export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAdmin: false, nemandi: false, leikstjori: false }) {
   if (!env.TENGSL) return sjson({ error: 'no-d1' }, 503);
@@ -94,6 +188,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cb && +cb.timerSec > 0) config.timerSec = Math.max(30, Math.min(3600, Math.round(+cb.timerSec))); // #3 valfrjáls umferðar-klukka (sek)
     if (cb && ['easy', 'hard'].includes(cb.difficulty)) config.difficulty = cb.difficulty; // Fasi E: erfiðleikastig (medium=sjálfgefið)
     if (cb && cb.surprise) config.surprise = true; // Fasi „skemmtun 3": óvænt atvik + klemmu-spjöld (valfrjálst)
+    if (cb && (cb.thoka === true || cb.thoka === 'true' || cb.thoka === 1)) config.thoka = true; // Gagnatöf „hagstjórn í þoku" (valfrjáls leikstilling; sjá thokaSia) — aðeins skýrt JÁ kveikir, allt annað = false
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -178,6 +273,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
+    out.thokaOn = cfg.thoka; // Gagnatöf: er leikurinn í þoku? (allir áhorfendur — fac-stillingaspjald/liðs-merki; síunin sjálf er neðst: lið+watch í decide, fac aldrei)
     out.leverCap = difficultyOf(cfg.difficulty).leverCap || null; // Pólitískt vald: hámark virkra sleða (Erfitt)
     // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt).
     // F1-V2: áhrifa-tölur (effect á atviki + klemmu-kostum) SENDAR MEÐ — meðvituð stefnubreyting frá „engar tölur", endurgjöfin 31.7 bað um þær.
@@ -375,6 +471,20 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
           }).filter((x) => x.items.length);
         }
       }
+    }
+    // GAGNATÖF („hagstjórn í þoku", config.thoka): í decide-fasa fær ALLT NEMA FAC-TÁKN SÍAÐ svar — harðar KPI-tölur lotu N-1
+    // fara ALDREI út (þjóns-megin sía, sjá thokaSia). LIÐ: eigin sía (teamId). WATCH (ekkert tákn / tákn annars leiks):
+    // sama sía með teamId:null — lokar rýni-gatinu „lið opnar watch-sýnina í öðrum flipa og sér N-1 tölurnar".
+    // Fac (leikstjóri) + results/ended-fasi allra: ÓSNERT.
+    const thokaTeam = !!(you && you.role === 'team' && you.code === code), thokaFac = !!(you && you.role === 'fac' && you.code === code);
+    if (cfg.thoka && game.phase === 'decide' && !thokaFac) {
+      const N = game.current_round;
+      const rows = resultsRaw.map((r) => { let d = {}; try { d = JSON.parse(r.kpis || '{}'); } catch (e) {} return { round: r.round, teamId: r.team_id, d, roundScore: r.round_score, cumulative: r.cumulative }; });
+      // Markmiðin sem tölur lotu N-1 voru dæmdar eftir (sama skölun/hlutverk og í uppgjöri) → vs_markmid í áttum (aðeins lið; watch fær engar áttir).
+      let prevMandate = (thokaTeam && N >= 2) ? scaleMandate(mandateAt(cfg, N - 1), difficultyOf(cfg.difficulty).band) : null;
+      if (prevMandate && cfg.roles && cfg.roleMap) { const rl = roleById(cfg.roleMap[you.teamId]); if (rl) prevMandate = mandateForRole(prevMandate, rl); }
+      const arLotu = (r) => { const y = (cfg.scenario.events[r - 1] || {}).year; return (typeof y === 'number') ? y : YEAR_START + (r - 1) * 4; };
+      return sjson(thokaSia(out, { teamId: thokaTeam ? you.teamId : null, round: N, rows, goalSpecs: prevMandate ? prevMandate.kpis : [], arLotu }));
     }
     return sjson(out);
   }

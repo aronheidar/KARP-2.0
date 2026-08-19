@@ -406,4 +406,42 @@ const MODEL = {
     main[data-pg="leikur"] .lk-onb-hl { animation: none; box-shadow: 0 0 0 4px rgba(246,177,59,.28); }
     main[data-pg="leikur"] #lk-onb-host .lk-onb { animation: none; }
   }
+  /* ÞOKA — „Hagstjórn í þoku" (client.mjs: thokaBanner/thokaPastCard/thokaChip/thokaTile + forskoðun í þoku).
+     is:global því allt er innerHTML úr client.mjs. Mjúk gráblá rönd (#8ca0c8) = litur þokunnar; áttaflísar með pílum;
+     borðinn hefur hægt gradient-rek (þoku-hreyfing) — prefers-reduced-motion slekkur á því. */
+  main[data-pg="leikur"] .lk-thoka-banner { background: linear-gradient(90deg, rgba(140,160,200,.20), rgba(140,160,200,.05), rgba(140,160,200,.18)); background-size: 200% 100%; border: 1px solid #8ca0c866; border-left: 4px solid #8ca0c8; border-radius: 10px; padding: 9px 14px; margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: #cbd5e6; animation: lk-thoka-drift 16s ease-in-out infinite alternate; }
+  main[data-pg="leikur"] .lk-thoka-banner.lk-thoka-fac { margin: 0 0 8px; font-size: 13px; }
+  @keyframes lk-thoka-drift { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+  main[data-pg="leikur"] .lk-term-badge.lk-thoka-badge { color: #cbd5e6; background: rgba(140,160,200,.18); margin-left: 6px; cursor: help; }
+  main[data-pg="leikur"] .lk-thoka-past { border-color: #8ca0c855; background: linear-gradient(180deg, rgba(140,160,200,.10), rgba(255,255,255,.02)); }
+  main[data-pg="leikur"] .lk-thoka-h2s { font-size: 12px; font-weight: 400; margin-left: 6px; }
+  main[data-pg="leikur"] .lk-thoka-pop { margin-top: 10px; }
+  main[data-pg="leikur"] .lk-thoka-fell { margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: rgba(231,130,132,.14); border-left: 3px solid #e78284; font-size: 12.5px; color: #f2a6a8; }
+  main[data-pg="leikur"] .lk-thoka-attir { margin-top: 10px; }
+  main[data-pg="leikur"] .lk-thoka-h { font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+  main[data-pg="leikur"] .lk-thoka-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  main[data-pg="leikur"] .lk-thoka-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; background: rgba(140,160,200,.12); border: 1px solid #3a4152; color: #cbd5e6; }
+  main[data-pg="leikur"] .lk-thoka-chip.g { background: rgba(66,208,134,.12); border-color: #42d08655; }
+  main[data-pg="leikur"] .lk-thoka-chip.r { background: rgba(231,130,132,.12); border-color: #e7828455; }
+  main[data-pg="leikur"] .lk-thoka-pil { font-weight: 800; font-size: 15px; line-height: 1; min-width: 12px; text-align: center; }
+  main[data-pg="leikur"] .lk-thoka-chip.g .lk-thoka-pil { color: #7fe0ab; }
+  main[data-pg="leikur"] .lk-thoka-chip.r .lk-thoka-pil { color: #f0a3a5; }
+  main[data-pg="leikur"] .lk-thoka-chip-l { font-weight: 700; }
+  main[data-pg="leikur"] .lk-thoka-chip-t { color: var(--muted, #9fb0c8); font-size: 12px; }
+  main[data-pg="leikur"] .lk-thoka-fine { font-size: 12.5px; margin: 4px 0 0; }
+  main[data-pg="leikur"] .lk-thoka-stig { font-size: 13px; margin: 8px 0 0; }
+  /* forskoðun í þoku: ráðgjafa-mat í stað mælis/markmiða/grafa */
+  main[data-pg="leikur"] .lk-thoka-gauge { border-color: #8ca0c855; }
+  main[data-pg="leikur"] .lk-thoka-gauge-ic { flex: 0 0 auto; width: 96px; text-align: center; font-size: 54px; line-height: 1; filter: saturate(.6); }
+  main[data-pg="leikur"] .lk-thoka-goals { border-color: #8ca0c855; }
+  main[data-pg="leikur"] .lk-thoka-tile { border: 1px solid #3a4152; border-left: 3px solid #8ca0c8; border-radius: 8px; padding: 8px 10px; background: rgba(140,160,200,.06); cursor: help; }
+  main[data-pg="leikur"] .lk-thoka-tile.g { border-left-color: #54d08a; }
+  main[data-pg="leikur"] .lk-thoka-tile.r { border-left-color: #e78284; }
+  main[data-pg="leikur"] .lk-thoka-pilar { font-size: 17px; letter-spacing: -1px; line-height: 1; }
+  main[data-pg="leikur"] .lk-thoka-tile-s { font-size: 13px; font-weight: 700; margin: 3px 0 4px; }
+  main[data-pg="leikur"] .lk-thoka-heat .lk-heat-tile b { font-size: 15px; letter-spacing: -1px; }
+  main[data-pg="leikur"] .lk-thoka-tag { display: inline-block; font-size: 11px; font-weight: 700; background: rgba(140,160,200,.18); border: 1px solid #8ca0c866; color: #cbd5e6; border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
+  main[data-pg="leikur"] .lk-thoka-fx { font-size: 11.5px; color: var(--muted, #9fb0c8); font-style: italic; }
+  main[data-pg="leikur"] .lk-opt-fx.lk-thoka-fx { display: block; margin-top: 2px; }
+  @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .lk-thoka-banner { animation: none; } }
 </style>

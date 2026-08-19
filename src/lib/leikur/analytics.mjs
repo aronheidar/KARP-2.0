@@ -1,4 +1,5 @@
 // Þver-liða greining fyrir leikstjóra-mælaborð. HREINT (engin env/D1/vél).
+import { THOKA_HANDBOOK } from './handbook.mjs'; // hrein gagna-eining (þoku-debrief-spurningar f. teachingPrompts)
 function optLabelFor(decId, optKey, decisionsConfig, scenario, round) {
   if (decId === 'vidbragd') { const ev = scenario.events[round - 1]; const o = ev && (ev.responses || []).find((r) => r.key === optKey); return o ? o.label : (optKey || '—'); }
   const d = decisionsConfig.find((x) => x.id === decId); const o = d && (d.options || []).find((x) => x.key === optKey); return o ? o.label : (optKey || '—');
@@ -40,7 +41,10 @@ export function buildAnalytics({ history, decisions, teams, mandate, decisionsCo
 
 // #6 Kennslu-vísbendingar: 3–5 umræðu-spurningar úr greiningar-mynstrum (fyrir leikstjóra). HREINT.
 // an = buildAnalytics-úttak. scenarioEvents = [{round,icon,title}] (til að nefna kjörtímabil).
-export function teachingPrompts(an, { scenarioEvents = [] } = {}) {
+// thoka = leikurinn var spilaður í „Hagstjórn í þoku" (config.thoka) → tvær þoku-debrief-spurningar úr
+// THOKA_HANDBOOK FREMST (þær eru kjarni umferðarinnar og mega ekki detta út við 8-þakið). Kallandi (client:
+// renderFacAnalytics / prent-skýrsla) réttir flaggið úr st.config.thoka — analytics sér ekki leik-stöðuna sjálft.
+export function teachingPrompts(an, { scenarioEvents = [], thoka = false } = {}) {
   if (!an || !an.scorecard || !an.scorecard.length) return [];
   const out = [];
   // Liðs-nöfn eru notanda-innslegin → escape áður en flétt í <b> (XSS-vörn); KPI/atburða-heiti líka til öryggis.
@@ -48,6 +52,12 @@ export function teachingPrompts(an, { scenarioEvents = [] } = {}) {
   const evTitle = (r) => { const e = scenarioEvents.find((x) => x.round === r); return esc(e ? e.title : ('umferð ' + r)); };
   const sc = an.scorecard, first = sc[0];
   const scoreAt = (row, key) => { const p = (row.perKpi || []).find((x) => x.key === key); return p ? p.score : null; };
+
+  // 0) Þoka: liðin ákváðu án talna (N-1 falið, engin spá) — umræðan á að byrja þar.
+  if (thoka) {
+    const q = THOKA_HANDBOOK.debrief_spurningar || [];
+    for (const s of q.slice(0, 2)) out.push('🌫️ <b>Í þoku:</b> ' + esc(s));
+  }
 
   // 1) Mesta dreifing milli liða í einu markmiði (núverandi umferð)
   if (sc.length >= 2 && first && first.perKpi) {

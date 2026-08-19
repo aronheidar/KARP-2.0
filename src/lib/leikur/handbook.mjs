@@ -79,3 +79,26 @@ export const HANDBOOK = [
 ];
 
 export function handbookFor(round) { return HANDBOOK.find((h) => h.round === round) || null; }
+
+// „HAGSTJÓRN Í ÞOKU" (config.thoka) — kennslu-rök + leikstjóra-texti fyrir leikstillinguna þar sem liðin sjá
+// hörðu hagtölurnar með eins kjörtímabils töf og enga KPI-spá í decide-fasa (þjóns-síun í /state; uppgjörið afhjúpar).
+// Stigagjöf og vél eru ÓBREYTT — þetta er birtingar-síun, ekki erfiðleikastig. Leikstjóri (fac-tákn) sér allt; áhorfenda-
+// sýnin (skjávarpi, tákn-laust) er í decide SÍUÐ eins og liðin (kort N-2, engar N-1 tölur) svo lið geti ekki lesið tölurnar þar.
+// ⚠ Afmörkun: „ráðgjafa-matið" (átt+styrkur) er reiknað í vafranum úr sleðunum (BASELINE/LINKS eru client-side) —
+// snjall notandi getur reiknað spágildin í console. Það er ÁSÆTTANLEGT: það er æfing fyrir hann, ekki leki á
+// leyndum gögnum; hörðu N-1-tölurnar fara hins vegar ALDREI úr þjóninum í þoku.
+export const THOKA_HANDBOOK = {
+  heiti: 'Hagstjórn í þoku',
+  // Stutti blurb-inn við rofann í fac-lobby (sama texti og í client — ein uppspretta).
+  blurb: 'Liðin sjá hagtölur með eins kjörtímabils töf og enga framtíðarspá — eins og raunverulegir stjórnmálamenn. Mælt með í annarri umferð.',
+  hvers_vegna: 'Raunverulegir ráðherrar sjá hagkerfið aldrei í rauntíma: Hagstofan birtir fyrstu (bráðabirgða-)tölur þjóðhagsreikninga fyrir ársfjórðung jafnan um tveimur mánuðum eftir lok hans og endurskoðar þær síðan, oft í nokkur ár — fyrstu tölur um hrunárið 2008 breyttust margoft eftir á. Töfin er þó misjöfn eftir stærðum: vísitala neysluverðs og skráð atvinnuleysi mælast mánaðarlega nær tafarlaust, en hagvöxtur, afkoma og viðskiptajöfnuður berast seint og breytast eftir á — leikurinn einfaldar og lætur töfina ná yfir allar stærðir, og „eitt kjörtímabil" er stílfærð ýkja, ekki raun-töf. Spár Seðlabankans og annarra eru birtar með breiðum óvissubilum, og „nowcasting"-líkön eru tilraun til að giska á stöðu dagsins úr hraðari merkjum (kortaveltu, atvinnuleysisskráningu, væntingavísitölum). Í grunnstillingu gefur leikurinn liðunum fullkomna framsýn — lifandi spágildi áður en þau læsa — sem er kennslufræðilega gagnlegt í fyrstu umferð (liðin læra hvaða sleðar hreyfa hvað) en óraunsætt; þokan tekur hækjuna burt og kennir að stjórna eftir merkjum, ekki tölum.',
+  hvenaer: 'Í annarri umferð sama hóps, eða með lengra komnum (hagfræðinemum, stjórnendum sem hafa spilað áður). EKKI í fyrstu spilun og EKKI saman með Erfitt í fyrsta skipti — þá er óvissan tvöföld og liðin læra lítið af hvorugu. Best reynist: fyrsta umferð með fullri sýn, önnur umferð í þoku, og debrief sem ber saman ákvarðanatökuna í umferðunum tveimur.',
+  hvad_ad_segja_hopnum: 'Í þessari umferð sjáið þið hagtölurnar eins og ríkisstjórn sér þær í alvöru — með töf: hörðu tölurnar sem þið fáið eru frá kjörtímabilinu á undan því síðasta, og um síðasta kjörtímabil hafið þið aðeins fyrirsagnir, fylgi, stig og átt hverrar stærðar. Spáin ykkar er horfin; í staðinn fáið þið ráðgjafa-mat sem segir í hvaða átt hlutirnir stefna, ekki hvar þeir lenda. Tölurnar koma í ljós við uppgjörið — þá sjáið þið hvernig staðan var í raun og hvort þið lásuð merkin rétt.',
+  debrief_spurningar: [
+    'Hvernig breyttist ákvarðanatakan þegar þið sáuð ekki tölurnar — urðuð þið varkárari, djarfari eða bara hægari?',
+    'Treystuð þið fyrirsögnunum? Leiddu þær ykkur einhvern tíma afvega — og hvenær var fylgið betra merki en fréttirnar?',
+    'Hvaða merki hefðuð þið viljað hafa til viðbótar — og hvað af því er raunverulega til í rauntíma (kortavelta, atvinnuleysisskráning, væntingavísitölur) og hvað ekki?',
+    'Er fylgið betri eða verri mælikvarði en verðbólgan þegar þú ert í þoku — og hvað gerist með hagstjórn sem eltir fylgið?',
+    'Hvað segir þetta um raunverulega hagstjórn 2008 — hversu mikið af því sem virðist augljóst eftir á var í raun sjáanlegt í rauntíma, með þeim tölum sem þá lágu fyrir?',
+  ],
+};

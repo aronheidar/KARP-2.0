@@ -550,6 +550,229 @@ const J = async (res) => JSON.parse(await res.text());
     ok('erase: GET /<code>/erase → ekki meðhöndlað (400 bad-request)', (await LH(new Request('https://karp.is/api/leikur/' + g3.code + '/erase', { headers: { authorization: 'Bearer ' + g3.facToken } }), eenv)).status === 400);
   }
 
+  // ── GAGNATÖF „hagstjórn í þoku" (config.thoka): þjóns-megin síun á /state LIÐS í decide — thokaAttir/thokaSia + handler ──
+  {
+    const { thokaAttir, thokaSia } = await import('./server.mjs');
+    const { GOAL_SPECS } = await import('./game-config.mjs');
+    // thokaAttir (hreint): áttir m. þröskuldum (%: 0,15 · vísitala: 1) + vs_markmid (target/max/min, innan = innan bands)
+    const at = thokaAttir(
+      { verdbolga: 4.0, hagvoxtur: 1.9, atvinnuleysi: 3.0, losun: 104.5, fiskistofn: 99.0, kaupmattur: 2.0, skuldir: 41 },
+      { verdbolga: 3.0, hagvoxtur: 2.0, atvinnuleysi: 5.0, losun: 104.0, fiskistofn: 101.0, kaupmattur: 2.1 },
+      [GOAL_SPECS.verdbolga, GOAL_SPECS.atvinnuleysi, GOAL_SPECS.hagvoxtur, GOAL_SPECS.fiskistofn, GOAL_SPECS.losun]);
+    ok('thokaAttir: %-stærð Δ+1,0 → upp; Δ−0,1 (<0,15) → stodugt; Δ−2 → nidur', at.verdbolga.att === 'upp' && at.hagvoxtur.att === 'stodugt' && at.atvinnuleysi.att === 'nidur');
+    ok('thokaAttir: vísitala Δ+0,5 (<1) → stodugt; Δ−2 → nidur', at.losun.att === 'stodugt' && at.fiskistofn.att === 'nidur');
+    ok('thokaAttir: vs_markmid target yfir (4,0 vs 2,5±0,8) · max innan (3,0 ≤ 4,0+0,6) · min innan (1,9 ≥ 2,2−0,6) · min undir (99 < 101−1)', at.verdbolga.vs_markmid === 'yfir' && at.atvinnuleysi.vs_markmid === 'innan' && at.hagvoxtur.vs_markmid === 'innan' && at.fiskistofn.vs_markmid === 'undir');
+    ok('thokaAttir: max yfir (losun 104,5 > 94+2) · KPI utan goalSpecs → vs_markmid null · KPI án N-2 → att null', at.losun.vs_markmid === 'yfir' && at.kaupmattur.vs_markmid === null && at.skuldir.att === null && at.skuldir.vs_markmid === null);
+    ok('thokaAttir: ENGAR tölur í svarinu (aðeins att/vs_markmid-strengir)', Object.values(at).every((x) => Object.keys(x).length === 2 && ['upp', 'nidur', 'stodugt', null].includes(x.att) && ['yfir', 'undir', 'innan', null].includes(x.vs_markmid)));
+    ok('thokaAttir: goalSpecs sem kort + opts.visitolur yfirtekur þröskuld', (() => { const r = thokaAttir({ verdbolga: 2.6 }, { verdbolga: 2.0 }, { verdbolga: GOAL_SPECS.verdbolga }, { visitolur: new Set(['verdbolga']) }); return r.verdbolga.att === 'stodugt' && r.verdbolga.vs_markmid === 'innan'; })());
+    ok('thokaAttir: prevKpis vantar → null; prevPrev null → allar áttir null', thokaAttir(null, {}, []) === null && thokaAttir({ verdbolga: 3 }, null, []).verdbolga.att === null);
+    // thokaSia (hreint): síað AFRIT — inntak ósnert, annarra liða kpiHistory aðeins stig, N-2 klipping, áhrif falin
+    const sOut = { phase: 'decide', round: 3, kpiHistory: [{ teamId: 1, name: 'A', rounds: [{ round: 1, verdbolga: 1.11 }, { round: 2, verdbolga: 2.22 }] }, { teamId: 2, name: 'B', rounds: [{ round: 1, verdbolga: 3.33 }, { round: 2, verdbolga: 4.44 }] }],
+      kort: [{ teamId: 1, round: 2, kpis: { losun: 102.5, fiskistofn: 99.5, byggdajofnudur: 98.5 }, policies: { esb: true } }, { teamId: 2, round: 2, kpis: { losun: 103.5, fiskistofn: 99.5, byggdajofnudur: 98.5 }, policies: {} }],
+      policyBadges: [{ id: 'verdtrygging', deltas: { kaupmattur: 0.77 } }], carryover: { policies: [{ id: 'verdtrygging', text: 't', deltas: { kaupmattur: 0.77 } }], event: null },
+      surprise: { id: 'e', title: 'T', effect: { verdbolga: 0.9 }, dilemma: { q: 'Q', options: [{ key: 'a', label: 'A', effect: { skuldir: 1 } }] } }, finalPerKpi: [{ key: 'verdbolga', value: 2.22 }], medals: [{ icon: 'x' }] };
+    const sRows = [
+      { round: 1, teamId: 1, d: { kpis: { verdbolga: 1.11, losun: 101.5, fiskistofn: 100.5, byggdajofnudur: 99.5 }, perKpi: [{ key: 'verdbolga', value: 1.11 }], policyDeltas: { verdtrygging: { kaupmattur: 0.55 } }, stability: { approval: 61, level: 'stable' }, policies: { verdtrygging: true } }, roundScore: 80, cumulative: 80 },
+      { round: 2, teamId: 1, d: { kpis: { verdbolga: 2.22, losun: 102.5 }, perKpi: [{ key: 'verdbolga', value: 2.22 }], policyDeltas: { verdtrygging: { kaupmattur: 0.77 } }, stability: { approval: 25, level: 'revolt' } }, roundScore: 50, cumulative: 130 },
+      { round: 1, teamId: 2, d: { kpis: { verdbolga: 3.33, losun: 103 } }, roundScore: 70, cumulative: 70 },
+      { round: 2, teamId: 2, d: { kpis: { verdbolga: 4.44 } }, roundScore: 60, cumulative: 130 }];
+    const sBefore = JSON.stringify(sOut);
+    const sS = thokaSia(sOut, { teamId: 1, round: 3, rows: sRows, goalSpecs: [GOAL_SPECS.verdbolga] });
+    ok('thokaSia: inntakið ÓSNERT (hreint afrit)', JSON.stringify(sOut) === sBefore);
+    ok('thokaSia: eigið kpiHistory klippt við N-2 m. tof+birtLota; annað lið AÐEINS round/score/cumulative', (() => { const a = sS.kpiHistory.find((t) => t.teamId === 1), b = sS.kpiHistory.find((t) => t.teamId === 2); return a.tof === true && a.birtLota === 1 && a.rounds.length === 1 && a.rounds[0].verdbolga === 1.11 && b.adeinsStig === true && b.rounds.length === 2 && b.rounds[1].score === 60 && b.rounds[1].cumulative === 130 && b.rounds.every((r) => r.verdbolga === undefined); })());
+    ok('thokaSia: kort → uppgjör N-2 beggja liða (tof), N-1 tölur horfnar', sS.kort.length === 2 && sS.kort.every((k) => k.round === 1 && k.tof === true) && sS.kort.find((k) => k.teamId === 1).kpis.losun === 101.5 && sS.kort.find((k) => k.teamId === 2).kpis.losun === 103 && sS.kort.find((k) => k.teamId === 2).kpis.fiskistofn === null);
+    ok('thokaSia: badge-deltas = N-2 (0,55) m. deltaLota 1; carryover deltas null + thoka:true', sS.policyBadges[0].deltas.kaupmattur === 0.55 && sS.policyBadges[0].deltaLota === 1 && sS.policyBadges[0].tof === true && sS.carryover.thoka === true && sS.carryover.policies[0].deltas === null && sS.carryover.policies[0].text === 't');
+    ok('thokaSia: surprise effect + kosta-effect FALIN (null), atvikið sjálft sést', sS.surprise.effect === null && sS.surprise.thoka === true && sS.surprise.title === 'T' && sS.surprise.dilemma.options[0].effect === null && sS.surprise.dilemma.options[0].label === 'A');
+    ok('thokaSia: finalPerKpi → N-2 perKpi; medals reiknuð (fylki)', sS.finalPerKpi.length === 1 && sS.finalPerKpi[0].value === 1.11 && Array.isArray(sS.medals));
+    ok('thokaSia: thoka-blokk — birtLota 1, birtAr 2000, attir upp (1,11→2,22), vs_markmid innan (2,22 vs 2,5±0,8), fyrirsagnir, stodugleiki (fell), stig lotu 2', sS.thoka.on === true && sS.thoka.birtLota === 1 && sS.thoka.birtAr === 2000 && sS.thoka.attir.verdbolga.att === 'upp' && sS.thoka.attir.verdbolga.vs_markmid === 'innan' && Array.isArray(sS.thoka.fyrirsagnir) && sS.thoka.stodugleiki.approval === 25 && sS.thoka.stodugleiki.fell === true && sS.thoka.stig.lota === 2 && sS.thoka.stig.roundScore === 50);
+    ok('thokaSia: N-1 tölurnar (2,22 / 4,44 / 0,77 / 0,9) hvergi í síaða svarinu', !/2\.22|4\.44|0\.77|0\.9\b/.test(JSON.stringify(sS)));
+    const sS2 = thokaSia({ phase: 'decide', round: 2, kpiHistory: [{ teamId: 1, name: 'A', rounds: [{ round: 1, verdbolga: 1.11 }] }], kort: [{ teamId: 1, round: 1, kpis: {}, policies: {} }], finalPerKpi: [{ value: 1.11 }], medals: [] }, { teamId: 1, round: 2, rows: sRows.filter((r) => r.round === 1), goalSpecs: [] });
+    ok('thokaSia lota 2 (ekkert N-2): kpiHistory tómt+tof, kort tómt, attir/birtLota null, finalPerKpi [], en fyrirsagnir+stodugleiki+stig úr lotu 1', sS2.kpiHistory[0].rounds.length === 0 && sS2.kpiHistory[0].tof === true && sS2.kort.length === 0 && sS2.thoka.attir === null && sS2.thoka.birtLota === null && sS2.finalPerKpi.length === 0 && Array.isArray(sS2.thoka.fyrirsagnir) && sS2.thoka.stodugleiki.approval === 61 && sS2.thoka.stig.lota === 1 && !/1\.11/.test(JSON.stringify(sS2)));
+    // WATCH (teamId:null): ekkert „eigið lið" → ÖLL lið adeinsStig, kort N-2 allra, surprise-áhrif falin, thoka-blokk aðeins {on,birtLota,birtAr}
+    const wOut = { phase: 'decide', round: 3, kpiHistory: sOut.kpiHistory, kort: sOut.kort, surprise: sOut.surprise, trajectory: [{ teamId: 1, points: [{ round: 1, value: 80 }, { round: 2, value: 130 }] }], decisionMarks: [{ teamId: 1, round: 2, id: 'esb', label: 'ESB' }] };
+    const wBefore = JSON.stringify(wOut);
+    const sW = thokaSia(wOut, { teamId: null, round: 3, rows: sRows, goalSpecs: [GOAL_SPECS.verdbolga] });
+    ok('thokaSia watch (teamId null): inntak ósnert; ÖLL lið adeinsStig {round,score,cumulative}, ekkert tof/birtLota-lið', JSON.stringify(wOut) === wBefore && sW.kpiHistory.length === 2 && sW.kpiHistory.every((t) => t.adeinsStig === true && t.tof === undefined && t.rounds.length === 2 && t.rounds.every((r) => r.verdbolga === undefined && typeof r.score === 'number' && typeof r.cumulative === 'number')));
+    ok('thokaSia watch: kort → N-2 beggja (tof), surprise effect+kosta-effect null, trajectory/decisionMarks ÓSNERT', sW.kort.length === 2 && sW.kort.every((k) => k.round === 1 && k.tof === true) && sW.kort.find((k) => k.teamId === 1).kpis.losun === 101.5 && sW.surprise.effect === null && sW.surprise.dilemma.options[0].effect === null && JSON.stringify(sW.trajectory) === JSON.stringify(wOut.trajectory) && JSON.stringify(sW.decisionMarks) === JSON.stringify(wOut.decisionMarks));
+    ok('thokaSia watch: thoka = {on, birtLota 1, birtAr 2000} + attir/fyrirsagnir/stodugleiki/stig null; finalPerKpi/medals EKKI bætt við; N-1 tölur hvergi', sW.thoka.on === true && sW.thoka.birtLota === 1 && sW.thoka.birtAr === 2000 && sW.thoka.attir === null && sW.thoka.fyrirsagnir === null && sW.thoka.stodugleiki === null && sW.thoka.stig === null && sW.finalPerKpi === undefined && sW.medals === undefined && !/2\.22|4\.44|0\.9\b|1\.11/.test(JSON.stringify(sW)));
+    const sW2 = thokaSia({ phase: 'decide', round: 2, kpiHistory: [{ teamId: 1, name: 'A', rounds: [{ round: 1, verdbolga: 1.11 }] }], kort: [{ teamId: 1, round: 1, kpis: {}, policies: {} }] }, { round: 2, rows: sRows.filter((r) => r.round === 1) });
+    ok('thokaSia watch lota 2 (teamId sleppt = null, ekkert N-2): adeinsStig × 1, kort [], birtLota null, engin hrun', sW2.kpiHistory[0].adeinsStig === true && sW2.kpiHistory[0].rounds.length === 1 && sW2.kort.length === 0 && sW2.thoka.birtLota === null && sW2.thoka.stig === null && !/1\.11/.test(JSON.stringify(sW2)));
+
+    // Handler: þoku-leikur (studio+surprise+thoka) — finna kóða með klemmu í lotu 2 (eins og surprise-prófið)
+    let tg = null, tEv = null;
+    for (let i = 0; i < 60 && !tEv; i++) { const g = await J(await LH(req('/api/leikur/create', { mode: 'studio', surprise: true, thoka: true }), env)); const e = rollSurprise(g.code, 2); if (e && e.dilemma) { tg = g; tEv = e; } }
+    ok('þoka: fann þoku-leik með klemmu í lotu 2', !!tEv);
+    // create-validering: aðeins skýrt já kveikir
+    const tOff1 = await J(await LH(req('/api/leikur/create', { thoka: 'nei' }), env)), tOff2 = await J(await LH(req('/api/leikur/create', {}), env));
+    ok('þoka: create thoka:"nei"/sleppt → thokaOn false í lobby-state', (await J(await stG(tOff1.code, tOff1.facToken))).thokaOn === false && (await J(await stG(tOff2.code, tOff2.facToken))).thokaOn === false);
+    if (tEv) {
+      const tHdr = { 'content-type': 'application/json', authorization: 'Bearer ' + tg.facToken };
+      const tj1 = await J(await LH(req('/api/leikur/' + tg.code + '/join', { name: 'Þ-Alfa' }), env));
+      const tj2 = await J(await LH(req('/api/leikur/' + tg.code + '/join', { name: 'Þ-Beta' }), env));
+      const tCtrl = (a) => LH(new Request('https://karp.is/api/leikur/' + tg.code + '/control', { method: 'POST', headers: tHdr, body: JSON.stringify({ action: a }) }), env);
+      const tSt = async (tok) => J(await LH(new Request('https://karp.is/api/leikur/' + tg.code + '/state', { headers: tok ? { authorization: 'Bearer ' + tok } : {} }), env));
+      const tDec = (tok, round, dec) => LH(new Request('https://karp.is/api/leikur/' + tg.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round, locked: true, decisions: dec }) }), env);
+      // Djúp leit: þekkjanlegar KPI-tölur (ekki heiltölur, ≥5 tákn) úr uppgjöri → mega EKKI finnast sem tölu-tókn í JSON-strengnum
+      const kpiNums = (kpis) => Object.values(kpis || {}).filter((v) => typeof v === 'number' && Number.isFinite(v) && !Number.isInteger(v) && String(Math.abs(v)).replace('.', '').length >= 5);
+      const leaks = (obj, nums, excl = new Set()) => { const js = JSON.stringify(obj); return nums.filter((v) => !excl.has(v) && new RegExp('(^|[^0-9.\\-])' + String(v).replace(/[.+-]/g, (m) => '\\' + m) + '(?=$|[^0-9])').test(js)); };
+      ok('þoka: lobby fac-state thokaOn true, engin thoka-blokk', (await tSt(tg.facToken)).thokaOn === true && (await tSt(tg.facToken)).thoka === undefined);
+      await tCtrl('start');
+      const t1 = await tSt(tj1.teamToken);
+      ok('þoka lota 1 decide: thoka-blokk án hagtalna (birtLota/attir/fyrirsagnir/stodugleiki/stig null), kpiHistory ekki til', t1.thokaOn === true && t1.thoka && t1.thoka.on === true && t1.thoka.birtLota === null && t1.thoka.attir === null && t1.thoka.fyrirsagnir === null && t1.thoka.stodugleiki === null && t1.thoka.stig === null && t1.kpiHistory === undefined);
+      await tDec(tj1.teamToken, 1, { levers: { vextir: 9 }, policies: { verdtrygging: true } });
+      await tDec(tj2.teamToken, 1, { levers: { vextir: 5 } });
+      await tCtrl('resolve');
+      const tRes1 = await tSt(tg.facToken);
+      const r1A = (tRes1.results || []).find((r) => r.teamId === tj1.teamId), r1B = (tRes1.results || []).find((r) => r.teamId === tj2.teamId);
+      const n1 = [...kpiNums(r1A.detail.kpis), ...kpiNums(r1B.detail.kpis)];
+      ok('þoka: uppgjör lotu 1 (fac) hefur hörðu tölurnar (≥20 þekkjanlegar)', n1.length >= 20);
+      const t1r = await tSt(tj1.teamToken);
+      ok('þoka results-fasi lotu 1 (lið): ÓSÍAÐ — results m. kpis, kpiHistory full, engin thoka-blokk', t1r.phase === 'resolved' && t1r.results && t1r.results.length === 2 && typeof t1r.results[0].detail.kpis.verdbolga === 'number' && t1r.kpiHistory.every((t) => t.rounds.length === 1 && typeof t.rounds[0].verdbolga === 'number') && t1r.thoka === undefined && leaks(t1r, n1).length === n1.length);
+      await tCtrl('next');
+      const t2 = await tSt(tj1.teamToken);
+      ok('þoka lota 2 decide: ENGIN KPI-tala lotu 1 í liðs-state (djúp leit)', leaks(t2, n1).length === 0);
+      ok('þoka lota 2: eigið kpiHistory tómt+tof (ekkert N-2), hitt liðið adeinsStig {round,score,cumulative}', (() => { const a = t2.kpiHistory.find((t) => t.teamId === tj1.teamId), b = t2.kpiHistory.find((t) => t.teamId === tj2.teamId); return a && a.tof === true && a.birtLota === null && a.rounds.length === 0 && b && b.adeinsStig === true && b.rounds.length === 1 && b.rounds[0].round === 1 && typeof b.rounds[0].score === 'number' && typeof b.rounds[0].cumulative === 'number' && b.rounds[0].verdbolga === undefined; })());
+      ok('þoka lota 2: kort tómt (ekkert birt uppgjör), finalPerKpi [], medals []', Array.isArray(t2.kort) && t2.kort.length === 0 && Array.isArray(t2.finalPerKpi) && t2.finalPerKpi.length === 0 && Array.isArray(t2.medals) && t2.medals.length === 0);
+      ok('þoka lota 2: badge verðtrygging sést EN deltas null (tof)', (() => { const b = (t2.policyBadges || []).find((x) => x.id === 'verdtrygging'); return b && b.deltas === null && b.tof === true && b.deltaLota === null; })());
+      ok('þoka lota 2: atvik sést, effect + kosta-effect FALIN', t2.surprise && t2.surprise.id === tEv.id && t2.surprise.title === tEv.title && t2.surprise.effect === null && t2.surprise.thoka === true && t2.surprise.dilemma.options.length === tEv.dilemma.options.length && t2.surprise.dilemma.options.every((o) => o.effect === null && o.label));
+      ok('þoka lota 2: thoka-blokk — birtLota/attir null, fyrirsagnir lotu 1, fylgi, stig lotu 1', t2.thoka.birtLota === null && t2.thoka.attir === null && Array.isArray(t2.thoka.fyrirsagnir) && t2.thoka.fyrirsagnir.length >= 1 && t2.thoka.stodugleiki && typeof t2.thoka.stodugleiki.approval === 'number' && typeof t2.thoka.stodugleiki.fell === 'boolean' && t2.thoka.stig.lota === 1 && typeof t2.thoka.stig.roundScore === 'number');
+      ok('þoka lota 2: stigatafla+trajectory+avgApproval HALDAST', t2.teams.every((t) => typeof t.cumulative === 'number') && t2.trajectory.every((t) => t.points.length === 1) && typeof t2.avgApproval === 'number');
+      const t2fac = await tSt(tg.facToken);
+      ok('þoka lota 2: fac-state ÓSÍAÐ (kpiHistory m. tölum lotu 1, kort lotu 1, engin thoka-blokk)', t2fac.thoka === undefined && t2fac.kpiHistory.every((t) => typeof t.rounds[0].verdbolga === 'number') && t2fac.kort.every((k) => k.round === 1) && t2fac.kpiHistory.find((t) => t.teamId === tj1.teamId).rounds[0].verdbolga === r1A.detail.kpis.verdbolga && leaks(t2fac, n1).length >= 6);
+      // Lota 2: lið velja sitt hvorn klemmu-kost; A sækir um ESB
+      const tOpts = tEv.dilemma.options;
+      await tDec(tj1.teamToken, 2, { levers: { vextir: 9 }, dilemma: tOpts[0].key, policies: { esb: true } });
+      await tDec(tj2.teamToken, 2, { levers: { vextir: 5 }, dilemma: (tOpts[1] || tOpts[0]).key });
+      await tCtrl('resolve');
+      const tRes2 = await tSt(tg.facToken);
+      const r2A = (tRes2.results || []).find((r) => r.teamId === tj1.teamId), r2B = (tRes2.results || []).find((r) => r.teamId === tj2.teamId);
+      const n2 = [...kpiNums(r2A.detail.kpis), ...kpiNums(r2B.detail.kpis)], ex1 = new Set(n1);
+      ok('þoka: uppgjör lotu 2 hefur þekkjanlegar tölur ólíkar lotu 1', n2.filter((v) => !ex1.has(v)).length >= 20);
+      const t2r = await tSt(tj1.teamToken);
+      ok('þoka results-fasi lotu 2 (lið): ÓSÍAÐ — kpis lotu 2 í results, surprise.effect sýnilegt, kpiHistory 2 lotur m. tölum', t2r.phase === 'resolved' && leaks(t2r, n2, ex1).length === n2.filter((v) => !ex1.has(v)).length && t2r.surprise && JSON.stringify(t2r.surprise.effect) === JSON.stringify(tEv.effect) && t2r.kpiHistory.every((t) => t.rounds.length === 2 && typeof t.rounds[1].verdbolga === 'number') && t2r.thoka === undefined);
+      await tCtrl('next');
+      const t3 = await tSt(tj1.teamToken);
+      ok('þoka lota 3 decide: ENGIN KPI-tala lotu 2 neins staðar í liðs-state (djúp leit í JSON)', leaks(t3, n2, ex1).length === 0);
+      ok('þoka lota 3: eigið kpiHistory = lota 1 m. tof:true/birtLota 1 (tölur lotu 1 birtast), hitt liðið aðeins stig 2 lota', (() => { const a = t3.kpiHistory.find((t) => t.teamId === tj1.teamId), b = t3.kpiHistory.find((t) => t.teamId === tj2.teamId); return a && a.tof === true && a.birtLota === 1 && a.rounds.length === 1 && a.rounds[0].round === 1 && a.rounds[0].verdbolga === r1A.detail.kpis.verdbolga && a.rounds[0].losun === r1A.detail.kpis.losun && b && b.adeinsStig === true && b.rounds.length === 2 && b.rounds.every((r) => typeof r.score === 'number' && r.verdbolga === undefined && r.losun === undefined); })());
+      ok('þoka lota 3: kort beggja liða = uppgjör lotu 1 (tof), losun lotu 1', t3.kort.length === 2 && t3.kort.every((k) => k.round === 1 && k.tof === true) && t3.kort.find((k) => k.teamId === tj1.teamId).kpis.losun === r1A.detail.kpis.losun && t3.kort.find((k) => k.teamId === tj2.teamId).kpis.losun === r1B.detail.kpis.losun);
+      ok('þoka lota 3: badge-deltas = lotu 1 (N-2) m. deltaLota 1 — EKKI lotu 2', (() => { const b = (t3.policyBadges || []).find((x) => x.id === 'verdtrygging'); return b && b.tof === true && b.deltaLota === 1 && JSON.stringify(b.deltas) === JSON.stringify(r1A.detail.policyDeltas.verdtrygging) && JSON.stringify(b.deltas) !== JSON.stringify(r2A.detail.policyDeltas.verdtrygging); })());
+      ok('þoka lota 3: esb-badge (tekin lotu 2) sést m. stage en deltas null (engin lotu-1-delta)', (() => { const b = (t3.policyBadges || []).find((x) => x.id === 'esb'); return b && b.stage === 'adild' && b.deltas === null; })());
+      ok('þoka lota 3: carryover thoka:true, allar deltas null, fyrra atvik tilgreint', t3.carryover && t3.carryover.thoka === true && t3.carryover.policies.length >= 1 && t3.carryover.policies.every((p) => p.deltas === null && typeof p.text === 'string') && t3.carryover.event && t3.carryover.event.id === tEv.id);
+      const attV = t3.thoka.attir;
+      const expAtt = (k, thr) => { const d = r2A.detail.kpis[k] - r1A.detail.kpis[k]; return Math.abs(d) < thr ? 'stodugt' : d > 0 ? 'upp' : 'nidur'; };
+      ok('þoka lota 3: attir rétt reiknaðar lotu 1→2 (verðbólga/hagvöxtur/atvinnuleysi %: 0,15 · losun vísitala: 1)', attV && attV.verdbolga.att === expAtt('verdbolga', 0.15) && attV.hagvoxtur.att === expAtt('hagvoxtur', 0.15) && attV.atvinnuleysi.att === expAtt('atvinnuleysi', 0.15) && attV.losun.att === expAtt('losun', 1) && attV.skuldir.att === expAtt('skuldir', 0.15));
+      ok('þoka lota 3: vs_markmid f. kjarna-KPI (verðbólga 2,5±0,8 · lotu-2 markmið) rétt og null f. KPI utan umboðs', (() => { const v = r2A.detail.kpis.verdbolga, e = Math.abs(v - 2.5) <= 0.8 ? 'innan' : v > 2.5 ? 'yfir' : 'undir'; return attV.verdbolga.vs_markmid === e && attV.fiskistofn.vs_markmid != null && attV.husnaedi && attV.husnaedi.vs_markmid === null; })());
+      ok('þoka lota 3: thoka-blokk — birtLota 1, birtAr 2000, fyrirsagnir+fylgi+stig lotu 2', t3.thoka.on === true && t3.thoka.birtLota === 1 && t3.thoka.birtAr === 2000 && Array.isArray(t3.thoka.fyrirsagnir) && t3.thoka.fyrirsagnir.length >= 1 && t3.thoka.stig.lota === 2 && t3.thoka.stig.cumulative === r2A.cumulative && t3.thoka.stodugleiki && t3.thoka.stodugleiki.approval === r2A.detail.stability.approval);
+      ok('þoka lota 3: finalPerKpi = perKpi lotu 1 (ekki lotu 2)', JSON.stringify(t3.finalPerKpi) === JSON.stringify(r1A.detail.perKpi) && Array.isArray(t3.medals));
+      ok('þoka lota 3: ákvarðana-svið haldast (policies/history/draft/decisionMarks/eventChoices)', t3.history.length === 2 && t3.policies && t3.policies.states.verdtrygging === true && Array.isArray(t3.decisionMarks) && t3.eventChoices && t3.eventChoices[tj1.teamId][tEv.id] === tOpts[0].key);
+      if (rollSurprise(tg.code, 3)) ok('þoka lota 3: atvik lotu 3 m. effect falið', t3.surprise && t3.surprise.effect === null && t3.surprise.thoka === true);
+      const t3fac = await tSt(tg.facToken), t3watch = await tSt(null), t3B = await tSt(tj2.teamToken);
+      ok('þoka lota 3: fac-state ÓSÍAÐ — kpiHistory m. tölum lotu 2, kort lotu 2, engin thoka-blokk, thokaOn true', t3fac.thoka === undefined && t3fac.thokaOn === true && t3fac.kpiHistory.every((t) => t.rounds.length === 2 && typeof t.rounds[1].verdbolga === 'number') && t3fac.kort.every((k) => k.round === 2) && t3fac.kpiHistory.find((t) => t.teamId === tj1.teamId).rounds[1].verdbolga === r2A.detail.kpis.verdbolga && leaks(t3fac, n2, ex1).length >= 6 && t3fac.analytics);
+      // WATCH (ekkert tákn) í decide þoku-leiks: SÍAÐ eins og lið með teamId:null (rýni-gat LOKAÐ — lið gat áður opnað
+      // watch-sýnina í öðrum flipa og séð N-1 tölurnar). ÖLL lið adeinsStig, kort N-2, atvik án áhrifa, thoka-blokk án per-liðs gagna.
+      ok('þoka lota 3: watch (ekkert tákn) SÍAÐ — ENGIN KPI-tala lotu 2 (djúp leit), thokaOn true', leaks(t3watch, n2, ex1).length === 0 && t3watch.thokaOn === true);
+      ok('þoka lota 3: watch kpiHistory = ÖLL lið adeinsStig {round,score,cumulative} × 2 lotur, engin KPI-svið', t3watch.kpiHistory.length === 2 && t3watch.kpiHistory.every((t) => t.adeinsStig === true && t.rounds.length === 2 && t.rounds.every((r) => typeof r.score === 'number' && typeof r.cumulative === 'number' && r.verdbolga === undefined && r.losun === undefined)));
+      ok('þoka lota 3: watch kort beggja liða = uppgjör lotu 1 (tof), losun lotu 1 — EKKI lotu 2', t3watch.kort.length === 2 && t3watch.kort.every((k) => k.round === 1 && k.tof === true) && t3watch.kort.find((k) => k.teamId === tj1.teamId).kpis.losun === r1A.detail.kpis.losun && t3watch.kort.find((k) => k.teamId === tj2.teamId).kpis.losun === r1B.detail.kpis.losun);
+      ok('þoka lota 3: watch thoka-blokk = {on, birtLota 1, birtAr 2000} + attir/fyrirsagnir/stodugleiki/stig null (ekkert per-lið á skjávarpa)', t3watch.thoka && t3watch.thoka.on === true && t3watch.thoka.birtLota === 1 && t3watch.thoka.birtAr === 2000 && t3watch.thoka.attir === null && t3watch.thoka.fyrirsagnir === null && t3watch.thoka.stodugleiki === null && t3watch.thoka.stig === null);
+      ok('þoka lota 3: watch stigatafla/trajectory/decisionMarks/eventChoices ÓSNERT (= fac)', JSON.stringify(t3watch.teams) === JSON.stringify(t3fac.teams) && JSON.stringify(t3watch.trajectory) === JSON.stringify(t3fac.trajectory) && JSON.stringify(t3watch.decisionMarks) === JSON.stringify(t3fac.decisionMarks) && JSON.stringify(t3watch.eventChoices) === JSON.stringify(t3fac.eventChoices) && t3watch.you === null && t3watch.analytics === undefined);
+      if (rollSurprise(tg.code, 3)) ok('þoka lota 3: watch sér atvik lotu 3 EN effect+kosta-effect falin (eins og lið)', t3watch.surprise && t3watch.surprise.effect === null && t3watch.surprise.thoka === true && (t3watch.surprise.dilemma == null || t3watch.surprise.dilemma.options.every((o) => o.effect === null)));
+      ok('þoka lota 3: hitt liðið (B) fær SINA síun — engin tala lotu 2, eigið kpiHistory lotu 1, A aðeins stig', leaks(t3B, n2, ex1).length === 0 && t3B.kpiHistory.find((t) => t.teamId === tj2.teamId).rounds[0].verdbolga === r1B.detail.kpis.verdbolga && t3B.kpiHistory.find((t) => t.teamId === tj1.teamId).adeinsStig === true);
+      await tDec(tj1.teamToken, 3, { levers: { vextir: 9 } }); await tDec(tj2.teamToken, 3, { levers: { vextir: 5 } });
+      await tCtrl('resolve');
+      const t3r = await tSt(tj1.teamToken), t3rw = await tSt(null);
+      ok('þoka results-fasi lotu 3 (watch): ÓSÍAÐ — kpiHistory 3 lotur m. tölum, kort lotu 3, results m. kpis, engin thoka-blokk', t3rw.phase === 'resolved' && t3rw.thoka === undefined && t3rw.kpiHistory.every((t) => !t.adeinsStig && t.rounds.length === 3 && typeof t.rounds[2].verdbolga === 'number') && t3rw.kort.every((k) => k.round === 3 && !k.tof) && t3rw.results.length === 2 && typeof t3rw.results[0].detail.kpis.verdbolga === 'number' && leaks(t3rw, n2, ex1).length >= 6);
+      ok('þoka results-fasi lotu 3 (lið): ÓSÍAÐ — kpis lotu 2+3 sýnileg, kpiHistory 3 lotur, engin thoka-blokk', t3r.phase === 'resolved' && leaks(t3r, n2, ex1).length >= 6 && t3r.kpiHistory.find((t) => t.teamId === tj1.teamId).rounds[1].verdbolga === r2A.detail.kpis.verdbolga && t3r.results.length === 2 && typeof t3r.results[0].detail.kpis.verdbolga === 'number' && t3r.kpiHistory.every((t) => t.rounds.length === 3 && typeof t.rounds[2].verdbolga === 'number') && t3r.thoka === undefined && t3r.thokaOn === true);
+      ok('þoka: stigagjöf ÓBREYTT af síun — cumulative liðanna það sama úr liðs-/fac-sýn', t3r.teams.map((t) => t.cumulative).join(',') === (await tSt(tg.facToken)).teams.map((t) => t.cumulative).join(','));
+      await tCtrl('stop');
+      const tEnd = await tSt(tj1.teamToken);
+      ok('þoka ended (lið): ÓSÍAÐ — kpiHistory 3 lotur m. tölum, medals/finalPerKpi úr lotu 3, engin thoka-blokk', tEnd.phase === 'ended' && tEnd.thoka === undefined && tEnd.kpiHistory.every((t) => t.rounds.length === 3) && JSON.stringify(tEnd.finalPerKpi) !== JSON.stringify(r1A.detail.perKpi));
+    }
+    // ── ANDSTÆÐINGS-RÝNI (leka-leit): lið í þoku reynir að sjá hörðu tölurnar N-1 — leitað að ÖLLUM talnagildum úr FULLU
+    // uppgjöri N-1 (kpis + perKpi.value + policyDeltas + crisis …, BEGGJA liða) í JSON.stringify(liðs-state) í decide N.
+    // Leyft: roundScore/cumulative (stig), stability.approval (fylgi), gildi sem líka eru í uppgjöri N-2 (birt), og
+    // tölu-tókn úr FÖSTUM strúktúrum (mandate/decisions/event/scenario/policies/draft/history — engin KPI þar).
+    // Aðeins ÓHEIL gildi (þekkjanleg; heiltölur eins og perKpi.score 100 eru ekki auðkennandi). Keyrt á studio-,
+    // classic- og roles-þoku-leik, báðum liðum, lotu 2 (N-1=1), 3 (N-1=2) og 4; þoku-laus tvíburi (eigið env →
+    // sömu team-id) ber saman fac-/watch-/results-state: IDENTICAL utan code/thokaOn.
+    {
+      const allNums = (o, acc = []) => { if (typeof o === 'number') acc.push(o); else if (Array.isArray(o)) o.forEach((x) => allNums(x, acc)); else if (o && typeof o === 'object') for (const k in o) allNums(o[k], acc); return acc; };
+      const numTok = (js) => { const s = new Set(); for (const m of js.matchAll(/(?<![\w.\-])-?\d+(?:\.\d+)?(?:e[+-]?\d+)?(?![\w.])/g)) s.add(m[0]); return s; };
+      const staticJs = (st) => JSON.stringify({ m: st.mandate, d: st.decisions, e: st.event, s: st.scenarioSoFar, p: st.policies, dr: st.draft, h: st.history, r: st.round, sl: st.secondsLeft, dl: st.deadlineTs });
+      // hvað lekur: óheil gildi úr uppgjörum N-1 (fylki af {teamId, roundScore, cumulative, detail}) sem finnast í st
+      const lekar = (st, prevRows, prevPrevRows) => {
+        const allow = new Set(); for (const r of prevRows) { allow.add(r.roundScore); allow.add(r.cumulative); allow.add(((r.detail || {}).stability || {}).approval); }
+        for (const r of (prevPrevRows || [])) for (const v of allNums(r.detail)) allow.add(v);
+        const stat = numTok(staticJs(st)), js = JSON.stringify(st), tk = numTok(js);
+        const out = [];
+        for (const r of prevRows) for (const v of allNums(r.detail)) { if (Number.isInteger(v) || allow.has(v) || stat.has(String(v))) continue; if (tk.has(String(v))) out.push(v); }
+        return [...new Set(out)];
+      };
+      const mkEnv = () => ({ SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() });
+      // Spilar leik til og með decide lotu 4 í EIGIN env; skilar öllum sýnum (lið A/B, fac, watch) per fasi + hráum uppgjörum.
+      const playFog = async (cfgBody, decs, E) => {
+        const H = (r) => LH(r, E);
+        const g = await J(await H(req('/api/leikur/create', cfgBody)));
+        const a = await J(await H(req('/api/leikur/' + g.code + '/join', { name: 'Þ-A' }))), b = await J(await H(req('/api/leikur/' + g.code + '/join', { name: 'Þ-B' })));
+        const ctl = (act) => H(new Request('https://karp.is/api/leikur/' + g.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + g.facToken }, body: JSON.stringify({ action: act }) }));
+        const st = async (tok) => J(await H(new Request('https://karp.is/api/leikur/' + g.code + '/state', { headers: tok ? { authorization: 'Bearer ' + tok } : {} })));
+        const dc = (tok, round, d) => H(new Request('https://karp.is/api/leikur/' + g.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round, locked: true, decisions: d }) }));
+        const snap = async () => ({ A: await st(a.teamToken), B: await st(b.teamToken), fac: await st(g.facToken), watch: await st(null) });
+        const S = { g, a, b, rows: {} };
+        await ctl('start'); S.d1 = await snap();
+        for (let r = 1; r <= 3; r++) {
+          if (r > 1) { await ctl('next'); S['d' + r] = await snap(); }
+          await dc(a.teamToken, r, decs.A[r - 1]); await dc(b.teamToken, r, decs.B[r - 1]);
+          await ctl('resolve'); S['r' + r] = await snap();
+          S.rows[r] = S['r' + r].fac.results;   // [{teamId, roundScore, cumulative, detail}] — hráu uppgjörin (fac sér allt)
+        }
+        await ctl('next'); S.d4 = await snap();
+        return S;
+      };
+      const DECS = { A: [{ levers: { vextir: 9, utgjold: 3 }, policies: { verdtrygging: true } }, { levers: { vextir: 8 }, policies: { esb: true } }, { levers: { vextir: 7, skattar: 2 } }],
+        B: [{ levers: { vextir: 5 } }, { levers: { vextir: 4, utgjold: -2 } }, { levers: { vextir: 6 } }] };
+      // 1) studio-þoku-leikur (án surprise → determinískur óháð kóða) + þoku-laus tvíburi í eigin env
+      const F = await playFog({ mode: 'studio', thoka: true }, DECS, mkEnv()), U = await playFog({ mode: 'studio' }, DECS, mkEnv());
+      ok('leki: uppgjör lotu 1/2/3 hafa ≥40 óheil þekkjanleg gildi hvort (kpis+perKpi.value+deltas)', [1, 2, 3].every((r) => F.rows[r].flatMap((x) => allNums(x.detail)).filter((v) => !Number.isInteger(v)).length >= 40));
+      ok('leki: þoku-lið A+B í decide lotu 2 — EKKERT óheilt gildi úr uppgjöri lotu 1 (kpis/perKpi/deltas/crisis) í liðs-state', lekar(F.d2.A, F.rows[1], []).length === 0 && lekar(F.d2.B, F.rows[1], []).length === 0);
+      const l3A = lekar(F.d3.A, F.rows[2], F.rows[1]), l3B = lekar(F.d3.B, F.rows[2], F.rows[1]);
+      ok('leki: þoku-lið A+B í decide lotu 3 — EKKERT óheilt gildi úr uppgjöri lotu 2 (engin N-1-tala í neinu sviði)' + (l3A.length || l3B.length ? ' LEKI: ' + JSON.stringify({ A: l3A, B: l3B }) : ''), l3A.length === 0 && l3B.length === 0);
+      ok('leki: þoku-lið A+B í decide lotu 4 — EKKERT gildi úr uppgjöri lotu 3', lekar(F.d4.A, F.rows[3], F.rows[2]).length === 0 && lekar(F.d4.B, F.rows[3], F.rows[2]).length === 0);
+      ok('leki: leitin BÍTUR — sama leit á ÓSÍAÐA fac-state lotu 3 finnur ≥10 gildi lotu 2 (kpiHistory 6×2 + kort); þoku-laus watch-tvíburi líka', lekar(F.d3.fac, F.rows[2], F.rows[1]).length >= 10 && lekar(U.d3.watch, F.rows[2], F.rows[1]).length >= 10);
+      // WATCH-GAT LOKAÐ: tákn-laust /state (skjávarpa-sýn) í decide þoku-leiks er SÍAÐ eins og lið (teamId:null) — lið sem
+      // þekkir leikkóðann getur ekki lengur opnað watch í öðrum flipa og lesið N-1 tölurnar. Sama leka-leit og á liðin.
+      const w2 = lekar(F.d2.watch, F.rows[1], []), w3 = lekar(F.d3.watch, F.rows[2], F.rows[1]), w4 = lekar(F.d4.watch, F.rows[3], F.rows[2]);
+      ok('leki: WATCH í decide lotu 2/3/4 þoku-leiks — EKKERT óheilt gildi úr uppgjöri N-1 (kpiHistory/kort/surprise …)' + (w2.length || w3.length || w4.length ? ' LEKI: ' + JSON.stringify({ w2, w3, w4 }) : ''), w2.length === 0 && w3.length === 0 && w4.length === 0);
+      ok('leki: WATCH decide lotu 3 — ÖLL lið adeinsStig (engin KPI-svið), kort = lota 1 (tof), thoka {on,birtLota 1} án attir/fyrirsagna/stig, thokaOn true', F.d3.watch.kpiHistory.length === 2 && F.d3.watch.kpiHistory.every((t) => t.adeinsStig === true && t.rounds.length === 2 && t.rounds.every((r) => r.verdbolga === undefined && typeof r.score === 'number')) && F.d3.watch.kort.length === 2 && F.d3.watch.kort.every((k) => k.round === 1 && k.tof === true) && F.d3.watch.thoka.on === true && F.d3.watch.thoka.birtLota === 1 && F.d3.watch.thoka.attir === null && F.d3.watch.thoka.fyrirsagnir === null && F.d3.watch.thoka.stig === null && F.d3.watch.thoka.stodugleiki === null && F.d3.watch.thokaOn === true);
+      ok('leki: WATCH decide lotu 2 (ekkert N-2) — engin hrun: kpiHistory adeinsStig × 1 lota, kort [], thoka birtLota null', F.d2.watch.kpiHistory.every((t) => t.adeinsStig === true && t.rounds.length === 1) && Array.isArray(F.d2.watch.kort) && F.d2.watch.kort.length === 0 && F.d2.watch.thoka.birtLota === null);
+      // Svið-fyrir-svið: ekkert hlut-tré í liðs-/watch-state decide lotu 3 ber uppgjörs-gögn lotu 2 (round:2 með kpis/perKpi/verdbolga/policyDeltas)
+      const r2hasKpi = (o) => { let hit = false; const walk = (x) => { if (hit || !x || typeof x !== 'object') return; if (Array.isArray(x)) return x.forEach(walk); if (x.round === 2 && (x.kpis || x.perKpi || x.verdbolga != null || x.policyDeltas)) hit = true; for (const k in x) walk(x[k]); }; walk(o); return hit; };
+      ok('leki: ekkert hlut-tré með round:2 + kpis/perKpi/verdbolga/policyDeltas í liðs-/watch-state decide lotu 3 (kpiHistory/kort/finalPerKpi/badges/carryover/medals) — en finnst hjá fac', !r2hasKpi(F.d3.A) && !r2hasKpi(F.d3.B) && !r2hasKpi(F.d3.watch) && r2hasKpi(F.d3.fac));
+      // 2) Afhjúpun: results-fasi lotu 2 sýnir lotu-2 tölurnar (ÓSÍAÐ, identical við þoku-lausan tvíbura) — og þær hverfa aftur í decide lotu 3
+      const strip = (o) => { const c = JSON.parse(JSON.stringify(o)); delete c.code; delete c.thokaOn; return JSON.stringify(c); };
+      ok('afhjúpun: results-fasi lotu 2 (lið A) = ÓSÍAÐ og IDENTICAL við þoku-lausan tvíbura (utan code/thokaOn); öll lotu-2 gildi sýnileg', strip(F.r2.A) === strip(U.r2.A) && lekar(F.r2.A, F.rows[2], F.rows[1]).length >= 30 && F.r2.A.results.length === 2);
+      ok('afhjúpun: sömu tölur HORFNAR í decide lotu 3 (lið A) — en sjást ENN hjá tvíburanum (≥10)', lekar(F.d3.A, F.rows[2], F.rows[1]).length === 0 && lekar(U.d3.A, F.rows[2], F.rows[1]).length >= 10);
+      ok('afhjúpun: tvíburarnir fengu SÖMU uppgjör (stigagjöf+kpis óháð þoku)', JSON.stringify(F.rows) === JSON.stringify(U.rows));
+      // 3) fac: ÓSNERT — identical við þoku-lausan tvíbura í öllum fösum (decide 1–4, results 1–3). watch: identical í
+      //    results-fösum + decide 1 (aðeins + thoka-blokk) — SÍAÐ í decide 2–4 (sjá WATCH-GAT LOKAÐ að ofan).
+      const phases = ['d1', 'd2', 'd3', 'd4', 'r1', 'r2', 'r3'];
+      ok('fac-state þoku-leiks IDENTICAL við þoku-lausan (utan code/thokaOn) í öllum 7 fösum', phases.every((p) => strip(F[p].fac) === strip(U[p].fac)) && F.d3.fac.thokaOn === true && U.d3.fac.thokaOn === false);
+      const minusThoka = (o) => { const c = JSON.parse(JSON.stringify(o)); delete c.thoka; return strip(c); };
+      ok('watch-state (ekkert tákn) þoku-leiks IDENTICAL við þoku-lausan í results-fösum + decide 1 (aðeins + thoka-blokk); SÍAÐ (ólíkt) í decide 2–4', ['r1', 'r2', 'r3'].every((p) => strip(F[p].watch) === strip(U[p].watch)) && minusThoka(F.d1.watch) === strip(U.d1.watch) && F.d1.watch.thoka && F.d1.watch.thoka.on === true && ['d2', 'd3', 'd4'].every((p) => strip(F[p].watch) !== strip(U[p].watch) && F[p].watch.thoka && F[p].watch.thoka.on === true) && ['r1', 'r2', 'r3'].every((p) => F[p].watch.thoka === undefined));
+      ok('liðs-state í results-fösum + decide 1 IDENTICAL við tvíbura (decide 1 aðeins + thoka-blokk)', ['r1', 'r2', 'r3'].every((p) => strip(F[p].A) === strip(U[p].A)) && minusThoka(F.d1.A) === strip(U.d1.A));
+      // 4) lota 1–2: engin hrun / null-brúnir (thoka-blokk með null-sviðum, kpiHistory/kort tóm en fylki)
+      ok('lota 1–2 þoku: engin hrun — d1 thoka null-svið, d2 kpiHistory eigið tómt/tof + kort [] + finalPerKpi [] + medals []', F.d1.A.thoka && F.d1.A.thoka.birtLota === null && F.d2.A.thoka.birtLota === null && F.d2.A.kpiHistory.find((t) => t.teamId === F.a.teamId).rounds.length === 0 && F.d2.A.kort.length === 0 && Array.isArray(F.d2.A.finalPerKpi) && F.d2.A.finalPerKpi.length === 0 && Array.isArray(F.d2.A.medals) && F.d2.A.medals.length === 0);
+      ok('decide lotu 3 þoku: stig/trajectory/teams IDENTICAL við tvíbura (keppnin óskert)', JSON.stringify(F.d3.A.teams) === JSON.stringify(U.d3.A.teams) && JSON.stringify(F.d3.A.trajectory) === JSON.stringify(U.d3.A.trajectory) && F.d3.A.thoka.stig.cumulative === U.d3.A.teams.find((t) => t.id === F.a.teamId).cumulative);
+      // 5) classic-þoka (engin studio-svið) + roles-þoka (hlutverks-umboð → vs_markmid): engin hrun, enginn leki
+      const C = await playFog({ thoka: true }, DECS, mkEnv());
+      ok('classic-þoka: enginn leki lotu 2/3/4 (lið + watch) + thoka-blokk (attir lotu 3) + engin studio-svið', lekar(C.d3.A, C.rows[2], C.rows[1]).length === 0 && lekar(C.d2.B, C.rows[1], []).length === 0 && lekar(C.d4.A, C.rows[3], C.rows[2]).length === 0 && lekar(C.d3.watch, C.rows[2], C.rows[1]).length === 0 && lekar(C.d4.watch, C.rows[3], C.rows[2]).length === 0 && C.d3.watch.kpiHistory.every((t) => t.adeinsStig === true) && C.d3.A.thoka.attir && C.d3.A.thoka.attir.verdbolga && C.d3.A.policyBadges === undefined && C.d3.A.carryover === undefined);
+      const R = await playFog({ mode: 'studio', roles: true, thoka: true }, DECS, mkEnv());
+      ok('roles-þoka: enginn leki (lið + watch) + attir m. vs_markmid (hlutverks-umboð lotu 2); lið sér sitt role, ekki roleMap; fac sér roleMap', lekar(R.d3.A, R.rows[2], R.rows[1]).length === 0 && lekar(R.d3.B, R.rows[2], R.rows[1]).length === 0 && lekar(R.d3.watch, R.rows[2], R.rows[1]).length === 0 && R.d3.watch.roleMap === undefined && R.d3.A.role && R.d3.A.roleMap === undefined && R.d3.A.thoka.attir && Object.values(R.d3.A.thoka.attir).some((x) => x.vs_markmid != null) && Array.isArray(R.d3.fac.roleMap) && R.d3.fac.roleMap.find((x) => x.teamId === R.a.teamId).roleId === R.d3.A.role.id);
+    }
+    // Engin afturför: leikir ÁN thoka fá thokaOn:false og enga thoka-blokk, kpiHistory/kort/badges/surprise óbreytt
+    ok('þoka off: studio-leikur án thoka → thokaOn false, engin thoka-blokk, kpiHistory m. tölum', uTeamSt.thokaOn === false && uTeamSt.thoka === undefined && uTeamSt.kpiHistory.every((t) => t.rounds.every((r) => typeof r.verdbolga === 'number')));
+    ok('þoka off: classic decide-lið → thokaOn false, engin thoka-blokk', cgSt.thokaOn === false && cgSt.thoka === undefined);
+  }
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();

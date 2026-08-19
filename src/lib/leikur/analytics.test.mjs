@@ -1,4 +1,5 @@
 import { buildAnalytics, teachingPrompts, teamReview } from './analytics.mjs';
+import { THOKA_HANDBOOK } from './handbook.mjs';
 import { MANDATE, DECISIONS, SCENARIO } from './game-config.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
@@ -54,6 +55,18 @@ const lowA = buildAnalytics({ history: lowHist, decisions: [], teams, mandate: M
 ok('teachingPrompts greinir sameiginlegan veikleika', teachingPrompts(lowA, { scenarioEvents: scEv }).some((p) => p.includes('erfitt með')));
 // Tóm greining → tómt
 ok('teachingPrompts tóm greining → tómt', teachingPrompts(null).length === 0);
+// „Hagstjórn í þoku": thoka=true → tvær þoku-debrief-spurningar úr THOKA_HANDBOOK FREMST; thoka=false/sleppt → engin.
+{
+  const tpT = teachingPrompts(a, { scenarioEvents: scEv, thoka: true });
+  const tpF = teachingPrompts(a, { scenarioEvents: scEv, thoka: false });
+  ok('þoka: nákvæmlega 2 þoku-spurningar bætast við', tpT.length === tpF.length + 2 && tpT.filter((p) => p.includes('Í þoku')).length === 2);
+  ok('þoka: þoku-spurningarnar eru fremstar', tpT[0].includes('Í þoku') && tpT[1].includes('Í þoku'));
+  ok('þoka: texti = THOKA_HANDBOOK.debrief_spurningar[0..1]', tpT[0].includes(THOKA_HANDBOOK.debrief_spurningar[0]) && tpT[1].includes(THOKA_HANDBOOK.debrief_spurningar[1]));
+  ok('þoka: hin promptin óbreytt á eftir', JSON.stringify(tpT.slice(2)) === JSON.stringify(tpF));
+  ok('þoka: sjálfgefið (flagg sleppt) = engin þoku-spurning', !tp.some((p) => p.includes('Í þoku')));
+  ok('þoka: tóm greining → tómt þótt thoka=true (engar lotur = engin umræða)', teachingPrompts(null, { thoka: true }).length === 0);
+  ok('þoka: þakið 8 heldur', tpT.length <= 8);
+}
 
 // teamReview: sterk/veik svið + fylgi + föll
 {
