@@ -21,6 +21,8 @@ const fs = require('fs');
 const path = require('path');
 const { pickThrotlok } = require('./throtlok_detect.js');
 const { pickVikan } = require('./vikan_detect.js');
+const { pickSvaedi } = require('./svaedi_detect.js');   // fasteignaverð per matssvæði HMS (19.8.2026)
+let slugifyIS = null;   // @lib/format.mjs slugify (ESM) — hlaðið í main() svo svæðis-slóðir séu þær sömu og /fasteignaverd/[slug]
 const G = (f) => path.join(__dirname, '..', 'gogn', f);
 const J = (f) => { try { return JSON.parse(fs.readFileSync(G(f), 'utf8')); } catch (e) { return null; } };
 const MODEL = process.env.KARP_FRETTAVEL_MODEL || 'claude-opus-4-8';
@@ -698,6 +700,15 @@ function detect(state) {
         text: `Miðgildi leiguverðs á íbúðarhúsnæði náði sögulegu hámarki á ${String(cur.q).replace(/(\d{4})F(\d)/, '$2. ársfj. $1')}: ${kr(cur.medM2)} kr. á fermetra samkvæmt þinglýstum leigusamningum í Leiguskrá HMS (${cur.n} samningar).` });
     }
   }
+  // Fasteignaverð per MATSSVÆÐI HMS (svæðis-skynjari 19.8.2026): ≥6% breyting milli ára í svæði með ≥40 kaup →
+  // frétt með hlekk á /fasteignaverd/<svæði>/. Hreinn skynjari í svaedi_detect.js (próf). Einn per svæði per ársfjórðung.
+  try {
+    const ZS = J('matssvaedi_solur.json');
+    if (ZS && ZS.byZone && slugifyIS) {
+      let hms = null; try { hms = (JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'web', 'public', 'gogn', 'hms', 'matssvaedi_2027.json'), 'utf8')) || {}).svaedi || null; } catch (e) {}
+      for (const e of pickSvaedi(ZS.byZone, { todayISO: TODAY, slugify: slugifyIS, hms })) ev.push(e);
+    }
+  } catch (e) { console.error('svæðis-skynjari brást:', String(e).slice(0, 140)); }
   // Ísland í samhengi — Reykjavík vs höfuðborgir Norðurlanda (Numbeo)
   const nb2 = J('numbeo.json');
   if (nb2 && nb2.indices && nb2.indices.Reykjavik && typeof nb2.indices.Reykjavik.pp === 'number') {
@@ -912,6 +923,7 @@ ${it}
 
 // ── Aðal ──────────────────────────────────────────────────────
 async function main() {
+  try { slugifyIS = (await import('../src/lib/format.mjs')).slugify; } catch (e) { console.error('slugify vantar — svæðis-skynjari sleppt:', String(e).slice(0, 100)); }
   const state = J('frettavel_state.json') || {};
   const events = detect(state);
   // RÁS-projection á macro-fréttir (regla per skynjara). Þögult ef módel vantar eða projection = null.

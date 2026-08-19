@@ -55,6 +55,7 @@ export const CAT = {
   // ── Bylgja 2: djúp innsýn ──
   fastthr:    { label: 'Íbúðamarkaður', emoji: '🏠', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS', rule: 'Íbúðamarkaðurinn skiptir um takt (hitnar/kólnar) — 3ja og 12 mánaða verðþróun.' },
   leiga:      { label: 'Leiga', emoji: '🔑', color: '#42d086', img: 'leiga', imgFb: 'fasteignir', heimild: 'Leiguskrá HMS', rule: 'Miðgildi leiguverðs á fermetra nær sögulegu hámarki.' },
+  svaedi:     { label: 'Fasteignaverð svæða', emoji: '🏘️', color: '#42d086', img: 'fasteignir', heimild: 'Kaupskrá HMS × matssvæði HMS', rule: 'Miðgildi fermetraverðs í matssvæði HMS víkur ≥6% milli ára (sl. 12 mán vs 12 mán þar á undan, ≥40 þinglýst kaup) — einn atburður per svæði per ársfjórðung.' },
   samanburdur:{ label: 'Ísland í samhengi', emoji: '🌍', color: '#3aa0ff', img: 'samanburdur', imgFb: 'annad', heimild: 'Numbeo', rule: 'Samanburður Reykjavíkur við aðrar höfuðborgir á verðlagi og kaupmætti.' },
   // ── Bylgja 3: einfaldir skynjarar ──
   bygging:    { label: 'Byggingarleyfi', emoji: '🏗️', color: '#9d86ff', img: 'bygging', imgFb: 'utbod', heimild: 'Byggingarfulltrúi Reykjavíkur', rule: 'Nýtt byggingarleyfi fyrir atvinnuhúsnæði (verslun/veitingar/þjónusta) afgreitt hjá byggingarfulltrúa RVK.' },
@@ -69,7 +70,7 @@ export const CAT = {
 export const SECTIONS = [
   { key: 'vidskipti', label: 'Viðskipti', types: ['mark', 'gjaldthrot', 'throtlok', 'spike', 'styrkur', 'vorumerki', 'urslit', 'utbod', 'ivilnun', 'kvoti', 'rikisfe', 'birgirthrot', 'toppar', 'bygging', 'fyrvik', 'fonix'] },
   { key: 'stjornmal', label: 'Stjórnmál', types: ['rebel', 'taep', 'fylgi', 'stjorn', 'fjarvist', 'raedur', 'stjorntap', 'einn', 'radherra', 'ees', 'nefnd'], skip_:0 },
-  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika', 'vikan', 'fastthr', 'leiga', 'samanburdur', 'thema'] },
+  { key: 'efnahagur', label: 'Efnahagur', types: ['vextir', 'verdbolga', 'fast', 'atv', 'gengi', 'vika', 'vikan', 'fastthr', 'svaedi', 'leiga', 'samanburdur', 'thema'] },
   { key: 'domsmal', label: 'Dómsmál', types: ['domur', 'glaepir'] },
   { key: 'samfelag', label: 'Samfélag', types: ['baejarstjori', 'sendiherra', 'lyf', 'sent', 'sveitfe', 'graent', 'eftirlit'] },
 ];
