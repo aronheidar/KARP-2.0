@@ -52,8 +52,10 @@ jobs:
       - uses: actions/cache@v4
         id: npmcache
         with:
-          path: node_modules/puppeteer-core
-          key: puppeteer-core-${{ runner.os }}-${{ hashFiles('.github/workflows/arsreikningur.yml') }}
+          # ALLT node_modules: cache á 'node_modules/puppeteer-core' einu skilaði HÁLFRI uppsetningu
+          # (@puppeteer/browsers vantaði) → scrape féll ÞÖGULT með 'Engin ný gögn' + success. Lykill v2.
+          path: node_modules
+          key: arsreikn-node-v2-${{ runner.os }}-${{ hashFiles('.github/workflows/arsreikningur.yml') }}
       - name: Uppsetning (puppeteer-core + pdfplumber — OCR löt)
         run: |
           if [ "${{ steps.npmcache.outputs.cache-hit }}" != "true" ]; then npm install puppeteer-core --no-save; fi

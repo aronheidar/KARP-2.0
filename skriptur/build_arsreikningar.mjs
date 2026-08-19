@@ -172,7 +172,11 @@ const kts = argv.filter((a) => /^\d{10}$/.test(a.replace(/\D/g, '')) && a !== St
 if (!kts.length) { console.log('Notkun: node build_arsreikningar.mjs <kt> [<kt> ...] [--ar N]'); process.exit(0); }
 fs.mkdirSync(OUTDIR, { recursive: true });
 console.log(`Ársreikningar RSK -> gogn/arsreikningar/  (${kts.length} félög, ${arFjoldi} ár hvert)`);
+// Villa á FÉLAGI fellir ekki hin, en keyrslan skilar non-zero ef EKKERT tókst — annars endar
+// t.d. hálf uppsetning (vantar pakka) sem „Engin ný ársreikningsgögn" + grænt CI (mælt 19.8).
+let tokst = 0, villur = 0;
 for (const kt of kts) {
-  try { await buildForKt(kt, { arFjoldi }); }
-  catch (e) { console.error(`  ${kt}: VILLA — ${e.message}`); }
+  try { await buildForKt(kt, { arFjoldi }); tokst++; }
+  catch (e) { villur++; console.error(`  ${kt}: VILLA — ${e.message}`); }
 }
+if (kts.length && !tokst && villur) { console.error(`✗ Ekkert félag tókst (${villur} villur) — líklega umhverfisvilla, ekki gagnavilla.`); process.exit(1); }
