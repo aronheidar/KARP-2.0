@@ -14,7 +14,7 @@ hráskrár í gogn/hms/raw/) í þrjú létt JSON:
                                                svalir m², bílskúr m², baðkör, sturtur) fyrir ~42k einingar → build_fasteignaskra.js
                                                sameinar inn í fasteignaskra/<pn>.json (eignaspjald). Breytir EKKI matinu —
                                                mælt 19.8.2026: þessir þættir bera ±1% umfram svæði+stærð+aldur.
-  web/public/gogn/hms/sumarhus_2027.json     ← sumarhús: 142 matssvæði (stuðull, % breyting, meðalverð m²) + 2.799 sölur
+  web/public/gogn/hms/sumarhus_2027.json     ← sumarhús: 142 matssvæði (stuðull, % breyting, meðalverð m²) + ~2.780 sölur 2016→2026 + fmat-nákvæmni
                                                (svæði, kaupverð, m², byggár, lóð, við vatn, hitaveita) fyrir sumarhúsamat
 
 Sölu-úrtakið (2027_gagnasafn_ibudir2.xlsx, 49.656 sölur 2021-01→2026-02, 81 dálkar) er matslíkans-gagnasafn
@@ -104,7 +104,7 @@ print('einingar.json:', len(einingar), 'fastanúmer með eignar-lýsingu')
 with open(os.path.join(ROOT, 'gogn', 'hms', 'matssvaedi_punktar.json'), 'w', encoding='utf-8') as f:
     json.dump({'updated': NU, 'crs': 'EPSG:3057 (ISN93 / Lambert 1993)', 'grid_m': GRID, 'n': len(punktar), 'heimild': 'HMS — 2027_gagnasafn_ibudir2.xlsx (sölu-úrtak matslíkans), x/y/hverfi', 'punktar': punktar}, f, separators=(',', ':'))
 
-# ── 2b) SUMARHÚS: 142 matssvæði + 2.799 sölur (2021-02→2026-02) fyrir sumarhúsamat ─────────
+# ── 2b) SUMARHÚS: 142 matssvæði + 2.799 sölur (2016-01→2026-02) fyrir sumarhúsamat (web/src/lib/sumarhusamat.mjs) ──
 shz = {}
 for r in list(wb['Sumarhús'].iter_rows(values_only=True))[1:]:
     if r[0] is None: continue
@@ -112,19 +112,27 @@ for r in list(wb['Sumarhús'].iter_rows(values_only=True))[1:]:
 wsh = openpyxl.load_workbook(finna('sumarh'), read_only=True); wsh = wsh[wsh.sheetnames[0]]
 sit = wsh.iter_rows(values_only=True); SH = list(next(sit)); six = {h: i for i, h in enumerate(SH)}
 gs = lambda r, k: r[six[k]]
-solur = []; shz_ekki = collections.Counter()
+solur = []; shz_ekki = collections.Counter(); sh_fm = []   # sh_fm: |fasteignamat/kaupverð − 1| sl. ~2 ár (viðmið f. Karp-bakpróf)
 for r in sit:
     if r[0] is None: continue
     d, kv, m2, hv = gs(r, 'utgdag'), num(gs(r, 'kaupverd')), num(gs(r, 'sumarhus_m2')), s(gs(r, 'hverfi'))
     if not (d and kv and kv > 0 and m2 and m2 > 8): continue
     if gs(r, 'nybygging') or gs(r, 'seldadhluta') or gs(r, 'milli_skyldra'): continue
     if hv not in shz: shz_ekki[hv] += 1; continue
+    fm = num(gs(r, 'fmat'))
+    if fm and fm > 0 and d.strftime('%Y-%m-%d') >= '2024-03-01': sh_fm.append(abs(fm / kv - 1))
     solur.append({'d': d.strftime('%Y-%m-%d'), 'hv': int(hv), 'kv': int(kv), 'm2': round(m2, 1), 'ar': int(num(gs(r, 'byggar')) or 0) or None,
                   'lod': int(num(gs(r, 'lodpflm')) or 0) or None, 'eign': 1 if gs(r, 'eignarlod') else 0, 'vatn': 1 if gs(r, 'vid_vatn') else 0,
                   'hiti': 1 if gs(r, 'hitaveita') else 0, 'raf': 1 if gs(r, 'rafveita') else 0, 'ppm': round(kv * 1000 / m2)})
 solur.sort(key=lambda x: x['d'], reverse=True)
+sh_fm.sort()
+fm_nakv = {'n': len(sh_fm), 'timabil': '2024-03→2026-02', 'midgildi': round(sh_fm[len(sh_fm) // 2], 3), 'p75': round(sh_fm[(len(sh_fm) * 3) // 4], 3),
+           'innan20': round(sum(1 for e in sh_fm if e <= 0.2) / len(sh_fm), 3), 'innan30': round(sum(1 for e in sh_fm if e <= 0.3) / len(sh_fm), 3),
+           'lysing': 'Opinbert fasteignamat sumarhúss (fmat í gagnasafninu) borið saman við kaupverð sömu sölu — |fmat/kaupverð − 1|. Viðmið fyrir bakpróf Karp-sumarhúsamatsins.'} if sh_fm else None
+tb = (solur[-1]['d'][:7] + '→' + solur[0]['d'][:7]) if solur else ''
 with open(os.path.join(OUT_WEB, 'sumarhus_2027.json'), 'w', encoding='utf-8') as f:
-    json.dump({'updated': NU, 'heimild': 'HMS — Fasteignamat 2027: matssvæði sumarhúsa + gagnasafn sumarhúsamats (2.799 sölur 2021-02→2026-02). Kaupverð í þ.kr, ppm í kr/m².', 'svaedi': shz, 'solur': solur}, f, ensure_ascii=False, separators=(',', ':'))
+    json.dump({'updated': NU, 'heimild': 'HMS — Fasteignamat 2027: matssvæði sumarhúsa + gagnasafn sumarhúsamats (' + str(len(solur)) + ' nothæfar sölur ' + tb + '; nýbyggingar, hlutasölur og sölur milli skyldra síaðar burt). Kaupverð í þ.kr, ppm í kr/m².', 'svaedi': shz, 'fmat_nakvaemni': fm_nakv, 'solur': solur}, f, ensure_ascii=False, separators=(',', ':'))
+print('sumarhús fmat vs kaupverð:', fm_nakv)
 print('sumarhús: svæði', len(shz), '· sölur nothæfar', len(solur), '· svæði utan töflu:', dict(shz_ekki) or 'engin')
 
 # ── 3) Samantektir: fjöldi + fasteignamat 2026/2027 ──────────────────────────

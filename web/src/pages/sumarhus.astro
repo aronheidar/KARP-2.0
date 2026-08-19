@@ -1,0 +1,234 @@
+---
+// sumarhus.astro — SUMARHÚSAMAT: opin reiknivél + verð eftir 142 matssvæðum sumarhúsa HMS + verðþróun 2016→.
+// Gögn: web/public/gogn/hms/sumarhus_2027.json (build_hms_2027.py, árlegt — gagnasafn HMS fyrir sumarhúsamat 2027,
+// ~2.780 nothæfar sölur 2016-01→2026-02). Matsvél: web/src/lib/sumarhusamat.mjs (svæðis-miðgildi m²-verðs,
+// tímaleiðrétt með árs-vísitölu úr gagnasafninu, +hiti/eignarlóð, BREITT bil). Taflan og bakprófið eru reiknuð
+// hér á build-tíma; reiknivélin sækir sömu skrá í vafranum og keyrir SÖMU föllin (ein aðferð, ein sannleikur).
+// ⚠ Sumarhús eru misleit — bakpróf 19% miðgildisskekkja, jafngilt opinberu mati HMS (18%). Sýnt heiðarlega.
+import Layout from '../layouts/Layout.astro';
+import SH from '../../public/gogn/hms/sumarhus_2027.json';
+import { groupThousands } from '@lib/format.mjs';
+import { svaedaYfirlit, arsVisitala, bakprofSumarhus, landshluti, nothaef, tsOf } from '../lib/sumarhusamat.mjs';
+
+const solur = (SH.solur || []).filter(nothaef);
+const dataEnd = solur.reduce((m, s) => (s.d > m ? s.d : m), '');       // nýjasta salan í gagnasafninu
+const NOW = tsOf(dataEnd) + 864e5;                                     // „nú" = dagurinn eftir nýjustu sölu (ekki build-dagur — gögnin eru árleg)
+const yf = svaedaYfirlit(solur, SH.svaedi, { now: NOW });
+const idx = arsVisitala(solur);
+const arin = Object.keys(idx).map(Number).sort((a, b) => a - b);
+const bak = bakprofSumarhus(solur, { now: NOW, manudir: 24 });
+const fm = SH.fmat_nakvaemni || null;
+
+// Hópun eftir landshluta: rótin (X000 / 999) er fyrirsögn, undirsvæði raðað eftir fjölda sala.
+const LH_NOFN = { 999: 'Höfuðborgarsvæðið', 2000: 'Suðurnes', 3000: 'Vesturland', 4000: 'Vestfirðir', 5000: 'Norðurland vestra', 6000: 'Norðurland', 7000: 'Austurland', 8000: 'Suðurland', 9000: 'Hálendi' };
+const hopar = [];
+for (const lh of [...new Set(yf.map((z) => z.lh))].sort((a, b) => a - b)) {
+  const rot = yf.find((z) => z.nr === lh);
+  const born = yf.filter((z) => z.lh === lh && z.nr !== lh).sort((a, b) => b.n - a.n || a.heiti.localeCompare(b.heiti, 'is'));
+  hopar.push({ lh, heiti: (rot && rot.heiti) || LH_NOFN[lh] || String(lh), rot, born, n: yf.filter((z) => z.lh === lh).reduce((a, z) => a + z.n, 0) });
+}
+hopar.sort((a, b) => b.n - a.n);
+const medPpm = yf.filter((z) => z.ppm).length;
+
+const pc1 = (v) => (v == null ? '–' : (v >= 0 ? '+' : '−') + (Math.abs(v) * 100).toFixed(1).replace('.', ',') + '%');
+const thk = (v) => (v == null ? '–' : groupThousands(Math.round(v / 1000)));            // kr/m² → þ.kr/m²
+const mkr = (thkr) => (thkr == null ? '–' : (thkr / 1000).toFixed(1).replace('.', ','));   // þ.kr → m.kr
+const m2f = (v) => (v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ','));
+const pct = (v) => (v == null ? '–' : Math.round(v * 100) + '%');
+const pct1 = (v) => (v == null ? '–' : (v * 100).toFixed(1).replace('.', ',') + '%');
+const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+const nyjasta = arin[arin.length - 1], fyrsta = arin[0];
+const breytAlls = idx[nyjasta] && idx[fyrsta] ? idx[nyjasta] / idx[fyrsta] - 1 : null;
+const landMid = idx[nyjasta];
+
+const title = 'Sumarhúsamat — hvað kostar sumarhúsið? Verð á fermetra eftir svæðum | Karp';
+const desc = `Ókeypis sumarhúsamat: áætlað söluverð og verðbil út frá ${groupThousands(solur.length)} þinglýstum sumarhúsasölum HMS í 142 matssvæðum, tímaleiðrétt til ${nyjasta}. Verð á fermetra í Skorradal, Húsafelli, Grímsnesi, Þingvallasveit og víðar, verðþróun sumarhúsa ${fyrsta}–${nyjasta} (${pc1(breytAlls)}) og samanburður við fasteignamat 2027.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Sumarhúsamat Karp', url: 'https://karp.is/sumarhus/', applicationCategory: 'FinanceApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'ISK' }, description: desc, isBasedOn: 'https://hms.is/fasteignir/fasteignamat' };
+---
+<Layout title={title} description={desc} canonical="https://karp.is/sumarhus/" jsonLd={jsonLd} ogTitle="Sumarhúsamat — verð sumarhúsa eftir svæðum">
+  <main data-pg="sumarhus">
+    <p class="kicker"><a href="/fasteignir/">Fasteignaverð</a> · Sumarhús</p>
+    <h1>Sumarhúsamat — hvað kostar sumarhúsið?</h1>
+    <p class="lead">Áætlað söluverð sumarhúss út frá <strong>{groupThousands(solur.length)} þinglýstum sumarhúsasölum</strong> í gagnasafni HMS fyrir sumarhúsamat 2027, skipt í 142 matssvæði. Verð sambærilegra sala er fært til verðlags {nyjasta} með árs-vísitölu sumarhúsa og leiðrétt fyrir hitaveitu og eignarlóð þegar þú gefur þær upp. Ókeypis, engin innskráning.</p>
+
+    <section class="mat" id="mat">
+      <h2>Reiknivél</h2>
+      <div class="form">
+        <label>Landshluti
+          <select id="sh-lh">
+            {hopar.map((h) => <option value={h.lh}>{h.heiti} ({groupThousands(h.n)} sölur)</option>)}
+          </select>
+        </label>
+        <label>Matssvæði <i class="tip" tabindex="0" data-tip="Matssvæði sumarhúsa hjá HMS — svæði þar sem verðlag er talið einsleitt (t.d. Skorradalur, Húsafell, Ásgarður/Kringlumýri). Veldu það sem sumarhúsið stendur í; ef þú ert ekki viss skaltu velja landshlutann sjálfan (efsta valið).">?</i>
+          <select id="sh-sv">
+            {hopar.map((h) => (
+              <optgroup label={h.heiti} data-lh={h.lh}>
+                <option value={h.lh}>{h.heiti} — allur landshlutinn ({groupThousands(h.n)})</option>
+                {h.born.map((z) => <option value={z.nr}>{z.heiti} ({z.n})</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label>Stærð sumarhúss, m² <i class="tip" tabindex="0" data-tip="Birt stærð hússins sjálfs (án geymslu/bílskúrs/svefnlofts). Verð á fermetra sumarhúsa fellur nánast ekki með stærð (teygni −0,04 mæld innan svæðis-árs), svo matið er nálægt svæðis-miðgildi × m².">?</i>
+          <input id="sh-m2" type="number" inputmode="decimal" min="15" max="400" step="0.1" placeholder="t.d. 60" />
+        </label>
+        <fieldset><legend>Hitaveita <i class="tip" tabindex="0" data-tip="Sumarhús með hitaveitu seljast ~7% hærra á fermetra en sambærileg án (mælt innan svæðis og söluárs). „Veit ekki" = engin leiðrétting.">?</i></legend>
+          <label class="r"><input type="radio" name="sh-hiti" value="ja" /> Já</label>
+          <label class="r"><input type="radio" name="sh-hiti" value="nei" /> Nei</label>
+          <label class="r"><input type="radio" name="sh-hiti" value="veit" checked /> Veit ekki</label>
+        </fieldset>
+        <fieldset><legend>Eignarlóð <i class="tip" tabindex="0" data-tip="Sumarhús á eignarlóð seljast ~10% hærra á fermetra en á leigulóð (mælt innan svæðis og söluárs). Um helmingur sala er á eignarlóð.">?</i></legend>
+          <label class="r"><input type="radio" name="sh-eign" value="ja" /> Já</label>
+          <label class="r"><input type="radio" name="sh-eign" value="nei" /> Nei (leigulóð)</label>
+          <label class="r"><input type="radio" name="sh-eign" value="veit" checked /> Veit ekki</label>
+        </fieldset>
+        <button id="sh-go" type="button" class="btn">Meta sumarhúsið →</button>
+      </div>
+      <div id="sh-out" class="out" hidden></div>
+      <p class="note" id="sh-nakv">ⓘ <strong>Nákvæmni:</strong> {bak ? <>bakpróf á {groupThousands(bak.n)} sölum síðustu 24 mánaða (hver sala metin eingöngu úr sölum á undan henni): miðgildisskekkja <strong>{pct1(bak.midgildi)}</strong>, {pct(bak.innan20)} mata innan ±20% og {pct(bak.innan30)} innan ±30%.</> : 'bakpróf ekki tiltækt.'} {fm ? <>Til samanburðar hittir <strong>opinbert fasteignamat HMS</strong> sömu sölur með {pct1(fm.midgildi)} miðgildisskekkju ({pct(fm.innan20)} innan ±20%, n={groupThousands(fm.n)}).</> : ''} Sumarhús eru misleit (útsýni, ástand, lóð, fylgihlutir) og ekkert mat án skoðunar nær lengra — notaðu verðbilið, ekki eina tölu.</p>
+    </section>
+
+    <h2>Verð sumarhúsa eftir matssvæðum <i class="tip" tabindex="0" data-tip={`Miðgildi m²-verðs úr þinglýstum sölum síðustu 5 ára í hverju svæði, fært til verðlags ${nyjasta} með árs-vísitölu sumarhúsa (landið allt). Birt aðeins þar sem ≥5 sölur eru í glugganum. HMS-dálkar: svæðisstuðull og breyting sumarhúsamats 2027 og meðalverð á m² úr útgáfu HMS.`}>?</i></h2>
+    <p>Miðgildi verðs á fermetra (þús.kr, verðlag {nyjasta}) úr sölum síðustu 5 ára, {medPpm} svæði með nógu margar sölur til birtingar. Smelltu á „Meta" til að fylla svæðið inn í reiknivélina.</p>
+    <div class="tw">
+      <table class="sv">
+        <thead><tr><th class="l">Matssvæði</th><th>Sölur<br><small>alls · sl. 3 ár</small></th><th>Miðgildi<br><small>þús.kr/m²</small></th><th>Miðgildi<br><small>kaupverð m.kr</small></th><th>Miðgildi<br><small>m²</small></th><th>HMS m²<br><small>þús.kr 2027</small></th><th>Mat 2027<br><small>breyting</small></th><th></th></tr></thead>
+        <tbody>
+          {hopar.map((h) => (
+            <>
+              <tr class="lh"><td class="l" colspan="8">{h.heiti}{h.rot && h.rot.ppm ? <span class="lh-s"> · miðgildi {thk(h.rot.ppm)} þús.kr/m² í rótarsvæðinu ({h.rot.nWin} sölur)</span> : ''}</td></tr>
+              {h.born.map((z) => (
+                <tr>
+                  <td class="l">{z.heiti}</td>
+                  <td class="num">{groupThousands(z.n)} · {groupThousands(z.n3)}</td>
+                  <td class="num">{thk(z.ppm)}</td>
+                  <td class="num">{mkr(z.kv)}</td>
+                  <td class="num">{m2f(z.m2)}</td>
+                  <td class="num">{z.m2hms ? groupThousands(z.m2hms) : '–'}</td>
+                  <td class="num"><span class={(z.br || 0) >= 0 ? 'up' : 'dn'}>{pc1(z.br)}</span></td>
+                  <td class="num"><a href="#mat" class="meta" data-sv={z.nr}>Meta →</a></td>
+                </tr>
+              ))}
+            </>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="note">ⓘ Sölur = nothæfar þinglýstar sölur 2016–{nyjasta} í gagnasafni HMS (nýbyggingar, hlutasölur og sölur milli skyldra aðila síaðar burt). Svæði með færri en 5 sölur í 5-ára glugganum fá ekkert miðgildi — reiknivélin fellur þá á landshlutann. Svæðanúmer og -heiti eru HMS; Karp notar engin svæðamörk heldur svæðið sem HMS skráir á hverja sölu.</p>
+
+    <h2>Verðþróun sumarhúsa {fyrsta}–{nyjasta}</h2>
+    <p>Miðgildi verðs á fermetra í þinglýstum sumarhúsasölum á landinu öllu eftir söluári (árs-vísitalan sem reiknivélin notar til tímaleiðréttingar). Frá {fyrsta} til {nyjasta}: <strong>{pc1(breytAlls)}</strong>{nyjasta === 2026 ? ' (2026 = janúar–febrúar)' : ''}.</p>
+    <div class="tw">
+      <table class="vis">
+        <thead><tr><th class="l">Ár</th>{arin.map((y) => <th>{y}</th>)}</tr></thead>
+        <tbody>
+          <tr><td class="l">þús.kr/m²</td>{arin.map((y) => <td class="num">{thk(idx[y])}</td>)}</tr>
+          <tr><td class="l">breyting</td>{arin.map((y, i) => <td class="num">{i === 0 ? '–' : <span class={idx[y] >= idx[arin[i - 1]] ? 'up' : 'dn'}>{pc1(idx[y] / idx[arin[i - 1]] - 1)}</span>}</td>)}</tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Um aðferðina</h2>
+    <p>Karp metur sumarhús öðruvísi en íbúðir. Í íbúðum fellur fermetraverð með stærð og byggingarár, hæð og lyfta skýra hluta verðsins; í sumarhúsum mældist stærðarteygnin aðeins −0,04 og hefðbundin einkenni skýra um 3% af verðdreifingu innan svæðis og söluárs — útsýni, ástand, lóð og fylgihlutir ráða. Þess vegna er matið <strong>miðgildi tímaleiðrétts fermetraverðs sambærilegra sala í sama matssvæði</strong> (eða landshluta ef svæðið er þunnt), margfaldað með stærð, með leiðréttingu fyrir hitaveitu (+7%) og eignarlóð (+10%) sem mældust marktæk — og <strong>fjórðungsbil</strong> sem verðbil. Matið er leiðbeinandi og kemur ekki í stað verðmats fasteignasala eða skoðunar.</p>
+    <p class="note">Heimildir: HMS — gagnasafn fyrir sumarhúsamat 2027 (sölur, matssvæði, opinbert mat), fasteignamat 2027 (svæðisstuðlar, breyting, meðalverð). Uppfært {dIS(SH.updated)} · sölur til {dIS(dataEnd)}. Sjá líka <a href="/fasteignavakt/">verðmat íbúða og sérbýlis</a>, <a href="/fasteignaverd/">fasteignaverð eftir matssvæðum</a> og <a href="/fasteignir/">fasteignaverð á landinu</a>.</p>
+  </main>
+</Layout>
+
+<script>
+  import { metaSumarhus, tsOf } from '../lib/sumarhusamat.mjs';
+  const $ = (s) => document.querySelector(s);
+  const lhSel = $('#sh-lh'), svSel = $('#sh-sv'), m2In = $('#sh-m2'), go = $('#sh-go'), out = $('#sh-out');
+  let DATA = null, DATA_P = null;
+  const load = () => (DATA_P ||= fetch('/gogn/hms/sumarhus_2027.json').then((r) => r.json()).then((j) => (DATA = j)));
+  const thou = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const mkr = (kr) => (kr / 1e6).toFixed(1).replace('.', ',') + ' m.kr';
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const dIS = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${+m[2]}.${m[1]}` : ''; };
+  const radio = (n) => { const v = (document.querySelector(`input[name="${n}"]:checked`) || {}).value; return v === 'ja' ? true : v === 'nei' ? false : null; };
+
+  // landshluti → sýna aðeins þau optgroup; svæði velur líka landshlutann
+  function syncSv() {
+    const lh = lhSel.value;
+    let first = null;
+    svSel.querySelectorAll('optgroup').forEach((g) => { const on = g.dataset.lh === lh; g.hidden = !on; g.disabled = !on; if (on && !first) first = g.querySelector('option'); });
+    const cur = svSel.selectedOptions[0];
+    if (!cur || cur.parentElement.dataset.lh !== lh) { if (first) svSel.value = first.value; }
+  }
+  lhSel.addEventListener('change', syncSv);
+  syncSv();
+  document.querySelectorAll('a.meta[data-sv]').forEach((a) => a.addEventListener('click', () => {
+    const sv = a.dataset.sv; const opt = svSel.querySelector(`option[value="${sv}"]`);
+    if (opt) { lhSel.value = opt.parentElement.dataset.lh; syncSv(); svSel.value = sv; }
+    setTimeout(() => m2In.focus(), 50);
+  }));
+  // ?sv=3200&m2=60 forfyllir
+  try { const u = new URL(location.href); const sv = u.searchParams.get('sv'), m2 = u.searchParams.get('m2'); const opt = sv && svSel.querySelector(`option[value="${sv}"]`); if (opt) { lhSel.value = opt.parentElement.dataset.lh; syncSv(); svSel.value = sv; } if (m2) m2In.value = m2; if (opt && m2) setTimeout(() => go.click(), 0); } catch {}
+  load().catch(() => {});
+
+  go.addEventListener('click', async () => {
+    const m2 = parseFloat(String(m2In.value).replace(',', '.'));
+    const hv = +svSel.value;
+    out.hidden = false;
+    if (!(m2 >= 15 && m2 <= 400)) { out.innerHTML = '<p class="warn">Sláðu inn stærð á bilinu 15–400 m².</p>'; return; }
+    out.innerHTML = '<p class="muted">Sæki sölur…</p>';
+    let J; try { J = await load(); } catch { out.innerHTML = '<p class="warn">Tókst ekki að sækja gagnasafnið — reyndu aftur.</p>'; return; }
+    const solur = J.solur || [];
+    const dataEnd = solur.reduce((m, s) => (s.d > m ? s.d : m), '');
+    const subj = { hv, m2, hiti: radio('sh-hiti'), eign: radio('sh-eign') };
+    const r = metaSumarhus(solur, subj, { now: tsOf(dataEnd) + 864e5 });
+    if (!r) { out.innerHTML = '<p class="warn">Of fáar sölur til að meta — veldu landshlutann í stað svæðis.</p>'; return; }
+    const svH = (nr) => ((J.svaedi || {})[String(nr)] || {}).heiti || String(nr);
+    const grunnur = r.stig === 'svaedi' ? `í matssvæðinu <b>${esc(svH(hv))}</b>` : r.stig === 'landshluti' ? `í landshlutanum <b>${esc(svH(r.lh))}</b> (svæðið sjálft hafði of fáar sölur)` : 'á <b>landinu öllu</b> (landshlutinn hafði of fáar sölur)';
+    const leidr = [r.leidr.hiti ? (subj.hiti ? 'með hitaveitu' : 'án hitaveitu') : '', r.leidr.eign ? (subj.eign ? 'á eignarlóð' : 'á leigulóð') : ''].filter(Boolean).join(', ');
+    const rows = r.comps.slice(0, 25).map((s) => `<tr><td class="num">${dIS(s.d)}</td><td class="l">${esc(svH(s.hv))}</td><td class="num">${String(s.m2).replace('.', ',')}</td><td class="num">${s.ar || '–'}</td><td class="num">${s.lod ? thou(s.lod) : '–'}</td><td>${s.hiti ? 'já' : 'nei'}</td><td>${s.eign ? 'eignarlóð' : 'leigulóð'}</td><td class="num">${mkr(s.kv * 1000)}</td><td class="num">${thou(s.ppm / 1000)}</td><td class="num"><b>${thou(s.adj / 1000)}</b></td></tr>`).join('');
+    out.innerHTML = `
+      <div class="res">
+        <div class="res-l">Áætlað söluverð</div>
+        <div class="res-v">${mkr(r.verd)}</div>
+        <div class="res-s">verðbil <b>${mkr(r.verdLo)} – ${mkr(r.verdHi)}</b> (fjórðungsbil) · ${thou(r.m / 1000)} þús.kr/m² miðgildi${leidr ? ' · ' + leidr : ''}</div>
+        <div class="res-s">byggt á <b>${r.n}</b> þinglýstum sölum síðustu 5 ára ${grunnur}, færðum til verðlags ${r.tilAr}</div>
+      </div>
+      <details class="comps"><summary>Sölurnar sem matið byggir á (${Math.min(25, r.n)} nýjustu af ${r.n})</summary>
+        <div class="tw"><table><thead><tr><th>Þinglýst</th><th class="l">Svæði</th><th>m²</th><th>Byggt</th><th>Lóð m²</th><th>Hiti</th><th>Lóð</th><th>Kaupverð</th><th>þús/m²</th><th>leiðrétt<br><small>þús/m² ${r.tilAr}</small></th></tr></thead><tbody>${rows}</tbody></table></div>
+        <p class="note">„Leiðrétt" = fermetraverð sölunnar fært til verðlags ${r.tilAr} með árs-vísitölu sumarhúsa${leidr ? ' og leiðrétt fyrir hita/lóð gagnvart þinni eign' : ''}. Matið er miðgildi leiðréttu talnanna × ${String(m2).replace('.', ',')} m².</p>
+      </details>`;
+    out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+</script>
+
+<style is:global>
+  main[data-pg="sumarhus"] { max-width: 1080px; margin: 0 auto; padding: 18px 16px 48px; }
+  main[data-pg="sumarhus"] .kicker { color: var(--faint); font-size: 12px; letter-spacing: .4px; text-transform: uppercase; }
+  main[data-pg="sumarhus"] .kicker a { color: inherit; }
+  main[data-pg="sumarhus"] h1 { margin: 6px 0 8px; }
+  main[data-pg="sumarhus"] h2 { margin-top: 28px; }
+  main[data-pg="sumarhus"] .lead { font-size: 15.5px; line-height: 1.55; }
+  main[data-pg="sumarhus"] .mat { margin-top: 10px; padding: 14px 16px 10px; border-radius: 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); }
+  main[data-pg="sumarhus"] .mat h2 { margin-top: 0; }
+  main[data-pg="sumarhus"] .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; align-items: end; }
+  main[data-pg="sumarhus"] .form label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted); }
+  main[data-pg="sumarhus"] .form select, main[data-pg="sumarhus"] .form input[type=number] { padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color: var(--ink); font-size: 14.5px; }
+  main[data-pg="sumarhus"] .form fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13.5px; }
+  main[data-pg="sumarhus"] .form legend { font-size: 13px; color: var(--muted); margin-bottom: 5px; padding: 0; }
+  main[data-pg="sumarhus"] .form label.r { flex-direction: row; align-items: center; gap: 5px; color: var(--ink); font-size: 13.5px; }
+  main[data-pg="sumarhus"] .btn { padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(246,177,59,.55); background: rgba(246,177,59,.16); color: #f6b13b; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+  main[data-pg="sumarhus"] .btn:hover { background: rgba(246,177,59,.26); }
+  main[data-pg="sumarhus"] .out { margin-top: 14px; }
+  main[data-pg="sumarhus"] .res { padding: 14px 16px; border-radius: 12px; background: rgba(70,224,138,.07); border: 1px solid rgba(70,224,138,.3); }
+  main[data-pg="sumarhus"] .res-l { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+  main[data-pg="sumarhus"] .res-v { font-size: 34px; font-weight: 800; margin: 2px 0 4px; }
+  main[data-pg="sumarhus"] .res-s { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  main[data-pg="sumarhus"] .comps { margin-top: 10px; } main[data-pg="sumarhus"] .comps summary { cursor: pointer; color: var(--muted); font-size: 13.5px; }
+  main[data-pg="sumarhus"] .warn { color: #ff6d7a; } main[data-pg="sumarhus"] .muted { color: var(--muted); }
+  main[data-pg="sumarhus"] .tw { overflow-x: auto; }
+  main[data-pg="sumarhus"] table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  main[data-pg="sumarhus"] th, main[data-pg="sumarhus"] td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: right; white-space: nowrap; }
+  main[data-pg="sumarhus"] th small { font-weight: 400; color: var(--faint); }
+  main[data-pg="sumarhus"] th.l, main[data-pg="sumarhus"] td.l { text-align: left; }
+  main[data-pg="sumarhus"] tr.lh td { background: rgba(255,255,255,.04); font-weight: 700; padding-top: 10px; }
+  main[data-pg="sumarhus"] .lh-s { font-weight: 400; color: var(--muted); }
+  main[data-pg="sumarhus"] a.meta { color: #f6b13b; text-decoration: none; font-weight: 600; } main[data-pg="sumarhus"] a.meta:hover { text-decoration: underline; }
+  main[data-pg="sumarhus"] .up { color: #46e08a; } main[data-pg="sumarhus"] .dn { color: #ff6d7a; }
+  main[data-pg="sumarhus"] .note { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  main[data-pg="sumarhus"] .vis td, main[data-pg="sumarhus"] .vis th { padding: 5px 7px; }
+</style>
