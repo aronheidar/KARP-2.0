@@ -6,12 +6,18 @@
 // Skipt eftir PÓSTNÚMERI → web/public/gogn/fasteignaskra/<pn>.json (létt, ein hlaðin í einu).
 // + index.json {pn: fjöldi}. Fasteignavaktin les rétt póstnúmer þegar notandi slær inn heimilisfang.
 //
-// KEYRSLA: node skriptur/build_fasteignaskra.js  (~45MB niðurhal, 1–2 mín)
+// ➕ 19.8.2026: LEIGUSKRÁ HMS (sami OCI-fata, ~30MB) sem ÞRIÐJA stærðar-uppspretta. Íbúðir sem hafa verið
+// leigðar út en aldrei selst síðan 2006 (11.919 einingar við mælingu, +13%) fá færslu með stærð, herbergjum
+// og tegund — EKKERT mat (leiguskrá ber ekki fasteignamat) og merktar heimild:'leiga' svo framendinn segi
+// það. Sjálffylling fasteignavaktar nær þá yfir þær; kaupskrár-færsla vinnur alltaf ef bæði eru til.
+//
+// KEYRSLA: node skriptur/build_fasteignaskra.js  (~80MB niðurhal, 2–3 mín)
 
 const fs = require('fs');
 const path = require('path');
 const OUT = path.join(__dirname, '..', 'web', 'public', 'gogn', 'fasteignaskra');
 const URL = 'https://frs3o1zldvgn.objectstorage.eu-frankfurt-1.oci.customer-oci.com/n/frs3o1zldvgn/b/public_data_for_download/o/kaupskra.csv';
+const URL_LEIGA = 'https://frs3o1zldvgn.objectstorage.eu-frankfurt-1.oci.customer-oci.com/n/frs3o1zldvgn/b/public_data_for_download/o/leiguskra.csv';
 const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
 
 (async () => {
@@ -65,6 +71,37 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     });
     total++;
   }
+  // ── LEIGUSKRÁ: stærð/herbergi/tegund fyrir einingar sem kaupskráin þekkir ekki ──
+  let leigaNy = 0, leigaAlls = 0;
+  try {
+    console.log('sæki HMS leiguskrá (~30MB)…');
+    const rl = await fetch(URL_LEIGA, { headers: { 'User-Agent': 'KARP dashboard build (karp.is)' } });
+    if (!rl.ok) throw new Error('HTTP ' + rl.status);
+    const lt = Buffer.from(await rl.arrayBuffer()).toString('latin1');
+    const LL = lt.split(/\r?\n/);
+    const LH = LL[0].split(';').map((s) => s.trim());
+    const li = { a: LH.indexOf('HEIMILISFANG'), pn: LH.indexOf('POSTNUMER'), sv: LH.indexOf('SVEITARFELAG'), f: LH.indexOf('FASTNUM'), st: LH.indexOf('STAERD'), herb: LH.indexOf('FJ_HERBERGI'), teg: LH.indexOf('TEGUND'), on: LH.indexOf('ONOTHAEFUR_SAMNINGUR'), fra: LH.indexOf('DAGSFRA') };
+    if (li.a < 0 || li.f < 0 || li.st < 0) throw new Error('leiguskrá: dálkar fundust ekki — ' + LH.slice(0, 8).join(','));
+    const seenL = new Map();   // fastnum → nýjasti samningur (DAGSFRA)
+    for (let k = 1; k < LL.length; k++) {
+      const c = LL[k].split(';'); if (c.length < LH.length) continue;
+      if ((c[li.on] || '').trim() !== '0') continue;
+      const teg = (c[li.teg] || '').trim(); if (!RESID.has(teg)) continue;
+      const f = (c[li.f] || '').trim(); if (!f || props.has(f)) continue;          // kaupskrá vinnur
+      const a = (c[li.a] || '').trim(), pn = (c[li.pn] || '').trim();
+      if (!a || !/^\d{3}$/.test(pn)) continue;
+      const fm = flmOf(c[li.st]); if (!fm || fm <= 10) continue;
+      const fra = (c[li.fra] || '').slice(0, 10);
+      const prev = seenL.get(f); if (prev && prev.fra >= fra) continue;
+      leigaAlls++;
+      seenL.set(f, { a, pn, sv: (c[li.sv] || '').trim(), teg, fnr: f, full: null, mat: null, matN: null, bruna: null, ar: null, fm, herb: num(c[li.herb]), lod: null, ld: null, lv: null, heimild: 'leiga', fra });
+    }
+    for (const [f, e] of seenL) { delete e.fra; props.set(f, e); leigaNy++; }
+    console.log('leiguskrá:', leigaNy, 'einingar bætt við úr leiguskrá (aðeins þær sem kaupskráin þekkir ekki)');
+  } catch (e) {
+    // Leiguskráin er viðbót — bili hún stendur kaupskrár-grunnurinn óskertur, en það á að SJÁST í keyrslu-loggnum.
+    console.error('⚠ leiguskrá brást, haldið áfram án hennar:', String(e).slice(0, 200));
+  }
   // hópa eftir póstnúmeri
   const byPn = {};
   for (const p of props.values()) (byPn[p.pn] = byPn[p.pn] || []).push(p);
@@ -81,7 +118,7 @@ const RESID = new Set(['Fjölbýli', 'Sérbýli', 'Einbýli']);
     for (const sv of new Set(arr.map((p) => p.sv).filter(Boolean))) (bySv[sv] = bySv[sv] || new Set()).add(pn);
   }
   const bySvArr = {}; Object.keys(bySv).forEach((sv) => (bySvArr[sv] = [...bySv[sv]].sort()));
-  fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), n: props.size, note: 'Fasteignaskrá úr kaupskrá HMS — nýjasta þinglýsta sala per eign + gildandi fasteignamat/brunabótamat. Nær yfir eignir sem hafa selst frá 2006.', byPn: index, bySv: bySvArr }));
+  fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ updated: new Date().toISOString(), n: props.size, note: 'Fasteignaskrá úr kaupskrá HMS — nýjasta þinglýsta sala per eign + gildandi fasteignamat/brunabótamat (eignir seldar frá 2006) + einingar úr leiguskrá HMS (heimild:leiga — stærð/herb./tegund, EKKERT mat).', leiga: leigaNy, byPn: index, bySv: bySvArr }));
   // GÖTU-VÍSIR (LOTA 65): götunafn → póstnúmer, svo fléttilistinn finni rétta skrá strax
   // og notandi þurfi EKKI að skrifa póstnúmerið fyrst. { "brunnstígur": ["230"], … }
   const gotur = {};

@@ -441,7 +441,7 @@ const jsonLd = {
       const fvRow = (r) => `<div class="fi"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — <b class="fv-v">${fvKr(r.v)}</b>${r.mat ? ` <span class="fv-mat">${matPct(r)}</span>` : ''}</span><span class="s">${dIS(r.d)} · ${String(r.fm).replace('.', ',')} m²${r.fm > 0 ? ' · ' + Math.round(r.v / r.fm) + ' þ/m²' : ''} · ${esc(r.t)}${r.ar ? ' · byggt ' + r.ar : ''}${r.mat ? ' · fasteignamat ' + fvKr(r.mat) : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}</span></div>`;
       const uppRow = (x) => `<div class="fi fv-upp"><span class="t">🔨 ${esc(x.a)} — <b>${esc(x.teg)}</b></span><span class="s">${dIS(x.d)}${x.kl ? ' kl. ' + esc(x.kl) : ''} · ${esc(x.flokkur)} · ${esc(x.e)}</span></div>`;
       // Röð fyrir eign úr fasteignaskrá (ekki nýleg sala) — fasteignamat + brunabótamat
-      const fskRow = (r) => `<div class="fi fv-fsk"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — fasteignamat <b class="fv-v">${r.mat ? fvKr(r.mat) : '–'}</b></span><span class="s">${r.fm ? String(r.fm).replace('.', ',') + ' m² · ' : ''}${esc(r.teg)}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.ar ? ' · byggt ' + r.ar : ''}${r.lod ? ' · lóð ' + r.lod + ' m²' : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}${r.ld ? ' · seldist síðast ' + esc(r.ld) + (r.lv ? ' á ' + fvKr(r.lv) : '') : ''}</span></div>`;
+      const fskRow = (r) => `<div class="fi fv-fsk"><span class="t">${esc(r.a)} <span class="fv-sv">· ${esc(r.pn)} ${esc(r.sv)}</span> — ${r.heimild === 'leiga' ? '<b class="fv-v">stærð úr leiguskrá HMS</b> · ekkert skráð mat' : 'fasteignamat <b class="fv-v">' + (r.mat ? fvKr(r.mat) : '–') + '</b>'}</span><span class="s">${r.fm ? String(r.fm).replace('.', ',') + ' m² · ' : ''}${esc(r.teg)}${r.herb ? ' · ' + r.herb + ' herb.' : ''}${r.ar ? ' · byggt ' + r.ar : ''}${r.lod ? ' · lóð ' + r.lod + ' m²' : ''}${r.bruna ? ' · brunabótamat ' + fvKr(r.bruna) : ''}${r.ld ? ' · seldist síðast ' + esc(r.ld) + (r.lv ? ' á ' + fvKr(r.lv) : '') : ''}</span></div>`;
       const fvQ = document.getElementById('fv-q'), fvMuniEl = document.getElementById('fv-muni'), fvBtn = document.getElementById('fv-add');
       const dl = document.getElementById('fv-addr-list');
 
@@ -483,7 +483,12 @@ const jsonLd = {
           if (!h || !h[fvNorm(addr)]) return false;
           const aEl = document.getElementById('fvm-addr'), note = document.getElementById('fvm-fill');
           if (aEl) aEl.value = addr + ', ' + pn;
-          if (note) { note.hidden = false; note.textContent = '📍 Skráð heimilisfang í staðfangaskrá — engin þinglýst sala síðan 2006, svo stærð og tegund finnast ekki sjálfkrafa. Sláðu þær inn og smelltu á Meta: matið byggir á sambærilegum eignum í götunni/póstnúmerinu.'; }
+          if (note) {
+            const c = h[fvNorm(addr)];   // [lat, lng, hverfi, landnr, heinum]
+            const hms = (c && c[3] && c[4]) ? ' <a class="ec-hms" href="https://hms.is/fasteignaskra/' + c[3] + '/' + c[4] + '" target="_blank" rel="noopener">🏛️ Skráð stærð hjá HMS →</a> (opnast í nýjum flipa — afritaðu m² hingað)' : '';
+            note.hidden = false;
+            note.innerHTML = '📍 Skráð heimilisfang í staðfangaskrá — hvorki í kaupskrá né leiguskrá HMS, svo stærð og tegund finnast ekki sjálfkrafa.' + hms + ' Sláðu þær inn og smelltu á Meta: matið byggir á sambærilegum eignum í götunni/póstnúmerinu.';
+          }
           return true;
         }
         const hit = all.slice().sort((a, b) => ((a.mat > 0 ? 0 : 1) - (b.mat > 0 ? 0 : 1)) || ((b.fm || 0) - (a.fm || 0)))[0];
@@ -493,7 +498,7 @@ const jsonLd = {
         if (fmEl && hit.fm) fmEl.value = Math.round(hit.fm);
         if (tegEl && teg) tegEl.value = teg;
         const note = document.getElementById('fvm-fill');
-        if (note) { note.hidden = false; note.textContent = '✓ ' + (hit.fm ? 'Stærð (' + String(hit.fm).replace('.', ',') + ' m²) og t' : 'T') + 'egund (' + (teg || '') + ') sóttar sjálfkrafa' + (hit.mat ? ' · fasteignamat ' + fvKr(hit.mat) : '') + ' — smelltu á Meta.'; }
+        if (note) { note.hidden = false; note.textContent = '✓ ' + (hit.fm ? 'Stærð (' + String(hit.fm).replace('.', ',') + ' m²) og t' : 'T') + 'egund (' + (teg || '') + ') sóttar sjálfkrafa' + (hit.mat ? ' · fasteignamat ' + fvKr(hit.mat) : hit.heimild === 'leiga' ? ' úr leiguskrá HMS (engin þinglýst sala síðan 2006 → ekkert skráð fasteignamat hér)' : '') + ' — smelltu á Meta.'; }
         return true;
       }
 
@@ -877,6 +882,7 @@ const jsonLd = {
         let cardHtml = '';
         if (self) {
           const eign = [['Fasteignanúmer', self.fnr ? 'F' + self.fnr : '–'], ['Tegund', self.teg || teg], ['Stærð', self.fm ? String(self.fm).replace('.', ',') + ' m²' : fm + ' m²'], ['Byggingarár', self.ar || '–'], ['Herbergi', self.herb || '–']];
+          if (self.heimild === 'leiga') eign.push(['Heimild', 'Leiguskrá HMS — engin þinglýst sala síðan 2006, ekkert skráð fasteignamat']);
           if (hverfi) eign.push(['Hverfi', hverfi]);
           const gogn = [['Fasteignamat', self.mat ? mkr(self.mat) : '–'], ['Fyrirhugað mat', self.matN ? mkr(self.matN) : '–'], ['Brunabótamat', self.bruna ? mkr(self.bruna) : '–'], ['Lóð', self.lod ? self.lod + ' m²' : '–'], ['Byggingastig', self.full ? 'Fullgert' : '–']];
           const rows2 = (arr) => arr.map(([k, v]) => `<div class="ec-r"><span class="ec-k">${k}</span><span class="ec-v">${esc(String(v))}</span></div>`).join('');
