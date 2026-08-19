@@ -7,7 +7,12 @@
 // Öll verð hér eru kr/m² — kallandi deilir með 1000 ef hann vill þ.kr/m².
 
 export const OUTLO = 180000, OUTHI = 2600000;      // sía burt bílskúra/hlutasölur/útlaga (kr/m²)
-export const MAT = { dagar: 560, staerd: 0.3, arBil: 15, min: 6 };   // 18 mán · ±30% stærð · ±15 byggingarár · ≥6 sambærilegar
+export const MAT = { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31 };   // 18 mán · ±30% stærð · ±15 byggingarár · ≥6 sambærilegar · stærðarteygni
+// teygni: m²-verð fellur með stærð — log(m²-verð)/log(stærð) = −0,31 (mælt 19.8.2026 á 30.697 sölum úr sölu-úrtaki HMS
+// fyrir fasteignamat 2027, innan svæðis+söluárs+byggingaráratugar; fjölbýli −0,32, sérbýli −0,28). 10% stærri eign ≈ 3%
+// lægra m²-verð, svo sambærileg 30% stærri en eignin er ~8% „ódýrari" á fermetrann og togaði miðgildið áður. Hver
+// sambærileg er því sköluð að stærð eignarinnar: ppm × (fm_i / fm)^(−teygni). Bakpróf á 12 pn: 6,7% → 6,1%
+// miðgildisskekkja, 68% → 72% innan ±10%, batnar/helst í 12 af 12. teygni: 0 slekkur.
 
 export const midgildi = (a) => { if (!a || !a.length) return null; const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 export const hundradsmark = (a, q) => { if (!a || !a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); };
@@ -47,8 +52,9 @@ export function metaUrSolusogu(sales, subj, opts) {
   const o = Object.assign({}, MAT, opts || {});
   const { comps, arSia } = veljaSamberilegar(sales, subj, o);
   if (comps.length < o.min) return null;
-  const v = comps.map((s) => s.ppm);
-  return { m: midgildi(v), lo: hundradsmark(v, 0.25), hi: hundradsmark(v, 0.75), n: comps.length, arSia, comps };
+  const fm = +subj.fm || 0, t = o.teygni || 0;
+  const v = comps.map((s) => (t && fm > 0 && s.fm > 0) ? s.ppm * Math.pow(s.fm / fm, -t) : s.ppm);   // stærðarleiðrétt m²-verð
+  return { m: midgildi(v), lo: hundradsmark(v, 0.25), hi: hundradsmark(v, 0.75), n: comps.length, arSia, staerdLeidr: !!(t && fm > 0), comps };
 }
 
 // Bakpróf: hver sala síðustu `manudir` mánaða metin með SÖMU aðferð út frá sölum Á UNDAN henni.

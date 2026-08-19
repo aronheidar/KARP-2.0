@@ -854,7 +854,7 @@ const jsonLd = {
         let r1 = null;
         if (sales && sales.length) {
           r1 = metaUrSolusogu(sales, { teg, fm, ar: self && self.ar ? +self.ar : null }, { now: Date.now() });
-          if (r1) est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð' + (r1.arSia ? ', byggingarár ±15 ár' : '') + ', sl. 18 mán)', n: r1.n, m: r1.m / 1000, lo: r1.lo / 1000, hi: r1.hi / 1000 };
+          if (r1) est = { heiti: 'sambærilegum eignum í póstnúmeri ' + pn + ' (' + teg + ', ±30% stærð' + (r1.staerdLeidr ? ' stærðarleiðrétt' : '') + (r1.arSia ? ', byggingarár ±15 ár' : '') + ', sl. 18 mán)', n: r1.n, m: r1.m / 1000, lo: r1.lo / 1000, hi: r1.hi / 1000 };
         }
         // 2) fallback: 180-daga kaupskrá (gata → póstnúmer)
         if (!est) {

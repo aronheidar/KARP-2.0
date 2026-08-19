@@ -137,5 +137,34 @@ test('bakprof: tómt → null', () => {
 });
 
 test('MAT: stillingarnar sem matið og bakprófið deila', () => {
-  assert.deepEqual(MAT, { dagar: 560, staerd: 0.3, arBil: 15, min: 6 });
+  assert.deepEqual(MAT, { dagar: 560, staerd: 0.3, arBil: 15, min: 6, teygni: -0.31 });
+});
+
+// ── Stærðarleiðrétting ────────────────────────────────────────────────────────
+test('metaUrSolusogu: sambærileg er sköluð að stærð eignarinnar (teygni −0,31)', () => {
+  // Sex sambærilegar, allar 130 m² á 500.000 kr/m² — eignin er 100 m². Stærri eignir hafa lægra m²-verð,
+  // svo 100 m² eign á að meta HÆRRA á fermetrann: 500.000 × (130/100)^0,31 ≈ 542.600.
+  const sales = Array.from({ length: 6 }, (_, i) => sala({ a: 's' + i, fm: 130, ppm: 500000 }));
+  const r = metaUrSolusogu(sales, { teg: 'Fjölbýli', fm: 100 }, { now: NU });
+  assert.equal(r.staerdLeidr, true);
+  assert.ok(Math.abs(r.m - 500000 * Math.pow(1.3, 0.31)) < 1, 'm: ' + r.m);
+  // og öfugt: minni sambærilegar (70 m²) → lækkað að 100 m²
+  const r2 = metaUrSolusogu(Array.from({ length: 6 }, (_, i) => sala({ a: 'l' + i, fm: 70, ppm: 500000 })), { teg: 'Fjölbýli', fm: 100 }, { now: NU });
+  assert.ok(r2.m < 500000, 'minni sambærilegar → lægra: ' + r2.m);
+});
+
+test('metaUrSolusogu: teygni 0 slekkur á leiðréttingunni (gamla hegðunin)', () => {
+  const sales = Array.from({ length: 6 }, (_, i) => sala({ a: 's' + i, fm: 130, ppm: 500000 }));
+  const r = metaUrSolusogu(sales, { teg: 'Fjölbýli', fm: 100 }, { now: NU, teygni: 0 });
+  assert.equal(r.m, 500000);
+  assert.equal(r.staerdLeidr, false);
+});
+
+test('metaUrSolusogu: sama stærð → engin breyting þótt teygni sé á', () => {
+  const sales = Array.from({ length: 6 }, (_, i) => sala({ a: 's' + i, fm: 100, ppm: 500000 }));
+  assert.equal(metaUrSolusogu(sales, { teg: 'Fjölbýli', fm: 100 }, { now: NU }).m, 500000);
+});
+
+test('MAT: teygnin er hluti af deildu stillingunum', () => {
+  assert.equal(MAT.teygni, -0.31);
 });
