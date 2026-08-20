@@ -167,15 +167,84 @@ async function landsvirkjun() {
   } catch (e) { console.log('  Landsvirkjun villa:', String(e).slice(0, 60)); return []; }
 }
 
+// ── Auðgun: skilafrestur (+ raun-kaupandi) af sér-síðu hvers útboðs ───────────
+// HVORKI Útboðsvefs-API-ið NÉ Reykjavíkur-listinn skila skilafresti — hann er aðeins
+// á útboðssíðunni sjálfri. Án þessa höfðu 83% útboða engan frest (mælt 20.8.2026) og
+// dagsetningasíur Útboðsvaktarinnar náðu því aðeins yfir TED-hlutann.
+const MONTHS = { 'janúar': 1, 'febrúar': 2, 'mars': 3, 'apríl': 4, 'maí': 5, 'júní': 6, 'júlí': 7, 'ágúst': 8, 'september': 9, 'október': 10, 'nóvember': 11, 'desember': 12 };
+const pad2 = (n) => String(n).padStart(2, '0');
+
+async function pageText(u) {
+  try {
+    const r = await fetch(u, { headers: UA, signal: AbortSignal.timeout(15000) });
+    if (!r.ok) return '';
+    const h = await r.text();
+    return h.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ');
+  } catch (e) { return ''; }
+}
+// Keyrir fn yfir items með þaki á samhliða köllum (kurteisi við vefina sem við sækjum í).
+async function mapLimit(items, limit, fn) {
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) { const k = i++; await fn(items[k]); }
+  }));
+}
+// Útboðsvefur: „Útboðsaðili: Kalka  Tegund: Framkvæmd  Skilafrestur 31.08.2026 kl. 12:00"
+function thattaRk(txt) {
+  const c = clean(txt);
+  const dl = c.match(/Skilafrestur[:\s]*(\d{1,2})\.(\d{1,2})\.(\d{4})/i);
+  const bu = c.match(/Útboðsaðili[:\s]*([^:]{2,60}?)\s+Tegund[:\s]/i);
+  const tg = c.match(/Tegund[:\s]*(Framkvæmd|Þjónusta|Vara)/i);
+  return {
+    deadline: dl ? `${dl[3]}-${pad2(dl[2])}-${pad2(dl[1])}` : null,
+    buyer: bu ? clean(bu[1]) : null,
+    tegund: tg ? tg[1] : null,
+  };
+}
+// Reykjavíkurborg: „... eigi síðar en: kl. 10:00, þann 15. september 2026"
+function thattaRvk(txt) {
+  const c = clean(txt);
+  const m = c.match(/eigi\s+síðar\s+en[:\s]*(?:kl\.?\s*\d{1,2}[:.]\d{2}\s*,?\s*)?þann\s+(\d{1,2})\.\s*([A-Za-zÁÐÉÍÓÚÝÞÆÖáðéíóúýþæö]+)\s+(\d{4})/i);
+  if (!m) return { deadline: null };
+  const mo = MONTHS[m[2].toLowerCase()];
+  return { deadline: mo ? `${m[3]}-${pad2(mo)}-${pad2(m[1])}` : null };
+}
+
 async function main() {
   const [rk, td, fx, lv, rvk, pins] = await Promise.all([ríkiskaup(), ted(), faxafloahafnir(), landsvirkjun(), reykjavik(), tedPins()]);
   console.log('  Útboðsvefur:', rk.length, '· TED:', td.length, '· Faxaflóahafnir:', fx.length, '· Landsvirkjun:', lv.length, '· Reykjavík:', rvk.length, '· PIN:', pins.length);
+  // Auðga rk + rvk af útboðssíðunum (frestur + raun-kaupandi). Bilun á stakri síðu
+  // fellir hana ekki úr safninu — hún heldur bara null-fresti.
+  const audga = [...rk, ...rvk].filter((x) => x.u);
+  let nDl = 0, nBuyer = 0;
+  await mapLimit(audga, 6, async (x) => {
+    const txt = await pageText(x.u);
+    if (!txt) return;
+    const pr = x.src === 'rk' ? thattaRk(txt) : thattaRvk(txt);
+    if (pr.deadline) { x.deadline = pr.deadline; nDl++; }
+    if (pr.buyer) { x.buyer = pr.buyer; nBuyer++; }
+    if (pr.tegund) x.tegund = pr.tegund;
+  });
+  console.log('  Auðgun:', nDl, 'skilafrestir ·', nBuyer, 'raun-kaupendur (af', audga.length, 'síðum)');
+
   let all = [...rk, ...td, ...fx, ...lv, ...rvk];
-  // Tvítök burt (sami titill+veita)
-  const seen = new Set();
-  all = all.filter((x) => { const k = x.src + '|' + x.t.toLowerCase().slice(0, 60); return seen.has(k) ? false : (seen.add(k), true); });
+  // Tvítök burt ÞVERT Á VEITUR — sama útboð birtist bæði hjá Reykjavík og Útboðsvef
+  // (sást fyrst þegar auðgunin gaf rk-færslum RAUN-kaupanda). Lykill = titill án
+  // útboðsnúmers/greinarmerkja; höldum þeirri færslu sem ber mestar upplýsingar.
+  const normT = (t) => String(t || '').toLowerCase().replace(/^\d{4,6}\s*/, '')
+    .replace(/[^a-záðéíóúýþæö0-9]+/g, ' ').trim().slice(0, 60);
+  const stig = (y) => (y.deadline ? 2 : 0) + (y.d ? 1 : 0);
+  const bestu = new Map();
+  for (const x of all) {
+    const k = normT(x.t);
+    if (!k) continue;
+    const fyrir = bestu.get(k);
+    if (!fyrir || stig(x) > stig(fyrir)) bestu.set(k, x);
+  }
+  all = [...bestu.values()];
   // Röðun: nýjast birt fyrst (deadline-röðun gerist client-side)
-  all.sort((a, b) => String(b.d || '').localeCompare(String(a.d || '')));
+  // Falla á skilafrest þegar birtingardag vantar — annars sukku ALLAR Reykjavíkur-færslur neðst.
+  all.sort((a, b) => String(b.d || b.deadline || '').localeCompare(String(a.d || a.deadline || '')));
 
   const byCat = {}; all.forEach((x) => { byCat[x.cat] = (byCat[x.cat] || 0) + 1; });
   const bySrc = {}; all.forEach((x) => { bySrc[x.src] = (bySrc[x.src] || 0) + 1; });
