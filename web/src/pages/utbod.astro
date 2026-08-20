@@ -609,31 +609,43 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     // ?syni=1 → fullt sýnishorn (opið öllum, tilbúin gögn, engin PII). Annars: kynningarspjald efst fyrir útskráða.
     // Sama mynstur og fasteignavakt (renderDemoValuation) og fyrirtaeki (demoFyrirtaeki).
     import { loadUser, loginHref } from '../lib/auth.js';
-    function utbodSampleHtml(full) {
-      // Tilbúin (EKKI raunveruleg) útboð — kaupendur eru opinberir aðilar, engin persónugögn.
-      const items = [
-        { badge: 'rk', bl: 'Útboðsvefur', emoji: '🚧', t: 'Malbikun stofnbrauta og gatnagerð 2026', by: 'Kópavogsbær', vakt: true, fit: 92, dl: '⏳ lokar eftir 9 d (21.7.2026)', dlc: 'ut-soon' },
-        { badge: 'rvk', bl: 'Reykjavík', emoji: '⚡', t: 'Endurnýjun raflagna í grunnskóla', by: 'Reykjavíkurborg', fit: 78, haefi: 5, dl: 'frestur 22.7.2026' },
-        { badge: 'rk', bl: 'Útboðsvefur', emoji: '❄️', t: 'Snjómokstur og hálkuvörn — rammasamningur', by: 'Vegagerðin', vakt: true, fit: 85, isNew: true },
-        { badge: 'ted', bl: 'TED', emoji: '🧹', t: 'Ræstingar á heilbrigðisstofnun', by: 'Ríkiskaup', fit: 64, dl: 'frestur 30.7.2026' },
-        { badge: 'rk', bl: 'Útboðsvefur', emoji: '🏗️', t: 'Byggingarstjórn — viðbygging leikskóla', by: 'Akureyrarbær', fit: 71, haefi: 3, dl: '⏳ lokar eftir 12 d (24.7.2026)', dlc: 'ut-soon' },
-      ];
-      const row = (x) => {
-        const fc = x.fit >= 70 ? 'hi' : x.fit >= 40 ? 'mid' : 'lo';
-        const parts = [`<span class="ut-fit ${fc}">🎯 ${x.fit}%</span>`, x.haefi ? `<span class="ut-haefi">📋 ${x.haefi} hæfiskröfur</span>` : '', x.isNew ? '<span class="ut-new">NÝTT Í DAG</span>' : '', x.dl ? `<span class="${x.dlc || ''}">${x.dl}</span>` : '', `<span class="by">${x.by}</span>`].filter(Boolean);
-        return `<div class="ut-it${x.vakt ? ' hit' : ''}" style="cursor:default"><span class="ut-t">${x.vakt ? '<span class="ut-badge vakt">🔔 VAKTIN</span>' : ''}<span class="ut-badge ${x.badge}">${x.bl}</span><span class="cat">${x.emoji}</span>${x.t}</span><span class="ut-m">${parts.join(' · ')}</span></div>`;
-      };
-      const rows = items.slice(0, full ? 5 : 3).map(row).join('');
-      const chips = ['🚧 Framkvæmdir', '⚡ Raflagnir', '❄️ Vetrarþjónusta'].map((c) => `<span class="uv-cat on">${c}</span>`).join('');
-      const cta = `<div class="syni-btns"><a class="syni-main" href="${loginHref()}">Skráðu þig inn</a><a class="syni-sec" href="/karp-pro/">Áskrift — 1.900 kr./mán. →</a></div>`;
-      return `<div class="syni-banner"><div class="syni-t">⭐ Þetta er sýnishorn — svona raðast útboðin sem passa þína verktöku efst</div>`
-        + `<p>Tilbúin dæmigögn. Með Útboðsvaktinni færðu 🎯 fit-einkunn, 📋 hæfiskröfur og 🔔 vakt-röðun — og daglegan tölvupóst um leið og nýtt útboð fellur að þinni verktöku. <b>Skráðu þig inn eða gerstu áskrifandi til að sjá allt.</b></p>${cta}</div>`
-        + `<div class="ut-list" style="grid-template-columns:1fr">${rows}</div>`
-        + `<div class="syni-card" style="margin-top:14px"><div class="syni-lbl">🔔 Mín útboðsvakt (sýnishorn)</div><div class="uv-cats" style="margin-bottom:10px">${chips}</div><div style="font-size:12.5px;color:#8fa0ba">📧 Daglegur tölvupóstur um ný útboð sem passa — <b style="color:#42d086">virkur</b> í sýnishorni. Skráðu þig inn til að stilla þína eigin vakt og verktaka-prófíl.</div></div>`
-        + (full
-          ? `<div class="syni-banner" style="margin-top:14px"><div class="syni-t">Tilbúinn að fá þín útboð efst?</div><p>Þetta sýnishorn notar tilbúin gögn. Skráðu þig inn eða gerstu áskrifandi til að fá alvöru útboð, fit-einkunnir og daglega vakt.</p>${cta}</div>`
-          : `<p style="font-size:12.5px;color:#8fa0ba;margin:10px 0 0"><a href="/utbod/?syni=1" style="color:#f6b13b">👁️ Sjá fullt sýnishorn →</a> · öll opnu útboðin eru aðgengileg hér að neðan.</p>`);
+    import UTBOD_SYNI from '@gogn/utbod.json';
+    // ⚠ ÁÐUR: tilbúin dæmi-útboð með FÖSTUM dagsetningum — þau úreltust (21.7.2026 sást enn 20.8.).
+    // NÚNA: raunveruleg OPIN útboð úr safninu. Engin persónugögn (aðeins opinberir kaupendur).
+    const SYNI_MAN = ['jan.', 'feb.', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágú.', 'sep.', 'okt.', 'nóv.', 'des.'];
+    const SYNI_SRC = { rk: 'Útboðsvefur', ted: 'TED', rvk: 'Reykjavík', fax: 'Faxaflóahafnir', lv: 'Landsvirkjun' };
+    const SYNI_EMOJI = { bygg: '🏗️', jardv: '🚧', vel: '⚙️', flutn: '🚚', raesting: '🧹', hugb: '💻', matur: '🍽️', radgjof: '📊', orka: '⚡' };
+    const syniEsc = (x) => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const syniDags = (d) => { const p = String(d).split('-'); return +p[2] + '. ' + SYNI_MAN[+p[1] - 1]; };
+    const syniTitill = (t) => String(t || '').replace(/^Iceland\s+–\s+[^–]+–\s+/, '').replace(/^\d{4,6}\s*[-–]?\s*/, '').slice(0, 72);
+    function syniOpin(n) {
+      const idag = new Date().toISOString().slice(0, 10);
+      return (UTBOD_SYNI.tenders || [])
+        .filter((x) => x && x.t && x.deadline && x.deadline >= idag)
+        .sort((a, b) => a.deadline.localeCompare(b.deadline))
+        .slice(0, n);
     }
+    function utbodSampleHtml(full) {
+      const opin = syniOpin(full ? 6 : 4);
+      const nOpin = syniOpin(999).length;
+      const rows = opin.map((x) => {
+        const dagar = Math.max(0, Math.round((Date.parse(x.deadline) - Date.now()) / 864e5));
+        const bratt = dagar <= 7;
+        const dl = (bratt ? '⏳ lokar eftir ' + dagar + ' d · ' : 'frestur ') + syniDags(x.deadline);
+        return `<div class="ut-it" style="cursor:default"><span class="ut-t">`
+          + `<span class="ut-badge ${x.src}">${SYNI_SRC[x.src] || x.src}</span>`
+          + `<span class="cat">${SYNI_EMOJI[x.cat] || '📦'}</span>${syniEsc(syniTitill(x.t))}</span>`
+          + `<span class="ut-m"><span class="${bratt ? 'ut-soon' : ''}">${dl}</span> · <span class="by">${syniEsc(x.buyer || '')}</span></span></div>`;
+      }).join('');
+      const cta = `<div class="syni-btns"><a class="syni-main" href="${loginHref()}">Prófa frítt í 30 daga</a><a class="syni-sec" href="/lausnir/utbodsvaktin/">Um Útboðsvaktina →</a></div>`;
+      return `<div class="syni-banner"><div class="syni-t">⭐ ${nOpin} opinber útboð eru opin núna — hér eru þau sem loka næst</div>`
+        + `<p>Þetta eru <b>raunveruleg útboð</b> úr vaktinni, ekki dæmi. Með áskrift sérðu þau öll og færð 🎯 fit-einkunn miðað við þína verktöku, 📋 hæfiskröfur EES-útboða og <b>daglegan tölvupóst</b> um leið og nýtt útboð passar við leitarorðin þín.</p>${cta}</div>`
+        + `<div class="ut-list" style="grid-template-columns:1fr">${rows}</div>`
+        + (full
+          ? `<div class="syni-banner" style="margin-top:14px"><div class="syni-t">Tilbúinn að fá þín útboð efst?</div><p>Fyrstu 30 dagarnir eru fríir — svo 1.900 kr./mán. og engin binding.</p>${cta}</div>`
+          : `<p style="font-size:12.5px;color:#8fa0ba;margin:10px 0 0"><a href="/utbod/?syni=1" style="color:#f6b13b">👁️ Sjá fleiri opin útboð →</a></p>`);
+    }
+
     document.addEventListener('astro:page-load', () => {
       const m = document.querySelector('main[data-pg="utbod"]');
       if (!m) return;
