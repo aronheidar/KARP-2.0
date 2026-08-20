@@ -617,7 +617,8 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     const SYNI_EMOJI = { bygg: '🏗️', jardv: '🚧', vel: '⚙️', flutn: '🚚', raesting: '🧹', hugb: '💻', matur: '🍽️', radgjof: '📊', orka: '⚡' };
     const syniEsc = (x) => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const syniDags = (d) => { const p = String(d).split('-'); return +p[2] + '. ' + SYNI_MAN[+p[1] - 1]; };
-    const syniTitill = (t) => String(t || '').replace(/^Iceland\s+–\s+[^–]+–\s+/, '').replace(/^\d{4,6}\s*[-–]?\s*/, '').slice(0, 72);
+    // ⚠ aðeins 5-6 stafa Reykjavíkur-útboðsnúmer („16341 Titill") — EKKI ártal í heiti („2026-04 Penstock Pipes")
+    const syniTitill = (t) => String(t || '').replace(/^Iceland\s+–\s+[^–]+–\s+/, '').replace(/^\d{5,6}\s*[-–]?\s+/, '').slice(0, 72);
     // n = fjöldi raða í forsmekk. `medIdag` (talning) heldur útboðum sem loka Í DAG — þau ERU opin —
     // en RAÐIRNAR sleppa þeim: annars sýndi forsmekkurinn fjögur „lokar eftir 0 d" og leit út
     // fyrir að vaktin kæmi alltaf of seint.
@@ -632,7 +633,8 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
       const opin = syniOpin(full ? 6 : 4, false);
       const nOpin = syniOpin(999, true).length;
       const rows = opin.map((x) => {
-        const dagar = Math.max(0, Math.round((Date.parse(x.deadline) - Date.now()) / 864e5));
+        const idagMs = Date.parse(new Date().toISOString().slice(0, 10));   // almanaksdagar, ekki ms-mismunur
+        const dagar = Math.max(0, Math.round((Date.parse(x.deadline) - idagMs) / 864e5));
         const bratt = dagar <= 7;
         const dl = (bratt ? '⏳ lokar eftir ' + dagar + ' d · ' : 'frestur ') + syniDags(x.deadline);
         return `<div class="ut-it" style="cursor:default"><span class="ut-t">`
