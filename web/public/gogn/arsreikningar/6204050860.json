@@ -1,0 +1,106 @@
+{
+ "kt": "6204050860",
+ "nafn": "Heildverslunin Aggva ehf",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4389,
+    "ebit_hlutfall": 0.1755,
+    "hagnadarhlutfall": 0.1409,
+    "ROA": 0.304,
+    "eignavelta": 2.1581
+   },
+   "rekstur": {
+    "sala": 55311610,
+    "kostnadarverd": 31036502,
+    "laun": 8430825,
+    "annar_rekstur": 565583,
+    "afskriftir": 2341398,
+    "ebit": 9705713,
+    "fjarmunatekjur": 268154,
+    "fjarmagnsgjold": -121651,
+    "tekjuskattur": -2059922,
+    "hagnadur": 7792294
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2908602,
+    "birgdir": 2875058,
+    "vidskiptakrofur": 11461146,
+    "veltufjarmunir": 22721671,
+    "eignir": 25630273
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4372,
+    "ebit_hlutfall": -0.0558,
+    "hagnadarhlutfall": -0.0534,
+    "ROA": -0.1256,
+    "eignavelta": 2.3521
+   },
+   "rekstur": {
+    "sala": 34774651,
+    "kostnadarverd": 19572367,
+    "laun": 11453271,
+    "annar_rekstur": 732960,
+    "afskriftir": 0,
+    "ebit": -1941975,
+    "fjarmunatekjur": 249269,
+    "fjarmagnsgjold": -163552,
+    "tekjuskattur": 0,
+    "hagnadur": -1856258
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 4967434,
+    "vidskiptakrofur": 6433017,
+    "veltufjarmunir": 14784552,
+    "eignir": 14784552
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4307,
+    "ebit_hlutfall": 0.207,
+    "hagnadarhlutfall": 0.1714,
+    "ROA": 0.4185,
+    "eignavelta": 2.4412
+   },
+   "rekstur": {
+    "sala": 65714242,
+    "kostnadarverd": 37407862,
+    "laun": 8810675,
+    "annar_rekstur": 767126,
+    "afskriftir": 0,
+    "ebit": 13602413,
+    "fjarmunatekjur": 493060,
+    "fjarmagnsgjold": -126292,
+    "tekjuskattur": -2702875,
+    "hagnadur": 11266306
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 4149047,
+    "vidskiptakrofur": 6509090,
+    "veltufjarmunir": 26918320,
+    "eignir": 26918320
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6204050860.pdf",
+ "pdfAr": "2024"
+}

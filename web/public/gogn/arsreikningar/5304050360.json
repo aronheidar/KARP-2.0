@@ -1,0 +1,131 @@
+{
+ "kt": "5304050360",
+ "nafn": "JJ Vöruhús ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3189,
+    "ebit_hlutfall": 0.1115,
+    "hagnadarhlutfall": 0.0702,
+    "ROE": 0.9583,
+    "ROA": 0.551,
+    "eiginfjarhlutfall": 0.575,
+    "veltufjarhlutfall": 1.2914,
+    "skuldahlutfall_DE": 0.7392,
+    "eignavelta": 7.852
+   },
+   "rekstur": {
+    "sala": 323431195,
+    "kostnadarverd": 220303184,
+    "laun": 46329170,
+    "annar_rekstur": 20729682,
+    "ebit": 36069159,
+    "afskriftir": 3890253,
+    "fjarmunatekjur": 766744,
+    "fjarmagnsgjold": -2133734,
+    "hagn_f_skatt": 28376411,
+    "tekjuskattur": -5679322,
+    "hagnadur": 22697089
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 7843718,
+    "handbaert": 14764570,
+    "eignir": 41190917,
+    "hlutafe": 500000,
+    "eigid_fe": 23684342,
+    "skuldir": 17506575,
+    "efe_skuldir": 41190917,
+    "skammtimaskuldir": 17506575
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3162,
+    "ebit_hlutfall": 0.092,
+    "hagnadarhlutfall": 0.0697,
+    "ROE": 0.9774,
+    "ROA": 0.5326,
+    "eiginfjarhlutfall": 0.5449,
+    "veltufjarhlutfall": 1.5453,
+    "skuldahlutfall_DE": 0.8351,
+    "eignavelta": 7.6447
+   },
+   "rekstur": {
+    "sala": 425268907,
+    "kostnadarverd": 290791156,
+    "laun": 67693464,
+    "annar_rekstur": 27662013,
+    "ebit": 39122274,
+    "afskriftir": 3112202,
+    "fjarmunatekjur": 897951,
+    "fjarmagnsgjold": -2852086,
+    "hagn_f_skatt": 37570166,
+    "tekjuskattur": -7940533,
+    "hagnadur": 29629633
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 11415187,
+    "handbaert": 27703547,
+    "eignir": 55629075,
+    "hlutafe": 500000,
+    "eigid_fe": 30313975,
+    "skuldir": 25315100,
+    "efe_skuldir": 55629075,
+    "skammtimaskuldir": 25315100
+   },
+   "starfsmenn": 4
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3438,
+    "ebit_hlutfall": 0.0565,
+    "hagnadarhlutfall": 0.0449,
+    "ROE": 0.962,
+    "ROA": 0.4206,
+    "eiginfjarhlutfall": 0.4372,
+    "veltufjarhlutfall": 1.1612,
+    "skuldahlutfall_DE": 1.2874,
+    "eignavelta": 9.3571
+   },
+   "rekstur": {
+    "sala": 402482071,
+    "kostnadarverd": 264089307,
+    "laun": 77649683,
+    "annar_rekstur": 38003096,
+    "ebit": 22739985,
+    "afskriftir": 2489761,
+    "fjarmunatekjur": 433329,
+    "fjarmagnsgjold": -2327969,
+    "hagn_f_skatt": 22543689,
+    "tekjuskattur": -4453437,
+    "hagnadur": 18090252
+   },
+   "efnahagur": {
+    "birgdir": 2800000,
+    "vidskiptakrofur": 23138422,
+    "handbaert": 2173219,
+    "eignir": 43013322,
+    "hlutafe": 500000,
+    "eigid_fe": 18804227,
+    "skuldir": 24209095,
+    "efe_skuldir": 43013322,
+    "skammtimaskuldir": 24209095
+   },
+   "starfsmenn": 4
+  }
+ },
+ "pdf": "pdf/5304050360.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,84 @@
+{
+ "kt": "4404250970",
+ "nafn": "1982 ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "adrar_tekjur": null,
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "birgdir": null,
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "efe_skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.691,
+    "ebit_hlutfall": 0.02,
+    "hagnadarhlutfall": 0.0031,
+    "ROE": 0.0213,
+    "ROA": 0.004,
+    "eiginfjarhlutfall": 0.1887,
+    "veltufjarhlutfall": 0.2326,
+    "skuldahlutfall_DE": 4.3002,
+    "eignavelta": 1.2938
+   },
+   "rekstur": {
+    "sala": 87579800,
+    "adrar_tekjur": 1000000,
+    "kostnadarverd": -27057965,
+    "laun": -32301098,
+    "annar_rekstur": -22067180,
+    "afskriftir": -5400000,
+    "ebit": 1753557,
+    "fjarmunatekjur": 254279,
+    "fjarmagnsgjold": -1663130,
+    "hagn_f_skatt": 344706,
+    "tekjuskattur": -73221,
+    "hagnadur": 271485
+   },
+   "efnahagur": {
+    "birgdir": 1286392,
+    "vidskiptakrofur": 3080653,
+    "handbaert": 8408019,
+    "eignir": 67691705,
+    "hlutafe": 12472851,
+    "eigid_fe": 12771485,
+    "skuldir": 54920220,
+    "efe_skuldir": 67691705,
+    "skammtimaskuldir": 54920220
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/4404250970.pdf",
+ "pdfAr": "2025"
+}

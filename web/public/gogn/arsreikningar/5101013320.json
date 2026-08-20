@@ -1,0 +1,97 @@
+{
+ "kt": "5101013320",
+ "nafn": "Ísfix ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8014,
+    "ebit_hlutfall": 0.2484,
+    "eignavelta": 0.8932
+   },
+   "rekstur": {
+    "sala": 164983331,
+    "kostnadarverd": 32765626,
+    "laun": 71967166,
+    "annar_rekstur": 19269284,
+    "ebit": 40981255,
+    "afskriftir": -7747854,
+    "fjarmunatekjur": 869528,
+    "fjarmagnsgjold": -6194311,
+    "hagn_f_skatt": 27908618,
+    "tekjuskattur": -5585763
+   },
+   "efnahagur": {
+    "birgdir": 8500000,
+    "vidskiptakrofur": 56706726,
+    "handbaert": 14331150,
+    "eignir": 184706265
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7653,
+    "ebit_hlutfall": 0.1675,
+    "eignavelta": 0.8847
+   },
+   "rekstur": {
+    "sala": 147423645,
+    "kostnadarverd": 34596434,
+    "laun": 65848330,
+    "annar_rekstur": 22278187,
+    "ebit": 24700694,
+    "afskriftir": -6659621,
+    "fjarmunatekjur": 1329012,
+    "fjarmagnsgjold": -4387645,
+    "hagn_f_skatt": 14982440,
+    "tekjuskattur": -3309676
+   },
+   "efnahagur": {
+    "birgdir": 7000000,
+    "vidskiptakrofur": 41566237,
+    "handbaert": 19300020,
+    "eignir": 166627824
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7428,
+    "ebit_hlutfall": 0.255,
+    "eignavelta": 0.9305
+   },
+   "rekstur": {
+    "sala": 165175466,
+    "kostnadarverd": 42490279,
+    "laun": 67340294,
+    "annar_rekstur": 13221617,
+    "ebit": 42123276,
+    "afskriftir": -7875414,
+    "fjarmunatekjur": 594060,
+    "fjarmagnsgjold": -3185033,
+    "hagn_f_skatt": 31656889,
+    "tekjuskattur": -6331378
+   },
+   "efnahagur": {
+    "birgdir": 9000000,
+    "vidskiptakrofur": 44108166,
+    "handbaert": 27732739,
+    "eignir": 177516659
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5101013320.pdf",
+ "pdfAr": "2025"
+}

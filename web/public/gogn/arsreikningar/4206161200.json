@@ -1,0 +1,122 @@
+{
+ "kt": "4206161200",
+ "nafn": "Wayne ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4709,
+    "hagnadarhlutfall": 0.0357,
+    "ROA": 0.069,
+    "eiginfjarhlutfall": -0.0572,
+    "veltufjarhlutfall": 0.7729,
+    "eignavelta": 1.9336
+   },
+   "rekstur": {
+    "sala": 83761139,
+    "kostnadarverd": 44320440,
+    "laun": 16025280,
+    "annar_rekstur": 18278820,
+    "fjarmunatekjur": 2484,
+    "fjarmagnsgjold": -2150822,
+    "hagn_f_skatt": 2988261,
+    "tekjuskattur": 0,
+    "hagnadur": 2988261
+   },
+   "efnahagur": {
+    "birgdir": 29356720,
+    "vidskiptakrofur": 4505618,
+    "handbaert": 1532864,
+    "veltufjarmunir": 43318457,
+    "eignir": 43318457,
+    "hlutafe": 500000,
+    "eigid_fe": -2477974,
+    "skammtimaskuldir": 45796431,
+    "skuldir": 45796431,
+    "efe_skuldir": 43318457
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3333,
+    "hagnadarhlutfall": -0.1746,
+    "ROA": -0.495,
+    "eiginfjarhlutfall": -0.598,
+    "veltufjarhlutfall": 0.5127,
+    "eignavelta": 2.8359
+   },
+   "rekstur": {
+    "sala": 68257073,
+    "kostnadarverd": 45504515,
+    "laun": 13548400,
+    "annar_rekstur": 20017253,
+    "fjarmunatekjur": 115269,
+    "fjarmagnsgjold": -1216724,
+    "hagn_f_skatt": -11914550,
+    "tekjuskattur": 0,
+    "hagnadur": -11914550
+   },
+   "efnahagur": {
+    "birgdir": 15384196,
+    "vidskiptakrofur": 2802032,
+    "handbaert": 1532864,
+    "veltufjarmunir": 24068569,
+    "eignir": 24068569,
+    "hlutafe": 500000,
+    "eigid_fe": -14392524,
+    "skammtimaskuldir": 38461093,
+    "skuldir": 38461093,
+    "efe_skuldir": 24068569
+   },
+   "starfsmenn": 2
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3333,
+    "ebit_hlutfall": -0.142,
+    "hagnadarhlutfall": -0.1089,
+    "ROA": -0.5856,
+    "veltufjarhlutfall": 0.2389,
+    "eignavelta": 5.3787
+   },
+   "rekstur": {
+    "sala": 76136529,
+    "kostnadarverd": 50757686,
+    "laun": 15686989,
+    "annar_rekstur": 16641889,
+    "ebit": -10813095,
+    "fjarmunatekjur": 35408,
+    "fjarmagnsgjold": -1374891,
+    "hagn_f_skatt": -8289518,
+    "tekjuskattur": 0,
+    "hagnadur": -8289518
+   },
+   "efnahagur": {
+    "birgdir": 8206253,
+    "vidskiptakrofur": 593481,
+    "handbaert": 864,
+    "veltufjarmunir": 14155192,
+    "eignir": 14155192,
+    "hlutafe": 500000,
+    "eigid_fe": -22682244,
+    "skammtimaskuldir": 36837436,
+    "skuldir": 36837436,
+    "efe_skuldir": 14155192
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/4206161200.pdf",
+ "pdfAr": "2023"
+}

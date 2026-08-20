@@ -1,0 +1,122 @@
+{
+ "kt": "6102050620",
+ "nafn": "Ágúst Bogason ehf",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6026,
+    "ebit_hlutfall": 0.2534,
+    "eiginfjarhlutfall": 0.7737,
+    "veltufjarhlutfall": 2.2451,
+    "skuldahlutfall_DE": 0.2925,
+    "eignavelta": 1.3848
+   },
+   "rekstur": {
+    "sala": 140048071,
+    "kostnadarverd": 55649386,
+    "laun": 38495649,
+    "annar_rekstur": 9456654,
+    "ebitda": 36446382,
+    "afskriftir": 955438,
+    "ebit": 35490944,
+    "fjarmagnsgjold": 131420,
+    "hagn_f_skatt": 34339230,
+    "tekjuskattur": 6561538
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 37889568,
+    "handbaert": 13495411,
+    "veltufjarmunir": 63820403,
+    "eignir": 101132080,
+    "hlutafe": 500000,
+    "eigid_fe": 78244153,
+    "efe_skuldir": 101132080,
+    "skuldir": 22887927,
+    "skammtimaskuldir": 22887927
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.2069,
+    "ebit_hlutfall": 0.0923,
+    "eiginfjarhlutfall": 0.7261,
+    "veltufjarhlutfall": 1.5954,
+    "skuldahlutfall_DE": 0.3773,
+    "eignavelta": 1.1482
+   },
+   "rekstur": {
+    "sala": 108762199,
+    "kostnadarverd": 86255840,
+    "laun": 19969583,
+    "annar_rekstur": 11470211,
+    "ebitda": 8933435,
+    "afskriftir": 1106200,
+    "ebit": 10039635,
+    "fjarmagnsgjold": 295287,
+    "hagn_f_skatt": 9515001,
+    "tekjuskattur": 20200
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 40824650,
+    "handbaert": 573298,
+    "veltufjarmunir": 50743363,
+    "eignir": 94720312,
+    "hlutafe": 500000,
+    "eigid_fe": 68772161,
+    "efe_skuldir": 94720312,
+    "skuldir": 25948151,
+    "skammtimaskuldir": 25948151
+   },
+   "starfsmenn": 201
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.221,
+    "ebit_hlutfall": -0.1465,
+    "eiginfjarhlutfall": 0.8646,
+    "veltufjarhlutfall": 0.9538,
+    "skuldahlutfall_DE": 0.1566,
+    "eignavelta": 0.6896
+   },
+   "rekstur": {
+    "sala": 73773482,
+    "kostnadarverd": 57473164,
+    "laun": 18857981,
+    "annar_rekstur": 7486975,
+    "ebitda": -10044638,
+    "afskriftir": 766625,
+    "ebit": -10811263,
+    "fjarmagnsgjold": 549213,
+    "hagn_f_skatt": 27796760,
+    "tekjuskattur": 20900
+   },
+   "efnahagur": {
+    "birgdir": 600000,
+    "vidskiptakrofur": 12611762,
+    "handbaert": 606768,
+    "veltufjarmunir": 25177733,
+    "eignir": 106986057,
+    "hlutafe": 500000,
+    "eigid_fe": 92498364,
+    "efe_skuldir": 106986057,
+    "skuldir": 14487693,
+    "skammtimaskuldir": 14487693
+   },
+   "starfsmenn": 860
+  }
+ },
+ "pdf": "pdf/6102050620.pdf",
+ "pdfAr": "2024"
+}

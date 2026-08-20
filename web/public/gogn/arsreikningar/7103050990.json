@@ -1,0 +1,125 @@
+{
+ "kt": "7103050990",
+ "nafn": "Marás, vélar ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3926,
+    "ebit_hlutfall": 0.158,
+    "hagnadarhlutfall": 0.1267,
+    "ROA": 0.1348,
+    "eignavelta": 1.0645
+   },
+   "rekstur": {
+    "sala": 578536079,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 351392397,
+    "laun": 70528889,
+    "annar_rekstur": 60940874,
+    "ebitda": 95673919,
+    "afskriftir": -4282736,
+    "ebit": 91391183,
+    "fjarmunatekjur": 1049265,
+    "fjarmagnsgjold": -819012,
+    "hagn_f_skatt": 91621436,
+    "tekjuskattur": -18348663,
+    "hagnadur": 73272773
+   },
+   "efnahagur": {
+    "fastafjarmunir": 40735319,
+    "birgdir": 181211723,
+    "vidskiptakrofur": 16486479,
+    "handbaert": 63736966,
+    "veltufjarmunir": 502750080,
+    "eignir": 543485399
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4191,
+    "ebit_hlutfall": 0.1333,
+    "hagnadarhlutfall": 0.1153,
+    "ROA": 0.1046,
+    "eignavelta": 0.9068
+   },
+   "rekstur": {
+    "sala": 549955242,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 319451959,
+    "laun": 89958780,
+    "annar_rekstur": 63224736,
+    "ebitda": 77319767,
+    "afskriftir": -4020561,
+    "ebit": 73299206,
+    "fjarmunatekjur": 4585476,
+    "fjarmagnsgjold": -809796,
+    "hagn_f_skatt": 79228058,
+    "tekjuskattur": -15813312,
+    "hagnadur": 63414746
+   },
+   "efnahagur": {
+    "fastafjarmunir": 38320327,
+    "birgdir": 209081053,
+    "vidskiptakrofur": 36606720,
+    "handbaert": 84285122,
+    "veltufjarmunir": 568147112,
+    "eignir": 606467439
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5533,
+    "ebit_hlutfall": 0.1743,
+    "hagnadarhlutfall": 0.1473,
+    "ROE": 0.1066,
+    "ROA": 0.0944,
+    "eiginfjarhlutfall": 0.8862,
+    "veltufjarhlutfall": 4.5125,
+    "skuldahlutfall_DE": 0.1284,
+    "eignavelta": 0.6412
+   },
+   "rekstur": {
+    "sala": 428498508,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 191401209,
+    "laun": 93128396,
+    "annar_rekstur": 66950918,
+    "afskriftir": 2331676,
+    "ebit": 74686309,
+    "fjarmunatekjur": 4376501,
+    "fjarmagnsgjold": -630418,
+    "hagn_f_skatt": 79283796,
+    "tekjuskattur": -16176385,
+    "hagnadur": 63107411
+   },
+   "efnahagur": {
+    "fastafjarmunir": 18796650,
+    "birgdir": 225637494,
+    "vidskiptakrofur": 85201224,
+    "handbaert": 32310579,
+    "eignir": 668316431,
+    "hlutafe": 500000,
+    "eigid_fe": 592272699,
+    "skuldir": 76043732,
+    "efe_skuldir": 668316431,
+    "skammtimaskuldir": 76043732
+   },
+   "starfsmenn": 7
+  }
+ },
+ "pdf": "pdf/7103050990.pdf",
+ "pdfAr": "2024"
+}

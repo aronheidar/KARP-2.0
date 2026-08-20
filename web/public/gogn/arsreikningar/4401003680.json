@@ -1,0 +1,123 @@
+{
+ "kt": "4401003680",
+ "nafn": "Ísalind 5 ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6362,
+    "hagnadarhlutfall": 0.1505,
+    "ROA": 0.8591,
+    "eiginfjarhlutfall": -0.2201,
+    "veltufjarhlutfall": 0.7267,
+    "eignavelta": 5.7086
+   },
+   "rekstur": {
+    "sala": 172269269,
+    "kostnadarverd": 62663776,
+    "laun": 51941360,
+    "annar_rekstur": 8116682,
+    "afskriftir": 401669,
+    "fjarmunatekjur": -294,
+    "fjarmagnsgjold": 2942351,
+    "hagn_f_skatt": 25924162,
+    "tekjuskattur": 0,
+    "hagnadur": 25924162
+   },
+   "efnahagur": {
+    "birgdir": 4218000,
+    "vidskiptakrofur": 22532852,
+    "handbaert": 5929,
+    "eignir": 30177348,
+    "hlutafe": 500000,
+    "eigid_fe": -6643520,
+    "skuldir": 36820868,
+    "efe_skuldir": 30177348,
+    "skammtimaskuldir": 36820868
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5998,
+    "hagnadarhlutfall": 0.041,
+    "ROA": 0.2971,
+    "eiginfjarhlutfall": -0.0018,
+    "veltufjarhlutfall": 0.8247,
+    "eignavelta": 7.2467
+   },
+   "rekstur": {
+    "sala": 161107489,
+    "kostnadarverd": 64470262,
+    "laun": 57486868,
+    "annar_rekstur": 7447599,
+    "afskriftir": 531108,
+    "fjarmunatekjur": -125553,
+    "fjarmagnsgjold": 1855286,
+    "hagn_f_skatt": 7969051,
+    "tekjuskattur": -1364645,
+    "hagnadur": 6604406
+   },
+   "efnahagur": {
+    "birgdir": 4218000,
+    "vidskiptakrofur": 10797254,
+    "handbaert": 3352055,
+    "eignir": 22231714,
+    "hlutafe": 500000,
+    "eigid_fe": -39114,
+    "skuldir": 22270828,
+    "efe_skuldir": 22231714,
+    "skammtimaskuldir": 22270828
+   },
+   "starfsmenn": 3
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5691,
+    "hagnadarhlutfall": 0.0287,
+    "ROE": 1.0079,
+    "ROA": 0.2696,
+    "eiginfjarhlutfall": 0.2675,
+    "veltufjarhlutfall": 1.1077,
+    "skuldahlutfall_DE": 2.7387,
+    "eignavelta": 9.3893
+   },
+   "rekstur": {
+    "sala": 173828332,
+    "kostnadarverd": 74907305,
+    "laun": 56723662,
+    "annar_rekstur": 5093919,
+    "afskriftir": 372743,
+    "fjarmunatekjur": -251682,
+    "fjarmagnsgjold": 7338806,
+    "hagn_f_skatt": 6323257,
+    "tekjuskattur": -1332273,
+    "hagnadur": 4990984
+   },
+   "efnahagur": {
+    "birgdir": 4218000,
+    "vidskiptakrofur": 10700093,
+    "handbaert": 103701,
+    "eignir": 18513456,
+    "hlutafe": 500000,
+    "eigid_fe": 4951870,
+    "skuldir": 13561586,
+    "efe_skuldir": 18513456,
+    "skammtimaskuldir": 13561586
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4401003680.pdf",
+ "pdfAr": "2024"
+}

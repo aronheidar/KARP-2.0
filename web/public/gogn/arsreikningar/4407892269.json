@@ -1,0 +1,134 @@
+{
+ "kt": "4407892269",
+ "nafn": "Ferðaskrifstofan Nonni ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.033,
+    "hagnadarhlutfall": 0.0379,
+    "ROE": 0.7292,
+    "ROA": 0.1795,
+    "eiginfjarhlutfall": 0.2462,
+    "veltufjarhlutfall": 1.3001,
+    "skuldahlutfall_DE": 3.0622,
+    "eignavelta": 4.7369
+   },
+   "rekstur": {
+    "adrar_tekjur": 7965516,
+    "sala": 319811975,
+    "laun": 69691278,
+    "annar_rekstur": 32847362,
+    "afskriftir": 457551,
+    "ebit": 10562239,
+    "fjarmunatekjur": 4623791,
+    "fjarmagnsgjold": -5590,
+    "hagn_f_skatt": 15075060,
+    "tekjuskattur": -2954929,
+    "hagnadur": 12120131
+   },
+   "efnahagur": {
+    "fastafjarmunir": 320833,
+    "vidskiptakrofur": 10090336,
+    "handbaert": 54290539,
+    "veltufjarmunir": 67194492,
+    "eignir": 67515325,
+    "hlutafe": 500000,
+    "eigid_fe": 16620243,
+    "langtimaskuldir": 1375130,
+    "skammtimaskuldir": 49519952,
+    "skuldir": 50895082,
+    "efe_skuldir": 67515325
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0315,
+    "hagnadarhlutfall": 0.0378,
+    "ROE": 0.5001,
+    "ROA": 0.1876,
+    "eiginfjarhlutfall": 0.3752,
+    "veltufjarhlutfall": 1.5006,
+    "skuldahlutfall_DE": 1.6655,
+    "eignavelta": 4.9614
+   },
+   "rekstur": {
+    "adrar_tekjur": 2499274,
+    "sala": 360316122,
+    "laun": 78178094,
+    "annar_rekstur": 43519774,
+    "afskriftir": 200000,
+    "ebit": 11361483,
+    "fjarmunatekjur": 5647323,
+    "fjarmagnsgjold": -23961,
+    "hagn_f_skatt": 17373098,
+    "tekjuskattur": -3746999,
+    "hagnadur": 13626099
+   },
+   "efnahagur": {
+    "fastafjarmunir": 120833,
+    "vidskiptakrofur": 2475612,
+    "handbaert": 64868245,
+    "veltufjarmunir": 72503414,
+    "eignir": 72624247,
+    "hlutafe": 500000,
+    "eigid_fe": 27246342,
+    "langtimaskuldir": 500873,
+    "skammtimaskuldir": 44877032,
+    "skuldir": 45377905,
+    "efe_skuldir": 72624247
+   },
+   "starfsmenn": 6
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.0062,
+    "ROE": 0.0794,
+    "ROA": 0.0216,
+    "eiginfjarhlutfall": 0.2714,
+    "veltufjarhlutfall": 1.0746,
+    "skuldahlutfall_DE": 2.684,
+    "eignavelta": 3.4817
+   },
+   "rekstur": {
+    "adrar_tekjur": 803423,
+    "sala": 351777376,
+    "laun": 94527460,
+    "annar_rekstur": 45124270,
+    "afskriftir": 70000,
+    "fjarmunatekjur": 7105440,
+    "fjarmagnsgjold": -11042,
+    "hagn_f_skatt": 2845704,
+    "tekjuskattur": -666956,
+    "hagnadur": 2178748
+   },
+   "efnahagur": {
+    "fastafjarmunir": 66780,
+    "vidskiptakrofur": 16846329,
+    "handbaert": 62252147,
+    "veltufjarmunir": 100967888,
+    "eignir": 101034668,
+    "hlutafe": 500000,
+    "eigid_fe": 27425090,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 73609578,
+    "skuldir": 73609578,
+    "efe_skuldir": 101034668
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4407892269.pdf",
+ "pdfAr": "2025"
+}

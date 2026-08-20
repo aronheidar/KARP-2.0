@@ -1,0 +1,117 @@
+{
+ "kt": "4310032520",
+ "nafn": "Vaxa ehf",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0079,
+    "eiginfjarhlutfall": 0.6019,
+    "veltufjarhlutfall": 1.2914,
+    "skuldahlutfall_DE": 0.7989,
+    "eignavelta": 2.8734
+   },
+   "rekstur": {
+    "sala": 52302393,
+    "adrar_tekjur": 2154109,
+    "annar_rekstur": 10615055,
+    "ebit": -412384,
+    "fjarmunatekjur": 28424,
+    "fjarmagnsgjold": -56000,
+    "hagn_f_skatt": -439960,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1845674,
+    "birgdir": 3899682,
+    "vidskiptakrofur": 7402469,
+    "veltufjarmunir": 16446713,
+    "eignir": 18202387,
+    "eigid_fe": 10955509,
+    "skuldir": 8751838,
+    "efe_skuldir": 18292387,
+    "skammtimaskuldir": 8751838
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0125,
+    "eiginfjarhlutfall": 0.4912,
+    "veltufjarhlutfall": 0.9902,
+    "skuldahlutfall_DE": 1.2005,
+    "eignavelta": 2.9706
+   },
+   "rekstur": {
+    "sala": 53915989,
+    "adrar_tekjur": 2737005,
+    "annar_rekstur": 9800815,
+    "ebit": -671450,
+    "fjarmunatekjur": 90805,
+    "fjarmagnsgjold": -212579,
+    "hagn_f_skatt": -793224,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1199686,
+    "birgdir": 3627744,
+    "vidskiptakrofur": 6969630,
+    "veltufjarmunir": 16950.352,
+    "eignir": 18150038,
+    "eigid_fe": 8915549,
+    "skuldir": 10702713,
+    "efe_skuldir": 18150038,
+    "skammtimaskuldir": 10702713
+   },
+   "starfsmenn": 3
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5927,
+    "ebit_hlutfall": 0.0152,
+    "eiginfjarhlutfall": 0,
+    "veltufjarhlutfall": 621.9285,
+    "skuldahlutfall_DE": 1578110.7143,
+    "eignavelta": 3.4225
+   },
+   "rekstur": {
+    "sala": 58576818,
+    "adrar_tekjur": 2476469,
+    "kostnadarverd": 23861221,
+    "laun": 23215907,
+    "annar_rekstur": 10191553,
+    "ebit": 888246,
+    "fjarmunatekjur": 106777,
+    "fjarmagnsgjold": -164654,
+    "hagn_f_skatt": 830369,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 779795,
+    "birgdir": 3622590,
+    "vidskiptakrofur": 8366947,
+    "veltufjarmunir": 16335319,
+    "eignir": 17115114,
+    "eigid_fe": 5.6,
+    "hlutafe": 500000,
+    "skammtimaskuldir": 19278,
+    "skuldir": 8837420,
+    "efe_skuldir": 17115114
+   },
+   "starfsmenn": 3
+  }
+ },
+ "pdf": "pdf/4310032520.pdf",
+ "pdfAr": "2024",
+ "ocr": true
+}

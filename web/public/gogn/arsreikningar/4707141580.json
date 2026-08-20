@@ -1,0 +1,140 @@
+{
+ "kt": "4707141580",
+ "nafn": "XI Officina ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5724,
+    "ebit_hlutfall": 0.1077,
+    "hagnadarhlutfall": 0.0843,
+    "ROE": 0.3322,
+    "ROA": 0.1678,
+    "eiginfjarhlutfall": 0.5051,
+    "veltufjarhlutfall": 2.0017,
+    "skuldahlutfall_DE": 0.9798,
+    "eignavelta": 1.9895
+   },
+   "rekstur": {
+    "sala": 94957982,
+    "kostnadarverd": -40604109,
+    "adrar_tekjur": 0,
+    "laun": -20507292,
+    "annar_rekstur": -4920859,
+    "ebitda": 10330447,
+    "afskriftir": -103749,
+    "ebit": 10226698,
+    "fjarmunatekjur": 39524,
+    "fjarmagnsgjold": -63977,
+    "hagn_f_skatt": 10195414,
+    "tekjuskattur": -2186367,
+    "hagnadur": 8009047
+   },
+   "efnahagur": {
+    "fastafjarmunir": 437058,
+    "birgdir": 28301471,
+    "vidskiptakrofur": 7310717,
+    "handbaert": 11671518,
+    "eignir": 47730272,
+    "hlutafe": 500000,
+    "eigid_fe": 24108413,
+    "skuldir": 23621859,
+    "efe_skuldir": 47730272,
+    "skammtimaskuldir": 23621859
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3604,
+    "ebit_hlutfall": -0.0405,
+    "hagnadarhlutfall": -0.0376,
+    "ROE": -0.1597,
+    "ROA": -0.0886,
+    "eiginfjarhlutfall": 0.5547,
+    "veltufjarhlutfall": 2.0359,
+    "skuldahlutfall_DE": 0.8027,
+    "eignavelta": 2.3545
+   },
+   "rekstur": {
+    "sala": 88232727,
+    "kostnadarverd": -56435935,
+    "adrar_tekjur": 6652514,
+    "laun": -25108966,
+    "annar_rekstur": -5458898,
+    "ebitda": -3474673,
+    "afskriftir": -97183,
+    "ebit": -3571856,
+    "fjarmunatekjur": 122557,
+    "fjarmagnsgjold": -223099,
+    "hagn_f_skatt": -3660273,
+    "tekjuskattur": 339560,
+    "hagnadur": -3320713
+   },
+   "efnahagur": {
+    "fastafjarmunir": 339875,
+    "birgdir": 20662789,
+    "vidskiptakrofur": 7320815,
+    "handbaert": 5988791,
+    "eignir": 37474417,
+    "hlutafe": 500000,
+    "eigid_fe": 20787700,
+    "skuldir": 16686717,
+    "efe_skuldir": 37474417,
+    "skammtimaskuldir": 16686717
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.5127,
+    "ebit_hlutfall": 0.0107,
+    "hagnadarhlutfall": 0.0094,
+    "ROE": 0.0429,
+    "ROA": 0.0215,
+    "eiginfjarhlutfall": 0.5012,
+    "veltufjarhlutfall": 1.5466,
+    "skuldahlutfall_DE": 0.9953,
+    "eignavelta": 2.3007
+   },
+   "rekstur": {
+    "sala": 99710478,
+    "kostnadarverd": 48586671,
+    "laun": 27878524,
+    "annar_rekstur": 9633746,
+    "afskriftir": 1241808,
+    "ebit": 1068042,
+    "fjarmunatekjur": 158649,
+    "fjarmagnsgjold": -293917,
+    "hagn_f_skatt": 932774,
+    "tekjuskattur": 0,
+    "hagnadur": 932774
+   },
+   "efnahagur": {
+    "birgdir": 21455811,
+    "vidskiptakrofur": 6955316,
+    "handbaert": 5022733,
+    "veltufjarmunir": 38164811,
+    "eignir": 43338433,
+    "hlutafe": 500000,
+    "eigid_fe": 21720474,
+    "skammtimaskuldir": 21617959,
+    "efe_skuldir": 43338433,
+    "skuldir": 21617959
+   },
+   "starfsmenn": 5
+  }
+ },
+ "pdf": "pdf/4707141580.pdf",
+ "pdfAr": "2024"
+}

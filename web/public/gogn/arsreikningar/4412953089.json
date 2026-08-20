@@ -1,0 +1,111 @@
+{
+ "kt": "4412953089",
+ "nafn": "Naustalækur ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0002,
+    "eiginfjarhlutfall": -0.0352,
+    "veltufjarhlutfall": 0.0009,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 19745,
+    "ebit": -19745,
+    "fjarmunatekjur": 129,
+    "fjarmagnsgjold": -3193,
+    "hagn_f_skatt": -22809,
+    "tekjuskattur": 802,
+    "hagnadur": -22007
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1247142,
+    "vidskiptakrofur": 60000,
+    "handbaert": 54748,
+    "eignir": 124355316,
+    "hlutafe": 500000,
+    "eigid_fe": -4377837,
+    "skuldir": 128733153,
+    "efe_skuldir": 124355316,
+    "skammtimaskuldir": 128733153
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.001,
+    "eiginfjarhlutfall": -0.012,
+    "veltufjarhlutfall": 0.0038,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 730775,
+    "ebit": -730775,
+    "fjarmunatekjur": 225367,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -505408,
+    "tekjuskattur": 97042,
+    "hagnadur": -408366
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1344184,
+    "vidskiptakrofur": 60000,
+    "handbaert": 1460483,
+    "eignir": 399958083,
+    "hlutafe": 500000,
+    "eigid_fe": -4786203,
+    "skuldir": 404744286,
+    "efe_skuldir": 399958083,
+    "skammtimaskuldir": 404744286
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0769,
+    "hagnadarhlutfall": -0.0076,
+    "ROA": -0.0311,
+    "eiginfjarhlutfall": -0.0637,
+    "veltufjarhlutfall": 0.1811,
+    "eignavelta": 4.065
+   },
+   "rekstur": {
+    "sala": 597009710,
+    "annar_rekstur": 8356986,
+    "ebit": -45921736,
+    "fjarmunatekjur": 523040,
+    "fjarmagnsgjold": -1630,
+    "hagn_f_skatt": -5700326,
+    "tekjuskattur": 1135885,
+    "hagnadur": -4564441
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2480069,
+    "vidskiptakrofur": 18143041,
+    "handbaert": 10145760,
+    "eignir": 146865681,
+    "hlutafe": 500000,
+    "eigid_fe": -9350644,
+    "skuldir": 156216325,
+    "efe_skuldir": 146865681,
+    "skammtimaskuldir": 156216325
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4412953089.pdf",
+ "pdfAr": "2024"
+}

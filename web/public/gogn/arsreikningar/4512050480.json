@@ -1,0 +1,121 @@
+{
+ "kt": "4512050480",
+ "nafn": "Ursus ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7063,
+    "hagnadarhlutfall": 12.4675,
+    "ROE": 0.2602,
+    "ROA": 0.1173,
+    "eiginfjarhlutfall": 0.4506,
+    "veltufjarhlutfall": 0.1163,
+    "skuldahlutfall_DE": 1.219,
+    "eignavelta": 0.0094
+   },
+   "rekstur": {
+    "sala": 37407415,
+    "adrar_tekjur": 0,
+    "laun": 0,
+    "afskriftir": 334388,
+    "ebit": 26422383,
+    "fjarmunatekjur": 49872349,
+    "fjarmagnsgjold": -153809722,
+    "hagnadur": 466377372
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 47572321,
+    "handbaert": 12525930,
+    "veltufjarmunir": 252298802,
+    "eignir": 3977221410,
+    "hlutafe": 500000,
+    "eigid_fe": 1792314728,
+    "skammtimaskuldir": 516923919,
+    "skuldir": 2184906682,
+    "efe_skuldir": 3977221410
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0586,
+    "hagnadarhlutfall": 17.0199,
+    "ROE": 0.3505,
+    "ROA": 0.1919,
+    "eiginfjarhlutfall": 0.5475,
+    "veltufjarhlutfall": 0.4317,
+    "skuldahlutfall_DE": 0.8264,
+    "eignavelta": 0.0113
+   },
+   "rekstur": {
+    "sala": 56826156,
+    "adrar_tekjur": 487500,
+    "laun": 13493940,
+    "afskriftir": 487388,
+    "ebit": 3328247,
+    "fjarmunatekjur": 207485689,
+    "fjarmagnsgjold": -141917109,
+    "hagnadur": 967176143
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 38750512,
+    "handbaert": 190840994,
+    "veltufjarmunir": 360988009,
+    "eignir": 5039999843,
+    "hlutafe": 500000,
+    "eigid_fe": 2759490871,
+    "skammtimaskuldir": 531841566,
+    "skuldir": 2280508972,
+    "efe_skuldir": 5039999843
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1399,
+    "hagnadarhlutfall": 12.516,
+    "ROE": 0.183,
+    "ROA": 0.1289,
+    "eiginfjarhlutfall": 0.7046,
+    "veltufjarhlutfall": 0.1074,
+    "skuldahlutfall_DE": 0.4193,
+    "eignavelta": 0.0103
+   },
+   "rekstur": {
+    "sala": 49382547,
+    "adrar_tekjur": 0,
+    "laun": 16192733,
+    "afskriftir": 487388,
+    "ebit": 6906898,
+    "fjarmunatekjur": 395814327,
+    "fjarmagnsgjold": -99831474,
+    "hagnadur": 618072139
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 56778084,
+    "handbaert": 18516522,
+    "veltufjarmunir": 207657543,
+    "eignir": 4793734642,
+    "hlutafe": 500000,
+    "eigid_fe": 3377563010,
+    "skammtimaskuldir": 701342443,
+    "skuldir": 1416171632,
+    "efe_skuldir": 4793734642
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4512050480.pdf",
+ "pdfAr": "2024"
+}

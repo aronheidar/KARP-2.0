@@ -1,0 +1,109 @@
+{
+ "kt": "6710002850",
+ "nafn": "Gildur ehf",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.4643,
+    "ROA": 0.0585,
+    "eiginfjarhlutfall": 0.1259,
+    "veltufjarhlutfall": 0.0037,
+    "skuldahlutfall_DE": 6.9414
+   },
+   "rekstur": {
+    "ebitda": -15722375,
+    "fjarmunatekjur": 37727778,
+    "fjarmagnsgjold": -76985629,
+    "hagn_f_skatt": 149208590,
+    "tekjuskattur": 0,
+    "hagnadur": 149208590
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6797217,
+    "handbaert": 1525492,
+    "veltufjarmunir": 19368000,
+    "eignir": 2551978225,
+    "hlutafe": 500000,
+    "eigid_fe": 321350555,
+    "skuldir": 2230627670,
+    "efe_skuldir": 2551978225,
+    "skammtimaskuldir": 2230627670
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.2504,
+    "ROA": -0.0191,
+    "eiginfjarhlutfall": 0.0763,
+    "veltufjarhlutfall": 0.0011,
+    "skuldahlutfall_DE": 12.1141
+   },
+   "rekstur": {
+    "ebitda": -33768553,
+    "fjarmunatekjur": 9657651,
+    "fjarmagnsgjold": -2232770,
+    "hagn_f_skatt": -64351939,
+    "tekjuskattur": 0,
+    "hagnadur": -64351939
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 152245,
+    "handbaert": 3328481,
+    "veltufjarmunir": 14526017,
+    "eignir": 3370304761,
+    "hlutafe": 500000,
+    "eigid_fe": 256998615,
+    "skuldir": 3113306146,
+    "efe_skuldir": 3370304761,
+    "skammtimaskuldir": 3113306146
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.0179,
+    "ROE": 0.0163,
+    "ROA": 0.0012,
+    "eiginfjarhlutfall": 0.0719,
+    "veltufjarhlutfall": 0.0014,
+    "skuldahlutfall_DE": 12.9013,
+    "eignavelta": 0.0656
+   },
+   "rekstur": {
+    "sala": 238091978,
+    "ebitda": 269867,
+    "fjarmunatekjur": 12564115,
+    "fjarmagnsgjold": -9610638,
+    "hagn_f_skatt": 4259709,
+    "tekjuskattur": 0,
+    "hagnadur": 4259709
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 629029,
+    "handbaert": 4134069,
+    "veltufjarmunir": 241792852,
+    "eignir": 3631831726,
+    "hlutafe": 500000,
+    "eigid_fe": 261258324,
+    "skuldir": 3370573402,
+    "efe_skuldir": 3631831726,
+    "skammtimaskuldir": 3370573402
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6710002850.pdf",
+ "pdfAr": "2024"
+}

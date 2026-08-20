@@ -1,0 +1,91 @@
+{
+ "kt": "5112141220",
+ "nafn": "1486 ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1822,
+    "eignavelta": 5.8974
+   },
+   "rekstur": {
+    "sala": 168530051,
+    "adrar_tekjur": 1846985,
+    "laun": 62269150,
+    "ebit": 30703448,
+    "fjarmagnsgjold": 514880,
+    "fjarmunatekjur": null,
+    "afskriftir": 508783,
+    "tekjuskattur": 4081419
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2390844,
+    "handbaert": 21803649,
+    "eignir": 28576947,
+    "hlutafe": 500000,
+    "efe_skuldir": 28576947
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.064,
+    "eignavelta": 5.0509
+   },
+   "rekstur": {
+    "sala": 173726931,
+    "adrar_tekjur": 7687000,
+    "laun": 96491191,
+    "ebit": 11116646,
+    "fjarmagnsgjold": 107255,
+    "fjarmunatekjur": 507280,
+    "afskriftir": 429339,
+    "tekjuskattur": 2328340
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 4744902,
+    "handbaert": 21526063,
+    "eignir": 34395413,
+    "hlutafe": 500000,
+    "efe_skuldir": 4395413
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0618,
+    "eignavelta": 3.9427
+   },
+   "rekstur": {
+    "sala": 164240101,
+    "adrar_tekjur": 4192254,
+    "laun": 100019272,
+    "ebit": 10155012,
+    "fjarmagnsgjold": 143419,
+    "fjarmunatekjur": 230734,
+    "afskriftir": 383012,
+    "tekjuskattur": 1900863
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 26243266,
+    "handbaert": 3414502,
+    "eignir": 41656479,
+    "hlutafe": 500000,
+    "efe_skuldir": 1656479
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5112141220.pdf",
+ "pdfAr": "2025"
+}

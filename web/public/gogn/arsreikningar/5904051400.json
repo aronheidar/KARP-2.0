@@ -1,0 +1,98 @@
+{
+ "kt": "5904051400",
+ "nafn": "Bergþór ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0744,
+    "hagnadarhlutfall": 0.0576,
+    "ROA": 0.1693,
+    "eignavelta": 2.9387
+   },
+   "rekstur": {
+    "sala": 140827421,
+    "laun": 42973616,
+    "annar_rekstur": 81068532,
+    "afskriftir": 6301040,
+    "ebit": 10484233,
+    "fjarmunatekjur": 155860,
+    "fjarmagnsgjold": -2343859,
+    "hagnadur": 8111820
+   },
+   "efnahagur": {
+    "fastafjarmunir": 25742987,
+    "handbaert": 12211788,
+    "vidskiptakrofur": 7513444,
+    "veltufjarmunir": 22178818,
+    "eignir": 47921805
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1482,
+    "hagnadarhlutfall": 0.1845,
+    "ROA": 0.3434,
+    "eignavelta": 1.8609
+   },
+   "rekstur": {
+    "sala": 149345753,
+    "laun": 42796209,
+    "annar_rekstur": 75096856,
+    "afskriftir": 9326616,
+    "ebit": 22126072,
+    "fjarmunatekjur": 126770,
+    "fjarmagnsgjold": -3102120,
+    "hagnadur": 27557883
+   },
+   "efnahagur": {
+    "fastafjarmunir": 39157596,
+    "handbaert": 454250,
+    "vidskiptakrofur": 38181606,
+    "veltufjarmunir": 41098236,
+    "eignir": 80255832
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0257,
+    "hagnadarhlutfall": 0.0011,
+    "ROA": 0.0015,
+    "eignavelta": 1.4417
+   },
+   "rekstur": {
+    "sala": 131256158,
+    "laun": 42025545,
+    "annar_rekstur": 77895842,
+    "afskriftir": 7960339,
+    "ebit": 3374432,
+    "fjarmunatekjur": 433438,
+    "fjarmagnsgjold": -3411490,
+    "tekjuskattur": 258342,
+    "hagnadur": 138038
+   },
+   "efnahagur": {
+    "fastafjarmunir": 47680322,
+    "handbaert": 4985345,
+    "vidskiptakrofur": 35843631,
+    "veltufjarmunir": 43360117,
+    "eignir": 91040439
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5904051400.pdf",
+ "pdfAr": "2024"
+}

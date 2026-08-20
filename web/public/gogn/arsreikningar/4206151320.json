@@ -1,0 +1,70 @@
+{
+ "kt": "4206151320",
+ "nafn": "17 sortir ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7508
+   },
+   "rekstur": {
+    "sala": 72063656,
+    "kostnadarverd": 17959007,
+    "laun": 37345645,
+    "annar_rekstur": 17585501,
+    "afskriftir": 83056,
+    "fjarmunatekjur": 99377,
+    "fjarmagnsgjold": -235196,
+    "tekjuskattur": 0
+   },
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7442
+   },
+   "rekstur": {
+    "sala": 92316930,
+    "kostnadarverd": 23613725,
+    "laun": 44898228,
+    "annar_rekstur": 9458745,
+    "afskriftir": 246445,
+    "fjarmunatekjur": 118443,
+    "fjarmagnsgjold": -269102,
+    "tekjuskattur": 1016474
+   },
+   "efnahagur": {},
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7435
+   },
+   "rekstur": {
+    "sala": 115044137,
+    "kostnadarverd": 29503463,
+    "laun": 60496056,
+    "annar_rekstur": 21025901,
+    "afskriftir": 300435,
+    "fjarmunatekjur": 126272,
+    "fjarmagnsgjold": -146662,
+    "tekjuskattur": 759297
+   },
+   "efnahagur": {},
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4206151320.pdf",
+ "pdfAr": "2024"
+}

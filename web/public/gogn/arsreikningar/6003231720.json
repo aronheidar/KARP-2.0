@@ -1,0 +1,115 @@
+{
+ "kt": "6003231720",
+ "nafn": "IFIS Ísland, IFIS Poland útib",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "veltufjarmunir": null,
+    "eignir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skammtimaskuldir": null,
+    "efe_skuldir": null,
+    "skuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2929,
+    "hagnadarhlutfall": 0.2358,
+    "ROE": 0.9942,
+    "ROA": 0.5711,
+    "eiginfjarhlutfall": 0.5745,
+    "veltufjarhlutfall": 0.8928,
+    "skuldahlutfall_DE": 0.7408,
+    "eignavelta": 2.4225
+   },
+   "rekstur": {
+    "sala": 365197023,
+    "laun": 215376222,
+    "annar_rekstur": 26424781,
+    "ebit": 106957807,
+    "fjarmunatekjur": 426348,
+    "fjarmagnsgjold": -1630040,
+    "hagn_f_skatt": 105754115,
+    "tekjuskattur": -19654355,
+    "hagnadur": 86099760
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 56171946,
+    "handbaert": 1105340,
+    "veltufjarmunir": 150752137,
+    "eignir": 150752137,
+    "hlutafe": 500000,
+    "eigid_fe": 86599760,
+    "skammtimaskuldir": 64152377,
+    "efe_skuldir": 150752137,
+    "skuldir": 64152377
+   },
+   "starfsmenn": 43
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1597,
+    "hagnadarhlutfall": 0.0905,
+    "ROE": 0.1731,
+    "ROA": 0.0548,
+    "eiginfjarhlutfall": 0.3167,
+    "veltufjarhlutfall": 1.0502,
+    "skuldahlutfall_DE": 2.1578,
+    "eignavelta": 0.6055
+   },
+   "rekstur": {
+    "sala": 200254968,
+    "laun": 112422479,
+    "annar_rekstur": 5028541,
+    "ebit": 31985478,
+    "fjarmunatekjur": 60328,
+    "fjarmagnsgjold": -7104396,
+    "hagn_f_skatt": 24941410,
+    "tekjuskattur": -6813377,
+    "hagnadur": 18128033
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 231812147,
+    "handbaert": 5506469,
+    "veltufjarmunir": 330712944,
+    "eignir": 330712944,
+    "hlutafe": 500000,
+    "eigid_fe": 104727793,
+    "skammtimaskuldir": 225985151,
+    "efe_skuldir": 330712944,
+    "skuldir": 225985151
+   },
+   "starfsmenn": 43
+  }
+ },
+ "pdf": "pdf/6003231720.pdf",
+ "pdfAr": "2024"
+}

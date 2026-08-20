@@ -1,0 +1,106 @@
+{
+ "kt": "4710023130",
+ "nafn": "Iceland 101 ehf",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3983,
+    "hagnadarhlutfall": 0.3725,
+    "ROE": 0.4898,
+    "ROA": 0.1485,
+    "eiginfjarhlutfall": 0.3033,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 2.2973,
+    "eignavelta": 0.3988
+   },
+   "rekstur": {
+    "sala": 148999195,
+    "ebit": 59350667,
+    "hagnadur": 55501846
+   },
+   "efnahagur": {
+    "fastafjarmunir": 271932490,
+    "veltufjarmunir": 101715412,
+    "eignir": 373647902,
+    "hlutafe": null,
+    "eigid_fe": 113317736,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 260330166,
+    "efe_skuldir": 373647902,
+    "skuldir": 260330166
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.299,
+    "hagnadarhlutfall": 0.2605,
+    "ROE": 0.2777,
+    "ROA": 0.1305,
+    "eiginfjarhlutfall": 0.47,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 1.1279,
+    "eignavelta": 0.501
+   },
+   "rekstur": {
+    "sala": 154745528,
+    "ebit": 46275043,
+    "hagnadur": 40304447
+   },
+   "efnahagur": {
+    "fastafjarmunir": 262453990,
+    "veltufjarmunir": 46415761,
+    "eignir": 308869751,
+    "hlutafe": 500000,
+    "eigid_fe": 145153860,
+    "langtimaskuldir": 86236970,
+    "skammtimaskuldir": 77478921,
+    "efe_skuldir": 308869751,
+    "skuldir": 163715891
+   },
+   "starfsmenn": 7
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2067,
+    "hagnadarhlutfall": 0.1186,
+    "ROE": 0.0994,
+    "ROA": 0.0507,
+    "eiginfjarhlutfall": 0.5097,
+    "veltufjarhlutfall": 0,
+    "skuldahlutfall_DE": 0.9618,
+    "eignavelta": 0.427
+   },
+   "rekstur": {
+    "sala": 132092368,
+    "ebit": 27301799,
+    "hagnadur": 15672617
+   },
+   "efnahagur": {
+    "fastafjarmunir": 252975490,
+    "veltufjarmunir": 56382819,
+    "eignir": 309358309,
+    "hlutafe": 500000,
+    "eigid_fe": 157687674,
+    "langtimaskuldir": 71757377,
+    "skammtimaskuldir": 79913258,
+    "efe_skuldir": 309358309,
+    "skuldir": 151670635
+   },
+   "starfsmenn": 6
+  }
+ },
+ "pdf": "pdf/4710023130.pdf",
+ "pdfAr": "2025"
+}

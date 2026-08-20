@@ -1,0 +1,121 @@
+{
+ "kt": "6112181840",
+ "nafn": "Wasteland Iceland ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7255,
+    "ebit_hlutfall": -0.0129,
+    "hagnadarhlutfall": -0.0288,
+    "ROA": -0.0552,
+    "eiginfjarhlutfall": -0.5943,
+    "veltufjarhlutfall": 0.1276,
+    "eignavelta": 1.9157
+   },
+   "rekstur": {
+    "sala": 81160513,
+    "kostnadarverd": 22282138,
+    "laun": 36482025,
+    "annar_rekstur": 4722975,
+    "afskriftir": 361949,
+    "ebit": -1044920,
+    "fjarmagnsgjold": -1291839,
+    "hagnadur": -2336759
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1447793,
+    "vidskiptakrofur": 743563,
+    "handbaert": 7873567,
+    "veltufjarmunir": 40918941,
+    "eignir": 42366734,
+    "hlutafe": 500000,
+    "eigid_fe": -25179072,
+    "skammtimaskuldir": 67545806,
+    "skuldir": 67545806,
+    "efe_skuldir": 42366734
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6866,
+    "ebit_hlutfall": -0.0368,
+    "hagnadarhlutfall": -0.0462,
+    "ROA": -0.1204,
+    "eiginfjarhlutfall": -0.8234,
+    "veltufjarhlutfall": 0.1339,
+    "eignavelta": 2.6033
+   },
+   "rekstur": {
+    "sala": 93239267,
+    "kostnadarverd": 29224638,
+    "laun": 41902847,
+    "annar_rekstur": 5134631,
+    "afskriftir": 289558,
+    "ebit": -3433040,
+    "fjarmagnsgjold": -877630,
+    "hagnadur": -4310670
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1158235,
+    "vidskiptakrofur": 1318458,
+    "handbaert": 7423738,
+    "veltufjarmunir": 34657384,
+    "eignir": 35815619,
+    "hlutafe": 500000,
+    "eigid_fe": -29489742,
+    "skammtimaskuldir": 65305361,
+    "skuldir": 65305361,
+    "efe_skuldir": 35815619
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7965,
+    "ebit_hlutfall": -0.0366,
+    "hagnadarhlutfall": -0.0644,
+    "ROA": -0.1846,
+    "eiginfjarhlutfall": -1.1661,
+    "veltufjarhlutfall": 0.031,
+    "eignavelta": 2.8642
+   },
+   "rekstur": {
+    "sala": 86051757,
+    "kostnadarverd": 17511455,
+    "laun": 43973533,
+    "annar_rekstur": 5592152,
+    "afskriftir": 231647,
+    "ebit": -3147268,
+    "fjarmagnsgjold": -2398006,
+    "hagnadur": -5545274
+   },
+   "efnahagur": {
+    "fastafjarmunir": 926588,
+    "vidskiptakrofur": 405140,
+    "handbaert": 1612054,
+    "veltufjarmunir": 29117731,
+    "eignir": 30044319,
+    "hlutafe": 500000,
+    "eigid_fe": -35035016,
+    "skammtimaskuldir": 65079335,
+    "skuldir": 65079335,
+    "efe_skuldir": 30044319
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6112181840.pdf",
+ "pdfAr": "2024"
+}

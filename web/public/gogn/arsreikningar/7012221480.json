@@ -1,0 +1,117 @@
+{
+ "kt": "7012221480",
+ "nafn": "Ægir 101 ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": -0.355,
+    "ROA": -0.355,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0
+   },
+   "rekstur": {
+    "sala": null,
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "ebitda": -131000,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagnadur": -131000
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 369000,
+    "eignir": 369000,
+    "hlutafe": 500000,
+    "eigid_fe": 369000,
+    "skuldir": 0,
+    "efe_skuldir": 369000,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.3582,
+    "hagnadarhlutfall": 0.003,
+    "ROE": 0.4197,
+    "ROA": 0.0425,
+    "eiginfjarhlutfall": 0.1012,
+    "veltufjarhlutfall": 0.0755,
+    "skuldahlutfall_DE": 8.8852,
+    "eignavelta": 14.052
+   },
+   "rekstur": {
+    "sala": 88329437,
+    "kostnadarverd": -56689977,
+    "laun": 11395505,
+    "annar_rekstur": 2582828,
+    "ebitda": 327605,
+    "fjarmunatekjur": 24078,
+    "fjarmagnsgjold": -84790,
+    "hagnadur": 266893
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 365574,
+    "handbaert": 61257,
+    "veltufjarmunir": 6285902,
+    "eignir": 6285902,
+    "hlutafe": 500000,
+    "eigid_fe": 635893,
+    "skuldir": 5650009,
+    "efe_skuldir": 6285902,
+    "skammtimaskuldir": 5650009
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.4572,
+    "hagnadarhlutfall": 0.0046,
+    "ROE": 0.3676,
+    "ROA": 0.0264,
+    "eiginfjarhlutfall": 0.0718,
+    "veltufjarhlutfall": 0.5861,
+    "skuldahlutfall_DE": 12.9335,
+    "eignavelta": 5.706
+   },
+   "rekstur": {
+    "sala": 79939024,
+    "kostnadarverd": -43394005,
+    "laun": 13220513,
+    "annar_rekstur": 4221214,
+    "ebitda": 644593,
+    "fjarmunatekjur": 56730,
+    "fjarmagnsgjold": -331747,
+    "hagnadur": 369576
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 6020604,
+    "handbaert": 1601712,
+    "veltufjarmunir": 14009653,
+    "eignir": 14009653,
+    "hlutafe": 500000,
+    "eigid_fe": 1005469,
+    "skuldir": 13004184,
+    "efe_skuldir": 14009653,
+    "skammtimaskuldir": 13004184
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7012221480.pdf",
+ "pdfAr": "2024"
+}

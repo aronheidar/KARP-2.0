@@ -1,0 +1,125 @@
+{
+ "kt": "5201221250",
+ "nafn": "Zagros ehf.",
+ "sott": "2026-08-20",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.1769,
+    "hagnadarhlutfall": -1.2991,
+    "ROA": -2.0986,
+    "veltufjarhlutfall": 0.0045,
+    "eignavelta": 1.6154
+   },
+   "rekstur": {
+    "sala": 6955194,
+    "ebit": -8185350,
+    "afskriftir": -800000,
+    "fjarmunatekjur": 990,
+    "fjarmagnsgjold": -51063,
+    "hagn_f_skatt": -9035423,
+    "tekjuskattur": 0,
+    "hagnadur": -9035423
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3200000,
+    "birgdir": 0,
+    "vidskiptakrofur": 57361,
+    "handbaert": 0,
+    "veltufjarmunir": 1105513,
+    "eignir": 4305513,
+    "hlutafe": 500000,
+    "eigid_fe": -8535423,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 12840936,
+    "skuldir": 12840936,
+    "efe_skuldir": 4305513
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1612,
+    "hagnadarhlutfall": 0.1513,
+    "ROE": 4.5146,
+    "ROA": 1.3453,
+    "eiginfjarhlutfall": 0.298,
+    "veltufjarhlutfall": 0.5715,
+    "skuldahlutfall_DE": 2.3557,
+    "eignavelta": 8.8946
+   },
+   "rekstur": {
+    "sala": 72487417,
+    "ebit": 11684081,
+    "afskriftir": -640000,
+    "fjarmunatekjur": 3254,
+    "fjarmagnsgjold": -83342,
+    "hagn_f_skatt": 10963993,
+    "tekjuskattur": 0,
+    "hagnadur": 10963993
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2560000,
+    "birgdir": 0,
+    "vidskiptakrofur": 1613902,
+    "handbaert": 1655754,
+    "veltufjarmunir": 5589555,
+    "eignir": 8149555,
+    "hlutafe": 500000,
+    "eigid_fe": 2428570,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 5720985,
+    "skuldir": 5720985,
+    "efe_skuldir": 8149555
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.0499,
+    "hagnadarhlutfall": -0.0583,
+    "ROA": -0.518,
+    "eiginfjarhlutfall": -0.2901,
+    "veltufjarhlutfall": 0.3471,
+    "eignavelta": 8.8819
+   },
+   "rekstur": {
+    "sala": 94641910,
+    "ebit": -4725671,
+    "afskriftir": -782000,
+    "fjarmunatekjur": 84410,
+    "fjarmagnsgjold": -96308,
+    "hagn_f_skatt": -5519569,
+    "tekjuskattur": 0,
+    "hagnadur": -5519569
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4478000,
+    "birgdir": 0,
+    "vidskiptakrofur": 806314,
+    "handbaert": 3247587,
+    "veltufjarmunir": 6177635,
+    "eignir": 10655635,
+    "hlutafe": 500000,
+    "eigid_fe": -3090999,
+    "langtimaskuldir": 2067056,
+    "skammtimaskuldir": 11679578,
+    "skuldir": 13746634,
+    "efe_skuldir": 10655635
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5201221250.pdf",
+ "pdfAr": "2024"
+}
