@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-19",
+ "updated": "2026-08-20",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
@@ -7,8 +7,8 @@
    "s": "Viðskiptablaðið",
    "bias": 12,
    "rawTone": -5,
-   "n": 706,
-   "entities": 65,
+   "n": 742,
+   "entities": 67,
    "sample": [
     {
      "entity": "JBT Marel",
@@ -17,23 +17,23 @@
     },
     {
      "entity": "Ferðaþjónusta",
-     "dev": 122.22,
+     "dev": 121.67,
      "n": 4
     },
     {
      "entity": "Hæstiréttur",
-     "dev": 111.72,
+     "dev": 109.36,
      "n": 3
     },
     {
      "entity": "Reykjanes",
-     "dev": 104.42,
+     "dev": 104.28,
      "n": 3
     },
     {
-     "entity": "Norðurlöndin",
-     "dev": 95.85,
-     "n": 6
+     "entity": "Norðurland",
+     "dev": 96.6,
+     "n": 3
     }
    ]
   },
@@ -41,61 +41,61 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 25423,
+   "n": 25294,
    "entities": 166,
    "sample": [
+    {
+     "entity": "Bílamarkaður",
+     "dev": 39.49,
+     "n": 18
+    },
     {
      "entity": "JBT Marel",
      "dev": 39.23,
      "n": 10
     },
     {
-     "entity": "Bílamarkaður",
-     "dev": 36.11,
+     "entity": "Indó",
+     "dev": 31.11,
      "n": 18
     },
     {
-     "entity": "Indó",
-     "dev": 30.23,
-     "n": 17
+     "entity": "Pólland",
+     "dev": 29.21,
+     "n": 70
     },
     {
      "entity": "Tækni og hugbúnaður",
      "dev": 28.36,
      "n": 53
-    },
-    {
-     "entity": "Pólland",
-     "dev": 25.96,
-     "n": 72
     }
    ]
   },
   {
    "s": "RÚV",
    "bias": 0,
-   "rawTone": -35,
-   "n": 9682,
+   "rawTone": -36,
+   "n": 9759,
    "entities": 158,
    "sample": [
-    {
-     "entity": "Samkaup",
-     "dev": -92.59,
-     "n": 3
-    },
     {
      "entity": "Tækni og hugbúnaður",
      "dev": -74.37,
      "n": 9
     },
     {
+     "entity": "Samkaup",
+     "dev": -67.86,
+     "n": 4
+    },
+    {
      "entity": "Bílamarkaður",
-     "dev": -58.33,
+     "dev": -54.95,
      "n": 3
     },
     {
      "entity": "Hagar",
-     "dev": -54.64,
+     "dev": -54.17,
      "n": 6
     },
     {
@@ -109,7 +109,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -37,
-   "n": 11293,
+   "n": 11326,
    "entities": 162,
    "sample": [
     {
@@ -119,8 +119,8 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -65.11,
-     "n": 13
+     "dev": -69.8,
+     "n": 14
     },
     {
      "entity": "Vinnumálastofnun",
@@ -134,26 +134,26 @@
     },
     {
      "entity": "Áfengismál",
-     "dev": 57.69,
-     "n": 6
+     "dev": 55.56,
+     "n": 7
     }
    ]
   },
   {
    "s": "Heimildin",
-   "bias": -10,
+   "bias": -9,
    "rawTone": -45,
-   "n": 77,
-   "entities": 13,
+   "n": 83,
+   "entities": 14,
    "sample": [
     {
      "entity": "Akureyri",
-     "dev": -54.37,
+     "dev": -54.12,
      "n": 3
     },
     {
      "entity": "Verðbólga",
-     "dev": 48.46,
+     "dev": 49.15,
      "n": 3
     },
     {
@@ -163,12 +163,12 @@
     },
     {
      "entity": "Rússland",
-     "dev": -39.72,
+     "dev": -39.65,
      "n": 3
     },
     {
      "entity": "Gervigreind",
-     "dev": -36.74,
+     "dev": -36.09,
      "n": 6
     }
    ]
@@ -177,12 +177,12 @@
    "s": "dv.is",
    "bias": -19,
    "rawTone": -57,
-   "n": 3902,
+   "n": 3871,
    "entities": 138,
    "sample": [
     {
      "entity": "Landsnet",
-     "dev": -126.83,
+     "dev": -128.57,
      "n": 3
     },
     {
@@ -192,12 +192,12 @@
     },
     {
      "entity": "Landsvirkjun",
-     "dev": -85.16,
+     "dev": -84.26,
      "n": 5
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -83.06,
+     "dev": -81.7,
      "n": 6
     },
     {
@@ -216,23 +216,23 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.02,
+     "dev": -94.29,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 91.35,
+     "dev": 90.98,
      "n": 3
     },
     {
-     "entity": "Akureyri",
-     "dev": -71.03,
-     "n": 6
+     "entity": "Norðurlöndin",
+     "dev": -70.89,
+     "n": 4
     },
     {
-     "entity": "Norðurlöndin",
-     "dev": -70.82,
-     "n": 4
+     "entity": "Akureyri",
+     "dev": -70.78,
+     "n": 6
     },
     {
      "entity": "Festi",

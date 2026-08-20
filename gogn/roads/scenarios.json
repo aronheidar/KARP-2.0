@@ -4,7 +4,7 @@
   "label": "Vaxtahækkun 0,25pp",
   "tldr": "Seðlabankinn hækkar stýrivexti",
   "levers": {
-   "vextir": 8
+   "vextir": 8.25
   },
   "shocks": {},
   "sentence": "Vaxtahækkun um 0,25 prósentustig gæti — að öllu óbreyttu — hægt á verðbólgu og húsnæðisverði á 1–2 árum, en dregið lítillega úr hagvexti."
@@ -14,7 +14,7 @@
   "label": "Vaxtalækkun 0,5pp",
   "tldr": "Seðlabankinn lækkar stýrivexti",
   "levers": {
-   "vextir": 7.25
+   "vextir": 7.5
   },
   "shocks": {},
   "sentence": "Vaxtalækkun um 0,5 prósentustig gæti örvað hagvöxt og húsnæðisverð, á kostnað hærri verðbólgu tafið."
@@ -175,7 +175,7 @@
   "label": "Greiðsluerfiðleikar (vextir +2,5 + samdráttur)",
   "tldr": "Háir vextir + minnkandi umsvif",
   "levers": {
-   "vextir": 10.25
+   "vextir": 10.5
   },
   "shocks": {
    "ferdamenn": -25
