@@ -226,6 +226,14 @@ const NEWS_FEEDS = [
   ['https://www.ruv.is/rss/frettir', 'RÚV'], ['https://www.ruv.is/rss/innlent', 'RÚV'],
   ['https://www.visir.is/rss/frettir', 'Vísir'], ['https://www.visir.is/rss/vidskipti', 'Vísir'],
   ['https://heimildin.is/rss/', 'Heimildin'], ['https://vb.is/rss/', 'Viðskiptablaðið'],
+  // ➕ 20.8.2026 (ósk notanda um breiðari fjölmiðlavakt): lands- og landshlutamiðlar. Hver slóð SANNREYND með
+  // KarpBot-UA (200 + item-fjöldi + ferskur pubDate) áður en hún fór inn — Feykir/Vikublaðið nota Moya-CMS
+  // (/is/rss, /is/feed), Austurfrétt Joomla (?format=feed). BB.is (CF-challenge), Víkurfréttir og Eyjafréttir
+  // (403 á botta) og Mannlíf (feed dautt síðan mars 2025) virka EKKI — endurskoða síðar.
+  ['https://www.dv.is/feed/', 'DV'], ['https://nutiminn.is/feed/', 'Nútíminn'], ['https://grapevine.is/feed/', 'Grapevine'],
+  ['https://skessuhorn.is/feed.xml', 'Skessuhorn'], ['https://www.feykir.is/is/rss', 'Feykir'],
+  ['https://trolli.is/feed/', 'Trölli'], ['https://www.vikubladid.is/is/feed', 'Vikublaðið'],
+  ['https://austurfrett.is/frettir?format=feed&type=rss', 'Austurfrétt'], ['https://sunnlenska.is/feed/', 'Sunnlenska'],
 ];
 
 export function _rssItems(xml, source) {

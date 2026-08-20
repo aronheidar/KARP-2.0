@@ -45,6 +45,23 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       </div>
       <p id="lv-setup-msg" class="lv-hint" hidden>👉 Veldu greinar og/eða bættu við leitarorðum að ofan og ýttu á „Vista" til að byrja.</p>
 
+      <!-- ✉️ Póst-vaktin á sama stað og leitarorðin (20.8.2026, ósk notanda): sama /api/u/frettavakt-stilling og
+           „Fréttavaktir" á /mitt-svaedi/ — GET fyrst svo völdu fréttaflokkarnir haldist (merge skiptir þeim út). -->
+      <div class="lv-post" id="lv-post" hidden>
+        <h3 class="lv-sub-h">✉️ Fá vaktina senda í tölvupósti</h3>
+        <p class="sub">Fréttir sem nefna leitarorðin þín — og fyrirtæki sem þú <a href="/mitt-svaedi/">fylgir</a> — fara sjálfkrafa í póstinn. Fréttaflokka (t.d. gjaldþrot, útboð, vexti) velurðu í <a href="/mitt-svaedi/#fv-vakt">stillingum á Mínu svæði →</a></p>
+        <div class="lv-post-row">
+          <label class="lv-post-on"><input type="checkbox" id="lv-post-on" /> Kveikt</label>
+          <select id="lv-post-cadence" aria-label="Tíðni pósts">
+            <option value="strax">Strax (allt að 3 klst)</option>
+            <option value="daglegt" selected>Daglegt yfirlit</option>
+            <option value="vikulegt">Vikulegt yfirlit</option>
+          </select>
+          <button type="button" id="lv-post-save">Vista</button>
+          <span id="lv-post-msg" class="lv-save-msg" hidden></span>
+        </div>
+      </div>
+
       <h2>📰 Fréttir sem passa</h2>
       <p class="sub">Fréttir vikunnar sem nefna leitarorðin þín — frjálst, fyrir alla innskráða.</p>
       <div id="lv-frettir"></div>
@@ -110,6 +127,13 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .lv-hint { font-size: 13px; color: #f6b13b; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
 
     .lv-sub-h { font-size: 15px; color: var(--ink); margin: 24px 0 4px; font-weight: 700; }
+    .lv-post { margin-top: 18px; padding: 12px 14px 10px; border-radius: 12px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); }
+    .lv-post .lv-sub-h { margin-top: 0; }
+    .lv-post-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+    .lv-post-on { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); }
+    .lv-post-row select { padding: 7px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,.16); background: rgba(0,0,0,.25); color: var(--ink); font-size: 13.5px; }
+    .lv-post-row button { padding: 8px 16px; border-radius: 9px; border: 0; background: var(--gold); color: #1a1205; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+    .lv-post-row button:disabled { opacity: .6; cursor: default; }
     .lv-sub-h-note { font-weight: 500; color: var(--faint); font-size: 13px; }
     .lv-kw-row { display: flex; gap: 8px; margin: 8px 0 10px; flex-wrap: wrap; }
     .lv-kw-row input { font: inherit; font-size: 13.5px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); min-width: 200px; flex: 1 1 240px; }
@@ -186,7 +210,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     // 🏛️ Lobbývakt 2.0 — client-eyja: GET /api/lobbyvakt (login-only; þrepun kemur í SVARINU:
     // {entitled, frettir, reglur} — óinnskráð fær {ok:false,error:'login'}, ALDREI 'tier' framar).
     // Greina-val vistast um POST /api/u/lobbyvakt-greinar (karpPost → /api/u + nonce sjálfkrafa).
-    import { karpPost, loginHref } from '../lib/auth.js';
+    import { karpGet, karpPost, loginHref } from '../lib/auth.js';
 
     const $ = (s) => document.querySelector(s);
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -301,7 +325,30 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       renderNews(d.frettir || []);
       renderReg(d.reglur || [], !!d.entitled);
       lvHi();   // orðin komin → lýsa upp treff í opnu veitunum að neðan
+      loadPost();   // ✉️ póst-vaktin — eftir að gáttin opnast (innskráð)
     }
+
+    // ── ✉️ Póst-vaktin (sama pref og „Fréttavaktir" á /mitt-svaedi/) ──
+    // GET skilar {on, flokkar, cadence}; POST-merge SKIPTIR flokkunum út → sendum þá óbreytta til baka.
+    let postFlokkar = [];
+    async function loadPost() {
+      const cur = await karpGet('/frettavakt').catch(() => null);
+      if (!cur) return;
+      postFlokkar = Array.isArray(cur.flokkar) ? cur.flokkar : [];
+      $('#lv-post-on').checked = !!cur.on;
+      if (cur.cadence) $('#lv-post-cadence').value = cur.cadence;
+      $('#lv-post').hidden = false;
+    }
+    $('#lv-post-save').addEventListener('click', async () => {
+      const btn = $('#lv-post-save'), msg = $('#lv-post-msg');
+      btn.disabled = true; msg.hidden = true;
+      const on = $('#lv-post-on').checked, cadence = $('#lv-post-cadence').value;
+      const d = await karpPost('/frettavakt', { on, cadence, flokkar: postFlokkar }).catch(() => null);
+      btn.disabled = false;
+      msg.hidden = false;
+      if (d && d.ok) { msg.className = 'lv-save-msg ok'; msg.textContent = on ? '✓ Kveikt — ' + ({ strax: 'sent um leið og mál finnst', daglegt: 'daglegt yfirlit', vikulegt: 'vikulegt yfirlit' }[cadence] || cadence) : '✓ Slökkt'; }
+      else { msg.className = 'lv-save-msg err'; msg.textContent = 'Ekki tókst að vista — reyndu aftur.'; }
+    });
 
     // ───────── OPNU VEITURNAR (fluttar af /vaktir/, LOTA: vaktir-samruni) ─────────
     // Þessar þrjár veitur eru OPIN gögn og keyra ÓHÁÐ innskráningargáttinni — /vaktir/ var
