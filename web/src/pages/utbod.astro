@@ -618,16 +618,19 @@ const SRCMETA = { rk: ['Útboðsvefur', '🇮🇸'], ted: ['TED (EES)', '🇪�
     const syniEsc = (x) => String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const syniDags = (d) => { const p = String(d).split('-'); return +p[2] + '. ' + SYNI_MAN[+p[1] - 1]; };
     const syniTitill = (t) => String(t || '').replace(/^Iceland\s+–\s+[^–]+–\s+/, '').replace(/^\d{4,6}\s*[-–]?\s*/, '').slice(0, 72);
-    function syniOpin(n) {
+    // n = fjöldi raða í forsmekk. `medIdag` (talning) heldur útboðum sem loka Í DAG — þau ERU opin —
+    // en RAÐIRNAR sleppa þeim: annars sýndi forsmekkurinn fjögur „lokar eftir 0 d" og leit út
+    // fyrir að vaktin kæmi alltaf of seint.
+    function syniOpin(n, medIdag) {
       const idag = new Date().toISOString().slice(0, 10);
       return (UTBOD_SYNI.tenders || [])
-        .filter((x) => x && x.t && x.deadline && x.deadline >= idag)
+        .filter((x) => x && x.t && x.deadline && (medIdag ? x.deadline >= idag : x.deadline > idag))
         .sort((a, b) => a.deadline.localeCompare(b.deadline))
         .slice(0, n);
     }
     function utbodSampleHtml(full) {
-      const opin = syniOpin(full ? 6 : 4);
-      const nOpin = syniOpin(999).length;
+      const opin = syniOpin(full ? 6 : 4, false);
+      const nOpin = syniOpin(999, true).length;
       const rows = opin.map((x) => {
         const dagar = Math.max(0, Math.round((Date.parse(x.deadline) - Date.now()) / 864e5));
         const bratt = dagar <= 7;
