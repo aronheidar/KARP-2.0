@@ -1,0 +1,78 @@
+{
+ "kt": "5402240800",
+ "nafn": "Z Verk ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "kostnadarverd": null,
+    "laun": null,
+    "annar_rekstur": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "tekjuskattur": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": null,
+    "efe_skuldir": null,
+    "hlutafe": null,
+    "eigid_fe": null,
+    "skuldir": null,
+    "skammtimaskuldir": null
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9505,
+    "ebit_hlutfall": 0.1894,
+    "hagnadarhlutfall": 0.1553,
+    "ROE": 0.8729,
+    "ROA": 0.5038,
+    "eiginfjarhlutfall": 0.5772,
+    "veltufjarhlutfall": 2.3132,
+    "skuldahlutfall_DE": 0.7324,
+    "eignavelta": 3.2436
+   },
+   "rekstur": {
+    "sala": 22098790,
+    "kostnadarverd": 1094805,
+    "laun": 8622635,
+    "annar_rekstur": 8195732,
+    "ebit": 4185618,
+    "fjarmunatekjur": 87898,
+    "fjarmagnsgjold": -1869,
+    "hagn_f_skatt": 4271647,
+    "tekjuskattur": -839031,
+    "hagnadur": 3432616
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1529850,
+    "handbaert": 5132919,
+    "eignir": 6812986,
+    "efe_skuldir": 2024,
+    "hlutafe": 500000,
+    "eigid_fe": 3932616,
+    "skuldir": 2880370,
+    "skammtimaskuldir": 2880370
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5402240800.pdf",
+ "pdfAr": "2024"
+}

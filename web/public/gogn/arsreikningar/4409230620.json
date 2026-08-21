@@ -1,0 +1,121 @@
+{
+ "kt": "4409230620",
+ "nafn": "WAI ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 0,
+    "eignir": 0,
+    "hlutafe": 0,
+    "eigid_fe": 0,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1408,
+    "hagnadarhlutfall": 0.079,
+    "ROE": 0.196,
+    "ROA": 0.154,
+    "eiginfjarhlutfall": 0.7856,
+    "veltufjarhlutfall": 4.6617,
+    "skuldahlutfall_DE": 0.2729,
+    "eignavelta": 1.9482
+   },
+   "rekstur": {
+    "sala": 1542143,
+    "ebit": 217087,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2233,
+    "fjarmagnsgjold": -66967,
+    "hagn_f_skatt": 152353,
+    "tekjuskattur": -30471,
+    "hagnadur": 121882
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 356765,
+    "handbaert": 434326,
+    "veltufjarmunir": 791582,
+    "eignir": 791582,
+    "hlutafe": 500000,
+    "eigid_fe": 621882,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 169700,
+    "skuldir": 169700,
+    "efe_skuldir": 791582
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.147,
+    "hagnadarhlutfall": 0.1164,
+    "ROE": 0.848,
+    "ROA": 0.4553,
+    "eiginfjarhlutfall": 0.5368,
+    "veltufjarhlutfall": 1.9608,
+    "skuldahlutfall_DE": 0.8628,
+    "eignavelta": 3.9119
+   },
+   "rekstur": {
+    "sala": 29822734,
+    "ebit": 4383210,
+    "afskriftir": 0,
+    "fjarmunatekjur": 38450,
+    "fjarmagnsgjold": -1852,
+    "hagn_f_skatt": 4398908,
+    "tekjuskattur": -928160,
+    "hagnadur": 3470748
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 409085,
+    "handbaert": 6514369,
+    "veltufjarmunir": 7623618,
+    "eignir": 7623618,
+    "hlutafe": 500000,
+    "eigid_fe": 4092630,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 3530988,
+    "skuldir": 3530988,
+    "efe_skuldir": 7623618
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/4409230620.pdf",
+ "pdfAr": "2024"
+}

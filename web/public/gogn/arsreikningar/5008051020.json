@@ -1,0 +1,124 @@
+{
+ "kt": "5008051020",
+ "nafn": "Saga Dynasty Iceland Travel ehf",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.315,
+    "hagnadarhlutfall": 0.0139,
+    "ROA": 0.0034,
+    "eiginfjarhlutfall": -0.2277,
+    "veltufjarhlutfall": 0.2325,
+    "eignavelta": 0.2454
+   },
+   "rekstur": {
+    "sala": 2961447,
+    "ebit": 932953,
+    "afskriftir": -914166,
+    "fjarmunatekjur": 4145,
+    "fjarmagnsgjold": -89885,
+    "hagn_f_skatt": 41035,
+    "tekjuskattur": 0,
+    "hagnadur": 41035
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8620700,
+    "birgdir": 0,
+    "vidskiptakrofur": 3031234,
+    "handbaert": 413317,
+    "veltufjarmunir": 3445437,
+    "eignir": 12066137,
+    "hlutafe": 500000,
+    "eigid_fe": -2747583,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 14813719,
+    "skuldir": 14813719,
+    "efe_skuldir": 12066136
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.666,
+    "hagnadarhlutfall": -0.6537,
+    "ROA": -1.1817,
+    "eiginfjarhlutfall": -1.4212,
+    "veltufjarhlutfall": 0.0125,
+    "eignavelta": 1.8078
+   },
+   "rekstur": {
+    "sala": 20738251,
+    "ebit": -13812052,
+    "afskriftir": -822749,
+    "fjarmunatekjur": 34380,
+    "fjarmagnsgjold": -144680,
+    "hagn_f_skatt": -13556135,
+    "tekjuskattur": 0,
+    "hagnadur": -13556135
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7797951,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 347138,
+    "veltufjarmunir": 3673853,
+    "eignir": 11471804,
+    "hlutafe": 500000,
+    "eigid_fe": -16303718,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 27775522,
+    "skuldir": 27775522,
+    "efe_skuldir": 11471804
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0188,
+    "hagnadarhlutfall": -0.0163,
+    "ROA": -0.0292,
+    "eiginfjarhlutfall": -1.3326,
+    "veltufjarhlutfall": 0.2873,
+    "eignavelta": 1.7905
+   },
+   "rekstur": {
+    "sala": 22397931,
+    "ebit": 421978,
+    "afskriftir": 0,
+    "fjarmunatekjur": 103044,
+    "fjarmagnsgjold": -388698,
+    "hagn_f_skatt": -365631,
+    "tekjuskattur": 0,
+    "hagnadur": -365631
+   },
+   "efnahagur": {
+    "fastafjarmunir": 393206,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 8384465,
+    "veltufjarmunir": 12116122,
+    "eignir": 12509328,
+    "hlutafe": 500000,
+    "eigid_fe": -16669349,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 29178677,
+    "skuldir": 29178677,
+    "efe_skuldir": 12509328
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5008051020.pdf",
+ "pdfAr": "2024"
+}

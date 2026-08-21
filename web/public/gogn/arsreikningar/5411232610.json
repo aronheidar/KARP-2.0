@@ -1,0 +1,116 @@
+{
+ "kt": "5411232610",
+ "nafn": "1315 ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0,
+    "ROA": 0,
+    "eiginfjarhlutfall": 1,
+    "skuldahlutfall_DE": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "annar_rekstur": 0,
+    "fjarmagnsgjold": 0,
+    "fjarmunatekjur": 0,
+    "hagn_f_skatt": 0,
+    "tekjuskattur": 0,
+    "hagnadur": 0
+   },
+   "efnahagur": {
+    "fastafjarmunir": 36757180,
+    "vidskiptakrofur": 1776715,
+    "veltufjarmunir": 1776715,
+    "eignir": 38533895,
+    "hlutafe": 500000,
+    "eigid_fe": 38533895,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 0,
+    "skuldir": 0,
+    "efe_skuldir": 38533895
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.0683,
+    "ROE": 0.0466,
+    "ROA": 0.0154,
+    "eiginfjarhlutfall": 0.3299,
+    "veltufjarhlutfall": 0.04,
+    "skuldahlutfall_DE": 2.0315,
+    "eignavelta": 0.2253
+   },
+   "rekstur": {
+    "sala": 27600000,
+    "annar_rekstur": 5164723,
+    "fjarmagnsgjold": -9327245,
+    "fjarmunatekjur": -9327245,
+    "hagn_f_skatt": 2354748,
+    "tekjuskattur": -470950,
+    "hagnadur": 1883798
+   },
+   "efnahagur": {
+    "fastafjarmunir": 122024805,
+    "vidskiptakrofur": 500000,
+    "veltufjarmunir": 500000,
+    "eignir": 122524805,
+    "hlutafe": 500000,
+    "eigid_fe": 40417693,
+    "langtimaskuldir": 69601618,
+    "skammtimaskuldir": 12505494,
+    "skuldir": 82107112,
+    "efe_skuldir": 122524805
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "hagnadarhlutfall": 0.0683,
+    "ROE": 0.0466,
+    "ROA": 0.0154,
+    "eiginfjarhlutfall": 0.3299,
+    "veltufjarhlutfall": 0.04,
+    "skuldahlutfall_DE": 2.0315,
+    "eignavelta": 0.2253
+   },
+   "rekstur": {
+    "sala": 27600000,
+    "annar_rekstur": 5164723,
+    "fjarmagnsgjold": -9327245,
+    "fjarmunatekjur": -9327245,
+    "hagn_f_skatt": 2354748,
+    "tekjuskattur": -470950,
+    "hagnadur": 1883798
+   },
+   "efnahagur": {
+    "fastafjarmunir": 122024805,
+    "vidskiptakrofur": 500000,
+    "veltufjarmunir": 500000,
+    "eignir": 122524805,
+    "hlutafe": 500000,
+    "eigid_fe": 40417693,
+    "langtimaskuldir": 69601618,
+    "skammtimaskuldir": 12505494,
+    "skuldir": 82107112,
+    "efe_skuldir": 122524805
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5411232610.pdf",
+ "pdfAr": "2024"
+}

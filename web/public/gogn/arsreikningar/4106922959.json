@@ -1,0 +1,101 @@
+{
+ "kt": "4106922959",
+ "nafn": "Þingás ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7953,
+    "ebit_hlutfall": -0.0187,
+    "hagnadarhlutfall": -0.0743,
+    "ROA": -0.5343,
+    "eignavelta": 7.195
+   },
+   "rekstur": {
+    "sala": 13360433,
+    "kostnadarverd": 2734969,
+    "laun": 8099922,
+    "annar_rekstur": 2775666,
+    "ebit": -250124,
+    "afskriftir": -217190,
+    "fjarmunatekjur": 30717,
+    "fjarmagnsgjold": -555560,
+    "hagnadur": -992157
+   },
+   "efnahagur": {
+    "fastafjarmunir": 868762,
+    "vidskiptakrofur": 987600,
+    "veltufjarmunir": 988131,
+    "eignir": 1856893
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.95,
+    "ebit_hlutfall": 0.2069,
+    "hagnadarhlutfall": 0.1525,
+    "ROA": 0.561,
+    "eignavelta": 3.6781
+   },
+   "rekstur": {
+    "sala": 16290127,
+    "kostnadarverd": 815024,
+    "laun": 9257064,
+    "annar_rekstur": 2847032,
+    "ebit": 3371007,
+    "afskriftir": -173752,
+    "fjarmunatekjur": 0,
+    "fjarmagnsgjold": -712401,
+    "hagnadur": 2484854
+   },
+   "efnahagur": {
+    "fastafjarmunir": 695010,
+    "vidskiptakrofur": 2780870,
+    "veltufjarmunir": 3733949,
+    "eignir": 4428959
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9172,
+    "ebit_hlutfall": 0.2356,
+    "hagnadarhlutfall": 0.1355,
+    "ROA": 0.6036,
+    "eignavelta": 4.4538
+   },
+   "rekstur": {
+    "sala": 34613558,
+    "kostnadarverd": 2864808,
+    "laun": 18438804,
+    "annar_rekstur": 5155201,
+    "ebit": 8154745,
+    "afskriftir": -1565860,
+    "fjarmagnsgjold": -900408,
+    "tekjuskattur": -997064,
+    "hagnadur": 4691413
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2970941,
+    "vidskiptakrofur": 288724,
+    "handbaert": 992366,
+    "veltufjarmunir": 4800813,
+    "eignir": 7771754
+   },
+   "starfsmenn": 9
+  }
+ },
+ "pdf": "pdf/4106922959.pdf",
+ "pdfAr": "2024"
+}

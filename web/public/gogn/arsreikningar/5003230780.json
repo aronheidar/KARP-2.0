@@ -1,0 +1,109 @@
+{
+ "kt": "5003230780",
+ "nafn": "1616 ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {},
+   "rekstur": {
+    "sala": null,
+    "laun": null,
+    "afskriftir": null,
+    "ebit": null,
+    "fjarmunatekjur": null,
+    "fjarmagnsgjold": null,
+    "hagn_f_skatt": null,
+    "hagnadur": null
+   },
+   "efnahagur": {
+    "vidskiptakrofur": null,
+    "handbaert": null,
+    "eignir": 0,
+    "hlutafe": null,
+    "eigid_fe": 0,
+    "skuldir": 0,
+    "efe_skuldir": 0,
+    "skammtimaskuldir": 0
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7217,
+    "hagnadarhlutfall": 0.5921,
+    "ROE": 0.9873,
+    "ROA": 0.5065,
+    "eiginfjarhlutfall": 0.513,
+    "veltufjarhlutfall": 0.8679,
+    "skuldahlutfall_DE": 0.9493,
+    "eignavelta": 0.8554
+   },
+   "rekstur": {
+    "sala": 65785178,
+    "laun": 14337881,
+    "afskriftir": 1032000,
+    "ebit": 47480176,
+    "fjarmunatekjur": 1237362,
+    "fjarmagnsgjold": -29829,
+    "hagn_f_skatt": 48687709,
+    "hagnadur": 38954207
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 528002,
+    "handbaert": 31978815,
+    "eignir": 76907034,
+    "hlutafe": 500000,
+    "eigid_fe": 39454207,
+    "skuldir": 37452827,
+    "efe_skuldir": 76907034,
+    "skammtimaskuldir": 37452827
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3296,
+    "hagnadarhlutfall": 0.277,
+    "ROE": 0.2093,
+    "ROA": 0.1866,
+    "eiginfjarhlutfall": 0.8912,
+    "veltufjarhlutfall": 2.0013,
+    "skuldahlutfall_DE": 0.122,
+    "eignavelta": 0.6735
+   },
+   "rekstur": {
+    "sala": 37705480,
+    "laun": 20091203,
+    "afskriftir": 825600,
+    "ebit": 12429230,
+    "fjarmunatekjur": 1020848,
+    "fjarmagnsgjold": -222986,
+    "hagn_f_skatt": 13227092,
+    "hagnadur": 10445015
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 224559,
+    "handbaert": 11961224,
+    "eignir": 55988183,
+    "hlutafe": 500000,
+    "eigid_fe": 49899222,
+    "skuldir": 6088961,
+    "efe_skuldir": 55988183,
+    "skammtimaskuldir": 6088961
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5003230780.pdf",
+ "pdfAr": "2024"
+}

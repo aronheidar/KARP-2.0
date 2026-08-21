@@ -1,0 +1,115 @@
+{
+ "kt": "6210121690",
+ "nafn": "1996 eignir ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2021": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9444,
+    "ebit_hlutfall": 0.2638,
+    "hagnadarhlutfall": 0.2273,
+    "ROA": 1.0856,
+    "eignavelta": 4.7761
+   },
+   "rekstur": {
+    "sala": 34024982,
+    "adrar_tekjur": 2453106,
+    "kostnadarverd": 1891244,
+    "laun": 13435522,
+    "annar_rekstur": 8641228,
+    "ebit": 8974776,
+    "afskriftir": 800401,
+    "fjarmunatekjur": 1690,
+    "fjarmagnsgjold": -68248,
+    "hagn_f_skatt": 8107817,
+    "tekjuskattur": -374245,
+    "hagnadur": 7733572
+   },
+   "efnahagur": {
+    "fastafjarmunir": 2309315,
+    "birgdir": 185000,
+    "vidskiptakrofur": 519806,
+    "handbaert": 4109455,
+    "veltufjarmunir": 4814632,
+    "eignir": 7123947
+   },
+   "starfsmenn": null
+  },
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9079,
+    "ebit_hlutfall": -0.0568,
+    "hagnadarhlutfall": -0.0793,
+    "ROA": -0.6411,
+    "eignavelta": 8.0847
+   },
+   "rekstur": {
+    "sala": 26449296,
+    "adrar_tekjur": 3885,
+    "kostnadarverd": 2437101,
+    "laun": 15989233,
+    "annar_rekstur": 8191428,
+    "ebit": -1503572,
+    "afskriftir": 566578,
+    "fjarmunatekjur": 1241,
+    "fjarmagnsgjold": -28598,
+    "hagn_f_skatt": -2097507,
+    "tekjuskattur": 0,
+    "hagnadur": -2097507
+   },
+   "efnahagur": {
+    "fastafjarmunir": 1742737,
+    "birgdir": 185000,
+    "vidskiptakrofur": 574375,
+    "handbaert": 518579,
+    "veltufjarmunir": 1528806,
+    "eignir": 3271543
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9417,
+    "ebit_hlutfall": -0.0625,
+    "hagnadarhlutfall": -0.0637,
+    "ROA": -1.0419,
+    "eignavelta": 16.3617
+   },
+   "rekstur": {
+    "sala": 25128230,
+    "adrar_tekjur": 0,
+    "kostnadarverd": 1465442,
+    "laun": 16394067,
+    "annar_rekstur": 7788421,
+    "ebit": -1571704,
+    "afskriftir": 0,
+    "fjarmunatekjur": 12022,
+    "fjarmagnsgjold": -40442,
+    "hagn_f_skatt": -1600124,
+    "tekjuskattur": 0,
+    "hagnadur": -1600124
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 1324789,
+    "veltufjarmunir": 1535792,
+    "eignir": 1535792
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6210121690.pdf",
+ "pdfAr": "2023"
+}

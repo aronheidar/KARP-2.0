@@ -1,0 +1,125 @@
+{
+ "kt": "6312932989",
+ "nafn": "Kaffi Klara ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7775,
+    "hagnadarhlutfall": 0.031,
+    "ROA": 0.0308,
+    "eiginfjarhlutfall": -0.578,
+    "veltufjarhlutfall": 0.0162,
+    "eignavelta": 0.9928
+   },
+   "rekstur": {
+    "sala": 35354648,
+    "kostnadarverd": 7864741,
+    "laun": 10826541,
+    "annar_rekstur": 12162170,
+    "afskriftir": 764447,
+    "fjarmunatekjur": 20055,
+    "fjarmagnsgjold": -2660793,
+    "hagnadur": 1096011
+   },
+   "efnahagur": {
+    "fastafjarmunir": 33922688,
+    "vidskiptakrofur": 260570,
+    "handbaert": 297305,
+    "veltufjarmunir": 1690051,
+    "eignir": 35612739,
+    "hlutafe": 400000,
+    "eigid_fe": -20582577,
+    "langtimaskuldir": 21826696,
+    "skammtimaskuldir": 34368620,
+    "skuldir": 56195316,
+    "efe_skuldir": 35612739
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.7641,
+    "hagnadarhlutfall": -0.1315,
+    "ROA": -0.1538,
+    "eiginfjarhlutfall": -0.7139,
+    "veltufjarhlutfall": 0.0259,
+    "eignavelta": 1.1694
+   },
+   "rekstur": {
+    "sala": 42970841,
+    "kostnadarverd": 10134738,
+    "laun": 23286482,
+    "annar_rekstur": 11038038,
+    "afskriftir": 1306956,
+    "fjarmunatekjur": 20857,
+    "fjarmagnsgjold": -2876304,
+    "hagnadur": -5650820
+   },
+   "efnahagur": {
+    "fastafjarmunir": 35665026,
+    "vidskiptakrofur": 493596,
+    "handbaert": 584249,
+    "veltufjarmunir": 1081770,
+    "eignir": 36746796,
+    "hlutafe": 400000,
+    "eigid_fe": -26233397,
+    "langtimaskuldir": 21357676,
+    "skammtimaskuldir": 41622517,
+    "skuldir": 62980193,
+    "efe_skuldir": 36746796
+   },
+   "starfsmenn": 4
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.6314,
+    "ebit_hlutfall": -0.3755,
+    "hagnadarhlutfall": -0.3764,
+    "ROA": -0.2797,
+    "eiginfjarhlutfall": -0.9835,
+    "veltufjarhlutfall": 0.0001,
+    "eignavelta": 0.743
+   },
+   "rekstur": {
+    "sala": 27694716,
+    "kostnadarverd": 10208836,
+    "laun": 14874052,
+    "annar_rekstur": 11808242,
+    "afskriftir": 1204316,
+    "ebit": -10400730,
+    "fjarmunatekjur": 2411,
+    "fjarmagnsgjold": -2586285,
+    "hagn_f_skatt": -12984604,
+    "tekjuskattur": 2560491,
+    "hagnadur": -10424113
+   },
+   "efnahagur": {
+    "fastafjarmunir": 37021201,
+    "vidskiptakrofur": 0,
+    "handbaert": 6500,
+    "veltufjarmunir": 251530,
+    "eignir": 37272731,
+    "hlutafe": 400000,
+    "eigid_fe": -36657510,
+    "langtimaskuldir": 20730327,
+    "skammtimaskuldir": 53199914,
+    "skuldir": 73930241,
+    "efe_skuldir": 37272731
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/6312932989.pdf",
+ "pdfAr": "2025"
+}

@@ -1,0 +1,126 @@
+{
+ "kt": "6904050320",
+ "nafn": "Ballettskóli Brynju Scheving eh",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7203,
+    "hagnadarhlutfall": -0.2368,
+    "ROA": -0.0342,
+    "eiginfjarhlutfall": -0.0425,
+    "veltufjarhlutfall": 0.075,
+    "eignavelta": 0.1444
+   },
+   "rekstur": {
+    "sala": 17250000,
+    "ebit": 12425088,
+    "afskriftir": -3686700,
+    "fjarmunatekjur": 11896,
+    "fjarmagnsgjold": -13852283,
+    "hagn_f_skatt": -5101999,
+    "tekjuskattur": 1016360,
+    "hagnadur": -4085639
+   },
+   "efnahagur": {
+    "fastafjarmunir": 117139300,
+    "birgdir": 0,
+    "vidskiptakrofur": 2250000,
+    "handbaert": 63208,
+    "veltufjarmunir": 2315826,
+    "eignir": 119455126,
+    "hlutafe": 500000,
+    "eigid_fe": -5074829,
+    "langtimaskuldir": 93687255,
+    "skammtimaskuldir": 30842700,
+    "skuldir": 124529955,
+    "efe_skuldir": 119455126
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.7688,
+    "hagnadarhlutfall": 0.0166,
+    "ROA": 0.0027,
+    "eiginfjarhlutfall": -0.0417,
+    "veltufjarhlutfall": 0.0254,
+    "eignavelta": 0.1642
+   },
+   "rekstur": {
+    "sala": 18770593,
+    "ebit": 14430788,
+    "afskriftir": -3686700,
+    "fjarmunatekjur": 11545,
+    "fjarmagnsgjold": -10361058,
+    "hagn_f_skatt": 394575,
+    "tekjuskattur": -83095,
+    "hagnadur": 311480
+   },
+   "efnahagur": {
+    "fastafjarmunir": 113452600,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 891933,
+    "veltufjarmunir": 894473,
+    "eignir": 114347073,
+    "hlutafe": 500000,
+    "eigid_fe": -4763349,
+    "langtimaskuldir": 83997614,
+    "skammtimaskuldir": 35112808,
+    "skuldir": 119110422,
+    "efe_skuldir": 114347073
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8369,
+    "hagnadarhlutfall": 0.2452,
+    "ROE": 5.0175,
+    "ROA": 0.054,
+    "eiginfjarhlutfall": 0.0108,
+    "veltufjarhlutfall": 0.0166,
+    "skuldahlutfall_DE": 91.9877,
+    "eignavelta": 0.22
+   },
+   "rekstur": {
+    "sala": 24259287,
+    "ebit": 20301791,
+    "afskriftir": -3686700,
+    "fjarmunatekjur": 3433,
+    "fjarmagnsgjold": -9176924,
+    "hagn_f_skatt": 7441600,
+    "tekjuskattur": -1492600,
+    "hagnadur": 5949000
+   },
+   "efnahagur": {
+    "fastafjarmunir": 109765900,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 484331,
+    "veltufjarmunir": 485086,
+    "eignir": 110250986,
+    "hlutafe": 500000,
+    "eigid_fe": 1185651,
+    "langtimaskuldir": 79897551,
+    "skammtimaskuldir": 29167784,
+    "skuldir": 109065335,
+    "efe_skuldir": 110250986
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6904050320.pdf",
+ "pdfAr": "2025"
+}

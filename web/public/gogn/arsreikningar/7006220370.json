@@ -1,0 +1,108 @@
+{
+ "kt": "7006220370",
+ "nafn": "Kov ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.648,
+    "ebit_hlutfall": 0.4866,
+    "hagnadarhlutfall": 0.189,
+    "ROA": 0.0444,
+    "eignavelta": 0.2348
+   },
+   "rekstur": {
+    "sala": 49004250,
+    "kostnadarverd": 17251629,
+    "annar_rekstur": 7858290,
+    "ebitda": 28144331,
+    "afskriftir": 4298000,
+    "ebit": 23846331,
+    "fjarmunatekjur": 94989,
+    "fjarmagnsgjold": -12573012,
+    "hagn_f_skatt": 11583196,
+    "tekjuskattur": -2320679,
+    "hagnadur": 9262517
+   },
+   "efnahagur": {
+    "fastafjarmunir": 208604000,
+    "vidskiptakrofur": 0,
+    "handbaert": 63364,
+    "veltufjarmunir": 84238,
+    "eignir": 208688238
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.8335,
+    "ebit_hlutfall": 0.534,
+    "hagnadarhlutfall": 0.3169,
+    "ROA": 0.0915,
+    "eignavelta": 0.2888
+   },
+   "rekstur": {
+    "sala": 131009513,
+    "kostnadarverd": 21815816,
+    "annar_rekstur": 29941226,
+    "ebitda": 79252471,
+    "afskriftir": 9296000,
+    "ebit": 69956471,
+    "fjarmunatekjur": 63549,
+    "fjarmagnsgjold": -34995331,
+    "hagn_f_skatt": 52404678,
+    "tekjuskattur": -10893504,
+    "hagnadur": 41511174
+   },
+   "efnahagur": {
+    "fastafjarmunir": 450428000,
+    "vidskiptakrofur": 265324,
+    "handbaert": 2902998,
+    "veltufjarmunir": 3202952,
+    "eignir": 453630952
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3139,
+    "hagnadarhlutfall": -0.3364,
+    "ROA": -0.0217,
+    "eignavelta": 0.0646
+   },
+   "rekstur": {
+    "sala": 48420238,
+    "laun": 1430464,
+    "annar_rekstur": 19383347,
+    "ebitda": 22195295,
+    "afskriftir": -6996000,
+    "ebit": 15199295,
+    "fjarmunatekjur": 11293,
+    "fjarmagnsgjold": -29362194,
+    "hagn_f_skatt": -20354437,
+    "tekjuskattur": 4066607,
+    "hagnadur": -16287830
+   },
+   "efnahagur": {
+    "fastafjarmunir": 651331276,
+    "vidskiptakrofur": 98613960,
+    "handbaert": 17320,
+    "veltufjarmunir": 98681133,
+    "eignir": 750012409
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/7006220370.pdf",
+ "pdfAr": "2025"
+}

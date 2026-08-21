@@ -1,0 +1,106 @@
+{
+ "kt": "6105043610",
+ "nafn": "1980 ehf.",
+ "sott": "2026-08-21",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.7053,
+    "hagnadarhlutfall": -1.9586,
+    "ROA": -2.5383,
+    "eignavelta": 1.296
+   },
+   "rekstur": {
+    "sala": 15000000,
+    "laun": 31823167,
+    "annar_rekstur": 2277238,
+    "ebitda": -24555144,
+    "afskriftir": -1024238,
+    "fjarmunatekjur": 6448,
+    "fjarmagnsgjold": -3805430,
+    "hagn_f_skatt": -29378364,
+    "tekjuskattur": 0,
+    "hagnadur": -29378364,
+    "ebit": -25579382
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4834999,
+    "vidskiptakrofur": 5888166,
+    "handbaert": 850931,
+    "veltufjarmunir": 6739097,
+    "eignir": 11574096
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.2205,
+    "hagnadarhlutfall": -0.2441,
+    "ROA": -0.9659,
+    "eignavelta": 3.9571
+   },
+   "rekstur": {
+    "sala": 33211238,
+    "laun": 32759014,
+    "annar_rekstur": 6578307,
+    "ebitda": -6126083,
+    "afskriftir": -1198319,
+    "fjarmunatekjur": 6802,
+    "fjarmagnsgjold": -789313,
+    "hagn_f_skatt": -8106913,
+    "tekjuskattur": 0,
+    "hagnadur": -8106913,
+    "ebit": -7324402
+   },
+   "efnahagur": {
+    "fastafjarmunir": 4836680,
+    "vidskiptakrofur": 3506374,
+    "handbaert": 49820,
+    "veltufjarmunir": 3556194,
+    "eignir": 8392874
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.6938,
+    "hagnadarhlutfall": 0.6111,
+    "ROA": 0.7878,
+    "eignavelta": 1.2891
+   },
+   "rekstur": {
+    "sala": 140016417,
+    "laun": 38559449,
+    "annar_rekstur": 1135660,
+    "ebitda": 98019731,
+    "afskriftir": -880143,
+    "fjarmunatekjur": 2031,
+    "fjarmagnsgjold": -586739,
+    "hagn_f_skatt": 96554880,
+    "tekjuskattur": -10988646,
+    "hagnadur": 85566234,
+    "ebit": 97139588
+   },
+   "efnahagur": {
+    "fastafjarmunir": 3956537,
+    "vidskiptakrofur": 104570402,
+    "handbaert": 88075,
+    "veltufjarmunir": 104658477,
+    "eignir": 108615014
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6105043610.pdf",
+ "pdfAr": "2025"
+}
