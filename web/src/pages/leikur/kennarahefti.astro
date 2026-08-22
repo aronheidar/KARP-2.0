@@ -1,0 +1,503 @@
+---
+// /leikur/kennarahefti/ — PRENTANLEGT KENNARAHEFTI fyrir kennara/leikstjóra sem ætlar að keyra RÁS-Leikinn.
+// Systursíða /leikur/leikstjori/ (sölusíðan) og /leikur/personuvernd/ (skólasíðan): sama dökka KARP-gull
+// útlit, kh-forskeyti. Statísk, SEO-indexanleg (title/description/OG + JSON-LD Article+LearningResource),
+// engin innskráning, engin D1, ekkert runtime-JS nema prent-hnappurinn.
+//
+// ⚠⚠ EFNIÐ ER ALLT ÚR src/lib/leikur/kennarahefti.mjs — EKKERT efni er skrifað hér.
+// Sú eining flytur VILJANDI ekki út `settings`/`strategy`/`varast`/`fylki_til_toflu` úr handbook.mjs:
+// það er svarablaðið og það er leikstjóra-læst inni í leiknum. ÞESSI síða er opin og indexeranleg,
+// svo hér má aldrei birtast neitt úr handbook.mjs sem kennarahefti.mjs flytur ekki þegar út.
+// src/lib/leikur/kennarahefti.test.mjs gætir mörkanna (15 próf) — bæti einhver við innflutningi
+// beint úr handbook.mjs hér fer hann framhjá þeim prófum. Ekki gera það.
+//
+// PRENTIÐ ER KJARNINN: heftið á að vera prentað og haldið á. Sjá @media print neðst — kafli á síðu,
+// kjörtímabils-spjöld og vandamála-línur klofna aldrei, svart á hvítu, ekkert síðu-króm.
+import Layout from '../../layouts/Layout.astro';
+import {
+  HEFTI_META, EIN_SIDA, UNDIRBUNINGUR, KEYRSLA, STYTTRI_TIMI, MIN_SAMTALS, OPNUNARORD,
+  KJORTIMABIL, DEBRIEF_THREP, LOKASPURNINGAR, LOKASPURNING_ATH, HAMIR, HAEGUR_HAMUR,
+  GRUNNTHAETTIR, NAMSMAT, VANDAMAL, TAKMARKANIR, PERSONUVERND, MEIRA, KAFLAR,
+} from '@lib/leikur/kennarahefti.mjs';
+import { ROUNDS, YEAR_START, QUARTERS_PER_ROUND } from '@lib/leikur/game-config.mjs';
+
+const YEAR_END = YEAR_START + ROUNDS * QUARTERS_PER_ROUND; // 2032
+// KAFLAR er ein uppspretta fyrir röð, númer og heiti — flettum upp á id svo markúpið hér að neðan
+// þurfi ekki að endurtaka neitt af því (og svo kafli geti aldrei fengið rangt númer).
+const K = Object.fromEntries(KAFLAR.map((k) => [k.id, k]));
+const KLST = Math.floor(MIN_SAMTALS / 60);
+const MIN_AFG = MIN_SAMTALS % 60;
+
+const PAGE_URL = 'https://karp.is/leikur/kennarahefti/';
+const TITLE = 'Kennarahefti RÁS-Leiksins — að keyra vinnustofu í hagstjórn';
+const DESC = `Prentanlegt kennarahefti fyrir RÁS-Leikinn: undirbúningur, ${MIN_SAMTALS} mínútna keyrsla, umræðuspurningar fyrir öll ${ROUNDS} kjörtímabilin, debrief í fjórum þrepum, tenging við grunnþætti aðalnámskrár, námsmat, algeng vandamál og takmarkanir líkansins. Kennsluleikur í hagstjórn fyrir hagfræðikennslu í framhaldsskóla, háskóla og símenntun — þú þarft ekki að vera hagfræðingur.`;
+
+// JSON-LD: Article + LearningResource (fjöl-tegund), EKKI HowTo.
+// Rök: HowTo lýsir einni línulegri aðferð með `step`-runu að einni útkomu — heftið er ekki það, heldur
+// tólf kaflar af blönduðu efni (námskrártenging, námsmat, takmarkanir líkansins, persónuvernd) sem
+// `step` myndi rangfæra. Google hætti auk þess að birta HowTo-ríkniðurstöður (2023), svo tegundin
+// gefur ekkert í staðinn. Article lýsir löngu lesmáli rétt; LearningResource bætir við kennslu-merkingunni
+// (learningResourceType, educationalLevel, teaches, EducationalAudience/teacher) sem er einmitt það
+// sem kennari leitar að. Fjöl-tegund er gild schema.org og articleSection speglar KAFLAR.
+const JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['Article', 'LearningResource'], '@id': PAGE_URL + '#hefti', url: PAGE_URL,
+      headline: TITLE, name: HEFTI_META.heiti + ' — ' + HEFTI_META.undirtitill, inLanguage: 'is',
+      description: DESC, abstract: HEFTI_META.inngangur,
+      articleSection: KAFLAR.map((k) => k.heiti),
+      learningResourceType: ['Kennsluleiðbeiningar', 'Kennarahefti'],
+      educationalLevel: 'Framhaldsskóli, háskóli, símenntun',
+      teaches: ['Þjóðhagfræði', 'Hagstjórn', 'Ákvarðanataka undir óvissu'],
+      timeRequired: 'PT' + KLST + 'H' + MIN_AFG + 'M',
+      audience: { '@type': 'EducationalAudience', educationalRole: 'teacher' },
+      about: { '@type': 'Thing', name: 'RÁS-Leikurinn — kennsluleikur í hagstjórn' },
+      isPartOf: { '@type': 'WebSite', name: 'Karp', url: 'https://karp.is/' },
+      author: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/' },
+      publisher: { '@type': 'Organization', name: 'Karp', url: 'https://karp.is/' },
+    },
+    { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'RÁS-Leikurinn', item: 'https://karp.is/leikur/' },
+      { '@type': 'ListItem', position: 2, name: 'Fyrir kennara', item: 'https://karp.is/leikur/leikstjori/' },
+      { '@type': 'ListItem', position: 3, name: 'Kennarahefti', item: PAGE_URL } ] },
+  ],
+};
+---
+<Layout title={TITLE + ' | Karp'} description={DESC} canonical={PAGE_URL} ogTitle={HEFTI_META.heiti + ' — ' + HEFTI_META.undirtitill} jsonLd={JSONLD} bare={true}>
+  <main data-pg="leikur-kennarahefti">
+
+    <!-- KÁPA -->
+    <header class="kh-hero">
+      <p class="kh-crumb"><a href="/leikur/">RÁS-Leikurinn</a> · <a href="/leikur/leikstjori/">Fyrir kennara</a> · Kennarahefti</p>
+      <span class="kh-badge">Prentanlegt · {KAFLAR.length} kaflar · {MIN_SAMTALS} mínútna vinnustofa</span>
+      <h1>{HEFTI_META.heiti}</h1>
+      <p class="kh-sub">{HEFTI_META.undirtitill}</p>
+      <p class="kh-lead">{HEFTI_META.inngangur}</p>
+      <p class="kh-actions">
+        <button type="button" class="kh-btn" id="kh-prenta">🖨️ Prenta heftið</button>
+        <a class="kh-btn kh-btn-ghost" href="/leikur/demo/">▶ Prófa demo (2 mín)</a>
+        <a class="kh-btn kh-btn-ghost" href="/leikur/leikstjori/">🧑‍🏫 Leikstjóra-síðan</a>
+      </p>
+      <p class="kh-hero-fine">Sviðsmyndin er Ísland {YEAR_START}–{YEAR_END} í {ROUNDS} kjörtímabilum. Heftið er hugsað til að prenta og halda á meðan á kennslunni stendur — hver kafli byrjar á nýrri síðu.</p>
+    </header>
+
+    <!-- EFNISYFIRLIT (fellt út í prenti — kaflarnir byrja hver á sinni síðu) -->
+    <nav class="kh-toc" aria-label="Efnisyfirlit">
+      <h2>Efnisyfirlit</h2>
+      <ol>
+        {KAFLAR.map((k) => (
+          <li><a href={'#' + k.id}><span class="kh-toc-nr">{k.nr}</span> {k.heiti}</a></li>
+        ))}
+      </ol>
+    </nav>
+
+    <!-- EIN SÍÐA — blaðið sem kennarinn tekur með sér inn í stofuna. Ekki kafli, ekkert númer. -->
+    <section class="kh-einsida" id="ein-sida" aria-labelledby="kh-einsida-h">
+      <h2 id="kh-einsida-h">Ef þú lest bara eina síðu</h2>
+      <ol class="kh-einsida-list">
+        {EIN_SIDA.map((s) => <li>{s}</li>)}
+      </ol>
+    </section>
+
+    <!-- 1. FYRIR TÍMANN -->
+    <section class="kh-kafli" id={K.undirbuningur.id} aria-labelledby="h-undirbuningur">
+      <h2 id="h-undirbuningur"><span class="kh-nr">{K.undirbuningur.nr}</span> {K.undirbuningur.heiti}</h2>
+      <p class="kh-p kh-muted">Sex atriði áður en hópurinn mætir. Það fyrsta skiptir mestu — hin fimm taka örfáar mínútur hvert.</p>
+      <ol class="kh-steps">
+        {UNDIRBUNINGUR.map((u) => (
+          <li class="kh-step"><b>{u.hvad}</b><p class="kh-p">{u.hvernig}</p></li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- 2. KEYRSLAN -->
+    <section class="kh-kafli" id={K.keyrsla.id} aria-labelledby="h-keyrsla">
+      <h2 id="h-keyrsla"><span class="kh-nr">{K.keyrsla.nr}</span> {K.keyrsla.heiti}</h2>
+      <p class="kh-p kh-muted">Þrír fasar, {MIN_SAMTALS} mínútur samtals. Klukkan er valfrjáls — þú ræður takti, en hlutföllin milli fasanna eru það sem skiptir máli.</p>
+      <div class="kh-fasar">
+        {KEYRSLA.map((f) => (
+          <article class="kh-fasi">
+            <div class="kh-fasi-h"><b>{f.fasi}</b><span class="kh-min">{f.min} mín</span></div>
+            <ul class="kh-bullets">{f.gera.map((g) => <li>{g}</li>)}</ul>
+            <p class="kh-varast"><b>Varast:</b> {f.varast}</p>
+          </article>
+        ))}
+      </div>
+      <p class="kh-p kh-muted kh-samtals">Samtals {MIN_SAMTALS} mínútur — ein tvöföld kennslustund eða einn fundarsalur eftir hádegi.</p>
+
+      <!-- Undirkafli inni í kafla 2 — ekki eigin kafli, ekkert númer í KAFLAR. -->
+      <section class="kh-stytt" aria-labelledby="h-stytt">
+        <h3 id="h-stytt">Þegar tíminn er styttri en vinnustofan</h3>
+        <p class="kh-p kh-inng">{STYTTRI_TIMI.inngangur}</p>
+        <div class="kh-stytt-listi">
+          {STYTTRI_TIMI.leidir.map((l) => (
+            <div class="kh-stytt-leid"><b>{l.heiti}</b><p class="kh-p">{l.txt}</p></div>
+          ))}
+        </div>
+      </section>
+    </section>
+
+    <!-- 3. OPNUNARORÐIN -->
+    <section class="kh-kafli" id={K.opnun.id} aria-labelledby="h-opnun">
+      <h2 id="h-opnun"><span class="kh-nr">{K.opnun.nr}</span> {K.opnun.heiti}</h2>
+      <p class="kh-p kh-muted">Þrjár málsgreinar til að lesa upp þegar liðin eru komin inn. Þær má lesa orðrétt — eða segja með eigin orðum, svo lengi sem þriðja málsgreinin fylgir með.</p>
+      <blockquote class="kh-opnun">
+        {OPNUNARORD.map((o) => <p>{o}</p>)}
+      </blockquote>
+    </section>
+
+    <!-- 4. KJÖRTÍMABILIN -->
+    <section class="kh-kafli" id={K.kjortimabil.id} aria-labelledby="h-kjortimabil">
+      <h2 id="h-kjortimabil"><span class="kh-nr">{K.kjortimabil.nr}</span> {K.kjortimabil.heiti}</h2>
+      <p class="kh-p kh-muted">Fyrir hvert kjörtímabil: staðan sem þú lest upp, kennslu-hornið sem lotan snýst um og spurningarnar sem eiga heima í uppgjörinu. Ráðlagðar stillingar eru <b>ekki</b> hér — þær birtast þér einum í kennsluhandbókinni inni í leiknum þegar lotan opnast.</p>
+      <div class="kh-kt-listi">
+        {KJORTIMABIL.map((k) => (
+          <article class="kh-kt">
+            <div class="kh-kt-h">
+              <span class="kh-kt-nr">KT{k.lota}</span>
+              <span class="kh-kt-ar">{YEAR_START + (k.lota - 1) * QUARTERS_PER_ROUND}–{YEAR_START + k.lota * QUARTERS_PER_ROUND}</span>
+            </div>
+            <p class="kh-p kh-kt-stada">{k.stada}</p>
+            <p class="kh-lbl">Kennslu-hornið</p>
+            <p class="kh-p">{k.kennslu_horn}</p>
+            <p class="kh-lbl">Umræðuspurningar</p>
+            <ul class="kh-sp">{k.spurningar.map((s) => <li>{s}</li>)}</ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- 5. DEBRIEF -->
+    <section class="kh-kafli" id={K.debrief.id} aria-labelledby="h-debrief">
+      <h2 id="h-debrief"><span class="kh-nr">{K.debrief.nr}</span> {K.debrief.heiti}</h2>
+      <p class="kh-p kh-muted">Debriefið er þar sem lærdómurinn festist. Fjögur þrep, {DEBRIEF_THREP.reduce((s, t) => s + t.min, 0)} mínútur — í þessari röð.</p>
+      <ol class="kh-threp">
+        {DEBRIEF_THREP.map((t) => (
+          <li class="kh-threp-li">
+            <div class="kh-threp-h"><span class="kh-threp-nr">{t.threp}</span><b>{t.heiti}</b><span class="kh-min">{t.min} mín</span></div>
+            <p class="kh-p">{t.txt}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="kh-lbl">Lokaspurningar — veldu eina</p>
+      <ul class="kh-sp kh-sp-loka">{LOKASPURNINGAR.map((s) => <li>{s}</li>)}</ul>
+      <p class="kh-p kh-ath">{LOKASPURNING_ATH}</p>
+    </section>
+
+    <!-- 6. AUKAHAMIRNIR -->
+    <section class="kh-kafli" id={K.hamir.id} aria-labelledby="h-hamir">
+      <h2 id="h-hamir"><span class="kh-nr">{K.hamir.nr}</span> {K.hamir.heiti}</h2>
+      <p class="kh-p kh-muted">Þrjú lög sem má kveikja á ofan á leik sem hópurinn kann þegar. Ekki í fyrstu spilun.</p>
+      {HAMIR.map((h) => (
+        <article class="kh-ham">
+          <h3>{h.heiti}</h3>
+          <p class="kh-p kh-ham-blurb">{h.blurb}</p>
+          <p class="kh-lbl">Hvers vegna</p>
+          <p class="kh-p">{h.hvers_vegna}</p>
+          {h.hvenaer && (<><p class="kh-lbl">Hvenær</p><p class="kh-p">{h.hvenaer}</p></>)}
+          {h.hvernig_keyra && (<><p class="kh-lbl">Hvernig þú keyrir hann</p><p class="kh-p">{h.hvernig_keyra}</p></>)}
+          <p class="kh-lbl">Umræðuspurningar</p>
+          <ul class="kh-sp">{h.spurningar.map((s) => <li>{s}</li>)}</ul>
+        </article>
+      ))}
+    </section>
+
+    <!-- 7. HÆGUR HAMUR -->
+    <section class="kh-kafli" id={K.haegur.id} aria-labelledby="h-haegur">
+      <h2 id="h-haegur"><span class="kh-nr">{K.haegur.nr}</span> {K.haegur.heiti}</h2>
+      <h3>{HAEGUR_HAMUR.heiti}</h3>
+      <p class="kh-lbl">Hvers vegna</p>
+      <p class="kh-p">{HAEGUR_HAMUR.hvers_vegna}</p>
+      <p class="kh-lbl">Hvernig þú keyrir hann</p>
+      <ul class="kh-bullets">{HAEGUR_HAMUR.hvernig_keyra.map((h) => <li>{h}</li>)}</ul>
+      <p class="kh-varast"><b>Varast:</b> {HAEGUR_HAMUR.varast}</p>
+    </section>
+
+    <!-- 8. NÁMSKRÁ -->
+    <section class="kh-kafli" id={K.namskra.id} aria-labelledby="h-namskra">
+      <h2 id="h-namskra"><span class="kh-nr">{K.namskra.nr}</span> {K.namskra.heiti}</h2>
+      <p class="kh-p kh-muted">Grunnþættirnir sex úr aðalnámskrá og hvernig leikurinn snertir hvern þeirra. Áfangaheiti og -númer eru vísvitandi ekki hér — þau eru mismunandi milli skóla.</p>
+      <dl class="kh-dl">
+        {GRUNNTHAETTIR.map((g) => (<div class="kh-dl-row"><dt>{g.thattur}</dt><dd>{g.hvernig}</dd></div>))}
+      </dl>
+    </section>
+
+    <!-- 9. NÁMSMAT -->
+    <section class="kh-kafli" id={K.namsmat.id} aria-labelledby="h-namsmat">
+      <h2 id="h-namsmat"><span class="kh-nr">{K.namsmat.nr}</span> {K.namsmat.heiti}</h2>
+      <p class="kh-regla">{NAMSMAT.regla}</p>
+      <p class="kh-lbl">Fjórar tillögur sem meta vinnuna, ekki stigin</p>
+      <div class="kh-grid">
+        {NAMSMAT.tillogur.map((t) => (
+          <div class="kh-block"><div class="kh-block-h">{t.heiti}</div><p class="kh-p">{t.txt}</p></div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 10. ALGENG VANDAMÁL -->
+    <section class="kh-kafli" id={K.vandamal.id} aria-labelledby="h-vandamal">
+      <h2 id="h-vandamal"><span class="kh-nr">{K.vandamal.nr}</span> {K.vandamal.heiti}</h2>
+      <p class="kh-p kh-muted">Það sem kemur upp — og hvað þú gerir við því.</p>
+      <div class="kh-vandi-listi">
+        {VANDAMAL.map((v) => (
+          <div class="kh-vandi">
+            <div class="kh-vandi-q"><span class="kh-vandi-ic" aria-hidden="true">⚠</span> {v.vandi}</div>
+            <p class="kh-p kh-vandi-a">{v.lausn}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 11. TAKMARKANIR LÍKANSINS -->
+    <section class="kh-kafli" id={K.takmarkanir.id} aria-labelledby="h-takmarkanir">
+      <h2 id="h-takmarkanir"><span class="kh-nr">{K.takmarkanir.nr}</span> {K.takmarkanir.heiti}</h2>
+      <p class="kh-p kh-inng">{TAKMARKANIR.inngangur}</p>
+      <div class="kh-grid">
+        {TAKMARKANIR.atridi.map((a) => (
+          <div class="kh-block"><div class="kh-block-h">{a.heiti}</div><p class="kh-p">{a.txt}</p></div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 12. PERSÓNUVERND -->
+    <section class="kh-kafli" id={K.personuvernd.id} aria-labelledby="h-personuvernd">
+      <h2 id="h-personuvernd"><span class="kh-nr">{K.personuvernd.nr}</span> {K.personuvernd.heiti}</h2>
+      <p class="kh-p kh-inng">{PERSONUVERND.inngangur}</p>
+      <ul class="kh-bullets">{PERSONUVERND.atridi.map((a) => <li>{a}</li>)}</ul>
+      <p class="kh-p kh-muted">Ítarefnið sjálft — hvað er geymt, hver sér hvað, eyðing og drög að skóla-vinnslusamningi — er á <a href="/leikur/personuvernd/">Persónuvernd í RÁS-leiknum, fyrir skóla</a>.</p>
+    </section>
+
+    <!-- MEIRA EFNI — ekki kafli, ekkert númer. -->
+    <section class="kh-meira" id="meira" aria-labelledby="h-meira">
+      <h2 id="h-meira">Meira efni</h2>
+      <ul class="kh-meira-listi">
+        {MEIRA.map((m) => (
+          <li><a href={m.slod}>{m.heiti}</a> <span class="kh-meira-slod">karp.is{m.slod}</span><p class="kh-p">{m.txt}</p></li>
+        ))}
+      </ul>
+    </section>
+
+    <footer class="kh-fotur">
+      <p>{HEFTI_META.heiti} — {HEFTI_META.undirtitill} · karp.is/leikur/kennarahefti/</p>
+      <p class="kh-muted">Spurningar um leikinn eða leikstjóra-leyfi: <a href="mailto:hjalp@karp.is">hjalp@karp.is</a></p>
+    </footer>
+  </main>
+</Layout>
+
+<!-- Prent-hnappur. CSP: enginn inline handler — addEventListener. astro:page-load svo hann virki
+     líka eftir View-Transition navígasjón (ClientRouter í Layout). -->
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const b = document.getElementById('kh-prenta');
+    if (b) b.addEventListener('click', () => window.print());
+  });
+</script>
+
+<style>
+  /* Sama dökka KARP-gull útlit og leikstjori.astro / personuvernd.astro (kh-forskeyti).
+     Statísk síða, engir runtime-innerHTML hnútar → scoped CSS. Eina undantekningin er
+     prent-blokkin neðst sem verður að ná í síðu-krómið úr Layout (haus/fótur/spjall-hnappur). */
+  main[data-pg="leikur-kennarahefti"] { max-width: 880px; margin: 0 auto; padding: 20px 20px 80px; color: var(--ink, #e8ecf3); }
+  h1 { font-size: 34px; line-height: 1.15; margin: 8px 0 4px; }
+  h2 { font-size: 21px; margin: 0 0 10px; }
+  h3 { font-size: 16.5px; margin: 16px 0 4px; }
+  /* Læsileg lína: ~70 stafir. Allur meginmáls-texti fær kh-p. */
+  .kh-p { max-width: 68ch; font-size: 14.5px; line-height: 1.65; margin: 6px 0; }
+  .kh-muted { color: var(--muted, #9fb0c8); }
+  .kh-muted a, .kh-fotur a { color: #f6b13b; }
+  .kh-lbl { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #f6b13b; margin: 14px 0 2px; }
+  .kh-btn { display: inline-block; background: #f6b13b; color: #12161f; border: 0; border-radius: 8px; padding: 11px 20px; font-weight: 700; cursor: pointer; font-size: 15px; text-decoration: none; font-family: inherit; }
+  .kh-btn:hover { filter: brightness(1.07); }
+  .kh-btn-ghost { background: rgba(255,255,255,.06); color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); }
+  /* Kápa */
+  .kh-hero { margin: 8px 0 6px; }
+  .kh-crumb { font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 0 0 6px; }
+  .kh-crumb a { color: var(--muted, #9fb0c8); }
+  .kh-badge { display: inline-block; font-size: 12px; font-weight: 700; color: #f6b13b; background: rgba(246,177,59,.12); border-radius: 999px; padding: 3px 12px; }
+  .kh-sub { font-size: 17px; color: #f0c674; font-weight: 600; margin: 0 0 10px; }
+  .kh-lead { font-size: 16px; color: var(--muted, #9fb0c8); line-height: 1.6; margin: 0; max-width: 68ch; }
+  .kh-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 6px; }
+  .kh-hero-fine { font-size: 12.5px; color: var(--muted, #9fb0c8); margin: 0; max-width: 68ch; line-height: 1.55; }
+  /* Efnisyfirlit */
+  .kh-toc { border: 1px solid var(--line, #2a2f3a); border-radius: 12px; padding: 16px 18px; margin: 18px 0; background: rgba(255,255,255,.03); }
+  .kh-toc h2 { font-size: 15px; color: var(--muted, #9fb0c8); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 8px; }
+  .kh-toc ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 2px 14px; }
+  .kh-toc a { display: flex; gap: 9px; align-items: baseline; padding: 5px 6px; border-radius: 7px; text-decoration: none; color: var(--ink, #e8ecf3); font-size: 14px; }
+  .kh-toc a:hover { background: rgba(246,177,59,.1); }
+  .kh-toc-nr { flex: 0 0 22px; text-align: right; font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+  /* Ein síða — blaðið sem er rifið út */
+  .kh-einsida { border: 2px solid #f6b13b; border-radius: 12px; padding: 20px 22px; margin: 18px 0; background: linear-gradient(180deg, rgba(246,177,59,.12), rgba(246,177,59,.03)); }
+  .kh-einsida h2 { font-size: 23px; color: #f6b13b; margin: 0 0 12px; }
+  .kh-einsida-list { margin: 0; padding-left: 26px; }
+  .kh-einsida-list li { font-size: 16px; line-height: 1.55; margin: 9px 0; max-width: 66ch; }
+  .kh-einsida-list li::marker { color: #f6b13b; font-weight: 800; }
+  /* Kaflar */
+  .kh-kafli { border-top: 1px solid var(--line, #2a2f3a); padding: 22px 0 6px; margin: 12px 0 0; }
+  .kh-kafli h2 { display: flex; align-items: baseline; gap: 11px; }
+  .kh-nr { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 27px; height: 27px; border-radius: 999px; background: #f6b13b; color: #12161f; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .kh-inng { color: #f0c674; }
+  /* 1. Fyrir tímann */
+  .kh-steps { list-style: none; counter-reset: kh-s; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .kh-step { counter-increment: kh-s; border-left: 3px solid #f6b13b; border-radius: 0 8px 8px 0; padding: 6px 0 6px 12px; background: rgba(255,255,255,.02); }
+  .kh-step > b { font-size: 15px; }
+  .kh-step > b::before { content: counter(kh-s) ". "; color: #f6b13b; font-variant-numeric: tabular-nums; }
+  .kh-step .kh-p { color: var(--muted, #9fb0c8); margin: 3px 0 0; }
+  /* 2. Keyrslan */
+  .kh-fasar { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .kh-fasi { border: 1px solid var(--line, #2a2f3a); border-radius: 10px; padding: 12px 14px; background: rgba(255,255,255,.02); }
+  .kh-fasi-h { display: flex; align-items: center; gap: 10px; font-size: 16px; margin-bottom: 6px; }
+  .kh-min { margin-left: auto; font-size: 12.5px; font-weight: 800; color: #f6b13b; background: rgba(246,177,59,.12); border-radius: 999px; padding: 2px 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .kh-bullets { margin: 6px 0; padding-left: 20px; font-size: 14px; line-height: 1.6; max-width: 66ch; }
+  .kh-bullets li { margin: 4px 0; }
+  .kh-varast { font-size: 13.5px; line-height: 1.6; color: #f0c674; border-top: 1px dashed #f6b13b55; padding-top: 7px; margin: 9px 0 0; max-width: 68ch; }
+  .kh-samtals { margin-top: 10px; }
+  /* 2b. Styttri tími — undirskipaður reitur inni í kafla 2 (h3, ekki h2) */
+  .kh-stytt { border: 1px solid #6ea8fe66; border-radius: 10px; padding: 13px 16px; margin: 16px 0 0; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  .kh-stytt h3 { margin: 0 0 4px; font-size: 16px; color: #9cc4ff; }
+  .kh-stytt-listi { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
+  .kh-stytt-leid { border-left: 2px solid #6ea8fe88; padding-left: 11px; }
+  .kh-stytt-leid > b { font-size: 14.5px; }
+  .kh-stytt-leid .kh-p { color: var(--muted, #9fb0c8); font-size: 13.5px; margin: 3px 0 0; }
+  /* 3. Opnunarorðin */
+  .kh-opnun { border-left: 4px solid #f6b13b; margin: 12px 0 0; padding: 4px 0 4px 16px; }
+  .kh-opnun p { font-size: 16.5px; line-height: 1.6; margin: 10px 0; max-width: 64ch; }
+  /* 4. Kjörtímabilin */
+  .kh-kt-listi { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+  .kh-kt { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #f6b13b; border-radius: 10px; padding: 12px 14px; background: rgba(255,255,255,.02); }
+  .kh-kt-h { display: flex; align-items: baseline; gap: 10px; }
+  .kh-kt-nr { font-size: 17px; font-weight: 800; color: #f6b13b; }
+  .kh-kt-ar { font-size: 13px; color: var(--muted, #9fb0c8); font-variant-numeric: tabular-nums; }
+  .kh-kt-stada { font-weight: 600; margin-top: 4px; }
+  .kh-sp { margin: 4px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; max-width: 66ch; }
+  .kh-sp li { margin: 5px 0; }
+  .kh-sp-loka li { margin: 7px 0; font-size: 14.5px; }
+  .kh-ath { color: var(--muted, #9fb0c8); font-size: 13.5px; margin-top: 10px; }
+  /* 5. Debrief */
+  .kh-threp { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .kh-threp-li { border: 1px solid var(--line, #2a2f3a); border-radius: 10px; padding: 10px 13px; background: rgba(255,255,255,.02); }
+  .kh-threp-h { display: flex; align-items: center; gap: 9px; font-size: 15px; }
+  .kh-threp-nr { display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 999px; border: 1px solid #f6b13b; color: #f6b13b; font-size: 12px; font-weight: 800; }
+  .kh-threp-li .kh-p { color: var(--muted, #9fb0c8); margin: 5px 0 0; }
+  /* 6. Hamirnir */
+  .kh-ham { border: 1px solid var(--line, #2a2f3a); border-radius: 10px; padding: 12px 15px; margin: 12px 0 0; background: rgba(255,255,255,.02); }
+  .kh-ham h3 { margin: 0 0 2px; color: #f6b13b; font-size: 17px; }
+  .kh-ham-blurb { color: var(--muted, #9fb0c8); font-style: italic; }
+  /* 8. Námskrá */
+  .kh-dl { margin: 12px 0 0; display: flex; flex-direction: column; }
+  .kh-dl-row { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 14px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .kh-dl-row:first-child { border-top: 0; }
+  .kh-dl dt { font-weight: 700; font-size: 14.5px; color: #f0c674; }
+  .kh-dl dd { margin: 0; font-size: 14px; color: var(--muted, #9fb0c8); line-height: 1.6; }
+  /* 9. Námsmat + 11. Takmarkanir */
+  .kh-regla { border: 1px solid #f6b13b66; border-radius: 10px; padding: 12px 15px; margin: 12px 0 0; background: linear-gradient(180deg, rgba(246,177,59,.10), rgba(246,177,59,.02)); font-size: 14.5px; line-height: 1.6; max-width: 68ch; }
+  .kh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 10px; }
+  .kh-block { border: 1px solid var(--line, #2a2f3a); border-left: 3px solid #f6b13b; border-radius: 10px; padding: 10px 13px; background: rgba(255,255,255,.02); }
+  .kh-block-h { font-size: 14.5px; font-weight: 700; }
+  .kh-block .kh-p { color: var(--muted, #9fb0c8); font-size: 13.5px; margin: 4px 0 0; }
+  /* 10. Vandamál */
+  .kh-vandi-listi { display: flex; flex-direction: column; margin-top: 12px; }
+  .kh-vandi { padding: 11px 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .kh-vandi:first-child { border-top: 0; }
+  .kh-vandi-q { font-size: 15px; font-weight: 700; }
+  .kh-vandi-ic { color: #f0c674; }
+  .kh-vandi-a { color: var(--muted, #9fb0c8); margin: 4px 0 0; }
+  /* Meira efni */
+  .kh-meira { border: 1px solid #6ea8fe66; border-radius: 12px; padding: 16px 18px; margin: 22px 0 0; background: linear-gradient(180deg, rgba(110,168,254,.10), rgba(110,168,254,.03)); }
+  .kh-meira h2 { font-size: 18px; margin: 0 0 8px; }
+  .kh-meira-listi { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .kh-meira-listi a { color: #9cc4ff; font-weight: 700; font-size: 15px; }
+  .kh-meira-slod { font-size: 12.5px; color: var(--muted, #9fb0c8); }
+  .kh-meira-listi .kh-p { color: var(--muted, #9fb0c8); font-size: 13.5px; margin: 2px 0 0; }
+  /* Fótur */
+  .kh-fotur { border-top: 1px solid var(--line, #2a2f3a); margin-top: 22px; padding-top: 12px; }
+  .kh-fotur p { font-size: 13px; margin: 4px 0; }
+  /* Farsími */
+  @media (max-width: 760px) {
+    main[data-pg="leikur-kennarahefti"] { padding: 12px 12px 60px; }
+    h1 { font-size: 26px; }
+    .kh-einsida { padding: 14px 15px; }
+    .kh-einsida-list li { font-size: 15px; }
+    .kh-dl-row { grid-template-columns: 1fr; gap: 2px; }
+    .kh-toc ol { grid-template-columns: 1fr; }
+  }
+
+  /* ══ PRENT — heftið sjálft ═══════════════════════════════════════════════
+     Svart á hvítu, kafli á síðu, engin spjöld klofin í miðri spurningu.
+     Hlekkir prentast ÁN undirstriks og ÁN útskrifaðrar slóðar (content: attr(href) væri
+     ólæsilegt í svona löngu skjali — innri slóðirnar standa þar sem þær skipta máli, í „Meira efni"). */
+  @media print {
+    main[data-pg="leikur-kennarahefti"] { max-width: none; padding: 0; color: #000; font-size: 10.5pt; }
+    main[data-pg="leikur-kennarahefti"] a { color: #000; text-decoration: none; }
+    main[data-pg="leikur-kennarahefti"] a::after { content: none !important; }
+    .kh-muted, .kh-lead, .kh-hero-fine, .kh-ath, .kh-vandi-a, .kh-dl dd,
+    .kh-block .kh-p, .kh-step .kh-p, .kh-threp-li .kh-p, .kh-meira-listi .kh-p,
+    .kh-meira-slod, .kh-crumb, .kh-ham-blurb, .kh-kt-ar { color: #333 !important; }
+    .kh-sub, .kh-inng, .kh-varast, .kh-dl dt, .kh-vandi-ic, .kh-ham h3,
+    .kh-kt-nr, .kh-step > b::before, .kh-einsida-list li::marker { color: #000 !important; }
+    .kh-p, .kh-lead, .kh-bullets, .kh-sp, .kh-varast, .kh-regla, .kh-opnun p, .kh-einsida-list li { max-width: none; }
+    /* Ekkert síðu-króm, ekkert efnisyfirlit, engir hnappar */
+    .kh-toc, .kh-actions, .kh-crumb, .kh-badge { display: none !important; }
+    /* Kápan: titill, undirtitill, inngangur — og svo út af síðunni */
+    .kh-hero { padding-top: 18mm; }
+    .kh-hero h1 { font-size: 30pt; color: #000; }
+    .kh-sub { font-size: 14pt; }
+    .kh-hero-fine { margin-top: 10mm; }
+    /* Ein síða — blaðið sem er rifið út fær sína eigin síðu */
+    .kh-einsida { page-break-before: always; break-before: page; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; border: 1.5pt solid #000; background: none; padding: 10mm 9mm; }
+    .kh-einsida h2 { color: #000; font-size: 20pt; }
+    .kh-einsida-list li { font-size: 12.5pt; margin: 5mm 0; }
+    .kh-einsida-list li::marker { color: #000; }
+    /* Hver aðalkafli byrjar á nýrri síðu, með kafla-númerinu sýnilegu */
+    .kh-kafli { page-break-before: always; break-before: page; border-top: 0; padding-top: 0; margin-top: 0; }
+    .kh-kafli h2 { font-size: 19pt; color: #000; border-bottom: 1.5pt solid #000; padding-bottom: 2mm; margin-bottom: 4mm; }
+    .kh-nr { background: none; color: #000; border: 1.5pt solid #000; min-width: 9mm; height: 9mm; font-size: 13pt; }
+    .kh-lbl { color: #000; border-bottom: .5pt solid #999; }
+    h3 { color: #000; }
+    /* Kassar: hvítir með þunnri línu — enginn litaflötur sem étur blek */
+    .kh-fasi, .kh-kt, .kh-threp-li, .kh-ham, .kh-block, .kh-step, .kh-regla, .kh-meira, .kh-stytt {
+      background: none !important; border-color: #999 !important; border-left-color: #000 !important;
+    }
+    .kh-stytt h3 { color: #000 !important; }
+    .kh-stytt-leid { border-left-color: #666 !important; }
+    .kh-stytt-leid .kh-p { color: #333 !important; }
+    .kh-min { background: none; border: .5pt solid #666; color: #000; }
+    .kh-threp-nr { border-color: #000; color: #000; }
+    .kh-opnun { border-left-color: #000; }
+    .kh-varast { border-top-color: #666; }
+    .kh-vandi { border-top-color: #bbb; }
+    .kh-dl-row { border-top-color: #bbb; }
+    .kh-fotur { border-top-color: #999; }
+    .kh-meira { page-break-before: always; break-before: page; }
+    /* Ekkert af þessu má klofna yfir síðuskil (mælt á A4-breidd: hæsti reitur 101mm, síðan 268mm) */
+    .kh-kt, .kh-vandi, .kh-fasi, .kh-threp-li, .kh-block, .kh-step, .kh-dl-row,
+    .kh-regla, .kh-meira-listi li, .kh-stytt-leid, .kh-sp, .kh-einsida {
+      page-break-inside: avoid; break-inside: avoid;
+    }
+    /* Hamirnir eru of langir fyrir eina síðu (220–276mm) — `avoid` myndi hvort eð er falla.
+       Hver hamur fær því sína síðu og spurningalistinn er það sem má ekki klofna (.kh-sp að ofan). */
+    .kh-ham + .kh-ham { page-break-before: always; break-before: page; }
+    /* Fyrirsögn skilur ekki við efnið sitt; engar einstæðar línur */
+    h2, h3, .kh-lbl, .kh-kt-h, .kh-fasi-h, .kh-threp-h, .kh-vandi-q { page-break-after: avoid; break-after: avoid; }
+    p, li { orphans: 3; widows: 3; }
+    /* Rúmbetri raðir á blaði en á skjá */
+    .kh-grid { grid-template-columns: 1fr; }
+    .kh-dl-row { grid-template-columns: minmax(0, 46mm) minmax(0, 1fr); }
+  }
+</style>
+
+<!-- Prent-blokk sem VERÐUR að vera global: hausinn, fóturinn og spjall-hnappurinn koma úr Layout.astro
+     og scoped CSS þessarar síðu nær ekki til þeirra. Ekkert annað er global á þessari síðu. -->
+<style is:global>
+  @media print {
+    @page { size: A4; margin: 15mm 14mm 14mm; }
+    html, body { background: #fff !important; color: #000 !important; }
+    body:has(main[data-pg="leikur-kennarahefti"]) .topbar,
+    body:has(main[data-pg="leikur-kennarahefti"]) .site-foot,
+    body:has(main[data-pg="leikur-kennarahefti"]) .nav,
+    body:has(main[data-pg="leikur-kennarahefti"]) .news,
+    body:has(main[data-pg="leikur-kennarahefti"]) #karp-fab,
+    body:has(main[data-pg="leikur-kennarahefti"]) #karp-chat { display: none !important; }
+    body:has(main[data-pg="leikur-kennarahefti"]) .shell { display: block !important; min-height: 0 !important; }
+  }
+</style>

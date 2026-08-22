@@ -8,6 +8,7 @@ import Layout from '../../layouts/Layout.astro';
 import { ALTHINGI_MYND } from '@lib/leikur/myndir.mjs';
 import { renderIslandKort } from '@lib/leikur/kort-svg.mjs';
 import { ROUNDS, YEAR_START, QUARTERS_PER_ROUND } from '@lib/leikur/game-config.mjs';
+import { KEYRSLA } from '@lib/leikur/kennarahefti.mjs';
 
 const YEAR_END = YEAR_START + ROUNDS * QUARTERS_PER_ROUND; // 2032
 const MAILTO = 'mailto:aron@karp.is?subject=' + encodeURIComponent('Leikstjóra-leyfi');   // RFC 6068: ekki-ASCII percent-kóðað
@@ -19,12 +20,16 @@ const KORT_SVG = renderIslandKort(
   { compact: false, idPrefix: 'lst' },
 );
 
-// 90-mín vinnustofan — þrír fasar (mínútur knýja breidd tímalínunnar).
-const TIMALINA = [
-  { icon: '🧑‍🏫', heiti: 'Uppsetning', min: 10, txt: 'Leikstjóri stofnar leik, deilir kóða á skjávarpa, lið skrá sig inn með liðsheiti. Stutt kynning á markmiðum og stjórntækjum.' },
-  { icon: '🗳️', heiti: `${ROUNDS} kjörtímabil × ~8 mín`, min: 64, txt: `Hvert lið stillir stýrivexti, skatta, útgjöld og stóru ákvarðanirnar fyrir fjögurra ára kjörtímabil — ${YEAR_START} til ${YEAR_END}. Umferðar-klukkan heldur takti, hermirinn gerir upp.` },
-  { icon: '🧭', heiti: 'Debrief', min: 20, txt: 'Stigatafla, Ísland liðanna hlið við hlið, „svona fór það í alvöru" og umræðuspurningar sem leikurinn reiknar úr því sem gerðist í salnum.' },
+// Vinnustofan — þrír fasar (mínútur knýja breidd tímalínunnar).
+// ⚠ MÍNÚTURNAR KOMA ÚR `KEYRSLA` í kennarahefti.mjs — EIN UPPSPRETTA með /leikur/kennarahefti/ (og
+// prófinu sem gætir þess að samtalan sé 94). Breytir þú fasa þar breytist tímalínan hér með.
+// Ikon og texti eru sölusíðunnar; röðin er sú sama: Uppsetning, kjörtímabilin, Debrief.
+const TL_TXT = [
+  { icon: '🧑‍🏫', heiti: 'Uppsetning', txt: 'Leikstjóri stofnar leik, deilir kóða á skjávarpa, lið skrá sig inn með liðsheiti. Stutt kynning á markmiðum og stjórntækjum.' },
+  { icon: '🗳️', heiti: `${ROUNDS} kjörtímabil × ~8 mín`, txt: `Hvert lið stillir stýrivexti, skatta, útgjöld og stóru ákvarðanirnar fyrir fjögurra ára kjörtímabil — ${YEAR_START} til ${YEAR_END}. Umferðar-klukkan heldur takti, hermirinn gerir upp.` },
+  { icon: '🧭', heiti: 'Debrief', txt: 'Stigatafla, Ísland liðanna hlið við hlið, „svona fór það í alvöru" og umræðuspurningar sem leikurinn reiknar úr því sem gerðist í salnum.' },
 ];
+const TIMALINA = TL_TXT.map((t, i) => ({ ...t, min: KEYRSLA[i].min }));
 const MIN_SAMTALS = TIMALINA.reduce((s, t) => s + t.min, 0);
 const KJORTIMABIL = Array.from({ length: ROUNDS }, (_, i) => ({ n: i + 1, fra: YEAR_START + i * QUARTERS_PER_ROUND, til: YEAR_START + (i + 1) * QUARTERS_PER_ROUND }));
 
@@ -42,6 +47,7 @@ const THATTTAKENDUR = [
 const LEIKSTJORI = [
   { icon: '🧙', heiti: 'Uppsetningar-vísir', txt: 'Einn smellur stofnar leik: erfiðleikastig, umferðar-klukka, stjórnstöð með sleðum eða einföld val, leynileg hlutverk, óvænt atvik — og kóði til að deila.' },
   { icon: '📖', heiti: 'Kennsluhandbók per lotu', txt: 'Aðeins sýnileg þér: staðan, gildran, stefnan og ráðlagðar stillingar fyrir hvert kjörtímabil — grunduð í herminum og hagsögunni.' },
+  { icon: '📘', heiti: 'Prentanlegt kennarahefti', txt: `Tólf kaflar til að prenta og halda á: undirbúningur, ${MIN_SAMTALS} mínútna keyrsla (og hvað þú gerir þegar tíminn er styttri), opnunarorð, umræðuspurningar fyrir öll ${ROUNDS} kjörtímabilin, debrief í fjórum þrepum, tenging við grunnþætti aðalnámskrár, námsmat, algeng vandamál og takmarkanir líkansins. Opið öllum — engin innskráning.` },
   { icon: '📺', heiti: 'Skjávarpa-sýn', txt: 'Áhorfenda-hlekkur fyrir salinn: stigatafla í rauntíma, Ísland efsta liðsins, atvika-popup og RÁS-tíðindi — engin innskráning.' },
   { icon: '🖨️', heiti: 'Prentanleg debrief-skýrsla', txt: 'Í leikslok: stigatafla, hvert lið fyrir sig, samanburðartafla og umræðukafli — prentvæn, vistast sem PDF.' },
   { icon: '📊', heiti: 'Greining liða', txt: 'Skorkort, ákvarðanir og ferla-gröf liðanna meðan á leik stendur, ásamt umræðu-kveikjum sem eru reiknaðar úr leiknum sjálfum.' },
@@ -150,6 +156,10 @@ const JSONLD = {
           <div class="lst-block"><div class="lst-block-h"><span aria-hidden="true">{f.icon}</span> <b>{f.heiti}</b></div><p>{f.txt}</p></div>
         ))}
       </div>
+      <p class="lst-cta-row">
+        <a class="lst-btn lst-btn-ghost" href="/leikur/kennarahefti/">📘 Lesa kennaraheftið — {MIN_SAMTALS} mín vinnustofa, kafli fyrir kafla</a>
+      </p>
+      <p class="lst-muted">Heftið er opið og prentanlegt: undirbúningur, keyrsla, umræðuspurningar fyrir hvert kjörtímabil, debrief, námskrártenging og takmarkanir líkansins. Ráðlagðar stillingar eru ekki þar — þær sérð þú einn í kennsluhandbókinni inni í leiknum.</p>
     </section>
 
     <!-- 4. VERÐ -->
