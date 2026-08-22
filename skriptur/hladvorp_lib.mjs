@@ -14,9 +14,6 @@ export function minOf(dur) {
   return sek == null ? null : Math.round(sek / 60);
 }
 
-// SQL-strengur fyrir D1-batch: einfaldar gæsalappir tvöfaldaðar; NUL/stýristafir burt.
-export const sqlStr = (v) => "'" + String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/'/g, "''") + "'";
-
 // Velja þætti til talgreiningar undir kostnaðar-þökum.
 //   epis: [{ url, audio, show, feedId, p, d (YYYY-MM-DD), min }] — allir nýlegir þættir með hljóðskrá
 //   done: Set af url sem þegar eru umritaðir (úr D1)
@@ -47,15 +44,16 @@ export function veljaThaetti(epis, done, opts) {
   return { valdir, minSum, sleppt };
 }
 
-// D1-batch fyrir eina keyrslu: CREATE TABLE IF NOT EXISTS + INSERT OR REPLACE per umritaðan þátt + trim.
-// texti er KLIPPTUR í 60.000 stafi (D1-statement þak er 100KB; 90 mín ≈ 80KB texti) — samsvörun nær samt
-// nánast öllu (klippt aftast). ts = unix-sekúndur útgáfudags.
-export function d1Batch(rows, nowSek) {
-  const out = ["CREATE TABLE IF NOT EXISTS hladvorp (url TEXT PRIMARY KEY, show TEXT, title TEXT, ts INTEGER, dur INTEGER, texti TEXT);"];
+// D1-setningar fyrir eina keyrslu — um REST-hjálparann (skriptur/lib/d1_rest.mjs) með BUNDNUM breytum (?),
+// aldrei strengja-escape. CREATE TABLE IF NOT EXISTS fyrst, INSERT OR REPLACE per umritaðan þátt, trim síðast.
+// texti er KLIPPTUR í 60.000 stafi (90 mín ≈ 80KB) — samsvörun nær samt nánast öllu. ts = unix-sek útgáfudags.
+export const HLAD_CREATE = 'CREATE TABLE IF NOT EXISTS hladvorp (url TEXT PRIMARY KEY, show TEXT, title TEXT, ts INTEGER, dur INTEGER, texti TEXT)';
+export function d1Stmts(rows, nowSek) {
+  const out = [{ sql: HLAD_CREATE, params: [] }];
   for (const r of (Array.isArray(rows) ? rows : [])) {
     if (!r || !r.url || !r.texti) continue;
-    out.push(`INSERT OR REPLACE INTO hladvorp (url, show, title, ts, dur, texti) VALUES (${sqlStr(r.url)}, ${sqlStr(r.show)}, ${sqlStr(r.title)}, ${Math.floor(+r.ts || 0)}, ${Math.floor(+r.dur || 0)}, ${sqlStr(String(r.texti).slice(0, 60000))});`);
+    out.push({ sql: 'INSERT OR REPLACE INTO hladvorp (url, show, title, ts, dur, texti) VALUES (?, ?, ?, ?, ?, ?)', params: [String(r.url), String(r.show || ''), String(r.title || ''), Math.floor(+r.ts || 0), Math.floor(+r.dur || 0), String(r.texti).slice(0, 60000)] });
   }
-  out.push(`DELETE FROM hladvorp WHERE ts < ${Math.floor((+nowSek || 0) - 90 * 86400)};`);
-  return out.join('\n');
+  out.push({ sql: 'DELETE FROM hladvorp WHERE ts < ?', params: [Math.floor((+nowSek || 0) - 90 * 86400)] });
+  return out;
 }

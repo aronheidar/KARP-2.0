@@ -1,7 +1,7 @@
 // Próf fyrir hladvorp_lib.mjs — þátta-val undir kostnaðar-þökum, lengdar-þáttun, D1-batch.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { minOf, sqlStr, veljaThaetti, d1Batch } from './hladvorp_lib.mjs';
+import { minOf, veljaThaetti, d1Stmts, HLAD_CREATE } from './hladvorp_lib.mjs';
 
 test('minOf: HH:MM:SS, MM:SS, sekúndur, rusl', () => {
   assert.equal(minOf('1:02:30'), 63);
@@ -10,12 +10,6 @@ test('minOf: HH:MM:SS, MM:SS, sekúndur, rusl', () => {
   assert.equal(minOf(''), null);
   assert.equal(minOf('abc'), null);
   assert.equal(minOf(null), null);
-});
-
-test('sqlStr: gæsalappir tvöfaldaðar, stýristafir/línubil verða bil', () => {
-  assert.equal(sqlStr("a'b"), "'a''b'");
-  assert.equal(sqlStr('a\nb\tc'), "'a b c'");
-  assert.equal(sqlStr(null), "''");
 });
 
 const ep = (url, feedId, p, d, min, maxMin) => ({ url, audio: url + '.mp3', show: feedId, feedId, p, d, min, maxMin: maxMin || 90 });
@@ -52,15 +46,15 @@ test('veljaThaetti: heildar-mínútuþak, þátta-þak og per-feed þak halda', 
   assert.equal(r4.valdir.length, 0);
 });
 
-test('d1Batch: CREATE + INSERT með escapaðri texta-klippu + trim; sleppir texta-lausum', () => {
-  const sql = d1Batch([
+test('d1Stmts: CREATE fyrst, INSERT m/bundnum breytum + 60k-klippu, trim síðast; sleppir texta-lausum', () => {
+  const st = d1Stmts([
     { url: 'https://x/ep1', show: "Rauða borðið", title: "Um 'kvótann'", ts: 1755800000, dur: 55, texti: 'x'.repeat(70000) },
     { url: 'https://x/ep2', show: 'S', title: 'T', ts: 1, dur: 1, texti: '' },
   ], 1755900000);
-  assert.ok(sql.startsWith('CREATE TABLE IF NOT EXISTS hladvorp'));
-  assert.ok(sql.includes("''kvótann''"));
-  assert.equal((sql.match(/INSERT OR REPLACE/g) || []).length, 1);   // ep2 texta-laus → sleppt
-  const ins = sql.split('\n').find((l) => l.startsWith('INSERT'));
-  assert.ok(ins.length < 60600, 'texti klipptur í 60k: ' + ins.length);
-  assert.ok(sql.includes('DELETE FROM hladvorp WHERE ts < ' + (1755900000 - 90 * 86400)));
+  assert.equal(st.length, 3);
+  assert.equal(st[0].sql, HLAD_CREATE);
+  assert.ok(st[1].sql.startsWith('INSERT OR REPLACE INTO hladvorp'));
+  assert.deepEqual(st[1].params.slice(0, 5), ['https://x/ep1', 'Rauða borðið', "Um 'kvótann'", 1755800000, 55]);   // engin escape-þörf
+  assert.equal(st[1].params[5].length, 60000);
+  assert.deepEqual(st[2], { sql: 'DELETE FROM hladvorp WHERE ts < ?', params: [1755900000 - 90 * 86400] });
 });

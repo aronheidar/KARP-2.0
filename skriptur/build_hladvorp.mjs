@@ -9,7 +9,7 @@
 //     undir kostnaðar-þökum (hladvorp_lib.veljaThaetti: ≤450 mín / ≤30 þættir per keyrslu, per-feed þak, lengdar-
 //     þak per feed) → mp3 sótt → ffmpeg 16 kHz mono 32 kbps í 5 mín BÚTA → Workers AI
 //     `@cf/openai/whisper-large-v3-turbo` (REST, base64, language=is; 4 bútar samtímis) → textar límdir saman →
-//     D1-taflan `hladvorp` um `wrangler d1 execute tengsl --remote`. ⚠ REPOIÐ ER PUBLIC → umritanir fara ALDREI í
+//     D1-taflan `hladvorp` um REST-hjálparann skriptur/lib/d1_rest.mjs (bundnar breytur; EKKI wrangler-CLI). ⚠ REPOIÐ ER PUBLIC → umritanir fara ALDREI í
 //     gogn/, aðeins í D1 (einka); birting = stutt brot + hlekkur á þáttinn (höfundaréttar-varfærni, eins og news.body).
 //     MÆLT 22.8.2026 á 90 s úr Speglinum: turbo-módelið gefur góða íslensku (nöfn/tölur rétt), ~4× rauntími;
 //     gamla `@cf/openai/whisper` er ÓNOTHÆFT á íslensku. Verð $0,0005/mín og 10.000 neurons/dag FRÍ (≈214 mín/dag)
@@ -22,7 +22,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { minOf, veljaThaetti, d1Batch } from './hladvorp_lib.mjs';
+import { minOf, veljaThaetti, d1Stmts, HLAD_CREATE } from './hladvorp_lib.mjs';
+import { makeD1 } from './lib/d1_rest.mjs';   // D1 um REST/database_id — EKKI `wrangler d1 execute tengsl` (nafna-uppfletting bregst í CI, sjá export_tengsl_fonix)
 import { _rssItems } from '../web/src/worker/cron.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -105,15 +106,15 @@ async function oaiWhisper(file) {
 }
 // Bútar í röð með takmörkuðum samtímis-fjölda; textar límdir í upprunalegri röð.
 async function pmap(items, n, fn) { const out = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); } })); return out; }
-const wrangler = (args, opts) => execFileSync('npx', ['wrangler', ...args], Object.assign({ cwd: path.join(ROOT, 'web'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' }, opts || {}));
-
-// Hvað er þegar umritað? (engin state-skrá — D1 er sannleikurinn)
+// D1 um REST (sömu skilríki og Workers AI). Taflan búin til STRAX svo D1-heimildin sannist óháð talgreiningu.
+const d1 = makeD1(path.join(ROOT, 'web'));
 let done = new Set();
 try {
-  const out = wrangler(['d1', 'execute', 'tengsl', '--remote', '--json', '--command', "SELECT url FROM hladvorp WHERE ts > strftime('%s','now') - 45*86400"]);
-  const j = JSON.parse(out);
-  done = new Set(((j[0] && j[0].results) || []).map((r) => r.url));
-} catch (e) { console.log('• hladvorp-tafla ekki til enn (fyrsta keyrsla) — allt telst nýtt.'); }
+  await d1.query(HLAD_CREATE);
+  const rows = await d1.query("SELECT url FROM hladvorp WHERE ts > strftime('%s','now') - 45*86400");
+  done = new Set(rows.map((r) => r.url));
+  console.log('• D1 hladvorp-tafla klár —', done.size, 'þættir þegar umritaðir sl. 45 daga');
+} catch (e) { console.error('✗ D1 REST brást (þarf „D1: Edit" á CLOUDFLARE_API_TOKEN):', String(e).slice(0, 200)); process.exit(1); }
 
 const { valdir, minSum, sleppt } = veljaThaetti(thaettir.filter((t) => t.d >= new Date(NU - 7 * 86400 * 1000).toISOString().slice(0, 10)), done, { perFeed: Object.fromEntries(cfg.feeds.filter((f) => f.maxEpRun).map((f) => [f.id, f.maxEpRun])) });
 console.log('Til umritunar:', valdir.length, 'þættir ≈', minSum, 'mín | sleppt:', JSON.stringify(sleppt));
@@ -151,10 +152,9 @@ for (const ep of valdir) {
   finally { for (const f of [raw, enc]) { try { fs.unlinkSync(f); } catch (e2) {} } }
 }
 if (rows.length) {
-  const sqlPath = path.join(TMP, 'batch.sql');
-  fs.writeFileSync(sqlPath, d1Batch(rows, Math.floor(NU / 1000)));
-  wrangler(['d1', 'execute', 'tengsl', '--remote', '--file', sqlPath]);
-  console.log('D1: skrifaðir', rows.length, 'þættir í hladvorp-töfluna');
+  let n = 0;
+  for (const st of d1Stmts(rows, Math.floor(NU / 1000))) { await d1.query(st.sql, st.params); if (st.sql.startsWith('INSERT')) n++; }
+  console.log('D1: skrifaðir', n, 'þættir í hladvorp-töfluna (REST, bundnar breytur)');
 }
 fs.rmSync(TMP, { recursive: true, force: true });
 console.log('Búið:', rows.length, 'umritaðir af', valdir.length, 'völdum.');
