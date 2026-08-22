@@ -24,7 +24,8 @@ const NEFNDCARDS = (Array.isArray(NEFNDIR) ? NEFNDIR : []).map((n) => {
   return { heiti: capFirst(n.heiti), count: (n.members || []).length, chair: chair ? chair.nafn : null, chairC: chair ? colorByName(chair.flokkur) : null, chairSlug: chair && mpSlug[chair.id] ? mpSlug[chair.id] : null, members };
 }).sort((a, b) => b.count - a.count);
 
-const CAL = { range: DAGATAL.range || null, days: DAGATAL.days, plenary: DAGATAL.plenary, meetings: DAGATAL.meetings,
+// range getur verið [null,null] í sumarhléi (tómt dagatal úr automation) — gild aðeins ef bæði mörk eru til.
+const CAL = { range: (Array.isArray(DAGATAL.range) && DAGATAL.range[0] && DAGATAL.range[1]) ? DAGATAL.range : null, days: DAGATAL.days, plenary: DAGATAL.plenary, meetings: DAGATAL.meetings,
   data: Object.entries(DAGATAL.dates || {}).map(([d, x]) => [d, (x.t || 0) + (x.n || 0), x.t || 0, x.n || 0]) };
 const updated = '2026-07-02';
 const desc = `Fastanefndir Alþingis (${NEFNDCARDS.length}) með formönnum og fulltrúum, auk þingdagatals — ${CAL.plenary} þingfundir og ${CAL.meetings} nefndafundir á starfsárinu.`;

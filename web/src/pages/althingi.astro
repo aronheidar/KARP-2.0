@@ -43,7 +43,8 @@ THINGMENN.forEach((m) => {
 
 // ── Þingið 157: ríkisstjórnin (cabinet.json úr Alþingis-XML) ──
 const capFirst = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-const PM = CABINET.find((c) => (c.emb || []).some((e) => /forsætis/i.test(e))) || CABINET[0];
+// cabinet.json getur verið TÓMT (automation-skrap brást/sumarhlé) → PM null og blokkin sleppt.
+const PM = CABINET.find((c) => (c.emb || []).some((e) => /forsætis/i.test(e))) || CABINET[0] || null;
 const MINISTERS = CABINET.filter((c) => c !== PM);
 const govNum = GOV.length === 2 ? '2ja' : GOV.length === 3 ? '3ja' : GOV.length === 4 ? '4ra' : String(GOV.length);
 // Ráðherrar utan þings fá lágmarks-færslu í MPS svo glugginn virki líka fyrir þá.
@@ -82,9 +83,9 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
   <main data-pg="althingi">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <ThingTabs active="salur" />
-    <h1>Þingið 157 — {govNum} flokka meirihlutastjórn</h1>
+    <h1>Þingið 157{GOV.length > 0 ? ` — ${govNum} flokka meirihlutastjórn` : ''}</h1>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ráðherrar, sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspá (fylgi→þingsæti) er á /kannanir/.">ⓘ</i> Um gögnin á síðunni</p>
-    <div class="cab">
+    {PM && <div class="cab">
       <button class="cab-pm cab-clk" data-id={PM.id} type="button" style={`--pc:${colorByName(PM.flokur)}`}>
         {PM.mynd && <img src={PM.mynd} alt={PM.nafn} loading="lazy" />}
         <div class="cab-t">
@@ -106,7 +107,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
         ))}
       </div>
       <p class="src">Ríkisstjórn {GOV.map(partyName).join(', ')} · {CABINET.length} ráðherrar. Smelltu á ráðherra fyrir nánari upplýsingar.</p>
-    </div>
+    </div>}
 
     <h2>Þingsalurinn — sætaskipan</h2>
     <div class="seat-wrap">
