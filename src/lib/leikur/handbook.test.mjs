@@ -1,4 +1,5 @@
-import { HANDBOOK, handbookFor, THOKA_HANDBOOK, SATT_HANDBOOK } from './handbook.mjs';
+import { HANDBOOK, handbookFor, THOKA_HANDBOOK, SATT_HANDBOOK, RADHERRAR_HANDBOOK } from './handbook.mjs';
+import { RADUNEYTI } from './radherrar.mjs';
 import { SATT_FYLKI } from './satt.mjs';
 import { SCENARIO, ROUNDS } from './game-config.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
@@ -34,6 +35,16 @@ const tala = (v) => (v > 0 ? '+' : '−') + String(Math.abs(v)).replace('.', ','
 ok('satt: samvinnu-röðin ber tölur SATT_FYLKI.samvinna', ftt[0].ahrif.includes('verðbólga ' + tala(SATT_FYLKI.samvinna.verdbolga)) && ftt[0].ahrif.includes('kaupmáttur ' + tala(SATT_FYLKI.samvinna.kaupmattur)) && ftt[0].ahrif.includes('fylgi ' + tala(SATT_FYLKI.samvinna.pop)));
 ok('satt: svikara-röðin ber tölur SATT_FYLKI.svik.svikari', ftt[1].ahrif.includes('kaupmáttur ' + tala(SATT_FYLKI.svik.svikari.kaupmattur)) && ftt[1].ahrif.includes('fylgi ' + tala(SATT_FYLKI.svik.svikari.pop)));
 ok('satt: spíral-raðir leggja „allir“ ofan á svikara/sáttar-lið', ftt[3].ahrif.includes('verðbólga ' + tala(SATT_FYLKI.spirall.allir.verdbolga)) && ftt[3].ahrif.includes('kaupmáttur ' + tala(SATT_FYLKI.spirall.svikari.kaupmattur)) && ftt[4].ahrif.includes('kaupmáttur ' + tala(SATT_FYLKI.spirall.sattLid.kaupmattur)));
+
+// „Ráðherraskipting innan liðs" — kennslu-rök + leikstjóra-texti (form sem client treystir á: blurb í rofa, handbókar-blað, debrief).
+const RH = RADHERRAR_HANDBOOK;
+ok('RADHERRAR_HANDBOOK hefur kjarna-kaflana', ['heiti', 'blurb', 'hvers_vegna', 'hvernig_keyra', 'debrief_spurningar'].every((k) => k in RH));
+ok('ráðherrar: heiti + blurb f. fac-rofa (nefnir forsætisráðherra, ráðuneyti og læsingu)', RH.heiti === 'Ráðherraskipting' && typeof RH.blurb === 'string' && RH.blurb.length > 60 && /forsætisráðherra/i.test(RH.blurb) && /ráðuneyt/i.test(RH.blurb) && /læsir/i.test(RH.blurb));
+ok('ráðherrar: hvers_vegna nefnir „einn með lyklaborðið", togstreitu ráðuneyta sem raunverulega hagstjórn og sjálfstæðan Seðlabanka', /lyklaborð/i.test(RH.hvers_vegna) && /togstreit/i.test(RH.hvers_vegna) && /raunveruleg hagstjórn/i.test(RH.hvers_vegna) && /Seðlabank/.test(RH.hvers_vegna) && /sjálfstæð/i.test(RH.hvers_vegna));
+ok('ráðherrar: hvernig_keyra nefnir liðsstærð 3–7, Stjórnstöð og að PM-valið sé pólitík', /3–7/.test(RH.hvernig_keyra) && /Stjórnstöð/.test(RH.hvernig_keyra) && /pólitík/i.test(RH.hvernig_keyra));
+ok('ráðherrar: nákvæmlega 3 debrief-spurningar, allar enda á ?', Array.isArray(RH.debrief_spurningar) && RH.debrief_spurningar.length === 3 && RH.debrief_spurningar.every((q) => typeof q === 'string' && q.trim().endsWith('?')));
+ok('ráðherrar: debrief nefnir Seðlabankastjóra+fjármálaráðherra, klobbun ráðuneyta og „hver réði"', RH.debrief_spurningar.some((q) => /Seðlabankastjór/.test(q) && /fjármálaráðherr/i.test(q)) && RH.debrief_spurningar.some((q) => /klobb/i.test(q)) && RH.debrief_spurningar.some((q) => /hver réði/i.test(q)));
+ok('ráðherrar: sætin sem debrief vísar í eru til í RADUNEYTI (Seðlabankastjóri, Fjármálaráðherra, Forsætisráðherra)', ['Seðlabankastjóri', 'Fjármálaráðherra', 'Forsætisráðherra'].every((h) => RADUNEYTI.some((r) => r.heiti === h)));
 
 console.log(`\n${pass} pass, ${fail} fail`);
 process.exit(fail ? 1 : 0);

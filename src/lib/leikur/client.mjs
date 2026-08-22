@@ -12,13 +12,14 @@ import { buildRecap } from './recap.mjs';
 import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { politikStada } from './politik.mjs';
 import { teachingPrompts } from './analytics.mjs';
-import { HANDBOOK, THOKA_HANDBOOK, SATT_HANDBOOK } from './handbook.mjs';
+import { HANDBOOK, THOKA_HANDBOOK, SATT_HANDBOOK, RADHERRAR_HANDBOOK } from './handbook.mjs';
 import { SATT_VAL, SATT_FLOKKAR, SATT_TEXTI } from './satt.mjs';
 import { myndFyrirAtvik, PM_MYNDIR, PM_MYNDIR_KONA } from './myndir.mjs';
 import { sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, radherraFyrirLotu, radherraTexti } from './saga.mjs';
 import { kortThrep, KORT_LEVER_ID } from './kort-throp.mjs';
 import { renderIslandKort } from './kort-svg.mjs';
 import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS, DIFFICULTY } from './game-config.mjs';
+import { RADUNEYTI, PM as RH_PM, validHandle, raduneytiLevers, raduneytiStada, leverOwner } from './radherrar.mjs';   // RÁÐHERRASKIPTING: hrein eining (sæti↔sleðar), sama uppspretta og þjónninn
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
 // ATH: þessi skrá býr í src/lib/leikur/ (EKKI web/src/lib/leikur/) — auth.js er undir web/src/lib/, því 3 stig upp.
@@ -172,6 +173,37 @@ function thokaTile(k, m, refTxt) {
 // perTeam effect, texti); fac-control {action:'karphus',open,minutes}; watch fær st.satt={on,lota,karphus} ÁN valsins.
 // Valið er BLINT — client sýnir liðinu aðeins EIGIÐ val; afhjúpunin gerist í results (sattResultsCard).
 const SATT_BLURB = SATT_HANDBOOK.blurb;   // EIN uppspretta (handbook.mjs) — sami texti í rofa, stillingaspjaldi og handbók
+
+// ── RÁÐHERRASKIPTING INNAN LIÐS (radherrar.mjs) ───────────────────────────────────────────────────────────────────────
+// Þjónninn er sannleikurinn: /state?h=<handle> skilar st.radherrar = { on, stada:[{key,group,heiti,icon,lysing,taken,handle}],
+// mitt: key|null, pmClaimed, lockFallback }; POST /decisions MERGE-ar per sleða og skilar hafnad:[...] (sleðar utan eigin
+// ráðuneytis o.fl.) — clientinn SPEGLAR höfnunina strax (rhAfterPost) svo notandi sjái aldrei „breytingu sem hvarf".
+// handle = 6 stafa [a-z0-9] dulnefni per vafra+leik (localStorage 'lk-rh-<kóði>', in-memory varaleið ef geymslan er læst) —
+// EKKERT PII; fer sem body.handle í ÖLL liðs-POST (pushDraft/submitStudio/submitDecisions/sattPush/klemma) og ?h= á /state.
+const RH_BLURB = RADHERRAR_HANDBOOK.blurb;   // EIN uppspretta (handbook.mjs) — sami texti í rofa, stillingaspjaldi og handbók
+const lsRh = (code) => 'lk-rh-' + code;
+const rhMem = {};
+function rhHandle(code) {
+  if (!code) return null;
+  let h = null; try { h = localStorage.getItem(lsRh(code)); } catch (e) {}
+  if (!validHandle(h)) h = rhMem[code] || null;
+  if (!validHandle(h)) {
+    const A = 'abcdefghijklmnopqrstuvwxyz0123456789'; let s = '';
+    try { const b = new Uint8Array(6); crypto.getRandomValues(b); for (const x of b) s += A[x % 36]; } catch (e) { s = ''; for (let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * 36)]; }
+    h = s; rhMem[code] = h; try { localStorage.setItem(lsRh(code), h); } catch (e) {}
+  }
+  return h;
+}
+const rhInfo = (key) => RADUNEYTI.find((r) => r.key === key) || null;
+const rhTabOwner = (group) => RADUNEYTI.find((r) => r.group === group) || null;   // flipi (TAB_META-hópur) → ráðuneyti
+// Fac-roster: sæta-yfirlit liðs úr lockRoster[].radherrar — þolir stada-fylki [{key,taken}], {stada:[...]} EÐA {key:handle}-map.
+// Handles eru ALDREI birt (nafnlaus: ✓ tekið / · laust).
+function rhRosterSeats(rh) {
+  if (rh == null || typeof rh !== 'object') return '';
+  const arr = Array.isArray(rh) ? rh : (Array.isArray(rh.stada) ? rh.stada : null);
+  const takenOf = (key) => arr ? !!((arr.find((x) => x && x.key === key) || {}).taken) : !!rh[key];
+  return ' <span class="lk-rh-roster" title="Sæti ríkisstjórnarinnar: ✓ tekið · laust">' + RADUNEYTI.map((r) => { const t = takenOf(r.key); return '<span class="lk-rh-seat' + (t ? ' on' : '') + '" title="' + esc(r.heiti + (t ? ' — tekið' : ' — laust')) + '">' + r.icon + (t ? '✓' : '·') + '</span>'; }).join('') + '</span>';
+}
 // st.sattUtkoma þolir þrjú form (verk 2 er samhliða — varnarforritun): stakt útkomu-obj {flokkur,…}, fylki af útkomum
 // (hver með lota), eða map {"3":útkoma,"6":útkoma}. Skilar alltaf röðuðu fylki [{lota,flokkur,k,n,perTeam,texti}].
 function sattUtkomurAf(st) {
@@ -654,7 +686,10 @@ export function mountLeikur(root) {
     // VERK B: me=/api/leikur/me (leikstjóra-leyfi), onb={step} þegar uppsetningar-vísirinn er opinn, onbSig/onbScrolled = endurteiknunar-/skrun-vörn, onbSeen = lotu-fallback ef localStorage er læst, bot-læsing f. æfingalið (varaleið).
     me: null, onb: null, onbSig: null, onbScrolled: null, onbSeen: false, botLocking: false, botLockedRound: null, joinPrefill: '',
     // ÞJÓÐARSÁTT: eigið val þessarar lotu (blint), lotu-vörður og Karphús-frestur f. niðurtalninguna.
-    sattDraft: null, sattRound: null, karphusDeadline: null };
+    sattDraft: null, sattRound: null, karphusDeadline: null,
+    // RÁÐHERRASKIPTING: picker opinn handvirkt (lifir poll-endurteiknun), síðasta sæti sem sást (localTouched hreinsað við skipti),
+    // „sæti nýtekið"-flagg (fyrsta push ráðuneytisins) og toast-tímamælir.
+    rhPickerOpen: false, rhMittSeen: undefined, rhSeatJust: false, rhToastTimer: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -707,9 +742,25 @@ export function mountLeikur(root) {
     const st = S.state;
     if (!st || st.phase !== 'decide' || !(st.satt && st.satt.on)) return;
     if (st.you && st.you.locked && !S.unlocked) return;   // GALLI B: læst lið má ekki pushDraft-a þegjandi
+    if (!rhCanPolicy(st)) return;   // RÁÐHERRASKIPTING: sáttar-valið er forsætisráðherrans (þjónn hafnar hvort eð er — ekkert sent)
     S.sattDraft = btn.dataset.satt === 'satt' ? 'satt' : 'saekja';
     sattPush(st);
     if (st.mode === 'studio') renderStudio(st); else render();
+  });
+  // RÁÐHERRASKIPTING: ríkisstjórnarfundurinn (sæta-flísar) + „Ríkisstjórnin"/„skipta"/„Loka" — event-delegation á root
+  // (lifir innerHTML-endurteiknanir), engir inline handlers. Sæti tekið/sleppt um POST /saeti; picker-ástand í S.rhPickerOpen.
+  // Nýtekið sæti → eitt pushDraft svo þjónninn fái sleða ráðuneytisins strax (byrjunar-/carry-forward-gildi) þótt enginn hreyfi þá.
+  root.addEventListener('click', (e) => {
+    const t = e.target; if (!t || !t.closest || S.role !== 'team') return;
+    const take = t.closest('[data-rh-take]'), rel = t.closest('[data-rh-release]'), open = t.closest('[data-rh-open]'), close = t.closest('[data-rh-close]');
+    if (take && root.contains(take)) {
+      if (take.disabled) return;
+      rhSaeti(take.dataset.rhTake).then(() => { if (S.rhSeatJust) { S.rhSeatJust = false; if (S.state && S.state.mode === 'studio' && S.dials && root.querySelector('#lk-st-sliders')) pushDraft(S.state); } });
+      return;
+    }
+    if (rel && root.contains(rel)) { rhSaeti(null); return; }
+    if (open && root.contains(open)) { S.rhPickerOpen = true; render(); return; }
+    if (close && root.contains(close)) { S.rhPickerOpen = false; render(); }
   });
   function startPoll() { stopPoll(); refresh(); S.poll = setInterval(refresh, 2500); S.timerInt = setInterval(tickTimer, 1000); }
   function stopPoll() { if (S.poll) { clearInterval(S.poll); S.poll = null; } if (S.timerInt) { clearInterval(S.timerInt); S.timerInt = null; } }
@@ -729,7 +780,9 @@ export function mountLeikur(root) {
 
   async function refresh() {
     if (!S.code) return;
-    const { status, json } = await api('/' + S.code + '/state', { token: S.token });
+    // RÁÐHERRASKIPTING: ?h=<handle> á liðs-pollinu → þjónninn skilar st.radherrar.mitt (sæti ÞESSA vafra); skaðlaust þótt rofinn sé af.
+    const rhH = S.role === 'team' ? rhHandle(S.code) : null;
+    const { status, json } = await api('/' + S.code + '/state' + (rhH ? '?h=' + encodeURIComponent(rhH) : ''), { token: S.token });
     if (status === 404) { stopPoll(); root.innerHTML = card('Leikur fannst ekki', '<a class="lk-btn" href="/leikur/">Til baka</a>'); return; }
     S.state = json;
     // Klukka: festa á ALGILD tímamörk (epoch) → stöðug milli poll-a og reload-a (engin endur-ræsing). Fallback á secondsLeft f. eldri þjón.
@@ -769,11 +822,12 @@ export function mountLeikur(root) {
     const surprise = !!(root.querySelector('#lk-surprise') && root.querySelector('#lk-surprise').checked); if (surprise) body.surprise = true; // Fasi „skemmtun 3"
     const thoka = !!(root.querySelector('#lk-thoka') && root.querySelector('#lk-thoka').checked); if (thoka) body.thoka = true; // ÞOKA: config.thoka (þjónninn síar /state f. liðin)
     const satt = !!(root.querySelector('#lk-satt') && root.querySelector('#lk-satt').checked); if (satt) body.satt = true; // ÞJÓÐARSÁTT: config.satt (fangaklemma í KT3+KT6)
+    const radherrar = studio && !!(root.querySelector('#lk-radherrar') && root.querySelector('#lk-radherrar').checked); if (radherrar) body.radherrar = true; // RÁÐHERRASKIPTING: config.radherrar (studio-only; þjónninn MERGE-ar per sleða)
     const errEl = root.querySelector('#lk-create-err'); if (errEl) errEl.textContent = 'Stofna leik…';
     const { status, json } = await api('/create', { method: 'POST', body });
     if (!json.code) { if (errEl) errEl.innerHTML = createErrHtml(json.error, status); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
-    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka, satt });
+    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka, satt, radherrar });
     location.href = '/leikur/?g=' + json.code;
   }
   async function joinGame(joinCode, name) {
@@ -836,7 +890,8 @@ export function mountLeikur(root) {
     if (btn) btn.disabled = false;
   }
   // ÞJÓÐARSÁTT: viðvörun ef læst án afstöðu (telst 'saekja') + valið fylgir decisions-body (decisions.satt).
-  const submitDecisions = () => { if (!sattLockCheck(S.state)) return; return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: (S.state.satt && S.state.satt.on && S.state.satt.lota) ? { ...S.draft, satt: sattValAf(S.state) } : S.draft, locked: true }, token: S.token }); S.unlocked = false; }); };
+  // RÁÐHERRASKIPTING: body.handle fylgir (rofinn er studio-only svo classic-læsing er aldrei gátuð — handle samt sent, skaðlaust).
+  const submitDecisions = () => { if (!sattLockCheck(S.state)) return; return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: (S.state.satt && S.state.satt.on && S.state.satt.lota) ? { ...S.draft, satt: sattValAf(S.state) } : S.draft, locked: true, handle: rhHandle(S.code) }, token: S.token }); S.unlocked = false; }); };
 
   // ── Teikning ──
   function card(title, body) { return '<div class="lk-card"><h2>' + esc(title) + '</h2>' + body + '</div>'; }
@@ -860,18 +915,19 @@ export function mountLeikur(root) {
   // Fasi E — Stefnu-rofar: stórar tvíkosta-ákvarðanir í boði þetta kjörtímabil (rofar á/af + varanleg val).
   function policiesCard(st) {
     const P = st.policies; if (!P || !P.available || !P.available.length) return '';
+    const ro = !rhCanPolicy(st);   // RÁÐHERRASKIPTING: stórar ákvarðanir = forsætisráðherrans; aðrir sjá valið read-only
     const popTag = (v) => (v == null || v === 0) ? '' : ' <span style="color:#b98cff;font-size:11px;white-space:nowrap">🗳️ fylgi ' + (v > 0 ? '+' : '') + v + '</span>';
     const body = P.available.map((p) => {
       const draft = S.policyDraft ? S.policyDraft[p.id] : undefined;
       if (p.kind === 'toggle') {
         const on = draft != null ? draft : (P.states[p.id] === true);
-        return '<div style="margin:10px 0"><label style="cursor:pointer;font-size:13.5px;display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-pol="' + p.id + '"' + (on ? ' checked' : '') + ' style="margin-top:2px"/><span><b>' + p.icon + ' ' + esc(p.onLabel || p.label) + '</b>' + (p.pop ? popTag(p.pop.on) : '') + '</span></label><p style="font-size:12px;color:var(--muted);margin:3px 0 0 24px">' + esc(p.desc) + '</p></div>';
+        return '<div style="margin:10px 0"><label style="cursor:pointer;font-size:13.5px;display:flex;align-items:flex-start;gap:7px"><input type="checkbox" data-pol="' + p.id + '"' + (on ? ' checked' : '') + (ro ? ' disabled' : '') + ' style="margin-top:2px"/><span><b>' + p.icon + ' ' + esc(p.onLabel || p.label) + '</b>' + (p.pop ? popTag(p.pop.on) : '') + '</span></label><p style="font-size:12px;color:var(--muted);margin:3px 0 0 24px">' + esc(p.desc) + '</p></div>';
       }
       const cur = draft != null ? draft : (P.states[p.id] || null);
-      const opts = (p.options || []).map((o) => '<span class="lk-opt' + (cur === o.key ? ' sel' : '') + '" data-polc="' + p.id + '" data-polk="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + (p.pop ? popTag(p.pop[o.key]) : '') + '</span>').join(' ');
+      const opts = (p.options || []).map((o) => '<span class="lk-opt' + (cur === o.key ? ' sel' : '') + (ro ? ' lk-rh-ro' : '') + '" data-polc="' + p.id + '" data-polk="' + o.key + '"' + (ro ? '' : ' role="button" tabindex="0"') + '>' + esc(o.label) + (p.pop ? popTag(p.pop[o.key]) : '') + '</span>').join(' ');
       return '<div style="margin:10px 0"><b>' + p.icon + ' ' + esc(p.label) + '</b><p style="font-size:12px;color:var(--muted);margin:3px 0 6px">' + esc(p.desc) + '</p><div>' + opts + '</div></div>';
     }).join('');
-    return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + body + '</div>';
+    return '<div class="lk-card" style="border-left:3px solid #e8c14a"><h2>🏛️ Stórar ákvarðanir</h2><p class="lk-muted" style="font-size:12px;margin:0 0 4px">Umdeildar tvíkosta-ákvarðanir úr hagsögunni — sögulega réttilega tímasettar.</p>' + (ro ? '<p class="lk-rh-pmonly">🏛️ forsætisráðherra velur</p>' : '') + body + '</div>';
   }
   // F1-V3: stefnu-badge-röð undir kjörtímabils-hausnum — flís per STAÐFESTA stóra ákvörðun (st.policyBadges).
   // Tooltip er HREINT CSS (:hover/:focus-within, flís tabindex=0) — poll endurteiknar innerHTML svo ekkert JS-ástand má bera það.
@@ -919,14 +975,14 @@ export function mountLeikur(root) {
     // ÞOKA: þjónninn sendir effect=null (atvik og/eða klemmu-kostir) → „🌫️ áhrif koma í ljós við uppgjör" í stað flísanna.
     const fog = thokaOn(st);
     // F1-V3: klemmu-kostir bera áhrifa-flísar (o.effect, þ.m.t. 'pop'=fylgi) — valið verður upplýstara.
-    const opts = dil ? (dil.options || []).map((o) => { const fx = deltaChips(o.effect); return '<span class="lk-opt' + (S.dilemmaDraft === o.key ? ' sel' : '') + '" data-dil="' + o.key + '" role="button" tabindex="0">' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : (fog && o.effect == null ? '<span class="lk-opt-fx lk-thoka-fx">🌫️ áhrif við uppgjör</span>' : '')) + '</span>'; }).join(' ') : '';
+    const opts = dil ? (dil.options || []).map((o) => { const fx = deltaChips(o.effect); return '<span class="lk-opt' + (S.dilemmaDraft === o.key ? ' sel' : '') + (rhCanPolicy(st) ? '' : ' lk-rh-ro') + '" data-dil="' + o.key + '"' + (rhCanPolicy(st) ? ' role="button" tabindex="0"' : '') + '>' + esc(o.label) + (fx ? '<span class="lk-opt-fx">' + fx + '</span>' : (fog && o.effect == null ? '<span class="lk-opt-fx lk-thoka-fx">🌫️ áhrif við uppgjör</span>' : '')) + '</span>'; }).join(' ') : '';
     const fx0 = deltaChips(s.effect);
     return '<div style="background:linear-gradient(90deg,#3a1f1f,#2a2320);border:1px solid #e78284;border-left:4px solid #e78284;border-radius:10px;padding:12px 14px;margin:10px 0">' +
       '<div style="font-size:15px;font-weight:700;color:#f5b0b0">📰 ' + (s.icon || '🎲') + ' Óvænt atvik: ' + esc(s.title) + '</div>' +
       '<p style="margin:6px 0 0;font-size:13.5px;line-height:1.55">' + esc(s.text) + '</p>' +
       (fx0 ? '<div style="margin-top:6px;font-size:12.5px"><span class="lk-muted">Bein áhrif:</span> ' + fx0 + '</div>' : (fog && s.effect == null ? '<div style="margin-top:6px;font-size:12.5px"><span class="lk-muted">Bein áhrif:</span> <span class="lk-thoka-fx">🌫️ koma í ljós við uppgjör</span></div>' : '')) +
       (dil ? '<div style="margin-top:10px"><span style="font-weight:600;font-size:13px">' + esc(dil.q) + '</span><div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">' + opts + '</div>' +
-        (S.dilemmaDraft == null ? '<p class="lk-muted" style="font-size:11.5px;margin:6px 0 0">Veljið viðbragð — það hefur áhrif á hagkerfið og fylgi ríkisstjórnarinnar.</p>' : '') + '</div>' : '') +
+        (!rhCanPolicy(st) ? '<p class="lk-rh-pmonly">🏛️ forsætisráðherra velur</p>' : (S.dilemmaDraft == null ? '<p class="lk-muted" style="font-size:11.5px;margin:6px 0 0">Veljið viðbragð — það hefur áhrif á hagkerfið og fylgi ríkisstjórnarinnar.</p>' : '')) + '</div>' : '') +   // RÁÐHERRASKIPTING: klemmu-val = forsætisráðherra
       '</div>';
   }
   // ── ÞOKA: borði + „það sem vitað er um síðasta kjörtímabil" (decide-fasi liðs; sjá skjölun við thokaOn) ──
@@ -1013,7 +1069,8 @@ export function mountLeikur(root) {
     if (!sattOnSt(st) || S.role !== 'team') return '';
     sattSyncDraft(st);
     const sel = sattValAf(st);   // eigið val EÐA val liðsfélaga af öðru tæki (þjóns-drögin) — sést á báðum tækjum
-    const opt = (v) => '<button type="button" class="lk-satt-opt' + (sel === v.key ? ' sel' : '') + '" data-satt="' + v.key + '"><span class="lk-satt-opt-h">' + v.icon + ' ' + esc(v.label) + '</span><span class="lk-satt-opt-b">' + esc(v.blurb) + '</span></button>';
+    const ro = !rhCanPolicy(st);   // RÁÐHERRASKIPTING: forsætisráðherra velur — aðrir sjá valið read-only
+    const opt = (v) => '<button type="button" class="lk-satt-opt' + (sel === v.key ? ' sel' : '') + (ro ? ' lk-rh-ro' : '') + '" data-satt="' + v.key + '"' + (ro ? ' disabled' : '') + '><span class="lk-satt-opt-h">' + v.icon + ' ' + esc(v.label) + '</span><span class="lk-satt-opt-b">' + esc(v.blurb) + '</span></button>';
     return '<div class="lk-card lk-satt-card"><h2>' + esc(SATT_TEXTI.titill) + ' <span class="lk-satt-tag">kjörtímabil ' + st.round + '</span></h2>'
       + '<p class="lk-satt-q">' + esc(SATT_TEXTI.spurning) + '</p>'
       + '<div class="lk-satt-opts">' + opt(SATT_VAL.satt) + opt(SATT_VAL.saekja) + '</div>'
@@ -1022,6 +1079,7 @@ export function mountLeikur(root) {
       + '<li>Ef <b>þið sækið fram meðan hin halda</b>: ábati strax fyrir ykkur — en þið kyndið eigin verðbólgu og sáttar-liðin sitja uppi með smitið.</li>'
       + '<li>Ef <b>flestir sækja fram</b>: verðbólguspírall sem étur ávinninginn af öllum.</li></ul></div>'
       + '<p class="lk-muted lk-satt-blint">🙈 ' + esc(SATT_TEXTI.blint) + '</p>'
+      + (ro ? '<p class="lk-rh-pmonly">🏛️ forsætisráðherra velur</p>' : '')
       + (sel == null ? '<p class="lk-satt-warn">⚠ ' + esc(SATT_TEXTI.ekkiValid) + '</p>' : '')
       + '</div>';
   }
@@ -1079,9 +1137,140 @@ export function mountLeikur(root) {
   // Studio fer um pushDraft (satt fylgir studio-drögunum); classic sendir eigin drög (S.draft-form + satt).
   function sattPush(st) {
     if (st.mode === 'studio') return pushDraft(st);
+    if (!rhCanPolicy(st)) return;   // RÁÐHERRASKIPTING: sáttar-valið er forsætisráðherrans (rofinn er studio-only — vörn samt)
     const you = (S.state && S.state.you) || (st && st.you);
     if (you && you.locked && !S.unlocked) return;   // GALLI B: má ekki aflæsa þegjandi
-    api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { ...S.draft, satt: sattValAf(st) }, locked: false }, token: S.token });
+    api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { ...S.draft, satt: sattValAf(st) }, locked: false, handle: rhHandle(S.code) }, token: S.token });
+  }
+
+  // ── RÁÐHERRASKIPTING INNAN LIÐS — mount-innri hlutar (þurfa S/root) ──────────────────────────────────────────────────
+  // Þrjú ástönd clientsins, ÖLL leidd af st.radherrar úr /state?h= (aldrei af vafra-minni):
+  //   ekkert sæti  → allt read-only, ríkisstjórnarfundurinn áberandi, ekkert POST-að;
+  //   ráðherra     → eigin flipi virkur, aðrir 🔒 (lifandi gildi félaga sjást), stórar ákvarðanir/klemma/sátt read-only,
+  //                  Læsa-hnappur → „⏳ forsætisráðherra læsir" (nema lockFallback: enginn PM → hver sem er læsir);
+  //   forsætis     → allt virkt, læsir/aflæsir, velur stórar ákvarðanir.
+  const rhOn = (st) => !!(st && st.radherrar && st.radherrar.on);
+  const rhMitt = (st) => (rhOn(st) && typeof st.radherrar.mitt === 'string' && st.radherrar.mitt) ? st.radherrar.mitt : null;
+  const rhIsPm = (st) => rhMitt(st) === RH_PM;
+  const rhCanLock = (st) => !rhOn(st) || rhIsPm(st) || st.radherrar.lockFallback === true;   // sama regla og mergeDecisions (þjónn)
+  const rhCanPolicy = (st) => !rhOn(st) || rhIsPm(st);   // stefnurofar/klemma/sátt = forsætisráðherrans
+  let rhLevCache = { key: null, set: null };
+  const rhCanLever = (st, k) => { if (!rhOn(st)) return true; const me = rhMitt(st); if (me === RH_PM) return true; if (!me) return false; if (rhLevCache.key !== me) rhLevCache = { key: me, set: raduneytiLevers(me, BASELINE) }; return rhLevCache.set.has(k); };
+  // Sæta-staða í FASTRI RADUNEYTI-röð: AÐEINS `taken` kemur frá þjóni (stada-fylkið), icon/heiti/lysing/group úr einingunni sjálfri
+  // (sama uppspretta og þjónninn) — ekkert af vírnum fer óescapað í HTML; handles eru aldrei birt.
+  const rhStada = (st) => { const srv = (rhOn(st) && Array.isArray(st.radherrar.stada)) ? st.radherrar.stada : []; return raduneytiStada({}).map((r) => { const s = srv.find((x) => x && x.key === r.key); return { ...r, taken: !!(s && s.taken) }; }); };
+  // Undirskrift í studio-sig: sæti mitt + hver sæti eru tekin + fallback + picker-ástand → endurbygging aðeins við raunbreytingu.
+  const rhSig = (st) => rhOn(st) ? (rhMitt(st) || '-') + ':' + rhStada(st).map((r) => (r.taken ? 1 : 0)).join('') + ':' + (st.radherrar.lockFallback ? 1 : 0) + ':' + (S.rhPickerOpen ? 1 : 0) : '0';
+  // Drög í POST: rofi af → allt (óbreytt hegðun). Forsætis → stefnurofar/klemma/sátt + eigin snertingar + sleðar ÓTEKINNA ráðuneyta
+  // (byrjunar-/carry-forward-gildi ná til þjóns) — ósnertir sleðar TEKINNA ráðuneyta sleppt svo stöðnuð poll-gildi klobbi ekki
+  // ráðherrann sem vinnur í þeim. Ráðherra → AÐEINS sleðar eigin ráðuneytis. Ekkert sæti → {}.
+  function rhDecisions(st) {
+    const all = { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null, ...(st.satt && st.satt.on && st.satt.lota ? { satt: sattValAf(st) } : {}) };
+    if (!rhOn(st)) return all;
+    const me = rhMitt(st);
+    if (!me) return {};
+    const levers = {};
+    if (me === RH_PM) {
+      const taken = new Set(rhStada(st).filter((r) => r.taken && r.key !== RH_PM).map((r) => r.key));
+      for (const k of Object.keys(S.dials || {})) { const o = leverOwner(k, BASELINE); if (S.localTouched.has(k) || !o || !taken.has(o)) levers[k] = S.dials[k]; }
+      return { ...all, levers };
+    }
+    for (const k of Object.keys(S.dials || {})) if (rhCanLever(st, k)) levers[k] = S.dials[k];
+    return { levers };
+  }
+  // Sæta-röð (icon✓ tekið / icon· laust) — sama form í Læsa-kassa og fac-roster (rhRosterSeats).
+  const rhSeatsHtml = (st) => rhStada(st).map((r) => '<span class="lk-rh-seat' + (r.taken ? ' on' : '') + '" title="' + esc(r.heiti + ' — ' + (r.taken ? (r.key === rhMitt(st) ? 'þú' : 'tekið') : 'laust')) + '">' + r.icon + (r.taken ? '✓' : '·') + '</span>').join('');
+  // Ríkisstjórnarfundurinn: 7 flísar úr stada (laust / tekið / þú), „Taka sæti" → POST /saeti. Áberandi meðan sæti vantar;
+  // annars aðeins þegar opnað handvirkt (S.rhPickerOpen — lifir poll). Handles eru ALDREI sýnd (nafnlaus: bara tekið/þú).
+  function rhPickerCard(st) {
+    if (!rhOn(st) || S.role !== 'team') return '';
+    const mitt = rhMitt(st);
+    if (mitt && !S.rhPickerOpen) return '';
+    const stada = rhStada(st), n = stada.filter((r) => r.taken).length;
+    const tiles = stada.map((r) => {
+      const mine = r.key === mitt, taken = r.taken && !mine;
+      const btn = mine ? '<button type="button" class="lk-btn lk-onb-ghost lk-rh-take" data-rh-release="' + esc(r.key) + '">Sleppa sæti</button>'
+        : taken ? '<button type="button" class="lk-btn lk-rh-take" disabled>Tekið</button>'
+        : '<button type="button" class="lk-btn lk-rh-take" data-rh-take="' + esc(r.key) + '">' + (mitt ? 'Skipta hingað' : 'Taka sæti') + '</button>';
+      return '<div class="lk-rh-tile' + (mine ? ' lk-rh-mine' : taken ? ' lk-rh-taken' : ' lk-rh-free') + (r.key === RH_PM ? ' lk-rh-pm' : '') + '">'
+        + '<div class="lk-rh-tile-h"><span class="lk-rh-ic">' + r.icon + '</span><b class="lk-rh-heiti">' + esc(r.heiti) + '</b><span class="lk-rh-state">' + (mine ? '🎭 þú' : taken ? '🔒 tekið' : '· laust') + '</span></div>'
+        + '<span class="lk-rh-group">' + esc(r.group || 'Öll svið · læsir kjörtímabilið') + '</span>'
+        + '<p class="lk-rh-lysing">' + esc(r.lysing) + '</p>' + btn + '</div>';
+    }).join('');
+    const intro = mitt
+      ? 'Hver situr hvar. Skiptu um sæti ef þið viljið — fyrra sætið losnar sjálfkrafa.'
+      : 'Hver liðsmaður tekur EITT sæti á sínu tæki og stýrir sleðum síns ráðuneytis. Forsætisráðherrann sér allt, tekur stóru ákvarðanirnar og læsir kjörtímabilið. Veljið saman — PM-valið er pólitík!';
+    return '<div class="lk-card lk-rh-card' + (mitt ? '' : ' lk-rh-urgent') + '" id="lk-rh-picker" role="region" aria-label="Ríkisstjórnarfundur"><h2>🏛️ Ríkisstjórnarfundur — ' + (mitt ? 'hver situr hvar' : 'veldu þitt sæti') + ' <span class="lk-rh-tag">' + n + '/' + stada.length + ' sæti tekin</span></h2>'
+      + '<p class="lk-muted lk-rh-intro">' + esc(intro) + '</p><div class="lk-rh-grid">' + tiles + '</div>'
+      + (mitt ? '<div class="lk-rh-foot"><button type="button" class="lk-btn lk-onb-ghost" data-rh-close="1">Loka</button></div>' : '') + '</div>';
+  }
+  // Flís í kjörtímabils-hausnum: „🎭 Þú: Fjármálaráðherra · skipta" + „🏛️ Ríkisstjórnin" (opnar fundinn hvenær sem er).
+  function rhHeadChip(st) {
+    if (!rhOn(st) || S.role !== 'team') return '';
+    const me = rhInfo(rhMitt(st));
+    return (me ? '<span class="lk-term-badge lk-rh-badge">🎭 Þú: <b>' + esc(me.heiti) + '</b> · <button type="button" class="lk-rh-link" data-rh-open="1">skipta</button></span>' : '<span class="lk-term-badge lk-rh-badge lk-rh-none">🎭 Ekkert sæti enn</span>')
+      + '<button type="button" class="lk-term-badge lk-rh-badge lk-rh-gov" data-rh-open="1" title="Sjá hver situr hvar">🏛️ Ríkisstjórnin</button>';
+  }
+  // 🔒-borði yfir sleðum flipa sem er EKKI þitt ráðuneyti (tekið/laust + leiðsögn).
+  function rhTabBanner(st, owner, mine) {
+    if (!rhOn(st) || mine) return '';
+    const row = owner ? rhStada(st).find((r) => r.key === owner.key) : null;
+    const taken = !!(row && row.taken);
+    return '<div class="lk-rh-bordi" role="note">🔒 Ráðuneyti <b>' + esc(owner ? owner.heiti : 'forsætisráðherra') + '</b> — ' + (taken ? 'tekið' : 'laust')
+      + '<span class="lk-rh-bordi-sub">' + (rhMitt(st) ? 'Þú sérð lifandi gildi félaga þíns hér en breytir þeim ekki.' : 'Veldu sæti á ríkisstjórnarfundinum til að stýra sleðum.') + '</span></div>';
+  }
+  // Læsa-hnappurinn: PM → hnappur; lockFallback (enginn PM) → hnappur + „hver sem er læsir"; ráðherra → ⏳-kassi + sæta-yfirlit.
+  function rhLockHtml(st) {
+    const btn = '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>';
+    if (!rhOn(st)) return btn;
+    if (rhIsPm(st)) return btn + '<p class="lk-muted lk-rh-fine">🏛️ Þú ert forsætisráðherra — aðeins þú læsir. Sæti: ' + rhSeatsHtml(st) + '</p>';
+    if (st.radherrar.lockFallback === true) return btn + '<p class="lk-muted lk-rh-fine">Enginn forsætisráðherra — hver sem er læsir. Sæti: ' + rhSeatsHtml(st) + '</p>';
+    return '<div class="lk-rh-wait" role="status">⏳ <b>Forsætisráðherra læsir kjörtímabilið</b><span class="lk-rh-seats">Sæti: ' + rhSeatsHtml(st) + '</span></div>';
+  }
+  // Lítill toast (hýsill = systkini root, lifir poll-endurteiknanir; textContent → engin HTML-túlkun).
+  let rhToastHost = null;
+  function rhToast(msg) {
+    if (!rhToastHost) { rhToastHost = document.createElement('div'); rhToastHost.className = 'lk-rh-toast'; rhToastHost.setAttribute('role', 'status'); rhToastHost.setAttribute('aria-live', 'polite'); (root.parentNode || document.body).appendChild(rhToastHost); }
+    rhToastHost.textContent = msg; rhToastHost.classList.add('on');
+    if (S.rhToastTimer) clearTimeout(S.rhToastTimer);
+    S.rhToastTimer = setTimeout(() => { S.rhToastTimer = null; if (rhToastHost) rhToastHost.classList.remove('on'); }, 3400);
+  }
+  // Spegla höfnun þjónsins STRAX (hafnad í POST-svari): sleðar → þjóns-gildi (st.draft, annars grunnur) í S.dials + sleða +
+  // gildi-merki, localTouched sleppt (poll samstillir áfram), forskoðun endurteiknuð, toast „Tilheyrir X". Önnur svið
+  // (policies/dilemma/satt) → drög endursett af þjóns-stöðu + studio endurbyggt. Svo refresh() (nema act() geri það á eftir).
+  function rhAfterPost(st, r, inAct) {
+    const hf = (r && r.json && Array.isArray(r.json.hafnad)) ? r.json.hafnad : [];
+    if (!hf.length) return;
+    const cur = S.state || st, rd = (cur && cur.draft) || {};
+    const owners = new Set(); let rebuild = false;
+    for (const k of hf) {
+      if (BASELINE.levers[k] && S.dials) {
+        S.localTouched.delete(k);
+        const cfg = BASELINE.levers[k], v = rd[k] != null ? +rd[k] : cfg.base;
+        S.dials[k] = v;
+        const el = root.querySelector('input[data-lev="' + k + '"]'); if (el) el.value = v;
+        const vs = root.querySelector('.lk-val[data-val="' + k + '"]'); if (vs) { vs.textContent = disp(cfg, v); vs.classList.toggle('moved', v !== cfg.base); }
+        const o = rhInfo(leverOwner(k, BASELINE)); owners.add(o ? o.heiti : 'forsætisráðherra');
+      } else if (k === 'policies') { S.policyDraft = { ...((cur && cur.policies && cur.policies.draft) || {}) }; owners.add('forsætisráðherra'); rebuild = true; }
+      else if (k === 'dilemma') { S.dilemmaDraft = (cur && cur.dilemmaDraft != null) ? cur.dilemmaDraft : null; owners.add('forsætisráðherra'); rebuild = true; }
+      else if (k === 'satt') { S.sattDraft = null; owners.add('forsætisráðherra'); rebuild = true; }
+      else if (k === 'locked') owners.add('forsætisráðherra');
+    }
+    if (owners.size) rhToast('🔒 Tilheyrir ' + [...owners].join(', ') + ' — breytingin var ekki vistuð.');
+    if (cur && cur.mode === 'studio' && S.role === 'team' && root.querySelector('#lk-st-sliders')) { if (rebuild) renderStudio(cur); else drawStudioPreview(cur); }
+    if (!inAct) refresh();
+  }
+  // Taka/sleppa sæti: POST /saeti {handle, key|null} → raduneytiStaða (fylki EÐA {ok,stada}); villa → toast. act() sækir
+  // /state á eftir (mitt uppfærist þar → renderTeam hreinsar localTouched + endurbyggir studio); picker lokast við árangur.
+  function rhSaeti(key) {
+    return act(async () => {
+      let r; try { r = await api('/' + S.code + '/saeti', { method: 'POST', body: { handle: rhHandle(S.code), key: key || null }, token: S.token }); } catch (e) { r = { status: 0, json: null }; }
+      const j = (r.json && typeof r.json === 'object') ? r.json : {};
+      const bad = r.status !== 200 || j.ok === false || !!j.error;
+      if (bad) { const why = String(j.error || j.reason || ''); rhToast(why === 'upptekid' ? '🔒 Sætið var tekið rétt á undan þér — veldu annað.' : 'Tókst ekki að ' + (key ? 'taka sæti' : 'sleppa sæti') + (why ? ' (' + why + ')' : '') + '.'); return; }
+      S.rhPickerOpen = false; S.rhSeatJust = !!key;
+      if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; }
+    });
   }
 
   // ── F2-V2: atviks-popup með mynd ──────────────────────────────────────────
@@ -1124,6 +1313,7 @@ export function mountLeikur(root) {
         // GALLI B: liðið er LÆST (og ekki í „Breyta ákvörðun"-flæði, S.unlocked=false) → smellur má
         // EKKI pushDraft-a (locked:false myndi aflæsa liðið þegjandi og klobba læst drög). Bara loka.
         if (S.state && S.state.you && S.state.you.locked && !S.unlocked) { sepopClose(); return; }
+        if (!rhCanPolicy(S.state)) { sepopClose(); return; }   // RÁÐHERRASKIPTING: klemmu-valið er forsætisráðherrans — ekkert sent
         S.dilemmaDraft = dil.dataset.dil;
         if (S.state) pushDraft(S.state);
         sepopClose();   // sjálfkrafa lokun við val á klemmu-kosti
@@ -1171,7 +1361,7 @@ export function mountLeikur(root) {
     const s = st.surprise; if (!s || st.phase !== 'decide') return;
     const k = sepopKey(st.round, false); if (sepopSeen(k)) return;
     sepopMark(k);   // við FYRSTU birtingu — poll-endurteiknun endurvekur aldrei
-    sepopOpen(s, { withDil: st.mode === 'studio' });
+    sepopOpen(s, { withDil: st.mode === 'studio' && rhCanPolicy(st) });   // RÁÐHERRASKIPTING: klemmu-hnappar aðeins f. forsætisráðherra
   }
   // Watch-sýn (skjávarpi): sama spjald ÁN klemmu-hnappa (áhorfendur velja ekki), stærri mynd,
   // sjálf-lokun eftir 8 sek með fade-út. Sami seen-lykill með -watch viðskeyti.
@@ -1229,6 +1419,9 @@ export function mountLeikur(root) {
     const msgs = [];
     const fog = thokaOn(st) && st.phase === 'decide';
     if (fog) msgs.push('🌫️ Við sjáum ekki nýjustu tölurnar — treystið fyrirsögnunum og fylginu.');   // ÞOKA: auka-setning FYRST
+    // RÁÐHERRASKIPTING: ein setning ef ÞÚ ert ráðherra (ekki forsætis-) — samræming áður en forsætisráðherra læsir.
+    const rhMe = (rhOn(st) && rhMitt(st) && rhMitt(st) !== RH_PM) ? rhInfo(rhMitt(st)) : null;
+    if (rhMe) msgs.push('🎭 Þú stýrir sviðinu „' + rhMe.group + '" sem ' + rhMe.heiti + ' — samræmdu við hina áður en forsætisráðherra læsir.');
     if (st.event && st.event.watch) msgs.push('⚠ Hvað þarf að huga að: ' + st.event.watch);   // VERK 3
     let top = null;
     for (const p of ((st.carryover && st.carryover.policies) || [])) {
@@ -1244,7 +1437,7 @@ export function mountLeikur(root) {
     // studio: forskoðunar-gildin (S.pmKpis = ráðgjafa-matið); classic: almennt ráð ({} → sjálfgefin gildi).
     const kpis = (S.pmKpisRound === st.round && S.pmKpis) || (!fog && S.debriefPrevRound === st.round - 1 && S.debriefPrevKpis) || {};
     for (const a of advisors(kpis, st.round).slice(0, 2)) msgs.push(a.icon + ' ' + a.who + ': ' + a.advice);
-    return msgs.slice(0, fog ? 6 : 5);   // watch-línan bættist framan við — 5 svo ráðgjafarnir kremjist ekki út (+1 f. þoku-setninguna)
+    return msgs.slice(0, 5 + (fog ? 1 : 0) + (rhMe ? 1 : 0));   // watch-línan bættist framan við — 5 svo ráðgjafarnir kremjist ekki út (+1 f. þoku-setninguna, +1 f. ráðherra-setninguna)
   }
   function pmUpdate(st) {
     const wrap = root.querySelector('#lk-pmh');
@@ -1371,7 +1564,9 @@ export function mountLeikur(root) {
       // ÞOKA: valfrjáls leikstilling við hlið óvæntra atvika (ekki erfiðleikastig) — config.thoka, sjálfgefið slökkt.
       + '<label id="lk-set-thoka"><input type="checkbox" id="lk-thoka"' + (last.thoka ? ' checked' : '') + '/>🌫️ Hagstjórn í þoku — ' + esc(THOKA_BLURB) + ' <span class="lk-muted">(þú og skjávarpinn sjáið áfram allt)</span></label>'
       // ÞJÓÐARSÁTT: valfrjáls leikstilling (config.satt) — fangaklemma þvert á lið í sáttar-lotunum (sjálfgefið KT3+KT6).
-      + '<label id="lk-set-satt"><input type="checkbox" id="lk-satt"' + (last.satt ? ' checked' : '') + '/>🤝 Þjóðarsáttin — ' + esc(SATT_BLURB) + ' <span class="lk-muted">(sáttar-lotur: KT3 „hrunið" og KT6 „verðbólguskotið")</span></label></div>';
+      + '<label id="lk-set-satt"><input type="checkbox" id="lk-satt"' + (last.satt ? ' checked' : '') + '/>🤝 Þjóðarsáttin — ' + esc(SATT_BLURB) + ' <span class="lk-muted">(sáttar-lotur: KT3 „hrunið" og KT6 „verðbólguskotið")</span></label>'
+      // RÁÐHERRASKIPTING: valfrjáls leikstilling (config.radherrar) — AÐEINS í Stjórnstöð (sleðar = ráðuneyti); með einföld val er rofinn óvirkur með skýringu.
+      + '<label id="lk-set-radherrar"><input type="checkbox" id="lk-radherrar"' + (last.radherrar && last.mode !== 'classic' ? ' checked' : '') + (last.mode === 'classic' ? ' disabled' : '') + '/>🎭 Ráðherraskipting — ' + esc(RH_BLURB) + ' <span class="lk-muted" id="lk-radherrar-note">' + (last.mode === 'classic' ? '(þarf Stjórnstöð — kveiktu á henni fyrst)' : '(aðeins í Stjórnstöð; liðsstærð 3–7 best)') + '</span></label></div>';
     const createCard = '<div class="lk-card" id="lk-create-card"><h2>🎓 Leikstjóri</h2><div class="lk-onb-cta"><button class="lk-btn lk-onb-big" id="lk-create">🎓 Stofna nýjan leik</button><a href="#" id="lk-guide" class="lk-onb-guide">📖 Svona keyrirðu vinnustofu (5 mín)</a></div><div id="lk-create-err" class="lk-err" aria-live="polite"></div>' + settings
       + '<p class="lk-muted" style="font-size:12.5px;margin:10px 0 0">🛠️ <a href="#" id="lk-createcustom">Sérsníða leik…</a> — eigin sviðsmynd, umboð og fjöldi umferða.' + (untilTxt ? ' · Leikstjóra-aðgangur gildir til <b>' + esc(untilTxt) + '</b>.' : '') + '</p></div>';
     const joinCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" value="' + esc(S.joinPrefill) + '" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Liðsheiti (t.d. Rauða liðið)" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button><p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Kennarinn (leikstjóri) gefur þér 5 stafa kóða. Eitt tæki per lið dugar — félagar ganga í sama lið með boðs-hlekk.</p><p class="lk-muted" style="font-size:12px;margin:4px 0 0">🙈 Liðsheitið birtist á stigatöflu og skjávarpa — veljið hlutlaust heiti, ekki nöfn ykkar. Leiknum er eytt sjálfkrafa eftir 90 daga. <a href="/leikur/personuvernd/">Persónuvernd í leiknum</a></p></div>';
@@ -1390,6 +1585,9 @@ export function mountLeikur(root) {
       const n = (root.querySelector('#lk-name').value || '').trim();
       if (c.length >= 4 && n) joinGame(c, n); else alert('Sláðu inn kóða og nafn.');
     };
+    // RÁÐHERRASKIPTING: rofinn fylgir Stjórnstöðinni — slökkt á henni → rofinn óvirkur (og af) með skýringu.
+    const stEl = root.querySelector('#lk-studio'), rhEl = root.querySelector('#lk-radherrar'), rhNote = root.querySelector('#lk-radherrar-note');
+    if (stEl && rhEl) stEl.addEventListener('change', () => { const on = stEl.checked; rhEl.disabled = !on; if (!on) rhEl.checked = false; if (rhNote) rhNote.textContent = on ? '(aðeins í Stjórnstöð; liðsstærð 3–7 best)' : '(þarf Stjórnstöð — kveiktu á henni fyrst)'; });
     if (S.joinPrefill) { const nm = root.querySelector('#lk-name'); if (nm) nm.focus(); }
     onbUpdate();   // vísir í „leiðsögu-ham" (enginn leikur) ef hann er opinn — highlight á stillingarnar hér
   }
@@ -1440,8 +1638,20 @@ export function mountLeikur(root) {
         + (Array.isArray(SH.debrief_spurningar) && SH.debrief_spurningar.length ? '<div style="margin:4px 0"><b>💬 Debrief-spurningar:</b><ul style="margin:3px 0 0;padding-left:18px">' + SH.debrief_spurningar.map((q) => '<li style="margin:2px 0">' + esc(q) + '</li>').join('') + '</ul></div>' : '')
         + '</div></details>'
       : '';
+    // RÁÐHERRASKIPTING: leikstjóra-blað (RADHERRAR_HANDBOOK, ein uppspretta): hvers vegna, hvernig keyra, debrief-spurningar.
+    const RH = RADHERRAR_HANDBOOK;
+    const rhHb = (facCfg(st).radherrar === true && RH)
+      ? '<details data-keep="hb-radherrar"' + (S.openDetails.has('hb-radherrar') ? ' open' : '') + ' style="margin:5px 0;border:1px solid #b98cff88;border-radius:8px;padding:8px 12px;background:rgba(185,140,255,.06)">'
+        + '<summary style="cursor:pointer;font-weight:700;font-size:13.5px">🎭 ' + esc(RH.heiti || 'Ráðherraskipting') + ' — liðin skipta með sér ráðuneytum</summary>'
+        + '<div style="font-size:12.8px;line-height:1.55;margin-top:6px">'
+        + '<p style="margin:2px 0"><b>Hvað gerist:</b> ' + esc(RH.blurb || '') + '</p>'
+        + (RH.hvers_vegna ? '<p style="margin:4px 0"><b>📚 Hvers vegna:</b> ' + esc(RH.hvers_vegna) + '</p>' : '')
+        + (RH.hvernig_keyra ? '<p style="margin:4px 0"><b>🎬 Svona keyrirðu hana:</b> ' + esc(RH.hvernig_keyra) + '</p>' : '')
+        + (Array.isArray(RH.debrief_spurningar) && RH.debrief_spurningar.length ? '<div style="margin:4px 0"><b>💬 Debrief-spurningar:</b><ul style="margin:3px 0 0;padding-left:18px">' + RH.debrief_spurningar.map((q) => '<li style="margin:2px 0">' + esc(q) + '</li>').join('') + '</ul></div>' : '')
+        + '</div></details>'
+      : '';
     // VERK B: „?"-hnappur við hlið handbókar opnar uppsetningar-vísinn aftur (eftir lok/sleppingu).
-    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + thokaHtml + sattHb + HANDBOOK.map(entry).join('') + '</div>';
+    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + thokaHtml + sattHb + rhHb + HANDBOOK.map(entry).join('') + '</div>';
   }
   // VERK B: stillingar leiksins eins og leikstjóri sér þær í lobby. Þjóns-sannleikur þar sem hann er til (mode/difficulty;
   // timerSec/surpriseOn/rolesOn EF þjónninn bætir þeim í lobby-state), annars það sem vafrinn man frá stofnun; annar vafri → „óþekkt".
@@ -1457,18 +1667,22 @@ export function mountLeikur(root) {
     const thoka = typeof st.thokaOn === 'boolean' ? st.thokaOn : (st.thoka && typeof st.thoka.on === 'boolean' ? st.thoka.on : (loc ? !!loc.thoka : null));
     // ÞJÓÐARSÁTT: þjóns-sannleikur ef hann fylgir (sattOn-flagg EÐA st.satt.on), annars það sem vafrinn man frá stofnun.
     const satt = typeof st.sattOn === 'boolean' ? st.sattOn : (st.satt && typeof st.satt.on === 'boolean' ? st.satt.on : (loc ? !!loc.satt : null));
+    // RÁÐHERRASKIPTING: þjóns-sannleikur ef hann fylgir (radherrarOn-flagg EÐA st.radherrar.on), annars það sem vafrinn man frá stofnun.
+    const radherrar = typeof st.radherrarOn === 'boolean' ? st.radherrarOn : (st.radherrar && typeof st.radherrar.on === 'boolean' ? st.radherrar.on : (loc ? !!loc.radherrar : null));
     return { mode, modeTxt: mode === 'studio' ? '🎛️ Stjórnstöð (sleðar + lifandi gröf)' : 'Einföld val', difficulty, difficultyTxt: DIFF_LABEL(difficulty),
       timerMin, timerTxt: timerMin == null ? unk : (timerMin > 0 ? timerMin + ' mín per lotu' : 'engin'),
       surprise, surpriseTxt: surprise == null ? unk : (surprise ? 'kveikt' : 'slökkt'), roles, rolesTxt: roles == null ? unk : (roles ? 'kveikt' : 'slökkt'),
       thoka, thokaTxt: thoka == null ? unk : (thoka ? 'kveikt — liðin sjá hagtölur með eins kjörtímabils töf' : 'slökkt'),
-      satt, sattTxt: satt == null ? unk : (satt ? 'kveikt — fangaklemma þvert á lið í sáttar-lotunum (sjálfgefið KT3 og KT6)' : 'slökkt') };
+      satt, sattTxt: satt == null ? unk : (satt ? 'kveikt — fangaklemma þvert á lið í sáttar-lotunum (sjálfgefið KT3 og KT6)' : 'slökkt'),
+      radherrar, radherrarTxt: radherrar == null ? unk : (radherrar ? 'kveikt — hver liðsmaður stýrir sínu ráðuneyti, forsætisráðherra læsir' : 'slökkt') };
   }
   function settingsCard(st) {
     const c = facCfg(st), real = (st.teams || []).filter((t) => !isBotTeam(t));
     const row = (id, k, v) => '<div class="lk-lb-row"' + (id ? ' id="' + id + '"' : '') + '><span>' + k + '</span><span><b>' + esc(v) + '</b></span></div>';
-    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
+    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('lk-set-radherrar', '🎭 Ráðherraskipting', c.radherrarTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
       + (c.thoka ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🌫️ ' + esc(THOKA_BLURB) + ' Þú og skjávarpinn sjáið áfram allt; tölurnar afhjúpast fyrir liðin við hvert uppgjör.</p>' : '')
       + (c.satt ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🤝 ' + esc(SATT_BLURB) + '</p>' : '')
+      + (c.radherrar ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🎭 ' + esc(RH_BLURB) + '</p>' : '')
       + '<p class="lk-muted" style="font-size:12px;margin:8px 0 0">Stillingar veljast þegar leikur er stofnaður' + (st.phase === 'lobby' && !real.length ? ' — <a href="/leikur/">stofna nýjan leik með öðrum stillingum</a> (ekkert lið komið enn)' : '') + '.</p></div>';
   }
   const joinLink = () => location.origin + '/leikur/?join=' + encodeURIComponent(S.code || '');
@@ -1480,7 +1694,8 @@ export function mountLeikur(root) {
     if (st.phase === 'lobby') controls = '<button class="lk-btn" id="lk-start"' + (st.teams.length ? '' : ' disabled') + '>▶ Byrja leik (' + st.teams.length + ' lið)</button>' + (st.teams.length ? '' : '<p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Hnappurinn opnast þegar a.m.k. eitt lið er komið inn.</p>');
     else if (st.phase === 'decide') {
       const rl = st.lockRoster || [], ready = rl.filter((r) => r.locked).length;
-      const rosterList = rl.map((r) => '<span style="margin-right:12px">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + '</span>').join('');
+      // RÁÐHERRASKIPTING: sæta-yfirlit per lið úr lockRoster[].radherrar (stada-fylki EÐA {key:handle}-map): ✓ tekið / · laust.
+      const rosterList = rl.map((r) => '<span style="margin-right:12px;white-space:nowrap">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + rhRosterSeats(r.radherrar) + (r.radherrar != null && r.lockFallback === true ? ' <span class="lk-muted" title="Enginn forsætisráðherra — hver sem er í liðinu læsir">· enginn PM</span>' : '') + '</span>').join('');
       controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
     } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= 8 ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button><p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
@@ -1557,7 +1772,7 @@ export function mountLeikur(root) {
   }
   function onbClearHl() { root.querySelectorAll('.lk-onb-hl').forEach((el) => { el.classList.remove('lk-onb-hl'); el.style.animationDelay = ''; }); }
   // Skotmörk per skref: 1 kóða-spjaldið · 2 stillingar · 3 óvænt-atvik-röðin · 4 áhorfenda-hlekkur + Ræsa-hnappur.
-  const ONB_TARGETS = [['#lk-code-card', '#lk-create-card'], ['#lk-settings'], ['#lk-set-surprise', '#lk-set-thoka', '#lk-set-satt'], ['#lk-watchlink', '#lk-start']];
+  const ONB_TARGETS = [['#lk-code-card', '#lk-create-card'], ['#lk-settings'], ['#lk-set-surprise', '#lk-set-thoka', '#lk-set-satt', '#lk-set-radherrar'], ['#lk-watchlink', '#lk-start']];
   function onbApplyHl() {
     onbClearHl(); if (!S.onb) return;
     const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1594,6 +1809,7 @@ export function mountLeikur(root) {
       body = '<p>Frá 2. kjörtímabili getur óvænt atvik dúkkað upp (um helmings líkur per lotu): 🌋 eldgos, ✊ verkföll, 🐟 makríll, 📰 spillingarmál, 🏭 gagnaver… Sama atvik fyrir öll lið; sum bjóða <b>klemmu-val</b> sem liðið þarf að taka afstöðu til — og valið sést á Íslandskortinu.</p><p><b>Ráðlegging:</b> slökkt í fyrstu keyrslu (lærið grunn-hringrásina), <b>kveikt eftir það</b> — atvikin gera umræðuna líflegri.</p>'
         + '<p>🌫️ <b>Hagstjórn í þoku</b> (valkostur við hliðina): ' + esc(THOKA_BLURB) + '</p>'
         + '<p>🤝 <b>Þjóðarsáttin</b> (valkostur við hliðina): ' + esc(SATT_BLURB) + '</p>'
+        + '<p>🎭 <b>Ráðherraskipting</b> (aðeins í Stjórnstöð): ' + esc(RH_BLURB) + '</p>'
         + (live ? '<p class="lk-onb-now">Í þessum leik: óvænt atvik <b>' + esc(cfg.surpriseTxt) + '</b> · þoka <b>' + esc(cfg.thoka == null ? 'óþekkt' : cfg.thoka ? 'kveikt' : 'slökkt') + '</b>.</p>' : '');
     } else {
       title = '4 · Opnaðu skjávarpann';
@@ -1827,7 +2043,8 @@ export function mountLeikur(root) {
   }
 
   function renderTeam(st) {
-    if (st.phase === 'lobby') { root.innerHTML = teamBanner(st) + card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>') + leaderboard(st); return; }
+    // RÁÐHERRASKIPTING: ríkisstjórnarfundurinn má hefjast í lobby (/saeti leyft þar) — liðið skiptir sætum áður en leikur byrjar.
+    if (st.phase === 'lobby') { root.innerHTML = teamBanner(st) + card('Beðið eftir leikstjóra', '<p>Þú ert kominn/n inn. Leikstjórinn byrjar leikinn þegar öll lið eru tilbúin.</p>' + (rhOn(st) ? '<p class="lk-rh-lobbychip">' + rhHeadChip(st) + '</p>' : '')) + rhPickerCard(st) + leaderboard(st); return; }
     if (st.phase === 'ended') {
       const me = (st.teams || []).find((t) => t.id === S.teamId);
       const rounds = st.round || 8, cum = me ? (me.cumulative || 0) : 0, avg = rounds ? cum / rounds : 0, et = endTitle(avg);
@@ -1858,15 +2075,18 @@ export function mountLeikur(root) {
     }
     if (st.phase === 'resolved') return renderTeamResults(st);
     // Ný umferð → núlla „breyta"-stöðu + studio-byggingu (carry-forward úr history)
-    if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; S.dials = null; S.studioBuiltSig = null; S.localTouched = new Set(); }
+    if (S.stRound !== st.round) { S.unlocked = false; S.stRound = st.round; S.dials = null; S.studioBuiltSig = null; S.localTouched = new Set(); S.rhPickerOpen = false; }
     // Læst-staða (A): eftir læsingu sýna staðfestingu + „Breyta" (aflæsa fram að resolve)
-    if (st.you && st.you.locked && !S.unlocked) return renderLocked(st);
+    if (st.you && st.you.locked && !S.unlocked) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return renderLocked(st); }   // RÁÐHERRASKIPTING: læst → fella bið-push (þjónn merge-ar sleða ráðherra áfram eftir læsingu PM)
     maybeSepop(st);   // F2-V2: atviks-popup — fyrir bæði studio og classic decide-sýn (einu sinni per lotu)
     // Studio: byggja stjórnstöðina EINU SINNI per umferð; poll uppfærir Á STAÐNUM (án þess að clobber-a sleða).
     if (st.mode === 'studio') {
+      // RÁÐHERRASKIPTING: sæta-skipti → localTouched hreinsað (sleðar fyrra ráðuneytis samstillast aftur frá þjóni) + bið-push fellt.
+      if (rhOn(st)) { const m = rhMitt(st); if (S.rhMittSeen !== m) { if (S.rhMittSeen !== undefined) { S.localTouched = new Set(); if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } } S.rhMittSeen = m; } }
       // ÞJÓÐARSÁTT: Karphús-staðan er hluti undirskriftarinnar — poll uppfærir studio Á STAÐNUM (updateStudio) og
       // borðinn birtist/hverfur annars aldrei þegar leikstjórinn opnar/lokar hléinu mitt í lotu.
-      const sig = 'studio|' + st.round + '|kh' + ((st.satt && st.satt.on && st.satt.karphus && st.satt.karphus.open) ? 1 : 0);
+      // RÁÐHERRASKIPTING: sæti/picker eru líka í undirskriftinni (rhSig) → flipa-gátt, sæta-flísar og Læsa-hnappur endurbyggjast við breytingar.
+      const sig = 'studio|' + st.round + '|kh' + ((st.satt && st.satt.on && st.satt.karphus && st.satt.karphus.open) ? 1 : 0) + '|rh' + rhSig(st);
       if (S.studioBuiltSig === sig && root.querySelector('#lk-st-sliders')) return updateStudio(st);
       S.studioBuiltSig = sig; S.localTouched = new Set();
       return renderStudio(st);
@@ -2173,8 +2393,13 @@ export function mountLeikur(root) {
     // Seed deilanleg liðs-drög (nema það sem ÞÚ hefur breytt) → síð-innkominn félagi sér núverandi drög.
     if (st.draft) for (const [k, v] of Object.entries(st.draft)) { if (BASELINE.levers[k] && !S.localTouched.has(k)) S.dials[k] = +v; }
     const tab = STUDIO_CAT.tabs[S.studioTab] || STUDIO_CAT.tabs[0];
+    // RÁÐHERRASKIPTING: flipi = ráðuneyti. Eigin flipi virkur; aðrir sjást en sleðarnir eru disabled + 🔒-borði (lifandi gildi
+    // félaga samstillast áfram í updateStudio). Forsætisráðherra: allt virkt. Ekkert sæti: allt read-only + picker áberandi.
+    const rhA = rhOn(st), rhMe = rhMitt(st), rhPm = rhIsPm(st);
+    const tabOwner = rhTabOwner(tab.group);
+    const tabMine = !rhA || rhPm || !!(rhMe && tabOwner && tabOwner.key === rhMe);
     const unlocked = (k) => (LEVER_UNLOCK[k] || 1) <= st.round;
-    const tabBar = STUDIO_CAT.tabs.map((t, i) => { const m = TAB_META[t.group] || { icon: '', label: t.group }; return `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}" data-tab="${i}" role="button" tabindex="0" title="${esc(t.group)}"><span class="lk-tab-ic">${m.icon}</span> ${esc(m.label)}</span>`; }).join('');
+    const tabBar = STUDIO_CAT.tabs.map((t, i) => { const m = TAB_META[t.group] || { icon: '', label: t.group }; const o = rhA ? rhTabOwner(t.group) : null; const own = !rhA || rhPm || !!(o && rhMe && o.key === rhMe); return `<span class="lk-tab${i === S.studioTab ? ' sel' : ''}${rhA ? (own ? ' lk-rh-own' : ' lk-rh-other') : ''}" data-tab="${i}" role="button" tabindex="0" title="${esc(t.group + (rhA && o ? ' — ' + o.heiti + (own ? ' (þú)' : '') : ''))}"><span class="lk-tab-ic">${m.icon}</span> ${esc(m.label)}${rhA && !own ? '<span class="lk-rh-tab-lock" aria-hidden="true">🔒</span>' : ''}</span>`; }).join('');
     const visLevers = tab.levers.filter((l) => unlocked(l.key)), lockedN = tab.levers.length - visLevers.length;
     const isCore = (k) => st.round === 1 && CORE_LEVERS.includes(k);
     // Pólitískt vald (Erfitt): hámark VIRKRA sleða (frá grunni) → læsa sleða sem eru á grunni þegar þakið er náð.
@@ -2188,7 +2413,7 @@ export function mountLeikur(root) {
       const eff = leverEffects(l.key, BASELINE, LINKS);
       const effTxt = eff.length ? ' → hefur áhrif á: ' + eff.map((e) => e.label + (e.dir > 0 ? '↑' : '↓')).join(', ') : '';
       const tip = capLock ? 'Pólitískt vald fullnýtt — endursettu annan sleða til að opna þennan.' : l.label + '. Núgildi ' + disp(cfg, v) + '.' + effTxt + (core ? ' ⭐ Kjarna-stjórntæki — góður staður að byrja.' : '');
-      return `<div class="lk-slider-row${core ? ' lk-core' : ''}"${capLock ? ' style="opacity:.45"' : ''} title="${esc(tip)}"><label>${capLock ? '🔒 ' : (core ? '⭐ ' : '')}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span>${st.difficulty === 'easy' ? ' <span class="lk-muted" style="font-size:11px">nú ' + esc(disp(cfg, l.base)) + '</span>' : ''}</label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}"${capLock ? ' disabled' : ''} aria-label="${esc(l.label)}"></div>`;
+      return `<div class="lk-slider-row${core ? ' lk-core' : ''}"${capLock ? ' style="opacity:.45"' : ''} title="${esc(tip)}"><label>${capLock ? '🔒 ' : (core ? '⭐ ' : '')}${esc(l.label)} <span class="lk-val${moved ? ' moved' : ''}" data-val="${l.key}">${esc(disp(cfg, v))}</span>${st.difficulty === 'easy' ? ' <span class="lk-muted" style="font-size:11px">nú ' + esc(disp(cfg, l.base)) + '</span>' : ''}</label><input type="range" min="${l.min}" max="${l.max}" step="${l.step}" value="${v}" data-lev="${l.key}"${capLock || !tabMine ? ' disabled' : ''} aria-label="${esc(l.label)}"></div>`;
     }).join('') + (lockedN ? '<p class="lk-muted" style="font-size:12px;margin-top:8px">🔒 ' + lockedN + ' stjórntæki opnast á síðari kjörtímabilum.</p>' : '');
     // Vald-mælir (Erfitt): sýnir hversu mörg svið eru virk af leyfðum.
     const capHtml = cap ? '<div style="margin:6px 0 2px;padding:7px 10px;border-radius:8px;font-size:12.5px;background:' + (capReached ? 'rgba(231,130,132,.15);border:1px solid #e78284' : 'rgba(140,160,200,.12);border:1px solid #3a4152') + '">🏛️ <b>Pólitískt vald:</b> ' + activeKeys.length + '/' + cap + ' virk svið' + (capReached ? ' — fullnýtt. Endursettu sleða (á grunn) til að opna annað.' : '') + '</div>' : '';
@@ -2205,8 +2430,9 @@ export function mountLeikur(root) {
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
       ribbonHtml(st) +
-      `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
+      `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}${rhHeadChip(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
       thokaBanner(st) +   // ÞOKA: borði STRAX undir kjörtímabils-hausnum (á undan badge-röð/arfleifð)
+      rhPickerCard(st) +   // RÁÐHERRASKIPTING: ríkisstjórnarfundurinn (sæta-val) undir hausnum, ofan badge-raðar — áberandi meðan sæti vantar
       policyBadgesRow(st) +   // F1-V3: badge-röð STRAX undir kjörtímabils-hausnum, á undan arfleifðar-spjaldi
       teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) + sattCard(st) +
       (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">🚨</span><span><b>Stjórnarkreppa eftir fall stjórnarinnar.</b> Ríkisstjórnin féll í fjöldamótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu búi. Stjórnarmyndun og lömun draga úr hagvexti, atvinnuleysi eykst, skuldir hækka og fylgi byrjar mun lægra. Það þarf sterka hagstjórn til að ná vopnum sínum á ný.</span></div></div>' : '') +
@@ -2226,10 +2452,10 @@ export function mountLeikur(root) {
           '<div id="lk-st-chart2"></div>' +
         '</div>' +
         '<div class="lk-studio-controls">' +
-          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + capHtml + '<div id="lk-st-sliders">' + sliders + '</div></div>' +
+          '<div class="lk-card"><h2>🎛️ Stjórnstöð</h2><div class="lk-tabs">' + tabBar + '</div>' + ((TAB_META[tab.group] || {}).desc ? '<p class="lk-muted" style="font-size:12px;line-height:1.5;margin:8px 0 4px">' + esc((TAB_META[tab.group] || {}).desc) + '</p>' : '') + capHtml + rhTabBanner(st, tabOwner, tabMine) + '<div id="lk-st-sliders"' + (tabMine ? '' : ' class="lk-rh-locked"') + '>' + sliders + '</div></div>' +
           mandateCard(st) +
           policiesCard(st) +
-          '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>' +
+          rhLockHtml(st) +   // RÁÐHERRASKIPTING: Læsa-hnappur aðeins f. forsætisráðherra (eða lockFallback); ráðherrar sjá „⏳ forsætisráðherra læsir"
         '</div>' +
       '</div>' +
       leaderboard(st);
@@ -2239,9 +2465,9 @@ export function mountLeikur(root) {
   function attachStudio(st) {
     if (S.polRound !== st.round) { S.polRound = st.round; S.policyDraft = { ...((st.policies && st.policies.draft) || {}) }; }  // Fasi E: stefnu-rofa-drög endursett per kjörtímabil
     if (!S.policyDraft) S.policyDraft = {};
-    root.querySelectorAll('input[data-pol]').forEach((el) => { el.onchange = () => { S.policyDraft[el.dataset.pol] = el.checked; pushDraft(st); }; });
-    root.querySelectorAll('[data-polc]').forEach((el) => { el.onclick = () => { S.policyDraft[el.dataset.polc] = el.dataset.polk; pushDraft(st); renderStudio(st); }; });
-    root.querySelectorAll('[data-dil]').forEach((el) => { el.onclick = () => { S.dilemmaDraft = el.dataset.dil; pushDraft(st); renderStudio(st); }; });  // Fasi „skemmtun 3": klemmu-val
+    root.querySelectorAll('input[data-pol]').forEach((el) => { el.onchange = () => { if (!rhCanPolicy(st)) return; S.policyDraft[el.dataset.pol] = el.checked; pushDraft(st); }; });   // RÁÐHERRASKIPTING: aðeins forsætisráðherra
+    root.querySelectorAll('[data-polc]').forEach((el) => { el.onclick = () => { if (!rhCanPolicy(st)) return; S.policyDraft[el.dataset.polc] = el.dataset.polk; pushDraft(st); renderStudio(st); }; });   // RÁÐHERRASKIPTING: aðeins forsætisráðherra
+    root.querySelectorAll('[data-dil]').forEach((el) => { el.onclick = () => { if (!rhCanPolicy(st)) return; S.dilemmaDraft = el.dataset.dil; pushDraft(st); renderStudio(st); }; });  // Fasi „skemmtun 3": klemmu-val (RÁÐHERRASKIPTING: aðeins forsætisráðherra)
     root.querySelectorAll('.lk-tab').forEach((el) => { el.onclick = () => { S.studioTab = +el.dataset.tab; renderStudio(st); }; });
     const clearDrag = () => { S.dragging = null; };
     root.querySelectorAll('input[data-lev]').forEach((el) => {
@@ -2261,11 +2487,16 @@ export function mountLeikur(root) {
   // Ýtir deilanlegum liðs-drögum á þjón (locked:false, debounce) → félagar samstilla.
   // GALLI B: læst lið (og EKKI í „Breyta ákvörðun"-flæðinu — S.unlocked táknar viljandi aflæsingu
   // um #lk-unlock) má ALDREI pushDraft-a: locked:false myndi aflæsa liðið þegjandi.
+  // RÁÐHERRASKIPTING: body.handle fylgir; drögin fara um rhDecisions (ráðherra → aðeins eigin sleðar, PM → sjá þar) og svarið
+  // (hafnad) er speglað strax í rhAfterPost. Ekkert sæti → ekkert sent (þjónn hafnar hvort eð er — forðast ruglings-toast).
   function pushDraft(st) {
     const you = (S.state && S.state.you) || (st && st.you);
     if (you && you.locked && !S.unlocked) return;
+    if (rhOn(st) && !rhMitt(st)) return;
     if (S.pushTimer) clearTimeout(S.pushTimer);
-    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null, ...(st.satt && st.satt.on && st.satt.lota ? { satt: sattValAf(st) } : {}) }, locked: false }, token: S.token }); }, 500);
+    // Þjónninn merge-ar sleða ráðherra ÁFRAM eftir að forsætisráðherra læsir → endurprófa læsingu þegar tímamælirinn fellur (poll gat
+    // fært you.locked inn á biðtímanum) — ALDREI senda drög í læsta röð.
+    S.pushTimer = setTimeout(() => { S.pushTimer = null; const y = S.state && S.state.you; if (y && y.locked && !S.unlocked) return; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: rhDecisions(st), locked: false, handle: rhHandle(S.code) }, token: S.token }).then((r) => rhAfterPost(st, r)).catch(() => {}); }, 500);
   }
   // Poll-uppfærsla Á STAÐNUM: samstillir fjar-drög í sleða sem ÞÚ ert ekki að draga/hefur ekki breytt; endurteiknar gröf. ENGIN sleða-endurbygging.
   function updateStudio(st) {
@@ -2282,7 +2513,20 @@ export function mountLeikur(root) {
     });
     drawStudioPreview(st);
   }
-  function submitStudio(st) { if (!sattLockCheck(st)) return; if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null, ...(st.satt && st.satt.on && st.satt.lota ? { satt: sattValAf(st) } : {}) }, locked: true }, token: S.token }); S.unlocked = false; }); }
+  // RÁÐHERRASKIPTING: læsing = forsætisráðherrans (eða hver sem er þegar enginn PM er claim-aður, lockFallback) — sama regla og
+  // þjónninn; hafnad 'locked' í svari → toast, ekkert „læst" sett staðbundið. body.handle fylgir, drög um rhDecisions.
+  function submitStudio(st) {
+    if (!rhCanLock(st)) { rhToast('⏳ Forsætisráðherra læsir kjörtímabilið — samræmið ykkur fyrst.'); return; }
+    if (!sattLockCheck(st)) return;
+    if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; }
+    return act(async () => {
+      const r = await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: rhDecisions(st), locked: true, handle: rhHandle(S.code) }, token: S.token });
+      const hf = (r && r.json && Array.isArray(r.json.hafnad)) ? r.json.hafnad : [];
+      if (hf.includes('locked')) { rhToast('⏳ Forsætisráðherra læsir kjörtímabilið — læsingin var ekki vistuð.'); return; }
+      rhAfterPost(st, r, true);
+      S.unlocked = false;
+    });
+  }
 
   // Læst-staða (A): staðfesting + samantekt + „Breyta" (aflæsa fram að resolve).
   function renderLocked(st) {
@@ -2306,7 +2550,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (líka læstum)
       teamBanner(st) + roleBanner(st) +
-      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + sattLine + summary + '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button></div>' +
+      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + sattLine + summary + (rhCanLock(st) ? '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button>' : '<p class="lk-muted lk-rh-fine" style="margin-top:12px">🏛️ Forsætisráðherra læsti — aðeins hann aflæsir (✏️ Breyta ákvörðun).</p>') + '</div>' +   // RÁÐHERRASKIPTING: aflæsing = PM (eða lockFallback)
       leaderboard(st);
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };
   }

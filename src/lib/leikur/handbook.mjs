@@ -134,3 +134,20 @@ export const SATT_HANDBOOK = {
     { utkoma: '🏛️ Eitt lið í leik', lid: 'satt = samvinnu-tölur · sækja fram = svikara-tölur (eigin verðbólga, enginn sogari)', ahrif: '' },
   ],
 };
+
+// RÁÐHERRASKIPTING INNAN LIÐS (config.radherrar, AÐEINS í Stjórnstöð) — kennslu-rök + leikstjóra-texti. Vörpun sleða↔ráðuneyta,
+// sæta-map og merge-reglurnar búa í radherrar.mjs (sama uppspretta og þjónninn); hér er AÐEINS leikstjóra-lagið: blurb í rofa/
+// stillingaspjaldi, hvers vegna, hvernig keyra og debrief-spurningar. Sætin sjö (RADUNEYTI): forsætis, Seðlabanki, fjármál,
+// húsnæði, vinnumarkaður, auðlindir/orka, byggð/ferðaþjónusta.
+export const RADHERRAR_HANDBOOK = {
+  heiti: 'Ráðherraskipting',
+  // Stutti blurb-inn við rofann í fac-lobby (sama texti og í client — ein uppspretta).
+  blurb: 'Hver liðsmaður tekur sæti í ríkisstjórninni — Seðlabankastjóri, fjármálaráðherra, húsnæðisráðherra… — og stýrir aðeins sleðum síns ráðuneytis. Forsætisráðherrann sér allt, tekur stóru ákvarðanirnar og læsir kjörtímabilið. Liðið verður að semja innbyrðis.',
+  hvers_vegna: 'Án skiptingar endar lið oftast með EINN með lyklaborðið: sá sem heldur á tækinu færir sleðana og hinir horfa á. Ráðherraskiptingin neyðir liðið til að skipta verkum og tala saman — og hún er ekki bara leikbragð, því togstreita ráðuneyta er raunveruleg hagstjórn. Fjármálaráðherra sem eykur útgjöld í góðæri vinnur beint gegn Seðlabanka sem reynir að kæla verðbólgu með vöxtum; húsnæðisráðherra sem vill framboð á höfuðborgarsvæðinu rekst á byggðaráðherra sem vill dreifa því um landið; auðlindaráðherra stendur með verðmætasköpun á öðrum endanum og sjálfbærni á hinum. Seðlabankinn er sjálfstæð stofnun (lög um Seðlabanka Íslands nr. 92/2019), ekki ráðherra — og í leiknum er sætið því viljandi flott: sá sem situr þar má toga í vextina gegn vilja ríkisstjórnarinnar, nákvæmlega eins og í alvöru. Samspil peningastefnu og ríkisfjármála — hvort þau toga í sömu átt eða hvort á móti öðru — er kjarnaatriði þjóðhagfræðinnar, og hér upplifa liðin það í eigin skinni í stað þess að lesa um það.',
+  hvernig_keyra: 'Kveiktu á rofanum við stofnun — hann virkar aðeins í Stjórnstöð (sleðar = ráðuneyti). Liðsstærð 3–7 er best: þrír skipta með sér forsætisráðuneyti, Seðlabanka og fjármálum, sjö fylla öll sætin; hver þarf eigið tæki (sætið er bundið vafranum). Þegar kjörtímabilið opnast birtist ríkisstjórnarfundurinn hjá liðinu og hver og einn tekur sæti. PM-VALIÐ ER PÓLITÍK: segðu liðunum að velja forsætisráðherra saman — og gríptu ekki inn í. Hver tekur sætið fyrstur, hver gefur eftir og hver rökstyður er hluti af lærdómnum. Í lotu-yfirlitinu sérðu sætin per lið (✓ tekið · laust); lið sem velur engan forsætisráðherra festist ekki — þá má hver sem er læsa. Minntu á að sleðarnir eru læstir milli ráðuneyta: það sem Seðlabankastjórinn gerir sést lifandi hjá hinum en enginn yfirskrifar hann. Í debrief spyrðu um togstreituna og hver réði í raun.',
+  debrief_spurningar: [
+    'Hvernig var að vera Seðlabankastjóri þegar fjármálaráðherrann jók útgjöld?',
+    'Klobbuðu ráðuneytin hvert annað — og tókuð þið eftir því áður en uppgjörið sýndi það?',
+    'Hver réði í raun — forsætisráðherrann, sá sem talaði hæst eða sá sem sat á sleðanum sem skipti mestu?',
+  ],
+};
