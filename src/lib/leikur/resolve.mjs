@@ -1,6 +1,12 @@
 // Úrlausn liðs: öll ákvörðunasaga → fylki-gild sleða/sjokk-leiðir → simulate → KPI við lokafjórðung.
 // Uppsöfnun: #1-3 afstöður eru Δ á hlaupandi sleða-stig (klippt í [min,max]); #4 eins-árs púls; #5 viðbragð atburðar.
 // Sjokk sviðsmyndar sett á fjórðunga umferðar. Vélin óbreytt (styður fylki-sleða gegnum atStep).
+//
+// SVIÐSMYNDIR: þessi eining er ÞEGAR sviðsmynda-hlutlaus — hún les AÐEINS `scenario.events[r]` úr því
+// sem kallandinn réttir henni. Þjónninn (server.mjs, resolveTeam) sendir cfg.scenario úr sviðsmynda-
+// skránni (svidsmyndir.mjs) og vafrinn (client.mjs, studioSim) sendir { events: st.scenarioSoFar }.
+// DEFAULT_SCENARIO hér er því AÐEINS öryggisnet fyrir kallendur sem senda ekkert (og er sögulega
+// sviðsmyndin 'island2000'); enginn framleiðslu-kallandi treystir á það sjálfgefna gildi.
 import { simulate } from '../roads/engine.mjs';
 import { DECISIONS, SCENARIO as DEFAULT_SCENARIO, QUARTERS_PER_ROUND } from './game-config.mjs';
 

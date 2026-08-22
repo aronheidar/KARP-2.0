@@ -1,5 +1,10 @@
-// Sjálfgefið efni RÁS-Leiksins (S1). HREINT gagna-módúl — engin env/crypto/D1.
+// Sjálfgefið efni RÁS-Leiksins (S1). HREINT gagna-módúl — engin env/crypto/D1, ENGIR innflutningar.
 // Lever-lyklar staðfestir gegn gogn/roads/baseline.json (sjá próf).
+//
+// SVIÐSMYNDIR: efnið hér að neðan (YEAR_START / YEAR2000_DIALS / REALITY / SCENARIO) er sviðsmyndin
+// „Ísland 2000–2032". Skráin sem heldur utan um ALLAR sviðsmyndir leiksins er ./svidsmyndir.mjs —
+// hún flytur þetta inn óbreytt sem 'island2000'. Þessi eining er viljandi laufa-eining (sjá skýringu
+// efst í svidsmyndir.mjs um hringa-hættuna), svo hér er ENGIN innflutningslína bætt við.
 export const ROUNDS = 8;
 export const QUARTERS_PER_ROUND = 4;
 // Tímalíkan: hvert skref = 1 ár, hver umferð = 4-ára kjörtímabil. Leikurinn nær 2000→2032 (8 umferðir × 4 ár).

@@ -18,7 +18,11 @@ import { myndFyrirAtvik, PM_MYNDIR, PM_MYNDIR_KONA } from './myndir.mjs';
 import { sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, radherraFyrirLotu, radherraTexti } from './saga.mjs';
 import { kortThrep, KORT_LEVER_ID } from './kort-throp.mjs';
 import { renderIslandKort } from './kort-svg.mjs';
-import { YEAR_START, REALITY, YEAR2000_DIALS, TAB_META, LEVER_UNLOCK, CORE_LEVERS, SCENARIO, GOAL_SPECS, DIFFICULTY } from './game-config.mjs';
+// REALITY / YEAR2000_DIALS / SCENARIO eru EKKI lengur flutt inn hingað: raun-gögn, spólun og atburðir
+// koma nú ÖLL úr sviðsmynd leiksins (svidsmyndir.mjs — sjá svOf/svidsmyndOf hér að neðan). YEAR_START
+// stendur eftir AÐEINS sem sjálfgefið gildi þegar engin sviðsmynd fylgir /state (eldri þjónn).
+import { YEAR_START, TAB_META, LEVER_UNLOCK, CORE_LEVERS, GOAL_SPECS, DIFFICULTY } from './game-config.mjs';
+import { SVIDSMYNDIR, SVIDSMYNDA_LISTI, SVIDSMYND_SJALFGEFIN, svidsmyndOf } from './svidsmyndir.mjs';   // SVIÐSMYNDA-SKRÁ: /state sendir aðeins lýsigögn (st.svidsmynd), efnið flettist upp hér
 import { RADUNEYTI, PM as RH_PM, validHandle, raduneytiLevers, raduneytiStada, leverOwner } from './radherrar.mjs';   // RÁÐHERRASKIPTING: hrein eining (sæti↔sleðar), sama uppspretta og þjónninn
 import BASELINE from '../../../gogn/roads/baseline.json';
 import LINKS from '../../../gogn/roads/links.json';
@@ -105,7 +109,19 @@ function deltaChips(deltas) {
 // borða og birtu stöðuna (kort N-2), ticker sýnir aðeins atvik+ákvarðanir. Results-/ended-fasi allra ÓSÍAÐUR (afhjúpunin).
 const THOKA_BLURB = THOKA_HANDBOOK.blurb;   // EIN uppspretta (handbook.mjs) — sami texti í rofa, stillingaspjaldi og vísi
 const thokaOn = (st) => !!(st && st.thoka && st.thoka.on);
-const termTxt = (r) => (r > 0 ? (YEAR_START + 4 * (r - 1)) + '–' + (YEAR_START + 4 * r) : '');
+// ── SVIÐSMYNDA-HJÁLPARAR ─────────────────────────────────────────────────────────────────────────
+// /state ber AÐEINS lýsigögnin (st.svidsmynd = {id,heiti,undirtitill,yearStart,erFramtid,hefurSogu}).
+// Eldri þjónn (fyrir sviðsmynda-skrána) sendir ekkert → allt fellur á sögulegu sviðsmyndinni, sem er
+// nákvæmlega gamla hegðunin (YEAR_START=2000, saga+ráðherrar á, YEAR2000_DIALS í stjórnstöð).
+const svOf = (st) => (st && st.svidsmynd && st.svidsmynd.id) ? st.svidsmynd : svidsmyndOf(SVIDSMYND_SJALFGEFIN);
+const svAr0 = (st) => { const y = svOf(st).yearStart; return typeof y === 'number' ? y : YEAR_START; };
+const svLotur = (st) => { const n = (st && st.rounds) || svidsmyndOf(svOf(st).id).rounds; return (Number.isInteger(n) && n > 0) ? n : 8; };
+const svHefurSogu = (st) => svOf(st).hefurSogu !== false;   // vantar (eldri þjónn) → sögulega sviðsmyndin
+const svErFramtid = (st) => svOf(st).erFramtid === true;    // AÐEINS skýrt já → engin skálduð framtíðar-nöfn
+const svHeiti = (st) => svOf(st).heiti || ('Ísland ' + svAr0(st) + '–' + (svAr0(st) + svLotur(st) * 4));
+const svArLok = (st) => svAr0(st) + svLotur(st) * 4;              // lokaár leiksins (2032 / 2058)
+const svTimabil = (st) => svAr0(st) + '–' + svArLok(st);          // „2000–2032" / „2026–2058"
+const termTxt = (r, ar0 = YEAR_START) => (r > 0 ? (ar0 + 4 * (r - 1)) + '–' + (ar0 + 4 * r) : '');
 // Átta-/stöðu-gildi þjónsins normuð í föst lykilorð (þolir 'upp'/'hækkandi'/+1/'↑'/'rising' o.s.frv. — samningurinn
 // við verk A er orða-lyklar; óþekkt → 'stodugt'/'innan' svo flís sýni alltaf eitthvað læsilegt).
 function thokaAtt(v) {
@@ -305,8 +321,9 @@ function lkLineChart(title, series, opts = {}) {
   for (const r of rounds) g += `<text x="${X(r).toFixed(1)}" y="${H - 7}" font-size="9" fill="${cTick}" text-anchor="middle">${r}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;
 }
-// Studio-forskoðunar-rit: ferill útkomu yfir ÁR (2000+i) + BAU (punktalína) + markmiðs-lína + raun-lína (fjólublá).
-function stChart(title, mid, bau, targetLine, color, reality) {
+// Studio-forskoðunar-rit: ferill útkomu yfir ÁR (ar0+i) + BAU (punktalína) + markmiðs-lína + raun-lína (fjólublá).
+// ar0 = upphafsár sviðsmyndarinnar (svidsmyndir.mjs); framtíðar-sviðsmynd sendir enga raun-línu (reality tómt).
+function stChart(title, mid, bau, targetLine, color, reality, ar0 = YEAR_START) {
   const W = 320, H = 132, pl = 34, pr = 10, pt = 18, pb = 24, n = mid.length;
   const all = mid.concat((bau || []).slice(0, n), (reality || []).slice(0, n), targetLine != null ? [targetLine] : []);
   let ymin = Math.min(...all), ymax = Math.max(...all); if (ymax - ymin < 1) { ymax += 1; ymin -= 1; }
@@ -314,8 +331,8 @@ function stChart(title, mid, bau, targetLine, color, reality) {
   const Y = (v) => (H - pb) - (H - pt - pb) * (v - ymin) / (ymax - ymin);
   let g = `<text x="${pl}" y="12" font-size="11" fill="#9fb0c8">${esc(title)}</text>`;
   // ár-ás: merki á kjörtímabils-skilum (á 4 ára fresti)
-  for (let i = 0; i < n; i += 4) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="middle">${YEAR_START + i}</text>`;
-  if (n > 1) g += `<text x="${X(n - 1).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="end">${YEAR_START + n}</text>`;
+  for (let i = 0; i < n; i += 4) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="middle">${ar0 + i}</text>`;
+  if (n > 1) g += `<text x="${X(n - 1).toFixed(1)}" y="${H - 6}" font-size="9" fill="#7b879c" text-anchor="end">${ar0 + n}</text>`;
   if (bau && bau.length) { const d = bau.slice(0, n).map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' '); g += `<path d="${d}" fill="none" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3"/>`; }
   if (reality && reality.length) { const d = reality.slice(0, n).map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' '); g += `<path d="${d}" fill="none" stroke="#b98cff" stroke-width="1.4" opacity="0.85"/>`; }
   if (targetLine != null) { const y = Y(targetLine).toFixed(1); g += `<line x1="${pl}" y1="${y}" x2="${W - pr}" y2="${y}" stroke="#f6b13b" stroke-width="1" stroke-dasharray="4 2" opacity="0.55"/>`; }
@@ -370,18 +387,19 @@ function uppsafnadCard(st, myTeamId) {
     + '<div class="lk-upp-legend">' + legend + '</div>'
     + '<div class="lk-charts">' + charts + '</div></div>';
 }
-// Leikslok-blokk: „Ísland ykkar 2032" — lokastöðurnar 5 í mannamáli + best-í-leik samanburður.
+// Leikslok-blokk: „Ísland ykkar <lokaár>" — lokastöðurnar 5 í mannamáli + best-í-leik samanburður.
+// Ártölin koma ÖLL úr sviðsmyndinni (svAr0/svArLok) — 2000–2032 sögulega, 2026–2058 í framtíðinni.
 function uppsafnadRecap(st, myTeamId) {
   const kh = st.kpiHistory; if (!kh || !kh.length) return '';
   const mine = kh.find((t) => t.teamId === myTeamId); if (!mine || !mine.rounds || !mine.rounds.length) return '';
   const loka = uppsafnadLoka(uppsafnadSeries(mine.rounds));
   const ratio = (v) => num(Math.round(v / 100 * 10) / 10);
   const lines = [];
-  if (loka.verdlag != null) lines.push('💵 Verðlag er <b>' + ratio(loka.verdlag) + '×</b> hærra en árið 2000.');
-  if (loka.vlf != null) lines.push('📈 Landsframleiðslan er <b>' + ratio(loka.vlf) + '×</b> af stærð ársins 2000' + (loka.vlf < 100 ? ' — hagkerfið dróst saman.' : '.'));
-  if (loka.kaupmattur != null) lines.push('🛒 Kaupmáttur launa er <b>' + ratio(loka.kaupmattur) + '×</b> á við árið 2000.');
+  if (loka.verdlag != null) lines.push('💵 Verðlag er <b>' + ratio(loka.verdlag) + '×</b> hærra en árið ' + svAr0(st) + '.');
+  if (loka.vlf != null) lines.push('📈 Landsframleiðslan er <b>' + ratio(loka.vlf) + '×</b> af stærð ársins ' + svAr0(st) + (loka.vlf < 100 ? ' — hagkerfið dróst saman.' : '.'));
+  if (loka.kaupmattur != null) lines.push('🛒 Kaupmáttur launa er <b>' + ratio(loka.kaupmattur) + '×</b> á við árið ' + svAr0(st) + '.');
   if (loka.skuldir != null) lines.push('🏛️ Skuldir ríkisins enda í <b>' + num(loka.skuldir) + '%</b> af VLF.');
-  if (loka.losun != null) lines.push('🌱 Uppsöfnuð losun 2000–2032: <b>' + num(loka.losun, 0) + '</b> vísitölu-ár.');
+  if (loka.losun != null) lines.push('🌱 Uppsöfnuð losun ' + svTimabil(st) + ': <b>' + num(loka.losun, 0) + '</b> vísitölu-ár.');
   if (!lines.length) return '';
   // Besta lið leiksins per stærð (aðeins ef fleiri en eitt lið hafa gögn).
   const all = kh.filter((t) => t && !t.adeinsStig && t.rounds && t.rounds.length).map((t) => ({ name: t.name, loka: uppsafnadLoka(uppsafnadSeries(t.rounds)) }));
@@ -394,7 +412,7 @@ function uppsafnadRecap(st, myTeamId) {
     }).filter(Boolean);
     if (bits.length) bestHtml = '<p class="lk-muted" style="font-size:12.5px;margin:8px 0 0;border-top:1px solid var(--line);padding-top:7px">🏅 Besta lið leiksins: ' + bits.join(' · ') + '</p>';
   }
-  return '<div class="lk-card lk-upp-lines"><h2>🇮🇸 Ísland ykkar 2032</h2>' + lines.map((l) => '<p>' + l + '</p>').join('') + bestHtml + '</div>';
+  return '<div class="lk-card lk-upp-lines"><h2>🇮🇸 Ísland ykkar ' + svArLok(st) + '</h2>' + lines.map((l) => '<p>' + l + '</p>').join('') + bestHtml + '</div>';
 }
 // ── VERK 1: Pólitíski mælirinn — HLUTLAUS vörpun stefnublöndu á vinstri-hægri ás (politik.mjs). ──
 // Litirnir eru merkingar, ekki dómar: rautt=vinstri, blátt=hægri (íslensk hefð); ⓘ-textinn fylgir alls staðar.
@@ -453,7 +471,7 @@ function renderFacAnalytics(an, st, openDetails = new Set(), opts = {}) {
   for (const k of Object.keys(an.trajectories.byKpi)) { const b = an.trajectories.byKpi[k]; charts += lkLineChart(b.label + ' (stig)', b.series, { min: 0, max: 100, colorOf }); }
   charts += '</div>';
   // #6 Kennslu-vísbendingar: sjálfvirkar umræðu-spurningar úr mynstrum (birt efst — leiðbeinandi f. leikstjóra).
-  const prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false });
+  const prompts = teachingPrompts(an, { scenarioEvents: (svidsmyndOf(svOf(st).id).events || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false });
   const promptsHtml = prompts.length ? '<h3 style="font-size:14px;margin:4px 0">💡 Kennslu-vísbendingar (umræðu-spurningar)</h3><ul class="lk-prompts">' + prompts.map((p) => '<li>' + p + '</li>').join('') + '</ul>' : '';
   // Stórar stefnu-ákvarðanir hvers liðs (leikstjóra-samantekt).
   const polHtml = (an.policiesByTeam && an.policiesByTeam.length)
@@ -489,7 +507,7 @@ function renderFacAnalytics(an, st, openDetails = new Set(), opts = {}) {
     + '<li><b>Stefna hvers liðs (20 mín):</b> Látið hvert lið kynna sína leið út frá ákvarðanaferlinum — hver var stóra hugmyndin, og breyttist hún með áföllum?</li>'
     + '<li><b>Stóru ákvarðanirnar (20 mín):</b> Berið saman Icesave/ESB/stóriðju o.fl. — rökin, fylgið og afleiðingarnar umfram þjóðhags-tölurnar.</li>'
     + '<li><b>Fórnarskipti & það sem mátti bæta (20 mín):</b> Notið „gerðu vel / mátti bæta" — af hverju var erfitt að ná öllum markmiðum í einu?</li>'
-    + '<li><b>Tenging við raunveruleikann (15 mín):</b> Berið saman við „svona fór það" — hvað segir þetta um raunverulega hagstjórn Íslands 2000–2032?</li>'
+    + '<li><b>Tenging við raunveruleikann (15 mín):</b> Berið saman við „svona fór það" — hvað segir þetta um raunverulega hagstjórn Íslands ' + svTimabil(st) + '?</li>'
     + '</ol></details>';
   // F1-V4: uppsafnað eftir liðum — lokastöður 5 uppsafnaðra stærða, besta gildi hverrar súlu grænt.
   let uppHtml = '';
@@ -594,11 +612,11 @@ function lkPrintReport(st, opts = {}) {
   // 1. Haus
   const diffTxt = st.difficulty === 'easy' ? 'Létt' : st.difficulty === 'hard' ? 'Erfitt' : 'Miðlungs';
   let dags = ''; try { dags = new Date().toLocaleDateString('is-IS', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { dags = new Date().toISOString().slice(0, 10); }
-  const head = '<header><h1>RÁS-Leikurinn — kennsluskýrsla</h1><p class="lkp-meta">Leikkóði <b>' + esc(st.code || '') + '</b> · ' + esc(dags) + ' · ' + teams.length + ' lið · ' + rounds + ' kjörtímabil (2000–2032) · erfiðleikastig: ' + diffTxt + (st.mode === 'studio' ? ' · stjórnstöðvar-hamur' : '') + (opts.thoka ? ' · 🌫️ þoku-leikur (hagtölur með eins kjörtímabils töf, engin framtíðarspá)' : '') + (sattU.length ? ' · 🤝 þjóðarsáttin spiluð' : '') + '</p></header>';
+  const head = '<header><h1>RÁS-Leikurinn — kennsluskýrsla</h1><p class="lkp-meta">Leikkóði <b>' + esc(st.code || '') + '</b> · ' + esc(dags) + ' · ' + teams.length + ' lið · ' + rounds + ' kjörtímabil (' + svTimabil(st) + ') · erfiðleikastig: ' + diffTxt + (st.mode === 'studio' ? ' · stjórnstöðvar-hamur' : '') + (opts.thoka ? ' · 🌫️ þoku-leikur (hagtölur með eins kjörtímabils töf, engin framtíðarspá)' : '') + (sattU.length ? ' · 🤝 þjóðarsáttin spiluð' : '') + '</p></header>';
 
   // 2. Loka-stigatafla + arfleifð (+ afhjúpuð umboð ef leynihlutverk voru í leiknum)
   const hasRole = teams.some((t) => roleOf[t.id]);
-  let lb = '<section><h2>🏆 Loka-stigatafla</h2><table class="lkp-tbl"><tr><th>#</th><th>Lið</th>' + (hasRole ? '<th>Umboð (afhjúpað)</th>' : '') + '<th>Stig</th><th>Meðal/100</th><th>Arfleifð 2032</th></tr>';
+  let lb = '<section><h2>🏆 Loka-stigatafla</h2><table class="lkp-tbl"><tr><th>#</th><th>Lið</th>' + (hasRole ? '<th>Umboð (afhjúpað)</th>' : '') + '<th>Stig</th><th>Meðal/100</th><th>Arfleifð ' + svArLok(st) + '</th></tr>';
   teams.forEach((t, i) => {
     const avg = rounds ? (t.cumulative || 0) / rounds : 0, et = endTitle(avg);
     lb += '<tr><td>' + (i + 1) + '</td><td><span class="lk-swatch" style="background:' + colorOf(t.id) + '"></span>' + esc(t.name) + '</td>'
@@ -643,7 +661,7 @@ function lkPrintReport(st, opts = {}) {
   if (rowsU.length) {
     const bestOf = {};
     for (const c of UPP_SPECS) { const vals = rowsU.map((r) => r.loka[c.key]).filter((v) => v != null); bestOf[c.key] = vals.length ? (c.best === 'max' ? Math.max(...vals) : Math.min(...vals)) : null; }
-    cmp += '<h3>🏦 Uppsafnað 2000–2032 (lokastöður, 2000=100 — besta gildi hverrar súlu feitletrað grænt)</h3><table class="lkp-tbl"><tr><th>Lið</th>' + UPP_SPECS.map((c) => '<th>' + esc(c.short) + '</th>').join('') + '</tr>'
+    cmp += '<h3>🏦 Uppsafnað ' + svTimabil(st) + ' (lokastöður, ' + svAr0(st) + '=100 — besta gildi hverrar súlu feitletrað grænt)</h3><table class="lkp-tbl"><tr><th>Lið</th>' + UPP_SPECS.map((c) => '<th>' + esc(c.short) + '</th>').join('') + '</tr>'
       + rowsU.map((r) => '<tr><td><span class="lk-swatch" style="background:' + colorOf(r.id) + '"></span>' + esc(r.name) + '</td>' + UPP_SPECS.map((c) => { const v = r.loka[c.key]; const best = v != null && bestOf[c.key] != null && v === bestOf[c.key]; return '<td' + (best ? ' class="lkp-best"' : '') + '>' + (v == null ? '–' : num(v, c.key === 'losun' ? 0 : 1)) + '</td>'; }).join('') + '</tr>').join('') + '</table>';
   }
   if (an.scorecard && an.scorecard.length) {
@@ -662,7 +680,7 @@ function lkPrintReport(st, opts = {}) {
 
   // 5. Umræðukaflinn: sjálfvirkar athuganir úr raun-mun liða + teachingPrompts
   let prompts = [];
-  try { prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false }); } catch (e) {}
+  try { prompts = teachingPrompts(an, { scenarioEvents: (svidsmyndOf(svOf(st).id).events || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false }); } catch (e) {}
   const obs = lkPrintObservations(teams, lokaOf, polLast, an);
   // ÞOKA: teachingPrompts(thoka) setur tvær þoku-debrief-spurningar (THOKA_HANDBOOK) fremst í spurningarnar — hér aðeins ramma-setning.
   if (opts.thoka) obs.unshift('🌫️ Leikurinn var spilaður <b>í þoku</b>: liðin sáu hagtölur með eins kjörtímabils töf og enga framtíðarspá í forskoðun — tölurnar afhjúpuðust við hvert uppgjör.');
@@ -808,6 +826,7 @@ export function mountLeikur(root) {
     if (err === 'leikstjori' || err === 'kerfisstjori') return 'Aðeins leikstjórar geta stofnað leik. <a href="/leikur/leikstjori/">Sækja um leikstjóra-aðgang</a> — eða <a href="/leikur/demo/">prófa demo-ið</a> á meðan.';
     if (err === 'no-d1') return 'Þjónninn svarar ekki (gagnagrunnur). Reyndu aftur eftir andartak.';
     if (err === 'invalid') return 'Stillingar leiksins stóðust ekki villuprófun.';
+    if (err === 'svidsmynd') return 'Þjónninn þekkir ekki þessa sviðsmynd (líklega eldri útgáfa af vefnum). Endurhlaðið síðuna og reynið aftur.';
     return 'Villa við að stofna leik' + (err ? ' (' + esc(err) + ')' : status ? ' (' + status + ')' : '') + '.';
   }
   // Stillingar sem valdar voru við stofnun → vafrinn man þær per leik (lobby-spjald + vísir) og „síðast notað" (forfylling lendingar).
@@ -818,6 +837,9 @@ export function mountLeikur(root) {
     const studio = !!(root.querySelector('#lk-studio') && root.querySelector('#lk-studio').checked);
     const timerMin = +((root.querySelector('#lk-timer-min') || {}).value || 0);
     const body = {}; if (roles) body.roles = true; if (studio) body.mode = 'studio'; if (timerMin > 0) body.timerSec = Math.round(timerMin * 60);
+    // SVIÐSMYND: sent AÐEINS ef hún er ekki sjálfgefna — þá er config eldri leikja og nýrra 'island2000'-leikja eins.
+    const svidsmynd = ((root.querySelector('#lk-svidsmynd') || {}).value) || SVIDSMYND_SJALFGEFIN;
+    if (svidsmynd !== SVIDSMYND_SJALFGEFIN && SVIDSMYNDIR[svidsmynd]) body.svidsmynd = svidsmynd;
     const diff = (root.querySelector('#lk-difficulty') || {}).value; if (diff === 'easy' || diff === 'hard') body.difficulty = diff; // Fasi E
     const surprise = !!(root.querySelector('#lk-surprise') && root.querySelector('#lk-surprise').checked); if (surprise) body.surprise = true; // Fasi „skemmtun 3"
     const thoka = !!(root.querySelector('#lk-thoka') && root.querySelector('#lk-thoka').checked); if (thoka) body.thoka = true; // ÞOKA: config.thoka (þjónninn síar /state f. liðin)
@@ -827,7 +849,7 @@ export function mountLeikur(root) {
     const { status, json } = await api('/create', { method: 'POST', body });
     if (!json.code) { if (errEl) errEl.innerHTML = createErrHtml(json.error, status); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
-    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka, satt, radherrar });
+    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka, satt, radherrar, svidsmynd });
     location.href = '/leikur/?g=' + json.code;
   }
   async function joinGame(joinCode, name) {
@@ -995,7 +1017,7 @@ export function mountLeikur(root) {
     const bl = t.birtLota != null ? (t.birtLota > 0 ? +t.birtLota : null) : (st.round >= 3 ? st.round - 2 : null);
     if (!bl) return { lota: null, txt: '' };
     const y0 = typeof t.birtAr === 'number' ? t.birtAr : null;
-    return { lota: bl, txt: y0 != null ? y0 + '–' + (y0 + 4) : termTxt(bl) };
+    return { lota: bl, txt: y0 != null ? y0 + '–' + (y0 + 4) : termTxt(bl, svAr0(st)) };
   }
   function thokaBanner(st) {
     if (!thokaOn(st) || st.phase !== 'decide') return '';
@@ -1040,7 +1062,7 @@ export function mountLeikur(root) {
     } else if (kpis.length) {
       attHtml = '<p class="lk-muted lk-thoka-fine">📐 Áttir markmiðanna (hækkandi/lækkandi, yfir/undir markmiði) birtast frá kjörtímabili 3 — þær þurfa tvær mælingar.</p>';
     }
-    return '<div class="lk-card lk-thoka-past"><h2>📰 Það sem vitað er um síðasta kjörtímabil <span class="lk-muted lk-thoka-h2s">' + esc(termTxt(prev)) + '</span></h2>' + headsHtml + stigHtml + stabHtml + attHtml + '</div>';
+    return '<div class="lk-card lk-thoka-past"><h2>📰 Það sem vitað er um síðasta kjörtímabil <span class="lk-muted lk-thoka-h2s">' + esc(termTxt(prev, svAr0(st))) + '</span></h2>' + headsHtml + stigHtml + stabHtml + attHtml + '</div>';
   }
 
   // ── ÞJÓÐARSÁTTIN — mount-innri hlutar (þurfa S): val-spjald liðs, Karphús-borði, fac-spjald, læsingar-vörn. ──
@@ -1448,7 +1470,10 @@ export function mountLeikur(root) {
     if (S.pmRound !== st.round) { S.pmRound = st.round; S.pmIdx = 0; S.pmTypedSet = new Set(); S.pmSig = null; }
     const msgs = pmMessages(st); S.pmMsgs = msgs;
     S.pmIdx = (S.pmIdx || 0) >= msgs.length ? 0 : (S.pmIdx || 0);
-    const radh = radherraFyrirLotu(st.round);
+    // RÁÐHERRA-NAFN: AÐEINS í sviðsmynd sem á raun-hagsögu. Í framtíðar-sviðsmynd (erFramtid) er
+    // radh=null → nafnlaus „Forsætisráðherra" og karl-settið sjálfgefið. Við skáldum ALDREI nöfn á
+    // raunverulegt fólk í framtíðar-embættum (sjá saga.mjs).
+    const radh = svErFramtid(st) ? null : radherraFyrirLotu(st.round);
     const kona = !!(radh && radh.radandi && radh.radandi.kyn === 'kona');   // kyn null (L8) → karl-settið
     const pose = pmPose(st), msg = msgs[S.pmIdx] || '';
     const sig = pose + '|' + (kona ? 'k' : 'm') + '|' + S.pmIdx + '|' + st.round + '|' + msgs.join('¦');
@@ -1463,8 +1488,10 @@ export function mountLeikur(root) {
     const av = wrap.querySelector('#lk-pmh-avatar');
     if (av) { av.innerHTML = svgP; av.style.setProperty('--pm-bd', '-' + (Math.random() * 4.9).toFixed(2) + 's'); }   // slembinn blikk-fasi
     // Nafnskiltið: sögu-staðreynd í gulli (L8 sýnir „Framtíðin — óskrifað" beint úr radherraTexti).
+    // Framtíðar-sviðsmynd: EKKERT nafn — bara embættisheitið (persónan er nafnlaus, sjá ofar).
     const nafn = wrap.querySelector('#lk-pmh-nafn');
-    if (nafn) nafn.innerHTML = 'Forsætisráðherra: <b>' + esc(radherraTexti(st.round) || '') + '</b>';
+    const nafnTxt = svErFramtid(st) ? null : radherraTexti(st.round);
+    if (nafn) nafn.innerHTML = nafnTxt ? 'Forsætisráðherra: <b>' + esc(nafnTxt) + '</b>' : '<b>Forsætisráðherra</b>';
     const cnt = wrap.querySelector('#lk-pmh-count');
     if (cnt) cnt.textContent = msgs.length > 1 ? (S.pmIdx + 1) + '/' + msgs.length + ' · smelltu til að fletta' : '';
     const el = wrap.querySelector('#lk-pmh-text'); if (!el) return;
@@ -1553,9 +1580,16 @@ export function mountLeikur(root) {
     const loggedIn = u.loggedIn === true || me.loggedIn === true || leikstjori || nemandi || isAdmin;
     const canJoin = nemandi || isAdmin || leikstjori;   // þjóns-gáttin á /join er nemandi|kerfisstjóri|leikstjóri (má prófa eigin leik)
     const last = lastFacCfg() || {};
-    const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum 8 kjörtímabil (2000–2032) — með lifandi Íslandskorti og stigatöflu á skjávarpa.</p></div>';
+    // Ártalið er sótt í sjálfgefnu sviðsmyndina svo textinn geti ekki rekið frá skránni.
+    const svSjalf = svidsmyndOf(SVIDSMYND_SJALFGEFIN);
+    const intro = '<div class="lk-card"><h1>🎮 RÁS-Leikurinn</h1><p>Turn-based þjóðhagfræði-hermir. Keppandi „ríkisstjórnar"-lið stýra hvert sínu Íslandi gegnum ' + svSjalf.rounds + ' kjörtímabil — sögulega (' + esc(svSjalf.heiti) + ') eða inn í framtíðina — með lifandi Íslandskorti og stigatöflu á skjávarpa.</p></div>';
     const untilTxt = fmtUntil(me.until);
+    // SVIÐSMYNDA-VAL (svidsmyndir.mjs): heiti + undirtitill í valmynd, blurb valinnar sviðsmyndar undir.
+    const svSel = SVIDSMYNDA_LISTI.some((s) => s.id === last.svidsmynd) ? last.svidsmynd : SVIDSMYND_SJALFGEFIN;
+    const svOpts = SVIDSMYNDA_LISTI.map((s) => '<option value="' + esc(s.id) + '"' + (s.id === svSel ? ' selected' : '') + '>' + esc(s.heiti + ' — ' + s.undirtitill) + '</option>').join('');
     const settings = '<div id="lk-settings" class="lk-onb-settings"><div class="lk-onb-settings-h">⚙️ Stillingar leiksins <span class="lk-muted">(veljast hér — læsast við stofnun)</span></div>'
+      + '<label id="lk-set-svidsmynd">🗺️ Sviðsmynd: <select id="lk-svidsmynd" style="padding:4px 6px;margin-left:4px">' + svOpts + '</select></label>'
+      + '<p class="lk-muted lk-sv-blurb" id="lk-svidsmynd-blurb" style="margin:2px 0 8px 22px;font-size:12.5px">' + esc(svidsmyndOf(svSel).blurb) + '</p>'
       + '<label id="lk-set-studio"><input type="checkbox" id="lk-studio"' + (last.mode === 'classic' ? '' : ' checked') + '/>🎛️ Stjórnstöð — þátttakendur fá sleða + lifandi gröf (annars einföld val)</label>'
       + '<label id="lk-set-roles"><input type="checkbox" id="lk-roles"' + (last.roles ? ' checked' : '') + '/>🎭 Leynileg hlutverk — hvert lið fær ólíkt, hulið umboð (afhjúpað í leikslok)</label>'
       + '<label id="lk-set-timer">⏱️ Umferðar-klukka: <input type="number" id="lk-timer-min" min="0" max="60" step="1" placeholder="0" value="' + (last.timerMin > 0 ? +last.timerMin : '') + '" style="width:56px;padding:4px 6px;margin:0 4px"/> mín <span class="lk-muted">(0 = engin — bara sjónræn ýting, læsir engu)</span></label>'
@@ -1585,6 +1619,9 @@ export function mountLeikur(root) {
       const n = (root.querySelector('#lk-name').value || '').trim();
       if (c.length >= 4 && n) joinGame(c, n); else alert('Sláðu inn kóða og nafn.');
     };
+    // SVIÐSMYND: lýsingin undir valmyndinni fylgir valinu (blurb úr skránni).
+    const svEl = root.querySelector('#lk-svidsmynd'), svB = root.querySelector('#lk-svidsmynd-blurb');
+    if (svEl && svB) svEl.addEventListener('change', () => { svB.textContent = svidsmyndOf(svEl.value).blurb; });
     // RÁÐHERRASKIPTING: rofinn fylgir Stjórnstöðinni — slökkt á henni → rofinn óvirkur (og af) með skýringu.
     const stEl = root.querySelector('#lk-studio'), rhEl = root.querySelector('#lk-radherrar'), rhNote = root.querySelector('#lk-radherrar-note');
     if (stEl && rhEl) stEl.addEventListener('change', () => { const on = stEl.checked; rhEl.disabled = !on; if (!on) rhEl.checked = false; if (rhNote) rhNote.textContent = on ? '(aðeins í Stjórnstöð; liðsstærð 3–7 best)' : '(þarf Stjórnstöð — kveiktu á henni fyrst)'; });
@@ -1596,7 +1633,9 @@ export function mountLeikur(root) {
   function handbookCard(st) {
     const cur = st.round || 0;
     if (S.hbRound !== cur) { S.hbRound = cur; if (cur) S.openDetails.add('hb-' + cur); } // opna núverandi lotu sjálfkrafa við skipti
-    const evOf = (r) => SCENARIO.events.find((e) => e.round === r) || {};
+    // Atburðahausar úr SVIÐSMYND leiksins (ekki fast SCENARIO) svo ártal/titill stemmi við það sem spilað er.
+    const hbEvents = svidsmyndOf(svOf(st).id).events || [];
+    const evOf = (r) => hbEvents.find((e) => e.round === r) || {};
     const entry = (h) => {
       const e = evOf(h.round), isCur = h.round === cur, isOpen = S.openDetails.has('hb-' + h.round);
       return '<details data-keep="hb-' + h.round + '"' + (isOpen ? ' open' : '') + ' style="margin:5px 0;border:1px solid ' + (isCur ? '#f6b13b' : '#2a3040') + ';border-radius:8px;padding:8px 12px' + (isCur ? ';background:rgba(246,177,59,.06)' : '') + '">'
@@ -1651,7 +1690,10 @@ export function mountLeikur(root) {
         + '</div></details>'
       : '';
     // VERK B: „?"-hnappur við hlið handbókar opnar uppsetningar-vísinn aftur (eftir lok/sleppingu).
-    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + thokaHtml + sattHb + rhHb + HANDBOOK.map(entry).join('') + '</div>';
+    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>'
+      // HANDBOOK-efnið er skrifað fyrir sögulegu sviðsmyndina — segjum það hreint út ef spilað er annað.
+      + (svHefurSogu(st) ? '' : '<p class="lk-muted" style="font-size:12px;margin:0 0 6px;border-left:3px solid #8ca0c8;padding-left:8px">🔭 Þessi leikur notar sviðsmyndina <b>' + esc(svHeiti(st)) + '</b>. Kjörtímabila-leiðsögnin hér að neðan er byggð á hagsögunni ' + esc(svidsmyndOf(SVIDSMYND_SJALFGEFIN).heiti) + ' og á því aðeins við sem almenn hagstjórnar-leiðsögn.</p>')
+      + thokaHtml + sattHb + rhHb + HANDBOOK.map(entry).join('') + '</div>';
   }
   // VERK B: stillingar leiksins eins og leikstjóri sér þær í lobby. Þjóns-sannleikur þar sem hann er til (mode/difficulty;
   // timerSec/surpriseOn/rolesOn EF þjónninn bætir þeim í lobby-state), annars það sem vafrinn man frá stofnun; annar vafri → „óþekkt".
@@ -1669,7 +1711,10 @@ export function mountLeikur(root) {
     const satt = typeof st.sattOn === 'boolean' ? st.sattOn : (st.satt && typeof st.satt.on === 'boolean' ? st.satt.on : (loc ? !!loc.satt : null));
     // RÁÐHERRASKIPTING: þjóns-sannleikur ef hann fylgir (radherrarOn-flagg EÐA st.radherrar.on), annars það sem vafrinn man frá stofnun.
     const radherrar = typeof st.radherrarOn === 'boolean' ? st.radherrarOn : (st.radherrar && typeof st.radherrar.on === 'boolean' ? st.radherrar.on : (loc ? !!loc.radherrar : null));
+    // SVIÐSMYND: þjóns-sannleikur (st.svidsmynd úr /state) þar sem hann er til, annars minni vafrans frá stofnun.
+    const svid = (st.svidsmynd && st.svidsmynd.id) ? st.svidsmynd : (loc && loc.svidsmynd ? svidsmyndOf(loc.svidsmynd) : null);
     return { mode, modeTxt: mode === 'studio' ? '🎛️ Stjórnstöð (sleðar + lifandi gröf)' : 'Einföld val', difficulty, difficultyTxt: DIFF_LABEL(difficulty),
+      svidsmynd: svid, svidsmyndTxt: svid == null ? unk : (svid.heiti + ' — ' + svid.undirtitill),
       timerMin, timerTxt: timerMin == null ? unk : (timerMin > 0 ? timerMin + ' mín per lotu' : 'engin'),
       surprise, surpriseTxt: surprise == null ? unk : (surprise ? 'kveikt' : 'slökkt'), roles, rolesTxt: roles == null ? unk : (roles ? 'kveikt' : 'slökkt'),
       thoka, thokaTxt: thoka == null ? unk : (thoka ? 'kveikt — liðin sjá hagtölur með eins kjörtímabils töf' : 'slökkt'),
@@ -1679,7 +1724,7 @@ export function mountLeikur(root) {
   function settingsCard(st) {
     const c = facCfg(st), real = (st.teams || []).filter((t) => !isBotTeam(t));
     const row = (id, k, v) => '<div class="lk-lb-row"' + (id ? ' id="' + id + '"' : '') + '><span>' + k + '</span><span><b>' + esc(v) + '</b></span></div>';
-    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('lk-set-radherrar', '🎭 Ráðherraskipting', c.radherrarTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
+    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('lk-set-svidsmynd', '🗺️ Sviðsmynd', c.svidsmyndTxt) + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('lk-set-radherrar', '🎭 Ráðherraskipting', c.radherrarTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
       + (c.thoka ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🌫️ ' + esc(THOKA_BLURB) + ' Þú og skjávarpinn sjáið áfram allt; tölurnar afhjúpast fyrir liðin við hvert uppgjör.</p>' : '')
       + (c.satt ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🤝 ' + esc(SATT_BLURB) + '</p>' : '')
       + (c.radherrar ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🎭 ' + esc(RH_BLURB) + '</p>' : '')
@@ -1697,7 +1742,7 @@ export function mountLeikur(root) {
       // RÁÐHERRASKIPTING: sæta-yfirlit per lið úr lockRoster[].radherrar (stada-fylki EÐA {key:handle}-map): ✓ tekið / · laust.
       const rosterList = rl.map((r) => '<span style="margin-right:12px;white-space:nowrap">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + rhRosterSeats(r.radherrar) + (r.radherrar != null && r.lockFallback === true ? ' <span class="lk-muted" title="Enginn forsætisráðherra — hver sem er í liðinu læsir">· enginn PM</span>' : '') + '</span>').join('');
       controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
-    } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= 8 ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
+    } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= svLotur(st) ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
     else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button><p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
     // PERSÓNUVERND: „Eyða leik núna" (POST /<code>/erase, fac-tákn) — aðeins í lobby og að leik loknum (þjónninn svarar 409 í gangi).
     // Eyðir leik + liðum + ákvörðunum + uppgjöri strax án þess að bíða vikulegu grisjunarinnar (sjá /leikur/personuvernd/).
@@ -1830,23 +1875,26 @@ export function mountLeikur(root) {
     const pts = mineTraj ? mineTraj.points.slice().sort((a, b) => a.round - b.round) : [];
     if (!pts.length) return '';
     const perRoundScores = pts.map((p, i) => ({ round: p.round, score: Math.round((p.value - (i ? pts[i - 1].value : 0)) * 10) / 10 }));
-    const realityPerTerm = perRoundScores.map((p) => {
-      const idx = Math.min((REALITY.verdbolga || []).length - 1, p.round * 4 - 1);
-      // Þolið gagnvart per-lotu markmiðum: skora raunveruleikann yfir AÐEINS þau KPI sem hafa REALITY-gögn (kjarninn).
-      const subKpis = st.mandate.kpis.filter((kpi) => REALITY[kpi.key]); const realK = {};
-      for (const kpi of subKpis) realK[kpi.key] = REALITY[kpi.key][idx];
+    // Raun-viðmið per kjörtímabil — AÐEINS ef sviðsmyndin á raungögn. Framtíðar-sviðsmynd (reality=null)
+    // skilar tómum lista og buildRecap sleppir þá öllum raunveruleika-samanburði.
+    const svRec = svHefurSogu(st) ? (svidsmyndOf(svOf(st).id).reality || null) : null;
+    const realityPerTerm = !svRec ? [] : perRoundScores.map((p) => {
+      const idx = Math.min((svRec.verdbolga || []).length - 1, p.round * 4 - 1);
+      // Þolið gagnvart per-lotu markmiðum: skora raunveruleikann yfir AÐEINS þau KPI sem hafa raun-gögn (kjarninn).
+      const subKpis = st.mandate.kpis.filter((kpi) => svRec[kpi.key]); const realK = {};
+      for (const kpi of subKpis) realK[kpi.key] = svRec[kpi.key][idx];
       return subKpis.length ? { round: p.round, score: Math.round(scoreRound(realK, { ...st.mandate, kpis: subKpis }).composite * 10) / 10 } : { round: p.round, score: null };
     });
     const leversFull = [];
     (st.history || []).forEach((h, i) => { if (h && h.levers) leversFull.push({ round: i + 1, levers: h.levers }); });
     if (st.mode === 'studio' && st.draft && Object.keys(st.draft).length) leversFull.push({ round: (st.history || []).length + 1, levers: st.draft });
-    const events = ((st.scenarioSoFar && st.scenarioSoFar.length ? st.scenarioSoFar : SCENARIO.events) || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
+    const events = ((st.scenarioSoFar && st.scenarioSoFar.length ? st.scenarioSoFar : svidsmyndOf(svOf(st).id).events) || []).map((e) => ({ round: e.round, icon: e.icon, title: e.title }));
     const rc = buildRecap({ perRoundScores, realityPerTerm, leversFull, mandate: st.mandate, events, baseline: BASELINE, disp, finalPerKpi: st.finalPerKpi || [], avgApproval: st.avgApproval != null ? st.avgApproval : null });
     const polSum = (st.policySummary && st.policySummary.length)
       ? '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>🏛️ Stóru ákvarðanirnar ykkar á leiðinni:</b><ul style="margin:5px 0 0;padding-left:20px;line-height:1.6;font-size:13.5px">' + st.policySummary.map((p) => '<li>' + p.icon + ' ' + esc(p.label) + ': <b>' + esc(p.choice) + '</b></li>').join('') + '</ul></div>'
       : '';
     if (!rc.lines.length && !polSum) return '';
-    return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna 2000–2032</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + polSum + '</div>';
+    return '<div class="lk-card lk-recap"><h2>📜 Yfirlit kjörtímabilanna ' + esc(svAr0(st) + '–' + (svAr0(st) + svLotur(st) * 4)) + '</h2>' + rc.lines.map((l) => '<p class="lk-recap-line">' + l + '</p>').join('') + polSum + '</div>';
   }
 
   // VERK 1c: pólitíski ásinn í leikslok liðs-sýnar — lína per lið (mitt lið þykkast), lokastaða í legend.
@@ -1860,7 +1908,7 @@ export function mountLeikur(root) {
       const last = (t.ferill || [])[(t.ferill || []).length - 1];
       return '<span class="lk-upp-leg' + (t.teamId === S.teamId ? ' me' : '') + '"><span class="lk-swatch" style="background:' + colorOf(t.teamId) + '"></span>' + esc(t.name) + (t.teamId === S.teamId ? ' (þið)' : '') + (last ? ' — <b style="color:' + polColor(last.flokkur) + '">' + esc(POL_STUTT[last.flokkur] || last.flokkur) + ' (' + polStig(last.stig) + ')</b>' : '') + '</span>';
     }).join('');
-    return '<div class="lk-card"><h2 title="' + esc(POL_INFO) + '">🧭 Pólitíska litrófið 2000–2032</h2><div class="lk-upp-legend">' + legend + '</div>'
+    return '<div class="lk-card"><h2 title="' + esc(POL_INFO) + '">🧭 Pólitíska litrófið ' + svTimabil(st) + '</h2><div class="lk-upp-legend">' + legend + '</div>'
       + lkLineChart('Vinstri (−100) ↔ Hægri (+100)', series, { min: -100, max: 100, colorOf, widthOf: (id) => (id === S.teamId ? 3.4 : 1.3) })
       + '<p class="lk-muted lk-pol-info">ⓘ ' + esc(POL_INFO) + '</p></div>';
   }
@@ -2050,14 +2098,14 @@ export function mountLeikur(root) {
       const rounds = st.round || 8, cum = me ? (me.cumulative || 0) : 0, avg = rounds ? cum / rounds : 0, et = endTitle(avg);
       const rank = me ? ([...st.teams].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0)).findIndex((t) => t.id === S.teamId) + 1) : 0;
       const medals = st.medals || [];
-      const shareText = '📰 RÁS-TÍÐINDI 2032 — Ísland 2000–2032\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + (medals.length ? '\nTitlar: ' + medals.map((m) => m.icon + ' ' + m.title).join(', ') : '') + '\nkarp.is/leikur/';
+      const shareText = '📰 RÁS-TÍÐINDI ' + svArLok(st) + ' — ' + svHeiti(st) + '\n' + et.title + '\nUppsafnað: ' + num(cum) + ' stig (meðal ' + num(avg) + '/100)' + (rank ? '\nSæti: ' + rank + '/' + st.teams.length : '') + (medals.length ? '\nTitlar: ' + medals.map((m) => m.icon + ' ' + m.title).join(', ') : '') + '\nkarp.is/leikur/';
       const medalHtml = medals.length
         ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">' + medals.map((m) => '<span title="' + esc(m.desc) + '" style="display:inline-flex;align-items:center;gap:5px;background:rgba(246,177,59,.13);border:1px solid #f6b13b55;border-radius:20px;padding:4px 11px;font-size:12.5px"><span style="font-size:15px">' + m.icon + '</span> <b>' + esc(m.title) + '</b></span>').join('') + '</div>'
         : '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">Engir sérstakir verðlaunatitlar að þessu sinni — reyndu aftur og náðu markmiðunum!</p>';
       const frontPage = '<div class="lk-card" style="padding:0;overflow:hidden;border:1px solid var(--line)">'
-        + '<div style="border-bottom:3px double var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><b style="font-size:21px;letter-spacing:1.5px">📰 RÁS-TÍÐINDI</b><span class="lk-muted" style="font-size:12px">Reykjavík · 2032 · lokafrétt</span></div>'
+        + '<div style="border-bottom:3px double var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><b style="font-size:21px;letter-spacing:1.5px">📰 RÁS-TÍÐINDI</b><span class="lk-muted" style="font-size:12px">Reykjavík · ' + svArLok(st) + ' · lokafrétt</span></div>'
         + '<div style="padding:16px">'
-        + '<div class="lk-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Arfleifð ríkisstjórnarinnar 2000–2032</div>'
+        + '<div class="lk-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:1px">Arfleifð ríkisstjórnarinnar ' + svTimabil(st) + '</div>'
         + '<div class="lk-title-big" style="margin:4px 0 6px">' + esc(et.title) + '</div>'
         + '<p style="margin:0 0 8px;font-size:14px;line-height:1.5">' + esc(et.blurb) + '</p>'
         + '<div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0;margin:8px 0"><span>📊 <b>' + num(cum) + '</b> stig</span><span>📈 meðal <b>' + num(avg) + '</b>/100</span>' + (rank ? '<span>🏅 sæti <b>' + rank + '/' + st.teams.length + '</b></span>' : '') + (st.avgApproval != null ? '<span>🗳️ fylgi <b>' + st.avgApproval + '%</b></span>' : '') + '</div>'
@@ -2123,6 +2171,10 @@ export function mountLeikur(root) {
   // Í <details data-keep="saga"> svo opið/lokað lifi poll (S.openDetails) og spjaldið þrengi ekki
   // skjáinn; opið sjálfgefið í FYRSTA uppgjöri leiksins (seed einu sinni), munað eftir það.
   function sagaCard(st) {
+    // SVIÐSMYND án hagsögu (hefurSogu=false, t.d. framtíðin 2026–2058): EKKERT „Svona fór það í alvöru".
+    // Enginn samanburður er til — og við skáldum hann ekki. Í staðinn ein hógvær lína svo autt bil
+    // í uppgjörinu líti ekki út eins og villa.
+    if (!svHefurSogu(st)) return '<p class="lk-muted lk-saga-engin">🔭 Framtíðin er óskrifuð — engin raun-saga til samanburðar.</p>';
     const saga = sagaFyrirLotu(st.round); if (!saga) return '';
     if (!S.sagaSeeded) { S.sagaSeeded = true; if (st.round === 1) S.openDetails.add('saga'); }
     const mine = (st.results || []).find((r) => r.teamId === S.teamId);
@@ -2189,9 +2241,11 @@ export function mountLeikur(root) {
       const kp = mine.detail.kpis;
       const heads = newsHeadlines(kp);
       extras += '<div class="lk-card"><h2>📰 Fréttir kjörtímabilsins</h2><div class="lk-news">' + heads.map((h) => '<div class="lk-news-item"><span>📰</span><span>' + esc(h) + '</span></div>').join('') + '</div></div>';
-      const idx = Math.min((REALITY.verdbolga || []).length - 1, st.round * 4 - 1);
-      const subKpis = st.mandate.kpis.filter((kpi) => REALITY[kpi.key]); const realK = {};
-      for (const kpi of subKpis) realK[kpi.key] = REALITY[kpi.key][idx];
+      // „🕰️ Svona fór það" — AÐEINS þegar sviðsmyndin á raungögn (reality). Framtíðin hefur engin → sleppt.
+      const svR = svHefurSogu(st) ? (svidsmyndOf(svOf(st).id).reality || null) : null;
+      const idx = svR ? Math.min((svR.verdbolga || []).length - 1, st.round * 4 - 1) : -1;
+      const subKpis = svR ? st.mandate.kpis.filter((kpi) => svR[kpi.key]) : []; const realK = {};
+      for (const kpi of subKpis) realK[kpi.key] = svR[kpi.key][idx];
       if (subKpis.length) {
         const realComp = scoreRound(realK, { ...st.mandate, kpis: subKpis }).composite, you = mine.roundScore, diff = Math.round((you - realComp) * 10) / 10;
         const dcol = diff >= 0 ? '#54d08a' : '#e78284', dtxt = 'þú stóðst þig ' + num(Math.abs(diff)) + ' stigum ' + (diff >= 0 ? 'BETUR' : 'VERR') + ' en raunveruleg ríkisstjórn';
@@ -2235,9 +2289,12 @@ export function mountLeikur(root) {
   // ── Studio-stjórnstöð (fullur hermir sem ákvörðunar-yfirborð; forskoðun keyrir vélina á eigin drögum) ──
   function initDials(st) {
     const d = defaultDials(BASELINE);
-    // Byrjunar-staða = besta-nálgun á 2000-stefnu (klippt) — EN aðeins fyrir tól sem eru til strax (KT1).
-    // Tól sem opnast síðar (LEVER_UNLOCK>1) byrja HLUTLAUS (á grunni) svo spilarinn stilli þau sjálfur (t.d. ferðamannagjald).
-    for (const [k, v] of Object.entries(YEAR2000_DIALS)) { if ((LEVER_UNLOCK[k] || 1) > 1) continue; const c = BASELINE.levers[k]; if (c) d[k] = Math.max(c.min, Math.min(c.max, v)); }
+    // Byrjunar-staða = SPÓLUN sviðsmyndarinnar aftur til upphafsárs hennar (klippt) — EN aðeins fyrir tól
+    // sem eru til strax (KT1). Tól sem opnast síðar (LEVER_UNLOCK>1) byrja HLUTLAUS (á grunni) svo
+    // spilarinn stilli þau sjálfur (t.d. ferðamannagjald).
+    // ⚠ baseline.json ER Ísland í dag (~2026): 'island2000' þarf YEAR2000_DIALS til að komast aftur til
+    // 2000, en FRAMTÍÐAR-sviðsmynd hefur dials={} → grunnurinn stendur óspólaður, sem er einmitt rétt.
+    for (const [k, v] of Object.entries(svidsmyndOf(svOf(st).id).dials || {})) { if ((LEVER_UNLOCK[k] || 1) > 1) continue; const c = BASELINE.levers[k]; if (c) d[k] = Math.max(c.min, Math.min(c.max, v)); }
     for (const set of (st.history || [])) if (set && set.levers) for (const [k, v] of Object.entries(set.levers)) d[k] = v;
     return d;
   }
@@ -2250,18 +2307,19 @@ export function mountLeikur(root) {
     for (const k in inp.shocks) shkOv[k] = inp.shocks[k].value;
     return simulate({ baseline: BASELINE, links: LINKS, levers: levOv, shocks: shkOv, quarters: inp.quarters });
   }
-  const termYears = (r) => [YEAR_START + 4 * (r - 1), YEAR_START + 4 * r];
-  // Tímalínu-borði: 8 kjörtímabil 2000▬2032, núverandi gyllt, liðin ✓, framtíð faint (án spillis).
+  const termYears = (r, ar0) => [ar0 + 4 * (r - 1), ar0 + 4 * r];
+  // Tímalínu-borði: kjörtímabil sviðsmyndarinnar (t.d. 2000▬2032 eða 2026▬2058), núverandi gyllt,
+  // liðin ✓, framtíð faint (án spillis). Upphafsár og fjöldi koma úr sviðsmyndinni, ekki fastar tölur.
   function ribbonHtml(st) {
-    const cur = st.round, evs = st.scenarioSoFar || [];
+    const cur = st.round, evs = st.scenarioSoFar || [], ar0 = svAr0(st), n = svLotur(st);
     let segs = '';
-    for (let r = 1; r <= 8; r++) {
-      const [y0, y1] = termYears(r), cls = r < cur ? 'past' : r === cur ? 'now' : 'future';
+    for (let r = 1; r <= n; r++) {
+      const [y0, y1] = termYears(r, ar0), cls = r < cur ? 'past' : r === cur ? 'now' : 'future';
       const ev = r <= cur ? evs[r - 1] : null, ic = ev && ev.icon ? ev.icon : (r < cur ? '✓' : '');
       const tip = ev ? y0 + '–' + y1 + ': ' + ev.title : y0 + '–' + y1 + ' (óráðið)';
       segs += `<div class="lk-term ${cls}" title="${esc(tip)}"><span class="lk-term-ic">${ic}</span><span class="lk-term-y">${y0}</span></div>`;
     }
-    return `<div class="lk-ribbon">${segs}<div class="lk-term end"><span class="lk-term-ic">🏁</span><span class="lk-term-y">2032</span></div></div>`;
+    return `<div class="lk-ribbon">${segs}<div class="lk-term end"><span class="lk-term-ic">🏁</span><span class="lk-term-y">${ar0 + n * 4}</span></div></div>`;
   }
   // ÞOKA — viðmið ráðgjafa-matsins í forskoðun: nýjasta BIRTA kjörtímabil (st.thoka.birtLota = N-2) → loka-fjórðungur
   // þess í útkomu-slóð vélarinnar (lota r endar í mid[r*4-1]; slóðin er endurspiluð SAGA liðsins, svo gildið er nákvæmlega
@@ -2274,7 +2332,7 @@ export function mountLeikur(root) {
   const thokaRefVal = (oc, key, ref) => (ref.idx >= 0 && ref.idx < oc.mid.length) ? oc.mid[ref.idx] : ((((BASELINE.outcomes[key] || {}).path || [])[0]) ?? oc.mid[0]);
   function drawStudioPreview(st) {
     const el = root.querySelector('#lk-st-chart'); if (!el) return;
-    const sim = studioSim(st), endYear = YEAR_START + st.round * 4;
+    const sim = studioSim(st), ar0 = svAr0(st), endYear = ar0 + st.round * 4;
     const kpiVals = {}; for (const k of st.mandate.kpis) { const oc = sim.outcomes[k.key]; kpiVals[k.key] = oc ? oc.mid[oc.mid.length - 1] : 0; }
     const sc = scoreRound(kpiVals, st.mandate);
     const stab = govtStability(kpiVals), pop = stab.approval, popCol = pop >= 55 ? '#54d08a' : pop >= 35 ? '#e8c14a' : '#e78284';
@@ -2332,15 +2390,17 @@ export function mountLeikur(root) {
     // forskoðunar-gildin svo pósi + ráðgjafa-línur hornsins bregðist við sleða-drögunum (pmUpdate neðst).
     S.pmApproval = pop; S.pmApprovalRound = st.round; S.pmKpis = kpiVals; S.pmKpisRound = st.round;
     if (!fog) {
-      let charts = '<div class="lk-card"><h2 title="Þróun frá 2000: þín braut (heil lína), grunnlína (punktar), raunveruleikinn (fjólublár) og markmið (gult).">📈 Þróun 2000–' + endYear + '</h2><div class="lk-charts">';
+      // Raun-línan (fjólublá) kemur úr sviðsmyndinni — framtíðar-sviðsmynd hefur reality=null → engin lína og engin skýring á henni.
+      const svReality = svidsmyndOf(svOf(st).id).reality;
+      let charts = '<div class="lk-card"><h2 title="Þróun frá ' + ar0 + ': þín braut (heil lína), grunnlína (punktar)' + (svReality ? ', raunveruleikinn (fjólublár)' : '') + ' og markmið (gult).">📈 Þróun ' + ar0 + '–' + endYear + '</h2><div class="lk-charts">';
       for (const k of st.mandate.kpis) {
         const oc = sim.outcomes[k.key]; if (!oc) continue;
-        const mid = oc.mid, last = mid.length - 1, bau = (BASELINE.outcomes[k.key] || {}).path || [], reality = REALITY[k.key] || [];
+        const mid = oc.mid, last = mid.length - 1, bau = (BASELINE.outcomes[k.key] || {}).path || [], reality = (svReality && svReality[k.key]) || [];
         const tgt = k.dir === 'target' ? k.target : k.dir === 'max' ? k.max : k.min, fin = mid[last], b = k.band || 0;
         const good = k.dir === 'target' ? Math.abs(fin - k.target) <= b : k.dir === 'max' ? fin <= k.max + b : fin >= k.min - b;
-        charts += stChart(k.label + (k.weight > 1 ? ' ×' + k.weight : ''), mid, bau, tgt, good ? '#54d08a' : '#e78284', reality);
+        charts += stChart(k.label + (k.weight > 1 ? ' ×' + k.weight : ''), mid, bau, tgt, good ? '#54d08a' : '#e78284', reality, ar0);
       }
-      charts += '</div><div class="lk-muted" style="font-size:11px;margin-top:4px">– – grunnlína · <span style="color:#b98cff">▬ raunveruleikinn</span> · gul strikalína = markmið</div></div>';
+      charts += '</div><div class="lk-muted" style="font-size:11px;margin-top:4px">– – grunnlína · ' + (svReality ? '<span style="color:#b98cff">▬ raunveruleikinn</span> · ' : '') + 'gul strikalína = markmið</div></div>';
       html += charts;
     }
     // Hitakortið: venjulega tölur allra 36 útkoma; í þoku AÐEINS pílur (átt+styrkur m.v. birtu tölurnar) — tölur hvorki í flís né tooltip.
@@ -2422,7 +2482,7 @@ export function mountLeikur(root) {
     const newToolsBanner = (st.round > 1 && newTools.length) ? '<div class="lk-newtools">🆕 <b>Ný stjórntæki opnuðust:</b> ' + newTools.map(esc).join(', ') + '</div>' : '';
     // #4 Mýkri byrjun: intro-borði aðeins í umferð 1.
     const introBanner = st.round === 1 ? '<div class="lk-intro">👋 <b>Þú stýrir Íslandi frá árinu 2000.</b> Byrjaðu á kjarna-tólunum fjórum (⭐): <b>Stýrivextir, Skattar, Tilfærslur, Menntun</b>. Færðu einn sleða, sjáðu áhrifin á gröfunum — og fínstilltu hin tólin síðar.</div>' : '';
-    const [y0, y1] = termYears(st.round), ev = st.event;
+    const [y0, y1] = termYears(st.round, svAr0(st)), ev = st.event;
     // VERK 2: term-head er nú flex — texti vinstri, PM-blokkin hægri (pmHeadHtml, fyllt í pmUpdate).
     // VERK 3: ev.watch-línan er FARIN héðan — textinn er fyrsta skilaboð ráðherrans (pmMessages).
     // VERK 5: arfleifðin birtist á NÁKVÆMLEGA tveimur stöðum: stuttar badge-flísar (policyBadgesRow)
@@ -2430,7 +2490,7 @@ export function mountLeikur(root) {
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
       ribbonHtml(st) +
-      `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}${rhHeadChip(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
+      `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/${svLotur(st)} · ${y0}–${y1}</span><span class="lk-term-badge lk-sv-badge" title="${esc(svOf(st).undirtitill || '')}">🗺️ ${esc(svHeiti(st))}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}${rhHeadChip(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
       thokaBanner(st) +   // ÞOKA: borði STRAX undir kjörtímabils-hausnum (á undan badge-röð/arfleifð)
       rhPickerCard(st) +   // RÁÐHERRASKIPTING: ríkisstjórnarfundurinn (sæta-val) undir hausnum, ofan badge-raðar — áberandi meðan sæti vantar
       policyBadgesRow(st) +   // F1-V3: badge-röð STRAX undir kjörtímabils-hausnum, á undan arfleifðar-spjaldi
@@ -2603,8 +2663,8 @@ export function mountLeikur(root) {
   // S6 — áhorfenda-sýn (útsending fyrir skjávarpa): stór stigatafla + kjörtímabil + þróunar-graf.
   function renderWatch(st) {
     maybeSepopWatch(st);   // F2-V2: atviks-spjald á skjávarpa í 8 sek við nýja lotu (sjálf-lokun, engir valkostir)
-    const phaseTxt = { lobby: 'Beðið eftir að leikur hefjist…', decide: 'Lið taka ákvarðanir', resolved: 'Umferð leyst — bíð eftir næsta kjörtímabili', ended: '🏁 Leik lokið — árið er 2032' }[st.phase] || st.phase;
-    const [y0, y1] = termYears(st.round || 1), ev = st.event;
+    const phaseTxt = { lobby: 'Beðið eftir að leikur hefjist…', decide: 'Lið taka ákvarðanir', resolved: 'Umferð leyst — bíð eftir næsta kjörtímabili', ended: '🏁 Leik lokið — árið er ' + svArLok(st) }[st.phase] || st.phase;
+    const [y0, y1] = termYears(st.round || 1, svAr0(st)), ev = st.event;
     const teams = [...(st.teams || [])].sort((a, b) => (b.cumulative || 0) - (a.cumulative || 0));
     const maxCum = Math.max(1, ...teams.map((t) => t.cumulative || 0));
     const board = teams.map((t, i) => {
@@ -2616,11 +2676,11 @@ export function mountLeikur(root) {
     const chart = (st.trajectory && st.trajectory.some((s) => s.points && s.points.length))
       ? '<div class="lk-card"><h2>📈 Þróun stiga</h2>' + lkLineChart('Uppsafnað stig', st.trajectory, {}) + '</div>' : '';
     // Sigurvegari í leikslok (efst raðað).
-    const winner = (st.phase === 'ended' && teams.length) ? '<div class="lk-card" style="text-align:center;border:2px solid #f6b13b;background:linear-gradient(180deg,#2a2312,#181c24)"><div style="font-size:24px;font-weight:800;color:#f6b13b">🏆 ' + esc(teams[0].name) + ' sigraði!</div><p class="lk-muted" style="margin:4px 0 0">Hæsta uppsafnaða skor eftir 8 kjörtímabil · Ísland 2000–2032</p></div>' : '';
+    const winner = (st.phase === 'ended' && teams.length) ? '<div class="lk-card" style="text-align:center;border:2px solid #f6b13b;background:linear-gradient(180deg,#2a2312,#181c24)"><div style="font-size:24px;font-weight:800;color:#f6b13b">🏆 ' + esc(teams[0].name) + ' sigraði!</div><p class="lk-muted" style="margin:4px 0 0">Hæsta uppsafnaða skor eftir ' + svLotur(st) + ' kjörtímabil · ' + esc(svHeiti(st)) + '</p></div>' : '';
     // Samhengi kjörtímabils (fyrir áhorfendur/kennslustofu): atburður + hvað þarf að huga að.
     const context = (ev && (st.phase === 'decide' || st.phase === 'resolved')) ? '<div class="lk-card"><h2>' + (ev.icon ? ev.icon + ' ' : '') + esc(ev.title) + '</h2>' + (ev.text ? '<p style="font-size:15.5px;line-height:1.6">' + esc(ev.text) + '</p>' : '') + (ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : '') + '</div>' : '';
     root.innerHTML =
-      '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
+      '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — ' + esc(svHeiti(st)) : 'Kjörtímabil ' + st.round + '/' + svLotur(st) + ' · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
       thokaBordiWatch(st) +    // ÞOKA: skjávarpinn sýnir þoku í decide eins og liðin (þjónninn síar tákn-laust /state)
       sattWatchBordi(st) +     // ÞJÓÐARSÁTT: „lið velja" (án vals) + Karphús-niðurtalningin stór
       winner +

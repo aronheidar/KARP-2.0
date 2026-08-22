@@ -4,6 +4,13 @@
 // og kort-throp (Íslandskorts-þrep). Sviðsmyndin er EITT kjörtímabil — KT3, bankahrunið 2008–2012 —
 // tekið beint úr SCENARIO í game-config svo demo-ið segir sömu sögu og fulli leikurinn.
 //
+// ⚠ SVIÐSMYNDA-LÆSING: demo-ið er NEGLT við sögulegu sviðsmyndina 'island2000' og fylgir EKKI
+// sviðsmynda-vali leikstjórans (svidsmyndir.mjs). Ástæðan er efnisleg, ekki tæknileg: „Lifðu af 2008"
+// er eitt tiltekið kjörtímabil úr hagsögu Íslands (KT3, 2008–2012) með raun-KPI til samanburðar
+// (REALITY) — það á sér enga samsvörun í framtíðar-sviðsmynd. Þess vegna les þessi eining SCENARIO/
+// REALITY/YEAR_START BEINT úr game-config og tekur ENGA sviðsmynd sem viðfang. Ný sviðsmynd MÁ ekki
+// breyta demo-inu; vilji einhver demo úr annarri sviðsmynd þarf sér-einingu með sínum eigin föstum.
+//
 // Keyrir jafnt í vafra (Vite, /leikur/demo/) og í Node (próf) — sama isomorphic-regla og engine.mjs.
 import { SCENARIO, REALITY, YEAR_START, GOAL_SPECS, mandateFor } from './game-config.mjs';
 import { resolveTeam } from './resolve.mjs';
@@ -13,6 +20,7 @@ import { applyPolicies, policyApproval, policyById } from './policies.mjs';
 import { kortThrep } from './kort-throp.mjs';
 
 // — Fastar demo-stillingar ————————————————————————————————————————————
+export const DEMO_SVIDSMYND = 'island2000'; // ⚠ NEGLT (sjá skýringu efst) — demo-ið fylgir ALDREI sviðsmynda-vali leiksins
 export const DEMO_ROUND = 3; // KT3 = bankahrunið
 export const DEMO_YEAR_FROM = 2008;
 export const DEMO_YEAR_TO = 2012;

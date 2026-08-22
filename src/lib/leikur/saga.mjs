@@ -11,10 +11,18 @@
 // hrunið 2008 + neyðarlög + AGS, Icesave-þjóðaratkvæðin 2010/2011 þar sem þjóðin HAFNAÐI, höft 2008–2017,
 // ESB-umsókn 2009 → dregin til baka 2015 …). raunAkvardanir innihalda AÐEINS ákvarðanir sem varpa má beint
 // á stefnu-rofa leiksins (policies.mjs); verðtrygging var ALDREI afnumin í raun → skjalfest með val:null.
+//
+// ⚠ SVIÐSMYND: allt efni þessarar skráar á VIÐ AÐEINS 'island2000' (sjá svidsmyndir.mjs). Sviðsmynd með
+// hefurSogu=false (t.d. framtíðin 2026–2058) hefur ENGA raun-hagsögu og ENGA raun-ráðherra: neytendur
+// eiga þá EKKI að kalla sagaFyrirLotu/raunKpiLotu/berSamanAkvardanir/radherraTexti, heldur sleppa
+// „Svona fór það í alvöru"-spjaldinu og sýna nafnlausan forsætisráðherra. Föllin hér skálda ALDREI
+// framtíðar-efni — þau þekkja aðeins lotur 1..8 í sögulegu sviðsmyndinni.
 
 import { REALITY, ROUNDS, QUARTERS_PER_ROUND, YEAR_START } from './game-config.mjs';
 import { POLICIES } from './policies.mjs';
 
+// Sviðsmyndin sem þetta efni tilheyrir (svidsmyndir.mjs) — eina sviðsmyndin með hefurSogu=true.
+export const SAGA_SVIDSMYND = 'island2000';
 const ARA_PER_LOTU = QUARTERS_PER_ROUND; // hvert skref = 1 ár → 4 ár per kjörtímabil (sjá game-config)
 const policyById = Object.fromEntries(POLICIES.map((p) => [p.id, p]));
 

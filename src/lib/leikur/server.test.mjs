@@ -118,6 +118,43 @@ const J = async (res) => JSON.parse(await res.text());
   ok('custom event birtist í state', cst.event && cst.event.title === 'Sérsniðið upphaf');
   const bad = await LH(req('/api/leikur/create', { rounds: 2, mandate: custom.mandate, scenario: { id: 'x', events: [{ round: 1, title: 'T', shocks: { ekki_til: 5 }, responses: [{ key: 'a', label: 'A', effect: {} }] }] } }), env);
   ok('ógilt custom → 400', bad.status === 400);
+
+  // ── SVIÐSMYNDA-SKRÁ (svidsmyndir.mjs): config.svidsmynd valin við stofnun, validerað gegn skránni ──
+  {
+    const stOf = async (c, tok) => J(await LH(new Request('https://karp.is/api/leikur/' + c + '/state', { headers: { authorization: 'Bearer ' + tok } }), env));
+    const start = async (c, tok) => LH(new Request('https://karp.is/api/leikur/' + c + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ action: 'start' }) }), env);
+    // (a) sjálfgefið: engin sviðsmynd send → island2000, óbreytt ártöl
+    const d = await J(await LH(req('/api/leikur/create', {}), env));
+    const dst = await stOf(d.code, d.facToken);
+    ok('sviðsmynd: sjálfgefið → island2000 í /state', dst.svidsmynd && dst.svidsmynd.id === 'island2000' && dst.svidsmynd.yearStart === 2000);
+    ok('sviðsmynd: sjálfgefna hefur sögu og er ekki framtíð', dst.svidsmynd.hefurSogu === true && dst.svidsmynd.erFramtid === false);
+    ok('sviðsmynd: /state ber heiti+undirtitil en ALDREI efnið (events/dials/reality)',
+      !!dst.svidsmynd.heiti && !!dst.svidsmynd.undirtitill && !('events' in dst.svidsmynd) && !('dials' in dst.svidsmynd) && !('reality' in dst.svidsmynd));
+    ok('sviðsmynd: /state ber fjölda kjörtímabila', dst.rounds === 8);
+    // (b) framtíðin: config.svidsmynd='island2026' → 2026, engin saga, engin framtíðar-nöfn
+    const f = await J(await LH(req('/api/leikur/create', { svidsmynd: 'island2026' }), env));
+    ok('sviðsmynd: island2026 stofnast', !!f.code);
+    const fst0 = await stOf(f.code, f.facToken);
+    ok('sviðsmynd: island2026 → yearStart 2026 í /state', fst0.svidsmynd.id === 'island2026' && fst0.svidsmynd.yearStart === 2026);
+    ok('sviðsmynd: island2026 → hefurSogu=false, erFramtid=true', fst0.svidsmynd.hefurSogu === false && fst0.svidsmynd.erFramtid === true);
+    await LH(req('/api/leikur/' + f.code + '/join', { name: 'F' }), env);
+    await start(f.code, f.facToken);
+    const fst = await stOf(f.code, f.facToken);
+    ok('sviðsmynd: island2026 spilar SÍN atburði (ár 2026 í KT1)', !!fst.event && fst.event.year === 2026);
+    ok('sviðsmynd: island2026 spilar EKKI sögulegu atburðina', !!fst.event && fst.event.title !== 'Ný öld — netbólan springur');
+    // (c) validering: óþekkt auðkenni er HAFNAÐ (400), ekki fellt þegjandi á sjálfgefnu
+    const rusl = ['island1999', '', 'constructor', '__proto__', 'toString', 42, {}, true];
+    const stodur = await Promise.all(rusl.map(async (x) => (await LH(req('/api/leikur/create', { svidsmynd: x }), env)).status));
+    ok('sviðsmynd: óþekkt/rusl auðkenni → 400 (fellur EKKI þegjandi á sjálfgefnu)', stodur.every((s) => s === 400));
+    ok('sviðsmynd: null/vantar → sjálfgefna (ekki villa)', (await LH(req('/api/leikur/create', { svidsmynd: null }), env)).status === 200);
+    // (d) sérsniðinn leikur (eigin scenario) trumpar — skráar-valið má ekki skipta atburðunum út
+    const cx = await J(await LH(req('/api/leikur/create', { ...custom, svidsmynd: 'island2026' }), env));
+    await LH(req('/api/leikur/' + cx.code + '/join', { name: 'X' }), env);
+    await start(cx.code, cx.facToken);
+    const cxst = await stOf(cx.code, cx.facToken);
+    ok('sviðsmynd: sérsniðin sviðsmynd trumpar skráar-val', !!cxst.event && cxst.event.title === 'Sérsniðið upphaf' && cxst.svidsmynd.id === 'island2000');
+  }
+
   // idempotency: resolve aftur má ekki tvítelja
   const before = st2.teams.map((t) => t.cumulative).join(',');
   await ctrl('resolve');

@@ -1,6 +1,7 @@
 // Worker-jaðar RÁS-Leiksins: HTTP + HMAC-tákn + D1 + kallar hreinu módúlana.
 // Bundlast inn í web/worker.js. crypto.subtle + env.SESSION_SECRET (sama og lotu-kaka worker).
 import { DECISIONS, MANDATE, SCENARIO, ROUNDS, YEAR_START, THOKA, mandateFor, difficultyOf, scaleMandate } from './game-config.mjs';
+import { SVIDSMYND_SJALFGEFIN, gildSvidsmynd, svidsmyndOf, svidsmyndMeta } from './svidsmyndir.mjs';
 import { resolveTeam } from './resolve.mjs';
 import { scoreRound } from './scoring.mjs';
 import { buildAnalytics, teamReview } from './analytics.mjs';
@@ -46,7 +47,10 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [], radherrar: (c.mode === 'studio' && radherrarOn(c)) }; }
+// SVIÐSMYND (svidsmyndir.mjs): config.svidsmynd → skráar-færsla; vantar/rusl → 'island2000' (sjálfgefna).
+// Sérsniðnir leikir (config.scenario úr leikja-ritlinum) TRUMPA sviðsmyndinni á atburðunum — sviðsmyndin
+// skilar þá enn ártölum/heiti; fyrir 'island2000' er sv.scenario NÁKVÆMLEGA SCENARIO svo hegðun er óbreytt.
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); const sv = svidsmyndOf(c.svidsmynd); return { svidsmynd: sv, scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : sv.scenario, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || sv.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [], radherrar: (c.mode === 'studio' && radherrarOn(c)) }; }
 // Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
 // sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
 // svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
@@ -261,6 +265,13 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       const v = validateGameConfig({ scenario: cb.scenario, mandate: cb.mandate, rounds: cb.rounds }, BASELINE);
       if (!v.ok) return sjson({ error: 'invalid', errors: v.errors }, 400);
       config = { custom: true, rounds: +cb.rounds, scenario: cb.scenario, mandate: cb.mandate };
+    } else if (cb && cb.svidsmynd != null && cb.svidsmynd !== SVIDSMYND_SJALFGEFIN) {
+      // SVIÐSMYNDA-VAL (svidsmyndir.mjs): aðeins auðkenni sem er TIL í skránni er tekið gilt — annað er
+      // hafnað í stað þess að falla þegjandi á sjálfgefnu (leikstjóri á að sjá að valið misfórst).
+      // Sjálfgefna sviðsmyndin er EKKI skrifuð í config → eldri leikir og nýir 'island2000'-leikir eru eins.
+      if (!gildSvidsmynd(cb.svidsmynd)) return sjson({ error: 'svidsmynd' }, 400);
+      const sv = svidsmyndOf(cb.svidsmynd);
+      config.svidsmynd = sv.id; config.scenarioId = sv.id; config.rounds = sv.rounds || ROUNDS;
     }
     if (cb && cb.roles) config.roles = true;
     if (cb && cb.mode === 'studio') config.mode = 'studio';
@@ -363,6 +374,11 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cfg.roles && cfg.roleMap && game.phase === 'ended') out.rolesReveal = revealRoles(cfg.roleMap, ROLES);
     // Læsa-staða (A) + studio-gögn (C): eigin læsing liðs, roster f. fac, eigin saga+sviðsmynd-hingað-til f. studio-forskoðun.
     out.mode = cfg.mode;
+    // SVIÐSMYND leiksins — AÐEINS lýsigögn (svidsmyndMeta): auðkenni, heiti, undirtitill, upphafsár og
+    // eðlis-flöggin tvö. Efnið sjálft (events/dials/reality) fer ALDREI hingað; vafrinn flettir því upp
+    // í svidsmyndir.mjs eftir out.svidsmynd.id (atburðir lotanna koma áfram um event/scenarioSoFar).
+    out.svidsmynd = svidsmyndMeta(cfg.svidsmynd);
+    out.rounds = cfg.rounds; // fjöldi kjörtímabila (úr sviðsmynd/sérsniðnum leik) — tímalínu-borði + „x/N" í haus
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
     out.thokaOn = cfg.thoka; // Gagnatöf: er leikurinn í þoku? (allir áhorfendur — fac-stillingaspjald/liðs-merki; síunin sjálf er neðst: lið+watch í decide, fac aldrei)
     out.radherrarOn = cfg.radherrar; // Ráðherraskipting innan liðs: er rofinn kveiktur? (allir áhorfendur — sæta-blokkin sjálf (out.radherrar / lockRoster[].radherrar) er neðar, aðeins lið+fac)
@@ -621,7 +637,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       // Markmiðin sem tölur lotu N-1 voru dæmdar eftir (sama skölun/hlutverk og í uppgjöri) → vs_markmid í áttum (aðeins lið; watch fær engar áttir).
       let prevMandate = (thokaTeam && N >= 2) ? scaleMandate(mandateAt(cfg, N - 1), difficultyOf(cfg.difficulty).band) : null;
       if (prevMandate && cfg.roles && cfg.roleMap) { const rl = roleById(cfg.roleMap[you.teamId]); if (rl) prevMandate = mandateForRole(prevMandate, rl); }
-      const arLotu = (r) => { const y = (cfg.scenario.events[r - 1] || {}).year; return (typeof y === 'number') ? y : YEAR_START + (r - 1) * 4; };
+      const arLotu = (r) => { const y = (cfg.scenario.events[r - 1] || {}).year; return (typeof y === 'number') ? y : cfg.svidsmynd.yearStart + (r - 1) * 4; };
       return sjson(thokaSia(out, { teamId: thokaTeam ? you.teamId : null, round: N, rows, goalSpecs: prevMandate ? prevMandate.kpis : [], arLotu }));
     }
     return sjson(out);
