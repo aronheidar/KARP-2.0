@@ -466,6 +466,8 @@ export async function lobbyvaktHandler(request, env, ctx) {
   // Fréttir (frí): leitarorð → nýlegar fréttir úr D1.
   const news = await newsSince(env, 30, 500).catch(() => []);
   const frettir = news.filter((n) => matchNews(n, oArr)).slice(0, 30).map((n) => ({ title: n.title, url: n.url, source: n.source, date: n.date }));
+  // Hlaðvörp (frí, eins og fréttirnar): leitarorð → þættir (umritanir + lýsigögn).
+  const hladvorp = await hladLeit(env, oArr, 21, 20).catch(() => []);
   // Reglur (Fyrirtæki+): þingmál/samráð eftir greinum + orðum.
   let reglur = [], updated = null;
   if (entitled) {
@@ -473,7 +475,7 @@ export async function lobbyvaktHandler(request, env, ctx) {
     reglur = feedFor((data && data.items) || [], { greinar: gArr, ord: oArr });
     updated = (data && data.updated) || null;
   }
-  return _ajson({ ok: true, entitled, greinar: gArr, ord: oArr, frettir, reglur, updated, needsSetup: false });
+  return _ajson({ ok: true, entitled, greinar: gArr, ord: oArr, frettir, hladvorp, reglur, updated, needsSetup: false });
 }
 
 export async function loftforHandler(request, env, ctx) {
@@ -858,6 +860,42 @@ export async function tengslanetHandler(request, env, ctx) {
   const res = new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': ttl ? 'public, max-age=' + ttl : 'no-store' } });
   if (ttl) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
+}
+
+// ── Hlaðvarpsvaktin (22.8.2026): leitarorð → þættir. Tvö lög — (a) lýsigögn (hladvorp.json, alltaf til):
+// titill+lýsing um matchNews; (b) umritanir í D1-töflunni `hladvorp` (build_hladvorp.mjs, gated á lykla):
+// LIKE-leit per orð MEÐ SQL-hliðar brot-útdrætti (±120 stafir) svo 60KB-textarnir ferðist aldrei í svarið —
+// aðeins brotið. Höfundaréttar-varfærni: aldrei birt meira en brotið + hlekkur á þáttinn sjálfan.
+// Skilar [{ show, title, url, date, brot?, ord }] — dedup á url, umritunar-treff á undan (dýpri heimild).
+export async function hladLeit(env, ordArr, days, limit) {
+  const ord = [...new Set((Array.isArray(ordArr) ? ordArr : []).map((w) => String(w == null ? '' : w).toLowerCase().trim()).filter((w) => w.length >= 3))].slice(0, 12);
+  if (!ord.length) return [];
+  const out = new Map();
+  // (b) umritanir — per orð; tafla gæti vantað (fyrsta keyrsla) → catch → []
+  if (env.TENGSL) {
+    const fra = Math.floor(Date.now() / 1000) - (days || 14) * 86400;
+    for (const w of ord) {
+      const rows = await env.TENGSL.prepare(
+        "SELECT url, show, title, ts, substr(texti, max(1, instr(lower(texti), ?1) - 120), 300) AS brot FROM hladvorp WHERE ts > ?2 AND (instr(lower(title), ?1) > 0 OR instr(lower(texti), ?1) > 0) ORDER BY ts DESC LIMIT 8"
+      ).bind(w, fra).all().then((r) => (r && r.results) || []).catch(() => []);
+      for (const r of rows) {
+        const cur = out.get(r.url);
+        if (cur) { if (!cur.ord.includes(w)) cur.ord.push(w); continue; }
+        out.set(r.url, { show: r.show, title: r.title, url: r.url, date: r.ts ? new Date(r.ts * 1000).toISOString().slice(0, 10) : '', brot: String(r.brot || '').replace(/\s+/g, ' ').trim(), ord: [w], dypt: 'umritun' });
+      }
+    }
+  }
+  // (a) lýsigögn — matchNews á titil+lýsingu (grípur þætti sem eru ekki (enn) umritaðir)
+  try {
+    const meta = await augGet(env, 'hladvorp.json');
+    for (const t of (meta && meta.thaettir) || []) {
+      if (out.size >= (limit || 20)) break;
+      if (out.has(t.url)) continue;
+      const treff = ord.filter((w) => ((t.title || '') + ' ' + (t.lysing || '')).toLowerCase().includes(w));
+      if (treff.length) out.set(t.url, { show: t.show, title: t.title, url: t.url, date: t.d, ord: treff, dypt: 'lysing' });
+    }
+  } catch (e) {}
+  return [...out.values()].sort((x, y) => String(y.date).localeCompare(String(x.date))).slice(0, limit || 20);
 }
 
 export async function newsSince(env, days, limit) {

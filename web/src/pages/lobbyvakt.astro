@@ -67,6 +67,11 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       <div id="lv-frettir"></div>
       <p id="lv-frettir-empty" class="lv-empty" hidden>Engar fréttir nefna orðin þín eins og er.</p>
 
+      <h2>🎧 Hlaðvörp og útvarpsþættir sem nefna orðin þín</h2>
+      <p class="sub">Spegillinn, Þetta helst og Vikulokin (RÚV), Bítið, Sprengisandur og Reykjavík síðdegis (Bylgjan), Þjóðmál, Rauða borðið, Ein pæling og fleiri — leitað í titlum og lýsingum þátta og, þar sem þátturinn hefur verið umritaður, í töluðu máli. Tilraunaútgáfa.</p>
+      <div id="lv-hlad"></div>
+      <p id="lv-hlad-empty" class="lv-empty" hidden>Engir nýlegir þættir nefna orðin þín.</p>
+
       <h2>🏛️ Þingmál &amp; samráð sem snerta greinina þína <span class="lv-plus">Fyrirtæki+</span></h2>
       <p class="sub">Síað eftir greinum og leitarorðum, með áhrifa-briefi, relevans-stigi og fresti.</p>
       <div id="lv-reglur"></div>
@@ -127,6 +132,9 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
     .lv-hint { font-size: 13px; color: #f6b13b; background: rgba(246,177,59,.08); border: 1px solid rgba(246,177,59,.3); border-radius: 10px; padding: 9px 13px; margin: 4px 0 16px; }
 
     .lv-sub-h { font-size: 15px; color: var(--ink); margin: 24px 0 4px; font-weight: 700; }
+    .lv-hlad .lv-brot { font-size: 13px; color: var(--muted); font-style: italic; margin: 6px 0 4px; line-height: 1.45; }
+    .lv-hlad .lv-kw-hit { display: inline-block; font-size: 11.5px; padding: 1px 7px; border-radius: 999px; background: rgba(246,177,59,.14); color: #f6b13b; border: 1px solid rgba(246,177,59,.35); }
+    .lv-hlad .lv-dypt { font-size: 11.5px; color: var(--faint); }
     .lv-post { margin-top: 18px; padding: 12px 14px 10px; border-radius: 12px; background: rgba(246,177,59,.06); border: 1px solid rgba(246,177,59,.3); }
     .lv-post .lv-sub-h { margin-top: 0; }
     .lv-post-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
@@ -278,6 +286,21 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       $('#lv-frettir').innerHTML = (frettir || []).map(newsCard).join('');
       $('#lv-frettir-empty').hidden = (frettir || []).length > 0;
     }
+    // 🎧 Hlaðvörp (22.8.2026): { show, title, url, date, brot?, ord[], dypt:'umritun'|'lysing' } úr hladLeit (veitur.mjs).
+    // brot = ±120 stafir úr umrituninni kringum fyrsta treff — aldrei meira (höfundaréttur); hlekkur á þáttinn sjálfan.
+    function hladCard(h) {
+      const ordHtml = (h.ord || []).map((w) => '<span class="lv-kw-hit">' + esc(w) + '</span>').join(' ');
+      const brot = h.brot ? '<p class="lv-brot">„…' + esc(h.brot) + '…"</p>' : '';
+      const meta = ['🎧 ' + esc(h.show || ''), esc(h.date || '')].filter(Boolean).join(' · ');
+      return '<article class="lv-card lv-hlad"><h3 class="lv-title"><a href="' + esc(h.url || '#') + '" target="_blank" rel="noopener">' + esc(h.title || '') + '</a></h3>'
+        + '<div class="lv-meta">' + meta + '</div>' + brot
+        + '<div class="lv-meta">' + ordHtml + (h.dypt === 'umritun' ? ' <span class="lv-dypt">· fannst í töluðu máli</span>' : ' <span class="lv-dypt">· fannst í titli eða lýsingu</span>') + '</div></article>';
+    }
+    function renderHlad(hlad) {
+      const host = $('#lv-hlad'); if (!host) return;
+      host.innerHTML = (hlad || []).map(hladCard).join('');
+      $('#lv-hlad-empty').hidden = (hlad || []).length > 0;
+    }
     function renderReg(reglur, entitled) {
       const host = $('#lv-reglur'); const empty = $('#lv-empty');
       if (!entitled) {
@@ -323,6 +346,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       renderChips();
       $('#lv-setup-msg').hidden = !d.needsSetup;
       renderNews(d.frettir || []);
+      renderHlad(d.hladvorp || []);
       renderReg(d.reglur || [], !!d.entitled);
       lvHi();   // orðin komin → lýsa upp treff í opnu veitunum að neðan
       loadPost();   // ✉️ póst-vaktin — eftir að gáttin opnast (innskráð)

@@ -14,7 +14,7 @@ import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurin
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
 import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatchCap, _monthStr, _nextMonth, _prefGet, _prefSet, _seatsCap, _sendVerifyEmail, _svcOk, accountOwner, authForgotHandler, authLoginHandler, authLogoutHandler, authRegisterHandler, authResendVerifyHandler, authResetHandler, authSaveKtHandler, authVerifyHandler, grantReportD1, grantSubD1, leikstjoriOf, readSession, trialUsedD1, userPayload } from './src/worker/auth.mjs';
 import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payCheckoutHandler, payReturnHandler, stakCheckoutHandler, stakConfirmHandler, sub2CheckoutHandler, sub2ConfirmHandler, subCancelHandler } from './src/worker/greidslur.mjs';
-import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
+import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, hladLeit, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { augGet } from './src/worker/felag.mjs';
@@ -2150,11 +2150,11 @@ export function frettavaktMerge(existing, body, validTypes) {
 export function frettavaktEmail(matches) {
   const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const bySec = new Map();
-  for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
+  for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : m.type === 'hlad' ? { key: 'hlad', label: 'Hlaðvörp' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
   const rows = [...bySec.entries()].map(([label, items]) => {
     const li = items.map((m) => {
-      const href = m.type === 'frett' ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
-      const badge = m.type === 'frett' ? (m.source || 'frétt') : ((CAT[m.type] || {}).label || m.type);
+      const href = (m.type === 'frett' || m.type === 'hlad') ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
+      const badge = (m.type === 'frett' || m.type === 'hlad') ? (m.source || (m.type === 'hlad' ? 'hlaðvarp' : 'frétt')) : ((CAT[m.type] || {}).label || m.type);
       return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
     }).join('');
     return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
@@ -2183,6 +2183,13 @@ export async function frettavaktCron(env) {
       const fl = await _prefGet(env, row.user_id, 'follows', []);
       const ord = [].concat(Array.isArray(lv.ord) ? lv.ord : [], (Array.isArray(fl) ? fl : []).filter((x) => String(x).indexOf('co:') === 0).map((x) => String(x).slice(3))).filter(Boolean);
       const matches = frettavaktMatch(items, news, { flokkar: sub.flokkar || [], ord, seenIds: sub.seenIds || [] });
+      // Hlaðvörp (22.8.2026): leitarorða-treff í umrituðum þáttum + lýsigögnum — sömu seenIds/þaks-reglur.
+      const seenSet = new Set(sub.seenIds || []);
+      const hlad = ord.length ? await hladLeit(env, ord, 3, 10).catch(() => []) : [];
+      for (const h of hlad) {
+        if (seenSet.has(h.url) || matches.some((m) => m.id === h.url) || matches.length >= MAX_PER_EMAIL) continue;
+        matches.push({ id: h.url, date: h.date, type: 'hlad', title: h.title, url: h.url, source: h.show, brot: h.brot });
+      }
       if (!matches.length) continue;
       const u = await env.TENGSL.prepare('SELECT email, name FROM users WHERE id=?').bind(row.user_id).first().catch(() => null);
       if (!u || !u.email) continue;

@@ -143,6 +143,12 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node skriptur/build_frettavel.js || true
+      - name: Hlaðvarpsvaktin (lýsigögn alltaf; talgreining ef OPENAI_API_KEY + CF-lyklar → D1)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node skriptur/build_hladvorp.mjs || true   # umritanir fara í D1 (repo er public) — aldrei í gogn/
       - name: Samhengispakki Spyrðu Karp (úr ferskum gögnum)
         run: node skriptur/build_spyrdu_context.js || true
       - name: RAG-afrit í public (sveitarstjórar, ráðherrar, þingmenn, atvinnuleysi…)
