@@ -1,0 +1,94 @@
+{
+ "kt": "4210250370",
+ "nafn": "EWB Iceland",
+ "sott": "2026-08-22",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 3,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt4210250370",
+    "kt": "4210250370",
+    "nafn": "EWB Iceland",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Gunndís Eva Reykdal Baldursd.",
+    "tegund": "einst",
+    "faeding": "1993-APRÍL"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Aron Heiðar Steinsson",
+    "tegund": "einst",
+    "faeding": "1991-SEPTEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt4210250370",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt4210250370",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Gunndís Eva Reykdal Baldursd.",
+   "kt": null,
+   "faeding": "1993-APRÍL",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Aron Heiðar Steinsson",
+   "kt": null,
+   "faeding": "1991-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Gunndís Eva Reykdal Baldursd.",
+   "faeding": "1993-APRÍL",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Aron Heiðar Steinsson",
+   "faeding": "1991-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": null
+}
