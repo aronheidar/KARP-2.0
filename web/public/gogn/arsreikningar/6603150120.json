@@ -1,0 +1,124 @@
+{
+ "kt": "6603150120",
+ "nafn": "1909 ehf.",
+ "sott": "2026-08-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROE": 0.0011,
+    "ROA": 0.0011,
+    "eiginfjarhlutfall": 0.9801,
+    "veltufjarhlutfall": 1.0618,
+    "skuldahlutfall_DE": 0.0203,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": 0,
+    "afskriftir": 0,
+    "fjarmunatekjur": 477,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": 477,
+    "tekjuskattur": 0,
+    "hagnadur": 477
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 9311,
+    "veltufjarmunir": 441470,
+    "eignir": 441470,
+    "hlutafe": 500000,
+    "eigid_fe": 432701,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 8769,
+    "skuldir": 8769,
+    "efe_skuldir": 441470
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.4187,
+    "eiginfjarhlutfall": -0.1165,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -494231,
+    "afskriftir": 0,
+    "fjarmunatekjur": 176,
+    "fjarmagnsgjold": -105553,
+    "hagn_f_skatt": -599608,
+    "tekjuskattur": 0,
+    "hagnadur": -599608
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 0,
+    "veltufjarmunir": 1432093,
+    "eignir": 1432093,
+    "hlutafe": 500000,
+    "eigid_fe": -166907,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 1599000,
+    "skuldir": 1599000,
+    "efe_skuldir": 1432093
+   },
+   "starfsmenn": null
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.1646,
+    "hagnadarhlutfall": 0.0703,
+    "ROE": 1.1122,
+    "ROA": 0.2054,
+    "eiginfjarhlutfall": 0.1847,
+    "veltufjarhlutfall": 0.0401,
+    "skuldahlutfall_DE": 4.4145,
+    "eignavelta": 2.9222
+   },
+   "rekstur": {
+    "sala": 23531229,
+    "ebit": 3872461,
+    "afskriftir": -1930000,
+    "fjarmunatekjur": 10638,
+    "fjarmagnsgjold": -24756,
+    "hagn_f_skatt": 1928343,
+    "tekjuskattur": -274207,
+    "hagnadur": 1654136
+   },
+   "efnahagur": {
+    "fastafjarmunir": 7720000,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 263311,
+    "veltufjarmunir": 332598,
+    "eignir": 8052598,
+    "hlutafe": 500000,
+    "eigid_fe": 1487229,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 6565369,
+    "skuldir": 6565369,
+    "efe_skuldir": 8052598
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/6603150120.pdf",
+ "pdfAr": "2025"
+}

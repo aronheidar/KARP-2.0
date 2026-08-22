@@ -1,0 +1,122 @@
+{
+ "kt": "7012051460",
+ "nafn": "Purple Holding ehf.",
+ "sott": "2026-08-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.0523,
+    "eiginfjarhlutfall": -0.0525,
+    "veltufjarhlutfall": 0.3118,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -243322,
+    "afskriftir": 0,
+    "fjarmunatekjur": 731,
+    "fjarmagnsgjold": -16443,
+    "hagn_f_skatt": -475444,
+    "tekjuskattur": 0,
+    "hagnadur": -475444
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6762500,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 154689,
+    "veltufjarmunir": 2336734,
+    "eignir": 9099234,
+    "hlutafe": 500000,
+    "eigid_fe": -477824,
+    "langtimaskuldir": 9081000,
+    "skammtimaskuldir": 496058,
+    "skuldir": 9577058,
+    "efe_skuldir": 9099234
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ROA": -0.1354,
+    "eiginfjarhlutfall": -0.1945,
+    "veltufjarhlutfall": 0.0008,
+    "eignavelta": 0
+   },
+   "rekstur": {
+    "sala": 0,
+    "ebit": -311718,
+    "afskriftir": 0,
+    "fjarmunatekjur": 188,
+    "fjarmagnsgjold": -12939,
+    "hagn_f_skatt": -1095369,
+    "tekjuskattur": 0,
+    "hagnadur": -1095369
+   },
+   "efnahagur": {
+    "fastafjarmunir": 6012500,
+    "birgdir": 0,
+    "vidskiptakrofur": 0,
+    "handbaert": 465,
+    "veltufjarmunir": 2075890,
+    "eignir": 8088390,
+    "hlutafe": 500000,
+    "eigid_fe": -1573193,
+    "langtimaskuldir": 9081000,
+    "skammtimaskuldir": 580583,
+    "skuldir": 9661583,
+    "efe_skuldir": 8088390
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.8047,
+    "hagnadarhlutfall": 0.6623,
+    "ROE": 1.1312,
+    "ROA": 0.4527,
+    "eiginfjarhlutfall": 0.4002,
+    "veltufjarhlutfall": 1.1863,
+    "skuldahlutfall_DE": 1.4985,
+    "eignavelta": 0.6836
+   },
+   "rekstur": {
+    "sala": 20484000,
+    "ebit": 16483085,
+    "afskriftir": 0,
+    "fjarmunatekjur": 2720,
+    "fjarmagnsgjold": -3479,
+    "hagn_f_skatt": 16460926,
+    "tekjuskattur": -2895101,
+    "hagnadur": 13565825
+   },
+   "efnahagur": {
+    "fastafjarmunir": 8124476,
+    "birgdir": 0,
+    "vidskiptakrofur": 20484000,
+    "handbaert": 835057,
+    "veltufjarmunir": 21839489,
+    "eignir": 29963965,
+    "hlutafe": 500000,
+    "eigid_fe": 11992632,
+    "langtimaskuldir": 0,
+    "skammtimaskuldir": 17971333,
+    "skuldir": 17971333,
+    "efe_skuldir": 29963965
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/7012051460.pdf",
+ "pdfAr": "2024"
+}

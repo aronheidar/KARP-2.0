@@ -1,0 +1,116 @@
+{
+ "kt": "5307211670",
+ "nafn": "Zavino ehf.",
+ "sott": "2026-08-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -0.3105,
+    "eiginfjarhlutfall": -0.4185,
+    "veltufjarhlutfall": 0.7017,
+    "eignavelta": 2.0114
+   },
+   "rekstur": {
+    "sala": 8107304,
+    "laun": 237360,
+    "ebit": -2517609,
+    "fjarmunatekjur": -9183,
+    "fjarmagnsgjold": 0,
+    "hagn_f_skatt": -2269546,
+    "tekjuskattur": 0,
+    "adrar_tekjur": -2289746
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 1641027,
+    "vidskiptakrofur": 634010,
+    "handbaert": 1737138,
+    "veltufjarmunir": 4030635,
+    "eignir": 4030635,
+    "hlutafe": 500000,
+    "eigid_fe": -1686976,
+    "skammtimaskuldir": 5717611,
+    "skuldir": 5717611,
+    "efe_skuldir": 4030635
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0534,
+    "eiginfjarhlutfall": -0.259,
+    "veltufjarhlutfall": 0.7936,
+    "eignavelta": 3.9531
+   },
+   "rekstur": {
+    "sala": 12700014,
+    "laun": 237360,
+    "ebit": 677584,
+    "fjarmunatekjur": -31235,
+    "fjarmagnsgjold": 420,
+    "hagn_f_skatt": 875824,
+    "tekjuskattur": 0,
+    "adrar_tekjur": 854924
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 1061122,
+    "vidskiptakrofur": 779175,
+    "handbaert": 1369693,
+    "veltufjarmunir": 3212684,
+    "eignir": 3212684,
+    "hlutafe": 500000,
+    "eigid_fe": -832052,
+    "skammtimaskuldir": 4044736,
+    "skuldir": 4044736,
+    "efe_skuldir": 3212684
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.0348,
+    "eiginfjarhlutfall": 0.0253,
+    "veltufjarhlutfall": 1.0242,
+    "skuldahlutfall_DE": 38.4554,
+    "eignavelta": 5.6495
+   },
+   "rekstur": {
+    "sala": 26784974,
+    "laun": 237360,
+    "ebit": 933191,
+    "fjarmunatekjur": -52813,
+    "fjarmagnsgjold": 17717,
+    "hagn_f_skatt": 973614,
+    "tekjuskattur": 0,
+    "adrar_tekjur": 952214
+   },
+   "efnahagur": {
+    "fastafjarmunir": 0,
+    "birgdir": 729208,
+    "vidskiptakrofur": 799098,
+    "handbaert": 3204326,
+    "veltufjarmunir": 4741081,
+    "eignir": 4741081,
+    "hlutafe": 500000,
+    "eigid_fe": 120163,
+    "skammtimaskuldir": 4620918,
+    "skuldir": 4620918,
+    "efe_skuldir": 4741081
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5307211670.pdf",
+ "pdfAr": "2024"
+}

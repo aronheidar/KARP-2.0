@@ -1,0 +1,115 @@
+{
+ "kt": "5709101240",
+ "nafn": "1973 ehf.",
+ "sott": "2026-08-22",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": -0.2224,
+    "ebit_hlutfall": -0.251,
+    "hagnadarhlutfall": -0.2788,
+    "ROA": -1.9724,
+    "veltufjarhlutfall": 0,
+    "eignavelta": 7.0752
+   },
+   "rekstur": {
+    "sala": 180243368,
+    "kostnadarverd": 220333392,
+    "laun": 0,
+    "annar_rekstur": 2298828,
+    "afskriftir": 2841756,
+    "ebit": -45249408,
+    "fjarmagnsgjold": -4997849,
+    "hagnadur": -50247257
+   },
+   "efnahagur": {
+    "fastafjarmunir": 25464345,
+    "handbaert": 10928,
+    "veltufjarmunir": 11018,
+    "eignir": 25475363,
+    "hlutafe": 500000,
+    "eigid_fe": -254046110,
+    "skammtimaskuldir": 279521473,
+    "efe_skuldir": 25475363,
+    "skuldir": 279521473
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 1,
+    "ebit_hlutfall": 0.6919,
+    "hagnadarhlutfall": 0.4095,
+    "ROA": 0.2469,
+    "veltufjarhlutfall": 0.0002,
+    "eignavelta": 0.6029
+   },
+   "rekstur": {
+    "sala": 13848000,
+    "kostnadarverd": 0,
+    "laun": 1544496,
+    "annar_rekstur": 147935,
+    "afskriftir": 2550556,
+    "ebit": 9581230,
+    "fjarmagnsgjold": -3909895,
+    "hagnadur": 5671335
+   },
+   "efnahagur": {
+    "fastafjarmunir": 22913789,
+    "handbaert": 54022,
+    "veltufjarmunir": 54735,
+    "eignir": 22968524,
+    "hlutafe": 500000,
+    "eigid_fe": -248374775,
+    "skammtimaskuldir": 271343299,
+    "efe_skuldir": 22968524,
+    "skuldir": 271343299
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "framlegd": 0.9206,
+    "ebit_hlutfall": 0.6866,
+    "hagnadarhlutfall": 0.6505,
+    "ROA": 1.0971,
+    "veltufjarhlutfall": 0.0007,
+    "eignavelta": 1.6864
+   },
+   "rekstur": {
+    "sala": 37278794,
+    "kostnadarverd": 2958637,
+    "laun": 6355710,
+    "annar_rekstur": 59628,
+    "afskriftir": 2286815,
+    "ebit": 25597104,
+    "fjarmagnsgjold": -1345603,
+    "hagnadur": 24251501
+   },
+   "efnahagur": {
+    "fastafjarmunir": 20626974,
+    "handbaert": 165689,
+    "veltufjarmunir": 1478971,
+    "eignir": 22105945,
+    "hlutafe": 500000,
+    "eigid_fe": -224123274,
+    "skammtimaskuldir": 246229219,
+    "skuldir": 246229219,
+    "efe_skuldir": 22105945
+   },
+   "starfsmenn": null
+  }
+ },
+ "pdf": "pdf/5709101240.pdf",
+ "pdfAr": "2024"
+}
