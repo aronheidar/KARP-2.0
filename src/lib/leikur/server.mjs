@@ -69,11 +69,61 @@ const parseDec = (row) => { try { const d = JSON.parse((row && row.decisions) ||
 const readDec = (env, code, round, teamId) => env.TENGSL.prepare(SEL_DEC).bind(code, round, teamId).first().catch(() => null);
 const writeDec = (env, code, round, teamId, decisions, locked) => env.TENGSL.prepare(INS_DEC).bind(code, round, teamId, JSON.stringify(decisions), locked ? 1 : 0, now()).run().catch(() => null);
 const radherrarMapOf = (row) => normMap(parseDec(row).radherrar);   // normalíserað sæta-map raðar ({} ef engin röð / ekkert map)
+// ── HANDLE = BERA-SKILRÍKI SÆTISINS: fer ALDREI á vírinn ───────────────────────────────────────────────────────────────
+// Þjónninn leiðir sætið af geymda map-inu + b.handle, svo sá sem HEFUR handle-ið ER ráðherrann gagnvart þjóninum — handle-ið
+// er í reynd lykilorð sætisins. Sendi /state (eða /saeti) handles félaga með gæti hver liðsmaður sem er lesið PM-handle-ið úr
+// JSON-inu í devtools og hermt eftir forsætisráðherra (læst/aflæst, stefnurofar, klemma, sátt, ALLIR sleðar) eða sparkað
+// félaga úr sæti með POST /saeti {handle:<þeirra>, key:null} — nákvæmlega það sem skiptingin á að hindra. Enginn notandi
+// þarf handle félaga: picker-inn sýnir aðeins tekið/laust/þú (client birtir þau hvergi) og fac-roster aðeins ✓/·.
+// Sama gildir um fac: leikstjóra-skjárinn er oft í skjávarpa fyrir framan bekkinn — handle á vegg = frjáls PM-aðgangur.
+// LIÐ: stada án handle-lykils. FAC: {raduneyti: true} (sama lögun og rhRosterSeats les: !!rh[key]) — hver á sætið er
+// nafnlaust hvort eð er, svo ekkert upplýsingatap. Sætis-EIGN er alltaf staðfest ÞJÓNS-megin, aldrei af því sem sést.
+const staðaAnHandles = (map) => raduneytiStaða(map).map(({ handle, ...r }) => r);
+const mapAnHandles = (map) => Object.fromEntries(Object.keys(map).map((k) => [k, true]));
+// ── KAPPHLAUPS-VÖRN (read-modify-write) ────────────────────────────────────────────────────────────────────────────────
+// Merge-leiðin les röðina, reiknar og skrifar hana ALLA aftur. Sjö liðsmenn á sjö símum deila EINNI D1-röð og hver
+// sleða-hreyfing sendir POST (client debounce-ar 500ms) — tvö POST í sömu D1-lotu er því EÐLILEGT ástand, ekki jaðartilvik.
+// Væri skrifað blint (INSERT OR REPLACE) þurrkaði síðari skrifin breytingu þess fyrri út, ÞÓTT sleðarnir tilheyri sitt hvoru
+// ráðuneytinu: B byggir á prev sem hann las ÁÐUR en A skrifaði. Verst er að tapið er ÞÖGULT — client heldur sínu gildi á
+// skjánum og uppgjörið keyrir á öðru. submitted_at dugar EKKI sem CAS-tákn (sekúndu-upplausn: tvö skrif í sömu sekúndu fá
+// sama gildi) → CAS á NÁKVÆMLEGA þá bæti sem við lásum: decisions-textann + locked.
+//   engin röð lesin → INSERT OR IGNORE (frum-lykillinn (game_code,round,team_id) hafnar kapphlaupinu; changes=0 = einhver varð á undan)
+//   röð lesin       → UPDATE ... WHERE decisions=? AND locked=?  (changes=0 = einhver skrifaði á milli)
+// changes=0 → köllarinn LES UPP Á NÝTT og merge-ar aftur (casRitun hér að neðan). Merge-ið er hreint og idempotent svo
+// endurtekning er hættulaus. Eftir RETRIES árangurslausar tilraunir er skrifað blint = nákvæmlega gamla hegðunin (aldrei verri).
+const UPD_CAS = 'UPDATE leikur_decisions SET decisions=?, locked=?, submitted_at=? WHERE game_code=? AND round=? AND team_id=? AND decisions=? AND locked=?';
+const INS_CAS = 'INSERT OR IGNORE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)';
+const breyttar = (r) => !!(r && r.meta && r.meta.changes > 0);
+async function casDec(env, code, round, teamId, decisions, locked, was) {
+  const json = JSON.stringify(decisions), lk = locked ? 1 : 0;
+  const r = was
+    ? await env.TENGSL.prepare(UPD_CAS).bind(json, lk, now(), code, round, teamId, was.decisions, was.locked).run().catch(() => null)
+    : await env.TENGSL.prepare(INS_CAS).bind(code, round, teamId, json, lk, now()).run().catch(() => null);
+  return breyttar(r);
+}
+// Les → reiknar (bygg) → CAS-skrifar; endurtekur á fersku prev-i ef einhver skrifaði á milli. bygg(row) skilar
+// { decisions, locked, svar } (eða null = ekkert að skrifa, svarið er samt sent). Skilar svari síðustu tilraunar.
+const RETRIES = 4;
+async function casRitun(env, code, round, teamId, bygg) {
+  let ut = null;
+  for (let i = 0; i <= RETRIES; i++) {
+    const row = await readDec(env, code, round, teamId);
+    ut = await bygg(row, i);
+    if (!ut || !ut.skrifa) return ut ? ut.svar : null;
+    if (await casDec(env, code, round, teamId, ut.decisions, ut.locked, row)) return ut.svar;
+    if (i === RETRIES) await writeDec(env, code, round, teamId, ut.decisions, ut.locked);   // uppgjöf: blind skrif (gamla hegðunin)
+  }
+  return ut ? ut.svar : null;
+}
 async function nonBotTeamIds(env, code, cfg) {
   const rows = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
   const bots = new Set(cfg.bots || []);
   return rows.map((t) => t.id).filter((id) => !bots.has(id));
 }
+// Carry-forward þarf EKKI CAS (ólíkt /decisions og /saeti): hún keyrir aðeins í fac-aðgerðunum start/next og skrifar í lotu
+// N+1 sem ENGINN liðs-POST nær í — /decisions krefst phase='decide' og /saeti skrifar í game.current_round (= N; fasa-UPDATE-ið
+// kemur á eftir). Eina samhliða-tilvikið er /saeti-claim sem lendir örfáum ms á eftir lestrinum hér: sætið berst þá ekki áfram
+// og leikmaðurinn velur það aftur í nýju lotunni (sjálf-leiðréttandi, engin gagnaskemmd).
 async function carryRadherrar(env, code, fromRound, toRound, teamIds) {
   for (const tid of teamIds || []) {
     const map = radherrarMapOf(await readDec(env, code, fromRound, tid));
@@ -502,18 +552,18 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     }
     // ── RÁÐHERRASKIPTING (config.radherrar, radherrar.mjs): sæta-map per lið úr decisions-röð ÞESSARAR lotu (lobby = lota 0 —
     // sæti má velja fyrir start; carryRadherrar ber þau í lotu 1). LIÐ: out.radherrar = { on, stada (picker-listi í fastri röð,
-    // {taken, handle}), mitt (sæti handle-s úr ?h=<handle> — client sendir; vantar/ógilt → null), pmClaimed, lockFallback (enginn
-    // forsætisráðherra → hver sem er læsir) }. FAC: radherrar-map + lockFallback á hvert raun-lið í lockRoster (handles eru nafnlaus
-    // dulnefni — má sýna; lockFallback=true → „enginn forsætisráðherra — hver sem er læsir"). WATCH (tákn-laust): ekkert.
+    // {taken} — ALDREI handle, sjá staðaAnHandles), mitt (sæti handle-s úr ?h=<handle> — client sendir; vantar/ógilt → null),
+    // pmClaimed, lockFallback (enginn forsætisráðherra → hver sem er læsir) }. FAC: {raduneyti:true}-map + lockFallback á hvert
+    // raun-lið í lockRoster (lockFallback=true → „enginn forsætisráðherra — hver sem er læsir"). WATCH (tákn-laust): ekkert.
     // Læsingin sjálf (you.locked / lockRoster[].locked) er ÓBREYTT = röð locked=1. Í þoku lifir blokkin síun (thokaSia = grunnt afrit).
     if (cfg.radherrar && you && you.code === code && (you.role === 'team' || you.role === 'fac')) {
       const rhRows = ((await env.TENGSL.prepare('SELECT team_id, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const mapOf = (tid) => radherrarMapOf(rhRows.find((x) => x.team_id === tid));
       if (you.role === 'team') {
         const map = mapOf(you.teamId), pmClaimed = !!map[PM], h = url.searchParams.get('h');
-        out.radherrar = { on: true, stada: raduneytiStaða(map), mitt: validHandle(h) ? raduneytiOf(map, h) : null, pmClaimed, lockFallback: !pmClaimed };
+        out.radherrar = { on: true, stada: staðaAnHandles(map), mitt: validHandle(h) ? raduneytiOf(map, h) : null, pmClaimed, lockFallback: !pmClaimed };
       } else if (Array.isArray(out.lockRoster)) {
-        for (const r of out.lockRoster) { if (r.bot) continue; const map = mapOf(r.teamId); r.radherrar = map; r.lockFallback = !map[PM]; }
+        for (const r of out.lockRoster) { if (r.bot) continue; const map = mapOf(r.teamId); r.radherrar = mapAnHandles(map); r.lockFallback = !map[PM]; }
       }
     }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
@@ -594,26 +644,28 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       // body-inu (ekkert spoof). Vantar/ógilt handle = ekkert sæti → allt hafnað nema fallback-læsing ef enginn forsætisráðherra.
       // decisions.radherrar={key:handle} í sama POST = claim-beiðnir (first-wins; /saeti er léttari leið fyrir picker-UI).
       // Sáttar-/klemmu-/stefnu-svið eru PM-only í merge; sáttar-vörnin keyrir EFTIR merge á merged-hlutinn (það sem fer í geymslu).
-      const row = await readDec(env, code, game.current_round, you.teamId);
-      const prev = row ? { ...parseDec(row), locked: !!row.locked } : null;
+      // Lestur→merge→skrif er ATÓMÍSKT um casRitun (CAS á lesnu bætin, endurlestur ef félagi skrifaði á milli) — sjá
+      // KAPPHLAUPS-VÖRN efst. Allt hér inni er fall af `row` EINGÖNGU svo endurtekning gefi sama (ferskara) svar.
       const incoming = { ...((dObj && typeof dObj === 'object' && !Array.isArray(dObj)) ? dObj : {}), locked: !!b.locked };
       const handle = validHandle(b.handle) ? b.handle : null;
-      // LÆST RÖÐ TEKUR ENGIN DRÖG (þjóns-vörn — client-vörnin ein er bypassanleg í devtools): sé röðin læst og sendandinn EKKI
-      // forsætisráðherra skv. GEYMDA map-inu er EKKERT tekið úr incoming (sleðar/svið/claim-beiðnir) — annars læddust sleðar
-      // ráðherra inn í læstu röðina (locked helst 1 en gildin breytast) og uppgjörið notaði gildi sem PM samþykkti aldrei.
-      // Undantekning: lockFallback (enginn PM claim-aður) + locked:false SKÝRT í sama POST = meðvituð aflæsing (hver sem er má
-      // aflæsa þar, eins og fyrr) → venjulegt merge; locked VANTAR eða true = EKKI aflæsing. PM fer alltaf í merge (aflæsir með
-      // locked:false og breytir). Svar 200 {ok, locked:true, hafnad:['locked']} — EKKI 409: client pollar og kapphlaup
-      // PM-læsing ↔ drög ráðherra er eðlilegt, ekki villa. Claims á læsta röð fara um /saeti (snertir ekki sleða).
-      if (prev && prev.locked) {
-        const map0 = normMap(prev.radherrar), unlockOk = (b.locked === false && !map0[PM]);
-        if (raduneytiOf(map0, handle) !== PM && !unlockOk) return sjson({ ok: true, hafnad: ['locked'], raduneyti: raduneytiOf(map0, handle), locked: true });
-      }
-      const merged = mergeDecisions(prev, incoming, { handle, baseline: BASELINE, config: cfg });
-      sattVorn(merged);
-      const g = tilGeymslu(merged);
-      await writeDec(env, code, game.current_round, you.teamId, g.decisions, g.locked);
-      return sjson({ ok: true, hafnad: g.hafnad, raduneyti: raduneytiOf(g.decisions.radherrar, handle), locked: !!g.locked });
+      return await casRitun(env, code, game.current_round, you.teamId, (row) => {
+        const prev = row ? { ...parseDec(row), locked: !!row.locked } : null;
+        // LÆST RÖÐ TEKUR ENGIN DRÖG (þjóns-vörn — client-vörnin ein er bypassanleg í devtools): sé röðin læst og sendandinn EKKI
+        // forsætisráðherra skv. GEYMDA map-inu er EKKERT tekið úr incoming (sleðar/svið/claim-beiðnir) — annars læddust sleðar
+        // ráðherra inn í læstu röðina (locked helst 1 en gildin breytast) og uppgjörið notaði gildi sem PM samþykkti aldrei.
+        // Undantekning: lockFallback (enginn PM claim-aður) + locked:false SKÝRT í sama POST = meðvituð aflæsing (hver sem er má
+        // aflæsa þar, eins og fyrr) → venjulegt merge; locked VANTAR eða true = EKKI aflæsing. PM fer alltaf í merge (aflæsir með
+        // locked:false og breytir). Svar 200 {ok, locked:true, hafnad:['locked']} — EKKI 409: client pollar og kapphlaup
+        // PM-læsing ↔ drög ráðherra er eðlilegt, ekki villa. Claims á læsta röð fara um /saeti (snertir ekki sleða).
+        if (prev && prev.locked) {
+          const map0 = normMap(prev.radherrar), unlockOk = (b.locked === false && !map0[PM]);
+          if (raduneytiOf(map0, handle) !== PM && !unlockOk) return { skrifa: false, svar: sjson({ ok: true, hafnad: ['locked'], raduneyti: raduneytiOf(map0, handle), locked: true }) };
+        }
+        const merged = mergeDecisions(prev, incoming, { handle, baseline: BASELINE, config: cfg });
+        sattVorn(merged);
+        const g = tilGeymslu(merged);
+        return { skrifa: true, decisions: g.decisions, locked: g.locked, svar: sjson({ ok: true, hafnad: g.hafnad, raduneyti: raduneytiOf(g.decisions.radherrar, handle), locked: !!g.locked }) };
+      });
     }
     // Án radherrar: ÓBREYTT leið — sama SQL, sama JSON (afturför-vörn; sjá „config af → byte-eins" í server.test.mjs).
     sattVorn(dObj);
@@ -634,14 +686,18 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (game.phase === 'ended') return sjson({ error: 'phase' }, 409);
     const b = await request.json().catch(() => ({}));
     if (!validHandle(b.handle)) return sjson({ error: 'handle' }, 400);
-    const row = await readDec(env, code, game.current_round, you.teamId);
-    const d = parseDec(row), map0 = normMap(d.radherrar);
-    let r;
-    if (b.key == null) { const k = raduneytiOf(map0, b.handle); r = k ? releaseRaduneyti(map0, k, b.handle) : { map: map0, ok: true, reason: 'laust' }; }
-    else r = claimRaduneyti(map0, b.key, b.handle);
-    const map = normMap(r.map);
-    if (r.ok && JSON.stringify(map) !== JSON.stringify(map0)) await writeDec(env, code, game.current_round, you.teamId, { ...d, radherrar: map }, row && row.locked);
-    return sjson({ ok: r.ok, reason: r.reason, mitt: raduneytiOf(map, b.handle), pmClaimed: !!map[PM], stada: raduneytiStaða(map) });
+    // Sama kapphlaups-vörn og /decisions: sæta-val skrifar ALLA decisions-röðina, svo blint skrif þurrkaði út sleða sem félagi
+    // vistaði á milli lestrar og skrifar. casRitun endurles og endurreiknar claim-ið á fersku map-i (first-wins helst réttur).
+    return await casRitun(env, code, game.current_round, you.teamId, (row) => {
+      const d = parseDec(row), map0 = normMap(d.radherrar);
+      let r;
+      if (b.key == null) { const k = raduneytiOf(map0, b.handle); r = k ? releaseRaduneyti(map0, k, b.handle) : { map: map0, ok: true, reason: 'laust' }; }
+      else r = claimRaduneyti(map0, b.key, b.handle);
+      const map = normMap(r.map);
+      const svar = sjson({ ok: r.ok, reason: r.reason, mitt: raduneytiOf(map, b.handle), pmClaimed: !!map[PM], stada: staðaAnHandles(map) });
+      if (!r.ok || JSON.stringify(map) === JSON.stringify(map0)) return { skrifa: false, svar };
+      return { skrifa: true, decisions: { ...d, radherrar: map }, locked: row && row.locked, svar };
+    });
   }
 
   // POST /<code>/control  (fac-token)
