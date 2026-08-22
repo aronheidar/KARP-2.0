@@ -29,8 +29,11 @@ jobs:
       - name: Deps (wrangler fyrir D1)
         run: npm ci
         working-directory: web
-      - name: ffmpeg til staðar?
-        run: ffmpeg -version | head -1
+      - name: ffmpeg (ubuntu-24.04 myndin hefur það ekki lengur)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+          ffmpeg -version | head -1
       - name: Hlaðvarpsvaktin (lýsigögn + talgreining → D1)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
