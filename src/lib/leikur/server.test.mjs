@@ -961,6 +961,132 @@ const J = async (res) => JSON.parse(await res.text());
     }
   }
 
+  // ── RÁÐHERRASKIPTING INNAN LIÐS (config.radherrar, radherrar.mjs) — þjóns-integration: merge per sleða í POST /decisions,
+  //    /saeti claim/sleppa, carry-forward sæta við start/next, /state radherrar-blokk + lockRoster, afturför-vörn (config af) ──
+  {
+    const { PM: PMK } = await import('./radherrar.mjs');
+    const BLr = (await import('../../../gogn/roads/baseline.json', { with: { type: 'json' } })).default;
+    const Vb = BLr.levers.vextir.base, Sb = BLr.levers.skattar.base;
+    const mkE2 = () => ({ SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() });
+    const mkG = async (E, body, names) => {
+      const H = (r) => LH(r, E);
+      const g = await J(await H(req('/api/leikur/create', body)));
+      const teams = []; for (const nm of names) teams.push(await J(await H(req('/api/leikur/' + g.code + '/join', { name: nm }))));
+      const post = (path, tok, b) => H(new Request('https://karp.is/api/leikur/' + g.code + path, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify(b) }));
+      const ctl = async (b) => J(await post('/control', g.facToken, b));
+      const st = async (tok, h) => J(await H(new Request('https://karp.is/api/leikur/' + g.code + '/state' + (h ? '?h=' + h : ''), { headers: tok ? { authorization: 'Bearer ' + tok } : {} })));
+      const dc = async (tok, round, d, locked, handle) => J(await post('/decisions', tok, { round, locked, decisions: d, ...(handle !== undefined ? { handle } : {}) }));
+      const saeti = (tok, handle, key) => post('/saeti', tok, { handle, key });
+      const row = (round, tid) => E.TENGSL._t.leikur_decisions.find((x) => x.game_code === g.code && x.round === round && x.team_id === tid) || null;
+      const dec = (round, tid) => { const r = row(round, tid); return r ? JSON.parse(r.decisions) : null; };
+      return { E, g, teams, ctl, st, dc, saeti, row, dec, post, H };
+    };
+    // (1) rofinn: aðeins studio + skýrt JÁ; /saeti með rofann af → 409
+    const Rc = await mkG(mkE2(), { radherrar: true }, ['K']);
+    const Rs = await mkG(mkE2(), { mode: 'studio', radherrar: 'true' }, ['S']);
+    const Ro = await mkG(mkE2(), { mode: 'studio' }, ['O']);
+    ok('radherrar: classic hunsar (radherrarOn false), studio+"true" → true (lið/fac/watch), studio án → false', (await Rc.st(Rc.g.facToken)).radherrarOn === false && (await Rs.st(Rs.g.facToken)).radherrarOn === true && (await Rs.st(null)).radherrarOn === true && (await Ro.st(Ro.g.facToken)).radherrarOn === false);
+    ok('radherrar: /saeti í leik með rofann AF → 409 radherrar', (await Ro.saeti(Ro.teams[0].teamToken, 'aaaa', 'fjarmal')).status === 409);
+
+    // (2) aðal-leikurinn: EITT lið, tveir liðsmenn — A('aaaa') fjarmal, B('bbbb') forsaetis
+    const R = await mkG(mkE2(), { mode: 'studio', radherrar: true }, ['R-Lið']);
+    const T = R.teams[0].teamToken, tid = R.teams[0].teamId;
+    await R.ctl({ action: 'start' });
+    const c1 = await J(await R.saeti(T, 'aaaa', 'fjarmal'));
+    const c2 = await J(await R.saeti(T, 'bbbb', 'forsaetis'));
+    ok('saeti: A claim-ar fjarmal → ok, mitt fjarmal, stada fjarmal taken/handle aaaa, pmClaimed false', c1.ok === true && c1.mitt === 'fjarmal' && c1.stada.find((r) => r.key === 'fjarmal').taken === true && c1.stada.find((r) => r.key === 'fjarmal').handle === 'aaaa' && c1.pmClaimed === false);
+    ok('saeti: B claim-ar forsaetis → ok, pmClaimed true; röð lotu 1 ber radherrar-map (ólæst, engir sleðar)', c2.ok === true && c2.mitt === PMK && c2.pmClaimed === true && R.row(1, tid).locked === 0 && JSON.stringify(R.dec(1, tid)) === JSON.stringify({ radherrar: { forsaetis: 'bbbb', fjarmal: 'aaaa' } }));
+    const c3 = await J(await R.saeti(T, 'cccc', 'fjarmal'));
+    ok('saeti first-wins: C reynir fjarmal → ok:false upptekid, map óbreytt', c3.ok === false && c3.reason === 'upptekid' && c3.stada.find((r) => r.key === 'fjarmal').handle === 'aaaa' && R.dec(1, tid).radherrar.fjarmal === 'aaaa');
+    ok('saeti: endur-claim eigin sætis → ok (sama); sleppa án sætis → ok laust', (await J(await R.saeti(T, 'aaaa', 'fjarmal'))).reason === 'sama' && (await J(await R.saeti(T, 'cccc', null))).reason === 'laust');
+    ok('saeti: ógilt handle → 400; ógilt ráðuneyti → ok:false ogilt_raduneyti', (await R.saeti(T, 'A!', 'fjarmal')).status === 400 && (await J(await R.saeti(T, 'cccc', 'bull'))).reason === 'ogilt_raduneyti');
+    const pA = await R.dc(T, 1, { levers: { vextir: Vb + 1, skattar: Sb + 4 }, policies: {}, dilemma: null }, false, 'aaaa');
+    ok('POST fjarmal (aaaa): skattar vistast, vextir hafnað + skilað í hafnad, raduneyti fjarmal, locked false', pA.ok === true && pA.hafnad.includes('vextir') && !pA.hafnad.includes('skattar') && pA.raduneyti === 'fjarmal' && pA.locked === false && JSON.stringify(R.dec(1, tid).levers) === JSON.stringify({ skattar: Sb + 4 }));
+    ok('POST fjarmal: tóm policies:{} / dilemma:null (drög) = hljóðlátt, ekki í hafnad', !pA.hafnad.includes('policies') && !pA.hafnad.includes('dilemma'));
+    const pB = await R.dc(T, 1, { levers: { vextir: Vb + 1 } }, false, 'bbbb');
+    ok('POST forsaetis (bbbb): vextir vistast, skattar A HELST (engin klobbun), hafnad tómt', pB.ok === true && pB.hafnad.length === 0 && pB.raduneyti === PMK && R.dec(1, tid).levers.vextir === Vb + 1 && R.dec(1, tid).levers.skattar === Sb + 4);
+    const pA2 = await R.dc(T, 1, { levers: { skattar: Sb + 4 } }, true, 'aaaa');
+    ok('POST fjarmal locked:true → hunsað (locked 0, hafnad locked)', pA2.locked === false && pA2.hafnad.includes('locked') && R.row(1, tid).locked === 0);
+    const pA3 = await R.dc(T, 1, { policies: { hoft: true }, dilemma: 'x' }, false, 'aaaa');
+    ok('POST fjarmal policies/dilemma → hafnað (PM-only), ekkert vistað', pA3.hafnad.includes('policies') && pA3.hafnad.includes('dilemma') && R.dec(1, tid).policies === undefined && R.dec(1, tid).dilemma === undefined);
+    const sA = await R.st(T, 'aaaa'), sB = await R.st(T, 'bbbb'), sX = await R.st(T, 'zzzz'), sN = await R.st(T);
+    ok('/state lið: radherrar {on, stada 7 í fastri röð, mitt úr ?h, pmClaimed true, lockFallback false}', sA.radherrar && sA.radherrar.on === true && sA.radherrar.stada.length === 7 && sA.radherrar.stada[0].key === PMK && sA.radherrar.mitt === 'fjarmal' && sB.radherrar.mitt === PMK && sA.radherrar.pmClaimed === true && sA.radherrar.lockFallback === false);
+    ok('/state lið: óþekkt/vantar handle → mitt null; draft = SAMEINUÐ drög beggja; you.locked false', sX.radherrar.mitt === null && sN.radherrar.mitt === null && sA.draft.vextir === Vb + 1 && sA.draft.skattar === Sb + 4 && sA.you.locked === false);
+    ok('/state watch: engin radherrar-blokk (aðeins radherrarOn)', (await R.st(null)).radherrar === undefined && (await R.st(null)).radherrarOn === true);
+    const pB2 = await R.dc(T, 1, { levers: { vextir: Vb + 1 } }, true, 'bbbb');
+    const sF = await R.st(R.g.facToken);
+    ok('POST forsaetis locked:true → locked 1; you.locked true; fac lockRoster ber radherrar-map + lockFallback false', pB2.locked === true && R.row(1, tid).locked === 1 && (await R.st(T, 'aaaa')).you.locked === true && sF.lockRoster[0].locked === true && JSON.stringify(sF.lockRoster[0].radherrar) === JSON.stringify({ forsaetis: 'bbbb', fjarmal: 'aaaa' }) && sF.lockRoster[0].lockFallback === false);
+    ok('POST fjarmal drög (locked:false) eftir læsingu PM → aflæsir EKKI, eigin sleði vistast', (await R.dc(T, 1, { levers: { skattar: Sb + 2 } }, false, 'aaaa')).locked === true && R.row(1, tid).locked === 1 && R.dec(1, tid).levers.skattar === Sb + 2);
+    await R.ctl({ action: 'resolve' }); await R.ctl({ action: 'next' });
+    const s2 = await R.st(T, 'aaaa');
+    ok('next: radherrar-map afritað í drög lotu 2 (ný röð, ólæst, engir sleðar) — mitt fjarmal, draft tómt', R.row(2, tid) && R.row(2, tid).locked === 0 && JSON.stringify(R.dec(2, tid)) === JSON.stringify({ radherrar: { forsaetis: 'bbbb', fjarmal: 'aaaa' } }) && s2.radherrar.mitt === 'fjarmal' && s2.draft && Object.keys(s2.draft).length === 0 && s2.you.locked === false);
+    const pC = await R.dc(T, 2, { radherrar: { sedlabanki: 'cccc' }, levers: { vextir: Vb + 2 } }, false, 'cccc');
+    ok('POST með decisions.radherrar claim (cccc→sedlabanki) í sama POST: sætið fæst OG eigin sleði vistast strax', pC.raduneyti === 'sedlabanki' && pC.hafnad.length === 0 && R.dec(2, tid).radherrar.sedlabanki === 'cccc' && R.dec(2, tid).levers.vextir === Vb + 2);
+    const pC2 = await R.dc(T, 2, { radherrar: { fjarmal: 'cccc' } }, false, 'cccc');
+    ok('POST claim á upptekið sæti (fjarmal) → hafnad radherrar:fjarmal, sæti óbreytt', pC2.hafnad.includes('radherrar:fjarmal') && pC2.raduneyti === 'sedlabanki' && R.dec(2, tid).radherrar.fjarmal === 'aaaa');
+    const mv = await J(await R.saeti(T, 'cccc', 'husnaedi'));
+    ok('saeti: sama handle á aðeins EITT sæti — cccc færist sedlabanki→husnaedi (sedlabanki laust)', mv.ok === true && mv.mitt === 'husnaedi' && mv.stada.find((r) => r.key === 'sedlabanki').taken === false && R.dec(2, tid).radherrar.sedlabanki === undefined);
+    const pZ = await R.dc(T, 2, { levers: { vextir: Vb + 3 } }, true, 'Ö-ógilt');
+    ok('POST ógilt handle = ekkert sæti: sleði hafnað, læsing hafnað (PM til), raduneyti null', pZ.raduneyti === null && pZ.hafnad.includes('vextir') && pZ.hafnad.includes('locked') && R.dec(2, tid).levers.vextir === Vb + 2 && R.row(2, tid).locked === 0);
+    const rel = await J(await R.saeti(T, 'bbbb', null));
+    ok('saeti: B sleppir forsaetis → pmClaimed false, mitt null; /state lockFallback true; fac lockRoster lockFallback true', rel.ok === true && rel.pmClaimed === false && rel.mitt === null && (await R.st(T, 'aaaa')).radherrar.lockFallback === true && (await R.st(R.g.facToken)).lockRoster[0].lockFallback === true);
+    ok('saeti: key null sleppir AÐEINS eigin sæti — cccc sleppir husnaedi, fjarmal A helst', (await J(await R.saeti(T, 'cccc', null))).ok === true && JSON.stringify(R.dec(2, tid).radherrar) === JSON.stringify({ fjarmal: 'aaaa' }));
+    const pA4 = await R.dc(T, 2, { levers: { skattar: Sb + 1 } }, true, 'aaaa');
+    ok('án PM-claims: fjarmal locked:true → locked 1 (fallback), eigin sleði vistast', pA4.locked === true && R.row(2, tid).locked === 1 && R.dec(2, tid).levers.skattar === Sb + 1);
+    await R.ctl({ action: 'stop' });
+    ok('saeti eftir leikslok → 409', (await R.saeti(T, 'aaaa', null)).status === 409);
+
+    // (3) carry við start úr lobby-sætum (lota 0)
+    const Lg = await mkG(mkE2(), { mode: 'studio', radherrar: true }, ['L-Lið']);
+    const TL = Lg.teams[0].teamToken, tidL = Lg.teams[0].teamId;
+    const lc = await J(await Lg.saeti(TL, 'dddd', 'forsaetis'));
+    ok('lobby: saeti claim (lota 0) → ok; /state lobby lið ber radherrar.mitt forsaetis', lc.ok === true && !!Lg.row(0, tidL) && (await Lg.st(TL, 'dddd')).radherrar.mitt === PMK);
+    await Lg.ctl({ action: 'start' });
+    ok('start: lobby-sæti borin í drög lotu 1 (ný röð {radherrar}) — mitt forsaetis í lotu 1', !!Lg.row(1, tidL) && JSON.stringify(Lg.dec(1, tidL)) === JSON.stringify({ radherrar: { forsaetis: 'dddd' } }) && (await Lg.st(TL, 'dddd')).radherrar.mitt === PMK);
+
+    // (4) satt + radherrar: sáttar-vörnin keyrir EFTIR merge á merged; satt er PM-only
+    const Sg = await mkG(mkE2(), { mode: 'studio', radherrar: true, satt: true, sattLotur: [2] }, ['S-Lið']);
+    const TS = Sg.teams[0].teamToken, tidS = Sg.teams[0].teamId;
+    await Sg.ctl({ action: 'start' });
+    await Sg.saeti(TS, 'eeee', 'forsaetis'); await Sg.saeti(TS, 'ffff', 'fjarmal');
+    await Sg.dc(TS, 1, { levers: { vextir: Vb }, satt: 'satt' }, true, 'eeee');
+    ok('satt+radherrar lota 1 (EKKI sáttar-lota): PM satt strokað úr merged (vörn eftir merge), læst', Sg.dec(1, tidS).satt === undefined && Sg.row(1, tidS).locked === 1);
+    await Sg.ctl({ action: 'resolve' }); await Sg.ctl({ action: 'next' });
+    await Sg.dc(TS, 2, { satt: 'satt' }, false, 'eeee');
+    const pF = await Sg.dc(TS, 2, { satt: 'saekja' }, false, 'ffff');
+    ok('satt+radherrar lota 2 (sáttar-lota): PM satt vistast; fjarmal satt:saekja hafnað (PM-only), gildi PM helst; fac sér val', Sg.dec(2, tidS).satt === 'satt' && pF.hafnad.includes('satt') && (await Sg.st(Sg.g.facToken)).satt.valin[0].val === 'satt');
+
+    // (5) AFTURFÖR-VÖRN: config AF → nákvæmlega gamla leiðin (svar {"ok":true}, decisions-JSON byte-eins við body, handle hunsað)
+    const Off = await mkG(mkE2(), { mode: 'studio' }, ['Off']);
+    await Off.ctl({ action: 'start' });
+    const offBody = { levers: { vextir: 9, skattar: 2 }, policies: {}, dilemma: null, radherrar: { fjarmal: 'aaaa' } };
+    const offRes = await Off.post('/decisions', Off.teams[0].teamToken, { round: 1, locked: false, decisions: offBody, handle: 'aaaa' });
+    ok('config af: svar nákvæmlega {"ok":true}, geymt JSON === JSON.stringify(body.decisions), locked 0', (await offRes.text()) === '{"ok":true}' && Off.row(1, Off.teams[0].teamId).decisions === JSON.stringify(offBody) && Off.row(1, Off.teams[0].teamId).locked === 0);
+    const offRes2 = await Off.post('/decisions', Off.teams[0].teamToken, { round: 1, locked: true, decisions: { levers: { vextir: 5 } } });
+    ok('config af: annar POST SKIPTIR öllu út (gamla INSERT OR REPLACE-hegðunin), locked 1, engin radherrar-blokk í /state', (await offRes2.text()) === '{"ok":true}' && Off.row(1, Off.teams[0].teamId).decisions === '{"levers":{"vextir":5}}' && Off.row(1, Off.teams[0].teamId).locked === 1 && (await Off.st(Off.teams[0].teamToken, 'aaaa')).radherrar === undefined);
+    const Cl = await mkG(mkE2(), { radherrar: true }, ['Cl']);
+    await Cl.ctl({ action: 'start' });
+    const clBody = { peningastefna: 'herda', utgjold: 'obreytt', skattar: 'obreytt', fjarfesting: 'engin', vidbragd: 'bida' };
+    const clRes = await Cl.post('/decisions', Cl.teams[0].teamToken, { round: 1, locked: true, decisions: clBody, handle: 'aaaa' });
+    ok('classic + radherrar:true í create: hunsað — svar {"ok":true}, JSON byte-eins, læst beint', (await clRes.text()) === '{"ok":true}' && Cl.row(1, Cl.teams[0].teamId).decisions === JSON.stringify(clBody) && Cl.row(1, Cl.teams[0].teamId).locked === 1);
+
+    // (6) æfingalið + radherrar: bot læsist beint (lockBots), fær ALDREI radherrar-map
+    const Bg = await mkG(mkE2(), { mode: 'studio', radherrar: true }, ['B-Lið']);
+    const bt = await J(await Bg.post('/bot-team', Bg.g.facToken, {}));
+    await Bg.saeti(Bg.teams[0].teamToken, 'gggg', 'forsaetis');
+    await Bg.ctl({ action: 'start' });
+    ok('bot+radherrar: bot læst strax ({} / locked 1), raun-lið fær lobby-sætið í lotu 1', Bg.row(1, bt.teamId).locked === 1 && Bg.row(1, bt.teamId).decisions === '{}' && Bg.dec(1, Bg.teams[0].teamId).radherrar.forsaetis === 'gggg');
+    await Bg.ctl({ action: 'resolve' }); await Bg.ctl({ action: 'next' });
+    const bF = await Bg.st(Bg.g.facToken);
+    ok('bot+radherrar lota 2: bot-röð {} læst (ekkert map); fac lockRoster: bot án radherrar/lockFallback, raun-lið með map', Bg.row(2, bt.teamId).decisions === '{}' && Bg.row(2, bt.teamId).locked === 1 && bF.lockRoster.find((r) => r.teamId === bt.teamId).radherrar === undefined && bF.lockRoster.find((r) => r.teamId === bt.teamId).lockFallback === undefined && bF.lockRoster.find((r) => r.teamId === Bg.teams[0].teamId).radherrar.forsaetis === 'gggg');
+
+    // (7) þoka + radherrar: thokaSia (grunnt afrit) varðveitir radherrar-blokkina
+    const Tg = await mkG(mkE2(), { mode: 'studio', radherrar: true, thoka: true }, ['Þ-Lið']);
+    await Tg.ctl({ action: 'start' });
+    await Tg.saeti(Tg.teams[0].teamToken, 'hhhh', 'fjarmal');
+    const tgs = await Tg.st(Tg.teams[0].teamToken, 'hhhh');
+    ok('þoka+radherrar decide: radherrar-blokk lifir síun (mitt fjarmal) + thoka-blokk', tgs.thoka && tgs.thoka.on === true && tgs.radherrar && tgs.radherrar.mitt === 'fjarmal' && tgs.radherrarOn === true);
+  }
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();

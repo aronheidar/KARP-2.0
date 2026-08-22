@@ -13,6 +13,7 @@ import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs'
 import { carryover } from './aftermath.mjs';
 import { politikFerill } from './politik.mjs';
 import { sattLota, sattUtkoma, applySatt } from './satt.mjs';
+import { PM, mergeDecisions, claimRaduneyti, releaseRaduneyti, raduneytiStaða, raduneytiOf, validHandle, radherrarOn, tilGeymslu, normMap } from './radherrar.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -45,7 +46,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [], radherrar: (c.mode === 'studio' && radherrarOn(c)) }; }
 // Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
 // sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
 // svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
@@ -55,6 +56,31 @@ async function lockBots(env, code, round, botIds) {
     if (row && row.locked) continue;
     await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)')
       .bind(code, round, tid, (row && row.decisions) || '{}', 1, now()).run().catch(() => null);
+  }
+}
+// ── RÁÐHERRASKIPTING INNAN LIÐS (config.radherrar, AÐEINS studio; reglan sjálf er HREIN í radherrar.mjs) ───────────────
+// Sæta-map liðs { raduneyti: handle } býr í decisions-JSON lotunnar undir lyklinum 'radherrar' (ekkert schema). handle =
+// nafnlaust dulnefni liðsmanns úr vafra (4–8 [a-z0-9], ekkert PII). Map-ið LIFIR LEIKINN: carryRadherrar afritar það úr lotu
+// N í drög lotu N+1 við start (lobby = lota 0, sæti má velja fyrir start) og next — ný röð {radherrar:map} ef engin, annars
+// bætt í fyrirliggjandi drög sem eiga ekkert map (idempotent). Æfingalið (bots) eru sleppt: þau velja aldrei sæti (lockBots).
+const SEL_DEC = 'SELECT decisions, locked FROM leikur_decisions WHERE game_code=? AND round=? AND team_id=?';
+const INS_DEC = 'INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)';
+const parseDec = (row) => { try { const d = JSON.parse((row && row.decisions) || '{}'); return (d && typeof d === 'object' && !Array.isArray(d)) ? d : {}; } catch (e) { return {}; } };
+const readDec = (env, code, round, teamId) => env.TENGSL.prepare(SEL_DEC).bind(code, round, teamId).first().catch(() => null);
+const writeDec = (env, code, round, teamId, decisions, locked) => env.TENGSL.prepare(INS_DEC).bind(code, round, teamId, JSON.stringify(decisions), locked ? 1 : 0, now()).run().catch(() => null);
+const radherrarMapOf = (row) => normMap(parseDec(row).radherrar);   // normalíserað sæta-map raðar ({} ef engin röð / ekkert map)
+async function nonBotTeamIds(env, code, cfg) {
+  const rows = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+  const bots = new Set(cfg.bots || []);
+  return rows.map((t) => t.id).filter((id) => !bots.has(id));
+}
+async function carryRadherrar(env, code, fromRound, toRound, teamIds) {
+  for (const tid of teamIds || []) {
+    const map = radherrarMapOf(await readDec(env, code, fromRound, tid));
+    if (!Object.keys(map).length) continue;                         // ekkert sæti valið → ekkert að bera áfram
+    const cur = await readDec(env, code, toRound, tid), d = parseDec(cur);
+    if (Object.keys(normMap(d.radherrar)).length) continue;         // nýja lotan á þegar map (idempotent)
+    await writeDec(env, code, toRound, tid, { ...d, radherrar: map }, cur && cur.locked);
   }
 }
 // Fasi A: markmið per kjörtímabil f. sjálfgefna leiki; sérsniðnir leikir halda föstu mandate úr config.
@@ -200,6 +226,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       const lot = [...new Set(arrL.map((x) => Number(x)).filter((x) => Number.isInteger(x) && x > 0 && x <= config.rounds))].sort((a, b) => a - b);
       if (lot.length) config.sattLotur = lot;
     }
+    // RÁÐHERRASKIPTING INNAN LIÐS (radherrar.mjs): config.radherrar=true — AÐEINS í studio-ham (classic HUNSAR: þar eru engir
+    // sleðar að skipta milli ráðherra, ákvarðanir eru 5 valmyndir); aðeins skýrt JÁ (true/'true'/1) kveikir, eins og thoka/satt.
+    // gameCfg les rofann líka aðeins í studio svo eldri/handvirk config með radherrar í classic hafi engin áhrif.
+    if (cb && config.mode === 'studio' && (cb.radherrar === true || cb.radherrar === 'true' || cb.radherrar === 1)) config.radherrar = true;
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -285,6 +315,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
     out.thokaOn = cfg.thoka; // Gagnatöf: er leikurinn í þoku? (allir áhorfendur — fac-stillingaspjald/liðs-merki; síunin sjálf er neðst: lið+watch í decide, fac aldrei)
+    out.radherrarOn = cfg.radherrar; // Ráðherraskipting innan liðs: er rofinn kveiktur? (allir áhorfendur — sæta-blokkin sjálf (out.radherrar / lockRoster[].radherrar) er neðar, aðeins lið+fac)
     out.sattOn = cfg.satt; // Þjóðarsáttin: er rofinn kveiktur? (allir áhorfendur, öll fasa — sjálf sáttar-blokkin (out.satt) er neðar og aðeins utan lobby)
     out.leverCap = difficultyOf(cfg.difficulty).leverCap || null; // Pólitískt vald: hámark virkra sleða (Erfitt)
     // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt).
@@ -469,6 +500,22 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         if (prevRes) { try { out.stjornarkreppa = ((JSON.parse(prevRes.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
       }
     }
+    // ── RÁÐHERRASKIPTING (config.radherrar, radherrar.mjs): sæta-map per lið úr decisions-röð ÞESSARAR lotu (lobby = lota 0 —
+    // sæti má velja fyrir start; carryRadherrar ber þau í lotu 1). LIÐ: out.radherrar = { on, stada (picker-listi í fastri röð,
+    // {taken, handle}), mitt (sæti handle-s úr ?h=<handle> — client sendir; vantar/ógilt → null), pmClaimed, lockFallback (enginn
+    // forsætisráðherra → hver sem er læsir) }. FAC: radherrar-map + lockFallback á hvert raun-lið í lockRoster (handles eru nafnlaus
+    // dulnefni — má sýna; lockFallback=true → „enginn forsætisráðherra — hver sem er læsir"). WATCH (tákn-laust): ekkert.
+    // Læsingin sjálf (you.locked / lockRoster[].locked) er ÓBREYTT = röð locked=1. Í þoku lifir blokkin síun (thokaSia = grunnt afrit).
+    if (cfg.radherrar && you && you.code === code && (you.role === 'team' || you.role === 'fac')) {
+      const rhRows = ((await env.TENGSL.prepare('SELECT team_id, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
+      const mapOf = (tid) => radherrarMapOf(rhRows.find((x) => x.team_id === tid));
+      if (you.role === 'team') {
+        const map = mapOf(you.teamId), pmClaimed = !!map[PM], h = url.searchParams.get('h');
+        out.radherrar = { on: true, stada: raduneytiStaða(map), mitt: validHandle(h) ? raduneytiOf(map, h) : null, pmClaimed, lockFallback: !pmClaimed };
+      } else if (Array.isArray(out.lockRoster)) {
+        for (const r of out.lockRoster) { if (r.bot) continue; const map = mapOf(r.teamId); r.radherrar = map; r.lockFallback = !map[PM]; }
+      }
+    }
     // Leikstjóra-greining (aðeins fac-tákn): þver-liða skorkort/ákvarðanir/ferlar úr allri sögu.
     if (you && you.role === 'fac' && you.code === code) {
       const decRaw = (await env.TENGSL.prepare('SELECT round, team_id, decisions FROM leikur_decisions WHERE game_code=?').bind(code).all().catch(() => ({ results: [] }))).results || [];
@@ -540,10 +587,50 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     const dObj = b.decisions || {};
     // ÞJÓÐARSÁTTIN: decisions.satt = 'satt'|'saekja' (vistað NÁKVÆMLEGA eins og dilemma, í decisions-JSON). VÖRN: aðeins tekið
     // við í sáttar-lotu OG aðeins þessi tvö gildi — annars fjarlægt (utan sáttar-lotu hunsað; rusl hunsað → telst ekki valið).
-    if (dObj && typeof dObj === 'object' && !Array.isArray(dObj) && 'satt' in dObj && !(sattLota(game.current_round, cfg) && (dObj.satt === 'satt' || dObj.satt === 'saekja'))) delete dObj.satt;
+    const sattVorn = (d) => { if (d && typeof d === 'object' && !Array.isArray(d) && 'satt' in d && !(sattLota(game.current_round, cfg) && (d.satt === 'satt' || d.satt === 'saekja'))) delete d.satt; };
+    if (cfg.radherrar) {
+      // RÁÐHERRASKIPTING (radherrar.mjs — þjóns-samningurinn efst þar): MERGE per sleða inn í geymd drög lotunnar í stað þess að
+      // skipta öllu JSON-inu út (ráðherrar klobba ekki hver annan). Sætið er leitt af GEYMDA map-inu + b.handle — aldrei af
+      // body-inu (ekkert spoof). Vantar/ógilt handle = ekkert sæti → allt hafnað nema fallback-læsing ef enginn forsætisráðherra.
+      // decisions.radherrar={key:handle} í sama POST = claim-beiðnir (first-wins; /saeti er léttari leið fyrir picker-UI).
+      // Sáttar-/klemmu-/stefnu-svið eru PM-only í merge; sáttar-vörnin keyrir EFTIR merge á merged-hlutinn (það sem fer í geymslu).
+      const row = await readDec(env, code, game.current_round, you.teamId);
+      const prev = row ? { ...parseDec(row), locked: !!row.locked } : null;
+      const incoming = { ...((dObj && typeof dObj === 'object' && !Array.isArray(dObj)) ? dObj : {}), locked: !!b.locked };
+      const handle = validHandle(b.handle) ? b.handle : null;
+      const merged = mergeDecisions(prev, incoming, { handle, baseline: BASELINE, config: cfg });
+      sattVorn(merged);
+      const g = tilGeymslu(merged);
+      await writeDec(env, code, game.current_round, you.teamId, g.decisions, g.locked);
+      return sjson({ ok: true, hafnad: g.hafnad, raduneyti: raduneytiOf(g.decisions.radherrar, handle), locked: !!g.locked });
+    }
+    // Án radherrar: ÓBREYTT leið — sama SQL, sama JSON (afturför-vörn; sjá „config af → byte-eins" í server.test.mjs).
+    sattVorn(dObj);
     await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)')
       .bind(code, game.current_round, you.teamId, JSON.stringify(dObj), b.locked ? 1 : 0, now()).run().catch(() => null);
     return sjson({ ok: true });
+  }
+
+  // POST /<code>/saeti (liðs-tákn) — RÁÐHERRASKIPTING: velja/sleppa sæti ÁN þess að snerta sleða (léttara fyrir picker-UI en
+  // claim-beiðni í /decisions). Body { handle, key|null }: key = ráðuneytis-lykill → claimRaduneyti (first-wins; sama handle á
+  // aðeins EITT sæti → fyrra sleppt sjálfkrafa), key null → sleppa núverandi sæti handle-s (ekkert sæti = hljóðlátt ok 'laust').
+  // Leyft í lobby (lota 0 — carryRadherrar ber sætin í lotu 1 við start), decide og resolved (sætin lifa leikinn); ended → 409.
+  // Aðrar ákvarðanir + læsing raðarinnar eru ÓSNERTAR. Skilar { ok, reason, mitt, pmClaimed, stada } = allt sem picker-inn þarf.
+  if (action === 'saeti' && method === 'POST') {
+    const you = await verifyToken(env, bearer(request));
+    if (!you || you.role !== 'team' || you.code !== code) return sjson({ error: 'auth' }, 401);
+    if (!cfg.radherrar) return sjson({ error: 'radherrar' }, 409);
+    if (game.phase === 'ended') return sjson({ error: 'phase' }, 409);
+    const b = await request.json().catch(() => ({}));
+    if (!validHandle(b.handle)) return sjson({ error: 'handle' }, 400);
+    const row = await readDec(env, code, game.current_round, you.teamId);
+    const d = parseDec(row), map0 = normMap(d.radherrar);
+    let r;
+    if (b.key == null) { const k = raduneytiOf(map0, b.handle); r = k ? releaseRaduneyti(map0, k, b.handle) : { map: map0, ok: true, reason: 'laust' }; }
+    else r = claimRaduneyti(map0, b.key, b.handle);
+    const map = normMap(r.map);
+    if (r.ok && JSON.stringify(map) !== JSON.stringify(map0)) await writeDec(env, code, game.current_round, you.teamId, { ...d, radherrar: map }, row && row.locked);
+    return sjson({ ok: r.ok, reason: r.reason, mitt: raduneytiOf(map, b.handle), pmClaimed: !!map[PM], stada: raduneytiStaða(map) });
   }
 
   // POST /<code>/control  (fac-token)
@@ -559,6 +646,9 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         cobj.roleMap = assignRoles(teamRows.map((t) => t.id), ROLES);
       }
       if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec; // #3 umferðar-klukka
+      // RÁÐHERRASKIPTING: sæti valin í lobby (lota 0) → drög lotu 1. FYRIR fasa-UPDATE-ið af ásettu ráði: lesum game.current_round
+      // aðeins ÁÐUR en röðin breytist (D1 skilar snapshot, mock skilar tilvísun — sama niðurstaða báðum megin).
+      if (cfg.radherrar) await carryRadherrar(env, code, game.current_round || 0, 1, await nonBotTeamIds(env, code, cfg));
       await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', 1, code).run().catch(() => null);
       await lockBots(env, code, 1, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
       return sjson({ ok: true, phase: 'decide', round: 1 });
@@ -567,6 +657,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (act === 'next') {
       const nr = (game.current_round || 0) + 1;
       if (nr > cfg.rounds) { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
+      if (cfg.radherrar) await carryRadherrar(env, code, nr - 1, nr, await nonBotTeamIds(env, code, cfg)); // ráðherrasætin lifa leikinn: map lotu N → drög lotu N+1 (FYRIR fasa-UPDATE, sjá start)
       if (cfg.timerSec) { // #3 endursetja klukku fyrir nýtt kjörtímabil
         let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
         cobj.deadline = now() + cfg.timerSec;
