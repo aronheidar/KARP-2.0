@@ -1,16 +1,94 @@
 {
   "athugasemd": "Hlaðvarpsvaktin (22.8.2026): opin RSS-feed íslenskra umræðu- og fréttaþátta — HVER slóð sannreynd með KarpBot-UA (200 + items + ferskur pubDate + mp3-enclosure) áður en hún fór inn. p = forgangur talgreiningar (1 fyrst), maxMin = lengsta umritanlega lengd þáttar. Bylgjan gefur ALLA sína þætti (Bítið/Sprengisand/Reykjavík síðdegis o.fl.) út í EINU feedi. Dauð/læst og því EKKI hér: Harmageddon (síðast 2019), Dagmál mbl (læst; opna feedið er kosninga-sería 2022), Morgunvaktin (ekkert feedUrl í iTunes).",
   "feeds": [
-    { "id": "spegillinn", "show": "Spegillinn", "source": "RÚV", "feed": "https://api.ruv.is/public/v2/podcast/rss/spegillinn", "p": 1, "maxMin": 60 },
-    { "id": "thetta-helst", "show": "Þetta helst", "source": "RÚV", "feed": "https://www.ruv.is/rss/hladvarp/thetta-helst", "p": 1, "maxMin": 40 },
-    { "id": "vikulokin", "show": "Vikulokin", "source": "RÚV", "feed": "https://www.ruv.is/rss/hladvarp/vikulokin", "p": 1, "maxMin": 90 },
-    { "id": "heimsglugginn", "show": "Heimsglugginn", "source": "RÚV", "feed": "https://www.ruv.is/rss/hladvarp/heimsglugginn", "p": 2, "maxMin": 60 },
-    { "id": "bylgjan", "show": "Bylgjan (Bítið, Sprengisandur, Reykjavík síðdegis o.fl.)", "source": "Bylgjan", "feed": "https://feedcdn.podbean.com/bylgjan989/feed.xml", "p": 1, "maxMin": 90, "maxEpRun": 8 },
-    { "id": "thjodmal", "show": "Þjóðmál", "source": "Þjóðmál", "feed": "https://anchor.fm/s/4efc990c/podcast/rss", "p": 1, "maxMin": 90 },
-    { "id": "rauda-bordid", "show": "Rauða borðið", "source": "Samstöðin", "feed": "https://feeds.simplecast.com/ob4IGqEK", "p": 1, "maxMin": 120 },
-    { "id": "heimildin", "show": "Hlaðvarp Heimildarinnar", "source": "Heimildin", "feed": "https://heimildin.is/thaettir/feed/heimildin/", "p": 2, "maxMin": 90 },
-    { "id": "ein-paeling", "show": "Ein pæling", "source": "Ein pæling", "feed": "https://www.spreaker.com/show/4121561/episodes/feed", "p": 2, "maxMin": 120 },
-    { "id": "skodanabraedur", "show": "Skoðanabræður", "source": "Skoðanabræður", "feed": "https://anchor.fm/s/afd7488/podcast/rss", "p": 3, "maxMin": 120 },
-    { "id": "i-ljosi-sogunnar", "show": "Í ljósi sögunnar", "source": "RÚV", "feed": "https://www.ruv.is/rss/hladvarp/i-ljosi-sogunnar", "p": 3, "maxMin": 90 }
+    {
+      "id": "spegillinn",
+      "show": "Spegillinn",
+      "source": "RÚV",
+      "feed": "https://api.ruv.is/public/v2/podcast/rss/spegillinn",
+      "p": 1,
+      "maxMin": 60
+    },
+    {
+      "id": "thetta-helst",
+      "show": "Þetta helst",
+      "source": "RÚV",
+      "feed": "https://www.ruv.is/rss/hladvarp/thetta-helst",
+      "p": 1,
+      "maxMin": 40
+    },
+    {
+      "id": "vikulokin",
+      "show": "Vikulokin",
+      "source": "RÚV",
+      "feed": "https://www.ruv.is/rss/hladvarp/vikulokin",
+      "p": 1,
+      "maxMin": 90
+    },
+    {
+      "id": "heimsglugginn",
+      "show": "Heimsglugginn",
+      "source": "RÚV",
+      "feed": "https://www.ruv.is/rss/hladvarp/heimsglugginn",
+      "p": 2,
+      "maxMin": 60
+    },
+    {
+      "id": "bylgjan",
+      "show": "Bylgjan (Bítið, Sprengisandur, Reykjavík síðdegis o.fl.)",
+      "source": "Bylgjan",
+      "feed": "https://feedcdn.podbean.com/bylgjan989/feed.xml",
+      "p": 2,
+      "maxMin": 90,
+      "maxEpRun": 4
+    },
+    {
+      "id": "thjodmal",
+      "show": "Þjóðmál",
+      "source": "Þjóðmál",
+      "feed": "https://anchor.fm/s/4efc990c/podcast/rss",
+      "p": 1,
+      "maxMin": 90
+    },
+    {
+      "id": "rauda-bordid",
+      "show": "Rauða borðið",
+      "source": "Samstöðin",
+      "feed": "https://feeds.simplecast.com/ob4IGqEK",
+      "p": 1,
+      "maxMin": 120
+    },
+    {
+      "id": "heimildin",
+      "show": "Hlaðvarp Heimildarinnar",
+      "source": "Heimildin",
+      "feed": "https://heimildin.is/thaettir/feed/heimildin/",
+      "p": 2,
+      "maxMin": 90
+    },
+    {
+      "id": "ein-paeling",
+      "show": "Ein pæling",
+      "source": "Ein pæling",
+      "feed": "https://www.spreaker.com/show/4121561/episodes/feed",
+      "p": 2,
+      "maxMin": 120
+    },
+    {
+      "id": "skodanabraedur",
+      "show": "Skoðanabræður",
+      "source": "Skoðanabræður",
+      "feed": "https://anchor.fm/s/afd7488/podcast/rss",
+      "p": 3,
+      "maxMin": 120
+    },
+    {
+      "id": "i-ljosi-sogunnar",
+      "show": "Í ljósi sögunnar",
+      "source": "RÚV",
+      "feed": "https://www.ruv.is/rss/hladvarp/i-ljosi-sogunnar",
+      "p": 3,
+      "maxMin": 90
+    }
   ]
 }

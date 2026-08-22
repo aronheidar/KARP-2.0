@@ -165,6 +165,7 @@ for (const ep of valdir) {
   } catch (e) {
     console.error('✗', ep.show.slice(0, 22), ep.title.slice(0, 40), String(e).slice(0, 160));
     if (/Workers AI auth/.test(String(e))) { console.error('⛔ Hætti: Workers AI-heimild vantar á tókann — engin ástæða að reyna fleiri þætti.'); break; }
+    if (/4006|free allocation|daily free/i.test(String(e))) { console.error('⏸ Dagskvóti Workers AI búinn (10.000 neurons ≈ 214 mín á Free-plani) — restin bíður næstu nætur. Workers Paid ($5/mán) opnar fyrir meira.'); break; }
   }
   finally { for (const f of [raw, enc]) { try { fs.unlinkSync(f); } catch (e2) {} } }
 }
