@@ -5,13 +5,17 @@
 //     d, min }] }. Lýsigögn eru opinber hvort eð er (RSS) og MÁ birta. Leitarorða-samsvörun á titil+lýsingu
 //     gefur strax gildi í lobbyvakt/póstvakt — án talgreiningar.
 //
-//  2) TALGREINING (gated á OPENAI_API_KEY + CLOUDFLARE_API_TOKEN/ACCOUNT_ID): nýir þættir valdir undir
-//     kostnaðar-þökum (hladvorp_lib.veljaThaetti: ≤450 mín / ≤30 þættir per keyrslu, per-feed þak, lengdar-þak
-//     per feed) → mp3 sótt → ffmpeg 16 kHz mono 32 kbps (45 mín ≈ 11 MB < 25 MB API-þak) → OpenAI whisper-1
-//     (language=is) → texti í D1-töfluna `hladvorp` um `wrangler d1 execute tengsl --remote` (sama auðkenning
-//     og export_tengsl_fonix.mjs). ⚠ REPOIÐ ER PUBLIC → umritanir fara ALDREI í gogn/, aðeins í D1 (einka);
-//     birting til notenda er stutt brot + hlekkur á þáttinn (höfundaréttar-varfærni, sama nálgun og news.body).
-//     Kostnaður: whisper-1 $0.006/mín → full keyrsla ≈ $2,7/dag ≈ ~11 þús. kr/mán; raun minni (færri nýir þættir).
+//  2) TALGREINING (gated á CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID — sömu lyklar og D1): nýir þættir valdir
+//     undir kostnaðar-þökum (hladvorp_lib.veljaThaetti: ≤450 mín / ≤30 þættir per keyrslu, per-feed þak, lengdar-
+//     þak per feed) → mp3 sótt → ffmpeg 16 kHz mono 32 kbps í 5 mín BÚTA → Workers AI
+//     `@cf/openai/whisper-large-v3-turbo` (REST, base64, language=is; 4 bútar samtímis) → textar límdir saman →
+//     D1-taflan `hladvorp` um `wrangler d1 execute tengsl --remote`. ⚠ REPOIÐ ER PUBLIC → umritanir fara ALDREI í
+//     gogn/, aðeins í D1 (einka); birting = stutt brot + hlekkur á þáttinn (höfundaréttar-varfærni, eins og news.body).
+//     MÆLT 22.8.2026 á 90 s úr Speglinum: turbo-módelið gefur góða íslensku (nöfn/tölur rétt), ~4× rauntími;
+//     gamla `@cf/openai/whisper` er ÓNOTHÆFT á íslensku. Verð $0,0005/mín og 10.000 neurons/dag FRÍ (≈214 mín/dag)
+//     → nætur-þakið 450 mín kostar ≈ $0,12 → < 500 kr/mán. Valkvæmt: HLAD_ASR=openai + OPENAI_API_KEY → whisper-1
+//     ($0,006/mín, ein skrá ≤25 MB) ef Workers AI bregst.
+//     ⚠ CLOUDFLARE_API_TOKEN þarf heimildina „Workers AI: Read" (Account-stig) — annars 403/10000 → skýr villa.
 //
 // Án lykla: lag 2 sleppt með skilaboðum — lag 1 keyrir alltaf. Villur í stökum þáttum fella ekki keyrsluna.
 import fs from 'node:fs';
@@ -68,11 +72,39 @@ console.log('hladvorp.json:', thaettir.length, 'þættir frá', FRA);
 
 // ── 2) Talgreining (gated) ───────────────────────────────────
 const OAI = process.env.OPENAI_API_KEY;
-const CF = process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID;
-if (!OAI || !CF) {
-  console.log('• Talgreining sleppt —', !OAI ? 'enginn OPENAI_API_KEY' : '', !CF ? 'engir Cloudflare-lyklar' : '', '(lýsigögnin duga í titla-vakt).');
+const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN, CF_ACC = process.env.CLOUDFLARE_ACCOUNT_ID;
+const CF = !!(CF_TOKEN && CF_ACC);
+const ASR = (process.env.HLAD_ASR === 'openai' && OAI) ? 'openai' : 'cf';
+if (!CF) {
+  console.log('• Talgreining sleppt — engir Cloudflare-lyklar (þarf CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID fyrir D1 og Workers AI). Lýsigögnin duga í titla-vakt.');
   process.exit(0);
 }
+console.log('• Talgreining:', ASR === 'cf' ? 'Workers AI @cf/openai/whisper-large-v3-turbo (5 mín bútar, 4 samtímis)' : 'OpenAI whisper-1');
+
+// Workers AI REST: einn bútur (≤ ~1,3 MB mp3 → base64) → texti. Skýr villa ef token vantar Workers AI-heimild.
+async function cfWhisper(buf) {
+  const r = await fetch('https://api.cloudflare.com/client/v4/accounts/' + CF_ACC + '/ai/run/@cf/openai/whisper-large-v3-turbo', {
+    method: 'POST', headers: { authorization: 'Bearer ' + CF_TOKEN, 'content-type': 'application/json' },
+    body: JSON.stringify({ audio: buf.toString('base64'), task: 'transcribe', language: 'is' }), signal: AbortSignal.timeout(240000),
+  });
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || j.success === false) {
+    const msg = (j && j.errors && j.errors.map((e) => e.code + ' ' + e.message).join('; ')) || ('HTTP ' + r.status);
+    if (r.status === 401 || r.status === 403 || /10000|Authentication|permission/i.test(msg)) throw new Error('Workers AI auth: ' + msg + ' → bæta heimildinni „Workers AI: Read" við CLOUDFLARE_API_TOKEN');
+    throw new Error('Workers AI: ' + msg);
+  }
+  return String((j.result && j.result.text) || '').trim();
+}
+async function oaiWhisper(file) {
+  const form = new FormData();
+  form.append('file', new Blob([fs.readFileSync(file)], { type: 'audio/mpeg' }), 'ep.mp3');
+  form.append('model', 'whisper-1'); form.append('language', 'is'); form.append('response_format', 'text');
+  const tr = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { authorization: 'Bearer ' + OAI }, body: form, signal: AbortSignal.timeout(600000) });
+  if (!tr.ok) throw new Error('whisper HTTP ' + tr.status + ' ' + (await tr.text()).slice(0, 120));
+  return (await tr.text()).trim();
+}
+// Bútar í röð með takmörkuðum samtímis-fjölda; textar límdir í upprunalegri röð.
+async function pmap(items, n, fn) { const out = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); } })); return out; }
 const wrangler = (args, opts) => execFileSync('npx', ['wrangler', ...args], Object.assign({ cwd: path.join(ROOT, 'web'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' }, opts || {}));
 
 // Hvað er þegar umritað? (engin state-skrá — D1 er sannleikurinn)
@@ -89,26 +121,33 @@ console.log('Til umritunar:', valdir.length, 'þættir ≈', minSum, 'mín | sle
 const TMP = fs.mkdtempSync(path.join(ROOT, 'hlad-'));
 const rows = [];
 for (const ep of valdir) {
-  const raw = path.join(TMP, 'raw'), enc = path.join(TMP, 'enc.mp3');
+  const raw = path.join(TMP, 'raw'), enc = path.join(TMP, 'enc.mp3'), seg = path.join(TMP, 'seg_%03d.mp3');
   try {
     const r = await fetch(ep.audio, { headers: { 'user-agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(120000) });
     if (!r.ok) throw new Error('audio HTTP ' + r.status);
     fs.writeFileSync(raw, Buffer.from(await r.arrayBuffer()));
-    execFileSync('ffmpeg', ['-y', '-i', raw, '-ac', '1', '-ar', '16000', '-b:a', '32k', '-f', 'mp3', enc], { stdio: 'ignore' });
-    const mb = fs.statSync(enc).size / 1048576;
-    if (mb > 24.5) throw new Error('of stór eftir þjöppun: ' + mb.toFixed(1) + ' MB');
-    const form = new FormData();
-    form.append('file', new Blob([fs.readFileSync(enc)], { type: 'audio/mpeg' }), 'ep.mp3');
-    form.append('model', 'whisper-1');
-    form.append('language', 'is');
-    form.append('response_format', 'text');
-    const tr = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { authorization: 'Bearer ' + OAI }, body: form, signal: AbortSignal.timeout(600000) });
-    if (!tr.ok) throw new Error('whisper HTTP ' + tr.status + ' ' + (await tr.text()).slice(0, 120));
-    const texti = (await tr.text()).trim();
+    let texti = '';
+    if (ASR === 'cf') {
+      // 5 mín bútar (≈1,2 MB hver við 32 kbps) → base64 ≈ 1,6 MB per REST-kall; 4 samtímis
+      execFileSync('ffmpeg', ['-y', '-i', raw, '-ac', '1', '-ar', '16000', '-b:a', '32k', '-f', 'segment', '-segment_time', '300', '-reset_timestamps', '1', seg], { stdio: 'ignore' });
+      const parts = fs.readdirSync(TMP).filter((f) => /^seg_\d+\.mp3$/.test(f)).sort();
+      if (!parts.length) throw new Error('ffmpeg gaf enga búta');
+      const textar = await pmap(parts, 4, (f) => cfWhisper(fs.readFileSync(path.join(TMP, f))));
+      texti = textar.join(' ').replace(/\s+/g, ' ').trim();
+      for (const f of parts) { try { fs.unlinkSync(path.join(TMP, f)); } catch (e2) {} }
+    } else {
+      execFileSync('ffmpeg', ['-y', '-i', raw, '-ac', '1', '-ar', '16000', '-b:a', '32k', '-f', 'mp3', enc], { stdio: 'ignore' });
+      const mb = fs.statSync(enc).size / 1048576;
+      if (mb > 24.5) throw new Error('of stór eftir þjöppun: ' + mb.toFixed(1) + ' MB');
+      texti = await oaiWhisper(enc);
+    }
     if (texti.length < 100) throw new Error('umritun tóm/stutt (' + texti.length + ')');
-    rows.push({ url: ep.url, show: ep.show + (ep.source && ep.source !== ep.show ? '' : ''), title: ep.title, ts: Math.floor(new Date(ep.d + 'T12:00:00Z').getTime() / 1000), dur: ep.min || 0, texti });
+    rows.push({ url: ep.url, show: ep.show, title: ep.title, ts: Math.floor(new Date(ep.d + 'T12:00:00Z').getTime() / 1000), dur: ep.min || 0, texti });
     console.log('✓', ep.d, ep.show.slice(0, 22), '·', ep.title.slice(0, 46), '·', texti.length, 'stafir');
-  } catch (e) { console.error('✗', ep.show.slice(0, 22), ep.title.slice(0, 40), String(e).slice(0, 110)); }
+  } catch (e) {
+    console.error('✗', ep.show.slice(0, 22), ep.title.slice(0, 40), String(e).slice(0, 160));
+    if (/Workers AI auth/.test(String(e))) { console.error('⛔ Hætti: Workers AI-heimild vantar á tókann — engin ástæða að reyna fleiri þætti.'); break; }
+  }
   finally { for (const f of [raw, enc]) { try { fs.unlinkSync(f); } catch (e2) {} } }
 }
 if (rows.length) {
