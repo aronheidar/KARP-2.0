@@ -598,6 +598,17 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       const prev = row ? { ...parseDec(row), locked: !!row.locked } : null;
       const incoming = { ...((dObj && typeof dObj === 'object' && !Array.isArray(dObj)) ? dObj : {}), locked: !!b.locked };
       const handle = validHandle(b.handle) ? b.handle : null;
+      // LÆST RÖÐ TEKUR ENGIN DRÖG (þjóns-vörn — client-vörnin ein er bypassanleg í devtools): sé röðin læst og sendandinn EKKI
+      // forsætisráðherra skv. GEYMDA map-inu er EKKERT tekið úr incoming (sleðar/svið/claim-beiðnir) — annars læddust sleðar
+      // ráðherra inn í læstu röðina (locked helst 1 en gildin breytast) og uppgjörið notaði gildi sem PM samþykkti aldrei.
+      // Undantekning: lockFallback (enginn PM claim-aður) + locked:false SKÝRT í sama POST = meðvituð aflæsing (hver sem er má
+      // aflæsa þar, eins og fyrr) → venjulegt merge; locked VANTAR eða true = EKKI aflæsing. PM fer alltaf í merge (aflæsir með
+      // locked:false og breytir). Svar 200 {ok, locked:true, hafnad:['locked']} — EKKI 409: client pollar og kapphlaup
+      // PM-læsing ↔ drög ráðherra er eðlilegt, ekki villa. Claims á læsta röð fara um /saeti (snertir ekki sleða).
+      if (prev && prev.locked) {
+        const map0 = normMap(prev.radherrar), unlockOk = (b.locked === false && !map0[PM]);
+        if (raduneytiOf(map0, handle) !== PM && !unlockOk) return sjson({ ok: true, hafnad: ['locked'], raduneyti: raduneytiOf(map0, handle), locked: true });
+      }
       const merged = mergeDecisions(prev, incoming, { handle, baseline: BASELINE, config: cfg });
       sattVorn(merged);
       const g = tilGeymslu(merged);

@@ -1016,7 +1016,17 @@ const J = async (res) => JSON.parse(await res.text());
     const pB2 = await R.dc(T, 1, { levers: { vextir: Vb + 1 } }, true, 'bbbb');
     const sF = await R.st(R.g.facToken);
     ok('POST forsaetis locked:true → locked 1; you.locked true; fac lockRoster ber radherrar-map + lockFallback false', pB2.locked === true && R.row(1, tid).locked === 1 && (await R.st(T, 'aaaa')).you.locked === true && sF.lockRoster[0].locked === true && JSON.stringify(sF.lockRoster[0].radherrar) === JSON.stringify({ forsaetis: 'bbbb', fjarmal: 'aaaa' }) && sF.lockRoster[0].lockFallback === false);
-    ok('POST fjarmal drög (locked:false) eftir læsingu PM → aflæsir EKKI, eigin sleði vistast', (await R.dc(T, 1, { levers: { skattar: Sb + 2 } }, false, 'aaaa')).locked === true && R.row(1, tid).locked === 1 && R.dec(1, tid).levers.skattar === Sb + 2);
+    // ÞJÓNS-VÖRN: læst röð tekur ENGIN drög frá öðrum en PM (client-vörnin ein er bypassanleg í devtools) — svar 200, hafnad ['locked'], D1 ósnert
+    const pL1 = await R.dc(T, 1, { levers: { skattar: Sb + 2 } }, false, 'aaaa');
+    ok('LÆST: POST fjarmal drög (locked:false) eftir læsingu PM → EKKERT tekið: ok, locked true, hafnad [locked], raduneyti fjarmal; D1 læst + sleðar óbreyttir', pL1.ok === true && pL1.locked === true && JSON.stringify(pL1.hafnad) === '["locked"]' && pL1.raduneyti === 'fjarmal' && R.row(1, tid).locked === 1 && R.dec(1, tid).levers.skattar === Sb + 4 && R.dec(1, tid).levers.vextir === Vb + 1);
+    const pL2 = await R.dc(T, 1, { levers: { skattar: Sb + 2 }, policies: { hoft: true }, radherrar: { sedlabanki: 'eeee' } }, undefined, 'eeee');
+    ok('LÆST: POST án locked-lykils m. sleða+policies+claim (eeee, ekkert sæti) → allt hafnað: raduneyti null, claim EKKI tekinn, policies ekki vistaðar', pL2.locked === true && JSON.stringify(pL2.hafnad) === '["locked"]' && pL2.raduneyti === null && R.dec(1, tid).radherrar.sedlabanki === undefined && R.dec(1, tid).policies === undefined && R.dec(1, tid).levers.skattar === Sb + 4);
+    const pL3 = await R.dc(T, 1, { levers: { skattar: Sb + 2 } }, true, 'aaaa');
+    ok('LÆST: POST fjarmal locked:true + sleði → líka hafnað (locked:true er ekki aflæsing), D1 óbreytt', pL3.locked === true && JSON.stringify(pL3.hafnad) === '["locked"]' && R.row(1, tid).locked === 1 && R.dec(1, tid).levers.skattar === Sb + 4);
+    const pP1 = await R.dc(T, 1, { levers: { skattar: Sb + 2 } }, false, 'bbbb');
+    ok('LÆST: PM POSTar locked:false + sleða → aflæst OG tekið (locked 0, skattar breytt, hafnad tómt)', pP1.locked === false && pP1.hafnad.length === 0 && R.row(1, tid).locked === 0 && R.dec(1, tid).levers.skattar === Sb + 2);
+    const pA5 = await R.dc(T, 1, { levers: { skattar: Sb + 3 } }, false, 'aaaa');
+    ok('ÓLÆST aftur: fjarmal drög tekin á ný (skattar); PM læsir svo (locked:true) → locked 1', pA5.locked === false && pA5.hafnad.length === 0 && R.dec(1, tid).levers.skattar === Sb + 3 && (await R.dc(T, 1, {}, true, 'bbbb')).locked === true && R.row(1, tid).locked === 1);
     await R.ctl({ action: 'resolve' }); await R.ctl({ action: 'next' });
     const s2 = await R.st(T, 'aaaa');
     ok('next: radherrar-map afritað í drög lotu 2 (ný röð, ólæst, engir sleðar) — mitt fjarmal, draft tómt', R.row(2, tid) && R.row(2, tid).locked === 0 && JSON.stringify(R.dec(2, tid)) === JSON.stringify({ radherrar: { forsaetis: 'bbbb', fjarmal: 'aaaa' } }) && s2.radherrar.mitt === 'fjarmal' && s2.draft && Object.keys(s2.draft).length === 0 && s2.you.locked === false);
@@ -1033,6 +1043,14 @@ const J = async (res) => JSON.parse(await res.text());
     ok('saeti: key null sleppir AÐEINS eigin sæti — cccc sleppir husnaedi, fjarmal A helst', (await J(await R.saeti(T, 'cccc', null))).ok === true && JSON.stringify(R.dec(2, tid).radherrar) === JSON.stringify({ fjarmal: 'aaaa' }));
     const pA4 = await R.dc(T, 2, { levers: { skattar: Sb + 1 } }, true, 'aaaa');
     ok('án PM-claims: fjarmal locked:true → locked 1 (fallback), eigin sleði vistast', pA4.locked === true && R.row(2, tid).locked === 1 && R.dec(2, tid).levers.skattar === Sb + 1);
+    // ÞJÓNS-VÖRN í lockFallback (enginn PM): læst röð tekur ENGIN drög nema locked:false SKÝRT í sama POST (meðvituð aflæsing — hver sem er má aflæsa þar)
+    ok('fallback: /saeti claim (cccc→sedlabanki) á læsta röð → ok, röðin HELST læst', (await J(await R.saeti(T, 'cccc', 'sedlabanki'))).ok === true && R.row(2, tid).locked === 1);
+    const pF1 = await R.dc(T, 2, { levers: { vextir: Vb + 5 } }, undefined, 'cccc');
+    const pF2 = await R.dc(T, 2, { levers: { vextir: Vb + 5 } }, true, 'cccc');
+    ok('fallback LÆST: sedlabanki POSTar sleða án locked / með locked:true → hafnad [locked], locked true, vextir óbreyttir í D1', pF1.locked === true && JSON.stringify(pF1.hafnad) === '["locked"]' && pF1.raduneyti === 'sedlabanki' && pF2.locked === true && JSON.stringify(pF2.hafnad) === '["locked"]' && R.row(2, tid).locked === 1 && R.dec(2, tid).levers.vextir === Vb + 2);
+    const pF3 = await R.dc(T, 2, { levers: { vextir: Vb + 5 } }, false, 'cccc');
+    ok('fallback LÆST: sedlabanki POSTar locked:false + sleða → meðvituð aflæsing: locked 0, vextir tekinn, hafnad tómt', pF3.locked === false && pF3.hafnad.length === 0 && R.row(2, tid).locked === 0 && R.dec(2, tid).levers.vextir === Vb + 5);
+    ok('fallback: læsa aftur (cccc locked:true) → locked 1', (await R.dc(T, 2, {}, true, 'cccc')).locked === true && R.row(2, tid).locked === 1);
     await R.ctl({ action: 'stop' });
     ok('saeti eftir leikslok → 409', (await R.saeti(T, 'aaaa', null)).status === 409);
 
