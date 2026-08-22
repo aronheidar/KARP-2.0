@@ -35,3 +35,12 @@ gogn/stadfong_rvk.json
 gogn/byggingarleyfi.json
 gogn/byggingarleyfi_seen.json
 gogn/byggingarleyfi_meta.json
+
+# ── VIÐSKIPTASKJÖL — MEGA ALDREI FARA Í OPINBERA REPO-IÐ ──
+# KARP-2.0 er PUBLIC. Þessar möppur liggja í dag UTAN repo-rótar
+# (C:\Users\aronh\dev\KARP\styrkir og ...\markadsefni), svo `git add -A`
+# héðan nær ekki til þeirra. Reglurnar eru varnarlag ef þær verða
+# einhvern tímann afritaðar eða fluttar inn í repo-ið.
+# Rótfestar (/) svo þær loki ekki á t.d. web/src/pages/styrkir/.
+/styrkir/
+/markadsefni/
