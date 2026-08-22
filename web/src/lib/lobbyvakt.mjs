@@ -94,6 +94,16 @@ export function matchNews(item, ord) {
   return words.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.includes(s); });
 }
 
+// Ræðu-hliðstæða matchNews: ræður (gogn/raedur_nylegar.json) bera malsheiti/nafn/brot. true ef eitthvert
+// ord (lágstafað) er hlutstrengur af (malsheiti + ' ' + nafn + ' ' + brot) — nafnið með svo leitarorð
+// sem er nafn þingmanns vakti allar ræður hans.
+export function matchRaeda(item, ord) {
+  const words = Array.isArray(ord) ? ord : [];
+  if (!words.length) return false;
+  const hay = `${(item && item.malsheiti) || ''} ${(item && item.nafn) || ''} ${(item && item.brot) || ''}`.toLowerCase();
+  return words.some((w) => { const s = String(w == null ? '' : w).toLowerCase(); return !!s && hay.includes(s); });
+}
+
 // Straumur með BÆÐI greina-samsvörun OG leitarorðum: item er með ef matchItem(greinar) EÐA matchKeyword(ord).
 // Raðað eins og filterFeed (deilt _sortFeed). Mutar ekki inntak.
 export function feedFor(items, { greinar = [], ord = [] } = {}) {

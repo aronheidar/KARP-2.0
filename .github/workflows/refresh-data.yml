@@ -143,6 +143,8 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node skriptur/build_frettavel.js || true
+      - name: Ræðuvakt — nýlegar ræður af Alþingi (opinberar umritanir; tómt í þinghléi)
+        run: KARP_RAEDUR_DAGAR=30 node skriptur/build_raedur_nylegar.mjs || true
       - name: ffmpeg fyrir hlaðvarpsvaktina (runner-myndin hefur það ekki)
         run: (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null && ffmpeg -version | head -1) || echo "⚠ ffmpeg-uppsetning brást — talgreining sleppt í nótt"
       - name: Hlaðvarpsvaktin (lýsigögn alltaf; talgreining á Workers AI ef CF-lyklar → D1)

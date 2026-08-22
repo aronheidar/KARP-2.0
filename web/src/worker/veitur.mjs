@@ -9,7 +9,7 @@ import { renderEmail } from '../lib/emails.mjs';
 import { GREINAR, greinaSql } from '../lib/greinar.mjs';
 import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
 import { vikuForgangur as kycVikuForgangur } from '../lib/kyc-digest.mjs';
-import { feedFor, matchNews } from '../lib/lobbyvakt.mjs';
+import { feedFor, matchNews, matchRaeda } from '../lib/lobbyvakt.mjs';
 import { traceUbo as kycTraceUbo } from '../lib/ubo-core.mjs';
 import { byggjaVisitolu, flokkaNofn, sancNorm, skimunarNidurstada } from '../lib/refsilistar.mjs';
 import { augGet } from './felag.mjs';
@@ -468,6 +468,14 @@ export async function lobbyvaktHandler(request, env, ctx) {
   const frettir = news.filter((n) => matchNews(n, oArr)).slice(0, 30).map((n) => ({ title: n.title, url: n.url, source: n.source, date: n.date }));
   // Hlaðvörp (frí, eins og fréttirnar): leitarorð → þættir (umritanir + lýsigögn).
   const hladvorp = await hladLeit(env, oArr, 21, 20).catch(() => []);
+  // Ræður á Alþingi (frí): opinberar umritanir sl. daga (raedur_nylegar.json, build_raedur_nylegar.mjs) → leitarorð
+  // í málsheiti/nafni ræðumanns/textabroti (matchRaeda). Tómt í þinghléi — það er gilt.
+  let raedur = [];
+  try {
+    const rj = await augGet(env, 'raedur_nylegar.json');
+    raedur = ((rj && rj.raedur) || []).filter((r) => matchRaeda(r, oArr)).slice(0, 30)
+      .map((r) => ({ id: r.id, nafn: r.nafn, embaetti: r.embaetti, dags: r.dags, malsheiti: r.malsheiti, brot: r.brot, hlekkur: r.hlekkur, ord: oArr.filter((w) => `${r.malsheiti || ''} ${r.nafn || ''} ${r.brot || ''}`.toLowerCase().includes(w)) }));
+  } catch (e) {}
   // Reglur (Fyrirtæki+): þingmál/samráð eftir greinum + orðum.
   let reglur = [], updated = null;
   if (entitled) {
@@ -475,7 +483,7 @@ export async function lobbyvaktHandler(request, env, ctx) {
     reglur = feedFor((data && data.items) || [], { greinar: gArr, ord: oArr });
     updated = (data && data.updated) || null;
   }
-  return _ajson({ ok: true, entitled, greinar: gArr, ord: oArr, frettir, hladvorp, reglur, updated, needsSetup: false });
+  return _ajson({ ok: true, entitled, greinar: gArr, ord: oArr, frettir, hladvorp, raedur, reglur, updated, needsSetup: false });
 }
 
 export async function loftforHandler(request, env, ctx) {

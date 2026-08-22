@@ -7,7 +7,7 @@ import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, de
 import { traceUbo as kycTraceUbo } from './src/lib/ubo-core.mjs';   // hrein obeint/endanlegt UBO-rakning
 import { accountId, tierFields } from './src/lib/account.mjs';   // firma-account (sæta-sameign v1) — resolver + tierFields
 import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib/emails.mjs';   // póst-sniðmát: skrá + yfirskriftir stjórnanda
-import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
+import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS, matchRaeda } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
 import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
@@ -2150,11 +2150,12 @@ export function frettavaktMerge(existing, body, validTypes) {
 export function frettavaktEmail(matches) {
   const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const bySec = new Map();
-  for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : m.type === 'hlad' ? { key: 'hlad', label: 'Hlaðvörp' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
+  for (const m of matches) { const sec = m.type === 'frett' ? { key: 'frett', label: 'Fjölmiðlar' } : m.type === 'hlad' ? { key: 'hlad', label: 'Hlaðvörp' } : m.type === 'raeda' ? { key: 'raeda', label: 'Ræður á Alþingi' } : sectionOfType(m.type); const a = bySec.get(sec.label) || []; a.push(m); bySec.set(sec.label, a); }
   const rows = [...bySec.entries()].map(([label, items]) => {
     const li = items.map((m) => {
-      const href = (m.type === 'frett' || m.type === 'hlad') ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
-      const badge = (m.type === 'frett' || m.type === 'hlad') ? (m.source || (m.type === 'hlad' ? 'hlaðvarp' : 'frétt')) : ((CAT[m.type] || {}).label || m.type);
+      const ext = m.type === 'frett' || m.type === 'hlad' || m.type === 'raeda';
+      const href = ext ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
+      const badge = ext ? (m.source || ({ hlad: 'hlaðvarp', raeda: 'Alþingi' })[m.type] || 'frétt') : ((CAT[m.type] || {}).label || m.type);
       return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
     }).join('');
     return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
@@ -2173,6 +2174,7 @@ export async function frettavaktCron(env) {
   const feed = await _dget(env, '/gogn/frettavel.json').catch(() => null);
   const items = (feed && feed.items) || [];
   const news = await newsSince(env, 2, 500).catch(() => []);
+  const raedur = (((await _dget(env, '/gogn/raedur_nylegar.json').catch(() => null)) || {}).raedur) || [];   // ræðuvakt (tómt í þinghléi)
   const subs = await env.TENGSL.prepare("SELECT user_id, v FROM user_prefs WHERE k='frettavakt' AND v LIKE '%\"on\":true%'").all().catch(() => null);
   for (const row of (subs && subs.results) || []) {
     try {
@@ -2189,6 +2191,14 @@ export async function frettavaktCron(env) {
       for (const h of hlad) {
         if (seenSet.has(h.url) || matches.some((m) => m.id === h.url) || matches.length >= MAX_PER_EMAIL) continue;
         matches.push({ id: h.url, date: h.date, type: 'hlad', title: h.title, url: h.url, source: h.show, brot: h.brot });
+      }
+      // Ræður á Alþingi (22.8.2026): opinberar umritanir — leitarorð í málsheiti/nafni/broti (matchRaeda); id = hlekkur.
+      if (ord.length) {
+        for (const r of raedur) {
+          if (!matchRaeda(r, ord)) continue;
+          const rid = r.hlekkur || r.id; if (!rid || seenSet.has(rid) || matches.some((m) => m.id === rid) || matches.length >= MAX_PER_EMAIL) continue;
+          matches.push({ id: rid, date: r.dags, type: 'raeda', title: (r.nafn ? r.nafn + ': ' : '') + (r.malsheiti || 'ræða á Alþingi'), url: r.hlekkur, source: r.embaetti || 'Alþingi', brot: r.brot });
+        }
       }
       if (!matches.length) continue;
       const u = await env.TENGSL.prepare('SELECT email, name FROM users WHERE id=?').bind(row.user_id).first().catch(() => null);

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import {
   SECTORS, ALL_SECTORS, SECTOR_HINTS,
-  matchItem, matchKeyword, matchNews, filterFeed, feedFor, newSince, classifyHeuristic, stigRank, isatToSector,
+  matchItem, matchKeyword, matchNews, matchRaeda, filterFeed, feedFor, newSince, classifyHeuristic, stigRank, isatToSector,
 } from './lobbyvakt.mjs';
 
 // ── fixtures ──────────────────────────────────────────────────────────────
@@ -190,4 +190,25 @@ test('matchNews: ekkert match → false', () => {
 });
 test('matchNews: tómt ord → false', () => {
   assert.equal(matchNews({ title: 'Veiðigjald', body: '' }, []), false);
+});
+
+// ── matchRaeda ────────────────────────────────────────────────────────────
+// Ræður bera malsheiti/nafn/brot (gogn/raedur_nylegar.json), EKKI title/body.
+const RAEDA = { id: 'raeda-157-rad20260619T161648', nafn: 'Kristrún Frostadóttir', dags: '2026-06-19', malsheiti: 'þingfrestun', brot: 'Virðulegi forseti. Fundum Alþingis er frestað til 8. september.', hlekkur: 'https://www.althingi.is/altext/raeda/157/rad20260619T161648.html' };
+test('matchRaeda: leitarorð í málsheiti → true', () => {
+  assert.equal(matchRaeda({ ...RAEDA, malsheiti: 'veiðigjald í sjávarútvegi' }, ['veiðigjald']), true);
+});
+test('matchRaeda: leitarorð í textabroti (brot), case-insensitive → true', () => {
+  assert.equal(matchRaeda(RAEDA, ['ALÞINGIS']), true);
+});
+test('matchRaeda: leitarorð = nafn ræðumanns → true (vakta hvenær þingmaður talar)', () => {
+  assert.equal(matchRaeda(RAEDA, ['kristrún frostadóttir']), true);
+});
+test('matchRaeda: ekkert match → false', () => {
+  assert.equal(matchRaeda(RAEDA, ['veiðigjald']), false);
+});
+test('matchRaeda: tómt ord / vantar reiti / null item → false (hrun-laust)', () => {
+  assert.equal(matchRaeda(RAEDA, []), false);
+  assert.equal(matchRaeda({}, ['veiðigjald']), false);
+  assert.equal(matchRaeda(null, ['veiðigjald']), false);
 });

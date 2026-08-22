@@ -72,6 +72,11 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       <div id="lv-hlad"></div>
       <p id="lv-hlad-empty" class="lv-empty" hidden>Engir nýlegir þættir nefna orðin þín.</p>
 
+      <h2>🎤 Ræður á Alþingi sem nefna orðin þín</h2>
+      <p class="sub">Opinberar umritanir Alþingis — leitað í málsheiti, nafni ræðumanns og upphafi ræðunnar. Nafn þingmanns sem leitarorð vaktar allar ræður hans. Tómt í þinghléi.</p>
+      <div id="lv-raedur"></div>
+      <p id="lv-raedur-empty" class="lv-empty" hidden>Engar nýlegar ræður nefna orðin þín.</p>
+
       <h2>🏛️ Þingmál &amp; samráð sem snerta greinina þína <span class="lv-plus">Fyrirtæki+</span></h2>
       <p class="sub">Síað eftir greinum og leitarorðum, með áhrifa-briefi, relevans-stigi og fresti.</p>
       <div id="lv-reglur"></div>
@@ -296,6 +301,19 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
         + '<div class="lv-meta">' + meta + '</div>' + brot
         + '<div class="lv-meta">' + ordHtml + (h.dypt === 'umritun' ? ' <span class="lv-dypt">· fannst í töluðu máli</span>' : ' <span class="lv-dypt">· fannst í titli eða lýsingu</span>') + '</div></article>';
     }
+    // 🎤 Ræður (22.8.2026): { id, nafn, embaetti, dags, malsheiti, brot, hlekkur, ord[] } — hlekkur á ræðuna á althingi.is.
+    function raedaCard(r) {
+      const ordHtml = (r.ord || []).map((w) => '<span class="lv-kw-hit">' + esc(w) + '</span>').join(' ');
+      const meta = ['🎤 ' + esc(r.nafn || ''), esc(r.embaetti || ''), esc(r.dags || '')].filter(Boolean).join(' · ');
+      return '<article class="lv-card lv-hlad"><h3 class="lv-title"><a href="' + esc(r.hlekkur || '#') + '" target="_blank" rel="noopener">' + esc(r.malsheiti || 'Ræða á Alþingi') + '</a></h3>'
+        + '<div class="lv-meta">' + meta + '</div>' + (r.brot ? '<p class="lv-brot">„' + esc(r.brot) + '…"</p>' : '')
+        + (ordHtml ? '<div class="lv-meta">' + ordHtml + '</div>' : '') + '</article>';
+    }
+    function renderRaedur(raedur) {
+      const host = $('#lv-raedur'); if (!host) return;
+      host.innerHTML = (raedur || []).map(raedaCard).join('');
+      $('#lv-raedur-empty').hidden = (raedur || []).length > 0;
+    }
     function renderHlad(hlad) {
       const host = $('#lv-hlad'); if (!host) return;
       host.innerHTML = (hlad || []).map(hladCard).join('');
@@ -347,6 +365,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       $('#lv-setup-msg').hidden = !d.needsSetup;
       renderNews(d.frettir || []);
       renderHlad(d.hladvorp || []);
+      renderRaedur(d.raedur || []);
       renderReg(d.reglur || [], !!d.entitled);
       lvHi();   // orðin komin → lýsa upp treff í opnu veitunum að neðan
       loadPost();   // ✉️ póst-vaktin — eftir að gáttin opnast (innskráð)
