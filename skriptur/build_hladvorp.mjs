@@ -84,8 +84,10 @@ console.log('• Talgreining:', ASR === 'cf' ? 'Workers AI @cf/openai/whisper-la
 // Greining á tókanum ÁÐUR en nokkurt hljóð er sótt: hvaða tóki (ID) og hefur hann Workers AI-heimild?
 if (ASR === 'cf') {
   try {
-    const v = await (await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', { headers: { authorization: 'Bearer ' + CF_TOKEN } })).json();
-    const tid = v && v.result ? v.result.id : '?';
+    // Tveir verify-endapunktar: notanda-tóki (My Profile) vs ACCOUNT-tóki (Manage Account → API Tokens) — segir hvar á að breyta honum
+    const vU = await (await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', { headers: { authorization: 'Bearer ' + CF_TOKEN } })).json().catch(() => null);
+    const vA = await (await fetch('https://api.cloudflare.com/client/v4/accounts/' + CF_ACC + '/tokens/verify', { headers: { authorization: 'Bearer ' + CF_TOKEN } })).json().catch(() => null);
+    const tid = (vU && vU.success && vU.result && vU.result.id) ? vU.result.id + ' (NOTANDA-tóki: My Profile → API Tokens)' : (vA && vA.success && vA.result && vA.result.id) ? vA.result.id + ' (ACCOUNT-tóki: Manage Account → API Tokens)' : '? (' + JSON.stringify((vU && vU.errors) || vU).slice(0, 120) + ')';
     const m = await fetch('https://api.cloudflare.com/client/v4/accounts/' + CF_ACC + '/ai/models/search?per_page=1', { headers: { authorization: 'Bearer ' + CF_TOKEN } });
     const mj = await m.json().catch(() => null);
     if (m.ok && mj && mj.success) console.log('• Tóki', tid, '— Workers AI-heimild STAÐFEST (models/search OK)');
