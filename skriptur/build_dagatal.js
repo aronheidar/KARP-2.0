@@ -3,7 +3,10 @@
 const fs = require('fs');
 // __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
 const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
-const g = async u => (await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
+const OUT = DIR + 'dagatal.json';
+// Seigla (22.8.2026: althingi.is svaraði HTTP 429 → 0 fundir → range:[null,null] skrifað → /althingi/ hrundi á null.slice). Sjá _seigla.js.
+const { fetchText, writeJsonUnlessEmpty } = require('./_seigla.js');
+const g = u => fetchText(u);
 const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 
 (async () => {
@@ -34,7 +37,9 @@ const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').tri
   Object.keys(dates).forEach(d => { const x = dates[d]; out[d] = { t: x.t, n: Object.values(x.c).reduce((a, b) => a + b, 0), c: Object.keys(x.c).sort((a, b) => x.c[b] - x.c[a]) }; });
   const keys = Object.keys(out).sort();
   const meta = { range: [keys[0], keys[keys.length - 1]], days: keys.length, plenary: plen.length, meetings: mtg.length, dates: out };
-  fs.writeFileSync(DIR + 'dagatal.json', JSON.stringify(meta));
+  // tómt = engir þingfundir EÐA engir nefndarfundir (hálf-tómt er jafn grunsamlegt) + fyrri skrá með efni → HALDA fyrri skrá
+  const { kept } = writeJsonUnlessEmpty(OUT, meta, { isEmpty: d => !d || !(d.plenary > 0) || !(d.meetings > 0), label: 'dagatal.json' });
+  if (kept) { process.exitCode = 1; return; }
   console.log('dagatal.json | days:', keys.length, '| range', meta.range[0], '→', meta.range[1], '| plenary', plen.length, '| cmte meetings', mtg.length);
   console.log('last 5 active days:', keys.slice(-5).map(d => d + ' (þ' + out[d].t + ' n' + out[d].n + ')'));
-})().catch(e => console.log('ERR', e.message));
+})().catch(e => { console.log('ERR', e.message, '— dagatal.json óbreytt'); process.exitCode = 1; });

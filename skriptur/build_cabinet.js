@@ -3,9 +3,13 @@
 const fs = require('fs');
 // __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
 const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
+const OUT = DIR + 'cabinet.json';
+// Seigla (22.8.2026: althingi.is svaraði HTTP 429 → skriptan þáttaði villusvarið sem „0 ráðherrar" og skrifaði [] → /althingi/ hrundi).
+// fetchText hendir á non-2xx + reynir aftur m. bakslagi; writeJsonUnlessEmpty heldur fyrri skrá ef niðurstaðan er tóm. Sjá _seigla.js.
+const { fetchText, writeJsonUnlessEmpty, loadPrev } = require('./_seigla.js');
 const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
 const PC = { 'Samfylkingin': 'S', 'Sjálfstæðisflokkur': 'D', 'Framsóknarflokkur': 'B', 'Viðreisn': 'C', 'Miðflokkurinn': 'M', 'Flokkur fólksins': 'F', 'Píratar': 'P', 'Vinstrihreyfingin - grænt framboð': 'V' };
-async function getText(u) { const r = await fetch(u.replace('http://', 'https://'), { headers: { 'User-Agent': 'Mozilla/5.0' } }); return r.text(); }
+const getText = u => fetchText(u.replace('http://', 'https://'));
 // reuse the MP photo logic: prefer the small cache thumb, else org image, else null
 async function photo(id) {
   const cands = [
@@ -27,6 +31,9 @@ async function photo(id) {
 const RANK = { 'forsætisráðherra': 0, 'fjármála- og efnahagsráðherra': 1, 'utanríkisráðherra': 2, 'dómsmálaráðherra': 3 };
 
 (async () => {
+  // fyrri skrá: `mynd ?? prev.mynd` ef myndaþjónninn svarar ekki í augnablikinu (sama mynstur og X ?? prev.X í Hagstofu-skriptum)
+  const prev = loadPrev(OUT);
+  const prevById = new Map((Array.isArray(prev) ? prev : []).map(m => [m.id, m]));
   const list = await getText('https://www.althingi.is/altext/xml/radherrar/?lthing=157');
   const ids = [...list.matchAll(/<ráðherra id='(\d+)'>/g)].map(m => +m[1]);
   console.log('current ministers:', ids.length);
@@ -45,7 +52,7 @@ const RANK = { 'forsætisráðherra': 0, 'fjármála- og efnahagsráðherra': 1,
     const embaetti = current.map(s => dec((s.match(/<embætti[^>]*>([^<]*)<\/embætti>/) || [])[1])).filter(Boolean);
     const flokkur = dec((current[0].match(/<þingflokkur[^>]*>([^<]*)<\/þingflokkur>/) || [])[1]);
     const sidan = (current[0].match(/<inn>([^<]*)<\/inn>/) || [])[1] || '';
-    const mynd = await photo(id);
+    const mynd = (await photo(id)) ?? (prevById.get(id) || {}).mynd ?? null;
     cab.push({ id, nafn, emb: embaetti, flok: PC[flokkur] || 'U', flokur: flokkur, sidan, mynd });
     console.log(' ', nafn, '—', embaetti.join(' + '), '—', flokkur, mynd ? '📷' : '∅');
   }
@@ -55,8 +62,10 @@ const RANK = { 'forsætisráðherra': 0, 'fjármála- og efnahagsráðherra': 1,
     if (ra !== rb) return ra - rb;
     return a.nafn.localeCompare(b.nafn, 'is');
   });
-  fs.writeFileSync(DIR + 'cabinet.json', JSON.stringify(cab));
+  // tóm niðurstaða + fyrri skrá með efni → HALDA fyrri skrá og vara við (aldrei skrifa [] yfir gild gögn)
+  const { kept } = writeJsonUnlessEmpty(OUT, cab, { isEmpty: d => !Array.isArray(d) || d.length === 0, label: 'cabinet.json' });
+  if (kept) { process.exitCode = 1; return; }
   const byParty = cab.reduce((o, m) => (o[m.flokur] = (o[m.flokur] || 0) + 1, o), {});
-  console.log('\nWROTE cabinet.json | ministers:', cab.length, '| bytes:', fs.statSync(DIR + 'cabinet.json').size);
+  console.log('\nWROTE cabinet.json | ministers:', cab.length, '| bytes:', fs.statSync(OUT).size);
   console.log('by party:', JSON.stringify(byParty));
-})().catch(e => console.log('ERR', e.message));
+})().catch(e => { console.log('ERR', e.message, '— cabinet.json óbreytt'); process.exitCode = 1; });
