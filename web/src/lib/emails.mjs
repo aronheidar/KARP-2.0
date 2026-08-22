@@ -126,6 +126,40 @@ export const EMAIL_TYPES = [
     footer: 'Ferill málsins er á fyrirtækjaprófílnum: https://karp.is/fyrirtaeki/{{kt}}/\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/lobbyvakt/',
   },
 
+  // ── RÁS-Leikurinn (hægur hamur) ────────────────────────────────────────────
+  // ⚠ PERSÓNUVERND (DPIA Viðbót 1, V1.3): þessir póstar mega EKKI bera liðsheiti,
+  //   stig, uppgjör né ákvarðanir. Þátttakanda-pósturinn ber aðeins leikkóða,
+  //   umferð, frest og hlekk; leikstjóra-pósturinn má að auki bera SAMTÖLUR um
+  //   leikinn (fjölda liða) — aldrei neitt um einstakt lið. Bæti einhver slíku við
+  //   verður fullyrðing skjalanna ósönn. Sendist EINGÖNGU þeim sem skráðu sig
+  //   sjálfir í `leikur_askrift` (slökkt sjálfgefið).
+  {
+    id: 'leikur_lota', label: 'RÁS-Leikur: ný umferð opin', flokkur: 'fastur', hopur: 'RÁS-Leikurinn',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Hægur hamur — ný umferð opnast sjálfkrafa', vidtakandi: 'Þátttakandi sem kveikti á áminningu',
+    breytur: ['kodi', 'lota', 'frestur', 'hlekkur'], krafist: ['hlekkur'],
+    subject: 'Kjörtímabil {{lota}} er opið — leikur {{kodi}}',
+    html: WRAP('Kjörtímabil {{lota}} er opið',
+      '<p>Ný umferð er hafin í RÁS-Leiknum. Þið hafið til <b>{{frestur}}</b> til að stilla stefnuna og læsa henni.</p>'
+      + BTN('Opna leikinn')
+      + '<p style="color:#666;font-size:13px">Læsi liðið ekki fyrir frestinn eru þær stillingar sem þið hafið þegar sett læstar sjálfkrafa — leikurinn heldur áfram án tafar.</p>'
+      + '<p style="color:#999;font-size:12px">Þú færð þennan póst því þú baðst um áminningu fyrir leik {{kodi}}. Slökktu á henni hvenær sem er inni í leiknum.</p>'),
+    ath: 'Ber ENGIN liðsheiti, stig né ákvarðanir — sjá DPIA Viðbót 1, V1.3.',
+  },
+  {
+    id: 'leikur_uppgjor', label: 'RÁS-Leikur: umferð gerð upp (leikstjóri)', flokkur: 'fastur', hopur: 'RÁS-Leikurinn',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Hægur hamur — umferð gerð upp sjálfkrafa', vidtakandi: 'Leikstjóri sem kveikti á áminningu',
+    breytur: ['kodi', 'lota', 'lokid', 'laest', 'hlekkur'], krafist: ['hlekkur'],
+    subject: 'Kjörtímabil {{lota}} gert upp — leikur {{kodi}}',
+    html: WRAP('Kjörtímabil {{lota}} gert upp',
+      '<p>Umferðin er gerð upp og næsta kjörtímabil er opið.</p>'
+      + '<p><b>{{lokid}}</b> lið luku umferðinni sjálf · <b>{{laest}}</b> voru sjálf-læst þegar fresturinn rann út.</p>'
+      + BTN('Skoða uppgjörið')
+      + '<p style="color:#999;font-size:12px">Þú færð þennan póst því þú kveiktir á áminningu sem leikstjóri leiks {{kodi}}. Slökktu á henni inni í leiknum.</p>'),
+    ath: 'Aðeins SAMTÖLUR um leikinn — engin liðsheiti, stig né ákvarðanir. Sjá DPIA Viðbót 1, V1.3.',
+  },
+
   // ── Innri ──────────────────────────────────────────────────────────────────
   {
     id: 'hjalp', label: '[Hjálp] beiðni', flokkur: 'kvikur', hopur: 'Innri',

@@ -10,7 +10,8 @@ import { EMAIL_TYPES, resolveEmail, renderEmail, validateEmail } from './src/lib
 import { matchItem, matchKeyword, matchNews, feedFor, newSince, ALL_SECTORS, matchRaeda } from './src/lib/lobbyvakt.mjs';   // Lobbývakt — hrein rökvél (síun/röðun/nýtt-síðan/taxonomy) + matchNews (efnisvakt-fréttir)
 import { byggMatch, rankMovement, ratingMovement, criticalDrop, criticalNotice, noticeRef } from './src/lib/vaktir-signals.mjs';   // Byggingar-vöktun + greina-vöktun + einkunn-átt + strax-viðvaranir (eftirlit/gjaldþrot)
 import { sectorsFromMap, herfindahl, toppNShare, sectorForIsat } from './src/lib/atvinnugrein.mjs';   // Atvinnugreinar v1 — hrein rökvél (hópun map→greinar, HHI, topp-N) + sectorForIsat (grein-rank)
-import { leikurHandler } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/*
+import { leikurHandler, leikurAsyncCron } from '../src/lib/leikur/server.mjs';   // RÁS-Leikurinn (kennsluleikur) — /api/leikur/* + async-cron
+import { postVerkOll } from '../src/lib/leikur/postur.mjs';                      // cron-skil → póst-verk (hrein modúla, hvítlistuð)
 import { _ajson, _b64u, _cdata, _dget, _emailOvSet, _emailTpl, _esc, _fjson, _fromB64, _hmac, _te, _tokenHex, ddmmyyyy, erLogadili, htmlEsc, isoDate, ktSep, repAll, sendGmail, sjson } from './src/worker/felag.mjs';
 import { REPORT_QUOTA, _U_BLOBS, _acctOfUid, _freeAll, _inviteEligible, _ktwatchCap, _monthStr, _nextMonth, _prefGet, _prefSet, _seatsCap, _sendVerifyEmail, _svcOk, accountOwner, authForgotHandler, authLoginHandler, authLogoutHandler, authRegisterHandler, authResendVerifyHandler, authResetHandler, authSaveKtHandler, authVerifyHandler, grantReportD1, grantSubD1, leikstjoriOf, readSession, trialUsedD1, userPayload } from './src/worker/auth.mjs';
 import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payCheckoutHandler, payReturnHandler, stakCheckoutHandler, stakConfirmHandler, sub2CheckoutHandler, sub2ConfirmHandler, subCancelHandler } from './src/worker/greidslur.mjs';
@@ -2455,6 +2456,47 @@ async function umferdHandler(request, env, ctx) {
 // S2b: Node-stjórnborðið ýtir rekstrar-samantekt í D1 (X-Admin-Key). Body: {k, v}. GET les.
 // Setja notanda-tegund (admin/free/user/nemandi) — stjórnborð S1 „Tegund"-dálkur. Panel-gátt = is_admin ONLY (_isAdmin).
 
+// ══════════════════════════════════════════════════════════════════════════
+// RÁS-LEIKURINN — ÁMINNINGAR Í HÆGUM HAM
+// leikurAsyncCron skilar `tilkynna`; hér er límið: leikkóði → áskrifendur → póstur.
+//
+// ⚠⚠ PERSÓNUVERND (DPIA Viðbót 1 + skóla-DPA — bindandi gagnvart skólum):
+//  • `leikur_askrift` er EINA tengingin milli Karp-reiknings og leiks. Hún verður aðeins
+//    til að ósk notandans sjálfs (slökkt sjálfgefið) og eyðist með leiknum.
+//  • Efni póstsins er ÞEGAR hvítlistað í postur.mjs (`hreinsaFaersla`) — hér er ekkert
+//    bætt við úr leikjagögnunum. Ekki bæta liðsheitum/stigum við hér.
+//  • Hver viðtakandi fær SINN póst — aldrei listi, aldrei afrit (V1.6).
+// Villa í einum leik (eða einu netfangi) má aldrei fella hina.
+async function leikurAsyncPostur(env, tilkynna) {
+  const verk = postVerkOll(tilkynna, { grunnur: env.SITE_URL || 'https://karp.is' });
+  let sendir = 0, leikir = 0;
+  for (const v of verk) {
+    try {
+      const rows = await env.TENGSL.prepare(
+        'SELECT a.role AS role, u.email AS email FROM leikur_askrift a JOIN users u ON u.id = a.user_id WHERE a.game_code = ?',
+      ).bind(v.code).all().catch(() => null);
+      const askrifendur = (rows && rows.results) || [];
+      if (!askrifendur.length) continue;                 // enginn kveikti á áminningu — ekkert að gera
+      leikir++;
+      // 'lid' → leikur_lota (nýja umferðin) · 'fac' → leikur_uppgjor (samtölur)
+      for (const hlutverk of ['lid', 'fac']) {
+        const p = hlutverk === 'fac' ? v.leikstjori : v.thatttakandi;
+        if (!p) continue;                                // leikslok → enginn þátttakenda-póstur
+        const til = askrifendur.filter((r) => r.role === hlutverk && r.email);
+        if (!til.length) continue;
+        const tpl = await _emailTpl(env, p.id);
+        const subject = renderEmail(tpl.subject, p.vars);
+        const html = renderEmail(tpl.html, p.vars);
+        for (const m of til) {
+          try { const r = await sendGmail(env, { to: m.email, subject, html }); if (r && r.ok) sendir++; }
+          catch (e) { /* eitt netfang fellir ekki hin */ }
+        }
+      }
+    } catch (e) { /* einn leikur fellir ekki hina */ }
+  }
+  return { leikir, sendir };
+}
+
 export default {
   // Cron: viku-digest (mánud. 08:10) + frétta-innlestur í D1-safn (á 3 klst fresti).
   async scheduled(event, env, ctx) {
@@ -2464,7 +2506,10 @@ export default {
     // Orðsporsvaktin fylgir DAGLEGA cron-inum (ekki 3-tíma): tón-þróun er dagamælikvarði,
     // og daglegt þak ver bæði gegn hávaða í pósthólfi og D1-álagi (ein fréttaleit per vaktað félag).
     else if (event.cron === '30 6 * * *') ctx.waitUntil(kycDiffCron(env).then(() => ordsporCron(env)));
-    else ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env)));
+    // RÁS-Leikurinn ASYNC-HAMUR („eitt kjörtímabil á dag í viku"): leikir með config.async ganga sjálfkrafa áfram —
+    // SÉR waitUntil (sama mynstur og leikurPruneCron) svo frétta-pípan og leikirnir felli aldrei hvor annan.
+    // ⚠ 3-tíma upplausn: lota opnast innan ≤3 klst frá völdum <hour> (nógu gott fyrir daglegan/vikulegan kennslu-takt).
+    else { ctx.waitUntil(newsIngest(env).then(() => frettavaktCron(env)).then(() => kycCriticalCron(env)).then(() => eftirlitCriticalCron(env)).then(() => logbirtingCriticalCron(env))); ctx.waitUntil(leikurAsyncCron(env).then((r) => leikurAsyncPostur(env, r && r.tilkynna))); }
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

@@ -699,6 +699,58 @@ function lkPrintReport(st, opts = {}) {
   return '<div class="lkp-doc">' + head + lb + teamsHtml + cmp + disc + foot + '</div>';
 }
 
+// ── ⏳ HÆGUR HAMUR (async) — „eitt kjörtímabil á dag" í stað 90 mín vinnustofu ──────────────────
+// SAMNINGUR VIÐ ÞJÓNINN: /state skilar st.async = { on, cadence:'daglegt'|'2dagar'|'vikulegt',
+// hour:0-23 (UTC), nextAt:epoch-sek, secondsToNext:number }. VANTAR eða on:false → ALLT eins og í dag.
+// Öll async-hegðun hangir á asyncOf() (skilar null nema on===true) svo async-slökkt sé bit-identískt.
+// Leikstjórinn kveikir/slekkur með POST á control-endapunktinn (sama og 'start'/'next'):
+//   { action:'async', on, cadence, hour }   ← lykillinn er 'action' (staðfest í server.mjs: const act = b.action).
+// Áskrift þátttakanda: POST /<code>/askrift { on } með liðs-tákninu (Bearer, sama og önnur liðs-köll).
+const asyncOf = (st) => { const a = (st && st.async) || null; return (a && a.on === true) ? a : null; };
+// Þjónninn STYÐUR hæga haminn (st.async er til, kveikt eða slökkt) — skilyrði fyrir uppsetningar-kassa
+// leikstjórans. Eldri þjónn (enginn st.async) → kassinn birtist ALDREI og anddyrið er óbreytt.
+const asyncStutt = (st) => { const a = (st && st.async) || null; return (a && typeof a.on === 'boolean') ? a : null; };
+const ASYNC_TAKTAR = [
+  { key: 'daglegt', label: 'Daglegt', tidni: 'á hverjum degi' },
+  { key: '2dagar', label: 'Annan hvern dag', tidni: 'annan hvern dag' },
+  { key: 'vikulegt', label: 'Vikulega', tidni: 'vikulega' },
+];
+const asyncTaktur = (k) => ASYNC_TAKTAR.find((t) => t.key === k) || ASYNC_TAKTAR[0];
+const ASYNC_VIKUDAGAR = ['sunnudag', 'mánudag', 'þriðjudag', 'miðvikudag', 'fimmtudag', 'föstudag', 'laugardag'];   // þolfall — „á mánudag"
+const asyncKlst = (h) => String(Math.max(0, Math.min(23, Number.isFinite(+h) ? Math.round(+h) : 0))).padStart(2, '0') + ':00';
+// epoch í sek EÐA ms (sama seiglu-mynstur og Karphús-fresturinn) → ms; ógilt → null.
+const asyncMs = (v) => { const n = +v; return Number.isFinite(n) && n > 0 ? (n < 1e12 ? n * 1000 : n) : null; };
+// Mannlegt bil úr sekúndum: „eftir 40 mín" / „eftir 6 klst" / „á morgun" / „eftir 3 daga".
+function asyncBil(sec) {
+  const s = Math.max(0, Math.round(sec || 0));
+  if (s < 60) return 'alveg að lokast';
+  if (s < 3600) return 'eftir ' + Math.max(1, Math.round(s / 60)) + ' mín';
+  if (s < 86400) return 'eftir ' + Math.max(1, Math.round(s / 3600)) + ' klst';
+  if (s < 172800) return 'á morgun';
+  return 'eftir ' + Math.round(s / 86400) + ' daga';
+}
+// Litakóði borðans: rólegt > 12 klst, gult 2–12 klst, rautt < 2 klst.
+const asyncLitur = (sec) => (sec < 7200 ? 'lk-as-raud' : sec <= 43200 ? 'lk-as-gult' : 'lk-as-ro');
+// „Lokar í dag kl. 18" / „Lokar á morgun kl. 18" / „Lokar á fimmtudag kl. 18". Ógild dagsetning → '' (þá stendur bilið eitt).
+function asyncLokar(ms) {
+  if (ms == null) return '';
+  const d = new Date(ms); if (isNaN(d.getTime())) return '';
+  const dagur = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const munur = Math.round((dagur(d) - dagur(new Date())) / 86400000);
+  const kl = ' kl. ' + String(d.getHours()).padStart(2, '0') + (d.getMinutes() ? ':' + String(d.getMinutes()).padStart(2, '0') : '');
+  return 'Lokar ' + (munur <= 0 ? 'í dag' : munur === 1 ? 'á morgun' : 'á ' + ASYNC_VIKUDAGAR[d.getDay()]) + kl;
+}
+// Leikslok: „hversu margar ákvarðanir voru sjálf-læstar". Þjónninn kann að senda þetta SÍÐAR —
+// ef talan vantar er skilað '' (ALDREI „undefined"). Nokkur lyklaheiti reynd (samningurinn nefnir ekkert eitt).
+function asyncSjalfLaestLina(st) {
+  const a = (st && st.async) || null; if (!a) return '';
+  const n = [a.sjalfLaest, a.sjalfLaestar, a.autoLocked, a.autoLockCount, st && st.sjalfLaest].find((v) => typeof v === 'number' && Number.isFinite(v) && v >= 0);
+  if (typeof n !== 'number') return '';
+  if (n === 0) return '<p class="lk-muted lk-async-loka">⏳ Hægur hamur: engin ákvörðun var sjálf-læst — öll lið luku í tíma.</p>';
+  const eintala = (n % 10 === 1 && n % 100 !== 11);   // 1, 21, 31… = eintala; 11 = fleirtala
+  return '<p class="lk-muted lk-async-loka">⏳ Hægur hamur: <b>' + n + '</b> ' + (eintala ? 'ákvörðun var sjálf-læst' : 'ákvarðanir voru sjálf-læstar') + ' við lokun lotu.</p>';
+}
+
 export function mountLeikur(root) {
   const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {}, polPrevStig: null, tickerSig: null, ktdSig: null, ktdPrev: null, sagaSeeded: false,
     // VERK B: me=/api/leikur/me (leikstjóra-leyfi), onb={step} þegar uppsetningar-vísirinn er opinn, onbSig/onbScrolled = endurteiknunar-/skrun-vörn, onbSeen = lotu-fallback ef localStorage er læst, bot-læsing f. æfingalið (varaleið).
@@ -707,7 +759,11 @@ export function mountLeikur(root) {
     sattDraft: null, sattRound: null, karphusDeadline: null,
     // RÁÐHERRASKIPTING: picker opinn handvirkt (lifir poll-endurteiknun), síðasta sæti sem sást (localTouched hreinsað við skipti),
     // „sæti nýtekið"-flagg (fyrsta push ráðuneytisins) og toast-tímamælir.
-    rhPickerOpen: false, rhMittSeen: undefined, rhSeatJust: false, rhToastTimer: null };
+    rhPickerOpen: false, rhMittSeen: undefined, rhSeatJust: false, rhToastTimer: null,
+    // ⏳ HÆGUR HAMUR: asyncDeadline = algild tímamörk lotunnar (ms, sama mynstur og S.timerDeadline/S.karphusDeadline),
+    // asyncDraft/asyncSig = drög leikstjórans í uppsetningar-kassanum (lifa 2,5 s poll-endurteiknun; endursett þegar
+    // ÞJÓNS-gildin breytast, þ.e. eftir vistun), asyncBusy = vistun í gangi, askriftBusy = áskriftar-kall í gangi.
+    asyncDeadline: null, asyncDraft: null, asyncSig: null, asyncBusy: false, askriftBusy: false };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -780,12 +836,34 @@ export function mountLeikur(root) {
     if (open && root.contains(open)) { S.rhPickerOpen = true; render(); return; }
     if (close && root.contains(close)) { S.rhPickerOpen = false; render(); }
   });
+  // ⏳ HÆGUR HAMUR: delegation — uppsetning leikstjóra (#lk-as-*) og áskriftar-gátreitur liðsins (#lk-askrift).
+  // Event-delegation á root svo stýringarnar lifi 2,5 s poll-endurteiknanir af; ENGIR inline handlers (CSP).
+  // change bólar (ólíkt toggle) → dugir á root. Drög leikstjórans lifa í S.asyncDraft, ekki í DOM-inu.
+  root.addEventListener('change', (e) => {
+    const t = e.target; if (!t || !t.id) return;
+    if (t.id === 'lk-as-on' || t.id === 'lk-as-cadence' || t.id === 'lk-as-hour') {
+      if (S.role !== 'fac' || !S.asyncDraft) return;
+      if (t.id === 'lk-as-on') S.asyncDraft.on = !!t.checked;
+      else if (t.id === 'lk-as-cadence') S.asyncDraft.cadence = asyncTaktur(t.value).key;
+      else S.asyncDraft.hour = Math.max(0, Math.min(23, Math.round(+t.value) || 0));
+      const h = root.querySelector('#lk-as-help'); if (h) h.textContent = asyncHjalp(S.asyncDraft);
+      return;
+    }
+    if (t.id === 'lk-askrift' && S.role === 'team') askriftSet(!!t.checked);
+  });
+  root.addEventListener('click', (e) => {
+    const b = e.target && e.target.closest && e.target.closest('#lk-as-save');
+    if (b && root.contains(b) && S.role === 'fac') asyncSave();
+  });
   function startPoll() { stopPoll(); refresh(); S.poll = setInterval(refresh, 2500); S.timerInt = setInterval(tickTimer, 1000); }
   function stopPoll() { if (S.poll) { clearInterval(S.poll); S.poll = null; } if (S.timerInt) { clearInterval(S.timerInt); S.timerInt = null; } }
   // #3 Umferðar-klukka (bara sjónræn): tikkar staðbundið úr S.timerDeadline; við 0 → „útrunninn" (engin auto-læsing).
   const fmtTimer = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
-  function timerBadge(st) { if (S.timerDeadline == null && st.secondsLeft == null) return ''; const rem = S.timerDeadline != null ? Math.max(0, Math.round((S.timerDeadline - Date.now()) / 1000)) : Math.max(0, st.secondsLeft); return '<span class="lk-timer" id="lk-timer">⏱️ ' + fmtTimer(rem) + '</span>'; }
+  // ⏳ HÆGUR HAMUR: umferðar-klukkan er ÓVIRK þegar async er á — tvær misvísandi klukkur mega aldrei sjást
+  // saman. Fresta-borðinn (asyncBordi) tekur við hlutverkinu. async slökkt → nákvæmlega óbreytt hegðun.
+  function timerBadge(st) { if (asyncOf(st)) return ''; if (S.timerDeadline == null && st.secondsLeft == null) return ''; const rem = S.timerDeadline != null ? Math.max(0, Math.round((S.timerDeadline - Date.now()) / 1000)) : Math.max(0, st.secondsLeft); return '<span class="lk-timer" id="lk-timer">⏱️ ' + fmtTimer(rem) + '</span>'; }
   function tickTimer() {
+    if (S.asyncDeadline != null) asyncBordiSync();   // ⏳ HÆGUR HAMUR: mjúk uppfærsla borðans (no-op þegar async er af — S.asyncDeadline er þá null)
     // ÞJÓÐARSÁTT: Karphús-niðurtalningin (deadline-mynstrið, sjá S.karphusDeadline í refresh) — óháð umferðar-klukkunni.
     const ke = root.querySelector('#lk-karphus-t');
     if (ke && S.karphusDeadline != null) { const rem = Math.max(0, Math.round((S.karphusDeadline - Date.now()) / 1000)); ke.textContent = fmtTimer(rem) + ' eftir'; }
@@ -805,6 +883,13 @@ export function mountLeikur(root) {
     S.state = json;
     // Klukka: festa á ALGILD tímamörk (epoch) → stöðug milli poll-a og reload-a (engin endur-ræsing). Fallback á secondsLeft f. eldri þjón.
     S.timerDeadline = (json.phase === 'decide' && json.deadlineTs) ? json.deadlineTs * 1000 : ((json.phase === 'decide' && json.secondsLeft != null) ? Date.now() + json.secondsLeft * 1000 : null);
+    // ⏳ HÆGUR HAMUR: lokun lotunnar á ALGILDUM tímamörkum (nextAt, sek eða ms) með secondsToNext sem varaleið.
+    // Umferðar-klukkan er slökkt á meðan (timerBadge skilar '' hvort eð er) svo aðeins EIN klukka sé á skjánum.
+    const _as = asyncOf(json);
+    S.asyncDeadline = (_as && json.phase === 'decide')
+      ? (asyncMs(_as.nextAt) != null ? asyncMs(_as.nextAt) : (typeof _as.secondsToNext === 'number' ? Date.now() + Math.max(0, _as.secondsToNext) * 1000 : null))
+      : null;
+    if (_as) S.timerDeadline = null;
     // ÞJÓÐARSÁTT: Karphús-frestur (epoch, sek eða ms frá verk 2) → niðurtalningin í borðanum (tickTimer).
     const _kh = json.satt && json.satt.karphus;
     S.karphusDeadline = (json.phase === 'decide' && _kh && _kh.open)
@@ -914,6 +999,118 @@ export function mountLeikur(root) {
   // ÞJÓÐARSÁTT: viðvörun ef læst án afstöðu (telst 'saekja') + valið fylgir decisions-body (decisions.satt).
   // RÁÐHERRASKIPTING: body.handle fylgir (rofinn er studio-only svo classic-læsing er aldrei gátuð — handle samt sent, skaðlaust).
   const submitDecisions = () => { if (!sattLockCheck(S.state)) return; return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: (S.state.satt && S.state.satt.on && S.state.satt.lota) ? { ...S.draft, satt: sattValAf(S.state) } : S.draft, locked: true, handle: rhHandle(S.code) }, token: S.token }); S.unlocked = false; }); };
+
+  // ── ⏳ HÆGUR HAMUR (async) — viðmót ──────────────────────────────────────────────────────────
+  // Þrennt: (1) uppsetningar-kassi leikstjóra í ANDDYRINU, (2) fresta-borði í lotu (öllum sýnilegur),
+  // (3) áskriftar-val þátttakanda (opt-in, ALDREI forvalið). Allt hangir á asyncOf()/asyncStutt():
+  // eldri þjónn (ekkert st.async) eða on:false → hver fall skilar '' og viðmótið er óbreytt frá í dag.
+  // Engir inline handlers (CSP) — stýringarnar hanga á event-delegation á root (sjá „HÆGUR HAMUR: delegation").
+
+  // Sekúndur til lokunar: ALGILD tímamörk (S.asyncDeadline) fyrst, secondsToNext úr /state sem varaleið.
+  const asyncRem = (a) => (S.asyncDeadline != null ? Math.max(0, Math.round((S.asyncDeadline - Date.now()) / 1000)) : Math.max(0, Math.round((a && +a.secondsToNext) || 0)));
+  // „<b>Lokar á morgun kl. 18</b> · eftir 20 klst" — allt vél-smíðað, esc() samt á strengjunum.
+  function asyncBordiTxt(sec) {
+    const lok = asyncLokar(S.asyncDeadline), bil = asyncBil(sec);
+    return lok ? '<b>' + esc(lok) + '</b> <span class="lk-as-sep">·</span> ' + esc(bil) : '<b>' + esc('Lokar ' + bil) + '</b>';
+  }
+  // Borðinn er BYGGÐUR inn í innerHTML hvers view-s en TEXTINN uppfærður á staðnum (asyncBordiSync) svo
+  // niðurtalningin lifi af Stjórnstöðina, sem endurbyggir sig aðeins þegar undirskriftin breytist.
+  function asyncBordi(st, hlutverk) {
+    const a = asyncOf(st); if (!a || st.phase !== 'decide') return '';
+    const sec = asyncRem(a);
+    const sub = hlutverk === 'team'
+      ? 'Hægur hamur — þú getur breytt stillingunum þínum fram að lokun. Læsist sjálfkrafa með því sem þá stendur.'
+      : hlutverk === 'fac'
+        ? 'Hægur hamur — ný lota opnast sjálfkrafa ' + asyncTaktur(a.cadence).tidni + ' kl. ' + asyncKlst(a.hour) + '. Lið sem hafa ekki læst fá sínar núverandi stillingar læstar sjálfkrafa.'
+        : 'Hægur hamur — lotan lokast sjálfkrafa og gerist þá upp.';
+    return '<div class="lk-async-bordi ' + asyncLitur(sec) + '" id="lk-async-bordi" role="status" aria-live="polite">'
+      + '<span class="lk-as-ic" aria-hidden="true">⏳</span>'
+      + '<span class="lk-as-txt">' + asyncBordiTxt(sec) + '</span>'
+      + '<span class="lk-as-sub">' + esc(sub) + '</span></div>';
+  }
+  function asyncBordiSync() {
+    const el = root.querySelector('#lk-async-bordi'); if (!el) return;
+    const a = asyncOf(S.state); if (!a) return;
+    const sec = asyncRem(a), t = el.querySelector('.lk-as-txt');
+    if (t) t.innerHTML = asyncBordiTxt(sec);
+    el.classList.remove('lk-as-ro', 'lk-as-gult', 'lk-as-raud'); el.classList.add(asyncLitur(sec));
+  }
+
+  // Drög leikstjórans lifa 2,5 s pollið af; endursett AÐEINS þegar þjóns-gildin sjálf breytast (þ.e. eftir vistun).
+  function asyncDraftAf(a) {
+    const sig = (a.on === true ? 1 : 0) + '|' + (a.cadence || '') + '|' + (a.hour == null ? '' : a.hour);
+    if (S.asyncSig !== sig || !S.asyncDraft) { S.asyncSig = sig; S.asyncDraft = { on: a.on === true, cadence: asyncTaktur(a.cadence).key, hour: Number.isInteger(a.hour) ? Math.max(0, Math.min(23, a.hour)) : 18 }; }
+    return S.asyncDraft;
+  }
+  const asyncHjalp = (d) => d.on
+    ? 'Ný lota opnast sjálfkrafa kl. ' + asyncKlst(d.hour) + ' ' + asyncTaktur(d.cadence).tidni + '. Lið sem hafa ekki læst fá sínar núverandi stillingar læstar sjálfkrafa — enginn dettur út. Þú þarft ekki að vera viðstödd/viðstaddur, og ⏱️ umferðar-klukkan er óvirk á meðan.'
+    : 'Slökkt — leikurinn er keyrður í rauntíma og þú opnar hverja lotu handvirkt (venjuleg 90 mín vinnustofa).';
+  function asyncFacCard(st) {
+    const a = asyncStutt(st); if (!a || S.role !== 'fac') return '';   // eldri þjónn (ekkert st.async) → enginn kassi
+    const d = asyncDraftAf(a);
+    const taktar = ASYNC_TAKTAR.map((t) => '<option value="' + esc(t.key) + '"' + (t.key === d.cadence ? ' selected' : '') + '>' + esc(t.label) + '</option>').join('');
+    const klst = Array.from({ length: 24 }, (_, h) => '<option value="' + h + '"' + (h === d.hour ? ' selected' : '') + '>' + asyncKlst(h) + '</option>').join('');
+    const stada = a.on === true
+      ? '<p class="lk-as-stada">✅ <b>Virkur</b> — ný lota opnast ' + esc(asyncTaktur(a.cadence).tidni) + ' kl. ' + esc(asyncKlst(a.hour)) + '.</p>'
+      : '';
+    return '<div class="lk-card lk-as-fac" id="lk-async-card"><h2>⏳ Hægur hamur (async)</h2>'
+      + '<p class="lk-muted lk-as-intro">Spilið eitt kjörtímabil á dag í viku í stað 90 mín vinnustofu. Loturnar opnast sjálfkrafa — þú þarft ekki að vera viðstödd/viðstaddur.</p>'
+      + stada
+      + '<label class="lk-as-row"><input type="checkbox" id="lk-as-on"' + (d.on ? ' checked' : '') + '/>Kveikja á hægum ham</label>'
+      + '<div class="lk-as-row2">'
+        + '<label>🔁 Taktur: <select id="lk-as-cadence">' + taktar + '</select></label>'
+        + '<label>🕒 Klukkustund: <select id="lk-as-hour">' + klst + '</select> <span class="lk-muted">(íslenskur tími)</span></label>'
+      + '</div>'
+      + '<p class="lk-as-help" id="lk-as-help">' + esc(asyncHjalp(d)) + '</p>'
+      + '<button class="lk-btn" id="lk-as-save">Vista hægan ham</button>'
+      + '<p class="lk-muted lk-as-fine">Þátttakendur geta sjálfir valið að fá póst-áminningu þegar ný lota opnast — það er aldrei sjálfvalið.</p>'
+      + '<div id="lk-as-err" class="lk-err" aria-live="polite"></div></div>';
+  }
+  async function asyncSave() {
+    if (S.asyncBusy) return;
+    const d = S.asyncDraft || { on: false, cadence: 'daglegt', hour: 18 };
+    const errEl = root.querySelector('#lk-as-err'), btn = root.querySelector('#lk-as-save');
+    if (btn) btn.disabled = true; if (errEl) { errEl.className = 'lk-err'; errEl.textContent = 'Vista…'; }
+    S.asyncBusy = true;
+    // Þjónninn les aðgerðina úr b.action (server.mjs: `const act = b.action`) — eins og start/next/resolve.
+    let r; try { r = await api('/' + S.code + '/control', { method: 'POST', body: { action: 'async', on: !!d.on, cadence: d.cadence, hour: d.hour }, token: S.token }); } catch (e) { r = { status: 0, json: null }; } finally { S.asyncBusy = false; }
+    if (r.status === 200) {
+      S.asyncSig = null;   // næsta teikning sækir þjóns-gildin (drögin voru samþykkt)
+      await refresh();
+      const ok = root.querySelector('#lk-as-err');
+      if (ok) { ok.className = 'lk-muted lk-as-ok'; ok.textContent = d.on ? '✅ Hægur hamur virkur — ný lota opnast kl. ' + asyncKlst(d.hour) + ' ' + asyncTaktur(d.cadence).tidni + '.' : '✅ Hægur hamur slökktur — leikurinn er aftur í rauntíma.'; }
+      return;
+    }
+    const e = r.json && r.json.error, b2 = root.querySelector('#lk-as-save'); if (b2) b2.disabled = false;
+    const e2 = root.querySelector('#lk-as-err');
+    if (e2) { e2.className = 'lk-err'; e2.textContent = e === 'auth' ? 'Leikstjóra-táknið gildir ekki fyrir þennan leik.' : 'Þjónninn tók ekki við stillingunni' + (e ? ' (' + e + ')' : r.status ? ' (' + r.status + ')' : '') + ' — reyndu aftur.'; }
+  }
+
+  // Áskrift (opt-in, GDPR): birtist AÐEINS þegar hægur hamur er á OG notandinn er í liði.
+  // st.askrift kemur aðeins frá þjóninum fyrir INNSKRÁÐ lið → vantar = óinnskráð(ur).
+  function asyncAskriftHtml(st) {
+    const a = asyncOf(st); if (!a || S.role !== 'team') return '';
+    const ask = (st && st.askrift && typeof st.askrift === 'object') ? st.askrift : null;
+    if (!ask) return '<div class="lk-card lk-as-askrift"><p class="lk-as-askrift-h">✉️ Póst-áminning þegar ný lota opnast</p>'
+      + '<p class="lk-muted lk-as-fine">Skráðu þig inn til að fá póst-áminningu. <a href="' + esc(loginHref()) + '">Skrá inn</a></p></div>';
+    const on = ask.on === true;   // ALDREI forvalið — hakað AÐEINS ef notandinn hefur sjálfur kveikt áður (þjóns-sannleikur)
+    return '<div class="lk-card lk-as-askrift">'
+      + '<label class="lk-as-askrift-h"><input type="checkbox" id="lk-askrift"' + (on ? ' checked' : '') + '/>✉️ Sendu mér póst þegar ný lota opnast</label>'
+      + '<p class="lk-muted lk-as-fine">Þá vistum við netfangið þitt tengt þessum leik. Þú getur afskráð þig hvenær sem er; gögnunum er eytt þegar leiknum lýkur. <a href="/leikur/personuvernd/">Persónuvernd í leiknum</a></p>'
+      + '<span class="lk-muted lk-as-msg" id="lk-askrift-msg" aria-live="polite"></span></div>';
+  }
+  async function askriftSet(on) {
+    if (S.askriftBusy) return; S.askriftBusy = true;
+    const m = root.querySelector('#lk-askrift-msg'); if (m) m.textContent = 'Vista…';
+    let r; try { r = await api('/' + S.code + '/askrift', { method: 'POST', body: { on: !!on }, token: S.token }); } catch (e) { r = { status: 0, json: null }; } finally { S.askriftBusy = false; }
+    await refresh();   // gátreiturinn speglar þjóns-stöðuna eftir kallið (mistókst → fer sjálfkrafa til baka)
+    const m2 = root.querySelector('#lk-askrift-msg'); if (!m2) return;
+    if (r.status === 200) { m2.textContent = on ? '✅ Skráð — þú færð póst þegar ný lota opnast.' : '✅ Afskráð — við sendum þér ekki fleiri áminningar.'; return; }
+    const e = r.json && r.json.error;
+    m2.textContent = e === 'login' ? 'Skráðu þig inn til að fá póst-áminningu.' : 'Tókst ekki að vista' + (e ? ' (' + e + ')' : r.status ? ' (' + r.status + ')' : '') + ' — reyndu aftur.';
+    // Stjórnstöðin endurbyggir sig ekki við poll → færa gátreitinn sjálfan til baka svo hann ljúgi ekki um vistaða stöðu.
+    const cb = root.querySelector('#lk-askrift'); if (cb) cb.checked = !on;
+  }
 
   // ── Teikning ──
   function card(title, body) { return '<div class="lk-card"><h2>' + esc(title) + '</h2>' + body + '</div>'; }
@@ -1243,7 +1440,10 @@ export function mountLeikur(root) {
   }
   // Læsa-hnappurinn: PM → hnappur; lockFallback (enginn PM) → hnappur + „hver sem er læsir"; ráðherra → ⏳-kassi + sæta-yfirlit.
   function rhLockHtml(st) {
-    const btn = '<button class="lk-btn lk-lock-big" id="lk-lock">🔒 Læsa kjörtímabili ' + st.round + '</button>';
+    // ⏳ HÆGUR HAMUR: læsing er ekki endanleg — liðið má opna aftur (#lk-unlock, sama flæði og í dag) fram að lokun.
+    const asy = asyncOf(st);
+    const btn = '<button class="lk-btn lk-lock-big" id="lk-lock"' + (asy ? ' title="Þú mátt opna aftur fram að lokun"' : '') + '>🔒 Læsa ' + (asy ? 'núna' : 'kjörtímabili ' + st.round) + '</button>'
+      + (asy && rhCanLock(st) ? '<p class="lk-muted lk-as-fine">Þú mátt opna aftur og breyta fram að lokun — lotan gerist upp sjálfkrafa þá.</p>' : '');
     if (!rhOn(st)) return btn;
     if (rhIsPm(st)) return btn + '<p class="lk-muted lk-rh-fine">🏛️ Þú ert forsætisráðherra — aðeins þú læsir. Sæti: ' + rhSeatsHtml(st) + '</p>';
     if (st.radherrar.lockFallback === true) return btn + '<p class="lk-muted lk-rh-fine">Enginn forsætisráðherra — hver sem er læsir. Sæti: ' + rhSeatsHtml(st) + '</p>';
@@ -1724,7 +1924,10 @@ export function mountLeikur(root) {
   function settingsCard(st) {
     const c = facCfg(st), real = (st.teams || []).filter((t) => !isBotTeam(t));
     const row = (id, k, v) => '<div class="lk-lb-row"' + (id ? ' id="' + id + '"' : '') + '><span>' + k + '</span><span><b>' + esc(v) + '</b></span></div>';
-    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('lk-set-svidsmynd', '🗺️ Sviðsmynd', c.svidsmyndTxt) + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('lk-set-radherrar', '🎭 Ráðherraskipting', c.radherrarTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
+    // ⏳ HÆGUR HAMUR: umferðar-klukkan er ÓVIRK þegar hann er á (ein klukka á skjánum) + eigin lína um taktinn.
+    const asy = asyncStutt(st), asyOn = asyncOf(st);
+    const asyRow = asy ? row('lk-set-async', '⏳ Hægur hamur', asyOn ? ('kveikt — ný lota ' + asyncTaktur(asyOn.cadence).tidni + ' kl. ' + asyncKlst(asyOn.hour)) : 'slökkt') : '';
+    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('lk-set-svidsmynd', '🗺️ Sviðsmynd', c.svidsmyndTxt) + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', asyOn ? 'óvirk í hægum ham' : c.timerTxt) + asyRow + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('lk-set-radherrar', '🎭 Ráðherraskipting', c.radherrarTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
       + (c.thoka ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🌫️ ' + esc(THOKA_BLURB) + ' Þú og skjávarpinn sjáið áfram allt; tölurnar afhjúpast fyrir liðin við hvert uppgjör.</p>' : '')
       + (c.satt ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🤝 ' + esc(SATT_BLURB) + '</p>' : '')
       + (c.radherrar ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🎭 ' + esc(RH_BLURB) + '</p>' : '')
@@ -1743,7 +1946,7 @@ export function mountLeikur(root) {
       const rosterList = rl.map((r) => '<span style="margin-right:12px;white-space:nowrap">' + (r.locked ? '✅' : '⏳') + ' ' + esc(r.name) + rhRosterSeats(r.radherrar) + (r.radherrar != null && r.lockFallback === true ? ' <span class="lk-muted" title="Enginn forsætisráðherra — hver sem er í liðinu læsir">· enginn PM</span>' : '') + '</span>').join('');
       controls = '<p>Kjörtímabil ' + st.round + ' — lið taka ákvarðanir. <b>' + ready + '/' + rl.length + ' tilbúin</b></p>' + (rosterList ? '<div style="margin:6px 0;font-size:13px">' + rosterList + '</div>' : '') + '<button class="lk-btn" id="lk-resolve">Leysa kjörtímabil ' + st.round + '</button>' + stopBtn;
     } else if (st.phase === 'resolved') controls = '<p><b>✅ Kjörtímabil ' + st.round + ' leyst.</b> Skoðið niðurstöður liðanna hér að neðan, ýtið svo á:</p><button class="lk-btn" id="lk-next" style="font-size:17px;padding:12px 22px;background:#54d08a;color:#0e1116;font-weight:700">' + (st.round >= svLotur(st) ? '🏁 Ljúka leik' : '▶ Næsta kjörtímabil') + '</button>' + stopBtn;
-    else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button><p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
+    else if (st.phase === 'ended') controls = '<p><b>🏁 Leik lokið.</b></p><button class="lk-btn" id="lk-print">🖨️ Prenta skýrslu</button> <button class="lk-btn" id="lk-newgame">🔄 Nýr leikur</button>' + asyncSjalfLaestLina(st) + '<p class="lk-muted" style="font-size:12px;margin:8px 0 0">Skýrslan er prentvæn kennslu-samantekt leiksins — stigatafla, liðin eitt af öðru, samanburður og umræðukafli (vista má sem PDF í prent-glugganum).</p>';
     // PERSÓNUVERND: „Eyða leik núna" (POST /<code>/erase, fac-tákn) — aðeins í lobby og að leik loknum (þjónninn svarar 409 í gangi).
     // Eyðir leik + liðum + ákvörðunum + uppgjöri strax án þess að bíða vikulegu grisjunarinnar (sjá /leikur/personuvernd/).
     if (st.phase === 'lobby' || st.phase === 'ended') controls += '<div class="lk-erase-row" style="margin-top:12px;border-top:1px dashed var(--line,#2a2f3a);padding-top:8px"><button class="lk-btn lk-onb-ghost" id="lk-erase" style="color:#e78284;border-color:#e7828455">🗑️ Eyða leik núna</button><span class="lk-muted" style="font-size:12px;margin-left:8px">Eyðir leiknum, liðsheitum, ákvörðunum og uppgjöri strax og endanlega (annars sjálfkrafa eftir 90 daga).' + (st.phase === 'ended' ? ' Prentaðu skýrsluna fyrst ef þú vilt halda henni.' : '') + '</span><div id="lk-erase-err" class="lk-err" aria-live="polite"></div></div>';
@@ -1760,9 +1963,13 @@ export function mountLeikur(root) {
     const eventCard = st.event ? card('📋 Umferð ' + st.round + ': ' + st.event.title, '<p>' + esc(st.event.text) + '</p>') : '';
     const analyticsCard = st.analytics ? card('📈 Greining (leikstjóri)', (() => { try { return renderFacAnalytics(st.analytics, st, S.openDetails, { thoka: facCfg(st).thoka === true }); } catch (err) { console.error('renderFacAnalytics villa', err); return '<p class="lk-muted">Greining tókst ekki að teikna (stýringar að ofan virka eðlilega).</p>'; } })()) : '';
     // Lobby: uppsetningar-röð (stillingar → lið → ræsa) ofar handbókinni; aðrir fasar: óbreytt röð (+ stillingaspjald aðeins meðan vísir er opinn).
+    // ⏳ HÆGUR HAMUR: 2,5 s pollið endurbyggir innerHTML — muna hvaða async-stýring hafði fókus og skila honum
+    // eftir teikningu (annars „hoppar" valmyndin úr höndum leikstjórans). Aðeins #lk-as-*; annað ósnert.
+    const asFocus = (document.activeElement && ['lk-as-on', 'lk-as-cadence', 'lk-as-hour', 'lk-as-save'].indexOf(document.activeElement.id) >= 0) ? document.activeElement.id : null;
     root.innerHTML = st.phase === 'lobby'
-      ? header + settingsCard(st) + teamsCard + controlsCard + handbookCard(st) + roleMapCard(st) + leaderboard(st) + analyticsCard
-      : header + eventCard + sattFacBlok(st) + (S.onb ? settingsCard(st) : '') + handbookCard(st) + teamsCard + roleMapCard(st) + controlsCard + leaderboard(st) + analyticsCard;
+      ? header + settingsCard(st) + asyncFacCard(st) + teamsCard + controlsCard + handbookCard(st) + roleMapCard(st) + leaderboard(st) + analyticsCard
+      : header + asyncBordi(st, 'fac') + eventCard + sattFacBlok(st) + (S.onb ? settingsCard(st) : '') + handbookCard(st) + teamsCard + roleMapCard(st) + controlsCard + leaderboard(st) + analyticsCard;
+    if (asFocus) { const fe = root.querySelector('#' + asFocus); if (fe) { try { fe.focus({ preventScroll: true }); } catch (err) { fe.focus(); } } }
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => { if (S.onb) onbClose(true); control('start'); }); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
@@ -2116,6 +2323,7 @@ export function mountLeikur(root) {
       const kortH = kortCardMitt(st), recapH = uppsafnadRecap(st, S.teamId);
       const lokaBlokk = (kortH && recapH) ? '<div class="lk-kort-loka">' + kortH + recapH + '</div>' : kortH + recapH;
       root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + politikFerillCard(st) + sattEndCard(st) + teamRecap(st)
+        + asyncSjalfLaestLina(st)   // ⏳ HÆGUR HAMUR: ein lína um sjálf-læstar ákvarðanir — SLEPPT hljóðlega ef talan vantar
         + '<p class="lk-muted lk-saga-loka">📜 Berðu ferilinn ykkar saman við söguna í uppgjörum lotanna.</p>'   // VERK 6: loka-línan
         + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
@@ -2134,7 +2342,10 @@ export function mountLeikur(root) {
       // ÞJÓÐARSÁTT: Karphús-staðan er hluti undirskriftarinnar — poll uppfærir studio Á STAÐNUM (updateStudio) og
       // borðinn birtist/hverfur annars aldrei þegar leikstjórinn opnar/lokar hléinu mitt í lotu.
       // RÁÐHERRASKIPTING: sæti/picker eru líka í undirskriftinni (rhSig) → flipa-gátt, sæta-flísar og Læsa-hnappur endurbyggjast við breytingar.
-      const sig = 'studio|' + st.round + '|kh' + ((st.satt && st.satt.on && st.satt.karphus && st.satt.karphus.open) ? 1 : 0) + '|rh' + rhSig(st);
+      // ⏳ HÆGUR HAMUR er líka í undirskriftinni (aðeins rofinn/taktur/klukkustund — EKKI niðurtalningin) svo
+      // fresta-borðinn og Læsa-textinn birtist strax ef leikstjórinn kveikir/slekkur mitt í lotu.
+      const sig = 'studio|' + st.round + '|kh' + ((st.satt && st.satt.on && st.satt.karphus && st.satt.karphus.open) ? 1 : 0) + '|rh' + rhSig(st)
+        + '|as' + (asyncOf(st) ? '1' + (st.async.cadence || '') + (st.async.hour == null ? '' : st.async.hour) : '0');
       if (S.studioBuiltSig === sig && root.querySelector('#lk-st-sliders')) return updateStudio(st);
       S.studioBuiltSig = sig; S.localTouched = new Set();
       return renderStudio(st);
@@ -2148,16 +2359,22 @@ export function mountLeikur(root) {
       return '<div style="margin:10px 0"><b>' + esc(d.label) + '</b><br>' + (chips || '<span style="color:var(--muted)">—</span>') + '</div>';
     }).join('');
     const ready = st.decisions.every((d) => S.draft[d.id] != null);
+    // ⏳ HÆGUR HAMUR: umferðar-klukkan er slökkt (timerBadge skilar '') → sleppa líka umgjörðinni um hana,
+    // annars stæði tómur kassi eftir. async slökkt: tb er ALLTAF ekki-tómt þegar secondsLeft != null → óbreytt.
+    const tb = timerBadge(st), asyncOn = asyncOf(st);
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
+      asyncBordi(st, 'team') +   // ⏳ HÆGUR HAMUR: fresta-borði í stað sekúndu-niðurtalningar
       '<div class="lk-pmh-solo">' + pmHeadHtml() + '</div>' +   // VERK 2: ráðherrann efst t.h., FYRIR OFAN liðs-borðann (classic hefur engan term-head)
       teamBanner(st) + roleBanner(st) +
-      card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>' + (st.secondsLeft != null ? '<div style="margin-top:6px">' + timerBadge(st) + '</div>' : '')) +
+      card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>' + (st.secondsLeft != null && tb ? '<div style="margin-top:6px">' + tb + '</div>' : '')) +
       thokaBanner(st) + thokaPastCard(st) +   // ÞOKA: borði undir kjörtímabils-hausnum (atburðar-spjaldið í classic) + „það sem vitað er"
       sattCard(st) +   // ÞJÓÐARSÁTT: val-spjaldið undir atviks-spjaldinu
       '<div class="lk-card"><h2>Ákvarðanir liðsins</h2>' + decHtml +
-      '<button class="lk-btn" id="lk-lock"' + (ready ? '' : ' disabled') + ' style="margin-top:10px">Læsa ákvörðunum</button>' +
+      '<button class="lk-btn" id="lk-lock"' + (ready ? '' : ' disabled') + ' style="margin-top:10px">' + (asyncOn ? '🔒 Læsa núna' : 'Læsa ákvörðunum') + '</button>' +
+      (asyncOn && rhCanLock(st) ? '<p class="lk-muted lk-as-fine">Þú mátt opna aftur og breyta fram að lokun — lotan gerist upp sjálfkrafa þá.</p>' : '') +
       (ready ? '' : '<p style="color:var(--muted);font-size:13px">Veldu í öllum flokkum til að læsa.</p>') + '</div>' +
+      asyncAskriftHtml(st) +   // ⏳ HÆGUR HAMUR: opt-in póst-áminning (aldrei forvalin)
       mandateCard(st) + leaderboard(st);
     root.querySelectorAll('.lk-opt').forEach((el) => { el.onclick = () => { S.draft[el.dataset.dec] = el.dataset.opt; render(); }; });
     const lock = root.querySelector('#lk-lock'); if (lock) lock.onclick = () => submitDecisions();
@@ -2489,6 +2706,7 @@ export function mountLeikur(root) {
     // FYRIR OFAN liðs-borðann og EITT 📋-spjald (carryoverCard, textar+deltas) FYRIR NEÐAN hann.
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
+      asyncBordi(st, 'team') +   // ⏳ HÆGUR HAMUR: fresta-borði (textinn uppfærður á staðnum í asyncBordiSync — Stjórnstöðin endurbyggist sjaldan)
       ribbonHtml(st) +
       `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/${svLotur(st)} · ${y0}–${y1}</span><span class="lk-term-badge lk-sv-badge" title="${esc(svOf(st).undirtitill || '')}">🗺️ ${esc(svHeiti(st))}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}${rhHeadChip(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
       thokaBanner(st) +   // ÞOKA: borði STRAX undir kjörtímabils-hausnum (á undan badge-röð/arfleifð)
@@ -2516,6 +2734,7 @@ export function mountLeikur(root) {
           mandateCard(st) +
           policiesCard(st) +
           rhLockHtml(st) +   // RÁÐHERRASKIPTING: Læsa-hnappur aðeins f. forsætisráðherra (eða lockFallback); ráðherrar sjá „⏳ forsætisráðherra læsir"
+          asyncAskriftHtml(st) +   // ⏳ HÆGUR HAMUR: opt-in póst-áminning (aldrei forvalin)
         '</div>' +
       '</div>' +
       leaderboard(st);
@@ -2607,10 +2826,15 @@ export function mountLeikur(root) {
       const vv = v ? SATT_VAL[v] : null;
       sattLine = '<p class="lk-satt-locked">🤝 Þjóðarsáttin: ' + (vv ? '<b>' + vv.icon + ' ' + esc(vv.label) + '</b> <span class="lk-muted">(blint þar til uppgjör)</span>' : '<b>engin afstaða</b> — telst „Sækja fram"') + '</p>';
     }
+    // ⏳ HÆGUR HAMUR: enginn leikstjóri bíður — lotan gerist upp sjálfkrafa við lokun, og fram að henni má opna aftur.
+    const asyL = asyncOf(st);
+    const bidTxt = asyL ? 'Lotan gerist upp sjálfkrafa við lokun. Þú mátt opna aftur og breyta fram að þeim tíma.' : 'Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.';
     root.innerHTML =
       karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (líka læstum)
+      asyncBordi(st, 'team') +   // ⏳ HÆGUR HAMUR: fresta-borði líka á læstu sýninni (læsing er ekki endanleg)
       teamBanner(st) + roleBanner(st) +
-      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + sattLine + summary + (rhCanLock(st) ? '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button>' : '<p class="lk-muted lk-rh-fine" style="margin-top:12px">🏛️ Forsætisráðherra læsti — aðeins hann aflæsir (✏️ Breyta ákvörðun).</p>') + '</div>' +   // RÁÐHERRASKIPTING: aflæsing = PM (eða lockFallback)
+      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>' + esc(bidTxt) + '</p>' + sattLine + summary + (rhCanLock(st) ? '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button>' : '<p class="lk-muted lk-rh-fine" style="margin-top:12px">🏛️ Forsætisráðherra læsti — aðeins hann aflæsir (✏️ Breyta ákvörðun).</p>') + '</div>' +   // RÁÐHERRASKIPTING: aflæsing = PM (eða lockFallback)
+      asyncAskriftHtml(st) +   // ⏳ HÆGUR HAMUR: opt-in póst-áminning (aldrei forvalin)
       leaderboard(st);
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };
   }
@@ -2681,6 +2905,7 @@ export function mountLeikur(root) {
     const context = (ev && (st.phase === 'decide' || st.phase === 'resolved')) ? '<div class="lk-card"><h2>' + (ev.icon ? ev.icon + ' ' : '') + esc(ev.title) + '</h2>' + (ev.text ? '<p style="font-size:15.5px;line-height:1.6">' + esc(ev.text) + '</p>' : '') + (ev.watch ? '<p class="lk-watch">⚠ <b>Hvað þarf að huga að:</b> ' + esc(ev.watch) + '</p>' : '') + '</div>' : '';
     root.innerHTML =
       '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — ' + esc(svHeiti(st)) : 'Kjörtímabil ' + st.round + '/' + svLotur(st) + ' · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
+      asyncBordi(st, 'watch') +   // ⏳ HÆGUR HAMUR: fresta-borði á skjávarpanum líka (engin sekúndu-klukka í hægum ham)
       thokaBordiWatch(st) +    // ÞOKA: skjávarpinn sýnir þoku í decide eins og liðin (þjónninn síar tákn-laust /state)
       sattWatchBordi(st) +     // ÞJÓÐARSÁTT: „lið velja" (án vals) + Karphús-niðurtalningin stór
       winner +

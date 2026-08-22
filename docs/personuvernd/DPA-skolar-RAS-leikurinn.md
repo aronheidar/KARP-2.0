@@ -28,7 +28,7 @@
 
 **Efni:** rekstur umferðaskipts kennsluleiks í þjóðhagfræði (RÁS-Leikurinn) þar sem lið nemenda taka hagstjórnarákvarðanir og fá uppgjör úr hermi, undir stjórn leikstjóra (kennara).
 
-**Eðli og tilgangur:** (a) að stofna leik með leikkóða og stillingum leikstjóra; (b) að skrá lið undir liðsheiti og gefa út liðstákn svo liðið komist inn í leikinn; (c) að taka við ákvörðunum liða í hverri umferð; (d) að reikna uppgjör (hagstærðir og stig) með hermi-vélinni á þjóni Karp og birta það leikstjóra og liðum á meðan leik stendur og í lokayfirliti; (e) að merkja Karp-reikninga þátttakenda sem nemendur samkvæmt þátttakendalista skólans svo þeir geti gengið í lið. Tilgangurinn er einskorðaður við kennsluna; vinnsluaðili metur hvorki né skráir árangur einstakra nemenda og leikjagögnin eru ekki notuð til einkunnagjafar af hálfu vinnsluaðila.
+**Eðli og tilgangur:** (a) að stofna leik með leikkóða og stillingum leikstjóra; (b) að skrá lið undir liðsheiti og gefa út liðstákn svo liðið komist inn í leikinn; (c) að taka við ákvörðunum liða í hverri umferð; (d) að reikna uppgjör (hagstærðir og stig) með hermi-vélinni á þjóni Karp og birta það leikstjóra og liðum á meðan leik stendur og í lokayfirliti; (d2) í **hægum ham** að opna nýja umferð sjálfkrafa á tímaáætlun leikstjóra, læsa þá ólæstum liðum með þeim stillingum sem þau höfðu sett, og senda áminningu í tölvupósti til þeirra einna sem kveikt hafa á henni sjálfir; (e) að merkja Karp-reikninga þátttakenda sem nemendur samkvæmt þátttakendalista skólans svo þeir geti gengið í lið. Tilgangurinn er einskorðaður við kennsluna; vinnsluaðili metur hvorki né skráir árangur einstakra nemenda og leikjagögnin eru ekki notuð til einkunnagjafar af hálfu vinnsluaðila.
 
 **Tímalengd:** á meðan leikstjóra-leyfi skólans eða samningur er í gildi, sbr. ákvæði um varðveislu (11. gr.) og eyðingu (12. gr.).
 
@@ -38,8 +38,9 @@
 - **Liðsheiti** sem þátttakendur velja sjálfir við inngöngu í leik — frjáls texti, að hámarki 40 stafir. Liðsheiti er **eina sviðið í leikjagögnunum sem getur borið persónuupplýsingar**, t.d. ef þátttakendur skrá eigin nöfn („Jón og Gunna") í stað hlutlauss heitis.
 - **Ákvarðanir og uppgjör liða:** tölulegar hagstjórnarákvarðanir (sleða- og stefnuval) hverrar umferðar og reiknaðar hagstærðir og stig. Þau eru bundin liði (liðsnúmeri), ekki einstaklingi, og teljast aðeins persónuupplýsingar að því marki sem liðsheitið auðkennir þátttakendur.
 - **Þátttakendalisti:** netföng þátttakenda (og eftir atvikum nöfn) sem skólinn sendir vinnsluaðila til að virkja nemanda-aðgang á Karp-reikningum þeirra.
+- **Póst-áskrift í hægum ham (aðeins ef þátttakandi eða leikstjóri kveikir á henni sjálfur):** tenging Karp-reiknings við tiltekinn leik svo áminning berist þegar ný umferð opnast. Geymd í sértöflunni `leikur_askrift` — **utan** leikjatafla — slökkt sjálfgefið, eytt strax við afskráningu og að öðrum kosti með leiknum. Áminningin ber aðeins leikkóða, umferð, frest og hlekk; ekkert um aðra þátttakendur.
 
-**Ekki er unnið eða geymt:** í leikjagögnunum (leikir, lið, ákvarðanir, uppgjör) eru **engin skráð nöfn, kennitölur, einkunnir, bekkjarlistar eða notandaauðkenni** (eina undantekningin er liðsheiti sem þátttakendur kjósa sjálfir að skrifa nafn í, sbr. að ofan) — leikur er ekki tengdur við Karp-reikning neins þátttakanda (ekkert notandaauðkenni er skrifað með liði eða ákvörðun); aðgangur liðs og leikstjóra að leik byggir á undirrituðum tákni sem geymt er í vafra þeirra, ekki í gagnagrunni. Ekki er stefnt að vinnslu viðkvæmra persónuupplýsinga skv. 9. gr. Engin prófílgerð er gerð á einstaklingum og engum persónuupplýsingum er miðlað til utanaðkomandi gervigreindarveitna — uppgjörið er reiknað með hermi-vél á eigin þjóni Karp.
+**Ekki er unnið eða geymt:** í leikjagögnunum (leikir, lið, ákvarðanir, uppgjör) eru **engin skráð nöfn, kennitölur, einkunnir, bekkjarlistar eða notandaauðkenni** (eina undantekningin er liðsheiti sem þátttakendur kjósa sjálfir að skrifa nafn í, sbr. að ofan) — leikur er ekki tengdur við Karp-reikning neins þátttakanda (ekkert notandaauðkenni er skrifað með liði eða ákvörðun; kveiki þátttakandi sjálfur á póst-áminningu í hægum ham er sú tenging ein geymd, í `leikur_askrift`, sbr. að ofan); aðgangur liðs og leikstjóra að leik byggir á undirrituðum tákni sem geymt er í vafra þeirra, ekki í gagnagrunni. Ekki er stefnt að vinnslu viðkvæmra persónuupplýsinga skv. 9. gr. Engin prófílgerð er gerð á einstaklingum og engum persónuupplýsingum er miðlað til utanaðkomandi gervigreindarveitna — uppgjörið er reiknað með hermi-vél á eigin þjóni Karp.
 
 **Flokkar skráðra:** nemendur og aðrir þátttakendur skólans í leiknum; kennarar skólans sem koma fram í leikjagögnum eða þátttakendalista (t.d. sé liðsheiti kennt við þá).
 
@@ -69,7 +70,7 @@ Vinnsluaðili beitir viðeigandi tæknilegum og skipulagslegum ráðstöfunum sk
 - **Dulkóðun** í flutningi (TLS) og dulkóðaðri geymslu hjá undirvinnsluaðila.
 - **Ströng aðgangsstýring** og auðkenning notenda (PBKDF2-varin lykilorð og undirrituð lotukaka); aðeins innskráðir notendur með nemanda-merkingu (eða leikstjórar og kerfisstjóri Karp) geta gengið í lið og aðeins handhafi leikstjóra-leyfis getur stofnað leik.
 - **Undirrituð leik-tákn (HMAC):** liðstákn veitir aðeins aðgang að eigin liði í einum tilteknum leik og leikstjóratákn aðeins að eigin leik; tákn eru ekki geymd í gagnagrunni.
-- **Innbyggð gagnalágmörkun:** leikjagögn eru ekki tengd við notandareikning neins þátttakanda (ekkert notandaauðkenni, netfang eða nafn í leikjatöflum).
+- **Innbyggð gagnalágmörkun:** leikjagögn eru ekki tengd við notandareikning neins þátttakanda (ekkert notandaauðkenni, netfang eða nafn í leikjatöflunum fjórum). Kveiki notandi sjálfur á póst-áminningu í hægum ham er sú eina tenging geymd í aðskildu töflunni `leikur_askrift`, slökkt sjálfgefið og eydd með leiknum.
 - **Varðveislutakmörkun:** sjálfvirk grisjun eldri leikja og eyðing á beiðni (sjá 11.–13. gr.).
 - Viðbrögð við öryggisbresti í samræmi við 33.–34. gr. GDPR (sjá 10. gr.).
 
@@ -77,7 +78,7 @@ Vinnsluaðili beitir viðeigandi tæknilegum og skipulagslegum ráðstöfunum sk
 
 Ábyrgðaraðili veitir almenna heimild fyrir eftirfarandi undirvinnsluaðilum:
 - **Cloudflare, Inc.** — hýsing, keyrsla (Workers) og gagnagrunnur (D1) þar sem leikjagögnin eru vistuð og unnin. Staðsetning gagnagrunns er hjá Cloudflare; sjá 8. gr. um flutning.
-- **Google LLC / Google Ireland Ltd.** — Gmail: móttaka þátttakendalista sem skólinn sendir á [hjalp@karp.is](mailto:hjalp@karp.is) (vinnsla í umboði skóla) og afhending tölvupósts vegna Karp-reikninga þátttakenda (staðfesting, endurstilling lykilorðs — sú vinnsla fellur undir persónuverndarstefnu Karp). Leikurinn sjálfur sendir engan tölvupóst.
+- **Google LLC / Google Ireland Ltd.** — Gmail: móttaka þátttakendalista sem skólinn sendir á [hjalp@karp.is](mailto:hjalp@karp.is) (vinnsla í umboði skóla) og afhending tölvupósts vegna Karp-reikninga þátttakenda (staðfesting, endurstilling lykilorðs — sú vinnsla fellur undir persónuverndarstefnu Karp). Í venjulegum ham sendir leikurinn engan tölvupóst; í hægum ham fara áminningar um nýja umferð um sama Gmail-API, en **eingöngu** til þeirra sem kveiktu á þeim sjálfir og aðeins með leikkóða, umferð, fresti og hlekk.
 
 **Aðgreint — utan gildissviðs þessa samnings:** greiðsla fyrir leikstjóra-leyfi fer um greiðslumiðlun **Áskell (askell.is)**. Þar eru unnin gögn **kaupandans** (kennara eða skóla sem greiðir), ekki nemenda; um þá vinnslu er Karp ábyrgðaraðili eigin viðskiptamannagagna og hún er ekki hluti af vinnslu í umboði skólans.
 
@@ -101,11 +102,11 @@ Verði vinnsluaðili var við öryggisbrest sem varðar persónuupplýsingar áb
 
 ## 11. Varðveisla
 
-Vinnsluaðili varðveitir leikjagögnin aðeins á meðan þeirra er þörf fyrir kennsluna og að hámarki í **90 daga**: loknum leikjum er eytt sjálfkrafa í vikulegri grisjun þegar 90 dagar eru liðnir frá stofnun þeirra (leikur stendur að jafnaði innan einnar kennslustundar, svo stofnunardagur og lokadagur falla saman); leikjum sem aldrei er lokið er eytt eigi síðar en 180 dögum frá stofnun. Þar sem grisjunin er vikuleg getur eyðing framkvæmst allt að 7 dögum eftir að fresturinn rennur út. Þátttakendalista sem skólinn sendir á hjalp@karp.is er eytt úr pósthólfi vinnsluaðila þegar nemanda-merking er lokið og eigi síðar en 90 dögum eftir móttöku. Gögnin eru ekki varðveitt lengur en nauðsynlegt er í þessum tilgangi; ábyrgðaraðili getur óskað eyðingar fyrr (12.–13. gr.).
+Vinnsluaðili varðveitir leikjagögnin aðeins á meðan þeirra er þörf fyrir kennsluna og að hámarki í **90 daga**: loknum leikjum er eytt sjálfkrafa í vikulegri grisjun þegar 90 dagar eru liðnir frá stofnun þeirra (leikur stendur að jafnaði innan einnar kennslustundar, svo stofnunardagur og lokadagur falla saman); leikjum sem aldrei er lokið er eytt eigi síðar en 180 dögum frá stofnun. Þar sem grisjunin er vikuleg getur eyðing framkvæmst allt að 7 dögum eftir að fresturinn rennur út. Þátttakendalista sem skólinn sendir á hjalp@karp.is er eytt úr pósthólfi vinnsluaðila þegar nemanda-merking er lokið og eigi síðar en 90 dögum eftir móttöku. **Póst-áskrift í hægum ham** (`leikur_askrift`) er eydd **strax** þegar notandi afskráir sig, og að öðrum kosti með leiknum eftir sömu reglum; engin lína lifir leikinn af og engin sendingarsaga er geymd. Gögnin eru ekki varðveitt lengur en nauðsynlegt er í þessum tilgangi; ábyrgðaraðili getur óskað eyðingar fyrr (12.–13. gr.).
 
 ## 12. Eyðing eða skil við lok
 
-Við lok þjónustunnar, eða samkvæmt fyrirmælum ábyrgðaraðila, eyðir vinnsluaðili öllum persónuupplýsingum sem unnar eru fyrir ábyrgðaraðila — eða skilar þeim að vali ábyrgðaraðila — og eyðir fyrirliggjandi afritum, nema geymsluskylda leiði af lögum. **„Eyða núna":** leikstjóri getur hvenær sem er eytt einstökum leik strax með öllu sem honum tilheyrir (lið, ákvarðanir, uppgjör) án þess að bíða vikulegu grisjunarinnar — með hnappinum „🗑️ Eyða leik núna" í leikstjóra-sýn (í biðstöðu og að leik loknum); leikur sem stendur yfir er fyrst stöðvaður („⏹️ Stöðva leik") og síðan eytt. Eyðing er endanleg og kemur í stað frekari varðveislu; lokayfirlit eða skýrslu sem leikstjóri hefur þegar sótt eða prentað er á ábyrgð ábyrgðaraðila.
+Við lok þjónustunnar, eða samkvæmt fyrirmælum ábyrgðaraðila, eyðir vinnsluaðili öllum persónuupplýsingum sem unnar eru fyrir ábyrgðaraðila — eða skilar þeim að vali ábyrgðaraðila — og eyðir fyrirliggjandi afritum, nema geymsluskylda leiði af lögum. **„Eyða núna":** leikstjóri getur hvenær sem er eytt einstökum leik strax með öllu sem honum tilheyrir (lið, ákvarðanir, uppgjör, póst-áskriftir) án þess að bíða vikulegu grisjunarinnar — með hnappinum „🗑️ Eyða leik núna" í leikstjóra-sýn (í biðstöðu og að leik loknum); leikur sem stendur yfir er fyrst stöðvaður („⏹️ Stöðva leik") og síðan eytt. Eyðing er endanleg og kemur í stað frekari varðveislu; lokayfirlit eða skýrslu sem leikstjóri hefur þegar sótt eða prentað er á ábyrgð ábyrgðaraðila.
 
 ## 13. Réttindi ábyrgðaraðila: úttekt, afrit og eyðing
 
@@ -166,7 +167,9 @@ Leikstjóra-leyfið sjálft (kaup kennara/skóla um Áskell, þjónustu-réttind
 | | `kpis` | JSON: reiknaðar hagstærðir liðsins eftir umferðina | Nei (bundið liði) |
 | | `round_score`, `cumulative` | Stig umferðar og uppsöfnuð stig | Nei (bundið liði) |
 
-**Ekki til í neinni `leikur_*`-töflu:** notandaauðkenni (user_id), netfang, nafn, kennitala, skóli, bekkur, einkunn. Engin af töflunum vísar í `users`-töflu Karp.
+| `leikur_askrift` | `game_code`, `user_id`, `role`, `team_id`, `created` | **Valfrjáls póst-áskrift í hægum ham.** Tenging Karp-reiknings (`user_id`) við leik; `role` = `lid`/`fac`; `team_id` aðeins fyrir `lid`. Lína verður **aðeins** til kveiki notandinn sjálfur á áminningu, og er eydd strax við afskráningu eða með leiknum | **Já** (`user_id` vísar óbeint í netfang í `users`) |
+
+**Ekki til í leikjatöflunum fjórum** (`leikur_games`, `leikur_teams`, `leikur_decisions`, `leikur_results`)**:** notandaauðkenni (user_id), netfang, nafn, kennitala, skóli, bekkur, einkunn — engin þeirra vísar í `users`-töflu Karp. **Eina undantekningin** er `leikur_askrift` hér að ofan, sem er sjálfvalin, einangruð frá leikjagögnunum og eydd með leiknum.
 
 ### 1.3 Tákn og vafra-gögn (ekki vistað á þjóni)
 
@@ -180,10 +183,10 @@ Leikstjóra-leyfið sjálft (kaup kennara/skóla um Áskell, þjónustu-réttind
 Eingöngu táknin (með leikkóða/liðsnúmeri) eru send til þjóns með beiðnum; engin vafra-gögn önnur.
 
 ### 1.4 Það sem vinnslan gerir EKKI
-- Tengir **ekki** leik, lið, ákvörðun eða uppgjör við Karp-reikning þátttakanda.
+- Tengir **ekki** leik, lið, ákvörðun eða uppgjör við Karp-reikning þátttakanda — kveiki þátttakandi sjálfur á póst-áminningu er sú tenging ein geymd, í `leikur_askrift`, en ákvarðanir og uppgjör haldast ótengd reikningi.
 - Skráir **ekki** nöfn, kennitölur, einkunnir eða bekkjarlista nemenda í leikjagögn.
 - Metur **ekki** árangur einstakra nemenda og miðlar **engu** til einkunnagjafar.
-- Sendir **engan** tölvupóst úr leiknum sjálfum.
+- Sendir **engan** óumbeðinn tölvupóst: áminningar í hægum ham fara eingöngu til þeirra sem kveiktu á þeim sjálfir og bera aðeins leikkóða, umferð, frest og hlekk. Enginn markaðspóstur; netföngum er ekki miðlað.
 - Miðlar **engum** persónuupplýsingum til utanaðkomandi gervigreindarveitna; uppgjör reiknað með hermi-vél á þjóni Karp.
 - Notar leikjagögn **ekki** í aðrar vörur Karp.
 
@@ -197,7 +200,7 @@ Eingöngu táknin (með leikkóða/liðsnúmeri) eru send til þjóns með beið
 | Auðkenning notenda | Lykilorð varin með PBKDF2 (SHA-256, salt, endurteknar umferðir); lotan auðkennd með undirritaðri `karp_session`-köku (HttpOnly, Secure, SameSite=Lax, lén .karp.is). Engin lota ef leyniorð þjóns vantar (fail-closed). |
 | Réttindagátt leiksins | Stofnun leiks: aðeins handhafi leikstjóra-leyfis (kerfisstjóri, frí-aðgangur eða virk „leikur"-þjónustuáskrift). Innganga í lið: aðeins innskráður notandi með nemanda-merkingu, kerfisstjóri eða leikstjóri. Nemanda-merking sett af kerfisstjóra Karp einum (`POST /api/admin/set-type`, stjórnenda-gátt). |
 | HMAC-undirrituð leik-tákn | Leikstjóra- og liðstákn eru `{code, role[, teamId]}` undirrituð með HMAC-SHA-256 og leyniorði þjóns; sérhver stjórn-, ákvarðana-, greiningar- og eyðingaraðgerð staðfestir að tákn sé gilt, að hlutverk passi og að leikkóði táknsins sé sá sami og leiksins. Tákn eru ekki geymd í gagnagrunni. |
-| Innbyggð gagnalágmörkun | Leikjatöflur bera ekkert notandaauðkenni, netfang eða nafn; eina frjálsa textasviðið (liðsheiti) er takmarkað við 40 stafi; leikkóðar eru slembnir 5 stafa kóðar sem ekki er hægt að leiða af skóla eða notanda. |
+| Innbyggð gagnalágmörkun | Leikjatöflurnar fjórar bera ekkert notandaauðkenni, netfang eða nafn (valfrjáls póst-áskrift er einangruð í `leikur_askrift`, slökkt sjálfgefið); eina frjálsa textasviðið (liðsheiti) er takmarkað við 40 stafi; leikkóðar eru slembnir 5 stafa kóðar sem ekki er hægt að leiða af skóla eða notanda. |
 | Gagnagrunnur og hýsing | Cloudflare D1 (SQLite) með aðgangi eingöngu úr worker Karp og um stjórnborð/CLI Cloudflare-reiknings Karp (kerfisstjóri); engin bein utanaðkomandi tenging við gagnagrunninn. Engin svæðisbinding (jurisdiction) er stillt á grunninn — sjá 8. gr. |
 | Vefstefna (CSP) og viðmót | Content-Security-Policy-hausar (á dagsetningu draga í Report-Only-ham og hertir í skrefum; m.a. `frame-ancestors 'self'`, `object-src 'none'`); leikja-viðmótið notar enga inline-atburðahandlara (`onclick=` o.þ.h.) — allir atburðir bundnir með `addEventListener`. |
 | Varðveislutakmörkun (retention-cron) | Vikuleg sjálfvirk grisjun (`leikurPruneOld`, cron mánud. 08:10 UTC): loknir leikir þegar 90 dagar eru liðnir frá stofnun og ólokið/yfirgefið þegar 180 dagar eru liðnir frá stofnun, eytt í einni D1-færslu per leik (uppgjör → ákvarðanir → lið → leikur) svo leikur standi aldrei eftir hálf-eyddur; leikur yngri en 180 daga sem ekki er lokið er aldrei snertur. *[Forsenda gildistöku — í kóða, bíður útgáfu, sjá inngang.]* |

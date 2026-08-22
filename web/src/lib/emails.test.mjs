@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EMAIL_TYPES, emailById, resolveEmail, renderEmail, validateEmail } from './emails.mjs';
 
-test('skráin telur allar 11 póst-tegundir og hver er heil', () => {
-  assert.equal(EMAIL_TYPES.length, 11);   // +kyc_digest (morgunfundurinn)
+test('skráin telur allar 13 póst-tegundir og hver er heil', () => {
+  assert.equal(EMAIL_TYPES.length, 13);   // +kyc_digest (morgunfundurinn), +leikur_lota/_uppgjor (hægur hamur)
   const ids = EMAIL_TYPES.map((t) => t.id);
-  assert.equal(new Set(ids).size, 11, 'id verða að vera einkvæm');
+  assert.equal(new Set(ids).size, 13, 'id verða að vera einkvæm');
   for (const t of EMAIL_TYPES) {
     assert.ok(t.label && t.hvenaer && t.vidtakandi && t.hopur, t.id + ' vantar lýsingu');
     assert.ok(t.subject, t.id + ' vantar efnislínu');
@@ -89,5 +89,28 @@ test('hver tegund lýsir aðeins reitum sem hún á', () => {
     assert.ok(Array.isArray(t.ritanlegt) && t.ritanlegt.length, t.id + ' vantar ritanlegt');
     if (t.ritanlegt.includes('html')) assert.equal(t.flokkur, 'fastur', t.id);
     for (const f of t.ritanlegt) assert.ok(typeof t[f] === 'string', t.id + ' vantar sjálfgefið fyrir ' + f);
+  }
+});
+
+// ⚠ PERSÓNUVERND — þetta próf er vörn, ekki formsatriði. DPIA Viðbót 1 (V1.3) og skóla-DPA
+// FULLYRÐA að leikjapóstar beri hvorki liðsheiti, stig, uppgjör né ákvarðanir. Víkki einhver
+// breytu-listann eða laumi {{lidsheiti}} í meginmálið verður sú fullyrðing ósönn gagnvart
+// skólum sem hafa undirritað samninginn. Breyttu skjölunum ÁÐUR en þú breytir þessu prófi.
+test('leikjapóstar bera engin liðsheiti, stig né ákvarðanir (DPIA Viðbót 1, V1.3)', () => {
+  const LEYFT = {
+    leikur_lota: ['kodi', 'lota', 'frestur', 'hlekkur'],           // þátttakandi: ekkert umfram þetta
+    leikur_uppgjor: ['kodi', 'lota', 'lokid', 'laest', 'hlekkur'], // leikstjóri: + SAMTÖLUR um leikinn
+  };
+  for (const id of Object.keys(LEYFT)) {
+    const t = emailById(id);
+    const leyft = LEYFT[id];
+    assert.ok(t, id + ' vantar í skrána');
+    assert.deepEqual([...t.breytur].sort(), [...leyft].sort(), id + ': breytu-listinn má ekki víkka');
+    const notadar = [...String(t.subject + t.html).matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]);
+    for (const b of notadar) {
+      assert.ok(leyft.includes(b), id + ': óleyfð breyta {{' + b + '}} — sjá DPIA Viðbót 1, V1.3');
+    }
+    assert.ok(t.krafist.includes('hlekkur'), id + ' verður að krefjast {{hlekkur}}');
+    assert.equal(t.hopur, 'RÁS-Leikurinn', id + ' á að vera í leikja-hópnum');
   }
 });

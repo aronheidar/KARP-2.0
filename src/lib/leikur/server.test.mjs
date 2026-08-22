@@ -7,7 +7,7 @@ let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; con
 
 // Mock D1: einföld minnistafla sem styður prepare/bind/run/first/all fyrir SQL-in sem server.mjs notar.
 function mockD1() {
-  const t = { leikur_games: [], leikur_teams: [], leikur_decisions: [], leikur_results: [] };
+  const t = { leikur_games: [], leikur_teams: [], leikur_decisions: [], leikur_results: [], leikur_askrift: [] };
   let auto = 1;
   const run = (sql, args) => {
     const s = sql.replace(/\s+/g, ' ').trim();
@@ -32,18 +32,31 @@ function mockD1() {
       const key = args[0] + '|' + args[1] + '|' + args[2]; const i = t.leikur_results.findIndex((x) => x.game_code + '|' + x.round + '|' + x.team_id === key);
       const row = { game_code: args[0], round: args[1], team_id: args[2], kpis: args[3], round_score: args[4], cumulative: args[5] };
       if (i >= 0) t.leikur_results[i] = row; else t.leikur_results.push(row); return { meta: {} }; }
+    // ÁSKRIFT (async-hamur): (game_code, user_id, role) er frum-lykill → INSERT OR REPLACE er idempotent, DELETE er per hlutverk.
+    if (s.startsWith('INSERT OR REPLACE INTO leikur_askrift')) {
+      const i = t.leikur_askrift.findIndex((x) => x.game_code === args[0] && x.user_id === args[1] && x.role === args[2]);
+      const row = { game_code: args[0], user_id: args[1], role: args[2], team_id: args[3], created: args[4] };
+      if (i >= 0) t.leikur_askrift[i] = row; else t.leikur_askrift.push(row); return { meta: { changes: 1 } }; }
+    if (s.startsWith('DELETE FROM leikur_askrift') && s.includes('user_id=?')) {
+      const before = t.leikur_askrift.length;
+      t.leikur_askrift = t.leikur_askrift.filter((x) => !(x.game_code === args[0] && x.user_id === args[1] && x.role === args[2]));
+      return { meta: { changes: before - t.leikur_askrift.length } }; }
     if (s.startsWith('DELETE FROM leikur_')) { // varðveislutakmörkun (leikurEraseGame/leikurPruneOld): skilar meta.changes eins og D1
       const tb = s.match(/^DELETE FROM (leikur_\w+)/)[1], col = tb === 'leikur_games' ? 'code' : 'game_code';
       const before = t[tb].length; t[tb] = t[tb].filter((x) => x[col] !== args[0]); return { meta: { changes: before - t[tb].length } }; }
     return { meta: {} };
   };
   const first = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
+    if (s.includes('FROM leikur_askrift')) return t.leikur_askrift.find((x) => x.game_code === args[0] && x.user_id === args[1] && x.role === args[2]) || null;
     if (s.startsWith('SELECT') && s.includes('FROM leikur_games')) return t.leikur_games.find((x) => x.code === args[0]) || null;
     if (s.includes('FROM leikur_results') && s.includes('team_id=?') && s.includes('round=?')) { const r = t.leikur_results.find((x) => x.game_code === args[0] && x.team_id === args[1] && x.round === args[2]); return r || null; }
     if (s.includes('FROM leikur_results') && s.includes('round=?')) return t.leikur_results.find((x) => x.game_code === args[0] && x.round === args[1]) || null;
     if (s.includes('FROM leikur_decisions') && s.includes('round=?') && s.includes('team_id=?')) return t.leikur_decisions.find((x) => x.game_code === args[0] && x.round === args[1] && x.team_id === args[2]) || null;   // lockBots
     return null; };
   const all = (sql, args) => { const s = sql.replace(/\s+/g, ' ').trim();
+    if (s.includes('FROM leikur_games') && s.includes("phase='decide'")) { // leikurAsyncCron: allir leikir í decide-fasa (async-sían er í JS)
+      let rows = t.leikur_games.filter((g) => g.phase === 'decide').slice().sort((a, b) => a.created - b.created);
+      return { results: rows.map((g) => ({ code: g.code, config: g.config, phase: g.phase, current_round: g.current_round })) }; }
     if (s.includes('FROM leikur_games')) { // leikurPruneOld: (ended AND created<?) OR (!ended AND created<?) ORDER BY created LIMIT ?
       let rows = t.leikur_games.filter((g) => (g.phase === 'ended' && g.created < args[0]) || (g.phase !== 'ended' && g.created < args[1])).slice().sort((a, b) => a.created - b.created);
       if (/LIMIT \?/.test(s)) rows = rows.slice(0, args[2]);
@@ -546,7 +559,7 @@ const J = async (res) => JSON.parse(await res.text());
     tt.leikur_games.push({ code: 'FRESH', config: '{}', phase: 'ended', current_round: 1, created: Math.floor(Date.now() / 1000) });
     const p4 = await leikurPruneOld(penv);
     ok('prune: sjálfgefið now+days=90 → nýlokinn leikur helst', p4.games === 0 && tt.leikur_games.length === 1);
-    ok('prune: án D1 → allt 0 (engin villa)', JSON.stringify(await leikurPruneOld({})) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0 }));
+    ok('prune: án D1 → allt 0 (engin villa)', JSON.stringify(await leikurPruneOld({})) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0, askrift: 0 }));
     // >BATCH (50) leikir í einni keyrslu → lotast þar til allt er farið (FRESH fjarlægður fyrst: T er fast framtíðar-„núna")
     tt.leikur_games.length = 0;
     for (let i = 0; i < 120; i++) tt.leikur_games.push({ code: 'B' + String(i).padStart(4, '0'), config: '{}', phase: 'ended', current_round: 1, created: T - 200 * DAY });
@@ -558,7 +571,7 @@ const J = async (res) => JSON.parse(await res.text());
     tt.leikur_teams.push({ id: 999, game_code: 'NOBAT', name: 'X', joined: 1 });
     const eNb = await leikurEraseGame(nb, 'NOBAT');
     ok('erase: varaleið án batch → sama talning', eNb.games === 1 && eNb.teams === 1 && !tt.leikur_games.some((g) => g.code === 'NOBAT'));
-    ok('erase: óþekktur kóði → allt 0 (idempotent)', JSON.stringify(await leikurEraseGame(penv, 'NOPE1')) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0 }));
+    ok('erase: óþekktur kóði → allt 0 (idempotent)', JSON.stringify(await leikurEraseGame(penv, 'NOPE1')) === JSON.stringify({ games: 0, teams: 0, decisions: 0, results: 0, askrift: 0 }));
 
     // ── POST /<code>/erase um handler: fac-gátt + fasa-gátt ──
     const eenv = { SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() };
@@ -1218,6 +1231,325 @@ const J = async (res) => JSON.parse(await res.text());
     ok('læsingar-jaðar: í fallback má ráðherra líka LÆSA aftur (leikurinn festist aldrei)', Eg.row(1, tidE).locked === 1);
     await Eg.ctl({ action: 'resolve' }); await Eg.ctl({ action: 'next' });
     ok('læsing → next → carry-forward: sætin lifa, NÝJA lotan er ÓLÆST', Eg.dec(2, tidE).radherrar.fjarmal === 'aaaa' && Eg.row(2, tidE).locked === 0 && (await Eg.st(TE, 'aaaa')).radherrar.mitt === 'fjarmal');
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ASYNC-HAMUR („eitt kjörtímabil á dag í viku") — autoLockOpen / leikurAsyncCron / config.async / leikur_askrift
+  // ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  const mkEa = () => ({ SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() });
+  const mkGa = async (E, body, names, gu) => {
+    const H = (r) => LH(r, E, null, gu);
+    const g = await J(await H(req('/api/leikur/create', body)));
+    const teams = []; for (const nm of names || []) teams.push(await J(await H(req('/api/leikur/' + g.code + '/join', { name: nm }))));
+    const post = (path, tok, b) => H(new Request('https://karp.is/api/leikur/' + g.code + path, { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify(b || {}) }));
+    const ctl = async (b) => J(await post('/control', g.facToken, b));
+    const ctlR = (b) => post('/control', g.facToken, b);
+    const st = async (tok, h) => J(await H(new Request('https://karp.is/api/leikur/' + g.code + '/state' + (h ? '?h=' + h : ''), { headers: tok ? { authorization: 'Bearer ' + tok } : {} })));
+    const dc = async (tok, round, d, locked, handle) => J(await post('/decisions', tok, { round, locked, decisions: d, ...(handle !== undefined ? { handle } : {}) }));
+    const row = (round, tid) => E.TENGSL._t.leikur_decisions.find((x) => x.game_code === g.code && x.round === round && x.team_id === tid) || null;
+    const dec = (round, tid) => { const r = row(round, tid); return r ? JSON.parse(r.decisions) : null; };
+    return { E, g, teams, ctl, ctlR, st, dc, row, dec, post, H };
+  };
+  // Snapshot af GEYMSLU leiks (ákvarðanir + uppgjör + fasi) — án game_code/submitted_at (breytileg milli keyrslna).
+  // FNV-1a hash svo eitt fast gildi dugi sem afturfarar-vörn: BREYTIST talan → uppgjörið/geymslan breyttist.
+  const fnv = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0; } return h.toString(16).padStart(8, '0'); };
+  const geymsla = (E, code) => { const t = E.TENGSL._t; const srt = (a, b) => (a.r - b.r) || (a.t - b.t);
+    return JSON.stringify({
+      g: t.leikur_games.filter((x) => x.code === code).map((x) => ({ p: x.phase, r: x.current_round })),
+      d: t.leikur_decisions.filter((x) => x.game_code === code).map((x) => ({ r: x.round, t: x.team_id, d: x.decisions, l: x.locked })).sort(srt),
+      u: t.leikur_results.filter((x) => x.game_code === code).map((x) => ({ r: x.round, t: x.team_id, k: x.kpis, s: x.round_score, c: x.cumulative })).sort(srt),
+    }); };
+  const D1 = { peningastefna: 'slaka2', utgjold: 'orvun2', skattar: 'obreytt', fjarfesting: 'innvidir', vidbragd: 'ekkert' };
+  const D2 = { peningastefna: 'herda2', utgjold: 'adhald2', skattar: 'haekka2', fjarfesting: 'engin', vidbragd: 'vardsjodur' };
+  // Fast tveggja-lotu spil (sömu ákvarðanir, sami gangur) — notað bæði í afturfarar-vörninni og í jafngildis-prófinu við cron.
+  const spila2 = async (G, viaCron) => {
+    const [A, B] = G.teams;
+    const r1 = await G.ctl({ action: 'start' });
+    await G.dc(A.teamToken, 1, D1, true); await G.dc(B.teamToken, 1, D2, true);
+    let r2, r3;
+    if (viaCron) { r2 = null; r3 = null; }
+    else { r2 = await G.ctl({ action: 'resolve' }); r3 = await G.ctl({ action: 'next' }); }
+    return { r1, r2, r3, A, B };
+  };
+
+  // ── (A) AFTURFARAR-VÖRN: control-hegðun (start/resolve/next) ÓBREYTT eftir að rökin voru dregin út í resolveRound/advanceRound ──
+  // Talan CTRL_SNAPSHOT var mæld á kóðanum EINS OG HANN VAR FYRIR útdráttinn (sami mock, sömu ákvarðanir). Breytist hún
+  // hefur uppgjörið sjálft (KPI/stig/uppsafnað) eða geymslan breyst — það er AFTURFÖR, ekki „bara annað snið".
+  const CTRL_SNAPSHOT = '849c5ccc';   // mælt 22.8.2026 á server.mjs FYRIR útdráttinn (len 8305)
+  {
+    const E = mkEa();
+    const G = await mkGa(E, {}, ['Lið A', 'Lið B']);
+    const [A, B] = G.teams;
+    const r1 = await G.ctl({ action: 'start' });
+    await G.dc(A.teamToken, 1, D1, true); await G.dc(B.teamToken, 1, D2, true);
+    const r2 = await G.ctl({ action: 'resolve' });
+    const r2b = await G.ctl({ action: 'resolve' });          // idempotent
+    const r3 = await G.ctl({ action: 'next' });
+    await G.dc(A.teamToken, 2, D2, true); await G.dc(B.teamToken, 2, D1, true);
+    const r4 = await G.ctl({ action: 'resolve' });
+    const h = fnv(geymsla(E, G.g.code));
+    console.log('  [afturfarar-vörn] control-snapshot = ' + h + ' (len ' + geymsla(E, G.g.code).length + ')');
+    ok('afturför: start-svar óbreytt {ok,phase,round}', JSON.stringify(r1) === JSON.stringify({ ok: true, phase: 'decide', round: 1 }));
+    ok('afturför: resolve-svar óbreytt {ok,phase} + idempotent endurtekning eins', JSON.stringify(r2) === JSON.stringify({ ok: true, phase: 'resolved' }) && JSON.stringify(r2b) === JSON.stringify({ ok: true, phase: 'resolved' }));
+    ok('afturför: next-svar óbreytt {ok,phase,round}', JSON.stringify(r3) === JSON.stringify({ ok: true, phase: 'decide', round: 2 }) && JSON.stringify(r4) === JSON.stringify({ ok: true, phase: 'resolved' }));
+    ok('afturför: GEYMSLA (ákvarðanir+KPI+stig+uppsafnað) BITA-EINS og fyrir útdráttinn', h === CTRL_SNAPSHOT);
+  }
+
+  const { leikurAsyncCron, autoLockOpen, nextAsyncAt } = await import('./server.mjs');
+
+  // ── (B) config.async — gátun í create + framsetning í /state ──────────────────────────────────────────────────
+  {
+    const E = mkEa();
+    const bad1 = await LH(req('/api/leikur/create', { async: { on: true, cadence: 'stundum' } }), E);
+    const bad2 = await LH(req('/api/leikur/create', { async: { on: true, hour: 24 } }), E);
+    const bad3 = await LH(req('/api/leikur/create', { async: { on: true, hour: 'níu' } }), E);
+    ok('async create: ógild cadence → 400 async-cadence (ekki þögult sjálfgefið)', bad1.status === 400 && (await J(bad1)).error === 'async-cadence');
+    ok('async create: hour utan 0–23 / ekki heiltala → 400 async-hour', bad2.status === 400 && (await J(bad2)).error === 'async-hour' && bad3.status === 400);
+    const G = await mkGa(E, { async: { on: true, cadence: 'vikulegt', hour: 7 } }, ['A']);
+    const s0 = await G.st(G.g.facToken);
+    ok('async: /state ber {on,cadence,hour} strax í lobby, nextAt null fyrir start', s0.async.on === true && s0.async.cadence === 'vikulegt' && s0.async.hour === 7 && s0.async.nextAt === null && s0.async.secondsToNext === null);
+    ok('async: fac fær líka asyncNext (ISO-strengur; null fyrir start)', s0.asyncNext === null);
+    const Goff = await mkGa(mkEa(), {}, ['A']);
+    ok('án async: allir (lið+fac+watch) fá async {on:false, …null}', JSON.stringify((await Goff.st(Goff.g.facToken)).async) === JSON.stringify({ on: false, cadence: null, hour: null, nextAt: null, secondsToNext: null }) && (await Goff.st(null)).async.on === false && (await Goff.st(Goff.teams[0].teamToken)).async.on === false);
+    const Gno = await mkGa(mkEa(), { async: { on: false, cadence: 'daglegt' } }, ['A']);
+    ok('async: skýrt NEI (on:false) kveikir ekki (sama regla og thoka/satt)', (await Gno.st(null)).async.on === false);
+  }
+
+  // ── (C) nextAsyncAt: næsti <hour> UTC í fyrsta lagi einu cadence-bili síðar (determinískt) ────────────────────
+  {
+    const T = Math.floor(Date.UTC(2026, 7, 22, 13, 30, 0) / 1000);   // 22.8.2026 13:30 UTC
+    const iso = (x) => new Date(x * 1000).toISOString();
+    ok('nextAsyncAt daglegt/09 frá 22.8 13:30 → 24.8 09:00 (09:00 þann 23. er FYRIR fullt sólarhrings-bil)', iso(nextAsyncAt(T, 'daglegt', 9)) === '2026-08-24T09:00:00.000Z');
+    ok('nextAsyncAt daglegt/18 → 23.8 18:00 (fyrsti <hour> eftir bilið)', iso(nextAsyncAt(T, 'daglegt', 18)) === '2026-08-23T18:00:00.000Z');
+    ok('nextAsyncAt 2dagar/09 → 25.8, vikulegt/09 → 30.8', iso(nextAsyncAt(T, '2dagar', 9)) === '2026-08-25T09:00:00.000Z' && iso(nextAsyncAt(T, 'vikulegt', 9)) === '2026-08-30T09:00:00.000Z');
+    ok('nextAsyncAt: rusl-cadence/hour fellur á daglegt+09 (geymd config fellir aldrei leik)', iso(nextAsyncAt(T, 'bull', 99)) === '2026-08-24T09:00:00.000Z');
+    ok('nextAsyncAt: hour 0 (miðnætti) er gilt gildi, ekki „vantar“', iso(nextAsyncAt(T, 'daglegt', 0)) === '2026-08-24T00:00:00.000Z');
+  }
+
+  // ── (D) ÓSAMRÝMANLEIKI við umferðar-klukkuna (cfg.timerSec) ───────────────────────────────────────────────────
+  {
+    const Gt = await mkGa(mkEa(), { timerSec: 600 }, ['A']);
+    await Gt.ctl({ action: 'start' });
+    const stT = await Gt.st(Gt.g.facToken);
+    ok('afturför: umferðar-klukka (timerSec) ÓBREYTT í leik án async', stT.secondsLeft > 0 && stT.secondsLeft <= 600 && stT.deadlineTs > 0);
+    const Ga = await mkGa(mkEa(), { timerSec: 600, async: { on: true, cadence: 'daglegt', hour: 9 } }, ['A']);
+    await Ga.ctl({ action: 'start' });
+    const sa = await Ga.st(Ga.g.facToken);
+    ok('async HUNSAR timerSec: engar secondsLeft/deadlineTs — async.secondsToNext kemur í staðinn', sa.secondsLeft === undefined && sa.deadlineTs === undefined && sa.async.secondsToNext > 0);
+    ok('async: nextAt a.m.k. eitt cadence-bil fram í tímann + asyncNext ISO f. fac', sa.async.nextAt >= Math.floor(Date.now() / 1000) + 86400 && typeof sa.asyncNext === 'string' && sa.asyncNext.endsWith('Z'));
+    const cfgRow = () => JSON.parse(Ga.E.TENGSL._t.leikur_games.find((x) => x.code === Ga.g.code).config);
+    ok('async: config.timerSec ÓSNERT í geymslu og engin deadline skrifuð', cfgRow().timerSec === 600 && cfgRow().deadline === undefined);
+    const off = await Ga.ctl({ action: 'async', on: false });
+    ok('control async off → {on:false} og config.async fjarlægt', off.ok === true && off.async.on === false && cfgRow().async === undefined);
+    await Ga.ctl({ action: 'resolve' }); await Ga.ctl({ action: 'next' });
+    ok('async off → umferðar-klukkan lifnar við óbreytt í næstu lotu', (await Ga.st(Ga.g.facToken)).secondsLeft > 0);
+    ok('async: sjalfLaest=0 meðan kveikt er en engin cron-keyrsla hefur orðið (raunveruleg 0, ekki ágiskun)', sa.async.sjalfLaest === 0);
+  }
+
+  // ── (E) control-act 'async': kveikja/slökkva/breyta í miðjum leik ─────────────────────────────────────────────
+  {
+    const Gm = await mkGa(mkEa(), {}, ['A']);
+    await Gm.ctl({ action: 'start' });
+    const on1 = await Gm.ctl({ action: 'async', on: true, cadence: '2dagar', hour: 6 });
+    ok('control async on í decide → nextAt endurreiknað strax (≥ 2 dagar fram)', on1.ok === true && on1.async.cadence === '2dagar' && on1.async.hour === 6 && on1.async.nextAt >= Math.floor(Date.now() / 1000) + 2 * 86400 && on1.async.secondsToNext > 0);
+    const on2 = await Gm.ctl({ action: 'async', on: true, cadence: 'daglegt', hour: 6 });
+    ok('control async: taktbreyting í miðjum leik færir nextAt nær (daglegt < 2dagar)', on2.async.nextAt < on1.async.nextAt);
+    ok('control async: ógild gildi → 400 (bæði cadence og hour)', (await Gm.ctlR({ action: 'async', on: true, cadence: 'x' })).status === 400 && (await Gm.ctlR({ action: 'async', on: true, hour: -1 })).status === 400);
+    ok('control async: liðs-tákn kemst ekki í control (401)', (await Gm.post('/control', Gm.teams[0].teamToken, { action: 'async', on: true })).status === 401);
+    const both = await Gm.ctl({ action: 'async', act: 'async', on: true, cadence: 'vikulegt', hour: 8 });
+    ok('control async: auka-lykillinn `act` er HUNSAÐUR (aðgerðin er lesin úr `action`), ekki villa', both.ok === true && both.async.cadence === 'vikulegt' && both.async.hour === 8);
+    const Gl = await mkGa(mkEa(), {}, ['A']);
+    const onL = await Gl.ctl({ action: 'async', on: true, cadence: 'daglegt', hour: 9 });
+    ok('control async on í LOBBY → nextAt null (start setur klukkuna)', onL.async.nextAt === null && onL.async.secondsToNext === null);
+    await Gl.ctl({ action: 'start' });
+    ok('start eftir async-kveikju í lobby → nextAt sett', (await Gl.st(Gl.g.facToken)).async.nextAt > 0);
+    // Handvirkt 'next' í async-ham verður að ENDURSTILLA klukkuna. Annars: cron seinkar, fresturinn rennur út, leikstjóri
+    // ýtir sjálfur kl. 10 — og cron-keyrslan kl. 12 gerði nýopnuðu lotuna upp STRAX á liðnum nextAt (sólarhringur → mínútur).
+    // Hermt með því að setja LIÐINN nextAt beint í config (eins og eftir seinkaða cron-keyrslu) og ýta svo handvirkt.
+    const grow = Gl.E.TENGSL._t.leikur_games.find((x) => x.code === Gl.g.code);
+    const stale = Math.floor(Date.now() / 1000) - 3600;                       // frestur rann út fyrir klukkustund
+    const gcfg = JSON.parse(grow.config); gcfg.async.nextAt = stale; grow.config = JSON.stringify(gcfg);
+    ok('async: liðinn nextAt → cron MYNDI gera lotuna upp (forsenda hermunarinnar)', (await Gl.st(Gl.g.facToken)).async.nextAt === stale);
+    await Gl.ctl({ action: 'resolve' });
+    const rN = await Gl.ctl({ action: 'next' });
+    const stN = await Gl.st(Gl.g.facToken);
+    ok('async: handvirkt next svarar ÓBREYTT {ok,phase,round} og færir LIÐINN nextAt fram um heilt cadence-bil', JSON.stringify(rN) === JSON.stringify({ ok: true, phase: 'decide', round: 2 }) && stN.async.nextAt >= Math.floor(Date.now() / 1000) + 86400);
+    ok('async: cron á gamla (liðna) tímanum gerir því EKKERT — nýja lotan fær sinn fulla frest', (await leikurAsyncCron(Gl.E, { now: stale + 60 })).leikir === 0 && (await Gl.st(Gl.g.facToken)).round === 2);
+  }
+
+  // ── (F) autoLockOpen — KJARNINN: lið sem gleymir sér stöðvar ekki leikinn ─────────────────────────────────────
+  {
+    const G = await mkGa(mkEa(), {}, ['A', 'B', 'C']);
+    const bt = await J(await G.post('/bot-team', G.g.facToken, {}));
+    await G.ctl({ action: 'start' });
+    const [A, B, C] = G.teams;
+    await G.dc(A.teamToken, 1, D1, true);      // A læsti sjálft
+    await G.dc(B.teamToken, 1, D2, false);     // B á ólæst drög
+    // C sendi ALDREI neitt (engin röð)
+    const aFyrir = JSON.stringify(G.row(1, A.teamId));
+    const cfgB = { bots: [bt.teamId] };
+    const n1 = await autoLockOpen(G.E, G.g.code, 1, cfgB);
+    ok('autoLockOpen: læsir AÐEINS ólæstum (B ólæst drög + C engin röð) → skilar 2', n1 === 2);
+    ok('autoLockOpen: LÆST röð (A) er ÓSNERT — drög og tímastimpill óbreytt', JSON.stringify(G.row(1, A.teamId)) === aFyrir);
+    ok('autoLockOpen: B heldur SÍNUM drögum, nú læst (ekkert er hent)', G.row(1, B.teamId).locked === 1 && G.dec(1, B.teamId).peningastefna === D2.peningastefna);
+    ok('autoLockOpen: C fær tóma röð {} = óbreytt stefna (nákvæmlega sama og bot fær)', G.row(1, C.teamId).locked === 1 && G.row(1, C.teamId).decisions === '{}');
+    ok('autoLockOpen: BOT-lið sleppt (lockBots hafði þegar læst því við start)', G.row(1, bt.teamId).locked === 1);
+    ok('autoLockOpen: idempotent — önnur keyrsla læsir engu', (await autoLockOpen(G.E, G.g.code, 1, cfgB)) === 0);
+  }
+
+  // ── (G) leikurAsyncCron: sjálfvirkur gangur á tímaáætlun ─────────────────────────────────────────────────────
+  {
+    const E = mkEa();
+    const G = await mkGa(E, { async: { on: true, cadence: 'daglegt', hour: 9 } }, ['A', 'B']);
+    const [A, B] = G.teams;
+    await G.ctl({ action: 'start' });
+    await G.dc(A.teamToken, 1, D1, true);       // A læsir
+    await G.dc(B.teamToken, 1, D2, false);      // B gleymir sér
+    const nx = (await G.st(G.g.facToken)).async.nextAt;
+    const c0 = await leikurAsyncCron(E, { now: nx - 60 });
+    ok('cron: nextAt ekki liðinn → EKKERT gerist', c0.leikir === 0 && c0.lotur === 0 && c0.tilkynna.length === 0 && (await G.st(G.g.facToken)).round === 1);
+    const c1 = await leikurAsyncCron(E, { now: nx });
+    ok('cron: nextAt liðinn → lota gerð upp + næsta opnuð, án leikstjóra', c1.leikir === 1 && c1.lotur === 1 && c1.laest === 1 && c1.endadir === 0);
+    const s1 = await G.st(G.g.facToken);
+    ok('cron: leikurinn stendur í decide lotu 2 og uppgjör lotu 1 er til fyrir BÆÐI lið', s1.phase === 'decide' && s1.round === 2 && E.TENGSL._t.leikur_results.filter((r) => r.game_code === G.g.code && r.round === 1).length === 2);
+    ok('cron: B (sem gleymdi sér) var sjálf-læst á SÍNUM drögum — leikurinn stöðvaðist ekki', G.row(1, B.teamId).locked === 1 && G.dec(1, B.teamId).peningastefna === D2.peningastefna);
+    ok('cron: nýtt nextAt sett fram í tímann (≥ eitt cadence-bil)', s1.async.nextAt >= nx + 86400);
+    // Skeytið sem póst-lagið (leikur_lota / leikur_uppgjor) fóðrast af: round = LOTAN SEM VAR GERÐ UPP, lokid = lið sem
+    // luku sjálf, laest = ákvarðanir sem þjónninn læsti. ⚠ ENGIN liðsheiti/stig/ákvarðanir (DPIA V1.3).
+    ok('cron: tilkynna ber {code, round, lokid, laest, phase, naestaLota, nextAt} — og EKKERT annað', JSON.stringify(c1.tilkynna) === JSON.stringify([{ code: G.g.code, round: 1, lokid: 1, laest: 1, phase: 'decide', naestaLota: 2, nextAt: s1.async.nextAt }]));
+    ok('cron: tilkynna lekur hvorki liðsheiti né stigum (persónuvernd)', !/Lið |cumulative|roundScore|kpis/.test(JSON.stringify(c1.tilkynna)));
+    ok('async: sjalfLaest telur upp sjálf-læstar ákvarðanir yfir allan leikinn', s1.async.sjalfLaest === 1);
+    const c2 = await leikurAsyncCron(E, { now: nx });
+    ok('cron: IDEMPOTENT — önnur keyrsla strax á eftir gerir EKKERT', c2.leikir === 0 && c2.lotur === 0 && (await G.st(G.g.facToken)).round === 2);
+    ok('cron: án D1 → allt 0 (engin villa)', JSON.stringify(await leikurAsyncCron({})) === JSON.stringify({ leikir: 0, lotur: 0, laest: 0, endadir: 0, tilkynna: [] }));
+    // leikur ÁN async í sama gagnagrunni má aldrei hreyfast
+    const Gplain = await mkGa(E, {}, ['X']);
+    await Gplain.ctl({ action: 'start' });
+    await leikurAsyncCron(E, { now: nx + 10 * 86400 });
+    ok('cron: leikur ÁN config.async er ALDREI snertur (þótt hann sé í decide)', (await Gplain.st(Gplain.g.facToken)).round === 1 && (await Gplain.st(Gplain.g.facToken)).phase === 'decide');
+    ok('async: sjalfLaest lykli SLEPPT þegar talan er óþekkt (async aldrei á) — ekkert skáldað 0', (await Gplain.st(Gplain.g.facToken)).async.sjalfLaest === undefined && !('sjalfLaest' in (await Gplain.st(null)).async));
+  }
+
+  // ── (H) leikslok: eftir SÍÐUSTU lotu endar cron-inn leikinn sjálfur ───────────────────────────────────────────
+  {
+    const E = mkEa();
+    const MANDa = (await import('./game-config.mjs')).MANDATE;
+    const cust = { rounds: 2, mandate: JSON.parse(JSON.stringify(MANDa)),
+      scenario: { id: 'async2', events: [
+        { round: 1, title: 'Kjörtímabil 1', text: '', shocks: {}, responses: [{ key: 'a', label: 'Ekkert', effect: {} }] },
+        { round: 2, title: 'Kjörtímabil 2', text: '', shocks: {}, responses: [{ key: 'a', label: 'Ekkert', effect: {} }] }] },
+      async: { on: true, cadence: 'daglegt', hour: 9 } };
+    const G = await mkGa(E, cust, ['A']);
+    await G.ctl({ action: 'start' });
+    const n1 = (await G.st(G.g.facToken)).async.nextAt;
+    await leikurAsyncCron(E, { now: n1 });
+    ok('cron (2ja lotu leikur): fyrsta keyrsla opnar lotu 2', (await G.st(G.g.facToken)).round === 2);
+    const n2 = (await G.st(G.g.facToken)).async.nextAt;
+    const cE = await leikurAsyncCron(E, { now: n2 });
+    const sE = await G.st(G.g.facToken);
+    ok('cron: eftir síðustu lotu endar leikurinn sjálfkrafa (phase ended)', cE.endadir === 1 && sE.phase === 'ended');
+    ok('cron: nextAt núllað við leikslok — ekkert framar á dagskrá', sE.async.nextAt === null && sE.async.secondsToNext === null && sE.asyncNext === null);
+    ok('cron: tilkynna við leikslok ber phase ended + naestaLota/nextAt null', JSON.stringify(cE.tilkynna) === JSON.stringify([{ code: G.g.code, round: 2, lokid: 0, laest: 1, phase: 'ended', naestaLota: null, nextAt: null }]));
+    ok('cron: sjalfLaest safnast yfir ALLAR lotur leiksins (2 lotur × 1 lið)', sE.async.sjalfLaest === 2);
+    ok('cron: keyrsla eftir leikslok gerir ekkert (ended er utan decide-úrtaksins)', (await leikurAsyncCron(E, { now: n2 + 999999 })).leikir === 0);
+  }
+
+  // ── (I) SEIGLA: einn bilaður leikur má ekki stöðva hina ───────────────────────────────────────────────────────
+  {
+    const E = mkEa();
+    const Gbad = await mkGa(E, { async: { on: true, cadence: 'daglegt', hour: 9 } }, ['X']);
+    const Gok = await mkGa(E, { async: { on: true, cadence: 'daglegt', hour: 9 } }, ['Y']);
+    await Gbad.ctl({ action: 'start' }); await Gok.ctl({ action: 'start' });
+    const nx = (await Gok.st(Gok.g.facToken)).async.nextAt;
+    const orig = E.TENGSL.prepare;
+    E.TENGSL.prepare = (sql) => { const pr = orig(sql); return { ...pr, bind: (...a) => { if (/FROM leikur_teams/.test(sql) && a[0] === Gbad.g.code) throw new Error('D1 niðri'); return pr.bind(...a); } }; };
+    const c = await leikurAsyncCron(E, { now: nx });
+    E.TENGSL.prepare = orig;
+    ok('cron: bilaður leikur fellir ekki keyrsluna — hinn gengur áfram', c.lotur === 1 && (await Gok.st(Gok.g.facToken)).round === 2);
+    ok('cron: bilaði leikurinn stendur óbreyttur í lotu 1 (ekkert hálf-uppgjör)', (await Gbad.st(Gbad.g.facToken)).round === 1 && !E.TENGSL._t.leikur_results.some((r) => r.game_code === Gbad.g.code));
+    ok('cron: bilaði leikurinn er talinn með í leikir en ekki í lotur/tilkynna', c.leikir === 2 && c.tilkynna.length === 1);
+  }
+
+  // ── (J) JAFNGILDI: cron-leiðin og leikstjóra-leiðin gefa NÁKVÆMLEGA sömu niðurstöðu ───────────────────────────
+  {
+    const Ec = mkEa(), Ea = mkEa();
+    const Gc = await mkGa(Ec, {}, ['Lið A', 'Lið B']);
+    const Ga = await mkGa(Ea, { async: { on: true, cadence: 'daglegt', hour: 9 } }, ['Lið A', 'Lið B']);
+    await Gc.ctl({ action: 'start' });
+    await Gc.dc(Gc.teams[0].teamToken, 1, D1, true); await Gc.dc(Gc.teams[1].teamToken, 1, D2, true);
+    await Gc.ctl({ action: 'resolve' }); await Gc.ctl({ action: 'next' });
+    await Gc.dc(Gc.teams[0].teamToken, 2, D2, true); await Gc.dc(Gc.teams[1].teamToken, 2, D1, true);
+    await Gc.ctl({ action: 'resolve' }); await Gc.ctl({ action: 'next' });
+    await Ga.ctl({ action: 'start' });
+    await Ga.dc(Ga.teams[0].teamToken, 1, D1, true); await Ga.dc(Ga.teams[1].teamToken, 1, D2, true);
+    await leikurAsyncCron(Ea, { now: (await Ga.st(Ga.g.facToken)).async.nextAt });
+    await Ga.dc(Ga.teams[0].teamToken, 2, D2, true); await Ga.dc(Ga.teams[1].teamToken, 2, D1, true);
+    await leikurAsyncCron(Ea, { now: (await Ga.st(Ga.g.facToken)).async.nextAt });
+    ok('jafngildi: cron-leiðin skilar SÖMU geymslu og leikstjóri sem ýtir sjálfur (KPI+stig+uppsafnað+fasi)', geymsla(Ec, Gc.g.code) === geymsla(Ea, Ga.g.code));
+  }
+
+  // ── (K) SAMLEGÐ: async + ráðherraskipting + Þjóðarsáttin + þoka í EINUM leik ─────────────────────────────────
+  {
+    const { PM: PMK2 } = await import('./radherrar.mjs');
+    const E = mkEa();
+    const G = await mkGa(E, { mode: 'studio', radherrar: true, satt: true, sattLotur: [1], thoka: true, async: { on: true, cadence: 'daglegt', hour: 5 } }, ['Alþingi']);
+    const A = G.teams[0];
+    await G.ctl({ action: 'start' });
+    await G.post('/saeti', A.teamToken, { handle: 'pmpm', key: PMK2 });
+    await G.dc(A.teamToken, 1, { satt: 'satt' }, false, 'pmpm');
+    const stK = await G.st(A.teamToken, 'pmpm');
+    ok('samlegð: allar blokkir lifa saman í /state liðs (async + þoka + sátt + ráðherrar)', stK.async.on === true && stK.thoka.on === true && !!stK.satt && stK.radherrar.mitt === PMK2 && stK.secondsLeft === undefined);
+    const nx = (await G.st(G.g.facToken)).async.nextAt;
+    const c = await leikurAsyncCron(E, { now: nx });
+    const res1 = JSON.parse(E.TENGSL._t.leikur_results.find((r) => r.game_code === G.g.code && r.round === 1).kpis);
+    ok('samlegð: cron gerði upp SÁTTAR-lotu — sattUtkoma vistað eins og í control-leiðinni', c.lotur === 1 && res1.sattUtkoma && res1.sattUtkoma.val === 'satt');
+    ok('samlegð: ráðherrasætin lifðu yfir í lotu 2 (carryRadherrar keyrir inni í advanceRound)', G.dec(2, A.teamId).radherrar[PMK2] === 'pmpm');
+    ok('samlegð: liðið var sjálf-læst (PM hafði ekki læst) og leikurinn gekk áfram', c.laest === 1 && (await G.st(A.teamToken, 'pmpm')).round === 2);
+  }
+
+  // ── (L) ÁSKRIFT (leikur_askrift): opt-in tenging notanda↔leiks, bæði hlutverk ─────────────────────────────────
+  {
+    const E = mkEa();
+    const G = await mkGa(E, {}, ['A']);
+    const A = G.teams[0];
+    const AS = () => E.TENGSL._t.leikur_askrift;   // fall, ekki tilvísun: mock-DELETE endur-setur fylkið
+    const ask = (tok, body, gu) => LH(new Request('https://karp.is/api/leikur/' + G.g.code + '/askrift', { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify(body) }), E, null, gu);
+    const stU = async (tok, gu) => J(await LH(new Request('https://karp.is/api/leikur/' + G.g.code + '/state', { headers: tok ? { authorization: 'Bearer ' + tok } : {} }), E, null, gu));
+    ok('áskrift: án tákns → 401', (await ask(null, { on: true })).status === 401);
+    ok('áskrift: óinnskráður (uid 0) → 401 innskraning', (await J(await ask(A.teamToken, { on: true }, { uid: 0 }))).error === 'innskraning');
+    ok('áskrift: LIÐS-tákn fær ALDREI fac-áskrift (annars læki uppgjörs-póstur til þátttakenda)', (await ask(A.teamToken, { on: true, role: 'fac' })).status === 401 && AS().length === 0);
+    ok('áskrift: FAC-tákn fær ekki liðs-áskrift', (await ask(G.g.facToken, { on: true, role: 'lid' })).status === 401 && AS().length === 0);
+    const r1 = await J(await ask(A.teamToken, { on: true }));
+    ok('áskrift: lið kveikir → role lid + team_id skráð + user_id (EKKERT netfang/nafn)', r1.ok === true && r1.askrift.role === 'lid' && AS().length === 1 && AS()[0].team_id === A.teamId && AS()[0].user_id === 1 && Object.keys(AS()[0]).join() === 'game_code,user_id,role,team_id,created');
+    ok('áskrift: /state liðs ber askrift {on:true}', (await G.st(A.teamToken)).askrift.on === true);
+    await ask(A.teamToken, { on: true });
+    ok('áskrift: endurtekin kveikja er idempotent (frum-lykill game+user+role)', AS().length === 1);
+    const rf = await J(await ask(G.g.facToken, { on: true, role: 'fac' }));
+    ok('áskrift: leikstjóri kveikir fac-áskrift → team_id null', rf.askrift.role === 'fac' && AS().find((x) => x.role === 'fac').team_id === null && AS().length === 2);
+    ok('áskrift: /state fac ber SÍNA áskrift, lið sína — hvorugt sér hitt', (await G.st(G.g.facToken)).askrift.on === true && (await G.st(A.teamToken)).askrift.on === true);
+    await ask(A.teamToken, { on: true }, { uid: 42, isAdmin: true, nemandi: true, leikstjori: true });
+    ok('áskrift: annar notandi á sama liði fær SÍNA röð (PK ber role)', AS().filter((x) => x.role === 'lid').length === 2);
+    ok('áskrift: notandi ÁN áskriftar sér {on:false} (engin gögn um aðra)', (await stU(A.teamToken, { uid: 77 })).askrift.on === false);
+    ok('áskrift: watch (ekkert tákn) fær enga askrift-blokk', (await G.st(null)).askrift === undefined);
+    const r0 = await J(await ask(A.teamToken, { on: false }));
+    ok('áskrift: slökkt → EIGIN röð horfin, hinar ÓSNERTAR', r0.askrift.on === false && AS().length === 2 && !AS().some((x) => x.role === 'lid' && x.user_id === 1) && (await G.st(A.teamToken)).askrift.on === false);
+    ok('áskrift: slökkt aftur er idempotent', (await ask(A.teamToken, { on: false })).status === 200 && AS().length === 2);
+    await ask(A.teamToken, { on: true });
+    const er = await J(await G.post('/erase', G.g.facToken, {}));
+    ok('áskrift: leikurEraseGame eyðir ÖLLUM áskriftum leiksins (bæði hlutverk) og telur þær', er.erased.askrift === 3 && E.TENGSL._t.leikur_askrift.length === 0);
+  }
+
+  // ── (M) ÁSKRIFT + varðveislutakmörkun: vikuleg grisjun má ekki skilja tenginguna eftir ────────────────────────
+  {
+    const E2 = mkEa(), t2 = E2.TENGSL._t, T = 1_800_000_000, DAY = 86400;
+    t2.leikur_games.push({ code: 'PRUNA', config: '{}', phase: 'ended', current_round: 1, created: T - 200 * DAY });
+    t2.leikur_teams.push({ id: 1, game_code: 'PRUNA', name: 'X', joined: 1 });
+    t2.leikur_askrift.push({ game_code: 'PRUNA', user_id: 5, role: 'lid', team_id: 1, created: 1 }, { game_code: 'PRUNA', user_id: 5, role: 'fac', team_id: null, created: 1 });
+    t2.leikur_games.push({ code: 'HALDA', config: '{}', phase: 'ended', current_round: 1, created: T });
+    t2.leikur_askrift.push({ game_code: 'HALDA', user_id: 5, role: 'lid', team_id: 9, created: 1 });
+    const pr = await leikurPruneOld(E2, { days: 90, now: T });
+    ok('prune: grisjun tekur leikur_askrift með (bæði hlutverk) og telur hana', pr.games === 1 && pr.askrift === 2);
+    ok('prune: engin MUNAÐARLAUS áskrift eftir — aðeins lifandi leikur á áskrift', t2.leikur_askrift.length === 1 && t2.leikur_askrift[0].game_code === 'HALDA');
   }
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);

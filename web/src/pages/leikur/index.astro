@@ -541,4 +541,32 @@ const MODEL = {
   @keyframes lk-rh-puls { 0%, 100% { box-shadow: 0 0 0 3px rgba(185,140,255,.14); } 50% { box-shadow: 0 0 0 7px rgba(185,140,255,.04); } }
   @media (max-width: 640px) { main[data-pg="leikur"] .lk-rh-grid { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .lk-rh-card.lk-rh-urgent { animation: none; } main[data-pg="leikur"] .lk-rh-toast { transition: none; } }
+
+  /* ⏳ HÆGUR HAMUR (async) — fresta-borði, uppsetningarkassi leikstjóra og áskriftar-val.
+     Í þessari is:global-blokk því ALLIR hnútarnir eru smíðaðir í runtime-innerHTML úr client.mjs
+     (Astro scoped-CSS tré-hristir slíkar reglur burt — þær fengju astro-hash sem hnútarnir bera ekki). */
+  main[data-pg="leikur"] .lk-async-bordi { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin: 10px 0; padding: 10px 14px; border-radius: 10px; border: 1px solid #6ea8fe55; border-left: 3px solid #6ea8fe; background: rgba(110,168,254,.10); font-size: 14px; line-height: 1.5; }
+  main[data-pg="leikur"] .lk-async-bordi .lk-as-ic { font-size: 17px; }
+  main[data-pg="leikur"] .lk-async-bordi .lk-as-txt { font-variant-numeric: tabular-nums; }
+  main[data-pg="leikur"] .lk-async-bordi .lk-as-sep { opacity: .5; }
+  main[data-pg="leikur"] .lk-async-bordi .lk-as-sub { flex: 1 1 100%; font-size: 12.3px; color: var(--muted, #9fb0c8); }
+  /* Litakóði: rólegt > 12 klst · gult 2–12 klst · rautt < 2 klst. */
+  main[data-pg="leikur"] .lk-async-bordi.lk-as-gult { border-color: #e8c14a77; border-left-color: #e8c14a; background: rgba(232,193,74,.12); }
+  main[data-pg="leikur"] .lk-async-bordi.lk-as-raud { border-color: #e7828477; border-left-color: #e78284; background: rgba(231,130,132,.13); }
+  main[data-pg="leikur"] .lk-async-bordi.lk-as-raud .lk-as-txt { color: #f2a6a8; }
+  /* Uppsetningarkassi leikstjórans (anddyri). */
+  main[data-pg="leikur"] .lk-as-fac .lk-as-intro { font-size: 12.8px; line-height: 1.55; margin: 0 0 8px; }
+  main[data-pg="leikur"] .lk-as-fac .lk-as-stada { margin: 0 0 8px; padding: 7px 10px; border-radius: 8px; background: rgba(84,208,138,.12); border: 1px solid #54d08a55; font-size: 13px; }
+  main[data-pg="leikur"] .lk-as-fac .lk-as-row { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; margin: 0 0 8px; cursor: pointer; }
+  main[data-pg="leikur"] .lk-as-fac .lk-as-row2 { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; font-size: 13.5px; margin: 0 0 8px; }
+  main[data-pg="leikur"] .lk-as-fac select { background: #12161f; color: var(--ink, #e8ecf3); border: 1px solid var(--line, #2a2f3a); border-radius: 8px; padding: 5px 7px; margin-left: 4px; font: inherit; }
+  main[data-pg="leikur"] .lk-as-fac .lk-as-help { margin: 0 0 10px; padding: 8px 11px; border-radius: 8px; background: rgba(110,168,254,.09); border-left: 3px solid #6ea8fe; font-size: 12.7px; line-height: 1.55; color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur"] .lk-as-ok { display: block; font-size: 13px; margin-top: 8px; color: #54d08a; }
+  /* Áskriftar-val þátttakanda (opt-in — gátreiturinn er ALDREI forvalinn). */
+  main[data-pg="leikur"] .lk-as-askrift .lk-as-askrift-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; margin: 0 0 4px; cursor: pointer; }
+  main[data-pg="leikur"] .lk-as-askrift p.lk-as-askrift-h { cursor: default; }
+  main[data-pg="leikur"] .lk-as-msg { display: block; font-size: 12.5px; margin-top: 6px; }
+  main[data-pg="leikur"] .lk-as-fine { font-size: 12.2px; line-height: 1.55; margin: 6px 0 0; color: var(--muted, #9fb0c8); }
+  main[data-pg="leikur"] .lk-async-loka { font-size: 12.8px; margin: 10px 0 0; }
+  @media (max-width: 640px) { main[data-pg="leikur"] .lk-as-fac .lk-as-row2 { flex-direction: column; align-items: flex-start; gap: 8px; } }
 </style>

@@ -87,7 +87,7 @@ const JSONLD = {
     <!-- 2. HVAÐ GEYMIR LEIKURINN? -->
     <section class="pv-card" id="geymt">
       <h2>🗄️ Hvað geymir leikurinn?</h2>
-      <p class="pv-muted">Leikurinn keyrir á þjóni Karp og geymir fimm flokka upplýsinga um hvern leik (fjórar töflur: leikur, lið, ákvarðanir, uppgjör). Ekkert þeirra er notanda-auðkenni, netfang eða skráð nafn — leik-töflurnar hafa enga tengingu við Karp-reikning þátttakanda.</p>
+      <p class="pv-muted">Leikurinn keyrir á þjóni Karp og geymir fimm flokka upplýsinga um hvern leik (fjórar töflur: leikur, lið, ákvarðanir, uppgjör). Ekkert þeirra er notanda-auðkenni, netfang eða skráð nafn — leik-töflurnar fjórar hafa enga tengingu við Karp-reikning þátttakanda. Eina undantekningin er valfrjáls póst-áminning: hún er slökkt sjálfgefið og geymd sér — sjá töfluna.</p>
       <div class="pv-tbl-wrap">
         <table class="pv-tbl">
           <thead><tr><th>Reitur</th><th>Hvað er geymt</th><th>Persónugögn?</th></tr></thead>
@@ -95,6 +95,11 @@ const JSONLD = {
             {GEYMT.map((r) => (
               <tr><td class="pv-reitur">{r.reitur}</td><td>{r.hvad}</td><td><span class={'pv-pg pv-pg-' + r.pg}>{r.pgTxt}</span></td></tr>
             ))}
+            <tr>
+              <td class="pv-reitur">Póst-áminning — valfrjáls</td>
+              <td>Í <b>hægum ham</b>, þar sem ein umferð er opin í heilan dag í stað þess að allt sé spilað í einni kennslustund, geturðu beðið um póst þegar ný umferð opnast. Kveikirðu á henni geymum við að <b>þinn Karp-reikningur tilheyri þessum leik</b> — það er allt og það er geymt sér, ekki með ákvörðunum eða stigum. <b>Slökkt sjálfgefið.</b> Pósturinn ber aðeins leikkóða, umferð, frest og hlekk — ekkert um önnur lið eða niðurstöður. Slekkirðu á henni er færslunni eytt strax; annars eyðist hún með leiknum.</td>
+              <td><span class="pv-pg pv-pg-ja">Já — ef þú kveikir á henni</span></td>
+            </tr>
             <tr class="pv-row-acct">
               <td class="pv-reitur">Karp-innskráning nemanda</td>
               <td>Til að ganga í lið þarf þátttakandi innskráðan Karp-reikning sem merktur er sem nemanda-aðgangur: netfang, lykilorð (geymt sem PBKDF2-hash) og nemanda-merki. Þetta er vistað í notendaskrá Karp — <b>það er Karp-reikningurinn, ekki leikurinn.</b> Eitt tæki per lið dugar, svo aðeins einn í hverju liði þarf aðgang. <b>Mælt er með skóla-netfangi.</b></td>

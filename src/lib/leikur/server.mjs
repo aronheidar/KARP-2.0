@@ -41,6 +41,10 @@ export async function ensureTables(env) {
     "CREATE TABLE IF NOT EXISTS leikur_teams (id INTEGER PRIMARY KEY AUTOINCREMENT, game_code TEXT NOT NULL, name TEXT NOT NULL, joined INTEGER NOT NULL)",
     "CREATE TABLE IF NOT EXISTS leikur_decisions (game_code TEXT NOT NULL, round INTEGER NOT NULL, team_id INTEGER NOT NULL, decisions TEXT NOT NULL, locked INTEGER NOT NULL DEFAULT 0, submitted_at INTEGER NOT NULL, PRIMARY KEY (game_code, round, team_id))",
     "CREATE TABLE IF NOT EXISTS leikur_results (game_code TEXT NOT NULL, round INTEGER NOT NULL, team_id INTEGER NOT NULL, kpis TEXT NOT NULL, round_score REAL NOT NULL, cumulative REAL NOT NULL, PRIMARY KEY (game_code, round, team_id))",
+    // ÁSKRIFT (async-hamur) — sjá web/migrations/0014_leikur_askrift.sql og ÁSKRIFTAR-blokkina neðar.
+    // ⚠ EINA taflan í leikur_*-fjölskyldunni sem tengir NOTANDA við leik. Hún er OPT-IN (notandi kveikir sjálfur),
+    // ber ekkert nema user_id (ekkert netfang/nafn — það býr í users) og eyðist með leiknum (erase + prune).
+    "CREATE TABLE IF NOT EXISTS leikur_askrift (game_code TEXT NOT NULL, user_id INTEGER NOT NULL, role TEXT NOT NULL DEFAULT 'lid', team_id INTEGER, created INTEGER NOT NULL, PRIMARY KEY (game_code, user_id, role))",
     "CREATE INDEX IF NOT EXISTS idx_leikur_teams_game ON leikur_teams (game_code)",
   ];
   for (const s of S) await env.TENGSL.prepare(s).run().catch(() => null);
@@ -50,7 +54,7 @@ const now = () => Math.floor(Date.now() / 1000);
 // SVIÐSMYND (svidsmyndir.mjs): config.svidsmynd → skráar-færsla; vantar/rusl → 'island2000' (sjálfgefna).
 // Sérsniðnir leikir (config.scenario úr leikja-ritlinum) TRUMPA sviðsmyndinni á atburðunum — sviðsmyndin
 // skilar þá enn ártölum/heiti; fyrir 'island2000' er sv.scenario NÁKVÆMLEGA SCENARIO svo hegðun er óbreytt.
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); const sv = svidsmyndOf(c.svidsmynd); return { svidsmynd: sv, scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : sv.scenario, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || sv.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [], radherrar: (c.mode === 'studio' && radherrarOn(c)) }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); const sv = svidsmyndOf(c.svidsmynd); const asy = normAsync(c.async); return { svidsmynd: sv, scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : sv.scenario, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || sv.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (asy ? null : (c.timerSec > 0 ? c.timerSec : null)), deadline: (asy ? null : (c.deadline || null)), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [], radherrar: (c.mode === 'studio' && radherrarOn(c)), async: asy, asyncLaest: (Number.isInteger(+c.asyncLaest) && +c.asyncLaest >= 0) ? Math.floor(+c.asyncLaest) : null }; }
 // Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
 // sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
 // svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
@@ -238,6 +242,176 @@ export function thokaSia(out, ctx = {}) {
   return o;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// ASYNC-HAMUR — „eitt kjörtímabil á dag í viku" (config.async)
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// Vinnustofu-leikurinn (90 mín) krefst þess að LEIKSTJÓRI ýti á resolve/next milli lota. Í async-ham gengur leikurinn
+// SJÁLFKRAFA áfram á tímaáætlun (leikurAsyncCron, neðst): á tilsettum tíma eru ólæst lið sjálf-læst á núverandi drögum
+// (autoLockOpen), lotan gerð upp (resolveRound) og næsta kjörtímabil opnað (advanceRound). Leikstjóri þarf ekki að vera
+// viðstaddur — bekkur getur spilað eitt kjörtímabil á dag í viku.
+//
+// config.async = { on: true, cadence: 'daglegt'|'2dagar'|'vikulegt', hour: 0-23 (UTC), nextAt: epoch-sek }
+//
+// ⚠ ÓSAMRÝMANLEGT cfg.timerSec (umferðar-klukkunni, #3): niðurtalning í 20 mín á lotu sem stendur í sólarhring er
+//   villandi. Þegar async er á HUNSAR gameCfg timerSec OG deadline (bæði null) → start/next skrifa enga deadline og
+//   /state sendir engar secondsLeft; í staðinn kemur out.async.secondsToNext. Talan sjálf er ÓSNERT í config svo
+//   umferðar-klukkan lifni aftur við óbreytt ef slökkt er á async í miðjum leik.
+// ⚠ UPPLAUSN: cron-inn keyrir á 3 klst fresti → lota opnast innan ≤3 klst frá <hour> (nógu gott fyrir daglegan takt;
+//   fínni upplausn krefðist eigin cron-línu og skilar engu fyrir kennslu-takt).
+const ASYNC_CADENCE = { daglegt: 1, '2dagar': 2, vikulegt: 7 };
+const ASYNC_HOUR_DEF = 9;   // 09:00 UTC ef ekkert er valið (skólamorgunn á Íslandi = UTC)
+
+/** Normalíserar GEYMDA async-stillingu (config.async → cfg.async). Skilar null nema kveikt sé skýrt (eins og thoka/satt);
+ *  ógild cadence/hour falla hér á sjálfgefið (geymd config má aldrei fella leik) — INNTAKS-gátin er í lesAsync. */
+function normAsync(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  if (!(raw.on === true || raw.on === 'true' || raw.on === 1)) return null;
+  const cadence = ASYNC_CADENCE[raw.cadence] ? raw.cadence : 'daglegt';
+  const h = Math.floor(Number(raw.hour));
+  const hour = (Number.isInteger(h) && h >= 0 && h <= 23) ? h : ASYNC_HOUR_DEF;
+  const nextAt = (Number.isFinite(+raw.nextAt) && +raw.nextAt > 0) ? Math.floor(+raw.nextAt) : null;
+  return { on: true, cadence, hour, nextAt };
+}
+/** Staðfestir async-stillingu ÚR BEIÐNI (create + control 'async'). Skýrt JÁ kveikir; ógild cadence/hour er HAFNAÐ
+ *  (400) í stað þess að falla þegjandi á sjálfgefið — leikstjóri á að sjá að valið misfórst (sama og svidsmynd).
+ *  Skilar { ok:true, val: {on,cadence,hour,nextAt:null} | null } eða { ok:false, error }. */
+function lesAsync(raw) {
+  if (!raw || typeof raw !== 'object') return { ok: true, val: null };
+  if (!(raw.on === true || raw.on === 'true' || raw.on === 1)) return { ok: true, val: null };
+  if (raw.cadence != null && raw.cadence !== '' && !ASYNC_CADENCE[raw.cadence]) return { ok: false, error: 'async-cadence' };
+  let hour = ASYNC_HOUR_DEF;
+  if (raw.hour != null && raw.hour !== '') { const h = Number(raw.hour); if (!Number.isInteger(h) || h < 0 || h > 23) return { ok: false, error: 'async-hour' }; hour = h; }
+  return { ok: true, val: { on: true, cadence: (raw.cadence || 'daglegt'), hour, nextAt: null } };
+}
+/** Næsti sjálfvirki uppgjörs-tími: <hour>:00 UTC, í fyrsta lagi einu cadence-bili eftir `fromSec`. Determinískt (prófanlegt). */
+export function nextAsyncAt(fromSec, cadence, hour) {
+  const days = ASYNC_CADENCE[cadence] || 1;
+  const t = Math.floor(fromSec) + days * 86400;
+  const d = new Date(t * 1000);
+  const hh = (Number.isInteger(hour) && hour >= 0 && hour <= 23) ? hour : ASYNC_HOUR_DEF;
+  const at = Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hh, 0, 0) / 1000);
+  return at >= t ? at : at + 86400;
+}
+/** Skrifar nýtt config.async.nextAt (null = ekkert á dagskrá) og bætir `laest` við hlaupandi teljara sjálf-læstra ákvarðana.
+ *  Les config FERSKT úr D1 svo samhliða skrif tapist ekki. Snertir ekkert ef leikurinn er ekki með async-blokk.
+ *  ⚠ Teljarinn (config.asyncLaest) býr UTAN async-blokkarinnar af ásettu ráði: hann er SAGA leiksins og má ekki hverfa
+ *  þótt slökkt sé á async í miðjum leik (lokasamantektin sýnir hann áfram — sjá out.async.sjalfLaest). Skilar nýja nextAt. */
+async function setAsyncNext(env, code, nextAt, laest) {
+  const row = await env.TENGSL.prepare('SELECT config FROM leikur_games WHERE code=?').bind(code).first().catch(() => null);
+  let cobj = {}; try { cobj = JSON.parse((row && row.config) || '{}'); } catch (e) {}
+  if (!cobj.async || typeof cobj.async !== 'object') return null;
+  cobj.async = { ...cobj.async, nextAt: (nextAt > 0) ? Math.floor(nextAt) : null };
+  if (laest > 0) cobj.asyncLaest = (Number.isInteger(+cobj.asyncLaest) ? Math.floor(+cobj.asyncLaest) : 0) + Math.floor(laest);
+  await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
+  return cobj.async.nextAt;
+}
+
+/** ASYNC — KJARNINN: læsir ÖLLUM ólæstum röðum lotunnar á núverandi drögum liðsins. Lið sem gleymir sér má ALDREI
+ *  stöðva leikinn þegar enginn leikstjóri situr við. Bot-lið eru sleppt (lockBots hefur þegar læst þeim); lið án draga
+ *  fá tóma röð `{}` = óbreytt stefna, NÁKVÆMLEGA sama og bot fær. Drögin sjálf eru aldrei breytt — aðeins locked=1.
+ *  Idempotent (læst röð er aldrei snert aftur). Skilar FJÖLDA raða sem voru læstar. */
+export async function autoLockOpen(env, code, round, cfg) {
+  let n = 0;
+  for (const tid of await nonBotTeamIds(env, code, cfg)) {
+    const row = await readDec(env, code, round, tid);
+    if (row && row.locked) continue;
+    await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)')
+      .bind(code, round, tid, (row && row.decisions) || '{}', 1, now()).run().catch(() => null);
+    n++;
+  }
+  return n;
+}
+
+/** UPPGJÖR LOTUNNAR — rökin sem áður voru inline í control-handlernum (act 'resolve'). Kallað BÆÐI úr control (leikstjóri
+ *  ýtir) OG úr leikurAsyncCron (sjálfvirkt). ⚠ Hegðun er ÓBREYTT frá inline-útgáfunni (sjá afturfarar-vörn í
+ *  server.test.mjs: geymslu-hash yfir ákvarðanir+KPI+stig fyrir/eftir útdrátt). `game` = röð úr leikur_games (les
+ *  current_round/phase/config), `cfg` = gameCfg(game).
+ *  Idempotent: uppgjör þegar til fyrir lotuna (eða phase='resolved') → { ok, phase:'resolved', skipped:true }. */
+async function resolveRound(env, code, game, cfg) {
+  // idempotent: sleppa ef þegar leyst fyrir þessa umferð
+  const done = await env.TENGSL.prepare('SELECT team_id FROM leikur_results WHERE game_code=? AND round=? LIMIT 1').bind(code, game.current_round).first().catch(() => null);
+  if (done || game.phase === 'resolved') return { ok: true, phase: 'resolved', skipped: true };
+  await lockBots(env, code, game.current_round, cfg.bots);   // öryggisnet: bot-lið án læstrar raðar → óbreytt drög + locked
+  const teams = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+  // ÞJÓÐARSÁTTIN (satt.mjs): í sáttar-lotu ræðst útkoman af því hvað ÖLL lið völdu → reiknað EINU SINNI fyrir lykkjuna úr
+  // decisions.satt allra liða þessarar lotu (ekkert val / engin röð / rusl = null → 'saekja': sá sem ekki skrifar undir er utan
+  // sáttar). Æfingalið (bots) eru UTAN pottsins (hlutlaus — 1 raun-lið + bot = n=1 „einn"). perTeam-áhrifin beitast í lykkjunni.
+  let sattRes = null;
+  if (sattLota(game.current_round, cfg)) {
+    const botS = new Set(cfg.bots || []);
+    const sRows = ((await env.TENGSL.prepare('SELECT team_id, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
+    const valin = {};
+    for (const tm of teams) { if (botS.has(tm.id)) continue; let v = null; const sr = sRows.find((x) => x.team_id === tm.id); if (sr) { try { v = JSON.parse(sr.decisions || '{}').satt; } catch (e) {} } valin[tm.id] = (v === 'satt' || v === 'saekja') ? v : null; }
+    if (Object.keys(valin).length) sattRes = sattUtkoma(valin);
+  }
+  for (const tm of teams) {
+    // öll ákvörðunasaga liðs, umferð 1..current
+    const rows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, tm.id).all().catch(() => ({ results: [] }))).results) || [];
+    const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
+    const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
+    const diff = difficultyOf(cfg.difficulty);
+    const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
+    // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
+    const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
+    const { states: polStates, since: polSince } = policyStatesMeta(history);
+    // F1-V2: stig hverrar ákvörðunar í ÞESSARI lotu (ESB-lífsferill: umsokn→adild, ursogn lotuna sem slökkt er).
+    const stages = {}; for (const pid in polStates) { const sg = policyStage(pid, polStates, polSince, game.current_round); if (sg) stages[pid] = sg; }
+    // Fasi „fylgi" B2: féll stjórnin síðasta kjörtímabil? → stjórnarkreppa berst yfir (hagvaxtar-drag + lægra byrjunar-fylgi).
+    const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
+    let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
+    let kpis2 = applyPolicies(kpis, polStates, bl2, stages);
+    // F1-V2: framlag hverrar virkrar ákvörðunar á lotuna (diff-aðferð) — vistað → badges/arfleifðar-tölur/graf-pinnar.
+    const polDeltas = policyDeltas(kpis, polStates, bl2, stages);
+    // Stjórnarkreppa eftir fall: stjórnarmyndun/lömun → dýpra vaxtar-drag + atvinnuleysi↑ + skuldir↑ (glatað traust/tekjur).
+    if (prevFell) {
+      if (kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.6;
+      if (kpis2.atvinnuleysi != null) kpis2.atvinnuleysi += 0.4;
+      if (kpis2.skuldir != null) kpis2.skuldir += 3;
+    }
+    // Fasi „skemmtun 3": óvænt atvik (valfrjálst) + liðs-val í klemmu → áhrif á KPI + bein fylgis-breyting.
+    const surprise = cfg.surprise ? rollSurprise(code, game.current_round) : null;
+    let surprisePop = 0;
+    if (surprise) { const sr = applySurprise(kpis2, surprise, (history[game.current_round - 1] || {}).dilemma); kpis2 = sr.kpis; surprisePop = sr.pop; }
+    // ÞJÓÐARSÁTTIN: sáttar-áhrif liðsins (leik-lag, ALDREI engine) — EFTIR policies+surprise, FYRIR stöðugleika/stigagjöf;
+    // pop bætist við fylgis-leiðréttinguna á sama stað og surprisePop. Stigagjöf ÓBREYTT (áhrifin fara gegnum KPI + fylgi).
+    const sattPt = (sattRes && sattRes.perTeam[tm.id]) || null; let sattPop = 0;
+    if (sattPt) { const sr = applySatt(kpis2, sattPt.effect); kpis2 = sr.kpis; sattPop = sr.pop; }
+    // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
+    const penFactor = (f) => 1 - (1 - f) * diff.penalty;
+    const raw = mandateAt(cfg, game.current_round);
+    const roundMandate = { ...scaleMandate(raw, diff.band), crisisFactor: penFactor(raw.crisisFactor) };
+    const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
+    const sc = scoreRound(kpis2, tMandate);
+    // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
+    const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + sattPop + (prevFell ? -8 : 0));
+    const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
+    const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
+    await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
+      .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell, policyDeltas: polDeltas, policyStages: stages,
+        ...(sattPt ? { sattUtkoma: { val: sattPt.val, flokkur: sattRes.flokkur, effect: sattPt.effect, k: sattRes.k, n: sattRes.n } } : {}) }), roundScore, cumulative).run().catch(() => null);   // Þjóðarsáttin: afhjúpunar-gögn per lið (sjá out.sattUtkoma í /state)
+  }
+  await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
+  return { ok: true, phase: 'resolved', skipped: false };
+}
+
+/** NÆSTA KJÖRTÍMABIL — rökin sem áður voru inline í control-handlernum (act 'next'). Kallað BÆÐI úr control OG cron.
+ *  Skilar NÁKVÆMLEGA svar-hlutnum sem control sendi áður: { ok:true, phase:'ended' } eða { ok:true, phase:'decide', round }.
+ *  ⚠ `game` verður að vera lesið ÁÐUR en fasa-UPDATE-ið keyrir (carryRadherrar les game.current_round — sjá 'start'). */
+async function advanceRound(env, code, game, cfg) {
+  const nr = (game.current_round || 0) + 1;
+  if (nr > cfg.rounds) { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return { ok: true, phase: 'ended' }; }
+  if (cfg.radherrar) await carryRadherrar(env, code, nr - 1, nr, await nonBotTeamIds(env, code, cfg)); // ráðherrasætin lifa leikinn: map lotu N → drög lotu N+1 (FYRIR fasa-UPDATE, sjá start)
+  if (cfg.timerSec) { // #3 endursetja klukku fyrir nýtt kjörtímabil (aldrei í async-ham: gameCfg núllar timerSec)
+    let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
+    cobj.deadline = now() + cfg.timerSec;
+    await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', nr, code).run().catch(() => null);
+  } else {
+    await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', nr, code).run().catch(() => null);
+  }
+  await lockBots(env, code, nr, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
+  return { ok: true, phase: 'decide', round: nr };
+}
+
 export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAdmin: false, nemandi: false, leikstjori: false }) {
   if (!env.TENGSL) return sjson({ error: 'no-d1' }, 503);
   const url = new URL(request.url);
@@ -276,6 +450,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cb && cb.roles) config.roles = true;
     if (cb && cb.mode === 'studio') config.mode = 'studio';
     if (cb && +cb.timerSec > 0) config.timerSec = Math.max(30, Math.min(3600, Math.round(+cb.timerSec))); // #3 valfrjáls umferðar-klukka (sek)
+    // ASYNC-HAMUR („eitt kjörtímabil á dag í viku"): config.async={on,cadence,hour,nextAt}. Skýrt JÁ kveikir; ógild
+    // cadence/hour → 400 (leikstjóri á að sjá að valið misfórst). nextAt er sett við start. ⚠ Kveikt async HUNSAR
+    // timerSec (umferðar-klukkuna) — gameCfg núllar hana; gildið er samt geymt óbreytt ef slökkt verður á async.
+    if (cb && cb.async) { const va = lesAsync(cb.async); if (!va.ok) return sjson({ error: va.error }, 400); if (va.val) config.async = va.val; }
     if (cb && ['easy', 'hard'].includes(cb.difficulty)) config.difficulty = cb.difficulty; // Fasi E: erfiðleikastig (medium=sjálfgefið)
     if (cb && cb.surprise) config.surprise = true; // Fasi „skemmtun 3": óvænt atvik + klemmu-spjöld (valfrjálst)
     if (cb && (cb.thoka === true || cb.thoka === 'true' || cb.thoka === 1)) config.thoka = true; // Gagnatöf „hagstjórn í þoku" (valfrjáls leikstilling; sjá thokaSia) — aðeins skýrt JÁ kveikir, allt annað = false
@@ -393,6 +571,26 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     }
     // #3 Umferðar-klukka: sekúndur eftir (aðeins í decide). Bara sjónrænt — engin þvingun þjóns-megin.
     if (game.phase === 'decide' && cfg.deadline) { const nowS = now(); out.secondsLeft = Math.max(0, Math.min(cfg.timerSec || 3600, cfg.deadline - nowS)); out.deadlineTs = nowS + out.secondsLeft; } // deadline=epoch-sek (algilt→stöðug klukka); klemma f. eldri leiki með gölluð ms-tímamörk
+    // ASYNC-HAMUR: takturinn er ENGIN LEYND — lið, leikstjóri OG skjávarpi (watch) sjá öll hvenær lotan verður gerð upp.
+    // Það er einmitt það sem gerir ham-inn nothæfan („þú hefur til kl. 09 á morgun"). secondsToNext = niðurtalning í nextAt
+    // (null þar til leikur er ræstur / eftir leikslok). Í async-ham eru secondsLeft/deadlineTs ALDREI send (sjá gameCfg).
+    // sjalfLaest = HEILDARFJÖLDI ákvarðana sem þjónninn læsti sjálfur yfir allan leikinn (lokasamantekt viðmótsins).
+    // ⚠ Lykillinn er SLEPPT þegar talan er ÓÞEKKT (async aldrei á, enginn teljari) — ALDREI skáldað 0. Kveikt async án
+    // cron-keyrslu enn = raunverulega 0 (ekkert hefur verið sjálf-læst) og þá er 0 rétt svar, ekki ágiskun.
+    const asy = cfg.async;
+    const sjalfLaest = (cfg.asyncLaest != null) ? cfg.asyncLaest : (asy ? 0 : null);
+    out.async = asy
+      ? { on: true, cadence: asy.cadence, hour: asy.hour, nextAt: asy.nextAt || null, secondsToNext: (asy.nextAt > 0) ? Math.max(0, asy.nextAt - now()) : null }
+      : { on: false, cadence: null, hour: null, nextAt: null, secondsToNext: null };
+    if (sjalfLaest != null) out.async.sjalfLaest = sjalfLaest;
+    if (you && you.role === 'fac' && you.code === code) out.asyncNext = (asy && asy.nextAt > 0) ? new Date(asy.nextAt * 1000).toISOString() : null;   // leikstjóra-spjald: læsileg dagsetning
+    // ÁSKRIFT (leikur_askrift): EIGIN staða áskrifandans — lið sér sína liðs-áskrift, leikstjóri sína fac-áskrift.
+    // Ein D1-uppfletting og aðeins fyrir innskráðan eiganda tákns; watch/óinnskráðir fá enga blokk (engin gögn um aðra).
+    if (you && you.code === code && (you.role === 'team' || you.role === 'fac')) {
+      const arole = (you.role === 'fac') ? 'fac' : 'lid';
+      const arow = (gameUser.uid > 0) ? await env.TENGSL.prepare('SELECT user_id FROM leikur_askrift WHERE game_code=? AND user_id=? AND role=?').bind(code, gameUser.uid, arole).first().catch(() => null) : null;
+      out.askrift = { on: !!arow };
+    }
     // Uppsafnað stig per lið per umferð (áhorfenda-sýn / þróunar-graf). Opinbert (eins og stigatafla).
     out.trajectory = teams.map((t) => ({ teamId: t.id, name: t.name, points: resultsRaw.filter((r) => r.team_id === t.id).sort((a, b) => a.round - b.round).map((r) => ({ round: r.round, value: r.cumulative })) }));
     // F1-V4: uppsafnaðar KPI-slóðir (þjappað: aðeins 5 KPI) + ákvarðana-mörk fyrir gröf — öll lið, opinbert
@@ -716,6 +914,35 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     });
   }
 
+  // ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ÁSKRIFT AÐ LEIK (leikur_askrift) — opt-in tenging NOTANDA við leik, forsenda tilkynninga í async-ham
+  // ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ⚠ PERSÓNUVERND — LESTU ÞETTA ÁÐUR EN ÞÚ BREYTIR: leikur_games/teams/decisions/results bera ENGIN notanda-auðkenni
+  // (sjá /join). Sú fullyrðing er í DPA-skolar-RAS-leikurinn.md, DPIA-RAS-leikurinn-skolar.md, skilmalar.json (#15) og
+  // /leikur/personuvernd — og HÉLST rétt: tengingin notandi↔leikur býr EINGÖNGU í þessari EINU töflu og hvergi annars
+  // staðar. Hún er (a) OPT-IN — notandi kveikir sjálfur, ekkert er skráð við /join eða /create, (b) lágmörkuð — aðeins
+  // user_id (netfang/nafn býr í users, aldrei hér), (c) eyðist með leiknum (leikurEraseGame OG leikurPruneOld — próf
+  // gæta beggja). ⚠ Skrifaðu ALDREI uid í leikur_teams/decisions — það myndi gera ofangreind skjöl ósönn.
+  //
+  // POST /<code>/askrift  { on: true|false, role?: 'lid'|'fac' }
+  //  · role='lid' (sjálfgefið) → LIÐS-tákn sannar aðildina; team_id skráð með.
+  //  · role='fac'             → FAC-tákn krafist (leikstjórinn er sá sem mest þarf tilkynningar í async-ham þar sem
+  //    hann er ekki viðstaddur). ⚠ Liðs-tákn fær ALDREI fac-áskrift — það læki uppgjörs-pósti til þátttakenda.
+  // PRIMARY KEY (game_code, user_id, role) → sami notandi má vera bæði (kennari sem spilar líka) og skráning er idempotent.
+  if (action === 'askrift' && method === 'POST') {
+    const you = await verifyToken(env, bearer(request));
+    const b = await request.json().catch(() => ({}));
+    const role = (b.role === 'fac') ? 'fac' : 'lid';
+    const taknRole = (role === 'fac') ? 'fac' : 'team';                                         // 'lid'-áskrift ↔ liðs-tákn (role 'team' í tákninu)
+    if (!you || you.code !== code || you.role !== taknRole) return sjson({ error: 'auth' }, 401);   // fac-áskrift KREFST fac-tákns, liðs-áskrift liðs-tákns
+    if (!(gameUser.uid > 0)) return sjson({ error: 'innskraning' }, 401);                        // áskrift án notanda er merkingarlaus (enginn til að láta vita)
+    const on = !(b.on === false || b.on === 'false' || b.on === 0);
+    if (on) await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_askrift (game_code, user_id, role, team_id, created) VALUES (?,?,?,?,?)')
+      .bind(code, gameUser.uid, role, (role === 'lid' ? (you.teamId || null) : null), now()).run().catch(() => null);
+    else await env.TENGSL.prepare('DELETE FROM leikur_askrift WHERE game_code=? AND user_id=? AND role=?').bind(code, gameUser.uid, role).run().catch(() => null);
+    return sjson({ ok: true, askrift: { on, role } });
+  }
+
   // POST /<code>/control  (fac-token)
   if (action === 'control' && method === 'POST') {
     const you = await verifyToken(env, bearer(request));
@@ -728,7 +955,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const teamRows = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
         cobj.roleMap = assignRoles(teamRows.map((t) => t.id), ROLES);
       }
-      if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec; // #3 umferðar-klukka
+      if (cfg.timerSec) cobj.deadline = now() + cfg.timerSec; // #3 umferðar-klukka (aldrei sett í async-ham: gameCfg núllar timerSec)
+      // ASYNC-HAMUR: klukkan á fyrstu lotunni fer af stað hér — nextAt = næsti <hour> UTC í fyrsta lagi einu cadence-bili
+      // eftir start (svo bekkurinn hafi ALLTAF fullt bil í fyrstu lotuna, líka þótt leikstjóri ræsi rétt fyrir <hour>).
+      if (cfg.async) cobj.async = { ...cfg.async, nextAt: nextAsyncAt(now(), cfg.async.cadence, cfg.async.hour) };
       // RÁÐHERRASKIPTING: sæti valin í lobby (lota 0) → drög lotu 1. FYRIR fasa-UPDATE-ið af ásettu ráði: lesum game.current_round
       // aðeins ÁÐUR en röðin breytist (D1 skilar snapshot, mock skilar tilvísun — sama niðurstaða báðum megin).
       if (cfg.radherrar) await carryRadherrar(env, code, game.current_round || 0, 1, await nonBotTeamIds(env, code, cfg));
@@ -737,19 +967,14 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       return sjson({ ok: true, phase: 'decide', round: 1 });
     }
     if (act === 'stop') { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
-    if (act === 'next') {
-      const nr = (game.current_round || 0) + 1;
-      if (nr > cfg.rounds) { await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('ended', code).run().catch(() => null); return sjson({ ok: true, phase: 'ended' }); }
-      if (cfg.radherrar) await carryRadherrar(env, code, nr - 1, nr, await nonBotTeamIds(env, code, cfg)); // ráðherrasætin lifa leikinn: map lotu N → drög lotu N+1 (FYRIR fasa-UPDATE, sjá start)
-      if (cfg.timerSec) { // #3 endursetja klukku fyrir nýtt kjörtímabil
-        let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
-        cobj.deadline = now() + cfg.timerSec;
-        await env.TENGSL.prepare('UPDATE leikur_games SET config=?, phase=?, current_round=? WHERE code=?').bind(JSON.stringify(cobj), 'decide', nr, code).run().catch(() => null);
-      } else {
-        await env.TENGSL.prepare('UPDATE leikur_games SET phase=?, current_round=? WHERE code=?').bind('decide', nr, code).run().catch(() => null);
-      }
-      await lockBots(env, code, nr, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
-      return sjson({ ok: true, phase: 'decide', round: nr });
+    if (act === 'next') {   // rökin: advanceRound (deilt með leikurAsyncCron)
+      const r = await advanceRound(env, code, game, cfg);
+      // ASYNC: leikstjóri MÁ alltaf ýta handvirkt — en þá verður klukkan að fylgja með. Annars sæti nýopnaða lotan uppi
+      // með liðinn nextAt og næsta cron-keyrsla gerði hana upp STRAX (lota sem átti að standa í sólarhring fengi mínútur).
+      // Leikslok → nextAt null. Svarið sjálft er ÓBREYTT (sama {ok,phase,round}); þetta er hliðarverkun sem snertir
+      // EINGÖNGU async-leiki — leikur án config.async fer nákvæmlega sömu leið og fyrr.
+      if (cfg.async) await setAsyncNext(env, code, (r.phase === 'decide') ? nextAsyncAt(now(), cfg.async.cadence, cfg.async.hour) : null, 0);
+      return sjson(r);
     }
     // ÞJÓÐARSÁTTIN — Karphús-hlé (fac): {action:'karphus', open:true, minutes?} opnar (sjálfgefið 3 mín, klemmt 1–30) AÐEINS í decide
     // sáttar-lotu (annars 409 satt-lota); {open:false} lokar alltaf. Vistað í config.karphus={round,until} (epoch-sek; ekki schema) —
@@ -766,72 +991,29 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
       return sjson({ ok: true, karphus: { open: true, until, secondsLeft: until - now() } });
     }
-    if (act === 'resolve') {
-      // idempotent: sleppa ef þegar leyst fyrir þessa umferð
-      const done = await env.TENGSL.prepare('SELECT team_id FROM leikur_results WHERE game_code=? AND round=? LIMIT 1').bind(code, game.current_round).first().catch(() => null);
-      if (done || game.phase === 'resolved') return sjson({ ok: true, phase: 'resolved' });
-      await lockBots(env, code, game.current_round, cfg.bots);   // öryggisnet: bot-lið án læstrar raðar → óbreytt drög + locked
-      const teams = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
-      // ÞJÓÐARSÁTTIN (satt.mjs): í sáttar-lotu ræðst útkoman af því hvað ÖLL lið völdu → reiknað EINU SINNI fyrir lykkjuna úr
-      // decisions.satt allra liða þessarar lotu (ekkert val / engin röð / rusl = null → 'saekja': sá sem ekki skrifar undir er utan
-      // sáttar). Æfingalið (bots) eru UTAN pottsins (hlutlaus — 1 raun-lið + bot = n=1 „einn"). perTeam-áhrifin beitast í lykkjunni.
-      let sattRes = null;
-      if (sattLota(game.current_round, cfg)) {
-        const botS = new Set(cfg.bots || []);
-        const sRows = ((await env.TENGSL.prepare('SELECT team_id, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
-        const valin = {};
-        for (const tm of teams) { if (botS.has(tm.id)) continue; let v = null; const sr = sRows.find((x) => x.team_id === tm.id); if (sr) { try { v = JSON.parse(sr.decisions || '{}').satt; } catch (e) {} } valin[tm.id] = (v === 'satt' || v === 'saekja') ? v : null; }
-        if (Object.keys(valin).length) sattRes = sattUtkoma(valin);
+    // ASYNC-HAMUR (fac): {action:'async', on:true|false, cadence?, hour?} — kveikja/slökkva EÐA breyta takti í miðjum leik.
+    // ⚠ Aðgerðarlykillinn er `action` (sjá `const act = b.action` að ofan) — eins og start/next/resolve. Sendi viðmótið
+    // líka `act` í varúðarskyni er hann einfaldlega HUNSAÐUR (ekki villa): lesAsync les aðeins on/cadence/hour.
+    // Kveikt í decide → nextAt endurreiknað STRAX frá núna (nýi takturinn gildir um NÆSTU lotu, ekki þá sem er í gangi
+    // — annars gæti breyting á klukkustund gert upp lotuna óvænt eftir örfáar mínútur). Í lobby → nextAt=null (start setur
+    // hana); í resolved/ended → nextAt=null (ekkert á dagskrá). Slökkt → config.async fjarlægt og cfg.timerSec lifnar við óbreytt.
+    if (act === 'async') {
+      const v = lesAsync(b);
+      if (!v.ok) return sjson({ error: v.error }, 400);
+      let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
+      if (!v.val) {
+        delete cobj.async;
+        await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
+        return sjson({ ok: true, async: { on: false, cadence: null, hour: null, nextAt: null, secondsToNext: null } });
       }
-      for (const tm of teams) {
-        // öll ákvörðunasaga liðs, umferð 1..current
-        const rows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, tm.id).all().catch(() => ({ results: [] }))).results) || [];
-        const byRound = {}; for (const r of rows) byRound[r.round] = JSON.parse(r.decisions || '{}');
-        const history = []; for (let rr = 1; rr <= game.current_round; rr++) history.push(byRound[rr] || {}); // ósend = tómt (óbreytt/engin)
-        const diff = difficultyOf(cfg.difficulty);
-        const { kpis, quarters } = resolveTeam({ baseline: BASELINE, links: LINKS, history, scenario: cfg.scenario, mode: cfg.mode, shockScale: diff.shock, leverCap: diff.leverCap });
-        // Fasi E: stefnu-rofar (höft/Icesave/verðtrygging/ESB/bankar) beittir á kpis eftir sögu ákvarðana.
-        const qL = quarters - 1, bl2 = {}; for (const bk of ['gengi', 'gengi_endo', 'verdbolga', 'hagvoxtur']) bl2[bk] = BASELINE.outcomes[bk] ? BASELINE.outcomes[bk].path[qL] : null;
-        const { states: polStates, since: polSince } = policyStatesMeta(history);
-        // F1-V2: stig hverrar ákvörðunar í ÞESSARI lotu (ESB-lífsferill: umsokn→adild, ursogn lotuna sem slökkt er).
-        const stages = {}; for (const pid in polStates) { const sg = policyStage(pid, polStates, polSince, game.current_round); if (sg) stages[pid] = sg; }
-        // Fasi „fylgi" B2: féll stjórnin síðasta kjörtímabil? → stjórnarkreppa berst yfir (hagvaxtar-drag + lægra byrjunar-fylgi).
-        const prev = await env.TENGSL.prepare('SELECT cumulative, kpis FROM leikur_results WHERE game_code=? AND team_id=? AND round=?').bind(code, tm.id, game.current_round - 1).first().catch(() => null);
-        let prevFell = false; if (prev && prev.kpis) { try { prevFell = ((JSON.parse(prev.kpis).stability || {}).level === 'revolt'); } catch (e) {} }
-        let kpis2 = applyPolicies(kpis, polStates, bl2, stages);
-        // F1-V2: framlag hverrar virkrar ákvörðunar á lotuna (diff-aðferð) — vistað → badges/arfleifðar-tölur/graf-pinnar.
-        const polDeltas = policyDeltas(kpis, polStates, bl2, stages);
-        // Stjórnarkreppa eftir fall: stjórnarmyndun/lömun → dýpra vaxtar-drag + atvinnuleysi↑ + skuldir↑ (glatað traust/tekjur).
-        if (prevFell) {
-          if (kpis2.hagvoxtur != null) kpis2.hagvoxtur -= 0.6;
-          if (kpis2.atvinnuleysi != null) kpis2.atvinnuleysi += 0.4;
-          if (kpis2.skuldir != null) kpis2.skuldir += 3;
-        }
-        // Fasi „skemmtun 3": óvænt atvik (valfrjálst) + liðs-val í klemmu → áhrif á KPI + bein fylgis-breyting.
-        const surprise = cfg.surprise ? rollSurprise(code, game.current_round) : null;
-        let surprisePop = 0;
-        if (surprise) { const sr = applySurprise(kpis2, surprise, (history[game.current_round - 1] || {}).dilemma); kpis2 = sr.kpis; surprisePop = sr.pop; }
-        // ÞJÓÐARSÁTTIN: sáttar-áhrif liðsins (leik-lag, ALDREI engine) — EFTIR policies+surprise, FYRIR stöðugleika/stigagjöf;
-        // pop bætist við fylgis-leiðréttinguna á sama stað og surprisePop. Stigagjöf ÓBREYTT (áhrifin fara gegnum KPI + fylgi).
-        const sattPt = (sattRes && sattRes.perTeam[tm.id]) || null; let sattPop = 0;
-        if (sattPt) { const sr = applySatt(kpis2, sattPt.effect); kpis2 = sr.kpis; sattPop = sr.pop; }
-        // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
-        const penFactor = (f) => 1 - (1 - f) * diff.penalty;
-        const raw = mandateAt(cfg, game.current_round);
-        const roundMandate = { ...scaleMandate(raw, diff.band), crisisFactor: penFactor(raw.crisisFactor) };
-        const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
-        const sc = scoreRound(kpis2, tMandate);
-        // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
-        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + sattPop + (prevFell ? -8 : 0));
-        const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
-        const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
-        await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell, policyDeltas: polDeltas, policyStages: stages,
-            ...(sattPt ? { sattUtkoma: { val: sattPt.val, flokkur: sattRes.flokkur, effect: sattPt.effect, k: sattRes.k, n: sattRes.n } } : {}) }), roundScore, cumulative).run().catch(() => null);   // Þjóðarsáttin: afhjúpunar-gögn per lið (sjá out.sattUtkoma í /state)
-      }
-      await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
-      return sjson({ ok: true, phase: 'resolved' });
+      const nextAt = (game.phase === 'decide') ? nextAsyncAt(now(), v.val.cadence, v.val.hour) : null;
+      cobj.async = { ...v.val, nextAt };
+      await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
+      return sjson({ ok: true, async: { ...cobj.async, secondsToNext: nextAt ? Math.max(0, nextAt - now()) : null } });
     }
+    // Uppgjörið sjálft: resolveRound (deilt með leikurAsyncCron). Svarið er ÓBREYTT { ok, phase } — `skipped` (idempotent-
+    // sleppan) er innanhúss-upplýsing fyrir cron-inn og fer EKKI á vírinn.
+    if (act === 'resolve') { const r = await resolveRound(env, code, game, cfg); return sjson({ ok: r.ok, phase: r.phase }); }
     return sjson({ error: 'bad-action' }, 400);
   }
   return sjson({ error: 'bad-request' }, 400);
@@ -841,17 +1023,20 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
 // Leikur-gögnin (leikur_games/teams/decisions/results) bera engin notanda-auðkenni (ekkert uid/netfang/nafn) —
 // EINA persónugagna-leiðin er frjálst liðsheiti (sjá /join). Þar til þessar reglur komu lifðu leikir að eilífu í D1.
 // Tvö tól: (1) leikurPruneOld — vikuleg sjálfvirk grisjun (cron), (2) leikurEraseGame — eyðing eins leiks á beiðni.
-// Eyðingarröð per leik (börn fyrst → foreldri síðast, engir FK í D1): results → decisions → teams → games, eitt
-// D1-batch (færsla) per leik svo leikur standi aldrei eftir hálf-eyddur ef keyrslan rofnar.
+// Eyðingarröð per leik (börn fyrst → foreldri síðast, engir FK í D1): askrift → results → decisions → teams → games,
+// eitt D1-batch (færsla) per leik svo leikur standi aldrei eftir hálf-eyddur ef keyrslan rofnar.
+// ⚠ leikur_askrift (opt-in tenging notanda↔leiks, async-hamur) VERÐUR að fara með — annars situr tengingin eftir
+//   sem munaðarlaus persónuupplýsing um leik sem er ekki lengur til. Bæði hlutverkin ('lid' og 'fac') fara í sömu ferð.
 const _changes = (r) => (r && r.meta && typeof r.meta.changes === 'number') ? r.meta.changes : 0;
 
-/** Eyðir EINUM leik (kóða) + öllum tengdum röðum. Skilar {games, teams, decisions, results} = eyddar raðir.
+/** Eyðir EINUM leik (kóða) + öllum tengdum röðum. Skilar {games, teams, decisions, results, askrift} = eyddar raðir.
  *  Idempotent: óþekktur kóði → allt 0. Engin fasa-athugun hér — hún er í /erase-endapunktinum (sjá leikurHandler). */
 export async function leikurEraseGame(env, code) {
   const c = String(code || '').toUpperCase();
-  const out = { games: 0, teams: 0, decisions: 0, results: 0 };
+  const out = { games: 0, teams: 0, decisions: 0, results: 0, askrift: 0 };
   if (!env || !env.TENGSL || !c) return out;
   const stmts = [
+    env.TENGSL.prepare('DELETE FROM leikur_askrift WHERE game_code=?').bind(c),
     env.TENGSL.prepare('DELETE FROM leikur_results WHERE game_code=?').bind(c),
     env.TENGSL.prepare('DELETE FROM leikur_decisions WHERE game_code=?').bind(c),
     env.TENGSL.prepare('DELETE FROM leikur_teams WHERE game_code=?').bind(c),
@@ -860,7 +1045,7 @@ export async function leikurEraseGame(env, code) {
   let res = null;
   if (typeof env.TENGSL.batch === 'function') res = await env.TENGSL.batch(stmts).catch(() => null);
   if (!res) { res = []; for (const s of stmts) res.push(await s.run().catch(() => null)); } // varaleið án batch (sömu röð)
-  out.results = _changes(res[0]); out.decisions = _changes(res[1]); out.teams = _changes(res[2]); out.games = _changes(res[3]);
+  out.askrift = _changes(res[0]); out.results = _changes(res[1]); out.decisions = _changes(res[2]); out.teams = _changes(res[3]); out.games = _changes(res[4]);
   return out;
 }
 
@@ -868,9 +1053,9 @@ export async function leikurEraseGame(env, code) {
  *  (lobby/decide/resolved) en stofnaðir fyrir meira en 2×`days` dögum. Leikur í gangi yngri en 2×days er ALDREI snertur.
  *  `now` = epoch-SEKÚNDUR (sama eining og leikur_games.created); sjálfgefið núna. Keyrir í lotum (≤50 leikir per SELECT)
  *  þar til ekkert finnst; hættir ef lota eyðir engu (ver gegn eilífri lykkju ef D1 hafnar DELETE). Idempotent.
- *  Skilar {games, teams, decisions, results} = samanlagður fjöldi eyddra raða. */
+ *  Skilar {games, teams, decisions, results, askrift} = samanlagður fjöldi eyddra raða. */
 export async function leikurPruneOld(env, { days = 90, now: nowSec } = {}) {
-  const out = { games: 0, teams: 0, decisions: 0, results: 0 };
+  const out = { games: 0, teams: 0, decisions: 0, results: 0, askrift: 0 };
   if (!env || !env.TENGSL) return out;
   const d = Math.max(1, +days || 90);
   const t = (nowSec != null && isFinite(+nowSec)) ? Math.floor(+nowSec) : now();
@@ -883,11 +1068,69 @@ export async function leikurPruneOld(env, { days = 90, now: nowSec } = {}) {
     let gamesThisBatch = 0;
     for (const r of rows) {
       const e = await leikurEraseGame(env, r.code);
-      out.games += e.games; out.teams += e.teams; out.decisions += e.decisions; out.results += e.results;
+      out.games += e.games; out.teams += e.teams; out.decisions += e.decisions; out.results += e.results; out.askrift += e.askrift;
       gamesThisBatch += e.games;
     }
     if (!gamesThisBatch) break; // ekkert eyddist (D1-villa) → ekki snúast í hring
     if (rows.length < BATCH) break;
   }
+  return out;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// ASYNC-CRON — sjálfvirkur gangur leikja á tímaáætlun (skráður í worker.js scheduled(), 3-tíma cron „0 */3 * * *")
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+/** Finnur leiki í decide-fasa með config.async.on OG nextAt liðinn; fyrir hvern: autoLockOpen (ólæst lið sjálf-læst á
+ *  eigin drögum) → resolveRound (uppgjör) → advanceRound (næsta kjörtímabil) + nýtt nextAt, eða phase='ended' eftir
+ *  síðustu lotu (þá nextAt=null: ekkert framar á dagskrá).
+ *  `now` = epoch-SEKÚNDUR (prófanlegt; sjálfgefið klukkan). Skilar
+ *    { leikir, lotur, laest, endadir, tilkynna: [{ code, round, lokid, laest, phase, naestaLota }] }
+ *  — `tilkynna` er KRÓKUR fyrir póst-lagið (sniðmátin leikur_lota / leikur_uppgjor í web/src/lib/emails.mjs):
+ *      code       leikkóði (→ `kodi`)
+ *      round      LOTAN SEM VAR GERÐ UPP (→ `lota`)
+ *      lokid      fjöldi liða sem luku SJÁLF (læstu sínum ákvörðunum)
+ *      laest      fjöldi ákvarðana sem ÞJÓNNINN læsti sjálfur (autoLockOpen)
+ *      phase      'decide' (næsta lota opin) | 'ended' (leikslok)
+ *      naestaLota nýja opna lotan, null við leikslok
+ *      nextAt     frestur nýju lotunnar (epoch-sek → `frestur` í leikur_lota), null við leikslok
+ *  ⚠ Þetta fall SENDIR ENGAN PÓST — það heldur því prófanlegu án SMTP; áskrifendur eru í leikur_askrift ('lid'/'fac').
+ *  ⚠ PERSÓNUVERND: tilkynna ber ENGIN liðsheiti, stig né ákvarðanir — aðeins kóða, umferð og samtölur (DPIA V1.3).
+ *  IDEMPOTENT: nextAt er fært fram (eða núllað) eftir hverja lotu → önnur keyrsla strax á eftir gerir EKKERT.
+ *  ⚠ 3-tíma upplausn: lota opnast innan ≤3 klst frá <hour> (nógu gott fyrir daglegan/vikulegan kennslu-takt).
+ *  Þolir bilaðan leik: try/catch per leik → einn leikur sem fellur stöðvar ekki hina. */
+export async function leikurAsyncCron(env, { now: nowSec } = {}) {
+  const out = { leikir: 0, lotur: 0, laest: 0, endadir: 0, tilkynna: [] };
+  if (!env || !env.TENGSL) return out;
+  const t = (nowSec != null && isFinite(+nowSec)) ? Math.floor(+nowSec) : now();
+  // Aðeins decide-fasi getur átt uppgjör á dagskrá (lobby=óræstur, resolved/ended=ekkert að gera). config.async er JSON
+  // og því ekki síanlegt í SQL — sían er í JS. LIMIT ver gegn óvæntum fjölda; decide-leikir eru fáir í eðli sínu.
+  const rows = ((await env.TENGSL.prepare("SELECT code, config, phase, current_round FROM leikur_games WHERE phase='decide' ORDER BY created LIMIT 500").all().catch(() => ({ results: [] }))).results) || [];
+  for (const g of rows) {
+    let cfg = null;
+    try { cfg = gameCfg(g); } catch (e) { continue; }          // ónýt config → sleppa (aldrei fella keyrsluna)
+    const a = cfg.async;
+    if (!a || !a.on || !(a.nextAt > 0) || a.nextAt > t) continue;
+    try {
+      out.leikir++;
+      const lota = g.current_round;
+      // Lið sem LUKU SJÁLF = öll ekki-bot lið mínus þau sem þjónninn þurfti að læsa (autoLockOpen læsir öllum hinum).
+      const ekkiBot = (await nonBotTeamIds(env, g.code, cfg)).length;
+      const laest = await autoLockOpen(env, g.code, lota, cfg);
+      const lokid = Math.max(0, ekkiBot - laest);
+      out.laest += laest;
+      await resolveRound(env, g.code, g, cfg);
+      out.lotur++;
+      // Lesa FERSKT fyrir advanceRound: resolveRound skrifaði phase='resolved' (D1 skilar snapshot — `g` er úreltur).
+      const fresh = await env.TENGSL.prepare('SELECT code, config, phase, current_round FROM leikur_games WHERE code=?').bind(g.code).first().catch(() => null);
+      const adv = await advanceRound(env, g.code, fresh || g, cfg);
+      const nextAt = (adv.phase === 'ended') ? null : nextAsyncAt(t, a.cadence, a.hour);
+      if (adv.phase === 'ended') out.endadir++;
+      await setAsyncNext(env, g.code, nextAt, laest);
+      // ⚠ PERSÓNUVERND: tilkynna ber AÐEINS leikkóða, umferð og SAMTÖLUR — aldrei liðsheiti, stig né ákvarðanir
+      // (skjalfest loforð í DPIA Viðbót 1, V1.3, og prófað í emails.test.mjs). Ekki víkka þetta skeyti.
+      out.tilkynna.push({ code: g.code, round: lota, lokid, laest, phase: adv.phase, naestaLota: adv.round || null, nextAt });
+    } catch (e) { console.log('[leikur-async] ' + g.code + ': ' + (e && e.message)); }
+  }
+  if (out.leikir) console.log(`[leikur-async] leikir=${out.leikir} lotur=${out.lotur} sjálf-læst=${out.laest} endaðir=${out.endadir}`);
   return out;
 }

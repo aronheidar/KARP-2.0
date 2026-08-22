@@ -1,0 +1,16 @@
+-- RÁS-Leikurinn — ÁSKRIFT AÐ LEIK (async-hamur: „eitt kjörtímabil á dag í viku"). Additive; snertir ekki núverandi töflur.
+--
+-- ⚠ PERSÓNUVERND — LESTU ÞETTA ÁÐUR EN ÞÚ BREYTIR TÖFLUNNI:
+-- Leikur-töflurnar sjálfar (leikur_games/teams/decisions/results) bera ENGIN notanda-auðkenni — sú fullyrðing stendur í
+-- docs/personuvernd/DPA-skolar-RAS-leikurinn.md, DPIA-RAS-leikurinn-skolar.md, web/src/data/skilmalar.json (#15) og
+-- web/src/pages/leikur/personuvernd.astro, og hún HELST rétt: leikur_askrift er EINI staðurinn þar sem notandi tengist
+-- leik, og hún er:
+--   (a) OPT-IN      — ekkert er skráð við /create eða /join; notandi kveikir sjálfur (POST /api/leikur/<code>/askrift),
+--   (b) LÁGMÖRKUÐ   — aðeins user_id (netfang/nafn býr í users og er ALDREI afritað hingað),
+--   (c) TÍMABUNDIN  — eyðist með leiknum í leikurEraseGame (eyðing á beiðni) OG leikurPruneOld (vikuleg grisjun).
+-- Skrifaðu ALDREI uid í leikur_teams/leikur_decisions — það myndi gera ofangreind skjöl ósönn.
+--
+-- role='lid' → team_id sett (liðs-tákn sannar aðildina). role='fac' → team_id NULL og FAC-tákn krafist; leikstjórinn er
+-- sá sem mest þarf tilkynningar í async-ham (hann er ekki viðstaddur). Liðs-tákn fær aldrei fac-áskrift.
+-- PRIMARY KEY með role svo sami notandi geti verið bæði (kennari sem spilar líka) og skráning sé idempotent.
+CREATE TABLE IF NOT EXISTS leikur_askrift (game_code TEXT NOT NULL, user_id INTEGER NOT NULL, role TEXT NOT NULL DEFAULT 'lid', team_id INTEGER, created INTEGER NOT NULL, PRIMARY KEY (game_code, user_id, role));
