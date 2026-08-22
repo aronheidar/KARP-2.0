@@ -81,6 +81,21 @@ if (!CF) {
   process.exit(0);
 }
 console.log('• Talgreining:', ASR === 'cf' ? 'Workers AI @cf/openai/whisper-large-v3-turbo (5 mín bútar, 4 samtímis)' : 'OpenAI whisper-1');
+// Greining á tókanum ÁÐUR en nokkurt hljóð er sótt: hvaða tóki (ID) og hefur hann Workers AI-heimild?
+if (ASR === 'cf') {
+  try {
+    const v = await (await fetch('https://api.cloudflare.com/client/v4/user/tokens/verify', { headers: { authorization: 'Bearer ' + CF_TOKEN } })).json();
+    const tid = v && v.result ? v.result.id : '?';
+    const m = await fetch('https://api.cloudflare.com/client/v4/accounts/' + CF_ACC + '/ai/models/search?per_page=1', { headers: { authorization: 'Bearer ' + CF_TOKEN } });
+    const mj = await m.json().catch(() => null);
+    if (m.ok && mj && mj.success) console.log('• Tóki', tid, '— Workers AI-heimild STAÐFEST (models/search OK)');
+    else {
+      console.error('⛔ Tóki', tid, 'hefur EKKI Workers AI-heimild:', JSON.stringify((mj && mj.errors) || m.status).slice(0, 200));
+      console.error('   → Cloudflare → My Profile → API Tokens → tókinn með ÞETTA ID (sést í Edit/summary) → bæta við „Account · Workers AI · Read" → Continue → UPDATE TOKEN.');
+      process.exit(1);
+    }
+  } catch (e) { console.error('⚠ tóka-greining brást:', String(e).slice(0, 120)); }
+}
 
 // Workers AI REST: einn bútur (≤ ~1,3 MB mp3 → base64) → texti. Skýr villa ef token vantar Workers AI-heimild.
 async function cfWhisper(buf) {
