@@ -12,7 +12,8 @@ import { buildRecap } from './recap.mjs';
 import { uppsafnadSeries, uppsafnadLoka } from './uppsafnad.mjs';
 import { politikStada } from './politik.mjs';
 import { teachingPrompts } from './analytics.mjs';
-import { HANDBOOK, THOKA_HANDBOOK } from './handbook.mjs';
+import { HANDBOOK, THOKA_HANDBOOK, SATT_HANDBOOK } from './handbook.mjs';
+import { SATT_VAL, SATT_FLOKKAR, SATT_TEXTI } from './satt.mjs';
 import { myndFyrirAtvik, PM_MYNDIR, PM_MYNDIR_KONA } from './myndir.mjs';
 import { sagaFyrirLotu, raunKpiLotu, berSamanAkvardanir, radherraFyrirLotu, radherraTexti } from './saga.mjs';
 import { kortThrep, KORT_LEVER_ID } from './kort-throp.mjs';
@@ -162,6 +163,75 @@ function thokaTile(k, m, refTxt) {
     + '<div class="lk-gm-top"><span>' + (k.icon ? k.icon + ' ' : '') + esc(k.label) + (k.weight > 1 ? ' <span class="lk-kpi-w">×' + k.weight + '</span>' : '') + '</span><b class="lk-thoka-pilar" style="color:' + col + '">' + m.pilar + '</b></div>'
     + '<div class="lk-thoka-tile-s" style="color:' + col + '">' + esc(m.ord + ' ' + THOKA_VS_TXT[m.vs]) + '</div>'
     + '<div class="lk-gm-sub"><span class="lk-muted">markmið ' + (k.dir === 'max' ? '≤ ' : k.dir === 'min' ? '≥ ' : '≈ ') + num(tgt) + '</span><span class="lk-muted">' + esc(THOKA_ATT_TXT[m.att] + ' m.v. ' + refTxt) + '</span></div></div>';
+}
+
+
+// ── ÞJÓÐARSÁTTIN (config.satt, satt.mjs) — client-hlið: val-spjald í decide, Karphús-borði, afhjúpun í results. ──
+// Þjónssamningur (verk 2, samhliða): decide-lið fær st.satt={on,lota,val,karphus:{open,until}}; decisions-POST tekur
+// satt:'satt'|'saekja' (sama leið og dilemma); results/ended bera st.sattUtkoma (per lotu: valin allra, flokkur,
+// perTeam effect, texti); fac-control {action:'karphus',open,minutes}; watch fær st.satt={on,lota,karphus} ÁN valsins.
+// Valið er BLINT — client sýnir liðinu aðeins EIGIÐ val; afhjúpunin gerist í results (sattResultsCard).
+const SATT_BLURB = SATT_HANDBOOK.blurb;   // EIN uppspretta (handbook.mjs) — sami texti í rofa, stillingaspjaldi og handbók
+// st.sattUtkoma þolir þrjú form (verk 2 er samhliða — varnarforritun): stakt útkomu-obj {flokkur,…}, fylki af útkomum
+// (hver með lota), eða map {"3":útkoma,"6":útkoma}. Skilar alltaf röðuðu fylki [{lota,flokkur,k,n,perTeam,texti}].
+function sattUtkomurAf(st) {
+  const u = st && st.sattUtkoma;
+  if (!u || typeof u !== 'object') return [];
+  if (Array.isArray(u)) return u.filter((x) => x && x.flokkur).map((x) => ({ ...x, lota: x.lota != null ? +x.lota : null }));
+  if (u.flokkur) return [{ ...u, lota: u.lota != null ? +u.lota : (st.round != null ? +st.round : null) }];
+  return Object.keys(u).filter((k) => u[k] && u[k].flokkur && isFinite(+k)).map((k) => ({ ...u[k], lota: +k })).sort((a, b) => a.lota - b.lota);
+}
+// Leikslok-samantekt: „KT3: 🗡️ svik · KT6: 🤝 samvinna — hópurinn lærði…" (recap liðs + fac-greining + prent-skýrsla).
+function sattSamantekt(st) {
+  const us = sattUtkomurAf(st);
+  if (!us.length) return '';
+  const stutt = { samvinna: '🤝 samvinna', svik: '🗡️ svik', spirall: '🌀 spírall', einn: '🏛️ eitt lið' };
+  const parts = us.map((u) => 'KT' + (u.lota != null ? u.lota : '?') + ': ' + (stutt[u.flokkur] || u.flokkur));
+  let d = '';
+  if (us.length >= 2) {
+    const f0 = us[0].flokkur, f1 = us[us.length - 1].flokkur;
+    d = f1 === 'samvinna' ? (f0 === 'samvinna' ? ' — traustið hélt allan tímann' : ' — hópurinn lærði: traustið byggðist upp')
+      : (f0 === 'samvinna' ? ' — traustið brast í seinni lotunni' : ' — traustið náðist aldrei');
+  }
+  return parts.join(' · ') + d;
+}
+// Afhjúpunar-blokkin „🤝 Þjóðarsáttin — hvað gerðist" (lið+fac+watch í results/ended): tafla liða × val (dramatísk
+// birting m/ animation-delay per röð), flokkur með íkoni, áhrifaflísar per lið (deltaChips — pop birtist sem fylgi)
+// og kennslusetningin. opts.myTeamId merkir eigið lið; opts.debrief = auka-punktur f. leikstjóra.
+function sattResultsCard(st, opts = {}) {
+  // Þjónninn sendir ALLAR birtar sáttar-útkomur í hverjum fasa — í resolved sýnum við aðeins ÞESSA lotu
+  // (afhjúpun lotunnar), í ended allar (loka-yfirlitið). Annars endurtæki gamla afhjúpunin sig í hverju uppgjöri.
+  let us = sattUtkomurAf(st);
+  if (st.phase === 'resolved') us = us.filter((u) => u.lota == null || +u.lota === +st.round);
+  if (!us.length) return '';
+  const nm = Object.fromEntries((st.teams || []).map((t) => [String(t.id), t.name]));
+  const blocks = us.map((u) => {
+    const fl = SATT_FLOKKAR[u.flokkur] || { icon: '🤝', label: u.flokkur };
+    // Þjónninn sendir valin-FYLKI [{teamId,name,val,svikari,effect}]; perTeam-map (form satt.mjs) þolað sem varaleið.
+    const lids = Array.isArray(u.valin)
+      ? u.valin.map((r) => ({ id: r.teamId, name: r.name != null ? r.name : (nm[String(r.teamId)] || ('Lið ' + r.teamId)), val: r.val, effect: r.effect }))
+      : Object.keys(u.perTeam || {}).map((id) => ({ id, name: nm[id] || ('Lið ' + id), val: (u.perTeam[id] || {}).val, effect: (u.perTeam[id] || {}).effect }));
+    let i = 0;
+    const rows = lids.map((pt) => {
+      const v = SATT_VAL[pt.val] || SATT_VAL.saekja;
+      const mine = opts.myTeamId != null && String(opts.myTeamId) === String(pt.id);
+      const ch = deltaChips(pt.effect);
+      return '<tr class="lk-satt-reveal" style="animation-delay:' + (i++ * 0.35) + 's"><td>' + esc(pt.name) + (mine ? ' <span class="lk-satt-mitt">þið</span>' : '') + '</td><td class="' + (pt.val === 'satt' ? 'lk-satt-c-satt' : 'lk-satt-c-saekja') + '">' + v.icon + ' ' + esc(v.label) + '</td><td>' + (ch || '<span class="lk-muted">—</span>') + '</td></tr>';
+    }).join('');
+    return '<div class="lk-satt-utkoma">'
+      + ((us.length > 1 && u.lota != null) ? '<div class="lk-satt-lota">Kjörtímabil ' + u.lota + '</div>' : '')
+      + '<div class="lk-satt-flokkur">' + fl.icon + ' ' + esc(fl.label) + '</div>'
+      + (rows ? '<table class="lk-tbl lk-satt-tbl"><tr><th>Lið</th><th>Valið</th><th>Áhrif á uppgjörið</th></tr>' + rows + '</table>' : '')
+      + (u.texti ? '<p class="lk-satt-kennsla">💡 ' + esc(u.texti) + '</p>' : '') + '</div>';
+  }).join('');
+  return '<div class="lk-card lk-satt-card lk-satt-results"><h2>' + esc(SATT_TEXTI.results) + '</h2>' + blocks
+    + (opts.debrief ? '<p class="lk-muted lk-satt-debrief">🎓 Debrief: ' + esc(opts.debrief) + '</p>' : '') + '</div>';
+}
+// Leikslok liðs: stutt samantektar-spjald beggja sáttar-lota (fullar afhjúpanir sáust í uppgjörum lotanna).
+function sattEndCard(st) {
+  const line = sattSamantekt(st);
+  if (!line) return '';
+  return '<div class="lk-card lk-satt-card"><h2>🤝 Þjóðarsáttin — samantekt</h2><p class="lk-satt-sum">' + esc(line) + '</p></div>';
 }
 
 // Leikstjóra-greiningarmælaborð: skorkort-tafla + ákvarðanir + ferla-gröf. Lit per lið (samræmt).
@@ -315,6 +385,9 @@ function renderFacAnalytics(an, st, openDetails = new Set(), opts = {}) {
   if (!an || !an.scorecard || !an.scorecard.length) return '<p class="lk-muted">Greining birtist eftir fyrstu leystu umferð.</p>';
   // ÞOKA: merki á samantekt leikstjóra (debrief-fóður) — liðin ákváðu án nýjustu talna.
   const thokaHtml = opts.thoka ? '<p class="lk-thoka-banner lk-thoka-fac">🌫️ <b>Þoku-leikur</b> — liðin ákváðu án nýjustu talna (hagtölur með eins kjörtímabils töf, engin framtíðarspá í forskoðun). Debrief-spurning: hvað hefðu liðin gert öðruvísi með tölurnar fyrir framan sig — og hvað segir það um raunverulega hagstjórn?</p>' : '';
+  // ÞJÓÐARSÁTT: leikslok-samantekt sáttar-lotanna (st.sattUtkoma fylgir results/ended) — „KT3: svik · KT6: samvinna — hópurinn lærði".
+  const sattU = st ? sattUtkomurAf(st) : [];
+  const sattHtml = sattU.length ? '<p class="lk-satt-fac">🤝 <b>Þjóðarsáttin:</b> ' + esc(sattSamantekt(st)) + '</p>' : '';
   const order = an.trajectories.cumulative.map((s) => s.teamId);
   const colorOf = (teamId) => LK_PAL[((order.indexOf(teamId) % LK_PAL.length) + LK_PAL.length) % LK_PAL.length];
   const scoreCol = (v) => v == null ? '#9fb0c8' : v >= 80 ? '#54d08a' : v >= 40 ? '#e8c14a' : '#e78284';
@@ -348,7 +421,7 @@ function renderFacAnalytics(an, st, openDetails = new Set(), opts = {}) {
   for (const k of Object.keys(an.trajectories.byKpi)) { const b = an.trajectories.byKpi[k]; charts += lkLineChart(b.label + ' (stig)', b.series, { min: 0, max: 100, colorOf }); }
   charts += '</div>';
   // #6 Kennslu-vísbendingar: sjálfvirkar umræðu-spurningar úr mynstrum (birt efst — leiðbeinandi f. leikstjóra).
-  const prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka });
+  const prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false });
   const promptsHtml = prompts.length ? '<h3 style="font-size:14px;margin:4px 0">💡 Kennslu-vísbendingar (umræðu-spurningar)</h3><ul class="lk-prompts">' + prompts.map((p) => '<li>' + p + '</li>').join('') + '</ul>' : '';
   // Stórar stefnu-ákvarðanir hvers liðs (leikstjóra-samantekt).
   const polHtml = (an.policiesByTeam && an.policiesByTeam.length)
@@ -405,7 +478,7 @@ function renderFacAnalytics(an, st, openDetails = new Set(), opts = {}) {
       + lkLineChart('Vinstri ↔ Hægri', series, { min: -100, max: 100, colorOf })
       + '<p class="lk-muted" style="font-size:11px;margin:2px 0 0">ⓘ ' + esc(POL_INFO) + '</p>';
   }
-  return thokaHtml + guideHtml + promptsHtml
+  return thokaHtml + sattHtml + guideHtml + promptsHtml
     + '<h3 style="font-size:14px;margin:12px 0 4px">Staða liða</h3>' + sc
     + uppHtml
     + polChart
@@ -479,6 +552,7 @@ function lkPrintReport(st, opts = {}) {
   const lokaOf = {}; for (const t of kh) if (t.rounds && t.rounds.length) lokaOf[t.teamId] = uppsafnadLoka(uppsafnadSeries(t.rounds));
   const polLast = {}; for (const t of pf) { const l = (t.ferill || [])[(t.ferill || []).length - 1]; if (l) polLast[t.teamId] = l; }
   const roleOf = {}; for (const r of (st.rolesReveal || [])) roleOf[r.teamId] = r;
+  const sattU = sattUtkomurAf(st);   // ÞJÓÐARSÁTT: útkomur sáttar-lotanna (ended-state)
   const pfOf = {}; for (const t of pf) pfOf[t.teamId] = t;
   const trajOf = {}; for (const t of (st.trajectory || [])) trajOf[t.teamId] = t.points || [];
   const reviewOf = {}; for (const t of (an.teamReview || [])) reviewOf[t.teamId] = t;
@@ -488,7 +562,7 @@ function lkPrintReport(st, opts = {}) {
   // 1. Haus
   const diffTxt = st.difficulty === 'easy' ? 'Létt' : st.difficulty === 'hard' ? 'Erfitt' : 'Miðlungs';
   let dags = ''; try { dags = new Date().toLocaleDateString('is-IS', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { dags = new Date().toISOString().slice(0, 10); }
-  const head = '<header><h1>RÁS-Leikurinn — kennsluskýrsla</h1><p class="lkp-meta">Leikkóði <b>' + esc(st.code || '') + '</b> · ' + esc(dags) + ' · ' + teams.length + ' lið · ' + rounds + ' kjörtímabil (2000–2032) · erfiðleikastig: ' + diffTxt + (st.mode === 'studio' ? ' · stjórnstöðvar-hamur' : '') + (opts.thoka ? ' · 🌫️ þoku-leikur (hagtölur með eins kjörtímabils töf, engin framtíðarspá)' : '') + '</p></header>';
+  const head = '<header><h1>RÁS-Leikurinn — kennsluskýrsla</h1><p class="lkp-meta">Leikkóði <b>' + esc(st.code || '') + '</b> · ' + esc(dags) + ' · ' + teams.length + ' lið · ' + rounds + ' kjörtímabil (2000–2032) · erfiðleikastig: ' + diffTxt + (st.mode === 'studio' ? ' · stjórnstöðvar-hamur' : '') + (opts.thoka ? ' · 🌫️ þoku-leikur (hagtölur með eins kjörtímabils töf, engin framtíðarspá)' : '') + (sattU.length ? ' · 🤝 þjóðarsáttin spiluð' : '') + '</p></header>';
 
   // 2. Loka-stigatafla + arfleifð (+ afhjúpuð umboð ef leynihlutverk voru í leiknum)
   const hasRole = teams.some((t) => roleOf[t.id]);
@@ -556,10 +630,12 @@ function lkPrintReport(st, opts = {}) {
 
   // 5. Umræðukaflinn: sjálfvirkar athuganir úr raun-mun liða + teachingPrompts
   let prompts = [];
-  try { prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka }); } catch (e) {}
+  try { prompts = teachingPrompts(an, { scenarioEvents: SCENARIO.events.map((e) => ({ round: e.round, icon: e.icon, title: e.title })), thoka: !!opts.thoka, satt: sattU.length ? sattU : false }); } catch (e) {}
   const obs = lkPrintObservations(teams, lokaOf, polLast, an);
   // ÞOKA: teachingPrompts(thoka) setur tvær þoku-debrief-spurningar (THOKA_HANDBOOK) fremst í spurningarnar — hér aðeins ramma-setning.
   if (opts.thoka) obs.unshift('🌫️ Leikurinn var spilaður <b>í þoku</b>: liðin sáu hagtölur með eins kjörtímabils töf og enga framtíðarspá í forskoðun — tölurnar afhjúpuðust við hvert uppgjör.');
+  // ÞJÓÐARSÁTT: samantekt sáttar-lotanna fremst í athugununum (fangaklemman er kjarna-debrief-efni).
+  if (sattU.length) obs.unshift('🤝 <b>Þjóðarsáttin</b> var í leiknum: ' + esc(sattSamantekt(st)) + '.');
   let disc = '';
   if (prompts.length || obs.length) {
     disc = '<section class="lkp-break"><h2>💬 Umræðukaflinn</h2>'
@@ -576,7 +652,9 @@ function lkPrintReport(st, opts = {}) {
 export function mountLeikur(root) {
   const S = { code: null, role: null, token: null, teamId: null, state: null, draft: {}, poll: null, busy: false, view: null, editDraft: null, editRoles: false, editStudio: true, studioTab: 0, dials: null, unlocked: false, stTimer: null, stRound: null, dragging: null, localTouched: new Set(), studioBuiltSig: null, pushTimer: null, timerDeadline: null, timerInt: null, user: null, openDetails: new Set(), hbRound: null, kortPrev: {}, polPrevStig: null, tickerSig: null, ktdSig: null, ktdPrev: null, sagaSeeded: false,
     // VERK B: me=/api/leikur/me (leikstjóra-leyfi), onb={step} þegar uppsetningar-vísirinn er opinn, onbSig/onbScrolled = endurteiknunar-/skrun-vörn, onbSeen = lotu-fallback ef localStorage er læst, bot-læsing f. æfingalið (varaleið).
-    me: null, onb: null, onbSig: null, onbScrolled: null, onbSeen: false, botLocking: false, botLockedRound: null, joinPrefill: '' };
+    me: null, onb: null, onbSig: null, onbScrolled: null, onbSeen: false, botLocking: false, botLockedRound: null, joinPrefill: '',
+    // ÞJÓÐARSÁTT: eigið val þessarar lotu (blint), lotu-vörður og Karphús-frestur f. niðurtalninguna.
+    sattDraft: null, sattRound: null, karphusDeadline: null };
   let model = {}; try { model = JSON.parse(document.getElementById('leikur-model')?.textContent || '{}'); } catch (e) {}
 
   // Endurheimt úr URL + localStorage (endurtenging)
@@ -622,12 +700,26 @@ export function mountLeikur(root) {
   root.addEventListener('click', (e) => {
     if (e.target && e.target.closest && e.target.closest('#lk-pmh')) pmNext();
   });
+  // ÞJÓÐARSÁTT: val-hnapparnir (data-satt) — event-delegation á root (lifir innerHTML-endurteiknanir), engir inline handlers.
+  root.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest && e.target.closest('[data-satt]');
+    if (!btn || !root.contains(btn) || S.role !== 'team') return;
+    const st = S.state;
+    if (!st || st.phase !== 'decide' || !(st.satt && st.satt.on)) return;
+    if (st.you && st.you.locked && !S.unlocked) return;   // GALLI B: læst lið má ekki pushDraft-a þegjandi
+    S.sattDraft = btn.dataset.satt === 'satt' ? 'satt' : 'saekja';
+    sattPush(st);
+    if (st.mode === 'studio') renderStudio(st); else render();
+  });
   function startPoll() { stopPoll(); refresh(); S.poll = setInterval(refresh, 2500); S.timerInt = setInterval(tickTimer, 1000); }
   function stopPoll() { if (S.poll) { clearInterval(S.poll); S.poll = null; } if (S.timerInt) { clearInterval(S.timerInt); S.timerInt = null; } }
   // #3 Umferðar-klukka (bara sjónræn): tikkar staðbundið úr S.timerDeadline; við 0 → „útrunninn" (engin auto-læsing).
   const fmtTimer = (sec) => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
   function timerBadge(st) { if (S.timerDeadline == null && st.secondsLeft == null) return ''; const rem = S.timerDeadline != null ? Math.max(0, Math.round((S.timerDeadline - Date.now()) / 1000)) : Math.max(0, st.secondsLeft); return '<span class="lk-timer" id="lk-timer">⏱️ ' + fmtTimer(rem) + '</span>'; }
   function tickTimer() {
+    // ÞJÓÐARSÁTT: Karphús-niðurtalningin (deadline-mynstrið, sjá S.karphusDeadline í refresh) — óháð umferðar-klukkunni.
+    const ke = root.querySelector('#lk-karphus-t');
+    if (ke && S.karphusDeadline != null) { const rem = Math.max(0, Math.round((S.karphusDeadline - Date.now()) / 1000)); ke.textContent = fmtTimer(rem) + ' eftir'; }
     const el = root.querySelector('#lk-timer'); if (!el) return;
     if (S.timerDeadline == null) { el.style.display = 'none'; return; }
     const rem = Math.max(0, Math.round((S.timerDeadline - Date.now()) / 1000));
@@ -642,6 +734,11 @@ export function mountLeikur(root) {
     S.state = json;
     // Klukka: festa á ALGILD tímamörk (epoch) → stöðug milli poll-a og reload-a (engin endur-ræsing). Fallback á secondsLeft f. eldri þjón.
     S.timerDeadline = (json.phase === 'decide' && json.deadlineTs) ? json.deadlineTs * 1000 : ((json.phase === 'decide' && json.secondsLeft != null) ? Date.now() + json.secondsLeft * 1000 : null);
+    // ÞJÓÐARSÁTT: Karphús-frestur (epoch, sek eða ms frá verk 2) → niðurtalningin í borðanum (tickTimer).
+    const _kh = json.satt && json.satt.karphus;
+    S.karphusDeadline = (json.phase === 'decide' && _kh && _kh.open)
+      ? (_kh.until ? (+_kh.until < 1e12 ? +_kh.until * 1000 : +_kh.until) : (_kh.secondsLeft != null ? Date.now() + Math.max(0, +_kh.secondsLeft) * 1000 : null))
+      : null;
     if (S.role === 'team' && S.teamId == null && json.you && json.you.teamId != null) {
       S.teamId = json.you.teamId;
       try { localStorage.setItem(lsTeam(S.code), JSON.stringify({ token: S.token, teamId: S.teamId })); } catch (e) {}
@@ -671,11 +768,12 @@ export function mountLeikur(root) {
     const diff = (root.querySelector('#lk-difficulty') || {}).value; if (diff === 'easy' || diff === 'hard') body.difficulty = diff; // Fasi E
     const surprise = !!(root.querySelector('#lk-surprise') && root.querySelector('#lk-surprise').checked); if (surprise) body.surprise = true; // Fasi „skemmtun 3"
     const thoka = !!(root.querySelector('#lk-thoka') && root.querySelector('#lk-thoka').checked); if (thoka) body.thoka = true; // ÞOKA: config.thoka (þjónninn síar /state f. liðin)
+    const satt = !!(root.querySelector('#lk-satt') && root.querySelector('#lk-satt').checked); if (satt) body.satt = true; // ÞJÓÐARSÁTT: config.satt (fangaklemma í KT3+KT6)
     const errEl = root.querySelector('#lk-create-err'); if (errEl) errEl.textContent = 'Stofna leik…';
     const { status, json } = await api('/create', { method: 'POST', body });
     if (!json.code) { if (errEl) errEl.innerHTML = createErrHtml(json.error, status); return; }
     localStorage.setItem(lsFac(json.code), json.facToken);
-    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka });
+    rememberFacCfg(json.code, { mode: studio ? 'studio' : 'classic', difficulty: body.difficulty || 'medium', timerMin: timerMin > 0 ? Math.round(timerMin) : 0, surprise, roles, thoka, satt });
     location.href = '/leikur/?g=' + json.code;
   }
   async function joinGame(joinCode, name) {
@@ -737,7 +835,8 @@ export function mountLeikur(root) {
     if (errEl) errEl.textContent = e === 'running' ? 'Leikurinn er í gangi — stöðvaðu hann fyrst (⏹️ Stöðva leik) og eyddu svo.' : e === 'auth' ? 'Leikstjóra-táknið gildir ekki fyrir þennan leik.' : 'Tókst ekki að eyða leik' + (e ? ' (' + e + ')' : '') + ' — reyndu aftur.';
     if (btn) btn.disabled = false;
   }
-  const submitDecisions = () => act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: S.draft, locked: true }, token: S.token }); S.unlocked = false; });
+  // ÞJÓÐARSÁTT: viðvörun ef læst án afstöðu (telst 'saekja') + valið fylgir decisions-body (decisions.satt).
+  const submitDecisions = () => { if (!sattLockCheck(S.state)) return; return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: S.state.round, decisions: (S.state.satt && S.state.satt.on && S.state.satt.lota) ? { ...S.draft, satt: sattValAf(S.state) } : S.draft, locked: true }, token: S.token }); S.unlocked = false; }); };
 
   // ── Teikning ──
   function card(title, body) { return '<div class="lk-card"><h2>' + esc(title) + '</h2>' + body + '</div>'; }
@@ -886,6 +985,103 @@ export function mountLeikur(root) {
       attHtml = '<p class="lk-muted lk-thoka-fine">📐 Áttir markmiðanna (hækkandi/lækkandi, yfir/undir markmiði) birtast frá kjörtímabili 3 — þær þurfa tvær mælingar.</p>';
     }
     return '<div class="lk-card lk-thoka-past"><h2>📰 Það sem vitað er um síðasta kjörtímabil <span class="lk-muted lk-thoka-h2s">' + esc(termTxt(prev)) + '</span></h2>' + headsHtml + stigHtml + stabHtml + attHtml + '</div>';
+  }
+
+  // ── ÞJÓÐARSÁTTIN — mount-innri hlutar (þurfa S): val-spjald liðs, Karphús-borði, fac-spjald, læsingar-vörn. ──
+  // st.satt.on = rofinn er kveiktur (ALLAR lotur); st.satt.lota = ÞESSI lota er sáttar-lota (boolean frá þjóni).
+  const sattOnSt = (st) => !!(st && st.phase === 'decide' && st.satt && st.satt.on && st.satt.lota);
+  // Samstilla eigið val við þjóns-drögin (st.satt.val — liðsfélagi gæti hafa valið á öðru tæki) — einu sinni per lotu,
+  // sama mynstur og S.dilRound/dilemmaDraft.
+  function sattSyncDraft(st) {
+    if (S.sattRound === st.round) return;
+    S.sattRound = st.round;
+    S.sattDraft = (st.satt && (st.satt.val === 'satt' || st.satt.val === 'saekja')) ? st.satt.val : null;
+  }
+  // VIRKT sáttar-val liðsins: eigið val ÞESSARAR lotu ef til, annars þjóns-drögin (liðsfélagi valdi á öðru tæki).
+  // RÝNI-LAGFÆRING (fjölspilunar-gat): allir POST-ar sendu `S.sattDraft || null` — liðsfélagi sem hreyfði sleða
+  // (pushDraft) eða læsti ÁN þess að hafa smellt sjálfur ÞURRKAÐI þá út val hins (INSERT OR REPLACE skiptir allri
+  // röðinni út og þjónninn eyðir satt:null). Sama fall notast í sel-birtingu spjaldins svo val félagans SJÁIST á
+  // báðum tækjum, í læsingar-vörninni og í öllum POST-um → vörnin og sendingin lesa alltaf sama gildið.
+  const sattValAf = (st) => {
+    if (S.sattRound === (st && st.round) && S.sattDraft != null) return S.sattDraft;
+    const sv = st && st.satt && st.satt.val;
+    return (sv === 'satt' || sv === 'saekja') ? sv : null;
+  };
+  // Val-spjaldið í decide (undir atviks-spjaldinu, eða efst ef ekkert atvik): tveir stórir kostir MEÐ orðalýsingu
+  // á klemmunni en ÁN talna — það er klemman. Valið vistast strax (sattPush) svo fac sjái „hverjir hafa valið".
+  function sattCard(st) {
+    if (!sattOnSt(st) || S.role !== 'team') return '';
+    sattSyncDraft(st);
+    const sel = sattValAf(st);   // eigið val EÐA val liðsfélaga af öðru tæki (þjóns-drögin) — sést á báðum tækjum
+    const opt = (v) => '<button type="button" class="lk-satt-opt' + (sel === v.key ? ' sel' : '') + '" data-satt="' + v.key + '"><span class="lk-satt-opt-h">' + v.icon + ' ' + esc(v.label) + '</span><span class="lk-satt-opt-b">' + esc(v.blurb) + '</span></button>';
+    return '<div class="lk-card lk-satt-card"><h2>' + esc(SATT_TEXTI.titill) + ' <span class="lk-satt-tag">kjörtímabil ' + st.round + '</span></h2>'
+      + '<p class="lk-satt-q">' + esc(SATT_TEXTI.spurning) + '</p>'
+      + '<div class="lk-satt-opts">' + opt(SATT_VAL.satt) + opt(SATT_VAL.saekja) + '</div>'
+      + '<div class="lk-satt-klemma"><b>Klemman</b> — engar tölur, og þið vitið ekki hvað hin liðin velja:<ul>'
+      + '<li>Ef <b>allir halda</b>: verðbólgan hjaðnar og kaupmátturinn heldur — stöðugleikinn skilar sér til allra.</li>'
+      + '<li>Ef <b>þið sækið fram meðan hin halda</b>: ábati strax fyrir ykkur — en þið kyndið eigin verðbólgu og sáttar-liðin sitja uppi með smitið.</li>'
+      + '<li>Ef <b>flestir sækja fram</b>: verðbólguspírall sem étur ávinninginn af öllum.</li></ul></div>'
+      + '<p class="lk-muted lk-satt-blint">🙈 ' + esc(SATT_TEXTI.blint) + '</p>'
+      + (sel == null ? '<p class="lk-satt-warn">⚠ ' + esc(SATT_TEXTI.ekkiValid) + '</p>' : '')
+      + '</div>';
+  }
+  // Gull-borðinn „Karphúsið er opið" — efst á ÖLLUM liðs-skjám í decide meðan fac heldur hléinu opnu; watch fær
+  // stóru útgáfuna (big). Niðurtalningin (#lk-karphus-t) tikkar í tickTimer af S.karphusDeadline. Enginn chat —
+  // hléið er TÍMI + leyfi til að tala saman í herberginu.
+  function karphusBanner(st, big) {
+    if (!sattOnSt(st)) return '';
+    const kh = st.satt.karphus || {};
+    if (!kh.open) return '';
+    let t = '';
+    if (kh.until && S.karphusDeadline != null) { const rem = Math.max(0, Math.round((S.karphusDeadline - Date.now()) / 1000)); t = ' <b class="lk-karphus-t" id="lk-karphus-t">' + fmtTimer(rem) + ' eftir</b>'; }
+    return '<div class="lk-karphus-bordi' + (big ? ' lk-karphus-big' : '') + '" role="status">🏛️ <b>Karphúsið er opið — talið saman.</b> <span class="lk-karphus-sub">Leikstjórinn lokar hléinu og þá læsa liðin valinu sínu.</span>' + t + '</div>';
+  }
+  // Fac í decide sáttar-lotu: „hverjir hafa valið" (nafn + ✓/– og VALIÐ sjálft — aðeins fac sér það) + Karphús-hnappar.
+  // Valin: st.satt.valin = { teamId: 'satt'|'saekja'|null } (eðlileg framlenging samningsins; vanti hún sýnast öll '–').
+  function sattFacCard(st) {
+    if (!sattOnSt(st) || S.role !== 'fac') return '';
+    const kh = st.satt.karphus || {};
+    // Valin: þjónninn sendir FYLKI [{teamId,name,val,locked}] (aðeins fac); eldra map-form þolað sem varaleið.
+    const valin = st.satt.valin || st.sattValin || null;
+    const row = (name, v, locked) => {
+      const vv = (v === 'satt' || v === 'saekja') ? SATT_VAL[v] : null;
+      return '<div class="lk-lb-row"><span>' + esc(name) + (locked ? ' <span class="lk-muted" title="Liðið hefur læst">🔒</span>' : '') + '</span><span>' + (vv ? '✓ ' + vv.icon + ' <b>' + esc(vv.label) + '</b>' : '<span class="lk-muted">– hefur ekki valið</span>') + '</span></div>';
+    };
+    const rows = Array.isArray(valin)
+      ? valin.map((r) => row(r.name != null ? r.name : ('Lið ' + r.teamId), r.val, r.locked)).join('')
+      : (st.teams || []).map((t) => row(t.name, valin ? (valin[t.id] != null ? valin[t.id] : valin[String(t.id)]) : undefined, false)).join('');
+    const btn = kh.open
+      ? '<button class="lk-btn" id="lk-karphus-close" style="background:#e8c14a;color:#0e1116;font-weight:700">🏛️ Loka Karphúsinu</button> <span class="lk-muted" style="font-size:12px">opið — liðin tala saman í herberginu' + ((kh.until && S.karphusDeadline != null) ? ' (<b id="lk-karphus-t">–:––</b>)' : '') + '</span>'
+      : '<button class="lk-btn" id="lk-karphus-open">🏛️ Opna Karphús (3 mín)</button> <span class="lk-muted" style="font-size:12px">hlé þar sem öll lið sjá gull-borðann og tala saman — ekkert innbyggt spjall.</span>';
+    return '<div class="lk-card lk-satt-card"><h2>🤝 Þjóðarsátt — hverjir hafa valið <span class="lk-satt-tag">aðeins þú sérð valin</span></h2>' + rows
+      + '<div style="margin-top:10px">' + btn + '</div>'
+      + '<p class="lk-muted" style="font-size:12px;margin:8px 0 0">Lið sem læsir án þess að velja telst „Sækja fram". Segðu liðunum EKKI áhrifatölurnar fyrirfram — fylkið er debrief-efni (sjá handbókina).</p></div>';
+  }
+  // Fac-blokkin eftir fasa: decide → val-yfirlit+Karphús; resolved/ended → afhjúpunin stór + debrief-punktur.
+  function sattFacBlok(st) {
+    if (st.phase === 'decide') return sattFacCard(st);
+    if ((st.phase === 'resolved' || st.phase === 'ended') && S.role === 'fac') return sattResultsCard(st, { debrief: (SATT_HANDBOOK.debrief_spurningar || [])[0] || '' });
+    return '';
+  }
+  // Watch í decide: „Þjóðarsátt í gangi — lið velja" (ÁN vals) + Karphús-niðurtalningin stór.
+  function sattWatchBordi(st) {
+    if (!sattOnSt(st)) return '';
+    return karphusBanner(st, true) + '<div class="lk-satt-bordi">🤝 <b>' + esc(SATT_TEXTI.watch) + '</b> — blint tvíkosta-val: Þjóðarsátt eða Sækja fram. Valin afhjúpast í uppgjörinu.</div>';
+  }
+  // Viðvörun við Læsa-hnapp: engin afstaða í sáttar-lotu telst 'saekja' — confirm áður en læst er.
+  function sattLockCheck(st) {
+    if (!sattOnSt(st)) return true;
+    const val = sattValAf(st);   // SAMA gildi og POST-inn sendir — vörnin lýgur aldrei um það sem læsist
+    if (val) return true;
+    return typeof confirm !== 'function' ? true : confirm(SATT_TEXTI.ekkiValid + '\n\nLæsa samt?');
+  }
+  // Ýta valinu á þjón strax (locked:false) svo fac sjái „hverjir hafa valið" og liðsfélagar deili valinu.
+  // Studio fer um pushDraft (satt fylgir studio-drögunum); classic sendir eigin drög (S.draft-form + satt).
+  function sattPush(st) {
+    if (st.mode === 'studio') return pushDraft(st);
+    const you = (S.state && S.state.you) || (st && st.you);
+    if (you && you.locked && !S.unlocked) return;   // GALLI B: má ekki aflæsa þegjandi
+    api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { ...S.draft, satt: sattValAf(st) }, locked: false }, token: S.token });
   }
 
   // ── F2-V2: atviks-popup með mynd ──────────────────────────────────────────
@@ -1173,7 +1369,9 @@ export function mountLeikur(root) {
       + '<label id="lk-set-difficulty">🎚️ Erfiðleikastig: <select id="lk-difficulty" style="padding:4px 6px;margin-left:4px">' + ['easy', 'medium', 'hard'].map((k) => '<option value="' + k + '"' + ((last.difficulty || 'medium') === k ? ' selected' : '') + '>' + esc(DIFF_LABEL(k)) + '</option>').join('') + '</select> <span class="lk-muted">(skalar markmið, áföll og refsingar)</span></label>'
       + '<label id="lk-set-surprise"><input type="checkbox" id="lk-surprise"' + (last.surprise ? ' checked' : '') + '/>🎲 Óvænt atvik — eldgos, verkföll, hneyksli o.fl. dúkka upp með klemmu-vali <span class="lk-muted">(sama fyrir öll lið)</span></label>'
       // ÞOKA: valfrjáls leikstilling við hlið óvæntra atvika (ekki erfiðleikastig) — config.thoka, sjálfgefið slökkt.
-      + '<label id="lk-set-thoka"><input type="checkbox" id="lk-thoka"' + (last.thoka ? ' checked' : '') + '/>🌫️ Hagstjórn í þoku — ' + esc(THOKA_BLURB) + ' <span class="lk-muted">(þú og skjávarpinn sjáið áfram allt)</span></label></div>';
+      + '<label id="lk-set-thoka"><input type="checkbox" id="lk-thoka"' + (last.thoka ? ' checked' : '') + '/>🌫️ Hagstjórn í þoku — ' + esc(THOKA_BLURB) + ' <span class="lk-muted">(þú og skjávarpinn sjáið áfram allt)</span></label>'
+      // ÞJÓÐARSÁTT: valfrjáls leikstilling (config.satt) — fangaklemma þvert á lið í sáttar-lotunum (sjálfgefið KT3+KT6).
+      + '<label id="lk-set-satt"><input type="checkbox" id="lk-satt"' + (last.satt ? ' checked' : '') + '/>🤝 Þjóðarsáttin — ' + esc(SATT_BLURB) + ' <span class="lk-muted">(sáttar-lotur: KT3 „hrunið" og KT6 „verðbólguskotið")</span></label></div>';
     const createCard = '<div class="lk-card" id="lk-create-card"><h2>🎓 Leikstjóri</h2><div class="lk-onb-cta"><button class="lk-btn lk-onb-big" id="lk-create">🎓 Stofna nýjan leik</button><a href="#" id="lk-guide" class="lk-onb-guide">📖 Svona keyrirðu vinnustofu (5 mín)</a></div><div id="lk-create-err" class="lk-err" aria-live="polite"></div>' + settings
       + '<p class="lk-muted" style="font-size:12.5px;margin:10px 0 0">🛠️ <a href="#" id="lk-createcustom">Sérsníða leik…</a> — eigin sviðsmynd, umboð og fjöldi umferða.' + (untilTxt ? ' · Leikstjóra-aðgangur gildir til <b>' + esc(untilTxt) + '</b>.' : '') + '</p></div>';
     const joinCard = '<div class="lk-card" id="lk-join-card"><h2>Lið — ganga inn</h2><input id="lk-code" placeholder="KÓÐI" maxlength="6" value="' + esc(S.joinPrefill) + '" style="text-transform:uppercase;padding:8px;margin-right:6px" /> <input id="lk-name" placeholder="Liðsheiti (t.d. Rauða liðið)" maxlength="40" style="padding:8px;margin-right:6px" /> <button class="lk-btn" id="lk-join">Ganga inn</button><p class="lk-muted" style="font-size:12.5px;margin:8px 0 0">Kennarinn (leikstjóri) gefur þér 5 stafa kóða. Eitt tæki per lið dugar — félagar ganga í sama lið með boðs-hlekk.</p><p class="lk-muted" style="font-size:12px;margin:4px 0 0">🙈 Liðsheitið birtist á stigatöflu og skjávarpa — veljið hlutlaust heiti, ekki nöfn ykkar. Leiknum er eytt sjálfkrafa eftir 90 daga. <a href="/leikur/personuvernd/">Persónuvernd í leiknum</a></p></div>';
@@ -1224,8 +1422,26 @@ export function mountLeikur(root) {
         + (Array.isArray(TH.debrief_spurningar) && TH.debrief_spurningar.length ? '<div style="margin:4px 0"><b>💬 Debrief-spurningar:</b><ul style="margin:3px 0 0;padding-left:18px">' + TH.debrief_spurningar.map((q) => '<li style="margin:2px 0">' + esc(q) + '</li>').join('') + '</ul></div>' : '')
         + '</div></details>'
       : '';
+    // ÞJÓÐARSÁTT: leikstjóra-blað fyrir sáttar-leik (SATT_HANDBOOK, ein uppspretta): hvernig keyra Karphúsið,
+    // debrief-spurningar og FYLKIÐ (textaútgáfa af SATT_FYLKI) — sýnt hópnum í debrief, EKKI fyrirfram.
+    const SH = SATT_HANDBOOK;
+    const sattHb = (facCfg(st).satt === true && SH)
+      ? '<details data-keep="hb-satt"' + (S.openDetails.has('hb-satt') ? ' open' : '') + ' style="margin:5px 0;border:1px solid #e8c14a88;border-radius:8px;padding:8px 12px;background:rgba(232,193,74,.06)">'
+        + '<summary style="cursor:pointer;font-weight:700;font-size:13.5px">🤝 ' + esc(SH.heiti || 'Þjóðarsáttin') + ' — fangaklemman er í þessum leik</summary>'
+        + '<div style="font-size:12.8px;line-height:1.55;margin-top:6px">'
+        + '<p style="margin:2px 0"><b>Hvað gerist:</b> ' + esc(SH.blurb || '') + '</p>'
+        + (SH.hvernig_keyra ? '<p style="margin:4px 0"><b>🎬 Svona keyrirðu hana:</b> ' + esc(SH.hvernig_keyra) + '</p>' : '')
+        + (SH.hvers_vegna ? '<p style="margin:4px 0"><b>📚 Sagan (1990):</b> ' + esc(SH.hvers_vegna) + '</p>' : '')
+        + (Array.isArray(SH.fylki_til_toflu) && SH.fylki_til_toflu.length
+          ? '<div style="margin:4px 0"><b>📊 Fylkið</b> <span class="lk-muted">(sýna í debrief — EKKI fyrirfram)</span>:'
+            + '<table class="lk-tbl" style="margin-top:4px"><tr><th>Útkoma</th><th>Lið</th><th>Áhrif á uppgjörs-KPI</th></tr>'
+            + SH.fylki_til_toflu.map((r) => '<tr><td>' + esc(r.utkoma) + '</td><td>' + esc(r.lid) + '</td><td>' + esc(r.ahrif || '—') + '</td></tr>').join('') + '</table></div>'
+          : '')
+        + (Array.isArray(SH.debrief_spurningar) && SH.debrief_spurningar.length ? '<div style="margin:4px 0"><b>💬 Debrief-spurningar:</b><ul style="margin:3px 0 0;padding-left:18px">' + SH.debrief_spurningar.map((q) => '<li style="margin:2px 0">' + esc(q) + '</li>').join('') + '</ul></div>' : '')
+        + '</div></details>'
+      : '';
     // VERK B: „?"-hnappur við hlið handbókar opnar uppsetningar-vísinn aftur (eftir lok/sleppingu).
-    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + thokaHtml + HANDBOOK.map(entry).join('') + '</div>';
+    return '<div class="lk-card"><h2 class="lk-onb-h2">📖 Kennsluhandbók leikstjóra <button type="button" class="lk-onb-help" id="lk-onb-open" title="Opna uppsetningar-vísi (4 skref)" aria-label="Opna uppsetningar-vísi">?</button></h2><p class="lk-muted" style="font-size:12px;margin:0 0 6px">Leiðsögn fyrir hvert kjörtímabil — hvað ber að varast og hvaða stillingar henta best (grunduð í herminum + hagsögunni). Aðeins sýnilegt þér. Á Erfitt eru böndin þrengri og áföllin harðari — minna svigrúm fyrir mistök.</p>' + thokaHtml + sattHb + HANDBOOK.map(entry).join('') + '</div>';
   }
   // VERK B: stillingar leiksins eins og leikstjóri sér þær í lobby. Þjóns-sannleikur þar sem hann er til (mode/difficulty;
   // timerSec/surpriseOn/rolesOn EF þjónninn bætir þeim í lobby-state), annars það sem vafrinn man frá stofnun; annar vafri → „óþekkt".
@@ -1239,16 +1455,20 @@ export function mountLeikur(root) {
     const roles = typeof st.rolesOn === 'boolean' ? st.rolesOn : (st.roleMap ? true : (loc ? !!loc.roles : null));
     // ÞOKA: þjóns-sannleikur ef hann fylgir fac-state (thokaOn-flagg EÐA st.thoka.on), annars það sem vafrinn man frá stofnun.
     const thoka = typeof st.thokaOn === 'boolean' ? st.thokaOn : (st.thoka && typeof st.thoka.on === 'boolean' ? st.thoka.on : (loc ? !!loc.thoka : null));
+    // ÞJÓÐARSÁTT: þjóns-sannleikur ef hann fylgir (sattOn-flagg EÐA st.satt.on), annars það sem vafrinn man frá stofnun.
+    const satt = typeof st.sattOn === 'boolean' ? st.sattOn : (st.satt && typeof st.satt.on === 'boolean' ? st.satt.on : (loc ? !!loc.satt : null));
     return { mode, modeTxt: mode === 'studio' ? '🎛️ Stjórnstöð (sleðar + lifandi gröf)' : 'Einföld val', difficulty, difficultyTxt: DIFF_LABEL(difficulty),
       timerMin, timerTxt: timerMin == null ? unk : (timerMin > 0 ? timerMin + ' mín per lotu' : 'engin'),
       surprise, surpriseTxt: surprise == null ? unk : (surprise ? 'kveikt' : 'slökkt'), roles, rolesTxt: roles == null ? unk : (roles ? 'kveikt' : 'slökkt'),
-      thoka, thokaTxt: thoka == null ? unk : (thoka ? 'kveikt — liðin sjá hagtölur með eins kjörtímabils töf' : 'slökkt') };
+      thoka, thokaTxt: thoka == null ? unk : (thoka ? 'kveikt — liðin sjá hagtölur með eins kjörtímabils töf' : 'slökkt'),
+      satt, sattTxt: satt == null ? unk : (satt ? 'kveikt — fangaklemma þvert á lið í sáttar-lotunum (sjálfgefið KT3 og KT6)' : 'slökkt') };
   }
   function settingsCard(st) {
     const c = facCfg(st), real = (st.teams || []).filter((t) => !isBotTeam(t));
     const row = (id, k, v) => '<div class="lk-lb-row"' + (id ? ' id="' + id + '"' : '') + '><span>' + k + '</span><span><b>' + esc(v) + '</b></span></div>';
-    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
+    return '<div class="lk-card" id="lk-settings"><h2>⚙️ Stillingar leiksins</h2>' + row('', '🎛️ Hamur', c.modeTxt) + row('', '🎚️ Erfiðleikastig', c.difficultyTxt) + row('', '⏱️ Umferðar-klukka', c.timerTxt) + row('lk-set-surprise', '🎲 Óvænt atvik', c.surpriseTxt) + row('lk-set-thoka', '🌫️ Hagstjórn í þoku', c.thokaTxt) + row('lk-set-satt', '🤝 Þjóðarsáttin', c.sattTxt) + row('', '🎭 Leynileg hlutverk', c.rolesTxt)
       + (c.thoka ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🌫️ ' + esc(THOKA_BLURB) + ' Þú og skjávarpinn sjáið áfram allt; tölurnar afhjúpast fyrir liðin við hvert uppgjör.</p>' : '')
+      + (c.satt ? '<p class="lk-muted" style="font-size:12px;margin:6px 0 0">🤝 ' + esc(SATT_BLURB) + '</p>' : '')
       + '<p class="lk-muted" style="font-size:12px;margin:8px 0 0">Stillingar veljast þegar leikur er stofnaður' + (st.phase === 'lobby' && !real.length ? ' — <a href="/leikur/">stofna nýjan leik með öðrum stillingum</a> (ekkert lið komið enn)' : '') + '.</p></div>';
   }
   const joinLink = () => location.origin + '/leikur/?join=' + encodeURIComponent(S.code || '');
@@ -1282,7 +1502,7 @@ export function mountLeikur(root) {
     // Lobby: uppsetningar-röð (stillingar → lið → ræsa) ofar handbókinni; aðrir fasar: óbreytt röð (+ stillingaspjald aðeins meðan vísir er opinn).
     root.innerHTML = st.phase === 'lobby'
       ? header + settingsCard(st) + teamsCard + controlsCard + handbookCard(st) + roleMapCard(st) + leaderboard(st) + analyticsCard
-      : header + eventCard + (S.onb ? settingsCard(st) : '') + handbookCard(st) + teamsCard + roleMapCard(st) + controlsCard + leaderboard(st) + analyticsCard;
+      : header + eventCard + sattFacBlok(st) + (S.onb ? settingsCard(st) : '') + handbookCard(st) + teamsCard + roleMapCard(st) + controlsCard + leaderboard(st) + analyticsCard;
     const b = (id, fn) => { const el = root.querySelector(id); if (el) el.onclick = fn; };
     b('#lk-start', () => { if (S.onb) onbClose(true); control('start'); }); b('#lk-resolve', () => control('resolve')); b('#lk-next', () => control('next'));
     b('#lk-stop', () => control('stop')); b('#lk-newgame', () => { location.href = '/leikur/'; });
@@ -1292,6 +1512,9 @@ export function mountLeikur(root) {
     b('#lk-joinlink', () => copyText(joinLink(), root.querySelector('#lk-joinlink'), '✅ Hlekkur afritaður'));
     b('#lk-watchlink', () => copyText(watchLink(), root.querySelector('#lk-watchlink'), '✅ Áhorfenda-hlekk afritaður'));
     b('#lk-bot', () => addBotTeam());
+    // ÞJÓÐARSÁTT: Karphús-hléið (fac-control 'karphus') — opna með 3 mín sjálfgefið, loka hvenær sem er.
+    b('#lk-karphus-open', () => act(() => api('/' + S.code + '/control', { method: 'POST', body: { action: 'karphus', open: true, minutes: 3 }, token: S.token })));
+    b('#lk-karphus-close', () => act(() => api('/' + S.code + '/control', { method: 'POST', body: { action: 'karphus', open: false }, token: S.token })));
     b('#lk-onb-open', () => onbStart());
     // VERK B: vísirinn opnast sjálfkrafa í FYRSTA lobby þessa vafra (localStorage-flagg vantar); annars aðeins um „?".
     if (st.phase === 'lobby' && !S.onb && !S.onbSeen && !onbDone()) { S.onb = { step: 0 }; S.onbScrolled = null; S.onbSig = null; }
@@ -1334,7 +1557,7 @@ export function mountLeikur(root) {
   }
   function onbClearHl() { root.querySelectorAll('.lk-onb-hl').forEach((el) => { el.classList.remove('lk-onb-hl'); el.style.animationDelay = ''; }); }
   // Skotmörk per skref: 1 kóða-spjaldið · 2 stillingar · 3 óvænt-atvik-röðin · 4 áhorfenda-hlekkur + Ræsa-hnappur.
-  const ONB_TARGETS = [['#lk-code-card', '#lk-create-card'], ['#lk-settings'], ['#lk-set-surprise', '#lk-set-thoka'], ['#lk-watchlink', '#lk-start']];
+  const ONB_TARGETS = [['#lk-code-card', '#lk-create-card'], ['#lk-settings'], ['#lk-set-surprise', '#lk-set-thoka', '#lk-set-satt'], ['#lk-watchlink', '#lk-start']];
   function onbApplyHl() {
     onbClearHl(); if (!S.onb) return;
     const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1370,6 +1593,7 @@ export function mountLeikur(root) {
       title = '3 · Kveiktu á óvæntum atvikum?';
       body = '<p>Frá 2. kjörtímabili getur óvænt atvik dúkkað upp (um helmings líkur per lotu): 🌋 eldgos, ✊ verkföll, 🐟 makríll, 📰 spillingarmál, 🏭 gagnaver… Sama atvik fyrir öll lið; sum bjóða <b>klemmu-val</b> sem liðið þarf að taka afstöðu til — og valið sést á Íslandskortinu.</p><p><b>Ráðlegging:</b> slökkt í fyrstu keyrslu (lærið grunn-hringrásina), <b>kveikt eftir það</b> — atvikin gera umræðuna líflegri.</p>'
         + '<p>🌫️ <b>Hagstjórn í þoku</b> (valkostur við hliðina): ' + esc(THOKA_BLURB) + '</p>'
+        + '<p>🤝 <b>Þjóðarsáttin</b> (valkostur við hliðina): ' + esc(SATT_BLURB) + '</p>'
         + (live ? '<p class="lk-onb-now">Í þessum leik: óvænt atvik <b>' + esc(cfg.surpriseTxt) + '</b> · þoka <b>' + esc(cfg.thoka == null ? 'óþekkt' : cfg.thoka ? 'kveikt' : 'slökkt') + '</b>.</p>' : '');
     } else {
       title = '4 · Opnaðu skjávarpann';
@@ -1626,7 +1850,7 @@ export function mountLeikur(root) {
       // F3-V3: lokastaða kortsins við hlið „Ísland ykkar 2032"-blokkarinnar (grid 2 dálkar á breiðum skjá).
       const kortH = kortCardMitt(st), recapH = uppsafnadRecap(st, S.teamId);
       const lokaBlokk = (kortH && recapH) ? '<div class="lk-kort-loka">' + kortH + recapH + '</div>' : kortH + recapH;
-      root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + politikFerillCard(st) + teamRecap(st)
+      root.innerHTML = frontPage + teamBanner(st) + lokaBlokk + politikFerillCard(st) + sattEndCard(st) + teamRecap(st)
         + '<p class="lk-muted lk-saga-loka">📜 Berðu ferilinn ykkar saman við söguna í uppgjörum lotanna.</p>'   // VERK 6: loka-línan
         + revealCard(st) + leaderboard(st);
       const sb = root.querySelector('#lk-share'); if (sb) sb.onclick = () => { try { navigator.clipboard.writeText(shareText); sb.textContent = '✅ Afritað!'; } catch (e) { sb.textContent = shareText; } };
@@ -1640,7 +1864,9 @@ export function mountLeikur(root) {
     maybeSepop(st);   // F2-V2: atviks-popup — fyrir bæði studio og classic decide-sýn (einu sinni per lotu)
     // Studio: byggja stjórnstöðina EINU SINNI per umferð; poll uppfærir Á STAÐNUM (án þess að clobber-a sleða).
     if (st.mode === 'studio') {
-      const sig = 'studio|' + st.round;
+      // ÞJÓÐARSÁTT: Karphús-staðan er hluti undirskriftarinnar — poll uppfærir studio Á STAÐNUM (updateStudio) og
+      // borðinn birtist/hverfur annars aldrei þegar leikstjórinn opnar/lokar hléinu mitt í lotu.
+      const sig = 'studio|' + st.round + '|kh' + ((st.satt && st.satt.on && st.satt.karphus && st.satt.karphus.open) ? 1 : 0);
       if (S.studioBuiltSig === sig && root.querySelector('#lk-st-sliders')) return updateStudio(st);
       S.studioBuiltSig = sig; S.localTouched = new Set();
       return renderStudio(st);
@@ -1655,10 +1881,12 @@ export function mountLeikur(root) {
     }).join('');
     const ready = st.decisions.every((d) => S.draft[d.id] != null);
     root.innerHTML =
+      karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
       '<div class="lk-pmh-solo">' + pmHeadHtml() + '</div>' +   // VERK 2: ráðherrann efst t.h., FYRIR OFAN liðs-borðann (classic hefur engan term-head)
       teamBanner(st) + roleBanner(st) +
       card('📋 Umferð ' + st.round + ': ' + ev.title, '<p>' + esc(ev.text) + '</p>' + (st.secondsLeft != null ? '<div style="margin-top:6px">' + timerBadge(st) + '</div>' : '')) +
       thokaBanner(st) + thokaPastCard(st) +   // ÞOKA: borði undir kjörtímabils-hausnum (atburðar-spjaldið í classic) + „það sem vitað er"
+      sattCard(st) +   // ÞJÓÐARSÁTT: val-spjaldið undir atviks-spjaldinu
       '<div class="lk-card"><h2>Ákvarðanir liðsins</h2>' + decHtml +
       '<button class="lk-btn" id="lk-lock"' + (ready ? '' : ' disabled') + ' style="margin-top:10px">Læsa ákvörðunum</button>' +
       (ready ? '' : '<p style="color:var(--muted);font-size:13px">Veldu í öllum flokkum til að læsa.</p>') + '</div>' +
@@ -1774,6 +2002,7 @@ export function mountLeikur(root) {
       }
     }
     root.innerHTML = teamBanner(st) + fellBanner + roleBanner(st)
+      + sattResultsCard(st, { myTeamId: S.teamId })   // ÞJÓÐARSÁTT: afhjúpunin — hver valdi hvað, flokkur, áhrif, kennslusetning
       + kortCardMitt(st)   // F3-V3: „🇮🇸 Ísland ykkar" efst í results (plássið sem orsaka-keðjan hafði)
       + sagaCard(st)   // VERK 6: „📜 Svona fór það í alvöru" — strax eftir Íslandskortið
       + debriefHtml + card('📊 Skorkort — umferð ' + st.round, scorecard)
@@ -1974,11 +2203,12 @@ export function mountLeikur(root) {
     // VERK 5: arfleifðin birtist á NÁKVÆMLEGA tveimur stöðum: stuttar badge-flísar (policyBadgesRow)
     // FYRIR OFAN liðs-borðann og EITT 📋-spjald (carryoverCard, textar+deltas) FYRIR NEÐAN hann.
     root.innerHTML =
+      karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (decide)
       ribbonHtml(st) +
       `<div class="lk-term-head lk-pmh-row"><div class="lk-pmh-left"><span class="lk-term-badge">Kjörtímabil ${st.round}/8 · ${y0}–${y1}</span>${st.difficulty && st.difficulty !== 'medium' ? '<span class="lk-term-badge" style="background:#3a2f1a">🎚️ ' + (st.difficulty === 'hard' ? 'Erfitt' : 'Létt') + '</span>' : ''}${thokaOn(st) ? '<span class="lk-term-badge lk-thoka-badge" title="' + esc(THOKA_BLURB) + '">🌫️ Þoka</span>' : ''}${timerBadge(st)}<h1 class="lk-term-title">${ev && ev.icon ? ev.icon + ' ' : ''}${ev ? esc(ev.title) : 'Kjörtímabil ' + st.round}</h1>${ev ? '<p class="lk-term-text">' + esc(ev.text) + '</p>' : ''}</div>${pmHeadHtml()}</div>` +
       thokaBanner(st) +   // ÞOKA: borði STRAX undir kjörtímabils-hausnum (á undan badge-röð/arfleifð)
       policyBadgesRow(st) +   // F1-V3: badge-röð STRAX undir kjörtímabils-hausnum, á undan arfleifðar-spjaldi
-      teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) +
+      teamBanner(st) + roleBanner(st) + introBanner + newToolsBanner + carryoverCard(st) + surpriseCard(st) + sattCard(st) +
       (st.stjornarkreppa ? '<div class="lk-conflict" style="border-left-color:#e78284"><div class="lk-conflict-row"><span class="lk-conflict-ic">🚨</span><span><b>Stjórnarkreppa eftir fall stjórnarinnar.</b> Ríkisstjórnin féll í fjöldamótmælum síðasta kjörtímabil — ný stjórn tekur við löskuðu búi. Stjórnarmyndun og lömun draga úr hagvexti, atvinnuleysi eykst, skuldir hækka og fylgi byrjar mun lægra. Það þarf sterka hagstjórn til að ná vopnum sínum á ný.</span></div></div>' : '') +
       '<div class="lk-studio-main">' +
         // VERK 1: graf-dálkurinn þrískiptur — efsta röðin er 2-dálka rist: forskoðunar-mælarnir
@@ -2035,7 +2265,7 @@ export function mountLeikur(root) {
     const you = (S.state && S.state.you) || (st && st.you);
     if (you && you.locked && !S.unlocked) return;
     if (S.pushTimer) clearTimeout(S.pushTimer);
-    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null }, locked: false }, token: S.token }); }, 500);
+    S.pushTimer = setTimeout(() => { S.pushTimer = null; api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null, ...(st.satt && st.satt.on && st.satt.lota ? { satt: sattValAf(st) } : {}) }, locked: false }, token: S.token }); }, 500);
   }
   // Poll-uppfærsla Á STAÐNUM: samstillir fjar-drög í sleða sem ÞÚ ert ekki að draga/hefur ekki breytt; endurteiknar gröf. ENGIN sleða-endurbygging.
   function updateStudio(st) {
@@ -2052,7 +2282,7 @@ export function mountLeikur(root) {
     });
     drawStudioPreview(st);
   }
-  function submitStudio(st) { if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null }, locked: true }, token: S.token }); S.unlocked = false; }); }
+  function submitStudio(st) { if (!sattLockCheck(st)) return; if (S.pushTimer) { clearTimeout(S.pushTimer); S.pushTimer = null; } return act(async () => { await api('/' + S.code + '/decisions', { method: 'POST', body: { round: st.round, decisions: { levers: S.dials, policies: S.policyDraft || {}, dilemma: S.dilemmaDraft || null, ...(st.satt && st.satt.on && st.satt.lota ? { satt: sattValAf(st) } : {}) }, locked: true }, token: S.token }); S.unlocked = false; }); }
 
   // Læst-staða (A): staðfesting + samantekt + „Breyta" (aflæsa fram að resolve).
   function renderLocked(st) {
@@ -2066,9 +2296,17 @@ export function mountLeikur(root) {
       const rows = (st.decisions || []).map((d) => { const k = S.draft[d.id]; const opts = d.mode === 'response' ? ((st.event && st.event.responses) || []) : d.options; const o = (opts || []).find((x) => x.key === k); return o ? '<li>' + esc(d.label) + ': <b>' + esc(o.label) + '</b></li>' : ''; }).filter(Boolean).join('');
       summary = rows ? '<h3 style="font-size:13px;margin:8px 0 2px">Þínar ákvarðanir:</h3><ul style="margin:2px 0 0;padding-left:18px">' + rows + '</ul>' : '';
     }
+    // ÞJÓÐARSÁTT: eigin afstaða sýnd í læstu staðfestingunni (blint gagnvart hinum) — engin afstaða = telst 'saekja'.
+    let sattLine = '';
+    if (sattOnSt(st)) {
+      const v = sattValAf(st);
+      const vv = v ? SATT_VAL[v] : null;
+      sattLine = '<p class="lk-satt-locked">🤝 Þjóðarsáttin: ' + (vv ? '<b>' + vv.icon + ' ' + esc(vv.label) + '</b> <span class="lk-muted">(blint þar til uppgjör)</span>' : '<b>engin afstaða</b> — telst „Sækja fram"') + '</p>';
+    }
     root.innerHTML =
+      karphusBanner(st) +   // ÞJÓÐARSÁTT: Karphús-hléið efst á öllum liðs-skjám (líka læstum)
       teamBanner(st) + roleBanner(st) +
-      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + summary + '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button></div>' +
+      '<div class="lk-card" style="border-color:#54d08a"><h2>✅ Ákvörðunum læst — umferð ' + st.round + '</h2><p>Beðið eftir hinum liðunum og að leikstjóri leysi umferðina.</p>' + sattLine + summary + '<button class="lk-btn" id="lk-unlock" style="margin-top:12px;background:#5ac8e0">✏️ Breyta ákvörðun</button></div>' +
       leaderboard(st);
     const u = root.querySelector('#lk-unlock'); if (u) u.onclick = () => { S.unlocked = true; render(); };
   }
@@ -2140,7 +2378,9 @@ export function mountLeikur(root) {
     root.innerHTML =
       '<div class="lk-watch-head"><span class="lk-term-badge">📺 Áhorf · leikur ' + esc(st.code) + '</span>' + timerBadge(st) + '<h1 class="lk-watch-title">' + (st.phase === 'lobby' ? 'RÁS-Leikurinn — Ísland 2000–2032' : 'Kjörtímabil ' + st.round + '/8 · ' + y0 + '–' + y1) + (ev && ev.icon ? '  ' + ev.icon + ' ' + esc(ev.title) : '') + '</h1><p class="lk-muted">' + esc(phaseTxt) + '</p></div>' +
       thokaBordiWatch(st) +    // ÞOKA: skjávarpinn sýnir þoku í decide eins og liðin (þjónninn síar tákn-laust /state)
+      sattWatchBordi(st) +     // ÞJÓÐARSÁTT: „lið velja" (án vals) + Karphús-niðurtalningin stór
       winner +
+      ((st.phase === 'resolved' || st.phase === 'ended') ? sattResultsCard(st) : '') +   // ÞJÓÐARSÁTT: full afhjúpun á skjávarpa
       kortWatch(st, teams) +   // F3-V3: stórt Íslandskort efsta liðs (eða 2 hlið við hlið) — síðasta uppgjör (í þoku: N-2, tof)
       '<div class="lk-card"><h2>🏆 Stigatafla</h2><div class="lk-watch-board">' + board + '</div></div>' +
       context + chart + revealCard(st);

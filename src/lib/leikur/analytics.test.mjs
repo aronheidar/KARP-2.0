@@ -1,5 +1,5 @@
 import { buildAnalytics, teachingPrompts, teamReview } from './analytics.mjs';
-import { THOKA_HANDBOOK } from './handbook.mjs';
+import { THOKA_HANDBOOK, SATT_HANDBOOK } from './handbook.mjs';
 import { MANDATE, DECISIONS, SCENARIO } from './game-config.mjs';
 let pass = 0, fail = 0; const ok = (n, c) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n); } };
 const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
@@ -66,6 +66,22 @@ ok('teachingPrompts tóm greining → tómt', teachingPrompts(null).length === 0
   ok('þoka: sjálfgefið (flagg sleppt) = engin þoku-spurning', !tp.some((p) => p.includes('Í þoku')));
   ok('þoka: tóm greining → tómt þótt thoka=true (engar lotur = engin umræða)', teachingPrompts(null, { thoka: true }).length === 0);
   ok('þoka: þakið 8 heldur', tpT.length <= 8);
+}
+// „Þjóðarsáttin": satt=true|[{lota,flokkur}] → EIN sáttar-spurning úr SATT_HANDBOOK (á eftir þoku, á undan hinum); flagg sleppt → engin.
+{
+  const tpF = teachingPrompts(a, { scenarioEvents: scEv });
+  const tpS = teachingPrompts(a, { scenarioEvents: scEv, satt: true });
+  ok('satt: nákvæmlega 1 sáttar-spurning bætist við', tpS.length === tpF.length + 1 && tpS.filter((p) => p.includes('Þjóðarsáttin')).length === 1);
+  ok('satt: sáttar-spurningin er fremst og úr SATT_HANDBOOK', tpS[0].includes('Þjóðarsáttin') && SATT_HANDBOOK.debrief_spurningar.some((q) => tpS[0].includes(q)));
+  ok('satt: hin promptin óbreytt á eftir', JSON.stringify(tpS.slice(1)) === JSON.stringify(tpF));
+  const tp1 = teachingPrompts(a, { scenarioEvents: scEv, satt: [{ lota: 3, flokkur: 'svik' }] });
+  ok('satt: ein svika-lota → „hvers vegna sviku sum lið"', tp1[0].includes(SATT_HANDBOOK.debrief_spurningar[0]));
+  const tp2 = teachingPrompts(a, { scenarioEvents: scEv, satt: [{ lota: 3, flokkur: 'svik' }, { lota: 6, flokkur: 'samvinna' }] });
+  ok('satt: tvær lotur → „breyttist KT6 eftir KT3"', tp2[0].includes(SATT_HANDBOOK.debrief_spurningar[2]));
+  const tpTS = teachingPrompts(a, { scenarioEvents: scEv, thoka: true, satt: true });
+  ok('satt+þoka: þoka fremst, sátt þar á eftir', tpTS[0].includes('Í þoku') && tpTS[1].includes('Í þoku') && tpTS[2].includes('Þjóðarsáttin'));
+  ok('satt: sjálfgefið (flagg sleppt) = engin sáttar-spurning', !tp.some((p) => p.includes('Þjóðarsáttin')));
+  ok('satt: tóm greining → tómt þótt satt=true', teachingPrompts(null, { satt: true }).length === 0);
 }
 
 // teamReview: sterk/veik svið + fylgi + föll

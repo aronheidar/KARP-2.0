@@ -773,6 +773,194 @@ const J = async (res) => JSON.parse(await res.text());
     ok('þoka off: classic decide-lið → thokaOn false, engin thoka-blokk', cgSt.thokaOn === false && cgSt.thoka === undefined);
   }
 
+
+  // ── ÞJÓÐARSÁTTIN (config.satt, satt.mjs — fangaklemma þvert á lið): server-lagið ────────────────────────────────
+  // decisions.satt='satt'|'saekja' (vistað eins og dilemma; AÐEINS í sáttar-lotu, validerað — annars fjarlægt) ·
+  // resolve: sattUtkoma reiknuð EINU SINNI úr valum ALLRA (bots utan pottsins), applySatt EFTIR applySurprise og FYRIR
+  // govtStability/scoring, sattPop á sama stað og surprisePop; detail.sattUtkoma={val,flokkur,effect,k,n} geymt ·
+  // /state: out.sattOn + out.satt (lið sér EIGIÐ val, fac sér valin í RAUNTÍMA, watch BLINT) + out.sattUtkoma afhjúpun ·
+  // control 'karphus' (fac, aðeins decide sáttar-lotu, round-bundið í config) · þoka: sattUtkoma N-1 síað (thokaSia).
+  // Tvíburi ÁN satt með SÖMU ákvarðanir staðfestir KPI-/fylgis-áhrifin TÖLULEGA (nákvæmlega SATT_FYLKI-tölurnar).
+  {
+    const { SATT_FYLKI, sattUtkoma: sattUtkomaFn } = await import('./satt.mjs');
+    const { popularity } = await import('./flavor.mjs');
+    const mkE = () => ({ SESSION_SECRET: 'test-secret-xyz', TENGSL: mockD1() });
+    const mkGame = async (E, body, names) => {
+      const H = (r) => LH(r, E);
+      const g = await J(await H(req('/api/leikur/create', body)));
+      const teams = []; for (const nm of names) teams.push(await J(await H(req('/api/leikur/' + g.code + '/join', { name: nm }))));
+      const ctl = (b) => H(new Request('https://karp.is/api/leikur/' + g.code + '/control', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + g.facToken }, body: JSON.stringify(b) }));
+      const st = async (tok) => J(await H(new Request('https://karp.is/api/leikur/' + g.code + '/state', { headers: tok ? { authorization: 'Bearer ' + tok } : {} })));
+      const dc = (tok, round, d, locked = true) => H(new Request('https://karp.is/api/leikur/' + g.code + '/decisions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tok }, body: JSON.stringify({ round, locked, decisions: d }) }));
+      const decRow = (round, tid) => { const r = E.TENGSL._t.leikur_decisions.find((x) => x.game_code === g.code && x.round === round && x.team_id === tid); return r ? JSON.parse(r.decisions) : null; };
+      return { E, g, teams, ctl, st, dc, decRow, H };
+    };
+    const near = (a, b, eps = 1e-6) => typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < eps;
+    const det = (st, tid) => st.results.find((r) => r.teamId === tid).detail;
+    // 1) 3-liða satt-leikur (sjálfgefnar sáttar-lotur KT3+KT6) + tvíburi ÁN satt með NÁKVÆMLEGA sömu ákvörðunum
+    const S = await mkGame(mkE(), { mode: 'studio', satt: true }, ['Sátt-A', 'Sátt-B', 'Sátt-C']);
+    const U = await mkGame(mkE(), { mode: 'studio' }, ['Sátt-A', 'Sátt-B', 'Sátt-C']);
+    const [A, B, C] = S.teams, [UA, UB, UC] = U.teams;
+    ok('satt: create satt:true → code; tvíburi sömu team-id', !!S.g.code && A.teamId === UA.teamId && C.teamId === UC.teamId);
+    const l0 = await S.st(S.g.facToken);
+    ok('satt: lobby → sattOn true, EKKERT satt/sattUtkoma-svið', l0.sattOn === true && l0.satt === undefined && l0.sattUtkoma === undefined);
+    ok('satt: leikir ÁN satt → sattOn false + engin satt-blokk (classic + studio)', cgSt.sattOn === false && cgSt.satt === undefined && uTeamSt.sattOn === false && uTeamSt.satt === undefined && (await U.st(UA.teamToken)).sattOn === false && (await U.st(UA.teamToken)).satt === undefined);
+    await S.ctl({ action: 'start' }); await U.ctl({ action: 'start' });
+    const LEV = { A: { vextir: 8, utgjold: 2 }, B: { vextir: 6 }, C: { vextir: 7, skattar: -2 } };
+    // Lota 1 (EKKI sáttar-lota): satt.lota false, val hunsað, karphus 409
+    const s1 = await S.st(A.teamToken);
+    ok('satt lota 1 (ekki sáttar-lota): satt={on, lota:false, lotur:[3,6], karphus lokað, val null}', s1.satt && s1.satt.on === true && s1.satt.lota === false && JSON.stringify(s1.satt.lotur) === '[3,6]' && s1.satt.karphus.open === false && s1.satt.karphus.until === null && s1.satt.karphus.secondsLeft === 0 && s1.satt.val === null);
+    await S.dc(A.teamToken, 1, { levers: LEV.A, satt: 'satt' }); await U.dc(UA.teamToken, 1, { levers: LEV.A });
+    ok('satt lota 1: satt-val UTAN sáttar-lotu HUNSAÐ — ekki vistað í decisions-JSON, val áfram null', !('satt' in S.decRow(1, A.teamId)) && S.decRow(1, A.teamId).levers.vextir === 8 && (await S.st(A.teamToken)).satt.val === null);
+    const kh409 = await S.ctl({ action: 'karphus', open: true });
+    ok('karphus: opna utan sáttar-lotu → 409 satt-lota; á leik ÁN satt → 409 líka', kh409.status === 409 && (await J(kh409)).error === 'satt-lota' && (await U.ctl({ action: 'karphus', open: true })).status === 409);
+    for (const [t, ut, lv] of [[B, UB, LEV.B], [C, UC, LEV.C]]) { await S.dc(t.teamToken, 1, { levers: lv }); await U.dc(ut.teamToken, 1, { levers: lv }); }
+    await S.ctl({ action: 'resolve' }); await U.ctl({ action: 'resolve' });
+    const r1s = await S.st(S.g.facToken), ur1 = await U.st(U.g.facToken);
+    ok('satt lota 1 uppgjör: engin sattUtkoma (detail né out); kpis + stig = tvíburi (satt-rofinn einn breytir engu)', r1s.results.every((r) => r.detail.sattUtkoma === undefined) && r1s.sattUtkoma === undefined && JSON.stringify(r1s.results.map((r) => [r.detail.kpis, r.roundScore])) === JSON.stringify(ur1.results.map((r) => [r.detail.kpis, r.roundScore])));
+    // Lota 2 (ekki sáttar-lota): val hunsað
+    await S.ctl({ action: 'next' }); await U.ctl({ action: 'next' });
+    ok('satt lota 2: satt.lota false (lið + fac + watch)', (await S.st(A.teamToken)).satt.lota === false && (await S.st(S.g.facToken)).satt.lota === false && (await S.st(null)).satt.lota === false);
+    for (const [t, ut, lv] of [[A, UA, LEV.A], [B, UB, LEV.B], [C, UC, LEV.C]]) { await S.dc(t.teamToken, 2, { levers: lv, satt: 'saekja' }); await U.dc(ut.teamToken, 2, { levers: lv }); }
+    ok('satt lota 2: val hunsað hjá öllum (ekki í decisions-JSON)', [A, B, C].every((t) => !('satt' in S.decRow(2, t.teamId))));
+    await S.ctl({ action: 'resolve' }); await U.ctl({ action: 'resolve' });
+    await S.ctl({ action: 'next' }); await U.ctl({ action: 'next' });
+    // Lota 3 = SÁTTAR-LOTA (KT3 hrunið)
+    const s3A = await S.st(A.teamToken);
+    ok('satt lota 3 decide: satt.lota true, val null (ekki tekið afstöðu enn — client sýnir ekkiValid-textann), you.locked false', s3A.satt.lota === true && s3A.satt.val === null && s3A.you.locked === false && s3A.round === 3);
+    const w3 = await S.st(null);
+    ok('satt lota 3 watch: satt-blokk {on,lota:true,lotur,karphus} — HVORKI val né valin (blint á skjávarpa)', w3.satt && w3.satt.on === true && w3.satt.lota === true && w3.satt.val === undefined && w3.satt.valin === undefined && w3.satt.karphus && w3.satt.karphus.open === false);
+    const f3 = await S.st(S.g.facToken);
+    ok('satt lota 3 fac: valin = 3 lið, öll val:null + locked:false + nafn', Array.isArray(f3.satt.valin) && f3.satt.valin.length === 3 && f3.satt.valin.every((v) => v.val === null && v.locked === false && v.name && v.teamId));
+    // Karphús-hlé: opna → sést hjá ÖLLUM; klemmur; loka → lokað
+    const kh = await J(await S.ctl({ action: 'karphus', open: true, minutes: 5 }));
+    ok('karphus: opnar (5 mín) → ok, until epoch-sek, secondsLeft ≈ 300', kh.ok === true && kh.karphus.open === true && kh.karphus.until > 1e9 && kh.karphus.secondsLeft > 290 && kh.karphus.secondsLeft <= 300);
+    const s3k = await S.st(B.teamToken), w3k = await S.st(null), f3k = await S.st(S.g.facToken);
+    ok('karphus: sést í liðs-/watch-/fac-state (open, sama until, secondsLeft > 280)', [s3k, w3k, f3k].every((x) => x.satt.karphus.open === true && x.satt.karphus.until === kh.karphus.until && x.satt.karphus.secondsLeft > 280 && x.satt.karphus.secondsLeft <= 300));
+    ok('karphus: geymt í config leiksins (round-bundið, ekki schema)', (() => { const gm = S.E.TENGSL._t.leikur_games.find((x) => x.code === S.g.code); const c = JSON.parse(gm.config); return c.karphus && c.karphus.round === 3 && c.karphus.until === kh.karphus.until; })());
+    const khMin = await J(await S.ctl({ action: 'karphus', open: true, minutes: 0.2 }));
+    ok('karphus: minutes klemmt upp í ≥1 mín (0,2 → 60 s) — endur-opnun yfirskrifar', khMin.karphus.open === true && khMin.karphus.secondsLeft >= 55 && khMin.karphus.secondsLeft <= 60);
+    const khMax = await J(await S.ctl({ action: 'karphus', open: true, minutes: 999 }));
+    ok('karphus: minutes klemmt niður í ≤30 mín; sjálfgefið 3 mín', khMax.karphus.secondsLeft <= 1800 && khMax.karphus.secondsLeft > 1790 && (await J(await S.ctl({ action: 'karphus', open: true }))).karphus.secondsLeft > 170);
+    // Lið velja — BLINT: A satt (drög), B rusl→hunsað svo satt (læst), C saekja (læst)
+    await S.dc(A.teamToken, 3, { levers: LEV.A, satt: 'satt' }, false); await U.dc(UA.teamToken, 3, { levers: LEV.A }, false);
+    ok('satt: eigið drög-val samstillt innan liðs (val satt, you.locked false)', (await S.st(A.teamToken)).satt.val === 'satt' && (await S.st(A.teamToken)).you.locked === false && S.decRow(3, A.teamId).satt === 'satt');
+    await S.dc(B.teamToken, 3, { levers: LEV.B, satt: 'SATT' }, false);
+    ok('satt: rusl-val („SATT"/annað en satt|saekja) hunsað — ekki vistað, val null', (await S.st(B.teamToken)).satt.val === null && !('satt' in S.decRow(3, B.teamId)));
+    await S.dc(B.teamToken, 3, { levers: LEV.B, satt: 'satt' }); await U.dc(UB.teamToken, 3, { levers: LEV.B });
+    await S.dc(C.teamToken, 3, { levers: LEV.C, satt: 'saekja' }); await U.dc(UC.teamToken, 3, { levers: LEV.C });
+    const f3v = await S.st(S.g.facToken), fv = Object.fromEntries((f3v.satt.valin || []).map((v) => [v.teamId, v]));
+    ok('satt: fac sér valin í RAUNTÍMA (A satt ólæst · B satt læst · C saekja læst)', fv[A.teamId].val === 'satt' && fv[A.teamId].locked === false && fv[B.teamId].val === 'satt' && fv[B.teamId].locked === true && fv[C.teamId].val === 'saekja' && fv[C.teamId].locked === true);
+    const s3B = await S.st(B.teamToken), w3v = await S.st(null);
+    ok('satt BLINT: lið sér AÐEINS eigið val — „saekja" C hvergi í liðs-state B', s3B.satt.val === 'satt' && s3B.satt.valin === undefined && !JSON.stringify(s3B).includes('saekja'));
+    ok('satt BLINT: watch sér ENGIN val í decide (hvorki satt-val né saekja í öllu svarinu)', w3v.satt.val === undefined && w3v.satt.valin === undefined && !JSON.stringify(w3v).includes('"val"') && !JSON.stringify(w3v).includes('saekja'));
+    const khc = await J(await S.ctl({ action: 'karphus', open: false }));
+    ok('karphus: lokar → open false hjá öllum', khc.ok === true && khc.karphus.open === false && (await S.st(A.teamToken)).satt.karphus.open === false && (await S.st(null)).satt.karphus.open === false);
+    await S.dc(A.teamToken, 3, { levers: LEV.A, satt: 'satt' }); await U.dc(UA.teamToken, 3, { levers: LEV.A });
+    await S.ctl({ action: 'karphus', open: true, minutes: 2 });   // opið þegar leyst er → round-bundið, lokað eftir uppgjör
+    await S.ctl({ action: 'resolve' }); await U.ctl({ action: 'resolve' });
+    const r3 = await S.st(S.g.facToken), ur3 = await U.st(U.g.facToken);
+    const dA = det(r3, A.teamId), dB = det(r3, B.teamId), dC = det(r3, C.teamId), uA2 = det(ur3, UA.teamId), uB2 = det(ur3, UB.teamId), uC2 = det(ur3, UC.teamId);
+    ok('satt lota 3 uppgjör: detail.sattUtkoma {val,flokkur,effect,k,n} — svik, k=2/n=3; A/B satt, C saekja', [dA, dB, dC].every((d) => d.sattUtkoma && d.sattUtkoma.flokkur === 'svik' && d.sattUtkoma.k === 2 && d.sattUtkoma.n === 3 && Object.keys(d.sattUtkoma).sort().join() === 'effect,flokkur,k,n,val') && dA.sattUtkoma.val === 'satt' && dB.sattUtkoma.val === 'satt' && dC.sattUtkoma.val === 'saekja');
+    ok('satt: svikari (C) effect = SATT_FYLKI.svik.svikari (+kaupmáttur, +EIGIN verðbólga, +fylgi)', JSON.stringify(dC.sattUtkoma.effect) === JSON.stringify(SATT_FYLKI.svik.svikari) && dC.sattUtkoma.effect.kaupmattur > 1 && dC.sattUtkoma.effect.verdbolga > 0);
+    ok('satt: sogarar (A,B) effect = SATT_FYLKI.svik.sattLid (+verðbólgu-smit, −fylgi, ENGINN kaupmáttar-ábati)', JSON.stringify(dA.sattUtkoma.effect) === JSON.stringify(SATT_FYLKI.svik.sattLid) && JSON.stringify(dB.sattUtkoma.effect) === JSON.stringify(SATT_FYLKI.svik.sattLid) && dA.sattUtkoma.effect.verdbolga > 0 && dA.sattUtkoma.effect.pop < 0 && dA.sattUtkoma.effect.kaupmattur === undefined);
+    // TVÍBURA-SAMANBURÐUR: áhrifin beitast á uppgjörs-KPI — nákvæmlega SATT_FYLKI-tölurnar, ekkert annað hreyfist
+    const SV = SATT_FYLKI.svik.svikari, SL = SATT_FYLKI.svik.sattLid;
+    ok('satt KPI: svikari C = tvíburi + {verdbolga ' + SV.verdbolga + ', kaupmattur ' + SV.kaupmattur + '}; hagvöxtur/atvinnuleysi/skuldir ÓBREYTT', near(dC.kpis.verdbolga, uC2.kpis.verdbolga + SV.verdbolga) && near(dC.kpis.kaupmattur, uC2.kpis.kaupmattur + SV.kaupmattur) && near(dC.kpis.hagvoxtur, uC2.kpis.hagvoxtur) && near(dC.kpis.atvinnuleysi, uC2.kpis.atvinnuleysi) && near(dC.kpis.skuldir, uC2.kpis.skuldir));
+    ok('satt KPI: sogarar A/B = tvíburi + {verdbolga ' + SL.verdbolga + '}; kaupmáttur ÓBREYTTUR', near(dA.kpis.verdbolga, uA2.kpis.verdbolga + SL.verdbolga) && near(dB.kpis.verdbolga, uB2.kpis.verdbolga + SL.verdbolga) && near(dA.kpis.kaupmattur, uA2.kpis.kaupmattur) && near(dB.kpis.kaupmattur, uB2.kpis.kaupmattur));
+    // fylgi: approval = clamp(popularity(kpis) + adj) þar sem sattPop bætist við adj á sama stað og surprisePop
+    const apprOk = (d, u, pop) => { const baseAdj = u.stability.approval - popularity(u.kpis); if (u.stability.approval <= 0 || u.stability.approval >= 100) return true; return d.stability.approval === Math.max(0, Math.min(100, popularity(d.kpis) + baseAdj + pop)); };
+    ok('satt fylgi: approval = popularity(nýju kpis) + tvíbura-leiðrétting + sattPop (C +' + SV.pop + ' · A/B ' + SL.pop + ')', apprOk(dC, uC2, SV.pop) && apprOk(dA, uA2, SL.pop) && apprOk(dB, uB2, SL.pop));
+    ok('satt: stigagjöf gengur ÓBREYTT gegnum KPI (perKpi/crisis/roundScore eins og venjulega í sáttar-uppgjöri)', r3.results.every((r) => typeof r.roundScore === 'number' && Array.isArray(r.detail.perKpi) && r.detail.perKpi.length && r.detail.crisis !== undefined));
+    // out.sattUtkoma — afhjúpunin í results-fasa (fac + lið + watch EINS)
+    const chk = (st) => st.sattUtkoma && st.sattUtkoma.length === 1 && st.sattUtkoma[0].lota === 3 && st.sattUtkoma[0].flokkur === 'svik' && st.sattUtkoma[0].k === 2 && st.sattUtkoma[0].n === 3 && typeof st.sattUtkoma[0].texti === 'string' && st.sattUtkoma[0].texti.length > 20 && st.sattUtkoma[0].valin.length === 3
+      && (() => { const v = Object.fromEntries(st.sattUtkoma[0].valin.map((x) => [x.teamId, x])); return v[C.teamId].val === 'saekja' && v[C.teamId].svikari === true && v[C.teamId].name === 'Sátt-C' && v[A.teamId].val === 'satt' && v[A.teamId].svikari === false && v[A.teamId].effect.verdbolga === SL.verdbolga && v[C.teamId].effect.kaupmattur === SV.kaupmattur; })();
+    ok('satt AFHJÚPUN (results): out.sattUtkoma m. lotu/flokki/k/n/texta/valin (nafn+val+svikari+effect) — fac + lið + watch eins', chk(r3) && chk(await S.st(A.teamToken)) && chk(await S.st(null)) && JSON.stringify(r3.sattUtkoma) === JSON.stringify((await S.st(null)).sattUtkoma));
+    ok('satt AFHJÚPUN: kennslusetningin („1 af 3 sóttu fram") = hreina fallið', /1 af 3/.test(r3.sattUtkoma[0].texti) && r3.sattUtkoma[0].texti === sattUtkomaFn({ [A.teamId]: 'satt', [B.teamId]: 'satt', [C.teamId]: 'saekja' }).texti);
+    ok('satt: tvíburi ÁN satt → hvorki detail- né out-sattUtkoma', ur3.sattUtkoma === undefined && ur3.results.every((r) => r.detail.sattUtkoma === undefined));
+    ok('satt results-fasi: satt.lota true + eigið val sýnilegt; karphus LOKAÐ þótt opið væri við resolve (decide-bundið)', (await S.st(A.teamToken)).satt.lota === true && (await S.st(A.teamToken)).satt.val === 'satt' && (await S.st(A.teamToken)).satt.karphus.open === false);
+    // Lota 4: ekki sáttar-lota; karphus lotu 3 EKKI opið (round-bundið); sattUtkoma lotu 3 sést strax (engin þoka)
+    await S.ctl({ action: 'next' });
+    const s4 = await S.st(A.teamToken);
+    ok('satt lota 4 decide: lota false, val null, karphus lokað (round-bundið), sattUtkoma lotu 3 sýnileg (engin þoka)', s4.satt.lota === false && s4.satt.val === null && s4.satt.karphus.open === false && s4.sattUtkoma && s4.sattUtkoma.length === 1 && s4.sattUtkoma[0].lota === 3 && (await S.ctl({ action: 'karphus', open: true })).status === 409);
+    // Lota 5–6: áfram án ákvarðana → lota 6 (KT6): A satt, B saekja, C SENDIR EKKERT (engin röð) → k=1/n=3 → SPÍRALL
+    await S.ctl({ action: 'resolve' }); await S.ctl({ action: 'next' }); await S.ctl({ action: 'resolve' }); await S.ctl({ action: 'next' });
+    const s6 = await S.st(S.g.facToken);
+    ok('satt lota 6 (KT6) decide: lota true, valin öll null', s6.round === 6 && s6.phase === 'decide' && s6.satt.lota === true && s6.satt.valin.every((v) => v.val === null));
+    await S.dc(A.teamToken, 6, { levers: LEV.A, satt: 'satt' }); await S.dc(B.teamToken, 6, { levers: LEV.B, satt: 'saekja' });
+    await S.ctl({ action: 'resolve' });
+    const r6 = await S.st(S.g.facToken), d6A = det(r6, A.teamId), d6B = det(r6, B.teamId), d6C = det(r6, C.teamId);
+    ok('satt lota 6: lið ÁN raðar (C) = saekja („sá sem ekki skrifar undir er utan sáttar"); k=1/n=3 → SPÍRALL hjá öllum', d6C.sattUtkoma.val === 'saekja' && [d6A, d6B, d6C].every((d) => d.sattUtkoma.flokkur === 'spirall' && d.sattUtkoma.k === 1 && d.sattUtkoma.n === 3));
+    ok('satt spírall: allir +verdbolga/−pop; svikarar +kaupmattur (minnkandi freisting), sáttar-lið −kaupmattur', d6A.sattUtkoma.effect.verdbolga === SATT_FYLKI.spirall.allir.verdbolga && d6A.sattUtkoma.effect.pop === SATT_FYLKI.spirall.allir.pop && d6A.sattUtkoma.effect.kaupmattur === SATT_FYLKI.spirall.sattLid.kaupmattur && d6B.sattUtkoma.effect.kaupmattur === SATT_FYLKI.spirall.svikari.kaupmattur && d6C.sattUtkoma.effect.kaupmattur === SATT_FYLKI.spirall.svikari.kaupmattur && d6B.sattUtkoma.effect.verdbolga === SATT_FYLKI.spirall.allir.verdbolga);
+    ok('satt results lota 6: out.sattUtkoma = 2 lotur raðaðar (3 svik · 6 spírall) + spírall-texti', r6.sattUtkoma.length === 2 && r6.sattUtkoma[0].lota === 3 && r6.sattUtkoma[0].flokkur === 'svik' && r6.sattUtkoma[1].lota === 6 && r6.sattUtkoma[1].flokkur === 'spirall' && /spírall/i.test(r6.sattUtkoma[1].texti) && r6.sattUtkoma[1].valin.find((v) => v.teamId === C.teamId).val === 'saekja');
+    await S.ctl({ action: 'stop' });
+    const e6 = await S.st(null);
+    ok('satt ended (watch): sattUtkoma báðar lotur (debrief-afhjúpun) + sattOn true', e6.phase === 'ended' && e6.sattOn === true && e6.sattUtkoma.length === 2 && e6.sattUtkoma[1].valin.length === 3);
+    // 2) n=1 + æfingalið: bot UTAN pottsins → flokkur 'einn'; læst ÁN vals = saekja; lotusett sem STRENGUR (99 > rounds síað)
+    const O = await mkGame(mkE(), { mode: 'studio', satt: true, sattLotur: '1, 2, 99' }, ['Einn']);
+    const bot = await J(await O.H(new Request('https://karp.is/api/leikur/' + O.g.code + '/bot-team', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + O.g.facToken }, body: '{}' })));
+    const [E1] = O.teams;
+    await O.ctl({ action: 'start' });
+    const o1 = await O.st(O.g.facToken);
+    ok('satt lotusett úr streng „1, 2, 99" → [1,2] (99 > rounds síað); lota 1 sáttar-lota', JSON.stringify(o1.satt.lotur) === '[1,2]' && o1.satt.lota === true);
+    ok('satt: bot EKKI í fac-valin (utan sáttar-pottsins)', o1.satt.valin.length === 1 && o1.satt.valin[0].teamId === E1.teamId && !o1.satt.valin.some((v) => v.teamId === bot.teamId));
+    await O.dc(E1.teamToken, 1, { levers: { vextir: 8 }, satt: 'satt' });
+    await O.ctl({ action: 'resolve' });
+    const or1 = await O.st(O.g.facToken), oE = det(or1, E1.teamId), oBot = det(or1, bot.teamId);
+    ok('satt n=1 („einn"): satt → samvinnu-bónus (k=1/n=1); bot-detail ÁN sattUtkoma', oE.sattUtkoma.flokkur === 'einn' && oE.sattUtkoma.k === 1 && oE.sattUtkoma.n === 1 && JSON.stringify(oE.sattUtkoma.effect) === JSON.stringify(SATT_FYLKI.samvinna) && oBot.sattUtkoma === undefined);
+    ok('satt n=1: out.sattUtkoma valin aðeins raun-liðið + „einn"-texti', or1.sattUtkoma.length === 1 && or1.sattUtkoma[0].valin.length === 1 && or1.sattUtkoma[0].n === 1 && /hélduð/.test(or1.sattUtkoma[0].texti));
+    await O.ctl({ action: 'next' });
+    await O.dc(E1.teamToken, 2, { levers: { vextir: 8 } });   // læsir ÁN þess að velja
+    await O.ctl({ action: 'resolve' });
+    const oE2 = det(await O.st(O.g.facToken), E1.teamId);
+    ok('satt n=1: læst ÁN vals → saekja, effect = freisting m/ eigin verðbólgu (svik.svikari, enginn sogari)', oE2.sattUtkoma.val === 'saekja' && oE2.sattUtkoma.flokkur === 'einn' && JSON.stringify(oE2.sattUtkoma.effect) === JSON.stringify(SATT_FYLKI.svik.svikari));
+    // 3) samvinna (classic, lotur [1] sem FYLKI): báðir satt → samvinnu-bónus; rusl-lotusett → sjálfgefið; satt:'nei' → off
+    const V = await mkGame(mkE(), { satt: true, sattLotur: [1] }, ['V-A', 'V-B']);
+    await V.ctl({ action: 'start' });
+    for (const t of V.teams) await V.dc(t.teamToken, 1, { peningastefna: 'obreytt', utgjold: 'obreytt', skattar: 'obreytt', fjarfesting: 'engin', vidbragd: 'ekkert', satt: 'satt' });
+    await V.ctl({ action: 'resolve' });
+    const vr = await V.st(V.teams[0].teamToken);
+    ok('satt samvinna (classic): báðir satt → flokkur samvinna, effect = SATT_FYLKI.samvinna hjá báðum, „Allir héldu"-texti, lotur [1]', vr.satt.lotur.join() === '1' && vr.sattUtkoma.length === 1 && vr.sattUtkoma[0].flokkur === 'samvinna' && vr.sattUtkoma[0].k === 2 && vr.sattUtkoma[0].valin.every((v) => v.val === 'satt' && !v.svikari && JSON.stringify(v.effect) === JSON.stringify(SATT_FYLKI.samvinna)) && /Allir héldu/.test(vr.sattUtkoma[0].texti) && vr.results.every((r) => r.detail.sattUtkoma.flokkur === 'samvinna'));
+    const Z = await mkGame(mkE(), { satt: true, sattLotur: ['x', -3, 0] }, ['Z']);
+    await Z.ctl({ action: 'start' });
+    ok('satt: rusl-lotusett → sjálfgefið [3,6]; satt:"nei" → sattOn false', JSON.stringify((await Z.st(Z.g.facToken)).satt.lotur) === '[3,6]' && (await (await mkGame(mkE(), { satt: 'nei' }, ['N'])).st(null)).sattOn === false);
+    // 4) ÞOKA + satt: afhjúpun sáttar-lotu N-1 FALIN í decide N (lið + watch), ÓSÍUÐ hjá fac + í results + birt í decide N+2
+    {
+      const T = await mkGame(mkE(), { mode: 'studio', satt: true, thoka: true }, ['Þ-A', 'Þ-B']);
+      const [TA, TB] = T.teams;
+      await T.ctl({ action: 'start' });
+      const dcs = { A: { levers: { vextir: 9, utgjold: 3 }, policies: { verdtrygging: true } }, B: { levers: { vextir: 5 } } };
+      const rowsByR = {};
+      for (let r = 1; r <= 3; r++) { if (r > 1) await T.ctl({ action: 'next' }); await T.dc(TA.teamToken, r, { ...dcs.A, ...(r === 3 ? { satt: 'satt' } : {}) }); await T.dc(TB.teamToken, r, { ...dcs.B, ...(r === 3 ? { satt: 'saekja' } : {}) }); await T.ctl({ action: 'resolve' }); rowsByR[r] = (await T.st(T.g.facToken)).results; }
+      const tr3 = { A: await T.st(TA.teamToken), watch: await T.st(null), fac: await T.st(T.g.facToken) };
+      ok('þoka+satt results lotu 3: ÓSÍAÐ — sattUtkoma (svik k=1/n=2, B svikari) hjá liði, watch OG fac; engin thoka-blokk', [tr3.A, tr3.watch, tr3.fac].every((s) => s.sattUtkoma && s.sattUtkoma.length === 1 && s.sattUtkoma[0].lota === 3 && s.sattUtkoma[0].flokkur === 'svik' && s.sattUtkoma[0].valin.find((v) => v.teamId === TB.teamId).val === 'saekja') && tr3.A.thoka === undefined);
+      await T.ctl({ action: 'next' });
+      const td4 = { A: await T.st(TA.teamToken), B: await T.st(TB.teamToken), watch: await T.st(null), fac: await T.st(T.g.facToken) };
+      const noSatt3 = (s) => !(s.sattUtkoma || []).some((x) => x.lota === 3) && !JSON.stringify(s).includes('"flokkur"') && !JSON.stringify(s).includes('"svikari"');
+      ok('þoka+satt decide lotu 4 (N-1=3): afhjúpun lotu 3 HORFIN hjá liðum A/B + watch (ekkert flokkur/svikari/val) — sýnileg hjá fac', noSatt3(td4.A) && noSatt3(td4.B) && noSatt3(td4.watch) && Array.isArray(td4.A.sattUtkoma) && td4.A.sattUtkoma.length === 0 && td4.fac.sattUtkoma && td4.fac.sattUtkoma[0].lota === 3 && td4.fac.sattUtkoma[0].valin.length === 2);
+      ok('þoka+satt decide lotu 4: satt-blokkin sjálf lifir (lota false, val null hjá liði; watch án val) + thoka-blokk', td4.A.satt && td4.A.satt.lota === false && td4.A.satt.val === null && td4.watch.satt && td4.watch.satt.val === undefined && td4.A.thoka && td4.A.thoka.on === true);
+      // Leka-leit (sama aðferð og ANDSTÆÐINGS-RÝNIN): EKKERT óheilt gildi úr uppgjöri lotu 3 — þ.m.t. kpis MEÐ sáttar-
+      // áhrifum og sattUtkoma.effect-tölurnar sjálfar — í liðs-/watch-state decide lotu 4 (round-2 gildi birt → leyfð).
+      const allNumsT = (o, acc = []) => { if (typeof o === 'number') acc.push(o); else if (Array.isArray(o)) o.forEach((x) => allNumsT(x, acc)); else if (o && typeof o === 'object') for (const k in o) allNumsT(o[k], acc); return acc; };
+      const numTokT = (js) => { const s2 = new Set(); for (const m of js.matchAll(/(?<![\w.\-])-?\d+(?:\.\d+)?(?:e[+-]?\d+)?(?![\w.])/g)) s2.add(m[0]); return s2; };
+      const lekT = (st, prevRows, prevPrevRows) => { const allow = new Set(); for (const r of prevRows) { allow.add(r.roundScore); allow.add(r.cumulative); allow.add(((r.detail || {}).stability || {}).approval); } for (const r of (prevPrevRows || [])) for (const v of allNumsT(r.detail)) allow.add(v);
+        const stat = numTokT(JSON.stringify({ m: st.mandate, d: st.decisions, e: st.event, s: st.scenarioSoFar, p: st.policies, dr: st.draft, h: st.history })), tk = numTokT(JSON.stringify(st)); const out = [];
+        for (const r of prevRows) for (const v of allNumsT(r.detail)) { if (Number.isInteger(v) || allow.has(v) || stat.has(String(v))) continue; if (tk.has(String(v))) out.push(v); } return [...new Set(out)]; };
+      const l4A = lekT(td4.A, rowsByR[3], rowsByR[2]), l4B = lekT(td4.B, rowsByR[3], rowsByR[2]), l4W = lekT(td4.watch, rowsByR[3], rowsByR[2]);
+      ok('þoka+satt LEKI: decide lotu 4 — EKKERT óheilt gildi úr uppgjöri lotu 3 (kpis m. sáttar-áhrifum + effect-tölur) í liðs-/watch-state' + (l4A.length || l4B.length || l4W.length ? ' LEKI: ' + JSON.stringify({ l4A, l4B, l4W }) : ''), l4A.length === 0 && l4B.length === 0 && l4W.length === 0 && rowsByR[3].every((r) => !r.detail.sattUtkoma || allNumsT(r.detail.sattUtkoma.effect).length >= 2));
+      ok('þoka+satt LEKI: leitin BÍTUR — ósíað fac-state decide lotu 4 ber sáttar-/uppgjörs-tölur lotu 3', lekT(td4.fac, rowsByR[3], rowsByR[2]).length >= 2);
+      // decide lotu 5 (N-2 = 3 birt) → afhjúpun lotu 3 kemur til liða + watch (seinkuð eins og aðrar hagtölur)
+      await T.dc(TA.teamToken, 4, dcs.A); await T.dc(TB.teamToken, 4, dcs.B); await T.ctl({ action: 'resolve' }); await T.ctl({ action: 'next' });
+      const td5 = { A: await T.st(TA.teamToken), watch: await T.st(null) };
+      ok('þoka+satt decide lotu 5 (N-2=3 birt): sattUtkoma lotu 3 sýnileg hjá liði + watch', td5.A.sattUtkoma && td5.A.sattUtkoma.length === 1 && td5.A.sattUtkoma[0].lota === 3 && td5.watch.sattUtkoma && td5.watch.sattUtkoma[0].lota === 3 && td5.A.thoka.birtLota === 3);
+      // thokaSia hreint: sattUtkoma-sían sjálf (inntak ósnert, ≤ N-2, N=2 → [], án sviðs → ekkert svið)
+      const { thokaSia: tsia } = await import('./server.mjs');
+      const sOut2 = { phase: 'decide', round: 4, sattUtkoma: [{ lota: 1, flokkur: 'samvinna', valin: [] }, { lota: 3, flokkur: 'svik', valin: [] }] };
+      const sOut2Js = JSON.stringify(sOut2);
+      ok('thokaSia: sattUtkoma → aðeins lotur ≤ N-2 (N=4: 1 helst, 3 fer); N=2 → []; inntak ósnert; vantar svið → ekkert svið', JSON.stringify(tsia(sOut2, { teamId: 1, round: 4, rows: [] }).sattUtkoma) === JSON.stringify([sOut2.sattUtkoma[0]]) && tsia(sOut2, { teamId: null, round: 2, rows: [] }).sattUtkoma.length === 0 && JSON.stringify(sOut2) === sOut2Js && tsia({ phase: 'decide', round: 4 }, { round: 4, rows: [] }).sattUtkoma === undefined);
+    }
+  }
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })();

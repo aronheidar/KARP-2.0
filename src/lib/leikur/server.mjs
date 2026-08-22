@@ -12,6 +12,7 @@ import { awardMedals } from './medals.mjs';
 import { rollSurprise, applySurprise, dilemmaChoiceLabel } from './surprise.mjs';
 import { carryover } from './aftermath.mjs';
 import { politikFerill } from './politik.mjs';
+import { sattLota, sattUtkoma, applySatt } from './satt.mjs';
 import BASELINE from '../../../gogn/roads/baseline.json' with { type: 'json' };
 import LINKS from '../../../gogn/roads/links.json' with { type: 'json' };
 
@@ -44,7 +45,7 @@ export async function ensureTables(env) {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
-function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
+function gameCfg(game) { let c = {}; try { c = JSON.parse(game.config || '{}'); } catch (e) {} const customMandate = (c.mandate && Array.isArray(c.mandate.kpis)); return { scenario: (c.scenario && Array.isArray(c.scenario.events)) ? c.scenario : SCENARIO, mandate: customMandate ? c.mandate : MANDATE, perRound: !customMandate, rounds: c.rounds || ROUNDS, roles: !!c.roles, roleMap: c.roleMap || null, mode: c.mode === 'studio' ? 'studio' : 'classic', timerSec: (c.timerSec > 0 ? c.timerSec : null), deadline: (c.deadline || null), difficulty: c.difficulty || 'medium', surprise: !!c.surprise, thoka: c.thoka === true, satt: c.satt === true, sattLotur: Array.isArray(c.sattLotur) ? c.sattLotur : null, karphus: (c.karphus && typeof c.karphus === 'object') ? c.karphus : null, bots: Array.isArray(c.bots) ? c.bots.map(Number).filter((n) => n > 0) : [] }; }
 // Æfingalið (bot, sjá POST /<code>/bot-team): tekur ALDREI ákvarðanir sjálft — við start/next/resolve fær hvert bot-lið
 // sem á enga LÆSTA röð í umferðinni sjálfkrafa óbreytt drög ({} = sleðar óbreyttir, engin stefnu-breyting) + locked=1,
 // svo roster leikstjóra sýni ✅ og uppgjörið keyri án þess að nokkur þurfi að sitja við liðið. Fyrirliggjandi ólæst drög haldast.
@@ -121,6 +122,7 @@ export function thokaAttir(prevKpis, prevPrevKpis, goalSpecs, opts = {}) {
  *   · policyBadges[].deltas → deltas N-2 (eða null) + tof:true/deltaLota · carryover.policies[].deltas → null + carryover.thoka
  *   · surprise.effect + dilemma.options[].effect → null + surprise.thoka (atvikið sést, áhrifin ekki)
  *   · finalPerKpi → perKpi N-2 (eða []) · medals → reiknuð á lotum ≤ N-2 (leikslok-svið sem server reiknar í öllum fösum)
+ *   · sattUtkoma (Þjóðarsáttin) → aðeins sáttar-lotur ≤ N-2 (afhjúpun N-1 — hver valdi hvað/flokkur/áhrif — bíður uppgjörs)
  *   · out.thoka = { on, birtLota, birtAr, attir, fyrirsagnir, stodugleiki, stig } (lota 1–2: birtLota/attir null → „Engar hagtölur birtar enn")
  *  WATCH (teamId null): „eigið lið" er ekkert → ÖLL lið adeinsStig, kort N-2 allra, thoka-blokk = {on, birtLota, birtAr} + attir/
  *  fyrirsagnir/stodugleiki/stig null (engin per-liðs þoku-gögn á skjávarpa — client sýnir aðeins borðann). Sama sía, ekkert sér-tilvik.
@@ -144,6 +146,7 @@ export function thokaSia(out, ctx = {}) {
   if (out.carryover) o.carryover = { ...out.carryover, thoka: true, policies: (out.carryover.policies || []).map((p) => ({ ...p, deltas: null })) };
   if (out.surprise) o.surprise = { ...out.surprise, thoka: true, effect: null, dilemma: out.surprise.dilemma ? { ...out.surprise.dilemma, options: (out.surprise.dilemma.options || []).map((op) => ({ ...op, effect: null })) } : null };
   if (out.finalPerKpi !== undefined) o.finalPerKpi = (d2 && Array.isArray(d2.perKpi)) ? d2.perKpi : [];
+  if (Array.isArray(out.sattUtkoma)) o.sattUtkoma = out.sattUtkoma.filter((su) => birt != null && su.lota <= birt); // Þjóðarsáttin: afhjúpun lotu N-1 FALIN (val+flokkur+áhrif) eins og annað — sést við uppgjör
   if (out.medals !== undefined) o.medals = awardMedals(rows.filter((x) => x.teamId === teamId && birt != null && x.round <= birt).map((x) => ({ round: x.round, kpis: (x.d || {}).kpis || {}, roundScore: x.roundScore, stability: (x.d || {}).stability, policies: (x.d || {}).policies, crisis: (x.d || {}).crisis })));
   const k1 = (d1 && d1.kpis) || null, k2 = (d2 && d2.kpis) || null, st1 = (d1 && d1.stability) || null;
   const ar = typeof ctx.arLotu === 'function' ? ctx.arLotu : ((r) => YEAR_START + (r - 1) * 4);
@@ -189,6 +192,14 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (cb && ['easy', 'hard'].includes(cb.difficulty)) config.difficulty = cb.difficulty; // Fasi E: erfiðleikastig (medium=sjálfgefið)
     if (cb && cb.surprise) config.surprise = true; // Fasi „skemmtun 3": óvænt atvik + klemmu-spjöld (valfrjálst)
     if (cb && (cb.thoka === true || cb.thoka === 'true' || cb.thoka === 1)) config.thoka = true; // Gagnatöf „hagstjórn í þoku" (valfrjáls leikstilling; sjá thokaSia) — aðeins skýrt JÁ kveikir, allt annað = false
+    // ÞJÓÐARSÁTTIN (valfrjáls leikstilling, sjá satt.mjs + SÁTTAR-blokkina í /state): config.satt=true + valfrjálst lotusett
+    // config.sattLotur (fylki eða strengur „3,6" → normalíserað í fylki jákvæðra heiltalna ≤ rounds; tómt/rusl → sjálfgefið KT3+KT6).
+    if (cb && (cb.satt === true || cb.satt === 'true' || cb.satt === 1)) {
+      config.satt = true;
+      const rawL = cb.sattLotur; const arrL = Array.isArray(rawL) ? rawL : (typeof rawL === 'string' ? rawL.split(/[\s,;]+/) : []);
+      const lot = [...new Set(arrL.map((x) => Number(x)).filter((x) => Number.isInteger(x) && x > 0 && x <= config.rounds))].sort((a, b) => a - b);
+      if (lot.length) config.sattLotur = lot;
+    }
     let code = gameCode();
     // tryggja einstæðni (5 tilraunir)
     for (let i = 0; i < 5; i++) { const ex = await env.TENGSL.prepare('SELECT code FROM leikur_games WHERE code=?').bind(code).first().catch(() => null); if (!ex) break; code = gameCode(); }
@@ -274,6 +285,7 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     out.mode = cfg.mode;
     out.difficulty = cfg.difficulty; // Fasi E: erfiðleikastig (easy/medium/hard)
     out.thokaOn = cfg.thoka; // Gagnatöf: er leikurinn í þoku? (allir áhorfendur — fac-stillingaspjald/liðs-merki; síunin sjálf er neðst: lið+watch í decide, fac aldrei)
+    out.sattOn = cfg.satt; // Þjóðarsáttin: er rofinn kveiktur? (allir áhorfendur, öll fasa — sjálf sáttar-blokkin (out.satt) er neðar og aðeins utan lobby)
     out.leverCap = difficultyOf(cfg.difficulty).leverCap || null; // Pólitískt vald: hámark virkra sleða (Erfitt)
     // Fasi „skemmtun 3": óvænt atvik þessarar umferðar (sama f. öll lið, determinískt).
     // F1-V2: áhrifa-tölur (effect á atviki + klemmu-kostum) SENDAR MEÐ — meðvituð stefnubreyting frá „engar tölur", endurgjöfin 31.7 bað um þær.
@@ -366,6 +378,18 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         }).filter((x) => x.ferill.length);
       }
     }
+    // ÞJÓÐARSÁTTIN — AFHJÚPUN per sáttar-lotu úr GEYMDUM uppgjörum (leikur_results detail.sattUtkoma per lið, vistað við resolve):
+    // out.sattUtkoma = [{ lota, flokkur, k, n, texti, valin:[{teamId,name,val,svikari,effect}] }] raðað eftir lotu — ÖLLUM
+    // áhorfendum (lið/watch/fac) utan lobby: results/ended = afhjúpunin („hver valdi hvað"); decide N+1 sýnir fyrri sáttar-lotur
+    // (eins og kpiHistory) — Í ÞOKU síar thokaSia lotu N-1 burt (aðeins lotur ≤ N-2 sjást). flokkur/k/n/effect úr geymslu
+    // (ekki endurreiknað → standa þótt SATT_FYLKI breytist); texti (kennslusetningin) endurreiknaður úr geymdum valum (hreint fall).
+    if (cfg.satt && game.phase !== 'lobby' && resultsRaw.length) {
+      const nmS = Object.fromEntries(teamsRaw.map((t) => [t.id, t.name])), byR = {};
+      for (const r of resultsRaw) { let su = null; try { su = JSON.parse(r.kpis || '{}').sattUtkoma || null; } catch (e) {} if (!su) continue; (byR[r.round] || (byR[r.round] = [])).push({ teamId: r.team_id, name: nmS[r.team_id] || ('Lið ' + r.team_id), val: su.val === 'satt' ? 'satt' : 'saekja', svikari: su.val !== 'satt', effect: su.effect || {}, flokkur: su.flokkur, k: su.k, n: su.n }); }
+      const lot = Object.keys(byR).map(Number).sort((a, b) => a - b);
+      if (lot.length) out.sattUtkoma = lot.map((rd) => { const rows = byR[rd].sort((a, b) => a.teamId - b.teamId), f = rows[0];
+        return { lota: rd, flokkur: f.flokkur, k: f.k, n: f.n, texti: sattUtkoma(Object.fromEntries(rows.map((x) => [x.teamId, x.val]))).texti, valin: rows.map(({ teamId, name, val, svikari, effect }) => ({ teamId, name, val, svikari, effect })) }; });
+    }
     // Fasi D: lokaumferðar perKpi liðsins → leikslok-samantekt „sterkasta/veikasta svið".
     if (you && you.role === 'team' && you.code === code) { const mr = resultsRaw.filter((r) => r.team_id === you.teamId).sort((a, b) => b.round - a.round); if (mr.length) {
       try { const d = JSON.parse(mr[0].kpis || '{}'); out.finalPerKpi = d.perKpi || []; out.policySummary = describePolicies(d.policies || {}); } catch (e) {}
@@ -376,10 +400,27 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       out.medals = awardMedals(mrounds);
     } }
     if (game.phase !== 'lobby') {
-      const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
+      const lockRows = ((await env.TENGSL.prepare('SELECT team_id, locked, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
       const lockedOf = {}; for (const lr of lockRows) lockedOf[lr.team_id] = !!lr.locked;
       if (out.you && out.you.role === 'team') out.you.locked = !!lockedOf[out.you.teamId];
       if (you && you.role === 'fac' && you.code === code) out.lockRoster = teamsRaw.map((t) => ({ teamId: t.id, name: t.name, locked: !!lockedOf[t.id], ...(botSet.has(t.id) ? { bot: true } : {}) }));
+      // ── ÞJÓÐARSÁTTIN (config.satt, sjá satt.mjs) — sáttar-blokk /state utan lobby ──────────────────────────────────
+      // out.satt = { on, lota (er ÞESSI lota sáttar-lota?), lotur (sáttar-loturnar), karphus:{open,until,secondsLeft} }
+      //  + LIÐ: val = eigið val þessarar lotu ('satt'|'saekja'|null = ekki tekið afstöðu → telst saekja við uppgjör; client
+      //    sýnir SATT_TEXTI.ekkiValid áður en liðið læsir)  + FAC: valin = [{teamId,name,val,locked}] í RAUNTÍMA (leikstjóri
+      //    sér valin — hann stýrir Karphúsinu)  + WATCH (tákn-laust): HVORKI val né valin (blint á skjávarpa — „lið velja").
+      // Æfingalið (bots) eru UTAN sáttar-pottsins (hlutlaus, taka aldrei afstöðu; 1 raun-lið + bot = n=1 „einn") → ekki í valin.
+      // Karphús-hlé: cfg.karphus={round,until} (config, ekki schema) — opið aðeins í decide ÞESSARAR lotu meðan until > nú.
+      if (cfg.satt) {
+        const nowS = now(), kh = cfg.karphus;
+        const khOpen = !!(kh && game.phase === 'decide' && kh.round === game.current_round && kh.until > nowS);
+        const sattValOf = (tid) => { const lr = lockRows.find((x) => x.team_id === tid); if (!lr) return null; try { const v = JSON.parse(lr.decisions || '{}').satt; return (v === 'satt' || v === 'saekja') ? v : null; } catch (e) { return null; } };
+        const lotur = []; for (let rr = 1; rr <= cfg.rounds; rr++) if (sattLota(rr, cfg)) lotur.push(rr);
+        const sb = { on: true, lota: sattLota(game.current_round, cfg), lotur, karphus: { open: khOpen, until: khOpen ? kh.until : null, secondsLeft: khOpen ? kh.until - nowS : 0 } };
+        if (you && you.role === 'team' && you.code === code) sb.val = sb.lota ? sattValOf(you.teamId) : null;
+        if (you && you.role === 'fac' && you.code === code) sb.valin = teamsRaw.filter((t) => !botSet.has(t.id)).map((t) => ({ teamId: t.id, name: t.name, val: sb.lota ? sattValOf(t.id) : null, locked: !!lockedOf[t.id] }));
+        out.satt = sb;
+      }
       if (cfg.mode === 'studio' && you && you.role === 'team' && you.code === code) {
         const myRows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, you.teamId).all().catch(() => ({ results: [] }))).results) || [];
         const byR = {}; for (const rr of myRows) { try { byR[rr.round] = JSON.parse(rr.decisions || '{}'); } catch (e) {} }
@@ -496,8 +537,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
     if (game.phase !== 'decide') return sjson({ error: 'phase' }, 409);
     const b = await request.json().catch(() => ({}));
     if (+b.round !== game.current_round) return sjson({ error: 'round' }, 409);
+    const dObj = b.decisions || {};
+    // ÞJÓÐARSÁTTIN: decisions.satt = 'satt'|'saekja' (vistað NÁKVÆMLEGA eins og dilemma, í decisions-JSON). VÖRN: aðeins tekið
+    // við í sáttar-lotu OG aðeins þessi tvö gildi — annars fjarlægt (utan sáttar-lotu hunsað; rusl hunsað → telst ekki valið).
+    if (dObj && typeof dObj === 'object' && !Array.isArray(dObj) && 'satt' in dObj && !(sattLota(game.current_round, cfg) && (dObj.satt === 'satt' || dObj.satt === 'saekja'))) delete dObj.satt;
     await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_decisions (game_code, round, team_id, decisions, locked, submitted_at) VALUES (?,?,?,?,?,?)')
-      .bind(code, game.current_round, you.teamId, JSON.stringify(b.decisions || {}), b.locked ? 1 : 0, now()).run().catch(() => null);
+      .bind(code, game.current_round, you.teamId, JSON.stringify(dObj), b.locked ? 1 : 0, now()).run().catch(() => null);
     return sjson({ ok: true });
   }
 
@@ -532,12 +577,38 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
       await lockBots(env, code, nr, cfg.bots);   // æfingalið: hlutlausar ákvarðanir læstar strax
       return sjson({ ok: true, phase: 'decide', round: nr });
     }
+    // ÞJÓÐARSÁTTIN — Karphús-hlé (fac): {action:'karphus', open:true, minutes?} opnar (sjálfgefið 3 mín, klemmt 1–30) AÐEINS í decide
+    // sáttar-lotu (annars 409 satt-lota); {open:false} lokar alltaf. Vistað í config.karphus={round,until} (epoch-sek; ekki schema) —
+    // /state birtir out.satt.karphus={open,until,secondsLeft} ÖLLUM (borðinn „Karphúsið er opið — talið saman" á öllum skjám).
+    // Hléið er TÍMI + leyfi (engin skilaboð) — hópurinn talar í herberginu; leikstjóri lokar og liðin læsa svo valinu.
+    if (act === 'karphus') {
+      let cobj = {}; try { cobj = JSON.parse(game.config || '{}'); } catch (e) {}
+      const open = !(b.open === false || b.open === 'false' || b.open === 0);
+      if (!open) { delete cobj.karphus; await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null); return sjson({ ok: true, karphus: { open: false, until: null, secondsLeft: 0 } }); }
+      if (!cfg.satt || game.phase !== 'decide' || !sattLota(game.current_round, cfg)) return sjson({ error: 'satt-lota', phase: game.phase, round: game.current_round }, 409);
+      const mins = Math.max(1, Math.min(30, (+b.minutes > 0) ? +b.minutes : 3));
+      const until = now() + Math.round(mins * 60);
+      cobj.karphus = { round: game.current_round, until };
+      await env.TENGSL.prepare('UPDATE leikur_games SET config=? WHERE code=?').bind(JSON.stringify(cobj), code).run().catch(() => null);
+      return sjson({ ok: true, karphus: { open: true, until, secondsLeft: until - now() } });
+    }
     if (act === 'resolve') {
       // idempotent: sleppa ef þegar leyst fyrir þessa umferð
       const done = await env.TENGSL.prepare('SELECT team_id FROM leikur_results WHERE game_code=? AND round=? LIMIT 1').bind(code, game.current_round).first().catch(() => null);
       if (done || game.phase === 'resolved') return sjson({ ok: true, phase: 'resolved' });
       await lockBots(env, code, game.current_round, cfg.bots);   // öryggisnet: bot-lið án læstrar raðar → óbreytt drög + locked
       const teams = ((await env.TENGSL.prepare('SELECT id FROM leikur_teams WHERE game_code=? ORDER BY id').bind(code).all().catch(() => ({ results: [] }))).results) || [];
+      // ÞJÓÐARSÁTTIN (satt.mjs): í sáttar-lotu ræðst útkoman af því hvað ÖLL lið völdu → reiknað EINU SINNI fyrir lykkjuna úr
+      // decisions.satt allra liða þessarar lotu (ekkert val / engin röð / rusl = null → 'saekja': sá sem ekki skrifar undir er utan
+      // sáttar). Æfingalið (bots) eru UTAN pottsins (hlutlaus — 1 raun-lið + bot = n=1 „einn"). perTeam-áhrifin beitast í lykkjunni.
+      let sattRes = null;
+      if (sattLota(game.current_round, cfg)) {
+        const botS = new Set(cfg.bots || []);
+        const sRows = ((await env.TENGSL.prepare('SELECT team_id, decisions FROM leikur_decisions WHERE game_code=? AND round=?').bind(code, game.current_round).all().catch(() => ({ results: [] }))).results) || [];
+        const valin = {};
+        for (const tm of teams) { if (botS.has(tm.id)) continue; let v = null; const sr = sRows.find((x) => x.team_id === tm.id); if (sr) { try { v = JSON.parse(sr.decisions || '{}').satt; } catch (e) {} } valin[tm.id] = (v === 'satt' || v === 'saekja') ? v : null; }
+        if (Object.keys(valin).length) sattRes = sattUtkoma(valin);
+      }
       for (const tm of teams) {
         // öll ákvörðunasaga liðs, umferð 1..current
         const rows = ((await env.TENGSL.prepare('SELECT round, decisions FROM leikur_decisions WHERE game_code=? AND team_id=? ORDER BY round').bind(code, tm.id).all().catch(() => ({ results: [] }))).results) || [];
@@ -566,6 +637,10 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const surprise = cfg.surprise ? rollSurprise(code, game.current_round) : null;
         let surprisePop = 0;
         if (surprise) { const sr = applySurprise(kpis2, surprise, (history[game.current_round - 1] || {}).dilemma); kpis2 = sr.kpis; surprisePop = sr.pop; }
+        // ÞJÓÐARSÁTTIN: sáttar-áhrif liðsins (leik-lag, ALDREI engine) — EFTIR policies+surprise, FYRIR stöðugleika/stigagjöf;
+        // pop bætist við fylgis-leiðréttinguna á sama stað og surprisePop. Stigagjöf ÓBREYTT (áhrifin fara gegnum KPI + fylgi).
+        const sattPt = (sattRes && sattRes.perTeam[tm.id]) || null; let sattPop = 0;
+        if (sattPt) { const sr = applySatt(kpis2, sattPt.effect); kpis2 = sr.kpis; sattPop = sr.pop; }
         // Fasi E erfiðleikastig: þrengd markmiða-banda + refsingar-skali (kreppa+uppreisn).
         const penFactor = (f) => 1 - (1 - f) * diff.penalty;
         const raw = mandateAt(cfg, game.current_round);
@@ -573,11 +648,12 @@ export async function leikurHandler(request, env, ctx, gameUser = { uid: 0, isAd
         const tMandate = (cfg.roles && cfg.roleMap) ? mandateForRole(roundMandate, roleById(cfg.roleMap[tm.id])) : roundMandate;
         const sc = scoreRound(kpis2, tMandate);
         // Fasi B/fylgi: stjórnar-stöðugleiki — fylgi (þjóðhags-útkoma + BEIN pólitísk vigt ákvarðana + stjórnarkreppa) margfaldar stigin.
-        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + (prevFell ? -8 : 0));
+        const stab = govtStability(kpis2, policyApproval(polStates) + surprisePop + sattPop + (prevFell ? -8 : 0));
         const roundScore = Math.round(sc.composite * penFactor(stab.factor) * 10) / 10;
         const cumulative = ((prev && prev.cumulative) || 0) + roundScore;
         await env.TENGSL.prepare('INSERT OR REPLACE INTO leikur_results (game_code, round, team_id, kpis, round_score, cumulative) VALUES (?,?,?,?,?,?)')
-          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell, policyDeltas: polDeltas, policyStages: stages }), roundScore, cumulative).run().catch(() => null);
+          .bind(code, game.current_round, tm.id, JSON.stringify({ kpis: kpis2, perKpi: sc.perKpi, crisis: sc.crisis, stability: stab, policies: polStates, stjornarkreppa: prevFell, policyDeltas: polDeltas, policyStages: stages,
+            ...(sattPt ? { sattUtkoma: { val: sattPt.val, flokkur: sattRes.flokkur, effect: sattPt.effect, k: sattRes.k, n: sattRes.n } } : {}) }), roundScore, cumulative).run().catch(() => null);   // Þjóðarsáttin: afhjúpunar-gögn per lið (sjá out.sattUtkoma í /state)
       }
       await env.TENGSL.prepare('UPDATE leikur_games SET phase=? WHERE code=?').bind('resolved', code).run().catch(() => null);
       return sjson({ ok: true, phase: 'resolved' });

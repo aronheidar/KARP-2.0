@@ -2,6 +2,7 @@
 // Aðeins fyrir leikstjóra (inniheldur „svörin"). Ráð eru GRUNDUÐ í herminum (besta-spils-greining á miðlungs)
 // + sögulegu samhengi sviðsmyndarinnar. `settings` = ráðlagðar sleða-hreyfingar með stefnu + rökum.
 // Á ERFITT: sömu áherslur en böndin þrengri, áföllin harðari og refsing við falli þyngri → minna svigrúm fyrir mistök.
+import { SATT_FYLKI } from './satt.mjs';   // ÞJÓÐARSÁTTIN: fylki_til_toflu reiknast úr tölunum sjálfum (sjá neðst)
 export const HANDBOOK = [
   { round: 1,
     situation: '2000. Góðæri og jafnvægi: lágt atvinnuleysi, myndarlegur vöxtur, bankar nýlega einkavæddir. Úti í heimi springur netbólan (vægt heimshagvaxtar-áfall).',
@@ -100,5 +101,36 @@ export const THOKA_HANDBOOK = {
     'Hvaða merki hefðuð þið viljað hafa til viðbótar — og hvað af því er raunverulega til í rauntíma (kortavelta, atvinnuleysisskráning, væntingavísitölur) og hvað ekki?',
     'Er fylgið betri eða verri mælikvarði en verðbólgan þegar þú ert í þoku — og hvað gerist með hagstjórn sem eltir fylgið?',
     'Hvað segir þetta um raunverulega hagstjórn 2008 — hversu mikið af því sem virðist augljóst eftir á var í raun sjáanlegt í rauntíma, með þeim tölum sem þá lágu fyrir?',
+  ],
+};
+
+// ÞJÓÐARSÁTTIN (config.satt) — kennslu-rök + leikstjóra-texti fyrir fangaklemmuna þvert á lið (satt.mjs ber
+// tölurnar og útkomu-reglurnar; hér er AÐEINS leikstjóra-lagið). Fylkið birtist liðunum ALDREI fyrirfram í fyrsta
+// sinn — það er debrief-efni (fylki_til_toflu er textaútgáfa af SATT_FYLKI, reiknuð héðan svo hún eldist ekki).
+const sattTala = (v) => (v > 0 ? '+' : '−') + String(Math.abs(v)).replace('.', ',');
+const sattAhrif = (e) => ['verdbolga', 'kaupmattur', 'pop'].filter((k) => e && e[k] != null).map((k) => ({ verdbolga: 'verðbólga', kaupmattur: 'kaupmáttur', pop: 'fylgi' })[k] + ' ' + sattTala(e[k])).join(' · ');
+const sattSamanlagt = (...effs) => { const o = {}; for (const e of effs) for (const k in (e || {})) o[k] = Math.round(((o[k] || 0) + e[k]) * 1000) / 1000; return o; };
+export const SATT_HANDBOOK = {
+  heiti: 'Þjóðarsáttin',
+  // Stutti blurb-inn við rofann í fac-lobby (sama texti og í client — ein uppspretta).
+  blurb: 'Í tveimur kjörtímabilum (hrunið 2008 og verðbólguskotið 2020) stendur öllum liðum sama blinda valið: halda aftur af launum og verðlagi — eða sækja fram. Útkoman ræðst af því hvað ÖLL liðin velja — fangaklemma þvert á lið.',
+  hvers_vegna: 'Þjóðarsáttin 1990 var trúverðugleikaleikur. Eftir áratug þar sem verðbólgan hafði legið í tveggja stafa tölum — og farið langt yfir tuttugu prósent þegar verst lét — settust Alþýðusamband Íslands (ASÍ), Vinnuveitendasamband Íslands (VSÍ, með Einar Odd Kristjánsson í fararbroddi) og ríkisstjórnin að sama borði og sömdu um hóflegar launahækkanir gegn því að verðlag, gengi og búvöruverð yrðu haldin í skefjum. Verðbólgan hjaðnaði á fáum árum úr um tuttugu til tuttugu og fimm prósentum niður í lágar eins stafs tölur — nákvæmar tölur fara eftir því hvaða ár og mælikvarða er miðað við, en stefnubreytingin er óumdeild. Kjarninn er að sáttin hélt af því að HVER AÐILI treysti því að HINIR héldu: launþegar sættu sig við litlar hækkanir af því þeir trúðu því að verðlagið myndi ekki hlaupa frá þeim, og fyrirtækin héldu verði af því þau trúðu því að launakröfurnar kæmu ekki aftur. Svik hefðu verið sýnileg og kostnaðarsöm — það er gagnkvæmt traust, ekki góðvild, sem skýrir hvers vegna hún stóð. Leikurinn setur liðin nákvæmlega í þessa klemmu: hvert lið græðir í bili á að sækja fram ef hin halda, en allir tapa ef flestir gera það.',
+  hvenaer: 'Í hópum með þremur liðum eða fleiri — þá er klemman raunveruleg (með einu liði er valið „sáttin við sjálfan sig"). Hentar bæði fyrstu og annarri umferð; í fyrstu umferð er fyrri sáttar-lotan (KT3, hrunið) oftast svik og sú síðari (KT6, verðbólguskotið) prófið á hvort hópurinn lærði.',
+  hvernig_keyra: 'Kynntu valið stuttlega þegar fyrsta sáttar-lotan opnast (KT3): „Kjarasamningar eru lausir — skrifið þið undir þjóðarsátt eða sækið þið fram?" Opnaðu svo Karphúsið (hnappurinn í Þjóðarsáttar-spjaldinu, 3 mín sjálfgefið) og leyfðu liðunum að tala saman í herberginu — hléið er tími og leyfi, ekki innbyggt spjall. SEGÐU LIÐUNUM EKKI FYLKIÐ FYRIRFRAM í fyrsta sinn; þau eiga að finna klemmuna, ekki reikna hana. Lokaðu Karphúsinu, láttu liðin læsa valinu sínu (ólæst val telst „Sækja fram") og leystu lotuna. Í uppgjörinu birtist afhjúpunin — hver valdi hvað og hvaða flokkur varð — og þá sýnirðu fylkið í debrief (fylki_til_toflu). Í KT6 endurtekurðu leikinn og berð saman: breyttist hegðunin eftir fyrstu reynsluna?',
+  debrief_spurningar: [
+    'Hvers vegna sviku sum lið — og hvað héldu þau að hin liðin myndu gera?',
+    'Hvað hefði þurft til að þið gætuð treyst hinum liðunum: loforð í Karphúsinu, sýnileg svik, endurtekning?',
+    'Breyttist valið í KT6 eftir reynsluna úr KT3 — lærði hópurinn, og hvað lærði hann?',
+    'Hvað er trúverðugleiki í hagstjórn — og hvers vegna hélt Þjóðarsáttin 1990 þegar fyrri tilraunir höfðu brugðist?',
+    'Hvaða hliðstæðu sjáið þið í kjarasamningunum 2024 (stöðugleikasamningarnir) — hvað átti að halda verðbólgunni niðri og hver átti að treysta hverjum?',
+  ],
+  // Textaútgáfa af SATT_FYLKI (satt.mjs) — til að sýna hópnum í debrief, EKKI fyrirfram. Reiknuð úr fylkinu sjálfu.
+  fylki_til_toflu: [
+    { utkoma: '🤝 Allir halda (samvinna)', lid: 'hvert lið', ahrif: sattAhrif(SATT_FYLKI.samvinna) },
+    { utkoma: '🗡️ Sumir svíkja (a.m.k. helmingur heldur)', lid: 'svikari', ahrif: sattAhrif(SATT_FYLKI.svik.svikari) },
+    { utkoma: '🗡️ Sumir svíkja (a.m.k. helmingur heldur)', lid: 'sáttar-lið (sogari)', ahrif: sattAhrif(SATT_FYLKI.svik.sattLid) },
+    { utkoma: '🌀 Flestir svíkja (spírall)', lid: 'svikari', ahrif: sattAhrif(sattSamanlagt(SATT_FYLKI.spirall.allir, SATT_FYLKI.spirall.svikari)) },
+    { utkoma: '🌀 Flestir svíkja (spírall)', lid: 'sáttar-lið', ahrif: sattAhrif(sattSamanlagt(SATT_FYLKI.spirall.allir, SATT_FYLKI.spirall.sattLid)) },
+    { utkoma: '🏛️ Eitt lið í leik', lid: 'satt = samvinnu-tölur · sækja fram = svikara-tölur (eigin verðbólga, enginn sogari)', ahrif: '' },
   ],
 };

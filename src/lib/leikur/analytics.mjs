@@ -1,5 +1,5 @@
 // Þver-liða greining fyrir leikstjóra-mælaborð. HREINT (engin env/D1/vél).
-import { THOKA_HANDBOOK } from './handbook.mjs'; // hrein gagna-eining (þoku-debrief-spurningar f. teachingPrompts)
+import { THOKA_HANDBOOK, SATT_HANDBOOK } from './handbook.mjs'; // hrein gagna-eining (þoku-/sáttar-debrief-spurningar f. teachingPrompts)
 function optLabelFor(decId, optKey, decisionsConfig, scenario, round) {
   if (decId === 'vidbragd') { const ev = scenario.events[round - 1]; const o = ev && (ev.responses || []).find((r) => r.key === optKey); return o ? o.label : (optKey || '—'); }
   const d = decisionsConfig.find((x) => x.id === decId); const o = d && (d.options || []).find((x) => x.key === optKey); return o ? o.label : (optKey || '—');
@@ -44,7 +44,10 @@ export function buildAnalytics({ history, decisions, teams, mandate, decisionsCo
 // thoka = leikurinn var spilaður í „Hagstjórn í þoku" (config.thoka) → tvær þoku-debrief-spurningar úr
 // THOKA_HANDBOOK FREMST (þær eru kjarni umferðarinnar og mega ekki detta út við 8-þakið). Kallandi (client:
 // renderFacAnalytics / prent-skýrsla) réttir flaggið úr st.config.thoka — analytics sér ekki leik-stöðuna sjálft.
-export function teachingPrompts(an, { scenarioEvents = [], thoka = false } = {}) {
+// satt = sáttar-lotur VORU SPILAÐAR (config.satt + a.m.k. ein leyst sáttar-lota) → ein sáttar-debrief-spurning úr
+// SATT_HANDBOOK fremst (á eftir þoku); `satt` má vera true EÐA fylki af útkomum [{lota,flokkur}] — þá fer spurningin
+// eftir því hvernig fór (svik/spírall í fyrstu lotu → „hvers vegna sviku sum lið"; tvær lotur → „breyttist KT6 eftir KT3").
+export function teachingPrompts(an, { scenarioEvents = [], thoka = false, satt = false } = {}) {
   if (!an || !an.scorecard || !an.scorecard.length) return [];
   const out = [];
   // Liðs-nöfn eru notanda-innslegin → escape áður en flétt í <b> (XSS-vörn); KPI/atburða-heiti líka til öryggis.
@@ -57,6 +60,16 @@ export function teachingPrompts(an, { scenarioEvents = [], thoka = false } = {})
   if (thoka) {
     const q = THOKA_HANDBOOK.debrief_spurningar || [];
     for (const s of q.slice(0, 2)) out.push('🌫️ <b>Í þoku:</b> ' + esc(s));
+  }
+  // 0b) Þjóðarsáttin: fangaklemman þvert á lið var spiluð → spurning valin eftir því hvernig fór.
+  if (satt) {
+    const q = SATT_HANDBOOK.debrief_spurningar || [];
+    const lotur = Array.isArray(satt) ? satt.filter((u) => u && u.flokkur) : [];
+    let pick = q[3] || q[0];   // sjálfgefið: trúverðugleiki í hagstjórn
+    if (lotur.length >= 2) pick = q[2] || pick;                                   // tvær lotur → breyttist KT6 eftir KT3?
+    else if (lotur.length === 1 && lotur[0].flokkur !== 'samvinna') pick = q[0] || pick;   // svik/spírall → hvers vegna sviku sum lið?
+    else if (lotur.length === 1) pick = q[1] || pick;                             // samvinna strax → hvað þurfti til að treysta?
+    if (pick) out.push('🤝 <b>Þjóðarsáttin:</b> ' + esc(pick));
   }
 
   // 1) Mesta dreifing milli liða í einu markmiði (núverandi umferð)

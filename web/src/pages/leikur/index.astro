@@ -444,4 +444,46 @@ const MODEL = {
   main[data-pg="leikur"] .lk-thoka-fx { font-size: 11.5px; color: var(--muted, #9fb0c8); font-style: italic; }
   main[data-pg="leikur"] .lk-opt-fx.lk-thoka-fx { display: block; margin-top: 2px; }
   @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .lk-thoka-banner { animation: none; } }
+
+  /* ÞJÓÐARSÁTTIN (satt.mjs + client sattCard/sattResultsCard) — gull-þema (#e8c14a) aðgreinir sáttar-efnið;
+     is:global af sömu ástæðu og þokan (runtime-innerHTML + @keyframes). Val-spjaldið: tveir stórir kostir án
+     talna; afhjúpunin: raðir birtast ein af annarri (animation-delay inline per röð). */
+  main[data-pg="leikur"] .lk-satt-card { border-color: #e8c14a55; border-left: 4px solid #e8c14a; background: linear-gradient(180deg, rgba(232,193,74,.07), rgba(255,255,255,.02)); }
+  main[data-pg="leikur"] .lk-satt-tag { display: inline-block; font-size: 11px; font-weight: 700; background: rgba(232,193,74,.16); border: 1px solid #e8c14a66; color: #f0d488; border-radius: 999px; padding: 1px 8px; vertical-align: middle; margin-left: 6px; }
+  main[data-pg="leikur"] .lk-satt-q { font-size: 14px; font-weight: 600; margin: 0 0 10px; line-height: 1.5; }
+  main[data-pg="leikur"] .lk-satt-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { main[data-pg="leikur"] .lk-satt-opts { grid-template-columns: 1fr; } }
+  main[data-pg="leikur"] .lk-satt-opt { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line, #2a2f3a); background: rgba(255,255,255,.03); color: var(--ink, #e8ecf3); cursor: pointer; font-family: inherit; }
+  main[data-pg="leikur"] .lk-satt-opt:hover { border-color: #e8c14a; background: rgba(232,193,74,.08); }
+  main[data-pg="leikur"] .lk-satt-opt.sel { outline: 2px solid #e8c14a; background: rgba(232,193,74,.13); }
+  main[data-pg="leikur"] .lk-satt-opt-h { display: block; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  main[data-pg="leikur"] .lk-satt-opt-b { display: block; font-size: 12.5px; color: var(--muted, #9fb0c8); line-height: 1.5; }
+  main[data-pg="leikur"] .lk-satt-klemma { font-size: 12.8px; line-height: 1.55; margin-top: 10px; }
+  main[data-pg="leikur"] .lk-satt-klemma ul { margin: 4px 0 0; padding-left: 18px; }
+  main[data-pg="leikur"] .lk-satt-blint { font-size: 12px; margin: 8px 0 0; }
+  main[data-pg="leikur"] .lk-satt-warn { margin: 8px 0 0; padding: 7px 10px; border-radius: 8px; background: rgba(231,130,132,.13); border-left: 3px solid #e78284; font-size: 12.5px; color: #f2a6a8; }
+  main[data-pg="leikur"] .lk-satt-locked { font-size: 13px; margin: 8px 0 0; }
+  /* Afhjúpunin í results: flokkur stór, val-raðir birtast dramatískt ein af annarri. */
+  main[data-pg="leikur"] .lk-satt-lota { font-size: 12px; font-weight: 700; color: var(--muted, #9fb0c8); text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 2px; }
+  main[data-pg="leikur"] .lk-satt-flokkur { font-size: 17px; font-weight: 800; margin: 4px 0 6px; }
+  main[data-pg="leikur"] .lk-satt-tbl td, main[data-pg="leikur"] .lk-satt-tbl th { vertical-align: top; }
+  main[data-pg="leikur"] .lk-satt-c-satt { color: #7fe0ab; font-weight: 700; white-space: nowrap; }
+  main[data-pg="leikur"] .lk-satt-c-saekja { color: #f0a3a5; font-weight: 700; white-space: nowrap; }
+  main[data-pg="leikur"] .lk-satt-mitt { display: inline-block; font-size: 10.5px; font-weight: 700; background: rgba(110,168,254,.16); border: 1px solid #6ea8fe55; color: #cfe0ff; border-radius: 999px; padding: 0 7px; margin-left: 5px; vertical-align: middle; }
+  main[data-pg="leikur"] .lk-satt-reveal { animation: lk-satt-inn .55s ease-out backwards; }
+  @keyframes lk-satt-inn { from { opacity: 0; transform: translateY(5px); } }
+  main[data-pg="leikur"] .lk-satt-kennsla { margin: 8px 0 0; font-size: 13px; line-height: 1.55; border-top: 1px dashed var(--line, #2a2f3a); padding-top: 8px; }
+  main[data-pg="leikur"] .lk-satt-debrief { font-size: 12.5px; margin: 8px 0 0; }
+  main[data-pg="leikur"] .lk-satt-fac { font-size: 13px; margin: 0 0 8px; }
+  main[data-pg="leikur"] .lk-satt-sum { font-size: 14.5px; font-weight: 600; margin: 0; }
+  /* Watch-borðinn „Þjóðarsátt í gangi — lið velja" (án vals). */
+  main[data-pg="leikur"] .lk-satt-bordi { background: linear-gradient(90deg, rgba(232,193,74,.16), rgba(232,193,74,.05)); border: 1px solid #e8c14a66; border-left: 4px solid #e8c14a; border-radius: 10px; padding: 9px 14px; margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: #f0e2b8; }
+  /* Karphús-hléið: gull-borði með púlsi efst á öllum liðs-skjám; watch fær stóru útgáfuna. reduced-motion slekkur á púlsinum. */
+  main[data-pg="leikur"] .lk-karphus-bordi { background: linear-gradient(90deg, rgba(232,193,74,.26), rgba(246,177,59,.10)); border: 1px solid #e8c14a; border-left: 5px solid #e8c14a; border-radius: 10px; padding: 11px 14px; margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: #f4e2b0; animation: lk-karphus-puls 2.2s ease-in-out infinite; }
+  main[data-pg="leikur"] .lk-karphus-sub { color: var(--muted, #9fb0c8); font-size: 12.5px; }
+  main[data-pg="leikur"] .lk-karphus-t { font-variant-numeric: tabular-nums; color: #ffd970; margin-left: 8px; white-space: nowrap; }
+  main[data-pg="leikur"] .lk-karphus-big { font-size: 17px; padding: 14px 18px; }
+  main[data-pg="leikur"] .lk-karphus-big .lk-karphus-t { font-size: 22px; }
+  @keyframes lk-karphus-puls { 0%, 100% { box-shadow: 0 0 0 0 rgba(232,193,74,.45); } 50% { box-shadow: 0 0 0 9px rgba(232,193,74,0); } }
+  @media (prefers-reduced-motion: reduce) { main[data-pg="leikur"] .lk-karphus-bordi { animation: none; } main[data-pg="leikur"] .lk-satt-reveal { animation: none; } }
 </style>
