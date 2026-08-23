@@ -1,0 +1,124 @@
+{
+ "kt": "6306982439",
+ "nafn": "Xeta ehf.",
+ "sott": "2026-08-23",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2022": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2938,
+    "hagnadarhlutfall": 0.228,
+    "ROE": 0.1909,
+    "ROA": 0.1681,
+    "eiginfjarhlutfall": 0.8801,
+    "veltufjarhlutfall": 1.7669,
+    "skuldahlutfall_DE": 0.1362,
+    "eignavelta": 0.7369
+   },
+   "rekstur": {
+    "sala": 28314635,
+    "laun": 14671361,
+    "annar_rekstur": 4180687,
+    "afskriftir": 1144502,
+    "ebit": 8318085,
+    "fjarmunatekjur": 3967,
+    "fjarmagnsgjold": -7020,
+    "hagn_f_skatt": 8315032,
+    "tekjuskattur": -1858024,
+    "hagnadur": 6457008
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2261327,
+    "handbaert": 5877553,
+    "eignir": 38421827,
+    "hlutafe": 500000,
+    "eigid_fe": 33815570,
+    "skuldir": 4606257,
+    "efe_skuldir": 38421827,
+    "skammtimaskuldir": 4606257
+   },
+   "starfsmenn": null
+  },
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.35,
+    "hagnadarhlutfall": 0.2748,
+    "ROE": 0.2975,
+    "ROA": 0.246,
+    "eiginfjarhlutfall": 0.8267,
+    "veltufjarhlutfall": 0.9435,
+    "skuldahlutfall_DE": 0.2097,
+    "eignavelta": 0.895
+   },
+   "rekstur": {
+    "sala": 35610114,
+    "laun": 14618029,
+    "annar_rekstur": 7141561,
+    "afskriftir": 1388397,
+    "ebit": 12462127,
+    "fjarmunatekjur": 110309,
+    "fjarmagnsgjold": -6081,
+    "hagn_f_skatt": 12566355,
+    "tekjuskattur": -2779211,
+    "hagnadur": 9787144
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 3211620,
+    "handbaert": 3295211,
+    "eignir": 39788726,
+    "hlutafe": 500000,
+    "eigid_fe": 32892458,
+    "skuldir": 6896268,
+    "efe_skuldir": 39788726,
+    "skammtimaskuldir": 6896268
+   },
+   "starfsmenn": 1
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.3332,
+    "hagnadarhlutfall": 0.2544,
+    "ROE": 0.2577,
+    "ROA": 0.213,
+    "eiginfjarhlutfall": 0.8264,
+    "veltufjarhlutfall": 0.7826,
+    "skuldahlutfall_DE": 0.2101,
+    "eignavelta": 0.8374
+   },
+   "rekstur": {
+    "sala": 31025330,
+    "laun": 14163795,
+    "annar_rekstur": 5558616,
+    "afskriftir": 965718,
+    "ebit": 10337201,
+    "fjarmunatekjur": 165385,
+    "fjarmagnsgjold": -351082,
+    "hagn_f_skatt": 10151504,
+    "tekjuskattur": -2259743,
+    "hagnadur": 7891761
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 2700680,
+    "handbaert": 2333667,
+    "eignir": 37050743,
+    "hlutafe": 500000,
+    "eigid_fe": 30618025,
+    "skuldir": 6432718,
+    "efe_skuldir": 37050743,
+    "skammtimaskuldir": 6432718
+   },
+   "starfsmenn": 1
+  }
+ },
+ "pdf": "pdf/6306982439.pdf",
+ "pdfAr": "2024"
+}
