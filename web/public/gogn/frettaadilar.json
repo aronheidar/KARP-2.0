@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-22",
+ "updated": "2026-08-23",
  "adilar": [
   {
    "n": "Arion banki",
@@ -461,6 +461,83 @@
     "Þjóðkirkju"
    ],
    "slug": "thjodkirkjan"
+  },
+  {
+   "n": "Kristrún Frostadóttir",
+   "a": [
+    "Kristrún Frostadóttir"
+   ],
+   "slug": "kristrun-frostadottir"
+  },
+  {
+   "n": "Daði Már Kristófersson",
+   "a": [
+    "Daði Már Kristófersson"
+   ],
+   "slug": "dadi-mar-kristofersson"
+  },
+  {
+   "n": "Þorgerður Katrín Gunnarsdóttir",
+   "a": [
+    "Þorgerður Katrín Gunnarsdóttir"
+   ],
+   "slug": "thorgerdur-katrin-gunnarsdottir"
+  },
+  {
+   "n": "Þorbjörg Sigríður Gunnlaugsdóttir",
+   "a": [
+    "Þorbjörg Sigríður Gunnlaugsdóttir"
+   ],
+   "slug": "thorbjorg-sigridur-gunnlaugsdottir"
+  },
+  {
+   "n": "Alma D. Möller",
+   "a": [
+    "Alma D. Möller"
+   ],
+   "slug": "alma-d-moller"
+  },
+  {
+   "n": "Eyjólfur Ármannsson",
+   "a": [
+    "Eyjólfur Ármannsson"
+   ],
+   "slug": "eyjolfur-armannsson"
+  },
+  {
+   "n": "Hanna Katrín Friðriksson",
+   "a": [
+    "Hanna Katrín Friðriksson"
+   ],
+   "slug": "hanna-katrin-fridriksson"
+  },
+  {
+   "n": "Inga Sæland",
+   "a": [
+    "Inga Sæland"
+   ],
+   "slug": "inga-saeland"
+  },
+  {
+   "n": "Jóhann Páll Jóhannsson",
+   "a": [
+    "Jóhann Páll Jóhannsson"
+   ],
+   "slug": "johann-pall-johannsson"
+  },
+  {
+   "n": "Logi Einarsson",
+   "a": [
+    "Logi Einarsson"
+   ],
+   "slug": "logi-einarsson"
+  },
+  {
+   "n": "Ragnar Þór Ingólfsson",
+   "a": [
+    "Ragnar Þór Ingólfsson"
+   ],
+   "slug": "ragnar-thor-ingolfsson"
   },
   {
    "n": "Verðbólga",
