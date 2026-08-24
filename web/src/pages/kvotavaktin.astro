@@ -575,6 +575,16 @@ const jsonLd = {
       if (new URLSearchParams(location.search).get('syni') === '1') return;
       loadUser().then((u) => {
         if (isAdmin() || hasSub('kvoti') || !(u && u.paywall === true) || document.getElementById('plus-gate-box')) return;
+        // Áður: harður veggur — útskráður gestur sá EKKERT (engar tölur, ekkert félag). Það eyðir
+        // umferð úr samfélagsmiðlum. Nú lendir hann í ?syni=1, sem er þegar hannaða sölu-sýnishornið
+        // (raun-tölur efst, stigul-hula á dýpri gröfin, læstar áskriftar-flísar). Enginn nýr leki:
+        // /gogn/kvoti.json er hvort eð er opin skrá og ?syni=1 er opinbert sölutól.
+        const sp2 = new URLSearchParams(location.search);
+        if (sp2.get('syni') !== '1') {                       // (gátt keyrir aldrei með syni=1 — sjá ofar)
+          const u2 = new URL(location.href); u2.searchParams.set('syni', '1');
+          location.replace(u2.toString());                   // replace → bakkhnappur brotnar ekki
+          return;
+        }
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
         subGate(g, { service: 'kvoti', price: 9900, trialDays: 14, title: 'Kvótavaktin', blurb: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-þaks nálgun, tegundagreining og tengsl við ársreikninga og eigendur. Fyrir fjölmiðla, banka, útgerðir og greinendur.' });
