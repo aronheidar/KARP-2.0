@@ -43,7 +43,9 @@ async function tedAwards() {
       if (!r.ok) { console.log('  TED bls.', page, 'svar', r.status); break; }
       const j = await r.json();
       for (const n of j.notices || []) {
-        const winners = listOf(n['winner-name']);
+        // Rammasamningar telja sama sigurvegara UPP AFTUR OG AFTUR (eitt útboð: 288 nöfn, 70 ólík).
+        // Það blés upp bæði „+N"-talninguna á /utbod/ og hvers kyns sigur-talningu → afmá tvítök hér.
+        const winners = [...new Set(listOf(n['winner-name']).map((w) => String(w).trim()).filter(Boolean))];
         if (!winners.length) continue; // hætt við / án niðurstöðu
         // ⚠ TED skilar stundum PAN-EVRÓPSKUM rammasamningum þótt spurt sé um place-of-performance ISL
         // (spænsk hafnarþjónusta, þyrluleiga EDA, viðburðir EUAA — engin tengsl við Ísland). Þau menguðu
