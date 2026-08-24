@@ -45,6 +45,13 @@ async function tedAwards() {
       for (const n of j.notices || []) {
         const winners = listOf(n['winner-name']);
         if (!winners.length) continue; // hætt við / án niðurstöðu
+        // ⚠ TED skilar stundum PAN-EVRÓPSKUM rammasamningum þótt spurt sé um place-of-performance ISL
+        // (spænsk hafnarþjónusta, þyrluleiga EDA, viðburðir EUAA — engin tengsl við Ísland). Þau menguðu
+        // „sigursælustu"-listann (Kaleido Logistics SL var efst með 61 „sigur"). Sía: titill merktur Íslandi
+        // EÐA sigurvegari með íslenskt lögform — heldur t.d. EGNOS-verkinu á Hólmavík sem TED merkir „Czechia".
+        const heiti = txtOf(n['notice-title']);
+        const islSigur = winners.some((w) => /\b(ehf|hf|ohf|sf|bs|slf)\.?$/i.test(String(w).trim()));
+        if (!/^Iceland\s+[–-]/i.test(heiti) && !islSigur) continue;
         const curs = listOf(n['total-value-cur']);
         const isk = curs.includes('ISK');
         const val = Array.isArray(n['total-value']) ? n['total-value'][0] : n['total-value'];
