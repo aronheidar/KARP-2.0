@@ -1,11 +1,11 @@
 {
- "updated": "2026-08-17T05:27:41.533Z",
- "n": 27,
+ "updated": "2026-08-24T05:37:30.629Z",
+ "n": 28,
  "byCat": {
   "midlar": 14,
   "stofnanir": 1,
   "fyrirtaeki": 11,
-  "thingmenn": 1
+  "thingmenn": 2
  },
  "chans": [
   {
@@ -237,6 +237,14 @@
    "cat": "thingmenn",
    "newest": "2020-07-07",
    "vids": 15
+  },
+  {
+   "id": "UCFaBhzozsu_H4oBQ9CK63cQ",
+   "n": "Guðlaugur Þór Þórðarson",
+   "q": "Guðlaugur Þór Þórðarson",
+   "cat": "thingmenn",
+   "newest": "2025-08-28",
+   "vids": 2
   }
  ]
 }
