@@ -1,46 +1,46 @@
 {
- "builtAt": "2026-08-24T08:07:45.812Z",
+ "builtAt": "2026-08-25T07:42:27.943Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-08-24T07:49:19.337Z",
+   "iso": "2026-08-25T07:39:50.315Z",
    "maxAge": 158400000
   },
   {
    "label": "Sérlyfjaskrá",
    "file": "lyf.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-08-24T06:44:12.168Z",
+   "iso": "2026-08-25T06:36:39.838Z",
    "maxAge": 158400000
   },
   {
    "label": "Lögbirtingablaðið",
    "file": "logbirting.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-08-24T07:28:17.139Z",
+   "iso": "2026-08-25T07:19:03.367Z",
    "maxAge": 158400000
   },
   {
    "label": "Byggingarleyfi",
    "file": "byggingarleyfi_vakt.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
    "label": "Lobbývakt",
    "file": "lobbyvakt.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
@@ -52,37 +52,37 @@
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-08-24T07:26:36.594Z",
+   "iso": "2026-08-25T07:17:23.271Z",
    "maxAge": 158400000
   },
   {
    "label": "Hugverk / vörumerki",
    "file": "hugverk.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-08-24T07:49:06.881Z",
+   "iso": "2026-08-25T07:39:37.001Z",
    "maxAge": 158400000
   },
   {
    "label": "Markaðir",
    "file": "markadir.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 158400000
   },
   {
    "label": "Styrkir",
    "file": "styrkir.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 777600000
   },
   {
    "label": "PEP-listi",
    "file": "pep.json",
-   "iso": "2026-08-24",
+   "iso": "2026-08-25",
    "maxAge": 777600000
   },
   {
