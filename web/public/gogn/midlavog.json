@@ -12,12 +12,12 @@
    "sample": [
     {
      "entity": "Ölgerðin",
-     "dev": 71.67,
+     "dev": 71.03,
      "n": 4
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 60.26,
+     "dev": 60.22,
      "n": 3
     },
     {
@@ -32,7 +32,7 @@
     },
     {
      "entity": "Ríkislögreglustjóri",
-     "dev": 9.79,
+     "dev": 9.75,
      "n": 3
     }
    ]
@@ -41,7 +41,7 @@
    "s": "Viðskiptablaðið",
    "bias": 13,
    "rawTone": -4,
-   "n": 880,
+   "n": 882,
    "entities": 71,
    "sample": [
     {
@@ -51,13 +51,8 @@
     },
     {
      "entity": "Hafnarfjörður",
-     "dev": 120.53,
+     "dev": 120.49,
      "n": 3
-    },
-    {
-     "entity": "Reykjanes",
-     "dev": 107.96,
-     "n": 7
     },
     {
      "entity": "Hæstiréttur",
@@ -66,8 +61,13 @@
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 99.79,
+     "dev": 99.96,
      "n": 6
+    },
+    {
+     "entity": "Reykjanes",
+     "dev": 99.02,
+     "n": 8
     }
    ]
   },
@@ -75,7 +75,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 24792,
+   "n": 24799,
    "entities": 167,
    "sample": [
     {
@@ -109,7 +109,7 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -35,
-   "n": 10172,
+   "n": 10191,
    "entities": 158,
    "sample": [
     {
@@ -153,7 +153,7 @@
     },
     {
      "entity": "Akureyri",
-     "dev": -56.06,
+     "dev": -56.07,
      "n": 3
     },
     {
@@ -163,12 +163,12 @@
     },
     {
      "entity": "Gervigreind",
-     "dev": -36.01,
+     "dev": -36.05,
      "n": 6
     },
     {
      "entity": "Atvinnuleysi",
-     "dev": -33.7,
+     "dev": -33.52,
      "n": 3
     }
    ]
@@ -177,7 +177,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -37,
-   "n": 11369,
+   "n": 11385,
    "entities": 162,
    "sample": [
     {
@@ -209,14 +209,14 @@
   },
   {
    "s": "Nútíminn",
-   "bias": -15,
-   "rawTone": -59,
-   "n": 37,
+   "bias": -14,
+   "rawTone": -58,
+   "n": 38,
    "entities": 6,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": -66.88,
+     "dev": -66.71,
      "n": 3
     },
     {
@@ -226,17 +226,17 @@
     },
     {
      "entity": "Matvælastofnun",
-     "dev": 5.48,
+     "dev": 5.44,
      "n": 4
     },
     {
      "entity": "Ríkislögreglustjóri",
-     "dev": -3.55,
+     "dev": -3.59,
      "n": 5
     },
     {
      "entity": "Löggæsla og afbrot",
-     "dev": -2.56,
+     "dev": -2.6,
      "n": 5
     }
    ]
@@ -245,8 +245,8 @@
    "s": "DV",
    "bias": -18,
    "rawTone": -53,
-   "n": 114,
-   "entities": 16,
+   "n": 120,
+   "entities": 17,
    "sample": [
     {
      "entity": "Menntamál",
@@ -270,7 +270,7 @@
     },
     {
      "entity": "Rússland",
-     "dev": -40.72,
+     "dev": -40.75,
      "n": 5
     }
    ]
@@ -318,22 +318,22 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.32,
+     "dev": -94.33,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 89.83,
+     "dev": 89.6,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -72.72,
+     "dev": -72.74,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -66.88,
+     "dev": -66.71,
      "n": 4
     },
     {
