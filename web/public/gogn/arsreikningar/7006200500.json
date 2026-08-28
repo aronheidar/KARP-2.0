@@ -1,0 +1,127 @@
+{
+ "kt": "7006200500",
+ "nafn": "spói fjármögnun ehf.",
+ "sott": "2026-08-28",
+ "heimild": "RSK ársreikningaskrá (vefur.rsk.is/Vefverslun) — gjaldfrjálst",
+ "ar": {
+  "2023": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 0.2599,
+    "hagnadarhlutfall": 0.2079,
+    "ROE": 0.1186,
+    "ROA": 0.0056,
+    "eiginfjarhlutfall": 0.0472,
+    "veltufjarhlutfall": 0.0005,
+    "skuldahlutfall_DE": 20.2051,
+    "eignavelta": 0.0269
+   },
+   "rekstur": {
+    "fjarmunatekjur": 292296487,
+    "fjarmagnsgjold": -400387709,
+    "sala": 92070936,
+    "adrar_tekjur": 0,
+    "laun": -62738423,
+    "annar_rekstur": -33307740,
+    "afskriftir": -2212125,
+    "ebit": 23928846,
+    "hagn_f_skatt": 23928846,
+    "tekjuskattur": -4789809,
+    "hagnadur": 19139037
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 1167083,
+    "handbaert": 315290,
+    "eignir": 3423217744,
+    "hlutafe": 500000,
+    "eigid_fe": 161433724,
+    "skuldir": 3261784020,
+    "efe_skuldir": 3423217744,
+    "skammtimaskuldir": 3261784020
+   },
+   "starfsmenn": null
+  },
+  "2024": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": -1.7088,
+    "hagnadarhlutfall": -2.2259,
+    "ROE": -85.164,
+    "ROA": -0.0451,
+    "eiginfjarhlutfall": 0.0005,
+    "veltufjarhlutfall": 0.0001,
+    "skuldahlutfall_DE": 1888.0802,
+    "eignavelta": 0.0203
+   },
+   "rekstur": {
+    "fjarmunatekjur": 174868721,
+    "fjarmagnsgjold": -278977996,
+    "sala": 71682347,
+    "adrar_tekjur": 18630373,
+    "laun": -53978025,
+    "annar_rekstur": -32361269,
+    "afskriftir": -2050053,
+    "ebit": -122491925,
+    "hagn_f_skatt": -184054365,
+    "tekjuskattur": 24494205,
+    "hagnadur": -159560160
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 0,
+    "handbaert": 333874,
+    "eignir": 3539312636,
+    "hlutafe": 500000,
+    "eigid_fe": 1873564,
+    "skuldir": 3537439072,
+    "efe_skuldir": 3539312636,
+    "skammtimaskuldir": 3537439072
+   },
+   "starfsmenn": 2
+  },
+  "2025": {
+   "teg": "Ársreikningur",
+   "mynt": "ISK",
+   "kvardi": 1,
+   "kpi": {
+    "ebit_hlutfall": 2.4852,
+    "hagnadarhlutfall": 0.1169,
+    "ROE": 0.8615,
+    "ROA": 0.0034,
+    "eiginfjarhlutfall": 0.004,
+    "veltufjarhlutfall": 0.0171,
+    "skuldahlutfall_DE": 251.9097,
+    "eignavelta": 0.0292
+   },
+   "rekstur": {
+    "fjarmunatekjur": 466822699,
+    "fjarmagnsgjold": -286068220,
+    "sala": 99755843,
+    "adrar_tekjur": 62997606,
+    "laun": -32186543,
+    "annar_rekstur": -29206299,
+    "afskriftir": -1129536,
+    "ebit": 247911092,
+    "hagn_f_skatt": 61243912,
+    "tekjuskattur": -49586499,
+    "hagnadur": 11657413
+   },
+   "efnahagur": {
+    "vidskiptakrofur": 20000000,
+    "handbaert": 38253152,
+    "eignir": 3422114902,
+    "hlutafe": 500000,
+    "eigid_fe": 13530977,
+    "skuldir": 3408583925,
+    "efe_skuldir": 3422114902,
+    "skammtimaskuldir": 3408583925
+   },
+   "starfsmenn": 2
+  }
+ },
+ "pdf": "pdf/7006200500.pdf",
+ "pdfAr": "2025"
+}
