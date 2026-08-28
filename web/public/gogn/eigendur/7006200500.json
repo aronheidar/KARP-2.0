@@ -1,0 +1,121 @@
+{
+ "kt": "7006200500",
+ "nafn": "spói fjármögnun ehf.",
+ "sott": "2026-08-28",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt7006200500",
+    "kt": "7006200500",
+    "nafn": "spói fjármögnun ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Eignarhaldsfélagið VGJ ehf.................................................................... 450.501",
+    "tegund": "einst"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Eignarhaldsfélagið VGE ehf................................................................... 49.499",
+    "tegund": "einst"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Samtals.............................................................................................. 500.000",
+    "tegund": "einst"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt7006200500",
+    "hlutur": 90.1,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n2",
+    "til": "kt7006200500",
+    "hlutur": 9.9,
+    "band": "lt",
+    "heimild": "Ársreikningur 2025"
+   },
+   {
+    "fra": "n3",
+    "til": "kt7006200500",
+    "hlutur": 100,
+    "band": "51",
+    "heimild": "Ársreikningur 2025"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Samtals.............................................................................................. 500.000",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 100,
+   "gegnum": []
+  },
+  {
+   "nafn": "Eignarhaldsfélagið VGJ ehf.................................................................... 450.501",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 90.1,
+   "gegnum": []
+  },
+  {
+   "nafn": "Eignarhaldsfélagið VGE ehf................................................................... 49.499",
+   "kt": null,
+   "faeding": null,
+   "tegund": "einst",
+   "hlutur": 9.9,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 0,
+ "raunverulegir": [
+  {
+   "nafn": "Eiríkur Vignisson",
+   "faeding": "1966-APRÍL",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": "81,1%",
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [
+  {
+   "nafn": "Eignarhaldsfélagið VGJ ehf.................................................................... 450.501",
+   "kt": null,
+   "hlutur": 90.1
+  },
+  {
+   "nafn": "Eignarhaldsfélagið VGE ehf................................................................... 49.499",
+   "kt": null,
+   "hlutur": 9.9
+  },
+  {
+   "nafn": "Samtals.............................................................................................. 500.000",
+   "kt": null,
+   "hlutur": 100
+  }
+ ],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
