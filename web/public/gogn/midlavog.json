@@ -1,131 +1,160 @@
 {
- "updated": "2026-08-27",
+ "updated": "2026-08-28",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Vikublaðið",
-   "bias": 65,
-   "rawTone": 53,
-   "n": 38,
+   "bias": 68,
+   "rawTone": 56,
+   "n": 41,
    "entities": 5,
    "sample": [
     {
      "entity": "Akureyri",
-     "dev": 76.93,
-     "n": 21
-    },
-    {
-     "entity": "Norðurland",
-     "dev": 67.9,
-     "n": 5
+     "dev": 79.06,
+     "n": 23
     },
     {
      "entity": "Menntamál",
-     "dev": 62.24,
-     "n": 6
+     "dev": 69.32,
+     "n": 7
+    },
+    {
+     "entity": "Norðurland",
+     "dev": 68.04,
+     "n": 5
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 26.5,
+     "dev": 25.86,
      "n": 3
     },
     {
      "entity": "Menning og listir",
-     "dev": 16.14,
+     "dev": 15.58,
      "n": 3
     }
    ]
   },
   {
-   "s": "Feykir",
-   "bias": 40,
-   "rawTone": 26,
-   "n": 23,
-   "entities": 6,
+   "s": "Skessuhorn",
+   "bias": 45,
+   "rawTone": 38,
+   "n": 29,
+   "entities": 8,
    "sample": [
     {
-     "entity": "Sveitarfélögin",
-     "dev": 105.31,
-     "n": 4
-    },
-    {
-     "entity": "Menntamál",
-     "dev": 62.24,
-     "n": 4
-    },
-    {
-     "entity": "Skagi (VÍS)",
-     "dev": 59.28,
+     "entity": "Alþingi",
+     "dev": 84.95,
      "n": 3
     },
     {
-     "entity": "Norðurland",
-     "dev": 27.9,
-     "n": 4
+     "entity": "Sveitarfélögin",
+     "dev": 71.84,
+     "n": 3
     },
     {
-     "entity": "Íþróttir",
-     "dev": -21.94,
+     "entity": "Byggingariðnaður",
+     "dev": 67.03,
+     "n": 5
+    },
+    {
+     "entity": "Verslun",
+     "dev": 52.67,
+     "n": 3
+    },
+    {
+     "entity": "Menning og listir",
+     "dev": 48.91,
      "n": 3
     }
    ]
   },
   {
    "s": "Sunnlenska",
-   "bias": 38,
-   "rawTone": 33,
-   "n": 39,
+   "bias": 41,
+   "rawTone": 36,
+   "n": 44,
    "entities": 6,
    "sample": [
     {
      "entity": "Landbúnaður",
-     "dev": 68.5,
-     "n": 4
-    },
-    {
-     "entity": "Suðurland",
-     "dev": 39.81,
-     "n": 10
+     "dev": 66.67,
+     "n": 6
     },
     {
      "entity": "Íþróttir",
+     "dev": 40.03,
+     "n": 16
+    },
+    {
+     "entity": "Ríkisstjórnin",
      "dev": 38.06,
-     "n": 15
-    },
-    {
-     "entity": "Ríkisstjórnin",
-     "dev": 37.65,
      "n": 3
     },
     {
      "entity": "Ríkisstjórnin",
-     "dev": 37.65,
+     "dev": 38.06,
      "n": 3
+    },
+    {
+     "entity": "Suðurland",
+     "dev": 37.91,
+     "n": 11
+    }
+   ]
+  },
+  {
+   "s": "Feykir",
+   "bias": 40,
+   "rawTone": 25,
+   "n": 28,
+   "entities": 7,
+   "sample": [
+    {
+     "entity": "Sveitarfélögin",
+     "dev": 105.17,
+     "n": 4
+    },
+    {
+     "entity": "Menntamál",
+     "dev": 62.18,
+     "n": 4
+    },
+    {
+     "entity": "Skagi (VÍS)",
+     "dev": 59.48,
+     "n": 3
+    },
+    {
+     "entity": "Landbúnaður",
+     "dev": 50,
+     "n": 3
+    },
+    {
+     "entity": "Norðurland",
+     "dev": 28.04,
+     "n": 5
     }
    ]
   },
   {
    "s": "Austurfrétt",
-   "bias": 29,
-   "rawTone": -3,
-   "n": 33,
+   "bias": 23,
+   "rawTone": -11,
+   "n": 36,
    "entities": 7,
    "sample": [
     {
      "entity": "Ölgerðin",
-     "dev": 69.56,
+     "dev": 69.59,
      "n": 4
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 51.5,
+     "dev": 50.86,
      "n": 4
-    },
-    {
-     "entity": "Austurland",
-     "dev": 43.86,
-     "n": 12
     },
     {
      "entity": "Dýravelferð",
@@ -133,8 +162,13 @@
      "n": 3
     },
     {
-     "entity": "Ríkislögreglustjóri",
-     "dev": 10.04,
+     "entity": "Austurland",
+     "dev": 34.05,
+     "n": 13
+    },
+    {
+     "entity": "Umhverfisvernd",
+     "dev": 5.27,
      "n": 3
     }
    ]
@@ -143,7 +177,7 @@
    "s": "Viðskiptablaðið",
    "bias": 13,
    "rawTone": -3,
-   "n": 925,
+   "n": 940,
    "entities": 73,
    "sample": [
     {
@@ -162,14 +196,48 @@
      "n": 3
     },
     {
+     "entity": "Norðurlöndin",
+     "dev": 99.62,
+     "n": 6
+    },
+    {
      "entity": "Reykjanes",
-     "dev": 99.39,
+     "dev": 99.62,
      "n": 8
+    }
+   ]
+  },
+  {
+   "s": "Heimildin",
+   "bias": 4,
+   "rawTone": -29,
+   "n": 136,
+   "entities": 19,
+   "sample": [
+    {
+     "entity": "Skattamál",
+     "dev": 115.53,
+     "n": 7
+    },
+    {
+     "entity": "Akureyri",
+     "dev": -57.17,
+     "n": 3
+    },
+    {
+     "entity": "Gervigreind",
+     "dev": -42.49,
+     "n": 7
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 99.24,
-     "n": 6
+     "dev": 32.95,
+     "n": 5
+    },
+    {
+     "entity": "Tollar",
+     "dev": -28.21,
+     "n": 3
     }
    ]
   },
@@ -177,7 +245,7 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 24602,
+   "n": 24562,
    "entities": 168,
    "sample": [
     {
@@ -197,47 +265,13 @@
     },
     {
      "entity": "Pólland",
-     "dev": 28.93,
-     "n": 66
+     "dev": 29.62,
+     "n": 68
     },
     {
-     "entity": "Indó",
-     "dev": 28.21,
-     "n": 17
-    }
-   ]
-  },
-  {
-   "s": "Heimildin",
-   "bias": 2,
-   "rawTone": -31,
-   "n": 130,
-   "entities": 19,
-   "sample": [
-    {
-     "entity": "Skattamál",
-     "dev": 115.21,
-     "n": 7
-    },
-    {
-     "entity": "Akureyri",
-     "dev": -56.4,
-     "n": 3
-    },
-    {
-     "entity": "Gervigreind",
-     "dev": -42.49,
-     "n": 7
-    },
-    {
-     "entity": "Norðurlöndin",
-     "dev": 32.58,
-     "n": 5
-    },
-    {
-     "entity": "Asía",
-     "dev": 28.21,
-     "n": 3
+     "entity": "Tækni og hugbúnaður",
+     "dev": 28.45,
+     "n": 52
     }
    ]
   },
@@ -245,7 +279,7 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -35,
-   "n": 10289,
+   "n": 10363,
    "entities": 159,
    "sample": [
     {
@@ -255,7 +289,7 @@
     },
     {
      "entity": "Tækni og hugbúnaður",
-     "dev": -60.75,
+     "dev": -59.63,
      "n": 10
     },
     {
@@ -279,7 +313,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -37,
-   "n": 11419,
+   "n": 11453,
    "entities": 163,
    "sample": [
     {
@@ -293,11 +327,6 @@
      "n": 6
     },
     {
-     "entity": "Sjúkratryggingar",
-     "dev": 59.09,
-     "n": 11
-    },
-    {
      "entity": "Netverslun",
      "dev": 56.33,
      "n": 19
@@ -306,53 +335,24 @@
      "entity": "Bílamarkaður",
      "dev": -53.57,
      "n": 16
-    }
-   ]
-  },
-  {
-   "s": "DV",
-   "bias": -15,
-   "rawTone": -51,
-   "n": 173,
-   "entities": 21,
-   "sample": [
-    {
-     "entity": "Menntamál",
-     "dev": -87.76,
-     "n": 4
     },
     {
-     "entity": "Ferðaþjónusta",
-     "dev": -74.31,
-     "n": 4
-    },
-    {
-     "entity": "Spánn",
-     "dev": -66.8,
-     "n": 5
-    },
-    {
-     "entity": "Vextir",
-     "dev": 66.67,
-     "n": 3
-    },
-    {
-     "entity": "Húsnæðismál",
-     "dev": -58.85,
-     "n": 5
+     "entity": "Sjúkratryggingar",
+     "dev": 53.49,
+     "n": 10
     }
    ]
   },
   {
    "s": "Nútíminn",
-   "bias": -15,
-   "rawTone": -62,
-   "n": 47,
-   "entities": 7,
+   "bias": -10,
+   "rawTone": -53,
+   "n": 55,
+   "entities": 9,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": -67.42,
+     "dev": -67.05,
      "n": 3
     },
     {
@@ -361,19 +361,53 @@
      "n": 6
     },
     {
+     "entity": "Verðbólga",
+     "dev": 49.28,
+     "n": 3
+    },
+    {
      "entity": "Dómsmál",
-     "dev": -28.15,
+     "dev": -28.07,
      "n": 4
     },
     {
-     "entity": "Ríkislögreglustjóri",
-     "dev": -6.63,
-     "n": 6
+     "entity": "Menning og listir",
+     "dev": 15.58,
+     "n": 3
+    }
+   ]
+  },
+  {
+   "s": "DV",
+   "bias": -15,
+   "rawTone": -51,
+   "n": 215,
+   "entities": 25,
+   "sample": [
+    {
+     "entity": "Sveitarfélögin",
+     "dev": -94.83,
+     "n": 3
     },
     {
-     "entity": "Matvælastofnun",
-     "dev": 5.69,
+     "entity": "Menntamál",
+     "dev": -87.82,
      "n": 4
+    },
+    {
+     "entity": "Ferðaþjónusta",
+     "dev": -73.55,
+     "n": 4
+    },
+    {
+     "entity": "Ölgerðin",
+     "dev": -72.07,
+     "n": 3
+    },
+    {
+     "entity": "Vextir",
+     "dev": 66.67,
+     "n": 3
     }
    ]
   },
@@ -381,7 +415,7 @@
    "s": "dv.is",
    "bias": -19,
    "rawTone": -57,
-   "n": 3648,
+   "n": 3637,
    "entities": 136,
    "sample": [
     {
@@ -391,12 +425,12 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -106.53,
+     "dev": -106.38,
      "n": 5
     },
     {
      "entity": "Hátíðir og viðburðir",
-     "dev": -103.79,
+     "dev": -102.43,
      "n": 6
     },
     {
@@ -406,7 +440,7 @@
     },
     {
      "entity": "Ölgerðin",
-     "dev": -75.44,
+     "dev": -75.41,
      "n": 10
     }
    ]
@@ -420,27 +454,27 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.69,
+     "dev": -94.83,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 89.89,
+     "dev": 89.97,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -73.07,
+     "dev": -73.83,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -67.42,
+     "dev": -67.05,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -62.76,
+     "dev": -62.82,
      "n": 4
     }
    ]
