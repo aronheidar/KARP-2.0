@@ -1,23 +1,28 @@
 {
- "updated": "2026-08-28",
+ "updated": "2026-08-29",
  "days": 180,
  "efniSkodud": 184,
  "outlets": [
   {
    "s": "Vikublaðið",
-   "bias": 68,
-   "rawTone": 56,
-   "n": 41,
-   "entities": 5,
+   "bias": 73,
+   "rawTone": 62,
+   "n": 47,
+   "entities": 6,
    "sample": [
     {
+     "entity": "Verslun",
+     "dev": 118.69,
+     "n": 3
+    },
+    {
      "entity": "Akureyri",
-     "dev": 79.06,
-     "n": 23
+     "dev": 81.89,
+     "n": 26
     },
     {
      "entity": "Menntamál",
-     "dev": 69.32,
+     "dev": 69.55,
      "n": 7
     },
     {
@@ -27,12 +32,7 @@
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 25.86,
-     "n": 3
-    },
-    {
-     "entity": "Menning og listir",
-     "dev": 15.58,
+     "dev": 25.84,
      "n": 3
     }
    ]
@@ -46,12 +46,12 @@
    "sample": [
     {
      "entity": "Alþingi",
-     "dev": 84.95,
+     "dev": 84.74,
      "n": 3
     },
     {
      "entity": "Sveitarfélögin",
-     "dev": 71.84,
+     "dev": 72.06,
      "n": 3
     },
     {
@@ -61,47 +61,13 @@
     },
     {
      "entity": "Verslun",
-     "dev": 52.67,
+     "dev": 52.02,
      "n": 3
     },
     {
      "entity": "Menning og listir",
-     "dev": 48.91,
+     "dev": 48.77,
      "n": 3
-    }
-   ]
-  },
-  {
-   "s": "Sunnlenska",
-   "bias": 41,
-   "rawTone": 36,
-   "n": 44,
-   "entities": 6,
-   "sample": [
-    {
-     "entity": "Landbúnaður",
-     "dev": 66.67,
-     "n": 6
-    },
-    {
-     "entity": "Íþróttir",
-     "dev": 40.03,
-     "n": 16
-    },
-    {
-     "entity": "Ríkisstjórnin",
-     "dev": 38.06,
-     "n": 3
-    },
-    {
-     "entity": "Ríkisstjórnin",
-     "dev": 38.06,
-     "n": 3
-    },
-    {
-     "entity": "Suðurland",
-     "dev": 37.91,
-     "n": 11
     }
    ]
   },
@@ -114,17 +80,17 @@
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": 105.17,
+     "dev": 105.39,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": 62.18,
+     "dev": 62.41,
      "n": 4
     },
     {
      "entity": "Skagi (VÍS)",
-     "dev": 59.48,
+     "dev": 59.45,
      "n": 3
     },
     {
@@ -140,6 +106,40 @@
    ]
   },
   {
+   "s": "Sunnlenska",
+   "bias": 35,
+   "rawTone": 29,
+   "n": 48,
+   "entities": 7,
+   "sample": [
+    {
+     "entity": "Landbúnaður",
+     "dev": 66.67,
+     "n": 6
+    },
+    {
+     "entity": "Ríkisstjórnin",
+     "dev": 38.35,
+     "n": 3
+    },
+    {
+     "entity": "Ríkisstjórnin",
+     "dev": 38.35,
+     "n": 3
+    },
+    {
+     "entity": "Suðurland",
+     "dev": 37.74,
+     "n": 11
+    },
+    {
+     "entity": "Íþróttir",
+     "dev": 30.63,
+     "n": 17
+    }
+   ]
+  },
+  {
    "s": "Austurfrétt",
    "bias": 23,
    "rawTone": -11,
@@ -148,12 +148,12 @@
    "sample": [
     {
      "entity": "Ölgerðin",
-     "dev": 69.59,
+     "dev": 68.88,
      "n": 4
     },
     {
      "entity": "Evrópusambandið",
-     "dev": 50.86,
+     "dev": 50.84,
      "n": 4
     },
     {
@@ -163,21 +163,21 @@
     },
     {
      "entity": "Austurland",
-     "dev": 34.05,
+     "dev": 32.76,
      "n": 13
     },
     {
      "entity": "Umhverfisvernd",
-     "dev": 5.27,
+     "dev": 4.79,
      "n": 3
     }
    ]
   },
   {
    "s": "Viðskiptablaðið",
-   "bias": 13,
+   "bias": 12,
    "rawTone": -3,
-   "n": 940,
+   "n": 952,
    "entities": 73,
    "sample": [
     {
@@ -187,7 +187,7 @@
     },
     {
      "entity": "Hafnarfjörður",
-     "dev": 120.85,
+     "dev": 120.64,
      "n": 3
     },
     {
@@ -197,7 +197,7 @@
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 99.62,
+     "dev": 99.83,
      "n": 6
     },
     {
@@ -210,34 +210,34 @@
   {
    "s": "Heimildin",
    "bias": 4,
-   "rawTone": -29,
-   "n": 136,
-   "entities": 19,
+   "rawTone": -28,
+   "n": 146,
+   "entities": 21,
    "sample": [
     {
      "entity": "Skattamál",
-     "dev": 115.53,
+     "dev": 115.67,
      "n": 7
     },
     {
      "entity": "Akureyri",
-     "dev": -57.17,
+     "dev": -57.85,
+     "n": 3
+    },
+    {
+     "entity": "Skatturinn",
+     "dev": 53.33,
      "n": 3
     },
     {
      "entity": "Gervigreind",
-     "dev": -42.49,
+     "dev": -42.71,
      "n": 7
     },
     {
      "entity": "Norðurlöndin",
-     "dev": 32.95,
+     "dev": 33.16,
      "n": 5
-    },
-    {
-     "entity": "Tollar",
-     "dev": -28.21,
-     "n": 3
     }
    ]
   },
@@ -245,12 +245,12 @@
    "s": "Vísir",
    "bias": 3,
    "rawTone": -22,
-   "n": 24562,
+   "n": 24455,
    "entities": 168,
    "sample": [
     {
      "entity": "Bílamarkaður",
-     "dev": 46.43,
+     "dev": 49.42,
      "n": 16
     },
     {
@@ -279,12 +279,12 @@
    "s": "RÚV",
    "bias": 0,
    "rawTone": -35,
-   "n": 10363,
+   "n": 10369,
    "entities": 159,
    "sample": [
     {
      "entity": "Vörumerki og hugverk",
-     "dev": -72.67,
+     "dev": -75,
      "n": 4
     },
     {
@@ -293,19 +293,19 @@
      "n": 10
     },
     {
-     "entity": "Háskóli Íslands",
-     "dev": -42.03,
-     "n": 15
-    },
-    {
      "entity": "Netverslun",
      "dev": -41.28,
      "n": 22
     },
     {
-     "entity": "Krónan",
-     "dev": -41.23,
-     "n": 4
+     "entity": "Fjarskipti",
+     "dev": 40.6,
+     "n": 7
+    },
+    {
+     "entity": "Háskóli Íslands",
+     "dev": -40.48,
+     "n": 15
     }
    ]
   },
@@ -313,7 +313,7 @@
    "s": "mbl.is",
    "bias": -2,
    "rawTone": -37,
-   "n": 11453,
+   "n": 11454,
    "entities": 163,
    "sample": [
     {
@@ -333,8 +333,8 @@
     },
     {
      "entity": "Bílamarkaður",
-     "dev": -53.57,
-     "n": 16
+     "dev": -54.99,
+     "n": 17
     },
     {
      "entity": "Sjúkratryggingar",
@@ -345,14 +345,14 @@
   },
   {
    "s": "Nútíminn",
-   "bias": -10,
+   "bias": -11,
    "rawTone": -53,
-   "n": 55,
+   "n": 57,
    "entities": 9,
    "sample": [
     {
      "entity": "Norðurlöndin",
-     "dev": -67.05,
+     "dev": -66.84,
      "n": 3
     },
     {
@@ -362,52 +362,52 @@
     },
     {
      "entity": "Verðbólga",
-     "dev": 49.28,
+     "dev": 48.98,
      "n": 3
     },
     {
      "entity": "Dómsmál",
-     "dev": -28.07,
+     "dev": -27.95,
      "n": 4
     },
     {
      "entity": "Menning og listir",
-     "dev": 15.58,
+     "dev": 15.44,
      "n": 3
     }
    ]
   },
   {
    "s": "DV",
-   "bias": -15,
-   "rawTone": -51,
-   "n": 215,
-   "entities": 25,
+   "bias": -18,
+   "rawTone": -53,
+   "n": 236,
+   "entities": 28,
    "sample": [
     {
+     "entity": "Kosningar",
+     "dev": -96.09,
+     "n": 3
+    },
+    {
      "entity": "Sveitarfélögin",
-     "dev": -94.83,
+     "dev": -94.61,
      "n": 3
     },
     {
      "entity": "Menntamál",
-     "dev": -87.82,
-     "n": 4
+     "dev": -87.59,
+     "n": 5
+    },
+    {
+     "entity": "Uppgjör og afkoma",
+     "dev": -79.9,
+     "n": 3
     },
     {
      "entity": "Ferðaþjónusta",
-     "dev": -73.55,
+     "dev": -73.84,
      "n": 4
-    },
-    {
-     "entity": "Ölgerðin",
-     "dev": -72.07,
-     "n": 3
-    },
-    {
-     "entity": "Vextir",
-     "dev": 66.67,
-     "n": 3
     }
    ]
   },
@@ -415,7 +415,7 @@
    "s": "dv.is",
    "bias": -19,
    "rawTone": -57,
-   "n": 3637,
+   "n": 3617,
    "entities": 136,
    "sample": [
     {
@@ -425,7 +425,7 @@
     },
     {
      "entity": "Uppgjör og afkoma",
-     "dev": -106.38,
+     "dev": -106.57,
      "n": 5
     },
     {
@@ -440,7 +440,7 @@
     },
     {
      "entity": "Ölgerðin",
-     "dev": -75.41,
+     "dev": -76.12,
      "n": 10
     }
    ]
@@ -449,32 +449,32 @@
    "s": "Mannlíf",
    "bias": -22,
    "rawTone": -71,
-   "n": 164,
+   "n": 163,
    "entities": 27,
    "sample": [
     {
      "entity": "Sveitarfélögin",
-     "dev": -94.83,
+     "dev": -94.61,
      "n": 3
     },
     {
      "entity": "Bretland",
-     "dev": 89.97,
+     "dev": 90.27,
      "n": 3
     },
     {
      "entity": "Akureyri",
-     "dev": -73.83,
+     "dev": -74.52,
      "n": 6
     },
     {
      "entity": "Norðurlöndin",
-     "dev": -67.05,
+     "dev": -66.84,
      "n": 4
     },
     {
      "entity": "Menntamál",
-     "dev": -62.82,
+     "dev": -62.59,
      "n": 4
     }
    ]
