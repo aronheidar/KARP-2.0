@@ -1,88 +1,88 @@
 {
- "builtAt": "2026-08-29T13:12:58.721Z",
+ "builtAt": "2026-08-30T12:26:36.071Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-08-29T13:10:09.067Z",
+   "iso": "2026-08-30T12:13:05.747Z",
    "maxAge": 158400000
   },
   {
    "label": "Sérlyfjaskrá",
    "file": "lyf.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-08-29T12:05:48.475Z",
+   "iso": "2026-08-30T11:02:51.090Z",
    "maxAge": 158400000
   },
   {
    "label": "Lögbirtingablaðið",
    "file": "logbirting.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-08-29T12:49:08.767Z",
+   "iso": "2026-08-30T11:49:23.789Z",
    "maxAge": 158400000
   },
   {
    "label": "Byggingarleyfi",
    "file": "byggingarleyfi_vakt.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Lobbývakt",
    "file": "lobbyvakt.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Stjórnartíðindi",
    "file": "stjornartidindi.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-08-29T12:47:29.118Z",
+   "iso": "2026-08-30T11:47:40.476Z",
    "maxAge": 158400000
   },
   {
    "label": "Hugverk / vörumerki",
    "file": "hugverk.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-08-29T13:09:14.514Z",
+   "iso": "2026-08-30T12:12:03.564Z",
    "maxAge": 158400000
   },
   {
    "label": "Markaðir",
    "file": "markadir.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 158400000
   },
   {
    "label": "Styrkir",
    "file": "styrkir.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 777600000
   },
   {
    "label": "PEP-listi",
    "file": "pep.json",
-   "iso": "2026-08-29",
+   "iso": "2026-08-30",
    "maxAge": 777600000
   },
   {
