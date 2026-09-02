@@ -1,10 +1,10 @@
 {
- "builtAt": "2026-09-02T11:39:16.231Z",
+ "builtAt": "2026-09-02T15:30:14.480Z",
  "freshness": [
   {
    "label": "Fréttavélin",
    "file": "frettavel.json",
-   "iso": "2026-09-02T11:24:52.487Z",
+   "iso": "2026-09-02T15:26:31.045Z",
    "maxAge": 158400000
   },
   {
@@ -16,7 +16,7 @@
   {
    "label": "Útboð",
    "file": "utbod.json",
-   "iso": "2026-09-02T10:21:29.908Z",
+   "iso": "2026-09-02T14:16:45.031Z",
    "maxAge": 158400000
   },
   {
@@ -28,7 +28,7 @@
   {
    "label": "Heilbrigðiseftirlit",
    "file": "eftirlit.json",
-   "iso": "2026-09-02T11:03:36.094Z",
+   "iso": "2026-09-02T15:02:19.925Z",
    "maxAge": 158400000
   },
   {
@@ -52,7 +52,7 @@
   {
    "label": "Seðlabanki",
    "file": "sedlabanki.json",
-   "iso": "2026-09-02T11:01:55.214Z",
+   "iso": "2026-09-02T15:00:35.862Z",
    "maxAge": 158400000
   },
   {
@@ -64,7 +64,7 @@
   {
    "label": "Dómar",
    "file": "domar_ai.json",
-   "iso": "2026-09-02T11:23:45.234Z",
+   "iso": "2026-09-02T15:25:32.380Z",
    "maxAge": 158400000
   },
   {
@@ -112,15 +112,15 @@
  ],
  "coverage": {
   "arsreikningar": {
-   "total": 1111,
+   "total": 1112,
    "withKpi": 1009,
-   "engin": 102,
+   "engin": 103,
    "scanned": 10,
    "pct": 91
   },
   "eigendur": {
-   "total": 25,
-   "engin": 2
+   "total": 26,
+   "engin": 3
   }
  }
 }
