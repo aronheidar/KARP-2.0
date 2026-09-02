@@ -155,6 +155,11 @@ export function renderChip(el, u) {
     el.innerHTML =
       `<a class="kc-prof" href="/mitt-svaedi/">${av}<span class="kc-name">${esc(u.name || '')}</span></a>`
       + `<a class="kc-out" href="#" onclick="event.preventDefault();window.karpAuth.karpLogout()" title="Skrá út" aria-label="Skrá út"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></a>`;
+  } else if (u.dbError) {
+    // Gagnagrunnurinn svarar ekki → við VITUM ekki hvort notandinn er innskráður. Að sýna „Skrá inn“
+    // hér er beinlínis rangt: 1.9.2026 sat innskráður stjórnandi uppi með innskráningarhnapp og
+    // enga vísbendingu um að kerfið væri bilað. Sýnum bilunina í staðinn.
+    el.innerHTML = '<span class="kc-in" style="cursor:help;opacity:.85" title="Við náum ekki í gagnagrunninn — staða þín er óþekkt. Reyndu aftur eftir smá.">⚠ Tæknilegt vesen</span>';
   } else {
     el.innerHTML =
       `<a class="kc-in" href="${esc(loginHref())}">Skrá inn</a>`

@@ -64,7 +64,14 @@ export const REPORT_QUOTA = { grunnur: 4, fyrirtaeki: 10, fyrirtaeki_plus: 20 };
 export async function authMeHandler(request, env) {
   const uid = await readSession(env, request);
   if (!uid || !env.TENGSL) return _ajson(userPayload(null));
-  const u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first().catch(() => null);
+  // ⚠ Sama gildra: D1-bilun mátti ekki verða að „útskráður“. Lotan (undirrituð kaka) er í fullu gildi
+  // þótt uppflettingin falli, svo `dbError` segir framendanum að sýna bilun í stað „Skrá inn“.
+  let u;
+  try {
+    u = await env.TENGSL.prepare('SELECT * FROM users WHERE id=?').bind(uid).first();
+  } catch (e) {
+    return _ajson({ ...userPayload(null), dbError: true });
+  }
   if (!u) return _ajson(userPayload(null));
   const now = Math.floor(Date.now() / 1000);
   // afskráning: hreinsa tengingu ef ekki lengur á team-lista virks eiganda
@@ -127,7 +134,15 @@ export async function authLoginHandler(request, env) {
   const login = String(b.login || b.email || '').trim().toLowerCase().slice(0, 120);
   const pw = String(b.password || '');
   if (!login || !pw) return _ajson({ ok: false, error: 'input' });
-  const u = await env.TENGSL.prepare('SELECT * FROM users WHERE email=? OR username=?').bind(login, login).first().catch(() => null);
+  // ⚠ Gagnagrunns-bilun MÁ EKKI líta út eins og röng skilríki. 1.9.2026 sprakk D1-lestrarþakið og
+  // `.catch(() => null)` breytti kvótavillunni í „rangt lykilorð“ — stjórnandi læstist úti og orsökin
+  // var ógreinanleg að utan. Sér kóði 'db' aðskilur bilun frá röngum skilríkjum. Sjá [[karp-d1-lestrarthak]].
+  let u;
+  try {
+    u = await env.TENGSL.prepare('SELECT * FROM users WHERE email=? OR username=?').bind(login, login).first();
+  } catch (e) {
+    return _ajson({ ok: false, error: 'db' });
+  }
   if (!u || !(await verifyPassword(pw, u.pass_hash))) return _ajson({ ok: false, error: 'invalid' });   // sama villa (engin upptalning)
   if (u.email_verified !== 1) return _ajson({ ok: false, error: 'unverified' });
   return _ajson({ ok: true, id: u.id }, { 'set-cookie': _sessCookie(await makeSession(env, u.id), 60 * 86400) });
