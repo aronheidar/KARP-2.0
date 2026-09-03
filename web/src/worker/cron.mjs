@@ -491,11 +491,35 @@ export async function newsIngest(env) {
   return { fetched: items.length, batched: batch.length };
 }
 
+// Orðstafir (íslenskt stafróf + tölur). Allt annað telst orðamörk.
+const _ORDSTAFUR = 'a-záéíóúýþæöð0-9';
+
+/**
+ * Kemur `nal` (lágstafa) fyrir í `hay` (lágstafa) SEM SJÁLFSTÆTT ORÐ?
+ * Vinstri mörk eru skilyrði. Hægra megin eru íslenskar beygingarendingar leyfðar (≤3 stafir)
+ * svo „brim" finni „brims", „brimi" og „briminu" — en ekki „brimborg".
+ */
+function _ordMatch(hay, nal) {
+  if (!nal || nal.length < 3) return false;
+  const esc = nal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('(^|[^' + _ORDSTAFUR + '])' + esc + '[' + _ORDSTAFUR + ']{0,3}([^' + _ORDSTAFUR + ']|$)').test(hay);
+}
+
+/**
+ * Nefnir fréttatextinn `hay` einhvern aðila úr samheitalistanum `al`? Bæði lágstafa.
+ *
+ * ⚠⚠ VINSTRI ORÐAMÖRK ERU SKILYRÐI — ekki fjarlægja. Áður stóð hér `hay.includes(a)`, sem lét
+ * stutt nafn samsvara hvaða orði sem innihélt það. Raunafleiðing (2.9.2026): áreiðanleikaskýrsla
+ * um `Enor ehf.` skilaði 17 fréttum og ENGIN þeirra fjallaði um félagið — ellefu voru um bruna í
+ * leikmunageymslu **Tru·enor·th**, ein um uppskrift („El·enor·a"), og tónninn reiknaðist −23
+ * (neikvæður) af þeim. Í KYC-skýrslu er slík falssamsvörun verri en engin niðurstaða: hún eignar
+ * félagi neikvæða umfjöllun sem það á enga aðild að. Sami lærdómur og af refsilistunum.
+ */
 export function _mentions(hay, al) {
   for (const a of al) {
-    if (hay.includes(a)) return true;
+    if (_ordMatch(hay, a)) return true;
     const st = _isStem(a);
-    if (st && st.length >= 5) { let i = hay.indexOf(st); while (i >= 0) { if (i === 0 || hay[i - 1] === ' ') return true; i = hay.indexOf(st, i + 1); } }
+    if (st && st.length >= 5 && _ordMatch(hay, st)) return true;
   }
   return false;
 }
@@ -525,7 +549,21 @@ export async function firmaHandler(request, env) {
   if (q.length < 3) return _fjson({ ready: true, total: 0, items: [], timeline: [], sentiment: {} }, 300);
   const terms = q.split(',').map((s) => s.trim()).filter((s) => s.length >= 3);
   const LIMIT = 800;
-  const items = await newsSearch(env, terms, days, LIMIT);   // SQL-leit í öllu safninu
+  // ⚠ SQL-leitin er GRÓF sía: `body LIKE '%nafn%'` hleypir í gegn hverju orði sem inniheldur nafnið.
+  //   Hún var hér ein og sér — engin nákvæmnis-sía á eftir — og þess vegna rataði bruni í
+  //   leikmunageymslu Tru·ENOR·th inn í áreiðanleikaskýrslu um Enor ehf. (17 greinar, 0 réttar).
+  //   `_mentions` krefst orðamarka og sker þær burt. Sama grein getur líka borist tvisvar úr
+  //   safninu (sama slóð, tveir innlestrar) → dedup á slóð svo talning og tónn tvítelji ekki.
+  const fundid = await newsSearch(env, terms, days, LIMIT);   // SQL-leit í öllu safninu
+  const al = terms.map((t) => String(t).toLowerCase().trim()).filter((t) => t.length >= 3);
+  const sed = new Set();
+  const items = fundid.filter((it) => {
+    if (!_mentions(String(it.body || it.title).toLowerCase(), al)) return false;
+    const lykill = it.url || (it.source + '|' + it.title);
+    if (sed.has(lykill)) return false;
+    sed.add(lykill);
+    return true;
+  });
   // ⚠ Áður: `_tone(it.title)` reiknað UPP Á NÝTT við hverja fyrirspurn — og AÐEINS úr fyrirsögn,
   //   sem er lakara en geymda gildið (lexíkon á titil+lýsingu) og hunsaði AI-matið alveg.
   //   Nú: AI-mat ef til (sent_ai), annars geymdur lexíkon-tónn, annars reiknað í neyð.
@@ -534,8 +572,11 @@ export async function firmaHandler(request, env) {
   }
   // ⚠ `total` var áður items.length = AFSKORIN lengd → sýndi „800" þótt raunfjöldi væri 1142.
   //   Sækjum RAUNTÖLUNA sér þegar þakið næst svo KPI-talan sé sönn.
-  const capped = items.length >= LIMIT;
-  const heild = capped ? await newsCount(env, terms, days) : items.length;
+  // ⚠ `capped` mælist á HRÁA SQL-svarinu (þakið er þar), en `heild` er talan EFTIR síun — það er
+  //   raunfjöldi greina sem nefna félagið. `newsCount` telur ósíuðu LIKE-samsvaranirnar og var því
+  //   orðið rangt eftir að nákvæmnis-sían kom inn; hún ofmat fjöldann með sömu falssamsvörunum.
+  const capped = fundid.length >= LIMIT;
+  const heild = items.length;
   // Samantektin (scored-talning, miðlar, tónn per miðil, perDay) er hrein + prófuð eining.
   const agg = aggregateFirma(items, { days, capped });
   const { sentiment, stats } = agg;
