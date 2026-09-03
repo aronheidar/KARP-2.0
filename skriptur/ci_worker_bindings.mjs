@@ -4,7 +4,11 @@
 // (hvorki node --check né esbuild grípa það). Skilar exit 1 ef eitthvað finnst.
 import { readFileSync, readdirSync } from 'node:fs';
 
-const FILES = ['web/worker.js', ...readdirSync('web/src/worker').filter((f) => f.endsWith('.mjs')).map((f) => 'web/src/worker/' + f)];
+// ⚠ `.test.mjs` er UNDANSKILIÐ: prófskrár eru ekki worker-einingar og deila ekki nafnarýminu.
+//   Áður voru þær teknar með og CI féll um leið og fyrsta prófskráin kom í web/src/worker/ —
+//   hjálparföll prófsins (`dedup`, `grein`, `V`) rákust á samnefnd staðbundin nöfn í worker.js
+//   og veitur.mjs og voru tilkynnt sem „óútflutt". Falsviðvörun, ekki raunverulegt gat.
+const FILES = ['web/worker.js', ...readdirSync('web/src/worker').filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).map((f) => 'web/src/worker/' + f)];
 const info = new Map();
 for (const f of FILES) {
   const t = readFileSync(f, 'utf8');
