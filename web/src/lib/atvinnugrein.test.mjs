@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import {
-  slugify, sectorsFromMap, sectorForIsat, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
+  slugify, sectorsFromMap, sectorForIsat, isatSql, vsHeild, herfindahl, toppNShare, fmtKr, fmtRatio, fmtPct, RATIO_META, RATIO_ORDER,
 } from './atvinnugrein.mjs';
 
 // ── herfindahl ──────────────────────────────────────────────────────────────
@@ -275,4 +275,65 @@ test('sectorForIsat: óþekkt → null', () => {
 test('sectorForIsat: tómt/nullish → null', () => {
   assert.equal(sectorForIsat(_SF, ''), null);
   assert.equal(sectorForIsat(_SF, null), null);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// isatSql — ÞÖGLA VILLAN Í GREIDDU VÖRUNNI (3.9.2026)
+//
+// `felog.isat_primary` er geymt MEÐ PUNKTUM: „03.11.2", „10.11.0". SQL-síurnar í
+// atvinnugreinHandler/computeGreinRank báru saman `substr(isat_primary,1,3)='031'`, en
+// `substr('03.11.2',1,3)` er `'03.'` — punkturinn situr í þriðja sæti. Mælt á raungögnum:
+//
+//   · Sjávarútvegur (031,102):  gáttin sá 0 félög — 53 voru til staðar.
+//   · 14 af 65 greinum skiluðu NÚLL (Fiskeldi, Hótel og gistiheimili, Veitingastaðir …).
+//   · „án 102" virkaði aldrei → Matvælaframleiðsla „án fiskvinnslu" bar 10 fiskvinnslufélög af 25.
+//
+// Tveggja stafa greinar sluppu, svo varan LEIT ÚT fyrir að virka. Tóm tafla er ekki aðgreinanleg
+// frá „engin félög í greininni" — þess vegna sást þetta ekki fyrr en spurt var um Sjávarútveg.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Hermir eftir SQLite-svipnum í JS svo prófið mæli SÖMU merkingu og gagnagrunnurinn keyrir.
+const sqlSubstr = (expr, n) => expr.slice(0, n);
+const beint = (isat, n) => sqlSubstr(isat, n);                       // gamla (ranga) leiðin
+const gegnum = (isat, n) => sqlSubstr(isat.replace(/\./g, ''), n);   // það sem isatSql gerir
+
+test('isatSql: punktar eru fjarlægðir áður en forskeyti er borið saman', () => {
+  assert.equal(isatSql('f'), "replace(f.isat_primary,'.','')");
+  assert.equal(isatSql(), "replace(f.isat_primary,'.','')");
+  assert.equal(isatSql('x'), "replace(x.isat_primary,'.','')");
+});
+
+test('RAUNTILFELLI: þriggja stafa grein fann ALDREI félag án hreinsunar', () => {
+  // FISK-Seafood ehf. er skráð 03.11.2 og á heima í Sjávarútvegi (ÍSAT 031).
+  assert.notEqual(beint('03.11.2', 3), '031');      // gamla leiðin skilaði '03.' — engin samsvörun
+  assert.equal(beint('03.11.2', 3), '03.');         // …og þetta er nákvæmlega af hverju
+  assert.equal(gegnum('03.11.2', 3), '031');        // hreinsað: samsvarar
+  assert.equal(gegnum('10.20.0', 3), '102');        // fiskvinnsla ratar líka rétt
+});
+
+test('RAUNTILFELLI: „án 102"-útilokunin virkaði ekki heldur', () => {
+  // Fiskvinnslufélag (10.20.0) á að falla ÚT úr Matvælaframleiðslu „án fiskvinnslu".
+  assert.notEqual(beint('10.20.0', 3), '102');      // útilokunin greip aldrei
+  assert.equal(gegnum('10.20.0', 3), '102');        // nú grípur hún
+  // …en félagið var áfram innan tveggja stafa forskeytisins — '10' samsvaraði, og útilokunin
+  // sem átti að fjarlægja það þagði. Þess vegna BÆTTIST fiskvinnsla við grein sem heitir „án" hennar.
+  assert.equal(beint('10.20.0', 2), '10');
+});
+
+test('tveggja stafa greinar héldust ÓBREYTTAR — þess vegna leit varan út fyrir að virka', () => {
+  for (const kodi of ['10.11.0', '47.19.0', '61.20.0', '24.42.0']) {
+    assert.equal(beint(kodi, 2), gegnum(kodi, 2), kodi + ': tveggja stafa forskeyti er eins hvort sem er');
+  }
+});
+
+test('sectorForIsat hefur ALLTAF gert þetta rétt — SQL-hliðin var ein úr takti', () => {
+  // Sönnun þess að hreinsunin sé upphafleg ætlun, ekki ný hegðun sem ég fann upp.
+  const secs = sectorsFromMap({
+    '031': { label: 'Sjávarútvegur (ÍSAT nr. 031, 102)' },
+    102: { label: 'Sjávarútvegur (ÍSAT nr. 031, 102)' },
+    10: { label: 'Matvælaframleiðsla, án fiskvinnslu (ÍSAT nr. 10, án 102)' },
+  });
+  assert.equal(sectorForIsat(secs, '03.11.2').slug, 'sjavarutvegur');
+  assert.equal(sectorForIsat(secs, '10.20.0').slug, 'sjavarutvegur');   // fiskvinnsla → sjávarútvegur
+  assert.equal(sectorForIsat(secs, '10.11.0').slug, 'matvaelaframleidsla-an-fiskvinnslu');
 });

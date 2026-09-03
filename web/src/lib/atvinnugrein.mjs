@@ -62,6 +62,24 @@ export function sectorsFromMap(map) {
   });
 }
 
+// ── isatSql ───────────────────────────────────────────────────────────────
+// SQL-svipur sem skilar ÍSAT-kóða félagsins SEM BERUM TÖLUSTÖFUM.
+//
+// ⚠⚠ ÞETTA VAR ÞÖGUL VILLA Í GREIDDU VÖRUNNI (fannst 3.9.2026). `felog.isat_primary` er geymt
+//    MEÐ PUNKTUM — „03.11.2", „10.11.0". SQL-síurnar báru saman `substr(isat_primary,1,3)='031'`,
+//    en `substr('03.11.2',1,3)` er `'03.'` — punkturinn situr í þriðja sæti. Þriggja stafa greinar
+//    gátu því ALDREI fundið eitt einasta félag:
+//      · 14 af 65 greinum skiluðu NÚLL félögum í Fyrirtæki+ djúpinu — þar á meðal Sjávarútvegur,
+//        Fiskeldi, Hótel og gistiheimili og Veitingastaðir (53 sjávarútvegsfélög voru til staðar).
+//      · „án 102"-útilokunin virkaði aldrei heldur → Matvælaframleiðsla „án fiskvinnslu" bar 10
+//        fiskvinnslufélög af 25, þ.e. 40% af greininni var einmitt það sem átti að vera undanskilið.
+//    Tveggja stafa greinar sluppu (fyrstu tveir stafirnir eru tölustafir) — þess vegna leit varan
+//    út fyrir að virka. Bilunin var ÞÖGUL: tóm tafla lítur eins út og „engin félög í greininni".
+//
+//    `sectorForIsat` hér að neðan gerði þetta RÉTT frá byrjun (`replace(/\D/g,'')`) — það var
+//    aðeins SQL-hliðin sem gleymdi því. Nota þennan hjálpara alls staðar svo þær reki ekki í sundur.
+export const isatSql = (alias) => "replace(" + (alias || 'f') + ".isat_primary,'.','')";
+
 // ── sectorForIsat ─────────────────────────────────────────────────────────
 // Finnur grein (úr sectorsFromMap-úttaki) sem á ÍSAT-kóða félagsins. Lengsta-forskeyti-match á
 // s.isats; virðir s.excl ("án X" → félag útilokað úr þeirri grein). Skilar grein-hlut eða null.

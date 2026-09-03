@@ -4,7 +4,7 @@
 import { _freeAll, _prefGet, accountOwner, readSession, userPayload } from './auth.mjs';
 import { _ajson, _emailTpl, htmlEsc, sendGmail, sjson } from './felag.mjs';
 import { accountId } from '../lib/account.mjs';
-import { herfindahl, sectorForIsat, sectorsFromMap, toppNShare } from '../lib/atvinnugrein.mjs';
+import { herfindahl, isatSql, sectorForIsat, sectorsFromMap, toppNShare } from '../lib/atvinnugrein.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { GREINAR, greinaSql } from '../lib/greinar.mjs';
 import { canon as kycCanon, deriveRisk as kycDeriveRisk, hash as kycHash, signalEvents as kycSignalEvents } from '../lib/kyc.mjs';
@@ -705,10 +705,10 @@ export async function atvinnugreinHandler(request, env, ctx) {
   // D1-sía: mis-löng forskeyti per ÍSAT-kóða (substr 1..LEN); undanskilningar → AND NOT. Kóðar bundnir (?)
   // — aðeins heiltölu-lengdin (c.length) fer inn í SQL-strenginn, og hún kemur úr okkar eigin JSON.
   const binds = [];
-  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(${isatSql('f')},1,${c.length})=?`; }).join(' OR ');
   let where = '(' + isatClause + ')';
   if (sec.excl && sec.excl.length) {
-    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(${isatSql('f')},1,${c.length})=?`; }).join(' OR ');
     where += ' AND NOT (' + exClause + ')';
   }
   const rows = (env.TENGSL ? (await env.TENGSL.prepare(
@@ -739,10 +739,10 @@ export async function computeGreinRank(env, kt) {
   if (!sec) return { slug: null, label: null, rank: null, total: null, sala: null };
   // greinar-sía (eins og atvinnugreinHandler): mis-löng forskeyti + útilokun, kóðar bundnir (?), aðeins c.length í streng
   const binds = [];
-  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+  const isatClause = sec.isats.map((c) => { binds.push(c); return `substr(${isatSql('f')},1,${c.length})=?`; }).join(' OR ');
   let where = '(' + isatClause + ')';
   if (sec.excl && sec.excl.length) {
-    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(f.isat_primary,1,${c.length})=?`; }).join(' OR ');
+    const exClause = sec.excl.map((c) => { binds.push(c); return `substr(${isatSql('f')},1,${c.length})=?`; }).join(' OR ');
     where += ' AND NOT (' + exClause + ')';
   }
   const me = await env.TENGSL.prepare('SELECT sala FROM fjarhagur WHERE kt=? AND sala IS NOT NULL ORDER BY ar DESC LIMIT 1').bind(kt).first().catch(() => null);
