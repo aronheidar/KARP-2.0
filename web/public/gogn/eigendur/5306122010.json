@@ -1,0 +1,124 @@
+{
+ "kt": "5306122010",
+ "nafn": "Enor ehf.",
+ "sott": "2026-09-03",
+ "heimildir": [
+  "Hlutafélagaskrá (RSK)",
+  "Ársreikningaskrá (RSK)",
+  "Raunverulegir eigendur (Skatturinn)"
+ ],
+ "dypt": 0,
+ "hnutar_alls": 4,
+ "afmarkad": false,
+ "net": {
+  "nodes": [
+   {
+    "id": "kt5306122010",
+    "kt": "5306122010",
+    "nafn": "Enor ehf.",
+    "tegund": "felag",
+    "er_rot": true
+   },
+   {
+    "id": "n1",
+    "kt": null,
+    "nafn": "Björn Óli Guðmundsson",
+    "tegund": "einst",
+    "faeding": "1980-JÚNÍ"
+   },
+   {
+    "id": "n2",
+    "kt": null,
+    "nafn": "Níels Guðmundsson",
+    "tegund": "einst",
+    "faeding": "1983-SEPTEMBER"
+   },
+   {
+    "id": "n3",
+    "kt": null,
+    "nafn": "Erling Tómasson",
+    "tegund": "einst",
+    "faeding": "1978-NÓVEMBER"
+   }
+  ],
+  "edges": [
+   {
+    "fra": "n1",
+    "til": "kt5306122010",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n2",
+    "til": "kt5306122010",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   },
+   {
+    "fra": "n3",
+    "til": "kt5306122010",
+    "hlutur": null,
+    "band": "lt",
+    "heimild": "Raunverulegir eigendur (Skatturinn)"
+   }
+  ]
+ },
+ "endanlegir": [
+  {
+   "nafn": "Björn Óli Guðmundsson",
+   "kt": null,
+   "faeding": "1980-JÚNÍ",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Níels Guðmundsson",
+   "kt": null,
+   "faeding": "1983-SEPTEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  },
+  {
+   "nafn": "Erling Tómasson",
+   "kt": null,
+   "faeding": "1978-NÓVEMBER",
+   "tegund": "einst",
+   "hlutur": 0,
+   "gegnum": []
+  }
+ ],
+ "othekkt": 100,
+ "raunverulegir": [
+  {
+   "nafn": "Björn Óli Guðmundsson",
+   "faeding": "1980-JÚNÍ",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Níels Guðmundsson",
+   "faeding": "1983-SEPTEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  },
+  {
+   "nafn": "Erling Tómasson",
+   "faeding": "1978-NÓVEMBER",
+   "buseta": "Ísland",
+   "rikisfang": "Ísland",
+   "hlutur": null,
+   "tegund": null
+  }
+ ],
+ "raunverulegirTomt": false,
+ "hluthafar": [],
+ "hluthafarUppspretta": "Ársreikningur 2025"
+}
