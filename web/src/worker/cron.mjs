@@ -524,6 +524,22 @@ export function _mentions(hay, al) {
   return false;
 }
 
+/**
+ * Auðkennislyklar greinar til að fella út tvítekningar. Skilar TVEIMUR lyklum — nóg að
+ * annar hafi sést áður.
+ *
+ * ⚠ Slóð EIN og sér dugar EKKI: Vísir endurskrifar slóðir eftir á þótt greinin sé sú sama.
+ * Sama grein (auðkenni 20262828256d) fannst á þremur slóðum — bandstrikun íslenskra stafa
+ * breyttist („abyrgd" → „a-byrgd") og innsláttarvilla var leiðrétt („firrti" → „firradi").
+ * Þrjár færslur um sama brunann tvítöldust því í fjölda OG tóni áreiðanleikaskýrslu.
+ *  1) Slóð með bandstrik fjarlægð → fangar bandstrikunar-breytingar.
+ *  2) miðill|fyrirsögn|dagsetning → fangar líka leiðréttan slóðartexta.
+ */
+export function _greinLyklar(it) {
+  const u = String(it.url || '').toLowerCase().replace(/[#?].*$/, '').replace(/\/+$/, '').replace(/-/g, '');
+  return [u || null, (it.source || '') + '|' + (it.title || '') + '|' + (it.date || '')].filter(Boolean);
+}
+
 export async function newsSearch(env, terms, days, limit) {
   if (!env.TENGSL || !terms || !terms.length) return [];
   const since = Math.floor(Date.now() / 1000) - days * 86400;
@@ -559,9 +575,9 @@ export async function firmaHandler(request, env) {
   const sed = new Set();
   const items = fundid.filter((it) => {
     if (!_mentions(String(it.body || it.title).toLowerCase(), al)) return false;
-    const lykill = it.url || (it.source + '|' + it.title);
-    if (sed.has(lykill)) return false;
-    sed.add(lykill);
+    const lyklar = _greinLyklar(it);
+    if (lyklar.some((k) => sed.has(k))) return false;
+    for (const k of lyklar) sed.add(k);
     return true;
   });
   // ⚠ Áður: `_tone(it.title)` reiknað UPP Á NÝTT við hverja fyrirspurn — og AÐEINS úr fyrirsögn,

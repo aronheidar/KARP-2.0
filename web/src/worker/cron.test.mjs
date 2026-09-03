@@ -1,6 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { _mentions } from './cron.mjs';
+import { _mentions, _greinLyklar } from './cron.mjs';
+
+/** Hermir eftir dedup-lykkjunni í firmaHandler. */
+function dedup(items) {
+  const sed = new Set();
+  return items.filter((it) => {
+    const l = _greinLyklar(it);
+    if (l.some((k) => sed.has(k))) return false;
+    for (const k of l) sed.add(k);
+    return true;
+  });
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 // AFTURFARAR-VÖRN — RAUNTILFELLI 2.9.2026
@@ -69,4 +80,43 @@ test('samheitalisti: nóg að EITT samheiti samsvari', () => {
 test('sértákn í nafni brjóta ekki regex', () => {
   assert.doesNotThrow(() => _mentions('texti', ['a.b*c+d(e)']));
   assert.equal(_mentions('félagið a.b*c+d(e) var nefnt', ['a.b*c+d(e)']), true);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// TVÍTEKNINGAR — RAUNTILFELLI: Vísir endurskrifar slóðir eftir á.
+// Sama grein (auðkenni 20262828256d) fannst á ÞREMUR slóðum í frétta­safninu og
+// tvítaldist bæði í fjölda og tóni. Slóð ein og sér dugar því ekki sem lykill.
+// ══════════════════════════════════════════════════════════════════════════
+
+const V = 'https://www.visir.is/g/20262828256d/';
+const grein = (slug, title) => ({ url: V + slug, source: 'Vísir', title, date: '2026-01-13' });
+
+test('sama grein á þremur slóðum telst EIN (Vísir-tilfellið)', () => {
+  const t = 'Borgin firrti sig allri ábyrgð á skemmunni';
+  const inn = [
+    grein('borgin-firrti-sig-allri-abyrgd-a-skemmunni', t),
+    grein('borgin-firrti-sig-allri-a-byrgd-a-skemmunni', t),   // bandstrikun breyttist
+    grein('borgin-firradi-sig-allri-a-byrgd-a-skemmunni', t),  // innsláttarvilla leiðrétt
+  ];
+  assert.equal(dedup(inn).length, 1);
+});
+
+test('bandstrikunar-afbrigði eitt og sér nægir til að fella út', () => {
+  const a = { url: 'https://x.is/a-b-c', source: 'X', title: 'Eitt', date: '2026-01-01' };
+  const b = { url: 'https://x.is/ab-c', source: 'X', title: 'Annað', date: '2026-01-02' };
+  assert.equal(dedup([a, b]).length, 1, 'sama slóð eftir að bandstrik eru fjarlægð');
+});
+
+test('ÓLÍKAR greinar haldast — dedup má ekki éta réttar færslur', () => {
+  const inn = [
+    grein('vaktin-nad-tokum', 'Vaktin: Náð tökum á stórbrunanum í Gufunesi'),
+    grein('nad-tokum', 'Náð tökum á stórbrunanum í Gufunesi'),   // ólík fyrirsögn = önnur grein
+  ];
+  assert.equal(dedup(inn).length, 2);
+});
+
+test('slóðlaus færsla fellur á miðil|fyrirsögn|dagsetningu', () => {
+  const x = { source: 'Vísir', title: 'Sama frétt', date: '2026-01-13' };
+  assert.equal(dedup([x, { ...x }]).length, 1);
+  assert.equal(dedup([x, { ...x, date: '2026-01-14' }]).length, 2, 'annar dagur = önnur færsla');
 });
