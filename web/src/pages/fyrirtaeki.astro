@@ -503,6 +503,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { FS_LH_ORDER, lhScore, lhColor, lhBand, lhEffect, lhAldur, lhSkilLate, skilSaga } from '../lib/fyrirtaeki-lanshaefi.mjs';
     import { coreName as fsCoreName, flakkMatches, sanctionNames, areidStig, pepScreen } from '../lib/fyrirtaeki-ahaetta.mjs';
     import { veljaGrein, betriEnGrein, greinStig } from '../lib/fyrirtaeki-grein.mjs';
+    // Sama eining og CDD-greinargerðin notar — 990-skýrslan og vaktar-greinargerðin VERÐA að
+    // sýna sömu tölur um sama félag, annars er skjalið ónýtt sem eftirlitsgagn.
+    import { umsvifUrArsreikningi, UMSVIF_FYRIRVARI } from '../lib/kyc-umsvif.mjs';
     import { escF, ktFmt, mkrF } from '../lib/snid.mjs';
     let FS_USER = null;
     const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
@@ -595,6 +598,29 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<div id="fs-ar-sanction-detail" class="fs-ar-detail"></div>'
         + '<div class="fs-ar-note">Samantekt á opinberum stöðumerkjum til áreiðanleikakönnunar — <b>ekki lánshæfismat</b>. Karp birtir hvorki lánshæfiseinkunn né vanskilaskrá (leyfisskyld starfsemi).</div>';
     }
+    // ── Umfang rekstrar (990-matið) ──────────────────────────────────────────────
+    // ⚠ LEYFISSKYLDU-LÍNAN: endurbirting á tölum úr opinberum ársreikningi, ENGIN afleidd einkunn.
+    //   Fyrirvarinn (UMSVIF_FYRIRVARI) er hluti af kaflanum, ekki skraut — sjá kyc-umsvif.mjs.
+    //   Spurningin sem kaflinn svarar er auðkennis-spurning (rekstur eða skel?), ekki lánshæfis.
+    function fsAreidUmsvif(f) {
+      const u = f.umsvif;
+      if (!u) {
+        // Fjarvera ársreiknings er EKKI vísbending um rekstrarleysi — og má ekki lesast þannig.
+        return '<div class="fs-sub">📊 Umfang rekstrar</div>'
+          + '<div class="fs-ar-note">Enginn ársreikningur félagsins liggur fyrir í gagnasafninu. Það er ekki vísbending um rekstrarleysi — sæktu hann í ársreikningaskrá Skattsins og staðfestu umfangið þar.</div>';
+      }
+      const ar = (u.ar_a_skra || []).length > 1 ? '<span class="fs-ph-src">Ársreikningar á skrá: ' + escF(u.ar_a_skra.join(', ')) + '</span>' : '';
+      return '<div class="fs-sub">📊 Umfang rekstrar</div>'
+        + '<div class="fs-ph filled" id="fs-ar-umsvif"><b>' + escF(u.lysing) + '</b>' + ar
+        + '<span class="fs-ph-src">' + escF(UMSVIF_FYRIRVARI) + '</span></div>';
+    }
+    // ── Stjórn og fyrirsvar (990-matið) ──────────────────────────────────────────
+    // Endurnýtir fsStjornCell úr fullu skýrslunni. Fjarvera = fyrirvari, ALDREI „engin stjórn".
+    function fsAreidStjorn(f) {
+      if ((f.stjorn || []).length) return '<div class="fs-sub">🪑 Stjórn og fyrirsvar</div>' + fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun });
+      return '<div class="fs-sub">🪑 Stjórn og fyrirsvar</div>'
+        + '<div class="fs-ar-note">Skráð stjórn liggur ekki fyrir í gagnasafninu við gerð skýrslunnar. Staðfestu fyrirsvar í fyrirtækjaskrá Skattsins.</div>';
+    }
     // Sjálfstæð Áreiðanleikamats-skýrsla (VERK B, ?vidmot=areidanleiki): slim haus (heiti+kt) + AÐEINS
     // KYC-kortið + Lögbirtinga-listi. Endurnýtir fsAreidanleiki/fsWireKyc — fulla skýrslan er án KYC.
     function fsAreidView(f, rsk) {
@@ -606,6 +632,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         <div class="fs-card">
           <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           ${fsAreidanleiki(f)}
+          ${fsAreidUmsvif(f)}
+          ${fsAreidStjorn(f)}
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           ${rskLink}
           <div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=${escF(f.kt)}">🏢 Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Endanlegir eigendur →</a></div>
@@ -1003,7 +1031,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
             return { engin: true, flokkur: j.flokkur || null, astaeda: j.astaeda || null };
           }
           if (owned && !j.pdf) { try { fetch('/api/arsreikningur/request?kt=' + id, { method: 'POST', credentials: 'include' }); } catch (e) {} }   // JSON án PDF (byggt fyrir PDF-vistun, verk 2) → endurbyggja í bakgrunni svo PDF-tengill birtist við næstu uppflettingu
-          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; rows.ocr = !!j.ocr; } return rows;   // beri PDF-slóð (+ OCR-merki) með í KPI-render
+          // `hrar` heldur ÓBREYTTU ársreikningi-JSON-inu með: umsvifa-kaflinn í áreiðanleikamatinu
+          // les hann með umsvifUrArsreikningi og þarf reiti (mynt, kvardi, teg, starfsmenn) sem
+          // fsMapArs skilar ekki. Annars þyrfti sama skráin að sækjast tvisvar.
+          const rows = fsMapArs(j); if (Array.isArray(rows)) { rows.pdf = j.pdf || null; rows.pdfAr = j.pdfAr || null; rows.ocr = !!j.ocr; rows.hrar = j; } return rows;   // beri PDF-slóð (+ OCR-merki) með í KPI-render
         }
         missing = true;
       } catch (e) { return null; }
@@ -1441,6 +1472,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       form.dataset.done = '1';
       // ?vidmot=areidanleiki (VERK B) → Áreiðanleikamat-hamur: sama leit, en niðurstaðan er slim KYC-skýrsla.
       const FS_AREID = new URLSearchParams(location.search).get('vidmot') === 'areidanleiki';
+      // ⚠ Astro-titill síðunnar er „Fyrirtækjaskrá — ókeypis uppfletting" og vafrinn prentar hann í
+      //   fótinn á hverri PDF-síðu. Áreiðanleikamatið er hins vegar STÖK 990-kr vara: viðskiptavinur
+      //   sem borgaði fyrir skýrsluna fékk skjal sem stimplaði sig sjálft „ókeypis" á hverri síðu.
+      //   Titillinn er því leiðréttur um leið og hamurinn er þekktur, á undan allri birtingu.
+      if (FS_AREID) { try { document.title = '🛡️ Áreiðanleikamat (KYC) | Karp'; } catch (e) {} }
       if (FS_AREID) {
         const h1 = document.querySelector('main[data-pg="fyrirtaeki"] h1');
         if (h1) { h1.textContent = '🛡️ Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
@@ -1494,6 +1530,13 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 }
                 const fjA = await fsFjarhagur(f.kt, isAdmin() || hasReport('fyrirtaeki:' + f.kt));   // fjárhagsheilsa; on-demand scrape aðeins fyrir eiganda/admin
                 f.fjarhagur = Array.isArray(fjA) ? fjA : null;
+                // Stjórn er KJARNI áreiðanleikakönnunar — hver fer með yfirráð. Hún var aðeins sótt
+                // fyrir fullu skýrsluna þar til 3.9.2026; kaupandi 990-matsins fékk hana ekki.
+                // `true` = má ræsa RSK-sækingu í bakgrunni: sá sem er kominn í gegnum gáttina á skýrsluna.
+                const stjA = await fsStjorn(f.kt, true);
+                f.stjorn = stjA && stjA.stjorn ? stjA.stjorn : null;
+                f.stjornFirmaritun = stjA && stjA.firmaritun ? stjA.firmaritun : null;
+                f.umsvif = umsvifUrArsreikningi(f.fjarhagur && f.fjarhagur.hrar);
                 skila(fsAreidView(f, d.rsk));
                 backWire();
                 fsWireKyc(f);   // PEP (#fs-ar-pep) + Lögbirting (#fs-ar-log + #fs-logbirting)

@@ -81,7 +81,10 @@ async function _kycNames(env, kt) {
   // einasta eiganda og status_change fyrir félagið — falskar háviðvaranir úr skammvinnri 7403/7429-villu.
   // Hver fyrirspurn ber því sitt ok-flagg. `felag === null` án villu er hins vegar gild niðurstaða.
   const ok = { felag: true, owners: true, board: true };
-  const felag = await env.TENGSL.prepare('SELECT nafn,stada,gjaldthrot,afskrad,gjaldthol FROM felog WHERE kt=?').bind(kt).first().catch(() => { ok.felag = false; return null; });
+  // ⚠ form/skraning/isat/hlutafe/mynt eru AUÐKENNIS-reitir, ekki áhættureitir: signalEvents('status')
+  //   ber aðeins saman gjaldthrot/afskrad/stada, svo víkkunin myndar enga atburði og sendir engan póst.
+  //   Þeir stóðu ónýttir í `felog` þar til greinargerðin fór að bera auðkennis-kafla (3.9.2026).
+  const felag = await env.TENGSL.prepare('SELECT nafn,stada,gjaldthrot,afskrad,gjaldthol,form,skraning,isat,hlutafe,mynt FROM felog WHERE kt=?').bind(kt).first().catch(() => { ok.felag = false; return null; });
   const owners = (await env.TENGSL.prepare(
     "SELECT e.eigandi_key AS key, e.hlutur AS hlutur, COALESCE(p.nafn,f.nafn,e.eigandi_key) AS nafn " +
     "FROM eign e LEFT JOIN folk p ON p.person_key=e.eigandi_key LEFT JOIN felog f ON f.kt=e.eigandi_key " +
@@ -184,7 +187,10 @@ async function kycScreenKt(env, kt) {
     board: { members: board.map((b) => ({ key: b.key, nafn: b.nafn, hlutverk: b.hlutverk })) },
     sanctions,
     pep: { matches: pMatches },
-    status: { stada: felag?.stada || '', gjaldthrot: felag?.gjaldthrot || 0, afskrad: felag?.afskrad || 0, gjaldthol: felag?.gjaldthol || 0 },
+    status: {
+      stada: felag?.stada || '', gjaldthrot: felag?.gjaldthrot || 0, afskrad: felag?.afskrad || 0, gjaldthol: felag?.gjaldthol || 0,
+      form: felag?.form || '', skraning: felag?.skraning || '', isat: felag?.isat || '', hlutafe: felag?.hlutafe ?? null, mynt: felag?.mynt || '',
+    },
     legal: { notices },
     skil: { years: (skilD.ar || []).map((x) => ({ ar: x.ar, vanskil: x.vanskil })) }, // ársreikningaskil-vanskil (opið, óleyfisskylt) — sjá vanskilHandler
     tax: { claims: [] }, // v1: engin áreiðanleg vanskilaskrá (bíður leyfis #36) — stubbur, engin atburðamyndun.
