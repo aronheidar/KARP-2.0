@@ -190,6 +190,21 @@ test('auðkennis-reitirnir úr felog birtast í kafla 1', () => {
   assert.match(h, /20\.083\.000 ISK/);
 });
 
+test('ÍSAT er JSON-strengur í felog — hann má ALDREI prentast hrár í skjalið', () => {
+  // Raun-gildi úr felog fyrir Enor ehf. (kt. 5306122010).
+  const isat = '[{"id":"69.20.0","nafn":"Reikningshald, bókhald og endurskoðun - skattaráðgjöf"}]';
+  const c = greinargerdSamhengi(W, { ...STATES, status: { ...STATES.status, isat } }, [], [], []);
+  assert.equal(c.stada.isat, '69.20.0 Reikningshald, bókhald og endurskoðun - skattaráðgjöf');
+  const h = greinargerdHtml(c, null, 1754000000);
+  assert.ok(!h.includes('{"id"'), 'hrátt JSON rataði inn í greinargerðina');
+  assert.match(h, /Atvinnugrein \(ÍSAT\): 69\.20\.0 Reikningshald/);
+  // Fleiri greinar → semíkomma; berr kóði (eldri raðir) stendur óbreyttur; rusl fellur á hrátextann.
+  const margar = greinargerdSamhengi(W, { ...STATES, status: { ...STATES.status, isat: '[{"id":"1","nafn":"A"},{"id":"2","nafn":"B"}]' } }, [], [], []);
+  assert.equal(margar.stada.isat, '1 A; 2 B');
+  assert.equal(greinargerdSamhengi(W, { ...STATES, status: { ...STATES.status, isat: '69.20.0' } }, [], [], []).stada.isat, '69.20.0');
+  assert.equal(greinargerdSamhengi(W, { ...STATES, status: { ...STATES.status, isat: '[ekki json' } }, [], [], []).stada.isat, '[ekki json');
+});
+
 test('LEYFISSKYLDU-LÍNAN: umsvifa-kaflinn ber fyrirvarann og enga afleidda einkunn', () => {
   const h = greinargerdHtml(greinargerdSamhengi(W, STATES, [], [], [], { umsvif: umsvifUrArsreikningi(ARS_BRIM) }), null, 1754000000);
   assert.match(h, /endurbirtar orðrétt úr ársreikningi/);

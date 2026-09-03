@@ -33,6 +33,23 @@ export const GREINARGERD_FYRIRVARI = 'Greinargerð þessi er sjálfvirkt unnin D
  * Afmarkaða samhengið sem BÆÐI deterministic kaflarnir og LLM-túlkunin byggja á.
  * Allt sem greinargerðin má fullyrða er hér — með dagsetningum þar sem þær eru til.
  */
+/**
+ * `felog.isat` er JSON-strengur: '[{"id":"69.20.0","nafn":"Reikningshald, bókhald og endurskoðun"}]'.
+ * Óunninn færi hann hrár inn í skjalið — svigar og gæsalappir í miðri compliance-skýrslu. Skilar
+ * læsilegri línu, og fellur aftur á hrátextann sé hann ekki JSON (eldri raðir bera berann ÍSAT-kóða).
+ */
+function _isatTexti(v) {
+  const raw = String(v || '').trim();
+  if (!raw) return '';
+  if (raw[0] !== '[' && raw[0] !== '{') return raw;
+  try {
+    const arr = JSON.parse(raw);
+    return (Array.isArray(arr) ? arr : [arr])
+      .map((x) => [x && x.id, x && x.nafn].filter(Boolean).join(' '))
+      .filter(Boolean).join('; ') || raw;
+  } catch (e) { return raw; }
+}
+
 export function greinargerdSamhengi(watch, states, adverse, tonn, events, aukast) {
   const s = states || {};
   const L = (sig) => s[sig] || null;
@@ -49,7 +66,7 @@ export function greinargerdSamhengi(watch, states, adverse, tonn, events, aukast
     nafn: watch?.nafn || '', kt: watch?.kt || '',
     stada: L('status') ? {
       stada: L('status').stada || '', gjaldthrot: !!L('status').gjaldthrot, afskrad: !!L('status').afskrad, gjaldthol: !!L('status').gjaldthol,
-      form: L('status').form || '', skraning: L('status').skraning || '', isat: L('status').isat || '',
+      form: L('status').form || '', skraning: L('status').skraning || '', isat: _isatTexti(L('status').isat),
       hlutafe: L('status').hlutafe ?? null, mynt: L('status').mynt || '',
     } : null,
     eigendur: L('ubo') ? {
