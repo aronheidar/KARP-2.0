@@ -1,11 +1,11 @@
 {
- "updated": "2026-08-31T11:20:43.585Z",
- "n": 27,
+ "updated": "2026-09-07T09:52:57.202Z",
+ "n": 32,
  "byCat": {
   "midlar": 14,
   "stofnanir": 1,
   "fyrirtaeki": 11,
-  "thingmenn": 1
+  "thingmenn": 6
  },
  "chans": [
   {
@@ -175,20 +175,20 @@
    "vids": 15
   },
   {
-   "id": "UCkuS-5rTvwPg0LTvXn2cd8g",
-   "n": "Mannlíf",
-   "q": "Mannlíf",
-   "cat": "midlar",
-   "newest": "2022-06-07",
-   "vids": 15
-  },
-  {
    "id": "UCu6T6RgRz6jxiHJlxanwwJA",
    "n": "Mannlíf tímarit",
    "q": "Mannlíf",
    "cat": "midlar",
    "newest": "2018-11-29",
    "vids": 15
+  },
+  {
+   "id": "UCnLtUpHYqm391SMKjgpBRqw",
+   "n": "Vestmannaeyjar - mannlíf og saga",
+   "q": "Mannlíf",
+   "cat": "midlar",
+   "newest": "2021-03-11",
+   "vids": 2
   },
   {
    "id": "UCCigVZza6dnZfE3nOIZuTIQ",
@@ -237,6 +237,46 @@
    "cat": "thingmenn",
    "newest": "2020-07-07",
    "vids": 15
+  },
+  {
+   "id": "UCFaBhzozsu_H4oBQ9CK63cQ",
+   "n": "Guðlaugur Þór Þórðarson",
+   "q": "Guðlaugur Þór Þórðarson",
+   "cat": "thingmenn",
+   "newest": "2025-08-28",
+   "vids": 2
+  },
+  {
+   "id": "UC_pFELbG9ubYaSa88MF7-zg",
+   "n": "Guðmundur Ari Sigurjónsson",
+   "q": "Guðmundur Ari Sigurjónsson",
+   "cat": "thingmenn",
+   "newest": "2025-11-12",
+   "vids": 5
+  },
+  {
+   "id": "UCJ19xgl9Qu-T60LBhdtYHWg",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2026-07-27",
+   "vids": 15
+  },
+  {
+   "id": "UC8e0vjR9Pz5UB-mvKEwbvYQ",
+   "n": "Halla Hrund Logadóttir",
+   "q": "Halla Hrund Logadóttir",
+   "cat": "thingmenn",
+   "newest": "2016-11-02",
+   "vids": 3
+  },
+  {
+   "id": "UCZMfBrppPlU1QL5kFIbueTQ",
+   "n": "Ingvar Þóroddsson",
+   "q": "Ingvar Þóroddsson",
+   "cat": "thingmenn",
+   "newest": "2011-07-27",
+   "vids": 2
   }
  ]
 }
