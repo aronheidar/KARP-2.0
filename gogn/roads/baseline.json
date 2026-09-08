@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-07",
+ "updated": "2026-09-08",
  "quarters": 12,
  "maxQuarters": 40,
  "disclaimer": "Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.",
@@ -75,9 +75,9 @@
    "long": {
     "nafn": "RIKB 42 0217",
     "yr": 2042,
-    "yield": 6.81
+    "yield": 6.82
    },
-   "updated": "2026-09-07"
+   "updated": "2026-09-08"
   }
  },
  "levers": {
