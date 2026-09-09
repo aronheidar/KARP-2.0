@@ -6,7 +6,7 @@ const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const OUT = DIR + 'cabinet.json';
 // Seigla (22.8.2026: althingi.is svaraði HTTP 429 → skriptan þáttaði villusvarið sem „0 ráðherrar" og skrifaði [] → /althingi/ hrundi).
 // fetchText hendir á non-2xx + reynir aftur m. bakslagi; writeJsonUnlessEmpty heldur fyrri skrá ef niðurstaðan er tóm. Sjá _seigla.js.
-const { fetchText, writeJsonUnlessEmpty, loadPrev } = require('./_seigla.js');
+const { fetchText, writeJsonUnlessEmpty, loadPrev , nuverandiThing} = require('./_seigla.js');
 const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
 const PC = { 'Samfylkingin': 'S', 'Sjálfstæðisflokkur': 'D', 'Framsóknarflokkur': 'B', 'Viðreisn': 'C', 'Miðflokkurinn': 'M', 'Flokkur fólksins': 'F', 'Píratar': 'P', 'Vinstrihreyfingin - grænt framboð': 'V' };
 const getText = u => fetchText(u.replace('http://', 'https://'));
@@ -30,11 +30,13 @@ async function photo(id) {
 // rank ministries so the org chart reads top-down by seniority
 const RANK = { 'forsætisráðherra': 0, 'fjármála- og efnahagsráðherra': 1, 'utanríkisráðherra': 2, 'dómsmálaráðherra': 3 };
 
+// ⚠ lthing var harðkóðað 157 — 158. þing hófst 9/2026 og gögnin frúsu. Nú spurt hjá Alþingi.
 (async () => {
+  const LTHING = await nuverandiThing({ fallback: 157 });
   // fyrri skrá: `mynd ?? prev.mynd` ef myndaþjónninn svarar ekki í augnablikinu (sama mynstur og X ?? prev.X í Hagstofu-skriptum)
   const prev = loadPrev(OUT);
   const prevById = new Map((Array.isArray(prev) ? prev : []).map(m => [m.id, m]));
-  const list = await getText('https://www.althingi.is/altext/xml/radherrar/?lthing=157');
+  const list = await getText('https://www.althingi.is/altext/xml/radherrar/?lthing=' + LTHING + '');
   const ids = [...list.matchAll(/<ráðherra id='(\d+)'>/g)].map(m => +m[1]);
   console.log('current ministers:', ids.length);
 

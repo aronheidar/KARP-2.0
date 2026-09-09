@@ -1,15 +1,23 @@
 // Fetches current Althingi MPs from the official open XML (CORS-enabled), computes
 // party / constituency / age / seniority, and writes althingi.json for the dashboard.
 const fs = require('fs');
-const LTHING = 157;
+// ⚠⚠ 9.9.2026: hér stóð `const LTHING = 157`. 158. löggjafarþing hófst í september 2026 og
+//   þessi skripta — sem byggir ÞINGMANNALISTANN sem þingmannaskýrslurnar (seld vara) hvíla á —
+//   spurði áfram um liðið þing. `sitjandi`-sían hér að neðan ber sig við LTHING, svo nýir
+//   þingmenn og ný sætaskipan komust aldrei inn. Nú spurt hjá Alþingi (sjá _seigla.nuverandiThing).
+let LTHING = 158;   // fallback; sett rétt í main
 const BASE = 'https://www.althingi.is/altext/xml';
 
 function txt(s, tag) { const m = new RegExp('<' + tag + "[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</" + tag + '>').exec(s); return m ? m[1].trim() : null; }
 function attr(s, tag, a) { const m = new RegExp('<' + tag + "[^>]*\\b" + a + "='([^']*)'").exec(s); return m ? m[1] : null; }
-function age(b) { if (!b) return null; const d = new Date(b + 'T00:00:00Z'); const n = new Date('2026-06-18T00:00:00Z'); let a = n.getUTCFullYear() - d.getUTCFullYear(); const m = n.getUTCMonth() - d.getUTCMonth(); if (m < 0 || (m === 0 && n.getUTCDate() < d.getUTCDate())) a--; return a; }
+// ⚠ `n` var fast '2026-06-18T00:00:00Z' — aldur þingmanna fraus í júní. Nú rauntími.
+function age(b) { if (!b) return null; const d = new Date(b + 'T00:00:00Z'); const n = new Date(); let a = n.getUTCFullYear() - d.getUTCFullYear(); const m = n.getUTCMonth() - d.getUTCMonth(); if (m < 0 || (m === 0 && n.getUTCDate() < d.getUTCDate())) a--; return a; }
 function isoDate(d) { if (!d) return null; const p = d.split('.'); return p.length === 3 ? p[2] + '-' + p[1].padStart(2, '0') + '-' + p[0].padStart(2, '0') : null; }
 
-async function get(url) { const r = await fetch(url); return await r.text(); }
+// ⚠ var: `const r = await fetch(url); return await r.text()` — engin r.ok-athugun, svo 429-svar
+//   varð að „0 þingmenn“ og skrifaðist yfir listann. fetchText hendir á non-2xx og reynir aftur.
+const { fetchText, writeJsonUnlessEmpty, nuverandiThing } = require('./_seigla.js');
+const get = (url) => fetchText(url);
 async function resolvePhoto(id) {
   const urls = [
     `https://www.althingi.is/myndir/thingmenn-cache/${id}/${id}-220.jpg`,
@@ -27,6 +35,7 @@ async function resolvePhoto(id) {
 }
 
 (async () => {
+  LTHING = await nuverandiThing({ fallback: LTHING });
   const listXml = await get(`${BASE}/thingmenn/?lthing=${LTHING}`);
   const blocks = listXml.split('<þingmaður').slice(1);
   console.log('MPs listed in þing', LTHING, ':', blocks.length);
@@ -87,6 +96,7 @@ async function resolvePhoto(id) {
 
   // __dirname-afstæð slóð á KANÓNÍSKA gogn/ (build_ragcopy afritar svo í web/public/gogn/).
   // Harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu → althingi.json fraus 2026-07-20.
-  fs.writeFileSync(require('path').join(__dirname, '..', 'gogn', 'althingi.json'), JSON.stringify(adal, null, 0));
+  writeJsonUnlessEmpty(require('path').join(__dirname, '..', 'gogn', 'althingi.json'), adal,
+    { isEmpty: (d) => !d || d.length < 10, label: 'althingi.json' });   // < 10 þingmenn = biluð sókn
   console.log('Wrote althingi.json with', adal.length, 'MPs. Sample:', JSON.stringify(adal[0]));
 })().catch(e => console.log('ERR', e.message));

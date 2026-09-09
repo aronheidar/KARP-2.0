@@ -53,4 +53,31 @@ function writeJsonUnlessEmpty(path, data, { isEmpty, label, logger = console } =
   return { kept: false };
 }
 
-module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty };
+// ── nuverandiThing() ────────────────────────────────────────────────────────
+// Af hverju (9.9.2026): `lthing=157` var HARÐKÓÐAÐ í build_althingi/cabinet/committees/dagatal/
+// frumvorp. 158. löggjafarþing hófst í september 2026 og skriftirnar héldu áfram að spyrja um
+// þing sem var lokið — ný mál, nýir þingfundir og ný nefndaskipan komust aldrei inn.
+// Harðkóðun færir vandann bara til næsta þings (159 haustið 2027), svo við SPYRJUM Alþingi.
+//
+// `/altext/xml/loggjafarthing/` telur öll þing (`<þing númer='158' …><tímabil>2026-2027</tímabil>`).
+// Hæsta númerið er yfirstandandi þing. Fellur aftur á `fallback` ef veitan svarar ekki — betra að
+// byggja á síðasta þekkta þingi en að hrynja, og fetchText hefur þá þegar reynt fjórum sinnum.
+let _thingCache = null;
+async function nuverandiThing(opts = {}) {
+  const { fallback = null, logger = console } = opts;
+  if (_thingCache) return _thingCache;
+  try {
+    const xml = await fetchText('https://www.althingi.is/altext/xml/loggjafarthing/', opts);
+    const nr = (xml.match(/<þing\s+númer='(\d+)'/g) || [])
+      .map((m) => +m.replace(/\D/g, '')).filter(Boolean);
+    if (!nr.length) throw new Error('ekkert þingnúmer í svari');
+    _thingCache = Math.max(...nr);
+    logger.log('  löggjafarþing: ' + _thingCache);
+    return _thingCache;
+  } catch (e) {
+    if (fallback) { logger.log('⚠ SEIGLA þingnúmer: ' + e.message + ' — nota fallback ' + fallback); return fallback; }
+    throw e;
+  }
+}
+
+module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty, nuverandiThing };
