@@ -8,6 +8,11 @@ const fs = require('fs');
 const path = require('path');
 const G = (f) => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'gogn', f), 'utf8')); } catch (e) { return null; } };
 const kr = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// ⚠ kr() námundar í heiltölu. Það eyðileggur litlar tölur þar sem aukastafurinn ER fréttin:
+//   afgangur 4,7 ma.kr. varð „+5" — sem felur einmitt hversu þunnur hann er. kr1 heldur einum.
+// Þúsundapunktur AÐEINS á heiltöluhlutann — annars stöðvar aukastafs-komman lookahead-ið
+// og „1708,5" fær engan punkt.
+const kr1 = (v) => { const [i, d] = v.toFixed(1).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + d; };
 
 async function liveFacts() {
   const out = [];
@@ -79,8 +84,36 @@ if (Array.isArray(fr) && fr.length) {
 const jof = G('jofnun.json');
 if (jof && jof.total) L.push(`JÖFNUNARSJÓÐUR: heildarframlög ${kr(jof.total / 1e6)} m.kr (${jof.ar || ''}).`);
 
+// ── Ríkisfjármál ────────────────────────────────────────────────────────────
+// ⚠ Áður stóð hér EIN vísilína („sundurliðun ársins X er á /skattar/") og engar tölur.
+//   Aðstoðarmaðurinn gat því hvorki svarað „hver er afkoman" né varist því að draga
+//   heildartekjur frá heildarfjárheimildum — sem gefur ~57 ma.kr. „halla" sem er ekki til.
+//   Grunna-viðvörunin hér að neðan er villuvörn, ekki skraut.
 const skattar = G('skattar.json');
-if (skattar && skattar.ar) L.push(`SKATTTEKJUR: sundurliðun ársins ${skattar.ar} er á síðunni /skattar/.`);
+const utgj = G('utgjold.json');
+if (skattar && skattar.ar && utgj && utgj.afkoma) {
+  const a = utgj.afkoma;
+  L.push(`FJÁRLAGAFRUMVARP ${utgj.ar}: heildartekjur ${kr1(skattar.heildartekjur)} ma.kr, þar af `
+    + `skatttekjur ${kr1(skattar.skatttekjur)} og tryggingagjöld ${kr1(skattar.tryggingagjold)}. `
+    + `Heildarjöfnuður ${a.heildarjofnudur > 0 ? '+' : ''}${kr1(a.heildarjofnudur)} ma.kr, `
+    + `frumjöfnuður +${kr1(a.frumjofnudur)} ma.kr, vaxtagjöld ${kr1(a.vaxtagjold)} ma.kr. `
+    + `Heimild: ${utgj.heimild}. ⚠ Þetta er FRUMVARP sem bíður afgreiðslu Alþingis — tölurnar `
+    + `breytast í meðförum þingsins og verða aðrar í samþykktum fjárlögum.`);
+  L.push(`⚠ RÍKISFJÁRMÁL — ÞRÍR ÓLÍKIR GRUNNAR, MÁ ALDREI BLANDA: fjárheimildir málefnasviða `
+    + `${kr1(utgj.heild)} ma.kr (IPSAS, 3. gr.) · þjóðhagsgrunnur 1.703,8 ma.kr (GFS, 1. gr.) · `
+    + `greiðslugrunnur 1.620,3 ma.kr (2. gr.). ${a.skyring || ''} Afkoman verður AÐEINS reiknuð `
+    + `innan sama grunns. Sama gildir um vaxtagjöld: 154,9 (GFS), 136,1 (fjárheimildir), `
+    + `107,8 (greidd) — allar réttar, allar ólíkar.`);
+  L.push(`SKULDIR RÍKISSJÓÐS ${utgj.ar}: 2.645,7 ma.kr (47,4% af VLF), hækka um 189 ma.kr milli ára `
+    + `ÞRÁTT FYRIR afganginn — skýringin er 67,5 ma.kr. halli á lánsfjárjöfnuði og erlend lántaka `
+    + `til styrkingar gjaldeyrisforða. M.v. skuldareglu laga um opinber fjármál: 2.108,8 ma.kr (37,8%).`);
+  const stor = (h, k, n) => (h || []).flatMap((g) => g[k]).sort((x, y) => y[1] - x[1]).slice(0, n)
+    .map((r) => `${r[0]} ${kr1(r[1])}`).join(', ');
+  L.push(`STÆRSTU ÚTGJALDALIÐIR (ma.kr, ${utgj.ar}): ${stor(utgj.hopar, 'svid', 6)}. Sundurliðun á /utgjold/.`);
+  L.push(`STÆRSTU TEKJUSTOFNAR (ma.kr, ${skattar.ar}): ${stor(skattar.hopar, 'skattar', 6)}. Sundurliðun á /skattar/.`);
+} else if (skattar && skattar.ar) {
+  L.push(`SKATTTEKJUR: sundurliðun ársins ${skattar.ar} er á síðunni /skattar/.`);
+}
 
 const org = G('orka.json');
 if (org && Array.isArray(org.rows) && org.rows.length) {

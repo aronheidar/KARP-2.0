@@ -1,14 +1,14 @@
 {
  "ar": 2027,
  "heimild": "Frumvarp til fjárlaga 2027 — Fjárheimildir A1-hluta ríkissjóðs eftir málefnasviðum (3. gr., þskj. 1, 158. lögþ.)",
- "grunnur": "Fjárheimildir málefnasviða (IPSAS). Samsvarandi heildargjöld á GFS-grunni eru 1.703,8 ma.kr. eftir aðlögun upp á -61,3 ma.kr.",
+ "grunnur": "Fjárheimildir málefnasviða (IPSAS). Samsvarandi heildargjöld á þjóðhagsgrunni (GFS) eru 1.703,8 ma.kr. eftir aðlögun upp á -61,3 ma.kr.",
  "heild": 1765.1,
  "tekjur": 1708.5,
  "afkoma": {
   "heildarjofnudur": 4.7,
   "frumjofnudur": 99.1,
   "vaxtagjold": 154.9,
-  "skyring": "Heildarjöfnuður +4,7 ma.kr. (0,1% af VLF) er á GFS-grunni: tekjur 1.708,5 - gjöld 1.703,8. Mismunur heildarfjárheimilda (1.765,1) og tekna er EKKI afkoman."
+  "skyring": "Heildarjöfnuður +4,7 ma.kr. er á GFS-grunni: tekjur 1.708,5 - gjöld 1.703,8. Mismunur heildarfjárheimilda (1.765,1) og tekna er EKKI afkoman."
  },
  "hopar": [
   {

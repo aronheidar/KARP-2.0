@@ -1319,7 +1319,7 @@
   "unit": "%VLF/%",
   "ci_lo": 0.002,
   "ci_hi": 0.007,
-  "source": "Veiðigjald = auðlindarenta til ríkissjóðs (kvarðað: ~17,3 ma innheimt 2026 / VLF)"
+  "source": "Veiðigjald = auðlindarenta til ríkissjóðs (kvarðað á ~17,3 ma. 2026; fjárlagafrv. 2027 gerir ráð fyrir 19,5 ma. — stuðull innan CI)"
  },
  {
   "id": "veidi_fisk",

@@ -55,7 +55,26 @@ const baseline = {
   maxQuarters: MAXQ,
   disclaimer: 'Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.',
   // Fjármálaáætlun ríkisins (langtima.json) — grunnferill afkomu/skulda fylgir henni; sýnt sem samhengi í Módel-flipa.
-  fiscalPlan: { heimild: LT.heimild, markmid: LT.markmid, skilabod: LT.skilabod, heilbr: { ar: LT.heilbr_ar, vlf: LT.heilbr_vlf }, bonds: bondCurve },
+  //
+  // ⚠ ÁÆTLUNIN OG NÝJASTA FRUMVARPIÐ SEGJA SITT HVAÐ UM 2027. Fjármálaáætlunin (Langtímahorfur 2025)
+  //   spáir -0,12% afkomu hins opinbera 2027 og segir jöfnuð nást 2028. Fjárlagafrumvarp 2027, lagt
+  //   fram 8.9.2026, sýnir hins vegar +0,1% afgang ríkissjóðs strax 2027. Áætlunarröðin er EKKI
+  //   endurskrifuð hér — hún er það sem hún er og kemur úr annarri heimild — en `nyjast` ber
+  //   frumvarpstölurnar við hliðina svo herminn segi ekki notendum að jöfnuður náist fyrst 2028
+  //   þegar ríkisstjórnin hefur þegar lagt fram fjárlög sem sýna hann ári fyrr.
+  //   ⚠ Ólíkt umfang: áætlunin nær til HINS OPINBERA (ríki+sveitarfélög), frumvarpið til RÍKISSJÓÐS.
+  fiscalPlan: {
+    heimild: LT.heimild, markmid: LT.markmid, skilabod: LT.skilabod,
+    heilbr: { ar: LT.heilbr_ar, vlf: LT.heilbr_vlf }, bonds: bondCurve,
+    nyjast: {
+      heimild: 'Frumvarp til fjárlaga 2027 (þskj. 1, 158. lögþ., útbýtt 8.9.2026 — bíður afgreiðslu)',
+      umfang: 'ríkissjóður (A1-hluti)', ar: 2027,
+      afkoma_vlf: 0.1, afkoma_makr: 4.7, frumjofnudur_makr: 99.1, vaxtagjold_makr: 154.9,
+      skuldir_vlf: 47.4, skuldir_skuldaregla_vlf: 37.8,
+      ath: 'Skuldir hækka um 189 ma.kr. milli ára þrátt fyrir afganginn (lánsfjárjöfnuður -67,5 ma.kr. '
+         + 'og erlend lántaka v. gjaldeyrisforða). Tölur breytast í meðförum Alþingis.',
+    },
+  },
   levers: {
     // Peningastefna & þjóðhagsvarúð
     vextir: { base: rateNow, min: 0, max: 12, step: 0.25, unit: '%', label: 'Stýrivextir (Seðlabanki)', group: 'Peningastefna & varúð' },
@@ -71,7 +90,10 @@ const baseline = {
     utgjold: { base: 0, realBase: 1450, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -15, max: 15, step: 1, unit: '%', label: 'Almenn ríkisútgjöld (rekstur, breyting)', group: 'Ríkisfjármál & skattar' },
     tilfaerslur: { base: 0, realBase: 20, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 20, step: 5, unit: '%', label: 'Tilfærslur (barnabætur o.fl.)', group: 'Ríkisfjármál & skattar' },
     innvidir: { base: 0, realBase: 90, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Innviðafjárfesting', group: 'Ríkisfjármál & skattar' },
-    veidigjald: { base: 0, realBase: 17.3, realMode: 'mult', realUnit: ' ma.kr.', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Veiðigjald', group: 'Ríkisfjármál & skattar' },
+    // realBase fært 17,3 → 19,5 skv. fjárlagafrumvarpi 2027 (Töfluviðauki 1, liður 141.5.20).
+    // ⚠ `veidi_bal`-stuðullinn (0,004 %VLF/%) var kvarðaður á 17,3 ma.kr.; réttur stuðull á nýja
+    //   grunninum er ~0,0035 sem liggur innan uppgefins öryggisbils (0,002–0,007), svo hann stendur.
+    veidigjald: { base: 0, realBase: 19.5, realMode: 'mult', realUnit: ' ma.kr.', realDec: 1, min: -50, max: 100, step: 10, unit: '%', label: 'Veiðigjald', group: 'Ríkisfjármál & skattar' },
     ivilnanir: { base: 0, realBase: 13, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 40, step: 5, unit: '%', label: 'Styrkir & ívilnanir (nýsköpun)', group: 'Ríkisfjármál & skattar' },
     menntun: { base: 0, realBase: 50, realMode: 'mult', realUnit: ' ma.kr.', realDec: 0, min: -10, max: 30, step: 5, unit: '%', label: 'Menntun & rannsóknir (fjárfesting)', group: 'Ríkisfjármál & skattar' },
     // Húsnæði
@@ -294,7 +316,7 @@ const links = [
   { id: 'innv_byggd', from: 'innvidir', to: 'byggdajofnudur', coef: 0.10, lag: 3, unit: 'vísit/%', ci_lo: 0.04, ci_hi: 0.18, source: 'Innviðir (vegir/ljósleiðari) styrkja landsbyggð' },
   { id: 'innv_bal', from: 'innvidir', to: 'afkoma', coef: -0.02, lag: 1, unit: '%VLF/%', ci_lo: -0.032, ci_hi: -0.01, source: 'Innviðafjárfesting kostar (kvarðað: ~90 ma / VLF)' },
   { id: 'innv_innov', from: 'innvidir', to: 'nyskopun', coef: 0.08, lag: 3, unit: 'vísit/%', ci_lo: 0.03, ci_hi: 0.15, source: 'Rannsókna-/stafrænir innviðir styðja nýsköpun' },
-  { id: 'veidi_bal', from: 'veidigjald', to: 'afkoma', coef: 0.004, lag: 1, unit: '%VLF/%', ci_lo: 0.002, ci_hi: 0.007, source: 'Veiðigjald = auðlindarenta til ríkissjóðs (kvarðað: ~17,3 ma innheimt 2026 / VLF)' },
+  { id: 'veidi_bal', from: 'veidigjald', to: 'afkoma', coef: 0.004, lag: 1, unit: '%VLF/%', ci_lo: 0.002, ci_hi: 0.007, source: 'Veiðigjald = auðlindarenta til ríkissjóðs (kvarðað á ~17,3 ma. 2026; fjárlagafrv. 2027 gerir ráð fyrir 19,5 ma. — stuðull innan CI)' },
   { id: 'veidi_fisk', from: 'veidigjald', to: 'fiskistofn', coef: 0.02, lag: 2, unit: 'vísit/%', ci_lo: 0.005, ci_hi: 0.04, source: 'Hærra gjald → minni sóknarhvati → heilbrigðari stofn' },
   { id: 'veidi_byggd', from: 'veidigjald', to: 'byggdajofnudur', coef: -0.03, lag: 2, unit: 'vísit/%', ci_lo: -0.06, ci_hi: -0.01, source: 'Íþyngir sjávarbyggðum' },
   { id: 'leigu_rent', from: 'leiguhusnaedi', to: 'leiga', coef: -0.20, lag: 3, unit: '%/%', ci_lo: -0.35, ci_hi: -0.08, source: 'Aukið félagslegt/leiguframboð → lægri leiga' },

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-08",
+ "updated": "2026-09-09",
  "quarters": 12,
  "maxQuarters": 40,
  "disclaimer": "Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.",
@@ -78,6 +78,18 @@
     "yield": 6.82
    },
    "updated": "2026-09-08"
+  },
+  "nyjast": {
+   "heimild": "Frumvarp til fjárlaga 2027 (þskj. 1, 158. lögþ., útbýtt 8.9.2026 — bíður afgreiðslu)",
+   "umfang": "ríkissjóður (A1-hluti)",
+   "ar": 2027,
+   "afkoma_vlf": 0.1,
+   "afkoma_makr": 4.7,
+   "frumjofnudur_makr": 99.1,
+   "vaxtagjold_makr": 154.9,
+   "skuldir_vlf": 47.4,
+   "skuldir_skuldaregla_vlf": 37.8,
+   "ath": "Skuldir hækka um 189 ma.kr. milli ára þrátt fyrir afganginn (lánsfjárjöfnuður -67,5 ma.kr. og erlend lántaka v. gjaldeyrisforða). Tölur breytast í meðförum Alþingis."
   }
  },
  "levers": {
@@ -208,7 +220,7 @@
   },
   "veidigjald": {
    "base": 0,
-   "realBase": 17.3,
+   "realBase": 19.5,
    "realMode": "mult",
    "realUnit": " ma.kr.",
    "realDec": 1,
