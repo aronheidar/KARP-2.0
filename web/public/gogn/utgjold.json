@@ -1,8 +1,185 @@
-{"ar":2026,"heimild":"Frumvarp til fjárlaga 2026 — Útgjöld A1-hluta ríkissjóðs eftir málefnasviðum (Töfluviðauki, Tafla 6)","heild":1672.2,"tekjur":1591.2,"hopar":[
-{"heiti":"Heilbrigðismál","svid":[["Sjúkrahúsþjónusta",192.3],["Heilbrigðisþjónusta utan sjúkrahúsa",102.8],["Hjúkrunar- og endurhæfingarþjónusta",93.2],["Lyf og lækningavörur",45.3],["Lýðheilsa og stjórnsýsla velferðarmála",13.0]]},
-{"heiti":"Félags-, trygginga- og húsnæðismál","svid":[["Örorka og málefni fatlaðs fólks",132.6],["Málefni aldraðra",127.6],["Fjölskyldumál",82.6],["Vinnumarkaður og atvinnuleysi",46.2],["Húsnæðis- og skipulagsmál",25.9]]},
-{"heiti":"Mennta- og menningarmál","svid":[["Háskólastig",73.2],["Framhaldsskólastig",53.3],["Menning, listir, íþrótta- og æskulýðsmál",25.0],["Fjölmiðlun",7.5],["Önnur skólastig og stjórnsýsla",6.9]]},
-{"heiti":"Innviðir, umhverfi og atvinnuvegir","svid":[["Samgöngu- og fjarskiptamál",76.2],["Umhverfismál",40.5],["Sveitarfélög og byggðamál",39.4],["Nýsköpun, rannsóknir og þekkingargreinar",37.2],["Landbúnaður",25.6],["Orkumál",11.6],["Sjávarútvegur og fiskeldi",8.9],["Markaðseftirlit og neytendamál",4.9],["Ferðaþjónusta",2.4]]},
-{"heiti":"Stjórnsýsla, öryggi og utanríkismál","svid":[["Almanna- og réttaröryggi",50.1],["Skatta-, eigna- og fjármálaumsýsla",29.8],["Réttindi einstaklinga, trúmál og dómsmál",23.6],["Utanríkismál",23.2],["Alþjóðleg þróunarsamvinna",16.4],["Alþingi og eftirlitsstofnanir",7.0],["Dómstólar",4.6],["Hagskýrslugerð og grunnskrár",3.4],["Æðsta stjórnsýsla",3.2]]},
-{"heiti":"Fjármagnskostnaður og varasjóðir","svid":[["Fjármagnskostnaður, ábyrgðir og lífeyrissk.",206.4],["Almennur varasjóður og sértækar ráðstafanir",30.6]]}
-]}
+{
+ "ar": 2027,
+ "heimild": "Frumvarp til fjárlaga 2027 — Fjárheimildir A1-hluta ríkissjóðs eftir málefnasviðum (3. gr., þskj. 1, 158. lögþ.)",
+ "grunnur": "Fjárheimildir málefnasviða (IPSAS). Samsvarandi heildargjöld á þjóðhagsgrunni (GFS) eru 1.703,8 ma.kr. eftir aðlögun upp á -61,3 ma.kr.",
+ "heild": 1765.1,
+ "tekjur": 1708.5,
+ "afkoma": {
+  "heildarjofnudur": 4.7,
+  "frumjofnudur": 99.1,
+  "vaxtagjold": 154.9,
+  "skyring": "Heildarjöfnuður +4,7 ma.kr. er á GFS-grunni: tekjur 1.708,5 - gjöld 1.703,8. Mismunur heildarfjárheimilda (1.765,1) og tekna er EKKI afkoman."
+ },
+ "hopar": [
+  {
+   "heiti": "Heilbrigðismál",
+   "svid": [
+    [
+     "Sjúkrahúsþjónusta",
+     196.1
+    ],
+    [
+     "Heilbrigðisþjónusta utan sjúkrahúsa",
+     115.2
+    ],
+    [
+     "Hjúkrunar- og endurhæfingarþjónusta",
+     99.1
+    ],
+    [
+     "Lyf og lækningavörur",
+     47.6
+    ],
+    [
+     "Lýðheilsa og stjórnsýsla velferðarmála",
+     14.6
+    ]
+   ]
+  },
+  {
+   "heiti": "Félags-, trygginga- og húsnæðismál",
+   "svid": [
+    [
+     "Örorka og málefni fatlaðs fólks",
+     153.6
+    ],
+    [
+     "Málefni aldraðra",
+     140.1
+    ],
+    [
+     "Fjölskyldumál",
+     93.9
+    ],
+    [
+     "Vinnumarkaður og atvinnuleysi",
+     57.0
+    ],
+    [
+     "Húsnæðis- og skipulagsmál",
+     22.1
+    ]
+   ]
+  },
+  {
+   "heiti": "Mennta- og menningarmál",
+   "svid": [
+    [
+     "Háskólastig",
+     76.6
+    ],
+    [
+     "Framhaldsskólastig",
+     56.9
+    ],
+    [
+     "Menning, listir, íþrótta- og æskulýðsmál",
+     25.9
+    ],
+    [
+     "Fjölmiðlun",
+     8.1
+    ],
+    [
+     "Önnur skólastig og stjórnsýsla",
+     7.2
+    ]
+   ]
+  },
+  {
+   "heiti": "Innviðir, umhverfi og atvinnuvegir",
+   "svid": [
+    [
+     "Samgöngu- og fjarskiptamál",
+     74.2
+    ],
+    [
+     "Umhverfismál",
+     40.2
+    ],
+    [
+     "Sveitarfélög og byggðamál",
+     41.1
+    ],
+    [
+     "Nýsköpun, rannsóknir og þekkingargreinar",
+     30.7
+    ],
+    [
+     "Landbúnaður",
+     28.1
+    ],
+    [
+     "Orkumál",
+     8.8
+    ],
+    [
+     "Sjávarútvegur og fiskeldi",
+     7.9
+    ],
+    [
+     "Markaðseftirlit og neytendamál",
+     4.9
+    ],
+    [
+     "Ferðaþjónusta",
+     2.7
+    ]
+   ]
+  },
+  {
+   "heiti": "Stjórnsýsla, öryggi og utanríkismál",
+   "svid": [
+    [
+     "Almanna- og réttaröryggi",
+     52.5
+    ],
+    [
+     "Skatta-, eigna- og fjármálaumsýsla",
+     31.6
+    ],
+    [
+     "Réttindi einstaklinga, trúmál og dómsmál",
+     23.9
+    ],
+    [
+     "Utanríkismál",
+     26.6
+    ],
+    [
+     "Alþjóðleg þróunarsamvinna",
+     16.7
+    ],
+    [
+     "Alþingi og eftirlitsstofnanir",
+     7.2
+    ],
+    [
+     "Dómstólar",
+     4.8
+    ],
+    [
+     "Hagskýrslugerð og grunnskrár",
+     3.4
+    ],
+    [
+     "Æðsta stjórnsýsla",
+     4.3
+    ]
+   ]
+  },
+  {
+   "heiti": "Fjármagnskostnaður og varasjóðir",
+   "svid": [
+    [
+     "Fjármagnskostnaður, ábyrgðir og lífeyrissk.",
+     215.4
+    ],
+    [
+     "Almennur varasjóður og sértækar ráðstafanir",
+     26.2
+    ]
+   ]
+  }
+ ]
+}
