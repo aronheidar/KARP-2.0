@@ -1,6 +1,6 @@
 ---
 // ─────────────────────────────────────────────────────────────
-// SSG-síða (#2) — Ríkisfjármál: tekjur vs útgjöld ríkissjóðs (fjárlög 2026),
+// SSG-síða (#2) — Ríkisfjármál: tekjur vs útgjöld ríkissjóðs (fjárlagafrumvarp 2027),
 // útgjöld eftir málefnasviðum + tekjur eftir flokkum. Í app-skelinni (Layout). #2.
 // ─────────────────────────────────────────────────────────────
 import Layout from '../layouts/Layout.astro';
@@ -9,7 +9,7 @@ import UTGJOLD from '@gogn/utgjold.json';
 import SKATTAR from '@gogn/skattar.json';
 import LANGTIMA from '@gogn/langtima.json';
 
-const ar = UTGJOLD.ar || 2026;
+const ar = UTGJOLD.ar || 2027;
 const heildUtgjold = UTGJOLD.heild || 0;
 const heildTekjur = SKATTAR.heildartekjur || UTGJOLD.tekjur || 0;
 const afkoma = heildTekjur - heildUtgjold;

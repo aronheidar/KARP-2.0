@@ -6,22 +6,22 @@ import D from '@gogn/skattar.json';
 const ROWS = D.hopar.flatMap((h) => h.skattar.map(([n, v]) => ({ n, v, h: h.heiti }))).sort((a, b) => b.v - a.v).slice(0, 14).reverse();
 const CH = { names: ROWS.map((r) => r.n), vals: ROWS.map((r) => r.v) };
 const desc = `Skatttekjur ríkissjóðs ${D.ar}: ${fmtNum(D.heild, 0)} ma.kr í sköttum af ${fmtNum(D.heildartekjur, 0)} ma.kr heildartekjum — stærstu skattstofnarnir sundurliðaðir úr fjárlögum.`;
-const updated = '2026-07-02';
+const updated = '2026-09-09';
 ---
 
 <Layout title="Skattar ríkisins | Karp" description={desc} canonical="https://karp.is/skattar/" ogTitle="Skattar ríkisins">
   <main data-pg="skattar">
     <p class="kicker">Hagvísir Íslands · Ríkisstjórn</p>
     <h1>Skattar</h1>
-    <p>Hvaðan koma tekjur ríkissjóðs? Skatttekjur og tryggingagjöld ársins {D.ar} eftir skattstofnum, beint úr fjárlögum.</p>
+    <p>Hvaðan koma tekjur ríkissjóðs? Skatttekjur og tryggingagjöld ársins {D.ar} eftir skattstofnum, beint úr fjárlagafrumvarpinu.</p>
     <div class="kpis">
-      <div class="kpi"><div class="k-l">💰 Skatttekjur alls <i class="tip" tabindex="0" data-tip="Allir skattar ríkissjóðs skv. tekjuáætlun fjárlaga — án tryggingagjalda og annarra tekna (arðgreiðslna, vaxtatekna o.fl.).">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heild))}</div><div class="k-s">ma.kr · fjárlög {D.ar}</div></div>
+      <div class="kpi"><div class="k-l">💰 Skatttekjur alls <i class="tip" tabindex="0" data-tip="Allir skattar ríkissjóðs skv. tekjuáætlun fjárlaga — án tryggingagjalda og annarra tekna (arðgreiðslna, vaxtatekna o.fl.).">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heild))}</div><div class="k-s">ma.kr · fjárlagafrumvarp {D.ar}</div></div>
       <div class="kpi"><div class="k-l">🛡️ Tryggingagjöld <i class="tip" tabindex="0" data-tip="Almennt tryggingagjald og atvinnutryggingagjald sem launagreiðendur greiða ofan á laun — fjármagnar m.a. atvinnuleysistryggingar og fæðingarorlof.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.tryggingagjold))}</div><div class="k-s">ma.kr</div></div>
       <div class="kpi"><div class="k-l">📊 Heildartekjur <i class="tip" tabindex="0" data-tip="Allar tekjur ríkissjóðs: skattar + tryggingagjöld + aðrar tekjur. Samsett tala úr tekjuáætlun fjárlaga.">ⓘ</i></div><div class="k-v">{groupThousands(Math.round(D.heildartekjur))}</div><div class="k-s">ma.kr</div></div>
     </div>
     <h2>Stærstu skattstofnarnir <i class="tip" tabindex="0" data-tip="14 stærstu skattstofnar ríkisins, raðaðir eftir áætlun fjárlaga í ma.kr. Tekjuskattur einstaklinga og VSK bera uppi ríkissjóð.">ⓘ</i></h2>
     <div id="chart" style="height: 420px;"></div>
-    <p class="note">ⓘ Tölurnar eru <strong>tekjuáætlun fjárlaga {D.ar}</strong> (ma.kr) — ekki rauninnheimta ársins. Sundurliðun eftir skattstofnum eins og hún birtist í fjárlagafrumvarpi.</p>
+    <p class="note">ⓘ Tölurnar eru <strong>tekjuáætlun fjárlagafrumvarps {D.ar}</strong> (ma.kr) — ekki rauninnheimta ársins. Sundurliðun eftir skattstofnum eins og hún birtist í fjárlagafrumvarpi.</p>
     <p class="foot">Forþjónað (SSG) {updated}. Heimild: {D.heimild}. #2 LOTA 13j.</p>
   </main>
   <style>
