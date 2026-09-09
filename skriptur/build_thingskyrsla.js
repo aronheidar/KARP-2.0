@@ -20,6 +20,9 @@ const fs = require('fs');
 const path = require('path');
 const GOGN = path.join(__dirname, '..', 'gogn');
 const LTHING = 157;
+// ⚠ Samhliðni lækkuð 10 → 4 (9.9.2026): althingi.is svarar 429 við þennan þrýsting og
+//   fetchText hendir nú á því í stað þess að skila tómum streng sem þáttast sem 0 mál.
+const THING_CONC = 4;
 const BASE = 'https://www.althingi.is/altext/xml/';
 const UA = { headers: { 'User-Agent': 'KARP build (karp.is)' } };
 
@@ -29,12 +32,16 @@ const party = {}; const ids = new Set();
 MPS.forEach((m) => { party[m.id] = m.flokkur; ids.add(m.id); });
 
 const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>')); return m ? m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() : ''; };
-async function getText(u, tries = 3) {
-  for (let i = 0; i < tries; i++) {
-    try { const r = await fetch(u, UA); if (r.ok) return await r.text(); } catch (e) {}
-    await new Promise((s) => setTimeout(s, 400 * (i + 1)));
-  }
-  return '';
+// ⚠⚠ Hér stóð `return ''` eftir þrjár árangurslausar tilraunir. Tómur strengur þáttast sem
+//   0 efnisflokkar / 0 atkvæðagreiðslur / 0 mál — og það skrifaðist skilyrðislaust í
+//   thingskyrsla.json, GAGNAVÉL SELDU ÞINGMANNASKÝRSLUNNAR (990 kr). Ein 429-lota hefði
+//   skilað áskrifendum 105 KB af tómum skýrslum án þess að nokkuð lítið út fyrir að vera bilað.
+//   Bilun VERÐUR að vera villa, ekki tóm gögn. fetchText hendir.
+const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
+let mistokst = 0;
+async function getText(u) {
+  try { return await fetchText(u, { headers: UA.headers }); }
+  catch (e) { mistokst++; throw e; }
 }
 async function pool(items, n, fn) { let i = 0; async function w() { while (i < items.length) { const k = i++; await fn(items[k], k); } } await Promise.all(Array.from({ length: n }, w)); }
 
@@ -73,7 +80,7 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   const T = {}; // per-MP söfnun
   MPS.forEach((m) => { T[m.id] = { rebel: [], man: {}, va: {}, recorded: 0, greidd: 0, fjarv: 0 }; });
   let recCount = 0, done = 0;
-  await pool(votes, 10, async (v) => {
+  await pool(votes, THING_CONC, async (v) => {
     const x = await getText(BASE + 'atkvaedagreidslur/atkvaedagreidsla/?numer=' + v.vid);
     if (++done % 300 === 0) console.log('  …', done, 'af', votes.length);
     if (!x) return;
@@ -141,7 +148,7 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   const withFm = mals.filter((m) => ['l', 'a', 'q', 'm', 'b'].includes(m.teg));
   const need = withFm.filter((m) => !cache[m.nr]);
   console.log('  þingmál:', mals.length, '| með flutningsm.:', withFm.length, '| ný í skyndiminni:', need.length);
-  await pool(need, 10, async (m) => {
+  await pool(need, THING_CONC, async (m) => {
     const det = await getText(BASE + 'thingmalalisti/thingmal/?lthing=' + LTHING + '&malnr=' + m.nr);
     if (!det) return;
     const stada = grab(det, 'staðamáls');
@@ -221,7 +228,10 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   });
 
   const out = { updated: new Date().toISOString().slice(0, 10), thing: LTHING, recVotes: recCount, areas, avg, flAvg, mp };
-  fs.writeFileSync(path.join(GOGN, 'thingskyrsla.json'), JSON.stringify(out));
+  // ⚠ GÁT: engin þingmannaskýrsla má skrifast ef sóknir bruðust — seld vara.
+  console.log('mistókst:', mistokst);
+  writeJsonUnlessEmpty(path.join(GOGN, 'thingskyrsla.json'), out,
+    { isEmpty: (d) => !d || !Object.keys(d).length || mistokst > 0, label: 'thingskyrsla.json' });
   const sz = fs.statSync(path.join(GOGN, 'thingskyrsla.json')).size;
   console.log('WROTE gogn/thingskyrsla.json', (sz / 1024).toFixed(0) + 'KB');
   // stikkprufa

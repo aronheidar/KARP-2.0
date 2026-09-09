@@ -1,13 +1,20 @@
 // Phase 2b: speaking time. Fetches the þing-157 speech list (~15MB), sums debate
 // speaking seconds per MP (excludes Speaker/President chairing), merges into althingi.json.
 const fs = require('fs');
+const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
 // __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
 const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const ids = new Set(mps.map(m => m.id));
 
 (async () => {
-  const x = await (await fetch('https://www.althingi.is/altext/xml/raedulisti/?lthing=157')).text();
+  // ⚠ var bert fetch án r.ok — 429 hefði sett raedumin/raedur = 0 á alla þingmenn.
+  // ⚠ BÆÐI þing: þetta eru ATHAFNA-gögn sem safnast upp yfir þingið. 158 eitt gaf tóma
+  //   hollustu og núll í kortinu — reita-gátin greip það, en stefnan var samt röng.
+  //   XML-bútarnir eru einfaldlega skeyttir saman; þáttararnir lesa endurteknar einingar.
+  const THING = await thingListi({ fallback: 157 });
+  const x = (await Promise.all(THING.map((t) =>
+    fetchText('https://www.althingi.is/altext/xml/raedulisti/?lthing=' + t)))).join('');
   const secs = {}, cnt = {};
   const blocks = x.split('<ræða>').slice(1);
   console.log('speech entries:', blocks.length);
@@ -22,7 +29,10 @@ const ids = new Set(mps.map(m => m.id));
     if (d > 0 && d < 36000) { secs[id] = (secs[id] || 0) + d; cnt[id] = (cnt[id] || 0) + 1; }
   });
   mps.forEach(m => { m.raedumin = secs[m.id] ? Math.round(secs[m.id] / 60) : 0; m.raedur = cnt[m.id] || 0; });
-  fs.writeFileSync(DIR + 'althingi.json', JSON.stringify(mps, null, 0));
+  // ⚠ REITA-GÁT, ekki lengdar-gát: þessi skripta SAMEINAR svið inn í althingi.json sem er aldrei
+  //   tóm. Holunin sást því ekki — listinn stóð heill meðan reitirnir inni í honum voru núll.
+  writeJsonUnlessEmpty(DIR + 'althingi.json', mps,
+    { isEmpty: (d) => !d || !d.length || !(d.some(m => m.raedumin)), label: 'althingi.json (speeches)' });
 
   const wr = mps.filter(m => m.raedur > 0);
   console.log('talar LENGST:', wr.slice().sort((a, b) => b.raedumin - a.raedumin).slice(0, 5).map(m => m.nafn + ' ' + m.raedumin + ' mín / ' + m.raedur + ' ræður'));

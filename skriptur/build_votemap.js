@@ -9,11 +9,17 @@ const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
 const ids = mps.map(m => m.id);
 const N = ids.length;
 function parseVote(x) { const o = {}; x.split('<þingmaður id=').slice(1).forEach(b => { const id = +(b.match(/^'(\d+)'/) || [])[1]; const a = (b.match(/<atkvæði>([^<]*)<\/atkvæði>/) || [])[1]; if (id && a) o[id] = a; }); return o; }
-async function getText(u) { const r = await fetch(u); return r.text(); }
+const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
+const getText = (u) => fetchText(u);
 async function pool(items, n, fn) { let i = 0; async function w() { while (i < items.length) { const k = i++; await fn(items[k]); } } await Promise.all(Array.from({ length: n }, w)); }
 
 (async () => {
-  const listXml = await getText('https://www.althingi.is/altext/xml/atkvaedagreidslur/?lthing=157');
+  // ⚠ BÆÐI þing: þetta eru ATHAFNA-gögn sem safnast upp yfir þingið. 158 eitt gaf tóma
+  //   hollustu og núll í kortinu — reita-gátin greip það, en stefnan var samt röng.
+  //   XML-bútarnir eru einfaldlega skeyttir saman; þáttararnir lesa endurteknar einingar.
+  const THING = await thingListi({ fallback: 157 });
+  const listXml = (await Promise.all(THING.map((t) =>
+    getText('https://www.althingi.is/altext/xml/atkvaedagreidslur/?lthing=' + t)))).join('');
   const voteIds = [...listXml.matchAll(/atkvæðagreiðslunúmer=.(\d+)./g)].map(m => m[1]);
   console.log('votes to fetch:', voteIds.length);
   const cols = []; let done = 0;
@@ -56,7 +62,10 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   let mAbs = 0; xs.concat(ys).forEach(v => { if (Math.abs(v) > mAbs) mAbs = Math.abs(v); });
   const f = mAbs > 0 ? 95 / mAbs : 1;
   mps.forEach((m, i) => { m.mx = Math.round(xs[i] * f * 10) / 10; m.my = Math.round(ys[i] * f * 10) / 10; });
-  fs.writeFileSync(DIR + 'althingi.json', JSON.stringify(mps, null, 0));
+  // ⚠ REITA-GÁT, ekki lengdar-gát: þessi skripta SAMEINAR svið inn í althingi.json sem er aldrei
+  //   tóm. Holunin sást því ekki — listinn stóð heill meðan reitirnir inni í honum voru núll.
+  writeJsonUnlessEmpty(DIR + 'althingi.json', mps,
+    { isEmpty: (d) => !d || !d.length || !(d.some(m => m.mx)), label: 'althingi.json (votemap)' });
 
   console.log('baked mx/my | PC1 var', Math.round(e1.lam), 'PC2 var', Math.round(e2.lam), '| PC1 share', (e1.lam / (e1.lam + e2.lam)).toFixed(2));
   const cen = {}; mps.forEach(m => { (cen[m.flokkur] = cen[m.flokkur] || [0, 0, 0]); cen[m.flokkur][0] += m.mx; cen[m.flokkur][1] += m.my; cen[m.flokkur][2]++; });

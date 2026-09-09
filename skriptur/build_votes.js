@@ -16,11 +16,17 @@ function parseVote(x) {
   });
   return out;
 }
-async function getText(u) { const r = await fetch(u); return await r.text(); }
+const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
+const getText = (u) => fetchText(u);
 async function pool(items, n, fn) { let i = 0; async function w() { while (i < items.length) { const k = i++; await fn(items[k]); } } await Promise.all(Array.from({ length: n }, w)); }
 
 (async () => {
-  const listXml = await getText('https://www.althingi.is/altext/xml/atkvaedagreidslur/?lthing=157');
+  // ⚠ BÆÐI þing: þetta eru ATHAFNA-gögn sem safnast upp yfir þingið. 158 eitt gaf tóma
+  //   hollustu og núll í kortinu — reita-gátin greip það, en stefnan var samt röng.
+  //   XML-bútarnir eru einfaldlega skeyttir saman; þáttararnir lesa endurteknar einingar.
+  const THING = await thingListi({ fallback: 157 });
+  const listXml = (await Promise.all(THING.map((t) =>
+    getText('https://www.althingi.is/altext/xml/atkvaedagreidslur/?lthing=' + t)))).join('');
   const voteIds = [...listXml.matchAll(/atkvæðagreiðslunúmer=.(\d+)./g)].map(m => m[1]);
   console.log('votes to fetch:', voteIds.length);
 
@@ -59,7 +65,10 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
     m.fjarvist = t.recorded ? Math.round((t.fjarverandi + t.bodadi) / t.recorded * 1000) / 10 : null;
     m.recVotes = t.recorded;
   });
-  fs.writeFileSync(DIR + 'althingi.json', JSON.stringify(mps, null, 0));
+  // ⚠ REITA-GÁT, ekki lengdar-gát: þessi skripta SAMEINAR svið inn í althingi.json sem er aldrei
+  //   tóm. Holunin sást því ekki — listinn stóð heill meðan reitirnir inni í honum voru núll.
+  writeJsonUnlessEmpty(DIR + 'althingi.json', mps,
+    { isEmpty: (d) => !d || !d.length || !(d.some(m => m.hollusta != null)), label: 'althingi.json (votes)' });
 
   const wl = mps.filter(m => m.hollusta != null && m.greidd >= 20);
   console.log('REBELS (least loyal):', wl.slice().sort((a, b) => a.hollusta - b.hollusta).slice(0, 6).map(m => m.nafn + ' ' + m.hollusta + '% (' + m.uppreisn + ' kross)'));

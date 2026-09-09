@@ -2,6 +2,7 @@
 // (þingfararkaup + álag; ministers incl. ráðherralaun) and bakes per-MP `laun` into althingi.json.
 // Source: https://www.althingi.is/altext/cv/is/laun_og_greidslur/ (officially published, forsætisnefnd 2018).
 const fs = require('fs');
+const { fetchText, writeJsonUnlessEmpty } = require('./_seigla.js');
 // __dirname-afstætt á kanóníska gogn/ (harðkóðaða OneDrive-slóðin braust hljóðlaust á ubuntu eftir CF-flutning)
 const DIR = require('path').join(__dirname, '..', 'gogn') + '/';
 const mps = JSON.parse(fs.readFileSync(DIR + 'althingi.json', 'utf8'));
@@ -9,8 +10,9 @@ const norm = s => String(s || '').replace(/­/g, '').replace(/&nbsp;/g, ' ').rep
 const key = s => norm(s).toLowerCase();
 
 (async () => {
-  const r = await fetch('https://www.althingi.is/altext/cv/is/laun_og_greidslur/', { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-  const html = await r.text();
+  // ⚠ var bert fetch án r.ok. Skriði síðan 200 með breyttu sniði yrðu launin núll á alla.
+  const html = await fetchText('https://www.althingi.is/altext/cv/is/laun_og_greidslur/',
+    { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
   const tables = [...html.matchAll(/<table[\s\S]*?<\/table>/g)];
   // table index 1 = "Fastar mánaðarlegar launagreiðslur" (fixed monthly salary)
   const t = tables[1] ? tables[1][0] : tables[0][0];
@@ -31,7 +33,10 @@ const key = s => norm(s).toLowerCase();
     if (s) { m.laun = s.laun; m.kostn = s.kostn; matched++; }
     else { m.laun = null; unmatched.push(m.nafn); }
   });
-  fs.writeFileSync(DIR + 'althingi.json', JSON.stringify(mps, null, 0));
+  // ⚠ REITA-GÁT, ekki lengdar-gát: þessi skripta SAMEINAR svið inn í althingi.json sem er aldrei
+  //   tóm. Holunin sást því ekki — listinn stóð heill meðan reitirnir inni í honum voru núll.
+  writeJsonUnlessEmpty(DIR + 'althingi.json', mps,
+    { isEmpty: (d) => !d || !d.length || !(d.some(m => m.laun)), label: 'althingi.json (laun)' });
   console.log('matched', matched, '/', mps.length);
   if (unmatched.length) console.log('UNMATCHED MPs:', JSON.stringify(unmatched));
   // salary table names not matched to a sitting MP (e.g. substitutes / former)

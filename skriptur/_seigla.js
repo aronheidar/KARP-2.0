@@ -80,4 +80,20 @@ async function nuverandiThing(opts = {}) {
   }
 }
 
-module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty, nuverandiThing };
+// ── thingListi() ────────────────────────────────────────────────────────────
+// Skilar [núverandi, næstliðið] löggjafarþingi — t.d. [158, 157].
+//
+// Af hverju BÆÐI: gögn um ATHAFNIR (mál, atkvæði, ræður) safnast upp yfir þingið. Nýtt þing er
+// nær tómt fyrstu vikurnar — 9.9.2026 hafði 158. þing 1 mál á móti 1.070 hjá 157.
+//   · aðeins núverandi  → /thingmal/ tæmist og öll atkvæðasaga hverfur
+//   · aðeins næstliðið  → ný mál birtast aldrei (fjárlagafrumvarpið sjálft hefði ekki sést)
+// Sameining gefur hvort tveggja: nýtt efni um leið og það kemur, og söguna óskerta.
+//
+// ⚠ Á EKKI við um SKIPAN (þingmenn, nefndir, ráðherrar) — þar er aðeins núverandi þing rétt,
+//   annars birtust þingmenn sem eru hættir. Notið nuverandiThing() fyrir þau.
+async function thingListi(opts = {}) {
+  const nu = await nuverandiThing(opts);
+  return [nu, nu - 1];
+}
+
+module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty, nuverandiThing, thingListi };
