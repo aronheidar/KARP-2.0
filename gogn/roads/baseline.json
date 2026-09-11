@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-10",
+ "updated": "2026-09-11",
  "quarters": 12,
  "maxQuarters": 40,
  "disclaimer": "Stílfærð sambönd byggð á opinberum gögnum — ekki opinber spá.",
@@ -70,14 +70,14 @@
    "short": {
     "nafn": "RIKB 26 1015",
     "yr": 2026,
-    "yield": 8.7
+    "yield": 8.77
    },
    "long": {
     "nafn": "RIKB 42 0217",
     "yr": 2042,
-    "yield": 6.82
+    "yield": 6.92
    },
-   "updated": "2026-09-10"
+   "updated": "2026-09-11"
   },
   "nyjast": {
    "heimild": "Frumvarp til fjárlaga 2027 (þskj. 1, 158. lögþ., útbýtt 8.9.2026 — bíður afgreiðslu)",
