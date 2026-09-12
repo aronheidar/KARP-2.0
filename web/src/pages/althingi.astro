@@ -15,17 +15,20 @@ import SEATS from '@gogn/seats.json';
 import CABINET from '@gogn/cabinet.json';
 import FRUMVORP from '@gogn/frumvorp.json';
 import DAGATAL from '@gogn/dagatal.json';
+// Þingnúmerið kemur ÚR GÖGNUM (build_dagatal.js spyr Alþingi um yfirstandandi þing).
+// Fallbakkið gildir aðeins þar til næsta gagnakeyrsla skrifar `lthing` í dagatal.json.
+const LTHING = DAGATAL.lthing ?? 158;
 
 const updated = '2026-07-01';
 // Ríkisstjórnarflokkar úr cabinet.json (ráðherra-flokkar) — óháð sætaspánni (flutt á /kannanir/).
 const GOV = [...new Set(CABINET.map((c) => c.flokur).filter(Boolean))];
-const desc = `Alþingi — þingsalurinn með raun-sætaskipan, ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings 157. Úr opnum XML-gögnum Alþingis.`;
+const desc = `Alþingi — þingsalurinn með raun-sætaskipan, ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings ${LTHING}. Úr opnum XML-gögnum Alþingis.`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Alþingi — Þingið 157',
-  description: 'Þingsalurinn (raun-sætaskipan), ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings 157.',
+  name: `Alþingi — Þingið ${LTHING}`,
+  description: `Þingsalurinn (raun-sætaskipan), ríkisstjórnin, mál í gangi og þingfundadagatal löggjafarþings ${LTHING}.`,
   dateModified: updated,
 };
 
@@ -41,7 +44,7 @@ THINGMENN.forEach((m) => {
   MPS[m.id] = { n: m.nafn, f: m.flokkur, c: colorByName(m.flokkur), kj: m.kjordaemi, img: m.mynd || '', s: mpSlug[m.id] || '', aldur: m.aldur ?? null, thing: m.fjoldiThinga ?? null, hollusta: m.hollusta ?? null, raedur: m.raedur ?? null, nefndir: m.nefndir ?? null, greidd: m.greidd ?? null };
 });
 
-// ── Þingið 157: ríkisstjórnin (cabinet.json úr Alþingis-XML) ──
+// ── Yfirstandandi þing: ríkisstjórnin (cabinet.json úr Alþingis-XML) ──
 const capFirst = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 // cabinet.json getur verið TÓMT (automation-skrap brást/sumarhlé) → PM null og blokkin sleppt.
 const PM = CABINET.find((c) => (c.emb || []).some((e) => /forsætis/i.test(e))) || CABINET[0] || null;
@@ -74,16 +77,16 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
 ---
 
 <Layout
-  title={`Alþingi — Þingið 157, þingsalurinn & þingmál | Karp`}
+  title={`Alþingi — Þingið ${LTHING}, þingsalurinn & þingmál | Karp`}
   description={desc}
   canonical="https://karp.is/althingi/"
   jsonLd={jsonLd}
-  ogTitle="Alþingi — Þingið 157"
+  ogTitle={`Alþingi — Þingið ${LTHING}`}
 >
   <main data-pg="althingi">
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <ThingTabs active="salur" />
-    <h1>Þingið 157{GOV.length > 0 ? ` — ${govNum} flokka meirihlutastjórn` : ''}</h1>
+    <h1>Þingið {LTHING}{GOV.length > 0 ? ` — ${govNum} flokka meirihlutastjórn` : ''}</h1>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ráðherrar, sætakort, atkvæði og mál: opin XML-gögn Alþingis. Sætaspá (fylgi→þingsæti) er á /kannanir/.">ⓘ</i> Um gögnin á síðunni</p>
     {PM && <div class="cab">
       <button class="cab-pm cab-clk" data-id={PM.id} type="button" style={`--pc:${colorByName(PM.flokur)}`}>
@@ -169,7 +172,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
           </div>
           <div id="dg-detail" class="dg-detail"><p class="dg-hint">Smelltu á dag með punktum til að sjá fundahöld dagsins.</p></div>
         </div>
-        <p class="src">Þingfundir og nefndarfundir löggjafarþingsins 157 ({DAGATAL.range[0]} – {DAGATAL.range[1]}), skv. fundargerðum Alþingis.</p>
+        <p class="src">Þingfundir og nefndarfundir löggjafarþingsins {LTHING} ({DAGATAL.range[0]} – {DAGATAL.range[1]}), skv. fundargerðum Alþingis.</p>
       </div>
     </div>
 
@@ -364,15 +367,33 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
       const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
       const MNF = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
       const MN = ['jan.', 'feb.', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'sept.', 'okt.', 'nóv.', 'des.'];
-      // Næsti samkomudagur: annar þriðjudagur septembermánaðar (35. gr. stjórnarskrár)
+      // „Á döfinni“ — ⚠⚠ 12.9.2026: hér stóð AÐEINS næsti árlegi samkomudagur, og þingnúmerið var
+      // reiknað sem `ár − 1868`. Þegar samkomudagur ársins var liðinn hoppaði reikningurinn heilt ár
+      // fram, svo síðan fullyrti „Alþingi kemur saman að nýju 14. september 2027 (159. löggjafarþing)“
+      // á meðan 158. þing sat — sett 8.9.2026, fjórum dögum áður. Dagatalið er nú spurt FYRST: sé fundur
+      // framundan sýnum við hann, og samkomudagurinn er aðeins vara-svar sem ber ENGA þingtölu.
       const now = new Date();
+      const todayYmd = now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '-' + pad2(now.getDate());
       const secondTue = (y) => { const d0 = new Date(y, 8, 1).getDay(); return 1 + ((2 - d0 + 7) % 7) + 7; };
       let upY = now.getFullYear();
-      if (now > new Date(upY, 8, secondTue(upY))) upY++;
-      const up = { y: upY, m: 8, d: secondTue(upY), term: upY - 1868 };
+      if (todayYmd > upY + '-09-' + pad2(secondTue(upY))) upY++;
+      const up = { y: upY, m: 8, d: secondTue(upY) };
       up.ymd = up.y + '-09-' + pad2(up.d);
+      // Dagatalið nær aðeins yfir yfirstandandi þing, svo tómt svar þýðir „ekkert á dagskrá“ —
+      // ALDREI fullyrðing um að þingið sé ekki að störfum.
+      const nextSit = Object.keys(DAGATAL.dates || {}).filter((d) => d >= todayYmd).sort()[0];
       const upEl = document.getElementById('dg-up');
-      if (upEl) upEl.innerHTML = '📅 <b>Á döfinni:</b> Alþingi kemur saman að nýju þriðjudaginn ' + up.d + '. september ' + up.y + ' (' + up.term + '. löggjafarþing, skv. 35. gr. stjórnarskrár).';
+      if (upEl) {
+        if (nextSit) {
+          const inf = DAGATAL.dates[nextSit] || {}, pp = nextSit.split('-');
+          const hvad = inf.t ? 'Þingfundur' : (inf.c && inf.c.length ? 'Nefndarfundir (' + inf.n + ')' : 'Fundur');
+          upEl.innerHTML = '📅 <b>Á döfinni:</b> ' + hvad + ' ' + (+pp[2]) + '. ' + MNF[+pp[1] - 1]
+            + (nextSit === todayYmd ? ' — í dag' : '') + '.';
+        } else {
+          upEl.innerHTML = '📅 <b>Á döfinni:</b> Engir fundir á dagskrá sem stendur. Reglulegt Alþingi kemur'
+            + ' saman annan þriðjudag septembermánaðar (35. gr. stjórnarskrár) — næst ' + up.d + '. september ' + up.y + '.';
+        }
+      }
       let st = { y: now.getFullYear(), m: now.getMonth() };
       const det = document.getElementById('dg-detail');
       function showDay(ds) {
@@ -387,7 +408,7 @@ const dIS = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.` : '');
       }
       function showUpcoming() {
         if (!det) return;
-        det.innerHTML = '<div class="dg-d-date">' + up.d + '. september ' + up.y + '</div><div class="dg-d-row dg-d-u"><b>⬢ Samkomudagur Alþingis</b></div><p class="dg-none" style="margin-top:8px">' + up.term + '. löggjafarþing er sett. Reglulegt Alþingi kemur saman annan þriðjudag septembermánaðar skv. 35. gr. stjórnarskrárinnar.</p>';
+        det.innerHTML = '<div class="dg-d-date">' + up.d + '. september ' + up.y + '</div><div class="dg-d-row dg-d-u"><b>⬢ Samkomudagur Alþingis</b></div><p class="dg-none" style="margin-top:8px">Næsta reglulegt Alþingi er sett. Alþingi kemur saman annan þriðjudag septembermánaðar skv. 35. gr. stjórnarskrárinnar.</p>';
       }
       function render() {
         const title = document.getElementById('dg-title');

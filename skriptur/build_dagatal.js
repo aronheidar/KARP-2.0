@@ -38,7 +38,9 @@ const dec = s => String(s || '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').tri
   const out = {};
   Object.keys(dates).forEach(d => { const x = dates[d]; out[d] = { t: x.t, n: Object.values(x.c).reduce((a, b) => a + b, 0), c: Object.keys(x.c).sort((a, b) => x.c[b] - x.c[a]) }; });
   const keys = Object.keys(out).sort();
-  const meta = { range: [keys[0], keys[keys.length - 1]], days: keys.length, plenary: plen.length, meetings: mtg.length, dates: out };
+  // `lthing` fylgir með svo /althingi/ þurfi ekki að ráða í þingnúmerið út frá ártali
+  // (`ár − 1868` skeikar í kosningaárum: 2024 gaf 156 en haustþingið var 155).
+  const meta = { lthing: LTHING, range: [keys[0], keys[keys.length - 1]], days: keys.length, plenary: plen.length, meetings: mtg.length, dates: out };
   // tómt = engir þingfundir EÐA engir nefndarfundir (hálf-tómt er jafn grunsamlegt) + fyrri skrá með efni → HALDA fyrri skrá
   // ⚠ Var `!(plenary > 0) || !(meetings > 0)` — ANNAÐ hvort núll taldist tómt. Það var rétt í
   //   429-hríðinni í ágúst 2026 en RANGT við þingskipti: 158. þing hafði 3 þingfundi og 0
