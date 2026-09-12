@@ -1,0 +1,84 @@
+name: Ticket-merge (samþykkt lagfæring)
+
+# 🛠️ Þjónustuborðs-flæðið, skref 3: stjórnandinn smellti á „Já" í staðfestingarpóstinum →
+# workerinn sendir repository_dispatch { id, branch }. Hér er greinin sameinuð við main —
+# EFTIR að prófin ganga — og /api/ticket/lagad látinn vita svo þjónustufulltrúinn sendi
+# notandanum lokasvar. Falli próf eða merge er ENGU pushað og stjórnandinn fær villupóst.
+# Secrets: KARP_TICKET_SECRET (sami og wrangler-secret workersins).
+
+on:
+  repository_dispatch:
+    types: [ticket-merge]
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Ticket-númer (K-XXXXXX)'
+        required: true
+      branch:
+        description: 'Greinin (ticket/K-XXXXXX)'
+        required: true
+
+permissions:
+  contents: write
+
+# Allar sameiningar í röð — aldrei tvær samtímis inn í main.
+concurrency:
+  group: ticket-merge
+  cancel-in-progress: false
+
+env:
+  TICKET_ID: ${{ github.event.client_payload.id || inputs.id }}
+  BR: ${{ github.event.client_payload.branch || inputs.branch }}
+  KARP_URL: https://karp.is
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Sameina grein (staðbundið)
+        run: |
+          case "$BR" in ticket/*) ;; *) echo "Ógild grein: $BR" >&2; exit 1;; esac
+          git config user.name 'karp-cto-agent'
+          git config user.email 'hjalp@karp.is'
+          git fetch origin "$BR"
+          git merge --no-ff "origin/$BR" -m "Ticket ${TICKET_ID}: samþykkt lagfæring (${BR})"
+
+      - name: Prófin verða að ganga áður en nokkuð er pushað
+        run: |
+          npm ci
+          npm test
+          cd web && npm ci && npm test
+
+      - name: Push á main + tiltekt
+        run: |
+          # main gæti hafa færst (t.d. refresh-data-cron) meðan prófin keyrðu → taka það inn fyrst
+          git pull --no-rebase origin main
+          git push origin main
+          git push origin --delete "$BR" || true
+
+      - name: Loka hringnum — notandinn fær lokasvar
+        run: |
+          jq -n --arg id "$TICKET_ID" '{ id: $id, ok: true }' \
+            | curl -fsS -X POST -H "x-karp-lykill: ${{ secrets.KARP_TICKET_SECRET }}" \
+              -H 'content-type: application/json' --data-binary @- \
+              "$KARP_URL/api/ticket/lagad"
+
+      - name: Villutilkynning (bilun á að öskra)
+        if: failure()
+        run: |
+          jq -n --arg id "$TICKET_ID" \
+            '{ id: $id, ok: false, villa: "ticket-merge féll (merge-árekstur eða próf) — engu var pushað, sjá Actions-loggana" }' \
+            | curl -sS -X POST -H "x-karp-lykill: ${{ secrets.KARP_TICKET_SECRET }}" \
+              -H 'content-type: application/json' --data-binary @- \
+              "$KARP_URL/api/ticket/lagad" || true

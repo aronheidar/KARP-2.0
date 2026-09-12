@@ -170,6 +170,77 @@ export const EMAIL_TYPES = [
     intro: '', footer: '',
     ath: 'Innri tilkynning til þjónustuborðs — efnið er erindi notandans sjálfs.',
   },
+
+  // ── Þjónustuborð (ticket-flæðið, sjá src/worker/tickets.mjs) ────────────────
+  {
+    id: 'ticket_mottaka', label: 'Ticket: móttökusvar til notanda', flokkur: 'fastur', hopur: 'Þjónustuborð',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Strax eftir að hjálparbeiðni berst — þjónustufulltrúinn (AI) hefur lesið erindið', vidtakandi: 'Notandinn sem sendi inn',
+    breytur: ['ticket', 'nafn', 'svar'], krafist: ['ticket', 'svar'],
+    subject: 'Erindið þitt er móttekið — mál {{ticket}}',
+    html: WRAP('Erindið þitt er móttekið',
+      '<p>{{svar}}</p>'
+      + '<p style="margin:16px 0"><b>Málsnúmer:</b> {{ticket}} — hafðu það með ef þú bætir einhverju við (svaraðu bara þessum pósti).</p>'
+      + '<p style="color:#666;font-size:13px">Þetta er sjálfvirkt móttökusvar frá þjónustufulltrúa Karp. Manneskja les samt öll erindi.</p>'),
+    ath: 'Sjálfvirknin er sögð berum orðum — {{svar}} kemur frá AI-þjónustufulltrúanum og er gátað (engin loforð).',
+  },
+  {
+    id: 'ticket_tillaga', label: 'Ticket: tillaga CTO-agents (samþykkja/hafna)', flokkur: 'fastur', hopur: 'Þjónustuborð',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'CTO-agentinn hefur lagt lagfæringu á grein og bíður staðfestingar', vidtakandi: 'Stjórnandi (hjalp@)',
+    breytur: ['ticket', 'flokkur', 'nafn', 'lysing', 'greining', 'diffstat', 'ahaetta', 'hlekkur_ja', 'hlekkur_nei', 'hlekkur_diff'], krafist: ['hlekkur_ja', 'hlekkur_nei'],
+    subject: '[Ticket] Tillaga að lagfæringu — {{ticket}} ({{flokkur}})',
+    html: '<div style="font-family:system-ui,Arial,sans-serif;max-width:560px;margin:auto;color:#222">'
+      + '<h2 style="color:#8a5e00;margin:0 0 12px">Tillaga að lagfæringu — {{ticket}}</h2>'
+      + '<p style="margin:4px 0"><b>Erindi {{nafn}}:</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #ccc;padding-left:12px;margin:8px 0;color:#555">{{lysing}}</p>'
+      + '<p style="margin:14px 0 4px"><b>Greining CTO-agents (áhætta: {{ahaetta}}):</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #8a5e00;padding-left:12px;margin:8px 0">{{greining}}</p>'
+      + '<pre style="background:#f6f3ea;padding:10px;border-radius:6px;font-size:12px;overflow-x:auto">{{diffstat}}</pre>'
+      + '<p style="margin:22px 0"><a href="{{hlekkur_ja}}" style="background:#1c7a3d;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Já — leggja lagfæringuna út</a>'
+      + ' &nbsp; <a href="{{hlekkur_nei}}" style="background:#8a2222;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:600">Nei — hafna</a></p>'
+      + '<p style="color:#666;font-size:13px">Diff-inn í heild: <a href="{{hlekkur_diff}}">{{hlekkur_diff}}</a><br>Já = ticket-merge keyrir prófin og sameinar við main; notandinn fær sjálfkrafa lokasvar. Hlekkirnir eru einnota.</p>'
+      + KARP_FOOT + '</div>',
+    ath: 'Ekkert fer í main án þessa pósts — mannlega samþykkið er hluti af hönnuninni, ekki millibilsástand.',
+  },
+  {
+    id: 'ticket_greint', label: 'Ticket: greining án lagfæringar', flokkur: 'fastur', hopur: 'Þjónustuborð',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'CTO-agentinn greindi málið en leggur ekki til patch (t.d. utanaðkomandi orsök)', vidtakandi: 'Stjórnandi (hjalp@)',
+    breytur: ['ticket', 'flokkur', 'nafn', 'lysing', 'greining'], krafist: ['ticket'],
+    subject: '[Ticket] Greining án lagfæringar — {{ticket}}',
+    html: WRAP('Greining án lagfæringar — {{ticket}}',
+      '<p><b>Erindi {{nafn}} ({{flokkur}}):</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #ccc;padding-left:12px;color:#555">{{lysing}}</p>'
+      + '<p><b>Greining CTO-agents:</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #8a5e00;padding-left:12px">{{greining}}</p>'
+      + '<p style="color:#666;font-size:13px">Engin breyting var lögð til — málið er hjá þér. Notandinn fékk móttökusvar en bíður lokasvars frá manneskju (Reply-To í hjálparpóstinum).</p>'),
+  },
+  {
+    id: 'ticket_villa', label: 'Ticket: sjálfvirknin brást', flokkur: 'fastur', hopur: 'Þjónustuborð',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'CTO-keyrsla eða ticket-merge féll — bilun á að ÖSKRA, ekki þegja', vidtakandi: 'Stjórnandi (hjalp@)',
+    breytur: ['ticket', 'flokkur', 'nafn', 'lysing', 'greining'], krafist: ['ticket'],
+    subject: '[Ticket] ⚠ Sjálfvirkni brást — {{ticket}}',
+    html: WRAP('⚠ Sjálfvirkni brást — {{ticket}}',
+      '<p><b>Erindi {{nafn}} ({{flokkur}}):</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #ccc;padding-left:12px;color:#555">{{lysing}}</p>'
+      + '<p><b>Villa:</b></p>'
+      + '<p style="white-space:pre-wrap;border-left:3px solid #8a2222;padding-left:12px">{{greining}}</p>'
+      + '<p style="color:#666;font-size:13px">Sjá Actions-loggana (cto.yml / ticket-merge.yml). Notandinn hefur EKKI fengið lokasvar — málið er hjá þér.</p>'),
+  },
+  {
+    id: 'ticket_lagad', label: 'Ticket: lokasvar til notanda (málið leyst)', flokkur: 'fastur', hopur: 'Þjónustuborð',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Lagfæringin er komin í main eftir samþykki stjórnanda', vidtakandi: 'Notandinn sem sendi inn',
+    breytur: ['ticket', 'nafn', 'svar'], krafist: ['ticket', 'svar'],
+    subject: 'Málið þitt er leyst — {{ticket}}',
+    html: WRAP('Málið þitt er leyst',
+      '<p>{{svar}}</p>'
+      + '<p style="margin:16px 0"><b>Málsnúmer:</b> {{ticket}}. Ef eitthvað er enn ekki eins og það á að vera skaltu endilega svara þessum pósti.</p>'
+      + '<p style="color:#666;font-size:13px">Lagfæringin var yfirfarin og samþykkt af starfsmanni áður en hún var lögð út.</p>'),
+    ath: '{{svar}} eru drög CTO-agents, send EFTIR mannlegt samþykki á breytingunni sjálfri.',
+  },
 ];
 
 export const emailById = (id) => EMAIL_TYPES.find((t) => t.id === id) || null;

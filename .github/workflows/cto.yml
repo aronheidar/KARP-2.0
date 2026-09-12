@@ -1,0 +1,99 @@
+name: CTO-agent (ticket)
+
+# 🛠️ Þjónustuborðs-flæðið, skref 2 (sjá docs/superpowers/specs/2026-09-12-hjalp-agentar-design.md):
+# workerinn (tickets.mjs) sendir repository_dispatch { id } þegar þjónustufulltrúinn flokkar
+# hjálparbeiðni sem tæknilegt mál. Hér fær CTO-agentinn (skriptur/cto_agent.mjs) allt repo-ið,
+# rannsakar, lagfærir í vinnutrénu → workflow-ið (EKKI módelið) býr til grein ticket/<id>,
+# committar, pushar og skilar niðurstöðunni á /api/ticket/tillaga → staðfestingarpóstur.
+# Handvirkt: Actions → þessi workflow → Run workflow (id).
+# Secrets: ANTHROPIC_API_KEY · KARP_TICKET_SECRET (sami og wrangler-secret workersins).
+
+on:
+  repository_dispatch:
+    types: [ticket-cto]
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Ticket-númer (K-XXXXXX)'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cto-${{ github.event.client_payload.id || inputs.id }}
+  cancel-in-progress: false
+
+env:
+  TICKET_ID: ${{ github.event.client_payload.id || inputs.id }}
+  KARP_URL: https://karp.is
+
+jobs:
+  cto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Uppsetning
+        run: npm ci
+
+      - name: Sækja ticket
+        run: |
+          curl -fsS -H "x-karp-lykill: ${{ secrets.KARP_TICKET_SECRET }}" \
+            "$KARP_URL/api/ticket/gogn?id=${TICKET_ID}" -o /tmp/ticket.json
+          echo "Ticket sótt (efni fer ekki í logg)."
+
+      - name: CTO-agent rannsakar og lagfærir
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node skriptur/cto_agent.mjs /tmp/ticket.json /tmp/nidurstada.json
+
+      - name: Grein + push (ef breytingar)
+        id: grein
+        run: |
+          git config user.name 'karp-cto-agent'
+          git config user.email 'hjalp@karp.is'
+          if [ -n "$(git status --porcelain)" ]; then
+            BR="ticket/${TICKET_ID}"
+            git switch -c "$BR"
+            git add -A
+            git commit -m "Ticket ${TICKET_ID}: tillaga CTO-agents að lagfæringu"
+            git push -u origin "$BR" --force
+            git show --stat --format='' HEAD | tail -30 > /tmp/diffstat.txt
+            echo "branch=$BR" >> "$GITHUB_OUTPUT"
+          else
+            echo "(engar skrár breyttust)" > /tmp/diffstat.txt
+            echo "branch=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skila niðurstöðu á workerinn
+        run: |
+          BR="${{ steps.grein.outputs.branch }}"
+          jq -n --arg id "$TICKET_ID" --arg branch "$BR" \
+            --slurpfile nid /tmp/nidurstada.json --rawfile ds /tmp/diffstat.txt '
+            $nid[0] as $n |
+            { id: $id, branch: $branch, diffstat: $ds,
+              greining: ($n.greining // ""), notendasvar: ($n.notendasvar // ""), ahaetta: ($n.ahaetta // ""),
+              stada: (if ($n.villa // "") != "" then "villa"
+                      elif ($n.patch == true and $branch != "") then "tillaga"
+                      else "greint" end) }' > /tmp/skil.json
+          curl -fsS -X POST -H "x-karp-lykill: ${{ secrets.KARP_TICKET_SECRET }}" \
+            -H 'content-type: application/json' --data-binary @/tmp/skil.json \
+            "$KARP_URL/api/ticket/tillaga"
+
+      - name: Villutilkynning (bilun á að öskra)
+        if: failure()
+        run: |
+          jq -n --arg id "$TICKET_ID" \
+            '{ id: $id, stada: "villa", villa: "cto.yml féll — sjá Actions-loggana" }' \
+            | curl -sS -X POST -H "x-karp-lykill: ${{ secrets.KARP_TICKET_SECRET }}" \
+              -H 'content-type: application/json' --data-binary @- \
+              "$KARP_URL/api/ticket/tillaga" || true

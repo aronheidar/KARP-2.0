@@ -20,6 +20,7 @@ import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fe
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
+import { ticketAfgreidslaHandler, ticketGognHandler, ticketIntake, ticketLagadHandler, ticketTillagaHandler } from './src/worker/tickets.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
 import { firmaHandler, ordsporCron } from './src/worker/cron.mjs';
 import { _isAdmin } from './src/worker/stjornbord.mjs';
@@ -462,7 +463,11 @@ async function hjalpHandler(request, env, ctx) {
     + '<p style="color:#999;font-size:12px">Frá: ' + _esc(fra || '—') + ' · innskráð: ' + (b.innskraning === true ? 'já' : 'nei') + ' · IP: ' + _esc(ip) + '</p></div>';
   const htpl = await _emailTpl(env, 'hjalp');
   const r = await sendGmail(env, { to: env.HJALP_TO || 'hjalp@karp.is', replyTo: netfang, subject: renderEmail(htpl.subject, { flokkur, nafn }), html });
-  return r.ok ? sjson({ ok: true }) : sjson({ error: 'send' }, 502);
+  if (!r.ok) return sjson({ error: 'send' }, 502);
+  // 🎫 Þjónustuborðs-agentarnir (12.9.2026): ticket + AI-móttökusvar + CTO-leið fyrir tæknileg mál.
+  // Mjúkt fall: skili intake null (lykill/tafla vantar) er hegðunin nákvæmlega eins og áður.
+  const ticket = await ticketIntake(env, ctx, { nafn, netfang, flokkur, lysing, innskraning: b.innskraning === true, fra });
+  return sjson(ticket ? { ok: true, ticket } : { ok: true });
 }
 
 // 💸 Greiðsluvakt: opnirreikningar.is (Fjársýslan) — DataTables-bakendinn svarar
@@ -2564,6 +2569,10 @@ export default {
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
     if (url.pathname === '/api/spyrdu') return spyrduHandler(request, env, ctx);
     if (url.pathname === '/api/hjalp') return hjalpHandler(request, env, ctx);
+    if (url.pathname === '/api/ticket/gogn') return ticketGognHandler(request, env);   // CI (cto.yml): sækja ticket — x-karp-lykill
+    if (url.pathname === '/api/ticket/tillaga') return ticketTillagaHandler(request, env, ctx);   // CI: niðurstaða CTO-agents → staðfestingarpóstur
+    if (url.pathname === '/api/ticket/afgreidsla') return ticketAfgreidslaHandler(request, env, ctx);   // stjórnandi: já/nei-hlekkur úr pósti (HMAC)
+    if (url.pathname === '/api/ticket/lagad') return ticketLagadHandler(request, env, ctx);   // CI (ticket-merge.yml): lokastaða → lokasvar á notanda
     if (url.pathname === '/api/ytstats') return ytstatsHandler(request, env, ctx);
     if (url.pathname === '/api/gleit') return gleitHandler(request, env, ctx);
     if (url.pathname === '/api/tilkynningar') return tilkynningarHandler(request, env, ctx);

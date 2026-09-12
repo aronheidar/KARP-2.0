@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EMAIL_TYPES, emailById, resolveEmail, renderEmail, validateEmail } from './emails.mjs';
 
-test('skráin telur allar 13 póst-tegundir og hver er heil', () => {
-  assert.equal(EMAIL_TYPES.length, 13);   // +kyc_digest (morgunfundurinn), +leikur_lota/_uppgjor (hægur hamur)
+test('skráin telur allar 18 póst-tegundir og hver er heil', () => {
+  assert.equal(EMAIL_TYPES.length, 18);   // +kyc_digest (morgunfundurinn), +leikur_lota/_uppgjor (hægur hamur), +5× ticket_* (þjónustuborðs-agentarnir 12.9.2026)
   const ids = EMAIL_TYPES.map((t) => t.id);
-  assert.equal(new Set(ids).size, 13, 'id verða að vera einkvæm');
+  assert.equal(new Set(ids).size, 18, 'id verða að vera einkvæm');
   for (const t of EMAIL_TYPES) {
     assert.ok(t.label && t.hvenaer && t.vidtakandi && t.hopur, t.id + ' vantar lýsingu');
     assert.ok(t.subject, t.id + ' vantar efnislínu');
