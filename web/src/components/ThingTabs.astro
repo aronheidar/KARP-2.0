@@ -1,6 +1,6 @@
 ---
 // Nav-hnappar Alþingis-hlutans (LOTA 13) — eins og fv-tabs á gamla mælaborðinu.
-// active: 'salur' | 'mal' | 'thingmenn' | 'flokkar' | 'nefndir' | 'ivilnanir' | 'kosningar'
+// active: 'salur' | 'mal' | 'thingmenn' | 'flokkar' | 'nefndir' | 'klofningur' | 'ivilnanir' | 'kosningar'
 const { active = '' } = Astro.props;
 const TABS = [
   ['salur', '🏛️ Þingsalurinn', '/althingi/'],
@@ -8,6 +8,7 @@ const TABS = [
   ['thingmenn', '👥 Þingmenn', '/althingi/thingmenn/'],
   ['flokkar', '🚩 Flokkar', '/althingi/flokkar/'],
   ['nefndir', '📋 Nefndir & dagatal', '/althingi/nefndir/'],
+  ['klofningur', '⚡ Klofningsvaktin', '/althingi/klofningur/'],
   ['ivilnanir', '🎁 Ívilnanir', '/ivilnanir/'],
   ['kosningar', '📊 Kosningar & kannanir', '/kannanir/'],
 ];

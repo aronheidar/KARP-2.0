@@ -1,0 +1,220 @@
+---
+// ─────────────────────────────────────────────────────────────
+// /althingi/klofningur/ — KLOFNINGSVAKTIN (þversnið yfir alla þingmenn).
+//
+// Af hverju: uppreisnar-atkvæði voru ÞEGAR reiknuð, en aðeins sýnileg inni í
+// þingmannaskýrslu hvers og eins. Til að spyrja „hver fór gegn sínum flokki?"
+// þurfti fréttamaður að opna 63 síður. Þetta snýr sömu gögnum við: atkvæða-
+// greiðslan er einingin, ekki þingmaðurinn.
+//
+// Frí síða viljandi: þetta er uppgötvunar-flöturinn sem leiðir inn í seldu
+// skýrslurnar (dýpt per þingmann), ekki staðgengill þeirra.
+// ─────────────────────────────────────────────────────────────
+import Layout from '../../layouts/Layout.astro';
+import ThingTabs from '../../components/ThingTabs.astro';
+import TSK from '@gogn/thingskyrsla.json';
+import THINGMENN from '@gogn/althingi.json';
+import FRUMVORP from '@gogn/frumvorp.json';
+import { colorByName } from '@lib/parties.mjs';
+import { slugify } from '@lib/format.mjs';
+
+const KJ = TSK.kjortimabil || { fra: TSK.thing, til: TSK.thing };
+const THING_TXT = KJ.fra === KJ.til ? `${KJ.fra}. löggjafarþingi` : `${KJ.fra}.–${KJ.til}. löggjafarþingi`;
+
+const nafn = {}, flokkur = {}, sl = {};
+THINGMENN.forEach((m) => { nafn[m.id] = m.nafn; flokkur[m.id] = m.flokkur; sl[m.id] = slugify(m.nafn); });
+
+// /thingmal/ nær aðeins yfir eitt þing — eldri mál fara á ferilsíðu Alþingis (frumheimild).
+const FRUM_THING = new Set((FRUMVORP || []).map((f) => f.thing));
+const malHref = (lt, nr) => (FRUM_THING.has(lt) ? `/thingmal/?nr=${nr}`
+  : `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=${lt}&mnr=${nr}`);
+
+// ── Snúa per-þingmanns-uppreisnum við: atkvæðagreiðslan verður einingin ──
+const byVote = new Map();
+for (const [id, x] of Object.entries(TSK.mp || {})) {
+  for (const r of x.rebel || []) {
+    const k = `${r.lt}:${r.v}`;
+    if (!byVote.has(k)) byVote.set(k, { lt: r.lt, v: r.v, m: r.m, h: r.h, t: r.t, menn: [] });
+    byVote.get(k).menn.push({
+      id: +id, nafn: nafn[id], flokkur: flokkur[id], sl: sl[id], atk: r.atk,
+      ja: (r.fj || [])[0] ?? 0, nei: (r.fj || [])[1] ?? 0,
+    });
+  }
+}
+const VOTES = [...byVote.values()]
+  .map((v) => ({ ...v, menn: v.menn.sort((a, b) => a.nafn.localeCompare(b.nafn, 'is')) }))
+  .sort((a, b) => (b.t || '').localeCompare(a.t || '') || b.v - a.v);
+
+// ── Flokkar: RÖÐUN EFTIR TÍÐNI Á ÞINGMANN, ekki hrárri tölu ──
+// Hrá tala lýgur: Miðflokkurinn hefur 18 uppreisnir og Framsókn 15, en Framsókn er með
+// 5 þingmenn og Miðflokkurinn 8 — leiðrétt fer Framsókn fram úr (3,00 á móti 2,25).
+const staerd = {}, uppTals = {};
+THINGMENN.forEach((m) => { staerd[m.flokkur] = (staerd[m.flokkur] || 0) + 1; });
+Object.entries(TSK.mp || {}).forEach(([id, x]) => {
+  if (x.rebel?.length) uppTals[flokkur[id]] = (uppTals[flokkur[id]] || 0) + x.rebel.length;
+});
+const FLOKKAR = Object.keys(staerd)
+  .map((f) => ({ f, n: staerd[f], upp: uppTals[f] || 0, tidni: (uppTals[f] || 0) / staerd[f], c: colorByName(f) }))
+  .filter((x) => x.upp > 0)
+  .sort((a, b) => b.tidni - a.tidni);
+const maxTidni = Math.max(...FLOKKAR.map((x) => x.tidni), 0.001);
+
+// ── Þingmenn sem hafa farið gegn flokknum ──
+const MENN = Object.entries(TSK.mp || {})
+  .filter(([, x]) => (x.rebel || []).length)
+  .map(([id, x]) => ({ id: +id, nafn: nafn[id], flokkur: flokkur[id], sl: sl[id], n: x.rebel.length, c: colorByName(flokkur[id]) }))
+  .sort((a, b) => b.n - a.n || a.nafn.localeCompare(b.nafn, 'is'));
+
+const alls = VOTES.reduce((a, v) => a + v.menn.length, 0);
+// Gagnsæis-tala: þegar flokkurinn taldi 0–1 mann til viðbótar er „meirihluti flokksins" varla hugtak.
+const thunnar = VOTES.reduce((a, v) => a + v.menn.filter((p) => Math.max(p.ja, p.nei) <= 1).length, 0);
+const MNF = ['jan.', 'feb.', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'sept.', 'okt.', 'nóv.', 'des.'];
+const dagur = (t) => { const p = String(t || '').split('-'); return p.length === 3 ? `${+p[2]}. ${MNF[+p[1] - 1]} ${p[0]}` : t; };
+const desc = `Hvaða þingmenn hafa greitt atkvæði gegn eigin flokki á ${THING_TXT}? ${MENN.length} af ${THINGMENN.length} þingmönnum, ${VOTES.length} atkvæðagreiðslur. Úr opnum XML-gögnum Alþingis.`;
+---
+
+<Layout title="Klofningsvaktin — hverjir fara gegn sínum flokki | Karp" description={desc}
+  canonical="https://karp.is/althingi/klofningur/" ogTitle="Klofningsvaktin">
+  <main data-pg="klofningur">
+    <ThingTabs active="klofningur" />
+
+    <h1>Klofningsvaktin</h1>
+    <p class="lead">Nafnakalls-atkvæðagreiðslur á {THING_TXT} þar sem þingmaður greiddi atkvæði
+      <b>gegn meirihluta eigin flokks</b>. Reiknað úr opnum XML-gögnum Alþingis.</p>
+
+    <div class="hero">
+      <div class="hs"><b>{MENN.length}</b><span>af {THINGMENN.length} þingmönnum hafa farið gegn sínum flokki</span></div>
+      <div class="hs"><b>{VOTES.length}</b><span>atkvæðagreiðslur klufu flokk</span></div>
+      <div class="hs"><b>{alls}</b><span>tilvik alls</span></div>
+    </div>
+
+    <h2>🚩 Eftir flokkum</h2>
+    <p class="note">Raðað eftir <b>tíðni á hvern þingmann</b> — hrá tala segir lítið þegar flokkar eru misstórir.</p>
+    <div class="bars">
+      {FLOKKAR.map((x) => (
+        <div class="bar">
+          <div class="bt"><span>{x.f}</span><b>{x.tidni.toFixed(2)}</b></div>
+          <div class="tr"><div class="fi" style={`width:${(x.tidni / maxTidni) * 100}%;background:${x.c}`}></div></div>
+          <div class="bs">{x.upp} tilvik · {x.n} þingmenn</div>
+        </div>
+      ))}
+    </div>
+
+    <h2>👥 Þingmenn</h2>
+    <div class="menn">
+      {MENN.map((p) => (
+        <a class="mann" href={`/althingi/${p.sl}/skyrsla/`}>
+          <span class="dot" style={`background:${p.c}`}></span>
+          <span class="mn">{p.nafn}</span>
+          <span class="mf">{p.flokkur}</span>
+          <span class="mc">{p.n}×</span>
+        </a>
+      ))}
+    </div>
+
+    <h2>🗳️ Atkvæðagreiðslurnar</h2>
+    <div class="sia">
+      <button class="sb on" data-f="">Allir flokkar</button>
+      {FLOKKAR.map((x) => (<button class="sb" data-f={x.f}>{x.f}</button>))}
+    </div>
+    <div class="atkv">
+      {VOTES.map((v) => (
+        <article class="ak" data-flokkar={v.menn.map((p) => p.flokkur).join('|')}>
+          <div class="ah">
+            <span class="ad">{dagur(v.t)}</span>
+            <a class="am" href={malHref(v.lt, v.m)} target={FRUM_THING.has(v.lt) ? undefined : '_blank'} rel="noopener">{v.h}</a>
+            <span class="alt">{v.lt}. þing</span>
+          </div>
+          {v.menn.map((p) => (
+            <div class="ap">
+              <span class="dot" style={`background:${colorByName(p.flokkur)}`}></span>
+              <a class="an" href={`/althingi/${p.sl}/skyrsla/`}>{p.nafn}</a>
+              <span class="af">{p.flokkur}</span>
+              <span class="aa">sagði <b>{p.atk}</b></span>
+              <span class={`asplit${Math.max(p.ja, p.nei) <= 1 ? ' thunn' : ''}`}>flokkurinn {p.ja}–{p.nei}</span>
+            </div>
+          ))}
+        </article>
+      ))}
+    </div>
+
+    <p class="src">
+      <b>Aðferð:</b> talið er þegar atkvæði þingmanns fór gegn meirihluta <i>annarra</i> þingmanna sama
+      flokks í sömu skráðu já/nei-atkvæðagreiðslu. Jöfn skipting telst ekki klofningur.
+      „Flokkurinn 4–1" sýnir hvernig hinir skiptust. {thunnar > 0 && (
+        <> ⚠ Í {thunnar} tilvikum af {alls} töldu hinir flokksmennirnir 0–1 mann — þar er „meirihluti
+        flokksins" varla hugtak og talan segir lítið.</>
+      )} Heimild: XML Alþingis, {TSK.recVotes.toLocaleString('is-IS')} skráð nafnaköll.
+      Uppfært {TSK.updated}. <a href="/hjalp/?fra=klofningur">Ábending eða leiðrétting?</a>
+    </p>
+  </main>
+
+  <script is:inline>
+    document.addEventListener('astro:page-load', () => {
+      const m = document.querySelector('main[data-pg="klofningur"]');
+      if (!m || m.dataset.ready) return;
+      m.dataset.ready = '1';
+      m.querySelectorAll('.sb').forEach((b) => b.addEventListener('click', () => {
+        m.querySelectorAll('.sb').forEach((o) => o.classList.toggle('on', o === b));
+        const f = b.getAttribute('data-f');
+        m.querySelectorAll('.ak').forEach((a) => {
+          a.hidden = !!f && !(a.getAttribute('data-flokkar') || '').split('|').includes(f);
+        });
+      }));
+    });
+  </script>
+
+  <style>
+    main { max-width: 880px; margin: 0 auto; padding: 0 16px 56px; }
+    h1 { font-size: 30px; margin: 14px 0 6px; letter-spacing: -.02em; }
+    h2 { font-size: 20px; margin: 34px 0 8px; }
+    .lead { font-size: 16px; color: var(--muted); margin: 0 0 18px; max-width: 68ch; }
+    .note { font-size: 13px; color: var(--faint); margin: 0 0 12px; }
+
+    .hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 18px 0 6px; }
+    .hs { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 12px; padding: 16px 18px; }
+    .hs b { display: block; font-size: 40px; font-weight: 800; color: #f6b13b; letter-spacing: -.03em; line-height: 1.05; }
+    .hs span { display: block; font-size: 13px; color: var(--muted); margin-top: 5px; }
+
+    .bars { display: flex; flex-direction: column; gap: 13px; }
+    .bt { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+    .bt b { font-variant-numeric: tabular-nums; color: #f6b13b; }
+    .tr { height: 9px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; margin: 5px 0 3px; }
+    .fi { height: 100%; border-radius: 999px; }
+    .bs { font-size: 12px; color: var(--faint); }
+
+    .menn { display: flex; flex-wrap: wrap; gap: 7px; }
+    .mann { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px; padding: 6px 12px; font-size: 13px; text-decoration: none; color: var(--ink); }
+    .mann:hover { border-color: #f6b13b; }
+    .mf { color: var(--faint); font-size: 12px; }
+    .mc { font-weight: 800; color: #f6b13b; font-variant-numeric: tabular-nums; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+    .sia { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+    .sb { font-size: 12.5px; font-weight: 700; color: var(--muted); background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 9px; padding: 6px 12px; cursor: pointer; }
+    .sb.on { color: var(--bg); background: #f6b13b; border-color: #f6b13b; }
+
+    .atkv { display: flex; flex-direction: column; gap: 10px; }
+    .ak { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 13px 15px; }
+    .ah { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin-bottom: 8px; }
+    .ad { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+    .am { font-size: 15px; font-weight: 700; color: var(--ink); text-decoration: none; flex: 1 1 auto; min-width: 0; }
+    .am:hover { color: #f6b13b; }
+    .alt { font-size: 11.5px; color: var(--faint); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 2px 7px; }
+    .ap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid rgba(255,255,255,.05); font-size: 13.5px; }
+    .an { color: var(--ink); text-decoration: none; font-weight: 600; }
+    .an:hover { color: #f6b13b; }
+    .af { color: var(--faint); font-size: 12px; }
+    .aa { color: var(--muted); font-size: 12.5px; }
+    .aa b { color: #f6b13b; }
+    .asplit { margin-left: auto; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+    .asplit.thunn { color: #e0a33c; }
+
+    .src { font-size: 12.5px; color: var(--faint); line-height: 1.6; margin-top: 26px;
+      border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; max-width: 76ch; }
+    .src a { color: var(--muted); }
+    @media (max-width: 560px) { .asplit { margin-left: 0; } }
+  </style>
+</Layout>
