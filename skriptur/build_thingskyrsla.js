@@ -19,7 +19,9 @@
 const fs = require('fs');
 const path = require('path');
 const GOGN = path.join(__dirname, '..', 'gogn');
-const LTHING = 157;
+// ⚠⚠ Hér stóð `const LTHING = 157`. Skýrslan er SELD VARA og hefði lýst þingi sem lauk
+//   7.9.2026 um alla framtíð. Nú nær hún yfir HEILT KJÖRTÍMABIL (Aron 12.9.2026): hollusta
+//   og mæting yfir eitt þing eru hávaðasöm, og 158. þing hafði 0 nafnaköll fyrstu vikuna.
 // ⚠ Samhliðni lækkuð 10 → 4 (9.9.2026): althingi.is svarar 429 við þennan þrýsting og
 //   fetchText hendir nú á því í stað þess að skila tómum streng sem þáttast sem 0 mál.
 const THING_CONC = 4;
@@ -37,7 +39,7 @@ const grab = (x, tag) => { const m = x.match(new RegExp('<' + tag + '[^>]*>([\\s
 //   thingskyrsla.json, GAGNAVÉL SELDU ÞINGMANNASKÝRSLUNNAR (990 kr). Ein 429-lota hefði
 //   skilað áskrifendum 105 KB af tómum skýrslum án þess að nokkuð lítið út fyrir að vera bilað.
 //   Bilun VERÐUR að vera villa, ekki tóm gögn. fetchText hendir.
-const { fetchText, writeJsonUnlessEmpty, thingListi } = require('./_seigla.js');
+const { fetchText, writeJsonUnlessEmpty, kjortimabilThing } = require('./_seigla.js');
 let mistokst = 0;
 async function getText(u) {
   try { return await fetchText(u, { headers: UA.headers }); }
@@ -58,16 +60,30 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
       if (id && h) areas[id] = { h, y: yh };
     });
   });
-  const malAreas = {}; // malnr → [efnisflokkaId]
-  await pool(Object.keys(areas), 6, async (aid) => {
-    const x = await getText(BASE + 'efnisflokkar/efnisflokkur/?lthing=' + LTHING + '&efnisflokkur=' + aid);
-    [...x.matchAll(/<mál málsnúmer='(\d+)'/g)].forEach((m) => { (malAreas[+m[1]] = malAreas[+m[1]] || []).push(+aid); });
-  });
-  console.log('  efnisflokkar:', Object.keys(areas).length, '| mál með flokkun:', Object.keys(malAreas).length);
+  const malAreas = {}; // "lt:malnr" → [efnisflokkaId]  (mál 1 er til á HVERJU þingi → lt-lyklað)
 
+  // ── Kjörtímabilið: fasar 2–4 keyra einu sinni PER ÞING og safnast í sömu hirslur. ──
+  const KJOR = await kjortimabilThing();
+  const T = {};   // per-MP söfnun ÞVERT Á ÞING
+  MPS.forEach((m) => { T[m.id] = { rebel: [], man: {}, va: {}, recorded: 0, greidd: 0, fjarv: 0 }; });
+  const SA = {};  // id → { areaId: [min, n] }
+  const FYR = {}, FLUTT = {}, MED = {};
+  const CACHE_F = path.join(GOGN, 'flutningsmenn_cache.json');
+  let cache = {}; try { cache = JSON.parse(fs.readFileSync(CACHE_F, 'utf8')); } catch (e) {}
+  if (cache._kjor !== KJOR.fra) cache = { _kjor: KJOR.fra };   // nýtt kjörtímabil → tæma
+  let recCount = 0;
+
+  for (const LT of KJOR.thing) {
+  console.log(`══ löggjafarþing ${LT} ══`);
+  let done = 0;
+  // mál→efnisflokkar er ÞING-HÁÐ (mál 1 er til á hverju þingi) → sótt inni í lykkjunni, lt-lyklað
+  await pool(Object.keys(areas), 6, async (aid) => {
+    const x = await getText(BASE + 'efnisflokkar/efnisflokkur/?lthing=' + LT + '&efnisflokkur=' + aid);
+    [...x.matchAll(/<mál málsnúmer='(\d+)'/g)].forEach((m) => { const k = LT + ':' + m[1]; (malAreas[k] = malAreas[k] || []).push(+aid); });
+  });
   // ── 2) Öll nafnaköll: uppreisn m/heiti, mánaðarleg mæting, atkvæði eftir sviðum ──
   console.log('2/5 Atkvæðagreiðslur…');
-  const listXml = await getText(BASE + 'atkvaedagreidslur/?lthing=' + LTHING);
+  const listXml = await getText(BASE + 'atkvaedagreidslur/?lthing=' + LT);
   // hver færsla ber atkvæðagreiðslunúmer + málsnúmer + málsheiti + tíma (sjá minnisnótu 2026-06-19)
   const votes = listXml.split('<atkvæðagreiðsla ').slice(1).map((b) => ({
     vid: +((b.match(/atkvæðagreiðslunúmer='(\d+)'/) || [])[1] || 0),
@@ -77,9 +93,6 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   })).filter((v) => v.vid);
   console.log('  atkvæðagreiðslur:', votes.length);
 
-  const T = {}; // per-MP söfnun
-  MPS.forEach((m) => { T[m.id] = { rebel: [], man: {}, va: {}, recorded: 0, greidd: 0, fjarv: 0 }; });
-  let recCount = 0, done = 0;
   await pool(votes, THING_CONC, async (v) => {
     const x = await getText(BASE + 'atkvaedagreidslur/atkvaedagreidsla/?numer=' + v.vid);
     if (++done % 300 === 0) console.log('  …', done, 'af', votes.length);
@@ -104,11 +117,11 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
       if (a === 'já' || a === 'nei') {
         t.greidd++;
         // atkvæði eftir efnisflokkum málsins
-        (malAreas[v.mal] || []).forEach((aid) => { const c = (t.va[aid] = t.va[aid] || [0, 0, 0]); c[0]++; if (a === 'já') c[1]++; else c[2]++; });
+        (malAreas[LT + ':' + v.mal] || []).forEach((aid) => { const c = (t.va[aid] = t.va[aid] || [0, 0, 0]); c[0]++; if (a === 'já') c[1]++; else c[2]++; });
         const c = pj[party[id]];
         const ja = c['já'] - (a === 'já' ? 1 : 0), nei = c.nei - (a === 'nei' ? 1 : 0); // meirihluti flokks ÁN hans sjálfs (sbr. build_votes.js)
         if (ja !== nei && a !== (ja > nei ? 'já' : 'nei')) {
-          t.rebel.push({ v: v.vid, m: v.mal, h: v.heiti.slice(0, 120), t: v.timi, atk: a, fj: [ja, nei] });
+          t.rebel.push({ lt: LT, v: v.vid, m: v.mal, h: v.heiti.slice(0, 120), t: v.timi, atk: a, fj: [ja, nei] });
         }
       }
     });
@@ -117,8 +130,7 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
 
   // ── 3) Ræðulisti → ræðumínútur eftir efnisflokkum ──────────────────────────
   console.log('3/5 Ræðulisti (stór skrá)…');
-  const rl = await getText(BASE + 'raedulisti/?lthing=' + LTHING);
-  const SA = {}; // id → { areaId: [min, n] }
+  const rl = await getText(BASE + 'raedulisti/?lthing=' + LT);
   rl.split('<ræða>').slice(1).forEach((c) => {
     const id = +((c.match(/<ræðumaður id='(\d+)'/) || [])[1] || 0);
     if (!id || !ids.has(id)) return;
@@ -128,16 +140,14 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
     if (!mal || !t0 || !t1) return;
     const min = (new Date(t1) - new Date(t0)) / 60000;
     if (!(min > 0)) return;
-    (malAreas[mal] || []).forEach((aid) => { const s = ((SA[id] = SA[id] || {})[aid] = SA[id][aid] || [0, 0]); s[0] += min; s[1]++; });
+    (malAreas[LT + ':' + mal] || []).forEach((aid) => { const s = ((SA[id] = SA[id] || {})[aid] = SA[id][aid] || [0, 0]); s[0] += min; s[1]++; });
   });
 
   // ── 4) Flutningsmenn + fyrirspurnir (inkremental skyndiminni) ─────────────
   console.log('4/5 Þingmál + flutningsmenn…');
-  const CACHE_F = path.join(GOGN, 'flutningsmenn_cache.json');
-  let cache = {}; try { cache = JSON.parse(fs.readFileSync(CACHE_F, 'utf8')); } catch (e) {}
-  if (cache._thing !== LTHING) cache = { _thing: LTHING }; // nýtt þing → tæma
-  const malXml = await getText(BASE + 'thingmalalisti/?lthing=' + LTHING);
+  const malXml = await getText(BASE + 'thingmalalisti/?lthing=' + LT);
   const mals = malXml.split('<mál ').slice(1).map((b) => ({
+    lt: LT,
     nr: +((b.match(/málsnúmer='(\d+)'/) || [])[1] || 0),
     heiti: grab(b, 'málsheiti'),
     teg: (b.match(/<málstegund málstegund='([^']+)'/) || [])[1] || '',
@@ -146,37 +156,39 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
   })).filter((m) => m.nr && m.heiti);
   // A-mál með flutningsmönnum: frumvörp (l), tillögur (a), fyrirspurnir (q/m), beiðnir (b)
   const withFm = mals.filter((m) => ['l', 'a', 'q', 'm', 'b'].includes(m.teg));
-  const need = withFm.filter((m) => !cache[m.nr]);
+  const need = withFm.filter((m) => !cache[LT + ':' + m.nr]);
   console.log('  þingmál:', mals.length, '| með flutningsm.:', withFm.length, '| ný í skyndiminni:', need.length);
   await pool(need, THING_CONC, async (m) => {
-    const det = await getText(BASE + 'thingmalalisti/thingmal/?lthing=' + LTHING + '&malnr=' + m.nr);
+    const det = await getText(BASE + 'thingmalalisti/thingmal/?lthing=' + LT + '&malnr=' + m.nr);
     if (!det) return;
     const stada = grab(det, 'staðamáls');
     const skjalnr = +(((det.match(/<þingskjal skjalsnúmer='(\d+)'/) || [])[1]) || 0);
     let fm = [];
     if (skjalnr) {
-      const sk = await getText(BASE + 'thingskjol/thingskjal/?lthing=' + LTHING + '&skjalnr=' + skjalnr);
+      const sk = await getText(BASE + 'thingskjol/thingskjal/?lthing=' + LT + '&skjalnr=' + skjalnr);
       fm = [...sk.matchAll(/<flutningsmaður röð='(\d+)' id='(\d+)'>/g)].map((x) => [+x[2], +x[1]]); // [id, röð]
       // ráðherra-flutt stjórnarmál: <ráðherra ...> án flutningsmanna → tómt fm er í lagi
     }
-    cache[m.nr] = { s: stada.slice(0, 90), fm };
+    cache[LT + ':' + m.nr] = { s: stada.slice(0, 90), fm };
   });
-  fs.writeFileSync(CACHE_F, JSON.stringify(cache));
 
-  const FYR = {}, FLUTT = {}, MED = {}; // per MP
   withFm.forEach((m) => {
-    const c = cache[m.nr]; if (!c) return;
+    const c = cache[m.lt + ':' + m.nr]; if (!c) return;
     (c.fm || []).forEach(([id, rod]) => {
       if (!ids.has(id)) return;
       if (m.teg === 'q' || m.teg === 'm') {
-        if (rod === 1) (FYR[id] = FYR[id] || []).push({ m: m.nr, h: m.heiti.slice(0, 110), til: m.til, sv: /svarað/i.test(c.s || '') });
+        if (rod === 1) (FYR[id] = FYR[id] || []).push({ lt: m.lt, m: m.nr, h: m.heiti.slice(0, 110), til: m.til, sv: /svarað/i.test(c.s || '') });
       } else if (rod === 1) {
-        (FLUTT[id] = FLUTT[id] || []).push({ m: m.nr, h: m.heiti.slice(0, 110), teg: m.teg2 || m.teg, s: (c.s || '').slice(0, 60) });
+        (FLUTT[id] = FLUTT[id] || []).push({ lt: m.lt, m: m.nr, h: m.heiti.slice(0, 110), teg: m.teg2 || m.teg, s: (c.s || '').slice(0, 60) });
       } else {
         MED[id] = (MED[id] || 0) + 1;
       }
     });
   });
+
+  }   // ← lok kjörtímabils-lykkju
+  fs.writeFileSync(CACHE_F, JSON.stringify(cache));
+  console.log(`safnað af ${KJOR.thing.length} þingum (${KJOR.fra}–${KJOR.til}) · skráð já/nei-nafnaköll alls: ${recCount}`);
 
   // ── 5) Samsetning + percentiles + meðaltöl ─────────────────────────────────
   console.log('5/5 Samsetning…');
@@ -227,7 +239,7 @@ async function pool(items, n, fn) { let i = 0; async function w() { while (i < i
     flAvg[f] = { hollusta: avgOf(g.map((m) => m.hollusta)), maeting: avgOf(g.map((m) => (T[m.id].recorded ? 100 - (T[m.id].fjarv / T[m.id].recorded) * 100 : null))), raedumin: avgOf(g.map((m) => m.raedumin)) };
   });
 
-  const out = { updated: new Date().toISOString().slice(0, 10), thing: LTHING, recVotes: recCount, areas, avg, flAvg, mp };
+  const out = { updated: new Date().toISOString().slice(0, 10), thing: KJOR.thing, kjortimabil: { fra: KJOR.fra, til: KJOR.til, kosningar: KJOR.kosningar }, recVotes: recCount, areas, avg, flAvg, mp };
   // ⚠ GÁT: engin þingmannaskýrsla má skrifast ef sóknir bruðust — seld vara.
   console.log('mistókst:', mistokst);
   writeJsonUnlessEmpty(path.join(GOGN, 'thingskyrsla.json'), out,

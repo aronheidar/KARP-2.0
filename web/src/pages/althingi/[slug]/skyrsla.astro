@@ -10,6 +10,16 @@
 import THINGMENN from '@gogn/althingi.json';
 import RAEDUR from '@gogn/raedugreining.json';
 import TSK from '@gogn/thingskyrsla.json';
+// Skýrslan nær nú yfir HEILT KJÖRTÍMABIL (sjá gogn/kjortimabil.json og build_thingskyrsla.js).
+// Talan er BIRT en ekki falin: eftir næstu kosningar sést strax ef hún er orðin röng.
+const KJ = TSK.kjortimabil || { fra: TSK.thing, til: TSK.thing };
+const THING_TXT = KJ.fra === KJ.til ? `${KJ.fra}. löggjafarþingi` : `${KJ.fra}.–${KJ.til}. löggjafarþingi`;
+const THING_TXT_EF = KJ.fra === KJ.til ? `þingsins ${KJ.fra}` : `þinganna ${KJ.fra}–${KJ.til}`;
+// /thingmal/ byggir á frumvorp.json sem nær aðeins yfir EITT þing — eldri mál fara á
+// ferilsíðu Alþingis, sem er þing-rétt og er hvort eð er frumheimildin fyrir fréttamann.
+const FRUM_THING = new Set((FRUMVORP || []).map((f) => f.thing));
+const malHref = (lt, nr) => (FRUM_THING.has(lt) ? `/thingmal/?nr=${nr}`
+  : `https://www.althingi.is/thingstorf/thingmalalistar-eftir-thingum/ferill/?ltg=${lt}&mnr=${nr}`);
 import TSK_AI from '@gogn/thingskyrsla_ai.json';
 import MALROF_AI from '@gogn/malrof_ai.json';
 import FRUMVORP from '@gogn/frumvorp.json';
@@ -53,7 +63,7 @@ const kpis = [
   { e: '🪑', l: 'Mæting í atkvgr.', v: t.maeting != null ? fmtP(t.maeting) + '%' : '–', s: AVG.maeting != null ? 'þingmeðaltal ' + fmtP(AVG.maeting) + '%' : '' },
   { e: '🗣️', l: 'Ræðutími', v: m.raedumin != null ? fmtP(Math.round(m.raedumin / 6) / 10) + ' klst' : '–', s: t.pct.raedumin != null ? 'meira en ' + pctBadge(t.pct.raedumin) + '% þingmanna' : '' },
   { e: '↩️', l: 'Andsvör', v: RD ? String(RD.andsvor) : '–', s: t.pct.andsvor != null ? 'meira en ' + pctBadge(t.pct.andsvor) + '% þingmanna' : '' },
-  { e: '❓', l: 'Fyrirspurnir', v: String(t.fyrirspurnir.length), s: 'til ráðherra á þingi 157' },
+  { e: '❓', l: 'Fyrirspurnir', v: String(t.fyrirspurnir.length), s: `til ráðherra á ${THING_TXT}` },
   { e: '📜', l: 'Flutt mál', v: String(t.flutt.length), s: 'fyrsti flutningsm. · meðflm. á ' + t.medflutt },
   { e: '✅', l: 'Greidd atkvæði', v: m.greidd != null ? groupThousands(m.greidd) : '–', s: 'af ' + groupThousands(m.recVotes || 0) + ' skráðum' },
 ];
@@ -169,7 +179,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         ))}
       </div>
 
-      <h2>🧭 Pólitískt kort þingsins <i class="tip" tabindex="0" data-tip="Vélrænn útreikningur úr ÖLLUM nafnakalls-atkvæðagreiðslum þingsins 157 — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða). Nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr stefnuprófs-svörum þínum og vistast aðeins í vafranum.">ⓘ</i></h2>
+      <h2>🧭 Pólitískt kort þingsins <i class="tip" tabindex="0" data-tip="Vélrænn útreikningur úr ÖLLUM nafnakalls-atkvæðagreiðslum ${THING_TXT_EF} — þingmenn sem kjósa líkt lenda nálægt hver öðrum (lárétt: stjórn ↔ stjórnarandstaða). Nálgun Karp, ekki opinber flokkun. ÞÚ-punkturinn reiknast úr stefnuprófs-svörum þínum og vistast aðeins í vafranum.">ⓘ</i></h2>
       <div id="tk-polmap" class="no-print"></div>
       <p class="src no-print">{m.nafn} er <b style={`color:${color}`}>auðkennd(ur)</b> á kortinu. Smelltu á aðra þingmenn til að skoða skýrslur þeirra.</p>
 
@@ -177,11 +187,11 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
       <div class="card">
         <div class="c-sub">Uppreisnar-atkvæði — kaus gegn meirihluta eigin flokks <i class="tip" tabindex="0" data-tip="Skráð já/nei-nafnaköll þar sem atkvæði þingmannsins fór gegn meirihluta annarra þingmanna sama flokks í sömu atkvæðagreiðslu. Heimild: XML Alþingis.">ⓘ</i></div>
         {t.rebel.length === 0 ? (
-          <p class="c-empty">Kaus <b>aldrei</b> gegn meirihluta eigin flokks í skráðum nafnaköllum á þingi 157 — flokkshollusta {fmtP(m.hollusta)}%.</p>
+          <p class="c-empty">Kaus <b>aldrei</b> gegn meirihluta eigin flokks í skráðum nafnaköllum á {THING_TXT} — flokkshollusta {fmtP(m.hollusta)}%.</p>
         ) : (
           <div class="rebel-list">
             {t.rebel.map((r) => (
-              <a class="rebel-row" href={`/thingmal/?nr=${r.m}`}>
+              <a class="rebel-row" href={malHref(r.lt ?? KJ.til, r.m)}>
                 <span class="rb-d">{dLoc(r.t)}</span>
                 <span class="rb-h">{r.h}</span>
                 <span class={`rb-atk ${r.atk === 'já' ? 'ja' : 'nei'}`}>{r.atk === 'já' ? '✓ já' : '✗ nei'}</span>
@@ -227,7 +237,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
 
       {MALROF && MALROF.n > 3 && (
         <>
-          <h2>🗣️ Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (þing 157) — fjöldi, tími og tegundir ræðna. Hrein talning úr opinberu XML-i.">ⓘ</i></h2>
+          <h2>🗣️ Málróf — hvernig talar þingmaðurinn? <i class="tip" tabindex="0" data-tip="Tölfræðileg talning úr ræðulista Alþingis (${THING_TXT_EF}) — fjöldi, tími og tegundir ræðna. Hrein talning úr opinberu XML-i.">ⓘ</i></h2>
           <div class="mr-tiles">
             <span class="mrt"><b>{MALROF.n}</b><i>ræður alls</i></span>
             <span class="mrt"><b>{MALROF.klst >= 1 ? fmtP(MALROF.klst) + ' klst' : MALROF.min + ' mín'}</b><i>ræðutími</i></span>
@@ -262,7 +272,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
             <div class="card">
               <div class="c-sub">Fyrsti flutningsmaður að {t.flutt.length} málum{t.medflutt ? ` · meðflutningsmaður á ${t.medflutt} til viðbótar` : ''}</div>
               {t.flutt.slice(0, 12).map((f) => (
-                <a class="mal-row" href={`/thingmal/?nr=${f.m}`}>
+                <a class="mal-row" href={malHref(f.lt ?? KJ.til, f.m)}>
                   <span class="ml-h">{f.h}</span>
                   <span class="ml-teg">{f.teg}</span>
                   {f.s && <span class={`ml-st ${/samþykkt/i.test(f.s) ? 'ok' : ''}`}>{f.s}</span>}
@@ -275,7 +285,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
             <div class="card">
               <div class="c-sub">Fyrirspurnir til ráðherra ({t.fyrirspurnir.length})</div>
               {t.fyrirspurnir.slice(0, 12).map((f) => (
-                <a class="mal-row" href={`/thingmal/?nr=${f.m}`}>
+                <a class="mal-row" href={malHref(f.lt ?? KJ.til, f.m)}>
                   <span class="ml-h">{f.h}</span>
                   {f.til && <span class="ml-teg">→ {f.til}</span>}
                   <span class={`ml-st ${f.sv ? 'ok' : ''}`}>{f.sv ? '✓ svarað' : 'bíður svars'}</span>
@@ -298,7 +308,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
               <div class="aim-cell"><b>Rökstuðningur</b><p>{AI.rokstudningur}</p></div>
               {AI.samskipti && <div class="aim-cell"><b>Samskipti í andsvörum</b><p>{AI.samskipti}</p></div>}
             </div>
-            <div class="aim-note">Vélrænt mat byggt á {AI.n} ræðum af þingi 157 — ekki dómur Karp.</div>
+            <div class="aim-note">Vélrænt mat byggt á {AI.n} ræðum af {THING_TXT} — ekki dómur Karp.</div>
           </div>
           {(AI.malaflokkar || []).length > 0 && (
             <div class="aim-areas">
@@ -349,7 +359,7 @@ const dLoc = (d) => (d ? `${+d.slice(8, 10)}.${+d.slice(5, 7)}.${d.slice(0, 4)}`
         þingmálaskrá, þingskjöl, nefndir og launatafla. Efnisflokkun mála er opinber flokkun Alþingis. Uppreisnar-mælingin,
         pólitíska kortið og hundraðshlutaraðanir eru vélrænir útreikningar Karp — nálganir, ekki opinber flokkun.
         AI-greining á tón og áherslum er <b>vélrænt mat</b> byggt eingöngu á ræðubrotum — ekki dómur Karp og ekki staðreyndafullyrðing um viðkomandi.</p>
-        <p>Uppfært {updated} · þing 157 · <a href="/hjalp/?fra=thingskyrsla">Ábending eða leiðrétting? Láttu okkur vita</a>.</p>
+        <p>Uppfært {updated} · {THING_TXT} · <a href="/hjalp/?fra=thingskyrsla">Ábending eða leiðrétting? Láttu okkur vita</a>.</p>
       </div>
     </div>
   </main>

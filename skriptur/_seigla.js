@@ -96,4 +96,28 @@ async function thingListi(opts = {}) {
   return [nu, nu - 1];
 }
 
-module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty, nuverandiThing, thingListi };
+// ── kjortimabilThing() ──────────────────────────────────────────────────────
+// Skilar ÖLLU yfirstandandi kjörtímabili — t.d. { thing: [156,157,158], fra: 156, til: 158 }.
+//
+// Af hverju heilt kjörtímabil (Aron, 12.9.2026): hollusta, uppreisnar-atkvæði og mæting yfir
+// EITT þing eru hávaðasöm — 158. þing hafði 0 nafnaköll fyrstu vikuna. Kjörtímabilið er sú
+// eining sem kjósandi og fréttamaður hugsa í, og hún gefur nógu marga mælipunkta.
+//
+// ⚠ Upphafsþingið er LESIÐ ÚR gogn/kjortimabil.json, ekki leitt af API-inu — Alþingi birtir
+//   ekkert kjörtímabils-hugtak og bæði merkin sem voru prófuð brugðust (sjá skrána sjálfa).
+//   Talan er birt á skýrslunni svo skekkja sjáist; hún má ekki verða falin fastayrðing.
+async function kjortimabilThing(opts = {}) {
+  const nu = await nuverandiThing(opts);
+  const cfg = JSON.parse(require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'gogn', 'kjortimabil.json'), 'utf8'));
+  const fra = +cfg.fra;
+  if (!(fra > 0) || fra > nu) {
+    throw new Error(`kjortimabil.json: fra=${cfg.fra} gengur ekki upp á móti yfirstandandi þingi ${nu}`);
+  }
+  const thing = [];
+  for (let t = fra; t <= nu; t++) thing.push(t);
+  (opts.logger || console).log(`  kjörtímabil: þing ${fra}–${nu} (kosningar ${cfg.kosningar})`);
+  return { thing, fra, til: nu, kosningar: cfg.kosningar };
+}
+
+module.exports = { loadPrev, fetchText, writeJsonUnlessEmpty, nuverandiThing, thingListi, kjortimabilThing };
