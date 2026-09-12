@@ -2157,7 +2157,7 @@ export function frettavaktEmail(matches) {
       const ext = m.type === 'frett' || m.type === 'hlad' || m.type === 'raeda';
       const href = ext ? esc(m.url) : ('https://karp.is/frettavel/' + esc(asciiId(m.id)) + '/');
       const badge = ext ? (m.source || ({ hlad: 'hlaðvarp', raeda: 'Alþingi' })[m.type] || 'frétt') : ((CAT[m.type] || {}).label || m.type);
-      return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span></li>`;
+      return `<li style="margin:0 0 8px"><a href="${href}" style="color:#8a5e00;text-decoration:none;font-weight:600">${esc(m.title)}</a> <span style="color:#888;font-size:12px">· ${esc(badge)}</span>${m.hljod ? ` <a href="${esc(m.hljod)}" style="color:#8a5e00;font-size:12px;text-decoration:none">🎧 hlusta</a>` : ''}</li>`;
     }).join('');
     return `<h3 style="font-size:14px;margin:16px 0 6px;color:#4a3a1e">${esc(label)}</h3><ul style="padding-left:18px;margin:0">${li}</ul>`;
   }).join('');
@@ -2198,7 +2198,8 @@ export async function frettavaktCron(env) {
         for (const r of raedur) {
           if (!matchRaeda(r, ord)) continue;
           const rid = r.hlekkur || r.id; if (!rid || seenSet.has(rid) || matches.some((m) => m.id === rid) || matches.length >= MAX_PER_EMAIL) continue;
-          matches.push({ id: rid, date: r.dags, type: 'raeda', title: (r.nafn ? r.nafn + ': ' : '') + (r.malsheiti || 'ræða á Alþingi'), url: r.hlekkur, source: r.embaetti || 'Alþingi', brot: r.brot });
+          matches.push({ id: rid, date: r.dags, type: 'raeda', hljod: r.hljod || '',
+            title: (r.nafn ? r.nafn + ': ' : '') + (r.malsheiti || 'ræða á Alþingi'), url: r.hlekkur, source: r.embaetti || 'Alþingi', brot: r.brot });
         }
       }
       if (!matches.length) continue;

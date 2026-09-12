@@ -307,6 +307,7 @@ const desc = 'Lobbývakt — vöktunarmiðstöð Karp: dómar Hæstaréttar og L
       const meta = ['🎤 ' + esc(r.nafn || ''), esc(r.embaetti || ''), esc(r.dags || '')].filter(Boolean).join(' · ');
       return '<article class="lv-card lv-hlad"><h3 class="lv-title"><a href="' + esc(r.hlekkur || '#') + '" target="_blank" rel="noopener">' + esc(r.malsheiti || 'Ræða á Alþingi') + '</a></h3>'
         + '<div class="lv-meta">' + meta + '</div>' + (r.brot ? '<p class="lv-brot">„' + esc(r.brot) + '…"</p>' : '')
+        + (r.hljod ? '<div class="lv-meta"><a href="' + esc(r.hljod) + '" target="_blank" rel="noopener">🎧 Hlusta á ræðuna</a></div>' : '')
         + (ordHtml ? '<div class="lv-meta">' + ordHtml + '</div>' : '') + '</article>';
     }
     function renderRaedur(raedur) {

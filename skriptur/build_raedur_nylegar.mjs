@@ -60,6 +60,10 @@ export function parseRaedulisti(xml, lthing) {
       malsheiti: unesc(grab(c, 'málsheiti')),
       malnr: parseInt(grab(c, 'málsnúmer'), 10) || null,
       hlekkur: html.replace(/^http:/, 'https:'),
+      // Hljóð klippt NÁKVÆMLEGA á ræðuna — tilvitnunin sjálf fyrir fréttamann.
+      // ⚠ unesc() er SKYLDA: slóðin ber `&amp;` og brotnar annars í href.
+      // ⚠ Sjálfvirkar beiðnir á hana fá 403 (WAF) — hún VIRKAR samt í vafra notandans.
+      hljod: unesc(grab(c, 'hljóð') || '').replace(/^http:/, 'https:'),
       xmlSlod: (c.match(/<xml>([^<]*\/raedur\/[^<]*)<\/xml>/) || [])[1] || '',
     });
   }

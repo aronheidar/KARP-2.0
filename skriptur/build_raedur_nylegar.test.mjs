@@ -63,3 +63,19 @@ test('sidustuDagar: aðeins ræður innan gluggans (hofst fremur en dags)', () =
 test('sidustuDagar: ógildar dagsetningar síast burt (hrun-laust)', () => {
   assert.deepEqual(sidustuDagar([{ id: 'x', dags: 'rusl' }, null], 7, NOW), []);
 });
+
+// Hljóðslóðin er tilvitnunin fyrir fréttamenn. Hún ber `&amp;` í XML-inu og brotnar í href
+// ef hún er ekki afkóðuð — þetta próf ver þá afkóðun.
+test('parseRaedulisti: hljóðslóð afkóðuð, https og nothæf sem href', () => {
+  const r = parseRaedulisti(CHUNK_KRISTRUN, 157)[0];
+  assert.ok(r.hljod, 'hljóðslóð á að fylgja með');
+  assert.ok(r.hljod.startsWith('https://'), 'http á að uppfærast í https');
+  assert.ok(!r.hljod.includes('&amp;'), 'entity MÁ EKKI standa eftir — brýtur hlekkinn');
+  assert.ok(r.hljod.includes('start=2026-06-19T16:16:48'), 'upphaf ræðunnar');
+  assert.ok(r.hljod.includes('end=2026-06-19T16:19:23'), 'lok ræðunnar');
+});
+
+test('parseRaedulisti: ræða án hljóðs fær tóman streng (ekkert undefined í href)', () => {
+  const utanHljods = CHUNK_KRISTRUN.replace(/<hljóð>[^<]*<\/hljóð>/, '');
+  assert.strictEqual(parseRaedulisti(utanHljods, 157)[0].hljod, '');
+});
