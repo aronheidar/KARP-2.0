@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25       # 15 dugði fyrir tékk-keyrslu; deploy bætir 1–2 mín við og má ekki klippast af
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -51,3 +51,22 @@ jobs:
           grep -q "og-karp.png" web/dist/index.html
           grep -q "bt-cats" web/dist/thingmal/index.html
           echo "✓ Efnismerki til staðar."
+
+      # ⚠⚠ 13.9.2026 — CI DEPLOYAR NÚ. Hér var áður AÐEINS `--dry-run`, og ENGIN leið í öllu repo-inu
+      # kom eignum í loftið: `git push origin main` gerði ekkert eitt og sér. Afleiðingin var ekki
+      # augljós bilun heldur ÞÖGN — lifandi spyrdu_context.json reyndist FJÖGURRA DAGA GÖMUL þótt
+      # refresh-data committi fersk gögn á hverri nóttu, og samhliða session-ir deployuðu handvirkt
+      # hver ofan í aðra með mis-ferskt dist/ (sú sem deployaði síðast með elsta trénu vann).
+      # ⚠ Skrefið stendur SÍÐAST — á eftir prófum, tengingatékki, byggingu, hlekkjatékki og
+      #   efnismerkjum. Falli eitthvað þeirra fer EKKERT í loftið. `--dry-run`-skrefið ofar stendur
+      #   áfram sem ódýrt syntax-hlið sem fellur hratt, áður en dýru skrefin keyra.
+      # ⚠ `[assets] directory = "./dist"` í wrangler.toml ⇒ wrangler sendir dist/ EINS OG ÞAÐ LIGGUR.
+      #   Þess vegna VERÐUR „Astro-bygging" að hafa keyrt á undan í SÖMU keyrslu. Deploy án
+      #   undanfarandi byggingar sendir gamalt tré — það gerðist handvirkt 13.9 og sendi eignir frá 9.9.
+      - name: Deploy (aðeins main)
+        if: github.ref == 'refs/heads/main'
+        run: npx wrangler deploy
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
