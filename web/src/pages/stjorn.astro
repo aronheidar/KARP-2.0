@@ -76,16 +76,23 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-audit" class="stj-kv"></div>
       </section>
 
-      <section class="stj-block" id="stj-ops-wrap" hidden>
-        <h2>🤖 Rekstur stjórnborðsins <span class="w-sub" id="stj-ops-fresh" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
-        <div class="stj-cards" id="stj-ops-cards" style="margin-bottom:16px"></div>
-        <div class="stj-grid2">
-          <div><h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">✅ Bíður samþykktar</h3><div id="stj-appr" class="stj-kv"></div></div>
-          <div><h3 style="font-size:13px;color:var(--muted);margin:0 0 8px">🛟 Opnar hjálparbeiðnir</h3><div id="stj-tickets" class="stj-kv"></div></div>
+      <section class="stj-block" id="stj-tix-wrap">
+        <h2>🎫 Hjálparbeiðnir &amp; póstur <span class="w-sub" id="stj-tix-sub" style="color:var(--faint);font-size:12px;font-weight:400"></span>
+          <button type="button" class="stj-btn stj-btn-sm" id="stj-tix-rofi" style="float:right"></button></h2>
+        <p class="stj-note" style="margin:0 0 10px">Þjónustufulltrúinn (AI) tekur við hverri beiðni á hjalp@karp.is: sendir staðfestingu, svarar þekktum spurningum orðrétt úr þekkingargrunni og leggur annars fram svar-tillögu eða CTO-brief sem bíður þín hér. Allur þráðurinn — inn og út — sést á hverri beiðni.</p>
+        <div class="stj-cards" id="stj-tix-cards" style="margin-bottom:14px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <label class="stj-note" style="margin:0"><input type="checkbox" id="stj-tix-allir"> sýna lokaðar</label>
+          <button type="button" class="stj-btn stj-btn-sm" id="stj-tix-nyr">✉️ Nýr póstur</button>
         </div>
+        <div id="stj-tix-compose" class="stj-tix-compose" hidden>
+          <input id="stj-tix-c-til" placeholder="Netfang viðtakanda" type="email">
+          <input id="stj-tix-c-efni" placeholder="Efni">
+          <textarea id="stj-tix-c-texti" rows="5" placeholder="Texti — sendist frá hjalp@karp.is og verður ticket með fullum þræði"></textarea>
+          <div style="display:flex;gap:8px"><button type="button" class="stj-btn" id="stj-tix-c-senda">Senda</button><button type="button" class="stj-btn stj-btn-sm" id="stj-tix-c-haetta">Hætta við</button><span id="stj-tix-c-err" style="color:#c0392b;font-size:13px"></span></div>
+        </div>
+        <div id="stj-tix"></div>
       </section>
-
-      <p class="stj-note">🤖 AI-stjórnendurnir (COO/CFO/CMO o.fl.) keyra á Node-hýsli, lesa þessa sömu gagnagrunn (raun-tekjur/notendur) og ýta rekstrar-samantekt hingað á 5 mín fresti. Samþykktir, tickets og herferðir eru afgreidd í sjálfu stjórnborðinu.</p>
     </div>
   </main>
 
@@ -96,6 +103,26 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
        Allar reglur eru `stj-`-forskeyttar og skráin hleðst aðeins á /stjorn/ → enginn leki. -->
   <style is:global>
     .stj-wrap { max-width: 1100px; margin: 0 auto; padding: 22px 16px 60px; }
+    /* 🎫 Hjálparbeiðnir & póstur */
+    .stj-btn { background: var(--gold, #f6b13b); color: #0b0f1a; border: 0; border-radius: 8px; padding: 7px 14px; font-weight: 600; cursor: pointer; font-size: 13.5px; }
+    .stj-btn:disabled { opacity: .5; cursor: default; }
+    .stj-btn-sm { background: var(--panel); color: var(--muted); border: 1px solid var(--line); font-weight: 500; padding: 5px 10px; }
+    .stj-tix-compose { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); margin-bottom: 12px; }
+    .stj-tix-compose input, .stj-tix-compose textarea, .stj-tix-svar { width: 100%; box-sizing: border-box; background: var(--bg, #0b0f1a); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 13.5px; }
+    .stj-tix-row { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--panel); }
+    .stj-tix-row > summary { list-style: none; cursor: pointer; padding: 10px 12px; font-size: 13.5px; color: var(--ink); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .stj-tix-row > summary::-webkit-details-marker { display: none; }
+    .stj-tix-nr { color: var(--gold); font-weight: 700; }
+    .stj-tix-st { margin-left: auto; font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+    .stj-tix-body { padding: 4px 12px 12px; border-top: 1px solid var(--line); font-size: 13.5px; }
+    .stj-msgs { display: grid; gap: 8px; margin: 10px 0; }
+    .stj-msg { padding: 8px 10px; border-radius: 10px; max-width: 92%; white-space: pre-wrap; word-break: break-word; }
+    .stj-msg-in { background: rgba(91,141,214,.12); border: 1px solid rgba(91,141,214,.35); justify-self: start; }
+    .stj-msg-out { background: rgba(246,177,59,.10); border: 1px solid rgba(246,177,59,.35); justify-self: end; }
+    .stj-msg-meta { font-size: 11.5px; color: var(--faint); margin-bottom: 4px; }
+    .stj-tix-ai { margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: rgba(70,224,138,.08); border: 1px solid rgba(70,224,138,.3); font-size: 13px; }
+    .stj-tix-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .stj-tix-notur { margin-top: 8px; font-size: 12.5px; color: var(--muted); white-space: pre-wrap; border-left: 2px solid var(--line); padding-left: 8px; }
     .stj-gate { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 15px; }
     .stj-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
     .stj-head h1 { font-size: 24px; margin: 0; color: var(--ink); }
@@ -513,23 +540,75 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         return `<div class="stj-kv-row"><span><b style="font-weight:600;color:var(--ink)">${esc(a.action)}</b>${a.detail ? ' <span style="color:var(--faint)">' + esc(a.detail) + '</span>' : ''}${tgt ? ' → ' + tgt : ''} <span style="color:var(--faint)">· ${esc(a.by)}</span></span><b style="font-weight:600;color:var(--muted)">${dIS(a.ts)}</b></div>`;
       }).join('') : '<div class="stj-kv-empty">Engar skráðar aðgerðir enn.</div>';
 
-      // 🤖 Rekstur stjórnborðsins (synced úr Node-appinu)
-      const st = ov.stjorn;
-      if (st) {
-        $('stj-ops-wrap').hidden = false;
-        const mins = Math.round((Date.now() / 1000 - (st.syncedAt || 0)) / 60);
-        $('stj-ops-fresh').textContent = '· uppfært fyrir ' + (mins < 1 ? 'augnabliki' : mins + ' mín') + ' síðan';
-        const led = st.ledger || {};
-        $('stj-ops-cards').innerHTML =
-          card((st.approvalsPending || []).length, 'Bíða samþykktar', '') +
-          card((st.ticketsOpen || []).length, 'Opnar hjálparbeiðnir', '') +
-          card((st.campaigns || []).length, 'Herferðir', (st.todosOpen || 0) + ' opin verk') +
-          card(kr(led.stada || 0), 'Sjóðstaða (ledger)', kr(led.sala || 0) + ' sala · ' + kr(led.kostnadur || 0) + ' kostn.');
-        const appr = st.approvalsPending || [];
-        $('stj-appr').innerHTML = appr.length ? appr.slice(0, 10).map((a) => `<div class="stj-kv-row"><span>${esc(a.txt || a.kind || ('#' + a.id))}</span><b style="font-weight:600;color:var(--muted)">${esc(a.kind || '')}</b></div>`).join('') : '<div class="stj-kv-empty">Ekkert bíður samþykktar. 🎉</div>';
-        const tix = st.ticketsOpen || [];
-        $('stj-tickets').innerHTML = tix.length ? tix.slice(0, 10).map((t) => `<div class="stj-kv-row"><span>${esc(t.txt || t.who || ('#' + t.id))} <span style="color:var(--faint)">· ${esc(t.who || '')}</span></span><b style="font-weight:600;color:var(--gold)">${esc(t.stada || '')}</b></div>`).join('') : '<div class="stj-kv-empty">Engar opnar hjálparbeiðnir.</div>';
-      }
+      // 🎫 Hjálparbeiðnir & póstur — ticket-flæði þjónustufulltrúans (D1 tickets + ticket_msgs)
+      renderTickets(ov.tickets || { list: [], open: 0, by: {}, off: false });
+    }
+
+    const TIX_STADA = { nytt: ['Nýtt', 'var(--gold)'], stadfest: ['Bíður svars', 'var(--gold)'], svarad: ['Svarað', '#2e8b57'], cto: ['Hjá CTO', '#5b8dd6'], tillaga: ['Tillaga bíður þín', '#c0392b'], samthykkt: ['Samþykkt — í vinnslu', '#5b8dd6'], lagad: ['Lagað', '#2e8b57'], lokad: ['Lokað', 'var(--faint)'], hafnad: ['Hafnað', 'var(--faint)'] };
+    const TIX_TEGUND = { villa: '🐞 villa', spurning: '❓ spurning', adgangur: '🔑 aðgangur', reikningur: '💳 reikningur', osk: '💡 ósk', annad: '📄 annað' };
+    const tixPost = (body) => fetch('/api/admin/ticket', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()).catch(() => null);
+    let tixAllir = false;
+    async function renderTickets(tx) {
+      const $tw = $('stj-tix-wrap'); if (!$tw) return;
+      const by = tx.by || {};
+      $('stj-tix-cards').innerHTML =
+        card(tx.open || 0, 'Opnar beiðnir', (by.nytt || 0) + ' nýjar') +
+        card((by.stadfest || 0) + (by.tillaga || 0), 'Bíða þín', (by.tillaga || 0) + ' CTO-tillögur') +
+        card((by.cto || 0) + (by.samthykkt || 0), 'Í vinnslu hjá CTO', '') +
+        card((by.svarad || 0) + (by.lagad || 0) + (by.lokad || 0), 'Afgreiddar', 'síðustu 60 beiðnir');
+      const rofi = $('stj-tix-rofi');
+      rofi.textContent = tx.off ? '⛔ Sjálfvirkni SLÖKKT — kveikja' : '🟢 Sjálfvirkni á — slökkva';
+      rofi.onclick = async () => { rofi.disabled = true; await tixPost({ action: 'rofi', off: !tx.off }); boot(); };
+      $('stj-tix-sub').textContent = tx.off ? '· agentinn skráir beiðnir en sendir ekkert sjálfur' : '';
+      const allirBox = $('stj-tix-allir'); allirBox.checked = tixAllir; allirBox.onchange = () => { tixAllir = allirBox.checked; boot(); };
+      const list = (tx.list || []).filter((t) => tixAllir || ['nytt', 'stadfest', 'svarad', 'cto', 'tillaga', 'samthykkt'].includes(t.stada));
+      $('stj-tix').innerHTML = list.length ? list.map((t) => {
+        const st = TIX_STADA[t.stada] || [t.stada, 'var(--muted)'];
+        return `<details class="stj-tix-row" id="ticket-${t.id}" data-id="${t.id}"><summary><span class="stj-tix-nr">#${t.id}</span> <b>${esc(t.efni || '')}</b> <span style="color:var(--faint)">· ${esc(t.nafn || '')} &lt;${esc(t.netfang)}&gt; · ${esc(TIX_TEGUND[t.tegund] || t.flokkur || '')}${t.forgangur === 1 ? ' · <span style="color:#c0392b">hár forgangur</span>' : ''}</span><span class="stj-tix-st" style="color:${st[1]}">${esc(st[0])}</span><span style="color:var(--faint);font-size:12px;margin-left:8px">${dIS(t.created)}</span></summary><div class="stj-tix-body" data-loaded="0">Hleður þráð…</div></details>`;
+      }).join('') : '<div class="stj-kv-empty">' + (tixAllir ? 'Engar beiðnir skráðar enn.' : 'Engar opnar beiðnir. 🎉') + '</div>';
+      $('stj-tix').querySelectorAll('details.stj-tix-row').forEach((d) => d.addEventListener('toggle', () => { if (d.open) loadTicket(d); }));
+      if (location.hash.startsWith('#ticket-')) { const d = document.getElementById(location.hash.slice(1)); if (d) { d.open = true; d.scrollIntoView({ block: 'start' }); } }
+      // ✉️ Nýr póstur (verður ticket með uppruna 'stjorn', sendist frá hjalp@)
+      const comp = $('stj-tix-compose');
+      $('stj-tix-nyr').onclick = () => { comp.hidden = !comp.hidden; };
+      $('stj-tix-c-haetta').onclick = () => { comp.hidden = true; };
+      $('stj-tix-c-senda').onclick = async () => {
+        const btn = $('stj-tix-c-senda'); btn.disabled = true; $('stj-tix-c-err').textContent = '';
+        const r = await tixPost({ action: 'create', uppruni: 'stjorn', netfang: $('stj-tix-c-til').value.trim(), efni: $('stj-tix-c-efni').value.trim(), lysing: $('stj-tix-c-texti').value.trim() });
+        btn.disabled = false;
+        if (r && r.ok) { comp.hidden = true; $('stj-tix-c-til').value = ''; $('stj-tix-c-efni').value = ''; $('stj-tix-c-texti').value = ''; boot(); }
+        else $('stj-tix-c-err').textContent = r && r.error === 'gogn' ? 'Netfang eða texti vantar.' : 'Sending mistókst.';
+      };
+    }
+    async function loadTicket(d) {
+      const body = d.querySelector('.stj-tix-body');
+      if (body.dataset.loaded === '1') return;
+      const r = await fetch('/api/admin/ticket?id=' + d.dataset.id, { credentials: 'include' }).then((x) => x.json()).catch(() => null);
+      if (!r || !r.ok) { body.textContent = 'Náði ekki í þráðinn.'; return; }
+      body.dataset.loaded = '1';
+      const t = r.ticket; let g = {}; try { g = JSON.parse(t.ai_greining || '{}'); } catch (e) {}
+      const msgs = (r.msgs || []).map((m) => `<div class="stj-msg stj-msg-${m.dir}"><div class="stj-msg-meta">${m.dir === 'in' ? '📥' : '📤'} ${esc(m.sent_by)} · ${esc(m.fra || '')} → ${esc(m.til || '')} · ${dIS(m.ts)}${m.efni ? ' · <i>' + esc(m.efni) + '</i>' : ''}</div><div class="stj-msg-txt">${esc(m.texti || '')}</div></div>`).join('');
+      const tillaga = g.svar || '';
+      body.innerHTML = `<div class="stj-msgs">${msgs || '<div class="stj-kv-empty">Engin skilaboð.</div>'}</div>`
+        + (g.samantekt || g.cto_brief ? `<div class="stj-tix-ai"><b>🤖 Greining</b> (${esc(g.model || '')}): ${esc(g.samantekt || '')}${g.cto_brief ? '<br><b>CTO-brief:</b> <span style="white-space:pre-wrap">' + esc(g.cto_brief) + '</span>' : ''}</div>` : '')
+        + (t.cto_pr ? `<div class="stj-tix-ai"><b>🛠️ CTO-tillaga:</b> <a href="${esc(t.cto_pr)}" target="_blank" rel="noopener">${esc(t.cto_pr)}</a><br><span style="white-space:pre-wrap">${esc(t.cto_samantekt || '')}</span></div>` : '')
+        + `<textarea class="stj-tix-svar" rows="5" placeholder="Svar á notandann — sendist frá hjalp@karp.is">${esc(tillaga)}</textarea>`
+        + `<div class="stj-tix-actions"><button type="button" class="stj-btn" data-act="svara">✉️ Senda svar</button>`
+        + (t.stada === 'tillaga' ? `<button type="button" class="stj-btn" data-act="samthykkja" style="background:#2e8b57">✔ Samþykkja lagfæringu</button>` : `<button type="button" class="stj-btn stj-btn-sm" data-act="cto">🛠️ Senda á CTO</button>`)
+        + `<button type="button" class="stj-btn stj-btn-sm" data-act="loka">✔ Loka</button><button type="button" class="stj-btn stj-btn-sm" data-act="hafna">✖ Hafna</button><button type="button" class="stj-btn stj-btn-sm" data-act="nota">📝 Nóta</button><span class="stj-tix-err" style="color:#c0392b;font-size:13px"></span></div>`
+        + (t.notur ? `<div class="stj-tix-notur">${esc(t.notur)}</div>` : '');
+      body.querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', async () => {
+        const act = btn.dataset.act, err = body.querySelector('.stj-tix-err'); err.textContent = ''; btn.disabled = true;
+        let r2 = null;
+        if (act === 'svara') { const texti = body.querySelector('.stj-tix-svar').value.trim(); if (texti.length < 2) { err.textContent = 'Skrifaðu svar fyrst.'; btn.disabled = false; return; } r2 = await tixPost({ action: 'svara', id: t.id, texti }); }
+        else if (act === 'cto') r2 = await tixPost({ action: 'cto', id: t.id });
+        else if (act === 'samthykkja') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'samthykkt' });
+        else if (act === 'loka') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'lokad' });
+        else if (act === 'hafna') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'hafnad' });
+        else if (act === 'nota') { const n = prompt('Innri nóta á ticket #' + t.id + ':'); if (!n) { btn.disabled = false; return; } r2 = await tixPost({ action: 'nota', id: t.id, texti: n }); }
+        btn.disabled = false;
+        if (r2 && r2.ok) boot(); else err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : 'Villa — reyndu aftur.';
+      }));
     }
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);

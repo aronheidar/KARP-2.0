@@ -4,6 +4,7 @@
 import { _monthStr, _sendVerifyEmail, readSession } from './auth.mjs';
 import { _ajson, _emailOvSet, _emailTpl, _tokenHex, sendGmail } from './felag.mjs';
 import { EMAIL_TYPES, renderEmail, resolveEmail, validateEmail } from '../lib/emails.mjs';
+import { ticketsOverview } from './hjalp_agent.mjs';   // 🎫 hjálparbeiðnir (þjónustufulltrúa-flæðið)
 
 export async function _isAdmin(env, request) {
   const uid = await readSession(env, request);
@@ -116,6 +117,7 @@ export async function adminOverviewHandler(request, env) {
     mrrHistory,
     notes,
     audit,
+    tickets: await ticketsOverview(env).catch(() => ({ list: [], open: 0, by: {}, off: false })),   // 🎫 töfluleysi (migration 0015 ókeyrð) fellir ekki yfirlitið
     // Póst-skrá: skilgreining hverrar tegundar + NÚGILDANDI sniðmát (sjálfgefið eða yfirskrifað).
     emails: EMAIL_TYPES.map((t) => Object.assign(
       { id: t.id, label: t.label, hopur: t.hopur, flokkur: t.flokkur, hvenaer: t.hvenaer, vidtakandi: t.vidtakandi, ritanlegt: t.ritanlegt, breytur: t.breytur, krafist: t.krafist, ath: t.ath || '' },

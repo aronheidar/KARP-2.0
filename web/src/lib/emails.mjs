@@ -170,6 +170,19 @@ export const EMAIL_TYPES = [
     intro: '', footer: '',
     ath: 'Innri tilkynning til þjónustuborðs — efnið er erindi notandans sjálfs.',
   },
+  // ── Þjónustufulltrúinn (fastur texti) ────────────────────────────────────────
+  {
+    id: 'ticket_ack', label: '🎫 Móttekið — staðfesting á hjálparbeiðni', flokkur: 'fastur', hopur: 'Þjónusta',
+    ritanlegt: ['subject','html'],
+    hvenaer: 'Um leið og hjálparbeiðni berst (form eða póstur) — sendist sjálfkrafa', vidtakandi: 'Notandinn sem sendi beiðnina',
+    breytur: ['nr', 'nafn', 'efni'], krafist: ['nr'],
+    subject: '[Karp #{{nr}}] Móttekið: {{efni}}',
+    html: WRAP('Beiðnin þín er móttekin',
+      '<p>Sæl/sæll {{nafn}},</p>'
+      + '<p>takk fyrir að hafa samband. Erindið „{{efni}}" er skráð sem beiðni <b>#{{nr}}</b> og komið í skoðun. Við svörum á þetta netfang, yfirleitt samdægurs á virkum dögum.</p>'
+      + '<p style="color:#666;font-size:13px">Þú getur bætt við upplýsingum með því að svara þessum pósti — svarið fer beint á sömu beiðni.</p>'),
+    ath: 'Sniðmát, ekki AI-texti — sendist án samþykktar. Efnislegt svar kemur sér (KB-svar sjálfkrafa eða frá þér á /stjorn/).',
+  },
 ];
 
 export const emailById = (id) => EMAIL_TYPES.find((t) => t.id === id) || null;

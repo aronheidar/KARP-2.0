@@ -18,6 +18,7 @@ import { askellSessionHandler, askellWebhookHandler, payCallbackHandler, payChec
 import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugreinHandler, computeGreinRank, greinRankHandler, hladLeit, kycHandler, leiHandler, leyfiHandler, lobbyvaktHandler, loftforHandler, newsSince, roadsSectorsHandler, rskErFyrirtaeki, rskHandler, rskProxyHandler, sanctionsHandler, tengslStatsHandler, tengslanetHandler, topplistarHandler, vanskilHandler } from './src/worker/veitur.mjs';
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
+import { adminTicketHandler, createTicket, processNewTicket } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
@@ -453,8 +454,19 @@ async function hjalpHandler(request, env, ctx) {
   if (n >= 8) return sjson({ error: 'rate' }, 429);
   ctx.waitUntil(cache.put(minKey, new Response('1', { headers: { 'cache-control': 'public, max-age=60' } })));
   ctx.waitUntil(cache.put(dayKey, new Response(String(n + 1), { headers: { 'cache-control': 'public, max-age=86400' } })));
-  // F5: hjálparbeiðni send með Gmail (áður WP wp_mail). Reply-To = notandinn svo svar fer beint.
+  // 🎫 Þjónustufulltrúa-flæðið (13.9.2026): beiðnin verður ticket í D1 og agentinn tekur við
+  // (greining → staðfesting á notanda → KB-svar eða tillaga á /stjorn/ → innri tilkynning).
+  // Bregðist skráningin (t.d. tafla ekki til) fellur allt á gömlu leiðina hér fyrir neðan.
   const fra = String(b.fra || '').slice(0, 300);
+  try {
+    const uidH = await readSession(env, request).catch(() => 0);
+    const t = await createTicket(env, { uppruni: 'form', nafn, netfang, user_id: uidH || null, flokkur, efni: String(b.efni || '').slice(0, 160), lysing });
+    if (t && t.id) {
+      ctx.waitUntil(processNewTicket(env, t).catch(() => {}));
+      return sjson({ ok: true, ticket: t.id });
+    }
+  } catch (e) {}
+  // F5 (varaleið): hjálparbeiðni send með Gmail. Reply-To = notandinn svo svar fer beint.
   const html = '<div style="font-family:system-ui,Arial,sans-serif;color:#222;max-width:560px">'
     + '<h3 style="color:#8a5e00;margin:0 0 10px">Ný hjálparbeiðni — ' + _esc(flokkur) + '</h3>'
     + '<p style="margin:4px 0"><b>Nafn:</b> ' + _esc(nafn) + '<br><b>Netfang:</b> ' + _esc(netfang) + '</p>'
@@ -2559,6 +2571,7 @@ export default {
     if (url.pathname === '/api/admin/user') return adminUserHandler(request, env, ctx);   // stjórnborð: aðgangs-veiting + stuðningur + prufu-flagg per notanda
     if (url.pathname === '/api/admin/refresh') return adminRefreshHandler(request, env, ctx);   // stjórnborð: ræsa gagna-uppfærslu (refresh-data.yml)
     if (url.pathname === '/api/admin/email') return adminEmailHandler(request, env, ctx);   // stjórnborð: vista/endurstilla póst-sniðmát
+    if (url.pathname === '/api/admin/ticket') return adminTicketHandler(request, env, ctx);   // 🎫 hjálparbeiðnir: listi/þráður/svara/CTO/rofi
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
