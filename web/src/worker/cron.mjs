@@ -226,6 +226,11 @@ const NEWS_FEEDS = [
   ['https://www.ruv.is/rss/frettir', 'RÚV'], ['https://www.ruv.is/rss/innlent', 'RÚV'],
   ['https://www.visir.is/rss/frettir', 'Vísir'], ['https://www.visir.is/rss/vidskipti', 'Vísir'],
   ['https://heimildin.is/rss/', 'Heimildin'], ['https://vb.is/rss/', 'Viðskiptablaðið'],
+  // ➕ 13.9.2026: Fiskifréttir — sérhæfða sjávarútvegsblaðið vantaði þótt Kvótavaktin sé vara.
+  // ⚠⚠ LÉNIN ERU VÍXLUÐ: `fiskifrettir.is/rss/…` skilar ALMENNUM VB-fréttum (2% sjávarútvegur,
+  //    hlekkir á vb.is = tvítalning á straumnum hér fyrir ofan). Rétta slóðin er á vb.is-léninu.
+  //    Sannreynt: 100 færslur, 100/100 hlekkir á fiskifrettir, nýjasta 32 klst gömul.
+  ['https://www.vb.is/rss/fiskifrettir/', 'Fiskifréttir'],
   // ➕ 20.8.2026 (ósk notanda um breiðari fjölmiðlavakt): lands- og landshlutamiðlar. Hver slóð SANNREYND með
   // KarpBot-UA (200 + item-fjöldi + ferskur pubDate) áður en hún fór inn — Feykir/Vikublaðið nota Moya-CMS
   // (/is/rss, /is/feed), Austurfrétt Joomla (?format=feed). BB.is (CF-challenge), Víkurfréttir og Eyjafréttir
