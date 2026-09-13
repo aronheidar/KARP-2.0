@@ -5,6 +5,7 @@ import { isAdmin, hasReport, karpCheckout, helpNote, loginHref } from './auth.js
 import { pendingBarHtml, pollUntilChanged } from './report-nav.js';
 import { escF, ktFmt } from './snid.mjs';
 import { felagHref } from './fyrirtaeki-slod.mjs';
+import { takn } from './takn.mjs';   // hústákn (SVG, currentColor) í stað emojí á aðgerðahnöppum — afvélvæðing 13.9.2026
 
 const eigPctFmt = (n) => (n == null ? '—' : Number(n).toFixed(2).replace('.', ',') + '%');
 const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -59,7 +60,7 @@ function eigRaunv(rep, ctx) {
   const krCol = efe ? '<th>Bókfært virði*</th>' : '';
   const krCell = (s) => { if (!efe) return ''; const h = hlNum(s); return '<td class="eig-kr">' + (h != null ? '≈ ' + eigMkr(h / 100 * efe.mkr, efe.cur) : '—') + '</td>'; };
   const rows = rep.raunverulegir.map((e) =>
-    `<tr${eigForeign(e) ? ' class="eig-foreign"' : ''}><td>${escF(e.nafn)}</td><td>${escF(e.faeding || '—')}</td><td>${escF(e.buseta || '—')}</td><td>${escF(e.rikisfang || '—')}${eigForeign(e) ? ' 🌍' : ''}</td><td>${escF(e.tegund || '—')}</td><td class="eig-pct">${escF(e.hlutur || '—')}</td>${krCell(e.hlutur)}</tr>`).join('');
+    `<tr${eigForeign(e) ? ' class="eig-foreign"' : ''}><td>${escF(e.nafn)}</td><td>${escF(e.faeding || '—')}</td><td>${escF(e.buseta || '—')}</td><td>${escF(e.rikisfang || '—')}</td><td>${escF(e.tegund || '—')}</td><td class="eig-pct">${escF(e.hlutur || '—')}</td>${krCell(e.hlutur)}</tr>`).join('');
   return `<table class="eig-tafla"><thead><tr><th>Aðili</th><th>Fæðingarár/mán</th><th>Búsetuland</th><th>Ríkisfang</th><th>Tegund eignahalds</th><th>Eignarhlutur</th>${krCol}</tr></thead><tbody>${rows}</tbody></table>`
     + (efe ? `<p class="eig-krnote">* Bókfært virði = eignarhluti × bókfært eigið fé (ársreikn. ${escF(efe.ar)}). Ekki markaðsvirði.</p>` : '');
 }
@@ -124,7 +125,7 @@ async function eigData(kt, owned) {
 function eigErlent(rep) {
   const fs = (rep.raunverulegir || []).filter(eigForeign);
   if (!fs.length) return '';
-  return '<div class="eig-erlent">🌍 <b>Erlent eignarhald</b> — raunverulegir eigendur með erlent ríkisfang: '
+  return '<div class="eig-erlent"><b>Erlent eignarhald</b> — raunverulegir eigendur með erlent ríkisfang: '
     + fs.map((r) => escF(r.nafn) + ' <span class="eig-kt">(' + escF(r.rikisfang) + ')</span>').join('; ')
     + '. <span class="eig-erlent-n">Getur kallað á aukna skjölun við áreiðanleikakönnun (PEP-/refsilista-athugun þvert á lögsögur).</span></div>';
 }
@@ -141,8 +142,8 @@ function eigSubsidiaries(rep, ctx) {
 }
 function eigReport(rep, kt, ctx) {
   return '<div class="eig-report" id="eig-report">'
-    + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">' + takn('prenta') + 'Prenta / PDF</button></div>'
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">Áreiðanleikamat →</a></div>' : '')
     + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
     + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
     // 🕸️ Tengslakortið er nú EINA myndræna netið (fliparnir Listi/Kort fjarlægðir — kortið er sjálfgefið).
@@ -185,13 +186,13 @@ async function eigMountKort(rep, rootKt, pepSet) {
   const host = document.getElementById('eig-kort-host');
   if (!host || host.dataset.done) return;
   host.dataset.done = '1';
-  host.innerHTML = '<div class="eig-kort-load">🕸️ Hleð tengslakorti…</div>';
+  host.innerHTML = '<div class="eig-kort-load">Hleð tengslakorti…</div>';
   let stjornData = null;   // null-þolið: án innskráningar / í sýnishorni skilar þetta null → eignarhalds-kort eitt
   if (rootKt) { try { stjornData = await fetch('/api/tengslanet?kort=1&kt=' + encodeURIComponent(rootKt), { cache: 'no-store', credentials: 'include' }).then((r) => (r.ok ? r.json() : null)); } catch (e) {} }
   try {
     const { renderTengslakort } = await import('./tengslakort.mjs');
     host.innerHTML = '';
-    // F5: PEP-samsvörun flyst inn í kortið (sama nafna-norm og listinn notaði) → 🏛️-merki + gullhringur.
+    // F5: PEP-samsvörun flyst inn í kortið (sama nafna-norm og listinn notaði) → „PEP · “-forskeyti á label + gullhringur (node[?pep]).
     const pepLookup = pepSet ? (nafn) => pepSet.get(eigNorm(nafn)) || null : null;
     await renderTengslakort(host, { rotKt: rootKt, eignData: rep, stjornData, pepLookup });
   } catch (e) { host.innerHTML = '<div class="eig-tom">Ekki tókst að hlaða tengslakorti.</div>'; }
@@ -217,10 +218,10 @@ async function eigMount(rep, host, nav, kt) {
 function eigEmptyReport(rep, kt, ctx) {
   const subs = eigSubsidiaries(rep || {}, ctx);
   return '<div class="eig-report" id="eig-report">'
-    + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">' + takn('prenta') + 'Prenta / PDF</button></div>'
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">Áreiðanleikamat →</a></div>' : '')
     + '<div class="eig-empty">'
-    +   '<div class="eig-empty-h"><span class="eig-empty-ico">🔎</span><h4>Engir endanlegir eigendur skráðir</h4></div>'
+    +   '<h4 class="eig-empty-h">Engir endanlegir eigendur skráðir</h4>'
     +   '<p>Hvorki hluthafalisti í nýjasta ársreikningi félagsins né skráðir raunverulegir eigendur (yfir 25%) fundust hjá Skattinum. Þetta á oftast við um félög með <b>dreift eða skráð eignarhald</b> — t.d. félög skráð á markað eða í eigu margra smærri hluthafa — þar sem enginn einn aðili nær því 25% raunverulegu eignarhaldi sem skylt er að skrá.</p>'
     +   '<p class="eig-empty-sub">Það þýðir <b>ekki</b> að engar upplýsingar séu til. Hér að neðan birtast stjórnenda- og fyrirsvarstengsl félagsins, og eignarhlutir sem félagið sjálft á í öðrum félögum — eftir því sem þau eru skráð í opinberum gögnum.</p>'
     + '</div>'
@@ -243,11 +244,11 @@ async function eigMountEmpty(rep, host, nav, kt) {
 export function uboOwned(kt) { return isAdmin() || hasReport('eigendur:' + kt); }
 
 function uboCtaHtml(kt, nafn) {
-  return '<div class="eig-cta"><b>🔗 Endanlegir eigendur</b>'
+  return '<div class="eig-cta"><b>Endanlegir eigendur</b>'
     + '<span>Full, litakóðuð eignarhaldsskýrsla: endanlegir eigendur í gegnum allar félagakeðjur, raunverulegir eigendur, hluthafalisti og prentvæn PDF — sérskýrsla eins og hjá Creditinfo.</span>'
-    + '<div class="eig-cta-btns"><button type="button" class="eig-buy" data-kt="' + escF(kt) + '" data-nafn="' + escF(nafn || '') + '">🛒 Kaupa eigenda-skýrslu — 990 kr</button>'
-    + '<a class="eig-sample" href="/eigendur/?syni=1">👁️ Sjá sýnishorn</a></div>'
-    + '<p class="eig-cta-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — frá 2.900 kr/mán →</a></p></div>';
+    + '<div class="eig-cta-btns"><button type="button" class="eig-buy" data-kt="' + escF(kt) + '" data-nafn="' + escF(nafn || '') + '">Kaupa eigenda-skýrslu — 990 kr</button>'
+    + '<a class="eig-sample" href="/eigendur/?syni=1">Sjá sýnishorn</a></div>'
+    + '<p class="eig-cta-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">Komdu í áskrift — frá 2.900 kr/mán →</a></p></div>';
 }
 
 function wireBuy(hostEl, kt, nafn) {
@@ -259,20 +260,20 @@ function wireBuy(hostEl, kt, nafn) {
   if (rem !== 0 && AU && AU.openReport) {
     const qb = document.createElement('button');
     qb.type = 'button'; qb.className = 'eig-buy';
-    qb.textContent = '📄 Opna með áskrift';
+    qb.textContent = 'Opna með áskrift';
     buy.parentNode.insertBefore(qb, buy);
-    buy.textContent = '🛒 eða kaupa staka — 990 kr';
+    buy.textContent = 'eða kaupa staka — 990 kr';
     qb.addEventListener('click', async () => {
       qb.disabled = true; qb.textContent = 'Opna…';
       const r = await AU.openReport('eigendur:' + kt, (nafn || kt) + ' — eigendaskýrsla');
       if (r && (r.granted || r.owned)) { location.reload(); return; }
-      if (r && r.needPay) { qb.remove(); buy.textContent = '🛒 Kaupa eigenda-skýrslu — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); return; }
+      if (r && r.needPay) { qb.remove(); buy.textContent = 'Kaupa eigenda-skýrslu — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); return; }
       qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur';
     });
   }
   if (AU && AU.paintReportQuota) AU.paintReportQuota(qbtns);   // teljari „N skýrslur eftir í mánuðinum" + upsell
   buy.addEventListener('click', async () => {
-    const orig = buy.textContent; buy.disabled = true; buy.textContent = '⏳ Opna greiðslu…';
+    const orig = buy.textContent; buy.disabled = true; buy.textContent = 'Opna greiðslu…';
     const res = await karpCheckout({ kind: 'eigendur', ref: (nafn || '') + ' ' + kt, key: 'eigendur:' + kt }, hostEl.querySelector('.eig-cta'));
     if (res === 'redirected' || res === 'embedded') return;
     buy.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur';
@@ -299,7 +300,7 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
       hostEl.innerHTML = pendingBarHtml({
         title: 'Rek eignarhald gegnum allar félagakeðjur beint úr RSK…',
         sub: 'Sæki hluthafalista og raunverulega eigendur hvers félags í keðjunni',
-        note: '🔄 Skýrslan birtist sjálfkrafa þegar hún er tilbúin — í fyrsta skipti getur þetta tekið 1–2 mín; svo vistast hún og opnast samstundis eftirleiðis.',
+        note: 'Skýrslan birtist sjálfkrafa þegar hún er tilbúin — í fyrsta skipti getur þetta tekið 1–2 mín; svo vistast hún og opnast samstundis eftirleiðis.',
         sfx: '-eig',
       });
       pollUntilChanged({ url: '/gogn/eigendur/' + kt + '.json', est: 120, sfx: '-eig', onDone: () => {} });   // stikan tifar; tick() sér um raun-birtingu
@@ -315,7 +316,8 @@ export function mountUboReport({ kt, nafn, hostEl, navTo }) {
 export async function refreshUboReport({ kt, hostEl, navTo, btn }) {
   if (!hostEl || !uboOwned(kt)) return;   // ⚠ paywall: aðeins eigandi/admin má endurbyggja og fá skýrsluna birta
   const nav = navTo || defaultNav;
-  if (btn) { btn.disabled = true; btn.textContent = '🔄 Bið RSK…'; }
+  const lbl = (t) => takn('endurnyja') + t;   // sama merki og report-nav.js gefur hnappnum í hvíld
+  if (btn) { btn.disabled = true; btn.innerHTML = lbl('Bið RSK…'); }
   let baseline = null;
   try { const r0 = await fetch('/gogn/eigendur/' + kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
   let ok = false;
@@ -324,18 +326,18 @@ export async function refreshUboReport({ kt, hostEl, navTo, btn }) {
     const j = await rr.json().catch(() => null); ok = !!(j && j.ok);
     if (j && j.error === 'login') { location.href = loginHref(); return; }
   } catch (e) {}
-  if (!ok) { if (btn) { btn.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { btn.textContent = '🔄 Sækja aftur'; btn.disabled = false; }, 2600); } return; }
-  if (btn) btn.textContent = '🔄 Sæki…';
+  if (!ok) { if (btn) { btn.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { btn.innerHTML = lbl('Sækja aftur'); btn.disabled = false; }, 2600); } return; }
+  if (btn) btn.innerHTML = lbl('Sæki…');
   hostEl.innerHTML = pendingBarHtml({
     title: 'Sæki eignarhaldið aftur frá RSK og endurreikna…',
     sub: 'Rek hluthafakeðjur og raunverulega eigendur upp á nýtt',
-    note: '🔄 Skýrslan birtist sjálfkrafa með nýjum gildum — tekur venjulega 1–2 mín.',
+    note: 'Skýrslan birtist sjálfkrafa með nýjum gildum — tekur venjulega 1–2 mín.',
     sfx: '-eigr',   // sér-id svo mount-pollinn (sfx '-eig') ruglist ekki við þennan
   });
   pollUntilChanged({
     url: '/gogn/eigendur/' + kt + '.json', baseline, est: 120, sfx: '-eigr',
     onDone: (txt, stale) => {
-      if (btn) { btn.textContent = '🔄 Sækja aftur'; btn.disabled = false; }
+      if (btn) { btn.innerHTML = lbl('Sækja aftur'); btn.disabled = false; }
       try { const d = JSON.parse(txt); if (d && d.engin) { eigMountEmpty(d, hostEl, nav, kt); return; } if (d && !d.engin) { eigMount(d, hostEl, nav, kt); if (stale) setTimeout(() => { const h = document.getElementById('eig-report'); if (h) h.insertAdjacentHTML('afterbegin', '<p class="eig-cap">ⓘ Engin ný gögn hjá RSK — skýrslan er óbreytt.</p>'); }, 50); return; } } catch (e) {}
       hostEl.innerHTML = '<div class="eig-tom">Endurbyggingin skilaði engu neti — endurhlaðið síðuna.</div>';
     },

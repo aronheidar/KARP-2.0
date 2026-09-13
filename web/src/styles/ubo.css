@@ -62,9 +62,7 @@
 .eig-direct{color:var(--muted)}
 .eig-tom{color:var(--muted);font-size:13px;margin:6px 0 14px}
 .eig-empty{background:rgba(90,169,230,.06);border:1px solid rgba(90,169,230,.22);border-radius:12px;padding:14px 16px;margin:8px 0 16px}
-.eig-empty-h{display:flex;align-items:center;gap:10px}
-.eig-empty-h h4{margin:0;font-size:16px;color:var(--ink)}
-.eig-empty-ico{font-size:22px;line-height:1}
+.eig-empty-h{margin:0;font-size:16px;color:var(--ink)}
 .eig-empty p{color:var(--ink);font-size:13px;line-height:1.6;margin:8px 0 0}
 .eig-empty .eig-empty-sub{color:var(--muted);font-size:12.5px}
 .eig-pie{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
@@ -98,6 +96,7 @@
 .eig-fulllink:hover { text-decoration: underline; }
 /* Víxl-tenglar milli skýrslnanna þriggja (fyrirtæki · eigendur · áreiðanleiki) */
 .eig-related { display: flex; gap: 18px; flex-wrap: wrap; margin: 8px 0 4px; }
+@media print { .eig-related { display: none; } }   /* víxl-tenglar vísa út úr skjalinu sem er afhent — verður að standa Á EFTIR display:flex */
 
 /* F5 — PEP-hnútur í neti (stjórnmálaleg tengsl, nafnasamsvörun) */
 .eig-node.pep { border-color: #ef6a6a !important; box-shadow: 0 0 0 2px rgba(239,106,106,.32); }

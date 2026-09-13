@@ -15,7 +15,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 <Layout title="Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
   <main data-pg="fyrirtaeki">
     <p class="kicker">Karp+ · Atvinnulíf</p>
-    <h1>🏢 Fyrirtækjaskrá</h1>
+    <h1>Fyrirtækjaskrá</h1>
     <p>Flettu upp hvaða íslenska félagi sem er — beint úr opinberri fyrirtækjaskrá Skattsins. <a href="/lausnir/fyrirtaekjaskyrsla/" style="color:#f6b13b">Um Fyrirtækjaskýrsluna →</a></p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Uppfletting í opinberri fyrirtækjaskrá Skattsins (skatturinn.is) — engin gögn geymd hjá Karp, hver leit sótt beint (24 klst skyndiminni). Sýnir skráð grunngögn: heiti, kennitölu, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga. Staðfest vottorð fást hjá Skattinum.">ⓘ</i> Um gögnin á síðunni</p>
 
@@ -25,7 +25,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     </form>
     <div id="fs-out" aria-live="polite"></div>
 
-    <p class="note">📖 Eða flettu í gegn: <a href="/fyrirtaeki/skra/">stafrófsskrá félaga á Karp</a> — öll félög sem við eigum ársreikninga, eigendur eða lögbirtingar um.</p>
+    <p class="note">Eða flettu í gegn: <a href="/fyrirtaeki/skra/">stafrófsskrá félaga á Karp</a> — öll félög sem við eigum ársreikninga, eigendur eða lögbirtingar um.</p>
     <p class="note">ⓘ Uppflettingin notar opinberu fyrirtækjaskrána og er ókeypis — sambærileg grunnuppfletting kostar áskrift annars staðar. Fyrir stærstu birgja ríkisins er stokkið beint í <a href="/birgjar/">Birgja ríkisins</a>, umfjöllun fjölmiðla er í <a href="/frettir/">Vöktun</a> og opinber innkaup í <a href="/utbod/">Útboðum</a>.</p>
     <p class="foot">Uppfletting: fyrirtækjaskrá Skattsins (skatturinn.is) um /api/fyrirtaeki — 24 klst skyndiminni. LOTA 57b.</p>
   </main>
@@ -119,7 +119,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-lob { margin-top: 10px; }
     .fs-lob-row { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.06); }
     .fs-lob-row:first-of-type { border-top: 0; }
-    .fs-lob-i { flex: 0 0 auto; font-size: 13px; line-height: 1.45; }
+    .fs-lob-i { flex: 0 0 58px; font-size: 10px; line-height: 19px; text-transform: uppercase; letter-spacing: .05em; color: var(--faint); font-weight: 700; }
     .fs-lob-t { flex: 1 1 auto; font-size: 12.5px; color: var(--ink); min-width: 0; line-height: 1.45; }
     .fs-lob-t a { color: var(--ink); text-decoration: none; font-weight: 600; }
     .fs-lob-t a:hover { color: #f6b13b; text-decoration: underline; }
@@ -179,6 +179,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     body.fs-printing #fs-report .fs-lb-l { color: #445 !important; }
     body.fs-printing #fs-report .fs-lb-b.s2 { color: #b3261e !important; border-color: #b3261e !important; background: #fdf0ef !important; }
     body.fs-printing #fs-report .fs-lb-b.s1 { color: #8a5000 !important; border-color: #d9a05a !important; background: #fdf5ec !important; }
+    /* Stöðumerkin ● (fs-ar-stig-b / fs-stig-dots) í prentlitum — skjálitirnir eru of ljósir á hvítu. */
+    body.fs-printing #fs-report .fs-ar-stig-b.s-g, body.fs-printing #fs-report .fs-stig-dots .s-g { color: #0a7a43 !important; }
+    body.fs-printing #fs-report .fs-ar-stig-b.s-o, body.fs-printing #fs-report .fs-stig-dots .s-o { color: #8a5000 !important; }
+    body.fs-printing #fs-report .fs-ar-stig-b.s-b, body.fs-printing #fs-report .fs-stig-dots .s-b { color: #b3261e !important; }
+    body.fs-printing #fs-report .fs-ar-stig-b.s-n { color: #777 !important; }
     .fs-van { display: inline-block; border-radius: 8px; padding: 4px 10px; font-weight: 700; }
     .fs-van.bad { background: rgba(231,130,132,.12); border: 1px solid rgba(231,130,132,.45); color: #e78284; }
     .fs-van.ok { background: rgba(66,208,134,.1); border: 1px solid rgba(66,208,134,.35); color: #42d086; }
@@ -213,7 +218,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-argrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; margin: 8px 0 4px; }
     .fs-ar { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 9px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-left: 3px solid #6b7688; }
     .fs-ar.g { border-left-color: #42d086; } .fs-ar.o { border-left-color: #e8b84b; } .fs-ar.b { border-left-color: #ef6a6a; } .fs-ar.n { border-left-color: #6b7688; }
-    .fs-ar-i { font-size: 16px; flex: none; }
     .fs-ar-tx { display: flex; flex-direction: column; min-width: 0; }
     .fs-ar-l { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: .3px; }
     .fs-ar-v { font-size: 13px; color: var(--ink); font-weight: 700; }
@@ -241,6 +245,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-ar-stig.o { border-color: rgba(232,184,75,.45); background: rgba(232,184,75,.06); }
     .fs-ar-stig.b { border-color: rgba(239,106,106,.5); background: rgba(239,106,106,.07); }
     .fs-ar-stig-b { font-size: 22px; line-height: 1; }
+    /* Stöðumerki bera lit, ekki emojí (13.9.2026): sömu litir og lánshæfis-þættirnir. */
+    .fs-ar-stig-b.s-g, .fs-stig-dots .s-g { color: #42d086; } .fs-ar-stig-b.s-o, .fs-stig-dots .s-o { color: #e8b84b; }
+    .fs-ar-stig-b.s-b, .fs-stig-dots .s-b { color: #ef6a6a; } .fs-ar-stig-b.s-n { color: var(--faint); }
+    .fs-stig-dots i { font-style: normal; letter-spacing: 1px; }
     .fs-ar-stig-tx { display: flex; flex-direction: column; gap: 1px; }
     .fs-ar-stig-tx b { color: var(--ink); font-size: 14px; } .fs-ar-stig-tx > span { color: var(--muted); font-size: 12px; }
     .fs-ar-stig-n { color: #7f8da3 !important; font-size: 11px !important; }
@@ -258,7 +266,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-gate h2.fsg-nafn { font-size: 20px; color: var(--ink); margin: 0 0 2px; display: inline; }
     .fs-gate .kt { color: var(--muted); font-size: 13px; }
     .fsg-lockrow { margin: 16px 0 8px; color: #f6b13b; font-weight: 800; font-size: 14px; }
-    .fsg-lock { font-size: 20px; }
+    .fsg-lock { display: inline-flex; vertical-align: -.2em; margin-right: 4px; }
     .fsg-b { color: var(--ink); font-size: 13.5px; line-height: 1.55; margin: 0 0 18px; }
     .fsg-btns { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
     .fsg-main { background: #f6b13b; color: var(--surface); font-weight: 800; font-size: 13.5px; border: 0; border-radius: 11px; padding: 11px 18px; cursor: pointer; }
@@ -375,6 +383,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       body.fs-printing #fs-report { position: absolute; left: 0; top: 0; width: 100%; background: #fff !important; color: #111; }
       body.fs-printing #fs-report .fs-rephead { display: block !important; visibility: visible; color: #111; }
       body.fs-printing #fs-report .fs-rephead[hidden] { display: block !important; }
+      body.fs-printing #fs-report .eig-related { display: none !important; }
       body.fs-printing #fs-report .fs-card { border: 1px solid #ccc !important; background: #fff !important; }
       body.fs-printing #fs-report .fs-card h2 { color: #111 !important; }
       body.fs-printing #fs-report .fs-f .v, body.fs-printing #fs-report .fs-chip { color: #222 !important; }
@@ -412,10 +421,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .tk-felag { border-color: rgba(246,177,59,.4); }
     .tk-node.tk-pep { border-color: rgba(240,183,75,.6); }
     .tk-row { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; }
-    .tk-ic { flex: none; font-size: 13px; line-height: 1; }
     .tk-nm { flex: 1; min-width: 0; color: var(--ink); font-size: 12.5px; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tk-nm-co { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 14px; font-weight: 800; color: #fff; }
-    .tk-pepm { flex: none; font-size: 11px; }
+    .tk-pepm { flex: none; font-size: 10px; font-weight: 700; letter-spacing: .04em; line-height: 15px; padding: 0 4px; border: 1px solid rgba(240,183,75,.6); border-radius: 3px; color: #f0b74b; }
     .tk-meta { color: var(--muted); font-size: 10.5px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tk-co .tk-meta { color: #f6c877; font-variant-numeric: tabular-nums; }
     .tk-open { color: #f6b13b; font-weight: 700; }
@@ -479,7 +487,6 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     .fs-lh-factors { display: flex; flex-direction: column; gap: 5px; margin-top: 13px; }
     .fs-lh-f { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.03); border-left: 3px solid #6b7688; }
     .fs-lh-f.s-g { border-left-color: #42d086; } .fs-lh-f.s-o { border-left-color: #e8b84b; } .fs-lh-f.s-b { border-left-color: #ef6a6a; } .fs-lh-f.s-n { border-left-color: #6b7688; }
-    .fs-lh-fi { font-size: 14px; flex: 0 0 auto; }
     .fs-lh-fl { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; color: var(--muted); font-size: 11px; }
     .fs-lh-fl b { color: var(--ink); font-weight: 700; font-size: 12.5px; }
     .fs-lh-fd { flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 12.5px; color: var(--muted); }
@@ -496,6 +503,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
 
   <script>
       import { KARP_MERKI } from '../lib/karp-merki.mjs';
+      import { takn } from '../lib/takn.mjs';
+      const lblR = (t) => takn('endurnyja') + t;   // „Sækja aftur“ heldur tákninu í öllum ástöndum (sama og ubo-report.js)
     import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports, helpNote } from '../lib/auth.js';
     import { renderUboSample } from '../lib/ubo-report.js';
     import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
@@ -511,7 +520,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { umsvifUrArsreikningi, UMSVIF_FYRIRVARI } from '../lib/kyc-umsvif.mjs';
     import { escF, ktFmt, mkrF } from '../lib/snid.mjs';
     let FS_USER = null;
-    const fsTease = () => `<div class="fs-tease"><b>⭐ Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+    const fsTease = () => `<div class="fs-tease"><b>Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     // birgjar.json ber 200 stærstu birgja ríkisins — nöfn þar eru STYTT (~30 stafir)
     // svo samsvörunin er normaliseruð forskeytis-samsvörun, ekki jafngildi.
     let FS_BIRGJAR = null;
@@ -556,11 +565,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       chip.className = 'fs-ar o';
       if (v) v.textContent = r.hits.length + ' möguleg';
       const d = document.getElementById('fs-ar-pep-detail');
-      if (d) d.innerHTML = '⚠️ <b>Möguleg stjórnmálatengsl (PEP)</b> — nafnasamsvörun, staðfestu auðkenni: '
+      if (d) d.innerHTML = '⚠ <b>Möguleg stjórnmálatengsl (PEP)</b> — nafnasamsvörun, staðfestu auðkenni: '
         + r.hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">' + escF(h.felagshlutverk) + ' → ' + escF(h.pep.hlutverk) + '</span>').join('; ');
     }
     // Áreiðanleika-samantekt (KYC) — opinber stöðumerki, EKKI lánshæfismat.
-    function fsAr(icon, l, v, st) { return '<div class="fs-ar ' + (st || 'n') + '"><span class="fs-ar-i">' + icon + '</span><div class="fs-ar-tx"><span class="fs-ar-l">' + l + '</span><span class="fs-ar-v">' + v + '</span></div></div>'; }
+    function fsAr(l, v, st) { return '<div class="fs-ar ' + (st || 'n') + '"><div class="fs-ar-tx"><span class="fs-ar-l">' + l + '</span><span class="fs-ar-v">' + v + '</span></div></div>'; }
     // Aldur félags úr skráningardegi (traustmerki: eldra = rótgrónara).
     function fsSkradAldur(skrad) {
       const m = String(skrad || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
@@ -575,25 +584,25 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const anyLate = saga.some((x) => x.seint);
       const cells = saga.map((x) => '<span class="fs-skil ' + x.stada + '"><b>' + escF(x.ar) + '</b><span>'
         + (x.skil ? escF(x.skil) + (x.seint ? ' · seint' : ' ✓') : 'óskráð') + '</span></span>').join('');
-      return '<div class="fs-sub">📅 Ársreikningaskil — tímanleiki' + (anyLate ? ' <span class="fs-skil-warn">⚠ sein skil</span>' : '') + '</div><div class="fs-skil-row">' + cells + '</div>'
+      return '<div class="fs-sub">Ársreikningaskil — tímanleiki' + (anyLate ? ' <span class="fs-skil-warn">⚠ sein skil</span>' : '') + '</div><div class="fs-skil-row">' + cells + '</div>'
         + '<div class="fs-ph-src">Grænt = skilað fyrir áætlaðan frest (31. ágúst árið eftir reikningsár, 8 mán.); gult = eftir fresti. Byggt á skráðum skiladögum RSK.</div>';
     }
     function fsAreidanleiki(f) {
       const nowY = new Date().getFullYear();
-      const skra = f.afskrad ? fsAr('🏢', 'Skráning', 'Afskráð', 'b') : fsAr('🏢', 'Skráning', 'Virkt' + (f.form ? ' · ' + f.form.replace(/\s*\(.*/, '').trim() : ''), 'g');
+      const skra = f.afskrad ? fsAr('Skráning', 'Afskráð', 'b') : fsAr('Skráning', 'Virkt' + (f.form ? ' · ' + f.form.replace(/\s*\(.*/, '').trim() : ''), 'g');
       const arY = (f.arsreikningar || []).map((a) => parseInt(a.ar, 10)).filter(Boolean).sort((a, b) => b - a)[0];
-      const skil = arY ? fsAr('📄', 'Ársreikningsskil', 'Síðast ' + arY, arY >= nowY - 2 ? 'g' : 'o') : fsAr('📄', 'Ársreikningsskil', 'Engin skráð', 'o');
+      const skil = arY ? fsAr('Ársreikningsskil', 'Síðast ' + arY, arY >= nowY - 2 ? 'g' : 'o') : fsAr('Ársreikningsskil', 'Engin skráð', 'o');
       // 🎯 KARP lánshæfismat lifir í fullri skýrslunni (fsLanshaefi) — KYC-yfirlitið vísar á það og sýnir enga sér-einkunn.
-      const heilsa = fsAr('🎯', 'KARP lánshæfismat', 'Í fullri fyrirtækjaskýrslu →', 'n');
-      const eign = (f.eigendur && f.eigendur.length) ? fsAr('👥', 'Eignarhald', 'Gagnsætt · ' + f.eigendur.length + ' skráð', 'g') : (f.eigendurTomt ? fsAr('👥', 'Eignarhald', 'Dreift (<25%)', 'o') : fsAr('👥', 'Eignarhald', 'Óskráð', 'n'));
-      return '<div class="fs-sub">🛡️ Áreiðanleiki — yfirlit (KYC)</div>'
+      const heilsa = fsAr('KARP lánshæfismat', 'Í fullri fyrirtækjaskýrslu →', 'n');
+      const eign = (f.eigendur && f.eigendur.length) ? fsAr('Eignarhald', 'Gagnsætt · ' + f.eigendur.length + ' skráð', 'g') : (f.eigendurTomt ? fsAr('Eignarhald', 'Dreift (<25%)', 'o') : fsAr('Eignarhald', 'Óskráð', 'n'));
+      return '<div class="fs-sub">Áreiðanleiki — yfirlit (KYC)</div>'
         + '<div id="fs-ar-stig" class="fs-ar-stig n"></div>'
         + '<div class="fs-argrid">' + skra + skil + heilsa + eign
-        + '<div id="fs-ar-pep" class="fs-ar u"><span class="fs-ar-i">⚖️</span><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
-        + '<div id="fs-ar-log" class="fs-ar u"><span class="fs-ar-i">📜</span><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-media" class="fs-ar u"><span class="fs-ar-i">📰</span><div class="fs-ar-tx"><span class="fs-ar-l">Fjölmiðlaumfjöllun</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-flakk" class="fs-ar u"><span class="fs-ar-i">🔁</span><div class="fs-ar-tx"><span class="fs-ar-l">Gjaldþrota-tengsl</span><span class="fs-ar-v">athuga…</span></div></div>'
-        + '<div id="fs-ar-sanction" class="fs-ar u"><span class="fs-ar-i">🌐</span><div class="fs-ar-tx"><span class="fs-ar-l">Þvingunaraðgerðir</span><span class="fs-ar-v">skima…</span></div></div>'
+        + '<div id="fs-ar-pep" class="fs-ar u"><div class="fs-ar-tx"><span class="fs-ar-l">Stjórnmálatengsl (PEP)</span><span class="fs-ar-v">skima…</span></div></div>'
+        + '<div id="fs-ar-log" class="fs-ar u"><div class="fs-ar-tx"><span class="fs-ar-l">Lögbirtingablaðið</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-media" class="fs-ar u"><div class="fs-ar-tx"><span class="fs-ar-l">Fjölmiðlaumfjöllun</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-flakk" class="fs-ar u"><div class="fs-ar-tx"><span class="fs-ar-l">Gjaldþrota-tengsl</span><span class="fs-ar-v">athuga…</span></div></div>'
+        + '<div id="fs-ar-sanction" class="fs-ar u"><div class="fs-ar-tx"><span class="fs-ar-l">Þvingunaraðgerðir</span><span class="fs-ar-v">skima…</span></div></div>'
         + '</div>'
         + '<div id="fs-ar-pep-detail" class="fs-ar-detail"></div>'
         + '<div id="fs-ar-media-detail" class="fs-ar-detail"></div>'
@@ -609,26 +618,26 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const u = f.umsvif;
       if (!u) {
         // Fjarvera ársreiknings er EKKI vísbending um rekstrarleysi — og má ekki lesast þannig.
-        return '<div class="fs-sub">📊 Umfang rekstrar</div>'
+        return '<div class="fs-sub">Umfang rekstrar</div>'
           + '<div class="fs-ar-note">Enginn ársreikningur félagsins liggur fyrir í gagnasafninu. Það er ekki vísbending um rekstrarleysi — sæktu hann í ársreikningaskrá Skattsins og staðfestu umfangið þar.</div>';
       }
       const ar = (u.ar_a_skra || []).length > 1 ? '<span class="fs-ph-src">Ársreikningar á skrá: ' + escF(u.ar_a_skra.join(', ')) + '</span>' : '';
-      return '<div class="fs-sub">📊 Umfang rekstrar</div>'
+      return '<div class="fs-sub">Umfang rekstrar</div>'
         + '<div class="fs-ph filled" id="fs-ar-umsvif"><b>' + escF(u.lysing) + '</b>' + ar
         + '<span class="fs-ph-src">' + escF(UMSVIF_FYRIRVARI) + '</span></div>';
     }
     // ── Stjórn og fyrirsvar (990-matið) ──────────────────────────────────────────
     // Endurnýtir fsStjornCell úr fullu skýrslunni. Fjarvera = fyrirvari, ALDREI „engin stjórn".
     function fsAreidStjorn(f) {
-      if ((f.stjorn || []).length) return '<div class="fs-sub">🪑 Stjórn og fyrirsvar</div>' + fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun });
-      return '<div class="fs-sub">🪑 Stjórn og fyrirsvar</div>'
+      if ((f.stjorn || []).length) return '<div class="fs-sub">Stjórn og fyrirsvar</div>' + fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun });
+      return '<div class="fs-sub">Stjórn og fyrirsvar</div>'
         + '<div class="fs-ar-note">Skráð stjórn liggur ekki fyrir í gagnasafninu við gerð skýrslunnar. Staðfestu fyrirsvar í fyrirtækjaskrá Skattsins.</div>';
     }
     // Sjálfstæð Áreiðanleikamats-skýrsla (VERK B, ?vidmot=areidanleiki): slim haus (heiti+kt) + AÐEINS
     // KYC-kortið + Lögbirtinga-listi. Endurnýtir fsAreidanleiki/fsWireKyc — fulla skýrslan er án KYC.
     function fsAreidView(f, rsk) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
-      const rskLink = rsk ? `<a class="fs-link" style="margin-top:14px" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : '';
+      const rskLink = rsk ? `<a class="fs-link" style="margin-top:14px" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : '';
       return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki' }) + `
         <div id="fs-report">
         <div class="fs-rephead" hidden><b>${KARP_MERKI}KARP — Áreiðanleikamat (KYC)</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/areidanleiki · heimildir: fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðið, PEP-listi (þing/ráðherrar/sveitarstjórnir)</span></div>
@@ -639,7 +648,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${fsAreidStjorn(f)}
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           ${rskLink}
-          <div class="eig-related"><a class="eig-fulllink" href="${escF(felagHref(f.kt))}">🏢 Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Endanlegir eigendur →</a></div>
+          <div class="eig-related"><a class="eig-fulllink" href="${escF(felagHref(f.kt))}">Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">Endanlegir eigendur →</a></div>
           <div class="fs-note2">ⓘ Áreiðanleikamat byggir á opinberum stöðumerkjum úr fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu og PEP-skimun (nafnasamsvörun — staðfestu auðkenni). <b>Hvorki lánshæfismat né vanskilaskrá</b> — slík starfsemi er leyfisskyld. Full fyrirtækjaskýrsla með fjárhagsmælaborði, eigendaneti, greiðslum og fleiru er á <a href="${escF(felagHref(f.kt))}">fyrirtækjaskránni</a>.</div>
         </div>
         </div>`;
@@ -656,7 +665,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         return '<rect x="' + (i * (bw + gap)) + '" y="' + (h - bh) + '" width="' + bw + '" height="' + bh + '" rx="2" fill="' + col + '"><title>' + escF(w.d) + ': ' + w.n + ' greinar' + (w.idx != null ? ' · tónn ' + w.idx : '') + '</title></rect>';
       }).join('');
       const wd = weeks.length * (bw + gap);
-      return '<div class="fs-media-tl"><div class="fs-media-tl-h">📊 Umfjöllun eftir vikum <span>grænt = jákvætt · rautt = neikvætt</span></div><svg viewBox="0 0 ' + wd + ' ' + h + '" width="100%" style="max-width:' + Math.max(160, wd) + 'px;height:' + h + 'px" preserveAspectRatio="none">' + bars + '</svg></div>';
+      return '<div class="fs-media-tl"><div class="fs-media-tl-h">Umfjöllun eftir vikum <span>grænt = jákvætt · rautt = neikvætt</span></div><svg viewBox="0 0 ' + wd + ' ' + h + '" width="100%" style="max-width:' + Math.max(160, wd) + 'px;height:' + h + 'px" preserveAspectRatio="none">' + bars + '</svg></div>';
     }
     async function fsWireMedia(f) {
       const chip = document.getElementById('fs-ar-media'); if (!chip) return;
@@ -671,7 +680,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         if (v) v.textContent = tot + ' grein' + (tot > 1 ? 'ar' : '') + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx : '');
         const d = document.getElementById('fs-ar-media-detail');
         if (d && (fj.items || []).length) d.innerHTML = fsMediaTimeline(fj.timeline)
-          + '<div class="fs-media-hd">📰 Fjölmiðlaumfjöllun — ' + tot + ' greinar sl. 12 mán' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' (neikvæður)' : '') : '') + '</div>'
+          + '<div class="fs-media-hd">Fjölmiðlaumfjöllun — ' + tot + ' greinar sl. 12 mán' + (se.scored ? ' · tónn ' + (idx > 0 ? '+' : '') + idx + (bad ? ' (neikvæður)' : '') : '') + '</div>'
           + '<div class="fs-media-list">' + fj.items.slice(0, 6).map((it) => '<a class="fs-media-i" href="' + escF(it.link) + '" target="_blank" rel="noopener"><span class="fs-media-t">' + escF(it.title) + '</span><span class="fs-media-m">' + escF(it.source || '') + (it.date ? ' · ' + escF(String(it.date).slice(0, 10)) : '') + '</span></a>').join('') + '</div>'
           + '<div class="fs-ar-more"><a href="/frettir/">Öll fjölmiðlaumfjöllun í vaktinni →</a></div>';
       } catch (e) { chip.className = 'fs-ar n'; if (v) v.textContent = '—'; }
@@ -690,7 +699,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       chip.className = 'fs-ar o';
       if (v) v.textContent = matches.length + ' vísbending' + (matches.length > 1 ? 'ar' : '');
       const d = document.getElementById('fs-ar-flakk-detail');
-      if (d) d.innerHTML = '⚠️ <b>Möguleg gjaldþrota-tengsl</b> — félag með sama nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið. <b>Vísbending, ekki staðfesting</b> — staðfestu: '
+      if (d) d.innerHTML = '⚠ <b>Möguleg gjaldþrota-tengsl</b> — félag með sama nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið. <b>Vísbending, ekki staðfesting</b> — staðfestu: '
         + matches.slice(0, 4).map((m) => escF(m.name) + ' <span class="fs-ar-role">kt. ' + escF(ktFmt(m.kt)) + (m.date ? ' · ' + escF(m.date) : '') + '</span>').join('; ');
     }
     // F9 — Þvingunaraðgerða-skimun: eigenda/forráðamanna-nöfn gegn worker /api/sanctions (ESB+SÞ+OFAC).
@@ -709,7 +718,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       // Hvorug ræður ALDREI lit flísarinnar — rautt (fs-ar b) er eingöngu drifið af hits.
       const veikRad = (h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>';
       const veikLina = (arr, heiti, skyring) => !arr.length ? '' :
-        '<div class="fs-ar-veik">ℹ️ <b>' + arr.length + ' ' + heiti + '</b> — ' + skyring + ' Krefst auðkennis-staðfestingar: '
+        '<div class="fs-ar-veik">ⓘ <b>' + arr.length + ' ' + heiti + '</b> — ' + skyring + ' Krefst auðkennis-staðfestingar: '
         + arr.map(veikRad).join('; ') + '</div>';
       const veikTxt =
         veikLina(veikar.filter((h) => h.tegund !== 'jadar'), 'eins-orðs samsvörun', 'nafnið er eitt orð og samsvörunin því veik.')
@@ -722,7 +731,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       }
       chip.className = 'fs-ar b';
       if (v) v.textContent = hits.length + ' möguleg';
-      if (d) d.innerHTML = '⚠️ <b>Möguleg samsvörun við refsilista</b> (ESB/SÞ/OFAC) — nafnasamsvörun, <b>EKKI staðfesting</b>, staðfestu auðkenni: '
+      if (d) d.innerHTML = '⚠ <b>Möguleg samsvörun við refsilista</b> (ESB/SÞ/OFAC) — nafnasamsvörun, <b>EKKI staðfesting</b>, staðfestu auðkenni: '
         + hits.map((h) => escF(h.nafn) + ' <span class="fs-ar-role">→ ' + escF(h.listi) + ' [' + escF(h.listar) + ']</span>').join('; ') + veikTxt;
     }
     // Auðgun 14 — samsett áreiðanleika-yfirlit: telur opinber stöðumerki (grænt/gult/rautt). EKKI lánshæfismat.
@@ -740,11 +749,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         host.className = 'fs-ar-stig ' + (s.lvl || 'n');
         if (s.lvl) {
           const m = s.merki;
-          host.innerHTML = '<div class="fs-ar-stig-b">' + (s.lokid ? (m.b ? '🔴' : m.o ? '🟡' : '🟢') : '⏳') + '</div>'
+          host.innerHTML = '<div class="fs-ar-stig-b ' + (s.lokid ? (m.b ? 's-b' : m.o ? 's-o' : 's-g') : 's-n') + '">' + (s.lokid ? '●' : '…') + '</div>'
             + '<div class="fs-ar-stig-tx"><b>' + s.label + '</b>'
             + '<span>' + s.skilad + '/' + s.alls + ' opinberar athuganir skiluðu merki'
             + (s.tomar ? ' · ' + s.tomar + ' án niðurstöðu' : '') + (s.bidur ? ' · ' + s.bidur + ' svöruðu ekki' : '')
-            + ' · ' + '🟢'.repeat(m.g) + '🟡'.repeat(m.o) + '🔴'.repeat(m.b) + '</span>'
+            + ' · <span class="fs-stig-dots"><i class="s-g">' + '●'.repeat(m.g) + '</i><i class="s-o">' + '●'.repeat(m.o) + '</i><i class="s-b">' + '●'.repeat(m.b) + '</i></span></span>'
             + '<span class="fs-ar-stig-n">Samantekt á opinberum stöðumerkjum — <b>ekki lánshæfismat</b>.</span></div>';
         }
         return s.lokid || uppgefid;
@@ -757,10 +766,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     // fjarverandi → no-op) OG í áreiðanleika-view (fyllir KYC-hólfin). Öll element-uppfærsla er null-vörðuð.
     function fsWireKyc(felag) {
       fsWirePep(felag);   // ⚖️ PEP-skimun eigenda/forráðamanna → áreiðanleiki-kort (#fs-ar-pep)
-      fsWireMedia(felag);      // 📰 F7 fjölmiðlaumfjöllun
-      fsWireFlakk(felag);      // 🔁 F8 gjaldþrota-tengsl
-      fsWireSanction(felag);   // 🌐 F9 þvingunaraðgerða-skimun
-      fsWireAreidStig();       // 🛡️ Auðgun 14 — samsett stöðumerkja-yfirlit
+      fsWireMedia(felag);      // F7 fjölmiðlaumfjöllun
+      fsWireFlakk(felag);      // F8 gjaldþrota-tengsl
+      fsWireSanction(felag);   // F9 þvingunaraðgerða-skimun
+      fsWireAreidStig();       // Auðgun 14 — samsett stöðumerkja-yfirlit
       fetch('/api/logbirting?kt=' + encodeURIComponent(felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
         // → áreiðanleiki: Lögbirtingablaðs-merki (gjaldþrot/innköllun = rautt)
         const lc = document.getElementById('fs-ar-log');
@@ -774,11 +783,11 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const sc = (n) => n >= 2 ? 's2' : n >= 1 ? 's1' : 's0';
         const rows = (l.tilkynningar || []).slice(0, 8).map((n) => {
           const meta = [n.domstoll, n.dagsThinghald && ('þinghald ' + n.dagsThinghald), n.frestur && ('kröfulýsingarfrestur ' + n.frestur)].filter(Boolean).map(escF).join(' · ');
-          return `<div class="fs-lb-row"><span class="fs-lb-b ${sc(n.alvarleiki)}" title="Alvarleiki ${n.alvarleiki}/2">⚖</span>`
+          return `<div class="fs-lb-row"><span class="fs-lb-b ${sc(n.alvarleiki)}" title="Alvarleiki ${n.alvarleiki}/2">●</span>`
             + `<span class="fs-lb-t"><b>${escF(n.tegundHeiti)}</b>${meta ? '<br><span class="fs-lb-l">' + meta + '</span>' : ''}</span>`
             + `<span class="fs-lb-d">${escF(n.dagsetning || '')}${n.hlekkur ? '<br><a href="' + escF(n.hlekkur) + '" target="_blank" rel="noopener">tölublað' + (n.tolublad ? ' ' + escF(n.tolublad) : '') + ' ↗</a>' : ''}</span></div>`;
         }).join('');
-        el.innerHTML = `<div class="fs-sub">⚖️ Lögbirtingablaðið — opinberar tilkynningar${l.count > 8 ? ' · nýjustu 8 af ' + l.count : ''}</div>${rows}`
+        el.innerHTML = `<div class="fs-sub">Lögbirtingablaðið — opinberar tilkynningar${l.count > 8 ? ' · nýjustu 8 af ' + l.count : ''}</div>${rows}`
           + `<div class="fs-kv-src">Opinber lögbirting (lög nr. 15/2005): gjaldþrotaskipti, innkallanir, skiptalok og félagsslit lögaðila · <a href="https://www.logbirtingablad.is" target="_blank" rel="noopener">logbirtingablad.is</a></div>`;
       }).catch(() => {});
     }
@@ -824,9 +833,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const has = !!(f.eigendur && f.eigendur.length);
       if (!has && !f.eigendurTomt) return '';           // ekki flett upp → ekkert kort
       const n = has ? f.eigendur.length : 0;
-      const sub = '<div class="fs-sub">🕸️ Tengslakort — skráð eignarhald' + (n ? ' · ' + n + (n === 1 ? ' eigandi' : ' eigendur') : '') + '</div>';
+      const sub = '<div class="fs-sub">Tengslakort — skráð eignarhald' + (n ? ' · ' + n + (n === 1 ? ' eigandi' : ' eigendur') : '') + '</div>';
       const empty = (!has && f.eigendurTomt) ? '<div class="tk-empty">Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir dreift eða skráð eignarhald. Kortið sýnir félagið sjálft.</div>' : '';
-      const legend = has ? '<div class="tk-legend"><span class="tk-lg"><i class="co"></i> Félagið</span><span class="tk-lg"><i class="pe"></i> 👤 Einstaklingur — möguleg tengsl</span><span class="tk-lg"><i class="fe"></i> 🏢 Lögaðili — opna fyrirtækjaskrá</span><span class="tk-lg">Línubreidd ≈ eignarhlutur</span></div>' : '';
+      const legend = has ? '<div class="tk-legend"><span class="tk-lg"><i class="co"></i> Félagið</span><span class="tk-lg"><i class="pe"></i> Einstaklingur — möguleg tengsl</span><span class="tk-lg"><i class="fe"></i> Lögaðili — opna fyrirtækjaskrá</span><span class="tk-lg">Línubreidd ≈ eignarhlutur</span></div>' : '';
       const src = '<div class="tk-src">ⓘ Byggt á skráðum <b>raunverulegum eigendum</b> (>25% eða yfirráð) í fyrirtækjaskrá Skattsins. Einstaklingar birtast eins og skráin birtir þá (nafn + fæðingarár, án kennitölu). Tengsl eru <b>skráð eða möguleg</b> — ekki fullyrðing. Hvorki lánshæfismat né vanskilaskrá.</div>';
       return '<div class="tk-sec">' + sub + '<div class="tk-wrap" id="tk-wrap" role="group" aria-label="Tengslakort: skráð eignarhald félagsins"></div>' + empty + '<div class="tk-detail" id="tk-detail" hidden></div>' + legend + src + '</div>';
     }
@@ -857,7 +866,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const H = CH + (N ? VGAP + rows * NH + (rows - 1) * RGAP : 0) + 4;
         let edges = '', nodes = '', chips = '';
         nodes += '<div class="tk-node tk-co" style="left:' + ((W - CW) / 2).toFixed(1) + 'px;top:0;width:' + CW + 'px;height:' + CH + 'px" title="' + escF(f.nafn || '') + '">'
-          + '<span class="tk-row"><span class="tk-ic">🏢</span><span class="tk-nm tk-nm-co">' + escF(f.nafn || '—') + '</span></span>'
+          + '<span class="tk-row"><span class="tk-nm tk-nm-co">' + escF(f.nafn || '—') + '</span></span>'
           + '<span class="tk-meta">kt. ' + escF(ktFmt(f.kt)) + '</span></div>';
         owners.forEach((o, k) => {
           const r = Math.floor(k / cols);
@@ -874,7 +883,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           const al = (o.felag ? 'Lögaðili: ' : 'Einstaklingur: ') + escF(o.nafn) + (o.hlutur ? ', ' + escF(o.hlutur) : '') + (o.felag ? ' — opna fyrirtækjaskrá' : ' — sjá möguleg tengsl');
           nodes += '<button type="button" class="tk-node tk-owner ' + (o.felag ? 'tk-felag' : 'tk-person') + (o.pep ? ' tk-pep' : '')
             + '" data-i="' + o.i + '" style="left:' + x.toFixed(1) + 'px;top:' + y + 'px;width:' + NW + 'px;height:' + NH + 'px;animation-delay:' + (k * 45) + 'ms" title="' + escF(o.nafn) + '" aria-label="' + al + '">'
-            + '<span class="tk-row"><span class="tk-ic">' + (o.felag ? '🏢' : '👤') + '</span><span class="tk-nm">' + escF(o.nafn) + '</span>' + (o.pep ? '<span class="tk-pepm" title="Möguleg stjórnmálatengsl (PEP)">⚖️</span>' : '') + '</span>'
+            + '<span class="tk-row"><span class="tk-nm">' + escF(o.nafn) + '</span>' + (o.pep ? '<span class="tk-pepm" title="Möguleg stjórnmálatengsl (PEP)">PEP</span>' : '') + '</span>'
             + '<span class="tk-meta">' + meta + '</span></button>';
         });
         wrap.style.height = H + 'px';
@@ -917,12 +926,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const det = document.getElementById('tk-detail'); if (!det) return;
         const hits = fsTengslLeit(o, f.kt);
         const rel = hits.length
-          ? hits.map((h) => '<button type="button" class="tk-rel" data-kt="' + escF(h.kt) + '"><span class="tk-ic">🏢</span><span class="tk-nm2">' + escF(h.nafn || h.kt) + '</span><span class="kt">kt. ' + escF(ktFmt(h.kt)) + '</span><span class="tk-open">opna ↗</span></button>').join('')
+          ? hits.map((h) => '<button type="button" class="tk-rel" data-kt="' + escF(h.kt) + '"><span class="tk-nm2">' + escF(h.nafn || h.kt) + '</span><span class="kt">kt. ' + escF(ktFmt(h.kt)) + '</span><span class="tk-open">opna ↗</span></button>').join('')
           : '<div class="tk-relempty">Ekkert annað uppflett félag í þessari lotu nefnir sama einstakling (sama nafn + fæðingarár). Flettu upp fleiri félögum til að víkka netið.</div>';
         det.innerHTML = '<button type="button" class="tk-detclose" aria-label="Loka">✕</button>'
-          + '<div class="tk-det-h"><span class="tk-ic">👤</span><b>' + escF(o.nafn) + '</b>' + (o.pep ? ' <span class="tk-pepm" title="Möguleg stjórnmálatengsl">⚖️</span>' : '') + '</div>'
+          + '<div class="tk-det-h"><b>' + escF(o.nafn) + '</b>' + (o.pep ? ' <span class="tk-pepm" title="Möguleg stjórnmálatengsl">PEP</span>' : '') + '</div>'
           + '<div class="tk-det-facts">' + facts(o) + '</div>'
-          + '<div class="tk-det-lbl">🔗 Möguleg tengsl <span>(best-effort — uppflett félög í lotunni)</span></div>'
+          + '<div class="tk-det-lbl">Möguleg tengsl <span>(best-effort — uppflett félög í lotunni)</span></div>'
           + '<div class="tk-det-list">' + rel + '</div>'
           + '<div class="tk-det-note">Byggt á félögum sem flett hefur verið upp í þessum vafra í þessari lotu — EKKI tæmandi leit í fyrirtækjaskrá. Sama nafn + fæðingarár þýðir ekki með vissu sami einstaklingur; staðfestu auðkenni. Aðeins opinber skráð gögn.</div>';
         det.hidden = false;
@@ -933,7 +942,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       function openFelag(o) {
         if (f.demo) {
           const det = document.getElementById('tk-detail'); if (!det) return;
-          det.innerHTML = '<button type="button" class="tk-detclose" aria-label="Loka">✕</button><div class="tk-demohint">🔎 <b>' + escF(o.nafn) + '</b> er lögaðili. Í raunverulegri skýrslu opnar smellur fyrirtækjaskrá þess félags. (Í sýnishorni er ekki flett upp.)</div>';
+          det.innerHTML = '<button type="button" class="tk-detclose" aria-label="Loka">✕</button><div class="tk-demohint"><b>' + escF(o.nafn) + '</b> er lögaðili. Í raunverulegri skýrslu opnar smellur fyrirtækjaskrá þess félags. (Í sýnishorni er ekki flett upp.)</div>';
           det.hidden = false; det.querySelector('.tk-detclose').onclick = () => { det.hidden = true; };
           return;
         }
@@ -952,7 +961,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const throtBits = [];
       if (afs.gjaldthrot) throtBits.push('Gjaldþrota' + (afs.gjaldthrotDags ? ' · ' + afs.gjaldthrotDags : ''));
       if (afs.gjaldthol) throtBits.push('Gjaldþrotaskipti / slit' + (afs.gjaldtholDags ? ' · ' + afs.gjaldtholDags : ''));
-      const throt = throtBits.length ? `<div class="fs-throt">⚠️ ${throtBits.map(escF).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</div>` : '';
+      const throt = throtBits.length ? `<div class="fs-throt">⚠ ${throtBits.map(escF).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</div>` : '';
       // Fyrirsvar (structured) úr opinbera API-inu — aðal; f.radamenn (strengir úr skrapi) sem fallback.
       const fyrirsvarHtml = (f.fyrirsvar && f.fyrirsvar.length)
         ? '<div class="fs-stj-list">' + f.fyrirsvar.slice(0, 20).map((p) => `<span class="fs-stj-r"><span class="fs-stj-n">${escF(p.nafn || '')}</span><span class="fs-stj-h">${escF(p.tegund || p.hlutverk || 'fyrirsvar')}</span></span>`).join('') + '</div><span class="fs-ph-src">Fyrirsvar (stjórn, prókúra, framkvæmdastjórn) — fyrirtækjaskrá Skattsins (opinbert API).</span>'
@@ -994,31 +1003,31 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-styrkir" class="fs-styrkir" hidden></div>
           <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
           <div class="fs-links">
-            <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">📰 Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
-            <a class="fs-link" id="fs-birgir" href="/birgjar/"><span class="t">💸 Greiðslur frá ríkinu</span><div class="s">athuga birgjaskrána…</div></a>
-            <a class="fs-link" id="fs-utb" href="/utbod/"><span class="t">🏆 Útboð unnin</span><div class="s">athuga úrslitaskrána…</div></a>
-            <a class="fs-link" id="fs-tilk" href="/frettir/"><span class="t">📣 Kauphallartilkynningar</span><div class="s">athuga Nasdaq-veituna…</div></a>
-            <a class="fs-link" id="fs-lei" href="https://search.gleif.org/#/search/simpleSearch:${escF(f.kt)}" target="_blank" rel="noopener"><span class="t">🌐 LEI — alþjóðlegt auðkenni</span><div class="s">athuga GLEIF-skrána…</div></a>
-            ${rsk ? `<a class="fs-link" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : ''}
+            <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
+            <a class="fs-link" id="fs-birgir" href="/birgjar/"><span class="t">Greiðslur frá ríkinu</span><div class="s">athuga birgjaskrána…</div></a>
+            <a class="fs-link" id="fs-utb" href="/utbod/"><span class="t">Útboð unnin</span><div class="s">athuga úrslitaskrána…</div></a>
+            <a class="fs-link" id="fs-tilk" href="/frettir/"><span class="t">Kauphallartilkynningar</span><div class="s">athuga Nasdaq-veituna…</div></a>
+            <a class="fs-link" id="fs-lei" href="https://search.gleif.org/#/search/simpleSearch:${escF(f.kt)}" target="_blank" rel="noopener"><span class="t">LEI — alþjóðlegt auðkenni</span><div class="s">athuga GLEIF-skrána…</div></a>
+            ${rsk ? `<a class="fs-link" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : ''}
           </div>
           <div class="fs-sub">Eigendur, fjárhagur og stjórn</div>
           <div class="fs-ph-grid">
             ${eig
-              ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b>${eig}<span class="fs-ph-src">Skráðir raunverulegir eigendur (>25% eða yfirráð) — fyrirtækjaskrá Skattsins</span></div>`
+              ? `<div class="fs-ph filled"><b>Raunverulegir eigendur</b>${eig}<span class="fs-ph-src">Skráðir raunverulegir eigendur (>25% eða yfirráð) — fyrirtækjaskrá Skattsins</span></div>`
               : (f.eigendurTomt
-                ? `<div class="fs-ph filled"><b>👥 Raunverulegir eigendur</b><span>Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir skráð félög og dreift eignarhald.</span></div>`
-                : `<div class="fs-ph"><b>👥 Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
+                ? `<div class="fs-ph filled"><b>Raunverulegir eigendur</b><span>Enginn einstaklingur skráður með raunverulegt eignarhald yfir 25% — dæmigert fyrir skráð félög og dreift eignarhald.</span></div>`
+                : `<div class="fs-ph"><b>Eigendur</b><span>Raunverulegir eigendur birtast hér þegar þeir eru skráðir í fyrirtækjaskrá.</span></div>`)}
             ${(f.stjorn || []).length
               ? fsStjornCell({ stjorn: f.stjorn, firmaritun: f.stjornFirmaritun })
               : (fyrirsvarHtml
-                ? `<div class="fs-ph filled" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${fyrirsvarHtml}</div>`
-                : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>🪑 Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`)}
+                ? `<div class="fs-ph filled" id="fs-stjorn-cell"><b>Stjórn & prókúra</b>${fyrirsvarHtml}</div>`
+                : `<div class="fs-ph${(f.radamenn || []).length ? ' filled' : ''}" id="fs-stjorn-cell"><b>Stjórn & prókúra</b>${(f.radamenn || []).length ? '<div class="fs-stj-list"><span class="fs-stj-r"><span class="fs-stj-n">' + escF((f.radamenn || []).join(' · ')) + '</span><span class="fs-stj-h">skráður forráðamaður</span></span></div><span class="fs-ph-src">Skráður forráðamaður — fyrirtækjaskrá Skattsins. Full stjórn birtist í keyptri skýrslu.</span>' : '<span>Stjórn, prókúra og framkvæmdastjórn birtast hér úr fyrirtækjaskrá Skattsins.</span>'}</div>`)}
           </div>
-          <div class="eig-related"><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Full eigendaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=${escF(f.kt)}">🛡️ Áreiðanleikamat →</a></div>
+          <div class="eig-related"><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">Full eigendaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=${escF(f.kt)}">Áreiðanleikamat →</a></div>
           <div class="fs-note2">ⓘ Skýrslan byggir á opinberum gögnum (fyrirtækjaskrá og ársreikningaskrá Skattsins — þ.m.t. skráðir raunverulegir eigendur, opnirreikningar.is, TED/útboðsvefir, Nasdaq) og fjölmiðlavakt Karp. KARP lánshæfismat er leiðbeinandi vísbending reiknuð úr opinberum gögnum — Karp rekur hvorki vanskilaskrá né gefur út formlegt lánshæfismat í skilningi leyfisskyldrar starfsemi (sbr. lög nr. 33/2005). Staðfest vottorð fást hjá Skattinum.</div>
         </div>
         </div>
-        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">🛒 Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?syni=1">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
+        <div class="fs-buyrow"><button id="fs-buy" class="fs-buy" type="button" data-kt="${escF(f.kt)}">Kaupa skýrslu — 990 kr</button><a class="fs-sample" href="/fyrirtaeki/?syni=1">Sjá sýnishorn</a><span class="fs-buynote">Formleg PDF-skýrsla · vistast á Mitt svæði · aðgengileg alltaf</span></div>`;
     }
     // Kaupa-gátt: full skýrsla læst — sýnir auðkenni (nafn+kt) + hvað fæst + kaupa/sýnishorn.
     // ── Fjárhags-KPI mælaborð (LOTA 99) — reiknað úr ársreikningi (f.fjarhagur = fylki ára, nýjast fyrst; tölur í m.kr) ──
@@ -1046,12 +1055,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       return null;
     }
     function fsKpiPending() {
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div>'
+      return '<div class="fs-sub">Fjárhagsmælaborð (KPI)</div>'
         + '<div class="kpi-pend"><div class="kpi-pend-hd"><span class="kpi-pend-spin"></span>'
         + '<div><b>Reiknast núna úr ársreikningi félagsins…</b>'
         + '<span class="kpi-pend-s">Sæki nýjasta ársreikning frá RSK og reikna lykiltölurnar · <i id="kpi-pend-sec">áætla tíma…</i></span></div></div>'
         + '<div class="kpi-pend-track"><div class="kpi-pend-bar" id="kpi-pend-bar"></div></div>'
-        + '<div class="kpi-pend-note">🔄 Síðan endurhleðst sjálfkrafa þegar mælaborðið er tilbúið — þú þarft ekkert að gera. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn á meðan →</a></div></div>';
+        + '<div class="kpi-pend-note">Síðan endurhleðst sjálfkrafa þegar mælaborðið er tilbúið — þú þarft ekkert að gera. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn á meðan →</a></div></div>';
     }
     // Poll-ar scrapaða JSON-inn (cache-busted) og endurhleður síðuna sjálfkrafa þegar hann er kominn.
     // baseline (valfrjálst) = JSON-texti FYRIR endurbyggingu („Sækja aftur"): endurhlaðið aðeins
@@ -1114,10 +1123,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!rep || !(rep.stjorn || []).length) return '';
       const rows = rep.stjorn.map((p) => '<span class="fs-stj-r"><span class="fs-stj-n">' + escF(p.nafn) + '</span><span class="fs-stj-h">' + escF(p.hlutverk) + '</span></span>').join('');
       const fr = rep.firmaritun ? '<span class="fs-stj-fr">Firmað rita: ' + escF(rep.firmaritun) + '</span>' : '';
-      return '<div class="fs-ph filled" id="fs-stjorn-cell"><b>🪑 Stjórn &amp; prókúra</b><div class="fs-stj-list">' + rows + '</div>' + fr + '<span class="fs-ph-src">Skráð stjórn, framkvæmdastjórn, prókúra og endurskoðendur — fyrirtækjaskrá Skattsins (gjaldfrjálst yfirlit)</span></div>';
+      return '<div class="fs-ph filled" id="fs-stjorn-cell"><b>Stjórn &amp; prókúra</b><div class="fs-stj-list">' + rows + '</div>' + fr + '<span class="fs-ph-src">Skráð stjórn, framkvæmdastjórn, prókúra og endurskoðendur — fyrirtækjaskrá Skattsins (gjaldfrjálst yfirlit)</span></div>';
     }
     function fsKpiSoon() {
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
+      return '<div class="fs-sub">Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>Lykiltölur reiknast úr ársreikningi félagsins</b><span>Framlegð, arðsemi (ROE/ROA), lausafjár- og eiginfjárhlutfall, skuldsetning og vöxtur — sjálfvirkt úr rekstrar- og efnahagsreikningi. <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
     // Loka-ástand í stað eilífs spinner. `flokkur` (úr build_arsreikningar) stýrir nákvæmum skilaboðum:
     // ekki_skilad = ekkert uppgjör til · skannad = mynd-PDF (OCR) · ovirkt = núll-uppgjör · oskyranlegt = óstaðlað.
@@ -1132,7 +1141,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       let key = (j && j.flokkur && F[j.flokkur]) ? j.flokkur : null;
       if (!key) key = (j && j.astaeda && /reikna|reiknu|fannst|óstað|skönn|núll/i.test(j.astaeda)) ? 'oskyranlegt' : 'ekki_skilad';
       const t = F[key];
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>' + t[0] + '</b><span>' + t[1] + ' <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
+      return '<div class="fs-sub">Fjárhagsmælaborð (KPI)</div><div class="kpi-soon"><b>' + t[0] + '</b><span>' + t[1] + ' <a href="/fyrirtaeki/?syni=1">Sjá sýnishorn af fullu mælaborði →</a></span></div>';
     }
     function fsKpiHtml(rows) {
       if (!rows || !rows.length) return fsKpiSoon();
@@ -1151,9 +1160,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         return '<div class="kpi-c ' + s + '"><div class="kpi-l">' + l + (tip ? ' <i class="tip" tabindex="0" data-tip="' + tip + '">ⓘ</i>' : '') + '</div><div class="kpi-v">' + fmt(v) + '</div>' + spark(key) + '</div>';
       };
       const yoY = (key) => { const c = k[key]; return c == null ? '' : '<span class="kpi-yoy ' + (c >= 0 ? 'up' : 'dn') + '">' + (c >= 0 ? '▲' : '▼') + ' ' + fsPct1(Math.abs(c)) + '</span>'; };
-      const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">📄 Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
-      const ocrNote = rows.ocr ? '<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px;line-height:1.5">🔍 Lesið með myndgreiningu (OCR) úr skönnuðum ársreikningi — tölur gætu innihaldið ónákvæmni. Efnahagsreikningur var sannreyndur (Eignir ≈ Eigið fé + Skuldir), en berðu saman við PDF-skjalið ef nákvæmni skiptir máli.</div>' : '';
-      return '<div class="fs-sub">📊 Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>' + ocrNote
+      const pdfLink = rows.pdf ? '<a class="fs-pdf-dl" href="/gogn/arsreikningar/' + rows.pdf + '" download title="Opinber ársreikningur (RSK, gjaldfrjáls)">Sækja ársreikning' + (rows.pdfAr ? ' ' + escF(String(rows.pdfAr)) : '') + ' (PDF)</a>' : '';
+      const ocrNote = rows.ocr ? '<div style="font-size:11.5px;color:var(--muted);margin:2px 0 8px;line-height:1.5">Lesið með myndgreiningu (OCR) úr skönnuðum ársreikningi — tölur gætu innihaldið ónákvæmni. Efnahagsreikningur var sannreyndur (Eignir ≈ Eigið fé + Skuldir), en berðu saman við PDF-skjalið ef nákvæmni skiptir máli.</div>' : '';
+      return '<div class="fs-sub">Fjárhagsmælaborð — lykiltölur úr ársreikningi (' + rows.map((r) => r.ar).join(' · ') + ')' + pdfLink + '</div>' + ocrNote
         + '<div class="kpi-top">' + fsHealthBars(hs) + '<div class="kpi-sum">'
         + '<div class="kpi-s"><span>Tekjur</span><b>' + fsMkr(y.tekjur, cur) + '</b>' + yoY('tekjuvoxtur') + '</div>'
         + '<div class="kpi-s"><span>Hagnaður</span><b>' + fsMkr(y.hagnadur, cur) + '</b>' + yoY('hagnvoxtur') + '</div>'
@@ -1221,23 +1230,23 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const hs = k0 ? fsHealthScore(k0) : null;
       _lh = { base: hs && hs.score != null ? hs.score : null, factors: {} };
       fsLhSet('fjarhagur', hs && hs.score != null
-        ? { icon: '📊', label: 'Fjárhagsheilsa', txt: hs.score + '/100 · ' + hs.grade, base: true, status: hs.score >= 65 ? 'g' : hs.score >= 50 ? 'o' : 'b', tip: 'Grunnur matsins: vegin einkunn úr ársreikningi — arðsemi (30%), skuldsetning (30%), lausafé (20%), vöxtur (20%). ' + FS_LH_SKALI }
+        ? { label: 'Fjárhagsheilsa', txt: hs.score + '/100 · ' + hs.grade, base: true, status: hs.score >= 65 ? 'g' : hs.score >= 50 ? 'o' : 'b', tip: 'Grunnur matsins: vegin einkunn úr ársreikningi — arðsemi (30%), skuldsetning (30%), lausafé (20%), vöxtur (20%). ' + FS_LH_SKALI }
         // Tvær ólíkar ástæður fyrir engri einkunn — félagið á rétt á að vita hvor á við
-        : { icon: '📊', label: 'Fjárhagsheilsa', txt: k0 ? 'Efnahagsreikning vantar' : 'Enginn ársreikningur', base: true, status: 'n',
+        : { label: 'Fjárhagsheilsa', txt: k0 ? 'Efnahagsreikning vantar' : 'Enginn ársreikningur', base: true, status: 'n',
           tip: (k0 ? 'Ársreikningur fannst en efnahagsreikningurinn (eignir, skuldir, eigið fé) þáttaðist ekki úr skjalinu — einkunn er ekki gefin út á rekstrartölum einum saman.'
             : 'Enginn ársreikningur skráður — ekki hægt að reikna fjárhagslega einkunn; áhættuþættir birtast eftir sem áður.') + ' ' + FS_LH_SKALI });
       const yrs = lhAldur(f.skrad);
-      if (yrs != null) fsLhSet('aldur', { icon: '🏛️', label: 'Starfsaldur', txt: yrs + ' ára' + (yrs >= 10 ? ' · rótgróið' : yrs < 2 ? ' · nýtt félag' : ''), delta: yrs >= 10 ? 4 : yrs >= 3 ? 2 : yrs < 2 ? -4 : 0, status: yrs >= 3 ? 'g' : yrs < 2 ? 'o' : 'n', tip: 'Starfsaldur frá skráningu í fyrirtækjaskrá. Rótgróin félög (10+ ára) +4, meðal (3–10) +2, ný (<2 ára) −4 — eldri rekstur er að jafnaði stöðugri.' });
+      if (yrs != null) fsLhSet('aldur', { label: 'Starfsaldur', txt: yrs + ' ára' + (yrs >= 10 ? ' · rótgróið' : yrs < 2 ? ' · nýtt félag' : ''), delta: yrs >= 10 ? 4 : yrs >= 3 ? 2 : yrs < 2 ? -4 : 0, status: yrs >= 3 ? 'g' : yrs < 2 ? 'o' : 'n', tip: 'Starfsaldur frá skráningu í fyrirtækjaskrá. Rótgróin félög (10+ ára) +4, meðal (3–10) +2, ný (<2 ára) −4 — eldri rekstur er að jafnaði stöðugri.' });
       const late = lhSkilLate(f);
-      if (late != null) fsLhSet('skil', { icon: '📅', label: 'Ársreikningaskil', txt: late ? 'Sein skil' : 'Skilað á réttum tíma', delta: late ? -5 : 2, status: late ? 'o' : 'g', tip: 'Voru ársreikningar skilaðir fyrir lögbundinn frest (31. ágúst árið eftir reikningsár)? Í tíma +2, sein skil −5 — mælikvarði á rekstrar-aga.' });
+      if (late != null) fsLhSet('skil', { label: 'Ársreikningaskil', txt: late ? 'Sein skil' : 'Skilað á réttum tíma', delta: late ? -5 : 2, status: late ? 'o' : 'g', tip: 'Voru ársreikningar skilaðir fyrir lögbundinn frest (31. ágúst árið eftir reikningsár)? Í tíma +2, sein skil −5 — mælikvarði á rekstrar-aga.' });
       // Skráningarstaða beint úr opinbera RSK-API-inu (f.afskraning) — áreiðanlegasta þrota-/afskráningarmerkið.
       // Aðeins lækkandi: gjaldþrot → þak 20 (E) óháð fjárhag; slit/skipti → þak 25; afskráð −10; virkt hlutlaust.
       const af = f.afskraning || (f.rsk && f.rsk.afskraning) || null;
       const tipStada = 'Skráningarstaða félags í fyrirtækjaskrá Skattsins (opinbert API). Gjaldþrot setur matið í lægsta flokk (E, þak 20) óháð fjárhag; gjaldþrotaskipti/slit þak 25; afskráð félag −10. Virkt félag hefur engin áhrif.';
-      if (af && af.gjaldthrot) fsLhSet('stada', { icon: '⚠️', label: 'Skráningarstaða', txt: 'Gjaldþrota' + (af.gjaldthrotDags ? ' · ' + af.gjaldthrotDags : ''), cap: 20, status: 'b', tip: tipStada });
-      else if (af && af.gjaldthol) fsLhSet('stada', { icon: '⚠️', label: 'Skráningarstaða', txt: 'Gjaldþrotaskipti / slit' + (af.gjaldtholDags ? ' · ' + af.gjaldtholDags : ''), cap: 25, status: 'b', tip: tipStada });
-      else if (f.afskrad) fsLhSet('stada', { icon: '🚫', label: 'Skráningarstaða', txt: 'Afskráð félag', delta: -10, status: 'o', tip: tipStada });
-      else if (f.stada) fsLhSet('stada', { icon: '✅', label: 'Skráningarstaða', txt: f.stada, delta: 0, status: 'g', tip: tipStada });
+      if (af && af.gjaldthrot) fsLhSet('stada', { label: 'Skráningarstaða', txt: 'Gjaldþrota' + (af.gjaldthrotDags ? ' · ' + af.gjaldthrotDags : ''), cap: 20, status: 'b', tip: tipStada });
+      else if (af && af.gjaldthol) fsLhSet('stada', { label: 'Skráningarstaða', txt: 'Gjaldþrotaskipti / slit' + (af.gjaldtholDags ? ' · ' + af.gjaldtholDags : ''), cap: 25, status: 'b', tip: tipStada });
+      else if (f.afskrad) fsLhSet('stada', { label: 'Skráningarstaða', txt: 'Afskráð félag', delta: -10, status: 'o', tip: tipStada });
+      else if (f.stada) fsLhSet('stada', { label: 'Skráningarstaða', txt: f.stada, delta: 0, status: 'g', tip: tipStada });
     }
     // Innmatur kortsins (hrein fall af _lh): hringur + einkunn + þátta-listi + fyrirvari.
     function fsLhBody() {
@@ -1251,12 +1260,12 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + '<text x="32" y="45" text-anchor="middle" font-size="9.5" fill="#9fb0c8">' + (s == null ? '—' : s + '/100') + '</text></svg>';
       const rows = FS_LH_ORDER.filter((k) => _lh.factors[k]).map((k) => {
         const fc = _lh.factors[k], eff = lhEffect(fc);
-        return '<div class="fs-lh-f s-' + (fc.status || 'n') + '"' + (fc.tip ? ' data-tip="' + escF(fc.tip) + '"' : '') + '><span class="fs-lh-fi">' + fc.icon + '</span>'
+        return '<div class="fs-lh-f s-' + (fc.status || 'n') + '"' + (fc.tip ? ' data-tip="' + escF(fc.tip) + '"' : '') + '>'
           + '<span class="fs-lh-fl">' + escF(fc.label) + '<b>' + escF(fc.txt) + '</b></span>'
           + '<span class="fs-lh-fd">' + eff + '</span></div>';
       }).join('');
       return '<div class="fs-lh-card"><div class="fs-lh-main"><div class="fs-lh-ring" data-tip="' + escF(FS_LH_SKALI) + '">' + ring + '</div>'
-        + '<div class="fs-lh-head"><div class="fs-lh-t">🎯 KARP lánshæfismat <i class="tip" tabindex="0" data-tip="' + escF(FS_LH_SKALI) + '">ⓘ</i></div>'
+        + '<div class="fs-lh-head"><div class="fs-lh-t">KARP lánshæfismat <i class="tip" tabindex="0" data-tip="' + escF(FS_LH_SKALI) + '">ⓘ</i></div>'
         + '<div class="fs-lh-band" style="color:' + color + '">' + grade + ' · ' + band + '</div>'
         + '<div class="fs-lh-sub">Samsett vísbending úr opinberum gögnum — fjárhagsheilsa vegin með áhættuþáttum. Farðu með músina yfir hvern þátt fyrir útskýringu.</div></div></div>'
         + '<div class="fs-lh-factors">' + rows + '</div>'
@@ -1288,30 +1297,30 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (!S) return null;
       const st = greinStig(f.fjarhagur[0]._kpi || fsKpiCalc(f.fjarhagur[0], f.fjarhagur[1]), S);
       if (!st) return null;
-      return { icon: '🏭', label: 'Atvinnugreinar-viðmið', txt: st.better + ' af ' + st.alls + (st.delta > 0 ? ' yfir meðaltali' : st.delta < 0 ? ' undir meðaltali' : ' um meðaltal'), delta: st.delta, status: st.status, tip: 'Lykiltölur félagsins bornar saman við meðaltal atvinnugreinarinnar (Hagstofa FYR08010): framlegð, hagnaður, eiginfjárhlutfall, eignavelta, skuldir/eigið fé. Meirihluti yfir meðaltali +4, undir −5.' };
+      return { label: 'Atvinnugreinar-viðmið', txt: st.better + ' af ' + st.alls + (st.delta > 0 ? ' yfir meðaltali' : st.delta < 0 ? ' undir meðaltali' : ' um meðaltal'), delta: st.delta, status: st.status, tip: 'Lykiltölur félagsins bornar saman við meðaltal atvinnugreinarinnar (Hagstofa FYR08010): framlegð, hagnaður, eiginfjárhlutfall, eignavelta, skuldir/eigið fé. Meirihluti yfir meðaltali +4, undir −5.' };
     }
     // Vefun matsins: kveikir á-hnikandi áhættuþáttum og endurteiknar kortið jafnóðum (null-varið; no-op ef kort vantar).
     function fsWireLanshaefi(f) {
       if (!document.getElementById('fs-lanshaefi')) return;
       fsLhSectorFactor(f).then((s) => { if (s) { fsLhSet('sector', s); fsLhRender(); } }).catch(() => {});
       const tipLog = 'Opinberar tilkynningar félagsins í Lögbirtingablaðinu (lög nr. 15/2005). Gjaldþrotaskipti eða innköllun setja matið í lægsta flokk (E) óháð fjárhag; aðrar tilkynningar lækka um 12.';
-      if (f.demo) { fsLhSet('logbirting', { icon: '📜', label: 'Lögbirtingablaðið', txt: 'Engar tilkynningar', delta: 0, status: 'g', tip: tipLog }); fsLhRender(); return; }
+      if (f.demo) { fsLhSet('logbirting', { label: 'Lögbirtingablaðið', txt: 'Engar tilkynningar', delta: 0, status: 'g', tip: tipLog }); fsLhRender(); return; }
       fetch('/api/logbirting?kt=' + encodeURIComponent(f.kt || '')).then((r) => (r.ok ? r.json() : null)).then((l) => {
         if (!l || !l.holdur) return;
         const nt = l.tilkynningar || [], mx = nt.reduce((m, n) => Math.max(m, n.alvarleiki || 0), 0);
-        if (!nt.length) fsLhSet('logbirting', { icon: '📜', label: 'Lögbirtingablaðið', txt: 'Engar tilkynningar', delta: 0, status: 'g', tip: tipLog });
-        else if (mx >= 2) fsLhSet('logbirting', { icon: '📜', label: 'Lögbirtingablaðið', txt: 'Gjaldþrot / innköllun', delta: -45, cap: 25, status: 'b', tip: tipLog });
-        else fsLhSet('logbirting', { icon: '📜', label: 'Lögbirtingablaðið', txt: nt.length + ' opinber tilkynning' + (nt.length > 1 ? 'ar' : ''), delta: -12, status: 'o', tip: tipLog });
+        if (!nt.length) fsLhSet('logbirting', { label: 'Lögbirtingablaðið', txt: 'Engar tilkynningar', delta: 0, status: 'g', tip: tipLog });
+        else if (mx >= 2) fsLhSet('logbirting', { label: 'Lögbirtingablaðið', txt: 'Gjaldþrot / innköllun', delta: -45, cap: 25, status: 'b', tip: tipLog });
+        else fsLhSet('logbirting', { label: 'Lögbirtingablaðið', txt: nt.length + ' opinber tilkynning' + (nt.length > 1 ? 'ar' : ''), delta: -12, status: 'o', tip: tipLog });
         fsLhRender();
       }).catch(() => {});
       fetch('/api/vanskil?kt=' + encodeURIComponent(f.kt || '')).then((r) => (r.ok ? r.json() : null)).then((v) => {
-        if (v && Array.isArray(v.ar) && v.ar.length) { fsLhSet('vanskil', { icon: '⚠️', label: 'Ársreikningur í vanskilum', txt: v.ar.map((x) => x.ar).join(', '), delta: -12, status: 'b', tip: 'Félagið er á opinberum vanskilalista ársreikningaskrár Skattsins (hefur ekki skilað ársreikningi tiltekinna ára) — lækkar matið um 12.' }); fsLhRender(); }
+        if (v && Array.isArray(v.ar) && v.ar.length) { fsLhSet('vanskil', { label: 'Ársreikningur í vanskilum', txt: v.ar.map((x) => x.ar).join(', '), delta: -12, status: 'b', tip: 'Félagið er á opinberum vanskilalista ársreikningaskrár Skattsins (hefur ekki skilað ársreikningi tiltekinna ára) — lækkar matið um 12.' }); fsLhRender(); }
       }).catch(() => {});
-      fsFlakkMatches(f).then((m) => { if (m && m.length) { fsLhSet('flakk', { icon: '🔁', label: 'Möguleg gjaldþrota-tengsl', txt: m.length + ' vísbending' + (m.length > 1 ? 'ar' : ''), delta: -8, status: 'o', tip: 'Annað félag með sama kjarna-nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið (kennitöluflakks-vísbending). Vísbending, ekki staðfesting — lækkar um 8.' }); fsLhRender(); } }).catch(() => {});
+      fsFlakkMatches(f).then((m) => { if (m && m.length) { fsLhSet('flakk', { label: 'Möguleg gjaldþrota-tengsl', txt: m.length + ' vísbending' + (m.length > 1 ? 'ar' : ''), delta: -8, status: 'o', tip: 'Annað félag með sama kjarna-nafn en aðra kennitölu hefur nýlega verið tekið til gjaldþrotaskipta eða slitið (kennitöluflakks-vísbending). Vísbending, ekki staðfesting — lækkar um 8.' }); fsLhRender(); } }).catch(() => {});
       fsSanctionHits(f).then((s) => {
-        if (s && s.hits && s.hits.length) { fsLhSet('sanction', { icon: '🌐', label: 'Refsilista-samsvörun', txt: s.hits.length + ' möguleg', delta: -50, cap: 20, status: 'b', tip: 'Möguleg nafnasamsvörun félags eða eigenda við þvingunarlista (ESB/SÞ/OFAC). Setur matið í lægsta flokk (E). Nafnasamsvörun, EKKI staðfesting — staðfestu auðkenni.' }); fsLhRender(); }
+        if (s && s.hits && s.hits.length) { fsLhSet('sanction', { label: 'Refsilista-samsvörun', txt: s.hits.length + ' möguleg', delta: -50, cap: 20, status: 'b', tip: 'Möguleg nafnasamsvörun félags eða eigenda við þvingunarlista (ESB/SÞ/OFAC). Setur matið í lægsta flokk (E). Nafnasamsvörun, EKKI staðfesting — staðfestu auðkenni.' }); fsLhRender(); }
         // Skimun sem náði ekki yfir alla verður að SJÁST — „engin samsvörun“ á ófullri skimun er villandi.
-        else if (s && s.skorid > 0) { fsLhSet('sanction', { icon: '🌐', label: 'Refsilista-skimun', txt: 'að hluta — ' + (s.names - s.skorid) + ' af ' + s.names + ' nöfnum', delta: 0, status: 'n', tip: 'Félagið hefur fleiri skráða eigendur/ráðamenn en komast í eina skimunar-fyrirspurn. Engin samsvörun fannst meðal þeirra sem skimaðir voru; afgangurinn var EKKI skimaður.' }); fsLhRender(); }
+        else if (s && s.skorid > 0) { fsLhSet('sanction', { label: 'Refsilista-skimun', txt: 'að hluta — ' + (s.names - s.skorid) + ' af ' + s.names + ' nöfnum', delta: 0, status: 'n', tip: 'Félagið hefur fleiri skráða eigendur/ráðamenn en komast í eina skimunar-fyrirspurn. Engin samsvörun fannst meðal þeirra sem skimaðir voru; afgangurinn var EKKI skimaður.' }); fsLhRender(); }
       }).catch(() => {});
     }
     // 🏦 Efnahags-stöplasúla: samsetning fjármögnunar (eigið fé + langtíma- + skammtímaskuldir)
@@ -1327,7 +1336,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const leg = hasSplit
         ? '<span><i class="efe"></i>Eigið fé' + pc(efe) + '</span>' + (lang > 0 ? '<span><i class="lang"></i>Langtímaskuldir' + pc(lang) + '</span>' : '') + '<span><i class="skamm"></i>Skammtímaskuldir' + pc(sam) + '</span>'
         : '<span><i class="efe"></i>Eigið fé' + pc(efe) + '</span><span><i class="skamm"></i>Skuldir' + pc(sk) + '</span>';
-      return '<div class="fs-sub">🏦 Efnahagur — samsetning fjármögnunar</div><div class="fs-bs-bar">' + bar + '</div><div class="fs-bs-leg">' + leg + '</div>';
+      return '<div class="fs-sub">Efnahagur — samsetning fjármögnunar</div><div class="fs-bs-bar">' + bar + '</div><div class="fs-bs-leg">' + leg + '</div>';
     }
     // 🎯 Fjárhagsheilsu-hringurinn er nú hluti af KARP lánshæfismatinu (fsLanshaefi/fsLhBody) efst í skýrslunni
     // — ein einkunn per skýrsla. Hér standa aðeins heilsu-stoðirnar (fsHealthBars) sem fjárhags-dýpt.
@@ -1345,7 +1354,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           + '<text x="' + (x + bw / 2) + '" y="' + (h + 14) + '" text-anchor="middle" font-size="11" fill="#9fb0c8">' + r.ar + '</text>';
       });
       const w = x0 * 2 + yrs.length * (bw + gap) - gap;
-      return '<div class="fs-sub">📈 Tekjur og hagnaður (' + (cur || 'm.kr') + ')</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
+      return '<div class="fs-sub">Tekjur og hagnaður (' + (cur || 'm.kr') + ')</div><div class="kpi-chart"><svg viewBox="0 0 ' + w + ' ' + (h + 20) + '" width="100%" style="max-width:' + w + 'px">' + bars + '</svg><div class="kpi-chart-leg"><span class="lg-t">Tekjur</span><span class="lg-h">Hagnaður</span></div></div>';
     }
     // 🏭 Samanburður við atvinnugrein (F2) — greinar-viðmið Hagstofu (FYR08010) á ÍSAT-forskeyti félagsins.
     let _secCache;
@@ -1390,7 +1399,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const rslug = (rk && rk.ok && rk.slug) ? rk.slug : (S.label ? slugify(S.label) : '');
       const linkLine = '<a class="fs-sec-link" href="/atvinnugreinar/' + (rslug ? rslug + '/' : '') + '">→ Sjá alla greinina (stærstu félög + samþjöppun)</a>';
       host.hidden = false;
-      host.innerHTML = '<div class="fs-sub">🏭 Samanburður við atvinnugrein <i class="tip" tabindex="0" data-tip="Leiðbeinandi viðmið úr heild atvinnugreinarinnar (Hagstofa FYR08010, ' + (S.ar || sec.ar || '') + '). Grein: ' + escF(S.label || '') + '. Grænt = betra en greinin. Ekki fjárfestingarráðgjöf.">ⓘ</i></div>'
+      host.innerHTML = '<div class="fs-sub">Samanburður við atvinnugrein <i class="tip" tabindex="0" data-tip="Leiðbeinandi viðmið úr heild atvinnugreinarinnar (Hagstofa FYR08010, ' + (S.ar || sec.ar || '') + '). Grein: ' + escF(S.label || '') + '. Grænt = betra en greinin. Ekki fjárfestingarráðgjöf.">ⓘ</i></div>'
         + rankLine
         + '<div class="fs-sec-grid">' + body + '</div>'
         + linkLine
@@ -1410,7 +1419,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       return /^([A-Za-z]|\d[\d.]*)$/.test(code) ? code : null;
     }
     function fsLobbyRow(it) {
-      const icon = it.kind === 'samrad' ? '💬' : '📜';
+      const icon = it.kind === 'samrad' ? 'Samráð' : 'Þingmál';
       const stigCls = it.stig === 'Mikil' ? 'mikil' : it.stig === 'Lítil' ? 'litil' : 'midlungs';
       const when = it.frestur ? ('frestur ' + new Date(it.frestur).toLocaleDateString('is-IS')) : (it.stada || '');
       return '<div class="fs-lob-row"><span class="fs-lob-i">' + icon + '</span>'
@@ -1430,7 +1439,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const top = filterFeed(items, sector ? [sector] : []).slice(0, 3);
         if (!top.length) return;   // engin viðeigandi mál í dag → sleppa alveg, ekki tómur kassi
         el.hidden = false;
-        el.innerHTML = '<div class="fs-sub">🏛️ Reglur í pípunni' + (sector && SECTORS[sector] ? ' · ' + escF(SECTORS[sector]) : '') + '</div>'
+        el.innerHTML = '<div class="fs-sub">Reglur í pípunni' + (sector && SECTORS[sector] ? ' · ' + escF(SECTORS[sector]) : '') + '</div>'
           + top.map(fsLobbyRow).join('')
           + '<a class="fs-lob-cta" href="/lobbyvakt/">Sjá alla reglu-vaktina fyrir þína grein →</a>'
           + '<div class="fs-lob-note">⚠ sjálfvirk túlkun, ekki lögfræðiráðgjöf.</div>';
@@ -1453,16 +1462,16 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         + row('· þar af birgðir', (r) => r.birgdir) + row('Eignir alls', (r) => r.eignir, true)
         + row('Eigið fé', (r) => r.eigidfe, true) + row('Langtímaskuldir', (r) => r.skuldir - r.skammtimaskuldir)
         + row('Skammtímaskuldir', (r) => r.skammtimaskuldir) + row('Skuldir alls', (r) => r.skuldir, true) + '</table>';
-      return '<div class="fs-sub">📋 Ársreikningur í tölum</div><div class="kpi-fst">' + rek + efn + '</div>';
+      return '<div class="fs-sub">Ársreikningur í tölum</div><div class="kpi-fst">' + rek + efn + '</div>';
     }
     function fsGate(f) {
       const badge = f.afskrad ? ' <span class="fs-badge">Félag afskráð</span>' : '';
       return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'skyrsla', refresh: false }) + `
         <div class="fs-gate">
           <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
-          <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Full fyrirtækjaskýrsla</div>
+          <div class="fsg-lockrow"><span class="fsg-lock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span> Full fyrirtækjaskýrsla</div>
           <p class="fsg-b">Skýrslan opnast við kaup: rekstrarform, ÍSAT-atvinnugreinar, VSK-númer, ársreikningaskil, raunverulegir eigendur og Karp-samtengingin — umfjöllun fjölmiðla, ríkisviðskipti, útboð, kauphallartilkynningar, vörumerki, opinberir styrkir, eftirlit og Lögbirtingablaðið.</p>
-          <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa skýrslu — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?syni=1">👁️ Sjá sýnishorn</a></div>
+          <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">Kaupa skýrslu — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?syni=1">Sjá sýnishorn</a></div>
           <p class="fsg-note">Vistast á Mitt svæði · formleg PDF · aðgengileg alltaf · byggð á opinberum gögnum</p>
           <p class="fsg-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">Sjá áskriftarþrep frá 2.900 kr/mán →</a></p>
         </div>`;
@@ -1482,7 +1491,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       if (FS_AREID) { try { document.title = 'Áreiðanleikamat (KYC) | Karp'; } catch (e) {} }
       if (FS_AREID) {
         const h1 = document.querySelector('main[data-pg="fyrirtaeki"] h1');
-        if (h1) { h1.textContent = '🛡️ Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
+        if (h1) { h1.textContent = 'Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
         const inpEl = document.getElementById('fs-q'); if (inpEl) inpEl.setAttribute('placeholder', 'Nafn félags eða kennitala — áreiðanleikamat…');
       }
       const skila = (html) => { out.innerHTML = html; };
@@ -1512,10 +1521,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   skila(reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki', refresh: false, pdf: false }) + `
                     <div class="fs-gate">
                       <h2 class="fsg-nafn">${escF(f.nafn)}</h2> <span class="kt">kt. ${escF(ktFmt(f.kt))}</span>
-                      <div class="fsg-lockrow"><span class="fsg-lock">🔒</span> Áreiðanleikamat (KYC)</div>
+                      <div class="fsg-lockrow"><span class="fsg-lock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-.2em"><rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span> Áreiðanleikamat (KYC)</div>
                       <p class="fsg-b">Skýrslan opnast við kaup: skráningarstaða, ársreikningsskil, PEP-skimun stjórnenda og eigenda, Lögbirtingablaðið, refsilistar og áhættumerki — samantekt fyrir áreiðanleikakönnun.</p>
-                      <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">🛒 Kaupa áreiðanleikamat — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?vidmot=areidanleiki&q=490522-0500">👁️ Sjá sýnishorn</a></div>
-                      <p class="fsg-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">⭐ Komdu í áskrift — frá 2.900 kr/mán →</a></p>
+                      <div class="fsg-btns"><button id="fsg-buy" class="fsg-main" type="button">Kaupa áreiðanleikamat — 990 kr</button><a class="fsg-sample" href="/fyrirtaeki/?vidmot=areidanleiki&q=490522-0500">Sjá sýnishorn</a></div>
+                      <p class="fsg-sub">Þarftu fleiri skýrslur? <a href="/karp-pro/#verd">Komdu í áskrift — frá 2.900 kr/mán →</a></p>
                     </div>`);
                   backWire(); wireReportNav({});
                   const gb = document.getElementById('fsg-buy');
@@ -1523,9 +1532,9 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   const qbtns = document.querySelector('.fs-gate .fsg-btns');
                   if (gb && rem !== 0 && AU && AU.openReport) {
                     const qb = document.createElement('button'); qb.className = 'fsg-main'; qb.type = 'button';
-                    qb.textContent = '📄 Opna með áskrift';
-                    gb.parentNode.insertBefore(qb, gb); gb.className = 'fsg-sample'; gb.textContent = '🛒 eða kaupa staka — 990 kr';
-                    qb.addEventListener('click', async () => { qb.disabled = true; qb.textContent = 'Opna…'; const r = await AU.openReport(areidKey, (f.nafn || '') + ' — áreiðanleikamat'); if (r && (r.granted || r.owned)) { location.reload(); return; } if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = '🛒 Kaupa áreiðanleikamat — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); } else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; } });
+                    qb.textContent = 'Opna með áskrift';
+                    gb.parentNode.insertBefore(qb, gb); gb.className = 'fsg-sample'; gb.textContent = 'eða kaupa staka — 990 kr';
+                    qb.addEventListener('click', async () => { qb.disabled = true; qb.textContent = 'Opna…'; const r = await AU.openReport(areidKey, (f.nafn || '') + ' — áreiðanleikamat'); if (r && (r.granted || r.owned)) { location.reload(); return; } if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = 'Kaupa áreiðanleikamat — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); } else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; } });
                   }
                   if (AU && AU.paintReportQuota) AU.paintReportQuota(qbtns);   // teljari „N skýrslur eftir í mánuðinum" + upsell
                   if (gb) gb.addEventListener('click', async () => { gb.disabled = true; const t = gb.textContent; gb.textContent = '…'; const res = await karpCheckout({ kind: 'areidanleiki', ref: (f.nafn || '') + ' ' + f.kt, key: areidKey }, document.querySelector('.fs-gate')); if (res === 'redirected' || res === 'embedded') return; gb.textContent = res === 'unconfigured' ? 'Greiðslur opna fljótlega' : 'Ekki tókst — reyndu aftur'; helpNote(gb); gb.disabled = false; setTimeout(() => { gb.textContent = t; }, 2800); });
@@ -1549,15 +1558,15 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   if (stig) { stig.insertAdjacentHTML('afterend', '<div id="fs-kpi-holf">' + fsKpiPending() + '</div>'); fsPollArsreikningur(f.kt); }
                 }
                 wireReportNav({
-                  onPdf: (pb) => { pb.disabled = true; pb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); pb.disabled = false; pb.textContent = '🖨️ Sækja PDF'; }, 600); }, 200); },
+                  onPdf: (pb) => { pb.disabled = true; pb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); pb.disabled = false; pb.innerHTML = takn('prenta') + 'Sækja PDF'; }, 600); }, 200); },
                   onRefresh: async (rb) => {
-                    rb.disabled = true; rb.textContent = '🔄 Bið RSK…';
+                    rb.disabled = true; rb.innerHTML = lblR('Bið RSK…');
                     let baseline = null;
                     try { const r0 = await fetch('/gogn/arsreikningar/' + f.kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
                     let ok = false;
                     try { const rr = await fetch('/api/arsreikningur/request?kt=' + f.kt, { method: 'POST', credentials: 'include' }); const j = await rr.json().catch(() => null); ok = !!(j && j.ok); if (j && j.error === 'login') { location.href = loginHref(); return; } } catch (e) {}
-                    if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.textContent = '🔄 Sækja aftur'; rb.disabled = false; }, 2600); return; }
-                    rb.textContent = '🔄 Sæki…';
+                    if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.innerHTML = lblR('Sækja aftur'); rb.disabled = false; }, 2600); return; }
+                    rb.innerHTML = lblR('Sæki…');
                     const stig = document.getElementById('fs-ar-stig');
                     if (stig && !document.getElementById('fs-kpi-holf')) stig.insertAdjacentHTML('afterend', '<div id="fs-kpi-holf">' + fsKpiPending() + '</div>');
                     else { const h = document.getElementById('fs-kpi-holf'); if (h) h.innerHTML = fsKpiPending(); }
@@ -1577,14 +1586,14 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 if (gb && rem !== 0 && AU && AU.openReport) {
                   const qb = document.createElement('button');
                   qb.className = 'fsg-main'; qb.type = 'button';
-                  qb.textContent = '📄 Opna með áskrift';
+                  qb.textContent = 'Opna með áskrift';
                   gb.parentNode.insertBefore(qb, gb);
-                  gb.className = 'fsg-sample'; gb.textContent = '🛒 eða kaupa staka — 990 kr';
+                  gb.className = 'fsg-sample'; gb.textContent = 'eða kaupa staka — 990 kr';
                   qb.addEventListener('click', async () => {
                     qb.disabled = true; qb.textContent = 'Opna…';
                     const r = await AU.openReport('fyrirtaeki:' + f.kt, (f.nafn || '') + ' ' + f.kt);
                     if (r && (r.granted || r.owned)) { location.reload(); return; }
-                    if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = '🛒 Kaupa skýrslu — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); }
+                    if (r && r.needPay) { qb.remove(); gb.className = 'fsg-main'; gb.textContent = 'Kaupa skýrslu — 990 kr'; if (AU.paintReportQuota) AU.paintReportQuota(qbtns); }
                     else { qb.disabled = false; qb.textContent = 'Ekki tókst — reyndu aftur'; }
                   });
                 }
@@ -1611,21 +1620,21 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               wireReportNav({
                 onPdf: () => { const b = document.getElementById('fs-buy'); if (b) b.click(); },
                 onRefresh: async (rb) => {
-                  rb.disabled = true; rb.textContent = '🔄 Bið RSK…';
+                  rb.disabled = true; rb.innerHTML = lblR('Bið RSK…');
                   let baseline = null;
                   try { const r0 = await fetch('/gogn/arsreikningar/' + f.kt + '.json?t=' + Date.now(), { cache: 'no-store' }); if (r0.ok) baseline = await r0.text(); } catch (e) {}
                   let ok = false;
                   try { const rr = await fetch('/api/arsreikningur/request?kt=' + f.kt, { method: 'POST', credentials: 'include' }); const j = await rr.json().catch(() => null); ok = !!(j && j.ok); if (j && j.error === 'login') { location.href = loginHref(); return; } } catch (e) {}
-                  if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.textContent = '🔄 Sækja aftur'; rb.disabled = false; }, 2600); return; }
-                  rb.textContent = '🔄 Sæki…';
+                  if (!ok) { rb.textContent = 'Ekki tókst — reyndu aftur'; setTimeout(() => { rb.innerHTML = lblR('Sækja aftur'); rb.disabled = false; }, 2600); return; }
+                  rb.innerHTML = lblR('Sæki…');
                   const holf = document.getElementById('fs-kpi-holf');
                   if (holf) holf.innerHTML = fsKpiPending();
                   fsPollArsreikningur(f.kt, baseline);
                 },
               });
-              fsWireSector(f);   // 🏭 samanburður við atvinnugrein (F2)
-              fsWireLanshaefi(f);   // 🎯 KARP lánshæfismat — kveikir á áhættuþáttum (Lögbirting/vanskil/F8/F9/grein)
-              fsWireLobbyvakt(f);   // 🏛️ Reglur í pípunni (fast-follow B) — reglu-teaser eftir ÍSAT-atvinnugrein
+              fsWireSector(f);   // samanburður við atvinnugrein (F2)
+              fsWireLanshaefi(f);   // KARP lánshæfismat — kveikir á áhættuþáttum (Lögbirting/vanskil/F8/F9/grein)
+              fsWireLobbyvakt(f);   // Reglur í pípunni (fast-follow B) — reglu-teaser eftir ÍSAT-atvinnugrein
               // 🔗 Endanlegir eigendur + tengslakort FLUTT á sér-skýrslu /eigendur/ (hlekkur „Sjá fulla eigendaskýrslu →")
               if (f.fjarhagurPending) fsPollArsreikningur(f.kt);   // loading + sjálfvirk endurhleðsla þegar ársreikningur er tilbúinn
               if (f.stjornPending) fsPollStjorn(f.kt);   // fyllir stjórn-hólfið sjálfkrafa þegar byggingin skilar
@@ -1654,7 +1663,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 const el = document.getElementById('fs-umfj');
                 if (!el) return;
                 const se = fj && fj.ready && fj.sentiment;
-                const os = fj && fj.ordspor;   // 🏅 orðspors-einkunn (lib/ordspor.mjs) — sama tala og orðsporsvaktin notar
+                const os = fj && fj.ordspor;   // orðspors-einkunn (lib/ordspor.mjs) — sama tala og orðsporsvaktin notar
                 el.querySelector('.s').textContent = se && se.scored
                   ? se.scored + ' fyrirsagnir sl. 180 daga · viðhorf ' + (se.idx > 0 ? '+' : '') + se.idx + ' (' + (se.idx > 15 ? 'jákvætt' : se.idx < -15 ? 'neikvætt' : 'hlutlaust') + ')'
                   : 'engin nýleg umfjöllun í fjölmiðlavaktinni';
@@ -1667,7 +1676,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   el.insertAdjacentHTML('beforeend',
                     '<div class="fs-ordspor" style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
                     + '<span style="font-size:26px;font-weight:800;color:' + lit + ';font-variant-numeric:tabular-nums">' + os.score + '</span>'
-                    + '<span style="font-size:12px;color:var(--muted);line-height:1.4">🏅 Orðspors-einkunn (0–100)<br>'
+                    + '<span style="font-size:12px;color:var(--muted);line-height:1.4">Orðspors-einkunn (0–100)<br>'
                     + '<span style="color:var(--faint)">' + os.label + ' · ' + os.n + ' fréttir'
                     + (ovisst ? ' · ⚠ fá gögn' : '') + '</span></span></div>');
                 }
@@ -1717,7 +1726,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   el.hidden = false;
                   const ti = q.torskigildi;
                   const chips = (q.tegundir || []).slice(0, 12).map((t) => `<span class="fs-chip"><b>${escF(t.t)}</b> ${tonn(t.aflamark)}${t.stada < 0 ? ' <span style="color:#e78284">· umframafli</span>' : ''}</span>`).join('');
-                  el.innerHTML = `<div class="fs-sub">🐟 Aflaheimildir — fiskveiðiár ${escF((q.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2'))}</div>`
+                  el.innerHTML = `<div class="fs-sub">Aflaheimildir — fiskveiðiár ${escF((q.timabil || '').replace(/(\d\d)(\d\d)/, '20$1/20$2'))}</div>`
                     + (ti ? `<div class="fs-kv-ti">Þorskígildi: <b>${tonn(ti.aflamark)}</b> aflamark · <b>${tonn(ti.afli)}</b> veitt · <b class="${ti.stada < 0 ? 'neg' : 'pos'}">${tonn(ti.stada)}</b> eftir</div>` : '')
                     + (chips ? `<div class="fs-chips" style="margin-top:6px">${chips}</div>` : '')
                     + `<div class="fs-kv-src">Heimild: Fiskistofa um opnu island.is-gáttina · ${q.nSkip ? q.nSkip + ' skip · ' : ''}${q.nTeg || (q.tegundir || []).length} tegundir</div>`;
@@ -1730,7 +1739,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 if (!el || !ly || !ly.holdur) return;
                 el.hidden = false;
                 const chips = (ly.leyfi || []).map((x) => '<span class="fs-chip">' + escF([x.teg, x.undir, x.flokkur ? 'fl. ' + x.flokkur : ''].filter(Boolean).join(' · ')) + (x.stadur ? ' <span class="fs-leyfi-loc">' + escF(x.stadur) + '</span>' : '') + '</span>').join('');
-                el.innerHTML = '<div class="fs-sub">🎫 Leyfi &amp; réttindi' + (ly.afengi ? ' <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span>' : '') + '</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>';
+                el.innerHTML = '<div class="fs-sub">Leyfi &amp; réttindi' + (ly.afengi ? ' <span class="fs-leyfi-af">vínveitingaleyfi</span>' : '') + '</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>';
               }).catch(() => {});
               // ✈️ Loftför (Loftfaraskrá Samgöngustofu um island.is) — öll félög, kt-lyklað (á/rekur)
               fetch('/api/loftfor?kt=' + encodeURIComponent(d.felag.kt || '')).then((r) => (r.ok ? r.json() : null)).then((lf) => {
@@ -1738,7 +1747,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                 if (!el || !lf || !lf.holdur) return;
                 el.hidden = false;
                 const chips = (lf.loftfor || []).slice(0, 14).map((a) => '<span class="fs-chip"><b>' + escF(a.skrnr) + '</b> ' + escF((a.tegund || '').slice(0, 28)) + (a.argerd ? ' · ' + a.argerd : '') + '</span>').join('');
-                el.innerHTML = '<div class="fs-sub">✈️ Loftför — Loftfaraskrá (' + lf.n + ')</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)' + (lf.n > 14 ? ' · sýni 14 af ' + lf.n : '') + '</div>';
+                el.innerHTML = '<div class="fs-sub">Loftför — Loftfaraskrá (' + lf.n + ')</div><div class="fs-chips">' + chips + '</div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)' + (lf.n > 14 ? ' · sýni 14 af ' + lf.n : '') + '</div>';
               }).catch(() => {});
               // Ⓡ Vörumerki (Hugverkastofan)
               fetch('/api/vorumerki?kt=' + encodeURIComponent(d.felag.kt || '') + '&nafn=' + encodeURIComponent(d.felag.nafn || ''))
@@ -1749,7 +1758,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                   const cls = (s) => /skrá/i.test(s) ? 'ok' : (/(hafn|afmá|fallin|niðurfelld|afturk|útrunn)/i.test(s) ? 'bad' : 'mid');
                   const chips = (v.merki || []).slice(0, 14).map((m) =>
                     `<a class="fs-vm" href="${escF(m.url)}" target="_blank" rel="noopener" title="${escF(m.tegund)}${(m.flokkar || []).length ? ' · Nice ' + escF(m.flokkar.join(', ')) : ''}${m.visst === 'nafn' ? ' · tengt á nafni' : ''}">`
-                    + (m.mynd ? `<img class="fs-vm-i" src="${escF(m.mynd)}" alt="" loading="lazy">` : `<span class="fs-vm-i fs-vm-ph">${m.tegund === 'myndmerki' ? '🖼️' : 'Ⓡ'}</span>`)
+                    + (m.mynd ? `<img class="fs-vm-i" src="${escF(m.mynd)}" alt="" loading="lazy">` : `<span class="fs-vm-i fs-vm-ph">Ⓡ</span>`)
                     + `<span class="fs-vm-n">${escF(m.titill || m.id)}</span><span class="fs-vm-s ${cls(m.stada)}">${escF(m.stada)}</span></a>`).join('');
                   el.innerHTML = `<div class="fs-sub">Ⓡ Vörumerki — Hugverkastofan (${v.n})</div><div class="fs-vms">${chips}</div>`
                     + `<div class="fs-kv-src">Heimild: vörumerkjaskrá Hugverkastofunnar${v.n > 14 ? ' · sýni 14 af ' + v.n : ''} · <a href="https://www.hugverk.is/leit/vorumerki" target="_blank" rel="noopener">öll á hugverk.is</a></div>`;
@@ -1765,7 +1774,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     `<div class="fs-ef-row"><span class="fs-ef-b ${rc(s.rating)}" title="Einkunn ${s.rating}/5">${s.rating}</span>`
                     + `<span class="fs-ef-t"><b>${escF(s.name)}</b>${s.street ? ' · ' + escF(s.street) : ''}<br><span class="fs-ef-l">${escF(s.ratingLabel || '')}</span></span>`
                     + `<span class="fs-ef-d">${escF(s.lastInspection || '')}${s.reportUrl ? '<br><a href="' + escF(s.reportUrl) + '" target="_blank" rel="noopener">skýrsla ↗</a>' : ''}</span></div>`).join('');
-                  el.innerHTML = `<div class="fs-sub">🍽️ Eftirlitsstaða — Heilbrigðiseftirlit Reykjavíkur</div>${rows}`
+                  el.innerHTML = `<div class="fs-sub">Eftirlitsstaða — Heilbrigðiseftirlit Reykjavíkur</div>${rows}`
                     + `<div class="fs-kv-src">Opinber matvæla-/heilbrigðiseftirlitseinkunn (0–5, 0 verst) · aðeins Reykjavík · <a href="https://reykjavik.is/heilbrigdiseftirlit/nidurstodur-heilbrigdiseftirlits" target="_blank" rel="noopener">um kvarðann</a></div>`;
                 }).catch(() => {});
               }
@@ -1780,7 +1789,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     + '<span class="fs-ef-t"><b>' + escF([s.flokkur, s.undir].filter(Boolean).join(' · ') || s.nr) + '</b>'
                     + (s.heimf ? '<br><span class="fs-ef-l">' + escF([s.heimf, s.postnr, s.baer].filter(Boolean).join(', ')) + '</span>' : '') + '</span>'
                     + '<span class="fs-ef-d">' + escF(s.nr) + '</span></div>').join('');
-                  el.innerHTML = '<div class="fs-sub">🏭 Starfsleyfi &amp; eftirlit — MAST' + (mm.n > 8 ? ' · sýni 8 af ' + mm.n : ' (' + mm.n + ')') + '</div>' + rows
+                  el.innerHTML = '<div class="fs-sub">Starfsleyfi &amp; eftirlit — MAST' + (mm.n > 8 ? ' · sýni 8 af ' + mm.n : ' (' + mm.n + ')') + '</div>' + rows
                     + '<div class="fs-kv-src">Matvælastofnun + heilbrigðiseftirlit sveitarfélaga (landsdekkandi) · <a href="https://skyrslur.mast.is" target="_blank" rel="noopener">skyrslur.mast.is</a></div>';
                 }).catch(() => {});
               }
@@ -1797,7 +1806,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     `<div class="fs-st-row"><span class="fs-st-y">${escF(String(g.ar))}</span>`
                     + `<span class="fs-st-t"><b>${escF(g.sjodur)}</b>${g.vilyrdi ? '<span class="fs-st-vil" title="Vilyrði — samþykkt en óútgreitt">vilyrði</span>' : ''}${g.verkefni ? '<br><span class="fs-st-s">' + escF(g.verkefni) + '</span>' : ''}</span>`
                     + `<span class="fs-st-a">${kr(g.upphaed)}</span></div>`).join('');
-                  el.innerHTML = `<div class="fs-sub">🏅 Opinberir styrkir — ${st.n} úthlutanir, samtals ${kr(st.total)}</div>`
+                  el.innerHTML = `<div class="fs-sub">Opinberir styrkir — ${st.n} úthlutanir, samtals ${kr(st.total)}</div>`
                     + `<div class="fs-st-sum">${chips}</div>${rows}`
                     + `<div class="fs-kv-src">Opinberar úthlutanir sjóða (Kvikmynda-, Matvæla-, Orku-, Tækniþróunar- og uppbyggingarsjóða)`
                     + `${st.naemi === 'nafn' ? ' · tengt á nafni (áætluð samsvörun)' : ''}${st.n > 8 ? ' · sýni 8 af ' + st.n : ''}</div>`;
@@ -1806,7 +1815,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               const vb = document.getElementById('fs-vakta');
               if (vb) {
                 const vkt = vb.dataset.kt, vnafn = vb.dataset.nafn;
-                const paint = (on) => { vb.classList.toggle('on', on); vb.textContent = on ? '✓ Á vaktinni · 🔕 hætta' : '🔔 Vakta félagið'; };
+                const paint = (on) => { vb.classList.toggle('on', on); vb.textContent = on ? '✓ Á vaktinni · hætta' : 'Vakta félagið'; };
                 karpGet('/firmavakt').then((v) => { if (v && Array.isArray(v.felog)) paint(v.felog.some((x) => x.kt === vkt)); }).catch(() => {});
                 vb.addEventListener('click', async () => {
                   vb.disabled = true;
@@ -1820,7 +1829,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
                     paint(!has);
                   } catch (e) {
                     const t0 = vb.textContent;
-                    vb.textContent = '🔒 Innskráning þarf (Karp+)';
+                    vb.textContent = 'Innskráning þarf (Karp+)';
                     setTimeout(() => { vb.textContent = t0; }, 2600);
                   }
                   vb.disabled = false;
@@ -1831,7 +1840,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
               if (bb) {
                 const kt = bb.dataset.kt || '', rkey = 'fyrirtaeki:' + kt;
                 const doPrint = () => { bb.textContent = '✓ Útbý PDF…'; setTimeout(() => { document.body.classList.add('fs-printing'); window.print(); setTimeout(() => { document.body.classList.remove('fs-printing'); paintBuy(); bb.disabled = false; }, 600); }, 200); };
-                const paintBuy = () => { const owned = isAdmin() || hasReport(rkey); bb.dataset.owned = owned ? '1' : ''; bb.textContent = owned ? '🖨️ Sækja skýrslu (PDF)' : '🛒 Kaupa skýrslu — 990 kr'; };
+                const paintBuy = () => { const owned = isAdmin() || hasReport(rkey); bb.dataset.owned = owned ? '1' : ''; bb.textContent = owned ? 'Sækja skýrslu (PDF)' : 'Kaupa skýrslu — 990 kr'; };
                 loadUser().then(paintBuy).catch(paintBuy);
                 bb.addEventListener('click', async () => {
                   if (bb.dataset.owned) { bb.disabled = true; doPrint(); return; }
@@ -1866,7 +1875,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         const host = document.createElement('div');
         host.className = 'fs-wrap eig-sample-wrap';
         const main = document.querySelector('main'); (main || document.body).appendChild(host);
-        host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
+        host.innerHTML = '<div class="fs-samplebar">Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
         renderUboSample(host.querySelector('#eig-host'), { navTo: (q) => { location.href = felagHref(q); } });
         return;
       }
@@ -1875,22 +1884,22 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         form.style.display = 'none';
         const demoF = demoFyrirtaeki();
         skila(fsKort(demoF));
-        fsWireSector(demoF);   // 🏭 F2 í sýnishorni
-        fsWireLanshaefi(demoF);   // 🎯 KARP lánshæfismat í sýnishorni
-        fsWireLobbyvakt(demoF);   // 🏛️ Reglur í pípunni í sýnishorni (raun-gögn úr /gogn/lobbyvakt.json, sjávarútvegs-grein)
+        fsWireSector(demoF);   // F2 í sýnishorni
+        fsWireLanshaefi(demoF);   // KARP lánshæfismat í sýnishorni
+        fsWireLobbyvakt(demoF);   // Reglur í pípunni í sýnishorni (raun-gögn úr /gogn/lobbyvakt.json, sjávarútvegs-grein)
         const bk = out.querySelector('.fs-back'); if (bk) bk.onclick = () => { location.href = '/fyrirtaeki/'; };
         const br = out.querySelector('.fs-buyrow'); if (br) br.style.display = 'none';
         const rep = document.getElementById('fs-report');
-        if (rep && !document.getElementById('fs-demo-note')) { const n = document.createElement('div'); n.id = 'fs-demo-note'; n.className = 'fs-demonote'; n.innerHTML = '👁️ <b>Sýnishorn</b> — Norðurhaf Sjávarfang hf. er EKKI raunverulegt félag. Sýnir allt sem fullbúin fyrirtækjaskýrsla getur innihaldið: fjárhagsmælaborð, kvóta, vörumerki, styrki og eftirlit.'; rep.insertBefore(n, rep.firstChild); }
+        if (rep && !document.getElementById('fs-demo-note')) { const n = document.createElement('div'); n.id = 'fs-demo-note'; n.className = 'fs-demonote'; n.innerHTML = '<b>Sýnishorn</b> — Norðurhaf Sjávarfang hf. er EKKI raunverulegt félag. Sýnir allt sem fullbúin fyrirtækjaskýrsla getur innihaldið: fjárhagsmælaborð, kvóta, vörumerki, styrki og eftirlit.'; rep.insertBefore(n, rep.firstChild); }
         const setE = (id, html) => { const el = document.getElementById(id); if (el) { el.hidden = false; el.innerHTML = html; } };
-        setE('fs-kvoti', '<div class="fs-sub">🐟 Aflamark (Fiskistofa)</div><div class="fs-chips"><span class="fs-chip"><b>Þorskur</b> 1.840 tonn</span><span class="fs-chip"><b>Ýsa</b> 720 tonn</span><span class="fs-chip"><b>Ufsi</b> 680 tonn</span><span class="fs-chip"><b>Samtals</b> 3.240 þorskígildistonn · 2025/26</span></div>');
-        setE('fs-leyfi', '<div class="fs-sub">🎫 Leyfi &amp; réttindi <span class="fs-leyfi-af">🍷 vínveitingaleyfi</span></div><div class="fs-chips"><span class="fs-chip">Veitingaleyfi · A Veitingahús · fl. II <span class="fs-leyfi-loc">Hafnargata 12, 220 Hafnarfjörður</span></span></div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>');
-        setE('fs-loftfor', '<div class="fs-sub">✈️ Loftför — Loftfaraskrá (2)</div><div class="fs-chips"><span class="fs-chip"><b>TF-NHF</b> Beechcraft King Air 350 · 2019</span><span class="fs-chip"><b>TF-SEA</b> Airbus H145 þyrla · 2021</span></div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)</div>');
-        setE('fs-vorumerki', '<div class="fs-sub">™️ Skráð vörumerki (Hugverkastofa)</div><div class="fs-chips"><span class="fs-chip">Norðurhaf</span><span class="fs-chip">Bláa hafið</span><span class="fs-chip">SeaFresh</span><span class="fs-chip">Fjörukrydd</span></div>');
-        setE('fs-styrkir', '<div class="fs-sub">🎁 Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
-        setE('fs-eftirlit', '<div class="fs-sub">✅ Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
-        setE('fs-mast', '<div class="fs-sub">🏭 Starfsleyfi &amp; eftirlit — MAST (2)</div><div class="fs-ef-row"><span class="fs-ef-b r5">✓</span><span class="fs-ef-t"><b>Food · Section VIII</b><br><span class="fs-ef-l">Hafnargata 12, 220 Hafnarfjörður</span></span><span class="fs-ef-d">H472</span></div><div class="fs-ef-row"><span class="fs-ef-b r5">✓</span><span class="fs-ef-t"><b>MAT · Stóreldhús, smásalar</b><br><span class="fs-ef-l">Norðurgarður 3, 200 Kópavogur</span></span><span class="fs-ef-d">SF-8461</span></div><div class="fs-kv-src">Matvælastofnun + heilbrigðiseftirlit sveitarfélaga (landsdekkandi) · skyrslur.mast.is</div>');
-        setE('fs-logbirting', '<div class="fs-sub">📜 Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
+        setE('fs-kvoti', '<div class="fs-sub">Aflamark (Fiskistofa)</div><div class="fs-chips"><span class="fs-chip"><b>Þorskur</b> 1.840 tonn</span><span class="fs-chip"><b>Ýsa</b> 720 tonn</span><span class="fs-chip"><b>Ufsi</b> 680 tonn</span><span class="fs-chip"><b>Samtals</b> 3.240 þorskígildistonn · 2025/26</span></div>');
+        setE('fs-leyfi', '<div class="fs-sub">Leyfi &amp; réttindi <span class="fs-leyfi-af">vínveitingaleyfi</span></div><div class="fs-chips"><span class="fs-chip">Veitingaleyfi · A Veitingahús · fl. II <span class="fs-leyfi-loc">Hafnargata 12, 220 Hafnarfjörður</span></span></div><div class="fs-kv-src">Rekstrarleyfi (Sýslumenn) + ferðaþjónustuleyfi (Ferðamálastofa) — island.is</div>');
+        setE('fs-loftfor', '<div class="fs-sub">Loftför — Loftfaraskrá (2)</div><div class="fs-chips"><span class="fs-chip"><b>TF-NHF</b> Beechcraft King Air 350 · 2019</span><span class="fs-chip"><b>TF-SEA</b> Airbus H145 þyrla · 2021</span></div><div class="fs-kv-src">Heimild: Loftfaraskrá Samgöngustofu (island.is)</div>');
+        setE('fs-vorumerki', '<div class="fs-sub">Ⓡ Skráð vörumerki (Hugverkastofa)</div><div class="fs-chips"><span class="fs-chip">Norðurhaf</span><span class="fs-chip">Bláa hafið</span><span class="fs-chip">SeaFresh</span><span class="fs-chip">Fjörukrydd</span></div>');
+        setE('fs-styrkir', '<div class="fs-sub">Opinberir styrkir</div><div class="fs-chips"><span class="fs-chip"><b>Matvælasjóður</b> 18 m.kr · 2024 (vöruþróun)</span><span class="fs-chip"><b>AVS-sjóður</b> 9 m.kr · 2023</span></div>');
+        setE('fs-eftirlit', '<div class="fs-sub">Opinbert eftirlit</div><div class="fs-chips"><span class="fs-chip">Heilbrigðiseftirlit — engar athugasemdir (2025)</span><span class="fs-chip">MAST — grænt</span></div>');
+        setE('fs-mast', '<div class="fs-sub">Starfsleyfi &amp; eftirlit — MAST (2)</div><div class="fs-ef-row"><span class="fs-ef-b r5">✓</span><span class="fs-ef-t"><b>Food · Section VIII</b><br><span class="fs-ef-l">Hafnargata 12, 220 Hafnarfjörður</span></span><span class="fs-ef-d">H472</span></div><div class="fs-ef-row"><span class="fs-ef-b r5">✓</span><span class="fs-ef-t"><b>MAT · Stóreldhús, smásalar</b><br><span class="fs-ef-l">Norðurgarður 3, 200 Kópavogur</span></span><span class="fs-ef-d">SF-8461</span></div><div class="fs-kv-src">Matvælastofnun + heilbrigðiseftirlit sveitarfélaga (landsdekkandi) · skyrslur.mast.is</div>');
+        setE('fs-logbirting', '<div class="fs-sub">Lögbirtingablaðið</div><div class="fs-chips"><span class="fs-chip">Aðalfundur boðaður 14.5.2026</span></div>');
         const setL = (id, txt) => { const el = document.getElementById(id); if (el) { const sp = el.querySelector('.s'); if (sp) sp.textContent = txt; el.classList.add('on'); } };
         setL('fs-umfj', '34 fyrirsagnir sl. 180 daga · viðhorf +12 (jákvætt)');
         setL('fs-birgir', '210 m.kr frá ríkinu sl. 12 mán — mest frá Hafrannsóknastofnun');

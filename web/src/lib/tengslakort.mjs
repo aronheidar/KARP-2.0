@@ -40,7 +40,7 @@ export function buildElements({ rotKt, eignData, stjornData, pepLookup } = {}) {
     if (d.rot) ex.rot = true;
     if (d.maskad) ex.maskad = true;
     if (d.hlutverk_rot && !ex.hlutverk_rot) ex.hlutverk_rot = d.hlutverk_rot;
-    if (d.pep && !ex.pep) { ex.pep = d.pep; if (ex.label && ex.label.indexOf('🏛️') !== 0) ex.label = '🏛️ ' + ex.label; }
+    if (d.pep && !ex.pep) { ex.pep = d.pep; if (ex.label && ex.label.indexOf('PEP · ') !== 0) ex.label = 'PEP · ' + ex.label; }
   };
   const putEdge = (d) => { if (!edges.has(d.id)) edges.set(d.id, d); };
 
@@ -56,7 +56,7 @@ export function buildElements({ rotKt, eignData, stjornData, pepLookup } = {}) {
       const id = nafnPersonId(n.nafn, n.kt);
       local.set(n.id, id);
       const pep = pepOf(n.nafn, false);
-      put({ id, tegund: 'einst', kt: (n.kt ? String(n.kt).replace(/\D/g, '') : null), nafn: n.nafn || null, maskad: false, faeding: n.faeding || null, label: (pep ? '🏛️ ' : '') + (n.nafn || ''), pep });
+      put({ id, tegund: 'einst', kt: (n.kt ? String(n.kt).replace(/\D/g, '') : null), nafn: n.nafn || null, maskad: false, faeding: n.faeding || null, label: (pep ? 'PEP · ' : '') + (n.nafn || ''), pep });
     }
   }
   for (const e of (net.edges || [])) {
@@ -76,7 +76,7 @@ export function buildElements({ rotKt, eignData, stjornData, pepLookup } = {}) {
       const pid = nafnPersonId(p.nafn, null);
       const hr = (p.hlutverk_rot || []).join(' · ');
       const pep = pepOf(p.nafn, false);
-      put({ id: pid, tegund: 'einst', kt: null, nafn: p.nafn || null, maskad: false, label: (pep ? '🏛️ ' : '') + (p.nafn || ''), hlutverk_rot: hr, pep });
+      put({ id: pid, tegund: 'einst', kt: null, nafn: p.nafn || null, maskad: false, label: (pep ? 'PEP · ' : '') + (p.nafn || ''), hlutverk_rot: hr, pep });
       if (rkt) putEdge({ id: 'stjorn:' + pid + '>' + rootCid, source: pid, target: rootCid, tegund: 'stjorn', hlutverk: hr || 'fyrirsvar', label: hr || 'fyrirsvar' });
       for (const o of (p.onnur || [])) {
         const cid = felagNode(o.kt, o.nafn); if (!cid) continue;

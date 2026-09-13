@@ -17,12 +17,12 @@ const jsonLd = {
   ...(_price ? { offers: { '@type': 'Offer', price: String(_price), priceCurrency: 'ISK', availability: 'https://schema.org/InStock', url: `https://karp.is/lausnir/${v.slug}/` } } : {}),
 };
 ---
-<Layout title={`${v.emoji} ${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
+<Layout title={`${v.heiti} — Fyrirtækjalausnir Karps`} description={v.description}
   canonical={v.canonicalTo ? `https://karp.is${v.canonicalTo}` : `https://karp.is/lausnir/${v.slug}/`} ogTitle={`${v.heiti} — Karp`} jsonLd={jsonLd}>
   <main class="ls-wrap">
     <section class="ls-hero">
       <p class="ls-kicker">Karp+</p>
-      <h1>{v.emoji} {v.heiti}</h1>
+      <h1>{v.heiti}</h1>
       <p class="lead">{v.gildisloford}</p>
       <p class="lead" style="margin-top:10px">{v.inngangur}</p>
       <div class="ls-cta-row">
@@ -34,7 +34,7 @@ const jsonLd = {
     <h2 class="ls-sec-h">Hvað fæst</h2>
     <div class="ls-feats">
       {v.eiginleikar.map((e) => (
-        <div class="ls-feat"><span class="ic">{e.emoji}</span><b>{e.titill}</b><span>{e.texti}</span></div>
+        <div class="ls-feat"><b>{e.titill}</b><span>{e.texti}</span></div>
       ))}
     </div>
 

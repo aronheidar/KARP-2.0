@@ -41,21 +41,21 @@ export const EIGINDIR = [
 // Sérlausnir — sjálfstæðar þjónustu-áskriftir (staflast, óháðar þrepum, 30 daga frítt). Aðskilin spjöld
 // í verðskrá. service = karp_sub_<service>; verd = kr./mán.; tol = síðan þar sem áskriftar-gáttin (subGate) er.
 export const SERLAUSNIR = [
-  { slug: 'utbod', heiti: 'Útboðsvaktin', emoji: '📋', service: 'utbod', verd: 1900, trialDays: 30,
+  { slug: 'utbod', heiti: 'Útboðsvaktin', service: 'utbod', verd: 1900, trialDays: 30,
     lysing: 'Öll opinber útboð á einum stað + leitarorðavakt sniðin að þinni verktöku og samkeppnisgreining.',
     fyrir: 'Verktakar og bjóðendur', href: '/utbod/' },
-  { slug: 'fasteignir', heiti: 'Fasteignavakt', emoji: '🏠', service: 'fasteign', verd: 3900, trialDays: 30,
+  { slug: 'fasteignir', heiti: 'Fasteignavakt', service: 'fasteign', verd: 3900, trialDays: 30,
     lysing: '20 verðmöt fasteigna á mánuði — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
     fyrir: 'Fasteignasalar og fjárfestar', href: '/fasteignavakt/' },
-  { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', emoji: '📰', service: 'frettir', verd: 3900, trialDays: 30,
+  { slug: 'umfjollun', heiti: 'Fjölmiðlavakt', service: 'frettir', verd: 3900, trialDays: 30,
     lysing: 'Öll umfjöllun úr 35+ íslenskum miðlum + leitarorðavakt um fyrirtæki, fólk og málefni.',
     fyrir: 'Almannatengsl og ritstjórnir', href: '/frettir/' },
-  { slug: 'thingskyrslur', heiti: 'Þingmannaskýrslur', emoji: '🏛️', service: 'thingskyrslur', verd: 3900, trialDays: 30,
+  { slug: 'thingskyrslur', heiti: 'Þingmannaskýrslur', service: 'thingskyrslur', verd: 3900, trialDays: 30,
     lysing: '20 þingmannaskýrslur á mánuði — atkvæðaferill, uppreisnar-atkvæði, málaflokkar, ræðugreining með gervigreind, fyrirspurnir og umfjöllun.',
     fyrir: 'Blaðamenn, hagsmunaverðir og greinendur', href: '/althingi/thingmenn/' },
   // PREMIUM: Kvótavaktin — eina varan á markaðnum sem rekur aflamark gegnum eignarhaldskeðjur.
   // Verðlögð hátt viljandi (fá-en-verðmæt kaupendahópur: fjölmiðlar/bankar/útgerðir); 14 daga frítt.
-  { slug: 'kvotavaktin', heiti: 'Kvótavaktin', emoji: '⚓', service: 'kvoti', verd: 9900, trialDays: 14,
+  { slug: 'kvotavaktin', heiti: 'Kvótavaktin', service: 'kvoti', verd: 9900, trialDays: 14,
     lysing: 'Aflamark alls flotans samlagt per útgerð og eigendahóp — samþjöppun, 12%-viðmið, tegundagreining og tengsl við eigendur og ársreikninga.',
     fyrir: 'Fjölmiðlar, bankar, útgerðir og greinendur', href: '/kvotavaktin/' },
 ];
@@ -64,15 +64,15 @@ const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskila
 
 export const VORUR = [
   {
-    slug: 'fyrirtaekjaskyrsla', heiti: 'Fyrirtækjaskýrsla', emoji: '🏢',
+    slug: 'fyrirtaekjaskyrsla', heiti: 'Fyrirtækjaskýrsla',
     gildisloford: 'Full mynd af hvaða íslensku félagi sem er — á augabragði.',
     inngangur: 'Fyrirtækjaskýrsla Karps safnar öllu sem opinberar skrár segja um félag á einn stað: grunnskrá, ársreikninga, greiðslur frá ríkinu, útboð, umfjöllun og lögbirtingar.',
     eiginleikar: [
-      { emoji: '🧾', titill: 'Grunnskrá', texti: 'Kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga.' },
-      { emoji: '📊', titill: 'Ársreikninga-KPI', texti: 'Framlegð, ROE/ROA, eiginfjárhlutfall, tekjuvöxtur — fjölár, beint úr ársreikningaskrá.' },
-      { emoji: '💰', titill: 'Greiðslur frá ríkinu', texti: 'Samsvörun við opinberar greiðslur og stærstu birgja ríkisins.' },
-      { emoji: '📋', titill: 'Útboð & umfjöllun', texti: 'Opinber innkaup félagsins og öll fjölmiðlaumfjöllun tengd því.' },
-      { emoji: '🔔', titill: 'Tilkynningar', texti: 'Lögbirtingablaðið, ný vörumerki og opinberir styrkir — vaktað sjálfvirkt.' },
+      { titill: 'Grunnskrá', texti: 'Kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga.' },
+      { titill: 'Ársreikninga-KPI', texti: 'Framlegð, ROE/ROA, eiginfjárhlutfall, tekjuvöxtur — fjölár, beint úr ársreikningaskrá.' },
+      { titill: 'Greiðslur frá ríkinu', texti: 'Samsvörun við opinberar greiðslur og stærstu birgja ríkisins.' },
+      { titill: 'Útboð & umfjöllun', texti: 'Opinber innkaup félagsins og öll fjölmiðlaumfjöllun tengd því.' },
+      { titill: 'Tilkynningar', texti: 'Lögbirtingablaðið, ný vörumerki og opinberir styrkir — vaktað sjálfvirkt.' },
     ],
     skref: [
       { titill: 'Leitaðu', texti: 'Sláðu inn nafn félags eða kennitölu.' },
@@ -84,14 +84,14 @@ export const VORUR = [
     description: 'Fyrirtækjaskýrsla Karps — grunnskrá, ársreikninga-KPI, greiðslur frá ríkinu, útboð og umfjöllun um hvaða íslenskt félag sem er. ' + LEGAL,
   },
   {
-    slug: 'eigendur', heiti: 'Endanlegir eigendur', emoji: '🔗', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
+    slug: 'eigendur', heiti: 'Endanlegir eigendur', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'Sjáðu hverjir raunverulega eiga félagið — gegnum allar keðjur.',
     inngangur: 'Eignarhaldsskýrsla sem rekur eignarhald gegnum allar félagakeðjur og sýnir endanlega eigendur, raunverulega eigendur skv. Skattinum og skráða hluthafa.',
     eiginleikar: [
-      { emoji: '🕸️', titill: 'Eignarhaldsnet', texti: 'Litakóðað net sem sýnir alla eigendur og eignatengsl gegnum keðjur.' },
-      { emoji: '👤', titill: 'Endanlegir eigendur', texti: 'Reiknað eignarhald hvers aðila gegnum allar félagakeðjur.' },
-      { emoji: '🏛️', titill: 'Raunverulegir eigendur', texti: 'Skráðir raunverulegir eigendur (>25%) beint frá Skattinum.' },
-      { emoji: '📄', titill: 'Hluthafalisti + PDF', texti: 'Skráðir hluthafar úr ársreikningi og prentvæn skýrsla.' },
+      { titill: 'Eignarhaldsnet', texti: 'Litakóðað net sem sýnir alla eigendur og eignatengsl gegnum keðjur.' },
+      { titill: 'Endanlegir eigendur', texti: 'Reiknað eignarhald hvers aðila gegnum allar félagakeðjur.' },
+      { titill: 'Raunverulegir eigendur', texti: 'Skráðir raunverulegir eigendur (>25%) beint frá Skattinum.' },
+      { titill: 'Hluthafalisti + PDF', texti: 'Skráðir hluthafar úr ársreikningi og prentvæn skýrsla.' },
     ],
     skref: [
       { titill: 'Leitaðu', texti: 'Sláðu inn félag.' },
@@ -103,14 +103,14 @@ export const VORUR = [
     description: 'Endanlegir eigendur — litakóðað eignarhaldsnet gegnum allar félagakeðjur, raunverulegir eigendur og hluthafar. ' + LEGAL,
   },
   {
-    slug: 'fasteignamat', heiti: 'Fasteignamat', emoji: '🏠',
+    slug: 'fasteignamat', heiti: 'Fasteignamat',
     gildisloford: 'Faglegt verðmat hvaða fasteignar sem er — byggt á sölusögu.',
     inngangur: 'Verðmatsskýrsla sem safnar sölusögu, fasteigna- og brunabótamati, hverfagögnum og verðþróun á einn stað og skilar faglegu mati á augabragði.',
     eiginleikar: [
-      { emoji: '📈', titill: 'Sölusaga & verðþróun', texti: 'Öll þinglýst kaup eignarinnar og þróun fermetraverðs yfir tíma.' },
-      { emoji: '🏷️', titill: 'Fasteigna- & brunabótamat', texti: 'Opinbert mat borið saman við metið markaðsverð.' },
-      { emoji: '🗺️', titill: 'Hverfagögn & kort', texti: 'Staðsetning, hverfi og nágrenni á gagnvirku korti + götumynd.' },
-      { emoji: '🏘️', titill: 'Sambærilegar eignir', texti: 'Matið unnið á sambærilegum eignum í nágrenninu.' },
+      { titill: 'Sölusaga & verðþróun', texti: 'Öll þinglýst kaup eignarinnar og þróun fermetraverðs yfir tíma.' },
+      { titill: 'Fasteigna- & brunabótamat', texti: 'Opinbert mat borið saman við metið markaðsverð.' },
+      { titill: 'Hverfagögn & kort', texti: 'Staðsetning, hverfi og nágrenni á gagnvirku korti + götumynd.' },
+      { titill: 'Sambærilegar eignir', texti: 'Matið unnið á sambærilegum eignum í nágrenninu.' },
     ],
     skref: [
       { titill: 'Sláðu inn heimilisfang', texti: 'Byrjaðu að skrifa — sjálfvirk uppfletting.' },
@@ -122,14 +122,14 @@ export const VORUR = [
     description: 'Faglegt verðmat fasteigna — sölusaga, fasteigna- og brunabótamat, hverfagögn, kort og sambærilegar eignir. ' + LEGAL,
   },
   {
-    slug: 'fyrirtaekjavaktin', heiti: 'Fyrirtækjavaktin', emoji: '📡', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
+    slug: 'fyrirtaekjavaktin', heiti: 'Fyrirtækjavaktin', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'Fylgstu með félögum sem skipta þig máli — sjálfvirkar tilkynningar.',
     inngangur: 'Fylgdu félögum og fáðu tilkynningu um leið og eitthvað breytist: nýr ársreikningur, breytt eignarhald, lögbirting eða umfjöllun.',
     eiginleikar: [
-      { emoji: '⭐', titill: 'Fylgja félögum', texti: 'Bættu félögum í vaktina þína og fáðu breytingar beint.' },
-      { emoji: '🔔', titill: 'Breytingavakt', texti: 'Ársreikningar, eigendur, lögbirtingar og tilkynningar — sjálfvirkt.' },
-      { emoji: '👥', titill: 'Viðskiptamannavakt', texti: 'Vaktaðu heilan lista af kennitölum viðskiptavina í einu.' },
-      { emoji: '📬', titill: 'Vikulegt yfirlit', texti: 'Samantekt á tölvupósti yfir allt sem gerðist.' },
+      { titill: 'Fylgja félögum', texti: 'Bættu félögum í vaktina þína og fáðu breytingar beint.' },
+      { titill: 'Breytingavakt', texti: 'Ársreikningar, eigendur, lögbirtingar og tilkynningar — sjálfvirkt.' },
+      { titill: 'Viðskiptamannavakt', texti: 'Vaktaðu heilan lista af kennitölum viðskiptavina í einu.' },
+      { titill: 'Vikulegt yfirlit', texti: 'Samantekt á tölvupósti yfir allt sem gerðist.' },
     ],
     skref: [
       { titill: 'Veldu félög', texti: 'Fylgdu félögum af prófílsíðu þeirra.' },
@@ -141,31 +141,31 @@ export const VORUR = [
     description: 'Fyrirtækjavaktin — fylgstu með félögum og fáðu sjálfvirkar tilkynningar um ársreikninga, eigendur og lögbirtingar. ' + LEGAL,
   },
   {
-    slug: 'fjolmidlavakt', heiti: 'Fjölmiðlavakt', emoji: '📰',
+    slug: 'fjolmidlavakt', heiti: 'Fjölmiðlavakt',
     gildisloford: 'Öll umfjöllun um fyrirtæki og fólk — á einum straumi.',
     inngangur: 'Fjölmiðlavakt Karps safnar umfjöllun úr tugum íslenskra miðla og lætur þig vita þegar fjallað er um það sem þú vaktar.',
     eiginleikar: [
-      { emoji: '📡', titill: '35+ miðlar', texti: 'Samfelldur straumur úr öllum helstu íslensku fréttamiðlum.' },
-      { emoji: '🔎', titill: 'Leitarorðavakt', texti: 'Vaktaðu fyrirtæki, fólk eða málefni og fáðu tilkynningar.' },
-      { emoji: '📊', titill: 'Greining & þróun', texti: 'Fjölmiðlavog og þróun umfjöllunar yfir tíma.' },
+      { titill: '35+ miðlar', texti: 'Samfelldur straumur úr öllum helstu íslensku fréttamiðlum.' },
+      { titill: 'Leitarorðavakt', texti: 'Vaktaðu fyrirtæki, fólk eða málefni og fáðu tilkynningar.' },
+      { titill: 'Greining & þróun', texti: 'Fjölmiðlavog og þróun umfjöllunar yfir tíma.' },
     ],
     skref: [
       { titill: 'Veldu leitarorð', texti: 'Bættu við því sem þú vilt fylgjast með.' },
       { titill: 'Fylgstu með', texti: 'Umfjöllun birtist jafnóðum + tilkynningar.' },
     ],
     verd: { tegund: 'askrift', upphaed: 3900, service: 'frettir', trialDays: 30 },   // sérlausn (Umfjöllun) — eða innifalið í Fyrirtæki/Fyrirtæki+ þrepum
-    synishorn: { label: '🗞️ Karp fréttir', href: '/frettavel/' },
+    synishorn: { label: 'Karp fréttir', href: '/frettavel/' },
     tol: { label: 'Opna Vöktun', href: '/frettir/' },
     description: 'Fjölmiðlavakt — öll umfjöllun um fyrirtæki og fólk úr 35+ íslenskum miðlum, með leitarorðavakt og greiningu. ' + LEGAL,
   },
   {
-    slug: 'utbodsvaktin', heiti: 'Útboðsvaktin', emoji: '📋',
+    slug: 'utbodsvaktin', heiti: 'Útboðsvaktin',
     gildisloford: 'Ekki missa af opinberu útboði — leitað og vaktað fyrir þig.',
     inngangur: 'Útboðsvaktin safnar öllum opinberum útboðum á einn stað, með leitarorðavakt og samkeppnisgreiningu.',
     eiginleikar: [
-      { emoji: '📋', titill: 'Öll opinber útboð', texti: 'Samfelldur listi yfir opinber innkaup og útboð.' },
-      { emoji: '🔔', titill: 'Leitarorðavakt', texti: 'Fáðu tilkynningu þegar útboð passar við þín leitarorð.' },
-      { emoji: '🏁', titill: 'Samkeppnisgreining', texti: 'Sjáðu hverjir vinna útboð og hvernig markaðurinn skiptist.' },
+      { titill: 'Öll opinber útboð', texti: 'Samfelldur listi yfir opinber innkaup og útboð.' },
+      { titill: 'Leitarorðavakt', texti: 'Fáðu tilkynningu þegar útboð passar við þín leitarorð.' },
+      { titill: 'Samkeppnisgreining', texti: 'Sjáðu hverjir vinna útboð og hvernig markaðurinn skiptist.' },
     ],
     skref: [
       { titill: 'Veldu vöktun', texti: 'Bættu við leitarorðum fyrir þinn geira.' },
@@ -177,15 +177,15 @@ export const VORUR = [
     description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,
   },
   {
-    slug: 'kvotavaktin', heiti: 'Kvótavaktin', emoji: '⚓',
+    slug: 'kvotavaktin', heiti: 'Kvótavaktin',
     gildisloford: 'Hver heldur kvótanum? Aflamark rakið gegnum eignarhaldskeðjur.',
     inngangur: 'Kvótavaktin samlagður aflamark alls flotans per útgerð og eigendahóp — eina varan sem tengir aflamark Fiskistofu, eigendur skipa úr skipaskrá og eignarhaldskeðjur fyrirtækja í eina greiningarmynd. Samþjöppun, tegundagreining og nálgun á 12%-viðmið laga um fiskveiðistjórnun.',
     eiginleikar: [
-      { emoji: '⚓', titill: 'Aflamark alls flotans', texti: 'Öll skip, allar tegundir — samlagt á útgerðir í þorskígildum, beint frá Fiskistofu.' },
-      { emoji: '🕸️', titill: 'Eigendahópar', texti: 'Kvóti rakinn gegnum eignarhaldskeðjur — samanlögð hlutdeild tengdra félaga.' },
-      { emoji: '📊', titill: 'Samþjöppun & 12%-viðmið', texti: 'Top-10 hlutdeild, HHI-stuðull og viðvörun þegar hópur nálgast lögbundið þak.' },
-      { emoji: '🐟', titill: 'Tegundagreining', texti: 'Þorskur, ýsa, karfi, uppsjávartegundir — hver heldur hverju, með samþjöppun per tegund.' },
-      { emoji: '🔗', titill: 'Full samþætting', texti: 'Beintengt í fyrirtækjaskýrslur, endanlega eigendur og ársreikninga hverrar útgerðar.' },
+      { titill: 'Aflamark alls flotans', texti: 'Öll skip, allar tegundir — samlagt á útgerðir í þorskígildum, beint frá Fiskistofu.' },
+      { titill: 'Eigendahópar', texti: 'Kvóti rakinn gegnum eignarhaldskeðjur — samanlögð hlutdeild tengdra félaga.' },
+      { titill: 'Samþjöppun & 12%-viðmið', texti: 'Top-10 hlutdeild, HHI-stuðull og viðvörun þegar hópur nálgast lögbundið þak.' },
+      { titill: 'Tegundagreining', texti: 'Þorskur, ýsa, karfi, uppsjávartegundir — hver heldur hverju, með samþjöppun per tegund.' },
+      { titill: 'Full samþætting', texti: 'Beintengt í fyrirtækjaskýrslur, endanlega eigendur og ársreikninga hverrar útgerðar.' },
     ],
     skref: [
       { titill: 'Opnaðu yfirlitið', texti: 'Top-útgerðir, samþjöppun og tegundir á einum stað.' },
@@ -197,15 +197,15 @@ export const VORUR = [
     description: 'Kvótavaktin — aflamark, eigendur og samþjöppun í sjávarútvegi, rakið gegnum eignarhaldskeðjur. Fyrir fjölmiðla, banka, útgerðir og greinendur. ' + LEGAL,
   },
   {
-    slug: 'thingmannavaktin', heiti: 'Þingmannavaktin', emoji: '🏛️',
+    slug: 'thingmannavaktin', heiti: 'Þingmannavaktin',
     gildisloford: 'Ítarleg skýrsla um hvern þingmann — atkvæði, ræður, áherslur.',
     inngangur: 'Þingmannaskýrsla Karps greinir hvern þingmann til hlítar: atkvæðaferil og uppreisnar-atkvæði, mætingu, afstöðu eftir málaflokkum, ræðugreiningu með gervigreind, fyrirspurnir, flutt mál, nefndavald og fjölmiðlaumfjöllun — með PDF-útprentun og vöktun.',
     eiginleikar: [
-      { emoji: '🗳️', titill: 'Atkvæðaferill', texti: 'Uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð og afstaða eftir opinberum efnisflokkum Alþingis.' },
-      { emoji: '🤖', titill: 'AI-ræðugreining', texti: 'Tónn, rökstuðningur og áherslur eftir málaflokkum — greint úr raunverulegum þingræðum.' },
-      { emoji: '🧭', titill: 'Pólitískt kort', texti: 'Staðsetning þingmannsins á korti þingsins, reiknuð úr öllum nafnakalls-atkvæðagreiðslum.' },
-      { emoji: '❓', titill: 'Fyrirspurnir & flutt mál', texti: 'Öll mál sem þingmaðurinn flytur og fyrirspurnir hans til ráðherra með svar-stöðu.' },
-      { emoji: '📰', titill: 'Umfjöllun & vöktun', texti: 'Fjölmiðlaumfjöllun með viðhorfsmati — og Fylgja-hnappur til að vakta þingmanninn.' },
+      { titill: 'Atkvæðaferill', texti: 'Uppreisnar-atkvæði gegn eigin flokki, mæting mánuð fyrir mánuð og afstaða eftir opinberum efnisflokkum Alþingis.' },
+      { titill: 'AI-ræðugreining', texti: 'Tónn, rökstuðningur og áherslur eftir málaflokkum — greint úr raunverulegum þingræðum.' },
+      { titill: 'Pólitískt kort', texti: 'Staðsetning þingmannsins á korti þingsins, reiknuð úr öllum nafnakalls-atkvæðagreiðslum.' },
+      { titill: 'Fyrirspurnir & flutt mál', texti: 'Öll mál sem þingmaðurinn flytur og fyrirspurnir hans til ráðherra með svar-stöðu.' },
+      { titill: 'Umfjöllun & vöktun', texti: 'Fjölmiðlaumfjöllun með viðhorfsmati — og Fylgja-hnappur til að vakta þingmanninn.' },
     ],
     skref: [
       { titill: 'Veldu þingmann', texti: 'Af þingmannalistanum eða beint af síðu þingmannsins.' },
@@ -217,14 +217,14 @@ export const VORUR = [
     description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 10 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
   },
   {
-    slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', emoji: '✅', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
+    slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
     gildisloford: 'KYC-áreiðanleikamat félags — PEP, eignarhald og staða á einum stað.',
     inngangur: 'Áreiðanleikamat tekur saman það sem þarf fyrir áreiðanleikakönnun: raunverulega eigendur, PEP-skimun stjórnenda og stöðu félagsins í opinberum skrám.',
     eiginleikar: [
-      { emoji: '🏛️', titill: 'PEP-skimun', texti: 'Skimun stjórnenda og eigenda gegn lista yfir áhrifafólk í stjórnmálum.' },
-      { emoji: '🔗', titill: 'Endanlegir eigendur', texti: 'Raunverulegt eignarhald gegnum allar keðjur.' },
-      { emoji: '📑', titill: 'Staða í skrám', texti: 'Skil ársreikninga, lögbirtingar og opinber staða félagsins.' },
-      { emoji: '⚠️', titill: 'Áhættumerki', texti: 'Samantekt sem dregur fram það sem þarf að skoða nánar.' },
+      { titill: 'PEP-skimun', texti: 'Skimun stjórnenda og eigenda gegn lista yfir áhrifafólk í stjórnmálum.' },
+      { titill: 'Endanlegir eigendur', texti: 'Raunverulegt eignarhald gegnum allar keðjur.' },
+      { titill: 'Staða í skrám', texti: 'Skil ársreikninga, lögbirtingar og opinber staða félagsins.' },
+      { titill: 'Áhættumerki', texti: 'Samantekt sem dregur fram það sem þarf að skoða nánar.' },
     ],
     skref: [
       { titill: 'Leitaðu', texti: 'Sláðu inn félag.' },

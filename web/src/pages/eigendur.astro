@@ -12,9 +12,9 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
 <Layout title="Endanlegir eigendur — eignarhaldsskýrsla | Karp" description={desc} canonical="https://karp.is/eigendur/" ogTitle="Endanlegir eigendur — eignarhaldsskýrsla félaga">
   <main data-pg="eigendur">
     <p class="kicker">Karp+ · Fyrirtækjaskrá</p>
-    <h1>🔗 Endanlegir eigendur</h1>
+    <h1>Endanlegir eigendur</h1>
     <p>Full eignarhaldsskýrsla hvaða íslensks félags sem er. <a href="/lausnir/eigendur/" style="color:#f6b13b">Um Endanlega eigendur →</a></p>
-    <p class="note">👁️ Skoðaðu <a href="/eigendur/?syni=1">opið sýnishorn</a> (gervifélag) — eða flettu upp raunfélagi hér að neðan.</p>
+    <p class="note">Skoðaðu <a href="/eigendur/?syni=1">opið sýnishorn</a> (gervifélag) — eða flettu upp raunfélagi hér að neðan.</p>
 
     <form id="fs-form" autocomplete="off">
       <input id="fs-q" type="search" placeholder="Nafn félags eða kennitala…" autocomplete="off" aria-label="Leit að félagi fyrir eigendaskýrslu" />
@@ -102,7 +102,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
       form.style.display = 'none';
       const host = document.createElement('div');
       host.className = 'eig-sample-wrap';
-      host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/eigendur/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
+      host.innerHTML = '<div class="fs-samplebar">Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/eigendur/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
       (main || document.body).appendChild(host);
       renderUboSample(host.querySelector('#eig-host'), { navTo: (k) => { location.href = '/eigendur/?q=' + encodeURIComponent(k); } });
       return;
@@ -112,7 +112,7 @@ const desc = 'Endanlegir eigendur íslenskra félaga — litakóðað eignarhald
     loadUser().then((u) => {
       if (!u || !u.loggedIn) {
         form.style.display = 'none';
-        skila('<div class="fs-empty">⭐ Eigendaskýrslur eru hluti af <a href="/karp-pro/">Karp+</a> — ókeypis aðgangur sem tekur mínútu. <a href="' + loginHref() + '">Skráðu þig inn</a> til að fletta upp félagi, eða skoðaðu <a href="/eigendur/?syni=1">opna sýnishornið</a>.</div>');
+        skila('<div class="fs-empty">Eigendaskýrslur eru hluti af <a href="/karp-pro/">Karp+</a> — ókeypis aðgangur sem tekur mínútu. <a href="' + loginHref() + '">Skráðu þig inn</a> til að fletta upp félagi, eða skoðaðu <a href="/eigendur/?syni=1">opna sýnishornið</a>.</div>');
         return;
       }
       const q0 = new URLSearchParams(location.search).get('q');

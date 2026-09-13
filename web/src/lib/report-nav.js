@@ -4,6 +4,7 @@
 // Virka viewið er merkt .on (ekki hlekkur). CSS í web/src/styles/ubo.css (.rnav*).
 import { karpGet, karpPost, loginHref } from './auth.js';
 import { felagHref } from './fyrirtaeki-slod.mjs';
+import { takn } from './takn.mjs';
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -24,8 +25,8 @@ export function recordView(kt, nafn) {
 // 🔖 Fylgja — sameinaður hnappur + póstvaktar-valkostur (flutt úr fyrirtaeki.astro svo /eigendur/ fái hann líka).
 export function fylgjaBtnHtml(kt, nafn) {
   return '<span class="fs-follow" data-kt="' + esc(kt) + '" data-nafn="' + esc(nafn || '') + '">'
-    + '<button class="fs-vakta" id="fs-fylgja" type="button" title="Fylgja félaginu — það birtist á „Mitt svæði".">🔖 Fylgja</button>'
-    + '<label class="fs-mailopt" id="fs-mailopt" hidden title="Fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, vörumerki, útboð eða eftirlit berst (Karp+)."><input type="checkbox" id="fs-mailchk" /> 🔔 láta vita í pósti</label>'
+    + '<button class="fs-vakta" id="fs-fylgja" type="button" title="Fylgja félaginu — það birtist á „Mitt svæði".">' + takn('fylgja') + 'Fylgja</button>'
+    + '<label class="fs-mailopt" id="fs-mailopt" hidden title="Fáðu tölvupóst þegar nýr ársreikningur, þrota-/innköllunartilkynning, vörumerki, útboð eða eftirlit berst (Karp+)."><input type="checkbox" id="fs-mailchk" /> láta vita í pósti</label>'
     + '</span>';
 }
 export function wireFylgja() {
@@ -37,7 +38,7 @@ export function wireFylgja() {
   recordView(kt, nafn);
   const mailopt = document.getElementById('fs-mailopt'), mailchk = document.getElementById('fs-mailchk');
   const following = () => ((window.KARP_USER && window.KARP_USER.follows) || []).indexOf(fkey) !== -1;
-  const paint = () => { const on = following(); flb.classList.toggle('on', on); flb.textContent = on ? '✓ Í vöktun' : '🔖 Fylgja'; if (mailopt) mailopt.hidden = !on; };
+  const paint = () => { const on = following(); flb.classList.toggle('on', on); flb.innerHTML = on ? '✓ Í vöktun' : takn('fylgja') + 'Fylgja'; if (mailopt) mailopt.hidden = !on; };
   const syncMail = () => { if (mailchk && following()) karpGet('/firmavakt').then((v) => { if (v && Array.isArray(v.felog)) mailchk.checked = v.felog.some((x) => x.kt === kt); }).catch(() => {}); };
   paint(); syncMail();
   flb.addEventListener('click', async () => {
@@ -74,7 +75,7 @@ export function wireFylgja() {
       }
     } catch (e) {
       mailchk.checked = !mailchk.checked;
-      const t0 = mailopt ? mailopt.title : ''; if (mailopt) { mailopt.title = '🔒 Karp+ áskrift þarf fyrir póstvakt'; setTimeout(() => { mailopt.title = t0; }, 2600); }
+      const t0 = mailopt ? mailopt.title : ''; if (mailopt) { mailopt.title = 'Karp+ áskrift þarf fyrir póstvakt'; setTimeout(() => { mailopt.title = t0; }, 2600); }
     }
     mailchk.disabled = false;
   });
@@ -84,19 +85,19 @@ export function wireFylgja() {
 // demo=true: flipahlekkirnir vísa á sýnishorna-útgáfurnar (gervikennitala flettist ekki upp).
 export function reportNavHtml({ kt, nafn, view, refresh = true, pdf = true, demo = false }) {
   const k = encodeURIComponent(kt || '');
-  const seg = (v, href, icon, label) => (view === v
-    ? '<span class="rnav-v on">' + icon + ' ' + label + '</span>'
-    : (href ? '<a class="rnav-v" href="' + href + '">' + icon + ' ' + label + '</a>' : ''));
+  const seg = (v, href, label) => (view === v
+    ? '<span class="rnav-v on">' + label + '</span>'
+    : (href ? '<a class="rnav-v" href="' + href + '">' + label + '</a>' : ''));
   return '<div class="fs-topbtns rnav">'
     + '<button class="fs-back" type="button">← Ný leit</button>'
     + '<span class="rnav-seg" role="tablist" aria-label="Skýrslur félagsins">'
-    + seg('skyrsla', demo ? '/fyrirtaeki/?syni=1' : felagHref(k), '📄', 'Fyrirtækjaskýrsla')
-    + seg('eigendur', demo ? '/eigendur/?syni=1' : '/eigendur/?q=' + k, '👥', 'Endanlegir eigendur')
-    + seg('areidanleiki', demo ? '' : felagHref(k, { vidmot: 'areidanleiki' }), '🛡️', 'Áreiðanleikamat')
+    + seg('skyrsla', demo ? '/fyrirtaeki/?syni=1' : felagHref(k), 'Fyrirtækjaskýrsla')
+    + seg('eigendur', demo ? '/eigendur/?syni=1' : '/eigendur/?q=' + k, 'Endanlegir eigendur')
+    + seg('areidanleiki', demo ? '' : felagHref(k, { vidmot: 'areidanleiki' }), 'Áreiðanleikamat')
     + '</span>'
     + '<span class="rnav-act">'
-    + (pdf ? '<button class="fs-vakta" id="rnav-pdf" type="button" title="Sækja skýrsluna sem PDF (prentgluggi)">🖨️ Sækja PDF</button>' : '')
-    + (refresh ? '<button class="fs-vakta" id="rnav-refresh" type="button" title="Sækja gögnin aftur frá RSK og endurreikna skýrsluna">🔄 Sækja aftur</button>' : '')
+    + (pdf ? '<button class="fs-vakta" id="rnav-pdf" type="button" title="Sækja skýrsluna sem PDF (prentgluggi)">' + takn('prenta') + 'Sækja PDF</button>' : '')
+    + (refresh ? '<button class="fs-vakta" id="rnav-refresh" type="button" title="Sækja gögnin aftur frá RSK og endurreikna skýrsluna">' + takn('endurnyja') + 'Sækja aftur</button>' : '')
     + fylgjaBtnHtml(kt, nafn)
     + '</span></div>';
 }

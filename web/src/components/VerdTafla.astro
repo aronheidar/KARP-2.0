@@ -42,7 +42,7 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
 <div class="vt-svcgrid">
   {SERLAUSNIR.map((s) => (
     <div class="vt-svc" data-service={s.service} data-price={s.verd} data-trial={s.trialDays} data-title={s.heiti} data-blurb={s.lysing} data-href={s.href}>
-      <div class="vt-svc-top"><span class="vt-svc-e">{s.emoji}</span><div><div class="vt-svc-nm">{s.heiti}</div><div class="vt-svc-fyrir">{s.fyrir}</div></div>{s.trialDays ? <span class="vt-svc-trial">🎁 {s.trialDays} daga frítt</span> : null}</div>
+      <div class="vt-svc-top"><div><div class="vt-svc-nm">{s.heiti}</div><div class="vt-svc-fyrir">{s.fyrir}</div></div>{s.trialDays ? <span class="vt-svc-trial">{s.trialDays} daga frítt</span> : null}</div>
       <p class="vt-svc-tx">{s.lysing}</p>
       <div class="vt-svc-pr">{s.verd.toLocaleString('is-IS')} <small>kr/mán án vsk</small></div>
       <button type="button" class="vt-svc-cta">Velja {s.heiti}</button>
@@ -62,7 +62,6 @@ import { THREP, EIGINDIR, SERLAUSNIR } from '../data/lausnir.js';
   @media (max-width:760px) { .vt-svcgrid { grid-template-columns:1fr; } }
   .vt-svc { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:16px; display:flex; flex-direction:column; }
   .vt-svc-top { display:flex; align-items:flex-start; gap:10px; }
-  .vt-svc-e { font-size:26px; line-height:1; }
   .vt-svc-nm { font-weight:800; color:var(--ink); font-size:16px; }
   .vt-svc-fyrir { color:var(--muted); font-size:11.5px; }
   .vt-svc-trial { margin-left:auto; background:rgba(110,231,183,.14); color:#6ee7b7; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap; }

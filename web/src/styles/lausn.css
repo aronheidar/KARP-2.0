@@ -10,7 +10,7 @@
 .ls-sec-h { font-size: 20px; color: var(--gold); margin: 40px 0 14px; }
 .ls-feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .ls-feat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-.ls-feat .ic { font-size: 22px; } .ls-feat b { display: block; color: var(--ink); font-size: 15px; margin: 6px 0 4px; }
+.ls-feat b { display: block; color: var(--ink); font-size: 15px; margin: 0 0 4px; }
 .ls-feat span { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .ls-steps { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
 .ls-step { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
@@ -37,7 +37,7 @@
 .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 8px 0 10px; }
 .hub-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; text-decoration: none; display: block; transition: border-color .15s; }
 .hub-card:hover { border-color: rgba(246,177,59,.5); }
-.hub-card .e { font-size: 26px; } .hub-card b { display: block; color: var(--ink); font-size: 16px; margin: 8px 0 4px; }
+.hub-card b { display: block; color: var(--ink); font-size: 16px; margin: 0 0 4px; }
 .hub-card span { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .hub-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 10px 0; }
 .hub-cmp .col { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
