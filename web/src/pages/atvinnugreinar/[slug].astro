@@ -196,6 +196,7 @@ const rows = RATIO_ORDER.map((key) => {
     // workersins er samt endanlega heimildin ({ok:false,error:'login'|'tier'|'notfound'} → fellur
     // aftur á SSG-gáttina sem stendur ÞEGAR bökuð í síðunni).
     import { hasTier, loginHref } from '../../lib/auth.js';
+    import { felagHref } from '../../lib/fyrirtaeki-slod.mjs';
     import { wireReportNav } from '../../lib/report-nav.js';
     import { fmtKr } from '../../lib/atvinnugrein.mjs';
 
@@ -219,7 +220,7 @@ const rows = RATIO_ORDER.map((key) => {
       $('#atv-gate').hidden = true;
       $('#atv-deep').hidden = false;
       const rows = (d.topFelog || []).map((f, i) => '<tr><td class="atv-rk">' + (i + 1) + '</td>'
-        + '<td><a href="/fyrirtaeki/?q=' + encodeURIComponent(f.kt || '') + '">' + esc(f.nafn || f.kt || '') + '</a></td>'
+        + '<td><a href="' + esc(felagHref(f.kt || '')) + '">' + esc(f.nafn || f.kt || '') + '</a></td>'
         + '<td>' + esc(fmtKr(f.sala)) + '</td>'
         + '<td>' + esc(fmtKr(f.hagnadur)) + '</td>'
         + '<td>' + esc(fmtKr(f.eignir)) + '</td></tr>').join('');

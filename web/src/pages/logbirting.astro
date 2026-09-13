@@ -7,6 +7,7 @@
 // ⚠ PERSÓNUVERND: aðeins lögaðilar (gögnin þegar síuð); félagsnafn+kt+tegund+dags leyfilegt.
 import Layout from '../layouts/Layout.astro';
 import LB from '@gogn/logbirting.json';
+import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
 
 const typeLabels = LB.typeLabels || {};
 const severityMap = LB.severity || {};
@@ -156,7 +157,7 @@ const jsonLd = {
         <div class={'lb-card t-' + tierOf(n.type)}>
           <span class={'lb-b t-' + tierOf(n.type)} title={typeLabels[n.type] || n.type}></span>
           <div class="lb-t">
-            <a class="lb-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(n.kt)}>{n.name}</a>
+            <a class="lb-n" href={felagHref(n.kt)}>{n.name}</a>
             <div class="lb-meta">{typeLabels[n.type] || n.type}{n.court ? ' · ' + n.court : ''}</div>
             <div class="lb-kt">kt. {n.kt}</div>
           </div>
@@ -271,6 +272,9 @@ const jsonLd = {
       if (!document.querySelector('main[data-pg="logbirting"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // ⚠ Spegill af felagHref í src/lib/fyrirtaeki-slod.mjs — define:vars gerir þessa skriftu
+      // inline svo Vite bundlar hana ekki og `import` er ekki í boði. Prófin bera saman.
+      const felagHref = (kt) => { const s = String(kt == null ? '' : kt).trim(), d = s.replace(/\D/g, ''); return (d.length === 10 && +d.slice(0, 2) >= 41 && +d.slice(0, 2) <= 71) ? '/fyrirtaeki/' + d + '/' : (s ? '/fyrirtaeki/?q=' + encodeURIComponent(s) : '/fyrirtaeki/'); };
       const tierOf = (t) => TIER[t] || 'low';
       // Íslensk þúsundaskil (punktur) — óháð ICU-gögnum vafrans (is-IS gefur stundum kommu).
       const nf = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -335,7 +339,7 @@ const jsonLd = {
       const MONTH_IS = ['jan', 'feb', 'mar', 'apr', 'maí', 'jún', 'júl', 'ágú', 'sep', 'okt', 'nóv', 'des'];
       const fmtDate = (iso) => { if (!iso || iso.length < 10) return ''; const p = iso.split('-'); return (+p[2]) + '. ' + MONTH_IS[+p[1] - 1] + ' ' + p[0]; };
       const card = (n) => '<div class="lb-card t-' + tierOf(n.type) + '"><span class="lb-b t-' + tierOf(n.type) + '"></span>'
-        + '<div class="lb-t"><a class="lb-n" href="/fyrirtaeki/?q=' + encodeURIComponent(n.kt) + '">' + esc(n.name) + '</a>'
+        + '<div class="lb-t"><a class="lb-n" href="' + esc(felagHref(n.kt)) + '">' + esc(n.name) + '</a>'
         + '<div class="lb-meta">' + esc(typeLabels[n.type] || n.type) + (n.court ? ' · ' + esc(n.court) : '') + '</div>'
         + '<div class="lb-kt">kt. ' + esc(n.kt) + '</div></div>'
         + '<div class="lb-r"><div class="lb-d">' + esc(fmtDate(n.date)) + '</div>'

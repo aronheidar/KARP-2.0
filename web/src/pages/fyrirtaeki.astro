@@ -494,8 +494,10 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
   </style>
 
   <script>
+      import { KARP_MERKI } from '../lib/karp-merki.mjs';
     import { loadUser, loginHref, karpGet, karpPost, isAdmin, hasReport, karpCheckout, karpWarmReports, helpNote } from '../lib/auth.js';
     import { renderUboSample } from '../lib/ubo-report.js';
+    import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
     import { reportNavHtml, wireReportNav } from '../lib/report-nav.js';
     import { isatToSector, SECTORS, filterFeed } from '../lib/lobbyvakt.mjs';
     import { slugify } from '../lib/atvinnugrein.mjs';
@@ -628,7 +630,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       const rskLink = rsk ? `<a class="fs-link" style="margin-top:14px" href="${escF(rsk)}" target="_blank" rel="noopener"><span class="t">🏛️ Skoða hjá Skattinum</span><div class="s">frumskráning og staðfest vottorð</div></a>` : '';
       return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'areidanleiki' }) + `
         <div id="fs-report">
-        <div class="fs-rephead" hidden><b>🛡️ KARP — Áreiðanleikamat (KYC)</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/areidanleiki · heimildir: fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðið, PEP-listi (þing/ráðherrar/sveitarstjórnir)</span></div>
+        <div class="fs-rephead" hidden><b>${KARP_MERKI}KARP — Áreiðanleikamat (KYC)</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/areidanleiki · heimildir: fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðið, PEP-listi (þing/ráðherrar/sveitarstjórnir)</span></div>
         <div class="fs-card">
           <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           ${fsAreidanleiki(f)}
@@ -636,8 +638,8 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           ${fsAreidStjorn(f)}
           <div id="fs-logbirting" class="fs-logbirting" hidden></div>
           ${rskLink}
-          <div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=${escF(f.kt)}">🏢 Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Endanlegir eigendur →</a></div>
-          <div class="fs-note2">ⓘ Áreiðanleikamat byggir á opinberum stöðumerkjum úr fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu og PEP-skimun (nafnasamsvörun — staðfestu auðkenni). <b>Hvorki lánshæfismat né vanskilaskrá</b> — slík starfsemi er leyfisskyld. Full fyrirtækjaskýrsla með fjárhagsmælaborði, eigendaneti, greiðslum og fleiru er á <a href="/fyrirtaeki/?q=${escF(f.kt)}">fyrirtækjaskránni</a>.</div>
+          <div class="eig-related"><a class="eig-fulllink" href="${escF(felagHref(f.kt))}">🏢 Full fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/eigendur/?q=${escF(f.kt)}">🔗 Endanlegir eigendur →</a></div>
+          <div class="fs-note2">ⓘ Áreiðanleikamat byggir á opinberum stöðumerkjum úr fyrirtækjaskrá og ársreikningaskrá Skattsins, Lögbirtingablaðinu og PEP-skimun (nafnasamsvörun — staðfestu auðkenni). <b>Hvorki lánshæfismat né vanskilaskrá</b> — slík starfsemi er leyfisskyld. Full fyrirtækjaskýrsla með fjárhagsmælaborði, eigendaneti, greiðslum og fleiru er á <a href="${escF(felagHref(f.kt))}">fyrirtækjaskránni</a>.</div>
         </div>
         </div>`;
     }
@@ -963,7 +965,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       // og grind-hólfin (ársreikningar/eigendur/stjórn) standa tilbúin fyrir API Skattsins.
       return reportNavHtml({ kt: f.kt, nafn: f.nafn, view: 'skyrsla', refresh: !f.demo, pdf: !f.demo, demo: !!f.demo }) + `
         <div id="fs-report">
-        <div class="fs-rephead" hidden><b>🐟 KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
+        <div class="fs-rephead" hidden><b>${KARP_MERKI}KARP — Fyrirtækjaskýrsla</b><span>${escF(f.nafn)} · kt. ${escF(ktFmt(f.kt))} · skýrsla gerð ${new Date().toLocaleDateString('is-IS')} · karp.is/fyrirtaeki · heimildir: fyrirtækjaskrá Skattsins, opnirreikningar.is, TED/útboðsvefir, Nasdaq-kauphallartilkynningar, fjölmiðlavakt Karp</span></div>
         <div class="fs-card">
           <h2>${escF(f.nafn)}</h2><span class="kt">kt. ${escF(ktFmt(f.kt))}</span>${badge}
           ${throt}
@@ -1864,7 +1866,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
         host.className = 'fs-wrap eig-sample-wrap';
         const main = document.querySelector('main'); (main || document.body).appendChild(host);
         host.innerHTML = '<div class="fs-samplebar">👁️ Sýnishorn — gervifélag. Í raunskýrslu eru gögnin sótt úr opinberum skrám. <a href="/fyrirtaeki/">← Fletta upp raunfélagi</a></div><div id="fs-report"><div id="eig-host"></div></div>';
-        renderUboSample(host.querySelector('#eig-host'), { navTo: (q) => { location.href = '/fyrirtaeki/?q=' + encodeURIComponent(q); } });
+        renderUboSample(host.querySelector('#eig-host'), { navTo: (q) => { location.href = felagHref(q); } });
         return;
       }
       // ?syni=1 → sýnifyrirtæki (Norðurhaf) — opið öllum, engin innskráning, ekkert keypt

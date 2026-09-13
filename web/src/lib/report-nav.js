@@ -3,6 +3,7 @@
 // [← Ný leit] [📄 Skýrsla | 👥 Eigendur | 🛡️ Áreiðanleiki] [🖨️ PDF] [🔄 Sækja aftur] [🔖 Fylgja]
 // Virka viewið er merkt .on (ekki hlekkur). CSS í web/src/styles/ubo.css (.rnav*).
 import { karpGet, karpPost, loginHref } from './auth.js';
+import { felagHref } from './fyrirtaeki-slod.mjs';
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -89,9 +90,9 @@ export function reportNavHtml({ kt, nafn, view, refresh = true, pdf = true, demo
   return '<div class="fs-topbtns rnav">'
     + '<button class="fs-back" type="button">← Ný leit</button>'
     + '<span class="rnav-seg" role="tablist" aria-label="Skýrslur félagsins">'
-    + seg('skyrsla', demo ? '/fyrirtaeki/?syni=1' : '/fyrirtaeki/?q=' + k, '📄', 'Fyrirtækjaskýrsla')
+    + seg('skyrsla', demo ? '/fyrirtaeki/?syni=1' : felagHref(k), '📄', 'Fyrirtækjaskýrsla')
     + seg('eigendur', demo ? '/eigendur/?syni=1' : '/eigendur/?q=' + k, '👥', 'Endanlegir eigendur')
-    + seg('areidanleiki', demo ? '' : '/fyrirtaeki/?vidmot=areidanleiki&q=' + k, '🛡️', 'Áreiðanleikamat')
+    + seg('areidanleiki', demo ? '' : felagHref(k, { vidmot: 'areidanleiki' }), '🛡️', 'Áreiðanleikamat')
     + '</span>'
     + '<span class="rnav-act">'
     + (pdf ? '<button class="fs-vakta" id="rnav-pdf" type="button" title="Sækja skýrsluna sem PDF (prentgluggi)">🖨️ Sækja PDF</button>' : '')

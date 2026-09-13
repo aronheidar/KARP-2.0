@@ -4,6 +4,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { fmtNum, groupThousands } from '@lib/format.mjs';
 import DATA from '@gogn/hugverk.json';
+import { felagHref } from '../../lib/fyrirtaeki-slod.mjs';
 
 const { C1, rdL, VM, vmTotal, updated } = DATA;
 const C2 = null; // ekki notað — haldið f. define:vars-undirskrift
@@ -34,7 +35,7 @@ const desc = `Hugverkaiðnaðurinn — „fjórða stoðin": lyf, hugbúnaður, 
             <div class="vm-main">
               <a class="vm-t" href={m.url} target="_blank" rel="noopener">{m.titill || m.id}</a>
               {m.kt
-                ? <a class="vm-o" href={'/fyrirtaeki/?q=' + m.kt}>{m.eigandi}</a>
+                ? <a class="vm-o" href={felagHref(m.kt)}>{m.eigandi}</a>
                 : <span class="vm-o">{m.eigandi}</span>}
               {m.flokkar.length > 0 && <span class="vm-cat">Nice {m.flokkar.join(', ')}</span>}
             </div>

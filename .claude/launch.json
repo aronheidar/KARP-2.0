@@ -8,6 +8,12 @@
       "port": 4321
     },
     {
+      "name": "astro-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["astro", "dev", "--root", "web", "--port", "4399"],
+      "port": 4399
+    },
+    {
       "name": "thingskyrsla-preview",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["astro", "preview", "--root", "web", "--port", "4325"],

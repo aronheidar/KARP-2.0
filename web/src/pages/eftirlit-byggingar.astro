@@ -13,6 +13,7 @@
 import Layout from '../layouts/Layout.astro';
 import EF from '@gogn/eftirlit.json';
 import VAKT from '@gogn/byggingarleyfi_vakt.json';
+import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
 
 /* ---- Eftirlit (HER) ---- */
 const stadir = EF.stadir || [];
@@ -87,7 +88,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
             <div class="ef-card">
               <span class={'ef-b r' + s.rating} title={'Einkunn ' + s.rating + '/5'}>{s.rating}</span>
               <div class="ef-t">
-                <a class="ef-n" href={'/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name)}>{s.name}</a>
+                <a class="ef-n" href={felagHref(s.kt || s.name)}>{s.name}</a>
                 <div class="ef-meta">{[s.street, s.postnr, s.city].filter(Boolean).join(' · ')}</div>
                 <div class="ef-lab">{s.ratingLabel}</div>
               </div>
@@ -316,6 +317,9 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
       const RCOL = ['#d1242f', '#f85149', '#f0883e', '#f6b13b', '#6fd39b', '#3fb950'];
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // ⚠ Spegill af felagHref í src/lib/fyrirtaeki-slod.mjs — define:vars gerir þessa skriftu
+      // inline svo Vite bundlar hana ekki og `import` er ekki í boði. Prófin bera saman.
+      const felagHref = (kt) => { const s = String(kt == null ? '' : kt).trim(), d = s.replace(/\D/g, ''); return (d.length === 10 && +d.slice(0, 2) >= 41 && +d.slice(0, 2) <= 71) ? '/fyrirtaeki/' + d + '/' : (s ? '/fyrirtaeki/?q=' + encodeURIComponent(s) : '/fyrirtaeki/'); };
 
       const drawDist = () => {
         const el = document.getElementById('ef-dist');
@@ -338,7 +342,7 @@ const desc = `Opinber gögn Reykjavíkurborgar um staði og hús: matvæla- og h
       listEl.dataset.wired = '1';
       let DATA = null, filtered = [], shown = 0, curR = 'all', PAGE = 60;
       const card = (s) => '<div class="ef-card"><span class="ef-b r' + s.rating + '" title="Einkunn ' + s.rating + '/5">' + s.rating + '</span>'
-        + '<div class="ef-t"><a class="ef-n" href="/fyrirtaeki/?q=' + encodeURIComponent(s.kt || s.name) + '">' + esc(s.name) + '</a>'
+        + '<div class="ef-t"><a class="ef-n" href="' + esc(felagHref(s.kt || s.name)) + '">' + esc(s.name) + '</a>'
         + '<div class="ef-meta">' + esc([s.street, s.postnr, s.city].filter(Boolean).join(' · ')) + '</div>'
         + '<div class="ef-lab">' + esc(s.ratingLabel || '') + '</div></div>'
         + '<div class="ef-r"><div class="ef-d">' + esc(s.lastInspection || '') + '</div>'

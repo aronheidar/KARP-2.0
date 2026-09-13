@@ -100,6 +100,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
   </style>
 
   <script>
+    import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
     function initOkuSkip() {
       const form = document.getElementById('os-form');
       if (!form || form.dataset.on) return;
@@ -169,7 +170,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
         const rows = eig.map((o) => {
           const nm = esc(o.nafn || '—');
           const pct = (o.hlutur != null && o.hlutur !== '') ? ' <span class="sk-pct">' + esc(num(o.hlutur, 0)) + '%</span>' : '';
-          if (o.erFyrirtaeki && o.kt) return '<li><a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + nm + '</a>' + pct + '</li>';
+          if (o.erFyrirtaeki && o.kt) return '<li><a href="' + esc(felagHref(o.kt)) + '">' + nm + '</a>' + pct + '</li>';
           return '<li>' + nm + pct + '</li>';
         }).join('');
         return '<div class="sk-own"><div class="l">Skráðir eigendur</div><ul>' + rows + '</ul></div>';
@@ -219,7 +220,7 @@ const desc = 'Ökutækja-, skipa- og loftfaraleit — flettu upp íslensku bíln
       let loftState = [];
       const loftOwners = (a) => {
         if (!a.eigendur || !a.eigendur.length) return '';
-        const rows = a.eigendur.map((o) => (o.erFyrirtaeki && o.kt) ? '<li><a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + esc(o.nafn) + '</a></li>' : '<li>' + esc(o.nafn) + '</li>').join('');
+        const rows = a.eigendur.map((o) => (o.erFyrirtaeki && o.kt) ? '<li><a href="' + esc(felagHref(o.kt)) + '">' + esc(o.nafn) + '</a></li>' : '<li>' + esc(o.nafn) + '</li>').join('');
         return '<div class="sk-own"><div class="l">Skráðir eigendur</div><ul>' + rows + '</ul></div>';
       };
       const loftCard = (a) => '<div class="sk-card">'

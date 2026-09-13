@@ -6,6 +6,7 @@
 // Gögn: build_loftfor.mjs → web/public/gogn/loftfor.json (byKt + nofn). Aðeins LÖGAÐILA-eigendur/rekendur.
 import Layout from '../layouts/Layout.astro';
 import LOFTFOR from '../../public/gogn/loftfor.json';
+import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
 
 const byKt = LOFTFOR.byKt || {};
 const nofn = LOFTFOR.nofn || {};
@@ -79,7 +80,7 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
         <div class="fleet-card">
           <span class="fleet-rank">{i + 1}</span>
           <div class="fleet-body">
-            <a class="fleet-n" href={'/fyrirtaeki/?q=' + f.kt}>{f.nafn || f.kt}</a>
+            <a class="fleet-n" href={felagHref(f.kt)}>{f.nafn || f.kt}</a>
             <div class="fleet-tf">{f.aircraft.slice(0, 6).map((a) => (<span class="tf">{a.skrnr}</span>))}{f.count > 6 ? <span class="tf more">+{f.count - 6}</span> : null}</div>
           </div>
           <div class="fleet-c">{f.count}<span>loftför</span></div>
@@ -165,6 +166,9 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
       if (!document.querySelector('main[data-pg="loftfor"]')) return;
       const AX = '#7e8ca6', GRID = 'rgba(255,255,255,.06)', LINE = 'rgba(255,255,255,.14)';
       const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // ⚠ Spegill af felagHref í src/lib/fyrirtaeki-slod.mjs — define:vars gerir þessa skriftu
+      // inline svo Vite bundlar hana ekki og `import` er ekki í boði. Prófin bera saman.
+      const felagHref = (kt) => { const s = String(kt == null ? '' : kt).trim(), d = s.replace(/\D/g, ''); return (d.length === 10 && +d.slice(0, 2) >= 41 && +d.slice(0, 2) <= 71) ? '/fyrirtaeki/' + d + '/' : (s ? '/fyrirtaeki/?q=' + encodeURIComponent(s) : '/fyrirtaeki/'); };
       const nf = new Intl.NumberFormat('is-IS');
 
       const drawCharts = () => {
@@ -202,7 +206,7 @@ const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför 
       const qEl = document.getElementById('lf-q'), activeEl = document.getElementById('lf-active');
       let DATA = null, filtered = [], shown = 0; const PAGE = 60;
       const item = (a) => {
-        const own = (a.eigendur || []).map((o) => '<a href="/fyrirtaeki/?q=' + o.kt + '">' + esc(o.nafn) + '</a>' + (o.hlutverk && o.hlutverk.indexOf('rekandi') >= 0 && o.hlutverk.indexOf('eigandi') < 0 ? ' <span style="opacity:.6">(rekandi)</span>' : '')).join(', ');
+        const own = (a.eigendur || []).map((o) => '<a href="' + esc(felagHref(o.kt)) + '">' + esc(o.nafn) + '</a>' + (o.hlutverk && o.hlutverk.indexOf('rekandi') >= 0 && o.hlutverk.indexOf('eigandi') < 0 ? ' <span style="opacity:.6">(rekandi)</span>' : '')).join(', ');
         return '<div class="lf-item">'
           + '<span class="lf-reg' + (a.afskrad ? ' off' : '') + '">' + esc(a.skrnr || '—') + '</span>'
           + '<div class="lf-mid"><div class="lf-type">' + esc(a.tegund || '—') + '</div><div class="lf-own">' + (own || '—') + '</div></div>'

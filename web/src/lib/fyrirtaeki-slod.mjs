@@ -34,6 +34,15 @@ export const felagHref = (ktEdaNafn, opts = {}) => {
   return '/fyrirtaeki/?q=' + encodeURIComponent(q) + vidmotHali(opts.vidmot, '&');
 };
 
+// ── Spegill fyrir define:vars-skriftur ────────────────────────────────────────
+// Astro inline-ar <script define:vars={...}> og Vite bundlar hana því ekki → `import`
+// er ekki í boði þar. Þrjár síður (logbirting, loftfor, eftirlit-byggingar) smíða
+// tengla í runtime-innerHTML og þurfa regluna á staðnum. Hér er hún geymd sem strengur
+// svo hún eigi sér EINA uppsprettu; fyrirtaeki-slod.test.mjs les síðurnar, keyrir
+// spegilinn úr þeim og ber saman við felagHref — rek stöðvar prófin.
+export const FELAGHREF_INLINE =
+  "const felagHref = (kt) => { const s = String(kt == null ? '' : kt).trim(), d = s.replace(/\\D/g, ''); return (d.length === 10 && +d.slice(0, 2) >= 41 && +d.slice(0, 2) <= 71) ? '/fyrirtaeki/' + d + '/' : (s ? '/fyrirtaeki/?q=' + encodeURIComponent(s) : '/fyrirtaeki/'); };";
+
 // ── Stafrófshólf fyrir /fyrirtaeki/skra/ ──────────────────────────────────────
 // Broddstafir falla í grunnstafinn (Á→a, Ð→d …) — annars yrðu tugir örhólfa.
 // Þ, Æ og Ö eru sérstakir bókstafir í íslenskri stafrófsröð og fá eigin hólf;

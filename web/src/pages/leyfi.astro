@@ -225,6 +225,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
   </style>
 
   <script>
+    import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
     function initLeyfi() {
       const root = document.querySelector('main[data-pg="leyfi"]');
       if (!root) return;
@@ -278,7 +279,7 @@ const desc = `Leyfaskrá — vafrað yfirlit yfir ${nf(totalHafar)} handhafa rek
       };
 
       const card = (s) => '<div class="ly-card"><span class="ly-ic">' + s.emoji + '</span>'
-        + '<div class="ly-t"><a class="ly-n" href="/fyrirtaeki/?q=' + encodeURIComponent(s.kt) + '">' + esc(s.name) + '</a>'
+        + '<div class="ly-t"><a class="ly-n" href="' + esc(felagHref(s.kt)) + '">' + esc(s.name) + '</a>'
         + (s.place && s.place !== s.name ? '<div class="ly-meta">' + esc(s.place) + '</div>' : '')
         + '<div class="ly-tags"><span class="ly-tag">' + esc(s.catLabel) + '</span>'
         + (s.wine ? '<span class="ly-tag wine">🍷 Vínveitingaleyfi</span>' : '')

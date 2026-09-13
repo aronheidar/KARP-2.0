@@ -4,6 +4,7 @@
 import { isAdmin, hasReport, karpCheckout, helpNote, loginHref } from './auth.js';
 import { pendingBarHtml, pollUntilChanged } from './report-nav.js';
 import { escF, ktFmt } from './snid.mjs';
+import { felagHref } from './fyrirtaeki-slod.mjs';
 
 const eigPctFmt = (n) => (n == null ? '—' : Number(n).toFixed(2).replace('.', ',') + '%');
 const eigNorm = (s) => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zðþæ\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -101,7 +102,7 @@ function eigReverse(rep, ctx) {
   if (!items.length) return '';
   const body = items.map((it) =>
     '<div class="eig-rev-r"><span class="eig-rev-o">' + escF(it.nafn) + '</span><span class="eig-rev-c">'
-    + it.others.map((c) => '<a href="/fyrirtaeki/?q=' + encodeURIComponent(c.kt) + '">' + escF(c.nafn) + (c.hlutur != null ? ' <em>(' + eigPctFmt(c.hlutur) + ')</em>' : '') + '</a>').join('') + '</span></div>').join('');
+    + it.others.map((c) => '<a href="' + escF(felagHref(c.kt)) + '">' + escF(c.nafn) + (c.hlutur != null ? ' <em>(' + eigPctFmt(c.hlutur) + ')</em>' : '') + '</a>').join('') + '</span></div>').join('');
   return '<h4 class="eig-sec">Önnur félög sömu eigenda</h4>'
     + '<p class="eig-cap">Önnur íslensk félög sem eigendur þessa félags eiga einnig í — byggt á félögum sem Karp hefur rakið (vex eftir því sem fleiri eignatengsl bætast við).</p>'
     + '<div class="eig-rev">' + body + '</div>';
@@ -133,7 +134,7 @@ function eigSubsidiaries(rep, ctx) {
   const rec = ctx.reverse.byOwner[ctx.kt];
   const subs = rec && rec.a ? rec.a.filter((c) => c.kt && c.kt !== ctx.kt) : [];
   if (!subs.length) return '';
-  const body = subs.map((c) => '<a class="eig-sub-i" href="/fyrirtaeki/?q=' + encodeURIComponent(c.kt) + '">' + escF(c.nafn) + (c.hlutur != null ? ' <em>(' + eigPctFmt(c.hlutur) + ')</em>' : '') + '</a>').join('');
+  const body = subs.map((c) => '<a class="eig-sub-i" href="' + escF(felagHref(c.kt)) + '">' + escF(c.nafn) + (c.hlutur != null ? ' <em>(' + eigPctFmt(c.hlutur) + ')</em>' : '') + '</a>').join('');
   return '<h4 class="eig-sec">Dótturfélög og eignarhlutir</h4>'
     + '<p class="eig-cap">Félög sem félagið á eignarhlut í — byggt á félögum sem Karp hefur rakið (vex með þekju).</p>'
     + '<div class="eig-subs">' + body + '</div>';
@@ -141,7 +142,7 @@ function eigSubsidiaries(rep, ctx) {
 function eigReport(rep, kt, ctx) {
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
     + '<p class="eig-intro">Endanlegir eigendur innihalda upplýsingar um eigendur íslenskra fyrirtækja og vensl þeirra. Upplýsingarnar byggja á gögnum úr hlutafélagaskrá, ársreikningum og skráðum raunverulegum eigendum frá Skattinum. Jafnframt fylgir listi yfir skráða hluthafa.</p>'
     + '<h4 class="eig-sec">Yfirlit yfir endanlega eigendur</h4>'
     // 🕸️ Tengslakortið er nú EINA myndræna netið (fliparnir Listi/Kort fjarlægðir — kortið er sjálfgefið).
@@ -166,7 +167,7 @@ async function eigStjornir(rootKt) {
     if (!d || !d.holdur || !(d.stjornendur || []).length) return;
     const rows = d.stjornendur.map((p) => {
       const onnur = (p.onnur || []).map((o) =>
-        '<a href="/fyrirtaeki/?q=' + encodeURIComponent(o.kt) + '">' + escF(o.nafn) + ' <em>' + escF(o.hlutverk || '') + '</em></a>').join('');
+        '<a href="' + escF(felagHref(o.kt)) + '">' + escF(o.nafn) + ' <em>' + escF(o.hlutverk || '') + '</em></a>').join('');
       return '<div class="eig-stj-r"><span class="eig-stj-p">' + escF(p.nafn) + '<br><span class="eig-stj-h">' + escF((p.hlutverk_rot || []).join(' · ')) + '</span></span>'
         + '<span class="eig-stj-c">' + (onnur || '<span class="eig-stj-h">engin önnur hlutverk fundin innan netsins</span>') + '</span></div>';
     }).join('');
@@ -217,7 +218,7 @@ function eigEmptyReport(rep, kt, ctx) {
   const subs = eigSubsidiaries(rep || {}, ctx);
   return '<div class="eig-report" id="eig-report">'
     + '<div class="eig-h"><h3>Endanlegir eigendur</h3><button type="button" class="eig-print" id="eig-print">🖨️ Prenta / PDF</button></div>'
-    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="/fyrirtaeki/?q=' + encodeURIComponent(kt) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="/fyrirtaeki/?vidmot=areidanleiki&q=' + encodeURIComponent(kt) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
+    + (kt ? '<div class="eig-related"><a class="eig-fulllink" href="' + escF(felagHref(kt)) + '">🏢 Fyrirtækjaskýrsla →</a><a class="eig-fulllink" href="' + escF(felagHref(kt, { vidmot: 'areidanleiki' })) + '">🛡️ Áreiðanleikamat →</a></div>' : '')
     + '<div class="eig-empty">'
     +   '<div class="eig-empty-h"><span class="eig-empty-ico">🔎</span><h4>Engir endanlegir eigendur skráðir</h4></div>'
     +   '<p>Hvorki hluthafalisti í nýjasta ársreikningi félagsins né skráðir raunverulegir eigendur (yfir 25%) fundust hjá Skattinum. Þetta á oftast við um félög með <b>dreift eða skráð eignarhald</b> — t.d. félög skráð á markað eða í eigu margra smærri hluthafa — þar sem enginn einn aðili nær því 25% raunverulegu eignarhaldi sem skylt er að skrá.</p>'

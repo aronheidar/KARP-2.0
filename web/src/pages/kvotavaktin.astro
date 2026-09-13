@@ -229,6 +229,7 @@ const jsonLd = {
     // ⚓ Kvótavaktin — client-eyja: sækir /gogn/kvoti.json (404-þolið), teiknar yfirlit, topp-20,
     // tegundir og leit; eigendahópurinn kemur lifandi frá workernum (/api/kvoti/hopur).
     import { loginHref } from '../lib/auth.js';
+    import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
     import { teiknaSolgeisla, teiknaStrengi, teiknaPakka, teiknaNyting, teiknaDreifirit, teiknaThroun } from '../lib/kvotagraf.mjs';
 
     document.addEventListener('astro:page-load', () => {
@@ -255,7 +256,7 @@ const jsonLd = {
       const VINNSLA = '<div class="kv-empty">🛠 Gögn í vinnslu — kíktu við á eftir.</div>';
       const FYRIRVARI = 'Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.';
 
-      const ktLink = (kt, nafn) => '<a class="kv-n" href="/fyrirtaeki/?q=' + esc(kt) + '" title="Fyrirtækjaprófíll á Karp">' + esc(nafn) + '</a><span class="kv-kt">' + esc(kt) + '</span>';
+      const ktLink = (kt, nafn) => '<a class="kv-n" href="' + esc(felagHref(kt)) + '" title="Fyrirtækjaprófíll á Karp">' + esc(nafn) + '</a><span class="kv-kt">' + esc(kt) + '</span>';
       // Lárétt stika: breiddin skalast við stærstu hlutdeildina í töflunni (max) svo listinn lesist vel.
       const bar = (pct, max) => {
         const w = Math.max(2, Math.min(100, ((Number(pct) || 0) / (max || 1)) * 100));
@@ -485,7 +486,7 @@ const jsonLd = {
         }
         if (!h) html += '<p class="kv-note">Skipalisti og tegundagreining fylgja 150 stærstu útgerðunum — þessi útgerð er utan þess hóps.</p>';
         html += '<div class="kv-dbtns">'
-          + '<a class="kv-btn" href="/fyrirtaeki/?q=' + esc(kt) + '">Fyrirtækjaskýrsla →</a>'
+          + '<a class="kv-btn" href="' + esc(felagHref(kt)) + '">Fyrirtækjaskýrsla →</a>'
           + '<a class="kv-btn" href="/eigendur/?q=' + esc(kt) + '">Endanlegir eigendur →</a>'
           + '<button type="button" class="kv-btn kv-btn2" data-kt="' + esc(kt) + '" data-act="hopurload">Eigendahópur</button>'
           + '</div><div id="kv-hopur"></div></div>';

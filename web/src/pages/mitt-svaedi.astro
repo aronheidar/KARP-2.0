@@ -428,6 +428,7 @@ const updated = '2026-07-02';
   <!-- Eyja: flipar + widgets (fylgja/sveitarfélag/flokkamat/vaktir/aðgangur). #2 -->
   <script>
     import { loadUser, karpGet, karpPost, loginHref, hasTier } from '../lib/auth.js';
+    import { felagHref } from '../lib/fyrirtaeki-slod.mjs';
     const $g = (id) => document.getElementById(id);
     const J = (id) => { try { return JSON.parse($g(id).textContent); } catch (e) { return null; } };
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -470,10 +471,10 @@ const updated = '2026-07-02';
             // Flokka keyptar skýrslur eftir tegund (lykil-forskeyti). Nýir flokkar fyllast
             // sjálfkrafa þegar sölulyklar bætast við (t.d. eigendur:/areidanleiki:).
             const CATS = [
-              { pfx: 'fyrirtaeki:', label: 'Fyrirtækjaskýrslur', ico: '📄', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) },
+              { pfx: 'fyrirtaeki:', label: 'Fyrirtækjaskýrslur', ico: '📄', link: (id) => felagHref(id) },
               { pfx: 'eigendur:', label: 'Endanlegir eigendur', ico: '👤', link: (id) => '/eigendur/?q=' + encodeURIComponent(id) },
-              { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', ico: '🛡️', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) + '&vidmot=areidanleiki' },
-              { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', ico: '📰', link: (id) => '/fyrirtaeki/?q=' + encodeURIComponent(id) },
+              { pfx: 'areidanleiki:', label: 'Áreiðanleikamat', ico: '🛡️', link: (id) => felagHref(id, { vidmot: 'areidanleiki' }) },
+              { pfx: 'fjolmidlar:', label: 'Fjölmiðlavakt', ico: '📰', link: (id) => felagHref(id) },
               { pfx: 'fasteign:', label: 'Fasteignaskýrslur', ico: '🏠', link: (id) => '/fasteignavakt/?q=' + encodeURIComponent(id) },
               { pfx: 'thingmadur:', label: 'Þingmannaskýrslur', ico: '🏛️', link: (id) => '/althingi/' + encodeURIComponent(id) + '/skyrsla/' },
             ];
@@ -510,7 +511,7 @@ const updated = '2026-07-02';
         let arr = []; try { arr = JSON.parse(localStorage.getItem('karp-recent') || '[]'); } catch (e) {}
         if (!arr.length) return;   // heldur sjálfgefna „engin skoðuð" textanum
         const ago = (ts) => { const d = Math.floor((Date.now() - ts) / 86400000); return d <= 0 ? 'í dag' : d === 1 ? 'í gær' : 'fyrir ' + d + ' dögum'; };
-        el.innerHTML = '<div class="sk-list">' + arr.slice(0, 8).map((r) => `<a class="sk-row" href="/fyrirtaeki/?q=${encodeURIComponent(r.kt)}"><span class="sk-t">${esc(r.nafn || r.kt)}</span><span class="sk-o">${ago(r.ts)} →</span></a>`).join('') + '</div>';
+        el.innerHTML = '<div class="sk-list">' + arr.slice(0, 8).map((r) => `<a class="sk-row" href="${felagHref(r.kt)}"><span class="sk-t">${esc(r.nafn || r.kt)}</span><span class="sk-o">${ago(r.ts)} →</span></a>`).join('') + '</div>';
       })();
 
       // 🌗 Þema-rofi í Stillingum — samstillt við nav-rofann (window.karpSetTheme + karp-theme event).
@@ -897,7 +898,7 @@ const updated = '2026-07-02';
           let unseen = 0;
           const coHtml = cos.map((k) => {
             const kt = k.slice(3), nm = names[k] || kt, isNew = !seen[k]; if (isNew) unseen++;
-            return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="/fyrirtaeki/?q=${encodeURIComponent(kt)}"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(nm)}${isNew ? ' <span class="fc-dot" title="Óskoðað">●</span>' : ''}</span><span class="fc-f">fyrirtæki vaktað</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
+            return `<div class="fcard" style="--pc:#19d3c5"><a class="fc-link" href="${felagHref(kt)}"><span class="fc-ini">🏢</span><span class="fc-txt"><span class="fc-n">${esc(nm)}${isNew ? ' <span class="fc-dot" title="Óskoðað">●</span>' : ''}</span><span class="fc-f">fyrirtæki vaktað</span></span></a><button class="fc-x" data-key="${esc(k)}">✕</button></div>`;
           }).join('');
           el.innerHTML = '<div class="flist">' + mps.map((k) => {
             const m = MP[k];
