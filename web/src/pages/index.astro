@@ -1,31 +1,34 @@
 ---
 import Layout from '../layouts/Layout.astro';
 // Forsíða (hub) fyrir karp.is — nú í app-skel (nav vinstra + fréttir hægra). #2 Á3/Á6.
+// Flísarnar bera enga emojí (13.9.2026): 24 fjöllit kerfistákn ofan á einlita palettu var sterkasta
+// „vélgerða" merki síðunnar, og sum voru röng (💶 evruseðill fyrir EES, 🚀 fyrir VLF). Í stað táknsins
+// fær flís LIFANDI LYKILTÖLU þegar hún er til (TALA hér að neðan) — annars stendur fyrirsögnin ein.
 const pages = [
-  { href: '/kort/', emoji: '🗺️', title: 'Íslandskortið', desc: 'Gagnvirkt kort — öll sveitarfélög lituð eftir 14 mælikvörðum, þysjun í landshluta.' },
-  { href: '/verdlag/', emoji: '📉', title: 'Verðlag', desc: 'Verðbólga og uppruni hennar, neyslukarfan, gengi og stýrivextir — lykiltölur.' },
-  { href: '/sveitarfelog/', emoji: '🏘️', title: 'Sveitarfélaga-vísitala', desc: 'Samsett vísitala 36 sveitarfélaga: fjárhagur, vöxtur og atvinna vegin saman.' },
-  { href: '/althingi/', emoji: '🏛️', title: 'Sætaspá Alþingis', desc: "D'Hondt-sætaspá úr nýjustu könnunum — ríkisstjórn vs. stjórnarandstaða." },
-  { href: '/thingmal/', emoji: '📜', title: 'Þingmál', desc: 'Nýjustu frumvörp og tillögur með atkvæðagreiðslu — kjóstu þína eigin skoðun.' },
-  { href: '/kannanir/', emoji: '📊', title: 'Fylgi flokka', desc: 'Fylgi flokka í skoðanakönnunum frá kosningum 2024 — þróun yfir tíma.' },
-  { href: '/markadir/', emoji: '📈', title: 'Markaðir', desc: 'Úrvalsvísitala, skráð félög og ávöxtunarferill ríkisbréfa.' },
-  { href: '/rikisfjarmal/', emoji: '🏦', title: 'Ríkisfjármál', desc: 'Tekjur og útgjöld ríkissjóðs — fjárlög eftir málefnasviðum.' },
-  { href: '/fasteignir/', emoji: '🏠', title: 'Fasteignaverð', desc: 'Verð á fermetra höfuðborg vs landsbyggð — þróun úr þinglýstum kaupum.' },
-  { href: '/orka/', emoji: '⚡', title: 'Orka', desc: 'Raforkuframleiðsla og hlutfall endurnýjanlegrar orku frá 1969.' },
-  { href: '/vinnumarkadur/', emoji: '👷', title: 'Vinnumarkaður', desc: 'Skráð atvinnuleysi — mánaðarþróun, landshlutar, kyn og ríkisfang.' },
-  { href: '/afbrot/', emoji: '🚓', title: 'Afbrot', desc: 'Hegningarlagabrot á 10.000 íbúa — þróun, landshlutar og brotaflokkar.' },
-  { href: '/nato/', emoji: '🌍', title: 'NATO & sendiráð', desc: 'Varnarútgjöld NATO-ríkja og sendiráðanet Íslands.' },
-  { href: '/hagvoxtur/', emoji: '🚀', title: 'Hagvöxtur', desc: 'VLF ársfjórðungslega, samsetning landsframleiðslunnar og Norðurlanda-samanburður.' },
-  { href: '/vidskipti/', emoji: '🚢', title: 'Utanríkisverslun', desc: 'Út- og innflutningur eftir vöruflokkum, jöfnuður og mánaðarleg þróun.' },
-  { href: '/mannfjoldi/', emoji: '👥', title: 'Mannfjöldi', desc: 'Íbúafjöldi, þættir fólksfjölgunar og hlutfall innflytjenda.' },
-  { href: '/menntun/', emoji: '🎓', title: 'Menntun', desc: 'Menntunarstaða 25–64 ára eftir ISCED-stigum og kyni.' },
-  { href: '/rafbilar/', emoji: '🔌', title: 'Rafbílar', desc: 'Bílaflotinn eftir orkugjafa og rafvæðingar-hlutfallið.' },
-  { href: '/umferd/', emoji: '✈️', title: 'Umferð', desc: 'Farþegar um Keflavíkurflugvöll og vegaumferð.' },
-  { href: '/topplistar/', emoji: '🏆', title: 'Topplistar', desc: 'Raðanir sveitarfélaga eftir 12 mælikvörðum — hver stendur best?' },
-  { href: '/jofnunarsjodur/', emoji: '⚖️', title: 'Jöfnunarsjóður', desc: 'Hvert fara 54 milljarðar sjóðsins — eftir flokkum og sveitarfélögum.' },
-  { href: '/ees/', emoji: '💶', title: 'EES / EFTA', desc: 'Innri markaðurinn, tveggja stoða kerfið og nýjustu ESB-tilskipanir.' },
-  { href: '/samtok/', emoji: '🤝', title: 'Alþjóðasamstarf', desc: 'Samtökin og samningarnir sem Ísland á aðild að — frá SÞ til Parísarsamnings.' },
-  { href: '/reiknivelar/', emoji: '🧮', title: 'Reiknivélar', desc: 'Laun, húsnæðislán, lífeyrir og verðmat — reiknað í vafra.' },
+  { href: '/kort/', title: 'Íslandskortið', desc: 'Gagnvirkt kort — öll sveitarfélög lituð eftir 14 mælikvörðum, þysjun í landshluta.' },
+  { href: '/verdlag/', title: 'Verðlag', desc: 'Verðbólga og uppruni hennar, neyslukarfan, gengi og stýrivextir — lykiltölur.' },
+  { href: '/sveitarfelog/', title: 'Sveitarfélaga-vísitala', desc: 'Samsett vísitala 36 sveitarfélaga: fjárhagur, vöxtur og atvinna vegin saman.' },
+  { href: '/althingi/', title: 'Sætaspá Alþingis', desc: "D'Hondt-sætaspá úr nýjustu könnunum — ríkisstjórn vs. stjórnarandstaða." },
+  { href: '/thingmal/', title: 'Þingmál', desc: 'Nýjustu frumvörp og tillögur með atkvæðagreiðslu — kjóstu þína eigin skoðun.' },
+  { href: '/kannanir/', title: 'Fylgi flokka', desc: 'Fylgi flokka í skoðanakönnunum frá kosningum 2024 — þróun yfir tíma.' },
+  { href: '/markadir/', title: 'Markaðir', desc: 'Úrvalsvísitala, skráð félög og ávöxtunarferill ríkisbréfa.' },
+  { href: '/rikisfjarmal/', title: 'Ríkisfjármál', desc: 'Tekjur og útgjöld ríkissjóðs — fjárlög eftir málefnasviðum.' },
+  { href: '/fasteignir/', title: 'Fasteignaverð', desc: 'Verð á fermetra höfuðborg vs landsbyggð — þróun úr þinglýstum kaupum.' },
+  { href: '/orka/', title: 'Orka', desc: 'Raforkuframleiðsla og hlutfall endurnýjanlegrar orku frá 1969.' },
+  { href: '/vinnumarkadur/', title: 'Vinnumarkaður', desc: 'Skráð atvinnuleysi — mánaðarþróun, landshlutar, kyn og ríkisfang.' },
+  { href: '/afbrot/', title: 'Afbrot', desc: 'Hegningarlagabrot á 10.000 íbúa — þróun, landshlutar og brotaflokkar.' },
+  { href: '/nato/', title: 'NATO & sendiráð', desc: 'Varnarútgjöld NATO-ríkja og sendiráðanet Íslands.' },
+  { href: '/hagvoxtur/', title: 'Hagvöxtur', desc: 'VLF ársfjórðungslega, samsetning landsframleiðslunnar og Norðurlanda-samanburður.' },
+  { href: '/vidskipti/', title: 'Utanríkisverslun', desc: 'Út- og innflutningur eftir vöruflokkum, jöfnuður og mánaðarleg þróun.' },
+  { href: '/mannfjoldi/', title: 'Mannfjöldi', desc: 'Íbúafjöldi, þættir fólksfjölgunar og hlutfall innflytjenda.' },
+  { href: '/menntun/', title: 'Menntun', desc: 'Menntunarstaða 25–64 ára eftir ISCED-stigum og kyni.' },
+  { href: '/rafbilar/', title: 'Rafbílar', desc: 'Bílaflotinn eftir orkugjafa og rafvæðingar-hlutfallið.' },
+  { href: '/umferd/', title: 'Umferð', desc: 'Farþegar um Keflavíkurflugvöll og vegaumferð.' },
+  { href: '/topplistar/', title: 'Topplistar', desc: 'Raðanir sveitarfélaga eftir 12 mælikvörðum — hver stendur best?' },
+  { href: '/jofnunarsjodur/', title: 'Jöfnunarsjóður', desc: 'Hvert fara 54 milljarðar sjóðsins — eftir flokkum og sveitarfélögum.' },
+  { href: '/ees/', title: 'EES / EFTA', desc: 'Innri markaðurinn, tveggja stoða kerfið og nýjustu ESB-tilskipanir.' },
+  { href: '/samtok/', title: 'Alþjóðasamstarf', desc: 'Samtökin og samningarnir sem Ísland á aðild að — frá SÞ til Parísarsamnings.' },
+  { href: '/reiknivelar/', title: 'Reiknivélar', desc: 'Laun, húsnæðislán, lífeyrir og verðmat — reiknað í vafra.' },
 ];
 // 🗞️ VIKAN Í GÖGNUNUM (LOTA 16, liður 2) — regludrifin gagnaskrif: setningar
 // samdar VÉLRÆNT úr nýjustu tölum safnsins (engin gervigreind, hrein regluvirkni).
@@ -34,27 +37,53 @@ import FRUMVORP from '@gogn/frumvorp.json';
 import LEIGA from '@gogn/leiga.json';
 import ATVL from '@gogn/atvinnuleysi.json';
 import MARKADIR from '@gogn/markadir.json';
+import VERDLAG from '@gogn/verdlag.json';
+import FASTEIGNIR from '@gogn/fasteignir.json';
+import HAGVOXTUR from '@gogn/hagvoxtur.json';
 import { partyName } from '@lib/parties.mjs';
 
+// Setningarnar bera ekkert tákn fremst (13.9.2026): hver þeirra nefnir svið sitt í fyrstu orðunum,
+// og 📈 sem stóð þar var harðkóðað óháð formerki — forsíðan sýndi „📈 OMXI15 lækkaði um 0,48%".
 const VIKAN = [];
+// TALA — lifandi lykiltala á forsíðuflís, lykluð á href. Sama gögn og VIKAN, engin auka-sókn.
+const TALA = {};
+const isNum = (x) => String(x).replace('.', ',');
 try {
   const p = POLLS.polls || [];
   if (p.length >= 2) {
     const a = p[p.length - 1], b = p[p.length - 2];
     const top = Object.keys(a.v || {}).sort((x, y) => (a.v[y] || 0) - (a.v[x] || 0))[0];
     const d = top && b.v && b.v[top] != null ? Math.round(((a.v[top] || 0) - b.v[top]) * 10) / 10 : null;
-    if (top) VIKAN.push(`📊 Í nýjustu könnun (${a.pollster}, ${a.date}) mælist ${partyName(top)} stærstur með ${String(a.v[top]).replace('.', ',')}%${d != null && d !== 0 ? ` — ${d > 0 ? 'hækkar' : 'lækkar'} um ${String(Math.abs(d)).replace('.', ',')} prósentustig milli kannana` : ''}.`);
+    if (top) {
+      VIKAN.push(`Í nýjustu könnun (${a.pollster}, ${a.date}) mælist ${partyName(top)} stærstur með ${isNum(a.v[top])}%${d != null && d !== 0 ? ` — ${d > 0 ? 'hækkar' : 'lækkar'} um ${isNum(Math.abs(d))} prósentustig milli kannana` : ''}.`);
+      TALA['/kannanir/'] = { v: isNum(a.v[top]) + '%', l: partyName(top) };
+    }
   }
   const done = FRUMVORP.filter((b) => /^Samþykkt/.test(b.stada || '')).sort((x, y) => (y.d || '').localeCompare(x.d || ''))[0];
-  if (done) VIKAN.push(`🏛️ Nýjast samþykkt á Alþingi: ${done.titill.charAt(0).toUpperCase() + done.titill.slice(1)} (${done.ja}–${done.nei}).`);
-  if (ATVL.latest != null) VIKAN.push(`👷 Skráð atvinnuleysi stendur í ${String(ATVL.latest).replace('.', ',')}%.`);
+  if (done) VIKAN.push(`Nýjast samþykkt á Alþingi: ${done.titill.charAt(0).toUpperCase() + done.titill.slice(1)} (${done.ja}–${done.nei}).`);
+  if (ATVL.latest != null) {
+    VIKAN.push(`Skráð atvinnuleysi stendur í ${isNum(ATVL.latest)}%.`);
+    TALA['/vinnumarkadur/'] = { v: isNum(ATVL.latest) + '%', l: 'atvinnuleysi' };
+  }
   const lq = (LEIGA.quarters || []).filter((x) => x.n >= 100);
   if (lq.length >= 5) {
     const now = lq[lq.length - 1], ago = lq[lq.length - 5];
-    VIKAN.push(`🔑 Leiguverð (miðgildi) var ${String(now.medM2).replace('.', ',')} kr/m² í ${now.q} — ${Math.round(((now.medM2 / ago.medM2) - 1) * 100)}% hærra en ári fyrr.`);
+    VIKAN.push(`Leiguverð (miðgildi) var ${isNum(now.medM2)} kr/m² í ${now.q} — ${Math.round(((now.medM2 / ago.medM2) - 1) * 100)}% hærra en ári fyrr.`);
   }
   const ix = (MARKADIR.indices || [])[0];
-  if (ix && ix.chgPct != null) VIKAN.push(`📈 ${ix.name.split('—')[0].trim()} ${ix.chgPct >= 0 ? 'hækkaði' : 'lækkaði'} um ${String(Math.abs(ix.chgPct)).replace('.', ',')}% síðasta viðskiptadag.`);
+  if (ix && ix.chgPct != null) {
+    const nafn = ix.name.split('—')[0].trim();
+    VIKAN.push(`${nafn} ${ix.chgPct >= 0 ? 'hækkaði' : 'lækkaði'} um ${isNum(Math.abs(ix.chgPct))}% síðasta viðskiptadag.`);
+    // ▲/▼ er húsvenja fyrir formerki (thingmal.astro) — táknið FYLGIR tölunni, það er ekki skraut.
+    TALA['/markadir/'] = { v: (ix.chgPct >= 0 ? '▲' : '▼') + isNum(Math.abs(ix.chgPct)) + '%', l: nafn + ' síðasta dag' };
+  }
+  // Þrjár flísar til viðbótar fá tölu úr gögnum sem síðurnar sjálfar birta — sama uppspretta, engin auka-sókn.
+  const vb = (VERDLAG.rows || []).slice(-1)[0];
+  if (vb && vb.v != null) TALA['/verdlag/'] = { v: isNum(vb.v) + '%', l: 'verðbólga' };
+  const fm = (FASTEIGNIR.months || []).slice(-1)[0];
+  if (fm && fm.hbsv && fm.hbsv.m2) TALA['/fasteignir/'] = { v: String(fm.hbsv.m2) + ' þ.kr/m²', l: 'höfuðborgarsvæðið' };
+  const g = HAGVOXTUR.GDP || {};
+  if (g.latest != null) TALA['/hagvoxtur/'] = { v: (g.latest >= 0 ? '▲' : '▼') + isNum(Math.abs(g.latest)) + '%', l: 'VLF ' + (g.latestQ || '') };
 } catch (e) {}
 
 const updated = '2026-07-01';
@@ -73,34 +102,34 @@ const updated = '2026-07-01';
     <section class="b2b-hero">
       <div class="bh-top">
         <div class="bh-txt">
-          <div class="bh-kick">⭐ Fyrir fyrirtæki</div>
+          <div class="bh-kick">Fyrir fyrirtæki</div>
           <h2>Fyrirtækjaskýrslur, endanlegir eigendur & áreiðanleikamat</h2>
           <p>Öll opinber fyrirtækjagögn á einum stað — ársreikningar, eigendanet, KYC-skimun og vaktir. Frá 990 kr. Prófaðu fría uppflettingu:</p>
         </div>
       </div>
       <form class="bh-search" action="/fyrirtaeki/" method="get" role="search">
         <input name="q" placeholder="Fletta upp félagi eða kt…" aria-label="Leita að félagi" autocomplete="off" />
-        <button type="submit">🔎 Leita</button>
+        <button type="submit">Leita</button>
       </form>
       <div class="bh-links"><a href="/karp-pro/">Karp+ &amp; verð →</a><a href="/lausnir/fyrirtaekjaskyrsla/">Um fyrirtækjaskýrsluna →</a></div>
     </section>
 
     {VIKAN.length > 0 && (
       <section class="vikan">
-        <div class="v-h">🗞️ Staðan í gögnunum <i class="tip" tabindex="0" data-tip="Setningarnar eru samdar VÉLRÆNT úr nýjustu tölum gagnasafnsins við hverja byggingu — regludrifin gagnaskrif, engin gervigreind og engin ritstjórn.">ⓘ</i></div>
+        <div class="v-h">Staðan í gögnunum <i class="tip" tabindex="0" data-tip="Setningarnar eru samdar VÉLRÆNT úr nýjustu tölum gagnasafnsins við hverja byggingu — regludrifin gagnaskrif, engin gervigreind og engin ritstjórn.">ⓘ</i></div>
         <ul>{VIKAN.map((v) => <li>{v}</li>)}</ul>
       </section>
     )}
 
     <div class="grid">
-      {pages.map((p) => (
+      {pages.map((p) => { const t = TALA[p.href]; return (
         <a class="card" href={p.href}>
-          <div class="c-emoji">{p.emoji}</div>
+          {t && <div class="c-num"><b>{t.v}</b><span>{t.l}</span></div>}
           <div class="c-title">{p.title}</div>
           <div class="c-desc">{p.desc}</div>
           <div class="c-go">Skoða →</div>
         </a>
-      ))}
+      ); })}
     </div>
 
     <p class="foot">
@@ -129,8 +158,11 @@ const updated = '2026-07-01';
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin: 32px 0 8px; }
     .card { display: block; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
     .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }
-    .c-emoji { font-size: 30px; }
+    /* var(--gold) en ekki #f6b13b: ljósa þemað skilgreinir --gold #8a5e00 svo talan haldi birtuskilum á rjóma. */
+    .c-num b { display: block; font-size: 27px; font-weight: 800; color: var(--gold); letter-spacing: -.01em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .c-num span { display: block; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
     .c-title { font-size: 19px; font-weight: 700; margin: 10px 0 4px; }
+    .card > .c-title:first-child { margin-top: 0; }
     .c-desc { font-size: 14px; color: var(--muted); }
     .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: 12px; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 34px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }

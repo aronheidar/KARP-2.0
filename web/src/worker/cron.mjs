@@ -333,12 +333,12 @@ function _newsHits(news, word, limit) {
 function digestBuild(name, prefs, sh) {
   const dIS = (d) => { const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? (+m[3]) + '.' + (+m[2]) + '.' + m[1] : ''; };
   const mkr = (v) => (Number(v || 0) / 1000).toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' m.kr';
-  const H = (ico, txt) => '<tr><td style="padding:18px 20px 4px;color:#f6b13b;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">' + ico + ' ' + _esc(txt) + '</td></tr>';
+  const H = (txt) => '<tr><td style="padding:18px 20px 4px;color:#f6b13b;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em">' + _esc(txt) + '</td></tr>';
   const _u = (u) => !u ? '' : (/^https?:\/\//.test(u) ? u : 'https://karp.is' + (u[0] === '/' ? u : '/' + u));
   const li = (main, sub, url) => { const t = url ? '<a href="' + _esc(url) + '" style="color:#eaf1fb;font-size:14.5px;text-decoration:none;font-weight:600">' + _esc(main) + '</a>' : '<span style="color:#eaf1fb;font-size:14.5px;font-weight:600">' + _esc(main) + '</span>'; return '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + t + (sub ? '<br><span style="color:#8a93a8;font-size:12px">' + _esc(sub) + '</span>' : '') + '</td></tr>'; };
   let rows = '', personal = false;
   if (sh.tolur.length) {
-    rows += H('📊', 'Vikan í tölum');
+    rows += H('Vikan í tölum');
     let chips = '';
     for (const line of sh.tolur) { const p = line.split(':'); const head = p.shift(); chips += '<span style="display:inline-block;background:#141c2b;border:1px solid #263349;border-radius:9px;padding:6px 10px;margin:3px 4px 3px 0;color:#cdd6e6;font-size:12px"><b style="color:#f6b13b">' + _esc(head.trim()) + '</b> ' + _esc(p.join(':').trim()) + '</span>'; }
     rows += '<tr><td style="padding:6px 20px 10px">' + chips + '</td></tr>';
@@ -348,27 +348,27 @@ function digestBuild(name, prefs, sh) {
   if (fl.length) {
     let sec = '', done = 0;
     for (const key of fl) { if (done >= 12) break; let nafn = ''; const k = String(key); if (k.indexOf('mp:') === 0) nafn = sh.mp[k.slice(3)] || ''; else if (k.indexOf('co:') === 0) nafn = k.slice(3).trim(); else if (!/^\d{7,10}$/.test(k)) nafn = k; if (!nafn) continue; done++; const hit = _newsHits(sh.news, nafn, 1); if (!hit.n) continue; const top = hit.rows[0]; sec += li(nafn + ' — ' + hit.n + ' ' + (hit.n === 1 ? 'frétt' : 'fréttir'), top ? top.title.slice(0, 88) : '', 'https://karp.is/frettir/'); }
-    if (sec) { rows += H('⭐', 'Þau sem þú fylgist með — vikan í fréttum') + sec; personal = true; }
+    if (sec) { rows += H('Þau sem þú fylgist með — vikan í fréttum') + sec; personal = true; }
   }
   const fv = prefs.fastvakt;
   if (fv && fv.on && Array.isArray(fv.vaktir) && fv.vaktir.length && sh.kaup7.length) {
     const match = (x, sv, q) => { if (sv && String(x.sv || '') !== sv) return false; if (!q) return true; if (/^\d{3}$/.test(q)) return String(x.pn || '') === q; return String(x.a || '').toLowerCase().indexOf(String(q).toLowerCase()) === 0; };
     let sec = '', n = 0;
     for (const x of sh.kaup7) for (const w of fv.vaktir) { if (match(x, String(w.sv || ''), String(w.q || ''))) { n++; if (n <= 8) { const fm = Number(x.fm || 0); sec += li(String(x.a || '') + ' — ' + mkr(x.v || 0), (dIS(x.d) + ' · ' + String(fm).replace('.', ',') + ' m²' + (fm > 0 ? ' · ' + Math.round(Number(x.v || 0) / fm) + ' þ/m²' : '') + ' · ' + String(x.pn || '') + ' ' + String(x.sv || '')).trim(), 'https://karp.is/fasteignavakt/'); } break; } }
-    if (n) { rows += H('🏠', 'Fasteignavaktin — ' + n + ' þinglýst' + (n === 1 ? ' sala' : 'ar sölur') + ' í vikunni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/fasteignavakt/'); personal = true; }
+    if (n) { rows += H('Fasteignavaktin — ' + n + ' þinglýst' + (n === 1 ? ' sala' : 'ar sölur') + ' í vikunni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/fasteignavakt/'); personal = true; }
   }
   const uv = prefs.utbodvakt;
   if (uv && uv.on && uv.seen && Object.keys(uv.seen).length && Object.keys(sh.utbod).length) {
     const wkTs = Math.floor(Date.now() / 1000) - 7 * 86400;
     let sec = '', n = 0;
     for (const url of Object.keys(uv.seen)) { if (Number(uv.seen[url]) < wkTs || !sh.utbod[url]) continue; n++; if (n <= 6) { const t = sh.utbod[url]; sec += li(t.t, t.b, url); } }
-    if (n) { rows += H('📋', 'Útboðsvaktin — ' + n + ' ' + (n === 1 ? 'nýtt útboð' : 'ný útboð') + ' í vikunni') + sec; personal = true; }
+    if (n) { rows += H('Útboðsvaktin — ' + n + ' ' + (n === 1 ? 'nýtt útboð' : 'ný útboð') + ' í vikunni') + sec; personal = true; }
   }
   const fmv = prefs.firmavakt;
   if (fmv && fmv.on && Array.isArray(fmv.felog) && fmv.felog.length && Object.keys(sh.vm).length) {
     let sec = '', nvm = 0;
     for (const co of fmv.felog) { if (!co || !co.kt) continue; const kt = String(co.kt).replace(/\D/g, ''); const list = sh.vm[kt]; if (!Array.isArray(list) || !list.length) continue; const nafn = co.nafn || kt; for (const m of list.slice(0, 4)) { nvm++; if (nvm <= 10) { const ti = m.titill || m.id || ''; const sub = nafn + ' · ' + (m.tegund || 'vörumerki') + (m.skrad ? ' · skráð ' + m.skrad : ''); sec += li('🅡 ' + ti, sub, 'https://www.hugverk.is/leit/trademark/' + encodeURIComponent(m.id || '')); } } }
-    if (sec) { rows += H('🅡', 'Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
+    if (sec) { rows += H('Ný vörumerki hjá félögum á vaktinni') + sec; personal = true; }
   }
   // ── 🍽️ Heilbrigðiseftirlit — ÁTTAVÍS einkunna-breyting hjá vökuðum félögum (firmavakt → eftirlit_last díff) ──
   // Kveikja = einkunnin BREYTTIST (hækkaði/lækkaði), ekki „ný skoðun" — endur-skoðun með sömu einkunn þegir.
@@ -385,7 +385,7 @@ function digestBuild(name, prefs, sh) {
       }
       if (n > 10) break;
     }
-    if (sec) { rows += H('🍽️', 'Heilbrigðiseftirlit — einkunn breyttist hjá félögum á vaktinni') + sec; personal = true; }
+    if (sec) { rows += H('Heilbrigðiseftirlit — einkunn breyttist hjá félögum á vaktinni') + sec; personal = true; }
   }
   // ── 🏗️ Byggingarleyfi — ný mál á vökuðum svæðum (fastvakt → bygg eftir póstnr/götu) ──
   const fvB = prefs.fastvakt;
@@ -397,7 +397,7 @@ function digestBuild(name, prefs, sh) {
       if (seen.has(key)) continue; seen.add(key);
       n++; if (n <= 8) sec += li((x.a || x.addr || '') + (x.desc ? ' — ' + String(x.desc).slice(0, 70) : ''), (dIS(x.date) + (x.hverfi ? ' · ' + x.hverfi : '') + (x.decisionCode ? ' · ' + x.decisionCode : '')).trim(), 'https://karp.is/eftirlit-byggingar/?t=bygging');
     }
-    if (n) { rows += H('🏗️', 'Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/eftirlit-byggingar/?t=bygging'); personal = true; }
+    if (n) { rows += H('Ný byggingarleyfi á svæðum á vaktinni') + sec; if (n > 8) rows += li('… og ' + (n - 8) + ' til viðbótar', '', 'https://karp.is/eftirlit-byggingar/?t=bygging'); personal = true; }
   }
   // ── 🏭 Röð í atvinnugrein — vöktað félag færðist til (firmavakt → grein_rank_last díff) ──
   const fmvR = prefs.firmavakt;
@@ -409,7 +409,7 @@ function digestBuild(name, prefs, sh) {
       if (!mv) continue;
       sec += li('🏭 ' + (co.nafn || co.kt) + ' — ' + mv.badge, 'færðist úr #' + mv.fromRank + ' í #' + mv.toRank + ' af ' + mv.total + ' í ' + (mv.label || 'greininni'), 'https://karp.is/atvinnugreinar/' + (mv.slug ? mv.slug + '/' : ''));
     }
-    if (sec) { rows += H('🏭', 'Röð í atvinnugrein breyttist') + sec; personal = true; }
+    if (sec) { rows += H('Röð í atvinnugrein breyttist') + sec; personal = true; }
   }
   // ── 🏛️ Lobbývaktin þín (sameinuð efnisvakt): fréttir (öllum) + reglur (Fyrirtæki+, reiknað+gátað í digestRun) ──
   const efniOrd = [...new Set([
@@ -430,7 +430,7 @@ function digestBuild(name, prefs, sh) {
       sec += '<tr><td style="padding:8px 20px;border-bottom:1px solid #1d2733">' + title + '<br>' + badge + (bits.length ? '<span style="color:#8a93a8;font-size:12px">' + bits.join(' · ') + '</span>' : '') + (it.brief ? '<div style="color:#b6c0d4;font-size:12.5px;margin-top:5px;line-height:1.5">' + _esc(it.brief) + '</div>' : '') + '</td></tr>';
     }
     if (sec) {
-      rows += H('🏛️', 'Lobbývaktin þín') + sec;
+      rows += H('Lobbývaktin þín') + sec;
       if (lobbyNew.length) rows += '<tr><td style="padding:0 20px 12px;color:#5c6678;font-size:11px;line-height:1.5">⚠ Sjálfvirk túlkun (gervigreind) á reglum, ekki lögfræðiráðgjöf.</td></tr>';
       personal = true;
     }

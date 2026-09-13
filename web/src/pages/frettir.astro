@@ -430,6 +430,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
 
   <!-- Eyja: lifandi fyrirsagnir + fyrirtækja-detail. #2 -->
   <script>
+      import { KARP_MERKI } from '../lib/karp-merki.mjs';
     import { loadUser, karpPost, loginHref } from '../lib/auth.js';
     import ALTH from '@gogn/althingi.json';
     import CAB from '@gogn/cabinet.json';
@@ -1134,7 +1135,7 @@ const desc = 'Fjölmiðlavöktun Karp — lifandi fyrirsagnir eftir málefnum og
       const ytSub = ytEl ? ((ytEl.querySelector('.se-sub') || {}).textContent || '').trim() : '';
       const ytTrend = ytEl ? ((ytEl.querySelector('.yt-trend') || {}).textContent || '').trim() : '';
       rep.innerHTML = `
-        <div class="rep-h"><span class="rep-logo">🐟 KARP</span><span class="rep-t">Fjölmiðla- og fyrirtækjaskýrsla — ${esc9(c.n)}</span><span class="rep-d">${dnow} · sl. 6 mánuðir</span></div>
+        <div class="rep-h"><span class="rep-logo">${KARP_MERKI}KARP</span><span class="rep-t">Fjölmiðla- og fyrirtækjaskýrsla — ${esc9(c.n)}</span><span class="rep-d">${dnow} · sl. 6 mánuðir</span></div>
         <div class="rep-kpis"><div><b>${thF(f.total)}</b>fréttir</div><div><b>${se.idx > 0 ? '+' : ''}${se.idx ?? '—'}</b>tónn (−100…+100)</div><div><b>${(st.sources || []).length}</b>miðlar</div><div><b>${st.perDay != null ? String(st.perDay).replace('.', ',') : '—'}</b>fréttir á dag</div>${kt.map(([l, v]) => `<div><b>${v}</b>${l}</div>`).join('')}</div>
         ${brot}
         ${tonar.length ? `<h4>Viðhorf eftir miðlum</h4><table class="rep-tbl"><tr><th>Miðill</th><th>Fréttir</th><th>Tónn</th></tr>${tonar.map((x) => `<tr><td>${esc9(x.m)}</td><td>${x.n}</td><td>${x.idx != null ? (x.idx > 0 ? '+' : '') + x.idx : '—'}</td></tr>`).join('')}</table>` : ''}

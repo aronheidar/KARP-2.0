@@ -345,6 +345,7 @@ const jsonLd = {
   </style>
 
   <script>
+      import { KARP_MERKI } from '../lib/karp-merki.mjs';
     import { loadUser, karpGet, karpPost, loginHref, isAdmin, hasReport, hasSub, karpCheckout, helpNote, metaValuation, fasteignRemaining, fasteignResets, fasteignQuotaKnown } from '../lib/auth.js';
     import { midgildi, hundradsmark, tsOf as fmTsOf, OUTLO as FM_OUTLO, OUTHI as FM_OUTHI, metaUrSolusogu, bakprof, veljaMatHlutfall, matDomur } from '../lib/fasteignamat.mjs';
     import { slugify as slugSvaedi } from '@lib/format.mjs';   // sama slug og /fasteignaverd/[slug].astro notar
@@ -1157,7 +1158,7 @@ const jsonLd = {
         }
 
         await fvmLoaderHold(fvmLoad0);   // vörumerkt lágmarks-hleðsla búin → birta matið sjálft
-        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)}${ibud ? ' · íbúð ' + esc(ibud) : ''} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${dIS(new Date().toISOString().slice(0, 10))} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
+        fvmOut.innerHTML = `<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>${KARP_MERKI}KARP — Verðmatsskýrsla úr kaupskrá</b><span>${esc(raw)}${ibud ? ' · íbúð ' + esc(ibud) : ''} · ${esc(teg)}, ${fm} m² · skýrsla gerð ${dIS(new Date().toISOString().slice(0, 10))} · karp.is/fasteignavakt · heimild: kaupskrá HMS + staðfangaskrá</span></div>`
           + `<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">${krFull(verd)}</div><div class="rep-ppm">${thouIS(est.m * 1000)} kr./m²</div><div class="fvm-range">Verðbil ${krFull(lo)} – ${krFull(hi)}</div><div class="fvm-meta">byggt á ${est.n} þinglýstum kaupum í ${esc(est.heiti)}${hverfi ? ' · hverfi: ' + esc(hverfi) : ''}</div></div>${cardHtml}</div>`
           + (subjC ? `<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>` : '')
           + barHtml + nakvHtml + svaediHtml + fmatHtml + leigaHtml + (fmatHtml && matHtml && !/götunni/.test(matHtml) ? '' : matHtml) + bodyHtml + byggHtml
@@ -1320,7 +1321,7 @@ const jsonLd = {
         })();
         out.innerHTML =
           '<div class="fvm-demonote">👁️ <b>Sýnishorn af verðmati</b> — TILBÚIN dæmigögn fyrir gervi-eign, EKKI raunveruleg fasteign. Svona lítur fullbúin matsskýrsla út. Sláðu inn þitt eigið heimilisfang að ofan, eða smelltu á <b>Sækja PDF-sýnishorn</b>.</div>'
-          + '<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>🐟 KARP — Verðmatsskýrsla úr kaupskrá</b><span>Sólbrekka 7, 200 Kópavogi · Fjölbýli, 92 m² · SÝNISHORN (tilbúin dæmigögn) · karp.is/fasteignavakt</span></div>'
+          + '<div class="fvm-card" id="fvm-report"><div class="fvm-rephead" hidden><b>' + KARP_MERKI + 'KARP — Verðmatsskýrsla úr kaupskrá</b><span>Sólbrekka 7, 200 Kópavogi · Fjölbýli, 92 m² · SÝNISHORN (tilbúin dæmigögn) · karp.is/fasteignavakt</span></div>'
           + '<div class="rep-top"><div class="rep-val"><div class="rep-lbl">Áætlað markaðsverð</div><div class="fvm-big">76.500.000 kr.</div><div class="rep-ppm">831.000 kr./m²</div><div class="fvm-range">Verðbil 71.000.000 kr. – 82.000.000 kr.</div><div class="fvm-meta">byggt á 34 þinglýstum kaupum í sambærilegum eignum í póstnúmeri 200 (Fjölbýli, ±30% stærð, sl. 18 mán) · hverfi: Smárinn</div></div>'
           + '<div class="eign-card"><div class="ec-tabs"><button class="ec-tab on" data-tab="eign">EIGN</button><button class="ec-tab" data-tab="gogn">GÖGN</button></div><div class="ec-panel" data-panel="eign">' + rows2(eignRows) + '</div><div class="ec-panel" data-panel="gogn" hidden>' + rows2(gognRows) + '</div></div></div>'
           + '<div class="fvm-media"><div class="fvm-photo" id="fvm-photo"></div><div id="fvm-map" class="fvm-map"></div></div>'
