@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { ktTolur, erLogadili, felagSlod, felagHref } from '../src/lib/fyrirtaeki-slod.mjs';
+import { ktTolur, erLogadili, felagSlod, felagHref, HOLF as HOLF_ALL, stafHolf as stafHolf_ } from '../src/lib/fyrirtaeki-slod.mjs';
 
 test('ktTolur hreinsar bandstrik og bil', () => {
   assert.equal(ktTolur('550911-0940'), '5509110940');
@@ -58,6 +58,42 @@ test('felagHref: viðmót fylgir báðum leiðum', () => {
 
 test('felagHref sleppir tómri fyrirspurn í stað ?q=', () => {
   assert.equal(felagHref(undefined, { vidmot: 'areidanleiki' }), '/fyrirtaeki/?vidmot=areidanleiki');
+});
+
+// felagaskra.json knýr BÆÐI /fyrirtaeki/skra/ og sitemap-fyrirtaeki.xml. Rusl þar
+// yrði að munaðarlausum 404-tenglum í sitemap — ódýrt að verja það hér.
+test('felagaskra.json: aðeins lögaðilar, engin tvítekning, öll með nafn', async () => {
+  const { readFileSync, existsSync } = await import('node:fs');
+  const slod = new URL('../../gogn/felagaskra.json', import.meta.url);
+  if (!existsSync(slod)) return;   // CI-byggð; ekki fella prófin í fersku tré
+  const skra = JSON.parse(readFileSync(slod, 'utf8'));
+  const felog = skra.felog || [];
+  assert.ok(felog.length > 0, 'felagaskra.json er tóm');
+  const rangKt = felog.filter((f) => !erLogadili(f.kt));
+  assert.equal(rangKt.length, 0, 'kt sem eru ekki lögaðilar: ' + JSON.stringify(rangKt.slice(0, 3)));
+  const nafnlaus = felog.filter((f) => !f.nafn || !String(f.nafn).trim());
+  assert.equal(nafnlaus.length, 0, 'félög án nafns: ' + JSON.stringify(nafnlaus.slice(0, 3)));
+  assert.equal(new Set(felog.map((f) => f.kt)).size, felog.length, 'tvítekin kt í skránni');
+  assert.equal(skra.alls, felog.length, 'alls-talan stemmir ekki við fjölda færslna');
+  // Hvert félag verður að lenda í hólfi sem [staf].astro byggir raunverulega síðu fyrir.
+  for (const f of felog) assert.ok(HOLF_ALL.includes(stafHolf_(f.nafn)), 'ekkert hólf fyrir: ' + f.nafn);
+});
+
+// ⚠ Reklsvörn: þrjár síður inline-a felagHref af því define:vars slekkur á bundlingu.
+// Hér er spegillinn LESINN úr síðunum sjálfum, keyrður og borinn saman við eininguna.
+test('inline-speglar felagHref í define:vars-skriftum haldast í takt við eininguna', async () => {
+  const { readFileSync } = await import('node:fs');
+  const SIDUR = ['logbirting.astro', 'loftfor.astro', 'eftirlit-byggingar.astro'];
+  const SYNI = ['4905220500', '550911-0940', '4102070600', '7112345678', '1203894569', '7212345678', 'Sandholt ehf.', '', null];
+  for (const s of SIDUR) {
+    const txt = readFileSync(new URL('../src/pages/' + s, import.meta.url), 'utf8');
+    const lina = txt.split('\n').find((l) => l.trim().startsWith('const felagHref = (kt) =>'));
+    assert.ok(lina, s + ': inline-spegill felagHref fannst ekki — var hann fjarlægður eða endurnefndur?');
+    const speglad = new Function(lina.trim() + ' return felagHref;')();
+    for (const inn of SYNI) {
+      assert.equal(speglad(inn), felagHref(inn), s + ': spegill og eining ósammála um ' + JSON.stringify(inn));
+    }
+  }
 });
 
 test('stafhólf: flokkun fyrir /fyrirtaeki/skra/', async () => {

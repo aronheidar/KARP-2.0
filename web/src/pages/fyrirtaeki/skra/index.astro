@@ -1,0 +1,88 @@
+---
+// Stafrófsskrá fyrirtækja — hún leysir munaðarleysi fyrirtækjaprófílanna.
+// Fram að SEO-úttektinni 13.9.2026 var ENGINN innri tengill á /fyrirtaeki/<kt>/;
+// þeir fundust aðeins um sitemap. Héðan er hver prófíll í tveimur smellum:
+// /fyrirtaeki/skra/ → /fyrirtaeki/skra/<hólf>/ → /fyrirtaeki/<kt>/
+//
+// Gögnin: gogn/felagaskra.json (skriptur/build_felagaskra.mjs) — sama uppspretta
+// og sitemap-fyrirtaeki.xml, svo skrá og sitemap geta ekki farið í sundur.
+import Layout from '../../../layouts/Layout.astro';
+import SKRA from '@gogn/felagaskra.json';
+import { HOLF, holfTitill, stafHolf } from '../../../lib/fyrirtaeki-slod.mjs';
+
+const felog = SKRA.felog || [];
+const fjoldi = {};
+for (const f of felog) { const h = stafHolf(f.nafn); fjoldi[h] = (fjoldi[h] || 0) + 1; }
+const holf = HOLF.filter((h) => fjoldi[h]);
+
+const alls = felog.length;
+const titill = 'Fyrirtækjaskrá — öll félög í stafrófsröð';
+const lysing = `Stafrófsskrá yfir ${alls.toLocaleString('is-IS')} íslensk félög með ársreikninga, eigendaupplýsingar eða tilkynningar í Lögbirtingablaðinu. Flettu upp kennitölu, ársreikningi, endanlegum eigendum og umfjöllun.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: titill,
+  description: lysing,
+  url: 'https://karp.is/fyrirtaeki/skra/',
+  inLanguage: 'is',
+  isPartOf: { '@type': 'WebSite', name: 'Karp — Hagvísir Íslands', url: 'https://karp.is/' },
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Forsíða', item: 'https://karp.is/' },
+      { '@type': 'ListItem', position: 2, name: 'Fyrirtæki', item: 'https://karp.is/fyrirtaeki/' },
+      { '@type': 'ListItem', position: 3, name: 'Fyrirtækjaskrá', item: 'https://karp.is/fyrirtaeki/skra/' },
+    ],
+  },
+};
+---
+
+<Layout title={`${titill} | Karp`} description={lysing} canonical="https://karp.is/fyrirtaeki/skra/" jsonLd={jsonLd}>
+  <main class="fskra" data-pg="fyrirtaeki-skra">
+    <nav class="fskra-brod" aria-label="Brauðmylsna">
+      <a href="/">Forsíða</a> <span aria-hidden="true">›</span>
+      <a href="/fyrirtaeki/">Fyrirtæki</a> <span aria-hidden="true">›</span>
+      <span aria-current="page">Fyrirtækjaskrá</span>
+    </nav>
+
+    <h1>Fyrirtækjaskrá</h1>
+    <p class="fskra-lead">
+      <strong>{alls.toLocaleString('is-IS')}</strong> íslensk félög sem Karp á raunefni um — ársreikninga,
+      endanlega eigendur eða tilkynningar í Lögbirtingablaðinu. Veldu upphafsstaf, eða
+      <a href="/fyrirtaeki/">flettu beint upp nafni eða kennitölu</a>.
+    </p>
+
+    <ul class="fskra-holf">
+      {holf.map((h) => (
+        <li>
+          <a href={`/fyrirtaeki/skra/${h}/`}>
+            <span class="fskra-staf">{holfTitill(h)}</span>
+            <span class="fskra-tala">{fjoldi[h]}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="fskra-note">
+      ⓘ Skráin vex eftir því sem Karp byggir upp ársreikninga- og eigendagögn. Félag sem ekki er á
+      listanum á samt oftast prófíl — flettu því upp á <a href="/fyrirtaeki/">fyrirtækjaleitinni</a>.
+    </p>
+  </main>
+
+  <style is:global>
+    .fskra { max-width: 980px; margin: 0 auto; padding: 24px 18px 60px; }
+    .fskra-brod { font-size: 12.5px; color: #7e8ca6; margin-bottom: 14px; }
+    .fskra-brod a { color: #7e8ca6; text-decoration: none; }
+    .fskra-brod a:hover { color: #19d3c5; text-decoration: underline; }
+    .fskra h1 { font-size: 30px; margin: 0 0 10px; }
+    .fskra-lead { color: #b6c2d4; font-size: 15px; line-height: 1.6; max-width: 70ch; margin: 0 0 26px; }
+    .fskra-lead a, .fskra-note a { color: #19d3c5; }
+    .fskra-holf { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; padding: 0; margin: 0 0 28px; }
+    .fskra-holf a { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 9px; text-decoration: none; color: #e9eef6; background: rgba(255,255,255,.02); }
+    .fskra-holf a:hover { border-color: #19d3c5; background: rgba(25,211,197,.07); }
+    .fskra-staf { font-size: 19px; font-weight: 700; }
+    .fskra-tala { font-size: 12px; color: #7e8ca6; }
+    .fskra-note { font-size: 13px; color: #7e8ca6; line-height: 1.6; max-width: 70ch; }
+  </style>
+</Layout>

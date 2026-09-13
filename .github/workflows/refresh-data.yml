@@ -165,6 +165,7 @@ jobs:
         run: |
           node skriptur/build_sector.mjs           || true   # Hagstofa: greinar-hlutföll á ÍSAT → sector_kpi.json (breytist árlega)
           node skriptur/build_eigendur_reverse.mjs || true   # snýr við gogn/eigendur/*.json → eigendur_reverse.json (lítið, vex á-eftirspurn)
+          node skriptur/build_felagaskra.mjs       || true   # kt+nafn úr ársreikningum/eigendum/lögbirtingu → felagaskra.json (knýr /fyrirtaeki/skra/ OG sitemap-fyrirtaeki)
           node skriptur/build_rekstrarleyfi.mjs    || true   # Sýslumenn rekstrarleyfi (veitingar/gisting/vínveiting) → rekstrarleyfi.json (áfangi 1 leyfaskrár)
           node skriptur/build_ferdaleyfi.mjs       || true   # Ferðamálastofa leyfishafar (ferðaskrifstofur+dagsferðir) → ferdaleyfi.json (áfangi 1 leyfaskrár)
           node skriptur/build_apotek.mjs           || true   # Lyfjastofnun apótek/lyfjasölur (leyfisskyld starfsemi) → apotek.json (áfangi 1 leyfaskrár)
@@ -206,7 +207,8 @@ jobs:
         run: |
           if [ "$(date -u +%u)" = "1" ] || [ "$FORCE_WEEKLY" = "true" ]; then
             node skriptur/build_sveitarfelog_geo.js   || true   # geoBoundaries ADM2 → sveitarfelog_adm2.json (choropleth)
-            node skriptur/build_sitemap_fyrirtaeki.mjs || true  # kt-lykluð gögn → web/public/sitemap-fyrirtaeki.xml
+            node skriptur/build_felagaskra.mjs         || true  # tryggir ferska felagaskra.json áður en sitemap er byggt (keyrir líka daglega ofar)
+            node skriptur/build_sitemap_fyrirtaeki.mjs || true  # felagaskra.json → web/public/sitemap-fyrirtaeki.xml
           fi
 
       - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)
