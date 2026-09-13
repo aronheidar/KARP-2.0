@@ -199,9 +199,10 @@ jobs:
 
       # Úttekt 30.7 (C6): tvær skriptur með lifandi úttak voru HVERGI í CI (sveitarfelog_adm2 20d,
       # sitemap-fyrirtaeki aldrei endurbyggð). Vikulega á mánudögum nægir (breytast hægt).
-      # ⚠ HANDVIRKAR VEITUR (viljandi, enginn framleiðandi í repo): ivilnanir.json, skattar.json,
-      #   utgjold.json, landshlutar.json — uppfærast með höndunum þegar tilefni er til.
-      - name: Sveitarfélaga-fjölhyrningar + fyrirtækja-sitemap (VIKULEGA á mánudögum)
+      # ⚠ HANDVIRKAR VEITUR (viljandi, enginn framleiðandi í repo): skattar.json, utgjold.json,
+      #   landshlutar.json — uppfærast með höndunum þegar tilefni er til.
+      #   ivilnanir.json er ÁFRAM ritstýrð (mannlegt mat), en build_ivilnanir.mjs vaktar forsendur hennar.
+      - name: Sveitarfélaga-fjölhyrningar + fyrirtækja-sitemap + ívilnana-vakt (VIKULEGA á mánudögum)
         env:
           FORCE_WEEKLY: ${{ github.event_name != 'schedule' }}
         run: |
@@ -209,6 +210,10 @@ jobs:
             node skriptur/build_sveitarfelog_geo.js   || true   # geoBoundaries ADM2 → sveitarfelog_adm2.json (choropleth)
             node skriptur/build_felagaskra.mjs         || true  # tryggir ferska felagaskra.json áður en sitemap er byggt (keyrir líka daglega ofar)
             node skriptur/build_sitemap_fyrirtaeki.mjs || true  # felagaskra.json → web/public/sitemap-fyrirtaeki.xml
+            # Ívilnana-vakt: staðfestir að lögin sem gogn/ivilnanir.json vitnar í standi enn í gildandi
+            # lagasafni, finnur breytingar á þeim og ný stuðningslög sem gætu átt heima í skránni.
+            # ⚠ LAGAR EKKERT sjálfkrafa — skráin er ritstýrð; vaktin bendir, maður sker úr.
+            node skriptur/build_ivilnanir.mjs || true          # → gogn/ivilnanir_vakt.json (/ivilnanir/ les dags. þaðan)
           fi
 
       - name: Hagstofa þjóðhags-snapshot (mælaborðssíður — áður frontmatter-fetch á hverri byggingu)

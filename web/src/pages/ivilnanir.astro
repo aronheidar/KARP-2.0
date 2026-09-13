@@ -6,6 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import ThingTabs from '../components/ThingTabs.astro';
 import IVILNANIR from '@gogn/ivilnanir.json';
+import VAKT from '@gogn/ivilnanir_vakt.json';
 
 const FLOKKAR = { atvinnulif: ['🏭', 'Atvinnulíf'], nyskopun: ['🔬', 'Nýsköpun & rannsóknir'], orkuskipti: ['⚡', 'Orkuskipti & umhverfi'], husnaedi: ['🏠', 'Húsnæði'], heimili: ['👨‍👩‍👧', 'Heimili & einstaklingar'], menning: ['🎭', 'Menning & listir'], byggd: ['🌄', 'Byggðamál'], annad: ['📦', 'Annað'] };
 const groups = {};
@@ -16,7 +17,17 @@ const groups = {};
 const order = Object.keys(FLOKKAR).filter((f) => groups[f]?.length);
 const total = (Array.isArray(IVILNANIR) ? IVILNANIR : []).length;
 const active = (Array.isArray(IVILNANIR) ? IVILNANIR : []).filter((x) => x.stada === 'virk').length;
-const updated = '2026-09-13';
+// Dagsetningin var HARÐKÓÐUÐ og sagði 2026-07-02 fram í september. Nú kemur hún úr vaktinni
+// (skriptur/build_ivilnanir.mjs), sem staðfestir heimildirnar vikulega í CI.
+const updated = VAKT.athugad;
+const vaktLog = Array.isArray(VAKT.log) ? VAKT.log : [];
+const iGildi = vaktLog.filter((l) => l.stada === 'i-gildi').length;
+const fallin = vaktLog.filter((l) => l.stada === 'fallin').length;
+// Breyting á lögunum sest á færslunni sem vitnar í þau — það er tilefni fyrir lesanda að lesa
+// upp á nýtt, og einmitt það sem ritstýrð skrá getur ekki sagt sér sjálf.
+const breytingar = Array.isArray(VAKT.breytingar) ? VAKT.breytingar : [];
+const breytingarA = (heimild) => breytingar.filter((b) =>
+  (b.snertir || []).some((m) => (heimild || '').includes(m)));
 const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active} virkar): endurgreiðslur, skattaívilnanir og stuðningskerfi eftir málaflokkum.`;
 ---
 
@@ -46,13 +57,16 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
               {x.heimild && <div class="iv-h">{/ekki staðfest/.test(x.heimild)
                 ? <span class="iv-ost">⚠ {x.heimild}</span>
                 : <>Heimild: {x.heimild}</>}</div>}
+              {breytingarA(x.heimild).map((b) => (
+                <div class="iv-br">↻ Lögunum var breytt {b.dags}: {b.titill}</div>
+              ))}
             </details>
           ))}
         </div>
       </>
     ))}
 
-    <p class="foot">Forþjónað (SSG) {updated}. Samantekt Karp. Allar 53 færslur vísa í frumheimild — lög, eða þau lög sem stofna sjóðinn þegar skilmálar eru settir af honum; Barnamenningarsjóður einn á sér þingsályktun að stoð. Ekki tæmandi réttindalýsing; kannaðu skilyrði hjá viðkomandi stofnun. #3.</p>
+    <p class="foot">Forþjónað (SSG) {updated}. Samantekt Karp. Allar {total} færslur vísa í frumheimild — lög, eða þau lög sem stofna sjóðinn þegar skilmálar eru settir af honum; Barnamenningarsjóður einn á sér þingsályktun að stoð. Sjálfvirk vakt staðfesti {updated} að {iGildi} af {vaktLog.length} tilvitnuðum lögum standi í gildandi lagasafni{fallin ? ` (${fallin} fallin úr gildi)` : ''}. Ekki tæmandi réttindalýsing; kannaðu skilyrði hjá viðkomandi stofnun. #3.</p>
   </main>
 
   <style>
@@ -73,6 +87,7 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
     .iv-b { font-size: 12.5px; color: var(--ink); line-height: 1.55; padding: 0 12px 10px; }
     .iv-u { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
     .iv-h { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.45; }
+    .iv-br { font-size: 12px; color: var(--warn, #b26a00); margin-top: 4px; line-height: 1.45; }
     .iv-ost { color: #e0a33c; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
   </style>
