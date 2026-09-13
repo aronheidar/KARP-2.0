@@ -11,7 +11,7 @@ import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, ticketSubject } from '../lib/hjalp_agent.mjs';
 
 const MODEL = 'claude-haiku-4-5-20251001';
-const now = () => Math.floor(Date.now() / 1000);
+const _nowSek = () => Math.floor(Date._nowSek() / 1000);
 const ADMIN_TO = (env) => env.HJALP_TO || 'hjalp@karp.is';
 
 async function _isAdminUid(env, request) {
@@ -27,7 +27,7 @@ async function _rofiOff(env) {
 
 /** Skráir ticket + fyrsta skilaboð (inn). Skilar ticket-hlut með id. */
 export async function createTicket(env, t) {
-  const ts = now();
+  const ts = _nowSek();
   const efni = String(t.efni || '').trim().slice(0, 160) || efniUrLysingu(t.lysing);
   const r = await env.TENGSL.prepare(
     'INSERT INTO tickets (created, updated, uppruni, nafn, netfang, user_id, flokkur, efni, lysing, stada, gmail_thread, gmail_msgid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
@@ -40,15 +40,15 @@ export async function createTicket(env, t) {
 export async function logMsg(env, ticketId, m) {
   if (!ticketId) return;
   await env.TENGSL.prepare('INSERT INTO ticket_msgs (ticket_id, ts, dir, sent_by, fra, til, efni, texti, gmail_msgid, meta) VALUES (?,?,?,?,?,?,?,?,?,?)')
-    .bind(ticketId, now(), m.dir, m.sent_by, m.fra || null, m.til || null, m.efni || null, String(m.texti || '').slice(0, 20000), m.gmail_msgid || null, m.meta ? JSON.stringify(m.meta).slice(0, 2000) : null).run().catch(() => {});
-  await env.TENGSL.prepare('UPDATE tickets SET updated=? WHERE id=?').bind(now(), ticketId).run().catch(() => {});
+    .bind(ticketId, _nowSek(), m.dir, m.sent_by, m.fra || null, m.til || null, m.efni || null, String(m.texti || '').slice(0, 20000), m.gmail_msgid || null, m.meta ? JSON.stringify(m.meta).slice(0, 2000) : null).run().catch(() => {});
+  await env.TENGSL.prepare('UPDATE tickets SET updated=? WHERE id=?').bind(_nowSek(), ticketId).run().catch(() => {});
 }
 
 async function setTicket(env, id, fields) {
   const keys = Object.keys(fields).filter((k) => /^[a-z_]+$/.test(k));
   if (!keys.length) return;
   const sql = 'UPDATE tickets SET ' + keys.map((k) => k + '=?').join(', ') + ', updated=? WHERE id=?';
-  await env.TENGSL.prepare(sql).bind(...keys.map((k) => fields[k]), now(), id).run().catch(() => {});
+  await env.TENGSL.prepare(sql).bind(...keys.map((k) => fields[k]), _nowSek(), id).run().catch(() => {});
 }
 
 /** Claude-greining (Haiku) → gátað JSON; fellur á lykilorða-flokkun ef lykill vantar/villa. */
@@ -83,7 +83,7 @@ export async function sendAck(env, t) {
   const html = renderEmail(tpl.html, Object.assign({}, vars, { nafn: _esc(vars.nafn), efni: _esc(vars.efni) }));
   const r = await sendGmail(env, { to: t.netfang, subject, html, replyTo: ADMIN_TO(env) });
   await logMsg(env, t.id, { dir: 'out', sent_by: 'agent', fra: ADMIN_TO(env), til: t.netfang, efni: subject, texti: html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), meta: r });
-  if (r.ok) await setTicket(env, t.id, { ack_sent: now() });
+  if (r.ok) await setTicket(env, t.id, { ack_sent: _nowSek() });
   return r;
 }
 
@@ -94,7 +94,7 @@ export async function sendSvar(env, t, texti, sentBy) {
     + '<p style="color:#999;font-size:12px;margin-top:22px">Karp · hjalp@karp.is · svaraðu þessum pósti ef eitthvað er óljóst</p>';
   const r = await sendGmail(env, { to: t.netfang, subject, html, replyTo: ADMIN_TO(env) });
   await logMsg(env, t.id, { dir: 'out', sent_by: sentBy || 'aron', fra: ADMIN_TO(env), til: t.netfang, efni: subject, texti, meta: r });
-  if (r.ok) await setTicket(env, t.id, { svar_sent: now(), stada: 'svarad' });
+  if (r.ok) await setTicket(env, t.id, { svar_sent: _nowSek(), stada: 'svarad' });
   return r;
 }
 
@@ -163,7 +163,7 @@ export async function adminTicketHandler(request, env, ctx) {
   const b = (await request.json().catch(() => null)) || {};
   const action = String(b.action || '');
   if (action === 'rofi') {
-    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('hjalp_agent_off', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(b.off ? '1' : '0', now()).run().catch(() => {});
+    await env.TENGSL.prepare("INSERT INTO stjorn_sync (k, v, updated) VALUES ('hjalp_agent_off', ?, ?) ON CONFLICT(k) DO UPDATE SET v=excluded.v, updated=excluded.updated").bind(b.off ? '1' : '0', _nowSek()).run().catch(() => {});
     return _ajson({ ok: true, off: !!b.off });
   }
   if (action === 'create') {
@@ -198,7 +198,7 @@ export async function adminTicketHandler(request, env, ctx) {
   if (action === 'stada') {
     const s = String(b.stada || '');
     if (!TICKET_STODUR.includes(s)) return _ajson({ ok: false, error: 'stada' });
-    const extra = s === 'samthykkt' ? { samthykkt_by: uid || null, samthykkt_at: now() } : {};
+    const extra = s === 'samthykkt' ? { samthykkt_by: uid || null, samthykkt_at: _nowSek() } : {};
     await setTicket(env, id, Object.assign({ stada: s }, extra));
     return _ajson({ ok: true });
   }
