@@ -38,8 +38,33 @@ async function liveFacts() {
   return out;
 }
 
+const MAN = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+const dagIS = (iso) => { const p = String(iso).split('-'); return p.length === 3 ? +p[2] + '. ' + MAN[+p[1] - 1] + ' ' + p[0] : String(iso); };
+
 const L = [];
-L.push('STÝRIVEXTIR: 7,75% frá 20. maí 2026 (Seðlabanki Íslands); næsta vaxtaákvörðun 19. ágúst 2026.');
+// ⚠⚠ STÝRIVEXTIR VORU HARÐKÓÐAÐIR („7,75% frá 20. maí 2026; næsta vaxtaákvörðun 19. ágúst 2026") og
+//    duttu úr takti við ákvörðunina 19.8.2026 sem hækkaði í 8%. Versta afleiðingin var ekki gamla talan
+//    heldur ÁREKSTURINN: AUG-lagið (sedlabanki.json) lagði RÉTTU töluna í sömu hvatningu og fasta lagið
+//    þá röngu → módelið fékk tvær ólíkar stýrivaxtatölur og valdi. Lesum því úr sömu uppsprettu og bæði
+//    AUG-lagið og /verdlag/ nota.
+// ⚠ „Frá“-dagurinn er EKKI headline.meginvextir.date — það er síðasti MÆLIPUNKTUR raðarinnar (grisjuð,
+//   ~vikulega), ekki gildistökudagur. Hann fæst með því að rekja seríu 17923 aftur á bak meðan gildið
+//   helst óbreytt (sama reikniaðferð og verdlag.astro:36). Sé serían ekki til fellur hann á headline-dag.
+// ⚠ „Næsta vaxtaákvörðun“ er VILJANDI EKKI hér: sá dagur er hvergi í tímaröðunum (SÍ birtir hann í
+//   dagatali) og harðkóðuð dagsetning er einmitt það sem brotnaði. Betra að þegja en að spá.
+const sb = G('sedlabanki.json');
+const mv = ((sb || {}).headline || {}).meginvextir;
+if (mv && mv.value != null) {
+  const ser = (((sb.datasets || {}).vextir_si || {}).series || []).find((x) => x.id === 17923);
+  let fra = mv.date;
+  if (ser && Array.isArray(ser.points) && ser.points.length) {
+    const p = ser.points, nuv = p[p.length - 1][1];
+    fra = p[p.length - 1][0];
+    for (let i = p.length - 2; i >= 0; i--) { if (p[i][1] === nuv) fra = p[i][0]; else break; }
+  }
+  L.push('STÝRIVEXTIR: meginvextir Seðlabanka Íslands ' + String(mv.value).replace('.', ',') + '% frá ' + dagIS(fra)
+    + (mv.date ? ' (staða ' + dagIS(mv.date) + ')' : '') + '. Vaxtaferill, dráttarvextir og raunvextir eru á /vextir/.');
+}
 
 const FLOKKAR = { S: 'Samfylkingin', D: 'Sjálfstæðisflokkurinn', M: 'Miðflokkurinn', C: 'Viðreisn', F: 'Flokkur fólksins', B: 'Framsóknarflokkurinn', V: 'Vinstri græn', J: 'Sósíalistaflokkurinn', P: 'Píratar' };
 const polls = G('polls.json');
@@ -52,22 +77,43 @@ if (polls && Array.isArray(polls.polls) && polls.polls.length) {
 const cab = G('cabinet.json');
 if (Array.isArray(cab)) L.push('RÍKISSTJÓRN: ' + cab.map((m) => `${m.nafn} (${(m.emb || [])[0] || 'ráðherra'}${m.flokur ? ', ' + m.flokur : ''})`).join('; ') + '.');
 
+// ⚠ `latest` er BER TALA í atvinnuleysi.json, svo `latest.m` var alltaf undefined → línan birtist án
+//   nokkurrar dagsetningar („4,24% — skráð atvinnuleysi VMST“) þótt gögnin séu frá 2026M05. Ódagsett
+//   hlutfall er verra en ekkert: módelið ber það fram sem líðandi tölu. Mánuðurinn er í `updated`.
 const atv = G('atvinnuleysi.json');
 if (atv && atv.latest != null) {
   const lv = typeof atv.latest === 'object' ? (atv.latest.v ?? atv.latest.value) : atv.latest;
-  const lm = typeof atv.latest === 'object' ? (atv.latest.m || atv.latest.d || '') : '';
-  if (lv != null) L.push(`ATVINNULEYSI: ${String(lv).replace('.', ',')}%${lm ? ' (' + lm + ')' : ''} — skráð atvinnuleysi VMST.`);
+  const lm = (typeof atv.latest === 'object' ? (atv.latest.m || atv.latest.d) : '') || atv.updated || '';
+  if (lv != null) L.push(`ATVINNULEYSI: ${String(lv).replace('.', ',')}% skráð atvinnuleysi${lm ? ' (' + lm + ')' : ''}`
+    + `${atv.totalRegistered ? ', ' + kr(atv.totalRegistered) + ' á atvinnuleysisskrá' : ''} — Vinnumálastofnun. Sjá /vinnumarkadur/.`);
 }
 
+// ⚠ Leitaði áður að fm.medM2/med/v. Mánaðarfærslan er {m, hbsv:{n,vp,m2}, land:{n,vp,m2}} — enginn
+//   þeirra reita er til, svo `med` varð undefined og LÍNAN DATT ÞÖGULT ÚT: fasta lagið hafði enga
+//   fasteignatölu yfirleitt. Einingar eins og AUG-lagið notar: vp = m.kr, m2 = þ.kr/m².
 const fast = G('fasteignir.json');
-if (fast && Array.isArray(fast.months) && fast.months.length) {
-  const fm = fast.months[fast.months.length - 1];
-  const med = fm.medM2 || fm.med || fm.v;
-  if (med) L.push(`FASTEIGNIR: miðgildi fermetraverðs ${kr(med)} kr/m² (${fm.m || fm.d || 'nýjasti mánuður'}, kaupskrá HMS).`);
+const fm = fast && Array.isArray(fast.months) && fast.months.length ? fast.months[fast.months.length - 1] : null;
+if (fm && fm.hbsv) {
+  L.push(`FASTEIGNAVERÐ (${fm.m}, miðgildi kaupsamninga úr kaupskrá HMS): höfuðborgarsvæðið `
+    + `${String(fm.hbsv.vp).replace('.', ',')} m.kr (${kr(fm.hbsv.m2 * 1000)} kr/m², ${fm.hbsv.n} kaup)`
+    + (fm.land ? `; landsbyggðin ${String(fm.land.vp).replace('.', ',')} m.kr (${kr(fm.land.m2 * 1000)} kr/m², ${fm.land.n} kaup)` : '')
+    + '. Eftir sveitarfélögum á /fasteignir/, eftir matssvæðum á /fasteignaverd/.');
 }
 
+// ⚠ Notaði áður SÍÐASTA FJÓRÐUNG SKRÁRINNAR (2024F1, 3.086 kr/m²) sem líðandi leiguverð. Skráin
+//   þagnar í ársbyrjun 2024 af því þinglýsingarskyldan féll með nýju húsaleigulögunum — hún er ekki
+//   stöðnuð veita heldur ENDANLEG. Rétta líðandi talan er `nu`: þinglýstir samningar 2022–23
+//   framreiknaðir með vísitölu leiguverðs HMS til nýjasta vísitölumánaðar (2026-07: 3.960 kr/m²) —
+//   nákvæmlega sama tala og KPI-spjaldið á /fasteignir/ birtir. Gamla talan var 22% of lág.
 const leiga = G('leiga.json');
-if (leiga && Array.isArray(leiga.quarters) && leiga.quarters.length) {
+if (leiga && leiga.nu && leiga.nu.medM2) {
+  const n = leiga.nu, q = (leiga.quarters || []).slice(-1)[0];
+  L.push(`LEIGUVERÐ: miðgildi ${kr(n.medM2)} kr/m² á mánuði (framreiknað til ${n.m})`
+    + `${leiga.visitala && leiga.visitala.yoy != null ? `, vísitala leiguverðs +${String(leiga.visitala.yoy).replace('.', ',')}% milli ára` : ''}. `
+    + `⚠ Opna leiguskrá HMS (þinglýstir samningar) nær aðeins fram í ${q ? q.q : 'ársbyrjun 2024'} — þinglýsingarskyldan féll `
+    + `með nýju húsaleigulögunum. Karp framreiknar ${kr(n.n)} samninga frá ${String(n.fra).slice(0, 4)} með mánaðarlegri `
+    + `vísitölu leiguverðs HMS. Skráðu töluna ALDREI sem beina mælingu líðandi mánaðar. Sjá /fasteignir/.`);
+} else if (leiga && Array.isArray(leiga.quarters) && leiga.quarters.length) {
   const q = leiga.quarters[leiga.quarters.length - 1];
   L.push(`LEIGA: miðgildi ${kr(q.medM2)} kr/m² (${q.q}, leiguskrá HMS — nær aðeins til þinglýstra samninga).`);
 }
@@ -151,8 +197,37 @@ const PAGES = [
   ['/samanburdur/', 'alþjóðlegur samanburður'], ['/utanrikis/', 'utanríkisverslun og alþjóðamál'],
 ];
 
-liveFacts().then((live) => {
-  const all = [...live, ...L];
+// ── UM KARP SJÁLFT: vörur, verð, prufur, heimildir ─────────────────────────
+// Spyrðu Karp gat ekki svarað „hvað kostar Kvótavaktin?“ þótt svarið væri til ORÐRÉTT í KB-inu sem
+// þjónustufulltrúinn á /hjalp/ notar. Við SÆKJUM það þangað í stað þess að endurrita verðin hér —
+// tvær verðskrár í sama repo verða ósamstiga við fyrstu verðbreytingu, og þá segir spjallið eitt
+// og pósturinn annað. `hjalp_agent.mjs` er ESM og þessi skripta CJS → dynamískt import().
+// ⚠ KB-textarnir eru samdir til að SENDAST ORÐRÉTT í pósti („svaraðu þessum pósti…“). Hér eru þeir
+//   BAKGRUNNSSTAÐREYNDIR, ekki svarsniðmát — merkjum þá sem slíkt svo spjallið byrji ekki að vísa
+//   fólki í að svara pósti sem það fékk aldrei. Tökum aðeins efnislegu færslurnar; póstsértæku
+//   úrræðafærslurnar (staðfesting/lykilorð) eiga heima hjá /hjalp/, sem spjallið vísar þegar á.
+const KB_SLEPPA = new Set(['stadfesting', 'lykilord']);
+// KB-svörin eru samin fyrir PÓST og vísa sum á „svaraðu þessum pósti“ — í spjalli fékk notandinn
+// engan póst, svo sú setning er innihaldslaus þar. Færum hana á réttu rásina í stað þess að henda
+// færslunni (uppsagnar-spurningin er réttmæt). Nái ný KB-færsla ekki þessu mynstri sér ramma-línan
+// hér að neðan samt um að spjallið vísi á /hjalp/ en ekki á póstþráð sem er ekki til.
+const postOrd = (s) => String(s)
+  .replace(/,?\s*eða\s+svara(ð|ðu)\s+þessum\s+pósti\s+og\s+við\s+[^.]*/gi, ', eða sendu okkur línu á /hjalp/ og við göngum frá því fyrir þig')
+  .replace(/svara(ð|ðu)\s+þessum\s+pósti/gi, 'sendu okkur línu á /hjalp/');
+async function umKarp() {
+  try {
+    const { KB } = await import('../web/src/lib/hjalp_agent.mjs');
+    const rows = (KB || []).filter((k) => !KB_SLEPPA.has(k.id))
+      .map((k) => 'UM KARP (' + k.um + '): ' + postOrd(k.svar));
+    if (rows.length) rows.push('UM KARP (rásin): þessar vöru- og verðupplýsingar eru þær sem gilda á karp.is. '
+      + 'Þurfi notandinn mannlega aðstoð — aðgangur, reikningur, uppsögn, villa — vísaðu á /hjalp/. '
+      + 'Vísaðu ALDREI á að „svara þessum pósti“: spjallið er ekki póstþráður.');
+    return rows;
+  } catch (e) { console.log('  (KB-import brást — sleppt:', e.message.slice(0, 60) + ')'); return []; }
+}
+
+Promise.all([liveFacts(), umKarp()]).then(([live, vara]) => {
+  const all = [...live, ...L, ...vara];
   const out = {
     updated: new Date().toISOString().slice(0, 10),
     text: all.join('\n'),
