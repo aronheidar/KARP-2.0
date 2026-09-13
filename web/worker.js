@@ -372,11 +372,13 @@ export const AUG = [
       + (pr.natNeg ? ' Mannfjöldaspá gerir ráð fyrir að náttúruleg fjölgun snúist í mínus.' : '');
   } },
   // ── lyf / lyfjaskortur ──
-  // ⚠ ÞRÖNG KVEIKJA VILJANDI: lyf.json er 1,9 MB — fimmfalt stærra en nokkuð annað sem AUG hleður
-  //   (sedlabanki.json er 356 KB). augGet man skrána per isolate, svo kostnaðurinn er greiddur einu
-  //   sinni, en það má ekki gerast fyrir spurningu sem á ekkert erindi við lyf. Til lengri tíma væri
-  //   rétt að baka grannan lyf_index.json (nafn+ATC+skortur+verð) og lesa hann hér í staðinn.
-  { rx: /lyfjaskort|sérlyfjaskrá|lyfseðil|lyfjaverð|lyfjabúð|apótek|\blyfj|\blyfi|\blyf\b/i, file: 'lyf.json', pg: '/lyf/', fn: (j, q) => {
+  // ⚠ ÞRÖNG KVEIKJA VILJANDI: jafnvel granni vísirinn (lyf_index.json, 758 KB) er tvöfalt stærri
+  //   en stærsta skráin sem AUG hleður að öðru leyti (sedlabanki.json, 356 KB). Fulla lyf.json er
+  //   1,9 MB; vísirinn sleppir pakkningum, innihaldsefnum og stöðureitum sem komast aldrei í svarið.
+  //   Hann er skrifaður í SÖMU FERÐ og lyf.json (build_lyf.js → skrifaVisi) svo þeir geti ekki rekið
+  //   í sundur. augGet man skrána per isolate, svo kostnaðurinn er greiddur einu sinni — en hann má
+  //   ekki falla á spurningu sem á ekkert erindi við lyf, og þess vegna stendur kveikjan þröng.
+  { rx: /lyfjaskort|sérlyfjaskrá|lyfseðil|lyfjaverð|lyfjabúð|apótek|\blyfj|\blyfi|\blyf\b/i, file: 'lyf_index.json', pg: '/lyf/', fn: (j, q) => {
     const ql = q.toLowerCase(), arr = j.lyf || [];
     const hit = arr.find((x) => x.name && x.name.length >= 4 && ql.includes(x.name.toLowerCase()));
     if (hit) {

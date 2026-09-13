@@ -51,7 +51,7 @@ const SPURNINGAR = [
   ['hver er hagvöxturinn?', 'hagvoxtur.json'],
   ['hvað hefur launavísitalan hækkað?', 'vinnumarkadur.json'],
   ['hvað búa margir á Íslandi?', 'mannfjoldi.json'],
-  ['er skortur á lyfjum?', 'lyf.json'],
+  ['er skortur á lyfjum?', 'lyf_index.json'],
   ['hver vann útboðið hjá Landspítalanum?', 'utbod_urslit.json'],
   ['hver er framlegðin í sjávarútvegi?', 'sector_kpi.json'],
   ['hvað flytjum við mest út?', 'vidskipti.json'],

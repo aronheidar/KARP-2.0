@@ -183,8 +183,44 @@ function writeOut(lyf) {
     const PUB = path.join(__dirname, '..', 'web', 'public', 'gogn', 'lyf.json');
     try { fs.mkdirSync(path.dirname(PUB), { recursive: true }); fs.writeFileSync(PUB, json); }
     catch (e) { console.log('  ! dual-write brást:', String(e.message || e).slice(0, 90)); }
+    skrifaVisi(out);
   }
   return out;
+}
+
+// ── lyf_index.json — grannur vísir fyrir Spyrðu Karp ─────────────────────────
+// lyf.json er ~1,9 MB: 3.040 lyf með pakkningalistum, innihaldsefnum og markaðsleyfishöfum.
+// AUG-lagið í workernum þarf EKKERT af því — aðeins nafn, ATC, skort og verðbil — en augGet les
+// og þáttar HEILA skrána og heldur henni svo í minni per isolate. Það er fimmfalt stærra en
+// nokkuð annað sem AUG hleður (sedlabanki.json er 356 KB), og kostnaðurinn fellur á kalt isolate
+// í miðri fyrirspurn. Vísirinn dugar fyrir allar lyfjaspurningar sem spjallið svarar; dýpri
+// uppfletting á heima á /lyf/, sem les fullu skrána hvort eð er.
+// ⚠ SKRIFAÐUR Í SAMA FALLI OG lyf.json, viljandi: aðskilin skrifleið er einmitt hvernig
+//   birgjar-eintakið fraus 27 daga (sjá haus build_ragcopy.js). Haldist þeir saman geta þeir
+//   ekki rekið í sundur — vísir sem sýnir annan lyfjafjölda en skráin er verri en enginn vísir.
+function skrifaVisi(out) {
+  const visir = {
+    updated: out.updated,
+    count: out.count,
+    priced: out.priced,
+    shortageCount: out.shortageCount,
+    source: out.source,
+    atc: out.atc,
+    // Aðeins reitirnir sem AUG-textinn notar. Sleppt: packages, ingredients, slug, status, vet,
+    // essential, narcotic — það er meirihluti stærðarinnar og ekkert af því kemst í svarið.
+    lyf: (out.lyf || []).map((x) => ({
+      name: x.name, atc: x.atc, strength: x.strength, form: x.form,
+      holder: x.holder, agent: x.agent, shortage: x.shortage || undefined, rx: x.rx || undefined,
+      priced: x.priced || undefined, priceLow: x.priceLow ?? undefined, priceHigh: x.priceHigh ?? undefined,
+    })),
+  };
+  const P = path.join(__dirname, '..', 'web', 'public', 'gogn', 'lyf_index.json');
+  try {
+    const s = JSON.stringify(visir);
+    fs.writeFileSync(P, s);
+    console.log('   lyf_index.json:', (s.length / 1024).toFixed(0), 'KB ('
+      + Math.round(s.length / JSON.stringify(out).length * 100) + '% af lyf.json)');
+  } catch (e) { console.log('  ! lyf_index brást:', String(e.message || e).slice(0, 90)); }
 }
 
 // ── SEIGLA: berðu fram síðast-sótt verð (X ?? prev.X) svo bundin/biluð verð-sókn tapi ekki verðum ──
@@ -289,4 +325,14 @@ async function main() {
     Object.keys(out.atc).length, 'ATC-flokkar ·', ok, 'sótt,', fail, 'án ·', ((Date.now() - t0) / 6e4).toFixed(1), 'mín alls');
 }
 
-main().catch(e => { console.error('VILLA', e); process.exit(1); });
+// `--visir` endurbyggir AÐEINS lyf_index.json úr lyf.json sem þegar er til — án þess að snerta
+// Sérlyfjaskrána. Full keyrsla tekur um klukkustund (1,15 s milli verð-fyrirspurna), svo án þessa
+// væri eina leiðin til að laga vísinn að keyra alla sóknina upp á nýtt. Nota sömu skrifaVisi og
+// venjuleg keyrsla, svo snið vísisins getur ekki rekið eftir því hvor leiðin bjó hann til.
+if (process.argv.includes('--visir')) {
+  const src = fs.existsSync(OUT) ? OUT : path.join(__dirname, '..', 'web', 'public', 'gogn', 'lyf.json');
+  skrifaVisi(JSON.parse(fs.readFileSync(src, 'utf8')));
+  console.log('Vísir endurbyggður úr', src);
+} else {
+  main().catch(e => { console.error('VILLA', e); process.exit(1); });
+}
