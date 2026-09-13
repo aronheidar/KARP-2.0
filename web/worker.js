@@ -102,6 +102,19 @@ function nmScore(ql, nafn) {
   return stems.filter((st) => ql.includes(st)).length;
 }
 function nmBest(ql, arr, key) { let best = null, bs = 0; for (const x of arr || []) { const s = nmScore(ql, key ? x[key] : x); if (s > bs) { bs = s; best = x; } } return bs > 0 ? best : null; }
+// Gildistökudagur núverandi meginvaxtastigs: fyrsti punktur á núgildandi gildi í seríu 17923,
+// rakinn aftur á bak. headline.meginvextir.date dugar EKKI (síðasti mælipunktur ≠ ákvörðunardagur).
+// Þrjár útfærslur af þessum reikningi eru til (hér, verdlag.astro, build_spyrdu_context.js) — þær
+// VERÐA að vera samhljóða; skiljist þær á fær módelið tvær dagsetningar fyrir sömu vaxtaákvörðun.
+function vaxtaFra(j) {
+  const h = (j.headline || {}).meginvextir || {};
+  const ser = (((j.datasets || {}).vextir_si || {}).series || []).find((x) => x.id === 17923);
+  if (!ser || !Array.isArray(ser.points) || !ser.points.length) return h.date || '';
+  const p = ser.points, nu = p[p.length - 1][1];
+  let fra = p[p.length - 1][0];
+  for (let i = p.length - 2; i >= 0; i--) { if (p[i][1] === nu) fra = p[i][0]; else break; }
+  return fra;
+}
 const AUG = [
   { rx: /sjóð|stefni/i, file: 'sjodir.json', pg: '/markadir/', fn: (j) => {
     const f = (j.funds || []).slice().sort((a, b) => (b.chg1y || -99) - (a.chg1y || -99));
@@ -118,7 +131,12 @@ const AUG = [
   } },
   { rx: /stýrivext|meginvext|dráttarvext|vaxtaferil|verðbólg|gengisvísit|reibor|peningamag|raunvext|vaxtaákv|seðlabank|\bvext|vaxta|krón(an|unnar|una)/i, file: 'sedlabanki.json', pg: '/vextir/', fn: (j) => {
     const h = j.headline || {}, d = j.datasets || {}, parts = [];
-    if (h.meginvextir) parts.push('Meginvextir (stýrivextir) ' + h.meginvextir.value + '% frá ' + h.meginvextir.date);
+    // ⚠ headline.meginvextir.date er SÍÐASTI MÆLIPUNKTUR raðarinnar (grisjuð ~vikulega), EKKI
+    //   gildistökudagur vaxtastigsins — „8% frá 11.9.2026" var rangt þegar hækkað var 19.8.2026.
+    //   Rekjum röðina aftur á bak meðan gildið helst óbreytt, sama og verdlag.astro og
+    //   build_spyrdu_context.js gera. Bæði lögin verða að gefa SAMA dag: annars berast tvær
+    //   ólíkar stýrivaxtasetningar í sömu hvatningu og módelið velur.
+    if (h.meginvextir) parts.push('Meginvextir (stýrivextir) ' + h.meginvextir.value + '% frá ' + vaxtaFra(j));
     if (h.verdbolga) parts.push('12-mán verðbólga ' + h.verdbolga.value + '% (' + h.verdbolga.date + ')');
     if (h.meginvextir && h.verdbolga) parts.push('raunstýrivextir ~' + (h.meginvextir.value - h.verdbolga.value).toFixed(1) + '%');
     if (h.gengisvisitala) parts.push('gengisvísitala ' + Math.round(h.gengisvisitala.value * 10) / 10 + ' (hærri=veikari króna)');
@@ -353,7 +371,46 @@ async function firmaLookup(q, ctx, env) {
       if (md && md.holdur) bits.push('MAST starfsleyfi/eftirlit (landsdekkandi): ' + md.n + ' starfsstöðvar — ' + (md.stodvar || []).slice(0, 3).map((s) => s.baer || s.nr).filter(Boolean).join(', ') + '.');
     }
   } catch (e) {}
-  return bits.join(' ').slice(0, 1200) + ' (sjá /fyrirtaeki/)';
+  // ── Refsilistaskimun ────────────────────────────────────────────────────────
+  // ⚠ spyrduHandler KVEIKTI á /refsilist|þvingunar/ og kallaði hingað — en hér var aldrei skimað.
+  //   Spurningin „er X á refsilista?" sótti því félagið, eyddi kvóta og skilaði engu um refsilista.
+  //   /api/sanctions er ógirt (opna /refsilistar/-síðan notar það), svo þetta er óhætt í fríu spjalli.
+  // ⚠⚠ STERKAR OG VEIKAR SAMSVARANIR MÁ ALDREI LEGGJA SAMAN. Veik samsvörun er eins-orðs/hlutasamsvörun
+  //   sem er miklu oftar nafnarugl en raunverulegt tréff; sé hún borin fram sem „tréff" er niðurstaðan
+  //   ærumeiðandi. Þær eru aðskildar í svarinu OG módelinu sagt berum orðum hvernig beri að lesa þær.
+  try {
+    if (/refsilist|þvingunar|sanction|skimun|frystingu fjármuna/i.test(q)) {
+      // Nöfnin sem skimuð eru: félagið + virkir eigendur + forráðamenn. Kommur strípaðar — names-breytan
+      // er kommu-aðskilin, svo nafn með kommu myndi klofna í tvö hálf-nöfn og gefa rusl-samsvaranir.
+      const nofn = [f.nafn, ...(f.eigendur || []).map((e) => e.nafn), ...(f.radamenn || [])]
+        .filter(Boolean).map((s) => String(s).replace(/,/g, ' ').replace(/\s+/g, ' ').trim()).filter((s) => s.length >= 3).slice(0, 20);
+      if (nofn.length) {
+        const sd = await (await sanctionsHandler(new Request('https://k.internal/api/sanctions?names=' + encodeURIComponent(nofn.join(','))), env, ctx)).json().catch(() => null);
+        if (sd && Array.isArray(sd.hits)) {
+          const skimad = 'Skimað var nafn félagsins' + (nofn.length > 1 ? ' og ' + (nofn.length - 1) + ' tengdra aðila (eigendur/forráðamenn)' : '') + '.';
+          // ⚠ Lögun flokkaNofn: { nafn: nafnið sem SPURT var um, listi: nafnafærslan Á listanum sem
+          //   samsvaraði, listar: STRENGUR („ESB,SÞ,OFAC"), tegund }. Tvær gildrur: `listi` er EKKI
+          //   heiti listans (að birta það sem slíkt gaf „Saddam Hussein (Saddam Hussein)"), og `listar`
+          //   er strengur — `.join()` á honum kastar. Birtum samsvarandi færslu aðeins þegar hún víkur
+          //   frá fyrirspurninni, því þá er hún einmitt forsendan sem lesandinn þarf til að meta tréffið.
+          if (sd.hits.length) {
+            bits.push('⚠ REFSILISTAR — STERK NAFNASAMSVÖRUN: ' + sd.hits.map((h) => h.nafn
+              + (h.listi && h.listi !== h.nafn ? ' → samsvarar færslunni „' + h.listi + '"' : '')
+              + ' (' + (h.listar || 'þvingunarlisti') + ')').join('; ')
+              + '. ' + skimad + ' Þetta er NAFNASAMSVÖRUN, ekki staðfest auðkenning — sami maður eða nafni? verður að staðfesta með kennitölu/fæðingardegi hjá heimildinni sjálfri. Sjá /refsilistar/.');
+          } else {
+            bits.push('Refsilistar: engin sterk nafnasamsvörun við þá þvingunarlista sem Karp skimar (ESB, OFAC o.fl.). ' + skimad
+              + ' Þetta er nafnaskimun, ekki auðkennisstaðfesting, og jafngildir ekki áreiðanleikakönnun. Sjá /refsilistar/.');
+          }
+          if ((sd.veikar || []).length) {
+            bits.push('Til viðbótar fundust ' + sd.veikar.length + ' VEIKAR samsvaranir (' + sd.veikar.map((h) => h.nafn).slice(0, 3).join(', ')
+              + '). ⚠ Veik samsvörun er hlutasamsvörun á nafni og er MIKLU OFTAR nafnarugl en raunverulegt tréff — hún telst EKKI tréff, má ALDREI leggjast við sterku samsvaranirnar og þú mátt ekki gefa í skyn að aðilinn sé á lista. Nefndu hana aðeins sem atriði sem þarf að útiloka.');
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  return bits.join(' ').slice(0, 1800) + ' (sjá /fyrirtaeki/)';
 }
 
 async function spyrduHandler(request, env, ctx) {
