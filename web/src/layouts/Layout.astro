@@ -292,6 +292,18 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       @media (max-width: 760px) { #karp-fab { right: 10px; bottom: 12px; } #karp-fab .karpfish { width: 52px; height: 52px; } }
       .datainfo .tip::after, .datainfo .tip::before { bottom: auto; top: calc(100% + 7px); }
       .datainfo .tip:hover::before, .datainfo .tip:focus::before { top: calc(100% + 2px); border-top-color: transparent; border-bottom-color: rgba(255,255,255,.16); }
+      /* Bólan er 260px og MIÐJUÐ á ⓘ-inu (left:50% + translateX(-50%)) — sitji ⓘ nálægt hægri jaðri
+         hangir hún út fyrir viewportið og síðan fær lárétt skrun. Á tölvu sést það ekki (main er 860px
+         og miðjuð, yfirhangið lendir í spássíunni); á síma ýtti hún síðunni allt að 100px til hægri og
+         efnið „fór út af skjánum" — og af því staðan ræðst af því hvar textinn á undan brotnar gerðist
+         það bara stundum. iOS Safari festir :hover við fyrstu snertingu, svo ein snerting á ⓘ dugði.
+         Á mjóum skjám er bólan því fest neðst yfir alla breiddina — kemst aldrei út fyrir. */
+      @media (max-width: 760px) {
+        [data-tip]:hover::after, [data-tip]:focus::after,
+        .datainfo .tip:hover::after, .datainfo .tip:focus::after { position: fixed; inset: auto 10px 12px 10px; width: auto; max-width: none; transform: none; z-index: 95; }
+        [data-tip]:hover::before, [data-tip]:focus::before,
+        .datainfo .tip:hover::before, .datainfo .tip:focus::before { display: none; }
+      }
     </style>
   </head>
   <body>
