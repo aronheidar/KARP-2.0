@@ -226,8 +226,9 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .news-s { display:block; font-size:11px; color:var(--faint); margin-top:3px; }
       .news-empty { font-size:13px; color:var(--faint); }
       .news-cats { display:flex; gap:4px; margin-bottom:8px; flex-wrap:wrap; }
-      /* font:inherit — <button> erfir ekki letur sjálfkrafa og pillurnar teiknuðust í Arial innan um system-ui */
-      .nc { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:7px; padding:3px 8px; font:inherit; font-size:12px; cursor:pointer; }
+      /* font-family:inherit — <button> erfir ekki letur sjálfkrafa og pillurnar teiknuðust í Arial innan um
+         system-ui. EKKI font:inherit: það drægi líka inn line-height 1.6 úr body og hækkaði pillurnar úr 22 í 27px. */
+      .nc { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:7px; padding:3px 8px; font-family:inherit; font-size:12px; cursor:pointer; }
       .nc:hover { color:var(--gold); border-color:var(--gold); }
       .nc.on { background:rgba(246,177,59,.14); border-color:var(--gold); color:var(--gold); }
 
@@ -347,17 +348,17 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
         <div class="news-h">Fréttir</div>
         <!-- Flokkapillur bera ORÐ (13.9.2026): emojíið var eina sýnilega flokkunin og orðið aðeins í tooltip.
              Heil orð, ekki styttingar: „Sveitir" las sem landsbyggð, „Þing" var of þröngt fyrir flokk sem nær
-             yfir kannanir og ríkisstjórn — og „Erlent" merkir erlendar fréttir í íslenskri lesvenju, svo það
-             fer á alþjóðamálin; umfjöllun erlendra miðla um Ísland heitir það sem hún er. Þrjár raðir í 268px. -->
+             yfir kannanir og ríkisstjórn. „Erlent" = __erlent, því sá straumur ER erlendu hlutar mbl/RÚV/Vísis
+             (worker.js _ERLENT_FEEDS) — ekki „Ísland í erlendum miðlum" eins og gamla heitið sagði. Þrjár raðir í 268px. -->
         <div class="news-cats" id="news-cats">
           <button class="nc on" data-e="">Allt</button>
           <button class="nc" data-e="__karp" title="Karp-fréttir — skrifaðar sjálfvirkt úr gögnunum">Karp</button>
           <button class="nc" data-e="efnahagur">Efnahagur</button>
           <button class="nc" data-e="stjornmal">Stjórnmál</button>
           <button class="nc" data-e="sveitarfelog">Sveitarfélög</button>
-          <button class="nc" data-e="althjoda" title="Alþjóðamál — erlendar fréttir">Erlent</button>
+          <button class="nc" data-e="althjoda">Alþjóðamál</button>
           <button class="nc" data-e="samfelag">Samfélag</button>
-          <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">Erlendir miðlar</button>
+          <button class="nc" data-e="__erlent" title="Erlendar fréttir — mbl.is, RÚV og Vísir">Erlent</button>
         </div>
         <div id="news-list">Hleð…</div>
       </aside>
@@ -437,19 +438,17 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
           return;
         }
         if (newsEfni === '__erlent') {
-          // 🌍 Ísland í erlendum miðlum — RSS um worker-proxy (LOTA 21)
+          // Erlendar fréttir — erlendu hlutar mbl/RÚV/Vísis um worker-proxy (LOTA 21).
+          // ⚠ Lagað 13.9.2026: /api/erlent skilar JSON ({efni, items}) en þessi grein las r.text() og hafnaði
+          //   öllu sem byrjaði á '{' → pillan sýndi alltaf „Engar fréttir". Sviðin eru vörpuð varnarlega.
           fetch('/api/erlent')
-            .then((r) => (r.ok ? r.text() : ''))
-            .then((xml) => {
-              let items = [];
-              if (xml && xml[0] !== '{') {
-                const doc = new DOMParser().parseFromString(xml, 'text/xml');
-                items = [...doc.querySelectorAll('item')].slice(0, 14).map((it) => ({
-                  title: (it.querySelector('title') || {}).textContent || '',
-                  link: (it.querySelector('link') || {}).textContent || '',
-                  source: (it.querySelector('source') || {}).textContent || (((it.querySelector('link') || {}).textContent || '').split('//')[1] || '').split('/')[0].replace('www.', ''),
-                })).filter((x) => x.title);
-              }
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              const items = ((d && d.items) || []).slice(0, 14).map((it) => ({
+                title: it.title || '',
+                link: it.link || it.url || '',
+                source: it.source || it.src || ((String(it.link || '').split('//')[1] || '').split('/')[0].replace('www.', '')),
+              })).filter((x) => x.title);
               newsCache[newsEfni] = items;
               nl.innerHTML = renderNews(items);
             })
