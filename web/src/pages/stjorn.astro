@@ -595,13 +595,14 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         + `<textarea class="stj-tix-svar" rows="5" placeholder="Svar á notandann — sendist frá hjalp@karp.is">${esc(tillaga)}</textarea>`
         + `<div class="stj-tix-actions"><button type="button" class="stj-btn" data-act="svara">✉️ Senda svar</button>`
         + (t.stada === 'tillaga' ? `<button type="button" class="stj-btn" data-act="samthykkja" style="background:#2e8b57">✔ Samþykkja lagfæringu</button>` : `<button type="button" class="stj-btn stj-btn-sm" data-act="cto">🛠️ Senda á CTO</button>`)
-        + `<button type="button" class="stj-btn stj-btn-sm" data-act="loka">✔ Loka</button><button type="button" class="stj-btn stj-btn-sm" data-act="hafna">✖ Hafna</button><button type="button" class="stj-btn stj-btn-sm" data-act="nota">📝 Nóta</button><span class="stj-tix-err" style="color:#c0392b;font-size:13px"></span></div>`
+        + `<button type="button" class="stj-btn stj-btn-sm" data-act="loka">✔ Loka</button><button type="button" class="stj-btn stj-btn-sm" data-act="hafna">✖ Hafna</button><button type="button" class="stj-btn stj-btn-sm" data-act="nota">📝 Nóta</button><button type="button" class="stj-btn stj-btn-sm" data-act="greina" title="Endurkeyra AI-greiningu (sendir engan póst)">🤖 Greina aftur</button><span class="stj-tix-err" style="color:#c0392b;font-size:13px"></span></div>`
         + (t.notur ? `<div class="stj-tix-notur">${esc(t.notur)}</div>` : '');
       body.querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', async () => {
         const act = btn.dataset.act, err = body.querySelector('.stj-tix-err'); err.textContent = ''; btn.disabled = true;
         let r2 = null;
         if (act === 'svara') { const texti = body.querySelector('.stj-tix-svar').value.trim(); if (texti.length < 2) { err.textContent = 'Skrifaðu svar fyrst.'; btn.disabled = false; return; } r2 = await tixPost({ action: 'svara', id: t.id, texti }); }
         else if (act === 'cto') r2 = await tixPost({ action: 'cto', id: t.id });
+        else if (act === 'greina') { r2 = await tixPost({ action: 'greina', id: t.id }); body.dataset.loaded = '0'; }
         else if (act === 'samthykkja') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'samthykkt' });
         else if (act === 'loka') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'lokad' });
         else if (act === 'hafna') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'hafnad' });

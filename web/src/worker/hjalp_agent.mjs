@@ -59,17 +59,19 @@ export async function greinaTicket(env, t) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL, max_tokens: 900, system: greiningPrompt(), messages: [{ role: 'user', content: greiningUser(t) }] }),
-      signal: AbortSignal.timeout(25000),
+      // 2000 tókar: cto_brief + svar á íslensku fóru yfir 900 í fyrstu prufu → klippt JSON → þáttun brást.
+      body: JSON.stringify({ model: MODEL, max_tokens: 2000, system: greiningPrompt(), messages: [{ role: 'user', content: greiningUser(t) }] }),
+      signal: AbortSignal.timeout(40000),
     });
     if (!res.ok) throw new Error('ai ' + res.status);
     const j = await res.json();
     const text = (j.content || []).map((b) => b.text || '').join('');
     const g = parseGreining(text);
-    if (!g) throw new Error('parse');
+    if (!g) { const e = new Error('parse'); e.raw = text.slice(0, 400); e.stop = j.stop_reason; throw e; }
     return Object.assign(g, { model: MODEL });
   } catch (e) {
-    return Object.assign({ samantekt: '', svar: '', cto_brief: '', kb: null, model: 'fallback:' + String(e.message || e).slice(0, 40) }, fb);
+    // raw/stop geymast í ai_greining svo hægt sé að sjá HVERS VEGNA þáttun brást (klipping vs rusl)
+    return Object.assign({ samantekt: '', svar: '', cto_brief: '', kb: null, model: 'fallback:' + String(e.message || e).slice(0, 40), raw: e.raw || undefined, stop: e.stop || undefined }, fb);
   }
 }
 
@@ -199,6 +201,12 @@ export async function adminTicketHandler(request, env, ctx) {
     const extra = s === 'samthykkt' ? { samthykkt_by: uid || null, samthykkt_at: now() } : {};
     await setTicket(env, id, Object.assign({ stada: s }, extra));
     return _ajson({ ok: true });
+  }
+  if (action === 'greina') {
+    // Endurkeyra AI-greiningu á til ticket — sendir ENGAN póst (nýtist í prófunum og þegar módel/prompt breytist).
+    const g = await greinaTicket(env, t);
+    await setTicket(env, id, { tegund: g.tegund, forgangur: g.forgangur, ai_greining: JSON.stringify(g).slice(0, 6000) });
+    return _ajson({ ok: true, greining: g });
   }
   if (action === 'nota') {
     const n = String(b.texti || '').trim().slice(0, 2000);
