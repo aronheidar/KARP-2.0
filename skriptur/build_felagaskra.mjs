@@ -53,6 +53,14 @@ try {
   for (const [kt, v] of Object.entries(lb.byKt || {})) baeta(kt, v && v.name, 'logbirting');
 } catch (e) { /* valkvæð uppspretta */ }
 
+// Nafnaleitar-sweep keyrður á vél Arons (skriptur/sweep_stadbundid.mjs). Þetta er EINA
+// uppsprettan sem stækkar þekjuna út fyrir þau félög sem Karp á þegar gögn um — CI getur
+// ekki sótt hana því www.skatturinn.is ber fram tóma síðu fyrir gagnaversvistföng.
+try {
+  const sw = JSON.parse(readFileSync(gogn('sweep_felog.json'), 'utf8'));
+  for (const [kt, v] of Object.entries(sw.felog || {})) baeta(kt, v && v.nafn, 'sweep');
+} catch (e) { /* valkvæð uppspretta — ekki keyrð enn */ }
+
 // Íslensk stafrófsröð (Á á eftir A, Þ/Æ/Ö aftast) — Intl kann hana, handvirk röð myndi skeika.
 const collator = new Intl.Collator('is-IS', { sensitivity: 'base', numeric: true });
 const listi = [...felog.entries()]
