@@ -75,7 +75,8 @@ try {
     const nafn = ix.name.split('—')[0].trim();
     VIKAN.push(`${nafn} ${ix.chgPct >= 0 ? 'hækkaði' : 'lækkaði'} um ${isNum(Math.abs(ix.chgPct))}% síðasta viðskiptadag.`);
     // ▲/▼ er húsvenja fyrir formerki (thingmal.astro) — táknið FYLGIR tölunni, það er ekki skraut.
-    TALA['/markadir/'] = { v: (ix.chgPct >= 0 ? '▲' : '▼') + isNum(Math.abs(ix.chgPct)) + '%', l: nafn + ' síðasta dag' };
+    // Merkimiðinn ber formerkið líka í orðum svo það hvíli ekki á glyphnum einum (skjálesarar, litblinda).
+    TALA['/markadir/'] = { v: (ix.chgPct >= 0 ? '▲' : '▼') + isNum(Math.abs(ix.chgPct)) + '%', l: nafn + (ix.chgPct >= 0 ? ' hækkaði' : ' lækkaði') + ' síðasta dag' };
   }
   // Þrjár flísar til viðbótar fá tölu úr gögnum sem síðurnar sjálfar birta — sama uppspretta, engin auka-sókn.
   const vb = (VERDLAG.rows || []).slice(-1)[0];
@@ -83,7 +84,7 @@ try {
   const fm = (FASTEIGNIR.months || []).slice(-1)[0];
   if (fm && fm.hbsv && fm.hbsv.m2) TALA['/fasteignir/'] = { v: String(fm.hbsv.m2) + ' þ.kr/m²', l: 'höfuðborgarsvæðið' };
   const g = HAGVOXTUR.GDP || {};
-  if (g.latest != null) TALA['/hagvoxtur/'] = { v: (g.latest >= 0 ? '▲' : '▼') + isNum(Math.abs(g.latest)) + '%', l: 'VLF ' + (g.latestQ || '') };
+  if (g.latest != null) TALA['/hagvoxtur/'] = { v: (g.latest >= 0 ? '▲' : '▼') + isNum(Math.abs(g.latest)) + '%', l: (g.latest >= 0 ? 'hagvöxtur ' : 'samdráttur VLF ') + (g.latestQ || '') };
 } catch (e) {}
 
 const updated = '2026-07-01';
@@ -156,7 +157,9 @@ const updated = '2026-07-01';
     .bh-links a { color: #f6b13b; text-decoration: none; font-weight: 600; font-size: 13.5px; }
     @media (max-width: 560px) { .bh-search { flex-direction: column; } .bh-search button { width: 100%; } }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin: 32px 0 8px; }
-    .card { display: block; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
+    /* flex-dálkur + margin-top:auto á .c-go: „Skoða →" situr neðst í öllum flísum í sömu röð, hvort sem
+       flísin ber tölu eða ekki — annars staflast efnið ofan frá og skilur eftir autt svæði neðst. */
+    .card { display: flex; flex-direction: column; text-decoration: none; color: inherit; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 22px; transition: border-color .15s, transform .15s, background .15s; }
     .card:hover { border-color: #f6b13b; transform: translateY(-2px); background: rgba(246,177,59,.06); }
     /* var(--gold) en ekki #f6b13b: ljósa þemað skilgreinir --gold #8a5e00 svo talan haldi birtuskilum á rjóma. */
     .c-num b { display: block; font-size: 27px; font-weight: 800; color: var(--gold); letter-spacing: -.01em; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -164,7 +167,7 @@ const updated = '2026-07-01';
     .c-title { font-size: 19px; font-weight: 700; margin: 10px 0 4px; }
     .card > .c-title:first-child { margin-top: 0; }
     .c-desc { font-size: 14px; color: var(--muted); }
-    .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: 12px; }
+    .c-go { font-size: 13px; color: #f6b13b; font-weight: 600; margin-top: auto; padding-top: 12px; }
     .foot { font-size: 12px; color: var(--faint); margin-top: 34px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 14px; }
     .foot a { color: var(--muted); }
   </style>

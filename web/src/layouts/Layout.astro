@@ -226,7 +226,8 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       .news-s { display:block; font-size:11px; color:var(--faint); margin-top:3px; }
       .news-empty { font-size:13px; color:var(--faint); }
       .news-cats { display:flex; gap:4px; margin-bottom:8px; flex-wrap:wrap; }
-      .nc { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:7px; padding:3px 8px; font-size:12px; cursor:pointer; }
+      /* font:inherit — <button> erfir ekki letur sjálfkrafa og pillurnar teiknuðust í Arial innan um system-ui */
+      .nc { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:7px; padding:3px 8px; font:inherit; font-size:12px; cursor:pointer; }
       .nc:hover { color:var(--gold); border-color:var(--gold); }
       .nc.on { background:rgba(246,177,59,.14); border-color:var(--gold); color:var(--gold); }
 
@@ -345,16 +346,18 @@ const groupOpen = (grp) => (grp.items || []).some((it) => active(it));
       <aside class="news" transition:persist>
         <div class="news-h">Fréttir</div>
         <!-- Flokkapillur bera ORÐ (13.9.2026): emojíið var eina sýnilega flokkunin og orðið aðeins í tooltip.
-             Stutt heiti svo röðin rúmist í 268px; fullt heiti í title. -->
+             Heil orð, ekki styttingar: „Sveitir" las sem landsbyggð, „Þing" var of þröngt fyrir flokk sem nær
+             yfir kannanir og ríkisstjórn — og „Erlent" merkir erlendar fréttir í íslenskri lesvenju, svo það
+             fer á alþjóðamálin; umfjöllun erlendra miðla um Ísland heitir það sem hún er. Þrjár raðir í 268px. -->
         <div class="news-cats" id="news-cats">
           <button class="nc on" data-e="">Allt</button>
           <button class="nc" data-e="__karp" title="Karp-fréttir — skrifaðar sjálfvirkt úr gögnunum">Karp</button>
-          <button class="nc" data-e="efnahagur" title="Efnahagur">Efnahagur</button>
-          <button class="nc" data-e="stjornmal" title="Stjórnmál">Þing</button>
-          <button class="nc" data-e="sveitarfelog" title="Sveitarfélög">Sveitir</button>
-          <button class="nc" data-e="althjoda" title="Alþjóðamál">Heimur</button>
-          <button class="nc" data-e="samfelag" title="Samfélag">Samfélag</button>
-          <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">Erlent</button>
+          <button class="nc" data-e="efnahagur">Efnahagur</button>
+          <button class="nc" data-e="stjornmal">Stjórnmál</button>
+          <button class="nc" data-e="sveitarfelog">Sveitarfélög</button>
+          <button class="nc" data-e="althjoda" title="Alþjóðamál — erlendar fréttir">Erlent</button>
+          <button class="nc" data-e="samfelag">Samfélag</button>
+          <button class="nc" data-e="__erlent" title="Ísland í erlendum miðlum">Erlendir miðlar</button>
         </div>
         <div id="news-list">Hleð…</div>
       </aside>

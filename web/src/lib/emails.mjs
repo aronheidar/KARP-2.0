@@ -114,8 +114,9 @@ export const EMAIL_TYPES = [
     ritanlegt: ['subject','intro','footer'],
     hvenaer: '3-tíma cron — vaktaður staður fær einkunn 0-1', vidtakandi: 'Notandi sem vaktar staðinn',
     breytur: ['fjoldi', 'lysing'], krafist: [],
-    // Alvarleikinn er í ORÐUNUM („stöðvun/takmörkun"), ekki í neyðarljósi sem birtist vikulega.
-    subject: 'Karp · Heilbrigðiseftirlit: {{lysing}} í einkunn 0-1 (stöðvun/takmörkun)',
+    // Alvarleikinn er í ORÐUNUM („stöðvun/takmörkun"), ekki í neyðarljósi sem birtist vikulega —
+    // og þau standa FRAMAN við breytuna svo þau klippist ekki af í ~60 stafa forsýn Outlook.
+    subject: 'Karp · Stöðvun/takmörkun hjá heilbrigðiseftirliti: {{lysing}}',
     intro: 'Eftirfarandi staðir á vaktinni þinni fengu einkunn 0-1 (stöðvun/takmörkun) í nýjasta heilbrigðiseftirliti Reykjavíkur:',
     footer: 'Sjá nánar: https://karp.is/eftirlit-byggingar/?t=eftirlit\n\nÞú færð þennan póst því þú vaktar félagið í Fyrirtækjavaktinni — stjórnaðu vöktun á https://karp.is/lobbyvakt/',
   },
