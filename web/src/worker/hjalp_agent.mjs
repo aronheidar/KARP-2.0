@@ -9,6 +9,7 @@ import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, ticketSubject } from '../lib/hjalp_agent.mjs';
+import { persona, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 
 const MODEL = 'claude-haiku-4-5-20251001';
 const _nowSek = () => Math.floor(Date.now() / 1000);
@@ -19,6 +20,23 @@ async function _isAdminUid(env, request) {
   if (!uid || !env.TENGSL) return 0;
   const u = await env.TENGSL.prepare('SELECT is_admin FROM users WHERE id=?').bind(uid).first().catch(() => null);
   return (u && u.is_admin === 1) ? uid : 0;
+}
+
+/** CSRF-gát fyrir KÖKULOTU-leið admin-POSTa (ekki X-Admin-Key). karp_session er Domain=.karp.is → systkina-undirlén
+ *  (wp.karp.is) eru same-site og SameSite=Lax stoppar þau ekki; `<form enctype=text/plain>` gæti sent JSON-líkt bodý.
+ *  Reglur: Sec-Fetch-Site til og ≠ same-origin/none → hafna · Origin til og ≠ eigin origin/https://karp.is → hafna ·
+ *  content-type verður að byrja á application/json. Skilar villukóða eða null. Flutt út f. adminMootHandler. */
+export function adminCsrfVilla(request) {
+  const sfs = request.headers.get('Sec-Fetch-Site');
+  if (sfs && sfs !== 'same-origin' && sfs !== 'none') return 'origin';
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    let own = ''; try { own = new URL(request.url).origin; } catch (e) { own = ''; }
+    if (origin !== own && origin !== 'https://karp.is') return 'origin';
+  }
+  const ct = String(request.headers.get('content-type') || '').toLowerCase();
+  if (!ct.startsWith('application/json')) return 'content_type';
+  return null;
 }
 async function _rofiOff(env) {
   const r = await env.TENGSL.prepare("SELECT v FROM stjorn_sync WHERE k='hjalp_agent_off'").first().catch(() => null);
@@ -37,11 +55,16 @@ export async function createTicket(env, t) {
   return Object.assign({ id, created: ts, updated: ts, stada: 'nytt', efni }, t);
 }
 
+/** Skráir röð í ticket_msgs. Skilar {ok, ts}: ok=false ef INSERT brást (D1 lestrarþak/7403 gleypt áður þögult) —
+ *  Moot notar það til að fella fundinn á 'vistun' í stað þess að sýna fundargerð sem hvergi er til. ts = það sem skrifaðist. */
 export async function logMsg(env, ticketId, m) {
-  if (!ticketId) return;
-  await env.TENGSL.prepare('INSERT INTO ticket_msgs (ticket_id, ts, dir, sent_by, fra, til, efni, texti, gmail_msgid, meta) VALUES (?,?,?,?,?,?,?,?,?,?)')
-    .bind(ticketId, _nowSek(), m.dir, m.sent_by, m.fra || null, m.til || null, m.efni || null, String(m.texti || '').slice(0, 20000), m.gmail_msgid || null, m.meta ? JSON.stringify(m.meta).slice(0, 2000) : null).run().catch(() => {});
+  if (!ticketId) return { ok: false, ts: 0 };
+  const ts = _nowSek();
+  const ok = await env.TENGSL.prepare('INSERT INTO ticket_msgs (ticket_id, ts, dir, sent_by, fra, til, efni, texti, gmail_msgid, meta) VALUES (?,?,?,?,?,?,?,?,?,?)')
+    // meta-þak 8000: niðurstöðuröð Moot (dir='moot', sent_by='moot') ber alla nidurstada-hlutinn (≤ ~4500 stafir).
+    .bind(ticketId, ts, m.dir, m.sent_by, m.fra || null, m.til || null, m.efni || null, String(m.texti || '').slice(0, 20000), m.gmail_msgid || null, m.meta ? JSON.stringify(m.meta).slice(0, 8000) : null).run().then(() => true).catch(() => false);
   await env.TENGSL.prepare('UPDATE tickets SET updated=? WHERE id=?').bind(_nowSek(), ticketId).run().catch(() => {});
+  return { ok, ts };
 }
 
 async function setTicket(env, id, fields) {
@@ -91,7 +114,7 @@ export async function sendAck(env, t) {
 export async function sendSvar(env, t, texti, sentBy) {
   const subject = ticketSubject(t.id, t.efni);
   const html = '<div style="font-family:system-ui,Arial,sans-serif;color:#222;max-width:560px;white-space:pre-wrap">' + _esc(texti) + '</div>'
-    + '<p style="color:#999;font-size:12px;margin-top:22px">Karp · hjalp@karp.is · svaraðu þessum pósti ef eitthvað er óljóst</p>';
+    + '<p style="color:#999;font-size:12px;margin-top:22px">' + _esc(persona('sigrun').undirskrift) + ' · hjalp@karp.is · svaraðu þessum pósti ef eitthvað er óljóst</p>';
   const r = await sendGmail(env, { to: t.netfang, subject, html, replyTo: ADMIN_TO(env) });
   await logMsg(env, t.id, { dir: 'out', sent_by: sentBy || 'aron', fra: ADMIN_TO(env), til: t.netfang, efni: subject, texti, meta: r });
   if (r.ok) await setTicket(env, t.id, { svar_sent: _nowSek(), stada: 'svarad' });
@@ -105,11 +128,12 @@ async function notifyIntern(env, t, g, auto) {
     + '<h3 style="color:#8a5e00;margin:0 0 10px">🎫 Ticket #' + t.id + ' — ' + _esc(t.efni || '') + '</h3>'
     + '<p style="margin:4px 0"><b>' + _esc(t.nafn || '—') + '</b> &lt;' + _esc(t.netfang) + '&gt; · ' + _esc(t.flokkur || 'Annað') + ' · uppruni: ' + _esc(t.uppruni || 'form') + '</p>'
     + '<p style="white-space:pre-wrap;border-left:3px solid #8a5e00;padding-left:12px;margin:14px 0">' + _esc(t.lysing) + '</p>'
-    + '<p style="margin:12px 0;padding:10px 12px;background:#faf6ea;border-radius:8px"><b>🤖 Greining:</b> ' + _esc(g.tegund) + ' · forgangur ' + g.forgangur
+    + '<p style="margin:12px 0;padding:10px 12px;background:#faf6ea;border-radius:8px"><b>🛟 Greining Sigrúnar (þjónustufulltrúi, AI):</b> ' + _esc(g.tegund) + ' · forgangur ' + g.forgangur
     + (g.samantekt ? '<br>' + _esc(g.samantekt) : '')
     + (auto ? '<br><b>Sjálfvirkt svar sent:</b> KB „' + _esc(auto.id) + '"' : (g.svar ? '<br><b>Svar-tillaga bíður þín</b>' : ''))
     + (g.cto_brief ? '<br><b>CTO-brief:</b> ' + _esc(g.cto_brief).slice(0, 600) : '') + '</p>'
-    + '<p><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Opna á /stjorn/</a></p></div>';
+    + '<p><a href="' + link + '" style="background:#8a5e00;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Opna á /stjorn/</a></p>'
+    + '<p style="color:#999;font-size:12px;margin-top:18px">' + _esc(persona('sigrun').undirskrift) + ' · hjalp@karp.is</p></div>';
   return sendGmail(env, { to: ADMIN_TO(env), replyTo: t.netfang, subject: '[Hjálp #' + t.id + '] ' + (g.tegund || '') + ' · ' + (t.efni || '').slice(0, 60), html });
 }
 
@@ -122,7 +146,8 @@ export async function processNewTicket(env, t) {
   if (!off) {
     await sendAck(env, t);
     auto = kbSjalfvirkt(g);
-    if (auto) await sendSvar(env, t, 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\n' + auto.svar + '\n\nBestu kveðjur,\nKarp', 'agent');
+    // Endar á „Bestu kveðjur,“ — sendSvar bætir undirskrift Sigrúnar við í fótinn (annars nafnið tvisvar í sama pósti).
+    if (auto) await sendSvar(env, t, 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\n' + auto.svar + '\n\nBestu kveðjur,', 'agent');
     else await setTicket(env, t.id, { stada: 'stadfest' });
   }
   await notifyIntern(env, t, g, auto);
@@ -151,7 +176,7 @@ export async function adminTicketHandler(request, env, ctx) {
     if (id) {
       const t = await env.TENGSL.prepare('SELECT * FROM tickets WHERE id=?').bind(id).first().catch(() => null);
       if (!t) return _ajson({ ok: false, error: 'notfound' });
-      const msgs = await env.TENGSL.prepare('SELECT id, ts, dir, sent_by, fra, til, efni, texti FROM ticket_msgs WHERE ticket_id=? ORDER BY ts, id').bind(id).all().catch(() => ({ results: [] }));
+      const msgs = await env.TENGSL.prepare('SELECT id, ts, dir, sent_by, fra, til, efni, texti, meta FROM ticket_msgs WHERE ticket_id=? ORDER BY ts, id').bind(id).all().catch(() => ({ results: [] }));
       return _ajson({ ok: true, ticket: t, msgs: msgs.results || [] });
     }
     const opin = url.searchParams.get('allir') ? '' : ' WHERE stada IN (' + OPNAR_STODUR.map(() => '?').join(',') + ')';
@@ -160,6 +185,7 @@ export async function adminTicketHandler(request, env, ctx) {
     return _ajson({ ok: true, tickets: rows.results || [], off });
   }
   if (request.method !== 'POST') return _ajson({ ok: false, error: 'method' });
+  if (!byKey) { const csrf = adminCsrfVilla(request); if (csrf) return _ajson({ ok: false, error: csrf }); }   // kökulotu-leið: same-origin + JSON
   const b = (await request.json().catch(() => null)) || {};
   const action = String(b.action || '');
   if (action === 'rofi') {
@@ -227,7 +253,7 @@ export async function adminTicketHandler(request, env, ctx) {
   if (action === 'lagad') {
     // Lagfæring komin í loftið (webhook/CTO): notandi fær lokapóst, ticket lokað.
     await setTicket(env, id, { stada: 'lagad' });
-    const r = await sendSvar(env, Object.assign({}, t, { efni: t.efni }), 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\nmálið sem þú bentir okkur á (#' + id + ') hefur verið lagað og breytingin er komin í loftið á karp.is. Takk fyrir að láta vita — það hjálpar okkur að gera vefinn betri.\n\nBestu kveðjur,\nKarp', 'agent');
+    const r = await sendSvar(env, Object.assign({}, t, { efni: t.efni }), 'Sæl/Sæll' + (t.nafn ? ' ' + t.nafn.split(' ')[0] : '') + ',\n\nmálið sem þú bentir okkur á (#' + id + ') hefur verið lagað og breytingin er komin í loftið á karp.is. Takk fyrir að láta vita — það hjálpar okkur að gera vefinn betri.\n\nBestu kveðjur,', 'agent');
     await setTicket(env, id, { stada: 'lokad' });
     return _ajson({ ok: r.ok });
   }
@@ -236,9 +262,29 @@ export async function adminTicketHandler(request, env, ctx) {
 
 /** Samantekt fyrir /api/admin/overview → /stjorn/-spjöld. */
 export async function ticketsOverview(env) {
-  const rows = await env.TENGSL.prepare('SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60').all().catch(() => ({ results: [] }));
-  const list = rows.results || [];
+  // lysing sótt AÐEINS til að reikna fundarmenn (Moot-forsýn á /stjorn/) — fer EKKI í svarið (listinn er léttur).
+  const rows = await env.TENGSL.prepare('SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60').all().catch(() => ({ results: [] }));
+  const list = (rows.results || []).map((t) => {
+    const o = Object.assign({}, t, { fundarmenn: veljaFundarmenn(t.tegund || 'annad', (t.efni || '') + ' ' + (t.lysing || '')) });
+    delete o.lysing;
+    return o;
+  });
   const by = {}; for (const t of list) by[t.stada] = (by[t.stada] || 0) + 1;
   const off = await _rofiOff(env);
-  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off };
+  const opnar = ' AND t.stada IN (' + OPNAR_STODUR.map(() => '?').join(',') + ')';
+  // 🏛️ moot_bida: OPIÐ ticket sem á Moot-niðurstöðu (sent_by='moot') án nýrra atkvæðis Arons (sent_by='aron') — EIN fyrirspurn.
+  //   Síað á OPNAR_STODUR svo talan „N mál bíða atkvæðis“ og dropdown-inn (sama sía) stangist ekki á.
+  const mtb = await env.TENGSL.prepare("SELECT m.ticket_id, MAX(CASE WHEN m.sent_by='moot' THEN m.ts END) t_moot, MAX(CASE WHEN m.sent_by='aron' THEN m.ts END) t_atkv FROM ticket_msgs m JOIN tickets t ON t.id=m.ticket_id WHERE m.dir='moot'" + opnar + ' GROUP BY m.ticket_id').bind(...OPNAR_STODUR).all().catch(() => ({ results: [] }));
+  const moot_bida = (mtb.results || []).filter((x) => x.t_moot && (!x.t_atkv || x.t_atkv < x.t_moot)).map((x) => x.ticket_id);
+  // ✉ moot_osent: Aron sagði Já við svara/meira (drög opnuð) en ekkert svar hefur farið síðan (svar_sent < atkvæði) — „samþykkt en ósent“.
+  const mto = await env.TENGSL.prepare("SELECT m.ticket_id, m.ts, m.meta, t.svar_sent FROM ticket_msgs m JOIN tickets t ON t.id=m.ticket_id WHERE m.dir='moot' AND m.sent_by='aron'" + opnar + ' ORDER BY m.ts DESC, m.id DESC').bind(...OPNAR_STODUR).all().catch(() => ({ results: [] }));
+  const osentSeen = new Set(), moot_osent = [];
+  for (const x of (mto.results || [])) {
+    if (osentSeen.has(x.ticket_id)) continue;   // aðeins NÝJASTA atkvæði per ticket ræður
+    osentSeen.add(x.ticket_id);
+    let meta = null; try { meta = JSON.parse(x.meta || 'null'); } catch (e) { meta = null; }
+    if (!meta || meta.atkvaedi !== 'ja' || !['svara', 'meira'].includes(meta.adgerd)) continue;
+    if (!x.svar_sent || Number(x.svar_sent) < Number(x.ts)) moot_osent.push(x.ticket_id);
+  }
+  return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent };
 }

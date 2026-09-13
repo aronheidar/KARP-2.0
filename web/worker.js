@@ -21,6 +21,7 @@ import { RSK_ROT, _isStem, _kycAfterEvents, _kycRunDiff, _lobbyGate, atvinnugrei
 import { FRETTA_TYPES, _mentions, _rssItems, digestRun, eftirlitCriticalCron, fetchNews, kycCriticalCron, kycDiffCron, leikurPruneCron, logbirtingCriticalCron, newsIngest, newsSearch } from './src/worker/cron.mjs';
 import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSendHandler, adminSetTypeHandler, adminSyncHandler, adminUserHandler } from './src/worker/stjornbord.mjs';
 import { adminTicketHandler, createTicket, processNewTicket } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
+import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
@@ -2828,6 +2829,7 @@ export default {
     if (url.pathname === '/api/admin/refresh') return adminRefreshHandler(request, env, ctx);   // stjórnborð: ræsa gagna-uppfærslu (refresh-data.yml)
     if (url.pathname === '/api/admin/email') return adminEmailHandler(request, env, ctx);   // stjórnborð: vista/endurstilla póst-sniðmát
     if (url.pathname === '/api/admin/ticket') return adminTicketHandler(request, env, ctx);   // 🎫 hjálparbeiðnir: listi/þráður/svara/CTO/rofi
+    if (url.pathname === '/api/admin/moot') return adminMootHandler(request, env, ctx);   // 🏛️ Moot: GET nýjasti fundur · POST halda/atkvaedi (breytir aldrei stöðu, sendir aldrei póst)
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);

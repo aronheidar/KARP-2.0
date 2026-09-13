@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS ticket_msgs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ticket_id INTEGER NOT NULL,
   ts INTEGER NOT NULL,
-  dir TEXT NOT NULL,                         -- in | out
-  sent_by TEXT NOT NULL,                     -- notandi | agent | aron | cto
+  dir TEXT NOT NULL,                         -- in | out | moot (ráðsfundur persónanna — engin ný tafla, sjá src/worker/moot.mjs)
+  sent_by TEXT NOT NULL,                     -- notandi | agent | aron | cto · dir='moot': persónu-id (innlegg) | moot (niðurstaða Kára) | moot_fall (kall féll) | aron (atkvæði)
   fra TEXT,
   til TEXT,
   efni TEXT,

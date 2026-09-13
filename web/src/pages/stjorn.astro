@@ -76,6 +76,28 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         <div id="stj-audit" class="stj-kv"></div>
       </section>
 
+      <!-- 🏛️ Moot — ráðsalur persónanna (Bobiverse). Salurinn (8 sæti + Arons-stóll) er byggður einu sinni á keyrslutíma úr
+           avatarSvg() (fastir SVG-strengir úr personur.mjs); allt annað sem birtist hér kemur úr /api/admin/moot og fer gegnum esc(). -->
+      <section class="stj-block" id="stj-moot-wrap">
+        <h2>🏛️ Moot — ráðsalur <span id="stj-moot-sub" style="color:var(--faint);font-size:12px;font-weight:400"></span></h2>
+        <p class="stj-note" style="margin:0 0 10px">Ráðið kemur saman um eitt mál í einu. Persónurnar eru AI-ráðgjöf — allt sem þær leggja til er tillaga; þú greiðir lokaatkvæði.</p>
+        <div id="stj-moot-salur" class="stj-moot-salur"></div>
+        <div id="stj-moot-kort" class="stj-moot-kort" hidden></div>
+        <div class="stj-moot-toolbar">
+          <select id="stj-moot-val" class="stj-moot-val"><option value="">— veldu opið mál —</option></select>
+          <button type="button" class="stj-btn" id="stj-moot-halda" disabled>🏛️ Kalla saman Moot</button>
+          <span id="stj-moot-stada" class="stj-moot-stada"></span>
+          <span id="stj-moot-err" style="color:#c0392b;font-size:13px"></span>
+        </div>
+        <div id="stj-moot-svid" class="stj-moot-svid" hidden>
+          <div id="stj-moot-innlegg" class="stj-moot-innlegg-list"></div>
+          <button type="button" id="stj-moot-skip" class="stj-moot-skip" hidden>⏩ Hoppa á niðurstöðu</button>
+          <div id="stj-moot-nidurstada"></div>
+          <div id="stj-moot-gavel"></div>
+          <div id="stj-moot-meta" class="stj-moot-meta"></div>
+        </div>
+      </section>
+
       <section class="stj-block" id="stj-tix-wrap">
         <h2>🎫 Hjálparbeiðnir &amp; póstur <span class="w-sub" id="stj-tix-sub" style="color:var(--faint);font-size:12px;font-weight:400"></span>
           <button type="button" class="stj-btn stj-btn-sm" id="stj-tix-rofi" style="float:right"></button></h2>
@@ -234,10 +256,76 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     .stj-denied h1 { font-size: 20px; color: var(--ink); }
     .stj-denied p { color: var(--muted); }
     .stj-denied a { color: var(--gold); }
+    /* 🏛️ Moot — ráðsalur. Fastir hex-litir aðeins úr PERSONUR-palettu + #46e08a grænt, #ff6b6b rautt, #5b8dd6 blátt. */
+    .stj-moot-salur { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px 4px; justify-items: center; padding: 10px 0 6px; }
+    .stj-moot-seat { display: grid; justify-items: center; gap: 2px; padding: 6px 4px; border-radius: 12px; cursor: pointer; position: relative; transition: opacity .3s, filter .3s, transform .25s; text-align: center; }
+    .stj-moot-seat:hover, .stj-moot-seat:focus-visible { background: var(--panel); outline: none; }
+    .stj-moot-seat svg { display: block; }
+    .stj-moot-nafn { font-size: 12.5px; font-weight: 650; color: var(--ink); }
+    .stj-moot-hlutverk { font-size: 10.5px; color: var(--faint); white-space: nowrap; }
+    .stj-moot-seat--stjori .stj-moot-nafn { border-bottom: 2px solid var(--gold); }
+    .stj-moot-seat--dofin { opacity: .4; filter: grayscale(.8); }
+    .stj-moot-seat--komin { animation: stj-moot-koma .5s cubic-bezier(.22,1,.36,1) both; }
+    .stj-moot-seat--talar { transform: scale(1.06); }
+    .stj-moot-seat--talar svg { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 50%; animation: stj-moot-pulse 1.2s ease-in-out infinite; }
+    .stj-moot-seat--aron .stj-moot-aron-stoll { stroke: var(--faint); }
+    .stj-moot-seat--bidur .stj-moot-aron-stoll { stroke: var(--gold); animation: stj-moot-glow 1.4s ease-in-out infinite; }
+    .stj-moot-seat--aron:hover { background: transparent; cursor: default; }
+    .stj-moot-chip { position: absolute; right: 6px; top: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+    .stj-moot-chip--med { color: #46e08a; border-color: rgba(70,224,138,.5); }
+    .stj-moot-chip--moti { color: #ff6b6b; border-color: rgba(255,107,107,.5); }
+    .stj-moot-chip--hja { color: var(--gold); border-color: rgba(246,177,59,.5); }
+    .stj-moot-chip--aron { color: var(--gold); border-color: rgba(246,177,59,.5); }
+    .stj-moot-innlegg .stj-moot-chip { position: static; margin-left: 6px; }
+    .stj-moot-kort { display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 14px; margin: 6px 0 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-size: 13.5px; color: var(--ink); }
+    .stj-moot-kort p { margin: 8px 0 6px; line-height: 1.5; }
+    .stj-moot-kort i { color: var(--muted); }
+    .stj-moot-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+    .stj-moot-val { flex: 1; min-width: 220px; background: var(--bg, #0b0f1a); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13.5px; }
+    .stj-moot-stada { font-size: 13px; color: var(--muted); min-height: 18px; }
+    .stj-moot-svid { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+    .stj-moot-innlegg-list { display: grid; gap: 8px; }
+    .stj-moot-innlegg { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; padding: 8px 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--p, var(--line)); animation: stj-moot-koma .35s both; }
+    .stj-moot-innlegg-hd { font-size: 12.5px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .stj-moot-innlegg-hd b { color: var(--ink); }
+    .stj-moot-innlegg-txt { font-size: 13.5px; color: var(--ink); white-space: pre-wrap; margin-top: 3px; line-height: 1.5; }
+    .stj-moot-skip { margin-top: 8px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
+    .stj-moot-nidurstada { display: grid; grid-template-columns: 64px 1fr; gap: 12px; margin-top: 12px; padding: 12px; border-radius: 12px; border: 1px solid rgba(246,177,59,.4); background: rgba(246,177,59,.07); animation: stj-moot-koma .4s both; }
+    .stj-moot-adgerd { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--gold); font-weight: 700; }
+    .stj-moot-merki { font-size: 10.5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+    .stj-moot-merki--samhljoda { color: #46e08a; border-color: rgba(70,224,138,.5); }
+    .stj-moot-merki--fyrirvarar { color: var(--gold); border-color: rgba(246,177,59,.5); }
+    .stj-moot-merki--klofid { color: #ff6b6b; border-color: rgba(255,107,107,.5); }
+    .stj-moot-vidv--gul { color: var(--gold); border-color: rgba(246,177,59,.45); }
+    .stj-moot-innlegg--stjori { border-left-color: var(--gold); background: rgba(246,177,59,.05); }
+    .stj-moot-flag--osent { color: #5b8dd6; border-color: rgba(91,141,214,.5); }
+    .stj-moot-merki--ha { color: #ff6b6b; border-color: rgba(255,107,107,.5); }
+    .stj-moot-skref { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .stj-moot-drog-hd { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+    .stj-moot-drog { white-space: pre-wrap; font-family: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 4px 0 0; font-size: 13px; color: var(--ink); }
+    .stj-moot-vidv { margin-top: 8px; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,107,107,.45); color: #ff6b6b; font-size: 12.5px; }
+    .stj-moot-fotur { font-size: 11px; color: var(--faint); margin-top: 8px; }
+    .stj-moot-gavel { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); animation: stj-moot-koma .4s both; }
+    .stj-moot-ja { background: #2e8b57; color: #fff; }
+    .stj-moot-nei { color: #ff6b6b; border-color: rgba(255,107,107,.4); }
+    .stj-moot-atkvaedi { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 13.5px; color: var(--gold); }
+    .stj-moot-meta { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+    .stj-moot-thread-line { font-size: 12.5px; color: var(--muted); padding: 6px 10px; border: 1px dashed rgba(246,177,59,.35); border-radius: 8px; justify-self: stretch; }
+    .stj-moot-thread-line a { color: var(--gold); }
+    .stj-moot-thread-line--aron { color: var(--gold); }
+    .stj-moot-thread-line--fall { color: var(--faint); }
+    .stj-moot-flag { font-size: 11px; color: var(--gold); border: 1px solid rgba(246,177,59,.4); border-radius: 999px; padding: 1px 7px; margin-left: 6px; }
+    .stj-msg-meta .stj-moot-av { display: inline-block; vertical-align: middle; margin-right: 4px; }
+    @keyframes stj-moot-koma { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes stj-moot-pulse { 0%, 100% { outline-color: rgba(246,177,59,.35); } 50% { outline-color: #f6b13b; } }
+    @keyframes stj-moot-glow { 0%, 100% { stroke-opacity: .3; } 50% { stroke-opacity: 1; } }
+    @media (max-width: 640px) { .stj-moot-salur { grid-template-columns: repeat(3, 1fr); } .stj-moot-kort { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { .stj-moot-seat--komin, .stj-moot-innlegg, .stj-moot-nidurstada, .stj-moot-gavel, .stj-moot-seat--talar svg, .stj-moot-seat--bidur .stj-moot-aron-stoll { animation: none; } }
   </style>
 
   <script>
     import { loadUser } from '../lib/auth.js';
+    import { PERSONUR, MOOT_ADGERDIR, MOOT_JA_TEXTI, mootVilluTexti, persona, avatarSvg, veljaFundarmenn } from '../lib/personur.mjs';   // 🏛️ Moot: avatarar + hnappatextar + villutextar (hrein .mjs, Vite byggir)
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const dIS = (ts) => { try { const d = new Date(ts * 1000); return d.getUTCDate() + '.' + (d.getUTCMonth() + 1) + '. ' + String(d.getUTCFullYear()).slice(2); } catch (e) { return ''; } };
@@ -542,6 +630,8 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
 
       // 🎫 Hjálparbeiðnir & póstur — ticket-flæði þjónustufulltrúans (D1 tickets + ticket_msgs)
       renderTickets(ov.tickets || { list: [], open: 0, by: {}, off: false });
+      // 🏛️ Moot — ráðsalurinn (sama tickets-listi; moot_bida = mál sem bíða atkvæðis Arons)
+      renderMoot(ov.tickets || { list: [], moot_bida: [], moot_osent: [] });
     }
 
     const TIX_STADA = { nytt: ['Nýtt', 'var(--gold)'], stadfest: ['Bíður svars', 'var(--gold)'], svarad: ['Svarað', '#2e8b57'], cto: ['Hjá CTO', '#5b8dd6'], tillaga: ['Tillaga bíður þín', '#c0392b'], samthykkt: ['Samþykkt — í vinnslu', '#5b8dd6'], lagad: ['Lagað', '#2e8b57'], lokad: ['Lokað', 'var(--faint)'], hafnad: ['Hafnað', 'var(--faint)'] };
@@ -564,7 +654,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       const list = (tx.list || []).filter((t) => tixAllir || ['nytt', 'stadfest', 'svarad', 'cto', 'tillaga', 'samthykkt'].includes(t.stada));
       $('stj-tix').innerHTML = list.length ? list.map((t) => {
         const st = TIX_STADA[t.stada] || [t.stada, 'var(--muted)'];
-        return `<details class="stj-tix-row" id="ticket-${t.id}" data-id="${t.id}"><summary><span class="stj-tix-nr">#${t.id}</span> <b>${esc(t.efni || '')}</b> <span style="color:var(--faint)">· ${esc(t.nafn || '')} &lt;${esc(t.netfang)}&gt; · ${esc(TIX_TEGUND[t.tegund] || t.flokkur || '')}${t.forgangur === 1 ? ' · <span style="color:#c0392b">hár forgangur</span>' : ''}</span><span class="stj-tix-st" style="color:${st[1]}">${esc(st[0])}</span><span style="color:var(--faint);font-size:12px;margin-left:8px">${dIS(t.created)}</span></summary><div class="stj-tix-body" data-loaded="0">Hleður þráð…</div></details>`;
+        return `<details class="stj-tix-row" id="ticket-${t.id}" data-id="${t.id}"><summary><span class="stj-tix-nr">#${t.id}</span> <b>${esc(t.efni || '')}</b> <span style="color:var(--faint)">· ${esc(t.nafn || '')} &lt;${esc(t.netfang)}&gt; · ${esc(TIX_TEGUND[t.tegund] || t.flokkur || '')}${t.forgangur === 1 ? ' · <span style="color:#c0392b">hár forgangur</span>' : ''}</span>${(tx.moot_bida || []).includes(t.id) ? '<span class="stj-moot-flag">🏛️ bíður atkvæðis</span>' : ''}${(tx.moot_osent || []).includes(t.id) ? '<span class="stj-moot-flag stj-moot-flag--osent" title="Þú sagðir Já við drögum Sigrúnar í Moot en svarið hefur ekki verið sent">✉ samþykkt — ósent</span>' : ''}<span class="stj-tix-st" style="color:${st[1]}">${esc(st[0])}</span><span style="color:var(--faint);font-size:12px;margin-left:8px">${dIS(t.created)}</span></summary><div class="stj-tix-body" data-loaded="0">Hleður þráð…</div></details>`;
       }).join('') : '<div class="stj-kv-empty">' + (tixAllir ? 'Engar beiðnir skráðar enn.' : 'Engar opnar beiðnir. 🎉') + '</div>';
       $('stj-tix').querySelectorAll('details.stj-tix-row').forEach((d) => d.addEventListener('toggle', () => { if (d.open) loadTicket(d); }));
       if (location.hash.startsWith('#ticket-')) { const d = document.getElementById(location.hash.slice(1)); if (d) { d.open = true; d.scrollIntoView({ block: 'start' }); } }
@@ -582,24 +672,53 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
     }
     async function loadTicket(d) {
       const body = d.querySelector('.stj-tix-body');
-      if (body.dataset.loaded === '1') return;
+      // loading-flagg: mootOpnaTicket() kallar loadTicket beint OG setur d.open=true (→ toggle-hlustari kallar líka) — aðeins eitt fetch.
+      if (body.dataset.loaded === '1' || body.dataset.loading === '1') return;
+      body.dataset.loading = '1';
       const r = await fetch('/api/admin/ticket?id=' + d.dataset.id, { credentials: 'include' }).then((x) => x.json()).catch(() => null);
+      body.dataset.loading = '0';
       if (!r || !r.ok) { body.textContent = 'Náði ekki í þráðinn.'; return; }
       body.dataset.loaded = '1';
       const t = r.ticket; let g = {}; try { g = JSON.parse(t.ai_greining || '{}'); } catch (e) {}
-      const msgs = (r.msgs || []).map((m) => `<div class="stj-msg stj-msg-${m.dir}"><div class="stj-msg-meta">${m.dir === 'in' ? '📥' : '📤'} ${esc(m.sent_by)} · ${esc(m.fra || '')} → ${esc(m.til || '')} · ${dIS(m.ts)}${m.efni ? ' · <i>' + esc(m.efni) + '</i>' : ''}</div><div class="stj-msg-txt">${esc(m.texti || '')}</div></div>`).join('');
+      // Þráðurinn: in/out-bólur + Moot-línur (niðurstaða/atkvæði/fall). Persónu-innlegg birtast AÐEINS í ráðsalnum.
+      // ⚠ ALLT úr r.* fer gegnum esc() — meta þáttað með try/catch, hrynur aldrei á skemmdu JSON.
+      const msgs = (r.msgs || []).map((m) => {
+        if (m.dir === 'moot') {
+          if (m.sent_by !== 'moot' && m.sent_by !== 'aron' && m.sent_by !== 'moot_fall') return '';
+          let meta = {}; try { meta = JSON.parse(m.meta || '{}') || {}; } catch (e) { meta = {}; }
+          if (m.sent_by === 'moot') return `<div class="stj-moot-thread-line">🏛️ Moot · ${dIS(m.ts)} · tillaga: <b>${esc(MOOT_ADGERDIR[meta.nidurstada && meta.nidurstada.adgerd] || '')}</b> <a href="#stj-moot-wrap" data-moot-open="${t.id}">Opna í ráðsal →</a></div>`;
+          if (m.sent_by === 'aron') return `<div class="stj-moot-thread-line stj-moot-thread-line--aron">🔨 Aron · ${dIS(m.ts)} · ${esc(m.texti || '')}</div>`;
+          return `<div class="stj-moot-thread-line stj-moot-thread-line--fall">🏛️ Moot féll — ${esc(mootVilluTexti(meta.error))} · ${dIS(m.ts)}</div>`;
+        }
+        const hver = m.dir === 'in' ? '📥 ' + esc(m.sent_by) : (m.sent_by === 'agent' ? avatarSvg('sigrun', { size: 20 }) + ' Sigrún (agent)' : '📤 ' + esc(m.sent_by));
+        return `<div class="stj-msg stj-msg-${m.dir}"><div class="stj-msg-meta">${hver} · ${esc(m.fra || '')} → ${esc(m.til || '')} · ${dIS(m.ts)}${m.efni ? ' · <i>' + esc(m.efni) + '</i>' : ''}</div><div class="stj-msg-txt">${esc(m.texti || '')}</div></div>`;
+      }).join('');
       const tillaga = g.svar || '';
       body.innerHTML = `<div class="stj-msgs">${msgs || '<div class="stj-kv-empty">Engin skilaboð.</div>'}</div>`
-        + (g.samantekt || g.cto_brief ? `<div class="stj-tix-ai"><b>🤖 Greining</b> (${esc(g.model || '')}): ${esc(g.samantekt || '')}${g.cto_brief ? '<br><b>CTO-brief:</b> <span style="white-space:pre-wrap">' + esc(g.cto_brief) + '</span>' : ''}</div>` : '')
+        + (g.samantekt || g.cto_brief ? `<div class="stj-tix-ai"><b>🤖 Greining</b> (${esc(g.model || '')}): ${esc(g.samantekt || '')}${g.cto_brief ? '<br><b>Verkbeiðni til CTO:</b> <span style="white-space:pre-wrap">' + esc(g.cto_brief) + '</span>' : ''}</div>` : '')
         + (t.cto_pr ? `<div class="stj-tix-ai"><b>🛠️ CTO-tillaga:</b> <a href="${esc(t.cto_pr)}" target="_blank" rel="noopener">${esc(t.cto_pr)}</a><br><span style="white-space:pre-wrap">${esc(t.cto_samantekt || '')}</span></div>` : '')
         + `<textarea class="stj-tix-svar" rows="5" placeholder="Svar á notandann — sendist frá hjalp@karp.is">${esc(tillaga)}</textarea>`
         + `<div class="stj-tix-actions"><button type="button" class="stj-btn" data-act="svara">✉️ Senda svar</button>`
         + (t.stada === 'tillaga' ? `<button type="button" class="stj-btn" data-act="samthykkja" style="background:#2e8b57">✔ Samþykkja lagfæringu</button>` : `<button type="button" class="stj-btn stj-btn-sm" data-act="cto">🛠️ Senda á CTO</button>`)
-        + `<button type="button" class="stj-btn stj-btn-sm" data-act="loka">✔ Loka</button><button type="button" class="stj-btn stj-btn-sm" data-act="hafna">✖ Hafna</button><button type="button" class="stj-btn stj-btn-sm" data-act="nota">📝 Nóta</button><button type="button" class="stj-btn stj-btn-sm" data-act="greina" title="Endurkeyra AI-greiningu (sendir engan póst)">🤖 Greina aftur</button><span class="stj-tix-err" style="color:#c0392b;font-size:13px"></span></div>`
+        + `<button type="button" class="stj-btn stj-btn-sm" data-act="loka">✔ Loka</button><button type="button" class="stj-btn stj-btn-sm" data-act="hafna">✖ Hafna</button><button type="button" class="stj-btn stj-btn-sm" data-act="nota">📝 Nóta</button><button type="button" class="stj-btn stj-btn-sm" data-act="greina" title="Endurkeyra AI-greiningu (sendir engan póst)">🤖 Greina aftur</button><button type="button" class="stj-btn stj-btn-sm" data-act="moot" title="Ráðið ræðir málið — tillaga sem þú greiðir atkvæði um (sendir engan póst)">🏛️ Kalla saman Moot</button><span class="stj-tix-err" style="color:#c0392b;font-size:13px"></span></div>`
         + (t.notur ? `<div class="stj-tix-notur">${esc(t.notur)}</div>` : '');
+      body.querySelectorAll('a[data-moot-open]').forEach((a) => a.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const sel = $('stj-moot-val'); if (sel) sel.value = String(t.id);
+        mootLoad(t.id);
+        const w = $('stj-moot-wrap'); if (w) w.scrollIntoView({ block: 'start' });
+      }));
       body.querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', async () => {
         const act = btn.dataset.act, err = body.querySelector('.stj-tix-err'); err.textContent = ''; btn.disabled = true;
         let r2 = null;
+        if (act === 'moot') {
+          // Opna í ráðsal + halda Moot — sendir ENGAN póst, breytir ENGRI stöðu. boot() er EKKI kölluð (ráðsalurinn teiknar svarið sjálfur).
+          const sel = $('stj-moot-val'); if (sel) sel.value = String(t.id);
+          const w = $('stj-moot-wrap'); if (w) w.scrollIntoView({ block: 'start' });
+          await mootLoad(t.id);
+          if (!$('stj-moot-halda').disabled) mootHalda(t.id);   // klst-þak virkt → fyrri Moot stendur, hnappur ber „Næst kl. …"
+          btn.disabled = false; return;
+        }
         if (act === 'svara') { const texti = body.querySelector('.stj-tix-svar').value.trim(); if (texti.length < 2) { err.textContent = 'Skrifaðu svar fyrst.'; btn.disabled = false; return; } r2 = await tixPost({ action: 'svara', id: t.id, texti }); }
         else if (act === 'cto') r2 = await tixPost({ action: 'cto', id: t.id });
         else if (act === 'greina') { r2 = await tixPost({ action: 'greina', id: t.id }); body.dataset.loaded = '0'; }
@@ -611,6 +730,302 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         if (r2 && r2.ok) boot(); else err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : 'Villa — reyndu aftur.';
       }));
     }
+    // ══════════════════════════════════════════════════════════════════════════════════════════════════
+    // 🏛️ MOOT — ráðsalur persónanna. Ein afspilun í einu (mootState.run); boot() endurræsir ekki salinn
+    // (sætin eru byggð einu sinni) en mootLoad(id) sýnir nýjasta Moot kyrrstætt.
+    // ÖRYGGI: Moot breytir ALDREI stöðu og sendir ALDREI póst — það gerir Aron með „Já" → fyrirliggjandi
+    // /api/admin/ticket-aðgerð (svara opnar textarea, SENDIR EKKI). Hnappatextar koma úr MOOT_ADGERDIR.
+    // ⚠ ALLT sem kemur úr r.* (innlegg, tillaga, svar, cto_brief, naesta_skref, atkvæðis-texti) fer gegnum
+    //   esc() — módel-úttak er ótraust. EINA hráa innsetningin er avatarSvg()-strengurinn (fast id → fast SVG).
+    // ══════════════════════════════════════════════════════════════════════════════════════════════════
+    const mootPost = (body) => fetch('/api/admin/moot', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()).catch(() => null);
+    const mootGet = (id) => fetch('/api/admin/moot?id=' + id, { credentials: 'include' }).then((r) => r.json()).catch(() => null);
+    let mootState = { ticketId: 0, timer: 0, wake: null, hratt: false, run: 0, playing: false, list: [], bida: [], osent: [] };
+    const MOOT_REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const AFST = { med: ['✓ með', 'stj-moot-chip--med'], moti: ['✕ móti', 'stj-moot-chip--moti'], hja: ['○ hjá', 'stj-moot-chip--hja'] };
+    const MOOT_OPNAR = ['nytt', 'stadfest', 'svarad', 'cto', 'tillaga', 'samthykkt'];
+    const klst = (ts) => { try { return new Date(ts * 1000).toTimeString().slice(0, 5); } catch (e) { return ''; } };
+    // Bið sem hægt er að vekja (⏩ Hoppa / nýtt val) — clearTimeout eitt og sér myndi stranda promise-inu.
+    const mootSleep = (ms) => new Promise((res) => { mootState.wake = res; mootState.timer = setTimeout(() => { mootState.wake = null; res(); }, ms); });
+    const mootWake = () => { clearTimeout(mootState.timer); if (mootState.wake) { const w = mootState.wake; mootState.wake = null; w(); } };
+    const mootSeats = () => Array.from(document.querySelectorAll('#stj-moot-salur .stj-moot-seat'));
+    const mootSeat = (id) => document.querySelector('#stj-moot-salur .stj-moot-seat[data-p="' + String(id).replace(/[^a-z]/g, '') + '"]');
+    const mootStada = (s) => { const el = $('stj-moot-stada'); if (el) el.textContent = s; };
+    // Talan telur AÐEINS mál sem dropdown-inn sýnir (sama MOOT_OPNAR-sía) — talan og listinn stangast ekki á.
+    const mootOpin = (ids) => ids.filter((id) => mootState.list.some((t) => Number(t.id) === id && MOOT_OPNAR.includes(t.stada)));
+    const mootSub = () => {
+      const el = $('stj-moot-sub'); if (!el) return;
+      const nB = mootOpin(mootState.bida).length, nO = mootOpin(mootState.osent).length;
+      el.textContent = [nB ? '· ' + nB + ' mál bíða atkvæðis þíns' : '', nO ? '· ' + nO + ' samþykkt en ósent' : ''].filter(Boolean).join(' ');
+    };
+    const mootChip = (seat, texti, cls) => { const c = seat && seat.querySelector('.stj-moot-chip'); if (!c) return; c.className = 'stj-moot-chip' + (cls ? ' ' + cls : ''); c.textContent = texti || ''; c.hidden = !texti; };
+    function mootSeatsReset() {
+      mootSeats().forEach((s) => { s.classList.remove('stj-moot-seat--dofin', 'stj-moot-seat--komin', 'stj-moot-seat--talar', 'stj-moot-seat--bidur'); mootChip(s, ''); });
+    }
+
+    function renderMoot(tx) {
+      const host = $('stj-moot-salur'); if (!host) return;
+      mootState.list = tx.list || [];
+      mootState.bida = Array.isArray(tx.moot_bida) ? tx.moot_bida.map(Number) : [];
+      mootState.osent = Array.isArray(tx.moot_osent) ? tx.moot_osent.map(Number) : [];
+      // 1. SALURINN — byggður EINU SINNI: 8 sæti í PERSONUR-röð + Arons-stóll (avatarSvg = fastir strengir; nöfn gegnum esc() af vana)
+      if (!host.dataset.built) {
+        host.dataset.built = '1';
+        host.innerHTML = PERSONUR.map((p) => `<div class="stj-moot-seat${p.id === 'kari' ? ' stj-moot-seat--stjori' : ''}" data-p="${p.id}" role="button" tabindex="0" title="${esc(p.spyr)}">${avatarSvg(p.id, { size: 64 })}<span class="stj-moot-nafn">${esc(p.emoji)} ${esc(p.nafn)}</span><span class="stj-moot-hlutverk">${esc(p.hlutverk)}</span><span class="stj-moot-chip" hidden></span></div>`).join('')
+          + `<div class="stj-moot-seat stj-moot-seat--aron" data-p="aron" tabindex="-1">${avatarSvg('aron', { size: 64 })}<span class="stj-moot-nafn">Aron</span><span class="stj-moot-hlutverk">lokaatkvæði</span><span class="stj-moot-chip stj-moot-chip--aron" hidden></span></div>`;
+        const kort = $('stj-moot-kort');
+        const opnaKort = (id) => {
+          const p = persona(id); if (!p || !kort) return;
+          kort.innerHTML = avatarSvg(p.id, { size: 120 }) + `<div><b>${esc(p.emoji + ' ' + p.nafn)}</b> · <span style="color:var(--faint);font-size:12px">${esc(p.hlutverk)}</span><p>${esc(p.sjonarhorn)}</p><i>„${esc(p.spyr)}“</i></div>`;
+          kort.hidden = false;
+        };
+        host.addEventListener('click', (e) => { const s = e.target.closest('.stj-moot-seat'); if (s && s.dataset.p !== 'aron') opnaKort(s.dataset.p); });
+        host.addEventListener('keydown', (e) => { const s = e.target.closest('.stj-moot-seat'); if (!s || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); if (s.dataset.p !== 'aron') opnaKort(s.dataset.p); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && kort) kort.hidden = true; });
+        document.addEventListener('click', (e) => { if (kort && !kort.hidden && !e.target.closest('#stj-moot-kort') && !e.target.closest('.stj-moot-seat')) kort.hidden = true; });
+        $('stj-moot-val').onchange = () => mootLoad($('stj-moot-val').value);
+        $('stj-moot-halda').onclick = () => mootHalda(mootState.ticketId);
+      }
+      mootSub();
+      // 2. DROPDOWN — opin mál, forgangur → created desc (sama röð og listinn úr þjóni); fyrra val haldið, annars fyrsta sem bíður atkvæðis
+      mootFillVal();
+      if (mootState.playing) return;   // afspilun í gangi — ekki endurhlaða yfir hana
+      if (mootState.ticketId) mootLoad(mootState.ticketId);
+    }
+    function mootFillVal() {
+      const sel = $('stj-moot-val'); if (!sel) return;
+      const list = mootState.list.filter((t) => MOOT_OPNAR.includes(t.stada)).slice().sort((a, b) => ((a.forgangur || 3) - (b.forgangur || 3)) || ((b.created || 0) - (a.created || 0)));
+      sel.innerHTML = '<option value="">— veldu opið mál —</option>' + list.map((t) => `<option value="${t.id}">#${t.id} · ${esc((t.efni || '').slice(0, 50))}${mootState.bida.includes(Number(t.id)) ? ' · 🏛️ bíður atkvæðis' : ''}${mootState.osent.includes(Number(t.id)) ? ' · ✉ samþykkt — ósent' : ''}</option>`).join('');
+      if (!list.some((t) => Number(t.id) === mootState.ticketId)) mootState.ticketId = mootState.bida.find((id) => list.some((t) => Number(t.id) === id)) || 0;
+      sel.value = mootState.ticketId ? String(mootState.ticketId) : '';
+    }
+
+    // 3. Sækja nýjasta Moot og sýna kyrrstætt (engin afspilun)
+    async function mootLoad(id) {
+      id = parseInt(id, 10) || 0;
+      mootState.ticketId = id;
+      mootWake(); mootState.run++; mootState.playing = false;   // nýtt val slekkur á afspilun sem er í gangi
+      const run = mootState.run;
+      const btn = $('stj-moot-halda'), svid = $('stj-moot-svid'), err = $('stj-moot-err');
+      err.textContent = ''; btn.disabled = true; btn.title = '';
+      if (!id) { svid.hidden = true; mootStada(''); mootSeatsReset(); return; }
+      const r = await mootGet(id);
+      if (mootState.ticketId !== id || run !== mootState.run) return;   // valið breyttist / Moot hófst á meðan
+      if (!r || !r.ok) { err.textContent = r && r.error === 'admin' ? 'Aðeins stjórnendur.' : 'Náði ekki í Moot fyrir #' + id + '.'; btn.disabled = false; return; }
+      if (r.moot === null || r.moot === undefined) { svid.hidden = true; mootSeatsReset(); mootStada('Ekkert Moot hefur verið haldið um #' + id + '.'); btn.disabled = false; return; }
+      if (r.nidurstada) await mootRender(r, { strax: true });
+      else { svid.hidden = true; mootSeatsReset(); mootStada('Síðasta Moot um #' + id + ' féll — ' + mootVilluTexti(r.fall && r.fall.error) + ' — kl. ' + klst(r.fall && r.fall.ts ? r.fall.ts : r.ts)); }
+      if (r.bid && r.bid.ok === false) { btn.disabled = true; btn.title = 'Næst kl. ' + klst(r.bid.naest); }
+      else btn.disabled = false;
+    }
+
+    // 4. Kalla saman Moot — bjalla → sæti fyllast → POST halda → afspilun
+    async function mootHalda(id) {
+      id = parseInt(id, 10) || 0; if (!id) return;
+      const btn = $('stj-moot-halda'); btn.disabled = true; btn.title = '';
+      $('stj-moot-err').textContent = '';
+      const svid = $('stj-moot-svid'); svid.hidden = false;
+      $('stj-moot-innlegg').innerHTML = ''; $('stj-moot-nidurstada').innerHTML = ''; $('stj-moot-gavel').innerHTML = ''; $('stj-moot-meta').textContent = ''; $('stj-moot-skip').hidden = true;
+      mootStada('🔔 Kári slær í bjölluna — Moot um #' + id);
+      mootWake();
+      const run = ++mootState.run; mootState.playing = true;
+      mootSeats().forEach((s) => { s.classList.remove('stj-moot-seat--komin', 'stj-moot-seat--talar', 'stj-moot-seat--bidur'); s.classList.toggle('stj-moot-seat--dofin', s.dataset.p !== 'aron'); mootChip(s, ''); });
+      const t = mootState.list.find((x) => Number(x.id) === id) || {};
+      // Forsýn sæta: þjónninn reiknar fundarmenn per ticket í overview (efni+lýsing) — sama fall, sama svar; varaleið úr efni einu.
+      const fm = (Array.isArray(t.fundarmenn) && t.fundarmenn.length) ? t.fundarmenn.map(String) : veljaFundarmenn(t.tegund || 'annad', t.efni || '');
+      let i = 0;
+      const step = () => {
+        if (run !== mootState.run) return;
+        if (i < fm.length) { const s = mootSeat(fm[i++]); if (s) { s.classList.remove('stj-moot-seat--dofin'); s.classList.add('stj-moot-seat--komin'); } mootState.timer = setTimeout(step, MOOT_REDUCED ? 0 : 1200); }
+        else mootStada('Ráðið ræðir málið…');
+      };
+      step();
+      const r = await mootPost({ action: 'halda', id });
+      clearTimeout(mootState.timer);
+      if (run !== mootState.run) return;
+      if (!r || !r.ok) { mootState.playing = false; mootVilla(r, id); return; }
+      if (!mootState.bida.includes(id)) mootState.bida.push(id);
+      mootSub(); mootFillVal();
+      await mootRender(r, { strax: MOOT_REDUCED });   // boot() er EKKI kölluð — svarið teiknað beint
+    }
+
+    // 3.6 Villufall — ein setning hvert, engin fölsuð samræða
+    function mootVilla(r, id) {
+      const e = (r && r.error) || 'net';
+      let msg;
+      if (e === 'lykill') msg = 'Ráðsalurinn er lokaður — ANTHROPIC_API_KEY vantar í worker';
+      else if (e === 'bid') msg = 'Moot var haldið kl. ' + klst(r.sidast) + ' — næst kl. ' + klst(r.naest);
+      else if (e === 'dagthak') msg = 'Dagþak Moot (' + (r.max || 25) + ') fullt — núllstillist á miðnætti UTC';
+      else if (e === 'parse' || e === 'max_tokens') msg = 'Fundargerð brenglaðist — ' + mootVilluTexti(e) + ' — reyndu aftur eftir klst';
+      else if (e === 'vistun') msg = 'Fundurinn vistaðist ekki (gagnagrunnur svaraði ekki) — kallaðu Moot saman aftur eftir klst';
+      else if (e === 'timi') msg = 'Ráðið fékk ekki hljóð — ' + mootVilluTexti(e) + ' — reyndu aftur';
+      else if (/^ai /.test(e)) msg = 'Ráðið fékk ekki hljóð — ' + mootVilluTexti(e);
+      else if (e === 'origin' || e === 'content_type') msg = 'Beiðnin var ekki frá karp.is — endurhladdu síðuna.';
+      else if (e === 'admin' || e === 'lota') msg = 'Aðgangur hafnað — skráðu þig inn sem stjórnandi.';
+      else if (e === 'notfound') msg = 'Mál #' + id + ' finnst ekki.';
+      else msg = 'Villa — reyndu aftur.';
+      $('stj-moot-err').textContent = msg;
+      mootStada(''); $('stj-moot-svid').hidden = true; mootSeatsReset();
+      const btn = $('stj-moot-halda');
+      btn.disabled = e === 'bid' || e === 'dagthak';
+      if (e === 'bid' && r.naest) btn.title = 'Næst kl. ' + klst(r.naest);
+    }
+
+    // 5. Afspilun — innlegg í röð með töf, atkvæði, niðurstöðukort Kára, gavel Arons. strax → allar tafir 0.
+    async function mootRender(r, o) {
+      // ⚠ ALLT sem kemur úr r.* fer gegnum esc() — módel-úttak er ótraust
+      const strax = !!(o && o.strax);
+      mootWake();
+      const run = ++mootState.run; mootState.hratt = false; mootState.playing = !strax;
+      const n = r.nidurstada || {}, atkv = (n.atkvaedi && typeof n.atkvaedi === 'object') ? n.atkvaedi : {};
+      const fm = Array.isArray(r.fundarmenn) ? r.fundarmenn.map(String) : [];
+      const afst = (pid) => (AFST[atkv[pid]] ? atkv[pid] : 'hja');
+      $('stj-moot-svid').hidden = false;
+      const host = $('stj-moot-innlegg'), nid = $('stj-moot-nidurstada'), gv = $('stj-moot-gavel'), skip = $('stj-moot-skip');
+      host.innerHTML = ''; nid.innerHTML = ''; gv.innerHTML = ''; $('stj-moot-meta').textContent = '';
+      skip.hidden = strax; skip.onclick = () => { mootState.hratt = true; mootWake(); };
+      const alive = () => run === mootState.run && host.isConnected;
+      const wait = async (ms) => { if (strax || mootState.hratt || !ms) return; await mootSleep(ms); };
+      // (i) sæti
+      mootSeats().forEach((s) => {
+        const p = s.dataset.p; const med = fm.includes(p);
+        s.classList.remove('stj-moot-seat--talar', 'stj-moot-seat--bidur', 'stj-moot-seat--komin');
+        s.classList.toggle('stj-moot-seat--dofin', p !== 'aron' && !med);
+        if (med) s.classList.add('stj-moot-seat--komin');
+        mootChip(s, '');
+      });
+      if (!strax) mootStada('Ráðið ræðir málið…');
+      // (i-b) Kári SETUR fundinn — föst setning úr gögnum (ekkert módel-kall): mál, efni, hverjir taka til máls. Allt gegnum esc().
+      const tk = mootState.list.find((x) => Number(x.id) === Number(r.id)) || {};
+      const talarar = fm.filter((pid) => pid !== 'kari').map((pid) => { const p = persona(pid); return p ? p.nafn : pid; });
+      const setur = document.createElement('div');
+      setur.className = 'stj-moot-innlegg stj-moot-innlegg--stjori'; setur.dataset.p = 'kari'; setur.style.setProperty('--p', persona('kari').litur);
+      setur.innerHTML = avatarSvg('kari', { size: 32 }) + `<div><div class="stj-moot-innlegg-hd"><b>⚙️ Kári setur fundinn</b> <span class="stj-moot-hlutverk">fundarstjóri</span></div><div class="stj-moot-innlegg-txt">Mál #${esc(String(r.id || ''))}${tk.efni ? ': „' + esc(String(tk.efni).slice(0, 120)) + '“' : ''}.${r.fyrri > 1 ? ' Þetta er Moot nr. ' + esc(String(r.fyrri)) + ' um málið.' : ''} Til máls taka: ${esc(talarar.join(', '))}.</div></div>`;
+      host.appendChild(setur);
+      await wait(900);
+      // (ii) innlegg — atkvæðis-chip kemur FYRST í skrefi (iii) í afspilun (ræður → atkvæði → samantekt); strax-hamur sýnir það frá byrjun
+      let prev = null;
+      for (const inn of (Array.isArray(r.innlegg) ? r.innlegg : [])) {
+        if (!alive()) return;
+        const pid = String((inn && inn.persona) || ''), p = persona(pid), a = afst(pid), texti = String((inn && inn.texti) || '');
+        if (prev) prev.classList.remove('stj-moot-seat--talar');
+        prev = mootSeat(pid); if (prev) prev.classList.add('stj-moot-seat--talar');
+        const div = document.createElement('div');
+        div.className = 'stj-moot-innlegg'; div.dataset.p = pid; div.style.setProperty('--p', p ? p.litur : 'var(--line)');
+        div.innerHTML = avatarSvg(pid, { size: 32 }) + `<div><div class="stj-moot-innlegg-hd"><b>${esc(p ? p.emoji + ' ' + p.nafn : pid)}</b> <span class="stj-moot-hlutverk">${esc(p ? p.hlutverk : '')}</span>${strax ? ' <span class="stj-moot-chip ' + AFST[a][1] + '">' + AFST[a][0] + '</span>' : ''}</div><div class="stj-moot-innlegg-txt">${esc(texti)}</div></div>`;
+        host.appendChild(div);
+        await wait(Math.min(2500, 700 + 10 * texti.length));
+      }
+      if (!alive()) return;
+      if (prev) prev.classList.remove('stj-moot-seat--talar');
+      // (iii) gengið til atkvæða — flísar detta á sæti OG við innleggið (í afspilun kemur chip-ið fyrst hér)
+      mootStada('Gengið til atkvæða.');
+      for (const pid of fm) {
+        if (pid === 'kari') continue;
+        const a = afst(pid); mootChip(mootSeat(pid), AFST[a][0], AFST[a][1]);
+        if (!strax) { const hd = host.querySelector('.stj-moot-innlegg[data-p="' + pid.replace(/[^a-z]/g, '') + '"] .stj-moot-innlegg-hd'); if (hd) hd.insertAdjacentHTML('beforeend', ' <span class="stj-moot-chip ' + AFST[a][1] + '">' + AFST[a][0] + '</span>'); }
+        await wait(250); if (!alive()) return;
+      }
+      // (iv) niðurstöðukort Kára — ÞRJÚ stig: samhljóða (allir með) · með fyrirvörum (einhver hjá) · klofið ráð (einhver móti) + talning
+      const atkvV = fm.filter((pid) => pid !== 'kari').map(afst);
+      const tal = { med: atkvV.filter((v) => v === 'med').length, hja: atkvV.filter((v) => v === 'hja').length, moti: atkvV.filter((v) => v === 'moti').length };
+      const merki = tal.moti ? ['klofið ráð', 'klofid'] : tal.hja ? ['með fyrirvörum', 'fyrirvarar'] : ['samhljóða', 'samhljoda'];
+      const ahaetta = ['lag', 'midlungs', 'ha'].includes(n.ahaetta) ? n.ahaetta : 'midlungs';
+      const LEIDRETT = { svar_vantar: 'ráðið skilaði ónothæfum drögum — aðgerð breytt í „' + MOOT_ADGERDIR.meira + '“', adgerd_ogild: 'ráðið nefndi óþekkta aðgerð — breytt í „' + MOOT_ADGERDIR.meira + '“', injection: 'vegna injection-merkis var aðgerð breytt í „' + MOOT_ADGERDIR.meira + '“ og drög felld' };
+      nid.innerHTML = `<div class="stj-moot-nidurstada"><div>${avatarSvg('kari', { size: 64 })}</div><div>`
+        + `<div class="stj-moot-innlegg-hd"><b>⚙️ Kári dregur saman</b> <span class="stj-moot-adgerd">${esc(MOOT_ADGERDIR[n.adgerd] || n.adgerd || '')}</span> <span class="stj-moot-merki stj-moot-merki--${ahaetta}">áhætta: ${esc(ahaetta)}</span><span class="stj-moot-merki stj-moot-merki--${merki[1]}" title="${tal.med} með · ${tal.hja} hjá · ${tal.moti} móti">${merki[0]} · ${tal.med} með · ${tal.hja} hjá · ${tal.moti} móti</span></div>`
+        + `<div class="stj-moot-innlegg-txt">${esc(n.tillaga || '')}</div>`
+        + (n.leidrett && LEIDRETT[n.leidrett] ? '<div class="stj-moot-vidv stj-moot-vidv--gul">⚠ ' + esc(LEIDRETT[n.leidrett]) + '</div>' : '')
+        + (n.naesta_skref ? '<div class="stj-moot-skref">→ ' + esc(n.naesta_skref) + '</div>' : '')
+        + (n.svar ? '<div class="stj-moot-drog-hd">Drög Sigrúnar að svari</div><pre class="stj-moot-drog">' + esc(n.svar) + '</pre>' : '')
+        + (n.cto_brief && n.adgerd === 'cto' ? '<div class="stj-moot-drog-hd">Verkbeiðni Hrafns til CTO</div><pre class="stj-moot-drog">' + esc(n.cto_brief) + '</pre>' : '')
+        + (n.injection ? '<div class="stj-moot-vidv">⚠ Ráðið merkti texta í erindinu sem tilraun til að gefa fyrirmæli — meðhöndlað sem gögn, ekki skipun.</div>' : '')
+        + '<div class="stj-moot-fotur">Allt sem ráðið segir er tillaga — þú greiðir atkvæði.</div></div></div>';
+      $('stj-moot-meta').textContent = [String(r.model || ''), r.usage ? ((r.usage.in | 0) + '/' + (r.usage.out | 0) + ' tókar') : '', '≈ ' + Math.round((Number(r.usd) || 0) * 140) + ' kr', Math.round((Number(r.ms) || 0) / 1000) + ' s', dIS(r.ts), r.fyrri > 1 ? 'Moot nr. ' + r.fyrri + ' um þetta mál' : ''].filter(Boolean).join(' · ');
+      skip.hidden = true;
+      // (v) gavel — atkvæði Arons eða hnappar (textar ALLTAF úr MOOT_ADGERDIR/MOOT_JA_TEXTI, aldrei úr módel-texta).
+      //     Já-textinn segir SATT hvað smellurinn gerir: svara/meira OPNA drög (Aron sendir sjálfur), cto/hafna/loka keyra aðgerð.
+      const aron = mootSeat('aron');
+      if (r.atkvaedi_arons) {
+        const av = r.atkvaedi_arons;
+        const osent = mootState.osent.includes(Number(r.id));
+        gv.innerHTML = `<div class="stj-moot-atkvaedi">${avatarSvg('aron', { size: 32 })}<span>🔨 Aron: <b>${av.val === 'ja' ? 'Já — ' + esc(MOOT_ADGERDIR[av.adgerd] || '') : 'Nei'}</b>${av.texti ? ' — ' + esc(av.texti) : ''} · ${dIS(av.ts)}${osent ? ' · <span class="stj-moot-flag stj-moot-flag--osent">✉ samþykkt — ósent</span>' : ''}</span>`
+          + (osent ? `<button type="button" class="stj-btn stj-btn-sm" data-opna="1">Opna drögin →</button>` : '') + '</div>';
+        const ob = gv.querySelector('button[data-opna]'); if (ob) ob.onclick = () => mootOpnaTicket(Number(r.id), mootDrog(r, av.adgerd));
+        mootChip(aron, av.val === 'ja' ? '🔨✔' : '🔨✖', 'stj-moot-chip--aron');
+        mootStada(osent ? 'Aron samþykkti drögin — svarið hefur ekki verið sent.' : 'Aron hefur greitt atkvæði.');
+      } else {
+        if (aron) aron.classList.add('stj-moot-seat--bidur');
+        mootStada('Fundi slitið — málið bíður atkvæðis Arons.');
+        gv.innerHTML = `<div class="stj-moot-gavel"><button type="button" class="stj-btn stj-moot-ja" data-val="ja">🔨 ${esc(MOOT_JA_TEXTI[n.adgerd] || ('Já — ' + (MOOT_ADGERDIR[n.adgerd] || n.adgerd || '')))}</button><button type="button" class="stj-btn stj-btn-sm stj-moot-nei" data-val="nei">✖ Nei</button><span class="stj-moot-err" style="color:#c0392b;font-size:13px"></span></div>`;
+        gv.querySelectorAll('button[data-val]').forEach((b) => b.addEventListener('click', () => mootKjosa(r, b.dataset.val, gv)));
+      }
+      mootState.playing = false;
+    }
+
+    /** Drög í svar-textarea eftir aðgerð: svara → drög Sigrúnar; meira → spurningin á notandann með kveðju í sama sniði
+     *  (fornafn úr mootState.list). Endar á „Bestu kveðjur,“ — sendSvar bætir undirskrift Sigrúnar við í fótinn. */
+    function mootDrog(r, adgerd) {
+      const n = r.nidurstada || {};
+      if (adgerd === 'svara') return n.svar || '';
+      if (adgerd !== 'meira') return '';
+      const t = mootState.list.find((x) => Number(x.id) === Number(r.id)) || {};
+      const fornafn = String(t.nafn || '').trim().split(/\s+/)[0];
+      return 'Sæl/Sæll' + (fornafn ? ' ' + fornafn : '') + ',\n\n' + (n.naesta_skref || '') + '\n\nBestu kveðjur,';
+    }
+
+    // 6. Atkvæði Arons. RÖÐIN SKIPTIR MÁLI: fyrir cto/hafna/loka keyrir FRAMHALDSAÐGERÐIN FYRST (tixPost) og atkvæðið er
+    //    aðeins skráð ef hún tókst — annars stæði „Já — senda á CTO“ í þræðinum án þess að nokkuð gerðist (og 'kosid' læsti
+    //    endurtekningu úti). svara/meira eiga enga þjóns-aðgerð → atkvæði strax, drög opnuð í textarea.
+    //    PÓSTUR FER ALDREI Á ÞESSUM SMELL (svara opnar textarea; Aron smellir sjálfur á „✉️ Senda svar“).
+    async function mootKjosa(r, val, gv) {
+      const id = parseInt(r.id, 10) || mootState.ticketId; if (!id) return;
+      const btns = gv.querySelectorAll('button'), err = gv.querySelector('.stj-moot-err');
+      const n = r.nidurstada || {}, adgerd = n.adgerd;
+      const stName = (s) => (TIX_STADA[s] ? TIX_STADA[s][0] : String(s || '—'));
+      let texti = '';
+      if (val === 'nei') { const s = prompt('Af hverju hafnar þú tillögunni? (valfrjálst)'); if (s === null) return; texti = s; }
+      const thjonsAdgerd = val === 'ja' && ['cto', 'hafna', 'loka'].includes(adgerd);
+      if (thjonsAdgerd) {
+        // Staðan hnikaðist eftir fundinn (r.stada = núverandi, r.stada_tha = við fundinn) → spyrja, ekki bara gul setning.
+        if (r.stada && r.stada_tha && r.stada !== r.stada_tha
+          && !confirm('Staða málsins er nú „' + stName(r.stada) + '“ en var „' + stName(r.stada_tha) + '“ við fundinn. Keyra „' + (MOOT_ADGERDIR[adgerd] || adgerd) + '“ samt?')) return;
+        if (adgerd === 'cto' && ['cto', 'tillaga', 'samthykkt'].includes(r.stada)) { err.style.color = '#f6b13b'; err.textContent = 'Málið er þegar hjá CTO (' + stName(r.stada) + ') — ekki sent aftur.'; return; }
+      }
+      btns.forEach((b) => { b.disabled = true; }); err.style.color = '#c0392b'; err.textContent = '';
+      if (thjonsAdgerd) {
+        const r3 = adgerd === 'cto' ? await tixPost({ action: 'cto', id }) : await tixPost({ action: 'stada', id, stada: adgerd === 'hafna' ? 'hafnad' : 'lokad' });
+        if (!r3 || !r3.ok) {
+          err.textContent = r3 && r3.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker — atkvæðið var EKKI skráð.' : 'Aðgerðin mistókst — atkvæðið var EKKI skráð. Reyndu aftur.';
+          btns.forEach((b) => { b.disabled = false; }); return;
+        }
+      }
+      const r2 = await mootPost({ action: 'atkvaedi', id, val, texti });
+      if (!r2 || !r2.ok) {
+        const e = r2 && r2.error;
+        err.textContent = e === 'lota' ? 'Aðeins innskráður stjórnandi greiðir atkvæði.' : e === 'kosid' ? 'Þú hefur þegar kosið um þetta Moot.'
+          : e === 'engin_nidurstada' ? 'Fundurinn vistaðist ekki — kallaðu Moot saman aftur.' : e === 'origin' || e === 'content_type' ? 'Beiðnin var ekki frá karp.is — endurhladdu síðuna.'
+          : thjonsAdgerd ? 'Aðgerðin var keyrð en atkvæðið skráðist ekki — skoðaðu þráðinn.' : 'Villa — reyndu aftur.';
+        if (!thjonsAdgerd) btns.forEach((b) => { b.disabled = false; });
+        if (thjonsAdgerd) await boot();   // aðgerðin gerðist — listinn þarf að sýna það þótt atkvæðið vantaði
+        return;
+      }
+      if (r2.breytt_stada) { err.style.color = '#f6b13b'; err.textContent = 'Staða málsins breyttist eftir fundinn — skoðaðu þráðinn.'; }
+      mootState.bida = mootState.bida.filter((x) => x !== id);
+      await boot();   // boot() endurgerir ticket-listann og sækir moot_osent → textarea-aðgerðir EFTIR boot()
+      if (val === 'ja' && (adgerd === 'svara' || adgerd === 'meira')) await mootOpnaTicket(id, mootDrog(r, adgerd));
+    }
+
+    // 7. Opna ticket-þráð og setja drög í svar-textarea (Aron smellir sjálfur á „✉️ Senda svar")
+    async function mootOpnaTicket(id, texti) {
+      const d = document.getElementById('ticket-' + id); if (!d) return;
+      const body = d.querySelector('.stj-tix-body'); if (body) body.dataset.loaded = '0';
+      d.open = true;
+      await loadTicket(d);
+      const ta = d.querySelector('.stj-tix-svar'); if (ta) { ta.value = texti || ''; ta.focus(); }
+      d.scrollIntoView({ block: 'start' });
+    }
+
     if (document.readyState !== 'loading') boot(); else document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('astro:page-load', boot);
   </script>

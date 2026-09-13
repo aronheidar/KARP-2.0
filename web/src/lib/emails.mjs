@@ -184,8 +184,9 @@ export const EMAIL_TYPES = [
     html: WRAP('Beiðnin þín er móttekin',
       '<p>Sæl/sæll {{nafn}},</p>'
       + '<p>takk fyrir að hafa samband. Erindið „{{efni}}" er skráð sem beiðni <b>#{{nr}}</b> og komið í skoðun. Við svörum á þetta netfang, yfirleitt samdægurs á virkum dögum.</p>'
-      + '<p style="color:#666;font-size:13px">Þú getur bætt við upplýsingum með því að svara þessum pósti — svarið fer beint á sömu beiðni.</p>'),
-    ath: 'Sniðmát, ekki AI-texti — sendist án samþykktar. Efnislegt svar kemur sér (KB-svar sjálfkrafa eða frá þér á /stjorn/).',
+      + '<p style="color:#666;font-size:13px">Þú getur bætt við upplýsingum með því að svara þessum pósti — svarið fer beint á sömu beiðni.</p>'
+      + '<p style="color:#666;font-size:13px">— Sigrún, þjónustufulltrúi Karp (gervigreindar-aðstoð, yfirfarið af starfsmanni)</p>'),
+    ath: 'Sniðmát, ekki AI-texti — sendist án samþykktar. Sigrún (þjónustufulltrúinn) skrifar undir og gervigreindar-gagnsæið stendur hér, ekki í hverju svari — breyttu orðalaginu hér. Efnislegt svar kemur sér (KB-svar sjálfkrafa eða frá þér á /stjorn/).',
   },
 ];
 
