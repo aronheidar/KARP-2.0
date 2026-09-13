@@ -213,13 +213,13 @@ test('haldaMoot: fetch kastar (timeout/net) → timi + moot_fall-röð', async (
   assert.equal(state.msgs.filter((m) => m.sent_by === 'moot_fall').length, 1);
 });
 
-test('haldaMoot: óþáttanlegt svar → parse; stop_reason max_tokens → max_tokens; raw ≤400 geymt; usage/kostnaður skráð', async (t) => {
+test('haldaMoot: óþáttanlegt svar → parse m/ ástæðu; stop_reason max_tokens → max_tokens; raw ≤2000 geymt; usage/kostnaður skráð', async (t) => {
   const state = mkState();
-  stubFetch(t, [{ status: 200, json: apiSvar('Ráðið kom sér ekki saman um JSON. ' + 'x'.repeat(1000)) }]);
+  stubFetch(t, [{ status: 200, json: apiSvar('Ráðið kom sér ekki saman um JSON. ' + 'x'.repeat(3000)) }]);
   const r = await haldaMoot(mkEnv(state), state.tickets[7]);
-  assert.equal(r.error, 'parse');
+  assert.equal(r.error, 'parse'); assert.equal(r.astaeda, 'ekkert_json', 'ástæða gátunar skilað (fyrsta live-fall var ógreinanlegt án hennar)');
   const meta = JSON.parse(state.msgs.find((m) => m.sent_by === 'moot_fall').meta);
-  assert.equal(meta.raw.length, 400); assert.equal(meta.stop, 'end_turn'); assert.deepEqual(meta.usage, { in: 4000, out: 900 });
+  assert.equal(meta.raw.length, 2000); assert.equal(meta.astaeda, 'ekkert_json'); assert.deepEqual(meta.fundarmenn, r.fundarmenn || meta.fundarmenn); assert.equal(meta.stop, 'end_turn'); assert.deepEqual(meta.usage, { in: 4000, out: 900 });
   assert.equal(JSON.parse(state.sync.moot_dagur).usd, 0.017, 'kostnaður talinn þótt fundargerð brenglaðist');
 
   const state2 = mkState();

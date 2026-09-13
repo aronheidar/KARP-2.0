@@ -115,34 +115,47 @@ const _mootStr = (v, max) => ((typeof v === 'string' || typeof v === 'number') ?
 
 /** Þáttar og gátar JSON-svar ráðsins. Skilar {innlegg, nidurstada} eða null ef ónothæft.
  *  Þolir ```-girðingar, aukatexta utan hlutsins og raunveruleg línuskil innan strengja (fixJsonStrings). */
-export function parseMootSvar(text, fundarmenn) {
+/** Persónu-id úr því sem módelið skrifar: 'sigrun' · 'Sigrún' · 'SIGRUN' · 'Sigrún (þjónustufulltrúi)' → 'sigrun'; óþekkt → ''. */
+export function mootPersonaId(v) {
+  const mtRaw = String(v == null ? '' : v).trim();
+  if (!mtRaw) return '';
+  const mtLow = mtRaw.toLowerCase();
+  if (persona(mtLow)) return mtLow;
+  const mtHit = PERSONUR.find((p) => mtLow === p.nafn.toLowerCase() || mtLow.startsWith(p.nafn.toLowerCase() + ' ') || mtLow.startsWith(p.nafn.toLowerCase() + ',') || mtLow.startsWith(p.nafn.toLowerCase() + '('));
+  return mtHit ? mtHit.id : '';
+}
+
+/** `diag` (valkvætt fylki) fær ástæðu þegar skilað er null — svo fall-röðin segi HVAÐA gátun brást, ekki bara „parse". */
+export function parseMootSvar(text, fundarmenn, diag) {
+  const mtWhy = (r) => { if (Array.isArray(diag)) diag.push(r); return null; };
   let mtS = String(text || '').trim();
   const mtFence = mtS.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (mtFence) mtS = mtFence[1].trim();
   const mtA = mtS.indexOf('{'), mtB = mtS.lastIndexOf('}');
-  if (mtA < 0 || mtB <= mtA) return null;
+  if (mtA < 0 || mtB <= mtA) return mtWhy('ekkert_json');
   const mtBody = mtS.slice(mtA, mtB + 1);
   let mtJ;
-  try { mtJ = JSON.parse(mtBody); } catch (e) { try { mtJ = JSON.parse(fixJsonStrings(mtBody)); } catch (e2) { return null; } }
-  if (!mtJ || typeof mtJ !== 'object') return null;
+  try { mtJ = JSON.parse(mtBody); } catch (e) { try { mtJ = JSON.parse(fixJsonStrings(mtBody)); } catch (e2) { return mtWhy('json_ogilt: ' + String(e2.message || '').slice(0, 80)); } }
+  if (!mtJ || typeof mtJ !== 'object') return mtWhy('json_ekki_hlutur');
 
   const mtTalarar = _mootTalarar(fundarmenn);
-  const mtSeen = new Set(), mtInnlegg = [];
-  for (const mtI of (Array.isArray(mtJ.innlegg) ? mtJ.innlegg : [])) {
+  const mtSeen = new Set(), mtInnlegg = [], mtSleppt = [];
+  const mtInnRaw = Array.isArray(mtJ.innlegg) ? mtJ.innlegg : (Array.isArray(mtJ.umraeda) ? mtJ.umraeda : []);
+  for (const mtI of mtInnRaw) {
     if (!mtI || typeof mtI !== 'object') continue;
-    const mtP = String(mtI.persona || '');
-    if (!mtTalarar.includes(mtP) || mtSeen.has(mtP)) continue;
-    const mtTexti = _mootStr(mtI.texti, 700);
-    if (!mtTexti) continue;
+    const mtP = mootPersonaId(mtI.persona || mtI.nafn || mtI.id);
+    if (!mtTalarar.includes(mtP) || mtSeen.has(mtP)) { mtSleppt.push(String(mtI.persona || mtI.nafn || '?')); continue; }
+    const mtTexti = _mootStr(mtI.texti || mtI.innlegg || mtI.text, 700);
+    if (!mtTexti) { mtSleppt.push(mtP + ':tómt'); continue; }
     mtSeen.add(mtP);
     mtInnlegg.push({ persona: mtP, texti: mtTexti });
   }
-  if (!mtInnlegg.length) return null;
+  if (!mtInnlegg.length) return mtWhy('engin_innlegg (raw ' + mtInnRaw.length + ', sleppt: ' + mtSleppt.slice(0, 6).join(',') + ')');
 
-  const mtN = mtJ.nidurstada;
-  if (!mtN || typeof mtN !== 'object') return null;
-  const mtTillaga = _mootStr(mtN.tillaga, 900);
-  if (!mtTillaga) return null;
+  const mtN = mtJ.nidurstada || mtJ['niðurstaða'] || mtJ.nidurstaða || mtJ.result;
+  if (!mtN || typeof mtN !== 'object') return mtWhy('nidurstada_vantar (lyklar: ' + Object.keys(mtJ).slice(0, 8).join(',') + ')');
+  const mtTillaga = _mootStr(mtN.tillaga || mtN.samantekt || mtN.texti, 900);
+  if (!mtTillaga) return mtWhy('tillaga_vantar (lyklar: ' + Object.keys(mtN).slice(0, 10).join(',') + ')');
   const mtAdgerdGild = typeof mtN.adgerd === 'string' && Object.prototype.hasOwnProperty.call(MOOT_ADGERDIR, mtN.adgerd);
   let mtAdgerd = mtAdgerdGild ? mtN.adgerd : 'meira';
   let mtLeidrett = mtAdgerdGild ? null : 'adgerd_ogild';   // þögul leiðrétting er skráð svo UI geti sýnt að hnappur ≠ tillögutexti Kára

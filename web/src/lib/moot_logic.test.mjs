@@ -270,3 +270,15 @@ test('parseMootSvar: klippt svar (max_tokens) → null svo haldaMoot skrái moot
 test('PERSONA_IDS samræmist FM-prófgögnum', () => {
   for (const id of FM) assert.ok(PERSONA_IDS.includes(id), id);
 });
+
+test('parseMootSvar: þolir nöfn í stað id, ð-lykil og „umraeda"; diag segir hvaða gátun brást', () => {
+  const fm = ['sigrun', 'hrafn', 'unnur', 'kari'];
+  const ok = parseMootSvar(JSON.stringify({ innlegg: [{ persona: 'Sigrún', texti: 'Notandinn lýsir villu vel.' }, { persona: 'HRAFN (CTO)', texti: 'Endurtakanlegt CSS-flæði.' }, { persona: 'Kári', texti: 'Ég dreg saman.' }], 'niðurstaða': { tillaga: 'Senda á Hrafn.', adgerd: 'cto', cto_brief: 'max-width á spjaldið á /fasteignaverd/', atkvaedi: { sigrun: 'med', hrafn: 'med', unnur: 'hja' }, ahaetta: 'lag' } }), fm);
+  assert.ok(ok, 'nöfn + ð-lykill eiga að þáttast');
+  assert.deepEqual(ok.innlegg.map((x) => x.persona), ['sigrun', 'hrafn'], 'Kári síast út þótt hann sé nefndur');
+  assert.equal(ok.nidurstada.adgerd, 'cto');
+  const d1 = []; assert.equal(parseMootSvar('ekkert json', fm, d1), null); assert.equal(d1[0], 'ekkert_json');
+  const d2 = []; assert.equal(parseMootSvar(JSON.stringify({ innlegg: [{ persona: 'elin', texti: 'x' }], nidurstada: { tillaga: 'y' } }), fm, d2), null); assert.ok(/engin_innlegg/.test(d2[0]) && /elin/.test(d2[0]), d2[0]);
+  const d3 = []; assert.equal(parseMootSvar(JSON.stringify({ innlegg: [{ persona: 'sigrun', texti: 'x' }], nidurstada: { adgerd: 'cto' } }), fm, d3), null); assert.ok(/tillaga_vantar/.test(d3[0]) && /adgerd/.test(d3[0]), d3[0]);
+  const d4 = []; assert.equal(parseMootSvar(JSON.stringify({ innlegg: [{ persona: 'sigrun', texti: 'x' }] }), fm, d4), null); assert.ok(/nidurstada_vantar/.test(d4[0]), d4[0]);
+});

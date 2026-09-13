@@ -184,11 +184,13 @@ export async function haldaMoot(env, ticket) {
     await _mootFall(env, ticket.id, mtNow, mtDag, { error: mtKall.error, usage: mtKall.usage || null, model: mtKall.model || null, ms: mtMs });
     return { ok: false, error: mtKall.error, moot: mtNow };
   }
-  const mtParsed = parseMoot(mtKall.text, mtFundarmenn);
+  const mtDiag = [];
+  const mtParsed = parseMoot(mtKall.text, mtFundarmenn, mtDiag);
   if (!mtParsed) {
     const mtErr = mtKall.stop === 'max_tokens' ? 'max_tokens' : 'parse';
-    await _mootFall(env, ticket.id, mtNow, mtDag, { error: mtErr, raw: String(mtKall.text || '').slice(0, 400), stop: mtKall.stop, usage: mtKall.usage, model: mtKall.model, ms: mtMs });
-    return { ok: false, error: mtErr, moot: mtNow };
+    // raw allt að 2000 + ástæða gátunar (mtDiag) — fyrsta live-Moot féll á „parse" með 400 stöfum af raw og engri ástæðu; ógreinanlegt.
+    await _mootFall(env, ticket.id, mtNow, mtDag, { error: mtErr, astaeda: mtDiag.join('; ').slice(0, 300), raw: String(mtKall.text || '').slice(0, 2000), stop: mtKall.stop, usage: mtKall.usage, model: mtKall.model, ms: mtMs, fundarmenn: mtFundarmenn });
+    return { ok: false, error: mtErr, astaeda: mtDiag.join('; ').slice(0, 300), moot: mtNow };
   }
 
   for (let mtI = 0; mtI < mtParsed.innlegg.length; mtI++) {

@@ -89,9 +89,14 @@ jobs:
           console.log('prompt', p.length, 'stafir · moot-verkbeiðni:', mootBrief === '(engin)' ? 'engin' : mootBrief.length + ' stafir');
           EOF
           node cto_prompt.cjs
-          claude -p "$(cat cto_prompt.txt)" --permission-mode bypassPermissions --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(node:*),Bash(npx astro check:*)" --max-turns 60 > cto_run.log 2>&1 || true
+          claude -p "$(cat cto_prompt.txt)" --permission-mode bypassPermissions --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm test:*),Bash(node:*),Bash(npx astro check:*)" --max-turns 80 > cto_run.log 2>&1 || true
           tail -c 3000 cto_run.log
-          test -f cto_summary.md || { echo "engin samantekt frá Claude — bý til varasamantekt"; printf '## Hvað var að\nCTO-agentinn skilaði ekki samantekt (sjá keyrslu-log).\n## Hvað var lagað\nEngar breytingar.\n## Áhætta\nEngin.\n## Tillaga að svari\nÞarf handvirka skoðun.\n' > cto_summary.md; }
+          # Skili Claude ekki cto_summary.md (fyrsta raunkeyrsla: breyting gerð en engin samantekt) er hún smíðuð úr
+          # lokatexta keyrslunnar + breyttum skrám — PR-lýsingin má ekki verða innantómur varatexti.
+          if [ ! -f cto_summary.md ]; then
+            echo "engin cto_summary.md frá Claude — smíða úr keyrslu-log og git diff"
+            { printf '## Samantekt CTO (úr keyrslu-log)\n'; tail -c 1800 cto_run.log | sed 's/\x1b\[[0-9;]*m//g'; printf '\n\n## Breyttar skrár\n'; git --no-pager diff --stat | tail -20; printf '\n## Tillaga að svari\nSjá samantekt — Aron yfirfer.\n'; } > cto_summary.md
+          fi
       - name: Próf verða að vera græn
         run: npm test
         working-directory: web
@@ -111,18 +116,21 @@ jobs:
           if [ -n "$BAD$BAD2" ]; then echo "Óleyfilegar breytingar: $BAD $BAD2"; git checkout -- . ; git clean -fd; echo "pr=" >> $GITHUB_OUTPUT; echo "note=Óleyfilegar skrár snertar — breytingum hent" >> $GITHUB_OUTPUT; exit 0; fi
           if git diff --quiet && [ -z "$(git status --porcelain)" ]; then echo "pr=" >> $GITHUB_OUTPUT; echo "note=Engin kóðabreyting" >> $GITHUB_OUTPUT; printf '%s' "$SUM" > /tmp/sum.md; exit 0; fi
           BR="cto/ticket-$TICKET"
-          git checkout -b "$BR"
+          printf '%s' "$SUM" > /tmp/sum.md
+          git checkout -B "$BR"
           git add -A web skriptur
           git commit -q -m "CTO: lagfæring úr hjálparbeiðni #$TICKET" -m "$SUM"
           git push -u origin "$BR" --force
-          URL=$(gh pr create --title "CTO: hjálparbeiðni #$TICKET" --body "$SUM"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>/dev/null || gh pr view "$BR" --json url -q .url)
+          # PR: villur SÝNILEGAR (2>/dev/null faldi „Actions má ekki stofna PR" í 2. keyrslu); ef stofnun bregst
+          # skilar skrefið samt (compare-hlekkur) svo ticket og Aron fái greinina — aldrei exit 1 hér.
+          URL=$(gh pr create --title "CTO: hjálparbeiðni #$TICKET" --body "$SUM"$'\n\n'"Ticket: https://karp.is/stjorn/#ticket-$TICKET · Samþykki Arons = merge (deploy sjálfvirkt)." --base main --head "$BR" 2>&1 | tee /tmp/pr.log | grep -oE 'https://github.com/[^ ]+/pull/[0-9]+' | head -1 || true)
+          if [ -z "$URL" ]; then URL=$(gh pr view "$BR" --json url -q .url 2>/dev/null || true); fi
+          if [ -z "$URL" ]; then echo "PR-stofnun mistókst:"; cat /tmp/pr.log; URL="https://github.com/aronheidar/KARP-2.0/compare/main...$BR?expand=1"; echo "note=PR var ekki stofnaður sjálfkrafa — opna compare-hlekkinn og stofna handvirkt" >> $GITHUB_OUTPUT; else echo "note=" >> $GITHUB_OUTPUT; fi
           echo "pr=$URL" >> $GITHUB_OUTPUT
-          echo "note=" >> $GITHUB_OUTPUT
-          printf '%s' "$SUM" > /tmp/sum.md
       - name: Skila niðurstöðu á karp.is
         if: always()
         run: |
-          SUM=$( [ -f /tmp/sum.md ] && cat /tmp/sum.md || echo "Keyrsla mistókst — sjá Actions-log" )
+          [ -f /tmp/sum.md ] || echo "Keyrsla mistókst áður en samantekt varð til — sjá Actions-log (run $GITHUB_RUN_ID)" > /tmp/sum.md
           node -e "
             const body={action:'cto_result', id: Number(process.env.TICKET), pr: process.env.PR||'', branch: process.env.PR ? 'cto/ticket-'+process.env.TICKET : '', samantekt: (process.env.NOTE ? process.env.NOTE+'\n\n' : '') + require('fs').readFileSync('/tmp/sum.md','utf8').slice(0,3800)};
             fetch('https://karp.is/api/admin/ticket',{method:'POST',headers:{'X-Admin-Key':process.env.KARP_ADMIN_KEY,'content-type':'application/json'},body:JSON.stringify(body)}).then(r=>r.text()).then(t=>console.log('cto_result →',t));
