@@ -280,9 +280,9 @@ jobs:
       - name: Gagnaheilsa (ferskleiki lykil-veita + þekja → heilsa.json fyrir stjórnborð)
         run: node skriptur/build_heilsa.mjs || true   # LES nýuppfærðar veitur → web/public/gogn/heilsa.json (á UNDAN commit svo hún fylgi með)
 
-      # (CF_DEPLOY_HOOK-breytan féll út 13.9 — Pages-hookið er leyst af hólmi af deploy-skrefinu
-      #  hér á eftir. Secretið sjálft má fjarlægja í Settings; það er ónotað eftir þessa breytingu.)
-      - name: Committa ef breyting
+      - name: Committa ef breyting — annars þvinga endurbyggingu
+        env:
+          CF_DEPLOY_HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
         run: |
           # status --porcelain sér líka NÝJAR skrár (git diff gerir það ekki)
           CHANGES=$(git status --porcelain -- gogn/ web/public/gogn/ | head -40)
@@ -302,39 +302,15 @@ jobs:
               git pull --rebase --autostash origin main
               git push origin HEAD:main || { echo "✗ push brást endanlega — athugaðu branch protection á main (leyfa github-actions að ýta) og Settings→Actions→Workflow permissions (Read and write)."; exit 1; }
             fi
-            echo "✔ Gögn breyttust → ýtt. Deploy-skrefið hér á eftir kemur þeim í loftið."
+            echo "✔ Gögn breyttust → ýtt. Cloudflare endurbyggir bæði verkefnin."
+          elif [ -n "$CF_DEPLOY_HOOK" ]; then
+            # dauður/rangur hook á ekki að fella keyrsluna
+            curl -fsS -X POST "$CF_DEPLOY_HOOK" >/dev/null \
+              && echo "✔ Engin gagnabreyting → deploy hook þvingaði endurbyggingu (fersk Hagstofa)." \
+              || echo "⚠ Deploy hook svaraði ekki (hunsa) — uppfærðu/eyddu CF_DEPLOY_HOOK-secretinu."
           else
-            echo "• Engin gagnabreyting — ekkert committað. Deploy-skrefið keyrir samt (sjá skýringu þar)."
+            echo "• Engin breyting og enginn CF_DEPLOY_HOOK — sleppi. efnahagur ferskast við næstu gagna-ýtingu."
           fi
-
-      # ⚠⚠ HÉR VAR GATIÐ (fannst 13.9.2026). Röksemdafærslan að ofan var ÖFUG við raunveruleikann:
-      #   breyttust gögn → push + „Cloudflare endurbyggir bæði verkefnin"   ← gerðist ALDREI
-      #   breyttust þau EKKI → CF_DEPLOY_HOOK þvingaði endurbyggingu        ← eina raun-deployið
-      # Sú grein sem ÞARF deploy fékk hann aldrei, og hin — sem þarf hann síst — átti hann ein.
-      # Forsendan er frá Cloudflare PAGES-tímanum, þar sem git-push kveikti sjálfkrafa byggingu.
-      # Eftir flutninginn á Worker (karp21, [assets] = web/dist) endurbyggir ekkert sjálfkrafa, og
-      # ofan á það kveikir push með sjálfgefna GITHUB_TOKEN ALDREI á on:push-workflow-um — svo
-      # ci.yml sá þessi data-commit aldrei heldur. Fersk gögn rötuðu því í repo-ið á hverri nóttu en
-      # á vefinn aðeins þegar einhver deployaði handvirkt: lifandi spyrdu_context.json var 4 daga gömul.
-      # Pages-hookið er fjarlægt — það er beinlínis leyst af hólmi hér, og dauð grein sem ÞYKIST
-      # deploya er nákvæmlega það sem faldi þessa bilun í fjóra daga.
-      # ⚠ Byggt og deployað ÚR SAMA TRÉ og skripturnar skrifuðu í — engin endur-checkout, engin
-      #   SHA-óvissa um hvort nýju gögnin séu með.
-      # ⚠ Keyrir ÓHÁÐ því hvort gögn breyttust: build_spyrdu_context.js sækir verðbólgu og gengi
-      #   BEINT við byggingu, svo endurbygging ferskar samhengispakkann þótt ekkert hafi committast.
-      #   Það var einmitt hlutverk CF_DEPLOY_HOOK.
-      # ⚠ Á UNDAN heilsu-hliðinu, sömu rökum og commit-þrepið: gögnin eiga að skila sér þótt einhver
-      #   uppstreymis-veita hafi staðnað. Hliðið er viðvörun um veitu, ekki ástæða til að halda öllu eftir.
-      - name: Bygging + deploy (fersk gögn í loftið)
-        working-directory: web
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -e
-          npm ci
-          npx astro build
-          npx wrangler deploy
 
       # Úttekt 30.7 (C1): 80× `|| true` + „commit ef breyting" gerði bilanir ÓSÝNILEGAR (OneDrive-frost,
       # lobbyvakt-eitrun). Hliðið keyrir EFTIR commit/push (gögnin skila sér alltaf) og fellur keyrsluna
