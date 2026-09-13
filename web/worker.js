@@ -1,7 +1,8 @@
 import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
-import { firmaKandidatar, firmaNafn } from './src/lib/firma-nafn.mjs';   // þáttun spurningar → nafn/kt (prófuð)
+import { firmaKandidatar, firmaNafn } from './src/lib/firma-nafn.mjs';
+import { heitiFlokks } from './src/lib/flokkar.mjs';   // bókstafur → flokksheiti (ein uppspretta)   // þáttun spurningar → nafn/kt (prófuð)
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
 import { findAdili, adiliTerms, adiliPageData, adiliDesc, skyldirAdilar } from './src/lib/frettaadili.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
@@ -116,18 +117,33 @@ function vaxtaFra(j) {
   for (let i = p.length - 2; i >= 0; i--) { if (p[i][1] === nu) fra = p[i][0]; else break; }
   return fra;
 }
-const AUG = [
+// Tölusnið fyrir AUG-textana. Íslensk komma og þúsundapunktur — ⚠ toLocaleString er EKKI notað:
+// ICU í workerd er skorið niður og skilar stundum enskum aðskiljurum, sem gæfi „19,606 GWh" þar
+// sem íslenskur lesandi (og módelið) les 19,6. Handvirk hópun er fyrirsjáanleg á öllum útgáfum.
+const thus = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const pm = (v) => (v > 0 ? '+' : '') + String(v).replace('.', ',');   // formerki skiptir máli: -1,1% er samdráttur
+const is = (v) => String(v).replace('.', ',');                        // enskur aukastafapunktur → íslensk komma
+export const AUG = [
   { rx: /sjóð|stefni/i, file: 'sjodir.json', pg: '/markadir/', fn: (j) => {
     const f = (j.funds || []).slice().sort((a, b) => (b.chg1y || -99) - (a.chg1y || -99));
     if (!f.length) return '';
+    // ⚠ Aukastafurinn var borinn fram með ENSKUM punkti („+9.06%") — íslenskur lesandi les
+    //   þúsundaaðskiljara úr punkti, svo talan varð tvíræð einmitt þar sem hún á að vera skýr.
+    //   pm() sér um formerki OG íslenska kommu. (Fannst við AUG-prófið, ekki innleitt í þessari lotu.)
     return 'SJÓÐIR STEFNIS (' + f.length + ' sjóðir, gengi ' + (f[0].date || '') + '): bestu sl. 12 mán: '
-      + f.slice(0, 5).map((x) => x.name + ' ' + (x.chg1y > 0 ? '+' : '') + x.chg1y + '%').join('; ')
-      + '. Lökustu: ' + f.slice(-2).map((x) => x.name + ' ' + (x.chg1y > 0 ? '+' : '') + x.chg1y + '%').join('; ') + '.';
+      + f.slice(0, 5).map((x) => x.name + ' ' + pm(x.chg1y) + '%').join('; ')
+      + '. Lökustu: ' + f.slice(-2).map((x) => x.name + ' ' + pm(x.chg1y) + '%').join('; ') + '.';
   } },
   { rx: /kortagengi|kortaálag|gengi|evr(a|u|an)|dollar|pund|gjaldmiðl/i, file: 'gjaldmidlar.json', pg: '/markadir/', fn: (j) => {
     const s = j.sources || {}, bank = ((s.Bank || {}).rates || []), cb = ((s.CentralBank || {}).rates || []), kort = ((s.Credit || {}).rates || []);
     const pick = (arr, c) => arr.find((r) => r.c === c) || {};
-    const line = (c) => { const b = pick(bank, c), m = pick(cb, c), k = pick(kort, c); const alag = k.sell && m.buy ? ' (kortaálag +' + ((k.sell / m.buy - 1) * 100).toFixed(1) + '%)' : ''; return c + ': kaup ' + b.buy + ' / sala ' + b.sell + ', SÍ-viðmið ' + m.buy + ', kort ' + (k.sell || '–') + alag; };
+    // ⚠ GENGISTÖLUR VORU BORNAR FRAM MEÐ ENSKUM PUNKTI: „kaup 115.164 / sala 124.0103". Á íslensku
+    //   LES ÞAÐ SEM 115 ÞÚSUND — punkturinn er þúsundaaðskiljari hér, ekki aukastafamerki. Það er
+    //   versta útgáfan af sniðvillu: talan er ekki bara ljót heldur röng um þrjár stærðargráður,
+    //   og aukastafarunan (124,0103) er auk þess fals-nákvæmni fyrir gengi. Tvo aukastafi og kommu.
+    //   (Fannst við AUG-prófið; eldri villa, ekki innleidd í þessari lotu.)
+    const g2 = (v) => (v == null || v === '' ? '–' : Number(v).toFixed(2).replace('.', ','));
+    const line = (c) => { const b = pick(bank, c), m = pick(cb, c), k = pick(kort, c); const alag = k.sell && m.buy ? ' (kortaálag +' + ((k.sell / m.buy - 1) * 100).toFixed(1).replace('.', ',') + '%)' : ''; return c + ': kaup ' + g2(b.buy) + ' / sala ' + g2(b.sell) + ', SÍ-viðmið ' + g2(m.buy) + ', kort ' + g2(k.sell) + alag; };
     return 'GENGISTÖFLUR ARION (' + ((s.Bank || {}).date || '') + ', kr per einingu): ' + ['USD', 'EUR', 'GBP', 'DKK'].map(line).join(' · ');
   } },
   { rx: /stýrivext|meginvext|dráttarvext|vaxtaferil|verðbólg|gengisvísit|reibor|peningamag|raunvext|vaxtaákv|seðlabank|\bvext|vaxta|krón(an|unnar|una)/i, file: 'sedlabanki.json', pg: '/vextir/', fn: (j) => {
@@ -137,22 +153,24 @@ const AUG = [
     //   Rekjum röðina aftur á bak meðan gildið helst óbreytt, sama og verdlag.astro og
     //   build_spyrdu_context.js gera. Bæði lögin verða að gefa SAMA dag: annars berast tvær
     //   ólíkar stýrivaxtasetningar í sömu hvatningu og módelið velur.
-    if (h.meginvextir) parts.push('Meginvextir (stýrivextir) ' + h.meginvextir.value + '% frá ' + vaxtaFra(j));
-    if (h.verdbolga) parts.push('12-mán verðbólga ' + h.verdbolga.value + '% (' + h.verdbolga.date + ')');
-    if (h.meginvextir && h.verdbolga) parts.push('raunstýrivextir ~' + (h.meginvextir.value - h.verdbolga.value).toFixed(1) + '%');
-    if (h.gengisvisitala) parts.push('gengisvísitala ' + Math.round(h.gengisvisitala.value * 10) / 10 + ' (hærri=veikari króna)');
-    if (h.evra) parts.push('EUR ' + h.evra.value + ' kr');
-    if (h.dollari) parts.push('USD ' + h.dollari.value + ' kr');
+    // ⚠ Aukastafir voru enskir hér út í gegn („verðbólga 5.6%", „EUR 139.6 kr"). Sama gildra og í
+    //   gjaldmiðlafærslunni: punktur er þúsundaaðskiljari á íslensku. ís() er eina leiðin í þessum fn.
+    if (h.meginvextir) parts.push('Meginvextir (stýrivextir) ' + is(h.meginvextir.value) + '% frá ' + vaxtaFra(j));
+    if (h.verdbolga) parts.push('12-mán verðbólga ' + is(h.verdbolga.value) + '% (' + h.verdbolga.date + ')');
+    if (h.meginvextir && h.verdbolga) parts.push('raunstýrivextir ~' + is((h.meginvextir.value - h.verdbolga.value).toFixed(1)) + '%');
+    if (h.gengisvisitala) parts.push('gengisvísitala ' + is(Math.round(h.gengisvisitala.value * 10) / 10) + ' (hærri=veikari króna)');
+    if (h.evra) parts.push('EUR ' + is(h.evra.value) + ' kr');
+    if (h.dollari) parts.push('USD ' + is(h.dollari.value) + ' kr');
     const dv = ((d.drattarvextir || {}).series || [])[0], dvp = dv && dv.points.length ? dv.points[dv.points.length - 1][1] : null;
-    if (dvp) parts.push('dráttarvextir ' + dvp + '%');
+    if (dvp) parts.push('dráttarvextir ' + is(dvp) + '%');
     const pv = (d.parvextir || {}).series || [], lastId = (id) => { const s = pv.find((x) => x.id === id); return s && s.points.length ? s.points[s.points.length - 1][1] : null; };
     const o10 = lastId(30103), v10 = lastId(30106);
-    if (o10 != null && v10 != null) parts.push('10-ára ríkisvextir óvtr ' + o10 + '% / vtr ' + v10 + '% → verðbólguálag markaðar ~' + (o10 - v10).toFixed(1) + '%');
+    if (o10 != null && v10 != null) parts.push('10-ára ríkisvextir óvtr ' + is(o10) + '% / vtr ' + is(v10) + '% → verðbólguálag markaðar ~' + is((o10 - v10).toFixed(1)) + '%');
     return 'SEÐLABANKI ÍSLANDS (' + (h.meginvextir ? h.meginvextir.date : (j.updated || '').slice(0, 10)) + '): ' + parts.join('; ') + '.';
   } },
   { rx: /fasteign|íbúðaverð|fermetr|húsnæðisverð|kaupverð/i, file: 'fasteignir.json', pg: '/fasteignir/', fn: (j, q) => {
     const m = (j.months || [])[j.months.length - 1];
-    let out = m ? 'FASTEIGNAVERÐ (' + m.m + ', miðgildi): höfuðborgarsvæði ' + m.hbsv.vp + ' m.kr (' + m.hbsv.m2 + ' þ.kr/m², ' + m.hbsv.n + ' kaup); landsbyggð ' + m.land.vp + ' m.kr (' + m.land.m2 + ' þ.kr/m²).' : '';
+    let out = m ? 'FASTEIGNAVERÐ (' + m.m + ', miðgildi): höfuðborgarsvæði ' + is(m.hbsv.vp) + ' m.kr (' + thus(m.hbsv.m2 * 1000) + ' kr/m², ' + m.hbsv.n + ' kaup); landsbyggð ' + is(m.land.vp) + ' m.kr (' + thus(m.land.m2 * 1000) + ' kr/m²).' : '';
     const ql = q.toLowerCase();
     for (const sv of Object.keys(j.byMuni || {})) {
       const root = sv.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, '');
@@ -181,8 +199,11 @@ const AUG = [
   { rx: /könnun|fylgi|skoðanakönnun/i, file: 'polls.json', pg: '/kannanir/', fn: (j) => {
     const p = (j.polls || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
     if (!p.length) return '';
-    const nm = j.parties || {};
-    const line = (k) => Object.entries(k.v || {}).sort((a, b) => b[1] - a[1]).map(([f, v]) => (nm[f] && nm[f].n ? nm[f].n : f) + ' ' + v + '%').join(', ');
+    // ⚠ Las áður `j.parties` sem kort {S:{n:'Samfylkingin'}} — en polls.json geymir það sem BERT
+    //   FYLKI af bókstöfum, svo uppflettingin heppnaðist aldrei og svarið varð „S 26.2%" meðan
+    //   fasta lagið sagði „Samfylkingin 26,2%". Heitin eru nú í src/lib/flokkar.mjs, sem BÁÐIR
+    //   staðir lesa. Aukastafurinn var líka enskur; pm() gefur íslenska kommu.
+    const line = (k) => Object.entries(k.v || {}).sort((a, b) => b[1] - a[1]).map(([f, v]) => heitiFlokks(f) + ' ' + String(v).replace('.', ',') + '%').join(', ');
     return 'NÝJASTA KÖNNUN (' + p[0].pollster + ' ' + p[0].date + '): ' + line(p[0]) + (p[1] ? '. Þar á undan (' + p[1].pollster + ' ' + p[1].date + '): ' + line(p[1]) : '') + '.';
   } },
   // ── LOTA 61: sveitarstjórar/bæjarstjórar ──
@@ -217,7 +238,11 @@ const AUG = [
     return 'ALÞINGI: 63 þingmenn í 6 kjördæmum. Nefndu þingmann eða kjördæmi. Sjá /althingi/thingmenn/.';
   } },
   // ── frumvörp / þingmál (m/AI-samantektum) ──
-  { rx: /frumvarp|frumvörp|þingmál|lagafrumvarp|lagabreyting|greidd.*atkvæði|hvernig kaus/i, file: 'frumvorp.json', pg: '/thingmal/', fn: (j, q) => {
+  // ⚠ „hvernig kaus" TEKIÐ HÉÐAN og fært á atkvaedi.json (AUG-lota 13.9.2026). Báðar færslur
+  //   kveiktu á því með jafn-löngu skori → jafntefli féll á upphaflega röð og frumvorp vann alltaf.
+  //   En frumvorp.json geymir atkvæðatölur MÁLA (46 já / 0 nei), ekki hvernig EINSTAKUR þingmaður
+  //   greiddi atkvæði — það er í atkvaedi.json. Spurningunni var því svarað úr rangri skrá.
+  { rx: /frumvarp|frumvörp|þingmál|lagafrumvarp|lagabreyting|greidd.*atkvæði/i, file: 'frumvorp.json', pg: '/thingmal/', fn: (j, q) => {
     const arr = Array.isArray(j) ? j : (j.rows || []), ql = q.toLowerCase();
     const words = ql.replace(/[^a-záðéíóúýþæö ]/g, ' ').split(/\s+/).filter((w) => w.length >= 5);
     const hit = arr.find((b) => words.some((w) => (b.titill || '').toLowerCase().includes(w)));
@@ -227,36 +252,51 @@ const AUG = [
   // ── atvinnuleysi ──
   { rx: /atvinnuleys|atvinnulaus|án vinnu|vinnumarkað/i, file: 'atvinnuleysi.json', pg: '/vinnumarkadur/', fn: (j, q) => {
     const ql = q.toLowerCase();
-    let out = 'ATVINNULEYSI: ' + j.latest + '% skráð (' + (j.updated || '') + ')' + (j.totalRegistered ? ', ' + j.totalRegistered + ' á skrá' : '') + '.';
-    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ': ' + (v.rate != null ? v.rate + '%' : v) + (v.n ? ' (' + v.n + ' skráðir)' : '') + '.'; break; } }
+    let out = 'ATVINNULEYSI: ' + is(j.latest) + '% skráð (' + (j.updated || '') + ')' + (j.totalRegistered ? ', ' + thus(j.totalRegistered) + ' á skrá' : '') + '.';
+    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ': ' + (v.rate != null ? is(v.rate) + '%' : v) + (v.n ? ' (' + v.n + ' skráðir)' : '') + '.'; break; } }
     return out;
   } },
   // ── orka / raforka ──
   { rx: /rafork|orkuframleið|virkjun|vatnsafl|jarðvarm|vindork|græn.*orka|orkuskipt/i, file: 'orka.json', pg: '/orka/', fn: (j) => {
     const r = (j.rows || []).slice(-1)[0]; if (!r) return '';
+    // ⚠ Var „19606 GWh" (enginn þúsundapunktur) og „vindur 12.71" (enskur aukastafur). thus() hópar
+    //   stóru tölurnar eins og fasta lagið gerir, is() setur íslenska kommu á þær smáu.
+    const e1 = (v) => is(Math.round((v || 0) * 10) / 10);
     const ren = ((r.hydro + r.geo + (r.wind || 0)) / r.total * 100).toFixed(1);
-    return 'RAFORKUFRAMLEIÐSLA (' + r.y + '): ' + Math.round(r.total) + ' GWh alls — vatnsafl ' + Math.round(r.hydro) + ', jarðvarmi ' + Math.round(r.geo) + ', vindur ' + (r.wind || 0) + ', eldsneyti ' + (r.fuel || 0) + '. Endurnýjanlegt ' + ren + '%.';
+    return 'RAFORKUFRAMLEIÐSLA (' + r.y + '): ' + thus(r.total) + ' GWh alls — vatnsafl ' + thus(r.hydro) + ', jarðvarmi ' + thus(r.geo) + ', vindur ' + e1(r.wind) + ', eldsneyti ' + e1(r.fuel) + '. Endurnýjanlegt ' + is(ren) + '%.';
   } },
   // ── afbrot ──
   { rx: /afbrot|glæp|ofbeld|innbrot|refsi|brotaflokk|auðgunarbrot|fíkniefnabrot/i, file: 'glaepir.json', pg: '/afbrot/', fn: (j) => {
     const c = (j.national || {}).cats || {};
-    return 'AFBROT (' + j.year + ', tilkynnt brot per 10.000 íbúa): hegningarlagabrot ' + j.national.hegn + ' — ofbeldi ' + c.ofbeldi + ', auðgunarbrot ' + c.audgun + ', fíkniefni ' + c.fikni + ', kynferðisbrot ' + c.kynf + ', umferðarlög ' + c.umferd + '. Heimild: Ríkislögreglustjóri.';
+    return 'AFBROT (' + j.year + ', tilkynnt brot per 10.000 íbúa): hegningarlagabrot ' + is(j.national.hegn) + ' — ofbeldi ' + is(c.ofbeldi) + ', auðgunarbrot ' + is(c.audgun) + ', fíkniefni ' + is(c.fikni) + ', kynferðisbrot ' + is(c.kynf) + ', umferðarlög ' + is(c.umferd) + '. Heimild: Ríkislögreglustjóri.';
   } },
   // ── leiga ──
   { rx: /leigu|\bleiga\b|leigumarkað|leiguverð|leigjend/i, file: 'leiga.json', pg: '/fasteignir/', fn: (j, q) => {
-    const l = j.latest || {}, ql = q.toLowerCase();
-    let out = 'LEIGUVERÐ (' + (l.q || '') + ', miðgildi): ' + l.medM2 + ' kr/m² (' + l.n + ' þinglýstir samningar).';
-    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ': ' + v.medM2 + ' kr/m²' + (v.medRent ? ', miðgildi leigu ' + v.medRent.toLocaleString('is') + ' kr' : '') + '.'; break; } }
+    // ⚠⚠ BAR ÁÐUR FRAM `j.latest` (2024F1, 3.086 kr/m²) SEM LÍÐANDI LEIGUVERÐ — og fasta lagið var
+    //   samtímis lagfært til að nota `nu` (3.960 kr/m², framreiknað til 2026-07). Lögin tvö sögðu
+    //   því SITT HVAÐ um sömu tölu í sömu hvatningu, sem er nákvæmlega áreksturinn sem stýrivaxta-
+    //   lagfæringin snerist um. Skráin þagnar í ársbyrjun 2024 af því þinglýsingarskyldan féll með
+    //   nýju húsaleigulögunum — hún er ENDANLEG, ekki stöðnuð veita, svo `latest` verður aldrei
+    //   ferskara. `nu` er leiðrétta talan; `latest` fylgir með sem forsenda hennar, ekki sem jafngildi.
+    const l = j.latest || {}, nu = j.nu || null, ql = q.toLowerCase();
+    let out = nu && nu.medM2
+      ? 'LEIGUVERÐ: miðgildi ' + thus(nu.medM2) + ' kr/m² á mánuði, framreiknað til ' + nu.m
+        + (j.visitala && j.visitala.yoy != null ? ' (vísitala leiguverðs ' + pm(j.visitala.yoy) + '% milli ára)' : '')
+        + '. ⚠ Opna leiguskrá HMS nær aðeins fram í ' + (l.q || 'ársbyrjun 2024') + ' — þinglýsingarskyldan féll með nýju '
+        + 'húsaleigulögunum. Karp framreiknar ' + thus(nu.n) + ' þinglýsta samninga frá ' + String(nu.fra || '').slice(0, 4)
+        + ' með mánaðarlegri vísitölu leiguverðs HMS; þetta er því EKKI bein mæling líðandi mánaðar.'
+      : 'LEIGUVERÐ (' + (l.q || '') + ', miðgildi): ' + thus(l.medM2) + ' kr/m² (' + l.n + ' þinglýstir samningar).';
+    for (const [muni, v] of Object.entries(j.byMuni || {})) { const root = muni.toLowerCase().replace(/(borg|bær|kaupstaður|hreppur)$/i, ''); if (root.length >= 4 && ql.includes(root)) { out += ' Í ' + muni + ' (' + (j.muniYear || '') + '): ' + thus(v.medM2) + ' kr/m²' + (v.medM2Nu ? ', framreiknað ' + thus(v.medM2Nu) + ' kr/m²' : '') + (v.medRent ? ', miðgildi leigu ' + thus(v.medRent) + ' kr' : '') + '.'; break; } }
     return out;
   } },
   // ── markaðir / hlutabréf ──
   { rx: /hlutabréf|úrvalsvísital|omxi|kauphöll|hlutafé|verð á bréf|gengi.*félag/i, file: 'markadir.json', pg: '/markadir/', fn: (j, q) => {
     const ql = q.toLowerCase();
-    const idx = (j.indices || []).map((i) => i.name.split(' —')[0] + ' ' + i.price + ' (' + (i.chgPct > 0 ? '+' : '') + i.chgPct + '%)').join(', ');
+    const idx = (j.indices || []).map((i) => i.name.split(' —')[0] + ' ' + is(i.price) + ' (' + pm(i.chgPct) + '%)').join(', ');
     const stk = (j.stocks || []).find((s) => ql.includes((s.sym || '').toLowerCase())) || nmBest(ql, j.stocks || [], 'name');
-    if (stk) return 'HLUTABRÉF ' + stk.name + ' (' + stk.sym + '): ' + stk.price + ' ' + (stk.cur || 'ISK') + ' (' + (stk.chgPct > 0 ? '+' : '') + stk.chgPct + '%). Vísitölur: ' + idx + '.';
+    if (stk) return 'HLUTABRÉF ' + stk.name + ' (' + stk.sym + '): ' + is(stk.price) + ' ' + (stk.cur || 'ISK') + ' (' + pm(stk.chgPct) + '%). Vísitölur: ' + idx + '.';
     const mv = (j.stocks || []).slice().sort((a, b) => (b.chgPct || 0) - (a.chgPct || 0));
-    return 'ÍSLENSKUR MARKAÐUR (' + (j.updated || '') + '): ' + idx + (mv[0] ? '. Mest upp: ' + mv[0].name + ' ' + (mv[0].chgPct > 0 ? '+' : '') + mv[0].chgPct + '%; mest niður: ' + mv[mv.length - 1].name + ' ' + mv[mv.length - 1].chgPct + '%' : '') + '.';
+    return 'ÍSLENSKUR MARKAÐUR (' + (j.updated || '') + '): ' + idx + (mv[0] ? '. Mest upp: ' + mv[0].name + ' ' + pm(mv[0].chgPct) + '%; mest niður: ' + mv[mv.length - 1].name + ' ' + pm(mv[mv.length - 1].chgPct) + '%' : '') + '.';
   } },
   // ── ívilnanir / styrkir ──
   { rx: /ívilnun|ívilnan|\bstyrk|endurgreiðsl|skattaafslát|opinber.*stuðning/i, file: 'ivilnanir.json', pg: '/ivilnanir/', fn: (j, q) => {
@@ -273,17 +313,171 @@ const AUG = [
   // ── birgjar / greiðslur ríkisins ──
   { rx: /birgj|greiðsl.*rík|ríkið greið|hver fær.*greitt|opinber.*reikning|stærsti birgir/i, file: 'birgjar.json', pg: '/birgjar/', fn: (j, q) => {
     const v = j.vendors || [], ql = q.toLowerCase();
-    const mk = (n) => (n >= 1e9 ? (n / 1e9).toFixed(1) + ' ma.kr' : Math.round(n / 1e6) + ' m.kr');
+    const mk = (n) => (n >= 1e9 ? is((n / 1e9).toFixed(1)) + ' ma.kr' : thus(n / 1e6) + ' m.kr');
     const hit = nmBest(ql, v, 'n');
     if (hit) return 'GREIÐSLUR RÍKISINS til ' + hit.n + ': ' + mk(hit.t) + ' (' + (j.fra || '') + '–' + (j.til || '') + ')' + (hit.o ? ', stærsti kaupandi ' + hit.o : '') + '.';
     return 'STÆRSTU BIRGJAR RÍKISINS (' + (j.fra || '') + '–' + (j.til || '') + '): ' + v.slice(0, 5).map((x) => x.n + ' ' + mk(x.t)).join('; ') + '. Alls: ' + mk(j.grandTotal || 0) + '. Sjá /birgjar/.';
   } },
+  // ── AUG-LOTA (13.9.2026): tíu gagnasett sem voru ÞJÓNUÐ en ónáanleg spjallinu ───────────────
+  // Spyrðu Karp gat ekki svarað „hver er hagvöxturinn?", „hvað hafa laun hækkað?" né „hver vann
+  // útboðið?" þótt gögnin lægju í web/public/gogn. Allar tíu lesa skrár sem spegillinn heldur
+  // ferskum — engin ný veita, engin ný pípa.
+  // ── hagvöxtur / VLF ──
+  { rx: /hagvöxt|hagvaxtar|landsframleiðsl|\bvlf\b|samdrátt|kreppa|efnahagsbat|hagsveifl/i, file: 'hagvoxtur.json', pg: '/hagvoxtur/', fn: (j) => {
+    const g = j.GDP || {};
+    if (g.latest == null) return '';
+    const vl = g.vlf || [], fyrri = vl.length >= 2 ? vl[vl.length - 2] : null;
+    const f = j.forecast || {};
+    const spa = (f.years || []).map((y, i) => [y, (f.values || [])[i]])
+      .filter(([y, v]) => y >= (f.splitYear || 9999) && v != null).slice(0, 3);
+    const wb = (j.WB || []).find((x) => x.isl);
+    return 'HAGVÖXTUR: raun-VLF ' + pm(g.latest) + '% milli ára (' + (g.latestQ || '') + ')'
+      + (fyrri != null ? '; fjórðunginn á undan ' + pm(fyrri) + '%' : '')
+      + (g.latest < 0 ? ' — þ.e. SAMDRÁTTUR, ekki hægari vöxtur' : '') + '.'
+      + (spa.length ? ' Spá um raunvöxt (' + (f.source || 'heimild') + '): ' + spa.map(([y, v]) => y + ' ' + pm(v) + '%').join(', ') + '.' : '')
+      + (wb ? ' VLF á mann ' + thus(Math.round(wb.v)) + ' USD (' + wb.yr + ').' : '');
+  } },
+  // ── verðlag / vísitala neysluverðs ──
+  { rx: /neysluverð|\bvnv\b|verðlag|matarkarf|innkaupakarf|verðbólguspá|dýrtíð|verðhækkan|hvað hækkað mest/i, file: 'verdlag.json', pg: '/verdlag/', fn: (j) => {
+    const r = j.rows || [], last = r[r.length - 1];
+    if (!last) return '';
+    const ar = r.length >= 13 ? r[r.length - 13] : null;
+    const f = j.forecast || {};
+    const spa = (f.years || []).map((y, i) => [y, (f.values || [])[i]])
+      .filter(([y, v]) => y >= (f.splitYear || 9999) && v != null).slice(0, 3);
+    const b = (j.BASKET || []).slice().sort((x, y) => y.value - x.value).slice(0, 4);
+    return 'VÍSITALA NEYSLUVERÐS: verðbólga ' + pm(last.v) + '% á ársgrundvelli (' + last.t + ')'
+      + (ar ? '; fyrir ári ' + pm(ar.v) + '%' : '') + '.'
+      + (b.length ? ' Þyngstu liðir körfunnar: ' + b.map((x) => x.name + ' ' + String(x.value).replace('.', ',') + '%').join(', ') + '.' : '')
+      + (spa.length ? ' Verðbólguspá (' + (f.source || 'heimild') + '): ' + spa.map(([y, v]) => y + ' ' + pm(v) + '%').join(', ') + '.' : '');
+  } },
+  // ── laun / kaupmáttur ──
+  { rx: /\blaun|launavísit|kaupmátt|launaþróun|launahækkun|launaskrið|kjarasamning/i, file: 'vinnumarkadur.json', pg: '/vinnumarkadur/', fn: (j) => {
+    const w = j.WAGE || {}, L = w.laun || [], V = w.verd || [], M = w.months || [];
+    if (!L.length) return '';
+    const i = L.length - 1;
+    return 'LAUN OG KAUPMÁTTUR (' + (M[i] || '') + '): launavísitala ' + pm(L[i]) + '% milli ára, verðlag '
+      + pm(V[i]) + '% → kaupmáttur launa ' + pm(w.kaupm != null ? w.kaupm : L[i] - V[i]) + '%'
+      + (w.kaupm != null && w.kaupm < 0 ? ' (RÝRNAR)' : '') + '. Þróun 36 mánuði aftur er á /vinnumarkadur/.';
+  } },
+  // ── mannfjöldi ──
+  { rx: /mannfjöld|fólksfjöld|íbúafjöld|hvað búa marg|innflytjend|frjósem|barneign|fólksfjölgun|aðflutt|brottflutt/i, file: 'mannfjoldi.json', pg: '/mannfjoldi/', fn: (j) => {
+    const p = j.POP || {}, im = j.IMM || {}, fe = j.FERT || {}, pr = j.PROJ || {};
+    if (p.now == null) return '';
+    return 'MANNFJÖLDI: ' + thus(p.now) + ' íbúar (' + ((p.labels || []).slice(-1)[0] || '') + '), fjölgun '
+      + pm(p.yoy) + '% milli ára (' + (p.yoyAbs > 0 ? '+' : '') + thus(p.yoyAbs) + ').'
+      + (im.now != null ? ' Innflytjendur ' + String(im.now).replace('.', ',') + '% mannfjöldans (var ' + String(im.prev).replace('.', ',') + '%).' : '')
+      + (fe.now != null ? ' Frjósemi ' + String(fe.now).replace('.', ',') + ' börn á konu — undir 2,1 viðhaldsmörkum.' : '')
+      + (pr.natNeg ? ' Mannfjöldaspá gerir ráð fyrir að náttúruleg fjölgun snúist í mínus.' : '');
+  } },
+  // ── lyf / lyfjaskortur ──
+  // ⚠ ÞRÖNG KVEIKJA VILJANDI: lyf.json er 1,9 MB — fimmfalt stærra en nokkuð annað sem AUG hleður
+  //   (sedlabanki.json er 356 KB). augGet man skrána per isolate, svo kostnaðurinn er greiddur einu
+  //   sinni, en það má ekki gerast fyrir spurningu sem á ekkert erindi við lyf. Til lengri tíma væri
+  //   rétt að baka grannan lyf_index.json (nafn+ATC+skortur+verð) og lesa hann hér í staðinn.
+  { rx: /lyfjaskort|sérlyfjaskrá|lyfseðil|lyfjaverð|lyfjabúð|apótek|\blyfj|\blyfi|\blyf\b/i, file: 'lyf.json', pg: '/lyf/', fn: (j, q) => {
+    const ql = q.toLowerCase(), arr = j.lyf || [];
+    const hit = arr.find((x) => x.name && x.name.length >= 4 && ql.includes(x.name.toLowerCase()));
+    if (hit) {
+      return 'LYF ' + hit.name + (hit.strength ? ' ' + hit.strength : '') + (hit.form ? ' (' + hit.form + ')' : '')
+        + ': ATC ' + ((hit.atc || {}).code || '?') + ' — ' + ((hit.atc || {}).name || '')
+        + (hit.holder ? ', markaðsleyfishafi ' + hit.holder : '') + (hit.agent ? ', umboð ' + hit.agent : '')
+        + (hit.priced && hit.priceLow ? ', verð ' + thus(hit.priceLow) + (hit.priceHigh && hit.priceHigh !== hit.priceLow ? '–' + thus(hit.priceHigh) : '') + ' kr' : '')
+        + (hit.shortage ? ' ⚠ SKRÁÐUR SKORTUR' : '') + (hit.rx ? ', lyfseðilsskylt' : '') + '.';
+    }
+    const flokkar = Object.entries(j.atc || {}).sort((a, b) => b[1].count - a[1].count).slice(0, 4)
+      .map(([k, v]) => v.label + ' ' + v.count);
+    return 'SÉRLYFJASKRÁ: ' + thus(j.count || arr.length) + ' lyf á skrá, ' + thus(j.priced || 0) + ' með skráð verð og '
+      + thus(j.shortageCount || 0) + ' með skráðan SKORT. Stærstu ATC-flokkar: ' + flokkar.join(', ') + '. Leit og verð á /lyf/.';
+  } },
+  // ── fjölmiðlavog / tónn umfjöllunar ──
+  { rx: /fjölmiðl|miðlavog|umfjöllun|orðspor|tónn|hlutdræg|slagsíð|hvaða miðill/i, file: 'midlavog.json', pg: '/frettir/', fn: (j) => {
+    const o = (j.outlets || []).slice().sort((a, b) => b.bias - a.bias);
+    if (!o.length) return '';
+    return 'FJÖLMIÐLAVOG (' + (j.days || 0) + ' dagar, ' + (j.entities || 0) + ' aðilar): ' + o.length + ' miðlar mældir. '
+      + 'Jákvæðastur tónn: ' + o.slice(0, 3).map((x) => x.s + ' ' + x.bias).join(', ')
+      + '; neikvæðastur: ' + o.slice(-3).reverse().map((x) => x.s + ' ' + x.bias).join(', ')
+      + '. ⚠ Talan er FRÁVIK frá meðaltóni allra miðla um sömu aðila — ekki einkunn um gæði eða áreiðanleika miðilsins.';
+  } },
+  // ── atkvæðagreiðslur einstakra þingmanna ──
+  { rx: /hvernig kaus|greidd(i|u) atkvæði|atkvæðagreiðsl|sat hjá|kaus (með|gegn|á móti)|atkvæði þingm/i, file: 'atkvaedi.json', pg: '/althingi/', fn: (j, q) => {
+    const mal = Object.values(j.mal || {});
+    if (!mal.length) return '';
+    const nofn = new Set();
+    for (const m of mal) for (const k of ['ja', 'nei', 'hja', 'fjar']) for (const n of (m[k] || [])) nofn.add(n);
+    const hit = nmBest(q.toLowerCase(), [...nofn]);
+    if (!hit) return 'ATKVÆÐAGREIÐSLUR: Karp geymir atkvæði hvers þingmanns í ' + mal.length + ' málum á '
+      + j.thing + '. löggjafarþingi. Nefndu þingmanninn. Sjá /althingi/.';
+    let ja = 0, nei = 0, hja = 0, fjar = 0;
+    for (const m of mal) {
+      if ((m.ja || []).includes(hit)) ja++; else if ((m.nei || []).includes(hit)) nei++;
+      else if ((m.hja || []).includes(hit)) hja++; else if ((m.fjar || []).includes(hit)) fjar++;
+    }
+    return 'ATKVÆÐI ' + hit + ' (' + j.thing + '. löggjafarþing, ' + mal.length + ' atkvæðagreiðslur): já ' + ja
+      + ', nei ' + nei + ', sat hjá ' + hja + ', fjarverandi ' + fjar + '.';
+  } },
+  // ── útboðsúrslit: hver VANN ──
+  { rx: /vann útboð|hver vann|útboðsúrslit|verktaki|bjóðand|lægsta tilboð|samningsverð|hlaut samning/i, file: 'utbod_urslit.json', pg: '/utbod/', fn: (j, q) => {
+    const ql = q.toLowerCase(), bw = Object.values(j.byWinner || {});
+    const mk = (n) => (n >= 1e9 ? (n / 1e9).toFixed(1).replace('.', ',') + ' ma.kr' : thus(Math.round(n / 1e6)) + ' m.kr');
+    const hit = nmBest(ql, bw, 'nafn');
+    if (hit) return 'ÚTBOÐSÚRSLIT — ' + hit.nafn + ': ' + hit.n + ' samningar, samtals ' + mk(hit.isk || 0) + '.';
+    const topp = bw.slice().sort((a, b) => (b.isk || 0) - (a.isk || 0)).slice(0, 4);
+    const nyj = (j.awards || []).slice(0, 2).map((a) => '„' + String(a.t || '').slice(0, 45) + '" ('
+      + (a.buyer || '') + (a.value ? ', ' + mk(a.value) : '') + (a.d ? ', ' + a.d : '') + ')');
+    return 'ÚTBOÐSÚRSLIT: ' + (j.nAwards || 0) + ' samningar skráðir. Stærstu vinningshafar: '
+      + topp.map((x) => x.nafn + ' ' + mk(x.isk || 0)).join('; ') + (nyj.length ? '. Nýjust: ' + nyj.join('; ') : '') + '.';
+  } },
+  // ── kennitölur atvinnugreina ──
+  { rx: /framlegð|hagnaðarhlutfall|eiginfjárhlutfall|arðsem|rekstrarafkom|launahlutfall|skuldahlutfall|kennitöl.*grein/i, file: 'sector_kpi.json', pg: '/atvinnugreinar/', fn: (j, q) => {
+    const ql = q.toLowerCase(), m = j.map || {};
+    const p = (v) => v == null ? '–' : (v * 100).toFixed(1).replace('.', ',') + '%';
+    for (const [, v] of Object.entries(m)) {
+      const ord = String(v.label || '').toLowerCase().split(/[\s,(]+/).filter((w) => w.length >= 6);
+      if (ord.some((w) => ql.includes(w.slice(0, 8)))) {
+        return 'KENNITÖLUR GREINAR — ' + v.label + ' (' + v.ar + ', Hagstofan): framlegð ' + p(v.framlegd)
+          + ', hagnaðarhlutfall ' + p(v.hagnadarhlutfall) + ', EBIT ' + p(v.ebit_hlutfall) + ', eiginfjárhlutfall '
+          + p(v.eiginfjarhlutfall) + ', launahlutfall ' + p(v.launahlutfall)
+          + (v.tekjur_pr_starfsm_mkr ? ', tekjur á starfsmann ' + v.tekjur_pr_starfsm_mkr + ' m.kr' : '') + '.';
+      }
+    }
+    return 'KENNITÖLUR ATVINNUGREINA: Karp á rekstrarkennitölur ' + (j.n || Object.keys(m).length)
+      + ' greina fyrir ' + j.ar + ' (framlegð, hagnaðar- og eiginfjárhlutfall, launahlutfall). Nefndu greinina. Sjá /atvinnugreinar/.';
+  } },
+  // ── utanríkisverslun ──
+  // ⚠ Var áður „flytjum við út|flytjum við inn" — sem missti af „hvað flytjum við MEST út?", algengasta
+  //   orðalaginu. Leyfum orðum á milli sagnar og áttar í stað þess að telja upp orðalög.
+  { rx: /útflutning|innflutning|vöruskipt|viðskiptajöfnu|utanríkisverslun|viðskiptahalla|flytj(um|a)[^?.]{0,18}(út|inn)/i, file: 'vidskipti.json', pg: '/utanrikis/', fn: (j) => {
+    const e = j.EXP || {}, im = j.IMP || {}, bl = j.BYLAND || {};
+    if (e.total == null) return '';
+    const jofn = e.total - im.total;
+    const topp = (x) => (x.items || []).slice().sort((a, b) => b.value - a.value).slice(0, 3).map((y) => y.name).join(', ');
+    return 'UTANRÍKISVERSLUN (' + (e.year || '') + ', ma.kr): útflutningur ' + thus(e.total) + ', innflutningur '
+      + thus(im.total) + ' → vöruskiptajöfnuður ' + (jofn > 0 ? '+' : '') + thus(jofn) + '. '
+      + 'Stærstu útflutningsliðir: ' + topp(e) + '. Stærstu innflutningsliðir: ' + topp(im) + '.'
+      + (bl.utTop ? ' Mest flutt út til ' + bl.utTop.name + ', mest flutt inn frá ' + (bl.innTop || {}).name + '.' : '');
+  } },
 ];
+export const AUG_MAX = 5;
+// Hversu vel á færslan við spurninguna? Summa lengda ALLRA samsvarana regexins — löng og/eða
+// margendurtekin samsvörun þýðir sérhæfðari færslu. Dæmi: „hver er verðbólgan og hvað hefur
+// launavísitalan hækkað?" gefur vinnumarkadur hærra skor en almenna seðlabanka-færslan.
+// ⚠ Röðun þurfti með stækkun úr 19 í 29 færslur: ÁÐUR réð RÖÐIN Í FYLKINU ein og fyrstu þrjár
+//   samsvaranir unnu, óháð því hversu lauslega þær áttu við. Með 29 færslum hefði það þýtt að nýju
+//   færslurnar (aftast) hefðu nær aldrei komist að þegar eldri, almennari regex greip fyrst.
+export function augScore(rx, q) {
+  const g = new RegExp(rx.source, rx.flags.includes('g') ? rx.flags : rx.flags + 'g');
+  let s = 0, m;
+  while ((m = g.exec(q)) !== null) { s += m[0].length; if (m.index === g.lastIndex) g.lastIndex++; }
+  return s;
+}
 async function augment(env, q) {
+  // Raða FYRST, sækja svo — annars sækjum við gögn fyrir færslur sem komast hvort eð er ekki að.
+  const valdar = AUG.map((a, i) => ({ a, i, s: augScore(a.rx, q) })).filter((x) => x.s > 0)
+    .sort((x, y) => (y.s - x.s) || (x.i - y.i))     // jafntefli → upphafleg röð (stöðug, fyrirsjáanleg)
+    .slice(0, AUG_MAX);
   const parts = [];
-  for (const a of AUG) {
-    if (parts.length >= 3) break;
-    if (!a.rx.test(q)) continue;
+  for (const { a } of valdar) {
     const j = await augGet(env, a.file);
     if (!j) continue;
     try { const t = a.fn(j, q); if (t) parts.push(t.slice(0, 900) + ' (sjá ' + a.pg + ')'); } catch (e) {}
