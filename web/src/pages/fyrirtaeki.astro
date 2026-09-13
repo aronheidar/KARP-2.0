@@ -12,7 +12,7 @@ import '../styles/ubo.css';
 const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: nafn, kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga, ásamt umfjöllun fjölmiðla, greiðslum frá ríkinu og útboðum.';
 ---
 
-<Layout title="🏢 Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
+<Layout title="Fyrirtækjaskrá — ókeypis uppfletting | Karp" description={desc} canonical="https://karp.is/fyrirtaeki/" ogTitle="Fyrirtækjaskrá — ókeypis uppfletting félaga">
   <main data-pg="fyrirtaeki">
     <p class="kicker">Karp+ · Atvinnulíf</p>
     <h1>🏢 Fyrirtækjaskrá</h1>
@@ -1476,7 +1476,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
       //   fótinn á hverri PDF-síðu. Áreiðanleikamatið er hins vegar STÖK 990-kr vara: viðskiptavinur
       //   sem borgaði fyrir skýrsluna fékk skjal sem stimplaði sig sjálft „ókeypis" á hverri síðu.
       //   Titillinn er því leiðréttur um leið og hamurinn er þekktur, á undan allri birtingu.
-      if (FS_AREID) { try { document.title = '🛡️ Áreiðanleikamat (KYC) | Karp'; } catch (e) {} }
+      if (FS_AREID) { try { document.title = 'Áreiðanleikamat (KYC) | Karp'; } catch (e) {} }
       if (FS_AREID) {
         const h1 = document.querySelector('main[data-pg="fyrirtaeki"] h1');
         if (h1) { h1.textContent = '🛡️ Áreiðanleikamat'; const lead = h1.nextElementSibling; if (lead && lead.tagName === 'P') lead.innerHTML = 'Áreiðanleikakönnun (KYC) á íslensku félagi — skráning, ársreikningsskil, fjárhagsheilsa, eignarhald, PEP-skimun og Lögbirtingablaðið. <a href="/lausnir/areidanleikamat/" style="color:#f6b13b">Um Áreiðanleikamatið →</a>'; }
