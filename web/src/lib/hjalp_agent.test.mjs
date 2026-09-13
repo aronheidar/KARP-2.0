@@ -38,6 +38,17 @@ test('parseGreining: gilt JSON, girðingar, ógilt gildi → hreinsað; rusl →
   assert.ok(g3.samantekt.length <= 240); assert.equal(g3.cto_brief, 'Síðan /fasteignaverd/ hrynur');
 });
 
+test('parseGreining: RAUNTILFELLI ticket #1 — raunveruleg línuskil innan strengja (cto_brief með skrefum) þáttast', () => {
+  const raw = '```json\n{\n  "tegund": "villa",\n  "forgangur": 2,\n  "samantekt": "Spjald fer út af síðu.",\n  "kb": {\n    "id": null,\n    "vissa": 0\n  },\n  "svar": "",\n  "cto_brief": "Hvar: /fasteignaverd/\nHvað gerist: spjaldið fer út af skjá\nSkref:\n1. Opna á iPhone\n2. Slá inn „Leirdalur 36, 260“\tog bíða"\n}\n```';
+  assert.throws(() => JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)));   // hrátt JSON er ÓGILT (raunveruleg línuskil) — það er tilfellið sem við lögum
+  const g = parseGreining(raw);
+  assert.ok(g, 'þáttun má ekki bregðast');
+  assert.equal(g.tegund, 'villa');
+  assert.ok(g.cto_brief.includes('Hvar: /fasteignaverd/\nHvað gerist'), g.cto_brief);
+  assert.ok(g.cto_brief.includes('260“\tog bíða'), 'tab og gæsalappir haldast');
+  assert.equal(g.kb, null);
+});
+
 test('kbSjalfvirkt: aðeins spurning/adgangur/reikningur með vissu ≥ 0,9 — villur fara alltaf til Arons', () => {
   assert.equal(kbSjalfvirkt({ tegund: 'spurning', kb: { id: 'verd', vissa: 0.95 } }).id, 'verd');
   assert.equal(kbSjalfvirkt({ tegund: 'spurning', kb: { id: 'verd', vissa: 0.8 } }), null);

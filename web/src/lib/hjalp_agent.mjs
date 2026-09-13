@@ -81,7 +81,30 @@ export function flokkaFallback(flokkur, lysing) {
   return { tegund, forgangur };
 }
 
-/** Gátar og hreinsar JSON-svar Claude. Skilar null ef ónothæft. Þolir ```json-girðingar og aukatexta. */
+/** Escape-ar stýristafi (línuskil, tab) sem standa INNAN strengja í JSON-texta — Claude skrifar oft
+ *  raunveruleg línuskil í marglínu-strengi (t.d. cto_brief með skrefum) og JSON.parse hafnar því.
+ *  Stýristafir milli tákna (utan strengja) eru látnir vera. */
+export function fixJsonStrings(s) {
+  let out = '', inStr = false, esc = false;
+  for (const ch of String(s)) {
+    if (inStr) {
+      if (esc) { out += ch; esc = false; continue; }
+      if (ch === '\\') { out += ch; esc = true; continue; }
+      if (ch === '"') { inStr = false; out += ch; continue; }
+      if (ch === '\n') { out += '\\n'; continue; }
+      if (ch === '\r') continue;
+      if (ch === '\t') { out += '\\t'; continue; }
+      if (ch < ' ') continue;
+      out += ch; continue;
+    }
+    if (ch === '"') inStr = true;
+    out += ch;
+  }
+  return out;
+}
+
+/** Gátar og hreinsar JSON-svar Claude. Skilar null ef ónothæft. Þolir ```json-girðingar, aukatexta og
+ *  raunveruleg línuskil innan strengja (sjá fixJsonStrings — rót þess að ticket #1 féll á fallback:parse). */
 export function parseGreining(text) {
   let s = String(text || '').trim();
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -89,7 +112,8 @@ export function parseGreining(text) {
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
   if (a < 0 || b <= a) return null;
   let j;
-  try { j = JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; }
+  const body = s.slice(a, b + 1);
+  try { j = JSON.parse(body); } catch (e) { try { j = JSON.parse(fixJsonStrings(body)); } catch (e2) { return null; } }
   if (!j || typeof j !== 'object') return null;
   const tegund = TICKET_TEGUNDIR.includes(j.tegund) ? j.tegund : 'annad';
   let forgangur = parseInt(j.forgangur, 10); if (!(forgangur >= 1 && forgangur <= 3)) forgangur = 2;
@@ -121,7 +145,8 @@ export function greiningPrompt() {
     + '"cto_brief": "ef tegund er villa: nákvæm tæknileg lýsing fyrir forritara — hvar (síða/slóð), hvað gerist, hvað ætti að gerast, endurtekningarskref; annars tómt"}\n'
     + 'Forgangur 1 = notandi kemst ekki að greiddri þjónustu, greiðsluvilla eða gögn augljóslega röng; 2 = venjulegt; 3 = ósk eða almenn forvitni.\n'
     + 'Veldu kb-id AÐEINS ef forsamda svarið svarar erindinu fullkomlega; annars null og vissa 0. Forsamin svör:\n' + kbList + '\n'
-    + 'Svar-tillagan skal vera kurteis, hnitmiðuð (≤ 120 orð), byrja á „Sæl/Sæll {nafn}," og ALDREI lofa neinu um tímasetningar lagfæringa eða endurgreiðslur. Aldrei giska á staðreyndir sem ekki koma fram.';
+    + 'Svar-tillagan skal vera kurteis, hnitmiðuð (≤ 120 orð), byrja á „Sæl/Sæll {nafn}," og ALDREI lofa neinu um tímasetningar lagfæringa eða endurgreiðslur. Aldrei giska á staðreyndir sem ekki koma fram. '
+    + 'JSON-ið verður að vera gilt: engin raunveruleg línuskil innan strengja — notaðu \\n fyrir línuskil.';
 }
 
 /** Notendaerindi sem sent er módelinu. */
