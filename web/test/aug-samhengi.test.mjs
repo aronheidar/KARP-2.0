@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { AUG, AUG_MAX, augScore } from '../worker.js';
 
@@ -153,4 +153,29 @@ test('leiga: AUG-lagið og fasti pakkinn segja EKKI sitt hvað um líðandi leig
   assert.ok(j.nu && j.nu.medM2, 'leiga.json hefur ekki lengur `nu` — AUG-færslan fellur þá á `latest`');
   assert.ok(t.includes(String(j.nu.medM2).replace(/\B(?=(\d{3})+(?!\d))/g, '.')), 'AUG birtir ekki framreiknuðu töluna');
   assert.ok(/EKKI bein mæling|framreikn/i.test(t), 'framreikningurinn er ekki merktur sem slíkur');
+});
+
+// ── Síðukort fasta samhengispakkans ──────────────────────────────────────────
+// Kortið er eina leiðin sem módelið hefur til að vita hvað er til á vefnum þegar engin AUG-kveikja
+// grípur. Það var 26 síður af 114, og afleiðingin var ekki bara fátækleg vísun heldur RÖNG NEITUN:
+// „Hvað kostar Parkódín?" fékk svarið „Karp fjallar um íslensk hagvísi, ekki lyfjaverð" þótt /lyf/
+// geymi 3.040 lyf með verði. Dauð slóð í kortinu er sama tegund villu á hinn veginn — Karp sendir
+// fólk á 404. Prófið ver hvort tveggja: hver slóð verður að eiga síðu í repo-inu.
+test('síðukort: hver slóð á sér raunverulega síðu', () => {
+  const ctx = JSON.parse(readFileSync(new URL('../public/gogn/spyrdu_context.json', import.meta.url), 'utf8'));
+  const slodir = String(ctx.pages || '').split('\n').filter(Boolean).map((l) => l.split(' — ')[0]);
+  assert.ok(slodir.length >= 50, 'kortið er óvænt rýrt: ' + slodir.length + ' síður');
+  const rot = new URL('../src/pages/', import.meta.url);
+  const daudar = slodir.filter((u) => {
+    const s = u.replace(/^\/|\/$/g, '');
+    return !existsSync(new URL(s + '.astro', rot)) && !existsSync(new URL(s + '/index.astro', rot)) && !existsSync(new URL(s, rot));
+  });
+  assert.deepEqual(daudar, [], 'slóðir í síðukortinu sem eiga enga síðu (Karp vísar á 404)');
+});
+
+test('síðukort: engar tvíteknar slóðir', () => {
+  const ctx = JSON.parse(readFileSync(new URL('../public/gogn/spyrdu_context.json', import.meta.url), 'utf8'));
+  const slodir = String(ctx.pages || '').split('\n').filter(Boolean).map((l) => l.split(' — ')[0]);
+  const tvi = slodir.filter((u, i) => slodir.indexOf(u) !== i);
+  assert.deepEqual([...new Set(tvi)], []);
 });

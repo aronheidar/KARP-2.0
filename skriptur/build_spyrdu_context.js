@@ -203,6 +203,45 @@ const PAGES = [
   ['/hagspar/', 'hagspár IMF og greiningaraðila'], ['/reiknivelar/', 'launa-, húsnæðislána-, lífeyris- og verðmatsreiknivélar'],
   ['/hermir/', 'hagkerfishermir (fræðslulíkan)'], ['/ees/', 'EES-mál og nýjustu EES-merktu gerðir ESB'],
   ['/samanburdur/', 'alþjóðlegur samanburður'], ['/utanrikis/', 'utanríkisverslun og alþjóðamál'],
+  // ── VIÐBÓT: síðukortið var 26 síður af 114 ───────────────────────────────────
+  // Afleiðingin var ekki bara að vísanir voru fátæklegar heldur að Karp NEITAÐI að eiga gögn sem
+  // það á: „Hvað kostar Parkódín?" fékk svarið „Karp fjallar um íslensk hagvísi, ekki lyfjaverð"
+  // þótt /lyf/ geymi 3.040 lyf með verði. Kortið er eina leiðin sem módelið hefur til að vita hvað
+  // er til þegar AUG-kveikja grípur ekki — og röng neitun er verri en engin vísun.
+  // ⚠ Þetta er RATLISTI, ekki staðreyndalisti: engar tölur hér sem geta úrelst. Fjöldatölur eiga
+  //   heima í AUG-færslunum, sem lesa þær úr gögnunum.
+  ['/lyf/', 'sérlyfjaskrá: lyf, verð, lyfjaskortur, ATC-flokkar'],
+  ['/fyrirtaeki/', 'fyrirtækjaleit og prófílar: eigendur, ársreikningar, stjórn, atvinnugrein'],
+  ['/topplistar/', 'stærstu félög eftir atvinnugrein'],
+  ['/atvinnugreinar/', 'skýrslur og rekstrarkennitölur einstakra atvinnugreina (ÍSAT)'],
+  ['/vextir/', 'stýrivextir, vaxtaferill, dráttarvextir, raunvextir'],
+  ['/hagvoxtur/', 'hagvöxtur, verg landsframleiðsla, VLF á mann'],
+  ['/mannfjoldi/', 'mannfjöldi, aldursdreifing, innflytjendur, frjósemi, mannfjöldaspá'],
+  ['/menntun/', 'menntunarstig og skólasókn'], ['/afbrot/', 'tilkynnt afbrot eftir brotaflokkum'],
+  ['/atvinnuleysi/', 'skráð atvinnuleysi eftir mánuðum og sveitarfélögum'],
+  ['/fasteignaverd/', 'fasteignaverð eftir matssvæðum (197 svæðasíður)'],
+  ['/fasteignavakt/', 'verðmat og leiguverðmat einstakra eigna'],
+  ['/sumarhus/', 'sumarhús: verð og matssvæði'],
+  ['/utbod/', 'opinber útboð, TED-mál, útboðsúrslit og hæfiskröfur'],
+  ['/styrkir/', 'opinberar styrkveitingar úr sjóðum'],
+  ['/logbirting/', 'Lögbirtingablaðið: gjaldþrot, innkallanir, félagsslit'],
+  ['/domar/', 'dómar Hæstaréttar og Landsréttar á mannamáli'],
+  ['/refsilistar/', 'þvingunarlistar (ESB, OFAC) og nafnaskimun'],
+  ['/eftirlit/', 'heilbrigðiseftirlit (Reykjavík)'], ['/byggingarvakt/', 'byggingarleyfi (Reykjavík)'],
+  ['/leyfi/', 'rekstrarleyfi, ferðaleyfi og apótek'],
+  ['/okutaeki-skip/', 'ökutækjaskrá, skipaskrá og loftfaraskrá'],
+  ['/stjornartidindi/', 'nýbirt lög og reglugerðir'],
+  ['/umferd/', 'umferðartölur'], ['/rafbilar/', 'hlutdeild rafbíla'],
+  ['/vidskipti/', 'utanríkisverslun: út- og innflutningur eftir liðum og löndum'],
+  ['/nato/', 'varnarútgjöld NATO-ríkja'], ['/sendirad/', 'sendiráð og ræðisskrifstofur'],
+  ['/langtima/', 'langtímaþróun hagstærða'], ['/furduhagfraedi/', 'furðuhagfræði — óvæntar tengingar í gögnum'],
+  ['/leikur/', 'RÁS-leikurinn: þjóðhagshermir fyrir hópa og kennslu'],
+  ['/lobbyvakt/', 'hagsmunagæsla: ræður, þingmál og hlaðvörp eftir leitarorðum'],
+  ['/kvotavaktin/', 'aflamark og kvótastaða útgerða'],
+  ['/areidanleikavaktin/', 'áreiðanleikakönnun og KYC-vöktun fyrirtækja'],
+  ['/karp-pro/', 'áskriftarþrep og verðskrá'], ['/lausnir/', 'vörur og vaktir Karp'],
+  ['/mitt-svaedi/', 'mitt svæði: áskriftir, vaktir og stillingar'],
+  ['/hjalp/', 'hjálp og samband við Karp'],
 ];
 
 // ── UM KARP SJÁLFT: vörur, verð, prufur, heimildir ─────────────────────────
