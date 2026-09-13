@@ -1,0 +1,107 @@
+name: CTO merge (samþykki Arons → merge → deploy → lokapóstur)
+
+# Fasi 3 í þjónustufulltrúa-flæðinu: Aron smellir „Samþykkja lagfæringu" á /stjorn/ → worker setur ticket í 'samthykkt'
+# og sendir repository_dispatch cto_merge { ticket, pr }. Hér er PR Hrafns merge-aður með GITHUB_TOKEN (repo leyfir
+# Actions skrifaðgang), beðið eftir að Cloudflare Workers Builds deployi merge-commitið (check „Workers Builds: karp21"
+# = karp.is; karp2 er dauð eldri þjónusta sem fellur alltaf) og loks POST lagad → Sigrún sendir notandanum lokapóst og
+# ticketið lokast. Girðingar: ticketið VERÐUR að standa í 'samthykkt' í D1 (ákvörðun Arons, ekki dispatch-inn, ræður);
+# aðeins PR á grein cto/ticket-N (sama N) úr þessu repo; enginn lokapóstur nema deploy staðfestist.
+# ⚠ Merge með GITHUB_TOKEN ræsir EKKI ci.yml á merge-commitinu (GitHub kemur í veg fyrir keðjuverkun) — prófin voru
+#   keyrð græn í cto.yml á greininni; Cloudflare-appið deployar óháð því.
+
+on:
+  repository_dispatch:
+    types: [cto_merge]
+  workflow_dispatch:
+    inputs:
+      ticket:
+        description: 'Ticket-númer (tickets.id í D1) — PR-inn er lesinn úr ticketinu (cto_pr)'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: cto-merge-${{ github.event.client_payload.ticket || inputs.ticket }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TICKET: ${{ github.event.client_payload.ticket || inputs.ticket }}
+      KARP_ADMIN_KEY: ${{ secrets.KARP_ADMIN_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: aronheidar/KARP-2.0
+    steps:
+      - name: Sækja ticket úr karp.is — verður að vera 'samthykkt' og bera PR
+        id: t
+        run: |
+          curl -sf -H "X-Admin-Key: $KARP_ADMIN_KEY" "https://karp.is/api/admin/ticket?id=$TICKET" -o ticket.json
+          node -e "
+            const fs = require('fs');
+            const t = require('./ticket.json'); if (!t.ok) throw new Error('ticket ' + JSON.stringify(t));
+            const m = /^https:\/\/github\.com\/aronheidar\/KARP-2\.0\/pull\/(\d+)$/.exec(t.ticket.cto_pr || '');
+            const nota = (s) => { fs.appendFileSync(process.env.GITHUB_OUTPUT, 'note=' + s + '\n'); throw new Error(s); };
+            if (!m) nota('ticket #' + t.ticket.id + ' ber engan CTO-PR (cto_pr=' + t.ticket.cto_pr + ') — ekkert að merge-a');
+            if (t.ticket.stada !== 'samthykkt') nota('ticket #' + t.ticket.id + ' er í stöðu ' + t.ticket.stada + ', ekki samthykkt — ekki merge-að');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'pr=' + m[1] + '\n');
+            console.log('#' + t.ticket.id, t.ticket.stada, '→ PR #' + m[1], '·', t.ticket.efni);
+          "
+      - name: Gæta PR (grein cto/ticket-N úr þessu repo) og merge-a
+        id: m
+        run: |
+          PR=${{ steps.t.outputs.pr }}
+          gh pr view "$PR" --repo "$REPO" --json state,headRefName,isCrossRepository,mergeCommit,mergeable > pr.json
+          cat pr.json
+          STATE=$(node -p "require('./pr.json').state")
+          HEAD=$(node -p "require('./pr.json').headRefName")
+          CROSS=$(node -p "String(require('./pr.json').isCrossRepository)")
+          if [ "$HEAD" != "cto/ticket-$TICKET" ] || [ "$CROSS" != "false" ]; then echo "note=PR #$PR er grein '$HEAD' (cross=$CROSS), ekki cto/ticket-$TICKET úr þessu repo — ekki merge-að" >> $GITHUB_OUTPUT; exit 1; fi
+          if [ "$STATE" = "MERGED" ]; then
+            SHA=$(node -p "require('./pr.json').mergeCommit.oid"); echo "PR #$PR var þegar merge-aður: $SHA"
+          elif [ "$STATE" = "OPEN" ]; then
+            # --merge (ekki squash): sama mynstur sem PR #6–#9 fylgja. Villa (árekstur o.þ.h.) fer í nótu á ticketið.
+            gh pr merge "$PR" --repo "$REPO" --merge --subject "CTO (Hrafn): lagfæring úr hjálparbeiðni #$TICKET (PR #$PR)" 2>&1 | tee merge.log || { echo "note=Merge PR #$PR mistókst: $(tail -c 400 merge.log | tr '\n' ' ')" >> $GITHUB_OUTPUT; exit 1; }
+            SHA=$(gh pr view "$PR" --repo "$REPO" --json mergeCommit -q .mergeCommit.oid)
+            gh api -X DELETE "repos/$REPO/git/refs/heads/cto/ticket-$TICKET" >/dev/null 2>&1 || true
+          else
+            echo "note=PR #$PR er $STATE — ekki merge-að" >> $GITHUB_OUTPUT; exit 1
+          fi
+          [ -n "$SHA" ] || { echo "note=Merge-commit PR #$PR fannst ekki" >> $GITHUB_OUTPUT; exit 1; }
+          echo "merge-commit: $SHA"
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+      - name: Bíða eftir deploy (Workers Builds karp21 á merge-commitinu, ≤ 10 mín)
+        id: d
+        run: |
+          SHA=${{ steps.m.outputs.sha }}
+          for i in $(seq 1 40); do
+            C=$(gh api "repos/$REPO/commits/$SHA/check-runs" --jq '[.check_runs[] | select(.name=="Workers Builds: karp21")] | (.[0].conclusion // .[0].status // "none")' 2>/dev/null || echo none)
+            echo "[$i] karp21: $C"
+            case "$C" in
+              success) echo "ok=1" >> $GITHUB_OUTPUT; exit 0 ;;
+              failure|cancelled|timed_out|action_required) echo "note=Deploy karp21 á $SHA endaði sem '$C' — lokapóstur EKKI sendur, ticket stendur í samthykkt" >> $GITHUB_OUTPUT; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "note=Deploy karp21 á $SHA staðfestist ekki innan 10 mín — lokapóstur EKKI sendur; athuga Cloudflare Workers Builds" >> $GITHUB_OUTPUT; exit 1
+      - name: Lokapóstur Sigrúnar á notanda (lagad → lokad)
+        if: steps.d.outputs.ok == '1'
+        run: |
+          node -e "
+            fetch('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'lagad', id: Number(process.env.TICKET) }) })
+              .then((r) => r.text()).then((t) => { console.log('lagad →', t); if (!JSON.parse(t).ok) process.exit(1); });
+          "
+      - name: Nóta á ticketið ef eitthvað fór úrskeiðis (sést á /stjorn/)
+        if: failure()
+        env:
+          NOTE: ${{ steps.t.outputs.note || steps.m.outputs.note || steps.d.outputs.note }}
+        run: |
+          node -e "
+            const n = process.env.NOTE || ('cto_merge féll — sjá Actions-log');
+            fetch('https://karp.is/api/admin/ticket', { method: 'POST', headers: { 'X-Admin-Key': process.env.KARP_ADMIN_KEY, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'nota', id: Number(process.env.TICKET), texti: '⚠ cto_merge: ' + n + ' (run ' + process.env.GITHUB_RUN_ID + ')' }) })
+              .then((r) => r.text()).then((t) => console.log('nota →', t));
+          " || true

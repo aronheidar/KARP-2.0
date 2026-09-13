@@ -634,7 +634,7 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
       renderMoot(ov.tickets || { list: [], moot_bida: [], moot_osent: [] });
     }
 
-    const TIX_STADA = { nytt: ['Nýtt', 'var(--gold)'], stadfest: ['Bíður svars', 'var(--gold)'], svarad: ['Svarað', '#2e8b57'], cto: ['Hjá CTO', '#5b8dd6'], tillaga: ['Tillaga bíður þín', '#c0392b'], samthykkt: ['Samþykkt — í vinnslu', '#5b8dd6'], lagad: ['Lagað', '#2e8b57'], lokad: ['Lokað', 'var(--faint)'], hafnad: ['Hafnað', 'var(--faint)'] };
+    const TIX_STADA = { nytt: ['Nýtt', 'var(--gold)'], stadfest: ['Bíður svars', 'var(--gold)'], svarad: ['Svarað', '#2e8b57'], cto: ['Hjá CTO', '#5b8dd6'], tillaga: ['Tillaga bíður þín', '#c0392b'], samthykkt: ['Samþykkt — merge & deploy í gangi', '#5b8dd6'], lagad: ['Lagað', '#2e8b57'], lokad: ['Lokað', 'var(--faint)'], hafnad: ['Hafnað', 'var(--faint)'] };
     const TIX_TEGUND = { villa: '🐞 villa', spurning: '❓ spurning', adgangur: '🔑 aðgangur', reikningur: '💳 reikningur', osk: '💡 ósk', annad: '📄 annað' };
     const tixPost = (body) => fetch('/api/admin/ticket', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json()).catch(() => null);
     let tixAllir = false;
@@ -722,12 +722,16 @@ const desc = 'Stjórnborð Karp — yfirlit notenda, áskrifta og reksturs. Aðe
         if (act === 'svara') { const texti = body.querySelector('.stj-tix-svar').value.trim(); if (texti.length < 2) { err.textContent = 'Skrifaðu svar fyrst.'; btn.disabled = false; return; } r2 = await tixPost({ action: 'svara', id: t.id, texti }); }
         else if (act === 'cto') r2 = await tixPost({ action: 'cto', id: t.id });
         else if (act === 'greina') { r2 = await tixPost({ action: 'greina', id: t.id }); body.dataset.loaded = '0'; }
-        else if (act === 'samthykkja') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'samthykkt' });
+        else if (act === 'samthykkja') { if (!confirm('Samþykkja lagfæringu #' + t.id + '? PR-inn verður merge-aður og deployaður á karp.is; notandinn fær lokapóst frá Sigrúnu þegar breytingin er í loftinu.')) { btn.disabled = false; return; } r2 = await tixPost({ action: 'samthykkja', id: t.id }); }
         else if (act === 'loka') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'lokad' });
         else if (act === 'hafna') r2 = await tixPost({ action: 'stada', id: t.id, stada: 'hafnad' });
         else if (act === 'nota') { const n = prompt('Innri nóta á ticket #' + t.id + ':'); if (!n) { btn.disabled = false; return; } r2 = await tixPost({ action: 'nota', id: t.id, texti: n }); }
         btn.disabled = false;
-        if (r2 && r2.ok) boot(); else err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : 'Villa — reyndu aftur.';
+        if (r2 && r2.ok) {
+          // boot() endurteiknar listann (err-reiturinn hverfur) → merge-bilun eftir samþykkt fer í alert, hún má ekki týnast.
+          if (act === 'samthykkja' && r2.merge && !r2.merge.ok) alert('Samþykkt skráð, en merge-keyrslan fór ekki af stað (' + (r2.merge.error || r2.merge.status) + ').\nMerge-aðu PR-inn handvirkt á GitHub — deploy fylgir sjálfkrafa.');
+          boot();
+        } else err.textContent = r2 && r2.error === 'unconfigured' ? 'GITHUB_DISPATCH_TOKEN vantar í worker.' : r2 && r2.error === 'engin_pr' ? 'Ticketið ber engan PR frá CTO — ekkert að samþykkja.' : 'Villa — reyndu aftur.';
       }));
     }
     // ══════════════════════════════════════════════════════════════════════════════════════════════════

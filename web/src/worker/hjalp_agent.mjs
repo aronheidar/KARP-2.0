@@ -8,7 +8,7 @@
 import { _ajson, _emailTpl, _esc, sendGmail } from './felag.mjs';
 import { renderEmail } from '../lib/emails.mjs';
 import { readSession } from './auth.mjs';
-import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, ticketSubject } from '../lib/hjalp_agent.mjs';
+import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, svarUppfaersla, ticketSubject } from '../lib/hjalp_agent.mjs';
 import { persona, veljaFundarmenn } from '../lib/personur.mjs';   // 🛟 Sigrún skrifar undir öll póst-samskipti við notendur; fundarmenn f. Moot-forsýn
 
 const MODEL = 'claude-haiku-4-5-20251001';
@@ -117,7 +117,7 @@ export async function sendSvar(env, t, texti, sentBy) {
     + '<p style="color:#999;font-size:12px;margin-top:22px">' + _esc(persona('sigrun').undirskrift) + ' · hjalp@karp.is · svaraðu þessum pósti ef eitthvað er óljóst</p>';
   const r = await sendGmail(env, { to: t.netfang, subject, html, replyTo: ADMIN_TO(env) });
   await logMsg(env, t.id, { dir: 'out', sent_by: sentBy || 'aron', fra: ADMIN_TO(env), til: t.netfang, efni: subject, texti, meta: r });
-  if (r.ok) await setTicket(env, t.id, { svar_sent: _nowSek(), stada: 'svarad' });
+  if (r.ok) await setTicket(env, t.id, svarUppfaersla(t.stada, _nowSek()));   // ekki aftur í 'svarad' úr cto/tillaga/samthykkt/…
   return r;
 }
 
@@ -154,14 +154,20 @@ export async function processNewTicket(env, t) {
   return { g, auto: auto ? auto.id : null, off };
 }
 
-async function _dispatchCto(env, t) {
+/** repository_dispatch á KARP-2.0: 'cto' → cto.yml (Hrafn lagar → PR) · 'cto_merge' → cto_merge.yml (merge → deploy → lokapóstur). */
+async function _ghDispatch(env, eventType, payload) {
   if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, error: 'unconfigured' };
   const r = await fetch('https://api.github.com/repos/aronheidar/KARP-2.0/dispatches', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + env.GITHUB_DISPATCH_TOKEN, 'Accept': 'application/vnd.github+json', 'User-Agent': 'karp21-worker', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event_type: 'cto', client_payload: { ticket: t.id } }),
+    body: JSON.stringify({ event_type: eventType, client_payload: payload }),
   }).catch(() => null);
   return { ok: !!(r && r.status === 204), status: r ? r.status : 0 };
+}
+const _CTO_PR_RE = /^https:\/\/github\.com\/aronheidar\/KARP-2\.0\/pull\/\d+$/;
+
+async function _baetaNotu(env, t, n) {
+  await setTicket(env, t.id, { notur: ((t.notur ? t.notur + '\n' : '') + '[' + new Date().toISOString().slice(0, 16) + '] ' + n).slice(-6000) });
 }
 
 /** /api/admin/ticket — GET (listi eða ?id=) og POST {action,...}. Admin-lota EÐA X-Admin-Key (server-til-server). */
@@ -235,14 +241,25 @@ export async function adminTicketHandler(request, env, ctx) {
     return _ajson({ ok: true, greining: g });
   }
   if (action === 'nota') {
-    const n = String(b.texti || '').trim().slice(0, 2000);
-    await setTicket(env, id, { notur: ((t.notur ? t.notur + '\n' : '') + '[' + new Date().toISOString().slice(0, 16) + '] ' + n).slice(-6000) });
+    await _baetaNotu(env, t, String(b.texti || '').trim().slice(0, 2000));
     return _ajson({ ok: true });
   }
   if (action === 'cto') {
-    const r = await _dispatchCto(env, t);
+    const r = await _ghDispatch(env, 'cto', { ticket: t.id });
     if (r.ok) await setTicket(env, id, { stada: 'cto' });
     return _ajson(r);
+  }
+  if (action === 'samthykkja') {
+    // Samþykki Arons á CTO-tillögu = merge + deploy + lokapóstur — allt í cto_merge.yml (GitHub Actions bíður deploysins,
+    // worker getur það ekki). Krefst INNSKRÁÐRAR admin-lotu eins og atkvæði í Moot: X-Admin-Key má lesa og skrá en
+    // ekki taka ákvörðun um kóða í framleiðslu. Staðan verður 'samthykkt' þótt dispatch bregðist (merge þá handvirkt).
+    if (byKey) return _ajson({ ok: false, error: 'lota' });
+    if (!_CTO_PR_RE.test(String(t.cto_pr || ''))) return _ajson({ ok: false, error: 'engin_pr' });
+    if (!OPNAR_STODUR.includes(t.stada)) return _ajson({ ok: false, error: 'stada' });
+    await setTicket(env, id, { stada: 'samthykkt', samthykkt_by: uid, samthykkt_at: _nowSek() });
+    const d = await _ghDispatch(env, 'cto_merge', { ticket: t.id, pr: t.cto_pr });
+    await _baetaNotu(env, t, d.ok ? 'Samþykkt — merge+deploy ræst (cto_merge) á ' + t.cto_pr : 'Samþykkt en cto_merge fór EKKI af stað (' + (d.error || d.status) + ') — merge-a PR handvirkt');
+    return _ajson({ ok: true, merge: d });
   }
   if (action === 'cto_result') {
     // Frá CTO-workflow (X-Admin-Key): PR-slóð + samantekt → staða 'tillaga' og Aron fær póst.

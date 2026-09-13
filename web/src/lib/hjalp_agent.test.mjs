@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { KB, TICKET_TEGUNDIR, ticketSubject, parseTicketNr, efniUrLysingu, flokkaFallback, parseGreining, kbSjalfvirkt, greiningPrompt, greiningUser, afmarkaGogn, ackVars } from './hjalp_agent.mjs';
+import { KB, TICKET_TEGUNDIR, TICKET_STODUR, OPNAR_STODUR, FASTAR_STODUR, svarUppfaersla, ticketSubject, parseTicketNr, efniUrLysingu, flokkaFallback, parseGreining, kbSjalfvirkt, greiningPrompt, greiningUser, afmarkaGogn, ackVars } from './hjalp_agent.mjs';
+
+test('svarUppfaersla: svar_sent alltaf; stada→svarad aðeins úr nytt/stadfest/svarad — FASTAR_STODUR + þær þrjár = allar stöður', () => {
+  assert.deepEqual(svarUppfaersla('stadfest', 100), { svar_sent: 100, stada: 'svarad' });
+  assert.deepEqual(svarUppfaersla('nytt', 100), { svar_sent: 100, stada: 'svarad' });
+  assert.deepEqual(svarUppfaersla('svarad', 100), { svar_sent: 100, stada: 'svarad' });
+  for (const s of FASTAR_STODUR) assert.deepEqual(svarUppfaersla(s, 100), { svar_sent: 100 }, s);
+  assert.deepEqual([...new Set([...FASTAR_STODUR, 'nytt', 'stadfest', 'svarad'])].sort(), [...TICKET_STODUR].sort(), 'engin staða gleymist');
+  assert.ok(FASTAR_STODUR.every((s) => TICKET_STODUR.includes(s)));
+  assert.deepEqual(OPNAR_STODUR.filter((s) => FASTAR_STODUR.includes(s)), ['cto', 'tillaga', 'samthykkt'], 'opnar-en-fastar = CTO-pípan');
+});
 
 test('ticketSubject + parseTicketNr eru samhverf og þola „Re:"/„Fwd:"', () => {
   const s = ticketSubject(42, 'Villa í verðmati  á   Leirdal 36');

@@ -8,6 +8,15 @@
 export const TICKET_TEGUNDIR = ['villa', 'spurning', 'adgangur', 'reikningur', 'osk', 'annad'];
 export const TICKET_STODUR = ['nytt', 'stadfest', 'svarad', 'cto', 'tillaga', 'samthykkt', 'lagad', 'lokad', 'hafnad'];
 export const OPNAR_STODUR = ['nytt', 'stadfest', 'svarad', 'cto', 'tillaga', 'samthykkt'];
+/** Stöður sem SVAR-sending má ekki hnika aftur í 'svarad': málið er í CTO-pípunni eða afgreitt. 13.9 missti #1
+ *  'samthykkt' við að Aron sendi kurteisissvar á eftir samþykkinu — samþykkið hvarf úr stöðuvélinni. */
+export const FASTAR_STODUR = ['cto', 'tillaga', 'samthykkt', 'lagad', 'lokad', 'hafnad'];
+/** Uppfærsla á ticket eftir sent svar: svar_sent alltaf; stada→'svarad' aðeins úr nytt/stadfest/svarad. */
+export function svarUppfaersla(stada, ts) {
+  const u = { svar_sent: ts };
+  if (!FASTAR_STODUR.includes(stada)) u.stada = 'svarad';
+  return u;
+}
 
 /** Forsamin svör — send ORÐRÉTT án samþykktar þegar `kb` í AI-greiningu vísar á id með vissu ≥ 0,9.
  *  Haltu textanum staðreyndalegum og hlutlausum; verð og slóðir eru þau sem gilda á karp.is (sept 2026). */
