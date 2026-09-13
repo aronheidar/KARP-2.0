@@ -96,3 +96,17 @@ test('firmaKandidatar: aldrei fleiri en tveir, aldrei tómir', () => {
 test('firmaKandidatar: tóm/gagnslaus spurning skilar engu nothæfu', () => {
   assert.deepEqual(firmaKandidatar(''), []);
 });
+
+test('spurnarorð leiða ekki í félagaleit („Hvar finn ég…" → Hvar ehf)', () => {
+  // Raunverulegt tilvik úr lifandi verifun: „Hvar finn ég upplýsingar um eigendur fyrirtækja?"
+  // skilaði félaginu Hvar ehf., sem spjallið bar fram sem dæmi. „hvar" var ekki stopporð.
+  assert.equal(firmaNafn('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), 'fyrirtækja');
+  assert.equal(FIRMA_STOP.has('hvar'), true);
+});
+
+test('félagið Hvar ehf. finnst SAMT þegar spurt er um það', () => {
+  // Vörnin gegn of víðum stopporðalista: sérnafna-varaleiðin grípur félagið þótt „hvar" sé strípað.
+  // Þetta er einmitt ástæðan fyrir tveggja-kandidata hönnuninni.
+  const k = firmaKandidatar('Hver á Hvar ehf?');
+  assert.ok(k.some((x) => /hvar ehf/i.test(x)), 'Hvar ehf. týndist: ' + JSON.stringify(k));
+});
