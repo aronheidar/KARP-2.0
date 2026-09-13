@@ -180,11 +180,21 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node skriptur/build_thingmal_ras.mjs || true   # les frumvorp.json (byggt að ofan) → bakar b.ras + thingmal_ras.json cache; lyklalaus keyrsla cache-ar EKKERT
 
-      - name: Kvótavaktin — aflamark flotans per útgerð (VIKULEGA á mánudögum; ELLA þvingað við handræsingu úr stjórnborði)
+      - name: Kvótavaktin — aflamark flotans per útgerð (vikulega; DAGLEGA meðan úthlutun nýs fiskveiðiárs er ólokið)
         env:
           FORCE_WEEKLY: ${{ github.event_name != 'schedule' }}   # handræst (workflow_dispatch/repository_dispatch) → keyra óháð vikudegi
         run: |
-          if [ "$(date -u +%u)" = "1" ] || [ "$FORCE_WEEKLY" = "true" ]; then node skriptur/build_kvoti.mjs || true; fi
+          # Fiskveiðiárið skiptir 1. sept og úthlutun fyllist á vikum. Vikuleg keyrsla þýddi að
+          # ársskilin gátu setið óuppfærð í allt að viku — nákvæmlega þegar fréttamenn skrifa um
+          # nýja árið (mbl birti 2026/27-tölur 27.8 en okkar gögn skiptu um ár 7.9).
+          # Daglega í september OG á meðan `iUthlutun` stendur — síðara nær því ef úthlutun
+          # dregst fram í október. Flaggið slekkur á sér sjálft við 90% þekju, svo þetta
+          # fellur aftur í vikulegan takt án þess að nokkur muni eftir því.
+          UTH=$(node -e 'try{process.stdout.write(String(!!require("./web/public/gogn/kvoti.json").iUthlutun))}catch(e){process.stdout.write("false")}')
+          if [ "$(date -u +%u)" = "1" ] || [ "$(date -u +%m)" = "09" ] || [ "$UTH" = "true" ] || [ "$FORCE_WEEKLY" = "true" ]; then
+            echo "kvoti: keyri (vikudagur=$(date -u +%u) mánuður=$(date -u +%m) iUthlutun=$UTH force=$FORCE_WEEKLY)"
+            node skriptur/build_kvoti.mjs || true
+          fi
 
       # Úttekt 30.7 (C6): tvær skriptur með lifandi úttak voru HVERGI í CI (sveitarfelog_adm2 20d,
       # sitemap-fyrirtaeki aldrei endurbyggð). Vikulega á mánudögum nægir (breytast hægt).
