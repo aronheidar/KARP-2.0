@@ -100,7 +100,9 @@ test('firmaKandidatar: tóm/gagnslaus spurning skilar engu nothæfu', () => {
 test('spurnarorð leiða ekki í félagaleit („Hvar finn ég…" → Hvar ehf)', () => {
   // Raunverulegt tilvik úr lifandi verifun: „Hvar finn ég upplýsingar um eigendur fyrirtækja?"
   // skilaði félaginu Hvar ehf., sem spjallið bar fram sem dæmi. „hvar" var ekki stopporð.
-  assert.equal(firmaNafn('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), 'fyrirtækja');
+  // (Skilaði 'fyrirtækja' þegar þetta próf var skrifað; eignarfallið varð líka stopporð í
+  //  næstu lotu því það fann Fyrirtækjaárshátíð Tálknafjarða. Nú stendur ekkert eftir — rétt.)
+  assert.equal(firmaNafn('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), '');
   assert.equal(FIRMA_STOP.has('hvar'), true);
 });
 
@@ -109,4 +111,13 @@ test('félagið Hvar ehf. finnst SAMT þegar spurt er um það', () => {
   // Þetta er einmitt ástæðan fyrir tveggja-kandidata hönnuninni.
   const k = firmaKandidatar('Hver á Hvar ehf?');
   assert.ok(k.some((x) => /hvar ehf/i.test(x)), 'Hvar ehf. týndist: ' + JSON.stringify(k));
+});
+
+test('beygingar kjarnaorðanna eru allar stopporð (fyrirtæki/félag)', () => {
+  // Listinn hafði fyrirtæki/fyrirtækið/fyrirtækinu en EKKI eignarfallið „fyrirtækja" — svo
+  // „…um eigendur fyrirtækja?" leitaði að „fyrirtækja" og fann Fyrirtækjaárshátíð Tálknafjarða.
+  for (const o of ['fyrirtæki', 'fyrirtækja', 'fyrirtækjum', 'félag', 'félaga', 'félögum', 'félög']) {
+    assert.equal(FIRMA_STOP.has(o), true, 'vantar stopporð: ' + o);
+  }
+  assert.equal(firmaNafn('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), '');
 });
