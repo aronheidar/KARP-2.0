@@ -106,6 +106,7 @@ const jsonLd = {
 
     /* HHI-merki */
     main[data-pg="kvotavaktin"] .kv-badge { display: inline-block; padding: 1px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700; white-space: nowrap; cursor: help; }
+    .kv-badge.kv-uth { background: rgba(246,177,59,.16); color: #f6b13b; border: 1px solid rgba(246,177,59,.45); cursor: help; }
     main[data-pg="kvotavaktin"] .kv-b-red { background: rgba(248,81,73,.15); color: #f85149; border: 1px solid rgba(248,81,73,.4); }
     main[data-pg="kvotavaktin"] .kv-b-yel { background: rgba(210,153,34,.15); color: #d29922; border: 1px solid rgba(210,153,34,.4); }
     main[data-pg="kvotavaktin"] .kv-b-grn { background: rgba(63,185,80,.15); color: #3fb950; border: 1px solid rgba(63,185,80,.4); }
@@ -296,11 +297,22 @@ const jsonLd = {
         const h = D.heild || {};
         const [ht, hc] = hhiMerki(Number(h.hhi) || 0);
         const thusTonn = ((Number(h.ti_kg) || 0) / 1e6).toLocaleString('is-IS', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        // Á ársskilum er nýja árið ókomið í úthlutun: færri handhafar í nefnaranum blása upp
+        // samþjöppunina. Talan er rétt reiknuð en ekki sambærileg — það verður að sjást.
+        const uth = !!D.iUthlutun;
+        const vidm = D.arskilVidmid || {};
+        const uthMerki = uth
+          ? ' <span class="kv-badge kv-uth" data-tip="Úthlutun fiskveiðiársins er ekki lokið: '
+            + nIS(h.nHafar) + ' handhafar hafa fengið úthlutað á móti ' + nIS(vidm.nHafar)
+            + ' í lok fyrra fiskveiðiárs (' + esc(String(vidm.timabil || '').replace(/^(\d\d)(\d\d)$/, '20$1/20$2')) + ')'
+            + '. Færri handhafar þýða hærri samþjöppunartölu — hún er því OFMETIN og ekki'
+            + ' sambærileg við fyrri ár fyrr en úthlutun lýkur.">í úthlutun</span>'
+          : '';
         $('kv-stats').innerHTML =
           '<div class="kv-kpi"><div class="kv-kl">🐟 Þorskígildi alls</div><div class="kv-kv">' + thusTonn + '</div><div class="kv-ks">þús. tonn · ' + esc(fiskar(D.timabil) || 'úthlutað aflamark') + '</div></div>'
-          + '<div class="kv-kpi"><div class="kv-kl">🏢 Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks</div></div>'
+          + '<div class="kv-kpi"><div class="kv-kl">🏢 Útgerðir</div><div class="kv-kv">' + nIS(h.nHafar) + '</div><div class="kv-ks">handhafar aflamarks' + uthMerki + '</div></div>'
           + '<div class="kv-kpi"><div class="kv-kl">🚢 Skip</div><div class="kv-kv">' + nIS(h.nSkip) + '</div><div class="kv-ks">með úthlutað aflamark</div></div>'
-          + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span></div></div>';
+          + '<div class="kv-kpi"><div class="kv-kl">📊 Samþjöppun</div><div class="kv-kv">' + pctIS(h.top10pct) + '</div><div class="kv-ks">hlutdeild 10 stærstu · <span class="kv-badge ' + hc + '" data-tip="HHI ' + nIS(h.hhi) + ' — Herfindahl–Hirschman kvarðinn: yfir 2500 telst mikil samþjöppun, 1500–2500 nokkur, undir 1500 lítil.">' + ht + '</span>' + uthMerki + '</div></div>';
       }
 
       // ── Heildarmyndin: þrjú D3-gröf (kvotagraf.mjs, lazy CDN) — flipa-skipt ─
@@ -335,6 +347,14 @@ const jsonLd = {
         const el = $('kv-breyt');
         if (!el) return;
         const b = D.breytingar;
+        if (b && b.arskil) {
+          el.innerHTML = '<div class="kv-empty">📅 <b>Fiskveiðiárið skipti um áramót</b> ('
+            + esc(fiskar(b.fraTimabil) || b.fraTimabil) + ' → ' + esc(fiskar(b.tilTimabil) || b.tilTimabil)
+            + '). Breytinga-samanburður er sleppt því tölur úr sitthvoru fiskveiðiári eru ekki'
+            + ' sambærilegar — ný úthlutun liti út eins og að allar útgerðir hefðu tapað aflamarki.'
+            + ' Vöktun hefst að nýju við næstu mælingu innan sama árs.</div>';
+          return;
+        }
         if (!b || !Array.isArray(b.staerstu)) {
           el.innerHTML = '<div class="kv-empty">📅 Fyrsta viðmiðunarmæling skráð ' + (D.uppfaert ? esc(D.uppfaert.slice(0, 10)) : '') + ' — breytingar birtast eftir næstu vikulegu uppfærslu (mánudaga).</div>';
           return;

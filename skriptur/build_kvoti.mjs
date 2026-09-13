@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { erArskil, erIUthlutun, naestaVidmid, arFmt as arFmtOf } from './lib/kvoti_arskil.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const INN = path.join(__dirname, '..', 'web', 'public', 'gogn', 'skip_owners.json');
@@ -176,7 +177,17 @@ async function fetchAflamark(regno, timabil, tries = 3) {
   try {
     if (fs.existsSync(OUT)) {
       const fyrri = JSON.parse(fs.readFileSync(OUT, 'utf8'));
-      if (fyrri.leit && fyrri.uppfaert) {
+      // ⚠⚠ 13.9.2026: HÉR VAR ENGIN ÁRSSKILA-VÖRN. Þegar fiskveiðiárið skipti 1. september bar
+      //   vaktin saman 2526 við 2627 og sagði áskrifendum að Vinnslustöðin hefði tapað 7,7 m kg
+      //   og Brim 7,5 m kg á einni viku. Ekkert af því gerðist — nýja árið var einfaldlega ókomið
+      //   í úthlutun. ~200 útgerðir birtust sem „horfnar". Þetta er varan sem selst á þessari
+      //   nákvæmu vöktun, svo þögul skekkja af þessari stærð er verri en engin vakt.
+      const arskil = erArskil(fyrri.timabil, timabil);
+      if (arskil) {
+        breytingar = { arskil: true, fraTimabil: fyrri.timabil, tilTimabil: timabil,
+          fra: fyrri.uppfaert, til: new Date().toISOString(), staerstu: [], horfnir: [], n: 0 };
+        console.log(`ÁRSSKIL ${fyrri.timabil} → ${timabil}: breytinga-samanburður SLEPPT (ósambærilegt).`);
+      } else if (fyrri.leit && fyrri.uppfaert) {
         const deltas = [];
         for (const [kt, [nafn, ti, pct]] of Object.entries(leit)) {
           const f = fyrri.leit[kt];
@@ -199,7 +210,18 @@ async function fetchAflamark(regno, timabil, tries = 3) {
     }
   } catch (e) { console.log('Breytinga-samanburður sleppt:', e.message); }
 
-  const arFmt = '20' + timabil.slice(0, 2) + '/20' + timabil.slice(2);   // '2526' → '2025/2026'
+  // ── ER NÝJA ÁRIÐ FULLÚTHLUTAÐ? Á ársskilum geymum við lokastöðu fyrra árs sem viðmið og
+  //   berum hana áfram. Meðan handhöfum vantar er samþjöppun OFMETIN (færri í nefnaranum):
+  //   7.9.2026 sýndi 268 handhafa og topp-10 í 50,98% á móti 475 og 48,0% viku áður.
+  //   Flaggið slekkur á sér sjálft þegar úthlutun nær fyrra ári.
+  let arskilVidmid = null;
+  try {
+    if (fs.existsSync(OUT)) arskilVidmid = naestaVidmid(JSON.parse(fs.readFileSync(OUT, "utf8")), timabil);
+  } catch (e) { /* ekkert viðmið → ekkert flagg */ }
+  const iUthlutun = erIUthlutun(hafArr.length, arskilVidmid);
+  if (iUthlutun) console.log(`Í ÚTHLUTUN: ${hafArr.length} handhafar á móti ${arskilVidmid.nHafar} í ${arskilVidmid.timabil} — samþjöppun OFMETIN.`);
+
+  const arFmt = arFmtOf(timabil);   // sannreynir snið; skilar tómu fyrir ógilt í stað rusls
   const data = {
     uppfaert: new Date().toISOString(),
     timabil,
@@ -208,6 +230,8 @@ async function fetchAflamark(regno, timabil, tries = 3) {
     hafar: hafarUt,
     leit,
     breytingar,
+    iUthlutun,
+    arskilVidmid,
     heimild: 'Fiskistofa — aflamark og þorskígildi fiskveiðiárið ' + arFmt + '; eigendur skipa úr skipaskrá island.is. Hlutdeild reiknuð af Karp (áætlun; eignarhlutur skips ræður skiptingu).',
   };
   fs.writeFileSync(OUT, JSON.stringify(data));
