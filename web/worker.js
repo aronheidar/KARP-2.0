@@ -1,6 +1,7 @@
 import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
+import { firmaKandidatar, firmaNafn } from './src/lib/firma-nafn.mjs';   // þáttun spurningar → nafn/kt (prófuð)
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
 import { findAdili, adiliTerms, adiliPageData, adiliDesc, skyldirAdilar } from './src/lib/frettaadili.mjs';
 import { canon as kycCanon, hash as kycHash, signalEvents as kycSignalEvents, deriveRisk as kycDeriveRisk } from './src/lib/kyc.mjs';
@@ -290,26 +291,30 @@ async function augment(env, q) {
   return parts;
 }
 
-// LOTA 80: draga fyrirtækjanafn/kt úr spurningu — orða-sía (\b virkar ekki á íslenska stafi í JS)
-const FIRMA_STOP = new Set(['hver', 'hverjir', 'hvað', 'hvaða', 'á', 'eiga', 'er', 'eru', 'sé', 'séu', 'eigandi', 'eigendur', 'raunverulegir', 'raunverulegur', 'raunveruleg', 'í', 'vanskilum', 'vanskil', 'vanskilaskrá', 'með', 'fyrirtækið', 'fyrirtækinu', 'félagið', 'félaginu', 'fyrirtæki', 'félag', 'kennitala', 'kennitölu', 'kt', 'hjá', 'um', 'the', 'og', 'eða', 'skuldar', 'skuld', 'skuldir', 'stjórn', 'forráðamaður', 'forráðamenn', 'skráðir', 'það', 'þetta', 'hlutafé', 'hluthafar', 'ársreikning', 'ársreikninga', 'ársreikningi', 'ársreikningum', 'ársreikninginn', 'ársreikningana', 'ársreikningaskil', 'skil', 'skilað', 'hvort', 'núna', 'nú', 'borgar', 'greiðir', 'atvinnugrein', 'heimilisfang', 'stofnað', 'stofnaður', 'hvenær', 'aflamark', 'aflamarki', 'kvóti', 'kvóta', 'kvótann', 'aflaheimild', 'aflaheimildir', 'veiðiheimild', 'gjaldþrota', 'gjaldþrot', 'þrot', 'þroti', 'vörumerki', 'vörumerkið', 'vörumerkjum', 'einkaleyfi', 'starfsleyfi', 'leyfi', 'eftirlit', 'eftirliti', 'loftför', 'loftfar', 'flugvél', 'flugvélar', 'þyrla', 'skip', 'skipa', 'bát', 'bátur', 'refsilista', 'refsilistum', 'þvingunar', 'mikið', 'mikinn', 'mikla', 'mörg', 'margar', 'marga', 'skráð', 'skráða', 'hefur', 'hafa', 'fær', 'fékk', 'hversu', 'hve', 'til']);
-function firmaNafn(q) {
-  const kt = (String(q).match(/\b(\d{6}-?\d{4})\b/) || [])[1];
-  if (kt) return kt.replace('-', '');
-  return String(q).toLowerCase().replace(/[?.!,]/g, ' ').split(/\s+/).filter((w) => w && !FIRMA_STOP.has(w)).join(' ').trim();
-}
+// LOTA 80: draga fyrirtækjanafn/kt úr spurningu. Þáttunin sjálf er nú í prófaðri einingu
+// (src/lib/firma-nafn.mjs, 16 próf) — hún var inline hér og ÓPRÓFUÐ, og þess vegna brotnaði hún
+// hljóðlaust: „Eru þvingunaraðgerðir í gildi gagnvart Alvotech?" gaf leitarstrenginn
+// „þvingunaraðgerðir gildi gagnvart alvotech" → 0 tréff, þótt bert „alvotech" gefi 2. firmaLookup
+// hætti þá áður en nokkuð var flett upp og ALLAR undirveiturnar þögnuðu í einu.
 // lifandi fyrirtækja-uppfletting fyrir Spyrðu Karp (eigendur, vanskil, grunnur — sömu veitur og /fyrirtaeki)
 async function firmaLookup(q, ctx, env) {
-  const nafn = firmaNafn(q);
-  if (nafn.length < 2) return null;
+  // Kandidatar í forgangsröð: stopporða-strengurinn fyrst (óbreytt hegðun), sérnafna-varaleiðin
+  // aðeins ef hann skilar engu. Kennitala stuttsníður í einn. Að hámarki tveir → bundinn kostnaður.
+  const kandidatar = firmaKandidatar(q);
+  if (!kandidatar.length) return null;
   const call = async (kt_or_nafn) => { const r = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + encodeURIComponent(kt_or_nafn)), env, ctx); return r.json().catch(() => null); };
-  let d = await call(nafn);
-  let f = d && d.felag;
-  if (!f && d && d.hits && d.hits.length) {
-    // velja BESTA treffið (nákvæm nafn-samsvörun), ekki hits[0] — „brim" → Brim hf, ekki „BBF 2014 ehf"
-    const nn = (s) => String(s || '').toLowerCase().replace(/\b(ehf|hf|slhf|ohf|sf|slf|bs)\b\.?/g, '').replace(/[^a-záðéíóúýþæö0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
-    const qn = nn(nafn);
-    const best = d.hits.find((h) => nn(h.nafn) === qn) || d.hits.find((h) => nn(h.nafn).startsWith(qn + ' ')) || d.hits[0];
-    const d2 = await call(best.kt); f = d2 && d2.felag;
+  const nn = (s) => String(s || '').toLowerCase().replace(/\b(ehf|hf|slhf|ohf|sf|slf|bs)\b\.?/g, '').replace(/[^a-záðéíóúýþæö0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  let f = null;
+  for (const nafn of kandidatar) {
+    const d = await call(nafn);
+    f = d && d.felag;
+    if (!f && d && d.hits && d.hits.length) {
+      // velja BESTA treffið (nákvæm nafn-samsvörun), ekki hits[0] — „brim" → Brim hf, ekki „BBF 2014 ehf"
+      const qn = nn(nafn);
+      const best = d.hits.find((h) => nn(h.nafn) === qn) || d.hits.find((h) => nn(h.nafn).startsWith(qn + ' ')) || d.hits[0];
+      const d2 = await call(best.kt); f = d2 && d2.felag;
+    }
+    if (f) break;
   }
   if (!f) return null;
   const bits = ['FYRIRTÆKI ' + f.nafn + ' (kt. ' + f.kt + ')' + (f.afskrad ? ' — AFSKRÁÐ' : '') + (f.form ? ', ' + f.form : '') + (f.logheimili ? ', ' + f.logheimili : '') + '.'];
