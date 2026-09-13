@@ -158,3 +158,8 @@ test('titilTafla flettir auglýsingatitli upp í laganúmer', async () => {
     { nr: 71, ar: 2026 });
   assert.equal(t.get(normTitill('LÖG um eitthvað sem er ekki til.')), undefined);
 });
+
+test('breytingalög eru EKKI vöktuð — þau renna inn í meginlögin og 404 er eðlilegt', () => {
+  const s = 'Lög nr. 52/2016 (almennar íbúðir), 11. og 14. gr. — hlutfall ríkisins hækkað með breytingalögum nr. 67/2026';
+  assert.deepEqual(lagaTilvisanir(s), [{ nr: 52, ar: 2016 }]);
+});

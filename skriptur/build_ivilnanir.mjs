@@ -36,7 +36,10 @@ const UT = path.join(__dirname, '..', 'gogn', 'ivilnanir_vakt.json');
 const GQL = 'https://island.is/api/graphql';
 const UA = 'Mozilla/5.0 (KARP ivilnana-vakt; +https://karp.is)';
 const BID_MS = 400;          // hógvær töf milli Alþingis-kalla (429 hefur sést, sjá _seigla.js)
-const FYRSTA_LEIT_DAGAR = 400; // í fyrstu keyrslu: hversu langt aftur leitað er að breytingum
+// ⚠ FASTUR gluggi, ekki „síðan síðast var athugað". Vikulegur þrepaglugga-lestur þýddi að ábending
+// sem enginn læsi þá vikuna hyrfi af síðunni að eilífu. Lesandi vill lika vita að lögunum var breytt
+// í vor, ekki bara í gær. Kostnadurinn er sá sami — ein fyrirspurn hvort sem er.
+const GLUGGI_DAGAR = 365;
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const bid = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -92,7 +95,7 @@ async function stjornartidindi(dateFrom, dateTo) {
 
   const fraArg = (process.argv.find((a) => a.startsWith('--fra=')) || '').slice(6);
   const fyrri = loadPrev(UT);
-  const leitadFra = fraArg || (fyrri && fyrri.athugad) || iso(new Date(nu.getTime() - FYRSTA_LEIT_DAGAR * 86400000));
+  const leitadFra = fraArg || iso(new Date(nu.getTime() - GLUGGI_DAGAR * 86400000));
 
   console.log(`ívilnana-vakt: ${faerslur.length} færslur, leita breytinga frá ${leitadFra}`);
 
@@ -156,9 +159,9 @@ async function stjornartidindi(dateFrom, dateTo) {
   }
 
   const gogn = {
-    // athugad færist AÐEINS fram þegar leitin heppnaðist — annars endurtekur næsta keyrsla
-    // sama tímabil í stað þess að hoppa yfir breytingar sem við náðum aldrei að sjá.
-    athugad: leitStod ? iso(nu) : leitadFra,
+    // athugad = hvenaer forsendurnar voru síðast staðfestar (síðan birtir það). Fari leitin í vaskinn
+    // stendur fyrri dagsetning — síðan má ekki segjast hafa staðfest í dag það sem brást.
+    athugad: leitStod ? iso(nu) : ((fyrri && fyrri.athugad) || iso(nu)),
     keyrt: iso(nu),
     nFaerslur: faerslur.length,
     nLog: log.length,

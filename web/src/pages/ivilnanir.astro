@@ -16,7 +16,11 @@ const groups = {};
 });
 const order = Object.keys(FLOKKAR).filter((f) => groups[f]?.length);
 const total = (Array.isArray(IVILNANIR) ? IVILNANIR : []).length;
-const active = (Array.isArray(IVILNANIR) ? IVILNANIR : []).filter((x) => x.stada === 'virk').length;
+const tel = (s) => (Array.isArray(IVILNANIR) ? IVILNANIR : []).filter((x) => x.stada === s).length;
+const nVirk = tel('virk');
+const nBreytt = tel('breytt');   // í gangi, en skilmálum hefur verið breytt
+const nLidin = tel('lidin');
+const active = nVirk + nBreytt;  // í gildi — ekki aðeins þær óbreyttu
 // Dagsetningin var HARÐKÓÐUÐ og sagði 2026-07-02 fram í september. Nú kemur hún úr vaktinni
 // (skriptur/build_ivilnanir.mjs), sem staðfestir heimildirnar vikulega í CI.
 const updated = VAKT.athugad;
@@ -28,7 +32,7 @@ const fallin = vaktLog.filter((l) => l.stada === 'fallin').length;
 const breytingar = Array.isArray(VAKT.breytingar) ? VAKT.breytingar : [];
 const breytingarA = (heimild) => breytingar.filter((b) =>
   (b.snertir || []).some((m) => (heimild || '').includes(m)));
-const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active} virkar): endurgreiðslur, skattaívilnanir og stuðningskerfi eftir málaflokkum.`;
+const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active} í gildi): endurgreiðslur, skattaívilnanir og stuðningskerfi eftir málaflokkum.`;
 ---
 
 <Layout title="Ívilnanir & stuðningur | Karp" description={desc} canonical="https://karp.is/ivilnanir/" ogTitle="Ívilnanir & stuðningur">
@@ -36,7 +40,7 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
     <p class="kicker">Hagvísir Íslands · Alþingi</p>
     <ThingTabs active="ivilnanir" />
     <h1>Ívilnanir &amp; stuðningur</h1>
-    <p>Stuðningskerfi ríkisins á einum stað — <strong>{total} leiðir</strong>, þar af {active} virkar. Smelltu á færslu fyrir lýsingu.</p>
+    <p>Stuðningskerfi ríkisins á einum stað — <strong>{total} leiðir</strong>: {nVirk} virkar, {nBreytt} með breyttum skilmálum, {nLidin} liðnar. Smelltu á færslu fyrir lýsingu.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Ívilnanir: opinberar skrár um ívilnanasamninga og byggðaaðstoð stjórnvalda.">ⓘ</i> Um gögnin á síðunni</p>
 
     {order.map((f) => (
@@ -47,7 +51,11 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
             <details class="iv">
               <summary>
                 <span class="iv-n">{x.nafn}</span>
-                <span class={`iv-st ${x.stada === 'virk' ? 'on' : 'off'}`}>{x.stada === 'virk' ? 'Virk' : 'Lokið'}</span>
+                {/* ⚠ Var tvígilt (virk : „Lokið"), svo ALLAR 11 `breytt`-færslurnar birtust sem loknar —
+                    vaxtabætur, kolefnisgjald og starfslaun listamanna með talið. Þær eru í gangi; það sem
+                    breyttist eru skilmálarnir. Enginn þeirra ber lokaár í gögnunum. */}
+                <span class={`iv-st ${x.stada === 'virk' ? 'on' : x.stada === 'breytt' ? 'br' : 'off'}`}
+                  >{x.stada === 'virk' ? 'Virk' : x.stada === 'breytt' ? 'Breytt' : 'Lokið'}</span>
                 <span class="iv-y">{x.fra}{x.til ? `–${x.til}` : '–'}</span>
               </summary>
               <div class="iv-b">{x.lysing}</div>
@@ -82,6 +90,7 @@ const desc = `Ívilnanir og stuðningur ríkisins — ${total} leiðir (${active
     .iv-n { display: block; font-weight: 600; font-size: 13.5px; color: var(--ink); padding-right: 52px; }
     .iv-st { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 7px; }
     .iv-st.on { color: var(--bg); background: #46e08a; }
+    .iv-st.br { color: var(--bg); background: #e0b446; }
     .iv-st.off { color: var(--muted); background: rgba(255,255,255,.1); }
     .iv-y { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
     .iv-b { font-size: 12.5px; color: var(--ink); line-height: 1.55; padding: 0 12px 10px; }

@@ -24,10 +24,13 @@ export function lagaMerki({ nr, ar }) {
 /**
  * Dregur lagatilvísanir úr `heimild`-streng.
  *
- * ⚠ Þrjár gildrur sem allar gefa ógildar slóðir ef þær eru hunsaðar:
+ * ⚠ Fjórar gildrur sem gefa ógildar slóðir eða FALSKAR viðvaranir ef þær eru hunsaðar:
  *   1. „Þingsályktun nr. 32/148" — 148 er ÞINGNÚMER, ekki ártal. Barnamenningarsjóður á engin lög.
  *   2. „rg. nr. 534/2020" / „reglugerð … nr. 203/1998" — reglugerðir eru ekki í lagasafninu.
  *   3. „nr. 111/2016" stakt á eftir „og" — ER lög (sjá séreignarsparnaðar-færsluna) og má ekki tapast.
+ *   4. „breytingalögum nr. 67/2026" — BREYTINGALÖG renna inn í meginlögin og standa ALDREI
+ *      sjálfstæð í gildandi lagasafni. Væru þau vöktuð læsi 404 sem „fallin úr gildi" og vaktin
+ *      kæmi með falska viðvörun í hverri viku. (Ég búði nákvæmlega þá til 13.9.2026.)
  * Þess vegna er síað á UNDANFARANDA orði, ekki á því hvort „Lög" standi fremst.
  */
 export function lagaTilvisanir(heimild) {
@@ -37,7 +40,7 @@ export function lagaTilvisanir(heimild) {
   let m;
   while ((m = rx.exec(heimild)) !== null) {
     const undan = (m[1] || '').toLowerCase();
-    if (/(rg\.|reglugerð|reglur|þingsályktun|þál\.|augl\.|auglýsing)/.test(undan)) continue;
+    if (/(rg\.|reglugerð|reglur|þingsályktun|þál\.|augl\.|auglýsing|breytingalög)/.test(undan)) continue;
     const ar = Number(m[3]);
     if (!Number.isInteger(ar) || String(m[3]).length !== 4 || ar < FYRSTA_AR) continue;
     const nr = Number(m[2]);
