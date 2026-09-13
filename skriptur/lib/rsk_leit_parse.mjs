@@ -25,19 +25,48 @@ const hreint = (html) => afkoda(String(html || '').replace(/<[^>]+>/g, ' ')).rep
 
 const erLogadili = (kt) => /^\d{10}$/.test(kt) && +kt.slice(0, 2) >= 41 && +kt.slice(0, 2) <= 71;
 
+// Stök félagssíða: <h1>Nafn ehf. (kt)</h1>. Nafnið má sjálft innihalda sviga
+// („Ben & Jón (eldri) ehf.“) svo kennitalan er tekin úr SÍÐASTA sviganum.
+const H1_STAKT = /<h1[^>]*>([\s\S]*?)<\/h1>/i;
+const NAFN_KT = /^(.*)\((\d{10})\)\s*$/;
+
+const stakUrH1 = (html) => {
+  const h1 = (String(html || '').match(H1_STAKT) || [])[1];
+  if (!h1) return null;
+  const m = hreint(h1).match(NAFN_KT);
+  if (!m) return null;
+  const kt = m[2];
+  const nafn = m[1].trim();
+  return (erLogadili(kt) && nafn) ? { kt, nafn, postfang: '', merki: '' } : null;
+};
+
+// Niðurstöðutaflan hefur ALLTAF <th>Kennitala</th>; félagssíðan hefur hana aldrei.
+const erLeitartafla = (html) => /<th[^>]*>\s*Kennitala\s*<\/th>/i.test(String(html || ''));
+
 /**
  * Hvað sagði leitin? Síðan orðar það sjálf, og það er EINA áreiðanlega leiðin til að
- * greina „forskeytið á engin félög“ frá „RSK þrengir að okkur“ — bæði skila HTTP 200
- * með engum kennitölum. Sweep sem ruglar þessu saman bíður endalaust eftir glugga sem
- * var aldrei lokaður (kom fyrir 13.9 á forskeytinu „ð“).
+ * greina raunverulegar niðurstöður frá „RSK þrengir að okkur“ — allar gerðir skila
+ * HTTP 200. Sweep sem ruglar þessu saman bíður endalaust eftir glugga sem var aldrei
+ * lokaður: það gerðist 13.9 á „ð“ (engin lögaðili) og á „1b“ (nákvæmlega EITT félag,
+ * svo RSK vísaði beint á félagssíðuna og sleppti leitartöflunni alveg).
  *
- * @returns {'nidurstodur'|'tomt'|'obrugdid'}
+ * @returns {'nidurstodur'|'tomt'|'stakt'|'obrugdid'}
  */
 export function flokkaLeit(html) {
   const t = afkoda(String(html || '')).replace(/\s+/g, ' ');
   if (/skilaði engri niðurstöðu/i.test(t)) return 'tomt';
   if (/skilaði eftirfarandi niðurstöðum/i.test(t)) return 'nidurstodur';
+  if (!erLeitartafla(html) && stakUrH1(html)) return 'stakt';
   return 'obrugdid';
+}
+
+/**
+ * Les félagið af stöku félagssíðunni (þegar leitin skilaði nákvæmlega einu).
+ * Póstfangið liggur ekki í sama sniði þar og er skilið eftir tómt.
+ * @returns {{kt: string, nafn: string, postfang: string, merki: string}|null}
+ */
+export function parseStakt(html) {
+  return erLeitartafla(html) ? null : stakUrH1(html);
 }
 
 /**

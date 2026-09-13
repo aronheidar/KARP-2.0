@@ -26,7 +26,7 @@ import { readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { SWEEP_ALPHABET, nextPrefixes } from './lib/sweep.mjs';
-import { parseLeit, flokkaLeit } from './lib/rsk_leit_parse.mjs';
+import { parseLeit, flokkaLeit, parseStakt } from './lib/rsk_leit_parse.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKRA = join(ROOT, 'gogn', 'sweep_felog.json');
@@ -44,7 +44,9 @@ const STATUS_ONLY = process.argv.includes('--status');
 // RSK ber fram tóma síðu þegar það þrengir að; eins stafs forskeyti eiga ALLTAF treff.
 // Þá er BAKKAÐ (tvöföldun) og sama forskeyti reynt aftur — kvótinn losnar eftir bið.
 // Mælt 13.9: þrengingar-glugginn er lengri en 5 mín, svo byrjunarbiðin má ekki vera stutt.
-const MAXFAIL = parseInt(arg('maxfail', '6'), 10);
+const MAXFAIL = parseInt(arg('maxfail', '6'), 10);            // ólík forskeyti í röð → raunveruleg þrenging
+const PFX_TILRAUNIR = parseInt(arg('pfx-tilraunir', '3'), 10); // tilraunir á sama forskeyti í lotu
+const THROTTLE_UPPGJOF = parseInt(arg('throttle-uppgjof', '4'), 10);
 const BACKOFF_BYRJUN = parseInt(arg('backoff', '120000'), 10);
 const BACKOFF_THAK = parseInt(arg('backoff-max', '900000'), 10);
 
@@ -71,7 +73,11 @@ const vista = () => {
   renameSync(tmp, SKRA);
 };
 
-const bidaSkra = () => Object.keys(S.forskeyti).filter((p) => !S.forskeyti[p].done).sort((a, b) => a.length - b.length || a.localeCompare(b));
+// Öll ókláruð forskeyti. `hjaLagt` (fyllt í lotunni sjálfri) heldur utan um þau sem
+// brugðust hér og nú — þau eru sniðgengin svo eitt vandræða-forskeyti stöðvi ekki lotuna.
+const bidaSkra = (sniðganga) => Object.keys(S.forskeyti)
+  .filter((p) => !S.forskeyti[p].done && !(sniðganga && sniðganga.get(p) >= PFX_TILRAUNIR))
+  .sort((a, b) => a.length - b.length || a.localeCompare(b));
 
 if (STATUS_ONLY) {
   const bid = bidaSkra();
@@ -92,7 +98,10 @@ async function saekja(pfx) {
     });
     if (!r.ok) return { villa: 'http-' + r.status };
     const html = await r.text();
-    return { flokkur: flokkaLeit(html), radir: parseLeit(html) };
+    const flokkur = flokkaLeit(html);
+    // 'stakt' = leitin fann NÁKVÆMLEGA eitt félag og RSK vísaði beint á félagssíðuna.
+    const stakt = flokkur === 'stakt' ? parseStakt(html) : null;
+    return { flokkur, radir: stakt ? [stakt] : parseLeit(html) };
   } catch (e) {
     return { villa: e && e.name === 'TimeoutError' ? 'timeout' : 'net' };
   }
@@ -101,17 +110,21 @@ async function saekja(pfx) {
 const t0 = Date.now();
 const utrunnid = () => (Date.now() - t0) > MINUTES * 60000;
 
-let sott = 0, nyFelog = 0, dypkud = 0, fails = 0;
+let sott = 0, nyFelog = 0, dypkud = 0, fails = 0, throttlur = 0;
 const villur = {};
+// Forskeyti sem brugðust í ÞESSARI lotu → tilraunafjöldi. Þau eru ekki merkt búin
+// (bíða næstu lotu í gogn/sweep_felog.json) en stöðva ekki þessa.
+const hjaLagt = new Map();
 let hattiVegna = 'kláraði öll forskeyti';
 
 console.error(`Sweep hefst: ${Object.keys(S.felog).length} félög í safni, ${bidaSkra().length} forskeyti bíða. Þak ${MINUTES} mín, ${DELAY}ms milli sókna.`);
 
 while (true) {
   if (utrunnid()) { hattiVegna = `tímaþak (${MINUTES} mín)`; break; }
-  const bid = bidaSkra();
-  if (!bid.length) break;
-  const pfx = bid[0];
+  const bid = bidaSkra(hjaLagt);
+  if (!bid.length) { if (hjaLagt.size) hattiVegna = `öll eftirstandandi forskeyti (${hjaLagt.size}) lögð til hliðar — reyndu aftur síðar`; break; }
+  // Forskeyti sem brást einu sinni fer aftast: gefum RSK svigrúm áður en það er reynt aftur.
+  const pfx = bid.find((p) => !hjaLagt.has(p)) || bid[0];
 
   if (sott) await sleep(DELAY);
   const { radir, villa, flokkur } = await saekja(pfx);
@@ -128,21 +141,41 @@ while (true) {
     continue;
   }
 
-  // Hvorugt orðalagið á síðunni (eða net-/HTTP-villa) = ÞRENGING eða bilun.
-  // (Mælt 13.9: ~16 sóknir á 2,5s fresti duga áður en RSK byrjar að bera fram tóma síðu.)
-  // Rétt svar er að BAKKA og reyna SAMA forskeyti aftur — ekki gefast upp.
-  if (villa || flokkur !== 'nidurstodur') {
+  // Engin þekkt síðugerð (eða net-/HTTP-villa).
+  //
+  // ⚠⚠ HÖNNUNARGALLI SEM KOSTAÐI 4 KLST (13.9): fyrsta útgáfan beið hér eftir SAMA
+  // forskeyti með vaxandi bakki. Eitt vandræða-forskeyti stöðvaði því alla keyrsluna —
+  // „1b“ hélt lotunni fastri í 14+ mín þótt 300 önnur forskeyti biðu og RSK svaraði
+  // þeim fínt. Nú er forskeytið LAGT TIL HLIÐAR og haldið áfram; aðeins þegar MÖRG
+  // ÓLÍK forskeyti bregðast í röð er ályktað að RSK sé að þrengja að og bakkað í alvöru.
+  if (villa || (flokkur !== 'nidurstodur' && flokkur !== 'stakt')) {
     const k = villa || flokkur;
     villur[k] = (villur[k] || 0) + 1;
+    hjaLagt.set(pfx, (hjaLagt.get(pfx) || 0) + 1);
     fails++;
-    if (fails >= MAXFAIL) { hattiVegna = `${MAXFAIL} samfelldar bilanir þrátt fyrir bið (${JSON.stringify(villur)}) — RSK lokað um sinn; reyndu aftur síðar`; break; }
-    const bid = Math.min(BACKOFF_BYRJUN * 2 ** (fails - 1), BACKOFF_THAK);
-    if (utrunnid()) { hattiVegna = `tímaþak (${MINUTES} mín)`; break; }
-    console.error(`  ⏳ óbrugðið svar á "${pfx}" [${k}] (${fails}/${MAXFAIL}) — bakka í ${Math.round(bid / 1000)}s og reyni sama forskeyti aftur.`);
-    await sleep(bid);
+
+    if (fails >= MAXFAIL) {
+      // Mörg ólík forskeyti í röð → raunveruleg þrenging. Bakka einu sinni, svo halda áfram.
+      const bidMs = Math.min(BACKOFF_BYRJUN * 2 ** (throttlur++), BACKOFF_THAK);
+      if (throttlur > THROTTLE_UPPGJOF) { hattiVegna = `${THROTTLE_UPPGJOF} þrengingarlotur (${JSON.stringify(villur)}) — RSK lokað um sinn; reyndu aftur síðar`; break; }
+      if (utrunnid()) { hattiVegna = `tímaþak (${MINUTES} mín)`; break; }
+      console.error(`  ⏳ ${fails} ólík forskeyti í röð brugðust — RSK þrengir líklega að. Bakka í ${Math.round(bidMs / 1000)}s.`);
+      await sleep(bidMs);
+      fails = 0;
+      hjaLagt.clear();   // gefa þeim sem lentu í þrengingunni nýtt tækifæri
+      continue;
+    }
+
+    if (hjaLagt.get(pfx) < PFX_TILRAUNIR) {
+      console.error(`  ↷ "${pfx}" [${k}] — reyni síðar, held áfram með næsta forskeyti.`);
+    } else {
+      console.error(`  ⊘ "${pfx}" [${k}] — ${PFX_TILRAUNIR} tilraunir, legg til hliðar í þessari lotu.`);
+    }
     continue;
   }
   fails = 0;
+  throttlur = 0;
+  hjaLagt.delete(pfx);
 
   for (const f of radir) {
     if (!S.felog[f.kt]) nyFelog++;

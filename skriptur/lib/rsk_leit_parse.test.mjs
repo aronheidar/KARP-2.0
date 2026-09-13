@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { parseLeit, flokkaLeit } from './rsk_leit_parse.mjs';
+import { parseLeit, flokkaLeit, parseStakt } from './rsk_leit_parse.mjs';
+
+// ⚠ ÞRIÐJA síðugerðin: skili leitin NÁKVÆMLEGA einu félagi vísar skatturinn.is beint á
+// félagssíðuna — engin leitartafla, engin „Leit eftir …“-lína. Sweepið tók það fyrir
+// þrengingu og sat fast á forskeytinu „1b“ í 14+ mínútur (13.9) þótt svarið væri rétt.
+const STAKT = `<html><head>
+  <link rel="canonical" href="https://www.skatturinn.is/fyrirtaekjaskra/leit/kennitala/7101081880" />
+  </head><body><h1>1body ehf. (7101081880)</h1>
+  <dl><dt>Númer</dt><dd>…</dd></dl></body></html>`;
 
 // Raunverulegt markúp af www.skatturinn.is/fyrirtaekjaskra/leit?nafn=ölg (sótt 13.9.2026).
 const RAUN = `
@@ -91,4 +99,30 @@ test('flokkaLeit þolir HTML-einingar í skilaboðunum', () => {
 
 test('flokkaLeit lætur línuskil og aukabil ekki rugla sig', () => {
   assert.equal(flokkaLeit('<p>\n   skilaði\n   engri\n   niðurstöðu\n</p>'), 'tomt');
+});
+
+test('flokkaLeit þekkir stöku félagssíðuna sem leitin vísaði á', () => {
+  assert.equal(flokkaLeit(STAKT), 'stakt');
+});
+
+test('parseStakt les nafn og kt úr félagssíðunni', () => {
+  assert.deepEqual(parseStakt(STAKT), { kt: '7101081880', nafn: '1body ehf.', postfang: '', merki: '' });
+});
+
+test('parseStakt þolir nafn með svigum og einingum', () => {
+  const h = `<h1>Ben &amp; J&oacute;n (eldri) ehf. (4905220500)</h1>`;
+  assert.deepEqual(parseStakt(h), { kt: '4905220500', nafn: 'Ben & Jón (eldri) ehf.', postfang: '', merki: '' });
+});
+
+test('parseStakt hafnar einstaklings-kt og rusli', () => {
+  assert.equal(parseStakt('<h1>Jón Jónsson (1203894569)</h1>'), null);
+  assert.equal(parseStakt('<h1>Engin kennitala hér</h1>'), null);
+  assert.equal(parseStakt(''), null);
+  assert.equal(parseStakt(null), null);
+});
+
+test('leitartafla er ALDREI flokkuð sem stök félagssíða', () => {
+  // Félagssíðan hefur enga <th>Kennitala</th>; niðurstöðutaflan hefur hana alltaf.
+  const medTeflu = '<h1>Eitthvað ehf. (4905220500)</h1><table><thead><tr><th>Kennitala</th></tr></thead></table>';
+  assert.notEqual(flokkaLeit(medTeflu), 'stakt');
 });
