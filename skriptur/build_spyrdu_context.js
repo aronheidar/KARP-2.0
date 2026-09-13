@@ -66,12 +66,20 @@ if (mv && mv.value != null) {
     + (mv.date ? ' (staða ' + dagIS(mv.date) + ')' : '') + '. Vaxtaferill, dráttarvextir og raunvextir eru á /vextir/.');
 }
 
-const FLOKKAR = { S: 'Samfylkingin', D: 'Sjálfstæðisflokkurinn', M: 'Miðflokkurinn', C: 'Viðreisn', F: 'Flokkur fólksins', B: 'Framsóknarflokkurinn', V: 'Vinstri græn', J: 'Sósíalistaflokkurinn', P: 'Píratar' };
+// Flokksheitin voru harðkóðuð HÉR og lesin úr `polls.json` í worker-laginu — en sú skrá geymir
+// `parties` sem bert fylki af bókstöfum, svo worker-uppflettingin gat aldrei heppnast og AUG sagði
+// „S 26,2%" meðan þessi pakki sagði „Samfylkingin 26,2%". Nú lesa BÁÐIR web/src/lib/flokkar.mjs.
+// ⚠ Taflan er ESM og þessi skripta CJS → hún kemur inn um dynamískt import() í async-hlutanum
+//   neðst. Þess vegna er sætinu haldið frá með PLASSHALDARA hér: staðreyndalínurnar eiga fasta röð
+//   (stýrivextir → fylgi → ríkisstjórn …) og að ýta fylginu aftast myndi rugla henni.
+const POLLS_SLOT = { plasshaldari: 'polls' };
 const polls = G('polls.json');
-if (polls && Array.isArray(polls.polls) && polls.polls.length) {
+if (polls && Array.isArray(polls.polls) && polls.polls.length) L.push(POLLS_SLOT);
+
+function pollsLina(FLOKKAR) {
   const last = polls.polls[polls.polls.length - 1];
   const latest = Object.entries(last.v || {}).map(([k, v]) => ({ n: FLOKKAR[k] || k, v })).sort((a, b) => b.v - a.v);
-  if (latest.length) L.push(`FYLGI FLOKKA (${last.pollster || 'könnun'} ${last.date || ''}): ` + latest.map((x) => `${x.n} ${String(x.v).replace('.', ',')}%`).join(', ') + '.');
+  return latest.length ? `FYLGI FLOKKA (${last.pollster || 'könnun'} ${last.date || ''}): ` + latest.map((x) => `${x.n} ${String(x.v).replace('.', ',')}%`).join(', ') + '.' : null;
 }
 
 const cab = G('cabinet.json');
@@ -226,8 +234,15 @@ async function umKarp() {
   } catch (e) { console.log('  (KB-import brást — sleppt:', e.message.slice(0, 60) + ')'); return []; }
 }
 
-Promise.all([liveFacts(), umKarp()]).then(([live, vara]) => {
-  const all = [...live, ...L, ...vara];
+// Flokkstaflan er ESM; sækjum hana eins og KB-ið og leysum plasshaldarann úr L á sínum stað.
+async function flokkaTafla() {
+  try { return (await import('../web/src/lib/flokkar.mjs')).FLOKKAR; }
+  catch (e) { console.log('  (flokkar-import brást — fylgislínan sleppt:', e.message.slice(0, 50) + ')'); return null; }
+}
+
+Promise.all([liveFacts(), umKarp(), flokkaTafla()]).then(([live, vara, FLOKKAR]) => {
+  const leyst = L.map((x) => (x === POLLS_SLOT ? (FLOKKAR ? pollsLina(FLOKKAR) : null) : x)).filter(Boolean);
+  const all = [...live, ...leyst, ...vara];
   const out = {
     updated: new Date().toISOString().slice(0, 10),
     text: all.join('\n'),
