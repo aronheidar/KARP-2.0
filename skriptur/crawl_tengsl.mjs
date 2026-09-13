@@ -10,6 +10,7 @@ import { parseLegalEntity, parseEigendur, personKey } from './lib/rsk_parse.mjs'
 import { buildNightSql, buildSeenLastSql } from './lib/tengsl_sql.mjs';
 import { extractKts, nextPrefixes } from './lib/sweep.mjs';
 import { makeD1 } from './lib/d1_rest.mjs';
+import { buildScrapeFetcher } from './lib/rsk_fetch.mjs';
 
 const DRY = process.argv.includes('--dry-run');
 const bi = process.argv.indexOf('--budget');
@@ -33,7 +34,6 @@ const outOfTime = () => (Date.now() - t0) > DEADLINE_MS;
 const RSK_KEY = process.env.RSK_KEY;
 const today = new Date().toISOString().slice(0, 10);
 const API = 'https://api.skattur.cloud/legalentities/v2.1/';
-const RSK_ROT = 'https://www.skatturinn.is';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!RSK_KEY) { console.error('RSK_KEY vantar — hætti (crawl sefur þar til secret kemur).'); process.exit(0); }
@@ -85,13 +85,12 @@ async function fetchApi(kt) {
 // path = /fyrirtaekjaskra/... Beint á www.skatturinn.is EÐA gegnum RSK-proxy (PROXY_BASE) ef sett.
 // ⚠ TIMEOUT SKYLDA: www.skatturinn.is throttlar m.a. með því að STÖÐVA tengingar — án tímamarka
 // hangir crawlið (mælt 15.7: 14s/félag) og 60-mín workflow-þakið drepur keyrsluna ÁÐUR en night.sql er skrifað.
-async function fetchText(path) {
-  const url = PROXY_BASE ? (PROXY_BASE + '/api/rskproxy?p=' + encodeURIComponent(path)) : (RSK_ROT + path);
-  const headers = { 'User-Agent': 'karp.is tengslagrunnur (aronheidars@gmail.com)' };
-  if (PROXY_BASE) headers['X-Karp-Proxy'] = RSK_KEY;   // gátt proxy-sins (=RSK_KEY, ekkert nýtt secret)
-  try { const r = await fetch(url, { headers, signal: AbortSignal.timeout(FETCH_TIMEOUT) }); return r.ok ? await r.text() : null; }
-  catch (e) { return null; }
-}
+// ⚠ 13.9.2026: sóknin flutt í lib/rsk_fetch.mjs (prófuð). Áður skilaði hún `null` fyrir allt —
+// net-fall, 403 OG „200 með tómri niðurstöðusíðu" (svona throttlar RSK). Þegar proxy-leiðin
+// hætti að skila kennitölum sáust því 12 nætur í röð með „0 uppgötvuð · 0 úr sweep" og samt
+// `success`. Nú eru villur taldar eftir orsök og bein varaleið tekur við þegar proxy bregst.
+const skrapari = buildScrapeFetcher({ proxyBase: PROXY_BASE, rskKey: RSK_KEY, timeout: FETCH_TIMEOUT });
+const fetchText = (path, gilt) => skrapari.fetchText(path, gilt);
 
 const acc = { felog: [], folk: [], hlutverk: [], eign: [], queueMark: [], queueRetry: [], queueAdd: [], sweepMark: [], sweepAdd: [] };
 const seenLastSql = [];
@@ -108,7 +107,9 @@ let sweepFound = 0;
 for (const pfx of prefixes) {
   if (scrapeStop || outOfTime()) break;
   await sleep(SCRAPE_DELAY);   // hægt — góðum megin við hraðatakmarkið
-  const html = await fetchText('/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx));
+  // Gildisprófið er lykillinn: eins stafs forskeyti eiga ALLTAF treff, svo „200 með engum kt"
+  // er throttla — ekki niðurstaða. Sóknin fellur þá sjálf á beina leið áður en hún gefst upp.
+  const html = await fetchText('/fyrirtaekjaskra/leit?nafn=' + encodeURIComponent(pfx), (h) => extractKts(h).length > 0);
   const kts = html ? extractKts(html) : [];
   if (!kts.length) { noteScrape(null); continue; }   // net-fall EÐA 200-tómt (throttla) → EKKI done; retry + back-off
   noteScrape('ok');
@@ -163,6 +164,11 @@ for (const kt of batch) {
 const body = [buildNightSql({ today, ...acc }), ...seenLastSql].join('\n').trim();
 console.error(`Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur · ${discovered} uppgötvuð · ${sweepFound} úr sweep · ${eigDone} eigenda-skröp · ${used} API-köll.`);
 if (errs) console.error(`Villu-sundurliðun: ${JSON.stringify(errBy)}`);
+// ⚠ Án þessarar línu var ekki hægt að greina hvers vegna skrapið skilaði núlli (sjá lib/rsk_fetch.mjs).
+const skrapStats = skrapari.stats();
+if (Object.keys(skrapStats.villur).length) {
+  console.error(`Skrap-sundurliðun: ${JSON.stringify(skrapStats.villur)}${skrapStats.proxyDautt ? ' · RSK-proxy SLÖKKT þessa nótt (sótti beint)' : ''}`);
+}
 
 if (!body) { console.error('Ekkert SQL að skrifa (tóm nótt).'); process.exit(0); }
 // N1 (topplistar): viðhalda felog.isat_primary fyrir NÝ félög (fyrsti ÍSAT-kóði úr isat-JSON) — annars
@@ -201,5 +207,8 @@ console.error(`✓ Beitt á D1 (${stmts.length} setningar).`);
 
 // GH-summary
 if (process.env.GITHUB_STEP_SUMMARY) {
-  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n- API-köll: **${used}** / ${BUDGET}\n- Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur\n- Uppgötvuð ný félög: ${discovered} (crawl) + ${sweepFound} (sweep)\n- Sweep-forskeyti: ${prefixes.length}\n`);
+  const skrapLina = Object.keys(skrapStats.villur).length
+    ? `\n- Skrap-villur: \`${JSON.stringify(skrapStats.villur)}\`${skrapStats.proxyDautt ? ' — **RSK-proxy slökkt, sótt beint**' : ''}`
+    : '';
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Tengslagrunnur — nótt ${today}\n\n- API-köll: **${used}** / ${BUDGET}\n- Þáttað: ${ok} ok · ${notfound} ekki-til · ${errs} villur\n- Uppgötvuð ný félög: ${discovered} (crawl) + ${sweepFound} (sweep)\n- Sweep-forskeyti: ${prefixes.length}${skrapLina}\n`);
 }

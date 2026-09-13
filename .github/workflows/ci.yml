@@ -28,8 +28,10 @@ jobs:
       - name: Einingapróf (web lib + web/test)
         run: node --test src/lib/*.test.mjs src/worker/*.test.mjs test/*.test.mjs
         working-directory: web
-      - name: Einingapróf (skriptur)
-        run: node --test skriptur/*.test.mjs
+      # ⚠ 13.9: skriptur/lib/*.test.mjs voru UTAN gluggans — prófin þar keyrðu hvergi, sami
+      # rotnunar-fasi og úttektin 30.7 fann í web. Báðar möppur nú inni.
+      - name: Einingapróf (skriptur + skriptur/lib)
+        run: node --test skriptur/*.test.mjs skriptur/lib/*.test.mjs
       # Klofningsvörn (C10): worker.js + src/worker/*.mjs mega ekki nota nafn sem hvergi er lýst yfir
       # né flutt inn — hvorki node --check né esbuild grípa það (fannst 19× við klofninginn 30.7).
       - name: Worker-tengingar heilar
