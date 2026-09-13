@@ -11,7 +11,7 @@ import { readSession } from './auth.mjs';
 import { OPNAR_STODUR, TICKET_STODUR, ackVars, efniUrLysingu, flokkaFallback, greiningPrompt, greiningUser, kbSjalfvirkt, parseGreining, ticketSubject } from '../lib/hjalp_agent.mjs';
 
 const MODEL = 'claude-haiku-4-5-20251001';
-const _nowSek = () => Math.floor(Date._nowSek() / 1000);
+const _nowSek = () => Math.floor(Date.now() / 1000);
 const ADMIN_TO = (env) => env.HJALP_TO || 'hjalp@karp.is';
 
 async function _isAdminUid(env, request) {
