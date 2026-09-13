@@ -78,7 +78,13 @@ export function firmaKandidatar(q) {
   const c1 = firmaNafn(q);
   if (c1.length >= 2) ut.push(c1);
   // Sérnafn án fyrsta orðs; finnist ekkert, leyfa fyrsta orðinu („Alvotech er í vanskilum?").
-  const c2 = sernafn(q) || sernafn(q, { slepptaFyrsta: false });
+  // ⚠ EN ALDREI ef fyrsta orðið er sjálft stopporð. Annars hleypir varaleiðin spurnarorðinu inn
+  //   bakdyramegin: „Hvar finn ég upplýsingar um eigendur fyrirtækja?" strípaðist réttilega í
+  //   tóman streng í kosti 1, en „Hvar" er hástafað fyrsta orð → kostur 2 leitaði að því og fann
+  //   raunverulega félagið Hvar ehf., sem spjallið bar fram sem dæmi. Sé fyrsta orðið stopporð er
+  //   það þar af því það er spurnarorð, ekki af því það sé nafn — og þá á ekkert að fletta upp.
+  const fyrsta = String(q).replace(/[?.!,]/g, ' ').trim().split(/\s+/)[0] || '';
+  const c2 = sernafn(q) || (FIRMA_STOP.has(fyrsta.toLowerCase()) ? '' : sernafn(q, { slepptaFyrsta: false }));
   const c2l = c2.toLowerCase();
   if (c2l.length >= 2 && c2l !== c1) ut.push(c2);
   return ut;

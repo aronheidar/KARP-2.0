@@ -121,3 +121,18 @@ test('beygingar kjarnaorðanna eru allar stopporð (fyrirtæki/félag)', () => {
   }
   assert.equal(firmaNafn('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), '');
 });
+
+test('varaleiðin hleypir spurnarorði EKKI inn bakdyramegin', () => {
+  // „Hvar" strípaðist réttilega í kosti 1, en var hástafað fyrsta orð → kostur 2 leitaði að því
+  // og fann raunverulega félagið Hvar ehf. Sé fyrsta orðið stopporð er það spurnarorð, ekki nafn.
+  assert.deepEqual(firmaKandidatar('Hvar finn ég upplýsingar um eigendur fyrirtækja?'), []);
+  // ⚠ Prófið nær AÐEINS yfir bakdyrnar. Það er ekki hlutverk þessarar einingar að vita að
+  //   „atvinnuleysið" sé ekki félagsheiti — sú spurning kveikir hvort eð er ekki á firmaLookup.
+  assert.deepEqual(firmaKandidatar('Hvar er Alcoa?'), ['alcoa']);
+});
+
+test('…en fyrsta orðið sem EKKI er stopporð fær enn að vera kandidat', () => {
+  // Vörnin má ekki éta réttmæta tilvikið sem varaleiðin var smíðuð fyrir.
+  assert.ok(firmaKandidatar('Alvotech skuldar hvað?').some((x) => /alvotech/i.test(x)));
+  assert.ok(firmaKandidatar('Hver á Hvar ehf?').some((x) => /hvar ehf/i.test(x)));
+});
