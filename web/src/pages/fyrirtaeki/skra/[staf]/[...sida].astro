@@ -1,0 +1,131 @@
+---
+// Eitt stafhólf úr fyrirtækjaskránni — hér verða prófílarnir loks skríðanlegir.
+// Hver færsla er tengill með FÉLAGSNAFNINU sem akkerisexta á /fyrirtaeki/<kt>/;
+// það er einmitt merkið sem vantaði (sjá skýringu í index.astro og fyrirtaeki-slod.mjs).
+//
+// ⚠ SÍÐUSKIPTING (14.9): við 31.412 félög fór stærsta hólfið (A) í 3.284 færslur og
+// síðan hefði orðið ~260 KB af tenglum. PER_SIDA heldur henni viðráðanlegri.
+// Síða 1 heldur sléttu slóðinni (/fyrirtaeki/skra/a/), framhaldið fær /2/, /3/ …
+// Hver síða VÍSAR Á SIG SJÁLFA í canonical — aldrei á síðu 1. Að sameina þær undir
+// einn canonical fjarlægir einmitt þá prófíla sem aðeins standa á síðum 2+.
+import Layout from '../../../../layouts/Layout.astro';
+import SKRA from '@gogn/felagaskra.json';
+import { HOLF, holfTitill, stafHolf, felagSlod, ktTolur, PER_SIDA } from '../../../../lib/fyrirtaeki-slod.mjs';
+
+// ⚠ Astro hoistar getStaticPaths og keyrir hana í eigin gildissviði — hún nær í
+// innflutning (SKRA, HOLF, stafHolf) en EKKI í aðrar frontmatter-breytur. Þess vegna
+// er hópunin reiknuð hér inni og `virk` sent áfram sem prop fyrir stafa-flakkið.
+export function getStaticPaths() {
+  const hopar = {};
+  for (const f of SKRA.felog || []) (hopar[stafHolf(f.nafn)] ||= []).push(f);
+  // Aðeins hólf sem eiga félög — tómt hólf væri þunn síða og ekkert annað.
+  const virk = HOLF.filter((h) => hopar[h] && hopar[h].length);
+  const slodir = [];
+  for (const h of virk) {
+    const allar = hopar[h];
+    const sidur = Math.max(1, Math.ceil(allar.length / PER_SIDA));
+    for (let n = 1; n <= sidur; n++) {
+      slodir.push({
+        // Síða 1 fær tóma rest-færibreytu → /fyrirtaeki/skra/<hólf>/
+        params: { staf: h, sida: n === 1 ? undefined : String(n) },
+        props: { radir: allar.slice((n - 1) * PER_SIDA, n * PER_SIDA), virk, n, sidur, alls: allar.length },
+      });
+    }
+  }
+  return slodir;
+}
+
+const { staf } = Astro.params;
+const { radir, virk, n, sidur, alls } = Astro.props;
+
+const titill = holfTitill(staf);
+const i = virk.indexOf(staf);
+const fyrriStafur = i > 0 ? virk[i - 1] : null;
+const naestiStafur = i >= 0 && i < virk.length - 1 ? virk[i + 1] : null;
+
+const slod = (h, s = 1) => `/fyrirtaeki/skra/${h}/` + (s > 1 ? `${s}/` : '');
+const minSlod = slod(staf, n);
+const canonical = 'https://karp.is' + minSlod;
+
+const ktSnid = (kt) => (String(kt).length === 10 ? String(kt).slice(0, 6) + '-' + String(kt).slice(6) : kt);
+const grunnHeiti = staf === '0-9' ? 'Félög sem byrja á tölustaf'
+  : staf === 'annad' ? 'Félög með önnur upphafstákn'
+  : `Félög sem byrja á ${titill}`;
+const heiti = sidur > 1 ? `${grunnHeiti} — síða ${n} af ${sidur}` : grunnHeiti;
+const lysing = `${alls.toLocaleString('is-IS')} íslensk félög — ${grunnHeiti.toLowerCase()}${sidur > 1 ? `, síða ${n} af ${sidur}` : ''}. Kennitala, ársreikningur, endanlegir eigendur og umfjöllun á Karp.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: heiti,
+  description: lysing,
+  url: canonical,
+  inLanguage: 'is',
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Forsíða', item: 'https://karp.is/' },
+      { '@type': 'ListItem', position: 2, name: 'Fyrirtæki', item: 'https://karp.is/fyrirtaeki/' },
+      { '@type': 'ListItem', position: 3, name: 'Fyrirtækjaskrá', item: 'https://karp.is/fyrirtaeki/skra/' },
+      { '@type': 'ListItem', position: 4, name: titill, item: 'https://karp.is' + slod(staf) },
+    ],
+  },
+};
+---
+
+<Layout title={`${heiti} | Fyrirtækjaskrá Karps`} description={lysing} canonical={canonical} jsonLd={jsonLd}>
+  {/* ⚠ Ekkert <link rel=prev/next> hér: Layout tekur engan head-slot, og Google hætti að
+      nota þau sem vísitölumerki 2019. Sýnilega síðuflakkið neðar er það sem skríður. */}
+  <main class="fskra" data-pg="fyrirtaeki-skra-staf">
+    <nav class="fskra-brod" aria-label="Brauðmylsna">
+      <a href="/">Forsíða</a> <span aria-hidden="true">›</span>
+      <a href="/fyrirtaeki/">Fyrirtæki</a> <span aria-hidden="true">›</span>
+      <a href="/fyrirtaeki/skra/">Fyrirtækjaskrá</a> <span aria-hidden="true">›</span>
+      {n > 1 ? <a href={slod(staf)}>{titill}</a> : <span aria-current="page">{titill}</span>}
+      {n > 1 && <> <span aria-hidden="true">›</span> <span aria-current="page">Síða {n}</span></>}
+    </nav>
+
+    <h1>{heiti}</h1>
+    <p class="fskra-lead">
+      <strong>{alls.toLocaleString('is-IS')}</strong> félög{sidur > 1 ? ` — sýni ${((n - 1) * PER_SIDA + 1).toLocaleString('is-IS')}–${((n - 1) * PER_SIDA + radir.length).toLocaleString('is-IS')}` : ''}.
+      Smelltu á nafn til að opna prófílinn — grunnskrá, ársreikninga, eigendur og umfjöllun.
+    </p>
+
+    <ul class="fskra-listi">
+      {radir.map((f) => (
+        <li>
+          <a href={felagSlod(f.kt)}>{f.nafn}</a>
+          <span class="fskra-kt">{ktSnid(ktTolur(f.kt))}</span>
+        </li>
+      ))}
+    </ul>
+
+    {sidur > 1 && (
+      <nav class="fskra-sidur" aria-label="Síður innan stafsins">
+        {n > 1 ? <a rel="prev" href={slod(staf, n - 1)}>← Fyrri síða</a> : <span></span>}
+        <span class="fskra-sidutala">Síða {n} af {sidur}</span>
+        {n < sidur ? <a rel="next" href={slod(staf, n + 1)}>Næsta síða →</a> : <span></span>}
+      </nav>
+    )}
+
+    <nav class="fskra-nav" aria-label="Fleiri stafir">
+      {fyrriStafur ? <a href={slod(fyrriStafur)}>← {holfTitill(fyrriStafur)}</a> : <span></span>}
+      <a href="/fyrirtaeki/skra/">Allir stafir</a>
+      {naestiStafur ? <a href={slod(naestiStafur)}>{holfTitill(naestiStafur)} →</a> : <span></span>}
+    </nav>
+  </main>
+
+  <style is:global>
+    .fskra-listi { list-style: none; padding: 0; margin: 0 0 24px; columns: 2; column-gap: 34px; }
+    .fskra-listi li { break-inside: avoid; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .fskra-listi a { color: #e9eef6; text-decoration: none; font-size: 14.5px; }
+    .fskra-listi a:hover { color: #19d3c5; text-decoration: underline; }
+    .fskra-kt { font-size: 11.5px; color: #7e8ca6; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .fskra-sidur { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0 18px; border-top: 1px solid rgba(255,255,255,.08); }
+    .fskra-sidutala { font-size: 13px; color: #7e8ca6; }
+    .fskra-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 6px; }
+    .fskra-sidur a, .fskra-nav a { color: #19d3c5; text-decoration: none; font-size: 14px; }
+    .fskra-sidur a:hover, .fskra-nav a:hover { text-decoration: underline; }
+    @media (max-width: 640px) { .fskra-listi { columns: 1; } }
+  </style>
+</Layout>

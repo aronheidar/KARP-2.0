@@ -68,6 +68,11 @@ export const HOLF = [
 
 export const HOLF_TITLAR = { '0-9': '0–9', th: 'Þ', ae: 'Æ', oe: 'Ö', annad: 'Annað' };
 
+// Færslur á hverri skráarsíðu. ⚠ Býr HÉR en ekki í .astro-skránni af því Astro hoistar
+// getStaticPaths og keyrir hana í eigin gildissviði: hún sér innflutning en EKKI aðrar
+// frontmatter-breytur (bygging fellur á „PER_SIDA is not defined“).
+export const PER_SIDA = 500;
+
 export const holfTitill = (h) => HOLF_TITLAR[h] || String(h || '').toUpperCase();
 
 export const stafHolf = (nafn) => {
