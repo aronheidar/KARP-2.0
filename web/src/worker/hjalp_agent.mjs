@@ -303,8 +303,11 @@ export async function ticketsOverview(env) {
     if (!meta || meta.atkvaedi !== 'ja' || !['svara', 'meira'].includes(meta.adgerd)) continue;
     if (!x.svar_sent || Number(x.svar_sent) < Number(x.ts)) moot_osent.push(x.ticket_id);
   }
-  // „Leyst án þín": beiðnir þar sem agentinn sendi sjálfur efnislegt svar (KB orðrétt). Ein talning
-  // yfir alla sögu — mælikvarði á hvort sjálfvirknin sé raunverulega að létta af Aroni.
-  const sjalfv = await env.TENGSL.prepare("SELECT COUNT(DISTINCT ticket_id) n FROM ticket_msgs WHERE dir='out' AND sent_by='agent'").first().catch(() => null);
+  // „Leyst án þín": mál sem fékk EFNISLEGT svar (svar_sent er aðeins sett af sendSvar) og Aron skrifaði
+  // ekkert í. ⚠ Ekki telja dir='out' AND sent_by='agent' — sjálfvirka STAÐFESTINGIN ber sömu merkingu og
+  // fer á hvert einasta mál, svo sú talning hefði nánast jafngilt heildarfjölda beiðna.
+  const sjalfv = await env.TENGSL.prepare(
+    "SELECT COUNT(*) n FROM tickets t WHERE t.svar_sent IS NOT NULL AND NOT EXISTS (SELECT 1 FROM ticket_msgs m WHERE m.ticket_id=t.id AND m.dir='out' AND m.sent_by='aron')",
+  ).first().catch(() => null);
   return { list, open: list.filter((t) => OPNAR_STODUR.includes(t.stada)).length, by, off, moot_bida, moot_osent, sjalfvirk: Number(sjalfv && sjalfv.n) || 0 };
 }

@@ -23,7 +23,10 @@ function fakeDb(state) {
     if (/^SELECT id, created, updated, uppruni, nafn, netfang, flokkur, tegund, forgangur, efni, lysing, stada, ack_sent, svar_sent, cto_pr FROM tickets ORDER BY created DESC LIMIT 60$/.test(sql)) return { results: Object.values(state.tickets) };
     if (/^SELECT m\.ticket_id, MAX\(CASE WHEN m\.sent_by='moot' THEN m\.ts END\) t_moot, MAX\(CASE WHEN m\.sent_by='aron' THEN m\.ts END\) t_atkv FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND t\.stada IN \([?,]+\) GROUP BY m\.ticket_id$/.test(sql)) return { results: [] };
     if (/^SELECT m\.ticket_id, m\.ts, m\.meta, t\.svar_sent FROM ticket_msgs m JOIN tickets t ON t\.id=m\.ticket_id WHERE m\.dir='moot' AND m\.sent_by='aron' AND t\.stada IN \([?,]+\) ORDER BY m\.ts DESC, m\.id DESC$/.test(sql)) return { results: [] };
-    if (/^SELECT COUNT\(DISTINCT ticket_id\) n FROM ticket_msgs WHERE dir='out' AND sent_by='agent'$/.test(sql)) return { n: state.sjalfvirk || 0 };
+    if (/^SELECT COUNT\(\*\) n FROM tickets t WHERE t\.svar_sent IS NOT NULL AND NOT EXISTS/.test(sql)) {
+      const aronSvaradi = new Set(state.msgs.filter((m) => m.dir === 'out' && m.sent_by === 'aron').map((m) => m.ticket_id));
+      return { n: Object.values(state.tickets).filter((t) => t.svar_sent && !aronSvaradi.has(t.id)).length };
+    }
     throw new Error('fakeDb: óþekkt SQL: ' + sql);
   };
   return {
@@ -131,10 +134,18 @@ test('cto: dispatch ber event_type cto {ticket} (óbreytt eftir _ghDispatch-samr
 });
 
 // ── ticketsOverview: sjalfvirk ───────────────────────────────────────────────────────────────────────────────────
-test('ticketsOverview skilar sjalfvirk: fjölda mála sem agentinn svaraði sjálfur', async () => {
+test('sjalfvirk telur mál sem agentinn kláraði — ekki þau sem fengu bara staðfestingu, og ekki þau sem Aron svaraði', async () => {
   const state = mkState();
-  state.tickets[1].stada = 'svarad';
-  state.sjalfvirk = 2;
+  // A: aðeins sjálfvirk staðfesting — ekkert efnislegt svar fór út
+  state.tickets[1] = Object.assign({}, state.tickets[1], { id: 1, stada: 'stadfest', ack_sent: 100, svar_sent: null });
+  state.msgs.push({ ticket_id: 1, dir: 'out', sent_by: 'agent', texti: 'Móttekið' });
+  // B: staðfesting OG orðrétt KB-svar frá agentinum → ÞETTA er „leyst án þín"
+  state.tickets[2] = { id: 2, stada: 'svarad', created: 1, updated: 2, efni: 'B', netfang: 'b@x.is', ack_sent: 100, svar_sent: 200, cto_pr: null };
+  state.msgs.push({ ticket_id: 2, dir: 'out', sent_by: 'agent', texti: 'Móttekið' }, { ticket_id: 2, dir: 'out', sent_by: 'agent', texti: 'KB-svar' });
+  // C: staðfesting og svo svaraði Aron sjálfur → telst EKKI
+  state.tickets[3] = { id: 3, stada: 'svarad', created: 1, updated: 2, efni: 'C', netfang: 'c@x.is', ack_sent: 100, svar_sent: 300, cto_pr: null };
+  state.msgs.push({ ticket_id: 3, dir: 'out', sent_by: 'agent', texti: 'Móttekið' }, { ticket_id: 3, dir: 'out', sent_by: 'aron', texti: 'Svar Arons' });
+
   const r = await ticketsOverview(mkEnv(state));
-  assert.equal(r.sjalfvirk, 2);
+  assert.equal(r.sjalfvirk, 1, 'aðeins mál B — staðfesting ein og sér er ekki lausn, og mál Arons telst ekki');
 });
