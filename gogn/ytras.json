@@ -1,8 +1,8 @@
 {
- "updated": "2026-09-07T09:52:57.202Z",
- "n": 32,
+ "updated": "2026-09-14T10:20:49.436Z",
+ "n": 31,
  "byCat": {
-  "midlar": 14,
+  "midlar": 13,
   "stofnanir": 1,
   "fyrirtaeki": 11,
   "thingmenn": 6
@@ -157,14 +157,6 @@
    "cat": "midlar",
    "newest": "2013-11-06",
    "vids": 3
-  },
-  {
-   "id": "UC6Do04DwAPTvQ53FJN1q7zA",
-   "n": "DV Films",
-   "q": "DV Ísland",
-   "cat": "midlar",
-   "newest": "2026-07-20",
-   "vids": 15
   },
   {
    "id": "UCnMTy_Mb2cjJ_mNrSoPIp2Q",
