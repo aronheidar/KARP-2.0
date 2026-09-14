@@ -170,7 +170,29 @@ function parseRankings(html) {
   // Store prices as arrays aligned to data.items order (no repeated keys → smaller payload)
   data.order.forEach(slug => { data.prices[slug] = data.items.map(it => { const v = byKey[slug][it.cat + '||' + it.name]; return (v == null) ? null : v; }); });
 
-  fs.writeFileSync(DIR + 'numbeo.json', JSON.stringify(data));
+  // ⚠⚠ SEIGLA — ÞETTA GERÐIST Í RAUN. 22.8.2026 skilaði skrapið engu (Numbeo svarar líklega ekki
+  //   gagnavers-IP-tölum GitHub-keyraranna; skriftan virkar áfram frá venjulegri nettengingu) og
+  //   skrifaði TÓMA skrá yfir 55 góða liði. `|| true` í refresh-data faldi það, engin villa sást,
+  //   og af því tóma skráin breyttist ekki eftir það varð ekkert nýtt commit til að vekja athygli.
+  //   Verðsamanburðarhlutinn á /samanburdur/ var horfinn af vefnum í ÞRJÁR VIKUR án þess að nokkuð
+  //   yrði rautt. Sama mynstur og build_lyf.js ver sig gegn (sjá SEIGLA þar).
+  //   REGLAN: tómt/stórlega rýrt skrap YFIRSKRIFAR ALDREI heilt eintak. Betra að bera fram gögn
+  //   sem eru viku gömul en engin — og heilsu-hliðið (build_heilsa.mjs) segir frá ferskleikanum.
+  const OUT = DIR + 'numbeo.json';
+  if (fs.existsSync(OUT)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+      const pn = (prev.items || []).length;
+      if (pn > 10 && data.items.length < pn * 0.5) {
+        console.log('  ! SEIGLA: nýtt skrap gaf ' + data.items.length + ' liði < 50% af fyrri ' + pn
+          + ' — held eldra numbeo.json. (Blokkun? Breytt HTML?) Skráin eldist en hverfur ekki.');
+        process.exit(0);
+      }
+    } catch (e) { /* ónýtt fyrra eintak → skrifum nýtt */ }
+  }
+  if (!data.items.length) { console.log('  ! Ekkert skrapað og ekkert fyrra eintak — skrifa EKKI tóma skrá.'); process.exit(0); }
+
+  fs.writeFileSync(OUT, JSON.stringify(data));
   console.log('\nWROTE numbeo.json | cities:', data.order.length, '| canonical items:', data.items.length);
   console.log('\n=== CANONICAL ITEM LIST (for Icelandic translation) ===');
   data.items.forEach((it, i) => console.log(String(i).padStart(2), '[' + it.cat + ']', it.name));

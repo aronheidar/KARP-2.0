@@ -38,8 +38,20 @@ let _since = _mv.date;
 { const s = _mvSer.find((x) => x.id === 17923); if (s && s.points.length) { const p = s.points, cur = p[p.length - 1][1]; _since = p[p.length - 1][0]; for (let i = p.length - 2; i >= 0; i--) { if (p[i][1] === cur) _since = p[i][0]; else break; } } }
 const [_sy, _sm, _sd] = _since.split('-');
 const _fraNum = `${+_sd}.${+_sm}.${_sy}`, _fraTxt = `${+_sd}. ${_MON[+_sm - 1]} ${_sy}`;
-const NAEST = '19. ágúst 2026'; // næsta vaxtaákvörðun — birt dagatal SÍ (ekki í tímaröð; uppfæra eftir þörfum)
-const POLICY = { rate: _mv.value, from: _fraNum, next: '19.8.2026' };
+// ⚠⚠ NÆSTA VAXTAÁKVÖRÐUN ER HANDFÆRÐ. Hún er hvergi í tímaröðum Seðlabankans — aðeins í birtu
+//   vaxtaákvörðunardagatali — svo hún verður að vera fasti. Fasti sem á að úreldast úreldist ÞEGJANDI:
+//   14.9.2026 stóð hér enn „19. ágúst 2026" og síðan fullyrti það við gesti sem NÆSTU ákvörðun,
+//   mánuði eftir að hún var liðin. (Sama villa og í fasta samhengispakka Spyrðu Karp, sem var lagaður
+//   13.9 með því að fella fullyrðinguna út.)
+//   LAUSN: ISO-dagur + sjálfvirkt brottfall. Sé dagurinn liðinn verður NAEST null og setningin birtist
+//   EKKI — betra að segja ekkert en rangt. Vefurinn er endurbyggður daglega (refresh-data deployar),
+//   svo brottfallið tekur gildi án inngrips.
+//   ⚠ UPPFÆRÐU gildið þegar SÍ birtir næsta dagatal; þangað til vantar setninguna einfaldlega.
+const NAEST_ISO = '2026-08-19';
+const _idag = new Date().toISOString().slice(0, 10);
+const _nd = NAEST_ISO.split('-');
+const NAEST = NAEST_ISO >= _idag ? `${+_nd[2]}. ${_MON[+_nd[1] - 1]} ${_nd[0]}` : null;
+const POLICY = { rate: _mv.value, from: _fraNum, next: NAEST ? `${+_nd[2]}.${+_nd[1]}.${_nd[0]}` : null };
 
 // Næsti mánuður (fyrir spá-eyjuna) + stöðugur topic-lykill.
 let nextLabel = '', spaTopic = 'vnv_ars_next';
@@ -142,7 +154,7 @@ const jsonLd = {
       <div class="kpi"><div class="k-l">£ GBP/ISK</div><div class="k-v">{fx ? fmtNum(fx.gbp, 1) : '–'}</div><div class="k-s">kr. per £</div></div>
     </div>
     <p class="src">
-      Gengi: frankfurter.app (ECB){fx ? `, ${fx.date}` : ''} · Stýrivextir: Seðlabanki Íslands (næsta ákvörðun {POLICY.next}) · Atvinnuleysi: Vinnumálastofnun ({ATVINNULEYSI.updated}).
+      Gengi: frankfurter.app (ECB){fx ? `, ${fx.date}` : ''} · Stýrivextir: Seðlabanki Íslands{POLICY.next ? ` (næsta ákvörðun ${POLICY.next})` : ''} · Atvinnuleysi: Vinnumálastofnun ({ATVINNULEYSI.updated}).
     </p>
 
     <h2>Verðbólga — þróun</h2>
@@ -196,7 +208,7 @@ const jsonLd = {
       <>
         <h2>Gengi krónunnar — evran síðasta árið</h2>
         <div id="chart-fx"></div>
-        <p class="src">Krónur á evru (ECB-viðmiðunargengi). Nýjast: {fmtNum(FX.eur, 1)} kr ({FX.date}). Næsta vaxtaákvörðun SÍ: {STYRIVEXTIR.naest}.</p>
+        <p class="src">Krónur á evru (ECB-viðmiðunargengi). Nýjast: {fmtNum(FX.eur, 1)} kr ({FX.date}).{STYRIVEXTIR.naest ? ` Næsta vaxtaákvörðun SÍ: ${STYRIVEXTIR.naest}.` : ''}</p>
       </>
     )}
 

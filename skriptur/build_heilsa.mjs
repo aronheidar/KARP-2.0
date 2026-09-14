@@ -37,6 +37,13 @@ const SOURCES = [
   ['birgjar.json', 'Birgjar', MONTHLY],   // Fjársýslan birtir mánaðarlega → `updated` lækkar ekki þótt vikuleg keyrsla sé í lagi
   ['sanctions.json', 'Refsilistar', MONTHLY],
   ['skip_owners.json', 'Skipaskrá / eigendur', MONTHLY],
+  // ⚠ BÆTT VIÐ 14.9.2026 EFTIR ÞÖGULA BILUN. numbeo var ÓVÖKTUÐ: skrapið hætti að skila 22.8,
+  //   skrifaði TÓMA skrá yfir 55 góða liði, og verðsamanburðarhlutinn á /samanburdur/ hvarf af
+  //   vefnum í þrjár vikur án þess að nokkuð yrði rautt. Ferskleika-vöktun EIN hefði ekki dugað —
+  //   skráin var til og nýleg, bara tóm — svo build_numbeo.js fékk líka seiglu-vörn. Þetta hlið
+  //   grípur hina hliðina: haldi seiglan gömlu eintaki of lengi sést það hér.
+  //   WEEKLY því skrapið er þungt og verðlag hreyfist hægt; strangara þak gæfi falskt rautt.
+  ['numbeo.json', 'Numbeo verðsamanburður', WEEKLY],
 ];
 const pickDate = (o) => { if (!o || typeof o !== 'object') return null; for (const k of ['updated', 'generated', 'uppfaert', 'sott', 'ts', 'dags', 'timestamp', 'date']) if (o[k]) return String(o[k]); return null; };
 
