@@ -21,9 +21,34 @@ export const erLogadili = (kt) => {
 
 const vidmotHali = (vidmot, fyrstaStafur) => (vidmot ? fyrstaStafur + 'vidmot=' + encodeURIComponent(vidmot) : '');
 
+// ── Nafn í slóð ───────────────────────────────────────────────────────────────
+// /fyrirtaeki/<slug>-<kt>/ — slugið ber nafnið (akkerisexti og sýnilegt í SERP),
+// kennitalan tryggir einkvæmni og lifir nafnabreytingar af.
+// ⚠ Kennitalan er AFTAST og lesin sem öftustu 10 tölurnar: félagsnöfn enda sjálf oft á
+// tölum („F-610 ehf.", „101 streetfood") svo fremsta-tölu-þáttun væri tvíræð.
+// ⚠ EKKI slugify() úr atvinnugrein.mjs — hún strípar svigainnihald aftast (ÍSAT-hegðun)
+// og myndi éta nafnhluta eins og „(eldri)".
+const TRANSLIT = { þ: 'th', ð: 'd', æ: 'ae', ö: 'o', á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u', ý: 'y' };
+
+export const felagSlug = (nafn) => String(nafn ?? '')
+  .toLowerCase()
+  .replace(/[þðæöáéíóúý]/g, (c) => TRANSLIT[c] || c)
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+
+/** Kennitalan úr slóðarhluta — hvort sem hann er „<slug>-<kt>" eða ber „<kt>". */
+export const ktUrSlod = (hluti) => {
+  const m = String(hluti ?? '').match(/(\d{10})$/);
+  return m && erLogadili(m[1]) ? m[1] : null;
+};
+
 // Kanónísk prófílslóð — eða null ef kt dugar ekki (kallandinn á þá að nota leitina).
-export const felagSlod = (kt, { vidmot } = {}) =>
-  (erLogadili(kt) ? '/fyrirtaeki/' + ktTolur(kt) + '/' + vidmotHali(vidmot, '?') : null);
+// Fylgi `nafn` með fæst nafn-slóðin; annars hrein kt-slóð sem workerinn 301-ar á hana.
+export const felagSlod = (kt, { vidmot, nafn } = {}) => {
+  if (!erLogadili(kt)) return null;
+  const slug = nafn ? felagSlug(nafn) : '';
+  return '/fyrirtaeki/' + (slug ? slug + '-' : '') + ktTolur(kt) + '/' + vidmotHali(vidmot, '?');
+};
 
 // Örugg slóð fyrir öll köll: prófíll þegar kt dugar, annars leitarsíðan með fyrirspurninni.
 export const felagHref = (ktEdaNafn, opts = {}) => {

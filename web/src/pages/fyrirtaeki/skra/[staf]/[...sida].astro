@@ -94,7 +94,7 @@ const jsonLd = {
     <ul class="fskra-listi">
       {radir.map((f) => (
         <li>
-          <a href={felagSlod(f.kt)}>{f.nafn}</a>
+          <a href={felagSlod(f.kt, { nafn: f.nafn })}>{f.nafn}</a>
           <span class="fskra-kt">{ktSnid(ktTolur(f.kt))}</span>
         </li>
       ))}

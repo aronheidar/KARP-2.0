@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { erLogadili } from '../web/src/lib/fyrirtaeki-slod.mjs';
+import { erLogadili, felagSlod } from '../web/src/lib/fyrirtaeki-slod.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -28,7 +28,16 @@ try {
   process.exit(0);   // fail-soft: betra að halda fyrra sitemap en að skrifa tómt
 }
 
-const kts = [...new Set((skra.felog || []).map((f) => f.kt).filter(erLogadili))].sort();
+// ⚠ Sitemap ber KANÓNÍSKU slóðina, /fyrirtaeki/<slug>-<kt>/. Bera kt-slóðin 301-ast á hana;
+// að telja hana hér léti Google elta 44.917 varanlegar tilvísanir að óþörfu.
+const sed = new Set();
+const felog = [];
+for (const f of skra.felog || []) {
+  if (!erLogadili(f.kt) || sed.has(f.kt)) continue;
+  sed.add(f.kt);
+  felog.push(f);
+}
+const kts = felog.map((f) => f.kt);
 if (!kts.length) {
   console.error('sitemap-fyrirtaeki: engar gildar kennitölur í felagaskra.json — sitemap ÓBREYTT.');
   process.exit(0);
@@ -36,7 +45,10 @@ if (!kts.length) {
 
 // lastmod er marktækt fyrir Google; changefreq er hunsað og því sleppt.
 const lastmod = (skra.generated || new Date().toISOString()).slice(0, 10);
-const urls = kts.map((kt) => `  <url><loc>https://karp.is/fyrirtaeki/${kt}/</loc><lastmod>${lastmod}</lastmod></url>`).join('\n');
+const urls = felog
+  .map((f) => `  <url><loc>https://karp.is${felagSlod(f.kt, { nafn: f.nafn })}</loc><lastmod>${lastmod}</lastmod></url>`)
+  .sort()
+  .join('\n');
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 writeFileSync(join(ROOT, 'web', 'public', 'sitemap-fyrirtaeki.xml'), xml);
 console.log(`sitemap-fyrirtaeki.xml: ${kts.length} kt (lastmod ${lastmod})`);

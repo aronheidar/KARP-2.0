@@ -96,6 +96,76 @@ test('inline-speglar felagHref í define:vars-skriftum haldast í takt við eini
   }
 });
 
+// ── Nafn í slóð (#3) ──────────────────────────────────────────────────────────
+// /fyrirtaeki/<slug>-<kt>/ — slugið ber nafnið, kennitalan tryggir einkvæmni og lifir
+// nafnabreytingar af. Kennitalan er AFTAST svo þáttunin sé ótvíræð: nafn getur sjálft
+// endað á tölum ("F-610 ehf."), svo við lesum alltaf öftustu 10 tölurnar sem kt.
+test('felagSlug: íslenskir stafir verða ascii, annað verður strik', async () => {
+  const { felagSlug } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.equal(felagSlug('Slæging ehf.'), 'slaeging-ehf');
+  assert.equal(felagSlug('Ölgerðin Egill Skallagrímss ehf'), 'olgerdin-egill-skallagrimss-ehf');
+  assert.equal(felagSlug('Þórsberg ehf.'), 'thorsberg-ehf');
+  assert.equal(felagSlug('Ben & Jón (eldri) ehf.'), 'ben-jon-eldri-ehf');
+  assert.equal(felagSlug('A-1 Tölvugrafík'), 'a-1-tolvugrafik');
+  assert.equal(felagSlug('101 streetfood ehf.'), '101-streetfood-ehf');
+});
+
+test('felagSlug: svigainnihald HELST — ólíkt ÍSAT-slugify í atvinnugrein.mjs', async () => {
+  const { felagSlug } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.ok(felagSlug('Dæmi ehf. (gamla)').includes('gamla'), 'nafnhluti má ekki hverfa');
+});
+
+test('felagSlug: aldrei tómt, aldrei hangandi strik, aldrei bara tölur-árekstur', async () => {
+  const { felagSlug } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  for (const n of [null, undefined, '', '   ', '###', '...']) {
+    const s = felagSlug(n);
+    assert.equal(s, '', 'ónothæft nafn á að skila tómu slugi, ekki rusli: ' + JSON.stringify(s));
+  }
+  assert.ok(!/^-|-$/.test(felagSlug('  -Dæmi-  ')), 'hangandi strik');
+});
+
+test('felagSlod skilar nafn-slóð þegar nafn fylgir, annars kt-slóð', async () => {
+  const { felagSlod } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.equal(felagSlod('5509110940', { nafn: 'Slæging ehf.' }), '/fyrirtaeki/slaeging-ehf-5509110940/');
+  assert.equal(felagSlod('5509110940'), '/fyrirtaeki/5509110940/');
+  // nafn sem slugast í ekkert → fellur aftur á hreina kt-slóð, ekki "-<kt>"
+  assert.equal(felagSlod('5509110940', { nafn: '###' }), '/fyrirtaeki/5509110940/');
+});
+
+test('felagSlod: viðmót fylgir nafn-slóðinni líka', async () => {
+  const { felagSlod } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.equal(
+    felagSlod('5509110940', { nafn: 'Slæging ehf.', vidmot: 'areidanleiki' }),
+    '/fyrirtaeki/slaeging-ehf-5509110940/?vidmot=areidanleiki',
+  );
+});
+
+test('ktUrSlod les kennitöluna úr báðum slóðaformum', async () => {
+  const { ktUrSlod } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.equal(ktUrSlod('slaeging-ehf-5509110940'), '5509110940');
+  assert.equal(ktUrSlod('5509110940'), '5509110940');
+  // ⚠ nafn sem endar sjálft á tölum má ekki rugla þáttunina
+  assert.equal(ktUrSlod('f-610-ehf-4505110560'), '4505110560');
+  assert.equal(ktUrSlod('101-streetfood-ehf-5010221360'), '5010221360');
+});
+
+test('ktUrSlod hafnar því sem er ekki gild lögaðila-kt', async () => {
+  const { ktUrSlod } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  assert.equal(ktUrSlod('daemi-ehf-1203894569'), null, 'einstaklings-kt');
+  assert.equal(ktUrSlod('daemi-ehf'), null);
+  assert.equal(ktUrSlod('123'), null);
+  assert.equal(ktUrSlod(''), null);
+  assert.equal(ktUrSlod(null), null);
+});
+
+test('kanónísk slóð: slug sem passar ekki við nafnið á að leiðréttast', async () => {
+  const { felagSlod, ktUrSlod } = await import('../src/lib/fyrirtaeki-slod.mjs');
+  // Félag endurskírt: gamla slugið ber sömu kt og verður að rata á nýju slóðina.
+  const gamalt = 'gamla-nafnid-5509110940';
+  assert.equal(ktUrSlod(gamalt), '5509110940');
+  assert.equal(felagSlod(ktUrSlod(gamalt), { nafn: 'Nýja nafnið ehf.' }), '/fyrirtaeki/nyja-nafnid-ehf-5509110940/');
+});
+
 test('stafhólf: flokkun fyrir /fyrirtaeki/skra/', async () => {
   const { stafHolf, HOLF } = await import('../src/lib/fyrirtaeki-slod.mjs');
   assert.equal(stafHolf('Sandholt ehf.'), 's');

@@ -2,6 +2,7 @@ import { greinaSql, GREINAR } from './src/lib/greinar.mjs';
 import { CAT, sectionOfType, asciiId } from './src/lib/frettavel-cat.mjs';
 import { buildTimalina } from './src/lib/firma-timalina.mjs';
 import { felagTitill } from './src/lib/felag-titill.mjs';   // <title> á /fyrirtaeki/<kt>/ — þrepast niður svo hann klippist ekki í SERP
+import { ktUrSlod, felagSlod, stafHolf, holfTitill } from './src/lib/fyrirtaeki-slod.mjs';   // /fyrirtaeki/<slug>-<kt>/ — nafn í slóð, kt aftast
 import { firmaKandidatar, firmaNafn } from './src/lib/firma-nafn.mjs';
 import { heitiFlokks } from './src/lib/flokkar.mjs';   // bókstafur → flokksheiti (ein uppspretta)   // þáttun spurningar → nafn/kt (prófuð)
 import { aggregateFirma } from './src/lib/firma-greining.mjs';
@@ -1741,8 +1742,26 @@ async function frettaAdiliHandler(request, env, ctx, slug) {
 // Sækir byggða Astro-skel (skel-fyrirtaeki) úr ASSETS og skiptir %%KARP_*%%
 // tókum út fyrir per-félag efni. Öll gögn koma úr fyrirtaekiHandler (RSK).
 
+// Brauðmylsna — sama leið og sýnilega slóðin efst á síðunni (Google vill að þær stemmi).
+// Hólfið er reiknað með stafHolf svo liðurinn vísi á raunverulega síðu í stafrófsskránni.
+function brodJsonLd(f, canonical) {
+  const holf = stafHolf(f.nafn);
+  const lidur = (position, name, item) => ({ '@type': 'ListItem', position, name, item });
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      lidur(1, 'Forsíða', 'https://karp.is/'),
+      lidur(2, 'Fyrirtæki', 'https://karp.is/fyrirtaeki/'),
+      lidur(3, 'Fyrirtækjaskrá', 'https://karp.is/fyrirtaeki/skra/'),
+      lidur(4, holfTitill(holf), 'https://karp.is/fyrirtaeki/skra/' + holf + '/'),
+      lidur(5, f.nafn, canonical),
+    ],
+  };
+}
+
+// Skilar @graph: Organization (efni síðunnar) + BreadcrumbList. Einn kallandi.
 function orgJsonLd(f, kt, canonical) {
-  const ld = { '@context': 'https://schema.org', '@type': 'Organization', name: f.nafn, identifier: kt, taxID: kt, url: canonical };
+  const ld = { '@type': 'Organization', name: f.nafn, identifier: kt, taxID: kt, url: canonical };
   const addr = f.postfang || f.logheimili;
   if (addr) ld.address = { '@type': 'PostalAddress', streetAddress: addr, ...(f.svf ? { addressLocality: f.svf } : {}), addressCountry: 'IS' };
   if (Array.isArray(f.heiti) && f.heiti.length) ld.alternateName = f.heiti.slice(0, 6);
@@ -1750,7 +1769,7 @@ function orgJsonLd(f, kt, canonical) {
   const fd = isoDate(f.skrad);
   if (fd) ld.foundingDate = fd;
   if (f.vsk && f.vsk[0] && f.vsk[0].nr) ld.vatID = 'IS' + f.vsk[0].nr;
-  return ld;
+  return { '@context': 'https://schema.org', '@graph': [ld, brodJsonLd(f, canonical)] };
 }
 
 function felagMainHtml(f, kt) {
@@ -1780,7 +1799,17 @@ function felagMainHtml(f, kt) {
   </div>`;
   const links = `<p class="kf-links">Sjá einnig: <a href="/fyrirtaeki/?q=${e(kt)}">lifandi uppfletting</a> · <a href="/birgjar/">greiðslur ríkisins</a> · <a href="/frettir/">fjölmiðlaumfjöllun</a> · <a href="/utbod/">útboð</a></p>`;
   const timalinaSec = `<div class="kf-sec"><h2>Atburða-tímalína</h2><div id="fb-timalina" class="kf-tl" data-kt="${e(kt)}" data-nafn="${e(f.nafn)}"><div class="kf-note" style="border:0;padding:0;margin:0">Sæki atburði…</div></div></div>`;
-  return `<p class="kf-links"><a href="/fyrirtaeki/">← Fyrirtækjaskrá</a></p>
+  // Sýnileg brauðmylsna — stemmir við BreadcrumbList í brodJsonLd og gefur um leið
+  // skríðanlega tengla UPP í stafrófsskrána (prófílarnir voru munaðarlausir fram í 13.9).
+  const holf = stafHolf(f.nafn);
+  const brod = `<nav class="kf-brod" aria-label="Brauðmylsna">
+    <a href="/">Forsíða</a> <span aria-hidden="true">›</span>
+    <a href="/fyrirtaeki/">Fyrirtæki</a> <span aria-hidden="true">›</span>
+    <a href="/fyrirtaeki/skra/">Fyrirtækjaskrá</a> <span aria-hidden="true">›</span>
+    <a href="/fyrirtaeki/skra/${e(holf)}/">${e(holfTitill(holf))}</a> <span aria-hidden="true">›</span>
+    <span aria-current="page">${e(f.nafn)}</span>
+  </nav>`;
+  return `${brod}
     <h1 class="kf-h1">${e(f.nafn)}</h1>
     <div class="kf-kt">kt. ${e(ktSep(kt))}</div>
     <div class="kf-chips">${chips}</div>
@@ -1815,20 +1844,30 @@ async function firmaTimalinaHandler(request, env, ctx) {
 
 async function fyrirtaekiSidaHandler(request, env, ctx) {
   const url = new URL(request.url);
-  const m = url.pathname.match(/^\/fyrirtaeki\/(\d{10})\/?$/);
+  // Tvö form: /fyrirtaeki/<kt>/ (eldra) og /fyrirtaeki/<slug>-<kt>/ (kanónískt).
+  // ⚠ kt er lesin AFTAST: félagsnöfn enda sjálf oft á tölum („F-610 ehf.", „101 streetfood").
+  const m = url.pathname.match(/^\/fyrirtaeki\/([a-z0-9-]*\d{10})\/?$/);
   if (!m) return env.ASSETS.fetch(request);
-  const kt = m[1];
-  if (!url.pathname.endsWith('/')) return Response.redirect(url.origin + '/fyrirtaeki/' + kt + '/', 301);
-  if (!erLogadili(kt)) return env.ASSETS.fetch(request);   // einstaklingar → 404 (persónuvernd)
+  const kt = ktUrSlod(m[1]);
+  if (!kt) return env.ASSETS.fetch(request);   // einstaklingar/ógilt → 404 (persónuvernd)
+  const beidniSlod = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
   const cache = caches.default;
+  // Lyklað á KT, ekki slug: bæði form deila sömu síðu og endurskírt félag ógildir ekki minnið.
   const cacheKey = new Request('https://cache.karp.internal/pg/fyrirtaeki/' + kt);
   let res = await cache.match(cacheKey);
-  if (res) return res;
+  if (res) {
+    // Kanóníska slóðin ferðast með svarinu svo ber kt-slóð geti 301-að án þess að sækja gögnin.
+    // (Færslur frá því fyrir nafn-slóðirnar bera hana ekki — þær renna út á 24 klst.)
+    const canonPath = res.headers.get('x-karp-canon');
+    if (canonPath && beidniSlod !== canonPath) return Response.redirect(url.origin + canonPath, 301);
+    return res;
+  }
   const dr = await fyrirtaekiHandler(new Request('https://k.internal/api/fyrirtaeki?q=' + kt), env, ctx);
   const d = await dr.json().catch(() => null);
   const f = d && d.felag;
   if (!f || !f.nafn) return env.ASSETS.fetch(request);      // ekkert raunfélag → 404, EKKI tóm 200
-  const canonical = 'https://karp.is/fyrirtaeki/' + kt + '/';
+  const canonPath = felagSlod(kt, { nafn: f.nafn });        // /fyrirtaeki/<slug>-<kt>/
+  const canonical = 'https://karp.is' + canonPath;
   const title = htmlEsc(felagTitill(f.nafn, kt));
   const dParts = [f.form, f.isat && f.isat[0], f.postfang || f.logheimili, f.afskrad ? 'Afskráð' : (f.stada || 'Virk skráning')].filter(Boolean).join(' · ');
   const desc = htmlEsc((f.nafn + ' — kt. ' + ktSep(kt) + '. ' + dParts + '. Ársreikningar, endanlegir eigendur, tengsl og umfjöllun á Karp.').slice(0, 280));
@@ -1841,8 +1880,10 @@ async function fyrirtaekiSidaHandler(request, env, ctx) {
   html = repAll(html, '%%KARP_CANON%%', canonical);
   html = repAll(html, '"%%KARP_JSONLD%%"', ld);
   html = repAll(html, '%%KARP_MAIN%%', felagMainHtml(f, kt));
-  res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=86400' } });
+  res = new Response(html, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=86400', 'x-karp-canon': canonPath } });
   ctx.waitUntil(cache.put(cacheKey, res.clone()));
+  // Síðan er sett í minni ÁÐUR en 301-að er: næsta beiðni á kanónísku slóðina er þá hit.
+  if (beidniSlod !== canonPath) return Response.redirect(url.origin + canonPath, 301);
   return res;
 }
 
@@ -3012,7 +3053,8 @@ export default {
       }
       return res;
     }
-    if (/^\/fyrirtaeki\/\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
+    // /fyrirtaeki/<kt>/ OG /fyrirtaeki/<slug>-<kt>/ — kt-formið 301-ast á nafn-slóðina.
+    if (/^\/fyrirtaeki\/(?:[a-z0-9-]+-)?\d{10}\/?$/.test(url.pathname)) return fyrirtaekiSidaHandler(request, env, ctx);
     // /frettir/<slug>/ — aðila-fréttasíða (SEO). ⚠ Mynstrið krefst a.m.k. 3 stafa slug og
     //   leyfir EKKI skástrik → tekur ALDREI /frettir/ sjálfa (Astro-síðan heldur sér).
     //   Óþekktur slug → handler skilar null → fellur í gegn í venjulegt 404, engin ruslsíða.
