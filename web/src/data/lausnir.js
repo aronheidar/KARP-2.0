@@ -42,7 +42,7 @@ export const EIGINDIR = [
 // í verðskrá. service = karp_sub_<service>; verd = kr./mán.; tol = síðan þar sem áskriftar-gáttin (subGate) er.
 export const SERLAUSNIR = [
   { slug: 'utbod', heiti: 'Útboðsvaktin', service: 'utbod', verd: 1900, trialDays: 30,
-    lysing: 'Öll opinber útboð á einum stað + leitarorðavakt sniðin að þinni verktöku og samkeppnisgreining.',
+    lysing: 'Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — með leitarorðavakt sniðinni að þinni verktöku og samkeppnisgreiningu.',
     fyrir: 'Verktakar og bjóðendur', href: '/utbod/' },
   { slug: 'fasteignir', heiti: 'Fasteignavakt', service: 'fasteign', verd: 3900, trialDays: 30,
     lysing: '20 verðmöt fasteigna á mánuði — sölusaga, fasteigna- og brunabótamat, hverfagögn og sambærilegar eignir.',
@@ -65,8 +65,8 @@ const LEGAL = 'Byggt á opinberum gögnum — hvorki lánshæfismat né vanskila
 export const VORUR = [
   {
     slug: 'fyrirtaekjaskyrsla', heiti: 'Fyrirtækjaskýrsla',
-    gildisloford: 'Full mynd af hvaða íslensku félagi sem er — á augabragði.',
-    inngangur: 'Fyrirtækjaskýrsla Karps safnar öllu sem opinberar skrár segja um félag á einn stað: grunnskrá, ársreikninga, greiðslur frá ríkinu, útboð, umfjöllun og lögbirtingar.',
+    gildisloford: 'Það sem opinberar skrár segja um félagið — í einni skýrslu.',
+    inngangur: 'Fyrirtækjaskýrsla Karps tekur saman það sem opinberar skrár segja um félag: grunnskrá, ársreikninga, greiðslur frá ríkinu, útboð, umfjöllun og lögbirtingar.',
     eiginleikar: [
       { titill: 'Grunnskrá', texti: 'Kennitala, heimilisfang, rekstrarform, ÍSAT-atvinnugrein, VSK-númer og skil ársreikninga.' },
       { titill: 'Ársreikninga-KPI', texti: 'Framlegð, ROE/ROA, eiginfjárhlutfall, tekjuvöxtur — fjölár, beint úr ársreikningaskrá.' },
@@ -105,7 +105,7 @@ export const VORUR = [
   {
     slug: 'fasteignamat', heiti: 'Fasteignamat',
     gildisloford: 'Faglegt verðmat hvaða fasteignar sem er — byggt á sölusögu.',
-    inngangur: 'Verðmatsskýrsla sem safnar sölusögu, fasteigna- og brunabótamati, hverfagögnum og verðþróun á einn stað og skilar faglegu mati á augabragði.',
+    inngangur: 'Verðmatsskýrsla úr sölusögu, fasteigna- og brunabótamati, hverfagögnum og verðþróun — með sambærilegum eignum í nágrenninu.',
     eiginleikar: [
       { titill: 'Sölusaga & verðþróun', texti: 'Öll þinglýst kaup eignarinnar og þróun fermetraverðs yfir tíma.' },
       { titill: 'Fasteigna- & brunabótamat', texti: 'Opinbert mat borið saman við metið markaðsverð.' },
@@ -160,8 +160,8 @@ export const VORUR = [
   },
   {
     slug: 'utbodsvaktin', heiti: 'Útboðsvaktin',
-    gildisloford: 'Ekki missa af opinberu útboði — leitað og vaktað fyrir þig.',
-    inngangur: 'Útboðsvaktin safnar öllum opinberum útboðum á einn stað, með leitarorðavakt og samkeppnisgreiningu.',
+    gildisloford: 'Ný opinber útboð sem passa við þín leitarorð — send í pósti.',
+    inngangur: 'Útboðsvaktin sækir útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar daglega — með leitarorðavakt og samkeppnisgreiningu.',
     eiginleikar: [
       { titill: 'Öll opinber útboð', texti: 'Samfelldur listi yfir opinber innkaup og útboð.' },
       { titill: 'Leitarorðavakt', texti: 'Fáðu tilkynningu þegar útboð passar við þín leitarorð.' },
@@ -174,7 +174,7 @@ export const VORUR = [
     verd: { tegund: 'askrift', upphaed: 1900, service: 'utbod', trialDays: 30 },   // sér áskriftarleið (30 daga frítt) — eða innifalið í öllum Karp+ þrepum
     synishorn: { label: 'Skoða útboð', href: '/utbod/' },
     tol: { label: 'Opna Útboðsvaktina', href: '/utbod/' },
-    description: 'Útboðsvaktin — öll opinber útboð á einum stað með leitarorðavakt og samkeppnisgreiningu. ' + LEGAL,
+    description: 'Útboðsvaktin — opinber útboð frá Ríkiskaupum, TED (EES), Reykjavíkurborg, Faxaflóahöfnum og Landsvirkjun, með leitarorðavakt, frestum og samkeppnisgreiningu. 1.900 kr/mán, 30 dagar frítt. ' + LEGAL,
   },
   {
     slug: 'kvotavaktin', heiti: 'Kvótavaktin',
@@ -188,7 +188,7 @@ export const VORUR = [
       { titill: 'Full samþætting', texti: 'Beintengt í fyrirtækjaskýrslur, endanlega eigendur og ársreikninga hverrar útgerðar.' },
     ],
     skref: [
-      { titill: 'Opnaðu yfirlitið', texti: 'Top-útgerðir, samþjöppun og tegundir á einum stað.' },
+      { titill: 'Opnaðu yfirlitið', texti: 'Stærstu útgerðir, samþjöppun (HHI, 10 stærstu) og tegundir.' },
       { titill: 'Rektu hópinn', texti: 'Smelltu á útgerð — sjáðu eigendahópinn og samanlagða hlutdeild.' },
     ],
     verd: { tegund: 'askrift', upphaed: 9900, service: 'kvoti', trialDays: 14 },   // premium sérlausn — fá-en-verðmæt kaupendahópur
@@ -209,16 +209,16 @@ export const VORUR = [
     ],
     skref: [
       { titill: 'Veldu þingmann', texti: 'Af þingmannalistanum eða beint af síðu þingmannsins.' },
-      { titill: 'Opnaðu skýrsluna', texti: 'Stök skýrsla á 990 kr — eða 10 á mánuði í áskrift á 3.900 kr.' },
+      { titill: 'Opnaðu skýrsluna', texti: 'Stök skýrsla á 990 kr — eða 20 á mánuði í áskrift á 3.900 kr.' },
     ],
     verd: { tegund: 'askrift', upphaed: 3900, service: 'thingskyrslur', trialDays: 30 },   // sér áskriftarleið — stakar skýrslur 990 kr án áskriftar
     synishorn: { label: 'Sjá sýnishorn', href: '/althingi/jon-petur-zimsen/skyrsla/' },
     tol: { label: 'Velja þingmann', href: '/althingi/thingmenn/' },
-    description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 10 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
+    description: 'Þingmannavaktin — ítarlegar þingmannaskýrslur: atkvæðaferill, uppreisnar-atkvæði, AI-ræðugreining, fyrirspurnir og umfjöllun. Stök skýrsla 990 kr eða áskrift með 20 skýrslum á mánuði. Byggt á opinberum gögnum Alþingis.',
   },
   {
     slug: 'areidanleikamat', heiti: 'Áreiðanleikamat', canonicalTo: '/lausnir/fyrirtaekjaskyrsla/',
-    gildisloford: 'KYC-áreiðanleikamat félags — PEP, eignarhald og staða á einum stað.',
+    gildisloford: 'KYC-áreiðanleikamat félags — PEP-skimun, endanlegir eigendur og staða í opinberum skrám.',
     inngangur: 'Áreiðanleikamat tekur saman það sem þarf fyrir áreiðanleikakönnun: raunverulega eigendur, PEP-skimun stjórnenda og stöðu félagsins í opinberum skrám.',
     eiginleikar: [
       { titill: 'PEP-skimun', texti: 'Skimun stjórnenda og eigenda gegn lista yfir áhrifafólk í stjórnmálum.' },

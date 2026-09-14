@@ -448,7 +448,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
     import { umsvifUrArsreikningi, UMSVIF_FYRIRVARI } from '../lib/kyc-umsvif.mjs';
     import { escF, ktFmt, mkrF } from '../lib/snid.mjs';
     let FS_USER = null;
-    const fsTease = () => `<div class="fs-tease"><b>Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð á einum stað.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
+    const fsTease = () => `<div class="fs-tease"><b>Fyrirtækjaskráin er hluti af Karp+</b> — ókeypis aðgangur sem tekur mínútu. Flettu upp hvaða félagi sem er og sjáðu samtenginguna sem enginn annar birtir: umfjöllun fjölmiðla, greiðslur frá ríkinu og útboð.<div class="fs-tease-btns"><a class="fs-tease-main" href="/karp-pro/">Hvað er Karp+?</a><a class="fs-tease-sec" href="${loginHref()}">Innskráning</a></div></div>`;
     // birgjar.json ber 200 stærstu birgja ríkisins — nöfn þar eru STYTT (~30 stafir)
     // svo samsvörunin er normaliseruð forskeytis-samsvörun, ekki jafngildi.
     let FS_BIRGJAR = null;
@@ -771,7 +771,7 @@ const desc = 'Flettu upp íslensku félagi í fyrirtækjaskrá — ókeypis: naf
           <div id="fs-eftirlit" class="fs-eftirlit" hidden></div>
           <div id="fs-mast" class="fs-eftirlit" hidden></div>
           <div id="fs-styrkir" class="fs-styrkir" hidden></div>
-          <div class="fs-sub">Karp-samtengingin — umfjöllun, ríkisviðskipti og útboð á einum stað</div>
+          <div class="fs-sub">Umfjöllun, greiðslur frá ríkinu og útboð</div>
           <div class="fs-links">
             <a class="fs-link" id="fs-umfj" href="/frettir/"><span class="t">Umfjöllun fjölmiðla</span><div class="s">tel fyrirsagnir í fjölmiðlavaktinni…</div></a>
             <a class="fs-link" id="fs-birgir" href="/birgjar/"><span class="t">Greiðslur frá ríkinu</span><div class="s">athuga birgjaskrána…</div></a>

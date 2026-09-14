@@ -31,13 +31,13 @@ const LIST_META = {
 const lists = ['ESB', 'SÞ', 'OFAC'].map((id) => ({ id, ...LIST_META[id], count: listCount[id] }));
 
 const fmt = (v) => new Intl.NumberFormat('is-IS').format(v || 0);
-const desc = `Opinberir refsilistar og þvingunaraðgerðir á einum stað — ${fmt(nTotal)} nöfn af listum ESB, Sameinuðu þjóðanna og OFAC (Bandaríkin). Leitaðu að nafni. ⚠ Nafnasamsvörun er ekki úrskurður — staðfestu sjálfstætt.`;
+const desc = `Refsilistar ESB, Sameinuðu þjóðanna og OFAC — ${fmt(nTotal)} nöfn af listum ESB, Sameinuðu þjóðanna og OFAC (Bandaríkin). Leitaðu að nafni. ⚠ Nafnasamsvörun er ekki úrskurður — staðfestu sjálfstætt.`;
 ---
 <Layout title="Refsilistar & þvingunaraðgerðir — leit að nafni | Karp" description={desc} canonical="https://karp.is/refsilistar/" ogTitle="Refsilistar & þvingunaraðgerðir">
   <main data-pg="refsilistar">
     <p class="kicker">Hagvísir Íslands · Gagnsæi</p>
     <h1>Refsilistar &amp; þvingunaraðgerðir</h1>
-    <p class="lead">Samsteyptur nafna-index opinberra refsilista á einum stað — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
+    <p class="lead">Nafnaleit í þremur opinberum refsilistum — <strong>{fmt(nTotal)} nöfn</strong> af þvingunarlistum <strong>Evrópusambandsins</strong>, <strong>Sameinuðu þjóðanna</strong> og <strong>OFAC</strong> (fjármálaráðuneytis Bandaríkjanna). Þessi listi er notaður í áreiðanleika-skimun fyrirtækja á <a href="/fyrirtaeki/">Karp</a> — hér má fletta upp nafni beint.</p>
 
     <div class="warn">
       <b>⚠ Nafnasamsvörun er ekki úrskurður.</b> Þetta eru opinberir refsilistar; samsvörun við nafn þýðir <em>ekki</em> að tiltekinn einstaklingur eða fyrirtæki sé á lista — algeng nöfn geta borið saman. Staðfestu ávallt sjálfstætt í frumheimild (ESB, SÞ, OFAC) áður en niðurstaða er notuð. Karp veitir enga lögfræðilega ráðgjöf.

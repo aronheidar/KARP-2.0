@@ -50,7 +50,7 @@ const desc = 'Staðfesting greiðslu fyrir Karp-skýrslu.';
         : ('/fasteignavakt/' + (rest ? '?q=' + encodeURIComponent(rest) : ''));
       const $ = (id) => document.getElementById(id);
       if (s === 'ok') {
-        $('kaup-h').textContent = 'Greiðsla tókst!';
+        $('kaup-h').textContent = 'Greiðsla tókst';
         $('kaup-b').innerHTML = 'Takk fyrir kaupin — skýrslan þín er tilbúin' + (o ? ' <span class="kaup-oid">(pöntun ' + esc(o) + ')</span>' : '') + '.';
         $('kaup-btns').innerHTML = '<a class="kaup-main" href="' + esc(backHref) + '">' + takn('prenta') + 'Sækja skýrslu (PDF)</a><a class="kaup-sec" href="/mitt-svaedi/">Mitt svæði</a>';
         $('kaup-note').textContent = 'Skýrslan vistast á Mitt svæði og er þér alltaf aðgengileg.';

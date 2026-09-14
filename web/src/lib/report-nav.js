@@ -145,7 +145,7 @@ export function pollUntilChanged({ url, baseline = null, est = 150, sfx = '', ma
         if (baseline == null || txt !== baseline) {
           stop();
           const b = bar(); if (b) b.style.width = '100%';
-          const s = sec(); if (s) s.textContent = 'tilbúið!';
+          const s = sec(); if (s) s.textContent = 'tilbúið';
           setTimeout(() => onDone(txt, false), 600);
         } else if (++obreytt >= 16) {
           stop();

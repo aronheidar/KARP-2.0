@@ -31,7 +31,7 @@ export const EMAIL_TYPES = [
     breytur: ['hlekkur'], krafist: ['hlekkur'],
     subject: 'Staðfestu netfangið þitt á Karp',
     html: WRAP('Staðfestu netfangið þitt',
-      '<p>Velkomin í Karp! Smelltu á hnappinn til að virkja aðganginn þinn.</p>'
+      '<p>Velkomin í Karp. Smelltu á hnappinn til að virkja aðganginn þinn.</p>'
       + BTN('Staðfesta netfang')
       + '<p style="color:#666;font-size:13px">Hlekkurinn gildir í 24 klukkustundir. Nýskráðir þú þig ekki? Hunsaðu þennan póst.</p>'),
   },

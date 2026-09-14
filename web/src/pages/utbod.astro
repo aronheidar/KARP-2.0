@@ -27,18 +27,18 @@ const PINS = (UTBOD.pins || []).slice(0, 25);
 // 🥊 Samkeppnisvísar: meðaltal tilboða í opnunum (Landsvirkjun) + virkustu kaupendur safnsins
 const AVGBIDS = (() => { const ns = (URSLIT.opnanir || []).map((x) => (x.bids || []).length).filter((n) => n > 0); return ns.length ? Math.round(10 * ns.reduce((a, b) => a + b, 0) / ns.length) / 10 : null; })();
 const TOPBUYERS = Object.entries((UTBOD.tenders || []).reduce((a, x) => { if (x.buyer) a[x.buyer] = (a[x.buyer] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 3);
-const desc = `Útboðsgátt Karp — ${UTBOD.n} opinber útboð frá öllum helstu gáttum á einum stað: Útboðsvefur Ríkiskaupa, TED (EES), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun. Leit, flokkar, frestir og tölvupósts-vakt fyrir verktaka.`;
+const desc = `Útboðsgátt Karp — ${UTBOD.n} opinber útboð: Útboðsvefur Ríkiskaupa, TED (EES), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun. Leit, flokkar, frestir og tölvupósts-vakt fyrir verktaka.`;
 // Flokkalisti raðaður eftir fjölda (build skilar cats-heitum + byCat-talningu)
 const catList = Object.entries(UTBOD.byCat || {}).sort((a, b) => b[1] - a[1])
   .map(([k, n]) => ({ k, n, label: (UTBOD.cats[k] || [k])[0] }));
 const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: ['Reykjavíkurborg', 'RVK'], fax: ['Faxaflóahafnir', 'FAX'], lv: ['Landsvirkjun', 'LV'] }; // [heiti, textakóði í pillu] — engir fánar (Windows teiknar þá sem bókstafi)
 ---
 
-<Layout title="Útboðsgátt — öll útboð á einum stað | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsgátt Karp">
+<Layout title="Útboðsgátt — Ríkiskaup, TED, Reykjavíkurborg, Faxaflóahafnir, Landsvirkjun | Karp" description={desc} canonical="https://karp.is/utbod/" ogTitle="Útboðsgátt Karp">
   <main data-pg="utbod">
     <p class="kicker">Karp+ · Útboð</p>
     <h1>Útboðsgátt</h1>
-    <p>Öll opinber útboð frá öllum helstu gáttum — á einum stað, fyrir verktaka og birgja. Leitaðu, síaðu eftir flokki og láttu <a href="/lobbyvakt/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
+    <p>Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — sótt daglega. Leitaðu, síaðu eftir flokki og láttu <a href="/lobbyvakt/">leitarorðavaktina</a> senda þér póst um leið og nýtt útboð passar við þína verktöku.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Grunngögnin eru sótt daglega kl. 6 af öllum gáttum sem Karp nær í: Útboðsvefur Ríkiskaupa (API), TED — EES-útboð á Íslandi (API), Reykjavíkurborg, Faxaflóahafnir og Landsvirkjun (vef-scrape) — og Útboðsvefurinn er auk þess sóttur í hverri heimsókn. Flokkun er vélræn: TED eftir CPV-innkaupakóðum, annað eftir lykilorðum í heiti. Fit-einkunnin er reiknuð í vafranum þínum úr vaktinni þinni og verktaka-prófílnum. Hæfiskröfur EES-útboða eru dregnar út úr tilkynningunum með gervigreind — leiðbeinandi, sannreyndu alltaf í útboðsgögnunum sjálfum.">ⓘ</i> Um gögnin á síðunni</p>
 
     <div id="uv-panel" class="uv">
@@ -586,7 +586,7 @@ const SRCMETA = { rk: ['Útboðsvefur', 'IS'], ted: ['TED (EES)', 'EES'], rvk: [
         if (isAdmin() || hasSub('utbod') || !(u && u.paywall === true) || document.getElementById('plus-gate-box')) return;
         [...m.children].forEach((c) => { c.style.display = 'none'; });
         const g = document.createElement('div'); g.id = 'plus-gate-box'; m.appendChild(g);
-        subGate(g, { service: 'utbod', price: 1900, trialDays: 30, title: 'Útboðsvaktin', blurb: 'Öll opinber útboð á einum stað — leit, flokkar, frestir, úrslit og dagleg tölvupósts-vakt sniðin að þinni verktöku.' });
+        subGate(g, { service: 'utbod', price: 1900, trialDays: 30, title: 'Útboðsvaktin', blurb: 'Útboð Ríkiskaupa, TED, Reykjavíkurborgar, Faxaflóahafna og Landsvirkjunar — leit, flokkar, frestir, úrslit og dagleg tölvupósts-vakt sniðin að þinni verktöku.' });
       });
     });
   </script>

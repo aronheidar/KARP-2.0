@@ -49,13 +49,13 @@ const biggest = topFleets[0] || { nafn: '—', count: 0 };
 const shortNafn = (s) => (s || '').replace(/\s(ehf|hf|slf|sf|ohf)\.?$/i, '').slice(0, 22);
 const fleetChart = topFleets.map((f) => ({ nafn: shortNafn(f.nafn) || f.kt, count: f.count }));
 
-const desc = `Loftfaraskrá Íslands á einum stað — ${fmt(nTotal)} loftför í skrá, ${fmt(nOwners)} lögaðilar eiga eða reka flugvélar. Stærsti flotinn er ${biggest.nafn} með ${biggest.count} loftför. Leitaðu eftir TF-númeri, tegund eða eiganda.`;
+const desc = `Loftfaraskrá Samgöngustofu — ${fmt(nTotal)} loftför í skrá, ${fmt(nOwners)} lögaðilar eiga eða reka flugvélar. Stærsti flotinn er ${biggest.nafn} með ${biggest.count} loftför. Leitaðu eftir TF-númeri, tegund eða eiganda.`;
 ---
-<Layout title="Loftfaraskrá Íslands — flotinn á einum stað | Karp" description={desc} canonical="https://karp.is/loftfor/" ogTitle="Loftfaraskrá Íslands">
+<Layout title="Loftfaraskrá Íslands — loftför, eigendur og flotar | Karp" description={desc} canonical="https://karp.is/loftfor/" ogTitle="Loftfaraskrá Íslands">
   <main data-pg="loftfor">
     <p class="kicker">Hagvísir Íslands · Atvinnuvegir</p>
     <h1>Loftfaraskrá Íslands</h1>
-    <p class="lead">Íslenski flugflotinn á einum stað — <strong>{fmt(nTotal)} loftför</strong> í skrá Samgöngustofu, þar af <strong>{fmt(nUnique)}</strong> í eigu eða rekstri <strong>{fmt(nOwners)} lögaðila</strong>. Stærsti flotinn tilheyrir <strong>{biggest.nafn}</strong> ({biggest.count} loftför). Fletta má hverju félagi upp á <a href="/fyrirtaeki/">fyrirtækjaprófíl</a>.</p>
+    <p class="lead"><strong>{fmt(nTotal)} loftför</strong> í skrá Samgöngustofu, þar af <strong>{fmt(nUnique)}</strong> í eigu eða rekstri <strong>{fmt(nOwners)} lögaðila</strong>. Stærsti flotinn tilheyrir <strong>{biggest.nafn}</strong> ({biggest.count} loftför). Fletta má hverju félagi upp á <a href="/fyrirtaeki/">fyrirtækjaprófíl</a>.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Heimild: Loftfaraskrá Samgöngustofu um opnu island.is-gáttina (aircraftRegistryAllAircrafts). Skráin telur öll skráð loftför; flota-greiningin nær til loftfara í eigu/rekstri lögaðila (fyrirtækja/félaga) — loftför í einkaeigu einstaklinga eru ekki nafngreind hér af persónuverndarástæðum.">ⓘ</i> Um skrána og gögnin · lögaðila-flotar nafngreindir</p>
 
     <div class="kpis">

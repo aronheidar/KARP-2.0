@@ -14,7 +14,7 @@ const secondary = ['eigendur', 'fyrirtaekjavaktin', 'areidanleikamat'].map((s) =
 const verdTxt = (v) => v.verd.tegund === 'stak' ? v.verd.upphaed.toLocaleString('is-IS') + ' kr · stök skýrsla'
   : v.verd.tegund === 'askrift' ? v.verd.upphaed.toLocaleString('is-IS') + ' kr/mán'
   : 'Innifalið í Karp+';
-const desc = 'Öll fyrirtækjagögn á einum stað: fyrirtækjaskýrsla, endanlegir eigendur, fyrirtækjavakt, áreiðanleikamat (KYC) og topplistar stærstu félaga — úr opinberum skrám. Frá 990 kr stök skýrsla eða áskrift. Hvorki lánshæfismat né vanskilaskrá.';
+const desc = 'Fyrirtækjaskýrsla, endanlegir eigendur, fyrirtækjavakt, áreiðanleikamat (KYC) og topplistar stærstu félaga — úr opinberum skrám. Frá 990 kr stök skýrsla eða áskrift. Hvorki lánshæfismat né vanskilaskrá.';
 const jsonLd = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Fyrirtækjagögn — Karp+', description: desc, url: 'https://karp.is/lausnir/fyrirtaekjaskyrsla/' };
 ---
 <Layout title="Fyrirtækjaskýrsla, eigendur & áreiðanleikamat — Karp+" description={desc}

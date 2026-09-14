@@ -12,15 +12,12 @@ const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar
   <main data-pg="um-karp">
     <p class="kicker">Karp · Hagvísir Íslands</p>
     <h1>Um Karp</h1>
-    <p class="lead">Karp er sjálfstætt mælaborð sem safnar, tengir og birtir opinber gögn um íslenskt samfélag — efnahag, Alþingi, sveitarfélög, markaði og fjölmiðlaumfjöllun — á einum stað og á mannamáli.</p>
+    <p class="lead">Karp er sjálfstætt mælaborð sem safnar, tengir og birtir opinber gögn um íslenskt samfélag — efnahag, Alþingi, sveitarfélög, markaði og fjölmiðlaumfjöllun — á mannamáli.</p>
 
     <h2>Hvað gerir Karp?</h2>
-    <div class="cards">
-      <div class="card"><b>Safnar</b><span>Gögn frá Hagstofu, Alþingi, Seðlabanka, HMS, VMST, Ríkislögreglustjóra, Umhverfisstofnun, kauphöllinni og fleirum — sótt beint úr opinberum veitum og uppfærð reglulega.</span></div>
-      <div class="card"><b>Tengir</b><span>Það sem gerir Karp öðruvísi: gögnin eru tengd saman — atkvæði þingmanna við fjölmiðlaumfjöllun, fasteignaverð við laun, jöfnunarsjóður við sveitarfélög.</span></div>
-      <div class="card"><b>Greinir</b><span>Gervigreind metur tón fjölmiðlaumfjöllunar, dregur saman þingmál á mannamáli og reiknar vísitölur — alltaf merkt sem vélrænt mat, aldrei falið sem staðreynd.</span></div>
-      <div class="card"><b>Vaktar</b><span>Vöktun fylgist með umfjöllun um fyrirtæki, stofnanir og einstaklinga í rauntíma — og vaktir láta vita þegar hagvísir nær viðmiði.</span></div>
-    </div>
+    <p class="tech">Karp sækir gögn beint úr opinberum veitum — Hagstofu, Alþingi, Seðlabanka, HMS, Vinnumálastofnun, Ríkislögreglustjóra, Umhverfisstofnun og kauphöllinni — og uppfærir þau reglulega. Hver tala vísar í uppruna sinn.</p>
+    <p class="tech"><strong>Það sem Karp gerir og aðrir ekki er að tengja skrárnar saman:</strong> atkvæði þingmanna við fjölmiðlaumfjöllun, fasteignaverð við laun, jöfnunarsjóð við sveitarfélög, og félag við ársreikninga þess, útboð, greiðslur frá ríkinu og eigendur.</p>
+    <p class="tech">Vélræn möt — tónn umfjöllunar, samantekt þingmála, vísitölur — eru alltaf merkt sem möt, aldrei sett fram sem staðreynd. Vaktir láta vita þegar fjallað er um fyrirtæki, stofnun eða fólk, eða þegar hagvísir nær viðmiði.</p>
 
     <h2>Vinnureglurnar</h2>
     <ul class="rules">
@@ -49,11 +46,6 @@ const desc = 'Um Karp — Hagvísir Íslands: sjálfstætt mælaborð sem safnar
     .lead { font-size: 17px; color: #dfe7f4; line-height: 1.6; }
     p { color: var(--ink); }
     h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 30px 0 10px; }
-    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
-    .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 14px 16px; }
-    .card b { display: block; color: #f6b13b; font-size: 14.5px; margin-bottom: 4px; }
-    .card span { font-size: 13px; color: #b9c6da; line-height: 1.55; }
     .rules { margin: 0; padding-left: 20px; }
     .rules li { font-size: 14px; color: var(--ink); line-height: 1.6; margin-bottom: 8px; }
     .rules b { color: var(--ink); }

@@ -7,7 +7,7 @@
 // Gátun: subGate 'kvoti' — virk AÐEINS þegar greiðsluveggur (KARP_USER.paywall) er á (sama og utbod).
 import Layout from '../layouts/Layout.astro';
 
-const desc = 'Kvótavaktin — kvóti, aflamark og kvótaeigendur á einum stað. Þorskígildi allra útgerða, samþjöppun í sjávarútvegi (HHI, hlutdeild 10 stærstu), tegundagreining og eigendahópar raktir gegnum eignarhaldskeðjur með nálgun við 12%-þak laganna. Fyrir fjölmiðla, banka, útgerðir og greinendur.';
+const desc = 'Kvótavaktin — aflamark Fiskistofu í þorskígildum per útgerð og eigendahóp. Samþjöppun í sjávarútvegi (HHI, hlutdeild 10 stærstu), tegundagreining og eigendahópar raktir gegnum eignarhaldskeðjur með nálgun við 12%-þak laganna. Fyrir fjölmiðla, banka, útgerðir og greinendur.';
 
 // Service/Product schema — mánaðaráskrift 9.900 kr.
 const jsonLd = {
@@ -33,7 +33,7 @@ const jsonLd = {
   <main data-pg="kvotavaktin">
     <p class="kicker">Karp+ · Sjávarútvegur</p>
     <h1>Kvótavaktin</h1>
-    <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða á einum stað, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
+    <p class="lead">Hver heldur kvótanum? <strong>Aflamark, eigendur og samþjöppun</strong> — rakin gegnum eignarhaldskeðjur. Þorskígildi allra útgerða, tengd við ársreikninga, endanlega eigendur og 12%-þak laganna.</p>
     <p class="datainfo"><i class="tip" tabindex="0" data-tip="Aflamark og krókaaflamark frá Fiskistofu, umreiknað í þorskígildi. Eigendahópar eru raktir gegnum eignarhaldsnet Karps (hluthafaskrár ársreikninga + fyrirtækjaskrá). Áætlun Karps byggð á opinberum skrám — ekki úrskurður um tengda aðila skv. lögum.">ⓘ</i> Heimild: <span id="kv-heimild">Fiskistofa — aflamark í þorskígildum</span> · uppfært <span id="kv-uppfaert">—</span><span id="kv-timabil"></span></p>
 
     <!-- Sýnishorns-borði (?syni=1) — fyllt í runtime -->
