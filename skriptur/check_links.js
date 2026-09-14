@@ -41,7 +41,10 @@ for (const f of htmls) {
   const t = fs.readFileSync(f, 'utf8');
   const urls = [...new Set([...t.matchAll(/(?:href|src)="(\/[^"]*)"/g)].map((m) => m[1]))]
     .filter((u) => !u.startsWith('//') && !/^\/api\//.test(u)) // worker-rútur ekki í dist
-    .filter((u) => !/^\/fyrirtaeki\/\d{6,10}[/-]?[\d-]*\/?(\?|#|$)/.test(u)) // fyrirtækjaprófílar eru worker-SSR fyrir HVAÐA kt sem er — aðeins hluti er í dist (falskt-jákvætt á ný þrotloka-kt, CI 30.7)
+    // Fyrirtækjaprófílar eru worker-SSR fyrir HVAÐA kt sem er — aðeins hluti er í dist
+    // (falskt-jákvætt á ný þrotloka-kt, CI 30.7). ⚠ 14.9: nafn-slóðin /fyrirtaeki/<slug>-<kt>/
+    // bættist við; án hennar töldust allar 44.917 tenglar skrárinnar brotnir.
+    .filter((u) => !/^\/fyrirtaeki\/(?:[a-z0-9-]*-)?\d{6,10}[/-]?[\d-]*\/?(\?|#|$)/.test(u))
     .filter((u) => !u.includes('${')); // template-strengir í inline-JS = runtime-hlekkir
   for (const u of urls) {
     checked++;
