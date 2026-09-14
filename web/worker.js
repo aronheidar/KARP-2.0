@@ -25,6 +25,7 @@ import { adminEmailHandler, adminOverviewHandler, adminRefreshHandler, adminSend
 import { adminTicketHandler, createTicket, processNewTicket } from './src/worker/hjalp_agent.mjs';   // 🎫 þjónustufulltrúi: ticket → greining → svar/tillaga
 import { adminMootHandler } from './src/worker/moot.mjs';   // 🏛️ Moot: ráðsfundur persónanna um eitt ticket — tillaga sem Aron greiðir atkvæði um
 import { adminGmailHandler, gmailIntakeCron } from './src/worker/gmail_intake.mjs';   // 📥 póstur beint á hjalp@ → ticket (3-tíma cron + hnappur á /stjorn/)
+import { adminBilanirHandler } from './src/worker/bilanir.mjs';   // 🛠️ bilanalisti Hrafns: CI, byggingar, gleymdir PR-ar
 import { augGet } from './src/worker/felag.mjs';
 import { _kycGate, _searchVariants, kycVikuDigest, rg } from './src/worker/veitur.mjs';
 import { authMeHandler, karpUserId } from './src/worker/auth.mjs';
@@ -3035,6 +3036,7 @@ export default {
     if (url.pathname === '/api/admin/ticket') return adminTicketHandler(request, env, ctx);   // 🎫 hjálparbeiðnir: listi/þráður/svara/CTO/rofi
     if (url.pathname === '/api/admin/moot') return adminMootHandler(request, env, ctx);   // 🏛️ Moot: GET nýjasti fundur · POST halda/atkvaedi (breytir aldrei stöðu, sendir aldrei póst)
     if (url.pathname === '/api/admin/gmail') return adminGmailHandler(request, env, ctx);   // 📥 innlestur pósts á hjalp@: GET síðasta keyrsla · POST sækja núna
+    if (url.pathname === '/api/admin/bilanir') return adminBilanirHandler(request, env, ctx);   // 🛠️ GET listinn · POST {verk} ræsir Hrafn
     if (url.pathname === '/api/villa') return villaHandler(request, ctx);
     if (url.pathname === '/api/domar') return domarHandler(ctx);
     if (url.pathname === '/api/greidslur') return greidslurHandler(ctx);
