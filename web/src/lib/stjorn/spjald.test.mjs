@@ -67,3 +67,38 @@ test('rofi birtist aðeins þegar lykill fylgir, og textinn segir hvað smellur 
   const b = spjald(Object.assign({}, GRUNNUR, { rofi: { lykill: 'hjalp_agent_off', off: true } }));
   assert.match(b, /kveikja/);
 });
+
+test('EIGINDI: gögn geta ekki brotist út úr href, data- eða class-eigindum', () => {
+  const arás = '" onmouseover="alert(1)" x="';
+  const h = spjald(Object.assign({}, GRUNNUR, {
+    id: arás,
+    bidur: [{ titill: 'x', vidbot: arás, slod: '#t' + arás, bid: 0, adkallandi: false, tegund: arás }],
+    vinnsla: [{ texti: 'y', hvenaer: arás }],
+    tolur: [{ n: arás, l: arás, s: arás }],
+    heimildir: [arás],
+    rofi: { lykill: arás, off: false },
+  }));
+  assert.ok(!h.includes('onmouseover='), 'ekkert eigind slapp í gegn');
+  assert.ok(!h.includes('" x="'), 'engin gæsalöpp braut út úr eigindi');
+  assert.equal((h.match(/&quot;/g) || []).length >= 6, true, 'gæsalappirnar eru escape-aðar, ekki fjarlægðar');
+});
+
+test('SLÓÐIR: aðeins kjölfestur og https komast í href', () => {
+  const rod = (slod) => ({ titill: 't', vidbot: '', slod, bid: 0, adkallandi: false, tegund: 'svar' });
+  const h = spjald(Object.assign({}, GRUNNUR, { bidur: [rod('javascript:alert(1)'), rod('data:text/html,<script>'), rod('#ticket-4'), rod('https://github.com/x/y/pull/1')] }));
+  assert.ok(!h.includes('javascript:'), 'javascript-slóð stöðvuð');
+  assert.ok(!h.includes('data:text/html'), 'data-slóð stöðvuð');
+  assert.match(h, /href="#ticket-4"/);
+  assert.match(h, /href="https:\/\/github\.com\/x\/y\/pull\/1"/);
+});
+
+test('GÖLLUÐ GÖGN: spjaldið teiknast áfram þótt listaviðfang sé rangrar tegundar', () => {
+  for (const rusl of ['strengur', {}, 42, true]) {
+    const h = spjald(Object.assign({}, GRUNNUR, { bidur: rusl, vinnsla: rusl, tolur: rusl, heimildir: rusl }));
+    assert.match(h, /Sigrún/, String(rusl));
+    assert.ok(!h.includes('Bíður þín'), 'ónothæf gögn birtast ekki sem tómt hólf');
+  }
+  const meðRusli = spjald(Object.assign({}, GRUNNUR, { bidur: [null, { titill: 'gild', vidbot: '', slod: '#a', bid: 0, adkallandi: false, tegund: 'svar' }], heimildir: [null, 'gild heimild', 42] }));
+  assert.match(meðRusli, /gild/);
+  assert.match(meðRusli, /gild heimild/);
+});
