@@ -59,7 +59,7 @@ test('caps at n=5 and produces the vikan item shape', () => {
   const first = v.facts.mal[0];
   assert.equal(first.slug, 'slug-a');
   assert.equal(first.cat, 'L-vextir');
-  assert.equal(first.emoji, 'E');
+  assert.equal(first.emoji, undefined, 'emoji-sviðið var fellt — CAT ber ekki lengur myndtákn');
   assert.equal(first.dags, '2026-07-19');
   assert.equal(first.title, 'Vaxtafrétt');
   assert.ok(first.hook.length <= 90);
